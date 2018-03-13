@@ -7,13 +7,12 @@ Line-oriented TTY loop.
 package isabelle
 
 
-import java.io.{IOException, BufferedReader, BufferedWriter, InputStreamReader}
+import java.io.{IOException, Writer, Reader, InputStreamReader, BufferedReader}
 
 
-class TTY_Loop(
-  process_writer: BufferedWriter,
-  process_reader: BufferedReader,
-  process_interrupt: Option[() => Unit] = None)
+class TTY_Loop(writer: Writer, reader: Reader,
+  writer_lock: AnyRef = new Object,
+  interrupt: Option[() => Unit] = None)
 {
   private val console_output = Future.thread[Unit]("console_output") {
     try {
@@ -22,8 +21,8 @@ class TTY_Loop(
       while (!finished) {
         var c = -1
         var done = false
-        while (!done && (result.length == 0 || process_reader.ready)) {
-          c = process_reader.read
+        while (!done && (result.length == 0 || reader.ready)) {
+          c = reader.read
           if (c >= 0) result.append(c.asInstanceOf[Char])
           else done = true
         }
@@ -33,7 +32,7 @@ class TTY_Loop(
           result.length = 0
         }
         else {
-          process_reader.close()
+          reader.close()
           finished = true
         }
       }
@@ -50,21 +49,22 @@ class TTY_Loop(
         while (!finished) {
           console_reader.readLine() match {
             case null =>
-              process_writer.close()
+              writer.close()
               finished = true
             case line =>
-              process_writer.write(line)
-              process_writer.write("\n")
-              process_writer.flush()
+              writer_lock.synchronized {
+                writer.write(line)
+                writer.write("\n")
+                writer.flush()
+              }
           }
         }
       }
       catch { case e: IOException => case Exn.Interrupt() => }
     }
-    process_interrupt match {
+    interrupt match {
       case None => body
-      case Some(interrupt) =>
-        POSIX_Interrupt.handler { interrupt() } { body }
+      case Some(int) => POSIX_Interrupt.handler { int() } { body }
     }
   }
 

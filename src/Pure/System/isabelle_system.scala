@@ -8,7 +8,7 @@ optional init operation.
 package isabelle
 
 
-import java.io.{File => JFile, IOException, BufferedReader, InputStreamReader}
+import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
 

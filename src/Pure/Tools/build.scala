@@ -8,12 +8,7 @@ Build and manage Isabelle sessions.
 package isabelle
 
 
-import java.io.{BufferedInputStream, FileInputStream,
-  BufferedReader, InputStreamReader, IOException}
-import java.util.zip.GZIPInputStream
-
 import scala.collection.SortedSet
-import scala.collection.mutable
 import scala.annotation.tailrec
 
 
@@ -704,7 +699,7 @@ object Build
     var check_keywords: Set[String] = Set.empty
     var list_files = false
     var no_build = false
-    var options = (Options.init() /: build_options)(_ + _)
+    var options = Options.init(opts = build_options)
     var system_mode = false
     var verbose = false
     var exclude_sessions: List[String] = Nil
@@ -775,7 +770,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     val results =
       progress.interrupt_handler {
-        build(options, progress,
+        build(options,
+          progress = progress,
           check_unknown_files = Mercurial.is_repository(Path.explode("~~")),
           build_heap = build_heap,
           clean_build = clean_build,

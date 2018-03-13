@@ -7,7 +7,6 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
-import java.io.{FileInputStream, BufferedInputStream}
 import java.awt.{GraphicsEnvironment, Image, Component, Container, Toolkit, Window, Font,
   KeyboardFocusManager}
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}

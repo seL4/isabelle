@@ -17,8 +17,18 @@ object JSON
   type T = Any
   type S = String
 
-  type Object = Map[String, T]
-  val empty: Object = Map.empty
+  object Object
+  {
+    type T = Map[String, JSON.T]
+    val empty: T = Map.empty
+
+    def unapply(obj: T): Option[Object.T] =
+      obj match {
+        case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
+          Some(m.asInstanceOf[Object.T])
+        case _ => None
+      }
+  }
 
 
   /* lexer */
@@ -120,7 +130,7 @@ object JSON
     def string: Parser[String] = elem("string", _.is_string) ^^ (_.text)
     def number: Parser[Double] = elem("number", _.is_number) ^^ (tok => tok.text.toDouble)
 
-    def json_object: Parser[Object] =
+    def json_object: Parser[Object.T] =
       $$$("{") ~>
         repsep(string ~ ($$$(":") ~> json_value) ^^ { case a ~ b => (a, b) }, $$$(",")) <~
       $$$("}") ^^ (_.toMap)
@@ -188,7 +198,7 @@ object JSON
         result += ']'
       }
 
-      def object_(obj: Object)
+      def object_(obj: Object.T)
       {
         result += '{'
         Library.separate(None, obj.toList.map(Some(_))).foreach({
@@ -210,8 +220,7 @@ object JSON
             val i = n.toLong
             result ++= (if (i.toDouble == n) i.toString else n.toString)
           case s: String => string(s)
-          case obj: Map[_, _] if obj.keySet.forall(_.isInstanceOf[String]) =>
-            object_(obj.asInstanceOf[Object])
+          case Object(m) => object_(m)
           case list: List[T] => array(list)
           case _ => error("Bad JSON value: " + x.toString)
         }
@@ -223,10 +232,18 @@ object JSON
   }
 
 
-  /* numbers */
+  /* typed values */
 
-  object Number
+  object Value
   {
+    object String {
+      def unapply(json: T): Option[java.lang.String] =
+        json match {
+          case x: java.lang.String => Some(x)
+          case _ => None
+        }
+    }
+
     object Double {
       def unapply(json: T): Option[scala.Double] =
         json match {
@@ -256,21 +273,39 @@ object JSON
           case _ => None
         }
     }
+
+    object Boolean {
+      def unapply(json: T): Option[scala.Boolean] =
+        json match {
+          case x: scala.Boolean => Some(x)
+          case _ => None
+        }
+    }
+
+    object List
+    {
+      def unapply[A](json: T, unapply: T => Option[A]): Option[List[A]] =
+        json match {
+          case xs: List[T] =>
+            val ys = xs.map(unapply)
+            if (ys.forall(_.isDefined)) Some(ys.map(_.get)) else None
+          case _ => None
+        }
+    }
   }
 
 
   /* object values */
 
-  def optional(entry: (String, Option[T])): Object =
+  def optional(entry: (String, Option[T])): Object.T =
     entry match {
       case (name, Some(x)) => Map(name -> x)
-      case (_, None) => empty
+      case (_, None) => Object.empty
     }
 
   def value(obj: T, name: String): Option[T] =
     obj match {
-      case m: Map[_, _] if m.keySet.forall(_.isInstanceOf[String]) =>
-        m.asInstanceOf[Object].get(name)
+      case Object(m) => m.get(name)
       case _ => None
     }
 
@@ -286,31 +321,39 @@ object JSON
       case _ => None
     }
 
-  def array[A](obj: T, name: String, unapply: T => Option[A]): Option[List[A]] =
-    for {
-      a0 <- array(obj, name)
-      a = a0.map(unapply(_))
-      if a.forall(_.isDefined)
-    } yield a.map(_.get)
+  def value_default[A](obj: T, name: String, unapply: T => Option[A], default: A): Option[A] =
+    value(obj, name) match {
+      case None => Some(default)
+      case Some(json) => unapply(json)
+    }
 
   def string(obj: T, name: String): Option[String] =
-    value(obj, name) match {
-      case Some(x: String) => Some(x)
-      case _ => None
-    }
+    value(obj, name, Value.String.unapply)
+  def string_default(obj: T, name: String, default: String = ""): Option[String] =
+    value_default(obj, name, Value.String.unapply, default)
 
   def double(obj: T, name: String): Option[Double] =
-    value(obj, name, Number.Double.unapply)
+    value(obj, name, Value.Double.unapply)
+  def double_default(obj: T, name: String, default: Double = 0.0): Option[Double] =
+    value_default(obj, name, Value.Double.unapply, default)
 
   def long(obj: T, name: String): Option[Long] =
-    value(obj, name, Number.Long.unapply)
+    value(obj, name, Value.Long.unapply)
+  def long_default(obj: T, name: String, default: Long = 0): Option[Long] =
+    value_default(obj, name, Value.Long.unapply, default)
 
   def int(obj: T, name: String): Option[Int] =
-    value(obj, name, Number.Int.unapply)
+    value(obj, name, Value.Int.unapply)
+  def int_default(obj: T, name: String, default: Int = 0): Option[Int] =
+    value_default(obj, name, Value.Int.unapply, default)
 
   def bool(obj: T, name: String): Option[Boolean] =
-    value(obj, name) match {
-      case Some(x: Boolean) => Some(x)
-      case _ => None
-    }
+    value(obj, name, Value.Boolean.unapply)
+  def bool_default(obj: T, name: String, default: Boolean = false): Option[Boolean] =
+    value_default(obj, name, Value.Boolean.unapply, default)
+
+  def list[A](obj: T, name: String, unapply: T => Option[A]): Option[List[A]] =
+    value(obj, name, Value.List.unapply(_, unapply))
+  def list_default[A](obj: T, name: String, unapply: T => Option[A], default: List[A] = Nil)
+    : Option[List[A]] = value_default(obj, name, Value.List.unapply(_, unapply), default)
 }

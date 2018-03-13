@@ -19,8 +19,8 @@ Argument formats:
 package isabelle
 
 
-import java.io.{BufferedInputStream, BufferedOutputStream, BufferedReader, BufferedWriter,
-  InputStreamReader, OutputStreamWriter, IOException}
+import java.io.{BufferedInputStream, BufferedOutputStream, InputStreamReader, OutputStreamWriter,
+  IOException}
 import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
 
 
@@ -32,7 +32,8 @@ object Server
   {
     def split(msg: String): (String, String) =
     {
-      val name = msg.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c))
+      val name =
+        msg.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c) || c == '.')
       val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank(_))
       (name, argument)
     }
@@ -59,13 +60,17 @@ object Server
 
   object Command
   {
-    type T = PartialFunction[(Server, Any), Any]
+    type T = PartialFunction[(Context, Any), Any]
 
     private val table: Map[String, T] =
       Map(
-        "echo" -> { case (_, t) => t },
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
-        "shutdown" -> { case (server, ()) => server.close(); () })
+        "echo" -> { case (_, t) => t },
+        "shutdown" -> { case (context, ()) => context.shutdown(); () },
+        "session_build" ->
+          { case (context, Server_Commands.Session_Build(args)) =>
+             Server_Commands.Session_Build.command(context.progress(), args)._1
+          })
 
     def unapply(name: String): Option[T] = table.get(name)
   }
@@ -101,14 +106,24 @@ object Server
       new Connection(socket)
   }
 
-  class Connection private(val socket: Socket)
+  class Connection private(socket: Socket)
   {
     override def toString: String = socket.toString
 
     def close() { socket.close }
 
-    val in = new BufferedInputStream(socket.getInputStream)
-    val out = new BufferedOutputStream(socket.getOutputStream)
+    def set_timeout(t: Time) { socket.setSoTimeout(t.ms.toInt) }
+
+    private val in = new BufferedInputStream(socket.getInputStream)
+    private val out = new BufferedOutputStream(socket.getOutputStream)
+    private val out_lock: AnyRef = new Object
+
+    def tty_loop(interrupt: Option[() => Unit] = None): TTY_Loop =
+      new TTY_Loop(
+        new OutputStreamWriter(out),
+        new InputStreamReader(in),
+        writer_lock = out_lock,
+        interrupt = interrupt)
 
     def read_message(): Option[String] =
       try {
@@ -120,7 +135,7 @@ object Server
       }
       catch { case _: SocketException => None }
 
-    def write_message(msg: String)
+    def write_message(msg: String): Unit = out_lock.synchronized
     {
       val b = UTF8.bytes(msg)
       if (b.length > 100 || b.contains(10)) {
@@ -144,8 +159,51 @@ object Server
       reply_error(Map("message" -> message) ++ more)
 
     def notify(arg: Any) { reply(Server.Reply.NOTE, arg) }
-    def notify_message(message: String, more: (String, JSON.T)*): Unit =
-      notify(Map("message" -> message) ++ more)
+  }
+
+
+  /* context with output channels */
+
+  class Context private[Server](server: Server, connection: Connection)
+  {
+    context =>
+
+    def shutdown() { server.close() }
+
+    def notify(arg: Any) { connection.notify(arg) }
+    def message(kind: String, msg: String, more: (String, JSON.T)*): Unit =
+      notify(Map(Markup.KIND -> kind, "message" -> msg) ++ more)
+    def writeln(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WRITELN, msg, more:_*)
+    def warning(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WARNING, msg, more:_*)
+    def error_message(msg: String, more: (String, JSON.T)*): Unit =
+      message(Markup.ERROR_MESSAGE, msg, more:_*)
+
+    val logger: Connection_Logger = new Connection_Logger(context)
+    def progress(): Connection_Progress = new Connection_Progress(context)
+
+    override def toString: String = connection.toString
+  }
+
+  class Connection_Logger private[Server](context: Context) extends Logger
+  {
+    def apply(msg: => String): Unit = context.message(Markup.LOGGER, msg)
+
+    override def toString: String = context.toString
+  }
+
+  class Connection_Progress private[Server](context: Context) extends Progress
+  {
+    override def echo(msg: String): Unit = context.writeln(msg)
+    override def echo_warning(msg: String): Unit = context.warning(msg)
+    override def echo_error_message(msg: String): Unit = context.error_message(msg)
+    override def theory(session: String, theory: String): Unit =
+      context.writeln(session + ": theory " + theory, "session" -> session, "theory" -> theory)
+
+    @volatile private var is_stopped = false
+    override def stopped: Boolean = is_stopped
+    def stop { is_stopped = true }
+
+    override def toString: String = context.toString
   }
 
 
@@ -167,7 +225,7 @@ object Server
       try {
         using(connection())(connection =>
           {
-            connection.socket.setSoTimeout(2000)
+            connection.set_timeout(Time.seconds(2.0))
             connection.read_message() == Some(Reply.OK.toString)
           })
       }
@@ -176,18 +234,6 @@ object Server
         case _: SocketException => false
         case _: SocketTimeoutException => false
       }
-
-    def console()
-    {
-      using(connection())(connection =>
-        {
-          val tty_loop =
-            new TTY_Loop(
-              new BufferedWriter(new OutputStreamWriter(connection.socket.getOutputStream)),
-              new BufferedReader(new InputStreamReader(connection.socket.getInputStream)))
-          tty_loop.join
-        })
-    }
   }
 
 
@@ -323,7 +369,9 @@ Usage: isabelle server [OPTIONS]
       else {
         val (server_info, server) = init(name, port = port, existing_server = existing_server)
         Output.writeln(server_info.toString, stdout = true)
-        if (console) server_info.console()
+        if (console) {
+          using(server_info.connection())(connection => connection.tty_loop().join)
+        }
         server.foreach(_.join)
       }
     })
@@ -344,6 +392,8 @@ class Server private(_port: Int)
 
   private def handle(connection: Server.Connection)
   {
+    val context = new Server.Context(server, connection)
+
     connection.read_message() match {
       case Some(msg) if msg == password =>
         connection.reply_ok(())
@@ -351,16 +401,15 @@ class Server private(_port: Int)
         while (!finished) {
           connection.read_message() match {
             case None => finished = true
-            case Some("") =>
-              connection.notify_message("Command 'help' provides list of commands")
+            case Some("") => context.notify("Command 'help' provides list of commands")
             case Some(msg) =>
               val (name, argument) = Server.Argument.split(msg)
               name match {
                 case Server.Command(cmd) =>
                   argument match {
                     case Server.Argument(arg) =>
-                      if (cmd.isDefinedAt((server, arg))) {
-                        Exn.capture { cmd((server, arg)) } match {
+                      if (cmd.isDefinedAt((context, arg))) {
+                        Exn.capture { cmd((context, arg)) } match {
                           case Exn.Res(res) => connection.reply_ok(res)
                           case Exn.Exn(ERROR(msg)) => connection.reply_error(msg)
                           case Exn.Exn(exn) => throw exn

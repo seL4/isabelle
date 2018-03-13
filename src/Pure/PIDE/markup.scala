@@ -457,6 +457,7 @@ object Markup
   val STDOUT = "stdout"
   val STDERR = "stderr"
   val EXIT = "exit"
+  val LOGGER = "logger"
 
   val WRITELN_MESSAGE = "writeln_message"
   val STATE_MESSAGE = "state_message"
