@@ -770,7 +770,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     val results =
       progress.interrupt_handler {
-        build(options, progress,
+        build(options,
+          progress = progress,
           check_unknown_files = Mercurial.is_repository(Path.explode("~~")),
           build_heap = build_heap,
           clean_build = clean_build,

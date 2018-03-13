@@ -124,8 +124,8 @@ object JEdit_Sessions
   {
     val mode = session_build_mode()
 
-    Build.build(options = session_options(options), progress = progress,
-      build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
+    Build.build(session_options(options), progress = progress, build_heap = true,
+      no_build = no_build, system_mode = mode == "" || mode == "system",
       dirs = session_dirs(), infos = PIDE.resources.session_base_info.infos,
       sessions = List(PIDE.resources.session_name)).rc
   }

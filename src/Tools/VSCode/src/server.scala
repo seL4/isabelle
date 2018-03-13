@@ -252,8 +252,8 @@ class Server(
 
     val try_session =
       try {
-        if (!Build.build(options = options, build_heap = true, no_build = true,
-              system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
+        if (!Build.build(options, build_heap = true, no_build = true,
+            system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
         {
           val start_msg = "Build started for Isabelle/" + session_name + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
@@ -261,7 +261,7 @@ class Server(
           val progress = channel.make_progress(verbose = true)
           progress.echo(start_msg); channel.writeln(start_msg)
 
-          if (!Build.build(options = options, progress = progress, build_heap = true,
+          if (!Build.build(options, progress = progress, build_heap = true,
               system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
           {
             progress.echo(fail_msg); error(fail_msg)
