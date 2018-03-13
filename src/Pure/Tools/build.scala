@@ -699,7 +699,7 @@ object Build
     var check_keywords: Set[String] = Set.empty
     var list_files = false
     var no_build = false
-    var options = (Options.init() /: build_options)(_ + _)
+    var options = Options.init(opts = build_options)
     var system_mode = false
     var verbose = false
     var exclude_sessions: List[String] = Nil

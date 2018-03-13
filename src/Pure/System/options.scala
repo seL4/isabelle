@@ -130,14 +130,14 @@ object Options
   def read_prefs(file: Path = PREFS): String =
     if (file.is_file) File.read(file) else ""
 
-  def init(prefs: String = read_prefs(PREFS)): Options =
+  def init(prefs: String = read_prefs(PREFS), opts: List[String] = Nil): Options =
   {
     var options = empty
     for {
       dir <- Isabelle_System.components()
       file = dir + OPTIONS if file.is_file
     } { options = Parser.parse_file(options, file.implode, File.read(file)) }
-    Options.Parser.parse_prefs(options, prefs)
+    (Options.Parser.parse_prefs(options, prefs) /: opts)(_ + _)
   }
 
 
