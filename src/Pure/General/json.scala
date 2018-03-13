@@ -232,10 +232,18 @@ object JSON
   }
 
 
-  /* numbers */
+  /* values */
 
-  object Number
+  object Value
   {
+    object String {
+      def unapply(json: T): Option[java.lang.String] =
+        json match {
+          case x: java.lang.String => Some(x)
+          case _ => None
+        }
+    }
+
     object Double {
       def unapply(json: T): Option[scala.Double] =
         json match {
@@ -262,6 +270,14 @@ object JSON
           case x: scala.Double if x.toInt.toDouble == x => Some(x.toInt)
           case x: scala.Long if x.toInt.toLong == x => Some(x.toInt)
           case x: scala.Int => Some(x)
+          case _ => None
+        }
+    }
+
+    object Boolean {
+      def unapply(json: T): Option[scala.Boolean] =
+        json match {
+          case x: scala.Boolean => Some(x)
           case _ => None
         }
     }
@@ -302,23 +318,17 @@ object JSON
     } yield a.map(_.get)
 
   def string(obj: T, name: String): Option[String] =
-    value(obj, name) match {
-      case Some(x: String) => Some(x)
-      case _ => None
-    }
+    value(obj, name, Value.String.unapply)
 
   def double(obj: T, name: String): Option[Double] =
-    value(obj, name, Number.Double.unapply)
+    value(obj, name, Value.Double.unapply)
 
   def long(obj: T, name: String): Option[Long] =
-    value(obj, name, Number.Long.unapply)
+    value(obj, name, Value.Long.unapply)
 
   def int(obj: T, name: String): Option[Int] =
-    value(obj, name, Number.Int.unapply)
+    value(obj, name, Value.Int.unapply)
 
   def bool(obj: T, name: String): Option[Boolean] =
-    value(obj, name) match {
-      case Some(x: Boolean) => Some(x)
-      case _ => None
-    }
+    value(obj, name, Value.Boolean.unapply)
 }
