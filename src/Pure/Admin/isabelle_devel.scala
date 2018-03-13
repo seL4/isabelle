@@ -9,11 +9,13 @@ package isabelle
 
 object Isabelle_Devel
 {
-  val root = Path.explode("~/html-data/devel")
-
   val RELEASE_SNAPSHOT = "release_snapshot"
   val BUILD_LOG_DB = "build_log.db"
   val BUILD_STATUS = "build_status"
+  val CRONJOB_LOG = "cronjob-main.log"
+
+  val root = Path.explode("~/html-data/devel")
+  val cronjob_log = root + Path.basic(CRONJOB_LOG)
 
 
   /* index */
@@ -40,7 +42,9 @@ object Isabelle_Devel
             HTML.text(" information (e.g. for ") :::
             List(HTML.link("http://sqlitebrowser.org",
               List(HTML.code(HTML.text("sqlitebrowser"))))) :::
-            HTML.text(")")))))
+            HTML.text(")"),
+
+            HTML.text("Cronjob ") ::: List(HTML.link(CRONJOB_LOG, HTML.text("log file")))))))
   }
 
 

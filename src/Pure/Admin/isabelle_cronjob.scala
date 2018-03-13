@@ -7,6 +7,8 @@ Main entry point for administrative cronjob at TUM.
 package isabelle
 
 
+import java.nio.file.Files
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 
@@ -54,6 +56,9 @@ object Isabelle_Cronjob
         Isabelle_System.bash(
           """rsync -a --include="*/" --include="plain_identify*" --exclude="*" """ +
             Bash.string(backup + "/log") + " " + File.bash_path(main_dir)).check
+
+        if (!Isabelle_Devel.cronjob_log.is_file)
+          Files.createSymbolicLink(Isabelle_Devel.cronjob_log.file.toPath, current_log.file.toPath)
       })
 
   val exit =
