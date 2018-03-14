@@ -98,7 +98,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
 
   /* progress */
 
-  def make_progress(verbose: Boolean = false): Progress =
+  def progress(verbose: Boolean = false): Progress =
     new Progress {
       override def echo(msg: String): Unit = log_writeln(msg)
       override def echo_warning(msg: String): Unit = log_warning(msg)

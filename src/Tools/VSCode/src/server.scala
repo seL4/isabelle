@@ -258,7 +258,7 @@ class Server(
           val start_msg = "Build started for Isabelle/" + session_name + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
 
-          val progress = channel.make_progress(verbose = true)
+          val progress = channel.progress(verbose = true)
           progress.echo(start_msg); channel.writeln(start_msg)
 
           if (!Build.build(options, progress = progress, build_heap = true,
