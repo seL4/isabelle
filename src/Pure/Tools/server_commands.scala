@@ -42,7 +42,8 @@ object Server_Commands
           system_mode = system_mode, verbose = verbose)
       }
 
-    def command(progress: Progress, args: Args): (JSON.T, Build.Results, Sessions.Base_Info) =
+    def command(progress: Progress, args: Args)
+      : (JSON.Object.T, Build.Results, Sessions.Base_Info) =
     {
       val options = Options.init(prefs = args.prefs, opts = args.opts)
       val dirs = args.dirs.map(Path.explode(_))

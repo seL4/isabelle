@@ -70,7 +70,8 @@ object Server
         "cancel" -> { case (context, JSON.Value.String(id)) => context.cancel_task(id) },
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
-             Server_Commands.Session_Build.command(context.progress(), args)._1
+              context.make_task(task =>
+                Server_Commands.Session_Build.command(task.progress, args)._1)
           })
 
     def unapply(name: String): Option[T] = table.get(name)
