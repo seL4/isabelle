@@ -152,18 +152,18 @@ object Server
       try { out.flush() } catch { case _: SocketException => }
     }
 
-    def reply(r: Server.Reply.Value, arg: Any)
+    def reply(r: Reply.Value, arg: Any)
     {
       val argument = Argument.print(arg)
       write_message(if (argument == "") r.toString else r.toString + " " + argument)
     }
 
-    def reply_ok(arg: Any) { reply(Server.Reply.OK, arg) }
-    def reply_error(arg: Any) { reply(Server.Reply.ERROR, arg) }
+    def reply_ok(arg: Any) { reply(Reply.OK, arg) }
+    def reply_error(arg: Any) { reply(Reply.ERROR, arg) }
     def reply_error_message(message: String, more: JSON.Object.Entry*): Unit =
       reply_error(JSON.Object(Reply.message(message)) ++ more)
 
-    def notify(arg: Any) { reply(Server.Reply.NOTE, arg) }
+    def notify(arg: Any) { reply(Reply.NOTE, arg) }
   }
 
 
@@ -175,6 +175,7 @@ object Server
 
     def shutdown() { server.close() }
 
+    def reply(r: Reply.Value, arg: Any) { connection.reply(r, arg) }
     def notify(arg: Any) { connection.notify(arg) }
     def message(kind: String, msg: String, more: JSON.Object.Entry*): Unit =
       notify(JSON.Object(Markup.KIND -> kind, Reply.message(msg)) ++ more)
