@@ -234,16 +234,15 @@ ML \<open>
   fun eventually_elim_tac facts =
     CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
       let
-        val mp_thms = facts RL @{thms eventually_rev_mp}
-        val raw_elim_thm =
-          (@{thm allI} RS @{thm always_eventually})
-          |> fold (fn thm1 => fn thm2 => thm2 RS thm1) mp_thms
-          |> fold (fn _ => fn thm => @{thm impI} RS thm) facts
+        val mp_facts = facts RL @{thms eventually_rev_mp}
+        val rule =
+          @{thm eventuallyI}
+          |> fold (fn mp_fact => fn th => th RS mp_fact) mp_facts
+          |> funpow (length facts) (fn th => @{thm impI} RS th)
         val cases_prop =
-          Thm.prop_of
-            (Rule_Cases.internalize_params (raw_elim_thm RS Goal.init (Thm.cterm_of ctxt goal)))
+          Thm.prop_of (Rule_Cases.internalize_params (rule RS Goal.init (Thm.cterm_of ctxt goal)))
         val cases = Rule_Cases.make_common ctxt cases_prop [(("elim", []), [])]
-      in CONTEXT_CASES cases (resolve_tac ctxt [raw_elim_thm] i) (ctxt, st) end)
+      in CONTEXT_CASES cases (resolve_tac ctxt [rule] i) (ctxt, st) end)
 \<close>
 
 method_setup eventually_elim = \<open>
