@@ -70,4 +70,7 @@ sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
   }
 
   override def toString: String = message
+
+  def json: JSON.Object.T =
+    JSON.Object("elapsed" -> elapsed.seconds, "cpu" -> cpu.seconds, "gc" -> gc.seconds)
 }

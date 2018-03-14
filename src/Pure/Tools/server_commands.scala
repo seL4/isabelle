@@ -42,7 +42,7 @@ object Server_Commands
           system_mode = system_mode, verbose = verbose)
       }
 
-    def command(progress: Progress, args: Args): (JSON.T, Sessions.Base_Info, Build.Results) =
+    def command(progress: Progress, args: Args): (JSON.T, Build.Results, Sessions.Base_Info) =
     {
       val options = Options.init(prefs = args.prefs, opts = args.opts)
       val dirs = args.dirs.map(Path.explode(_))
@@ -68,7 +68,23 @@ object Server_Commands
           verbose = args.verbose,
           sessions = List(args.session))
 
-      (JSON.Object("rc" -> results.rc), base_info, results)
+      val sessions_order =
+        base_info.sessions_structure.imports_topological_order.zipWithIndex.
+          toMap.withDefaultValue(-1)
+
+      val results_json =
+        JSON.Object(
+          "return_code" -> results.rc,
+          "sessions" ->
+            results.sessions.toList.sortBy(sessions_order).map(session =>
+              JSON.Object(
+                "session" -> session,
+                "return_code" -> results(session).rc,
+                "timeout" -> results(session).timeout,
+                "timing" -> results(session).timing.json)))
+
+      if (results.ok) (results_json, results, base_info)
+      else throw new Server.Error("Session build failed: return code " + results.rc, results_json)
     }
   }
 }
