@@ -78,9 +78,14 @@ object Server
 
   /* output reply */
 
+  class Error(val message: String, val json: JSON.Object.T = JSON.Object.empty)
+    extends RuntimeException(message)
+
   object Reply extends Enumeration
   {
     val OK, ERROR, NOTE = Value
+
+    def message(msg: String): JSON.Object.Entry = ("message" -> msg)
 
     def unapply(msg: String): Option[(Reply.Value, Any)] =
     {
@@ -155,8 +160,8 @@ object Server
 
     def reply_ok(arg: Any) { reply(Server.Reply.OK, arg) }
     def reply_error(arg: Any) { reply(Server.Reply.ERROR, arg) }
-    def reply_error_message(message: String, more: (String, JSON.T)*): Unit =
-      reply_error(JSON.Object("message" -> message) ++ more)
+    def reply_error_message(message: String, more: JSON.Object.Entry*): Unit =
+      reply_error(JSON.Object(Reply.message(message)) ++ more)
 
     def notify(arg: Any) { reply(Server.Reply.NOTE, arg) }
   }
@@ -171,11 +176,11 @@ object Server
     def shutdown() { server.close() }
 
     def notify(arg: Any) { connection.notify(arg) }
-    def message(kind: String, msg: String, more: (String, JSON.T)*): Unit =
-      notify(JSON.Object(Markup.KIND -> kind, "message" -> msg) ++ more)
-    def writeln(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WRITELN, msg, more:_*)
-    def warning(msg: String, more: (String, JSON.T)*): Unit = message(Markup.WARNING, msg, more:_*)
-    def error_message(msg: String, more: (String, JSON.T)*): Unit =
+    def message(kind: String, msg: String, more: JSON.Object.Entry*): Unit =
+      notify(JSON.Object(Markup.KIND -> kind, Reply.message(msg)) ++ more)
+    def writeln(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WRITELN, msg, more:_*)
+    def warning(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WARNING, msg, more:_*)
+    def error_message(msg: String, more: JSON.Object.Entry*): Unit =
       message(Markup.ERROR_MESSAGE, msg, more:_*)
 
     val logger: Connection_Logger = new Connection_Logger(context)
@@ -411,7 +416,10 @@ class Server private(_port: Int)
                       if (cmd.isDefinedAt((context, arg))) {
                         Exn.capture { cmd((context, arg)) } match {
                           case Exn.Res(res) => connection.reply_ok(res)
-                          case Exn.Exn(ERROR(msg)) => connection.reply_error(msg)
+                          case Exn.Exn(exn: Server.Error) =>
+                            connection.reply_error_message(exn.message, exn.json.toList:_*)
+                          case Exn.Exn(ERROR(msg)) =>
+                            connection.reply_error_message(msg)
                           case Exn.Exn(exn) => throw exn
                         }
                       }

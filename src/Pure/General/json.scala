@@ -19,10 +19,12 @@ object JSON
 
   object Object
   {
+    type Entry = (String, JSON.T)
+
     type T = Map[String, JSON.T]
     val empty: Object.T = Map.empty
 
-    def apply(entries: (String, JSON.T)*): Object.T = Map(entries:_*)
+    def apply(entries: Entry*): Object.T = Map(entries:_*)
 
     def unapply(obj: T): Option[Object.T] =
       obj match {
