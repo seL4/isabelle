@@ -144,6 +144,10 @@ object Isabelle_System
 
   def cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
 
+  def isabelle_id(): String =
+    proper_string(getenv("ISABELLE_ID")) getOrElse
+      Mercurial.repository(Path.explode("~~")).id()
+
 
 
   /** file-system operations **/

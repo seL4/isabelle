@@ -141,11 +141,7 @@ object HTTP
   val welcome: Handler =
     get("/", arg =>
       if (arg.uri.toString == "/") {
-        val id =
-          Isabelle_System.getenv("ISABELLE_ID") match {
-            case "" => Mercurial.repository(Path.explode("~~")).id()
-            case id => id
-          }
+        val id = Isabelle_System.isabelle_id()
         Some(Response.text("Welcome to Isabelle/" + id + ": " + Distribution.version))
       }
       else None)
