@@ -9,7 +9,7 @@ package isabelle
 
 object Distribution
 {
-  val version = "unidentified repository version"
+  val version = "repository version"
   val is_identified = false
   val is_official = false
 }

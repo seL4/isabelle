@@ -6,7 +6,7 @@ The Isabelle system distribution -- filled-in by makedist.
 
 structure Distribution =
 struct
-  val version = "unidentified repository version";
+  val version = "repository version";
   val is_identified = false;
   val is_official = false;
 end;

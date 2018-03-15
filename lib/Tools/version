@@ -63,5 +63,5 @@ if [ -n "$SHORT_ID" ]; then
     "${HG:-hg}" -R "$ISABELLE_HOME" id -i -r tip 2>/dev/null || echo undefined
   fi
 else
-  echo 'unidentified repository version'    # filled in automatically!
+  echo 'repository version'    # filled in automatically!
 fi

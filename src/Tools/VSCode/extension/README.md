@@ -1,7 +1,7 @@
 # Isabelle Prover IDE support
 
 This extension connects VSCode to the Isabelle Prover IDE infrastructure: it
-requires an unidentified repository version of Isabelle.
+requires a repository version of Isabelle.
 
 The implementation is centered around the VSCode Language Server protocol, but
 with many add-ons that are specific to VSCode and Isabelle/PIDE.

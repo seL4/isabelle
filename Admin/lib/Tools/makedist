@@ -166,9 +166,9 @@ perl -pi \
 perl -pi -e "s,ISABELLE_ID=\"\",ISABELLE_ID=\"$IDENT\",g" lib/scripts/getsettings
 perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
 perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
-perl -pi -e "s,unidentified repository version,$DISTVERSION,g" \
+perl -pi -e "s,repository version,$DISTVERSION,g" \
   src/Pure/System/distribution.ML src/Pure/System/distribution.scala lib/Tools/version
-perl -pi -e "s,some unidentified repository version of Isabelle,$DISTVERSION,g" README
+perl -pi -e "s,some repository version of Isabelle,$DISTVERSION,g" README
 
 mkdir -p contrib
 cat >contrib/README <<EOF
