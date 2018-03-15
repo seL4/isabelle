@@ -316,7 +316,7 @@ object Isabelle_Cronjob
     List(
       List(
         Remote_Build("AFP slow", "lrzcloud1", self_update = true,
-          proxy_host = "lxbroy10", proxy_user = "isatest",
+          proxy_host = "lxbroy10", proxy_user = "i21isatest",
           ssh_host = "10.155.208.96", ssh_permissive = true,
           options = "-m64 -M6 -U30000 -s10 -t AFP",
           args = "-g slow",
