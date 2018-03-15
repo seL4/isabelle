@@ -479,7 +479,7 @@ class Server private(_port: Int, val log: Logger)
     _sessions.change_result(sessions =>
       sessions.get(id) match {
         case Some(session) => (session, sessions - id)
-        case None => error("No session " + quote(id))
+        case None => error("No session " + Library.single_quote(id))
       })
   }
 
