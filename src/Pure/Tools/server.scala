@@ -294,7 +294,10 @@ object Server
         using(connection())(connection =>
           {
             connection.set_timeout(Time.seconds(2.0))
-            connection.read_message() == Some(Reply.OK.toString)
+            connection.read_message() match {
+              case Some(Reply(Reply.OK, _)) => true
+              case _ => false
+            }
           })
       }
       catch {
@@ -464,7 +467,11 @@ class Server private(_port: Int)
     {
       connection.read_message() match {
         case Some(msg) if msg == password =>
-          connection.reply_ok(())
+          connection.reply_ok(
+            JSON.Object(
+              "isabelle_id" -> Isabelle_System.isabelle_id(),
+              "isabelle_version" -> Distribution.version))
+
           var finished = false
           while (!finished) {
             connection.read_message() match {
