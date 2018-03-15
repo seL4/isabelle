@@ -9,11 +9,13 @@ package isabelle
 
 object Server_Commands
 {
+  def default_preferences: String = Options.read_prefs()
+
   object Session_Build
   {
     sealed case class Args(
       session: String,
-      preferences: String = "",
+      preferences: String = default_preferences,
       options: List[String] = Nil,
       dirs: List[String] = Nil,
       ancestor_session: String = "",
@@ -26,7 +28,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[Args] =
       for {
         session <- JSON.string(json, "session")
-        preferences <- JSON.string_default(json, "preferences")
+        preferences <- JSON.string_default(json, "preferences", default_preferences)
         options <- JSON.list_default(json, "options", JSON.Value.String.unapply _)
         dirs <- JSON.list_default(json, "dirs", JSON.Value.String.unapply _)
         ancestor_session <- JSON.string_default(json, "ancestor_session")
