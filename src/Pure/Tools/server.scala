@@ -78,7 +78,7 @@ object Server
               context.make_task(task =>
                 {
                   val (res, session_id, session) =
-                    Server_Commands.Session_Start.command(task.progress, args, log = context.logger())
+                    Server_Commands.Session_Start.command(task.progress, args, log = context.log)
                   // FIXME store session in context
                   res
                 })
@@ -196,11 +196,10 @@ object Server
     def error_message(msg: String, more: JSON.Object.Entry*): Unit =
       message(Markup.ERROR_MESSAGE, msg, more:_*)
 
-    def logger(more: JSON.Object.Entry*): Connection_Logger =
-      new Connection_Logger(context, more:_*)
-
     def progress(more: JSON.Object.Entry*): Connection_Progress =
       new Connection_Progress(context, more:_*)
+
+    def log: Logger = server.log
 
     override def toString: String = connection.toString
 
@@ -229,14 +228,6 @@ object Server
     }
   }
 
-  class Connection_Logger private[Server](context: Context, more: JSON.Object.Entry*)
-    extends Logger
-  {
-    def apply(msg: => String): Unit = context.message(Markup.LOGGER, msg, more:_*)
-
-    override def toString: String = context.toString
-  }
-
   class Connection_Progress private[Server](context: Context, more: JSON.Object.Entry*)
     extends Progress
   {
@@ -260,8 +251,6 @@ object Server
 
     val id: String = Library.UUID()
     val ident: JSON.Object.Entry = ("task" -> id)
-
-    val logger: Logger = context.logger(ident)
 
     val progress: Connection_Progress = context.progress(ident)
     def cancel { progress.stop }
@@ -349,8 +338,11 @@ object Server
   def find(db: SQLite.Database, name: String): Option[Info] =
     list(db).find(server_info => server_info.name == name && server_info.active)
 
-  def init(name: String = default_name, port: Int = 0, existing_server: Boolean = false)
-    : (Info, Option[Server]) =
+  def init(
+    name: String = default_name,
+    port: Int = 0,
+    existing_server: Boolean = false,
+    log: Logger = No_Logger): (Info, Option[Server]) =
   {
     using(SQLite.open_database(Data.database))(db =>
       {
@@ -367,7 +359,7 @@ object Server
             case None =>
               if (existing_server) error("Isabelle server " + quote(name) + " not running")
 
-              val server = new Server(port)
+              val server = new Server(port, log)
               val server_info = Info(name, server.port, server.password)
 
               db.using_statement(Data.table.delete(Data.name.where_equal(name)))(_.execute)
@@ -407,6 +399,7 @@ object Server
     Isabelle_Tool("server", "manage resident Isabelle servers", args =>
     {
       var console = false
+      var log_file: Option[Path] = None
       var operation_list = false
       var operation_exit = false
       var name = default_name
@@ -419,20 +412,22 @@ Usage: isabelle server [OPTIONS]
 
   Options are:
     -C           console interaction with specified server
-    -L           list servers (exclusive operation)
-    -X           exit specified server (exclusive operation)
+    -L FILE      logging on FILE
+    -l           list servers (exclusive operation)
     -n NAME      explicit server name (default: """ + default_name + """)
     -p PORT      explicit server port
     -s           assume existing server, no implicit startup
+    -x           exit specified server (exclusive operation)
 
   Manage resident Isabelle servers.
 """,
           "C" -> (_ => console = true),
-          "L" -> (_ => operation_list = true),
-          "X" -> (_ => operation_exit = true),
+          "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+          "l" -> (_ => operation_list = true),
           "n:" -> (arg => name = arg),
           "p:" -> (arg => port = Value.Int.parse(arg)),
-          "s" -> (_ => existing_server = true))
+          "s" -> (_ => existing_server = true),
+          "X" -> (_ => operation_exit = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
@@ -448,7 +443,9 @@ Usage: isabelle server [OPTIONS]
         sys.exit(if (ok) 0 else 1)
       }
       else {
-        val (server_info, server) = init(name, port = port, existing_server = existing_server)
+        val log = Logger.make(log_file)
+        val (server_info, server) =
+          init(name, port = port, existing_server = existing_server, log = log)
         Output.writeln(server_info.toString, stdout = true)
         if (console) {
           using(server_info.connection())(connection => connection.tty_loop().join)
@@ -458,7 +455,7 @@ Usage: isabelle server [OPTIONS]
     })
 }
 
-class Server private(_port: Int)
+class Server private(_port: Int, val log: Logger)
 {
   server =>
 

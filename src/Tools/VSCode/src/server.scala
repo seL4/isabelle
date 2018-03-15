@@ -45,7 +45,7 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
     -A           explore theory name space of all known sessions (potentially slow)
-    -L FILE      enable logging on FILE
+    -L FILE      logging on FILE
     -d DIR       include session directory
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -m MODE      add print mode for output
