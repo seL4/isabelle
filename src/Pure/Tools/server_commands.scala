@@ -90,4 +90,39 @@ object Server_Commands
       else throw new Server.Error("Session build failed: return code " + results.rc, results_json)
     }
   }
+
+  object Session_Start
+  {
+    sealed case class Args(
+      build: Session_Build.Args,
+      print_mode: List[String] = Nil)
+
+    def unapply(json: JSON.T): Option[Args] =
+      for {
+        build <- Session_Build.unapply(json)
+        print_mode <- JSON.list_default(json, "print_mode", JSON.Value.String.unapply _)
+      }
+      yield Args(build = build, print_mode = print_mode)
+
+    def command(progress: Progress, args: Args, log: Logger = No_Logger)
+      : (JSON.Object.T, String, Session) =
+    {
+      val base_info = Session_Build.command(progress, args.build)._3
+
+      val session =
+        Thy_Resources.start_session(
+          base_info.options,
+          base_info.session,
+          session_dirs = base_info.dirs,
+          session_base = Some(base_info.check_base),
+          print_mode = args.print_mode,
+          progress = progress,
+          log = log)
+
+      val id = Library.UUID()
+      val res = JSON.Object("session_name" -> base_info.session, "session_id" -> id)
+
+      (res, id, session)
+    }
+  }
 }

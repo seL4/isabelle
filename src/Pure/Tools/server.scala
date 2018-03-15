@@ -72,6 +72,16 @@ object Server
           { case (context, Server_Commands.Session_Build(args)) =>
               context.make_task(task =>
                 Server_Commands.Session_Build.command(task.progress, args)._1)
+          },
+        "session_start" ->
+          { case (context, Server_Commands.Session_Start(args)) =>
+              context.make_task(task =>
+                {
+                  val (res, session_id, session) =
+                    Server_Commands.Session_Start.command(task.progress, args, log = context.logger())
+                  // FIXME store session in context
+                  res
+                })
           })
 
     def unapply(name: String): Option[T] = table.get(name)

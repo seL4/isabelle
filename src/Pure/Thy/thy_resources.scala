@@ -13,11 +13,11 @@ object Thy_Resources
 
   def start_session(
     options: Options,
-    progress: Progress = No_Progress,
     session_name: String,
     session_dirs: List[Path] = Nil,
     session_base: Option[Sessions.Base] = None,
-    modes: List[String] = Nil,
+    print_mode: List[String] = Nil,
+    progress: Progress = No_Progress,
     log: Logger = No_Logger): Session =
   {
     val base =
@@ -35,13 +35,13 @@ object Thy_Resources
           session_error.fulfill("")
         case Session.Terminated(result) if !result.ok =>
           session.phase_changed -= session_phase
-          session_error.fulfill("Prover startup failed: return code " + result.rc)
+          session_error.fulfill("Session start failed: return code " + result.rc)
         case _ =>
       }
     session.phase_changed += session_phase
 
     Isabelle_Process.start(session, options,
-      logic = session_name, dirs = session_dirs, modes = modes)
+      logic = session_name, dirs = session_dirs, modes = print_mode)
 
     session_error.join match {
       case "" => session

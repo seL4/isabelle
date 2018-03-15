@@ -358,6 +358,8 @@ object Sessions
   /* base info */
 
   sealed case class Base_Info(
+    options: Options,
+    dirs: List[Path],
     session: String,
     sessions_structure: Structure,
     errors: List[String],
@@ -443,7 +445,7 @@ object Sessions
     val deps1 = Sessions.deps(sessions1, global_theories, progress = progress)
     val base1 = if (all_known) deps1(session1).copy(known = deps1.all_known) else deps1(session1)
 
-    Base_Info(session1, sessions1, deps1.errors, base1, infos1)
+    Base_Info(options, dirs, session1, sessions1, deps1.errors, base1, infos1)
   }
 
 
