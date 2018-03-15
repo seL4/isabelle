@@ -77,10 +77,18 @@ object Server
           { case (context, Server_Commands.Session_Start(args)) =>
               context.make_task(task =>
                 {
-                  val (res, session_id, session) =
+                  val (res, entry) =
                     Server_Commands.Session_Start.command(task.progress, args, log = context.log)
-                  // FIXME store session in context
+                  context.add_session(entry)
                   res
+                })
+          },
+        "session_stop" ->
+          { case (context, Server_Commands.Session_Stop(id)) =>
+              context.make_task(_ =>
+                {
+                  val session = context.remove_session(id)
+                  Server_Commands.Session_Stop.command(session)._1
                 })
           })
 
@@ -184,6 +192,10 @@ object Server
   class Context private[Server](server: Server, connection: Connection)
   {
     context =>
+
+    def add_session(entry: (String, Session)) { server.add_session(entry) }
+    def get_session(id: String): Option[Session] = { server.get_session(id) }
+    def remove_session(id: String): Session = { server.remove_session(id) }
 
     def shutdown() { server.close() }
 
@@ -458,6 +470,18 @@ Usage: isabelle server [OPTIONS]
 class Server private(_port: Int, val log: Logger)
 {
   server =>
+
+  private val _sessions = Synchronized(Map.empty[String, Session])
+  def add_session(entry: (String, Session)) { _sessions.change(_ + entry) }
+  def get_session(id: String): Option[Session] = { _sessions.value.get(id) }
+  def remove_session(id: String): Session =
+  {
+    _sessions.change_result(sessions =>
+      sessions.get(id) match {
+        case Some(session) => (session, sessions - id)
+        case None => error("No session " + quote(id))
+      })
+  }
 
   private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
 

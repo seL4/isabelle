@@ -105,7 +105,7 @@ object Server_Commands
       yield Args(build = build, print_mode = print_mode)
 
     def command(progress: Progress, args: Args, log: Logger = No_Logger)
-      : (JSON.Object.T, String, Session) =
+      : (JSON.Object.T, (String, Session)) =
     {
       val base_info = Session_Build.command(progress, args.build)._3
 
@@ -122,7 +122,22 @@ object Server_Commands
       val id = Library.UUID()
       val res = JSON.Object("session_name" -> base_info.session, "session_id" -> id)
 
-      (res, id, session)
+      (res, id -> session)
+    }
+  }
+
+  object Session_Stop
+  {
+    def unapply(json: JSON.T): Option[String] =
+      JSON.string(json, "session_id")
+
+    def command(session: Session): (JSON.Object.T, Process_Result) =
+    {
+      val result = session.stop()
+      val result_json = JSON.Object("return_code" -> result.rc)
+
+      if (result.ok) (result_json, result)
+      else throw new Server.Error("Session shutdown failed: return code " + result.rc, result_json)
     }
   }
 }
