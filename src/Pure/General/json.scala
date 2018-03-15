@@ -2,6 +2,8 @@
     Author:     Makarius
 
 Support for JSON: https://www.json.org/.
+
+See also http://seriot.ch/parsing_json.php "Parsing JSON is a Minefield".
 */
 
 package isabelle
