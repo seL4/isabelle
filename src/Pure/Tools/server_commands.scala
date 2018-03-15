@@ -13,8 +13,8 @@ object Server_Commands
   {
     sealed case class Args(
       session: String,
-      prefs: String = "",
-      opts: List[String] = Nil,
+      preferences: String = "",
+      options: List[String] = Nil,
       dirs: List[String] = Nil,
       ancestor_session: String = "",
       all_known: Boolean = false,
@@ -26,8 +26,8 @@ object Server_Commands
     def unapply(json: JSON.T): Option[Args] =
       for {
         session <- JSON.string(json, "session")
-        prefs <- JSON.string_default(json, "preferences")
-        opts <- JSON.list_default(json, "options", JSON.Value.String.unapply _)
+        preferences <- JSON.string_default(json, "preferences")
+        options <- JSON.list_default(json, "options", JSON.Value.String.unapply _)
         dirs <- JSON.list_default(json, "dirs", JSON.Value.String.unapply _)
         ancestor_session <- JSON.string_default(json, "ancestor_session")
         all_known <- JSON.bool_default(json, "all_known")
@@ -37,15 +37,15 @@ object Server_Commands
         verbose <- JSON.bool_default(json, "verbose")
       }
       yield {
-        Args(session, prefs = prefs, opts = opts, dirs = dirs, ancestor_session = ancestor_session,
-          all_known = all_known, focus_session = focus_session, required_session = required_session,
-          system_mode = system_mode, verbose = verbose)
+        Args(session, preferences = preferences, options = options, dirs = dirs,
+          ancestor_session = ancestor_session, all_known = all_known, focus_session = focus_session,
+          required_session = required_session, system_mode = system_mode, verbose = verbose)
       }
 
     def command(progress: Progress, args: Args)
       : (JSON.Object.T, Build.Results, Sessions.Base_Info) =
     {
-      val options = Options.init(prefs = args.prefs, opts = args.opts)
+      val options = Options.init(prefs = args.preferences, opts = args.options)
       val dirs = args.dirs.map(Path.explode(_))
 
       val base_info =
