@@ -146,7 +146,7 @@ object Isabelle_System
 
   def isabelle_id(): String =
     proper_string(getenv("ISABELLE_ID")) getOrElse
-      Mercurial.repository(Path.explode("~~")).id()
+      Mercurial.repository(Path.explode("~~")).parent()
 
 
 
