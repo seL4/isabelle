@@ -91,6 +91,14 @@ object Server
                   val session = context.server.remove_session(id)
                   Server_Commands.Session_Stop.command(session)._1
                 })
+          },
+        "use_theories" ->
+          { case (context, Server_Commands.Use_Theories(args)) =>
+              context.make_task(task =>
+                {
+                  val session = context.server.the_session(args.session_id)
+                  Server_Commands.Use_Theories.command(args, session, progress = task.progress)._1
+                })
           })
 
     def unapply(name: String): Option[T] = table.get(name)
@@ -465,14 +473,16 @@ class Server private(_port: Int, val log: Logger)
   server =>
 
   private val _sessions = Synchronized(Map.empty[String, Thy_Resources.Session])
+  def err_session(id: String): Nothing = error("No session " + Library.single_quote(id))
+  def the_session(id: String): Thy_Resources.Session =
+    _sessions.value.get(id) getOrElse err_session(id)
   def add_session(entry: (String, Thy_Resources.Session)) { _sessions.change(_ + entry) }
-  def get_session(id: String): Option[Thy_Resources.Session] = { _sessions.value.get(id) }
   def remove_session(id: String): Thy_Resources.Session =
   {
     _sessions.change_result(sessions =>
       sessions.get(id) match {
         case Some(session) => (session, sessions - id)
-        case None => error("No session " + Library.single_quote(id))
+        case None => err_session(id)
       })
   }
 

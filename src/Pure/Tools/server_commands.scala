@@ -10,6 +10,18 @@ package isabelle
 object Server_Commands
 {
   def default_preferences: String = Options.read_prefs()
+  def default_qualifier: String = Sessions.DRAFT
+
+  def unapply_name_pos(json: JSON.T): Option[(String, Position.T)] =
+    json match {
+      case JSON.Value.String(name) => Some((name, Position.none))
+      case JSON.Object(map) if map.keySet == Set("name", "pos") =>
+      (map("name"), map("pos")) match {
+        case (JSON.Value.String(name), Position.JSON(pos)) => Some((name, pos))
+        case _ => None
+      }
+      case _ => None
+    }
 
   object Session_Build
   {
@@ -138,6 +150,41 @@ object Server_Commands
 
       if (result.ok) (result_json, result)
       else throw new Server.Error("Session shutdown failed: return code " + result.rc, result_json)
+    }
+  }
+
+  object Use_Theories
+  {
+    sealed case class Args(
+      session_id: String,
+      theories: List[(String, Position.T)],
+      qualifier: String = default_qualifier,
+      master_dir: String = "")
+
+    def unapply(json: JSON.T): Option[Args] =
+      for {
+        session_id <- JSON.string(json, "session_id")
+        theories <- JSON.list(json, "theories", unapply_name_pos _)
+        qualifier <- JSON.string_default(json, "qualifier", default_qualifier)
+        master_dir <- JSON.string_default(json, "master_dir")
+      }
+      yield Args(session_id, theories, qualifier = qualifier, master_dir = master_dir)
+
+    def command(args: Args, session: Thy_Resources.Session, progress: Progress = No_Progress)
+      : (JSON.Object.T, Thy_Resources.Theories_Result) =
+    {
+      val result =
+        session.use_theories(args.theories, qualifier = args.qualifier,
+          master_dir = args.master_dir, progress = progress)
+
+      val result_json =
+        JSON.Object(
+          "ok" -> result.ok,
+          "nodes" ->
+            (for ((name, st) <- result.nodes) yield
+              JSON.Object("node_name" -> name.node, "theory" -> name.theory, "status" -> st.json)))
+
+      (result_json, result)
     }
   }
 }

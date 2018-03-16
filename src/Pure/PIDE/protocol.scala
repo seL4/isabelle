@@ -146,6 +146,11 @@ object Protocol
   {
     def total: Int = unprocessed + running + warned + failed + finished
     def ok: Boolean = failed == 0
+
+    def json: JSON.Object.T =
+      JSON.Object("unprocessed" -> unprocessed, "running" -> running, "warned" -> warned,
+        "failed" -> failed, "finished" -> finished, "consolidated" -> consolidated,
+        "total" -> total, "ok" -> ok)
   }
 
   def node_status(

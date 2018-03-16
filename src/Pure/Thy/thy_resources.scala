@@ -51,10 +51,11 @@ object Thy_Resources
   }
 
   sealed case class Theories_Result(
-    val requirements: List[Document.Node.Name],
-    val version: Document.Version,
-    val state: Document.State)
+    val nodes: List[(Document.Node.Name, Protocol.Node_Status)],
+    val state: Document.State,
+    val version: Document.Version)
   {
+    def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
   }
 
   class Session private[Thy_Resources](
@@ -80,7 +81,10 @@ object Thy_Resources
         val state = session.current_state()
         state.stable_tip_version match {
           case Some(version) if requirements.forall(state.node_consolidated(version, _)) =>
-            try { result.fulfill(Theories_Result(requirements, version, state)) }
+            def status(name: Document.Node.Name): Protocol.Node_Status =
+              Protocol.node_status(state, version, name, version.nodes(name))
+            val nodes = for (name <- requirements) yield (name -> status(name))
+            try { result.fulfill(Theories_Result(nodes, state, version)) }
             catch { case _: IllegalStateException => }
           case _ =>
         }
