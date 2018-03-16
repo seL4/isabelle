@@ -50,6 +50,13 @@ object Thy_Resources
     }
   }
 
+  sealed case class Theories_Result(
+    val requirements: List[Document.Node.Name],
+    val version: Document.Version,
+    val state: Document.State)
+  {
+  }
+
   class Session private[Thy_Resources](
     session_options: Options,
     override val resources: Thy_Resources) extends isabelle.Session(session_options, resources)
@@ -59,24 +66,19 @@ object Thy_Resources
     def use_theories(
       theories: List[(String, Position.T)],
       qualifier: String = Sessions.DRAFT,
-      master_dir: String = ""): (List[Document.Node.Name], Document.State) =
+      master_dir: String = ""): Theories_Result =
     {
       val requirements =
         resources.load_theories(session, theories, qualifier = qualifier, master_dir = master_dir)
-      val state = consolidated_state(requirements)
-      (requirements, state)
-    }
 
-    def consolidated_state(requirements: List[Document.Node.Name]): Document.State =
-    {
-      val promise = Future.promise[Document.State]
+      val result = Future.promise[Theories_Result]
 
       def check_state
       {
         val state = session.current_state()
         state.stable_tip_version match {
           case Some(version) if requirements.forall(state.node_consolidated(version, _)) =>
-            try { promise.fulfill(state) }
+            try { result.fulfill(Theories_Result(requirements, version, state)) }
             catch { case _: IllegalStateException => }
           case _ =>
         }
@@ -89,9 +91,9 @@ object Thy_Resources
 
       session.commands_changed += consumer
       check_state
-      val state = promise.join
+      result.join
       session.commands_changed -= consumer
-      state
+      result.join
     }
   }
 
