@@ -439,7 +439,7 @@ Usage: isabelle server [OPTIONS]
           "n:" -> (arg => name = arg),
           "p:" -> (arg => port = Value.Int.parse(arg)),
           "s" -> (_ => existing_server = true),
-          "X" -> (_ => operation_exit = true))
+          "x" -> (_ => operation_exit = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
