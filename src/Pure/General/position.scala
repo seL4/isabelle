@@ -148,4 +148,35 @@ object Position
       Markup(Markup.POSITION, pos).markup(s)
     }
   }
+
+
+  /* JSON representation */
+
+  object JSON
+  {
+    def apply(pos: T): isabelle.JSON.Object.T =
+      isabelle.JSON.Object.empty ++
+        Line.unapply(pos).map(Line.name -> _) ++
+        Offset.unapply(pos).map(Offset.name -> _) ++
+        End_Offset.unapply(pos).map(End_Offset.name -> _) ++
+        File.unapply(pos).map(File.name -> _) ++
+        Id.unapply(pos).map(Id.name -> _)
+
+    def unapply(json: isabelle.JSON.T): Option[T] =
+      for {
+        line <- isabelle.JSON.int_default(json, Line.name)
+        offset <- isabelle.JSON.int_default(json, Offset.name)
+        end_offset <- isabelle.JSON.int_default(json, End_Offset.name)
+        file <- isabelle.JSON.string_default(json, File.name)
+        id <- isabelle.JSON.long_default(json, Id.name)
+      }
+      yield {
+        def defined(name: String): Boolean = isabelle.JSON.value(json, name).isDefined
+        (if (defined(Line.name)) Line(line) else Nil) :::
+        (if (defined(Offset.name)) Offset(offset) else Nil) :::
+        (if (defined(End_Offset.name)) End_Offset(end_offset) else Nil) :::
+        (if (defined(File.name)) File(file) else Nil) :::
+        (if (defined(Id.name)) Id(id) else Nil)
+      }
+  }
 }
