@@ -67,7 +67,7 @@ object Server
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
         "echo" -> { case (_, t) => t },
         "shutdown" -> { case (context, ()) => context.server.close() },
-        "cancel" -> { case (context, JSON.Value.String(id)) => context.cancel_task(id) },
+        "cancel" -> { case (context, JSON.Value.UUID(id)) => context.cancel_task(id) },
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
               context.make_task(task =>
@@ -232,7 +232,7 @@ object Server
     def remove_task(task: Task): Unit =
       _tasks.change(_ - task)
 
-    def cancel_task(id: String): Unit =
+    def cancel_task(id: UUID): Unit =
       _tasks.change(tasks => { tasks.find(task => task.id == id).foreach(_.cancel); tasks })
 
     def close()
@@ -263,8 +263,8 @@ object Server
   {
     task =>
 
-    val id: String = Library.UUID()
-    val ident: JSON.Object.Entry = ("task" -> id)
+    val id: UUID = UUID()
+    val ident: JSON.Object.Entry = ("task" -> id.toString)
 
     val progress: Connection_Progress = context.progress(ident)
     def cancel { progress.stop }
@@ -473,12 +473,12 @@ class Server private(_port: Int, val log: Logger)
 {
   server =>
 
-  private val _sessions = Synchronized(Map.empty[String, Thy_Resources.Session])
-  def err_session(id: String): Nothing = error("No session " + Library.single_quote(id))
-  def the_session(id: String): Thy_Resources.Session =
+  private val _sessions = Synchronized(Map.empty[UUID, Thy_Resources.Session])
+  def err_session(id: UUID): Nothing = error("No session " + Library.single_quote(id.toString))
+  def the_session(id: UUID): Thy_Resources.Session =
     _sessions.value.get(id) getOrElse err_session(id)
-  def add_session(entry: (String, Thy_Resources.Session)) { _sessions.change(_ + entry) }
-  def remove_session(id: String): Thy_Resources.Session =
+  def add_session(entry: (UUID, Thy_Resources.Session)) { _sessions.change(_ + entry) }
+  def remove_session(id: UUID): Thy_Resources.Session =
   {
     _sessions.change_result(sessions =>
       sessions.get(id) match {
@@ -492,7 +492,7 @@ class Server private(_port: Int, val log: Logger)
   def close() { server_socket.close }
 
   def port: Int = server_socket.getLocalPort
-  val password: String = Library.UUID()
+  val password: String = UUID().toString
 
   override def toString: String = Server.print(port, password)
 

@@ -68,7 +68,7 @@ object Thy_Resources
       theories: List[(String, Position.T)],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
-      id: String = Library.UUID(),
+      id: UUID = UUID(),
       progress: Progress = No_Progress): Theories_Result =
     {
       val requirements =
@@ -112,10 +112,10 @@ object Thy_Resources
 
   sealed case class State(
     theories: Map[Document.Node.Name, Theory] = Map.empty,
-    required: Multi_Map[Document.Node.Name, String] = Multi_Map.empty)
+    required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty)
   {
     def update(theory_edits: List[((Document.Node.Name, Theory), List[Document.Edit_Text])],
-        new_required: Multi_Map[Document.Node.Name, String]): (List[Document.Edit_Text], State) =
+        new_required: Multi_Map[Document.Node.Name, UUID]): (List[Document.Edit_Text], State) =
     {
       val edits = theory_edits.flatMap(_._2)
       val st = State(theories ++ theory_edits.map(_._1), new_required)
@@ -171,7 +171,7 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
 
   def load_theories(
     session: Session,
-    id: String,
+    id: UUID,
     theories: List[(String, Position.T)],
     qualifier: String = Sessions.DRAFT,
     master_dir: String = "",
@@ -203,7 +203,7 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
     dependencies.theories
   }
 
-  def unload_theories(session: Session, id: String, theories: List[Document.Node.Name])
+  def unload_theories(session: Session, id: UUID, theories: List[Document.Node.Name])
   {
     val edits =
       state.change_result(st =>

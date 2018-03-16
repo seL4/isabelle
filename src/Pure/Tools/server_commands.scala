@@ -117,7 +117,7 @@ object Server_Commands
       yield Args(build = build, print_mode = print_mode)
 
     def command(progress: Progress, args: Args, log: Logger = No_Logger)
-      : (JSON.Object.T, (String, Thy_Resources.Session)) =
+      : (JSON.Object.T, (UUID, Thy_Resources.Session)) =
     {
       val base_info = Session_Build.command(progress, args.build)._3
 
@@ -131,8 +131,8 @@ object Server_Commands
           progress = progress,
           log = log)
 
-      val id = Library.UUID()
-      val res = JSON.Object("session_name" -> base_info.session, "session_id" -> id)
+      val id = UUID()
+      val res = JSON.Object("session_name" -> base_info.session, "session_id" -> id.toString)
 
       (res, id -> session)
     }
@@ -140,8 +140,8 @@ object Server_Commands
 
   object Session_Stop
   {
-    def unapply(json: JSON.T): Option[String] =
-      JSON.string(json, "session_id")
+    def unapply(json: JSON.T): Option[UUID] =
+      JSON.uuid(json, "session_id")
 
     def command(session: Thy_Resources.Session): (JSON.Object.T, Process_Result) =
     {
@@ -156,14 +156,14 @@ object Server_Commands
   object Use_Theories
   {
     sealed case class Args(
-      session_id: String,
+      session_id: UUID,
       theories: List[(String, Position.T)],
       qualifier: String = default_qualifier,
       master_dir: String = "")
 
     def unapply(json: JSON.T): Option[Args] =
       for {
-        session_id <- JSON.string(json, "session_id")
+        session_id <- JSON.uuid(json, "session_id")
         theories <- JSON.list(json, "theories", unapply_name_pos _)
         qualifier <- JSON.string_default(json, "qualifier", default_qualifier)
         master_dir <- JSON.string_default(json, "master_dir")
@@ -172,7 +172,7 @@ object Server_Commands
 
     def command(args: Args,
       session: Thy_Resources.Session,
-      id: String = Library.UUID(),
+      id: UUID = UUID(),
       progress: Progress = No_Progress): (JSON.Object.T, Thy_Resources.Theories_Result) =
     {
       val result =

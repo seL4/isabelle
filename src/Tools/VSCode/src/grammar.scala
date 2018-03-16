@@ -45,7 +45,7 @@ object Grammar
   "name": "Isabelle",
   "scopeName": "source.isabelle",
   "fileTypes": ["thy"],
-  "uuid": """ + JSON.Format(Library.UUID()) + """,
+  "uuid": """ + JSON.Format(UUID().toString) + """,
   "repository": {
     "comment": {
       "patterns": [
