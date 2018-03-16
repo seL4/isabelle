@@ -170,12 +170,14 @@ object Server_Commands
       }
       yield Args(session_id, theories, qualifier = qualifier, master_dir = master_dir)
 
-    def command(args: Args, session: Thy_Resources.Session, progress: Progress = No_Progress)
-      : (JSON.Object.T, Thy_Resources.Theories_Result) =
+    def command(args: Args,
+      session: Thy_Resources.Session,
+      id: String = Library.UUID(),
+      progress: Progress = No_Progress): (JSON.Object.T, Thy_Resources.Theories_Result) =
     {
       val result =
         session.use_theories(args.theories, qualifier = args.qualifier,
-          master_dir = args.master_dir, progress = progress)
+          master_dir = args.master_dir, id = id, progress = progress)
 
       val result_json =
         JSON.Object(

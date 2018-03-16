@@ -97,7 +97,8 @@ object Server
               context.make_task(task =>
                 {
                   val session = context.server.the_session(args.session_id)
-                  Server_Commands.Use_Theories.command(args, session, progress = task.progress)._1
+                  Server_Commands.Use_Theories.command(
+                    args, session, id = task.id, progress = task.progress)._1
                 })
           })
 
