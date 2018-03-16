@@ -105,7 +105,7 @@ object Server_Commands
       yield Args(build = build, print_mode = print_mode)
 
     def command(progress: Progress, args: Args, log: Logger = No_Logger)
-      : (JSON.Object.T, (String, Session)) =
+      : (JSON.Object.T, (String, Thy_Resources.Session)) =
     {
       val base_info = Session_Build.command(progress, args.build)._3
 
@@ -131,7 +131,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[String] =
       JSON.string(json, "session_id")
 
-    def command(session: Session): (JSON.Object.T, Process_Result) =
+    def command(session: Thy_Resources.Session): (JSON.Object.T, Process_Result) =
     {
       val result = session.stop()
       val result_json = JSON.Object("return_code" -> result.rc)

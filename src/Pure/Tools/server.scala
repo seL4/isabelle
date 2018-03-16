@@ -66,7 +66,7 @@ object Server
       Map(
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
         "echo" -> { case (_, t) => t },
-        "shutdown" -> { case (context, ()) => context.shutdown(); () },
+        "shutdown" -> { case (context, ()) => context.server.close() },
         "cancel" -> { case (context, JSON.Value.String(id)) => context.cancel_task(id) },
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
@@ -78,8 +78,9 @@ object Server
               context.make_task(task =>
                 {
                   val (res, entry) =
-                    Server_Commands.Session_Start.command(task.progress, args, log = context.log)
-                  context.add_session(entry)
+                    Server_Commands.Session_Start.command(
+                      task.progress, args, log = context.server.log)
+                  context.server.add_session(entry)
                   res
                 })
           },
@@ -87,7 +88,7 @@ object Server
           { case (context, Server_Commands.Session_Stop(id)) =>
               context.make_task(_ =>
                 {
-                  val session = context.remove_session(id)
+                  val session = context.server.remove_session(id)
                   Server_Commands.Session_Stop.command(session)._1
                 })
           })
@@ -189,15 +190,9 @@ object Server
 
   /* context with output channels */
 
-  class Context private[Server](server: Server, connection: Connection)
+  class Context private[Server](val server: Server, connection: Connection)
   {
     context =>
-
-    def add_session(entry: (String, Session)) { server.add_session(entry) }
-    def get_session(id: String): Option[Session] = { server.get_session(id) }
-    def remove_session(id: String): Session = { server.remove_session(id) }
-
-    def shutdown() { server.close() }
 
     def reply(r: Reply.Value, arg: Any) { connection.reply(r, arg) }
     def notify(arg: Any) { connection.notify(arg) }
@@ -210,8 +205,6 @@ object Server
 
     def progress(more: JSON.Object.Entry*): Connection_Progress =
       new Connection_Progress(context, more:_*)
-
-    def log: Logger = server.log
 
     override def toString: String = connection.toString
 
@@ -471,10 +464,10 @@ class Server private(_port: Int, val log: Logger)
 {
   server =>
 
-  private val _sessions = Synchronized(Map.empty[String, Session])
-  def add_session(entry: (String, Session)) { _sessions.change(_ + entry) }
-  def get_session(id: String): Option[Session] = { _sessions.value.get(id) }
-  def remove_session(id: String): Session =
+  private val _sessions = Synchronized(Map.empty[String, Thy_Resources.Session])
+  def add_session(entry: (String, Thy_Resources.Session)) { _sessions.change(_ + entry) }
+  def get_session(id: String): Option[Thy_Resources.Session] = { _sessions.value.get(id) }
+  def remove_session(id: String): Thy_Resources.Session =
   {
     _sessions.change_result(sessions =>
       sessions.get(id) match {
