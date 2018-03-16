@@ -423,8 +423,8 @@ object Server
 Usage: isabelle server [OPTIONS]
 
   Options are:
-    -C           console interaction with specified server
     -L FILE      logging on FILE
+    -c           console interaction with specified server
     -l           list servers (exclusive operation)
     -n NAME      explicit server name (default: """ + default_name + """)
     -p PORT      explicit server port
@@ -433,8 +433,8 @@ Usage: isabelle server [OPTIONS]
 
   Manage resident Isabelle servers.
 """,
-          "C" -> (_ => console = true),
           "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+          "c" -> (_ => console = true),
           "l" -> (_ => operation_list = true),
           "n:" -> (arg => name = arg),
           "p:" -> (arg => port = Value.Int.parse(arg)),
