@@ -23,6 +23,7 @@ class Progress
     Timing.timeit(message, enabled, echo(_))(e)
 
   def stopped: Boolean = false
+  def expose_interrupt() { if (stopped) throw Exn.Interrupt() }
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
   def bash(script: String,

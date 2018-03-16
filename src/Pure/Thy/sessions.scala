@@ -227,7 +227,7 @@ object Sessions
     val session_bases =
       (Map.empty[String, Base] /: sessions_structure.imports_topological_order)({
         case (session_bases, session_name) =>
-          if (progress.stopped) throw Exn.Interrupt()
+          progress.expose_interrupt()
 
           val info = sessions_structure(session_name)
           try {

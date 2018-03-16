@@ -41,7 +41,7 @@ object Check_Keywords
 
     val bad =
       Par_List.map((arg: (String, Token.Pos)) => {
-        if (progress.stopped) throw Exn.Interrupt()
+        progress.expose_interrupt()
         conflicts(keywords, check, arg._1, arg._2)
       }, parallel_args).flatten
 
