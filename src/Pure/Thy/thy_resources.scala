@@ -66,10 +66,12 @@ object Thy_Resources
     def use_theories(
       theories: List[(String, Position.T)],
       qualifier: String = Sessions.DRAFT,
-      master_dir: String = ""): Theories_Result =
+      master_dir: String = "",
+      progress: Progress = No_Progress): Theories_Result =
     {
       val requirements =
-        resources.load_theories(session, theories, qualifier = qualifier, master_dir = master_dir)
+        resources.load_theories(session, theories, qualifier = qualifier,
+          master_dir = master_dir, progress = progress)
 
       val result = Future.promise[Theories_Result]
 
@@ -148,13 +150,14 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
     session: Session,
     theories: List[(String, Position.T)],
     qualifier: String = Sessions.DRAFT,
-    master_dir: String = ""): List[Document.Node.Name] =
+    master_dir: String = "",
+    progress: Progress = No_Progress): List[Document.Node.Name] =
   {
     val import_names =
       for ((thy, pos) <- theories)
       yield (import_name(qualifier, master_dir, thy), pos)
 
-    val dependencies = resources.dependencies(import_names).check_errors
+    val dependencies = resources.dependencies(import_names, progress = progress).check_errors
     val loaded_theories = dependencies.theories.map(read_thy(_))
 
     val edits =

@@ -297,7 +297,10 @@ class Resources(
     if (initiators.isEmpty) ""
     else "\n(required by " + show_path(initiators.reverse) + ")"
 
-  private def require_thy(initiators: List[Document.Node.Name], required: Dependencies,
+  private def require_thy(
+    progress: Progress,
+    initiators: List[Document.Node.Name],
+    required: Dependencies,
     thy: (Document.Node.Name, Position.T)): Dependencies =
   {
     val (name, pos) = thy
@@ -313,11 +316,13 @@ class Resources(
       else {
         try {
           if (initiators.contains(name)) error(cycle_msg(initiators))
+
+          progress.expose_interrupt()
           val header =
             try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
             catch { case ERROR(msg) => cat_error(msg, message) }
           Document.Node.Entry(name, header) ::
-            require_thys(name :: initiators, required1, header.imports)
+            require_thys(progress, name :: initiators, required1, header.imports)
         }
         catch {
           case e: Throwable =>
@@ -327,10 +332,15 @@ class Resources(
     }
   }
 
-  private def require_thys(initiators: List[Document.Node.Name], required: Dependencies,
+  private def require_thys(
+      progress: Progress,
+      initiators: List[Document.Node.Name],
+      required: Dependencies,
       thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    (required /: thys)(require_thy(initiators, _, _))
+    (required /: thys)(require_thy(progress, initiators, _, _))
 
-  def dependencies(thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    require_thys(Nil, Dependencies.empty, thys)
+  def dependencies(
+      thys: List[(Document.Node.Name, Position.T)],
+      progress: Progress = No_Progress): Dependencies =
+    require_thys(progress, Nil, Dependencies.empty, thys)
 }
