@@ -71,7 +71,7 @@ object Server
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
               context.make_task(task =>
-                Server_Commands.Session_Build.command(task.progress, args)._1)
+                Server_Commands.Session_Build.command(args, progress = task.progress)._1)
           },
         "session_start" ->
           { case (context, Server_Commands.Session_Start(args)) =>
@@ -79,7 +79,7 @@ object Server
                 {
                   val (res, entry) =
                     Server_Commands.Session_Start.command(
-                      task.progress, args, log = context.server.log)
+                      args, progress = task.progress, log = context.server.log)
                   context.server.add_session(entry)
                   res
                 })

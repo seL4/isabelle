@@ -56,7 +56,7 @@ object Server_Commands
           required_session = required_session, system_mode = system_mode, verbose = verbose)
       }
 
-    def command(progress: Progress, args: Args)
+    def command(args: Args, progress: Progress = No_Progress)
       : (JSON.Object.T, Build.Results, Sessions.Base_Info) =
     {
       val options = Options.init(prefs = args.preferences, opts = args.options)
@@ -116,10 +116,10 @@ object Server_Commands
       }
       yield Args(build = build, print_mode = print_mode)
 
-    def command(progress: Progress, args: Args, log: Logger = No_Logger)
+    def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
       : (JSON.Object.T, (UUID, Thy_Resources.Session)) =
     {
-      val base_info = Session_Build.command(progress, args.build)._3
+      val base_info = Session_Build.command(args.build, progress = progress)._3
 
       val session =
         Thy_Resources.start_session(
