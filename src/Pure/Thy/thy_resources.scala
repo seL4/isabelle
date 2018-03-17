@@ -77,10 +77,6 @@ object Thy_Resources
 
       val result = Future.promise[Theories_Result]
 
-      val check_progress =
-        Event_Timer.request(Time.now(), repeat = Some(Time.seconds(0.5)))
-          { if (progress.stopped) result.cancel }
-
       def check_state
       {
         val state = session.current_state()
@@ -95,6 +91,10 @@ object Thy_Resources
         }
       }
 
+      val check_progress =
+        Event_Timer.request(Time.now(), repeat = Some(Time.seconds(0.5)))
+          { if (progress.stopped) result.cancel else check_state }
+
       val consumer =
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
           case changed => if (dep_theories.exists(changed.nodes)) check_state
@@ -102,15 +102,14 @@ object Thy_Resources
 
       try {
         session.commands_changed += consumer
-        check_state
         result.join_result
+        check_progress.cancel
         session.commands_changed -= consumer
       }
       finally {
         resources.unload_theories(session, id, dep_theories)
       }
 
-      check_progress.cancel
       result.join
     }
   }
