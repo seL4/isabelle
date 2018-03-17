@@ -159,7 +159,9 @@ object Server_Commands
       session_id: UUID,
       theories: List[(String, Position.T)],
       qualifier: String = default_qualifier,
-      master_dir: String = "")
+      master_dir: String = "",
+      pretty_margin: Double = Pretty.default_margin,
+      unicode_symbols: Boolean = false)
 
     def unapply(json: JSON.T): Option[Args] =
       for {
@@ -167,8 +169,13 @@ object Server_Commands
         theories <- JSON.list(json, "theories", unapply_name_pos _)
         qualifier <- JSON.string_default(json, "qualifier", default_qualifier)
         master_dir <- JSON.string_default(json, "master_dir")
+        pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
+        unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
       }
-      yield Args(session_id, theories, qualifier = qualifier, master_dir = master_dir)
+      yield {
+        Args(session_id, theories, qualifier = qualifier, master_dir = master_dir,
+          pretty_margin = pretty_margin, unicode_symbols)
+      }
 
     def command(args: Args,
       session: Thy_Resources.Session,
@@ -179,12 +186,34 @@ object Server_Commands
         session.use_theories(args.theories, qualifier = args.qualifier,
           master_dir = args.master_dir, id = id, progress = progress)
 
+      def output_text(s: String): JSON.Object.Entry =
+        Server.Reply.message(if (args.unicode_symbols) Symbol.decode(s) else Symbol.encode(s))
+
+      def output_message(tree: XML.Tree, pos: Position.T): JSON.Object.T =
+      {
+        val position = "pos" -> Position.JSON(pos)
+        tree match {
+          case XML.Text(msg) => JSON.Object(output_text(msg), position)
+          case elem: XML.Elem =>
+            val msg = XML.content(Pretty.formatted(List(elem), margin = args.pretty_margin))
+            Markup.messages.collectFirst({ case (a, b) if b == elem.name => a }) match {
+              case None => JSON.Object(output_text(msg), position)
+              case Some(kind) => JSON.Object(Markup.KIND -> kind, output_text(msg), position)
+            }
+        }
+      }
+
       val result_json =
         JSON.Object(
           "ok" -> result.ok,
           "nodes" ->
             (for ((name, st) <- result.nodes) yield
-              JSON.Object("node_name" -> name.node, "theory" -> name.theory, "status" -> st.json)))
+              JSON.Object(
+                "node_name" -> name.node,
+                "theory" -> name.theory,
+                "status" -> st.json,
+                "messages" ->
+                  (for ((tree, pos) <- result.messages(name)) yield output_message(tree, pos)))))
 
       (result_json, result)
     }

@@ -56,6 +56,17 @@ object Thy_Resources
     val nodes: List[(Document.Node.Name, Protocol.Node_Status)])
   {
     def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
+
+    def messages(node_name: Document.Node.Name): List[(XML.Tree, Position.T)] =
+    {
+      val node = version.nodes(node_name)
+      (for {
+        (command, start) <-
+          Document.Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
+        pos = command.span.keyword_pos(start).position(command.span.name)
+        (_, tree) <- state.command_results(version, command).iterator
+       } yield (tree, pos)).toList
+    }
   }
 
   class Session private[Thy_Resources](
