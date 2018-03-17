@@ -65,6 +65,7 @@ object Thy_Resources
           Document.Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
         (_, tree) <- state.command_results(version, command).iterator
+        if Protocol.is_inlined(tree)
        } yield (tree, pos)).toList
     }
   }
