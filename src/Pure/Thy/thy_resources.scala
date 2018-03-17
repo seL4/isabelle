@@ -169,16 +169,6 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
 
   private val state = Synchronized(Thy_Resources.State())
 
-  def load_thy(node_name: Document.Node.Name): Thy_Resources.Theory =
-  {
-    val path = node_name.path
-    if (!node_name.is_theory) error("Not a theory file: " + path)
-
-    val text = File.read(path)
-    val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
-    new Thy_Resources.Theory(node_name, node_header, text, true)
-  }
-
   def load_theories(
     session: Session,
     id: UUID,
@@ -193,7 +183,18 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
 
     val dependencies = resources.dependencies(import_names, progress = progress).check_errors
     val dep_theories = dependencies.theories
-    val loaded_theories = dep_theories.map(load_thy(_))
+
+    val loaded_theories =
+      for (node_name <- dep_theories)
+      yield {
+        val path = node_name.path
+        if (!node_name.is_theory) error("Not a theory file: " + path)
+
+        progress.expose_interrupt()
+        val text = File.read(path)
+        val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
+        new Thy_Resources.Theory(node_name, node_header, text, true)
+      }
 
     val edits =
       state.change_result(st =>
