@@ -111,6 +111,14 @@ object Server
   class Error(val message: String, val json: JSON.Object.T = JSON.Object.empty)
     extends RuntimeException(message)
 
+  def json_error(exn: Throwable): JSON.Object.T =
+    exn match {
+      case ERROR(msg) => JSON.Object(Reply.message(msg))
+      case e: Error => JSON.Object(Reply.message(e.message)) ++ e.json
+      case _ if Exn.is_interrupt(exn) => JSON.Object(Reply.message(Exn.message(exn)))
+      case _ => JSON.Object.empty
+    }
+
   object Reply extends Enumeration
   {
     val OK, ERROR, FINISHED, FAILED, NOTE = Value
@@ -274,11 +282,9 @@ object Server
       Exn.capture { body(task) } match {
         case Exn.Res(res) =>
           context.reply(Reply.FINISHED, res + ident)
-        case Exn.Exn(exn: Server.Error) =>
-          context.reply(Reply.FAILED, JSON.Object(Reply.message(exn.message)) ++ exn.json + ident)
-        case Exn.Exn(ERROR(msg)) =>
-          context.reply(Reply.FAILED, JSON.Object(Reply.message(msg)) + ident)
-        case Exn.Exn(exn) => throw exn
+        case Exn.Exn(exn) =>
+          val err = json_error(exn)
+          if (err.isEmpty) throw exn else context.reply(Reply.FAILED, err + ident)
       }
       progress.stop
       context.remove_task(task)
@@ -524,11 +530,9 @@ class Server private(_port: Int, val log: Logger)
                               connection.reply_ok(JSON.Object(task.ident))
                               task.start
                             case Exn.Res(res) => connection.reply_ok(res)
-                            case Exn.Exn(exn: Server.Error) =>
-                              connection.reply_error_message(exn.message, exn.json.toList:_*)
-                            case Exn.Exn(ERROR(msg)) =>
-                              connection.reply_error_message(msg)
-                            case Exn.Exn(exn) => throw exn
+                            case Exn.Exn(exn) =>
+                              val err = Server.json_error(exn)
+                              if (err.isEmpty) throw exn else connection.reply_error(err)
                           }
                         }
                         else {
