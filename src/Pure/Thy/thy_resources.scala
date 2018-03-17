@@ -71,7 +71,7 @@ object Thy_Resources
       id: UUID = UUID(),
       progress: Progress = No_Progress): Theories_Result =
     {
-      val requirements =
+      val dep_theories =
         resources.load_theories(session, id, theories, qualifier = qualifier,
           master_dir = master_dir, progress = progress)
 
@@ -81,10 +81,10 @@ object Thy_Resources
       {
         val state = session.current_state()
         state.stable_tip_version match {
-          case Some(version) if requirements.forall(state.node_consolidated(version, _)) =>
+          case Some(version) if dep_theories.forall(state.node_consolidated(version, _)) =>
             def status(name: Document.Node.Name): Protocol.Node_Status =
               Protocol.node_status(state, version, name, version.nodes(name))
-            val nodes = for (name <- requirements) yield (name -> status(name))
+            val nodes = for (name <- dep_theories) yield (name -> status(name))
             try { result.fulfill(Theories_Result(nodes, state, version)) }
             catch { case _: IllegalStateException => }
           case _ =>
@@ -93,7 +93,7 @@ object Thy_Resources
 
       val consumer =
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
-          case changed => if (requirements.exists(changed.nodes)) check_state
+          case changed => if (dep_theories.exists(changed.nodes)) check_state
         }
 
       session.commands_changed += consumer
@@ -101,7 +101,7 @@ object Thy_Resources
       result.join
       session.commands_changed -= consumer
 
-      resources.unload_theories(session, id, requirements)
+      resources.unload_theories(session, id, dep_theories)
 
       result.join
     }
@@ -111,16 +111,25 @@ object Thy_Resources
   /* internal state */
 
   sealed case class State(
-    theories: Map[Document.Node.Name, Theory] = Map.empty,
-    required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty)
+    required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty,
+    theories: Map[Document.Node.Name, Theory] = Map.empty)
   {
-    def update(theory_edits: List[((Document.Node.Name, Theory), List[Document.Edit_Text])],
-        new_required: Multi_Map[Document.Node.Name, UUID]): (List[Document.Edit_Text], State) =
-    {
-      val edits = theory_edits.flatMap(_._2)
-      val st = State(theories ++ theory_edits.map(_._1), new_required)
-      (edits, st)
-    }
+    def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
+
+    def insert_required(id: UUID, names: List[Document.Node.Name]): State =
+      copy(required = (required /: names)(_.insert(_, id)))
+
+    def remove_required(id: UUID, names: List[Document.Node.Name]): State =
+      copy(required = (required /: names)(_.remove(_, id)))
+
+    def update_theories(update: List[(Document.Node.Name, Theory)]): State =
+      copy(theories =
+        (theories /: update)({ case (thys, (name, thy)) =>
+          thys.get(name) match {
+            case Some(thy1) if thy1 == thy => thys
+            case _ => thys + (name -> thy)
+          }
+        }))
   }
 
   final class Theory private[Thy_Resources](
@@ -147,8 +156,9 @@ object Thy_Resources
           node_name -> node_perspective)
     }
 
-    def unload: Theory =
-      if (node_required) new Theory(node_name, node_header, text, false) else this
+    def required(required: Boolean): Theory =
+      if (required == node_required) this
+      else new Theory(node_name, node_header, text, required)
   }
 }
 
@@ -182,44 +192,46 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
       yield (import_name(qualifier, master_dir, thy), pos)
 
     val dependencies = resources.dependencies(import_names, progress = progress).check_errors
-    val loaded_theories = dependencies.theories.map(load_thy(_))
+    val dep_theories = dependencies.theories
+    val loaded_theories = dep_theories.map(load_thy(_))
 
     val edits =
       state.change_result(st =>
-      {
-        val theory_edits =
-          (for {
-            theory <- loaded_theories.iterator
-            node_name = theory.node_name
-            edits = theory.node_edits(st.theories.get(node_name))
-            if edits.nonEmpty
-          } yield ((node_name, theory), edits)).toList
-        val required =
-          (st.required /: loaded_theories)({ case (req, thy) => req.insert(thy.node_name, id) })
-        st.update(theory_edits, required)
-      })
+        {
+          val st1 = st.insert_required(id, dep_theories)
+          val theory_edits =
+            for (theory <- loaded_theories)
+            yield {
+              val node_name = theory.node_name
+              val theory1 = theory.required(st1.is_required(node_name))
+              val edits = theory1.node_edits(st1.theories.get(node_name))
+              (edits, (node_name, theory1))
+            }
+          (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
+        })
     session.update(Document.Blobs.empty, edits)
 
-    dependencies.theories
+    dep_theories
   }
 
-  def unload_theories(session: Session, id: UUID, theories: List[Document.Node.Name])
+  def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name])
   {
     val edits =
       state.change_result(st =>
-      {
-        val theory_edits =
-          (for {
-            node_name <- theories.iterator
-            theory <- st.theories.get(node_name)
-            theory1 = theory.unload
-            edits = theory1.node_edits(Some(theory))
-            if edits.nonEmpty
-          } yield ((node_name, theory1), edits)).toList
-        val required =
-          (st.required /: theories)({ case (req, node_name) => req.remove(node_name, id) })
-        st.update(theory_edits, required)
-      })
+        {
+          val st1 = st.remove_required(id, dep_theories)
+          val theory_edits =
+            for {
+              node_name <- dep_theories
+              theory <- st1.theories.get(node_name)
+            }
+            yield {
+              val theory1 = theory.required(st1.is_required(node_name))
+              val edits = theory1.node_edits(Some(theory))
+              (edits, (node_name, theory1))
+            }
+          (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
+        })
     session.update(Document.Blobs.empty, edits)
   }
 }
