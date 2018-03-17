@@ -40,7 +40,7 @@ object Pretty
     def apply(s: String): Double
   }
 
-  object Metric_Default extends Metric
+  object Default_Metric extends Metric
   {
     val unit = 1.0
     def apply(s: String): Double = s.length.toDouble
@@ -113,13 +113,13 @@ object Pretty
       case t :: ts => t :: force_next(ts)
     }
 
-  private val margin_default = 76.0
-  private val breakgain_default = margin_default / 20
+  val default_margin = 76.0
+  val default_breakgain = default_margin / 20
 
   def formatted(input: XML.Body,
-    margin: Double = margin_default,
-    breakgain: Double = breakgain_default,
-    metric: Metric = Metric_Default): XML.Body =
+    margin: Double = default_margin,
+    breakgain: Double = default_breakgain,
+    metric: Metric = Default_Metric): XML.Body =
   {
     val emergencypos = (margin / 2).round.toInt
 
@@ -180,8 +180,8 @@ object Pretty
   }
 
   def string_of(input: XML.Body,
-      margin: Double = margin_default,
-      breakgain: Double = breakgain_default,
-      metric: Metric = Metric_Default): String =
+      margin: Double = default_margin,
+      breakgain: Double = default_breakgain,
+      metric: Metric = Default_Metric): String =
     XML.content(formatted(input, margin = margin, breakgain = breakgain, metric = metric))
 }
