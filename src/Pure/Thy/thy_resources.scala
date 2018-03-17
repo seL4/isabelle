@@ -204,43 +204,41 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
         new Thy_Resources.Theory(node_name, node_header, text, true)
       }
 
-    val edits =
-      state.change_result(st =>
-        {
-          val st1 = st.insert_required(id, dep_theories)
-          val theory_edits =
-            for (theory <- loaded_theories)
-            yield {
-              val node_name = theory.node_name
-              val theory1 = theory.required(st1.is_required(node_name))
-              val edits = theory1.node_edits(st1.theories.get(node_name))
-              (edits, (node_name, theory1))
-            }
-          (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
-        })
-    session.update(Document.Blobs.empty, edits)
+    state.change(st =>
+      {
+        val st1 = st.insert_required(id, dep_theories)
+        val theory_edits =
+          for (theory <- loaded_theories)
+          yield {
+            val node_name = theory.node_name
+            val theory1 = theory.required(st1.is_required(node_name))
+            val edits = theory1.node_edits(st1.theories.get(node_name))
+            (edits, (node_name, theory1))
+          }
+        session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
+        st1.update_theories(theory_edits.map(_._2))
+      })
 
     dep_theories
   }
 
   def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name])
   {
-    val edits =
-      state.change_result(st =>
-        {
-          val st1 = st.remove_required(id, dep_theories)
-          val theory_edits =
-            for {
-              node_name <- dep_theories
-              theory <- st1.theories.get(node_name)
-            }
-            yield {
-              val theory1 = theory.required(st1.is_required(node_name))
-              val edits = theory1.node_edits(Some(theory))
-              (edits, (node_name, theory1))
-            }
-          (theory_edits.flatMap(_._1), st1.update_theories(theory_edits.map(_._2)))
-        })
-    session.update(Document.Blobs.empty, edits)
+    state.change(st =>
+      {
+        val st1 = st.remove_required(id, dep_theories)
+        val theory_edits =
+          for {
+            node_name <- dep_theories
+            theory <- st1.theories.get(node_name)
+          }
+          yield {
+            val theory1 = theory.required(st1.is_required(node_name))
+            val edits = theory1.node_edits(Some(theory))
+            (edits, (node_name, theory1))
+          }
+        session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
+        st1.update_theories(theory_edits.map(_._2))
+      })
   }
 }
