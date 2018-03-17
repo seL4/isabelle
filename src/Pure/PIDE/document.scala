@@ -224,6 +224,17 @@ object Document
         }
       }
 
+      def starts_pos(commands: Iterator[Command], pos: Token.Pos = Token.Pos.start)
+        : Iterator[(Command, Token.Pos)] =
+      {
+        var p = pos
+        for (command <- commands) yield {
+          val start = p
+          p = (p /: command.span.content)(_.advance(_))
+          (command, start)
+        }
+      }
+
       private val block_size = 256
     }
 

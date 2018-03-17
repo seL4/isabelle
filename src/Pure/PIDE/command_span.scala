@@ -32,6 +32,13 @@ object Command_Span
     def position: Position.T =
       kind match { case Command_Span(_, pos) => pos case _ => Position.none }
 
+    def keyword_pos(start: Token.Pos): Token.Pos =
+      kind match {
+        case _: Command_Span =>
+          (start /: content.iterator.takeWhile(tok => !tok.is_command))(_.advance(_))
+        case _ => start
+      }
+
     def is_begin: Boolean = content.exists(_.is_begin)
     def is_end: Boolean = content.exists(_.is_end)
 

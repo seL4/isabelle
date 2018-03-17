@@ -209,11 +209,12 @@ object Token
     def column = 0
     def lineContents = ""
 
-    def advance(token: Token): Pos =
+    def advance(token: Token): Pos = advance(token.source)
+    def advance(source: String): Pos =
     {
       var line1 = line
       var offset1 = offset
-      for (s <- Symbol.iterator(token.source)) {
+      for (s <- Symbol.iterator(source)) {
         if (line1 > 0 && Symbol.is_newline(s)) line1 += 1
         if (offset1 > 0) offset1 += 1
       }
@@ -230,6 +231,7 @@ object Token
 
     def position(): Position.T = position(0)
     def position(token: Token): Position.T = position(advance(token).offset)
+    def position(source: String): Position.T = position(advance(source).offset)
 
     override def toString: String = Position.here(position(), delimited = false)
   }
