@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/thy_resources.scala
     Author:     Makarius
 
-PIDE resources for theory files.
+PIDE resources for theory files: load/unload theories via PIDE document updates.
 */
 
 package isabelle
@@ -77,6 +77,10 @@ object Thy_Resources
 
       val result = Future.promise[Theories_Result]
 
+      val check_progress =
+        Event_Timer.request(Time.now(), repeat = Some(Time.seconds(0.5)))
+          { if (progress.stopped) result.cancel }
+
       def check_state
       {
         val state = session.current_state()
@@ -96,13 +100,17 @@ object Thy_Resources
           case changed => if (dep_theories.exists(changed.nodes)) check_state
         }
 
-      session.commands_changed += consumer
-      check_state
-      result.join
-      session.commands_changed -= consumer
+      try {
+        session.commands_changed += consumer
+        check_state
+        result.join_result
+        session.commands_changed -= consumer
+      }
+      finally {
+        resources.unload_theories(session, id, dep_theories)
+      }
 
-      resources.unload_theories(session, id, dep_theories)
-
+      check_progress.cancel
       result.join
     }
   }
