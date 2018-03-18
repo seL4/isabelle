@@ -186,20 +186,18 @@ object Server_Commands
         session.use_theories(args.theories, qualifier = args.qualifier,
           master_dir = args.master_dir, id = id, progress = progress)
 
-      def output_text(s: String): JSON.Object.Entry =
-        Server.Reply.message(if (args.unicode_symbols) Symbol.decode(s) else Symbol.encode(s))
+      def output_text(s: String): String =
+        if (args.unicode_symbols) Symbol.decode(s) else Symbol.encode(s)
 
       def output_message(tree: XML.Tree, pos: Position.T): JSON.Object.T =
       {
         val position = "pos" -> Position.JSON(pos)
         tree match {
-          case XML.Text(msg) => JSON.Object(output_text(msg), position)
+          case XML.Text(msg) => Server.Reply.message(output_text(msg)) + position
           case elem: XML.Elem =>
             val msg = XML.content(Pretty.formatted(List(elem), margin = args.pretty_margin))
-            Markup.messages.collectFirst({ case (a, b) if b == elem.name => a }) match {
-              case None => JSON.Object(output_text(msg), position)
-              case Some(kind) => JSON.Object(Markup.KIND -> kind, output_text(msg), position)
-            }
+            val kind = Markup.messages.collectFirst({ case (a, b) if b == elem.name => a })
+            Server.Reply.message(output_text(msg), kind = kind getOrElse "") + position
         }
       }
 

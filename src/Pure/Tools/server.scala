@@ -113,9 +113,9 @@ object Server
 
   def json_error(exn: Throwable): JSON.Object.T =
     exn match {
-      case ERROR(msg) => JSON.Object(Reply.message(msg))
-      case e: Error => JSON.Object(Reply.message(e.message)) ++ e.json
-      case _ if Exn.is_interrupt(exn) => JSON.Object(Reply.message(Exn.message(exn)))
+      case ERROR(msg) => Reply.error_message(msg)
+      case e: Error => Reply.error_message(e.message) ++ e.json
+      case _ if Exn.is_interrupt(exn) => Reply.error_message(Exn.message(exn))
       case _ => JSON.Object.empty
     }
 
@@ -123,7 +123,12 @@ object Server
   {
     val OK, ERROR, FINISHED, FAILED, NOTE = Value
 
-    def message(msg: String): JSON.Object.Entry = ("message" -> msg)
+    def message(msg: String, kind: String = ""): JSON.Object.T =
+      if (kind == "") JSON.Object("message" -> msg)
+      else JSON.Object(Markup.KIND -> kind, "message" -> msg)
+
+    def error_message(msg: String): JSON.Object.T =
+      message(msg, kind = Markup.ERROR_MESSAGE)
 
     def unapply(msg: String): Option[(Reply.Value, Any)] =
     {
@@ -199,7 +204,7 @@ object Server
     def reply_ok(arg: Any) { reply(Reply.OK, arg) }
     def reply_error(arg: Any) { reply(Reply.ERROR, arg) }
     def reply_error_message(message: String, more: JSON.Object.Entry*): Unit =
-      reply_error(JSON.Object(Reply.message(message)) ++ more)
+      reply_error(Reply.error_message(message) ++ more)
 
     def notify(arg: Any) { reply(Reply.NOTE, arg) }
   }
@@ -214,7 +219,7 @@ object Server
     def reply(r: Reply.Value, arg: Any) { connection.reply(r, arg) }
     def notify(arg: Any) { connection.notify(arg) }
     def message(kind: String, msg: String, more: JSON.Object.Entry*): Unit =
-      notify(JSON.Object(Markup.KIND -> kind, Reply.message(msg)) ++ more)
+      notify(Reply.message(msg, kind = kind) ++ more)
     def writeln(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WRITELN, msg, more:_*)
     def warning(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WARNING, msg, more:_*)
     def error_message(msg: String, more: JSON.Object.Entry*): Unit =
