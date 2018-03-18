@@ -206,14 +206,20 @@ object Server_Commands
       val result_json =
         JSON.Object(
           "ok" -> result.ok,
+          "errors" ->
+            (for {
+              (name, status) <- result.nodes if !status.ok
+              (tree, pos) <- result.messages(name) if Protocol.is_error(tree)
+            } yield output_message(tree, pos)),
           "nodes" ->
-            (for ((name, st) <- result.nodes) yield
+            (for ((name, status) <- result.nodes) yield
               JSON.Object(
                 "node_name" -> name.node,
                 "theory" -> name.theory,
-                "status" -> st.json,
+                "status" -> status.json,
                 "messages" ->
-                  (for ((tree, pos) <- result.messages(name)) yield output_message(tree, pos)))))
+                  (for ((tree, pos) <- result.messages(name))
+                    yield output_message(tree, pos)))))
 
       (result_json, result)
     }
