@@ -66,7 +66,7 @@ object Server
       Map(
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
         "echo" -> { case (_, t) => t },
-        "shutdown" -> { case (context, ()) => context.server.close() },
+        "shutdown" -> { case (context, ()) => context.server.shutdown() },
         "cancel" -> { case (context, JSON.Value.UUID(id)) => context.cancel_task(id) },
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
@@ -484,6 +484,8 @@ class Server private(_port: Int, val log: Logger)
 {
   server =>
 
+  private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
+
   private val _sessions = Synchronized(Map.empty[UUID, Thy_Resources.Session])
   def err_session(id: UUID): Nothing = error("No session " + Library.single_quote(id.toString))
   def the_session(id: UUID): Thy_Resources.Session =
@@ -498,9 +500,19 @@ class Server private(_port: Int, val log: Logger)
       })
   }
 
-  private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
+  def shutdown()
+  {
+    server_socket.close
 
-  def close() { server_socket.close }
+    val sessions = _sessions.change_result(sessions => (sessions, Map.empty))
+    for ((_, session) <- sessions) {
+      try {
+        val result = session.stop()
+        if (!result.ok) log("Session shutdown failed: return code " + result.rc)
+      }
+      catch { case ERROR(msg) => log("Session shutdown failed: " + msg) }
+    }
+  }
 
   def port: Int = server_socket.getLocalPort
   val password: String = UUID().toString
@@ -574,5 +586,5 @@ class Server private(_port: Int, val log: Logger)
 
   def start { server_thread }
 
-  def join { server_thread.join; close() }
+  def join { server_thread.join; shutdown() }
 }
