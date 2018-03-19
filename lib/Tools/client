@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: console interaction for Isabelle server (with line-editor)
+# DESCRIPTION: console interaction for Isabelle servers (with line-editor)
 
 PRG="$(basename "$0")"
 
@@ -15,7 +15,7 @@ function usage()
   echo "    -n NAME      explicit server name"
   echo "    -p PORT      explicit server port"
   echo
-  echo "  Console interaction for Isabelle server (with line-editor)."
+  echo "  Console interaction for Isabelle servers (with line-editor)."
   echo
   exit 1
 }

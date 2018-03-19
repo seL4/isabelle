@@ -440,11 +440,11 @@ Usage: isabelle server [OPTIONS]
   Options are:
     -L FILE      logging on FILE
     -c           console interaction with specified server
-    -l           list servers (exclusive operation)
+    -l           list servers (alternative operation)
     -n NAME      explicit server name (default: """ + default_name + """)
     -p PORT      explicit server port
     -s           assume existing server, no implicit startup
-    -x           exit specified server (exclusive operation)
+    -x           exit specified server (alternative operation)
 
   Manage resident Isabelle servers.
 """,

@@ -469,7 +469,7 @@ text \<open>
 \<close>
 
 
-section \<open>YXML versus XML\<close>
+section \<open>YXML versus XML \label{sec:yxml-vs-xml}\<close>
 
 text \<open>
   Isabelle tools often use YXML, which is a simple and efficient syntax for

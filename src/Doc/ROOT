@@ -378,6 +378,7 @@ session System (doc) in "System" = Pure +
     Environment
     Sessions
     Presentation
+    Server
     Scala
     Misc
   document_files (in "..")
