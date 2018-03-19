@@ -30,10 +30,12 @@ object Server
 
   object Argument
   {
+    def is_name_char(c: Char): Boolean =
+      Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c) || c == '_' || c == '.'
+
     def split(msg: String): (String, String) =
     {
-      val name =
-        msg.takeWhile(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_letdig(c) || c == '.')
+      val name = msg.takeWhile(is_name_char(_))
       val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank(_))
       (name, argument)
     }
