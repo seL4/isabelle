@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
 
-class semiring_parity = linordered_semidom + unique_euclidean_semiring +
+class semiring_parity = semidom + semiring_char_0 + unique_euclidean_semiring +
   assumes of_nat_div: "of_nat (m div n) = of_nat m div of_nat n"
     and division_segment_of_nat [simp]: "division_segment (of_nat n) = 1"
     and division_segment_euclidean_size [simp]: "division_segment a * of_nat (euclidean_size a) = a"

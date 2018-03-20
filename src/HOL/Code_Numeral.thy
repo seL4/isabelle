@@ -889,6 +889,9 @@ lemma [code]:
   "division_segment (n::natural) = 1"
   by (simp add: natural_eq_iff)
 
+instance natural :: linordered_semidom
+  by (standard; transfer) simp_all
+
 instance natural :: semiring_parity
   by (standard; transfer) simp_all
 
