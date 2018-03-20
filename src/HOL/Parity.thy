@@ -418,6 +418,20 @@ lemma even_diff [simp]:
   "even (a - b) \<longleftrightarrow> even (a + b)"
   using even_add [of a "- b"] by simp
 
+lemma minus_1_mod_2_eq [simp]:
+  "- 1 mod 2 = 1"
+  by (simp add: mod_2_eq_odd)
+
+lemma minus_1_div_2_eq [simp]:
+  "- 1 div 2 = - 1"
+proof -
+  from div_mult_mod_eq [of "- 1" 2]
+  have "- 1 div 2 * 2 = - 1 * 2"
+    using local.add_implies_diff by fastforce
+  then show ?thesis
+    using mult_right_cancel [of 2 "- 1 div 2" "- 1"] by simp
+qed
+
 end
 
 
