@@ -130,7 +130,7 @@ object Server
       else JSON.Object(Markup.KIND -> kind, "message" -> msg)
 
     def error_message(msg: String): JSON.Object.T =
-      message(msg, kind = Markup.ERROR_MESSAGE)
+      message(msg, kind = Markup.ERROR)
 
     def unapply(msg: String): Option[(Reply.Value, Any)] =
     {
@@ -225,7 +225,7 @@ object Server
     def writeln(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WRITELN, msg, more:_*)
     def warning(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WARNING, msg, more:_*)
     def error_message(msg: String, more: JSON.Object.Entry*): Unit =
-      message(Markup.ERROR_MESSAGE, msg, more:_*)
+      message(Markup.ERROR, msg, more:_*)
 
     def progress(more: JSON.Object.Entry*): Connection_Progress =
       new Connection_Progress(context, more:_*)
