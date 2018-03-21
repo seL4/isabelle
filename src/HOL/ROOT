@@ -527,6 +527,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Ballot
     BinEx
     Birthday_Paradox
+    Bit_Lists
     Bubblesort
     CTL
     Cartouche_Examples
