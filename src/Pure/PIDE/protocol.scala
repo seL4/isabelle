@@ -144,13 +144,13 @@ object Protocol
   sealed case class Node_Status(
     unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int, consolidated: Boolean)
   {
-    def total: Int = unprocessed + running + warned + failed + finished
     def ok: Boolean = failed == 0
+    def total: Int = unprocessed + running + warned + failed + finished
 
     def json: JSON.Object.T =
-      JSON.Object("unprocessed" -> unprocessed, "running" -> running, "warned" -> warned,
-        "failed" -> failed, "finished" -> finished, "consolidated" -> consolidated,
-        "total" -> total, "ok" -> ok)
+      JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
+        "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
+        "consolidated" -> consolidated)
   }
 
   def node_status(
