@@ -115,8 +115,8 @@ object Server
 
   def json_error(exn: Throwable): JSON.Object.T =
     exn match {
-      case ERROR(msg) => Reply.error_message(msg)
       case e: Error => Reply.error_message(e.message) ++ e.json
+      case ERROR(msg) => Reply.error_message(msg)
       case _ if Exn.is_interrupt(exn) => Reply.error_message(Exn.message(exn))
       case _ => JSON.Object.empty
     }
