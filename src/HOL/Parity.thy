@@ -371,19 +371,23 @@ next
   with division_segment_euclidean_size [of r]
   have "of_nat (euclidean_size r) = r"
     by simp
-  then have "r div of_nat m = of_nat (euclidean_size r) div of_nat m"
+  have "a mod (of_nat m * of_nat n) div (of_nat m * of_nat n) = 0"
     by simp
-  also have "\<dots> = of_nat (euclidean_size r div m)"
+  with remainder(6) have "r div (of_nat m * of_nat n) = 0"
+    by simp
+  with \<open>of_nat (euclidean_size r) = r\<close>
+  have "of_nat (euclidean_size r) div (of_nat m * of_nat n) = 0"
+    by simp
+  then have "of_nat (euclidean_size r div (m * n)) = 0"
     by (simp add: of_nat_div)
-  finally have "r div of_nat m = of_nat (euclidean_size r div m)"
-    .
-  with remainder(1-3) have "r div of_nat m div of_nat n = 0"
-    by (auto intro!: div_eqI [of _ "of_nat (euclidean_size r div m)"])
-      (simp add: division_segment_mult euclidean_size_mult ac_simps less_mult_imp_div_less )
+  then have "of_nat (euclidean_size r div m div n) = 0"
+    by (simp add: div_mult2_eq)
+  with \<open>of_nat (euclidean_size r) = r\<close> have "r div of_nat m div of_nat n = 0"
+    by (simp add: of_nat_div)
   with remainder(1)
   have "q = (r div of_nat m + q * of_nat n * of_nat m div of_nat m) div of_nat n"
     by simp
-  with remainder(5-7) show ?thesis
+  with remainder(5) remainder(7) show ?thesis
     using div_plus_div_distrib_dvd_right [of "of_nat m" "q * (of_nat m * of_nat n)" r]
     by (simp add: ac_simps)
 next
