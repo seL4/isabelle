@@ -153,7 +153,7 @@ object Server_Commands
     def command(session: Thy_Resources.Session): (JSON.Object.T, Process_Result) =
     {
       val result = session.stop()
-      val result_json = JSON.Object("return_code" -> result.rc)
+      val result_json = JSON.Object("ok" -> result.ok, "return_code" -> result.rc)
 
       if (result.ok) (result_json, result)
       else throw new Server.Error("Session shutdown failed: return code " + result.rc, result_json)
