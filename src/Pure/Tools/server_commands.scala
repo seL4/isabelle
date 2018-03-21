@@ -89,14 +89,19 @@ object Server_Commands
 
       val results_json =
         JSON.Object(
+          "ok" -> results.ok,
           "return_code" -> results.rc,
           "sessions" ->
             results.sessions.toList.sortBy(sessions_order).map(session =>
-              JSON.Object(
-                "session" -> session,
-                "return_code" -> results(session).rc,
-                "timeout" -> results(session).timeout,
-                "timing" -> results(session).timing.json)))
+              {
+                val result = results(session)
+                JSON.Object(
+                  "session" -> session,
+                  "ok" -> result.ok,
+                  "return_code" -> result.rc,
+                  "timeout" -> result.timeout,
+                  "timing" -> result.timing.json)
+              }))
 
       if (results.ok) (results_json, results, base_info)
       else throw new Server.Error("Session build failed: return code " + results.rc, results_json)
