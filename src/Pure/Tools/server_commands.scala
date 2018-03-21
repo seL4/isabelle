@@ -124,7 +124,9 @@ object Server_Commands
     def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
       : (JSON.Object.T, (UUID, Thy_Resources.Session)) =
     {
-      val base_info = Session_Build.command(args.build, progress = progress)._3
+      val base_info =
+        try { Session_Build.command(args.build, progress = progress)._3 }
+        catch { case exn: Server.Error => error(exn.message) }
 
       val session =
         Thy_Resources.start_session(
@@ -137,7 +139,7 @@ object Server_Commands
           log = log)
 
       val id = UUID()
-      val res = JSON.Object("session_name" -> base_info.session, "session_id" -> id.toString)
+      val res = JSON.Object("session" -> base_info.session, "session_id" -> id.toString)
 
       (res, id -> session)
     }
