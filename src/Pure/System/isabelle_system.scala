@@ -173,10 +173,10 @@ object Isabelle_System
     File.platform_file(path)
   }
 
-  def tmp_file(name: String, ext: String = ""): JFile =
+  def tmp_file(name: String, ext: String = "", base_dir: JFile = isabelle_tmp_prefix()): JFile =
   {
     val suffix = if (ext == "") "" else "." + ext
-    val file = Files.createTempFile(isabelle_tmp_prefix().toPath, name, suffix).toFile
+    val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
     file.deleteOnExit
     file
   }
@@ -217,9 +217,9 @@ object Isabelle_System
     }
   }
 
-  def tmp_dir(name: String): JFile =
+  def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile =
   {
-    val dir = Files.createTempDirectory(isabelle_tmp_prefix().toPath, name).toFile
+    val dir = Files.createTempDirectory(base_dir.toPath, name).toFile
     dir.deleteOnExit
     dir
   }
