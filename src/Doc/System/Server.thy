@@ -345,10 +345,10 @@ text \<open>
   invoke further asynchronous commands and still dispatch the resulting stream of
   asynchronous messages properly.
 
-  The synchronous command \<^verbatim>\<open>cancel\<close>~\<open>id\<close> tells the specified task to terminate
-  prematurely: usually causing a \<^verbatim>\<open>FAILED\<close> result, but this is not guaranteed:
-  the cancel event may come too late or the running process may just ignore
-  it.
+  The synchronous command \<^verbatim>\<open>cancel {"task":\<close>~\<open>id\<close>\<^verbatim>\<open>}\<close> tells the specified task
+  to terminate prematurely: usually causing a \<^verbatim>\<open>FAILED\<close> result, but this is
+  not guaranteed: the cancel event may come too late or the running process
+  may just ignore it.
 \<close>
 
 
@@ -591,12 +591,12 @@ subsection \<open>Command \<^verbatim>\<open>cancel\<close>\<close>
 
 text \<open>
   \begin{tabular}{ll}
-  argument: & \<open>uuid\<close> \\
+  argument: & \<open>task\<close> \\
   regular result: & \<^verbatim>\<open>OK\<close> \\
   \end{tabular}
   \<^medskip>
 
-  The command invocation \<^verbatim>\<open>cancel "\<close>\<open>uuid\<close>\<^verbatim>\<open>"\<close> attempts to cancel the
+  The command invocation \<^verbatim>\<open>cancel {"task":\<close>~\<open>id\<close>\<^verbatim>\<open>}\<close> attempts to cancel the
   specified task.
 
   Cancellation is merely a hint that the client prefers an ongoing process to
@@ -828,7 +828,7 @@ subsection \<open>Command \<^verbatim>\<open>session_stop\<close>\<close>
 
 text \<open>
   \begin{tabular}{ll}
-  argument: & \<open>{session_id?: uuid}\<close> \\
+  argument: & \<open>{session_id: uuid}\<close> \\
   immediate result: & \<^verbatim>\<open>OK\<close> \<open>task\<close> \\
   regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>task \<oplus> session_stop_result\<close> \\
   error result: & \<^verbatim>\<open>FAILED\<close> \<open>task \<oplus> error_message \<oplus> session_stop_result\<close> \\[2ex]

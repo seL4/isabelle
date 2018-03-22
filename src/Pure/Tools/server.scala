@@ -69,7 +69,8 @@ object Server
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
         "echo" -> { case (_, t) => t },
         "shutdown" -> { case (context, ()) => context.server.shutdown() },
-        "cancel" -> { case (context, JSON.Value.UUID(id)) => context.cancel_task(id) },
+        "cancel" ->
+          { case (context, Server_Commands.Cancel(args)) => context.cancel_task(args.task) },
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
               context.make_task(task =>

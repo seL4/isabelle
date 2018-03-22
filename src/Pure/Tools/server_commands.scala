@@ -23,6 +23,16 @@ object Server_Commands
       case _ => None
     }
 
+  object Cancel
+  {
+    sealed case class Args(task: UUID)
+
+    def unapply(json: JSON.T): Option[Args] =
+      for { task <- JSON.uuid(json, "task") }
+      yield Args(task)
+  }
+
+
   object Session_Build
   {
     sealed case class Args(
