@@ -632,7 +632,7 @@ text \<open>
   \quad~~\<open>preferences?: string,\<close> & \<^bold>\<open>default:\<close> server preferences \\
   \quad~~\<open>options?: [string],\<close> \\
   \quad~~\<open>dirs?: [string],\<close> \\
-  \quad~~\<open>all_known?: bool,\<close> \\
+  \quad~~\<open>include_sessions: [string],\<close> \\
   \quad~~\<open>system_mode?: bool,\<close> \\
   \quad~~\<open>verbose?: bool}\<close> \\[2ex]
   \end{tabular}
@@ -694,13 +694,12 @@ text \<open>
   sessions; see also option \<^verbatim>\<open>-d\<close> in @{tool build}.
 
   \<^medskip>
-  The \<open>all_known\<close> field set to \<^verbatim>\<open>true\<close> includes all sessions from reachable
-  ROOT entries into the name space of theories. This is relevant for proper
-  session-qualified names, instead of referring to theory file names. The
-  option enables the \<^verbatim>\<open>use_theories\<close> command
-  (\secref{sec:command-use-theories}) to refer to arbitrary theories from
-  other sessions, but considerable time is required to explore all accessible
-  session directories and theory dependencies.
+  The \<open>include_sessions\<close> field specifies sessions whose theories should be
+  included in the overall name space of session-qualified theory names. This
+  corresponds to a \<^bold>\<open>sessions\<close> specification in ROOT files
+  (\secref{sec:session-root}). It enables the \<^verbatim>\<open>use_theories\<close> command
+  (\secref{sec:command-use-theories}) to refer to sources from other sessions
+  in a robust manner, instead of relying on directory locations.
 
   \<^medskip>
   The \<open>system_mode\<close> field set to \<^verbatim>\<open>true\<close> stores resulting session images and
@@ -989,23 +988,19 @@ text \<open>
   @{verbatim [display] \<open>use_theories {"session_id": ..., "theories": ["~~/src/HOL/Isar_Examples/Drinker"]}\<close>}
 
   \<^medskip>
-  Process some example theories that import other theories via
-  session-qualified theory names:
-
-  @{verbatim [display] \<open>session_start {"session": "HOL", "all_known": true}
-use_theories {"session_id": ..., "theories": ["~~/src/HOL/Unix/Unix"]}
-session_stop {"session_id": ...}\<close>}
-
-  The option \<open>all_known\<close> has been used here to the full name space of
-  session-qualified theory names accessible in this session. This is also the
-  default in Isabelle/jEdit, although it requires significant startup time.
-
-  \<^medskip>
   Process some example theories in the context of their (single) parent
   session:
 
   @{verbatim [display] \<open>session_start {"session": "HOL-Library"}
 use_theories {"session_id": ..., "theories": ["~~/src/HOL/Unix/Unix"]}
+session_stop {"session_id": ...}\<close>}
+
+  \<^medskip>
+  Process some example theories that import other theories via
+  session-qualified theory names:
+
+  @{verbatim [display] \<open>session_start {"session": "HOL", "include_sessions": ["HOL-Unix"]}
+use_theories {"session_id": ..., "theories": ["HOL-Unix.Unix"]}
 session_stop {"session_id": ...}\<close>}
 \<close>
 

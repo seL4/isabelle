@@ -373,6 +373,7 @@ object Sessions
     session: String,
     progress: Progress = No_Progress,
     dirs: List[Path] = Nil,
+    include_sessions: List[String] = Nil,
     ancestor_session: Option[String] = None,
     all_known: Boolean = false,
     focus_session: Boolean = false,
@@ -435,15 +436,17 @@ object Sessions
       if (infos1.isEmpty) full_sessions
       else load_structure(options, dirs = dirs, infos = infos1)
 
-    val select_sessions1 =
-      if (focus_session) full_sessions1.imports_descendants(List(session1))
-      else List(session1)
     val selected_sessions1 =
+    {
+      val sel_sessions1 = session1 :: include_sessions
+      val select_sessions1 =
+        if (focus_session) full_sessions1.imports_descendants(sel_sessions1) else sel_sessions1
       full_sessions1.selection(Selection(sessions = select_sessions1))
+    }
 
     val sessions1 = if (all_known) full_sessions1 else selected_sessions1
     val deps1 = Sessions.deps(sessions1, global_theories, progress = progress)
-    val base1 = if (all_known) deps1(session1).copy(known = deps1.all_known) else deps1(session1)
+    val base1 = deps1(session1).copy(known = deps1.all_known)
 
     Base_Info(options, dirs, session1, sessions1, deps1.errors, base1, infos1)
   }

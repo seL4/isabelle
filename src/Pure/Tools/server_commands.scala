@@ -40,7 +40,7 @@ object Server_Commands
       preferences: String = default_preferences,
       options: List[String] = Nil,
       dirs: List[String] = Nil,
-      all_known: Boolean = false,
+      include_sessions: List[String] = Nil,
       system_mode: Boolean = false,
       verbose: Boolean = false)
 
@@ -50,13 +50,13 @@ object Server_Commands
         preferences <- JSON.string_default(json, "preferences", default_preferences)
         options <- JSON.list_default(json, "options", JSON.Value.String.unapply _)
         dirs <- JSON.list_default(json, "dirs", JSON.Value.String.unapply _)
-        all_known <- JSON.bool_default(json, "all_known")
+        include_sessions <- JSON.list_default(json, "include_sessions", JSON.Value.String.unapply _)
         system_mode <- JSON.bool_default(json, "system_mode")
         verbose <- JSON.bool_default(json, "verbose")
       }
       yield {
         Args(session, preferences = preferences, options = options, dirs = dirs,
-          all_known = all_known, system_mode = system_mode, verbose = verbose)
+          include_sessions = include_sessions, system_mode = system_mode, verbose = verbose)
       }
 
     def command(args: Args, progress: Progress = No_Progress)
@@ -67,7 +67,7 @@ object Server_Commands
 
       val base_info =
         Sessions.base_info(options, args.session, progress = progress, dirs = dirs,
-          all_known = args.all_known)
+          include_sessions = args.include_sessions)
       val base = base_info.check_base
 
       val results =
