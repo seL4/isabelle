@@ -136,9 +136,8 @@ object Server_Commands
           log = log)
 
       val id = UUID()
-      val res = JSON.Object("session" -> base_info.session, "session_id" -> id.toString)
 
-      (res, id -> session)
+      (JSON.Object("session_id" -> id.toString), id -> session)
     }
   }
 

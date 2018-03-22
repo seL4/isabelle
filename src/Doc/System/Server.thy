@@ -505,6 +505,11 @@ text \<open>
   and thus allows the client to control it by the \<^verbatim>\<open>cancel\<close> command. The same
   task identification is included in all messages produced by this task.
 
+  \<^item> \<^bold>\<open>type\<close> \<open>session_id = {session_id: uuid}\<close> identifies a newly created PIDE
+  session managed by the server. Sessions are independent of client
+  connections and may be shared by different clients, as long as the internal
+  session identifier is known.
+
   \<^item> \<^bold>\<open>type\<close> \<open>node_status = {ok: bool, total: int, unprocessed: int, running:
   int, warned: int, failed: int, finished: int, consolidated: bool}\<close>
   represents a formal theory node status of the PIDE document model. Fields
@@ -596,8 +601,8 @@ text \<open>
   \end{tabular}
   \<^medskip>
 
-  The command invocation \<^verbatim>\<open>cancel {"task":\<close>~\<open>id\<close>\<^verbatim>\<open>}\<close> attempts to cancel the
-  specified task.
+  The command \<^verbatim>\<open>cancel {"task":\<close>~\<open>id\<close>\<^verbatim>\<open>}\<close> attempts to cancel the specified
+  task.
 
   Cancellation is merely a hint that the client prefers an ongoing process to
   be stopped. The command always succeeds formally, but it may get ignored by
@@ -761,12 +766,8 @@ text \<open>
   argument: & \<open>session_build_args \<oplus> {print_mode?: [string]}\<close> \\
   immediate result: & \<^verbatim>\<open>OK\<close> \<open>task\<close> \\
   notifications: & \<^verbatim>\<open>NOTE\<close> \<open>task \<oplus> (theory_progress | message)\<close> \\
-  regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>task \<oplus> session_start_result\<close> \\
+  regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>task \<oplus> session_id\<close> \\
   error result: & \<^verbatim>\<open>FAILED\<close> \<open>task \<oplus> error_message\<close> \\[2ex]
-  \end{tabular}
-
-  \begin{tabular}{l}
-  \<^bold>\<open>type\<close> \<open>session_start_result = {session: string, session_id: uuid}\<close>
   \end{tabular}
 
   \<^medskip>
@@ -804,12 +805,9 @@ text \<open>
 subsubsection \<open>Results\<close>
 
 text \<open>
-  The \<open>session\<close> field provides the active session name for clarity.
-
-  \<^medskip>
-  The \<open>session_id\<close> field provides the internal identification of the session
-  object within the sever process. It can remain active as long as the server
-  is running, independently of the current client connection.
+  The \<open>session_id\<close> provides the internal identification of the session object
+  within the sever process. It can remain active as long as the server is
+  running, independently of the current client connection.
 \<close>
 
 
@@ -828,7 +826,7 @@ subsection \<open>Command \<^verbatim>\<open>session_stop\<close>\<close>
 
 text \<open>
   \begin{tabular}{ll}
-  argument: & \<open>{session_id: uuid}\<close> \\
+  argument: & \<open>session_id\<close> \\
   immediate result: & \<^verbatim>\<open>OK\<close> \<open>task\<close> \\
   regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>task \<oplus> session_stop_result\<close> \\
   error result: & \<^verbatim>\<open>FAILED\<close> \<open>task \<oplus> error_message \<oplus> session_stop_result\<close> \\[2ex]
@@ -849,8 +847,8 @@ text \<open>
 subsubsection \<open>Arguments\<close>
 
 text \<open>
-  The \<open>session_id\<close> field provides the UUID originally created by the server
-  for this session.
+  The \<open>session_id\<close> provides the UUID originally created by the server for this
+  session.
 \<close>
 
 
