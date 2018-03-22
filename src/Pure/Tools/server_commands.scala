@@ -137,7 +137,12 @@ object Server_Commands
 
       val id = UUID()
 
-      (JSON.Object("session_id" -> id.toString), id -> session)
+      val res =
+        JSON.Object(
+          "session_id" -> id.toString,
+          "tmp_dir" -> File.path(session.tmp_dir).implode)
+
+      (res, id -> session)
     }
   }
 

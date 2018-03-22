@@ -764,7 +764,7 @@ text \<open>
   argument: & \<open>session_build_args \<oplus> {print_mode?: [string]}\<close> \\
   immediate result: & \<^verbatim>\<open>OK\<close> \<open>task\<close> \\
   notifications: & \<^verbatim>\<open>NOTE\<close> \<open>task \<oplus> (theory_progress | message)\<close> \\
-  regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>task \<oplus> session_id\<close> \\
+  regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>task \<oplus> session_id \<oplus> {tmp_dir: string}\<close> \\
   error result: & \<^verbatim>\<open>FAILED\<close> \<open>task \<oplus> error_message\<close> \\[2ex]
   \end{tabular}
 
@@ -806,6 +806,13 @@ text \<open>
   The \<open>session_id\<close> provides the internal identification of the session object
   within the sever process. It can remain active as long as the server is
   running, independently of the current client connection.
+
+  \<^medskip>
+  The \<open>tmp_dir\<close> fields reveals a temporary directory that is specifically
+  created for this session and deleted after it has been stopped. This may
+  serve as auxiliary file-space for the \<^verbatim>\<open>use_theories\<close> command, but
+  concurrent use requires some care in naming temporary files, e.g.\ by
+  using sub-directories with globally unique names.
 \<close>
 
 
