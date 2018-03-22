@@ -19,8 +19,8 @@ fun baliL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
 "baliL t1 a t2 = B t1 a t2"
 
 fun baliR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
-"baliR t1 a1 (R (R t2 a2 t3) a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "baliR t1 a1 (R t2 a2 (R t3 a3 t4)) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
+"baliR t1 a1 (R (R t2 a2 t3) a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "baliR t1 a t2 = B t1 a t2"
 
 fun paint :: "color \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
