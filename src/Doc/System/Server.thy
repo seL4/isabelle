@@ -627,13 +627,12 @@ text \<open>
   \quad~~\<open>preferences?: string,\<close> & \<^bold>\<open>default:\<close> server preferences \\
   \quad~~\<open>options?: [string],\<close> \\
   \quad~~\<open>dirs?: [string],\<close> \\
-  \quad~~\<open>ancestor_session?: string,\<close> \\
   \quad~~\<open>all_known?: bool,\<close> \\
-  \quad~~\<open>focus_session?: bool,\<close> \\
-  \quad~~\<open>required_session?: bool,\<close> \\
   \quad~~\<open>system_mode?: bool,\<close> \\
   \quad~~\<open>verbose?: bool}\<close> \\[2ex]
+  \end{tabular}
 
+  \begin{tabular}{ll}
   \<^bold>\<open>type\<close> \<open>session_build_result =\<close> \\
   \quad\<open>{session: string,\<close> \\
   \quad~~\<open>ok: bool,\<close> \\
@@ -669,10 +668,9 @@ text \<open>
 subsubsection \<open>Arguments\<close>
 
 text \<open>
-  The \<open>session\<close> field is mandatory. It specifies the target session name:
-  either directly (default) or indirectly (if \<open>required_session\<close> is \<^verbatim>\<open>true\<close>).
-  The build process will produce all required ancestor images for the
-  specified target.
+  The \<open>session\<close> field specifies the target session name. The build process
+  will produce all required ancestor images according to the overall session
+  graph.
 
   \<^medskip>
   The environment of Isabelle system options is determined from \<open>preferences\<close>
@@ -691,13 +689,6 @@ text \<open>
   sessions; see also option \<^verbatim>\<open>-d\<close> in @{tool build}.
 
   \<^medskip>
-  The \<open>ancestor_session\<close> field specifies an alternative image as starting
-  point for the target image. The default is to use the parent session
-  according to the ROOT entry; see also option \<^verbatim>\<open>-A\<close> in @{tool jedit}. This
-  can lead to a more light-weight build process, by skipping intermediate
-  session images of the hierarchy that are not used later on.
-
-  \<^medskip>
   The \<open>all_known\<close> field set to \<^verbatim>\<open>true\<close> includes all sessions from reachable
   ROOT entries into the name space of theories. This is relevant for proper
   session-qualified names, instead of referring to theory file names. The
@@ -705,17 +696,6 @@ text \<open>
   (\secref{sec:command-use-theories}) to refer to arbitrary theories from
   other sessions, but considerable time is required to explore all accessible
   session directories and theory dependencies.
-
-  \<^medskip>
-  The \<open>focus_session\<close> field set to \<^verbatim>\<open>true\<close> focuses on the target session:
-  the accessible name space of theories is restricted to sessions that are
-  connected to it in the imports graph.
-
-  \<^medskip>
-  The \<open>required_session\<close> field set to \<^verbatim>\<open>true\<close> indicates that the target image
-  should not be the \<open>session\<close>, but its parent (or ancestor according to
-  \<open>ancestor_session\<close>). Thus it prepares a session context where theories from
-  the \<open>session\<close> itself can be loaded.
 
   \<^medskip>
   The \<open>system_mode\<close> field set to \<^verbatim>\<open>true\<close> stores resulting session images and
@@ -771,9 +751,6 @@ text \<open>
 
   Build a session image from the Archive of Formal Proofs:
   @{verbatim [display] \<open>session_build {"session": "Coinductive", "dirs": ["$AFP_BASE/thys"]}\<close>}
-
-  Build of a session image of \<^verbatim>\<open>HOL-Number_Theory\<close> directly on top of \<^verbatim>\<open>HOL\<close>:
-  @{verbatim [display] \<open>session_build {"session": "HOL-Number_Theory", "ancestor_session": "HOL"}\<close>}
 \<close>
 
 
