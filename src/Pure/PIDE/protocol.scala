@@ -144,13 +144,13 @@ object Protocol
   sealed case class Node_Status(
     unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int, consolidated: Boolean)
   {
-    def total: Int = unprocessed + running + warned + failed + finished
     def ok: Boolean = failed == 0
+    def total: Int = unprocessed + running + warned + failed + finished
 
     def json: JSON.Object.T =
-      JSON.Object("unprocessed" -> unprocessed, "running" -> running, "warned" -> warned,
-        "failed" -> failed, "finished" -> finished, "consolidated" -> consolidated,
-        "total" -> total, "ok" -> ok)
+      JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
+        "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
+        "consolidated" -> consolidated)
   }
 
   def node_status(
@@ -239,6 +239,13 @@ object Protocol
       case _ => false
     }
 
+  def is_writeln(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.WRITELN, _), _) => true
+      case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _), _) => true
+      case _ => false
+    }
+
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WARNING, _), _) => true
@@ -262,6 +269,9 @@ object Protocol
 
   def is_inlined(msg: XML.Tree): Boolean =
     !(is_result(msg) || is_tracing(msg) || is_state(msg))
+
+  def is_exported(msg: XML.Tree): Boolean =
+    is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
 
   /* breakpoints */

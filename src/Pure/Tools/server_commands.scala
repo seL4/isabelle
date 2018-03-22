@@ -23,6 +23,16 @@ object Server_Commands
       case _ => None
     }
 
+  object Cancel
+  {
+    sealed case class Args(task: UUID)
+
+    def unapply(json: JSON.T): Option[Args] =
+      for { task <- JSON.uuid(json, "task") }
+      yield Args(task)
+  }
+
+
   object Session_Build
   {
     sealed case class Args(
@@ -30,10 +40,7 @@ object Server_Commands
       preferences: String = default_preferences,
       options: List[String] = Nil,
       dirs: List[String] = Nil,
-      ancestor_session: String = "",
-      all_known: Boolean = false,
-      focus_session: Boolean = false,
-      required_session: Boolean = false,
+      include_sessions: List[String] = Nil,
       system_mode: Boolean = false,
       verbose: Boolean = false)
 
@@ -43,17 +50,13 @@ object Server_Commands
         preferences <- JSON.string_default(json, "preferences", default_preferences)
         options <- JSON.list_default(json, "options", JSON.Value.String.unapply _)
         dirs <- JSON.list_default(json, "dirs", JSON.Value.String.unapply _)
-        ancestor_session <- JSON.string_default(json, "ancestor_session")
-        all_known <- JSON.bool_default(json, "all_known")
-        focus_session <- JSON.bool_default(json, "focus_session")
-        required_session <- JSON.bool_default(json, "required_session")
+        include_sessions <- JSON.list_default(json, "include_sessions", JSON.Value.String.unapply _)
         system_mode <- JSON.bool_default(json, "system_mode")
         verbose <- JSON.bool_default(json, "verbose")
       }
       yield {
         Args(session, preferences = preferences, options = options, dirs = dirs,
-          ancestor_session = ancestor_session, all_known = all_known, focus_session = focus_session,
-          required_session = required_session, system_mode = system_mode, verbose = verbose)
+          include_sessions = include_sessions, system_mode = system_mode, verbose = verbose)
       }
 
     def command(args: Args, progress: Progress = No_Progress)
@@ -63,14 +66,8 @@ object Server_Commands
       val dirs = args.dirs.map(Path.explode(_))
 
       val base_info =
-        Sessions.base_info(options,
-          args.session,
-          progress = progress,
-          dirs = dirs,
-          ancestor_session = proper_string(args.ancestor_session),
-          all_known = args.all_known,
-          focus_session = args.focus_session,
-          required_session = args.required_session)
+        Sessions.base_info(options, args.session, progress = progress, dirs = dirs,
+          include_sessions = args.include_sessions)
       val base = base_info.check_base
 
       val results =
@@ -89,14 +86,19 @@ object Server_Commands
 
       val results_json =
         JSON.Object(
+          "ok" -> results.ok,
           "return_code" -> results.rc,
           "sessions" ->
             results.sessions.toList.sortBy(sessions_order).map(session =>
-              JSON.Object(
-                "session" -> session,
-                "return_code" -> results(session).rc,
-                "timeout" -> results(session).timeout,
-                "timing" -> results(session).timing.json)))
+              {
+                val result = results(session)
+                JSON.Object(
+                  "session" -> session,
+                  "ok" -> result.ok,
+                  "return_code" -> result.rc,
+                  "timeout" -> result.timeout,
+                  "timing" -> result.timing.json)
+              }))
 
       if (results.ok) (results_json, results, base_info)
       else throw new Server.Error("Session build failed: return code " + results.rc, results_json)
@@ -119,7 +121,9 @@ object Server_Commands
     def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
       : (JSON.Object.T, (UUID, Thy_Resources.Session)) =
     {
-      val base_info = Session_Build.command(args.build, progress = progress)._3
+      val base_info =
+        try { Session_Build.command(args.build, progress = progress)._3 }
+        catch { case exn: Server.Error => error(exn.message) }
 
       val session =
         Thy_Resources.start_session(
@@ -132,7 +136,11 @@ object Server_Commands
           log = log)
 
       val id = UUID()
-      val res = JSON.Object("session_name" -> base_info.session, "session_id" -> id.toString)
+
+      val res =
+        JSON.Object(
+          "session_id" -> id.toString,
+          "tmp_dir" -> File.path(session.tmp_dir).implode)
 
       (res, id -> session)
     }
@@ -146,7 +154,7 @@ object Server_Commands
     def command(session: Thy_Resources.Session): (JSON.Object.T, Process_Result) =
     {
       val result = session.stop()
-      val result_json = JSON.Object("return_code" -> result.rc)
+      val result_json = JSON.Object("ok" -> result.ok, "return_code" -> result.rc)
 
       if (result.ok) (result_json, result)
       else throw new Server.Error("Session shutdown failed: return code " + result.rc, result_json)
@@ -196,7 +204,9 @@ object Server_Commands
           case XML.Text(msg) => Server.Reply.message(output_text(msg)) + position
           case elem: XML.Elem =>
             val msg = XML.content(Pretty.formatted(List(elem), margin = args.pretty_margin))
-            val kind = Markup.messages.collectFirst({ case (a, b) if b == elem.name => a })
+            val kind =
+              Markup.messages.collectFirst({ case (a, b) if b == elem.name =>
+                if (Protocol.is_legacy(elem)) Markup.WARNING else a })
             Server.Reply.message(output_text(msg), kind = kind getOrElse "") + position
         }
       }
@@ -208,6 +218,7 @@ object Server_Commands
             (for {
               (name, status) <- result.nodes if !status.ok
               (tree, pos) <- result.messages(name) if Protocol.is_error(tree)
+              if Protocol.is_exported(tree)
             } yield output_message(tree, pos)),
           "nodes" ->
             (for ((name, status) <- result.nodes) yield

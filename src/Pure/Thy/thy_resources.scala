@@ -7,6 +7,9 @@ PIDE resources for theory files: load/unload theories via PIDE document updates.
 package isabelle
 
 
+import java.io.{File => JFile}
+
+
 object Thy_Resources
 {
   /* PIDE session */
@@ -65,7 +68,6 @@ object Thy_Resources
           Document.Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
         (_, tree) <- state.command_results(version, command).iterator
-        if Protocol.is_inlined(tree)
        } yield (tree, pos)).toList
     }
   }
@@ -75,6 +77,14 @@ object Thy_Resources
     override val resources: Thy_Resources) extends isabelle.Session(session_options, resources)
   {
     session =>
+
+    val tmp_dir: JFile = Isabelle_System.tmp_dir("server_session")
+
+    override def stop(): Process_Result =
+    {
+      try { super.stop() }
+      finally { Isabelle_System.rm_tree(tmp_dir) }
+    }
 
     def use_theories(
       theories: List[(String, Position.T)],

@@ -69,7 +69,8 @@ object Server
         "help" -> { case (_, ()) => table.keySet.toList.sorted },
         "echo" -> { case (_, t) => t },
         "shutdown" -> { case (context, ()) => context.server.shutdown() },
-        "cancel" -> { case (context, JSON.Value.UUID(id)) => context.cancel_task(id) },
+        "cancel" ->
+          { case (context, Server_Commands.Cancel(args)) => context.cancel_task(args.task) },
         "session_build" ->
           { case (context, Server_Commands.Session_Build(args)) =>
               context.make_task(task =>
@@ -115,8 +116,8 @@ object Server
 
   def json_error(exn: Throwable): JSON.Object.T =
     exn match {
-      case ERROR(msg) => Reply.error_message(msg)
       case e: Error => Reply.error_message(e.message) ++ e.json
+      case ERROR(msg) => Reply.error_message(msg)
       case _ if Exn.is_interrupt(exn) => Reply.error_message(Exn.message(exn))
       case _ => JSON.Object.empty
     }
@@ -130,7 +131,7 @@ object Server
       else JSON.Object(Markup.KIND -> kind, "message" -> msg)
 
     def error_message(msg: String): JSON.Object.T =
-      message(msg, kind = Markup.ERROR_MESSAGE)
+      message(msg, kind = Markup.ERROR)
 
     def unapply(msg: String): Option[(Reply.Value, Any)] =
     {
@@ -225,7 +226,7 @@ object Server
     def writeln(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WRITELN, msg, more:_*)
     def warning(msg: String, more: JSON.Object.Entry*): Unit = message(Markup.WARNING, msg, more:_*)
     def error_message(msg: String, more: JSON.Object.Entry*): Unit =
-      message(Markup.ERROR_MESSAGE, msg, more:_*)
+      message(Markup.ERROR, msg, more:_*)
 
     def progress(more: JSON.Object.Entry*): Connection_Progress =
       new Connection_Progress(context, more:_*)
