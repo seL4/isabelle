@@ -991,7 +991,7 @@ text \<open>
   Process some example theory from the Isabelle distribution, within the
   context of an already started session for Isabelle/HOL (see also
   \secref{sec:command-session-start}):
-  @{verbatim [display] \<open>use_theories {"session_id": ..., "theories": ["~~/src/HOL/Isar_Examples/Drinker"]}\<close>}
+  @{verbatim [display] \<open>use_theories {"session_id": ..., "theories": ["~~/src/HOL/ex/Seq"]}\<close>}
 
   \<^medskip>
   Process some example theories in the context of their (single) parent
