@@ -468,9 +468,8 @@ text \<open>
 
   \<^item> \<^bold>\<open>type\<close>~\<open>message = {kind?: string, message: string, pos?: position}\<close> where
   the \<open>kind\<close> provides some hint about the role and importance of the message.
-  The main message kinds are \<^verbatim>\<open>writeln\<close> (for regular output), \<^verbatim>\<open>warning\<close>, and
-  \<^verbatim>\<open>error\<close>. The table \<^verbatim>\<open>Markup.messages\<close> in Isabelle/Scala defines further
-  message kinds for more specific applications.
+  The main message kinds are \<^verbatim>\<open>writeln\<close> (for regular output), \<^verbatim>\<open>warning\<close>,
+  \<^verbatim>\<open>error\<close>. Messages without explicit kind can be treated like \<^verbatim>\<open>writeln\<close>.
 
   \<^item> \<^bold>\<open>type\<close>~\<open>error_message = {kind:\<close>~\<^verbatim>\<open>"error"\<close>\<open>, message: string}\<close> refers to
   error messages in particular. These occur routinely with \<^verbatim>\<open>ERROR\<close> or

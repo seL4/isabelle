@@ -239,6 +239,13 @@ object Protocol
       case _ => false
     }
 
+  def is_writeln(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.WRITELN, _), _) => true
+      case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _), _) => true
+      case _ => false
+    }
+
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WARNING, _), _) => true
@@ -262,6 +269,9 @@ object Protocol
 
   def is_inlined(msg: XML.Tree): Boolean =
     !(is_result(msg) || is_tracing(msg) || is_state(msg))
+
+  def is_exported(msg: XML.Tree): Boolean =
+    is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
 
   /* breakpoints */

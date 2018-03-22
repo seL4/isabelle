@@ -199,7 +199,9 @@ object Server_Commands
           case XML.Text(msg) => Server.Reply.message(output_text(msg)) + position
           case elem: XML.Elem =>
             val msg = XML.content(Pretty.formatted(List(elem), margin = args.pretty_margin))
-            val kind = Markup.messages.collectFirst({ case (a, b) if b == elem.name => a })
+            val kind =
+              Markup.messages.collectFirst({ case (a, b) if b == elem.name =>
+                if (Protocol.is_legacy(elem)) Markup.WARNING else a })
             Server.Reply.message(output_text(msg), kind = kind getOrElse "") + position
         }
       }
@@ -211,6 +213,7 @@ object Server_Commands
             (for {
               (name, status) <- result.nodes if !status.ok
               (tree, pos) <- result.messages(name) if Protocol.is_error(tree)
+              if Protocol.is_exported(tree)
             } yield output_message(tree, pos)),
           "nodes" ->
             (for ((name, status) <- result.nodes) yield
