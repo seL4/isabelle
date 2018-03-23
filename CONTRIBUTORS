@@ -6,6 +6,11 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2018: Florian Haftmann
+  Abstract bit operations push_bit, push_take, push_drop, alongside
+  with an algebraic foundation for bit strings and word types in
+  HOL-ex.
+
 * March 2018: Viorel Preoteasa
   Generalisation of complete_distrib_lattice
 

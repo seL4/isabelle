@@ -194,6 +194,9 @@ dummy sort: it is effectively ignored in type-inference.
 
 *** HOL ***
 
+* Abstract bit operations as part of Main: push_bit, push_take,
+push_drop.
+
 * New, more general, axiomatization of complete_distrib_lattice. 
 The former axioms:
 "sup x (Inf X) = Inf (sup x ` X)" and "inf x (Sup X) = Sup (inf x ` X)"
