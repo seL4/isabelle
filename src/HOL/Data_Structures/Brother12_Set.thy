@@ -150,13 +150,9 @@ subsection "Functional Correctness Proofs"
 
 subsubsection "Proofs for isin"
 
-lemma
-  "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems(inorder t))"
-by(induction h arbitrary: t) (fastforce simp: elems_simps1 split: if_splits)+
-
-lemma isin_set: "t \<in> T h \<Longrightarrow>
-  sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems(inorder t))"
-by(induction h arbitrary: t) (auto simp: elems_simps2 split: if_splits)
+lemma isin_set:
+  "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set(inorder t))"
+by(induction h arbitrary: t) (fastforce simp: isin_simps split: if_splits)+
 
 subsubsection "Proofs for insertion"
 
