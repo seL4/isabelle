@@ -539,8 +539,18 @@ abstract class Rendering(
       if (range == r) copy(rev_infos = (important -> tree) :: rev_infos)
       else copy (range = r, rev_infos = List(important -> tree))
     }
+
+    def timing_info(tree: XML.Tree): Option[XML.Tree] =
+      tree match {
+        case XML.Elem(Markup(Markup.TIMING, _), _) =>
+          if (timing.elapsed.seconds >= timing_threshold) Some(XML.Text(timing.message)) else None
+        case _ => Some(tree)
+      }
     def infos(important: Boolean): List[XML.Tree] =
-      rev_infos.filter(p => p._1 == important).reverse.map(_._2)
+      for {
+        (is_important, tree) <- rev_infos.reverse if is_important == important
+        tree1 <- timing_info(tree)
+      } yield tree1
   }
 
   def perhaps_append_file(node_name: Document.Node.Name, name: String): String =
@@ -568,11 +578,8 @@ abstract class Rendering(
               if (name == "") kind1
               else if (kind1 == "") quote(name)
               else kind1 + " " + quote(name)
-            val txt2 =
-              if (kind == Markup.COMMAND && info.timing.elapsed.seconds >= timing_threshold)
-                "\n" + info.timing.message
-              else ""
-            Some(info + (r0, true, XML.Text(txt1 + txt2)))
+            val info1 = info + (r0, true, XML.Text(txt1))
+            Some(if (kind == Markup.COMMAND) info1 + (r0, true, XML.elem(Markup.TIMING)) else info1)
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
