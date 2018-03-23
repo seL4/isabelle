@@ -929,9 +929,11 @@ text \<open>
   specifications may be given, which is occasionally useful for precise error
   locations.
 
-  \<^medskip> The \<open>master_dir\<close> field explicit specifies the formal master directory of
-  the imported theory. Normally this is determined implicitly from the parent
-  directory of the theory file.
+  \<^medskip> The \<open>master_dir\<close> field specifies the master directory of imported
+  theories: it acts like the ``current working directory'' for locating theory
+  files. This may be omitted if all entries of \<open>theories\<close> use a
+  session-qualified theory name (e.g.\ \<^verbatim>\<open>"HOL-Library.AList"\<close>) or absolute
+  path name (e.g.\ \<^verbatim>\<open>"~~/src/HOL/ex/Seq"\<close>).
 
   \<^medskip>
   The \<open>pretty_margin\<close> field specifies the line width for pretty-printing. The
