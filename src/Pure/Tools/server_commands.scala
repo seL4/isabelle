@@ -219,4 +219,31 @@ object Server_Commands
       (result_json, result)
     }
   }
+
+  object Purge_Theories
+  {
+    sealed case class Args(
+      session_id: UUID,
+      theories: List[String] = Nil,
+      master_dir: String = "",
+      all: Boolean = false)
+
+    def unapply(json: JSON.T): Option[Args] =
+      for {
+        session_id <- JSON.uuid(json, "session_id")
+        theories <- JSON.list_default(json, "theories", JSON.Value.String.unapply _)
+        master_dir <- JSON.string_default(json, "master_dir")
+        all <- JSON.bool_default(json, "all")
+      }
+      yield { Args(session_id, theories = theories, master_dir = master_dir, all = all) }
+
+    def command(args: Args, session: Thy_Resources.Session)
+      : (JSON.Object.T, List[Document.Node.Name]) =
+    {
+      val purged =
+        session.purge_theories(
+          theories = args.theories, master_dir = args.master_dir, all = args.all)
+      (JSON.Object("purged" -> purged.map(_.node)), purged)
+    }
+  }
 }

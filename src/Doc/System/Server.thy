@@ -873,7 +873,8 @@ subsection \<open>Command \<^verbatim>\<open>use_theories\<close> \label{sec:com
 text \<open>
   \begin{tabular}{ll}
   argument: & \<open>use_theories_arguments\<close> \\
-  regular result: & \<^verbatim>\<open>OK\<close> \<open>use_theories_results\<close> \\
+  immediate result: & \<^verbatim>\<open>OK\<close> \<open>task\<close> \\
+  regular result: & \<^verbatim>\<open>FINISHED\<close> \<open>use_theories_results\<close> \\
   \end{tabular}
 
   \begin{tabular}{ll}
@@ -906,10 +907,11 @@ text \<open>
   (\secref{sec:json-types}): the outermost command structure has finished (or
   failed) and the final \<^theory_text>\<open>end\<close> command of each theory has been checked.
 
-  Already used theories persist in the session until purged explicitly. This
-  also means that repeated invocations of \<^verbatim>\<open>use_theories\<close> are idempotent: it
-  could make sense to do that with different values for \<open>pretty_margin\<close> or
-  \<open>unicode_symbols\<close> to get different formatting for \<open>errors\<close> or \<open>messages\<close>.
+  Already used theories persist in the session until purged explicitly
+  (\secref{sec:command-purge-theories}). This also means that repeated
+  invocations of \<^verbatim>\<open>use_theories\<close> are idempotent: it could make sense to do
+  that with different values for \<open>pretty_margin\<close> or \<open>unicode_symbols\<close> to get
+  different formatting for \<open>errors\<close> or \<open>messages\<close>.
 \<close>
 
 
@@ -923,11 +925,12 @@ text \<open>
   The \<open>theories\<close> field specifies theory names as in theory \<^theory_text>\<open>imports\<close> or in
   ROOT \<^bold>\<open>theories\<close>.
 
-  \<^medskip> The \<open>master_dir\<close> field specifies the master directory of imported
-  theories: it acts like the ``current working directory'' for locating theory
-  files. This may be omitted if all entries of \<open>theories\<close> use a
-  session-qualified theory name (e.g.\ \<^verbatim>\<open>"HOL-Library.AList"\<close>) or absolute
-  path name (e.g.\ \<^verbatim>\<open>"~~/src/HOL/ex/Seq"\<close>).
+  \<^medskip>
+  The \<open>master_dir\<close> field specifies the master directory of imported theories:
+  it acts like the ``current working directory'' for locating theory files.
+  This may be omitted if all entries of \<open>theories\<close> use a session-qualified
+  theory name (e.g.\ \<^verbatim>\<open>"HOL-Library.AList"\<close>) or absolute path name (e.g.\
+  \<^verbatim>\<open>"~~/src/HOL/ex/Seq"\<close>).
 
   \<^medskip>
   The \<open>pretty_margin\<close> field specifies the line width for pretty-printing. The
@@ -994,6 +997,63 @@ session_stop {"session_id": ...}\<close>}
   @{verbatim [display] \<open>session_start {"session": "HOL", "include_sessions": ["HOL-Unix"]}
 use_theories {"session_id": ..., "theories": ["HOL-Unix.Unix"]}
 session_stop {"session_id": ...}\<close>}
+\<close>
+
+
+subsection \<open>Command \<^verbatim>\<open>purge_theories\<close> \label{sec:command-purge-theories}\<close>
+
+text \<open>
+  \begin{tabular}{ll}
+  argument: & \<open>purge_theories_arguments\<close> \\
+  regular result: & \<^verbatim>\<open>OK\<close> \<open>purge_theories_result\<close> \\
+  \end{tabular}
+
+  \begin{tabular}{ll}
+  \<^bold>\<open>type\<close> \<open>purge_theories_arguments =\<close> \\
+  \quad\<open>{session_id: uuid,\<close> \\
+  \quad~~\<open>theories: [string],\<close> \\
+  \quad~~\<open>master_dir?: string,\<close> \\
+  \quad~~\<open>all?: bool}\<close> \\[2ex]
+  \end{tabular}
+
+  \begin{tabular}{ll}
+  \<^bold>\<open>type\<close> \<open>purge_theories_result = {purged: [string]}\<close> \\
+  \end{tabular}
+
+  \<^medskip>
+  The \<^verbatim>\<open>purge_theories\<close> command updates the identified session by removing
+  theories that are no longer required: theories that are used in pending
+  \<^verbatim>\<open>use_theories\<close> tasks or imported by other theories are retained.
+\<close>
+
+
+subsubsection \<open>Arguments\<close>
+
+text \<open>
+  The \<open>session_id\<close> is the identifier provided by the server, when the session
+  was created (possibly on a different client connection).
+
+  \<^medskip>
+  The \<open>theories\<close> field specifies theory names to be purged: imported
+  dependencies are \<^emph>\<open>not\<close> completed. Instead it is possible to provide the
+  already completed import graph returned by \<^verbatim>\<open>use_theories\<close> as \<open>nodes\<close> /
+  \<open>node_name\<close>.
+
+  \<^medskip>
+  The \<open>master_dir\<close> field specifies the master directory as in \<^verbatim>\<open>use_theories\<close>;
+  by passing its \<open>nodes\<close> / \<open>node_name\<close> results, the \<open>master_dir\<close> is redundant.
+
+  \<^medskip>
+  The \<open>all\<close> field set to \<^verbatim>\<open>true\<close> attempts to purge all presently loaded
+  theories.
+\<close>
+
+
+subsubsection \<open>Results\<close>
+
+text \<open>
+  The \<open>purged\<close> field reveals the \<open>node_name\<close> of each theory that was actually
+  removed.
 \<close>
 
 end
