@@ -30,7 +30,7 @@ fixes inorder :: "'t \<Rightarrow> 'a list"
 fixes inv :: "'t \<Rightarrow> bool"
 assumes empty: "inorder empty = []"
 assumes isin: "inv t \<and> sorted(inorder t) \<Longrightarrow>
-  isin t x = (x \<in> elems (inorder t))"
+  isin t x = (x \<in> set (inorder t))"
 assumes insert: "inv t \<and> sorted(inorder t) \<Longrightarrow>
   inorder(insert x t) = ins_list x (inorder t)"
 assumes delete: "inv t \<and> sorted(inorder t) \<Longrightarrow>
@@ -41,7 +41,7 @@ assumes inv_delete: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(delete
 begin
 
 sublocale Set
-  empty insert delete isin "elems o inorder" "\<lambda>t. inv t \<and> sorted(inorder t)"
+  empty insert delete isin "set o inorder" "\<lambda>t. inv t \<and> sorted(inorder t)"
 proof(standard, goal_cases)
   case 1 show ?case by (auto simp: empty)
 next
@@ -50,7 +50,7 @@ next
   case 3 thus ?case by(simp add: insert set_ins_list)
 next
   case (4 s x) thus ?case
-    using delete[OF 4, of x] by (auto simp: distinct_if_sorted elems_del_list_eq)
+    using delete[OF 4, of x] by (auto simp: distinct_if_sorted set_del_list_eq)
 next
   case 5 thus ?case by(simp add: empty inv_empty)
 next

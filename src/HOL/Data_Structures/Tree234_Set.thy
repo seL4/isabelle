@@ -202,11 +202,8 @@ subsection "Functional correctness"
 
 subsubsection \<open>Functional correctness of isin:\<close>
 
-lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps1 ball_Un)
-
-lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps2 split!: if_splits)
+lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set (inorder t))"
+by (induction t) (auto simp: isin_simps ball_Un)
 
 
 subsubsection \<open>Functional correctness of insert:\<close>

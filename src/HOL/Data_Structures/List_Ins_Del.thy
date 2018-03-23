@@ -8,38 +8,29 @@ begin
 
 subsection \<open>Elements in a list\<close>
 
-fun elems :: "'a list \<Rightarrow> 'a set" where
-"elems [] = {}" |
-"elems (x#xs) = Set.insert x (elems xs)"
-
-lemma elems_app: "elems (xs @ ys) = (elems xs \<union> elems ys)"
-by (induction xs) auto
-
-lemma elems_eq_set: "elems xs = set xs"
-by (induction xs) auto
-
 lemma sorted_Cons_iff:
-  "sorted(x # xs) = ((\<forall>y \<in> elems xs. x < y) \<and> sorted xs)"
-by(simp add: elems_eq_set sorted_wrt_Cons)
+  "sorted(x # xs) = ((\<forall>y \<in> set xs. x < y) \<and> sorted xs)"
+by(simp add: sorted_wrt_Cons)
 
 lemma sorted_snoc_iff:
-  "sorted(xs @ [x]) = (sorted xs \<and> (\<forall>y \<in> elems xs. y < x))"
-by(simp add: elems_eq_set sorted_wrt_append)
-
+  "sorted(xs @ [x]) = (sorted xs \<and> (\<forall>y \<in> set xs. y < x))"
+by(simp add: sorted_wrt_append)
+(*
 text\<open>The above two rules introduce quantifiers. It turns out
 that in practice this is not a problem because of the simplicity of
-the "isin" functions that implement @{const elems}. Nevertheless
+the "isin" functions that implement @{const set}. Nevertheless
 it is possible to avoid the quantifiers with the help of some rewrite rules:\<close>
 
-lemma sorted_ConsD: "sorted (y # xs) \<Longrightarrow> x \<le> y \<Longrightarrow> x \<notin> elems xs"
+lemma sorted_ConsD: "sorted (y # xs) \<Longrightarrow> x \<le> y \<Longrightarrow> x \<notin> set xs"
 by (auto simp: sorted_Cons_iff)
 
-lemma sorted_snocD: "sorted (xs @ [y]) \<Longrightarrow> y \<le> x \<Longrightarrow> x \<notin> elems xs"
+lemma sorted_snocD: "sorted (xs @ [y]) \<Longrightarrow> y \<le> x \<Longrightarrow> x \<notin> set xs"
 by (auto simp: sorted_snoc_iff)
 
-lemmas elems_simps = sorted_lems elems_app
-lemmas elems_simps1 = elems_simps sorted_Cons_iff sorted_snoc_iff
-lemmas elems_simps2 = elems_simps sorted_ConsD sorted_snocD
+lemmas isin_simps2 = sorted_lems sorted_ConsD sorted_snocD
+*)
+
+lemmas isin_simps = sorted_lems sorted_Cons_iff sorted_snoc_iff
 
 
 subsection \<open>Inserting into an ordered list without duplicates:\<close>
@@ -49,7 +40,7 @@ fun ins_list :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "ins_list x (a#xs) =
   (if x < a then x#a#xs else if x=a then a#xs else a # ins_list x xs)"
 
-lemma set_ins_list: "elems (ins_list x xs) = insert x (elems xs)"
+lemma set_ins_list: "set (ins_list x xs) = insert x (set xs)"
 by(induction xs) auto
 
 lemma distinct_if_sorted: "sorted xs \<Longrightarrow> distinct xs"
@@ -93,16 +84,12 @@ fun del_list :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "del_list x [] = []" |
 "del_list x (a#xs) = (if x=a then xs else a # del_list x xs)"
 
-lemma del_list_idem: "x \<notin> elems xs \<Longrightarrow> del_list x xs = xs"
+lemma del_list_idem: "x \<notin> set xs \<Longrightarrow> del_list x xs = xs"
 by (induct xs) simp_all
 
-lemma elems_del_list_eq:
-  "distinct xs \<Longrightarrow> elems (del_list x xs) = elems xs - {x}"
-apply(induct xs)
- apply simp
-apply (simp add: elems_eq_set)
-apply blast
-done
+lemma set_del_list_eq:
+  "distinct xs \<Longrightarrow> set (del_list x xs) = set xs - {x}"
+by(induct xs) auto
 
 lemma sorted_del_list: "sorted xs \<Longrightarrow> sorted(del_list x xs)"
 apply(induction xs rule: induct_list012)
@@ -112,7 +99,7 @@ by (meson order.strict_trans sorted_Cons_iff)
 lemma del_list_sorted: "sorted (xs @ a # ys) \<Longrightarrow>
   del_list x (xs @ a # ys) = (if x < a then del_list x xs @ a # ys else xs @ del_list x (a # ys))"
 by(induction xs)
-  (fastforce simp: sorted_lems sorted_Cons_iff elems_eq_set intro!: del_list_idem)+
+  (fastforce simp: sorted_lems sorted_Cons_iff intro!: del_list_idem)+
 
 text\<open>In principle, @{thm del_list_sorted} suffices, but the following
 corollaries speed up proofs.\<close>

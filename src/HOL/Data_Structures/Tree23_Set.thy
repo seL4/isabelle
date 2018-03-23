@@ -142,11 +142,8 @@ subsection "Functional Correctness"
 
 subsubsection "Proofs for isin"
 
-lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps1 ball_Un)
-
-lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps2)
+lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set (inorder t))"
+by (induction t) (auto simp: isin_simps ball_Un)
 
 
 subsubsection "Proofs for insert"

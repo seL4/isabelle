@@ -42,12 +42,8 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 
 subsection "Functional Correctness Proofs"
 
-lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps1)
-
-lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps2)
-
+lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set (inorder t))"
+by (induction t) (auto simp: isin_simps)
 
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert x t) = ins_list x (inorder t)"
