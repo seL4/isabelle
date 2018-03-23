@@ -1303,12 +1303,9 @@ local
 fun future_terminal_proof proof1 proof2 done state =
   if Goal.future_enabled 3 andalso not (is_relevant state) then
     state |> future_proof (fn state' =>
-      let
-        val pos = Position.thread_data ();
-        val props = Markup.command_timing :: (Markup.nameN, "by") :: Position.properties_of pos;
-      in
+      let val pos = Position.thread_data () in
         Execution.fork {name = "Proof.future_terminal_proof", pos = pos, pri = ~1}
-          (fn () => ((), Timing.protocol props proof2 state'))
+          (fn () => ((), Timing.protocol "by" pos proof2 state'))
       end) |> snd |> done
   else proof1 state;
 

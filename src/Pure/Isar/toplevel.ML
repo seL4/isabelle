@@ -584,15 +584,9 @@ fun put_timing timing = map_transition (fn (name, pos, _, trans) => (name, pos, 
 local
 
 fun app int (tr as Transition {trans, ...}) =
-  setmp_thread_position tr (fn state =>
-    let
-      val timing_start = Timing.start ();
-      val (result, opt_err) = apply_trans int trans state;
-      val timing_result = Timing.result timing_start;
-      val timing_props =
-        Markup.command_timing :: (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
-      val _ = Timing.protocol_message timing_props timing_result;
-    in (result, Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn) opt_err) end);
+  setmp_thread_position tr
+    (Timing.protocol (name_of tr) (pos_of tr) (apply_trans int trans)
+      ##> Option.map (fn UNDEF => ERROR (type_error tr) | exn => exn));
 
 in
 
