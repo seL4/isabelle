@@ -466,10 +466,10 @@ text \<open>
   of command transactions in the Isabelle/PIDE protocol: it normally does not
   occur in externalized positions.
 
-  \<^item> \<^bold>\<open>type\<close>~\<open>message = {kind?: string, message: string, pos?: position}\<close> where
+  \<^item> \<^bold>\<open>type\<close>~\<open>message = {kind: string, message: string, pos?: position}\<close> where
   the \<open>kind\<close> provides some hint about the role and importance of the message.
   The main message kinds are \<^verbatim>\<open>writeln\<close> (for regular output), \<^verbatim>\<open>warning\<close>,
-  \<^verbatim>\<open>error\<close>. Messages without explicit kind can be treated like \<^verbatim>\<open>writeln\<close>.
+  \<^verbatim>\<open>error\<close>.
 
   \<^item> \<^bold>\<open>type\<close>~\<open>error_message = {kind:\<close>~\<^verbatim>\<open>"error"\<close>\<open>, message: string}\<close> refers to
   error messages in particular. These occur routinely with \<^verbatim>\<open>ERROR\<close> or
@@ -981,7 +981,7 @@ text \<open>
   \<open>Theories\<close> panel of Isabelle/jEdit @{cite "isabelle-jedit"};
 
   \<^item> \<open>messages\<close>: the main bulk of prover messages produced in this theory
-  (\<^verbatim>\<open>writeln\<close>, \<^verbatim>\<open>warning\<close>, \<^verbatim>\<open>error\<close>, etc.).
+  (with kind \<^verbatim>\<open>writeln\<close>, \<^verbatim>\<open>warning\<close>, \<^verbatim>\<open>error\<close>).
 \<close>
 
 

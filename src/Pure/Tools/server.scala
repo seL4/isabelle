@@ -127,8 +127,7 @@ object Server
     val OK, ERROR, FINISHED, FAILED, NOTE = Value
 
     def message(msg: String, kind: String = ""): JSON.Object.T =
-      if (kind == "") JSON.Object("message" -> msg)
-      else JSON.Object(Markup.KIND -> kind, "message" -> msg)
+      JSON.Object(Markup.KIND -> proper_string(kind).getOrElse(Markup.WRITELN), "message" -> msg)
 
     def error_message(msg: String): JSON.Object.T =
       message(msg, kind = Markup.ERROR)

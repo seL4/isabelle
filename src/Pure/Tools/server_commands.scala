@@ -206,8 +206,8 @@ object Server_Commands
             val msg = XML.content(Pretty.formatted(List(elem), margin = args.pretty_margin))
             val kind =
               Markup.messages.collectFirst({ case (a, b) if b == elem.name =>
-                if (Protocol.is_legacy(elem)) Markup.WARNING else a })
-            Server.Reply.message(output_text(msg), kind = kind getOrElse "") + position
+                if (Protocol.is_legacy(elem)) Markup.WARNING else a }) getOrElse ""
+            Server.Reply.message(output_text(msg), kind = kind) + position
         }
       }
 
