@@ -884,7 +884,6 @@ text \<open>
   \<^bold>\<open>type\<close> \<open>use_theories_arguments =\<close> \\
   \quad\<open>{session_id: uuid,\<close> \\
   \quad~~\<open>theories: [theory_name],\<close> \\
-  \quad~~\<open>qualifier?: string,\<close> \\
   \quad~~\<open>master_dir?: string,\<close> \\
   \quad~~\<open>pretty_margin?: double\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
   \quad~~\<open>unicode_symbols?: bool}\<close> \\[2ex]
@@ -929,15 +928,6 @@ text \<open>
   ROOT \<^bold>\<open>theories\<close>. An explicit source position for these theory name
   specifications may be given, which is occasionally useful for precise error
   locations.
-
-  \<^medskip>
-  The \<open>qualifier\<close> field provides an alternative session qualifier for theories
-  that are not formally recognized as a member of a particular session. The
-  default is \<^verbatim>\<open>Draft\<close> as in Isabelle/jEdit. There is rarely a need to change
-  that, as theory nodes are already uniquely identified by their physical
-  file-system location. This already allows reuse of theory base names with
-  the same session qualifier --- as long as these theories are not used
-  together (e.g.\ in \<^theory_text>\<open>imports\<close>).
 
   \<^medskip> The \<open>master_dir\<close> field explicit specifies the formal master directory of
   the imported theory. Normally this is determined implicitly from the parent

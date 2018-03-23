@@ -10,7 +10,6 @@ package isabelle
 object Server_Commands
 {
   def default_preferences: String = Options.read_prefs()
-  def default_qualifier: String = Sessions.DRAFT
 
   def unapply_name_pos(json: JSON.T): Option[(String, Position.T)] =
     json match {
@@ -166,7 +165,6 @@ object Server_Commands
     sealed case class Args(
       session_id: UUID,
       theories: List[(String, Position.T)],
-      qualifier: String = default_qualifier,
       master_dir: String = "",
       pretty_margin: Double = Pretty.default_margin,
       unicode_symbols: Boolean = false)
@@ -175,13 +173,12 @@ object Server_Commands
       for {
         session_id <- JSON.uuid(json, "session_id")
         theories <- JSON.list(json, "theories", unapply_name_pos _)
-        qualifier <- JSON.string_default(json, "qualifier", default_qualifier)
         master_dir <- JSON.string_default(json, "master_dir")
         pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
         unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
       }
       yield {
-        Args(session_id, theories, qualifier = qualifier, master_dir = master_dir,
+        Args(session_id, theories, master_dir = master_dir,
           pretty_margin = pretty_margin, unicode_symbols)
       }
 
@@ -191,8 +188,8 @@ object Server_Commands
       progress: Progress = No_Progress): (JSON.Object.T, Thy_Resources.Theories_Result) =
     {
       val result =
-        session.use_theories(args.theories, qualifier = args.qualifier,
-          master_dir = args.master_dir, id = id, progress = progress)
+        session.use_theories(args.theories, master_dir = args.master_dir,
+          id = id, progress = progress)
 
       def output_text(s: String): String =
         if (args.unicode_symbols) Symbol.decode(s) else Symbol.encode(s)
