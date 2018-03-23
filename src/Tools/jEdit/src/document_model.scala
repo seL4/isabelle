@@ -255,7 +255,7 @@ object Document_Model
             }
             val retain = PIDE.resources.dependencies(imports).theories.toSet
 
-            for ((node_name, Some(edits)) <- purged; if !retain(node_name); edit <- edits)
+            for ((node_name, Some(edits)) <- purged if !retain(node_name); edit <- edits)
               yield edit
           }
           else Nil
