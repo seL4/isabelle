@@ -90,7 +90,7 @@ object Thy_Resources
     /* theories */
 
     def use_theories(
-      theories: List[(String, Position.T)],
+      theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
       id: UUID = UUID(),
@@ -231,15 +231,12 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
   def load_theories(
     session: Session,
     id: UUID,
-    theories: List[(String, Position.T)],
+    theories: List[String],
     qualifier: String = Sessions.DRAFT,
     master_dir: String = "",
     progress: Progress = No_Progress): List[Document.Node.Name] =
   {
-    val import_names =
-      for ((thy, pos) <- theories)
-      yield (import_name(qualifier, master_dir, thy), pos)
-
+    val import_names = theories.map(thy => import_name(qualifier, master_dir, thy) -> Position.none)
     val dependencies = resources.dependencies(import_names, progress = progress).check_errors
     val dep_theories = dependencies.theories
 

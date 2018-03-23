@@ -877,13 +877,9 @@ text \<open>
   \end{tabular}
 
   \begin{tabular}{ll}
-  \<^bold>\<open>type\<close> \<open>theory_name = string | {name: string, pos: position}\<close> \\
-  \end{tabular}
-
-  \begin{tabular}{ll}
   \<^bold>\<open>type\<close> \<open>use_theories_arguments =\<close> \\
   \quad\<open>{session_id: uuid,\<close> \\
-  \quad~~\<open>theories: [theory_name],\<close> \\
+  \quad~~\<open>theories: [string],\<close> \\
   \quad~~\<open>master_dir?: string,\<close> \\
   \quad~~\<open>pretty_margin?: double\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
   \quad~~\<open>unicode_symbols?: bool}\<close> \\[2ex]
@@ -925,9 +921,7 @@ text \<open>
 
   \<^medskip>
   The \<open>theories\<close> field specifies theory names as in theory \<^theory_text>\<open>imports\<close> or in
-  ROOT \<^bold>\<open>theories\<close>. An explicit source position for these theory name
-  specifications may be given, which is occasionally useful for precise error
-  locations.
+  ROOT \<^bold>\<open>theories\<close>.
 
   \<^medskip> The \<open>master_dir\<close> field specifies the master directory of imported
   theories: it acts like the ``current working directory'' for locating theory

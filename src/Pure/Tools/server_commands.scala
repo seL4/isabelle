@@ -11,17 +11,6 @@ object Server_Commands
 {
   def default_preferences: String = Options.read_prefs()
 
-  def unapply_name_pos(json: JSON.T): Option[(String, Position.T)] =
-    json match {
-      case JSON.Value.String(name) => Some((name, Position.none))
-      case JSON.Object(map) if map.keySet == Set("name", "pos") =>
-      (map("name"), map("pos")) match {
-        case (JSON.Value.String(name), Position.JSON(pos)) => Some((name, pos))
-        case _ => None
-      }
-      case _ => None
-    }
-
   object Cancel
   {
     sealed case class Args(task: UUID)
@@ -164,7 +153,7 @@ object Server_Commands
   {
     sealed case class Args(
       session_id: UUID,
-      theories: List[(String, Position.T)],
+      theories: List[String],
       master_dir: String = "",
       pretty_margin: Double = Pretty.default_margin,
       unicode_symbols: Boolean = false)
@@ -172,7 +161,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[Args] =
       for {
         session_id <- JSON.uuid(json, "session_id")
-        theories <- JSON.list(json, "theories", unapply_name_pos _)
+        theories <- JSON.list(json, "theories", JSON.Value.String.unapply _)
         master_dir <- JSON.string_default(json, "master_dir")
         pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
         unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
