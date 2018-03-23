@@ -86,6 +86,9 @@ object Thy_Resources
       finally { Isabelle_System.rm_tree(tmp_dir) }
     }
 
+
+    /* theories */
+
     def use_theories(
       theories: List[(String, Position.T)],
       qualifier: String = Sessions.DRAFT,
@@ -134,6 +137,9 @@ object Thy_Resources
 
       result.join
     }
+
+    def purge_theories(nodes: List[Document.Node.Name] = Nil, all: Boolean = false)
+      : List[Document.Node.Name] = resources.purge_theories(session, if (all) None else Some(nodes))
   }
 
 
@@ -159,6 +165,20 @@ object Thy_Resources
             case _ => thys + (name -> thy)
           }
         }))
+
+    def remove_theories(remove: List[Document.Node.Name]): State =
+    {
+      require(remove.forall(name => !is_required(name)))
+      copy(theories = theories -- remove)
+    }
+
+    lazy val theories_graph: Graph[Document.Node.Name, Unit] =
+    {
+      val entries =
+        for ((name, theory) <- theories.toList)
+        yield ((name, ()), theory.node_header.imports.map(_._1).filter(theories.isDefinedAt(_)))
+      Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
+    }
   }
 
   final class Theory private[Thy_Resources](
@@ -172,6 +192,11 @@ object Thy_Resources
     def node_perspective: Document.Node.Perspective_Text =
       Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
 
+    def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
+      List(node_name -> Document.Node.Deps(node_header),
+        node_name -> Document.Node.Edits(text_edits),
+        node_name -> node_perspective)
+
     def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
     {
       val (text_edits, old_required) =
@@ -179,11 +204,11 @@ object Thy_Resources
         else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
 
       if (text_edits.isEmpty && node_required == old_required) Nil
-      else
-        List(node_name -> Document.Node.Deps(node_header),
-          node_name -> Document.Node.Edits(text_edits),
-          node_name -> node_perspective)
+      else make_edits(text_edits)
     }
+
+    def purge_edits: List[Document.Edit_Text] =
+      make_edits(Text.Edit.removes(0, text))
 
     def required(required: Boolean): Theory =
       if (required == node_required) this
@@ -260,6 +285,26 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
           }
         session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
         st1.update_theories(theory_edits.map(_._2))
+      })
+  }
+
+  def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
+    : List[Document.Node.Name] =
+  {
+    state.change_result(st =>
+      {
+        val graph = st.theories_graph
+        val all_nodes = graph.topological_order
+
+        val purge =
+          (if (nodes.isEmpty) all_nodes else nodes.get.filter(graph.defined(_))).
+            filterNot(st.is_required(_)).toSet
+        val purged = all_nodes.filterNot(graph.all_preds(all_nodes.filterNot(purge)).toSet)
+
+        val purge_edits = purged.flatMap(name => st.theories(name).purge_edits)
+        session.update(Document.Blobs.empty, purge_edits)
+
+        (purged, st.remove_theories(purged))
       })
   }
 }
