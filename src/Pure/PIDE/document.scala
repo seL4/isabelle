@@ -130,6 +130,9 @@ object Document
 
       def map(f: String => String): Name = copy(f(node), f(master_dir), theory)
       def map_theory(f: String => String): Name = copy(node, master_dir, f(theory))
+
+      def json: JSON.Object.T =
+        JSON.Object("node_name" -> node, "theory_name" -> theory)
     }
 
     sealed case class Entry(name: Node.Name, header: Node.Header)

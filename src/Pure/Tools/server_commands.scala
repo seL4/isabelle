@@ -208,11 +208,9 @@ object Server_Commands
             } yield output_message(tree, pos)),
           "nodes" ->
             (for ((name, status) <- result.nodes) yield
-              JSON.Object(
-                "node_name" -> name.node,
-                "theory" -> name.theory,
-                "status" -> status.json,
-                "messages" ->
+              name.json +
+                ("status" -> status.json) +
+                ("messages" ->
                   (for ((tree, pos) <- result.messages(name))
                     yield output_message(tree, pos)))))
 
@@ -238,12 +236,16 @@ object Server_Commands
       yield { Args(session_id, theories = theories, master_dir = master_dir, all = all) }
 
     def command(args: Args, session: Thy_Resources.Session)
-      : (JSON.Object.T, List[Document.Node.Name]) =
+      : (JSON.Object.T, (List[Document.Node.Name], List[Document.Node.Name])) =
     {
-      val purged =
+      val (purged, retained) =
         session.purge_theories(
           theories = args.theories, master_dir = args.master_dir, all = args.all)
-      (JSON.Object("purged" -> purged.map(_.node)), purged)
+
+      val result_json =
+        JSON.Object("purged" -> purged.map(_.json), "retained" -> retained.map(_.json))
+
+      (result_json, (purged, retained))
     }
   }
 }

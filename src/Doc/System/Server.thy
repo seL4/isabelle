@@ -509,6 +509,12 @@ text \<open>
   connections and may be shared by different clients, as long as the internal
   session identifier is known.
 
+  \<^item> \<^bold>\<open>type\<close> \<open>node = {node_name: string, theory_name: string}\<close> represents the
+  internal node name of a theory. The \<open>node_name\<close> is derived from the
+  canonical theory file-name (e.g.\ \<^verbatim>\<open>"~~/src/HOL/ex/Seq.thy"\<close> after
+  normalization within the file-system). The \<open>theory_name\<close> is the
+  session-qualified theory name (e.g.\ \<^verbatim>\<open>HOL-ex.Seq\<close>).
+
   \<^item> \<^bold>\<open>type\<close> \<open>node_status = {ok: bool, total: int, unprocessed: int, running:
   int, warned: int, failed: int, finished: int, consolidated: bool}\<close>
   represents a formal theory node status of the PIDE document model. Fields
@@ -888,15 +894,13 @@ text \<open>
 
   \begin{tabular}{ll}
   \<^bold>\<open>type\<close> \<open>node_result =\<close> \\
-  \quad\<open>{node_name: string,\<close> \\
-  \quad~~\<open>theory: string,\<close> \\
-  \quad~~\<open>status: node_status,\<close> \\
+  \quad\<open>{status: node_status,\<close> \\
   \quad~~\<open>messages: [message]}\<close> \\[2ex]
 
   \<^bold>\<open>type\<close> \<open>use_theories_results =\<close> \\
   \quad\<open>{ok: bool,\<close> \\
   \quad~~\<open>errors: [message],\<close> \\
-  \quad~~\<open>nodes: [node_result]}\<close> \\[2ex]
+  \quad~~\<open>nodes: [node \<oplus> node_result]}\<close> \\[2ex]
   \end{tabular}
 
   \<^medskip>
@@ -928,9 +932,9 @@ text \<open>
   \<^medskip>
   The \<open>master_dir\<close> field specifies the master directory of imported theories:
   it acts like the ``current working directory'' for locating theory files.
-  This may be omitted if all entries of \<open>theories\<close> use a session-qualified
-  theory name (e.g.\ \<^verbatim>\<open>"HOL-Library.AList"\<close>) or absolute path name (e.g.\
-  \<^verbatim>\<open>"~~/src/HOL/ex/Seq"\<close>).
+  This may be omitted if all entries of \<open>theories\<close> use an absolute path name
+  (e.g.\ \<^verbatim>\<open>"~~/src/HOL/ex/Seq.thy"\<close>) or session-qualified theory name (e.g.\
+  \<^verbatim>\<open>"HOL-ex/Seq"\<close>).
 
   \<^medskip>
   The \<open>pretty_margin\<close> field specifies the line width for pretty-printing. The
@@ -961,10 +965,10 @@ text \<open>
   The \<open>nodes\<close> field provides detailed information about each imported theory
   node. The individual fields are as follows:
 
-  \<^item> \<open>node_name\<close>: the physical name for the theory node, based on its
+  \<^item> \<open>node_name\<close>: the canonical name for the theory node, based on its
   file-system location;
 
-  \<^item> \<open>theory\<close>: the logical theory name, e.g.\ \<^verbatim>\<open>HOL-Library.AList\<close>;
+  \<^item> \<open>theory_name\<close>: the logical theory name;
 
   \<^item> \<open>status\<close>: the overall node status, e.g.\ see the visualization in the
   \<open>Theories\<close> panel of Isabelle/jEdit @{cite "isabelle-jedit"};
@@ -1040,8 +1044,9 @@ text \<open>
   \<open>node_name\<close>.
 
   \<^medskip>
-  The \<open>master_dir\<close> field specifies the master directory as in \<^verbatim>\<open>use_theories\<close>;
-  by passing its \<open>nodes\<close> / \<open>node_name\<close> results, the \<open>master_dir\<close> is redundant.
+  The \<open>master_dir\<close> field specifies the master directory as in \<^verbatim>\<open>use_theories\<close>.
+  It is redundant, when passing fully-qualified theory node names (e.g.\
+  \<open>node_name\<close> from \<open>nodes\<close> in \<open>use_theories_results\<close>).
 
   \<^medskip>
   The \<open>all\<close> field set to \<^verbatim>\<open>true\<close> attempts to purge all presently loaded
@@ -1052,8 +1057,11 @@ text \<open>
 subsubsection \<open>Results\<close>
 
 text \<open>
-  The \<open>purged\<close> field reveals the \<open>node_name\<close> of each theory that was actually
-  removed.
+  The \<open>purged\<close> field gives the theory nodes that were actually removed.
+
+  \<^medskip>
+  The \<open>retained\<close> field gives the remaining theory nodes, i.e.\ the complement
+  of \<open>purged\<close>.
 \<close>
 
 end

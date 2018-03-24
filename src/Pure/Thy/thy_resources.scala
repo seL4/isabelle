@@ -142,7 +142,7 @@ object Thy_Resources
         theories: List[String],
         qualifier: String = Sessions.DRAFT,
         master_dir: String = "",
-        all: Boolean = false): List[Document.Node.Name] =
+        all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
       resources.purge_theories(session, theories = theories, qualifier = qualifier,
         master_dir = master_dir, all = all)
   }
@@ -294,7 +294,7 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
     theories: List[String],
     qualifier: String = Sessions.DRAFT,
     master_dir: String = "",
-    all: Boolean = false): List[Document.Node.Name] =
+    all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
   {
     val nodes = theories.map(import_name(qualifier, master_dir, _))
 
@@ -306,12 +306,14 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
         val purge =
           (if (all) all_nodes else nodes.filter(graph.defined(_))).
             filterNot(st.is_required(_)).toSet
-        val purged = all_nodes.filterNot(graph.all_preds(all_nodes.filterNot(purge)).toSet)
+
+        val retain = graph.all_preds(all_nodes.filterNot(purge)).toSet
+        val (retained, purged) = all_nodes.partition(retain)
 
         val purge_edits = purged.flatMap(name => st.theories(name).purge_edits)
         session.update(Document.Blobs.empty, purge_edits)
 
-        (purged, st.remove_theories(purged))
+        ((purged, retained), st.remove_theories(purged))
       })
   }
 }
