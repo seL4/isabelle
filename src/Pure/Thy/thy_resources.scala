@@ -27,7 +27,7 @@ object Thy_Resources
       session_base getOrElse
       Sessions.base_info(options, session_name, progress = progress, dirs = session_dirs).check_base
     val resources = new Thy_Resources(base, log = log)
-    val session = new Session(options, resources)
+    val session = new Session(session_name, options, resources)
 
     val session_error = Future.promise[String]
     var session_phase: Session.Consumer[Session.Phase] = null
@@ -73,12 +73,15 @@ object Thy_Resources
   }
 
   class Session private[Thy_Resources](
+    session_name: String,
     session_options: Options,
     override val resources: Thy_Resources) extends isabelle.Session(session_options, resources)
   {
     session =>
 
     val tmp_dir: JFile = Isabelle_System.tmp_dir("server_session")
+
+    override def toString: String = session_name
 
     override def stop(): Process_Result =
     {
