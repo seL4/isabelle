@@ -18,6 +18,7 @@ object Thy_Resources
     options: Options,
     session_name: String,
     session_dirs: List[Path] = Nil,
+    include_sessions: List[String] = Nil,
     session_base: Option[Sessions.Base] = None,
     print_mode: List[String] = Nil,
     progress: Progress = No_Progress,
@@ -25,7 +26,8 @@ object Thy_Resources
   {
     val base =
       session_base getOrElse
-      Sessions.base_info(options, session_name, progress = progress, dirs = session_dirs).check_base
+        Sessions.base_info(options, session_name, include_sessions = include_sessions,
+          progress = progress, dirs = session_dirs).check_base
     val resources = new Thy_Resources(base, log = log)
     val session = new Session(session_name, options, resources)
 
