@@ -814,11 +814,15 @@ text \<open>
   running, independently of the current client connection.
 
   \<^medskip>
-  The \<open>tmp_dir\<close> fields reveals a temporary directory that is specifically
+  The \<open>tmp_dir\<close> field refers to a temporary directory that is specifically
   created for this session and deleted after it has been stopped. This may
   serve as auxiliary file-space for the \<^verbatim>\<open>use_theories\<close> command, but
   concurrent use requires some care in naming temporary files, e.g.\ by
   using sub-directories with globally unique names.
+
+  As \<open>tmp_dir\<close> is the default \<open>master_dir\<close> for commands \<^verbatim>\<open>use_theories\<close> and
+  \<^verbatim>\<open>purge_theories\<close>, theory files copied there may be used without further
+  path specification.
 \<close>
 
 
@@ -887,10 +891,12 @@ text \<open>
   \<^bold>\<open>type\<close> \<open>use_theories_arguments =\<close> \\
   \quad\<open>{session_id: uuid,\<close> \\
   \quad~~\<open>theories: [string],\<close> \\
-  \quad~~\<open>master_dir?: string,\<close> \\
+  \quad~~\<open>master_dir?: string,\<close> & \<^bold>\<open>default:\<close> session \<open>tmp_dir\<close> \\
   \quad~~\<open>pretty_margin?: double\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
   \quad~~\<open>unicode_symbols?: bool}\<close> \\[2ex]
+  \end{tabular}
 
+  \begin{tabular}{ll}
   \<^bold>\<open>type\<close> \<open>use_theories_results =\<close> \\
   \quad\<open>{ok: bool,\<close> \\
   \quad~~\<open>errors: [message],\<close> \\
@@ -926,8 +932,8 @@ text \<open>
   \<^medskip>
   The \<open>master_dir\<close> field specifies the master directory of imported theories:
   it acts like the ``current working directory'' for locating theory files.
-  This may be omitted if all entries of \<open>theories\<close> use an absolute path name
-  (e.g.\ \<^verbatim>\<open>"~~/src/HOL/ex/Seq.thy"\<close>) or session-qualified theory name (e.g.\
+  This is irrelevant for \<open>theories\<close> with an absolute path name (e.g.\
+  \<^verbatim>\<open>"~~/src/HOL/ex/Seq.thy"\<close>) or session-qualified theory name (e.g.\
   \<^verbatim>\<open>"HOL-ex/Seq"\<close>).
 
   \<^medskip>
@@ -1006,11 +1012,11 @@ text \<open>
   regular result: & \<^verbatim>\<open>OK\<close> \<open>purge_theories_result\<close> \\
   \end{tabular}
 
-  \begin{tabular}{ll}
+  \begin{tabular}{lll}
   \<^bold>\<open>type\<close> \<open>purge_theories_arguments =\<close> \\
   \quad\<open>{session_id: uuid,\<close> \\
   \quad~~\<open>theories: [string],\<close> \\
-  \quad~~\<open>master_dir?: string,\<close> \\
+  \quad~~\<open>master_dir?: string,\<close> & \<^bold>\<open>default:\<close> session \<open>tmp_dir\<close> \\
   \quad~~\<open>all?: bool}\<close> \\[2ex]
   \end{tabular}
 
@@ -1039,7 +1045,7 @@ text \<open>
 
   \<^medskip>
   The \<open>master_dir\<close> field specifies the master directory as in \<^verbatim>\<open>use_theories\<close>.
-  It is redundant, when passing fully-qualified theory node names (e.g.\
+  This is irrelevant, when passing fully-qualified theory node names (e.g.\
   \<open>node_name\<close> from \<open>nodes\<close> in \<open>use_theories_results\<close>).
 
   \<^medskip>

@@ -80,6 +80,7 @@ object Thy_Resources
     session =>
 
     val tmp_dir: JFile = Isabelle_System.tmp_dir("server_session")
+    val tmp_dir_name: String = File.path(tmp_dir).implode
 
     override def toString: String = session_name
 
@@ -101,7 +102,7 @@ object Thy_Resources
     {
       val dep_theories =
         resources.load_theories(session, id, theories, qualifier = qualifier,
-          master_dir = master_dir, progress = progress)
+          master_dir = proper_string(master_dir) getOrElse tmp_dir_name, progress = progress)
 
       val result = Future.promise[Theories_Result]
 
@@ -147,7 +148,7 @@ object Thy_Resources
         master_dir: String = "",
         all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
       resources.purge_theories(session, theories = theories, qualifier = qualifier,
-        master_dir = master_dir, all = all)
+        master_dir = proper_string(master_dir) getOrElse tmp_dir_name, all = all)
   }
 
 
@@ -235,9 +236,9 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
     session: Session,
     id: UUID,
     theories: List[String],
-    qualifier: String = Sessions.DRAFT,
-    master_dir: String = "",
-    progress: Progress = No_Progress): List[Document.Node.Name] =
+    qualifier: String,
+    master_dir: String,
+    progress: Progress): List[Document.Node.Name] =
   {
     val import_names = theories.map(thy => import_name(qualifier, master_dir, thy) -> Position.none)
     val dependencies = resources.dependencies(import_names, progress = progress).check_errors
@@ -295,9 +296,9 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
 
   def purge_theories(session: Session,
     theories: List[String],
-    qualifier: String = Sessions.DRAFT,
-    master_dir: String = "",
-    all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
+    qualifier: String,
+    master_dir: String,
+    all: Boolean): (List[Document.Node.Name], List[Document.Node.Name]) =
   {
     val nodes = theories.map(import_name(qualifier, master_dir, _))
 
