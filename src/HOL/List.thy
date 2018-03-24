@@ -3214,6 +3214,9 @@ lemmas upto_rec_numeral [simp] =
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)
 
+lemma upto_single[simp]: "[i..i] = [i]"
+by(simp add: upto.simps)
+
 lemma upto_Nil[simp]: "[i..j] = [] \<longleftrightarrow> j < i"
 by (simp add: upto.simps)
 
