@@ -204,15 +204,15 @@ object Server_Commands
             (for {
               (name, status) <- result.nodes if !status.ok
               (tree, pos) <- result.messages(name) if Protocol.is_error(tree)
-              if Protocol.is_exported(tree)
             } yield output_message(tree, pos)),
           "nodes" ->
             (for ((name, status) <- result.nodes) yield
               name.json +
                 ("status" -> status.json) +
                 ("messages" ->
-                  (for ((tree, pos) <- result.messages(name))
-                    yield output_message(tree, pos)))))
+                  (for {
+                    (tree, pos) <- result.messages(name) if Protocol.is_exported(tree)
+                  } yield output_message(tree, pos)))))
 
       (result_json, result)
     }
