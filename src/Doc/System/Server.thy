@@ -890,17 +890,11 @@ text \<open>
   \quad~~\<open>master_dir?: string,\<close> \\
   \quad~~\<open>pretty_margin?: double\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
   \quad~~\<open>unicode_symbols?: bool}\<close> \\[2ex]
-  \end{tabular}
-
-  \begin{tabular}{ll}
-  \<^bold>\<open>type\<close> \<open>node_result =\<close> \\
-  \quad\<open>{status: node_status,\<close> \\
-  \quad~~\<open>messages: [message]}\<close> \\[2ex]
 
   \<^bold>\<open>type\<close> \<open>use_theories_results =\<close> \\
   \quad\<open>{ok: bool,\<close> \\
   \quad~~\<open>errors: [message],\<close> \\
-  \quad~~\<open>nodes: [node \<oplus> node_result]}\<close> \\[2ex]
+  \quad~~\<open>nodes: [node \<oplus> {status: node_status, messages: [message]}]}\<close> \\
   \end{tabular}
 
   \<^medskip>
