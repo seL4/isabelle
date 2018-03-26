@@ -1113,6 +1113,10 @@ lemma filterlim_norm_at_top_imp_at_infinity:
 lemma filterlim_norm_at_top: "filterlim norm at_top at_infinity"
   by (rule filterlim_at_infinity_imp_norm_at_top) (rule filterlim_ident)
 
+lemma filterlim_at_infinity_conv_norm_at_top:
+  "filterlim f at_infinity G \<longleftrightarrow> filterlim (\<lambda>x. norm (f x)) at_top G"
+  by (auto simp: filterlim_at_infinity[OF order.refl] filterlim_at_top_gt[of _ _ 0])
+
 lemma eventually_not_equal_at_infinity:
   "eventually (\<lambda>x. x \<noteq> (a :: 'a :: {real_normed_vector})) at_infinity"
 proof -
@@ -1321,6 +1325,28 @@ lemma filterlim_uminus_at_top: "(LIM x F. f x :> at_top) \<longleftrightarrow> (
   using filterlim_compose[OF filterlim_uminus_at_bot_at_top, of f F]
     and filterlim_compose[OF filterlim_uminus_at_top_at_bot, of "\<lambda>x. - f x" F]
   by auto
+
+lemma filterlim_at_infinity_imp_filterlim_at_top:
+  assumes "filterlim (f :: 'a \<Rightarrow> real) at_infinity F"
+  assumes "eventually (\<lambda>x. f x > 0) F"
+  shows   "filterlim f at_top F"
+proof -
+  from assms(2) have *: "eventually (\<lambda>x. norm (f x) = f x) F" by eventually_elim simp
+  from assms(1) show ?thesis unfolding filterlim_at_infinity_conv_norm_at_top
+    by (subst (asm) filterlim_cong[OF refl refl *])
+qed
+
+lemma filterlim_at_infinity_imp_filterlim_at_bot:
+  assumes "filterlim (f :: 'a \<Rightarrow> real) at_infinity F"
+  assumes "eventually (\<lambda>x. f x < 0) F"
+  shows   "filterlim f at_bot F"
+proof -
+  from assms(2) have *: "eventually (\<lambda>x. norm (f x) = -f x) F" by eventually_elim simp
+  from assms(1) have "filterlim (\<lambda>x. - f x) at_top F"
+    unfolding filterlim_at_infinity_conv_norm_at_top
+    by (subst (asm) filterlim_cong[OF refl refl *])
+  thus ?thesis by (simp add: filterlim_uminus_at_top)
+qed
 
 lemma filterlim_uminus_at_bot: "(LIM x F. f x :> at_bot) \<longleftrightarrow> (LIM x F. - (f x) :: real :> at_top)"
   unfolding filterlim_uminus_at_top by simp

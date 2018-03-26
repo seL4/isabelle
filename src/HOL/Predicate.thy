@@ -110,9 +110,10 @@ instance proof
     define F where "F = (\<lambda> x . SOME f . f \<in> x \<and> eval f w)"
     have [simp]: "(\<forall>f\<in> (F ` A). eval f w)"
       by (metis (no_types, lifting) A F_def image_iff some_eq_ex)
-    show "\<exists>x. (\<exists>f. x = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>f\<in>x. eval f w)"
-      apply (rule_tac x = "F ` A" in exI, simp)
-      using A by (metis (no_types, lifting) F_def someI)+
+    have "(\<exists>f. F ` A = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>f\<in>(F ` A). eval f w)"
+      using A by (simp, metis (no_types, lifting) F_def someI)+
+    from this show "\<exists>x. (\<exists>f. x = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>f\<in>x. eval f w)"
+      by (rule exI [of _ "F ` A"])
   qed
 qed (auto intro!: pred_eqI)
 

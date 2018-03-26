@@ -795,18 +795,29 @@ subclass complete_lattice
 proof
   fix x A
   show "x \<in> A \<Longrightarrow> \<Sqinter>A \<le> x"
-    by (cut_tac A = A and a = x in Inf_finite_insert, simp add: insert_absorb inf.absorb_iff2)
+    by (metis Set.set_insert abel_semigroup.commute local.Inf_finite_insert local.inf.abel_semigroup_axioms local.inf.left_idem local.inf.orderI)
   show "x \<in> A \<Longrightarrow> x \<le> \<Squnion>A"
-    by (cut_tac A = A and a = x in Sup_finite_insert, simp add: insert_absorb sup.absorb_iff2)
+    by (metis Set.set_insert insert_absorb2 local.Sup_finite_insert local.sup.absorb_iff2)
 next
   fix A z
-  show "(\<And>x. x \<in> A \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> \<Sqinter>A"
-    apply (cut_tac F = A and P = "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A" in finite_induct, simp_all add: Inf_finite_empty Inf_finite_insert)
-    by(cut_tac A = UNIV and a = z in Sup_finite_insert, simp add: insert_UNIV local.sup.absorb_iff2)
+  have "\<Squnion> UNIV = z \<squnion> \<Squnion>UNIV"
+    by (subst Sup_finite_insert [symmetric], simp add: insert_UNIV)
+  from this have [simp]: "z \<le> \<Squnion>UNIV"
+    using local.le_iff_sup by auto
+  have "(\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A"
+    apply (rule finite_induct [of A "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> z \<le> x) \<longrightarrow> z \<le> \<Sqinter>A"])
+    by (simp_all add: Inf_finite_empty Inf_finite_insert)
+  from this show "(\<And>x. x \<in> A \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> \<Sqinter>A"
+    by simp
 
-  show " (\<And>x. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> \<Squnion>A \<le> z"
-    apply (cut_tac F = A and  P = "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> x \<le> z) \<longrightarrow> \<Squnion>A \<le> z" in finite_induct, simp_all add: Sup_finite_empty Sup_finite_insert)
-    by(cut_tac A = UNIV and a = z in Inf_finite_insert, simp add: insert_UNIV local.inf.absorb_iff2)
+  have "\<Sqinter> UNIV = z \<sqinter> \<Sqinter>UNIV"
+    by (subst Inf_finite_insert [symmetric], simp add: insert_UNIV)
+  from this have [simp]: "\<Sqinter>UNIV \<le> z"
+    by (simp add: local.inf.absorb_iff2)
+  have "(\<forall> x. x \<in> A \<longrightarrow> x \<le> z) \<longrightarrow> \<Squnion>A \<le> z"
+    by (rule finite_induct [of A "\<lambda> A . (\<forall> x. x \<in> A \<longrightarrow> x \<le> z) \<longrightarrow> \<Squnion>A \<le> z" ], simp_all add: Sup_finite_empty Sup_finite_insert)
+  from this show " (\<And>x. x \<in> A \<Longrightarrow> x \<le> z) \<Longrightarrow> \<Squnion>A \<le> z"
+    by blast
 next
   show "\<Sqinter>{} = \<top>"
     by (simp add: Inf_finite_empty top_finite_def)
@@ -818,40 +829,38 @@ end
 class finite_distrib_lattice = finite_lattice + distrib_lattice 
 begin
 lemma finite_inf_Sup: "a \<sqinter> (Sup A) = Sup {a \<sqinter> b | b . b \<in> A}"
-proof (cut_tac F = A and P = "\<lambda> A . a \<sqinter> (Sup A) = Sup {a \<sqinter> b | b . b \<in> A}" in finite_induct, simp_all)
+proof (rule finite_induct [of A "\<lambda> A . a \<sqinter> (Sup A) = Sup {a \<sqinter> b | b . b \<in> A}"], simp_all)
   fix x::"'a"
   fix F
   assume "x \<notin> F"
-  assume A: "a \<sqinter> \<Squnion>F = \<Squnion>{a \<sqinter> b |b. b \<in> F}"
-
+  assume [simp]: "a \<sqinter> \<Squnion>F = \<Squnion>{a \<sqinter> b |b. b \<in> F}"
   have [simp]: " insert (a \<sqinter> x) {a \<sqinter> b |b. b \<in> F} = {a \<sqinter> b |b. b = x \<or> b \<in> F}"
-    by auto
-
+    by blast
   have "a \<sqinter> (x \<squnion> \<Squnion>F) = a \<sqinter> x \<squnion> a \<sqinter> \<Squnion>F"
     by (simp add: inf_sup_distrib1)
   also have "... = a \<sqinter> x \<squnion> \<Squnion>{a \<sqinter> b |b. b \<in> F}"
-    by (simp add: A)
+    by simp
   also have "... = \<Squnion>{a \<sqinter> b |b. b = x \<or> b \<in> F}"
     by (unfold Sup_insert[THEN sym], simp)
-
   finally show "a \<sqinter> (x \<squnion> \<Squnion>F) = \<Squnion>{a \<sqinter> b |b. b = x \<or> b \<in> F}"
     by simp
 qed
 
 lemma finite_Inf_Sup: "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
-proof (cut_tac F = A and P = "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf" in finite_induct, simp_all add: finite_UnionD)
+proof (rule  finite_induct [of A "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"], simp_all add: finite_UnionD)
   fix x::"'a set"
   fix F
   assume "x \<notin> F"
-  have [simp]: "{\<Squnion>x \<sqinter> b |b . b \<in> Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} } = {\<Squnion>x \<sqinter> (Inf (f ` F)) |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
+  have [simp]: "{\<Squnion>x \<sqinter> b |b . b \<in> Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} } = {\<Squnion>x \<sqinter> (Inf (f ` F)) |f  . (\<forall>Y\<in>F. f Y \<in> Y)}"
     by auto
-  have [simp]:" \<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> \<exists>fa. insert b (f ` (F \<inter> {Y. Y \<noteq> x})) = insert (fa x) (fa ` F) \<and> fa x \<in> x \<and> (\<forall>Y\<in>F. fa Y \<in> Y)"
-     apply (rule_tac x = "(\<lambda> Y . (if Y = x then b else f Y))" in exI)
-    by auto
-  have [simp]: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> (\<Sqinter>x\<in>F. f x) \<sqinter> b \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
-    apply (rule_tac i = "(\<lambda> Y . (if Y = x then b else f Y)) ` ({x} \<union> F)" in SUP_upper2, simp)
-    apply (subst inf_commute)
-    by (simp add: INF_greatest Inf_lower inf.coboundedI2)
+  define fa where "fa = (\<lambda> (b::'a) f Y . (if Y = x then b else f Y))"
+  have "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> insert b (f ` (F \<inter> {Y. Y \<noteq> x})) = insert (fa b f x) (fa b f ` F) \<and> fa b f x \<in> x \<and> (\<forall>Y\<in>F. fa b f Y \<in> Y)"
+    by (auto simp add: fa_def)
+  from this have B: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> fa b f ` ({x} \<union> F) \<in> {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)}"
+    by blast
+  have [simp]: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> b \<sqinter> (\<Sqinter>x\<in>F. f x)  \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+    using B apply (rule SUP_upper2, simp_all)
+    by (simp_all add: INF_greatest Inf_lower inf.coboundedI2 fa_def)
 
   assume "INFIMUM F Sup \<le> SUPREMUM {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} Inf"
 
@@ -866,7 +875,8 @@ proof (cut_tac F = A and P = "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f ` A |
     by (simp add: finite_inf_Sup)
 
   also have "... \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
-    by (rule Sup_least, clarsimp, rule Sup_least, clarsimp)
+    apply (rule Sup_least, clarsimp)+
+    by (subst inf_commute, simp)
 
   finally show "\<Squnion>x \<sqinter> INFIMUM F Sup \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
     by simp

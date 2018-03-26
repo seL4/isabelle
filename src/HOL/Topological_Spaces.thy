@@ -743,9 +743,17 @@ lemma tendsto_ident_at [tendsto_intros, simp, intro]: "((\<lambda>x. x) \<longlo
 lemma tendsto_const [tendsto_intros, simp, intro]: "((\<lambda>x. k) \<longlongrightarrow> k) F"
   by (simp add: tendsto_def)
 
-lemma  filterlim_at:
+lemma filterlim_at:
   "(LIM x F. f x :> at b within s) \<longleftrightarrow> eventually (\<lambda>x. f x \<in> s \<and> f x \<noteq> b) F \<and> (f \<longlongrightarrow> b) F"
   by (simp add: at_within_def filterlim_inf filterlim_principal conj_commute)
+
+lemma (in -)
+  assumes "filterlim f (nhds L) F"
+  shows tendsto_imp_filterlim_at_right:
+          "eventually (\<lambda>x. f x > L) F \<Longrightarrow> filterlim f (at_right L) F"
+    and tendsto_imp_filterlim_at_left:
+          "eventually (\<lambda>x. f x < L) F \<Longrightarrow> filterlim f (at_left L) F"
+  using assms by (auto simp: filterlim_at elim: eventually_mono)
 
 lemma  filterlim_at_withinI:
   assumes "filterlim f (nhds c) F"
