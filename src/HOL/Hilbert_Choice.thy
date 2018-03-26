@@ -815,7 +815,7 @@ proof (rule antisym)
     using Inf_lower2 Sup_upper by auto
 next
   show "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Sup \<le> SUPREMUM A Inf"
-  proof (simp add:  Inf_Sup, rule_tac SUP_least, simp, safe)
+  proof (simp add:  Inf_Sup, rule SUP_least, simp, safe)
     fix f
     assume "\<forall>Y. (\<exists>f. Y = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<longrightarrow> f Y \<in> Y"
     from this have B: "\<And> F . (\<forall> Y \<in> A . F Y \<in> Y) \<Longrightarrow> \<exists> Z \<in> A . f (F ` A) = F Z"
@@ -828,7 +828,7 @@ next
       have B: "... \<le> SUPREMUM A Inf"
         by (simp add: SUP_upper)
       from A and B show ?thesis
-        by (drule_tac order_trans, simp_all)
+        by simp
     next
       case False
       from this have X: "\<And> Z . Z \<in> A \<Longrightarrow> \<exists> x . x \<in> Z \<and> \<not> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> x"
@@ -842,8 +842,9 @@ next
         by blast
       from E and D have W: "\<not> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> F Z"
         by simp
-      from C have "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> f (F ` A)"
-        by (rule_tac INF_lower, blast)
+      have "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> f (F ` A)"
+        apply (rule INF_lower)
+        using C by blast
       from this and W and Y show ?thesis
         by simp
     qed
@@ -859,12 +860,13 @@ lemma dual_complete_distrib_lattice:
 lemma sup_Inf: "a \<squnion> Inf B = (INF b:B. a \<squnion> b)"
 proof (rule antisym)
   show "a \<squnion> Inf B \<le> (INF b:B. a \<squnion> b)"
-    using Inf_lower sup.mono by (rule_tac INF_greatest, fastforce)
+    apply (rule INF_greatest)
+    using Inf_lower sup.mono by fastforce
 next
   have "(INF b:B. a \<squnion> b) \<le> INFIMUM {{f {a}, f B} |f. f {a} = a \<and> f B \<in> B} Sup"
     by (rule INF_greatest, auto simp add: INF_lower)
-  also have "... = a \<squnion> Inf B"
-    by (cut_tac A = "{{a}, B}" in Sup_Inf, simp)
+  also have "... = SUPREMUM {{a}, B} Inf"
+    by (unfold Sup_Inf, simp)
   finally show "(INF b:B. a \<squnion> b) \<le> a \<squnion> Inf B"
     by simp
 qed
@@ -879,7 +881,7 @@ proof (rule antisym)
     by (rule SUP_least, rule INF_greatest, rule SUP_upper2, simp_all, rule INF_lower2, simp, blast)
 next
   have "(INF y. SUP x. ((P x y))) \<le> Inf (Sup ` {{P x y | x . True} | y . True })" (is "?A \<le> ?B")
-  proof (rule_tac INF_greatest, clarsimp)
+  proof (rule INF_greatest, clarsimp)
     fix y
     have "?A \<le> (SUP x. P x y)"
       by (rule INF_lower, simp)
@@ -889,7 +891,7 @@ next
       by simp
   qed
   also have "... \<le>  (SUP x. INF y. P (x y) y)"
-  proof (subst  Inf_Sup, rule_tac SUP_least, clarsimp)
+  proof (subst Inf_Sup, rule SUP_least, clarsimp)
     fix f
     assume A: "\<forall>Y. (\<exists>y. Y = {uu. \<exists>x. uu = P x y}) \<longrightarrow> f Y \<in> Y"
       
@@ -897,9 +899,10 @@ next
     proof (rule INF_greatest, clarsimp)
       fix y
         have "(INF x:{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> f {uu. \<exists>x. uu = P x y}"
-          by (rule_tac INF_lower, blast)
+          by (rule INF_lower, blast)
         also have "... \<le> P (SOME x. f {uu . \<exists>x. uu = P x y} = P x y) y"
-          using A by (rule_tac someI2_ex, auto)
+          apply (rule someI2_ex)
+          using A by auto
         finally show "(INF x:{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> P (SOME x. f {uu . \<exists>x. uu = P x y} = P x y) y"
           by simp
       qed
@@ -914,8 +917,12 @@ qed
 
 lemma INF_SUP_set: "(INF x:A. SUP a:x. (g a)) = (SUP x:{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. INF a:x. g a)"
 proof (rule antisym)
+  have [simp]: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> g (f xa)"
+    by (rule INF_lower2, blast+)
+  have B: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> f xa \<in> xa"
+    by blast
   have A: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> SUPREMUM xa g"
-    by (rule_tac i = "(f xa)" in SUP_upper2, simp, rule_tac i = "xa" in INF_lower2, simp_all)
+    by (rule SUP_upper2, rule B, simp_all, simp)
   show "(\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
     apply (rule SUP_least, simp, safe, rule INF_greatest, simp)
     by (rule A)
@@ -924,22 +931,38 @@ next
   proof (cases "{} \<in> A")
     case True
     then show ?thesis 
-      by (rule_tac i = "{}" in INF_lower2, simp_all)
+      by (rule INF_lower2, simp_all)
   next
     case False
     have [simp]: "\<And>x xa xb. xb \<in> A \<Longrightarrow> x xb \<in> xb \<Longrightarrow> (\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> g (x xb)"
-      by (rule_tac i = xb in INF_lower2, simp_all)
+      by (rule INF_lower2, auto)
     have [simp]: " \<And>x xa y. y \<in> A \<Longrightarrow> x y \<notin> y \<Longrightarrow> (\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> g (SOME x. x \<in> y)"
-      by (rule_tac i = y in INF_lower2, simp_all)
+      by (rule INF_lower2, auto)
     have [simp]: "\<And>x. (\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
-      apply (rule_tac i = "(\<lambda> y . if x y \<in> y then x y else (SOME x . x \<in>y)) ` A" in SUP_upper2, simp)
-       apply (rule_tac x = "(\<lambda> y . if x y \<in> y then x y else (SOME x . x \<in>y))" in exI, simp)
-      using False some_in_eq apply auto[1]
-      by (rule INF_greatest, auto)
-    have "\<And>x. (\<Sqinter>x\<in>A. \<Squnion>x\<in>x. g x) \<le> (\<Squnion>xa. if x \<in> A then if xa \<in> x then g xa else \<bottom> else \<top>)"
-      apply (case_tac "x \<in> A")
-       apply (rule INF_lower2, simp)
-      by (rule SUP_least, rule SUP_upper2, auto)
+    proof -
+      fix x
+      define F where "F = (\<lambda> (y::'b set) . if x y \<in> y then x y else (SOME x . x \<in>y))"
+      have B: "(\<forall>Y\<in>A. F Y \<in> Y)"
+        using False some_in_eq F_def by auto
+      have A: "F ` A \<in> {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}"
+        using B by blast
+      show "(\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
+        using A apply (rule SUP_upper2)
+        by (simp add: F_def, rule INF_greatest, auto)
+    qed
+
+    {fix x
+      have "(\<Sqinter>x\<in>A. \<Squnion>x\<in>x. g x) \<le> (\<Squnion>xa. if x \<in> A then if xa \<in> x then g xa else \<bottom> else \<top>)"
+      proof (cases "x \<in> A")
+        case True
+        then show ?thesis
+          apply (rule INF_lower2, simp_all)
+          by (rule SUP_least, rule SUP_upper2, auto)
+      next
+        case False
+        then show ?thesis by simp
+      qed
+    }
     from this have "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Sqinter>x. \<Squnion>xa. if x \<in> A then if xa \<in> x then g xa else \<bottom> else \<top>)"
       by (rule INF_greatest)
     also have "... = (\<Squnion>x. \<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>)"
@@ -1020,10 +1043,14 @@ instance proof (standard, clarsimp)
   from this have B: " (\<forall>xa \<in> F ` A. x \<in> xa)"
     apply (safe, simp add: F_def)
     by (rule someI2_ex, auto)
-    
+
+  have C: "(\<forall>Y\<in>A. F Y \<in> Y)"
+    apply (simp  add: F_def, safe)
+    apply (rule someI2_ex)
+    using A by auto
+
   have "(\<exists>f. F ` A  = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y))"
-    apply (rule_tac x = "F" in exI, simp add: F_def, safe)
-    using A by (rule_tac someI2_ex, auto)
+    using C by blast
     
   from B and this show "\<exists>X. (\<exists>f. X = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<forall>xa\<in>X. x \<in> xa)"
     by auto
@@ -1063,10 +1090,13 @@ proof (standard, rule ccontr)
       define F where "F = (\<lambda> Y . SOME k . k \<in> Y \<and> z < k)"
         
       have D: "\<And> Y . Y \<in> A \<Longrightarrow> z < F Y"
-        using B by (simp add: F_def, rule_tac someI2_ex, auto)
+        using B apply (simp add: F_def)
+        by (rule someI2_ex, auto)
+
     
       have E: "\<And> Y . Y \<in> A \<Longrightarrow> F Y \<in> Y"
-        using B by (simp add: F_def, rule_tac someI2_ex, auto)
+        using B apply (simp add: F_def)
+        by (rule someI2_ex, auto)
     
       have "z \<le> Inf (F ` A)"
         by (simp add: D local.INF_greatest local.order.strict_implies_order)
@@ -1093,10 +1123,12 @@ proof (standard, rule ccontr)
       define F where "F = (\<lambda> Y . SOME k . k \<in> Y \<and> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < k)"
         
       have D: "\<And> Y . Y \<in> A \<Longrightarrow> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < F Y"
-        using B by (simp add: F_def, rule_tac someI2_ex, auto)
+        using B apply (simp add: F_def)
+        by (rule someI2_ex, auto)
     
       have E: "\<And> Y . Y \<in> A \<Longrightarrow> F Y \<in> Y"
-        using B by (simp add: F_def, rule_tac someI2_ex, auto)
+        using B apply (simp add: F_def)
+        by (rule someI2_ex, auto)
           
       have "\<And> Y . Y \<in> A \<Longrightarrow> INFIMUM A Sup \<le> F Y"
         using D False local.leI by blast
@@ -1112,7 +1144,7 @@ proof (standard, rule ccontr)
         by simp
         
       from C and this show ?thesis
-        using local.not_less by blast
+        using not_less by blast
     qed
   qed
 end

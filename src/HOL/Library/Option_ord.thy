@@ -287,7 +287,7 @@ lemma option_Inf_Sup: "INFIMUM (A::('a::complete_distrib_lattice option) set set
 proof (cases "{} \<in> A")
   case True
   then show ?thesis
-    by (rule_tac i = "{}" in INF_lower2, simp_all)
+    by (rule INF_lower2, simp_all)
 next
   case False
   from this have X: "{} \<notin> A"
@@ -296,37 +296,41 @@ next
   proof (cases "{None} \<in> A")
     case True
     then show ?thesis
-      by (rule_tac i = "{None}" in INF_lower2, simp_all)
+      by (rule INF_lower2, simp_all)
   next
     case False
-    have "\<And> y . y\<in>A \<Longrightarrow> Sup (y - {None}) = Sup y"
-      by (metis (no_types, lifting) Sup_option_def insert_Diff_single these_insert_None these_not_empty_eq)
-   
+
+    {fix y
+      assume A: "y \<in> A"
+      have "Sup (y - {None}) = Sup y"
+        by (metis (no_types, lifting) Sup_option_def insert_Diff_single these_insert_None these_not_empty_eq)
+      from A and this have "(\<exists>z. y - {None} = z - {None} \<and> z \<in> A) \<and> \<Squnion>y = \<Squnion>(y - {None})"
+        by auto
+    }
     from this have A: "Sup ` A = (Sup ` {y - {None} | y. y\<in>A})"
-      apply (simp add: image_def, simp, safe)
-       apply (rule_tac x = "xa - {None}" in exI, simp, blast)
-      by blast
+      by (auto simp add: image_def)
 
     have [simp]: "\<And>y. y \<in> A \<Longrightarrow> \<exists>ya. {ya. \<exists>x. x \<in> y \<and> (\<exists>y. x = Some y) \<and> ya = the x} 
           = {y. \<exists>x\<in>ya - {None}. y = the x} \<and> ya \<in> A"
-      by (rule_tac x = "y" in exI, auto)
+      by (rule exI, auto)
 
     have [simp]: "\<And>y. y \<in> A \<Longrightarrow>
          (\<exists>ya. y - {None} = ya - {None} \<and> ya \<in> A) \<and> \<Squnion>{ya. \<exists>x\<in>y - {None}. ya = the x} 
           = \<Squnion>{ya. \<exists>x. x \<in> y \<and> (\<exists>y. x = Some y) \<and> ya = the x}"
-      apply safe
-       apply blast
-      apply (rule_tac f = Sup in arg_cong)
-      by auto
-
-    have C: "(\<lambda>x.  (\<Squnion>Option.these x)) ` {y - {None} |y. y \<in> A} =  (Sup ` {the ` (y - {None}) |y. y \<in> A})"
-      apply (simp add: image_def Option.these_def, safe)
-       apply (rule_tac x = "{ya. \<exists>x. x \<in> y - {None} \<and> (\<exists>y. x = Some y) \<and> ya = the x}" in exI, simp)
-      by (rule_tac x = "y -{None}" in exI, simp)
+      apply (safe, blast)
+      by (rule arg_cong [of _ _ Sup], auto)
+    {fix y
+      assume [simp]: "y \<in> A"
+      have "\<exists>x. (\<exists>y. x = {ya. \<exists>x\<in>y - {None}. ya = the x} \<and> y \<in> A) \<and> \<Squnion>{ya. \<exists>x. x \<in> y \<and> (\<exists>y. x = Some y) \<and> ya = the x} = \<Squnion>x"
+      and "\<exists>x. (\<exists>y. x = y - {None} \<and> y \<in> A) \<and> \<Squnion>{ya. \<exists>x\<in>y - {None}. ya = the x} = \<Squnion>{y. \<exists>xa. xa \<in> x \<and> (\<exists>y. xa = Some y) \<and> y = the xa}"
+         apply (rule exI [of _ "{ya. \<exists>x. x \<in> y \<and> (\<exists>y. x = Some y) \<and> ya = the x}"], simp)
+        by (rule exI [of _ "y - {None}"], simp)
+    }
+    from this have C: "(\<lambda>x.  (\<Squnion>Option.these x)) ` {y - {None} |y. y \<in> A} =  (Sup ` {the ` (y - {None}) |y. y \<in> A})"
+      by (simp add: image_def Option.these_def, safe, simp_all)
   
     have D: "\<forall> f . \<exists>Y\<in>A. f Y \<notin> Y \<Longrightarrow> False"
-      apply (drule_tac x = "\<lambda> Y . SOME x . x \<in> Y" in spec, safe)
-      by (simp add: X some_in_eq)
+      by (drule spec [of _ "\<lambda> Y . SOME x . x \<in> Y"], simp add: X some_in_eq)
   
     define F where "F = (\<lambda> Y . SOME x::'a option . x \<in> (Y - {None}))"
   
@@ -341,12 +345,13 @@ next
           less_eq_option_Some singletonI)
       
     from this have "Inf (F ` A) \<noteq> None"
-      by (case_tac "\<Sqinter>x\<in>A. F x", simp_all)
-  
-    from this have "\<exists> x . x \<noteq> None \<and> x \<in> Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}"
-      apply (rule_tac x = "Inf (F ` A)" in exI, simp add: image_def, safe)
-      apply (rule_tac x = "F `  A" in exI, safe)
+      by (cases "\<Sqinter>x\<in>A. F x", simp_all)
+
+    from this have "Inf (F ` A) \<noteq> None \<and> Inf (F ` A) \<in> Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}"
       using F by auto
+
+    from this have "\<exists> x . x \<noteq> None \<and> x \<in> Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}"
+      by blast
   
     from this have E:" Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} = {None} \<Longrightarrow> False"
       by blast
@@ -358,36 +363,59 @@ next
     have B: "Option.these ((\<lambda>x. Some (\<Squnion>Option.these x)) ` {y - {None} |y. y \<in> A}) 
         = ((\<lambda>x. (\<Squnion> Option.these x)) ` {y - {None} |y. y \<in> A})"
       by (metis image_image these_image_Some_eq)
+    {
+      fix f
+      assume A: "\<And> Y . (\<exists>y. Y = the ` (y - {None}) \<and> y \<in> A) \<Longrightarrow> f Y \<in> Y"
 
-    have [simp]: "\<And>f. \<forall>Y. (\<exists>y. Y = {ya. \<exists>x\<in>y - {None}. ya = the x} \<and> y \<in> A) \<longrightarrow> f Y \<in> Y \<Longrightarrow>
-         \<exists>x. (\<exists>f. x = {y. \<exists>x\<in>A. y = f x} \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> (\<Sqinter>x\<in>A. Some (f {y. \<exists>x\<in>x - {None}. y = the x})) = \<Sqinter>x"
-      apply (rule_tac x = "{Some (f {y. \<exists>a\<in>x - {None}. y = the a}) | x . x\<in> A}" in exI, safe)
-       apply (rule_tac x = "(\<lambda> Y . Some (f (the ` (Y - {None})))) " in exI, safe)
-         apply (rule_tac x = xa in bexI, simp add: image_def, simp)
-        apply (rule_tac x = xa in exI, simp add: image_def)
-       apply(drule_tac x = "(the ` (Y - {None}))" in spec)
-       apply (simp add: image_def,safe, simp)
-      using option.collapse apply fastforce
-      by (simp add: Setcompr_eq_image)
+      have "\<And>xa. xa \<in> A \<Longrightarrow> f {y. \<exists>a\<in>xa - {None}. y = the a} = f (the ` (xa - {None}))"
+        by  (simp add: image_def)
+      from this have [simp]: "\<And>xa. xa \<in> A \<Longrightarrow> \<exists>x\<in>A. f {y. \<exists>a\<in>xa - {None}. y = the a} = f (the ` (x - {None}))"
+        by blast
+      have "\<And>xa. xa \<in> A \<Longrightarrow> f (the ` (xa - {None})) = f {y. \<exists>a \<in> xa - {None}. y = the a} \<and> xa \<in> A"
+        by (simp add: image_def)
+      from this have [simp]: "\<And>xa. xa \<in> A \<Longrightarrow> \<exists>x. f (the ` (xa - {None})) = f {y. \<exists>a\<in>x - {None}. y = the a} \<and> x \<in> A"
+        by blast
 
-    have [simp]: "\<And>f. \<forall>Y. (\<exists>y. Y = {ya. \<exists>x\<in>y - {None}. ya = the x} \<and> y \<in> A) \<longrightarrow> f Y \<in> Y 
-        \<Longrightarrow> \<exists>y. (\<Sqinter>x\<in>A. Some (f {y. \<exists>x\<in>x - {None}. y = the x})) = Some y"
-      by (metis (no_types) Some_INF)
+      {
+        fix Y
+        have "Y \<in> A \<Longrightarrow> Some (f (the ` (Y - {None}))) \<in> Y"
+          using A [of "the ` (Y - {None})"] apply (simp add: image_def)
+          using option.collapse by fastforce
+      }
+      from this have [simp]: "\<And> Y . Y \<in> A \<Longrightarrow> Some (f (the ` (Y - {None}))) \<in> Y"
+        by blast
+      have [simp]: "(\<Sqinter>x\<in>A. Some (f {y. \<exists>x\<in>x - {None}. y = the x})) = \<Sqinter>{Some (f {y. \<exists>a\<in>x - {None}. y = the a}) |x. x \<in> A}"
+        by (simp add: Setcompr_eq_image)
+      
+      have [simp]: "\<exists>x. (\<exists>f. x = {y. \<exists>x\<in>A. y = f x} \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<and> \<Sqinter>{Some (f {y. \<exists>a\<in>x - {None}. y = the a}) |x. x \<in> A} = \<Sqinter>x"
+        apply (rule exI [of _ "{Some (f {y. \<exists>a\<in>x - {None}. y = the a}) | x . x\<in> A}"], safe)
+        by (rule exI [of _ "(\<lambda> Y . Some (f (the ` (Y - {None})))) "], safe, simp_all)
 
-    have [simp]: "\<And> f.
-         (\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> the (\<Sqinter>Y\<in>A. Some (f (the ` (Y - {None}))))"
-      apply (simp add: Inf_option_def, safe)
-      apply (rule Inf_greatest, simp add: image_def Option.these_def, safe)
-      apply (rule_tac i = " {y. \<exists>x\<in>xb - {None}. y = the x}" in INF_lower2)
-       apply simp_all
+      {
+        fix xb
+        have "xb \<in> A \<Longrightarrow> (\<Sqinter>x\<in>{{ya. \<exists>x\<in>y - {None}. ya = the x} |y. y \<in> A}. f x) \<le> f {y. \<exists>x\<in>xb - {None}. y = the x}"
+          apply (rule INF_lower2 [of "{y. \<exists>x\<in>xb - {None}. y = the x}"])
+          by blast+
+      }
+      from this have [simp]: "(\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> the (\<Sqinter>Y\<in>A. Some (f (the ` (Y - {None}))))"
+        apply (simp add: Inf_option_def image_def Option.these_def)
+        by (rule Inf_greatest, clarsimp)
+
+      have [simp]: "the (\<Sqinter>Y\<in>A. Some (f (the ` (Y - {None})))) \<in> Option.these (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+        apply (simp add:  Option.these_def image_def)
+        apply (rule exI [of _ "(\<Sqinter>x\<in>A. Some (f {y. \<exists>x\<in>x - {None}. y = the x}))"], simp)
+        by (simp add: Inf_option_def)
+
+      have "(\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> \<Squnion>Option.these (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+        by (rule Sup_upper2 [of "the (Inf ((\<lambda> Y . Some (f (the ` (Y - {None})) )) ` A))"], simp_all)
+    }
+    from this have X: "\<And> f . \<forall>Y. (\<exists>y. Y = the ` (y - {None}) \<and> y \<in> A) \<longrightarrow> f Y \<in> Y \<Longrightarrow>
+      (\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> \<Squnion>Option.these (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
       by blast
+    
 
-    have X: "\<And> f . \<forall>Y. (\<exists>y. Y = the ` (y - {None}) \<and> y \<in> A) \<longrightarrow> f Y \<in> Y
-      \<Longrightarrow> (\<Sqinter>x\<in>{the ` (y - {None}) |y. y \<in> A}. f x) \<le> \<Squnion>Option.these (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
-      apply (rule_tac u = "the (Inf ((\<lambda> Y . Some (f (the ` (Y - {None})) )) ` A))" in Sup_upper2)
-       apply (simp add:  Option.these_def image_def)
-       apply (rule_tac x = "(\<Sqinter>x\<in>A. Some (f {y. \<exists>x\<in>x - {None}. y = the x}))" in exI, simp)
-      by simp
+    have [simp]: "\<And> x . x\<in>{y - {None} |y. y \<in> A} \<Longrightarrow>  x \<noteq> {} \<and> x \<noteq> {None}"
+      using F by fastforce
 
     have "(Inf (Sup `A)) = (Inf (Sup ` {y - {None} | y. y\<in>A}))"
       by (subst A, simp)
@@ -396,7 +424,6 @@ next
       by (simp add: Sup_option_def)
 
     also have "... = (\<Sqinter>x\<in>{y - {None} |y. y \<in> A}. Some (\<Squnion>Option.these x))"
-      apply (subgoal_tac "\<And> x . x\<in>{y - {None} |y. y \<in> A} \<Longrightarrow>  x \<noteq> {} \<and> x \<noteq> {None}", simp)
       using G by fastforce
   
     also have "... = Some (\<Sqinter>Option.these ((\<lambda>x. Some (\<Squnion>Option.these x)) ` {y - {None} |y. y \<in> A}))"
@@ -412,12 +439,18 @@ next
       by (simp add: Inf_Sup)
   
     also have "... \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
-      apply (simp add: less_eq_option_def)
-      apply (case_tac "\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x", simp_all)
-      apply (rule Sup_least, safe)
-      apply (simp add: Sup_option_def)
-      apply (case_tac "(\<forall>f. \<exists>Y\<in>A. f Y \<notin> Y) \<or> Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} = {None}", simp_all)
-      by (drule X, simp)
+    proof (cases "SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf")
+      case None
+      then show ?thesis by (simp add: less_eq_option_def)
+    next
+      case (Some a)
+      then show ?thesis
+        apply simp
+        apply (rule Sup_least, safe)
+        apply (simp add: Sup_option_def)
+        apply (cases "(\<forall>f. \<exists>Y\<in>A. f Y \<notin> Y) \<or> Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} = {None}", simp_all)
+        by (drule X, simp)
+    qed
     finally show ?thesis by simp
   qed
 qed
