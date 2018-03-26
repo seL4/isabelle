@@ -3235,12 +3235,21 @@ next
   from this(2) Suc.hyps(1)[OF this(1)] Suc(2,3) upto_rec1 show ?case by simp
 qed
 
+lemma length_upto[simp]: "length [i..j] = nat(j - i + 1)"
+by(induction i j rule: upto.induct) (auto simp: upto.simps)
+
 lemma set_upto[simp]: "set[i..j] = {i..j}"
 proof(induct i j rule:upto.induct)
   case (1 i j)
   from this show ?case
     unfolding upto.simps[of i j] by auto
 qed
+
+lemma nth_upto: "i + int k \<le> j \<Longrightarrow> [i..j] ! k = i + int k"
+apply(induction i j arbitrary: k rule: upto.induct)
+apply(subst upto_rec1)
+apply(auto simp add: nth_Cons')
+done
 
 lemma upto_split1: 
   "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> [i..k] = [i..j-1] @ [j..k]"
