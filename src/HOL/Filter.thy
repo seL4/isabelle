@@ -1210,6 +1210,11 @@ lemma filtermap_mono_strong: "inj f \<Longrightarrow> filtermap f F \<le> filter
   apply auto
   done
 
+lemma eventually_compose_filterlim:
+  assumes "eventually P F" "filterlim f F G"
+  shows "eventually (\<lambda>x. P (f x)) G"
+  using assms by (simp add: filterlim_iff)
+
 lemma filtermap_eq_strong: "inj f \<Longrightarrow> filtermap f F = filtermap f G \<longleftrightarrow> F = G"
   by (simp add: filtermap_mono_strong eq_iff)
 
