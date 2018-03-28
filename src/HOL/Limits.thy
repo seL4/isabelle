@@ -175,16 +175,12 @@ lemma Bseq_eventually_mono:
   assumes "eventually (\<lambda>n. norm (f n) \<le> norm (g n)) sequentially" "Bseq g"
   shows "Bseq f"
 proof -
-  from assms(1) obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> norm (f n) \<le> norm (g n)"
-    by (auto simp: eventually_at_top_linorder)
-  moreover from assms(2) obtain K where K: "\<And>n. norm (g n) \<le> K"
-    by (blast elim!: BseqE)
-  ultimately have "norm (f n) \<le> max K (Max {norm (f n) |n. n < N})" for n
-    apply (cases "n < N")
-    subgoal by (rule max.coboundedI2, rule Max.coboundedI) auto
-    subgoal by (rule max.coboundedI1) (force intro: order.trans[OF N K])
-    done
-  then show ?thesis by (blast intro: BseqI')
+  from assms(2) obtain K where "0 < K" and "eventually (\<lambda>n. norm (g n) \<le> K) sequentially"
+    unfolding Bfun_def by fast
+  with assms(1) have "eventually (\<lambda>n. norm (f n) \<le> K) sequentially"
+    by (fast elim: eventually_elim2 order_trans)
+  with `0 < K` show "Bseq f"
+    unfolding Bfun_def by fast
 qed
 
 lemma lemma_NBseq_def: "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) \<longleftrightarrow> (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
@@ -2264,12 +2260,6 @@ qed
 
 subsection \<open>Power Sequences\<close>
 
-text \<open>
-  The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
-  "x<1"}.  Proof will use (NS) Cauchy equivalence for convergence and
-  also fact that bounded and monotonic sequence converges.
-\<close>
-
 lemma Bseq_realpow: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> Bseq (\<lambda>n. x ^ n)"
   for x :: real
   apply (simp add: Bseq_def)
@@ -2713,14 +2703,14 @@ proof -
 qed
 
 lemma open_Collect_positive:
-  fixes f :: "'a::t2_space \<Rightarrow> real"
+  fixes f :: "'a::topological_space \<Rightarrow> real"
   assumes f: "continuous_on s f"
   shows "\<exists>A. open A \<and> A \<inter> s = {x\<in>s. 0 < f x}"
   using continuous_on_open_invariant[THEN iffD1, OF f, rule_format, of "{0 <..}"]
   by (auto simp: Int_def field_simps)
 
 lemma open_Collect_less_Int:
-  fixes f g :: "'a::t2_space \<Rightarrow> real"
+  fixes f g :: "'a::topological_space \<Rightarrow> real"
   assumes f: "continuous_on s f"
     and g: "continuous_on s g"
   shows "\<exists>A. open A \<and> A \<inter> s = {x\<in>s. f x < g x}"
