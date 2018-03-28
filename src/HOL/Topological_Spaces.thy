@@ -3472,23 +3472,7 @@ qed
 lemma tendsto_Pair [tendsto_intros]:
   assumes "(f \<longlongrightarrow> a) F" and "(g \<longlongrightarrow> b) F"
   shows "((\<lambda>x. (f x, g x)) \<longlongrightarrow> (a, b)) F"
-proof (rule topological_tendstoI)
-  fix S
-  assume "open S" and "(a, b) \<in> S"
-  then obtain A B where "open A" "open B" "a \<in> A" "b \<in> B" "A \<times> B \<subseteq> S"
-    unfolding open_prod_def by fast
-  have "eventually (\<lambda>x. f x \<in> A) F"
-    using \<open>(f \<longlongrightarrow> a) F\<close> \<open>open A\<close> \<open>a \<in> A\<close>
-    by (rule topological_tendstoD)
-  moreover
-  have "eventually (\<lambda>x. g x \<in> B) F"
-    using \<open>(g \<longlongrightarrow> b) F\<close> \<open>open B\<close> \<open>b \<in> B\<close>
-    by (rule topological_tendstoD)
-  ultimately
-  show "eventually (\<lambda>x. (f x, g x) \<in> S) F"
-    by (rule eventually_elim2)
-       (simp add: subsetD [OF \<open>A \<times> B \<subseteq> S\<close>])
-qed
+  unfolding nhds_prod using assms by (rule filterlim_Pair)
 
 lemma continuous_fst[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
   unfolding continuous_def by (rule tendsto_fst)
@@ -3625,17 +3609,13 @@ lemma isCont_swap[continuous_intros]: "isCont prod.swap a"
   using continuous_on_eq_continuous_within continuous_on_swap by blast
 
 lemma open_diagonal_complement:
-  "open {(x,y) | x y. x \<noteq> (y::('a::t2_space))}"
-proof (rule topological_space_class.openI)
-  fix t assume "t \<in> {(x, y) | x y. x \<noteq> (y::'a)}"
-  then obtain x y where "t = (x,y)" "x \<noteq> y" by blast
-  then obtain U V where *: "open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-    by (auto simp add: separation_t2)
-  define T where "T = U \<times> V"
-  have "open T" using * open_Times T_def by auto
-  moreover have "t \<in> T" unfolding T_def using \<open>t = (x,y)\<close> * by auto
-  moreover have "T \<subseteq> {(x, y) | x y. x \<noteq> y}" unfolding T_def using * by auto
-  ultimately show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. x \<noteq> y}" by auto
+  "open {(x,y) |x y. x \<noteq> (y::('a::t2_space))}"
+proof -
+  have "open {(x, y). x \<noteq> (y::'a)}"
+    unfolding split_def by (intro open_Collect_neq continuous_intros)
+  also have "{(x, y). x \<noteq> (y::'a)} = {(x, y) |x y. x \<noteq> (y::'a)}"
+    by auto
+  finally show ?thesis .
 qed
 
 lemma closed_diagonal:
@@ -3647,29 +3627,12 @@ qed
 
 lemma open_superdiagonal:
   "open {(x,y) | x y. x > (y::'a::{linorder_topology})}"
-proof (rule topological_space_class.openI)
-  fix t assume "t \<in> {(x, y) | x y. y < (x::'a)}"
-  then obtain x y where "t = (x, y)" "x > y" by blast
-  show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. y < x}"
-  proof (cases)
-    assume "\<exists>z. y < z \<and> z < x"
-    then obtain z where z: "y < z \<and> z < x" by blast
-    define T where "T = {z<..} \<times> {..<z}"
-    have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def z \<open>t = (x,y)\<close> by auto
-    moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def by auto
-    ultimately show ?thesis by auto
-  next
-    assume "\<not>(\<exists>z. y < z \<and> z < x)"
-    then have *: "{x ..} = {y<..}" "{..< x} = {..y}"
-      using \<open>x > y\<close> apply auto using leI by blast
-    define T where "T = {x ..} \<times> {.. y}"
-    then have "T = {y<..} \<times> {..< x}" using * by simp
-    then have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def \<open>t = (x,y)\<close> by auto
-    moreover have "T \<subseteq> {(x, y) | x y. y < x}" unfolding T_def using \<open>x > y\<close> by auto
-    ultimately show ?thesis by auto
-  qed
+proof -
+  have "open {(x, y). x > (y::'a)}"
+    unfolding split_def by (intro open_Collect_less continuous_intros)
+  also have "{(x, y). x > (y::'a)} = {(x, y) |x y. x > (y::'a)}"
+    by auto
+  finally show ?thesis .
 qed
 
 lemma closed_subdiagonal:
@@ -3681,29 +3644,12 @@ qed
 
 lemma open_subdiagonal:
   "open {(x,y) | x y. x < (y::'a::{linorder_topology})}"
-proof (rule topological_space_class.openI)
-  fix t assume "t \<in> {(x, y) | x y. y > (x::'a)}"
-  then obtain x y where "t = (x, y)" "x < y" by blast
-  show "\<exists>T. open T \<and> t \<in> T \<and> T \<subseteq> {(x, y) | x y. y > x}"
-  proof (cases)
-    assume "\<exists>z. y > z \<and> z > x"
-    then obtain z where z: "y > z \<and> z > x" by blast
-    define T where "T = {..<z} \<times> {z<..}"
-    have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def z \<open>t = (x,y)\<close> by auto
-    moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def by auto
-    ultimately show ?thesis by auto
-  next
-    assume "\<not>(\<exists>z. y > z \<and> z > x)"
-    then have *: "{..x} = {..<y}" "{x<..} = {y..}"
-      using \<open>x < y\<close> apply auto using leI by blast
-    define T where "T = {..x} \<times> {y..}"
-    then have "T = {..<y} \<times> {x<..}" using * by simp
-    then have "open T" unfolding T_def by (simp add: open_Times)
-    moreover have "t \<in> T" using T_def \<open>t = (x,y)\<close> by auto
-    moreover have "T \<subseteq> {(x, y) |x y. y > x}" unfolding T_def using \<open>x < y\<close> by auto
-    ultimately show ?thesis by auto
-  qed
+proof -
+  have "open {(x, y). x < (y::'a)}"
+    unfolding split_def by (intro open_Collect_less continuous_intros)
+  also have "{(x, y). x < (y::'a)} = {(x, y) |x y. x < (y::'a)}"
+    by auto
+  finally show ?thesis .
 qed
 
 lemma closed_superdiagonal:
