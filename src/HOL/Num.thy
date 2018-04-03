@@ -987,6 +987,10 @@ end
 
 subsubsection \<open>Natural numbers\<close>
 
+lemma numeral_num_of_nat:
+  "numeral (num_of_nat n) = n" if "n > 0"
+  using that nat_of_num_numeral num_of_nat_inverse by simp
+
 lemma Suc_1 [simp]: "Suc 1 = 2"
   unfolding Suc_eq_plus1 by (rule one_add_one)
 
@@ -994,7 +998,9 @@ lemma Suc_numeral [simp]: "Suc (numeral n) = numeral (n + One)"
   unfolding Suc_eq_plus1 by (rule numeral_plus_one)
 
 definition pred_numeral :: "num \<Rightarrow> nat"
-  where [code del]: "pred_numeral k = numeral k - 1"
+  where "pred_numeral k = numeral k - 1"
+
+declare [[code drop: pred_numeral]]
 
 lemma numeral_eq_Suc: "numeral k = Suc (pred_numeral k)"
   by (simp add: pred_numeral_def)
@@ -1010,6 +1016,10 @@ lemma pred_numeral_simps [simp]:
   "pred_numeral (Bit0 k) = numeral (BitM k)"
   "pred_numeral (Bit1 k) = numeral (Bit0 k)"
   by (simp_all only: pred_numeral_def eval_nat_numeral diff_Suc_Suc diff_0)
+
+lemma pred_numeral_inc [simp]:
+  "pred_numeral (Num.inc k) = numeral k"
+  by (simp only: pred_numeral_def numeral_inc diff_add_inverse2)
 
 lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
   by (simp add: eval_nat_numeral)
