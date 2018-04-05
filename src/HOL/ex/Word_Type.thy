@@ -72,12 +72,12 @@ proof -
     assume ?Q
     have "take_bit (Suc m) (k + 2 ^ m) =
       take_bit (Suc m) (take_bit (Suc m) k + take_bit (Suc m) (2 ^ m))"
-      by (simp only: take_bit_plus)
+      by (simp only: take_bit_add)
     also have "\<dots> =
       take_bit (Suc m) (take_bit (Suc m) l + take_bit (Suc m) (2 ^ m))"
       by (simp only: \<open>?Q\<close> m [symmetric])
     also have "\<dots> = take_bit (Suc m) (l + 2 ^ m)"
-      by (simp only: take_bit_plus)
+      by (simp only: take_bit_add)
     finally show ?P
       by (simp only: signed_take_bit_eq_take_bit m) simp
   next
@@ -114,7 +114,7 @@ lift_definition one_word :: "'a word"
 
 lift_definition plus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word"
   is plus
-  by (subst take_bit_plus [symmetric]) (simp add: take_bit_plus)
+  by (subst take_bit_add [symmetric]) (simp add: take_bit_add)
 
 lift_definition uminus_word :: "'a word \<Rightarrow> 'a word"
   is uminus

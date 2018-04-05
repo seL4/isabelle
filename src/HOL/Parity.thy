@@ -796,9 +796,13 @@ lemma take_bit_of_0 [simp]:
   "take_bit n 0 = 0"
   by (simp add: take_bit_eq_mod)
 
-lemma take_bit_plus:
+lemma take_bit_add:
   "take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)"
   by (simp add: take_bit_eq_mod mod_simps)
+
+lemma take_bit_eq_0_iff:
+  "take_bit n a = 0 \<longleftrightarrow> 2 ^ n dvd a"
+  by (simp add: take_bit_eq_mod mod_eq_0_iff_dvd)
 
 lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
@@ -807,6 +811,10 @@ lemma take_bit_of_1_eq_0_iff [simp]:
 lemma push_bit_eq_0_iff [simp]:
   "push_bit n a = 0 \<longleftrightarrow> a = 0"
   by (simp add: push_bit_eq_mult)
+
+lemma push_bit_add:
+  "push_bit n (a + b) = push_bit n a + push_bit n b"
+  by (simp add: push_bit_eq_mult algebra_simps)
 
 lemma drop_bit_0 [simp]:
   "drop_bit 0 = id"
