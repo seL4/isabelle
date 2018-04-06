@@ -131,7 +131,7 @@ subsection \<open>Topological Basis\<close>
 context topological_space
 begin
 
-definition "topological_basis B \<longleftrightarrow>
+definition%important "topological_basis B \<longleftrightarrow>
   (\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
 
 lemma topological_basis:
@@ -257,7 +257,7 @@ qed (metis A B topological_basis_open open_Times)
 
 subsection \<open>Countable Basis\<close>
 
-locale countable_basis =
+locale%important countable_basis =
   fixes B :: "'a::topological_space set set"
   assumes is_basis: "topological_basis B"
     and countable_basis: "countable B"
@@ -578,19 +578,19 @@ proof -
   then show ?thesis using B(1) by auto
 qed
 
-subsection \<open>Polish spaces\<close>
+subsection%important \<open>Polish spaces\<close>
 
 text \<open>Textbooks define Polish spaces as completely metrizable.
   We assume the topology to be complete for a given metric.\<close>
 
-class polish_space = complete_space + second_countable_topology
+class%important polish_space = complete_space + second_countable_topology
 
 subsection \<open>General notion of a topology as a value\<close>
 
-definition "istopology L \<longleftrightarrow>
+definition%important "istopology L \<longleftrightarrow>
   L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union>K))"
 
-typedef 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
+typedef%important 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
   morphisms "openin" "topology"
   unfolding istopology_def by blast
 
@@ -620,7 +620,7 @@ definition "topspace T = \<Union>{S. openin T S}"
 
 subsubsection \<open>Main properties of open sets\<close>
 
-lemma openin_clauses:
+lemma%important openin_clauses:
   fixes U :: "'a topology"
   shows
     "openin U {}"
@@ -683,7 +683,7 @@ lemma openin_Inter [intro]:
 
 subsubsection \<open>Closed sets\<close>
 
-definition "closedin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> openin U (topspace U - S)"
+definition%important "closedin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> openin U (topspace U - S)"
 
 lemma closedin_subset: "closedin U S \<Longrightarrow> S \<subseteq> topspace U"
   by (metis closedin_def)
@@ -755,7 +755,7 @@ qed
 
 subsubsection \<open>Subspace topology\<close>
 
-definition "subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
+definition%important "subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
 
 lemma istopology_subtopology: "istopology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
   (is "istopology ?L")
@@ -870,7 +870,7 @@ by (simp add: closedin_subtopology) blast
 
 subsubsection \<open>The standard Euclidean topology\<close>
 
-definition euclidean :: "'a::topological_space topology"
+definition%important euclidean :: "'a::topological_space topology"
   where "euclidean = topology open"
 
 lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
@@ -1054,13 +1054,13 @@ lemma openin_open_eq: "open s \<Longrightarrow> (openin (subtopology euclidean s
 
 subsection \<open>Open and closed balls\<close>
 
-definition ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+definition%important ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "ball x e = {y. dist x y < e}"
 
-definition cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+definition%important cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "cball x e = {y. dist x y \<le> e}"
 
-definition sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+definition%important sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "sphere x e = {y. dist x y = e}"
 
 lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
@@ -1327,11 +1327,11 @@ corollary One_neq_0[iff]: "One \<noteq> 0"
 corollary Zero_neq_One[iff]: "0 \<noteq> One"
   by (metis One_non_0)
 
-definition (in euclidean_space) eucl_less (infix "<e" 50)
+definition%important (in euclidean_space) eucl_less (infix "<e" 50)
   where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
-definition box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
-definition "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
+definition%important box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
+definition%important "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
 
 lemma box_def: "box a b = {x. \<forall>i\<in>Basis. a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i}"
   and in_box_eucl_less: "x \<in> box a b \<longleftrightarrow> a <e x \<and> x <e b"
@@ -1873,9 +1873,9 @@ proof -
     by (auto simp: box_def inner_sum_left inner_Basis sum.If_cases)
 qed
 
-text \<open>Intervals in general, including infinite and mixtures of open and closed.\<close>
+subsection \<open>Intervals in general, including infinite and mixtures of open and closed.\<close>
 
-definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
+definition%important "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
 
 lemma is_interval_1:
@@ -2053,7 +2053,7 @@ lemma is_interval_minus_translation'[simp]:
 
 subsection \<open>Limit points\<close>
 
-definition (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "islimpt" 60)
+definition%important (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "islimpt" 60)
   where "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
 lemma islimptI:
@@ -2191,7 +2191,7 @@ qed
 
 subsection \<open>Interior of a Set\<close>
 
-definition "interior S = \<Union>{T. open T \<and> T \<subseteq> S}"
+definition%important "interior S = \<Union>{T. open T \<and> T \<subseteq> S}"
 
 lemma interiorI [intro?]:
   assumes "open T" and "x \<in> T" and "T \<subseteq> S"
@@ -2359,7 +2359,7 @@ qed auto
 
 subsection \<open>Closure of a Set\<close>
 
-definition "closure S = S \<union> {x | x. x islimpt S}"
+definition%important "closure S = S \<union> {x | x. x islimpt S}"
 
 lemma interior_closure: "interior S = - (closure (- S))"
   by (auto simp: interior_def closure_def islimpt_def)
@@ -2635,7 +2635,7 @@ qed
 
 subsection \<open>Frontier (also known as boundary)\<close>
 
-definition "frontier S = closure S - interior S"
+definition%important "frontier S = closure S - interior S"
 
 lemma frontier_closed [iff]: "closed (frontier S)"
   by (simp add: frontier_def closed_Diff)
@@ -2726,7 +2726,7 @@ proof -
 qed
 
 
-subsection \<open>Filters and the ``eventually true'' quantifier\<close>
+subsection%unimportant \<open>Filters and the ``eventually true'' quantifier\<close>
 
 definition indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a filter"  (infixr "indirection" 70)
   where "a indirection v = at a within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
@@ -2794,16 +2794,16 @@ lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. ev
 
 subsection \<open>Limits\<close>
 
-lemma Lim: "(f \<longlongrightarrow> l) net \<longleftrightarrow> trivial_limit net \<or> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+lemma%important Lim: "(f \<longlongrightarrow> l) net \<longleftrightarrow> trivial_limit net \<or> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
   by (auto simp: tendsto_iff trivial_limit_eq)
 
 text \<open>Show that they yield usual definitions in the various cases.\<close>
 
-lemma Lim_within_le: "(f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow>
+lemma%important Lim_within_le: "(f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow>
     (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> d \<longrightarrow> dist (f x) l < e)"
   by (auto simp: tendsto_iff eventually_at_le)
 
-lemma Lim_within: "(f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow>
+lemma%important Lim_within: "(f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a  < d \<longrightarrow> dist (f x) l < e)"
   by (auto simp: tendsto_iff eventually_at)
 
@@ -2814,11 +2814,11 @@ corollary Lim_withinI [intro?]:
   apply (rule ex_forward [OF assms [OF half_gt_zero]], auto)
   done
 
-lemma Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
+lemma%important Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
     (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d  \<longrightarrow> dist (f x) l < e)"
   by (auto simp: tendsto_iff eventually_at)
 
-lemma Lim_at_infinity: "(f \<longlongrightarrow> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x \<ge> b \<longrightarrow> dist (f x) l < e)"
+lemma%important Lim_at_infinity: "(f \<longlongrightarrow> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x \<ge> b \<longrightarrow> dist (f x) l < e)"
   by (auto simp: tendsto_iff eventually_at_infinity)
 
 corollary Lim_at_infinityI [intro?]:
@@ -3411,7 +3411,7 @@ qed
 subsection \<open>Boundedness\<close>
 
   (* FIXME: This has to be unified with BSEQ!! *)
-definition (in metric_space) bounded :: "'a set \<Rightarrow> bool"
+definition%important (in metric_space) bounded :: "'a set \<Rightarrow> bool"
   where "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
 
 lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e \<and> 0 \<le> e)"
@@ -3690,12 +3690,12 @@ subsection \<open>Compactness\<close>
 
 subsubsection \<open>Bolzano-Weierstrass property\<close>
 
-lemma heine_borel_imp_bolzano_weierstrass:
+lemma%important heine_borel_imp_bolzano_weierstrass:
   assumes "compact s"
     and "infinite t"
     and "t \<subseteq> s"
   shows "\<exists>x \<in> s. x islimpt t"
-proof (rule ccontr)
+proof%unimportant (rule ccontr)
   assume "\<not> (\<exists>x \<in> s. x islimpt t)"
   then obtain f where f: "\<forall>x\<in>s. x \<in> f x \<and> open (f x) \<and> (\<forall>y\<in>t. y \<in> f x \<longrightarrow> y = x)"
     unfolding islimpt_def
@@ -4157,7 +4157,7 @@ next
   with \<open>U \<inter> \<Inter>A = {}\<close> show False by auto
 qed
 
-definition "countably_compact U \<longleftrightarrow>
+definition%important "countably_compact U \<longleftrightarrow>
     (\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T))"
 
 lemma countably_compactE:
@@ -4208,9 +4208,9 @@ proof safe
     unfolding C_def by (intro exI[of _ "f`T"]) fastforce
 qed
 
-lemma countably_compact_imp_compact_second_countable:
+lemma%important countably_compact_imp_compact_second_countable:
   "countably_compact U \<Longrightarrow> compact (U :: 'a :: second_countable_topology set)"
-proof (rule countably_compact_imp_compact)
+proof%unimportant (rule countably_compact_imp_compact)
   fix T and x :: 'a
   assume "open T" "x \<in> T"
   from topological_basisE[OF is_basis this] obtain b where
@@ -4225,7 +4225,7 @@ lemma countably_compact_eq_compact:
 
 subsubsection\<open>Sequential compactness\<close>
 
-definition seq_compact :: "'a::topological_space set \<Rightarrow> bool"
+definition%important seq_compact :: "'a::topological_space set \<Rightarrow> bool"
   where "seq_compact S \<longleftrightarrow>
     (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially))"
 
@@ -4486,10 +4486,10 @@ lemma seq_compact_eq_compact:
   shows "seq_compact U \<longleftrightarrow> compact U"
   using seq_compact_eq_countably_compact countably_compact_eq_compact by blast
 
-lemma bolzano_weierstrass_imp_seq_compact:
+lemma%important bolzano_weierstrass_imp_seq_compact:
   fixes s :: "'a::{t1_space, first_countable_topology} set"
   shows "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> seq_compact s"
-  by (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
+  by%unimportant (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
 
 
 subsubsection\<open>Totally bounded\<close>
@@ -4497,10 +4497,10 @@ subsubsection\<open>Totally bounded\<close>
 lemma cauchy_def: "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N \<longrightarrow> dist (s m) (s n) < e)"
   unfolding Cauchy_def by metis
 
-lemma seq_compact_imp_totally_bounded:
+lemma%important seq_compact_imp_totally_bounded:
   assumes "seq_compact s"
   shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>x\<in>k. ball x e)"
-proof -
+proof%unimportant -
   { fix e::real assume "e > 0" assume *: "\<And>k. finite k \<Longrightarrow> k \<subseteq> s \<Longrightarrow> \<not> s \<subseteq> (\<Union>x\<in>k. ball x e)"
     let ?Q = "\<lambda>x n r. r \<in> s \<and> (\<forall>m < (n::nat). \<not> (dist (x m) r < e))"
     have "\<exists>x. \<forall>n::nat. ?Q x n (x n)"
@@ -4529,11 +4529,11 @@ qed
 
 subsubsection\<open>Heine-Borel theorem\<close>
 
-lemma seq_compact_imp_heine_borel:
+lemma%important seq_compact_imp_heine_borel:
   fixes s :: "'a :: metric_space set"
   assumes "seq_compact s"
   shows "compact s"
-proof -
+proof%unimportant -
   from seq_compact_imp_totally_bounded[OF \<open>seq_compact s\<close>]
   obtain f where f: "\<forall>e>0. finite (f e) \<and> f e \<subseteq> s \<and> s \<subseteq> (\<Union>x\<in>f e. ball x e)"
     unfolding choice_iff' ..
@@ -4574,22 +4574,22 @@ proof -
   qed
 qed
 
-lemma compact_eq_seq_compact_metric:
+lemma%important compact_eq_seq_compact_metric:
   "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
   using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
 
-lemma compact_def: \<comment> \<open>this is the definition of compactness in HOL Light\<close>
+lemma%important compact_def: \<comment> \<open>this is the definition of compactness in HOL Light\<close>
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto
 
 subsubsection \<open>Complete the chain of compactness variants\<close>
 
-lemma compact_eq_bolzano_weierstrass:
+lemma%important compact_eq_bolzano_weierstrass:
   fixes s :: "'a::metric_space set"
   shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))"
   (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     using heine_borel_imp_bolzano_weierstrass[of s] by auto
@@ -4599,7 +4599,7 @@ next
     unfolding compact_eq_seq_compact_metric by (rule bolzano_weierstrass_imp_seq_compact)
 qed
 
-lemma bolzano_weierstrass_imp_bounded:
+lemma%important bolzano_weierstrass_imp_bounded:
   "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> bounded s"
   using compact_imp_bounded unfolding compact_eq_bolzano_weierstrass .
 
@@ -4611,16 +4611,16 @@ text \<open>
   Heine-Borel property if every closed and bounded subset is compact.
 \<close>
 
-class heine_borel = metric_space +
+class%important heine_borel = metric_space +
   assumes bounded_imp_convergent_subsequence:
     "bounded (range f) \<Longrightarrow> \<exists>l r. strict_mono (r::nat\<Rightarrow>nat) \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
 
-lemma bounded_closed_imp_seq_compact:
+lemma%important bounded_closed_imp_seq_compact:
   fixes s::"'a::heine_borel set"
   assumes "bounded s"
     and "closed s"
   shows "seq_compact s"
-proof (unfold seq_compact_def, clarify)
+proof%unimportant (unfold seq_compact_def, clarify)
   fix f :: "nat \<Rightarrow> 'a"
   assume f: "\<forall>n. f n \<in> s"
   with \<open>bounded s\<close> have "bounded (range f)"
@@ -4690,8 +4690,8 @@ next
     by (metis of_nat_le_iff Int_subset_iff \<open>K \<subseteq> S\<close> real_arch_simple subset_cball subset_trans)
 qed auto
 
-instance real :: heine_borel
-proof
+instance%important real :: heine_borel
+proof%unimportant
   fix f :: "nat \<Rightarrow> real"
   assume f: "bounded (range f)"
   obtain r :: "nat \<Rightarrow> nat" where r: "strict_mono r" "monoseq (f \<circ> r)"
@@ -4771,8 +4771,8 @@ lemma compact_lemma:
      (auto intro!: assms bounded_linear_inner_left bounded_linear_image
        simp: euclidean_representation)
 
-instance euclidean_space \<subseteq> heine_borel
-proof
+instance%important euclidean_space \<subseteq> heine_borel
+proof%unimportant
   fix f :: "nat \<Rightarrow> 'a"
   assume f: "bounded (range f)"
   then obtain l::'a and r where r: "strict_mono r"
@@ -4818,8 +4818,8 @@ lemma bounded_snd: "bounded s \<Longrightarrow> bounded (snd ` s)"
   unfolding bounded_def
   by (metis (no_types, hide_lams) dist_snd_le image_iff order.trans)
 
-instance prod :: (heine_borel, heine_borel) heine_borel
-proof
+instance%important prod :: (heine_borel, heine_borel) heine_borel
+proof%unimportant
   fix f :: "nat \<Rightarrow> 'a \<times> 'b"
   assume f: "bounded (range f)"
   then have "bounded (fst ` range f)"
@@ -4845,12 +4845,12 @@ qed
 
 subsubsection \<open>Completeness\<close>
 
-lemma (in metric_space) completeI:
+lemma%important (in metric_space) completeI:
   assumes "\<And>f. \<forall>n. f n \<in> s \<Longrightarrow> Cauchy f \<Longrightarrow> \<exists>l\<in>s. f \<longlonglongrightarrow> l"
   shows "complete s"
   using assms unfolding complete_def by fast
 
-lemma (in metric_space) completeE:
+lemma%important (in metric_space) completeE:
   assumes "complete s" and "\<forall>n. f n \<in> s" and "Cauchy f"
   obtains l where "l \<in> s" and "f \<longlonglongrightarrow> l"
   using assms unfolding complete_def by fast
@@ -4900,10 +4900,10 @@ proof -
   then show ?thesis unfolding complete_def by auto
 qed
 
-lemma compact_eq_totally_bounded:
+lemma%important compact_eq_totally_bounded:
   "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>x\<in>k. ball x e))"
     (is "_ \<longleftrightarrow> ?rhs")
-proof
+proof%unimportant
   assume assms: "?rhs"
   then obtain k where k: "\<And>e. 0 < e \<Longrightarrow> finite (k e)" "\<And>e. 0 < e \<Longrightarrow> s \<subseteq> (\<Union>x\<in>k e. ball x e)"
     by (auto simp: choice_iff')
@@ -5107,7 +5107,7 @@ subsection \<open>Continuity\<close>
 
 text\<open>Derive the epsilon-delta forms, which we often use as "definitions"\<close>
 
-lemma continuous_within_eps_delta:
+lemma%important continuous_within_eps_delta:
   "continuous (at x within s) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'\<in> s.  dist x' x < d --> dist (f x') (f x) < e)"
   unfolding continuous_within and Lim_within  by fastforce
 
@@ -5435,7 +5435,7 @@ lemma continuous_transform_within:
   by (force intro: Lim_transform_within)
 
 
-subsubsection \<open>Structural rules for pointwise continuity\<close>
+subsubsection%unimportant \<open>Structural rules for pointwise continuity\<close>
 
 lemma continuous_infnorm[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. infnorm (f x))"
@@ -5447,7 +5447,7 @@ lemma continuous_inner[continuous_intros]:
   shows "continuous F (\<lambda>x. inner (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_inner)
 
-subsubsection \<open>Structural rules for setwise continuity\<close>
+subsubsection%unimportant \<open>Structural rules for setwise continuity\<close>
 
 lemma continuous_on_infnorm[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
@@ -5461,7 +5461,7 @@ lemma continuous_on_inner[continuous_intros]:
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
 
-subsubsection \<open>Structural rules for uniform continuity\<close>
+subsubsection%unimportant \<open>Structural rules for uniform continuity\<close>
 
 lemma uniformly_continuous_on_dist[continuous_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
@@ -5653,7 +5653,7 @@ lemma continuous_on_imp_closedin:
     shows "closedin (subtopology euclidean S) (S \<inter> f -` T)"
 using assms continuous_on_closed by blast
 
-subsection \<open>Half-global and completely global cases.\<close>
+subsection%unimportant \<open>Half-global and completely global cases.\<close>
 
 lemma continuous_openin_preimage_gen:
   assumes "continuous_on S f"  "open T"
@@ -5743,7 +5743,7 @@ proof
   with \<open>x = f y\<close> show "x \<in> f ` interior S" ..
 qed
 
-subsection \<open>Topological properties of linear functions.\<close>
+subsection%unimportant \<open>Topological properties of linear functions.\<close>
 
 lemma linear_lim_0:
   assumes "bounded_linear f"
@@ -5771,7 +5771,7 @@ lemma linear_continuous_on:
   "bounded_linear f \<Longrightarrow> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
-subsection \<open>Intervals\<close>
+subsection%unimportant \<open>Intervals\<close>
 
 text \<open>Openness of halfspaces.\<close>
 

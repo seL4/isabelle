@@ -468,6 +468,12 @@ subsection \<open>Matrix operations\<close>
 
 text\<open>Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"}\<close>
 
+definition map_matrix::"('a \<Rightarrow> 'b) \<Rightarrow> (('a, 'i::finite)vec, 'j::finite) vec \<Rightarrow> (('b, 'i)vec, 'j) vec" where
+  "map_matrix f x = (\<chi> i j. f (x $ i $ j))"
+
+lemma nth_map_matrix[simp]: "map_matrix f x $ i $ j = f (x $ i $ j)"
+  by (simp add: map_matrix_def)
+
 definition matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
     (infixl "**" 70)
   where "m ** m' == (\<chi> i j. sum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"

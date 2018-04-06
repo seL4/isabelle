@@ -36,7 +36,7 @@ lemma bounded_linearI:
 
 subsection \<open>A generic notion of "hull" (convex, affine, conic hull and closure).\<close>
 
-definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)
+definition%important hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)
   where "S hull s = \<Inter>{t. S t \<and> s \<subseteq> t}"
 
 lemma hull_same: "S s \<Longrightarrow> S hull s = s"
@@ -109,10 +109,10 @@ lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) 
 
 subsection \<open>Linear functions.\<close>
 
-lemma linear_iff:
+lemma%important linear_iff:
   "linear f \<longleftrightarrow> (\<forall>x y. f (x + y) = f x + f y) \<and> (\<forall>c x. f (c *\<^sub>R x) = c *\<^sub>R f x)"
   (is "linear f \<longleftrightarrow> ?rhs")
-proof
+proof%unimportant
   assume "linear f"
   then interpret f: linear f .
   show "?rhs" by (simp add: f.add f.scaleR)
@@ -230,11 +230,11 @@ lemma linear_add_cmul:
 
 subsection \<open>Subspaces of vector spaces\<close>
 
-definition (in real_vector) subspace :: "'a set \<Rightarrow> bool"
+definition%important (in real_vector) subspace :: "'a set \<Rightarrow> bool"
   where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x \<in> S. \<forall>y \<in> S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in> S. c *\<^sub>R x \<in> S)"
 
-definition (in real_vector) "span S = (subspace hull S)"
-definition (in real_vector) "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span (S - {a}))"
+definition%important (in real_vector) "span S = (subspace hull S)"
+definition%important (in real_vector) "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span (S - {a}))"
 abbreviation (in real_vector) "independent s \<equiv> \<not> dependent s"
 
 text \<open>Closure properties of subspaces.\<close>
@@ -284,7 +284,7 @@ apply (intro conjI impI allI)
  apply (metis add.assoc add.left_commute)
 using scaleR_add_right by blast
 
-subsection \<open>Properties of span\<close>
+subsection%unimportant \<open>Properties of span\<close>
 
 lemma (in real_vector) span_mono: "A \<subseteq> B \<Longrightarrow> span A \<subseteq> span B"
   by (metis span_def hull_mono)
@@ -1351,7 +1351,7 @@ proof -
 qed
 
 
-subsection \<open>More interesting properties of the norm.\<close>
+subsection%unimportant \<open>More interesting properties of the norm.\<close>
 
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
@@ -1498,10 +1498,10 @@ qed simp
 
 subsection \<open>Orthogonality.\<close>
 
+definition%important (in real_inner) "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
+
 context real_inner
 begin
-
-definition "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
 
 lemma orthogonal_self: "orthogonal x x \<longleftrightarrow> x = 0"
   by (simp add: orthogonal_def)
@@ -1567,7 +1567,7 @@ qed
 
 subsection \<open>Bilinear functions.\<close>
 
-definition "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
+definition%important "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
 
 lemma bilinear_ladd: "bilinear h \<Longrightarrow> h (x + y) z = h x z + h y z"
   by (simp add: bilinear_def linear_iff)
@@ -1630,7 +1630,7 @@ qed
 
 subsection \<open>Adjoints.\<close>
 
-definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
+definition%important "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
 lemma adjoint_unique:
   assumes "\<forall>x y. inner (f x) y = inner x (g y)"
@@ -1701,7 +1701,7 @@ lemma adjoint_adjoint:
   by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
 
 
-subsection \<open>Interlude: Some properties of real sets\<close>
+subsection%unimportant \<open>Interlude: Some properties of real sets\<close>
 
 lemma seq_mono_lemma:
   assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
@@ -1754,11 +1754,11 @@ qed
 subsection \<open>Archimedean properties and useful consequences\<close>
 
 text\<open>Bernoulli's inequality\<close>
-proposition Bernoulli_inequality:
+proposition%important Bernoulli_inequality:
   fixes x :: real
   assumes "-1 \<le> x"
     shows "1 + n * x \<le> (1 + x) ^ n"
-proof (induct n)
+proof%unimportant (induct n)
   case 0
   then show ?case by simp
 next
@@ -1844,7 +1844,7 @@ lemma forall_pos_mono_1:
   done
 
 
-subsection \<open>Euclidean Spaces as Typeclass\<close>
+subsection%unimportant \<open>Euclidean Spaces as Typeclass\<close>
 
 lemma independent_Basis: "independent Basis"
   unfolding dependent_def
@@ -1905,7 +1905,7 @@ proof -
 qed
 
 
-subsection \<open>Linearity and Bilinearity continued\<close>
+subsection%unimportant \<open>Linearity and Bilinearity continued\<close>
 
 lemma linear_bounded:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -2074,7 +2074,7 @@ lemma linear_imp_differentiable:
 by (metis linear_imp_has_derivative differentiable_def)
 
 
-subsection \<open>We continue.\<close>
+subsection%unimportant \<open>We continue.\<close>
 
 lemma independent_bound:
   fixes S :: "'a::euclidean_space set"
@@ -2879,7 +2879,7 @@ using assms inj_iff left_inverse_linear by blast
 
 subsection \<open>Infinity norm\<close>
 
-definition "infnorm (x::'a::euclidean_space) = Sup {\<bar>x \<bullet> b\<bar> |b. b \<in> Basis}"
+definition%important "infnorm (x::'a::euclidean_space) = Sup {\<bar>x \<bullet> b\<bar> |b. b \<in> Basis}"
 
 lemma infnorm_set_image:
   fixes x :: "'a::euclidean_space"
@@ -3115,7 +3115,7 @@ qed
 
 subsection \<open>Collinearity\<close>
 
-definition collinear :: "'a::real_vector set \<Rightarrow> bool"
+definition%important collinear :: "'a::real_vector set \<Rightarrow> bool"
   where "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"
 
 lemma collinear_alt:

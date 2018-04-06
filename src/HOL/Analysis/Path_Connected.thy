@@ -10,34 +10,34 @@ begin
 
 subsection \<open>Paths and Arcs\<close>
 
-definition path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
+definition%important path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "path g \<longleftrightarrow> continuous_on {0..1} g"
 
-definition pathstart :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
+definition%important pathstart :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
   where "pathstart g = g 0"
 
-definition pathfinish :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
+definition%important pathfinish :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a"
   where "pathfinish g = g 1"
 
-definition path_image :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a set"
+definition%important path_image :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a set"
   where "path_image g = g ` {0 .. 1}"
 
-definition reversepath :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
+definition%important reversepath :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "reversepath g = (\<lambda>x. g(1 - x))"
 
-definition joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
+definition%important joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
     (infixr "+++" 75)
   where "g1 +++ g2 = (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
 
-definition simple_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
+definition%important simple_path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
   where "simple_path g \<longleftrightarrow>
      path g \<and> (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
 
-definition arc :: "(real \<Rightarrow> 'a :: topological_space) \<Rightarrow> bool"
+definition%important arc :: "(real \<Rightarrow> 'a :: topological_space) \<Rightarrow> bool"
   where "arc g \<longleftrightarrow> path g \<and> inj_on g {0..1}"
 
 
-subsection\<open>Invariance theorems\<close>
+subsection%unimportant\<open>Invariance theorems\<close>
 
 lemma path_eq: "path p \<Longrightarrow> (\<And>t. t \<in> {0..1} \<Longrightarrow> p t = q t) \<Longrightarrow> path q"
   using continuous_on_eq path_def by blast
@@ -132,7 +132,7 @@ lemma arc_linear_image_eq:
   using assms inj_on_eq_iff [of f]
   by (auto simp: arc_def inj_on_def path_linear_image_eq)
 
-subsection\<open>Basic lemmas about paths\<close>
+subsection%unimportant\<open>Basic lemmas about paths\<close>
 
 lemma continuous_on_path: "path f \<Longrightarrow> t \<subseteq> {0..1} \<Longrightarrow> continuous_on t f"
   using continuous_on_subset path_def by blast
@@ -301,7 +301,7 @@ next
     done
 qed
 
-section \<open>Path Images\<close>
+section%unimportant \<open>Path Images\<close>
 
 lemma bounded_path_image: "path g \<Longrightarrow> bounded(path_image g)"
   by (simp add: compact_imp_bounded compact_path_image)
@@ -394,7 +394,7 @@ lemma simple_path_inj_on: "simple_path g \<Longrightarrow> inj_on g {0<..<1}"
   by (auto simp: simple_path_def path_image_def inj_on_def less_eq_real_def Ball_def)
 
 
-subsection\<open>Simple paths with the endpoints removed\<close>
+subsection%unimportant\<open>Simple paths with the endpoints removed\<close>
 
 lemma simple_path_endless:
     "simple_path c \<Longrightarrow> path_image c - {pathstart c,pathfinish c} = c ` {0<..<1}"
@@ -417,7 +417,7 @@ lemma nonempty_simple_path_endless:
   by (simp add: simple_path_endless)
 
 
-subsection\<open>The operations on paths\<close>
+subsection%unimportant\<open>The operations on paths\<close>
 
 lemma path_image_subset_reversepath: "path_image(reversepath g) \<le> path_image g"
   by (auto simp: path_image_def reversepath_def)
@@ -565,7 +565,7 @@ lemma reversepath_joinpaths:
   by (rule ext) (auto simp: mult.commute)
 
 
-subsection\<open>Some reversed and "if and only if" versions of joining theorems\<close>
+subsection%unimportant\<open>Some reversed and "if and only if" versions of joining theorems\<close>
 
 lemma path_join_path_ends:
   fixes g1 :: "real \<Rightarrow> 'a::metric_space"
@@ -698,7 +698,7 @@ lemma arc_join_eq_alt:
 using pathfinish_in_path_image by (fastforce simp: arc_join_eq)
 
 
-subsection\<open>The joining of paths is associative\<close>
+subsection%unimportant\<open>The joining of paths is associative\<close>
 
 lemma path_assoc:
     "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart r\<rbrakk>
@@ -748,7 +748,7 @@ lemma arc_assoc:
       \<Longrightarrow> arc(p +++ (q +++ r)) \<longleftrightarrow> arc((p +++ q) +++ r)"
 by (simp add: arc_simple_path simple_path_assoc)
 
-subsubsection\<open>Symmetry and loops\<close>
+subsubsection%unimportant\<open>Symmetry and loops\<close>
 
 lemma path_sym:
     "\<lbrakk>pathfinish p = pathstart q; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> path(p +++ q) \<longleftrightarrow> path(q +++ p)"
@@ -767,7 +767,7 @@ by (simp add: path_image_join sup_commute)
 
 section\<open>Choosing a subpath of an existing path\<close>
 
-definition subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
+definition%important subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
   where "subpath a b g \<equiv> \<lambda>x. g((b - a) * x + a)"
 
 lemma path_image_subpath_gen:
@@ -945,7 +945,7 @@ lemma path_image_subpath_subset:
 lemma join_subpaths_middle: "subpath (0) ((1 / 2)) p +++ subpath ((1 / 2)) 1 p = p"
   by (rule ext) (simp add: joinpaths_def subpath_def divide_simps)
 
-subsection\<open>There is a subpath to the frontier\<close>
+subsection%unimportant\<open>There is a subpath to the frontier\<close>
 
 lemma subpath_to_frontier_explicit:
     fixes S :: "'a::metric_space set"
@@ -1063,7 +1063,7 @@ qed
 
 subsection \<open>shiftpath: Reparametrizing a closed curve to start at some chosen point\<close>
 
-definition shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
+definition%important shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "shiftpath a f = (\<lambda>x. if (a + x) \<le> 1 then f (a + x) else f (a + x - 1))"
 
 lemma pathstart_shiftpath: "a \<le> 1 \<Longrightarrow> pathstart (shiftpath a g) = g a"
@@ -1179,7 +1179,7 @@ qed
 
 subsection \<open>Special case of straight-line paths\<close>
 
-definition linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a"
+definition%important linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a"
   where "linepath a b = (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b)"
 
 lemma pathstart_linepath[simp]: "pathstart (linepath a b) = a"
@@ -1259,7 +1259,7 @@ proof (clarsimp simp: inj_on_def linepath_def)
 qed
 
 
-subsection\<open>Segments via convex hulls\<close>
+subsection%unimportant\<open>Segments via convex hulls\<close>
 
 lemma segments_subset_convex_hull:
     "closed_segment a b \<subseteq> (convex hull {a,b,c})"
@@ -1379,7 +1379,7 @@ next
     by (force simp: inj_on_def)
 qed
 
-subsection \<open>Bounding a point away from a path\<close>
+subsection%unimportant \<open>Bounding a point away from a path\<close>
 
 lemma not_on_path_ball:
   fixes g :: "real \<Rightarrow> 'a::heine_borel"
@@ -1416,10 +1416,10 @@ qed
 
 section \<open>Path component, considered as a "joinability" relation (from Tom Hales)\<close>
 
-definition "path_component s x y \<longleftrightarrow>
+definition%important "path_component s x y \<longleftrightarrow>
   (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
 
-abbreviation
+abbreviation%important
    "path_component_set s x \<equiv> Collect (path_component s x)"
 
 lemmas path_defs = path_def pathstart_def pathfinish_def path_image_def path_component_def
@@ -1471,7 +1471,7 @@ lemma path_connected_linepath:
   done
 
 
-subsubsection \<open>Path components as sets\<close>
+subsubsection%unimportant \<open>Path components as sets\<close>
 
 lemma path_component_set:
   "path_component_set s x =
@@ -1495,7 +1495,7 @@ by (metis (no_types, lifting) Collect_cong mem_Collect_eq path_component_sym pat
 
 subsection \<open>Path connectedness of a space\<close>
 
-definition "path_connected s \<longleftrightarrow>
+definition%important "path_connected s \<longleftrightarrow>
   (\<forall>x\<in>s. \<forall>y\<in>s. \<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
 
 lemma path_connected_component: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. path_component s x y)"
@@ -1806,7 +1806,7 @@ next
     using path_component_eq_empty by auto
 qed
 
-subsection\<open>Lemmas about path-connectedness\<close>
+subsection%unimportant\<open>Lemmas about path-connectedness\<close>
 
 lemma path_connected_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -1878,7 +1878,7 @@ lemma is_interval_path_connected_1:
 using is_interval_connected_1 is_interval_path_connected path_connected_imp_connected by blast
 
 
-subsection\<open>Path components\<close>
+subsection%unimportant\<open>Path components\<close>
 
 lemma Union_path_component [simp]:
    "Union {path_component_set S x |x. x \<in> S} = S"
@@ -1990,11 +1990,11 @@ corollary connected_punctured_universe:
   "2 \<le> DIM('N::euclidean_space) \<Longrightarrow> connected(- {a::'N})"
   by (simp add: path_connected_punctured_universe path_connected_imp_connected)
 
-lemma path_connected_sphere:
+lemma%important path_connected_sphere:
   fixes a :: "'a :: euclidean_space"
   assumes "2 \<le> DIM('a)"
   shows "path_connected(sphere a r)"
-proof (cases r "0::real" rule: linorder_cases)
+proof%unimportant (cases r "0::real" rule: linorder_cases)
   case less
   then show ?thesis
     by (simp add: path_connected_empty)
@@ -2315,26 +2315,26 @@ proof -
     using path_connected_translation by metis
 qed
 
-lemma path_connected_annulus:
+lemma%important path_connected_annulus:
   fixes a :: "'N::euclidean_space"
   assumes "2 \<le> DIM('N)"
   shows "path_connected {x. r1 < norm(x - a) \<and> norm(x - a) < r2}"
         "path_connected {x. r1 < norm(x - a) \<and> norm(x - a) \<le> r2}"
         "path_connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) < r2}"
         "path_connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) \<le> r2}"
-  by (auto simp: is_interval_def intro!: is_interval_convex convex_imp_path_connected path_connected_2DIM_I [OF assms])
+  by%unimportant (auto simp: is_interval_def intro!: is_interval_convex convex_imp_path_connected path_connected_2DIM_I [OF assms])
 
-lemma connected_annulus:
+lemma%important connected_annulus:
   fixes a :: "'N::euclidean_space"
   assumes "2 \<le> DIM('N::euclidean_space)"
   shows "connected {x. r1 < norm(x - a) \<and> norm(x - a) < r2}"
         "connected {x. r1 < norm(x - a) \<and> norm(x - a) \<le> r2}"
         "connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) < r2}"
         "connected {x. r1 \<le> norm(x - a) \<and> norm(x - a) \<le> r2}"
-  by (auto simp: path_connected_annulus [OF assms] path_connected_imp_connected)
+  by%unimportant (auto simp: path_connected_annulus [OF assms] path_connected_imp_connected)
 
 
-subsection\<open>Relations between components and path components\<close>
+subsection%unimportant\<open>Relations between components and path components\<close>
 
 lemma open_connected_component:
   fixes s :: "'a::real_normed_vector set"
@@ -2439,7 +2439,7 @@ proof -
 qed
 
 
-subsection\<open>Existence of unbounded components\<close>
+subsection%unimportant\<open>Existence of unbounded components\<close>
 
 lemma cobounded_unbounded_component:
     fixes s :: "'a :: euclidean_space set"
@@ -2527,13 +2527,13 @@ lemma cobounded_has_bounded_component:
 
 section\<open>The "inside" and "outside" of a set\<close>
 
-text\<open>The inside comprises the points in a bounded connected component of the set's complement.
+text%important\<open>The inside comprises the points in a bounded connected component of the set's complement.
   The outside comprises the points in unbounded connected component of the complement.\<close>
 
-definition inside where
+definition%important inside where
   "inside s \<equiv> {x. (x \<notin> s) \<and> bounded(connected_component_set ( - s) x)}"
 
-definition outside where
+definition%important outside where
   "outside s \<equiv> -s \<inter> {x. ~ bounded(connected_component_set (- s) x)}"
 
 lemma outside: "outside s = {x. ~ bounded(connected_component_set (- s) x)}"
@@ -3329,14 +3329,14 @@ lemma bounded_unique_outside:
 
 subsection\<open>Condition for an open map's image to contain a ball\<close>
 
-lemma ball_subset_open_map_image:
+lemma%important ball_subset_open_map_image:
   fixes f :: "'a::heine_borel \<Rightarrow> 'b :: {real_normed_vector,heine_borel}"
   assumes contf: "continuous_on (closure S) f"
       and oint: "open (f ` interior S)"
       and le_no: "\<And>z. z \<in> frontier S \<Longrightarrow> r \<le> norm(f z - f a)"
       and "bounded S" "a \<in> S" "0 < r"
     shows "ball (f a) r \<subseteq> f ` S"
-proof (cases "f ` S = UNIV")
+proof%unimportant (cases "f ` S = UNIV")
   case True then show ?thesis by simp
 next
   case False
@@ -3382,10 +3382,10 @@ qed
 
 section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps.\<close>
 
-text\<open> We often just want to require that it fixes some subset, but to take in
+text%important\<open> We often just want to require that it fixes some subset, but to take in
   the case of a loop homotopy, it's convenient to have a general property P.\<close>
 
-definition homotopic_with ::
+definition%important homotopic_with ::
   "[('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> bool, 'a set, 'b set, 'a \<Rightarrow> 'b, 'a \<Rightarrow> 'b] \<Rightarrow> bool"
 where
  "homotopic_with P X Y p q \<equiv>
@@ -3487,7 +3487,7 @@ next
 qed
 
 
-subsection\<open> Trivial properties.\<close>
+subsection%unimportant\<open> Trivial properties.\<close>
 
 lemma homotopic_with_imp_property: "homotopic_with P X Y f g \<Longrightarrow> P f \<and> P g"
   unfolding homotopic_with_def Ball_def
@@ -3745,7 +3745,7 @@ qed
 subsection\<open>Homotopy of paths, maintaining the same endpoints.\<close>
 
 
-definition homotopic_paths :: "['a set, real \<Rightarrow> 'a, real \<Rightarrow> 'a::topological_space] \<Rightarrow> bool"
+definition%important homotopic_paths :: "['a set, real \<Rightarrow> 'a, real \<Rightarrow> 'a::topological_space] \<Rightarrow> bool"
   where
      "homotopic_paths s p q \<equiv>
        homotopic_with (\<lambda>r. pathstart r = pathstart p \<and> pathfinish r = pathfinish p) {0..1} s p q"
@@ -3897,28 +3897,28 @@ proposition homotopic_paths_continuous_image:
 
 subsection\<open>Group properties for homotopy of paths\<close>
 
-text\<open>So taking equivalence classes under homotopy would give the fundamental group\<close>
+text%important\<open>So taking equivalence classes under homotopy would give the fundamental group\<close>
 
-proposition homotopic_paths_rid:
+proposition%important homotopic_paths_rid:
     "\<lbrakk>path p; path_image p \<subseteq> s\<rbrakk> \<Longrightarrow> homotopic_paths s (p +++ linepath (pathfinish p) (pathfinish p)) p"
-  apply (subst homotopic_paths_sym)
+  apply%unimportant (subst homotopic_paths_sym)
   apply (rule homotopic_paths_reparametrize [where f = "\<lambda>t. if  t \<le> 1 / 2 then 2 *\<^sub>R t else 1"])
   apply (simp_all del: le_divide_eq_numeral1)
   apply (subst split_01)
   apply (rule continuous_on_cases continuous_intros | force simp: pathfinish_def joinpaths_def)+
   done
 
-proposition homotopic_paths_lid:
+proposition%important homotopic_paths_lid:
    "\<lbrakk>path p; path_image p \<subseteq> s\<rbrakk> \<Longrightarrow> homotopic_paths s (linepath (pathstart p) (pathstart p) +++ p) p"
-using homotopic_paths_rid [of "reversepath p" s]
+using%unimportant homotopic_paths_rid [of "reversepath p" s]
   by (metis homotopic_paths_reversepath path_image_reversepath path_reversepath pathfinish_linepath
         pathfinish_reversepath reversepath_joinpaths reversepath_linepath)
 
-proposition homotopic_paths_assoc:
+proposition%important homotopic_paths_assoc:
    "\<lbrakk>path p; path_image p \<subseteq> s; path q; path_image q \<subseteq> s; path r; path_image r \<subseteq> s; pathfinish p = pathstart q;
      pathfinish q = pathstart r\<rbrakk>
     \<Longrightarrow> homotopic_paths s (p +++ (q +++ r)) ((p +++ q) +++ r)"
-  apply (subst homotopic_paths_sym)
+  apply%unimportant (subst homotopic_paths_sym)
   apply (rule homotopic_paths_reparametrize
            [where f = "\<lambda>t. if  t \<le> 1 / 2 then inverse 2 *\<^sub>R t
                            else if  t \<le> 3 / 4 then t - (1 / 4)
@@ -3929,10 +3929,10 @@ proposition homotopic_paths_assoc:
   apply (auto simp: joinpaths_def)
   done
 
-proposition homotopic_paths_rinv:
+proposition%important homotopic_paths_rinv:
   assumes "path p" "path_image p \<subseteq> s"
     shows "homotopic_paths s (p +++ reversepath p) (linepath (pathstart p) (pathstart p))"
-proof -
+proof%unimportant -
   have "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. (subpath 0 (fst x) p +++ reversepath (subpath 0 (fst x) p)) (snd x))"
     using assms
     apply (simp add: joinpaths_def subpath_def reversepath_def path_def del: le_divide_eq_numeral1)
@@ -3952,15 +3952,15 @@ proof -
     done
 qed
 
-proposition homotopic_paths_linv:
+proposition%important homotopic_paths_linv:
   assumes "path p" "path_image p \<subseteq> s"
     shows "homotopic_paths s (reversepath p +++ p) (linepath (pathfinish p) (pathfinish p))"
-using homotopic_paths_rinv [of "reversepath p" s] assms by simp
+using%unimportant homotopic_paths_rinv [of "reversepath p" s] assms by simp
 
 
 subsection\<open> Homotopy of loops without requiring preservation of endpoints.\<close>
 
-definition homotopic_loops :: "'a::topological_space set \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> bool"  where
+definition%important homotopic_loops :: "'a::topological_space set \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> bool"  where
  "homotopic_loops s p q \<equiv>
      homotopic_with (\<lambda>r. pathfinish r = pathstart r) {0..1} s p q"
 
@@ -4025,14 +4025,14 @@ proposition homotopic_loops_continuous_image:
 
 subsection\<open>Relations between the two variants of homotopy\<close>
 
-proposition homotopic_paths_imp_homotopic_loops:
+proposition%important homotopic_paths_imp_homotopic_loops:
     "\<lbrakk>homotopic_paths s p q; pathfinish p = pathstart p; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> homotopic_loops s p q"
-  by (auto simp: homotopic_paths_def homotopic_loops_def intro: homotopic_with_mono)
+  by%unimportant (auto simp: homotopic_paths_def homotopic_loops_def intro: homotopic_with_mono)
 
-proposition homotopic_loops_imp_homotopic_paths_null:
+proposition%important homotopic_loops_imp_homotopic_paths_null:
   assumes "homotopic_loops s p (linepath a a)"
     shows "homotopic_paths s p (linepath (pathstart p) (pathstart p))"
-proof -
+proof%unimportant -
   have "path p" by (metis assms homotopic_loops_imp_path)
   have ploop: "pathfinish p = pathstart p" by (metis assms homotopic_loops_imp_loop)
   have pip: "path_image p \<subseteq> s" by (metis assms homotopic_loops_imp_subset)
@@ -4100,12 +4100,12 @@ proof -
     by (blast intro: homotopic_paths_trans)
 qed
 
-proposition homotopic_loops_conjugate:
+proposition%important homotopic_loops_conjugate:
   fixes s :: "'a::real_normed_vector set"
   assumes "path p" "path q" and pip: "path_image p \<subseteq> s" and piq: "path_image q \<subseteq> s"
       and papp: "pathfinish p = pathstart q" and qloop: "pathfinish q = pathstart q"
     shows "homotopic_loops s (p +++ q +++ reversepath p) q"
-proof -
+proof%unimportant -
   have contp: "continuous_on {0..1} p"  using \<open>path p\<close> [unfolded path_def] by blast
   have contq: "continuous_on {0..1} q"  using \<open>path q\<close> [unfolded path_def] by blast
   have c1: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. p ((1 - fst x) * snd x + fst x))"
@@ -4197,7 +4197,7 @@ proof -
 qed
 
 
-subsection\<open> Homotopy of "nearby" function, paths and loops.\<close>
+subsection%unimportant\<open> Homotopy of "nearby" function, paths and loops.\<close>
 
 lemma homotopic_with_linear:
   fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
@@ -4358,10 +4358,10 @@ proof -
     using homotopic_join_subpaths2 by blast
 qed
 
-proposition homotopic_join_subpaths:
+proposition%important homotopic_join_subpaths:
    "\<lbrakk>path g; path_image g \<subseteq> s; u \<in> {0..1}; v \<in> {0..1}; w \<in> {0..1}\<rbrakk>
     \<Longrightarrow> homotopic_paths s (subpath u v g +++ subpath v w g) (subpath u w g)"
-apply (rule le_cases3 [of u v w])
+apply%unimportant (rule le_cases3 [of u v w])
 using homotopic_join_subpaths1 homotopic_join_subpaths2 homotopic_join_subpaths3 by metis+
 
 text\<open>Relating homotopy of trivial loops to path-connectedness.\<close>
@@ -4399,9 +4399,9 @@ by (auto simp: path_connected_def path_component_def homotopic_points_eq_path_co
 
 subsection\<open>Simply connected sets\<close>
 
-text\<open>defined as "all loops are homotopic (as loops)\<close>
+text%important\<open>defined as "all loops are homotopic (as loops)\<close>
 
-definition simply_connected where
+definition%important simply_connected where
   "simply_connected S \<equiv>
         \<forall>p q. path p \<and> pathfinish p = pathstart p \<and> path_image p \<subseteq> S \<and>
               path q \<and> pathfinish q = pathstart q \<and> path_image q \<subseteq> S
@@ -4583,7 +4583,7 @@ qed
 
 subsection\<open>Contractible sets\<close>
 
-definition contractible where
+definition%important contractible where
  "contractible S \<equiv> \<exists>a. homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
 
 proposition contractible_imp_simply_connected:
@@ -4846,7 +4846,7 @@ qed
 
 subsection\<open>Local versions of topological properties in general\<close>
 
-definition locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
+definition%important locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
 where
  "locally P S \<equiv>
         \<forall>w x. openin (subtopology euclidean S) w \<and> x \<in> w
@@ -5077,7 +5077,7 @@ qed
 
 subsection\<open>Sort of induction principle for connected sets\<close>
 
-lemma connected_induction:
+lemma%important connected_induction:
   assumes "connected S"
       and opD: "\<And>T a. \<lbrakk>openin (subtopology euclidean S) T; a \<in> T\<rbrakk> \<Longrightarrow> \<exists>z. z \<in> T \<and> P z"
       and opI: "\<And>a. a \<in> S
@@ -5085,7 +5085,7 @@ lemma connected_induction:
                      (\<forall>x \<in> T. \<forall>y \<in> T. P x \<and> P y \<and> Q x \<longrightarrow> Q y)"
       and etc: "a \<in> S" "b \<in> S" "P a" "P b" "Q a"
     shows "Q b"
-proof -
+proof%unimportant -
   have 1: "openin (subtopology euclidean S)
              {b. \<exists>T. openin (subtopology euclidean S) T \<and>
                      b \<in> T \<and> (\<forall>x\<in>T. P x \<longrightarrow> Q x)}"
@@ -5176,14 +5176,14 @@ by (meson constant_on_subset openin_imp_subset order_refl)
 
 subsection\<open>Basic properties of local compactness\<close>
 
-lemma locally_compact:
+lemma%important locally_compact:
   fixes s :: "'a :: metric_space set"
   shows
     "locally compact s \<longleftrightarrow>
      (\<forall>x \<in> s. \<exists>u v. x \<in> u \<and> u \<subseteq> v \<and> v \<subseteq> s \<and>
                     openin (subtopology euclidean s) u \<and> compact v)"
      (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     apply clarify
@@ -5730,12 +5730,12 @@ proof -
     by (metis \<open>U = S \<inter> V\<close> inf.bounded_iff openin_imp_subset that)
 qed
 
-corollary Sura_Bura:
+corollary%important Sura_Bura:
   fixes S :: "'a::euclidean_space set"
   assumes "locally compact S" "C \<in> components S" "compact C"
   shows "C = \<Inter> {K. C \<subseteq> K \<and> compact K \<and> openin (subtopology euclidean S) K}"
          (is "C = ?rhs")
-proof
+proof%unimportant
   show "?rhs \<subseteq> C"
   proof (clarsimp, rule ccontr)
     fix x
@@ -5865,17 +5865,17 @@ proof -
     by (metis assms(1) assms(2) assms(3) mem_Collect_eq path_component_subset path_connected_path_component)
 qed
 
-proposition locally_path_connected:
+proposition%important locally_path_connected:
   "locally path_connected S \<longleftrightarrow>
    (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
           \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and> path_connected u \<and> x \<in> u \<and> u \<subseteq> v))"
-by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
+by%unimportant (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
 
-proposition locally_path_connected_open_path_component:
+proposition%important locally_path_connected_open_path_component:
   "locally path_connected S \<longleftrightarrow>
    (\<forall>t x. openin (subtopology euclidean S) t \<and> x \<in> t
           \<longrightarrow> openin (subtopology euclidean S) (path_component_set t x))"
-by (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
+by%unimportant (metis locally_path_connected_1 locally_path_connected_2 locally_path_connected_3)
 
 lemma locally_connected_open_component:
   "locally connected S \<longleftrightarrow>
@@ -5883,14 +5883,14 @@ lemma locally_connected_open_component:
           \<longrightarrow> openin (subtopology euclidean S) c)"
 by (metis components_iff locally_connected_open_connected_component)
 
-proposition locally_connected_im_kleinen:
+proposition%important locally_connected_im_kleinen:
   "locally connected S \<longleftrightarrow>
    (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
        \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and>
                 x \<in> u \<and> u \<subseteq> v \<and>
                 (\<forall>y. y \<in> u \<longrightarrow> (\<exists>c. connected c \<and> c \<subseteq> v \<and> x \<in> c \<and> y \<in> c))))"
    (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     by (fastforce simp add: locally_connected)
@@ -5924,7 +5924,7 @@ next
     done
 qed
 
-proposition locally_path_connected_im_kleinen:
+proposition%important locally_path_connected_im_kleinen:
   "locally path_connected S \<longleftrightarrow>
    (\<forall>v x. openin (subtopology euclidean S) v \<and> x \<in> v
        \<longrightarrow> (\<exists>u. openin (subtopology euclidean S) u \<and>
@@ -5932,7 +5932,7 @@ proposition locally_path_connected_im_kleinen:
                 (\<forall>y. y \<in> u \<longrightarrow> (\<exists>p. path p \<and> path_image p \<subseteq> v \<and>
                                 pathstart p = x \<and> pathfinish p = y))))"
    (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     apply (simp add: locally_path_connected path_connected_def)
@@ -6082,13 +6082,13 @@ lemma open_path_connected_component_set:
   shows "open S \<Longrightarrow> path_component_set S x = connected_component_set S x"
 by (simp add: open_path_connected_component)
 
-proposition locally_connected_quotient_image:
+proposition%important locally_connected_quotient_image:
   assumes lcS: "locally connected S"
       and oo: "\<And>T. T \<subseteq> f ` S
                 \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow>
                     openin (subtopology euclidean (f ` S)) T"
     shows "locally connected (f ` S)"
-proof (clarsimp simp: locally_connected_open_component)
+proof%unimportant (clarsimp simp: locally_connected_open_component)
   fix U C
   assume opefSU: "openin (subtopology euclidean (f ` S)) U" and "C \<in> components U"
   then have "C \<subseteq> U" "U \<subseteq> f ` S"
@@ -6148,12 +6148,12 @@ proof (clarsimp simp: locally_connected_open_component)
 qed
 
 text\<open>The proof resembles that above but is not identical!\<close>
-proposition locally_path_connected_quotient_image:
+proposition%important locally_path_connected_quotient_image:
   assumes lcS: "locally path_connected S"
       and oo: "\<And>T. T \<subseteq> f ` S
                 \<Longrightarrow> openin (subtopology euclidean S) (S \<inter> f -` T) \<longleftrightarrow> openin (subtopology euclidean (f ` S)) T"
     shows "locally path_connected (f ` S)"
-proof (clarsimp simp: locally_path_connected_open_path_component)
+proof%unimportant (clarsimp simp: locally_path_connected_open_path_component)
   fix U y
   assume opefSU: "openin (subtopology euclidean (f ` S)) U" and "y \<in> U"
   then have "path_component_set U y \<subseteq> U" "U \<subseteq> f ` S"
@@ -6221,7 +6221,7 @@ proof (clarsimp simp: locally_path_connected_open_path_component)
     by metis
 qed
 
-subsection\<open>Components, continuity, openin, closedin\<close>
+subsection%unimportant\<open>Components, continuity, openin, closedin\<close>
 
 lemma continuous_on_components_gen:
  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
@@ -6324,7 +6324,8 @@ lemma closed_Un_complement_component:
   fixes S :: "'a::real_normed_vector set"
   assumes S: "closed S" and c: " c \<in> components(-S)"
     shows "closed (S \<union> c)"
-by (metis Compl_eq_Diff_UNIV S c closed_closedin closedin_Un_complement_component locally_connected_UNIV subtopology_UNIV)
+  by (metis Compl_eq_Diff_UNIV S c closed_closedin closedin_Un_complement_component
+      locally_connected_UNIV subtopology_UNIV)
 
 
 subsection\<open>Existence of isometry between subspaces of same dimension\<close>
@@ -6381,7 +6382,7 @@ proof -
     by (rule that [OF \<open>linear f\<close> \<open>f ` S \<subseteq> T\<close>])
 qed
 
-proposition isometries_subspaces:
+proposition%important isometries_subspaces:
   fixes S :: "'a::euclidean_space set"
     and T :: "'b::euclidean_space set"
   assumes S: "subspace S"
@@ -6392,7 +6393,7 @@ proposition isometries_subspaces:
                     "\<And>x. x \<in> T \<Longrightarrow> norm(g x) = norm x"
                     "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
                     "\<And>x. x \<in> T \<Longrightarrow> f(g x) = x"
-proof -
+proof%unimportant -
   obtain B where "B \<subseteq> S" and Borth: "pairwise orthogonal B"
              and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "finite B" "card B = dim S" "span B = S"
@@ -6549,7 +6550,7 @@ qed
 
 subsection\<open>Retracts, in a general sense, preserve (co)homotopic triviality)\<close>
 
-locale Retracts =
+locale%important Retracts =
   fixes s h t k
   assumes conth: "continuous_on s h"
       and imh: "h ` s = t"
@@ -6715,7 +6716,7 @@ lemma homeomorphic_simply_connected_eq:
 
 subsection\<open>Homotopy equivalence\<close>
 
-definition homotopy_eqv :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+definition%important homotopy_eqv :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
              (infix "homotopy'_eqv" 50)
   where "S homotopy_eqv T \<equiv>
         \<exists>f g. continuous_on S f \<and> f ` S \<subseteq> T \<and>
@@ -7003,7 +7004,7 @@ lemma homeomorphic_contractible:
   shows "\<lbrakk>contractible S; S homeomorphic T\<rbrakk> \<Longrightarrow> contractible T"
   by (metis homeomorphic_contractible_eq)
 
-subsection\<open>Misc other results\<close>
+subsection%unimportant\<open>Misc other results\<close>
 
 lemma bounded_connected_Compl_real:
   fixes S :: "real set"
@@ -7047,7 +7048,7 @@ proof -
     by blast
 qed
 
-subsection\<open>Some Uncountable Sets\<close>
+subsection%unimportant\<open>Some Uncountable Sets\<close>
 
 lemma uncountable_closed_segment:
   fixes a :: "'a::real_normed_vector"
@@ -7186,7 +7187,7 @@ lemma arc_image_uncountable:
   by (simp add: arc_imp_simple_path assms simple_path_image_uncountable)
 
 
-subsection\<open> Some simple positive connection theorems\<close>
+subsection%unimportant\<open> Some simple positive connection theorems\<close>
 
 proposition path_connected_convex_diff_countable:
   fixes U :: "'a::euclidean_space set"
@@ -7453,7 +7454,7 @@ by (simp add: assms path_connected_imp_connected path_connected_open_diff_counta
 
 subsection\<open> Self-homeomorphisms shuffling points about in various ways.\<close>
 
-subsubsection\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
+subsubsection%unimportant\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
 
 lemma homeomorphism_moving_point_1:
   fixes a :: "'a::euclidean_space"
@@ -7845,7 +7846,7 @@ next
   qed
 qed
 
-proposition homeomorphism_moving_points_exists:
+proposition%important homeomorphism_moving_points_exists:
   fixes S :: "'a::euclidean_space set"
   assumes 2: "2 \<le> DIM('a)" "open S" "connected S" "S \<subseteq> T" "finite K"
       and KS: "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
@@ -7853,7 +7854,7 @@ proposition homeomorphism_moving_points_exists:
       and S: "S \<subseteq> T" "T \<subseteq> affine hull S" "connected S"
   obtains f g where "homeomorphism T T f g" "\<And>i. i \<in> K \<Longrightarrow> f(x i) = y i"
                     "{x. ~ (f x = x \<and> g x = x)} \<subseteq> S" "bounded {x. (~ (f x = x \<and> g x = x))}"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   then show ?thesis
     using KS homeomorphism_ident that by fastforce
@@ -7875,7 +7876,7 @@ next
 qed
 
 
-subsubsection\<open>The theorem \<open>homeomorphism_grouping_points_exists\<close>\<close>
+subsubsection%unimportant\<open>The theorem \<open>homeomorphism_grouping_points_exists\<close>\<close>
 
 lemma homeomorphism_grouping_point_1:
   fixes a::real and c::real
@@ -8112,12 +8113,12 @@ proof -
   qed
 qed
 
-proposition homeomorphism_grouping_points_exists:
+proposition%important homeomorphism_grouping_points_exists:
   fixes S :: "'a::euclidean_space set"
   assumes "open U" "open S" "connected S" "U \<noteq> {}" "finite K" "K \<subseteq> S" "U \<subseteq> S" "S \<subseteq> T"
   obtains f g where "homeomorphism T T f g" "{x. (~ (f x = x \<and> g x = x))} \<subseteq> S"
                     "bounded {x. (~ (f x = x \<and> g x = x))}" "\<And>x. x \<in> K \<Longrightarrow> f x \<in> U"
-proof (cases "2 \<le> DIM('a)")
+proof%unimportant (cases "2 \<le> DIM('a)")
   case True
   have TS: "T \<subseteq> affine hull S"
     using affine_hull_open assms by blast
@@ -8401,13 +8402,13 @@ proof (clarsimp simp: continuous_on_eq_continuous_within Ball_def)
   qed
 qed
 
-proposition nullhomotopic_from_sphere_extension:
+proposition%important nullhomotopic_from_sphere_extension:
   fixes f :: "'M::euclidean_space \<Rightarrow> 'a::real_normed_vector"
   shows  "(\<exists>c. homotopic_with (\<lambda>x. True) (sphere a r) S f (\<lambda>x. c)) \<longleftrightarrow>
           (\<exists>g. continuous_on (cball a r) g \<and> g ` (cball a r) \<subseteq> S \<and>
                (\<forall>x \<in> sphere a r. g x = f x))"
          (is "?lhs = ?rhs")
-proof (cases r "0::real" rule: linorder_cases)
+proof%unimportant (cases r "0::real" rule: linorder_cases)
   case less
   then show ?thesis by simp
 next

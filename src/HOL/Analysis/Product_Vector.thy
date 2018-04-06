@@ -12,7 +12,7 @@ begin
 
 subsection \<open>Product is a real vector space\<close>
 
-instantiation prod :: (real_vector, real_vector) real_vector
+instantiation%important prod :: (real_vector, real_vector) real_vector
 begin
 
 definition scaleR_prod_def:
@@ -46,10 +46,10 @@ subsection \<open>Product is a metric space\<close>
 
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation prod :: (metric_space, metric_space) dist
+instantiation%important prod :: (metric_space, metric_space) dist
 begin
 
-definition dist_prod_def[code del]:
+definition%important dist_prod_def[code del]:
   "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
 
 instance ..
@@ -68,7 +68,7 @@ end
 
 declare uniformity_Abort[where 'a="'a :: metric_space \<times> 'b :: metric_space", code]
 
-instantiation prod :: (metric_space, metric_space) metric_space
+instantiation%important prod :: (metric_space, metric_space) metric_space
 begin
 
 lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
@@ -186,8 +186,8 @@ qed
 
 subsection \<open>Product is a complete metric space\<close>
 
-instance prod :: (complete_space, complete_space) complete_space
-proof
+instance%important prod :: (complete_space, complete_space) complete_space
+proof%unimportant
   fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
   have 1: "(\<lambda>n. fst (X n)) \<longlonglongrightarrow> lim (\<lambda>n. fst (X n))"
     using Cauchy_fst [OF \<open>Cauchy X\<close>]
@@ -203,7 +203,7 @@ qed
 
 subsection \<open>Product is a normed vector space\<close>
 
-instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
+instantiation%important prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
 definition norm_prod_def[code del]:
@@ -245,13 +245,13 @@ declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<R
 
 instance prod :: (banach, banach) banach ..
 
-subsubsection \<open>Pair operations are linear\<close>
+subsubsection%unimportant \<open>Pair operations are linear\<close>
 
-lemma bounded_linear_fst: "bounded_linear fst"
+lemma%important bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
-lemma bounded_linear_snd: "bounded_linear snd"
+lemma%important bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
@@ -285,12 +285,12 @@ proof
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
 qed
 
-subsubsection \<open>Frechet derivatives involving pairs\<close>
+subsubsection%unimportant \<open>Frechet derivatives involving pairs\<close>
 
-lemma has_derivative_Pair [derivative_intros]:
+lemma%important has_derivative_Pair [derivative_intros]:
   assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
   shows "((\<lambda>x. (f x, g x)) has_derivative (\<lambda>h. (f' h, g' h))) (at x within s)"
-proof (rule has_derivativeI_sandwich[of 1])
+proof%unimportant (rule has_derivativeI_sandwich[of 1])
   show "bounded_linear (\<lambda>h. (f' h, g' h))"
     using f g by (intro bounded_linear_Pair has_derivative_bounded_linear)
   let ?Rf = "\<lambda>y. f y - f x - f' (y - x)"
@@ -319,7 +319,7 @@ lemma has_derivative_split [derivative_intros]:
   unfolding split_beta' .
 
 
-subsubsection \<open>Vector derivatives involving pairs\<close>
+subsubsection%unimportant \<open>Vector derivatives involving pairs\<close>
 
 lemma has_vector_derivative_Pair[derivative_intros]:
   assumes "(f has_vector_derivative f') (at x within s)"
@@ -331,7 +331,7 @@ lemma has_vector_derivative_Pair[derivative_intros]:
 
 subsection \<open>Product is an inner product space\<close>
 
-instantiation prod :: (real_inner, real_inner) real_inner
+instantiation%important prod :: (real_inner, real_inner) real_inner
 begin
 
 definition inner_prod_def:

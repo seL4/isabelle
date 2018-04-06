@@ -12,7 +12,7 @@ begin
 
 subsection \<open>Type class of Euclidean spaces\<close>
 
-class euclidean_space = real_inner +
+class%important euclidean_space = real_inner +
   fixes Basis :: "'a set"
   assumes nonempty_Basis [simp]: "Basis \<noteq> {}"
   assumes finite_Basis [simp]: "finite Basis"
@@ -152,7 +152,7 @@ next
     using False by (auto simp: inner_sum_left)
 qed
 
-subsection \<open>Subclass relationships\<close>
+subsection%unimportant \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space
 proof
@@ -175,9 +175,9 @@ qed
 
 subsection \<open>Class instances\<close>
 
-subsubsection \<open>Type @{typ real}\<close>
+subsubsection%unimportant \<open>Type @{typ real}\<close>
 
-instantiation real :: euclidean_space
+instantiation%important real :: euclidean_space
 begin
 
 definition
@@ -191,9 +191,9 @@ end
 lemma DIM_real[simp]: "DIM(real) = 1"
   by simp
 
-subsubsection \<open>Type @{typ complex}\<close>
+subsubsection%unimportant \<open>Type @{typ complex}\<close>
 
-instantiation complex :: euclidean_space
+instantiation%important complex :: euclidean_space
 begin
 
 definition Basis_complex_def: "Basis = {1, \<i>}"
@@ -206,9 +206,9 @@ end
 lemma DIM_complex[simp]: "DIM(complex) = 2"
   unfolding Basis_complex_def by simp
 
-subsubsection \<open>Type @{typ "'a \<times> 'b"}\<close>
+subsubsection%unimportant \<open>Type @{typ "'a \<times> 'b"}\<close>
 
-instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
+instantiation%important prod :: (euclidean_space, euclidean_space) euclidean_space
 begin
 
 definition

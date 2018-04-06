@@ -27,7 +27,7 @@ setup \<open>Sign.add_const_constraint
 setup \<open>Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"})\<close>
 
-class real_inner = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
+class%important real_inner = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
   assumes inner_commute: "inner x y = inner y x"
   and inner_add_left: "inner (x + y) z = inner x z + inner y z"
@@ -236,7 +236,7 @@ lemma differentiable_inner [simp]:
 
 subsection \<open>Class instances\<close>
 
-instantiation real :: real_inner
+instantiation%important real :: real_inner
 begin
 
 definition inner_real_def [simp]: "inner = ( * )"
@@ -265,7 +265,7 @@ lemma
     and real_inner_1_right[simp]: "inner x 1 = x"
   by simp_all
 
-instantiation complex :: real_inner
+instantiation%important complex :: real_inner
 begin
 
 definition inner_complex_def:
@@ -357,7 +357,7 @@ qed (auto intro: summable_of_real)
 
 subsection \<open>Gradient derivative\<close>
 
-definition
+definition%important
   gderiv ::
     "['a::real_inner \<Rightarrow> real, 'a, 'a] \<Rightarrow> bool"
           ("(GDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)

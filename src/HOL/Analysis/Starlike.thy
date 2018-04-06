@@ -15,7 +15,7 @@ begin
 
 subsection \<open>Midpoint\<close>
 
-definition midpoint :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a"
+definition%important midpoint :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a"
   where "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
 lemma midpoint_idem [simp]: "midpoint x x = x"
@@ -94,10 +94,10 @@ by (simp add: linear_iff midpoint_def)
 
 subsection \<open>Line segments\<close>
 
-definition closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set"
+definition%important closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set"
   where "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
 
-definition open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
+definition%important open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "open_segment a b \<equiv> closed_segment a b - {a,b}"
 
 lemmas segment = open_segment_def closed_segment_def
@@ -599,7 +599,7 @@ lemma IVT'_closed_segment_real:
 
 subsection\<open>Starlike sets\<close>
 
-definition "starlike S \<longleftrightarrow> (\<exists>a\<in>S. \<forall>x\<in>S. closed_segment a x \<subseteq> S)"
+definition%important "starlike S \<longleftrightarrow> (\<exists>a\<in>S. \<forall>x\<in>S. closed_segment a x \<subseteq> S)"
 
 lemma starlike_UNIV [simp]: "starlike UNIV"
   by (simp add: starlike_def)
@@ -662,7 +662,7 @@ proof
     by (meson hull_mono inf_mono subset_insertI subset_refl)
 qed
 
-subsection\<open>More results about segments\<close>
+subsection%unimportant\<open>More results about segments\<close>
 
 lemma dist_half_times2:
   fixes a :: "'a :: real_normed_vector"
@@ -884,7 +884,7 @@ lemmas subset_segment = subset_closed_segment subset_co_segment subset_oc_segmen
 
 subsection\<open>Betweenness\<close>
 
-definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
+definition%important "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
 lemma betweenI:
   assumes "0 \<le> u" "u \<le> 1" "x = (1 - u) *\<^sub>R a + u *\<^sub>R b"
@@ -1055,7 +1055,7 @@ lemma between_1:
   by (auto simp: between_mem_segment closed_segment_eq_real_ivl)
 
 
-subsection \<open>Shrinking towards the interior of a convex set\<close>
+subsection%unimportant \<open>Shrinking towards the interior of a convex set\<close>
 
 lemma mem_interior_convex_shrink:
   fixes s :: "'a::euclidean_space set"
@@ -1249,7 +1249,7 @@ proof -
 qed
 
 
-subsection \<open>Some obvious but surprisingly hard simplex lemmas\<close>
+subsection%unimportant \<open>Some obvious but surprisingly hard simplex lemmas\<close>
 
 lemma simplex:
   assumes "finite s"
@@ -1693,7 +1693,7 @@ proof -
 qed
 
 
-subsection \<open>Relative interior of convex set\<close>
+subsection%unimportant \<open>Relative interior of convex set\<close>
 
 lemma rel_interior_convex_nonempty_aux:
   fixes S :: "'n::euclidean_space set"
@@ -2081,7 +2081,7 @@ qed
 
 subsection\<open>The relative frontier of a set\<close>
 
-definition "rel_frontier S = closure S - rel_interior S"
+definition%important "rel_frontier S = closure S - rel_interior S"
 
 lemma rel_frontier_empty [simp]: "rel_frontier {} = {}"
   by (simp add: rel_frontier_def)
@@ -2460,7 +2460,7 @@ next
 qed
 
 
-subsubsection \<open>Relative interior and closure under common operations\<close>
+subsubsection%unimportant \<open>Relative interior and closure under common operations\<close>
 
 lemma rel_interior_inter_aux: "\<Inter>{rel_interior S |S. S \<in> I} \<subseteq> \<Inter>I"
 proof -
@@ -3150,7 +3150,7 @@ lemma rel_frontier_Times:
     by (force simp: rel_frontier_def rel_interior_Times assms closure_Times)
 
 
-subsubsection \<open>Relative interior of convex cone\<close>
+subsubsection%unimportant \<open>Relative interior of convex cone\<close>
 
 lemma cone_rel_interior:
   fixes S :: "'m::euclidean_space set"
@@ -3423,7 +3423,7 @@ proof
 qed
 
 
-subsection \<open>Convexity on direct sums\<close>
+subsection%unimportant \<open>Convexity on direct sums\<close>
 
 lemma closure_sum:
   fixes S T :: "'a::real_normed_vector set"
@@ -3794,7 +3794,7 @@ next
     using \<open>y < x\<close> by (simp add: field_simps)
 qed simp
 
-subsection\<open>Explicit formulas for interior and relative interior of convex hull\<close>
+subsection%unimportant\<open>Explicit formulas for interior and relative interior of convex hull\<close>
 
 lemma at_within_cbox_finite:
   assumes "x \<in> box a b" "x \<notin> S" "finite S"
@@ -4157,7 +4157,7 @@ next
     by (metis Diff_cancel convex_hull_singleton insert_absorb2 open_segment_def segment_convex_hull)
 qed
 
-subsection\<open>Similar results for closure and (relative or absolute) frontier.\<close>
+subsection%unimportant\<open>Similar results for closure and (relative or absolute) frontier.\<close>
 
 lemma closure_convex_hull [simp]:
   fixes s :: "'a::euclidean_space set"
@@ -4315,7 +4315,7 @@ qed
 
 subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
 
-definition coplanar  where
+definition%important coplanar  where
    "coplanar s \<equiv> \<exists>u v w. s \<subseteq> affine hull {u,v,w}"
 
 lemma collinear_affine_hull:
@@ -4767,7 +4767,7 @@ done
 
 subsection\<open>The infimum of the distance between two sets\<close>
 
-definition setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
+definition%important setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
   "setdist s t \<equiv>
        (if s = {} \<or> t = {} then 0
         else Inf {dist x y| x y. x \<in> s \<and> y \<in> t})"
@@ -5003,7 +5003,7 @@ lemma setdist_gt_0_closedin:
          \<Longrightarrow> setdist {x} S > 0"
   using less_eq_real_def setdist_eq_0_closedin by fastforce
 
-subsection\<open>Basic lemmas about hyperplanes and halfspaces\<close>
+subsection%unimportant\<open>Basic lemmas about hyperplanes and halfspaces\<close>
 
 lemma hyperplane_eq_Ex:
   assumes "a \<noteq> 0" obtains x where "a \<bullet> x = b"
@@ -5056,7 +5056,7 @@ lemma halfspace_eq_empty_ge:
 using halfspace_eq_empty_le [of "-a" "-b"]
 by simp
 
-subsection\<open>Use set distance for an easy proof of separation properties\<close>
+subsection%unimportant\<open>Use set distance for an easy proof of separation properties\<close>
 
 proposition separation_closures:
   fixes S :: "'a::euclidean_space set"
@@ -5150,12 +5150,12 @@ qed
 
 subsection\<open>Connectedness of the intersection of a chain\<close>
 
-proposition connected_chain:
+proposition%important connected_chain:
   fixes \<F> :: "'a :: euclidean_space set set"
   assumes cc: "\<And>S. S \<in> \<F> \<Longrightarrow> compact S \<and> connected S"
       and linear: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
   shows "connected(\<Inter>\<F>)"
-proof (cases "\<F> = {}")
+proof%unimportant (cases "\<F> = {}")
   case True then show ?thesis
     by auto
 next
@@ -5299,13 +5299,13 @@ next
       by (meson le_max_iff_disj)
 qed
 
-proposition proper_map:
+proposition%important proper_map:
   fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
   assumes "closedin (subtopology euclidean S) K"
       and com: "\<And>U. \<lbrakk>U \<subseteq> T; compact U\<rbrakk> \<Longrightarrow> compact (S \<inter> f -` U)"
       and "f ` S \<subseteq> T"
     shows "closedin (subtopology euclidean T) (f ` K)"
-proof -
+proof%unimportant -
   have "K \<subseteq> S"
     using assms closedin_imp_subset by metis
   obtain C where "closed C" and Keq: "K = S \<inter> C"
@@ -5387,7 +5387,7 @@ next
     by (simp add: continuous_on_closed * closedin_imp_subset)
 qed
 
-subsection\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
+subsection%unimportant\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
 
 lemma convex_connected_collinear:
   fixes S :: "'a::euclidean_space set"
@@ -5605,7 +5605,7 @@ proof -
     by (simp add: clo closedin_closed_Int)
 qed
 
-subsubsection\<open>Representing affine hull as a finite intersection of hyperplanes\<close>
+subsubsection%unimportant\<open>Representing affine hull as a finite intersection of hyperplanes\<close>
 
 proposition affine_hull_convex_Int_nonempty_interior:
   fixes S :: "'a::real_normed_vector set"
@@ -5778,7 +5778,7 @@ lemma aff_dim_halfspace_ge:
         (if a = 0 \<and> r > 0 then -1 else DIM('a))"
 using aff_dim_halfspace_le [of "-a" "-r"] by simp
 
-subsection\<open>Properties of special hyperplanes\<close>
+subsection%unimportant\<open>Properties of special hyperplanes\<close>
 
 lemma subspace_hyperplane: "subspace {x. a \<bullet> x = 0}"
   by (simp add: subspace_def inner_right_distrib)
@@ -5925,7 +5925,7 @@ corollary aff_dim_hyperplane [simp]:
   shows "a \<noteq> 0 \<Longrightarrow> aff_dim {x. a \<bullet> x = r} = DIM('a) - 1"
 by (metis aff_dim_eq_hyperplane affine_hull_eq affine_hyperplane)
 
-subsection\<open>Some stepping theorems\<close>
+subsection%unimportant\<open>Some stepping theorems\<close>
 
 lemma dim_empty [simp]: "dim ({} :: 'a::euclidean_space set) = 0"
   by (force intro!: dim_unique)
@@ -6092,7 +6092,7 @@ proof (simp add: bounded_hyperplane_eq_trivial_0, clarify)
     by (metis One_nat_def \<open>a \<noteq> 0\<close> affine_bounded_eq_lowdim affine_hyperplane bounded_hyperplane_eq_trivial_0)
 qed
 
-subsection\<open>General case without assuming closure and getting non-strict separation\<close>
+subsection%unimportant\<open>General case without assuming closure and getting non-strict separation\<close>
 
 proposition separating_hyperplane_closed_point_inset:
   fixes S :: "'a::euclidean_space set"
@@ -6280,7 +6280,7 @@ using supporting_hyperplane_rel_boundary [of "closure S" x]
 by (metis assms convex_closure convex_rel_interior_closure)
 
 
-subsection\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
+subsection%unimportant\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
 
 lemma
   fixes s :: "'a::euclidean_space set"
@@ -6636,7 +6636,7 @@ proof -
   qed
 qed
 
-subsection\<open>Misc results about span\<close>
+subsection%unimportant\<open>Misc results about span\<close>
 
 lemma eq_span_insert_eq:
   assumes "(x - y) \<in> span S"
@@ -7026,11 +7026,11 @@ apply (rule span_induct [OF a subspace_orthogonal_to_vector])
 apply (simp add: x)
 done
 
-proposition Gram_Schmidt_step:
+proposition%important Gram_Schmidt_step:
   fixes S :: "'a::euclidean_space set"
   assumes S: "pairwise orthogonal S" and x: "x \<in> span S"
     shows "orthogonal x (a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b))"
-proof -
+proof%unimportant -
   have "finite S"
     by (simp add: S pairwise_orthogonal_imp_finite)
   have "orthogonal (a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b)) x"
@@ -7087,11 +7087,11 @@ next
 qed
 
 
-proposition orthogonal_extension:
+proposition%important orthogonal_extension:
   fixes S :: "'a::euclidean_space set"
   assumes S: "pairwise orthogonal S"
   obtains U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> T)"
-proof -
+proof%unimportant -
   obtain B where "finite B" "span B = span T"
     using basis_subspace_exists [of "span T"] subspace_span by auto
   with orthogonal_extension_aux [of B S]
@@ -7149,13 +7149,13 @@ proof -
     done
 qed
 
-proposition orthonormal_basis_subspace:
+proposition%important orthonormal_basis_subspace:
   fixes S :: "'a :: euclidean_space set"
   assumes "subspace S"
   obtains B where "B \<subseteq> S" "pairwise orthogonal B"
               and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
               and "independent B" "card B = dim S" "span B = S"
-proof -
+proof%unimportant -
   obtain B where "0 \<notin> B" "B \<subseteq> S"
              and orth: "pairwise orthogonal B"
              and "independent B" "card B = dim S" "span B = S"
@@ -7186,11 +7186,11 @@ proof -
 qed
 
 
-proposition orthogonal_to_subspace_exists_gen:
+proposition%important orthogonal_to_subspace_exists_gen:
   fixes S :: "'a :: euclidean_space set"
   assumes "span S \<subset> span T"
   obtains x where "x \<noteq> 0" "x \<in> span T" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
-proof -
+proof%unimportant -
   obtain B where "B \<subseteq> span S" and orthB: "pairwise orthogonal B"
              and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "card B = dim S" "span B = span S"
@@ -7249,10 +7249,10 @@ proof -
     by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_clauses(1) that)
 qed
 
-proposition orthogonal_subspace_decomp_exists:
+proposition%important orthogonal_subspace_decomp_exists:
   fixes S :: "'a :: euclidean_space set"
   obtains y z where "y \<in> span S" "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w" "x = y + z"
-proof -
+proof%unimportant -
   obtain T where "0 \<notin> T" "T \<subseteq> span S" "pairwise orthogonal T" "independent T" "card T = dim (span S)" "span T = span S"
     using orthogonal_basis_subspace subspace_span by blast
   let ?a = "\<Sum>b\<in>T. (b \<bullet> x / (b \<bullet> b)) *\<^sub>R b"
@@ -7341,11 +7341,11 @@ proof -
   qed
 qed
 
-proposition dim_orthogonal_sum:
+proposition%important dim_orthogonal_sum:
   fixes A :: "'a::euclidean_space set"
   assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     shows "dim(A \<union> B) = dim A + dim B"
-proof -
+proof%unimportant -
   have 1: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     by (erule span_induct [OF _ subspace_hyperplane2]; simp add: assms)
   have "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
@@ -7472,10 +7472,10 @@ qed
 
 subsection\<open>Lower-dimensional affine subsets are nowhere dense.\<close>
 
-proposition dense_complement_subspace:
+proposition%important dense_complement_subspace:
   fixes S :: "'a :: euclidean_space set"
   assumes dim_less: "dim T < dim S" and "subspace S" shows "closure(S - T) = S"
-proof -
+proof%unimportant -
   have "closure(S - U) = S" if "dim U < dim S" "U \<subseteq> S" for U
   proof -
     have "span U \<subset> span S"
@@ -7583,7 +7583,7 @@ corollary dense_complement_convex_closed:
   by (simp add: assms dense_complement_convex)
 
 
-subsection\<open>Parallel slices, etc.\<close>
+subsection%unimportant\<open>Parallel slices, etc.\<close>
 
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
   with the normal vector to the slice parallel to the affine hull.\<close>
@@ -7811,7 +7811,7 @@ qed
 
 subsection\<open>Several Variants of Paracompactness\<close>
 
-proposition paracompact:
+proposition%important paracompact:
   fixes S :: "'a :: euclidean_space set"
   assumes "S \<subseteq> \<Union>\<C>" and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
   obtains \<C>' where "S \<subseteq> \<Union> \<C>'"
@@ -7819,7 +7819,7 @@ proposition paracompact:
                and "\<And>x. x \<in> S
                        \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and>
                                finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True with that show ?thesis by blast
 next
   case False
@@ -7955,7 +7955,7 @@ corollary paracompact_closed:
 using paracompact_closedin [of UNIV S \<C>] assms by auto
 
   
-subsection\<open>Closed-graph characterization of continuity\<close>
+subsection%unimportant\<open>Closed-graph characterization of continuity\<close>
 
 lemma continuous_closed_graph_gen:
   fixes T :: "'b::real_normed_vector set"
@@ -8026,7 +8026,7 @@ proof -
     by (rule continuous_on_Un_local_open [OF opS opT])
 qed
   
-subsection\<open>The union of two collinear segments is another segment\<close>
+subsection%unimportant\<open>The union of two collinear segments is another segment\<close>
 
 proposition in_convex_hull_exchange:
   fixes a :: "'a::euclidean_space"
@@ -8204,14 +8204,14 @@ qed
 
 subsection\<open>Covering an open set by a countable chain of compact sets\<close>
   
-proposition open_Union_compact_subsets:
+proposition%important open_Union_compact_subsets:
   fixes S :: "'a::euclidean_space set"
   assumes "open S"
   obtains C where "\<And>n. compact(C n)" "\<And>n. C n \<subseteq> S"
                   "\<And>n. C n \<subseteq> interior(C(Suc n))"
                   "\<Union>(range C) = S"
                   "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. K \<subseteq> (C n)"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   then show ?thesis
     by (rule_tac C = "\<lambda>n. {}" in that) auto

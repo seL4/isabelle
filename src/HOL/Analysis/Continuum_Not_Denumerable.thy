@@ -11,7 +11,7 @@ imports
   "HOL-Library.Countable_Set"
 begin
 
-subsection \<open>Abstract\<close>
+subsection%unimportant \<open>Abstract\<close>
 
 text \<open>
   The following document presents a proof that the Continuum is uncountable.
@@ -33,8 +33,8 @@ text \<open>
   Nested Interval Property.
 \<close>
 
-theorem real_non_denum: "\<nexists>f :: nat \<Rightarrow> real. surj f"
-proof
+theorem%important real_non_denum: "\<nexists>f :: nat \<Rightarrow> real. surj f"
+proof%unimportant
   assume "\<exists>f::nat \<Rightarrow> real. surj f"
   then obtain f :: "nat \<Rightarrow> real" where "surj f" ..
 

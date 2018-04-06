@@ -11,7 +11,7 @@ imports
   Measurable "HOL-Library.Extended_Nonnegative_Real"
 begin
 
-subsection "Relate extended reals and the indicator function"
+subsection%unimportant "Relate extended reals and the indicator function"
 
 lemma suminf_cmult_indicator:
   fixes f :: "nat \<Rightarrow> ennreal"
@@ -59,7 +59,7 @@ text \<open>
   represent sigma algebras (with an arbitrary emeasure).
 \<close>
 
-subsection "Extend binary sets"
+subsection%unimportant "Extend binary sets"
 
 lemma LIMSEQ_binaryset:
   assumes f: "f {} = 0"
@@ -91,7 +91,7 @@ lemma suminf_binaryset_eq:
   shows "f {} = 0 \<Longrightarrow> (\<Sum>n. f (binaryset A B n)) = f A + f B"
   by (metis binaryset_sums sums_unique)
 
-subsection \<open>Properties of a premeasure @{term \<mu>}\<close>
+subsection%unimportant \<open>Properties of a premeasure @{term \<mu>}\<close>
 
 text \<open>
   The definitions for @{const positive} and @{const countably_additive} should be here, by they are
@@ -442,7 +442,7 @@ lemma (in ring_of_sets) empty_continuous_imp_countably_additive:
   using empty_continuous_imp_continuous_from_below[OF f fin] cont
   by blast
 
-subsection \<open>Properties of @{const emeasure}\<close>
+subsection%unimportant \<open>Properties of @{const emeasure}\<close>
 
 lemma emeasure_positive: "positive (sets M) (emeasure M)"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)
@@ -881,7 +881,7 @@ qed simp_all
 
 subsection \<open>\<open>\<mu>\<close>-null sets\<close>
 
-definition null_sets :: "'a measure \<Rightarrow> 'a set set" where
+definition%important null_sets :: "'a measure \<Rightarrow> 'a set set" where
   "null_sets M = {N\<in>sets M. emeasure M N = 0}"
 
 lemma null_setsD1[dest]: "A \<in> null_sets M \<Longrightarrow> emeasure M A = 0"
@@ -989,7 +989,7 @@ qed
 
 subsection \<open>The almost everywhere filter (i.e.\ quantifier)\<close>
 
-definition ae_filter :: "'a measure \<Rightarrow> 'a filter" where
+definition%important ae_filter :: "'a measure \<Rightarrow> 'a filter" where
   "ae_filter M = (INF N:null_sets M. principal (space M - N))"
 
 abbreviation almost_everywhere :: "'a measure \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
@@ -1265,7 +1265,7 @@ qed
 
 subsection \<open>\<open>\<sigma>\<close>-finite Measures\<close>
 
-locale sigma_finite_measure =
+locale%important sigma_finite_measure =
   fixes M :: "'a measure"
   assumes sigma_finite_countable:
     "\<exists>A::'a set set. countable A \<and> A \<subseteq> sets M \<and> (\<Union>A) = space M \<and> (\<forall>a\<in>A. emeasure M a \<noteq> \<infinity>)"
@@ -1387,7 +1387,7 @@ qed
 
 subsection \<open>Measure space induced by distribution of @{const measurable}-functions\<close>
 
-definition distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
+definition%important distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
   "distr M N f = measure_of (space N) (sets N) (\<lambda>A. emeasure M (f -` A \<inter> space M))"
 
 lemma
@@ -1513,12 +1513,12 @@ lemma null_sets_distr_iff:
   "f \<in> measurable M N \<Longrightarrow> A \<in> null_sets (distr M N f) \<longleftrightarrow> f -` A \<inter> space M \<in> null_sets M \<and> A \<in> sets N"
   by (auto simp add: null_sets_def emeasure_distr)
 
-lemma distr_distr:
+lemma%important distr_distr:
   "g \<in> measurable N L \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> distr (distr M N f) L g = distr M L (g \<circ> f)"
   by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
 
-subsection \<open>Real measure values\<close>
+subsection%unimportant \<open>Real measure values\<close>
 
 lemma ring_of_finite_sets: "ring_of_sets (space M) {A\<in>sets M. emeasure M A \<noteq> top}"
 proof (rule ring_of_setsI)
@@ -1705,7 +1705,7 @@ qed auto
 
 subsection \<open>Set of measurable sets with finite measure\<close>
 
-definition fmeasurable :: "'a measure \<Rightarrow> 'a set set"
+definition%important fmeasurable :: "'a measure \<Rightarrow> 'a set set"
 where
   "fmeasurable M = {A\<in>sets M. emeasure M A < \<infinity>}"
 
@@ -1972,7 +1972,7 @@ qed
 
 subsection \<open>Measure spaces with @{term "emeasure M (space M) < \<infinity>"}\<close>
 
-locale finite_measure = sigma_finite_measure M for M +
+locale%important finite_measure = sigma_finite_measure M for M +
   assumes finite_emeasure_space: "emeasure M (space M) \<noteq> top"
 
 lemma finite_measureI[Pure.intro!]:
@@ -2194,7 +2194,7 @@ next
     using bound[of x] sets_eq_imp_space_eq[OF sets] by (simp add: iter)
 qed (auto simp add: iter le_fun_def INF_apply[abs_def] intro!: meas cont)
 
-subsection \<open>Counting space\<close>
+subsection%unimportant \<open>Counting space\<close>
 
 lemma strict_monoI_Suc:
   assumes ord [simp]: "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
@@ -2343,7 +2343,7 @@ proof -
   show "sigma_finite_measure (count_space A)" ..
 qed
 
-subsection \<open>Measure restricted to space\<close>
+subsection%unimportant \<open>Measure restricted to space\<close>
 
 lemma emeasure_restrict_space:
   assumes "\<Omega> \<inter> space M \<in> sets M" "A \<subseteq> \<Omega>"
@@ -2502,7 +2502,7 @@ proof (rule measure_eqI)
   finally show "emeasure M X = emeasure N X" .
 qed fact
 
-subsection \<open>Null measure\<close>
+subsection%unimportant \<open>Null measure\<close>
 
 definition "null_measure M = sigma (space M) (sets M)"
 
@@ -2525,7 +2525,7 @@ lemma null_measure_idem [simp]: "null_measure (null_measure M) = null_measure M"
 
 subsection \<open>Scaling a measure\<close>
 
-definition scale_measure :: "ennreal \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+definition%important scale_measure :: "ennreal \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
 where
   "scale_measure r M = measure_of (space M) (sets M) (\<lambda>A. r * emeasure M A)"
 
@@ -2703,11 +2703,11 @@ proof -
   qed auto
 qed
 
-lemma unsigned_Hahn_decomposition:
+lemma%important unsigned_Hahn_decomposition:
   assumes [simp]: "sets N = sets M" and [measurable]: "A \<in> sets M"
     and [simp]: "emeasure M A \<noteq> top" "emeasure N A \<noteq> top"
   shows "\<exists>Y\<in>sets M. Y \<subseteq> A \<and> (\<forall>X\<in>sets M. X \<subseteq> Y \<longrightarrow> N X \<le> M X) \<and> (\<forall>X\<in>sets M. X \<subseteq> A \<longrightarrow> X \<inter> Y = {} \<longrightarrow> M X \<le> N X)"
-proof -
+proof%unimportant -
   have "\<exists>Y\<in>sets (restrict_space M A).
     (\<forall>X\<in>sets (restrict_space M A). X \<subseteq> Y \<longrightarrow> (restrict_space N A) X \<le> (restrict_space M A) X) \<and>
     (\<forall>X\<in>sets (restrict_space M A). X \<inter> Y = {} \<longrightarrow> (restrict_space M A) X \<le> (restrict_space N A) X)"
@@ -2728,12 +2728,12 @@ proof -
     done
 qed
 
-text \<open>
+text%important \<open>
   Define a lexicographical order on @{type measure}, in the order space, sets and measure. The parts
   of the lexicographical order are point-wise ordered.
 \<close>
 
-instantiation measure :: (type) order_bot
+instantiation%important measure :: (type) order_bot
 begin
 
 inductive less_eq_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
@@ -2746,10 +2746,10 @@ lemma le_measure_iff:
     if sets M = sets N then emeasure M \<le> emeasure N else sets M \<subseteq> sets N else space M \<subseteq> space N)"
   by (auto elim: less_eq_measure.cases intro: less_eq_measure.intros)
 
-definition less_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
+definition%important less_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
   "less_measure M N \<longleftrightarrow> (M \<le> N \<and> \<not> N \<le> M)"
 
-definition bot_measure :: "'a measure" where
+definition%important bot_measure :: "'a measure" where
   "bot_measure = sigma {} {}"
 
 lemma
@@ -2766,13 +2766,14 @@ qed (auto simp: le_measure_iff less_measure_def split: if_split_asm intro: measu
 
 end
 
-lemma le_measure: "sets M = sets N \<Longrightarrow> M \<le> N \<longleftrightarrow> (\<forall>A\<in>sets M. emeasure M A \<le> emeasure N A)"
+lemma%important le_measure: "sets M = sets N \<Longrightarrow> M \<le> N \<longleftrightarrow> (\<forall>A\<in>sets M. emeasure M A \<le> emeasure N A)"
+  apply%unimportant -
   apply (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq)
   subgoal for X
     by (cases "X \<in> sets M") (auto simp: emeasure_notin_sets)
   done
 
-definition sup_measure' :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+definition%important sup_measure' :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
 where
   "sup_measure' A B = measure_of (space A) (sets A) (\<lambda>X. SUP Y:sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y))"
 
@@ -2900,7 +2901,7 @@ proof (subst emeasure_sup_measure')
   qed
 qed simp_all
 
-definition sup_lexord :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b::order) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+definition%important sup_lexord :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b::order) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   "sup_lexord A B k s c =
     (if k A = k B then c else if \<not> k A \<le> k B \<and> \<not> k B \<le> k A then s else if k B \<le> k A then A else B)"
@@ -2926,10 +2927,10 @@ lemma sigma_le_iff: "\<A> \<subseteq> Pow \<Omega> \<Longrightarrow> sigma \<Ome
      (simp_all add: eq_commute[of _ "sets x"] le_measure_iff emeasure_sigma le_fun_def
                     sigma_sets_superset_generator sigma_sets_le_sets_iff)
 
-instantiation measure :: (type) semilattice_sup
+instantiation%important measure :: (type) semilattice_sup
 begin
 
-definition sup_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+definition%important sup_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
 where
   "sup_measure A B =
     sup_lexord A B space (sigma (space A \<union> space B) {})
@@ -3057,7 +3058,7 @@ next
     by (simp add: A(3))
 qed
 
-instantiation measure :: (type) complete_lattice
+instantiation%important measure :: (type) complete_lattice
 begin
 
 interpretation sup_measure: comm_monoid_set sup "bot :: 'a measure"
@@ -3092,7 +3093,7 @@ lemma sets_sup_measure_F:
   "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> sets i = sets M) \<Longrightarrow> sets (sup_measure.F id I) = sets M"
   by (induction I rule: finite_ne_induct) (simp_all add: sets_sup)
 
-definition Sup_measure' :: "'a measure set \<Rightarrow> 'a measure"
+definition%important Sup_measure' :: "'a measure set \<Rightarrow> 'a measure"
 where
   "Sup_measure' M = measure_of (\<Union>a\<in>M. space a) (\<Union>a\<in>M. sets a)
     (\<lambda>X. (SUP P:{P. finite P \<and> P \<subseteq> M }. sup_measure.F id P X))"
@@ -3163,20 +3164,20 @@ proof (rule emeasure_measure_of)
     using assms * by auto
 qed (rule UN_space_closed)
 
-definition Sup_measure :: "'a measure set \<Rightarrow> 'a measure"
+definition%important Sup_measure :: "'a measure set \<Rightarrow> 'a measure"
 where
   "Sup_measure = Sup_lexord space (Sup_lexord sets Sup_measure'
     (\<lambda>U. sigma (\<Union>u\<in>U. space u) (\<Union>u\<in>U. sets u))) (\<lambda>U. sigma (\<Union>u\<in>U. space u) {})"
 
-definition Inf_measure :: "'a measure set \<Rightarrow> 'a measure"
+definition%important Inf_measure :: "'a measure set \<Rightarrow> 'a measure"
 where
   "Inf_measure A = Sup {x. \<forall>a\<in>A. x \<le> a}"
 
-definition inf_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+definition%important inf_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
 where
   "inf_measure a b = Inf {a, b}"
 
-definition top_measure :: "'a measure"
+definition%important top_measure :: "'a measure"
 where
   "top_measure = Inf {}"
 
@@ -3417,7 +3418,7 @@ proof (subst emeasure_SUP[OF sets \<open>A \<noteq> {}\<close>])
   qed
 qed
 
-subsubsection \<open>Supremum of a set of $\sigma$-algebras\<close>
+subsubsection%unimportant \<open>Supremum of a set of $\sigma$-algebras\<close>
 
 lemma space_Sup_eq_UN: "space (Sup M) = (\<Union>x\<in>M. space x)"
   unfolding Sup_measure_def

@@ -8,7 +8,7 @@ theory Connected
 imports Topology_Euclidean_Space
 begin
 
-subsection \<open>More properties of closed balls, spheres, etc.\<close>
+subsection%unimportant \<open>More properties of closed balls, spheres, etc.\<close>
 
 lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S)"
   apply (simp add: interior_def, safe)
@@ -345,7 +345,7 @@ corollary closed_sphere  [simp]:
   shows "closed (sphere a r)"
 by (simp add: compact_imp_closed)
 
-subsection \<open>Connectedness\<close>
+subsection%unimportant \<open>Connectedness\<close>
 
 lemma connected_local:
  "connected S \<longleftrightarrow>
@@ -410,7 +410,7 @@ using connected_continuous_image assms linear_continuous_on linear_conv_bounded_
 
 subsection \<open>Connected components, considered as a connectedness relation or a set\<close>
 
-definition "connected_component s x y \<equiv> \<exists>t. connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t"
+definition%important "connected_component s x y \<equiv> \<exists>t. connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t"
 
 abbreviation "connected_component_set s x \<equiv> Collect (connected_component s x)"
 
@@ -610,7 +610,7 @@ lemma connected_component_intermediate_subset:
 
 subsection \<open>The set of connected components of a set\<close>
 
-definition components:: "'a::topological_space set \<Rightarrow> 'a set set"
+definition%important components:: "'a::topological_space set \<Rightarrow> 'a set set"
   where "components s \<equiv> connected_component_set s ` s"
 
 lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
@@ -776,12 +776,12 @@ lemma closedin_component:
 
 subsection \<open>Intersecting chains of compact sets and the Baire property\<close>
 
-proposition bounded_closed_chain:
+proposition%important bounded_closed_chain:
   fixes \<F> :: "'a::heine_borel set set"
   assumes "B \<in> \<F>" "bounded B" and \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> closed S" and "{} \<notin> \<F>"
       and chain: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
     shows "\<Inter>\<F> \<noteq> {}"
-proof -
+proof%unimportant -
   have "B \<inter> \<Inter>\<F> \<noteq> {}"
   proof (rule compact_imp_fip)
     show "compact B" "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
@@ -824,12 +824,12 @@ proof -
   then show ?thesis by blast
 qed
 
-corollary compact_chain:
+corollary%important compact_chain:
   fixes \<F> :: "'a::heine_borel set set"
   assumes "\<And>S. S \<in> \<F> \<Longrightarrow> compact S" "{} \<notin> \<F>"
           "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
     shows "\<Inter> \<F> \<noteq> {}"
-proof (cases "\<F> = {}")
+proof%unimportant (cases "\<F> = {}")
   case True
   then show ?thesis by auto
 next
@@ -852,12 +852,12 @@ proof -
 qed
 
 text\<open>The Baire property of dense sets\<close>
-theorem Baire:
+theorem%important Baire:
   fixes S::"'a::{real_normed_vector,heine_borel} set"
   assumes "closed S" "countable \<G>"
       and ope: "\<And>T. T \<in> \<G> \<Longrightarrow> openin (subtopology euclidean S) T \<and> S \<subseteq> closure T"
  shows "S \<subseteq> closure(\<Inter>\<G>)"
-proof (cases "\<G> = {}")
+proof%unimportant (cases "\<G> = {}")
   case True
   then show ?thesis
     using closure_subset by auto
@@ -961,7 +961,7 @@ next
   qed
 qed
 
-subsection\<open>Some theorems on sups and infs using the notion "bounded".\<close>
+subsection%unimportant \<open>Some theorems on sups and infs using the notion "bounded".\<close>
 
 lemma bounded_real: "bounded (S::real set) \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. \<bar>x\<bar> \<le> a)"
   by (simp add: bounded_iff)
@@ -1139,7 +1139,7 @@ proof -
 qed
 
 
-subsection\<open>Relations among convergence and absolute convergence for power series.\<close>
+subsection%unimportant\<open>Relations among convergence and absolute convergence for power series.\<close>
 
 lemma summable_imp_bounded:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -1166,7 +1166,7 @@ proof -
     done
 qed
 
-subsection \<open>Bounded closed nest property (proof does not use Heine-Borel)\<close>
+subsection%unimportant \<open>Bounded closed nest property (proof does not use Heine-Borel)\<close>
 
 lemma bounded_closed_nest:
   fixes s :: "nat \<Rightarrow> ('a::heine_borel) set"
@@ -1286,7 +1286,7 @@ qed
 
 subsection \<open>Infimum Distance\<close>
 
-definition "infdist x A = (if A = {} then 0 else INF a:A. dist x a)"
+definition%important "infdist x A = (if A = {} then 0 else INF a:A. dist x a)"
 
 lemma bdd_below_image_dist[intro, simp]: "bdd_below (dist x ` A)"
   by (auto intro!: zero_le_dist)
@@ -1515,7 +1515,7 @@ proof -
     by (simp add: compact_eq_bounded_closed)
 qed
 
-subsection \<open>Equality of continuous functions on closure and related results.\<close>
+subsection%unimportant \<open>Equality of continuous functions on closure and related results.\<close>
 
 lemma continuous_closedin_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -1618,7 +1618,7 @@ next
   qed
 qed
 
-subsection \<open>A function constant on a set\<close>
+subsection%unimportant \<open>A function constant on a set\<close>
 
 definition constant_on  (infixl "(constant'_on)" 50)
   where "f constant_on A \<equiv> \<exists>y. \<forall>x\<in>A. f x = y"
@@ -1639,7 +1639,7 @@ lemma constant_on_closureI:
 using continuous_constant_on_closure [OF contf] cof unfolding constant_on_def
 by metis
 
-subsection\<open>Relating linear images to open/closed/interior/closure\<close>
+subsection%unimportant\<open>Relating linear images to open/closed/interior/closure\<close>
 
 proposition open_surjective_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
@@ -1786,7 +1786,7 @@ next
   qed
 qed
 
-subsection\<open> Theorems relating continuity and uniform continuity to closures\<close>
+subsection%unimportant\<open> Theorems relating continuity and uniform continuity to closures\<close>
 
 lemma continuous_on_closure:
    "continuous_on (closure S) f \<longleftrightarrow>
@@ -2047,7 +2047,7 @@ lemma bounded_uniformly_continuous_image:
   shows "bounded(f ` S)"
   by (metis (no_types, lifting) assms bounded_closure_image compact_closure compact_continuous_image compact_eq_bounded_closed image_cong uniformly_continuous_imp_continuous uniformly_continuous_on_extension_on_closure)
 
-subsection \<open>Making a continuous function avoid some value in a neighbourhood.\<close>
+subsection%unimportant \<open>Making a continuous function avoid some value in a neighbourhood.\<close>
 
 lemma continuous_within_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
@@ -2097,7 +2097,7 @@ lemma continuous_on_open_avoid:
   using continuous_at_avoid[of x f a] assms(4)
   by auto
 
-subsection\<open>Quotient maps\<close>
+subsection%unimportant\<open>Quotient maps\<close>
 
 lemma quotient_map_imp_continuous_open:
   assumes T: "f ` S \<subseteq> T"
@@ -2447,15 +2447,15 @@ proof -
   ultimately show ?thesis using that by blast
 qed
 
-corollary compact_uniformly_continuous:
+corollary%important compact_uniformly_continuous:
   fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
   assumes f: "continuous_on S f" and S: "compact S"
   shows "uniformly_continuous_on S f"
-  using f
+  using%unimportant f
     unfolding continuous_on_iff uniformly_continuous_on_def
     by (force intro: compact_uniformly_equicontinuous [OF S, of "{f}"])
 
-subsection \<open>Topological stuff about the set of Reals\<close>
+subsection%unimportant \<open>Topological stuff about the set of Reals\<close>
 
 lemma open_real:
   fixes s :: "real set"
@@ -2492,7 +2492,7 @@ lemma continuous_on_real_range:
   unfolding continuous_on_iff dist_norm by simp
 
 
-subsection \<open>Cartesian products\<close>
+subsection%unimportant \<open>Cartesian products\<close>
 
 lemma bounded_Times:
   assumes "bounded s" "bounded t"
@@ -2668,7 +2668,7 @@ qed
 
 subsection \<open>The diameter of a set.\<close>
 
-definition diameter :: "'a::metric_space set \<Rightarrow> real" where
+definition%important diameter :: "'a::metric_space set \<Rightarrow> real" where
   "diameter S = (if S = {} then 0 else SUP (x,y):S\<times>S. dist x y)"
 
 lemma diameter_empty [simp]: "diameter{} = 0"
@@ -2933,11 +2933,11 @@ lemma diameter_cbox:
 
 subsection \<open>Separation between points and sets\<close>
 
-lemma separate_point_closed:
+lemma%important separate_point_closed:
   fixes s :: "'a::heine_borel set"
   assumes "closed s" and "a \<notin> s"
   shows "\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x"
-proof (cases "s = {}")
+proof%unimportant (cases "s = {}")
   case True
   then show ?thesis by(auto intro!: exI[where x=1])
 next
@@ -2948,12 +2948,12 @@ next
     by blast
 qed
 
-lemma separate_compact_closed:
+lemma%important separate_compact_closed:
   fixes s t :: "'a::heine_borel set"
   assumes "compact s"
     and t: "closed t" "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
-proof cases
+proof%unimportant cases
   assume "s \<noteq> {} \<and> t \<noteq> {}"
   then have "s \<noteq> {}" "t \<noteq> {}" by auto
   let ?inf = "\<lambda>x. infdist x t"
@@ -2968,27 +2968,27 @@ proof cases
   ultimately show ?thesis by auto
 qed (auto intro!: exI[of _ 1])
 
-lemma separate_closed_compact:
+lemma%important separate_closed_compact:
   fixes s t :: "'a::heine_borel set"
   assumes "closed s"
     and "compact t"
     and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
-proof -
+proof%unimportant -
   have *: "t \<inter> s = {}"
     using assms(3) by auto
   show ?thesis
     using separate_compact_closed[OF assms(2,1) *] by (force simp: dist_commute)
 qed
 
-lemma compact_in_open_separated:
+lemma%important compact_in_open_separated:
   fixes A::"'a::heine_borel set"
   assumes "A \<noteq> {}"
   assumes "compact A"
   assumes "open B"
   assumes "A \<subseteq> B"
   obtains e where "e > 0" "{x. infdist x A \<le> e} \<subseteq> B"
-proof atomize_elim
+proof%unimportant atomize_elim
   have "closed (- B)" "compact A" "- B \<inter> A = {}"
     using assms by (auto simp: open_Diff compact_eq_bounded_closed)
   from separate_closed_compact[OF this]
@@ -3014,7 +3014,7 @@ proof atomize_elim
 qed
 
 
-subsection \<open>Compact sets and the closure operation.\<close>
+subsection%unimportant \<open>Compact sets and the closure operation.\<close>
 
 lemma closed_scaling:
   fixes S :: "'a::real_normed_vector set"
@@ -3165,7 +3165,7 @@ apply (auto simp: dist_norm algebra_simps)
 done
 
 
-subsection \<open>Closure of halfspaces and hyperplanes\<close>
+subsection%unimportant \<open>Closure of halfspaces and hyperplanes\<close>
 
 lemma continuous_on_closed_Collect_le:
   fixes f g :: "'a::t2_space \<Rightarrow> real"
@@ -3492,7 +3492,7 @@ qed
 
 subsection \<open>Homeomorphisms\<close>
 
-definition "homeomorphism s t f g \<longleftrightarrow>
+definition%important "homeomorphism s t f g \<longleftrightarrow>
   (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
   (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
@@ -3812,7 +3812,7 @@ lemma homeomorphic_connectedness:
 using assms unfolding homeomorphic_def homeomorphism_def by (metis connected_continuous_image)
 
 
-subsection\<open>Inverse function property for open/closed maps\<close>
+subsection%unimportant\<open>Inverse function property for open/closed maps\<close>
 
 lemma continuous_on_inverse_open_map:
   assumes contf: "continuous_on S f"
@@ -3963,12 +3963,12 @@ proof -
     unfolding complete_def by auto
 qed
 
-lemma injective_imp_isometric:
+lemma%important injective_imp_isometric:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes s: "closed s" "subspace s"
     and f: "bounded_linear f" "\<forall>x\<in>s. f x = 0 \<longrightarrow> x = 0"
   shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm x"
-proof (cases "s \<subseteq> {0::'a}")
+proof%unimportant (cases "s \<subseteq> {0::'a}")
   case True
   have "norm x \<le> norm (f x)" if "x \<in> s" for x
   proof -
@@ -4036,11 +4036,11 @@ next
   ultimately show ?thesis by auto
 qed
 
-lemma closed_injective_image_subspace:
+lemma%important closed_injective_image_subspace:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "subspace s" "bounded_linear f" "\<forall>x\<in>s. f x = 0 \<longrightarrow> x = 0" "closed s"
   shows "closed(f ` s)"
-proof -
+proof%unimportant -
   obtain e where "e > 0" and e: "\<forall>x\<in>s. e * norm x \<le> norm (f x)"
     using injective_imp_isometric[OF assms(4,1,2,3)] by auto
   show ?thesis
@@ -4049,7 +4049,7 @@ proof -
 qed
 
 
-subsection \<open>Some properties of a canonical subspace\<close>
+subsection%unimportant \<open>Some properties of a canonical subspace\<close>
 
 lemma subspace_substandard: "subspace {x::'a::euclidean_space. (\<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0)}"
   by (auto simp: subspace_def inner_add_left)
@@ -4157,7 +4157,7 @@ proof -
 qed
 
 
-subsection \<open>Affine transformations of intervals\<close>
+subsection%unimportant \<open>Affine transformations of intervals\<close>
 
 lemma real_affinity_le: "0 < m \<Longrightarrow> m * x + c \<le> y \<longleftrightarrow> x \<le> inverse m * y + - (c / m)"
   for m :: "'a::linordered_field"
@@ -4186,13 +4186,13 @@ lemma real_eq_affinity: "m \<noteq> 0 \<Longrightarrow> y = m * x + c  \<longlef
 
 subsection \<open>Banach fixed point theorem (not really topological ...)\<close>
 
-theorem banach_fix:
+theorem%important banach_fix:
   assumes s: "complete s" "s \<noteq> {}"
     and c: "0 \<le> c" "c < 1"
     and f: "f ` s \<subseteq> s"
     and lipschitz: "\<forall>x\<in>s. \<forall>y\<in>s. dist (f x) (f y) \<le> c * dist x y"
   shows "\<exists>!x\<in>s. f x = x"
-proof -
+proof%unimportant -
   from c have "1 - c > 0" by simp
 
   from s(2) obtain z0 where z0: "z0 \<in> s" by blast
@@ -4342,13 +4342,13 @@ lemma banach_fix_type:
 
 subsection \<open>Edelstein fixed point theorem\<close>
 
-theorem edelstein_fix:
+theorem%important edelstein_fix:
   fixes s :: "'a::metric_space set"
   assumes s: "compact s" "s \<noteq> {}"
     and gs: "(g ` s) \<subseteq> s"
     and dist: "\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
   shows "\<exists>!x\<in>s. g x = x"
-proof -
+proof%unimportant -
   let ?D = "(\<lambda>x. (x, x)) ` s"
   have D: "compact ?D" "?D \<noteq> {}"
     by (rule compact_continuous_image)
@@ -4697,10 +4697,10 @@ proof -
     done
 qed
 
-proposition separable:
+proposition%important separable:
   fixes S :: "'a:: euclidean_space set"
   obtains T where "countable T" "T \<subseteq> S" "S \<subseteq> closure T"
-proof -
+proof%unimportant -
   obtain \<B> :: "'a:: euclidean_space set set"
     where "countable \<B>"
       and "{} \<notin> \<B>"
@@ -4743,11 +4743,11 @@ proof -
   qed
 qed
 
-proposition Lindelof:
+proposition%important Lindelof:
   fixes \<F> :: "'a::euclidean_space set set"
   assumes \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> open S"
   obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
-proof -
+proof%unimportant -
   obtain \<B> :: "'a set set"
     where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
       and \<B>: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
@@ -5049,11 +5049,11 @@ proof -
 qed
 
 
-proposition component_diff_connected:
+proposition%important component_diff_connected:
   fixes S :: "'a::metric_space set"
   assumes "connected S" "connected U" "S \<subseteq> U" and C: "C \<in> components (U - S)"
   shows "connected(U - C)"
-  using \<open>connected S\<close> unfolding connected_closedin_eq not_ex de_Morgan_conj
+  using%unimportant \<open>connected S\<close> unfolding connected_closedin_eq not_ex de_Morgan_conj
 proof clarify
   fix H3 H4 
   assume clo3: "closedin (subtopology euclidean (U - C)) H3" 
@@ -5093,7 +5093,7 @@ proof clarify
     by auto
 qed
 
-subsection\<open> Finite intersection property\<close>
+subsection%unimportant\<open> Finite intersection property\<close>
 
 text\<open>Also developed in HOL's toplogical spaces theory, but the Heine-Borel type class isn't available there.\<close>
 
@@ -5149,7 +5149,7 @@ apply (simp add: convergent_imp_bounded)
 by (simp add: closed_limpt islimpt_insert sequence_unique_limpt)
 
 
-subsection\<open>Componentwise limits and continuity\<close>
+subsection%unimportant\<open>Componentwise limits and continuity\<close>
 
 text\<open>But is the premise really necessary? Need to generalise @{thm euclidean_dist_l2}\<close>
 lemma Euclidean_dist_upper: "i \<in> Basis \<Longrightarrow> dist (x \<bullet> i) (y \<bullet> i) \<le> dist x y"
@@ -5179,11 +5179,11 @@ proof (rule openI, simp)
     by (metis (no_types, lifting) \<open>0 < e\<close> \<open>open S\<close> half_gt_zero_iff mem_Collect_eq mem_ball open_contains_ball_eq subsetI)
 qed
 
-proposition tendsto_componentwise_iff:
+proposition%important tendsto_componentwise_iff:
   fixes f :: "_ \<Rightarrow> 'b::euclidean_space"
   shows "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>i \<in> Basis. ((\<lambda>x. (f x \<bullet> i)) \<longlongrightarrow> (l \<bullet> i)) F)"
          (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     unfolding tendsto_def
@@ -5267,9 +5267,9 @@ next
     by (force simp: bounded_linear_def bounded_linear_axioms_def \<open>linear f'\<close>)
 qed
 
-subsection\<open>Pasting functions together\<close>
+subsection%unimportant\<open>Pasting functions together\<close>
 
-subsubsection\<open>on open sets\<close>
+subsubsection%unimportant\<open>on open sets\<close>
 
 lemma pasting_lemma:
   fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
@@ -5311,7 +5311,7 @@ next
     by (metis (no_types, lifting) IntD2 IntI f someI_ex)
 qed
 
-subsubsection\<open>Likewise on closed sets, with a finiteness assumption\<close>
+subsubsection%unimportant\<open>Likewise on closed sets, with a finiteness assumption\<close>
 
 lemma pasting_lemma_closed:
   fixes f :: "'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::topological_space"
@@ -5436,7 +5436,7 @@ proof -
 qed
 
 
-subsection\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
+subsection%unimportant\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
 
 text\<open>Still missing: versions for a set that is smaller than R, or countable.\<close>
 
@@ -5595,7 +5595,7 @@ lemma continuous_finite_range_constant:
 
 
 
-subsection \<open>Continuous Extension\<close>
+subsection%unimportant \<open>Continuous Extension\<close>
 
 definition clamp :: "'a::euclidean_space \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "clamp a b x = (if (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)

@@ -1,13 +1,13 @@
 (*  Title:      HOL/Analysis/Measurable.thy
     Author:     Johannes Hölzl <hoelzl@in.tum.de>
 *)
+section \<open>Measurability prover\<close>
 theory Measurable
   imports
     Sigma_Algebra
     "HOL-Library.Order_Continuity"
 begin
 
-subsection \<open>Measurability prover\<close>
 
 lemma (in algebra) sets_Collect_finite_All:
   assumes "\<And>i. i \<in> S \<Longrightarrow> {x\<in>\<Omega>. P i x} \<in> M" "finite S"
@@ -64,10 +64,10 @@ attribute_setup measurable_dest = Measurable.dest_thm_attr
 attribute_setup measurable_cong = Measurable.cong_thm_attr
   "add congurence rules to measurability prover"
 
-method_setup measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
+method_setup%important measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
   "measurability prover"
 
-simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
+simproc_setup%important measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
 
 setup \<open>
   Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all)
@@ -380,7 +380,7 @@ lemma measurable_pred_countable[measurable (raw)]:
   unfolding pred_def
   by (auto intro!: sets.sets_Collect_countable_All' sets.sets_Collect_countable_Ex' assms)
 
-subsection \<open>Measurability for (co)inductive predicates\<close>
+subsection%unimportant \<open>Measurability for (co)inductive predicates\<close>
 
 lemma measurable_bot[measurable]: "bot \<in> measurable M (count_space UNIV)"
   by (simp add: bot_fun_def)
