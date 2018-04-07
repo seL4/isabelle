@@ -281,18 +281,14 @@ subsection \<open>Height-Size Relation\<close>
 lemma neq_Black[simp]: "(c \<noteq> Black) = (c = Red)"
 by (cases c) auto
 
-lemma rbt_height_bheight_if_nat: "invc t \<Longrightarrow> invh t \<Longrightarrow>
-  height t \<le> (if color t = Black then 2 * bheight t else 2 * bheight t + 1)"
-by(induction t) (auto split: if_split_asm)
-
 lemma rbt_height_bheight_if: "invc t \<Longrightarrow> invh t \<Longrightarrow>
-  (if color t = Black then height t / 2 else (height t - 1) / 2) \<le> bheight t"
+  height t \<le> (if color t = Black then 2 * bheight t else 2 * bheight t + 1)"
 by(induction t) (auto split: if_split_asm)
 
 lemma rbt_height_bheight: "rbt t \<Longrightarrow> height t / 2 \<le> bheight t "
 by(auto simp: rbt_def dest: rbt_height_bheight_if)
 
-lemma bheight_size_bound:  "invc t \<Longrightarrow> invh t \<Longrightarrow> size1 t \<ge>  2 ^ (bheight t)"
+lemma bheight_size_bound:  "invc t \<Longrightarrow> invh t \<Longrightarrow> 2 ^ (bheight t) \<le> size1 t"
 by (induction t) auto
 
 lemma rbt_height_le: assumes "rbt t" shows "height t \<le> 2 * log 2 (size1 t)"
