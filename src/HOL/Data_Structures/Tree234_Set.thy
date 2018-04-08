@@ -6,7 +6,7 @@ theory Tree234_Set
 imports
   Tree234
   Cmp
-  "Set_Interfaces"
+  Set_Specs
 begin
 
 subsection \<open>Set operations on 2-3-4 trees\<close>

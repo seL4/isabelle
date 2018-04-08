@@ -1,10 +1,12 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>Implementing Ordered Maps\<close>
+section \<open>Specifications of Map ADT\<close>
 
-theory Map_by_Ordered
+theory Map_Specs
 imports AList_Upd_Del
 begin
+
+text \<open>The basic map interface with traditional \<open>set\<close>-based specification:\<close>
 
 locale Map =
 fixes empty :: "'m"
@@ -18,6 +20,9 @@ and map_delete: "invar m \<Longrightarrow> lookup(delete a m) = (lookup m)(a := 
 and invar_empty: "invar empty"
 and invar_update: "invar m \<Longrightarrow> invar(update a b m)"
 and invar_delete: "invar m \<Longrightarrow> invar(delete a m)"
+
+
+text \<open>The basic map interface with \<open>inorder\<close>-based specification:\<close>
 
 locale Map_by_Ordered =
 fixes empty :: "'t"
@@ -37,6 +42,8 @@ and inv_empty:  "inv empty"
 and inv_update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(update a b t)"
 and inv_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(delete a t)"
 begin
+
+text \<open>It implements the traditional specification:\<close>
 
 sublocale Map
   empty update delete lookup "\<lambda>t. inv t \<and> sorted1 (inorder t)"

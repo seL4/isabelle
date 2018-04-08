@@ -5,7 +5,7 @@ section \<open>1-2 Brother Tree Implementation of Maps\<close>
 theory Brother12_Map
 imports
   Brother12_Set
-  Map_by_Ordered
+  Map_Specs
 begin
 
 fun lookup :: "('a \<times> 'b) bro \<Rightarrow> 'a::linorder \<Rightarrow> 'b option" where

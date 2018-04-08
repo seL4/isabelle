@@ -5,7 +5,7 @@ section \<open>2-3-4 Tree Implementation of Maps\<close>
 theory Tree234_Map
 imports
   Tree234_Set
-  "../Data_Structures/Map_by_Ordered"
+  Map_Specs
 begin
 
 subsection \<open>Map operations on 2-3-4 trees\<close>

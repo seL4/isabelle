@@ -6,7 +6,7 @@ theory Lookup2
 imports
   Tree2
   Cmp
-  Map_by_Ordered
+  Map_Specs
 begin
 
 fun lookup :: "('a::linorder * 'b, 'c) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where

@@ -1,12 +1,12 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>Interfaces for Set ADT\<close>
+section \<open>Specifications of Set ADT\<close>
 
-theory Set_Interfaces
+theory Set_Specs
 imports List_Ins_Del
 begin
 
-text \<open>The basic set interface with traditional specification (based on \<open>set\<close> and \<open>bst\<close>):\<close>
+text \<open>The basic set interface with traditional \<open>set\<close>-based specification:\<close>
 
 locale Set =
 fixes empty :: "'s"

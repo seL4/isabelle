@@ -5,7 +5,7 @@ section \<open>Unbalanced Tree Implementation of Map\<close>
 theory Tree_Map
 imports
   Tree_Set
-  Map_by_Ordered
+  Map_Specs
 begin
 
 fun lookup :: "('a::linorder*'b) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where

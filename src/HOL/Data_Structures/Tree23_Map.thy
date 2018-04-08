@@ -5,7 +5,7 @@ section \<open>2-3 Tree Implementation of Maps\<close>
 theory Tree23_Map
 imports
   Tree23_Set
-  Map_by_Ordered
+  Map_Specs
 begin
 
 fun lookup :: "('a::linorder * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b option" where
