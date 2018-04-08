@@ -7,8 +7,8 @@ section "AVL Tree Implementation of Sets"
 
 theory AVL_Set
 imports
- Cmp
- Isin2
+  Cmp
+  Isin2
   "HOL-Number_Theory.Fib"
 begin
 

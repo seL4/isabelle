@@ -1,10 +1,12 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>Implementing Ordered Sets\<close>
+section \<open>Interfaces for Set ADT\<close>
 
-theory Set_by_Ordered
+theory Set_Interfaces
 imports List_Ins_Del
 begin
+
+text \<open>The basic set interface with traditional specification (based on \<open>set\<close> and \<open>bst\<close>):\<close>
 
 locale Set =
 fixes empty :: "'s"
@@ -20,6 +22,9 @@ assumes set_delete:   "invar s \<Longrightarrow> set(delete x s) = set s - {x}"
 assumes invar_empty:  "invar empty"
 assumes invar_insert: "invar s \<Longrightarrow> invar(insert x s)"
 assumes invar_delete: "invar s \<Longrightarrow> invar(delete x s)"
+
+
+text \<open>The basic set interface with \<open>inorder\<close>-based specification:\<close>
 
 locale Set_by_Ordered =
 fixes empty :: "'t"
@@ -39,6 +44,8 @@ assumes inv_empty:  "inv empty"
 assumes inv_insert: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(insert x t)"
 assumes inv_delete: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(delete x t)"
 begin
+
+text \<open>It implements the traditional specification:\<close>
 
 sublocale Set
   empty insert delete isin "set o inorder" "\<lambda>t. inv t \<and> sorted(inorder t)"
@@ -60,5 +67,20 @@ next
 qed
 
 end
+
+
+text \<open>Set2 = Set with binary operations:\<close>
+
+locale Set2 = Set
+  where insert = insert for insert :: "'a \<Rightarrow> 's \<Rightarrow> 's" (*for typing purposes only*) +
+fixes union :: "'s \<Rightarrow> 's \<Rightarrow> 's"
+fixes inter :: "'s \<Rightarrow> 's \<Rightarrow> 's"
+fixes diff  :: "'s \<Rightarrow> 's \<Rightarrow> 's"
+assumes set_union:   "\<lbrakk> invar s1; invar s2 \<rbrakk> \<Longrightarrow> set(union s1 s2) = set s1 \<union> set s2"
+assumes set_inter:   "\<lbrakk> invar s1; invar s2 \<rbrakk> \<Longrightarrow> set(inter s1 s2) = set s1 \<inter> set s2"
+assumes set_diff:   "\<lbrakk> invar s1; invar s2 \<rbrakk> \<Longrightarrow> set(diff s1 s2) = set s1 - set s2"
+assumes invar_union:   "\<lbrakk> invar s1; invar s2 \<rbrakk> \<Longrightarrow> invar(union s1 s2)"
+assumes invar_inter:   "\<lbrakk> invar s1; invar s2 \<rbrakk> \<Longrightarrow> invar(inter s1 s2)"
+assumes invar_diff:   "\<lbrakk> invar s1; invar s2 \<rbrakk> \<Longrightarrow> invar(diff s1 s2)"
 
 end

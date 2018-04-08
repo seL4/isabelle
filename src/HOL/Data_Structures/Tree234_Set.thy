@@ -6,7 +6,7 @@ theory Tree234_Set
 imports
   Tree234
   Cmp
-  "../Data_Structures/Set_by_Ordered"
+  "Set_Interfaces"
 begin
 
 subsection \<open>Set operations on 2-3-4 trees\<close>

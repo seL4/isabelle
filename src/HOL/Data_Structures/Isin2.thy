@@ -6,7 +6,7 @@ theory Isin2
 imports
   Tree2
   Cmp
-  Set_by_Ordered
+  Set_Interfaces
 begin
 
 fun isin :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> bool" where

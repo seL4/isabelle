@@ -6,7 +6,7 @@ theory Tree23_Set
 imports
   Tree23
   Cmp
-  Set_by_Ordered
+  Set_Interfaces
 begin
 
 fun isin :: "'a::linorder tree23 \<Rightarrow> 'a \<Rightarrow> bool" where

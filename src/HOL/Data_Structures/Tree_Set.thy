@@ -6,7 +6,7 @@ theory Tree_Set
 imports
   "HOL-Library.Tree"
   Cmp
-  Set_by_Ordered
+  Set_Interfaces
 begin
 
 fun isin :: "'a::linorder tree \<Rightarrow> 'a \<Rightarrow> bool" where

@@ -5,7 +5,7 @@ section \<open>1-2 Brother Tree Implementation of Sets\<close>
 theory Brother12_Set
 imports
   Cmp
-  Set_by_Ordered
+  Set_Interfaces
   "HOL-Number_Theory.Fib"
 begin
 
