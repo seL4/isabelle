@@ -21,17 +21,6 @@ This approach is very concrete and fixes the type of trees.
 Alternatively, one could assume some abstract type @{typ 't} of trees with suitable decomposition
 and recursion operators on it.\<close>
 
-fun set_tree :: "('a,'b) tree \<Rightarrow> 'a set" where
-"set_tree Leaf = {}" |
-"set_tree (Node _ l x r) = Set.insert x (set_tree l \<union> set_tree r)"
-
-fun bst :: "('a::linorder,'b) tree \<Rightarrow> bool" where
-"bst Leaf = True" |
-"bst (Node _ l a r) = (bst l \<and> bst r \<and> (\<forall>x \<in> set_tree l. x < a) \<and> (\<forall>x \<in> set_tree r. a < x))"
-
-lemma isin_iff: "bst t \<Longrightarrow> isin t x \<longleftrightarrow> x \<in> set_tree t"
-by(induction t) auto
-
 locale Set2_BST2_Join =
 fixes join :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> ('a,'b) tree \<Rightarrow> ('a,'b) tree"
 fixes inv :: "('a,'b) tree \<Rightarrow> bool"
@@ -326,7 +315,7 @@ and set = set_tree and invar = "\<lambda>t. inv t \<and> bst t"
 proof (standard, goal_cases)
   case 1 show ?case by (simp)
 next
-  case 2 thus ?case by(simp add: isin_iff)
+  case 2 thus ?case by(simp add: isin_set_tree)
 next
   case 3 thus ?case by (simp add: set_tree_insert)
 next

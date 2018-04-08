@@ -14,6 +14,14 @@ fun height :: "('a,'b) tree \<Rightarrow> nat" where
 "height Leaf = 0" |
 "height (Node _ l a r) = max (height l) (height r) + 1"
 
+fun set_tree :: "('a,'b) tree \<Rightarrow> 'a set" where
+"set_tree Leaf = {}" |
+"set_tree (Node _ l x r) = Set.insert x (set_tree l \<union> set_tree r)"
+
+fun bst :: "('a::linorder,'b) tree \<Rightarrow> bool" where
+"bst Leaf = True" |
+"bst (Node _ l a r) = (bst l \<and> bst r \<and> (\<forall>x \<in> set_tree l. x < a) \<and> (\<forall>x \<in> set_tree r. a < x))"
+
 definition size1 :: "('a,'b) tree \<Rightarrow> nat" where
 "size1 t = size t + 1"
 

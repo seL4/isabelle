@@ -17,7 +17,10 @@ fun isin :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> bool" where
      EQ \<Rightarrow> True |
      GT \<Rightarrow> isin r x)"
 
-lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set(inorder t))"
+lemma isin_set_inorder: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> set(inorder t))"
 by (induction t) (auto simp: isin_simps)
+
+lemma isin_set_tree: "bst t \<Longrightarrow> isin t x \<longleftrightarrow> x \<in> set_tree t"
+by(induction t) auto
 
 end

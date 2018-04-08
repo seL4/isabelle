@@ -262,7 +262,7 @@ and inorder = inorder and inv = rbt
 proof (standard, goal_cases)
   case 1 show ?case by simp
 next
-  case 2 thus ?case by(simp add: isin_set)
+  case 2 thus ?case by(simp add: isin_set_inorder)
 next
   case 3 thus ?case by(simp add: inorder_insert)
 next
