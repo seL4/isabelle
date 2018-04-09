@@ -197,7 +197,7 @@ lemma det_I [simp]: "det (mat 1 :: 'a::comm_ring_1^'n^'n) = 1"
   by (simp add: det_diagonal mat_def)
 
 lemma det_0 [simp]: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
-  by (simp add: det_def prod_zero)
+  by (simp add: det_def prod_zero power_0_left)
 
 lemma det_permute_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
@@ -815,20 +815,16 @@ proof -
       apply (simp only: ab_left_minus add.assoc[symmetric])
       apply simp
       done
-    from c ci
     have thr0: "- row i A = sum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
-      unfolding sum.remove[OF fU iU] sum_cmul
-      apply -
       apply (rule vector_mul_lcancel_imp[OF ci])
-      apply (auto simp add: field_simps)
-      unfolding *
-      apply rule
+      using c ci  unfolding sum.remove[OF fU iU] sum_cmul
+      apply (auto simp add: field_simps *)
       done
     have thr: "- row i A \<in> span {row j A| j. j \<noteq> i}"
       unfolding thr0
       apply (rule span_sum)
       apply simp
-      apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
+      apply (rule span_mul [where 'a="real^'n"])
       apply (rule span_superset)
       apply auto
       done
@@ -869,7 +865,7 @@ proof -
   have thd0: "det (\<chi> i. if i = k then row k A + (\<Sum>i \<in> ?Uk. x $ i *s row i A) else row i A) = det A"
     apply (rule det_row_span)
     apply (rule span_sum)
-    apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
+    apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])
     apply (rule span_superset)
     apply auto
     done
