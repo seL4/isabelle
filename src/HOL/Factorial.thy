@@ -290,17 +290,13 @@ next
     using prod_constant [where A="{0.. h}" and y="- 1 :: 'a"]
     by auto
   with Suc show ?thesis
-    using pochhammer_Suc_prod_rev [of "b - of_nat k + 1"]
-    by (auto simp add: pochhammer_Suc_prod prod.distrib [symmetric] eq of_nat_diff)
+    using pochhammer_Suc_prod_rev [of "b - of_nat k + 1"] 
+    by (auto simp add: pochhammer_Suc_prod prod.distrib [symmetric] eq of_nat_diff simp del: prod_constant)
 qed
 
 lemma pochhammer_minus':
   "pochhammer (b - of_nat k + 1) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (- b) k"
-  apply (simp only: pochhammer_minus [where b = b])
-  apply (simp only: mult.assoc [symmetric])
-  apply (simp only: power_add [symmetric])
-  apply simp
-  done
+  by (simp add: pochhammer_minus)
 
 lemma pochhammer_same: "pochhammer (- of_nat n) n =
     ((- 1) ^ n :: 'a::{semiring_char_0,comm_ring_1,semiring_no_zero_divisors}) * fact n"

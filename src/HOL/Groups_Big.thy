@@ -1335,7 +1335,7 @@ lemma prod_pos_nat_iff [simp]: "finite A \<Longrightarrow> prod f A > 0 \<longle
   for f :: "'a \<Rightarrow> nat"
   using prod_zero_iff by (simp del: neq0_conv add: zero_less_iff_neq_zero)
 
-lemma prod_constant: "(\<Prod>x\<in> A. y) = y ^ card A"
+lemma prod_constant [simp]: "(\<Prod>x\<in> A. y) = y ^ card A"
   for y :: "'a::comm_monoid_mult"
   by (induct A rule: infinite_finite_induct) simp_all
 

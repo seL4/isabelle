@@ -46,6 +46,14 @@ solver all the time rather than add the additional check. *)
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 
+context linordered_nonzero_semiring
+begin
+lemma of_nat_max: "of_nat (max x y) = max (of_nat x) (of_nat y)"
+  by (auto simp: max_def)
+
+lemma of_nat_min: "of_nat (min x y) = min (of_nat x) (of_nat y)"
+  by (auto simp: min_def)
+end
 
 text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 

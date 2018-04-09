@@ -297,7 +297,7 @@ lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
 lemma norm_le_l1_cart: "norm x <= sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def L2_set_le_sum)
 
-lemma scalar_mult_eq_scaleR: "c *s x = c *\<^sub>R x"
+lemma scalar_mult_eq_scaleR [simp]: "c *s x = c *\<^sub>R x"
   unfolding scaleR_vec_def vector_scalar_mult_def by simp
 
 lemma dist_mul[simp]: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y"
