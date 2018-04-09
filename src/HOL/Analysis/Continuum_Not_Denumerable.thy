@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section \<open>Non-denumerability of the Continuum.\<close>
+section \<open>Non-denumerability of the Continuum\<close>
 
 theory Continuum_Not_Denumerable
 imports

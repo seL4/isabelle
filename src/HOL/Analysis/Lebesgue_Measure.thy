@@ -978,7 +978,8 @@ proof -
   then show ?thesis
     by (auto dest!: AE_not_in)
 qed
-subsection\<open> A nice lemma for negligibility proofs.\<close>
+
+subsection \<open>A nice lemma for negligibility proofs\<close>
 
 lemma summable_iff_suminf_neq_top: "(\<And>n. f n \<ge> 0) \<Longrightarrow> \<not> summable f \<Longrightarrow> (\<Sum>i. ennreal (f i)) = top"
   by (metis summable_suminf_not_top)

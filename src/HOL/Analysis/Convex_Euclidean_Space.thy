@@ -4283,7 +4283,7 @@ corollary aff_dim_nonempty_interior:
 by (metis low_dim_interior)
 
 
-subsection \<open>Caratheodory's theorem.\<close>
+subsection \<open>Caratheodory's theorem\<close>
 
 lemma convex_hull_caratheodory_aff_dim:
   fixes p :: "('a::euclidean_space) set"
@@ -5151,7 +5151,7 @@ lemma affine_hull_convex_hull [simp]: "affine hull (convex hull S) = affine hull
   by (metis Int_absorb1 Int_absorb2 convex_hull_subset_affine_hull hull_hull hull_mono hull_subset)
 
 
-subsection%unimportant \<open>Openness and compactness are preserved by convex hull operation.\<close>
+subsection%unimportant \<open>Openness and compactness are preserved by convex hull operation\<close>
 
 lemma open_convex_hull[intro]:
   fixes s :: "'a::real_normed_vector set"
@@ -5422,7 +5422,7 @@ next
 qed
 
 
-subsection%unimportant \<open>Extremal points of a simplex are some vertices.\<close>
+subsection%unimportant \<open>Extremal points of a simplex are some vertices\<close>
 
 lemma dist_increases_online:
   fixes a b d :: "'a::real_inner"
@@ -5621,7 +5621,7 @@ lemma simplex_extremal_le_exists:
   by(cases "s = {}") auto
 
 
-subsection \<open>Closest point of a convex set is unique, with a continuous projection.\<close>
+subsection \<open>Closest point of a convex set is unique, with a continuous projection\<close>
 
 definition%important closest_point :: "'a::{real_inner,heine_borel} set \<Rightarrow> 'a \<Rightarrow> 'a"
   where "closest_point s a = (SOME x. x \<in> s \<and> (\<forall>y\<in>s. dist a x \<le> dist a y))"
@@ -5811,7 +5811,7 @@ next
 qed
 
 
-subsubsection%unimportant \<open>Various point-to-set separating/supporting hyperplane theorems.\<close>
+subsubsection%unimportant \<open>Various point-to-set separating/supporting hyperplane theorems\<close>
 
 lemma supporting_hyperplane_closed_point:
   fixes z :: "'a::{real_inner,heine_borel}"
@@ -6132,7 +6132,7 @@ lemma convex_hull_eq_empty[simp]: "convex hull s = {} \<longleftrightarrow> s = 
   using hull_subset[of s convex] convex_hull_empty by auto
 
 
-subsection%unimportant \<open>Moving and scaling convex hulls.\<close>
+subsection%unimportant \<open>Moving and scaling convex hulls\<close>
 
 lemma convex_hull_set_plus:
   "convex hull (s + t) = convex hull s + convex hull t"
@@ -6657,7 +6657,7 @@ lemma connected_imp_perfect_aff_dim:
      "\<lbrakk>connected S; aff_dim S \<noteq> 0; a \<in> S\<rbrakk> \<Longrightarrow> a islimpt S"
   using aff_dim_sing connected_imp_perfect by blast
 
-subsection%unimportant \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent.\<close>
+subsection%unimportant \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent\<close>
 
 lemma mem_is_interval_1_I:
   fixes a b c::real

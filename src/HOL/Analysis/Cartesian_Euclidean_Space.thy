@@ -1,4 +1,4 @@
-section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space.\<close>
+section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space\<close>
 
 theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Derivative
@@ -21,7 +21,7 @@ proof (rule sum.cong, simp, rule sum.reindex_cong)
   qed simp
 qed simp
 
-subsection\<open>Basic componentwise operations on vectors.\<close>
+subsection\<open>Basic componentwise operations on vectors\<close>
 
 instantiation vec :: (times, finite) times
 begin
@@ -93,7 +93,7 @@ definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^ 'n \<Rightarrow> '
   where "c *s x = (\<chi> i. c * (x$i))"
 
 
-subsection \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space.\<close>
+subsection \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space\<close>
 
 lemma sum_cong_aux:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> sum f A = sum g A"
@@ -170,7 +170,7 @@ lemmas vector_component =
   vector_scaleR_component cond_component
 
 
-subsection \<open>Some frequently useful arithmetic lemmas over vectors.\<close>
+subsection \<open>Some frequently useful arithmetic lemmas over vectors\<close>
 
 instance vec :: (semigroup_mult, finite) semigroup_mult
   by standard (vector mult.assoc)
@@ -719,7 +719,7 @@ lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   done
 
 
-subsection\<open>Some bounds on components etc. relative to operator norm.\<close>
+subsection\<open>Some bounds on components etc. relative to operator norm\<close>
 
 lemma norm_column_le_onorm:
   fixes A :: "real^'n^'m"
@@ -1416,7 +1416,7 @@ lemma jacobian_works:
 
 
 subsection \<open>Component of the differential must be zero if it exists at a local
-  maximum or minimum for that corresponding component.\<close>
+  maximum or minimum for that corresponding component\<close>
 
 lemma differential_zero_maxmin_cart:
   fixes f::"real^'a \<Rightarrow> real^'b"
@@ -1489,7 +1489,7 @@ qed
 
 end
 
-subsection\<open>The collapse of the general concepts to dimension one.\<close>
+subsection\<open>The collapse of the general concepts to dimension one\<close>
 
 lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
   by (simp add: vec_eq_iff)
@@ -1510,7 +1510,7 @@ lemma dist_real: "dist(x::real ^ 1) y = \<bar>(x$1) - (y$1)\<bar>"
   by (auto simp add: norm_real dist_norm)
 
 
-subsection\<open>Explicit vector construction from lists.\<close>
+subsection\<open>Explicit vector construction from lists\<close>
 
 definition "vector l = (\<chi> i. foldr (\<lambda>x f n. fun_upd (f (n+1)) n x) l (\<lambda>n x. 0) 1 i)"
 

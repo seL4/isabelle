@@ -4,7 +4,7 @@
     Author:     Brian Huffman, Portland State University
 *)
 
-section \<open>Elementary topology in Euclidean space.\<close>
+section \<open>Elementary topology in Euclidean space\<close>
 
 theory Topology_Euclidean_Space
 imports
@@ -1873,7 +1873,7 @@ proof -
     by (auto simp: box_def inner_sum_left inner_Basis sum.If_cases)
 qed
 
-subsection \<open>Intervals in general, including infinite and mixtures of open and closed.\<close>
+subsection \<open>Intervals in general, including infinite and mixtures of open and closed\<close>
 
 definition%important "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
@@ -5653,7 +5653,7 @@ lemma continuous_on_imp_closedin:
     shows "closedin (subtopology euclidean S) (S \<inter> f -` T)"
 using assms continuous_on_closed by blast
 
-subsection%unimportant \<open>Half-global and completely global cases.\<close>
+subsection%unimportant \<open>Half-global and completely global cases\<close>
 
 lemma continuous_openin_preimage_gen:
   assumes "continuous_on S f"  "open T"
@@ -5743,7 +5743,7 @@ proof
   with \<open>x = f y\<close> show "x \<in> f ` interior S" ..
 qed
 
-subsection%unimportant \<open>Topological properties of linear functions.\<close>
+subsection%unimportant \<open>Topological properties of linear functions\<close>
 
 lemma linear_lim_0:
   assumes "bounded_linear f"

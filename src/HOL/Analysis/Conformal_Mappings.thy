@@ -1,4 +1,4 @@
-section \<open>Conformal Mappings. Consequences of Cauchy's integral theorem.\<close>
+section \<open>Conformal Mappings and Consequences of Cauchy's integral theorem\<close>
 
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2016)\<close>
 

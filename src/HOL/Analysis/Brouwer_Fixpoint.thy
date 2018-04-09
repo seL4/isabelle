@@ -16,7 +16,7 @@
 (*              (c) Copyright, John Harrison 1998-2008                       *)
 (* ========================================================================= *)
 
-section \<open>Results connected with topological dimension.\<close>
+section \<open>Results connected with topological dimension\<close>
 
 theory Brouwer_Fixpoint
 imports Path_Connected Homeomorphism
@@ -117,7 +117,7 @@ proof -
 qed
 
 
-subsection \<open>The key "counting" observation, somewhat abstracted.\<close>
+subsection \<open>The key "counting" observation, somewhat abstracted\<close>
 
 lemma kuhn_counting_lemma:
   fixes bnd compo compo' face S F
@@ -148,7 +148,7 @@ proof -
     by auto
 qed
 
-subsection \<open>The odd/even result for faces of complete vertices, generalized.\<close>
+subsection \<open>The odd/even result for faces of complete vertices, generalized\<close>
 
 lemma kuhn_complete_lemma:
   assumes [simp]: "finite simplices"
@@ -2367,7 +2367,7 @@ proof -
 qed
 
 
-subsection\<open>Punctured affine hulls, etc.\<close>
+subsection\<open>Punctured affine hulls, etc\<close>
 
 lemma continuous_on_compact_surface_projection_aux:
   fixes S :: "'a::t2_space set"
@@ -2716,7 +2716,7 @@ proof -
     by blast
 qed
 
-subsection\<open>Absolute retracts, Etc.\<close>
+subsection\<open>Absolute retracts, etc\<close>
 
 text\<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and also
  Euclidean neighbourhood retracts (ENR). We define AR and ANR by
@@ -3110,7 +3110,7 @@ lemma homeomorphic_ANR_iff_ANR:
   shows "S homeomorphic T \<Longrightarrow> ANR S \<longleftrightarrow> ANR T"
 by (metis ANR_homeomorphic_ANR homeomorphic_sym)
 
-subsection\<open> Analogous properties of ENRs.\<close>
+subsection\<open> Analogous properties of ENRs\<close>
 
 proposition ENR_imp_absolute_neighbourhood_retract:
   fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
@@ -4274,7 +4274,7 @@ lemma ANR_component_ANR:
   shows "ANR c"
   by (metis ANR_connected_component_ANR assms componentsE)
 
-subsection\<open>Original ANR material, now for ENRs.\<close>
+subsection\<open>Original ANR material, now for ENRs\<close>
 
 lemma ENR_bounded:
   fixes S :: "'a::euclidean_space set"
@@ -4438,7 +4438,7 @@ corollary ANR_sphere:
   by (simp add: ENR_imp_ANR ENR_sphere)
 
 
-subsection\<open>Spheres are connected, etc.\<close>
+subsection\<open>Spheres are connected, etc\<close>
 
 lemma locally_path_connected_sphere_gen:
   fixes S :: "'a::euclidean_space set"

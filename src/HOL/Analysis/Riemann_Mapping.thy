@@ -8,7 +8,7 @@ theory Riemann_Mapping
 imports Great_Picard
 begin
 
-subsection\<open>Moebius functions are biholomorphisms of the unit disc.\<close>
+subsection\<open>Moebius functions are biholomorphisms of the unit disc\<close>
 
 definition Moebius_function :: "[real,complex,complex] \<Rightarrow> complex" where
   "Moebius_function \<equiv> \<lambda>t w z. exp(\<i> * of_real t) * (z - w) / (1 - cnj w * z)"
@@ -853,7 +853,7 @@ corollary contractible_eq_simply_connected_2d:
   using convex_imp_contractible homeomorphic_contractible_eq simply_connected_eq_homeomorphic_to_disc by auto
 
 
-subsection\<open>A further chain of equivalences about components of the complement of a simply connected set.\<close>
+subsection\<open>A further chain of equivalences about components of the complement of a simply connected set\<close>
 
 text\<open>(following 1.35 in Burckel'S book)\<close>
 

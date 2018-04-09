@@ -15,7 +15,7 @@ declare has_derivative_bounded_linear[dest]
 
 subsection \<open>Derivatives\<close>
 
-subsubsection \<open>Combining theorems.\<close>
+subsubsection \<open>Combining theorems\<close>
 
 lemmas has_derivative_id = has_derivative_ident
 lemmas has_derivative_neg = has_derivative_minus
@@ -32,7 +32,7 @@ lemma has_derivative_add_const:
   by (intro derivative_eq_intros) auto
 
 
-subsection \<open>Derivative with composed bilinear function.\<close>
+subsection \<open>Derivative with composed bilinear function\<close>
 
 lemma has_derivative_bilinear_within:
   assumes "(f has_derivative f') (at x within s)"

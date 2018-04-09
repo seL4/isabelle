@@ -109,7 +109,7 @@ qed (meson assms compact_imp_closed seq_compact_closed_subset seq_compact_eq_com
 
 subsection\<open>Arcwise Connections\<close>
 
-subsection\<open>Density of points with dyadic rational coordinates.\<close>
+subsection\<open>Density of points with dyadic rational coordinates\<close>
 
 proposition closure_dyadic_rationals:
     "closure (\<Union>k. \<Union>f \<in> Basis \<rightarrow> \<int>.

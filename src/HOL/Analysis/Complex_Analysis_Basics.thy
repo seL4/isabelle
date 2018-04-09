@@ -174,7 +174,7 @@ lemma DERIV_zero_UNIV_unique:
   "(\<And>x. DERIV f x :> 0) \<Longrightarrow> f x = f a"
   by (metis DERIV_zero_unique UNIV_I convex_UNIV)
 
-subsection \<open>Some limit theorems about real part of real series etc.\<close>
+subsection \<open>Some limit theorems about real part of real series etc\<close>
 
 (*MOVE? But not to Finite_Cartesian_Product*)
 lemma sums_vec_nth :

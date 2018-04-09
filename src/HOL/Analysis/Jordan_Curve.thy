@@ -9,7 +9,7 @@ theory Jordan_Curve
 
 begin
 
-subsection\<open>Janiszewski's theorem.\<close>
+subsection\<open>Janiszewski's theorem\<close>
 
 lemma Janiszewski_weak:
   fixes a b::complex

@@ -929,7 +929,7 @@ proof -
     by auto
 qed
 
-subsection \<open>Orthogonality of a transformation and matrix.\<close>
+subsection \<open>Orthogonality of a transformation and matrix\<close>
 
 definition "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 
@@ -1087,7 +1087,7 @@ lemma orthogonal_transformation_det [simp]:
   using det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
 
 
-subsection \<open>Linearity of scaling, and hence isometry, that preserves origin.\<close>
+subsection \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
 
 lemma scaling_linear:
   fixes f :: "'a::real_inner \<Rightarrow> 'a::real_inner"
@@ -1157,7 +1157,7 @@ next
     by (auto simp: orthogonal_transformation_isometry)
 qed
 
-subsection\<open> We can find an orthogonal matrix taking any unit vector to any other.\<close>
+subsection\<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
 
 lemma orthogonal_matrix_transpose [simp]:
      "orthogonal_matrix(transpose A) \<longleftrightarrow> orthogonal_matrix A"
@@ -1251,7 +1251,7 @@ next
 qed
 
 
-subsection \<open>Can extend an isometry from unit sphere.\<close>
+subsection \<open>Can extend an isometry from unit sphere\<close>
 
 lemma isometry_sphere_extend:
   fixes f:: "'a::real_inner \<Rightarrow> 'a"
@@ -1349,7 +1349,7 @@ proof -
     done
 qed
 
-subsection \<open>Rotation, reflection, rotoinversion.\<close>
+subsection \<open>Rotation, reflection, rotoinversion\<close>
 
 definition "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
 definition "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"

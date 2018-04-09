@@ -77,7 +77,7 @@ lemma holomorphic_on_exp' [holomorphic_intros]:
   "f holomorphic_on s \<Longrightarrow> (\<lambda>x. exp (f x)) holomorphic_on s"
   using holomorphic_on_compose[OF _ holomorphic_on_exp] by (simp add: o_def)
 
-subsection\<open>Euler and de Moivre formulas.\<close>
+subsection\<open>Euler and de Moivre formulas\<close>
 
 text\<open>The sine series times @{term i}\<close>
 lemma sin_i_eq: "(\<lambda>n. (\<i> * sin_coeff n) * z^n) sums (\<i> * sin z)"
@@ -176,7 +176,7 @@ lemma holomorphic_on_sin: "sin holomorphic_on s"
 lemma holomorphic_on_cos: "cos holomorphic_on s"
   by (simp add: field_differentiable_within_cos holomorphic_on_def)
 
-subsection\<open>Get a nice real/imaginary separation in Euler's formula.\<close>
+subsection\<open>Get a nice real/imaginary separation in Euler's formula\<close>
 
 lemma Euler: "exp(z) = of_real(exp(Re z)) *
               (of_real(cos(Im z)) + \<i> * of_real(sin(Im z)))"
@@ -626,7 +626,7 @@ proof -
 qed
 
 
-subsection\<open>Taylor series for complex exponential, sine and cosine.\<close>
+subsection\<open>Taylor series for complex exponential, sine and cosine\<close>
 
 declare power_Suc [simp del]
 
@@ -3503,7 +3503,7 @@ qed
 lemma of_real_arccos: "\<bar>x\<bar> \<le> 1 \<Longrightarrow> of_real(arccos x) = Arccos(of_real x)"
   by (metis Im_Arccos_of_real add.right_neutral arccos_eq_Re_Arccos complex_eq mult_zero_right of_real_0)
 
-subsection\<open>Some interrelationships among the real inverse trig functions.\<close>
+subsection\<open>Some interrelationships among the real inverse trig functions\<close>
 
 lemma arccos_arctan:
   assumes "-1 < x" "x < 1"
@@ -3573,7 +3573,7 @@ lemma arccos_arcsin_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrigh
   using arccos_arcsin_sqrt_pos [of "-x"]
   by (simp add: arccos_minus)
 
-subsection\<open>continuity results for arcsin and arccos.\<close>
+subsection\<open>Continuity results for arcsin and arccos\<close>
 
 lemma continuous_on_Arcsin_real [continuous_intros]:
     "continuous_on {w \<in> \<real>. \<bar>Re w\<bar> \<le> 1} Arcsin"

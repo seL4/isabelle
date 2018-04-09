@@ -1,4 +1,4 @@
-section \<open>Faces, Extreme Points, Polytopes, Polyhedra etc.\<close>
+section \<open>Faces, Extreme Points, Polytopes, Polyhedra etc\<close>
 
 text\<open>Ported from HOL Light by L C Paulson\<close>
 

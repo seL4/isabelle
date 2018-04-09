@@ -55,7 +55,7 @@ proof -
     by (simp add: field_simps)
 qed
 
-subsection \<open>Some useful lemmas about intervals.\<close>
+subsection \<open>Some useful lemmas about intervals\<close>
 
 lemma interior_subset_union_intervals:
   assumes "i = cbox a b"
@@ -130,7 +130,7 @@ lemma interval_split:
 lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> cbox a b \<noteq> {}"
   by (simp add: box_ne_empty)
 
-subsection \<open>Bounds on intervals where they exist.\<close>
+subsection \<open>Bounds on intervals where they exist\<close>
 
 definition interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
   where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x:s. x\<bullet>i) *\<^sub>R i)"
@@ -192,7 +192,7 @@ proof-
       by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
 qed
 
-subsection \<open>The notion of a gauge --- simply an open set containing the point.\<close>
+subsection \<open>The notion of a gauge --- simply an open set containing the point\<close>
 
 definition "gauge \<gamma> \<longleftrightarrow> (\<forall>x. x \<in> \<gamma> x \<and> open (\<gamma> x))"
 
@@ -242,14 +242,14 @@ lemma gauge_existence_lemma:
   "(\<forall>x. \<exists>d :: real. p x \<longrightarrow> 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. p x \<longrightarrow> q d x)"
   by (metis zero_less_one)
 
-subsection \<open>Attempt a systematic general set of "offset" results for components.\<close>
+subsection \<open>Attempt a systematic general set of "offset" results for components\<close>
 
 lemma gauge_modify:
   assumes "(\<forall>S. open S \<longrightarrow> open {x. f(x) \<in> S})" "gauge d"
   shows "gauge (\<lambda>x. {y. f y \<in> d (f x)})"
   using assms unfolding gauge_def by force
 
-subsection \<open>Divisions.\<close>
+subsection \<open>Divisions\<close>
 
 definition division_of (infixl "division'_of" 40)
 where
@@ -995,7 +995,7 @@ proof (rule_tac[!] division_ofI)
   }
 qed
 
-subsection \<open>Tagged (partial) divisions.\<close>
+subsection \<open>Tagged (partial) divisions\<close>
 
 definition tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
   where "s tagged_partial_division_of i \<longleftrightarrow>
@@ -1828,7 +1828,7 @@ qed
 qed
 
 
-subsection \<open>Special case of additivity we need for the FTC.\<close>
+subsection \<open>Special case of additivity we need for the FTC\<close>
 
 lemma additive_tagged_division_1:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
@@ -1856,7 +1856,7 @@ proof -
 qed
 
 
-subsection \<open>Fine-ness of a partition w.r.t. a gauge.\<close>
+subsection \<open>Fine-ness of a partition w.r.t. a gauge\<close>
 
 definition fine  (infixr "fine" 46)
   where "d fine s \<longleftrightarrow> (\<forall>(x,k) \<in> s. k \<subseteq> d x)"
@@ -1887,7 +1887,7 @@ lemma fine_Union: "(\<And>p. p \<in> ps \<Longrightarrow> d fine p) \<Longrighta
 lemma fine_subset: "p \<subseteq> q \<Longrightarrow> d fine q \<Longrightarrow> d fine p"
   unfolding fine_def by blast
 
-subsection \<open>Some basic combining lemmas.\<close>
+subsection \<open>Some basic combining lemmas\<close>
 
 lemma tagged_division_Union_exists:
   assumes "finite I"
@@ -1907,14 +1907,14 @@ proof -
 qed
 
 
-subsection \<open>The set we're concerned with must be closed.\<close>
+subsection \<open>The set we're concerned with must be closed\<close>
 
 lemma division_of_closed:
   fixes i :: "'n::euclidean_space set"
   shows "s division_of i \<Longrightarrow> closed i"
   unfolding division_of_def by fastforce
 
-subsection \<open>General bisection principle for intervals; might be useful elsewhere.\<close>
+subsection \<open>General bisection principle for intervals; might be useful elsewhere\<close>
 
 lemma interval_bisection_step:
   fixes type :: "'a::euclidean_space"
@@ -2185,7 +2185,7 @@ proof -
 qed
 
 
-subsection \<open>Cousin's lemma.\<close>
+subsection \<open>Cousin's lemma\<close>
 
 lemma fine_division_exists:
   fixes a b :: "'a::euclidean_space"
@@ -2231,7 +2231,7 @@ lemma fine_division_exists_real:
   obtains p where "p tagged_division_of {a .. b}" "g fine p"
   by (metis assms box_real(2) fine_division_exists)
 
-subsection \<open>A technical lemma about "refinement" of division.\<close>
+subsection \<open>A technical lemma about "refinement" of division\<close>
 
 lemma tagged_division_finer:
   fixes p :: "('a::euclidean_space \<times> ('a::euclidean_space set)) set"

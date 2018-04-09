@@ -2,13 +2,13 @@
     Material split off from Topology_Euclidean_Space
 *)
 
-section \<open>Connected Components, Homeomorphisms, Baire property, etc.\<close>
+section \<open>Connected Components, Homeomorphisms, Baire property, etc\<close>
 
 theory Connected
 imports Topology_Euclidean_Space
 begin
 
-subsection%unimportant \<open>More properties of closed balls, spheres, etc.\<close>
+subsection%unimportant \<open>More properties of closed balls, spheres, etc\<close>
 
 lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S)"
   apply (simp add: interior_def, safe)
@@ -961,7 +961,7 @@ next
   qed
 qed
 
-subsection%unimportant \<open>Some theorems on sups and infs using the notion "bounded".\<close>
+subsection%unimportant \<open>Some theorems on sups and infs using the notion "bounded"\<close>
 
 lemma bounded_real: "bounded (S::real set) \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. \<bar>x\<bar> \<le> a)"
   by (simp add: bounded_iff)
@@ -1139,7 +1139,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open>Relations among convergence and absolute convergence for power series.\<close>
+subsection%unimportant\<open>Relations among convergence and absolute convergence for power series\<close>
 
 lemma summable_imp_bounded:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -1515,7 +1515,7 @@ proof -
     by (simp add: compact_eq_bounded_closed)
 qed
 
-subsection%unimportant \<open>Equality of continuous functions on closure and related results.\<close>
+subsection%unimportant \<open>Equality of continuous functions on closure and related results\<close>
 
 lemma continuous_closedin_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -2047,7 +2047,7 @@ lemma bounded_uniformly_continuous_image:
   shows "bounded(f ` S)"
   by (metis (no_types, lifting) assms bounded_closure_image compact_closure compact_continuous_image compact_eq_bounded_closed image_cong uniformly_continuous_imp_continuous uniformly_continuous_on_extension_on_closure)
 
-subsection%unimportant \<open>Making a continuous function avoid some value in a neighbourhood.\<close>
+subsection%unimportant \<open>Making a continuous function avoid some value in a neighbourhood\<close>
 
 lemma continuous_within_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
@@ -2363,7 +2363,7 @@ next
     unfolding mem_interior using \<open>e > 0\<close> by auto
 qed
 
-subsection \<open>Continuity implies uniform continuity on a compact domain.\<close>
+subsection \<open>Continuity implies uniform continuity on a compact domain\<close>
 
 text\<open>From the proof of the Heine-Borel theorem: Lemma 2 in section 3.7, page 69 of
 J. C. Burkill and H. Burkill. A Second Course in Mathematical Analysis (CUP, 2002)\<close>
@@ -2666,7 +2666,7 @@ proof -
 qed
 
 
-subsection \<open>The diameter of a set.\<close>
+subsection \<open>The diameter of a set\<close>
 
 definition%important diameter :: "'a::metric_space set \<Rightarrow> real" where
   "diameter S = (if S = {} then 0 else SUP (x,y):S\<times>S. dist x y)"
@@ -3014,7 +3014,7 @@ proof%unimportant atomize_elim
 qed
 
 
-subsection%unimportant \<open>Compact sets and the closure operation.\<close>
+subsection%unimportant \<open>Compact sets and the closure operation\<close>
 
 lemma closed_scaling:
   fixes S :: "'a::real_normed_vector set"
@@ -3321,7 +3321,7 @@ lemma continuous_on_cases_1:
 using assms
 by (auto simp: continuous_on_id intro: continuous_on_cases_le [where h = id, simplified])
 
-subsubsection\<open>Some more convenient intermediate-value theorem formulations.\<close>
+subsubsection\<open>Some more convenient intermediate-value theorem formulations\<close>
 
 lemma connected_ivt_hyperplane:
   assumes "connected S" and xy: "x \<in> S" "y \<in> S" and b: "inner a x \<le> b" "b \<le> inner a y"
@@ -3901,7 +3901,7 @@ proof -
 qed
 
 
-subsection \<open>"Isometry" (up to constant bounds) of injective linear map etc.\<close>
+subsection \<open>"Isometry" (up to constant bounds) of injective linear map etc\<close>
 
 lemma cauchy_isometric:
   assumes e: "e > 0"
@@ -4976,7 +4976,7 @@ qed
 
 
 
-subsection\<open>A couple of lemmas about components (see Newman IV, 3.3 and 3.4).\<close>
+subsection\<open>A couple of lemmas about components (see Newman IV, 3.3 and 3.4)\<close>
 
 
 lemma connected_Un_clopen_in_complement:

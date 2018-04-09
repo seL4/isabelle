@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section \<open>Definition of finite Cartesian product types.\<close>
+section \<open>Definition of finite Cartesian product types\<close>
 
 theory Finite_Cartesian_Product
 imports
@@ -13,7 +13,7 @@ imports
   "HOL-Library.FuncSet"
 begin
 
-subsection \<open>Finite Cartesian products, with indexing and lambdas.\<close>
+subsection \<open>Finite Cartesian products, with indexing and lambdas\<close>
 
 typedef ('a, 'b) vec = "UNIV :: ('b::finite \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..

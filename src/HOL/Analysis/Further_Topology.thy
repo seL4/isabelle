@@ -1,4 +1,4 @@
-section \<open>Extending Continous Maps, Invariance of Domain, etc..\<close>
+section \<open>Extending Continous Maps, Invariance of Domain, etc\<close>
 
 text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
@@ -367,7 +367,7 @@ qed
 
 
 
-subsection\<open> Some technical lemmas about extending maps from cell complexes.\<close>
+subsection\<open> Some technical lemmas about extending maps from cell complexes\<close>
 
 lemma extending_maps_Union_aux:
   assumes fin: "finite \<F>"
@@ -981,7 +981,7 @@ qed
 
 
 
-subsection\<open> Special cases and corollaries involving spheres.\<close>
+subsection\<open> Special cases and corollaries involving spheres\<close>
 
 lemma disjnt_Diff1: "X \<subseteq> Y' \<Longrightarrow> disjnt (X - Y) (X' - Y')"
   by (auto simp: disjnt_def)
@@ -2727,7 +2727,7 @@ next
     using clopen [of S] False  by simp
 qed
 
-subsection\<open> Dimension-based conditions for various homeomorphisms.\<close>
+subsection\<open>Dimension-based conditions for various homeomorphisms\<close>
 
 lemma homeomorphic_subspaces_eq:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
@@ -3896,7 +3896,7 @@ proof -
 qed
 
 
-subsection\<open>Another simple case where sphere maps are nullhomotopic.\<close>
+subsection\<open>Another simple case where sphere maps are nullhomotopic\<close>
 
 lemma inessential_spheremap_2_aux:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
@@ -3962,7 +3962,7 @@ next
 qed
 
 
-subsection\<open>Holomorphic logarithms and square roots.\<close>
+subsection\<open>Holomorphic logarithms and square roots\<close>
 
 lemma contractible_imp_holomorphic_log:
   assumes holf: "f holomorphic_on S"

@@ -3,7 +3,7 @@
                 Huge cleanup by LCP
 *)
 
-section \<open>Henstock-Kurzweil gauge integration in many dimensions.\<close>
+section \<open>Henstock-Kurzweil gauge integration in many dimensions\<close>
 
 theory Henstock_Kurzweil_Integration
 imports
@@ -28,7 +28,7 @@ lemma Sigma_Int_Paircomp2: "(Sigma A B) \<inter> {(x, y). P y} = Sigma A (\<lamb
   by blast
 (* END MOVE *)
 
-subsection \<open>Content (length, area, volume...) of an interval.\<close>
+subsection \<open>Content (length, area, volume...) of an interval\<close>
 
 abbreviation content :: "'a::euclidean_space set \<Rightarrow> real"
   where "content s \<equiv> measure lborel s"
@@ -313,7 +313,7 @@ lemma has_integral_integrable[dest]: "(f has_integral i) s \<Longrightarrow> f i
 lemma has_integral_integral: "f integrable_on s \<longleftrightarrow> (f has_integral (integral s f)) s"
   by auto
 
-subsection \<open>Basic theorems about integrals.\<close>
+subsection \<open>Basic theorems about integrals\<close>
 
 lemma has_integral_eq_rhs: "(f has_integral j) S \<Longrightarrow> i = j \<Longrightarrow> (f has_integral i) S"
   by (rule forw_subst)
@@ -909,7 +909,7 @@ lemma integrable_component:
 
 
 
-subsection \<open>Cauchy-type criterion for integrability.\<close>
+subsection \<open>Cauchy-type criterion for integrability\<close>
 
 proposition integrable_Cauchy:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::{real_normed_vector,complete_space}"
@@ -1012,7 +1012,7 @@ next
 qed
 
 
-subsection \<open>Additivity of integral on abutting intervals.\<close>
+subsection \<open>Additivity of integral on abutting intervals\<close>
 
 lemma tagged_division_split_left_inj_content:
   assumes \<D>: "\<D> tagged_division_of S"
@@ -1261,7 +1261,7 @@ proof clarify
 qed
 
 
-subsection \<open>A sort of converse, integrability on subintervals.\<close>
+subsection \<open>A sort of converse, integrability on subintervals\<close>
 
 lemma has_integral_separate_sides:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -1459,7 +1459,7 @@ proof -
   qed
 qed
 
-subsection \<open>Bounds on the norm of Riemann sums and the integral itself.\<close>
+subsection \<open>Bounds on the norm of Riemann sums and the integral itself\<close>
 
 lemma dsum_bound:
   assumes "p division_of (cbox a b)"
@@ -1562,7 +1562,7 @@ corollary integrable_bound:
 by (metis integrable_integral has_integral_bound assms)
 
 
-subsection \<open>Similar theorems about relationship among components.\<close>
+subsection \<open>Similar theorems about relationship among components\<close>
 
 lemma rsum_component_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -1764,7 +1764,7 @@ lemma integral_component_ubound_real:
   using assms
   by (metis box_real(2) integral_component_ubound)
 
-subsection \<open>Uniform limit of integrable functions is integrable.\<close>
+subsection \<open>Uniform limit of integrable functions is integrable\<close>
 
 lemma real_arch_invD:
   "0 < (e::real) \<Longrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
@@ -1907,13 +1907,13 @@ qed
 lemmas integrable_uniform_limit_real = integrable_uniform_limit [where 'a=real, simplified]
 
 
-subsection \<open>Negligible sets.\<close>
+subsection \<open>Negligible sets\<close>
 
 definition "negligible (s:: 'a::euclidean_space set) \<longleftrightarrow>
   (\<forall>a b. ((indicator s :: 'a\<Rightarrow>real) has_integral 0) (cbox a b))"
 
 
-subsubsection \<open>Negligibility of hyperplane.\<close>
+subsubsection \<open>Negligibility of hyperplane\<close>
 
 lemma content_doublesplit:
   fixes a :: "'a::euclidean_space"
@@ -2082,7 +2082,7 @@ proof clarsimp
 qed
 
 
-subsubsection \<open>Hence the main theorem about negligible sets.\<close>
+subsubsection \<open>Hence the main theorem about negligible sets\<close>
 
 
 lemma has_integral_negligible_cbox:
@@ -2276,7 +2276,7 @@ lemma integral_spike:
     by (auto simp: integral_def integrable_on_def)
 
 
-subsection \<open>Some other trivialities about negligible sets.\<close>
+subsection \<open>Some other trivialities about negligible sets\<close>
 
 lemma negligible_subset:
   assumes "negligible s" "t \<subseteq> s"
@@ -2366,7 +2366,7 @@ proof -
 qed auto
 
 
-subsection \<open>Finite case of the spike theorem is quite commonly needed.\<close>
+subsection \<open>Finite case of the spike theorem is quite commonly needed\<close>
 
 lemma has_integral_spike_finite:
   assumes "finite S"
@@ -2414,7 +2414,7 @@ corollary has_integral_bound_real:
   by (metis assms box_real(2) has_integral_bound_spike_finite)
 
 
-subsection \<open>In particular, the boundary of an interval is negligible.\<close>
+subsection \<open>In particular, the boundary of an interval is negligible\<close>
 
 lemma negligible_frontier_interval: "negligible(cbox (a::'a::euclidean_space) b - box a b)"
 proof -
@@ -2445,7 +2445,7 @@ lemma integrable_spike_interior:
   using assms has_integral_spike_interior_eq by blast
 
 
-subsection \<open>Integrability of continuous functions.\<close>
+subsection \<open>Integrability of continuous functions\<close>
 
 lemma operative_approximableI:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
@@ -2573,10 +2573,10 @@ lemma integrable_continuous_closed_segment:
   by (auto intro!: integrable_continuous_interval simp: closed_segment_eq_real_ivl)
 
 
-subsection \<open>Specialization of additivity to one dimension.\<close>
+subsection \<open>Specialization of additivity to one dimension\<close>
 
 
-subsection \<open>A useful lemma allowing us to factor out the content size.\<close>
+subsection \<open>A useful lemma allowing us to factor out the content size\<close>
 
 lemma has_integral_factor_content:
   "(f has_integral i) (cbox a b) \<longleftrightarrow>
@@ -2642,7 +2642,7 @@ lemma has_integral_factor_content_real:
   by (rule has_integral_factor_content)
 
 
-subsection \<open>Fundamental theorem of calculus.\<close>
+subsection \<open>Fundamental theorem of calculus\<close>
 
 lemma interval_bounds_real:
   fixes q b :: real
@@ -2884,7 +2884,7 @@ proof goal_cases
 qed
 
 
-subsection \<open>Only need trivial subintervals if the interval itself is trivial.\<close>
+subsection \<open>Only need trivial subintervals if the interval itself is trivial\<close>
 
 proposition division_of_nontrivial:
   fixes \<D> :: "'a::euclidean_space set set"
@@ -2970,7 +2970,7 @@ proof (induction "card \<D>" arbitrary: \<D> rule: less_induct)
 qed
 
 
-subsection \<open>Integrability on subintervals.\<close>
+subsection \<open>Integrability on subintervals\<close>
 
 lemma operative_integrableI:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
@@ -3016,7 +3016,7 @@ lemma integrable_subinterval_real:
   shows "f integrable_on {c..d}"
   by (metis assms box_real(2) integrable_subinterval)
 
-subsection \<open>Combining adjacent intervals in 1 dimension.\<close>
+subsection \<open>Combining adjacent intervals in 1 dimension\<close>
 
 lemma has_integral_combine:
   fixes a b c :: real and j :: "'a::banach"
@@ -3087,7 +3087,7 @@ lemma integral_minus_sets':
   using integral_combine[of b a c f] integral_combine[of a b c f]
   by (auto simp: algebra_simps min_def)
 
-subsection \<open>Reduce integrability to "local" integrability.\<close>
+subsection \<open>Reduce integrability to "local" integrability\<close>
 
 lemma integrable_on_little_subintervals:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
@@ -3116,7 +3116,7 @@ proof -
 qed
 
 
-subsection \<open>Second FTC or existence of antiderivative.\<close>
+subsection \<open>Second FTC or existence of antiderivative\<close>
 
 lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   unfolding integrable_on_def by blast
@@ -3204,7 +3204,7 @@ lemma antiderivative_continuous:
   obtains g where "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_vector_derivative (f x::_::banach)) (at x within {a..b})"
   using integral_has_vector_derivative[OF assms] by auto
 
-subsection \<open>Combined fundamental theorem of calculus.\<close>
+subsection \<open>Combined fundamental theorem of calculus\<close>
 
 lemma antiderivative_integral_continuous:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -3227,7 +3227,7 @@ proof -
 qed
 
 
-subsection \<open>General "twiddling" for interval-to-interval function image.\<close>
+subsection \<open>General "twiddling" for interval-to-interval function image\<close>
 
 lemma has_integral_twiddle:
   assumes "0 < r"
@@ -3334,7 +3334,7 @@ next
 qed
 
 
-subsection \<open>Special case of a basic affine transformation.\<close>
+subsection \<open>Special case of a basic affine transformation\<close>
 
 lemma AE_lborel_inner_neq:
   assumes k: "k \<in> Basis"
@@ -3460,7 +3460,7 @@ lemma integrable_affinity:
 
 lemmas has_integral_affinity01 = has_integral_affinity [of _ _ 0 "1::real", simplified]
 
-subsection \<open>Special case of stretching coordinate axes separately.\<close>
+subsection \<open>Special case of stretching coordinate axes separately\<close>
 
 lemma has_integral_stretch:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -3485,7 +3485,7 @@ lemma integrable_stretch:
   by (force dest: has_integral_stretch)
 
 
-subsection \<open>even more special cases.\<close>
+subsection \<open>even more special cases\<close>
 
 lemma uminus_interval_vector[simp]:
   fixes a b :: "'a::euclidean_space"
@@ -3528,7 +3528,7 @@ lemma integral_reflect_real[simp]: "integral {-b .. -a} (\<lambda>x. f (-x)) = i
   by (rule integral_reflect)
 
 
-subsection \<open>Stronger form of FCT; quite a tedious proof.\<close>
+subsection \<open>Stronger form of FCT; quite a tedious proof\<close>
 
 lemma split_minus[simp]: "(\<lambda>(x, k). f x k) x - (\<lambda>(x, k). g x k) x = (\<lambda>(x, k). f x k - g x k) x"
   by (simp add: split_def)
@@ -3904,7 +3904,7 @@ next
 qed
 
 
-subsection \<open>Stronger form with finite number of exceptional points.\<close>
+subsection \<open>Stronger form with finite number of exceptional points\<close>
 
 lemma fundamental_theorem_of_calculus_interior_strong:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -4217,7 +4217,7 @@ lemma integral_has_real_derivative':
   by (auto simp: has_field_derivative_iff_has_vector_derivative)
 
 
-subsection \<open>This doesn't directly involve integration, but that gives an easy proof.\<close>
+subsection \<open>This doesn't directly involve integration, but that gives an easy proof\<close>
 
 lemma has_derivative_zero_unique_strong_interval:
   fixes f :: "real \<Rightarrow> 'a::banach"
@@ -4251,7 +4251,7 @@ proof -
 qed
 
 
-subsection \<open>Generalize a bit to any convex set.\<close>
+subsection \<open>Generalize a bit to any convex set\<close>
 
 lemma has_derivative_zero_unique_strong_convex:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
@@ -4919,7 +4919,7 @@ next
 qed
 
 
-subsection \<open>Continuity of the integral (for a 1-dimensional interval).\<close>
+subsection \<open>Continuity of the integral (for a 1-dimensional interval)\<close>
 
 lemma integrable_alt:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"

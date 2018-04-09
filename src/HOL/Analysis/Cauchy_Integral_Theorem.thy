@@ -3550,7 +3550,7 @@ lemma winding_number_offset: "winding_number p z = winding_number (\<lambda>w. p
   apply (force simp: algebra_simps)
   done
 
-subsubsection\<open>Some lemmas about negating a path.\<close>
+subsubsection\<open>Some lemmas about negating a path\<close>
 
 lemma valid_path_negatepath: "valid_path \<gamma> \<Longrightarrow> valid_path (uminus \<circ> \<gamma>)"
    unfolding o_def using piecewise_C1_differentiable_neg valid_path_def by blast
@@ -3965,7 +3965,7 @@ proof -
 qed
 
 
-subsection\<open>Continuity of winding number and invariance on connected sets.\<close>
+subsection\<open>Continuity of winding number and invariance on connected sets\<close>
 
 lemma continuous_at_winding_number:
   fixes z::complex
@@ -4436,7 +4436,7 @@ proof -
 qed
 
 
-subsection\<open>Cauchy's integral formula, again for a convex enclosing set.\<close>
+subsection\<open>Cauchy's integral formula, again for a convex enclosing set\<close>
 
 lemma Cauchy_integral_formula_weak:
     assumes s: "convex s" and "finite k" and conf: "continuous_on s f"
@@ -5374,7 +5374,7 @@ corollary contour_integral_uniform_limit_circlepath:
   using assms by (auto simp: vector_derivative_circlepath norm_mult intro!: contour_integral_uniform_limit)
 
 
-subsection\<open> General stepping result for derivative formulas.\<close>
+subsection\<open> General stepping result for derivative formulas\<close>
 
 proposition Cauchy_next_derivative:
   assumes "continuous_on (path_image \<gamma>) f'"
@@ -5614,7 +5614,7 @@ proof -
     by simp (rule fder)
 qed
 
-subsection\<open> Existence of all higher derivatives.\<close>
+subsection\<open>Existence of all higher derivatives\<close>
 
 proposition derivative_is_holomorphic:
   assumes "open s"
@@ -5699,7 +5699,7 @@ next
 qed
 
 
-subsection\<open> Morera's theorem.\<close>
+subsection\<open>Morera's theorem\<close>
 
 lemma Morera_local_triangle_ball:
   assumes "\<And>z. z \<in> s
@@ -5783,7 +5783,7 @@ proposition Morera_triangle:
 
 
 
-subsection\<open> Combining theorems for higher derivatives including Leibniz rule.\<close>
+subsection\<open>Combining theorems for higher derivatives including Leibniz rule\<close>
 
 lemma higher_deriv_linear [simp]:
     "(deriv ^^ n) (\<lambda>w. c*w) = (\<lambda>z. if n = 0 then c*z else if n = 1 then c else 0)"
@@ -6139,7 +6139,7 @@ corollary Cauchy_contour_integral_circlepath_2:
   by (simp add: power2_eq_square)
 
 
-subsection\<open>A holomorphic function is analytic, i.e. has local power series.\<close>
+subsection\<open>A holomorphic function is analytic, i.e. has local power series\<close>
 
 theorem holomorphic_power_series:
   assumes holf: "f holomorphic_on ball z r"
@@ -6255,7 +6255,7 @@ proof -
 qed
 
 
-subsection\<open>The Liouville theorem and the Fundamental Theorem of Algebra.\<close>
+subsection\<open>The Liouville theorem and the Fundamental Theorem of Algebra\<close>
 
 text\<open> These weak Liouville versions don't even need the derivative formula.\<close>
 
@@ -6343,7 +6343,7 @@ next
 qed
 
 
-subsection\<open> Weierstrass convergence theorem.\<close>
+subsection\<open>Weierstrass convergence theorem\<close>
 
 proposition holomorphic_uniform_limit:
   assumes cont: "eventually (\<lambda>n. continuous_on (cball z r) (f n) \<and> (f n) holomorphic_on ball z r) F"
@@ -6490,7 +6490,7 @@ proof -
 qed
 
 
-subsection\<open>Some more simple/convenient versions for applications.\<close>
+subsection\<open>Some more simple/convenient versions for applications\<close>
 
 lemma holomorphic_uniform_sequence:
   assumes S: "open S"
@@ -6548,7 +6548,7 @@ proof -
 qed
 
 
-subsection\<open>On analytic functions defined by a series.\<close>
+subsection\<open>On analytic functions defined by a series\<close>
  
 lemma series_and_derivative_comparison:
   fixes S :: "complex set"
@@ -6767,7 +6767,7 @@ corollary analytic_iff_power_series:
   by (simp add: analytic_on_open holomorphic_iff_power_series)
 
 
-subsection\<open>Equality between holomorphic functions, on open ball then connected set.\<close>
+subsection\<open>Equality between holomorphic functions, on open ball then connected set\<close>
 
 lemma holomorphic_fun_eq_on_ball:
    "\<lbrakk>f holomorphic_on ball z r; g holomorphic_on ball z r;
@@ -6846,7 +6846,7 @@ lemma holomorphic_fun_eq_const_on_connected:
   done
 
 
-subsection\<open>Some basic lemmas about poles/singularities.\<close>
+subsection\<open>Some basic lemmas about poles/singularities\<close>
 
 lemma pole_lemma:
   assumes holf: "f holomorphic_on s" and a: "a \<in> interior s"
@@ -7002,7 +7002,7 @@ proof -
 qed
 
 
-subsection\<open>General, homology form of Cauchy's theorem.\<close>
+subsection\<open>General, homology form of Cauchy's theorem\<close>
 
 text\<open>Proof is based on Dixon's, as presented in Lang's "Complex Analysis" book (page 147).\<close>
 

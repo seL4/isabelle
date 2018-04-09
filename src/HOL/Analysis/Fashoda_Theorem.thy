@@ -8,7 +8,7 @@ theory Fashoda_Theorem
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
 begin
 
-subsection \<open>Bijections between intervals.\<close>
+subsection \<open>Bijections between intervals\<close>
 
 definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
   where "interval_bij =

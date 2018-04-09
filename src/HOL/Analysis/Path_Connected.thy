@@ -3380,7 +3380,7 @@ next
       by (metis dw_le norm_minus_commute not_less order_trans rle wy)
 qed
 
-section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps.\<close>
+section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps\<close>
 
 text%important\<open> We often just want to require that it fixes some subset, but to take in
   the case of a loop homotopy, it's convenient to have a general property P.\<close>
@@ -3487,7 +3487,7 @@ next
 qed
 
 
-subsection%unimportant\<open> Trivial properties.\<close>
+subsection%unimportant\<open>Trivial properties\<close>
 
 lemma homotopic_with_imp_property: "homotopic_with P X Y f g \<Longrightarrow> P f \<and> P g"
   unfolding homotopic_with_def Ball_def
@@ -3742,7 +3742,7 @@ next
 qed
 
 
-subsection\<open>Homotopy of paths, maintaining the same endpoints.\<close>
+subsection\<open>Homotopy of paths, maintaining the same endpoints\<close>
 
 
 definition%important homotopic_paths :: "['a set, real \<Rightarrow> 'a, real \<Rightarrow> 'a::topological_space] \<Rightarrow> bool"
@@ -3958,7 +3958,7 @@ proposition%important homotopic_paths_linv:
 using%unimportant homotopic_paths_rinv [of "reversepath p" s] assms by simp
 
 
-subsection\<open> Homotopy of loops without requiring preservation of endpoints.\<close>
+subsection\<open>Homotopy of loops without requiring preservation of endpoints\<close>
 
 definition%important homotopic_loops :: "'a::topological_space set \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> bool"  where
  "homotopic_loops s p q \<equiv>
@@ -4197,7 +4197,7 @@ proof -
 qed
 
 
-subsection%unimportant\<open> Homotopy of "nearby" function, paths and loops.\<close>
+subsection%unimportant\<open>Homotopy of "nearby" function, paths and loops\<close>
 
 lemma homotopic_with_linear:
   fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
@@ -5521,7 +5521,7 @@ next
     by (metis open_openin openin_topspace subtopology_superset top.extremum topspace_euclidean_subtopology)
 qed
 
-subsection\<open>Sura-Bura's results about compact components of sets.\<close>
+subsection\<open>Sura-Bura's results about compact components of sets\<close>
 
 proposition Sura_Bura_compact:
   fixes S :: "'a::euclidean_space set"
@@ -7452,7 +7452,7 @@ by (simp add: assms path_connected_imp_connected path_connected_open_diff_counta
 
 
 
-subsection\<open> Self-homeomorphisms shuffling points about in various ways.\<close>
+subsection\<open>Self-homeomorphisms shuffling points about in various ways\<close>
 
 subsubsection%unimportant\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
 

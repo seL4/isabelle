@@ -6,7 +6,7 @@
    Author:     Johannes Hoelzl, TU Muenchen
 *)
 
-section \<open>Line segments, Starlike Sets, etc.\<close>
+section \<open>Line segments, Starlike Sets, etc\<close>
 
 theory Starlike
   imports Convex_Euclidean_Space
@@ -4157,7 +4157,7 @@ next
     by (metis Diff_cancel convex_hull_singleton insert_absorb2 open_segment_def segment_convex_hull)
 qed
 
-subsection%unimportant\<open>Similar results for closure and (relative or absolute) frontier.\<close>
+subsection%unimportant\<open>Similar results for closure and (relative or absolute) frontier\<close>
 
 lemma closure_convex_hull [simp]:
   fixes s :: "'a::euclidean_space set"
@@ -7119,7 +7119,7 @@ proof -
   done
 qed
 
-subsection\<open>Decomposing a vector into parts in orthogonal subspaces.\<close>
+subsection\<open>Decomposing a vector into parts in orthogonal subspaces\<close>
 
 text\<open>existence of orthonormal basis for a subspace.\<close>
 
@@ -7470,7 +7470,7 @@ next
   finally show "dim T \<le> dim S" by simp
 qed
 
-subsection\<open>Lower-dimensional affine subsets are nowhere dense.\<close>
+subsection\<open>Lower-dimensional affine subsets are nowhere dense\<close>
 
 proposition%important dense_complement_subspace:
   fixes S :: "'a :: euclidean_space set"
@@ -7583,7 +7583,7 @@ corollary dense_complement_convex_closed:
   by (simp add: assms dense_complement_convex)
 
 
-subsection%unimportant\<open>Parallel slices, etc.\<close>
+subsection%unimportant\<open>Parallel slices, etc\<close>
 
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
   with the normal vector to the slice parallel to the affine hull.\<close>
