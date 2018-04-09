@@ -660,12 +660,18 @@ lemma integrable_add: "f integrable_on S \<Longrightarrow> g integrable_on S \<L
 lemma integrable_cmul: "f integrable_on S \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_cmul)
 
-lemma integrable_on_cmult_iff:
+lemma integrable_on_scaleR_iff [simp]:
+  fixes c :: real
+  assumes "c \<noteq> 0"
+  shows "(\<lambda>x. c *\<^sub>R f x) integrable_on S \<longleftrightarrow> f integrable_on S"
+  using integrable_cmul[of "\<lambda>x. c *\<^sub>R f x" S "1 / c"] integrable_cmul[of f S c] \<open>c \<noteq> 0\<close>
+  by auto
+
+lemma integrable_on_cmult_iff [simp]:
   fixes c :: real
   assumes "c \<noteq> 0"
   shows "(\<lambda>x. c * f x) integrable_on S \<longleftrightarrow> f integrable_on S"
-  using integrable_cmul[of "\<lambda>x. c * f x" S "1 / c"] integrable_cmul[of f S c] \<open>c \<noteq> 0\<close>
-  by auto
+  using integrable_on_scaleR_iff [of c f] assms by simp
 
 lemma integrable_on_cmult_left:
   assumes "f integrable_on S"
@@ -675,6 +681,9 @@ lemma integrable_on_cmult_left:
 
 lemma integrable_neg: "f integrable_on S \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on S"
   unfolding integrable_on_def by(auto intro: has_integral_neg)
+
+lemma integrable_neg_iff: "(\<lambda>x. -f(x)) integrable_on S \<longleftrightarrow> f integrable_on S"
+  using integrable_neg by fastforce
 
 lemma integrable_diff:
   "f integrable_on S \<Longrightarrow> g integrable_on S \<Longrightarrow> (\<lambda>x. f x - g x) integrable_on S"
@@ -2295,20 +2304,20 @@ lemma negligible_Int:
   using assms negligible_subset by force
 
 lemma negligible_Un:
-  assumes "negligible s"
-    and "negligible t"
-  shows "negligible (s \<union> t)"
-  unfolding negligible_def
-proof (safe, goal_cases)
-  case (1 a b)
-  note assms[unfolded negligible_def,rule_format,of a b]
-  then show ?case
-    apply (subst has_integral_spike_eq[OF assms(2)])
-    defer
-    apply assumption
-    unfolding indicator_def
-    apply auto
-    done
+  assumes "negligible S" and T: "negligible T"
+  shows "negligible (S \<union> T)"
+proof -
+  have "(indicat_real (S \<union> T) has_integral 0) (cbox a b)"
+    if S0: "(indicat_real S has_integral 0) (cbox a b)" 
+      and  "(indicat_real T has_integral 0) (cbox a b)" for a b
+  proof (subst has_integral_spike_eq[OF T])
+    show "indicat_real S x = indicat_real (S \<union> T) x" if "x \<in> cbox a b - T" for x
+      by (metis Diff_iff Un_iff indicator_def that)
+    show "(indicat_real S has_integral 0) (cbox a b)"
+      by (simp add: S0)
+  qed
+  with assms show ?thesis
+    unfolding negligible_def by blast
 qed
 
 lemma negligible_Un_eq[simp]: "negligible (s \<union> t) \<longleftrightarrow> negligible s \<and> negligible t"
@@ -3430,7 +3439,7 @@ next
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis using False
       by (simp add: image_affinity_cbox content_cbox'
-        prod.distrib[symmetric] prod_constant[symmetric] inner_diff_left)
+        prod.distrib[symmetric] prod_constant[symmetric] inner_diff_left del: prod_constant)
   qed
 qed
 
@@ -5235,19 +5244,21 @@ subsection \<open>Adding integrals over several sets\<close>
 
 lemma has_integral_Un:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes f: "(f has_integral i) s" "(f has_integral j) t"
-    and neg: "negligible (s \<inter> t)"
-  shows "(f has_integral (i + j)) (s \<union> t)"
-proof -
-  note * = has_integral_restrict_UNIV[symmetric, of f]
-  show ?thesis
-    unfolding *
-    apply (rule has_integral_spike[OF assms(3)])
-    defer
-    apply (rule has_integral_add[OF f[unfolded *]])
-    apply auto
-    done
-qed
+  assumes f: "(f has_integral i) S" "(f has_integral j) T"
+    and neg: "negligible (S \<inter> T)"
+  shows "(f has_integral (i + j)) (S \<union> T)"
+  unfolding has_integral_restrict_UNIV[symmetric, of f]
+proof (rule has_integral_spike[OF neg])
+  let ?f = "\<lambda>x. (if x \<in> S then f x else 0) + (if x \<in> T then f x else 0)"
+  show "(?f has_integral i + j) UNIV"
+    by (simp add: f has_integral_add)
+qed auto
+
+lemma integral_Un [simp]:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
+  assumes "f integrable_on S" "f integrable_on T" "negligible (S \<inter> T)"
+  shows "integral (S \<union> T) f = integral S f + integral T f"
+  using has_integral_Un by (simp add: has_integral_Un assms integrable_integral integral_unique)
 
 lemma integrable_Un:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: banach"

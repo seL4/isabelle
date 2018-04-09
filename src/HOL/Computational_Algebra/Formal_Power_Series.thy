@@ -3434,10 +3434,12 @@ proof (cases n)
   then show ?thesis by simp
 next
   case (Suc m)
-  have th0: "a^n = prod (\<lambda>k. a) {0..m}" "(a oo c) ^ n = prod (\<lambda>k. a oo c) {0..m}"
+  have "(\<Prod>n = 0..m. a) oo c = (\<Prod>n = 0..m. a oo c)"
+    using c0 fps_compose_prod_distrib by blast
+  moreover have th0: "a^n = prod (\<lambda>k. a) {0..m}" "(a oo c) ^ n = prod (\<lambda>k. a oo c) {0..m}"
     by (simp_all add: prod_constant Suc)
-  then show ?thesis
-    by (simp add: fps_compose_prod_distrib[OF c0])
+  ultimately show ?thesis
+    by presburger
 qed
 
 lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"

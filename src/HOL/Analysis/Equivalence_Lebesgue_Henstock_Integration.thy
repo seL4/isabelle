@@ -1289,7 +1289,8 @@ proof (clarsimp simp: completion.null_sets_outer)
       have "prj1 (vf X - uf X) ^ DIM('M) = (\<Prod>i::'M \<in> Basis. prj1 (vf X - uf X))"
         by (rule prod_constant [symmetric])
       also have "\<dots> = (\<Prod>i\<in>Basis. vf X \<bullet> i - uf X \<bullet> i)"
-        using prj1_idem [OF \<open>X \<in> \<D>\<close>] by (auto simp: algebra_simps intro: prod.cong)
+        apply (rule prod.cong [OF refl])
+        by (simp add: \<open>X \<in> \<D>\<close> inner_diff_left prj1_idem)
       finally have prj1_eq: "prj1 (vf X - uf X) ^ DIM('M) = (\<Prod>i\<in>Basis. vf X \<bullet> i - uf X \<bullet> i)" .
       have "uf X \<in> cbox (uf X) (vf X)" "vf X \<in> cbox (uf X) (vf X)"
         using uvz [OF \<open>X \<in> \<D>\<close>] by (force simp: mem_box)+

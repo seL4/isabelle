@@ -111,7 +111,6 @@ instance
 
 end
 
-
 subsection \<open>Ordering properties of arithmetic operations\<close>
 
 instance int :: ordered_cancel_ab_semigroup_add
@@ -422,6 +421,12 @@ lemma of_int_less_of_int_power_cancel_iff[simp]: "(of_int b) ^ w < of_int x \<lo
 
 lemma of_int_power_less_of_int_cancel_iff[simp]: "of_int x < (of_int b) ^ w\<longleftrightarrow> x < b ^ w"
   by (metis (mono_tags) of_int_less_iff of_int_power)
+
+lemma of_int_max: "of_int (max x y) = max (of_int x) (of_int y)"
+  by (auto simp: max_def)
+
+lemma of_int_min: "of_int (min x y) = min (of_int x) (of_int y)"
+  by (auto simp: min_def)
 
 end
 
