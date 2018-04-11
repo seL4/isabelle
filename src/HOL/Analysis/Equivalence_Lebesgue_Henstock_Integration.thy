@@ -839,13 +839,15 @@ translations
 lemma set_integral_reflect:
   fixes S and f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "(LBINT x : S. f x) = (LBINT x : {x. - x \<in> S}. f (- x))"
+  unfolding set_lebesgue_integral_def
   by (subst lborel_integral_real_affine[where c="-1" and t=0])
      (auto intro!: Bochner_Integration.integral_cong split: split_indicator)
 
 lemma borel_integrable_atLeastAtMost':
   fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
   assumes f: "continuous_on {a..b} f"
-  shows "set_integrable lborel {a..b} f" (is "integrable _ ?f")
+  shows "set_integrable lborel {a..b} f" 
+  unfolding set_integrable_def
   by (intro borel_integrable_compact compact_Icc f)
 
 lemma integral_FTC_atLeastAtMost:
@@ -857,7 +859,8 @@ lemma integral_FTC_atLeastAtMost:
 proof -
   let ?f = "\<lambda>x. indicator {a .. b} x *\<^sub>R f x"
   have "(?f has_integral (\<integral>x. ?f x \<partial>lborel)) UNIV"
-    using borel_integrable_atLeastAtMost'[OF f] by (rule has_integral_integral_lborel)
+    using borel_integrable_atLeastAtMost'[OF f]
+    unfolding set_integrable_def by (rule has_integral_integral_lborel)
   moreover
   have "(f has_integral F b - F a) {a .. b}"
     by (intro fundamental_theorem_of_calculus ballI assms) auto
@@ -876,7 +879,8 @@ lemma set_borel_integral_eq_integral:
 proof -
   let ?f = "\<lambda>x. indicator S x *\<^sub>R f x"
   have "(?f has_integral LINT x : S | lborel. f x) UNIV"
-    by (rule has_integral_integral_lborel) fact
+    using assms has_integral_integral_lborel 
+    unfolding set_integrable_def set_lebesgue_integral_def by blast
   hence 1: "(f has_integral (set_lebesgue_integral lborel S f)) S"
     apply (subst has_integral_restrict_UNIV [symmetric])
     apply (rule has_integral_eq)
@@ -893,8 +897,8 @@ lemma has_integral_set_lebesgue:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "set_integrable lebesgue S f"
   shows "(f has_integral (LINT x:S|lebesgue. f x)) S"
-  using has_integral_integral_lebesgue[OF f]
-  by (simp_all add: indicator_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] has_integral_restrict_UNIV cong: if_cong)
+  using has_integral_integral_lebesgue f 
+  by (fastforce simp add: set_integrable_def set_lebesgue_integral_def indicator_def if_distrib[of "\<lambda>x. x *\<^sub>R f _"] cong: if_cong)
 
 lemma set_lebesgue_integral_eq_integral:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -915,26 +919,26 @@ abbreviation
 
 lemma absolutely_integrable_on_def:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  shows "f absolutely_integrable_on s \<longleftrightarrow> f integrable_on s \<and> (\<lambda>x. norm (f x)) integrable_on s"
+  shows "f absolutely_integrable_on S \<longleftrightarrow> f integrable_on S \<and> (\<lambda>x. norm (f x)) integrable_on S"
 proof safe
-  assume f: "f absolutely_integrable_on s"
-  then have nf: "integrable lebesgue (\<lambda>x. norm (indicator s x *\<^sub>R f x))"
-    by (intro integrable_norm)
-  note integrable_on_lebesgue[OF f] integrable_on_lebesgue[OF nf]
-  moreover have
-    "(\<lambda>x. indicator s x *\<^sub>R f x) = (\<lambda>x. if x \<in> s then f x else 0)"
-    "(\<lambda>x. norm (indicator s x *\<^sub>R f x)) = (\<lambda>x. if x \<in> s then norm (f x) else 0)"
+  assume f: "f absolutely_integrable_on S"
+  then have nf: "integrable lebesgue (\<lambda>x. norm (indicator S x *\<^sub>R f x))"
+    using integrable_norm set_integrable_def by blast
+  show "f integrable_on S"
+    by (rule set_lebesgue_integral_eq_integral[OF f])
+  have "(\<lambda>x. norm (indicator S x *\<^sub>R f x)) = (\<lambda>x. if x \<in> S then norm (f x) else 0)"
     by auto
-  ultimately show "f integrable_on s" "(\<lambda>x. norm (f x)) integrable_on s"
-    by (simp_all add: integrable_restrict_UNIV)
+  with integrable_on_lebesgue[OF nf] show "(\<lambda>x. norm (f x)) integrable_on S"
+    by (simp add: integrable_restrict_UNIV)
 next
-  assume f: "f integrable_on s" and nf: "(\<lambda>x. norm (f x)) integrable_on s"
-  show "f absolutely_integrable_on s"
+  assume f: "f integrable_on S" and nf: "(\<lambda>x. norm (f x)) integrable_on S"
+  show "f absolutely_integrable_on S"
+    unfolding set_integrable_def
   proof (rule integrableI_bounded)
-    show "(\<lambda>x. indicator s x *\<^sub>R f x) \<in> borel_measurable lebesgue"
-      using f has_integral_implies_lebesgue_measurable[of f _ s] by (auto simp: integrable_on_def)
-    show "(\<integral>\<^sup>+ x. ennreal (norm (indicator s x *\<^sub>R f x)) \<partial>lebesgue) < \<infinity>"
-      using nf nn_integral_has_integral_lebesgue[of "\<lambda>x. norm (f x)" _ s]
+    show "(\<lambda>x. indicator S x *\<^sub>R f x) \<in> borel_measurable lebesgue"
+      using f has_integral_implies_lebesgue_measurable[of f _ S] by (auto simp: integrable_on_def)
+    show "(\<integral>\<^sup>+ x. ennreal (norm (indicator S x *\<^sub>R f x)) \<partial>lebesgue) < \<infinity>"
+      using nf nn_integral_has_integral_lebesgue[of "\<lambda>x. norm (f x)" _ S]
       by (auto simp: integrable_on_def nn_integral_completion)
   qed
 qed
@@ -951,12 +955,13 @@ lemma absolutely_integrable_on_open_interval:
   by (auto simp: integrable_on_open_interval absolutely_integrable_on_def)
 
 lemma absolutely_integrable_restrict_UNIV:
-  "(\<lambda>x. if x \<in> s then f x else 0) absolutely_integrable_on UNIV \<longleftrightarrow> f absolutely_integrable_on s"
+  "(\<lambda>x. if x \<in> S then f x else 0) absolutely_integrable_on UNIV \<longleftrightarrow> f absolutely_integrable_on S"
+    unfolding set_integrable_def
   by (intro arg_cong2[where f=integrable]) auto
 
 lemma absolutely_integrable_onI:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  shows "f integrable_on s \<Longrightarrow> (\<lambda>x. norm (f x)) integrable_on s \<Longrightarrow> f absolutely_integrable_on s"
+  shows "f integrable_on S \<Longrightarrow> (\<lambda>x. norm (f x)) integrable_on S \<Longrightarrow> f absolutely_integrable_on S"
   unfolding absolutely_integrable_on_def by auto
 
 lemma nonnegative_absolutely_integrable_1:
@@ -984,7 +989,7 @@ qed
 
 lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
   by (subst absolutely_integrable_on_iff_nonneg[symmetric])
-     (simp_all add: lmeasurable_iff_integrable)
+     (simp_all add: lmeasurable_iff_integrable set_integrable_def)
 
 lemma lmeasure_integral_UNIV: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral UNIV (indicator S)"
   by (simp add: lmeasurable_iff_has_integral integral_unique)
@@ -1532,7 +1537,8 @@ qed
 lemma set_integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "set_integrable M k f \<Longrightarrow> norm (LINT x:k|M. f x) \<le> LINT x:k|M. norm (f x)"
-  using integral_norm_bound[of M "\<lambda>x. indicator k x *\<^sub>R f x"] by simp
+  using integral_norm_bound[of M "\<lambda>x. indicator k x *\<^sub>R f x"] by (simp add: set_lebesgue_integral_def)
+
 
 lemma set_integral_finite_UN_AE:
   fixes f :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
@@ -1557,13 +1563,13 @@ proof (induction I rule: finite_subset_induct')
   with insert.hyps insert.IH[symmetric]
   show ?case
     by (auto intro!: set_integral_Un_AE sets.finite_UN f set_integrable_UN)
-qed simp
+qed (simp add: set_lebesgue_integral_def)
 
 lemma set_integrable_norm:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
   assumes f: "set_integrable M k f" shows "set_integrable M k (\<lambda>x. norm (f x))"
-  using integrable_norm[OF f] by simp
-
+  using integrable_norm f by (force simp add: set_integrable_def)
+ 
 lemma absolutely_integrable_bounded_variation:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes f: "f absolutely_integrable_on UNIV"
@@ -2120,30 +2126,36 @@ lemma absolutely_integrable_linear:
     and h :: "'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> (h \<circ> f) absolutely_integrable_on s"
   using integrable_bounded_linear[of h lebesgue "\<lambda>x. indicator s x *\<^sub>R f x"]
-  by (simp add: linear_simps[of h])
+  by (simp add: linear_simps[of h] set_integrable_def)
+
+lemma absolutely_integrable_zero [simp]: "(\<lambda>x. 0) absolutely_integrable_on S"
+    by (simp add: set_integrable_def)
 
 lemma absolutely_integrable_sum:
   fixes f :: "'a \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes "finite t" and "\<And>a. a \<in> t \<Longrightarrow> (f a) absolutely_integrable_on s"
-  shows "(\<lambda>x. sum (\<lambda>a. f a x) t) absolutely_integrable_on s"
-  using assms(1,2) by induct auto
+  assumes "finite T" and "\<And>a. a \<in> T \<Longrightarrow> (f a) absolutely_integrable_on S"
+  shows "(\<lambda>x. sum (\<lambda>a. f a x) T) absolutely_integrable_on S"
+  using assms by induction auto
 
 lemma absolutely_integrable_integrable_bound:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes le: "\<forall>x\<in>s. norm (f x) \<le> g x" and f: "f integrable_on s" and g: "g integrable_on s"
-  shows "f absolutely_integrable_on s"
+  assumes le: "\<And>x. x\<in>S \<Longrightarrow> norm (f x) \<le> g x" and f: "f integrable_on S" and g: "g integrable_on S"
+  shows "f absolutely_integrable_on S"
+    unfolding set_integrable_def
 proof (rule Bochner_Integration.integrable_bound)
-  show "g absolutely_integrable_on s"
+  have "g absolutely_integrable_on S"
     unfolding absolutely_integrable_on_def
   proof
-    show "(\<lambda>x. norm (g x)) integrable_on s"
+    show "(\<lambda>x. norm (g x)) integrable_on S"
       using le norm_ge_zero[of "f _"]
       by (intro integrable_spike_finite[OF _ _ g, of "{}"])
          (auto intro!: abs_of_nonneg intro: order_trans simp del: norm_ge_zero)
   qed fact
-  show "set_borel_measurable lebesgue s f"
+  then show "integrable lebesgue (\<lambda>x. indicat_real S x *\<^sub>R g x)"
+    by (simp add: set_integrable_def)
+  show "(\<lambda>x. indicat_real S x *\<^sub>R f x) \<in> borel_measurable lebesgue"
     using f by (auto intro: has_integral_implies_lebesgue_measurable simp: integrable_on_def)
-qed (use le in \<open>auto intro!: always_eventually split: split_indicator\<close>)
+qed (use le in \<open>force intro!: always_eventually split: split_indicator\<close>)
 
 subsection \<open>Componentwise\<close>
 
@@ -2175,7 +2187,7 @@ qed
 
 lemma absolutely_integrable_componentwise:
   shows "(\<And>b. b \<in> Basis \<Longrightarrow> (\<lambda>x. f x \<bullet> b) absolutely_integrable_on A) \<Longrightarrow> f absolutely_integrable_on A"
-  by (simp add: absolutely_integrable_componentwise_iff)
+  using absolutely_integrable_componentwise_iff by blast
 
 lemma absolutely_integrable_component:
   "f absolutely_integrable_on A \<Longrightarrow> (\<lambda>x. f x \<bullet> (b :: 'b :: euclidean_space)) absolutely_integrable_on A"
@@ -2190,7 +2202,8 @@ proof -
   have "(\<lambda>x. c *\<^sub>R x) o f absolutely_integrable_on S"
     apply (rule absolutely_integrable_linear [OF assms])
     by (simp add: bounded_linear_scaleR_right)
-  then show ?thesis by simp
+  then show ?thesis
+    using assms by blast
 qed
 
 lemma absolutely_integrable_scaleR_right:
@@ -2202,7 +2215,7 @@ lemma absolutely_integrable_norm:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "f absolutely_integrable_on S"
   shows "(norm o f) absolutely_integrable_on S"
-  using assms unfolding absolutely_integrable_on_def by auto
+  using assms by (simp add: absolutely_integrable_on_def o_def)
     
 lemma absolutely_integrable_abs:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
@@ -2405,56 +2418,60 @@ subsection \<open>Dominated convergence\<close>
 
 lemma dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes f: "\<And>k. (f k) integrable_on s" and h: "h integrable_on s"
-    and le: "\<And>k. \<forall>x \<in> s. norm (f k x) \<le> h x"
-    and conv: "\<forall>x \<in> s. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
-  shows "g integrable_on s" "(\<lambda>k. integral s (f k)) \<longlonglongrightarrow> integral s g"
+  assumes f: "\<And>k. (f k) integrable_on S" and h: "h integrable_on S"
+    and le: "\<And>k x. x \<in> S \<Longrightarrow> norm (f k x) \<le> h x"
+    and conv: "\<forall>x \<in> S. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+  shows "g integrable_on S" "(\<lambda>k. integral S (f k)) \<longlonglongrightarrow> integral S g"
 proof -
-  have 3: "h absolutely_integrable_on s"
+  have 3: "h absolutely_integrable_on S"
     unfolding absolutely_integrable_on_def
   proof
-    show "(\<lambda>x. norm (h x)) integrable_on s"
+    show "(\<lambda>x. norm (h x)) integrable_on S"
     proof (intro integrable_spike_finite[OF _ _ h, of "{}"] ballI)
-      fix x assume "x \<in> s - {}" then show "norm (h x) = h x"
+      fix x assume "x \<in> S - {}" then show "norm (h x) = h x"
         by (metis Diff_empty abs_of_nonneg bot_set_def le norm_ge_zero order_trans real_norm_def)
     qed auto
   qed fact
-  have 2: "set_borel_measurable lebesgue s (f k)" for k
+  have 2: "set_borel_measurable lebesgue S (f k)" for k
+    unfolding set_borel_measurable_def
     using f by (auto intro: has_integral_implies_lebesgue_measurable simp: integrable_on_def)
-  then have 1: "set_borel_measurable lebesgue s g"
+  then have 1: "set_borel_measurable lebesgue S g"
+    unfolding set_borel_measurable_def
     by (rule borel_measurable_LIMSEQ_metric) (use conv in \<open>auto split: split_indicator\<close>)
-  have 4: "AE x in lebesgue. (\<lambda>i. indicator s x *\<^sub>R f i x) \<longlonglongrightarrow> indicator s x *\<^sub>R g x"
-    "AE x in lebesgue. norm (indicator s x *\<^sub>R f k x) \<le> indicator s x *\<^sub>R h x" for k
+  have 4: "AE x in lebesgue. (\<lambda>i. indicator S x *\<^sub>R f i x) \<longlonglongrightarrow> indicator S x *\<^sub>R g x"
+    "AE x in lebesgue. norm (indicator S x *\<^sub>R f k x) \<le> indicator S x *\<^sub>R h x" for k
     using conv le by (auto intro!: always_eventually split: split_indicator)
-
-  have g: "g absolutely_integrable_on s"
-    using 1 2 3 4 by (rule integrable_dominated_convergence)
-  then show "g integrable_on s"
+  have g: "g absolutely_integrable_on S"
+    using 1 2 3 4 unfolding set_borel_measurable_def set_integrable_def    
+    by (rule integrable_dominated_convergence)
+  then show "g integrable_on S"
     by (auto simp: absolutely_integrable_on_def)
-  have "(\<lambda>k. (LINT x:s|lebesgue. f k x)) \<longlonglongrightarrow> (LINT x:s|lebesgue. g x)"
-    using 1 2 3 4 by (rule integral_dominated_convergence)
-  then show "(\<lambda>k. integral s (f k)) \<longlonglongrightarrow> integral s g"
+  have "(\<lambda>k. (LINT x:S|lebesgue. f k x)) \<longlonglongrightarrow> (LINT x:S|lebesgue. g x)"
+    unfolding set_borel_measurable_def set_lebesgue_integral_def
+    using 1 2 3 4 unfolding set_borel_measurable_def set_lebesgue_integral_def set_integrable_def
+    by (rule integral_dominated_convergence)
+  then show "(\<lambda>k. integral S (f k)) \<longlonglongrightarrow> integral S g"
     using g absolutely_integrable_integrable_bound[OF le f h]
     by (subst (asm) (1 2) set_lebesgue_integral_eq_integral) auto
 qed
 
 lemma has_integral_dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
-  assumes "\<And>k. (f k has_integral y k) s" "h integrable_on s"
-    "\<And>k. \<forall>x\<in>s. norm (f k x) \<le> h x" "\<forall>x\<in>s. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+  assumes "\<And>k. (f k has_integral y k) S" "h integrable_on S"
+    "\<And>k. \<forall>x\<in>S. norm (f k x) \<le> h x" "\<forall>x\<in>S. (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
     and x: "y \<longlonglongrightarrow> x"
-  shows "(g has_integral x) s"
+  shows "(g has_integral x) S"
 proof -
-  have int_f: "\<And>k. (f k) integrable_on s"
+  have int_f: "\<And>k. (f k) integrable_on S"
     using assms by (auto simp: integrable_on_def)
-  have "(g has_integral (integral s g)) s"
-    by (intro integrable_integral dominated_convergence[OF int_f assms(2)]) fact+
-  moreover have "integral s g = x"
+  have "(g has_integral (integral S g)) S"
+    by (metis assms(2-4) dominated_convergence(1) has_integral_integral int_f)
+  moreover have "integral S g = x"
   proof (rule LIMSEQ_unique)
-    show "(\<lambda>i. integral s (f i)) \<longlonglongrightarrow> x"
+    show "(\<lambda>i. integral S (f i)) \<longlonglongrightarrow> x"
       using integral_unique[OF assms(1)] x by simp
-    show "(\<lambda>i. integral s (f i)) \<longlonglongrightarrow> integral s g"
-      by (intro dominated_convergence[OF int_f assms(2)]) fact+
+    show "(\<lambda>i. integral S (f i)) \<longlonglongrightarrow> integral S g"
+      by (metis assms(2) assms(3) assms(4) dominated_convergence(2) int_f)
   qed
   ultimately show ?thesis
     by simp
@@ -2720,7 +2737,11 @@ proof -
   then have "integral (closure S) f = set_lebesgue_integral lebesgue (closure S) f"
     by (intro set_lebesgue_integral_eq_integral(2)[symmetric])
   also have "\<dots> = 0 \<longleftrightarrow> (AE x in lebesgue. indicator (closure S) x *\<^sub>R f x = 0)"
-    by (rule integral_nonneg_eq_0_iff_AE[OF af]) (use nonneg in \<open>auto simp: indicator_def\<close>)
+    unfolding set_lebesgue_integral_def
+  proof (rule integral_nonneg_eq_0_iff_AE)
+    show "integrable lebesgue (\<lambda>x. indicat_real (closure S) x *\<^sub>R f x)"
+      by (metis af set_integrable_def)
+  qed (use nonneg in \<open>auto simp: indicator_def\<close>)
   also have "\<dots> \<longleftrightarrow> (AE x in lebesgue. x \<in> {x. x \<in> closure S \<longrightarrow> f x = 0})"
     by (auto simp: indicator_def)
   finally have "(AE x in lebesgue. x \<in> {x. x \<in> closure S \<longrightarrow> f x = 0})" by simp

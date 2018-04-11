@@ -51,9 +51,7 @@ lemma open_einterval[simp]: "open (einterval a b)"
 lemma borel_einterval[measurable]: "einterval a b \<in> sets borel"
   unfolding einterval_def by measurable
 
-(*
-    Approximating a (possibly infinite) interval
-*)
+subsection\<open>Approximating a (possibly infinite) interval\<close>
 
 lemma filterlim_sup1: "(LIM x F. f x :> G1) \<Longrightarrow> (LIM x F. f x :> (sup G1 G2))"
  unfolding filterlim_def by (auto intro: le_supI1)
@@ -175,9 +173,7 @@ syntax
 translations
   "LBINT x=a..b. f" == "CONST interval_lebesgue_integral CONST lborel a b (\<lambda>x. f)"
 
-(*
-    Basic properties of integration over an interval.
-*)
+subsection\<open>Basic properties of integration over an interval\<close>
 
 lemma interval_lebesgue_integral_cong:
   "a \<le> b \<Longrightarrow> (\<And>x. x \<in> einterval a b \<Longrightarrow> f x = g x) \<Longrightarrow> einterval a b \<in> sets M \<Longrightarrow>
@@ -200,7 +196,7 @@ proof -
   show ?thesis
     unfolding interval_lebesgue_integrable_def
     using lborel_integrable_real_affine_iff[symmetric, of "-1" "\<lambda>x. indicator (einterval _ _) x *\<^sub>R f x" 0]
-    by (simp add: *)
+    by (simp add: * set_integrable_def)
 qed
 
 lemma interval_lebesgue_integral_add [intro, simp]:
@@ -260,7 +256,7 @@ lemma interval_lebesgue_integral_divide [simp]:
 
 lemma interval_lebesgue_integral_uminus:
   "interval_lebesgue_integral M a b (\<lambda>x. - f x) = - interval_lebesgue_integral M a b f"
-  by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def)
+  by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
 
 lemma interval_lebesgue_integral_of_real:
   "interval_lebesgue_integral M a b (\<lambda>x. complex_of_real (f x)) =
@@ -287,10 +283,10 @@ lemma interval_lebesgue_integral_gt_eq':
 using assms by (auto simp add: interval_lebesgue_integral_def less_imp_le einterval_def)
 
 lemma interval_integral_endpoints_same [simp]: "(LBINT x=a..a. f x) = 0"
-  by (simp add: interval_lebesgue_integral_def einterval_same)
+  by (simp add: interval_lebesgue_integral_def set_lebesgue_integral_def einterval_same)
 
 lemma interval_integral_endpoints_reverse: "(LBINT x=a..b. f x) = -(LBINT x=b..a. f x)"
-  by (cases a b rule: linorder_cases) (auto simp: interval_lebesgue_integral_def einterval_same)
+  by (cases a b rule: linorder_cases) (auto simp: interval_lebesgue_integral_def set_lebesgue_integral_def einterval_same)
 
 lemma interval_integrable_endpoints_reverse:
   "interval_lebesgue_integrable lborel a b f \<longleftrightarrow>
@@ -304,15 +300,16 @@ proof (induct a b rule: linorder_wlog)
     by (auto simp add: interval_lebesgue_integral_def interval_integrable_endpoints_reverse
              split: if_split_asm)
 next
-  case (le a b) then show ?case
-    unfolding interval_lebesgue_integral_def
-    by (subst set_integral_reflect)
-       (auto simp: interval_lebesgue_integrable_def einterval_iff
-                   ereal_uminus_le_reorder ereal_uminus_less_reorder not_less
-                   uminus_ereal.simps[symmetric]
+  case (le a b) 
+  have "LBINT x:{x. - x \<in> einterval a b}. f (- x) = LBINT x:einterval (- b) (- a). f (- x)"
+    unfolding interval_lebesgue_integrable_def set_lebesgue_integral_def
+    apply (rule Bochner_Integration.integral_cong [OF refl])
+    by (auto simp: einterval_iff ereal_uminus_le_reorder ereal_uminus_less_reorder not_less uminus_ereal.simps[symmetric]
              simp del: uminus_ereal.simps
-             intro!: Bochner_Integration.integral_cong
              split: split_indicator)
+  then show ?case
+    unfolding interval_lebesgue_integral_def 
+    by (subst set_integral_reflect) (simp add: le)
 qed
 
 lemma interval_lebesgue_integral_0_infty:
@@ -328,21 +325,19 @@ lemma interval_integrable_to_infinity_eq: "(interval_lebesgue_integrable M a \<i
   (set_integrable M {a<..} f)"
   unfolding interval_lebesgue_integrable_def by auto
 
-(*
-    Basic properties of integration over an interval wrt lebesgue measure.
-*)
+subsection\<open>Basic properties of integration over an interval wrt lebesgue measure\<close>
 
 lemma interval_integral_zero [simp]:
   fixes a b :: ereal
   shows"LBINT x=a..b. 0 = 0"
-unfolding interval_lebesgue_integral_def einterval_eq
+unfolding interval_lebesgue_integral_def set_lebesgue_integral_def einterval_eq
 by simp
 
 lemma interval_integral_const [intro, simp]:
   fixes a b c :: real
   shows "interval_lebesgue_integrable lborel a b (\<lambda>x. c)" and "LBINT x=a..b. c = c * (b - a)"
-unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def einterval_eq
-by (auto simp add:  less_imp_le field_simps measure_def)
+  unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def einterval_eq
+  by (auto simp add: less_imp_le field_simps measure_def set_integrable_def set_lebesgue_integral_def)
 
 lemma interval_integral_cong_AE:
   assumes [measurable]: "f \<in> borel_measurable borel" "g \<in> borel_measurable borel"
@@ -429,7 +424,7 @@ lemma interval_integral_discrete_difference:
   and anti_eq: "\<And>x. b \<le> a \<Longrightarrow> b < x \<Longrightarrow> x < a \<Longrightarrow> x \<notin> X \<Longrightarrow> f x = g x"
   assumes "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
   shows "interval_lebesgue_integral M a b f = interval_lebesgue_integral M a b g"
-  unfolding interval_lebesgue_integral_def
+  unfolding interval_lebesgue_integral_def set_lebesgue_integral_def
   apply (intro if_cong refl arg_cong[where f="\<lambda>x. - x"] integral_discrete_difference[of X] assms)
   apply (auto simp: eq anti_eq einterval_iff split: split_indicator)
   done
@@ -444,13 +439,17 @@ proof -
     then have ord: "a \<le> b" "b \<le> c" "a \<le> c" and f': "set_integrable lborel (einterval a c) f"
       by (auto simp: interval_lebesgue_integrable_def)
     then have f: "set_borel_measurable borel (einterval a c) f"
+      unfolding set_integrable_def set_borel_measurable_def
       by (drule_tac borel_measurable_integrable) simp
     have "(LBINT x:einterval a c. f x) = (LBINT x:einterval a b \<union> einterval b c. f x)"
     proof (rule set_integral_cong_set)
       show "AE x in lborel. (x \<in> einterval a b \<union> einterval b c) = (x \<in> einterval a c)"
         using AE_lborel_singleton[of "real_of_ereal b"] ord
         by (cases a b c rule: ereal3_cases) (auto simp: einterval_iff)
-    qed (insert ord, auto intro!: set_borel_measurable_subset[OF f] simp: einterval_iff)
+      show "set_borel_measurable lborel (einterval a c) f" "set_borel_measurable lborel (einterval a b \<union> einterval b c) f"
+        unfolding set_borel_measurable_def
+        using ord by (auto simp: einterval_iff intro!: set_borel_measurable_subset[OF f, unfolded set_borel_measurable_def])
+    qed
     also have "\<dots> = (LBINT x:einterval a b. f x) + (LBINT x:einterval b c. f x)"
       using ord
       by (intro set_integral_Un_AE) (auto intro!: set_integrable_subset[OF f'] simp: einterval_iff not_less)
@@ -475,9 +474,10 @@ lemma interval_integrable_isCont:
     interval_lebesgue_integrable lborel a b f"
 proof (induct a b rule: linorder_wlog)
   case (le a b) then show ?case
+    unfolding interval_lebesgue_integrable_def set_integrable_def
     by (auto simp: interval_lebesgue_integrable_def
-             intro!: set_integrable_subset[OF borel_integrable_compact[of "{a .. b}"]]
-                     continuous_at_imp_continuous_on)
+        intro!: set_integrable_subset[unfolded set_integrable_def, OF borel_integrable_compact[of "{a .. b}"]]
+        continuous_at_imp_continuous_on)
 qed (auto intro: interval_integrable_endpoints_reverse[THEN iffD1])
 
 lemma interval_integrable_continuous_on:
@@ -497,9 +497,8 @@ lemma interval_integral_eq_integral':
   shows "a \<le> b \<Longrightarrow> set_integrable lborel (einterval a b) f \<Longrightarrow> LBINT x=a..b. f x = integral (einterval a b) f"
   by (subst interval_lebesgue_integral_le_eq, simp) (rule set_borel_integral_eq_integral)
 
-(*
-    General limit approximation arguments
-*)
+
+subsection\<open>General limit approximation arguments\<close>
 
 lemma interval_integral_Icc_approx_nonneg:
   fixes a b :: ereal
@@ -517,7 +516,7 @@ lemma interval_integral_Icc_approx_nonneg:
     "set_integrable lborel (einterval a b) f"
     "(LBINT x=a..b. f x) = C"
 proof -
-  have 1: "\<And>i. set_integrable lborel {l i..u i} f" by (rule f_integrable)
+  have 1 [unfolded set_integrable_def]: "\<And>i. set_integrable lborel {l i..u i} f" by (rule f_integrable)
   have 2: "AE x in lborel. mono (\<lambda>n. indicator {l n..u n} x *\<^sub>R f x)"
   proof -
      from f_nonneg have "AE x in lborel. \<forall>i. l i \<le> x \<longrightarrow> x \<le> u i \<longrightarrow> 0 \<le> f x"
@@ -544,14 +543,16 @@ proof -
       unfolding approx(1) by (auto intro!: AE_I2 Lim_eventually split: split_indicator)
   qed
   have 4: "(\<lambda>i. \<integral> x. indicator {l i..u i} x *\<^sub>R f x \<partial>lborel) \<longlonglongrightarrow> C"
-    using lbint_lim by (simp add: interval_integral_Icc approx less_imp_le)
-  have 5: "set_borel_measurable lborel (einterval a b) f" by (rule assms)
+    using lbint_lim by (simp add: interval_integral_Icc [unfolded set_lebesgue_integral_def] approx less_imp_le)
+  have 5: "(\<lambda>x. indicat_real (einterval a b) x *\<^sub>R f x) \<in> borel_measurable lborel"
+    using f_measurable set_borel_measurable_def by blast
   have "(LBINT x=a..b. f x) = lebesgue_integral lborel (\<lambda>x. indicator (einterval a b) x *\<^sub>R f x)"
-    using assms by (simp add: interval_lebesgue_integral_def less_imp_le)
-  also have "... = C" by (rule integral_monotone_convergence [OF 1 2 3 4 5])
+    using assms by (simp add: interval_lebesgue_integral_def set_lebesgue_integral_def less_imp_le)
+  also have "... = C"
+    by (rule integral_monotone_convergence [OF 1 2 3 4 5])
   finally show "(LBINT x=a..b. f x) = C" .
-
   show "set_integrable lborel (einterval a b) f"
+    unfolding set_integrable_def
     by (rule integrable_monotone_convergence[OF 1 2 3 4 5])
 qed
 
@@ -566,13 +567,14 @@ lemma interval_integral_Icc_approx_integrable:
   shows "(\<lambda>i. LBINT x=l i.. u i. f x) \<longlonglongrightarrow> (LBINT x=a..b. f x)"
 proof -
   have "(\<lambda>i. LBINT x:{l i.. u i}. f x) \<longlonglongrightarrow> (LBINT x:einterval a b. f x)"
+    unfolding set_lebesgue_integral_def
   proof (rule integral_dominated_convergence)
     show "integrable lborel (\<lambda>x. norm (indicator (einterval a b) x *\<^sub>R f x))"
-      by (rule integrable_norm) fact
-    show "set_borel_measurable lborel (einterval a b) f"
-      using f_integrable by (rule borel_measurable_integrable)
-    then show "\<And>i. set_borel_measurable lborel {l i..u i} f"
-      by (rule set_borel_measurable_subset) (auto simp: approx)
+      using f_integrable integrable_norm set_integrable_def by blast
+    show "(\<lambda>x. indicat_real (einterval a b) x *\<^sub>R f x) \<in> borel_measurable lborel"
+      using f_integrable by (simp add: set_integrable_def)
+    then show "\<And>i. (\<lambda>x. indicat_real {l i..u i} x *\<^sub>R f x) \<in> borel_measurable lborel"
+      by (rule set_borel_measurable_subset [unfolded set_borel_measurable_def]) (auto simp: approx)
     show "\<And>i. AE x in lborel. norm (indicator {l i..u i} x *\<^sub>R f x) \<le> norm (indicator (einterval a b) x *\<^sub>R f x)"
       by (intro AE_I2) (auto simp: approx split: split_indicator)
     show "AE x in lborel. (\<lambda>i. indicator {l i..u i} x *\<^sub>R f x) \<longlonglongrightarrow> indicator (einterval a b) x *\<^sub>R f x"
@@ -591,10 +593,12 @@ proof -
     by (simp add: interval_lebesgue_integral_le_eq[symmetric] interval_integral_Icc less_imp_le)
 qed
 
-(*
-  A slightly stronger version of integral_FTC_atLeastAtMost and related facts,
-  with continuous_on instead of isCont
+subsection\<open>A slightly stronger Fundamental Theorem of Calculus\<close>
 
+text\<open>Three versions: first, for finite intervals, and then two versions for
+    arbitrary intervals.\<close>
+
+(*
   TODO: make the older versions corollaries of these (using continuous_at_imp_continuous_on, etc.)
 *)
 
@@ -606,28 +610,43 @@ TODO: many proofs below require inferences like
 where x and y are real. These should be better automated.
 *)
 
-(*
-    The first Fundamental Theorem of Calculus
-
-    First, for finite intervals, and then two versions for arbitrary intervals.
-*)
-
 lemma interval_integral_FTC_finite:
   fixes f F :: "real \<Rightarrow> 'a::euclidean_space" and a b :: real
   assumes f: "continuous_on {min a b..max a b} f"
   assumes F: "\<And>x. min a b \<le> x \<Longrightarrow> x \<le> max a b \<Longrightarrow> (F has_vector_derivative (f x)) (at x within
     {min a b..max a b})"
   shows "(LBINT x=a..b. f x) = F b - F a"
-  apply (case_tac "a \<le> b")
-  apply (subst interval_integral_Icc, simp)
-  apply (rule integral_FTC_atLeastAtMost, assumption)
-  apply (metis F max_def min_def)
-  using f apply (simp add: min_absorb1 max_absorb2)
-  apply (subst interval_integral_endpoints_reverse)
-  apply (subst interval_integral_Icc, simp)
-  apply (subst integral_FTC_atLeastAtMost, auto)
-  apply (metis F max_def min_def)
-using f by (simp add: min_absorb2 max_absorb1)
+proof (cases "a \<le> b")
+  case True
+  have "(LBINT x=a..b. f x) = (LBINT x. indicat_real {a..b} x *\<^sub>R f x)"
+    by (simp add: True interval_integral_Icc set_lebesgue_integral_def)
+  also have "... = F b - F a"
+  proof (rule integral_FTC_atLeastAtMost [OF True])
+    show "continuous_on {a..b} f"
+      using True f by linarith
+    show "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> (F has_vector_derivative f x) (at x within {a..b})"
+      by (metis F True max.commute max_absorb1 min_def)
+  qed
+  finally show ?thesis .
+next
+  case False
+  then have "b \<le> a"
+    by simp
+  have "- interval_lebesgue_integral lborel (ereal b) (ereal a) f = - (LBINT x. indicat_real {b..a} x *\<^sub>R f x)"
+    by (simp add: \<open>b \<le> a\<close> interval_integral_Icc set_lebesgue_integral_def)
+  also have "... = F b - F a"
+  proof (subst integral_FTC_atLeastAtMost [OF \<open>b \<le> a\<close>])
+    show "continuous_on {b..a} f"
+      using False f by linarith
+    show "\<And>x. \<lbrakk>b \<le> x; x \<le> a\<rbrakk>
+         \<Longrightarrow> (F has_vector_derivative f x) (at x within {b..a})"
+      by (metis F False max_def min_def)
+  qed auto
+  finally show ?thesis
+    by (metis interval_integral_endpoints_reverse)
+qed
+
+
 
 lemma interval_integral_FTC_nonneg:
   fixes f F :: "real \<Rightarrow> real" and a b :: ereal
@@ -655,11 +674,12 @@ proof -
   have 1: "\<And>i. set_integrable lborel {l i..u i} f"
   proof -
     fix i show "set_integrable lborel {l i .. u i} f"
-      using \<open>a < l i\<close> \<open>u i < b\<close>
+      using \<open>a < l i\<close> \<open>u i < b\<close> unfolding set_integrable_def
       by (intro borel_integrable_compact f continuous_at_imp_continuous_on compact_Icc ballI)
          (auto simp del: ereal_less_eq simp add: ereal_less_eq(3)[symmetric])
   qed
   have 2: "set_borel_measurable lborel (einterval a b) f"
+    unfolding set_borel_measurable_def
     by (auto simp del: real_scaleR_def intro!: borel_measurable_continuous_on_indicator
              simp: continuous_on_eq_continuous_at einterval_iff f)
   have 3: "(\<lambda>i. LBINT x=l i..u i. f x) \<longlonglongrightarrow> B - A"
@@ -779,12 +799,10 @@ proof -
   qed
 qed
 
-(*
-    The substitution theorem
+subsection\<open>The substitution theorem\<close>
 
-    Once again, three versions: first, for finite intervals, and then two versions for
-    arbitrary intervals.
-*)
+text\<open>Once again, three versions: first, for finite intervals, and then two versions for
+    arbitrary intervals.\<close>
 
 lemma interval_integral_substitution_finite:
   fixes a b :: real and f :: "real \<Rightarrow> 'a::euclidean_space"
@@ -824,6 +842,7 @@ proof-
     by (blast intro: continuous_on_compose2 contf contg)
   have "LBINT x=a..b. g' x *\<^sub>R f (g x) = F (g b) - F (g a)"
     apply (subst interval_integral_Icc, simp add: assms)
+    unfolding set_lebesgue_integral_def
     apply (rule integral_FTC_atLeastAtMost[of a b "\<lambda>x. F (g x)", OF \<open>a \<le> b\<close>])
     apply (rule vector_diff_chain_within[OF v_derivg derivF, unfolded comp_def])
     apply (auto intro!: continuous_on_scaleR contg' contfg)
@@ -1093,7 +1112,7 @@ lemma interval_integral_norm:
   shows "interval_lebesgue_integrable lborel a b f \<Longrightarrow> a \<le> b \<Longrightarrow>
     norm (LBINT t=a..b. f t) \<le> LBINT t=a..b. norm (f t)"
   using integral_norm_bound[of lborel "\<lambda>x. indicator (einterval a b) x *\<^sub>R f x"]
-  by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def)
+  by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
 
 lemma interval_integral_norm2:
   "interval_lebesgue_integrable lborel a b f \<Longrightarrow>
@@ -1105,7 +1124,7 @@ next
   case (le a b)
   then have "\<bar>LBINT t=a..b. norm (f t)\<bar> = LBINT t=a..b. norm (f t)"
     using integrable_norm[of lborel "\<lambda>x. indicator (einterval a b) x *\<^sub>R f x"]
-    by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def
+    by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def
              intro!: integral_nonneg_AE abs_of_nonneg)
   then show ?case
     using le by (simp add: interval_integral_norm)
