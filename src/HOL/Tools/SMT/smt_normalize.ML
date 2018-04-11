@@ -330,78 +330,85 @@ end
 (** embedding of standard natural number operations into integer operations **)
 
 local
-  val nat_embedding = @{thms nat_int' int_nat_nneg int_nat_neg}
-
   val simple_nat_ops = [
-    @{const less (nat)}, @{const less_eq (nat)},
+    @{const HOL.eq (nat)}, @{const less (nat)}, @{const less_eq (nat)},
     \<^const>\<open>Suc\<close>, @{const plus (nat)}, @{const minus (nat)}]
 
-  val mult_nat_ops =
+  val nat_consts = simple_nat_ops @
+    [@{const numeral (nat)}, @{const zero_class.zero (nat)}, @{const one_class.one (nat)}] @
     [@{const times (nat)}, @{const divide (nat)}, @{const modulo (nat)}]
-
-  val nat_ops = simple_nat_ops @ mult_nat_ops
-
-  val nat_consts = nat_ops @ [@{const numeral (nat)},
-    @{const zero_class.zero (nat)}, @{const one_class.one (nat)}]
-
-  val nat_int_coercions = [@{const of_nat (int)}, \<^const>\<open>nat\<close>]
-
-  val builtin_nat_ops = nat_int_coercions @ simple_nat_ops
 
   val is_nat_const = member (op aconv) nat_consts
 
-  fun is_nat_const' @{const of_nat (int)} = true
-    | is_nat_const' t = is_nat_const t
+  val nat_int_thm = Thm.symmetric (mk_meta_eq @{thm nat_int})
+  val nat_int_comp_thms = map mk_meta_eq @{thms nat_int_comparison}
+  val int_ops_thms = map mk_meta_eq @{thms int_ops}
+  val int_if_thm = mk_meta_eq @{thm int_if}
 
-  val expands = map mk_meta_eq @{thms nat_zero_as_int nat_one_as_int nat_numeral_as_int
-    nat_less_as_int nat_leq_as_int Suc_as_int nat_plus_as_int nat_minus_as_int nat_times_as_int
-    nat_div_as_int nat_mod_as_int}
+  fun if_conv cv1 cv2 = Conv.combination_conv (Conv.combination_conv (Conv.arg_conv cv1) cv2) cv2
 
-  val ints = map mk_meta_eq @{thms of_nat_0 of_nat_1 int_Suc int_plus int_minus of_nat_mult zdiv_int
-    zmod_int}
-  val int_if = mk_meta_eq @{lemma "int (if P then n else m) = (if P then int n else int m)" by simp}
-
-  fun mk_number_eq ctxt i lhs =
-    let
-      val eq = SMT_Util.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
-      val ctxt' = put_simpset HOL_ss ctxt addsimps @{thms of_nat_numeral}
-      val tac = HEADGOAL (Simplifier.simp_tac ctxt')
-    in Goal.norm_result ctxt (Goal.prove_internal ctxt [] eq (K tac)) end
-
-  fun ite_conv cv1 cv2 =
-    Conv.combination_conv (Conv.combination_conv (Conv.arg_conv cv1) cv2) cv2
-
-  fun int_conv ctxt ct =
+  fun int_ops_conv cv ctxt ct =
     (case Thm.term_of ct of
-      @{const of_nat (int)} $ (n as (@{const numeral (nat)} $ _)) =>
-        Conv.rewr_conv (mk_number_eq ctxt (snd (HOLogic.dest_number n)) ct)
+      @{const of_nat (int)} $ (Const (@{const_name If}, _) $ _ $ _ $ _) =>
+        Conv.rewr_conv int_if_thm then_conv
+        if_conv (cv ctxt) (int_ops_conv cv ctxt)
     | @{const of_nat (int)} $ _ =>
-        (Conv.rewrs_conv ints then_conv Conv.sub_conv ints_conv ctxt) else_conv
-        (Conv.rewr_conv int_if then_conv
-          ite_conv (nat_conv ctxt) (int_conv ctxt)) else_conv
-        Conv.sub_conv (Conv.top_sweep_conv nat_conv) ctxt
+        (Conv.rewrs_conv int_ops_thms then_conv
+          Conv.top_sweep_conv (int_ops_conv cv) ctxt) else_conv
+        Conv.arg_conv (Conv.sub_conv cv ctxt)
     | _ => Conv.no_conv) ct
 
-  and ints_conv ctxt = Conv.top_sweep_conv int_conv ctxt
+  val unfold_nat_let_conv = Conv.rewr_conv @{lemma "Let (n::nat) f \<equiv> f n" by (rule Let_def)}
+  val drop_nat_int_conv = Conv.rewr_conv (Thm.symmetric nat_int_thm)
 
-  and expand_conv ctxt =
-    SMT_Util.if_conv (is_nat_const o Term.head_of)
-      (expand_head_conv (Conv.rewrs_conv expands) then_conv ints_conv ctxt) (int_conv ctxt)
+  fun nat_to_int_conv ctxt ct = (
+    Conv.top_conv (K (Conv.try_conv unfold_nat_let_conv)) ctxt then_conv
+    Conv.top_sweep_conv nat_conv ctxt then_conv
+    Conv.top_conv (K (Conv.try_conv drop_nat_int_conv)) ctxt) ct
 
-  and nat_conv ctxt = SMT_Util.if_exists_conv is_nat_const' (Conv.top_sweep_conv expand_conv ctxt)
+  and nat_conv ctxt ct = (
+      Conv.rewrs_conv (nat_int_thm :: nat_int_comp_thms) then_conv
+      Conv.top_sweep_conv (int_ops_conv nat_to_int_conv) ctxt) ct
 
-  val uses_nat_int = Term.exists_subterm (member (op aconv) nat_int_coercions)
+  fun add_int_of_nat vs ct cu (q, cts) =
+    (case Thm.term_of ct of
+      @{const of_nat(int)} =>
+        if Term.exists_subterm (member (op aconv) vs) (Thm.term_of cu) then (true, cts)
+        else (q, insert (op aconvc) cu cts)
+    | _ => (q, cts))
+
+  fun add_apps f vs ct = 
+    (case Thm.term_of ct of
+      _ $ _ =>
+        let val (cu1, cu2) = Thm.dest_comb ct
+        in f vs cu1 cu2 #> add_apps f vs cu1 #> add_apps f vs cu2 end
+    | Abs _ =>
+        let val (cv, cu) = Thm.dest_abs NONE ct
+        in add_apps f (Thm.term_of cv :: vs) cu end
+    | _ => I)
+
+  val int_thm = @{lemma "(0::int) <= int (n::nat)" by simp}
+  val nat_int_thms = @{lemma
+    "\<forall>n::nat. (0::int) <= int n"
+    "\<forall>n::nat. nat (int n) = n"
+    "\<forall>i::int. int (nat i) = (if 0 <= i then i else 0)"
+    by simp_all}
+  val var = Term.dest_Var (Thm.term_of (funpow 3 Thm.dest_arg (Thm.cprop_of int_thm)))
 in
 
-val nat_as_int_conv = nat_conv
+fun nat_as_int_conv ctxt = SMT_Util.if_exists_conv is_nat_const (nat_to_int_conv ctxt)
 
-fun add_nat_embedding thms =
-  if exists (uses_nat_int o Thm.prop_of) thms then (thms, nat_embedding) else (thms, [])
+fun add_int_of_nat_constraints thms =
+  let val (q, cts) = fold (add_apps add_int_of_nat [] o Thm.cprop_of) thms (false, [])
+  in
+    if q then (thms, nat_int_thms)
+    else (thms, map (fn ct => Thm.instantiate ([], [(var, ct)]) int_thm) cts)
+  end
 
 val setup_nat_as_int =
   SMT_Builtin.add_builtin_typ_ext (\<^typ>\<open>nat\<close>,
     fn ctxt => K (Config.get ctxt SMT_Config.nat_as_int)) #>
-  fold (SMT_Builtin.add_builtin_fun_ext' o Term.dest_Const) builtin_nat_ops
+  fold (SMT_Builtin.add_builtin_fun_ext' o Term.dest_Const) simple_nat_ops
 
 end
 
@@ -454,7 +461,7 @@ fun unfold_conv ctxt =
 fun unfold_polymorph ctxt = map (apsnd (Conv.fconv_rule (unfold_conv ctxt)))
 fun unfold_monomorph ctxt =
   map (apsnd (Conv.fconv_rule (normalize_numerals_conv ctxt)))
-  #> Config.get ctxt SMT_Config.nat_as_int ? burrow_ids add_nat_embedding
+  #> Config.get ctxt SMT_Config.nat_as_int ? burrow_ids add_int_of_nat_constraints
 
 
 (* overall normalization *)

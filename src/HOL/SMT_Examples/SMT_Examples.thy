@@ -396,7 +396,7 @@ lemma
    False \<or> P = (x - 1 = y) \<or> (\<not>P \<longrightarrow> False)"
   by smt
 
-lemma "int (nat \<bar>x::int\<bar>) = \<bar>x\<bar>" by smt
+lemma "int (nat \<bar>x::int\<bar>) = \<bar>x\<bar>" by (smt int_nat_eq)
 
 definition prime_nat :: "nat \<Rightarrow> bool" where
   "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"

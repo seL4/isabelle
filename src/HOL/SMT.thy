@@ -120,10 +120,6 @@ lemmas abs_if_raw = abs_if[abs_def]
 lemmas min_def_raw = min_def[abs_def]
 lemmas max_def_raw = max_def[abs_def]
 
-lemma nat_int': "\<forall>n. nat (int n) = n" by simp
-lemma int_nat_nneg: "\<forall>i. i \<ge> 0 \<longrightarrow> int (nat i) = i" by simp
-lemma int_nat_neg: "\<forall>i. i < 0 \<longrightarrow> int (nat i) = 0" by simp
-
 lemma nat_zero_as_int:
   "0 = nat 0"
   by simp
@@ -145,6 +141,31 @@ lemma nat_mod_as_int: "(mod) = (\<lambda>a b. nat (int a mod int b))" by (simp a
 lemma int_Suc: "int (Suc n) = int n + 1" by simp
 lemma int_plus: "int (n + m) = int n + int m" by (rule of_nat_add)
 lemma int_minus: "int (n - m) = int (nat (int n - int m))" by auto
+
+lemma nat_int_comparison:
+  fixes a b :: nat
+  shows "(a = b) = (int a = int b)"
+    and "(a < b) = (int a < int b)"
+    and "(a \<le> b) = (int a \<le> int b)"
+  by simp_all
+
+lemma int_ops:
+  fixes a b :: nat
+  shows "int 0 = 0"
+    and "int 1 = 1"
+    and "int (numeral n) = numeral n"
+    and "int (Suc a) = int a + 1"
+    and "int (a + b) = int a + int b"
+    and "int (a - b) = (if int a < int b then 0 else int a - int b)"
+    and "int (a * b) = int a * int b"
+    and "int (a div b) = int a div int b"
+    and "int (a mod b) = int a mod int b"
+  by (auto intro: zdiv_int zmod_int)
+
+lemma int_if:
+  fixes a b :: nat
+  shows "int (if P then a else b) = (if P then int a else int b)"
+  by simp
 
 
 subsection \<open>Integer division and modulo for Z3\<close>
