@@ -876,9 +876,9 @@ next
      using of_nat_neq_0[of "2*n"] by (simp only: of_nat_Suc) (simp add: add_ac)
   hence nz': "of_nat n + (1/2::'a) \<noteq> 0" by (simp add: field_simps)
   have "Digamma (of_nat (Suc n) + 1/2 :: 'a) = Digamma (of_nat n + 1/2 + 1)" by simp
-  also from nz' have "\<dots> = Digamma (of_nat n + 1 / 2) + 1 / (of_nat n + 1 / 2)"
+  also from nz' have "\<dots> = Digamma (of_nat n + 1/2) + 1 / (of_nat n + 1/2)"
     by (rule Digamma_plus1)
-  also from nz nz' have "1 / (of_nat n + 1 / 2 :: 'a) = 2 / (2 * of_nat n + 1)"
+  also from nz nz' have "1 / (of_nat n + 1/2 :: 'a) = 2 / (2 * of_nat n + 1)"
     by (subst divide_eq_eq) simp_all
   also note Suc
   finally show ?case by (simp add: add_ac)
@@ -2048,7 +2048,7 @@ proof -
   from assms double_in_nonpos_Ints_imp[of z] have z': "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
   from fraction_not_in_ints[of 2 1] have "(1/2 :: 'a) \<notin> \<int>\<^sub>\<le>\<^sub>0"
     by (intro not_in_Ints_imp_not_in_nonpos_Ints) simp_all
-  with lim[of "1/2 :: 'a"] have "?h \<longlonglongrightarrow> 2 * Gamma (1 / 2 :: 'a)" by (simp add: exp_of_real)
+  with lim[of "1/2 :: 'a"] have "?h \<longlonglongrightarrow> 2 * Gamma (1/2 :: 'a)" by (simp add: exp_of_real)
   from LIMSEQ_unique[OF this lim[OF assms]] z' show ?thesis
     by (simp add: divide_simps Gamma_eq_zero_iff ring_distribs exp_diff exp_of_real ac_simps)
 qed
@@ -2735,11 +2735,12 @@ proof -
   have "?f absolutely_integrable_on ({0<..x0} \<union> {x0..})"
   proof (rule set_integrable_Un)
     show "?f absolutely_integrable_on {0<..x0}"
+      unfolding set_integrable_def
     proof (rule Bochner_Integration.integrable_bound [OF _ _ AE_I2])
-      show "set_integrable lebesgue {0<..x0} (\<lambda>x. x powr (Re z - 1))" using x0(1) assms
-        by (intro nonnegative_absolutely_integrable_1 integrable_on_powr_from_0') auto
-      show "set_borel_measurable lebesgue {0<..x0}
-              (\<lambda>x. complex_of_real x powr (z - 1) / complex_of_real (exp (a * x)))"
+      show "integrable lebesgue (\<lambda>x. indicat_real {0<..x0} x *\<^sub>R x powr (Re z - 1))"         
+        using x0(1) assms
+        by (intro nonnegative_absolutely_integrable_1 [unfolded set_integrable_def] integrable_on_powr_from_0') auto
+      show "(\<lambda>x. indicat_real {0<..x0} x *\<^sub>R (x powr (z - 1) / exp (a * x))) \<in> borel_measurable lebesgue"
         by (intro measurable_completion)
            (auto intro!: borel_measurable_continuous_on_indicator continuous_intros)
       fix x :: real 
@@ -2751,11 +2752,11 @@ proof -
     qed
   next
     show "?f absolutely_integrable_on {x0..}"
+      unfolding set_integrable_def
     proof (rule Bochner_Integration.integrable_bound [OF _ _ AE_I2])
-      show "set_integrable lebesgue {x0..} (\<lambda>x. exp (-(a/2) * x))" using assms
-        by (intro nonnegative_absolutely_integrable_1 integrable_on_exp_minus_to_infinity) auto
-      show "set_borel_measurable lebesgue {x0..}
-              (\<lambda>x. complex_of_real x powr (z - 1) / complex_of_real (exp (a * x)))" using x0(1)
+      show "integrable lebesgue (\<lambda>x. indicat_real {x0..} x *\<^sub>R exp (- (a / 2) * x))" using assms
+        by (intro nonnegative_absolutely_integrable_1 [unfolded set_integrable_def] integrable_on_exp_minus_to_infinity) auto
+      show "(\<lambda>x. indicat_real {x0..} x *\<^sub>R (x powr (z - 1) / exp (a * x))) \<in> borel_measurable lebesgue" using x0(1)
         by (intro measurable_completion)
            (auto intro!: borel_measurable_continuous_on_indicator continuous_intros)
       fix x :: real 
@@ -3015,14 +3016,15 @@ proof -
   qed (insert that, auto simp: max.coboundedI1 max.coboundedI2 powr_mono2' powr_mono2 D_def)
   have [simp]: "C \<ge> 0" "D \<ge> 0" by (simp_all add: C_def D_def)
 
-  have I1: "set_integrable lborel {0..1 / 2} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+  have I1: "set_integrable lborel {0..1/2} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+    unfolding set_integrable_def
   proof (rule Bochner_Integration.integrable_bound[OF _ _ AE_I2])
-    have "(\<lambda>t. t powr (a - 1)) integrable_on {0..1 / 2}"
+    have "(\<lambda>t. t powr (a - 1)) integrable_on {0..1/2}"
       by (rule integrable_on_powr_from_0) (use assms in auto)
-    hence "(\<lambda>t. t powr (a - 1)) absolutely_integrable_on {0..1 / 2}"
+    hence "(\<lambda>t. t powr (a - 1)) absolutely_integrable_on {0..1/2}"
       by (subst absolutely_integrable_on_iff_nonneg) auto
-    from integrable_mult_right[OF this, of C]
-      show "set_integrable lborel {0..1 / 2} (\<lambda>t. C * t powr (a - 1))"
+    from integrable_mult_right[OF this [unfolded set_integrable_def], of C]
+    show "integrable lborel (\<lambda>x. indicat_real {0..1/2} x *\<^sub>R (C * x powr (a - 1)))"
       by (subst (asm) integrable_completion) (auto simp: mult_ac)
   next
     fix x :: real
@@ -3033,7 +3035,8 @@ proof -
       by (auto simp: indicator_def abs_mult mult_ac)
   qed (auto intro!: AE_I2 simp: indicator_def)
 
-  have I2: "set_integrable lborel {1 / 2..1} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+  have I2: "set_integrable lborel {1/2..1} (\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1))"
+    unfolding set_integrable_def
   proof (rule Bochner_Integration.integrable_bound[OF _ _ AE_I2])
     have "(\<lambda>t. t powr (b - 1)) integrable_on {0..1/2}"
       by (rule integrable_on_powr_from_0) (use assms in auto)
@@ -3042,8 +3045,8 @@ proof -
       have "(\<lambda>t. (1 - t) powr (b - 1)) integrable_on {1/2..1}" by simp
     hence "(\<lambda>t. (1 - t) powr (b - 1)) absolutely_integrable_on {1/2..1}"
       by (subst absolutely_integrable_on_iff_nonneg) auto
-    from integrable_mult_right[OF this, of D]
-      show "set_integrable lborel {1 / 2..1} (\<lambda>t. D * (1 - t) powr (b - 1))"
+    from integrable_mult_right[OF this [unfolded set_integrable_def], of D]
+    show "integrable lborel (\<lambda>x. indicat_real {1/2..1} x *\<^sub>R (D * (1 - x) powr (b - 1)))"
       by (subst (asm) integrable_completion) (auto simp: mult_ac)
   next
     fix x :: real
@@ -3204,9 +3207,9 @@ theorem wallis: "(\<lambda>n. \<Prod>k=1..n. (4*real k^2) / (4*real k^2 - 1)) \<
 proof -
   from tendsto_inverse[OF tendsto_mult[OF
          sin_product_formula_real[of "1/2"] tendsto_const[of "2/pi"]]]
-    have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) \<longlonglongrightarrow> pi/2"
+    have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1/2)\<^sup>2 / (real k)\<^sup>2))) \<longlonglongrightarrow> pi/2"
     by (simp add: prod_inversef [symmetric])
-  also have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1 / 2)\<^sup>2 / (real k)\<^sup>2))) =
+  also have "(\<lambda>n. (\<Prod>k=1..n. inverse (1 - (1/2)\<^sup>2 / (real k)\<^sup>2))) =
                (\<lambda>n. (\<Prod>k=1..n. (4*real k^2)/(4*real k^2 - 1)))"
     by (intro ext prod.cong refl) (simp add: divide_simps)
   finally show ?thesis .
