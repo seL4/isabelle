@@ -4962,6 +4962,9 @@ lemma sorted_wrt_mono:
   "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
 by(induction xs rule: induct_list012)(auto)
 
+lemma sorted_wrt01: "length xs \<le> 1 \<Longrightarrow> sorted_wrt P xs"
+by(auto simp: le_Suc_eq length_Suc_conv)
+
 text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
 
 lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [0..<n]"
