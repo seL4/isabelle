@@ -541,7 +541,7 @@ lemma infsetsum_pmf_eq_1:
   shows   "infsetsum (pmf p) A = 1"
 proof -
   have "infsetsum (pmf p) A = lebesgue_integral (count_space UNIV) (pmf p)"
-    using assms unfolding infsetsum_altdef
+    using assms unfolding infsetsum_altdef set_lebesgue_integral_def
     by (intro Bochner_Integration.integral_cong) (auto simp: indicator_def set_pmf_eq)
   also have "\<dots> = 1"
     by (subst integral_eq_nn_integral) (auto simp: nn_integral_pmf)

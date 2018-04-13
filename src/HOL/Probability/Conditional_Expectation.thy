@@ -739,7 +739,8 @@ lemma real_cond_exp_intA:
 proof -
   have "A \<in> sets M" by (meson assms(2) subalg subalgebra_def subsetD)
   have "integrable M (\<lambda>x. indicator A x * f x)" using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(1)] by auto
-  then show ?thesis using real_cond_exp_intg(2)[where ?f = "indicator A" and ?g = f, symmetric] by auto
+  then show ?thesis using real_cond_exp_intg(2)[where ?f = "indicator A" and ?g = f, symmetric]
+    unfolding set_lebesgue_integral_def by auto
 qed
 
 lemma real_cond_exp_int [intro]:
@@ -760,14 +761,14 @@ proof -
     then have [measurable]: "A \<in> sets F" using sets_restr_to_subalg[OF subalg] by simp
     then have a [measurable]: "A \<in> sets M" by (meson subalg subalgebra_def subsetD)
     have "(\<integral>x \<in> A. g x \<partial> ?MF) = (\<integral>x \<in> A. g x \<partial>M)"
-      by (simp add: integral_subalgebra2 subalg)
+      unfolding set_lebesgue_integral_def  by (simp add: integral_subalgebra2 subalg)
     also have "... = (\<integral>x \<in> A. f x \<partial>M)" using assms(1) by simp
-    also have "... = (\<integral>x. indicator A x * f x \<partial>M)" by (simp add: mult.commute)
+    also have "... = (\<integral>x. indicator A x * f x \<partial>M)" by (simp add: mult.commute set_lebesgue_integral_def)
     also have "... = (\<integral>x. indicator A x * real_cond_exp M F f x \<partial>M)"
       apply (rule real_cond_exp_intg(2)[symmetric]) using integrable_mult_indicator[OF a assms(2)] by (auto simp add: assms)
-    also have "... = (\<integral>x \<in> A. real_cond_exp M F f x \<partial>M)" by (simp add: mult.commute)
+    also have "... = (\<integral>x \<in> A. real_cond_exp M F f x \<partial>M)" by (simp add: mult.commute set_lebesgue_integral_def)
     also have "... = (\<integral>x \<in> A. real_cond_exp M F f x \<partial> ?MF)"
-      by (simp add: integral_subalgebra2 subalg)
+      by (simp add: integral_subalgebra2 subalg set_lebesgue_integral_def)
     finally show "(\<integral>x \<in> A. g x \<partial> ?MF) = (\<integral>x \<in> A. real_cond_exp M F f x \<partial> ?MF)" by simp
   next
     have "integrable M (real_cond_exp M F f)" by (rule real_cond_exp_int(1)[OF assms(2)])
@@ -791,12 +792,12 @@ proof (rule real_cond_exp_charact)
   then have [measurable]: "(\<lambda>x. f x * indicator A x) \<in> borel_measurable F" by measurable
   have [measurable]: "A \<in> sets M" using subalg by (meson \<open>A \<in> sets F\<close> subalgebra_def subsetD)
   have "\<integral>x\<in>A. (f x * g x) \<partial>M = \<integral>x. (f x * indicator A x) * g x \<partial>M"
-    by (simp add: mult.commute mult.left_commute)
+    by (simp add: mult.commute mult.left_commute set_lebesgue_integral_def)
   also have "... = \<integral>x. (f x * indicator A x) * real_cond_exp M F g x \<partial>M"
     apply (rule real_cond_exp_intg(2)[symmetric], auto simp add: assms)
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(3)] by (simp add: mult.commute mult.left_commute)
   also have "... = \<integral>x\<in>A. (f x * real_cond_exp M F g x)\<partial>M"
-    by (simp add: mult.commute mult.left_commute)
+    by (simp add: mult.commute mult.left_commute set_lebesgue_integral_def)
   finally show "\<integral>x\<in>A. (f x * g x) \<partial>M = \<integral>x\<in>A. (f x * real_cond_exp M F g x)\<partial>M" by simp
 qed (auto simp add: real_cond_exp_intg(1) assms)
 
@@ -817,17 +818,17 @@ proof (rule real_cond_exp_charact)
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> assms(2)] by auto
 
   have "\<integral>x\<in>A. (real_cond_exp M F f x + real_cond_exp M F g x)\<partial>M = (\<integral>x\<in>A. real_cond_exp M F f x \<partial>M) + (\<integral>x\<in>A. real_cond_exp M F g x \<partial>M)"
-    apply (rule set_integral_add, auto simp add: assms)
+    apply (rule set_integral_add, auto simp add: assms set_integrable_def)
     using integrable_mult_indicator[OF \<open>A \<in> sets M\<close> real_cond_exp_int(1)[OF assms(1)]]
           integrable_mult_indicator[OF \<open>A \<in> sets M\<close> real_cond_exp_int(1)[OF assms(2)]] by simp_all
   also have "... = (\<integral>x. indicator A x * real_cond_exp M F f x \<partial>M) + (\<integral>x. indicator A x * real_cond_exp M F g x \<partial>M)"
-    by auto
+    unfolding set_lebesgue_integral_def by auto
   also have "... = (\<integral>x. indicator A x * f x \<partial>M) + (\<integral>x. indicator A x * g x \<partial>M)"
     using real_cond_exp_intg(2) assms \<open>A \<in> sets F\<close> intAf intAg by auto
   also have "... = (\<integral>x\<in>A. f x \<partial>M) + (\<integral>x\<in>A. g x \<partial>M)"
-    by auto
+    unfolding set_lebesgue_integral_def by auto
   also have "... = \<integral>x\<in>A. (f x + g x)\<partial>M"
-    by (rule set_integral_add(2)[symmetric]) (auto simp add: assms \<open>A \<in> sets M\<close> intAf intAg)
+    by (rule set_integral_add(2)[symmetric]) (auto simp add: assms set_integrable_def \<open>A \<in> sets M\<close> intAf intAg)
   finally show "\<integral>x\<in>A. (f x + g x)\<partial>M = \<integral>x\<in>A. (real_cond_exp M F f x + real_cond_exp M F g x)\<partial>M"
     by simp
 qed (auto simp add: assms)
@@ -911,7 +912,7 @@ qed
 
 lemma real_cond_exp_gr_c:
   assumes [measurable]: "integrable M f"
-      and "AE x in M. f x > c"
+      and AE: "AE x in M. f x > c"
   shows "AE x in M. real_cond_exp M F f x > c"
 proof -
   define X where "X = {x \<in> space M. real_cond_exp M F f x \<le> c}"
@@ -931,24 +932,33 @@ proof -
     then have [measurable]: "A \<in> sets F" using subalg sets_restr_to_subalg by blast
     then have [measurable]: "A \<in> sets M" using sets_restr_to_subalg subalg subalgebra_def by blast
     have Ic: "set_integrable M A (\<lambda>x. c)"
+      unfolding set_integrable_def
       using \<open>emeasure (restr_to_subalg M F) A < \<infinity>\<close> emeasure_restr_to_subalg subalg by fastforce
     have If: "set_integrable M A f"
+      unfolding set_integrable_def
       by (rule integrable_mult_indicator, auto simp add: \<open>integrable M f\<close>)
-    have *: "(\<integral>x\<in>A. c \<partial>M) = (\<integral>x\<in>A. f x \<partial>M)"
-    proof (rule antisym)
-      show "(\<integral>x\<in>A. c \<partial>M) \<le> (\<integral>x\<in>A. f x \<partial>M)"
-        apply (rule set_integral_mono_AE) using Ic If assms(2) by auto
-      have "(\<integral>x\<in>A. f x \<partial>M) = (\<integral>x\<in>A. real_cond_exp M F f x \<partial>M)"
-        by (rule real_cond_exp_intA, auto simp add: \<open>integrable M f\<close>)
-      also have "... \<le> (\<integral>x\<in>A. c \<partial>M)"
-        apply (rule set_integral_mono)
-        apply (rule integrable_mult_indicator, simp, simp add: real_cond_exp_int(1)[OF \<open>integrable M f\<close>])
-        using Ic X_def \<open>A \<subseteq> X\<close> by auto
-      finally show "(\<integral>x\<in>A. f x \<partial>M) \<le> (\<integral>x\<in>A. c \<partial>M)" by simp
-    qed
     have "AE x in M. indicator A x * c = indicator A x * f x"
-      apply (rule integral_ineq_eq_0_then_AE) using Ic If * apply auto
-      using assms(2) unfolding indicator_def by auto
+    proof (rule integral_ineq_eq_0_then_AE)
+      have "(\<integral>x\<in>A. c \<partial>M) = (\<integral>x\<in>A. f x \<partial>M)"
+      proof (rule antisym)
+        show "(\<integral>x\<in>A. c \<partial>M) \<le> (\<integral>x\<in>A. f x \<partial>M)"
+          apply (rule set_integral_mono_AE) using Ic If assms(2) by auto
+        have "(\<integral>x\<in>A. f x \<partial>M) = (\<integral>x\<in>A. real_cond_exp M F f x \<partial>M)"
+          by (rule real_cond_exp_intA, auto simp add: \<open>integrable M f\<close>)
+        also have "... \<le> (\<integral>x\<in>A. c \<partial>M)"
+          apply (rule set_integral_mono)
+          unfolding set_integrable_def
+            apply (rule integrable_mult_indicator, simp, simp add: real_cond_exp_int(1)[OF \<open>integrable M f\<close>])
+          using Ic X_def \<open>A \<subseteq> X\<close> by (auto simp: set_integrable_def)
+        finally show "(\<integral>x\<in>A. f x \<partial>M) \<le> (\<integral>x\<in>A. c \<partial>M)" by simp
+      qed
+      then have "measure M A * c = LINT x|M. indicat_real A x * f x"
+        by (auto simp: set_lebesgue_integral_def)
+      then show "LINT x|M. indicat_real A x * c = LINT x|M. indicat_real A x * f x"
+        by auto
+      show "AE x in M. indicat_real A x * c \<le> indicat_real A x * f x"
+      using AE unfolding indicator_def by auto
+    qed (use Ic If  in \<open>auto simp: set_integrable_def\<close>)
     then have "AE x\<in>A in M. c = f x" by auto
     then have "AE x\<in>A in M. False" using assms(2) by auto
     have "A \<in> null_sets M" unfolding ae_filter_def by (meson AE_iff_null_sets \<open>A \<in> sets M\<close> \<open>AE x\<in>A in M. False\<close>)
@@ -1045,7 +1055,7 @@ proof (rule real_cond_exp_charact)
     by (rule real_cond_exp_intg(2)[symmetric], auto simp add: *)
 
   have "(\<integral>x\<in>A. (\<Sum>i\<in>I. f i x)\<partial>M) = (\<integral>x. (\<Sum>i\<in>I. indicator A x * f i x)\<partial>M)"
-    by (simp add: sum_distrib_left)
+    by (simp add: sum_distrib_left set_lebesgue_integral_def)
   also have "... = (\<Sum>i\<in>I. (\<integral>x. indicator A x * f i x \<partial>M))"
     by (rule Bochner_Integration.integral_sum, simp add: *)
   also have "... = (\<Sum>i\<in>I. (\<integral>x. indicator A x * real_cond_exp M F (f i) x \<partial>M))"
@@ -1053,7 +1063,7 @@ proof (rule real_cond_exp_charact)
   also have "... = (\<integral>x. (\<Sum>i\<in>I. indicator A x * real_cond_exp M F (f i) x)\<partial>M)"
     by (rule Bochner_Integration.integral_sum[symmetric], simp add: **)
   also have "... = (\<integral>x\<in>A. (\<Sum>i\<in>I. real_cond_exp M F (f i) x)\<partial>M)"
-    by (simp add: sum_distrib_left)
+    by (simp add: sum_distrib_left set_lebesgue_integral_def)
   finally show "(\<integral>x\<in>A. (\<Sum>i\<in>I. f i x)\<partial>M) = (\<integral>x\<in>A. (\<Sum>i\<in>I. real_cond_exp M F (f i) x)\<partial>M)" by auto
 qed (auto simp add: assms real_cond_exp_int(1)[OF assms(1)])
 

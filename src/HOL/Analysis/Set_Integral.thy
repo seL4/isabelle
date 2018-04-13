@@ -67,6 +67,9 @@ proof -
     by (subst (asm) sets_restrict_space_iff) (auto simp: space_restrict_space)
 qed
 
+lemma set_lebesgue_integral_zero [simp]: "set_lebesgue_integral M A (\<lambda>x. 0) = 0"
+  by (auto simp: set_lebesgue_integral_def)
+
 lemma set_lebesgue_integral_cong:
   assumes "A \<in> sets M" and "\<forall>x. x \<in> A \<longrightarrow> f x = g x"
   shows "(LINT x:A|M. f x) = (LINT x:A|M. g x)"
