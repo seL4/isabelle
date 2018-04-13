@@ -274,7 +274,8 @@ proof (induction n) \<comment> \<open>really cases\<close>
   have *: "\<And>a b. interval_lebesgue_integrable lborel a b f \<Longrightarrow> interval_lebesgue_integrable lborel a b g \<Longrightarrow>
       \<bar>LBINT s=a..b. f s\<bar> \<le> \<bar>LBINT s=a..b. g s\<bar>"
     if f: "\<And>s. 0 \<le> f s" and g: "\<And>s. f s \<le> g s" for f g :: "_ \<Rightarrow> real"
-    using order_trans[OF f g] f g unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def
+    using order_trans[OF f g] f g 
+    unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def set_integrable_def
     by (auto simp: integral_nonneg_AE[OF AE_I2] intro!: integral_mono mult_mono)
 
   have "iexp x - (\<Sum>k \<le> Suc n. (\<i> * x)^k / fact k) =

@@ -1545,7 +1545,7 @@ proof -
     using that by (subst Ln_minus) (auto simp: Ln_of_real)
   have **: "Ln (of_real x) = of_real (ln (-x)) + \<i> * pi" if "x < 0" for x
     using *[of "-x"] that by simp
-  have cont: "set_borel_measurable borel (- \<real>\<^sub>\<le>\<^sub>0) Ln"
+  have cont: "(\<lambda>x. indicat_real (- \<real>\<^sub>\<le>\<^sub>0) x *\<^sub>R Ln x) \<in> borel_measurable borel"
     by (intro borel_measurable_continuous_on_indicator continuous_intros) auto
   have "(\<lambda>x. if x \<in> \<real>\<^sub>\<le>\<^sub>0 then ln (-Re x) + \<i> * pi else indicator (-\<real>\<^sub>\<le>\<^sub>0) x *\<^sub>R Ln x) \<in> borel \<rightarrow>\<^sub>M borel"
     (is "?f \<in> _") by (rule measurable_If_set[OF _ cont]) auto

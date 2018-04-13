@@ -90,12 +90,12 @@ proof -
     { fix x
       have 1: "complex_interval_lebesgue_integrable lborel u v (\<lambda>t. ?f t x)" for u v :: real
         using Levy_Inversion_aux2[of "x - b" "x - a"]
-        apply (simp add: interval_lebesgue_integrable_def del: times_divide_eq_left)
+        apply (simp add: interval_lebesgue_integrable_def set_integrable_def del: times_divide_eq_left)
         apply (intro integrableI_bounded_set_indicator[where B="b - a"] conjI impI)
         apply (auto intro!: AE_I [of _ _ "{0}"] simp: assms)
         done
       have "(CLBINT t. ?f' (t, x)) = (CLBINT t=-T..T. ?f t x)"
-        using \<open>T \<ge> 0\<close> by (simp add: interval_lebesgue_integral_def)
+        using \<open>T \<ge> 0\<close> by (simp add: interval_lebesgue_integral_def set_lebesgue_integral_def)
       also have "\<dots> = (CLBINT t=-T..(0 :: real). ?f t x) + (CLBINT t=(0 :: real)..T. ?f t x)"
           (is "_ = _ + ?t")
         using 1 by (intro interval_integral_sum[symmetric]) (simp add: min_absorb1 max_absorb2 \<open>T \<ge> 0\<close>)
@@ -130,7 +130,7 @@ proof -
     } note main_eq = this
     have "(CLBINT t=-T..T. ?F t * \<phi> t) =
       (CLBINT t. (CLINT x | M. ?F t * iexp (t * x) * indicator {-T<..<T} t))"
-      using \<open>T \<ge> 0\<close> unfolding \<phi>_def char_def interval_lebesgue_integral_def
+      using \<open>T \<ge> 0\<close> unfolding \<phi>_def char_def interval_lebesgue_integral_def set_lebesgue_integral_def
       by (auto split: split_indicator intro!: Bochner_Integration.integral_cong)
     also have "\<dots> = (CLBINT t. (CLINT x | M. ?f' (t, x)))"
       by (auto intro!: Bochner_Integration.integral_cong simp: field_simps exp_diff exp_minus split: split_indicator)
@@ -323,6 +323,7 @@ proof -
       by (rule Mn.integrable_const_bound [where B = 1], auto)
     have Mn3: "set_integrable (M n \<Otimes>\<^sub>M lborel) (UNIV \<times> {- u..u}) (\<lambda>a. 1 - exp (\<i> * complex_of_real (snd a * fst a)))"
       using \<open>0 < u\<close>
+      unfolding set_integrable_def
       by (intro integrableI_bounded_set_indicator [where B="2"])
          (auto simp: lborel.emeasure_pair_measure_Times ennreal_mult_less_top not_less top_unique
                split: split_indicator
@@ -331,9 +332,10 @@ proof -
         (CLBINT t:{-u..u}. (CLINT x | M n. 1 - iexp (t * x)))"
       unfolding char_def by (rule set_lebesgue_integral_cong, auto simp del: of_real_mult)
     also have "\<dots> = (CLBINT t. (CLINT x | M n. indicator {-u..u} t *\<^sub>R (1 - iexp (t * x))))"
+      unfolding set_lebesgue_integral_def
       by (rule Bochner_Integration.integral_cong) (auto split: split_indicator)
     also have "\<dots> = (CLINT x | M n. (CLBINT t:{-u..u}. 1 - iexp (t * x)))"
-      using Mn3 by (subst P.Fubini_integral) (auto simp: indicator_times split_beta')
+      using Mn3 by (subst P.Fubini_integral) (auto simp: indicator_times split_beta' set_integrable_def set_lebesgue_integral_def)
     also have "\<dots> = (CLINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
       using \<open>u > 0\<close> by (intro Bochner_Integration.integral_cong, auto simp add: * simp del: of_real_mult)
     also have "\<dots> = (LINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
@@ -343,9 +345,12 @@ proof -
     also have "\<dots> \<ge> (LINT x : {x. abs x \<ge> 2 / u} | M n. u)"
     proof -
       have "complex_integrable (M n) (\<lambda>x. CLBINT t:{-u..u}. 1 - iexp (snd (x, t) * fst (x, t)))"
-        using Mn3 by (intro P.integrable_fst) (simp add: indicator_times split_beta')
+        using Mn3 unfolding set_integrable_def set_lebesgue_integral_def
+        by (intro P.integrable_fst) (simp add: indicator_times split_beta')
       hence "complex_integrable (M n) (\<lambda>x. if x = 0 then 0 else 2 * (u  - sin (u * x) / x))"
-        using \<open>u > 0\<close> by (subst integrable_cong) (auto simp add: * simp del: of_real_mult)
+        using \<open>u > 0\<close>
+        unfolding set_integrable_def
+        by (subst integrable_cong) (auto simp add: * simp del: of_real_mult)
       hence **: "integrable (M n) (\<lambda>x. if x = 0 then 0 else 2 * (u  - sin (u * x) / x))"
         unfolding complex_of_real_integrable_eq .
       have "2 * sin x \<le> x" if "2 \<le> x" for x :: real
@@ -355,13 +360,13 @@ proof -
       moreover have "x < 0 \<Longrightarrow> x \<le> sin x" for x :: real
         using sin_x_le_x[of "-x"] by simp
       ultimately show ?thesis
-        using \<open>u > 0\<close>
+        using \<open>u > 0\<close> unfolding set_lebesgue_integral_def
         by (intro integral_mono [OF _ **])
            (auto simp: divide_simps sin_x_le_x mult.commute[of u] mult_neg_pos top_unique less_top[symmetric]
                  split: split_indicator)
     qed
-    also (xtrans) have "(LINT x : {x. abs x \<ge> 2 / u} | M n. u) =
-        u * measure (M n) {x. abs x \<ge> 2 / u}"
+    also (xtrans) have "(LINT x : {x. abs x \<ge> 2 / u} | M n. u) = u * measure (M n) {x. abs x \<ge> 2 / u}"
+      unfolding set_lebesgue_integral_def
       by (simp add: Mn.emeasure_eq_measure)
     finally show "Re (CLBINT t:{-u..u}. 1 - char (M n) t) \<ge> u * measure (M n) {x. abs x \<ge> 2 / u}" .
   qed
@@ -380,13 +385,16 @@ proof -
     have 1: "\<And>x. cmod (1 - char M' x) \<le> 2"
       by (rule order_trans [OF norm_triangle_ineq4], auto simp add: M'.cmod_char_le_1)
     then have 2: "\<And>u v. complex_set_integrable lborel {u..v} (\<lambda>x. 1 - char M' x)"
+      unfolding set_integrable_def
       by (intro integrableI_bounded_set_indicator[where B=2]) (auto simp: emeasure_lborel_Icc_eq)
-    have 3: "\<And>u v. set_integrable lborel {u..v} (\<lambda>x. cmod (1 - char M' x))"
+    have 3: "\<And>u v. integrable lborel (\<lambda>x. indicat_real {u..v} x *\<^sub>R cmod (1 - char M' x))"
       by (intro borel_integrable_compact[OF compact_Icc] continuous_at_imp_continuous_on
                 continuous_intros ballI M'.isCont_char continuous_intros)
     have "cmod (CLBINT t:{-d/2..d/2}. 1 - char M' t) \<le> LBINT t:{-d/2..d/2}. cmod (1 - char M' t)"
+      unfolding set_lebesgue_integral_def
       using integral_norm_bound[of _ "\<lambda>x. indicator {u..v} x *\<^sub>R (1 - char M' x)" for u v] by simp
     also have 4: "\<dots> \<le> LBINT t:{-d/2..d/2}. \<epsilon> / 4"
+      unfolding set_lebesgue_integral_def
       apply (rule integral_mono [OF 3])
        apply (simp add: emeasure_lborel_Icc_eq)
       apply (case_tac "x \<in> {-d/2..d/2}")
@@ -397,11 +405,12 @@ proof -
       using d0 apply auto
       done
     also from d0 4 have "\<dots> = d * \<epsilon> / 4"
-      by simp
+      unfolding set_lebesgue_integral_def by simp
     finally have bound: "cmod (CLBINT t:{-d/2..d/2}. 1 - char M' t) \<le> d * \<epsilon> / 4" .
     have "cmod (1 - char (M n) x) \<le> 2" for n x
       by (rule order_trans [OF norm_triangle_ineq4], auto simp add: Mn.cmod_char_le_1)
     then have "(\<lambda>n. CLBINT t:{-d/2..d/2}. 1 - char (M n) t) \<longlonglongrightarrow> (CLBINT t:{-d/2..d/2}. 1 - char M' t)"
+      unfolding set_lebesgue_integral_def
       apply (intro integral_dominated_convergence[where w="\<lambda>x. indicator {-d/2..d/2} x *\<^sub>R 2"])
       apply (auto intro!: char_conv tendsto_intros
                   simp: emeasure_lborel_Icc_eq

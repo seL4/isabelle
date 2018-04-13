@@ -955,12 +955,13 @@ proof -
         by (rule integral_by_parts')
            (auto intro!: derivative_eq_intros b
                  simp: diff_Suc of_nat_Suc field_simps split: nat.split)
-      also have "(\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel) =
-        (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * (exp (- x\<^sup>2) * x ^ (k + 2))) \<partial>lborel)"
-        by (intro Bochner_Integration.integral_cong) auto
+      also have "... = exp (- b\<^sup>2) * b ^ (Suc k) - (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * (exp (- x\<^sup>2) * x ^ (k + 2))) \<partial>lborel)"
+        by (auto simp: intro!: Bochner_Integration.integral_cong)
+      also have "... = exp (- b\<^sup>2) * b ^ (Suc k) + 2 * (\<integral>x. indicator {0..b} x *\<^sub>R ?M (k + 2) x \<partial>lborel)"
+        unfolding Bochner_Integration.integral_mult_right_zero [symmetric]
+        by (simp del: real_scaleR_def)
       finally have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) =
-        exp (- b\<^sup>2) * b ^ (Suc k) + 2 * (\<integral>x. indicator {0..b} x *\<^sub>R ?M (k + 2) x \<partial>lborel)"
-        by (simp del: real_scaleR_def integral_mult_right add: integral_mult_right[symmetric])
+        exp (- b\<^sup>2) * b ^ (Suc k) + 2 * (\<integral>x. indicator {0..b} x *\<^sub>R ?M (k + 2) x \<partial>lborel)" .
       then show "(k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x)\<partial>lborel) - exp (- b\<^sup>2) * b ^ (k + 1) / 2 = ?f b"
         by (simp add: field_simps atLeastAtMost_def indicator_inter_arith)
     qed
