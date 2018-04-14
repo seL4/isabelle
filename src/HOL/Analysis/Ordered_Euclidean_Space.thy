@@ -182,6 +182,11 @@ lemma
     and eucl_le_atLeast: "{x. \<forall>i\<in>Basis. a \<bullet> i <= x \<bullet> i} = {a..}"
     by (auto simp: eucl_le[where 'a='a] eucl_less_def box_def cbox_def)
 
+lemma vec_nth_real_1_iff_cbox [simp]:
+  fixes a b :: real
+  shows "(\<lambda>x::real^1. x $ 1) ` S = {a..b} \<longleftrightarrow> S = cbox (vec a) (vec b)"
+  by (metis interval_cbox vec_nth_1_iff_cbox)
+
 lemma closed_eucl_atLeastAtMost[simp, intro]:
   fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..b}"

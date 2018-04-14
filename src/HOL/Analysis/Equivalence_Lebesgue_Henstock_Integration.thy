@@ -2434,7 +2434,6 @@ proof -
   then show ?thesis
     by (simp add: euclidean_representation)
 qed
-
   
 lemma absolutely_integrable_component_ubound:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
@@ -2450,7 +2449,6 @@ proof -
     by simp
 qed
 
-
 lemma absolutely_integrable_component_lbound:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes f: "f absolutely_integrable_on A" and g: "g integrable_on A"
@@ -2463,6 +2461,165 @@ proof -
     by (simp add: comp inner_diff_left)
   then show ?thesis
     by simp
+qed
+
+lemma integrable_on_1_iff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real^1"
+  shows "f integrable_on S \<longleftrightarrow> (\<lambda>x. f x $ 1) integrable_on S"
+  by (auto simp: integrable_componentwise_iff [of f] Basis_vec_def cart_eq_inner_axis)
+
+lemma integral_on_1_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real^1"
+  shows "integral S f = vec (integral S (\<lambda>x. f x $ 1))"
+by (cases "f integrable_on S") (simp_all add: integrable_on_1_iff vec_eq_iff not_integrable_integral)
+
+lemma absolutely_integrable_on_1_iff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real^1"
+  shows "f absolutely_integrable_on S \<longleftrightarrow> (\<lambda>x. f x $ 1) absolutely_integrable_on S"
+  unfolding absolutely_integrable_on_def
+  by (auto simp: integrable_on_1_iff norm_real)
+
+lemma absolutely_integrable_absolutely_integrable_lbound:
+  fixes f :: "'m::euclidean_space \<Rightarrow> real"
+  assumes f: "f integrable_on S" and g: "g absolutely_integrable_on S"
+    and *: "\<And>x. x \<in> S \<Longrightarrow> g x \<le> f x"
+  shows "f absolutely_integrable_on S"
+  by (rule absolutely_integrable_component_lbound [OF g f]) (simp add: *)
+
+lemma absolutely_integrable_absolutely_integrable_ubound:
+  fixes f :: "'m::euclidean_space \<Rightarrow> real"
+  assumes fg: "f integrable_on S" "g absolutely_integrable_on S"
+    and *: "\<And>x. x \<in> S \<Longrightarrow> f x \<le> g x"
+  shows "f absolutely_integrable_on S"
+  by (rule absolutely_integrable_component_ubound [OF fg]) (simp add: *)
+
+lemma has_integral_vec1_I_cbox:
+  fixes f :: "real^1 \<Rightarrow> 'a::real_normed_vector"
+  assumes "(f has_integral y) (cbox a b)"
+  shows "((f \<circ> vec) has_integral y) {a$1..b$1}"
+proof -
+  have "((\<lambda>x. f(vec x)) has_integral (1 / 1) *\<^sub>R y) ((\<lambda>x. x $ 1) ` cbox a b)"
+  proof (rule has_integral_twiddle)
+    show "\<exists>w z::real^1. vec ` cbox u v = cbox w z"
+         "content (vec ` cbox u v :: (real^1) set) = 1 * content (cbox u v)" for u v
+      unfolding vec_cbox_1_eq
+      by (auto simp: content_cbox_if_cart interval_eq_empty_cart)
+    show "\<exists>w z. (\<lambda>x. x $ 1) ` cbox u v = cbox w z" for u v :: "real^1"
+      using vec_nth_cbox_1_eq by blast
+  qed (auto simp: continuous_vec assms)
+  then show ?thesis
+    by (simp add: o_def)
+qed
+
+lemma has_integral_vec1_I:
+  fixes f :: "real^1 \<Rightarrow> 'a::real_normed_vector"
+  assumes "(f has_integral y) S"
+  shows "(f \<circ> vec has_integral y) ((\<lambda>x. x $ 1) ` S)"
+proof -
+  have *: "\<exists>z. ((\<lambda>x. if x \<in> (\<lambda>x. x $ 1) ` S then (f \<circ> vec) x else 0) has_integral z) {a..b} \<and> norm (z - y) < e"
+    if int: "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow>
+                    (\<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - y) < e)"
+      and B: "ball 0 B \<subseteq> {a..b}" for e B a b
+  proof -
+    have [simp]: "(\<exists>y\<in>S. x = y $ 1) \<longleftrightarrow> vec x \<in> S" for x
+      by force
+    have B': "ball (0::real^1) B \<subseteq> cbox (vec a) (vec b)"
+      using B by (simp add: Basis_vec_def cart_eq_inner_axis [symmetric] mem_box norm_real subset_iff)
+    show ?thesis
+      using int [OF B'] by (auto simp: image_iff o_def cong: if_cong dest!: has_integral_vec1_I_cbox)
+  qed
+  show ?thesis
+    using assms 
+    apply (subst has_integral_alt)
+    apply (subst (asm) has_integral_alt)
+    apply (simp add: has_integral_vec1_I_cbox split: if_split_asm)
+    apply (metis vector_one_nth)
+    apply (erule all_forward imp_forward asm_rl ex_forward conj_forward)+
+    apply (blast intro!: *)
+    done
+qed
+
+lemma has_integral_vec1_nth_cbox:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  assumes "(f has_integral y) {a..b}"
+  shows "((\<lambda>x::real^1. f(x$1)) has_integral y) (cbox (vec a) (vec b))"
+proof -
+  have "((\<lambda>x::real^1. f(x$1)) has_integral (1 / 1) *\<^sub>R y) (vec ` cbox a b)"
+  proof (rule has_integral_twiddle)
+    show "\<exists>w z::real. (\<lambda>x. x $ 1) ` cbox u v = cbox w z"
+         "content ((\<lambda>x. x $ 1) ` cbox u v) = 1 * content (cbox u v)" for u v::"real^1"
+      unfolding vec_cbox_1_eq by (auto simp: content_cbox_if_cart interval_eq_empty_cart)
+    show "\<exists>w z::real^1. vec ` cbox u v = cbox w z" for u v :: "real"
+      using vec_cbox_1_eq by auto
+  qed (auto simp: continuous_vec assms)
+  then show ?thesis
+    using vec_cbox_1_eq by auto
+qed
+
+lemma has_integral_vec1_D_cbox:
+  fixes f :: "real^1 \<Rightarrow> 'a::real_normed_vector"
+  assumes "((f \<circ> vec) has_integral y) {a$1..b$1}"
+  shows "(f has_integral y) (cbox a b)"
+  by (metis (mono_tags, lifting) assms comp_apply has_integral_eq has_integral_vec1_nth_cbox vector_one_nth)
+
+lemma has_integral_vec1_D:
+  fixes f :: "real^1 \<Rightarrow> 'a::real_normed_vector"
+  assumes "((f \<circ> vec) has_integral y) ((\<lambda>x. x $ 1) ` S)"
+  shows "(f has_integral y) S"
+proof -
+  have *: "\<exists>z. ((\<lambda>x. if x \<in> S then f x else 0) has_integral z) (cbox a b) \<and> norm (z - y) < e"
+    if int: "\<And>a b. ball 0 B \<subseteq> {a..b} \<Longrightarrow>
+                             (\<exists>z. ((\<lambda>x. if x \<in> (\<lambda>x. x $ 1) ` S then (f \<circ> vec) x else 0) has_integral z) {a..b} \<and> norm (z - y) < e)"
+      and B: "ball 0 B \<subseteq> cbox a b" for e B and a b::"real^1"
+  proof -
+    have B': "ball 0 B \<subseteq> {a$1..b$1}"
+      using B
+      apply (simp add: subset_iff Basis_vec_def cart_eq_inner_axis [symmetric] mem_box)
+      apply (metis (full_types) norm_real vec_component)
+      done
+    have eq: "(\<lambda>x. if vec x \<in> S then f (vec x) else 0) = (\<lambda>x. if x \<in> S then f x else 0) \<circ> vec"
+      by force
+    have [simp]: "(\<exists>y\<in>S. x = y $ 1) \<longleftrightarrow> vec x \<in> S" for x
+      by force
+    show ?thesis
+      using int [OF B'] by (auto simp: image_iff eq cong: if_cong dest!: has_integral_vec1_D_cbox)
+qed
+  show ?thesis
+    using assms
+    apply (subst has_integral_alt)
+    apply (subst (asm) has_integral_alt)
+    apply (simp add: has_integral_vec1_D_cbox eq_cbox split: if_split_asm, blast)
+    apply (intro conjI impI)
+     apply (metis vector_one_nth)
+    apply (erule thin_rl)
+    apply (erule all_forward imp_forward asm_rl ex_forward conj_forward)+
+    using * apply blast
+    done
+qed
+
+
+lemma integral_vec1_eq:
+  fixes f :: "real^1 \<Rightarrow> 'a::real_normed_vector"
+  shows "integral S f = integral ((\<lambda>x. x $ 1) ` S) (f \<circ> vec)"
+  using has_integral_vec1_I [of f] has_integral_vec1_D [of f]
+  by (metis has_integral_iff not_integrable_integral)
+
+lemma absolutely_integrable_drop:
+  fixes f :: "real^1 \<Rightarrow> 'b::euclidean_space"
+  shows "f absolutely_integrable_on S \<longleftrightarrow> (f \<circ> vec) absolutely_integrable_on (\<lambda>x. x $ 1) ` S"
+  unfolding absolutely_integrable_on_def integrable_on_def
+proof safe
+  fix y r
+  assume "(f has_integral y) S" "((\<lambda>x. norm (f x)) has_integral r) S"
+  then show "\<exists>y. (f \<circ> vec has_integral y) ((\<lambda>x. x $ 1) ` S)"
+            "\<exists>y. ((\<lambda>x. norm ((f \<circ> vec) x)) has_integral y) ((\<lambda>x. x $ 1) ` S)"
+    by (force simp: o_def dest!: has_integral_vec1_I)+
+next
+  fix y :: "'b" and r :: "real"
+  assume "(f \<circ> vec has_integral y) ((\<lambda>x. x $ 1) ` S)"
+         "((\<lambda>x. norm ((f \<circ> vec) x)) has_integral r) ((\<lambda>x. x $ 1) ` S)"
+  then show "\<exists>y. (f has_integral y) S"  "\<exists>y. ((\<lambda>x. norm (f x)) has_integral y) S"
+    by (force simp: o_def intro: has_integral_vec1_D)+
 qed
 
 subsection \<open>Dominated convergence\<close>
@@ -2582,7 +2739,6 @@ proof clarify
   qed (use b in auto)
 qed
 
-
 lemma dominated_convergence_absolutely_integrable:
   fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes f: "\<And>k. f k absolutely_integrable_on S"
@@ -2596,6 +2752,37 @@ proof -
   with assms show ?thesis
     by (blast intro:  absolutely_integrable_integrable_bound [where g=h])
 qed
+
+
+proposition integral_countable_UN:
+  fixes f :: "real^'m \<Rightarrow> real^'n"
+  assumes f: "f absolutely_integrable_on (\<Union>(range s))"
+    and s: "\<And>m. s m \<in> sets lebesgue"
+  shows "\<And>n. f absolutely_integrable_on (\<Union>m\<le>n. s m)"
+    and "(\<lambda>n. integral (\<Union>m\<le>n. s m) f) \<longlonglongrightarrow> integral (UNION UNIV s) f" (is "?F \<longlonglongrightarrow> ?I")
+proof -
+  show fU: "f absolutely_integrable_on (\<Union>m\<le>n. s m)" for n
+    using assms by (blast intro: set_integrable_subset [OF f])
+  have fint: "f integrable_on (\<Union> (range s))"
+    using absolutely_integrable_on_def f by blast
+  let ?h = "\<lambda>x. if x \<in> UNION UNIV s then norm(f x) else 0"
+  have "(\<lambda>n. integral UNIV (\<lambda>x. if x \<in> (\<Union>m\<le>n. s m) then f x else 0))
+        \<longlonglongrightarrow> integral UNIV (\<lambda>x. if x \<in> UNION UNIV s then f x else 0)"
+  proof (rule dominated_convergence)
+    show "(\<lambda>x. if x \<in> (\<Union>m\<le>n. s m) then f x else 0) integrable_on UNIV" for n
+      unfolding integrable_restrict_UNIV
+      using fU absolutely_integrable_on_def by blast
+    show "(\<lambda>x. if x \<in> UNION UNIV s then norm(f x) else 0) integrable_on UNIV"
+      by (metis (no_types) absolutely_integrable_on_def f integrable_restrict_UNIV)
+    show "\<forall>x\<in>UNIV.
+         (\<lambda>n. if x \<in> (\<Union>m\<le>n. s m) then f x else 0)
+         \<longlonglongrightarrow> (if x \<in> UNION UNIV s then f x else 0)"
+      by (force intro: Lim_eventually eventually_sequentiallyI)
+  qed auto
+  then show "?F \<longlonglongrightarrow> ?I"
+    by (simp only: integral_restrict_UNIV)
+qed
+
 
 subsection \<open>Fundamental Theorem of Calculus for the Lebesgue integral\<close>
 

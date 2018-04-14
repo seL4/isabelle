@@ -773,7 +773,7 @@ proof -
   finally show ?thesis unfolding th2 .
 qed
 
-text \<open>Relation to invertibility.\<close>
+subsection \<open>Relation to invertibility.\<close>
 
 lemma invertible_left_inverse:
   fixes A :: "real^'n^'n"
@@ -838,7 +838,75 @@ proof -
     by blast
 qed
 
-text \<open>Cramer's rule.\<close>
+subsubsection\<open>Invertibility of matrices and corresponding linear functions\<close>
+
+lemma matrix_left_invertible:
+  fixes f :: "real^'m \<Rightarrow> real^'n"
+  assumes "linear f"
+  shows "((\<exists>B. B ** matrix f = mat 1) \<longleftrightarrow> (\<exists>g. linear g \<and> g \<circ> f = id))"
+proof safe
+  fix B
+  assume 1: "B ** matrix f = mat 1"
+  show "\<exists>g. linear g \<and> g \<circ> f = id"
+  proof (intro exI conjI)
+    show "linear (\<lambda>y. B *v y)"
+      by (simp add: matrix_vector_mul_linear)
+    show "(( *v) B) \<circ> f = id"
+      unfolding o_def
+      by (metis assms 1 eq_id_iff matrix_vector_mul matrix_vector_mul_assoc matrix_vector_mul_lid)
+  qed
+next
+  fix g
+  assume "linear g" "g \<circ> f = id"
+  then have "matrix g ** matrix f = mat 1"
+    by (metis assms matrix_compose matrix_id_mat_1)
+  then show "\<exists>B. B ** matrix f = mat 1" ..
+qed
+
+lemma matrix_right_invertible:
+  fixes f :: "real^'m \<Rightarrow> real^'n"
+  assumes "linear f"
+  shows "((\<exists>B. matrix f ** B = mat 1) \<longleftrightarrow> (\<exists>g. linear g \<and> f \<circ> g = id))"
+proof safe
+  fix B
+  assume 1: "matrix f ** B = mat 1"
+  show "\<exists>g. linear g \<and> f \<circ> g = id"
+  proof (intro exI conjI)
+    show "linear (( *v) B)"
+      by (simp add: matrix_vector_mul_linear)
+    show "f \<circ> ( *v) B = id"
+      by (metis 1 assms comp_apply eq_id_iff linear_id matrix_id_mat_1 matrix_vector_mul_assoc matrix_works)
+  qed
+next
+  fix g
+  assume "linear g" and "f \<circ> g = id"
+  then have "matrix f ** matrix g = mat 1"
+    by (metis assms matrix_compose matrix_id_mat_1)
+  then show "\<exists>B. matrix f ** B = mat 1" ..
+qed
+
+lemma matrix_invertible:
+  fixes f :: "real^'m \<Rightarrow> real^'n"
+  assumes "linear f"
+  shows  "invertible (matrix f) \<longleftrightarrow> (\<exists>g. linear g \<and> f \<circ> g = id \<and> g \<circ> f = id)"
+    (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (metis assms invertible_def left_right_inverse_eq matrix_left_invertible matrix_right_invertible)
+next
+  assume ?rhs then show ?lhs
+    by (metis assms invertible_def matrix_compose matrix_id_mat_1)
+qed
+
+lemma invertible_eq_bij:
+  fixes m :: "real^'m^'n"
+  shows "invertible m \<longleftrightarrow> bij (( *v) m)"
+  using matrix_invertible [OF matrix_vector_mul_linear] o_bij
+  apply (auto simp: bij_betw_def)
+  by (metis left_right_inverse_eq  linear_injective_left_inverse [OF matrix_vector_mul_linear]
+            linear_surjective_right_inverse[OF matrix_vector_mul_linear])
+
+subsection \<open>Cramer's rule.\<close>
 
 lemma cramer_lemma_transpose:
   fixes A:: "real^'n^'n"
@@ -929,6 +997,9 @@ subsection \<open>Orthogonality of a transformation and matrix\<close>
 
 definition "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 
+definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
+  transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
+
 lemma orthogonal_transformation:
   "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v. norm (f v) = norm v)"
   unfolding orthogonal_transformation_def
@@ -937,9 +1008,6 @@ lemma orthogonal_transformation:
   apply (simp add: norm_eq_sqrt_inner)
   apply (simp add: dot_norm  linear_add[symmetric])
   done
-
-definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
-  transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
 
 lemma orthogonal_transformation_id [simp]: "orthogonal_transformation (\<lambda>x. x)"
   by (simp add: linear_iff orthogonal_transformation_def)
@@ -955,6 +1023,9 @@ lemma orthogonal_transformation_compose:
 lemma orthogonal_transformation_neg:
   "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
   by (auto simp: orthogonal_transformation_def dest: linear_compose_neg)
+
+lemma orthogonal_transformation_scaleR: "orthogonal_transformation f \<Longrightarrow> f (c *\<^sub>R v) = c *\<^sub>R f v"
+  by (simp add: linear_iff orthogonal_transformation_def)
 
 lemma orthogonal_transformation_linear:
    "orthogonal_transformation f \<Longrightarrow> linear f"

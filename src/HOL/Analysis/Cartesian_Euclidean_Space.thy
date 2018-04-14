@@ -741,6 +741,12 @@ lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   apply rule
   done
 
+lemma inj_matrix_vector_mult:
+  fixes A::"'a::field^'n^'m"
+  assumes "invertible A"
+  shows "inj (( *v) A)"
+  by (metis assms inj_on_inverseI invertible_def matrix_vector_mul_assoc matrix_vector_mul_lid)
+
 
 subsection\<open>Some bounds on components etc. relative to operator norm\<close>
 
@@ -1555,6 +1561,41 @@ lemma norm_real: "norm(x::real ^ 1) = \<bar>x$1\<bar>"
 lemma dist_real: "dist(x::real ^ 1) y = \<bar>(x$1) - (y$1)\<bar>"
   by (auto simp add: norm_real dist_norm)
 
+subsection\<open>Routine results connecting the types @{typ "real^1"} and @{typ real}\<close>
+
+lemma vector_one_nth [simp]:
+  fixes x :: "'a^1" shows "vec (x $ 1) = x"
+  by (metis vec_def vector_one)
+
+lemma vec_cbox_1_eq [simp]:
+  shows "vec ` cbox u v = cbox (vec u) (vec v ::real^1)"
+  by (force simp: Basis_vec_def cart_eq_inner_axis [symmetric] mem_box)
+
+lemma vec_nth_cbox_1_eq [simp]:
+  fixes u v :: "'a::euclidean_space^1"
+  shows "(\<lambda>x. x $ 1) ` cbox u v = cbox (u$1) (v$1)"
+    by (auto simp: Basis_vec_def cart_eq_inner_axis [symmetric] mem_box image_iff Bex_def inner_axis) (metis vec_component)
+
+lemma vec_nth_1_iff_cbox [simp]:
+  fixes a b :: "'a::euclidean_space"
+  shows "(\<lambda>x::'a^1. x $ 1) ` S = cbox a b \<longleftrightarrow> S = cbox (vec a) (vec b)"
+    (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs show ?rhs
+  proof (intro equalityI subsetI)
+    fix x 
+    assume "x \<in> S"
+    then have "x $ 1 \<in> (\<lambda>v. v $ (1::1)) ` cbox (vec a) (vec b)"
+      using L by auto
+    then show "x \<in> cbox (vec a) (vec b)"
+      by (metis (no_types, lifting) imageE vector_one_nth)
+  next
+    fix x :: "'a^1"
+    assume "x \<in> cbox (vec a) (vec b)"
+    then show "x \<in> S"
+      by (metis (no_types, lifting) L imageE imageI vec_component vec_nth_cbox_1_eq vector_one_nth)
+  qed
+qed simp
 
 lemma tendsto_at_within_vector_1:
   fixes S :: "'a :: metric_space set"
