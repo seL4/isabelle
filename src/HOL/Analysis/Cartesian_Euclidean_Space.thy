@@ -139,6 +139,9 @@ lemma vec_sub: "vec(x - y) = vec x - vec y" by vector
 lemma vec_cmul: "vec(c * x) = c *s vec x " by vector
 lemma vec_neg: "vec(- x) = - vec x " by vector
 
+lemma vec_scaleR: "vec(c * x) = c *\<^sub>R vec x"
+  by vector
+
 lemma vec_sum:
   assumes "finite S"
   shows "vec(sum f S) = sum (vec \<circ> f) S"
@@ -263,6 +266,26 @@ lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
 lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
   by (simp add: vec_eq_iff)
 
+lemma linear_vec [simp]: "linear vec"
+  by (simp add: linearI vec_add vec_eq_iff)
+
+lemma differentiable_vec:
+  fixes S :: "'a::euclidean_space set"
+  shows "vec differentiable_on S"
+  by (simp add: linear_linear bounded_linear_imp_differentiable_on)
+
+lemma continuous_vec [continuous_intros]:
+  fixes x :: "'a::euclidean_space"
+  shows "isCont vec x"
+  apply (clarsimp simp add: continuous_def LIM_def dist_vec_def L2_set_def)
+  apply (rule_tac x="r / sqrt (real CARD('b))" in exI)
+  by (simp add: mult.commute pos_less_divide_eq real_sqrt_mult)
+
+lemma box_vec_eq_empty [simp]:
+  shows "cbox (vec a) (vec b) = {} \<longleftrightarrow> cbox a b = {}"
+        "box (vec a) (vec b) = {} \<longleftrightarrow> box a b = {}"
+  by (auto simp: Basis_vec_def mem_box box_eq_empty inner_axis)
+
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
 
 lemma norm_axis_1 [simp]: "norm (axis m (1::real)) = 1"
@@ -283,18 +306,18 @@ lemma vector_mul_lcancel_imp: "a \<noteq> (0::real) ==>  a *s x = a *s y ==> (x 
 lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b *s x ==> a = b"
   by (metis vector_mul_rcancel)
 
-lemma component_le_norm_cart: "\<bar>x$i\<bar> <= norm x"
+lemma component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
   apply (simp add: norm_vec_def)
   apply (rule member_le_L2_set, simp_all)
   done
 
-lemma norm_bound_component_le_cart: "norm x <= e ==> \<bar>x$i\<bar> <= e"
+lemma norm_bound_component_le_cart: "norm x \<le> e ==> \<bar>x$i\<bar> \<le> e"
   by (metis component_le_norm_cart order_trans)
 
 lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
   by (metis component_le_norm_cart le_less_trans)
 
-lemma norm_le_l1_cart: "norm x <= sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
+lemma norm_le_l1_cart: "norm x \<le> sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def L2_set_le_sum)
 
 lemma scalar_mult_eq_scaleR [simp]: "c *s x = c *\<^sub>R x"
@@ -1440,7 +1463,7 @@ lemma exhaust_2:
   shows "x = 1 \<or> x = 2"
 proof (induct x)
   case (of_int z)
-  then have "0 <= z" and "z < 2" by simp_all
+  then have "0 \<le> z" and "z < 2" by simp_all
   then have "z = 0 | z = 1" by arith
   then show ?case by auto
 qed
@@ -1453,7 +1476,7 @@ lemma exhaust_3:
   shows "x = 1 \<or> x = 2 \<or> x = 3"
 proof (induct x)
   case (of_int z)
-  then have "0 <= z" and "z < 3" by simp_all
+  then have "0 \<le> z" and "z < 3" by simp_all
   then have "z = 0 \<or> z = 1 \<or> z = 2" by arith
   then show ?case by auto
 qed
@@ -1479,6 +1502,14 @@ lemma sum_2: "sum f (UNIV::2 set) = f 1 + f 2"
 lemma sum_3: "sum f (UNIV::3 set) = f 1 + f 2 + f 3"
   unfolding UNIV_3 by (simp add: ac_simps)
 
+lemma num1_eqI:
+  fixes a::num1 shows "a = b"
+  by (metis (full_types) UNIV_1 UNIV_I empty_iff insert_iff)
+
+lemma num1_eq1 [simp]:
+  fixes a::num1 shows "a = 1"
+  by (rule num1_eqI)
+
 instantiation num1 :: cart_one
 begin
 
@@ -1488,6 +1519,16 @@ proof
 qed
 
 end
+
+instantiation num1 :: linorder begin
+definition "a < b \<longleftrightarrow> Rep_num1 a < Rep_num1 b"
+definition "a \<le> b \<longleftrightarrow> Rep_num1 a \<le> Rep_num1 b"
+instance
+  by intro_classes (auto simp: less_eq_num1_def less_num1_def intro: num1_eqI)
+end
+
+instance num1 :: wellorder
+  by intro_classes (auto simp: less_eq_num1_def less_num1_def)
 
 subsection\<open>The collapse of the general concepts to dimension one\<close>
 
@@ -1503,11 +1544,43 @@ lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x.
 lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
   by (simp add: norm_vec_def)
 
+lemma dist_vector_1:
+  fixes x :: "'a::real_normed_vector^1"
+  shows "dist x y = dist (x$1) (y$1)"
+  by (simp add: dist_norm norm_vector_1)
+
 lemma norm_real: "norm(x::real ^ 1) = \<bar>x$1\<bar>"
   by (simp add: norm_vector_1)
 
 lemma dist_real: "dist(x::real ^ 1) y = \<bar>(x$1) - (y$1)\<bar>"
   by (auto simp add: norm_real dist_norm)
+
+
+lemma tendsto_at_within_vector_1:
+  fixes S :: "'a :: metric_space set"
+  assumes "(f \<longlongrightarrow> fx) (at x within S)"
+  shows "((\<lambda>y::'a^1. \<chi> i. f (y $ 1)) \<longlongrightarrow> (vec fx::'a^1)) (at (vec x) within vec ` S)"
+proof (rule topological_tendstoI)
+  fix T :: "('a^1) set"
+  assume "open T" "vec fx \<in> T"
+  have "\<forall>\<^sub>F x in at x within S. f x \<in> (\<lambda>x. x $ 1) ` T"
+    using \<open>open T\<close> \<open>vec fx \<in> T\<close> assms open_image_vec_nth tendsto_def by fastforce
+  then show "\<forall>\<^sub>F x::'a^1 in at (vec x) within vec ` S. (\<chi> i. f (x $ 1)) \<in> T"
+    unfolding eventually_at dist_norm [symmetric]
+    by (rule ex_forward)
+       (use \<open>open T\<close> in 
+         \<open>fastforce simp: dist_norm dist_vec_def L2_set_def image_iff vector_one open_vec_def\<close>)
+qed
+
+lemma has_derivative_vector_1:
+  assumes der_g: "(g has_derivative (\<lambda>x. x * g' a)) (at a within S)"
+  shows "((\<lambda>x. vec (g (x $ 1))) has_derivative ( *\<^sub>R) (g' a))
+         (at ((vec a)::real^1) within vec ` S)"
+    using der_g
+    apply (auto simp: Deriv.has_derivative_within bounded_linear_scaleR_right norm_vector_1)
+    apply (drule tendsto_at_within_vector_1, vector)
+    apply (auto simp: algebra_simps eventually_at tendsto_def)
+    done
 
 
 subsection\<open>Explicit vector construction from lists\<close>

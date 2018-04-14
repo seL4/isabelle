@@ -1113,7 +1113,7 @@ proof -
     apply auto
     apply (rule_tac x="(1 - x) *\<^sub>R w + x *\<^sub>R z" in exI)
     apply (auto simp: closed_segment_def twz) []
-    apply (intro derivative_eq_intros has_derivative_at_within, simp_all)
+    apply (intro derivative_eq_intros has_derivative_at_withinI, simp_all)
     apply (simp add: fun_eq_iff real_vector.scale_right_diff_distrib)
     apply (force simp: twz closed_segment_def)
     done

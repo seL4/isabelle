@@ -378,7 +378,7 @@ lemma piecewise_C1_imp_differentiable:
     "f piecewise_C1_differentiable_on i \<Longrightarrow> f piecewise_differentiable_on i"
   by (auto simp: piecewise_C1_differentiable_on_def piecewise_differentiable_on_def
            C1_differentiable_on_def differentiable_def has_vector_derivative_def
-           intro: has_derivative_at_within)
+           intro: has_derivative_at_withinI)
 
 lemma piecewise_C1_differentiable_compose:
     "\<lbrakk>f piecewise_C1_differentiable_on s; g piecewise_C1_differentiable_on (f ` s);
@@ -3807,7 +3807,7 @@ proof -
           (at x within {a..b})"
         using x gdx t
         apply (clarsimp simp add: differentiable_iff_scaleR)
-        apply (rule exp_fg [unfolded has_vector_derivative_def, simplified], blast intro: has_derivative_at_within)
+        apply (rule exp_fg [unfolded has_vector_derivative_def, simplified], blast intro: has_derivative_at_withinI)
         apply (simp_all add: has_vector_derivative_def [symmetric])
         done
       } note * = this

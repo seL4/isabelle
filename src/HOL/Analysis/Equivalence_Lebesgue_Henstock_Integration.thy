@@ -917,6 +917,9 @@ abbreviation
   where "f absolutely_integrable_on s \<equiv> set_integrable lebesgue s f"
 
 
+lemma absolutely_integrable_zero [simp]: "(\<lambda>x. 0) absolutely_integrable_on S"
+    by (simp add: set_integrable_def)
+
 lemma absolutely_integrable_on_def:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f absolutely_integrable_on S \<longleftrightarrow> f integrable_on S \<and> (\<lambda>x. norm (f x)) integrable_on S"
@@ -986,6 +989,18 @@ proof -
   then show ?thesis        
     unfolding absolutely_integrable_on_def by auto
 qed
+
+lemma absolutely_integrable_on_scaleR_iff:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows
+   "(\<lambda>x. c *\<^sub>R f x) absolutely_integrable_on S \<longleftrightarrow>
+      c = 0 \<or> f absolutely_integrable_on S"
+proof (cases "c=0")
+  case False
+  then show ?thesis
+  unfolding absolutely_integrable_on_def 
+  by (simp add: norm_mult)
+qed auto
 
 lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
   by (subst absolutely_integrable_on_iff_nonneg[symmetric])
@@ -2128,9 +2143,6 @@ lemma absolutely_integrable_linear:
   using integrable_bounded_linear[of h lebesgue "\<lambda>x. indicator s x *\<^sub>R f x"]
   by (simp add: linear_simps[of h] set_integrable_def)
 
-lemma absolutely_integrable_zero [simp]: "(\<lambda>x. 0) absolutely_integrable_on S"
-    by (simp add: set_integrable_def)
-
 lemma absolutely_integrable_sum:
   fixes f :: "'a \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "finite T" and "\<And>a. a \<in> T \<Longrightarrow> (f a) absolutely_integrable_on S"
@@ -2475,6 +2487,75 @@ proof -
   qed
   ultimately show ?thesis
     by simp
+qed
+
+lemma dominated_convergence_integrable_1:
+  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> real"
+  assumes f: "\<And>k. f k absolutely_integrable_on S"
+    and h: "h integrable_on S"
+    and normg: "\<And>x. x \<in> S \<Longrightarrow> norm(g x) \<le> (h x)"
+    and lim: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+ shows "g integrable_on S"
+proof -
+  have habs: "h absolutely_integrable_on S"
+    using h normg nonnegative_absolutely_integrable_1 norm_ge_zero order_trans by blast
+  let ?f = "\<lambda>n x. (min (max (- h x) (f n x)) (h x))"
+  have h0: "h x \<ge> 0" if "x \<in> S" for x
+    using normg that by force
+  have leh: "norm (?f k x) \<le> h x" if "x \<in> S" for k x
+    using h0 that by force
+  have limf: "(\<lambda>k. ?f k x) \<longlonglongrightarrow> g x" if "x \<in> S" for x
+  proof -
+    have "\<And>e y. \<bar>f y x - g x\<bar> < e \<Longrightarrow> \<bar>min (max (- h x) (f y x)) (h x) - g x\<bar> < e"
+      using h0 [OF that] normg [OF that] by simp
+    then show ?thesis
+      using lim [OF that] by (auto simp add: tendsto_iff dist_norm elim!: eventually_mono)
+  qed
+  show ?thesis
+  proof (rule dominated_convergence [of ?f S h g])
+    have "(\<lambda>x. - h x) absolutely_integrable_on S"
+      using habs unfolding set_integrable_def by auto
+    then show "?f k integrable_on S" for k
+      by (intro set_lebesgue_integral_eq_integral absolutely_integrable_min_1 absolutely_integrable_max_1 f habs)
+  qed (use assms leh limf in auto)
+qed
+
+lemma dominated_convergence_integrable:
+  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes f: "\<And>k. f k absolutely_integrable_on S"
+    and h: "h integrable_on S"
+    and normg: "\<And>x. x \<in> S \<Longrightarrow> norm(g x) \<le> (h x)"
+    and lim: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+  shows "g integrable_on S"
+  using f
+  unfolding integrable_componentwise_iff [of g] absolutely_integrable_componentwise_iff [where f = "f k" for k]
+proof clarify
+  fix b :: "'m"
+  assume fb [rule_format]: "\<And>k. \<forall>b\<in>Basis. (\<lambda>x. f k x \<bullet> b) absolutely_integrable_on S" and b: "b \<in> Basis"
+  show "(\<lambda>x. g x \<bullet> b) integrable_on S"
+  proof (rule dominated_convergence_integrable_1 [OF fb h])
+    fix x 
+    assume "x \<in> S"
+    show "norm (g x \<bullet> b) \<le> h x"
+      using norm_nth_le \<open>x \<in> S\<close> b normg order.trans by blast
+    show "(\<lambda>k. f k x \<bullet> b) \<longlonglongrightarrow> g x \<bullet> b"
+      using \<open>x \<in> S\<close> b lim tendsto_componentwise_iff by fastforce
+  qed (use b in auto)
+qed
+
+
+lemma dominated_convergence_absolutely_integrable:
+  fixes f :: "nat \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes f: "\<And>k. f k absolutely_integrable_on S"
+    and h: "h integrable_on S"
+    and normg: "\<And>x. x \<in> S \<Longrightarrow> norm(g x) \<le> (h x)"
+    and lim: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>k. f k x) \<longlonglongrightarrow> g x"
+  shows "g absolutely_integrable_on S"
+proof -
+  have "g integrable_on S"
+    by (rule dominated_convergence_integrable [OF assms])
+  with assms show ?thesis
+    by (blast intro:  absolutely_integrable_integrable_bound [where g=h])
 qed
 
 subsection \<open>Fundamental Theorem of Calculus for the Lebesgue integral\<close>

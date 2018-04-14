@@ -3219,7 +3219,7 @@ abbreviation netlimit :: "'a::t2_space filter \<Rightarrow> 'a"
 lemma netlimit_within: "\<not> trivial_limit (at a within S) \<Longrightarrow> netlimit (at a within S) = a"
   by (rule tendsto_Lim) (auto intro: tendsto_intros)
 
-lemma netlimit_at:
+lemma netlimit_at [simp]:
   fixes a :: "'a::{perfect_space,t2_space}"
   shows "netlimit (at a) = a"
   using netlimit_within [of a UNIV] by simp

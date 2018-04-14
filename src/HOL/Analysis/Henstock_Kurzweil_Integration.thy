@@ -5258,7 +5258,7 @@ lemma integral_Un [simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes "f integrable_on S" "f integrable_on T" "negligible (S \<inter> T)"
   shows "integral (S \<union> T) f = integral S f + integral T f"
-  using has_integral_Un by (simp add: has_integral_Un assms integrable_integral integral_unique)
+  by (simp add: has_integral_Un assms integrable_integral integral_unique)
 
 lemma integrable_Un:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b :: banach"

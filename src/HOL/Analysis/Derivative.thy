@@ -66,7 +66,7 @@ lemma has_derivative_at':
   using has_derivative_within' [of f f' x UNIV]
   by simp
 
-lemma has_derivative_at_within:
+lemma has_derivative_at_withinI:
   "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f') (at x within s)"
   unfolding has_derivative_within' has_derivative_at'
   by blast
@@ -135,7 +135,7 @@ lemma differentiable_onD: "\<lbrakk>f differentiable_on S; x \<in> S\<rbrakk> \<
 
 lemma differentiable_at_withinI: "f differentiable (at x) \<Longrightarrow> f differentiable (at x within s)"
   unfolding differentiable_def
-  using has_derivative_at_within
+  using has_derivative_at_withinI
   by blast
 
 lemma differentiable_at_imp_differentiable_on:
@@ -1819,7 +1819,7 @@ proof -
           apply (rule derivative_intros)
           defer
           apply (rule has_derivative_sub[where g'="\<lambda>x.0",unfolded diff_0_right])
-          apply (rule has_derivative_at_within)
+          apply (rule has_derivative_at_withinI)
           using assms(5) and \<open>u \<in> s\<close> \<open>a \<in> s\<close>
           apply (auto intro!: derivative_intros bounded_linear.has_derivative[of _ "\<lambda>x. x"] has_derivative_bounded_linear)
           done
@@ -2526,7 +2526,7 @@ lemma has_vector_derivative_within_subset:
 lemma has_vector_derivative_at_within:
   "(f has_vector_derivative f') (at x) \<Longrightarrow> (f has_vector_derivative f') (at x within s)"
   unfolding has_vector_derivative_def
-  by (rule has_derivative_at_within)
+  by (rule has_derivative_at_withinI)
 
 lemma has_vector_derivative_weaken:
   fixes x D and f g s t
