@@ -971,8 +971,7 @@ lemma nonnegative_absolutely_integrable_1:
   fixes f :: "'a :: euclidean_space \<Rightarrow> real"
   assumes f: "f integrable_on A" and "\<And>x. x \<in> A \<Longrightarrow> 0 \<le> f x"
   shows "f absolutely_integrable_on A"
-  apply (rule absolutely_integrable_onI [OF f])
-  using assms by (simp add: integrable_eq)
+  by (rule absolutely_integrable_onI [OF f]) (use assms in \<open>simp add: integrable_eq\<close>)
 
 lemma absolutely_integrable_on_iff_nonneg:
   fixes f :: "'a :: euclidean_space \<Rightarrow> real"
@@ -1002,6 +1001,46 @@ proof (cases "c=0")
   by (simp add: norm_mult)
 qed auto
 
+lemma absolutely_integrable_spike:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f absolutely_integrable_on T" and S: "negligible S" "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+  shows "g absolutely_integrable_on T"
+  using assms integrable_spike
+  unfolding absolutely_integrable_on_def by metis
+
+lemma absolutely_integrable_negligible:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "negligible S"
+  shows "f absolutely_integrable_on S"
+  using assms by (simp add: absolutely_integrable_on_def integrable_negligible)
+
+lemma absolutely_integrable_spike_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "negligible S" "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+  shows "(f absolutely_integrable_on T \<longleftrightarrow> g absolutely_integrable_on T)"
+  using assms by (blast intro: absolutely_integrable_spike sym)
+
+lemma absolutely_integrable_spike_set_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
+  shows "(f absolutely_integrable_on S \<longleftrightarrow> f absolutely_integrable_on T)"
+proof -
+  have "(\<lambda>x. if x \<in> S then f x else 0) absolutely_integrable_on UNIV \<longleftrightarrow>
+        (\<lambda>x. if x \<in> T then f x else 0) absolutely_integrable_on UNIV"
+  proof (rule absolutely_integrable_spike_eq)
+    show "negligible ({x \<in> S - T. f x \<noteq> 0} \<union> {x \<in> T - S. f x \<noteq> 0})"
+      by (rule negligible_Un [OF assms])
+  qed auto
+  with absolutely_integrable_restrict_UNIV show ?thesis
+    by blast
+qed
+
+lemma absolutely_integrable_spike_set:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "f absolutely_integrable_on S" and neg: "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
+  shows "f absolutely_integrable_on T"
+  using absolutely_integrable_spike_set_eq f neg by blast
+
 lemma lmeasurable_iff_integrable_on: "S \<in> lmeasurable \<longleftrightarrow> (\<lambda>x. 1::real) integrable_on S"
   by (subst absolutely_integrable_on_iff_nonneg[symmetric])
      (simp_all add: lmeasurable_iff_integrable set_integrable_def)
@@ -1010,7 +1049,7 @@ lemma lmeasure_integral_UNIV: "S \<in> lmeasurable \<Longrightarrow> measure leb
   by (simp add: lmeasurable_iff_has_integral integral_unique)
 
 lemma lmeasure_integral: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral S (\<lambda>x. 1::real)"
-  by (auto simp add: lmeasure_integral_UNIV indicator_def[abs_def] lmeasurable_iff_integrable_on)
+  by (fastforce simp add: lmeasure_integral_UNIV indicator_def[abs_def] lmeasurable_iff_integrable_on)
 
 lemma
   assumes \<D>: "\<D> division_of S"

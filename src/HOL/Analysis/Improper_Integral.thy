@@ -1293,7 +1293,7 @@ proof -
       have "negligible S"
         unfolding S_def by force
       then have int_f': "(\<lambda>x. if x \<in> S then 0 else f x) integrable_on cbox a b"
-        by (rule integrable_spike) (auto intro: assms)
+        by (force intro: integrable_spike assms)
       have get_n: "\<exists>n. \<forall>m\<ge>n. x \<in> cbox (u m) (v m) \<longleftrightarrow> x \<in> cbox c d" if x: "x \<notin> S" for x
       proof -
         define \<epsilon> where "\<epsilon> \<equiv> Min ((\<lambda>i. min \<bar>x \<bullet> i - c \<bullet> i\<bar> \<bar>x \<bullet> i - d \<bullet> i\<bar>) ` Basis)"

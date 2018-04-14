@@ -2201,11 +2201,11 @@ proof clarify
         unfolding sum_distrib_left by (metis divide_inverse inverse_eq_divide power_one_over)
       also have "\<dots> < e/2 * 2"
       proof (rule mult_strict_left_mono)
-        have "sum ((^) (1/2)) {..N + 1} = sum ((^) (1/2::real)) {..<N + 2}"
+        have "sum (power (1/2)) {..N + 1} = sum (power (1/2::real)) {..<N + 2}"
           using lessThan_Suc_atMost by auto
         also have "... < 2"
           by (auto simp: geometric_sum)
-        finally show "sum ((^) (1/2::real)) {..N + 1} < 2" .
+        finally show "sum (power (1/2::real)) {..N + 1} < 2" .
       qed (use \<open>0 < e\<close> in auto)
       finally  show ?thesis by auto
     qed
@@ -2235,6 +2235,12 @@ next
   then show ?thesis
     by (rule_tac f="?f" in has_integral_eq) auto
 qed
+
+lemma
+  assumes "negligible S"
+  shows integrable_negligible: "f integrable_on S" and integral_negligible: "integral S f = 0"
+  using has_integral_negligible [OF assms]
+  by (auto simp: has_integral_iff)
 
 lemma has_integral_spike:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::real_normed_vector"
@@ -2271,10 +2277,8 @@ lemma has_integral_spike_eq:
     by metis
 
 lemma integrable_spike:
-  assumes "negligible S"
-    and "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
-    and "f integrable_on T"
-  shows "g integrable_on T"
+  assumes "f integrable_on T" "negligible S" "\<And>x. x \<in> T - S \<Longrightarrow> g x = f x"
+    shows "g integrable_on T"
   using assms unfolding integrable_on_def by (blast intro: has_integral_spike)
 
 lemma integral_spike:
@@ -2334,6 +2338,10 @@ lemma negligible_insert[simp]: "negligible (insert a s) \<longleftrightarrow> ne
 
 lemma negligible_empty[iff]: "negligible {}"
   using negligible_insert by blast
+
+text\<open>Useful in this form for backchaining\<close>
+lemma empty_imp_negligible: "S = {} \<Longrightarrow> negligible S"
+  by simp
 
 lemma negligible_finite[intro]:
   assumes "finite s"
@@ -2495,7 +2503,7 @@ proof -
         show "?g integrable_on cbox a b"
         proof -
           have "?g integrable_on cbox a b \<inter> {x. x \<bullet> k \<le> c}" "?g integrable_on cbox a b \<inter> {x. x \<bullet> k \<ge> c}"
-            by(rule integrable_spike[OF negligible_standard_hyperplane[of k c]], use k g1 g2 in auto)+
+            by(rule integrable_spike[OF _ negligible_standard_hyperplane[of k c]], use k g1 g2 in auto)+
           with has_integral_split[OF _ _ k] show ?thesis
             unfolding integrable_on_def by blast
         qed
@@ -4664,13 +4672,10 @@ lemma integrable_on_superset:
   unfolding integrable_on_def
   by (auto intro:has_integral_on_superset)
 
-lemma integral_restrict_UNIV [intro]:
+lemma integral_restrict_UNIV:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  shows "f integrable_on S \<Longrightarrow> integral UNIV (\<lambda>x. if x \<in> S then f x else 0) = integral S f"
-  apply (rule integral_unique)
-  unfolding has_integral_restrict_UNIV
-  apply auto
-  done
+  shows "integral UNIV (\<lambda>x. if x \<in> S then f x else 0) = integral S f"
+  by (simp add: integral_restrict_Int)
 
 lemma integrable_restrict_UNIV:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -4776,24 +4781,31 @@ by (metis negligible_translation [OF assms, of "-c"] translation_galois)
 
 lemma has_integral_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "negligible ((S - T) \<union> (T - S))"
+  assumes "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
   shows "(f has_integral y) S \<longleftrightarrow> (f has_integral y) T"
-  unfolding has_integral_restrict_UNIV[symmetric,of f]
-  apply (rule has_integral_spike_eq[OF assms])
-  by (auto split: if_split_asm)
+proof -
+  have "((\<lambda>x. if x \<in> S then f x else 0) has_integral y) UNIV =
+        ((\<lambda>x. if x \<in> T then f x else 0) has_integral y) UNIV"
+  proof (rule has_integral_spike_eq)
+    show "negligible ({x \<in> S - T. f x \<noteq> 0} \<union> {x \<in> T - S. f x \<noteq> 0})"
+      by (rule negligible_Un [OF assms])
+  qed auto
+  then show ?thesis
+    by (simp add: has_integral_restrict_UNIV)
+qed
 
-lemma has_integral_spike_set:
+corollary integral_spike_set:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "(f has_integral y) S" "negligible ((S - T) \<union> (T - S))"
-  shows "(f has_integral y) T"
-  using assms has_integral_spike_set_eq
-  by auto
+  assumes "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
+  shows "integral S f = integral T f"
+  using has_integral_spike_set_eq [OF assms]
+  by (metis eq_integralD integral_unique)
 
 lemma integrable_spike_set:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on S" and "negligible ((S - T) \<union> (T - S))"
-    shows "f integrable_on T"
-  using assms by (simp add: integrable_on_def has_integral_spike_set_eq)
+  assumes f: "f integrable_on S" and neg: "negligible {x \<in> S - T. f x \<noteq> 0}" "negligible {x \<in> T - S. f x \<noteq> 0}"
+  shows "f integrable_on T"
+  using has_integral_spike_set_eq [OF neg] f by blast
 
 lemma integrable_spike_set_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
@@ -4808,15 +4820,13 @@ lemma integrable_on_insert_iff: "f integrable_on (insert x X) \<longleftrightarr
 lemma has_integral_interior:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
   shows "negligible(frontier S) \<Longrightarrow> (f has_integral y) (interior S) \<longleftrightarrow> (f has_integral y) S"
-  apply (rule has_integral_spike_set_eq)
-  apply (auto simp: frontier_def Un_Diff closure_def)
-  apply (metis Diff_eq_empty_iff interior_subset negligible_empty)
-  done
+  by (rule has_integral_spike_set_eq [OF empty_imp_negligible negligible_subset])
+     (use interior_subset in \<open>auto simp: frontier_def closure_def\<close>)
 
 lemma has_integral_closure:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
   shows "negligible(frontier S) \<Longrightarrow> (f has_integral y) (closure S) \<longleftrightarrow> (f has_integral y) S"
-  by (rule has_integral_spike_set_eq) (simp add: Un_Diff closure_Un_frontier negligible_diff)
+  by (rule has_integral_spike_set_eq [OF negligible_subset empty_imp_negligible]) (auto simp: closure_Un_frontier )
 
 lemma has_integral_open_interval:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: banach"
