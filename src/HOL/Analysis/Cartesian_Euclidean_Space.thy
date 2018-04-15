@@ -4,6 +4,16 @@ theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Derivative
 begin
 
+lemma norm_le_componentwise:
+   "(\<And>b. b \<in> Basis \<Longrightarrow> abs(x \<bullet> b) \<le> abs(y \<bullet> b)) \<Longrightarrow> norm x \<le> norm y"
+  by (auto simp: norm_le euclidean_inner [of x x] euclidean_inner [of y y] abs_le_square_iff power2_eq_square intro!: sum_mono)
+
+lemma norm_le_componentwise_cart:
+  fixes x :: "real^'n"
+  shows "(\<And>i. abs(x$i) \<le> abs(y$i)) \<Longrightarrow> norm x \<le> norm y"
+  unfolding cart_eq_inner_axis
+  by (rule norm_le_componentwise) (metis axis_index)
+  
 lemma subspace_special_hyperplane: "subspace {x. x $ k = 0}"
   by (simp add: subspace_def)
 
@@ -759,7 +769,7 @@ proof -
   have "norm (\<chi> j. A $ j $ i) \<le> norm (A *v axis i 1)"
     by (simp add: matrix_mult_dot cart_eq_inner_axis)
   also have "\<dots> \<le> onorm (( *v) A)"
-    using onorm [OF bl, of "axis i 1"] by (auto simp: axis_in_Basis)
+    using onorm [OF bl, of "axis i 1"] by auto
   finally have "norm (\<chi> j. A $ j $ i) \<le> onorm (( *v) A)" .
   then show ?thesis
     unfolding column_def .

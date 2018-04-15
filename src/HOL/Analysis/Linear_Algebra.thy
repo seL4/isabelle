@@ -1962,14 +1962,42 @@ lemmas linear_linear = linear_conv_bounded_linear[symmetric]
 lemma linear_bounded_pos:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
-  shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
+ obtains B where "B > 0" "\<And>x. norm (f x) \<le> B * norm x"
 proof -
   have "\<exists>B > 0. \<forall>x. norm (f x) \<le> norm x * B"
     using lf unfolding linear_conv_bounded_linear
     by (rule bounded_linear.pos_bounded)
-  then show ?thesis
-    by (simp only: mult.commute)
+  with that show ?thesis
+    by (auto simp: mult.commute)
 qed
+
+lemma linear_invertible_bounded_below_pos:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "linear g" "g \<circ> f = id"
+  obtains B where "B > 0" "\<And>x. B * norm x \<le> norm(f x)"
+proof -
+  obtain B where "B > 0" and B: "\<And>x. norm (g x) \<le> B * norm x"
+    using linear_bounded_pos [OF \<open>linear g\<close>] by blast
+  show thesis
+  proof
+    show "0 < 1/B"
+      by (simp add: \<open>B > 0\<close>)
+    show "1/B * norm x \<le> norm (f x)" for x
+    proof -
+      have "1/B * norm x = 1/B * norm (g (f x))"
+        using assms by (simp add: pointfree_idE)
+      also have "\<dots> \<le> norm (f x)"
+        using B [of "f x"] by (simp add: \<open>B > 0\<close> mult.commute pos_divide_le_eq)
+      finally show ?thesis .
+    qed
+  qed
+qed
+
+lemma linear_inj_bounded_below_pos:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+  obtains B where "B > 0" "\<And>x. B * norm x \<le> norm(f x)"
+  using linear_injective_left_inverse [OF assms] linear_invertible_bounded_below_pos assms by blast
 
 lemma bounded_linearI':
   fixes f ::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"

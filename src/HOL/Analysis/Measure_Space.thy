@@ -1534,6 +1534,9 @@ qed (auto dest: sets.sets_into_space)
 lemma measure_nonneg[simp]: "0 \<le> measure M A"
   unfolding measure_def by auto
 
+lemma measure_nonneg' [simp]: "\<not> measure M A < 0"
+  using measure_nonneg not_le by blast
+
 lemma zero_less_measure_iff: "0 < measure M A \<longleftrightarrow> measure M A \<noteq> 0"
   using measure_nonneg[of M A] by (auto simp add: le_less)
 
@@ -1686,7 +1689,7 @@ proof (rule tendsto_ennrealD)
   moreover have "ennreal (measure M (A i)) = emeasure M (A i)" for i
     using assms emeasure_mono[of "A _" "\<Union>i. A i" M]
     by (intro emeasure_eq_ennreal_measure[symmetric]) (auto simp: less_top UN_upper intro: le_less_trans)
-  ultimately show "(\<lambda>x. ennreal (Sigma_Algebra.measure M (A x))) \<longlonglongrightarrow> ennreal (Sigma_Algebra.measure M (\<Union>i. A i))"
+  ultimately show "(\<lambda>x. ennreal (measure M (A x))) \<longlonglongrightarrow> ennreal (measure M (\<Union>i. A i))"
     using A by (auto intro!: Lim_emeasure_incseq)
 qed auto
 
@@ -1699,7 +1702,7 @@ proof (rule tendsto_ennrealD)
     by (auto intro!: emeasure_eq_ennreal_measure[symmetric] simp: INT_lower less_top intro: le_less_trans)
   moreover have "ennreal (measure M (A i)) = emeasure M (A i)" for i
     using A fin[of i] by (intro emeasure_eq_ennreal_measure[symmetric]) auto
-  ultimately show "(\<lambda>x. ennreal (Sigma_Algebra.measure M (A x))) \<longlonglongrightarrow> ennreal (Sigma_Algebra.measure M (\<Inter>i. A i))"
+  ultimately show "(\<lambda>x. ennreal (measure M (A x))) \<longlonglongrightarrow> ennreal (measure M (\<Inter>i. A i))"
     using fin A by (auto intro!: Lim_emeasure_decseq)
 qed auto
 
@@ -1772,6 +1775,32 @@ proof (rule fmeasurableI2)
     using assms by (intro sets.countable_INT') auto
 qed
 
+lemma measurable_measure_Diff:
+  assumes "A \<in> fmeasurable M" "B \<in> sets M" "B \<subseteq> A"
+  shows "measure M (A - B) = measure M A - measure M B"
+  by (simp add: assms fmeasurableD fmeasurableD2 measure_Diff)
+
+lemma measurable_Un_null_set:
+  assumes "B \<in> null_sets M"
+  shows "(A \<union> B \<in> fmeasurable M \<and> A \<in> sets M) \<longleftrightarrow> A \<in> fmeasurable M"
+  using assms  by (fastforce simp add: fmeasurable.Un fmeasurableI_null_sets intro: fmeasurableI2)
+
+lemma measurable_Diff_null_set:
+  assumes "B \<in> null_sets M"
+  shows "(A - B) \<in> fmeasurable M \<and> A \<in> sets M \<longleftrightarrow> A \<in> fmeasurable M"
+  using assms
+  by (metis Un_Diff_cancel2 fmeasurable.Diff fmeasurableD fmeasurableI_null_sets measurable_Un_null_set)
+
+lemma fmeasurable_Diff_D:
+    assumes m: "T - S \<in> fmeasurable M" "S \<in> fmeasurable M" and sub: "S \<subseteq> T"
+    shows "T \<in> fmeasurable M"
+proof -
+  have "T = S \<union> (T - S)"
+    using assms by blast
+  then show ?thesis
+    by (metis m fmeasurable.Un)
+qed
+
 lemma measure_Un2:
   "A \<in> fmeasurable M \<Longrightarrow> B \<in> fmeasurable M \<Longrightarrow> measure M (A \<union> B) = measure M A + measure M (B - A)"
   using measure_Union[of M A "B - A"] by (auto simp: fmeasurableD2 fmeasurable.Diff)
@@ -1801,12 +1830,13 @@ lemma measure_UNION_AE:
     measure M (\<Union>i\<in>I. F i) = (\<Sum>i\<in>I. measure M (F i))"
   unfolding AE_pairwise[OF countable_finite, OF I]
   using I
-  apply (induction I rule: finite_induct)
-   apply simp
-  apply (simp add: pairwise_insert)
-  apply (subst measure_Un_AE)
-  apply auto
-  done
+proof (induction I rule: finite_induct)
+  case (insert x I)
+  have "measure M (F x \<union> UNION I F) = measure M (F x) + measure M (UNION I F)"
+    by (rule measure_Un_AE) (use insert in \<open>auto simp: pairwise_insert\<close>)
+    with insert show ?case
+      by (simp add: pairwise_insert )
+qed simp
 
 lemma measure_UNION':
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i \<in> fmeasurable M) \<Longrightarrow> pairwise (\<lambda>i j. disjnt (F i) (F j)) I \<Longrightarrow>
@@ -1886,6 +1916,18 @@ proof -
       by (simp add: emeasure_eq_measure2)
   qed
   then show ?fm ?m by auto
+qed
+
+lemma measure_diff_le_measure_setdiff:
+  assumes "S \<in> fmeasurable M" "T \<in> fmeasurable M"
+  shows "measure M S - measure M T \<le> measure M (S - T)"
+proof -
+  have "measure M S \<le> measure M ((S - T) \<union> T)"
+    by (simp add: assms fmeasurable.Un fmeasurableD measure_mono_fmeasurable)
+  also have "\<dots> \<le> measure M (S - T) + measure M T"
+    using assms by (blast intro: measure_Un_le)
+  finally show ?thesis
+    by (simp add: algebra_simps)
 qed
 
 lemma suminf_exist_split2:

@@ -3501,6 +3501,44 @@ lemma integrable_stretch:
   using assms unfolding integrable_on_def
   by (force dest: has_integral_stretch)
 
+lemma vec_lambda_eq_sum:
+  shows "(\<chi> k. f k (x $ k)) = (\<Sum>k\<in>Basis. (f (axis_index k) (x \<bullet> k)) *\<^sub>R k)"
+    apply (simp add: Basis_vec_def cart_eq_inner_axis UNION_singleton_eq_range sum.reindex axis_eq_axis inj_on_def)
+    apply (simp add: vec_eq_iff axis_def if_distrib cong: if_cong)
+    done
+
+lemma has_integral_stretch_cart:
+  fixes m :: "'n::finite \<Rightarrow> real"
+  assumes f: "(f has_integral i) (cbox a b)" and m: "\<And>k. m k \<noteq> 0"
+  shows "((\<lambda>x. f(\<chi> k. m k * x$k)) has_integral i /\<^sub>R \<bar>prod m UNIV\<bar>)
+            ((\<lambda>x. \<chi> k. x$k / m k) ` (cbox a b))"
+proof -
+  have *: "\<forall>k:: real^'n \<in> Basis. m (axis_index k) \<noteq> 0"
+    using axis_index by (simp add: m)
+  have eqp: "(\<Prod>k:: real^'n \<in> Basis. m (axis_index k)) = prod m UNIV"
+    by (simp add: Basis_vec_def UNION_singleton_eq_range prod.reindex axis_eq_axis inj_on_def)
+  show ?thesis
+    using has_integral_stretch [OF f *] vec_lambda_eq_sum [where f="\<lambda>i x. m i * x"] vec_lambda_eq_sum [where f="\<lambda>i x. x / m i"]
+    by (simp add: field_simps eqp)
+qed
+
+lemma image_stretch_interval_cart:
+  fixes m :: "'n::finite \<Rightarrow> real"
+  shows "(\<lambda>x. \<chi> k. m k * x$k) ` cbox a b =
+            (if cbox a b = {} then {}
+            else cbox (\<chi> k. min (m k * a$k) (m k * b$k)) (\<chi> k. max (m k * a$k) (m k * b$k)))"
+proof -
+  have *: "(\<Sum>k\<in>Basis. min (m (axis_index k) * (a \<bullet> k)) (m (axis_index k) * (b \<bullet> k)) *\<^sub>R k)
+           = (\<chi> k. min (m k * a $ k) (m k * b $ k))"
+          "(\<Sum>k\<in>Basis. max (m (axis_index k) * (a \<bullet> k)) (m (axis_index k) * (b \<bullet> k)) *\<^sub>R k)
+           = (\<chi> k. max (m k * a $ k) (m k * b $ k))"
+    apply (simp_all add: Basis_vec_def cart_eq_inner_axis UNION_singleton_eq_range sum.reindex axis_eq_axis inj_on_def)
+    apply (simp_all add: vec_eq_iff axis_def if_distrib cong: if_cong)
+    done
+  show ?thesis
+    by (simp add: vec_lambda_eq_sum [where f="\<lambda>i x. m i * x"] image_stretch_interval eq_cbox *)
+qed
+
 
 subsection \<open>even more special cases\<close>
 

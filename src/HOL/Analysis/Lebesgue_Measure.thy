@@ -393,6 +393,23 @@ lemma sets_lebesgue_on_refl [iff]: "S \<in> sets (lebesgue_on S)"
 lemma Compl_in_sets_lebesgue: "-A \<in> sets lebesgue \<longleftrightarrow> A  \<in> sets lebesgue"
   by (metis Compl_eq_Diff_UNIV double_compl space_borel space_completion space_lborel Sigma_Algebra.sets.compl_sets)
 
+lemma measurable_lebesgue_cong:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
+  shows "f \<in> measurable (lebesgue_on S) M \<longleftrightarrow> g \<in> measurable (lebesgue_on S) M"
+  by (metis (mono_tags, lifting) IntD1 assms measurable_cong_strong space_restrict_space)
+
+text\<open>Measurability of continuous functions\<close>
+lemma continuous_imp_measurable_on_sets_lebesgue:
+  assumes f: "continuous_on S f" and S: "S \<in> sets lebesgue"
+  shows "f \<in> borel_measurable (lebesgue_on S)"
+proof -
+  have "sets (restrict_space borel S) \<subseteq> sets (lebesgue_on S)"
+    by (simp add: mono_restrict_space subsetI)
+  then show ?thesis
+    by (simp add: borel_measurable_continuous_on_restrict [OF f] borel_measurable_subalgebra 
+                  space_restrict_space)
+qed
+
 context
 begin
 
@@ -446,7 +463,7 @@ qed
 
 lemma AE_lborel_singleton: "AE x in lborel::'a::euclidean_space measure. x \<noteq> c"
   using SOME_Basis AE_discrete_difference [of "{c}" lborel] emeasure_lborel_cbox [of c c]
-  by (auto simp add: cbox_sing prod_constant power_0_left)
+  by (auto simp add: power_0_left)
 
 lemma emeasure_lborel_Ioo[simp]:
   assumes [simp]: "l \<le> u"
@@ -542,7 +559,7 @@ qed
 
 end
 
-lemma emeasure_lborel_UNIV: "emeasure lborel (UNIV::'a::euclidean_space set) = \<infinity>"
+lemma emeasure_lborel_UNIV [simp]: "emeasure lborel (UNIV::'a::euclidean_space set) = \<infinity>"
 proof -
   { fix n::nat
     let ?Ba = "Basis :: 'a set"
@@ -948,6 +965,9 @@ qed
 abbreviation lmeasurable :: "'a::euclidean_space set set"
 where
   "lmeasurable \<equiv> fmeasurable lebesgue"
+
+lemma not_measurable_UNIV [simp]: "UNIV \<notin> lmeasurable"
+  by (simp add: fmeasurable_def)
 
 lemma lmeasurable_iff_integrable:
   "S \<in> lmeasurable \<longleftrightarrow> integrable lebesgue (indicator S :: 'a::euclidean_space \<Rightarrow> real)"

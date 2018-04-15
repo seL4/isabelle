@@ -1,10 +1,10 @@
 (*  
    File:     HOL/Analysis/Gamma_Function.thy
    Author:   Manuel Eberl, TU München
-
-   The volume (Lebesgue measure) of an n-dimensional ball.
 *)
-section \<open>The volume of an $n$-ball\<close>
+
+section \<open>The volume (Lebesgue measure) of an $n$-dimensional ball\<close>
+
 theory Ball_Volume
   imports Gamma_Function Lebesgue_Integral_Substitution
 begin
@@ -300,5 +300,31 @@ corollary circle_area: "r \<ge> 0 \<Longrightarrow> content (ball c r :: (real ^
 
 corollary sphere_volume: "r \<ge> 0 \<Longrightarrow> content (ball c r :: (real ^ 3) set) = 4 / 3 * r ^ 3 * pi"
   by (simp add: content_ball unit_ball_vol_3)
+
+text \<open>
+  Useful equivalent forms
+\<close>
+corollary content_ball_eq_0_iff [simp]: "content (ball c r) = 0 \<longleftrightarrow> r \<le> 0"
+proof -
+  have "r > 0 \<Longrightarrow> content (ball c r) > 0"
+    by (simp add: content_ball unit_ball_vol_def)
+  then show ?thesis
+    by (fastforce simp: ball_empty)
+qed
+
+corollary content_ball_gt_0_iff [simp]: "0 < content (ball z r) \<longleftrightarrow> 0 < r"
+  by (auto simp: zero_less_measure_iff)
+
+corollary content_cball_eq_0_iff [simp]: "content (cball c r) = 0 \<longleftrightarrow> r \<le> 0"
+proof (cases "r = 0")
+  case False
+  moreover have "r > 0 \<Longrightarrow> content (cball c r) > 0"
+    by (simp add: content_cball unit_ball_vol_def)
+  ultimately show ?thesis
+    by fastforce
+qed auto
+
+corollary content_cball_gt_0_iff [simp]: "0 < content (cball z r) \<longleftrightarrow> 0 < r"
+  by (auto simp: zero_less_measure_iff)
 
 end

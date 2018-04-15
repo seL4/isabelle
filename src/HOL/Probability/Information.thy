@@ -834,9 +834,14 @@ proof -
     - log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX)"
     using Px Px_nn fin by (auto simp: measure_def)
   also have "- log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX) = - log b (\<integral> x. 1 / Px x \<partial>distr M MX X)"
-    unfolding distributed_distr_eq_density[OF X] using Px Px_nn
-    apply (intro arg_cong[where f="log b"] arg_cong[where f=uminus])
-    by (subst integral_density) (auto simp del: integral_indicator intro!: Bochner_Integration.integral_cong)
+  proof -
+    have "integral\<^sup>L MX (indicator {x \<in> space MX. Px x \<noteq> 0}) = LINT x|MX. Px x *\<^sub>R (1 / Px x)"
+      by (rule Bochner_Integration.integral_cong) auto
+    also have "... = LINT x|density MX (\<lambda>x. ennreal (Px x)). 1 / Px x"
+      by (rule integral_density [symmetric]) (use Px Px_nn in auto)
+    finally show ?thesis
+      unfolding distributed_distr_eq_density[OF X] by simp
+  qed
   also have "\<dots> \<le> (\<integral> x. - log b (1 / Px x) \<partial>distr M MX X)"
   proof (rule X.jensens_inequality[of "\<lambda>x. 1 / Px x" "{0<..}" 0 1 "\<lambda>x. - log b x"])
     show "AE x in distr M MX X. 1 / Px x \<in> {0<..}"

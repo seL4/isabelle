@@ -114,6 +114,11 @@ next
   qed auto
 qed
 
+lemma sets_restrict_space_subset:
+  assumes S: "S \<in> sets (completion M)"
+  shows "sets (restrict_space (completion M) S) \<subseteq> sets (completion M)"
+  by (metis assms sets.Int_space_eq2 sets_restrict_space_iff subsetI)
+
 lemma
   assumes "S \<in> sets (completion M)"
   shows main_part_sets[intro, simp]: "main_part M S \<in> sets M"
@@ -987,6 +992,23 @@ proof -
   also have "\<dots> = (\<forall>e>0. \<exists>T\<in>fmeasurable M. S \<subseteq> T \<and> measure M T < e)"
     unfolding fmeasurable_measure_inner_outer by auto
   finally show ?thesis .
+qed
+
+lemma (in complete_measure) fmeasurable_measure_inner_outer_le:
+     "(S \<in> fmeasurable M \<and> m = measure M S) \<longleftrightarrow>
+        (\<forall>e>0. \<exists>T\<in>fmeasurable M. T \<subseteq> S \<and> m - e \<le> measure M T) \<and>
+        (\<forall>e>0. \<exists>U\<in>fmeasurable M. S \<subseteq> U \<and> measure M U \<le> m + e)" (is ?T1)
+  and null_sets_outer_le:
+     "S \<in> null_sets M \<longleftrightarrow> (\<forall>e>0. \<exists>T\<in>fmeasurable M. S \<subseteq> T \<and> measure M T \<le> e)" (is ?T2)
+proof -
+  have "e > 0 \<and> m - e/2 \<le> t \<Longrightarrow> m - e < t"
+       "e > 0 \<and> t \<le> m + e/2 \<Longrightarrow> t < m + e"
+       "e > 0 \<longleftrightarrow> e/2 > 0"
+       for e t
+    by auto
+  then show ?T1 ?T2
+    unfolding fmeasurable_measure_inner_outer null_sets_outer
+    by (meson dense le_less_trans less_imp_le)+
 qed
 
 lemma (in cld_measure) notin_sets_outer_measure_of_cover:

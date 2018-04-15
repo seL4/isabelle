@@ -607,20 +607,8 @@ lemma inner_axis_axis:
   apply (rule sum.neutral, simp add: axis_def)
   done
 
-lemma sum_single:
-  assumes "finite A" and "k \<in> A" and "f k = y"
-  assumes "\<And>i. i \<in> A \<Longrightarrow> i \<noteq> k \<Longrightarrow> f i = 0"
-  shows "(\<Sum>i\<in>A. f i) = y"
-  apply (subst sum.remove [OF assms(1,2)])
-  apply (simp add: sum.neutral assms(3,4))
-  done
-
 lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
-  unfolding inner_vec_def
-  apply (rule_tac k=i in sum_single)
-  apply simp_all
-  apply (simp add: axis_def)
-  done
+  by (simp add: inner_vec_def axis_def sum.remove [where x=i])
 
 lemma inner_axis': "inner(axis i y) x = inner y (x $ i)"
   by (simp add: inner_axis inner_commute)
@@ -649,22 +637,51 @@ next
     by (simp add: inner_axis euclidean_all_zero_iff vec_eq_iff)
 qed
 
-lemma DIM_cart[simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
-  apply (simp add: Basis_vec_def)
-  apply (subst card_UN_disjoint)
-     apply simp
-    apply simp
-   apply (auto simp: axis_eq_axis) [1]
-  apply (subst card_UN_disjoint)
-     apply (auto simp: axis_eq_axis)
-  done
+lemma DIM_cart [simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
+proof -
+  have "card (\<Union>i::'b. \<Union>u::'a\<in>Basis. {axis i u}) = (\<Sum>i::'b\<in>UNIV. card (\<Union>u::'a\<in>Basis. {axis i u}))"
+    by (rule card_UN_disjoint) (auto simp: axis_eq_axis) 
+  also have "... = CARD('b) * DIM('a)"
+    by (subst card_UN_disjoint) (auto simp: axis_eq_axis)
+  finally show ?thesis
+    by (simp add: Basis_vec_def)
+qed
 
 end
 
 lemma cart_eq_inner_axis: "a $ i = inner a (axis i 1)"
   by (simp add: inner_axis)
 
-lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
-  by (auto simp add: Basis_vec_def axis_eq_axis)
+lemma axis_eq_0_iff [simp]:
+  shows "axis m x = 0 \<longleftrightarrow> x = 0"
+  by (simp add: axis_def vec_eq_iff)
+
+lemma axis_in_Basis_iff [simp]: "axis i a \<in> Basis \<longleftrightarrow> a \<in> Basis"
+  by (auto simp: Basis_vec_def axis_eq_axis)
+
+text\<open>Mapping each basis element to the corresponding finite index\<close>
+definition axis_index :: "('a::comm_ring_1)^'n \<Rightarrow> 'n" where "axis_index v \<equiv> SOME i. v = axis i 1"
+
+lemma axis_inverse:
+  fixes v :: "real^'n"
+  assumes "v \<in> Basis"
+  shows "\<exists>i. v = axis i 1"
+proof -
+  have "v \<in> (\<Union>n. \<Union>r\<in>Basis. {axis n r})"
+    using assms Basis_vec_def by blast
+  then show ?thesis
+    by (force simp add: vec_eq_iff)
+qed
+
+lemma axis_index:
+  fixes v :: "real^'n"
+  assumes "v \<in> Basis"
+  shows "v = axis (axis_index v) 1"
+  by (metis (mono_tags) assms axis_inverse axis_index_def someI_ex)
+
+lemma axis_index_axis [simp]:
+  fixes UU :: "real^'n"
+  shows "(axis_index (axis u 1 :: real^'n)) = (u::'n)"
+  by (simp add: axis_eq_axis axis_index_def)
 
 end

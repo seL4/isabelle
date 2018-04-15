@@ -6992,7 +6992,7 @@ proof -
     done
 qed
 
-subsubsection%unimportant\<open>Representation of any interval as a finite convex hull\<close>
+subsection%unimportant\<open>Representation of any interval as a finite convex hull\<close>
 
 lemma image_stretch_interval:
   "(\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k)) *\<^sub>R k) ` cbox a (b::'a::euclidean_space) =

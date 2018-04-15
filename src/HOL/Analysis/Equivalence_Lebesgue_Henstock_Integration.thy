@@ -945,7 +945,18 @@ next
       by (auto simp: integrable_on_def nn_integral_completion)
   qed
 qed
-  
+
+lemma integrable_on_lebesgue_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "integrable (lebesgue_on S) f" and S: "S \<in> sets lebesgue"
+  shows "f integrable_on S"
+proof -
+  have "integrable lebesgue (\<lambda>x. indicator S x *\<^sub>R f x)"
+    using S f inf_top.comm_neutral integrable_restrict_space by blast
+  then show ?thesis
+    using absolutely_integrable_on_def set_integrable_def by blast
+qed
+
 lemma absolutely_integrable_on_null [intro]:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "content (cbox a b) = 0 \<Longrightarrow> f absolutely_integrable_on (cbox a b)"
@@ -1051,6 +1062,39 @@ lemma lmeasure_integral_UNIV: "S \<in> lmeasurable \<Longrightarrow> measure leb
 lemma lmeasure_integral: "S \<in> lmeasurable \<Longrightarrow> measure lebesgue S = integral S (\<lambda>x. 1::real)"
   by (fastforce simp add: lmeasure_integral_UNIV indicator_def[abs_def] lmeasurable_iff_integrable_on)
 
+lemma integrable_on_const: "S \<in> lmeasurable \<Longrightarrow> (\<lambda>x. c) integrable_on S"
+  unfolding lmeasurable_iff_integrable
+  by (metis (mono_tags, lifting) integrable_eq integrable_on_scaleR_left lmeasurable_iff_integrable lmeasurable_iff_integrable_on scaleR_one)
+
+lemma integral_indicator:
+  assumes "(S \<inter> T) \<in> lmeasurable"
+  shows "integral T (indicator S) = measure lebesgue (S \<inter> T)"
+proof -
+  have "integral UNIV (indicator (S \<inter> T)) = integral UNIV (\<lambda>a. if a \<in> S \<inter> T then 1::real else 0)"
+    by (meson indicator_def)
+  moreover
+  have "(indicator (S \<inter> T) has_integral measure lebesgue (S \<inter> T)) UNIV"
+    using assms by (simp add: lmeasurable_iff_has_integral)
+  ultimately have "integral UNIV (\<lambda>x. if x \<in> S \<inter> T then 1 else 0) = measure lebesgue (S \<inter> T)"
+    by (metis (no_types) integral_unique)
+  then show ?thesis
+    using integral_restrict_Int [of UNIV "S \<inter> T" "\<lambda>x. 1::real"]
+    apply (simp add: integral_restrict_Int [symmetric])
+    by (meson indicator_def)
+qed
+
+lemma measurable_integrable:
+  fixes S :: "'a::euclidean_space set"
+  shows "S \<in> lmeasurable \<longleftrightarrow> (indicat_real S) integrable_on UNIV"
+  by (auto simp: lmeasurable_iff_integrable absolutely_integrable_on_iff_nonneg [symmetric] set_integrable_def)
+
+lemma integrable_on_indicator:
+  fixes S :: "'a::euclidean_space set"
+  shows "indicat_real S integrable_on T \<longleftrightarrow> (S \<inter> T) \<in> lmeasurable"
+  unfolding measurable_integrable
+  unfolding integrable_restrict_UNIV [of T, symmetric]
+  by (fastforce simp add: indicator_def elim: integrable_eq)
+
 lemma
   assumes \<D>: "\<D> division_of S"
   shows lmeasurable_division: "S \<in> lmeasurable" (is ?l)
@@ -1072,7 +1116,6 @@ proof -
     by (auto intro!: measure_Union_AE[symmetric] simp: completion.AE_iff_null_sets Int_def[symmetric] pairwise_def null_sets_def)
 qed
 
-text \<open>This should be an abbreviation for negligible.\<close>
 lemma negligible_iff_null_sets: "negligible S \<longleftrightarrow> S \<in> null_sets lebesgue"
 proof
   assume "negligible S"
@@ -2207,6 +2250,12 @@ proof (rule Bochner_Integration.integrable_bound)
   show "(\<lambda>x. indicat_real S x *\<^sub>R f x) \<in> borel_measurable lebesgue"
     using f by (auto intro: has_integral_implies_lebesgue_measurable simp: integrable_on_def)
 qed (use le in \<open>force intro!: always_eventually split: split_indicator\<close>)
+
+lemma absolutely_integrable_continuous:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "continuous_on (cbox a b) f \<Longrightarrow> f absolutely_integrable_on cbox a b"
+  using absolutely_integrable_integrable_bound
+  by (simp add: absolutely_integrable_on_def continuous_on_norm integrable_continuous)
 
 subsection \<open>Componentwise\<close>
 

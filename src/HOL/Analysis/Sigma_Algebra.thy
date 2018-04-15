@@ -2096,7 +2096,7 @@ definition restrict_space where
 lemma space_restrict_space: "space (restrict_space M \<Omega>) = \<Omega> \<inter> space M"
   using sets.sets_into_space unfolding restrict_space_def by (subst space_measure_of) auto
 
-lemma space_restrict_space2: "\<Omega> \<in> sets M \<Longrightarrow> space (restrict_space M \<Omega>) = \<Omega>"
+lemma space_restrict_space2 [simp]: "\<Omega> \<in> sets M \<Longrightarrow> space (restrict_space M \<Omega>) = \<Omega>"
   by (simp add: space_restrict_space sets.sets_into_space)
 
 lemma sets_restrict_space: "sets (restrict_space M \<Omega>) = ((\<inter>) \<Omega>) ` sets M"

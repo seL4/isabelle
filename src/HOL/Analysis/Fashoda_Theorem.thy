@@ -269,15 +269,10 @@ proof (rule ccontr)
       by auto
     moreover
     from x1 have "g (x $ 2) \<in> cbox (-1) 1"
-      apply -
-      apply (rule assms(2)[unfolded subset_eq,rule_format])
-      apply auto
-      done
+      using assms(2) by blast
     ultimately show False
       unfolding lem3[OF nz] vector_component_simps * mem_box_cart
-      apply (erule_tac x=1 in allE)
-      apply auto
-      done
+      using not_le by auto
   next
     assume as: "x$1 = -1"
     then have *: "f (x $ 1) $ 1 = - 1"
@@ -288,15 +283,10 @@ proof (rule ccontr)
       by auto
     moreover
     from x1 have "g (x $ 2) \<in> cbox (-1) 1"
-      apply -
-      apply (rule assms(2)[unfolded subset_eq,rule_format])
-      apply auto
-      done
+      using assms(2) by blast
     ultimately show False
       unfolding lem3[OF nz] vector_component_simps * mem_box_cart
-      apply (erule_tac x=1 in allE)
-      apply auto
-      done
+      using not_le by auto
   next
     assume as: "x$2 = 1"
     then have *: "g (x $ 2) $ 2 = 1"
@@ -527,7 +517,7 @@ next
       and "(interval_bij (a, b) (- 1, 1) \<circ> g) 0 $ 2 = -1"
       and "(interval_bij (a, b) (- 1, 1) \<circ> g) 1 $ 2 = 1"
       using assms as
-      by (simp_all add: axis_in_Basis cart_eq_inner_axis pathstart_def pathfinish_def interval_bij_def)
+      by (simp_all add: cart_eq_inner_axis pathstart_def pathfinish_def interval_bij_def)
          (simp_all add: inner_axis)
   qed
   from z(1) obtain zf where zf:
