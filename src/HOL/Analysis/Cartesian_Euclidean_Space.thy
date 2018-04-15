@@ -540,7 +540,6 @@ lemma matrix_mul_lid [simp]:
     mult_1_left mult_zero_left if_True UNIV_I)
   done
 
-
 lemma matrix_mul_rid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "A ** mat 1 = A"
@@ -671,6 +670,12 @@ text\<open>Correspondence between matrices and linear operators.\<close>
 
 definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
   where "matrix f = (\<chi> i j. (f(axis j 1))$i)"
+
+lemma matrix_id_mat_1: "matrix id = mat 1"
+  by (simp add: mat_def matrix_def axis_def)
+
+lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
+  by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
   by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
@@ -896,22 +901,23 @@ lemma right_invertible_transpose:
   by (metis matrix_transpose_mul transpose_mat transpose_transpose)
 
 lemma matrix_left_invertible_injective:
-  "(\<exists>B. (B::real^'m^'n) ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> (\<forall>x y. A *v x = A *v y \<longrightarrow> x = y)"
-proof -
-  { fix B:: "real^'m^'n" and x y assume B: "B ** A = mat 1" and xy: "A *v x = A*v y"
-    from xy have "B*v (A *v x) = B *v (A*v y)" by simp
-    hence "x = y"
-      unfolding matrix_vector_mul_assoc B matrix_vector_mul_lid . }
-  moreover
-  { assume A: "\<forall>x y. A *v x = A *v y \<longrightarrow> x = y"
-    hence i: "inj (( *v) A)" unfolding inj_on_def by auto
-    from linear_injective_left_inverse[OF matrix_vector_mul_linear i]
-    obtain g where g: "linear g" "g \<circ> ( *v) A = id" by blast
-    have "matrix g ** A = mat 1"
-      unfolding matrix_eq matrix_vector_mul_lid matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
-      using g(2) by (simp add: fun_eq_iff)
-    then have "\<exists>B. (B::real ^'m^'n) ** A = mat 1" by blast }
-  ultimately show ?thesis by blast
+  fixes A :: "real^'n^'m"
+  shows "(\<exists>B. B ** A = mat 1) \<longleftrightarrow> inj (( *v) A)"
+proof safe
+  fix B
+  assume B: "B ** A = mat 1"
+  show "inj (( *v) A)"
+    unfolding inj_on_def
+      by (metis B matrix_vector_mul_assoc matrix_vector_mul_lid)
+next
+  assume "inj (( *v) A)"
+  with linear_injective_left_inverse[OF matrix_vector_mul_linear]
+  obtain g where "linear g" and g: "g \<circ> ( *v) A = id"
+    by blast
+  have "matrix g ** A = mat 1"
+    by (metis \<open>linear g\<close> g matrix_compose matrix_id_mat_1 matrix_of_matrix_vector_mul matrix_vector_mul_linear)
+  then show "\<exists>B. B ** A = mat 1"
+    by metis
 qed
 
 lemma matrix_left_invertible_ker:
@@ -1443,15 +1449,14 @@ definition "jacobian f net = matrix(frechet_derivative f net)"
 
 lemma jacobian_works:
   "(f::(real^'a) \<Rightarrow> (real^'b)) differentiable net \<longleftrightarrow>
-    (f has_derivative (\<lambda>h. (jacobian f net) *v h)) net"
-  apply rule
-  unfolding jacobian_def
-  apply (simp only: matrix_works[OF linear_frechet_derivative]) defer
-  apply (rule differentiableI)
-  apply assumption
-  unfolding frechet_derivative_works
-  apply assumption
-  done
+    (f has_derivative (\<lambda>h. (jacobian f net) *v h)) net" (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (simp add: frechet_derivative_works has_derivative_linear jacobian_def)
+next
+  assume ?rhs then show ?lhs
+    by (rule differentiableI)
+qed
 
 
 subsection \<open>Component of the differential must be zero if it exists at a local
@@ -1570,6 +1575,153 @@ lemma norm_real: "norm(x::real ^ 1) = \<bar>x$1\<bar>"
 
 lemma dist_real: "dist(x::real ^ 1) y = \<bar>(x$1) - (y$1)\<bar>"
   by (auto simp add: norm_real dist_norm)
+
+subsection\<open> Rank of a matrix\<close>
+
+text\<open>Equivalence of row and column rank is taken from George Mackiw's paper, Mathematics Magazine 1995, p. 285.\<close>
+
+lemma matrix_vector_mult_in_columnspace:
+  fixes A :: "real^'n^'m"
+  shows "(A *v x) \<in> span(columns A)"
+  apply (simp add: matrix_vector_column columns_def transpose_def column_def)
+  apply (intro span_sum span_mul)
+  apply (force intro: span_superset)
+  done
+
+lemma orthogonal_nullspace_rowspace:
+  fixes A :: "real^'n^'m"
+  assumes 0: "A *v x = 0" and y: "y \<in> span(rows A)"
+  shows "orthogonal x y"
+proof (rule span_induct [OF y])
+  show "subspace {a. orthogonal x a}"
+    by (simp add: subspace_orthogonal_to_vector)
+next
+  fix v
+  assume "v \<in> rows A"
+  then obtain i where "v = row i A"
+    by (auto simp: rows_def)
+  with 0 show "orthogonal x v"
+    unfolding orthogonal_def inner_vec_def matrix_vector_mult_def row_def
+    by (simp add: mult.commute) (metis (no_types) vec_lambda_beta zero_index)
+qed
+
+lemma nullspace_inter_rowspace:
+  fixes A :: "real^'n^'m"
+  shows "A *v x = 0 \<and> x \<in> span(rows A) \<longleftrightarrow> x = 0"
+  using orthogonal_nullspace_rowspace orthogonal_self by auto
+
+lemma matrix_vector_mul_injective_on_rowspace:
+  fixes A :: "real^'n^'m"
+  shows "\<lbrakk>A *v x = A *v y; x \<in> span(rows A); y \<in> span(rows A)\<rbrakk> \<Longrightarrow> x = y"
+  using nullspace_inter_rowspace [of A "x-y"]
+  by (metis eq_iff_diff_eq_0 matrix_vector_mult_diff_distrib span_diff)
+
+definition rank :: "real^'n^'m=>nat"
+  where "rank A \<equiv> dim(columns A)"
+
+lemma dim_rows_le_dim_columns:
+  fixes A :: "real^'n^'m"
+  shows "dim(rows A) \<le> dim(columns A)"
+proof -
+  have "dim (span (rows A)) \<le> dim (span (columns A))"
+  proof -
+    obtain B where "independent B" "span(rows A) \<subseteq> span B"
+              and B: "B \<subseteq> span(rows A)""card B = dim (span(rows A))"
+      using basis_exists [of "span(rows A)"] by blast
+    with span_subspace have eq: "span B = span(rows A)"
+      by auto
+    then have inj: "inj_on (( *v) A) (span B)"
+      using inj_on_def matrix_vector_mul_injective_on_rowspace by blast
+    then have ind: "independent (( *v) A ` B)"
+      by (rule independent_inj_on_image [OF \<open>independent B\<close> matrix_vector_mul_linear])
+    then have "finite (( *v) A ` B) \<and> card (( *v) A ` B) \<le> dim (( *v) A ` B)"
+      by (rule independent_bound_general)
+    then show ?thesis
+      by (metis (no_types, lifting) B ind inj eq card_image image_subset_iff independent_card_le_dim inj_on_subset matrix_vector_mult_in_columnspace)
+  qed
+  then show ?thesis
+    by simp
+qed
+
+lemma rank_row:
+  fixes A :: "real^'n^'m"
+  shows "rank A = dim(rows A)"
+  unfolding rank_def
+  by (metis dim_rows_le_dim_columns columns_transpose dual_order.antisym rows_transpose)
+
+lemma rank_transpose:
+  fixes A :: "real^'n^'m"
+  shows "rank(transpose A) = rank A"
+  by (metis rank_def rank_row rows_transpose)
+
+lemma matrix_vector_mult_basis:
+  fixes A :: "real^'n^'m"
+  shows "A *v (axis k 1) = column k A"
+  by (simp add: cart_eq_inner_axis column_def matrix_mult_dot)
+
+lemma columns_image_basis:
+  fixes A :: "real^'n^'m"
+  shows "columns A = ( *v) A ` (range (\<lambda>i. axis i 1))"
+  by (force simp: columns_def matrix_vector_mult_basis [symmetric])
+
+lemma rank_dim_range:
+  fixes A :: "real^'n^'m"
+  shows "rank A = dim(range (\<lambda>x. A *v x))"
+  unfolding rank_def
+proof (rule span_eq_dim)
+  show "span (columns A) = span (range (( *v) A))"
+    apply (auto simp: columns_image_basis span_linear_image matrix_vector_mul_linear)
+    by (metis columns_image_basis matrix_vector_mul_linear matrix_vector_mult_in_columnspace span_linear_image)
+qed
+
+lemma rank_bound:
+  fixes A :: "real^'n^'m"
+  shows "rank A \<le> min CARD('m) (CARD('n))"
+  by (metis (mono_tags, hide_lams) min.bounded_iff DIM_cart DIM_real dim_subset_UNIV mult.right_neutral rank_def rank_transpose)
+
+lemma full_rank_injective:
+  fixes A :: "real^'n^'m"
+  shows "rank A = CARD('n) \<longleftrightarrow> inj (( *v) A)"
+  by (simp add: matrix_left_invertible_injective [symmetric] matrix_left_invertible_span_rows rank_row dim_eq_full [symmetric])
+
+lemma full_rank_surjective:
+  fixes A :: "real^'n^'m"
+  shows "rank A = CARD('m) \<longleftrightarrow> surj (( *v) A)"
+  by (simp add: matrix_right_invertible_surjective [symmetric] left_invertible_transpose [symmetric]
+                matrix_left_invertible_injective full_rank_injective [symmetric] rank_transpose)
+
+lemma rank_I: "rank(mat 1::real^'n^'n) = CARD('n)"
+  by (simp add: full_rank_injective inj_on_def)
+
+lemma less_rank_noninjective:
+  fixes A :: "real^'n^'m"
+  shows "rank A < CARD('n) \<longleftrightarrow> \<not> inj (( *v) A)"
+using less_le rank_bound by (auto simp: full_rank_injective [symmetric])
+
+lemma matrix_nonfull_linear_equations_eq:
+  fixes A :: "real^'n^'m"
+  shows "(\<exists>x. (x \<noteq> 0) \<and> A *v x = 0) \<longleftrightarrow> ~(rank A = CARD('n))"
+  by (meson matrix_left_invertible_injective full_rank_injective matrix_left_invertible_ker)
+
+lemma rank_eq_0: "rank A = 0 \<longleftrightarrow> A = 0" and rank_0 [simp]: "rank 0 = 0"
+  by (auto simp: rank_dim_range matrix_eq)
+
+
+lemma rank_mul_le_right:
+  fixes A :: "real^'n^'m" and B :: "real^'p^'n"
+  shows "rank(A ** B) \<le> rank B"
+proof -
+  have "rank(A ** B) \<le> dim (( *v) A ` range (( *v) B))"
+    by (auto simp: rank_dim_range image_comp o_def matrix_vector_mul_assoc)
+  also have "\<dots> \<le> rank B"
+    by (simp add: rank_dim_range matrix_vector_mul_linear dim_image_le)
+  finally show ?thesis .
+qed
+
+lemma rank_mul_le_left:
+  fixes A :: "real^'n^'m" and B :: "real^'p^'n"
+  shows "rank(A ** B) \<le> rank A"
+  by (metis matrix_transpose_mul rank_mul_le_right rank_transpose)
 
 subsection\<open>Routine results connecting the types @{typ "real^1"} and @{typ real}\<close>
 

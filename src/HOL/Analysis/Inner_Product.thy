@@ -49,6 +49,9 @@ lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
 lemma inner_sum_left: "inner (\<Sum>x\<in>A. f x) y = (\<Sum>x\<in>A. inner (f x) y)"
   by (cases "finite A", induct set: finite, simp_all add: inner_add_left)
 
+lemma all_zero_iff [simp]: "(\<forall>u. inner x u = 0) \<longleftrightarrow> (x = 0)"
+  by auto (use inner_eq_zero_iff in blast)
+
 text \<open>Transfer distributivity rules to right argument.\<close>
 
 lemma inner_add_right: "inner x (y + z) = inner x y + inner x z"
@@ -420,32 +423,12 @@ lemma GDERIV_mult:
 lemma GDERIV_inverse:
     "\<lbrakk>GDERIV f x :> df; f x \<noteq> 0\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. inverse (f x)) x :> - (inverse (f x))\<^sup>2 *\<^sub>R df"
-  apply (erule GDERIV_DERIV_compose)
-  apply (erule DERIV_inverse [folded numeral_2_eq_2])
-  done
-
+  by (metis DERIV_inverse GDERIV_DERIV_compose numerals(2))
+  
 lemma GDERIV_norm:
   assumes "x \<noteq> 0" shows "GDERIV (\<lambda>x. norm x) x :> sgn x"
-proof -
-  have 1: "FDERIV (\<lambda>x. inner x x) x :> (\<lambda>h. inner x h + inner h x)"
-    by (intro has_derivative_inner has_derivative_ident)
-  have 2: "(\<lambda>h. inner x h + inner h x) = (\<lambda>h. inner h (scaleR 2 x))"
-    by (simp add: fun_eq_iff inner_commute)
-  have "0 < inner x x" using \<open>x \<noteq> 0\<close> by simp
-  then have 3: "DERIV sqrt (inner x x) :> (inverse (sqrt (inner x x)) / 2)"
-    by (rule DERIV_real_sqrt)
-  have 4: "(inverse (sqrt (inner x x)) / 2) *\<^sub>R 2 *\<^sub>R x = sgn x"
-    by (simp add: sgn_div_norm norm_eq_sqrt_inner)
-  show ?thesis
-    unfolding norm_eq_sqrt_inner
-    apply (rule GDERIV_subst [OF _ 4])
-    apply (rule GDERIV_DERIV_compose [where g=sqrt and df="scaleR 2 x"])
-    apply (subst gderiv_def)
-    apply (rule has_derivative_subst [OF _ 2])
-    apply (rule 1)
-    apply (rule 3)
-    done
-qed
+    unfolding gderiv_def norm_eq_sqrt_inner
+    by (rule derivative_eq_intros | force simp add: inner_commute sgn_div_norm norm_eq_sqrt_inner assms)+
 
 lemmas has_derivative_norm = GDERIV_norm [unfolded gderiv_def]
 

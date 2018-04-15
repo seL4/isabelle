@@ -464,14 +464,8 @@ proof -
     done
 qed
 
-lemma matrix_id_mat_1: "matrix id = mat 1"
-  by (simp add: mat_def matrix_def axis_def)
-
 lemma matrix_id [simp]: "det (matrix id) = 1"
   by (simp add: matrix_id_mat_1)
-
-lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
-  by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
 lemma det_matrix_scaleR [simp]: "det (matrix ((( *\<^sub>R) r)) :: real^'n^'n) = r ^ CARD('n::finite)"
   apply (subst det_diagonal)

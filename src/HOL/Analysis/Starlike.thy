@@ -8302,5 +8302,125 @@ next
     using that by metis
 qed
 
+
+subsection{*Orthogonal complement*}
+
+definition orthogonal_comp ("_\<^sup>\<bottom>" [80] 80)
+  where "orthogonal_comp W \<equiv> {x. \<forall>y \<in> W. orthogonal y x}"
+
+lemma subspace_orthogonal_comp: "subspace (W\<^sup>\<bottom>)"
+  unfolding subspace_def orthogonal_comp_def orthogonal_def
+  by (auto simp: inner_right_distrib)
+
+lemma orthogonal_comp_anti_mono:
+  assumes "A \<subseteq> B"
+  shows "B\<^sup>\<bottom> \<subseteq> A\<^sup>\<bottom>"
+proof
+  fix x assume x: "x \<in> B\<^sup>\<bottom>"
+  show "x \<in> orthogonal_comp A" using x unfolding orthogonal_comp_def
+    by (simp add: orthogonal_def, metis assms in_mono)
+qed
+
+lemma orthogonal_comp_null [simp]: "{0}\<^sup>\<bottom> = UNIV"
+  by (auto simp: orthogonal_comp_def orthogonal_def)
+
+lemma orthogonal_comp_UNIV [simp]: "UNIV\<^sup>\<bottom> = {0}"
+  unfolding orthogonal_comp_def orthogonal_def
+  by auto (use inner_eq_zero_iff in blast)
+
+lemma orthogonal_comp_subset: "U \<subseteq> U\<^sup>\<bottom>\<^sup>\<bottom>"
+  by (auto simp: orthogonal_comp_def orthogonal_def inner_commute)
+
+lemma subspace_sum_minimal:
+  assumes "S \<subseteq> U" "T \<subseteq> U" "subspace U"
+  shows "S + T \<subseteq> U"
+proof
+  fix x
+  assume "x \<in> S + T"
+  then obtain xs xt where "xs \<in> S" "xt \<in> T" "x = xs+xt"
+    by (meson set_plus_elim)
+  then show "x \<in> U"
+    by (meson assms subsetCE subspace_add)
+qed
+
+lemma subspace_sum_orthogonal_comp:
+  fixes U :: "'a :: euclidean_space set"
+  assumes "subspace U"
+  shows "U + U\<^sup>\<bottom> = UNIV"
+proof -
+  obtain B where "B \<subseteq> U"
+    and ortho: "pairwise orthogonal B" "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
+    and "independent B" "card B = dim U" "span B = U"
+    using orthonormal_basis_subspace [OF assms] by metis
+  then have "finite B"
+    by (simp add: indep_card_eq_dim_span)
+  have *: "\<forall>x\<in>B. \<forall>y\<in>B. x \<bullet> y = (if x=y then 1 else 0)"
+    using ortho norm_eq_1 by (auto simp: orthogonal_def pairwise_def)
+  { fix v
+    let ?u = "\<Sum>b\<in>B. (v \<bullet> b) *\<^sub>R b"
+    have "v = ?u + (v - ?u)"
+      by simp
+    moreover have "?u \<in> U"
+      by (metis (no_types, lifting) \<open>span B = U\<close> assms real_vector_class.subspace_sum span_clauses(1) span_mul)
+    moreover have "(v - ?u) \<in> U\<^sup>\<bottom>"
+    proof (clarsimp simp: orthogonal_comp_def orthogonal_def)
+      fix y
+      assume "y \<in> U"
+      with \<open>span B = U\<close> span_finite [OF \<open>finite B\<close>]
+      obtain u where u: "y = (\<Sum>b\<in>B. u b *\<^sub>R b)"
+        by auto
+      have "b \<bullet> (v - ?u) = 0" if "b \<in> B" for b
+        using that \<open>finite B\<close>
+        by (simp add: * algebra_simps inner_sum_right if_distrib [of "( *)v" for v] inner_commute cong: if_cong)
+      then show "y \<bullet> (v - ?u) = 0"
+        by (simp add: u inner_sum_left)
+    qed
+    ultimately have "v \<in> U + U\<^sup>\<bottom>"
+      using set_plus_intro by fastforce
+  } then show ?thesis
+    by auto
+qed
+
+lemma orthogonal_Int_0:
+  assumes "subspace U"
+  shows "U \<inter> U\<^sup>\<bottom> = {0}"
+  using orthogonal_comp_def orthogonal_self
+  by (force simp: assms subspace_0 subspace_orthogonal_comp)
+
+lemma orthogonal_comp_self:
+  fixes U :: "'a :: euclidean_space set"
+  assumes "subspace U"
+  shows "U\<^sup>\<bottom>\<^sup>\<bottom> = U"
+proof
+  have ssU': "subspace (U\<^sup>\<bottom>)"
+    by (simp add: subspace_orthogonal_comp)
+  have "u \<in> U" if "u \<in> U\<^sup>\<bottom>\<^sup>\<bottom>" for u
+  proof -
+    obtain v w where "u = v+w" "v \<in> U" "w \<in> U\<^sup>\<bottom>"
+      using subspace_sum_orthogonal_comp [OF assms] set_plus_elim by blast
+    then have "u-v \<in> U\<^sup>\<bottom>"
+      by simp
+    moreover have "v \<in> U\<^sup>\<bottom>\<^sup>\<bottom>"
+      using \<open>v \<in> U\<close> orthogonal_comp_subset by blast
+    then have "u-v \<in> U\<^sup>\<bottom>\<^sup>\<bottom>"
+      by (simp add: subspace_diff subspace_orthogonal_comp that)
+    ultimately have "u-v = 0"
+      using orthogonal_Int_0 ssU' by blast
+    with \<open>v \<in> U\<close> show ?thesis
+      by auto
+  qed
+  then show "U\<^sup>\<bottom>\<^sup>\<bottom> \<subseteq> U"
+    by auto
+qed (use orthogonal_comp_subset in auto)
+
+lemma ker_orthogonal_comp_adjoint:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes "linear f"
+  shows "f -` {0} =  (range (adjoint f))\<^sup>\<bottom>"
+  apply (auto simp: orthogonal_comp_def orthogonal_def)
+  apply (simp add: adjoint_works assms(1) inner_commute)
+  by (metis adjoint_works all_zero_iff assms(1) inner_commute)
+
+
 end
   

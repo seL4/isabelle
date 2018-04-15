@@ -1004,6 +1004,83 @@ lemma bounded_set_imp_lmeasurable:
   assumes "bounded S" "S \<in> sets lebesgue" shows "S \<in> lmeasurable"
   by (metis assms bounded_Un emeasure_bounded_finite emeasure_completion fmeasurableI main_part_null_part_Un)
 
+
+subsection\<open>Translation preserves Lebesgue measure\<close>
+
+lemma sigma_sets_image:
+  assumes S: "S \<in> sigma_sets \<Omega> M" and "M \<subseteq> Pow \<Omega>" "f ` \<Omega> = \<Omega>" "inj_on f \<Omega>"
+    and M: "\<And>y. y \<in> M \<Longrightarrow> f ` y \<in> M"
+  shows "(f ` S) \<in> sigma_sets \<Omega> M"
+  using S
+proof (induct S rule: sigma_sets.induct)
+  case (Basic a) then show ?case
+    by (simp add: M)
+next
+  case Empty then show ?case
+    by (simp add: sigma_sets.Empty)
+next
+  case (Compl a)
+  then have "\<Omega> - a \<subseteq> \<Omega>" "a \<subseteq> \<Omega>"
+    by (auto simp: sigma_sets_into_sp [OF \<open>M \<subseteq> Pow \<Omega>\<close>])
+  then show ?case
+    by (auto simp: inj_on_image_set_diff [OF \<open>inj_on f \<Omega>\<close>] assms intro: Compl sigma_sets.Compl)
+next
+  case (Union a) then show ?case
+    by (metis image_UN sigma_sets.simps)
+qed
+
+lemma null_sets_translation:
+  assumes "N \<in> null_sets lborel" shows "{x. x - a \<in> N} \<in> null_sets lborel"
+proof -
+  have [simp]: "(\<lambda>x. x + a) ` N = {x. x - a \<in> N}"
+    by force
+  show ?thesis
+    using assms emeasure_lebesgue_affine [of 1 a N] by (auto simp: null_sets_def)
+qed
+
+lemma lebesgue_sets_translation:
+  fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
+  assumes S: "S \<in> sets lebesgue"
+  shows "((\<lambda>x. a + x) ` S) \<in> sets lebesgue"
+proof -
+  have im_eq: "(+) a ` A = {x. x - a \<in> A}" for A
+    by force
+  have "((\<lambda>x. a + x) ` S) = ((\<lambda>x. -a + x) -` S) \<inter> (space lebesgue)"
+    using image_iff by fastforce
+  also have "\<dots> \<in> sets lebesgue"
+  proof (rule measurable_sets [OF measurableI assms])
+    fix A :: "'b set"
+    assume A: "A \<in> sets lebesgue"
+    have vim_eq: "(\<lambda>x. x - a) -` A = (+) a ` A" for A
+      by force
+    have "\<exists>s n N'. (+) a ` (S \<union> N) = s \<union> n \<and> s \<in> sets borel \<and> N' \<in> null_sets lborel \<and> n \<subseteq> N'"
+      if "S \<in> sets borel" and "N' \<in> null_sets lborel" and "N \<subseteq> N'" for S N N'
+    proof (intro exI conjI)
+      show "(+) a ` (S \<union> N) = (\<lambda>x. a + x) ` S \<union> (\<lambda>x. a + x) ` N"
+        by auto
+      show "(\<lambda>x. a + x) ` N' \<in> null_sets lborel"
+        using that by (auto simp: null_sets_translation im_eq)
+    qed (use that im_eq in auto)
+    with A have "(\<lambda>x. x - a) -` A \<in> sets lebesgue"
+      by (force simp: vim_eq completion_def intro!: sigma_sets_image)
+    then show "(+) (- a) -` A \<inter> space lebesgue \<in> sets lebesgue"
+      by (auto simp: vimage_def im_eq)
+  qed auto
+  finally show ?thesis .
+qed
+
+lemma measurable_translation:
+   "S \<in> lmeasurable \<Longrightarrow> ((\<lambda>x. a + x) ` S) \<in> lmeasurable"
+  unfolding fmeasurable_def
+apply (auto intro: lebesgue_sets_translation)
+  using  emeasure_lebesgue_affine [of 1 a S]
+  by (auto simp: add.commute [of _ a])
+
+lemma measure_translation:
+   "measure lebesgue ((\<lambda>x. a + x) ` S) = measure lebesgue S"
+  using measure_lebesgue_affine [of 1 a S]
+  by (auto simp: add.commute [of _ a])
+
 subsection \<open>A nice lemma for negligibility proofs\<close>
 
 lemma summable_iff_suminf_neq_top: "(\<And>n. f n \<ge> 0) \<Longrightarrow> \<not> summable f \<Longrightarrow> (\<Sum>i. ennreal (f i)) = top"

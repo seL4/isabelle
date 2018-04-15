@@ -1337,6 +1337,31 @@ proof -
     by (metis S Un_commute add.right_neutral lmeasurable_negligible_symdiff measure_Un2 neg negligible_Un_eq negligible_imp_measure0)
 qed
 
+text\<open>Negligibility of image under non-injective linear map\<close>
+lemma negligible_Union_nat:
+  assumes "\<And>n::nat. negligible(S n)"
+  shows "negligible(\<Union>n. S n)"
+proof -
+  have "negligible (\<Union>m\<le>k. S m)" for k
+    using assms by blast
+  then have 0:  "integral UNIV (indicat_real (\<Union>m\<le>k. S m)) = 0"
+    and 1: "(indicat_real (\<Union>m\<le>k. S m)) integrable_on UNIV" for k
+    by (auto simp: negligible has_integral_iff)
+  have 2: "\<And>k x. indicat_real (\<Union>m\<le>k. S m) x \<le> (indicat_real (\<Union>m\<le>Suc k. S m) x)"
+    by (simp add: indicator_def)
+  have 3: "\<And>x. (\<lambda>k. indicat_real (\<Union>m\<le>k. S m) x) \<longlonglongrightarrow> (indicat_real (\<Union>n. S n) x)"
+    by (force simp: indicator_def eventually_sequentially intro: Lim_eventually)
+  have 4: "bounded (range (\<lambda>k. integral UNIV (indicat_real (\<Union>m\<le>k. S m))))"
+    by (simp add: 0 image_def)
+  have *: "indicat_real (\<Union>n. S n) integrable_on UNIV \<and>
+        (\<lambda>k. integral UNIV (indicat_real (\<Union>m\<le>k. S m))) \<longlonglongrightarrow> (integral UNIV (indicat_real (\<Union>n. S n)))"
+    by (intro monotone_convergence_increasing 1 2 3 4)
+  then have "integral UNIV (indicat_real (\<Union>n. S n)) = (0::real)"
+    using LIMSEQ_unique by (auto simp: 0)
+  then show ?thesis
+    using * by (simp add: negligible_UNIV has_integral_iff)
+qed
+
 subsection \<open>Negligibility of a Lipschitz image of a negligible set\<close>
 
 text\<open>The bound will be eliminated by a sort of onion argument\<close>
