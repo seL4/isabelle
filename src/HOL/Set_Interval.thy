@@ -1731,6 +1731,22 @@ lemma atLeast0_atMost_Suc_shift:
   "F g {0..Suc n} = g 0 \<^bold>* F (g \<circ> Suc) {0..n}"
   by (simp add: atLeast0_atMost_Suc_eq_insert_0 atLeast_Suc_atMost_Suc_shift)
 
+lemma atLeast_Suc_lessThan:
+  "F g {m..<n} = g m \<^bold>* F g {Suc m..<n}" if "m < n"
+proof -
+  from that have "{m..<n} = insert m {Suc m..<n}"
+    by auto
+  then show ?thesis by simp
+qed
+
+lemma atLeast_Suc_atMost:
+  "F g {m..n} = g m \<^bold>* F g {Suc m..n}" if "m \<le> n"
+proof -
+  from that have "{m..n} = insert m {Suc m..n}"
+    by auto
+  then show ?thesis by simp
+qed
+
 lemma ivl_cong:
   "a = c \<Longrightarrow> b = d \<Longrightarrow> (\<And>x. c \<le> x \<Longrightarrow> x < d \<Longrightarrow> g x = h x)
     \<Longrightarrow> F g {a..<b} = F h {c..<d}"
@@ -1871,13 +1887,11 @@ qed
 
 lemma sum_head_Suc:
   "m \<le> n \<Longrightarrow> sum f {m..n} = f m + sum f {Suc m..n}"
-by (simp add: sum_head atLeastSucAtMost_greaterThanAtMost)
+  by (fact sum.atLeast_Suc_atMost)
 
 lemma sum_head_upt_Suc:
   "m < n \<Longrightarrow> sum f {m..<n} = f m + sum f {Suc m..<n}"
-apply(insert sum_head_Suc[of m "n - Suc 0" f])
-apply (simp add: atLeastLessThanSuc_atLeastAtMost[symmetric] algebra_simps)
-done
+  by (fact sum.atLeast_Suc_lessThan)
 
 lemma sum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
   shows "sum f {m..n + p} = sum f {m..n} + sum f {n + 1..n + p}"
@@ -1929,24 +1943,30 @@ lemma nat_diff_sum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
   by (subst sum_subtractf_nat) auto
 
-lemma take_bit_sum_nat:
-  "take_bit n m = (\<Sum>k = 0..<n. push_bit k (of_bool (odd (drop_bit k m))))"
-  for n m :: nat
-proof (induction n arbitrary: m)
+context semiring_parity
+begin
+
+lemma take_bit_sum:
+  "take_bit n a = (\<Sum>k = 0..<n. push_bit k (of_bool (odd (drop_bit k a))))"
+  for n :: nat
+proof (induction n arbitrary: a)
   case 0
   then show ?case
     by simp
 next
   case (Suc n)
-  have "(\<Sum>k = 0..<Suc n. push_bit k (of_bool (odd (drop_bit k m)))) = 
-    of_bool (odd m) + (\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (odd (drop_bit k m))))"
-    by (simp add: sum_head_upt_Suc ac_simps)
-  also have "(\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (odd (drop_bit k m))))
-    = (\<Sum>k = 0..<n. push_bit k (of_bool (odd (drop_bit k (m div 2))))) * (2::nat)"
+  have "(\<Sum>k = 0..<Suc n. push_bit k (of_bool (odd (drop_bit k a)))) = 
+    of_bool (odd a) + (\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (odd (drop_bit k a))))"
+    by (simp add: sum.atLeast_Suc_lessThan ac_simps)
+  also have "(\<Sum>k = Suc 0..<Suc n. push_bit k (of_bool (odd (drop_bit k a))))
+    = (\<Sum>k = 0..<n. push_bit k (of_bool (odd (drop_bit k (a div 2))))) * 2"
     by (simp only: sum.atLeast_Suc_lessThan_Suc_shift) (simp add: sum_distrib_right push_bit_double)
   finally show ?case
-    using Suc [of "m div 2"] by simp
-qed    
+    using Suc [of "a div 2"] by (simp add: ac_simps)
+qed
+
+end
+
 
 subsubsection \<open>Shifting bounds\<close>
 
