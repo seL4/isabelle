@@ -3580,25 +3580,16 @@ lemma bounded_linear_image:
     and "bounded_linear f"
   shows "bounded (f ` S)"
 proof -
-  from assms(1) obtain b where b: "b > 0" "\<forall>x\<in>S. norm x \<le> b"
+  from assms(1) obtain b where "b > 0" and b: "\<forall>x\<in>S. norm x \<le> b"
     unfolding bounded_pos by auto
   from assms(2) obtain B where B: "B > 0" "\<forall>x. norm (f x) \<le> B * norm x"
     using bounded_linear.pos_bounded by (auto simp: ac_simps)
-  {
-    fix x
-    assume "x \<in> S"
-    then have "norm x \<le> b"
-      using b by auto
-    then have "norm (f x) \<le> B * b"
-      using B(2)
-      apply (erule_tac x=x in allE)
-      apply (metis B(1) B(2) order_trans mult_le_cancel_left_pos)
-      done
-  }
-  then show ?thesis
+  show ?thesis
     unfolding bounded_pos
-    apply (rule_tac x="b*B" in exI)
-    using b B by (auto simp: mult.commute)
+  proof (intro exI, safe)
+    show "norm (f x) \<le> B * b" if "x \<in> S" for x
+      by (meson B b less_imp_le mult_left_mono order_trans that)
+  qed (use \<open>b > 0\<close> \<open>B > 0\<close> in auto)
 qed
 
 lemma bounded_scaling:

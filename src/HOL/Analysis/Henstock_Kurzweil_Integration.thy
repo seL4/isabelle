@@ -2090,6 +2090,11 @@ proof clarsimp
   qed
 qed
 
+corollary negligible_standard_hyperplane_cart:
+  fixes k :: "'a::finite"
+  shows "negligible {x. x$k = (0::real)}"
+  by (simp add: cart_eq_inner_axis negligible_standard_hyperplane)
+
 
 subsubsection \<open>Hence the main theorem about negligible sets\<close>
 
@@ -2354,34 +2359,13 @@ lemma negligible_Union[intro]:
   shows "negligible(\<Union>\<T>)"
   using assms by induct auto
 
-lemma negligible:
-  "negligible s \<longleftrightarrow> (\<forall>t::('a::euclidean_space) set. ((indicator s::'a\<Rightarrow>real) has_integral 0) t)"
-  apply safe
-  defer
-  apply (subst negligible_def)
-proof -
-  fix t :: "'a set"
-  assume as: "negligible s"
-  have *: "(\<lambda>x. if x \<in> s \<inter> t then 1 else 0) = (\<lambda>x. if x\<in>t then if x\<in>s then 1 else 0 else 0)"
-    by auto
-  show "((indicator s::'a\<Rightarrow>real) has_integral 0) t"
-    apply (subst has_integral_alt)
-    apply cases
-    apply (subst if_P,assumption)
-    unfolding if_not_P
-    apply safe
-    apply (rule as[unfolded negligible_def,rule_format])
-    apply (rule_tac x=1 in exI)
-    apply safe
-    apply (rule zero_less_one)
-    apply (rule_tac x=0 in exI)
-    using negligible_subset[OF as,of "s \<inter> t"]
-    unfolding negligible_def indicator_def [abs_def]
-    unfolding *
-    apply auto
-    done
-qed auto
-
+lemma negligible: "negligible S \<longleftrightarrow> (\<forall>T. (indicat_real S has_integral 0) T)"
+proof (intro iffI allI)
+  fix T
+  assume "negligible S"
+  then show "(indicator S has_integral 0) T"
+    by (meson Diff_iff has_integral_negligible indicator_simps(2))
+qed (simp add: negligible_def)
 
 subsection \<open>Finite case of the spike theorem is quite commonly needed\<close>
 
