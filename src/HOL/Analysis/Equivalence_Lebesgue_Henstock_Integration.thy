@@ -1172,7 +1172,7 @@ proof -
   qed
 qed
 
-subsection\<open>Applications\<close>
+subsection\<open>Applications to Negligibility\<close>
 
 lemma negligible_hyperplane:
   assumes "a \<noteq> 0 \<or> b \<noteq> 0" shows "negligible {x. a \<bullet> x = b}"
@@ -1268,10 +1268,76 @@ lemma negligible_interval:
                   not_le emeasure_lborel_cbox_eq emeasure_lborel_box_eq
             intro: eq_refl antisym less_imp_le)
 
-subsection \<open>Negligibility of a Lipschitz image of a negligible set\<close>
-
 lemma measure_eq_0_null_sets: "S \<in> null_sets M \<Longrightarrow> measure M S = 0"
   by (auto simp: measure_def null_sets_def)
+
+lemma negligible_imp_measure0: "negligible S \<Longrightarrow> measure lebesgue S = 0"
+  by (simp add: measure_eq_0_null_sets negligible_iff_null_sets)
+
+lemma negligible_iff_emeasure0: "S \<in> sets lebesgue \<Longrightarrow> (negligible S \<longleftrightarrow> emeasure lebesgue S = 0)"
+  by (auto simp: measure_eq_0_null_sets negligible_iff_null_sets)
+
+lemma negligible_iff_measure0: "S \<in> lmeasurable \<Longrightarrow> (negligible S \<longleftrightarrow> measure lebesgue S = 0)"
+  apply (auto simp: measure_eq_0_null_sets negligible_iff_null_sets)
+  by (metis completion.null_sets_outer subsetI)
+
+lemma negligible_imp_sets: "negligible S \<Longrightarrow> S \<in> sets lebesgue"
+  by (simp add: negligible_iff_null_sets null_setsD2)
+
+lemma negligible_imp_measurable: "negligible S \<Longrightarrow> S \<in> lmeasurable"
+  by (simp add: fmeasurableI_null_sets negligible_iff_null_sets)
+
+lemma negligible_iff_measure: "negligible S \<longleftrightarrow> S \<in> lmeasurable \<and> measure lebesgue S = 0"
+  by (fastforce simp: negligible_iff_measure0 negligible_imp_measurable dest: negligible_imp_measure0)
+
+lemma negligible_outer:
+  "negligible S \<longleftrightarrow> (\<forall>e>0. \<exists>T. S \<subseteq> T \<and> T \<in> lmeasurable \<and> measure lebesgue T < e)" (is "_ = ?rhs")
+proof
+  assume "negligible S" then show ?rhs
+    by (metis negligible_iff_measure order_refl)
+next
+  assume ?rhs then show "negligible S"
+  by (meson completion.null_sets_outer negligible_iff_null_sets)
+qed
+
+lemma negligible_outer_le:
+     "negligible S \<longleftrightarrow> (\<forall>e>0. \<exists>T. S \<subseteq> T \<and> T \<in> lmeasurable \<and> measure lebesgue T \<le> e)" (is "_ = ?rhs")
+proof
+  assume "negligible S" then show ?rhs
+    by (metis dual_order.strict_implies_order negligible_imp_measurable negligible_imp_measure0 order_refl)
+next
+  assume ?rhs then show "negligible S"
+    by (metis le_less_trans negligible_outer real_lbound_gt_zero)
+qed
+
+lemma negligible_UNIV: "negligible S \<longleftrightarrow> (indicat_real S has_integral 0) UNIV" (is "_=?rhs")
+proof
+  assume ?rhs
+  then show "negligible S"
+    apply (auto simp: negligible_def has_integral_iff integrable_on_indicator)
+    by (metis negligible integral_unique lmeasure_integral_UNIV negligible_iff_measure0)
+qed (simp add: negligible)
+
+lemma sets_negligible_symdiff:
+   "\<lbrakk>S \<in> sets lebesgue; negligible((S - T) \<union> (T - S))\<rbrakk> \<Longrightarrow> T \<in> sets lebesgue"
+  by (metis Diff_Diff_Int Int_Diff_Un inf_commute negligible_Un_eq negligible_imp_sets sets.Diff sets.Un)
+
+lemma lmeasurable_negligible_symdiff:
+   "\<lbrakk>S \<in> lmeasurable; negligible((S - T) \<union> (T - S))\<rbrakk> \<Longrightarrow> T \<in> lmeasurable"
+  using integrable_spike_set_eq lmeasurable_iff_integrable_on by blast
+
+lemma measure_negligible_symdiff:
+  assumes S: "S \<in> lmeasurable"
+    and neg: "negligible (S - T \<union> (T - S))"
+  shows "measure lebesgue T = measure lebesgue S"
+proof -
+  have "measure lebesgue (S - T) = 0"
+    using neg negligible_Un_eq negligible_imp_measure0 by blast
+  then show ?thesis
+    by (metis S Un_commute add.right_neutral lmeasurable_negligible_symdiff measure_Un2 neg negligible_Un_eq negligible_imp_measure0)
+qed
+
+subsection \<open>Negligibility of a Lipschitz image of a negligible set\<close>
 
 text\<open>The bound will be eliminated by a sort of onion argument\<close>
 lemma locally_Lipschitz_negl_bounded:
@@ -1631,11 +1697,12 @@ proof -
     done
 qed
 
+subsection\<open>Integral bounds\<close>
+
 lemma set_integral_norm_bound:
   fixes f :: "_ \<Rightarrow> 'a :: {banach, second_countable_topology}"
   shows "set_integrable M k f \<Longrightarrow> norm (LINT x:k|M. f x) \<le> LINT x:k|M. norm (f x)"
   using integral_norm_bound[of M "\<lambda>x. indicator k x *\<^sub>R f x"] by (simp add: set_lebesgue_integral_def)
-
 
 lemma set_integral_finite_UN_AE:
   fixes f :: "_ \<Rightarrow> _ :: {banach, second_countable_topology}"
@@ -1676,7 +1743,6 @@ proof (rule that[of "integral UNIV (\<lambda>x. norm (f x))"]; safe)
   have *: "k \<in> d \<Longrightarrow> f absolutely_integrable_on k" for k
     using f[THEN set_integrable_subset, of k] division_ofD(2,4)[OF d, of k] by auto
   note d' = division_ofD[OF d]
-
   have "(\<Sum>k\<in>d. norm (integral k f)) = (\<Sum>k\<in>d. norm (LINT x:k|lebesgue. f x))"
     by (intro sum.cong refl arg_cong[where f=norm] set_lebesgue_integral_eq_integral(2)[symmetric] *)
   also have "\<dots> \<le> (\<Sum>k\<in>d. LINT x:k|lebesgue. norm (f x))"
@@ -2208,11 +2274,15 @@ proof (rule absolutely_integrable_onI, fact)
     by blast
 qed
 
+subsection\<open>Lemmas about absolute integrability\<close>
+
+text\<open>Redundant!\<close>
 lemma absolutely_integrable_add[intro]:
   fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) absolutely_integrable_on s"
   by (rule set_integral_add)
 
+text\<open>Redundant!\<close>
 lemma absolutely_integrable_diff[intro]:
   fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) absolutely_integrable_on s"

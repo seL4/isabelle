@@ -936,7 +936,6 @@ proof cases
   from continuous_attains_sup[OF \<open>compact S\<close> \<open>S \<noteq> {}\<close> this]
   obtain M where M: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> M"
     by auto
-
   show ?thesis
   proof (rule integrable_bound)
     show "integrable lborel (\<lambda>x. indicator S x * M)"
@@ -961,6 +960,8 @@ proof -
   then show ?thesis
     by (auto simp: mult.commute)
 qed
+
+subsection\<open>Lebesgue measurable sets\<close>
 
 abbreviation lmeasurable :: "'a::euclidean_space set set"
 where
@@ -998,6 +999,10 @@ proof -
   then show ?thesis
     by (auto dest!: AE_not_in)
 qed
+
+lemma bounded_set_imp_lmeasurable:
+  assumes "bounded S" "S \<in> sets lebesgue" shows "S \<in> lmeasurable"
+  by (metis assms bounded_Un emeasure_bounded_finite emeasure_completion fmeasurableI main_part_null_part_Un)
 
 subsection \<open>A nice lemma for negligibility proofs\<close>
 
