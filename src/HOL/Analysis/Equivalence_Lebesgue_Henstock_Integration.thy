@@ -1116,6 +1116,36 @@ proof -
     by (auto intro!: measure_Union_AE[symmetric] simp: completion.AE_iff_null_sets Int_def[symmetric] pairwise_def null_sets_def)
 qed
 
+lemma has_measure_limit:
+  assumes "S \<in> lmeasurable" "e > 0"
+  obtains B where "B > 0"
+    "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> \<bar>measure lebesgue (S \<inter> cbox a b) - measure lebesgue S\<bar> < e"
+  using assms unfolding lmeasurable_iff_has_integral has_integral_alt'
+  by (force simp: integral_indicator integrable_on_indicator)
+
+lemma lmeasurable_iff_indicator_has_integral:
+  fixes S :: "'a::euclidean_space set"
+  shows "S \<in> lmeasurable \<and> m = measure lebesgue S \<longleftrightarrow> (indicat_real S has_integral m) UNIV"
+  by (metis has_integral_iff lmeasurable_iff_has_integral measurable_integrable)
+
+lemma has_measure_limit_iff:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
+  shows "S \<in> lmeasurable \<and> m = measure lebesgue S \<longleftrightarrow>
+          (\<forall>e>0. \<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
+            (S \<inter> cbox a b) \<in> lmeasurable \<and> \<bar>measure lebesgue (S \<inter> cbox a b) - m\<bar> < e)" (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (meson has_measure_limit fmeasurable.Int lmeasurable_cbox)
+next
+  assume RHS [rule_format]: ?rhs
+  show ?lhs
+    apply (simp add: lmeasurable_iff_indicator_has_integral has_integral' [where i=m])
+    using RHS
+    by (metis (full_types) integral_indicator integrable_integral integrable_on_indicator)
+qed
+
+subsection\<open>Applications to Negligibility\<close>
+
 lemma negligible_iff_null_sets: "negligible S \<longleftrightarrow> S \<in> null_sets lebesgue"
 proof
   assume "negligible S"
@@ -1171,8 +1201,6 @@ proof -
     ultimately show "c = 1" by arith
   qed
 qed
-
-subsection\<open>Applications to Negligibility\<close>
 
 lemma negligible_hyperplane:
   assumes "a \<noteq> 0 \<or> b \<noteq> 0" shows "negligible {x. a \<bullet> x = b}"
@@ -1258,7 +1286,6 @@ corollary negligible_sphere: "negligible (sphere a e)"
   using frontier_cball negligible_convex_frontier convex_cball
   by (blast intro: negligible_subset)
 
-
 lemma non_negligible_UNIV [simp]: "\<not> negligible UNIV"
   unfolding negligible_iff_null_sets by (auto simp: null_sets_def emeasure_lborel_UNIV)
 
@@ -1267,6 +1294,36 @@ lemma negligible_interval:
    by (auto simp: negligible_iff_null_sets null_sets_def prod_nonneg inner_diff_left box_eq_empty
                   not_le emeasure_lborel_cbox_eq emeasure_lborel_box_eq
             intro: eq_refl antisym less_imp_le)
+
+proposition open_not_negligible:
+  assumes "open S" "S \<noteq> {}"
+  shows "\<not> negligible S"
+proof
+  assume neg: "negligible S"
+  obtain a where "a \<in> S"
+    using \<open>S \<noteq> {}\<close> by blast
+  then obtain e where "e > 0" "cball a e \<subseteq> S"
+    using \<open>open S\<close> open_contains_cball_eq by blast
+  let ?p = "a - (e / DIM('a)) *\<^sub>R One" let ?q = "a + (e / DIM('a)) *\<^sub>R One"
+  have "cbox ?p ?q \<subseteq> cball a e"
+  proof (clarsimp simp: mem_box dist_norm)
+    fix x
+    assume "\<forall>i\<in>Basis. ?p \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> ?q \<bullet> i"
+    then have ax: "\<bar>(a - x) \<bullet> i\<bar> \<le> e / real DIM('a)" if "i \<in> Basis" for i
+      using that by (auto simp: algebra_simps)
+    have "norm (a - x) \<le> (\<Sum>i\<in>Basis. \<bar>(a - x) \<bullet> i\<bar>)"
+      by (rule norm_le_l1)
+    also have "\<dots> \<le> DIM('a) * (e / real DIM('a))"
+      by (intro sum_bounded_above ax)
+    also have "\<dots> = e"
+      by simp
+    finally show "norm (a - x) \<le> e" .
+  qed
+  then have "negligible (cbox ?p ?q)"
+    by (meson \<open>cball a e \<subseteq> S\<close> neg negligible_subset)
+  with \<open>e > 0\<close> show False
+    by (simp add: negligible_interval box_eq_empty algebra_simps divide_simps mult_le_0_iff)
+qed
 
 lemma measure_eq_0_null_sets: "S \<in> null_sets M \<Longrightarrow> measure M S = 0"
   by (auto simp: measure_def null_sets_def)
@@ -1337,7 +1394,36 @@ proof -
     by (metis S Un_commute add.right_neutral lmeasurable_negligible_symdiff measure_Un2 neg negligible_Un_eq negligible_imp_measure0)
 qed
 
-text\<open>Negligibility of image under non-injective linear map\<close>
+lemma measure_closure:
+  assumes "bounded S" and neg: "negligible (frontier S)"
+  shows "measure lebesgue (closure S) = measure lebesgue S"
+proof -
+  have "measure lebesgue (frontier S) = 0"
+    by (metis neg negligible_imp_measure0)
+  then show ?thesis
+    by (metis assms lmeasurable_iff_integrable_on eq_iff_diff_eq_0 has_integral_interior integrable_on_def integral_unique lmeasurable_interior lmeasure_integral measure_frontier)
+qed
+
+lemma measure_interior:
+   "\<lbrakk>bounded S; negligible(frontier S)\<rbrakk> \<Longrightarrow> measure lebesgue (interior S) = measure lebesgue S"
+  using measure_closure measure_frontier negligible_imp_measure0 by fastforce
+
+lemma measurable_Jordan:
+  assumes "bounded S" and neg: "negligible (frontier S)"
+  shows "S \<in> lmeasurable"
+proof -
+  have "closure S \<in> lmeasurable"
+    by (metis lmeasurable_closure \<open>bounded S\<close>)
+  moreover have "interior S \<in> lmeasurable"
+    by (simp add: lmeasurable_interior \<open>bounded S\<close>)
+  moreover have "interior S \<subseteq> S"
+    by (simp add: interior_subset)
+  ultimately show ?thesis
+    using assms by (metis (full_types) closure_subset completion.complete_sets_sandwich_fmeasurable measure_closure measure_interior)
+qed
+
+subsection\<open>Negligibility of image under non-injective linear map\<close>
+
 lemma negligible_Union_nat:
   assumes "\<And>n::nat. negligible(S n)"
   shows "negligible(\<Union>n. S n)"
@@ -1360,6 +1446,59 @@ proof -
     using LIMSEQ_unique by (auto simp: 0)
   then show ?thesis
     using * by (simp add: negligible_UNIV has_integral_iff)
+qed
+
+
+lemma negligible_linear_singular_image:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
+  assumes "linear f" "\<not> inj f"
+  shows "negligible (f ` S)"
+proof -
+  obtain a where "a \<noteq> 0" "\<And>S. f ` S \<subseteq> {x. a \<bullet> x = 0}"
+    using assms linear_singular_image_hyperplane by blast
+  then show "negligible (f ` S)"
+    by (metis negligible_hyperplane negligible_subset)
+qed
+
+lemma measure_negligible_finite_Union:
+  assumes "finite \<F>"
+    and meas: "\<And>S. S \<in> \<F> \<Longrightarrow> S \<in> lmeasurable"
+    and djointish: "pairwise (\<lambda>S T. negligible (S \<inter> T)) \<F>"
+  shows "measure lebesgue (\<Union>\<F>) = (\<Sum>S\<in>\<F>. measure lebesgue S)"
+  using assms
+proof (induction)
+  case empty
+  then show ?case
+    by auto
+next
+  case (insert S \<F>)
+  then have "S \<in> lmeasurable" "\<Union>\<F> \<in> lmeasurable" "pairwise (\<lambda>S T. negligible (S \<inter> T)) \<F>"
+    by (simp_all add: fmeasurable.finite_Union insert.hyps(1) insert.prems(1) pairwise_insert subsetI)
+  then show ?case
+  proof (simp add: measure_Un3 insert)
+    have *: "\<And>T. T \<in> (\<inter>) S ` \<F> \<Longrightarrow> negligible T"
+      using insert by (force simp: pairwise_def)
+    have "negligible(S \<inter> \<Union>\<F>)"
+      unfolding Int_Union
+      by (rule negligible_Union) (simp_all add: * insert.hyps(1))
+    then show "measure lebesgue (S \<inter> \<Union>\<F>) = 0"
+      using negligible_imp_measure0 by blast
+  qed
+qed
+
+lemma measure_negligible_finite_Union_image:
+  assumes "finite S"
+    and meas: "\<And>x. x \<in> S \<Longrightarrow> f x \<in> lmeasurable"
+    and djointish: "pairwise (\<lambda>x y. negligible (f x \<inter> f y)) S"
+  shows "measure lebesgue (\<Union>(f ` S)) = (\<Sum>x\<in>S. measure lebesgue (f x))"
+proof -
+  have "measure lebesgue (\<Union>(f ` S)) = sum (measure lebesgue) (f ` S)"
+    using assms by (auto simp: pairwise_mono pairwise_image intro: measure_negligible_finite_Union)
+  also have "\<dots> = sum (measure lebesgue \<circ> f) S"
+    using djointish [unfolded pairwise_def] by (metis inf.idem negligible_imp_measure0 sum.reindex_nontrivial [OF \<open>finite S\<close>])
+  also have "\<dots> = (\<Sum>x\<in>S. measure lebesgue (f x))"
+    by simp
+  finally show ?thesis .
 qed
 
 subsection \<open>Negligibility of a Lipschitz image of a negligible set\<close>
@@ -1596,12 +1735,10 @@ proof (clarsimp simp: completion.null_sets_outer)
       by (auto simp: fbx_def)
     have 2: "I' \<subseteq> \<D> \<Longrightarrow> finite I' \<Longrightarrow> measure lebesgue (\<Union>D\<in>I'. fbx D) \<le> e/2" for I'
       by (rule order_trans[OF measure_Union_le e2]) (auto simp: fbx_def)
-    have 3: "0 \<le> e/2"
-      using \<open>0<e\<close> by auto
     show "(\<Union>D\<in>\<D>. fbx D) \<in> lmeasurable"
-      by (intro fmeasurable_UN_bound[OF \<open>countable \<D>\<close> 1 2 3])
+      by (intro fmeasurable_UN_bound[OF \<open>countable \<D>\<close> 1 2])
     have "measure lebesgue (\<Union>D\<in>\<D>. fbx D) \<le> e/2"
-      by (intro measure_UN_bound[OF \<open>countable \<D>\<close> 1 2 3])
+      by (intro measure_UN_bound[OF \<open>countable \<D>\<close> 1 2])
     then show "measure lebesgue (\<Union>D\<in>\<D>. fbx D) < e"
       using \<open>0 < e\<close> by linarith
   qed
@@ -1720,6 +1857,134 @@ proof -
     apply (subst image_comp [symmetric])
     apply (metis negligible_differentiable_image_negligible order_refl diff_f' neg0S)
     done
+qed
+
+subsection\<open>Measurability of countable unions and intersections of various kinds.\<close>
+
+lemma
+  assumes S: "\<And>n. S n \<in> lmeasurable"
+    and leB: "\<And>n. measure lebesgue (S n) \<le> B"
+    and nest: "\<And>n. S n \<subseteq> S(Suc n)"
+  shows measurable_nested_Union: "(\<Union>n. S n) \<in> lmeasurable"
+  and measure_nested_Union:  "(\<lambda>n. measure lebesgue (S n)) \<longlonglongrightarrow> measure lebesgue (\<Union>n. S n)" (is ?Lim)
+proof -
+  have 1: "\<And>n. (indicat_real (S n)) integrable_on UNIV"
+    using S measurable_integrable by blast
+  have 2: "\<And>n x::'a. indicat_real (S n) x \<le> (indicat_real (S (Suc n)) x)"
+    by (simp add: indicator_leI nest rev_subsetD)
+  have 3: "\<And>x. (\<lambda>n. indicat_real (S n) x) \<longlonglongrightarrow> (indicat_real (UNION UNIV S) x)"
+    apply (rule Lim_eventually)
+    apply (simp add: indicator_def)
+    by (metis eventually_sequentiallyI lift_Suc_mono_le nest subsetCE)
+  have 4: "bounded (range (\<lambda>n. integral UNIV (indicat_real (S n))))"
+    using leB by (auto simp: lmeasure_integral_UNIV [symmetric] S bounded_iff)
+  have "(\<Union>n. S n) \<in> lmeasurable \<and> ?Lim"
+    apply (simp add: lmeasure_integral_UNIV S cong: conj_cong)
+    apply (simp add: measurable_integrable)
+    apply (rule monotone_convergence_increasing [OF 1 2 3 4])
+    done
+  then show "(\<Union>n. S n) \<in> lmeasurable" "?Lim"
+    by auto
+qed
+
+lemma
+  assumes S: "\<And>n. S n \<in> lmeasurable"
+    and djointish: "pairwise (\<lambda>m n. negligible (S m \<inter> S n)) UNIV"
+    and leB: "\<And>n. (\<Sum>k\<le>n. measure lebesgue (S k)) \<le> B"
+  shows measurable_countable_negligible_Union: "(\<Union>n. S n) \<in> lmeasurable"
+  and   measure_countable_negligible_Union:    "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. S n)" (is ?Sums)
+proof -
+  have 1: "UNION {..n} S \<in> lmeasurable" for n
+    using S by blast
+  have 2: "measure lebesgue (UNION {..n} S) \<le> B" for n
+  proof -
+    have "measure lebesgue (UNION {..n} S) \<le> (\<Sum>k\<le>n. measure lebesgue (S k))"
+      by (simp add: S fmeasurableD measure_UNION_le)
+    with leB show ?thesis
+      using order_trans by blast
+  qed
+  have 3: "\<And>n. UNION {..n} S \<subseteq> UNION {..Suc n} S"
+    by (simp add: SUP_subset_mono)
+  have eqS: "(\<Union>n. S n) = (\<Union>n. UNION {..n} S)"
+    using atLeastAtMost_iff by blast
+  also have "(\<Union>n. UNION {..n} S) \<in> lmeasurable"
+    by (intro measurable_nested_Union [OF 1 2] 3)
+  finally show "(\<Union>n. S n) \<in> lmeasurable" .
+  have eqm: "(\<Sum>i\<le>n. measure lebesgue (S i)) = measure lebesgue (UNION {..n} S)" for n
+    using assms by (simp add: measure_negligible_finite_Union_image pairwise_mono)
+  have "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. UNION {..n} S)"
+    by (simp add: sums_def' eqm atLeast0AtMost) (intro measure_nested_Union [OF 1 2] 3)
+  then show ?Sums
+    by (simp add: eqS)
+qed
+
+lemma negligible_countable_Union [intro]:
+  assumes "countable \<F>" and meas: "\<And>S. S \<in> \<F> \<Longrightarrow> negligible S"
+  shows "negligible (\<Union>\<F>)"
+proof (cases "\<F> = {}")
+  case False
+  then show ?thesis
+    by (metis from_nat_into range_from_nat_into assms negligible_Union_nat)
+qed simp
+
+lemma
+  assumes S: "\<And>n. (S n) \<in> lmeasurable"
+    and djointish: "pairwise (\<lambda>m n. negligible (S m \<inter> S n)) UNIV"
+    and bo: "bounded (\<Union>n. S n)"
+  shows measurable_countable_negligible_Union_bounded: "(\<Union>n. S n) \<in> lmeasurable"
+  and   measure_countable_negligible_Union_bounded:    "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. S n)" (is ?Sums)
+proof -
+  obtain a b where ab: "(\<Union>n. S n) \<subseteq> cbox a b"
+    using bo bounded_subset_cbox by blast
+  then have B: "(\<Sum>k\<le>n. measure lebesgue (S k)) \<le> measure lebesgue (cbox a b)" for n
+  proof -
+    have "(\<Sum>k\<le>n. measure lebesgue (S k)) = measure lebesgue (UNION {..n} S)"
+      using measure_negligible_finite_Union_image [OF _ _ pairwise_subset] djointish
+      by (metis S finite_atMost subset_UNIV)
+    also have "\<dots> \<le> measure lebesgue (cbox a b)"
+      apply (rule measure_mono_fmeasurable)
+      using ab S by force+
+    finally show ?thesis .
+  qed
+  show "(\<Union>n. S n) \<in> lmeasurable"
+    by (rule measurable_countable_negligible_Union [OF S djointish B])
+  show ?Sums
+    by (rule measure_countable_negligible_Union [OF S djointish B])
+qed
+
+lemma measure_countable_Union_approachable:
+  assumes "countable \<D>" "e > 0" and measD: "\<And>d. d \<in> \<D> \<Longrightarrow> d \<in> lmeasurable"
+      and B: "\<And>D'. \<lbrakk>D' \<subseteq> \<D>; finite D'\<rbrakk> \<Longrightarrow> measure lebesgue (\<Union>D') \<le> B"
+    obtains D' where "D' \<subseteq> \<D>" "finite D'" "measure lebesgue (\<Union>\<D>) - e < measure lebesgue (\<Union>D')"
+proof (cases "\<D> = {}")
+  case True
+  then show ?thesis
+    by (simp add: \<open>e > 0\<close> that)
+next
+  case False
+  let ?S = "\<lambda>n. \<Union>k \<le> n. from_nat_into \<D> k"
+  have "(\<lambda>n. measure lebesgue (?S n)) \<longlonglongrightarrow> measure lebesgue (\<Union>n. ?S n)"
+  proof (rule measure_nested_Union)
+    show "?S n \<in> lmeasurable" for n
+      by (simp add: False fmeasurable.finite_UN from_nat_into measD)
+    show "measure lebesgue (?S n) \<le> B" for n
+      by (metis (mono_tags, lifting) B False finite_atMost finite_imageI from_nat_into image_iff subsetI)
+    show "?S n \<subseteq> ?S (Suc n)" for n
+      by force
+  qed
+  then obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> dist (measure lebesgue (?S n)) (measure lebesgue (\<Union>n. ?S n)) < e"
+    using metric_LIMSEQ_D \<open>e > 0\<close> by blast
+  show ?thesis
+  proof
+    show "from_nat_into \<D> ` {..N} \<subseteq> \<D>"
+      by (auto simp: False from_nat_into)
+    have eq: "(\<Union>n. \<Union>k\<le>n. from_nat_into \<D> k) = (\<Union>\<D>)"
+      using \<open>countable \<D>\<close> False
+      by (auto intro: from_nat_into dest: from_nat_into_surj [OF \<open>countable \<D>\<close>])
+    show "measure lebesgue (\<Union>\<D>) - e < measure lebesgue (UNION {..N} (from_nat_into \<D>))"
+      using N [OF order_refl]
+      by (auto simp: eq algebra_simps dist_norm)
+  qed auto
 qed
 
 subsection\<open>Integral bounds\<close>

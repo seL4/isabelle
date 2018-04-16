@@ -1749,6 +1749,8 @@ proof (rule ring_of_setsI)
     using emeasure_mono[of "a - b" a M] * by (auto simp: fmeasurable_def Diff_subset)
 qed
 
+subsection\<open>Measurable sets formed by unions and intersections\<close>
+
 lemma fmeasurable_Diff: "A \<in> fmeasurable M \<Longrightarrow> B \<in> sets M \<Longrightarrow> A - B \<in> fmeasurable M"
   using fmeasurableI2[of A M "A - B"] by auto
 
@@ -1882,15 +1884,20 @@ lemma measure_Union_le:
   "finite F \<Longrightarrow> (\<And>S. S \<in> F \<Longrightarrow> S \<in> sets M) \<Longrightarrow> measure M (\<Union>F) \<le> (\<Sum>S\<in>F. measure M S)"
   using measure_UNION_le[of F "\<lambda>x. x" M] by simp
 
+text\<open>Version for indexed union over a countable set\<close>
 lemma
   assumes "countable I" and I: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> fmeasurable M"
-    and bound: "\<And>I'. I' \<subseteq> I \<Longrightarrow> finite I' \<Longrightarrow> measure M (\<Union>i\<in>I'. A i) \<le> B" and "0 \<le> B"
+    and bound: "\<And>I'. I' \<subseteq> I \<Longrightarrow> finite I' \<Longrightarrow> measure M (\<Union>i\<in>I'. A i) \<le> B"
   shows fmeasurable_UN_bound: "(\<Union>i\<in>I. A i) \<in> fmeasurable M" (is ?fm)
     and measure_UN_bound: "measure M (\<Union>i\<in>I. A i) \<le> B" (is ?m)
 proof -
+  have "B \<ge> 0"
+    using bound by force
   have "?fm \<and> ?m"
   proof cases
-    assume "I = {}" with \<open>0 \<le> B\<close> show ?thesis by simp
+    assume "I = {}"
+    with \<open>B \<ge> 0\<close> show ?thesis
+      by simp
   next
     assume "I \<noteq> {}"
     have "(\<Union>i\<in>I. A i) = (\<Union>i. (\<Union>n\<le>i. A (from_nat_into I n)))"
@@ -1916,6 +1923,58 @@ proof -
       by (simp add: emeasure_eq_measure2)
   qed
   then show ?fm ?m by auto
+qed
+
+text\<open>Version for big union of a countable set\<close>
+lemma
+  assumes "countable \<D>"
+    and meas: "\<And>D. D \<in> \<D> \<Longrightarrow> D \<in> fmeasurable M"
+    and bound:  "\<And>\<E>. \<lbrakk>\<E> \<subseteq> \<D>; finite \<E>\<rbrakk> \<Longrightarrow> measure M (\<Union>\<E>) \<le> B"
+ shows fmeasurable_Union_bound: "\<Union>\<D> \<in> fmeasurable M"  (is ?fm)
+    and measure_Union_bound: "measure M (\<Union>\<D>) \<le> B"     (is ?m)
+proof -
+  have "B \<ge> 0"
+    using bound by force
+  have "?fm \<and> ?m"
+  proof (cases "\<D> = {}")
+    case True
+    with \<open>B \<ge> 0\<close> show ?thesis
+      by auto
+  next
+    case False
+    then obtain D :: "nat \<Rightarrow> 'a set" where D: "\<D> = range D"
+      using \<open>countable \<D>\<close> uncountable_def by force
+      have 1: "\<And>i. D i \<in> fmeasurable M"
+        by (simp add: D meas)
+      have 2: "\<And>I'. finite I' \<Longrightarrow> measure M (\<Union>x\<in>I'. D x) \<le> B"
+        by (simp add: D bound image_subset_iff)
+      show ?thesis
+        unfolding D
+        by (intro conjI fmeasurable_UN_bound [OF _ 1 2] measure_UN_bound [OF _ 1 2]) auto
+    qed
+    then show ?fm ?m by auto
+qed
+
+text\<open>Version for indexed union over the type of naturals\<close>
+lemma
+  fixes S :: "nat \<Rightarrow> 'a set"
+  assumes S: "\<And>i. S i \<in> fmeasurable M" and B: "\<And>n. measure M (\<Union>i\<le>n. S i) \<le> B"
+  shows fmeasurable_countable_Union: "(\<Union>i. S i) \<in> fmeasurable M"
+    and measure_countable_Union_le: "measure M (\<Union>i. S i) \<le> B"
+proof -
+  have mB: "measure M (\<Union>i\<in>I. S i) \<le> B" if "finite I" for I
+  proof -
+    have "(\<Union>i\<in>I. S i) \<subseteq> (\<Union>i\<le>Max I. S i)"
+      using Max_ge that by force
+    then have "measure M (\<Union>i\<in>I. S i) \<le> measure M (\<Union>i \<le> Max I. S i)"
+      by (rule measure_mono_fmeasurable) (use S in \<open>blast+\<close>)
+    then show ?thesis
+      using B order_trans by blast
+  qed
+  show "(\<Union>i. S i) \<in> fmeasurable M"
+    by (auto intro: fmeasurable_UN_bound [OF _ S mB])
+  show "measure M (\<Union>n. S n) \<le> B"
+    by (auto intro: measure_UN_bound [OF _ S mB])
 qed
 
 lemma measure_diff_le_measure_setdiff:

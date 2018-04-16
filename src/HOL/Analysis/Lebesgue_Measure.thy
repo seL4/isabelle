@@ -978,8 +978,24 @@ lemma lmeasurable_cbox [iff]: "cbox a b \<in> lmeasurable"
   and lmeasurable_box [iff]: "box a b \<in> lmeasurable"
   by (auto simp: fmeasurable_def emeasure_lborel_box_eq emeasure_lborel_cbox_eq)
 
-lemma lmeasurable_compact: "compact S \<Longrightarrow> S \<in> lmeasurable"
+lemma fmeasurable_compact: "compact S \<Longrightarrow> S \<in> fmeasurable lborel"
   using emeasure_compact_finite[of S] by (intro fmeasurableI) (auto simp: borel_compact)
+
+lemma lmeasurable_compact: "compact S \<Longrightarrow> S \<in> lmeasurable"
+  using fmeasurable_compact by (force simp: fmeasurable_def)
+
+lemma measure_frontier:
+   "bounded S \<Longrightarrow> measure lebesgue (frontier S) = measure lebesgue (closure S) - measure lebesgue (interior S)"
+  using closure_subset interior_subset
+  by (auto simp: frontier_def fmeasurable_compact intro!: measurable_measure_Diff)
+
+lemma lmeasurable_closure:
+   "bounded S \<Longrightarrow> closure S \<in> lmeasurable"
+  by (simp add: lmeasurable_compact)
+
+lemma lmeasurable_frontier:
+   "bounded S \<Longrightarrow> frontier S \<in> lmeasurable"
+  by (simp add: compact_frontier_bounded lmeasurable_compact)
 
 lemma lmeasurable_open: "bounded S \<Longrightarrow> open S \<Longrightarrow> S \<in> lmeasurable"
   using emeasure_bounded_finite[of S] by (intro fmeasurableI) (auto simp: borel_open)

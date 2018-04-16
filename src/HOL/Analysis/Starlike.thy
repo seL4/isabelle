@@ -8421,6 +8421,83 @@ lemma ker_orthogonal_comp_adjoint:
   apply (simp add: adjoint_works assms(1) inner_commute)
   by (metis adjoint_works all_zero_iff assms(1) inner_commute)
 
+subsection\<open> A non-injective linear function maps into a hyperplane.\<close>
+
+lemma linear_surj_adj_imp_inj:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes "linear f" "surj (adjoint f)"
+  shows "inj f"
+proof -
+  have "\<exists>x. y = adjoint f x" for y
+    using assms by (simp add: surjD)
+  then show "inj f"
+    using assms unfolding inj_on_def image_def
+    by (metis (no_types) adjoint_works euclidean_eqI)
+qed
+
+(*http://mathonline.wikidot.com/injectivity-and-surjectivity-of-the-adjoint-of-a-linear-map*)
+lemma surj_adjoint_iff_inj [simp]:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes "linear f"
+  shows  "surj (adjoint f) \<longleftrightarrow> inj f"
+proof
+  assume "surj (adjoint f)"
+  then show "inj f"
+    by (simp add: assms linear_surj_adj_imp_inj)
+next
+  assume "inj f"
+  have "f -` {0} = {0}"
+    using assms \<open>inj f\<close> linear_0 linear_injective_0 by fastforce
+  moreover have "f -` {0} = range (adjoint f)\<^sup>\<bottom>"
+    by (intro ker_orthogonal_comp_adjoint assms)
+  ultimately have "range (adjoint f)\<^sup>\<bottom>\<^sup>\<bottom> = UNIV"
+    by (metis orthogonal_comp_null)
+  then show "surj (adjoint f)"
+    by (simp add: adjoint_linear \<open>linear f\<close> subspace_linear_image orthogonal_comp_self)
+qed
+
+lemma inj_adjoint_iff_surj [simp]:
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes "linear f"
+  shows  "inj (adjoint f) \<longleftrightarrow> surj f"
+proof
+  assume "inj (adjoint f)"
+  have "(adjoint f) -` {0} = {0}"
+    by (metis \<open>inj (adjoint f)\<close> adjoint_linear assms surj_adjoint_iff_inj ker_orthogonal_comp_adjoint orthogonal_comp_UNIV)
+  then have "(range(f))\<^sup>\<bottom> = {0}"
+    by (metis (no_types, hide_lams) adjoint_adjoint adjoint_linear assms ker_orthogonal_comp_adjoint set_zero)
+  then show "surj f"
+    by (metis \<open>inj (adjoint f)\<close> adjoint_adjoint adjoint_linear assms surj_adjoint_iff_inj)
+next
+  assume "surj f"
+  then have "range f = (adjoint f -` {0})\<^sup>\<bottom>"
+    by (simp add: adjoint_adjoint adjoint_linear assms ker_orthogonal_comp_adjoint)
+  then have "{0} = adjoint f -` {0}"
+    using \<open>surj f\<close> adjoint_adjoint adjoint_linear assms ker_orthogonal_comp_adjoint by force
+  then show "inj (adjoint f)"
+    by (simp add: \<open>surj f\<close> adjoint_adjoint adjoint_linear assms linear_surj_adj_imp_inj)
+qed
+
+proposition linear_singular_into_hyperplane:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
+  assumes "linear f"
+  shows "\<not> inj f \<longleftrightarrow> (\<exists>a. a \<noteq> 0 \<and> (\<forall>x. a \<bullet> f x = 0))" (is "_ = ?rhs")
+proof
+  assume "\<not>inj f"
+  then show ?rhs
+    using all_zero_iff
+    by (metis (no_types, hide_lams) adjoint_clauses(2) adjoint_linear assms linear_injective_0 linear_injective_imp_surjective linear_surj_adj_imp_inj)
+next
+  assume ?rhs
+  then show "\<not>inj f"
+    by (metis assms linear_injective_isomorphism all_zero_iff)
+qed
+
+lemma linear_singular_image_hyperplane:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
+  assumes "linear f" "\<not>inj f"
+  obtains a where "a \<noteq> 0" "\<And>S. f ` S \<subseteq> {x. a \<bullet> x = 0}"
+  using assms by (fastforce simp add: linear_singular_into_hyperplane)
 
 end
   
