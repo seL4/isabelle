@@ -1287,7 +1287,7 @@ corollary negligible_sphere: "negligible (sphere a e)"
   by (blast intro: negligible_subset)
 
 lemma non_negligible_UNIV [simp]: "\<not> negligible UNIV"
-  unfolding negligible_iff_null_sets by (auto simp: null_sets_def emeasure_lborel_UNIV)
+  unfolding negligible_iff_null_sets by (auto simp: null_sets_def)
 
 lemma negligible_interval:
   "negligible (cbox a b) \<longleftrightarrow> box a b = {}" "negligible (box a b) \<longleftrightarrow> box a b = {}"
@@ -1421,6 +1421,9 @@ proof -
   ultimately show ?thesis
     using assms by (metis (full_types) closure_subset completion.complete_sets_sandwich_fmeasurable measure_closure measure_interior)
 qed
+
+lemma measurable_convex: "\<lbrakk>convex S; bounded S\<rbrakk> \<Longrightarrow> S \<in> lmeasurable"
+  by (simp add: measurable_Jordan negligible_convex_frontier)
 
 subsection\<open>Negligibility of image under non-injective linear map\<close>
 
@@ -1986,6 +1989,42 @@ next
       by (auto simp: eq algebra_simps dist_norm)
   qed auto
 qed
+
+
+subsection\<open>Negligibility is a local property\<close>
+
+lemma locally_negligible_alt:
+    "negligible S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>U. openin (subtopology euclidean S) U \<and> x \<in> U \<and> negligible U)"
+     (is "_ = ?rhs")
+proof
+  assume "negligible S"
+  then show ?rhs
+    using openin_subtopology_self by blast
+next
+  assume ?rhs
+  then obtain U where ope: "\<And>x. x \<in> S \<Longrightarrow> openin (subtopology euclidean S) (U x)"
+    and cov: "\<And>x. x \<in> S \<Longrightarrow> x \<in> U x"
+    and neg: "\<And>x. x \<in> S \<Longrightarrow> negligible (U x)"
+    by metis
+  obtain \<F> where "\<F> \<subseteq> U ` S" "countable \<F>" and eq: "\<Union>\<F> = UNION S U"
+    using ope by (force intro: Lindelof_openin [of "U ` S" S])
+  then have "negligible (\<Union>\<F>)"
+    by (metis imageE neg negligible_countable_Union subset_eq)
+  with eq have "negligible (UNION S U)"
+    by metis
+  moreover have "S \<subseteq> UNION S U"
+    using cov by blast
+  ultimately show "negligible S"
+    using negligible_subset by blast
+qed
+
+lemma locally_negligible:
+     "locally negligible S \<longleftrightarrow> negligible S"
+  unfolding locally_def
+  apply safe
+   apply (meson negligible_subset openin_subtopology_self locally_negligible_alt)
+  by (meson negligible_subset openin_imp_subset order_refl)
+
 
 subsection\<open>Integral bounds\<close>
 
@@ -2564,15 +2603,171 @@ proof (rule absolutely_integrable_onI, fact)
     by blast
 qed
 
+
+subsection\<open>Outer and inner approximation of measurable sets by well-behaved sets.\<close>
+
+proposition measurable_outer_intervals_bounded:
+  assumes "S \<in> lmeasurable" "S \<subseteq> cbox a b" "e > 0"
+  obtains \<D>
+  where "countable \<D>"
+        "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+        "pairwise (\<lambda>A B. interior A \<inter> interior B = {}) \<D>"
+        "\<And>u v. cbox u v \<in> \<D> \<Longrightarrow> \<exists>n. \<forall>i \<in> Basis. v \<bullet> i - u \<bullet> i = (b \<bullet> i - a \<bullet> i)/2^n"
+        "\<And>K. \<lbrakk>K \<in> \<D>; box a b \<noteq> {}\<rbrakk> \<Longrightarrow> interior K \<noteq> {}"
+        "S \<subseteq> \<Union>\<D>" "\<Union>\<D> \<in> lmeasurable" "measure lebesgue (\<Union>\<D>) \<le> measure lebesgue S + e"
+proof (cases "box a b = {}")
+  case True
+  show ?thesis
+  proof (cases "cbox a b = {}")
+    case True
+    with assms have [simp]: "S = {}"
+      by auto
+    show ?thesis
+    proof
+      show "countable {}"
+        by simp
+    qed (use \<open>e > 0\<close> in auto)
+  next
+    case False
+    show ?thesis
+    proof
+      show "countable {cbox a b}"
+        by simp
+      show "\<And>u v. cbox u v \<in> {cbox a b} \<Longrightarrow> \<exists>n. \<forall>i\<in>Basis. v \<bullet> i - u \<bullet> i = (b \<bullet> i - a \<bullet> i)/2 ^ n"
+        using False by (force simp: eq_cbox intro: exI [where x=0])
+      show "measure lebesgue (\<Union>{cbox a b}) \<le> measure lebesgue S + e"
+        using assms by (simp add: sum_content.box_empty_imp [OF True])
+    qed (use assms \<open>cbox a b \<noteq> {}\<close> in auto)
+  qed
+next
+  case False
+  let ?\<mu> = "measure lebesgue"
+  have "S \<inter> cbox a b \<in> lmeasurable"
+    using \<open>S \<in> lmeasurable\<close> by blast
+  then have indS_int: "(indicator S has_integral (?\<mu> S)) (cbox a b)"
+    by (metis integral_indicator \<open>S \<subseteq> cbox a b\<close> has_integral_integrable_integral inf.orderE integrable_on_indicator)
+  with \<open>e > 0\<close> obtain \<gamma> where "gauge \<gamma>" and \<gamma>:
+    "\<And>\<D>. \<lbrakk>\<D> tagged_division_of (cbox a b); \<gamma> fine \<D>\<rbrakk> \<Longrightarrow> norm ((\<Sum>(x,K)\<in>\<D>. content(K) *\<^sub>R indicator S x) - ?\<mu> S) < e"
+    by (force simp: has_integral)
+  have inteq: "integral (cbox a b) (indicat_real S) = integral UNIV (indicator S)"
+    using assms by (metis has_integral_iff indS_int lmeasure_integral_UNIV)
+  obtain \<D> where \<D>: "countable \<D>"  "\<Union>\<D> \<subseteq> cbox a b"
+            and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> interior K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+            and djointish: "pairwise (\<lambda>A B. interior A \<inter> interior B = {}) \<D>"
+            and covered: "\<And>K. K \<in> \<D> \<Longrightarrow> \<exists>x \<in> S \<inter> K. K \<subseteq> \<gamma> x"
+            and close: "\<And>u v. cbox u v \<in> \<D> \<Longrightarrow> \<exists>n. \<forall>i \<in> Basis. v\<bullet>i - u\<bullet>i = (b\<bullet>i - a\<bullet>i)/2^n"
+            and covers: "S \<subseteq> \<Union>\<D>"
+    using covering_lemma [of S a b \<gamma>] \<open>gauge \<gamma>\<close> \<open>box a b \<noteq> {}\<close> assms by force
+  show ?thesis
+  proof
+    show "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+      by (meson Sup_le_iff \<D>(2) cbox interior_empty)
+    have negl_int: "negligible(K \<inter> L)" if "K \<in> \<D>" "L \<in> \<D>" "K \<noteq> L" for K L
+    proof -
+      have "interior K \<inter> interior L = {}"
+        using djointish pairwiseD that by fastforce
+      moreover obtain u v x y where "K = cbox u v" "L = cbox x y"
+        using cbox \<open>K \<in> \<D>\<close> \<open>L \<in> \<D>\<close> by blast
+      ultimately show ?thesis
+        by (simp add: Int_interval box_Int_box negligible_interval(1))
+    qed
+    have fincase: "\<Union>\<F> \<in> lmeasurable \<and> ?\<mu> (\<Union>\<F>) \<le> ?\<mu> S + e" if "finite \<F>" "\<F> \<subseteq> \<D>" for \<F>
+    proof -
+      obtain t where t: "\<And>K. K \<in> \<F> \<Longrightarrow> t K \<in> S \<inter> K \<and> K \<subseteq> \<gamma>(t K)"
+        using covered \<open>\<F> \<subseteq> \<D>\<close> subsetD by metis
+      have "\<forall>K \<in> \<F>. \<forall>L \<in> \<F>. K \<noteq> L \<longrightarrow> interior K \<inter> interior L = {}"
+        using that djointish by (simp add: pairwise_def) (metis subsetD)
+      with cbox that \<D> have \<F>div: "\<F> division_of (\<Union>\<F>)"
+        by (fastforce simp: division_of_def dest: cbox)
+      then have 1: "\<Union>\<F> \<in> lmeasurable"
+        by blast
+      have norme: "\<And>p. \<lbrakk>p tagged_division_of cbox a b; \<gamma> fine p\<rbrakk>
+          \<Longrightarrow> norm ((\<Sum>(x,K)\<in>p. content K * indicator S x) - integral (cbox a b) (indicator S)) < e"
+        by (auto simp: lmeasure_integral_UNIV assms inteq dest: \<gamma>)
+      have "\<forall>x K y L. (x,K) \<in> (\<lambda>K. (t K,K)) ` \<F> \<and> (y,L) \<in> (\<lambda>K. (t K,K)) ` \<F> \<and> (x,K) \<noteq> (y,L) \<longrightarrow>             interior K \<inter> interior L = {}"
+        using that djointish  by (clarsimp simp: pairwise_def) (metis subsetD)
+      with that \<D> have tagged: "(\<lambda>K. (t K, K)) ` \<F> tagged_partial_division_of cbox a b"
+        by (auto simp: tagged_partial_division_of_def dest: t cbox)
+      have fine: "\<gamma> fine (\<lambda>K. (t K, K)) ` \<F>"
+        using t by (auto simp: fine_def)
+      have *: "y \<le> ?\<mu> S \<Longrightarrow> \<bar>x - y\<bar> \<le> e \<Longrightarrow> x \<le> ?\<mu> S + e" for x y
+        by arith
+      have "?\<mu> (\<Union>\<F>) \<le> ?\<mu> S + e"
+      proof (rule *)
+        have "(\<Sum>K\<in>\<F>. ?\<mu> (K \<inter> S)) = ?\<mu> (\<Union>C\<in>\<F>. C \<inter> S)"
+          apply (rule measure_negligible_finite_Union_image [OF \<open>finite \<F>\<close>, symmetric])
+          using \<F>div \<open>S \<in> lmeasurable\<close> apply blast
+          unfolding pairwise_def
+          by (metis inf.commute inf_sup_aci(3) negligible_Int subsetCE negl_int \<open>\<F> \<subseteq> \<D>\<close>)
+        also have "\<dots> = ?\<mu> (\<Union>\<F> \<inter> S)"
+          by simp
+        also have "\<dots> \<le> ?\<mu> S"
+          by (simp add: "1" \<open>S \<in> lmeasurable\<close> fmeasurableD measure_mono_fmeasurable sets.Int)
+        finally show "(\<Sum>K\<in>\<F>. ?\<mu> (K \<inter> S)) \<le> ?\<mu> S" .
+      next
+        have "?\<mu> (\<Union>\<F>) = sum ?\<mu> \<F>"
+          by (metis \<F>div content_division)
+        also have "\<dots> = (\<Sum>K\<in>\<F>. content K)"
+          using \<F>div by (force intro: sum.cong)
+        also have "\<dots> = (\<Sum>x\<in>\<F>. content x * indicator S (t x))"
+          using t by auto
+        finally have eq1: "?\<mu> (\<Union>\<F>) = (\<Sum>x\<in>\<F>. content x * indicator S (t x))" .
+        have eq2: "(\<Sum>K\<in>\<F>. ?\<mu> (K \<inter> S)) = (\<Sum>K\<in>\<F>. integral K (indicator S))"
+          apply (rule sum.cong [OF refl])
+          by (metis integral_indicator \<F>div \<open>S \<in> lmeasurable\<close> division_ofD(4) fmeasurable.Int inf.commute lmeasurable_cbox)
+        have "\<bar>\<Sum>(x,K)\<in>(\<lambda>K. (t K, K)) ` \<F>. content K * indicator S x - integral K (indicator S)\<bar> \<le> e"
+          using Henstock_lemma_part1 [of "indicator S::'a\<Rightarrow>real", OF _ \<open>e > 0\<close> \<open>gauge \<gamma>\<close> _ tagged fine]
+            indS_int norme by auto
+        then show "\<bar>?\<mu> (\<Union>\<F>) - (\<Sum>K\<in>\<F>. ?\<mu> (K \<inter> S))\<bar> \<le> e"
+          by (simp add: eq1 eq2 comm_monoid_add_class.sum.reindex inj_on_def sum_subtractf)
+      qed
+      with 1 show ?thesis by blast
+    qed
+    have "\<Union>\<D> \<in> lmeasurable \<and> ?\<mu> (\<Union>\<D>) \<le> ?\<mu> S + e"
+    proof (cases "finite \<D>")
+      case True
+      with fincase show ?thesis
+        by blast
+    next
+      case False
+      let ?T = "from_nat_into \<D>"
+      have T: "bij_betw ?T UNIV \<D>"
+        by (simp add: False \<D>(1) bij_betw_from_nat_into)
+      have TM: "\<And>n. ?T n \<in> lmeasurable"
+        by (metis False cbox finite.emptyI from_nat_into lmeasurable_cbox)
+      have TN: "\<And>m n. m \<noteq> n \<Longrightarrow> negligible (?T m \<inter> ?T n)"
+        by (simp add: False \<D>(1) from_nat_into infinite_imp_nonempty negl_int)
+      have TB: "(\<Sum>k\<le>n. ?\<mu> (?T k)) \<le> ?\<mu> S + e" for n
+      proof -
+        have "(\<Sum>k\<le>n. ?\<mu> (?T k)) = ?\<mu> (UNION {..n} ?T)"
+          by (simp add: pairwise_def TM TN measure_negligible_finite_Union_image)
+        also have "?\<mu> (UNION {..n} ?T) \<le> ?\<mu> S + e"
+          using fincase [of "?T ` {..n}"] T by (auto simp: bij_betw_def)
+        finally show ?thesis .
+      qed
+      have "\<Union>\<D> \<in> lmeasurable"
+        by (metis lmeasurable_compact T \<D>(2) bij_betw_def cbox compact_cbox countable_Un_Int(1) fmeasurableD fmeasurableI2 rangeI)
+      moreover
+      have "?\<mu> (\<Union>x. from_nat_into \<D> x) \<le> ?\<mu> S + e"
+      proof (rule measure_countable_Union_le [OF TM])
+        show "?\<mu> (\<Union>x\<le>n. from_nat_into \<D> x) \<le> ?\<mu> S + e" for n
+          by (metis (mono_tags, lifting) False fincase finite.emptyI finite_atMost finite_imageI from_nat_into imageE subsetI)
+      qed
+      ultimately show ?thesis by (metis T bij_betw_def)
+    qed
+    then show "\<Union>\<D> \<in> lmeasurable" "measure lebesgue (\<Union>\<D>) \<le> ?\<mu> S + e" by blast+
+  qed (use \<D> cbox djointish close covers in auto)
+qed
+
 subsection\<open>Lemmas about absolute integrability\<close>
 
-text\<open>Redundant!\<close>
+text\<open>FIXME Redundant!\<close>
 lemma absolutely_integrable_add[intro]:
   fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) absolutely_integrable_on s"
   by (rule set_integral_add)
 
-text\<open>Redundant!\<close>
+text\<open>FIXME Redundant!\<close>
 lemma absolutely_integrable_diff[intro]:
   fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   shows "f absolutely_integrable_on s \<Longrightarrow> g absolutely_integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) absolutely_integrable_on s"

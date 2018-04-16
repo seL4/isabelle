@@ -8381,6 +8381,33 @@ proof -
     by auto
 qed
 
+lemma add_subspaces:
+  assumes "subspace S" "subspace T"
+  shows  "subspace (S + T)"
+  unfolding subspace_def
+proof (intro conjI ballI allI)
+  show "0 \<in> S + T"
+    by (meson assms set_zero_plus2 subsetCE subspace_0)
+next
+  fix x y
+  assume "x \<in> S + T" and "y \<in> S + T"
+  then obtain xs xt ys yt where "xs \<in> S" "xt \<in> T" "ys \<in> S" "yt \<in> T" and eq: "x = xs+xt" "y = ys+yt"
+    by (meson set_plus_elim)
+  then have "xs+ys \<in> S" "xt+yt \<in> T"
+    using assms subspace_def by blast+
+  then have "(xs + ys) + (xt + yt) \<in> S + T"
+    by blast
+  then show "x + y \<in> S + T"
+    by (simp add: eq add.assoc add.left_commute)
+next
+  fix c x
+  assume "x \<in> S + T"
+  then obtain xs xt where "xs \<in> S" "xt \<in> T" "x = xs+xt"
+    by (meson set_plus_elim)
+  then show "c *\<^sub>R x \<in> S + T"
+    by (metis assms scaleR_add_right set_plus_intro subspace_def)
+qed
+
 lemma orthogonal_Int_0:
   assumes "subspace U"
   shows "U \<inter> U\<^sup>\<bottom> = {0}"

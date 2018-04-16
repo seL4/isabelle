@@ -832,6 +832,27 @@ proof -
     by blast
 qed
 
+lemma det_nz_iff_inj:
+  fixes f :: "real^'n \<Rightarrow> real^'n"
+  assumes "linear f"
+  shows "det (matrix f) \<noteq> 0 \<longleftrightarrow> inj f"
+proof
+  assume "det (matrix f) \<noteq> 0"
+  then show "inj f"
+    using assms invertible_det_nz inj_matrix_vector_mult by force
+next
+  assume "inj f"
+  show "det (matrix f) \<noteq> 0"
+    using linear_injective_left_inverse [OF assms \<open>inj f\<close>]
+    by (metis assms invertible_det_nz invertible_left_inverse matrix_compose matrix_id_mat_1)
+qed
+
+lemma det_eq_0_rank:
+  fixes A :: "real^'n^'n"
+  shows "det A = 0 \<longleftrightarrow> rank A < CARD('n)"
+  using invertible_det_nz [of A]
+  by (auto simp: matrix_left_invertible_injective invertible_left_inverse less_rank_noninjective)
+
 subsubsection\<open>Invertibility of matrices and corresponding linear functions\<close>
 
 lemma matrix_left_invertible:

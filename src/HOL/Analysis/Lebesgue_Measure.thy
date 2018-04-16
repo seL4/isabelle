@@ -1000,8 +1000,11 @@ lemma lmeasurable_frontier:
 lemma lmeasurable_open: "bounded S \<Longrightarrow> open S \<Longrightarrow> S \<in> lmeasurable"
   using emeasure_bounded_finite[of S] by (intro fmeasurableI) (auto simp: borel_open)
 
-lemma lmeasurable_ball: "ball a r \<in> lmeasurable"
+lemma lmeasurable_ball [simp]: "ball a r \<in> lmeasurable"
   by (simp add: lmeasurable_open)
+
+lemma lmeasurable_cball [simp]: "cball a r \<in> lmeasurable"
+  by (simp add: lmeasurable_compact)
 
 lemma lmeasurable_interior: "bounded S \<Longrightarrow> interior S \<in> lmeasurable"
   by (simp add: bounded_interior lmeasurable_open)
