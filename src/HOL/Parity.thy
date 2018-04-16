@@ -775,6 +775,38 @@ next
     using False by (simp add: take_bit_eq_mod drop_bit_eq_div)
 qed
 
+lemma push_bit_0_id [simp]:
+  "push_bit 0 = id"
+  by (simp add: fun_eq_iff push_bit_eq_mult)
+
+lemma push_bit_of_0 [simp]:
+  "push_bit n 0 = 0"
+  by (simp add: push_bit_eq_mult)
+
+lemma push_bit_of_1:
+  "push_bit n 1 = 2 ^ n"
+  by (simp add: push_bit_eq_mult)
+
+lemma push_bit_Suc [simp]:
+  "push_bit (Suc n) a = push_bit n (a * 2)"
+  by (simp add: push_bit_eq_mult ac_simps)
+
+lemma push_bit_double:
+  "push_bit n (a * 2) = push_bit n a * 2"
+  by (simp add: push_bit_eq_mult ac_simps)
+
+lemma push_bit_eq_0_iff [simp]:
+  "push_bit n a = 0 \<longleftrightarrow> a = 0"
+  by (simp add: push_bit_eq_mult)
+
+lemma push_bit_add:
+  "push_bit n (a + b) = push_bit n a + push_bit n b"
+  by (simp add: push_bit_eq_mult algebra_simps)
+
+lemma push_bit_numeral [simp]:
+  "push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))"
+  by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric]) (simp add: ac_simps)
+
 lemma take_bit_0 [simp]:
   "take_bit 0 a = 0"
   by (simp add: take_bit_eq_mod)
@@ -796,6 +828,10 @@ lemma take_bit_of_0 [simp]:
   "take_bit n 0 = 0"
   by (simp add: take_bit_eq_mod)
 
+lemma take_bit_of_1 [simp]:
+  "take_bit n 1 = of_bool (n > 0)"
+  by (simp add: take_bit_eq_mod)
+
 lemma take_bit_add:
   "take_bit n (take_bit n a + take_bit n b) = take_bit n (a + b)"
   by (simp add: take_bit_eq_mod mod_simps)
@@ -808,13 +844,19 @@ lemma take_bit_of_1_eq_0_iff [simp]:
   "take_bit n 1 = 0 \<longleftrightarrow> n = 0"
   by (simp add: take_bit_eq_mod)
 
-lemma push_bit_eq_0_iff [simp]:
-  "push_bit n a = 0 \<longleftrightarrow> a = 0"
-  by (simp add: push_bit_eq_mult)
+lemma even_take_bit_eq [simp]:
+  "even (take_bit n a) \<longleftrightarrow> n = 0 \<or> even a"
+  by (cases n) (simp_all add: take_bit_eq_mod dvd_mod_iff)
 
-lemma push_bit_add:
-  "push_bit n (a + b) = push_bit n a + push_bit n b"
-  by (simp add: push_bit_eq_mult algebra_simps)
+lemma take_bit_numeral_bit0 [simp]:
+  "take_bit (numeral l) (numeral (Num.Bit0 k)) = take_bit (pred_numeral l) (numeral k) * 2"
+  by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric] take_bit_Suc
+    ac_simps even_mult_iff nonzero_mult_div_cancel_right [OF numeral_neq_zero]) simp
+
+lemma take_bit_numeral_bit1 [simp]:
+  "take_bit (numeral l) (numeral (Num.Bit1 k)) = take_bit (pred_numeral l) (numeral k) * 2 + 1"
+  by (simp only: numeral_eq_Suc power_Suc numeral_Bit1 [of k] mult_2 [symmetric] take_bit_Suc
+    ac_simps even_add even_mult_iff div_mult_self1 [OF numeral_neq_zero]) (simp add: ac_simps)
 
 lemma drop_bit_0 [simp]:
   "drop_bit 0 = id"
@@ -822,6 +864,10 @@ lemma drop_bit_0 [simp]:
 
 lemma drop_bit_of_0 [simp]:
   "drop_bit n 0 = 0"
+  by (simp add: drop_bit_eq_div)
+
+lemma drop_bit_of_1 [simp]:
+  "drop_bit n 1 = of_bool (n = 0)"
   by (simp add: drop_bit_eq_div)
 
 lemma drop_bit_Suc [simp]:
@@ -851,30 +897,28 @@ lemma drop_bit_of_bool [simp]:
   "drop_bit n (of_bool d) = of_bool (n = 0 \<and> d)"
   by (cases n) simp_all
 
-lemma even_take_bit_eq [simp]:
-  "even (take_bit n a) \<longleftrightarrow> n = 0 \<or> even a"
-  by (cases n) (simp_all add: take_bit_eq_mod dvd_mod_iff)
+lemma drop_bit_numeral_bit0 [simp]:
+  "drop_bit (numeral l) (numeral (Num.Bit0 k)) = drop_bit (pred_numeral l) (numeral k)"
+  by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric] drop_bit_Suc
+    nonzero_mult_div_cancel_left [OF numeral_neq_zero])
 
-lemma push_bit_0_id [simp]:
-  "push_bit 0 = id"
-  by (simp add: fun_eq_iff push_bit_eq_mult)
-
-lemma push_bit_of_0 [simp]:
-  "push_bit n 0 = 0"
-  by (simp add: push_bit_eq_mult)
-
-lemma push_bit_of_1:
-  "push_bit n 1 = 2 ^ n"
-  by (simp add: push_bit_eq_mult)
-
-lemma push_bit_Suc [simp]:
-  "push_bit (Suc n) a = push_bit n (a * 2)"
-  by (simp add: push_bit_eq_mult ac_simps)
-
-lemma push_bit_double:
-  "push_bit n (a * 2) = push_bit n a * 2"
-  by (simp add: push_bit_eq_mult ac_simps)
+lemma drop_bit_numeral_bit1 [simp]:
+  "drop_bit (numeral l) (numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (numeral k)"
+  by (simp only: numeral_eq_Suc power_Suc numeral_Bit1 [of k] mult_2 [symmetric] drop_bit_Suc
+    div_mult_self4 [OF numeral_neq_zero]) simp
 
 end
+
+lemma push_bit_of_Suc_0 [simp]:
+  "push_bit n (Suc 0) = 2 ^ n"
+  using push_bit_of_1 [where ?'a = nat] by simp
+
+lemma take_bit_of_Suc_0 [simp]:
+  "take_bit n (Suc 0) = of_bool (0 < n)"
+  using take_bit_of_1 [where ?'a = nat] by simp
+
+lemma drop_bit_of_Suc_0 [simp]:
+  "drop_bit n (Suc 0) = of_bool (n = 0)"
+  using drop_bit_of_1 [where ?'a = nat] by simp
 
 end
