@@ -1383,6 +1383,36 @@ lemma lmeasurable_negligible_symdiff:
    "\<lbrakk>S \<in> lmeasurable; negligible((S - T) \<union> (T - S))\<rbrakk> \<Longrightarrow> T \<in> lmeasurable"
   using integrable_spike_set_eq lmeasurable_iff_integrable_on by blast
 
+
+lemma measure_Un3_negligible:
+  assumes meas: "S \<in> lmeasurable" "T \<in> lmeasurable" "U \<in> lmeasurable"
+  and neg: "negligible(S \<inter> T)" "negligible(S \<inter> U)" "negligible(T \<inter> U)" and V: "S \<union> T \<union> U = V"
+shows "measure lebesgue V = measure lebesgue S + measure lebesgue T + measure lebesgue U"
+proof -
+  have [simp]: "measure lebesgue (S \<inter> T) = 0"
+    using neg(1) negligible_imp_measure0 by blast
+  have [simp]: "measure lebesgue (S \<inter> U \<union> T \<inter> U) = 0"
+    using neg(2) neg(3) negligible_Un negligible_imp_measure0 by blast
+  have "measure lebesgue V = measure lebesgue (S \<union> T \<union> U)"
+    using V by simp
+  also have "\<dots> = measure lebesgue S + measure lebesgue T + measure lebesgue U"
+    by (simp add: measure_Un3 meas fmeasurable.Un Int_Un_distrib2)
+  finally show ?thesis .
+qed
+
+lemma measure_translate_add:
+  assumes meas: "S \<in> lmeasurable" "T \<in> lmeasurable"
+    and U: "S \<union> ((+)a ` T) = U" and neg: "negligible(S \<inter> ((+)a ` T))"
+  shows "measure lebesgue S + measure lebesgue T = measure lebesgue U"
+proof -
+  have [simp]: "measure lebesgue (S \<inter> (+) a ` T) = 0"
+    using neg negligible_imp_measure0 by blast
+  have "measure lebesgue (S \<union> ((+)a ` T)) = measure lebesgue S + measure lebesgue T"
+    by (simp add: measure_Un3 meas measurable_translation measure_translation fmeasurable.Un)
+  then show ?thesis
+    using U by auto
+qed
+
 lemma measure_negligible_symdiff:
   assumes S: "S \<in> lmeasurable"
     and neg: "negligible (S - T \<union> (T - S))"
@@ -2759,6 +2789,277 @@ next
   qed (use \<D> cbox djointish close covers in auto)
 qed
 
+
+subsection\<open>Transformation of measure by linear maps\<close>
+
+lemma measurable_linear_image_interval:
+   "linear f \<Longrightarrow> f ` (cbox a b) \<in> lmeasurable"
+  by (metis bounded_linear_image linear_linear bounded_cbox closure_bounded_linear_image closure_cbox compact_closure lmeasurable_compact)
+
+proposition measure_linear_sufficient:
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
+  assumes "linear f" and S: "S \<in> lmeasurable"
+    and im: "\<And>a b. measure lebesgue (f ` (cbox a b)) = m * measure lebesgue (cbox a b)"
+  shows "f ` S \<in> lmeasurable \<and> m * measure lebesgue S = measure lebesgue (f ` S)"
+  using le_less_linear [of 0 m]
+proof
+  assume "m < 0"
+  then show ?thesis
+    using im [of 0 One] by auto
+next
+  assume "m \<ge> 0"
+  let ?\<mu> = "measure lebesgue"
+  show ?thesis
+  proof (cases "inj f")
+    case False
+    then have "?\<mu> (f ` S) = 0"
+      using \<open>linear f\<close> negligible_imp_measure0 negligible_linear_singular_image by blast
+    then have "m * ?\<mu> (cbox 0 (One)) = 0"
+      by (metis False \<open>linear f\<close> cbox_borel content_unit im measure_completion negligible_imp_measure0 negligible_linear_singular_image sets_lborel)
+    then show ?thesis
+      using \<open>linear f\<close> negligible_linear_singular_image negligible_imp_measure0 False
+      by (auto simp: lmeasurable_iff_has_integral negligible_UNIV)
+  next
+    case True
+    then obtain h where "linear h" and hf: "\<And>x. h (f x) = x" and fh: "\<And>x. f (h x) = x"
+      using \<open>linear f\<close> linear_injective_isomorphism by blast
+    have fBS: "(f ` S) \<in> lmeasurable \<and> m * ?\<mu> S = ?\<mu> (f ` S)"
+      if "bounded S" "S \<in> lmeasurable" for S
+    proof -
+      obtain a b where "S \<subseteq> cbox a b"
+        using \<open>bounded S\<close> bounded_subset_cbox by blast
+      have fUD: "(f ` \<Union>\<D>) \<in> lmeasurable \<and> ?\<mu> (f ` \<Union>\<D>) = (m * ?\<mu> (\<Union>\<D>))"
+        if "countable \<D>"
+          and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+          and intint: "pairwise (\<lambda>A B. interior A \<inter> interior B = {}) \<D>"
+        for \<D>
+      proof -
+        have conv: "\<And>K. K \<in> \<D> \<Longrightarrow> convex K"
+          using cbox convex_box(1) by blast
+        have neg: "negligible (g ` K \<inter> g ` L)" if "linear g" "K \<in> \<D>" "L \<in> \<D>" "K \<noteq> L"
+          for K L and g :: "'n\<Rightarrow>'n"
+        proof (cases "inj g")
+          case True
+          have "negligible (frontier(g ` K \<inter> g ` L) \<union> interior(g ` K \<inter> g ` L))"
+          proof (rule negligible_Un)
+            show "negligible (frontier (g ` K \<inter> g ` L))"
+              by (simp add: negligible_convex_frontier convex_Int conv convex_linear_image that)
+          next
+            show "negligible (interior (g ` K \<inter> g ` L))"
+              by (metis (mono_tags, lifting) True finite.emptyI image_Int image_empty interior_Int interior_injective_linear_image intint negligible_finite pairwiseD that)
+          qed
+          moreover have "g ` K \<inter> g ` L \<subseteq> frontier (g ` K \<inter> g ` L) \<union> interior (g ` K \<inter> g ` L)"
+            apply (auto simp: frontier_def)
+            using closure_subset contra_subsetD by fastforce+
+          ultimately show ?thesis
+            by (rule negligible_subset)
+        next
+          case False
+          then show ?thesis
+            by (simp add: negligible_Int negligible_linear_singular_image \<open>linear g\<close>)
+        qed
+        have negf: "negligible ((f ` K) \<inter> (f ` L))"
+        and negid: "negligible (K \<inter> L)" if "K \<in> \<D>" "L \<in> \<D>" "K \<noteq> L" for K L
+          using neg [OF \<open>linear f\<close>] neg [OF linear_id] that by auto
+        show ?thesis
+        proof (cases "finite \<D>")
+          case True
+          then have "?\<mu> (\<Union>x\<in>\<D>. f ` x) = (\<Sum>x\<in>\<D>. ?\<mu> (f ` x))"
+            using \<open>linear f\<close> cbox measurable_linear_image_interval negf
+            by (blast intro: measure_negligible_finite_Union_image [unfolded pairwise_def])
+          also have "\<dots> = (\<Sum>k\<in>\<D>. m * ?\<mu> k)"
+            by (metis (no_types, lifting) cbox im sum.cong)
+          also have "\<dots> = m * ?\<mu> (\<Union>\<D>)"
+            unfolding sum_distrib_left [symmetric]
+            by (metis True cbox lmeasurable_cbox measure_negligible_finite_Union [unfolded pairwise_def] negid)
+          finally show ?thesis
+            by (metis True \<open>linear f\<close> cbox image_Union fmeasurable.finite_UN measurable_linear_image_interval)
+        next
+          case False
+          with \<open>countable \<D>\<close> obtain X :: "nat \<Rightarrow> 'n set" where S: "bij_betw X UNIV \<D>"
+            using bij_betw_from_nat_into by blast
+          then have eq: "(\<Union>\<D>) = (\<Union>n. X n)" "(f ` \<Union>\<D>) = (\<Union>n. f ` X n)"
+            by (auto simp: bij_betw_def)
+          have meas: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<in> lmeasurable"
+            using cbox by blast
+          with S have 1: "\<And>n. X n \<in> lmeasurable"
+            by (auto simp: bij_betw_def)
+          have 2: "pairwise (\<lambda>m n. negligible (X m \<inter> X n)) UNIV"
+            using S unfolding bij_betw_def pairwise_def by (metis injD negid range_eqI)
+          have "bounded (\<Union>\<D>)"
+            by (meson Sup_least bounded_cbox bounded_subset cbox)
+          then have 3: "bounded (\<Union>n. X n)"
+            using S unfolding bij_betw_def by blast
+          have "(\<Union>n. X n) \<in> lmeasurable"
+            by (rule measurable_countable_negligible_Union_bounded [OF 1 2 3])
+          with S have f1: "\<And>n. f ` (X n) \<in> lmeasurable"
+            unfolding bij_betw_def by (metis assms(1) cbox measurable_linear_image_interval rangeI)
+          have f2: "pairwise (\<lambda>m n. negligible (f ` (X m) \<inter> f ` (X n))) UNIV"
+            using S unfolding bij_betw_def pairwise_def by (metis injD negf rangeI)
+          have "bounded (\<Union>\<D>)"
+            by (meson Sup_least bounded_cbox bounded_subset cbox)
+          then have f3: "bounded (\<Union>n. f ` X n)"
+            using S unfolding bij_betw_def
+            by (metis bounded_linear_image linear_linear assms(1) image_Union range_composition)
+          have "(\<lambda>n. ?\<mu> (X n)) sums ?\<mu> (\<Union>n. X n)"
+            by (rule measure_countable_negligible_Union_bounded [OF 1 2 3])
+          have meq: "?\<mu> (\<Union>n. f ` X n) = m * ?\<mu> (UNION UNIV X)"
+          proof (rule sums_unique2 [OF measure_countable_negligible_Union_bounded [OF f1 f2 f3]])
+            have m: "\<And>n. ?\<mu> (f ` X n) = (m * ?\<mu> (X n))"
+              using S unfolding bij_betw_def by (metis cbox im rangeI)
+            show "(\<lambda>n. ?\<mu> (f ` X n)) sums (m * ?\<mu> (UNION UNIV X))"
+              unfolding m
+              using measure_countable_negligible_Union_bounded [OF 1 2 3] sums_mult by blast
+          qed
+          show ?thesis
+            using measurable_countable_negligible_Union_bounded [OF f1 f2 f3] meq
+            by (auto simp: eq [symmetric])
+        qed
+      qed
+      show ?thesis
+        unfolding completion.fmeasurable_measure_inner_outer_le
+      proof (intro conjI allI impI)
+        fix e :: real
+        assume "e > 0"
+        have 1: "cbox a b - S \<in> lmeasurable"
+          by (simp add: fmeasurable.Diff that)
+        have 2: "0 < e / (1 + \<bar>m\<bar>)"
+          using \<open>e > 0\<close> by (simp add: divide_simps abs_add_one_gt_zero)
+        obtain \<D>
+          where "countable \<D>"
+            and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+            and intdisj: "pairwise (\<lambda>A B. interior A \<inter> interior B = {}) \<D>"
+            and DD: "cbox a b - S \<subseteq> \<Union>\<D>" "\<Union>\<D> \<in> lmeasurable"
+            and le: "?\<mu> (\<Union>\<D>) \<le> ?\<mu> (cbox a b - S) + e/(1 + \<bar>m\<bar>)"
+          by (rule measurable_outer_intervals_bounded [of "cbox a b - S" a b "e/(1 + \<bar>m\<bar>)"]; use 1 2 pairwise_def in force)
+        have meq: "?\<mu> (cbox a b - S) = ?\<mu> (cbox a b) - ?\<mu> S"
+          by (simp add: measurable_measure_Diff \<open>S \<subseteq> cbox a b\<close> fmeasurableD that(2))
+        show "\<exists>T \<in> lmeasurable. T \<subseteq> f ` S \<and> m * ?\<mu> S - e \<le> ?\<mu> T"
+        proof (intro bexI conjI)
+          show "f ` (cbox a b) - f ` (\<Union>\<D>) \<subseteq> f ` S"
+            using \<open>cbox a b - S \<subseteq> \<Union>\<D>\<close> by force
+          have "m * ?\<mu> S - e \<le> m * (?\<mu> S - e / (1 + \<bar>m\<bar>))"
+            using \<open>m \<ge> 0\<close> \<open>e > 0\<close> by (simp add: field_simps)
+          also have "\<dots> \<le> ?\<mu> (f ` cbox a b) - ?\<mu> (f ` (\<Union>\<D>))"
+            using le \<open>m \<ge> 0\<close> \<open>e > 0\<close>
+            apply (simp add: im fUD [OF \<open>countable \<D>\<close> cbox intdisj] right_diff_distrib [symmetric])
+            apply (rule mult_left_mono; simp add: algebra_simps meq)
+            done
+          also have "\<dots> = ?\<mu> (f ` cbox a b - f ` \<Union>\<D>)"
+            apply (rule measurable_measure_Diff [symmetric])
+            apply (simp add: assms(1) measurable_linear_image_interval)
+            apply (simp add: \<open>countable \<D>\<close> cbox fUD fmeasurableD intdisj)
+             apply (simp add: Sup_le_iff cbox image_mono)
+            done
+          finally show "m * ?\<mu> S - e \<le> ?\<mu> (f ` cbox a b - f ` \<Union>\<D>)" .
+          show "f ` cbox a b - f ` \<Union>\<D> \<in> lmeasurable"
+            by (simp add: fUD \<open>countable \<D>\<close> \<open>linear f\<close> cbox fmeasurable.Diff intdisj measurable_linear_image_interval)
+        qed
+      next
+        fix e :: real
+        assume "e > 0"
+        have em: "0 < e / (1 + \<bar>m\<bar>)"
+          using \<open>e > 0\<close> by (simp add: divide_simps abs_add_one_gt_zero)
+        obtain \<D>
+          where "countable \<D>"
+            and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
+            and intdisj: "pairwise (\<lambda>A B. interior A \<inter> interior B = {}) \<D>"
+            and DD: "S \<subseteq> \<Union>\<D>" "\<Union>\<D> \<in> lmeasurable"
+            and le: "?\<mu> (\<Union>\<D>) \<le> ?\<mu> S + e/(1 + \<bar>m\<bar>)"
+          by (rule measurable_outer_intervals_bounded [of S a b "e/(1 + \<bar>m\<bar>)"]; use \<open>S \<in> lmeasurable\<close> \<open>S \<subseteq> cbox a b\<close> em in force)
+        show "\<exists>U \<in> lmeasurable. f ` S \<subseteq> U \<and> ?\<mu> U \<le> m * ?\<mu> S + e"
+        proof (intro bexI conjI)
+          show "f ` S \<subseteq> f ` (\<Union>\<D>)"
+            by (simp add: DD(1) image_mono)
+          have "?\<mu> (f ` \<Union>\<D>) \<le> m * (?\<mu> S + e / (1 + \<bar>m\<bar>))"
+            using \<open>m \<ge> 0\<close> le mult_left_mono
+            by (auto simp: fUD \<open>countable \<D>\<close> \<open>linear f\<close> cbox fmeasurable.Diff intdisj measurable_linear_image_interval)
+          also have "\<dots> \<le> m * ?\<mu> S + e"
+            using \<open>m \<ge> 0\<close> \<open>e > 0\<close> by (simp add: fUD [OF \<open>countable \<D>\<close> cbox intdisj] field_simps)
+          finally show "?\<mu> (f ` \<Union>\<D>) \<le> m * ?\<mu> S + e" .
+          show "f ` \<Union>\<D> \<in> lmeasurable"
+            by (simp add: \<open>countable \<D>\<close> cbox fUD intdisj)
+        qed
+      qed
+    qed
+    show ?thesis
+      unfolding has_measure_limit_iff
+    proof (intro allI impI)
+      fix e :: real
+      assume "e > 0"
+      obtain B where "B > 0" and B:
+        "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> \<bar>?\<mu> (S \<inter> cbox a b) - ?\<mu> S\<bar> < e / (1 + \<bar>m\<bar>)"
+        using has_measure_limit [OF S] \<open>e > 0\<close> by (metis abs_add_one_gt_zero zero_less_divide_iff)
+      obtain c d::'n where cd: "ball 0 B \<subseteq> cbox c d"
+        using bounded_subset_cbox by blast
+      with B have less: "\<bar>?\<mu> (S \<inter> cbox c d) - ?\<mu> S\<bar> < e / (1 + \<bar>m\<bar>)" .
+      obtain D where "D > 0" and D: "cbox c d \<subseteq> ball 0 D"
+        by (metis bounded_cbox bounded_subset_ballD)
+      obtain C where "C > 0" and C: "\<And>x. norm (f x) \<le> C * norm x"
+        using linear_bounded_pos \<open>linear f\<close> by blast
+      have "f ` S \<inter> cbox a b \<in> lmeasurable \<and>
+            \<bar>?\<mu> (f ` S \<inter> cbox a b) - m * ?\<mu> S\<bar> < e"
+        if "ball 0 (D*C) \<subseteq> cbox a b" for a b
+      proof -
+        have "bounded (S \<inter> h ` cbox a b)"
+          by (simp add: bounded_linear_image linear_linear \<open>linear h\<close> bounded_Int)
+        moreover have Shab: "S \<inter> h ` cbox a b \<in> lmeasurable"
+          by (simp add: S \<open>linear h\<close> fmeasurable.Int measurable_linear_image_interval)
+        moreover have fim: "f ` (S \<inter> h ` (cbox a b)) = (f ` S) \<inter> cbox a b"
+          by (auto simp: hf rev_image_eqI fh)
+        ultimately have 1: "(f ` S) \<inter> cbox a b \<in> lmeasurable"
+              and 2: "m * ?\<mu> (S \<inter> h ` cbox a b) = ?\<mu> ((f ` S) \<inter> cbox a b)"
+          using fBS [of "S \<inter> (h ` (cbox a b))"] by auto
+        have *: "\<lbrakk>\<bar>z - m\<bar> < e; z \<le> w; w \<le> m\<rbrakk> \<Longrightarrow> \<bar>w - m\<bar> \<le> e"
+          for w z m and e::real by auto
+        have meas_adiff: "\<bar>?\<mu> (S \<inter> h ` cbox a b) - ?\<mu> S\<bar> \<le> e / (1 + \<bar>m\<bar>)"
+        proof (rule * [OF less])
+          show "?\<mu> (S \<inter> cbox c d) \<le> ?\<mu> (S \<inter> h ` cbox a b)"
+          proof (rule measure_mono_fmeasurable [OF _ _ Shab])
+            have "f ` ball 0 D \<subseteq> ball 0 (C * D)"
+              using C \<open>C > 0\<close>
+              apply (clarsimp simp: algebra_simps)
+              by (meson le_less_trans linordered_comm_semiring_strict_class.comm_mult_strict_left_mono)
+            then have "f ` ball 0 D \<subseteq> cbox a b"
+              by (metis mult.commute order_trans that)
+            have "ball 0 D \<subseteq> h ` cbox a b"
+              by (metis \<open>f ` ball 0 D \<subseteq> cbox a b\<close> hf image_subset_iff subsetI)
+            then show "S \<inter> cbox c d \<subseteq> S \<inter> h ` cbox a b"
+              using D by blast
+          next
+            show "S \<inter> cbox c d \<in> sets lebesgue"
+              using S fmeasurable_cbox by blast
+          qed
+        next
+          show "?\<mu> (S \<inter> h ` cbox a b) \<le> ?\<mu> S"
+            by (simp add: S Shab fmeasurableD measure_mono_fmeasurable)
+        qed
+        have "\<bar>?\<mu> (f ` S \<inter> cbox a b) - m * ?\<mu> S\<bar> \<le> m * e / (1 + \<bar>m\<bar>)"
+        proof -
+          have mm: "\<bar>m\<bar> = m"
+            by (simp add: \<open>0 \<le> m\<close>)
+          then have "\<bar>?\<mu> S - ?\<mu> (S \<inter> h ` cbox a b)\<bar> * m \<le> e / (1 + m) * m"
+            by (metis (no_types) \<open>0 \<le> m\<close> meas_adiff abs_minus_commute mult_right_mono)
+          moreover have "\<forall>r. \<bar>r * m\<bar> = m * \<bar>r\<bar>"
+            by (metis \<open>0 \<le> m\<close> abs_mult_pos mult.commute)
+          ultimately show ?thesis
+            apply (simp add: 2 [symmetric])
+            by (metis (no_types) abs_minus_commute mult.commute right_diff_distrib' mm)
+        qed
+        also have "\<dots> < e"
+          using \<open>e > 0\<close> by (auto simp: divide_simps)
+        finally have "\<bar>?\<mu> (f ` S \<inter> cbox a b) - m * ?\<mu> S\<bar> < e" .
+        with 1 show ?thesis by auto
+      qed
+      then show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
+                         f ` S \<inter> cbox a b \<in> lmeasurable \<and>
+                         \<bar>?\<mu> (f ` S \<inter> cbox a b) - m * ?\<mu> S\<bar> < e"
+        using \<open>C>0\<close> \<open>D>0\<close> by (metis mult_zero_left real_mult_less_iff1)
+    qed
+  qed
+qed
+
+
 subsection\<open>Lemmas about absolute integrability\<close>
 
 text\<open>FIXME Redundant!\<close>
@@ -2811,6 +3112,7 @@ lemma absolutely_integrable_continuous:
   shows "continuous_on (cbox a b) f \<Longrightarrow> f absolutely_integrable_on cbox a b"
   using absolutely_integrable_integrable_bound
   by (simp add: absolutely_integrable_on_def continuous_on_norm integrable_continuous)
+
 
 subsection \<open>Componentwise\<close>
 
