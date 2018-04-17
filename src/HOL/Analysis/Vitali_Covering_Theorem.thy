@@ -629,7 +629,6 @@ next
     by metis
 qed
 
-
 proposition negligible_eq_zero_density:
    "negligible S \<longleftrightarrow>
     (\<forall>x\<in>S. \<forall>r>0. \<forall>e>0. \<exists>d. 0 < d \<and> d \<le> r \<and>

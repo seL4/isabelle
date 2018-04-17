@@ -1168,29 +1168,27 @@ corollary starlike_negligible_compact:
   "compact S \<Longrightarrow> (\<And>c x. \<lbrakk>(c *\<^sub>R x) \<in> S; 0 \<le> c; x \<in> S\<rbrakk> \<Longrightarrow> c = 1) \<Longrightarrow> S \<in> null_sets lebesgue"
   using starlike_negligible_bounded_gmeasurable[of S] by (auto simp: compact_eq_bounded_closed)
 
-lemma outer_regular_lborel:
-  assumes B: "B \<in> fmeasurable lborel" "0 < (e::real)"
-  shows "\<exists>U. open U \<and> B \<subseteq> U \<and> emeasure lborel U \<le> emeasure lborel B + e"
+proposition outer_regular_lborel_le:
+  assumes B[measurable]: "B \<in> sets borel" and "0 < (e::real)"
+  obtains U where "open U" "B \<subseteq> U" and "emeasure lborel (U - B) \<le> e"
 proof -
   let ?\<mu> = "emeasure lborel"
   let ?B = "\<lambda>n::nat. ball 0 n :: 'a set"
-  have B[measurable]: "B \<in> sets borel"
-    using B by auto
   let ?e = "\<lambda>n. e*((1/2)^Suc n)"
   have "\<forall>n. \<exists>U. open U \<and> ?B n \<inter> B \<subseteq> U \<and> ?\<mu> (U - B) < ?e n"
   proof
     fix n :: nat
     let ?A = "density lborel (indicator (?B n))"
     have emeasure_A: "X \<in> sets borel \<Longrightarrow> emeasure ?A X = ?\<mu> (?B n \<inter> X)" for X
-      by (auto simp add: emeasure_density borel_measurable_indicator indicator_inter_arith[symmetric])
+      by (auto simp: emeasure_density borel_measurable_indicator indicator_inter_arith[symmetric])
 
     have finite_A: "emeasure ?A (space ?A) \<noteq> \<infinity>"
-      using emeasure_bounded_finite[of "?B n"] by (auto simp add: emeasure_A)
+      using emeasure_bounded_finite[of "?B n"] by (auto simp: emeasure_A)
     interpret A: finite_measure ?A
       by rule fact
     have "emeasure ?A B + ?e n > (INF U:{U. B \<subseteq> U \<and> open U}. emeasure ?A U)"
       using \<open>0<e\<close> by (auto simp: outer_regular[OF _ finite_A B, symmetric])
-    then obtain U where U: "B \<subseteq> U" "open U" "?\<mu> (?B n \<inter> B) + ?e n > ?\<mu> (?B n \<inter> U)"
+    then obtain U where U: "B \<subseteq> U" "open U" and muU: "?\<mu> (?B n \<inter> B) + ?e n > ?\<mu> (?B n \<inter> U)"
       unfolding INF_less_iff by (auto simp: emeasure_A)
     moreover
     { have "?\<mu> ((?B n \<inter> U) - B) = ?\<mu> ((?B n \<inter> U) - (?B n \<inter> B))"
@@ -1199,7 +1197,7 @@ proof -
         using U A.emeasure_finite[of B]
         by (intro emeasure_Diff) (auto simp del: A.emeasure_finite simp: emeasure_A)
       also have "\<dots> < ?e n"
-        using U(1,2,3) A.emeasure_finite[of B]
+        using U muU A.emeasure_finite[of B]
         by (subst minus_less_iff_ennreal)
           (auto simp del: A.emeasure_finite simp: emeasure_A less_top ac_simps intro!: emeasure_mono)
       finally have "?\<mu> ((?B n \<inter> U) - B) < ?e n" . }
@@ -1209,50 +1207,93 @@ proof -
   then obtain U
     where U: "\<And>n. open (U n)" "\<And>n. ?B n \<inter> B \<subseteq> U n" "\<And>n. ?\<mu> (U n - B) < ?e n"
     by metis
-  then show ?thesis
-  proof (intro exI conjI)
+  show ?thesis
+  proof
     { fix x assume "x \<in> B"
       moreover
-      have "\<exists>n. norm x < real n"
-        by (simp add: reals_Archimedean2)
-      then guess n ..
+      obtain n where "norm x < real n"
+        using reals_Archimedean2 by blast
       ultimately have "x \<in> (\<Union>n. U n)"
         using U(2)[of n] by auto }
     note * = this
     then show "open (\<Union>n. U n)" "B \<subseteq> (\<Union>n. U n)"
-      using U(1,2) by auto
-    have "?\<mu> (\<Union>n. U n) = ?\<mu> (B \<union> (\<Union>n. U n - B))"
-      using * U(2) by (intro arg_cong[where ?f="?\<mu>"]) auto
-    also have "\<dots> = ?\<mu> B + ?\<mu> (\<Union>n. U n - B)"
-      using U(1) by (intro plus_emeasure[symmetric]) auto
-    also have "\<dots> \<le> ?\<mu> B + (\<Sum>n. ?\<mu> (U n - B))"
-      using U(1) by (intro add_mono emeasure_subadditive_countably) auto
-    also have "\<dots> \<le> ?\<mu> B + (\<Sum>n. ennreal (?e n))"
-      using U(3) by (intro add_mono suminf_le) (auto intro: less_imp_le)
-    also have "(\<Sum>n. ennreal (?e n)) = ennreal (e * 1)"
+      using U by auto
+    have "?\<mu> (\<Union>n. U n - B) \<le> (\<Sum>n. ?\<mu> (U n - B))"
+      using U(1) by (intro emeasure_subadditive_countably) auto
+    also have "\<dots> \<le> (\<Sum>n. ennreal (?e n))"
+      using U(3) by (intro suminf_le) (auto intro: less_imp_le)
+    also have "\<dots> = ennreal (e * 1)"
       using \<open>0<e\<close> by (intro suminf_ennreal_eq sums_mult power_half_series) auto
-    finally show "emeasure lborel (\<Union>n. U n) \<le> emeasure lborel B + ennreal e"
+    finally show "emeasure lborel ((\<Union>n. U n) - B) \<le> ennreal e"
       by simp
   qed
 qed
 
-lemma lmeasurable_outer_open:
-  assumes S: "S \<in> lmeasurable" and "0 < e"
-  obtains T where "open T" "S \<subseteq> T" "T \<in> lmeasurable" "measure lebesgue T \<le> measure lebesgue S + e"
+lemma outer_regular_lborel:
+  assumes B: "B \<in> sets borel" and "0 < (e::real)"
+  obtains U where "open U" "B \<subseteq> U" "emeasure lborel (U - B) < e"
 proof -
-  obtain S' where S': "S \<subseteq> S'" "S' \<in> sets borel" "emeasure lborel S' = emeasure lebesgue S"
+  obtain U where U: "open U" "B \<subseteq> U" and "emeasure lborel (U-B) \<le> e/2"
+    using outer_regular_lborel_le [OF B, of "e/2"] \<open>e > 0\<close>
+    by force
+  moreover have "ennreal (e/2) < ennreal e"
+    using \<open>e > 0\<close> by (simp add: ennreal_lessI)
+  ultimately have "emeasure lborel (U-B) < e"
+    by auto
+  with U show ?thesis
+    using that by auto
+qed
+
+lemma completion_upper:
+  assumes A: "A \<in> sets (completion M)"
+  obtains A' where "A \<subseteq> A'" "A' \<in> sets M" "A' - A \<in> null_sets (completion M)"
+                   "emeasure (completion M) A = emeasure M A'"
+proof -
+  from AE_notin_null_part[OF A] obtain N where N: "N \<in> null_sets M" "null_part M A \<subseteq> N"
+    unfolding eventually_ae_filter using null_part_null_sets[OF A, THEN null_setsD2, THEN sets.sets_into_space] by auto
+  let ?A' = "main_part M A \<union> N"
+  show ?thesis
+  proof
+    show "A \<subseteq> ?A'"
+      using \<open>null_part M A \<subseteq> N\<close> by (subst main_part_null_part_Un[symmetric, OF A]) auto
+    have "main_part M A \<subseteq> A"
+      using assms main_part_null_part_Un by auto
+    then have "?A' - A \<subseteq> N"
+      by blast
+    with N show "?A' - A \<in> null_sets (completion M)"
+      by (blast intro: null_sets_completionI completion.complete_measure_axioms complete_measure.complete2)
+    show "emeasure (completion M) A = emeasure M (main_part M A \<union> N)"
+      using A \<open>N \<in> null_sets M\<close> by (simp add: emeasure_Un_null_set)
+  qed (use A N in auto)
+qed
+
+lemma lmeasurable_outer_open:
+  assumes S: "S \<in> sets lebesgue" and "e > 0"
+  obtains T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable" "measure lebesgue (T - S) < e"
+proof -
+  obtain S' where S': "S \<subseteq> S'" "S' \<in> sets borel"
+              and null: "S' - S \<in> null_sets lebesgue"
+              and em: "emeasure lebesgue S = emeasure lborel S'"
     using completion_upper[of S lborel] S by auto
-  then have f_S': "S' \<in> fmeasurable lborel"
+  then have f_S': "S' \<in> sets borel"
     using S by (auto simp: fmeasurable_def)
-  from outer_regular_lborel[OF this \<open>0<e\<close>] guess U .. note U = this
+  with outer_regular_lborel[OF _ \<open>0<e\<close>]
+  obtain U where U: "open U" "S' \<subseteq> U" "emeasure lborel (U - S') < e"
+    by blast
   show thesis
-  proof (rule that)
-    show "open U" "S \<subseteq> U" "U \<in> lmeasurable"
-      using f_S' U S' by (auto simp: fmeasurable_def less_top[symmetric] top_unique)
-    then have "U \<in> fmeasurable lborel"
-      by (auto simp: fmeasurable_def)
-    with S U \<open>0<e\<close> show "measure lebesgue U \<le> measure lebesgue S + e"
-      unfolding S'(3) by (simp add: emeasure_eq_measure2 ennreal_plus[symmetric] del: ennreal_plus)
+  proof
+    show "open U" "S \<subseteq> U"
+      using f_S' U S' by auto
+  have "(U - S) = (U - S') \<union> (S' - S)"
+    using S' U by auto
+  then have eq: "emeasure lebesgue (U - S) = emeasure lborel (U - S')"
+    using null  by (simp add: U(1) emeasure_Un_null_set f_S' sets.Diff)
+  have "(U - S) \<in> sets lebesgue"
+    by (simp add: S U(1) sets.Diff)
+  then show "(U - S) \<in> lmeasurable"
+    unfolding fmeasurable_def using U(3) eq less_le_trans by fastforce
+  with eq U show "measure lebesgue (U - S) < e"
+    by (metis \<open>U - S \<in> lmeasurable\<close> emeasure_eq_measure2 ennreal_leI not_le)
   qed
 qed
 

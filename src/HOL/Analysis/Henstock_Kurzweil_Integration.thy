@@ -5069,6 +5069,56 @@ lemma integrable_altD:
       norm (integral (cbox a b) (\<lambda>x. if x \<in> s then f x else 0) - integral (cbox c d)  (\<lambda>x. if x \<in> s then f x else 0)) < e"
   using assms[unfolded integrable_alt[of f]] by auto
 
+lemma integrable_alt_subset:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  shows
+     "f integrable_on S \<longleftrightarrow>
+      (\<forall>a b. (\<lambda>x. if x \<in> S then f x else 0) integrable_on cbox a b) \<and>
+      (\<forall>e>0. \<exists>B>0. \<forall>a b c d.
+                      ball 0 B \<subseteq> cbox a b \<and> cbox a b \<subseteq> cbox c d
+                      \<longrightarrow> norm(integral (cbox a b) (\<lambda>x. if x \<in> S then f x else 0) -
+                               integral (cbox c d) (\<lambda>x. if x \<in> S then f x else 0)) < e)"
+      (is "_ = ?rhs")
+proof -
+  let ?g = "\<lambda>x. if x \<in> S then f x else 0"
+  have "f integrable_on S \<longleftrightarrow>
+        (\<forall>a b. ?g integrable_on cbox a b) \<and>
+        (\<forall>e>0. \<exists>B>0. \<forall>a b c d. ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d \<longrightarrow>
+           norm (integral (cbox a b) ?g - integral (cbox c d)  ?g) < e)"
+    by (rule integrable_alt)
+  also have "\<dots> = ?rhs"
+  proof -
+    { fix e :: "real"
+      assume e: "\<And>e. e>0 \<Longrightarrow> \<exists>B>0. \<forall>a b c d. ball 0 B \<subseteq> cbox a b \<and> cbox a b \<subseteq> cbox c d \<longrightarrow>
+                                   norm (integral (cbox a b) ?g - integral (cbox c d) ?g) < e"
+        and "e > 0"
+      obtain B where "B > 0"
+        and B: "\<And>a b c d. \<lbrakk>ball 0 B \<subseteq> cbox a b; cbox a b \<subseteq> cbox c d\<rbrakk> \<Longrightarrow>
+                           norm (integral (cbox a b) ?g - integral (cbox c d) ?g) < e/2"
+        using \<open>e > 0\<close> e [of "e/2"] by force
+      have "\<exists>B>0. \<forall>a b c d.
+               ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d \<longrightarrow>
+               norm (integral (cbox a b) ?g - integral (cbox c d) ?g) < e"
+      proof (intro exI allI conjI impI)
+        fix a b c d :: "'a"
+        let ?\<alpha> = "\<Sum>i\<in>Basis. max (a \<bullet> i) (c \<bullet> i) *\<^sub>R i"
+        let ?\<beta> = "\<Sum>i\<in>Basis. min (b \<bullet> i) (d \<bullet> i) *\<^sub>R i"
+        show "norm (integral (cbox a b) ?g - integral (cbox c d) ?g) < e"
+          if ball: "ball 0 B \<subseteq> cbox a b \<and> ball 0 B \<subseteq> cbox c d"
+        proof -
+          have B': "norm (integral (cbox a b \<inter> cbox c d) ?g - integral (cbox x y) ?g) < e/2"
+            if "cbox a b \<inter> cbox c d \<subseteq> cbox x y" for x y
+            using B [of ?\<alpha> ?\<beta> x y] ball that by (simp add: Int_interval [symmetric])
+          show ?thesis
+            using B' [of a b] B' [of c d] norm_triangle_half_r by blast
+        qed
+      qed (use \<open>B > 0\<close> in auto)}
+  then show ?thesis
+    by force
+qed
+  finally show ?thesis .
+qed
+
 lemma integrable_on_subcbox:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::banach"
   assumes intf: "f integrable_on S"

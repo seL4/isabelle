@@ -1550,14 +1550,15 @@ proof (clarsimp simp: completion.null_sets_outer)
   assume "0 < e"
   have "S \<in> lmeasurable"
     using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets fmeasurableI_null_sets)
+  then have "S \<in> sets lebesgue"
+    by blast
   have e22: "0 < e/2 / (2 * B * real DIM('M)) ^ DIM('N)"
     using \<open>0 < e\<close> \<open>0 < B\<close> by (simp add: divide_simps)
-  obtain T
-    where "open T" "S \<subseteq> T" "T \<in> lmeasurable"
-      and "measure lebesgue T \<le> measure lebesgue S + e/2 / (2 * B * DIM('M)) ^ DIM('N)"
-    by (rule lmeasurable_outer_open [OF \<open>S \<in> lmeasurable\<close> e22])
+  obtain T where "open T" "S \<subseteq> T" "(T - S) \<in> lmeasurable" 
+                 "measure lebesgue (T - S) < e/2 / (2 * B * DIM('M)) ^ DIM('N)"
+    by (rule lmeasurable_outer_open [OF \<open>S \<in> sets lebesgue\<close> e22])
   then have T: "measure lebesgue T \<le> e/2 / (2 * B * DIM('M)) ^ DIM('N)"
-    using \<open>negligible S\<close> by (simp add: negligible_iff_null_sets measure_eq_0_null_sets)
+    using \<open>negligible S\<close> by (simp add: measure_Diff_null_set negligible_iff_null_sets)
   have "\<exists>r. 0 < r \<and> r \<le> 1/2 \<and>
             (x \<in> S \<longrightarrow> (\<forall>y. norm(y - x) < r
                        \<longrightarrow> y \<in> T \<and> (y \<in> S \<longrightarrow> norm(f y - f x) \<le> B * norm(y - x))))"
@@ -1690,7 +1691,7 @@ proof (clarsimp simp: completion.null_sets_outer)
         using pairwise_subset [OF pw \<open>\<D>' \<subseteq> \<D>\<close>] unfolding pairwise_def apply force+
         done
       have le_meaT: "measure lebesgue (\<Union>\<D>') \<le> measure lebesgue T"
-      proof (rule measure_mono_fmeasurable [OF _ _ \<open>T \<in> lmeasurable\<close>])
+      proof (rule measure_mono_fmeasurable)
         show "(\<Union>\<D>') \<in> sets lebesgue"
           using div lmeasurable_division by auto
         have "\<Union>\<D>' \<subseteq> \<Union>\<D>"
@@ -1704,7 +1705,9 @@ proof (clarsimp simp: completion.null_sets_outer)
             by (metis \<open>x \<in> D\<close> Int_iff dist_norm mem_ball norm_minus_commute subsetD RT)
         qed
         finally show "\<Union>\<D>' \<subseteq> T" .
-      qed
+        show "T \<in> lmeasurable"
+          using \<open>S \<in> lmeasurable\<close> \<open>S \<subseteq> T\<close> \<open>T - S \<in> lmeasurable\<close> fmeasurable_Diff_D by blast
+      qed 
       have "sum (measure lebesgue) \<D>' = sum content \<D>'"
         using  \<open>\<D>' \<subseteq> \<D>\<close> cbox by (force intro: sum.cong)
       then have "(2 * B * DIM('M)) ^ DIM('N) * sum (measure lebesgue) \<D>' =
@@ -3989,6 +3992,707 @@ proof -
   then show ?thesis using assms
     by (intro has_integral_0_closure_imp_0[of "box a b" f x])
       (auto simp: emeasure_lborel_box_eq emeasure_lborel_cbox_eq algebra_simps mem_box)
+qed
+
+subsection\<open>Various common equivalent forms of function measurability\<close>
+
+lemma indicator_sum_eq:
+  fixes m::real and f :: "'a \<Rightarrow> real"
+  assumes "\<bar>m\<bar> \<le> 2 ^ (2*n)" "m/2^n \<le> f x" "f x < (m+1)/2^n" "m \<in> \<int>"
+  shows   "(\<Sum>k::real | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n).
+            k/2^n * indicator {y. k/2^n \<le> f y \<and> f y < (k+1)/2^n} x)  = m/2^n"
+          (is "sum ?f ?S = _")
+proof -
+  have "sum ?f ?S = sum (\<lambda>k. k/2^n * indicator {y. k/2^n \<le> f y \<and> f y < (k+1)/2^n} x) {m}"
+  proof (rule comm_monoid_add_class.sum.mono_neutral_right)
+    show "finite ?S"
+      by (rule finite_abs_int_segment)
+    show "{m} \<subseteq> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}"
+      using assms by auto
+    show "\<forall>i\<in>{k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} - {m}. ?f i = 0"
+      using assms by (auto simp: indicator_def Ints_def abs_le_iff divide_simps)
+  qed
+  also have "\<dots> = m/2^n"
+    using assms by (auto simp: indicator_def not_less)
+  finally show ?thesis .
+qed
+
+lemma measurable_on_sf_limit_lemma1:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  assumes "\<And>a b. {x \<in> S. a \<le> f x \<and> f x < b} \<in> sets (lebesgue_on S)"
+  obtains g where "\<And>n. g n \<in> borel_measurable (lebesgue_on S)"
+                  "\<And>n. finite(range (g n))"
+                  "\<And>x. (\<lambda>n. g n x) \<longlonglongrightarrow> f x"
+proof
+  show "(\<lambda>x. sum (\<lambda>k::real. k/2^n * indicator {y. k/2^n \<le> f y \<and> f y < (k+1)/2^n} x)
+                 {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}) \<in> borel_measurable (lebesgue_on S)"
+        (is "?g \<in> _")  for n
+  proof -
+    have "\<And>k. \<lbrakk>k \<in> \<int>; \<bar>k\<bar> \<le> 2 ^ (2*n)\<rbrakk>
+         \<Longrightarrow> Measurable.pred (lebesgue_on S) (\<lambda>x. k / (2^n) \<le> f x \<and> f x < (k+1) / (2^n))"
+      using assms by (force simp: pred_def space_restrict_space)
+    then show ?thesis
+      by (simp add: field_class.field_divide_inverse)
+  qed
+  show "finite (range (?g n))" for n
+  proof -
+    have "range (?g n) \<subseteq> (\<lambda>k. k/2^n) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}"
+    proof clarify
+      fix x
+      show "?g n x  \<in> (\<lambda>k. k/2^n) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}"
+      proof (cases "\<exists>k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n) \<and> k/2^n \<le> (f x) \<and> (f x) < (k+1)/2^n")
+        case True
+        then show ?thesis
+          apply clarify
+          by (subst indicator_sum_eq) auto
+      next
+        case False
+        then have "?g n x = 0" by auto
+        then show ?thesis by force
+      qed
+    qed
+    moreover have "finite ((\<lambda>k::real. (k/2^n)) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)})"
+      by (simp add: finite_abs_int_segment)
+    ultimately show ?thesis
+      using finite_subset by blast
+  qed
+  show "(\<lambda>n. ?g n x) \<longlonglongrightarrow> f x" for x
+  proof (rule LIMSEQ_I)
+    fix e::real
+    assume "e > 0"
+    obtain N1 where N1: "\<bar>f x\<bar> < 2 ^ N1"
+      using real_arch_pow by fastforce
+    obtain N2 where N2: "(1/2) ^ N2 < e"
+      using real_arch_pow_inv \<open>e > 0\<close> by force
+    have "norm (?g n x - f x) < e" if n: "n \<ge> max N1 N2" for n
+    proof -
+      define m where "m \<equiv> floor(2^n * (f x))"
+      have "1 \<le> \<bar>2^n\<bar> * e"
+        using n N2 \<open>e > 0\<close> less_eq_real_def less_le_trans by (fastforce simp add: divide_simps)
+      then have *: "\<lbrakk>x \<le> y; y < x + 1\<rbrakk> \<Longrightarrow> abs(x - y) < \<bar>2^n\<bar> * e" for x y::real
+        by linarith
+      have "\<bar>2^n\<bar> * \<bar>m/2^n - f x\<bar> = \<bar>2^n * (m/2^n - f x)\<bar>"
+        by (simp add: abs_mult)
+      also have "\<dots> = \<bar>real_of_int \<lfloor>2^n * f x\<rfloor> - f x * 2^n\<bar>"
+        by (simp add: algebra_simps m_def)
+      also have "\<dots> < \<bar>2^n\<bar> * e"
+        by (rule *; simp add: mult.commute)
+      finally have "\<bar>2^n\<bar> * \<bar>m/2^n - f x\<bar> < \<bar>2^n\<bar> * e" .
+      then have me: "\<bar>m/2^n - f x\<bar> < e"
+        by simp
+      have "\<bar>real_of_int m\<bar> \<le> 2 ^ (2*n)"
+      proof (cases "f x < 0")
+        case True
+        then have "-\<lfloor>f x\<rfloor> \<le> \<lfloor>(2::real) ^ N1\<rfloor>"
+          using N1 le_floor_iff minus_le_iff by fastforce
+        with n True have "\<bar>real_of_int\<lfloor>f x\<rfloor>\<bar> \<le> 2 ^ N1"
+          by linarith
+        also have "\<dots> \<le> 2^n"
+          using n by (simp add: m_def)
+        finally have "\<bar>real_of_int \<lfloor>f x\<rfloor>\<bar> * 2^n \<le> 2^n * 2^n"
+          by simp
+        moreover
+        have "\<bar>real_of_int \<lfloor>2^n * f x\<rfloor>\<bar> \<le> \<bar>real_of_int \<lfloor>f x\<rfloor>\<bar> * 2^n"
+        proof -
+          have "\<bar>real_of_int \<lfloor>2^n * f x\<rfloor>\<bar> = - (real_of_int \<lfloor>2^n * f x\<rfloor>)"
+            using True by (simp add: abs_if mult_less_0_iff)
+          also have "\<dots> \<le> - (real_of_int (\<lfloor>(2::real) ^ n\<rfloor> * \<lfloor>f x\<rfloor>))"
+            using le_mult_floor_Ints [of "(2::real)^n"] by simp
+          also have "\<dots> \<le> \<bar>real_of_int \<lfloor>f x\<rfloor>\<bar> * 2^n"
+            using True
+            by simp
+          finally show ?thesis .
+        qed
+        ultimately show ?thesis
+          by (metis (no_types, hide_lams) m_def order_trans power2_eq_square power_even_eq)
+      next
+        case False
+        with n N1 have "f x \<le> 2^n"
+          by (simp add: not_less) (meson less_eq_real_def one_le_numeral order_trans power_increasing)
+        moreover have "0 \<le> m"
+          using False m_def by force
+        ultimately show ?thesis
+          by (metis abs_of_nonneg floor_mono le_floor_iff m_def of_int_0_le_iff power2_eq_square power_mult real_mult_le_cancel_iff1 zero_less_numeral mult.commute zero_less_power)
+      qed
+      then have "?g n x = m/2^n"
+        by (rule indicator_sum_eq) (auto simp: m_def mult.commute divide_simps)
+      then have "norm (?g n x - f x) = norm (m/2^n - f x)"
+        by simp
+      also have "\<dots> < e"
+        by (simp add: me)
+      finally show ?thesis .
+    qed
+    then show "\<exists>no. \<forall>n\<ge>no. norm (?g n x - f x) < e"
+      by blast
+  qed
+qed
+
+
+lemma borel_measurable_vimage_halfspace_component_lt:
+     "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+      (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i < a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_less])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma borel_measurable_simple_function_limit:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<exists>g. (\<forall>n. (g n) \<in> borel_measurable (lebesgue_on S)) \<and>
+              (\<forall>n. finite (range (g n))) \<and> (\<forall>x. (\<lambda>n. g n x) \<longlonglongrightarrow> f x))"
+proof -
+  have "\<exists>g. (\<forall>n. (g n) \<in> borel_measurable (lebesgue_on S)) \<and>
+            (\<forall>n. finite (range (g n))) \<and> (\<forall>x. (\<lambda>n. g n x) \<longlonglongrightarrow> f x)"
+       if f: "\<And>a i. i \<in> Basis \<Longrightarrow> {x \<in> S. f x \<bullet> i < a} \<in> sets (lebesgue_on S)"
+  proof -
+    have "\<exists>g. (\<forall>n. (g n) \<in> borel_measurable (lebesgue_on S)) \<and>
+                  (\<forall>n. finite(image (g n) UNIV)) \<and>
+                  (\<forall>x. ((\<lambda>n. g n x) \<longlonglongrightarrow> f x \<bullet> i))" if "i \<in> Basis" for i
+    proof (rule measurable_on_sf_limit_lemma1 [of S "\<lambda>x. f x \<bullet> i"])
+      show "{x \<in> S. a \<le> f x \<bullet> i \<and> f x \<bullet> i < b} \<in> sets (lebesgue_on S)" for a b
+      proof -
+        have "{x \<in> S. a \<le> f x \<bullet> i \<and> f x \<bullet> i < b} = {x \<in> S. f x \<bullet> i < b} - {x \<in> S. a > f x \<bullet> i}"
+          by auto
+        also have "\<dots> \<in> sets (lebesgue_on S)"
+          using f that by blast
+        finally show ?thesis .
+      qed
+    qed blast
+    then obtain g where g:
+          "\<And>i n. i \<in> Basis \<Longrightarrow> g i n \<in> borel_measurable (lebesgue_on S)"
+          "\<And>i n. i \<in> Basis \<Longrightarrow> finite(range (g i n))"
+          "\<And>i x. i \<in> Basis \<Longrightarrow> ((\<lambda>n. g i n x) \<longlonglongrightarrow> f x \<bullet> i)"
+      by metis
+    show ?thesis
+    proof (intro conjI allI exI)
+      show "(\<lambda>x. \<Sum>i\<in>Basis. g i n x *\<^sub>R i) \<in> borel_measurable (lebesgue_on S)" for n
+        by (intro borel_measurable_sum borel_measurable_scaleR) (auto intro: g)
+      show "finite (range (\<lambda>x. \<Sum>i\<in>Basis. g i n x *\<^sub>R i))" for n
+      proof -
+        have "range (\<lambda>x. \<Sum>i\<in>Basis. g i n x *\<^sub>R i) \<subseteq> (\<lambda>h. \<Sum>i\<in>Basis. h i *\<^sub>R i) ` PiE Basis (\<lambda>i. range (g i n))"
+        proof clarify
+          fix x
+          show "(\<Sum>i\<in>Basis. g i n x *\<^sub>R i) \<in> (\<lambda>h. \<Sum>i\<in>Basis. h i *\<^sub>R i) ` (\<Pi>\<^sub>E i\<in>Basis. range (g i n))"
+            by (rule_tac x="\<lambda>i\<in>Basis. g i n x" in image_eqI) auto
+        qed
+        moreover have "finite(PiE Basis (\<lambda>i. range (g i n)))"
+          by (simp add: g finite_PiE)
+        ultimately show ?thesis
+          by (metis (mono_tags, lifting) finite_surj)
+      qed
+      show "(\<lambda>n. \<Sum>i\<in>Basis. g i n x *\<^sub>R i) \<longlonglongrightarrow> f x" for x
+      proof -
+        have "(\<lambda>n. \<Sum>i\<in>Basis. g i n x *\<^sub>R i) \<longlonglongrightarrow> (\<Sum>i\<in>Basis. (f x \<bullet> i) *\<^sub>R i)"
+          by (auto intro!: tendsto_sum tendsto_scaleR g)
+        moreover have "(\<Sum>i\<in>Basis. (f x \<bullet> i) *\<^sub>R i) = f x"
+          using euclidean_representation by blast
+        ultimately show ?thesis
+          by metis
+      qed
+    qed
+  qed
+  moreover have "f \<in> borel_measurable (lebesgue_on S)"
+              if meas_g: "\<And>n. g n \<in> borel_measurable (lebesgue_on S)"
+                 and fin: "\<And>n. finite (range (g n))"
+                 and to_f: "\<And>x. (\<lambda>n. g n x) \<longlonglongrightarrow> f x" for  g
+    by (rule borel_measurable_LIMSEQ_metric [OF meas_g to_f])
+  ultimately show ?thesis
+    using borel_measurable_vimage_halfspace_component_lt by blast
+qed
+
+lemma borel_measurable_vimage_halfspace_component_ge:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i \<ge> a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_ge])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma borel_measurable_vimage_halfspace_component_gt:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i > a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_greater])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma borel_measurable_vimage_halfspace_component_le:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a i. i \<in> Basis \<longrightarrow> {x \<in> S. f x \<bullet> i \<le> a} \<in> sets (lebesgue_on S))"
+  apply (rule trans [OF borel_measurable_iff_halfspace_le])
+  apply (fastforce simp add: space_restrict_space)
+  done
+
+lemma
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows borel_measurable_vimage_open_interval:
+         "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a b. {x \<in> S. f x \<in> box a b} \<in> sets (lebesgue_on S))" (is ?thesis1)
+   and borel_measurable_vimage_open:
+         "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>T. open T \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))" (is ?thesis2)
+proof -
+  have "{x \<in> S. f x \<in> box a b} \<in> sets (lebesgue_on S)" if "f \<in> borel_measurable (lebesgue_on S)" for a b
+  proof -
+    have "S = S \<inter> space lebesgue"
+      by simp
+    then have "S \<inter> (f -` box a b) \<in> sets (lebesgue_on S)"
+      by (metis (no_types) box_borel in_borel_measurable_borel inf_sup_aci(1) space_restrict_space that)
+    then show ?thesis
+      by (simp add: Collect_conj_eq vimage_def)
+  qed
+  moreover
+  have "{x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S)"
+       if T: "\<And>a b. {x \<in> S. f x \<in> box a b} \<in> sets (lebesgue_on S)" "open T" for T
+  proof -
+    obtain \<D> where "countable \<D>" and \<D>: "\<And>X. X \<in> \<D> \<Longrightarrow> \<exists>a b. X = box a b" "\<Union>\<D> = T"
+      using open_countable_Union_open_box that \<open>open T\<close> by metis
+    then have eq: "{x \<in> S. f x \<in> T} = (\<Union>U \<in> \<D>. {x \<in> S. f x \<in> U})"
+      by blast
+    have "{x \<in> S. f x \<in> U} \<in> sets (lebesgue_on S)" if "U \<in> \<D>" for U
+      using that T \<D> by blast
+    then show ?thesis
+      by (auto simp: eq intro: Sigma_Algebra.sets.countable_UN' [OF \<open>countable \<D>\<close>])
+  qed
+  moreover
+  have eq: "{x \<in> S. f x \<bullet> i < a} = {x \<in> S. f x \<in> {y. y \<bullet> i < a}}" for i a
+    by auto
+  have "f \<in> borel_measurable (lebesgue_on S)"
+    if "\<And>T. open T \<Longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S)"
+    by (metis (no_types) eq borel_measurable_vimage_halfspace_component_lt open_halfspace_component_lt that)
+  ultimately show "?thesis1" "?thesis2"
+    by blast+
+qed
+
+
+lemma borel_measurable_vimage_closed:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>T. closed T \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))"
+        (is "?lhs = ?rhs")
+proof -
+  have eq: "{x \<in> S. f x \<in> T} = S - {x \<in> S. f x \<in> (- T)}" for T
+    by auto
+  show ?thesis
+    apply (simp add: borel_measurable_vimage_open, safe)
+     apply (simp_all (no_asm) add: eq)
+     apply (intro sets.Diff sets_lebesgue_on_refl, force simp: closed_open)
+    apply (intro sets.Diff sets_lebesgue_on_refl, force simp: open_closed)
+    done
+qed
+
+lemma borel_measurable_vimage_closed_interval:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>a b. {x \<in> S. f x \<in> cbox a b} \<in> sets (lebesgue_on S))"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using borel_measurable_vimage_closed by blast
+next
+  assume RHS: ?rhs
+  have "{x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S)" if "open T" for T
+  proof -
+    obtain \<D> where "countable \<D>" and \<D>: "\<D> \<subseteq> Pow T" "\<And>X. X \<in> \<D> \<Longrightarrow> \<exists>a b. X = cbox a b" "\<Union>\<D> = T"
+      using open_countable_Union_open_cbox that \<open>open T\<close> by metis
+    then have eq: "{x \<in> S. f x \<in> T} = (\<Union>U \<in> \<D>. {x \<in> S. f x \<in> U})"
+      by blast
+    have "{x \<in> S. f x \<in> U} \<in> sets (lebesgue_on S)" if "U \<in> \<D>" for U
+      using that \<D> by (metis RHS)
+    then show ?thesis
+      by (auto simp: eq intro: Sigma_Algebra.sets.countable_UN' [OF \<open>countable \<D>\<close>])
+  qed
+  then show ?lhs
+    by (simp add: borel_measurable_vimage_open)
+qed
+
+lemma borel_measurable_UNIV_eq: "borel_measurable (lebesgue_on UNIV) = borel_measurable lebesgue"
+  by auto
+
+lemma borel_measurable_vimage_borel:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable (lebesgue_on S) \<longleftrightarrow>
+         (\<forall>T. T \<in> sets borel \<longrightarrow> {x \<in> S. f x \<in> T} \<in> sets (lebesgue_on S))"
+        (is "?lhs = ?rhs")
+proof
+  assume f: ?lhs
+  then show ?rhs
+    using measurable_sets [OF f]
+      by (simp add: Collect_conj_eq inf_sup_aci(1) space_restrict_space vimage_def)
+qed (simp add: borel_measurable_vimage_open_interval)
+
+lemma lebesgue_measurable_vimage_borel:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f \<in> borel_measurable lebesgue" "T \<in> sets borel"
+  shows "{x. f x \<in> T} \<in> sets lebesgue"
+  using assms borel_measurable_vimage_borel [of f UNIV] by auto
+
+lemma borel_measurable_If_I:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "f \<in> borel_measurable (lebesgue_on S)" and S: "S \<in> sets lebesgue"
+  shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
+proof -
+  have eq: "{x. x \<notin> S} \<union> {x. f x \<in> Y} = {x. x \<notin> S} \<union> {x. f x \<in> Y} \<inter> S" for Y
+    by blast
+  show ?thesis
+  using f S
+  apply (simp add: vimage_def in_borel_measurable_borel Ball_def)
+  apply (elim all_forward imp_forward asm_rl)
+  apply (simp only: Collect_conj_eq Collect_disj_eq imp_conv_disj eq)
+  apply (auto simp: Compl_eq [symmetric] Compl_in_sets_lebesgue sets_restrict_space_iff)
+  done
+qed
+
+lemma borel_measurable_If_D:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
+  shows "f \<in> borel_measurable (lebesgue_on S)"
+  using assms
+  apply (simp add: in_borel_measurable_borel Ball_def)
+  apply (elim all_forward imp_forward asm_rl)
+  apply (force simp: space_restrict_space sets_restrict_space image_iff intro: rev_bexI)
+  done
+
+lemma borel_measurable_UNIV:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue"
+  shows "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue \<longleftrightarrow> f \<in> borel_measurable (lebesgue_on S)"
+  using assms borel_measurable_If_D borel_measurable_If_I by blast
+
+lemma borel_measurable_lebesgue_preimage_borel:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  shows "f \<in> borel_measurable lebesgue \<longleftrightarrow>
+         (\<forall>T. T \<in> sets borel \<longrightarrow> {x. f x \<in> T} \<in> sets lebesgue)"
+  apply (intro iffI allI impI lebesgue_measurable_vimage_borel)
+    apply (auto simp: in_borel_measurable_borel vimage_def)
+  done
+
+subsection\<open>More results on integrability\<close>
+
+lemma integrable_on_all_intervals_UNIV:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes intf: "\<And>a b. f integrable_on cbox a b"
+    and normf: "\<And>x. norm(f x) \<le> g x" and g: "g integrable_on UNIV"
+  shows "f integrable_on UNIV"
+proof -
+have intg: "(\<forall>a b. g integrable_on cbox a b)"
+    and gle_e: "\<forall>e>0. \<exists>B>0. \<forall>a b c d.
+                    ball 0 B \<subseteq> cbox a b \<and> cbox a b \<subseteq> cbox c d \<longrightarrow>
+                    \<bar>integral (cbox a b) g - integral (cbox c d) g\<bar>
+                    < e"
+    using g
+    by (auto simp: integrable_alt_subset [of _ UNIV] intf)
+  have le: "norm (integral (cbox a b) f - integral (cbox c d) f) \<le> \<bar>integral (cbox a b) g - integral (cbox c d) g\<bar>"
+    if "cbox a b \<subseteq> cbox c d" for a b c d
+  proof -
+    have "norm (integral (cbox a b) f - integral (cbox c d) f) = norm (integral (cbox c d - cbox a b) f)"
+      using intf that by (simp add: norm_minus_commute integral_setdiff)
+    also have "\<dots> \<le> integral (cbox c d - cbox a b) g"
+    proof (rule integral_norm_bound_integral [OF _ _ normf])
+      show "f integrable_on cbox c d - cbox a b" "g integrable_on cbox c d - cbox a b"
+        by (meson integrable_integral integrable_setdiff intf intg negligible_setdiff that)+
+    qed
+    also have "\<dots> = integral (cbox c d) g - integral (cbox a b) g"
+      using intg that by (simp add: integral_setdiff)
+    also have "\<dots> \<le> \<bar>integral (cbox a b) g - integral (cbox c d) g\<bar>"
+      by simp
+    finally show ?thesis .
+  qed
+  show ?thesis
+    using gle_e
+    apply (simp add: integrable_alt_subset [of _ UNIV] intf)
+    apply (erule imp_forward all_forward ex_forward asm_rl)+
+    by (meson not_less order_trans le)
+qed
+
+lemma integrable_on_all_intervals_integrable_bound:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes intf: "\<And>a b. (\<lambda>x. if x \<in> S then f x else 0) integrable_on cbox a b"
+    and normf: "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> g x" and g: "g integrable_on S"
+  shows "f integrable_on S"
+  using integrable_on_all_intervals_UNIV [OF intf, of "(\<lambda>x. if x \<in> S then g x else 0)"]
+  by (simp add: g integrable_restrict_UNIV normf)
+
+lemma measurable_bounded_lemma:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "f \<in> borel_measurable lebesgue" and g: "g integrable_on cbox a b"
+    and normf: "\<And>x. x \<in> cbox a b \<Longrightarrow> norm(f x) \<le> g x"
+  shows "f integrable_on cbox a b"
+proof -
+  have "g absolutely_integrable_on cbox a b"
+    by (metis (full_types) add_increasing g le_add_same_cancel1 nonnegative_absolutely_integrable_1 norm_ge_zero normf)
+  then have "integrable (lebesgue_on (cbox a b)) g"
+    by (simp add: integrable_restrict_space set_integrable_def)
+  then have "integrable (lebesgue_on (cbox a b)) f"
+  proof (rule Bochner_Integration.integrable_bound)
+    show "AE x in lebesgue_on (cbox a b). norm (f x) \<le> norm (g x)"
+      by (rule AE_I2) (auto intro: normf order_trans)
+  qed (simp add: f measurable_restrict_space1)
+  then show ?thesis
+    by (simp add: integrable_on_lebesgue_on)
+qed
+
+proposition measurable_bounded_by_integrable_imp_integrable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f: "f \<in> borel_measurable (lebesgue_on S)" and g: "g integrable_on S"
+    and normf: "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> g x" and S: "S \<in> sets lebesgue"
+  shows "f integrable_on S"
+proof (rule integrable_on_all_intervals_integrable_bound [OF _ normf g])
+  show "(\<lambda>x. if x \<in> S then f x else 0) integrable_on cbox a b" for a b
+  proof (rule measurable_bounded_lemma)
+    show "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
+      by (simp add: S borel_measurable_UNIV f)
+    show "(\<lambda>x. if x \<in> S then g x else 0) integrable_on cbox a b"
+      by (simp add: g integrable_altD(1))
+    show "norm (if x \<in> S then f x else 0) \<le> (if x \<in> S then g x else 0)" for x
+      using normf by simp
+  qed
+qed
+
+subsection\<open> Relation between Borel measurability and integrability.\<close>
+
+lemma integrable_imp_measurable_weak:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "S \<in> sets lebesgue" "f integrable_on S"
+  shows "f \<in> borel_measurable (lebesgue_on S)"
+  by (metis (mono_tags, lifting) assms has_integral_implies_lebesgue_measurable borel_measurable_restrict_space_iff integrable_on_def sets.Int_space_eq2)
+
+lemma integrable_imp_measurable:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "f integrable_on S"
+  shows "f \<in> borel_measurable (lebesgue_on S)"
+proof -
+  have "(UNIV::'a set) \<in> sets lborel"
+    by simp
+  then show ?thesis
+    using assms borel_measurable_If_D borel_measurable_UNIV_eq integrable_imp_measurable_weak integrable_restrict_UNIV by blast
+qed
+
+proposition negligible_differentiable_vimage:
+  fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
+  assumes "negligible T"
+    and f': "\<And>x. x \<in> S \<Longrightarrow> inj(f' x)"
+    and derf: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f' x) (at x within S)"
+  shows "negligible {x \<in> S. f x \<in> T}"
+proof -
+  define U where
+    "U \<equiv> \<lambda>n::nat. {x \<in> S. \<forall>y. y \<in> S \<and> norm(y - x) < 1/n
+                     \<longrightarrow> norm(y - x) \<le> n * norm(f y - f x)}"
+  have "negligible {x \<in> U n. f x \<in> T}" if "n > 0" for n
+  proof (subst locally_negligible_alt, clarify)
+    fix a
+    assume a: "a \<in> U n" and fa: "f a \<in> T"
+    define V where "V \<equiv> {x. x \<in> U n \<and> f x \<in> T} \<inter> ball a (1 / n / 2)"
+    show "\<exists>V. openin (subtopology euclidean {x \<in> U n. f x \<in> T}) V \<and> a \<in> V \<and> negligible V"
+    proof (intro exI conjI)
+      have noxy: "norm(x - y) \<le> n * norm(f x - f y)" if "x \<in> V" "y \<in> V" for x y
+        using that unfolding U_def V_def mem_Collect_eq Int_iff mem_ball dist_norm
+        by (meson norm_triangle_half_r)
+      then have "inj_on f V"
+        by (force simp: inj_on_def)
+      then obtain g where g: "\<And>x. x \<in> V \<Longrightarrow> g(f x) = x"
+        by (metis inv_into_f_f)
+      have "\<exists>T' B. open T' \<and> f x \<in> T' \<and>
+                   (\<forall>y\<in>f ` V \<inter> T \<inter> T'. norm (g y - g (f x)) \<le> B * norm (y - f x))"
+        if "f x \<in> T" "x \<in> V" for x
+        apply (rule_tac x = "ball (f x) 1" in exI)
+        using that noxy by (force simp: g)
+      then have "negligible (g ` (f ` V \<inter> T))"
+        by (force simp: \<open>negligible T\<close> negligible_Int intro!: negligible_locally_Lipschitz_image)
+      moreover have "V \<subseteq> g ` (f ` V \<inter> T)"
+        by (force simp: g image_iff V_def)
+      ultimately show "negligible V"
+        by (rule negligible_subset)
+    qed (use a fa V_def that in auto)
+  qed
+  with negligible_countable_Union have "negligible (\<Union>n \<in> {0<..}. {x. x \<in> U n \<and> f x \<in> T})"
+    by auto
+  moreover have "{x \<in> S. f x \<in> T} \<subseteq> (\<Union>n \<in> {0<..}. {x. x \<in> U n \<and> f x \<in> T})"
+  proof clarsimp
+    fix x
+    assume "x \<in> S" and "f x \<in> T"
+    then obtain inj: "inj(f' x)" and der: "(f has_derivative f' x) (at x within S)"
+      using assms by metis
+    moreover have "linear(f' x)"
+      and eps: "\<And>\<epsilon>. \<epsilon> > 0 \<Longrightarrow> \<exists>\<delta>>0. \<forall>y\<in>S. norm (y - x) < \<delta> \<longrightarrow>
+                      norm (f y - f x - f' x (y - x)) \<le> \<epsilon> * norm (y - x)"
+      using der by (auto simp: has_derivative_within_alt linear_linear)
+    ultimately obtain g where "linear g" and g: "g \<circ> f' x = id"
+      using linear_injective_left_inverse by metis
+    then obtain B where "B > 0" and B: "\<And>z. B * norm z \<le> norm(f' x z)"
+      using linear_invertible_bounded_below_pos \<open>linear (f' x)\<close> by blast
+    then obtain i where "i \<noteq> 0" and i: "1 / real i < B"
+      by (metis (full_types) inverse_eq_divide real_arch_invD)
+    then obtain \<delta> where "\<delta> > 0"
+         and \<delta>: "\<And>y. \<lbrakk>y\<in>S; norm (y - x) < \<delta>\<rbrakk> \<Longrightarrow>
+                  norm (f y - f x - f' x (y - x)) \<le> (B - 1 / real i) * norm (y - x)"
+      using eps [of "B - 1/i"] by auto
+    then obtain j where "j \<noteq> 0" and j: "inverse (real j) < \<delta>"
+      using real_arch_inverse by blast
+    have "norm (y - x)/(max i j) \<le> norm (f y - f x)"
+      if "y \<in> S" and less: "norm (y - x) < 1 / (max i j)" for y
+    proof -
+      have "1 / real (max i j) < \<delta>"
+        using j \<open>j \<noteq> 0\<close> \<open>0 < \<delta>\<close>
+        by (auto simp: divide_simps max_mult_distrib_left of_nat_max)
+    then have "norm (y - x) < \<delta>"
+      using less by linarith
+    with \<delta> \<open>y \<in> S\<close> have le: "norm (f y - f x - f' x (y - x)) \<le> B * norm (y - x) - norm (y - x)/i"
+      by (auto simp: algebra_simps)
+    have *: "\<lbrakk>norm(f - f' - y) \<le> b - c; b \<le> norm y; d \<le> c\<rbrakk> \<Longrightarrow> d \<le> norm(f - f')"
+      for b c d and y f f'::'a
+      using norm_triangle_ineq3 [of "f - f'" y] by simp
+    show ?thesis
+      apply (rule * [OF le B])
+      using \<open>i \<noteq> 0\<close> \<open>j \<noteq> 0\<close> by (simp add: divide_simps max_mult_distrib_left of_nat_max less_max_iff_disj)
+  qed
+  with \<open>x \<in> S\<close> \<open>i \<noteq> 0\<close> \<open>j \<noteq> 0\<close> show "\<exists>n\<in>{0<..}. x \<in> U n"
+    by (rule_tac x="max i j" in bexI) (auto simp: field_simps U_def less_max_iff_disj)
+qed
+  ultimately show ?thesis
+    by (rule negligible_subset)
+qed
+
+lemma absolutely_integrable_Un:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes S: "f absolutely_integrable_on S" and T: "f absolutely_integrable_on T"
+  shows "f absolutely_integrable_on (S \<union> T)"
+proof -
+  have [simp]: "{x. (if x \<in> A then f x else 0) \<noteq> 0} = {x \<in> A. f x \<noteq> 0}" for A
+    by auto
+  let ?ST = "{x \<in> S. f x \<noteq> 0} \<inter> {x \<in> T. f x \<noteq> 0}"
+  have "?ST \<in> sets lebesgue"
+  proof (rule Sigma_Algebra.sets.Int)
+    have "f integrable_on S"
+      using S absolutely_integrable_on_def by blast
+    then have "(\<lambda>x. if x \<in> S then f x else 0) integrable_on UNIV"
+      by (simp add: integrable_restrict_UNIV)
+    then have borel: "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
+      using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+    then show "{x \<in> S. f x \<noteq> 0} \<in> sets lebesgue"
+      unfolding borel_measurable_vimage_open
+      by (rule allE [where x = "-{0}"]) auto
+  next
+    have "f integrable_on T"
+      using T absolutely_integrable_on_def by blast
+    then have "(\<lambda>x. if x \<in> T then f x else 0) integrable_on UNIV"
+      by (simp add: integrable_restrict_UNIV)
+    then have borel: "(\<lambda>x. if x \<in> T then f x else 0) \<in> borel_measurable (lebesgue_on UNIV)"
+      using integrable_imp_measurable borel_measurable_UNIV_eq by blast
+    then show "{x \<in> T. f x \<noteq> 0} \<in> sets lebesgue"
+      unfolding borel_measurable_vimage_open
+      by (rule allE [where x = "-{0}"]) auto
+  qed
+  then have "f absolutely_integrable_on ?ST"
+    by (rule set_integrable_subset [OF S]) auto
+  then have Int: "(\<lambda>x. if x \<in> ?ST then f x else 0) absolutely_integrable_on UNIV"
+    using absolutely_integrable_restrict_UNIV by blast
+  have "(\<lambda>x. if x \<in> S then f x else 0) absolutely_integrable_on UNIV"
+       "(\<lambda>x. if x \<in> T then f x else 0) absolutely_integrable_on UNIV"
+    using S T absolutely_integrable_restrict_UNIV by blast+
+  then have "(\<lambda>x. (if x \<in> S then f x else 0) + (if x \<in> T then f x else 0)) absolutely_integrable_on UNIV"
+    by (rule absolutely_integrable_add)
+  then have "(\<lambda>x. ((if x \<in> S then f x else 0) + (if x \<in> T then f x else 0)) - (if x \<in> ?ST then f x else 0)) absolutely_integrable_on UNIV"
+    using Int by (rule absolutely_integrable_diff)
+  then have "(\<lambda>x. if x \<in> S \<union> T then f x else 0) absolutely_integrable_on UNIV"
+    by (rule absolutely_integrable_spike) (auto intro: empty_imp_negligible)
+  then show ?thesis
+    unfolding absolutely_integrable_restrict_UNIV .
+qed
+
+
+
+
+subsubsection\<open>Differentiability of inverse function (most basic form)\<close>
+
+proposition has_derivative_inverse_within:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
+  assumes der_f: "(f has_derivative f') (at a within S)"
+    and cont_g: "continuous (at (f a) within f ` S) g"
+    and "a \<in> S" "linear g'" and id: "g' \<circ> f' = id"
+    and gf: "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
+  shows "(g has_derivative g') (at (f a) within f ` S)"
+proof -
+  have [simp]: "g' (f' x) = x" for x
+    by (simp add: local.id pointfree_idE)
+  have "bounded_linear f'"
+    and f': "\<And>e. e>0 \<Longrightarrow> \<exists>d>0. \<forall>y\<in>S. norm (y - a) < d \<longrightarrow>
+                        norm (f y - f a - f' (y - a)) \<le> e * norm (y - a)"
+    using der_f by (auto simp: has_derivative_within_alt)
+  obtain C where "C > 0" and C: "\<And>x. norm (g' x) \<le> C * norm x"
+    using linear_bounded_pos [OF \<open>linear g'\<close>] by metis
+  obtain B k where "B > 0" "k > 0"
+    and Bk: "\<And>x. \<lbrakk>x \<in> S; norm(f x - f a) < k\<rbrakk> \<Longrightarrow> norm(x - a) \<le> B * norm(f x - f a)"
+  proof -
+    obtain B where "B > 0" and B: "\<And>x. B * norm x \<le> norm (f' x)"
+      using linear_inj_bounded_below_pos [of f'] \<open>linear g'\<close> id der_f has_derivative_linear
+        linear_invertible_bounded_below_pos by blast
+    then obtain d where "d>0"
+      and d: "\<And>y. \<lbrakk>y \<in> S; norm (y - a) < d\<rbrakk> \<Longrightarrow>
+                    norm (f y - f a - f' (y - a)) \<le> B / 2 * norm (y - a)"
+      using f' [of "B/2"] by auto
+    then obtain e where "e > 0"
+      and e: "\<And>x. \<lbrakk>x \<in> S; norm (f x - f a) < e\<rbrakk> \<Longrightarrow> norm (g (f x) - g (f a)) < d"
+      using cont_g by (auto simp: continuous_within_eps_delta dist_norm)
+    show thesis
+    proof
+      show "2/B > 0"
+        using \<open>B > 0\<close> by simp
+      show "norm (x - a) \<le> 2 / B * norm (f x - f a)"
+        if "x \<in> S" "norm (f x - f a) < e" for x
+      proof -
+        have xa: "norm (x - a) < d"
+          using e [OF that] gf by (simp add: \<open>a \<in> S\<close> that)
+        have *: "\<lbrakk>norm(y - f') \<le> B / 2 * norm x; B * norm x \<le> norm f'\<rbrakk>
+                 \<Longrightarrow> norm y \<ge> B / 2 * norm x" for y f'::'b and x::'a
+          using norm_triangle_ineq3 [of y f'] by linarith
+        show ?thesis
+          using * [OF d [OF \<open>x \<in> S\<close> xa] B] \<open>B > 0\<close> by (simp add: field_simps)
+      qed
+    qed (use \<open>e > 0\<close> in auto)
+  qed
+  show ?thesis
+    unfolding has_derivative_within_alt
+  proof (intro conjI impI allI)
+    show "bounded_linear g'"
+      using \<open>linear g'\<close> by (simp add: linear_linear)
+  next
+    fix e :: "real"
+    assume "e > 0"
+    then obtain d where "d>0"
+      and d: "\<And>y. \<lbrakk>y \<in> S; norm (y - a) < d\<rbrakk> \<Longrightarrow>
+                    norm (f y - f a - f' (y - a)) \<le> e / (B * C) * norm (y - a)"
+      using f' [of "e / (B * C)"] \<open>B > 0\<close> \<open>C > 0\<close> by auto
+    have "norm (x - a - g' (f x - f a)) \<le> e * norm (f x - f a)"
+      if "x \<in> S" and lt_k: "norm (f x - f a) < k" and lt_dB: "norm (f x - f a) < d/B" for x
+    proof -
+      have "norm (x - a) \<le> B * norm(f x - f a)"
+        using Bk lt_k \<open>x \<in> S\<close> by blast
+      also have "\<dots> < d"
+        by (metis \<open>0 < B\<close> lt_dB mult.commute pos_less_divide_eq)
+      finally have lt_d: "norm (x - a) < d" .
+      have "norm (x - a - g' (f x - f a)) \<le> norm(g'(f x - f a - (f' (x - a))))"
+        by (simp add: linear_diff [OF \<open>linear g'\<close>] norm_minus_commute)
+      also have "\<dots> \<le> C * norm (f x - f a - f' (x - a))"
+        using C by blast
+      also have "\<dots> \<le> e * norm (f x - f a)"
+      proof -
+        have "norm (f x - f a - f' (x - a)) \<le> e / (B * C) * norm (x - a)"
+          using d [OF \<open>x \<in> S\<close> lt_d] .
+        also have "\<dots> \<le> (norm (f x - f a) * e) / C"
+          using \<open>B > 0\<close> \<open>C > 0\<close> \<open>e > 0\<close> by (simp add: field_simps Bk lt_k \<open>x \<in> S\<close>)
+        finally show ?thesis
+          using \<open>C > 0\<close> by (simp add: field_simps)
+      qed
+    finally show ?thesis .
+    qed
+    then show "\<exists>d>0. \<forall>y\<in>f ` S.
+               norm (y - f a) < d \<longrightarrow>
+               norm (g y - g (f a) - g' (y - f a)) \<le> e * norm (y - f a)"
+      apply (rule_tac x="min k (d / B)" in exI)
+      using \<open>k > 0\<close> \<open>B > 0\<close> \<open>d > 0\<close> \<open>a \<in> S\<close> by (auto simp: gf)
+  qed
 qed
 
 end
