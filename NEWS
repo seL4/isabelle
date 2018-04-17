@@ -118,6 +118,8 @@ the file. Otherwise, the fallback encoding is plain UTF-8 and Isabelle
 symbols remain in literal \<symbol> form. This avoids accidental loss of
 Unicode content when saving the file.
 
+* Update to jedit-5.5.0, the latest release.
+
 
 *** Isabelle/VSCode Prover IDE ***
 
