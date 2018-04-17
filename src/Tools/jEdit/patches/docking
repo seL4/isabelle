@@ -1,6 +1,6 @@
-diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.4.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
---- 5.4.0/jEdit-orig/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2017-03-18 14:30:25.000000000 +0100
-+++ 5.4.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2017-03-19 19:27:45.730945687 +0100
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2018-04-09 01:56:46.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2018-04-17 13:57:40.320348370 +0200
 @@ -35,7 +35,7 @@
  import javax.swing.Box;
  import javax.swing.BoxLayout;

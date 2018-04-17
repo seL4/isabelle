@@ -1,7 +1,7 @@
-diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java 5.4.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
---- 5.4.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java	2017-03-18 14:30:28.000000000 +0100
-+++ 5.4.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2017-03-19 19:27:45.730945687 +0100
-@@ -259,9 +259,9 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2018-04-09 01:57:24.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2018-04-17 13:58:12.912465088 +0200
+@@ -322,9 +322,9 @@
  	//{{{ Package private members
  
  	//{{{ Instance variables
@@ -13,7 +13,7 @@ diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java 5.4.0/jEdit-patched
  	//}}}
  
  	//{{{ Chunk constructor
-@@ -509,7 +509,7 @@
+@@ -572,7 +572,7 @@
  	// this is either style.getBackgroundColor() or
  	// styles[defaultID].getBackgroundColor()
  	private Color background;
@@ -22,9 +22,9 @@ diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/syntax/Chunk.java 5.4.0/jEdit-patched
  	private GlyphVector[] glyphs;
  	//}}}
  
-diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java 5.4.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
---- 5.4.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java	2017-03-18 14:30:28.000000000 +0100
-+++ 5.4.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2017-03-19 19:27:45.734945702 +0100
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2018-04-09 01:58:01.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2018-04-17 13:58:12.912465088 +0200
 @@ -917,6 +917,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
@@ -37,10 +37,9 @@ diff -ru 5.4.0/jEdit-orig/org/gjt/sp/jedit/textarea/TextArea.java 5.4.0/jEdit-pa
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
-Only in 5.4.0/jEdit-patched/org/gjt/sp/jedit/textarea: TextArea.java.orig
-diff -ru 5.4.0/jEdit-orig/org/gjt/sp/util/SyntaxUtilities.java 5.4.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
---- 5.4.0/jEdit-orig/org/gjt/sp/util/SyntaxUtilities.java	2017-03-18 14:30:34.000000000 +0100
-+++ 5.4.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2017-03-19 19:27:45.734945702 +0100
+diff -ru 5.5.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- 5.5.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2018-04-09 01:58:37.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2018-04-17 13:58:12.912465088 +0200
 @@ -200,7 +200,24 @@
  	{
  		return loadStyles(family,size,true);

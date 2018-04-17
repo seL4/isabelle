@@ -1,7 +1,7 @@
-diff -ru 5.4.0/jEdit-orig/org/jedit/localization/jedit_en.props 5.4.0/jEdit-patched/org/jedit/localization/jedit_en.props
---- 5.4.0/jEdit-orig/org/jedit/localization/jedit_en.props	2017-03-18 14:30:24.000000000 +0100
-+++ 5.4.0/jEdit-patched/org/jedit/localization/jedit_en.props	2017-03-19 19:35:49.728895954 +0100
-@@ -1262,8 +1262,7 @@
+diff -ru 5.5.0/jEdit/org/jedit/localization/jedit_en.props 5.5.0/jEdit-patched/org/jedit/localization/jedit_en.props
+--- 5.5.0/jEdit/org/jedit/localization/jedit_en.props	2018-04-09 01:58:42.000000000 +0200
++++ 5.5.0/jEdit-patched/org/jedit/localization/jedit_en.props	2018-04-17 13:59:10.688670850 +0200
+@@ -1270,8 +1270,7 @@
  	The most likely reason is that the JAR file is corrupt; try\n\
  	reinstalling it. See Utilities->Troubleshooting->Activity Log\n\
  	for a full stack trace.
