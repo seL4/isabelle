@@ -3,9 +3,8 @@ Windows installer (based on 7zip)
 
 * 7zip: http://www.7-zip.org/
 
-* 7zip self-extracting installer: http://www.7zsfx.info
+* 7zip self-extracting installer: https://github.com/chrislake/7zsfxmm
 
 * final packaging:
 
-  cat 7zsd_All.sfx sfx.txt Isabelle.7z > Isabelle.exe
-
+  cat 7zsd_All_x64.sfx sfx.txt Isabelle.7z > Isabelle.exe

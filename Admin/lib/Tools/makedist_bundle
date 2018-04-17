@@ -404,7 +404,7 @@ case "$PLATFORM_FAMILY" in
 
       echo "application for $PLATFORM_FAMILY"
       (
-        cat "windows_app/7zsd_All.sfx"
+        cat "windows_app/7zsd_All_x64.sfx"
         cat "$ISABELLE_HOME/Admin/Windows/Installer/sfx.txt" | \
           perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;"
         cat "$TMP/${ISABELLE_NAME}.7z"
