@@ -22,7 +22,7 @@ imports
   FPS_Convergence
   Generalised_Binomial_Theorem
   Gamma_Function
-  Vitali_Covering_Theorem
+  Change_Of_Vars
   Lipschitz
 begin
 
