@@ -1,6 +1,6 @@
 (*  Title:      HOL/Algebra/Congruence.thy
     Author:     Clemens Ballarin, started 3 January 2008
-    Copyright:  Clemens Ballarin
+    with thanks to Paulo Emílio de Vilhena
 *)
 
 theory Congruence
@@ -119,7 +119,7 @@ using assms
 by (fast intro: elemI elim: elemE dest: subsetD)
 
 lemma (in equivalence) mem_imp_elem [simp, intro]:
-  "[| x \<in> A; x \<in> carrier S |] ==> x .\<in> A"
+  "\<lbrakk> x \<in> A; x \<in> carrier S \<rbrakk> \<Longrightarrow> x .\<in> A"
   unfolding elem_def by blast
 
 lemma set_eqI:
@@ -215,14 +215,10 @@ qed
 
 lemma (in equivalence) set_eq_sym [sym]:
   assumes "A {.=} B"
-    and "A \<subseteq> carrier S" "B \<subseteq> carrier S"
   shows "B {.=} A"
 using assms
 unfolding set_eq_def elem_def
 by fast
-
-(* FIXME: the following two required in Isabelle 2008, not Isabelle 2007 *)
-(* alternatively, could declare lemmas [trans] = ssubst [where 'a = "'a set"] *)
 
 lemma (in equivalence) equal_set_eq_trans [trans]:
   assumes AB: "A = B" and BC: "B {.=} C"
@@ -233,7 +229,6 @@ lemma (in equivalence) set_eq_equal_trans [trans]:
   assumes AB: "A {.=} B" and BC: "B = C"
   shows "A {.=} C"
   using AB BC by simp
-
 
 lemma (in equivalence) set_eq_trans [trans]:
   assumes AB: "A {.=} B" and BC: "B {.=} C"
@@ -265,46 +260,46 @@ next
        show "c .\<in> A" by simp
 qed
 
-(* FIXME: generalise for insert *)
+lemma (in equivalence) set_eq_insert_aux:
+  assumes x: "x .= x'"
+      and carr: "x \<in> carrier S" "x' \<in> carrier S" "A \<subseteq> carrier S"
+    shows "\<forall>a \<in> (insert x A). a .\<in> (insert x' A)"
+proof
+  fix a
+  show "a \<in> insert x A \<Longrightarrow> a .\<in> insert x' A"
+  proof cases
+    assume "a \<in> A"
+    thus "a .\<in> insert x' A"
+      using carr(3) by blast
+  next
+    assume "a \<in> insert x A" "a \<notin> A"
+    hence "a = x"
+      by blast
+    thus "a .\<in> insert x' A"
+      by (meson x elemI insertI1)
+  qed
+qed
 
-(*
 lemma (in equivalence) set_eq_insert:
   assumes x: "x .= x'"
-    and carr: "x \<in> carrier S" "x' \<in> carrier S" "A \<subseteq> carrier S"
-  shows "insert x A {.=} insert x' A"
-  unfolding set_eq_def elem_def
-apply rule
-apply rule
-apply (case_tac "xa = x")
-using x apply fast
-apply (subgoal_tac "xa \<in> A") prefer 2 apply fast
-apply (rule_tac x=xa in bexI)
-using carr apply (rule_tac refl) apply auto [1]
-apply safe
-*)
+      and carr: "x \<in> carrier S" "x' \<in> carrier S" "A \<subseteq> carrier S"
+    shows "insert x A {.=} insert x' A"
+proof-
+  have "(\<forall>a \<in> (insert x  A). a .\<in> (insert x' A)) \<and>
+        (\<forall>a \<in> (insert x' A). a .\<in> (insert x  A))"
+    using set_eq_insert_aux carr x sym by blast
+  thus "insert x A {.=} insert x' A"
+    using set_eq_def by blast
+qed  
 
 lemma (in equivalence) set_eq_pairI:
   assumes xx': "x .= x'"
     and carr: "x \<in> carrier S" "x' \<in> carrier S" "y \<in> carrier S"
   shows "{x, y} {.=} {x', y}"
-unfolding set_eq_def elem_def
-proof safe
-  have "x' \<in> {x', y}" by fast
-  with xx' show "\<exists>b\<in>{x', y}. x .= b" by fast
-next
-  have "y \<in> {x', y}" by fast
-  with carr show "\<exists>b\<in>{x', y}. y .= b" by fast
-next
-  have "x \<in> {x, y}" by fast
-  with xx'[symmetric] carr
-  show "\<exists>a\<in>{x, y}. x' .= a" by fast
-next
-  have "y \<in> {x, y}" by fast
-  with carr show "\<exists>a\<in>{x, y}. y .= a" by fast
-qed
+  using assms set_eq_insert by simp
 
 lemma (in equivalence) is_closedI:
-  assumes closed: "!!x y. [| x .= y; x \<in> A; y \<in> carrier S |] ==> y \<in> A"
+  assumes closed: "\<And>x y. \<lbrakk>x .= y; x \<in> A; y \<in> carrier S\<rbrakk> \<Longrightarrow> y \<in> A"
     and S: "A \<subseteq> carrier S"
   shows "is_closed A"
   unfolding eq_is_closed_def eq_closure_of_def elem_def
@@ -312,19 +307,19 @@ lemma (in equivalence) is_closedI:
   by (blast dest: closed sym)
 
 lemma (in equivalence) closure_of_eq:
-  "[| x .= x'; A \<subseteq> carrier S; x \<in> closure_of A; x \<in> carrier S; x' \<in> carrier S |] ==> x' \<in> closure_of A"
+  "\<lbrakk>x .= x'; A \<subseteq> carrier S; x \<in> closure_of A; x' \<in> carrier S\<rbrakk> \<Longrightarrow> x' \<in> closure_of A"
   unfolding eq_closure_of_def elem_def
   by (blast intro: trans sym)
 
 lemma (in equivalence) is_closed_eq [dest]:
-  "[| x .= x'; x \<in> A; is_closed A; x \<in> carrier S; x' \<in> carrier S |] ==> x' \<in> A"
+  "\<lbrakk>x .= x'; x \<in> A; is_closed A; x \<in> carrier S; x' \<in> carrier S\<rbrakk> \<Longrightarrow> x' \<in> A"
   unfolding eq_is_closed_def
   using closure_of_eq [where A = A]
   by simp
 
 lemma (in equivalence) is_closed_eq_rev [dest]:
-  "[| x .= x'; x' \<in> A; is_closed A; x \<in> carrier S; x' \<in> carrier S |] ==> x \<in> A"
-  by (drule sym) (simp_all add: is_closed_eq)
+  "\<lbrakk>x .= x'; x' \<in> A; is_closed A; x \<in> carrier S; x' \<in> carrier S\<rbrakk> \<Longrightarrow> x \<in> A"
+  by (meson subsetD eq_is_closed_def is_closed_eq sym)
 
 lemma closure_of_closed [simp, intro]:
   fixes S (structure)
@@ -334,81 +329,55 @@ by fast
 
 lemma closure_of_memI:
   fixes S (structure)
-  assumes "a .\<in> A"
-    and "a \<in> carrier S"
+  assumes "a .\<in> A" and "a \<in> carrier S"
   shows "a \<in> closure_of A"
-unfolding eq_closure_of_def
-using assms
-by fast
+  by (simp add: assms eq_closure_of_def)
 
 lemma closure_ofI2:
   fixes S (structure)
-  assumes "a .= a'"
-    and "a' \<in> A"
-    and "a \<in> carrier S"
+  assumes "a .= a'" and "a' \<in> A" and "a \<in> carrier S"
   shows "a \<in> closure_of A"
-unfolding eq_closure_of_def elem_def
-using assms
-by fast
+  by (meson assms closure_of_memI elem_def)
 
 lemma closure_of_memE:
   fixes S (structure)
-  assumes p: "a \<in> closure_of A"
-    and r: "\<lbrakk>a \<in> carrier S; a .\<in> A\<rbrakk> \<Longrightarrow> P"
+  assumes "a \<in> closure_of A"
+    and "\<lbrakk>a \<in> carrier S; a .\<in> A\<rbrakk> \<Longrightarrow> P"
   shows "P"
-proof -
-  from p
-      have acarr: "a \<in> carrier S"
-      and "a .\<in> A"
-      by (simp add: eq_closure_of_def)+
-  thus "P" by (rule r)
-qed
+  using eq_closure_of_def assms by fastforce
 
 lemma closure_ofE2:
   fixes S (structure)
-  assumes p: "a \<in> closure_of A"
-    and r: "\<And>a'. \<lbrakk>a \<in> carrier S; a' \<in> A; a .= a'\<rbrakk> \<Longrightarrow> P"
+  assumes "a \<in> closure_of A"
+    and "\<And>a'. \<lbrakk>a \<in> carrier S; a' \<in> A; a .= a'\<rbrakk> \<Longrightarrow> P"
   shows "P"
-proof -
-  from p have acarr: "a \<in> carrier S" by (simp add: eq_closure_of_def)
+  by (meson closure_of_memE elemE assms)
 
-  from p have "\<exists>a'\<in>A. a .= a'" by (simp add: eq_closure_of_def elem_def)
-  from this obtain a'
-      where "a' \<in> A" and "a .= a'" by auto
-
-  from acarr and this
-      show "P" by (rule r)
+lemma (in equivalence) closure_inclusion:
+  assumes "A \<subseteq> B"
+  shows "closure_of A \<subseteq> closure_of B"
+  unfolding eq_closure_of_def
+proof
+  fix x
+  assume "x \<in> {y \<in> carrier S. y .\<in> A}"
+  hence "x \<in> carrier S \<and> x .\<in> A"
+    by blast
+  hence "x \<in> carrier S \<and> x .\<in> B"
+    using assms elem_subsetD by blast
+  thus "x \<in> {y \<in> carrier S. y .\<in> B}"
+    by simp
 qed
 
-(*
-lemma (in equivalence) classes_consistent:
-  assumes Acarr: "A \<subseteq> carrier S"
-  shows "is_closed (closure_of A)"
-apply (blast intro: elemI elim elemE)
-using assms
-apply (intro is_closedI closure_of_memI, simp)
- apply (elim elemE closure_of_memE)
-proof -
-  fix x a' a''
-  assume carr: "x \<in> carrier S" "a' \<in> carrier S"
-  assume a''A: "a'' \<in> A"
-  with Acarr have "a'' \<in> carrier S" by fast
-  note [simp] = carr this Acarr
-
-  assume "x .= a'"
-  also assume "a' .= a''"
-  also from a''A
-       have "a'' .\<in> A" by (simp add: elem_exact)
-  finally show "x .\<in> A" by simp
-qed
-*)
-(*
 lemma (in equivalence) classes_small:
   assumes "is_closed B"
     and "A \<subseteq> B"
   shows "closure_of A \<subseteq> B"
-using assms
-by (blast dest: is_closedD2 elem_subsetD elim: closure_of_memE)
+proof-
+  have "closure_of A \<subseteq> closure_of B"
+    using closure_inclusion assms by simp
+  thus "closure_of A \<subseteq> B"
+    using assms(1) eq_is_closed_def by fastforce
+qed
 
 lemma (in equivalence) classes_eq:
   assumes "A \<subseteq> carrier S"
@@ -419,9 +388,21 @@ by (blast intro: set_eqI elem_exact closure_of_memI elim: closure_of_memE)
 lemma (in equivalence) complete_classes:
   assumes c: "is_closed A"
   shows "A = closure_of A"
-using assms
-by (blast intro: closure_of_memI elem_exact dest: is_closedD1 is_closedD2 closure_of_memE)
-*)
+  using assms by (simp add: eq_is_closed_def)
+
+lemma (in equivalence) closure_idemp_weak:
+  "closure_of (closure_of A) {.=} closure_of A"
+  by (simp add: classes_eq set_eq_sym)
+
+lemma (in equivalence) closure_idemp_strong:
+  assumes "A \<subseteq> carrier S"
+  shows "closure_of (closure_of A) = closure_of A"
+  using assms closure_of_eq complete_classes is_closedI by auto
+
+lemma (in equivalence) complete_classes2:
+  assumes "A \<subseteq> carrier S"
+  shows "is_closed (closure_of A)"
+  using closure_idemp_strong by (simp add: assms eq_is_closed_def)
 
 lemma equivalence_subset:
   assumes "equivalence L" "A \<subseteq> carrier L"

@@ -1,12 +1,12 @@
 theory Change_Of_Vars
-  imports  "HOL-Analysis.Vitali_Covering_Theorem" "HOL-Analysis.Determinants"
+  imports Vitali_Covering_Theorem Determinants
 
 begin
 
 subsection\<open>Induction on matrix row operations\<close>
 
 lemma induct_matrix_row_operations:
-  fixes P :: "(real^'n, 'n::finite) vec \<Rightarrow> bool"
+  fixes P :: "real^'n^'n \<Rightarrow> bool"
   assumes zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
     and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
     and swap_cols: "\<And>A m n. \<lbrakk>P A; m \<noteq> n\<rbrakk> \<Longrightarrow> P(\<chi> i j. A $ i $ Fun.swap m n id j)"
@@ -115,7 +115,7 @@ proof -
 qed
 
 lemma induct_matrix_elementary:
-  fixes P :: "(real^'n, 'n::finite) vec \<Rightarrow> bool"
+  fixes P :: "real^'n^'n \<Rightarrow> bool"
   assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
     and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
     and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
@@ -146,7 +146,7 @@ proof -
 qed
 
 lemma induct_matrix_elementary_alt:
-  fixes P :: "(real^'n, 'n::finite) vec \<Rightarrow> bool"
+  fixes P :: "real^'n^'n \<Rightarrow> bool"
   assumes mult: "\<And>A B. \<lbrakk>P A; P B\<rbrakk> \<Longrightarrow> P(A ** B)"
     and zero_row: "\<And>A i. row i A = 0 \<Longrightarrow> P A"
     and diagonal: "\<And>A. (\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0) \<Longrightarrow> P A"
@@ -196,14 +196,14 @@ proof -
     then show "P (( *v) (A ** B))"
       by (metis (no_types, lifting) comp linear_compose matrix_compose matrix_eq matrix_vector_mul matrix_vector_mul_linear)
   next
-    fix A :: "((real, 'n) vec, 'n) vec" and i
+    fix A :: "real^'n^'n" and i
     assume "row i A = 0"
     then show "P (( *v) A)"
       by (metis inner_zero_left matrix_vector_mul_component matrix_vector_mul_linear row_def vec_eq_iff vec_lambda_beta zeroes)
   next
-    fix A :: "((real, 'n) vec, 'n) vec"
+    fix A :: "real^'n^'n"
     assume 0: "\<And>i j. i \<noteq> j \<Longrightarrow> A $ i $ j = 0"
-    have "A $ i $ i * x $ i = (\<Sum>j\<in>UNIV. A $ i $ j * x $ j)" for x :: "(real, 'n) vec" and i :: "'n"
+    have "A $ i $ i * x $ i = (\<Sum>j\<in>UNIV. A $ i $ j * x $ j)" for x and i :: "'n"
       by (simp add: 0 comm_monoid_add_class.sum.remove [where x=i])
     then have "(\<lambda>x. \<chi> i. A $ i $ i * x $ i) = (( *v) A)"
       by (auto simp: 0 matrix_vector_mult_def)
@@ -214,7 +214,7 @@ proof -
     assume "m \<noteq> n"
     have eq: "(\<Sum>j\<in>UNIV. if i = Fun.swap m n id j then x $ j else 0) =
               (\<Sum>j\<in>UNIV. if j = Fun.swap m n id i then x $ j else 0)"
-      for i and x :: "(real, 'n) vec"
+      for i and x :: "real^'n"
       unfolding swap_def by (rule sum.cong) auto
     have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = (( *v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
       by (auto simp: mat_def matrix_vector_mult_def eq if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
@@ -223,7 +223,7 @@ proof -
   next
     fix m n :: "'n"
     assume "m \<noteq> n"
-    then have "x $ m + x $ n = (\<Sum>j\<in>UNIV. of_bool (j = n \<or> m = j) * x $ j)" for x :: "(real, 'n) vec"
+    then have "x $ m + x $ n = (\<Sum>j\<in>UNIV. of_bool (j = n \<or> m = j) * x $ j)" for x :: "real^'n"
       by (auto simp: of_bool_def if_distrib [of "\<lambda>x. x * y" for y] sum.remove cong: if_cong)
     then have "(\<lambda>x::real^'n. \<chi> i. if i = m then x $ m + x $ n else x $ i) =
                (( *v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
@@ -390,7 +390,7 @@ proof -
             using True by auto
           have "ball 0 B \<subseteq> (\<lambda>x. \<chi> k. x $ k / m k) ` ball 0 ?C"
           proof clarsimp
-            fix x :: "(real, 'n) vec"
+            fix x :: "real^'n"
             assume x: "norm x < B"
             have [simp]: "\<bar>Max (range (\<lambda>k. \<bar>m k\<bar>))\<bar> = Max (range (\<lambda>k. \<bar>m k\<bar>))"
               by (meson Max_ge abs_ge_zero abs_of_nonneg finite finite_imageI order_trans rangeI)
@@ -452,8 +452,6 @@ qed
 
 
 
-
-
 proposition
  fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real^'n::_"
   assumes "linear f" "S \<in> lmeasurable"
@@ -473,7 +471,7 @@ proof -
       using f [OF gS] g [OF S] matrix_compose [OF \<open>linear g\<close> \<open>linear f\<close>]
       by (simp add: o_def image_comp abs_mult det_mul)
   next
-    fix f :: "(real, 'n) vec \<Rightarrow> (real, 'n) vec" and i and S :: "(real, 'n) vec set"
+    fix f :: "real^'n::_ \<Rightarrow> real^'n::_" and i and S :: "(real^'n::_) set"
     assume "linear f" and 0: "\<And>x. f x $ i = 0" and "S \<in> lmeasurable"
     then have "\<not> inj f"
       by (metis (full_types) linear_injective_imp_surjective one_neq_zero surjE vec_component)
@@ -490,7 +488,7 @@ proof -
       finally show "?Q f S" .
     qed
   next
-    fix c and S :: "(real, 'n) vec set"
+    fix c and S :: "(real^'n::_) set"
     assume "S \<in> lmeasurable"
     show "(\<lambda>a. \<chi> i. c i * a $ i) ` S \<in> lmeasurable \<and> ?Q (\<lambda>a. \<chi> i. c i * a $ i) S"
     proof
@@ -532,7 +530,7 @@ proof -
         using measure_linear_sufficient [OF lin \<open>S \<in> lmeasurable\<close>] meq 1 by force+
     qed
   next
-    fix m :: "'n" and n :: "'n" and S :: "(real, 'n) vec set"
+    fix m n :: "'n" and S :: "(real, 'n) vec set"
     assume "m \<noteq> n" and "S \<in> lmeasurable"
     let ?h = "\<lambda>v::(real, 'n) vec. \<chi> i. if i = m then v $ m + v $ n else v $ i"
     have lin: "linear ?h"
@@ -616,26 +614,6 @@ proof -
     by (simp add: measure_linear_image \<open>linear f\<close> S f)
 qed
 
-lemma sets_lebesgue_inner_closed:
-  assumes "S \<in> sets lebesgue" "e > 0"
-  obtains T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "measure lebesgue (S - T) < e"
-proof -
-  have "-S \<in> sets lebesgue"
-    using assms by (simp add: Compl_in_sets_lebesgue)
-  then obtain T where "open T" "-S \<subseteq> T"
-          and T: "(T - -S) \<in> lmeasurable" "measure lebesgue (T - -S) < e"
-    using lmeasurable_outer_open assms  by blast
-  show thesis
-  proof
-    show "closed (-T)"
-      using \<open>open T\<close> by blast
-    show "-T \<subseteq> S"
-      using \<open>- S \<subseteq> T\<close> by auto
-    show "S - ( -T) \<in> lmeasurable" "measure lebesgue (S - (- T)) < e"
-      using T by (auto simp: Int_commute)
-  qed
-qed
-
 subsection\<open>@{text F_sigma} and @{text G_delta} sets.\<close>
 
 (*https://en.wikipedia.org/wiki/F\<sigma>_set*)
@@ -644,7 +622,6 @@ inductive fsigma :: "'a::topological_space set \<Rightarrow> bool" where
 
 inductive gdelta :: "'a::topological_space set \<Rightarrow> bool" where
   "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (INTER UNIV F)"
-
 
 lemma fsigma_Union_compact:
   fixes S :: "'a::{real_normed_vector,heine_borel} set"
@@ -698,11 +675,8 @@ proof (induction rule: fsigma.induct)
     by (simp add: 1 gdelta.intros open_closed)
 qed
 
-
-
 lemma gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
   using fsigma_imp_gdelta gdelta_imp_fsigma by force
-
 
 text\<open>A Lebesgue set is almost an @{text F_sigma} or @{text G_delta}.\<close>
 lemma lebesgue_set_almost_fsigma:
@@ -1839,7 +1813,7 @@ proof -
           using \<open>r > 0\<close> \<open>d > 0\<close> by auto
         show "{x' \<in> S. \<exists>v. v \<noteq> 0 \<and> (\<forall>\<xi>>0. \<exists>e>0. \<forall>z\<in>S - {x'}. norm (x' - z) < e \<longrightarrow> \<bar>v \<bullet> (z - x')\<bar> < \<xi> * norm (x' - z))} \<inter> ball x (min d r) \<subseteq> ?W"
           proof (clarsimp simp: dist_norm norm_minus_commute)
-            fix y :: "(real, 'm) vec" and w :: "(real, 'm) vec"
+            fix y w 
             assume "y \<in> S" "w \<noteq> 0"
               and less [rule_format]:
                     "\<forall>\<xi>>0. \<exists>e>0. \<forall>z\<in>S - {y}. norm (y - z) < e \<longrightarrow> \<bar>w \<bullet> (z - y)\<bar> < \<xi> * norm (y - z)"

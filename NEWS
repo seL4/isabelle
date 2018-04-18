@@ -209,6 +209,10 @@ are moved to Hilbert_Choice.thy because their proofs need the Hilbert
 choice operator. The dual of this property is also proved in 
 Hilbert_Choice.thy.
 
+* New syntax for the minimum/maximum of a function over a finite set:
+MIN x\<in>A. B  and even  MIN x. B (only useful for finite types), also
+MAX.
+
 * Clarifed theorem names:
 
   Min.antimono ~> Min.subset_imp
@@ -255,8 +259,9 @@ canonical categorical definition with better properties. INCOMPATIBILITY.
 
 * HOL-Algebra: renamed (^) to [^]
 
-* Session HOL-Analysis: Moebius functions and the Riemann mapping
-theorem.
+* Session HOL-Analysis: Moebius functions, the Riemann mapping
+theorem, the Vitali covering theorem, change-of-variables results for
+integration and measures.
 
 * Class linordered_semiring_1 covers zero_less_one also, ruling out
 pathologic instances. Minor INCOMPATIBILITY.

@@ -1297,6 +1297,26 @@ proof -
   qed
 qed
 
+lemma sets_lebesgue_inner_closed:
+  assumes "S \<in> sets lebesgue" "e > 0"
+  obtains T where "closed T" "T \<subseteq> S" "S-T \<in> lmeasurable" "measure lebesgue (S - T) < e"
+proof -
+  have "-S \<in> sets lebesgue"
+    using assms by (simp add: Compl_in_sets_lebesgue)
+  then obtain T where "open T" "-S \<subseteq> T"
+          and T: "(T - -S) \<in> lmeasurable" "measure lebesgue (T - -S) < e"
+    using lmeasurable_outer_open assms  by blast
+  show thesis
+  proof
+    show "closed (-T)"
+      using \<open>open T\<close> by blast
+    show "-T \<subseteq> S"
+      using \<open>- S \<subseteq> T\<close> by auto
+    show "S - ( -T) \<in> lmeasurable" "measure lebesgue (S - (- T)) < e"
+      using T by (auto simp: Int_commute)
+  qed
+qed
+
 lemma lebesgue_openin:
    "\<lbrakk>openin (subtopology euclidean S) T; S \<in> sets lebesgue\<rbrakk> \<Longrightarrow> T \<in> sets lebesgue"
   by (metis borel_open openin_open sets.Int sets_completionI_sets sets_lborel)
