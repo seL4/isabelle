@@ -346,7 +346,6 @@ proof -
 qed
 
 
-
 proposition
   fixes S :: "(real^'n) set"
   assumes "S \<in> lmeasurable"
@@ -449,7 +448,6 @@ proof -
   then show "(?f ` S) \<in> lmeasurable" ?MEQ
     by metis+
 qed
-
 
 
 proposition
@@ -1813,7 +1811,7 @@ proof -
           using \<open>r > 0\<close> \<open>d > 0\<close> by auto
         show "{x' \<in> S. \<exists>v. v \<noteq> 0 \<and> (\<forall>\<xi>>0. \<exists>e>0. \<forall>z\<in>S - {x'}. norm (x' - z) < e \<longrightarrow> \<bar>v \<bullet> (z - x')\<bar> < \<xi> * norm (x' - z))} \<inter> ball x (min d r) \<subseteq> ?W"
           proof (clarsimp simp: dist_norm norm_minus_commute)
-            fix y w 
+            fix y w
             assume "y \<in> S" "w \<noteq> 0"
               and less [rule_format]:
                     "\<forall>\<xi>>0. \<exists>e>0. \<forall>z\<in>S - {y}. norm (y - z) < e \<longrightarrow> \<bar>w \<bullet> (z - y)\<bar> < \<xi> * norm (y - z)"
@@ -2288,8 +2286,8 @@ theorem borel_measurable_det_Jacobian:
   unfolding det_def
   by (intro measurable) (auto intro: f borel_measurable_partial_derivatives [OF S])
 
-text\<open>The localisation wrt S uses the same argument for many similar results.
-See HOL Light's MEASURABLE_ON_LEBESGUE_MEASURABLE_PREIMAGE_BOREL, etc.\<close>
+text\<open>The localisation wrt S uses the same argument for many similar results.\<close>
+(*See HOL Light's MEASURABLE_ON_LEBESGUE_MEASURABLE_PREIMAGE_BOREL, etc.*)
 lemma borel_measurable_lebesgue_on_preimage_borel:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "S \<in> sets lebesgue"
@@ -2370,27 +2368,6 @@ next
 qed
 
 
-
-thm integrable_on_subcbox
-
-proposition measurable_bounded_by_integrable_imp_integrable:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes f: "f \<in> borel_measurable (lebesgue_on S)" and g: "g integrable_on S"
-    and normf: "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> g x" and S: "S \<in> sets lebesgue"
-  shows "f integrable_on S"
-proof (rule integrable_on_all_intervals_integrable_bound [OF _ normf g])
-  show "(\<lambda>x. if x \<in> S then f x else 0) integrable_on cbox a b" for a b
-  proof (rule measurable_bounded_lemma)
-    show "(\<lambda>x. if x \<in> S then f x else 0) \<in> borel_measurable lebesgue"
-      by (simp add: S borel_measurable_UNIV f)
-    show "(\<lambda>x. if x \<in> S then g x else 0) integrable_on cbox a b"
-      by (simp add: g integrable_altD(1))
-    show "norm (if x \<in> S then f x else 0) \<le> (if x \<in> S then g x else 0)" for x
-      using normf by simp
-  qed
-qed
-
-
 subsection\<open>Simplest case of Sard's theorem (we don't need continuity of derivative)\<close>
 
 lemma Sard_lemma00:
@@ -2428,7 +2405,7 @@ proof -
   qed blast
 qed
 
-text\<open>As above, but reorienting the vector (HOL Light's @text{GEOM_BASIS_MULTIPLE_TAC})\<close>
+text\<open>As above, but reorienting the vector (HOL Light's @text{GEOM\_BASIS\_MULTIPLE\_TAC})\<close>
 lemma Sard_lemma0:
   fixes P :: "(real^'n::{finite,wellorder}) set"
   assumes "a \<noteq> 0"
@@ -2487,7 +2464,7 @@ proof -
   qed
 qed
 
-(*As above, but translating the sets (HOL Light's GEN_GEOM_ORIGIN_TAC)*)
+text\<open>As above, but translating the sets (HOL Light's @text{GEN\_GEOM\_ORIGIN\_TAC})\<close>
 lemma Sard_lemma1:
   fixes P :: "(real^'n::{finite,wellorder}) set"
    assumes P: "dim P < CARD('n)" and "0 \<le> m" "0 \<le> e"
@@ -3073,7 +3050,6 @@ proof -
 qed
 
 
-
 lemma absolutely_integrable_on_image_real:
   fixes f :: "real^'n::{finite,wellorder} \<Rightarrow> real" and g :: "real^'n::_ \<Rightarrow> real^'n::_"
   assumes der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_derivative g' x) (at x within S)"
@@ -3164,7 +3140,6 @@ proposition integral_on_image_ubound:
     and "(\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x)) integrable_on S"
   shows "integral (g ` S) f \<le> integral S (\<lambda>x. \<bar>det (matrix (g' x))\<bar> * f(g x))"
   using integral_on_image_ubound_nonneg [OF assms] by simp
-
 
 
 subsection\<open>Change-of-variables theorem\<close>
