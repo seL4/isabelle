@@ -881,9 +881,8 @@ proof -
     using aff_dim_convex_Int_open [OF \<open>convex U\<close> open_ball]
     by (fastforce simp add: Int_commute)
   have "rel_frontier S homeomorphic rel_frontier (ball z 1 \<inter> U)"
-    apply (rule homeomorphic_rel_frontiers_convex_bounded_sets)
-    apply (auto simp: \<open>affine U\<close> affine_imp_convex convex_Int affdS assms)
-    done
+    by (rule homeomorphic_rel_frontiers_convex_bounded_sets)
+       (auto simp: \<open>affine U\<close> affine_imp_convex convex_Int affdS assms)
   also have "... = sphere z 1 \<inter> U"
     using convex_affine_rel_frontier_Int [of "ball z 1" U]
     by (simp add: \<open>affine U\<close> bne)
@@ -903,9 +902,8 @@ proof -
       by (force simp: h [symmetric] image_comp o_def kh)
   qed (auto intro: continuous_on_subset hcon kcon simp: kh hk)
   also have "... homeomorphic T"
-    apply (rule homeomorphic_punctured_affine_sphere_affine)
-    using a him
-    by (auto simp: affS affdS \<open>affine T\<close> \<open>affine U\<close> \<open>z \<in> U\<close>)
+    by (rule homeomorphic_punctured_affine_sphere_affine)
+       (use a him in \<open>auto simp: affS affdS \<open>affine T\<close> \<open>affine U\<close> \<open>z \<in> U\<close>\<close>)
   finally show ?thesis .
 qed
 
