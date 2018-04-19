@@ -308,6 +308,20 @@ longer supported.
 been renamed to ISABELLE_TOOL_JAVA_OPTIONS and JEDIT_JAVA_OPTIONS,
 instead of former 32/64 variants. INCOMPATIBILITY.
 
+* Old settings ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM should be
+phased out due to unclear preference of 32bit vs. 64bit architecture.
+Explicit GNU bash expressions are now preferred, for example (with
+quotes):
+
+  #Posix executables (Unix or Cygwin), with preference for 64bit
+  "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
+
+  #native Windows or Unix executables, with preference for 64bit
+  "${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"
+
+  #native Windows (32bit) or Unix executables (preference for 64bit)
+  "${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}"
+
 * Command-line tool "isabelle build" supports new options:
   - option -B NAME: include session NAME and all descendants
   - option -S: only observe changes of sources, not heap images
