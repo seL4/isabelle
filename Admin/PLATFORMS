@@ -5,8 +5,8 @@ Preamble
 --------
 
 The general programming model is that of a stylized ML + Scala + POSIX
-environment, with as little system-specific code in user-space tools
-as possible.
+environment, with a minimum of system-specific code in user-space
+tools.
 
 The Isabelle system infrastructure provides some facilities to make
 this work, e.g. see the ML and Scala modules File and Path, or
@@ -19,8 +19,8 @@ Windows.
 When producing add-on tools, it is important to stay within this clean
 room of Isabelle, and refrain from non-portable access to operating
 system functions. The Isabelle environment uses peculiar scripts for
-GNU bash and perl to get the plumbing right. This style should be
-imitated as far as possible.
+GNU bash and perl as system glue: this style should be observed as far
+as possible.
 
 
 Supported platforms
@@ -36,6 +36,7 @@ too old nor too new):
   x86_64-darwin     Mac OS X 10.10 Yosemite (macbroy31 MacBookPro6,2)
                     Mac OS X 10.11 El Capitan (macbroy2 MacPro4,1)
                     macOS 10.12 Sierra (macbroy30 MacBookPro6,2)
+                    macOS 10.13 High Sierra
 
   x86_64-windows    Windows 7
   x86_64-cygwin     Cygwin 2.8 http://isabelle.in.tum.de/cygwin_2017 (x86_64/release)
@@ -43,7 +44,7 @@ too old nor too new):
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
 
-Fringe platforms like BSD or Solaris are not supported.
+Exotic platforms like BSD, Solaris, NixOS are not supported.
 
 
 64 bit vs. 32 bit platform personality
@@ -52,42 +53,41 @@ Fringe platforms like BSD or Solaris are not supported.
 Isabelle requires 64 bit hardware running a 64 bit operating
 system. Windows and Mac OS X allow x86 executables as well, but for
 Linux this requires separate installation of 32 bit shared
-libraries. The POSIX emulation on Windows via Cygwin64 is exclusively
-for x86_64.
+libraries. The POSIX emulation on Windows via Cygwin64 works
+exclusively for x86_64.
 
-ML works both for x86_64 and x86, and the latter is preferred for space
-and performance reasons. Java is always for x86_64 on all platforms.
+Poly/ML supports both for x86_64 and x86, and the latter is preferred
+for space and performance reasons. Java is always the x86_64 version
+on all platforms.
 
 Add-on executables are expected to work without manual user
 configuration. Each component settings script needs to determine the
 platform details appropriately.
 
 
-The Isabelle settings environment provides the following variables to
-help configuring platform-dependent tools:
+The Isabelle settings environment provides the following important
+variables to help configuring platform-dependent tools:
 
   ISABELLE_PLATFORM64  (potentially empty)
   ISABELLE_PLATFORM32  (potentially empty)
-  ISABELLE_PLATFORM
 
-The ISABELLE_PLATFORM setting variable prefers the 32 bit personality of
-the platform, if possible. Using regular bash notation, tools may
-express their preference for 64 bit with a fall-back for 32 bit as
-follows:
+Each can be empty, but not both at the same time. Using GNU bash
+notation, tools may express their platform preference, e.g. first 64
+bit and second 32 bit, or the opposite:
 
   "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
+  "${ISABELLE_PLATFORM32:-$ISABELLE_PLATFORM64}"
 
 
-There is a second set of settings for native Windows (instead of the
+There is a another set of settings for native Windows (instead of the
 POSIX emulation of Cygwin used before):
 
   ISABELLE_WINDOWS_PLATFORM64
   ISABELLE_WINDOWS_PLATFORM32
-  ISABELLE_WINDOWS_PLATFORM
 
-It can be used like this:
-
-  "${ISABELLE_WINDOWS_PLATFORM:-$ISABELLE_PLATFORM}"
+These are always empty on Linux and Mac OS X, and non-empty on
+Windows. They can be used like this to prefer native Windows and then
+Unix (first 64 bit second 32 bit):
 
   "${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"
 
@@ -97,13 +97,13 @@ Dependable system tools
 
 The following portable system tools can be taken for granted:
 
-* Scala on top of Java 8.  Isabelle/Scala irons out many oddities and
+* Scala on top of Java.  Isabelle/Scala irons out many oddities and
   portability issues of the Java platform.
 
-* GNU bash as uniform shell on all platforms. The POSIX "standard" shell
-  /bin/sh does *not* work -- there are too many non-standard
-  implementations of it. On Debian and Ubuntu /bin/sh is actually
-  /bin/dash and thus introduces many oddities.
+* GNU bash as uniform shell on all platforms. The POSIX "standard"
+  shell /bin/sh does *not* work portably -- there are too many
+  non-standard implementations of it. On Debian and Ubuntu /bin/sh is
+  actually /bin/dash and introduces many oddities.
 
 * Perl as largely portable system programming language, with its
   fairly robust support for processes, signals, sockets etc.
@@ -122,12 +122,6 @@ Known problems
   to take care of installing extra modules, e.g. for HTTP support.
   Such add-ons are usually included in Apple's /usr/bin/perl by
   default.
-
-* The Java runtime has its own idea about the underlying platform, which
-  affects Java native libraries in particular. In Isabelle/Scala the
-  function isabelle.Platform.jvm_platform identifies the JVM platform.
-  In the settings environment, ISABELLE_JAVA_PLATFORM provides the same
-  information without running the JVM.
 
 * Common Unix tools like /bin/sh, /bin/kill, sed, ulimit are
   notoriously non-portable an should be avoided.
