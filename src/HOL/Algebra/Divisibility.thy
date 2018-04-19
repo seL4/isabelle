@@ -2491,11 +2491,7 @@ proof -
   have "a' \<in> carrier G \<and> a' gcdof b c"
     apply (simp add: gcdof_greatestLower carr')
     apply (subst greatest_Lower_cong_l[of _ a])
-        apply (simp add: a'a)
-       apply (simp add: carr)
-      apply (simp add: carr)
-     apply (simp add: carr)
-    apply (simp add: gcdof_greatestLower[symmetric] agcd carr)
+        apply (simp_all add: a'a carr gcdof_greatestLower[symmetric] agcd)
     done
   then show ?thesis ..
 qed
