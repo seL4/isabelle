@@ -1325,6 +1325,13 @@ proof
     by (simp add: negligible_interval box_eq_empty algebra_simps divide_simps mult_le_0_iff)
 qed
 
+lemma negligible_convex_interior:
+   "convex S \<Longrightarrow> (negligible S \<longleftrightarrow> interior S = {})"
+  apply safe
+  apply (metis interior_subset negligible_subset open_interior open_not_negligible)
+   apply (metis Diff_empty closure_subset frontier_def negligible_convex_frontier negligible_subset)
+  done
+
 lemma measure_eq_0_null_sets: "S \<in> null_sets M \<Longrightarrow> measure M S = 0"
   by (auto simp: measure_def null_sets_def)
 

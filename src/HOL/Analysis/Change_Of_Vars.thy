@@ -1,3 +1,9 @@
+(*  Title:      HOL/Analysis/Change_Of_Vars.thy
+    Authors:    LC Paulson, based on material from HOL Light
+*)
+
+section\<open>Change of Variables Theorems\<close>
+
 theory Change_Of_Vars
   imports Vitali_Covering_Theorem Determinants
 

@@ -5291,4 +5291,16 @@ corollary path_connected_complement_homeomorphic_convex_compact:
   using connected_complement_homeomorphic_convex_compact [OF assms]
   using \<open>compact T\<close> compact_eq_bounded_closed connected_open_path_connected hom homeomorphic_compactness by blast
 
+lemma path_connected_complement_homeomorphic_interval:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S homeomorphic cbox a b" "2 \<le> DIM('a)"
+  shows "path_connected(-S)"
+  using assms compact_cbox convex_box(1) path_connected_complement_homeomorphic_convex_compact by blast
+
+lemma connected_complement_homeomorphic_interval:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S homeomorphic cbox a b" "2 \<le> DIM('a)"
+  shows "connected(-S)"
+  using assms path_connected_complement_homeomorphic_interval path_connected_imp_connected by blast
+
 end
