@@ -311,6 +311,9 @@ lemma these_not_empty_eq: "these B \<noteq> {} \<longleftrightarrow> B \<noteq> 
 
 end
 
+lemma finite_range_Some: "finite (range (Some :: 'a \<Rightarrow> 'a option)) = finite (UNIV :: 'a set)"
+  by (auto dest: finite_imageD intro: inj_Some)
+
 
 subsection \<open>Transfer rules for the Transfer package\<close>
 
