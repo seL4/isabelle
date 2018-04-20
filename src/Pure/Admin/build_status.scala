@@ -204,6 +204,7 @@ object Build_Status
       data_hosts.getOrElse(data_name, Set.empty)
 
     val store = Build_Log.store(options)
+
     using(store.open_database())(db =>
     {
       for (profile <- profiles.sortBy(_.description)) {
@@ -272,8 +273,10 @@ object Build_Status
 
             val ml_stats =
               ML_Statistics(
-                if (ml_statistics)
-                  Properties.uncompress(res.bytes(Build_Log.Data.ml_statistics))
+                if (ml_statistics) {
+                  Properties.uncompress(
+                    res.bytes(Build_Log.Data.ml_statistics), cache = store.xz_cache)
+                }
                 else Nil,
                 domain = ml_statistics_domain,
                 heading = session_name + print_version(isabelle_version, afp_version, chapter))
@@ -300,7 +303,9 @@ object Build_Status
                 average_heap = ml_stats.average_heap_size,
                 stored_heap = ML_Statistics.heap_scale(res.long(Build_Log.Data.heap_size)),
                 status = Build_Log.Session_Status.withName(res.string(Build_Log.Data.status)),
-                errors = Build_Log.uncompress_errors(res.bytes(Build_Log.Data.errors)))
+                errors =
+                  Build_Log.uncompress_errors(res.bytes(Build_Log.Data.errors),
+                    cache = store.xz_cache))
 
             val sessions = data_entries.getOrElse(data_name, Map.empty)
             val session =

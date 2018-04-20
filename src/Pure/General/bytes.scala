@@ -178,13 +178,13 @@ final class Bytes private(
 
   /* XZ data compression */
 
-  def uncompress(): Bytes =
-    using(new XZInputStream(stream()))(Bytes.read_stream(_, hint = length))
+  def uncompress(cache: XZ.Cache = XZ.cache()): Bytes =
+    using(new XZInputStream(stream(), cache))(Bytes.read_stream(_, hint = length))
 
-  def compress(options: XZ.Options = XZ.options()): Bytes =
+  def compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.cache()): Bytes =
   {
     val result = new ByteArrayOutputStream(length)
-    using(new XZOutputStream(result, options))(write_stream(_))
+    using(new XZOutputStream(result, options, cache))(write_stream(_))
     new Bytes(result.toByteArray, 0, result.size)
   }
 }
