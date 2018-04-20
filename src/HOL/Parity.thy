@@ -689,10 +689,10 @@ definition push_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
   where push_bit_eq_mult: "push_bit n a = a * 2 ^ n"
  
 definition take_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-  where take_bit_eq_mod: "take_bit n a = a mod of_nat (2 ^ n)"
+  where take_bit_eq_mod: "take_bit n a = a mod 2 ^ n"
 
 definition drop_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-  where drop_bit_eq_div: "drop_bit n a = a div of_nat (2 ^ n)"
+  where drop_bit_eq_div: "drop_bit n a = a div 2 ^ n"
 
 lemma bit_ident:
   "push_bit n (drop_bit n a) + take_bit n a = a"
@@ -807,6 +807,10 @@ lemma push_bit_numeral [simp]:
   "push_bit (numeral l) (numeral k) = push_bit (pred_numeral l) (numeral (Num.Bit0 k))"
   by (simp only: numeral_eq_Suc power_Suc numeral_Bit0 [of k] mult_2 [symmetric]) (simp add: ac_simps)
 
+lemma push_bit_of_nat:
+  "push_bit n (of_nat m) = of_nat (push_bit n m)"
+  by (simp add: push_bit_eq_mult Parity.push_bit_eq_mult)
+
 lemma take_bit_0 [simp]:
   "take_bit 0 a = 0"
   by (simp add: take_bit_eq_mod)
@@ -858,6 +862,10 @@ lemma take_bit_numeral_bit1 [simp]:
   by (simp only: numeral_eq_Suc power_Suc numeral_Bit1 [of k] mult_2 [symmetric] take_bit_Suc
     ac_simps even_add even_mult_iff div_mult_self1 [OF numeral_neq_zero]) (simp add: ac_simps)
 
+lemma take_bit_of_nat:
+  "take_bit n (of_nat m) = of_nat (take_bit n m)"
+  by (simp add: take_bit_eq_mod Parity.take_bit_eq_mod of_nat_mod [of m "2 ^ n"])
+
 lemma drop_bit_0 [simp]:
   "drop_bit 0 = id"
   by (simp add: fun_eq_iff drop_bit_eq_div)
@@ -906,6 +914,10 @@ lemma drop_bit_numeral_bit1 [simp]:
   "drop_bit (numeral l) (numeral (Num.Bit1 k)) = drop_bit (pred_numeral l) (numeral k)"
   by (simp only: numeral_eq_Suc power_Suc numeral_Bit1 [of k] mult_2 [symmetric] drop_bit_Suc
     div_mult_self4 [OF numeral_neq_zero]) simp
+
+lemma drop_bit_of_nat:
+  "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
+	by (simp add: drop_bit_eq_div Parity.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
 
 end
 

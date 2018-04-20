@@ -82,11 +82,15 @@ lemma [transfer_rule]:
   unfolding dvd_def by transfer_prover
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
+  "rel_fun (=) pcr_integer (of_bool :: bool \<Rightarrow> int) (of_bool :: bool \<Rightarrow> integer)"
+  by (unfold of_bool_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "rel_fun (=) pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
   by (rule transfer_rule_of_nat) transfer_prover+
 
 lemma [transfer_rule]:
-  "rel_fun HOL.eq pcr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
+  "rel_fun (=) pcr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
 proof -
   have "rel_fun HOL.eq pcr_integer (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> integer)"
     by (rule transfer_rule_of_int) transfer_prover+
@@ -100,6 +104,10 @@ lemma [transfer_rule]:
 lemma [transfer_rule]:
   "rel_fun HOL.eq (rel_fun HOL.eq pcr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"
   by (unfold Num.sub_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "rel_fun pcr_integer (rel_fun (=) pcr_integer) (power :: _ \<Rightarrow> _ \<Rightarrow> int) (power :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold power_def [abs_def]) transfer_prover
 
 lemma int_of_integer_of_nat [simp]:
   "int_of_integer (of_nat n) = of_nat n"
@@ -265,6 +273,18 @@ lemma [code]:
 instance integer :: ring_parity
   by (standard; transfer) (simp_all add: of_nat_div division_segment_int_def)
 
+lemma [transfer_rule]:
+  "rel_fun (=) (rel_fun pcr_integer pcr_integer) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold push_bit_eq_mult [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "rel_fun (=) (rel_fun pcr_integer pcr_integer) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold take_bit_eq_mod [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "rel_fun (=) (rel_fun pcr_integer pcr_integer) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> int) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold drop_bit_eq_div [abs_def]) transfer_prover
+
 instantiation integer :: unique_euclidean_semiring_numeral
 begin
 
@@ -312,6 +332,7 @@ by transfer simp
 lemma integer_of_nat_numeral:
   "integer_of_nat (numeral n) = numeral n"
 by transfer simp
+
 
 subsection \<open>Code theorems for target language integers\<close>
 
@@ -777,6 +798,10 @@ lemma [transfer_rule]:
   unfolding dvd_def by transfer_prover
 
 lemma [transfer_rule]:
+  "rel_fun (=) pcr_natural (of_bool :: bool \<Rightarrow> nat) (of_bool :: bool \<Rightarrow> natural)"
+  by (unfold of_bool_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_natural (\<lambda>n::nat. n) (of_nat :: nat \<Rightarrow> natural)"
 proof -
   have "rel_fun HOL.eq pcr_natural (of_nat :: nat \<Rightarrow> nat) (of_nat :: nat \<Rightarrow> natural)"
@@ -791,6 +816,10 @@ proof -
     by transfer_prover
   then show ?thesis by simp
 qed
+
+lemma [transfer_rule]:
+  "rel_fun pcr_natural (rel_fun (=) pcr_natural) (power :: _ \<Rightarrow> _ \<Rightarrow> nat) (power :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  by (unfold power_def [abs_def]) transfer_prover
 
 lemma nat_of_natural_of_nat [simp]:
   "nat_of_natural (of_nat n) = n"
@@ -894,6 +923,18 @@ instance natural :: linordered_semidom
 
 instance natural :: semiring_parity
   by (standard; transfer) simp_all
+
+lemma [transfer_rule]:
+  "rel_fun (=) (rel_fun pcr_natural pcr_natural) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (push_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  by (unfold push_bit_eq_mult [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "rel_fun (=) (rel_fun pcr_natural pcr_natural) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (take_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  by (unfold take_bit_eq_mod [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "rel_fun (=) (rel_fun pcr_natural pcr_natural) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> nat) (drop_bit :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  by (unfold drop_bit_eq_div [abs_def]) transfer_prover
 
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"
