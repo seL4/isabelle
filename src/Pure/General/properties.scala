@@ -46,17 +46,25 @@ object Properties
     }
   }
 
-  def compress(ps: List[T], options: XZ.Options = XZ.options()): Bytes =
+  def compress(ps: List[T],
+    options: XZ.Options = XZ.options(),
+    cache: XZ.Cache = XZ.cache()): Bytes =
   {
     if (ps.isEmpty) Bytes.empty
-    else Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).compress(options)
+    else {
+      Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.properties)(ps))).
+        compress(options = options, cache = cache)
+    }
   }
 
-  def uncompress(bs: Bytes, xml_cache: Option[XML.Cache] = None): List[T] =
+  def uncompress(bs: Bytes,
+    cache: XZ.Cache = XZ.cache(),
+    xml_cache: Option[XML.Cache] = None): List[T] =
   {
     if (bs.isEmpty) Nil
     else {
-      val ps = XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress().text))
+      val ps =
+        XML.Decode.list(XML.Decode.properties)(YXML.parse_body(bs.uncompress(cache = cache).text))
       xml_cache match {
         case None => ps
         case Some(cache) => ps.map(cache.props(_))
