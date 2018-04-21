@@ -88,23 +88,23 @@ fun del :: "'a::linorder \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) up\
 "del x (Node2 l ab1 r) = (case cmp x (fst ab1) of
   LT \<Rightarrow> node21 (del x l) ab1 r |
   GT \<Rightarrow> node22 l ab1 (del x r) |
-  EQ \<Rightarrow> let (ab1',t) = del_min r in node22 l ab1' t)" |
+  EQ \<Rightarrow> let (ab1',t) = split_min r in node22 l ab1' t)" |
 "del x (Node3 l ab1 m ab2 r) = (case cmp x (fst ab1) of
   LT \<Rightarrow> node31 (del x l) ab1 m ab2 r |
-  EQ \<Rightarrow> let (ab1',m') = del_min m in node32 l ab1' m' ab2 r |
+  EQ \<Rightarrow> let (ab1',m') = split_min m in node32 l ab1' m' ab2 r |
   GT \<Rightarrow> (case cmp x (fst ab2) of
            LT \<Rightarrow> node32 l ab1 (del x m) ab2 r |
-           EQ \<Rightarrow> let (ab2',r') = del_min r in node33 l ab1 m ab2' r' |
+           EQ \<Rightarrow> let (ab2',r') = split_min r in node33 l ab1 m ab2' r' |
            GT \<Rightarrow> node33 l ab1 m ab2 (del x r)))" |
 "del x (Node4 t1 ab1 t2 ab2 t3 ab3 t4) = (case cmp x (fst ab2) of
   LT \<Rightarrow> (case cmp x (fst ab1) of
            LT \<Rightarrow> node41 (del x t1) ab1 t2 ab2 t3 ab3 t4 |
-           EQ \<Rightarrow> let (ab',t2') = del_min t2 in node42 t1 ab' t2' ab2 t3 ab3 t4 |
+           EQ \<Rightarrow> let (ab',t2') = split_min t2 in node42 t1 ab' t2' ab2 t3 ab3 t4 |
            GT \<Rightarrow> node42 t1 ab1 (del x t2) ab2 t3 ab3 t4) |
-  EQ \<Rightarrow> let (ab',t3') = del_min t3 in node43 t1 ab1 t2 ab' t3' ab3 t4 |
+  EQ \<Rightarrow> let (ab',t3') = split_min t3 in node43 t1 ab1 t2 ab' t3' ab3 t4 |
   GT \<Rightarrow> (case cmp x (fst ab3) of
           LT \<Rightarrow> node43 t1 ab1 t2 ab2 (del x t3) ab3 t4 |
-          EQ \<Rightarrow> let (ab',t4') = del_min t4 in node44 t1 ab1 t2 ab2 t3 ab' t4' |
+          EQ \<Rightarrow> let (ab',t4') = split_min t4 in node44 t1 ab1 t2 ab2 t3 ab' t4' |
           GT \<Rightarrow> node44 t1 ab1 t2 ab2 t3 ab3 (del x t4)))"
 
 definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree234 \<Rightarrow> ('a*'b) tree234" where
@@ -130,7 +130,7 @@ by(simp add: update_def inorder_upd)
 lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD split!: if_splits prod.splits)
+  (auto simp: del_list_simps inorder_nodes split_minD split!: if_splits prod.splits)
 (* 30 secs (2016) *)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
@@ -148,11 +148,11 @@ by (simp add: update_def bal_upd)
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp add: heights height_del_min split!: if_split prod.split)
+  (auto simp add: heights height_split_min split!: if_split prod.split)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min split!: if_split prod.split)
+  (auto simp: bals bal_split_min height_del height_split_min split!: if_split prod.split)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)

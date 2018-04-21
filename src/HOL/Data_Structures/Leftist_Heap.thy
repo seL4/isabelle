@@ -67,9 +67,9 @@ hide_const (open) insert
 definition insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "insert x t = merge (Node 1 Leaf x Leaf) t"
 
-fun del_min :: "'a::ord lheap \<Rightarrow> 'a lheap" where
-"del_min Leaf = Leaf" |
-"del_min (Node n l x r) = merge l r"
+fun split_min :: "'a::ord lheap \<Rightarrow> 'a lheap" where
+"split_min Leaf = Leaf" |
+"split_min (Node n l x r) = merge l r"
 
 
 subsection "Lemmas"
@@ -99,7 +99,7 @@ by (auto simp add: insert_def mset_merge)
 lemma get_min: "\<lbrakk> heap h;  h \<noteq> Leaf \<rbrakk> \<Longrightarrow> get_min h = Min_mset (mset_tree h)"
 by (induction h) (auto simp add: eq_Min_iff)
 
-lemma mset_del_min: "mset_tree (del_min h) = mset_tree h - {# get_min h #}"
+lemma mset_split_min: "mset_tree (split_min h) = mset_tree h - {# get_min h #}"
 by (cases h) (auto simp: mset_merge)
 
 lemma ltree_merge: "\<lbrakk> ltree l; ltree r \<rbrakk> \<Longrightarrow> ltree (merge l r)"
@@ -130,10 +130,10 @@ by(simp add: insert_def ltree_merge del: merge.simps split: tree.split)
 lemma heap_insert: "heap t \<Longrightarrow> heap(insert x t)"
 by(simp add: insert_def heap_merge del: merge.simps split: tree.split)
 
-lemma ltree_del_min: "ltree t \<Longrightarrow> ltree(del_min t)"
+lemma ltree_split_min: "ltree t \<Longrightarrow> ltree(split_min t)"
 by(cases t)(auto simp add: ltree_merge simp del: merge.simps)
 
-lemma heap_del_min: "heap t \<Longrightarrow> heap(del_min t)"
+lemma heap_split_min: "heap t \<Longrightarrow> heap(split_min t)"
 by(cases t)(auto simp add: heap_merge simp del: merge.simps)
 
 text \<open>Last step of functional correctness proof: combine all the above lemmas
@@ -141,7 +141,7 @@ to show that leftist heaps satisfy the specification of priority queues with mer
 
 interpretation lheap: Priority_Queue_Merge
 where empty = Leaf and is_empty = "\<lambda>h. h = Leaf"
-and insert = insert and del_min = del_min
+and insert = insert and split_min = split_min
 and get_min = get_min and merge = merge
 and invar = "\<lambda>h. heap h \<and> ltree h" and mset = mset_tree
 proof(standard, goal_cases)
@@ -151,7 +151,7 @@ next
 next
   case 3 show ?case by(rule mset_insert)
 next
-  case 4 show ?case by(rule mset_del_min)
+  case 4 show ?case by(rule mset_split_min)
 next
   case 5 thus ?case by(simp add: get_min mset_tree_empty)
 next
@@ -159,7 +159,7 @@ next
 next
   case 7 thus ?case by(simp add: heap_insert ltree_insert)
 next
-  case 8 thus ?case by(simp add: heap_del_min ltree_del_min)
+  case 8 thus ?case by(simp add: heap_split_min ltree_split_min)
 next
   case 9 thus ?case by (simp add: mset_merge)
 next
@@ -196,9 +196,9 @@ fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_insert x t = t_merge (Node 1 Leaf x Leaf) t"
 
-fun t_del_min :: "'a::ord lheap \<Rightarrow> nat" where
-"t_del_min Leaf = 1" |
-"t_del_min (Node n l a r) = t_merge l r"
+fun t_split_min :: "'a::ord lheap \<Rightarrow> nat" where
+"t_split_min Leaf = 1" |
+"t_split_min (Node n l a r) = t_merge l r"
 
 lemma t_merge_rank: "t_merge l r \<le> rank l + rank r + 1"
 proof(induction l r rule: merge.induct)
@@ -229,13 +229,13 @@ proof -
   finally show ?thesis by simp
 qed
 
-corollary t_del_min_log: assumes "ltree t"
-  shows "t_del_min t \<le> 2 * log 2 (size1 t) + 1"
+corollary t_split_min_log: assumes "ltree t"
+  shows "t_split_min t \<le> 2 * log 2 (size1 t) + 1"
 proof(cases t)
   case Leaf thus ?thesis using assms by simp
 next
   case [simp]: (Node _ t1 _ t2)
-  have "t_del_min t = t_merge t1 t2" by simp
+  have "t_split_min t = t_merge t1 t2" by simp
   also have "\<dots> \<le> log 2 (size1 t1) + log 2 (size1 t2) + 1"
     using \<open>ltree t\<close> by (auto simp: t_merge_log simp del: t_merge.simps)
   also have "\<dots> \<le> 2 * log 2 (size1 t) + 1"

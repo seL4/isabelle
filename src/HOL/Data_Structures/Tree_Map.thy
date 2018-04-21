@@ -25,7 +25,7 @@ fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tre
 "delete x (Node l (a,b) r) = (case cmp x a of
   LT \<Rightarrow> Node (delete x l) (a,b) r |
   GT \<Rightarrow> Node l (a,b) (delete x r) |
-  EQ \<Rightarrow> if r = Leaf then l else let (ab',r') = del_min r in Node l ab' r')"
+  EQ \<Rightarrow> if r = Leaf then l else let (ab',r') = split_min r in Node l ab' r')"
 
 
 subsection "Functional Correctness Proofs"
@@ -40,7 +40,7 @@ by(induction t) (auto simp: upd_list_simps)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
-by(induction t) (auto simp: del_list_simps del_minD split: prod.splits)
+by(induction t) (auto simp: del_list_simps split_minD split: prod.splits)
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete

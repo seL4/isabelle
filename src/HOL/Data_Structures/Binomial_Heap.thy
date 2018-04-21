@@ -353,18 +353,18 @@ lemma invar_oheap_get_min_rest:
 using assms
 by (induction ts arbitrary: t' ts' rule: get_min.induct) (auto split: prod.splits if_splits)
 
-subsubsection \<open>\<open>del_min\<close>\<close>
+subsubsection \<open>\<open>split_min\<close>\<close>
 
-definition del_min :: "'a::linorder heap \<Rightarrow> 'a::linorder heap" where
-"del_min ts = (case get_min_rest ts of
+definition split_min :: "'a::linorder heap \<Rightarrow> 'a::linorder heap" where
+"split_min ts = (case get_min_rest ts of
    (Node r x ts\<^sub>1, ts\<^sub>2) \<Rightarrow> merge (rev ts\<^sub>1) ts\<^sub>2)"
 
-lemma invar_del_min[simp]:
+lemma invar_split_min[simp]:
   assumes "ts \<noteq> []"
   assumes "invar ts"
-  shows "invar (del_min ts)"
+  shows "invar (split_min ts)"
 using assms
-unfolding invar_def del_min_def
+unfolding invar_def split_min_def
 by (auto
       split: prod.split tree.split
       intro!: invar_bheap_merge invar_oheap_merge
@@ -372,11 +372,11 @@ by (auto
       intro!: invar_oheap_children invar_bheap_children
     )
 
-lemma mset_heap_del_min:
+lemma mset_heap_split_min:
   assumes "ts \<noteq> []"
-  shows "mset_heap ts = mset_heap (del_min ts) + {# get_min ts #}"
+  shows "mset_heap ts = mset_heap (split_min ts) + {# get_min ts #}"
 using assms
-unfolding del_min_def
+unfolding split_min_def
 apply (clarsimp split: tree.split prod.split)
 apply (frule (1) get_min_rest_get_min_same_root)
 apply (frule (1) mset_get_min_rest)
@@ -391,7 +391,7 @@ to show that binomial heaps satisfy the specification of priority queues with me
 
 interpretation binheap: Priority_Queue_Merge
   where empty = "[]" and is_empty = "(=) []" and insert = insert
-  and get_min = get_min and del_min = del_min and merge = merge
+  and get_min = get_min and split_min = split_min and merge = merge
   and invar = invar and mset = mset_heap
 proof (unfold_locales, goal_cases)
   case 1 thus ?case by simp
@@ -401,7 +401,7 @@ next
   case 3 thus ?case by auto
 next
   case (4 q)
-  thus ?case using mset_heap_del_min[of q] get_min[OF _ \<open>invar q\<close>]
+  thus ?case using mset_heap_split_min[of q] get_min[OF _ \<open>invar q\<close>]
     by (auto simp: union_single_eq_diff)
 next
   case (5 q) thus ?case using get_min[of q] by auto
@@ -603,7 +603,7 @@ proof -
   finally show ?thesis by auto
 qed
 
-subsubsection \<open>\<open>t_del_min\<close>\<close>
+subsubsection \<open>\<open>t_split_min\<close>\<close>
 
 fun t_get_min_rest :: "'a::linorder heap \<Rightarrow> nat" where
   "t_get_min_rest [t] = 1"
@@ -639,8 +639,8 @@ Thus the following definition is justified:\<close>
 
 definition "t_rev xs = length xs + 1"
 
-definition t_del_min :: "'a::linorder heap \<Rightarrow> nat" where
-  "t_del_min ts = t_get_min_rest ts + (case get_min_rest ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
+definition t_split_min :: "'a::linorder heap \<Rightarrow> nat" where
+  "t_split_min ts = t_get_min_rest ts + (case get_min_rest ts of (Node _ x ts\<^sub>1, ts\<^sub>2)
                     \<Rightarrow> t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2
   )"
 
@@ -661,12 +661,12 @@ proof -
   finally show ?thesis by (auto simp: algebra_simps)
 qed
 
-lemma t_del_min_bound_aux:
+lemma t_split_min_bound_aux:
   fixes ts
   defines "n \<equiv> size (mset_heap ts)"
   assumes BINVAR: "invar_bheap ts"
   assumes "ts\<noteq>[]"
-  shows "t_del_min ts \<le> 6 * log 2 (n+1) + 3"
+  shows "t_split_min ts \<le> 6 * log 2 (n+1) + 3"
 proof -
   obtain r x ts\<^sub>1 ts\<^sub>2 where GM: "get_min_rest ts = (Node r x ts\<^sub>1, ts\<^sub>2)"
     by (metis surj_pair tree.exhaust_sel)
@@ -687,8 +687,8 @@ proof -
     finally show ?thesis by (auto simp: algebra_simps)
   qed
 
-  have "t_del_min ts = t_get_min_rest ts + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
-    unfolding t_del_min_def by (simp add: GM)
+  have "t_split_min ts = t_get_min_rest ts + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
+    unfolding t_split_min_def by (simp add: GM)
   also have "\<dots> \<le> log 2 (n+1) + t_rev ts\<^sub>1 + t_merge (rev ts\<^sub>1) ts\<^sub>2"
     using t_get_min_rest_bound_aux[OF assms(2-)] by (auto simp: n_def)
   also have "\<dots> \<le> 2*log 2 (n+1) + t_merge (rev ts\<^sub>1) ts\<^sub>2 + 1"
@@ -700,17 +700,17 @@ proof -
     unfolding n\<^sub>1_def n\<^sub>2_def n_def
     using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
     by (auto simp: mset_heap_def)
-  finally have "t_del_min ts \<le> 6 * log 2 (n+1) + 3"
+  finally have "t_split_min ts \<le> 6 * log 2 (n+1) + 3"
     by auto
   thus ?thesis by (simp add: algebra_simps)
 qed
 
-lemma t_del_min_bound:
+lemma t_split_min_bound:
   fixes ts
   defines "n \<equiv> size (mset_heap ts)"
   assumes "invar ts"
   assumes "ts\<noteq>[]"
-  shows "t_del_min ts \<le> 6 * log 2 (n+1) + 3"
-using assms t_del_min_bound_aux unfolding invar_def by blast
+  shows "t_split_min ts \<le> 6 * log 2 (n+1) + 3"
+using assms t_split_min_bound_aux unfolding invar_def by blast
 
 end
