@@ -1449,195 +1449,135 @@ subsubsection%unimportant \<open>Some explicit formulations (from Lars Schewe)\<
 lemma affine:
   fixes V::"'a::real_vector set"
   shows "affine V \<longleftrightarrow>
-    (\<forall>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> V \<and> sum u s = 1 \<longrightarrow> (sum (\<lambda>x. (u x) *\<^sub>R x)) s \<in> V)"
-  unfolding affine_def
-  apply rule
-  apply(rule, rule, rule)
-  apply(erule conjE)+
-  defer
-  apply (rule, rule, rule, rule, rule)
+         (\<forall>S u. finite S \<and> S \<noteq> {} \<and> S \<subseteq> V \<and> sum u S = 1 \<longrightarrow> (\<Sum>x\<in>S. u x *\<^sub>R x) \<in> V)"
 proof -
-  fix x y u v
-  assume as: "x \<in> V" "y \<in> V" "u + v = (1::real)"
-    "\<forall>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> V \<and> sum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
-  then show "u *\<^sub>R x + v *\<^sub>R y \<in> V"
-    apply (cases "x = y")
-    using as(4)[THEN spec[where x="{x,y}"], THEN spec[where x="\<lambda>w. if w = x then u else v"]]
-      and as(1-3)
-    apply (auto simp add: scaleR_left_distrib[symmetric])
-    done
-next
-  fix s u
-  assume as: "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
-    "finite s" "s \<noteq> {}" "s \<subseteq> V" "sum u s = (1::real)"
-  define n where "n = card s"
-  have "card s = 0 \<or> card s = 1 \<or> card s = 2 \<or> card s > 2" by auto
-  then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
-  proof (auto simp only: disjE)
-    assume "card s = 2"
-    then have "card s = Suc (Suc 0)"
-      by auto
-    then obtain a b where "s = {a, b}"
-      unfolding card_Suc_eq by auto
+  have "u *\<^sub>R x + v *\<^sub>R y \<in> V" if "x \<in> V" "y \<in> V" "u + v = (1::real)"
+    and *: "\<And>S u. \<lbrakk>finite S; S \<noteq> {}; S \<subseteq> V; sum u S = 1\<rbrakk> \<Longrightarrow> (\<Sum>x\<in>S. u x *\<^sub>R x) \<in> V" for x y u v
+  proof (cases "x = y")
+    case True
     then show ?thesis
-      using as(1)[THEN bspec[where x=a], THEN bspec[where x=b]] using as(4,5)
-      by (auto simp add: sum_clauses(2))
+      using that by (metis scaleR_add_left scaleR_one)
   next
-    assume "card s > 2"
-    then show ?thesis using as and n_def
-    proof (induct n arbitrary: u s)
-      case 0
-      then show ?case by auto
+    case False
+    then show ?thesis
+      using that *[of "{x,y}" "\<lambda>w. if w = x then u else v"] by auto
+  qed
+  moreover have "(\<Sum>x\<in>S. u x *\<^sub>R x) \<in> V"
+                if *: "\<And>x y u v. \<lbrakk>x\<in>V; y\<in>V; u + v = 1\<rbrakk> \<Longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
+                  and "finite S" "S \<noteq> {}" "S \<subseteq> V" "sum u S = 1" for S u
+  proof -
+    define n where "n = card S"
+    consider "card S = 0" | "card S = 1" | "card S = 2" | "card S > 2" by linarith
+    then show "(\<Sum>x\<in>S. u x *\<^sub>R x) \<in> V"
+    proof cases
+      assume "card S = 1"
+      then obtain a where "S={a}"
+        by (auto simp add: card_Suc_eq)
+      then show ?thesis
+        using that by simp
     next
-      case (Suc n)
-      fix s :: "'a set" and u :: "'a \<Rightarrow> real"
-      assume IA:
-        "\<And>u s.  \<lbrakk>2 < card s; \<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V; finite s;
-          s \<noteq> {}; s \<subseteq> V; sum u s = 1; n = card s \<rbrakk> \<Longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
-        and as:
-          "Suc n = card s" "2 < card s" "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
-           "finite s" "s \<noteq> {}" "s \<subseteq> V" "sum u s = 1"
-      have "\<exists>x\<in>s. u x \<noteq> 1"
-      proof (rule ccontr)
-        assume "\<not> ?thesis"
-        then have "sum u s = real_of_nat (card s)"
-          unfolding card_eq_sum by auto
-        then show False
-          using as(7) and \<open>card s > 2\<close>
-          by (metis One_nat_def less_Suc0 Zero_not_Suc of_nat_1 of_nat_eq_iff numeral_2_eq_2)
-      qed
-      then obtain x where x:"x \<in> s" "u x \<noteq> 1" by auto
-
-      have c: "card (s - {x}) = card s - 1"
-        apply (rule card_Diff_singleton)
-        using \<open>x\<in>s\<close> as(4)
-        apply auto
-        done
-      have *: "s = insert x (s - {x})" "finite (s - {x})"
-        using \<open>x\<in>s\<close> and as(4) by auto
-      have **: "sum u (s - {x}) = 1 - u x"
-        using sum_clauses(2)[OF *(2), of u x, unfolded *(1)[symmetric] as(7)] by auto
-      have ***: "inverse (1 - u x) * sum u (s - {x}) = 1"
-        unfolding ** using \<open>u x \<noteq> 1\<close> by auto
-      have "(\<Sum>xa\<in>s - {x}. (inverse (1 - u x) * u xa) *\<^sub>R xa) \<in> V"
-      proof (cases "card (s - {x}) > 2")
-        case True
-        then have "s - {x} \<noteq> {}" "card (s - {x}) = n"
-          unfolding c and as(1)[symmetric]
-        proof (rule_tac ccontr)
-          assume "\<not> s - {x} \<noteq> {}"
-          then have "card (s - {x}) = 0" unfolding card_0_eq[OF *(2)] by simp
-          then show False using True by auto
-        qed auto
-        then show ?thesis
-          apply (rule_tac IA[of "s - {x}" "\<lambda>y. (inverse (1 - u x) * u y)"])
-          unfolding sum_distrib_left[symmetric]
-          using as and *** and True
-          apply auto
-          done
+      assume "card S = 2"
+      then obtain a b where "S = {a, b}"
+        by (metis Suc_1 card_1_singletonE card_Suc_eq)
+      then show ?thesis
+        using *[of a b] that
+        by (auto simp add: sum_clauses(2))
+    next
+      assume "card S > 2"
+      then show ?thesis using that n_def
+      proof (induct n arbitrary: u S)
+        case 0
+        then show ?case by auto
       next
-        case False
-        then have "card (s - {x}) = Suc (Suc 0)"
-          using as(2) and c by auto
-        then obtain a b where "(s - {x}) = {a, b}" "a\<noteq>b"
-          unfolding card_Suc_eq by auto
-        then show ?thesis
-          using as(3)[THEN bspec[where x=a], THEN bspec[where x=b]]
-          using *** *(2) and \<open>s \<subseteq> V\<close>
-          unfolding sum_distrib_left
-          by (auto simp add: sum_clauses(2))
+        case (Suc n u S)
+        have "sum u S = card S" if "\<not> (\<exists>x\<in>S. u x \<noteq> 1)"
+          using that unfolding card_eq_sum by auto
+        with Suc.prems obtain x where "x \<in> S" and x: "u x \<noteq> 1" by force
+        have c: "card (S - {x}) = card S - 1"
+          by (simp add: Suc.prems(3) \<open>x \<in> S\<close>)
+        have "sum u (S - {x}) = 1 - u x"
+          by (simp add: Suc.prems sum_diff1_ring \<open>x \<in> S\<close>)
+        with x have eq1: "inverse (1 - u x) * sum u (S - {x}) = 1"
+          by auto
+        have inV: "(\<Sum>y\<in>S - {x}. (inverse (1 - u x) * u y) *\<^sub>R y) \<in> V"
+        proof (cases "card (S - {x}) > 2")
+          case True
+          then have S: "S - {x} \<noteq> {}" "card (S - {x}) = n"
+            using Suc.prems c by force+
+          show ?thesis
+          proof (rule Suc.hyps)
+            show "(\<Sum>a\<in>S - {x}. inverse (1 - u x) * u a) = 1"
+              by (auto simp: eq1 sum_distrib_left[symmetric])
+          qed (use S Suc.prems True in auto)
+        next
+          case False
+          then have "card (S - {x}) = Suc (Suc 0)"
+            using Suc.prems c by auto
+          then obtain a b where ab: "(S - {x}) = {a, b}" "a\<noteq>b"
+            unfolding card_Suc_eq by auto
+          then show ?thesis
+            using eq1 \<open>S \<subseteq> V\<close>
+            by (auto simp add: sum_distrib_left distrib_left intro!: Suc.prems(2)[of a b])
+        qed
+        have "u x + (1 - u x) = 1 \<Longrightarrow>
+          u x *\<^sub>R x + (1 - u x) *\<^sub>R ((\<Sum>y\<in>S - {x}. u y *\<^sub>R y) /\<^sub>R (1 - u x)) \<in> V"
+          by (rule Suc.prems) (use \<open>x \<in> S\<close> Suc.prems inV in \<open>auto simp: scaleR_right.sum\<close>)
+        moreover have "(\<Sum>a\<in>S. u a *\<^sub>R a) = u x *\<^sub>R x + (\<Sum>a\<in>S - {x}. u a *\<^sub>R a)"
+          by (meson Suc.prems(3) sum.remove \<open>x \<in> S\<close>)
+        ultimately show "(\<Sum>x\<in>S. u x *\<^sub>R x) \<in> V"
+          by (simp add: x)
       qed
-      then have "u x + (1 - u x) = 1 \<Longrightarrow>
-          u x *\<^sub>R x + (1 - u x) *\<^sub>R ((\<Sum>xa\<in>s - {x}. u xa *\<^sub>R xa) /\<^sub>R (1 - u x)) \<in> V"
-        apply -
-        apply (rule as(3)[rule_format])
-        unfolding  Real_Vector_Spaces.scaleR_right.sum
-        using x(1) as(6)
-        apply auto
-        done
-      then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
-        unfolding scaleR_scaleR[symmetric] and scaleR_right.sum [symmetric]
-        apply (subst *)
-        unfolding sum_clauses(2)[OF *(2)]
-        using \<open>u x \<noteq> 1\<close>
-        apply auto
-        done
-    qed
-  next
-    assume "card s = 1"
-    then obtain a where "s={a}"
-      by (auto simp add: card_Suc_eq)
-    then show ?thesis
-      using as(4,5) by simp
-  qed (insert \<open>s\<noteq>{}\<close> \<open>finite s\<close>, auto)
+    qed (use \<open>S\<noteq>{}\<close> \<open>finite S\<close> in auto)
+  qed
+  ultimately show ?thesis
+    unfolding affine_def by meson
 qed
 
+
 lemma affine_hull_explicit:
-  "affine hull p =
-    {y. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> sum u s = 1 \<and> sum (\<lambda>v. (u v) *\<^sub>R v) s = y}"
-  apply (rule hull_unique)
-  apply (subst subset_eq)
-  prefer 3
-  apply rule
-  unfolding mem_Collect_eq
-  apply (erule exE)+
-  apply (erule conjE)+
-  prefer 2
-  apply rule
-proof -
-  fix x
-  assume "x\<in>p"
-  then show "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> sum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
-    apply (rule_tac x="{x}" in exI)
-    apply (rule_tac x="\<lambda>x. 1" in exI)
-    apply auto
-    done
-next
-  fix t x s u
-  assume as: "p \<subseteq> t" "affine t" "finite s" "s \<noteq> {}"
-    "s \<subseteq> p" "sum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
-  then show "x \<in> t"
-    using as(2)[unfolded affine, THEN spec[where x=s], THEN spec[where x=u]]
-    by auto
-next
-  show "affine {y. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> sum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y}"
-    unfolding affine_def
-    apply (rule, rule, rule, rule, rule)
-    unfolding mem_Collect_eq
-  proof -
-    fix u v :: real
-    assume uv: "u + v = 1"
-    fix x
-    assume "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> sum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
-    then obtain sx ux where
-      x: "finite sx" "sx \<noteq> {}" "sx \<subseteq> p" "sum ux sx = 1" "(\<Sum>v\<in>sx. ux v *\<^sub>R v) = x"
+  "affine hull p = {y. \<exists>S u. finite S \<and> S \<noteq> {} \<and> S \<subseteq> p \<and> sum u S = 1 \<and> sum (\<lambda>v. u v *\<^sub>R v) S = y}"
+  (is "_ = ?rhs")
+proof (rule hull_unique)
+  show "p \<subseteq> ?rhs"
+  proof (intro subsetI CollectI exI conjI)
+    show "\<And>x. sum (\<lambda>z. 1) {x} = 1"
       by auto
-    fix y
-    assume "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> sum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
-    then obtain sy uy where
-      y: "finite sy" "sy \<noteq> {}" "sy \<subseteq> p" "sum uy sy = 1" "(\<Sum>v\<in>sy. uy v *\<^sub>R v) = y" by auto
-    have xy: "finite (sx \<union> sy)"
-      using x(1) y(1) by auto
+  qed auto
+  show "?rhs \<subseteq> T" if "p \<subseteq> T" "affine T" for T
+    using that unfolding affine by blast
+  show "affine ?rhs"
+    unfolding affine_def
+  proof clarify
+    fix u v :: real and sx ux sy uy
+    assume uv: "u + v = 1"
+      and x: "finite sx" "sx \<noteq> {}" "sx \<subseteq> p" "sum ux sx = (1::real)"
+      and y: "finite sy" "sy \<noteq> {}" "sy \<subseteq> p" "sum uy sy = (1::real)" 
     have **: "(sx \<union> sy) \<inter> sx = sx" "(sx \<union> sy) \<inter> sy = sy"
       by auto
-    show "\<exists>s ua. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and>
-        sum ua s = 1 \<and> (\<Sum>v\<in>s. ua v *\<^sub>R v) = u *\<^sub>R x + v *\<^sub>R y"
-      apply (rule_tac x="sx \<union> sy" in exI)
-      apply (rule_tac x="\<lambda>a. (if a\<in>sx then u * ux a else 0) + (if a\<in>sy then v * uy a else 0)" in exI)
-      unfolding scaleR_left_distrib sum.distrib if_smult scaleR_zero_left
-        ** sum.inter_restrict[OF xy, symmetric]
-      unfolding scaleR_scaleR[symmetric] Real_Vector_Spaces.scaleR_right.sum [symmetric]
-        and sum_distrib_left[symmetric]
-      unfolding x y
-      using x(1-3) y(1-3) uv
-      apply simp
-      done
+    show "\<exists>S w. finite S \<and> S \<noteq> {} \<and> S \<subseteq> p \<and>
+        sum w S = 1 \<and> (\<Sum>v\<in>S. w v *\<^sub>R v) = u *\<^sub>R (\<Sum>v\<in>sx. ux v *\<^sub>R v) + v *\<^sub>R (\<Sum>v\<in>sy. uy v *\<^sub>R v)"
+    proof (intro exI conjI)
+      show "finite (sx \<union> sy)"
+        using x y by auto
+      show "sum (\<lambda>i. (if i\<in>sx then u * ux i else 0) + (if i\<in>sy then v * uy i else 0)) (sx \<union> sy) = 1"
+        using x y uv
+        by (simp add: sum_Un sum.distrib sum.inter_restrict[symmetric] sum_distrib_left [symmetric] **)
+      have "(\<Sum>i\<in>sx \<union> sy. ((if i \<in> sx then u * ux i else 0) + (if i \<in> sy then v * uy i else 0)) *\<^sub>R i)
+          = (\<Sum>i\<in>sx. (u * ux i) *\<^sub>R i) + (\<Sum>i\<in>sy. (v * uy i) *\<^sub>R i)"
+        using x y
+        unfolding scaleR_left_distrib scaleR_zero_left if_smult
+        by (simp add: sum_Un sum.distrib sum.inter_restrict[symmetric]  **)
+      also have "... = u *\<^sub>R (\<Sum>v\<in>sx. ux v *\<^sub>R v) + v *\<^sub>R (\<Sum>v\<in>sy. uy v *\<^sub>R v)"
+        unfolding scaleR_scaleR[symmetric] scaleR_right.sum [symmetric] by blast
+      finally show "(\<Sum>i\<in>sx \<union> sy. ((if i \<in> sx then u * ux i else 0) + (if i \<in> sy then v * uy i else 0)) *\<^sub>R i) 
+                  = u *\<^sub>R (\<Sum>v\<in>sx. ux v *\<^sub>R v) + v *\<^sub>R (\<Sum>v\<in>sy. uy v *\<^sub>R v)" .
+    qed (use x y in auto)
   qed
 qed
 
 lemma affine_hull_finite:
-  assumes "finite s"
-  shows "affine hull s = {y. \<exists>u. sum u s = 1 \<and> sum (\<lambda>v. u v *\<^sub>R v) s = y}"
+  assumes "finite S"
+  shows "affine hull S = {y. \<exists>u. sum u S = 1 \<and> sum (\<lambda>v. u v *\<^sub>R v) S = y}"
   unfolding affine_hull_explicit and set_eq_iff and mem_Collect_eq
   apply (rule, rule)
   apply (erule exE)+
@@ -1647,20 +1587,20 @@ lemma affine_hull_finite:
   apply (erule conjE)
 proof -
   fix x u
-  assume "sum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
+  assume "sum u S = 1" "(\<Sum>v\<in>S. u v *\<^sub>R v) = x"
   then show "\<exists>sa u. finite sa \<and>
-      \<not> (\<forall>x. (x \<in> sa) = (x \<in> {})) \<and> sa \<subseteq> s \<and> sum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = x"
-    apply (rule_tac x=s in exI, rule_tac x=u in exI)
+      \<not> (\<forall>x. (x \<in> sa) = (x \<in> {})) \<and> sa \<subseteq> S \<and> sum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = x"
+    apply (rule_tac x=S in exI, rule_tac x=u in exI)
     using assms
     apply auto
     done
 next
   fix x t u
-  assume "t \<subseteq> s"
-  then have *: "s \<inter> t = t"
+  assume "t \<subseteq> S"
+  then have *: "S \<inter> t = t"
     by auto
   assume "finite t" "\<not> (\<forall>x. (x \<in> t) = (x \<in> {}))" "sum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = x"
-  then show "\<exists>u. sum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
+  then show "\<exists>u. sum u S = 1 \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = x"
     apply (rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
     unfolding if_smult scaleR_zero_left and sum.inter_restrict[OF assms, symmetric] and *
     apply auto
@@ -1679,21 +1619,21 @@ lemma affine_hull_finite_step:
   shows
     "(\<exists>u. sum u {} = w \<and> sum (\<lambda>x. u x *\<^sub>R x) {} = y) \<longleftrightarrow> w = 0 \<and> y = 0" (is ?th1)
     and
-    "finite s \<Longrightarrow>
-      (\<exists>u. sum u (insert a s) = w \<and> sum (\<lambda>x. u x *\<^sub>R x) (insert a s) = y) \<longleftrightarrow>
-      (\<exists>v u. sum u s = w - v \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y - v *\<^sub>R a)" (is "_ \<Longrightarrow> ?lhs = ?rhs")
+    "finite S \<Longrightarrow>
+      (\<exists>u. sum u (insert a S) = w \<and> sum (\<lambda>x. u x *\<^sub>R x) (insert a S) = y) \<longleftrightarrow>
+      (\<exists>v u. sum u S = w - v \<and> sum (\<lambda>x. u x *\<^sub>R x) S = y - v *\<^sub>R a)" (is "_ \<Longrightarrow> ?lhs = ?rhs")
 proof -
   show ?th1 by simp
-  assume fin: "finite s"
+  assume fin: "finite S"
   show "?lhs = ?rhs"
   proof
     assume ?lhs
-    then obtain u where u: "sum u (insert a s) = w \<and> (\<Sum>x\<in>insert a s. u x *\<^sub>R x) = y"
+    then obtain u where u: "sum u (insert a S) = w \<and> (\<Sum>x\<in>insert a S. u x *\<^sub>R x) = y"
       by auto
     show ?rhs
-    proof (cases "a \<in> s")
+    proof (cases "a \<in> S")
       case True
-      then have *: "insert a s = s" by auto
+      then have *: "insert a S = S" by auto
       show ?thesis
         using u[unfolded *]
         apply(rule_tac x=0 in exI)
@@ -1709,12 +1649,12 @@ proof -
     qed
   next
     assume ?rhs
-    then obtain v u where vu: "sum u s = w - v"  "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a"
+    then obtain v u where vu: "sum u S = w - v"  "(\<Sum>x\<in>S. u x *\<^sub>R x) = y - v *\<^sub>R a"
       by auto
     have *: "\<And>x M. (if x = a then v else M) *\<^sub>R x = (if x = a then v *\<^sub>R x else M *\<^sub>R x)"
       by auto
     show ?lhs
-    proof (cases "a \<in> s")
+    proof (cases "a \<in> S")
       case True
       then show ?thesis
         apply (rule_tac x="\<lambda>x. (if x=a then v else 0) + u x" in exI)
@@ -1727,13 +1667,13 @@ proof -
     next
       case False
       then have **:
-        "\<And>x. x \<in> s \<Longrightarrow> u x = (if x = a then v else u x)"
-        "\<And>x. x \<in> s \<Longrightarrow> u x *\<^sub>R x = (if x = a then v *\<^sub>R x else u x *\<^sub>R x)" by auto
+        "\<And>x. x \<in> S \<Longrightarrow> u x = (if x = a then v else u x)"
+        "\<And>x. x \<in> S \<Longrightarrow> u x *\<^sub>R x = (if x = a then v *\<^sub>R x else u x *\<^sub>R x)" by auto
       from False show ?thesis
         apply (rule_tac x="\<lambda>x. if x=a then v else u x" in exI)
         unfolding sum_clauses(2)[OF fin] and * using vu
-        using sum.cong [of s _ "\<lambda>x. u x *\<^sub>R x" "\<lambda>x. if x = a then v *\<^sub>R x else u x *\<^sub>R x", OF _ **(2)]
-        using sum.cong [of s _ u "\<lambda>x. if x = a then v else u x", OF _ **(1)]
+        using sum.cong [of S _ "\<lambda>x. u x *\<^sub>R x" "\<lambda>x. if x = a then v *\<^sub>R x else u x *\<^sub>R x", OF _ **(2)]
+        using sum.cong [of S _ u "\<lambda>x. if x = a then v else u x", OF _ **(1)]
         apply auto
         done
     qed
