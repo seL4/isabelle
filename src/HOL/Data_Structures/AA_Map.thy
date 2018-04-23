@@ -23,7 +23,7 @@ fun delete :: "'a::linorder \<Rightarrow> ('a*'b) aa_tree \<Rightarrow> ('a*'b) 
      LT \<Rightarrow> adjust (Node lv (delete x l) (a,b) r) |
      GT \<Rightarrow> adjust (Node lv l (a,b) (delete x r)) |
      EQ \<Rightarrow> (if l = Leaf then r
-            else let (l',ab') = del_max l in adjust (Node lv l' ab' r)))"
+            else let (l',ab') = split_max l in adjust (Node lv l' ab' r)))"
 
 
 subsection "Invariance"
@@ -187,7 +187,7 @@ proof (induction t)
         by(auto simp: post_del_def invar.simps(2))
     next
       assume "l \<noteq> Leaf" thus ?thesis using equal Node.prems
-        by simp (metis inv_l post_del_adjL post_del_max pre_adj_if_postL)
+        by simp (metis inv_l post_del_adjL post_split_max pre_adj_if_postL)
     qed
   qed
 qed (simp add: post_del_def)
@@ -204,7 +204,7 @@ theorem inorder_delete:
   inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_adjust pre_adj_if_postL pre_adj_if_postR 
-              post_del_max post_delete del_maxD split: prod.splits)
+              post_split_max post_delete split_maxD split: prod.splits)
 
 interpretation I: Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete

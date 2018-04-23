@@ -34,7 +34,7 @@ theorem inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_balL inorder_balR
-     inorder_del_root inorder_del_maxD split: prod.splits)
+     inorder_del_root inorder_split_maxD split: prod.splits)
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete
