@@ -218,14 +218,14 @@ fun init_options () =
   Future.ML_statistics := Options.default_bool "ML_statistics";
   Multithreading.trace := Options.default_int "threads_trace";
   Multithreading.max_threads_update (Options.default_int "threads");
-  Goal.parallel_proofs := Options.default_int "parallel_proofs";
+  Multithreading.parallel_proofs := Options.default_int "parallel_proofs";
   let val proofs = Options.default_int "record_proofs"
   in if proofs < 0 then () else Proofterm.proofs := proofs end;
   Printer.show_markup_default := false);
 
 fun init_options_interactive () =
  (init_options ();
-  Goal.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0);
+  Multithreading.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0);
   Printer.show_markup_default := true);
 
 end;

@@ -7,7 +7,6 @@ Goals in tactical theorem proving, with support for forked proofs.
 signature BASIC_GOAL =
 sig
   val quick_and_dirty: bool Config.T
-  val parallel_proofs: int Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val PREFER_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
@@ -112,10 +111,8 @@ fun skip_proofs_enabled () =
     else skip
   end;
 
-val parallel_proofs = Unsynchronized.ref 1;
-
 fun future_enabled n =
-  Multithreading.enabled () andalso ! parallel_proofs >= n andalso
+  Multithreading.parallel_proofs_enabled n andalso
   is_some (Future.worker_task ());
 
 fun future_enabled_timing t =
