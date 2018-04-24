@@ -98,8 +98,6 @@ sig
   val one_const: term
   val bit0_const: term
   val bit1_const: term
-  val mk_bit: int -> term
-  val dest_bit: term -> int
   val mk_numeral: int -> term
   val dest_numeral: term -> int
   val numeral_const: typ -> term
@@ -519,18 +517,15 @@ val one_const = Const ("Num.num.One", numT)
 and bit0_const = Const ("Num.num.Bit0", numT --> numT)
 and bit1_const = Const ("Num.num.Bit1", numT --> numT);
 
-fun mk_bit 0 = bit0_const
-  | mk_bit 1 = bit1_const
-  | mk_bit _ = raise TERM ("mk_bit", []);
-
-fun dest_bit (Const ("Num.num.Bit0", _)) = 0
-  | dest_bit (Const ("Num.num.Bit1", _)) = 1
-  | dest_bit t = raise TERM ("dest_bit", [t]);
-
 fun mk_numeral i =
-  let fun mk 1 = one_const
-        | mk i = let val (q, r) = Integer.div_mod i 2 in mk_bit r $ mk q end
-  in if i > 0 then mk i else raise TERM ("mk_numeral: " ^ string_of_int i, [])
+  let
+    fun mk 1 = one_const
+      | mk i =
+          let
+            val (q, r) = Integer.div_mod i 2
+          in (if r = 0 then bit0_const else bit1_const) $ mk q end
+  in
+    if i > 0 then mk i else raise TERM ("mk_numeral: " ^ string_of_int i, [])
   end
 
 fun dest_numeral (Const ("Num.num.One", _)) = 1
@@ -555,7 +550,7 @@ fun dest_number (Const ("Groups.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("Groups.one_class.one", T)) = (T, 1)
   | dest_number (Const ("Num.numeral_class.numeral", Type ("fun", [_, T])) $ t) =
       (T, dest_numeral t)
-  | dest_number (Const ("Groups.uminus_class.uminus", Type ("fun", [_, T])) $ t) =
+  | dest_number (Const ("Groups.uminus_class.uminus", Type ("fun", _)) $ t) =
       apsnd (op ~) (dest_number t)
   | dest_number t = raise TERM ("dest_number", [t]);
 
@@ -594,27 +589,35 @@ fun dest_list (Const ("List.list.Nil", _)) = []
   | dest_list t = raise TERM ("dest_list", [t]);
 
 
+(* booleans as bits *)
+
+fun mk_bit b = if b = 0 then @{term False}
+  else if b = 1 then @{term True}
+  else raise TERM ("mk_bit", []);
+
+fun mk_bits len = map mk_bit o Integer.radicify 2 len;
+
+fun dest_bit @{term False} = 0
+  | dest_bit @{term True} = 1
+  | dest_bit _ = raise TERM ("dest_bit", []);
+
+val dest_bits = Integer.eval_radix 2 o map dest_bit;
+
+
 (* char *)
 
 val charT = Type ("String.char", []);
 
-val Char_const = Const ("String.Char", numT --> charT);
+val Char_const = Const ("String.char.Char", replicate 8 boolT ---> charT);
 
-fun mk_char 0 = Const ("Groups.zero_class.zero", charT)
-  | mk_char i =
-      if 1 <= i andalso i <= 255 then Char_const $ mk_numeral i
-      else raise TERM ("mk_char", []);
+fun mk_char i =
+  if 0 <= i andalso i <= 255
+  then list_comb (Char_const, mk_bits 8 i)
+  else raise TERM ("mk_char", [])
 
-fun dest_char t =
-  let
-    val (T, n) = case t of
-      Const ("Groups.zero_class.zero", T) => (T, 0)
-    | (Const ("String.Char", Type ("fun", [_, T])) $ t) => (T, dest_numeral t)
-    | _ => raise TERM ("dest_char", [t]);
-  in
-    if T = charT then n
-    else raise TERM ("dest_char", [t])
-  end;
+fun dest_char (Const ("String.char.Char", _) $ b0 $ b1 $ b2 $ b3 $ b4 $ b5 $ b6 $ b7) =
+      dest_bits [b0, b1, b2, b3, b4, b5, b6, b7]
+  | dest_char t = raise TERM ("dest_char", [t]);
 
 
 (* string *)
@@ -629,11 +632,28 @@ val dest_string = implode o map (chr o dest_char) o dest_list;
 
 val literalT = Type ("String.literal", []);
 
-fun mk_literal s = Const ("String.literal.STR", stringT --> literalT)
-      $ mk_string s;
-fun dest_literal (Const ("String.literal.STR", _) $ t) =
-      dest_string t
-  | dest_literal t = raise TERM ("dest_literal", [t]);
+val Literal_const = Const ("String.Literal", replicate 7 boolT ---> literalT --> literalT);
+
+fun mk_literal s = 
+  let
+    fun mk [] =
+          Const ("Groups.zero_class.zero", literalT)
+      | mk (c :: cs) =
+          list_comb (Literal_const, mk_bits 7 c) $ mk cs;
+    val cs = map ord (raw_explode s);
+  in
+    if forall (fn c => c < 128) cs
+    then mk cs
+    else raise TERM ("mk_literal", [])
+  end;
+
+val dest_literal =
+  let
+    fun dest (Const ("Groups.zero_class.zero", Type ("String.literal", []))) = []
+      | dest (Const ("String.Literal", _) $ b0 $ b1 $ b2 $ b3 $ b4 $ b5 $ b6 $ t) =
+          chr (dest_bits [b0, b1, b2, b3, b4, b5, b6]) :: dest t
+      | dest t = raise TERM ("dest_literal", [t]);
+  in implode o dest end;
 
 
 (* typerep and term *)

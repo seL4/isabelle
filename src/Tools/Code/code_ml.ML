@@ -51,10 +51,14 @@ fun tuplify _ _ [] = NONE
 
 (** SML serializer **)
 
-fun print_char_any_ml s =
-  if Symbol.is_char s then ML_Syntax.print_char s else "\\092" ^ unprefix "\\" s;
+fun print_sml_char c =
+  if c = "\\"
+  then "\\092" (*produce strings suitable for both SML as well as Isabelle/ML*)
+  else if Symbol.is_ascii c
+  then ML_Syntax.print_char c
+  else error "non-ASCII byte in SML string literal";
 
-val print_string_any_ml = quote o implode o map print_char_any_ml o Symbol.explode;
+val print_sml_string = quote o translate_string print_sml_char;
 
 fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
@@ -255,7 +259,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             @ "="
             :: "raise"
             :: "Fail"
-            @@ print_string_any_ml const
+            @@ print_sml_string const
           ))
       | print_stmt _ (ML_Val binding) =
           let
@@ -358,8 +362,7 @@ fun print_sml_module name decls body =
   );
 
 val literals_sml = Literals {
-  literal_char = prefix "#" o quote o ML_Syntax.print_char,
-  literal_string = print_string_any_ml,
+  literal_string = print_sml_string,
   literal_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
   literal_list = enum "," "[" "]",
   infix_cons = (7, "::")
@@ -367,6 +370,23 @@ val literals_sml = Literals {
 
 
 (** OCaml serializer **)
+
+val print_ocaml_string =
+  let
+    fun chr i =
+      let
+        val xs = string_of_int i;
+        val ys = replicate_string (3 - length (raw_explode xs)) "0";
+      in "\\" ^ ys ^ xs end;
+    fun char c =
+      let
+        val i = ord c;
+        val s =
+          if i >= 128 then error "non-ASCII byte in OCaml string literal"
+          else if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
+          then chr i else c
+      in s end;
+  in quote o translate_string char end;
 
 fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
@@ -600,7 +620,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             :: replicate n "_"
             @ "="
             :: "failwith"
-            @@ ML_Syntax.print_string const
+            @@ print_ocaml_string const
           ))
       | print_stmt _ (ML_Val binding) =
           let
@@ -696,25 +716,13 @@ fun print_ocaml_module name decls body =
   );
 
 val literals_ocaml = let
-  fun chr i =
-    let
-      val xs = string_of_int i;
-      val ys = replicate_string (3 - length (raw_explode xs)) "0";
-    in "\\" ^ ys ^ xs end;
-  fun char_ocaml c =
-    let
-      val i = ord c;
-      val s = if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
-        then chr i else c
-    in s end;
   fun numeral_ocaml k = if k < 0
     then "(Big_int.minus_big_int " ^ numeral_ocaml (~ k) ^ ")"
     else if k <= 1073741823
       then "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
       else "(Big_int.big_int_of_string " ^ quote (string_of_int k) ^ ")"
 in Literals {
-  literal_char = Library.enclose "'" "'" o char_ocaml,
-  literal_string = quote o translate_string char_ocaml,
+  literal_string = print_ocaml_string,
   literal_numeral = numeral_ocaml,
   literal_list = enum ";" "[" "]",
   infix_cons = (6, "::")

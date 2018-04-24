@@ -516,6 +516,20 @@ lemma mod_integer_code [code]:
   "k mod l = snd (divmod_integer k l)"
   by simp
 
+definition bit_cut_integer :: "integer \<Rightarrow> integer \<times> bool"
+  where "bit_cut_integer k = (k div 2, odd k)"
+
+lemma bit_cut_integer_code [code]:
+  "bit_cut_integer k = (if k = 0 then (0, False)
+     else let (r, s) = Code_Numeral.divmod_abs k 2
+       in (if k > 0 then r else - r - s, s = 1))"
+proof -
+  have "bit_cut_integer k = (let (r, s) = divmod_integer k 2 in (r, s = 1))"
+    by (simp add: divmod_integer_def bit_cut_integer_def odd_iff_mod_2_eq_one)
+  then show ?thesis
+    by (simp add: divmod_integer_code) (auto simp add: split_def)
+qed
+
 lemma equal_integer_code [code]:
   "HOL.equal 0 (0::integer) \<longleftrightarrow> True"
   "HOL.equal 0 (Pos l) \<longleftrightarrow> False"

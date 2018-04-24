@@ -1,17 +1,14 @@
 (*  Title:      HOL/Tools/numeral.ML
     Author:     Makarius
 
-Logical operations on numerals (see also HOL/Tools/hologic.ML).
+Logical and syntactic operations on numerals (see also HOL/Tools/hologic.ML).
 *)
 
 signature NUMERAL =
 sig
   val mk_cnumber: ctyp -> int -> cterm
   val mk_number_syntax: int -> term
-  val mk_cnumeral: int -> cterm
-  val mk_num_syntax: int -> term
   val dest_num_syntax: term -> int
-  val dest_num: Code_Thingol.iterm -> int option
   val add_code: string -> (int -> int) -> (Code_Printer.literals -> int -> string) -> string -> theory -> theory
 end;
 
@@ -92,25 +89,23 @@ fun mk_number_syntax n =
 
 local open Basic_Code_Thingol in
 
-fun dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = SOME 1
-  | dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... } `$ t) =
-     (case dest_num t of
+fun dest_num_code (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = SOME 1
+  | dest_num_code (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... } `$ t) =
+     (case dest_num_code t of
         SOME n => SOME (2 * n)
       | _ => NONE)
-  | dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... } `$ t) =
-     (case dest_num t of
+  | dest_num_code (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... } `$ t) =
+     (case dest_num_code t of
         SOME n => SOME (2 * n + 1)
       | _ => NONE)
-  | dest_num _ = NONE;
+  | dest_num_code _ = NONE;
 
 fun add_code number_of preproc print target thy =
   let
     fun pretty literals _ thm _ _ [(t, _)] =
-      let
-        val n = case dest_num t of
-          SOME n => n
-        | NONE => Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal term"
-      in (Code_Printer.str o print literals o preproc) n end;
+      case dest_num_code t of
+        SOME n => (Code_Printer.str o print literals o preproc) n
+      | NONE => Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal term";
   in
     thy |> Code_Target.set_printings (Code_Symbol.Constant (number_of,
       [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))]))

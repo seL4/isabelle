@@ -147,6 +147,21 @@ lemma [code abstract]:
   "integer_of_nat (nat k) = max 0 (integer_of_int k)"
   including integer.lifting by transfer auto
 
+definition char_of_nat :: "nat \<Rightarrow> char"
+  where [code_abbrev]: "char_of_nat = char_of"
+
+definition nat_of_char :: "char \<Rightarrow> nat"
+  where [code_abbrev]: "nat_of_char = of_char"
+
+lemma [code]:
+  "char_of_nat = char_of_integer \<circ> integer_of_nat"
+  including integer.lifting unfolding char_of_integer_def char_of_nat_def
+  by transfer (simp add: fun_eq_iff)
+
+lemma [code abstract]:
+  "integer_of_nat (nat_of_char c) = integer_of_char c"
+  by (cases c) (simp add: nat_of_char_def integer_of_char_def integer_of_nat_eq_of_nat)
+
 lemma term_of_nat_code [code]:
   \<comment> \<open>Use @{term Code_Numeral.nat_of_integer} in term reconstruction
         instead of @{term Code_Target_Nat.Nat} such that reconstructed

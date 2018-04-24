@@ -407,6 +407,18 @@ proof -
     by (simp add: div_mult2_eq' mult_commute)
 qed
 
+lemma div_mult2_numeral_eq:
+  "a div numeral k div numeral l = a div numeral (k * l)" (is "?A = ?B")
+proof -
+  have "?A = a div of_nat (numeral k) div of_nat (numeral l)"
+    by simp
+  also have "\<dots> = a div (of_nat (numeral k) * of_nat (numeral l))"
+    by (fact div_mult2_eq' [symmetric])
+  also have "\<dots> = ?B"
+    by simp
+  finally show ?thesis .
+qed
+
 end
 
 class ring_parity = ring + semiring_parity

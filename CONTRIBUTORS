@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2018: Florian Haftmann
+  Consolidation of string-like types in HOL.
+
 * March 2018: Florian Haftmann
   Abstract bit operations push_bit, take_bit, drop_bit, alongside
   with an algebraic foundation for bit strings and word types in

@@ -230,8 +230,10 @@ lemma effect_returnE [effect_elims]:
   obtains "r = x" "h' = h"
   using assms by (rule effectE) (simp add: execute_simps)
 
-definition raise :: "string \<Rightarrow> 'a Heap" where \<comment> \<open>the string is just decoration\<close>
-  [code del]: "raise s = Heap (\<lambda>_. None)"
+definition raise :: "String.literal \<Rightarrow> 'a Heap" \<comment> \<open>the literal is just decoration\<close>
+  where "raise s = Heap (\<lambda>_. None)"
+
+code_datatype raise \<comment> \<open>avoid @{const "Heap"} formally\<close>
 
 lemma execute_raise [execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
@@ -309,7 +311,7 @@ subsection \<open>Generic combinators\<close>
 subsubsection \<open>Assertions\<close>
 
 definition assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a Heap" where
-  "assert P x = (if P x then return x else raise ''assert'')"
+  "assert P x = (if P x then return x else raise STR ''assert'')"
 
 lemma execute_assert [execute_simps]:
   "P x \<Longrightarrow> execute (assert P x) h = Some (x, h)"
@@ -516,32 +518,17 @@ qed
 
 subsection \<open>Code generator setup\<close>
 
-subsubsection \<open>Logical intermediate layer\<close>
-
-definition raise' :: "String.literal \<Rightarrow> 'a Heap" where
-  [code del]: "raise' s = raise (String.explode s)"
-
-lemma [code_abbrev]: "raise' (STR s) = raise s"
-  unfolding raise'_def by (simp add: STR_inverse)
-
-lemma raise_raise': (* FIXME delete candidate *)
-  "raise s = raise' (STR s)"
-  unfolding raise'_def by (simp add: STR_inverse)
-
-code_datatype raise' \<comment> \<open>avoid @{const "Heap"} formally\<close>
-
-
 subsubsection \<open>SML and OCaml\<close>
 
 code_printing type_constructor Heap \<rightharpoonup> (SML) "(unit/ ->/ _)"
 code_printing constant bind \<rightharpoonup> (SML) "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())"
 code_printing constant return \<rightharpoonup> (SML) "!(fn/ ()/ =>/ _)"
-code_printing constant Heap_Monad.raise' \<rightharpoonup> (SML) "!(raise/ Fail/ _)"
+code_printing constant Heap_Monad.raise \<rightharpoonup> (SML) "!(raise/ Fail/ _)"
 
 code_printing type_constructor Heap \<rightharpoonup> (OCaml) "(unit/ ->/ _)"
 code_printing constant bind \<rightharpoonup> (OCaml) "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())"
 code_printing constant return \<rightharpoonup> (OCaml) "!(fun/ ()/ ->/ _)"
-code_printing constant Heap_Monad.raise' \<rightharpoonup> (OCaml) "failwith"
+code_printing constant Heap_Monad.raise \<rightharpoonup> (OCaml) "failwith"
 
 
 subsubsection \<open>Haskell\<close>
@@ -588,7 +575,7 @@ text \<open>Monad\<close>
 code_printing type_constructor Heap \<rightharpoonup> (Haskell) "Heap.ST/ Heap.RealWorld/ _"
 code_monad bind Haskell
 code_printing constant return \<rightharpoonup> (Haskell) "return"
-code_printing constant Heap_Monad.raise' \<rightharpoonup> (Haskell) "error"
+code_printing constant Heap_Monad.raise \<rightharpoonup> (Haskell) "error"
 
 
 subsubsection \<open>Scala\<close>
@@ -633,7 +620,7 @@ code_reserved Scala Heap Ref Array
 code_printing type_constructor Heap \<rightharpoonup> (Scala) "(Unit/ =>/ _)"
 code_printing constant bind \<rightharpoonup> (Scala) "Heap.bind"
 code_printing constant return \<rightharpoonup> (Scala) "('_: Unit)/ =>/ _"
-code_printing constant Heap_Monad.raise' \<rightharpoonup> (Scala) "!sys.error((_))"
+code_printing constant Heap_Monad.raise \<rightharpoonup> (Scala) "!sys.error((_))"
 
 
 subsubsection \<open>Target variants with less units\<close>
@@ -703,7 +690,7 @@ end
 
 \<close>
 
-hide_const (open) Heap heap guard raise' fold_map
+hide_const (open) Heap heap guard fold_map
 
 end
 

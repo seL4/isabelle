@@ -35,6 +35,16 @@ infixr 5 @|;
 
 (** Haskell serializer **)
 
+val print_haskell_string =
+  let
+    fun char c =
+      let
+        val _ = if Symbol.is_ascii c then ()
+          else error "non-ASCII byte in Haskell string literal";
+        val s = ML_Syntax.print_char c;
+      in if s = "'" then "\\'" else s end;
+  in quote o translate_string char end;
+
 fun print_haskell_stmt class_syntax tyco_syntax const_syntax
     reserved deresolve deriving_show =
   let
@@ -134,7 +144,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                 :: replicate n "_"
                 @ "="
                 :: "error"
-                @@ ML_Syntax.print_string const
+                @@ print_haskell_string const
               );
             fun print_eqn ((ts, t), (some_thm, _)) =
               let
@@ -426,18 +436,12 @@ val serializer : Code_Target.serializer =
 
 fun print_numeral typ = Library.enclose "(" (" :: " ^ typ ^ ")") o signed_string_of_int;
 
-val literals = let
-  fun char_haskell c =
-    let
-      val s = ML_Syntax.print_char c;
-    in if s = "'" then "\\'" else s end;
-in Literals {
-  literal_char = Library.enclose "'" "'" o char_haskell,
-  literal_string = quote o translate_string char_haskell,
+val literals = Literals {
+  literal_string = print_haskell_string,
   literal_numeral = print_numeral "Integer",
   literal_list = enum "," "[" "]",
   infix_cons = (5, ":")
-} end;
+};
 
 
 (** optional monad syntax **)

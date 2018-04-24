@@ -472,20 +472,20 @@ ML_val %quotetypewriter \<open>
   check_int @{context} @{cprop "even ((0::int) + 1 + 2 + 3 + -1 + -2 + -3)"}
 \<close>
   
-paragraph \<open>An example for @{typ char}\<close>
+paragraph \<open>An example for @{typ String.literal}\<close>
 
-definition %quote is_cap_letter :: "char \<Rightarrow> bool"
-  where "is_cap_letter c \<longleftrightarrow> (let n = nat_of_char c in 65 \<le> n \<and> n \<le> 90)" (*<*)
+definition %quote is_cap_letter :: "String.literal \<Rightarrow> bool"
+  where "is_cap_letter s \<longleftrightarrow> (case String.asciis_of_literal s
+    of [] \<Rightarrow> False | k # _ \<Rightarrow> 65 \<le> k \<and> k \<le> 90)" (*<*)
 
 (*>*) ML %quotetypewriter \<open>
-  val check_char = @{computation_check terms:
-    Trueprop is_cap_letter
-    Char datatypes: num
+  val check_literal = @{computation_check terms:
+    Trueprop is_cap_letter datatypes: bool String.literal
   }
 \<close>
 
 ML_val %quotetypewriter \<open>
-  check_char @{context} @{cprop "is_cap_letter (CHR ''Y'')"}
+  check_literal @{context} @{cprop "is_cap_letter (STR ''Q'')"}
 \<close>
 
   
