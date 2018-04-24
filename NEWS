@@ -196,8 +196,8 @@ dummy sort: it is effectively ignored in type-inference.
 
 *** HOL ***
 
-* Abstract bit operations as part of Main: push_bit, push_take,
-push_drop.
+* Abstract bit operations as part of Main: push_bit, take_bit,
+drop_bit.
 
 * New, more general, axiomatization of complete_distrib_lattice. 
 The former axioms:

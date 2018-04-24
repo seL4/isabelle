@@ -7,7 +7,7 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * March 2018: Florian Haftmann
-  Abstract bit operations push_bit, push_take, push_drop, alongside
+  Abstract bit operations push_bit, take_bit, drop_bit, alongside
   with an algebraic foundation for bit strings and word types in
   HOL-ex.
 
