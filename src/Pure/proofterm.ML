@@ -1610,16 +1610,14 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     val argsP = map OfClass outer_constraints @ map Hyp hyps;
 
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
-    fun make_body () =
-      make_body0 (shrink_proof (rew_proof thy (fold_rev implies_intr_proof hyps prf)));
     val body0 =
       if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
-      else if not (Multithreading.parallel_proofs_enabled 1) then Future.value (make_body ())
       else
         (singleton o Future.cond_forks)
           {name = "Proofterm.prepare_thm_proof", group = NONE,
-            deps = [], pri = 0, interrupts = true}
-          make_body;
+            deps = [], pri = 1, interrupts = true}
+          (fn () =>
+            make_body0 (shrink_proof (rew_proof thy (fold_rev implies_intr_proof hyps prf))));
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
