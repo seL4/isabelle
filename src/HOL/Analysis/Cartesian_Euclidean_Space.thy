@@ -1,3 +1,7 @@
+(* Title:      HOL/Analysis/Cartesian_Euclidean_Space.thy
+   Some material by Tim Makarios and L C Paulson
+*)
+
 section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space\<close>
 
 theory Cartesian_Euclidean_Space
@@ -526,6 +530,12 @@ definition "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$
 definition "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
 definition "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
 definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
+   
+lemma times0_left [simp]: "(0::'a::semiring_1^'n^'m) ** (A::'a ^'p^'n) = 0" 
+  by (simp add: matrix_matrix_mult_def zero_vec_def)
+
+lemma times0_right [simp]: "(A::'a::semiring_1^'n^'m) ** (0::'a ^'p^'n) = 0" 
+  by (simp add: matrix_matrix_mult_def zero_vec_def)
 
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
@@ -561,6 +571,16 @@ lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (subst sum.swap)
   apply simp
   done
+
+lemma scalar_matrix_assoc:
+  fixes A :: "real^'m^'n"
+  shows "k *\<^sub>R (A ** B) = (k *\<^sub>R A) ** B"
+  by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
+
+lemma matrix_scalar_ac:
+  fixes A :: "real^'m^'n"
+  shows "A ** (k *\<^sub>R B) = k *\<^sub>R A ** B"
+  by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
 
 lemma matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
@@ -614,6 +634,13 @@ lemma rows_transpose [simp]: "rows(transpose (A::'a::semiring_1^_^_)) = columns 
 
 lemma columns_transpose [simp]: "columns(transpose (A::'a::semiring_1^_^_)) = rows A"
   by (metis transpose_transpose rows_transpose)
+
+lemma transpose_scalar: "transpose (k *\<^sub>R A) = k *\<^sub>R transpose A"
+  unfolding transpose_def
+  by (simp add: vec_eq_iff)
+
+lemma transpose_iff [iff]: "transpose A = transpose B \<longleftrightarrow> A = B"
+  by (metis transpose_transpose)
 
 lemma matrix_mult_transpose_dot_column:
   fixes A :: "real^'n^'n"
@@ -761,6 +788,62 @@ lemma inj_matrix_vector_mult:
   assumes "invertible A"
   shows "inj (( *v) A)"
   by (metis assms inj_on_inverseI invertible_def matrix_vector_mul_assoc matrix_vector_mul_lid)
+
+lemma scalar_invertible:
+  fixes A :: "real^'m^'n"
+  assumes "k \<noteq> 0" and "invertible A"
+  shows "invertible (k *\<^sub>R A)"
+proof -
+  obtain A' where "A ** A' = mat 1" and "A' ** A = mat 1"
+    using assms unfolding invertible_def by auto
+  with `k \<noteq> 0`
+  have "(k *\<^sub>R A) ** ((1/k) *\<^sub>R A') = mat 1" "((1/k) *\<^sub>R A') ** (k *\<^sub>R A) = mat 1"
+    by (simp_all add: assms matrix_scalar_ac)
+  thus "invertible (k *\<^sub>R A)"
+    unfolding invertible_def by auto
+qed
+
+lemma scalar_invertible_iff:
+  fixes A :: "real^'m^'n"
+  assumes "k \<noteq> 0" and "invertible A"
+  shows "invertible (k *\<^sub>R A) \<longleftrightarrow> k \<noteq> 0 \<and> invertible A"
+  by (simp add: assms scalar_invertible)
+
+lemma vector_transpose_matrix [simp]: "x v* transpose A = A *v x"
+  unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
+  by simp
+
+lemma transpose_matrix_vector [simp]: "transpose A *v x = x v* A"
+  unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
+  by simp
+
+lemma vector_matrix_mul_rid:
+  fixes v :: "('a::semiring_1)^'n"
+  shows "v v* mat 1 = v"
+  by (metis matrix_vector_mul_lid transpose_mat vector_transpose_matrix)
+
+lemma scalar_vector_matrix_assoc:
+  fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
+  shows "(k *\<^sub>R x) v* A = k *\<^sub>R (x v* A)"
+  by (metis matrix_vector_mult_scaleR transpose_matrix_vector)
+
+lemma vector_scalar_matrix_ac:
+  fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
+  shows "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
+proof -
+  have "x v* (k *\<^sub>R A) = (k *\<^sub>R x) v* A"
+    unfolding vector_matrix_mult_def
+    by (simp add: algebra_simps)
+  with scalar_vector_matrix_assoc
+  show "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
+    by auto
+qed
+
+lemma vector_matrix_left_distrib:
+  fixes x y :: "real^'n" and A :: "real^'m^'n"
+  shows "(x + y) v* A = x v* A + y v* A"
+  unfolding vector_matrix_mult_def
+  by (simp add: algebra_simps sum.distrib vec_eq_iff)
 
 
 subsection\<open>Some bounds on components etc. relative to operator norm\<close>
@@ -1075,11 +1158,7 @@ proof -
   { fix A A' :: "real ^'n^'n"
     assume AA': "A ** A' = mat 1"
     have sA: "surj (( *v) A)"
-      unfolding surj_def
-      apply clarify
-      apply (rule_tac x="(A' *v y)" in exI)
-      apply (simp add: matrix_vector_mul_assoc AA' matrix_vector_mul_lid)
-      done
+      using AA' matrix_right_invertible_surjective by auto
     from linear_surjective_isomorphism[OF matrix_vector_mul_linear sA]
     obtain f' :: "real ^'n \<Rightarrow> real ^'n"
       where f': "linear f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x" by blast
@@ -1094,6 +1173,18 @@ proof -
   }
   then show ?thesis by blast
 qed
+
+lemma invertible_mult:
+  fixes A B :: "real^'n^'n"
+  assumes "invertible A" and "invertible B"
+  shows "invertible (A ** B)"
+  by (metis (no_types, hide_lams) assms invertible_def matrix_left_right_inverse matrix_mul_assoc matrix_mul_lid)
+
+lemma transpose_invertible:
+  fixes A :: "real^'n^'n"
+  assumes "invertible A"
+  shows "invertible (transpose A)"
+  by (meson assms invertible_def matrix_left_right_inverse right_invertible_transpose)
 
 text \<open>Considering an n-element vector as an n-by-1 or 1-by-n matrix.\<close>
 
