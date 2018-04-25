@@ -1078,23 +1078,18 @@ proof -
   have fU: "finite ?U" by simp
   have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::real^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y)"
     unfolding matrix_right_invertible_surjective matrix_mult_sum surj_def
-    apply (subst eq_commute)
-    apply rule
-    done
+    by (simp add: eq_commute)
   have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> span (columns A))" by blast
   { assume h: ?lhs
     { fix x:: "real ^'n"
       from h[unfolded lhseq, rule_format, of x] obtain y :: "real ^'m"
         where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
       have "x \<in> span (columns A)"
-        unfolding y[symmetric]
-        apply (rule span_sum)
-        unfolding scalar_mult_eq_scaleR
-        apply (rule span_mul)
-        apply (rule span_superset)
-        unfolding columns_def
-        apply blast
-        done
+        unfolding y[symmetric] scalar_mult_eq_scaleR
+      proof (rule span_sum [OF span_mul])
+        show "column i A \<in> span (columns A)" for i
+          using columns_def span_inc by auto
+      qed
     }
     then have ?rhs unfolding rhseq by blast }
   moreover
@@ -1121,9 +1116,7 @@ proof -
             using i(1) by (simp add: field_simps)
           have "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
               else (x$xa) * ((column xa A$j))) ?U = sum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
-            apply (rule sum.cong[OF refl])
-            using th apply blast
-            done
+            by (rule sum.cong[OF refl]) (use th in blast)
           also have "\<dots> = sum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
             by (simp add: sum.distrib)
           also have "\<dots> = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
@@ -1164,10 +1157,10 @@ proof -
       where f': "linear f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x" by blast
     have th: "matrix f' ** A = mat 1"
       by (simp add: matrix_eq matrix_works[OF f'(1)]
-          matrix_vector_mul_assoc[symmetric] matrix_vector_mul_lid f'(2)[rule_format])
+          matrix_vector_mul_assoc[symmetric] f'(2)[rule_format])
     hence "(matrix f' ** A) ** A' = mat 1 ** A'" by simp
     hence "matrix f' = A'"
-      by (simp add: matrix_mul_assoc[symmetric] AA' matrix_mul_rid matrix_mul_lid)
+      by (simp add: matrix_mul_assoc[symmetric] AA')
     hence "matrix f' ** A = A' ** A" by simp
     hence "A' ** A = mat 1" by (simp add: th)
   }
@@ -1185,6 +1178,26 @@ lemma transpose_invertible:
   assumes "invertible A"
   shows "invertible (transpose A)"
   by (meson assms invertible_def matrix_left_right_inverse right_invertible_transpose)
+
+lemma vector_matrix_mul_assoc:
+  fixes v :: "('a::comm_semiring_1)^'n"
+  shows "(v v* M) v* N = v v* (M ** N)"
+proof -
+  from matrix_vector_mul_assoc
+  have "transpose N *v (transpose M *v v) = (transpose N ** transpose M) *v v" by fast
+  thus "(v v* M) v* N = v v* (M ** N)"
+    by (simp add: matrix_transpose_mul [symmetric])
+qed
+
+lemma matrix_scalar_vector_ac:
+  fixes A :: "real^('m::finite)^'n"
+  shows "A *v (k *\<^sub>R v) = k *\<^sub>R A *v v"
+  by (metis matrix_vector_mult_scaleR transpose_scalar vector_scalar_matrix_ac vector_transpose_matrix)
+
+lemma scalar_matrix_vector_assoc:
+  fixes A :: "real^('m::finite)^'n"
+  shows "k *\<^sub>R (A *v v) = k *\<^sub>R A *v v"
+  by (metis matrix_scalar_vector_ac matrix_vector_mult_scaleR)
 
 text \<open>Considering an n-element vector as an n-by-1 or 1-by-n matrix.\<close>
 
