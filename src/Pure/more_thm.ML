@@ -603,10 +603,9 @@ fun make_def_binding cond b = if cond then def_binding b else Binding.empty;
 
 (* unofficial theorem names *)
 
+fun has_name_hint thm = AList.defined (op =) (Thm.get_tags thm) Markup.nameN;
 fun the_name_hint thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.nameN);
-
-val has_name_hint = can the_name_hint;
-val get_name_hint = the_default "??.unknown" o try the_name_hint;
+fun get_name_hint thm = if has_name_hint thm then the_name_hint thm else "??.unknown";
 
 fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
 
