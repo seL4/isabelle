@@ -119,7 +119,7 @@ lemma char_of_nat_eq_iff:
 lemma char_of_nat [simp]:
   "char_of (of_nat n) = char_of n"
   by (simp add: char_of_def String.char_of_def drop_bit_of_nat)
-	
+
 end
 
 lemma inj_on_char_of_nat [simp]:
@@ -407,7 +407,7 @@ text \<open>
 
   \<^enum> Printable text as string prefixed with @{text STR};
 
-  \<^enum> A single ascii value as numerical value prefixed with @{text ASCII}.
+  \<^enum> A single ascii value as numerical hexadecimal value prefixed with @{text STR}.
 \<close>
 
 instantiation String.literal :: zero
@@ -455,8 +455,8 @@ end
 code_datatype "0 :: String.literal" String.Literal
 
 syntax
-  "_Ascii" :: "num_const \<Rightarrow> String.literal"        ("ASCII _")
   "_Literal" :: "str_position \<Rightarrow> String.literal"   ("STR _")
+  "_Ascii" :: "num_const \<Rightarrow> String.literal"        ("STR _")
 
 ML_file "Tools/literal.ML"
 

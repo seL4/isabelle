@@ -210,7 +210,7 @@ dummy sort: it is effectively ignored in type-inference.
   * Type "String.literal" (for code generation) is now isomorphic
     to lists of 7-bit (ASCII) values; concrete values can be written
     as "STR ''...''" for sequences of printable characters and
-    "ASCII 0x..." for one single ASCII code point given
+    "STR 0x..." for one single ASCII code point given
     as hexadecimal numeral.
 
   * Type "String.literal" supports concatenation "... + ..."

@@ -174,7 +174,7 @@ text \<open>
 
        Literal values of type @{typ String.literal} can be written
        as @{text "STR ''\<dots>''"} for sequences of printable characters and
-       @{text "ASCII 0x\<dots>"} for one single ASCII code point given
+       @{text "STR 0x\<dots>"} for one single ASCII code point given
        as hexadecimal numeral; @{typ String.literal} supports concatenation
        @{text "\<dots> + \<dots>"} for all standard target languages.
 
