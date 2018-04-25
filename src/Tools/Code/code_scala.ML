@@ -36,7 +36,7 @@ val print_scala_string =
           if i < 32 orelse i > 126
           then chr i
           else if i >= 128
-          then error "non-ASCII byte in Haskell string literal"
+          then error "non-ASCII byte in Scala string literal"
           else c
         end
   in quote o translate_string char end;
