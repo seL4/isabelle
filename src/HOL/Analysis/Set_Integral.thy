@@ -869,7 +869,7 @@ proof -
     2 * (\<integral>\<^sup>+x. norm(f x) \<partial>M)" by simp
 
   have le: "ennreal (norm (F n x - f x)) \<le> ennreal (norm (f x)) + ennreal (norm (F n x))" for n x
-    by (simp add: norm_minus_commute norm_triangle_ineq4 ennreal_plus[symmetric] ennreal_minus del: ennreal_plus)
+    by (simp add: norm_minus_commute norm_triangle_ineq4 ennreal_minus reorient: ennreal_plus)
   then have le2: "(\<integral>\<^sup>+ x. ennreal (norm (F n x - f x)) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (norm (f x)) + ennreal (norm (F n x)) \<partial>M)" for n
     by (rule nn_integral_mono)
 
@@ -882,7 +882,7 @@ proof -
   proof (intro arg_cong[where f=liminf] ext)
     fix n
     have "\<And>x. ennreal(G n x) = ennreal(norm(f x)) + ennreal(norm(F n x)) - ennreal(norm(F n x - f x))"
-      unfolding G_def by (simp add: ennreal_plus[symmetric] ennreal_minus del: ennreal_plus)
+      unfolding G_def by (simp add: ennreal_minus reorient: ennreal_plus)
     moreover have "(\<integral>\<^sup>+x. ennreal(norm(f x)) + ennreal(norm(F n x)) - ennreal(norm(F n x - f x)) \<partial>M)
             = (\<integral>\<^sup>+x. ennreal(norm(f x)) + ennreal(norm(F n x)) \<partial>M) - (\<integral>\<^sup>+x. norm(F n x - f x) \<partial>M)"
     proof (rule nn_integral_diff)

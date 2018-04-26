@@ -1622,7 +1622,7 @@ proof -
     using emeasure_subadditive[OF measurable] fin
     apply simp
     apply (subst (asm) (2 3 4) emeasure_eq_ennreal_measure)
-    apply (auto simp add: ennreal_plus[symmetric] simp del: ennreal_plus)
+    apply (auto reorient: ennreal_plus)
     done
 qed
 
