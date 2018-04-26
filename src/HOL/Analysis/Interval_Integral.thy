@@ -109,8 +109,7 @@ proof -
   from ereal_incseq_approx[OF this] guess X .
   then show thesis
     apply (intro that[of "\<lambda>i. - X i"])
-    apply (auto simp add: uminus_ereal.simps[symmetric] decseq_def incseq_def
-                simp del: uminus_ereal.simps)
+    apply (auto simp add: decseq_def incseq_def reorient: uminus_ereal.simps)
     apply (metis ereal_minus_less_minus ereal_uminus_uminus ereal_Lim_uminus)+
     done
 qed
@@ -143,7 +142,7 @@ proof -
     fix x i assume "l i \<le> x" "x \<le> u i"
     with \<open>a < ereal (l i)\<close> \<open>ereal (u i) < b\<close>
     show "a < ereal x" "ereal x < b"
-      by (auto simp del: ereal_less_eq(3) simp add: ereal_less_eq(3)[symmetric])
+      by (auto reorient: ereal_less_eq(3))
   qed
   show thesis
     by (intro that) fact+
@@ -304,8 +303,8 @@ next
   have "LBINT x:{x. - x \<in> einterval a b}. f (- x) = LBINT x:einterval (- b) (- a). f (- x)"
     unfolding interval_lebesgue_integrable_def set_lebesgue_integral_def
     apply (rule Bochner_Integration.integral_cong [OF refl])
-    by (auto simp: einterval_iff ereal_uminus_le_reorder ereal_uminus_less_reorder not_less uminus_ereal.simps[symmetric]
-             simp del: uminus_ereal.simps
+    by (auto simp: einterval_iff ereal_uminus_le_reorder ereal_uminus_less_reorder not_less
+             reorient: uminus_ereal.simps
              split: split_indicator)
   then show ?case
     unfolding interval_lebesgue_integral_def 
@@ -676,7 +675,7 @@ proof -
     fix i show "set_integrable lborel {l i .. u i} f"
       using \<open>a < l i\<close> \<open>u i < b\<close> unfolding set_integrable_def
       by (intro borel_integrable_compact f continuous_at_imp_continuous_on compact_Icc ballI)
-         (auto simp del: ereal_less_eq simp add: ereal_less_eq(3)[symmetric])
+         (auto reorient: ereal_less_eq)
   qed
   have 2: "set_borel_measurable lborel (einterval a b) f"
     unfolding set_borel_measurable_def

@@ -90,6 +90,7 @@ sig
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context
+  val reorient_simp: thm -> Proof.context -> Proof.context
   val init_simpset: thm list -> Proof.context -> Proof.context
   val add_eqcong: thm -> Proof.context -> Proof.context
   val del_eqcong: thm -> Proof.context -> Proof.context
@@ -560,16 +561,21 @@ fun orient_rrule ctxt (thm, name) =
     else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
-fun extract_rews ctxt thms =
-  let val Simpset (_, {mk_rews = {mk, ...}, ...}) = simpset_of ctxt
-  in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk ctxt thm)) thms end;
+fun extract_rews ctxt sym thms =
+  let
+    val Simpset (_, {mk_rews = {mk, ...}, ...}) = simpset_of ctxt;
+    val mk =
+      if sym then fn ctxt => fn th => (mk ctxt th) RL [Drule.symmetric_thm]
+      else mk  
+  in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk ctxt thm)) thms
+  end;
 
 fun extract_safe_rrules ctxt thm =
-  maps (orient_rrule ctxt) (extract_rews ctxt [thm]);
+  maps (orient_rrule ctxt) (extract_rews ctxt false [thm]);
 
 fun mk_rrules ctxt thms =
   let
-    val rews = extract_rews ctxt thms
+    val rews = extract_rews ctxt false thms
     val raw_rrules = flat (map (mk_rrule ctxt) rews)
   in map mk_rrule2 raw_rrules end
 
@@ -578,20 +584,24 @@ fun mk_rrules ctxt thms =
 
 local
 
-fun comb_simps ctxt comb mk_rrule thms =
-  let val rews = extract_rews ctxt (map (Thm.transfer' ctxt) thms);
+fun comb_simps ctxt comb mk_rrule sym thms =
+  let val rews = extract_rews ctxt sym (map (Thm.transfer' ctxt) thms);
   in fold (fold comb o mk_rrule) rews ctxt end;
 
 in
 
 fun ctxt addsimps thms =
-  comb_simps ctxt insert_rrule (mk_rrule ctxt) thms;
+  comb_simps ctxt insert_rrule (mk_rrule ctxt) false thms;
+
+fun addsymsimps ctxt thms =
+  comb_simps ctxt insert_rrule (mk_rrule ctxt) true thms;
 
 fun ctxt delsimps thms =
-  comb_simps ctxt del_rrule (map mk_rrule2 o mk_rrule ctxt) thms;
+  comb_simps ctxt del_rrule (map mk_rrule2 o mk_rrule ctxt) false thms;
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
+fun reorient_simp thm ctxt = addsymsimps (ctxt delsimps [thm]) [thm];
 
 end;
 

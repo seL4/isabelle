@@ -784,13 +784,13 @@ lemma integrable_on_cdivide:
   fixes f :: "_ \<Rightarrow> 'b :: real_normed_field"
   assumes "f integrable_on s"
   shows "(\<lambda>x. f x / of_real c) integrable_on s"
-by (simp add: integrable_on_cmult_right divide_inverse assms of_real_inverse [symmetric] del: of_real_inverse)
+by (simp add: integrable_on_cmult_right divide_inverse assms reorient: of_real_inverse)
 
 lemma integrable_on_cdivide_iff [simp]:
   fixes f :: "_ \<Rightarrow> 'b :: real_normed_field"
   assumes "c \<noteq> 0"
   shows "(\<lambda>x. f x / of_real c) integrable_on s \<longleftrightarrow> f integrable_on s"
-by (simp add: divide_inverse assms of_real_inverse [symmetric] del: of_real_inverse)
+by (simp add: divide_inverse assms reorient: of_real_inverse)
 
 lemma has_integral_null [intro]: "content(cbox a b) = 0 \<Longrightarrow> (f has_integral 0) (cbox a b)"
   unfolding has_integral_cbox
@@ -3431,7 +3431,7 @@ next
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis using False
       by (simp add: image_affinity_cbox content_cbox'
-        prod.distrib[symmetric] prod_constant[symmetric] inner_diff_left del: prod_constant)
+        prod.distrib[symmetric] inner_diff_left reorient: prod_constant)
   qed
 qed
 

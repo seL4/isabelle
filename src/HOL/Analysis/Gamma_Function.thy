@@ -1149,7 +1149,7 @@ lemma Gamma_1 [simp]: "Gamma 1 = 1" unfolding Gamma_def by simp
 
 lemma Gamma_fact: "Gamma (1 + of_nat n) = fact n"
   by (simp add: pochhammer_fact pochhammer_Gamma of_nat_in_nonpos_Ints_iff
-        of_nat_Suc [symmetric] del: of_nat_Suc)
+        reorient: of_nat_Suc)
 
 lemma Gamma_numeral: "Gamma (numeral n) = fact (pred_numeral n)"
   by (subst of_nat_numeral[symmetric], subst numeral_eq_Suc,
@@ -2430,7 +2430,7 @@ proof (subst tendsto_cong)
           inverse ((- 1) ^ n * fact n :: 'a)"
     by (intro tendsto_intros rGamma_zeros) simp_all
   also have "inverse ((- 1) ^ n * fact n) = ?c"
-    by (simp_all add: field_simps power_mult_distrib [symmetric] del: power_mult_distrib)
+    by (simp_all add: field_simps reorient: power_mult_distrib)
   finally show "(\<lambda>z. inverse (rGamma z / (z + of_nat n))) \<midarrow> (- of_nat n) \<rightarrow> ?c" .
 qed
 
