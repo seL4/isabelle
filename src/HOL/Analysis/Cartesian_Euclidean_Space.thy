@@ -573,12 +573,12 @@ lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   done
 
 lemma scalar_matrix_assoc:
-  fixes A :: "real^'m^'n"
+  fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "k *\<^sub>R (A ** B) = (k *\<^sub>R A) ** B"
-  by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
+  by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff scaleR_sum_right)
 
 lemma matrix_scalar_ac:
-  fixes A :: "real^'m^'n"
+  fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "A ** (k *\<^sub>R B) = k *\<^sub>R A ** B"
   by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
 
@@ -1183,10 +1183,31 @@ proof -
 qed
 
 lemma invertible_mult:
-  fixes A B :: "real^'n^'n"
-  assumes "invertible A" and "invertible B"
-  shows "invertible (A ** B)"
-  by (metis (no_types, hide_lams) assms invertible_def matrix_left_right_inverse matrix_mul_assoc matrix_mul_lid)
+  assumes inv_A: "invertible A"
+  and inv_B: "invertible B"
+  shows "invertible (A**B)"
+proof -
+  obtain A' where AA': "A ** A' = mat 1" and A'A: "A' ** A = mat 1" 
+    using inv_A unfolding invertible_def by blast
+  obtain B' where BB': "B ** B' = mat 1" and B'B: "B' ** B = mat 1" 
+    using inv_B unfolding invertible_def by blast
+  show ?thesis
+  proof (unfold invertible_def, rule exI[of _ "B'**A'"], rule conjI)
+    have "A ** B ** (B' ** A') = A ** (B ** (B' ** A'))" 
+      using matrix_mul_assoc[of A B "(B' ** A')", symmetric] .
+    also have "... = A ** (B ** B' ** A')" unfolding matrix_mul_assoc[of B "B'" "A'"] ..
+    also have "... = A ** (mat 1 ** A')" unfolding BB' ..
+    also have "... = A ** A'" unfolding matrix_mul_lid ..
+    also have "... = mat 1" unfolding AA' ..
+    finally show "A ** B ** (B' ** A') = mat (1::'a)" .    
+    have "B' ** A' ** (A ** B) = B' ** (A' ** (A ** B))" using matrix_mul_assoc[of B' A' "(A ** B)", symmetric] .
+    also have "... =  B' ** (A' ** A ** B)" unfolding matrix_mul_assoc[of A' A B] ..
+    also have "... =  B' ** (mat 1 ** B)" unfolding A'A ..
+    also have "... = B' ** B"  unfolding matrix_mul_lid ..
+    also have "... = mat 1" unfolding B'B ..
+    finally show "B' ** A' ** (A ** B) = mat 1" .
+  qed
+qed
 
 lemma transpose_invertible:
   fixes A :: "real^'n^'n"
