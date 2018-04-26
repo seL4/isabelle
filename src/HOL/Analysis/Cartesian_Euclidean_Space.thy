@@ -1,5 +1,5 @@
 (* Title:      HOL/Analysis/Cartesian_Euclidean_Space.thy
-   Some material by Tim Makarios and L C Paulson
+   Some material by Jose Divasón, Tim Makarios and L C Paulson
 *)
 
 section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space\<close>
@@ -714,7 +714,12 @@ lemma
     and matrix_vector_mult_linear_continuous_on [continuous_intros]: "continuous_on S (( *v) A)"
   by (simp_all add: linear_linear linear_continuous_at linear_continuous_on matrix_vector_mul_linear)
 
-lemma matrix_vector_mult_add_distrib [algebra_simps]:
+lemma vector_matrix_left_distrib [algebra_simps]:
+  shows "(x + y) v* A = x v* A + y v* A"
+  unfolding vector_matrix_mult_def
+  by (simp add: algebra_simps sum.distrib vec_eq_iff)
+
+lemma matrix_vector_right_distrib [algebra_simps]:
   "A *v (x + y) = A *v x + A *v y"
   by (vector matrix_vector_mult_def sum.distrib distrib_left)
 
@@ -817,33 +822,43 @@ lemma transpose_matrix_vector [simp]: "transpose A *v x = x v* A"
   unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
   by simp
 
-lemma vector_matrix_mul_rid:
+lemma vector_scalar_commute:
+  fixes A :: "'a::{field}^'m^'n"
+  shows "A *v (c *s x) = c *s (A *v x)"
+  by (simp add: vector_scalar_mult_def matrix_vector_mult_def mult_ac sum_distrib_left)
+
+lemma scalar_vector_matrix_assoc:
+  fixes k :: "'a::{field}" and x :: "'a::{field}^'n" and A :: "'a^'m^'n"
+  shows "(k *s x) v* A = k *s (x v* A)"
+  by (metis transpose_matrix_vector vector_scalar_commute)
+ 
+lemma vector_matrix_mult_0 [simp]: "0 v* A = 0"
+  unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
+
+lemma vector_matrix_mult_0_right [simp]: "x v* 0 = 0"
+  unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
+
+lemma vector_matrix_mul_rid [simp]:
   fixes v :: "('a::semiring_1)^'n"
   shows "v v* mat 1 = v"
   by (metis matrix_vector_mul_lid transpose_mat vector_transpose_matrix)
 
-lemma scalar_vector_matrix_assoc:
+lemma scaleR_vector_matrix_assoc:
   fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
   shows "(k *\<^sub>R x) v* A = k *\<^sub>R (x v* A)"
   by (metis matrix_vector_mult_scaleR transpose_matrix_vector)
 
-lemma vector_scalar_matrix_ac:
+lemma vector_scaleR_matrix_ac:
   fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
   shows "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
 proof -
   have "x v* (k *\<^sub>R A) = (k *\<^sub>R x) v* A"
     unfolding vector_matrix_mult_def
     by (simp add: algebra_simps)
-  with scalar_vector_matrix_assoc
+  with scaleR_vector_matrix_assoc
   show "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
     by auto
 qed
-
-lemma vector_matrix_left_distrib:
-  fixes x y :: "real^'n" and A :: "real^'m^'n"
-  shows "(x + y) v* A = x v* A + y v* A"
-  unfolding vector_matrix_mult_def
-  by (simp add: algebra_simps sum.distrib vec_eq_iff)
 
 
 subsection\<open>Some bounds on components etc. relative to operator norm\<close>
@@ -1189,15 +1204,15 @@ proof -
     by (simp add: matrix_transpose_mul [symmetric])
 qed
 
-lemma matrix_scalar_vector_ac:
+lemma matrix_scaleR_vector_ac:
   fixes A :: "real^('m::finite)^'n"
   shows "A *v (k *\<^sub>R v) = k *\<^sub>R A *v v"
-  by (metis matrix_vector_mult_scaleR transpose_scalar vector_scalar_matrix_ac vector_transpose_matrix)
+  by (metis matrix_vector_mult_scaleR transpose_scalar vector_scaleR_matrix_ac vector_transpose_matrix)
 
-lemma scalar_matrix_vector_assoc:
+lemma scaleR_matrix_vector_assoc:
   fixes A :: "real^('m::finite)^'n"
   shows "k *\<^sub>R (A *v v) = k *\<^sub>R A *v v"
-  by (metis matrix_scalar_vector_ac matrix_vector_mult_scaleR)
+  by (metis matrix_scaleR_vector_ac matrix_vector_mult_scaleR)
 
 text \<open>Considering an n-element vector as an n-by-1 or 1-by-n matrix.\<close>
 
