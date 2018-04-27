@@ -300,8 +300,6 @@ lemma box_vec_eq_empty [simp]:
         "box (vec a) (vec b) = {} \<longleftrightarrow> box a b = {}"
   by (auto simp: Basis_vec_def mem_box box_eq_empty inner_axis)
 
-lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
-
 lemma norm_axis_1 [simp]: "norm (axis m (1::real)) = 1"
   by (simp add: inner_axis' norm_eq_1)
 
@@ -313,12 +311,6 @@ lemma vector_mul_lcancel[simp]: "a *s x = a *s y \<longleftrightarrow> a = (0::r
 
 lemma vector_mul_rcancel[simp]: "a *s x = b *s x \<longleftrightarrow> (a::real) = b \<or> x = 0"
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_sub_rdistrib)
-
-lemma vector_mul_lcancel_imp: "a \<noteq> (0::real) ==>  a *s x = a *s y ==> (x = y)"
-  by (metis vector_mul_lcancel)
-
-lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b *s x ==> a = b"
-  by (metis vector_mul_rcancel)
 
 lemma component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
   apply (simp add: norm_vec_def)
@@ -604,7 +596,7 @@ lemma matrix_eq:
     sum.delta[OF finite] cong del: if_weak_cong)
   done
 
-lemma matrix_vector_mul_component: "((A::real^_^_) *v x)$k = (A$k) \<bullet> x"
+lemma matrix_vector_mul_component: "(A *v x)$k = (A$k) \<bullet> x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma dot_lmul_matrix: "((x::real ^_) v* A) \<bullet> y = x \<bullet> (A *v y)"
@@ -643,12 +635,10 @@ lemma transpose_iff [iff]: "transpose A = transpose B \<longleftrightarrow> A = 
   by (metis transpose_transpose)
 
 lemma matrix_mult_transpose_dot_column:
-  fixes A :: "real^'n^'n"
   shows "transpose A ** A = (\<chi> i j. (column i A) \<bullet> (column j A))"
   by (simp add: matrix_matrix_mult_def vec_eq_iff transpose_def column_def inner_vec_def)
 
 lemma matrix_mult_transpose_dot_row:
-  fixes A :: "real^'n^'n"
   shows "A ** transpose A = (\<chi> i j. (row i A) \<bullet> (row j A))"
   by (simp add: matrix_matrix_mult_def vec_eq_iff transpose_def row_def inner_vec_def)
 
@@ -704,12 +694,11 @@ lemma matrix_id_mat_1: "matrix id = mat 1"
 lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
   by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
-lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
-  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
-      field_simps sum_distrib_left sum.distrib)
+lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::('a::real_algebra_1) ^ _))"
+  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff field_simps sum.distrib scaleR_right.sum)
 
 lemma
-  fixes A :: "real^'n^'m"
+  fixes A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
   shows matrix_vector_mult_linear_continuous_at [continuous_intros]: "isCont (( *v) A) z"
     and matrix_vector_mult_linear_continuous_on [continuous_intros]: "continuous_on S (( *v) A)"
   by (simp_all add: linear_linear linear_continuous_at linear_continuous_on matrix_vector_mul_linear)
@@ -795,7 +784,7 @@ lemma inj_matrix_vector_mult:
   by (metis assms inj_on_inverseI invertible_def matrix_vector_mul_assoc matrix_vector_mul_lid)
 
 lemma scalar_invertible:
-  fixes A :: "real^'m^'n"
+  fixes A :: "('a::real_algebra_1)^'m^'n"
   assumes "k \<noteq> 0" and "invertible A"
   shows "invertible (k *\<^sub>R A)"
 proof -
@@ -809,7 +798,7 @@ proof -
 qed
 
 lemma scalar_invertible_iff:
-  fixes A :: "real^'m^'n"
+  fixes A :: "('a::real_algebra_1)^'m^'n"
   assumes "k \<noteq> 0" and "invertible A"
   shows "invertible (k *\<^sub>R A) \<longleftrightarrow> k \<noteq> 0 \<and> invertible A"
   by (simp add: assms scalar_invertible)

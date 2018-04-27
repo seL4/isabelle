@@ -804,21 +804,15 @@ proof -
       unfolding invertible_right_inverse
       unfolding matrix_right_invertible_independent_rows
       by blast
-    have *: "\<And>(a::real^'n) b. a + b = 0 \<Longrightarrow> -a = b"
-      apply (drule_tac f="(+) (- a)" in cong[OF refl])
-      apply (simp only: ab_left_minus add.assoc[symmetric])
-      apply simp
-      done
     have thr0: "- row i A = sum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
-      apply (rule vector_mul_lcancel_imp[OF ci])
-      using c ci  unfolding sum.remove[OF fU iU] sum_cmul
-      apply (auto simp add: field_simps *)
-      done
+      unfolding sum_cmul
+      using c ci   
+      by (auto simp add: sum.remove[OF fU iU] eq_vector_fraction_iff add_eq_0_iff)
     have thr: "- row i A \<in> span {row j A| j. j \<noteq> i}"
       unfolding thr0
       apply (rule span_sum)
       apply simp
-      apply (rule span_mul [where 'a="real^'n"])
+      apply (rule span_mul)
       apply (rule span_superset)
       apply auto
       done
