@@ -109,21 +109,16 @@ proof (rule ccontr)
   have lem1: "\<forall>z::real^2. infnorm (negatex z) = infnorm z"
     unfolding negatex_def infnorm_2 vector_2 by auto
   have lem2: "\<forall>z. z \<noteq> 0 \<longrightarrow> infnorm (sqprojection z) = 1"
-    unfolding sqprojection_def
-    unfolding infnorm_mul[unfolded scalar_mult_eq_scaleR]
-    unfolding abs_inverse real_abs_infnorm
-    apply (subst infnorm_eq_0[symmetric])
-    apply auto
-    done
+    unfolding sqprojection_def infnorm_mul[unfolded scalar_mult_eq_scaleR]
+    by (simp add: real_abs_infnorm infnorm_eq_0)
   let ?F = "\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w"
-  have *: "\<And>i. (\<lambda>x::real^2. x $ i) ` cbox (- 1) 1 = {-1 .. 1}"
-    apply (rule set_eqI)
-    unfolding image_iff Bex_def mem_box_cart interval_cbox_cart
-    apply rule
-    defer
-    apply (rule_tac x="vec x" in exI)
-    apply auto
-    done
+  have *: "\<And>i. (\<lambda>x::real^2. x $ i) ` cbox (- 1) 1 = {-1..1}"
+  proof 
+    show "(\<lambda>x::real^2. x $ i) ` cbox (- 1) 1 \<subseteq> {-1..1}" for i
+      by (auto simp: mem_box_cart)
+    show "{-1..1} \<subseteq> (\<lambda>x::real^2. x $ i) ` cbox (- 1) 1" for i
+      by (clarsimp simp: image_iff mem_box_cart Bex_def) (metis (no_types, hide_lams) vec_component)
+  qed
   {
     fix x
     assume "x \<in> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w) ` (cbox (- 1) (1::real^2))"
@@ -136,37 +131,19 @@ proof (rule ccontr)
       unfolding mem_box_cart atLeastAtMost_iff
       by auto
   } note x0 = this
-  have 21: "\<And>i::2. i \<noteq> 1 \<Longrightarrow> i = 2"
-    using UNIV_2 by auto
   have 1: "box (- 1) (1::real^2) \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
-  have 2: "continuous_on (cbox (- 1) 1) (negatex \<circ> sqprojection \<circ> ?F)"
+  have "negatex (x + y) $ i = (negatex x + negatex y) $ i \<and> negatex (c *\<^sub>R x) $ i = (c *\<^sub>R negatex x) $ i"
+    for i x y c
+    using exhaust_2 [of i] by (auto simp: negatex_def)
+  then have "bounded_linear negatex"
+    by (simp add: bounded_linearI' vec_eq_iff)
+  then have 2: "continuous_on (cbox (- 1) 1) (negatex \<circ> sqprojection \<circ> ?F)"
     apply (intro continuous_intros continuous_on_component)
-    unfolding *
-    apply (rule assms)+
-    apply (subst sqprojection_def)
-    apply (intro continuous_intros)
-    apply (simp add: infnorm_eq_0 x0)
-    apply (rule linear_continuous_on)
-  proof -
-    show "bounded_linear negatex"
-      apply (rule bounded_linearI')
-      unfolding vec_eq_iff
-    proof (rule_tac[!] allI)
-      fix i :: 2
-      fix x y :: "real^2"
-      fix c :: real
-      show "negatex (x + y) $ i =
-        (negatex x + negatex y) $ i" "negatex (c *\<^sub>R x) $ i = (c *\<^sub>R negatex x) $ i"
-        apply -
-        apply (case_tac[!] "i\<noteq>1")
-        prefer 3
-        apply (drule_tac[1-2] 21)
-        unfolding negatex_def
-        apply (auto simp add:vector_2)
-        done
-    qed
-  qed
+    unfolding * sqprojection_def
+    apply (intro assms continuous_intros)+
+     apply (simp_all add: infnorm_eq_0 x0 linear_continuous_on)
+    done
   have 3: "(negatex \<circ> sqprojection \<circ> ?F) ` cbox (-1) 1 \<subseteq> cbox (-1) 1"
     unfolding subset_eq
   proof (rule, goal_cases)
@@ -176,29 +153,19 @@ proof (rule ccontr)
         "x = (negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) y"
       unfolding image_iff ..
     have "?F y \<noteq> 0"
-      apply (rule x0)
-      using y(1)
-      apply auto
-      done
+      by (rule x0) (use y in auto)
     then have *: "infnorm (sqprojection (?F y)) = 1"
       unfolding y o_def
       by - (rule lem2[rule_format])
-    have "infnorm x = 1"
+    have inf1: "infnorm x = 1"
       unfolding *[symmetric] y o_def
       by (rule lem1[rule_format])
-    then show "x \<in> cbox (-1) 1"
+    show "x \<in> cbox (-1) 1"
       unfolding mem_box_cart interval_cbox_cart infnorm_2
-      apply -
-      apply rule
-    proof -
+    proof 
       fix i
-      assume "max \<bar>x $ 1\<bar> \<bar>x $ 2\<bar> = 1"
-      then show "(- 1) $ i \<le> x $ i \<and> x $ i \<le> 1 $ i"
-        apply (cases "i = 1")
-        defer
-        apply (drule 21)
-        apply auto
-        done
+      show "(- 1) $ i \<le> x $ i \<and> x $ i \<le> 1 $ i"
+        using exhaust_2 [of i] inf1 by (auto simp: infnorm_2)
     qed
   qed
   obtain x :: "real^2" where x:
@@ -211,10 +178,7 @@ proof (rule ccontr)
     apply blast
     done
   have "?F x \<noteq> 0"
-    apply (rule x0)
-    using x(1)
-    apply auto
-    done
+    by (rule x0) (use x in auto)
   then have *: "infnorm (sqprojection (?F x)) = 1"
     unfolding o_def
     by (rule lem2[rule_format])
@@ -223,109 +187,73 @@ proof (rule ccontr)
     unfolding *[symmetric] o_def
     apply (rule lem1[rule_format])
     done
-  have "\<forall>x i. x \<noteq> 0 \<longrightarrow> (0 < (sqprojection x)$i \<longleftrightarrow> 0 < x$i)"
-    and "\<forall>x i. x \<noteq> 0 \<longrightarrow> ((sqprojection x)$i < 0 \<longleftrightarrow> x$i < 0)"
-    apply -
-    apply (rule_tac[!] allI impI)+
+  have iff: "0 < sqprojection x$i \<longleftrightarrow> 0 < x$i" "sqprojection x$i < 0 \<longleftrightarrow> x$i < 0" if "x \<noteq> 0" for x i
   proof -
-    fix x :: "real^2"
-    fix i :: 2
-    assume x: "x \<noteq> 0"
     have "inverse (infnorm x) > 0"
-      using x[unfolded infnorm_pos_lt[symmetric]] by auto
+      by (simp add: infnorm_pos_lt that)
     then show "(0 < sqprojection x $ i) = (0 < x $ i)"
       and "(sqprojection x $ i < 0) = (x $ i < 0)"
       unfolding sqprojection_def vector_component_simps vector_scaleR_component real_scaleR_def
       unfolding zero_less_mult_iff mult_less_0_iff
       by (auto simp add: field_simps)
   qed
-  note lem3 = this[rule_format]
   have x1: "x $ 1 \<in> {- 1..1::real}" "x $ 2 \<in> {- 1..1::real}"
     using x(1) unfolding mem_box_cart by auto
   then have nz: "f (x $ 1) - g (x $ 2) \<noteq> 0"
-    unfolding right_minus_eq
-    apply -
-    apply (rule as)
-    apply auto
-    done
-  have "x $ 1 = -1 \<or> x $ 1 = 1 \<or> x $ 2 = -1 \<or> x $ 2 = 1"
+    using as by auto
+  consider "x $ 1 = -1" | "x $ 1 = 1" | "x $ 2 = -1" | "x $ 2 = 1"
     using nx unfolding infnorm_eq_1_2 by auto
   then show False
-  proof -
-    fix P Q R S
-    presume "P \<or> Q \<or> R \<or> S"
-      and "P \<Longrightarrow> False"
-      and "Q \<Longrightarrow> False"
-      and "R \<Longrightarrow> False"
-      and "S \<Longrightarrow> False"
-    then show False by auto
-  next
-    assume as: "x$1 = 1"
-    then have *: "f (x $ 1) $ 1 = 1"
-      using assms(6) by auto
-    have "sqprojection (f (x$1) - g (x$2)) $ 1 < 0"
-      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=1]]
-      unfolding as negatex_def vector_2
-      by auto
-    moreover
-    from x1 have "g (x $ 2) \<in> cbox (-1) 1"
-      using assms(2) by blast
-    ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
-      using not_le by auto
-  next
-    assume as: "x$1 = -1"
+  proof cases
+    case 1
     then have *: "f (x $ 1) $ 1 = - 1"
       using assms(5) by auto
     have "sqprojection (f (x$1) - g (x$2)) $ 1 > 0"
       using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=1]]
-      unfolding as negatex_def vector_2
-      by auto
+      by (auto simp: negatex_def 1)
     moreover
     from x1 have "g (x $ 2) \<in> cbox (-1) 1"
       using assms(2) by blast
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
+      unfolding iff[OF nz] vector_component_simps * mem_box_cart
       using not_le by auto
   next
-    assume as: "x$2 = 1"
-    then have *: "g (x $ 2) $ 2 = 1"
-      using assms(8) by auto
-    have "sqprojection (f (x$1) - g (x$2)) $ 2 > 0"
-      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=2]]
-      unfolding as negatex_def vector_2
-      by auto
-    moreover
-    from x1 have "f (x $ 1) \<in> cbox (-1) 1"
-      apply -
-      apply (rule assms(1)[unfolded subset_eq,rule_format])
-      apply auto
-      done
+    case 2
+    then have *: "f (x $ 1) $ 1 = 1"
+      using assms(6) by auto
+    have "sqprojection (f (x$1) - g (x$2)) $ 1 < 0"
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=1]] 2
+      by (auto simp: negatex_def)
+    moreover have "g (x $ 2) \<in> cbox (-1) 1"
+      using assms(2) x1 by blast
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
-      apply (erule_tac x=2 in allE)
-      apply auto
-      done
+      unfolding iff[OF nz] vector_component_simps * mem_box_cart
+      using not_le by auto
   next
-    assume as: "x$2 = -1"
+    case 3
     then have *: "g (x $ 2) $ 2 = - 1"
       using assms(7) by auto
     have "sqprojection (f (x$1) - g (x$2)) $ 2 < 0"
-      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=2]]
-      unfolding as negatex_def vector_2
-      by auto
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=2]] 3 by (auto simp: negatex_def)
     moreover
     from x1 have "f (x $ 1) \<in> cbox (-1) 1"
-      apply -
-      apply (rule assms(1)[unfolded subset_eq,rule_format])
-      apply auto
-      done
+      using assms(1) by blast
     ultimately show False
-      unfolding lem3[OF nz] vector_component_simps * mem_box_cart
-      apply (erule_tac x=2 in allE)
-      apply auto
-      done
-  qed auto
+      unfolding iff[OF nz] vector_component_simps * mem_box_cart
+      by (erule_tac x=2 in allE) auto
+  next
+    case 4
+    then have *: "g (x $ 2) $ 2 = 1"
+      using assms(8) by auto
+    have "sqprojection (f (x$1) - g (x$2)) $ 2 > 0"
+      using x(2)[unfolded o_def vec_eq_iff,THEN spec[where x=2]] 4 by (auto simp: negatex_def)
+    moreover
+    from x1 have "f (x $ 1) \<in> cbox (-1) 1"
+      using assms(1) by blast
+    ultimately show False
+      unfolding iff[OF nz] vector_component_simps * mem_box_cart
+      by (erule_tac x=2 in allE) auto
+  qed 
 qed
 
 lemma fashoda_unit_path:
@@ -533,14 +461,12 @@ next
     using as
     by auto
   show thesis
-    apply (rule_tac z="interval_bij (- 1,1) (a,b) z" in that)
-    apply (subst zf)
-    defer
-    apply (subst zg)
-    unfolding o_def interval_bij_bij_cart[OF *] path_image_def
-    using zf(1) zg(1)
-    apply auto
-    done
+  proof (rule_tac z="interval_bij (- 1,1) (a,b) z" in that)
+    show "interval_bij (- 1, 1) (a, b) z \<in> path_image f"
+      using zf by (simp add: interval_bij_bij_cart[OF *] path_image_def)
+    show "interval_bij (- 1, 1) (a, b) z \<in> path_image g"
+      using zg by (simp add: interval_bij_bij_cart[OF *] path_image_def)
+  qed
 qed
 
 
@@ -714,8 +640,8 @@ lemma fashoda_interlace:
   fixes a :: "real^2"
   assumes "path f"
     and "path g"
-    and "path_image f \<subseteq> cbox a b"
-    and "path_image g \<subseteq> cbox a b"
+    and paf: "path_image f \<subseteq> cbox a b"
+    and pag: "path_image g \<subseteq> cbox a b"
     and "(pathstart f)$2 = a$2"
     and "(pathfinish f)$2 = a$2"
     and "(pathstart g)$2 = a$2"
@@ -776,30 +702,9 @@ proof -
   proof -
     show "path ?P1" and "path ?P2"
       using assms by auto
-    have "path_image ?P1 \<subseteq> cbox ?a ?b"
-      unfolding P1P2 path_image_linepath
-      apply (rule Un_least)+
-      defer 3
-      apply (rule_tac[1-4] convex_box(1)[unfolded convex_contains_segment,rule_format])
-      unfolding mem_box_cart forall_2 vector_2
-      using ab startfin abab assms(3)
-      using assms(9-)
-      unfolding assms
-      apply (auto simp add: field_simps box_def)
-      done
-    then show "path_image ?P1 \<subseteq> cbox ?a ?b" .
-    have "path_image ?P2 \<subseteq> cbox ?a ?b"
-      unfolding P1P2 path_image_linepath
-      apply (rule Un_least)+
-      defer 2
-      apply (rule_tac[1-4] convex_box(1)[unfolded convex_contains_segment,rule_format])
-      unfolding mem_box_cart forall_2 vector_2
-      using ab startfin abab assms(4)
-      using assms(9-)
-      unfolding assms
-      apply (auto simp add: field_simps box_def)
-      done
-    then show "path_image ?P2 \<subseteq> cbox ?a ?b" .
+    show "path_image ?P1 \<subseteq> cbox ?a ?b" "path_image ?P2 \<subseteq> cbox ?a ?b"
+      unfolding P1P2 path_image_linepath using startfin paf pag
+      by (auto simp: mem_box_cart segment_horizontal segment_vertical forall_2)
     show "a $ 1 - 2 = a $ 1 - 2"
       and "b $ 1 + 2 = b $ 1 + 2"
       and "pathstart g $ 2 - 3 = a $ 2 - 3"
@@ -808,8 +713,7 @@ proof -
   qed
   note z=this[unfolded P1P2 path_image_linepath]
   show thesis
-    apply (rule that[of z])
-  proof -
+  proof (rule that[of z])
     have "(z \<in> closed_segment (vector [a $ 1 - 2, a $ 2 - 2]) (vector [pathstart f $ 1, a $ 2 - 2]) \<or>
       z \<in> closed_segment (vector [pathstart f $ 1, a $ 2 - 2]) (pathstart f)) \<or>
       z \<in> closed_segment (pathfinish f) (vector [pathfinish f $ 1, a $ 2 - 2]) \<or>
@@ -838,32 +742,26 @@ proof -
         using prems(2) using assms ab
         by (auto simp add: field_simps)
       ultimately have *: "z$2 = a$2 - 2"
-        using prems(1)
-        by auto
+        using prems(1) by auto
       have "z$1 \<noteq> pathfinish g$1"
-        using prems(2)
-        using assms ab
+        using prems(2) assms ab
         by (auto simp add: field_simps *)
       moreover have "pathstart g \<in> cbox a b"
         using assms(4) pathstart_in_path_image[of g]
         by auto
       note this[unfolded mem_box_cart forall_2]
       then have "z$1 \<noteq> pathstart g$1"
-        using prems(1)
-        using assms ab
+        using prems(1) assms ab
         by (auto simp add: field_simps *)
       ultimately have "a $ 2 - 1 \<le> z $ 2 \<and> z $ 2 \<le> b $ 2 + 3 \<or> b $ 2 + 3 \<le> z $ 2 \<and> z $ 2 \<le> a $ 2 - 1"
-        using prems(2)
-        unfolding * assms
-        by (auto simp add: field_simps)
+        using prems(2)  unfolding * assms by (auto simp add: field_simps)
       then show False
         unfolding * using ab by auto
     qed
     then have "z \<in> path_image f \<or> z \<in> path_image g"
       using z unfolding Un_iff by blast
     then have z': "z \<in> cbox a b"
-      using assms(3-4)
-      by auto
+      using assms(3-4) by auto
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart f $ 1 \<or> z $ 1 = pathfinish f $ 1) \<Longrightarrow>
       z = pathstart f \<or> z = pathfinish f"
       unfolding vec_eq_iff forall_2 assms
@@ -871,11 +769,7 @@ proof -
     with z' show "z \<in> path_image f"
       using z(1)
       unfolding Un_iff mem_box_cart forall_2
-      apply -
-      apply (simp only: segment_vertical segment_horizontal vector_2)
-      unfolding assms
-      apply auto
-      done
+      by (simp only: segment_vertical segment_horizontal vector_2) (auto simp: assms)
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart g $ 1 \<or> z $ 1 = pathfinish g $ 1) \<Longrightarrow>
       z = pathstart g \<or> z = pathfinish g"
       unfolding vec_eq_iff forall_2 assms
@@ -883,10 +777,7 @@ proof -
     with z' show "z \<in> path_image g"
       using z(2)
       unfolding Un_iff mem_box_cart forall_2
-      apply (simp only: segment_vertical segment_horizontal vector_2)
-      unfolding assms
-      apply auto
-      done
+      by (simp only: segment_vertical segment_horizontal vector_2) (auto simp: assms)
   qed
 qed
 
