@@ -1197,13 +1197,13 @@ subsection \<open>Differentiability of inverse function (most basic form)\<close
 
 lemma has_derivative_inverse_basic:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "(f has_derivative f') (at (g y))"
-    and "bounded_linear g'"
+  assumes derf: "(f has_derivative f') (at (g y))"
+    and ling': "bounded_linear g'"
     and "g' \<circ> f' = id"
-    and "continuous (at y) g"
-    and "open t"
-    and "y \<in> t"
-    and "\<forall>z\<in>t. f (g z) = z"
+    and contg: "continuous (at y) g"
+    and "open T"
+    and "y \<in> T"
+    and fg: "\<And>z. z \<in> T \<Longrightarrow> f (g z) = z"
   shows "(g has_derivative g') (at y)"
 proof -
   interpret f': bounded_linear f'
@@ -1214,70 +1214,48 @@ proof -
     using bounded_linear.pos_bounded[OF assms(2)] by blast
   have lem1: "\<forall>e>0. \<exists>d>0. \<forall>z.
     norm (z - y) < d \<longrightarrow> norm (g z - g y - g'(z - y)) \<le> e * norm (g z - g y)"
-  proof (rule, rule)
+  proof (intro allI impI)
     fix e :: real
     assume "e > 0"
     with C(1) have *: "e / C > 0" by auto
-    obtain d0 where d0:
-        "0 < d0"
-        "\<forall>ya. norm (ya - g y) < d0 \<longrightarrow> norm (f ya - f (g y) - f' (ya - g y)) \<le> e / C * norm (ya - g y)"
-      using assms(1)
-      unfolding has_derivative_at_alt
-      using * by blast
-    obtain d1 where d1:
-        "0 < d1"
-        "\<forall>x. 0 < dist x y \<and> dist x y < d1 \<longrightarrow> dist (g x) (g y) < d0"
-      using assms(4)
-      unfolding continuous_at Lim_at
-      using d0(1) by blast
-    obtain d2 where d2:
-        "0 < d2"
-        "\<forall>ya. dist ya y < d2 \<longrightarrow> ya \<in> t"
-      using assms(5)
-      unfolding open_dist
-      using assms(6) by blast
+    obtain d0 where  "0 < d0" and d0:
+        "\<And>u. norm (u - g y) < d0 \<Longrightarrow> norm (f u - f (g y) - f' (u - g y)) \<le> e / C * norm (u - g y)"
+      using derf * unfolding has_derivative_at_alt by blast
+    obtain d1 where "0 < d1" and d1: "\<And>x. \<lbrakk>0 < dist x y; dist x y < d1\<rbrakk> \<Longrightarrow> dist (g x) (g y) < d0"
+      using contg \<open>0 < d0\<close> unfolding continuous_at Lim_at by blast
+    obtain d2 where "0 < d2" and d2: "\<And>u. dist u y < d2 \<Longrightarrow> u \<in> T"
+      using \<open>open T\<close> \<open>y \<in> T\<close> unfolding open_dist by blast
     obtain d where d: "0 < d" "d < d1" "d < d2"
-      using real_lbound_gt_zero[OF d1(1) d2(1)] by blast
-    then show "\<exists>d>0. \<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e * norm (g z - g y)"
-      apply (rule_tac x=d in exI)
-      apply rule
-      defer
-      apply rule
-      apply rule
-    proof -
+      using real_lbound_gt_zero[OF \<open>0 < d1\<close> \<open>0 < d2\<close>] by blast
+    show "\<exists>d>0. \<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e * norm (g z - g y)"
+    proof (intro exI allI impI conjI)
       fix z
       assume as: "norm (z - y) < d"
-      then have "z \<in> t"
+      then have "z \<in> T"
         using d2 d unfolding dist_norm by auto
       have "norm (g z - g y - g' (z - y)) \<le> norm (g' (f (g z) - y - f' (g z - g y)))"
         unfolding g'.diff f'.diff
-        unfolding assms(3)[unfolded o_def id_def, THEN fun_cong]
-        unfolding assms(7)[rule_format,OF \<open>z\<in>t\<close>]
-        apply (subst norm_minus_cancel[symmetric])
-        apply auto
-        done
+        unfolding assms(3)[unfolded o_def id_def, THEN fun_cong] fg[OF \<open>z\<in>T\<close>]
+        by (simp add: norm_minus_commute)
       also have "\<dots> \<le> norm (f (g z) - y - f' (g z - g y)) * C"
         by (rule C(2))
       also have "\<dots> \<le> (e / C) * norm (g z - g y) * C"
-        apply (rule mult_right_mono)
-        apply (rule d0(2)[rule_format,unfolded assms(7)[rule_format,OF \<open>y\<in>t\<close>]])
-        apply (cases "z = y")
-        defer
-        apply (rule d1(2)[unfolded dist_norm,rule_format])
-        using as d C d0
-        apply auto
-        done
+      proof -
+        have "norm (g z - g y) < d0"
+          by (metis as cancel_comm_monoid_add_class.diff_cancel d(2) \<open>0 < d0\<close> d1 diff_gt_0_iff_gt diff_strict_mono dist_norm dist_self zero_less_dist_iff)
+        then show ?thesis
+          by (metis C(1) \<open>y \<in> T\<close> d0 fg real_mult_le_cancel_iff1)
+      qed
       also have "\<dots> \<le> e * norm (g z - g y)"
         using C by (auto simp add: field_simps)
       finally show "norm (g z - g y - g' (z - y)) \<le> e * norm (g z - g y)"
         by simp
-    qed auto
+    qed (use d in auto)
   qed
   have *: "(0::real) < 1 / 2"
     by auto
-  obtain d where d:
-      "0 < d"
-      "\<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> 1 / 2 * norm (g z - g y)"
+  obtain d where "0 < d" and d:
+      "\<And>z. norm (z - y) < d \<Longrightarrow> norm (g z - g y - g' (z - y)) \<le> 1/2 * norm (g z - g y)"
     using lem1 * by blast
   define B where "B = C * 2"
   have "B > 0"
@@ -1287,51 +1265,37 @@ proof -
     have "norm (g z - g y) \<le> norm(g' (z - y)) + norm ((g z - g y) - g'(z - y))"
       by (rule norm_triangle_sub)
     also have "\<dots> \<le> norm (g' (z - y)) + 1 / 2 * norm (g z - g y)"
-      apply (rule add_left_mono)
-      using d and z
-      apply auto
-      done
+      by (rule add_left_mono) (use d z in auto)
     also have "\<dots> \<le> norm (z - y) * C + 1 / 2 * norm (g z - g y)"
-      apply (rule add_right_mono)
-      using C
-      apply auto
-      done
+      by (rule add_right_mono) (use C in auto)
     finally show "norm (g z - g y) \<le> B * norm (z - y)"
       unfolding B_def
       by (auto simp add: field_simps)
   qed
   show ?thesis
     unfolding has_derivative_at_alt
-    apply rule
-    apply (rule assms)
-    apply rule
-    apply rule
-  proof -
+  proof (intro conjI assms allI impI)
     fix e :: real
     assume "e > 0"
     then have *: "e / B > 0" by (metis \<open>B > 0\<close> divide_pos_pos)
-    obtain d' where d':
-        "0 < d'"
-        "\<forall>z. norm (z - y) < d' \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
+    obtain d' where "0 < d'" and d':
+        "\<And>z. norm (z - y) < d' \<Longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
       using lem1 * by blast
     obtain k where k: "0 < k" "k < d" "k < d'"
-      using real_lbound_gt_zero[OF d(1) d'(1)] by blast
+      using real_lbound_gt_zero[OF \<open>0 < d\<close> \<open>0 < d'\<close>] by blast
     show "\<exists>d>0. \<forall>ya. norm (ya - y) < d \<longrightarrow> norm (g ya - g y - g' (ya - y)) \<le> e * norm (ya - y)"
-      apply (rule_tac x=k in exI)
-      apply auto
-    proof -
+    proof (intro exI allI impI conjI)
       fix z
       assume as: "norm (z - y) < k"
       then have "norm (g z - g y - g' (z - y)) \<le> e / B * norm(g z - g y)"
         using d' k by auto
       also have "\<dots> \<le> e * norm (z - y)"
         unfolding times_divide_eq_left pos_divide_le_eq[OF \<open>B>0\<close>]
-        using lem2[of z]
-        using k as using \<open>e > 0\<close>
+        using lem2[of z] k as \<open>e > 0\<close>
         by (auto simp add: field_simps)
       finally show "norm (g z - g y - g' (z - y)) \<le> e * norm (z - y)"
         by simp
-    qed(insert k, auto)
+    qed (use k in auto)
   qed
 qed
 
@@ -1344,25 +1308,22 @@ lemma has_derivative_inverse_basic_x:
     and "g' \<circ> f' = id"
     and "continuous (at (f x)) g"
     and "g (f x) = x"
-    and "open t"
-    and "f x \<in> t"
-    and "\<forall>y\<in>t. f (g y) = y"
+    and "open T"
+    and "f x \<in> T"
+    and "\<And>y. y \<in> T \<Longrightarrow> f (g y) = y"
   shows "(g has_derivative g') (at (f x))"
-  apply (rule has_derivative_inverse_basic)
-  using assms
-  apply auto
-  done
+  by (rule has_derivative_inverse_basic) (use assms in auto)
 
 text \<open>This is the version in Dieudonne', assuming continuity of f and g.\<close>
 
 lemma has_derivative_inverse_dieudonne:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "open s"
-    and "open (f ` s)"
-    and "continuous_on s f"
-    and "continuous_on (f ` s) g"
-    and "\<forall>x\<in>s. g (f x) = x"
-    and "x \<in> s"
+  assumes "open S"
+    and "open (f ` S)"
+    and "continuous_on S f"
+    and "continuous_on (f ` S) g"
+    and "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x"
+    and "x \<in> S"
     and "(f has_derivative f') (at x)"
     and "bounded_linear g'"
     and "g' \<circ> f' = id"
@@ -1377,11 +1338,11 @@ text \<open>Here's the simplest way of not assuming much about g.\<close>
 
 lemma has_derivative_inverse:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "compact s"
-    and "x \<in> s"
-    and "f x \<in> interior (f ` s)"
-    and "continuous_on s f"
-    and "\<forall>y\<in>s. g (f y) = y"
+  assumes "compact S"
+    and "x \<in> S"
+    and fx: "f x \<in> interior (f ` S)"
+    and "continuous_on S f"
+    and "\<And>y. y \<in> S \<Longrightarrow> g (f y) = y"
     and "(f has_derivative f') (at x)"
     and "bounded_linear g'"
     and "g' \<circ> f' = id"
@@ -1389,20 +1350,17 @@ lemma has_derivative_inverse:
 proof -
   {
     fix y
-    assume "y \<in> interior (f ` s)"
-    then obtain x where "x \<in> s" and *: "y = f x"
-      unfolding image_iff
-      using interior_subset
-      by auto
+    assume "y \<in> interior (f ` S)"
+    then obtain x where "x \<in> S" and *: "y = f x"
+      by (meson imageE interior_subset subsetCE)
     have "f (g y) = y"
-      unfolding * and assms(5)[rule_format,OF \<open>x\<in>s\<close>] ..
+      unfolding * and assms(5)[rule_format,OF \<open>x\<in>S\<close>] ..
   } note * = this
   show ?thesis
-    apply (rule has_derivative_inverse_basic_x[OF assms(6-8)])
-    apply (rule continuous_on_interior[OF _ assms(3)])
-    apply (rule continuous_on_inv[OF assms(4,1)])
-    apply (rule assms(2,5) assms(5)[rule_format] open_interior assms(3))+
-    apply (metis *)
+    apply (rule has_derivative_inverse_basic_x[OF assms(6-8), where T = "interior (f ` S)"])
+    apply (rule continuous_on_interior[OF _ fx])
+    apply (rule continuous_on_inv)
+    apply (simp_all add: assms *)
     done
 qed
 
@@ -1411,13 +1369,13 @@ subsection \<open>Proving surjectivity via Brouwer fixpoint theorem\<close>
 
 lemma brouwer_surjective:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
-  assumes "compact t"
-    and "convex t"
-    and "t \<noteq> {}"
-    and "continuous_on t f"
-    and "\<forall>x\<in>s. \<forall>y\<in>t. x + (y - f y) \<in> t"
-    and "x \<in> s"
-  shows "\<exists>y\<in>t. f y = x"
+  assumes "compact T"
+    and "convex T"
+    and "T \<noteq> {}"
+    and "continuous_on T f"
+    and "\<And>x y. \<lbrakk>x\<in>S; y\<in>T\<rbrakk> \<Longrightarrow> x + (y - f y) \<in> T"
+    and "x \<in> S"
+  shows "\<exists>y\<in>T. f y = x"
 proof -
   have *: "\<And>x y. f y = x \<longleftrightarrow> x + (y - f y) = y"
     by (auto simp add: algebra_simps)
@@ -1432,10 +1390,10 @@ qed
 
 lemma brouwer_surjective_cball:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
-  assumes "e > 0"
-    and "continuous_on (cball a e) f"
-    and "\<forall>x\<in>s. \<forall>y\<in>cball a e. x + (y - f y) \<in> cball a e"
-    and "x \<in> s"
+  assumes "continuous_on (cball a e) f"
+    and "e > 0"
+    and "x \<in> S"
+    and "\<And>x y. \<lbrakk>x\<in>S; y\<in>cball a e\<rbrakk> \<Longrightarrow> x + (y - f y) \<in> cball a e"
   shows "\<exists>y\<in>cball a e. f y = x"
   apply (rule brouwer_surjective)
   apply (rule compact_cball convex_cball)+
@@ -1448,14 +1406,14 @@ text \<open>See Sussmann: "Multidifferential calculus", Theorem 2.1.1\<close>
 
 lemma sussmann_open_mapping:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
-  assumes "open s"
-    and "continuous_on s f"
-    and "x \<in> s"
+  assumes "open S"
+    and "continuous_on S f"
+    and "x \<in> S"
     and "(f has_derivative f') (at x)"
     and "bounded_linear g'" "f' \<circ> g' = id"
-    and "t \<subseteq> s"
-    and "x \<in> interior t"
-  shows "f x \<in> interior (f ` t)"
+    and "T \<subseteq> S"
+    and "x \<in> interior T"
+  shows "f x \<in> interior (f ` T)"
 proof -
   interpret f': bounded_linear f'
     using assms
@@ -1473,31 +1431,17 @@ proof -
     using assms(4)
     unfolding has_derivative_at_alt
     using * by blast
-  obtain e1 where e1: "0 < e1" "cball x e1 \<subseteq> t"
+  obtain e1 where e1: "0 < e1" "cball x e1 \<subseteq> T"
     using assms(8)
     unfolding mem_interior_cball
     by blast
   have *: "0 < e0 / B" "0 < e1 / B" using e0 e1 B by auto
   obtain e where e: "0 < e" "e < e0 / B" "e < e1 / B"
     using real_lbound_gt_zero[OF *] by blast
-  have "\<forall>z\<in>cball (f x) (e / 2). \<exists>y\<in>cball (f x) e. f (x + g' (y - f x)) = z"
-    apply rule
-    apply (rule brouwer_surjective_cball[where s="cball (f x) (e/2)"])
-    prefer 3
-    apply rule
-    apply rule
-  proof-
-    show "continuous_on (cball (f x) e) (\<lambda>y. f (x + g' (y - f x)))"
-      unfolding g'.diff
-      apply (rule continuous_on_compose[of _ _ f, unfolded o_def])
-      apply (rule continuous_intros linear_continuous_on[OF assms(5)])+
-      apply (rule continuous_on_subset[OF assms(2)])
-      apply rule
-      apply (unfold image_iff)
-      apply (erule bexE)
+  have lem: "\<exists>y\<in>cball (f x) e. f (x + g' (y - f x)) = z" if "z\<in>cball (f x) (e / 2)" for z
+  proof (rule brouwer_surjective_cball)
+    have z: "z \<in> S" if as: "y \<in>cball (f x) e" "z = x + (g' y - g' (f x))" for y z
     proof-
-      fix y z
-      assume as: "y \<in>cball (f x) e" "z = x + (g' y - g' (f x))"
       have "dist x z = norm (g' (f x) - g' y)"
         unfolding as(2) and dist_norm by auto
       also have "\<dots> \<le> norm (f x - y) * B"
@@ -1516,9 +1460,16 @@ proof -
       finally have "z \<in> cball x e1"
         unfolding mem_cball
         by force
-      then show "z \<in> s"
+      then show "z \<in> S"
         using e1 assms(7) by auto
     qed
+    show "continuous_on (cball (f x) e) (\<lambda>y. f (x + g' (y - f x)))"
+      unfolding g'.diff
+      apply (rule continuous_on_compose[of _ _ f, unfolded o_def])
+       apply (rule continuous_intros linear_continuous_on[OF assms(5)])+
+      apply (rule continuous_on_subset[OF assms(2)])
+      using z
+      by blast
   next
     fix y z
     assume as: "y \<in> cball (f x) (e / 2)" "z \<in> cball (f x) e"
@@ -1528,7 +1479,7 @@ proof -
       apply (rule mult_right_mono)
       using as(2)[unfolded mem_cball dist_norm] and B
       unfolding norm_minus_commute
-      apply auto
+       apply auto
       done
     also have "\<dots> < e0"
       using e and B
@@ -1563,7 +1514,7 @@ proof -
     finally show "y + (z - f (x + g' (z - f x))) \<in> cball (f x) e"
       unfolding mem_cball dist_norm
       by auto
-  qed (insert e, auto) note lem = this
+  qed (use e that in auto) 
   show ?thesis
     unfolding mem_interior
     apply (rule_tac x="e/2" in exI)
@@ -1589,13 +1540,13 @@ proof -
       done
     also have "\<dots> \<le> e1"
       using e B unfolding less_divide_eq by auto
-    finally have "x + g'(z - f x) \<in> t"
+    finally have "x + g'(z - f x) \<in> T"
       apply -
       apply (rule e1(2)[unfolded subset_eq,rule_format])
       unfolding mem_cball dist_norm
       apply auto
       done
-    then show "y \<in> f ` t"
+    then show "y \<in> f ` T"
       using z by auto
   qed (insert e, auto)
 qed
@@ -1750,9 +1701,9 @@ proposition has_derivative_locally_injective:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "a \<in> s"
       and "open s"
-      and "bounded_linear g'"
+      and bling: "bounded_linear g'"
       and "g' \<circ> f' a = id"
-      and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative f' x) (at x)"
+      and derf: "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative f' x) (at x)"
       and "\<And>e. e > 0 \<Longrightarrow> \<exists>d>0. \<forall>x. dist a x < d \<longrightarrow> onorm (\<lambda>v. f' x v - f' a v) < e"
   obtains r where "r > 0" "ball a r \<subseteq> s" "inj_on f (ball a r)"
 proof -
@@ -1760,11 +1711,7 @@ proof -
     using assms by auto
   note f'g' = assms(4)[unfolded id_def o_def,THEN cong]
   have "g' (f' a (\<Sum>Basis)) = (\<Sum>Basis)" "(\<Sum>Basis) \<noteq> (0::'n)"
-    defer
-    apply (subst euclidean_eq_iff)
-    using f'g'
-    apply auto
-    done
+    using f'g' by auto
   then have *: "0 < onorm g'"
     unfolding onorm_pos_lt[OF assms(3)]
     by fastforce
@@ -1812,17 +1759,11 @@ proof -
         have *: "(\<lambda>v. v - g' (f' u v)) = g' \<circ> (\<lambda>w. f' a w - f' u w)"
           unfolding o_def and diff
           using f'g' by auto
+        have blin: "bounded_linear (f' a)"
+          using \<open>a \<in> s\<close> derf by blast
         show "(ph has_derivative (\<lambda>v. v - g' (f' u v))) (at u within ball a d)"
-          unfolding ph' *
-          apply (simp add: comp_def)
-          apply (rule bounded_linear.has_derivative[OF assms(3)])
-          apply (rule derivative_intros)
-          defer
-          apply (rule has_derivative_sub[where g'="\<lambda>x.0",unfolded diff_0_right])
-          apply (rule has_derivative_at_withinI)
-          using assms(5) and \<open>u \<in> s\<close> \<open>a \<in> s\<close>
-          apply (auto intro!: derivative_intros bounded_linear.has_derivative[of _ "\<lambda>x. x"] has_derivative_bounded_linear)
-          done
+          unfolding ph' * comp_def
+          by (rule \<open>u \<in> s\<close> derivative_eq_intros has_derivative_at_withinI [OF derf] bounded_linear.has_derivative [OF blin]  bounded_linear.has_derivative [OF bling] |simp)+
         have **: "bounded_linear (\<lambda>x. f' u x - f' a x)" "bounded_linear (\<lambda>x. f' a x - f' u x)"
           apply (rule_tac[!] bounded_linear_sub)
           apply (rule_tac[!] has_derivative_bounded_linear)
@@ -1896,21 +1837,20 @@ proof rule+
   qed
 qed
 
-lemma has_derivative_sequence_lipschitz:
+lemma has_derivative_sequence_Lipschitz:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "convex s"
-    and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
-  shows "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
+  assumes "convex S"
+    and "\<And>n x. x \<in> S \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within S)"
+    and "\<And>e. e > 0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
+    and "e > 0"
+  shows "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>y\<in>S.
     norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
-proof (rule, rule)
-  fix e :: real
-  assume "e > 0"
-  then have *: "2 * (1/2* e) = e" "1/2 * e >0"
-    by auto
-  obtain N where "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> 1 / 2 * e * norm h"
+proof -
+  have *: "2 * (1/2* e) = e" "1/2 * e >0"
+    using \<open>e>0\<close> by auto
+  obtain N where "\<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm (f' n x h - g' x h) \<le> 1 / 2 * e * norm h"
     using assms(3) *(2) by blast
-  then show "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm (f m x - f n x - (f m y - f n y)) \<le> e * norm (x - y)"
+  then show "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>y\<in>S. norm (f m x - f n x - (f m y - f n y)) \<le> e * norm (x - y)"
     apply (rule_tac x=N in exI)
     apply (rule has_derivative_sequence_lipschitz_lemma[where e="1/2 *e", unfolded *])
     using assms \<open>e > 0\<close>
@@ -1920,22 +1860,22 @@ qed
 
 lemma has_derivative_sequence:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
-  assumes "convex s"
-    and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
-    and "x0 \<in> s"
+  assumes "convex S"
+    and "\<And>n x. x \<in> S \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within S)"
+    and "\<And>e. e > 0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
+    and "x0 \<in> S"
     and "((\<lambda>n. f n x0) \<longlongrightarrow> l) sequentially"
-  shows "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g'(x)) (at x within s)"
+  shows "\<exists>g. \<forall>x\<in>S. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g'(x)) (at x within S)"
 proof -
-  have lem1: "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
+  have lem1: "\<And>e. e > 0 \<Longrightarrow> \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>y\<in>S.
       norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
-    using assms(1,2,3) by (rule has_derivative_sequence_lipschitz)
-  have "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially"
+    using assms(1,2,3) by (rule has_derivative_sequence_Lipschitz)
+  have "\<exists>g. \<forall>x\<in>S. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially"
     apply (rule bchoice)
     unfolding convergent_eq_Cauchy
   proof
     fix x
-    assume "x \<in> s"
+    assume "x \<in> S"
     show "Cauchy (\<lambda>n. f n x)"
     proof (cases "x = x0")
       case True
@@ -1945,7 +1885,7 @@ proof -
       case False
       show ?thesis
         unfolding Cauchy_def
-      proof (rule, rule)
+      proof (intro allI impI)
         fix e :: real
         assume "e > 0"
         hence *: "e / 2 > 0" "e / 2 / norm (x - x0) > 0" using False by auto
@@ -1955,12 +1895,11 @@ proof -
           using *(1) by blast
         obtain N where N:
           "\<forall>m\<ge>N. \<forall>n\<ge>N.
-            \<forall>xa\<in>s. \<forall>y\<in>s. norm (f m xa - f n xa - (f m y - f n y)) \<le>
+            \<forall>xa\<in>S. \<forall>y\<in>S. norm (f m xa - f n xa - (f m y - f n y)) \<le>
               e / 2 / norm (x - x0) * norm (xa - y)"
         using lem1 *(2) by blast
         show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e"
-          apply (rule_tac x="max M N" in exI)
-        proof rule+
+        proof (intro exI allI impI)
           fix m n
           assume as: "max M N \<le>m" "max M N\<le>n"
           have "dist (f m x) (f n x) \<le>
@@ -1968,7 +1907,7 @@ proof -
             unfolding dist_norm
             by (rule norm_triangle_sub)
           also have "\<dots> \<le> norm (f m x0 - f n x0) + e / 2"
-            using N[rule_format,OF _ _ \<open>x\<in>s\<close> \<open>x0\<in>s\<close>, of m n] and as and False
+            using N[rule_format,OF _ _ \<open>x\<in>S\<close> \<open>x0\<in>S\<close>, of m n] and as and False
             by auto
           also have "\<dots> < e / 2 + e / 2"
             apply (rule add_strict_right_mono)
@@ -1982,27 +1921,24 @@ proof -
       qed
     qed
   qed
-  then obtain g where g: "\<forall>x\<in>s. (\<lambda>n. f n x) \<longlonglongrightarrow> g x" ..
-  have lem2: "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm ((f n x - f n y) - (g x - g y)) \<le> e * norm (x - y)"
+  then obtain g where g: "\<forall>x\<in>S. (\<lambda>n. f n x) \<longlonglongrightarrow> g x" ..
+  have lem2: "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>y\<in>S. norm ((f n x - f n y) - (g x - g y)) \<le> e * norm (x - y)"
   proof (rule, rule)
     fix e :: real
     assume *: "e > 0"
     obtain N where
-      N: "\<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm (f m x - f n x - (f m y - f n y)) \<le> e * norm (x - y)"
+      N: "\<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>y\<in>S. norm (f m x - f n x - (f m y - f n y)) \<le> e * norm (x - y)"
       using lem1 * by blast
-    show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
+    show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>y\<in>S. norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
       apply (rule_tac x=N in exI)
     proof rule+
       fix n x y
-      assume as: "N \<le> n" "x \<in> s" "y \<in> s"
+      assume as: "N \<le> n" "x \<in> S" "y \<in> S"
       have "((\<lambda>m. norm (f n x - f n y - (f m x - f m y))) \<longlongrightarrow> norm (f n x - f n y - (g x - g y))) sequentially"
         by (intro tendsto_intros g[rule_format] as)
       moreover have "eventually (\<lambda>m. norm (f n x - f n y - (f m x - f m y)) \<le> e * norm (x - y)) sequentially"
         unfolding eventually_sequentially
-        apply (rule_tac x=N in exI)
-        apply rule
-        apply rule
-      proof -
+      proof (intro exI allI impI)
         fix m
         assume "N \<le> m"
         then show "norm (f n x - f n y - (f m x - f m y)) \<le> e * norm (x - y)"
@@ -2013,11 +1949,11 @@ proof -
         by (simp add: tendsto_upperbound)
     qed
   qed
-  have "\<forall>x\<in>s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g' x) (at x within s)"
+  have "\<forall>x\<in>S. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and> (g has_derivative g' x) (at x within S)"
     unfolding has_derivative_within_alt2
   proof (intro ballI conjI)
     fix x
-    assume "x \<in> s"
+    assume "x \<in> S"
     then show "((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially"
       by (simp add: g)
     have lem3: "\<forall>u. ((\<lambda>n. f' n x u) \<longlongrightarrow> g' x u) sequentially"
@@ -2030,7 +1966,7 @@ proof -
       proof (cases "u = 0")
         case True
         have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e * norm u) sequentially"
-          using assms(3)[folded eventually_sequentially] and \<open>0 < e\<close> and \<open>x \<in> s\<close>
+          using assms(3)[folded eventually_sequentially] and \<open>0 < e\<close> and \<open>x \<in> S\<close>
           by (fast elim: eventually_mono)
         then show ?thesis
           using \<open>u = 0\<close> and \<open>0 < e\<close> by (auto elim: eventually_mono)
@@ -2038,7 +1974,7 @@ proof -
         case False
         with \<open>0 < e\<close> have "0 < e / norm u" by simp
         then have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e / norm u * norm u) sequentially"
-          using assms(3)[folded eventually_sequentially] and \<open>x \<in> s\<close>
+          using assms(3)[folded eventually_sequentially] and \<open>x \<in> S\<close>
           by (fast elim: eventually_mono)
         then show ?thesis
           using \<open>u \<noteq> 0\<close> by simp
@@ -2048,7 +1984,7 @@ proof -
     proof
       fix x' y z :: 'a
       fix c :: real
-      note lin = assms(2)[rule_format,OF \<open>x\<in>s\<close>,THEN has_derivative_bounded_linear]
+      note lin = assms(2)[rule_format,OF \<open>x\<in>S\<close>,THEN has_derivative_bounded_linear]
       show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'"
         apply (rule tendsto_unique[OF trivial_limit_sequentially])
         apply (rule lem3[rule_format])
@@ -2064,9 +2000,9 @@ proof -
         apply (rule lem3[rule_format])+
         done
       obtain N where N: "\<forall>h. norm (f' N x h - g' x h) \<le> 1 * norm h"
-        using assms(3) \<open>x \<in> s\<close> by (fast intro: zero_less_one)
+        using assms(3) \<open>x \<in> S\<close> by (fast intro: zero_less_one)
       have "bounded_linear (f' N x)"
-        using assms(2) \<open>x \<in> s\<close> by fast
+        using assms(2) \<open>x \<in> S\<close> by fast
       from bounded_linear.bounded [OF this]
       obtain K where K: "\<forall>h. norm (f' N x h) \<le> norm h * K" ..
       {
@@ -2082,36 +2018,36 @@ proof -
       }
       then show "\<exists>K. \<forall>h. norm (g' x h) \<le> norm h * K" by fast
     qed
-    show "\<forall>e>0. eventually (\<lambda>y. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)) (at x within s)"
+    show "\<forall>e>0. eventually (\<lambda>y. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)) (at x within S)"
     proof (rule, rule)
       fix e :: real
       assume "e > 0"
       then have *: "e / 3 > 0"
         by auto
-      obtain N1 where N1: "\<forall>n\<ge>N1. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e / 3 * norm h"
+      obtain N1 where N1: "\<forall>n\<ge>N1. \<forall>x\<in>S. \<forall>h. norm (f' n x h - g' x h) \<le> e / 3 * norm h"
         using assms(3) * by blast
       obtain N2 where
-          N2: "\<forall>n\<ge>N2. \<forall>x\<in>s. \<forall>y\<in>s. norm (f n x - f n y - (g x - g y)) \<le> e / 3 * norm (x - y)"
+          N2: "\<forall>n\<ge>N2. \<forall>x\<in>S. \<forall>y\<in>S. norm (f n x - f n y - (g x - g y)) \<le> e / 3 * norm (x - y)"
         using lem2 * by blast
       let ?N = "max N1 N2"
-      have "eventually (\<lambda>y. norm (f ?N y - f ?N x - f' ?N x (y - x)) \<le> e / 3 * norm (y - x)) (at x within s)"
-        using assms(2)[unfolded has_derivative_within_alt2] and \<open>x \<in> s\<close> and * by fast
-      moreover have "eventually (\<lambda>y. y \<in> s) (at x within s)"
+      have "eventually (\<lambda>y. norm (f ?N y - f ?N x - f' ?N x (y - x)) \<le> e / 3 * norm (y - x)) (at x within S)"
+        using assms(2)[unfolded has_derivative_within_alt2] and \<open>x \<in> S\<close> and * by fast
+      moreover have "eventually (\<lambda>y. y \<in> S) (at x within S)"
         unfolding eventually_at by (fast intro: zero_less_one)
-      ultimately show "\<forall>\<^sub>F y in at x within s. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
+      ultimately show "\<forall>\<^sub>F y in at x within S. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
       proof (rule eventually_elim2)
         fix y
-        assume "y \<in> s"
+        assume "y \<in> S"
         assume "norm (f ?N y - f ?N x - f' ?N x (y - x)) \<le> e / 3 * norm (y - x)"
         moreover have "norm (g y - g x - (f ?N y - f ?N x)) \<le> e / 3 * norm (y - x)"
-          using N2[rule_format, OF _ \<open>y \<in> s\<close> \<open>x \<in> s\<close>]
+          using N2[rule_format, OF _ \<open>y \<in> S\<close> \<open>x \<in> S\<close>]
           by (simp add: norm_minus_commute)
         ultimately have "norm (g y - g x - f' ?N x (y - x)) \<le> 2 * e / 3 * norm (y - x)"
           using norm_triangle_le[of "g y - g x - (f ?N y - f ?N x)" "f ?N y - f ?N x - f' ?N x (y - x)" "2 * e / 3 * norm (y - x)"]
           by (auto simp add: algebra_simps)
         moreover
         have " norm (f' ?N x (y - x) - g' x (y - x)) \<le> e / 3 * norm (y - x)"
-          using N1 \<open>x \<in> s\<close> by auto
+          using N1 \<open>x \<in> S\<close> by auto
         ultimately show "norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
           using norm_triangle_le[of "g y - g x - f' (max N1 N2) x (y - x)" "f' (max N1 N2) x (y - x) - g' x (y - x)"]
           by (auto simp add: algebra_simps)
@@ -2125,77 +2061,63 @@ text \<open>Can choose to line up antiderivatives if we want.\<close>
 
 lemma has_antiderivative_sequence:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
-  assumes "convex s"
-    and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
-  shows "\<exists>g. \<forall>x\<in>s. (g has_derivative g' x) (at x within s)"
-proof (cases "s = {}")
+  assumes "convex S"
+    and der: "\<And>n x. x \<in> S \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within S)"
+    and no: "\<And>e. e > 0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
+  shows "\<exists>g. \<forall>x\<in>S. (g has_derivative g' x) (at x within S)"
+proof (cases "S = {}")
   case False
-  then obtain a where "a \<in> s"
+  then obtain a where "a \<in> S"
     by auto
-  have *: "\<And>P Q. \<exists>g. \<forall>x\<in>s. P g x \<and> Q g x \<Longrightarrow> \<exists>g. \<forall>x\<in>s. Q g x"
+  have *: "\<And>P Q. \<exists>g. \<forall>x\<in>S. P g x \<and> Q g x \<Longrightarrow> \<exists>g. \<forall>x\<in>S. Q g x"
     by auto
   show ?thesis
     apply (rule *)
-    apply (rule has_derivative_sequence[OF assms(1) _ assms(3), of "\<lambda>n x. f n x + (f 0 a - f n a)"])
-    apply (metis assms(2) has_derivative_add_const)
-    apply (rule \<open>a \<in> s\<close>)
+    apply (rule has_derivative_sequence [OF \<open>convex S\<close> _ no, of "\<lambda>n x. f n x + (f 0 a - f n a)"])
+       apply (metis assms(2) has_derivative_add_const)
+    using \<open>a \<in> S\<close> 
     apply auto
     done
 qed auto
 
 lemma has_antiderivative_limit:
   fixes g' :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'b::banach"
-  assumes "convex s"
-    and "\<forall>e>0. \<exists>f f'. \<forall>x\<in>s.
-      (f has_derivative (f' x)) (at x within s) \<and> (\<forall>h. norm (f' x h - g' x h) \<le> e * norm h)"
-  shows "\<exists>g. \<forall>x\<in>s. (g has_derivative g' x) (at x within s)"
+  assumes "convex S"
+    and "\<And>e. e>0 \<Longrightarrow> \<exists>f f'. \<forall>x\<in>S.
+           (f has_derivative (f' x)) (at x within S) \<and> (\<forall>h. norm (f' x h - g' x h) \<le> e * norm h)"
+  shows "\<exists>g. \<forall>x\<in>S. (g has_derivative g' x) (at x within S)"
 proof -
-  have *: "\<forall>n. \<exists>f f'. \<forall>x\<in>s.
-    (f has_derivative (f' x)) (at x within s) \<and>
+  have *: "\<forall>n. \<exists>f f'. \<forall>x\<in>S.
+    (f has_derivative (f' x)) (at x within S) \<and>
     (\<forall>h. norm(f' x h - g' x h) \<le> inverse (real (Suc n)) * norm h)"
     by (simp add: assms(2))
   obtain f where
-    *: "\<forall>x. \<exists>f'. \<forall>xa\<in>s. (f x has_derivative f' xa) (at xa within s) \<and>
-      (\<forall>h. norm (f' xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
-    using *[THEN choice] ..
+    *: "\<And>x. \<exists>f'. \<forall>xa\<in>S. (f x has_derivative f' xa) (at xa within S) \<and>
+        (\<forall>h. norm (f' xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
+    using * by metis
   obtain f' where
-    f: "\<forall>x. \<forall>xa\<in>s. (f x has_derivative f' x xa) (at xa within s) \<and>
-      (\<forall>h. norm (f' x xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
-    using *[THEN choice] ..
+    f': "\<And>x. \<forall>z\<in>S. (f x has_derivative f' x z) (at z within S) \<and>
+            (\<forall>h. norm (f' x z h - g' z h) \<le> inverse (real (Suc x)) * norm h)"
+    using * by metis
   show ?thesis
-    apply (rule has_antiderivative_sequence[OF assms(1), of f f'])
-    defer
-    apply rule
-    apply rule
-  proof -
+  proof (rule has_antiderivative_sequence[OF \<open>convex S\<close>, of f f'])
     fix e :: real
     assume "e > 0"
     obtain N where N: "inverse (real (Suc N)) < e"
       using reals_Archimedean[OF \<open>e>0\<close>] ..
-    show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
-      apply (rule_tac x=N in exI)
-      apply rule
-      apply rule
-      apply rule
-      apply rule
-    proof -
+    show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
+    proof (intro exI allI ballI impI)
       fix n x h
-      assume n: "N \<le> n" and x: "x \<in> s"
+      assume n: "N \<le> n" and x: "x \<in> S"
       have *: "inverse (real (Suc n)) \<le> e"
         apply (rule order_trans[OF _ N[THEN less_imp_le]])
         using n
         apply (auto simp add: field_simps)
         done
       show "norm (f' n x h - g' x h) \<le> e * norm h"
-        using f[rule_format,THEN conjunct2, OF x, of n, THEN spec[where x=h]]
-        apply (rule order_trans)
-        using N *
-        apply (cases "h = 0")
-        apply auto
-        done
+        by (meson "*" mult_right_mono norm_ge_zero order.trans x f')
     qed
-  qed (insert f, auto)
+  qed (use f' in auto)
 qed
 
 
@@ -2203,12 +2125,12 @@ subsection \<open>Differentiation of a series\<close>
 
 lemma has_derivative_series:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
-  assumes "convex s"
-    and "\<And>n x. x \<in> s \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (sum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
-    and "x \<in> s"
+  assumes "convex S"
+    and "\<And>n x. x \<in> S \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within S)"
+    and "\<And>e. e>0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm (sum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
+    and "x \<in> S"
     and "(\<lambda>n. f n x) sums l"
-  shows "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums (g x) \<and> (g has_derivative g' x) (at x within s)"
+  shows "\<exists>g. \<forall>x\<in>S. (\<lambda>n. f n x) sums (g x) \<and> (g has_derivative g' x) (at x within S)"
   unfolding sums_def
   apply (rule has_derivative_sequence[OF assms(1) _ assms(3)])
   apply (metis assms(2) has_derivative_sum)
@@ -2219,20 +2141,19 @@ lemma has_derivative_series:
 
 lemma has_field_derivative_series:
   fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
-  assumes "convex s"
-  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
-  assumes "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
-  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
-  shows   "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
+  assumes "convex S"
+  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x within S)"
+  assumes "uniform_limit S (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)"
+  shows   "\<exists>g. \<forall>x\<in>S. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within S)"
 unfolding has_field_derivative_def
 proof (rule has_derivative_series)
-  show "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h"
-  proof (intro allI impI)
-    fix e :: real assume "e > 0"
-    with assms(3) obtain N where N: "\<And>n x. n \<ge> N \<Longrightarrow> x \<in> s \<Longrightarrow> norm ((\<Sum>i<n. f' i x) - g' x) < e"
+  show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" if "e > 0" for e
+  proof -
+    from that assms(3) obtain N where N: "\<And>n x. n \<ge> N \<Longrightarrow> x \<in> S \<Longrightarrow> norm ((\<Sum>i<n. f' i x) - g' x) < e"
       unfolding uniform_limit_iff eventually_at_top_linorder dist_norm by blast
     {
-      fix n :: nat and x h :: 'a assume nx: "n \<ge> N" "x \<in> s"
+      fix n :: nat and x h :: 'a assume nx: "n \<ge> N" "x \<in> S"
       have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) = norm ((\<Sum>i<n. f' i x) - g' x) * norm h"
         by (simp add: norm_mult [symmetric] ring_distribs sum_distrib_right)
       also from N[OF nx] have "norm ((\<Sum>i<n. f' i x) - g' x) \<le> e" by simp
@@ -2240,55 +2161,55 @@ proof (rule has_derivative_series)
         by (intro mult_right_mono) simp_all
       finally have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" .
     }
-    thus "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" by blast
+    thus "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" by blast
   qed
-qed (insert assms, auto simp: has_field_derivative_def)
+qed (use assms in \<open>auto simp: has_field_derivative_def\<close>)
 
 lemma has_field_derivative_series':
   fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
-  assumes "convex s"
-  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
-  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
-  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" "x \<in> interior s"
+  assumes "convex S"
+  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x within S)"
+  assumes "uniformly_convergent_on S (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)" "x \<in> interior S"
   shows   "summable (\<lambda>n. f n x)" "((\<lambda>x. \<Sum>n. f n x) has_field_derivative (\<Sum>n. f' n x)) (at x)"
 proof -
-  from \<open>x \<in> interior s\<close> have "x \<in> s" using interior_subset by blast
+  from \<open>x \<in> interior S\<close> have "x \<in> S" using interior_subset by blast
   define g' where [abs_def]: "g' x = (\<Sum>i. f' i x)" for x
-  from assms(3) have "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+  from assms(3) have "uniform_limit S (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     by (simp add: uniformly_convergent_uniform_limit_iff suminf_eq_lim g'_def)
   from has_field_derivative_series[OF assms(1,2) this assms(4,5)] obtain g where g:
-    "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
-    "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
-  from g(1)[OF \<open>x \<in> s\<close>] show "summable (\<lambda>n. f n x)" by (simp add: sums_iff)
-  from g(2)[OF \<open>x \<in> s\<close>] \<open>x \<in> interior s\<close> have "(g has_field_derivative g' x) (at x)"
-    by (simp add: at_within_interior[of x s])
+    "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
+  from g(1)[OF \<open>x \<in> S\<close>] show "summable (\<lambda>n. f n x)" by (simp add: sums_iff)
+  from g(2)[OF \<open>x \<in> S\<close>] \<open>x \<in> interior S\<close> have "(g has_field_derivative g' x) (at x)"
+    by (simp add: at_within_interior[of x S])
   also have "(g has_field_derivative g' x) (at x) \<longleftrightarrow>
                 ((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)"
-    using eventually_nhds_in_nhd[OF \<open>x \<in> interior s\<close>] interior_subset[of s] g(1)
+    using eventually_nhds_in_nhd[OF \<open>x \<in> interior S\<close>] interior_subset[of S] g(1)
     by (intro DERIV_cong_ev) (auto elim!: eventually_mono simp: sums_iff)
   finally show "((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)" .
 qed
 
 lemma differentiable_series:
   fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
-  assumes "convex s" "open s"
-  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
-  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
-  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" and x: "x \<in> s"
+  assumes "convex S" "open S"
+  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on S (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)" and x: "x \<in> S"
   shows   "summable (\<lambda>n. f n x)" and "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)"
 proof -
-  from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+  from assms(4) obtain g' where A: "uniform_limit S (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     unfolding uniformly_convergent_on_def by blast
-  from x and \<open>open s\<close> have s: "at x within s = at x" by (rule at_within_open)
-  have "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
-    by (intro has_field_derivative_series[of s f f' g' x0] assms A has_field_derivative_at_within)
-  then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
-    "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
+  from x and \<open>open S\<close> have S: "at x within S = at x" by (rule at_within_open)
+  have "\<exists>g. \<forall>x\<in>S. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within S)"
+    by (intro has_field_derivative_series[of S f f' g' x0] assms A has_field_derivative_at_within)
+  then obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
   from g[OF x] show "summable (\<lambda>n. f n x)" by (auto simp: summable_def)
   from g(2)[OF x] have g': "(g has_derivative ( * ) (g' x)) (at x)"
-    by (simp add: has_field_derivative_def s)
+    by (simp add: has_field_derivative_def S)
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative ( * ) (g' x)) (at x)"
-    by (rule has_derivative_transform_within_open[OF g' \<open>open s\<close> x])
+    by (rule has_derivative_transform_within_open[OF g' \<open>open S\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)" unfolding differentiable_def
     by (auto simp: summable_def differentiable_def has_field_derivative_def)
@@ -2296,32 +2217,32 @@ qed
 
 lemma differentiable_series':
   fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
-  assumes "convex s" "open s"
-  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
-  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
-  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
+  assumes "convex S" "open S"
+  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on S (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)"
   shows   "(\<lambda>x. \<Sum>n. f n x) differentiable (at x0)"
-  using differentiable_series[OF assms, of x0] \<open>x0 \<in> s\<close> by blast+
+  using differentiable_series[OF assms, of x0] \<open>x0 \<in> S\<close> by blast+
 
 text \<open>Considering derivative @{typ "real \<Rightarrow> 'b::real_normed_vector"} as a vector.\<close>
 
 definition "vector_derivative f net = (SOME f'. (f has_vector_derivative f') net)"
 
 lemma vector_derivative_unique_within:
-  assumes not_bot: "at x within s \<noteq> bot"
-    and f': "(f has_vector_derivative f') (at x within s)"
-    and f'': "(f has_vector_derivative f'') (at x within s)"
+  assumes not_bot: "at x within S \<noteq> bot"
+    and f': "(f has_vector_derivative f') (at x within S)"
+    and f'': "(f has_vector_derivative f'') (at x within S)"
   shows "f' = f''"
 proof -
   have "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
   proof (rule frechet_derivative_unique_within)
-    show "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R i \<in> s"
+    show "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R i \<in> S"
     proof clarsimp
       fix e :: real assume "0 < e"
-      with islimpt_approachable_real[of x s] not_bot
-      obtain x' where "x' \<in> s" "x' \<noteq> x" "\<bar>x' - x\<bar> < e"
+      with islimpt_approachable_real[of x S] not_bot
+      obtain x' where "x' \<in> S" "x' \<noteq> x" "\<bar>x' - x\<bar> < e"
         by (auto simp add: trivial_limit_within)
-      then show "\<exists>d. d \<noteq> 0 \<and> \<bar>d\<bar> < e \<and> x + d \<in> s"
+      then show "\<exists>d. d \<noteq> 0 \<and> \<bar>d\<bar> < e \<and> x + d \<in> S"
         by (intro exI[of _ "x' - x"]) auto
     qed
   qed (insert f' f'', auto simp: has_vector_derivative_def)
@@ -2351,8 +2272,8 @@ proof
 qed (auto simp: vector_derivative_def has_vector_derivative_def differentiable_def)
 
 lemma vector_derivative_within:
-  assumes not_bot: "at x within s \<noteq> bot" and y: "(f has_vector_derivative y) (at x within s)"
-  shows "vector_derivative f (at x within s) = y"
+  assumes not_bot: "at x within S \<noteq> bot" and y: "(f has_vector_derivative y) (at x within S)"
+  shows "vector_derivative f (at x within S) = y"
   using y
   by (intro vector_derivative_unique_within[OF not_bot vector_derivative_works[THEN iffD1] y])
      (auto simp: differentiable_def has_vector_derivative_def)
@@ -2381,11 +2302,11 @@ lemma has_real_derivative_iff:
   by (metis has_field_derivative_def has_real_derivative)
 
 lemma has_vector_derivative_cong_ev:
-  assumes *: "eventually (\<lambda>x. x \<in> s \<longrightarrow> f x = g x) (nhds x)" "f x = g x"
-  shows "(f has_vector_derivative f') (at x within s) = (g has_vector_derivative f') (at x within s)"
+  assumes *: "eventually (\<lambda>x. x \<in> S \<longrightarrow> f x = g x) (nhds x)" "f x = g x"
+  shows "(f has_vector_derivative f') (at x within S) = (g has_vector_derivative f') (at x within S)"
   unfolding has_vector_derivative_def has_derivative_def
   using *
-  apply (cases "at x within s \<noteq> bot")
+  apply (cases "at x within S \<noteq> bot")
   apply (intro refl conj_cong filterlim_cong)
   apply (auto simp: netlimit_within eventually_at_filter elim: eventually_mono)
   done
