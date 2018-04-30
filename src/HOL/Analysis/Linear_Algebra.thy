@@ -72,7 +72,7 @@ lemma hull_UNIV [simp]: "S hull UNIV = UNIV"
 lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
   unfolding hull_def by auto
 
-lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> Q {x. P x} \<Longrightarrow> \<forall>x\<in> Q hull S. P x"
+lemma hull_induct: "\<lbrakk>a \<in> Q hull S; \<And>x. x\<in> S \<Longrightarrow> P x; Q {x. P x}\<rbrakk> \<Longrightarrow> P a"
   using hull_minimal[of S "{x. P x}" Q]
   by (auto simp add: subset_eq)
 
@@ -339,19 +339,11 @@ lemma dependent_single[simp]: "dependent {x} \<longleftrightarrow> x = 0"
   unfolding dependent_def by auto
 
 lemma (in real_vector) independent_mono: "independent A \<Longrightarrow> B \<subseteq> A \<Longrightarrow> independent B"
-  apply (clarsimp simp add: dependent_def span_mono)
-  apply (subgoal_tac "span (B - {a}) \<le> span (A - {a})")
-  apply force
-  apply (rule span_mono)
-  apply auto
-  done
+  unfolding dependent_def span_mono
+  by (metis insert_Diff local.span_mono subsetCE subset_insert_iff) 
 
 lemma (in real_vector) span_subspace: "A \<subseteq> B \<Longrightarrow> B \<le> span A \<Longrightarrow>  subspace B \<Longrightarrow> span A = B"
   by (metis order_antisym span_def hull_minimal)
-
-lemma (in real_vector) span_induct':
-  "\<forall>x \<in> S. P x \<Longrightarrow> subspace {x. P x} \<Longrightarrow> \<forall>x \<in> span S. P x"
-  unfolding span_def by (rule hull_induct) auto
 
 inductive_set (in real_vector) span_induct_alt_help for S :: "'a set"
 where
@@ -1063,19 +1055,19 @@ lemma subspace_kernel:
   done
 
 lemma linear_eq_0_span:
-  assumes lf: "linear f" and f0: "\<forall>x\<in>B. f x = 0"
-  shows "\<forall>x \<in> span B. f x = 0"
-  using f0 subspace_kernel[OF lf]
-  by (rule span_induct')
+  assumes x: "x \<in> span B" and lf: "linear f" and f0: "\<And>x. x\<in>B \<Longrightarrow> f x = 0"
+  shows "f x = 0"
+  using x f0 subspace_kernel[OF lf] span_induct
+  by blast
 
-lemma linear_eq_0: "linear f \<Longrightarrow> S \<subseteq> span B \<Longrightarrow> \<forall>x\<in>B. f x = 0 \<Longrightarrow> \<forall>x\<in>S. f x = 0"
-  using linear_eq_0_span[of f B] by auto
+lemma linear_eq_0: "\<lbrakk>x \<in> S; linear f; S \<subseteq> span B; \<And>x. x\<in>B \<Longrightarrow> f x = 0\<rbrakk> \<Longrightarrow> f x = 0"
+  using linear_eq_0_span[of x B f] by auto
 
-lemma linear_eq_span:  "linear f \<Longrightarrow> linear g \<Longrightarrow> \<forall>x\<in>B. f x = g x \<Longrightarrow> \<forall>x \<in> span B. f x = g x"
-  using linear_eq_0_span[of "\<lambda>x. f x - g x" B] by (auto simp: linear_compose_sub)
+lemma linear_eq_span: "\<lbrakk>x \<in> span B; linear f; linear g; \<And>x. x\<in>B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> f x = g x"
+  using linear_eq_0_span[of x B "\<lambda>x. f x - g x"]  by (auto simp: linear_compose_sub)
 
-lemma linear_eq: "linear f \<Longrightarrow> linear g \<Longrightarrow> S \<subseteq> span B \<Longrightarrow> \<forall>x\<in>B. f x = g x \<Longrightarrow> \<forall>x\<in>S. f x = g x"
-  using linear_eq_span[of f g B] by auto
+lemma linear_eq: "\<lbrakk>x \<in> S; linear f; linear g; S \<subseteq> span B; \<And>x. x\<in>B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> f x = g x"
+  using linear_eq_span[of _ B f g] by auto
 
 text \<open>The degenerate case of the Exchange Lemma.\<close>
 
@@ -1174,13 +1166,13 @@ proof -
   have fB: "inj_on f B"
     using fi by (auto simp: \<open>span S = span B\<close> intro: subset_inj_on span_superset)
 
-  have "\<forall>x\<in>span B. g (f x) = x"
-  proof (intro linear_eq_span)
+  have "g (f x) = x" if "x \<in> span B" for x
+  proof (rule linear_eq_span)
     show "linear (\<lambda>x. x)" "linear (\<lambda>x. g (f x))"
       using linear_id linear_compose[OF \<open>linear f\<close> \<open>linear g\<close>] by (auto simp: id_def comp_def)
-    show "\<forall>x \<in> B. g (f x) = x"
-      using g fi \<open>span S = span B\<close> by (auto simp: fB)
-  qed
+    show "g (f x) = x" if "x \<in> B" for x
+      using g fi \<open>span S = span B\<close>   by (simp add: fB that)
+  qed (rule that)
   moreover
   have "inv_into B f ` f ` B \<subseteq> B"
     by (auto simp: fB)
@@ -1210,8 +1202,7 @@ proof -
   ultimately have "\<forall>x\<in>B. f (g x) = x"
     by auto
   then have "\<forall>x\<in>span B. f (g x) = x"
-    using linear_id linear_compose[OF \<open>linear g\<close> \<open>linear f\<close>]
-    by (intro linear_eq_span) (auto simp: id_def comp_def)
+    using linear_id linear_compose[OF \<open>linear g\<close> \<open>linear f\<close>] linear_eq_span by fastforce
   moreover have "inv_into (span S) f ` B \<subseteq> span S"
     using \<open>B \<subseteq> T\<close> \<open>span T \<subseteq> f`span S\<close> by (auto intro: inv_into_into span_superset)
   then have "range g \<subseteq> span S"
@@ -2457,8 +2448,8 @@ proof -
     done
   with a have a0:"?a  \<noteq> 0"
     by auto
-  have "\<forall>x\<in>span B. ?a \<bullet> x = 0"
-  proof (rule span_induct')
+  have "?a \<bullet> x = 0" if "x\<in>span B" for x
+  proof (rule span_induct [OF that])
     show "subspace {x. ?a \<bullet> x = 0}"
       by (auto simp add: subspace_def inner_add)
   next
@@ -2481,9 +2472,9 @@ proof -
           intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
         done
     }
-    then show "\<forall>x \<in> B. ?a \<bullet> x = 0"
-      by blast
-  qed
+    then show "?a \<bullet> x = 0" if "x \<in> B" for x
+      using that by blast
+    qed
   with a0 show ?thesis
     unfolding sSB by (auto intro: exI[where x="?a"])
 qed
@@ -2635,9 +2626,9 @@ lemma linear_eq_stdbasis:
   fixes f :: "'a::euclidean_space \<Rightarrow> _"
   assumes lf: "linear f"
     and lg: "linear g"
-    and fg: "\<forall>b\<in>Basis. f b = g b"
+    and fg: "\<And>b. b \<in> Basis \<Longrightarrow> f b = g b"
   shows "f = g"
-  using linear_eq[OF lf lg, of _ Basis] fg by auto
+  using linear_eq[OF _ lf lg, of _ _ Basis] fg by auto
 
 text \<open>Similar results for bilinear functions.\<close>
 
@@ -2646,8 +2637,9 @@ lemma bilinear_eq:
     and bg: "bilinear g"
     and SB: "S \<subseteq> span B"
     and TC: "T \<subseteq> span C"
-    and fg: "\<forall>x\<in> B. \<forall>y\<in> C. f x y = g x y"
-  shows "\<forall>x\<in>S. \<forall>y\<in>T. f x y = g x y "
+    and "x\<in>S" "y\<in>T"
+    and fg: "\<And>x y. \<lbrakk>x \<in> B; y\<in> C\<rbrakk> \<Longrightarrow> f x y = g x y"
+  shows "f x y = g x y"
 proof -
   let ?P = "{x. \<forall>y\<in> span C. f x y = g x y}"
   from bf bg have sp: "subspace ?P"
@@ -2655,27 +2647,30 @@ proof -
     by (auto simp add: span_0 bilinear_lzero[OF bf] bilinear_lzero[OF bg] span_add Ball_def
       intro: bilinear_ladd[OF bf])
 
-  have "\<forall>x \<in> span B. \<forall>y\<in> span C. f x y = g x y"
-    apply (rule span_induct' [OF _ sp])
-    apply (rule ballI)
-    apply (rule span_induct')
-    apply (simp add: fg)
+  have sfg: "\<And>x. x \<in> B \<Longrightarrow> subspace {a. f x a = g x a}"
     apply (auto simp add: subspace_def)
     using bf bg unfolding bilinear_def linear_iff
-    apply (auto simp add: span_0 bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add Ball_def
+    apply (auto simp add: bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add 
       intro: bilinear_ladd[OF bf])
     done
+  have "\<forall>y\<in> span C. f x y = g x y" if "x \<in> span B" for x
+    apply (rule span_induct [OF that sp])
+    apply (rule ballI)
+    apply (erule span_induct)
+    apply (simp_all add: sfg fg)
+    done
   then show ?thesis
-    using SB TC by auto
+    using SB TC assms by auto
 qed
 
 lemma bilinear_eq_stdbasis:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> _"
   assumes bf: "bilinear f"
     and bg: "bilinear g"
-    and fg: "\<forall>i\<in>Basis. \<forall>j\<in>Basis. f i j = g i j"
+    and fg: "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> f i j = g i j"
   shows "f = g"
-  using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis] fg] by blast
+  using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis]] fg
+  by blast
 
 text \<open>An injective map @{typ "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"} is also surjective.\<close>
 
@@ -2695,13 +2690,7 @@ proof -
     apply (rule card_ge_dim_independent)
     apply blast
     apply (rule independent_injective_image[OF B(2) lf fi])
-    apply (rule order_eq_refl)
-    apply (rule sym)
-    unfolding d
-    apply (rule card_image)
-    apply (rule subset_inj_on[OF fi])
-    apply blast
-    done
+    by (metis card_image d fi inj_on_subset order_refl top_greatest)
   from th show ?thesis
     unfolding span_linear_image[OF lf] surj_def
     using B(3) by blast
