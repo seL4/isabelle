@@ -216,9 +216,15 @@ fun subst_types ctxt env bounds t =
   let
     val match = Sign.typ_match (Proof_Context.theory_of ctxt)
 
+    fun objT_of bound =
+      (case Symtab.lookup env bound of
+        SOME objT => objT
+      | NONE => raise Fail ("Replaying the proof trace produced by Z3 failed: " ^
+          "the bound " ^ quote bound ^ " is undeclared; this indicates a bug in Z3"))
+
     val t' = singleton (Variable.polymorphic ctxt) t
     val patTs = map snd (Term.strip_qnt_vars @{const_name Pure.all} t')
-    val objTs = map (the o Symtab.lookup env) bounds
+    val objTs = map objT_of bounds
     val subst = subst_of (fold match (patTs ~~ objTs) Vartab.empty)
   in Same.commit (Term_Subst.map_types_same (substTs_same subst)) t' end
 
