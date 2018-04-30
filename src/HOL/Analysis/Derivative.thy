@@ -373,76 +373,75 @@ text \<open>
 
 lemma frechet_derivative_unique_within:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "(f has_derivative f') (at x within s)"
-    and "(f has_derivative f'') (at x within s)"
-    and "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> (x + d *\<^sub>R i) \<in> s"
+  assumes "(f has_derivative f') (at x within S)"
+    and "(f has_derivative f'') (at x within S)"
+    and "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> (x + d *\<^sub>R i) \<in> S"
   shows "f' = f''"
 proof -
   note as = assms(1,2)[unfolded has_derivative_def]
   then interpret f': bounded_linear f' by auto
   from as interpret f'': bounded_linear f'' by auto
-  have "x islimpt s" unfolding islimpt_approachable
+  have "x islimpt S" unfolding islimpt_approachable
   proof (rule, rule)
     fix e :: real
     assume "e > 0"
-    obtain d where "0 < \<bar>d\<bar>" and "\<bar>d\<bar> < e" and "x + d *\<^sub>R (SOME i. i \<in> Basis) \<in> s"
+    obtain d where "0 < \<bar>d\<bar>" and "\<bar>d\<bar> < e" and "x + d *\<^sub>R (SOME i. i \<in> Basis) \<in> S"
       using assms(3) SOME_Basis \<open>e>0\<close> by blast
-    then show "\<exists>x'\<in>s. x' \<noteq> x \<and> dist x' x < e"
+    then show "\<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e"
       apply (rule_tac x="x + d *\<^sub>R (SOME i. i \<in> Basis)" in bexI)
       unfolding dist_norm
       apply (auto simp: SOME_Basis nonzero_Basis)
       done
   qed
-  then have *: "netlimit (at x within s) = x"
+  then have *: "netlimit (at x within S) = x"
     apply (auto intro!: netlimit_within)
     by (metis trivial_limit_within)
   show ?thesis
-    apply (rule linear_eq_stdbasis)
-    unfolding linear_conv_bounded_linear
-    apply (rule as(1,2)[THEN conjunct1])+
-  proof (rule, rule ccontr)
+  proof (rule linear_eq_stdbasis)
+    show "linear f'" "linear f''"
+      unfolding linear_conv_bounded_linear using as by auto
+  next
     fix i :: 'a
     assume i: "i \<in> Basis"
     define e where "e = norm (f' i - f'' i)"
-    assume "f' i \<noteq> f'' i"
-    then have "e > 0"
-      unfolding e_def by auto
-    obtain d where d:
-      "0 < d"
-      "(\<And>xa. xa\<in>s \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow>
-          dist ((f xa - f x - f' (xa - x)) /\<^sub>R norm (xa - x) -
-              (f xa - f x - f'' (xa - x)) /\<^sub>R norm (xa - x)) (0 - 0) < e)"
-      using tendsto_diff [OF as(1,2)[THEN conjunct2]]
-      unfolding * Lim_within
-      using \<open>e>0\<close> by blast
-    obtain c where c: "0 < \<bar>c\<bar>" "\<bar>c\<bar> < d \<and> x + c *\<^sub>R i \<in> s"
-      using assms(3) i d(1) by blast
-    have *: "norm (- ((1 / \<bar>c\<bar>) *\<^sub>R f' (c *\<^sub>R i)) + (1 / \<bar>c\<bar>) *\<^sub>R f'' (c *\<^sub>R i)) =
+    show "f' i = f'' i"
+    proof (rule ccontr)
+      assume "f' i \<noteq> f'' i"
+      then have "e > 0"
+        unfolding e_def by auto
+      obtain d where d:
+        "0 < d"
+        "(\<And>y. y\<in>S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow>
+          dist ((f y - f x - f' (y - x)) /\<^sub>R norm (y - x) -
+              (f y - f x - f'' (y - x)) /\<^sub>R norm (y - x)) (0 - 0) < e)"
+        using tendsto_diff [OF as(1,2)[THEN conjunct2]]
+        unfolding * Lim_within
+        using \<open>e>0\<close> by blast
+      obtain c where c: "0 < \<bar>c\<bar>" "\<bar>c\<bar> < d \<and> x + c *\<^sub>R i \<in> S"
+        using assms(3) i d(1) by blast
+      have *: "norm (- ((1 / \<bar>c\<bar>) *\<^sub>R f' (c *\<^sub>R i)) + (1 / \<bar>c\<bar>) *\<^sub>R f'' (c *\<^sub>R i)) =
         norm ((1 / \<bar>c\<bar>) *\<^sub>R (- (f' (c *\<^sub>R i)) + f'' (c *\<^sub>R i)))"
-      unfolding scaleR_right_distrib by auto
-    also have "\<dots> = norm ((1 / \<bar>c\<bar>) *\<^sub>R (c *\<^sub>R (- (f' i) + f'' i)))"
-      unfolding f'.scaleR f''.scaleR
-      unfolding scaleR_right_distrib scaleR_minus_right
-      by auto
-    also have "\<dots> = e"
-      unfolding e_def
-      using c(1)
-      using norm_minus_cancel[of "f' i - f'' i"]
-      by auto
-    finally show False
-      using c
-      using d(2)[of "x + c *\<^sub>R i"]
-      unfolding dist_norm
-      unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff
-        scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib
-      using i
-      by (auto simp: inverse_eq_divide)
+        unfolding scaleR_right_distrib by auto
+      also have "\<dots> = norm ((1 / \<bar>c\<bar>) *\<^sub>R (c *\<^sub>R (- (f' i) + f'' i)))"
+        unfolding f'.scaleR f''.scaleR
+        unfolding scaleR_right_distrib scaleR_minus_right
+        by auto
+      also have "\<dots> = e"
+        unfolding e_def
+        using c(1)
+        using norm_minus_cancel[of "f' i - f'' i"]
+        by auto
+      finally show False
+        using c
+        using d(2)[of "x + c *\<^sub>R i"]
+        unfolding dist_norm
+        unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff
+          scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib
+        using i
+        by (auto simp: inverse_eq_divide)
+    qed
   qed
 qed
-
-lemma frechet_derivative_unique_at:
-  "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f'') (at x) \<Longrightarrow> f' = f''"
-  by (rule has_derivative_unique)
 
 lemma frechet_derivative_unique_within_closed_interval:
   fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
@@ -506,12 +505,12 @@ proof -
   from assms(1) have *: "at x within box a b = at x"
     by (metis at_within_interior interior_open open_box)
   from assms(2,3) [unfolded *] show "f' = f''"
-    by (rule frechet_derivative_unique_at)
+    by (rule has_derivative_unique)
 qed
 
 lemma frechet_derivative_at:
   "(f has_derivative f') (at x) \<Longrightarrow> f' = frechet_derivative f (at x)"
-  apply (rule frechet_derivative_unique_at[of f])
+  apply (rule has_derivative_unique[of f])
   apply assumption
   unfolding frechet_derivative_works[symmetric]
   using differentiable_def
