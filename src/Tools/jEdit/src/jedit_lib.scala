@@ -129,6 +129,13 @@ object JEdit_Lib
 
   def buffer_file(buffer: Buffer): Option[JFile] = check_file(buffer_name(buffer))
 
+  def buffer_undo_in_progress[A](buffer: JEditBuffer, body: => A): A =
+  {
+    val undo_in_progress = buffer.isUndoInProgress
+    def set(b: Boolean) { Untyped.set[Boolean](buffer, "undoInProgress", b) }
+    try { set(true); body } finally { set(undo_in_progress) }
+  }
+
 
   /* main jEdit components */
 
