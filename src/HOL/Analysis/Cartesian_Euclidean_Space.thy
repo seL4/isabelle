@@ -1956,7 +1956,7 @@ lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<f
   done
 
 lemma bounded_linear_component_cart[intro]: "bounded_linear (\<lambda>x::real^'n. x $ k)"
-  apply (rule bounded_linearI[where K=1])
+  apply (rule bounded_linear_intro[where K=1])
   using component_le_norm_cart[of _ k] unfolding real_norm_def by auto
 
 lemma interval_split_cart:
