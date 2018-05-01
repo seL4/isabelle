@@ -2,6 +2,7 @@
 theory Library
 imports
   AList
+  Adhoc_Overloading
   BigO
   Bit
   BNF_Axiomatization
