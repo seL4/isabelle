@@ -8,7 +8,6 @@ section \<open>Bertrand's Ballot Theorem\<close>
 theory Ballot
 imports
   Complex_Main
-  "HOL-Library.FuncSet"
 begin
 
 subsection \<open>Preliminaries\<close>

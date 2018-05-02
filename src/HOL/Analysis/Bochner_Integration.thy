@@ -394,17 +394,19 @@ proof -
     by (simp add: sum.distrib[symmetric] scaleR_add_right)
 qed
 
-lemma (in linear) simple_bochner_integral_linear:
+lemma simple_bochner_integral_linear:
+  assumes "linear f"
   assumes g: "simple_bochner_integrable M g"
   shows "simple_bochner_integral M (\<lambda>x. f (g x)) = f (simple_bochner_integral M g)"
 proof -
+  interpret linear f by fact
   from g have "simple_bochner_integral M (\<lambda>x. f (g x)) =
     (\<Sum>y\<in>g ` space M. measure M {x \<in> space M. g x = y} *\<^sub>R f y)"
     by (intro simple_bochner_integral_partition)
        (auto simp: simple_bochner_integrable_compose2[where p="\<lambda>x y. f x"] zero
              elim: simple_bochner_integrable.cases)
   also have "\<dots> = f (simple_bochner_integral M g)"
-    by (simp add: simple_bochner_integral_def sum scaleR)
+    by (simp add: simple_bochner_integral_def sum scale)
   finally show ?thesis .
 qed
 
@@ -412,8 +414,7 @@ lemma simple_bochner_integral_minus:
   assumes f: "simple_bochner_integrable M f"
   shows "simple_bochner_integral M (\<lambda>x. - f x) = - simple_bochner_integral M f"
 proof -
-  interpret linear uminus by unfold_locales auto
-  from f show ?thesis
+  from linear_uminus f show ?thesis
     by (rule simple_bochner_integral_linear)
 qed
 
@@ -646,7 +647,7 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
 
   assume "(\<lambda>i. simple_bochner_integral M (s i)) \<longlonglongrightarrow> x"
   with s show "(\<lambda>i. simple_bochner_integral M (\<lambda>x. T (s i x))) \<longlonglongrightarrow> T x"
-    by (auto intro!: T.tendsto simp: T.simple_bochner_integral_linear)
+    by (auto intro!: T.tendsto simp: simple_bochner_integral_linear T.linear_axioms)
 qed
 
 lemma has_bochner_integral_zero[intro]: "has_bochner_integral M (\<lambda>x. 0) 0"

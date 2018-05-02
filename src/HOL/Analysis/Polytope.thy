@@ -197,8 +197,7 @@ proof
       by (simp add: algebra_simps d_def) (simp add: divide_simps)
     have [simp]: "((e - e * e / (e + norm (b - c))) / norm (b - c)) = (e / (e + norm (b - c)))"
       using False nbc
-      apply (simp add: algebra_simps divide_simps)
-      by (metis mult_eq_0_iff norm_eq_zero norm_imp_pos_and_ge norm_pths(2) real_scaleR_def scaleR_left.add zero_less_norm_iff)
+      by (simp add: divide_simps) (simp add: algebra_simps)
     have "b \<in> open_segment d c"
       apply (simp add: open_segment_image_interval)
       apply (simp add: d_def algebra_simps image_def)
@@ -2673,7 +2672,8 @@ qed
 lemma polyhedron_negations:
   fixes S :: "'a :: euclidean_space set"
   shows   "polyhedron S \<Longrightarrow> polyhedron(image uminus S)"
-by (auto simp: polyhedron_linear_image_eq linear_uminus bij_uminus)
+  by (subst polyhedron_linear_image_eq)
+    (auto simp: bij_uminus intro!: linear_uminus)
 
 subsection\<open>Relation between polytopes and polyhedra\<close>
 

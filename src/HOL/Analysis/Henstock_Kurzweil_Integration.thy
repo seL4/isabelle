@@ -2866,7 +2866,7 @@ proof goal_cases
   then have "?sum b = f b"
     using Suc_pred'[OF \<open>p > 0\<close>]
     by (simp add: diff_eq_eq Dg_def power_0_left le_Suc_eq if_distrib
-        cond_application_beta sum.If_cases f0)
+        if_distribR sum.If_cases f0)
   also
   have "{..<p} = (\<lambda>x. p - x - 1) ` {..<p}"
   proof safe

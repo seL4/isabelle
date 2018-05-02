@@ -10,17 +10,11 @@ theory Topology_Euclidean_Space
 imports
   "HOL-Library.Indicator_Function"
   "HOL-Library.Countable_Set"
-  "HOL-Library.FuncSet"
   Linear_Algebra
   Norm_Arith
 begin
 
 (* FIXME: move elsewhere *)
-
-lemma Times_eq_image_sum:
-  fixes S :: "'a :: comm_monoid_add set" and T :: "'b :: comm_monoid_add set"
-  shows "S \<times> T = {u + v |u v. u \<in> (\<lambda>x. (x, 0)) ` S \<and> v \<in> Pair 0 ` T}"
-  by force
 
 lemma halfspace_Int_eq:
      "{x. a \<bullet> x \<le> b} \<inter> {x. b \<le> a \<bullet> x} = {x. a \<bullet> x = b}"

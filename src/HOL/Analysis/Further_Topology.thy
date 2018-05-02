@@ -68,7 +68,7 @@ proof
     by (simp add: subspace_orthogonal_to_vectors T'_def)
   have dim_eq: "dim T' + dim T = DIM('a)"
     using dim_subspace_orthogonal_to_vectors [of T UNIV] \<open>subspace T\<close>
-    by (simp add: dim_UNIV T'_def)
+    by (simp add: T'_def)
   have "\<exists>v1 v2. v1 \<in> span T \<and> (\<forall>w \<in> span T. orthogonal v2 w) \<and> x = v1 + v2" for x
     by (force intro: orthogonal_subspace_decomp_exists [of T x])
   then obtain p1 p2 where p1span: "p1 x \<in> span T"
@@ -76,25 +76,35 @@ proof
                       and eq: "p1 x + p2 x = x" for x
     by metis
   then have p1: "\<And>z. p1 z \<in> T" and ortho: "\<And>w. w \<in> T \<Longrightarrow> orthogonal (p2 x) w" for x
-    using span_eq \<open>subspace T\<close> by blast+
+    using span_eq_iff \<open>subspace T\<close> by blast+
   then have p2: "\<And>z. p2 z \<in> T'"
     by (simp add: T'_def orthogonal_commute)
   have p12_eq: "\<And>x y. \<lbrakk>x \<in> T; y \<in> T'\<rbrakk> \<Longrightarrow> p1(x + y) = x \<and> p2(x + y) = y"
   proof (rule orthogonal_subspace_decomp_unique [OF eq p1span, where T=T'])
     show "\<And>x y. \<lbrakk>x \<in> T; y \<in> T'\<rbrakk> \<Longrightarrow> p2 (x + y) \<in> span T'"
-      using span_eq p2 \<open>subspace T'\<close> by blast
+      using span_eq_iff p2 \<open>subspace T'\<close> by blast
     show "\<And>a b. \<lbrakk>a \<in> T; b \<in> T'\<rbrakk> \<Longrightarrow> orthogonal a b"
       using T'_def by blast
-  qed (auto simp: span_superset)
+  qed (auto simp: span_base)
   then have "\<And>c x. p1 (c *\<^sub>R x) = c *\<^sub>R p1 x \<and> p2 (c *\<^sub>R x) = c *\<^sub>R p2 x"
-    by (metis eq \<open>subspace T\<close> \<open>subspace T'\<close> p1 p2 scaleR_add_right subspace_mul)
+  proof -
+    fix c :: real and x :: 'a
+    have f1: "c *\<^sub>R x = c *\<^sub>R p1 x + c *\<^sub>R p2 x"
+      by (metis eq pth_6)
+    have f2: "c *\<^sub>R p2 x \<in> T'"
+      by (simp add: \<open>subspace T'\<close> p2 subspace_scale)
+    have "c *\<^sub>R p1 x \<in> T"
+      by (metis (full_types) assms(2) p1span span_eq_iff subspace_scale)
+    then show "p1 (c *\<^sub>R x) = c *\<^sub>R p1 x \<and> p2 (c *\<^sub>R x) = c *\<^sub>R p2 x"
+      using f2 f1 p12_eq by presburger
+  qed
   moreover have lin_add: "\<And>x y. p1 (x + y) = p1 x + p1 y \<and> p2 (x + y) = p2 x + p2 y"
   proof (rule orthogonal_subspace_decomp_unique [OF _ p1span, where T=T'])
     show "\<And>x y. p1 (x + y) + p2 (x + y) = p1 x + p1 y + (p2 x + p2 y)"
       by (simp add: add.assoc add.left_commute eq)
     show  "\<And>a b. \<lbrakk>a \<in> T; b \<in> T'\<rbrakk> \<Longrightarrow> orthogonal a b"
       using T'_def by blast
-  qed (auto simp: p1span p2 span_superset subspace_add)
+  qed (auto simp: p1span p2 span_base span_add)
   ultimately have "linear p1" "linear p2"
     by unfold_locales auto
   have "(\<lambda>z. g (p1 z)) differentiable_on {x + y |x y. x \<in> S - {0} \<and> y \<in> T'}"
@@ -263,7 +273,7 @@ next
   show ?thesis
   proof (rule that [OF \<open>subspace T\<close>])
     show "T \<subseteq> U"
-      using span_eq \<open>subspace U\<close> \<open>T \<subseteq> span U\<close> by blast
+      using span_eq_iff \<open>subspace U\<close> \<open>T \<subseteq> span U\<close> by blast
     show "aff_dim T = aff_dim S"
       using dimT \<open>subspace T\<close> affS aff_dim_subspace by fastforce
     show "rel_frontier S homeomorphic sphere 0 1 \<inter> T"
@@ -314,7 +324,7 @@ next
       where "subspace T'" and affT': "aff_dim T' = aff_dim T"
         and homT: "rel_frontier T homeomorphic sphere 0 1 \<inter> T'"
       apply (rule spheremap_lemma3 [OF \<open>bounded T\<close> \<open>convex T\<close> subspace_UNIV, where 'b='a])
-       apply (simp add: dim_UNIV aff_dim_le_DIM)
+       apply (simp add: aff_dim_le_DIM)
       using \<open>T \<noteq> {}\<close> by blast
     with homeomorphic_imp_homotopy_eqv
     have relT: "sphere 0 1 \<inter> T'  homotopy_eqv rel_frontier T"
@@ -2003,7 +2013,7 @@ proof -
   have "U \<subseteq> S"
     using ope openin_imp_subset by blast
   have "(UNIV::'b set) homeomorphic S"
-    by (simp add: \<open>subspace S\<close> dimS dim_UNIV homeomorphic_subspaces)
+    by (simp add: \<open>subspace S\<close> dimS homeomorphic_subspaces)
   then obtain h k where homhk: "homeomorphism (UNIV::'b set) S h k"
     using homeomorphic_def by blast
   have homkh: "homeomorphism S (k ` S) k h"
@@ -2090,7 +2100,7 @@ corollary invariance_of_domain_subspaces:
 proof -
   obtain V' where "subspace V'" "V' \<subseteq> U" "dim V' = dim V"
     using choose_subspace_of_subspace [OF VU]
-    by (metis span_eq \<open>subspace U\<close>)
+    by (metis span_eq_iff \<open>subspace U\<close>)
   then have "V homeomorphic V'"
     by (simp add: \<open>subspace V\<close> homeomorphic_subspaces)
   then obtain h k where homhk: "homeomorphism V V' h k"
@@ -2136,7 +2146,7 @@ proof -
   proof -
     obtain T where "subspace T" "T \<subseteq> U" "dim T = dim V"
       using choose_subspace_of_subspace [of "dim V" U]
-      by (metis span_eq \<open>subspace U\<close> \<open>dim V < dim U\<close> linear not_le)
+      by (metis \<open>dim V < dim U\<close> assms(2) order.strict_implies_order span_eq_iff)
     then have "V homeomorphic T"
       by (simp add: \<open>subspace V\<close> homeomorphic_subspaces)
     then obtain h k where homhk: "homeomorphism V T h k"

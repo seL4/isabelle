@@ -7,9 +7,8 @@ With additional contributions from Alasdair Armstrong and Simon Foster.
 *)
 
 theory Order
-imports 
-  "HOL-Library.FuncSet"
-  Congruence
+  imports
+    Congruence
 begin
 
 section \<open>Orders\<close>

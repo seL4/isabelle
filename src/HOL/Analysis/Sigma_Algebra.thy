@@ -11,7 +11,6 @@ theory Sigma_Algebra
 imports
   Complex_Main
   "HOL-Library.Countable_Set"
-  "HOL-Library.FuncSet"
   "HOL-Library.Indicator_Function"
   "HOL-Library.Extended_Nonnegative_Real"
   "HOL-Library.Disjoint_Sets"

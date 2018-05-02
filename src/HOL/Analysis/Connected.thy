@@ -4141,13 +4141,13 @@ lemma complete_subspace: "subspace s \<Longrightarrow> complete s"
 
 lemma closed_span [iff]: "closed (span s)"
   for s :: "'a::euclidean_space set"
-  by (simp add: closed_subspace)
+  by (simp add: closed_subspace subspace_span)
 
 lemma dim_closure [simp]: "dim (closure s) = dim s" (is "?dc = ?d")
   for s :: "'a::euclidean_space set"
 proof -
   have "?dc \<le> ?d"
-    using closure_minimal[OF span_inc, of s]
+    using closure_minimal[OF span_superset, of s]
     using closed_subspace[OF subspace_span, of s]
     using dim_subset[of "closure s" "span s"]
     by simp

@@ -179,6 +179,10 @@ proof -
     by (rule induct_matrix_elementary) (auto intro: assms *)
 qed
 
+lemma matrix_vector_mult_matrix_matrix_mult_compose:
+  "( *v) (A ** B) = ( *v) A \<circ> ( *v) B"
+  by (auto simp: matrix_vector_mul_assoc)
+
 lemma induct_linear_elementary:
   fixes f :: "real^'n \<Rightarrow> real^'n"
   assumes "linear f"
@@ -194,12 +198,15 @@ proof -
     fix A B
     assume "P (( *v) A)" and "P (( *v) B)"
     then show "P (( *v) (A ** B))"
-      by (metis (no_types, lifting) comp linear_compose matrix_compose matrix_eq matrix_vector_mul matrix_vector_mul_linear)
+      by (auto simp add: matrix_vector_mult_matrix_matrix_mult_compose matrix_vector_mul_linear
+          intro!: comp)
   next
     fix A :: "real^'n^'n" and i
     assume "row i A = 0"
-    then show "P (( *v) A)"
-      by (metis inner_zero_left matrix_vector_mul_component matrix_vector_mul_linear row_def vec_eq_iff vec_lambda_beta zeroes)
+    show "P (( *v) A)"
+      using matrix_vector_mul_linear
+      by (rule zeroes[where i=i])
+        (metis \<open>row i A = 0\<close> inner_zero_left matrix_vector_mul_component row_def vec_lambda_eta)
   next
     fix A :: "real^'n^'n"
     assume 0: "\<And>i j. i \<noteq> j \<Longrightarrow> A $ i $ j = 0"
@@ -246,7 +253,7 @@ proposition
                = measure lebesgue (cbox a b)" (is "?Q")
 proof -
   have lin: "linear ?f"
-    by (force simp: plus_vec_def scaleR_vec_def algebra_simps intro: linearI)
+    by (rule linearI) (auto simp: plus_vec_def scaleR_vec_def algebra_simps)
   show fab: "?f ` cbox a b \<in> lmeasurable"
     by (simp add: lin measurable_linear_image_interval)
   let ?c = "\<chi> i. if i = m then b$m + b$n else b$i"
@@ -474,7 +481,7 @@ proof -
     then have "\<not> inj f"
       by (metis (full_types) linear_injective_imp_surjective one_neq_zero surjE vec_component)
     have detf: "det (matrix f) = 0"
-      by (metis "0" \<open>linear f\<close> invertible_det_nz invertible_right_inverse matrix_right_invertible_surjective matrix_vector_mul surjE vec_component)
+      using \<open>\<not> inj f\<close> det_nz_iff_inj[OF \<open>linear f\<close>] by blast
     show "f ` S \<in> lmeasurable \<and> ?Q f S"
     proof
       show "f ` S \<in> lmeasurable"
@@ -500,7 +507,7 @@ proof -
     assume "m \<noteq> n" and "S \<in> lmeasurable"
     let ?h = "\<lambda>v::(real, 'n) vec. \<chi> i. v $ Fun.swap m n id i"
     have lin: "linear ?h"
-      by (simp add: plus_vec_def scaleR_vec_def linearI)
+      by (rule linearI) (simp_all add: plus_vec_def scaleR_vec_def)
     have meq: "measure lebesgue ((\<lambda>v::(real, 'n) vec. \<chi> i. v $ Fun.swap m n id i) ` cbox a b)
              = measure lebesgue (cbox a b)" for a b
     proof (cases "cbox a b = {}")
@@ -532,7 +539,7 @@ proof -
     assume "m \<noteq> n" and "S \<in> lmeasurable"
     let ?h = "\<lambda>v::(real, 'n) vec. \<chi> i. if i = m then v $ m + v $ n else v $ i"
     have lin: "linear ?h"
-      by (auto simp: algebra_simps plus_vec_def scaleR_vec_def vec_eq_iff intro: linearI)
+      by (rule linearI) (auto simp: algebra_simps plus_vec_def scaleR_vec_def vec_eq_iff)
     consider "m < n" | " n < m"
       using \<open>m \<noteq> n\<close> less_linear by blast
     then have 1: "det(matrix ?h) = 1"
@@ -997,11 +1004,11 @@ proof -
               then show ?thesis
               proof (rule_tac x="(y - x) /\<^sub>R r" in bexI)
                 have "f' x ((y - x) /\<^sub>R r) = f' x (y - x) /\<^sub>R r"
-                  by (simp add: lin linear_cmul)
+                  by (simp add: lin linear_scale)
                 then have "dist (f' x ((y - x) /\<^sub>R r)) ((f y - f x) /\<^sub>R r) = norm (f' x (y - x) /\<^sub>R r - (f y - f x) /\<^sub>R r)"
                   by (simp add: dist_norm)
                 also have "\<dots> = norm (f' x (y - x) - (f y - f x)) / r"
-                  using \<open>r > 0\<close> by (simp add: real_vector.scale_right_diff_distrib [symmetric] divide_simps)
+                  using \<open>r > 0\<close> by (simp add: scale_right_diff_distrib [symmetric] divide_simps)
                 also have "\<dots> \<le> norm (f y - (f x + f' x (y - x))) / norm (y - x)"
                   using that \<open>r > 0\<close> False by (simp add: algebra_simps divide_simps dist_norm norm_minus_commute mult_right_mono)
                 also have "\<dots> < k"
@@ -1610,8 +1617,9 @@ lemma lemma_partial_derivatives0:
     and lb: "\<And>v. v \<noteq> 0 \<Longrightarrow> (\<exists>k>0. \<forall>e>0. \<exists>x. x \<in> S - {0} \<and> norm x < e \<and> k * norm x \<le> \<bar>v \<bullet> x\<bar>)"
   shows "f x = 0"
 proof -
+  interpret linear f by fact
   have "dim {x. f x = 0} \<le> DIM('a)"
-    using dim_subset_UNIV by blast
+    by (rule dim_subset_UNIV)
   moreover have False if less: "dim {x. f x = 0} < DIM('a)"
   proof -
     obtain d where "d \<noteq> 0" and d: "\<And>y. f y = 0 \<Longrightarrow> d \<bullet> y = 0"
@@ -1662,7 +1670,7 @@ proof -
         with lim0 \<alpha> have "((\<lambda>x. f x /\<^sub>R norm x) \<circ> (\<alpha> \<circ> \<rho>)) \<longlonglongrightarrow> 0"
           by (force simp: tendsto_at_iff_sequentially)
         then show "(f \<circ> (\<lambda>n. \<alpha> n /\<^sub>R norm (\<alpha> n)) \<circ> \<rho>) \<longlonglongrightarrow> 0"
-          by (simp add: o_def linear_cmul \<open>linear f\<close>)
+          by (simp add: o_def scale)
       qed
     qed
     ultimately show False
@@ -1671,7 +1679,9 @@ proof -
   ultimately have dim: "dim {x. f x = 0} = DIM('a)"
     by force
   then show ?thesis
-    by (metis (mono_tags, lifting) UNIV_I assms(1) dim_eq_full linear_eq_0_span mem_Collect_eq)
+    using dim_eq_full
+    by (metis (mono_tags, lifting) eq_0_on_span eucl.span_Basis linear_axioms linear_eq_stdbasis
+        mem_Collect_eq module_hom_zero span_base span_raw_def)
 qed
 
 lemma lemma_partial_derivatives:
@@ -1950,11 +1960,12 @@ proof -
               unfolding subspace_def convergent_eq_Cauchy [symmetric]
                 by (force simp: algebra_simps intro: tendsto_intros)
             then have CA_eq: "?CA = span ?CA"
-              by (metis span_eq)
+              by (metis span_eq_iff)
             also have "\<dots> = UNIV"
             proof -
               have "dim ?CA \<le> CARD('m)"
-                by (rule dim_subset_UNIV_cart)
+                using dim_subset_UNIV[of ?CA]
+                by auto
               moreover have "False" if less: "dim ?CA < CARD('m)"
               proof -
                 obtain d where "d \<noteq> 0" and d: "\<And>y. y \<in> span ?CA \<Longrightarrow> orthogonal d y"
@@ -2102,7 +2113,9 @@ proof -
           have lin_df: "linear (f' x)"
                and lim_df: "((\<lambda>y. (1 / norm (y - x)) *\<^sub>R (f y - (f x + f' x (y - x)))) \<longlongrightarrow> 0) (at x within S)"
             using \<open>x \<in> S\<close> assms by (auto simp: has_derivative_within linear_linear)
-          moreover have "(matrix (f' x) - B) *v w = 0" for w
+          moreover
+          interpret linear "f' x" by fact
+          have "(matrix (f' x) - B) *v w = 0" for w
           proof (rule lemma_partial_derivatives [of "( *v) (matrix (f' x) - B)"])
             show "linear (( *v) (matrix (f' x) - B))"
               by (rule matrix_vector_mul_linear)
@@ -2124,7 +2137,8 @@ proof -
                     fix k :: "nat"
                     assume "0 \<le> k"
                     have "0 \<le> onorm (( *v) (A k - B))"
-                      by (simp add: linear_linear onorm_pos_le matrix_vector_mul_linear)
+                      using matrix_vector_mul_bounded_linear
+                      by (rule onorm_pos_le)
                     then show "norm (onorm (( *v) (A k - B))) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>(A k - B) $ i $ j\<bar>)"
                       by (simp add: onorm_le_matrix_component_sum del: vector_minus_component)
                   qed
@@ -2174,11 +2188,11 @@ proof -
               then show "((\<lambda>y. (matrix (f' x) - B) *v (y - x) /\<^sub>R
                            norm (y - x) - (f x + f' x (y - x) - f y) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0)
                           (at x within S)"
-                by (simp add: algebra_simps lin_df linear_diff matrix_vector_mul_linear)
+                by (simp add: algebra_simps diff lin_df matrix_vector_mul_linear scalar_mult_eq_scaleR)
             qed
           qed (use x in \<open>simp; auto simp: not_less\<close>)
           ultimately have "f' x = ( *v) B"
-            by (force simp: algebra_simps)
+            by (force simp: algebra_simps scalar_mult_eq_scaleR)
           show "matrix (f' x) $ m $ n \<le> b"
           proof (rule tendsto_upperbound [of "\<lambda>i. (A i $ m $ n)" _ sequentially])
             show "(\<lambda>i. A i $ m $ n) \<longlonglongrightarrow> matrix (f' x) $ m $ n"
@@ -2228,11 +2242,11 @@ proof -
                 have "linear (f' x)"
                   using True f has_derivative_linear by blast
                 then have "norm (f' x (y - x) - B *v (y - x)) = norm ((matrix (f' x) - B) *v (y - x))"
-                  by (metis matrix_vector_mul matrix_vector_mult_diff_rdistrib)
+                  by (simp add: matrix_vector_mult_diff_rdistrib)
                 also have "\<dots> \<le> (e * norm (y - x)) / 2"
                 proof (rule split246)
                   have "norm ((?A - B) *v (y - x)) / norm (y - x) \<le> onorm(\<lambda>x. (?A - B) *v x)"
-                    by (simp add: le_onorm linear_linear matrix_vector_mul_linear)
+                    by (rule le_onorm) auto
                   also have  "\<dots> < e/6"
                     by (rule Bo_e6)
                   finally have "norm ((?A - B) *v (y - x)) / norm (y - x) < e / 6" .
@@ -2445,7 +2459,8 @@ proof -
       moreover have "\<exists>t\<in>T -` P. norm (inv T x - t) \<le> e"
       proof
         have "T (inv T x - inv T t) = x - t"
-          using T linear_diff orthogonal_transformation_def by fastforce
+          using T linear_diff orthogonal_transformation_def
+          by (metis (no_types, hide_lams) Tinv)
         then have "norm (inv T x - inv T t) = norm (x - t)"
           by (metis T orthogonal_transformation_norm)
         then show "norm (inv T x - inv T t) \<le> e"
@@ -2473,7 +2488,7 @@ lemma Sard_lemma1:
             and "measure lebesgue S \<le> (2 * e) * (2 * m) ^ (CARD('n) - 1)"
 proof -
   obtain a where "a \<noteq> 0" "P \<subseteq> {x. a \<bullet> x = 0}"
-    using lowdim_subset_hyperplane [of P] P span_inc by auto
+    using lowdim_subset_hyperplane [of P] P span_base by auto
   then obtain S where S: "S \<in> lmeasurable"
     and subS: "{z. norm z \<le> m \<and> (\<exists>t \<in> P. norm(z - t) \<le> e)} \<subseteq> S"
     and mS: "measure lebesgue S \<le> (2 * e) * (2 * m) ^ (CARD('n) - 1)"
@@ -2566,7 +2581,8 @@ proof -
       obtain x where x: "x \<in> S \<inter> cbox u v" "cbox u v \<subseteq> ball x (r x)"
         using \<open>K \<in> \<D>\<close> covered uv by blast
       then have "dim (range (f' x)) < ?n"
-        using rank_dim_range [of "matrix (f' x)"] lin_f' rank by fastforce
+        using rank_dim_range [of "matrix (f' x)"] x rank[of x]
+        by (auto simp: matrix_works scalar_mult_eq_scaleR lin_f')
       then obtain T where T: "T \<in> lmeasurable"
             and subT: "{z. norm(z - f x) \<le> (2 * B) * norm(v - u) \<and> (\<exists>t \<in> range (f' x). norm(z - f x - t) \<le> d * norm(v - u))} \<subseteq> T"
             and measT: "?\<mu> T \<le> (2 * (d * norm(v - u))) * (2 * ((2 * B) * norm(v - u))) ^ (?n - 1)"
@@ -2586,8 +2602,8 @@ proof -
             using r [of x y] x \<open>y \<in> S\<close> by blast
           have yx_le: "norm (y - x) \<le> norm (v - u)"
           proof (rule norm_le_componentwise_cart)
-            show "\<bar>(y - x) $ i\<bar> \<le> \<bar>(v - u) $ i\<bar>" for i
-            using x y by (force simp: mem_box_cart dest!: spec [where x=i])
+            show "norm ((y - x) $ i) \<le> norm ((v - u) $ i)" for i
+              using x y by (force simp: mem_box_cart dest!: spec [where x=i])
           qed
           have *: "\<lbrakk>norm(y - x - z) \<le> d; norm z \<le> B; d \<le> B\<rbrakk> \<Longrightarrow> norm(y - x) \<le> 2 * B"
             for x y z :: "real^'n::_" and d B
@@ -3177,8 +3193,8 @@ proof -
         if "x \<in> T" for x
       proof -
         have "matrix (h' x) ** matrix (g' (h x)) = mat 1"
-          using that id matrix_compose
-          by (metis der_g gh has_derivative_linear left_inverse_linear matrix_id_mat_1)
+          using that id[OF that] der_g[of "h x"] gh[OF that] left_inverse_linear has_derivative_linear
+          by (subst matrix_compose[symmetric]) (force simp: matrix_id_mat_1 has_derivative_linear)+
         then have "\<bar>det (matrix (h' x))\<bar> * \<bar>det (matrix (g' (h x)))\<bar> = 1"
           by (metis abs_1 abs_mult det_I det_mul)
         then show ?thesis

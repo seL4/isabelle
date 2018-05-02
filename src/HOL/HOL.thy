@@ -1398,6 +1398,9 @@ lemma eq_cong2:
 lemma if_distrib: "f (if c then x else y) = (if c then f x else f y)"
   by simp
 
+lemma if_distribR: "(if b then f else g) x = (if b then f x else g x)"
+  by simp
+
 lemma all_if_distrib: "(\<forall>x. if x = a then P x else Q x) \<longleftrightarrow> P a \<and> (\<forall>x. x\<noteq>a \<longrightarrow> Q x)"
   by auto
 

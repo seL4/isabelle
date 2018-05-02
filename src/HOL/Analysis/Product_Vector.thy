@@ -10,6 +10,52 @@ imports
   "HOL-Library.Product_Plus"
 begin
 
+lemma Times_eq_image_sum:
+  fixes S :: "'a :: comm_monoid_add set" and T :: "'b :: comm_monoid_add set"
+  shows "S \<times> T = {u + v |u v. u \<in> (\<lambda>x. (x, 0)) ` S \<and> v \<in> Pair 0 ` T}"
+  by force
+
+
+subsection \<open>Product is a module\<close>
+
+locale module_prod = module_pair begin
+
+definition scale :: "'a \<Rightarrow> 'b \<times> 'c \<Rightarrow> 'b \<times> 'c"
+  where "scale a v = (s1 a (fst v), s2 a (snd v))"
+
+lemma scale_prod: "scale x (a, b) = (s1 x a, s2 x b)"
+  by (auto simp: scale_def)
+
+sublocale p: module scale
+proof qed (simp_all add: scale_def
+  m1.scale_left_distrib m1.scale_right_distrib m2.scale_left_distrib m2.scale_right_distrib)
+
+lemma subspace_Times: "m1.subspace A \<Longrightarrow> m2.subspace B \<Longrightarrow> p.subspace (A \<times> B)"
+  unfolding m1.subspace_def m2.subspace_def p.subspace_def
+  by (auto simp: zero_prod_def scale_def)
+
+lemma module_hom_fst: "module_hom scale s1 fst"
+  by unfold_locales (auto simp: scale_def)
+
+lemma module_hom_snd: "module_hom scale s2 snd"
+  by unfold_locales (auto simp: scale_def)
+
+end
+
+locale vector_space_prod = vector_space_pair begin
+
+sublocale module_prod s1 s2
+  rewrites "module_hom = Vector_Spaces.linear"
+  by unfold_locales (fact module_hom_eq_linear)
+
+sublocale p: vector_space scale by unfold_locales (auto simp: algebra_simps)
+
+lemmas linear_fst = module_hom_fst
+  and linear_snd = module_hom_snd
+
+end
+
+
 subsection \<open>Product is a real vector space\<close>
 
 instantiation%important prod :: (real_vector, real_vector) real_vector
@@ -41,6 +87,27 @@ proof
 qed
 
 end
+
+lemma module_prod_scale_eq_scaleR: "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = scaleR"
+  apply (rule ext) apply (rule ext)
+  apply (subst module_prod.scale_def)
+  subgoal by unfold_locales
+  by (simp add: scaleR_prod_def)
+
+interpretation real_vector?: vector_space_prod "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
+  rewrites "scale = (( *\<^sub>R)::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
+    and "module.dependent ( *\<^sub>R) = dependent"
+    and "module.representation ( *\<^sub>R) = representation"
+    and "module.subspace ( *\<^sub>R) = subspace"
+    and "module.span ( *\<^sub>R) = span"
+    and "vector_space.extend_basis ( *\<^sub>R) = extend_basis"
+    and "vector_space.dim ( *\<^sub>R) = dim"
+    and "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
+  subgoal by unfold_locales
+  subgoal by (fact module_prod_scale_eq_scaleR)
+  unfolding dependent_raw_def representation_raw_def subspace_raw_def span_raw_def
+    extend_basis_raw_def dim_raw_def linear_def
+  by (rule refl)+
 
 subsection \<open>Product is a metric space\<close>
 
@@ -270,7 +337,7 @@ proof
   show "(f (x + y), g (x + y)) = (f x, g x) + (f y, g y)"
     by (simp add: f.add g.add)
   show "(f (r *\<^sub>R x), g (r *\<^sub>R x)) = r *\<^sub>R (f x, g x)"
-    by (simp add: f.scaleR g.scaleR)
+    by (simp add: f.scale g.scale)
   obtain Kf where "0 < Kf" and norm_f: "\<And>x. norm (f x) \<le> norm x * Kf"
     using f.pos_bounded by fast
   obtain Kg where "0 < Kg" and norm_g: "\<And>x. norm (g x) \<le> norm x * Kg"
@@ -388,5 +455,113 @@ lemma norm_Pair_le:
   shows "norm (x, y) \<le> norm x + norm y"
   unfolding norm_Pair
   by (metis norm_ge_zero sqrt_sum_squares_le_sum)
+
+lemma (in vector_space_prod) span_Times_sing1: "p.span ({0} \<times> B) = {0} \<times> vs2.span B"
+  apply (rule p.span_unique)
+  subgoal by (auto intro!: vs1.span_base vs2.span_base)
+  subgoal using vs1.subspace_single_0 vs2.subspace_span by (rule subspace_Times)
+  subgoal for T
+  proof safe
+    fix b
+    assume subset_T: "{0} \<times> B \<subseteq> T" and subspace: "p.subspace T" and b_span: "b \<in> vs2.span B"
+    then obtain t r where b: "b = (\<Sum>a\<in>t. r a *b a)" and t: "finite t" "t \<subseteq> B"
+      by (auto simp: vs2.span_explicit)
+    have "(0, b) = (\<Sum>b\<in>t. scale (r b) (0, b))"
+      unfolding b scale_prod sum_prod
+      by simp
+    also have "\<dots> \<in> T"
+      using \<open>t \<subseteq> B\<close> subset_T
+      by (auto intro!: p.subspace_sum p.subspace_scale subspace)
+    finally show "(0, b) \<in> T" .
+  qed
+  done
+
+lemma (in vector_space_prod) span_Times_sing2: "p.span (A \<times> {0}) = vs1.span A \<times> {0}"
+  apply (rule p.span_unique)
+  subgoal by (auto intro!: vs1.span_base vs2.span_base)
+  subgoal using vs1.subspace_span vs2.subspace_single_0 by (rule subspace_Times)
+  subgoal for T
+  proof safe
+    fix a
+    assume subset_T: "A \<times> {0} \<subseteq> T" and subspace: "p.subspace T" and a_span: "a \<in> vs1.span A"
+    then obtain t r where a: "a = (\<Sum>a\<in>t. r a *a a)" and t: "finite t" "t \<subseteq> A"
+      by (auto simp: vs1.span_explicit)
+    have "(a, 0) = (\<Sum>a\<in>t. scale (r a) (a, 0))"
+      unfolding a scale_prod sum_prod
+      by simp
+    also have "\<dots> \<in> T"
+      using \<open>t \<subseteq> A\<close> subset_T
+      by (auto intro!: p.subspace_sum p.subspace_scale subspace)
+    finally show "(a, 0) \<in> T" .
+  qed
+  done
+
+lemma (in finite_dimensional_vector_space) zero_not_in_Basis[simp]: "0 \<notin> Basis"
+  using dependent_zero local.independent_Basis by blast
+
+locale finite_dimensional_vector_space_prod = vector_space_prod + finite_dimensional_vector_space_pair begin
+
+definition "Basis_pair = B1 \<times> {0} \<union> {0} \<times> B2"
+
+sublocale p: finite_dimensional_vector_space scale Basis_pair
+proof unfold_locales
+  show "finite Basis_pair"
+    by (auto intro!: finite_cartesian_product vs1.finite_Basis vs2.finite_Basis simp: Basis_pair_def)
+  show "p.independent Basis_pair"
+    unfolding p.dependent_def Basis_pair_def
+  proof safe
+    fix a
+    assume a: "a \<in> B1"
+    assume "(a, 0) \<in> p.span (B1 \<times> {0} \<union> {0} \<times> B2 - {(a, 0)})"
+    also have "B1 \<times> {0} \<union> {0} \<times> B2 - {(a, 0)} = (B1 - {a}) \<times> {0} \<union> {0} \<times> B2"
+      by auto
+    finally show False
+      using a vs1.dependent_def vs1.independent_Basis
+      by (auto simp: p.span_Un span_Times_sing1 span_Times_sing2)
+  next
+    fix b
+    assume b: "b \<in> B2"
+    assume "(0, b) \<in> p.span (B1 \<times> {0} \<union> {0} \<times> B2 - {(0, b)})"
+    also have "(B1 \<times> {0} \<union> {0} \<times> B2 - {(0, b)}) = B1 \<times> {0} \<union> {0} \<times> (B2 - {b})"
+      by auto
+    finally show False
+      using b vs2.dependent_def vs2.independent_Basis
+      by (auto simp: p.span_Un span_Times_sing1 span_Times_sing2)
+  qed
+  show "p.span Basis_pair = UNIV"
+    by (auto simp: p.span_Un span_Times_sing2 span_Times_sing1 vs1.span_Basis vs2.span_Basis
+        Basis_pair_def)
+qed
+
+lemma dim_Times:
+  assumes "vs1.subspace S" "vs2.subspace T"
+  shows "p.dim(S \<times> T) = vs1.dim S + vs2.dim T"
+proof -
+  interpret p1: Vector_Spaces.linear s1 scale "(\<lambda>x. (x, 0))"
+    by unfold_locales (auto simp: scale_def)
+  interpret pair1: finite_dimensional_vector_space_pair "( *a)" B1 scale Basis_pair
+    by unfold_locales
+  interpret p2: Vector_Spaces.linear s2 scale "(\<lambda>x. (0, x))"
+    by unfold_locales (auto simp: scale_def)
+  interpret pair2: finite_dimensional_vector_space_pair "( *b)" B2 scale Basis_pair
+    by unfold_locales
+  have ss: "p.subspace ((\<lambda>x. (x, 0)) ` S)" "p.subspace (Pair 0 ` T)"
+    by (rule p1.subspace_image p2.subspace_image assms)+
+  have "p.dim(S \<times> T) = p.dim({u + v |u v. u \<in> (\<lambda>x. (x, 0)) ` S \<and> v \<in> Pair 0 ` T})"
+    by (simp add: Times_eq_image_sum)
+  moreover have "p.dim ((\<lambda>x. (x, 0::'c)) ` S) = vs1.dim S" "p.dim (Pair (0::'b) ` T) = vs2.dim T"
+     by (simp_all add: inj_on_def p1.linear_axioms pair1.dim_image_eq p2.linear_axioms pair2.dim_image_eq)
+  moreover have "p.dim ((\<lambda>x. (x, 0)) ` S \<inter> Pair 0 ` T) = 0"
+    by (subst p.dim_eq_0) auto
+  ultimately show ?thesis
+    using p.dim_sums_Int [OF ss] by linarith
+qed
+
+lemma dimension_pair: "p.dimension = vs1.dimension + vs2.dimension"
+  using dim_Times[OF vs1.subspace_UNIV vs2.subspace_UNIV]
+  by (auto simp: p.dim_UNIV vs1.dim_UNIV vs2.dim_UNIV
+      p.dimension_def vs1.dimension_def vs2.dimension_def)
+
+end
 
 end

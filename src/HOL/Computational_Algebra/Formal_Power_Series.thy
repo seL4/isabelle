@@ -105,9 +105,6 @@ lemma mult_delta_right:
 lemma cond_value_iff: "f (if b then x else y) = (if b then f x else f y)"
   by auto
 
-lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
-  by auto
-
 
 subsection \<open>Formal power series form a commutative ring with unity, if the range of sequences
   they represent is a commutative ring with unity\<close>

@@ -161,6 +161,44 @@ qed
 
 end
 
+lemma square_bound_lemma:
+  fixes x :: real
+  shows "x < (1 + x) * (1 + x)"
+proof -
+  have "(x + 1/2)\<^sup>2 + 3/4 > 0"
+    using zero_le_power2[of "x+1/2"] by arith
+  then show ?thesis
+    by (simp add: field_simps power2_eq_square)
+qed
+
+lemma square_continuous:
+  fixes e :: real
+  shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> \<bar>y * y - x * x\<bar> < e)"
+  using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
+  by (force simp add: power2_eq_square)
+
+lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> inner x x = (0::real)"
+  by simp (* TODO: delete *)
+
+lemma norm_triangle_sub:
+  fixes x y :: "'a::real_normed_vector"
+  shows "norm x \<le> norm y + norm (x - y)"
+  using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
+
+lemma norm_le: "norm x \<le> norm y \<longleftrightarrow> inner x x \<le> inner y y"
+  by (simp add: norm_eq_sqrt_inner)
+
+lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
+  by (simp add: norm_eq_sqrt_inner)
+
+lemma norm_eq: "norm x = norm y \<longleftrightarrow> inner x x = inner y y"
+  apply (subst order_eq_iff)
+  apply (auto simp: norm_le)
+  done
+
+lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> inner x x = 1"
+  by (simp add: norm_eq_sqrt_inner)
+
 lemma inner_divide_left:
   fixes a :: "'a :: {real_inner,real_div_algebra}"
   shows "inner (a / of_real m) b = (inner a b) / m"

@@ -5,7 +5,7 @@ Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 *)
 
 theory Group
-imports Complete_Lattice "HOL-Library.FuncSet"
+imports Complete_Lattice HOL.FuncSet
 begin
 
 section \<open>Monoids and Groups\<close>

@@ -6,122 +6,8 @@
 section \<open>Vector Spaces and Algebras over the Reals\<close>
 
 theory Real_Vector_Spaces
-imports Real Topological_Spaces
+imports Real Topological_Spaces Vector_Spaces
 begin
-
-subsection \<open>Locale for additive functions\<close>
-
-locale additive =
-  fixes f :: "'a::ab_group_add \<Rightarrow> 'b::ab_group_add"
-  assumes add: "f (x + y) = f x + f y"
-begin
-
-lemma zero: "f 0 = 0"
-proof -
-  have "f 0 = f (0 + 0)" by simp
-  also have "\<dots> = f 0 + f 0" by (rule add)
-  finally show "f 0 = 0" by simp
-qed
-
-lemma minus: "f (- x) = - f x"
-proof -
-  have "f (- x) + f x = f (- x + x)" by (rule add [symmetric])
-  also have "\<dots> = - f x + f x" by (simp add: zero)
-  finally show "f (- x) = - f x" by (rule add_right_imp_eq)
-qed
-
-lemma diff: "f (x - y) = f x - f y"
-  using add [of x "- y"] by (simp add: minus)
-
-lemma sum: "f (sum g A) = (\<Sum>x\<in>A. f (g x))"
-  by (induct A rule: infinite_finite_induct) (simp_all add: zero add)
-
-end
-
-
-subsection \<open>Vector spaces\<close>
-
-locale vector_space =
-  fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b"
-  assumes scale_right_distrib [algebra_simps]: "scale a (x + y) = scale a x + scale a y"
-    and scale_left_distrib [algebra_simps]: "scale (a + b) x = scale a x + scale b x"
-    and scale_scale [simp]: "scale a (scale b x) = scale (a * b) x"
-    and scale_one [simp]: "scale 1 x = x"
-begin
-
-lemma scale_left_commute: "scale a (scale b x) = scale b (scale a x)"
-  by (simp add: mult.commute)
-
-lemma scale_zero_left [simp]: "scale 0 x = 0"
-  and scale_minus_left [simp]: "scale (- a) x = - (scale a x)"
-  and scale_left_diff_distrib [algebra_simps]: "scale (a - b) x = scale a x - scale b x"
-  and scale_sum_left: "scale (sum f A) x = (\<Sum>a\<in>A. scale (f a) x)"
-proof -
-  interpret s: additive "\<lambda>a. scale a x"
-    by standard (rule scale_left_distrib)
-  show "scale 0 x = 0" by (rule s.zero)
-  show "scale (- a) x = - (scale a x)" by (rule s.minus)
-  show "scale (a - b) x = scale a x - scale b x" by (rule s.diff)
-  show "scale (sum f A) x = (\<Sum>a\<in>A. scale (f a) x)" by (rule s.sum)
-qed
-
-lemma scale_zero_right [simp]: "scale a 0 = 0"
-  and scale_minus_right [simp]: "scale a (- x) = - (scale a x)"
-  and scale_right_diff_distrib [algebra_simps]: "scale a (x - y) = scale a x - scale a y"
-  and scale_sum_right: "scale a (sum f A) = (\<Sum>x\<in>A. scale a (f x))"
-proof -
-  interpret s: additive "\<lambda>x. scale a x"
-    by standard (rule scale_right_distrib)
-  show "scale a 0 = 0" by (rule s.zero)
-  show "scale a (- x) = - (scale a x)" by (rule s.minus)
-  show "scale a (x - y) = scale a x - scale a y" by (rule s.diff)
-  show "scale a (sum f A) = (\<Sum>x\<in>A. scale a (f x))" by (rule s.sum)
-qed
-
-lemma scale_eq_0_iff [simp]: "scale a x = 0 \<longleftrightarrow> a = 0 \<or> x = 0"
-proof (cases "a = 0")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  have "x = 0" if "scale a x = 0"
-  proof -
-    from False that have "scale (inverse a) (scale a x) = 0" by simp
-    with False show ?thesis by simp
-  qed
-  then show ?thesis by force
-qed
-
-lemma scale_left_imp_eq:
-  assumes nonzero: "a \<noteq> 0"
-    and scale: "scale a x = scale a y"
-  shows "x = y"
-proof -
-  from scale have "scale a (x - y) = 0"
-     by (simp add: scale_right_diff_distrib)
-  with nonzero have "x - y = 0" by simp
-  then show "x = y" by (simp only: right_minus_eq)
-qed
-
-lemma scale_right_imp_eq:
-  assumes nonzero: "x \<noteq> 0"
-    and scale: "scale a x = scale b x"
-  shows "a = b"
-proof -
-  from scale have "scale (a - b) x = 0"
-     by (simp add: scale_left_diff_distrib)
-  with nonzero have "a - b = 0" by simp
-  then show "a = b" by (simp only: right_minus_eq)
-qed
-
-lemma scale_cancel_left [simp]: "scale a x = scale a y \<longleftrightarrow> x = y \<or> a = 0"
-  by (auto intro: scale_left_imp_eq)
-
-lemma scale_cancel_right [simp]: "scale a x = scale b x \<longleftrightarrow> a = b \<or> x = 0"
-  by (auto intro: scale_right_imp_eq)
-
-end
-
 
 subsection \<open>Real vector spaces\<close>
 
@@ -140,13 +26,74 @@ class real_vector = scaleR + ab_group_add +
   and scaleR_scaleR: "scaleR a (scaleR b x) = scaleR (a * b) x"
   and scaleR_one: "scaleR 1 x = x"
 
-interpretation real_vector: vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
-  apply unfold_locales
-     apply (rule scaleR_add_right)
-    apply (rule scaleR_add_left)
-   apply (rule scaleR_scaleR)
-  apply (rule scaleR_one)
+
+class real_algebra = real_vector + ring +
+  assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
+    and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
+
+class real_algebra_1 = real_algebra + ring_1
+
+class real_div_algebra = real_algebra_1 + division_ring
+
+class real_field = real_div_algebra + field
+
+instantiation real :: real_field
+begin
+
+definition real_scaleR_def [simp]: "scaleR a x = a * x"
+
+instance
+  by standard (simp_all add: algebra_simps)
+
+end
+
+locale linear = Vector_Spaces.linear "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
+begin
+lemmas scaleR = scale
+end
+
+global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
+  rewrites "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
+    and "Vector_Spaces.linear ( * ) ( *\<^sub>R) = linear"
+  defines dependent_raw_def: dependent = real_vector.dependent
+    and representation_raw_def: representation = real_vector.representation
+    and subspace_raw_def: subspace = real_vector.subspace
+    and span_raw_def: span = real_vector.span
+    and extend_basis_raw_def: extend_basis = real_vector.extend_basis
+    and dim_raw_def: dim = real_vector.dim
+    apply unfold_locales
+       apply (rule scaleR_add_right)
+      apply (rule scaleR_add_left)
+     apply (rule scaleR_scaleR)
+    apply (rule scaleR_one)
+   apply (force simp add: linear_def)
+  apply (force simp add: linear_def real_scaleR_def[abs_def])
   done
+
+hide_const (open)\<comment>\<open>locale constants\<close>
+  real_vector.dependent
+  real_vector.independent
+  real_vector.representation
+  real_vector.subspace
+  real_vector.span
+  real_vector.extend_basis
+  real_vector.dim
+
+abbreviation "independent x \<equiv> \<not> dependent x"
+
+global_interpretation real_vector?: vector_space_pair "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
+  rewrites  "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
+    and "Vector_Spaces.linear ( * ) ( *\<^sub>R) = linear"
+  defines construct_raw_def: construct = real_vector.construct
+  apply unfold_locales
+  unfolding linear_def real_scaleR_def
+  by (rule refl)+
+
+hide_const (open)\<comment>\<open>locale constants\<close>
+  real_vector.construct
+
+lemma linear_compose: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (g o f)"
+  unfolding linear_def by (rule Vector_Spaces.linear_compose)
 
 text \<open>Recover original theorem names\<close>
 
@@ -172,6 +119,16 @@ lemmas scaleR_right_distrib = scaleR_add_right
 lemmas scaleR_left_diff_distrib = scaleR_diff_left
 lemmas scaleR_right_diff_distrib = scaleR_diff_right
 
+lemmas linear_injective_0 = linear_inj_iff_eq_0
+  and linear_injective_on_subspace_0 = linear_inj_on_iff_eq_0
+  and linear_cmul = linear_scale
+  and linear_scaleR = linear_scale_self
+  and subspace_mul = subspace_scale
+  and span_linear_image = linear_span_image
+  and span_0 = span_zero
+  and span_mul = span_scale
+  and injective_scaleR = injective_scale
+
 lemma scaleR_minus1_left [simp]: "scaleR (-1) x = - x"
   for x :: "'a::real_vector"
   using scaleR_minus_left [of 1 x] by simp
@@ -190,26 +147,6 @@ proof -
   then show ?thesis
     by simp
 qed
-
-class real_algebra = real_vector + ring +
-  assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
-    and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
-
-class real_algebra_1 = real_algebra + ring_1
-
-class real_div_algebra = real_algebra_1 + division_ring
-
-class real_field = real_div_algebra + field
-
-instantiation real :: real_field
-begin
-
-definition real_scaleR_def [simp]: "scaleR a x = a * x"
-
-instance
-  by standard (simp_all add: algebra_simps)
-
-end
 
 interpretation scaleR_left: additive "(\<lambda>a. scaleR a x :: 'a::real_vector)"
   by standard (rule scaleR_left_distrib)
@@ -231,9 +168,7 @@ lemma inverse_scaleR_distrib: "inverse (scaleR a x) = scaleR (inverse a) (invers
   apply (erule (1) nonzero_inverse_scaleR_distrib)
   done
 
-lemma sum_constant_scaleR: "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
-  for y :: "'a::real_vector"
-  by (induct A rule: infinite_finite_induct) (simp_all add: algebra_simps)
+lemmas sum_constant_scaleR = real_vector.sum_constant_scale\<comment>\<open>legacy name\<close>
 
 named_theorems vector_add_divide_simps "to simplify sums of scaled vectors"
 
@@ -247,7 +182,7 @@ lemma [vector_add_divide_simps]:
   "(a / z) *\<^sub>R v - w = (if z = 0 then -w else (a *\<^sub>R v - z *\<^sub>R w) /\<^sub>R z)"
   "(a / z) *\<^sub>R v - b *\<^sub>R w = (if z = 0 then -b *\<^sub>R w else (a *\<^sub>R v - (b * z) *\<^sub>R w) /\<^sub>R z)"
   for v :: "'a :: real_vector"
-  by (simp_all add: divide_inverse_commute scaleR_add_right real_vector.scale_right_diff_distrib)
+  by (simp_all add: divide_inverse_commute scaleR_add_right scaleR_diff_right)
 
 
 lemma eq_vector_fraction_iff [vector_add_divide_simps]:
@@ -271,11 +206,11 @@ proof
   then have "inverse m *\<^sub>R (m *\<^sub>R x) = inverse m *\<^sub>R (y - c)" by simp
   then show "x = inverse m *\<^sub>R y - (inverse m *\<^sub>R c)"
     using m0
-  by (simp add: real_vector.scale_right_diff_distrib)
+  by (simp add: scaleR_diff_right)
 next
   assume ?rhs
   with m0 show "m *\<^sub>R x + c = y"
-    by (simp add: real_vector.scale_right_diff_distrib)
+    by (simp add: scaleR_diff_right)
 qed
 
 lemma real_vector_eq_affinity: "m \<noteq> 0 \<Longrightarrow> y = m *\<^sub>R x + c \<longleftrightarrow> inverse m *\<^sub>R y - (inverse m *\<^sub>R c) = x"
@@ -1402,13 +1337,26 @@ lemma dist_of_nat:
 
 subsection \<open>Bounded Linear and Bilinear Operators\<close>
 
-locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vector" +
-  assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
+lemma linearI: "linear f"
+  if "\<And>b1 b2. f (b1 + b2) = f b1 + f b2"
+    "\<And>r b. f (r *\<^sub>R b) = r *\<^sub>R f b"
+  using that
+  by unfold_locales (auto simp: algebra_simps)
 
-lemma linear_imp_scaleR:
-  assumes "linear D"
-  obtains d where "D = (\<lambda>x. x *\<^sub>R d)"
-  by (metis assms linear.scaleR mult.commute mult.left_neutral real_scaleR_def)
+lemma linear_iff:
+  "linear f \<longleftrightarrow> (\<forall>x y. f (x + y) = f x + f y) \<and> (\<forall>c x. f (c *\<^sub>R x) = c *\<^sub>R f x)"
+  (is "linear f \<longleftrightarrow> ?rhs")
+proof
+  assume "linear f"
+  then interpret f: linear f .
+  show "?rhs" by (simp add: f.add f.scale)
+next
+  assume "?rhs"
+  then show "linear f" by (intro linearI) auto
+qed
+
+lemmas linear_scaleR_left = linear_scale_left
+lemmas linear_imp_scaleR = linear_imp_scale
 
 corollary real_linearD:
   fixes f :: "real \<Rightarrow> real"
@@ -1416,14 +1364,8 @@ corollary real_linearD:
   by (rule linear_imp_scaleR [OF assms]) (force simp: scaleR_conv_of_real)
 
 lemma linear_times_of_real: "linear (\<lambda>x. a * of_real x)"
-  apply (simp add: linear_def Real_Vector_Spaces.additive_def linear_axioms_def)
-  by (metis distrib_left mult_scaleR_right scaleR_conv_of_real)
-
-lemma linearI:
-  assumes "\<And>x y. f (x + y) = f x + f y"
-    and "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
-  shows "linear f"
-  by standard (rule assms)+
+  by (auto intro!: linearI simp: distrib_left)
+    (metis mult_scaleR_right scaleR_conv_of_real)
 
 locale bounded_linear = linear f for f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" +
   assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
@@ -1719,10 +1661,6 @@ proof -
   then show ?thesis
     by (auto intro: exI[of _ "f 1"] bounded_linear_mult_left)
 qed
-
-lemma bij_linear_imp_inv_linear: "linear f \<Longrightarrow> bij f \<Longrightarrow> linear (inv f)"
-  by (auto simp: linear_def linear_axioms_def additive_def bij_is_surj bij_is_inj surj_f_inv_f
-      intro!:  Hilbert_Choice.inv_f_eq)
 
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof

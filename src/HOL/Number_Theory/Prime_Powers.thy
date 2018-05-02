@@ -6,7 +6,7 @@
 *)
 section \<open>Prime powers\<close>
 theory Prime_Powers
-  imports Complex_Main "HOL-Computational_Algebra.Primes" "HOL-Library.FuncSet"
+  imports Complex_Main "HOL-Computational_Algebra.Primes"
 begin
 
 definition aprimedivisor :: "'a :: normalization_semidom \<Rightarrow> 'a" where

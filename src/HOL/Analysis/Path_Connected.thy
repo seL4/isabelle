@@ -6354,21 +6354,18 @@ proof -
     by (meson subsetD image_eqI inj_on_def)
   obtain f where "linear f" and ffb: "\<And>x. x \<in> B \<Longrightarrow> f x = fb x"
     using linear_independent_extend \<open>independent B\<close> by fastforce
-  have "f ` S \<subseteq> T"
-    by (metis ffb \<open>fb ` B \<subseteq> C\<close> \<open>linear f\<close> \<open>span B = S\<close> \<open>span C = T\<close> image_cong span_linear_image span_mono)
+  have "span (f ` B) \<subseteq> span C"
+    by (metis \<open>fb ` B \<subseteq> C\<close> ffb image_cong span_mono)
+  then have "f ` S \<subseteq> T"
+    unfolding \<open>span B = S\<close> \<open>span C = T\<close> span_linear_image[OF \<open>linear f\<close>] .
   have [simp]: "\<And>x. x \<in> B \<Longrightarrow> norm (fb x) = norm x"
     using B1 C1 \<open>fb ` B \<subseteq> C\<close> by auto
   have "norm (f x) = norm x" if "x \<in> S" for x
   proof -
+    interpret linear f by fact
     obtain a where x: "x = (\<Sum>v \<in> B. a v *\<^sub>R v)"
       using \<open>finite B\<close> \<open>span B = S\<close> \<open>x \<in> S\<close> span_finite by fastforce
-    have "f x = (\<Sum>v \<in> B. f (a v *\<^sub>R v))"
-      using linear_sum [OF \<open>linear f\<close>] x by auto
-    also have "... = (\<Sum>v \<in> B. a v *\<^sub>R f v)"
-      using \<open>linear f\<close> by (simp add: linear_sum linear.scaleR)
-    also have "... = (\<Sum>v \<in> B. a v *\<^sub>R fb v)"
-      by (simp add: ffb cong: sum.cong)
-    finally have "norm (f x)^2 = norm (\<Sum>v\<in>B. a v *\<^sub>R fb v)^2" by simp
+    have "norm (f x)^2 = norm (\<Sum>v\<in>B. a v *\<^sub>R fb v)^2" by (simp add: sum scale ffb x)
     also have "... = (\<Sum>v\<in>B. norm ((a v *\<^sub>R fb v))^2)"
       apply (rule norm_sum_Pythagorean [OF \<open>finite B\<close>])
       apply (rule pairwise_ortho_scaleR [OF pairwise_orth_fb])
@@ -6410,6 +6407,7 @@ proof%unimportant -
     by (meson subsetD image_eqI inj_on_def)
   obtain f where "linear f" and ffb: "\<And>x. x \<in> B \<Longrightarrow> f x = fb x"
     using linear_independent_extend \<open>independent B\<close> by fastforce
+  interpret f: linear f by fact
   define gb where "gb \<equiv> inv_into B fb"
   then have pairwise_orth_gb: "pairwise (\<lambda>v j. orthogonal (gb v) (gb j)) C"
     using Borth
@@ -6417,8 +6415,12 @@ proof%unimportant -
     by (metis \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on bij_betw_inv_into_right inv_into_into)
   obtain g where "linear g" and ggb: "\<And>x. x \<in> C \<Longrightarrow> g x = gb x"
     using linear_independent_extend \<open>independent C\<close> by fastforce
-  have "f ` S \<subseteq> T"
-    by (metis \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on eq_iff ffb  \<open>linear f\<close> \<open>span B = S\<close> \<open>span C = T\<close> image_cong span_linear_image)
+  interpret g: linear g by fact
+  have "span (f ` B) \<subseteq> span C"
+    by (metis \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on eq_iff ffb image_cong)
+  then have "f ` S \<subseteq> T"
+    unfolding \<open>span B = S\<close> \<open>span C = T\<close>
+      span_linear_image[OF \<open>linear f\<close>] .
   have [simp]: "\<And>x. x \<in> B \<Longrightarrow> norm (fb x) = norm x"
     using B1 C1 \<open>bij_betw fb B C\<close> bij_betw_imp_surj_on by fastforce
   have f [simp]: "norm (f x) = norm x" "g (f x) = x" if "x \<in> S" for x
@@ -6428,7 +6430,7 @@ proof%unimportant -
     have "f x = (\<Sum>v \<in> B. f (a v *\<^sub>R v))"
       using linear_sum [OF \<open>linear f\<close>] x by auto
     also have "... = (\<Sum>v \<in> B. a v *\<^sub>R f v)"
-      using \<open>linear f\<close> by (simp add: linear_sum linear.scaleR)
+      by (simp add: f.sum f.scale)
     also have "... = (\<Sum>v \<in> B. a v *\<^sub>R fb v)"
       by (simp add: ffb cong: sum.cong)
     finally have *: "f x = (\<Sum>v\<in>B. a v *\<^sub>R fb v)" .
@@ -6443,9 +6445,9 @@ proof%unimportant -
       by (simp add: norm_eq_sqrt_inner)
     have "g (f x) = g (\<Sum>v\<in>B. a v *\<^sub>R fb v)" by (simp add: *)
     also have "... = (\<Sum>v\<in>B. g (a v *\<^sub>R fb v))"
-      using \<open>linear g\<close> by (simp add: linear_sum linear.scaleR)
+      by (simp add: g.sum g.scale)
     also have "... = (\<Sum>v\<in>B. a v *\<^sub>R g (fb v))"
-      by (simp add: \<open>linear g\<close> linear.scaleR)
+      by (simp add: g.scale)
     also have "... = (\<Sum>v\<in>B. a v *\<^sub>R v)"
       apply (rule sum.cong [OF refl])
       using \<open>bij_betw fb B C\<close> gb_def bij_betwE bij_betw_inv_into_left gb_def ggb by fastforce
@@ -6460,16 +6462,16 @@ proof%unimportant -
     obtain a where x: "x = (\<Sum>v \<in> C. a v *\<^sub>R v)"
       using \<open>finite C\<close> \<open>span C = T\<close> \<open>x \<in> T\<close> span_finite by fastforce
     have "g x = (\<Sum>v \<in> C. g (a v *\<^sub>R v))"
-      using linear_sum [OF \<open>linear g\<close>] x by auto
+      by (simp add: x g.sum)
     also have "... = (\<Sum>v \<in> C. a v *\<^sub>R g v)"
-      using \<open>linear g\<close> by (simp add: linear_sum linear.scaleR)
+      by (simp add: g.scale)
     also have "... = (\<Sum>v \<in> C. a v *\<^sub>R gb v)"
       by (simp add: ggb cong: sum.cong)
     finally have "f (g x) = f (\<Sum>v\<in>C. a v *\<^sub>R gb v)" by simp
     also have "... = (\<Sum>v\<in>C. f (a v *\<^sub>R gb v))"
-      using \<open>linear f\<close> by (simp add: linear_sum linear.scaleR)
+      by (simp add: f.scale f.sum)
     also have "... = (\<Sum>v\<in>C. a v *\<^sub>R f (gb v))"
-      by (simp add: \<open>linear f\<close> linear.scaleR)
+      by (simp add: f.scale f.sum)
     also have "... = (\<Sum>v\<in>C. a v *\<^sub>R v)"
       using \<open>bij_betw fb B C\<close>
       by (simp add: bij_betw_def gb_def bij_betw_inv_into_right ffb inv_into_into)
@@ -6478,7 +6480,8 @@ proof%unimportant -
     finally show "f (g x) = x" .
   qed
   have gim: "g ` T = S"
-    by (metis (no_types, lifting) \<open>f ` S \<subseteq> T\<close> \<open>linear g\<close> \<open>span B = S\<close> \<open>span C = T\<close> d dim_eq_span dim_image_le f(2) image_subset_iff span_linear_image span_span subsetI)
+    by (metis (full_types) S T \<open>f ` S \<subseteq> T\<close> d dim_eq_span dim_image_le f(2) g.linear_axioms
+        image_iff linear_subspace_image span_eq_iff subset_iff)
   have fim: "f ` S = T"
     using \<open>g ` T = S\<close> image_iff by fastforce
   have [simp]: "norm (g x) = norm x" if "x \<in> T" for x
@@ -6504,8 +6507,8 @@ corollary isomorphisms_UNIV_UNIV:
   obtains f::"'M::euclidean_space \<Rightarrow>'N::euclidean_space" and g
   where "linear f" "linear g"
                     "\<And>x. norm(f x) = norm x" "\<And>y. norm(g y) = norm y"
-                    "\<And>x. g(f x) = x" "\<And>y. f(g y) = y"
-  using assms by (auto simp: dim_UNIV intro: isometries_subspaces [of "UNIV::'M set" "UNIV::'N set"])
+                    "\<And>x. g (f x) = x" "\<And>y. f(g y) = y"
+  using assms by (auto simp: intro: isometries_subspaces [of "UNIV::'M set" "UNIV::'N set"])
 
 lemma homeomorphic_subspaces:
   fixes S :: "'a::euclidean_space set"
@@ -7079,7 +7082,7 @@ lemma uncountable_ball:
     shows "uncountable (ball a r)"
 proof -
   have "uncountable (open_segment a (a + r *\<^sub>R (SOME i. i \<in> Basis)))"
-    by (metis Basis_zero SOME_Basis add_cancel_right_right assms less_le real_vector.scale_eq_0_iff uncountable_open_segment)
+    by (metis Basis_zero SOME_Basis add_cancel_right_right assms less_le scale_eq_0_iff uncountable_open_segment)
   moreover have "open_segment a (a + r *\<^sub>R (SOME i. i \<in> Basis)) \<subseteq> ball a r"
     using assms by (auto simp: in_segment algebra_simps dist_norm SOME_Basis)
   ultimately show ?thesis

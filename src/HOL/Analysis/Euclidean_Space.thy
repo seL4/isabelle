@@ -152,6 +152,53 @@ next
     using False by (auto simp: inner_sum_left)
 qed
 
+lemma norm_le_componentwise:
+   "(\<And>b. b \<in> Basis \<Longrightarrow> abs(inner x b) \<le> abs(inner y b)) \<Longrightarrow> norm x \<le> norm y"
+  by (auto simp: norm_le euclidean_inner [of x x] euclidean_inner [of y y] abs_le_square_iff power2_eq_square intro!: sum_mono)
+
+lemma Basis_le_norm: "b \<in> Basis \<Longrightarrow> \<bar>inner x b\<bar> \<le> norm x"
+  by (rule order_trans [OF Cauchy_Schwarz_ineq2]) simp
+
+lemma norm_bound_Basis_le: "b \<in> Basis \<Longrightarrow> norm x \<le> e \<Longrightarrow> \<bar>inner x b\<bar> \<le> e"
+  by (metis Basis_le_norm order_trans)
+
+lemma norm_bound_Basis_lt: "b \<in> Basis \<Longrightarrow> norm x < e \<Longrightarrow> \<bar>inner x b\<bar> < e"
+  by (metis Basis_le_norm le_less_trans)
+
+lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>inner x b\<bar>)"
+  apply (subst euclidean_representation[of x, symmetric])
+  apply (rule order_trans[OF norm_sum])
+  apply (auto intro!: sum_mono)
+  done
+
+lemma sum_norm_allsubsets_bound:
+  fixes f :: "'a \<Rightarrow> 'n::euclidean_space"
+  assumes fP: "finite P"
+    and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (sum f Q) \<le> e"
+  shows "(\<Sum>x\<in>P. norm (f x)) \<le> 2 * real DIM('n) * e"
+proof -
+  have "(\<Sum>x\<in>P. norm (f x)) \<le> (\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>inner (f x) b\<bar>)"
+    by (rule sum_mono) (rule norm_le_l1)
+  also have "(\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>inner (f x) b\<bar>) = (\<Sum>b\<in>Basis. \<Sum>x\<in>P. \<bar>inner (f x) b\<bar>)"
+    by (rule sum.swap)
+  also have "\<dots> \<le> of_nat (card (Basis :: 'n set)) * (2 * e)"
+  proof (rule sum_bounded_above)
+    fix i :: 'n
+    assume i: "i \<in> Basis"
+    have "norm (\<Sum>x\<in>P. \<bar>inner (f x) i\<bar>) \<le>
+      norm (inner (\<Sum>x\<in>P \<inter> - {x. inner (f x) i < 0}. f x) i) + norm (inner (\<Sum>x\<in>P \<inter> {x. inner (f x) i < 0}. f x) i)"
+      by (simp add: abs_real_def sum.If_cases[OF fP] sum_negf norm_triangle_ineq4 inner_sum_left
+        del: real_norm_def)
+    also have "\<dots> \<le> e + e"
+      unfolding real_norm_def
+      by (intro add_mono norm_bound_Basis_le i fPs) auto
+    finally show "(\<Sum>x\<in>P. \<bar>inner (f x) i\<bar>) \<le> 2*e" by simp
+  qed
+  also have "\<dots> = 2 * real DIM('n) * e" by simp
+  finally show ?thesis .
+qed
+
+
 subsection%unimportant \<open>Subclass relationships\<close>
 
 instance euclidean_space \<subseteq> perfect_space
@@ -249,5 +296,57 @@ lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('a) + DIM('b)"
   by (subst card_Un_disjoint) (auto intro!: card_image arg_cong2[where f="(+)"] inj_onI)
 
 end
+
+
+subsection \<open>Locale instances\<close>
+
+lemma finite_dimensional_vector_space_euclidean:
+  "finite_dimensional_vector_space ( *\<^sub>R) Basis"
+proof unfold_locales
+  show "finite (Basis::'a set)" by (metis finite_Basis)
+  show "real_vector.independent (Basis::'a set)"
+    unfolding dependent_def dependent_raw_def[symmetric]
+    apply (subst span_finite)
+    apply simp
+    apply clarify
+    apply (drule_tac f="inner a" in arg_cong)
+    apply (simp add: inner_Basis inner_sum_right eq_commute)
+    done
+  show "module.span ( *\<^sub>R) Basis = UNIV"
+    unfolding span_finite [OF finite_Basis] span_raw_def[symmetric]
+    by (auto intro!: euclidean_representation[symmetric])
+qed
+
+interpretation eucl?: finite_dimensional_vector_space "scaleR :: real => 'a => 'a::euclidean_space" "Basis"
+  rewrites "module.dependent ( *\<^sub>R) = dependent"
+    and "module.representation ( *\<^sub>R) = representation"
+    and "module.subspace ( *\<^sub>R) = subspace"
+    and "module.span ( *\<^sub>R) = span"
+    and "vector_space.extend_basis ( *\<^sub>R) = extend_basis"
+    and "vector_space.dim ( *\<^sub>R) = dim"
+    and "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
+    and "Vector_Spaces.linear ( * ) ( *\<^sub>R) = linear"
+    and "finite_dimensional_vector_space.dimension Basis = DIM('a)"
+    and "dimension = DIM('a)"
+  by (auto simp add: dependent_raw_def representation_raw_def
+      subspace_raw_def span_raw_def extend_basis_raw_def dim_raw_def linear_def
+      real_scaleR_def[abs_def]
+      finite_dimensional_vector_space.dimension_def
+      intro!: finite_dimensional_vector_space.dimension_def
+      finite_dimensional_vector_space_euclidean)
+
+interpretation eucl?: finite_dimensional_vector_space_prod scaleR scaleR Basis Basis
+  rewrites "Basis_pair = Basis"
+    and "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = (scaleR::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
+proof -
+  show "finite_dimensional_vector_space_prod ( *\<^sub>R) ( *\<^sub>R) Basis Basis"
+    by unfold_locales
+  interpret finite_dimensional_vector_space_prod "( *\<^sub>R)" "( *\<^sub>R)" "Basis::'a set" "Basis::'b set"
+    by fact
+  show "Basis_pair = Basis"
+    unfolding Basis_pair_def Basis_prod_def by auto
+  show "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = scaleR"
+    by (fact module_prod_scale_eq_scaleR)
+qed
 
 end

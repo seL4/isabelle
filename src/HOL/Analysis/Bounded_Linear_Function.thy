@@ -529,7 +529,7 @@ lemma blinfun_euclidean_eqI: "(\<And>i. i \<in> Basis \<Longrightarrow> blinfun_
 lemma Blinfun_eq_matrix: "bounded_linear f \<Longrightarrow> Blinfun f = blinfun_of_matrix (\<lambda>i j. f j \<bullet> i)"
   by (intro blinfun_euclidean_eqI)
      (auto simp: blinfun_of_matrix_apply bounded_linear_Blinfun_apply inner_Basis if_distrib
-      cond_application_beta sum.delta' euclidean_representation
+      if_distribR sum.delta' euclidean_representation
       cong: if_cong)
 
 text \<open>TODO: generalize (via \<open>compact_cball\<close>)?\<close>

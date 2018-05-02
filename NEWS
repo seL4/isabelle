@@ -257,6 +257,15 @@ INCOMPATIBILITY.
 * The relator rel_filter on filters has been strengthened to its 
 canonical categorical definition with better properties. INCOMPATIBILITY.
 
+* Generalized linear algebra involving linear, span, dependent, dim
+from type class real_vector to locales module and vector_space.
+Renamed:
+  - span_inc ~> span_superset
+  - span_superset ~> span_base
+  - span_eq ~> span_eq_iff
+INCOMPATIBILITY.
+
+
 * HOL-Algebra: renamed (^) to [^]
 
 * Session HOL-Analysis: Moebius functions, the Riemann mapping

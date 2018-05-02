@@ -1376,7 +1376,7 @@ proof -
       using \<open>polynomial_function g\<close>  by auto
     show "(\<lambda>x. \<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i) ` S \<subseteq> T"
       using \<open>B \<subseteq> T\<close>
-      by (blast intro: real_vector_class.subspace_sum subspace_mul \<open>subspace T\<close>)
+      by (blast intro: subspace_sum subspace_mul \<open>subspace T\<close>)
     show "norm (f x - (\<Sum>i\<in>B. (g x \<bullet> i) *\<^sub>R i)) < e" if "x \<in> S" for x
     proof -
       have orth': "pairwise (\<lambda>i j. orthogonal ((f x \<bullet> i) *\<^sub>R i - (g x \<bullet> i) *\<^sub>R i)

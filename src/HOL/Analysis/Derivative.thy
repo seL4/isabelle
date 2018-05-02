@@ -400,7 +400,7 @@ proof -
     apply (rule linear_eq_stdbasis)
     unfolding linear_conv_bounded_linear
     apply (rule as(1,2)[THEN conjunct1])+
-  proof (rule, rule ccontr)
+  proof (rule ccontr)
     fix i :: 'a
     assume i: "i \<in> Basis"
     define e where "e = norm (f' i - f'' i)"
@@ -1605,28 +1605,6 @@ text \<open>Hence the following eccentric variant of the inverse function theore
   We could put \<open>f' \<circ> g = I\<close> but this happens to fit with the minimal linear
   algebra theory I've set up so far.\<close>
 
-(* move  before left_inverse_linear in Euclidean_Space*)
-
-lemma right_inverse_linear:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes lf: "linear f"
-    and gf: "f \<circ> g = id"
-  shows "linear g"
-proof -
-  from gf have fi: "surj f"
-    by (auto simp add: surj_def o_def id_def) metis
-  from linear_surjective_isomorphism[OF lf fi]
-  obtain h:: "'a \<Rightarrow> 'a" where h: "linear h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x"
-    by blast
-  have "h = g"
-    apply (rule ext)
-    using gf h(2,3)
-    apply (simp add: o_def id_def fun_eq_iff)
-    apply metis
-    done
-  with h(1) show ?thesis by blast
-qed
-
 lemma has_derivative_inverse_strong:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "open s"
@@ -2778,7 +2756,7 @@ proof (rule has_derivativeI)
     "\<forall>\<^sub>F n in sequentially. ((\<lambda>x. \<Sum>i<n. ?e i x) \<longlongrightarrow> A) ?F"
     by eventually_elim
       (auto intro!: tendsto_eq_intros
-        simp: power_0_left if_distrib cond_application_beta sum.delta
+        simp: power_0_left if_distrib if_distribR sum.delta
         cong: if_cong)
   ultimately
   have [tendsto_intros]: "((\<lambda>x. \<Sum>i. ?e i x) \<longlongrightarrow> A) ?F"

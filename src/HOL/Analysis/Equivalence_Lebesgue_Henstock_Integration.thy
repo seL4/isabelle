@@ -1226,7 +1226,7 @@ proof -
   have "negligible (span S)"
     using \<open>a \<noteq> 0\<close> a negligible_hyperplane by (blast intro: negligible_subset)
   then show ?thesis
-    using span_inc by (blast intro: negligible_subset)
+    using span_base by (blast intro: negligible_subset)
 qed
 
 proposition negligible_convex_frontier:
@@ -1240,7 +1240,7 @@ proof -
                and spanB: "S \<subseteq> span B" and cardB: "card B = dim S"
       by (metis basis_exists)
     consider "dim S < DIM('N)" | "dim S = DIM('N)"
-      using dim_subset_UNIV le_eq_less_or_eq by blast
+      using dim_subset_UNIV le_eq_less_or_eq by auto
     then show ?thesis
     proof cases
       case 1
@@ -2848,8 +2848,12 @@ next
             show "negligible (frontier (g ` K \<inter> g ` L))"
               by (simp add: negligible_convex_frontier convex_Int conv convex_linear_image that)
           next
-            show "negligible (interior (g ` K \<inter> g ` L))"
-              by (metis (mono_tags, lifting) True finite.emptyI image_Int image_empty interior_Int interior_injective_linear_image intint negligible_finite pairwiseD that)
+            have "\<forall>p N. pairwise p N = (\<forall>Na. (Na::'n set) \<in> N \<longrightarrow> (\<forall>Nb. Nb \<in> N \<and> Na \<noteq> Nb \<longrightarrow> p Na Nb))"
+              by (metis pairwise_def)
+            then have "interior K \<inter> interior L = {}"
+              using intint that(2) that(3) that(4) by presburger
+            then show "negligible (interior (g ` K \<inter> g ` L))"
+              by (metis True empty_imp_negligible image_Int image_empty interior_Int interior_injective_linear_image that(1))
           qed
           moreover have "g ` K \<inter> g ` L \<subseteq> frontier (g ` K \<inter> g ` L) \<union> interior (g ` K \<inter> g ` L)"
             apply (auto simp: frontier_def)
@@ -3176,7 +3180,7 @@ lemma absolutely_integrable_norm:
   assumes "f absolutely_integrable_on S"
   shows "(norm o f) absolutely_integrable_on S"
   using assms by (simp add: absolutely_integrable_on_def o_def)
-    
+
 lemma absolutely_integrable_abs:
   fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "f absolutely_integrable_on S"

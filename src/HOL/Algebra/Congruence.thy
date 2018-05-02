@@ -4,9 +4,8 @@
 *)
 
 theory Congruence
-imports 
-  Main
-  "HOL-Library.FuncSet"
+  imports
+    Main HOL.FuncSet
 begin
 
 section \<open>Objects\<close>
