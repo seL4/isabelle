@@ -787,15 +787,32 @@ lemmas tendsto_of_real [tendsto_intros] =
 lemmas tendsto_scaleR [tendsto_intros] =
   bounded_bilinear.tendsto [OF bounded_bilinear_scaleR]
 
-lemmas tendsto_mult [tendsto_intros] =
-  bounded_bilinear.tendsto [OF bounded_bilinear_mult]
+
+text\<open>Analogous type class for multiplication\<close>
+class topological_semigroup_mult = topological_space + semigroup_mult +
+  assumes tendsto_mult_Pair: "LIM x (nhds a \<times>\<^sub>F nhds b). fst x * snd x :> nhds (a * b)"
+
+instance real_normed_algebra < topological_semigroup_mult
+proof
+  fix a b :: 'a
+  show "((\<lambda>x. fst x * snd x) \<longlongrightarrow> a * b) (nhds a \<times>\<^sub>F nhds b)"
+    unfolding nhds_prod[symmetric]
+    using tendsto_fst[OF filterlim_ident, of "(a,b)"] tendsto_snd[OF filterlim_ident, of "(a,b)"]
+    by (simp add: bounded_bilinear.tendsto [OF bounded_bilinear_mult])
+qed
+
+lemma tendsto_mult [tendsto_intros]:
+  fixes a b :: "'a::topological_semigroup_mult"
+  shows "(f \<longlongrightarrow> a) F \<Longrightarrow> (g \<longlongrightarrow> b) F \<Longrightarrow> ((\<lambda>x. f x * g x) \<longlongrightarrow> a * b) F"
+  using filterlim_compose[OF tendsto_mult_Pair, of "\<lambda>x. (f x, g x)" a b F]
+  by (simp add: nhds_prod[symmetric] tendsto_Pair)
 
 lemma tendsto_mult_left: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. c * (f x)) \<longlongrightarrow> c * l) F"
-  for c :: "'a::real_normed_algebra"
+  for c :: "'a::topological_semigroup_mult"
   by (rule tendsto_mult [OF tendsto_const])
 
 lemma tendsto_mult_right: "(f \<longlongrightarrow> l) F \<Longrightarrow> ((\<lambda>x. (f x) * c) \<longlongrightarrow> l * c) F"
-  for c :: "'a::real_normed_algebra"
+  for c :: "'a::topological_semigroup_mult"
   by (rule tendsto_mult [OF _ tendsto_const])
 
 lemmas continuous_of_real [continuous_intros] =
@@ -2069,14 +2086,14 @@ next
 qed
 
 lemma convergent_add:
-  fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
+  fixes X Y :: "nat \<Rightarrow> 'a::topological_monoid_add"
   assumes "convergent (\<lambda>n. X n)"
     and "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n + Y n)"
   using assms unfolding convergent_def by (blast intro: tendsto_add)
 
 lemma convergent_sum:
-  fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
+  fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::topological_comm_monoid_add"
   shows "(\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)) \<Longrightarrow> convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
   by (induct A rule: infinite_finite_induct) (simp_all add: convergent_const convergent_add)
 
@@ -2091,16 +2108,13 @@ lemma (in bounded_bilinear) convergent:
   shows "convergent (\<lambda>n. X n ** Y n)"
   using assms unfolding convergent_def by (blast intro: tendsto)
 
-lemma convergent_minus_iff: "convergent X \<longleftrightarrow> convergent (\<lambda>n. - X n)"
-  for X :: "nat \<Rightarrow> 'a::real_normed_vector"
-  apply (simp add: convergent_def)
-  apply (auto dest: tendsto_minus)
-  apply (drule tendsto_minus)
-  apply auto
-  done
+lemma convergent_minus_iff:
+  fixes X :: "nat \<Rightarrow> 'a::topological_group_add"
+  shows "convergent X \<longleftrightarrow> convergent (\<lambda>n. - X n)"
+  unfolding convergent_def by (force dest: tendsto_minus)
 
 lemma convergent_diff:
-  fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
+  fixes X Y :: "nat \<Rightarrow> 'a::topological_group_add"
   assumes "convergent (\<lambda>n. X n)"
   assumes "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n - Y n)"
@@ -2123,7 +2137,7 @@ lemma convergent_of_real:
   unfolding convergent_def by (blast intro!: tendsto_of_real)
 
 lemma convergent_add_const_iff:
-  "convergent (\<lambda>n. c + f n :: 'a::real_normed_vector) \<longleftrightarrow> convergent f"
+  "convergent (\<lambda>n. c + f n :: 'a::topological_ab_group_add) \<longleftrightarrow> convergent f"
 proof
   assume "convergent (\<lambda>n. c + f n)"
   from convergent_diff[OF this convergent_const[of c]] show "convergent f"
@@ -2135,15 +2149,15 @@ next
 qed
 
 lemma convergent_add_const_right_iff:
-  "convergent (\<lambda>n. f n + c :: 'a::real_normed_vector) \<longleftrightarrow> convergent f"
+  "convergent (\<lambda>n. f n + c :: 'a::topological_ab_group_add) \<longleftrightarrow> convergent f"
   using convergent_add_const_iff[of c f] by (simp add: add_ac)
 
 lemma convergent_diff_const_right_iff:
-  "convergent (\<lambda>n. f n - c :: 'a::real_normed_vector) \<longleftrightarrow> convergent f"
+  "convergent (\<lambda>n. f n - c :: 'a::topological_ab_group_add) \<longleftrightarrow> convergent f"
   using convergent_add_const_right_iff[of f "-c"] by (simp add: add_ac)
 
 lemma convergent_mult:
-  fixes X Y :: "nat \<Rightarrow> 'a::real_normed_field"
+  fixes X Y :: "nat \<Rightarrow> 'a::topological_semigroup_mult"
   assumes "convergent (\<lambda>n. X n)"
     and "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n * Y n)"
@@ -2151,7 +2165,7 @@ lemma convergent_mult:
 
 lemma convergent_mult_const_iff:
   assumes "c \<noteq> 0"
-  shows "convergent (\<lambda>n. c * f n :: 'a::real_normed_field) \<longleftrightarrow> convergent f"
+  shows "convergent (\<lambda>n. c * f n :: 'a::{field,topological_semigroup_mult}) \<longleftrightarrow> convergent f"
 proof
   assume "convergent (\<lambda>n. c * f n)"
   from assms convergent_mult[OF this convergent_const[of "inverse c"]]
@@ -2163,7 +2177,7 @@ next
 qed
 
 lemma convergent_mult_const_right_iff:
-  fixes c :: "'a::real_normed_field"
+  fixes c :: "'a::{field,topological_semigroup_mult}"
   assumes "c \<noteq> 0"
   shows "convergent (\<lambda>n. f n * c) \<longleftrightarrow> convergent f"
   using convergent_mult_const_iff[OF assms, of f] by (simp add: mult_ac)

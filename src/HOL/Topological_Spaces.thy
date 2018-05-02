@@ -3105,6 +3105,12 @@ lemma uniformity_Abort:
 class open_uniformity = "open" + uniformity +
   assumes open_uniformity:
     "\<And>U. open U \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
+begin
+
+subclass topological_space
+  by standard (force elim: eventually_mono eventually_elim2 simp: split_beta' open_uniformity)+
+
+end
 
 class uniform_space = open_uniformity +
   assumes uniformity_refl: "eventually E uniformity \<Longrightarrow> E (x, x)"
@@ -3113,9 +3119,6 @@ class uniform_space = open_uniformity +
       "eventually E uniformity \<Longrightarrow>
         \<exists>D. eventually D uniformity \<and> (\<forall>x y z. D (x, y) \<longrightarrow> D (y, z) \<longrightarrow> E (x, z))"
 begin
-
-subclass topological_space
-  by standard (force elim: eventually_mono eventually_elim2 simp: split_beta' open_uniformity)+
 
 lemma uniformity_bot: "uniformity \<noteq> bot"
   using uniformity_refl by auto
