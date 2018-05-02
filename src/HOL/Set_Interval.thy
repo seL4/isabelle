@@ -2459,6 +2459,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma prod_nat_group: "(\<Prod>m<n::nat. prod f {m * k ..< m*k + k}) = prod f {..< n * k}"
+proof (cases "k = 0")
+  case True
+  then show ?thesis
+    by auto
+next
+  case False
+  then show ?thesis 
+    by (induct "n"; simp add: prod.atLeastLessThan_concat algebra_simps atLeast0_lessThan_Suc atLeast0LessThan[symmetric])
+qed
+
 
 subsection \<open>Efficient folding over intervals\<close>
 

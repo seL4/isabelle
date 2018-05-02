@@ -1,6 +1,5 @@
-(*
-  File:      HOL/Analysis/Infinite_Product.thy
-  Author:    Manuel Eberl
+(*File:      HOL/Analysis/Infinite_Product.thy
+  Author:    Manuel Eberl & LC Paulson
 
   Basic results about convergence and absolute convergence of infinite products
   and their connection to summability.
@@ -9,7 +8,7 @@ section \<open>Infinite Products\<close>
 theory Infinite_Products
   imports Complex_Main
 begin
-
+    
 lemma sum_le_prod:
   fixes f :: "'a \<Rightarrow> 'b :: linordered_semidom"
   assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> 0"
@@ -51,8 +50,27 @@ proof (rule lhopital)
     by (rule tendsto_eq_intros refl | simp)+
 qed auto
 
+definition gen_has_prod :: "[nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}, nat, 'a] \<Rightarrow> bool" 
+  where "gen_has_prod f M p \<equiv> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> p \<and> p \<noteq> 0"
+
+text\<open>The nonzero and zero cases, as in \emph{Complex Analysis} by Joseph Bak and Donald J.Newman, page 241\<close>
+definition has_prod :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a \<Rightarrow> bool" (infixr "has'_prod" 80)
+  where "f has_prod p \<equiv> gen_has_prod f 0 p \<or> (\<exists>i q. p = 0 \<and> f i = 0 \<and> gen_has_prod f (Suc i) q)"
+
 definition convergent_prod :: "(nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}) \<Rightarrow> bool" where
-  "convergent_prod f \<longleftrightarrow> (\<exists>M L. (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> L \<and> L \<noteq> 0)"
+  "convergent_prod f \<equiv> \<exists>M p. gen_has_prod f M p"
+
+definition prodinf :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a"
+    (binder "\<Prod>" 10)
+  where "prodinf f = (THE p. f has_prod p)"
+
+lemmas prod_defs = gen_has_prod_def has_prod_def convergent_prod_def prodinf_def
+
+lemma has_prod_subst[trans]: "f = g \<Longrightarrow> g has_prod z \<Longrightarrow> f has_prod z"
+  by simp
+
+lemma has_prod_cong: "(\<And>n. f n = g n) \<Longrightarrow> f has_prod c \<longleftrightarrow> g has_prod c"
+  by presburger
 
 lemma convergent_prod_altdef:
   fixes f :: "nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}"
@@ -60,7 +78,7 @@ lemma convergent_prod_altdef:
 proof
   assume "convergent_prod f"
   then obtain M L where *: "(\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> L" "L \<noteq> 0"
-    by (auto simp: convergent_prod_def)
+    by (auto simp: prod_defs)
   have "f i \<noteq> 0" if "i \<ge> M" for i
   proof
     assume "f i = 0"
@@ -79,7 +97,7 @@ proof
   qed
   with * show "(\<exists>M L. (\<forall>n\<ge>M. f n \<noteq> 0) \<and> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> L \<and> L \<noteq> 0)" 
     by blast
-qed (auto simp: convergent_prod_def)
+qed (auto simp: prod_defs)
 
 definition abs_convergent_prod :: "(nat \<Rightarrow> _) \<Rightarrow> bool" where
   "abs_convergent_prod f \<longleftrightarrow> convergent_prod (\<lambda>i. 1 + norm (f i - 1))"
@@ -101,12 +119,12 @@ proof -
     qed
   qed (use L in simp_all)
   hence "L \<noteq> 0" by auto
-  with L show ?thesis unfolding abs_convergent_prod_def convergent_prod_def
+  with L show ?thesis unfolding abs_convergent_prod_def prod_defs
     by (intro exI[of _ "0::nat"] exI[of _ L]) auto
 qed
 
 lemma
-  fixes f :: "nat \<Rightarrow> 'a :: {real_normed_div_algebra,idom}"
+  fixes f :: "nat \<Rightarrow> 'a :: {topological_semigroup_mult,t2_space,idom}"
   assumes "convergent_prod f"
   shows   convergent_prod_imp_convergent: "convergent (\<lambda>n. \<Prod>i\<le>n. f i)"
     and   convergent_prod_to_zero_iff:    "(\<lambda>n. \<Prod>i\<le>n. f i) \<longlonglongrightarrow> 0 \<longleftrightarrow> (\<exists>i. f i = 0)"
@@ -141,8 +159,30 @@ proof -
   qed
 qed
 
+lemma convergent_prod_iff_nz_lim:
+  fixes f :: "nat \<Rightarrow> 'a :: {topological_semigroup_mult,t2_space,idom}"
+  assumes "\<And>i. f i \<noteq> 0"
+  shows "convergent_prod f \<longleftrightarrow> (\<exists>L. (\<lambda>n. \<Prod>i\<le>n. f i) \<longlonglongrightarrow> L \<and> L \<noteq> 0)"
+    (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    using assms convergentD convergent_prod_imp_convergent convergent_prod_to_zero_iff by blast
+next
+  assume ?rhs then show ?lhs
+    unfolding prod_defs
+    by (rule_tac x="0" in exI) (auto simp: )
+qed
+
+lemma convergent_prod_iff_convergent: 
+  fixes f :: "nat \<Rightarrow> 'a :: {topological_semigroup_mult,t2_space,idom}"
+  assumes "\<And>i. f i \<noteq> 0"
+  shows "convergent_prod f \<longleftrightarrow> convergent (\<lambda>n. \<Prod>i\<le>n. f i) \<and> lim (\<lambda>n. \<Prod>i\<le>n. f i) \<noteq> 0"
+  by (force simp add: convergent_prod_iff_nz_lim assms convergent_def limI)
+
+
 lemma abs_convergent_prod_altdef:
-  "abs_convergent_prod f \<longleftrightarrow> convergent (\<lambda>n. \<Prod>i\<le>n. 1 + norm (f i - 1))"
+  fixes f :: "nat \<Rightarrow> 'a :: {one,real_normed_vector}"
+  shows  "abs_convergent_prod f \<longleftrightarrow> convergent (\<lambda>n. \<Prod>i\<le>n. 1 + norm (f i - 1))"
 proof
   assume "abs_convergent_prod f"
   thus "convergent (\<lambda>n. \<Prod>i\<le>n. 1 + norm (f i - 1))"
@@ -180,7 +220,7 @@ proof (induction A rule: infinite_finite_induct)
   also have "norm (1::'a) = 1" by simp
   also note insert.IH
   also have "(\<Prod>n\<in>A. 1 + norm (f n)) - 1 + norm (f x) * (\<Prod>x\<in>A. 1 + norm (f x)) =
-               (\<Prod>n\<in>insert x A. 1 + norm (f n)) - 1"
+             (\<Prod>n\<in>insert x A. 1 + norm (f n)) - 1"
     using insert.hyps by (simp add: algebra_simps)
   finally show ?case by - (simp_all add: mult_left_mono)
 qed simp_all
@@ -297,8 +337,9 @@ lemma convergent_prod_offset:
   shows   "convergent_prod f"
 proof -
   from assms obtain M L where "(\<lambda>n. \<Prod>k\<le>n. f (k + (M + m))) \<longlonglongrightarrow> L" "L \<noteq> 0"
-    by (auto simp: convergent_prod_def add.assoc)
-  thus "convergent_prod f" unfolding convergent_prod_def by blast
+    by (auto simp: prod_defs add.assoc)
+  thus "convergent_prod f" 
+    unfolding prod_defs by blast
 qed
 
 lemma abs_convergent_prod_offset:
@@ -334,7 +375,8 @@ proof -
     by (intro tendsto_divide tendsto_const) auto
   hence "(\<lambda>n. \<Prod>k\<le>n. f (k + M + m)) \<longlonglongrightarrow> L / C" by simp
   moreover from \<open>L \<noteq> 0\<close> have "L / C \<noteq> 0" by simp
-  ultimately show ?thesis unfolding convergent_prod_def by blast
+  ultimately show ?thesis 
+    unfolding prod_defs by blast
 qed
 
 lemma abs_convergent_prod_ignore_initial_segment:
@@ -342,11 +384,6 @@ lemma abs_convergent_prod_ignore_initial_segment:
   shows   "abs_convergent_prod (\<lambda>n. f (n + m))"
   using assms unfolding abs_convergent_prod_def 
   by (rule convergent_prod_ignore_initial_segment)
-
-lemma summable_LIMSEQ': 
-  assumes "summable (f::nat\<Rightarrow>'a::{t2_space,comm_monoid_add})"
-  shows   "(\<lambda>n. \<Sum>i\<le>n. f i) \<longlonglongrightarrow> suminf f"
-  using assms sums_def_le by blast
 
 lemma abs_convergent_prod_imp_convergent_prod:
   fixes f :: "nat \<Rightarrow> 'a :: {real_normed_div_algebra,complete_space,comm_ring_1}"
@@ -473,7 +510,98 @@ proof -
     qed simp_all
     thus False by simp
   qed
-  with L show ?thesis by (auto simp: convergent_prod_def)
+  with L show ?thesis by (auto simp: prod_defs)
+qed
+
+lemma convergent_prod_offset_0:
+  fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
+  assumes "convergent_prod f" "\<And>i. f i \<noteq> 0"
+  shows "\<exists>p. gen_has_prod f 0 p"
+  using assms
+  unfolding convergent_prod_def
+proof (clarsimp simp: prod_defs)
+  fix M p
+  assume "(\<lambda>n. \<Prod>i\<le>n. f (i + M)) \<longlonglongrightarrow> p" "p \<noteq> 0"
+  then have "(\<lambda>n. prod f {..<M} * (\<Prod>i\<le>n. f (i + M))) \<longlonglongrightarrow> prod f {..<M} * p"
+    by (metis tendsto_mult_left)
+  moreover have "prod f {..<M} * (\<Prod>i\<le>n. f (i + M)) = prod f {..n+M}" for n
+  proof -
+    have "{..n+M} = {..<M} \<union> {M..n+M}"
+      by auto
+    then have "prod f {..n+M} = prod f {..<M} * prod f {M..n+M}"
+      by simp (subst prod.union_disjoint; force)
+    also have "... = prod f {..<M} * (\<Prod>i\<le>n. f (i + M))"
+      by (metis (mono_tags, lifting) add.left_neutral atMost_atLeast0 prod_shift_bounds_cl_nat_ivl)
+    finally show ?thesis by metis
+  qed
+  ultimately have "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> prod f {..<M} * p"
+    by (auto intro: LIMSEQ_offset [where k=M])
+  then show "\<exists>p. (\<lambda>n. prod f {..n}) \<longlonglongrightarrow> p \<and> p \<noteq> 0"
+    using \<open>p \<noteq> 0\<close> assms
+    by (rule_tac x="prod f {..<M} * p" in exI) auto
+qed
+
+lemma prodinf_eq_lim:
+  fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
+  assumes "convergent_prod f" "\<And>i. f i \<noteq> 0"
+  shows "prodinf f = lim (\<lambda>n. \<Prod>i\<le>n. f i)"
+  using assms convergent_prod_offset_0 [OF assms]
+  by (simp add: prod_defs lim_def) (metis (no_types) assms(1) convergent_prod_to_zero_iff)
+
+lemma has_prod_one[simp, intro]: "(\<lambda>n. 1) has_prod 1"
+  unfolding prod_defs by auto
+
+lemma convergent_prod_one[simp, intro]: "convergent_prod (\<lambda>n. 1)"
+  unfolding prod_defs by auto
+
+lemma prodinf_cong: "(\<And>n. f n = g n) \<Longrightarrow> prodinf f = prodinf g"
+  by presburger
+
+lemma convergent_prod_cong:
+  fixes f g :: "nat \<Rightarrow> 'a::{field,topological_semigroup_mult,t2_space}"
+  assumes ev: "eventually (\<lambda>x. f x = g x) sequentially" and f: "\<And>i. f i \<noteq> 0" and g: "\<And>i. g i \<noteq> 0"
+  shows "convergent_prod f = convergent_prod g"
+proof -
+  from assms obtain N where N: "\<forall>n\<ge>N. f n = g n"
+    by (auto simp: eventually_at_top_linorder)
+  define C where "C = (\<Prod>k<N. f k / g k)"
+  with g have "C \<noteq> 0"
+    by (simp add: f)
+  have *: "eventually (\<lambda>n. prod f {..n} = C * prod g {..n}) sequentially"
+    using eventually_ge_at_top[of N]
+  proof eventually_elim
+    case (elim n)
+    then have "{..n} = {..<N} \<union> {N..n}"
+      by auto
+    also have "prod f ... = prod f {..<N} * prod f {N..n}"
+      by (intro prod.union_disjoint) auto
+    also from N have "prod f {N..n} = prod g {N..n}"
+      by (intro prod.cong) simp_all
+    also have "prod f {..<N} * prod g {N..n} = C * (prod g {..<N} * prod g {N..n})"
+      unfolding C_def by (simp add: g prod_dividef)
+    also have "prod g {..<N} * prod g {N..n} = prod g ({..<N} \<union> {N..n})"
+      by (intro prod.union_disjoint [symmetric]) auto
+    also from elim have "{..<N} \<union> {N..n} = {..n}"
+      by auto                                                                    
+    finally show "prod f {..n} = C * prod g {..n}" .
+  qed
+  then have cong: "convergent (\<lambda>n. prod f {..n}) = convergent (\<lambda>n. C * prod g {..n})"
+    by (rule convergent_cong)
+  show ?thesis
+  proof
+    assume cf: "convergent_prod f"
+    then have "\<not> (\<lambda>n. prod g {..n}) \<longlonglongrightarrow> 0"
+      using tendsto_mult_left * convergent_prod_to_zero_iff f filterlim_cong by fastforce
+    then show "convergent_prod g"
+      by (metis convergent_mult_const_iff \<open>C \<noteq> 0\<close> cong cf convergent_LIMSEQ_iff convergent_prod_iff_convergent convergent_prod_imp_convergent g)
+  next
+    assume cg: "convergent_prod g"
+    have "\<exists>a. C * a \<noteq> 0 \<and> (\<lambda>n. prod g {..n}) \<longlonglongrightarrow> a"
+      by (metis (no_types) \<open>C \<noteq> 0\<close> cg convergent_prod_iff_nz_lim divide_eq_0_iff g nonzero_mult_div_cancel_right)
+    then show "convergent_prod f"
+      using "*" tendsto_mult_left filterlim_cong
+      by (fastforce simp add: convergent_prod_iff_nz_lim f)
+  qed
 qed
 
 end
