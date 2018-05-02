@@ -110,7 +110,8 @@ e.g. "\<comment> \<open>ARGUMENT\<close>" or "\<^emph>\<open>ARGUMENT\<close>".
 notably bibtex database files and ML files.
 
 * Action "isabelle.draft" is similar to "isabelle.preview", but shows a
-plain-text document draft.
+plain-text document draft. Both are available via the menu "Plugins /
+Isabelle".
 
 * When loading text files, the Isabelle symbols encoding UTF-8-Isabelle
 is only used if there is no conflict with existing Unicode sequences in
