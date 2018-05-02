@@ -1622,7 +1622,7 @@ proof (cases "S = {0}")
 next
   case False
   obtain B where B: "independent B \<and> B \<le> S \<and> S \<le> span B \<and> card B = dim S"
-    using basis_exists[of S] by auto
+    using basis_exists[of S] by metis
   then have "B \<noteq> {}"
     using B assms \<open>S \<noteq> {0}\<close> span_empty by auto
   have "insert 0 B \<le> span B"
@@ -5713,7 +5713,7 @@ lemma dim_special_hyperplane:
 apply (simp add: special_hyperplane_span)
 apply (rule Linear_Algebra.dim_unique [OF subset_refl])
 apply (auto simp: Diff_subset independent_substdbasis)
-apply (metis member_remove remove_def span_clauses(1))
+apply (metis member_remove remove_def span_superset)
 done
 
 proposition dim_hyperplane:
@@ -6564,11 +6564,9 @@ by (metis (no_types, hide_lams) dim_span less_le not_le subspace_dim_equal subsp
 
 lemma basis_subspace_exists:
   fixes S :: "'a::euclidean_space set"
-  shows
-   "subspace S
-        \<Longrightarrow> \<exists>b. finite b \<and> b \<subseteq> S \<and>
-                independent b \<and> span b = S \<and> card b = dim S"
-by (metis span_subspace basis_exists independent_imp_finite)
+  assumes "subspace S"
+  obtains B where "finite B" "B \<subseteq> S" "independent B" "span B = S" "card B = dim S"
+by (metis assms span_subspace basis_exists independent_imp_finite)
 
 lemma affine_hyperplane_sums_eq_UNIV_0:
   fixes S :: "'a :: euclidean_space set"
@@ -6658,7 +6656,7 @@ proof -
   obtain B where B: "B \<subseteq> S \<inter> T" "S \<inter> T \<subseteq> span B"
              and indB: "independent B"
              and cardB: "card B = dim (S \<inter> T)"
-    using basis_exists by blast
+    using basis_exists by metis
   then obtain C D where "B \<subseteq> C" "C \<subseteq> S" "independent C" "S \<subseteq> span C"
                     and "B \<subseteq> D" "D \<subseteq> T" "independent D" "T \<subseteq> span D"
     using maximal_independent_subset_extend
@@ -6975,14 +6973,12 @@ next
     using spanU by simp
   also have "... = span (insert a (S \<union> T))"
     apply (rule eq_span_insert_eq)
-    apply (simp add: a'_def span_neg span_sum span_clauses(1) span_mul)
+    apply (simp add: a'_def span_neg span_sum span_superset span_mul)
     done
   also have "... = span (S \<union> insert a T)"
     by simp
   finally show ?case
-    apply (rule_tac x="insert a' U" in exI)
-    using orthU apply auto
-    done
+    by (rule_tac x="insert a' U" in exI) (use orthU in auto)
 qed
 
 
@@ -6992,7 +6988,7 @@ proposition%important orthogonal_extension:
   obtains U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> T)"
 proof%unimportant -
   obtain B where "finite B" "span B = span T"
-    using basis_subspace_exists [of "span T"] subspace_span by auto
+    using basis_subspace_exists [of "span T"] subspace_span by metis
   with orthogonal_extension_aux [of B S]
   obtain U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> B)"
     using assms pairwise_orthogonal_imp_finite by auto
@@ -7060,7 +7056,7 @@ proof%unimportant -
              and "independent B" "card B = dim S" "span B = S"
     by (blast intro: orthogonal_basis_subspace [OF assms])
   have 1: "(\<lambda>x. x /\<^sub>R norm x) ` B \<subseteq> S"
-    using \<open>span B = S\<close> span_clauses(1) span_mul by fastforce
+    using \<open>span B = S\<close> span_superset span_mul by fastforce
   have 2: "pairwise orthogonal ((\<lambda>x. x /\<^sub>R norm x) ` B)"
     using orth by (force simp: pairwise_def orthogonal_clauses)
   have 3: "\<And>x. x \<in> (\<lambda>x. x /\<^sub>R norm x) ` B \<Longrightarrow> norm x = 1"
@@ -7145,7 +7141,7 @@ proof -
   have "dim {x} < DIM('a)"
     using assms by auto
   then show thesis
-    by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_clauses(1) that)
+    by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_superset that)
 qed
 
 proposition%important orthogonal_subspace_decomp_exists:
@@ -7407,7 +7403,7 @@ proof%unimportant -
               have "e/2 / norm a \<noteq> 0"
                 using \<open>0 < e\<close> \<open>a \<noteq> 0\<close> by auto
               then show ?thesis
-                by (metis True \<open>a \<noteq> 0\<close> a orthogonal_scaleR orthogonal_self real_vector.scale_eq_0_iff span_add_eq span_clauses(1))
+                by (metis True \<open>a \<noteq> 0\<close> a orthogonal_scaleR orthogonal_self real_vector.scale_eq_0_iff span_add_eq span_superset)
             qed
             ultimately show "?y \<in> S - U" by blast
           qed
@@ -8260,7 +8256,7 @@ proof -
     have "v = ?u + (v - ?u)"
       by simp
     moreover have "?u \<in> U"
-      by (metis (no_types, lifting) \<open>span B = U\<close> assms real_vector_class.subspace_sum span_clauses(1) span_mul)
+      by (metis (no_types, lifting) \<open>span B = U\<close> assms real_vector_class.subspace_sum span_superset span_mul)
     moreover have "(v - ?u) \<in> U\<^sup>\<bottom>"
     proof (clarsimp simp: orthogonal_comp_def orthogonal_def)
       fix y

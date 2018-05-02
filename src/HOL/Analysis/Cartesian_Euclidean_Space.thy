@@ -1100,19 +1100,21 @@ proof -
   { assume h:?rhs
     let ?P = "\<lambda>(y::real ^'n). \<exists>(x::real^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y"
     { fix y
-      have "?P y"
-      proof (rule span_induct_alt[of ?P "columns A", folded scalar_mult_eq_scaleR])
-        show "\<exists>x::real ^ 'm. sum (\<lambda>i. (x$i) *s column i A) ?U = 0"
-          by (rule exI[where x=0], simp)
+      have "y \<in> span (columns A)"
+        using h by auto
+      then have "?P y"
+      proof (induction rule: span_induct_alt)
+        case base
+        then show ?case
+          by (metis (full_types) matrix_mult_sum matrix_vector_mult_0_right)
       next
-        fix c y1 y2
-        assume y1: "y1 \<in> columns A" and y2: "?P y2"
-        from y1 obtain i where i: "i \<in> ?U" "y1 = column i A"
+        case (step c y1 y2)
+        then obtain i where i: "i \<in> ?U" "y1 = column i A"
           unfolding columns_def by blast
-        from y2 obtain x:: "real ^'m" where
-          x: "sum (\<lambda>i. (x$i) *s column i A) ?U = y2" by blast
+        obtain x:: "real ^'m" where x: "sum (\<lambda>i. (x$i) *s column i A) ?U = y2"
+          using step by blast
         let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::real^'m"
-        show "?P (c*s y1 + y2)"
+        show ?case
         proof (rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] if_distrib distrib_left cond_application_beta cong del: if_weak_cong)
           fix j
           have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
@@ -1129,9 +1131,6 @@ proof -
           finally show "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
             else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
         qed
-      next
-        show "y \<in> span (columns A)"
-          unfolding h by blast
       qed
     }
     then have ?lhs unfolding lhseq ..
@@ -1756,7 +1755,7 @@ proof -
   proof -
     obtain B where "independent B" "span(rows A) \<subseteq> span B"
               and B: "B \<subseteq> span(rows A)""card B = dim (span(rows A))"
-      using basis_exists [of "span(rows A)"] by blast
+      using basis_exists [of "span(rows A)"] by metis
     with span_subspace have eq: "span B = span(rows A)"
       by auto
     then have inj: "inj_on (( *v) A) (span B)"

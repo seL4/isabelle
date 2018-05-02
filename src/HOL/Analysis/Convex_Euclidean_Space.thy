@@ -3249,10 +3249,10 @@ proof -
     using assms by auto
   then have h0: "independent  ((\<lambda>x. -a + x) ` (S-{a}))"
     using affine_dependent_iff_dependent2 assms by auto
-  then obtain B where B:
+  obtain B where B:
     "(\<lambda>x. -a+x) ` (S - {a}) \<subseteq> B \<and> B \<subseteq> (\<lambda>x. -a+x) ` V \<and> independent B \<and> (\<lambda>x. -a+x) ` V \<subseteq> span B"
-     using maximal_independent_subset_extend[of "(\<lambda>x. -a+x) ` (S-{a})" "(\<lambda>x. -a + x) ` V"] assms
-     by blast
+    using assms
+    by (blast intro: maximal_independent_subset_extend[OF _ h0, of "(\<lambda>x. -a + x) ` V"])
   define T where "T = (\<lambda>x. a+x) ` insert 0 B"
   then have "T = insert a ((\<lambda>x. a+x) ` B)"
     by auto
@@ -3357,10 +3357,7 @@ proof -
     then have "card ((\<lambda>x. -a + x) ` (B - {a})) > 0"
       using fin by auto
     moreover have h1: "card ((\<lambda>x. -a + x) ` (B-{a})) = card (B-{a})"
-       apply (rule card_image)
-       using translate_inj_on
-       apply (auto simp del: uminus_add_conv_diff)
-       done
+      by (rule card_image) (use translate_inj_on in blast)
     ultimately have "card (B-{a}) > 0" by auto
     then have *: "finite (B - {a})"
       using card_gt_0_iff[of "(B - {a})"] by auto
@@ -3434,7 +3431,7 @@ lemma subspace_dim_equal:
   shows "S = T"
 proof -
   obtain B where B: "B \<le> S" "independent B \<and> S \<subseteq> span B" "card B = dim S"
-    using basis_exists[of S] by auto
+    using basis_exists[of S] by metis
   then have "span B \<subseteq> S"
     using span_mono[of B S] span_eq[of S] assms by metis
   then have "span B = S"
@@ -3450,7 +3447,7 @@ qed
 corollary dim_eq_span:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>S \<subseteq> T; dim T \<le> dim S\<rbrakk> \<Longrightarrow> span S = span T"
-by (simp add: span_mono subspace_dim_equal subspace_span)
+by (simp add: span_mono subspace_dim_equal)
 
 lemma dim_eq_full:
     fixes S :: "'a :: euclidean_space set"
@@ -6818,8 +6815,7 @@ proof
   define k where "k = Max (f ` c)"
   have "convex_on (convex hull c) f"
     apply(rule convex_on_subset[OF assms(2)])
-    apply(rule subset_trans[OF _ e(1)])
-    apply(rule c1)
+    apply(rule subset_trans[OF c1 e(1)])
     done
   then have k: "\<forall>y\<in>convex hull c. f y \<le> k"
     apply (rule_tac convex_on_convex_hull_bound, assumption)

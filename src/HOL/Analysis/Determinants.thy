@@ -421,48 +421,39 @@ lemma det_row_span:
   fixes A :: "real^'n^'n"
   assumes x: "x \<in> span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
-proof -
-  let ?U = "UNIV :: 'n set"
-  let ?S = "{row j A |j. j \<noteq> i}"
-  let ?d = "\<lambda>x. det (\<chi> k. if k = i then x else row k A)"
-  let ?P = "\<lambda>x. ?d (row i A + x) = det A"
+  using x
+proof (induction rule: span_induct_alt)
+  case base
   {
     fix k
     have "(if k = i then row i A + 0 else row k A) = row k A"
       by simp
   }
-  then have P0: "?P 0"
+  then show ?case
     apply -
     apply (rule cong[of det, OF refl])
     apply (vector row_def)
     done
-  moreover
-  {
-    fix c z y
-    assume zS: "z \<in> ?S" and Py: "?P y"
-    from zS obtain j where j: "z = row j A" "i \<noteq> j"
-      by blast
-    let ?w = "row i A + y"
-    have th0: "row i A + (c*s z + y) = ?w + c*s z"
-      by vector
-    have thz: "?d z = 0"
-      apply (rule det_identical_rows[OF j(2)])
-      using j
-      apply (vector row_def)
-      done
-    have "?d (row i A + (c*s z + y)) = ?d (?w + c*s z)"
-      unfolding th0 ..
-    then have "?P (c*s z + y)"
-      unfolding thz Py det_row_mul[of i] det_row_add[of i]
-      by simp
-  }
-  ultimately show ?thesis
-    apply -
-    apply (rule span_induct_alt[of ?P ?S, OF P0, folded scalar_mult_eq_scaleR])
-    apply blast
-    apply (rule x)
+next
+  case (step c z y)
+  then obtain j where j: "z = row j A" "i \<noteq> j"
+    by blast
+  let ?w = "row i A + y"
+  have th0: "row i A + (c*s z + y) = ?w + c*s z"
+    by vector
+  let ?d = "\<lambda>x. det (\<chi> k. if k = i then x else row k A)"
+  have thz: "?d z = 0"
+    apply (rule det_identical_rows[OF j(2)])
+    using j
+    apply (vector row_def)
     done
-qed
+  have "?d (row i A + (c*s z + y)) = ?d (?w + c*s z)"
+    unfolding th0 ..
+  then have "?d (row i A + (c*s z + y)) = det A"
+    unfolding thz step.IH det_row_mul[of i] det_row_add[of i] by simp
+  then show ?case
+    unfolding scalar_mult_eq_scaleR .
+qed 
 
 lemma matrix_id [simp]: "det (matrix id) = 1"
   by (simp add: matrix_id_mat_1)
