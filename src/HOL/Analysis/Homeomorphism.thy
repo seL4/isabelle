@@ -963,7 +963,7 @@ next
   then obtain f g where fg: "homeomorphism (sphere 0 1 - {i}) {x. i \<bullet> x = 0} f g"
     by (force simp: homeomorphic_def)
   have "h ` (+) (- a) ` S \<subseteq> T"
-    using heq span_clauses(1) span_linear_image by blast
+    using heq span_superset span_linear_image by blast
   then have "g ` h ` (+) (- a) ` S \<subseteq> g ` {x. i \<bullet> x = 0}"
     using Tsub by (simp add: image_mono)
   also have "... \<subseteq> sphere 0 1 - {i}"
@@ -987,8 +987,8 @@ next
     apply (simp add: homeomorphic_def homeomorphism_def)
     apply (rule_tac x="g \<circ> h" in exI)
     apply (rule_tac x="k \<circ> f" in exI)
-    apply (auto simp: ghcont kfcont span_clauses(1) homeomorphism_apply2 [OF fg] image_comp)
-    apply (force simp: o_def homeomorphism_apply2 [OF fg] span_clauses(1))
+    apply (auto simp: ghcont kfcont span_superset homeomorphism_apply2 [OF fg] image_comp)
+    apply (force simp: o_def homeomorphism_apply2 [OF fg] span_superset)
     done
   finally have Shom: "S homeomorphic (g \<circ> h) ` (+) (- a) ` S" .
   show ?thesis
