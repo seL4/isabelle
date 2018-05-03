@@ -643,22 +643,23 @@ proof -
     let ?q = "prod f {Suc (Max ?Z)..Max N}"
     have [simp]: "?q \<noteq> 0"
       using maxge Suc_n_not_le_n le_trans by force
-    have eq1: "(\<Prod>i\<le>n + Max N. f (Suc (i + Max ?Z))) = prod f {Suc (Max ?Z)..n + (Max N) + Suc (Max ?Z)}" for n
-      apply (rule sym)
-      apply (rule prod.reindex_cong [where l = "\<lambda>i. i + Suc (Max ?Z)"])
-        apply (auto simp: )
-       apply (simp add: inj_on_def)
-      apply (auto simp: image_iff)
-      using le_Suc_ex by fastforce
-    have eq: "prod f {Suc (Max ?Z)..n + (Max N) + Suc (Max ?Z)} = ?q" for n
-      apply (rule prod.mono_neutral_right)
-        apply (auto simp: )
-      using Max.coboundedI assms(1) f by blast
+    have eq: "(\<Prod>i\<le>n + Max N. f (Suc (i + Max ?Z))) = ?q" for n
+    proof -
+      have "(\<Prod>i\<le>n + Max N. f (Suc (i + Max ?Z))) = prod f {Suc (Max ?Z)..n + Max N + Suc (Max ?Z)}" 
+      proof (rule prod.reindex_cong [where l = "\<lambda>i. i + Suc (Max ?Z)", THEN sym])
+        show "{Suc (Max ?Z)..n + Max N + Suc (Max ?Z)} = (\<lambda>i. i + Suc (Max ?Z)) ` {..n + Max N}"
+          using le_Suc_ex by fastforce
+      qed (auto simp: inj_on_def)
+      also have "... = ?q"
+        by (rule prod.mono_neutral_right)
+           (use Max.coboundedI [OF \<open>finite N\<close>] f in \<open>force+\<close>)
+      finally show ?thesis .
+    qed
     have q: "gen_has_prod f (Suc (Max ?Z)) ?q"
-      apply (auto simp: gen_has_prod_def)
-      apply (rule LIMSEQ_offset[of _ "(Max N)"])
-      apply (simp add: eq1 eq atLeast0LessThan del: add_Suc_right)
-      done
+    proof (simp add: gen_has_prod_def)
+      show "(\<lambda>n. \<Prod>i\<le>n. f (Suc (i + Max ?Z))) \<longlonglongrightarrow> ?q"
+        by (rule LIMSEQ_offset[of _ "(Max N)"]) (simp add: eq)
+    qed
     show ?thesis
       unfolding has_prod_def
     proof (intro disjI2 exI conjI)      
