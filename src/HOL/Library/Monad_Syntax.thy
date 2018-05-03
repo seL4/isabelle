@@ -1,11 +1,12 @@
-(* Author: Alexander Krauss, TU Muenchen
-   Author: Christian Sternagel, University of Innsbruck
+(*  Title:      HOL/Library/Monad_Syntax.thy
+    Author:     Alexander Krauss, TU Muenchen
+    Author:     Christian Sternagel, University of Innsbruck
 *)
 
 section \<open>Monad notation for arbitrary types\<close>
 
 theory Monad_Syntax
-imports Main "~~/src/Tools/Adhoc_Overloading"
+  imports Adhoc_Overloading
 begin
 
 text \<open>

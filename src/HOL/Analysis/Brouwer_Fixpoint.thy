@@ -2,9 +2,6 @@
     Author:     Robert Himmelmann, TU Muenchen (Translation from HOL light) and LCP
 *)
 
-(* ========================================================================= *)
-(* Results connected with topological dimension.                             *)
-(*                                                                           *)
 (* At the moment this is just Brouwer's fixpoint theorem. The proof is from  *)
 (* Kuhn: "some combinatorial lemmas in topology", IBM J. v4. (1960) p. 518   *)
 (* See "http://www.research.ibm.com/journal/rd/045/ibmrd0405K.pdf".          *)
@@ -14,7 +11,6 @@
 (* the big advantage of Kuhn's proof over the usual Sperner's lemma one.     *)
 (*                                                                           *)
 (*              (c) Copyright, John Harrison 1998-2008                       *)
-(* ========================================================================= *)
 
 section \<open>Results connected with topological dimension\<close>
 
@@ -40,11 +36,7 @@ qed
 lemma swap_image:
   "Fun.swap i j f ` A = (if i \<in> A then (if j \<in> A then f ` A else f ` ((A - {i}) \<union> {j}))
                                   else (if j \<in> A then f ` ((A - {j}) \<union> {i}) else f ` A))"
-  apply (auto simp: Fun.swap_def image_iff)
-  apply metis
-  apply (metis member_remove remove_def)
-  apply (metis member_remove remove_def)
-  done
+  by (auto simp: swap_def image_def) metis
 
 lemmas swap_apply1 = swap_apply(1)
 lemmas swap_apply2 = swap_apply(2)
@@ -191,9 +183,9 @@ proof (rule kuhn_counting_lemma)
     moreover obtain a where "rl a = Suc n" "a \<in> s"
       by (metis atMost_iff image_iff le_Suc_eq rl)
     ultimately have n: "{..n} = rl ` (s - {a})"
-      by (auto simp add: inj_on_image_set_diff Diff_subset rl)
+      by (auto simp: inj_on_image_set_diff Diff_subset rl)
     have "{a\<in>s. rl ` (s - {a}) = {..n}} = {a}"
-      using inj_rl \<open>a \<in> s\<close> by (auto simp add: n inj_on_image_eq_iff[OF inj_rl] Diff_subset)
+      using inj_rl \<open>a \<in> s\<close> by (auto simp: n inj_on_image_eq_iff[OF inj_rl] Diff_subset)
     then show "card ?S = 1"
       unfolding card_S by simp }
 
@@ -202,7 +194,7 @@ proof (rule kuhn_counting_lemma)
     proof cases
       assume *: "{..n} \<subseteq> rl ` s"
       with rl rl_bd[OF s] have rl_s: "rl ` s = {..n}"
-        by (auto simp add: atMost_Suc subset_insert_iff split: if_split_asm)
+        by (auto simp: atMost_Suc subset_insert_iff split: if_split_asm)
       then have "\<not> inj_on rl s"
         by (intro pigeonhole) simp
       then obtain a b where ab: "a \<in> s" "b \<in> s" "rl a = rl b" "a \<noteq> b"
@@ -210,7 +202,7 @@ proof (rule kuhn_counting_lemma)
       then have eq: "rl ` (s - {a}) = rl ` s"
         by auto
       with ab have inj: "inj_on rl (s - {a})"
-        by (intro eq_card_imp_inj_on) (auto simp add: rl_s card_Diff_singleton_if)
+        by (intro eq_card_imp_inj_on) (auto simp: rl_s card_Diff_singleton_if)
 
       { fix x assume "x \<in> s" "x \<notin> {a, b}"
         then have "rl ` s - {rl x} = rl ` ((s - {a}) - {x})"
@@ -275,7 +267,7 @@ proof -
     with upd have "upd ` {..< x} \<noteq> upd ` {..< y}"
       by (subst inj_on_image_eq_iff[where C="{..< n}"]) (auto simp: bij_betw_def)
     then have "enum x \<noteq> enum y"
-      by (auto simp add: enum_def fun_eq_iff) }
+      by (auto simp: enum_def fun_eq_iff) }
   then show ?thesis
     by (auto simp: inj_on_def)
 qed
@@ -325,7 +317,7 @@ lemma enum_mono: "i \<le> n \<Longrightarrow> j \<le> n \<Longrightarrow> enum i
   by (auto simp: enum_def le_fun_def in_upd_image Ball_def[symmetric])
 
 lemma enum_strict_mono: "i \<le> n \<Longrightarrow> j \<le> n \<Longrightarrow> enum i < enum j \<longleftrightarrow> i < j"
-  using enum_mono[of i j] enum_inj[of i j] by (auto simp add: le_less)
+  using enum_mono[of i j] enum_inj[of i j] by (auto simp: le_less)
 
 lemma chain: "a \<in> s \<Longrightarrow> b \<in> s \<Longrightarrow> a \<le> b \<or> b \<le> a"
   by (auto simp: s_eq enum_mono)
@@ -346,7 +338,7 @@ lemma enum_eq_p: "i \<le> n \<Longrightarrow> n \<le> j \<Longrightarrow> enum i
   by (induct i) (auto simp: enum_Suc enum_0 base_out upd_space not_less[symmetric])
 
 lemma out_eq_p: "a \<in> s \<Longrightarrow> n \<le> j \<Longrightarrow> a j = p"
-  unfolding s_eq by (auto simp add: enum_eq_p)
+  unfolding s_eq by (auto simp: enum_eq_p)
 
 lemma s_le_p: "a \<in> s \<Longrightarrow> a j \<le> p"
   using out_eq_p[of a j] s_space by (cases "j < n") auto
@@ -578,7 +570,7 @@ proof safe
         by (auto simp: image_iff Ball_def) arith
       then have upd_Suc: "\<And>i. i \<le> n \<Longrightarrow> (upd\<circ>Suc) ` {..< i} = upd ` {..< Suc i} - {n}"
         using \<open>upd 0 = n\<close> upd_inj
-        by (auto simp add: image_comp[symmetric] inj_on_image_set_diff[OF inj_upd])
+        by (auto simp: image_comp[symmetric] inj_on_image_set_diff[OF inj_upd])
       have n_in_upd: "\<And>i. n \<in> upd ` {..< Suc i}"
         using \<open>upd 0 = n\<close> by auto
 
@@ -685,7 +677,7 @@ proof cases
 qed
 
 lemma card_2_exists: "card s = 2 \<longleftrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y))"
-  by (auto simp add: card_Suc_eq eval_nat_numeral)
+  by (auto simp: card_Suc_eq eval_nat_numeral)
 
 lemma ksimplex_replace_2:
   assumes s: "ksimplex p n s" and "a \<in> s" and "n \<noteq> 0"
@@ -723,11 +715,11 @@ proof cases
       obtain i' where "i' \<le> n" "enum i' \<noteq> enum 0" "enum i' (upd 0) \<noteq> p"
         unfolding s_eq by (auto intro: upd_space simp: enum_inj)
       then have "enum 1 \<le> enum i'" "enum i' (upd 0) < p"
-        using enum_le_p[of i' "upd 0"] by (auto simp add: enum_inj enum_mono upd_space)
+        using enum_le_p[of i' "upd 0"] by (auto simp: enum_inj enum_mono upd_space)
       then have "enum 1 (upd 0) < p"
-        by (auto simp add: le_fun_def intro: le_less_trans)
+        by (auto simp: le_fun_def intro: le_less_trans)
       then show "enum (Suc 0) \<in> {..<n} \<rightarrow> {..<p}"
-        using base \<open>n \<noteq> 0\<close> by (auto simp add: enum_0 enum_Suc PiE_iff extensional_def upd_space)
+        using base \<open>n \<noteq> 0\<close> by (auto simp: enum_0 enum_Suc PiE_iff extensional_def upd_space)
 
       { fix i assume "n \<le> i" then show "enum (Suc 0) i = p"
         using \<open>n \<noteq> 0\<close> by (auto simp: enum_eq_p) }
@@ -745,7 +737,7 @@ proof cases
 
     { fix j assume j: "j < n"
       from j \<open>n \<noteq> 0\<close> have "f' j = enum (Suc j)"
-        by (auto simp add: f'_def enum_def upd_inj in_upd_image image_comp[symmetric] fun_eq_iff) }
+        by (auto simp: f'_def enum_def upd_inj in_upd_image image_comp[symmetric] fun_eq_iff) }
     note f'_eq_enum = this
     then have "enum ` Suc ` {..< n} = f' ` {..< n}"
       by (force simp: enum_inj)
@@ -859,10 +851,10 @@ proof cases
       by (simp_all add: rot_def)
 
     { fix j assume j: "Suc j \<le> n" then have "b.enum (Suc j) = enum j"
-        by (induct j) (auto simp add: benum1 enum_0 b.enum_Suc enum_Suc rot_simps) }
+        by (induct j) (auto simp: benum1 enum_0 b.enum_Suc enum_Suc rot_simps) }
     note b_enum_eq_enum = this
     then have "enum ` {..< n} = b.enum ` Suc ` {..< n}"
-      by (auto simp add: image_comp intro!: image_cong)
+      by (auto simp: image_comp intro!: image_cong)
     also have "Suc ` {..< n} = {.. n} - {0}"
       by (auto simp: image_iff Ball_def) arith
     also have "{..< n} = {.. n} - {n}"
@@ -871,7 +863,7 @@ proof cases
       unfolding s_eq \<open>a = enum i\<close> \<open>i = n\<close>
       using inj_on_image_set_diff[OF inj_enum Diff_subset, of "{n}"]
             inj_on_image_set_diff[OF b.inj_enum Diff_subset, of "{0}"]
-      by (simp add: comp_def )
+      by (simp add: comp_def)
 
     have "b.enum 0 \<le> b.enum n"
       by (simp add: b.enum_mono)
@@ -956,7 +948,7 @@ proof cases
       moreover note i
       ultimately have "enum j = b.enum j \<longleftrightarrow> j \<noteq> i"
         unfolding enum_def[abs_def] b.enum_def[abs_def]
-        by (auto simp add: fun_eq_iff swap_image i'_def
+        by (auto simp: fun_eq_iff swap_image i'_def
                            in_upd_image inj_on_image_set_diff[OF inj_upd]) }
     note enum_eq_benum = this
     then have "enum ` ({.. n} - {i}) = b.enum ` ({.. n} - {i})"
@@ -1001,7 +993,7 @@ proof cases
         then obtain j where "t.enum (Suc l) = enum j" "j \<le> n" "enum j \<noteq> enum i"
           unfolding s_eq \<open>a = enum i\<close> by auto
         with i have "t.enum (Suc l) \<le> t.enum l \<or> t.enum k \<le> t.enum (Suc l)"
-          by (auto simp add: i'_def enum_mono enum_inj l k)
+          by (auto simp: i'_def enum_mono enum_inj l k)
         with \<open>Suc l < k\<close> \<open>k \<le> n\<close> show False
           by (simp add: t.enum_mono)
       qed
@@ -1041,7 +1033,7 @@ proof cases
         assume u: "u l = upd (Suc i')"
         define B where "B = b.enum ` {..n}"
         have "b.enum i' = enum i'"
-          using enum_eq_benum[of i'] i by (auto simp add: i'_def gr0_conv_Suc)
+          using enum_eq_benum[of i'] i by (auto simp: i'_def gr0_conv_Suc)
         have "c = t.enum (Suc l)" unfolding c_eq ..
         also have "t.enum (Suc l) = b.enum (Suc i')"
           using u \<open>l < k\<close> \<open>k \<le> n\<close> \<open>Suc i' < n\<close>
@@ -1432,7 +1424,7 @@ lemma brouwer_cube:
 proof (rule ccontr)
   define n where "n = DIM('a)"
   have n: "1 \<le> n" "0 < n" "n \<noteq> 0"
-    unfolding n_def by (auto simp add: Suc_le_eq DIM_positive)
+    unfolding n_def by (auto simp: Suc_le_eq DIM_positive)
   assume "\<not> ?thesis"
   then have *: "\<not> (\<exists>x\<in>unit_cube. f x - x = 0)"
     by auto
@@ -1447,73 +1439,45 @@ proof (rule ccontr)
     using assms(2)[unfolded image_subset_iff Ball_def]
     unfolding mem_unit_cube
     by auto
-  obtain label :: "'a \<Rightarrow> 'a \<Rightarrow> nat" where
+  obtain label :: "'a \<Rightarrow> 'a \<Rightarrow> nat" where label [rule_format]:
     "\<forall>x. \<forall>i\<in>Basis. label x i \<le> 1"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> True \<and> x \<bullet> i = 0 \<longrightarrow> label x i = 0"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> True \<and> x \<bullet> i = 1 \<longrightarrow> label x i = 1"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> True \<and> label x i = 0 \<longrightarrow> x \<bullet> i \<le> f x \<bullet> i"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> True \<and> label x i = 1 \<longrightarrow> f x \<bullet> i \<le> x \<bullet> i"
-    using kuhn_labelling_lemma[OF *] by blast
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> x \<bullet> i = 0 \<longrightarrow> label x i = 0"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> x \<bullet> i = 1 \<longrightarrow> label x i = 1"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> label x i = 0 \<longrightarrow> x \<bullet> i \<le> f x \<bullet> i"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> label x i = 1 \<longrightarrow> f x \<bullet> i \<le> x \<bullet> i"
+    using kuhn_labelling_lemma[OF *] by auto
   note label = this [rule_format]
   have lem1: "\<forall>x\<in>unit_cube. \<forall>y\<in>unit_cube. \<forall>i\<in>Basis. label x i \<noteq> label y i \<longrightarrow>
     \<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y - f x) + norm (y - x)"
   proof safe
     fix x y :: 'a
-    assume x: "x \<in> unit_cube"
-    assume y: "y \<in> unit_cube"
+    assume x: "x \<in> unit_cube" and y: "y \<in> unit_cube"
     fix i
     assume i: "label x i \<noteq> label y i" "i \<in> Basis"
     have *: "\<And>x y fx fy :: real. x \<le> fx \<and> fy \<le> y \<or> fx \<le> x \<and> y \<le> fy \<Longrightarrow>
       \<bar>fx - x\<bar> \<le> \<bar>fy - fx\<bar> + \<bar>y - x\<bar>" by auto
     have "\<bar>(f x - x) \<bullet> i\<bar> \<le> \<bar>(f y - f x)\<bullet>i\<bar> + \<bar>(y - x)\<bullet>i\<bar>"
-      unfolding inner_simps
-      apply (rule *)
-      apply (cases "label x i = 0")
-      apply (rule disjI1)
-      apply rule
-      prefer 3
-      apply (rule disjI2)
-      apply rule
-    proof -
-      assume lx: "label x i = 0"
-      then have ly: "label y i = 1"
-        using i label(1)[of i y]
-        by auto
-      show "x \<bullet> i \<le> f x \<bullet> i"
-        apply (rule label(4)[rule_format])
-        using x y lx i(2)
-        apply auto
-        done
-      show "f y \<bullet> i \<le> y \<bullet> i"
-        apply (rule label(5)[rule_format])
-        using x y ly i(2)
-        apply auto
-        done
+    proof (cases "label x i = 0")
+      case True
+      then have fxy: "\<not> f y \<bullet> i \<le> y \<bullet> i \<Longrightarrow> f x \<bullet> i \<le> x \<bullet> i"
+        by (metis True i label(1) label(5) le_antisym less_one not_le_imp_less y)
+      show ?thesis
+      unfolding inner_simps         
+      by (rule *) (auto simp: True i label x y fxy)
     next
-      assume "label x i \<noteq> 0"
-      then have l: "label x i = 1" "label y i = 0"
-        using i label(1)[of i x] label(1)[of i y]
-        by auto
-      show "f x \<bullet> i \<le> x \<bullet> i"
-        apply (rule label(5)[rule_format])
-        using x y l i(2)
-        apply auto
-        done
-      show "y \<bullet> i \<le> f y \<bullet> i"
-        apply (rule label(4)[rule_format])
-        using x y l i(2)
-        apply auto
-        done
+      case False
+      then show ?thesis
+        using label [OF \<open>i \<in> Basis\<close>] i(1) x y
+        apply (auto simp: inner_diff_left le_Suc_eq)
+        by (metis "*")
     qed
     also have "\<dots> \<le> norm (f y - f x) + norm (y - x)"
-      apply (rule add_mono)
-      apply (rule Basis_le_norm[OF i(2)])+
-      done
+      by (simp add: add_mono i(2) norm_bound_Basis_le)
     finally show "\<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y - f x) + norm (y - x)"
       unfolding inner_simps .
   qed
   have "\<exists>e>0. \<forall>x\<in>unit_cube. \<forall>y\<in>unit_cube. \<forall>z\<in>unit_cube. \<forall>i\<in>Basis.
-    norm (x - z) < e \<and> norm (y - z) < e \<and> label x i \<noteq> label y i \<longrightarrow>
+    norm (x - z) < e \<longrightarrow> norm (y - z) < e \<longrightarrow> label x i \<noteq> label y i \<longrightarrow>
       \<bar>(f(z) - z)\<bullet>i\<bar> < d / (real n)"
   proof -
     have d': "d / real n / 8 > 0"
@@ -1530,9 +1494,7 @@ proof (rule ccontr)
       unfolding dist_norm
       by blast
     show ?thesis
-      apply (rule_tac x="min (e/2) (d/real n/8)" in exI)
-      apply safe
-    proof -
+    proof (intro exI conjI ballI impI)
       show "0 < min (e / 2) (d / real n / 8)"
         using d' e by auto
       fix x y z i
@@ -1551,10 +1513,9 @@ proof (rule ccontr)
         unfolding inner_simps
       proof (rule *)
         show "\<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y -f x) + norm (y - x)"
-          apply (rule lem1[rule_format])
-          using as i
-          apply auto
-          done
+          using as(1) as(2) as(6) i lem1 by blast
+        show "norm (f x - f z) < d / real n / 8"
+          using d' e as by auto
         show "\<bar>f x \<bullet> i - f z \<bullet> i\<bar> \<le> norm (f x - f z)" "\<bar>x \<bullet> i - z \<bullet> i\<bar> \<le> norm (x - z)"
           unfolding inner_diff_left[symmetric]
           by (rule Basis_le_norm[OF i])+
@@ -1563,30 +1524,14 @@ proof (rule ccontr)
           unfolding norm_minus_commute
           by auto
         also have "\<dots> < e / 2 + e / 2"
-          apply (rule add_strict_mono)
-          using as(4,5)
-          apply auto
-          done
+          using as(4) as(5) by auto
         finally show "norm (f y - f x) < d / real n / 8"
-          apply -
-          apply (rule e(2))
-          using as
-          apply auto
-          done
+          using as(1) as(2) e(2) by auto
         have "norm (y - z) + norm (x - z) < d / real n / 8 + d / real n / 8"
-          apply (rule add_strict_mono)
-          using as
-          apply auto
-          done
-        then show "norm (y - x) < 2 * (d / real n / 8)"
-          using tria
+          using as(4) as(5) by auto
+        with tria show "norm (y - x) < 2 * (d / real n / 8)"
           by auto
-        show "norm (f x - f z) < d / real n / 8"
-          apply (rule e(2))
-          using as e(1)
-          apply auto
-          done
-      qed (insert as, auto)
+      qed (use as in auto)
     qed
   qed
   then
@@ -1635,14 +1580,14 @@ proof (rule ccontr)
   { fix x :: "nat \<Rightarrow> nat" and i assume "\<forall>i<n. x i \<le> p" "i < n" "x i = p \<or> x i = 0"
     then have "(\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<in> (unit_cube::'a set)"
       using b'_Basis
-      by (auto simp add: mem_unit_cube inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1) }
+      by (auto simp: mem_unit_cube inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1) }
   note cube = this
   have q2: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = 0 \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0)"
-    unfolding o_def using cube \<open>p > 0\<close> by (intro allI impI label(2)) (auto simp add: b'')
+    unfolding o_def using cube \<open>p > 0\<close> by (intro allI impI label(2)) (auto simp: b'')
   have q3: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = p \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1)"
-    using cube \<open>p > 0\<close> unfolding o_def by (intro allI impI label(3)) (auto simp add: b'')
+    using cube \<open>p > 0\<close> unfolding o_def by (intro allI impI label(3)) (auto simp: b'')
   obtain q where q:
       "\<forall>i<n. q i < p"
       "\<forall>i<n.
@@ -1660,24 +1605,20 @@ proof (rule ccontr)
     then have "z \<in> unit_cube"
       unfolding z_def mem_unit_cube
       using b'_Basis
-      by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1)
+      by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1)
     then have d_fz_z: "d \<le> norm (f z - z)"
       by (rule d)
     assume "\<not> ?thesis"
     then have as: "\<forall>i\<in>Basis. \<bar>f z \<bullet> i - z \<bullet> i\<bar> < d / real n"
       using \<open>n > 0\<close>
-      by (auto simp add: not_le inner_diff)
+      by (auto simp: not_le inner_diff)
     have "norm (f z - z) \<le> (\<Sum>i\<in>Basis. \<bar>f z \<bullet> i - z \<bullet> i\<bar>)"
       unfolding inner_diff_left[symmetric]
       by (rule norm_le_l1)
     also have "\<dots> < (\<Sum>(i::'a) \<in> Basis. d / real n)"
-      apply (rule sum_strict_mono)
-      using as
-      apply auto
-      done
+      by (meson as finite_Basis nonempty_Basis sum_strict_mono)
     also have "\<dots> = d"
-      using DIM_positive[where 'a='a]
-      by (auto simp: n_def)
+      using DIM_positive[where 'a='a] by (auto simp: n_def)
     finally show False
       using d_fz_z by auto
   qed
@@ -1698,50 +1639,37 @@ proof (rule ccontr)
     apply (rule order_trans)
     apply (rule rs(1)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im]
-    apply (auto simp add: Suc_le_eq)
+    apply (auto simp: Suc_le_eq)
     done
   then have "r' \<in> unit_cube"
     unfolding r'_def mem_unit_cube
     using b'_Basis
-    by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1)
+    by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1)
   define s' :: 'a where "s' = (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i)"
   have "\<And>i. i \<in> Basis \<Longrightarrow> s (b' i) \<le> p"
-    apply (rule order_trans)
-    apply (rule rs(2)[OF b'_im, THEN conjunct2])
-    using q(1)[rule_format,OF b'_im]
-    apply (auto simp add: Suc_le_eq)
-    done
+    using b'_im q(1) rs(2) by fastforce
   then have "s' \<in> unit_cube"
     unfolding s'_def mem_unit_cube
-    using b'_Basis
-    by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1)
+    using b'_Basis by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1)
   have "z \<in> unit_cube"
     unfolding z_def mem_unit_cube
     using b'_Basis q(1)[rule_format,OF b'_im] \<open>p > 0\<close>
-    by (auto simp add: bij_betw_def zero_le_divide_iff divide_le_eq_1 less_imp_le)
-  have *: "\<And>x. 1 + real x = real (Suc x)"
-    by auto
+    by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1 less_imp_le)
   {
     have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
-      apply (rule sum_mono)
-      using rs(1)[OF b'_im]
-      apply (auto simp add:* field_simps simp del: of_nat_Suc)
-      done
+      by (rule sum_mono) (use rs(1)[OF b'_im] in force)
     also have "\<dots> < e * real p"
       using p \<open>e > 0\<close> \<open>p > 0\<close>
-      by (auto simp add: field_simps n_def)
+      by (auto simp: field_simps n_def)
     finally have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" .
   }
   moreover
   {
     have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
-      apply (rule sum_mono)
-      using rs(2)[OF b'_im]
-      apply (auto simp add:* field_simps simp del: of_nat_Suc)
-      done
+      by (rule sum_mono) (use rs(2)[OF b'_im] in force)
     also have "\<dots> < e * real p"
       using p \<open>e > 0\<close> \<open>p > 0\<close>
-      by (auto simp add: field_simps n_def)
+      by (auto simp: field_simps n_def)
     finally have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" .
   }
   ultimately
@@ -1749,7 +1677,7 @@ proof (rule ccontr)
     unfolding r'_def s'_def z_def
     using \<open>p > 0\<close>
     apply (rule_tac[!] le_less_trans[OF norm_le_l1])
-    apply (auto simp add: field_simps sum_divide_distrib[symmetric] inner_diff_left)
+    apply (auto simp: field_simps sum_divide_distrib[symmetric] inner_diff_left)
     done
   then have "\<bar>(f z - z) \<bullet> i\<bar> < d / real n"
     using rs(3) i
@@ -1762,121 +1690,100 @@ qed
 
 subsection \<open>Retractions\<close>
 
-definition "retraction s t r \<longleftrightarrow> t \<subseteq> s \<and> continuous_on s r \<and> r ` s \<subseteq> t \<and> (\<forall>x\<in>t. r x = x)"
+definition "retraction S T r \<longleftrightarrow> T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
 
 definition retract_of (infixl "retract'_of" 50)
-  where "(t retract_of s) \<longleftrightarrow> (\<exists>r. retraction s t r)"
+  where "(T retract_of S) \<longleftrightarrow> (\<exists>r. retraction S T r)"
 
-lemma retraction_idempotent: "retraction s t r \<Longrightarrow> x \<in> s \<Longrightarrow>  r (r x) = r x"
+lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Longrightarrow>  r (r x) = r x"
   unfolding retraction_def by auto
 
 subsection \<open>Preservation of fixpoints under (more general notion of) retraction\<close>
 
 lemma invertible_fixpoint_property:
-  fixes s :: "'a::euclidean_space set"
-    and t :: "'b::euclidean_space set"
-  assumes "continuous_on t i"
-    and "i ` t \<subseteq> s"
-    and "continuous_on s r"
-    and "r ` s \<subseteq> t"
-    and "\<forall>y\<in>t. r (i y) = y"
-    and "\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)"
-    and "continuous_on t g"
-    and "g ` t \<subseteq> t"
-  obtains y where "y \<in> t" and "g y = y"
+  fixes S :: "'a::euclidean_space set"
+    and T :: "'b::euclidean_space set"
+  assumes contt: "continuous_on T i"
+    and "i ` T \<subseteq> S"
+    and contr: "continuous_on S r"
+    and "r ` S \<subseteq> T"
+    and ri: "\<And>y. y \<in> T \<Longrightarrow> r (i y) = y"
+    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
+    and contg: "continuous_on T g"
+    and "g ` T \<subseteq> T"
+  obtains y where "y \<in> T" and "g y = y"
 proof -
-  have "\<exists>x\<in>s. (i \<circ> g \<circ> r) x = x"
-    apply (rule assms(6)[rule_format])
-    apply rule
-    apply (rule continuous_on_compose assms)+
-    apply ((rule continuous_on_subset)?, rule assms)+
-    using assms(2,4,8)
-    apply auto
-    apply blast
-    done
-  then obtain x where x: "x \<in> s" "(i \<circ> g \<circ> r) x = x" ..
-  then have *: "g (r x) \<in> t"
+  have "\<exists>x\<in>S. (i \<circ> g \<circ> r) x = x"
+  proof (rule FP)
+    show "continuous_on S (i \<circ> g \<circ> r)"
+      by (meson contt contr assms(4) contg assms(8) continuous_on_compose continuous_on_subset)
+    show "(i \<circ> g \<circ> r) ` S \<subseteq> S"
+      using assms(2,4,8) by force
+  qed
+  then obtain x where x: "x \<in> S" "(i \<circ> g \<circ> r) x = x" ..
+  then have *: "g (r x) \<in> T"
     using assms(4,8) by auto
   have "r ((i \<circ> g \<circ> r) x) = r x"
     using x by auto
   then show ?thesis
-    apply (rule_tac that[of "r x"])
-    using x
-    unfolding o_def
-    unfolding assms(5)[rule_format,OF *]
-    using assms(4)
-    apply auto
-    done
+    using "*" ri that by auto
 qed
 
 lemma homeomorphic_fixpoint_property:
-  fixes s :: "'a::euclidean_space set"
-    and t :: "'b::euclidean_space set"
-  assumes "s homeomorphic t"
-  shows "(\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)) \<longleftrightarrow>
-    (\<forall>g. continuous_on t g \<and> g ` t \<subseteq> t \<longrightarrow> (\<exists>y\<in>t. g y = y))"
+  fixes S :: "'a::euclidean_space set"
+    and T :: "'b::euclidean_space set"
+  assumes "S homeomorphic T"
+  shows "(\<forall>f. continuous_on S f \<and> f ` S \<subseteq> S \<longrightarrow> (\<exists>x\<in>S. f x = x)) \<longleftrightarrow>
+         (\<forall>g. continuous_on T g \<and> g ` T \<subseteq> T \<longrightarrow> (\<exists>y\<in>T. g y = y))"
+         (is "?lhs = ?rhs")
 proof -
-  obtain r i where
-      "\<forall>x\<in>s. i (r x) = x"
-      "r ` s = t"
-      "continuous_on s r"
-      "\<forall>y\<in>t. r (i y) = y"
-      "i ` t = s"
-      "continuous_on t i"
-    using assms
-    unfolding homeomorphic_def homeomorphism_def
-    by blast
-  then show ?thesis
-    apply -
-    apply rule
-    apply (rule_tac[!] allI impI)+
-    apply (rule_tac g=g in invertible_fixpoint_property[of t i s r])
-    prefer 10
-    apply (rule_tac g=f in invertible_fixpoint_property[of s r t i])
-    apply auto
-    done
+  obtain r i where r:
+      "\<forall>x\<in>S. i (r x) = x" "r ` S = T" "continuous_on S r"
+      "\<forall>y\<in>T. r (i y) = y" "i ` T = S" "continuous_on T i"
+    using assms unfolding homeomorphic_def homeomorphism_def  by blast
+  show ?thesis
+  proof
+    assume ?lhs
+    with r show ?rhs
+      by (metis invertible_fixpoint_property[of T i S r] order_refl)
+  next
+    assume ?rhs
+    with r show ?lhs
+      by (metis invertible_fixpoint_property[of S r T i] order_refl)
+  qed
 qed
 
 lemma retract_fixpoint_property:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-    and s :: "'a set"
-  assumes "t retract_of s"
-    and "\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)"
-    and "continuous_on t g"
-    and "g ` t \<subseteq> t"
-  obtains y where "y \<in> t" and "g y = y"
+    and S :: "'a set"
+  assumes "T retract_of S"
+    and FP: "\<And>f. \<lbrakk>continuous_on S f; f ` S \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>x\<in>S. f x = x"
+    and contg: "continuous_on T g"
+    and "g ` T \<subseteq> T"
+  obtains y where "y \<in> T" and "g y = y"
 proof -
-  obtain h where "retraction s t h"
+  obtain h where "retraction S T h"
     using assms(1) unfolding retract_of_def ..
   then show ?thesis
     unfolding retraction_def
-    apply -
-    apply (rule invertible_fixpoint_property[OF continuous_on_id _ _ _ _ assms(2), of t h g])
-    prefer 7
-    apply (rule_tac y = y in that)
-    using assms
-    apply auto
-    done
+    using invertible_fixpoint_property[OF continuous_on_id _ _ _ _ FP]
+    by (metis assms(4) contg image_ident that)
 qed
 
 
 subsection \<open>The Brouwer theorem for any set with nonempty interior\<close>
 
 lemma convex_unit_cube: "convex unit_cube"
-  apply (rule is_interval_convex)
-  apply (clarsimp simp add: is_interval_def mem_unit_cube)
-  apply (drule (1) bspec)+
-  apply auto
-  done
+  by (rule is_interval_convex) (fastforce simp add: is_interval_def mem_unit_cube)
 
 lemma brouwer_weak:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "compact s"
-    and "convex s"
-    and "interior s \<noteq> {}"
-    and "continuous_on s f"
-    and "f ` s \<subseteq> s"
-  obtains x where "x \<in> s" and "f x = x"
+  assumes "compact S"
+    and "convex S"
+    and "interior S \<noteq> {}"
+    and "continuous_on S f"
+    and "f ` S \<subseteq> S"
+  obtains x where "x \<in> S" and "f x = x"
 proof -
   let ?U = "unit_cube :: 'a set"
   have "\<Sum>Basis /\<^sub>R 2 \<in> interior ?U"
@@ -1890,7 +1797,7 @@ proof -
       unfolding unit_cube_def by force
   qed
   then have *: "interior ?U \<noteq> {}" by fast
-  have *: "?U homeomorphic s"
+  have *: "?U homeomorphic S"
     using homeomorphic_convex_compact[OF convex_unit_cube compact_unit_cube * assms(2,1,3)] .
   have "\<forall>f. continuous_on ?U f \<and> f ` ?U \<subseteq> ?U \<longrightarrow>
     (\<exists>x\<in>?U. f x = x)"
@@ -1898,7 +1805,7 @@ proof -
   then show ?thesis
     unfolding homeomorphic_fixpoint_property[OF *]
     using assms
-    by (auto simp: intro: that)
+    by (auto intro: that)
 qed
 
 
@@ -1920,49 +1827,37 @@ text \<open>Still more general form; could derive this directly without using th
 
 lemma brouwer:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "compact s"
-    and "convex s"
-    and "s \<noteq> {}"
-    and "continuous_on s f"
-    and "f ` s \<subseteq> s"
-  obtains x where "x \<in> s" and "f x = x"
+  assumes S: "compact S" "convex S" "S \<noteq> {}"
+    and contf: "continuous_on S f"
+    and fim: "f ` S \<subseteq> S"
+  obtains x where "x \<in> S" and "f x = x"
 proof -
-  have "\<exists>e>0. s \<subseteq> cball 0 e"
-    using compact_imp_bounded[OF assms(1)]
-    unfolding bounded_pos
-    apply (erule_tac exE)
-    apply (rule_tac x=b in exI)
-    apply (auto simp add: dist_norm)
-    done
-  then obtain e where e: "e > 0" "s \<subseteq> cball 0 e"
+  have "\<exists>e>0. S \<subseteq> cball 0 e"
+    using compact_imp_bounded[OF \<open>compact S\<close>]  unfolding bounded_pos
+    by auto
+  then obtain e where e: "e > 0" "S \<subseteq> cball 0 e"
     by blast
-  have "\<exists>x\<in> cball 0 e. (f \<circ> closest_point s) x = x"
-    apply (rule_tac brouwer_ball[OF e(1), of 0 "f \<circ> closest_point s"])
-    apply (rule continuous_on_compose )
-    apply (rule continuous_on_closest_point[OF assms(2) compact_imp_closed[OF assms(1)] assms(3)])
-    apply (rule continuous_on_subset[OF assms(4)])
-    apply (insert closest_point_in_set[OF compact_imp_closed[OF assms(1)] assms(3)])
-    using assms(5)[unfolded subset_eq]
-    using e(2)[unfolded subset_eq mem_cball]
-    apply (auto simp add: dist_norm)
-    done
-  then obtain x where x: "x \<in> cball 0 e" "(f \<circ> closest_point s) x = x" ..
-  have *: "closest_point s x = x"
-    apply (rule closest_point_self)
-    apply (rule assms(5)[unfolded subset_eq,THEN bspec[where x="x"], unfolded image_iff])
-    apply (rule_tac x="closest_point s x" in bexI)
-    using x
-    unfolding o_def
-    using closest_point_in_set[OF compact_imp_closed[OF assms(1)] assms(3), of x]
-    apply auto
-    done
+  have "\<exists>x\<in> cball 0 e. (f \<circ> closest_point S) x = x"
+  proof (rule_tac brouwer_ball[OF e(1)])
+    show "continuous_on (cball 0 e) (f \<circ> closest_point S)"
+      apply (rule continuous_on_compose)
+      using S compact_eq_bounded_closed continuous_on_closest_point apply blast
+      by (meson S contf closest_point_in_set compact_imp_closed continuous_on_subset image_subsetI)
+    show "(f \<circ> closest_point S) ` cball 0 e \<subseteq> cball 0 e"
+      by clarsimp (metis S fim closest_point_exists(1) compact_eq_bounded_closed e(2) image_subset_iff mem_cball_0 subsetCE)
+  qed (use assms in auto)
+  then obtain x where x: "x \<in> cball 0 e" "(f \<circ> closest_point S) x = x" ..
+  have "x \<in> S"
+    by (metis closest_point_in_set comp_apply compact_imp_closed fim image_eqI S(1) S(3) subset_iff x(2))
+  then have *: "closest_point S x = x"
+    by (rule closest_point_self)
   show thesis
-    apply (rule_tac x="closest_point s x" in that)
-    unfolding x(2)[unfolded o_def]
-    apply (rule closest_point_in_set[OF compact_imp_closed[OF assms(1)] assms(3)])
-    using *
-    apply auto
-    done
+  proof
+    show "closest_point S x \<in> S"
+      by (simp add: "*" \<open>x \<in> S\<close>)
+    show "f (closest_point S x) = closest_point S x"
+      using "*" x(2) by auto
+  qed
 qed
 
 text \<open>So we get the no-retraction theorem.\<close>
@@ -1975,17 +1870,15 @@ proof
   assume *: "frontier (cball a e) retract_of (cball a e)"
   have **: "\<And>xa. a - (2 *\<^sub>R a - xa) = - (a - xa)"
     using scaleR_left_distrib[of 1 1 a] by auto
-  obtain x where x:
-      "x \<in> {x. norm (a - x) = e}"
-      "2 *\<^sub>R a - x = x"
-    apply (rule retract_fixpoint_property[OF *, of "\<lambda>x. scaleR 2 a - x"])
-    apply (blast intro: brouwer_ball[OF assms])
-    apply (intro continuous_intros)
-    unfolding frontier_cball subset_eq Ball_def image_iff dist_norm sphere_def
-    apply (auto simp add: ** norm_minus_commute)
-    done
+  obtain x where x: "x \<in> {x. norm (a - x) = e}" "2 *\<^sub>R a - x = x"
+  proof (rule retract_fixpoint_property[OF *, of "\<lambda>x. scaleR 2 a - x"])
+    show "continuous_on (frontier (cball a e)) ((-) (2 *\<^sub>R a))"
+      by (intro continuous_intros)
+    show "(-) (2 *\<^sub>R a) ` frontier (cball a e) \<subseteq> frontier (cball a e)"
+      by clarsimp (metis "**" dist_norm norm_minus_cancel)
+  qed (auto simp: dist_norm intro: brouwer_ball[OF assms])
   then have "scaleR 2 a = scaleR 1 x + scaleR 1 x"
-    by (auto simp add: algebra_simps)
+    by (auto simp: algebra_simps)
   then have "a = x"
     unfolding scaleR_left_distrib[symmetric]
     by auto
@@ -2006,11 +1899,7 @@ next
   case False
   then show ?thesis
     unfolding contractible_def nullhomotopic_from_sphere_extension
-    apply (simp add: not_less)
-    apply (rule_tac x=id in exI)
-    apply (auto simp: continuous_on_def)
-    apply (meson dist_not_less_zero le_less less_le_trans)
-    done
+    using continuous_on_const less_eq_real_def by auto
 qed
 
 lemma connected_sphere_eq:
@@ -2035,9 +1924,8 @@ next
         by (metis dist_self greater insertI1 less_add_same_cancel1 mem_sphere mult_2 not_le zero_le_dist)
       then have "finite (sphere a r)"
         by auto
-      with L \<open>r > 0\<close> show "False"
-        apply (auto simp: connected_finite_iff_sing)
-        using xy by auto
+      with L \<open>r > 0\<close> xy show "False"
+        using connected_finite_iff_sing by auto
     qed
     with greater show ?rhs
       by (metis DIM_ge_Suc0 One_nat_def Suc_1 le_antisym not_less_eq_eq)
@@ -2098,12 +1986,10 @@ proof (rule ccontr)
     unfolding retraction_def
   proof (intro conjI ballI)
     show "frontier (cball a B) \<subseteq> cball a B"
-      by (force simp:)
+      by force
     show "continuous_on (cball a B) h"
       unfolding h_def
-      apply (intro continuous_intros)
-      using contg continuous_on_subset notga apply auto
-      done
+      by (intro continuous_intros) (use contg continuous_on_subset notga in auto)
     show "h ` cball a B \<subseteq> frontier (cball a B)"
       using \<open>0 < B\<close> by (auto simp: h_def notga dist_norm)
     show "\<And>x. x \<in> frontier (cball a B) \<Longrightarrow> h x = x"
@@ -2117,76 +2003,76 @@ qed
 subsection\<open>More Properties of Retractions\<close>
 
 lemma retraction:
-   "retraction s t r \<longleftrightarrow>
-    t \<subseteq> s \<and> continuous_on s r \<and> r ` s = t \<and> (\<forall>x \<in> t. r x = x)"
+   "retraction S T r \<longleftrightarrow>
+    T \<subseteq> S \<and> continuous_on S r \<and> r ` S = T \<and> (\<forall>x \<in> T. r x = x)"
 by (force simp: retraction_def)
 
 lemma retract_of_imp_extensible:
-  assumes "s retract_of t" and "continuous_on s f" and "f ` s \<subseteq> u"
-  obtains g where "continuous_on t g" "g ` t \<subseteq> u" "\<And>x. x \<in> s \<Longrightarrow> g x = f x"
+  assumes "S retract_of T" and "continuous_on S f" and "f ` S \<subseteq> U"
+  obtains g where "continuous_on T g" "g ` T \<subseteq> U" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
 using assms
 apply (clarsimp simp add: retract_of_def retraction)
-apply (rule_tac g = "f o r" in that)
+apply (rule_tac g = "f \<circ> r" in that)
 apply (auto simp: continuous_on_compose2)
 done
 
 lemma idempotent_imp_retraction:
-  assumes "continuous_on s f" and "f ` s \<subseteq> s" and "\<And>x. x \<in> s \<Longrightarrow> f(f x) = f x"
-    shows "retraction s (f ` s) f"
+  assumes "continuous_on S f" and "f ` S \<subseteq> S" and "\<And>x. x \<in> S \<Longrightarrow> f(f x) = f x"
+    shows "retraction S (f ` S) f"
 by (simp add: assms retraction)
 
 lemma retraction_subset:
-  assumes "retraction s t r" and "t \<subseteq> s'" and "s' \<subseteq> s"
-    shows "retraction s' t r"
-apply (simp add: retraction_def)
-by (metis assms continuous_on_subset image_mono retraction)
+  assumes "retraction S T r" and "T \<subseteq> s'" and "s' \<subseteq> S"
+  shows "retraction s' T r"
+  unfolding retraction_def
+  by (metis assms continuous_on_subset image_mono retraction)
 
 lemma retract_of_subset:
-  assumes "t retract_of s" and "t \<subseteq> s'" and "s' \<subseteq> s"
-    shows "t retract_of s'"
+  assumes "T retract_of S" and "T \<subseteq> s'" and "s' \<subseteq> S"
+    shows "T retract_of s'"
 by (meson assms retract_of_def retraction_subset)
 
-lemma retraction_refl [simp]: "retraction s s (\<lambda>x. x)"
+lemma retraction_refl [simp]: "retraction S S (\<lambda>x. x)"
 by (simp add: continuous_on_id retraction)
 
-lemma retract_of_refl [iff]: "s retract_of s"
+lemma retract_of_refl [iff]: "S retract_of S"
   using continuous_on_id retract_of_def retraction_def by fastforce
 
 lemma retract_of_imp_subset:
-   "s retract_of t \<Longrightarrow> s \<subseteq> t"
+   "S retract_of T \<Longrightarrow> S \<subseteq> T"
 by (simp add: retract_of_def retraction_def)
 
 lemma retract_of_empty [simp]:
-     "({} retract_of s) \<longleftrightarrow> s = {}"  "(s retract_of {}) \<longleftrightarrow> s = {}"
+     "({} retract_of S) \<longleftrightarrow> S = {}"  "(S retract_of {}) \<longleftrightarrow> S = {}"
 by (auto simp: retract_of_def retraction_def)
 
-lemma retract_of_singleton [iff]: "({x} retract_of s) \<longleftrightarrow> x \<in> s"
+lemma retract_of_singleton [iff]: "({x} retract_of S) \<longleftrightarrow> x \<in> S"
   using continuous_on_const
   by (auto simp: retract_of_def retraction_def)
 
 lemma retraction_comp:
-   "\<lbrakk>retraction s t f; retraction t u g\<rbrakk>
-        \<Longrightarrow> retraction s u (g o f)"
+   "\<lbrakk>retraction S T f; retraction T U g\<rbrakk>
+        \<Longrightarrow> retraction S U (g \<circ> f)"
 apply (auto simp: retraction_def intro: continuous_on_compose2)
 by blast
 
 lemma retract_of_trans [trans]:
-  assumes "s retract_of t" and "t retract_of u"
-    shows "s retract_of u"
+  assumes "S retract_of T" and "T retract_of U"
+    shows "S retract_of U"
 using assms by (auto simp: retract_of_def intro: retraction_comp)
 
 lemma closedin_retract:
-  fixes s :: "'a :: real_normed_vector set"
-  assumes "s retract_of t"
-    shows "closedin (subtopology euclidean t) s"
+  fixes S :: "'a :: real_normed_vector set"
+  assumes "S retract_of T"
+    shows "closedin (subtopology euclidean T) S"
 proof -
-  obtain r where "s \<subseteq> t" "continuous_on t r" "r ` t \<subseteq> s" "\<And>x. x \<in> s \<Longrightarrow> r x = x"
+  obtain r where "S \<subseteq> T" "continuous_on T r" "r ` T \<subseteq> S" "\<And>x. x \<in> S \<Longrightarrow> r x = x"
     using assms by (auto simp: retract_of_def retraction_def)
-  then have s: "s = {x \<in> t. (norm(r x - x)) = 0}" by auto
+  then have S: "S = {x \<in> T. (norm(r x - x)) = 0}" by auto
   show ?thesis
-    apply (subst s)
+    apply (subst S)
     apply (rule continuous_closedin_preimage_constant)
-    by (simp add: \<open>continuous_on t r\<close> continuous_on_diff continuous_on_id continuous_on_norm)
+    by (simp add: \<open>continuous_on T r\<close> continuous_on_diff continuous_on_id continuous_on_norm)
 qed
 
 lemma closedin_self [simp]:
@@ -2195,52 +2081,52 @@ lemma closedin_self [simp]:
   by (simp add: closedin_retract)
 
 lemma retract_of_contractible:
-  assumes "contractible t" "s retract_of t"
-    shows "contractible s"
+  assumes "contractible T" "S retract_of T"
+    shows "contractible S"
 using assms
 apply (clarsimp simp add: retract_of_def contractible_def retraction_def homotopic_with)
 apply (rule_tac x="r a" in exI)
-apply (rule_tac x="r o h" in exI)
+apply (rule_tac x="r \<circ> h" in exI)
 apply (intro conjI continuous_intros continuous_on_compose)
 apply (erule continuous_on_subset | force)+
 done
 
 lemma retract_of_compact:
-     "\<lbrakk>compact t; s retract_of t\<rbrakk> \<Longrightarrow> compact s"
+     "\<lbrakk>compact T; S retract_of T\<rbrakk> \<Longrightarrow> compact S"
   by (metis compact_continuous_image retract_of_def retraction)
 
 lemma retract_of_closed:
-    fixes s :: "'a :: real_normed_vector set"
-    shows "\<lbrakk>closed t; s retract_of t\<rbrakk> \<Longrightarrow> closed s"
+    fixes S :: "'a :: real_normed_vector set"
+    shows "\<lbrakk>closed T; S retract_of T\<rbrakk> \<Longrightarrow> closed S"
   by (metis closedin_retract closedin_closed_eq)
 
 lemma retract_of_connected:
-    "\<lbrakk>connected t; s retract_of t\<rbrakk> \<Longrightarrow> connected s"
+    "\<lbrakk>connected T; S retract_of T\<rbrakk> \<Longrightarrow> connected S"
   by (metis Topological_Spaces.connected_continuous_image retract_of_def retraction)
 
 lemma retract_of_path_connected:
-    "\<lbrakk>path_connected t; s retract_of t\<rbrakk> \<Longrightarrow> path_connected s"
+    "\<lbrakk>path_connected T; S retract_of T\<rbrakk> \<Longrightarrow> path_connected S"
   by (metis path_connected_continuous_image retract_of_def retraction)
 
 lemma retract_of_simply_connected:
-    "\<lbrakk>simply_connected t; s retract_of t\<rbrakk> \<Longrightarrow> simply_connected s"
+    "\<lbrakk>simply_connected T; S retract_of T\<rbrakk> \<Longrightarrow> simply_connected S"
 apply (simp add: retract_of_def retraction_def, clarify)
 apply (rule simply_connected_retraction_gen)
 apply (force simp: continuous_on_id elim!: continuous_on_subset)+
 done
 
 lemma retract_of_homotopically_trivial:
-  assumes ts: "t retract_of s"
-      and hom: "\<And>f g. \<lbrakk>continuous_on u f; f ` u \<subseteq> s;
-                       continuous_on u g; g ` u \<subseteq> s\<rbrakk>
-                       \<Longrightarrow> homotopic_with (\<lambda>x. True) u s f g"
-      and "continuous_on u f" "f ` u \<subseteq> t"
-      and "continuous_on u g" "g ` u \<subseteq> t"
-    shows "homotopic_with (\<lambda>x. True) u t f g"
+  assumes ts: "T retract_of S"
+      and hom: "\<And>f g. \<lbrakk>continuous_on U f; f ` U \<subseteq> S;
+                       continuous_on U g; g ` U \<subseteq> S\<rbrakk>
+                       \<Longrightarrow> homotopic_with (\<lambda>x. True) U S f g"
+      and "continuous_on U f" "f ` U \<subseteq> T"
+      and "continuous_on U g" "g ` U \<subseteq> T"
+    shows "homotopic_with (\<lambda>x. True) U T f g"
 proof -
-  obtain r where "r ` s \<subseteq> s" "continuous_on s r" "\<forall>x\<in>s. r (r x) = r x" "t = r ` s"
+  obtain r where "r ` S \<subseteq> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
     using ts by (auto simp: retract_of_def retraction)
-  then obtain k where "Retracts s r t k"
+  then obtain k where "Retracts S r T k"
     unfolding Retracts_def
     by (metis continuous_on_subset dual_order.trans image_iff image_mono)
   then show ?thesis
@@ -2251,15 +2137,15 @@ proof -
 qed
 
 lemma retract_of_homotopically_trivial_null:
-  assumes ts: "t retract_of s"
-      and hom: "\<And>f. \<lbrakk>continuous_on u f; f ` u \<subseteq> s\<rbrakk>
-                     \<Longrightarrow> \<exists>c. homotopic_with (\<lambda>x. True) u s f (\<lambda>x. c)"
-      and "continuous_on u f" "f ` u \<subseteq> t"
-  obtains c where "homotopic_with (\<lambda>x. True) u t f (\<lambda>x. c)"
+  assumes ts: "T retract_of S"
+      and hom: "\<And>f. \<lbrakk>continuous_on U f; f ` U \<subseteq> S\<rbrakk>
+                     \<Longrightarrow> \<exists>c. homotopic_with (\<lambda>x. True) U S f (\<lambda>x. c)"
+      and "continuous_on U f" "f ` U \<subseteq> T"
+  obtains c where "homotopic_with (\<lambda>x. True) U T f (\<lambda>x. c)"
 proof -
-  obtain r where "r ` s \<subseteq> s" "continuous_on s r" "\<forall>x\<in>s. r (r x) = r x" "t = r ` s"
+  obtain r where "r ` S \<subseteq> S" "continuous_on S r" "\<forall>x\<in>S. r (r x) = r x" "T = r ` S"
     using ts by (auto simp: retract_of_def retraction)
-  then obtain k where "Retracts s r t k"
+  then obtain k where "Retracts S r T k"
     unfolding Retracts_def
     by (metis continuous_on_subset dual_order.trans image_iff image_mono)
   then show ?thesis
@@ -2269,35 +2155,34 @@ proof -
 qed
 
 lemma retraction_imp_quotient_map:
-   "retraction s t r
-    \<Longrightarrow> u \<subseteq> t
-            \<Longrightarrow> (openin (subtopology euclidean s) (s \<inter> r -` u) \<longleftrightarrow>
-                 openin (subtopology euclidean t) u)"
+   "retraction S T r
+    \<Longrightarrow> U \<subseteq> T
+            \<Longrightarrow> (openin (subtopology euclidean S) (S \<inter> r -` U) \<longleftrightarrow>
+                 openin (subtopology euclidean T) U)"
 apply (clarsimp simp add: retraction)
 apply (rule continuous_right_inverse_imp_quotient_map [where g=r])
 apply (auto simp: elim: continuous_on_subset)
 done
 
 lemma retract_of_locally_compact:
-    fixes s :: "'a :: {heine_borel,real_normed_vector} set"
-    shows  "\<lbrakk> locally compact s; t retract_of s\<rbrakk> \<Longrightarrow> locally compact t"
+    fixes S :: "'a :: {heine_borel,real_normed_vector} set"
+    shows  "\<lbrakk> locally compact S; T retract_of S\<rbrakk> \<Longrightarrow> locally compact T"
   by (metis locally_compact_closedin closedin_retract)
 
 lemma retract_of_Times:
-   "\<lbrakk>s retract_of s'; t retract_of t'\<rbrakk> \<Longrightarrow> (s \<times> t) retract_of (s' \<times> t')"
+   "\<lbrakk>S retract_of s'; T retract_of t'\<rbrakk> \<Longrightarrow> (S \<times> T) retract_of (s' \<times> t')"
 apply (simp add: retract_of_def retraction_def Sigma_mono, clarify)
 apply (rename_tac f g)
-apply (rule_tac x="\<lambda>z. ((f o fst) z, (g o snd) z)" in exI)
+apply (rule_tac x="\<lambda>z. ((f \<circ> fst) z, (g \<circ> snd) z)" in exI)
 apply (rule conjI continuous_intros | erule continuous_on_subset | force)+
 done
 
 lemma homotopic_into_retract:
-   "\<lbrakk>f ` s \<subseteq> t; g ` s \<subseteq> t; t retract_of u;
-        homotopic_with (\<lambda>x. True) s u f g\<rbrakk>
-        \<Longrightarrow> homotopic_with (\<lambda>x. True) s t f g"
+   "\<lbrakk>f ` S \<subseteq> T; g ` S \<subseteq> T; T retract_of U; homotopic_with (\<lambda>x. True) S U f g\<rbrakk>
+        \<Longrightarrow> homotopic_with (\<lambda>x. True) S T f g"
 apply (subst (asm) homotopic_with_def)
 apply (simp add: homotopic_with retract_of_def retraction_def, clarify)
-apply (rule_tac x="r o h" in exI)
+apply (rule_tac x="r \<circ> h" in exI)
 apply (rule conjI continuous_intros | erule continuous_on_subset | force simp: image_subset_iff)+
 done
 
@@ -2317,15 +2202,19 @@ subsubsection\<open>A few simple lemmas about deformation retracts\<close>
 
 lemma deformation_retract_imp_homotopy_eqv:
   fixes S :: "'a::euclidean_space set"
-  assumes "homotopic_with (\<lambda>x. True) S S id r" "retraction S T r"
-    shows "S homotopy_eqv T"
-  apply (simp add: homotopy_eqv_def)
-  apply (rule_tac x=r in exI)
-  using assms apply (simp add: retraction_def)
-  apply (rule_tac x=id in exI)
-  apply (auto simp: continuous_on_id)
-   apply (metis homotopic_with_symD)
-  by (metis continuous_on_id' homotopic_with_equal homotopic_with_symD id_apply image_id subset_refl)
+  assumes "homotopic_with (\<lambda>x. True) S S id r" and r: "retraction S T r"
+  shows "S homotopy_eqv T"
+proof -
+  have "homotopic_with (\<lambda>x. True) S S (id \<circ> r) id"
+    by (simp add: assms(1) homotopic_with_symD)
+  moreover have "homotopic_with (\<lambda>x. True) T T (r \<circ> id) id"
+    using r unfolding retraction_def
+    by (metis (no_types, lifting) comp_id continuous_on_id' homotopic_with_equal homotopic_with_symD id_def image_id order_refl)
+  ultimately
+  show ?thesis
+    unfolding homotopy_eqv_def
+    by (metis continuous_on_id' id_def image_id r retraction_def)
+qed
 
 lemma deformation_retract:
   fixes S :: "'a::euclidean_space set"
@@ -2356,10 +2245,8 @@ proof -
   have "{a} retract_of S"
     by (simp add: \<open>a \<in> S\<close>)
   moreover have "homotopic_with (\<lambda>x. True) S S id (\<lambda>x. a)"
-    using assms
-    apply (clarsimp simp add: contractible_def)
-    apply (rule homotopic_with_trans, assumption)
-    by (metis assms(1) contractible_imp_path_connected homotopic_constant_maps homotopic_with_sym homotopic_with_trans insert_absorb insert_not_empty path_component_mem(1) path_connected_component)
+      using assms
+      by (auto simp: contractible_def continuous_on_const continuous_on_id homotopic_into_contractible image_subset_iff)
   moreover have "(\<lambda>x. a) ` S \<subseteq> {a}"
     by (simp add: image_subsetI)
   ultimately show ?thesis
@@ -2382,15 +2269,12 @@ proof -
     using assms by auto (metis imageI subset_iff)
   have contp': "continuous_on S p"
     by (rule continuous_on_subset [OF contp \<open>S \<subseteq> T\<close>])
-  have "continuous_on T (q \<circ> p)"
-    apply (rule continuous_on_compose [OF contp])
-    apply (simp add: *)
-    apply (rule continuous_on_inv [OF contp' \<open>compact S\<close>])
-    using assms by auto
+  have "continuous_on (p ` T) q"
+    by (simp add: "*" assms(1) assms(2) assms(5) continuous_on_inv contp' rev_subsetD)
+  then have "continuous_on T (q \<circ> p)"
+    by (rule continuous_on_compose [OF contp])
   then show ?thesis
-    apply (rule continuous_on_eq [of _ "q o p"])
-    apply (simp add: o_def)
-    done
+    by (rule continuous_on_eq [of _ "q \<circ> p"]) (simp add: o_def)
 qed
 
 lemma continuous_on_compact_surface_projection:
@@ -2441,21 +2325,19 @@ proof -
   have aaffS: "a \<in> affine hull S"
     by (meson arelS subsetD hull_inc rel_interior_subset)
   have "((\<lambda>z. z - a) ` (affine hull S - {a})) = ((\<lambda>z. z - a) ` (affine hull S)) - {0}"
-    by (auto simp: )
+    by auto
   moreover have "continuous_on (((\<lambda>z. z - a) ` (affine hull S)) - {0}) (\<lambda>x. dd x *\<^sub>R x)"
   proof (rule continuous_on_compact_surface_projection)
     show "compact (rel_frontier ((\<lambda>z. z - a) ` S))"
       by (simp add: \<open>bounded S\<close> bounded_translation_minus compact_rel_frontier_bounded)
     have releq: "rel_frontier ((\<lambda>z. z - a) ` S) = (\<lambda>z. z - a) ` rel_frontier S"
       using rel_frontier_translation [of "-a"] add.commute by simp
-    also have "... \<subseteq> (\<lambda>z. z - a) ` (affine hull S) - {0}"
+    also have "\<dots> \<subseteq> (\<lambda>z. z - a) ` (affine hull S) - {0}"
       using rel_frontier_affine_hull arelS rel_frontier_def by fastforce
     finally show "rel_frontier ((\<lambda>z. z - a) ` S) \<subseteq> (\<lambda>z. z - a) ` (affine hull S) - {0}" .
     show "cone ((\<lambda>z. z - a) ` (affine hull S))"
-      apply (rule subspace_imp_cone)
-      using aaffS
-      apply (simp add: subspace_affine image_comp o_def affine_translation_aux [of a])
-      done
+      by (rule subspace_imp_cone)
+         (use aaffS in \<open>simp add: subspace_affine image_comp o_def affine_translation_aux [of a]\<close>)
     show "(0 < k \<and> k *\<^sub>R x \<in> rel_frontier ((\<lambda>z. z - a) ` S)) \<longleftrightarrow> (dd x = k)"
          if x: "x \<in> (\<lambda>z. z - a) ` (affine hull S) - {0}" for k x
     proof
@@ -2471,7 +2353,7 @@ proof -
         then have segsub: "open_segment a (a + k *\<^sub>R x) \<subseteq> rel_interior S"
           by (metis rel_interior_closure_convex_segment [OF \<open>convex S\<close> arelS])
         have "x \<noteq> 0" and xaffS: "a + x \<in> affine hull S"
-          using x by (auto simp: )
+          using x by auto
         then have "0 < dd x" and inS: "a + dd x *\<^sub>R x \<in> rel_frontier S"
           using dd1 by auto
         moreover have "a + dd x *\<^sub>R x \<in> open_segment a (a + k *\<^sub>R x)"
@@ -2483,7 +2365,7 @@ proof -
           apply (metis (no_types) \<open>k \<noteq> 0\<close> divide_inverse_commute inverse_eq_divide mult.left_commute right_inverse)
           done
         ultimately show ?thesis
-          using segsub by (auto simp add: rel_frontier_def)
+          using segsub by (auto simp: rel_frontier_def)
       qed
       moreover have False if "k < dd x"
         using x k that rel_frontier_def
@@ -2497,7 +2379,7 @@ proof -
   have "continuous_on (affine hull S - {a}) ((\<lambda>x. a + dd x *\<^sub>R x) \<circ> (\<lambda>z. z - a))"
     by (intro * continuous_intros continuous_on_compose)
   with affS have contdd: "continuous_on (T - {a}) ((\<lambda>x. a + dd x *\<^sub>R x) \<circ> (\<lambda>z. z - a))"
-    by (blast intro: continuous_on_subset elim: )
+    by (blast intro: continuous_on_subset)
   show ?thesis
   proof
     show "homotopic_with (\<lambda>x. True) (T - {a}) (T - {a}) id (\<lambda>x. a + dd (x - a) *\<^sub>R (x - a))"
@@ -2510,11 +2392,10 @@ proof -
            if "x \<in> T - {a}" for x
       proof (clarsimp simp: in_segment, intro conjI)
         fix u::real assume u: "0 \<le> u" "u \<le> 1"
-        show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<in> T"
-          apply (rule convexD [OF \<open>convex T\<close>])
-          using that u apply (auto simp add: )
-          apply (metis add.commute affS dd1 diff_add_cancel eq_iff_diff_eq_0 relS subsetD)
-          done
+        have "a + dd (x - a) *\<^sub>R (x - a) \<in> T"
+          by (metis DiffD1 DiffD2 add.commute add.right_neutral affS dd1 diff_add_cancel relS singletonI subsetCE that)
+        then show "(1 - u) *\<^sub>R x + u *\<^sub>R (a + dd (x - a) *\<^sub>R (x - a)) \<in> T"
+          using convexD [OF \<open>convex T\<close>] that u by simp
         have iff: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + d *\<^sub>R (x - a)) = a \<longleftrightarrow>
                   (1 - u + u * d) *\<^sub>R (x - a) = 0" for d
           by (auto simp: algebra_simps)
@@ -2541,7 +2422,7 @@ proof -
       show "a + dd (x - a) *\<^sub>R (x - a) = x" if x: "x \<in> rel_frontier S" for x
       proof -
         have "x \<noteq> a"
-          using that arelS by (auto simp add: rel_frontier_def)
+          using that arelS by (auto simp: rel_frontier_def)
         have False if "dd (x - a) < 1"
         proof -
           have "x \<in> closure S"
@@ -2551,7 +2432,7 @@ proof -
           have  xaffS: "x \<in> affine hull S"
             using affS relS x by auto
           then have "0 < dd (x - a)" and inS: "a + dd (x - a) *\<^sub>R (x - a) \<in> rel_frontier S"
-            using dd1 by (auto simp add: \<open>x \<noteq> a\<close>)
+            using dd1 by (auto simp: \<open>x \<noteq> a\<close>)
           moreover have "a + dd (x - a) *\<^sub>R (x - a) \<in> open_segment a x"
             using  \<open>x \<noteq> a\<close> \<open>0 < dd (x - a)\<close>
             apply (simp add: in_segment)
@@ -2559,7 +2440,7 @@ proof -
             apply (simp add: algebra_simps that)
             done
           ultimately show ?thesis
-            using segsub by (auto simp add: rel_frontier_def)
+            using segsub by (auto simp: rel_frontier_def)
         qed
         moreover have False if "1 < dd (x - a)"
           using x that dd2 [of "x - a" 1] \<open>x \<noteq> a\<close> closure_affine_hull
@@ -2578,7 +2459,7 @@ corollary rel_frontier_retract_of_punctured_affine_hull:
   assumes "bounded S" "convex S" "a \<in> rel_interior S"
     shows "rel_frontier S retract_of (affine hull S - {a})"
 apply (rule rel_frontier_deformation_retract_of_punctured_convex [of S "affine hull S" a])
-apply (auto simp add: affine_imp_convex rel_frontier_affine_hull retract_of_def assms)
+apply (auto simp: affine_imp_convex rel_frontier_affine_hull retract_of_def assms)
 done
 
 corollary rel_boundary_retract_of_punctured_affine_hull:
@@ -2643,7 +2524,7 @@ proof -
     using assms by (auto simp: path_component_def)
   then show ?thesis
     apply (simp add: path_def path_image_def pathstart_def pathfinish_def homotopic_with_def)
-    apply (rule_tac x = "\<lambda>z. inverse(norm(snd z - (g o fst)z)) *\<^sub>R (snd z - (g o fst)z)" in exI)
+    apply (rule_tac x = "\<lambda>z. inverse(norm(snd z - (g \<circ> fst)z)) *\<^sub>R (snd z - (g \<circ> fst)z)" in exI)
     apply (intro conjI continuous_intros)
     apply (rule continuous_intros | erule continuous_on_subset | fastforce simp: divide_simps sphere_def)+
     done
@@ -2767,7 +2648,7 @@ proof -
     using hom by (force simp: homeomorphic_def)
   then have "continuous_on (f ` T) g"
     by (meson \<open>f ` T \<subseteq> S\<close> continuous_on_subset homeomorphism_def)
-  then have contgf: "continuous_on T (g o f)"
+  then have contgf: "continuous_on T (g \<circ> f)"
     by (metis continuous_on_compose contf)
   have gfTC: "(g \<circ> f) ` T \<subseteq> C"
   proof -
@@ -2779,7 +2660,7 @@ proof -
                       "\<And>x. x \<in> T \<Longrightarrow> f' x = (g \<circ> f) x"
     by (metis Dugundji [OF C cloUT contgf gfTC])
   show ?thesis
-  proof (rule_tac g = "h o r o f'" in that)
+  proof (rule_tac g = "h \<circ> r \<circ> f'" in that)
     show "continuous_on U (h \<circ> r \<circ> f')"
       apply (intro continuous_on_compose f')
        using continuous_on_subset contr f' apply blast
@@ -2811,7 +2692,7 @@ proof -
   have [simp]: "S' \<subseteq> U" using clo closedin_limpt by blast
   show ?thesis
   proof (simp add: retraction_def retract_of_def, intro exI conjI)
-    show "continuous_on U (g o h')"
+    show "continuous_on U (g \<circ> h')"
       apply (intro continuous_on_compose h')
       apply (meson hom continuous_on_subset h' homeomorphism_cont1)
       done
@@ -2853,7 +2734,7 @@ proof (clarsimp simp: AR_def)
     using clo closedin_imp_subset by auto
   show "T retract_of U"
   proof (simp add: retraction_def retract_of_def, intro exI conjI)
-    show "continuous_on U (g o h')"
+    show "continuous_on U (g \<circ> h')"
       apply (intro continuous_on_compose h')
       apply (meson hom continuous_on_subset h' homeomorphism_cont1)
       done
@@ -2919,7 +2800,7 @@ proof -
     using hom by (force simp: homeomorphic_def)
   have "continuous_on (f ` T) g"
     by (meson \<open>f ` T \<subseteq> S\<close> continuous_on_subset homeomorphism_def homgh)
-  then have contgf: "continuous_on T (g o f)"
+  then have contgf: "continuous_on T (g \<circ> f)"
     by (intro continuous_on_compose contf)
   have gfTC: "(g \<circ> f) ` T \<subseteq> C"
   proof -
@@ -2933,7 +2814,7 @@ proof -
               and eq: "\<And>x. x \<in> T \<Longrightarrow> f' x = (g \<circ> f) x"
     by (metis Dugundji [OF C cloUT contgf gfTC])
   show ?thesis
-  proof (rule_tac V = "U \<inter> f' -` D" and g = "h o r o f'" in that)
+  proof (rule_tac V = "U \<inter> f' -` D" and g = "h \<circ> r \<circ> f'" in that)
     show "T \<subseteq> U \<inter> f' -` D"
       using cloUT closedin_imp_subset \<open>S' \<subseteq> D\<close> \<open>f ` T \<subseteq> S\<close> eq homeomorphism_image1 homgh
       by fastforce
@@ -2976,7 +2857,7 @@ proof -
     by (blast intro: ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> h clo])
   have "S' retract_of V"
   proof (simp add: retraction_def retract_of_def, intro exI conjI \<open>S' \<subseteq> V\<close>)
-    show "continuous_on V (g o h')"
+    show "continuous_on V (g \<circ> h')"
       apply (intro continuous_on_compose h')
       apply (meson hom continuous_on_subset h' homeomorphism_cont1)
       done
@@ -3029,7 +2910,7 @@ proof (clarsimp simp: ANR_def)
     using clo closedin_imp_subset by auto
   have "T retract_of V"
   proof (simp add: retraction_def retract_of_def, intro exI conjI \<open>T \<subseteq> V\<close>)
-    show "continuous_on V (g o h')"
+    show "continuous_on V (g \<circ> h')"
       apply (intro continuous_on_compose h')
       apply (meson hom continuous_on_subset h' homeomorphism_cont1)
       done
@@ -3086,7 +2967,7 @@ proof -
     using Diff_subset_conv \<open>U - Z \<subseteq> W\<close> by blast
   ultimately show ?thesis
     apply (rule_tac V=V and W = "U-W" in that)
-    using openin_imp_subset apply (force simp:)+
+    using openin_imp_subset apply force+
     done
 qed
 
@@ -3146,7 +3027,7 @@ proof -
   proof (simp add: retraction_def retract_of_def, intro exI conjI)
     show "S' \<subseteq> W" "S' \<subseteq> h -` X"
       using him WS' closedin_imp_subset by blast+
-    show "continuous_on (W \<inter> h -` X) (f o r o h)"
+    show "continuous_on (W \<inter> h -` X) (f \<circ> r \<circ> h)"
     proof (intro continuous_on_compose)
       show "continuous_on (W \<inter> h -` X) h"
         by (meson conth continuous_on_subset inf_le1)
@@ -3356,7 +3237,7 @@ apply (simp add: ANR_eq_absolute_neighbourhood_extensor retract_of_def retractio
 apply (clarsimp elim!: all_forward)
 apply (erule impCE, metis subset_trans)
 apply (clarsimp elim!: ex_forward)
-apply (rule_tac x="r o g" in exI)
+apply (rule_tac x="r \<circ> g" in exI)
 by (metis comp_apply continuous_on_compose continuous_on_subset subsetD imageI image_comp image_mono subset_trans)
 
 lemma AR_retract_of_AR:
@@ -3642,7 +3523,7 @@ next
   obtain r0
     where "S \<inter> T \<subseteq> W0" and contr0: "continuous_on W0 r0" and "r0 ` W0 \<subseteq> S \<inter> T"
       and r0 [simp]: "\<And>x. x \<in> S \<inter> T \<Longrightarrow> r0 x = x"
-    using ret  by (force simp add: retract_of_def retraction_def)
+    using ret  by (force simp: retract_of_def retraction_def)
   have ST: "x \<in> W \<Longrightarrow> x \<in> S \<longleftrightarrow> x \<in> T" for x
     using assms by (auto simp: W_def setdist_sing_in_set dest!: setdist_eq_0_closedin)
   define r where "r \<equiv> \<lambda>x. if x \<in> W0 then r0 x else x"
@@ -3667,8 +3548,7 @@ next
                 and opeSW1: "openin (subtopology euclidean S') W1"
                 and "g ` W1 \<subseteq> S" and geqr: "\<And>x. x \<in> W0 \<union> S \<Longrightarrow> g x = r x"
     apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR S\<close> _ \<open>r ` (W0 \<union> S) \<subseteq> S\<close> cloS'WS])
-     apply (rule continuous_on_subset [OF contr])
-    apply (blast intro:  elim: )+
+     apply (rule continuous_on_subset [OF contr], blast+)
     done
   have cloT'WT: "closedin (subtopology euclidean T') (W0 \<union> T)"
     by (meson closedin_subset_trans UT cloUT' \<open>T \<subseteq> T'\<close> \<open>W \<subseteq> T'\<close> cloUW cloWW0 
@@ -3677,13 +3557,12 @@ next
                 and opeSW2: "openin (subtopology euclidean T') W2"
                 and "h ` W2 \<subseteq> T" and heqr: "\<And>x. x \<in> W0 \<union> T \<Longrightarrow> h x = r x"
     apply (rule ANR_imp_absolute_neighbourhood_extensor [OF \<open>ANR T\<close> _ \<open>r ` (W0 \<union> T) \<subseteq> T\<close> cloT'WT])
-     apply (rule continuous_on_subset [OF contr])
-    apply (blast intro:  elim: )+
+     apply (rule continuous_on_subset [OF contr], blast+)
     done
   have "S' \<inter> T' = W"
     by (force simp: S'_def T'_def W_def)
   obtain O1 O2 where "open O1" "W1 = S' \<inter> O1" "open O2" "W2 = T' \<inter> O2"
-    using opeSW1 opeSW2 by (force simp add: openin_open)
+    using opeSW1 opeSW2 by (force simp: openin_open)
   show ?thesis
   proof
     have eq: "W1 - (W - U0) \<union> (W2 - (W - U0)) =
@@ -3692,25 +3571,23 @@ next
       by (auto simp: \<open>S' \<union> T' = U\<close> [symmetric] \<open>S' \<inter> T' = W\<close> [symmetric] \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close>)
     show "openin (subtopology euclidean U) (W1 - (W - U0) \<union> (W2 - (W - U0)))"
       apply (subst eq)
-      apply (intro openin_Un openin_Int_open openin_diff closedin_diff cloUW opeUU0 cloUS' cloUT' \<open>open O1\<close> \<open>open O2\<close>)
-      apply simp_all
+      apply (intro openin_Un openin_Int_open openin_diff closedin_diff cloUW opeUU0 cloUS' cloUT' \<open>open O1\<close> \<open>open O2\<close>, simp_all)
       done
     have cloW1: "closedin (subtopology euclidean (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W1 - (W - U0))"
       using cloUS' apply (simp add: closedin_closed)
       apply (erule ex_forward)
       using U0 \<open>W0 \<union> S \<subseteq> W1\<close>
-      apply (auto simp add: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
+      apply (auto simp: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
       done
     have cloW2: "closedin (subtopology euclidean (W1 - (W - U0) \<union> (W2 - (W - U0)))) (W2 - (W - U0))"
       using cloUT' apply (simp add: closedin_closed)
       apply (erule ex_forward)
       using U0 \<open>W0 \<union> T \<subseteq> W2\<close>
-      apply (auto simp add: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
+      apply (auto simp: \<open>W1 = S' \<inter> O1\<close> \<open>W2 = T' \<inter> O2\<close> \<open>S' \<union> T' = U\<close> [symmetric]\<open>S' \<inter> T' = W\<close> [symmetric])
       done
     have *: "\<forall>x\<in>S \<union> T. (if x \<in> S' then g x else h x) = x"
       using ST \<open>S' \<inter> T' = W\<close> cloT'WT closedin_subset geqr heqr 
-      apply (auto simp: r_def)
-       apply fastforce
+      apply (auto simp: r_def, fastforce)
       using \<open>S \<subseteq> S'\<close> \<open>T \<subseteq> T'\<close> \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W1 = S' \<inter> O1\<close>  by auto
     have "\<exists>r. continuous_on (W1 - (W - U0) \<union> (W2 - (W - U0))) r \<and>
               r ` (W1 - (W - U0) \<union> (W2 - (W - U0))) \<subseteq> S \<union> T \<and> 
@@ -3725,7 +3602,7 @@ next
       done
     then show "S \<union> T retract_of W1 - (W - U0) \<union> (W2 - (W - U0))"
       using  \<open>W0 \<union> S \<subseteq> W1\<close> \<open>W0 \<union> T \<subseteq> W2\<close> ST opeUU0 U0
-      by (auto simp add: retract_of_def retraction_def)
+      by (auto simp: retract_of_def retraction_def)
   qed
 qed
 
@@ -4059,15 +3936,15 @@ next
     by (auto simp: closest_point_self)
   have "rel_frontier S retract_of affine hull S - {a}"
     by (simp add: assms a rel_frontier_retract_of_punctured_affine_hull)
-  also have "... retract_of {x. closest_point (affine hull S) x \<noteq> a}"
+  also have "\<dots> retract_of {x. closest_point (affine hull S) x \<noteq> a}"
     apply (simp add: retract_of_def retraction_def ahS)
     apply (rule_tac x="closest_point (affine hull S)" in exI)
-    apply (auto simp add: False closest_point_self affine_imp_convex closest_point_in_set continuous_on_closest_point)
+    apply (auto simp: False closest_point_self affine_imp_convex closest_point_in_set continuous_on_closest_point)
     done
   finally have "rel_frontier S retract_of {x. closest_point (affine hull S) x \<noteq> a}" .
   moreover have "openin (subtopology euclidean UNIV) (UNIV \<inter> closest_point (affine hull S) -` (- {a}))"
     apply (rule continuous_openin_preimage_gen)
-    apply (auto simp add: False affine_imp_convex continuous_on_closest_point)
+    apply (auto simp: False affine_imp_convex continuous_on_closest_point)
     done
   ultimately show ?thesis
     unfolding ENR_def
@@ -4116,7 +3993,7 @@ proof -
       apply (rule continuous_on_cases_local [OF clS clT])
       using r by (auto simp: continuous_on_id)
   qed (use r in auto)
-  also have "... retract_of U"
+  also have "\<dots> retract_of U"
     by (rule Un)
   finally show ?thesis .
 qed
@@ -4499,7 +4376,7 @@ proof -
              and him: "h ` ({0..1} \<times> S) \<subseteq> U"
              and [simp]: "\<And>x. h(0, x) = f x" "\<And>x. h(1::real, x) = g x"
        using assms by (auto simp: homotopic_with_def)
-  define h' where "h' \<equiv>  \<lambda>z. if snd z \<in> S then h z else (f o snd) z"
+  define h' where "h' \<equiv>  \<lambda>z. if snd z \<in> S then h z else (f \<circ> snd) z"
   define B where "B \<equiv> {0::real} \<times> T \<union> {0..1} \<times> S"
   have clo0T: "closedin (subtopology euclidean ({0..1} \<times> T)) ({0::real} \<times> T)"
     by (simp add: closedin_subtopology_refl closedin_Times)
@@ -4542,7 +4419,7 @@ proof -
                       "retraction V B r" for V r
       using that
       apply (clarsimp simp add: retraction_def)
-      apply (rule Vk [of V "h' o r"], assumption+)
+      apply (rule Vk [of V "h' \<circ> r"], assumption+)
         apply (metis continuous_on_compose conth' continuous_on_subset) 
       using \<open>h' ` B \<subseteq> U\<close> apply force+
       done
@@ -4629,7 +4506,7 @@ corollary nullhomotopic_into_ANR_extension:
 proof
   assume ?lhs
   then obtain c where c: "homotopic_with (\<lambda>x. True) S T (\<lambda>x. c) f"
-    by (blast intro: homotopic_with_symD elim: )
+    by (blast intro: homotopic_with_symD)
   have "closedin (subtopology euclidean UNIV) S"
     using \<open>closed S\<close> closed_closedin by fastforce
   then obtain g where "continuous_on UNIV g" "range g \<subseteq> T"
@@ -4645,10 +4522,10 @@ next
   then obtain c where "homotopic_with (\<lambda>h. True) UNIV T g (\<lambda>x. c)"
     using nullhomotopic_from_contractible [of UNIV g T] contractible_UNIV by blast
   then show ?lhs
-    apply (rule_tac x="c" in exI)
+    apply (rule_tac x=c in exI)
     apply (rule homotopic_with_eq [of _ _ _ g "\<lambda>x. c"])
     apply (rule homotopic_with_subset_left)
-    apply (auto simp add: \<open>\<And>x. x \<in> S \<Longrightarrow> g x = f x\<close>)
+    apply (auto simp: \<open>\<And>x. x \<in> S \<Longrightarrow> g x = f x\<close>)
     done
 qed
 
@@ -4672,7 +4549,7 @@ corollary nullhomotopic_into_sphere_extension:
            (is "?lhs = ?rhs")
 proof (cases "r = 0")
   case True with fim show ?thesis
-    apply (auto simp: )
+    apply auto
     using fim continuous_on_const apply fastforce
     by (metis contf contractible_sing nullhomotopic_into_contractible)
 next
@@ -4717,11 +4594,11 @@ next
     obtain g where "range g \<subseteq> sphere 0 1" "continuous_on UNIV g"
                         "\<And>x. x \<in> S \<Longrightarrow> g x = (x - a) /\<^sub>R norm (x - a)"
       using notr
-      by (auto simp add: nullhomotopic_into_sphere_extension
+      by (auto simp: nullhomotopic_into_sphere_extension
                  [OF \<open>closed S\<close> continuous_on_Borsuk_map [OF \<open>a \<notin> S\<close>] False s01])
     with \<open>a \<notin> S\<close> show  "~ ?lhs"
       apply (clarsimp simp: Borsuk_map_into_sphere [of a S, symmetric] dest!: nog)
-      apply (drule_tac x="g" in spec)
+      apply (drule_tac x=g in spec)
       using continuous_on_subset by fastforce 
   next
     assume "~ ?lhs"
@@ -5070,7 +4947,7 @@ proof -
         then obtain k where "y \<in> V k" and j: "\<forall>j<k. y \<notin> V j"
           by (metis image_iff V wop)
         with him t show "\<zeta>(t, y) \<in> T"
-          by (subst eq) (force simp:)+
+          by (subst eq) force+
       qed
       fix X y
       assume "X \<in> \<V>" "y \<in> X"
@@ -5290,5 +5167,17 @@ corollary path_connected_complement_homeomorphic_convex_compact:
     shows "path_connected(- S)"
   using connected_complement_homeomorphic_convex_compact [OF assms]
   using \<open>compact T\<close> compact_eq_bounded_closed connected_open_path_connected hom homeomorphic_compactness by blast
+
+lemma path_connected_complement_homeomorphic_interval:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S homeomorphic cbox a b" "2 \<le> DIM('a)"
+  shows "path_connected(-S)"
+  using assms compact_cbox convex_box(1) path_connected_complement_homeomorphic_convex_compact by blast
+
+lemma connected_complement_homeomorphic_interval:
+  fixes S :: "'a::euclidean_space set"
+  assumes "S homeomorphic cbox a b" "2 \<le> DIM('a)"
+  shows "connected(-S)"
+  using assms path_connected_complement_homeomorphic_interval path_connected_imp_connected by blast
 
 end

@@ -27,9 +27,9 @@ fun insert :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
      EQ \<Rightarrow> Node l a r |
      GT \<Rightarrow> Node l a (insert x r))"
 
-fun del_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
-"del_min (Node l a r) =
-  (if l = Leaf then (a,r) else let (x,l') = del_min l in (x, Node l' a r))"
+fun split_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
+"split_min (Node l a r) =
+  (if l = Leaf then (a,r) else let (x,l') = split_min l in (x, Node l' a r))"
 
 fun delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "delete x Leaf = Leaf" |
@@ -37,7 +37,7 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
   (case cmp x a of
      LT \<Rightarrow>  Node (delete x l) a r |
      GT \<Rightarrow>  Node l a (delete x r) |
-     EQ \<Rightarrow> if r = Leaf then l else let (a',r') = del_min r in Node l a' r')"
+     EQ \<Rightarrow> if r = Leaf then l else let (a',r') = split_min r in Node l a' r')"
 
 
 subsection "Functional Correctness Proofs"
@@ -50,14 +50,14 @@ lemma inorder_insert:
 by(induction t) (auto simp: ins_list_simps)
 
 
-lemma del_minD:
-  "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> x # inorder t' = inorder t"
-by(induction t arbitrary: t' rule: del_min.induct)
+lemma split_minD:
+  "split_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> x # inorder t' = inorder t"
+by(induction t arbitrary: t' rule: split_min.induct)
   (auto simp: sorted_lems split: prod.splits if_splits)
 
 lemma inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
-by(induction t) (auto simp: del_list_simps del_minD split: prod.splits)
+by(induction t) (auto simp: del_list_simps split_minD split: prod.splits)
 
 interpretation Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete

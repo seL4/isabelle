@@ -27,22 +27,8 @@ proof -
   show "f (s *\<^sub>R v) = s *\<^sub>R (f v)" by (rule f.scale)
 qed
 
-lemma bounded_linearI:
-  assumes "\<And>x y. f (x + y) = f x + f y"
-    and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x"
-    and "\<And>x. norm (f x) \<le> norm x * K"
-  shows "bounded_linear f"
-  using assms by (rule bounded_linear_intro) (* FIXME: duplicate *)
-
-lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x\<in> (UNIV::'a::finite set)}"
-proof -
-  have eq: "{f x |x. x\<in> UNIV} = f ` UNIV"
-    by auto
-  show ?thesis unfolding eq
-    apply (rule finite_imageI)
-    apply (rule finite)
-    done
-qed
+lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x \<in> (UNIV::'a::finite set)}"
+  using finite finite_image_set by blast
 
 
 subsection%unimportant \<open>More interesting properties of the norm.\<close>
@@ -123,10 +109,8 @@ lemma sum_norm_bound:
 lemma sum_group:
   assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
   shows "sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) T = sum g S"
-  apply (subst sum_image_gen[OF fS, of g f])
-  apply (rule sum.mono_neutral_right[OF fT fST])
-  apply (auto intro: sum.neutral)
-  done
+  unfolding sum_image_gen[OF fS, of g f]
+  by (auto intro: sum.neutral sum.mono_neutral_right[OF fT fST])
 
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
 proof
@@ -351,12 +335,7 @@ lemma seq_mono_lemma:
   assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
     and "\<forall>n \<ge> m. e n \<le> e m"
   shows "\<forall>n \<ge> m. d n < e m"
-  using assms
-  apply auto
-  apply (erule_tac x="n" in allE)
-  apply (erule_tac x="n" in allE)
-  apply auto
-  done
+  using assms by force
 
 lemma infinite_enumerate:
   assumes fS: "infinite S"
@@ -468,10 +447,7 @@ proof (cases "x > 0")
 next
   case False
   with y x1 show ?thesis
-    apply auto
-    apply (rule exI[where x=1])
-    apply auto
-    done
+    by (metis less_le_trans not_less power_one_right)
 qed
 
 lemma forall_pos_mono:
@@ -522,11 +498,7 @@ proof
     proof -
       from Basis_le_norm[OF that, of x]
       show "norm (?g i) \<le> norm (f i) * norm x"
-        unfolding norm_scaleR
-        apply (subst mult.commute)
-        apply (rule mult_mono)
-        apply (auto simp add: field_simps)
-        done
+        unfolding norm_scaleR  by (metis mult.commute mult_left_mono norm_ge_zero)
     qed
     from sum_norm_le[of _ ?g, OF th]
     show "norm (f x) \<le> ?B * norm x"
@@ -611,23 +583,17 @@ proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i
   fix x :: 'm
   fix y :: 'n
   have "norm (h x y) = norm (h (sum (\<lambda>i. (x \<bullet> i) *\<^sub>R i) Basis) (sum (\<lambda>i. (y \<bullet> i) *\<^sub>R i) Basis))"
-    apply (subst euclidean_representation[where 'a='m])
-    apply (subst euclidean_representation[where 'a='n])
-    apply rule
-    done
+    by (simp add: euclidean_representation)
   also have "\<dots> = norm (sum (\<lambda> (i,j). h ((x \<bullet> i) *\<^sub>R i) ((y \<bullet> j) *\<^sub>R j)) (Basis \<times> Basis))"
     unfolding bilinear_sum[OF bh] ..
   finally have th: "norm (h x y) = \<dots>" .
-  show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
-    apply (auto simp add: sum_distrib_right th sum.cartesian_product)
-    apply (rule sum_norm_le)
-    apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
-      field_simps simp del: scaleR_scaleR)
-    apply (rule mult_mono)
-    apply (auto simp add: zero_le_mult_iff Basis_le_norm)
-    apply (rule mult_mono)
-    apply (auto simp add: zero_le_mult_iff Basis_le_norm)
-    done
+  have "\<And>i j. \<lbrakk>i \<in> Basis; j \<in> Basis\<rbrakk>
+           \<Longrightarrow> \<bar>x \<bullet> i\<bar> * (\<bar>y \<bullet> j\<bar> * norm (h i j)) \<le> norm x * (norm y * norm (h i j))"
+    by (auto simp add: zero_le_mult_iff Basis_le_norm mult_mono)
+  then show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
+    unfolding sum_distrib_right th sum.cartesian_product
+    by (clarsimp simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
+      field_simps simp del: scaleR_scaleR intro!: sum_norm_le)
 qed
 
 lemma bilinear_conv_bounded_bilinear:
@@ -645,15 +611,9 @@ proof
     show "h x (y + z) = h x y + h x z"
       using \<open>bilinear h\<close> unfolding bilinear_def linear_iff by simp
   next
-    fix r x y
-    show "h (scaleR r x) y = scaleR r (h x y)"
+    show "h (scaleR r x) y = scaleR r (h x y)" "h x (scaleR r y) = scaleR r (h x y)" for r x y
       using \<open>bilinear h\<close> unfolding bilinear_def linear_iff
-      by simp
-  next
-    fix r x y
-    show "h x (scaleR r y) = scaleR r (h x y)"
-      using \<open>bilinear h\<close> unfolding bilinear_def linear_iff
-      by simp
+      by simp_all
   next
     have "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
       using \<open>bilinear h\<close> by (rule bilinear_bounded)
@@ -803,7 +763,7 @@ lemma orthogonal_basis_exists:
 proof -
   from basis_exists[of V] obtain B where
     B: "B \<subseteq> V" "independent B" "V \<subseteq> span B" "card B = dim V"
-    by blast
+    by force
   from B have fB: "finite B" "card B = dim V"
     using independent_bound by auto
   from basis_orthogonal[OF fB(1)] obtain C where
@@ -855,8 +815,8 @@ proof -
     done
   with a have a0:"?a  \<noteq> 0"
     by auto
-  have "\<forall>x\<in>span B. ?a \<bullet> x = 0"
-  proof (rule span_induct')
+  have "?a \<bullet> x = 0" if "x\<in>span B" for x
+  proof (rule span_induct [OF that])
     show "subspace {x. ?a \<bullet> x = 0}"
       by (auto simp add: subspace_def inner_add)
   next
@@ -879,9 +839,9 @@ proof -
           intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
         done
     }
-    then show "\<forall>x \<in> B. ?a \<bullet> x = 0"
-      by blast
-  qed
+    then show "?a \<bullet> x = 0" if "x \<in> B" for x
+      using that by blast
+    qed
   with a0 show ?thesis
     unfolding sSB by (auto intro: exI[where x="?a"])
 qed
@@ -927,8 +887,9 @@ lemma bilinear_eq:
     and bg: "bilinear g"
     and SB: "S \<subseteq> span B"
     and TC: "T \<subseteq> span C"
-    and fg: "\<forall>x\<in> B. \<forall>y\<in> C. f x y = g x y"
-  shows "\<forall>x\<in>S. \<forall>y\<in>T. f x y = g x y "
+    and "x\<in>S" "y\<in>T"
+    and fg: "\<And>x y. \<lbrakk>x \<in> B; y\<in> C\<rbrakk> \<Longrightarrow> f x y = g x y"
+  shows "f x y = g x y"
 proof -
   let ?P = "{x. \<forall>y\<in> span C. f x y = g x y}"
   from bf bg have sp: "subspace ?P"
@@ -936,27 +897,25 @@ proof -
     by (auto simp add: span_zero bilinear_lzero[OF bf] bilinear_lzero[OF bg]
         span_add Ball_def
       intro: bilinear_ladd[OF bf])
-
-  have "\<forall>x \<in> span B. \<forall>y\<in> span C. f x y = g x y"
-    apply (rule span_induct' [OF _ sp])
-    apply (rule ballI)
-    apply (rule span_induct')
-    apply (simp add: fg)
+  have sfg: "\<And>x. x \<in> B \<Longrightarrow> subspace {a. f x a = g x a}"
     apply (auto simp add: subspace_def)
     using bf bg unfolding bilinear_def linear_iff
       apply (auto simp add: span_zero bilinear_rzero[OF bf] bilinear_rzero[OF bg]
         span_add Ball_def
       intro: bilinear_ladd[OF bf])
     done
+  have "\<forall>y\<in> span C. f x y = g x y" if "x \<in> span B" for x
+    apply (rule span_induct [OF that sp])
+    using fg sfg span_induct by blast
   then show ?thesis
-    using SB TC by auto
+    using SB TC assms by auto
 qed
 
 lemma bilinear_eq_stdbasis:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> _"
   assumes bf: "bilinear f"
     and bg: "bilinear g"
-    and fg: "\<forall>i\<in>Basis. \<forall>j\<in>Basis. f i j = g i j"
+    and fg: "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> f i j = g i j"
   shows "f = g"
   using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis] fg] by blast
 
@@ -1010,28 +969,21 @@ lemma infnorm_0: "infnorm 0 = 0"
   by (simp add: infnorm_eq_0)
 
 lemma infnorm_neg: "infnorm (- x) = infnorm x"
-  unfolding infnorm_def
-  apply (rule cong[of "Sup" "Sup"])
-  apply blast
-  apply auto
-  done
+  unfolding infnorm_def by simp
 
 lemma infnorm_sub: "infnorm (x - y) = infnorm (y - x)"
-proof -
-  have "y - x = - (x - y)" by simp
-  then show ?thesis
-    by (metis infnorm_neg)
-qed
+  by (metis infnorm_neg minus_diff_eq)
 
-lemma real_abs_sub_infnorm: "\<bar>infnorm x - infnorm y\<bar> \<le> infnorm (x - y)"
+lemma absdiff_infnorm: "\<bar>infnorm x - infnorm y\<bar> \<le> infnorm (x - y)"
 proof -
-  have th: "\<And>(nx::real) n ny. nx \<le> n + ny \<Longrightarrow> ny \<le> n + nx \<Longrightarrow> \<bar>nx - ny\<bar> \<le> n"
+  have *: "\<And>(nx::real) n ny. nx \<le> n + ny \<Longrightarrow> ny \<le> n + nx \<Longrightarrow> \<bar>nx - ny\<bar> \<le> n"
     by arith
-  from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
-  have ths: "infnorm x \<le> infnorm (x - y) + infnorm y"
-    "infnorm y \<le> infnorm (x - y) + infnorm x"
-    by (simp_all add: field_simps infnorm_neg)
-  from th[OF ths] show ?thesis .
+  show ?thesis
+  proof (rule *)
+    from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
+    show "infnorm x \<le> infnorm (x - y) + infnorm y" "infnorm y \<le> infnorm (x - y) + infnorm x"
+      by (simp_all add: field_simps infnorm_neg)
+  qed
 qed
 
 lemma real_abs_infnorm: "\<bar>infnorm x\<bar> = infnorm x"
@@ -1046,8 +998,7 @@ lemma infnorm_mul: "infnorm (a *\<^sub>R x) = \<bar>a\<bar> * infnorm x"
   unfolding infnorm_Max
 proof (safe intro!: Max_eqI)
   let ?B = "(\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis"
-  {
-    fix b :: 'a
+  { fix b :: 'a
     assume "b \<in> Basis"
     then show "\<bar>a *\<^sub>R x \<bullet> b\<bar> \<le> \<bar>a\<bar> * Max ?B"
       by (simp add: abs_mult mult_left_mono)
@@ -1073,27 +1024,17 @@ lemma infnorm_le_norm: "infnorm x \<le> norm x"
 lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"
   shows "norm x \<le> sqrt DIM('a) * infnorm x"
-proof -
-  let ?d = "DIM('a)"
-  have "real ?d \<ge> 0"
-    by simp
-  then have d2: "(sqrt (real ?d))\<^sup>2 = real ?d"
-    by (auto intro: real_sqrt_pow2)
-  have th: "sqrt (real ?d) * infnorm x \<ge> 0"
+  unfolding norm_eq_sqrt_inner id_def 
+proof (rule real_le_lsqrt[OF inner_ge_zero])
+  show "sqrt DIM('a) * infnorm x \<ge> 0"
     by (simp add: zero_le_mult_iff infnorm_pos_le)
-  have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)\<^sup>2"
-    unfolding power_mult_distrib d2
-    apply (subst euclidean_inner)
-    apply (subst power2_abs[symmetric])
-    apply (rule order_trans[OF sum_bounded_above[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
-    apply (auto simp add: power2_eq_square[symmetric])
-    apply (subst power2_abs[symmetric])
-    apply (rule power_mono)
-    apply (auto simp: infnorm_Max)
-    done
-  from real_le_lsqrt[OF inner_ge_zero th th1]
-  show ?thesis
-    unfolding norm_eq_sqrt_inner id_def .
+  have "x \<bullet> x \<le> (\<Sum>b\<in>Basis. x \<bullet> b * (x \<bullet> b))"
+    by (metis euclidean_inner order_refl)
+  also have "... \<le> DIM('a) * \<bar>infnorm x\<bar>\<^sup>2"
+    by (rule sum_bounded_above) (metis Basis_le_infnorm abs_le_square_iff power2_eq_square real_abs_infnorm)
+  also have "... \<le> (sqrt DIM('a) * infnorm x)\<^sup>2"
+    by (simp add: power_mult_distrib)
+  finally show "x \<bullet> x \<le> (sqrt DIM('a) * infnorm x)\<^sup>2" .
 qed
 
 lemma tendsto_infnorm [tendsto_intros]:
@@ -1103,46 +1044,30 @@ proof (rule tendsto_compose [OF LIM_I assms])
   fix r :: real
   assume "r > 0"
   then show "\<exists>s>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < s \<longrightarrow> norm (infnorm x - infnorm a) < r"
-    by (metis real_norm_def le_less_trans real_abs_sub_infnorm infnorm_le_norm)
+    by (metis real_norm_def le_less_trans absdiff_infnorm infnorm_le_norm)
 qed
 
 text \<open>Equality in Cauchy-Schwarz and triangle inequalities.\<close>
 
 lemma norm_cauchy_schwarz_eq: "x \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
   (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
-  {
-    assume h: "x = 0"
-    then have ?thesis by simp
-  }
-  moreover
-  {
-    assume h: "y = 0"
-    then have ?thesis by simp
-  }
-  moreover
-  {
-    assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
-    from inner_eq_zero_iff[of "norm y *\<^sub>R x - norm x *\<^sub>R y"]
-    have "?rhs \<longleftrightarrow>
+proof (cases "x=0")
+  case True
+  then show ?thesis 
+    by auto
+next
+  case False
+  from inner_eq_zero_iff[of "norm y *\<^sub>R x - norm x *\<^sub>R y"]
+  have "?rhs \<longleftrightarrow>
       (norm y * (norm y * norm x * norm x - norm x * (x \<bullet> y)) -
         norm x * (norm y * (y \<bullet> x) - norm x * norm y * norm y) =  0)"
-      using x y
-      unfolding inner_simps
-      unfolding power2_norm_eq_inner[symmetric] power2_eq_square right_minus_eq
-      apply (simp add: inner_commute)
-      apply (simp add: field_simps)
-      apply metis
-      done
-    also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" using x y
-      by (simp add: field_simps inner_commute)
-    also have "\<dots> \<longleftrightarrow> ?lhs" using x y
-      apply simp
-      apply metis
-      done
-    finally have ?thesis by blast
-  }
-  ultimately show ?thesis by blast
+    using False unfolding inner_simps
+    by (auto simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute field_simps)
+  also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" 
+    using False  by (simp add: field_simps inner_commute)
+  also have "\<dots> \<longleftrightarrow> ?lhs" 
+    using False by auto
+  finally show ?thesis by metis
 qed
 
 lemma norm_cauchy_schwarz_abs_eq:
@@ -1154,7 +1079,7 @@ proof -
     by arith
   have "?rhs \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm (- x) *\<^sub>R y = norm y *\<^sub>R (- x)"
     by simp
-  also have "\<dots> \<longleftrightarrow>(x \<bullet> y = norm x * norm y \<or> (- x) \<bullet> y = norm x * norm y)"
+  also have "\<dots> \<longleftrightarrow> (x \<bullet> y = norm x * norm y \<or> (- x) \<bullet> y = norm x * norm y)"
     unfolding norm_cauchy_schwarz_eq[symmetric]
     unfolding norm_minus_cancel norm_scaleR ..
   also have "\<dots> \<longleftrightarrow> ?lhs"
@@ -1166,33 +1091,21 @@ qed
 lemma norm_triangle_eq:
   fixes x y :: "'a::real_inner"
   shows "norm (x + y) = norm x + norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
-proof -
-  {
-    assume x: "x = 0 \<or> y = 0"
-    then have ?thesis
-      by (cases "x = 0") simp_all
-  }
-  moreover
-  {
-    assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
-    then have "norm x \<noteq> 0" "norm y \<noteq> 0"
-      by simp_all
-    then have n: "norm x > 0" "norm y > 0"
-      using norm_ge_zero[of x] norm_ge_zero[of y] by arith+
-    have th: "\<And>(a::real) b c. a + b + c \<noteq> 0 \<Longrightarrow> a = b + c \<longleftrightarrow> a\<^sup>2 = (b + c)\<^sup>2"
-      by algebra
-    have "norm (x + y) = norm x + norm y \<longleftrightarrow> (norm (x + y))\<^sup>2 = (norm x + norm y)\<^sup>2"
-      apply (rule th)
-      using n norm_ge_zero[of "x + y"]
-      apply arith
-      done
-    also have "\<dots> \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
-      unfolding norm_cauchy_schwarz_eq[symmetric]
-      unfolding power2_norm_eq_inner inner_simps
-      by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute field_simps)
-    finally have ?thesis .
-  }
-  ultimately show ?thesis by blast
+proof (cases "x = 0 \<or> y = 0")
+  case True
+  then show ?thesis 
+    by force
+next
+  case False
+  then have n: "norm x > 0" "norm y > 0"
+    by auto
+  have "norm (x + y) = norm x + norm y \<longleftrightarrow> (norm (x + y))\<^sup>2 = (norm x + norm y)\<^sup>2"
+    by simp
+  also have "\<dots> \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
+    unfolding norm_cauchy_schwarz_eq[symmetric]
+    unfolding power2_norm_eq_inner inner_simps
+    by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute field_simps)
+  finally show ?thesis .
 qed
 
 
@@ -1251,81 +1164,67 @@ lemma collinear_sing [iff]: "collinear {x}"
 lemma collinear_2 [iff]: "collinear {x, y}"
   apply (simp add: collinear_def)
   apply (rule exI[where x="x - y"])
-  apply auto
-  apply (rule exI[where x=1], simp)
-  apply (rule exI[where x="- 1"], simp)
-  done
+  by (metis minus_diff_eq scaleR_left.minus scaleR_one)
 
 lemma collinear_lemma: "collinear {0, x, y} \<longleftrightarrow> x = 0 \<or> y = 0 \<or> (\<exists>c. y = c *\<^sub>R x)"
   (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
-  {
-    assume "x = 0 \<or> y = 0"
-    then have ?thesis
-      by (cases "x = 0") (simp_all add: collinear_2 insert_commute)
-  }
-  moreover
-  {
-    assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
-    have ?thesis
-    proof
-      assume h: "?lhs"
-      then obtain u where u: "\<forall> x\<in> {0,x,y}. \<forall>y\<in> {0,x,y}. \<exists>c. x - y = c *\<^sub>R u"
-        unfolding collinear_def by blast
-      from u[rule_format, of x 0] u[rule_format, of y 0]
-      obtain cx and cy where
-        cx: "x = cx *\<^sub>R u" and cy: "y = cy *\<^sub>R u"
-        by auto
-      from cx x have cx0: "cx \<noteq> 0" by auto
-      from cy y have cy0: "cy \<noteq> 0" by auto
-      let ?d = "cy / cx"
-      from cx cy cx0 have "y = ?d *\<^sub>R x"
-        by simp
-      then show ?rhs using x y by blast
-    next
-      assume h: "?rhs"
-      then obtain c where c: "y = c *\<^sub>R x"
-        using x y by blast
-      show ?lhs
-        unfolding collinear_def c
-        apply (rule exI[where x=x])
-        apply auto
-        apply (rule exI[where x="- 1"], simp)
-        apply (rule exI[where x= "-c"], simp)
+proof (cases "x = 0 \<or> y = 0")
+  case True
+  then show ?thesis
+    by (auto simp: insert_commute)
+next
+  case False
+  show ?thesis 
+  proof
+    assume h: "?lhs"
+    then obtain u where u: "\<forall> x\<in> {0,x,y}. \<forall>y\<in> {0,x,y}. \<exists>c. x - y = c *\<^sub>R u"
+      unfolding collinear_def by blast
+    from u[rule_format, of x 0] u[rule_format, of y 0]
+    obtain cx and cy where
+      cx: "x = cx *\<^sub>R u" and cy: "y = cy *\<^sub>R u"
+      by auto
+    from cx cy False have cx0: "cx \<noteq> 0" and cy0: "cy \<noteq> 0" by auto
+    let ?d = "cy / cx"
+    from cx cy cx0 have "y = ?d *\<^sub>R x"
+      by simp
+    then show ?rhs using False by blast
+  next
+    assume h: "?rhs"
+    then obtain c where c: "y = c *\<^sub>R x"
+      using False by blast
+    show ?lhs
+      unfolding collinear_def c
+      apply (rule exI[where x=x])
+      apply auto
+          apply (rule exI[where x="- 1"], simp)
+         apply (rule exI[where x= "-c"], simp)
         apply (rule exI[where x=1], simp)
-        apply (rule exI[where x="1 - c"], simp add: scaleR_left_diff_distrib)
-        apply (rule exI[where x="c - 1"], simp add: scaleR_left_diff_distrib)
-        done
-    qed
-  }
-  ultimately show ?thesis by blast
+       apply (rule exI[where x="1 - c"], simp add: scaleR_left_diff_distrib)
+      apply (rule exI[where x="c - 1"], simp add: scaleR_left_diff_distrib)
+      done
+  qed
 qed
 
 lemma norm_cauchy_schwarz_equal: "\<bar>x \<bullet> y\<bar> = norm x * norm y \<longleftrightarrow> collinear {0, x, y}"
-  unfolding norm_cauchy_schwarz_abs_eq
-  apply (cases "x=0", simp_all)
-  apply (cases "y=0", simp_all add: insert_commute)
-  unfolding collinear_lemma
-  apply simp
-  apply (subgoal_tac "norm x \<noteq> 0")
-  apply (subgoal_tac "norm y \<noteq> 0")
-  apply (rule iffI)
-  apply (cases "norm x *\<^sub>R y = norm y *\<^sub>R x")
-  apply (rule exI[where x="(1/norm x) * norm y"])
-  apply (drule sym)
-  unfolding scaleR_scaleR[symmetric]
-  apply (simp add: field_simps)
-  apply (rule exI[where x="(1/norm x) * - norm y"])
-  apply clarify
-  apply (drule sym)
-  unfolding scaleR_scaleR[symmetric]
-  apply (simp add: field_simps)
-  apply (erule exE)
-  apply (erule ssubst)
-  unfolding scaleR_scaleR
-  unfolding norm_scaleR
-  apply (subgoal_tac "norm x * c = \<bar>c\<bar> * norm x \<or> norm x * c = - \<bar>c\<bar> * norm x")
-  apply (auto simp add: field_simps)
-  done
+proof (cases "x=0")
+  case True
+  then show ?thesis
+    by (auto simp: insert_commute)
+next
+  case False
+  then have nnz: "norm x \<noteq> 0"
+    by auto
+  show ?thesis
+  proof
+    assume "\<bar>x \<bullet> y\<bar> = norm x * norm y"
+    then show "collinear {0, x, y}"
+      unfolding norm_cauchy_schwarz_abs_eq collinear_lemma 
+      by (meson eq_vector_fraction_iff nnz)
+  next
+    assume "collinear {0, x, y}"
+    with False show "\<bar>x \<bullet> y\<bar> = norm x * norm y"
+      unfolding norm_cauchy_schwarz_abs_eq collinear_lemma  by (auto simp: abs_if)
+  qed
+qed
 
 end

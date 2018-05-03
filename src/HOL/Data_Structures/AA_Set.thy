@@ -72,14 +72,14 @@ definition adjust :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 text\<open>In the paper, the last case of @{const adjust} is expressed with the help of an
 incorrect auxiliary function \texttt{nlvl}.
 
-Function @{text del_max} below is called \texttt{dellrg} in the paper.
+Function @{text split_max} below is called \texttt{dellrg} in the paper.
 The latter is incorrect for two reasons: \texttt{dellrg} is meant to delete the largest
 element but recurses on the left instead of the right subtree; the invariant
 is not restored.\<close>
 
-fun del_max :: "'a aa_tree \<Rightarrow> 'a aa_tree * 'a" where
-"del_max (Node lv l a Leaf) = (l,a)" |
-"del_max (Node lv l a r) = (let (r',b) = del_max r in (adjust(Node lv l a r'), b))"
+fun split_max :: "'a aa_tree \<Rightarrow> 'a aa_tree * 'a" where
+"split_max (Node lv l a Leaf) = (l,a)" |
+"split_max (Node lv l a r) = (let (r',b) = split_max r in (adjust(Node lv l a r'), b))"
 
 fun delete :: "'a::linorder \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
 "delete _ Leaf = Leaf" |
@@ -88,7 +88,7 @@ fun delete :: "'a::linorder \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" w
      LT \<Rightarrow> adjust (Node lv (delete x l) a r) |
      GT \<Rightarrow> adjust (Node lv l a (delete x r)) |
      EQ \<Rightarrow> (if l = Leaf then r
-            else let (l',b) = del_max l in adjust (Node lv l' b r)))"
+            else let (l',b) = split_max l in adjust (Node lv l' b r)))"
 
 fun pre_adjust where
 "pre_adjust (Node lv l a r) = (invar l \<and> invar r \<and>
@@ -397,13 +397,13 @@ qed
 
 declare prod.splits[split]
 
-theorem post_del_max:
- "\<lbrakk> invar t; (t', x) = del_max t; t \<noteq> Leaf \<rbrakk> \<Longrightarrow> post_del t t'"
-proof (induction t arbitrary: t' rule: del_max.induct)
+theorem post_split_max:
+ "\<lbrakk> invar t; (t', x) = split_max t; t \<noteq> Leaf \<rbrakk> \<Longrightarrow> post_del t t'"
+proof (induction t arbitrary: t' rule: split_max.induct)
   case (2 lv l a lvr rl ra rr)
   let ?r =  "\<langle>lvr, rl, ra, rr\<rangle>"
   let ?t = "\<langle>lv, l, a, ?r\<rangle>"
-  from "2.prems"(2) obtain r' where r': "(r', x) = del_max ?r"
+  from "2.prems"(2) obtain r' where r': "(r', x) = split_max ?r"
     and [simp]: "t' = adjust \<langle>lv, l, a, r'\<rangle>" by auto
   from  "2.IH"[OF _ r'] \<open>invar ?t\<close> have post: "post_del ?r r'" by simp
   note preR = pre_adj_if_postR[OF \<open>invar ?t\<close> post]
@@ -440,7 +440,7 @@ proof (induction t)
         by(auto simp: post_del_def invar.simps(2))
     next
       assume "l \<noteq> Leaf" thus ?thesis using equal
-        by simp (metis Node.prems inv_l post_del_adjL post_del_max pre_adj_if_postL)
+        by simp (metis Node.prems inv_l post_del_adjL post_split_max pre_adj_if_postL)
     qed
   qed
 qed (simp add: post_del_def)
@@ -471,16 +471,16 @@ by(cases t)
   (auto simp: adjust_def inorder_skew inorder_split invar.simps(2) pre_adjust.simps
      split: tree.splits)
 
-lemma del_maxD:
-  "\<lbrakk> del_max t = (t',x); t \<noteq> Leaf; invar t \<rbrakk> \<Longrightarrow> inorder t' @ [x] = inorder t"
-by(induction t arbitrary: t' rule: del_max.induct)
-  (auto simp: sorted_lems inorder_adjust pre_adj_if_postR post_del_max split: prod.splits)
+lemma split_maxD:
+  "\<lbrakk> split_max t = (t',x); t \<noteq> Leaf; invar t \<rbrakk> \<Longrightarrow> inorder t' @ [x] = inorder t"
+by(induction t arbitrary: t' rule: split_max.induct)
+  (auto simp: sorted_lems inorder_adjust pre_adj_if_postR post_split_max split: prod.splits)
 
 lemma inorder_delete:
   "invar t \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_adjust pre_adj_if_postL pre_adj_if_postR 
-              post_del_max post_delete del_maxD split: prod.splits)
+              post_split_max post_delete split_maxD split: prod.splits)
 
 interpretation I: Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete

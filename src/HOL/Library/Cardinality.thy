@@ -27,15 +27,6 @@ qed
 lemma (in type_definition) card: "card (UNIV :: 'b set) = card A"
   by (simp add: univ card_image inj_on_def Abs_inject)
 
-lemma finite_range_Some: "finite (range (Some :: 'a \<Rightarrow> 'a option)) = finite (UNIV :: 'a set)"
-by(auto dest: finite_imageD intro: inj_Some)
-
-lemma infinite_literal: "\<not> finite (UNIV :: String.literal set)"
-proof -
-  have "inj STR" by(auto intro: injI)
-  thus ?thesis
-    by(auto simp add: type_definition.univ[OF type_definition_literal] infinite_UNIV_listI dest: finite_imageD)
-qed
 
 subsection \<open>Cardinalities of types\<close>
 

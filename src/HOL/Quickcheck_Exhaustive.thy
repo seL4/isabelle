@@ -714,24 +714,6 @@ subsection \<open>Defining generators for abstract types\<close>
 
 ML_file "Tools/Quickcheck/abstract_generators.ML"
 
-instantiation char :: full_exhaustive
-begin
-
-definition full_exhaustive_char
-where
-  "full_exhaustive_char f i =
-     (if 0 < i then
-      case f (0, \<lambda>_ :: unit. Code_Evaluation.Const (STR ''Groups.zero_class.zero'') (TYPEREP(char))) of
-          Some x \<Rightarrow> Some x
-      | None \<Rightarrow> full_exhaustive_class.full_exhaustive
-          (\<lambda>(num, t). f (char_of_nat (nat_of_num num), \<lambda>_ :: unit. Code_Evaluation.App (Code_Evaluation.Const (STR ''String.Char'') TYPEREP(num \<Rightarrow> char)) (t ())))
-          (min (i - 1) 8) \<comment> \<open>generate at most 8 bits\<close>
-      else None)"
-
-instance ..
-
-end
-
 hide_fact (open) orelse_def
 no_notation orelse  (infixr "orelse" 55)
 

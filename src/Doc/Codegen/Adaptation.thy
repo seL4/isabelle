@@ -168,6 +168,35 @@ text \<open>
        Useful for code setups which involve e.g.~indexing
        of target-language arrays.  Part of @{text "HOL-Main"}.
 
+    \item[@{theory "String"}] provides an additional datatype @{typ
+       String.literal} which is isomorphic to lists of 7-bit (ASCII) characters;
+       @{typ String.literal}s are mapped to target-language strings.
+
+       Literal values of type @{typ String.literal} can be written
+       as @{text "STR ''\<dots>''"} for sequences of printable characters and
+       @{text "STR 0x\<dots>"} for one single ASCII code point given
+       as hexadecimal numeral; @{typ String.literal} supports concatenation
+       @{text "\<dots> + \<dots>"} for all standard target languages.
+
+       Note that the particular notion of \qt{string} is target-language
+       specific (sequence of 8-bit units, sequence of unicode code points, \ldots);
+       hence ASCII is the only reliable common base e.g.~for
+       printing (error) messages; more sophisticated applications
+       like verifying parsing algorithms require a dedicated
+       target-language specific model.
+
+       Nevertheless @{typ String.literal}s can be analyzed; the core operations
+       for this are @{term_type String.asciis_of_literal} and
+       @{term_type String.literal_of_asciis} which are implemented
+       in a target-language-specific way; particularly @{const String.asciis_of_literal}
+       checks its argument at runtime to make sure that it does
+       not contain non-ASCII-characters, to safeguard consistency.
+       On top of these, more abstract conversions like @{term_type
+       String.explode} and @{term_type String.implode}
+       are implemented.
+       
+       Part of @{text "HOL-Main"}.
+
     \item[@{text "Code_Target_Int"}] implements type @{typ int}
        by @{typ integer} and thus by target-language built-in integers.
 
@@ -185,17 +214,6 @@ text \<open>
     \item[@{text "Code_Target_Numeral"}] is a convenience theory
        containing both @{text "Code_Target_Nat"} and
        @{text "Code_Target_Int"}.
-
-    \item[@{theory "String"}] provides an additional datatype @{typ
-       String.literal} which is isomorphic to strings; @{typ
-       String.literal}s are mapped to target-language strings.  Useful
-       for code setups which involve e.g.~printing (error) messages.
-       Part of @{text "HOL-Main"}.
-
-    \item[@{text "Code_Char"}] represents @{text HOL} characters by
-       character literals in target languages.  \emph{Warning:} This
-       modifies adaptation in a non-conservative manner and thus
-       should always be imported \emph{last} in a theory header.
 
     \item[@{theory "IArray"}] provides a type @{typ "'a iarray"}
        isomorphic to lists but implemented by (effectively immutable)

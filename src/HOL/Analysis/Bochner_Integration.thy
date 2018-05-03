@@ -475,8 +475,8 @@ proof -
     by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ennreal (f x)" and v=enn2real])
        (auto intro: f simple_function_compose1 elim: simple_bochner_integrable.cases
              intro!: sum.cong ennreal_cong_mult
-             simp: sum_ennreal[symmetric] ac_simps ennreal_mult
-             simp del: sum_ennreal)
+             simp: ac_simps ennreal_mult
+             reorient: sum_ennreal)
   also have "\<dots> = (\<integral>\<^sup>+x. f x \<partial>M)"
     using f
     by (intro nn_integral_eq_simple_integral[symmetric])
@@ -504,7 +504,7 @@ proof -
     using simple_bochner_integrable_compose2[of "\<lambda>x y. norm (x - y)" M "s" "t"] s t
     by (auto intro!: simple_bochner_integral_eq_nn_integral)
   also have "\<dots> \<le> (\<integral>\<^sup>+x. ennreal (norm (f x - s x)) + ennreal (norm (f x - t x)) \<partial>M)"
-    by (auto intro!: nn_integral_mono simp: ennreal_plus[symmetric] simp del: ennreal_plus)
+    by (auto intro!: nn_integral_mono reorient: ennreal_plus)
        (metis (erased, hide_lams) add_diff_cancel_left add_diff_eq diff_add_eq order_trans
               norm_minus_commute norm_triangle_ineq4 order_refl)
   also have "\<dots> = ?S + ?T"
@@ -594,7 +594,7 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
     proof (intro always_eventually allI)
       fix i have "?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) + ennreal (norm (g x - sg i x)) \<partial>M)"
         by (auto intro!: nn_integral_mono norm_diff_triangle_ineq
-                 simp del: ennreal_plus simp add: ennreal_plus[symmetric])
+                 reorient: ennreal_plus)
       also have "\<dots> = ?g i"
         by (intro nn_integral_add) auto
       finally show "?f i \<le> ?g i" .
@@ -747,7 +747,7 @@ proof (elim has_bochner_integral.cases)
   finally have s_fin: "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) < \<infinity>" .
 
   have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ennreal (norm (f x - s i x)) + ennreal (norm (s i x)) \<partial>M)"
-    by (auto intro!: nn_integral_mono simp del: ennreal_plus simp add: ennreal_plus[symmetric])
+    by (auto intro!: nn_integral_mono reorient: ennreal_plus)
        (metis add.commute norm_triangle_sub)
   also have "\<dots> = (\<integral>\<^sup>+x. norm (f x - s i x) \<partial>M) + (\<integral>\<^sup>+x. norm (s i x) \<partial>M)"
     by (rule nn_integral_add) auto
@@ -783,7 +783,7 @@ using assms proof
         by (intro simple_bochner_integral_eq_nn_integral)
            (auto intro: s simple_bochner_integrable_compose2)
       also have "\<dots> \<le> (\<integral>\<^sup>+x. ennreal (norm (f x - s n x)) + norm (f x) \<partial>M)"
-        by (auto intro!: nn_integral_mono simp del: ennreal_plus simp add: ennreal_plus[symmetric])
+        by (auto intro!: nn_integral_mono reorient: ennreal_plus)
            (metis add.commute norm_minus_commute norm_triangle_sub)
       also have "\<dots> = ?t n"
         by (rule nn_integral_add) auto
@@ -828,7 +828,7 @@ proof (elim has_bochner_integral.cases)
       using tendsto_add[OF \<open>?S \<longlonglongrightarrow> 0\<close> \<open>?T \<longlonglongrightarrow> 0\<close>] by simp
   qed
   then have "(\<lambda>i. norm (?s i - ?t i)) \<longlonglongrightarrow> 0"
-    by (simp add: ennreal_0[symmetric] del: ennreal_0)
+    by (simp reorient: ennreal_0)
   ultimately have "norm (x - y) = 0"
     by (rule LIMSEQ_unique)
   then show "x = y" by simp
@@ -1174,7 +1174,7 @@ proof -
         by (intro simple_bochner_integral_bounded s f)
       also have "\<dots> < ennreal (e / 2) + e / 2"
         by (intro add_strict_mono M n m)
-      also have "\<dots> = e" using \<open>0<e\<close> by (simp del: ennreal_plus add: ennreal_plus[symmetric])
+      also have "\<dots> = e" using \<open>0<e\<close> by (simp reorient: ennreal_plus)
       finally show "dist (?s n) (?s m) < e"
         using \<open>0<e\<close> by (simp add: dist_norm ennreal_less_iff)
     qed
@@ -1219,7 +1219,7 @@ proof -
       fix x assume "(\<lambda>i. u i x) \<longlonglongrightarrow> u' x"
       from tendsto_diff[OF tendsto_const[of "u' x"] this]
       show "(\<lambda>i. ennreal (norm (u' x - u i x))) \<longlonglongrightarrow> 0"
-        by (simp add: tendsto_norm_zero_iff ennreal_0[symmetric] del: ennreal_0)
+        by (simp add: tendsto_norm_zero_iff reorient: ennreal_0)
     qed
   qed (insert bnd w_nonneg, auto)
   then show ?thesis by simp
@@ -2117,7 +2117,7 @@ proof -
       by auto
   qed
   then have "((\<lambda>n. norm((\<integral>x. u n x \<partial>M) - (\<integral>x. f x \<partial>M))) \<longlongrightarrow> 0) F"
-    by (simp add: ennreal_0[symmetric] del: ennreal_0)
+    by (simp reorient: ennreal_0)
   then have "((\<lambda>n. ((\<integral>x. u n x \<partial>M) - (\<integral>x. f x \<partial>M))) \<longlongrightarrow> 0) F" using tendsto_norm_zero_iff by blast
   then show ?thesis using Lim_null by auto
 qed
@@ -2215,7 +2215,7 @@ proof -
     ultimately have "(\<lambda>n. ennreal (norm(u (r n) x))) \<longlonglongrightarrow> 0"
       using tendsto_Limsup[of sequentially "\<lambda>n. ennreal (norm(u (r n) x))"] by auto
     then have "(\<lambda>n. norm(u (r n) x)) \<longlonglongrightarrow> 0"
-      by (simp add: ennreal_0[symmetric] del: ennreal_0)
+      by (simp reorient: ennreal_0)
     then have "(\<lambda>n. u (r n) x) \<longlonglongrightarrow> 0"
       by (simp add: tendsto_norm_zero_iff)
   }

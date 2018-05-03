@@ -623,8 +623,6 @@ lemma norm_le_componentwise_cart:
   unfolding norm_vec_def
   by (rule L2_set_mono) (auto simp: assms)
 
-lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
-
 lemma component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
   apply (simp add: norm_vec_def)
   apply (rule member_le_L2_set, simp_all)
@@ -974,12 +972,6 @@ lemma vector_mul_lcancel[simp]: "a *s x = a *s y \<longleftrightarrow> a = (0::'
 lemma vector_mul_rcancel[simp]: "a *s x = b *s x \<longleftrightarrow> (a::'a::field) = b \<or> x = 0"
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_sub_rdistrib)
 
-lemma vector_mul_lcancel_imp: "a \<noteq> (0::'a::field) ==>  a *s x = a *s y ==> (x = y)"
-  by (metis vector_mul_lcancel)
-
-lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::'a::field) *s x = b *s x ==> a = b"
-  by (metis vector_mul_rcancel)
-
 lemma scalar_mult_eq_scaleR [abs_def]: "c *s x = c *\<^sub>R x"
   unfolding scaleR_vec_def vector_scalar_mult_def by simp
 
@@ -1041,6 +1033,12 @@ definition "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
 definition "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
 definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
+lemma times0_left [simp]: "(0::'a::semiring_1^'n^'m) ** (A::'a ^'p^'n) = 0" 
+  by (simp add: matrix_matrix_mult_def zero_vec_def)
+
+lemma times0_right [simp]: "(A::'a::semiring_1^'n^'m) ** (0::'a ^'p^'n) = 0" 
+  by (simp add: matrix_matrix_mult_def zero_vec_def)
+
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
   by (vector matrix_matrix_mult_def sum.distrib[symmetric] field_simps)
@@ -1076,6 +1074,16 @@ lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply simp
   done
 
+lemma scalar_matrix_assoc:
+  fixes A :: "('a::real_algebra_1)^'m^'n"
+  shows "k *\<^sub>R (A ** B) = (k *\<^sub>R A) ** B"
+  by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff scaleR_sum_right)
+
+lemma matrix_scalar_ac:
+  fixes A :: "('a::real_algebra_1)^'m^'n"
+  shows "A ** (k *\<^sub>R B) = k *\<^sub>R A ** B"
+  by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
+
 lemma matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
   apply (simp add: if_distrib if_distribR sum.delta' cong del: if_weak_cong)
@@ -1098,7 +1106,7 @@ lemma matrix_eq:
     sum.delta[OF finite] cong del: if_weak_cong)
   done
 
-lemma matrix_vector_mul_component: "((A::real^_^_) *v x)$k = inner (A$k) x"
+lemma matrix_vector_mul_component: "(A *v x)$k = inner (A$k) x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
 lemma dot_lmul_matrix: "inner ((x::real ^_) v* A) y = inner x (A *v y)"
@@ -1125,6 +1133,13 @@ lemma rows_transpose [simp]: "rows(transpose A) = columns A"
 lemma columns_transpose [simp]: "columns(transpose A) = rows A"
   by (metis transpose_transpose rows_transpose)
 
+lemma transpose_scalar: "transpose (k *\<^sub>R A) = k *\<^sub>R transpose A"
+  unfolding transpose_def
+  by (simp add: vec_eq_iff)
+
+lemma transpose_iff [iff]: "transpose A = transpose B \<longleftrightarrow> A = B"
+  by (metis transpose_transpose)
+
 lemma matrix_mult_sum:
   "(A::'a::comm_semiring_1^'n^'m) *v x = sum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult.commute)
@@ -1148,11 +1163,15 @@ lemma matrix_id_mat_1: "matrix id = mat 1"
 lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
   by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
-lemma matrix_vector_mul_linear[intro, simp]: "linear (\<lambda>x. A *v (x::real ^ _))"
-  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
-      field_simps sum_distrib_left sum.distrib)
+lemma matrix_vector_mul_linear[intro, simp]: "linear (\<lambda>x. A *v (x::'a::real_algebra_1 ^ _))"
+  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff field_simps sum_distrib_left sum.distrib)
 
-lemma matrix_vector_mult_add_distrib [algebra_simps]:
+lemma vector_matrix_left_distrib [algebra_simps]:
+  shows "(x + y) v* A = x v* A + y v* A"
+  unfolding vector_matrix_mult_def
+  by (simp add: algebra_simps sum.distrib vec_eq_iff)
+
+lemma matrix_vector_right_distrib [algebra_simps]:
   "A *v (x + y) = A *v x + A *v y"
   by (vector matrix_vector_mult_def sum.distrib distrib_left)
 
@@ -1199,5 +1218,71 @@ lemma inj_matrix_vector_mult:
   assumes "invertible A"
   shows "inj (( *v) A)"
   by (metis assms inj_on_inverseI invertible_def matrix_vector_mul_assoc matrix_vector_mul_lid)
+
+lemma scalar_invertible:
+  fixes A :: "('a::real_algebra_1)^'m^'n"
+  assumes "k \<noteq> 0" and "invertible A"
+  shows "invertible (k *\<^sub>R A)"
+proof -
+  obtain A' where "A ** A' = mat 1" and "A' ** A = mat 1"
+    using assms unfolding invertible_def by auto
+  with `k \<noteq> 0`
+  have "(k *\<^sub>R A) ** ((1/k) *\<^sub>R A') = mat 1" "((1/k) *\<^sub>R A') ** (k *\<^sub>R A) = mat 1"
+    by (simp_all add: assms matrix_scalar_ac)
+  thus "invertible (k *\<^sub>R A)"
+    unfolding invertible_def by auto
+qed
+
+lemma scalar_invertible_iff:
+  fixes A :: "('a::real_algebra_1)^'m^'n"
+  assumes "k \<noteq> 0" and "invertible A"
+  shows "invertible (k *\<^sub>R A) \<longleftrightarrow> k \<noteq> 0 \<and> invertible A"
+  by (simp add: assms scalar_invertible)
+
+lemma vector_transpose_matrix [simp]: "x v* transpose A = A *v x"
+  unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
+  by simp
+
+lemma transpose_matrix_vector [simp]: "transpose A *v x = x v* A"
+  unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
+  by simp
+
+lemma vector_scalar_commute:
+  fixes A :: "'a::{field}^'m^'n"
+  shows "A *v (c *s x) = c *s (A *v x)"
+  by (simp add: vector_scalar_mult_def matrix_vector_mult_def mult_ac sum_distrib_left)
+
+lemma scalar_vector_matrix_assoc:
+  fixes k :: "'a::{field}" and x :: "'a::{field}^'n" and A :: "'a^'m^'n"
+  shows "(k *s x) v* A = k *s (x v* A)"
+  by (metis transpose_matrix_vector vector_scalar_commute)
+ 
+lemma vector_matrix_mult_0 [simp]: "0 v* A = 0"
+  unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
+
+lemma vector_matrix_mult_0_right [simp]: "x v* 0 = 0"
+  unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
+
+lemma vector_matrix_mul_rid [simp]:
+  fixes v :: "('a::semiring_1)^'n"
+  shows "v v* mat 1 = v"
+  by (metis matrix_vector_mul_lid transpose_mat vector_transpose_matrix)
+
+lemma scaleR_vector_matrix_assoc:
+  fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
+  shows "(k *\<^sub>R x) v* A = k *\<^sub>R (x v* A)"
+  by (metis matrix_vector_mult_scaleR transpose_matrix_vector)
+
+lemma vector_scaleR_matrix_ac:
+  fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
+  shows "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
+proof -
+  have "x v* (k *\<^sub>R A) = (k *\<^sub>R x) v* A"
+    unfolding vector_matrix_mult_def
+    by (simp add: algebra_simps)
+  with scaleR_vector_matrix_assoc
+  show "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
+    by auto
+qed
 
 end

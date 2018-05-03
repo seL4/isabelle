@@ -219,11 +219,7 @@ proof -
   { fix A A' :: "'a ^'n^'n"
     assume AA': "A ** A' = mat 1"
     have sA: "surj (( *v) A)"
-      unfolding surj_def
-      apply clarify
-      apply (rule_tac x="(A' *v y)" in exI)
-      apply (simp add: matrix_vector_mul_assoc AA')
-      done
+      using AA' matrix_right_invertible_surjective by auto
     from vec.linear_surjective_isomorphism[OF matrix_vector_mul_linear_gen sA]
     obtain f' :: "'a ^'n \<Rightarrow> 'a ^'n"
       where f': "Vector_Spaces.linear ( *s) ( *s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x" by blast
@@ -244,10 +240,63 @@ lemma invertible_left_inverse:
   shows "invertible A \<longleftrightarrow> (\<exists>(B::'a^'n^'n). B ** A = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
 
-  lemma invertible_right_inverse:
+lemma invertible_right_inverse:
   fixes A :: "'a::{field}^'n^'n"
   shows "invertible A \<longleftrightarrow> (\<exists>(B::'a^'n^'n). A** B = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
+
+lemma invertible_mult:
+  assumes inv_A: "invertible A"
+  and inv_B: "invertible B"
+  shows "invertible (A**B)"
+proof -
+  obtain A' where AA': "A ** A' = mat 1" and A'A: "A' ** A = mat 1" 
+    using inv_A unfolding invertible_def by blast
+  obtain B' where BB': "B ** B' = mat 1" and B'B: "B' ** B = mat 1" 
+    using inv_B unfolding invertible_def by blast
+  show ?thesis
+  proof (unfold invertible_def, rule exI[of _ "B'**A'"], rule conjI)
+    have "A ** B ** (B' ** A') = A ** (B ** (B' ** A'))" 
+      using matrix_mul_assoc[of A B "(B' ** A')", symmetric] .
+    also have "... = A ** (B ** B' ** A')" unfolding matrix_mul_assoc[of B "B'" "A'"] ..
+    also have "... = A ** (mat 1 ** A')" unfolding BB' ..
+    also have "... = A ** A'" unfolding matrix_mul_lid ..
+    also have "... = mat 1" unfolding AA' ..
+    finally show "A ** B ** (B' ** A') = mat (1::'a)" .    
+    have "B' ** A' ** (A ** B) = B' ** (A' ** (A ** B))" using matrix_mul_assoc[of B' A' "(A ** B)", symmetric] .
+    also have "... =  B' ** (A' ** A ** B)" unfolding matrix_mul_assoc[of A' A B] ..
+    also have "... =  B' ** (mat 1 ** B)" unfolding A'A ..
+    also have "... = B' ** B"  unfolding matrix_mul_lid ..
+    also have "... = mat 1" unfolding B'B ..
+    finally show "B' ** A' ** (A ** B) = mat 1" .
+  qed
+qed
+
+lemma transpose_invertible:
+  fixes A :: "real^'n^'n"
+  assumes "invertible A"
+  shows "invertible (transpose A)"
+  by (meson assms invertible_def matrix_left_right_inverse right_invertible_transpose)
+
+lemma vector_matrix_mul_assoc:
+  fixes v :: "('a::comm_semiring_1)^'n"
+  shows "(v v* M) v* N = v v* (M ** N)"
+proof -
+  from matrix_vector_mul_assoc
+  have "transpose N *v (transpose M *v v) = (transpose N ** transpose M) *v v" by fast
+  thus "(v v* M) v* N = v v* (M ** N)"
+    by (simp add: matrix_transpose_mul [symmetric])
+qed
+
+lemma matrix_scaleR_vector_ac:
+  fixes A :: "real^('m::finite)^'n"
+  shows "A *v (k *\<^sub>R v) = k *\<^sub>R A *v v"
+  by (metis matrix_vector_mult_scaleR transpose_scalar vector_scaleR_matrix_ac vector_transpose_matrix)
+
+lemma scaleR_matrix_vector_assoc:
+  fixes A :: "real^('m::finite)^'n"
+  shows "k *\<^sub>R (A *v v) = k *\<^sub>R A *v v"
+  by (metis matrix_scaleR_vector_ac matrix_vector_mult_scaleR)
 
 (*Finally, some interesting theorems and interpretations that don't appear in any file of the
   library.*)

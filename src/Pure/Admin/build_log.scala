@@ -675,13 +675,18 @@ object Build_Log
       errors = log_file.filter_lines(ERROR_MESSAGE_MARKER).map(Library.decode_lines(_)))
   }
 
-  def compress_errors(errors: List[String]): Option[Bytes] =
+  def compress_errors(errors: List[String], cache: XZ.Cache = XZ.cache()): Option[Bytes] =
     if (errors.isEmpty) None
-    else Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).compress())
+    else {
+      Some(Bytes(YXML.string_of_body(XML.Encode.list(XML.Encode.string)(errors))).
+        compress(cache = cache))
+    }
 
-  def uncompress_errors(bytes: Bytes): List[String] =
+  def uncompress_errors(bytes: Bytes, cache: XZ.Cache = XZ.cache()): List[String] =
     if (bytes.isEmpty) Nil
-    else XML.Decode.list(YXML.string_of_body(_))(YXML.parse_body(bytes.uncompress().text))
+    else {
+      XML.Decode.list(YXML.string_of_body(_))(YXML.parse_body(bytes.uncompress(cache = cache).text))
+    }
 
 
 
@@ -877,6 +882,7 @@ object Build_Log
   class Store private[Build_Log](options: Options)
   {
     val xml_cache: XML.Cache = new XML.Cache()
+    val xz_cache: XZ.Cache = XZ.make_cache()
 
     def open_database(
       user: String = options.string("build_log_database_user"),
@@ -1011,7 +1017,7 @@ object Build_Log
           stmt.double(13) = session.ml_timing.factor
           stmt.long(14) = session.heap_size
           stmt.string(15) = session.status.map(_.toString)
-          stmt.bytes(16) = compress_errors(session.errors)
+          stmt.bytes(16) = compress_errors(session.errors, cache = xz_cache)
           stmt.string(17) = session.sources
           stmt.execute()
         }
@@ -1049,7 +1055,7 @@ object Build_Log
       {
         val ml_stats: List[(String, Option[Bytes])] =
           Par_List.map[(String, Session_Entry), (String, Option[Bytes])](
-            { case (a, b) => (a, Properties.compress(b.ml_statistics).proper) },
+            { case (a, b) => (a, Properties.compress(b.ml_statistics, cache = xz_cache).proper) },
             build_info.sessions.iterator.filter(p => p._2.ml_statistics.nonEmpty).toList)
         val entries = if (ml_stats.nonEmpty) ml_stats else List("" -> None)
         for ((session_name, ml_statistics) <- entries) {
@@ -1178,10 +1184,12 @@ object Build_Log
                 sources = res.get_string(Data.sources),
                 heap_size = res.get_long(Data.heap_size),
                 status = res.get_string(Data.status).map(Session_Status.withName(_)),
-                errors = uncompress_errors(res.bytes(Data.errors)),
+                errors = uncompress_errors(res.bytes(Data.errors), cache = xz_cache),
                 ml_statistics =
-                  if (ml_statistics)
-                    Properties.uncompress(res.bytes(Data.ml_statistics), Some(xml_cache))
+                  if (ml_statistics) {
+                    Properties.uncompress(
+                      res.bytes(Data.ml_statistics), cache = xz_cache, Some(xml_cache))
+                  }
                   else Nil)
             session_name -> session_entry
           }).toMap

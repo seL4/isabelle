@@ -170,6 +170,9 @@ lemma summable_sums[intro]: "summable f \<Longrightarrow> f sums (suminf f)"
 lemma summable_LIMSEQ: "summable f \<Longrightarrow> (\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> suminf f"
   by (rule summable_sums [unfolded sums_def])
 
+lemma summable_LIMSEQ': "summable f \<Longrightarrow> (\<lambda>n. \<Sum>i\<le>n. f i) \<longlonglongrightarrow> suminf f"
+  using sums_def_le by blast
+
 lemma sums_unique: "f sums s \<Longrightarrow> s = suminf f"
   by (metis limI suminf_eq_lim sums_def)
 

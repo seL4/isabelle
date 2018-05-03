@@ -164,7 +164,7 @@ next
     by (intro exI[of _ u] exI[of _ S]) (auto intro: fS)
 qed
 
-lemma span_induct_alt[consumes 1]:
+lemma span_induct_alt [consumes 1, case_names base step, induct set: span]:
   assumes x: "x \<in> span S"
   assumes h0: "h 0" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c *s x + y)"
   shows "h x"
@@ -210,7 +210,7 @@ proof safe
     by (intro exI[of _ t] exI[of _ "\<lambda>a. c * r a"]) (auto simp: * scale_sum_right)
 qed
 
-lemma subspace_span: "subspace (span S)"
+lemma subspace_span [iff]: "subspace (span S)"
   by (auto simp: subspace_def span_zero span_add span_scale)
 
 lemma span_neg: "x \<in> span S \<Longrightarrow> - x \<in> span S"
@@ -245,16 +245,12 @@ proof -
     by (metis subset_eq)
 qed
 
-lemma (in module) span_induct[consumes 1]:
+lemma (in module) span_induct[consumes 1, case_names base step, induct set: span]:
   assumes x: "x \<in> span S"
     and P: "subspace (Collect P)"
     and SP: "\<And>x. x \<in> S \<Longrightarrow> P x"
   shows "P x"
   using P SP span_subspace_induct x by fastforce
-
-lemma (in module) span_induct':
-  "\<forall>x \<in> S. P x \<Longrightarrow> subspace {x. P x} \<Longrightarrow> \<forall>x \<in> span S. P x"
-  unfolding span_def by (rule hull_induct) auto
 
 lemma span_empty[simp]: "span {} = {0}"
   by (rule span_unique) (auto simp add: subspace_def)

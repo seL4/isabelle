@@ -412,6 +412,19 @@ object Document
     def purge(f: Version => Option[Version], versions: Map[Document_ID.Version, Version])
       : Map[Document_ID.Version, Version] =
       (versions /: (for ((id, v) <- versions.iterator; v1 <- f(v)) yield (id, v1)))(_ + _)
+
+    def purge_future(versions: Map[Document_ID.Version, Version], future: Future[Version])
+      : Future[Version] =
+    {
+      if (future.is_finished) {
+        val version = future.join
+        versions.get(version.id) match {
+          case Some(version1) if !(version eq version1) => Future.value(version1)
+          case _ => future
+        }
+      }
+      else future
+    }
   }
 
   final class Version private(
@@ -449,6 +462,14 @@ object Document
       version.is_finished
 
     def truncate: Change = new Change(None, Nil, version)
+
+    def purge(versions: Map[Document_ID.Version, Version]): Option[Change] =
+    {
+      val previous1 = previous.map(Version.purge_future(versions, _))
+      val version1 = Version.purge_future(versions, version)
+      if ((previous eq previous1) && (version eq version1)) None
+      else Some(new Change(previous1, rev_edits, version1))
+    }
   }
 
 
@@ -476,6 +497,13 @@ object Document
         case (prefix, List(last)) => Some(dropped, new History(prefix ::: List(last.truncate)))
         case _ => None
       }
+    }
+
+    def purge(versions: Map[Document_ID.Version, Version]): History =
+    {
+      val undo_list1 = undo_list.map(_.purge(versions))
+      if (undo_list1.forall(_.isEmpty)) this
+      else new History(for ((a, b) <- undo_list1 zip undo_list) yield a.getOrElse(b))
     }
   }
 
@@ -786,13 +814,16 @@ object Document
         }
       }
 
+      val versions2 = Version.purge(_.purge_blobs(blobs1_names), versions1)
+
       copy(
-        versions = Version.purge(_.purge_blobs(blobs1_names), versions1),
+        versions = versions2,
         blobs = blobs1,
         commands = commands1,
         execs = execs1,
         commands_redirection = commands_redirection.restrict(commands1.isDefinedAt(_)),
         assignments = assignments1,
+        history = history.purge(versions2),
         removing_versions = false)
     }
 

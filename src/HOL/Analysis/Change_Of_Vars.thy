@@ -1,3 +1,9 @@
+(*  Title:      HOL/Analysis/Change_Of_Vars.thy
+    Authors:    LC Paulson, based on material from HOL Light
+*)
+
+section\<open>Change of Variables Theorems\<close>
+
 theory Change_Of_Vars
   imports Vitali_Covering_Theorem Determinants
 
@@ -1274,8 +1280,7 @@ proof -
       proof (rule add_mono)
         have "(\<Sum>k\<le>n. real k * e * ?\<mu> (T k)) = (\<Sum>k\<le>n. integral (T k) (\<lambda>x. k * e))"
           by (simp add: lmeasure_integral [OF meas_t]
-                        integral_mult_right [symmetric] integral_mult_left [symmetric]
-                   del: integral_mult_right integral_mult_left)
+                   reorient: integral_mult_right integral_mult_left)
         also have "\<dots> \<le> (\<Sum>k\<le>n. integral (T k) (\<lambda>x.  (abs (det (matrix (f' x))))))"
         proof (rule sum_mono)
           fix k
@@ -1624,7 +1629,7 @@ proof -
   proof -
     obtain d where "d \<noteq> 0" and d: "\<And>y. f y = 0 \<Longrightarrow> d \<bullet> y = 0"
       using orthogonal_to_subspace_exists [OF less] orthogonal_def
-      by (metis (mono_tags, lifting) mem_Collect_eq span_clauses(1))
+      by (metis (mono_tags, lifting) mem_Collect_eq span_superset)
     then obtain k where "k > 0"
       and k: "\<And>e. e > 0 \<Longrightarrow> \<exists>y. y \<in> S - {0} \<and> norm y < e \<and> k * norm y \<le> \<bar>d \<bullet> y\<bar>"
       using lb by blast

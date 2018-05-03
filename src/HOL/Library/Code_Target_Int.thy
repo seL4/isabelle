@@ -143,6 +143,22 @@ lemma [code]:
   "nat = nat_of_integer \<circ> of_int"
   including integer.lifting by transfer (simp add: fun_eq_iff)
 
+definition char_of_int :: "int \<Rightarrow> char"
+  where [code_abbrev]: "char_of_int = char_of"
+
+definition int_of_char :: "char \<Rightarrow> int"
+  where [code_abbrev]: "int_of_char = of_char"
+
+lemma [code]:
+  "char_of_int = char_of_integer \<circ> integer_of_int"
+  including integer.lifting unfolding char_of_integer_def char_of_int_def
+  by transfer (simp add: fun_eq_iff)
+
+lemma [code]:
+  "int_of_char = int_of_integer \<circ> integer_of_char"
+  including integer.lifting unfolding integer_of_char_def int_of_char_def
+  by transfer (simp add: fun_eq_iff)
+
 code_identifier
   code_module Code_Target_Int \<rightharpoonup>
     (SML) Arith and (OCaml) Arith and (Haskell) Arith

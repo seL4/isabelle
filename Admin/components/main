@@ -5,14 +5,14 @@ csdp-6.x
 cvc4-1.5-3
 e-2.0-1
 isabelle_fonts-20180113
-jdk-8u162
+jdk-8u172
 jedit_build-20180417
-jfreechart-1.0.14-1
+jfreechart-1.5.0
 jortho-1.0-2
 kodkodi-1.5.2
 nunchaku-0.5
 polyml-5.7.1-5
-postgresql-42.1.4
+postgresql-42.2.2
 scala-2.12.5
 smbc-0.4.1
 ssh-java-20161009

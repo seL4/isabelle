@@ -102,13 +102,13 @@ fun node33 :: "'a tree23 \<Rightarrow> 'a \<Rightarrow> 'a tree23 \<Rightarrow> 
 "node33 t1 a (Node2 t2 b t3) c (Up\<^sub>d t4) = T\<^sub>d(Node2 t1 a (Node3 t2 b t3 c t4))" |
 "node33 t1 a (Node3 t2 b t3 c t4) d (Up\<^sub>d t5) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))"
 
-fun del_min :: "'a tree23 \<Rightarrow> 'a * 'a up\<^sub>d" where
-"del_min (Node2 Leaf a Leaf) = (a, Up\<^sub>d Leaf)" |
-"del_min (Node3 Leaf a Leaf b Leaf) = (a, T\<^sub>d(Node2 Leaf b Leaf))" |
-"del_min (Node2 l a r) = (let (x,l') = del_min l in (x, node21 l' a r))" |
-"del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))"
+fun split_min :: "'a tree23 \<Rightarrow> 'a * 'a up\<^sub>d" where
+"split_min (Node2 Leaf a Leaf) = (a, Up\<^sub>d Leaf)" |
+"split_min (Node3 Leaf a Leaf b Leaf) = (a, T\<^sub>d(Node2 Leaf b Leaf))" |
+"split_min (Node2 l a r) = (let (x,l') = split_min l in (x, node21 l' a r))" |
+"split_min (Node3 l a m b r) = (let (x,l') = split_min l in (x, node31 l' a m b r))"
 
-text \<open>In the base cases of \<open>del_min\<close> and \<open>del\<close> it is enough to check if one subtree is a \<open>Leaf\<close>,
+text \<open>In the base cases of \<open>split_min\<close> and \<open>del\<close> it is enough to check if one subtree is a \<open>Leaf\<close>,
 in which case balancedness implies that so are the others. Exercise.\<close>
 
 fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
@@ -123,15 +123,15 @@ fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" wh
   (case cmp x a of
      LT \<Rightarrow> node21 (del x l) a r |
      GT \<Rightarrow> node22 l a (del x r) |
-     EQ \<Rightarrow> let (a',t) = del_min r in node22 l a' t)" |
+     EQ \<Rightarrow> let (a',t) = split_min r in node22 l a' t)" |
 "del x (Node3 l a m b r) =
   (case cmp x a of
      LT \<Rightarrow> node31 (del x l) a m b r |
-     EQ \<Rightarrow> let (a',m') = del_min m in node32 l a' m' b r |
+     EQ \<Rightarrow> let (a',m') = split_min m in node32 l a' m' b r |
      GT \<Rightarrow>
        (case cmp x b of
           LT \<Rightarrow> node32 l a (del x m) b r |
-          EQ \<Rightarrow> let (b',r') = del_min r in node33 l a m b' r' |
+          EQ \<Rightarrow> let (b',r') = split_min r in node33 l a m b' r' |
           GT \<Rightarrow> node33 l a m b (del x r)))"
 
 definition delete :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
@@ -182,16 +182,16 @@ by(induct l a m b r' rule: node33.induct) auto
 lemmas inorder_nodes = inorder_node21 inorder_node22
   inorder_node31 inorder_node32 inorder_node33
 
-lemma del_minD:
-  "del_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
+lemma split_minD:
+  "split_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
   x # inorder(tree\<^sub>d t') = inorder t"
-by(induction t arbitrary: t' rule: del_min.induct)
+by(induction t arbitrary: t' rule: split_min.induct)
   (auto simp: inorder_nodes split: prod.splits)
 
 lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD split!: if_split prod.splits)
+  (auto simp: del_list_simps inorder_nodes split_minD split!: if_split prod.splits)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -350,23 +350,23 @@ by(induct l a m b r rule: node33.induct)(simp_all add: max_def)
 lemmas heights = height'_node21 height'_node22
   height'_node31 height'_node32 height'_node33
 
-lemma height_del_min:
-  "del_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> bal t \<Longrightarrow> height t' = height t"
-by(induct t arbitrary: x t' rule: del_min.induct)
+lemma height_split_min:
+  "split_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> bal t \<Longrightarrow> height t' = height t"
+by(induct t arbitrary: x t' rule: split_min.induct)
   (auto simp: heights split: prod.splits)
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp: heights max_def height_del_min split: prod.splits)
+  (auto simp: heights max_def height_split_min split: prod.splits)
 
-lemma bal_del_min:
-  "\<lbrakk> del_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
-by(induct t arbitrary: x t' rule: del_min.induct)
-  (auto simp: heights height_del_min bals split: prod.splits)
+lemma bal_split_min:
+  "\<lbrakk> split_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
+by(induct t arbitrary: x t' rule: split_min.induct)
+  (auto simp: heights height_split_min bals split: prod.splits)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min split: prod.splits)
+  (auto simp: bals bal_split_min height_del height_split_min split: prod.splits)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)

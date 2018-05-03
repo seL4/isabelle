@@ -9,7 +9,7 @@ package isabelle
 
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
-import java.util.{Properties => JProperties}
+import java.util.{Properties => JProperties, Map => JMap}
 
 
 abstract class CI_Profile extends Isabelle_Tool.Body
@@ -88,7 +88,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     print_section("CONFIGURATION")
     println(Build_Log.Settings.show())
     val props = load_properties()
-    System.getProperties().putAll(props)
+    System.getProperties().asInstanceOf[JMap[AnyRef, AnyRef]].putAll(props)
 
     val options =
       with_documents(Options.init())

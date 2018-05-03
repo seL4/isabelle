@@ -6,191 +6,190 @@ theory String
 imports Enum
 begin
 
-subsection \<open>Characters and strings\<close>
+subsection \<open>Strings as list of bytes\<close>
 
-subsubsection \<open>Characters as finite algebraic type\<close>
+text \<open>
+  When modelling strings, we follow the approach given
+  in @{url "http://utf8everywhere.org/"}:
 
-typedef char = "{n::nat. n < 256}"
-  morphisms nat_of_char Abs_char
-proof
-  show "Suc 0 \<in> {n. n < 256}" by simp
+  \<^item> Strings are a list of bytes (8 bit).
+
+  \<^item> Byte values from 0 to 127 are US-ASCII.
+
+  \<^item> Byte values from 128 to 255 are uninterpreted blobs.
+\<close>
+
+subsubsection \<open>Bytes as datatype\<close>
+
+datatype char =
+  Char (digit0: bool) (digit1: bool) (digit2: bool) (digit3: bool)
+       (digit4: bool) (digit5: bool) (digit6: bool) (digit7: bool)
+
+context comm_semiring_1
+begin
+
+definition of_char :: "char \<Rightarrow> 'a"
+  where "of_char c = ((((((of_bool (digit7 c) * 2
+    + of_bool (digit6 c)) * 2
+    + of_bool (digit5 c)) * 2
+    + of_bool (digit4 c)) * 2
+    + of_bool (digit3 c)) * 2
+    + of_bool (digit2 c)) * 2
+    + of_bool (digit1 c)) * 2
+    + of_bool (digit0 c)"
+
+lemma of_char_Char [simp]:
+  "of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) =
+    foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6, b7] 0"
+  by (simp add: of_char_def ac_simps)
+
+end
+
+context semiring_parity
+begin
+
+definition char_of :: "'a \<Rightarrow> char"
+  where "char_of n = Char (odd n) (odd (drop_bit 1 n))
+    (odd (drop_bit 2 n)) (odd (drop_bit 3 n))
+    (odd (drop_bit 4 n)) (odd (drop_bit 5 n))
+    (odd (drop_bit 6 n)) (odd (drop_bit 7 n))"
+
+lemma char_of_char [simp]:
+  "char_of (of_char c) = c"
+proof (cases c)
+  have **: "drop_bit n (q * 2 + of_bool d) = drop_bit (n - 1) q + drop_bit n (of_bool d)"
+    if "n > 0" for q :: 'a and n :: nat and d :: bool
+    using that by (cases n) simp_all
+  case (Char d0 d1 d2 d3 d4 d5 d6 d7)
+  then show ?thesis
+    by (simp only: of_char_def char_of_def char.simps char.sel drop_bit_of_bool **) simp
 qed
 
-setup_lifting type_definition_char
+lemma char_of_comp_of_char [simp]:
+  "char_of \<circ> of_char = id"
+  by (simp add: fun_eq_iff)
 
-definition char_of_nat :: "nat \<Rightarrow> char"
-where
-  "char_of_nat n = Abs_char (n mod 256)"
-
-lemma char_cases [case_names char_of_nat, cases type: char]:
-  "(\<And>n. c = char_of_nat n \<Longrightarrow> n < 256 \<Longrightarrow> P) \<Longrightarrow> P"
-  by (cases c) (simp add: char_of_nat_def)
-
-lemma char_of_nat_of_char [simp]:
-  "char_of_nat (nat_of_char c) = c"
-  by (cases c) (simp add: char_of_nat_def Abs_char_inject Abs_char_inverse)
-
-lemma inj_nat_of_char:
-  "inj nat_of_char"
+lemma inj_of_char:
+  "inj of_char"
 proof (rule injI)
   fix c d
-  assume "nat_of_char c = nat_of_char d"
-  then have "char_of_nat (nat_of_char c) = char_of_nat (nat_of_char d)"
+  assume "of_char c = of_char d"
+  then have "char_of (of_char c) = char_of (of_char d)"
     by simp
   then show "c = d"
     by simp
 qed
   
-lemma nat_of_char_eq_iff [simp]:
-  "nat_of_char c = nat_of_char d \<longleftrightarrow> c = d"
-  by (fact nat_of_char_inject)
+lemma of_char_eq_iff [simp]:
+  "of_char c = of_char d \<longleftrightarrow> c = d"
+  by (simp add: inj_eq inj_of_char)
 
-lemma nat_of_char_of_nat [simp]:
-  "nat_of_char (char_of_nat n) = n mod 256"
-  by (cases "char_of_nat n") (simp add: char_of_nat_def Abs_char_inject Abs_char_inverse)
+lemma of_char_of [simp]:
+  "of_char (char_of a) = a mod 256"
+proof -
+  have *: "{0::nat..<8} = {0, 1, 2, 3, 4, 5, 6, 7}"
+    by auto
+  have "of_char (char_of (take_bit 8 a)) =
+    (\<Sum>k\<in>{0, 1, 2, 3, 4, 5, 6, 7}. push_bit k (of_bool (odd (drop_bit k a))))"
+    by (simp add: of_char_def char_of_def push_bit_of_1 drop_bit_take_bit)
+  also have "\<dots> = take_bit 8 a"
+    using * take_bit_sum [of 8 a] by simp
+  also have "char_of(take_bit 8 a) = char_of a"
+    by (simp add: char_of_def drop_bit_take_bit)
+  finally show ?thesis
+    by (simp add: take_bit_eq_mod)
+qed
 
-lemma char_of_nat_mod_256 [simp]:
-  "char_of_nat (n mod 256) = char_of_nat n"
-  by (cases "char_of_nat (n mod 256)") (simp add: char_of_nat_def)
+lemma char_of_mod_256 [simp]:
+  "char_of (n mod 256) = char_of n"
+  by (metis char_of_char of_char_of)
 
-lemma char_of_nat_quasi_inj [simp]:
-  "char_of_nat m = char_of_nat n \<longleftrightarrow> m mod 256 = n mod 256"
-  by (simp add: char_of_nat_def Abs_char_inject)
+lemma of_char_mod_256 [simp]:
+  "of_char c mod 256 = of_char c"
+  by (metis char_of_char of_char_of)
+
+lemma char_of_quasi_inj [simp]:
+  "char_of m = char_of n \<longleftrightarrow> m mod 256 = n mod 256"
+  by (metis char_of_mod_256 of_char_of)
+
+lemma char_of_nat_eq_iff:
+  "char_of n = c \<longleftrightarrow> take_bit 8 n = of_char c"
+  by (simp add: take_bit_eq_mod) (use of_char_eq_iff in fastforce)
+
+lemma char_of_nat [simp]:
+  "char_of (of_nat n) = char_of n"
+  by (simp add: char_of_def String.char_of_def drop_bit_of_nat)
+
+end
 
 lemma inj_on_char_of_nat [simp]:
-  "inj_on char_of_nat {..<256}"
+  "inj_on char_of {0::nat..<256}"
   by (rule inj_onI) simp
 
-lemma nat_of_char_mod_256 [simp]:
-  "nat_of_char c mod 256 = nat_of_char c"
-  by (cases c) simp
-
 lemma nat_of_char_less_256 [simp]:
-  "nat_of_char c < 256"
+  "of_char c < (256 :: nat)"
 proof -
-  have "nat_of_char c mod 256 < 256"
+  have "of_char c mod (256 :: nat) < 256"
     by arith
   then show ?thesis by simp
 qed
 
+lemma range_nat_of_char:
+  "range of_char = {0::nat..<256}"
+proof (rule; rule)
+  fix n :: nat
+  assume "n \<in> range of_char"
+  then show "n \<in> {0..<256}"
+    by auto
+next
+  fix n :: nat
+  assume "n \<in> {0..<256}"
+  then have "n = of_char (char_of n)"
+    by simp
+  then show "n \<in> range of_char"
+    by (rule range_eqI)
+qed
+
 lemma UNIV_char_of_nat:
-  "UNIV = char_of_nat ` {..<256}"
+  "UNIV = char_of ` {0::nat..<256}"
 proof -
-  { fix c
-    have "c \<in> char_of_nat ` {..<256}"
-      by (cases c) auto
-  } then show ?thesis by auto
+  have "range (of_char :: char \<Rightarrow> nat) = of_char ` char_of ` {0::nat..<256}"
+    by (auto simp add: range_nat_of_char intro!: image_eqI)
+  with inj_of_char [where ?'a = nat] show ?thesis 
+    by (simp add: inj_image_eq_iff)
 qed
 
 lemma card_UNIV_char:
   "card (UNIV :: char set) = 256"
   by (auto simp add: UNIV_char_of_nat card_image)
 
-lemma range_nat_of_char:
-  "range nat_of_char = {..<256}"
-  by (auto simp add: UNIV_char_of_nat image_image image_def)
-
-
-subsubsection \<open>Character literals as variant of numerals\<close>
-
-instantiation char :: zero
+context
+  includes lifting_syntax integer.lifting natural.lifting
 begin
 
-definition zero_char :: char
-  where "0 = char_of_nat 0"
+lemma [transfer_rule]:
+  "(pcr_integer ===> (=)) (char_of :: int \<Rightarrow> char) (char_of :: integer \<Rightarrow> char)"
+  by (unfold char_of_def [abs_def]) transfer_prover
 
-instance ..
+lemma [transfer_rule]:
+  "((=) ===> pcr_integer) (of_char :: char \<Rightarrow> int) (of_char :: char \<Rightarrow> integer)"
+  by (unfold of_char_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "(pcr_natural ===> (=)) (char_of :: nat \<Rightarrow> char) (char_of :: natural \<Rightarrow> char)"
+  by (unfold char_of_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "((=) ===> pcr_natural) (of_char :: char \<Rightarrow> nat) (of_char :: char \<Rightarrow> natural)"
+  by (unfold of_char_def [abs_def]) transfer_prover
 
 end
 
-definition Char :: "num \<Rightarrow> char"
-  where "Char k = char_of_nat (numeral k)"
+lifting_update integer.lifting
+lifting_forget integer.lifting
 
-code_datatype "0 :: char" Char
-
-lemma nat_of_char_zero [simp]:
-  "nat_of_char 0 = 0"
-  by (simp add: zero_char_def)
-
-lemma nat_of_char_Char [simp]:
-  "nat_of_char (Char k) = numeral k mod 256"
-  by (simp add: Char_def)
-
-lemma Char_eq_Char_iff:
-  "Char k = Char l \<longleftrightarrow> numeral k mod (256 :: nat) = numeral l mod 256" (is "?P \<longleftrightarrow> ?Q")
-proof -
-  have "?P \<longleftrightarrow> nat_of_char (Char k) = nat_of_char (Char l)"
-    by (rule sym, rule inj_eq) (fact inj_nat_of_char)
-  also have "nat_of_char (Char k) = nat_of_char (Char l) \<longleftrightarrow> ?Q"
-    by (simp only: Char_def nat_of_char_of_nat)
-  finally show ?thesis .
-qed
-
-lemma zero_eq_Char_iff:
-  "0 = Char k \<longleftrightarrow> numeral k mod (256 :: nat) = 0"
-  by (auto simp add: zero_char_def Char_def)
-
-lemma Char_eq_zero_iff:
-  "Char k = 0 \<longleftrightarrow> numeral k mod (256 :: nat) = 0"
-  by (auto simp add: zero_char_def Char_def) 
-
-simproc_setup char_eq
-  ("Char m = Char n" | "Char m = 0" | "0 = Char n") = \<open>
-  let
-    val ss = put_simpset HOL_ss @{context}
-      |> fold Simplifier.add_simp @{thms Char_eq_Char_iff zero_eq_Char_iff Char_eq_zero_iff cong_exp_iff_simps}
-      |> simpset_of 
-  in
-    fn _ => fn ctxt => SOME o Simplifier.rewrite (put_simpset ss ctxt)
-  end
-\<close>
-
-definition integer_of_char :: "char \<Rightarrow> integer"
-where
-  "integer_of_char = integer_of_nat \<circ> nat_of_char"
-
-definition char_of_integer :: "integer \<Rightarrow> char"
-where
-  "char_of_integer = char_of_nat \<circ> nat_of_integer"
-
-lemma integer_of_char_zero [simp, code]:
-  "integer_of_char 0 = 0"
-  by (simp add: integer_of_char_def integer_of_nat_def)
-
-lemma integer_of_char_Char [simp]:
-  "integer_of_char (Char k) = numeral k mod 256"
-  by (simp only: integer_of_char_def integer_of_nat_def comp_apply nat_of_char_Char map_fun_def
-    id_apply zmod_int modulo_integer.abs_eq [symmetric]) simp
-
-lemma integer_of_char_Char_code [code]:
-  "integer_of_char (Char k) = integer_of_num k mod 256"
-  by simp
-  
-lemma nat_of_char_code [code]:
-  "nat_of_char = nat_of_integer \<circ> integer_of_char"
-  by (simp add: integer_of_char_def fun_eq_iff)
-
-lemma char_of_nat_code [code]:
-  "char_of_nat = char_of_integer \<circ> integer_of_nat"
-  by (simp add: char_of_integer_def fun_eq_iff)
-
-instantiation char :: equal
-begin
-
-definition equal_char
-  where "equal_char (c :: char) d \<longleftrightarrow> c = d"
-
-instance
-  by standard (simp add: equal_char_def)
-
-end
-
-lemma equal_char_simps [code]:
-  "HOL.equal (0::char) 0 \<longleftrightarrow> True"
-  "HOL.equal (Char k) (Char l) \<longleftrightarrow> HOL.equal (numeral k mod 256 :: nat) (numeral l mod 256)"
-  "HOL.equal 0 (Char k) \<longleftrightarrow> HOL.equal (numeral k mod 256 :: nat) 0"
-  "HOL.equal (Char k) 0 \<longleftrightarrow> HOL.equal (numeral k mod 256 :: nat) 0"
-  by (simp_all only: equal refl Char_eq_Char_iff zero_eq_Char_iff Char_eq_zero_iff)
+lifting_update natural.lifting
+lifting_forget natural.lifting
 
 syntax
   "_Char" :: "str_position \<Rightarrow> char"    ("CHR _")
@@ -199,7 +198,7 @@ syntax
 type_synonym string = "char list"
 
 syntax
-  "_String" :: "str_position => string"    ("_")
+  "_String" :: "str_position \<Rightarrow> string"    ("_")
 
 ML_file "Tools/string_syntax.ML"
 
@@ -207,7 +206,8 @@ instantiation char :: enum
 begin
 
 definition
-  "Enum.enum = [0, CHR 0x01, CHR 0x02, CHR 0x03,
+  "Enum.enum = [
+    CHR 0x00, CHR 0x01, CHR 0x02, CHR 0x03,
     CHR 0x04, CHR 0x05, CHR 0x06, CHR 0x07,
     CHR 0x08, CHR 0x09, CHR ''\<newline>'', CHR 0x0B,
     CHR 0x0C, CHR 0x0D, CHR 0x0E, CHR 0x0F,
@@ -279,14 +279,15 @@ definition
   "Enum.enum_ex P \<longleftrightarrow> list_ex P (Enum.enum :: char list)"
 
 lemma enum_char_unfold:
-  "Enum.enum = map char_of_nat [0..<256]"
+  "Enum.enum = map char_of [0..<256]"
 proof -
-  have *: "Suc (Suc 0) = 2" by simp
-  have "map nat_of_char Enum.enum = [0..<256]"
-    by (simp add: enum_char_def upt_conv_Cons_Cons *)
-  then have "map char_of_nat (map nat_of_char Enum.enum) =
-    map char_of_nat [0..<256]" by simp
-  then show ?thesis by (simp add: comp_def)
+  have "map (of_char :: char \<Rightarrow> nat) Enum.enum = [0..<256]"
+    by (simp add: enum_char_def of_char_def upt_conv_Cons_Cons numeral_2_eq_2 [symmetric])
+  then have "map char_of (map (of_char :: char \<Rightarrow> nat) Enum.enum) =
+    map char_of [0..<256]"
+    by simp
+  then show ?thesis
+    by simp
 qed
 
 instance proof
@@ -302,157 +303,413 @@ qed
 
 end
 
+lemma linorder_char:
+  "class.linorder (\<lambda>c d. of_char c \<le> (of_char d :: nat)) (\<lambda>c d. of_char c < (of_char d :: nat))"
+  by standard auto
+
+text \<open>Optimized version for execution\<close>
+
+definition char_of_integer :: "integer \<Rightarrow> char"
+  where [code_abbrev]: "char_of_integer = char_of"
+
+definition integer_of_char :: "char \<Rightarrow> integer"
+  where [code_abbrev]: "integer_of_char = of_char"
+
 lemma char_of_integer_code [code]:
-  "char_of_integer n = Enum.enum ! (nat_of_integer n mod 256)"
-  by (simp add: char_of_integer_def enum_char_unfold)
+  "char_of_integer k = (let
+     (q0, b0) = bit_cut_integer k;
+     (q1, b1) = bit_cut_integer q0;
+     (q2, b2) = bit_cut_integer q1;
+     (q3, b3) = bit_cut_integer q2;
+     (q4, b4) = bit_cut_integer q3;
+     (q5, b5) = bit_cut_integer q4;
+     (q6, b6) = bit_cut_integer q5;
+     (_, b7) = bit_cut_integer q6
+    in Char b0 b1 b2 b3 b4 b5 b6 b7)"
+  by (simp add: bit_cut_integer_def char_of_integer_def char_of_def div_mult2_numeral_eq odd_iff_mod_2_eq_one drop_bit_eq_div)
 
-lifting_update char.lifting
-lifting_forget char.lifting
+lemma integer_of_char_code [code]:
+  "integer_of_char (Char b0 b1 b2 b3 b4 b5 b6 b7) =
+    ((((((of_bool b7 * 2 + of_bool b6) * 2 +
+      of_bool b5) * 2 + of_bool b4) * 2 +
+        of_bool b3) * 2 + of_bool b2) * 2 +
+          of_bool b1) * 2 + of_bool b0"
+  by (simp only: integer_of_char_def of_char_def char.sel)
 
 
-subsection \<open>Strings as dedicated type\<close>
+subsection \<open>Strings as dedicated type for target language code generation\<close>
 
-typedef literal = "UNIV :: string set"
-  morphisms explode STR ..
+subsubsection \<open>Logical specification\<close>
 
-setup_lifting type_definition_literal
+context
+begin
 
-lemma STR_inject' [simp]:
-  "STR s = STR t \<longleftrightarrow> s = t"
+qualified definition ascii_of :: "char \<Rightarrow> char"
+  where "ascii_of c = Char (digit0 c) (digit1 c) (digit2 c) (digit3 c) (digit4 c) (digit5 c) (digit6 c) False"
+
+qualified lemma ascii_of_Char [simp]:
+  "ascii_of (Char b0 b1 b2 b3 b4 b5 b6 b7) = Char b0 b1 b2 b3 b4 b5 b6 False"
+  by (simp add: ascii_of_def)
+
+qualified lemma not_digit7_ascii_of [simp]:
+  "\<not> digit7 (ascii_of c)"
+  by (simp add: ascii_of_def)
+
+qualified lemma ascii_of_idem:
+  "ascii_of c = c" if "\<not> digit7 c"
+  using that by (cases c) simp
+
+qualified lemma char_of_ascii_of [simp]:
+  "of_char (ascii_of c) = take_bit 7 (of_char c :: nat)"
+  by (cases c)
+    (simp add: numeral_3_eq_3 [symmetric] numeral_2_eq_2 [symmetric])
+
+qualified typedef literal = "{cs. \<forall>c\<in>set cs. \<not> digit7 c}"
+  morphisms explode Abs_literal
+proof
+  show "[] \<in> {cs. \<forall>c\<in>set cs. \<not> digit7 c}"
+    by simp
+qed
+
+qualified setup_lifting type_definition_literal
+
+qualified lift_definition implode :: "string \<Rightarrow> literal"
+  is "map ascii_of"
+  by auto
+
+qualified lemma implode_explode_eq [simp]:
+  "String.implode (String.explode s) = s"
+proof transfer
+  fix cs
+  show "map ascii_of cs = cs" if "\<forall>c\<in>set cs. \<not> digit7 c"
+    using that
+      by (induction cs) (simp_all add: ascii_of_idem)
+qed
+
+qualified lemma explode_implode_eq [simp]:
+  "String.explode (String.implode cs) = map ascii_of cs"
   by transfer rule
 
-definition implode :: "string \<Rightarrow> String.literal"
-where
-  [code del]: "implode = STR"
+end
 
-instantiation literal :: size
+
+subsubsection \<open>Syntactic representation\<close>
+
+text \<open>
+  Logical ground representations for literals are:
+
+  \<^enum> @{text 0} for the empty literal;
+
+  \<^enum> @{text "Literal b0 \<dots> b6 s"} for a literal starting with one
+    character and continued by another literal.
+
+  Syntactic representations for literals are:
+
+  \<^enum> Printable text as string prefixed with @{text STR};
+
+  \<^enum> A single ascii value as numerical hexadecimal value prefixed with @{text STR}.
+\<close>
+
+instantiation String.literal :: zero
 begin
 
-definition size_literal :: "literal \<Rightarrow> nat"
-where
-  [code]: "size_literal (s::literal) = 0"
+context
+begin
+
+qualified lift_definition zero_literal :: String.literal
+  is Nil
+  by simp
 
 instance ..
 
 end
 
-instantiation literal :: equal
+end
+
+context
 begin
 
-lift_definition equal_literal :: "literal \<Rightarrow> literal \<Rightarrow> bool" is "(=)" .
+qualified abbreviation (output) empty_literal :: String.literal
+  where "empty_literal \<equiv> 0"
 
-instance by intro_classes (transfer, simp)
+qualified lift_definition Literal :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> String.literal \<Rightarrow> String.literal"
+  is "\<lambda>b0 b1 b2 b3 b4 b5 b6 cs. Char b0 b1 b2 b3 b4 b5 b6 False # cs"
+  by auto
+
+qualified lemma Literal_eq_iff [simp]:
+  "Literal b0 b1 b2 b3 b4 b5 b6 s = Literal c0 c1 c2 c3 c4 c5 c6 t
+     \<longleftrightarrow> (b0 \<longleftrightarrow> c0) \<and> (b1 \<longleftrightarrow> c1) \<and> (b2 \<longleftrightarrow> c2) \<and> (b3 \<longleftrightarrow> c3)
+         \<and> (b4 \<longleftrightarrow> c4) \<and> (b5 \<longleftrightarrow> c5) \<and> (b6 \<longleftrightarrow> c6) \<and> s = t"
+  by transfer simp
+
+qualified lemma empty_neq_Literal [simp]:
+  "empty_literal \<noteq> Literal b0 b1 b2 b3 b4 b5 b6 s"
+  by transfer simp
+
+qualified lemma Literal_neq_empty [simp]:
+  "Literal b0 b1 b2 b3 b4 b5 b6 s \<noteq> empty_literal"
+  by transfer simp
 
 end
 
-declare equal_literal.rep_eq[code]
+code_datatype "0 :: String.literal" String.Literal
 
-lemma [code nbe]:
-  fixes s :: "String.literal"
-  shows "HOL.equal s s \<longleftrightarrow> True"
-  by (simp add: equal)
+syntax
+  "_Literal" :: "str_position \<Rightarrow> String.literal"   ("STR _")
+  "_Ascii" :: "num_const \<Rightarrow> String.literal"        ("STR _")
 
-instantiation literal :: zero
+ML_file "Tools/literal.ML"
+
+
+subsubsection \<open>Operations\<close>
+
+instantiation String.literal :: plus
 begin
 
-lift_definition zero_literal :: "literal"
-  is "[]"
-  .
-
-instance ..
-
-end
-
-lemma [code]:
-  "0 = STR ''''"
-  by (fact zero_literal.abs_eq)
-
-instantiation literal :: plus
+context
 begin
 
-lift_definition plus_literal :: "literal \<Rightarrow> literal \<Rightarrow> literal"
+qualified lift_definition plus_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> String.literal"
   is "(@)"
-  .
+  by auto
 
 instance ..
 
 end
 
+end
+
+instance String.literal :: monoid_add
+  by (standard; transfer) simp_all
+
+instantiation String.literal :: size
+begin
+
+context
+  includes literal.lifting
+begin
+
+lift_definition size_literal :: "String.literal \<Rightarrow> nat"
+  is length .
+
+end
+
+instance ..
+
+end
+
+instantiation String.literal :: equal
+begin
+
+context
+begin
+
+qualified lift_definition equal_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
+  is HOL.equal .
+
+instance
+  by (standard; transfer) (simp add: equal)
+
+end
+
+end
+
+instantiation String.literal :: linorder
+begin
+
+context
+begin
+
+qualified lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
+  is "ord.lexordp_eq (\<lambda>c d. of_char c < (of_char d :: nat))"
+  .
+
+qualified lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool"
+  is "ord.lexordp (\<lambda>c d. of_char c < (of_char d :: nat))"
+  .
+
+instance proof -
+  from linorder_char interpret linorder "ord.lexordp_eq (\<lambda>c d. of_char c < (of_char d :: nat))"
+    "ord.lexordp (\<lambda>c d. of_char c < (of_char d :: nat)) :: string \<Rightarrow> string \<Rightarrow> bool"
+    by (rule linorder.lexordp_linorder)
+  show "PROP ?thesis"
+    by (standard; transfer) (simp_all add: less_le_not_le linear)
+qed
+
+end
+
+end
+
+lemma infinite_literal:
+  "infinite (UNIV :: String.literal set)"
+proof -
+  define S where "S = range (\<lambda>n. replicate n CHR ''A'')"
+  have "inj_on String.implode S"
+  proof (rule inj_onI)
+    fix cs ds
+    assume "String.implode cs = String.implode ds"
+    then have "String.explode (String.implode cs) = String.explode (String.implode ds)"
+      by simp
+    moreover assume "cs \<in> S" and "ds \<in> S"
+    ultimately show "cs = ds"
+      by (auto simp add: S_def)
+  qed
+  moreover have "infinite S"
+    by (auto simp add: S_def dest: finite_range_imageI [of _ length])
+  ultimately have "infinite (String.implode ` S)"
+    by (simp add: finite_image_iff)
+  then show ?thesis
+    by (auto intro: finite_subset)
+qed
+
+
+subsubsection \<open>Executable conversions\<close>
+
+context
+begin
+
+qualified lift_definition asciis_of_literal :: "String.literal \<Rightarrow> integer list"
+  is "map of_char"
+  .
+
+qualified lift_definition literal_of_asciis :: "integer list \<Rightarrow> String.literal"
+  is "map (String.ascii_of \<circ> char_of)"
+  by auto
+
+qualified lemma literal_of_asciis_of_literal [simp]:
+  "literal_of_asciis (asciis_of_literal s) = s"
+proof transfer
+  fix cs
+  assume "\<forall>c\<in>set cs. \<not> digit7 c"
+  then show "map (String.ascii_of \<circ> char_of) (map of_char cs) = cs"
+    by (induction cs) (simp_all add: String.ascii_of_idem) 
+qed
+
+qualified lemma explode_code [code]:
+  "String.explode s = map char_of (asciis_of_literal s)"
+  by transfer simp
+
+qualified lemma implode_code [code]:
+  "String.implode cs = literal_of_asciis (map of_char cs)"
+  by transfer simp
+
+end
+
+declare [[code drop: String.literal_of_asciis String.asciis_of_literal]]
+
+
+subsubsection \<open>Technical code generation setup\<close>
+
+text \<open>Alternative constructor for generated computations\<close>
+
+context
+begin  
+
+qualified definition Literal' :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> String.literal \<Rightarrow> String.literal"
+  where [simp]: "Literal' = String.Literal"
+
 lemma [code]:
-  "s + t = String.implode (String.explode s @ String.explode t)"
-  using plus_literal.abs_eq [of "String.explode s" "String.explode t"]
-  by (simp add: explode_inverse implode_def)
-
-instance literal :: monoid_add
-  by standard (transfer; simp)+
-
-lifting_update literal.lifting
-lifting_forget literal.lifting
-
-  
-subsection \<open>Dedicated conversion for generated computations\<close>
-
-definition char_of_num :: "num \<Rightarrow> char"
-  where "char_of_num = char_of_nat \<circ> nat_of_num"
+  "Literal' b0 b1 b2 b3 b4 b5 b6 s = String.literal_of_asciis
+    [foldr (\<lambda>b k. of_bool b + k * 2) [b0, b1, b2, b3, b4, b5, b6] 0] + s" 
+  unfolding Literal'_def by transfer (simp add: char_of_def)
 
 lemma [code_computation_unfold]:
-  "Char = char_of_num"
-  by (simp add: fun_eq_iff char_of_num_def nat_of_num_numeral Char_def)
+  "String.Literal = Literal'"
+  by simp
 
+end
 
-subsection \<open>Code generator\<close>
-
-ML_file "Tools/string_code.ML"
-
-code_reserved SML string
-code_reserved OCaml string
+code_reserved SML string Char
+code_reserved OCaml string String Char List
+code_reserved Haskell Prelude
 code_reserved Scala string
 
 code_printing
-  type_constructor literal \<rightharpoonup>
+  type_constructor String.literal \<rightharpoonup>
     (SML) "string"
     and (OCaml) "string"
     and (Haskell) "String"
     and (Scala) "String"
+| constant "STR ''''" \<rightharpoonup>
+    (SML) "\"\""
+    and (OCaml) "\"\""
+    and (Haskell) "\"\""
+    and (Scala) "\"\""
 
 setup \<open>
-  fold String_Code.add_literal_string ["SML", "OCaml", "Haskell", "Scala"]
+  fold Literal.add_code ["SML", "OCaml", "Haskell", "Scala"]
 \<close>
 
 code_printing
-  class_instance literal :: equal \<rightharpoonup>
+  constant "(+) :: String.literal \<Rightarrow> String.literal \<Rightarrow> String.literal" \<rightharpoonup>
+    (SML) infixl 18 "^"
+    and (OCaml) infixr 6 "^"
+    and (Haskell) infixr 5 "++"
+    and (Scala) infixl 7 "+"
+| constant String.literal_of_asciis \<rightharpoonup>
+    (SML) "!(String.implode/ o map (fn k => if 0 <= k andalso k < 128 then (Char.chr o IntInf.toInt) k else raise Fail \"Non-ASCII character in literal\"))"
+    and (OCaml) "!(let ks = _ in let res = Bytes.create (List.length ks) in let rec imp i = function | [] -> res | k :: ks ->
+      let l = Big'_int.int'_of'_big'_int k in if 0 <= l && l < 128 then Bytes.set res i (Char.chr l) else failwith \"Non-ASCII character in literal\"; imp (i + 1) ks in imp 0 ks)"
+    and (Haskell) "map/ (let chr k | (0 <= k && k < 128) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)"
+    and (Scala) "\"\"/ ++/ _.map((k: BigInt) => if (BigInt(0) <= k && k < BigInt(128)) k.charValue else sys.error(\"Non-ASCII character in literal\"))"
+| constant String.asciis_of_literal \<rightharpoonup>
+    (SML) "!(map (fn c => let val k = Char.ord c in if k < 128 then IntInf.fromInt k else raise Fail \"Non-ASCII character in literal\" end) /o String.explode)"
+    and (OCaml) "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (let k = Char.code (Bytes.get s i) in
+      if k < 128 then Big'_int.big'_int'_of'_int k :: l else failwith \"Non-ASCII character in literal\") in exp (Bytes.length s - 1) [])"
+    and (Haskell) "map/ (let ord k | (k < 128) = Prelude.toInteger k in ord . (Prelude.fromEnum :: Prelude.Char -> Prelude.Int))"
+    and (Scala) "!(_.toList.map(c => { val k: Int = c.toInt; if (k < 128) BigInt(k) else sys.error(\"Non-ASCII character in literal\") }))"
+| class_instance String.literal :: equal \<rightharpoonup>
     (Haskell) -
-| constant "HOL.equal :: literal \<Rightarrow> literal \<Rightarrow> bool" \<rightharpoonup>
+| constant "HOL.equal :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : string) = _)"
     and (OCaml) "!((_ : string) = _)"
     and (Haskell) infix 4 "=="
     and (Scala) infixl 5 "=="
+| constant "(\<le>) :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "!((_ : string) <= _)"
+    and (OCaml) "!((_ : string) <= _)"
+    \<comment> \<open>Order operations for @{typ String.literal} work in Haskell only
+          if no type class instance needs to be generated, because String = [Char] in Haskell
+          and @{typ "char list"} need not have the same order as @{typ String.literal}.\<close>
+    and (Haskell) infix 4 "<="
+    and (Scala) infixl 4 "<="
+    and (Eval) infixl 6 "<="
+| constant "(<) :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "!((_ : string) < _)"
+    and (OCaml) "!((_ : string) < _)"
+    and (Haskell) infix 4 "<"
+    and (Scala) infixl 4 "<"
+    and (Eval) infixl 6 "<"
+
+
+subsubsection \<open>Code generation utility\<close>
 
 setup \<open>Sign.map_naming (Name_Space.mandatory_path "Code")\<close>
 
-definition abort :: "literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
-where [simp, code del]: "abort _ f = f ()"
+definition abort :: "String.literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where [simp]: "abort _ f = f ()"
 
-lemma abort_cong: "msg = msg' ==> Code.abort msg f = Code.abort msg' f"
-by simp
+declare [[code drop: Code.abort]]
+
+lemma abort_cong:
+  "msg = msg' \<Longrightarrow> Code.abort msg f = Code.abort msg' f"
+  by simp
 
 setup \<open>Sign.map_naming Name_Space.parent_path\<close>
 
 setup \<open>Code_Simp.map_ss (Simplifier.add_cong @{thm Code.abort_cong})\<close>
 
-code_printing constant Code.abort \<rightharpoonup>
+code_printing
+  constant Code.abort \<rightharpoonup>
     (SML) "!(raise/ Fail/ _)"
     and (OCaml) "failwith"
     and (Haskell) "!(error/ ::/ forall a./ String -> (() -> a) -> a)"
-    and (Scala) "!{/ sys.error((_));/  ((_)).apply(())/ }"
-| constant "(+) :: literal \<Rightarrow> literal \<Rightarrow> literal" \<rightharpoonup>
-    (SML) infixl 18 "^"
-    and (OCaml) infixr 6 "@"
-    and (Haskell) infixr 5 "++"
-    and (Scala) infixl 7 "+"
+    and (Scala) "!{/ sys.error((_));/ ((_)).apply(())/ }"
 
-hide_type (open) literal
 
-hide_const (open) implode explode
+subsubsection \<open>Finally\<close>
+
+lifting_update literal.lifting
+lifting_forget literal.lifting
 
 end

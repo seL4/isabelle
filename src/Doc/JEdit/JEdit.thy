@@ -73,9 +73,9 @@ text \<open>
   Isabelle/jEdit (\figref{fig:isabelle-jedit}) consists of some plugins for
   the jEdit text editor, while preserving its general look-and-feel as far as
   possible. The main plugin is called ``Isabelle'' and has its own menu
-  \<^emph>\<open>Plugins~/ Isabelle\<close> with access to several panels (see also
-  \secref{sec:dockables}), as well as \<^emph>\<open>Plugins~/ Plugin Options~/ Isabelle\<close>
-  (see also \secref{sec:options}).
+  \<^emph>\<open>Plugins~/ Isabelle\<close> with access to several actions and add-on panels (see
+  also \secref{sec:dockables}), as well as \<^emph>\<open>Plugins~/ Plugin Options~/
+  Isabelle\<close> (see also \secref{sec:options}).
 
   The options allow to specify a logic session name, but the same selector is
   also accessible in the \<^emph>\<open>Theories\<close> panel (\secref{sec:theories}). After
@@ -1154,7 +1154,7 @@ subsection \<open>Find theorems\<close>
 text \<open>
   The \<^emph>\<open>Query\<close> panel in \<^emph>\<open>Find Theorems\<close> mode retrieves facts from the theory
   or proof context matching all of given criteria in the \<^emph>\<open>Find\<close> text field. A
-  single criterium has the following syntax:
+  single criterion has the following syntax:
 
   @{rail \<open>
     ('-'?) ('name' ':' @{syntax name} | 'intro' | 'elim' | 'dest' |
@@ -1171,7 +1171,7 @@ subsection \<open>Find constants\<close>
 text \<open>
   The \<^emph>\<open>Query\<close> panel in \<^emph>\<open>Find Constants\<close> mode prints all constants whose type
   meets all of the given criteria in the \<^emph>\<open>Find\<close> text field. A single
-  criterium has the following syntax:
+  criterion has the following syntax:
 
   @{rail \<open>
     ('-'?)

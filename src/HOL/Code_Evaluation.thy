@@ -101,7 +101,7 @@ code_reserved Eval Code_Evaluation
 ML_file "~~/src/HOL/Tools/value_command.ML"
 
 
-subsection \<open>\<open>term_of\<close> instances\<close>
+subsection \<open>Dedicated \<open>term_of\<close> instances\<close>
 
 instantiation "fun" :: (typerep, typerep) term_of
 begin
@@ -119,21 +119,6 @@ declare [[code drop: rec_term case_term
   "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
   "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
 
-definition case_char :: "'a \<Rightarrow> (num \<Rightarrow> 'a) \<Rightarrow> char \<Rightarrow> 'a"
-  where "case_char f g c = (if c = 0 then f else g (num_of_nat (nat_of_char c)))"
-
-lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_num_def, code]:
-  "term_of =
-    case_char (Const (STR ''Groups.zero_class.zero'') (TYPEREP(char)))
-    (\<lambda>k. App (Const (STR ''String.Char'') (TYPEREP(num \<Rightarrow> char))) (term_of k))"
-  by (rule ext) (rule term_of_anything [THEN meta_eq_to_obj_eq])
-
-lemma term_of_string [code]:
-   "term_of s = App (Const (STR ''STR'')
-     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''list'') [Typerep.Typerep (STR ''char'') []],
-       Typerep.Typerep (STR ''String.literal'') []])) (term_of (String.explode s))"
-  by (subst term_of_anything) rule 
-  
 code_printing
   constant "term_of :: integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
 | constant "term_of :: String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"

@@ -974,6 +974,7 @@ object Sessions
     /* SQL database content */
 
     val xml_cache = new XML.Cache()
+    val xz_cache = XZ.make_cache()
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
       db.using_statement(Session_Info.table.select(List(column),
@@ -984,7 +985,8 @@ object Sessions
       })
 
     def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
-      Properties.uncompress(read_bytes(db, name, column), Some(xml_cache))
+      Properties.uncompress(
+        read_bytes(db, name, column), cache = xz_cache, xml_cache = Some(xml_cache))
 
 
     /* output */
@@ -1040,11 +1042,11 @@ object Sessions
         {
           stmt.string(1) = name
           stmt.bytes(2) = Properties.encode(build_log.session_timing)
-          stmt.bytes(3) = Properties.compress(build_log.command_timings)
-          stmt.bytes(4) = Properties.compress(build_log.theory_timings)
-          stmt.bytes(5) = Properties.compress(build_log.ml_statistics)
-          stmt.bytes(6) = Properties.compress(build_log.task_statistics)
-          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors)
+          stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = xz_cache)
+          stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = xz_cache)
+          stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = xz_cache)
+          stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = xz_cache)
+          stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = xz_cache)
           stmt.string(8) = build.sources
           stmt.string(9) = cat_lines(build.input_heaps)
           stmt.string(10) = build.output_heap getOrElse ""
@@ -1070,7 +1072,7 @@ object Sessions
       read_properties(db, name, Session_Info.task_statistics)
 
     def read_errors(db: SQL.Database, name: String): List[String] =
-      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors))
+      Build_Log.uncompress_errors(read_bytes(db, name, Session_Info.errors), cache = xz_cache)
 
     def read_build(db: SQL.Database, name: String): Option[Build.Session_Info] =
     {

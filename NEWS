@@ -110,7 +110,8 @@ e.g. "\<comment> \<open>ARGUMENT\<close>" or "\<^emph>\<open>ARGUMENT\<close>".
 notably bibtex database files and ML files.
 
 * Action "isabelle.draft" is similar to "isabelle.preview", but shows a
-plain-text document draft.
+plain-text document draft. Both are available via the menu "Plugins /
+Isabelle".
 
 * When loading text files, the Isabelle symbols encoding UTF-8-Isabelle
 is only used if there is no conflict with existing Unicode sequences in
@@ -196,8 +197,38 @@ dummy sort: it is effectively ignored in type-inference.
 
 *** HOL ***
 
-* Abstract bit operations as part of Main: push_bit, push_take,
-push_drop.
+* Clarified relationship of characters, strings and code generation:
+
+  * Type "char" is now a proper datatype of 8-bit values.
+
+  * Conversions "nat_of_char" and "char_of_nat" are gone; use more
+    general conversions "of_char" and "char_of" with suitable
+    type constraints instead.
+
+  * The zero character is just written "CHR 0x00", not
+    "0" any longer.
+
+  * Type "String.literal" (for code generation) is now isomorphic
+    to lists of 7-bit (ASCII) values; concrete values can be written
+    as "STR ''...''" for sequences of printable characters and
+    "STR 0x..." for one single ASCII code point given
+    as hexadecimal numeral.
+
+  * Type "String.literal" supports concatenation "... + ..."
+    for all standard target languages.
+
+  * Theory Library/Code_Char is gone; study the explanations concerning
+    "String.literal" in the tutorial on code generation to get an idea
+    how target-language string literals can be converted to HOL string
+    values and vice versa.
+
+  * Imperative-HOL: operation "raise" directly takes a value of type
+    "String.literal" as argument, not type "string".
+
+INCOMPATIBILITY.
+
+* Abstract bit operations as part of Main: push_bit, take_bit,
+drop_bit.
 
 * New, more general, axiomatization of complete_distrib_lattice. 
 The former axioms:
@@ -316,6 +347,20 @@ longer supported.
 * Java runtime is for x86_64 only. Corresponding Isabelle settings have
 been renamed to ISABELLE_TOOL_JAVA_OPTIONS and JEDIT_JAVA_OPTIONS,
 instead of former 32/64 variants. INCOMPATIBILITY.
+
+* Old settings ISABELLE_PLATFORM and ISABELLE_WINDOWS_PLATFORM should be
+phased out due to unclear preference of 32bit vs. 64bit architecture.
+Explicit GNU bash expressions are now preferred, for example (with
+quotes):
+
+  #Posix executables (Unix or Cygwin), with preference for 64bit
+  "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}"
+
+  #native Windows or Unix executables, with preference for 64bit
+  "${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}}"
+
+  #native Windows (32bit) or Unix executables (preference for 64bit)
+  "${ISABELLE_WINDOWS_PLATFORM32:-${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}}"
 
 * Command-line tool "isabelle build" supports new options:
   - option -B NAME: include session NAME and all descendants

@@ -57,13 +57,13 @@ fun del :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<
 "del x (Node2 l ab1 r) = (case cmp x (fst ab1) of
   LT \<Rightarrow> node21 (del x l) ab1 r |
   GT \<Rightarrow> node22 l ab1 (del x r) |
-  EQ \<Rightarrow> let (ab1',t) = del_min r in node22 l ab1' t)" |
+  EQ \<Rightarrow> let (ab1',t) = split_min r in node22 l ab1' t)" |
 "del x (Node3 l ab1 m ab2 r) = (case cmp x (fst ab1) of
   LT \<Rightarrow> node31 (del x l) ab1 m ab2 r |
-  EQ \<Rightarrow> let (ab1',m') = del_min m in node32 l ab1' m' ab2 r |
+  EQ \<Rightarrow> let (ab1',m') = split_min m in node32 l ab1' m' ab2 r |
   GT \<Rightarrow> (case cmp x (fst ab2) of
            LT \<Rightarrow> node32 l ab1 (del x m) ab2 r |
-           EQ \<Rightarrow> let (ab2',r') = del_min r in node33 l ab1 m ab2' r' |
+           EQ \<Rightarrow> let (ab2',r') = split_min r in node33 l ab1 m ab2' r' |
            GT \<Rightarrow> node33 l ab1 m ab2 (del x r)))"
 
 definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
@@ -89,7 +89,7 @@ by(simp add: update_def inorder_upd)
 lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD split!: if_split prod.splits)
+  (auto simp: del_list_simps inorder_nodes split_minD split!: if_split prod.splits)
 
 corollary inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -107,11 +107,11 @@ by (simp add: update_def bal_upd)
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp add: heights max_def height_del_min split: prod.split)
+  (auto simp add: heights max_def height_split_min split: prod.split)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min split: prod.split)
+  (auto simp: bals bal_split_min height_del height_split_min split: prod.split)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)

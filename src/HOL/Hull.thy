@@ -47,7 +47,7 @@ lemma hull_UNIV [simp]: "S hull UNIV = UNIV"
 lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
   unfolding hull_def by auto
 
-lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> Q {x. P x} \<Longrightarrow> \<forall>x\<in> Q hull S. P x"
+lemma hull_induct: "\<lbrakk>a \<in> Q hull S; \<And>x. x\<in> S \<Longrightarrow> P x; Q {x. P x}\<rbrakk> \<Longrightarrow> P a"
   using hull_minimal[of S "{x. P x}" Q]
   by (auto simp add: subset_eq)
 

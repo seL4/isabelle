@@ -128,20 +128,13 @@ lemma content_split:
   assumes "k \<in> Basis"
   shows "content (cbox a b) = content(cbox a b \<inter> {x. x\<bullet>k \<le> c}) + content(cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
   \<comment> \<open>Prove using measure theory\<close>
-proof cases
+proof (cases "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i")
+  case True
+  have 1: "\<And>X Y Z. (\<Prod>i\<in>Basis. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>Basis-{k}. Z i (Y i))"
+    by (simp add: if_distrib prod.delta_remove assms)
   note simps = interval_split[OF assms] content_cbox_cases
-  have *: "Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"
-    using assms by auto
-  have *: "\<And>X Y Z. (\<Prod>i\<in>Basis. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>Basis-{k}. Z i (Y i))"
-    "(\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i) = (\<Prod>i\<in>Basis-{k}. b\<bullet>i - a\<bullet>i) * (b\<bullet>k - a\<bullet>k)"
-    apply (subst *(1))
-    defer
-    apply (subst *(1))
-    unfolding prod.insert[OF *(2-)]
-    apply auto
-    done
-  assume as: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-  moreover
+  have 2: "(\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i) = (\<Prod>i\<in>Basis-{k}. b\<bullet>i - a\<bullet>i) * (b\<bullet>k - a\<bullet>k)"
+    by (metis (no_types, lifting) assms finite_Basis mult.commute prod.remove)
   have "\<And>x. min (b \<bullet> k) c = max (a \<bullet> k) c \<Longrightarrow>
     x * (b\<bullet>k - a\<bullet>k) = x * (max (a \<bullet> k) c - a \<bullet> k) + x * (b \<bullet> k - max (a \<bullet> k) c)"
     by  (auto simp add: field_simps)
@@ -152,17 +145,12 @@ proof cases
       (\<Prod>i\<in>Basis. b \<bullet> i - (if i = k then max (a \<bullet> k) c else a \<bullet> i))"
     by (auto intro!: prod.cong)
   have "\<not> a \<bullet> k \<le> c \<Longrightarrow> \<not> c \<le> b \<bullet> k \<Longrightarrow> False"
-    unfolding not_le
-    using as[unfolded ,rule_format,of k] assms
-    by auto
+    unfolding not_le using True assms by auto
   ultimately show ?thesis
-    using assms
-    unfolding simps **
-    unfolding *(1)[of "\<lambda>i x. b\<bullet>i - x"] *(1)[of "\<lambda>i x. x - a\<bullet>i"]
-    unfolding *(2)
+    using assms unfolding simps ** 1[of "\<lambda>i x. b\<bullet>i - x"] 1[of "\<lambda>i x. x - a\<bullet>i"] 2
     by auto
 next
-  assume "\<not> (\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i)"
+  case False
   then have "cbox a b = {}"
     unfolding box_eq_empty by (auto simp: not_le)
   then show ?thesis
@@ -784,13 +772,13 @@ lemma integrable_on_cdivide:
   fixes f :: "_ \<Rightarrow> 'b :: real_normed_field"
   assumes "f integrable_on s"
   shows "(\<lambda>x. f x / of_real c) integrable_on s"
-by (simp add: integrable_on_cmult_right divide_inverse assms of_real_inverse [symmetric] del: of_real_inverse)
+by (simp add: integrable_on_cmult_right divide_inverse assms reorient: of_real_inverse)
 
 lemma integrable_on_cdivide_iff [simp]:
   fixes f :: "_ \<Rightarrow> 'b :: real_normed_field"
   assumes "c \<noteq> 0"
   shows "(\<lambda>x. f x / of_real c) integrable_on s \<longleftrightarrow> f integrable_on s"
-by (simp add: divide_inverse assms of_real_inverse [symmetric] del: of_real_inverse)
+by (simp add: divide_inverse assms reorient: of_real_inverse)
 
 lemma has_integral_null [intro]: "content(cbox a b) = 0 \<Longrightarrow> (f has_integral 0) (cbox a b)"
   unfolding has_integral_cbox
@@ -2585,24 +2573,22 @@ lemma has_integral_factor_content:
       norm (sum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content (cbox a b)))"
 proof (cases "content (cbox a b) = 0")
   case True
-  show ?thesis
+  have "\<And>e p. p tagged_division_of cbox a b \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)) \<le> e * content (cbox a b)"
+    unfolding sum_content_null[OF True] True by force
+  moreover have "i = 0" 
+    if "\<And>e. e > 0 \<Longrightarrow> \<exists>d. gauge d \<and>
+              (\<forall>p. p tagged_division_of cbox a b \<and>
+                   d fine p \<longrightarrow>
+                   norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i) \<le> e * content (cbox a b))"
+    using that [of 1]
+    by (force simp add: True sum_content_null[OF True] intro: fine_division_exists[of _ a b])
+  ultimately show ?thesis
     unfolding has_integral_null_eq[OF True]
-    apply safe
-    apply (rule, rule, rule gauge_trivial, safe)
-    unfolding sum_content_null[OF True] True
-    defer
-    apply (erule_tac x=1 in allE)
-    apply safe
-    defer
-    apply (rule fine_division_exists[of _ a b])
-    apply assumption
-    apply (erule_tac x=p in allE)
-    unfolding sum_content_null[OF True]
-    apply auto
-    done
+    by (force simp add: )
 next
   case False
-  note F = this[unfolded content_lt_nz[symmetric]]
+  then have F: "0 < content (cbox a b)"
+    using zero_less_measure_iff by blast
   let ?P = "\<lambda>e opp. \<exists>d. gauge d \<and>
     (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow> opp (norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i)) e)"
   show ?thesis
@@ -2610,28 +2596,18 @@ next
   proof safe
     fix e :: real
     assume e: "e > 0"
-    {
-      assume "\<forall>e>0. ?P e (<)"
+    { assume "\<forall>e>0. ?P e (<)"
       then show "?P (e * content (cbox a b)) (\<le>)"
-        apply (erule_tac x="e * content (cbox a b)" in allE)
-        apply (erule impE)
-        defer
-        apply (erule exE,rule_tac x=d in exI)
-        using F e
-        apply (auto simp add:field_simps)
-        done
-    }
-    {
-      assume "\<forall>e>0. ?P (e * content (cbox a b)) (\<le>)"
+        apply (rule allE [where x="e * content (cbox a b)"])
+        apply (elim impE ex_forward conj_forward)
+        using F e apply (auto simp add: algebra_simps)
+        done }
+    { assume "\<forall>e>0. ?P (e * content (cbox a b)) (\<le>)"
       then show "?P e (<)"
-        apply (erule_tac x="e/2 / content (cbox a b)" in allE)
-        apply (erule impE)
-        defer
-        apply (erule exE,rule_tac x=d in exI)
-        using F e
-        apply (auto simp add: field_simps)
-        done
-    }
+        apply (rule allE [where x="e/2 / content (cbox a b)"])
+        apply (elim impE ex_forward conj_forward)
+        using F e apply (auto simp add: algebra_simps)
+        done }
   qed
 qed
 
@@ -2995,19 +2971,22 @@ qed
 
 lemma integrable_subinterval:
   fixes f :: "'b::euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on cbox a b"
-    and "cbox c d \<subseteq> cbox a b"
+  assumes f: "f integrable_on cbox a b"
+    and cd: "cbox c d \<subseteq> cbox a b"
   shows "f integrable_on cbox c d"
 proof -
   interpret operative conj True "\<lambda>i. f integrable_on i"
     using order_refl by (rule operative_integrableI)
   show ?thesis
-    apply (cases "cbox c d = {}")
-     defer
-     apply (rule partial_division_extend_1[OF assms(2)],assumption)
-    using division [symmetric] assms(1)
-     apply (auto simp: comm_monoid_set_F_and)
-    done
+  proof (cases "cbox c d = {}")
+    case True
+    then show ?thesis
+      using division [symmetric] f by (auto simp: comm_monoid_set_F_and)
+  next
+    case False
+    then show ?thesis
+      by (metis cd comm_monoid_set_F_and division division_of_finite f partial_division_extend_1)
+  qed
 qed
 
 lemma integrable_subinterval_real:
@@ -3431,7 +3410,7 @@ next
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis using False
       by (simp add: image_affinity_cbox content_cbox'
-        prod.distrib[symmetric] prod_constant[symmetric] inner_diff_left del: prod_constant)
+        prod.distrib[symmetric] inner_diff_left reorient: prod_constant)
   qed
 qed
 
@@ -4261,31 +4240,29 @@ subsection \<open>This doesn't directly involve integration, but that gives an e
 lemma has_derivative_zero_unique_strong_interval:
   fixes f :: "real \<Rightarrow> 'a::banach"
   assumes "finite k"
-    and "continuous_on {a..b} f"
+    and contf: "continuous_on {a..b} f"
     and "f a = y"
-    and "\<forall>x\<in>({a..b} - k). (f has_derivative (\<lambda>h. 0)) (at x within {a..b})" "x \<in> {a..b}"
+    and fder: "\<And>x. x \<in> {a..b} - k \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within {a..b})"
+    and x: "x \<in> {a..b}"
   shows "f x = y"
 proof -
-  have ab: "a \<le> b"
+  have "a \<le> b" "a \<le> x"
     using assms by auto
-  have *: "a \<le> x"
-    using assms(5) by auto
   have "((\<lambda>x. 0::'a) has_integral f x - f a) {a..x}"
-    apply (rule fundamental_theorem_of_calculus_interior_strong[OF assms(1) *])
-    apply (rule continuous_on_subset[OF assms(2)])
-    defer
-    apply safe
-    unfolding has_vector_derivative_def
-    apply (subst has_derivative_within_open[symmetric])
-    apply assumption
-    apply (rule open_greaterThanLessThan)
-    apply (rule has_derivative_within_subset[where s="{a..b}"])
-    using assms(4) assms(5)
-    apply (auto simp: mem_box)
-    done
-  note this[unfolded *]
-  note has_integral_unique[OF has_integral_0 this]
-  then show ?thesis
+  proof (rule fundamental_theorem_of_calculus_interior_strong[OF \<open>finite k\<close> \<open>a \<le> x\<close>]; clarify?)
+    have "{a..x} \<subseteq> {a..b}"
+      using x by auto
+    then show "continuous_on {a..x} f"
+      by (rule continuous_on_subset[OF contf])
+    show "(f has_vector_derivative 0) (at z)" if z: "z \<in> {a<..<x}" and notin: "z \<notin> k" for z
+      unfolding has_vector_derivative_def
+    proof (simp add: has_derivative_within_open[OF z, symmetric])
+      show "(f has_derivative (\<lambda>x. 0)) (at z within {a<..<x})"
+        by (rule has_derivative_within_subset [OF fder]) (use x z notin in auto)
+    qed
+  qed
+  from has_integral_unique[OF has_integral_0 this]
+  show ?thesis
     unfolding assms by auto
 qed
 
@@ -4297,7 +4274,7 @@ lemma has_derivative_zero_unique_strong_convex:
   assumes "convex S" "finite K"
     and contf: "continuous_on S f"
     and "c \<in> S" "f c = y"
-    and derf: "\<And>x. x \<in> (S - K) \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    and derf: "\<And>x. x \<in> S - K \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
     and "x \<in> S"
   shows "f x = y"
 proof (cases "x = c")
@@ -4307,8 +4284,10 @@ next
   case False
   let ?\<phi> = "\<lambda>u. (1 - u) *\<^sub>R c + u *\<^sub>R x"
   have contf': "continuous_on {0 ..1} (f \<circ> ?\<phi>)"
-    apply (rule continuous_intros continuous_on_subset[OF contf])+
-    using \<open>convex S\<close> \<open>x \<in> S\<close> \<open>c \<in> S\<close> by (auto simp add: convex_alt algebra_simps)
+  proof (rule continuous_intros continuous_on_subset[OF contf])+
+    show "(\<lambda>u. (1 - u) *\<^sub>R c + u *\<^sub>R x) ` {0..1} \<subseteq> S"
+      using \<open>convex S\<close> \<open>x \<in> S\<close> \<open>c \<in> S\<close> by (auto simp add: convex_alt algebra_simps)
+  qed
   have "t = u" if "?\<phi> t = ?\<phi> u" for t u
   proof -
     from that have "(t - u) *\<^sub>R x = (t - u) *\<^sub>R c"
@@ -4353,7 +4332,7 @@ lemma has_derivative_zero_unique_strong_connected:
     and contf: "continuous_on S f"
     and "c \<in> S"
     and "f c = y"
-    and derf: "\<And>x. x \<in> (S - K) \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    and derf: "\<And>x. x \<in> S - K \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
     and "x \<in> S"
   shows "f x = y"
 proof -
@@ -4486,10 +4465,7 @@ proof -
   note has_integral_restrict_open_subinterval[OF assms]
   note * = has_integral_spike[OF negligible_frontier_interval _ this]
   show ?thesis
-    apply (rule *[of c d])
-    using box_subset_cbox[of c d]
-    apply auto
-    done
+    by (rule *[of c d]) (use box_subset_cbox[of c d] in auto)
 qed
 
 lemma has_integral_restrict_closed_subintervals_eq:

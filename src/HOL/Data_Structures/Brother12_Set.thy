@@ -92,14 +92,14 @@ fun n2 :: "'a bro \<Rightarrow> 'a \<Rightarrow> 'a bro \<Rightarrow> 'a bro" wh
   N2 (N1 (N2 t1 a1 t2)) a2 (N2 (N2 t3 a3 t4) a5 (N1 t5))" |
 "n2 t1 a1 t2 = N2 t1 a1 t2"
 
-fun del_min :: "'a bro \<Rightarrow> ('a \<times> 'a bro) option" where
-"del_min N0 = None" |
-"del_min (N1 t) =
-  (case del_min t of
+fun split_min :: "'a bro \<Rightarrow> ('a \<times> 'a bro) option" where
+"split_min N0 = None" |
+"split_min (N1 t) =
+  (case split_min t of
      None \<Rightarrow> None |
      Some (a, t') \<Rightarrow> Some (a, N1 t'))" |
-"del_min (N2 t1 a t2) =
-  (case del_min t1 of
+"split_min (N2 t1 a t2) =
+  (case split_min t1 of
      None \<Rightarrow> Some (a, N1 t2) |
      Some (b, t1') \<Rightarrow> Some (b, n2 t1' a t2))"
 
@@ -110,7 +110,7 @@ fun del :: "'a::linorder \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
   (case cmp x a of
      LT \<Rightarrow> n2 (del x l) a r |
      GT \<Rightarrow> n2 l a (del x r) |
-     EQ \<Rightarrow> (case del_min r of
+     EQ \<Rightarrow> (case split_min r of
               None \<Rightarrow> N1 l |
               Some (b, r') \<Rightarrow> n2 l b r'))"
 
@@ -189,15 +189,15 @@ by(cases t) auto
 lemma inorder_n2: "inorder(n2 l a r) = inorder l @ a # inorder r"
 by(cases "(l,a,r)" rule: n2.cases) (auto)
 
-lemma inorder_del_min:
-  "t \<in> T h \<Longrightarrow> (del_min t = None \<longleftrightarrow> inorder t = []) \<and>
-  (del_min t = Some(a,t') \<longrightarrow> inorder t = a # inorder t')"
+lemma inorder_split_min:
+  "t \<in> T h \<Longrightarrow> (split_min t = None \<longleftrightarrow> inorder t = []) \<and>
+  (split_min t = Some(a,t') \<longrightarrow> inorder t = a # inorder t')"
 by(induction h arbitrary: t a t') (auto simp: inorder_n2 split: option.splits)
 
 lemma inorder_del:
   "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
 by(induction h arbitrary: t) (auto simp: del_list_simps inorder_n2
-     inorder_del_min[OF UnI1] inorder_del_min[OF UnI2] split: option.splits)
+     inorder_split_min[OF UnI1] inorder_split_min[OF UnI2] split: option.splits)
 
 lemma inorder_delete:
   "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
@@ -331,15 +331,15 @@ apply auto[2]
 apply(erule exE bexE conjE imageE | simp | erule disjE)+
 done
 
-lemma del_minNoneN0: "\<lbrakk>t \<in> B h; del_min t = None\<rbrakk> \<Longrightarrow>  t = N0"
+lemma split_minNoneN0: "\<lbrakk>t \<in> B h; split_min t = None\<rbrakk> \<Longrightarrow>  t = N0"
 by (cases t) (auto split: option.splits)
 
-lemma del_minNoneN1 : "\<lbrakk>t \<in> U h; del_min t = None\<rbrakk> \<Longrightarrow> t = N1 N0"
-by (cases h) (auto simp: del_minNoneN0  split: option.splits)
+lemma split_minNoneN1 : "\<lbrakk>t \<in> U h; split_min t = None\<rbrakk> \<Longrightarrow> t = N1 N0"
+by (cases h) (auto simp: split_minNoneN0  split: option.splits)
 
-lemma del_min_type:
-  "t \<in> B h \<Longrightarrow> del_min t = Some (a, t') \<Longrightarrow> t' \<in> T h"
-  "t \<in> U h \<Longrightarrow> del_min t = Some (a, t') \<Longrightarrow> t' \<in> Um h"
+lemma split_min_type:
+  "t \<in> B h \<Longrightarrow> split_min t = Some (a, t') \<Longrightarrow> t' \<in> T h"
+  "t \<in> U h \<Longrightarrow> split_min t = Some (a, t') \<Longrightarrow> t' \<in> Um h"
 proof (induction h arbitrary: t a t')
   case (Suc h)
   { case 1
@@ -347,12 +347,12 @@ proof (induction h arbitrary: t a t')
       t12: "t1 \<in> T h" "t2 \<in> T h" "t1 \<in> B h \<or> t2 \<in> B h"
       by auto
     show ?case
-    proof (cases "del_min t1")
+    proof (cases "split_min t1")
       case None
       show ?thesis
       proof cases
         assume "t1 \<in> B h"
-        with del_minNoneN0[OF this None] 1 show ?thesis by(auto)
+        with split_minNoneN0[OF this None] 1 show ?thesis by(auto)
       next
         assume "t1 \<notin> B h"
         thus ?thesis using 1 None by (auto)
@@ -376,9 +376,9 @@ proof (induction h arbitrary: t a t')
   { case 2
     then obtain t1 where [simp]: "t = N1 t1" and t1: "t1 \<in> B h" by auto
     show ?case
-    proof (cases "del_min t1")
+    proof (cases "split_min t1")
       case None
-      with del_minNoneN0[OF t1 None] 2 show ?thesis by(auto)
+      with split_minNoneN0[OF t1 None] 2 show ?thesis by(auto)
     next
       case [simp]: (Some bt')
       obtain b t1' where [simp]: "bt' = (b,t1')" by fastforce
@@ -421,16 +421,16 @@ proof (induction h arbitrary: x t)
     qed
     moreover
     have ?case if [simp]: "x=a"
-    proof (cases "del_min r")
+    proof (cases "split_min r")
       case None
       show ?thesis
       proof cases
         assume "r \<in> B h"
-        with del_minNoneN0[OF this None] lr show ?thesis by(simp)
+        with split_minNoneN0[OF this None] lr show ?thesis by(simp)
       next
         assume "r \<notin> B h"
         hence "r \<in> U h" using lr by auto
-        with del_minNoneN1[OF this None] lr(3) show ?thesis by (simp)
+        with split_minNoneN1[OF this None] lr(3) show ?thesis by (simp)
       qed
     next
       case [simp]: (Some br')
@@ -438,12 +438,12 @@ proof (induction h arbitrary: x t)
       show ?thesis
       proof cases
         assume "r \<in> B h"
-        from del_min_type(1)[OF this] n2_type3[OF lr(1)]
+        from split_min_type(1)[OF this] n2_type3[OF lr(1)]
         show ?thesis by simp
       next
         assume "r \<notin> B h"
         hence "l \<in> B h" and "r \<in> U h" using lr by auto
-        from del_min_type(2)[OF this(2)] n2_type2[OF this(1)]
+        from split_min_type(2)[OF this(2)] n2_type2[OF this(1)]
         show ?thesis by simp
       qed
     qed

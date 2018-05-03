@@ -39,11 +39,10 @@ sig
   val aux_params: var_ctxt -> iterm list list -> string list
 
   type literals
-  val Literals: { literal_char: string -> string, literal_string: string -> string,
+  val Literals: { literal_string: string -> string,
         literal_numeral: int -> string,
         literal_list: Pretty.T list -> Pretty.T, infix_cons: int * string }
     -> literals
-  val literal_char: literals -> string -> string
   val literal_string: literals -> string -> string
   val literal_numeral: literals -> int -> string
   val literal_list: literals -> Pretty.T list -> Pretty.T
@@ -215,7 +214,6 @@ fun intro_base_names_for no_syntax deresolve ts =
 (** pretty literals **)
 
 datatype literals = Literals of {
-  literal_char: string -> string,
   literal_string: string -> string,
   literal_numeral: int -> string,
   literal_list: Pretty.T list -> Pretty.T,
@@ -224,7 +222,6 @@ datatype literals = Literals of {
 
 fun dest_Literals (Literals lits) = lits;
 
-val literal_char = #literal_char o dest_Literals;
 val literal_string = #literal_string o dest_Literals;
 val literal_numeral = #literal_numeral o dest_Literals;
 val literal_list = #literal_list o dest_Literals;

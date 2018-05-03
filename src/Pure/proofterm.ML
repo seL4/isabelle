@@ -1613,11 +1613,15 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     val body0 =
       if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
       else
-        (singleton o Future.cond_forks)
-          {name = "Proofterm.prepare_thm_proof", group = NONE,
-            deps = [], pri = 0, interrupts = true}
-          (fn () =>
-            make_body0 (shrink_proof (rew_proof thy (fold_rev implies_intr_proof hyps prf))));
+        let
+          val rew = rew_proof thy;
+          val prf' = fold_rev implies_intr_proof hyps prf;
+        in
+          (singleton o Future.cond_forks)
+            {name = "Proofterm.prepare_thm_proof", group = NONE,
+              deps = [], pri = 1, interrupts = true}
+            (fn () => make_body0 (shrink_proof (rew prf')))
+        end;
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =

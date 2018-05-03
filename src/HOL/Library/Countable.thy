@@ -256,7 +256,7 @@ instance list :: (countable) countable
 text \<open>String literals\<close>
 
 instance String.literal :: countable
-  by (rule countable_classI [of "to_nat \<circ> String.explode"]) (auto simp add: explode_inject)
+  by (rule countable_classI [of "to_nat \<circ> String.explode"]) (simp add: String.explode_inject)
 
 text \<open>Functions\<close>
 

@@ -44,7 +44,7 @@ fun del :: "'a::linorder \<Rightarrow> ('a\<times>'b) bro \<Rightarrow> ('a\<tim
   (case cmp x a of
      LT \<Rightarrow> n2 (del x l) (a,b) r |
      GT \<Rightarrow> n2 l (a,b) (del x r) |
-     EQ \<Rightarrow> (case del_min r of
+     EQ \<Rightarrow> (case split_min r of
               None \<Rightarrow> N1 l |
               Some (ab, r') \<Rightarrow> n2 l ab r'))"
 
@@ -84,7 +84,7 @@ begin
 lemma inorder_del:
   "t \<in> T h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
 by(induction h arbitrary: t) (auto simp: del_list_simps inorder_n2
-     inorder_del_min[OF UnI1] inorder_del_min[OF UnI2] split: option.splits)
+     inorder_split_min[OF UnI1] inorder_split_min[OF UnI2] split: option.splits)
 
 lemma inorder_delete:
   "t \<in> T h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
@@ -151,16 +151,16 @@ proof (induction h arbitrary: x t)
     qed
     moreover
     have ?case if [simp]: "x=a"
-    proof (cases "del_min r")
+    proof (cases "split_min r")
       case None
       show ?thesis
       proof cases
         assume "r \<in> B h"
-        with del_minNoneN0[OF this None] lr show ?thesis by(simp)
+        with split_minNoneN0[OF this None] lr show ?thesis by(simp)
       next
         assume "r \<notin> B h"
         hence "r \<in> U h" using lr by auto
-        with del_minNoneN1[OF this None] lr(3) show ?thesis by (simp)
+        with split_minNoneN1[OF this None] lr(3) show ?thesis by (simp)
       qed
     next
       case [simp]: (Some br')
@@ -168,12 +168,12 @@ proof (induction h arbitrary: x t)
       show ?thesis
       proof cases
         assume "r \<in> B h"
-        from del_min_type(1)[OF this] n2_type3[OF lr(1)]
+        from split_min_type(1)[OF this] n2_type3[OF lr(1)]
         show ?thesis by simp
       next
         assume "r \<notin> B h"
         hence "l \<in> B h" and "r \<in> U h" using lr by auto
-        from del_min_type(2)[OF this(2)] n2_type2[OF this(1)]
+        from split_min_type(2)[OF this(2)] n2_type2[OF this(1)]
         show ?thesis by simp
       qed
     qed

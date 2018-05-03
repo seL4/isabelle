@@ -102,7 +102,12 @@ fi
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
 
 #enforce JAVA_HOME
-export JAVA_HOME="$ISABELLE_JDK_HOME/jre"
+if [ -d "$ISABELLE_JDK_HOME/jre" ]
+then
+  export JAVA_HOME="$ISABELLE_JDK_HOME/jre"
+else
+  export JAVA_HOME="$ISABELLE_JDK_HOME"
+fi
 
 set +o allexport
 

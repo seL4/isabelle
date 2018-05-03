@@ -177,9 +177,6 @@ lemma square_continuous:
   using isCont_power[OF continuous_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
   by (force simp add: power2_eq_square)
 
-lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> inner x x = (0::real)"
-  by simp (* TODO: delete *)
-
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
   shows "norm x \<le> norm y + norm (x - y)"

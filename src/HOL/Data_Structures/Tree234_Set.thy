@@ -154,13 +154,13 @@ fun node44 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow
 "node44 t1 a t2 b (Node3 t3 c t4 d t5) e (Up\<^sub>d t6) = T\<^sub>d(Node4 t1 a t2 b (Node2 t3 c t4) d (Node2 t5 e t6))" |
 "node44 t1 a t2 b (Node4 t3 c t4 d t5 e t6) f (Up\<^sub>d t7) = T\<^sub>d(Node4 t1 a t2 b (Node2 t3 c t4) d (Node3 t5 e t6 f t7))"
 
-fun del_min :: "'a tree234 \<Rightarrow> 'a * 'a up\<^sub>d" where
-"del_min (Node2 Leaf a Leaf) = (a, Up\<^sub>d Leaf)" |
-"del_min (Node3 Leaf a Leaf b Leaf) = (a, T\<^sub>d(Node2 Leaf b Leaf))" |
-"del_min (Node4 Leaf a Leaf b Leaf c Leaf) = (a, T\<^sub>d(Node3 Leaf b Leaf c Leaf))" |
-"del_min (Node2 l a r) = (let (x,l') = del_min l in (x, node21 l' a r))" |
-"del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))" |
-"del_min (Node4 l a m b n c r) = (let (x,l') = del_min l in (x, node41 l' a m b n c r))"
+fun split_min :: "'a tree234 \<Rightarrow> 'a * 'a up\<^sub>d" where
+"split_min (Node2 Leaf a Leaf) = (a, Up\<^sub>d Leaf)" |
+"split_min (Node3 Leaf a Leaf b Leaf) = (a, T\<^sub>d(Node2 Leaf b Leaf))" |
+"split_min (Node4 Leaf a Leaf b Leaf c Leaf) = (a, T\<^sub>d(Node3 Leaf b Leaf c Leaf))" |
+"split_min (Node2 l a r) = (let (x,l') = split_min l in (x, node21 l' a r))" |
+"split_min (Node3 l a m b r) = (let (x,l') = split_min l in (x, node31 l' a m b r))" |
+"split_min (Node4 l a m b n c r) = (let (x,l') = split_min l in (x, node41 l' a m b n c r))"
 
 fun del :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
 "del k Leaf = T\<^sub>d Leaf" |
@@ -175,23 +175,23 @@ fun del :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" w
 "del k (Node2 l a r) = (case cmp k a of
   LT \<Rightarrow> node21 (del k l) a r |
   GT \<Rightarrow> node22 l a (del k r) |
-  EQ \<Rightarrow> let (a',t) = del_min r in node22 l a' t)" |
+  EQ \<Rightarrow> let (a',t) = split_min r in node22 l a' t)" |
 "del k (Node3 l a m b r) = (case cmp k a of
   LT \<Rightarrow> node31 (del k l) a m b r |
-  EQ \<Rightarrow> let (a',m') = del_min m in node32 l a' m' b r |
+  EQ \<Rightarrow> let (a',m') = split_min m in node32 l a' m' b r |
   GT \<Rightarrow> (case cmp k b of
            LT \<Rightarrow> node32 l a (del k m) b r |
-           EQ \<Rightarrow> let (b',r') = del_min r in node33 l a m b' r' |
+           EQ \<Rightarrow> let (b',r') = split_min r in node33 l a m b' r' |
            GT \<Rightarrow> node33 l a m b (del k r)))" |
 "del k (Node4 l a m b n c r) = (case cmp k b of
   LT \<Rightarrow> (case cmp k a of
           LT \<Rightarrow> node41 (del k l) a m b n c r |
-          EQ \<Rightarrow> let (a',m') = del_min m in node42 l a' m' b n c r |
+          EQ \<Rightarrow> let (a',m') = split_min m in node42 l a' m' b n c r |
           GT \<Rightarrow> node42 l a (del k m) b n c r) |
-  EQ \<Rightarrow> let (b',n') = del_min n in node43 l a m b' n' c r |
+  EQ \<Rightarrow> let (b',n') = split_min n in node43 l a m b' n' c r |
   GT \<Rightarrow> (case cmp k c of
            LT \<Rightarrow> node43 l a m b (del k n) c r |
-           EQ \<Rightarrow> let (c',r') = del_min r in node44 l a m b n c' r' |
+           EQ \<Rightarrow> let (c',r') = split_min r in node44 l a m b n c' r' |
            GT \<Rightarrow> node44 l a m b n c (del k r)))"
 
 definition delete :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
@@ -259,16 +259,16 @@ lemmas inorder_nodes = inorder_node21 inorder_node22
   inorder_node31 inorder_node32 inorder_node33
   inorder_node41 inorder_node42 inorder_node43 inorder_node44
 
-lemma del_minD:
-  "del_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
+lemma split_minD:
+  "split_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
   x # inorder(tree\<^sub>d t') = inorder t"
-by(induction t arbitrary: t' rule: del_min.induct)
+by(induction t arbitrary: t' rule: split_min.induct)
   (auto simp: inorder_nodes split: prod.splits)
 
 lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: inorder_nodes del_list_simps del_minD split!: if_split prod.splits)
+  (auto simp: inorder_nodes del_list_simps split_minD split!: if_split prod.splits)
   (* 30 secs (2016) *)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
@@ -476,23 +476,23 @@ lemmas heights = height_node21 height_node22
   height_node31 height_node32 height_node33
   height_node41 height_node42 height_node43 height_node44
 
-lemma height_del_min:
-  "del_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> bal t \<Longrightarrow> height t' = height t"
-by(induct t arbitrary: x t' rule: del_min.induct)
+lemma height_split_min:
+  "split_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> bal t \<Longrightarrow> height t' = height t"
+by(induct t arbitrary: x t' rule: split_min.induct)
   (auto simp: heights split: prod.splits)
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp add: heights height_del_min split!: if_split prod.split)
+  (auto simp add: heights height_split_min split!: if_split prod.split)
 
-lemma bal_del_min:
-  "\<lbrakk> del_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
-by(induct t arbitrary: x t' rule: del_min.induct)
-  (auto simp: heights height_del_min bals split: prod.splits)
+lemma bal_split_min:
+  "\<lbrakk> split_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
+by(induct t arbitrary: x t' rule: split_min.induct)
+  (auto simp: heights height_split_min bals split: prod.splits)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min split!: if_split prod.split)
+  (auto simp: bals bal_split_min height_del height_split_min split!: if_split prod.split)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)

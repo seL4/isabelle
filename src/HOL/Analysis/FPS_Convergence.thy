@@ -271,7 +271,7 @@ lemma fps_conv_radius_cmult_right:
 lemma fps_conv_radius_uminus [simp]:
   "fps_conv_radius (-f) = fps_conv_radius f"
   using fps_conv_radius_cmult_left[of "-1" f]
-  by (simp add: fps_const_neg [symmetric] del: fps_const_neg)
+  by (simp reorient: fps_const_neg)
 
 lemma fps_conv_radius_add: "fps_conv_radius (f + g) \<ge> min (fps_conv_radius f) (fps_conv_radius g)"
   unfolding fps_conv_radius_def using conv_radius_add_ge[of "fps_nth f" "fps_nth g"]

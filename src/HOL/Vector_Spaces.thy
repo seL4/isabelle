@@ -213,7 +213,7 @@ qed
 
 lemma maximal_independent_subset_extend:
   assumes "S \<subseteq> V" "independent S"
-  shows "\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
+  obtains B where "S \<subseteq> B" "B \<subseteq> V" "independent B" "V \<subseteq> span B"
 proof -
   let ?C = "{B. S \<subseteq> B \<and> independent B \<and> B \<subseteq> V}"
   have "\<exists>M\<in>?C. \<forall>X\<in>?C. M \<subseteq> X \<longrightarrow> X = M"
@@ -253,10 +253,11 @@ proof -
     with \<open>v \<notin> span B\<close> have False
       by (auto intro: span_base) }
   ultimately show ?thesis
-    by (auto intro!: exI[of _ B])
+    by (meson that)
 qed
 
-lemma maximal_independent_subset: "\<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
+lemma maximal_independent_subset:
+  obtains B where "B \<subseteq> V" "independent B" "V \<subseteq> span B"
   by (metis maximal_independent_subset_extend[of "{}"] empty_subsetI independent_empty)
 
 text \<open>Extends a basis from B to a basis of the entire space.\<close>
@@ -337,107 +338,105 @@ next
 qed
 
 lemma exchange_lemma:
-  assumes f: "finite t"
-  and i: "independent s"
-  and sp: "s \<subseteq> span t"
-  shows "\<exists>t'. card t' = card t \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
+  assumes f: "finite T"
+    and i: "independent S"
+    and sp: "S \<subseteq> span T"
+  shows "\<exists>t'. card t' = card T \<and> finite t' \<and> S \<subseteq> t' \<and> t' \<subseteq> S \<union> T \<and> S \<subseteq> span t'"
   using f i sp
-proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
+proof (induct "card (T - S)" arbitrary: S T rule: less_induct)
   case less
-  note ft = `finite t` and s = `independent s` and sp = `s \<subseteq> span t`
-  let ?P = "\<lambda>t'. card t' = card t \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
-  let ?ths = "\<exists>t'. ?P t'"
-
-  {
-    assume st: "t \<subseteq> s"
-    from spanning_subset_independent[OF st s sp] st ft span_mono[OF st]
-    have ?ths by (auto intro: span_base)
-  }
-  moreover
-  {
-    assume st:"\<not> t \<subseteq> s"
-    from st obtain b where b: "b \<in> t" "b \<notin> s"
-      by blast
-    from b have "t - {b} - s \<subset> t - s"
-      by blast
-    then have cardlt: "card (t - {b} - s) < card (t - s)"
-      using ft by (auto intro: psubset_card_mono)
-    from b ft have ct0: "card t \<noteq> 0"
+  note ft = \<open>finite T\<close> and S = \<open>independent S\<close> and sp = \<open>S \<subseteq> span T\<close>
+  let ?P = "\<lambda>t'. card t' = card T \<and> finite t' \<and> S \<subseteq> t' \<and> t' \<subseteq> S \<union> T \<and> S \<subseteq> span t'"
+  show ?case
+  proof (cases "S \<subseteq> T \<or> T \<subseteq> S")
+    case True
+    then show ?thesis
+    proof
+      assume "S \<subseteq> T" then show ?thesis
+        by (metis ft Un_commute sp sup_ge1)
+    next
+      assume "T \<subseteq> S" then show ?thesis
+        by (metis Un_absorb sp spanning_subset_independent[OF _ S sp] ft)
+    qed
+  next
+    case False
+    then have st: "\<not> S \<subseteq> T" "\<not> T \<subseteq> S"
       by auto
-    have ?ths
-    proof cases
-      assume stb: "s \<subseteq> span (t - {b})"
-      from ft have ftb: "finite (t - {b})"
+    from st(2) obtain b where b: "b \<in> T" "b \<notin> S"
+      by blast
+    from b have "T - {b} - S \<subset> T - S"
+      by blast
+    then have cardlt: "card (T - {b} - S) < card (T - S)"
+      using ft by (auto intro: psubset_card_mono)
+    from b ft have ct0: "card T \<noteq> 0"
+      by auto
+    show ?thesis
+    proof (cases "S \<subseteq> span (T - {b})")
+      case True
+      from ft have ftb: "finite (T - {b})"
         by auto
-      from less(1)[OF cardlt ftb s stb]
-      obtain u where u: "card u = card (t - {b})" "s \<subseteq> u" "u \<subseteq> s \<union> (t - {b})" "s \<subseteq> span u"
-        and fu: "finite u" by blast
-      let ?w = "insert b u"
-      have th0: "s \<subseteq> insert b u"
-        using u by blast
-      from u(3) b have "u \<subseteq> s \<union> t"
-        by blast
-      then have th1: "insert b u \<subseteq> s \<union> t"
-        using u b by blast
-      have bu: "b \<notin> u"
-        using b u by blast
-      from u(1) ft b have "card u = (card t - 1)"
+      from less(1)[OF cardlt ftb S True]
+      obtain U where U: "card U = card (T - {b})" "S \<subseteq> U" "U \<subseteq> S \<union> (T - {b})" "S \<subseteq> span U"
+        and fu: "finite U" by blast
+      let ?w = "insert b U"
+      have th0: "S \<subseteq> insert b U"
+        using U by blast
+      have th1: "insert b U \<subseteq> S \<union> T"
+        using U b by blast
+      have bu: "b \<notin> U"
+        using b U by blast
+      from U(1) ft b have "card U = (card T - 1)"
         by auto
-      then have th2: "card (insert b u) = card t"
+      then have th2: "card (insert b U) = card T"
         using card_insert_disjoint[OF fu bu] ct0 by auto
-      from u(4) have "s \<subseteq> span u" .
-      also have "\<dots> \<subseteq> span (insert b u)"
+      from U(4) have "S \<subseteq> span U" .
+      also have "\<dots> \<subseteq> span (insert b U)"
         by (rule span_mono) blast
-      finally have th3: "s \<subseteq> span (insert b u)" .
+      finally have th3: "S \<subseteq> span (insert b U)" .
       from th0 th1 th2 th3 fu have th: "?P ?w"
         by blast
       from th show ?thesis by blast
     next
-      assume stb: "\<not> s \<subseteq> span (t - {b})"
-      from stb obtain a where a: "a \<in> s" "a \<notin> span (t - {b})"
+      case False
+      then obtain a where a: "a \<in> S" "a \<notin> span (T - {b})"
         by blast
       have ab: "a \<noteq> b"
         using a b by blast
-      have at: "a \<notin> t"
-        using a ab span_base[of a "t- {b}"] by auto
-      have mlt: "card ((insert a (t - {b})) - s) < card (t - s)"
+      have at: "a \<notin> T"
+        using a ab span_superset[of a "T- {b}"] by auto
+      have mlt: "card ((insert a (T - {b})) - S) < card (T - S)"
         using cardlt ft a b by auto
-      have ft': "finite (insert a (t - {b}))"
+      have ft': "finite (insert a (T - {b}))"
         using ft by auto
-      {
+      have sp': "S \<subseteq> span (insert a (T - {b}))"
+      proof
         fix x
-        assume xs: "x \<in> s"
-        have t: "t \<subseteq> insert b (insert a (t - {b}))"
+        assume xs: "x \<in> S"
+        have T: "T \<subseteq> insert b (insert a (T - {b}))"
           using b by auto
-        have bs: "b \<in> span (insert a (t - {b}))"
-          apply (rule in_span_delete)
-          using a sp unfolding subset_eq
-          apply auto
-          done
-        from xs sp have "x \<in> span t"
+        have bs: "b \<in> span (insert a (T - {b}))"
+          by (rule in_span_delete) (use a sp in auto)
+        from xs sp have "x \<in> span T"
           by blast
-        with span_mono[OF t] have x: "x \<in> span (insert b (insert a (t - {b})))" ..
-        from span_trans[OF bs x] have "x \<in> span (insert a (t - {b}))" .
-      }
-      then have sp': "s \<subseteq> span (insert a (t - {b}))"
-        by blast
-      from less(1)[OF mlt ft' s sp'] obtain u where u:
-        "card u = card (insert a (t - {b}))"
-        "finite u" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t - {b})"
-        "s \<subseteq> span u" by blast
-      from u a b ft at ct0 have "?P u"
+        with span_mono[OF T] have x: "x \<in> span (insert b (insert a (T - {b})))" ..
+        from span_trans[OF bs x] show "x \<in> span (insert a (T - {b}))" .
+      qed
+      from less(1)[OF mlt ft' S sp'] obtain U where U:
+        "card U = card (insert a (T - {b}))"
+        "finite U" "S \<subseteq> U" "U \<subseteq> S \<union> insert a (T - {b})"
+        "S \<subseteq> span U" by blast
+      from U a b ft at ct0 have "?P U"
         by auto
       then show ?thesis by blast
     qed
-  }
-  ultimately show ?ths by blast
+  qed
 qed
 
 lemma independent_span_bound:
-  assumes f: "finite t"
-    and i: "independent s"
-    and sp: "s \<subseteq> span t"
-  shows "finite s \<and> card s \<le> card t"
+  assumes f: "finite T"
+    and i: "independent S"
+    and sp: "S \<subseteq> span T"
+  shows "finite S \<and> card S \<le> card T"
   by (metis exchange_lemma[OF f i sp] finite_subset card_mono)
 
 lemma independent_explicit_finite_subsets:
@@ -544,7 +543,8 @@ qed
 lemma basis_card_eq_dim: "B \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = dim V"
   using dim_eq_card[of B V] span_mono[of B V] span_minimal[OF _ subspace_span, of V B] by auto
 
-lemma basis_exists: "\<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> card B = dim V"
+lemma basis_exists:
+  obtains B where "B \<subseteq> V" "independent B" "V \<subseteq> span B" "card B = dim V"
   by (meson basis_card_eq_dim empty_subsetI independent_empty maximal_independent_subset_extend)
 
 lemma dim_eq_card_independent: "independent B \<Longrightarrow> dim B = card B"
@@ -651,35 +651,28 @@ lemma linear_indep_image_lemma:
     and fx: "f x = 0"
   shows "x = 0"
   using fB ifB fi xsB fx
-proof (induct arbitrary: x rule: finite_induct[OF fB])
-  case 1
+proof (induction B arbitrary: x rule: finite_induct)
+  case empty
   then show ?case by auto
 next
-  case (2 a b x)
+  case (insert a b x)
   have fb: "finite b" using "2.prems" by simp
   have th0: "f ` b \<subseteq> f ` (insert a b)"
-    apply (rule image_mono)
-    apply blast
-    done
-  from vs2.independent_mono[ OF "2.prems"(2) th0]
-  have ifb: "vs2.independent (f ` b)"  .
+    by (simp add: subset_insertI)
+  have ifb: "vs2.independent (f ` b)"
+    using independent_mono insert.prems(1) th0 by blast
   have fib: "inj_on f b"
-    apply (rule subset_inj_on [OF "2.prems"(3)])
-    apply blast
-    done
-  from vs1.span_breakdown[of a "insert a b", simplified, OF "2.prems"(4)]
+    using insert.prems(2) by blast
+  from vs1.span_breakdown[of a "insert a b", simplified, OF insert.prems(3)]
   obtain k where k: "x - k *a a \<in> vs1.span (b - {a})"
     by blast
   have "f (x - k *a a) \<in> vs2.span (f ` b)"
     unfolding linear_span_image[OF lf]
-    apply (rule imageI)
-    using k vs1.span_mono[of "b - {a}" b]
-    apply blast
-    done
+    using "insert.hyps"(2) k by auto
   then have "f x - k *b f a \<in> vs2.span (f ` b)"
     by (simp add: linear_diff linear_scale lf)
   then have th: "-k *b f a \<in> vs2.span (f ` b)"
-    using "2.prems"(5) by simp
+    using insert.prems(4) by simp
   have xsb: "x \<in> vs1.span b"
   proof (cases "k = 0")
     case True
@@ -688,19 +681,18 @@ next
       by blast
   next
     case False
-    with vs2.span_scale[OF th, of "- 1/ k"]
-    have th1: "f a \<in> vs2.span (f ` b)"
-      by auto
-    from inj_on_image_set_diff[OF "2.prems"(3), of "insert a b " "{a}", symmetric]
-    have tha: "f ` insert a b - f ` {a} = f ` (insert a b - {a})" by blast
-    from "2.prems"(2) [unfolded vs2.dependent_def bex_simps(8), rule_format, of "f a"]
-    have "f a \<notin> vs2.span (f ` b)" using tha
-      using "2.hyps"(2)
-      "2.prems"(3) by auto
-    with th1 have False by blast
+    from inj_on_image_set_diff[OF insert.prems(2), of "insert a b " "{a}", symmetric]
+    have "f ` insert a b - f ` {a} = f ` (insert a b - {a})" by blast
+    then have "f a \<notin> span (f ` b)" 
+      using dependent_def insert.hyps(2) insert.prems(1) by fastforce
+    moreover have "f a \<in> span (f ` b)"
+      using False span_mul[OF th, of "- 1/ k"] by auto
+    ultimately have False
+      by blast
     then show ?thesis by blast
   qed
-  from "2.hyps"(3)[OF fb ifb fib xsb "2.prems"(5)] show "x = 0" .
+  show "x = 0"
+    using ifb fib xsb insert.IH insert.prems(4) by blast
 qed
 
 lemma linear_eq_on:
@@ -943,7 +935,7 @@ lemma linear_inj_on_left_inverse:
   by (auto simp: linear_iff_module_hom)
 
 lemma linear_injective_left_inverse: "linear s1 s2 f \<Longrightarrow> inj f \<Longrightarrow> \<exists>g. linear s2 s1 g \<and> g \<circ> f = id"
-  using linear_inj_on_left_inverse[of f UNIV] by (auto simp: fun_eq_iff vs1.span_UNIV)
+  using linear_inj_on_left_inverse[of f UNIV] by (auto simp: fun_eq_iff)
 
 lemma linear_surj_right_inverse:
   assumes lf: "linear s1 s2 f"
@@ -979,15 +971,13 @@ proof
       assume xy: "\<not> ?thesis"
       have th: "card S \<le> card (f ` (S - {y}))"
         unfolding c
-        apply (rule card_mono)
-        apply (rule finite_imageI)
-        using fS apply simp
-        using h xy x y f unfolding subset_eq image_iff
-        apply auto
-        apply (case_tac "xa = f x")
-        apply (rule bexI[where x=x])
-        apply auto
-        done
+      proof (rule card_mono)
+        show "finite (f ` (S - {y}))"
+          by (simp add: fS)
+        show "T \<subseteq> f ` (S - {y})"
+          using h xy x y f unfolding subset_eq image_iff
+          by (metis member_remove remove_def)
+      qed
       also have " \<dots> \<le> card (S - {y})"
         apply (rule card_image_le)
         using fS by simp
@@ -1000,10 +990,7 @@ proof
 next
   assume h: ?rhs
   have "f ` S = T"
-    apply (rule card_subset_eq[OF fT ST])
-    unfolding card_image[OF h]
-    apply (rule c)
-    done
+    by (simp add: ST c card_image card_subset_eq fT h)
   then show ?lhs by blast
 qed
 
@@ -1087,10 +1074,9 @@ proof -
 qed
 
 lemma basis_subspace_exists:
-   "subspace S
-        \<Longrightarrow> \<exists>b. finite b \<and> b \<subseteq> S \<and>
-                independent b \<and> span b = S \<and> card b = dim S"
-  by (meson basis_exists finiteI_independent span_subspace)
+  assumes "subspace S"
+  obtains B where "finite B" "B \<subseteq> S" "independent B" "span B = S" "card B = dim S"
+by (metis assms span_subspace basis_exists independent_imp_finite)
 
 lemma dim_mono: assumes "V \<subseteq> span W" shows "dim V \<le> dim W"
 proof -
@@ -1190,7 +1176,7 @@ lemma subspace_dim_equal:
   shows "S = T"
 proof -
   obtain B where B: "B \<le> S" "independent B \<and> S \<subseteq> span B" "card B = dim S"
-    using basis_exists[of S] by auto
+    using basis_exists[of S] by metis
   then have "span B \<subseteq> S"
     using span_mono[of B S] span_eq_iff[of S] assms by metis
   then have "span B = S"
@@ -1242,7 +1228,7 @@ proof -
   obtain B where B: "B \<subseteq> S \<inter> T" "S \<inter> T \<subseteq> span B"
              and indB: "independent B"
              and cardB: "card B = dim (S \<inter> T)"
-    using basis_exists by blast
+    using basis_exists by metis
   then obtain C D where "B \<subseteq> C" "C \<subseteq> S" "independent C" "S \<subseteq> span C"
                     and "B \<subseteq> D" "D \<subseteq> T" "independent D" "T \<subseteq> span D"
     using maximal_independent_subset_extend
@@ -1575,8 +1561,7 @@ end
 context finite_dimensional_vector_space begin
 
 lemma linear_surj_imp_inj:
-  assumes lf: "linear scale scale f"
-    and sf: "surj f"
+  assumes lf: "linear scale scale f" and sf: "surj f"
   shows "inj f"
 proof -
   interpret finite_dimensional_vector_space_pair scale Basis scale Basis by unfold_locales
@@ -1586,46 +1571,29 @@ proof -
     by blast
   {
     fix x
-    assume x: "x \<in> span B"
-    assume fx: "f x = 0"
+    assume x: "x \<in> span B" and fx: "f x = 0"
     from B(2) have fB: "finite B"
       using finiteI_independent by auto
+    have Uspan: "UNIV \<subseteq> span (f ` B)"
+      by (simp add: B(3) lf sf spanning_surjective_image)
     have fBi: "independent (f ` B)"
-      apply (rule card_le_dim_spanning[of "f ` B" ?U])
-      apply blast
-      using sf B(3)
-      unfolding linear_span_image[OF lf] surj_def subset_eq image_iff
-      apply blast
-      using fB apply blast
-      unfolding d[symmetric]
-      apply (rule card_image_le)
-      apply (rule fB)
-      done
+    proof (rule card_le_dim_spanning)
+      show "card (f ` B) \<le> dim ?U"
+        using card_image_le d fB by fastforce
+    qed (use fB Uspan in auto)
     have th0: "dim ?U \<le> card (f ` B)"
-      apply (rule span_card_ge_dim)
-      apply blast
-      unfolding linear_span_image[OF lf]
-      apply (rule subset_trans[where B = "f ` UNIV"])
-      using sf unfolding surj_def
-      apply blast
-      apply (rule image_mono)
-      apply (rule B(3))
-      apply (metis finite_imageI fB)
-      done
+      by (rule span_card_ge_dim) (use Uspan fB in auto)
     moreover have "card (f ` B) \<le> card B"
       by (rule card_image_le, rule fB)
     ultimately have th1: "card B = card (f ` B)"
       unfolding d by arith
     have fiB: "inj_on f B"
-      unfolding surjective_iff_injective_gen[OF fB finite_imageI[OF fB] th1 subset_refl, symmetric]
-      by blast
+      by (simp add: eq_card_imp_inj_on fB th1)
     from linear_indep_image_lemma[OF lf fB fBi fiB x] fx
     have "x = 0" by blast
   }
   then show ?thesis
-    unfolding linear_inj_on_iff_eq_0[OF lf subspace_UNIV]
-    using B(3)
-    by blast
+    unfolding linear_injective_0[OF lf] using B(3) by blast
 qed
 
 lemma linear_inverse_left:
@@ -1638,9 +1606,7 @@ proof -
     assume lf: "linear scale scale f" "linear scale scale f'"
     assume f: "f \<circ> f' = id"
     from f have sf: "surj f"
-      apply (auto simp add: o_def id_def surj_def)
-      apply metis
-      done
+      by (auto simp add: o_def id_def surj_def) metis
     interpret finite_dimensional_vector_space_pair scale Basis scale Basis by unfold_locales
     from linear_surjective_isomorphism[OF lf(1) sf] lf f
     have "f' \<circ> f = id"
@@ -1656,19 +1622,14 @@ lemma left_inverse_linear:
   shows "linear scale scale g"
 proof -
   from gf have fi: "inj f"
-    apply (auto simp add: inj_on_def o_def id_def fun_eq_iff)
-    apply metis
-    done
+    by (auto simp add: inj_on_def o_def id_def fun_eq_iff) metis
   interpret finite_dimensional_vector_space_pair scale Basis scale Basis by unfold_locales
   from linear_injective_isomorphism[OF lf fi]
-  obtain h :: "'b \<Rightarrow> 'b" where h: "linear scale scale h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x"
+  obtain h :: "'b \<Rightarrow> 'b" where "linear scale scale h" and h: "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x"
     by blast
   have "h = g"
-    apply (rule ext) using gf h(2,3)
-    apply (simp add: o_def id_def fun_eq_iff)
-    apply metis
-    done
-  with h(1) show ?thesis by blast
+    by (metis gf h isomorphism_expand left_right_inverse_eq)
+  with \<open>linear h\<close> show ?thesis by blast
 qed
 
 lemma inj_linear_imp_inv_linear:

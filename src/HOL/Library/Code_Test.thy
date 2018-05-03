@@ -84,8 +84,8 @@ where "tagged tag x ts = Elem tag (case x of None \<Rightarrow> [] | Some x' \<R
 
 definition list where "list f xs = map (node \<circ> f) xs"
 
-definition X :: yxml_of_term where "X = yot_literal (STR [Char (num.Bit1 (num.Bit0 num.One))])"
-definition Y :: yxml_of_term where "Y = yot_literal (STR [Char (num.Bit0 (num.Bit1 num.One))])"
+definition X :: yxml_of_term where "X = yot_literal (STR 0x05)"
+definition Y :: yxml_of_term where "Y = yot_literal (STR 0x06)"
 definition XY :: yxml_of_term where "XY = yot_append X Y"
 definition XYX :: yxml_of_term where "XYX = yot_append XY X"
 

@@ -144,7 +144,7 @@ class Pretty_Text_Area(
             JEdit_Lib.buffer_edit(getBuffer) {
               rich_text_area.active_reset()
               getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-              setText(text)
+              JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(text))
               setCaretPosition(0)
             }
           }

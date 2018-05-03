@@ -23,6 +23,24 @@ infixr 5 @|;
 
 val target = "Scala";
 
+val print_scala_string =
+  let
+    fun chr i = "\\u" ^ align_right "0" 4 (Int.fmt StringCvt.HEX i)
+    fun char c = if c = "'" then "\\'"
+      else if c = "\"" then "\\\""
+      else if c = "\\" then "\\\\"
+      else
+        let
+          val i = ord c
+        in
+          if i < 32 orelse i > 126
+          then chr i
+          else if i >= 128
+          then error "non-ASCII byte in Scala string literal"
+          else c
+        end
+  in quote o translate_string char end;
+
 datatype scala_stmt = Fun of typscheme * ((iterm list * iterm) * (thm option * bool)) list
   | Datatype of vname list * ((string * vname list) * itype list) list
   | Class of (vname * ((class * class) list * (string * itype) list))
@@ -189,7 +207,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             val vars = intro_vars params reserved;
           in
             concat [print_defhead tyvars vars const vs params tys ty',
-              str ("sys.error(\"" ^ const ^ "\")")]
+              str ("sys.error(" ^ print_scala_string const ^ ")")]
           end
       | print_def const (vs, ty) eqs =
           let
@@ -432,19 +450,12 @@ val serializer : Code_Target.serializer =
     >> (fn case_insensitive => serialize_scala case_insensitive));
 
 val literals = let
-  fun char_scala c = if c = "'" then "\\'"
-    else if c = "\"" then "\\\""
-    else if c = "\\" then "\\\\"
-    else let val k = ord c
-    in if k < 32 orelse k > 126
-    then "\\u" ^ align_right "0" 4 (Int.fmt StringCvt.HEX k) else c end
   fun numeral_scala k =
     if ~2147483647 < k andalso k <= 2147483647
     then signed_string_of_int k
     else quote (signed_string_of_int k)
 in Literals {
-  literal_char = Library.enclose "'" "'" o char_scala,
-  literal_string = quote o translate_string char_scala,
+  literal_string = print_scala_string,
   literal_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")

@@ -61,7 +61,7 @@ ML \<open>
           if Symbol.is_ascii s then ord s
           else if s = "\<newline>" then 10
           else error ("String literal contains illegal symbol: " ^ quote s ^ Position.here pos);
-      in Syntax.const @{const_syntax Char} $ HOLogic.mk_numeral c end;
+      in list_comb (Syntax.const @{const_syntax Char}, String_Syntax.mk_bits_syntax 8 c) end;
 
     fun mk_string [] = Const (@{const_syntax Nil}, @{typ string})
       | mk_string (s :: ss) =

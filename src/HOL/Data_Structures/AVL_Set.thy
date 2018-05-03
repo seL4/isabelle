@@ -58,16 +58,16 @@ fun insert :: "'a::linorder \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree"
    LT \<Rightarrow> balL (insert x l) a r |
    GT \<Rightarrow> balR l a (insert x r))"
 
-fun del_max :: "'a avl_tree \<Rightarrow> 'a avl_tree * 'a" where
-"del_max (Node _ l a r) =
-  (if r = Leaf then (l,a) else let (r',a') = del_max r in (balL l a r', a'))"
+fun split_max :: "'a avl_tree \<Rightarrow> 'a avl_tree * 'a" where
+"split_max (Node _ l a r) =
+  (if r = Leaf then (l,a) else let (r',a') = split_max r in (balL l a r', a'))"
 
-lemmas del_max_induct = del_max.induct[case_names Node Leaf]
+lemmas split_max_induct = split_max.induct[case_names Node Leaf]
 
 fun del_root :: "'a avl_tree \<Rightarrow> 'a avl_tree" where
 "del_root (Node h Leaf a r) = r" |
 "del_root (Node h l a Leaf) = l" |
-"del_root (Node h l a r) = (let (l', a') = del_max l in balR l' a' r)"
+"del_root (Node h l a r) = (let (l', a') = split_max l in balR l' a' r)"
 
 lemmas del_root_cases = del_root.cases[case_names Leaf_t Node_Leaf Node_Node]
 
@@ -103,22 +103,22 @@ by (induct t)
 
 subsubsection "Proofs for delete"
 
-lemma inorder_del_maxD:
-  "\<lbrakk> del_max t = (t',a); t \<noteq> Leaf \<rbrakk> \<Longrightarrow>
+lemma inorder_split_maxD:
+  "\<lbrakk> split_max t = (t',a); t \<noteq> Leaf \<rbrakk> \<Longrightarrow>
    inorder t' @ [a] = inorder t"
-by(induction t arbitrary: t' rule: del_max.induct)
+by(induction t arbitrary: t' rule: split_max.induct)
   (auto simp: inorder_balL split: if_splits prod.splits tree.split)
 
 lemma inorder_del_root:
   "inorder (del_root (Node h l a r)) = inorder l @ inorder r"
 by(cases "Node h l a r" rule: del_root.cases)
-  (auto simp: inorder_balL inorder_balR inorder_del_maxD split: if_splits prod.splits)
+  (auto simp: inorder_balL inorder_balR inorder_split_maxD split: if_splits prod.splits)
 
 theorem inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_balL inorder_balR
-    inorder_del_root inorder_del_maxD split: prod.splits)
+    inorder_del_root inorder_split_maxD split: prod.splits)
 
 
 subsubsection "Overall functional correctness"
@@ -301,12 +301,12 @@ qed simp_all
 
 subsubsection \<open>Deletion maintains AVL balance\<close>
 
-lemma avl_del_max:
+lemma avl_split_max:
   assumes "avl x" and "x \<noteq> Leaf"
-  shows "avl (fst (del_max x))" "height x = height(fst (del_max x)) \<or>
-         height x = height(fst (del_max x)) + 1"
+  shows "avl (fst (split_max x))" "height x = height(fst (split_max x)) \<or>
+         height x = height(fst (split_max x)) + 1"
 using assms
-proof (induct x rule: del_max_induct)
+proof (induct x rule: split_max_induct)
   case (Node h l a r)
   case 1
   thus ?case using Node
@@ -316,7 +316,7 @@ proof (induct x rule: del_max_induct)
 next
   case (Node h l a r)
   case 2
-  let ?r' = "fst (del_max r)"
+  let ?r' = "fst (split_max r)"
   from \<open>avl x\<close> Node 2 have "avl l" and "avl r" by simp_all
   thus ?case using Node 2 height_balL[of l ?r' a] height_balL2[of l ?r' a]
     apply (auto split:prod.splits simp del:avl.simps) by arith+
@@ -330,14 +330,14 @@ proof (cases t rule:del_root_cases)
   case (Node_Node h lh ll ln lr n rh rl rn rr)
   let ?l = "Node lh ll ln lr"
   let ?r = "Node rh rl rn rr"
-  let ?l' = "fst (del_max ?l)"
+  let ?l' = "fst (split_max ?l)"
   from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
   from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
   hence "avl(?l')" "height ?l = height(?l') \<or>
-         height ?l = height(?l') + 1" by (rule avl_del_max,simp)+
+         height ?l = height(?l') + 1" by (rule avl_split_max,simp)+
   with \<open>avl t\<close> Node_Node have "height ?l' = height ?r \<or> height ?l' = height ?r + 1
             \<or> height ?r = height ?l' + 1 \<or> height ?r = height ?l' + 2" by fastforce
-  with \<open>avl ?l'\<close> \<open>avl ?r\<close> have "avl(balR ?l' (snd(del_max ?l)) ?r)"
+  with \<open>avl ?l'\<close> \<open>avl ?r\<close> have "avl(balR ?l' (snd(split_max ?l)) ?r)"
     by (rule avl_balR)
   with Node_Node show ?thesis by (auto split:prod.splits)
 qed simp_all
@@ -350,12 +350,12 @@ proof (cases t rule: del_root_cases)
   case (Node_Node h lh ll ln lr n rh rl rn rr)
   let ?l = "Node lh ll ln lr"
   let ?r = "Node rh rl rn rr"
-  let ?l' = "fst (del_max ?l)"
-  let ?t' = "balR ?l' (snd(del_max ?l)) ?r"
+  let ?l' = "fst (split_max ?l)"
+  let ?t' = "balR ?l' (snd(split_max ?l)) ?r"
   from \<open>avl t\<close> and Node_Node have "avl ?r" by simp
   from \<open>avl t\<close> and Node_Node have "avl ?l" by simp
-  hence "avl(?l')"  by (rule avl_del_max,simp)
-  have l'_height: "height ?l = height ?l' \<or> height ?l = height ?l' + 1" using \<open>avl ?l\<close> by (intro avl_del_max) auto
+  hence "avl(?l')"  by (rule avl_split_max,simp)
+  have l'_height: "height ?l = height ?l' \<or> height ?l = height ?l' + 1" using \<open>avl ?l\<close> by (intro avl_split_max) auto
   have t_height: "height t = 1 + max (height ?l) (height ?r)" using \<open>avl t\<close> Node_Node by simp
   have "height t = height ?t' \<or> height t = height ?t' + 1" using  \<open>avl t\<close> Node_Node
   proof(cases "height ?r = height ?l' + 2")
@@ -364,7 +364,7 @@ proof (cases t rule: del_root_cases)
   next
     case True
     show ?thesis
-    proof(cases rule: disjE[OF height_balR[OF True \<open>avl ?l'\<close> \<open>avl ?r\<close>, of "snd (del_max ?l)"]])
+    proof(cases rule: disjE[OF height_balR[OF True \<open>avl ?l'\<close> \<open>avl ?r\<close>, of "snd (split_max ?l)"]])
       case 1
       thus ?thesis using l'_height t_height True by arith
     next

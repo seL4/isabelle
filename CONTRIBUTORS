@@ -6,14 +6,16 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* April 2018: Jose Divasón (Universidad de la Rioja),
+* May 2018: Jose Divasón (Universidad de la Rioja),
   Jesús Aransay (Universidad de la Rioja), Johannes Hölzl (VU Amsterdam),
   Fabian Immler (TUM)
   Generalizations in the formalization of linear algebra.
 
+* May 2018: Florian Haftmann
+  Consolidation of string-like types in HOL.
 
 * March 2018: Florian Haftmann
-  Abstract bit operations push_bit, push_take, push_drop, alongside
+  Abstract bit operations push_bit, take_bit, drop_bit, alongside
   with an algebraic foundation for bit strings and word types in
   HOL-ex.
 

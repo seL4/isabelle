@@ -20,6 +20,8 @@ sig
   val lcm: int -> int -> int
   val gcds: int list -> int
   val lcms: int list -> int
+  val radicify: int -> int -> int -> int list (* base -> number of positions -> value -> coefficients *)
+  val eval_radix: int -> int list -> int (* base -> coefficients -> value *)
 end;
 
 structure Integer : INTEGER =
@@ -63,6 +65,16 @@ fun gcds [] = 0
 
 fun lcms [] = 1
   | lcms (x :: xs) = abs (Library.foldl PolyML.IntInf.lcm (x, xs));
+
+fun radicify base len k =
+  let
+    val _ = if base < 2
+      then error ("Bad radix base: " ^ string_of_int base) else ();
+    fun shift i = swap (div_mod i base);
+  in funpow_yield len shift k |> fst end;
+
+fun eval_radix base ks =
+  fold_rev (fn k => fn i => k + i * base) ks 0;
 
 end;
 

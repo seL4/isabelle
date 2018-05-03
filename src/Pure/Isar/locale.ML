@@ -420,7 +420,6 @@ fun init_element elem context =
 
 fun make_notes kind = map (fn ((b, atts), facts) =>
   if null atts andalso forall (null o #2) facts
-    andalso not (Proofterm.proofs_enabled ()) (* FIXME *)
   then Lazy_Notes (kind, (b, Lazy.value (maps #1 facts)))
   else Notes (kind, [((b, atts), facts)]));
 

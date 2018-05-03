@@ -32,6 +32,7 @@ sig
   val attrib: (thm -> Proof.context -> Proof.context) -> attribute
   val simp_add: attribute
   val simp_del: attribute
+  val simp_reorient: attribute
   val cong_add: attribute
   val cong_del: attribute
   val check_simproc: Proof.context -> xstring * Position.T -> string
@@ -89,6 +90,7 @@ fun attrib f = Thm.declaration_attribute (map_ss o f);
 
 val simp_add = attrib add_simp;
 val simp_del = attrib del_simp;
+val simp_reorient = attrib reorient_simp;
 val cong_add = attrib add_cong;
 val cong_del = attrib del_cong;
 
@@ -267,6 +269,7 @@ val asm_full_rewrite = simp_cterm (true, true, true);
 (* add / del *)
 
 val simpN = "simp";
+val reorientN = "reorient"
 val congN = "cong";
 val onlyN = "only";
 val no_asmN = "no_asm";
@@ -340,6 +343,7 @@ val simp_modifiers =
  [Args.$$$ simpN -- Args.colon >> K (Method.modifier simp_add \<^here>),
   Args.$$$ simpN -- Args.add -- Args.colon >> K (Method.modifier simp_add \<^here>),
   Args.$$$ simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
+  Args.$$$ reorientN -- Args.colon >> K (Method.modifier simp_reorient \<^here>),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >>
     K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = \<^here>}]
    @ cong_modifiers;
@@ -347,6 +351,7 @@ val simp_modifiers =
 val simp_modifiers' =
  [Args.add -- Args.colon >> K (Method.modifier simp_add \<^here>),
   Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
+  Args.$$$ reorientN -- Args.colon >> K (Method.modifier simp_reorient \<^here>),
   Args.$$$ onlyN -- Args.colon >>
     K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = \<^here>}]
    @ cong_modifiers;

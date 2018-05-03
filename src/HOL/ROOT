@@ -39,7 +39,6 @@ session "HOL-Library" (main timing) in Library = HOL +
     (*data refinements and dependent applications*)
     AList_Mapping
     Code_Binary_Nat
-    Code_Char
     Code_Prolog
     Code_Real_Approx_By_Float
     Code_Target_Numeral
@@ -248,7 +247,6 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
     Generate_Binary_Nat
     Generate_Target_Nat
     Generate_Efficient_Datastructures
-    Generate_Pretty_Char
     Code_Test_PolyML
     Code_Test_Scala
   theories [condition = ISABELLE_GHC]
@@ -583,6 +581,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Records
     Reflection_Examples
     Refute_Examples
+    Residue_Ring
     Rewrite_Examples
     SOS
     SOS_Cert

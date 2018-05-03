@@ -6980,10 +6980,6 @@ ML \<open>
 
 signature LIST_CODE =
 sig
-  val implode_list: Code_Thingol.iterm -> Code_Thingol.iterm list option
-  val default_list: int * string
-    -> (Code_Printer.fixity -> Code_Thingol.iterm -> Pretty.T)
-    -> Code_Printer.fixity -> Code_Thingol.iterm -> Code_Thingol.iterm -> Pretty.T
   val add_literal_list: string -> theory -> theory
 end;
 
@@ -7002,7 +6998,7 @@ fun implode_list t =
     | _ => NONE
   end;
 
-fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
+fun print_list (target_fxy, target_cons) pr fxy t1 t2 =
   Code_Printer.brackify_infix (target_fxy, Code_Printer.R) fxy (
     pr (Code_Printer.INFX (target_fxy, Code_Printer.X)) t1,
     Code_Printer.str target_cons,
@@ -7016,7 +7012,7 @@ fun add_literal_list target =
        of SOME ts =>
             Code_Printer.literal_list literals (map (pr vars Code_Printer.NOBR) ts)
         | NONE =>
-            default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
+            print_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
   in
     Code_Target.set_printings (Code_Symbol.Constant (@{const_name Cons},
       [(target, SOME (Code_Printer.complex_const_syntax (2, pretty)))]))

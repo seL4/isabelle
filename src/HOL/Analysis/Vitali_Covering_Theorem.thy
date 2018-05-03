@@ -1,3 +1,9 @@
+(*  Title:      HOL/Analysis/Vitali_Covering_Theorem.thy
+    Authors:    LC Paulson, based on material from HOL Light
+*)
+
+section\<open>Vitali Covering Theorem and an Application to Negligibility\<close>
+
 theory Vitali_Covering_Theorem
   imports Ball_Volume "HOL-Library.Permutations"
 

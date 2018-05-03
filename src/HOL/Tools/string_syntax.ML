@@ -1,10 +1,19 @@
 (*  Title:      HOL/Tools/string_syntax.ML
     Author:     Makarius
 
-Concrete syntax for chars and strings.
+Concrete syntax for characters and strings.
 *)
 
-structure String_Syntax: sig end =
+signature STRING_SYNTAX = sig
+  val hex: int -> string
+  val mk_bits_syntax: int -> int -> term list
+  val dest_bits_syntax: term list -> int
+  val plain_strings_of: string -> string list
+  datatype character = Char of string | Ord of int
+  val classify_character: int -> character
+end
+
+structure String_Syntax: STRING_SYNTAX =
 struct
 
 (* numeral *)
@@ -22,47 +31,59 @@ fun hex_prefix ms = "0x" ^ implode (replicate (2 - length ms) "0" @ ms);
 fun hex n = hex_prefix (map hex_digit (radixpand (16, n)));
 
 
+(* booleans as bits *)
+
+fun mk_bit_syntax b =
+  Syntax.const (if b = 1 then @{const_syntax True} else @{const_syntax False});
+
+fun mk_bits_syntax len = map mk_bit_syntax o Integer.radicify 2 len;
+
+fun dest_bit_syntax (Const (@{const_syntax True}, _)) = 1 
+  | dest_bit_syntax (Const (@{const_syntax False}, _)) = 0
+  | dest_bit_syntax _ = raise Match;
+
+val dest_bits_syntax = Integer.eval_radix 2 o map dest_bit_syntax;
+
+
 (* char *)
 
-fun mk_char_syntax n =
-  if n = 0 then Syntax.const @{const_name Groups.zero}
-  else Syntax.const @{const_syntax Char} $ Numeral.mk_num_syntax n;
+fun mk_char_syntax i =
+  list_comb (Syntax.const @{const_syntax Char}, mk_bits_syntax 8 i);
 
 fun mk_char_syntax' c =
   if Symbol.is_ascii c then mk_char_syntax (ord c)
   else if c = "\<newline>" then mk_char_syntax 10
   else error ("Bad character: " ^ quote c);
 
-fun plain_string_of str =
+fun plain_strings_of str =
   map fst (Lexicon.explode_str (str, Position.none));
 
-datatype character = Char of string | Ord of int | Unprintable;
+datatype character = Char of string | Ord of int;
 
 val specials = raw_explode "\\\"`'";
 
-fun dest_char_syntax c =
-  case try Numeral.dest_num_syntax c of
-    SOME n =>
-      if n < 256 then
-        let
-          val s = chr n
-        in
-          if not (member (op =) specials s) andalso Symbol.is_ascii s andalso Symbol.is_printable s
-          then Char s
-          else if s = "\n" then Char "\<newline>"
-          else Ord n
-        end
-      else Unprintable
-  | NONE => Unprintable;
+fun classify_character i =
+  let
+    val c = chr i
+  in
+    if not (member (op =) specials c) andalso Symbol.is_ascii c andalso Symbol.is_printable c
+    then Char c
+    else if c = "\n"
+    then Char "\<newline>"
+    else Ord i
+  end;
+
+fun dest_char_syntax b0 b1 b2 b3 b4 b5 b6 b7 =
+  classify_character (dest_bits_syntax [b0, b1, b2, b3, b4, b5, b6, b7])
 
 fun dest_char_ast (Ast.Appl [Ast.Constant @{syntax_const "_Char"}, Ast.Constant s]) =
-      plain_string_of s
+      plain_strings_of s
   | dest_char_ast _ = raise Match;
 
 fun char_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       c $ char_tr [t] $ u
   | char_tr [Free (str, _)] =
-      (case plain_string_of str of
+      (case plain_strings_of str of
         [c] => mk_char_syntax' c
       | _ => error ("Single character expected: " ^ str))
   | char_tr ts = raise TERM ("char_tr", ts);
@@ -73,15 +94,12 @@ fun char_ord_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       (mk_char_syntax o #value o Lexicon.read_num) num
   | char_ord_tr ts = raise TERM ("char_ord_tr", ts);
 
-fun char_tr' [t] = (case dest_char_syntax t of
+fun char_tr' [b1, b2, b3, b4, b5, b6, b7, b8] =
+      (case dest_char_syntax b1 b2 b3 b4 b5 b6 b7 b8 of
         Char s => Syntax.const @{syntax_const "_Char"} $
           Syntax.const (Lexicon.implode_str [s])
-      | Ord n => 
-          if n = 0
-          then Syntax.const @{const_syntax Groups.zero}
-          else Syntax.const @{syntax_const "_Char_ord"} $
-            Syntax.free (hex n)
-      | _ => raise Match)
+      | Ord n => Syntax.const @{syntax_const "_Char_ord"} $
+          Syntax.free (hex n))
   | char_tr' _ = raise Match;
 
 
@@ -98,7 +116,7 @@ fun mk_string_ast ss =
 fun string_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       c $ string_tr [t] $ u
   | string_tr [Free (str, _)] =
-      mk_string_syntax (plain_string_of str)
+      mk_string_syntax (plain_strings_of str)
   | string_tr ts = raise TERM ("char_tr", ts);
 
 fun list_ast_tr' [args] =
@@ -120,4 +138,4 @@ val _ =
     Sign.print_ast_translation
      [(@{syntax_const "_list"}, K list_ast_tr')]);
 
-end;
+end

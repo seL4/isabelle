@@ -244,7 +244,7 @@ code_identifier constant member_i_o
 
 section \<open>Setup for String.literal\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name "STR"}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name String.Literal}]\<close>
 
 section \<open>Simplification rules for optimisation\<close>
 

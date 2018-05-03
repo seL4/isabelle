@@ -476,21 +476,26 @@ lemma det_row_span:
   assumes x: "x \<in> vec.span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
   using x
-proof (induction rule: vec.span_induct_alt)
-  case 1
+proof (induction rule: span_induct_alt)
+  case base
+  {
+    fix k
+    have "(if k = i then row i A + 0 else row k A) = row k A"
+      by simp
+  }
   then show ?case
-    by (rule cong[of det, OF refl]) (vector row_def)
+    apply -
+    apply (rule cong[of det, OF refl])
+    apply (vector row_def)
+    done
 next
-  case (2 c z y)
-  note zS = 2(1)
-    and Py = 2(2)
-  let ?d = "\<lambda>x. det (\<chi> k. if k = i then x else row k A)"
-  let ?P = "\<lambda>x. ?d (row i A + x) = det A"
-  from zS obtain j where j: "z = row j A" "i \<noteq> j"
+  case (step c z y)
+  then obtain j where j: "z = row j A" "i \<noteq> j"
     by blast
   let ?w = "row i A + y"
   have th0: "row i A + (c*s z + y) = ?w + c*s z"
     by vector
+  let ?d = "\<lambda>x. det (\<chi> k. if k = i then x else row k A)"
   have thz: "?d z = 0"
     apply (rule det_identical_rows[OF j(2)])
     using j
@@ -498,10 +503,11 @@ next
     done
   have "?d (row i A + (c*s z + y)) = ?d (?w + c*s z)"
     unfolding th0 ..
+  then have "?d (row i A + (c*s z + y)) = det A"
+    unfolding thz step.IH det_row_mul[of i] det_row_add[of i] by simp
   then show ?case
-    unfolding thz Py det_row_mul[of i] det_row_add[of i]
-    by simp
-qed
+    unfolding scalar_mult_eq_scaleR .
+qed 
 
 lemma matrix_id [simp]: "det (matrix id) = 1"
   by (simp add: matrix_id_mat_1)
@@ -834,26 +840,16 @@ proof -
       unfolding invertible_right_inverse
       unfolding matrix_right_invertible_independent_rows
       by blast
-    have *: "\<And>(a::'a^'n) b. a + b = 0 \<Longrightarrow> -a = b"
-      apply (drule_tac f="(+) (- a)" in cong[OF refl])
-      apply (simp only: ab_left_minus add.assoc[symmetric])
-      apply simp
-      done
-    from c ci
     have thr0: "- row i A = sum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
-      unfolding sum.remove[OF fU iU] sum_cmul
-      apply -
-      apply (rule vector_mul_lcancel_imp[OF ci])
-      apply (auto simp add: field_simps)
-      unfolding *
-      apply rule
-      done
-    have thr: "- row i A \<in> vec.span {row j A| j. j \<noteq> i}"
+      unfolding sum_cmul
+      using c ci   
+      by (auto simp add: sum.remove[OF fU iU] eq_vector_fraction_iff add_eq_0_iff)
+    have thr: "- row i A \<in> span {row j A| j. j \<noteq> i}"
       unfolding thr0
       apply (rule vec.span_sum)
       apply simp
-      apply (rule vec.span_scale[folded scalar_mult_eq_scaleR])+
-      apply (rule vec.span_base)
+      apply (rule span_mul)
+      apply (rule span_superset)
       apply auto
       done
     let ?B = "(\<chi> k. if k = i then 0 else row k A) :: 'a^'n^'n"

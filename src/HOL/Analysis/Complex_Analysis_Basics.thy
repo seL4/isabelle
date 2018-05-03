@@ -837,15 +837,13 @@ proof -
     qed
   } note ** = this
   show ?thesis
-  unfolding has_field_derivative_def
+    unfolding has_field_derivative_def
   proof (rule has_derivative_sequence [OF cvs _ _ x])
-    show "\<forall>n. \<forall>x\<in>s. (f n has_derivative (( * ) (f' n x))) (at x within s)"
-      by (metis has_field_derivative_def df)
-  next show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
+  show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
     by (rule tf)
-  next show "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
+  next show "\<And>e. e > 0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
     by (blast intro: **)
-  qed
+  qed (metis has_field_derivative_def df)
 qed
 
 lemma has_complex_derivative_series:
@@ -884,7 +882,7 @@ proof -
       by (metis df has_field_derivative_def mult_commute_abs)
   next show " ((\<lambda>n. f n x) sums l)"
     by (rule sf)
-  next show "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
+  next show "\<And>e. e>0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
     by (blast intro: **)
   qed
 qed
@@ -896,7 +894,7 @@ lemma field_differentiable_series:
   assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
   assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
   assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" and x: "x \<in> s"
-  shows   "summable (\<lambda>n. f n x)" and "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)"
+  shows  "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)"
 proof -
   from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     unfolding uniformly_convergent_on_def by blast
@@ -905,7 +903,6 @@ proof -
     by (intro has_field_derivative_series[of s f f' g' x0] assms A has_field_derivative_at_within)
   then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
     "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
-  from g[OF x] show "summable (\<lambda>n. f n x)" by (auto simp: summable_def)
   from g(2)[OF x] have g': "(g has_derivative ( * ) (g' x)) (at x)"
     by (simp add: has_field_derivative_def s)
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative ( * ) (g' x)) (at x)"
@@ -914,15 +911,6 @@ proof -
   thus "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)" unfolding differentiable_def
     by (auto simp: summable_def field_differentiable_def has_field_derivative_def)
 qed
-
-lemma field_differentiable_series':
-  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach} \<Rightarrow> 'a"
-  assumes "convex s" "open s"
-  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
-  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
-  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
-  shows   "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x0)"
-  using field_differentiable_series[OF assms, of x0] \<open>x0 \<in> s\<close> by blast+
 
 subsection\<open>Bound theorem\<close>
 

@@ -88,6 +88,7 @@ ae7df8bd0c18eb40237cf54cc28933f4893b9c92  jdk-8u121.tar.gz
 e45edcf184f608d6f4a7b966d65a5d3289462693  jdk-8u144.tar.gz
 264e806b9300a4fb3b6e15ba0e2c664d4ea698c8  jdk-8u152.tar.gz
 84b04d877a2ea3a4e2082297b540e14f76722bc5  jdk-8u162.tar.gz
+87303a0de3fd595aa3857c8f7cececa036d6ed18  jdk-8u172.tar.gz
 cfecb1383faaf027ffbabfcd77a0b6a6521e0969  jdk-8u20.tar.gz
 44ffeeae219782d40ce6822b580e608e72fd4c76  jdk-8u31.tar.gz
 4132cf52d5025bf330d53b96a5c6466fef432377  jdk-8u51.tar.gz
@@ -127,6 +128,7 @@ d806c1c26b571b5b4ef05ea11e8b9cf936518e06  jedit_build-20170319.tar.gz
 7bcb202e13358dd750e964b2f747664428b5d8b3  jedit_build-20180417.tar.gz
 0bd2bc2d9a491ba5fc8dd99df27c04f11a72e8fa  jfreechart-1.0.14-1.tar.gz
 8122526f1fc362ddae1a328bdbc2152853186fee  jfreechart-1.0.14.tar.gz
+d911f63a5c9b4c7335bb73f805cb1711ce017a84  jfreechart-1.5.0.tar.gz
 c8a19a36adf6cefa779d85f22ded2f4654e68ea5  jortho-1.0-1.tar.gz
 2155e0bdbd29cd3d2905454de2e7203b9661d239  jortho-1.0-2.tar.gz
 ffe179867cf5ffaabbb6bb096db9bdc0d7110065  jortho-1.0.tar.gz
@@ -175,6 +177,7 @@ b4ceeaac47f3baae41c2491a8368b03217946166  polyml-test-e7a662f8f9c4.tar.gz
 a619177143fea42a464f49bb864665407c07a16c  polyml-test-fb4f42af00fa.tar.gz
 53123dc011b2d4b4e8fe307f3c9fa355718ad01a  postgresql-42.1.1.tar.gz
 3a5d31377ec07a5069957f5477a4848cfc89a594  postgresql-42.1.4.tar.gz
+e7cd5c7955e9eb5ce8cd07feb97230b23d2eec40  postgresql-42.2.2.tar.gz
 f132329ca1045858ef456cc08b197c9eeea6881b  postgresql-9.4.1212.tar.gz
 8ee375cfc38972f080dbc78f07b68dac03efe968  ProofGeneral-3.7.1.1.tar.gz
 847b52c0676b5eb0fbf0476f64fc08c2d72afd0c  ProofGeneral-4.1.tar.gz
