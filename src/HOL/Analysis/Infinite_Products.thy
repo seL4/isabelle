@@ -72,6 +72,12 @@ lemma has_prod_subst[trans]: "f = g \<Longrightarrow> g has_prod z \<Longrightar
 lemma has_prod_cong: "(\<And>n. f n = g n) \<Longrightarrow> f has_prod c \<longleftrightarrow> g has_prod c"
   by presburger
 
+lemma gen_has_prod_nonzero [simp]: "\<not> gen_has_prod f M 0"
+  by (simp add: gen_has_prod_def)
+
+lemma has_prod_0_iff: "f has_prod 0 \<longleftrightarrow> (\<exists>i. f i = 0 \<and> (\<exists>p. gen_has_prod f (Suc i) p))"
+  by (simp add: has_prod_def)
+
 lemma convergent_prod_altdef:
   fixes f :: "nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}"
   shows "convergent_prod f \<longleftrightarrow> (\<exists>M L. (\<forall>n\<ge>M. f n \<noteq> 0) \<and> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> L \<and> L \<noteq> 0)"
@@ -602,6 +608,83 @@ proof -
       using "*" tendsto_mult_left filterlim_cong
       by (fastforce simp add: convergent_prod_iff_nz_lim f)
   qed
+qed
+
+lemma has_prod_finite:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  assumes [simp]: "finite N"
+    and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 1"
+  shows "f has_prod (\<Prod>n\<in>N. f n)"
+proof -
+  have eq: "prod f {..n + Suc (Max N)} = prod f N" for n
+  proof (rule prod.mono_neutral_right)
+    show "N \<subseteq> {..n + Suc (Max N)}"
+      by (auto simp add: le_Suc_eq trans_le_add2)
+    show "\<forall>i\<in>{..n + Suc (Max N)} - N. f i = 1"
+      using f by blast
+  qed auto
+  show ?thesis
+  proof (cases "\<forall>n\<in>N. f n \<noteq> 0")
+    case True
+    then have "prod f N \<noteq> 0"
+      by simp
+    moreover have "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> prod f N"
+      by (rule LIMSEQ_offset[of _ "Suc (Max N)"]) (simp add: eq atLeast0LessThan del: add_Suc_right)
+    ultimately show ?thesis
+      by (simp add: gen_has_prod_def has_prod_def)
+  next
+    case False
+    then obtain k where "k \<in> N" "f k = 0"
+      by auto
+    let ?Z = "{n \<in> N. f n = 0}"
+    have maxge: "Max ?Z \<ge> n" if "f n = 0" for n
+      using Max_ge [of ?Z] \<open>finite N\<close> \<open>f n = 0\<close>
+      by (metis (mono_tags) Collect_mem_eq f finite_Collect_conjI mem_Collect_eq zero_neq_one)
+    let ?q = "prod f {Suc (Max ?Z)..Max N}"
+    have [simp]: "?q \<noteq> 0"
+      using maxge Suc_n_not_le_n le_trans by force
+    have eq1: "(\<Prod>i\<le>n + Max N. f (Suc (i + Max ?Z))) = prod f {Suc (Max ?Z)..n + (Max N) + Suc (Max ?Z)}" for n
+      apply (rule sym)
+      apply (rule prod.reindex_cong [where l = "\<lambda>i. i + Suc (Max ?Z)"])
+        apply (auto simp: )
+       apply (simp add: inj_on_def)
+      apply (auto simp: image_iff)
+      using le_Suc_ex by fastforce
+    have eq: "prod f {Suc (Max ?Z)..n + (Max N) + Suc (Max ?Z)} = ?q" for n
+      apply (rule prod.mono_neutral_right)
+        apply (auto simp: )
+      using Max.coboundedI assms(1) f by blast
+    have q: "gen_has_prod f (Suc (Max ?Z)) ?q"
+      apply (auto simp: gen_has_prod_def)
+      apply (rule LIMSEQ_offset[of _ "(Max N)"])
+      apply (simp add: eq1 eq atLeast0LessThan del: add_Suc_right)
+      done
+    show ?thesis
+      unfolding has_prod_def
+    proof (intro disjI2 exI conjI)      
+      show "prod f N = 0"
+        using \<open>f k = 0\<close> \<open>k \<in> N\<close> \<open>finite N\<close> prod_zero by blast
+      show "f (Max ?Z) = 0"
+        using Max_in [of ?Z] \<open>finite N\<close> \<open>f k = 0\<close> \<open>k \<in> N\<close> by auto
+    qed (use q in auto)
+  qed
+qed
+
+corollary has_prod_0:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  assumes "\<And>n. f n = 1"
+  shows "f has_prod 1"
+  by (simp add: assms has_prod_cong)
+
+lemma convergent_prod_finite:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  assumes "finite N" "\<And>n. n \<notin> N \<Longrightarrow> f n = 1"
+  shows "convergent_prod f"
+proof -
+  have "\<exists>n p. gen_has_prod f n p"
+    using assms has_prod_def has_prod_finite by blast
+  then show ?thesis
+    by (simp add: convergent_prod_def)
 qed
 
 end
