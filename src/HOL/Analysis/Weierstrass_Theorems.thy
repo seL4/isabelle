@@ -17,42 +17,48 @@ lemma Bernstein_nonneg: "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow
 lemma Bernstein_pos: "\<lbrakk>0 < x; x < 1; k \<le> n\<rbrakk> \<Longrightarrow> 0 < Bernstein n k x"
   by (simp add: Bernstein_def)
 
-lemma sum_Bernstein [simp]: "(\<Sum> k = 0..n. Bernstein n k x) = 1"
+lemma sum_Bernstein [simp]: "(\<Sum>k\<le>n. Bernstein n k x) = 1"
   using binomial_ring [of x "1-x" n]
   by (simp add: Bernstein_def)
 
 lemma binomial_deriv1:
-    "(\<Sum>k=0..n. (of_nat k * of_nat (n choose k)) * a^(k-1) * b^(n-k)) = real_of_nat n * (a+b) ^ (n-1)"
+    "(\<Sum>k\<le>n. (of_nat k * of_nat (n choose k)) * a^(k-1) * b^(n-k)) = real_of_nat n * (a+b) ^ (n-1)"
   apply (rule DERIV_unique [where f = "\<lambda>a. (a+b)^n" and x=a])
   apply (subst binomial_ring)
-  apply (rule derivative_eq_intros sum.cong | simp)+
+  apply (rule derivative_eq_intros sum.cong | simp add: atMost_atLeast0)+
   done
 
 lemma binomial_deriv2:
-    "(\<Sum>k=0..n. (of_nat k * of_nat (k-1) * of_nat (n choose k)) * a^(k-2) * b^(n-k)) =
+    "(\<Sum>k\<le>n. (of_nat k * of_nat (k-1) * of_nat (n choose k)) * a^(k-2) * b^(n-k)) =
      of_nat n * of_nat (n-1) * (a+b::real) ^ (n-2)"
   apply (rule DERIV_unique [where f = "\<lambda>a. of_nat n * (a+b::real) ^ (n-1)" and x=a])
   apply (subst binomial_deriv1 [symmetric])
   apply (rule derivative_eq_intros sum.cong | simp add: Num.numeral_2_eq_2)+
   done
 
-lemma sum_k_Bernstein [simp]: "(\<Sum>k = 0..n. real k * Bernstein n k x) = of_nat n * x"
+lemma sum_k_Bernstein [simp]: "(\<Sum>k\<le>n. real k * Bernstein n k x) = of_nat n * x"
   apply (subst binomial_deriv1 [of n x "1-x", simplified, symmetric])
   apply (simp add: sum_distrib_right)
   apply (auto simp: Bernstein_def algebra_simps realpow_num_eq_if intro!: sum.cong)
   done
 
-lemma sum_kk_Bernstein [simp]: "(\<Sum> k = 0..n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
+lemma sum_kk_Bernstein [simp]: "(\<Sum>k\<le>n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
 proof -
-  have "(\<Sum> k = 0..n. real k * (real k - 1) * Bernstein n k x) = real_of_nat n * real_of_nat (n - Suc 0) * x\<^sup>2"
-    apply (subst binomial_deriv2 [of n x "1-x", simplified, symmetric])
-    apply (simp add: sum_distrib_right)
-    apply (rule sum.cong [OF refl])
-    apply (simp add: Bernstein_def power2_eq_square algebra_simps)
-    apply (rename_tac k)
-    apply (subgoal_tac "k = 0 \<or> k = 1 \<or> (\<exists>k'. k = Suc (Suc k'))")
-    apply (force simp add: field_simps of_nat_Suc power2_eq_square)
-    by presburger
+  have "(\<Sum>k\<le>n. real k * (real k - 1) * Bernstein n k x) =
+        (\<Sum>k\<le>n. real k * real (k - Suc 0) * real (n choose k) * x ^ (k - 2) * (1 - x) ^ (n - k) * x\<^sup>2)"
+  proof (rule sum.cong [OF refl], simp)
+    fix k
+    assume "k \<le> n"
+    then consider "k = 0" | "k = 1" | k' where "k = Suc (Suc k')"
+      by (metis One_nat_def not0_implies_Suc)
+    then show "k = 0 \<or>
+          (real k - 1) * Bernstein n k x =
+          real (k - Suc 0) *
+          (real (n choose k) * (x ^ (k - 2) * ((1 - x) ^ (n - k) * x\<^sup>2)))"
+      by cases (auto simp add: Bernstein_def power2_eq_square algebra_simps)
+  qed
+  also have "... = real_of_nat n * real_of_nat (n - Suc 0) * x\<^sup>2"
+    by (subst binomial_deriv2 [of n x "1-x", simplified, symmetric]) (simp add: sum_distrib_right)
   also have "... = n * (n - 1) * x\<^sup>2"
     by auto
   finally show ?thesis
@@ -65,7 +71,7 @@ lemma Bernstein_Weierstrass:
   fixes f :: "real \<Rightarrow> real"
   assumes contf: "continuous_on {0..1} f" and e: "0 < e"
     shows "\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> {0..1}
-                    \<longrightarrow> \<bar>f x - (\<Sum>k = 0..n. f(k/n) * Bernstein n k x)\<bar> < e"
+                    \<longrightarrow> \<bar>f x - (\<Sum>k\<le>n. f(k/n) * Bernstein n k x)\<bar> < e"
 proof -
   have "bounded (f ` {0..1})"
     using compact_continuous_image compact_imp_bounded contf by blast
@@ -86,22 +92,22 @@ proof -
       using \<open>0\<le>M\<close> by simp
     finally have [simp]: "real_of_int (nat \<lceil>4 * M / (e * d\<^sup>2)\<rceil>) = real_of_int \<lceil>4 * M / (e * d\<^sup>2)\<rceil>"
       using \<open>0\<le>M\<close> e \<open>0<d\<close>
-      by (simp add: of_nat_Suc field_simps)
+      by (simp add: field_simps)
     have "4*M/(e*d\<^sup>2) + 1 \<le> real (Suc (nat\<lceil>4*M/(e*d\<^sup>2)\<rceil>))"
-      by (simp add: of_nat_Suc real_nat_ceiling_ge)
+      by (simp add: real_nat_ceiling_ge)
     also have "... \<le> real n"
-      using n by (simp add: of_nat_Suc field_simps)
+      using n by (simp add: field_simps)
     finally have nbig: "4*M/(e*d\<^sup>2) + 1 \<le> real n" .
-    have sum_bern: "(\<Sum>k = 0..n. (x - k/n)\<^sup>2 * Bernstein n k x) = x * (1 - x) / n"
+    have sum_bern: "(\<Sum>k\<le>n. (x - k/n)\<^sup>2 * Bernstein n k x) = x * (1 - x) / n"
     proof -
       have *: "\<And>a b x::real. (a - b)\<^sup>2 * x = a * (a - 1) * x + (1 - 2 * b) * a * x + b * b * x"
         by (simp add: algebra_simps power2_eq_square)
-      have "(\<Sum> k = 0..n. (k - n * x)\<^sup>2 * Bernstein n k x) = n * x * (1 - x)"
+      have "(\<Sum>k\<le>n. (k - n * x)\<^sup>2 * Bernstein n k x) = n * x * (1 - x)"
         apply (simp add: * sum.distrib)
         apply (simp add: sum_distrib_left [symmetric] mult.assoc)
         apply (simp add: algebra_simps power2_eq_square)
         done
-      then have "(\<Sum> k = 0..n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
+      then have "(\<Sum>k\<le>n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
         by (simp add: power2_eq_square)
       then show ?thesis
         using n by (simp add: sum_divide_distrib divide_simps mult.commute power2_commute)
@@ -137,9 +143,9 @@ proof -
         finally show ?thesis .
         qed
     } note * = this
-    have "\<bar>f x - (\<Sum> k = 0..n. f(k / n) * Bernstein n k x)\<bar> \<le> \<bar>\<Sum> k = 0..n. (f x - f(k / n)) * Bernstein n k x\<bar>"
+    have "\<bar>f x - (\<Sum>k\<le>n. f(k / n) * Bernstein n k x)\<bar> \<le> \<bar>\<Sum>k\<le>n. (f x - f(k / n)) * Bernstein n k x\<bar>"
       by (simp add: sum_subtractf sum_distrib_left [symmetric] algebra_simps)
-    also have "... \<le> (\<Sum> k = 0..n. (e/2 + (2 * M / d\<^sup>2) * (x - k / n)\<^sup>2) * Bernstein n k x)"
+    also have "... \<le> (\<Sum>k\<le>n. (e/2 + (2 * M / d\<^sup>2) * (x - k / n)\<^sup>2) * Bernstein n k x)"
       apply (rule order_trans [OF sum_abs sum_mono])
       using *
       apply (simp add: abs_mult Bernstein_nonneg x mult_right_mono)
@@ -154,7 +160,7 @@ proof -
       using \<open>d>0\<close> nbig e \<open>n>0\<close>
       apply (simp add: divide_simps algebra_simps)
       using ed0 by linarith
-    finally have "\<bar>f x - (\<Sum>k = 0..n. f (real k / real n) * Bernstein n k x)\<bar> < e" .
+    finally have "\<bar>f x - (\<Sum>k\<le>n. f (real k / real n) * Bernstein n k x)\<bar> < e" .
   }
   then show ?thesis
     by auto
@@ -893,20 +899,20 @@ lemma polynomial_function_compose [intro]:
 
 lemma sum_max_0:
   fixes x::real (*in fact "'a::comm_ring_1"*)
-  shows "(\<Sum>i = 0..max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i = 0..m. x^i * a i)"
+  shows "(\<Sum>i\<le>max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i\<le>m. x^i * a i)"
 proof -
-  have "(\<Sum>i = 0..max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i = 0..max m n. (if i \<le> m then x^i * a i else 0))"
+  have "(\<Sum>i\<le>max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i\<le>max m n. (if i \<le> m then x^i * a i else 0))"
     by (auto simp: algebra_simps intro: sum.cong)
-  also have "... = (\<Sum>i = 0..m. (if i \<le> m then x^i * a i else 0))"
+  also have "... = (\<Sum>i\<le>m. (if i \<le> m then x^i * a i else 0))"
     by (rule sum.mono_neutral_right) auto
-  also have "... = (\<Sum>i = 0..m. x^i * a i)"
+  also have "... = (\<Sum>i\<le>m. x^i * a i)"
     by (auto simp: algebra_simps intro: sum.cong)
   finally show ?thesis .
 qed
 
 lemma real_polynomial_function_imp_sum:
   assumes "real_polynomial_function f"
-    shows "\<exists>a n::nat. f = (\<lambda>x. \<Sum>i=0..n. a i * x ^ i)"
+    shows "\<exists>a n::nat. f = (\<lambda>x. \<Sum>i\<le>n. a i * x ^ i)"
 using assms
 proof (induct f)
   case (linear f)
@@ -925,7 +931,7 @@ next
     done
   case (add f1 f2)
   then obtain a1 n1 a2 n2 where
-    "f1 = (\<lambda>x. \<Sum>i = 0..n1. a1 i * x ^ i)" "f2 = (\<lambda>x. \<Sum>i = 0..n2. a2 i * x ^ i)"
+    "f1 = (\<lambda>x. \<Sum>i\<le>n1. a1 i * x ^ i)" "f2 = (\<lambda>x. \<Sum>i\<le>n2. a2 i * x ^ i)"
     by auto
   then show ?case
     apply (rule_tac x="\<lambda>i. (if i \<le> n1 then a1 i else 0) + (if i \<le> n2 then a2 i else 0)" in exI)
@@ -935,10 +941,10 @@ next
     done
   case (mult f1 f2)
   then obtain a1 n1 a2 n2 where
-    "f1 = (\<lambda>x. \<Sum>i = 0..n1. a1 i * x ^ i)" "f2 = (\<lambda>x. \<Sum>i = 0..n2. a2 i * x ^ i)"
+    "f1 = (\<lambda>x. \<Sum>i\<le>n1. a1 i * x ^ i)" "f2 = (\<lambda>x. \<Sum>i\<le>n2. a2 i * x ^ i)"
     by auto
   then obtain b1 b2 where
-    "f1 = (\<lambda>x. \<Sum>i = 0..n1. b1 i * x ^ i)" "f2 = (\<lambda>x. \<Sum>i = 0..n2. b2 i * x ^ i)"
+    "f1 = (\<lambda>x. \<Sum>i\<le>n1. b1 i * x ^ i)" "f2 = (\<lambda>x. \<Sum>i\<le>n2. b2 i * x ^ i)"
     "b1 = (\<lambda>i. if i\<le>n1 then a1 i else 0)" "b2 = (\<lambda>i. if i\<le>n2 then a2 i else 0)"
     by auto
   then show ?case
@@ -950,7 +956,7 @@ next
 qed
 
 lemma real_polynomial_function_iff_sum:
-     "real_polynomial_function f \<longleftrightarrow> (\<exists>a n::nat. f = (\<lambda>x. \<Sum>i=0..n. a i * x ^ i))"
+     "real_polynomial_function f \<longleftrightarrow> (\<exists>a n::nat. f = (\<lambda>x. \<Sum>i\<le>n. a i * x ^ i))"
   apply (rule iffI)
   apply (erule real_polynomial_function_imp_sum)
   apply (auto simp: linear mult const real_polynomial_function_power real_polynomial_function_sum)

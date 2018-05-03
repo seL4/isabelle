@@ -156,7 +156,7 @@ subsection \<open>The binomial theorem (courtesy of Tobias Nipkow):\<close>
 
 text \<open>Avigad's version, generalized to any commutative ring\<close>
 theorem binomial_ring: "(a + b :: 'a::{comm_ring_1,power})^n =
-  (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))"
+  (\<Sum>k\<le>n. (of_nat (n choose k)) * a^k * b^(n-k))"
 proof (induct n)
   case 0
   then show ?case by simp
@@ -166,32 +166,32 @@ next
     by auto
   have decomp2: "{0..n} = {0} \<union> {1..n}"
     by auto
-  have "(a + b)^(n+1) = (a + b) * (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n - k))"
+  have "(a + b)^(n+1) = (a + b) * (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n - k))"
     using Suc.hyps by simp
-  also have "\<dots> = a * (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
-      b * (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+  also have "\<dots> = a * (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n-k)) +
+      b * (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n-k))"
     by (rule distrib_right)
-  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
-      (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n - k + 1))"
+  also have "\<dots> = (\<Sum>k\<le>n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
+      (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n - k + 1))"
     by (auto simp add: sum_distrib_left ac_simps)
-  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n + 1 - k)) +
+  also have "\<dots> = (\<Sum>k\<le>n. of_nat (n choose k) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k))"
-    by (simp add:sum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: sum_cl_ivl_Suc)
+    by (simp add: atMost_atLeast0 sum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps del: sum_cl_ivl_Suc)
   also have "\<dots> = a^(n + 1) + b^(n + 1) +
       (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n + 1 - k)) +
       (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n + 1 - k))"
-    by (simp add: decomp2)
+    by (simp add: atMost_atLeast0 decomp2)
   also have "\<dots> = a^(n + 1) + b^(n + 1) +
       (\<Sum>k=1..n. of_nat (n + 1 choose k) * a^k * b^(n + 1 - k))"
     by (auto simp add: field_simps sum.distrib [symmetric] choose_reduce_nat)
-  also have "\<dots> = (\<Sum>k=0..n+1. of_nat (n + 1 choose k) * a^k * b^(n + 1 - k))"
-    using decomp by (simp add: field_simps)
+  also have "\<dots> = (\<Sum>k\<le>n+1. of_nat (n + 1 choose k) * a^k * b^(n + 1 - k))"
+    using decomp by (simp add: atMost_atLeast0 field_simps)
   finally show ?case
     by simp
 qed
 
 text \<open>Original version for the naturals.\<close>
-corollary binomial: "(a + b :: nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n - k))"
+corollary binomial: "(a + b :: nat)^n = (\<Sum>k\<le>n. (of_nat (n choose k)) * a^k * b^(n - k))"
   using binomial_ring [of "int a" "int b" n]
   by (simp only: of_nat_add [symmetric] of_nat_mult [symmetric] of_nat_power [symmetric]
       of_nat_sum [symmetric] of_nat_eq_iff of_nat_id)
@@ -271,13 +271,13 @@ next
     by (simp add: binomial_fact')
 qed
 
-lemma choose_row_sum: "(\<Sum>k=0..n. n choose k) = 2^n"
+lemma choose_row_sum: "(\<Sum>k\<le>n. n choose k) = 2^n"
   using binomial [of 1 "1" n] by (simp add: numeral_2_eq_2)
 
-lemma sum_choose_lower: "(\<Sum>k=0..n. (r+k) choose k) = Suc (r+n) choose n"
+lemma sum_choose_lower: "(\<Sum>k\<le>n. (r+k) choose k) = Suc (r+n) choose n"
   by (induct n) auto
 
-lemma sum_choose_upper: "(\<Sum>k=0..n. k choose m) = Suc n choose Suc m"
+lemma sum_choose_upper: "(\<Sum>k\<le>n. k choose m) = Suc n choose Suc m"
   by (induct n) auto
 
 lemma choose_alternating_sum:
@@ -313,17 +313,14 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma choose_row_sum': "(\<Sum>k\<le>n. (n choose k)) = 2 ^ n"
-  using choose_row_sum[of n] by (simp add: atLeast0AtMost)
-
 text\<open>NW diagonal sum property\<close>
 lemma sum_choose_diagonal:
   assumes "m \<le> n"
-  shows "(\<Sum>k=0..m. (n - k) choose (m - k)) = Suc n choose m"
+  shows "(\<Sum>k\<le>m. (n - k) choose (m - k)) = Suc n choose m"
 proof -
-  have "(\<Sum>k=0..m. (n-k) choose (m - k)) = (\<Sum>k=0..m. (n - m + k) choose k)"
+  have "(\<Sum>k\<le>m. (n-k) choose (m - k)) = (\<Sum>k\<le>m. (n - m + k) choose k)"
     using sum.atLeastAtMost_rev [of "\<lambda>k. (n - k) choose (m - k)" 0 m] assms
-      by simp
+    by (simp add: atMost_atLeast0)
   also have "\<dots> = Suc (n - m + m) choose m"
     by (rule sum_choose_lower)
   also have "\<dots> = Suc n choose m"
@@ -539,8 +536,8 @@ next
   have "(\<Sum>i\<le>n. i * (n choose i)) = (\<Sum>i\<le>Suc m. i * (Suc m choose i))"
     by (simp add: Suc)
   also have "\<dots> = Suc m * 2 ^ m"
-    by (simp only: sum_atMost_Suc_shift Suc_times_binomial sum_distrib_left[symmetric])
-       (simp add: choose_row_sum')
+    unfolding sum_atMost_Suc_shift Suc_times_binomial sum_distrib_left[symmetric]
+    by (simp add: choose_row_sum)
   finally show ?thesis
     using Suc by simp
 qed
@@ -917,7 +914,7 @@ next
 qed
 
 lemma gbinomial_partial_sum_poly_xpos:
-  "(\<Sum>k\<le>m. (of_nat m + r gchoose k) * x^k * y^(m-k)) =
+    "(\<Sum>k\<le>m. (of_nat m + r gchoose k) * x^k * y^(m-k)) =
      (\<Sum>k\<le>m. (of_nat k + r - 1 gchoose k) * x^k * (x + y)^(m-k))"
   apply (subst gbinomial_partial_sum_poly)
   apply (subst gbinomial_negated_upper)
@@ -928,7 +925,7 @@ lemma gbinomial_partial_sum_poly_xpos:
 lemma binomial_r_part_sum: "(\<Sum>k\<le>m. (2 * m + 1 choose k)) = 2 ^ (2 * m)"
 proof -
   have "2 * 2^(2*m) = (\<Sum>k = 0..(2 * m + 1). (2 * m + 1 choose k))"
-    using choose_row_sum[where n="2 * m + 1"] by simp
+    using choose_row_sum[where n="2 * m + 1"]  by (simp add: atMost_atLeast0)
   also have "(\<Sum>k = 0..(2 * m + 1). (2 * m + 1 choose k)) =
       (\<Sum>k = 0..m. (2 * m + 1 choose k)) +
       (\<Sum>k = m+1..2*m+1. (2 * m + 1 choose k))"
@@ -1135,7 +1132,7 @@ proof -
     also have "\<dots> = - (\<Sum>i = 0..card K. (- 1) ^ i * int (card K choose i)) + 1"
       by (subst sum_distrib_left[symmetric]) simp
     also have "\<dots> =  - ((-1 + 1) ^ card K) + 1"
-      by (subst binomial_ring) (simp add: ac_simps)
+      by (subst binomial_ring) (simp add: ac_simps atMost_atLeast0)
     also have "\<dots> = 1"
       using x K by (auto simp add: K_def card_gt_0_iff)
     finally show "?lhs x = 1" .

@@ -7030,8 +7030,7 @@ proof%unimportant -
   have 1: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     by (erule span_induct [OF _ subspace_hyperplane2]; simp add: assms)
   have "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
-    apply (erule span_induct [OF _ subspace_hyperplane])
-    using 1 by (simp add: )
+    using 1 by (simp add: span_induct [OF _ subspace_hyperplane])
   then have 0: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     by simp
   have "dim(A \<union> B) = dim (span (A \<union> B))"

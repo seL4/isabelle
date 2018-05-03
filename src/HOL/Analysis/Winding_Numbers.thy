@@ -1070,9 +1070,12 @@ proof -
             (at t within {0..1})"
       proof (rule Lim_transform_within [OF _ \<open>d > 0\<close>])
         have "continuous (at t within {0..1}) (g o p)"
-          apply (rule continuous_within_compose)
-          using \<open>path p\<close> continuous_on_eq_continuous_within path_def that apply blast
-          by (metis (no_types, lifting) open_ball UNIV_I \<open>p t \<noteq> \<zeta>\<close> centre_in_ball contg continuous_on_eq_continuous_at continuous_within_topological right_minus_eq zero_less_norm_iff)
+        proof (rule continuous_within_compose)
+          show "continuous (at t within {0..1}) p"
+            using \<open>path p\<close> continuous_on_eq_continuous_within path_def that by blast
+          show "continuous (at (p t) within p ` {0..1}) g"
+            by (metis (no_types, lifting) open_ball UNIV_I \<open>p t \<noteq> \<zeta>\<close> centre_in_ball contg continuous_on_eq_continuous_at continuous_within_topological right_minus_eq zero_less_norm_iff)
+        qed
         with LIM_zero have "((\<lambda>u. (g (subpath t u p 1) - g (subpath t u p 0))) \<longlongrightarrow> 0) (at t within {0..1})"
           by (auto simp: subpath_def continuous_within o_def)
         then show "((\<lambda>u.  (g (subpath t u p 1) - g (subpath t u p 0)) / (2 * of_real pi * \<i>)) \<longlongrightarrow> 0)
@@ -1255,10 +1258,10 @@ proof
     by (auto simp: path_connected_def)
   then have "pathstart r \<noteq> \<zeta>" by blast
   have "homotopic_loops (- {\<zeta>}) p (r +++ q +++ reversepath r)"
-    apply (rule homotopic_paths_imp_homotopic_loops)
-    apply (metis (mono_tags, hide_lams) \<open>path r\<close> L \<zeta>p \<zeta>q \<open>path p\<close> \<open>path q\<close> homotopic_loops_conjugate loops not_in_path_image_join paf pas path_image_reversepath path_imp_reversepath path_join_eq pathfinish_join pathfinish_reversepath  pathstart_join pathstart_reversepath rim subset_Compl_singleton winding_number_homotopic_loops winding_number_homotopic_paths_eq)
-    using loops pas apply auto
-    done
+  proof (rule homotopic_paths_imp_homotopic_loops)
+    show "homotopic_paths (- {\<zeta>}) p (r +++ q +++ reversepath r)"
+      by (metis (mono_tags, hide_lams) \<open>path r\<close> L \<zeta>p \<zeta>q \<open>path p\<close> \<open>path q\<close> homotopic_loops_conjugate loops not_in_path_image_join paf pas path_image_reversepath path_imp_reversepath path_join_eq pathfinish_join pathfinish_reversepath  pathstart_join pathstart_reversepath rim subset_Compl_singleton winding_number_homotopic_loops winding_number_homotopic_paths_eq)
+  qed (use loops pas in auto)
   moreover have "homotopic_loops (- {\<zeta>}) (r +++ q +++ reversepath r) q"
     using rim \<zeta>q by (auto simp: homotopic_loops_conjugate paf \<open>path q\<close> \<open>path r\<close> loops)
   ultimately show ?rhs

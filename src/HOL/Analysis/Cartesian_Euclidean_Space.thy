@@ -939,15 +939,16 @@ lemma orthogonal_nullspace_rowspace:
   fixes A :: "real^'n^'m"
   assumes 0: "A *v x = 0" and y: "y \<in> span(rows A)"
   shows "orthogonal x y"
-proof (rule span_induct [OF y])
-  show "subspace {a. orthogonal x a}"
+  using y
+proof (induction rule: span_induct)
+  case base
+  then show ?case
     by (simp add: subspace_orthogonal_to_vector)
 next
-  fix v
-  assume "v \<in> rows A"
+  case (step v)
   then obtain i where "v = row i A"
     by (auto simp: rows_def)
-  with 0 show "orthogonal x v"
+  with 0 show ?case
     unfolding orthogonal_def inner_vec_def matrix_vector_mult_def row_def
     by (simp add: mult.commute) (metis (no_types) vec_lambda_beta zero_index)
 qed

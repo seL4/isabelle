@@ -730,7 +730,7 @@ proof -
         by (auto simp add: choose_two field_char_0_class.of_nat_div mod_eq_0_iff_dvd)
       also have "\<dots> \<le> (\<Sum>k\<in>{0, 2}. of_nat (n choose k) * x n^k)"
         by (simp add: x_def)
-      also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
+      also have "\<dots> \<le> (\<Sum>k\<le>n. of_nat (n choose k) * x n^k)"
         using \<open>2 < n\<close>
         by (intro sum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
       also have "\<dots> = (x n + 1) ^ n"
@@ -771,7 +771,7 @@ proof -
           by (simp add: choose_one)
         also have "\<dots> \<le> (\<Sum>k\<in>{0, 1}. of_nat (n choose k) * x n^k)"
           by (simp add: x_def)
-        also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
+        also have "\<dots> \<le> (\<Sum>k\<le>n. of_nat (n choose k) * x n^k)"
           using \<open>1 < n\<close> \<open>1 \<le> c\<close>
           by (intro sum_mono2)
             (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)

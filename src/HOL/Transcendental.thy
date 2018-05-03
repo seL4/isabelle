@@ -188,11 +188,11 @@ lemma central_binomial_lower_bound:
   shows   "4^n / (2*real n) \<le> real ((2*n) choose n)"
 proof -
   from binomial[of 1 1 "2*n"]
-    have "4 ^ n = (\<Sum>k=0..2*n. (2*n) choose k)"
+    have "4 ^ n = (\<Sum>k\<le>2*n. (2*n) choose k)"
     by (simp add: power_mult power2_eq_square One_nat_def [symmetric] del: One_nat_def)
-  also have "{0..2*n} = {0<..<2*n} \<union> {0,2*n}" by auto
+  also have "{..2*n} = {0<..<2*n} \<union> {0,2*n}" by auto
   also have "(\<Sum>k\<in>\<dots>. (2*n) choose k) =
-               (\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) + (\<Sum>k\<in>{0,2*n}. (2*n) choose k)"
+             (\<Sum>k\<in>{0<..<2*n}. (2*n) choose k) + (\<Sum>k\<in>{0,2*n}. (2*n) choose k)"
     by (subst sum.union_disjoint) auto
   also have "(\<Sum>k\<in>{0,2*n}. (2*n) choose k) \<le> (\<Sum>k\<le>1. (n choose k)\<^sup>2)"
     by (cases n) simp_all
@@ -994,27 +994,21 @@ lemma powser_limit_0:
     and sm: "\<And>x. norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
   shows "(f \<longlongrightarrow> a 0) (at 0)"
 proof -
-  have "summable (\<lambda>n. a n * (of_real s / 2) ^ n)"
-    apply (rule sums_summable [where l = "f (of_real s / 2)", OF sm])
-    using s
-    apply (auto simp: norm_divide)
-    done
+  have "norm (of_real s / 2 :: 'a) < s"
+    using s  by (auto simp: norm_divide)
+  then have "summable (\<lambda>n. a n * (of_real s / 2) ^ n)"
+    by (rule sums_summable [OF sm])
   then have "((\<lambda>x. \<Sum>n. a n * x ^ n) has_field_derivative (\<Sum>n. diffs a n * 0 ^ n)) (at 0)"
-    apply (rule termdiffs_strong)
-    using s
-    apply (auto simp: norm_divide)
-    done
+    by (rule termdiffs_strong) (use s in \<open>auto simp: norm_divide\<close>)
   then have "isCont (\<lambda>x. \<Sum>n. a n * x ^ n) 0"
     by (blast intro: DERIV_continuous)
   then have "((\<lambda>x. \<Sum>n. a n * x ^ n) \<longlongrightarrow> a 0) (at 0)"
     by (simp add: continuous_within)
   then show ?thesis
     apply (rule Lim_transform)
-    apply (auto simp add: LIM_eq)
+    apply (clarsimp simp: LIM_eq)
     apply (rule_tac x="s" in exI)
-    using s
-    apply (auto simp: sm [THEN sums_unique])
-    done
+    using s sm sums_unique by fastforce
 qed
 
 lemma powser_limit_0_strong:
