@@ -1188,7 +1188,7 @@ proof (induction n arbitrary: S rule: less_induct)
     qed
     then have "dim (S \<inter> {x. a \<bullet> x = 0}) < n"
       by (metis (no_types) less_ay c subsetD dim_eq_span inf.strict_order_iff
-           inf_le1 \<open>dim S = n\<close> not_le rel_interior_subset span_0 span_superset)
+           inf_le1 \<open>dim S = n\<close> not_le rel_interior_subset span_0 span_base)
     then have "0 \<in> convex hull {x. x extreme_point_of (S \<inter> {x. a \<bullet> x = 0})}"
       by (rule less.IH) (auto simp: co less.prems)
     then show ?thesis

@@ -272,7 +272,8 @@ lemma
 proof -
   define p where "p B' \<equiv> B \<subseteq> B' \<and> independent B' \<and> span B' = UNIV" for B'
   obtain B' where "p B'"
-    using maximal_independent_subset_extend[OF subset_UNIV B] by (auto simp: p_def)
+    using maximal_independent_subset_extend[OF subset_UNIV B]
+    by (metis top.extremum_uniqueI p_def)
   then have "p (extend_basis B)"
     unfolding extend_basis_def p_def[symmetric] by (rule someI)
   then show "B \<subseteq> extend_basis B" "independent (extend_basis B)" "span (extend_basis B) = UNIV"
@@ -403,7 +404,7 @@ proof (induct "card (T - S)" arbitrary: S T rule: less_induct)
       have ab: "a \<noteq> b"
         using a b by blast
       have at: "a \<notin> T"
-        using a ab span_superset[of a "T- {b}"] by auto
+        using a ab span_base[of a "T- {b}"] by auto
       have mlt: "card ((insert a (T - {b})) - S) < card (T - S)"
         using cardlt ft a b by auto
       have ft': "finite (insert a (T - {b}))"
@@ -554,12 +555,12 @@ lemma dim_span[simp]: "dim (span S) = dim S"
   by (simp add: dim_def span_span)
 
 lemma dim_span_eq_card_independent: "independent B \<Longrightarrow> dim (span B) = card B"
-  by (simp add: dim_span dim_eq_card)
+  by (simp add: dim_eq_card)
 
 lemma dim_le_card: assumes "V \<subseteq> span W" "finite W" shows "dim V \<le> card W"
 proof -
   obtain A where "independent A" "A \<subseteq> V" "V \<subseteq> span A"
-    using maximal_independent_subset[of V] by auto
+    using maximal_independent_subset[of V] by force
   with assms independent_span_bound[of W A] basis_card_eq_dim[of A V]
   show ?thesis by auto
 qed
@@ -656,11 +657,10 @@ proof (induction B arbitrary: x rule: finite_induct)
   then show ?case by auto
 next
   case (insert a b x)
-  have fb: "finite b" using "2.prems" by simp
   have th0: "f ` b \<subseteq> f ` (insert a b)"
     by (simp add: subset_insertI)
   have ifb: "vs2.independent (f ` b)"
-    using independent_mono insert.prems(1) th0 by blast
+    using vs2.independent_mono insert.prems(1) th0 by blast
   have fib: "inj_on f b"
     using insert.prems(2) by blast
   from vs1.span_breakdown[of a "insert a b", simplified, OF insert.prems(3)]
@@ -683,10 +683,10 @@ next
     case False
     from inj_on_image_set_diff[OF insert.prems(2), of "insert a b " "{a}", symmetric]
     have "f ` insert a b - f ` {a} = f ` (insert a b - {a})" by blast
-    then have "f a \<notin> span (f ` b)" 
-      using dependent_def insert.hyps(2) insert.prems(1) by fastforce
-    moreover have "f a \<in> span (f ` b)"
-      using False span_mul[OF th, of "- 1/ k"] by auto
+    then have "f a \<notin> vs2.span (f ` b)" 
+      using vs2.dependent_def insert.hyps(2) insert.prems(1) by fastforce
+    moreover have "f a \<in> vs2.span (f ` b)"
+      using False vs2.span_scale[OF th, of "- 1/ k"] by auto
     ultimately have False
       by blast
     then show ?thesis by blast
@@ -851,7 +851,8 @@ lemma linear_exists_left_inverse_on:
 proof -
   interpret linear s1 s2 f by fact
   obtain B where V_eq: "V = vs1.span B" and B: "vs1.independent B"
-    using vs1.maximal_independent_subset[of V] vs1.span_minimal[OF _ \<open>vs1.subspace V\<close>] by auto
+    using vs1.maximal_independent_subset[of V] vs1.span_minimal[OF _ \<open>vs1.subspace V\<close>]
+    by (metis antisym_conv)
   have f: "inj_on f (vs1.span B)"
     using f unfolding V_eq .
   show ?thesis
@@ -892,9 +893,10 @@ lemma linear_exists_right_inverse_on:
   shows "\<exists>g\<in>UNIV \<rightarrow> V. linear s2 s1 g \<and> (\<forall>v\<in>f ` V. f (g v) = v)"
 proof -
   obtain B where V_eq: "V = vs1.span B" and B: "vs1.independent B"
-    using vs1.maximal_independent_subset[of V] vs1.span_minimal[OF _ \<open>vs1.subspace V\<close>] by auto
+    using vs1.maximal_independent_subset[of V] vs1.span_minimal[OF _ \<open>vs1.subspace V\<close>]
+    by (metis antisym_conv)
   obtain C where C: "vs2.independent C" and fB_C: "f ` B \<subseteq> vs2.span C" "C \<subseteq> f ` B"
-    using vs2.maximal_independent_subset[of "f ` B"] by auto
+    using vs2.maximal_independent_subset[of "f ` B"] by metis
   then have "\<forall>v\<in>C. \<exists>b\<in>B. v = f b" by auto
   then obtain g where g: "\<And>v. v \<in> C \<Longrightarrow> g v \<in> B" "\<And>v. v \<in> C \<Longrightarrow> f (g v) = v" by metis
   show ?thesis
@@ -917,7 +919,8 @@ proof -
         done
       show "linear ( *b) ( *b) id" by (rule vs2.linear_id)
       have "vs2.span (f ` B) = vs2.span C"
-        using fB_C vs2.span_mono[of C "f ` B"] vs2.span_minimal[of "f`B" "vs2.span C"] by (auto simp: vs2.subspace_span)
+        using fB_C vs2.span_mono[of C "f ` B"] vs2.span_minimal[of "f`B" "vs2.span C"]
+        by auto
       then show "v \<in> vs2.span C"
         using v linear_span_image[OF lf, of B] by (simp add: V_eq)
       show "(f \<circ> p.construct C g) b = id b" if b: "b \<in> C" for b
@@ -935,7 +938,8 @@ lemma linear_inj_on_left_inverse:
   by (auto simp: linear_iff_module_hom)
 
 lemma linear_injective_left_inverse: "linear s1 s2 f \<Longrightarrow> inj f \<Longrightarrow> \<exists>g. linear s2 s1 g \<and> g \<circ> f = id"
-  using linear_inj_on_left_inverse[of f UNIV] by (auto simp: fun_eq_iff)
+  using linear_inj_on_left_inverse[of f UNIV]
+  by force
 
 lemma linear_surj_right_inverse:
   assumes lf: "linear s1 s2 f"
@@ -946,7 +950,7 @@ lemma linear_surj_right_inverse:
 
 lemma linear_surjective_right_inverse: "linear s1 s2 f \<Longrightarrow> surj f \<Longrightarrow> \<exists>g. linear s2 s1 g \<and> f \<circ> g = id"
   using linear_surj_right_inverse[of f UNIV UNIV]
-  by (auto simp: vs1.span_UNIV vs2.span_UNIV fun_eq_iff)
+  by (auto simp: fun_eq_iff)
 
 end
 
@@ -1025,7 +1029,7 @@ proof -
     have 2: "span (insert x S) \<subseteq> span (insert x B)"
       by (metis \<open>B \<subseteq> span S\<close> \<open>span S \<subseteq> span B\<close> span_breakdown_eq span_subspace subsetI subspace_span)
     have 3: "independent (insert x B)"
-      by (metis B independent_insert span_subspace subspace_span False)
+      by (metis B(1-3) independent_insert span_subspace subspace_span False)
     have "dim (span (insert x S)) = Suc (dim S)"
       apply (rule dim_unique [OF 1 2 3])
       by (metis B False card_insert_disjoint dim_span finiteI_independent span_base span_eq span_span)
@@ -1055,7 +1059,7 @@ proof -
       case True
       have "dim S = dim T"
         apply (rule span_eq_dim [OF subset_antisym [OF True]])
-        by (simp add: \<open>T \<subseteq> span S\<close> span_minimal subspace_span)
+        by (simp add: \<open>T \<subseteq> span S\<close> span_minimal)
       then show ?thesis
         using Suc.prems \<open>dim T = n\<close> by linarith
     next
@@ -1066,7 +1070,7 @@ proof -
         by (metis (no_types) \<open>T \<subseteq> span S\<close> subsetD insert_subset span_superset span_mono span_span)
       with \<open>dim T = n\<close>  \<open>subspace T\<close> y show ?thesis
         apply (rule_tac x="span(insert y T)" in exI)
-        apply (auto simp: dim_insert dim_span subspace_span)
+        apply (auto simp: dim_insert)
         using span_eq_iff by blast
     qed
   qed
@@ -1076,12 +1080,12 @@ qed
 lemma basis_subspace_exists:
   assumes "subspace S"
   obtains B where "finite B" "B \<subseteq> S" "independent B" "span B = S" "card B = dim S"
-by (metis assms span_subspace basis_exists independent_imp_finite)
+  by (metis assms span_subspace basis_exists finiteI_independent)
 
 lemma dim_mono: assumes "V \<subseteq> span W" shows "dim V \<le> dim W"
 proof -
   obtain B where "independent B" "B \<subseteq> W" "W \<subseteq> span B"
-    using maximal_independent_subset[of W] by auto
+    using maximal_independent_subset[of W] by force
   with dim_le_card[of V B] assms independent_span_bound[of Basis B] basis_card_eq_dim[of B W]
     span_mono[of B W] span_minimal[OF _ subspace_span, of W B]
   show ?thesis
@@ -1093,13 +1097,10 @@ lemma dim_subset: "S \<subseteq> T \<Longrightarrow> dim S \<le> dim T"
 
 lemma dim_eq_0 [simp]:
   "dim S = 0 \<longleftrightarrow> S \<subseteq> {0}"
-  using basis_exists finiteI_independent
-  apply safe
-  subgoal by fastforce
-  by (metis dim_singleton dim_subset le_0_eq)
+  by (metis basis_exists card_eq_0_iff dim_span finiteI_independent span_empty subset_empty subset_singletonD)
 
 lemma dim_UNIV[simp]: "dim UNIV = card Basis"
-  using dim_eq_card[of Basis UNIV] by (simp add: independent_Basis span_Basis span_UNIV)
+  using dim_eq_card[of Basis UNIV] by (simp add: independent_Basis span_Basis)
 
 lemma independent_card_le_dim: assumes "B \<subseteq> V" and "independent B" shows "card B \<le> dim V"
   by (subst dim_eq_card[symmetric, OF refl \<open>independent B\<close>]) (rule dim_subset[OF \<open>B \<subseteq> V\<close>])
@@ -1191,7 +1192,7 @@ qed
 
 corollary dim_eq_span:
   shows "\<lbrakk>S \<subseteq> T; dim T \<le> dim S\<rbrakk> \<Longrightarrow> span S = span T"
-  by (simp add: dim_span span_mono subspace_dim_equal subspace_span)
+  by (simp add: span_mono subspace_dim_equal)
 
 lemma dim_psubset:
   "span S \<subset> span T \<Longrightarrow> dim S < dim T"
@@ -1380,7 +1381,7 @@ proof -
   interpret linear s1 s2 f by fact
   have *: "card (f ` B1) \<le> vs2.dim UNIV"
     using vs1.finite_Basis vs1.dim_eq_card[of B1 UNIV] sf
-    by (auto simp: vs1.span_Basis vs1.span_UNIV vs1.independent_Basis eq
+    by (auto simp: vs1.span_Basis vs1.independent_Basis eq
         simp del: vs2.dim_UNIV
         intro!: card_image_le)
   have indep_fB: "vs2.independent (f ` B1)"
@@ -1575,7 +1576,7 @@ proof -
     from B(2) have fB: "finite B"
       using finiteI_independent by auto
     have Uspan: "UNIV \<subseteq> span (f ` B)"
-      by (simp add: B(3) lf sf spanning_surjective_image)
+      by (simp add: B(3) lf linear_spanning_surjective_image sf)
     have fBi: "independent (f ` B)"
     proof (rule card_le_dim_spanning)
       show "card (f ` B) \<le> dim ?U"
@@ -1593,7 +1594,7 @@ proof -
     have "x = 0" by blast
   }
   then show ?thesis
-    unfolding linear_injective_0[OF lf] using B(3) by blast
+    unfolding linear_inj_iff_eq_0[OF lf] using B(3) by blast
 qed
 
 lemma linear_inverse_left:
@@ -1629,7 +1630,7 @@ proof -
     by blast
   have "h = g"
     by (metis gf h isomorphism_expand left_right_inverse_eq)
-  with \<open>linear h\<close> show ?thesis by blast
+  with \<open>linear scale scale h\<close> show ?thesis by blast
 qed
 
 lemma inj_linear_imp_inv_linear:
@@ -1668,10 +1669,10 @@ lemma subspace_isomorphism:
 proof -
   from vs1.basis_exists[of S] vs1.finiteI_independent
   obtain B where B: "B \<subseteq> S" "vs1.independent B" "S \<subseteq> vs1.span B" "card B = vs1.dim S" and fB: "finite B"
-    by blast
+    by metis
   from vs2.basis_exists[of T] vs2.finiteI_independent
   obtain C where C: "C \<subseteq> T" "vs2.independent C" "T \<subseteq> vs2.span C" "card C = vs2.dim T" and fC: "finite C"
-    by blast
+    by metis
   from B(4) C(4) card_le_inj[of B C] d
   obtain f where f: "f ` B \<subseteq> C" "inj_on f B" using \<open>finite B\<close> \<open>finite C\<close>
     by auto

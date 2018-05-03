@@ -476,7 +476,7 @@ lemma det_row_span:
   assumes x: "x \<in> vec.span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
   using x
-proof (induction rule: span_induct_alt)
+proof (induction rule: vec.span_induct_alt)
   case base
   {
     fix k
@@ -844,12 +844,12 @@ proof -
       unfolding sum_cmul
       using c ci   
       by (auto simp add: sum.remove[OF fU iU] eq_vector_fraction_iff add_eq_0_iff)
-    have thr: "- row i A \<in> span {row j A| j. j \<noteq> i}"
+    have thr: "- row i A \<in> vec.span {row j A| j. j \<noteq> i}"
       unfolding thr0
       apply (rule vec.span_sum)
       apply simp
-      apply (rule span_mul)
-      apply (rule span_superset)
+      apply (rule vec.span_scale)
+      apply (rule vec.span_base)
       apply auto
       done
     let ?B = "(\<chi> k. if k = i then 0 else row k A) :: 'a^'n^'n"

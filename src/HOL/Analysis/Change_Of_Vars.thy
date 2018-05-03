@@ -1629,7 +1629,7 @@ proof -
   proof -
     obtain d where "d \<noteq> 0" and d: "\<And>y. f y = 0 \<Longrightarrow> d \<bullet> y = 0"
       using orthogonal_to_subspace_exists [OF less] orthogonal_def
-      by (metis (mono_tags, lifting) mem_Collect_eq span_superset)
+      by (metis (mono_tags, lifting) mem_Collect_eq span_base)
     then obtain k where "k > 0"
       and k: "\<And>e. e > 0 \<Longrightarrow> \<exists>y. y \<in> S - {0} \<and> norm y < e \<and> k * norm y \<le> \<bar>d \<bullet> y\<bar>"
       using lb by blast

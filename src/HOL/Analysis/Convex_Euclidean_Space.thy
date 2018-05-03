@@ -1630,7 +1630,7 @@ proof -
     qed (use \<open>F \<subseteq> insert a S\<close> in auto)
   qed
   then show ?thesis
-    unfolding affine_hull_explicit span_explicit by auto
+    unfolding affine_hull_explicit span_explicit by blast
 qed
 
 lemma affine_hull_insert_span:
@@ -2950,7 +2950,7 @@ proof -
   have **: "card {x - a |x. x \<in> S - {a}} = card (S - {a})"
     by (metis (no_types, lifting) "*" card_image diff_add_cancel inj_on_def)
   have "dim {x - a |x. x \<in> S - {a}} \<le> dim S"
-    using \<open>a\<in>S\<close> by (auto simp: span_superset span_diff intro: subset_le_dim)
+    using \<open>a\<in>S\<close> by (auto simp: span_base span_diff intro: subset_le_dim)
   also have "\<dots> < dim S + 1" by auto
   also have "\<dots> \<le> card (S - {a})"
     using assms
@@ -3353,7 +3353,7 @@ proof -
     by auto
   let ?t = "{x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
   have "\<exists>f. linear f \<and> f ` B = d \<and> f ` span B = ?t \<and> inj_on f (span B)"
-  proof (intro basis_to_basis_subspace_isomorphism subspace_span subspace_substandard span_inc)
+  proof (intro basis_to_basis_subspace_isomorphism subspace_span subspace_substandard span_superset)
     show "d \<subseteq> {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
       using d inner_not_same_Basis by blast
   qed (auto simp: span_substd_basis independent_substdbasis dim_substandard d t B assms)

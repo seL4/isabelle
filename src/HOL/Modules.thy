@@ -186,7 +186,7 @@ lemma span_superset: "S \<subseteq> span S"
 lemma span_zero: "0 \<in> span S"
   by (auto simp: span_explicit intro!: exI[of _ "{}"])
 
-lemma span_UNIV: "span UNIV = UNIV"
+lemma span_UNIV[simp]: "span UNIV = UNIV"
   by (auto intro: span_base)
 
 lemma span_add: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x + y \<in> span S"

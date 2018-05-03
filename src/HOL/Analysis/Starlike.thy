@@ -1599,7 +1599,7 @@ proof -
         fix x :: "'a::euclidean_space"
         assume "x \<in> D"
         then have "x \<in> span D"
-          using span_superset[of _ "D"] by auto
+          using span_base[of _ "D"] by auto
         then have "x /\<^sub>R (2 * real (card D)) \<in> span D"
           using span_mul[of x "D" "(inverse (real (card D)) / 2)"] by auto
       }
@@ -5717,9 +5717,9 @@ lemma dim_special_hyperplane:
   fixes k :: "'n::euclidean_space"
   shows "k \<in> Basis \<Longrightarrow> dim {x. k \<bullet> x = 0} = DIM('n) - 1"
 apply (simp add: special_hyperplane_span)
-apply (rule Linear_Algebra.dim_unique [OF subset_refl])
+apply (rule dim_unique [OF subset_refl])
 apply (auto simp: Diff_subset independent_substdbasis)
-apply (metis member_remove remove_def span_superset)
+apply (metis member_remove remove_def span_base)
 done
 
 proposition dim_hyperplane:
@@ -6750,7 +6750,7 @@ next
     using spanU by simp
   also have "... = span (insert a (S \<union> T))"
     apply (rule eq_span_insert_eq)
-    apply (simp add: a'_def span_neg span_sum span_superset span_mul)
+    apply (simp add: a'_def span_neg span_sum span_base span_mul)
     done
   also have "... = span (S \<union> insert a T)"
     by simp
@@ -6922,7 +6922,7 @@ proof -
   have "dim {x} < DIM('a)"
     using assms by auto
   then show thesis
-    by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_superset that)
+    by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_base that)
 qed
 
 proposition%important orthogonal_subspace_decomp_exists:
@@ -7192,7 +7192,7 @@ proof%unimportant -
               have "e/2 / norm a \<noteq> 0"
                 using \<open>0 < e\<close> \<open>a \<noteq> 0\<close> by auto
               then show ?thesis
-                by (metis True \<open>a \<noteq> 0\<close> a orthogonal_scaleR orthogonal_self real_vector.scale_eq_0_iff span_add_eq span_superset)
+                by (metis True \<open>a \<noteq> 0\<close> a orthogonal_scaleR orthogonal_self real_vector.scale_eq_0_iff span_add_eq span_base)
             qed
             ultimately show "?y \<in> S - U" by blast
           qed
@@ -8008,7 +8008,7 @@ proof -
     have "v = ?u + (v - ?u)"
       by simp
     moreover have "?u \<in> U"
-      by (metis (no_types, lifting) \<open>span B = U\<close> assms real_vector_class.subspace_sum span_superset span_mul)
+      by (metis (no_types, lifting) \<open>span B = U\<close> assms subspace_sum span_base span_mul)
     moreover have "(v - ?u) \<in> U\<^sup>\<bottom>"
     proof (clarsimp simp: orthogonal_comp_def orthogonal_def)
       fix y

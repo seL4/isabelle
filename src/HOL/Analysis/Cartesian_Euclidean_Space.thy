@@ -212,7 +212,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma matrix_vector_mul_bounded_linear[intro, simp]: "bounded_linear (( *v) A)" for A :: "real^'n^'m"
+lemma matrix_vector_mul_bounded_linear[intro, simp]: "bounded_linear (( *v) A)" for A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
   using matrix_vector_mul_linear[of A]
   by (simp add: linear_conv_bounded_linear linear_matrix_vector_mul_eq)
 
@@ -415,128 +415,6 @@ qed
 
 lemma vector_sub_project_orthogonal_cart: "(b::real^'n) \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *s b) = 0"
   unfolding inner_simps scalar_mult_eq_scaleR by auto
-
-lemma matrix_left_invertible_injective:
-  fixes A :: "'a::field^'n^'m"
-  shows "(\<exists>B. B ** A = mat 1) \<longleftrightarrow> inj (( *v) A)"
-proof safe
-  fix B
-  assume B: "B ** A = mat 1"
-  show "inj (( *v) A)"
-    unfolding inj_on_def
-      by (metis B matrix_vector_mul_assoc matrix_vector_mul_lid)
-next
-  assume "inj (( *v) A)"
-  from vec.linear_injective_left_inverse[OF matrix_vector_mul_linear_gen this]
-  obtain g where "Vector_Spaces.linear ( *s) ( *s) g" and g: "g \<circ> ( *v) A = id"
-    by blast
-  have "matrix g ** A = mat 1"
-    by (metis matrix_vector_mul_linear_gen \<open>Vector_Spaces.linear ( *s) ( *s) g\<close> g matrix_compose_gen
-        matrix_eq matrix_id_mat_1 matrix_vector_mul(1))
-  then show "\<exists>B. B ** A = mat 1"
-    by metis
-qed
-
-lemma matrix_right_invertible_surjective:
-  "(\<exists>B. (A::'a::field^'n^'m) ** (B::'a::field^'m^'n) = mat 1) \<longleftrightarrow> surj (\<lambda>x. A *v x)"
-proof -
-  { fix B :: "'a ^'m^'n"
-    assume AB: "A ** B = mat 1"
-    { fix x :: "'a ^ 'm"
-      have "A *v (B *v x) = x"
-        by (simp add: matrix_vector_mul_assoc AB) }
-    hence "surj (( *v) A)" unfolding surj_def by metis }
-  moreover
-  { assume sf: "surj (( *v) A)"
-    from vec.linear_surjective_right_inverse[OF _ this]
-    obtain g:: "'a ^'m \<Rightarrow> 'a ^'n" where g: "Vector_Spaces.linear ( *s) ( *s) g" "( *v) A \<circ> g = id"
-      by blast
-
-    have "A ** (matrix g) = mat 1"
-      unfolding matrix_eq  matrix_vector_mul_lid
-        matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
-      using g(2) unfolding o_def fun_eq_iff id_def
-      .
-    hence "\<exists>B. A ** (B::'a^'m^'n) = mat 1" by blast
-  }
-  ultimately show ?thesis unfolding surj_def by blast
-qed
-
-lemma matrix_right_invertible_span_columns:
-  "(\<exists>(B::'a::field ^'n^'m). (A::'a ^'m^'n) ** B = mat 1) \<longleftrightarrow>
-    vec.span (columns A) = UNIV" (is "?lhs = ?rhs")
-proof -
-  let ?U = "UNIV :: 'm set"
-  have fU: "finite ?U" by simp
-  have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y)"
-    unfolding matrix_right_invertible_surjective matrix_mult_sum surj_def
-    by (simp add: eq_commute)
-  have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> vec.span (columns A))" by blast
-  { assume h: ?lhs
-    { fix x:: "'a ^'n"
-      from h[unfolded lhseq, rule_format, of x] obtain y :: "'a ^'m"
-        where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
-      have "x \<in> vec.span (columns A)"
-        unfolding y[symmetric] scalar_mult_eq_scaleR
-      proof (rule span_sum [OF span_mul])
-        show "column i A \<in> span (columns A)" for i
-          using columns_def span_inc by auto
-      qed
-    }
-    then have ?rhs unfolding rhseq by blast }
-  moreover
-  { assume h:?rhs
-    let ?P = "\<lambda>(y::'a ^'n). \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y"
-    { fix y
-      have "y \<in> vec.span (columns A)"
-        unfolding h by blast
-      then have "?P y"
-      proof (induction rule: vec.span_induct_alt)
-        case base
-        then show ?case
-          by (metis (full_types) matrix_mult_sum matrix_vector_mult_0_right)
-      next
-        case (step c y1 y2)
-        then obtain i where i: "i \<in> ?U" "y1 = column i A"
-        from y1 obtain i where i: "i \<in> ?U" "y1 = column i A"
-          unfolding columns_def by blast
-        obtain x:: "real ^'m" where x: "sum (\<lambda>i. (x$i) *s column i A) ?U = y2"
-          using step by blast
-        let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::'a^'m"
-        show ?case
-        proof (rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] if_distrib distrib_left if_distribR cong del: if_weak_cong)
-          fix j
-          have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
-              else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))"
-            using i(1) by (simp add: field_simps)
-          have "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
-              else (x$xa) * ((column xa A$j))) ?U = sum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
-            by (rule sum.cong[OF refl]) (use th in blast)
-          also have "\<dots> = sum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-            by (simp add: sum.distrib)
-          also have "\<dots> = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
-            unfolding sum.delta[OF fU]
-            using i(1) by simp
-          finally show "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
-            else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
-        qed
-      qed
-    }
-    then have ?lhs unfolding lhseq ..
-  }
-  ultimately show ?thesis by blast
-qed
-
-lemma matrix_left_invertible_span_rows_gen:
-  "(\<exists>(B::'a^'m^'n). B ** (A::'a::field^'n^'m) = mat 1) \<longleftrightarrow> vec.span (rows A) = UNIV"
-  unfolding right_invertible_transpose[symmetric]
-  unfolding columns_transpose[symmetric]
-  unfolding matrix_right_invertible_span_columns
-  ..
-
-lemma matrix_left_invertible_span_rows:
-  "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
-  using matrix_left_invertible_span_rows_gen[of A] by (simp add: span_vec_eq)
 
 
 text \<open>The same result in terms of square matrices.\<close>
@@ -1100,7 +978,7 @@ proof -
   proof -
     obtain B where "independent B" "span(rows A) \<subseteq> span B"
               and B: "B \<subseteq> span(rows A)""card B = dim (span(rows A))"
-      using basis_exists [of "span(rows A)"] by blast
+      using basis_exists [of "span(rows A)"] by metis
     with span_subspace have eq: "span B = span(rows A)"
       by auto
     then have inj: "inj_on (( *v) A) (span B)"

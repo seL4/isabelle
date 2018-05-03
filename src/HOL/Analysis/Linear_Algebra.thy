@@ -917,7 +917,7 @@ lemma bilinear_eq_stdbasis:
     and bg: "bilinear g"
     and fg: "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> f i j = g i j"
   shows "f = g"
-  using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis] fg] by blast
+  using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis]] fg by blast
 
 subsection \<open>Infinity norm\<close>
 

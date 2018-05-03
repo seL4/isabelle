@@ -1164,7 +1164,8 @@ lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
   by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
 lemma matrix_vector_mul_linear[intro, simp]: "linear (\<lambda>x. A *v (x::'a::real_algebra_1 ^ _))"
-  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff field_simps sum_distrib_left sum.distrib)
+  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff field_simps sum_distrib_left
+      sum.distrib scaleR_right.sum)
 
 lemma vector_matrix_left_distrib [algebra_simps]:
   shows "(x + y) v* A = x v* A + y v* A"

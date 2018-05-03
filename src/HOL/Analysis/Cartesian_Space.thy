@@ -97,6 +97,14 @@ lemma matrix_vector_mul_linear_gen[intro, simp]:
   by unfold_locales
     (vector matrix_vector_mult_def sum.distrib algebra_simps)+
 
+lemma span_vec_eq: "vec.span X = span X"
+  and dim_vec_eq: "vec.dim X = dim X"
+  and dependent_vec_eq: "vec.dependent X = dependent X"
+  and subspace_vec_eq: "vec.subspace X = subspace X"
+  for X::"(real^'n) set"
+  unfolding span_raw_def dim_raw_def dependent_raw_def subspace_raw_def
+  by (auto simp: scalar_mult_eq_scaleR)
+
 lemma linear_componentwise:
   fixes f:: "'a::field ^'m \<Rightarrow> 'a ^ 'n"
   assumes lf: "Vector_Spaces.linear ( *s) ( *s) f"
@@ -143,24 +151,44 @@ lemma matrix_compose:
   using matrix_compose_gen[of f g] assms
   by (simp add: linear_def scalar_mult_eq_scaleR)
 
+lemma left_invertible_transpose:
+  "(\<exists>(B). B ** transpose (A) = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). A ** B = mat 1)"
+  by (metis matrix_transpose_mul transpose_mat transpose_transpose)
+
+lemma right_invertible_transpose:
+  "(\<exists>(B). transpose (A) ** B = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). B ** A = mat 1)"
+  by (metis matrix_transpose_mul transpose_mat transpose_transpose)
+
+lemma linear_matrix_vector_mul_eq:
+  "Vector_Spaces.linear ( *s) ( *s) f \<longleftrightarrow> linear (f :: real^'n \<Rightarrow> real ^'m)"
+  by (simp add: scalar_mult_eq_scaleR linear_def)
+
+lemma matrix_vector_mul[simp]:
+  "Vector_Spaces.linear ( *s) ( *s) g \<Longrightarrow> (\<lambda>y. matrix g *v y) = g"
+  "linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
+  "bounded_linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
+  for f :: "real^'n \<Rightarrow> real ^'m"
+  by (simp_all add: ext matrix_works linear_matrix_vector_mul_eq linear_linear)
+
 lemma matrix_left_invertible_injective:
-  "(\<exists>B. (B::'a::field^'m^'n) ** (A::'a::field^'n^'m) = mat 1)
-    \<longleftrightarrow> (\<forall>x y. A *v x = A *v y \<longrightarrow> x = y)"
-proof -
-  { fix B:: "'a^'m^'n" and x y assume B: "B ** A = mat 1" and xy: "A *v x = A*v y"
-    from xy have "B*v (A *v x) = B *v (A*v y)" by simp
-    hence "x = y"
-      unfolding matrix_vector_mul_assoc B matrix_vector_mul_lid . }
-  moreover
-  { assume A: "\<forall>x y. A *v x = A *v y \<longrightarrow> x = y"
-    hence i: "inj (( *v) A)" unfolding inj_on_def by auto
-    from vec.linear_exists_left_inverse_on[OF matrix_vector_mul_linear_gen vec.subspace_UNIV i]
-    obtain g where g: "Vector_Spaces.linear ( *s) ( *s) g" "g o (( *v) A) = id" by (auto simp: id_def module_hom_iff_linear o_def)
-    have "matrix g ** A = mat 1"
-      unfolding matrix_eq matrix_vector_mul_lid matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
-      using g(2) by (metis comp_apply id_apply)
-    then have "\<exists>B. (B::'a::{field}^'m^'n) ** A = mat 1" by blast }
-  ultimately show ?thesis by blast
+  fixes A :: "'a::field^'n^'m"
+  shows "(\<exists>B. B ** A = mat 1) \<longleftrightarrow> inj (( *v) A)"
+proof safe
+  fix B
+  assume B: "B ** A = mat 1"
+  show "inj (( *v) A)"
+    unfolding inj_on_def
+      by (metis B matrix_vector_mul_assoc matrix_vector_mul_lid)
+next
+  assume "inj (( *v) A)"
+  from vec.linear_injective_left_inverse[OF matrix_vector_mul_linear_gen this]
+  obtain g where "Vector_Spaces.linear ( *s) ( *s) g" and g: "g \<circ> ( *v) A = id"
+    by blast
+  have "matrix g ** A = mat 1"
+    by (metis matrix_vector_mul_linear_gen \<open>Vector_Spaces.linear ( *s) ( *s) g\<close> g matrix_compose_gen
+        matrix_eq matrix_id_mat_1 matrix_vector_mul(1))
+  then show "\<exists>B. B ** A = mat 1"
+    by metis
 qed
 
 lemma matrix_left_invertible_ker:
@@ -168,6 +196,31 @@ lemma matrix_left_invertible_ker:
   unfolding matrix_left_invertible_injective
   using vec.inj_on_iff_eq_0[OF vec.subspace_UNIV, of A]
   by (simp add: inj_on_def)
+
+lemma matrix_right_invertible_surjective:
+  "(\<exists>B. (A::'a::field^'n^'m) ** (B::'a::field^'m^'n) = mat 1) \<longleftrightarrow> surj (\<lambda>x. A *v x)"
+proof -
+  { fix B :: "'a ^'m^'n"
+    assume AB: "A ** B = mat 1"
+    { fix x :: "'a ^ 'm"
+      have "A *v (B *v x) = x"
+        by (simp add: matrix_vector_mul_assoc AB) }
+    hence "surj (( *v) A)" unfolding surj_def by metis }
+  moreover
+  { assume sf: "surj (( *v) A)"
+    from vec.linear_surjective_right_inverse[OF _ this]
+    obtain g:: "'a ^'m \<Rightarrow> 'a ^'n" where g: "Vector_Spaces.linear ( *s) ( *s) g" "( *v) A \<circ> g = id"
+      by blast
+
+    have "A ** (matrix g) = mat 1"
+      unfolding matrix_eq  matrix_vector_mul_lid
+        matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
+      using g(2) unfolding o_def fun_eq_iff id_def
+      .
+    hence "\<exists>B. A ** (B::'a^'m^'n) = mat 1" by blast
+  }
+  ultimately show ?thesis unfolding surj_def by blast
+qed
 
 lemma matrix_left_invertible_independent_columns:
   fixes A :: "'a::{field}^'n^'m"
@@ -196,14 +249,6 @@ proof -
   ultimately show ?thesis unfolding matrix_left_invertible_ker by auto
 qed
 
-lemma left_invertible_transpose:
-  "(\<exists>(B). B ** transpose (A) = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). A ** B = mat 1)"
-  by (metis matrix_transpose_mul transpose_mat transpose_transpose)
-
-lemma right_invertible_transpose:
-  "(\<exists>(B). transpose (A) ** B = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). B ** A = mat 1)"
-  by (metis matrix_transpose_mul transpose_mat transpose_transpose)
-
 lemma matrix_right_invertible_independent_rows:
   fixes A :: "'a::{field}^'n^'m"
   shows "(\<exists>(B::'a^'m^'n). A ** B = mat 1) \<longleftrightarrow>
@@ -211,6 +256,81 @@ lemma matrix_right_invertible_independent_rows:
   unfolding left_invertible_transpose[symmetric]
     matrix_left_invertible_independent_columns
   by (simp add:)
+
+lemma matrix_right_invertible_span_columns:
+  "(\<exists>(B::'a::field ^'n^'m). (A::'a ^'m^'n) ** B = mat 1) \<longleftrightarrow>
+    vec.span (columns A) = UNIV" (is "?lhs = ?rhs")
+proof -
+  let ?U = "UNIV :: 'm set"
+  have fU: "finite ?U" by simp
+  have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y)"
+    unfolding matrix_right_invertible_surjective matrix_mult_sum surj_def
+    by (simp add: eq_commute)
+  have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> vec.span (columns A))" by blast
+  { assume h: ?lhs
+    { fix x:: "'a ^'n"
+      from h[unfolded lhseq, rule_format, of x] obtain y :: "'a ^'m"
+        where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
+      have "x \<in> vec.span (columns A)"
+        unfolding y[symmetric] scalar_mult_eq_scaleR
+      proof (rule vec.span_sum [OF vec.span_scale])
+        show "column i A \<in> vec.span (columns A)" for i
+          using columns_def vec.span_superset by auto
+      qed
+    }
+    then have ?rhs unfolding rhseq by blast }
+  moreover
+  { assume h:?rhs
+    let ?P = "\<lambda>(y::'a ^'n). \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y"
+    { fix y
+      have "y \<in> vec.span (columns A)"
+        unfolding h by blast
+      then have "?P y"
+      proof (induction rule: vec.span_induct_alt)
+        case base
+        then show ?case
+          by (metis (full_types) matrix_mult_sum matrix_vector_mult_0_right)
+      next
+        case (step c y1 y2)
+        from step obtain i where i: "i \<in> ?U" "y1 = column i A"
+          unfolding columns_def by blast
+        obtain x:: "'a ^'m" where x: "sum (\<lambda>i. (x$i) *s column i A) ?U = y2"
+          using step by blast
+        let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::'a^'m"
+        show ?case
+        proof (rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] if_distrib distrib_left if_distribR cong del: if_weak_cong)
+          fix j
+          have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
+              else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))"
+            using i(1) by (simp add: field_simps)
+          have "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
+              else (x$xa) * ((column xa A$j))) ?U = sum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
+            by (rule sum.cong[OF refl]) (use th in blast)
+          also have "\<dots> = sum (\<lambda>xa. if xa = i then c * ((column i A)$j) else 0) ?U + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
+            by (simp add: sum.distrib)
+          also have "\<dots> = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U"
+            unfolding sum.delta[OF fU]
+            using i(1) by simp
+          finally show "sum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
+            else (x$xa) * ((column xa A$j))) ?U = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
+        qed
+      qed
+    }
+    then have ?lhs unfolding lhseq ..
+  }
+  ultimately show ?thesis by blast
+qed
+
+lemma matrix_left_invertible_span_rows_gen:
+  "(\<exists>(B::'a^'m^'n). B ** (A::'a::field^'n^'m) = mat 1) \<longleftrightarrow> vec.span (rows A) = UNIV"
+  unfolding right_invertible_transpose[symmetric]
+  unfolding columns_transpose[symmetric]
+  unfolding matrix_right_invertible_span_columns
+  ..
+
+lemma matrix_left_invertible_span_rows:
+  "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
+  using matrix_left_invertible_span_rows_gen[of A] by (simp add: span_vec_eq)
 
 lemma matrix_left_right_inverse:
   fixes A A' :: "'a::{field}^'n^'n"
@@ -338,24 +458,5 @@ interpretation vector_space_over_itself: finite_dimensional_vector_space
 
 lemma dimension_eq_1[code_unfold]: "vector_space_over_itself.dimension TYPE('a::field)= 1"
   unfolding vector_space_over_itself.dimension_def by simp
-
-lemma linear_matrix_vector_mul_eq:
-  "Vector_Spaces.linear ( *s) ( *s) f \<longleftrightarrow> linear (f :: real^'n \<Rightarrow> real ^'m)"
-  by (simp add: scalar_mult_eq_scaleR linear_def)
-
-lemma matrix_vector_mul[simp]:
-  "Vector_Spaces.linear ( *s) ( *s) g \<Longrightarrow> (\<lambda>y. matrix g *v y) = g"
-  "linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
-  "bounded_linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
-  for f :: "real^'n \<Rightarrow> real ^'m"
-  by (simp_all add: ext matrix_works linear_matrix_vector_mul_eq linear_linear)
-
-lemma span_vec_eq: "vec.span X = span X"
-  and dim_vec_eq: "vec.dim X = dim X"
-  and dependent_vec_eq: "vec.dependent X = dependent X"
-  and subspace_vec_eq: "vec.subspace X = subspace X"
-  for X::"(real^'n) set"
-  unfolding span_raw_def dim_raw_def dependent_raw_def subspace_raw_def
-  by (auto simp: scalar_mult_eq_scaleR)
 
 end

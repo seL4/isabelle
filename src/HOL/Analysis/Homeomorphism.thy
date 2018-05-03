@@ -987,8 +987,8 @@ next
     apply (simp add: homeomorphic_def homeomorphism_def)
     apply (rule_tac x="g \<circ> h" in exI)
     apply (rule_tac x="k \<circ> f" in exI)
-    apply (auto simp: ghcont kfcont span_superset homeomorphism_apply2 [OF fg] image_comp)
-    apply (force simp: o_def homeomorphism_apply2 [OF fg] span_superset)
+    apply (auto simp: ghcont kfcont span_base homeomorphism_apply2 [OF fg] image_comp)
+    apply (force simp: o_def homeomorphism_apply2 [OF fg] span_base)
     done
   finally have Shom: "S homeomorphic (g \<circ> h) ` (+) (- a) ` S" .
   show ?thesis
