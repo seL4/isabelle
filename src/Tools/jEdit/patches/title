@@ -1,0 +1,23 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/View.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/View.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/View.java	2018-04-09 01:57:31.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/View.java	2018-05-04 21:18:11.891194939 +0200
+@@ -1233,15 +1233,10 @@
+ 
+ 		StringBuilder title = new StringBuilder();
+ 
+-		/* On Mac OS X, apps are not supposed to show their name in the
+-		title bar. */
+-		if(!OperatingSystem.isMacOS())
+-		{
+-			if (userTitle != null)
+-				title.append(userTitle);
+-			else
+-				title.append(jEdit.getProperty("view.title"));
+-		}
++		if (userTitle != null)
++			title.append(userTitle);
++		else
++			title.append(jEdit.getProperty("view.title"));
+ 
+ 		for(int i = 0; i < buffers.size(); i++)
+ 		{
