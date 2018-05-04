@@ -35,6 +35,7 @@ fun isort :: "'a::linorder list \<Rightarrow> 'a list" where
 "isort [] = []" |
 "isort (x#xs) = insort x (isort xs)"
 
+
 subsubsection "Functional Correctness"
 
 lemma mset_insort: "mset (insort x xs) = add_mset x (mset xs)"
@@ -47,11 +48,6 @@ apply(induction xs)
 apply simp
 apply (simp add: mset_insort)
 done
-
-lemma "sorted (insort a xs) = sorted xs"
-apply(induction xs)
-apply (auto)
-oops
 
 lemma set_insort: "set (insort x xs) = insert x (set xs)"
 by (metis mset_insort set_mset_add_mset_insert set_mset_mset)
@@ -69,7 +65,8 @@ apply(induction xs)
 apply(auto simp: sorted_insort)
 done
 
-subsection "Time Complexity"
+
+subsubsection "Time Complexity"
 
 text \<open>We count the number of function calls.\<close>
 
@@ -137,6 +134,7 @@ fun msort :: "'a::linorder list \<Rightarrow> 'a list" where
 
 declare msort.simps [simp del]
 
+
 subsubsection "Functional Correctness"
 
 lemma mset_merge: "mset(merge xs ys) = mset xs + mset ys"
@@ -185,7 +183,8 @@ proof(induction xs rule: msort.induct)
   qed
 qed
 
-subsection "Time Complexity"
+
+subsubsection "Time Complexity"
 
 text \<open>We only count the number of comparisons between list elements.\<close>
 
@@ -278,6 +277,7 @@ fun merge_all :: "('a::linorder) list list \<Rightarrow> 'a list" where
 definition msort_bu :: "('a::linorder) list \<Rightarrow> 'a list" where
 "msort_bu xs = (if xs = [] then [] else merge_all (map (\<lambda>x. [x]) xs))"
 
+
 subsubsection "Functional Correctness"
 
 lemma mset_merge_adj:
@@ -303,7 +303,8 @@ by(simp add: msort_bu_def sorted_merge_all)
 lemma mset_msort: "mset (msort_bu xs) = mset xs"
 by(simp add: msort_bu_def msec_merge_all comp_def)
 
-subsection "Time Complexity"
+
+subsubsection "Time Complexity"
 
 fun c_merge_adj :: "('a::linorder) list list \<Rightarrow> real" where
 "c_merge_adj [] = 0" |
