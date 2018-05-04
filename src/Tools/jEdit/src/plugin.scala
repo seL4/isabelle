@@ -16,7 +16,8 @@ import java.io.{File => JFile}
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, PerspectiveManager}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.ModeProvider
-import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged,
+  ViewUpdate}
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
 
@@ -292,6 +293,19 @@ class Plugin extends EBPlugin
     Keymap_Merge.check_dialog(view)
   }
 
+  private def init_title(view: View)
+  {
+    val title =
+      proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
+        "/" + PIDE.resources.session_name
+    val marker = "\u200B"
+
+    val old_title = view.getViewConfig.title
+    if (old_title == null || old_title.startsWith(marker)) {
+      view.setUserTitle(marker + title)
+    }
+  }
+
   override def handleMessage(message: EBMessage)
   {
     GUI_Thread.assert {}
@@ -329,6 +343,10 @@ class Plugin extends EBPlugin
 
           PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
             JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
+
+        case msg: ViewUpdate
+        if msg.getWhat == ViewUpdate.CREATED && msg.getView != null =>
+          init_title(msg.getView)
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
@@ -435,6 +453,8 @@ class Plugin extends EBPlugin
     try {
       completion_history.load()
       spell_checker.update(options.value)
+
+      JEdit_Lib.jedit_views.foreach(init_title(_))
 
       isabelle.jedit_base.Syntax_Style.set_style_extender(Syntax_Style.Extender)
       init_mode_provider()
