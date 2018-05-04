@@ -185,9 +185,6 @@ function purge_jdk
 
 # platform-specific setup (inside archive)
 
-perl -pi -e "s,view.title=Isabelle/jEdit,view.title=${ISABELLE_NAME},g;" \
-  "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
-
 case "$PLATFORM_FAMILY" in
   linux)
     purge_target 'contrib -name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'

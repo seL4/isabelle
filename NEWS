@@ -71,6 +71,10 @@ INCOMPATIBILITY, e.g. copy-paste of historic Isabelle HTML output.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* The view title is set dynamically, according to the Isabelle
+distribution and the logic session name. The user can override this via
+set-view-title (stored persistently in $JEDIT_SETTINGS/perspective.xml).
+
 * System options "spell_checker_include" and "spell_checker_exclude"
 supersede former "spell_checker_elements" to determine regions of text
 that are subject to spell-checking. Minor INCOMPATIBILITY.
