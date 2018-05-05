@@ -32,10 +32,11 @@ object Build
 
   private object Queue
   {
-    def load_timings(progress: Progress, store: Sessions.Store, name: String)
-      : (List[Properties.T], Double) =
+    type Timings = (List[Properties.T], Double)
+
+    def load_timings(progress: Progress, store: Sessions.Store, name: String): Timings =
     {
-      val no_timings: (List[Properties.T], Double) = (Nil, 0.0)
+      val no_timings: Timings = (Nil, 0.0)
 
       store.find_database(name) match {
         case None => no_timings
@@ -184,7 +185,6 @@ object Build
   {
     val output = store.output_dir + Path.basic(name)
     def output_path: Option[Path] = if (do_output) Some(output) else None
-    output.file.delete
 
     val options =
       numa_node match {
@@ -448,14 +448,19 @@ object Build
 
     store.prepare_output()
 
-    // optional cleanup
+    // cleanup
+    def cleanup(name: String, echo: Boolean = false)
+    {
+      val files =
+        List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
+          map(store.output_dir + _).filter(_.is_file)
+      if (files.nonEmpty) progress.echo_if(echo, "Cleaning " + name + " ...")
+      val res = files.map(p => p.file.delete)
+      if (!res.forall(ok => ok)) progress.echo_if(echo, name + " FAILED to delete")
+    }
     if (clean_build) {
       for (name <- full_sessions.build_descendants(full_sessions.build_selection(selection1))) {
-        val files =
-          List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
-            map(store.output_dir + _).filter(_.is_file)
-        if (files.nonEmpty) progress.echo("Cleaning " + name + " ...")
-        if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
+        cleanup(name, echo = true)
       }
     }
 
@@ -507,7 +512,7 @@ object Build
               val tail = job.info.options.int("process_output_tail")
               process_result.copy(
                 out_lines =
-                  "(see also " + (store.output_dir + store.log(name)).file.toString + ")" ::
+                  "(see also " + store.output_log(name).file.toString + ")" ::
                   (if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)))
             }
 
@@ -515,29 +520,22 @@ object Build
             // write log file
             val heap_stamp =
               if (process_result.ok) {
-                (store.output_dir + store.log(name)).file.delete
                 val heap_stamp =
                   for (path <- job.output_path if path.is_file)
                     yield Sessions.write_heap_digest(path)
 
-                File.write_gzip(store.output_dir + store.log_gz(name), terminate_lines(log_lines))
+                File.write_gzip(store.output_log_gz(name), terminate_lines(log_lines))
 
                 heap_stamp
               }
               else {
-                (store.output_dir + Path.basic(name)).file.delete
-                (store.output_dir + store.log_gz(name)).file.delete
-
-                File.write(store.output_dir + store.log(name), terminate_lines(log_lines))
+                File.write(store.output_log(name), terminate_lines(log_lines))
 
                 None
               }
 
             // write database
             {
-              val database = store.output_dir + store.database(name)
-              database.file.delete
-
               val build_log =
                 Build_Log.Log_File(name, process_result.out_lines).
                   parse_session_info(
@@ -546,7 +544,7 @@ object Build
                     ml_statistics = true,
                     task_statistics = true)
 
-              using(SQLite.open_database(database))(db =>
+              using(SQLite.open_database(store.output_database(name)))(db =>
                 store.write_session_info(db, name,
                   build_log =
                     if (process_result.timeout) build_log.error("Timeout") else build_log,
@@ -609,8 +607,13 @@ object Build
                     results + (name -> Result(false, heap_stamp, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
-                  val numa_node = numa_nodes.next(used_node(_))
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
+
+                  cleanup(name)
+                  using(SQLite.open_database(store.output_database(name)))(db =>
+                    store.init_session_info(db, name))
+
+                  val numa_node = numa_nodes.next(used_node(_))
                   val job =
                     new Job(progress, name, info, selected_sessions, deps, store, do_output,
                       verbose, pide, numa_node, queue.command_timings(name))

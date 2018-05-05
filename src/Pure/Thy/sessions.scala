@@ -1003,6 +1003,10 @@ object Sessions
 
     def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
+    def output_database(name: String): Path = output_dir + database(name)
+    def output_log(name: String): Path = output_dir + log(name)
+    def output_log_gz(name: String): Path = output_dir + log_gz(name)
+
 
     /* input */
 
@@ -1028,6 +1032,15 @@ object Sessions
 
     /* session info */
 
+    def init_session_info(db: SQL.Database, name: String)
+    {
+      db.transaction {
+        db.create_table(Session_Info.table)
+        db.using_statement(
+          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
+      }
+    }
+
     def write_session_info(
       db: SQL.Database,
       name: String,
@@ -1035,9 +1048,6 @@ object Sessions
       build: Build.Session_Info)
     {
       db.transaction {
-        db.create_table(Session_Info.table)
-        db.using_statement(
-          Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
         db.using_statement(Session_Info.table.insert())(stmt =>
         {
           stmt.string(1) = name
