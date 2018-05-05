@@ -36,6 +36,7 @@ sig
   val check_path: Proof.context -> Path.T -> string * Position.T -> Path.T
   val check_file: Proof.context -> Path.T -> string * Position.T -> Path.T
   val check_dir: Proof.context -> Path.T -> string * Position.T -> Path.T
+  val export: {theory_name: string, path: string, compress: bool} -> Output.output list -> unit
 end;
 
 structure Resources: RESOURCES =
@@ -294,5 +295,16 @@ val _ = Theory.setup
     (Args.context -- Scan.lift (Parse.position Parse.path) >> uncurry (ML_antiq check_dir)));
 
 end;
+
+
+(* export *)
+
+fun export {theory_name, path, compress} output =
+  let
+    val props =
+      Markup.export
+        {id = Position.get_id (Position.thread_data ()),
+          theory_name = theory_name, path = path, compress = compress};
+  in Output.try_protocol_message props output end;
 
 end;

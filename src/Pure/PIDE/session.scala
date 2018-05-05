@@ -435,6 +435,9 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               case Protocol.Theory_Timing(_, _) =>
                 // FIXME
 
+              case Markup.Export(_) =>
+                // FIXME
+
               case Markup.Assign_Update =>
                 msg.text match {
                   case Protocol.Assign_Update(id, update) =>

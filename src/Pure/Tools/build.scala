@@ -282,6 +282,11 @@ object Build
               Library.try_unprefix("\floading_theory = ", line) match {
                 case Some(theory) => progress.theory(name, theory)
                 case None =>
+                  for {
+                    text <- Library.try_unprefix("\fexport = ", line)
+                    (args, body) <-
+                      Markup.Export.dest_inline(XML.Decode.properties(YXML.parse_body(text)))
+                  } { } // FIXME
               },
             progress_limit =
               options.int("process_output_limit") match {
