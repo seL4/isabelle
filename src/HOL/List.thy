@@ -5625,6 +5625,8 @@ next
   case False thus ?thesis by simp
 qed
 
+lemmas sorted_list_of_set = set_sorted_list_of_set sorted_sorted_list_of_set distinct_sorted_list_of_set
+
 lemma sorted_list_of_set_sort_remdups [code]:
   "sorted_list_of_set (set xs) = sort (remdups xs)"
 proof -
@@ -6056,7 +6058,7 @@ lemma lexord_linear: "(\<forall>a b. (a,b)\<in> r \<or> a = b \<or> (b,a) \<in> 
 
 lemma lexord_irrefl:
   "irrefl R \<Longrightarrow> irrefl (lexord R)"
-  by (simp add: irrefl_def lexord_irreflexive)
+by (simp add: irrefl_def lexord_irreflexive)
 
 lemma lexord_asym:
   assumes "asym R"
