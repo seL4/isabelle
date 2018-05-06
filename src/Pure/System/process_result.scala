@@ -15,7 +15,8 @@ final case class Process_Result(
 {
   def out: String = cat_lines(out_lines)
   def err: String = cat_lines(err_lines)
-  def error(s: String): Process_Result = copy(err_lines = err_lines ::: List(s))
+  def errors(errs: List[String]): Process_Result = copy(err_lines = err_lines ::: errs)
+  def error(err: String): Process_Result = errors(List(err))
 
   def was_timeout: Process_Result = copy(rc = 1, timeout = true)
 

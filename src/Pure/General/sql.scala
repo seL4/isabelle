@@ -120,7 +120,8 @@ object SQL
     def defined: String = ident + " IS NOT NULL"
     def undefined: String = ident + " IS NULL"
 
-    def where_equal(s: String): Source = "WHERE " + ident + " = " + string(s)
+    def equal(s: String): Source = ident + " = " + string(s)
+    def where_equal(s: String): Source = "WHERE " + equal(s)
 
     override def toString: Source = ident
   }
