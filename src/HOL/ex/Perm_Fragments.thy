@@ -266,7 +266,7 @@ proof -
   have "set.F h (set (sorted_list_of_set A)) = list.F (map h (sorted_list_of_set A))"
     by (rule distinct_set_conv_list)
   with \<open>finite A\<close> show ?thesis
-    by (simp add: sorted_list_of_set)
+    by (simp)
 qed
 
 
