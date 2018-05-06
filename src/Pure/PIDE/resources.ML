@@ -36,8 +36,6 @@ sig
   val check_path: Proof.context -> Path.T -> string * Position.T -> Path.T
   val check_file: Proof.context -> Path.T -> string * Position.T -> Path.T
   val check_dir: Proof.context -> Path.T -> string * Position.T -> Path.T
-  val export_message: Markup.export_args -> Output.output list -> unit
-  val export: theory -> string -> Output.output -> unit
 end;
 
 structure Resources: RESOURCES =
@@ -296,17 +294,5 @@ val _ = Theory.setup
     (Args.context -- Scan.lift (Parse.position Parse.path) >> uncurry (ML_antiq check_dir)));
 
 end;
-
-
-(* export *)
-
-val export_message = Output.try_protocol_message o Markup.export;
-
-fun export thy path output =
-  export_message
-   {id = Position.get_id (Position.thread_data ()),
-    theory_name = Context.theory_long_name thy,
-    path = path,
-    compress = true} [output];
 
 end;
