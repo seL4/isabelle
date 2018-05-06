@@ -12,20 +12,6 @@ lemma continuous_on_vector_derivative:
   "(\<And>x. x \<in> S \<Longrightarrow> (f has_vector_derivative f' x) (at x within S)) \<Longrightarrow> continuous_on S f"
   by (auto simp: continuous_on_eq_continuous_within intro!: has_vector_derivative_continuous)
 
-lemma has_vector_derivative_weaken:
-  fixes x D and f g s t
-  assumes f: "(f has_vector_derivative D) (at x within t)"
-    and "x \<in> s" "s \<subseteq> t"
-    and "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
-  shows "(g has_vector_derivative D) (at x within s)"
-proof -
-  have "(f has_vector_derivative D) (at x within s) \<longleftrightarrow> (g has_vector_derivative D) (at x within s)"
-    unfolding has_vector_derivative_def has_derivative_iff_norm
-    using assms by (intro conj_cong Lim_cong_within refl) auto
-  then show ?thesis
-    using has_vector_derivative_within_subset[OF f \<open>s \<subseteq> t\<close>] by simp
-qed
-
 definition "einterval a b = {x. a < ereal x \<and> ereal x < b}"
 
 lemma einterval_eq[simp]:
@@ -59,8 +45,7 @@ lemma filterlim_sup1: "(LIM x F. f x :> G1) \<Longrightarrow> (LIM x F. f x :> (
 lemma ereal_incseq_approx:
   fixes a b :: ereal
   assumes "a < b"
-  obtains X :: "nat \<Rightarrow> real" where
-    "incseq X" "\<And>i. a < X i" "\<And>i. X i < b" "X \<longlonglongrightarrow> b"
+  obtains X :: "nat \<Rightarrow> real" where "incseq X" "\<And>i. a < X i" "\<And>i. X i < b" "X \<longlonglongrightarrow> b"
 proof (cases b)
   case PInf
   with \<open>a < b\<close> have "a = -\<infinity> \<or> (\<exists>r. a = ereal r)"
@@ -87,13 +72,12 @@ next
     by (intro mult_strict_left_mono) auto
   with \<open>a < b\<close> a' have "\<And>i. a < ereal (b' - d / real (Suc (Suc i)))"
     by (cases a) (auto simp: real d_def field_simps)
-  moreover have "(\<lambda>i. b' - d / Suc (Suc i)) \<longlonglongrightarrow> b'"
-    apply (subst filterlim_sequentially_Suc)
-    apply (subst filterlim_sequentially_Suc)
-    apply (rule tendsto_eq_intros)
-    apply (auto intro!: tendsto_divide_0[OF tendsto_const] filterlim_sup1
-                simp: at_infinity_eq_at_top_bot filterlim_real_sequentially)
-    done
+  moreover
+  have "(\<lambda>i. b' - d / real i) \<longlonglongrightarrow> b'"
+    by (force intro: tendsto_eq_intros tendsto_divide_0[OF tendsto_const] filterlim_sup1
+              simp: at_infinity_eq_at_top_bot filterlim_real_sequentially)
+  then have "(\<lambda>i. b' - d / Suc (Suc i)) \<longlonglongrightarrow> b'"
+    by (blast intro: dest: filterlim_sequentially_Suc [THEN iffD2])
   ultimately show thesis
     by (intro that[of "\<lambda>i. b' - d / Suc (Suc i)"])
        (auto simp add: real incseq_def intro!: divide_left_mono)
@@ -601,14 +585,6 @@ text\<open>Three versions: first, for finite intervals, and then two versions fo
   TODO: make the older versions corollaries of these (using continuous_at_imp_continuous_on, etc.)
 *)
 
-(*
-TODO: many proofs below require inferences like
-
-  a < ereal x \<Longrightarrow> x < y \<Longrightarrow> a < ereal y
-
-where x and y are real. These should be better automated.
-*)
-
 lemma interval_integral_FTC_finite:
   fixes f F :: "real \<Rightarrow> 'a::euclidean_space" and a b :: real
   assumes f: "continuous_on {min a b..max a b} f"
@@ -646,7 +622,6 @@ next
 qed
 
 
-
 lemma interval_integral_FTC_nonneg:
   fixes f F :: "real \<Rightarrow> real" and a b :: ereal
   assumes "a < b"
@@ -659,7 +634,11 @@ lemma interval_integral_FTC_nonneg:
     "set_integrable lborel (einterval a b) f"
     "(LBINT x=a..b. f x) = B - A"
 proof -
-  from einterval_Icc_approximation[OF \<open>a < b\<close>] guess u l . note approx = this
+  obtain u l where approx:
+    "einterval a b = (\<Union>i. {l i .. u i})"
+    "incseq u" "decseq l" "\<And>i. l i < u i" "\<And>i. a < l i" "\<And>i. u i < b"
+    "l \<longlonglongrightarrow> a" "u \<longlonglongrightarrow> b" 
+    by (blast intro: einterval_Icc_approximation[OF \<open>a < b\<close>])
   have [simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
     by (rule order_less_le_trans, rule approx, force)
   have [simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
@@ -705,7 +684,11 @@ lemma interval_integral_FTC_integrable:
   assumes B: "((F \<circ> real_of_ereal) \<longlongrightarrow> B) (at_left b)"
   shows "(LBINT x=a..b. f x) = B - A"
 proof -
-  from einterval_Icc_approximation[OF \<open>a < b\<close>] guess u l . note approx = this
+  obtain u l where approx:
+    "einterval a b = (\<Union>i. {l i .. u i})"
+    "incseq u" "decseq l" "\<And>i. l i < u i" "\<And>i. a < l i" "\<And>i. u i < b"
+    "l \<longlonglongrightarrow> a" "u \<longlonglongrightarrow> b" 
+    by (blast intro: einterval_Icc_approximation[OF \<open>a < b\<close>])
   have [simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
     by (rule order_less_le_trans, rule approx, force)
   have [simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
@@ -783,18 +766,20 @@ proof -
     have 2: "max c x < b" by simp
     from einterval_nonempty [OF 2] obtain e :: real where [simp]: "c < e" "x < e" "e < b"
       by (auto simp add: einterval_def)
-    show "(?F has_vector_derivative f x) (at x)"
-      (* TODO: factor out the next three lines to has_field_derivative_within_open *)
-      unfolding has_vector_derivative_def
-      apply (subst has_derivative_within_open [of _ "{d<..<e}", symmetric], auto)
-      apply (subst has_vector_derivative_def [symmetric])
-      apply (rule has_vector_derivative_within_subset [of _ _ _ "{d..e}"])
-      apply (rule interval_integral_FTC2, auto simp add: less_imp_le)
-      apply (rule continuous_at_imp_continuous_on)
-      apply (auto intro!: contf)
-      apply (rule order_less_le_trans, rule \<open>a < d\<close>, auto)
-      apply (rule order_le_less_trans) prefer 2
-      by (rule \<open>e < b\<close>, auto)
+    have "(?F has_vector_derivative f x) (at x within {d<..<e})"
+    proof (rule has_vector_derivative_within_subset [of _ _ _ "{d..e}"])
+      have "continuous_on {d..e} f"
+      proof (intro continuous_at_imp_continuous_on ballI contf; clarsimp)
+        show "\<And>x. \<lbrakk>d \<le> x; x \<le> e\<rbrakk> \<Longrightarrow> a < ereal x"
+          using \<open>a < ereal d\<close> ereal_less_ereal_Ex by auto
+        show "\<And>x. \<lbrakk>d \<le> x; x \<le> e\<rbrakk> \<Longrightarrow> ereal x < b"
+          using \<open>ereal e < b\<close> ereal_less_eq(3) le_less_trans by blast
+      qed
+      then show "(?F has_vector_derivative f x) (at x within {d..e})"
+        by (intro interval_integral_FTC2) (use \<open>d < c\<close> \<open>c < e\<close> \<open>d < x\<close> \<open>x < e\<close> in \<open>linarith+\<close>)
+    qed auto
+    then show "(?F has_vector_derivative f x) (at x)"
+      by (force simp add: has_vector_derivative_within_open [of _ "{d<..<e}"])
   qed
 qed
 
@@ -871,27 +856,29 @@ lemma interval_integral_substitution_integrable:
   and integrable2: "set_integrable lborel (einterval A B) (\<lambda>x. f x)"
   shows "(LBINT x=A..B. f x) = (LBINT x=a..b. g' x *\<^sub>R f (g x))"
 proof -
-  from einterval_Icc_approximation[OF \<open>a < b\<close>] guess u l . note approx [simp] = this
+  obtain u l where approx [simp]:
+    "einterval a b = (\<Union>i. {l i .. u i})"
+    "incseq u" "decseq l" "\<And>i. l i < u i" "\<And>i. a < l i" "\<And>i. u i < b"
+    "l \<longlonglongrightarrow> a" "u \<longlonglongrightarrow> b" 
+    by (blast intro: einterval_Icc_approximation[OF \<open>a < b\<close>])
   note less_imp_le [simp]
   have [simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
     by (rule order_less_le_trans, rule approx, force)
   have [simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
     by (rule order_le_less_trans, subst ereal_less_eq(3), assumption, rule approx)
-  have [simp]: "\<And>i. l i < b"
-    apply (rule order_less_trans) prefer 2
-    by (rule approx, auto, rule approx)
+  then have lessb[simp]: "\<And>i. l i < b"
+    using approx(4) less_eq_real_def by blast
   have [simp]: "\<And>i. a < u i"
     by (rule order_less_trans, rule approx, auto, rule approx)
-  have [simp]: "\<And>i j. i \<le> j \<Longrightarrow> l j \<le> l i" by (rule decseqD, rule approx)
+  have lle[simp]: "\<And>i j. i \<le> j \<Longrightarrow> l j \<le> l i" by (rule decseqD, rule approx)
   have [simp]: "\<And>i j. i \<le> j \<Longrightarrow> u i \<le> u j" by (rule incseqD, rule approx)
-  have g_nondec [simp]: "\<And>x y. a < x \<Longrightarrow> x \<le> y \<Longrightarrow> y < b \<Longrightarrow> g x \<le> g y"
-    apply (erule DERIV_nonneg_imp_nondecreasing, auto)
-    apply (rule exI, rule conjI, rule deriv_g)
-    apply (erule order_less_le_trans, auto)
-    apply (rule order_le_less_trans, subst ereal_less_eq(3), assumption, auto)
-    apply (rule g'_nonneg)
-    apply (rule less_imp_le, erule order_less_le_trans, auto)
-    by (rule less_imp_le, rule le_less_trans, subst ereal_less_eq(3), assumption, auto)
+  have g_nondec [simp]: "g x \<le> g y" if "a < x" "x \<le> y" "y < b" for x y
+  proof (rule DERIV_nonneg_imp_nondecreasing [OF \<open>x \<le> y\<close>], intro exI conjI allI impI)
+    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> (g has_real_derivative g' u) (at u)"
+      by (meson deriv_g ereal_less_eq(3) le_less_trans less_le_trans that)
+    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> 0 \<le> g' u"
+      by (meson assms(5) dual_order.trans le_ereal_le less_imp_le order_refl that)
+  qed
   have "A \<le> B" and un: "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
   proof -
     have A2: "(\<lambda>i. g (l i)) \<longlonglongrightarrow> A"
@@ -904,36 +891,36 @@ proof -
       by (drule_tac x = "\<lambda>i. ereal (u i)" in spec, auto)
     hence B3: "\<And>i. g (u i) \<le> B"
       by (intro incseq_le, auto simp add: incseq_def)
-    show "A \<le> B"
-      apply (rule order_trans [OF A3 [of 0]])
-      apply (rule order_trans [OF _ B3 [of 0]])
+    have "ereal (g (l 0)) \<le> ereal (g (u 0))"
       by auto
+    then show "A \<le> B"
+      by (meson A3 B3 order.trans)
     { fix x :: real
       assume "A < x" and "x < B"
       then have "eventually (\<lambda>i. ereal (g (l i)) < x \<and> x < ereal (g (u i))) sequentially"
-        apply (intro eventually_conj order_tendstoD)
-        by (rule A2, assumption, rule B2, assumption)
+        by (fast intro: eventually_conj order_tendstoD A2 B2)
       hence "\<exists>i. g (l i) < x \<and> x < g (u i)"
         by (simp add: eventually_sequentially, auto)
     } note AB = this
     show "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
-      apply (auto simp add: einterval_def)
-      apply (erule (1) AB)
-      apply (rule order_le_less_trans, rule A3, simp)
-      apply (rule order_less_le_trans) prefer 2
-      by (rule B3, simp)
+    proof
+      show "einterval A B \<subseteq> (\<Union>i. {g(l i)<..<g(u i)})"
+        by (auto simp add: einterval_def AB)
+      show "(\<Union>i. {g(l i)<..<g(u i)}) \<subseteq> einterval A B"
+      proof (clarsimp simp add: einterval_def, intro conjI)
+        show "\<And>x i. \<lbrakk>g (l i) < x; x < g (u i)\<rbrakk> \<Longrightarrow> A < ereal x"
+          using A3 le_ereal_less by blast
+        show "\<And>x i. \<lbrakk>g (l i) < x; x < g (u i)\<rbrakk> \<Longrightarrow> ereal x < B"
+          using B3 ereal_le_less by blast
+      qed
+    qed
   qed
   (* finally, the main argument *)
-  {
-     fix i
-     have "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)"
-        apply (rule interval_integral_substitution_finite, auto)
-        apply (rule DERIV_subset)
-        unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
-        apply (rule deriv_g)
-        apply (auto intro!: continuous_at_imp_continuous_on contf contg')
-        done
-  } note eq1 = this
+  have eq1: "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)" for i
+    apply (rule interval_integral_substitution_finite [OF _ DERIV_subset [OF deriv_g]])
+    unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
+         apply (auto intro!: continuous_at_imp_continuous_on contf contg')
+    done
   have "(\<lambda>i. LBINT x=l i..u i. g' x *\<^sub>R f (g x)) \<longlonglongrightarrow> (LBINT x=a..b. g' x *\<^sub>R f (g x))"
     apply (rule interval_integral_Icc_approx_integrable [OF \<open>a < b\<close> approx])
     by (rule assms)
@@ -941,9 +928,8 @@ proof -
     by (simp add: eq1)
   have incseq: "incseq (\<lambda>i. {g (l i)<..<g (u i)})"
     apply (auto simp add: incseq_def)
-    apply (rule order_le_less_trans)
-    prefer 2 apply (assumption, auto)
-    by (erule order_less_le_trans, rule g_nondec, auto)
+    using lessb lle approx(5) g_nondec le_less_trans apply blast
+    by (force intro: less_le_trans)
   have "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> (LBINT x = A..B. f x)"
     apply (subst interval_lebesgue_integral_le_eq, auto simp del: real_scaleR_def)
     apply (subst interval_lebesgue_integral_le_eq, rule \<open>A \<le> B\<close>)
@@ -977,23 +963,21 @@ proof -
   note less_imp_le [simp]
   have [simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
     by (rule order_less_le_trans, rule approx, force)
-  have [simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
+  have lessb[simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
     by (rule order_le_less_trans, subst ereal_less_eq(3), assumption, rule approx)
-  have [simp]: "\<And>i. l i < b"
-    apply (rule order_less_trans) prefer 2
-    by (rule approx, auto, rule approx)
-  have [simp]: "\<And>i. a < u i"
+  have llb[simp]: "\<And>i. l i < b"
+    using lessb approx(4) less_eq_real_def by blast
+  have alu[simp]: "\<And>i. a < u i"
     by (rule order_less_trans, rule approx, auto, rule approx)
   have [simp]: "\<And>i j. i \<le> j \<Longrightarrow> l j \<le> l i" by (rule decseqD, rule approx)
-  have [simp]: "\<And>i j. i \<le> j \<Longrightarrow> u i \<le> u j" by (rule incseqD, rule approx)
-  have g_nondec [simp]: "\<And>x y. a < x \<Longrightarrow> x \<le> y \<Longrightarrow> y < b \<Longrightarrow> g x \<le> g y"
-    apply (erule DERIV_nonneg_imp_nondecreasing, auto)
-    apply (rule exI, rule conjI, rule deriv_g)
-    apply (erule order_less_le_trans, auto)
-    apply (rule order_le_less_trans, subst ereal_less_eq(3), assumption, auto)
-    apply (rule g'_nonneg)
-    apply (rule less_imp_le, erule order_less_le_trans, auto)
-    by (rule less_imp_le, rule le_less_trans, subst ereal_less_eq(3), assumption, auto)
+  have uleu[simp]: "\<And>i j. i \<le> j \<Longrightarrow> u i \<le> u j" by (rule incseqD, rule approx)
+  have g_nondec [simp]: "g x \<le> g y" if "a < x" "x \<le> y" "y < b" for x y
+  proof (rule DERIV_nonneg_imp_nondecreasing [OF \<open>x \<le> y\<close>], intro exI conjI allI impI)
+    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> (g has_real_derivative g' u) (at u)"
+      by (meson deriv_g ereal_less_eq(3) le_less_trans less_le_trans that)
+    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> 0 \<le> g' u"
+      by (meson g'_nonneg less_ereal.simps(1) less_trans not_less that)
+  qed
   have "A \<le> B" and un: "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
   proof -
     have A2: "(\<lambda>i. g (l i)) \<longlonglongrightarrow> A"
@@ -1006,10 +990,10 @@ proof -
       by (drule_tac x = "\<lambda>i. ereal (u i)" in spec, auto)
     hence B3: "\<And>i. g (u i) \<le> B"
       by (intro incseq_le, auto simp add: incseq_def)
-    show "A \<le> B"
-      apply (rule order_trans [OF A3 [of 0]])
-      apply (rule order_trans [OF _ B3 [of 0]])
+    have "ereal (g (l 0)) \<le> ereal (g (u 0))"
       by auto
+    then show "A \<le> B"
+      by (meson A3 B3 order.trans)
     { fix x :: real
       assume "A < x" and "x < B"
       then have "eventually (\<lambda>i. ereal (g (l i)) < x \<and> x < ereal (g (u i))) sequentially"
@@ -1019,23 +1003,26 @@ proof -
         by (simp add: eventually_sequentially, auto)
     } note AB = this
     show "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
-      apply (auto simp add: einterval_def)
-      apply (erule (1) AB)
-      apply (rule order_le_less_trans, rule A3, simp)
-      apply (rule order_less_le_trans) prefer 2
-      by (rule B3, simp)
+    proof
+      show "einterval A B \<subseteq> (\<Union>i. {g (l i)<..<g (u i)})"
+        by (auto simp add: einterval_def AB)
+      show "(\<Union>i. {g (l i)<..<g (u i)}) \<subseteq> einterval A B"
+        apply (clarsimp simp: einterval_def, intro conjI)
+        using A3 le_ereal_less apply blast
+        using B3 ereal_le_less by blast
+    qed
   qed
-  (* finally, the main argument *)
-  {
-     fix i
-     have "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)"
-        apply (rule interval_integral_substitution_finite, auto)
-        apply (rule DERIV_subset, rule deriv_g, auto)
-        apply (rule continuous_at_imp_continuous_on, auto, rule contf, auto)
-        by (rule continuous_at_imp_continuous_on, auto, rule contg', auto)
-     then have "(LBINT x=l i.. u i. (f (g x) * g' x)) = (LBINT y=g (l i)..g (u i). f y)"
-       by (simp add: ac_simps)
-  } note eq1 = this
+    (* finally, the main argument *)
+  have eq1: "(LBINT x=l i.. u i. (f (g x) * g' x)) = (LBINT y=g (l i)..g (u i). f y)" for i
+  proof -
+    have "(LBINT x=l i.. u i. g' x *\<^sub>R f (g x)) = (LBINT y=g (l i)..g (u i). f y)"
+      apply (rule interval_integral_substitution_finite [OF _ DERIV_subset [OF deriv_g]])
+      unfolding has_field_derivative_iff_has_vector_derivative[symmetric]
+           apply (auto intro!: continuous_at_imp_continuous_on contf contg')
+      done
+    then show ?thesis
+      by (simp add: ac_simps)
+  qed
   have "(\<lambda>i. LBINT x=l i..u i. f (g x) * g' x)
       \<longlonglongrightarrow> (LBINT x=a..b. f (g x) * g' x)"
     apply (rule interval_integral_Icc_approx_integrable [OF \<open>a < b\<close> approx])
@@ -1043,15 +1030,16 @@ proof -
   hence 2: "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> (LBINT x=a..b. f (g x) * g' x)"
     by (simp add: eq1)
   have incseq: "incseq (\<lambda>i. {g (l i)<..<g (u i)})"
-    apply (auto simp add: incseq_def)
-    apply (rule order_le_less_trans)
-    prefer 2 apply assumption
-    apply (rule g_nondec, auto)
-    by (erule order_less_le_trans, rule g_nondec, auto)
-  have img: "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> \<exists>c \<ge> l i. c \<le> u i \<and> x = g c"
-    apply (frule (1) IVT' [of g], auto)
-    apply (rule continuous_at_imp_continuous_on, auto)
-    by (rule DERIV_isCont, rule deriv_g, auto)
+    apply (clarsimp simp add: incseq_def, intro conjI)
+    apply (meson llb antimono_def approx(3) approx(5) g_nondec le_less_trans)
+    using alu uleu approx(6) g_nondec less_le_trans by blast
+  have img: "\<exists>c \<ge> l i. c \<le> u i \<and> x = g c" if "g (l i) \<le> x" "x \<le> g (u i)" for x i
+  proof -
+    have "continuous_on {l i..u i} g"
+      by (force intro!: DERIV_isCont deriv_g continuous_at_imp_continuous_on)
+    with that show ?thesis
+      using IVT' [of g] approx(4) dual_order.strict_implies_order by blast
+  qed
   have nonneg_f2: "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> 0 \<le> f x"
     by (frule (1) img, auto, rule f_nonneg, auto)
   have contf_2: "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> isCont f x"

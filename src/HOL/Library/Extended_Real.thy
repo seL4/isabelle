@@ -627,6 +627,28 @@ lemma real_less_ereal_iff:
   "real_of_ereal y < x \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y < ereal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 < x)"
   by (cases y) auto
 
+(*To help with inferences like  a < ereal x \<Longrightarrow> x < y \<Longrightarrow> a < ereal y,
+  where x and y are real.
+*)
+
+lemma le_ereal_le: "a \<le> ereal x \<Longrightarrow> x \<le> y \<Longrightarrow> a \<le> ereal y"
+  using ereal_less_eq(3) order.trans by blast
+
+lemma le_ereal_less: "a \<le> ereal x \<Longrightarrow> x < y \<Longrightarrow> a < ereal y"
+  by (simp add: le_less_trans)
+
+lemma less_ereal_le: "a < ereal x \<Longrightarrow> x \<le> y \<Longrightarrow> a < ereal y"
+  using ereal_less_ereal_Ex by auto
+
+lemma ereal_le_le: "ereal y \<le> a \<Longrightarrow> x \<le> y \<Longrightarrow> ereal x \<le> a"
+  by (simp add: order_subst2)
+
+lemma ereal_le_less: "ereal y \<le> a \<Longrightarrow> x < y \<Longrightarrow> ereal x < a"
+  by (simp add: dual_order.strict_trans1)
+
+lemma ereal_less_le: "ereal y < a \<Longrightarrow> x \<le> y \<Longrightarrow> ereal x < a"
+  using ereal_less_eq(3) le_less_trans by blast
+
 lemma real_of_ereal_pos:
   fixes x :: ereal
   shows "0 \<le> x \<Longrightarrow> 0 \<le> real_of_ereal x" by (cases x) auto
