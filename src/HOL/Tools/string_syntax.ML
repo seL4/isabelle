@@ -117,7 +117,7 @@ fun string_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       c $ string_tr [t] $ u
   | string_tr [Free (str, _)] =
       mk_string_syntax (plain_strings_of str)
-  | string_tr ts = raise TERM ("char_tr", ts);
+  | string_tr ts = raise TERM ("string_tr", ts);
 
 fun list_ast_tr' [args] =
       Ast.Appl [Ast.Constant @{syntax_const "_String"},
