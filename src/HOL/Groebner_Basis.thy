@@ -78,7 +78,7 @@ declare nat_mod_eq_iff[algebra]
 context semiring_parity
 begin
 
-declare even_times_iff [algebra]
+declare even_mult_iff [algebra]
 declare even_power [algebra]
 
 end

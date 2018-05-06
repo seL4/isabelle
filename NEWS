@@ -278,10 +278,6 @@ instances of rat, real, complex as factorial rings etc. Import
 HOL-Computational_Algebra.Field_as_Ring explicitly in case of need.
 INCOMPATIBILITY.
 
-* Fact mod_mult_self4 (on nat) renamed to mod_mult_self3', to avoid
-clash with fact mod_mult_self4 (on more generic semirings).
-INCOMPATIBILITY.
-
 * Facts sum.commute(_restrict) and prod.commute(_restrict) renamed to
 sum.swap(_restrict) and prod.swap(_restrict), to avoid name clashes on
 interpretation of abstract locales. INCOMPATIBILITY.
@@ -317,6 +313,18 @@ abbreviation. INCOMPATIBILITY.
 
 * Code generation: Code generation takes an explicit option
 "case_insensitive" to accomodate case-insensitive file systems.
+
+* Fact mod_mult_self4 (on nat) renamed to Suc_mod_mult_self3, to avoid
+clash with fact mod_mult_self4 (on more generic semirings).
+INCOMPATIBILITY.
+
+* Eliminated some theorem aliasses:
+
+  even_times_iff ~> even_mult_iff
+  mod_2_not_eq_zero_eq_one_nat ~> not_mod_2_eq_0_eq_1
+  even_of_nat ~> even_int_iff
+
+INCOMPATIBILITY.
 
 
 *** System ***

@@ -435,7 +435,7 @@ lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 
 context semiring_parity
 begin
 
-declare even_times_iff [presburger]
+declare even_mult_iff [presburger]
 
 declare even_power [presburger]
 

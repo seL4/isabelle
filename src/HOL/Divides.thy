@@ -1295,10 +1295,6 @@ declare minus_div_mult_eq_mod [symmetric, nitpick_unfold]
 
 subsubsection \<open>Lemmas of doubtful value\<close>
 
-lemma mod_mult_self3':
-  "Suc (k * n + m) mod n = Suc m mod n"
-  by (fact Suc_mod_mult_self3)
-
 lemma mod_Suc_eq_Suc_mod:
   "Suc m mod n = Suc (m mod n) mod n"
   by (simp add: mod_simps)
@@ -1326,16 +1322,6 @@ proof -
   with assms have "m = r + q * d" by simp
   then show ?thesis ..
 qed
-
-lemmas even_times_iff = even_mult_iff \<comment> \<open>FIXME duplicate\<close>
-
-lemma mod_2_not_eq_zero_eq_one_nat:
-  fixes n :: nat
-  shows "n mod 2 \<noteq> 0 \<longleftrightarrow> n mod 2 = 1"
-  by (fact not_mod_2_eq_0_eq_1)
-
-lemma even_int_iff [simp]: "even (int n) \<longleftrightarrow> even n"
-  by (fact even_of_nat)
 
 lemma is_unit_int:
   "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"

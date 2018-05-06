@@ -4173,10 +4173,10 @@ qed
 lemma cos_zero_iff_int: "cos x = 0 \<longleftrightarrow> (\<exists>n. odd n \<and> x = of_int n * (pi/2))"
 proof safe
   assume "cos x = 0"
-  then show "\<exists>n. odd n \<and> x = of_int n * (pi/2)"
-    apply (simp add: cos_zero_iff)
-    apply safe
-     apply (metis even_int_iff of_int_of_nat_eq)
+  then show "\<exists>n. odd n \<and> x = of_int n * (pi / 2)"
+    unfolding cos_zero_iff
+    apply (auto simp add: cos_zero_iff)
+     apply (metis even_of_nat of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI)
     apply simp
     done
@@ -4196,7 +4196,7 @@ proof safe
   then show "\<exists>n. even n \<and> x = of_int n * (pi / 2)"
     apply (simp add: sin_zero_iff)
     apply safe
-     apply (metis even_int_iff of_int_of_nat_eq)
+     apply (metis even_of_nat of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI)
     apply simp
     done
