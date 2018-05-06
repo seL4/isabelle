@@ -116,6 +116,7 @@ sig
   (*integers*)
   val upto: int * int -> int list
   val downto: int * int -> int list
+  val hex_digit: int -> string
   val radixpand: int * int -> int list
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
@@ -154,6 +155,7 @@ sig
   val translate_string: (string -> string) -> string -> string
   val encode_lines: string -> string
   val decode_lines: string -> string
+  val hex_string: string -> string
   val align_right: string -> int -> string -> string
   val match_string: string -> string -> bool
 
@@ -613,6 +615,10 @@ fun ((i: int) downto j) =
 
 (* convert integers to strings *)
 
+(*hexadecimal*)
+fun hex_digit i =
+  if i < 10 then chr (Char.ord #"0" + i) else chr (Char.ord #"a" + i - 10);
+
 (*expand the number in the given base;
   example: radixpand (2, 8) gives [1, 0, 0, 0]*)
 fun radixpand (base, num) : int list =
@@ -770,6 +776,12 @@ fun translate_string f = String.translate (f o String.str);
 
 val encode_lines = translate_string (fn "\n" => "\v" | c => c);
 val decode_lines = translate_string (fn "\v" => "\n" | c => c);
+
+fun hex_string s =
+  fold_string (fn c =>
+    let val (a, b) = IntInf.divMod (ord c, 16)
+    in cons (hex_digit a) #> cons (hex_digit b) end) s []
+  |> rev |> implode;
 
 fun align_right c k s =
   let

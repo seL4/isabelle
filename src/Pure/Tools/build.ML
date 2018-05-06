@@ -94,6 +94,10 @@ fun protocol_message props output =
         end
       else if function = Markup.theory_timing then
         inline_message (#2 function) args
+      else if function = (Markup.functionN, Markup.exportN) andalso
+        not (null args) andalso #1 (hd args) = Markup.idN
+      then
+        inline_message (#2 function) (tl args @ [(Markup.exportN, hex_string (implode output))])
       else
         (case Markup.dest_loading_theory props of
           SOME name => writeln ("\floading_theory = " ^ name)

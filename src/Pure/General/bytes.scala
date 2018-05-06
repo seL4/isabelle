@@ -39,6 +39,23 @@ object Bytes
     }
 
 
+  def hex(s: String): Bytes =
+  {
+    def err(): Nothing = error("Malformed hexadecimal representation of bytes\n" + s)
+    val len = s.length
+    if (len % 2 != 0) err()
+
+    val n = len / 2
+    val a = new Array[Byte](n)
+    for (i <- 0 until n) {
+      val j = 2 * i
+      try { a(i) = Integer.parseInt(s.substring(j, j + 2), 16).toByte }
+      catch { case _: NumberFormatException => err() }
+    }
+    new Bytes(a, 0, n)
+  }
+
+
   /* read */
 
   def read_stream(stream: InputStream, limit: Int = Integer.MAX_VALUE, hint: Int = 1024): Bytes =

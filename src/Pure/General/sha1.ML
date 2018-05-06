@@ -159,7 +159,6 @@ fun with_memory n =
 
 (* digesting *)
 
-fun hex_digit i = if i < 10 then chr (Char.ord #"0" + i) else chr (Char.ord #"a" + i - 10);
 fun hex_string byte = op ^ (apply2 hex_digit (Integer.div_mod (Word8.toInt byte) 16));
 
 in

@@ -568,6 +568,31 @@ object Markup
       }
   }
 
+  val EXPORT = "export"
+  object Export
+  {
+    sealed case class Args(id: Option[String], theory_name: String, name: String, compress: Boolean)
+
+    val THEORY_NAME = "theory_name"
+    val COMPRESS = "compress"
+
+    def dest_inline(props: Properties.T): Option[(Args, Bytes)] =
+      props match {
+        case
+          List((THEORY_NAME, theory_name), (NAME, name), (COMPRESS, Value.Boolean(compress)),
+            (EXPORT, hex)) => Some((Args(None, theory_name, name, compress), Bytes.hex(hex)))
+        case _ => None
+      }
+
+    def unapply(props: Properties.T): Option[Args] =
+      props match {
+        case List((FUNCTION, EXPORT), (ID, id),
+          (THEORY_NAME, theory_name), (PATH, name), (COMPRESS, Value.Boolean(compress))) =>
+            Some(Args(proper_string(id), theory_name, name, compress))
+        case _ => None
+      }
+  }
+
   val BUILD_SESSION_FINISHED = "build_session_finished"
   val Build_Session_Finished: Properties.T = List((FUNCTION, BUILD_SESSION_FINISHED))
 
