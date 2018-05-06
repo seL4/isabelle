@@ -22,7 +22,7 @@ lemma einterval_eq[simp]:
   by (auto simp: einterval_def)
 
 lemma einterval_same: "einterval a a = {}"
-  by (auto simp add: einterval_def)
+  by (auto simp: einterval_def)
 
 lemma einterval_iff: "x \<in> einterval a b \<longleftrightarrow> a < ereal x \<and> ereal x < b"
   by (simp add: einterval_def)
@@ -51,14 +51,9 @@ proof (cases b)
   with \<open>a < b\<close> have "a = -\<infinity> \<or> (\<exists>r. a = ereal r)"
     by (cases a) auto
   moreover have "(\<lambda>x. ereal (real (Suc x))) \<longlonglongrightarrow> \<infinity>"
-      apply (subst LIMSEQ_Suc_iff)
-      apply (simp add: Lim_PInfty)
-      using nat_ceiling_le_eq by blast
+    by (simp add: Lim_PInfty LIMSEQ_Suc_iff) (metis le_SucI of_nat_Suc of_nat_mono order_trans real_arch_simple)
   moreover have "\<And>r. (\<lambda>x. ereal (r + real (Suc x))) \<longlonglongrightarrow> \<infinity>"
-    apply (subst LIMSEQ_Suc_iff)
-    apply (subst Lim_PInfty)
-    apply (metis add.commute diff_le_eq nat_ceiling_le_eq ereal_less_eq(3))
-    done
+    by (simp add: LIMSEQ_Suc_iff Lim_PInfty) (metis add.commute diff_le_eq nat_ceiling_le_eq)
   ultimately show thesis
     by (intro that[of "\<lambda>i. real_of_ereal a + Suc i"])
        (auto simp: incseq_def PInf)
@@ -80,7 +75,7 @@ next
     by (blast intro: dest: filterlim_sequentially_Suc [THEN iffD2])
   ultimately show thesis
     by (intro that[of "\<lambda>i. b' - d / Suc (Suc i)"])
-       (auto simp add: real incseq_def intro!: divide_left_mono)
+       (auto simp: real incseq_def intro!: divide_left_mono)
 qed (insert \<open>a < b\<close>, auto)
 
 lemma ereal_decseq_approx:
@@ -93,7 +88,7 @@ proof -
   from ereal_incseq_approx[OF this] guess X .
   then show thesis
     apply (intro that[of "\<lambda>i. - X i"])
-    apply (auto simp add: decseq_def incseq_def reorient: uminus_ereal.simps)
+    apply (auto simp: decseq_def incseq_def reorient: uminus_ereal.simps)
     apply (metis ereal_minus_less_minus ereal_uminus_uminus ereal_Lim_uminus)+
     done
 qed
@@ -188,7 +183,7 @@ lemma interval_lebesgue_integral_add [intro, simp]:
   shows "interval_lebesgue_integrable M a b (\<lambda>x. f x + g x)" and
     "interval_lebesgue_integral M a b (\<lambda>x. f x + g x) =
    interval_lebesgue_integral M a b f + interval_lebesgue_integral M a b g"
-using assms by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def
+using assms by (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def
     field_simps)
 
 lemma interval_lebesgue_integral_diff [intro, simp]:
@@ -198,7 +193,7 @@ lemma interval_lebesgue_integral_diff [intro, simp]:
   shows "interval_lebesgue_integrable M a b (\<lambda>x. f x - g x)" and
     "interval_lebesgue_integral M a b (\<lambda>x. f x - g x) =
    interval_lebesgue_integral M a b f - interval_lebesgue_integral M a b g"
-using assms by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def
+using assms by (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def
     field_simps)
 
 lemma interval_lebesgue_integrable_mult_right [intro, simp]:
@@ -239,31 +234,31 @@ lemma interval_lebesgue_integral_divide [simp]:
 
 lemma interval_lebesgue_integral_uminus:
   "interval_lebesgue_integral M a b (\<lambda>x. - f x) = - interval_lebesgue_integral M a b f"
-  by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
+  by (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
 
 lemma interval_lebesgue_integral_of_real:
   "interval_lebesgue_integral M a b (\<lambda>x. complex_of_real (f x)) =
     of_real (interval_lebesgue_integral M a b f)"
   unfolding interval_lebesgue_integral_def
-  by (auto simp add: interval_lebesgue_integral_def set_integral_complex_of_real)
+  by (auto simp: interval_lebesgue_integral_def set_integral_complex_of_real)
 
 lemma interval_lebesgue_integral_le_eq:
   fixes a b f
   assumes "a \<le> b"
   shows "interval_lebesgue_integral M a b f = (LINT x : einterval a b | M. f x)"
-using assms by (auto simp add: interval_lebesgue_integral_def)
+using assms by (auto simp: interval_lebesgue_integral_def)
 
 lemma interval_lebesgue_integral_gt_eq:
   fixes a b f
   assumes "a > b"
   shows "interval_lebesgue_integral M a b f = -(LINT x : einterval b a | M. f x)"
-using assms by (auto simp add: interval_lebesgue_integral_def less_imp_le einterval_def)
+using assms by (auto simp: interval_lebesgue_integral_def less_imp_le einterval_def)
 
 lemma interval_lebesgue_integral_gt_eq':
   fixes a b f
   assumes "a > b"
   shows "interval_lebesgue_integral M a b f = - interval_lebesgue_integral M b a f"
-using assms by (auto simp add: interval_lebesgue_integral_def less_imp_le einterval_def)
+using assms by (auto simp: interval_lebesgue_integral_def less_imp_le einterval_def)
 
 lemma interval_integral_endpoints_same [simp]: "(LBINT x=a..a. f x) = 0"
   by (simp add: interval_lebesgue_integral_def set_lebesgue_integral_def einterval_same)
@@ -280,7 +275,7 @@ lemma interval_integral_reflect:
   "(LBINT x=a..b. f x) = (LBINT x=-b..-a. f (-x))"
 proof (induct a b rule: linorder_wlog)
   case (sym a b) then show ?case
-    by (auto simp add: interval_lebesgue_integral_def interval_integrable_endpoints_reverse
+    by (auto simp: interval_lebesgue_integral_def interval_integrable_endpoints_reverse
              split: if_split_asm)
 next
   case (le a b) 
@@ -312,7 +307,7 @@ subsection\<open>Basic properties of integration over an interval wrt lebesgue m
 
 lemma interval_integral_zero [simp]:
   fixes a b :: ereal
-  shows"LBINT x=a..b. 0 = 0"
+  shows "LBINT x=a..b. 0 = 0"
 unfolding interval_lebesgue_integral_def set_lebesgue_integral_def einterval_eq
 by simp
 
@@ -320,7 +315,7 @@ lemma interval_integral_const [intro, simp]:
   fixes a b c :: real
   shows "interval_lebesgue_integrable lborel a b (\<lambda>x. c)" and "LBINT x=a..b. c = c * (b - a)"
   unfolding interval_lebesgue_integral_def interval_lebesgue_integrable_def einterval_eq
-  by (auto simp add: less_imp_le field_simps measure_def set_integrable_def set_lebesgue_integral_def)
+  by (auto simp: less_imp_le field_simps measure_def set_integrable_def set_lebesgue_integral_def)
 
 lemma interval_integral_cong_AE:
   assumes [measurable]: "f \<in> borel_measurable borel" "g \<in> borel_measurable borel"
@@ -353,7 +348,7 @@ lemma interval_lebesgue_integrable_cong_AE:
     "f \<in> borel_measurable lborel \<Longrightarrow> g \<in> borel_measurable lborel \<Longrightarrow>
     AE x \<in> einterval (min a b) (max a b) in lborel. f x = g x \<Longrightarrow>
     interval_lebesgue_integrable lborel a b f = interval_lebesgue_integrable lborel a b g"
-  apply (simp add: interval_lebesgue_integrable_def )
+  apply (simp add: interval_lebesgue_integrable_def)
   apply (intro conjI impI set_integrable_cong_AE)
   apply (auto simp: min_def max_def)
   done
@@ -394,11 +389,11 @@ lemma interval_integral_Ico:
 
 lemma interval_integral_Ioi:
   "\<bar>a\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..\<infinity>. f x) = (LBINT x : {real_of_ereal a <..}. f x)"
-  by (auto simp add: interval_lebesgue_integral_def einterval_iff)
+  by (auto simp: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_Ioo:
   "a \<le> b \<Longrightarrow> \<bar>a\<bar> < \<infinity> ==> \<bar>b\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..b. f x) = (LBINT x : {real_of_ereal a <..< real_of_ereal b}. f x)"
-  by (auto simp add: interval_lebesgue_integral_def einterval_iff)
+  by (auto simp: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_discrete_difference:
   fixes f :: "real \<Rightarrow> 'b::{banach, second_countable_topology}" and a b :: ereal
@@ -531,7 +526,7 @@ proof -
     using f_measurable set_borel_measurable_def by blast
   have "(LBINT x=a..b. f x) = lebesgue_integral lborel (\<lambda>x. indicator (einterval a b) x *\<^sub>R f x)"
     using assms by (simp add: interval_lebesgue_integral_def set_lebesgue_integral_def less_imp_le)
-  also have "... = C"
+  also have "\<dots> = C"
     by (rule integral_monotone_convergence [OF 1 2 3 4 5])
   finally show "(LBINT x=a..b. f x) = C" .
   show "set_integrable lborel (einterval a b) f"
@@ -595,7 +590,7 @@ proof (cases "a \<le> b")
   case True
   have "(LBINT x=a..b. f x) = (LBINT x. indicat_real {a..b} x *\<^sub>R f x)"
     by (simp add: True interval_integral_Icc set_lebesgue_integral_def)
-  also have "... = F b - F a"
+  also have "\<dots> = F b - F a"
   proof (rule integral_FTC_atLeastAtMost [OF True])
     show "continuous_on {a..b} f"
       using True f by linarith
@@ -609,7 +604,7 @@ next
     by simp
   have "- interval_lebesgue_integral lborel (ereal b) (ereal a) f = - (LBINT x. indicat_real {b..a} x *\<^sub>R f x)"
     by (simp add: \<open>b \<le> a\<close> interval_integral_Icc set_lebesgue_integral_def)
-  also have "... = F b - F a"
+  also have "\<dots> = F b - F a"
   proof (subst integral_FTC_atLeastAtMost [OF \<open>b \<le> a\<close>])
     show "continuous_on {b..a} f"
       using False f by linarith
@@ -645,7 +640,7 @@ proof -
     by (rule order_le_less_trans, subst ereal_less_eq(3), assumption, rule approx)
   have FTCi: "\<And>i. (LBINT x=l i..u i. f x) = F (u i) - F (l i)"
     using assms approx apply (intro interval_integral_FTC_finite)
-    apply (auto simp add: less_imp_le min_def max_def
+    apply (auto simp: less_imp_le min_def max_def
       has_field_derivative_iff_has_vector_derivative[symmetric])
     apply (rule continuous_at_imp_continuous_on, auto intro!: f)
     by (rule DERIV_subset [OF F], auto)
@@ -695,16 +690,19 @@ proof -
     by (rule order_le_less_trans, subst ereal_less_eq(3), assumption, rule approx)
   have FTCi: "\<And>i. (LBINT x=l i..u i. f x) = F (u i) - F (l i)"
     using assms approx
-    by (auto simp add: less_imp_le min_def max_def
+    by (auto simp: less_imp_le min_def max_def
              intro!: f continuous_at_imp_continuous_on interval_integral_FTC_finite
              intro: has_vector_derivative_at_within)
   have "(\<lambda>i. LBINT x=l i..u i. f x) \<longlonglongrightarrow> B - A"
-    apply (subst FTCi)
-    apply (intro tendsto_intros)
-    using B approx unfolding tendsto_at_iff_sequentially comp_def
-    apply (elim allE[of _ "\<lambda>i. ereal (u i)"], auto)
-    using A approx unfolding tendsto_at_iff_sequentially comp_def
-    by (elim allE[of _ "\<lambda>i. ereal (l i)"], auto)
+    unfolding FTCi
+  proof (intro tendsto_intros)
+    show "(\<lambda>x. F (l x)) \<longlonglongrightarrow> A"
+      using A approx unfolding tendsto_at_iff_sequentially comp_def
+      by (elim allE[of _ "\<lambda>i. ereal (l i)"], auto)
+    show "(\<lambda>x. F (u x)) \<longlonglongrightarrow> B"
+      using B approx unfolding tendsto_at_iff_sequentially comp_def
+      by (elim allE[of _ "\<lambda>i. ereal (u i)"], auto)
+  qed
   moreover have "(\<lambda>i. LBINT x=l i..u i. f x) \<longlonglongrightarrow> (LBINT x=a..b. f x)"
     by (rule interval_integral_Icc_approx_integrable [OF \<open>a < b\<close> approx f_integrable])
   ultimately show ?thesis
@@ -728,8 +726,8 @@ proof -
   have intf: "set_integrable lborel {a..b} f"
     by (rule borel_integrable_atLeastAtMost', rule contf)
   have "((\<lambda>u. integral {a..u} f) has_vector_derivative f x) (at x within {a..b})"
-    apply (intro integral_has_vector_derivative)
-    using \<open>a \<le> x\<close> \<open>x \<le> b\<close> by (intro continuous_on_subset [OF contf], auto)
+    using \<open>a \<le> x\<close> \<open>x \<le> b\<close> 
+    by (auto intro: integral_has_vector_derivative continuous_on_subset [OF contf])
   then have "((\<lambda>u. integral {a..u} f) has_vector_derivative (f x)) (at x within {a..b})"
     by simp
   then have "(?F has_vector_derivative (f x)) (at x within {a..b})"
@@ -743,8 +741,8 @@ proof -
     then show "(LBINT y=c..a. f y) + (LBINT y=a..u. f y) = (LBINT y=c..u. f y)"
       using assms
       apply (intro interval_integral_sum)
-      apply (auto simp add: interval_lebesgue_integrable_def simp del: real_scaleR_def)
-      by (rule set_integrable_subset [OF intf], auto simp add: min_def max_def)
+      apply (auto simp: interval_lebesgue_integrable_def simp del: real_scaleR_def)
+      by (rule set_integrable_subset [OF intf], auto simp: min_def max_def)
   qed (insert assms, auto)
 qed
 
@@ -754,7 +752,7 @@ lemma einterval_antiderivative:
   shows "\<exists>F. \<forall>x :: real. a < x \<longrightarrow> x < b \<longrightarrow> (F has_vector_derivative f x) (at x)"
 proof -
   from einterval_nonempty [OF \<open>a < b\<close>] obtain c :: real where [simp]: "a < c" "c < b"
-    by (auto simp add: einterval_def)
+    by (auto simp: einterval_def)
   let ?F = "(\<lambda>u. LBINT y=c..u. f y)"
   show ?thesis
   proof (rule exI, clarsimp)
@@ -762,10 +760,10 @@ proof -
     assume [simp]: "a < x" "x < b"
     have 1: "a < min c x" by simp
     from einterval_nonempty [OF 1] obtain d :: real where [simp]: "a < d" "d < c" "d < x"
-      by (auto simp add: einterval_def)
+      by (auto simp: einterval_def)
     have 2: "max c x < b" by simp
     from einterval_nonempty [OF 2] obtain e :: real where [simp]: "c < e" "x < e" "e < b"
-      by (auto simp add: einterval_def)
+      by (auto simp: einterval_def)
     have "(?F has_vector_derivative f x) (at x within {d<..<e})"
     proof (rule has_vector_derivative_within_subset [of _ _ _ "{d..e}"])
       have "continuous_on {d..e} f"
@@ -779,7 +777,7 @@ proof -
         by (intro interval_integral_FTC2) (use \<open>d < c\<close> \<open>c < e\<close> \<open>d < x\<close> \<open>x < e\<close> in \<open>linarith+\<close>)
     qed auto
     then show "(?F has_vector_derivative f x) (at x)"
-      by (force simp add: has_vector_derivative_within_open [of _ "{d<..<e}"])
+      by (force simp: has_vector_derivative_within_open [of _ "{d<..<e}"])
   qed
 qed
 
@@ -800,44 +798,36 @@ proof-
     using derivg unfolding has_field_derivative_iff_has_vector_derivative .
   then have contg [simp]: "continuous_on {a..b} g"
     by (rule continuous_on_vector_derivative) auto
-  have 1: "\<And>u. min (g a) (g b) \<le> u \<Longrightarrow> u \<le> max (g a) (g b) \<Longrightarrow>
-      \<exists>x\<in>{a..b}. u = g x"
-    apply (case_tac "g a \<le> g b")
-    apply (auto simp add: min_def max_def less_imp_le)
-    apply (frule (1) IVT' [of g], auto simp add: assms)
-    by (frule (1) IVT2' [of g], auto simp add: assms)
-  from contg \<open>a \<le> b\<close> have "\<exists>c d. g ` {a..b} = {c..d} \<and> c \<le> d"
-    by (elim continuous_image_closed_interval)
-  then obtain c d where g_im: "g ` {a..b} = {c..d}" and "c \<le> d" by auto
-  have "\<exists>F. \<forall>x\<in>{a..b}. (F has_vector_derivative (f (g x))) (at (g x) within (g ` {a..b}))"
-    apply (rule exI, auto, subst g_im)
-    apply (rule interval_integral_FTC2 [of c c d])
-    using \<open>c \<le> d\<close> apply auto
-    apply (rule continuous_on_subset [OF contf])
-    using g_im by auto
-  then guess F ..
-  then have derivF: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow>
-    (F has_vector_derivative (f (g x))) (at (g x) within (g ` {a..b}))" by auto
-  have contf2: "continuous_on {min (g a) (g b)..max (g a) (g b)} f"
-    apply (rule continuous_on_subset [OF contf])
-    apply (auto simp add: image_def)
-    by (erule 1)
+  have 1: "\<exists>x\<in>{a..b}. u = g x" if "min (g a) (g b) \<le> u" "u \<le> max (g a) (g b)" for u
+    by (cases "g a \<le> g b") (use that assms IVT' [of g a u b]  IVT2' [of g b u a]  in \<open>auto simp: min_def max_def\<close>)
+  obtain c d where g_im: "g ` {a..b} = {c..d}" and "c \<le> d"
+    by (metis continuous_image_closed_interval contg \<open>a \<le> b\<close>)
+  obtain F where derivF:
+         "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> (F has_vector_derivative (f (g x))) (at (g x) within (g ` {a..b}))" 
+    using continuous_on_subset [OF contf] g_im
+      by (metis antiderivative_continuous atLeastAtMost_iff image_subset_iff set_eq_subset)
   have contfg: "continuous_on {a..b} (\<lambda>x. f (g x))"
     by (blast intro: continuous_on_compose2 contf contg)
-  have "LBINT x=a..b. g' x *\<^sub>R f (g x) = F (g b) - F (g a)"
-    apply (subst interval_integral_Icc, simp add: assms)
-    unfolding set_lebesgue_integral_def
-    apply (rule integral_FTC_atLeastAtMost[of a b "\<lambda>x. F (g x)", OF \<open>a \<le> b\<close>])
-    apply (rule vector_diff_chain_within[OF v_derivg derivF, unfolded comp_def])
+  have "LBINT x. indicat_real {a..b} x *\<^sub>R g' x *\<^sub>R f (g x) = F (g b) - F (g a)"
+    apply (rule integral_FTC_atLeastAtMost
+                [OF \<open>a \<le> b\<close> vector_diff_chain_within[OF v_derivg derivF, unfolded comp_def]])
     apply (auto intro!: continuous_on_scaleR contg' contfg)
     done
+  then have "LBINT x=a..b. g' x *\<^sub>R f (g x) = F (g b) - F (g a)"
+    by (simp add: assms interval_integral_Icc set_lebesgue_integral_def)
   moreover have "LBINT y=(g a)..(g b). f y = F (g b) - F (g a)"
-    apply (rule interval_integral_FTC_finite)
-    apply (rule contf2)
-    apply (frule (1) 1, auto)
-    apply (rule has_vector_derivative_within_subset [OF derivF])
-    apply (auto simp add: image_def)
-    by (rule 1, auto)
+  proof (rule interval_integral_FTC_finite)
+    show "continuous_on {min (g a) (g b)..max (g a) (g b)} f"
+      by (rule continuous_on_subset [OF contf]) (auto simp: image_def 1)
+    show "(F has_vector_derivative f y) (at y within {min (g a) (g b)..max (g a) (g b)})" 
+      if y: "min (g a) (g b) \<le> y" "y \<le> max (g a) (g b)" for y
+    proof -
+      obtain x where "a \<le> x" "x \<le> b" "y = g x"
+        using 1 y by force
+      then show ?thesis
+        by (auto simp: image_def intro!: 1  has_vector_derivative_within_subset [OF derivF])
+    qed
+  qed
   ultimately show ?thesis by simp
 qed
 
@@ -882,15 +872,15 @@ proof -
   have "A \<le> B" and un: "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
   proof -
     have A2: "(\<lambda>i. g (l i)) \<longlonglongrightarrow> A"
-      using A apply (auto simp add: einterval_def tendsto_at_iff_sequentially comp_def)
+      using A apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (l i)" in spec, auto)
     hence A3: "\<And>i. g (l i) \<ge> A"
-      by (intro decseq_le, auto simp add: decseq_def)
+      by (intro decseq_le, auto simp: decseq_def)
     have B2: "(\<lambda>i. g (u i)) \<longlonglongrightarrow> B"
-      using B apply (auto simp add: einterval_def tendsto_at_iff_sequentially comp_def)
+      using B apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (u i)" in spec, auto)
     hence B3: "\<And>i. g (u i) \<le> B"
-      by (intro incseq_le, auto simp add: incseq_def)
+      by (intro incseq_le, auto simp: incseq_def)
     have "ereal (g (l 0)) \<le> ereal (g (u 0))"
       by auto
     then show "A \<le> B"
@@ -905,7 +895,7 @@ proof -
     show "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
     proof
       show "einterval A B \<subseteq> (\<Union>i. {g(l i)<..<g(u i)})"
-        by (auto simp add: einterval_def AB)
+        by (auto simp: einterval_def AB)
       show "(\<Union>i. {g(l i)<..<g(u i)}) \<subseteq> einterval A B"
       proof (clarsimp simp add: einterval_def, intro conjI)
         show "\<And>x i. \<lbrakk>g (l i) < x; x < g (u i)\<rbrakk> \<Longrightarrow> A < ereal x"
@@ -927,16 +917,14 @@ proof -
   hence 2: "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> (LBINT x=a..b. g' x *\<^sub>R f (g x))"
     by (simp add: eq1)
   have incseq: "incseq (\<lambda>i. {g (l i)<..<g (u i)})"
-    apply (auto simp add: incseq_def)
+    apply (auto simp: incseq_def)
     using lessb lle approx(5) g_nondec le_less_trans apply blast
     by (force intro: less_le_trans)
-  have "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> (LBINT x = A..B. f x)"
-    apply (subst interval_lebesgue_integral_le_eq, auto simp del: real_scaleR_def)
-    apply (subst interval_lebesgue_integral_le_eq, rule \<open>A \<le> B\<close>)
-    apply (subst un, rule set_integral_cont_up, auto simp del: real_scaleR_def)
-    apply (rule incseq)
-    apply (subst un [symmetric])
-    by (rule integrable2)
+  have "(\<lambda>i. set_lebesgue_integral lborel {g (l i)<..<g (u i)} f)
+        \<longlonglongrightarrow> set_lebesgue_integral lborel (einterval A B) f"
+    unfolding un  by (rule set_integral_cont_up) (use incseq  integrable2 un in auto)
+  then have "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> (LBINT x = A..B. f x)"
+    by (simp add: interval_lebesgue_integral_le_eq \<open>A \<le> B\<close>)
   thus ?thesis by (intro LIMSEQ_unique [OF _ 2])
 qed
 
@@ -961,7 +949,7 @@ lemma interval_integral_substitution_nonneg:
 proof -
   from einterval_Icc_approximation[OF \<open>a < b\<close>] guess u l . note approx [simp] = this
   note less_imp_le [simp]
-  have [simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
+  have aless[simp]: "\<And>x i. l i \<le> x \<Longrightarrow> a < ereal x"
     by (rule order_less_le_trans, rule approx, force)
   have lessb[simp]: "\<And>x i. x \<le> u i \<Longrightarrow> ereal x < b"
     by (rule order_le_less_trans, subst ereal_less_eq(3), assumption, rule approx)
@@ -981,15 +969,15 @@ proof -
   have "A \<le> B" and un: "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
   proof -
     have A2: "(\<lambda>i. g (l i)) \<longlonglongrightarrow> A"
-      using A apply (auto simp add: einterval_def tendsto_at_iff_sequentially comp_def)
+      using A apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (l i)" in spec, auto)
     hence A3: "\<And>i. g (l i) \<ge> A"
-      by (intro decseq_le, auto simp add: decseq_def)
+      by (intro decseq_le, auto simp: decseq_def)
     have B2: "(\<lambda>i. g (u i)) \<longlonglongrightarrow> B"
-      using B apply (auto simp add: einterval_def tendsto_at_iff_sequentially comp_def)
+      using B apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (u i)" in spec, auto)
     hence B3: "\<And>i. g (u i) \<le> B"
-      by (intro incseq_le, auto simp add: incseq_def)
+      by (intro incseq_le, auto simp: incseq_def)
     have "ereal (g (l 0)) \<le> ereal (g (u 0))"
       by auto
     then show "A \<le> B"
@@ -997,15 +985,14 @@ proof -
     { fix x :: real
       assume "A < x" and "x < B"
       then have "eventually (\<lambda>i. ereal (g (l i)) < x \<and> x < ereal (g (u i))) sequentially"
-        apply (intro eventually_conj order_tendstoD)
-        by (rule A2, assumption, rule B2, assumption)
+        by (fast intro: eventually_conj order_tendstoD A2 B2)
       hence "\<exists>i. g (l i) < x \<and> x < g (u i)"
         by (simp add: eventually_sequentially, auto)
     } note AB = this
     show "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
     proof
       show "einterval A B \<subseteq> (\<Union>i. {g (l i)<..<g (u i)})"
-        by (auto simp add: einterval_def AB)
+        by (auto simp: einterval_def AB)
       show "(\<Union>i. {g (l i)<..<g (u i)}) \<subseteq> einterval A B"
         apply (clarsimp simp: einterval_def, intro conjI)
         using A3 le_ereal_less apply blast
@@ -1023,12 +1010,6 @@ proof -
     then show ?thesis
       by (simp add: ac_simps)
   qed
-  have "(\<lambda>i. LBINT x=l i..u i. f (g x) * g' x)
-      \<longlonglongrightarrow> (LBINT x=a..b. f (g x) * g' x)"
-    apply (rule interval_integral_Icc_approx_integrable [OF \<open>a < b\<close> approx])
-    by (rule assms)
-  hence 2: "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> (LBINT x=a..b. f (g x) * g' x)"
-    by (simp add: eq1)
   have incseq: "incseq (\<lambda>i. {g (l i)<..<g (u i)})"
     apply (clarsimp simp add: incseq_def, intro conjI)
     apply (meson llb antimono_def approx(3) approx(5) g_nondec le_less_trans)
@@ -1040,21 +1021,25 @@ proof -
     with that show ?thesis
       using IVT' [of g] approx(4) dual_order.strict_implies_order by blast
   qed
-  have nonneg_f2: "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> 0 \<le> f x"
-    by (frule (1) img, auto, rule f_nonneg, auto)
-  have contf_2: "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> isCont f x"
-    by (frule (1) img, auto, rule contf, auto)
+  have "continuous_on {g (l i)..g (u i)} f" for i
+    apply (intro continuous_intros continuous_at_imp_continuous_on)
+    using contf img by force
+  then have int_f: "\<And>i. set_integrable lborel {g (l i)<..<g (u i)} f"
+    by (rule set_integrable_subset [OF borel_integrable_atLeastAtMost']) (auto intro: less_imp_le)
   have integrable: "set_integrable lborel (\<Union>i. {g (l i)<..<g (u i)}) f"
-    apply (rule pos_integrable_to_top, auto simp del: real_scaleR_def)
-    apply (rule incseq)
-    apply (rule nonneg_f2, erule less_imp_le, erule less_imp_le)
-    apply (rule set_integrable_subset)
-    apply (rule borel_integrable_atLeastAtMost')
-    apply (rule continuous_at_imp_continuous_on)
-    apply (clarsimp, erule (1) contf_2, auto)
-    apply (erule less_imp_le)+
-    using 2 unfolding interval_lebesgue_integral_def
-    by auto
+  proof (intro pos_integrable_to_top incseq int_f)
+    let ?l = "(LBINT x=a..b. f (g x) * g' x)"
+    have "(\<lambda>i. LBINT x=l i..u i. f (g x) * g' x) \<longlonglongrightarrow> ?l"
+      by (intro assms interval_integral_Icc_approx_integrable [OF \<open>a < b\<close> approx])
+    hence "(\<lambda>i. (LBINT y=g (l i)..g (u i). f y)) \<longlonglongrightarrow> ?l"
+      by (simp add: eq1)
+    then show "(\<lambda>i. set_lebesgue_integral lborel {g (l i)<..<g (u i)} f) \<longlonglongrightarrow> ?l"
+      unfolding interval_lebesgue_integral_def by auto
+    have "\<And>x i. g (l i) \<le> x \<Longrightarrow> x \<le> g (u i) \<Longrightarrow> 0 \<le> f x"
+      using aless f_nonneg img lessb by blast
+    then show "\<And>x i. x \<in> {g (l i)<..<g (u i)} \<Longrightarrow> 0 \<le> f x"
+      using less_eq_real_def by auto
+  qed (auto simp: greaterThanLessThan_borel)
   thus "set_integrable lborel (einterval A B) f"
     by (simp add: un)
 
@@ -1099,7 +1084,7 @@ lemma interval_integral_norm:
   shows "interval_lebesgue_integrable lborel a b f \<Longrightarrow> a \<le> b \<Longrightarrow>
     norm (LBINT t=a..b. f t) \<le> LBINT t=a..b. norm (f t)"
   using integral_norm_bound[of lborel "\<lambda>x. indicator (einterval a b) x *\<^sub>R f x"]
-  by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
+  by (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def)
 
 lemma interval_integral_norm2:
   "interval_lebesgue_integrable lborel a b f \<Longrightarrow>
@@ -1111,7 +1096,7 @@ next
   case (le a b)
   then have "\<bar>LBINT t=a..b. norm (f t)\<bar> = LBINT t=a..b. norm (f t)"
     using integrable_norm[of lborel "\<lambda>x. indicator (einterval a b) x *\<^sub>R f x"]
-    by (auto simp add: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def
+    by (auto simp: interval_lebesgue_integral_def interval_lebesgue_integrable_def set_lebesgue_integral_def
              intro!: integral_nonneg_AE abs_of_nonneg)
   then show ?case
     using le by (simp add: interval_integral_norm)
@@ -1121,6 +1106,5 @@ qed
 lemma integral_cos: "t \<noteq> 0 \<Longrightarrow> LBINT x=a..b. cos (t * x) = sin (t * b) / t - sin (t * a) / t"
   apply (intro interval_integral_FTC_finite continuous_intros)
   by (auto intro!: derivative_eq_intros simp: has_field_derivative_iff_has_vector_derivative[symmetric])
-
 
 end
