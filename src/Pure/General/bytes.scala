@@ -10,6 +10,7 @@ package isabelle
 import java.io.{File => JFile, ByteArrayOutputStream, ByteArrayInputStream,
   OutputStream, InputStream, FileInputStream, FileOutputStream}
 import java.net.URL
+import java.util.Base64
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
@@ -150,6 +151,14 @@ final class Bytes private(
 
   def text: String =
     UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
+
+  def base64: String =
+  {
+    val b =
+      if (offset == 0 && length == bytes.length) bytes
+      else Bytes(bytes, offset, length).bytes
+    Base64.getEncoder.encodeToString(b)
+  }
 
   override def toString: String =
   {
