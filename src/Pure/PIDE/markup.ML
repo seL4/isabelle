@@ -203,7 +203,8 @@ sig
   val command_timing: Properties.entry
   val theory_timing: Properties.entry
   val exportN: string
-  val export: {id: string option, theory_name: string, path: string, compress: bool} -> Properties.T
+  type export_args = {id: string option, theory_name: string, path: string, compress: bool}
+  val export: export_args -> Properties.T
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
   val build_session_finished: Properties.T
@@ -641,7 +642,8 @@ val command_timing = (functionN, "command_timing");
 val theory_timing = (functionN, "theory_timing");
 
 val exportN = "export";
-fun export {id, theory_name, path, compress} =
+type export_args = {id: string option, theory_name: string, path: string, compress: bool}
+fun export ({id, theory_name, path, compress}: export_args) =
   [(functionN, exportN), ("id", the_default "" id),
     ("theory_name", theory_name), ("path", path), ("compress", Value.print_bool compress)];
 
