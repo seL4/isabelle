@@ -72,8 +72,8 @@ lemma has_derivative_at_withinI:
   by blast
 
 lemma has_derivative_within_open:
-  "a \<in> s \<Longrightarrow> open s \<Longrightarrow>
-    (f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a)"
+  "a \<in> S \<Longrightarrow> open S \<Longrightarrow>
+    (f has_derivative f') (at a within S) \<longleftrightarrow> (f has_derivative f') (at a)"
   by (simp only: at_within_interior interior_open)
 
 lemma has_derivative_right:
@@ -98,8 +98,8 @@ subsubsection \<open>Caratheodory characterization\<close>
 lemmas DERIV_within_iff = has_field_derivative_iff
 
 lemma DERIV_caratheodory_within:
-  "(f has_field_derivative l) (at x within s) \<longleftrightarrow>
-   (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> continuous (at x within s) g \<and> g x = l)"
+  "(f has_field_derivative l) (at x within S) \<longleftrightarrow>
+   (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> continuous (at x within S) g \<and> g x = l)"
       (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -107,14 +107,14 @@ proof
   proof (intro exI conjI)
     let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
     show "\<forall>z. f z - f x = ?g z * (z-x)" by simp
-    show "continuous (at x within s) ?g" using \<open>?lhs\<close>
+    show "continuous (at x within S) ?g" using \<open>?lhs\<close>
       by (auto simp add: continuous_within DERIV_within_iff cong: Lim_cong_within)
     show "?g x = l" by simp
   qed
 next
   assume ?rhs
   then obtain g where
-    "(\<forall>z. f z - f x = g z * (z-x))" and "continuous (at x within s) g" and "g x = l" by blast
+    "(\<forall>z. f z - f x = g z * (z-x))" and "continuous (at x within S) g" and "g x = l" by blast
   thus ?lhs
     by (auto simp add: continuous_within DERIV_within_iff cong: Lim_cong_within)
 qed
@@ -330,18 +330,23 @@ lemma diff_chain_at[derivative_intros]:
   using has_derivative_compose[of f f' x UNIV g g']
   by (simp add: comp_def)
 
+lemma has_vector_derivative_within_open:
+  "a \<in> S \<Longrightarrow> open S \<Longrightarrow>
+    (f has_vector_derivative f') (at a within S) \<longleftrightarrow> (f has_vector_derivative f') (at a)"
+  by (simp only: at_within_interior interior_open)
+
 lemma field_vector_diff_chain_within:
- assumes Df: "(f has_vector_derivative f') (at x within s)"
-     and Dg: "(g has_field_derivative g') (at (f x) within f`s)"
- shows "((g \<circ> f) has_vector_derivative (f' * g')) (at x within s)"
+ assumes Df: "(f has_vector_derivative f') (at x within S)"
+     and Dg: "(g has_field_derivative g') (at (f x) within f ` S)"
+ shows "((g \<circ> f) has_vector_derivative (f' * g')) (at x within S)"
 using diff_chain_within[OF Df[unfolded has_vector_derivative_def]
                        Dg [unfolded has_field_derivative_def]]
  by (auto simp: o_def mult.commute has_vector_derivative_def)
 
 lemma vector_derivative_diff_chain_within:
-  assumes Df: "(f has_vector_derivative f') (at x within s)"
-     and Dg: "(g has_derivative g') (at (f x) within f`s)"
-  shows "((g \<circ> f) has_vector_derivative (g' f')) (at x within s)"
+  assumes Df: "(f has_vector_derivative f') (at x within S)"
+     and Dg: "(g has_derivative g') (at (f x) within f`S)"
+  shows "((g \<circ> f) has_vector_derivative (g' f')) (at x within S)"
 using diff_chain_within[OF Df[unfolded has_vector_derivative_def] Dg]
   linear.scaleR[OF has_derivative_linear[OF Dg]]
   unfolding has_vector_derivative_def o_def
@@ -357,8 +362,8 @@ lemma differentiable_chain_at:
   by (meson diff_chain_at)
 
 lemma differentiable_chain_within:
-  "f differentiable (at x within s) \<Longrightarrow>
-    g differentiable (at(f x) within (f ` s)) \<Longrightarrow> (g \<circ> f) differentiable (at x within s)"
+  "f differentiable (at x within S) \<Longrightarrow>
+    g differentiable (at(f x) within (f ` S)) \<Longrightarrow> (g \<circ> f) differentiable (at x within S)"
   unfolding differentiable_def
   by (meson diff_chain_within)
 
