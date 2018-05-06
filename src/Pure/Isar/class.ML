@@ -196,13 +196,13 @@ fun print_classes ctxt =
         ([Pretty.keyword1 "class", Pretty.brk 1,
           Name_Space.pretty ctxt class_space class, Pretty.str ":", Pretty.fbrk,
           Pretty.block [Pretty.str "supersort: ", prt_supersort class]] @
-          (case try (Axclass.get_info thy) class of
-            NONE => []
-          | SOME {params, ...} =>
+          (case (these o Option.map #params o try (Axclass.get_info thy)) class of
+            [] => []
+          | params =>
               [Pretty.fbrk, Pretty.big_list "parameters:" (map prt_param params)]) @
-          (case Symtab.lookup arities class of
-            NONE => []
-          | SOME ars =>
+          (case (these o Symtab.lookup arities) class of
+            [] => []
+          | ars =>
               [Pretty.fbrk, Pretty.big_list "instances:"
                 (map (prt_arity class) (sort (Name_Space.extern_ord ctxt type_space) ars))]));
   in
