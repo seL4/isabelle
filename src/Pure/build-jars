@@ -129,6 +129,7 @@ declare -a SOURCES=(
   System/system_channel.scala
   System/tty_loop.scala
   Thy/bibtex.scala
+  Thy/export.scala
   Thy/html.scala
   Thy/latex.scala
   Thy/present.scala

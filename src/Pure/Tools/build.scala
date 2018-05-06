@@ -195,6 +195,8 @@ object Build
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
+    private val export_consumer = Export.consumer(SQLite.open_database(store.output_database(name)))
+
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
         val parent = info.parent.getOrElse("")
@@ -286,7 +288,7 @@ object Build
                     text <- Library.try_unprefix("\fexport = ", line)
                     (args, body) <-
                       Markup.Export.dest_inline(XML.Decode.properties(YXML.parse_body(text)))
-                  } { } // FIXME
+                  } { export_consumer(name, args, body) }
               },
             progress_limit =
               options.int("process_output_limit") match {
@@ -310,8 +312,14 @@ object Build
     def join: Process_Result =
     {
       val result = future_result.join
+      val export_result =
+        export_consumer.shutdown(close = true).map(Output.error_message_text(_)) match {
+          case Nil => result
+          case errs if result.ok => result.copy(rc = 1).errors(errs)
+          case errs => result.errors(errs)
+        }
 
-      if (result.ok)
+      if (export_result.ok)
         Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
@@ -322,11 +330,11 @@ object Build
           case Some(request) => !request.cancel
         }
 
-      if (result.interrupted) {
-        if (was_timeout) result.error(Output.error_message_text("Timeout")).was_timeout
-        else result.error(Output.error_message_text("Interrupt"))
+      if (export_result.interrupted) {
+        if (was_timeout) export_result.error(Output.error_message_text("Timeout")).was_timeout
+        else export_result.error(Output.error_message_text("Interrupt"))
       }
-      else result
+      else export_result
     }
   }
 
