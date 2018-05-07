@@ -897,10 +897,14 @@ text \<open>
   \end{tabular}
 
   \begin{tabular}{ll}
+  \<^bold>\<open>type\<close> \<open>export =\<close> \\
+  \quad~~\<open>{name: string, base64: bool, body: string}\<close> \\
+  \<^bold>\<open>type\<close> \<open>node_results =\<close> \\
+  \quad~~\<open>{status: node_status, messages: [message], exports: [export]}\<close> \\
   \<^bold>\<open>type\<close> \<open>use_theories_results =\<close> \\
   \quad\<open>{ok: bool,\<close> \\
   \quad~~\<open>errors: [message],\<close> \\
-  \quad~~\<open>nodes: [node \<oplus> {status: node_status, messages: [message]}]}\<close> \\
+  \quad~~\<open>nodes: [node \<oplus> node_results]}\<close> \\
   \end{tabular}
 
   \<^medskip>
@@ -916,6 +920,14 @@ text \<open>
   invocations of \<^verbatim>\<open>use_theories\<close> are idempotent: it could make sense to do
   that with different values for \<open>pretty_margin\<close> or \<open>unicode_symbols\<close> to get
   different formatting for \<open>errors\<close> or \<open>messages\<close>.
+
+  The \<open>exports\<close> can be arbitrary binary resources produced by a theory. An
+  \<open>export\<close> \<open>name\<close> roughly follows file-system standards: ``\<^verbatim>\<open>/\<close>'' separated
+  list of base names (excluding special names like ``\<^verbatim>\<open>.\<close>'' or ``\<^verbatim>\<open>..\<close>''). The
+  \<open>base64\<close> field specifies the format of the \<open>body\<close> string: it is true for a
+  byte vector that cannot be represented as plain text in UTF-8 encoding,
+  which means the string needs to be decoded as in
+  \<^verbatim>\<open>java.util.Base64.getDecoder.decode(String)\<close>.
 \<close>
 
 

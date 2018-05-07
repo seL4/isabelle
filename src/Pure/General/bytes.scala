@@ -160,6 +160,12 @@ final class Bytes private(
     Base64.getEncoder.encodeToString(b)
   }
 
+  def maybe_base64: (Boolean, String) =
+  {
+    val s = text
+    if (this == Bytes(s)) (false, s) else (true, base64)
+  }
+
   override def toString: String =
   {
     val str = text

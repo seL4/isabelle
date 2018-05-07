@@ -72,6 +72,16 @@ object Thy_Resources
         (_, tree) <- state.command_results(version, command).iterator
        } yield (tree, pos)).toList
     }
+
+    def exports(node_name: Document.Node.Name): List[Export.Entry] =
+    {
+      val node = version.nodes(node_name)
+      Command.Exports.merge(
+        for {
+          command <- node.commands.iterator
+          st <- state.command_states(version, command).iterator
+        } yield st.exports).iterator.map(_._2).toList
+    }
   }
 
   class Session private[Thy_Resources](
