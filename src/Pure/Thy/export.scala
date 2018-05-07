@@ -58,6 +58,12 @@ object Export
     }
   }
 
+  def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes): Entry =
+  {
+    val bytes = if (args.compress) body.compress() else body
+    Entry(session_name, args.theory_name, args.name, args.compress, bytes)
+  }
+
   def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String): Entry =
   {
     val select =
@@ -104,9 +110,9 @@ object Export
     {
       consumer.send(
         if (args.compress)
-          Future.fork(Entry(session_name, args.theory_name, args.name, true, body.compress()))
+          Future.fork(make_entry(session_name, args, body))
         else
-          Future.value(Entry(session_name, args.theory_name, args.name, false, body)))
+          Future.value(make_entry(session_name, args, body)))
     }
 
     def shutdown(close: Boolean = false): List[String] =

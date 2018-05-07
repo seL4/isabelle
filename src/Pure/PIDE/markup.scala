@@ -571,7 +571,8 @@ object Markup
   val EXPORT = "export"
   object Export
   {
-    sealed case class Args(id: Option[String], theory_name: String, name: String, compress: Boolean)
+    sealed case class Args(
+      id: Option[String], serial: Long, theory_name: String, name: String, compress: Boolean)
 
     val THEORY_NAME = "theory_name"
     val COMPRESS = "compress"
@@ -579,16 +580,26 @@ object Markup
     def dest_inline(props: Properties.T): Option[(Args, Bytes)] =
       props match {
         case
-          List((THEORY_NAME, theory_name), (NAME, name), (COMPRESS, Value.Boolean(compress)),
-            (EXPORT, hex)) => Some((Args(None, theory_name, name, compress), Bytes.hex(hex)))
+          List(
+            (SERIAL, Value.Long(serial)),
+            (THEORY_NAME, theory_name),
+            (NAME, name),
+            (COMPRESS, Value.Boolean(compress)),
+            (EXPORT, hex)) =>
+          Some((Args(None, serial, theory_name, name, compress), Bytes.hex(hex)))
         case _ => None
       }
 
     def unapply(props: Properties.T): Option[Args] =
       props match {
-        case List((FUNCTION, EXPORT), (ID, id),
-          (THEORY_NAME, theory_name), (PATH, name), (COMPRESS, Value.Boolean(compress))) =>
-            Some(Args(proper_string(id), theory_name, name, compress))
+        case List(
+            (FUNCTION, EXPORT),
+            (ID, id),
+            (SERIAL, Value.Long(serial)),
+            (THEORY_NAME, theory_name),
+            (NAME, name),
+            (COMPRESS, Value.Boolean(compress))) =>
+          Some(Args(proper_string(id), serial, theory_name, name, compress))
         case _ => None
       }
   }

@@ -16,6 +16,7 @@ struct
 fun gen_export compress thy name output =
   (Output.try_protocol_message o Markup.export)
    {id = Position.get_id (Position.thread_data ()),
+    serial = serial (),
     theory_name = Context.theory_long_name thy,
     name = name,
     compress = compress} [output];

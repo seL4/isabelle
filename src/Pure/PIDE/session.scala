@@ -191,6 +191,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   private case object Stop
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
+  private case class Add_Export(args: Markup.Export.Args, bytes: Bytes, output: Prover.Output)
   private case class Update_Options(options: Options)
   private case object Consolidate_Execution
   private case object Prune_History
@@ -400,25 +401,26 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
     /* prover output */
 
+    def bad_output(output: Prover.Output)
+    {
+      if (verbose)
+        Output.warning("Ignoring bad prover output: " + output.message.toString)
+    }
+
+    def change_command(f: Document.State => (Command.State, Document.State), output: Prover.Output)
+    {
+      try {
+        val st = global_state.change_result(f)
+        change_buffer.invoke(false, List(st.command))
+      }
+      catch { case _: Document.State.Fail => bad_output(output) }
+    }
+
     def handle_output(output: Prover.Output)
     //{{{
     {
-      def bad_output()
-      {
-        if (verbose)
-          Output.warning("Ignoring bad prover output: " + output.message.toString)
-      }
-
-      def accumulate(state_id: Document_ID.Generic, message: XML.Elem)
-      {
-        try {
-          val st = global_state.change_result(_.accumulate(state_id, message, xml_cache))
-          change_buffer.invoke(false, List(st.command))
-        }
-        catch {
-          case _: Document.State.Fail => bad_output()
-        }
-      }
+      def accumulate(state_id: Document_ID.Generic, message: XML.Elem): Unit =
+        change_command(_.accumulate(state_id, message, xml_cache), output)
 
       output match {
         case msg: Prover.Protocol_Output =>
@@ -435,8 +437,12 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               case Protocol.Theory_Timing(_, _) =>
                 // FIXME
 
-              case Markup.Export(_) =>
-                // FIXME
+              case Markup.Export(args)
+              if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
+                if (args.compress) {
+                  Future.fork { manager.send(Add_Export(args, msg.bytes.compress(), output)) }
+                }
+                else manager.send(Add_Export(args, msg.bytes, output))
 
               case Markup.Assign_Update =>
                 msg.text match {
@@ -446,8 +452,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
                       change_buffer.invoke(true, cmds)
                       manager.send(Session.Change_Flush)
                     }
-                    catch { case _: Document.State.Fail => bad_output() }
-                  case _ => bad_output()
+                    catch { case _: Document.State.Fail => bad_output(output) }
+                  case _ => bad_output(output)
                 }
                 delay_prune.invoke()
 
@@ -458,8 +464,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
                       global_state.change(_.removed_versions(removed))
                       manager.send(Session.Change_Flush)
                     }
-                    catch { case _: Document.State.Fail => bad_output() }
-                  case _ => bad_output()
+                    catch { case _: Document.State.Fail => bad_output(output) }
+                  case _ => bad_output(output)
                 }
 
               case Markup.ML_Statistics(props) =>
@@ -468,7 +474,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               case Markup.Task_Statistics(props) =>
                 // FIXME
 
-              case _ => bad_output()
+              case _ => bad_output(output)
             }
           }
         case _ =>
@@ -555,6 +561,11 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
           case Protocol_Command(name, args) if prover.defined =>
             prover.get.protocol_command(name, args:_*)
+
+          case Add_Export(args, bytes, output) =>
+            val id = Value.Long.parse(args.id.get)
+            val entry = (args.serial, Export.make_entry("", args, bytes))
+            change_command(_.add_export(id, entry), output)
 
           case change: Session.Change if prover.defined =>
             val state = global_state.value

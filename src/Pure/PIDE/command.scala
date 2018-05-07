@@ -28,7 +28,7 @@ object Command
   object Results
   {
     type Entry = (Long, XML.Tree)
-    val empty = new Results(SortedMap.empty)
+    val empty: Results = new Results(SortedMap.empty)
     def make(args: TraversableOnce[Results.Entry]): Results = (empty /: args)(_ + _)
     def merge(args: TraversableOnce[Results]): Results = (empty /: args)(_ ++ _)
 
@@ -68,7 +68,39 @@ object Command
   }
 
 
-  /* markup */
+  /* exports */
+
+  object Exports
+  {
+    type Entry = (Long, Export.Entry)
+    val empty: Exports = new Exports(SortedMap.empty)
+    def merge(args: TraversableOnce[Exports]): Exports = (empty /: args)(_ ++ _)
+  }
+
+  final class Exports private(private val rep: SortedMap[Long, Export.Entry])
+  {
+    def iterator: Iterator[Exports.Entry] = rep.iterator
+
+    def + (entry: Exports.Entry): Exports =
+      if (rep.isDefinedAt(entry._1)) this
+      else new Exports(rep + entry)
+
+    def ++ (other: Exports): Exports =
+      if (this eq other) this
+      else if (rep.isEmpty) other
+      else (this /: other.iterator)(_ + _)
+
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Exports => rep == other.rep
+        case _ => false
+      }
+    override def toString: String = iterator.mkString("Exports(", ", ", ")")
+  }
+
+
+  /* markups */
 
   object Markup_Index
   {
@@ -175,6 +207,9 @@ object Command
     def merge_results(states: List[State]): Results =
       Results.merge(states.map(_.results))
 
+    def merge_exports(states: List[State]): Exports =
+      Exports.merge(states.map(_.exports))
+
     def merge_markups(states: List[State]): Markups =
       Markups.merge(states.map(_.markups))
 
@@ -183,7 +218,8 @@ object Command
       Markup_Tree.merge(states.map(_.markup(index)), range, elements)
 
     def merge(command: Command, states: List[State]): State =
-      State(command, states.flatMap(_.status), merge_results(states), merge_markups(states))
+      State(command, states.flatMap(_.status), merge_results(states),
+        merge_exports(states), merge_markups(states))
 
 
     /* XML data representation */
@@ -213,7 +249,7 @@ object Command
       val blobs_info: Blobs_Info =
         (blobs_names.map(name => Exn.Res((node_name(name), None)): Blob), blobs_index)
       val command = Command(id, node_name(node), blobs_info, span)
-      State(command, status, results, markups)
+      State(command, status, results, Exports.empty, markups)
     }
   }
 
@@ -221,6 +257,7 @@ object Command
     command: Command,
     status: List[Markup] = Nil,
     results: Results = Results.empty,
+    exports: Exports = Exports.empty,
     markups: Markups = Markups.empty)
   {
     lazy val consolidated: Boolean =
@@ -245,7 +282,7 @@ object Command
     {
       val markups1 = markups.redirect(other_command.id)
       if (markups1.is_empty) None
-      else Some(new State(other_command, Nil, Results.empty, markups1))
+      else Some(new State(other_command, markups = markups1))
     }
 
     private def add_status(st: Markup): State =
@@ -253,6 +290,9 @@ object Command
 
     private def add_result(entry: Results.Entry): State =
       copy(results = results + entry)
+
+    def add_export(entry: Exports.Entry): State =
+      copy(exports = exports + entry)
 
     private def add_markup(
       status: Boolean, chunk_name: Symbol.Text_Chunk.Name, m: Text.Markup): State =
@@ -342,7 +382,7 @@ object Command
               Output.warning("Ignored message without serial number: " + message)
               this
           }
-    }
+      }
   }
 
 
