@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/export.scala
     Author:     Makarius
 
-Manage theory exports.
+Manage theory exports: compressed blobs.
 */
 
 package isabelle
