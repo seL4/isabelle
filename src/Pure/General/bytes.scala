@@ -56,6 +56,12 @@ object Bytes
     new Bytes(a, 0, n)
   }
 
+  def base64(s: String): Bytes =
+  {
+    val a = Base64.getDecoder.decode(s)
+    new Bytes(a, 0, a.length)
+  }
+
 
   /* read */
 
