@@ -33,6 +33,9 @@ object Export
       stmt.execute_query().iterator(res => res.string(Data.name)).toList)
   }
 
+  def message(msg: String, theory_name: String, name: String): String =
+    msg + " " + quote(name) + " for theory " + quote(theory_name)
+
   sealed case class Entry(
     session_name: String,
     theory_name: String,
@@ -41,9 +44,6 @@ object Export
     body: Future[Bytes])
   {
     override def toString: String = theory_name + ":" + name
-
-    def message(msg: String): String =
-      msg + " " + quote(name) + " for theory " + quote(theory_name)
 
     def write(db: SQL.Database)
     {
@@ -79,7 +79,7 @@ object Export
         val body = res.bytes(Data.body)
         Entry(session_name, theory_name, name, compressed, Future.value(body))
       }
-      else error(Entry(session_name, theory_name, name, false, Future.value(Bytes.empty)).message("Bad export"))
+      else error(message("Bad export", theory_name, name))
     })
   }
 
@@ -100,7 +100,8 @@ object Export
           entry.body.join
           db.transaction {
             if (read_names(db, entry.session_name, entry.theory_name).contains(entry.name)) {
-              export_errors.change(errs => entry.message("Duplicate export") :: errs)
+              val err = message("Duplicate export", entry.theory_name, entry.name)
+              export_errors.change(errs => err :: errs)
             }
             else entry.write(db)
           }
