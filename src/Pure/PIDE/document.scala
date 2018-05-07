@@ -721,6 +721,22 @@ object Document
       }
     }
 
+    def add_export(id: Document_ID.Generic, entry: Command.Exports.Entry): (Command.State, State) =
+    {
+      execs.get(id) match {
+        case Some(st) =>
+          val new_st = st.add_export(entry)
+          (new_st, copy(execs = execs + (id -> new_st)))
+        case None =>
+          commands.get(id) match {
+            case Some(st) =>
+              val new_st = st.add_export(entry)
+              (new_st, copy(commands = commands + (id -> new_st)))
+            case None => fail
+          }
+      }
+    }
+
     def assign(id: Document_ID.Version, update: Assign_Update): (List[Command], State) =
     {
       val version = the_version(id)

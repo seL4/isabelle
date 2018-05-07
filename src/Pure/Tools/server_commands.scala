@@ -212,7 +212,13 @@ object Server_Commands
                 ("messages" ->
                   (for {
                     (tree, pos) <- result.messages(name) if Protocol.is_exported(tree)
-                  } yield output_message(tree, pos)))))
+                  } yield output_message(tree, pos))) +
+                ("exports" ->
+                  (for { entry <- result.exports(name) }
+                   yield {
+                     val (base64, body) = entry.body.join.maybe_base64
+                     JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)
+                   }))))
 
       (result_json, result)
     }

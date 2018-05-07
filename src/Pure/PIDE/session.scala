@@ -409,15 +409,13 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
           Output.warning("Ignoring bad prover output: " + output.message.toString)
       }
 
-      def accumulate(state_id: Document_ID.Generic, message: XML.Elem)
+      def change_command(f: Document.State => (Command.State, Document.State))
       {
         try {
-          val st = global_state.change_result(_.accumulate(state_id, message, xml_cache))
+          val st = global_state.change_result(f)
           change_buffer.invoke(false, List(st.command))
         }
-        catch {
-          case _: Document.State.Fail => bad_output()
-        }
+        catch { case _: Document.State.Fail => bad_output() }
       }
 
       output match {
@@ -430,13 +428,16 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
               case Protocol.Command_Timing(state_id, timing) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
-                accumulate(state_id, xml_cache.elem(message))
+                change_command(_.accumulate(state_id, xml_cache.elem(message), xml_cache))
 
               case Protocol.Theory_Timing(_, _) =>
                 // FIXME
 
-              case Markup.Export(_) =>
-                // FIXME
+              case Markup.Export(args)
+              if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
+                val id = Value.Long.unapply(args.id.get).get
+                val entry = (args.serial, Export.make_entry("", args, msg.bytes))
+                change_command(_.add_export(id, entry))
 
               case Markup.Assign_Update =>
                 msg.text match {
@@ -474,7 +475,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
         case _ =>
           output.properties match {
             case Position.Id(state_id) =>
-              accumulate(state_id, output.message)
+              change_command(_.accumulate(state_id, output.message, xml_cache))
 
             case _ if output.is_init =>
               prover.get.options(session_options)

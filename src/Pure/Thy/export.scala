@@ -1,7 +1,7 @@
 /*  Title:      Pure/Thy/export.scala
     Author:     Makarius
 
-Manage theory exports.
+Manage theory exports: compressed blobs.
 */
 
 package isabelle
@@ -33,29 +33,37 @@ object Export
       stmt.execute_query().iterator(res => res.string(Data.name)).toList)
   }
 
+  def message(msg: String, theory_name: String, name: String): String =
+    msg + " " + quote(name) + " for theory " + quote(theory_name)
+
   sealed case class Entry(
-    session_name: String, theory_name: String, name: String, compressed: Boolean, body: Bytes)
+    session_name: String,
+    theory_name: String,
+    name: String,
+    compressed: Boolean,
+    body: Future[Bytes])
   {
     override def toString: String = theory_name + ":" + name
 
-    def message(msg: String): String =
-      msg + " " + quote(name) + " for theory " + quote(theory_name)
-
-    lazy val compressed_body: Bytes = if (compressed) body else body.compress()
-    lazy val uncompressed_body: Bytes = if (compressed) body.uncompress() else body
-
     def write(db: SQL.Database)
     {
+      val bytes = body.join
       db.using_statement(Data.table.insert())(stmt =>
       {
         stmt.string(1) = session_name
         stmt.string(2) = theory_name
         stmt.string(3) = name
         stmt.bool(4) = compressed
-        stmt.bytes(5) = body
+        stmt.bytes(5) = bytes
         stmt.execute()
       })
     }
+  }
+
+  def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes): Entry =
+  {
+    Entry(session_name, args.theory_name, args.name, args.compress,
+      if (args.compress) Future.fork(body.compress()) else Future.value(body))
   }
 
   def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String): Entry =
@@ -69,9 +77,9 @@ object Export
       if (res.next()) {
         val compressed = res.bool(Data.compressed)
         val body = res.bytes(Data.body)
-        Entry(session_name, theory_name, name, compressed, body)
+        Entry(session_name, theory_name, name, compressed, Future.value(body))
       }
-      else error(Entry(session_name, theory_name, name, false, Bytes.empty).message("Bad export"))
+      else error(message("Bad export", theory_name, name))
     })
   }
 
@@ -87,27 +95,21 @@ object Export
     private val export_errors = Synchronized[List[String]](Nil)
 
     private val consumer =
-      Consumer_Thread.fork(name = "export")(consume = (future: Future[Entry]) =>
+      Consumer_Thread.fork(name = "export")(consume = (entry: Entry) =>
         {
-          val entry = future.join
-
+          entry.body.join
           db.transaction {
             if (read_names(db, entry.session_name, entry.theory_name).contains(entry.name)) {
-              export_errors.change(errs => entry.message("Duplicate export") :: errs)
+              val err = message("Duplicate export", entry.theory_name, entry.name)
+              export_errors.change(errs => err :: errs)
             }
             else entry.write(db)
           }
           true
         })
 
-    def apply(session_name: String, args: Markup.Export.Args, body: Bytes)
-    {
-      consumer.send(
-        if (args.compress)
-          Future.fork(Entry(session_name, args.theory_name, args.name, true, body.compress()))
-        else
-          Future.value(Entry(session_name, args.theory_name, args.name, false, body)))
-    }
+    def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
+      consumer.send(make_entry(session_name, args, body))
 
     def shutdown(close: Boolean = false): List[String] =
     {
