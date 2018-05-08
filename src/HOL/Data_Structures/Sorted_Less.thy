@@ -8,11 +8,23 @@ begin
 
 hide_const sorted
 
-text \<open>Is a list sorted without duplicates, i.e., wrt @{text"<"}?
-Could go into theory List under a name like @{term sorted_less}.\<close>
+text \<open>Is a list sorted without duplicates, i.e., wrt @{text"<"}?.\<close>
 
 abbreviation sorted :: "'a::linorder list \<Rightarrow> bool" where
 "sorted \<equiv> sorted_wrt (<)"
+
+text \<open>The definition of @{const sorted_wrt} relates each element to all the elements after it.
+This causes a blowup of the formulas. Thus we simplify matters by only comparing adjacent elements.\<close>
+
+lemma sorted_wrt1 [simp]: "sorted_wrt P [x]"
+by simp
+
+lemma sorted2 [simp]: "sorted (x # y # zs) = (x < y \<and> sorted (y # zs))"
+by(induction zs) auto
+
+lemmas sorted_wrt_Cons = sorted_wrt.simps(2)
+
+declare sorted_wrt.simps(2)[simp del]
 
 lemma sorted_cons: "sorted (x#xs) \<Longrightarrow> sorted xs"
 by(simp add: sorted_wrt_Cons)

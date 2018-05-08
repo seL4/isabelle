@@ -114,15 +114,11 @@ context linorder begin
 
 lemma rbt_sorted_entries:
   "rbt_sorted t \<Longrightarrow> List.sorted (map fst (entries t))"
-by (induct t) 
-  (force simp: sorted_append sorted_Cons rbt_ord_props 
-      dest!: entry_in_tree_keys)+
+by (induct t)  (force simp: sorted_append rbt_ord_props dest!: entry_in_tree_keys)+
 
 lemma distinct_entries:
   "rbt_sorted t \<Longrightarrow> distinct (map fst (entries t))"
-by (induct t) 
-  (force simp: sorted_append sorted_Cons rbt_ord_props 
-      dest!: entry_in_tree_keys)+
+by (induct t) (force simp: sorted_append rbt_ord_props dest!: entry_in_tree_keys)+
 
 lemma distinct_keys:
   "rbt_sorted t \<Longrightarrow> distinct (keys t)"
@@ -1604,7 +1600,7 @@ proof(induction n kvs and n kvs rule: rbtreeify_induct)
   hence unfold: "kvs = take n kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
   from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
-    by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
+    by(subst (asm) unfold)(auto simp add: sorted_append)
   moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
@@ -1617,7 +1613,7 @@ proof(induction n kvs and n kvs rule: rbtreeify_induct)
   have "rbt_sorted (fst (rbtreeify_f n kvs))" by(rule f_even.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
     using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
-    by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
+    by(subst (asm) (1 2) unfold, simp add: sorted_append)+
   hence "rbt_sorted (fst (rbtreeify_g n kvs'))" by(rule f_even.IH)
   ultimately show ?case
     using \<open>0 < n\<close> \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> by simp
@@ -1629,7 +1625,7 @@ next
   hence unfold: "kvs = take n kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
   from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
-    by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
+    by(subst (asm) unfold)(auto simp add: sorted_append)
   moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
@@ -1642,7 +1638,7 @@ next
   have "rbt_sorted (fst (rbtreeify_f n kvs))" by(rule f_odd.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
     using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
-    by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
+    by(subst (asm) (1 2) unfold, simp add: sorted_append)+
   hence "rbt_sorted (fst (rbtreeify_f n kvs'))" by(rule f_odd.IH)
   ultimately show ?case 
     using \<open>0 < n\<close> \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> by simp
@@ -1654,7 +1650,7 @@ next
   hence unfold: "kvs = take (n - 1) kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
   from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take (n - 1) kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
-    by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
+    by(subst (asm) unfold)(auto simp add: sorted_append)
   moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take (n - 1) kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
@@ -1667,7 +1663,7 @@ next
   have "rbt_sorted (fst (rbtreeify_g n kvs))" by(rule g_even.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
     using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
-    by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
+    by(subst (asm) (1 2) unfold, simp add: sorted_append)+
   hence "rbt_sorted (fst (rbtreeify_g n kvs'))" by(rule g_even.IH)
   ultimately show ?case using \<open>0 < n\<close> \<open>rbtreeify_g n kvs = (t, (k, v) # kvs')\<close> by simp
 next
@@ -1678,7 +1674,7 @@ next
   hence unfold: "kvs = take n kvs @ (k, v) # kvs'" by(metis append_take_drop_id)
   from \<open>sorted (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<le> k) \<and> (\<forall>(x, y) \<in> set kvs'. k \<le> x)"
-    by(subst (asm) unfold)(auto simp add: sorted_append sorted_Cons)
+    by(subst (asm) unfold)(auto simp add: sorted_append)
   moreover from \<open>distinct (map fst kvs)\<close> kvs'
   have "(\<forall>(x, y) \<in> set (take n kvs). x \<noteq> k) \<and> (\<forall>(x, y) \<in> set kvs'. x \<noteq> k)"
     by(subst (asm) unfold)(auto intro: rev_image_eqI)
@@ -1691,7 +1687,7 @@ next
   have "rbt_sorted (fst (rbtreeify_f n kvs))" by(rule g_odd.IH)
   moreover have "sorted (map fst kvs')" "distinct (map fst kvs')"
     using \<open>sorted (map fst kvs)\<close> \<open>distinct (map fst kvs)\<close>
-    by(subst (asm) (1 2) unfold, simp add: sorted_append sorted_Cons)+
+    by(subst (asm) (1 2) unfold, simp add: sorted_append)+
   hence "rbt_sorted (fst (rbtreeify_g n kvs'))" by(rule g_odd.IH)
   ultimately show ?case
     using \<open>0 < n\<close> \<open>rbtreeify_f n kvs = (t, (k, v) # kvs')\<close> by simp
@@ -1800,7 +1796,7 @@ lemma sorted_sunion_with [simp]:
   "\<lbrakk> sorted (map fst xs); sorted (map fst ys) \<rbrakk> 
   \<Longrightarrow> sorted (map fst (sunion_with f xs ys))"
 by(induct f xs ys rule: sunion_with.induct)
-  (auto simp add: sorted_Cons set_fst_sunion_with simp del: set_map)
+  (auto simp add: set_fst_sunion_with simp del: set_map)
 
 lemma distinct_sunion_with [simp]:
   "\<lbrakk> distinct (map fst xs); distinct (map fst ys); sorted (map fst xs); sorted (map fst ys) \<rbrakk>
@@ -1809,7 +1805,7 @@ proof(induct f xs ys rule: sunion_with.induct)
   case (1 f k v xs k' v' ys)
   have "\<lbrakk> \<not> k < k'; \<not> k' < k \<rbrakk> \<Longrightarrow> k = k'" by simp
   thus ?case using "1"
-    by(auto simp add: set_fst_sunion_with sorted_Cons simp del: set_map)
+    by(auto simp add: set_fst_sunion_with simp del: set_map)
 qed simp_all
 
 lemma map_of_sunion_with: 
@@ -1818,12 +1814,12 @@ lemma map_of_sunion_with:
   (case map_of xs k of None \<Rightarrow> map_of ys k 
   | Some v \<Rightarrow> case map_of ys k of None \<Rightarrow> Some v 
               | Some w \<Rightarrow> Some (f k v w))"
-by(induct f xs ys rule: sunion_with.induct)(auto simp add: sorted_Cons split: option.split dest: map_of_SomeD bspec)
+by(induct f xs ys rule: sunion_with.induct)(auto split: option.split dest: map_of_SomeD bspec)
 
 lemma set_fst_sinter_with [simp]:
   "\<lbrakk> sorted (map fst xs); sorted (map fst ys) \<rbrakk>
   \<Longrightarrow> set (map fst (sinter_with f xs ys)) = set (map fst xs) \<inter> set (map fst ys)"
-by(induct f xs ys rule: sinter_with.induct)(auto simp add: sorted_Cons simp del: set_map)
+by(induct f xs ys rule: sinter_with.induct)(auto simp del: set_map)
 
 lemma set_fst_sinter_with_subset1:
   "set (map fst (sinter_with f xs ys)) \<subseteq> set (map fst xs)"
@@ -1836,7 +1832,7 @@ by(induct f xs ys rule: sinter_with.induct)(auto simp del: set_map)
 lemma sorted_sinter_with [simp]:
   "\<lbrakk> sorted (map fst xs); sorted (map fst ys) \<rbrakk>
   \<Longrightarrow> sorted (map fst (sinter_with f xs ys))"
-by(induct f xs ys rule: sinter_with.induct)(auto simp add: sorted_Cons simp del: set_map)
+by(induct f xs ys rule: sinter_with.induct)(auto simp del: set_map)
 
 lemma distinct_sinter_with [simp]:
   "\<lbrakk> distinct (map fst xs); distinct (map fst ys) \<rbrakk>
@@ -1854,7 +1850,7 @@ lemma map_of_sinter_with:
   \<Longrightarrow> map_of (sinter_with f xs ys) k = 
   (case map_of xs k of None \<Rightarrow> None | Some v \<Rightarrow> map_option (f k v) (map_of ys k))"
 apply(induct f xs ys rule: sinter_with.induct)
-apply(auto simp add: sorted_Cons map_option_case split: option.splits dest: map_of_SomeD bspec)
+apply(auto simp add: map_option_case split: option.splits dest: map_of_SomeD bspec)
 done
 
 end

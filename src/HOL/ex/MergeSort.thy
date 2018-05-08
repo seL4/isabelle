@@ -29,7 +29,7 @@ lemma set_merge [simp]:
 
 lemma sorted_merge [simp]:
   "sorted (merge xs ys) \<longleftrightarrow> sorted xs \<and> sorted ys"
-  by (induct xs ys rule: merge.induct) (auto simp add: ball_Un not_le less_le sorted_Cons)
+  by (induct xs ys rule: merge.induct) (auto simp add: ball_Un not_le less_le)
 
 fun msort :: "'a list \<Rightarrow> 'a list"
 where
@@ -45,7 +45,7 @@ lemma sorted_msort:
 lemma mset_msort:
   "mset (msort xs) = mset xs"
   by (induct xs rule: msort.induct)
-    (simp_all, metis append_take_drop_id drop_Suc_Cons mset.simps(2) mset_append take_Suc_Cons)
+    (simp_all, metis append_take_drop_id mset.simps(2) mset_append)
 
 theorem msort_sort:
   "sort = msort"

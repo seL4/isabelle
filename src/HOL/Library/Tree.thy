@@ -446,12 +446,12 @@ using bst_wrt_mono less_imp_le by blast
 lemma bst_wrt_le_iff_sorted: "bst_wrt (\<le>) t \<longleftrightarrow> sorted (inorder t)"
 apply (induction t)
  apply(simp)
-by (fastforce simp: sorted_append sorted_Cons intro: less_imp_le less_trans)
+by (fastforce simp: sorted_append intro: less_imp_le less_trans)
 
 lemma bst_iff_sorted_wrt_less: "bst t \<longleftrightarrow> sorted_wrt (<) (inorder t)"
 apply (induction t)
  apply simp
-apply (fastforce simp: sorted_wrt_Cons sorted_wrt_append)
+apply (fastforce simp: sorted_wrt_append)
 done
 
 
