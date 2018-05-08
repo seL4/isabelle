@@ -725,13 +725,17 @@ object Document
     {
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st.add_export(entry)
-          (new_st, copy(execs = execs + (id -> new_st)))
+          st.add_export(entry) match {
+            case Some(new_st) => (new_st, copy(execs = execs + (id -> new_st)))
+            case None => fail
+          }
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st.add_export(entry)
-              (new_st, copy(commands = commands + (id -> new_st)))
+              st.add_export(entry) match {
+                case Some(new_st) => (new_st, copy(commands = commands + (id -> new_st)))
+                case None => fail
+              }
             case None => fail
           }
       }

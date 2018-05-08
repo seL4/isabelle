@@ -291,8 +291,9 @@ object Command
     private def add_result(entry: Results.Entry): State =
       copy(results = results + entry)
 
-    def add_export(entry: Exports.Entry): State =
-      copy(exports = exports + entry)
+    def add_export(entry: Exports.Entry): Option[State] =
+      if (command.node_name.theory == entry._2.theory_name) Some(copy(exports = exports + entry))
+      else None
 
     private def add_markup(
       status: Boolean, chunk_name: Symbol.Text_Chunk.Name, m: Text.Markup): State =

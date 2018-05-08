@@ -327,7 +327,16 @@ INCOMPATIBILITY.
 INCOMPATIBILITY.
 
 
+*** ML ***
+
+* Operation Export.export emits theory exports (arbitrary blobs), which
+are stored persistently in the session build database.
+
+
 *** System ***
+
+* The command-line tool retrieves theory exports from the session build
+database.
 
 * The command-line tools "isabelle server" and "isabelle client" provide
 access to the Isabelle Server: it supports responsive session management
