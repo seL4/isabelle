@@ -6981,7 +6981,7 @@ lemma bounded_connected_Compl_real:
     shows "S = {}"
 proof -
   obtain a b where "S \<subseteq> box a b"
-    by (meson assms bounded_subset_open_interval)
+    by (meson assms bounded_subset_box_symmetric)
   then have "a \<notin> S" "b \<notin> S"
     by auto
   then have "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> x \<in> - S"

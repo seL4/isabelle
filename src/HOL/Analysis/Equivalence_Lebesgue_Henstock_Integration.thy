@@ -1978,7 +1978,7 @@ lemma
   and   measure_countable_negligible_Union_bounded:    "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. S n)" (is ?Sums)
 proof -
   obtain a b where ab: "(\<Union>n. S n) \<subseteq> cbox a b"
-    using bo bounded_subset_cbox by blast
+    using bo bounded_subset_cbox_symmetric by metis
   then have B: "(\<Sum>k\<le>n. measure lebesgue (S k)) \<le> measure lebesgue (cbox a b)" for n
   proof -
     have "(\<Sum>k\<le>n. measure lebesgue (S k)) = measure lebesgue (UNION {..n} S)"
@@ -2837,7 +2837,7 @@ next
       if "bounded S" "S \<in> lmeasurable" for S
     proof -
       obtain a b where "S \<subseteq> cbox a b"
-        using \<open>bounded S\<close> bounded_subset_cbox by blast
+        using \<open>bounded S\<close> bounded_subset_cbox_symmetric by metis
       have fUD: "(f ` \<Union>\<D>) \<in> lmeasurable \<and> ?\<mu> (f ` \<Union>\<D>) = (m * ?\<mu> (\<Union>\<D>))"
         if "countable \<D>"
           and cbox: "\<And>K. K \<in> \<D> \<Longrightarrow> K \<subseteq> cbox a b \<and> K \<noteq> {} \<and> (\<exists>c d. K = cbox c d)"
@@ -3005,7 +3005,7 @@ next
         "\<And>a b. ball 0 B \<subseteq> cbox a b \<Longrightarrow> \<bar>?\<mu> (S \<inter> cbox a b) - ?\<mu> S\<bar> < e / (1 + \<bar>m\<bar>)"
         using has_measure_limit [OF S] \<open>e > 0\<close> by (metis abs_add_one_gt_zero zero_less_divide_iff)
       obtain c d::'n where cd: "ball 0 B \<subseteq> cbox c d"
-        using bounded_subset_cbox by blast
+        by (metis bounded_subset_cbox_symmetric bounded_ball)
       with B have less: "\<bar>?\<mu> (S \<inter> cbox c d) - ?\<mu> S\<bar> < e / (1 + \<bar>m\<bar>)" .
       obtain D where "D > 0" and D: "cbox c d \<subseteq> ball 0 D"
         by (metis bounded_cbox bounded_subset_ballD)

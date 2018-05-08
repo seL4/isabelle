@@ -334,7 +334,7 @@ proof (rule ccontr)
         \<exists>z. (?F has_integral z) (cbox a b) \<and> norm (z - k2) < norm (k1 - k2)/2"
     by (rule has_integral_altD[OF assms(2) nonbox,OF e]) blast
   obtain a b :: 'n where ab: "ball 0 B1 \<subseteq> cbox a b" "ball 0 B2 \<subseteq> cbox a b"
-    by (metis Un_subset_iff bounded_Un bounded_ball bounded_subset_cbox)
+    by (metis Un_subset_iff bounded_Un bounded_ball bounded_subset_cbox_symmetric)
   obtain w where w: "(?F has_integral w) (cbox a b)" "norm (w - k1) < norm (k1 - k2)/2"
     using B1(2)[OF ab(1)] by blast
   obtain z where z: "(?F has_integral z) (cbox a b)" "norm (z - k2) < norm (k1 - k2)/2"
@@ -1635,9 +1635,9 @@ proof -
         using has_integral_altD[OF _ False ij] assms by blast
       have "bounded (ball 0 B1 \<union> ball (0::'a) B2)"
         unfolding bounded_Un by(rule conjI bounded_ball)+
-      from bounded_subset_cbox[OF this] 
+      from bounded_subset_cbox_symmetric[OF this] 
       obtain a b::'a where ab: "ball 0 B1 \<subseteq> cbox a b" "ball 0 B2 \<subseteq> cbox a b"
-        by blast+
+        by (meson Un_subset_iff)
       then obtain w1 w2 where int_w1: "((\<lambda>x. if x \<in> S then f x else 0) has_integral w1) (cbox a b)"
                         and norm_w1:  "norm (w1 - i) < (i \<bullet> k - j \<bullet> k) / 3"
                         and int_w2: "((\<lambda>x. if x \<in> S then g x else 0) has_integral w2) (cbox a b)"
@@ -6227,7 +6227,7 @@ proof -
         \<exists>z. (?g has_integral z) (cbox a b) \<and> norm (z - integral S g) < e/2"
       using integrable_integral [OF int_g,unfolded has_integral'[of g]] e that by blast
     obtain a b::'n where ab: "ball 0 Bf \<union> ball 0 Bg \<subseteq> cbox a b"
-      using ball_max_Un bounded_subset_cbox[OF bounded_ball, of _ "max Bf Bg"] by blast
+      using ball_max_Un  by (metis bounded_ball bounded_subset_cbox_symmetric)
     have "ball 0 Bf \<subseteq> cbox a b"
       using ab by auto
     with Bf obtain z where int_fz: "(?f has_integral z) (cbox a b)" and z: "norm (z - integral S f) < e/2"

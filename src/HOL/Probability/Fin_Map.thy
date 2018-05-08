@@ -203,7 +203,7 @@ proof
   have A_notempty: "\<And>i. i \<in> domain x \<Longrightarrow> A i \<noteq> {}" using open_sub[of _ "\<lambda>_. UNIV"] by auto
   let ?A = "(\<lambda>f. Pi' (domain x) f) ` (Pi\<^sub>E (domain x) A)"
   show "\<exists>A::nat \<Rightarrow> ('a\<Rightarrow>\<^sub>F'b) set. (\<forall>i. x \<in> (A i) \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
-  proof (rule first_countableI[where A="?A"], safe)
+  proof (rule first_countableI[of "?A"], safe)
     show "countable ?A" using A by (simp add: countable_PiE)
   next
     fix S::"('a \<Rightarrow>\<^sub>F 'b) set" assume "open S" "x \<in> S"
