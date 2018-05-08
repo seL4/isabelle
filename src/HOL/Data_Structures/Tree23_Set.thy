@@ -9,6 +9,8 @@ imports
   Set_Specs
 begin
 
+declare sorted_wrt.simps(2)[simp del]
+
 fun isin :: "'a::linorder tree23 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node2 l a r) x =

@@ -26,10 +26,10 @@ by (induct xs ys rule: merge.induct, auto)
 
 lemma sorted_merge[simp]:
      "List.sorted (merge xs ys) = (List.sorted xs \<and> List.sorted ys)"
-by (induct xs ys rule: merge.induct, auto simp add: sorted_Cons)
+by (induct xs ys rule: merge.induct, auto)
 
 lemma distinct_merge[simp]: "\<lbrakk> distinct xs; distinct ys; List.sorted xs; List.sorted ys \<rbrakk> \<Longrightarrow> distinct (merge xs ys)"
-by (induct xs ys rule: merge.induct, auto simp add: sorted_Cons)
+by (induct xs ys rule: merge.induct, auto)
 
 text \<open>The remove function removes an element from a sorted list\<close>
 
@@ -40,7 +40,7 @@ where
 
 lemma remove': "sorted xs \<and> distinct xs \<Longrightarrow> sorted (remove a xs) \<and> distinct (remove a xs) \<and> set (remove a xs) = set xs - {a}"
 apply (induct xs)
-apply (auto simp add: sorted_Cons)
+apply (auto)
 done
 
 lemma set_remove[simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightarrow> set (remove a xs) = set xs - {a}"
@@ -61,7 +61,6 @@ done
 lemma remove_insort_commute: "\<lbrakk> a \<noteq> b; sorted xs \<rbrakk> \<Longrightarrow> remove b (insort a xs) = insort a (remove b xs)"
 apply (induct xs)
 apply auto
-apply (auto simp add: sorted_Cons)
 apply (case_tac xs)
 apply auto
 done
@@ -74,7 +73,7 @@ done
 lemma remove1_eq_remove:
   "sorted xs \<Longrightarrow> distinct xs \<Longrightarrow> remove1 x xs = remove x xs"
 apply (induct xs)
-apply (auto simp add: sorted_Cons)
+apply (auto)
 apply (subgoal_tac "x \<notin> set xs")
 apply (simp add: notinset_remove)
 apply fastforce
@@ -83,7 +82,7 @@ done
 lemma sorted_remove1:
   "sorted xs \<Longrightarrow> sorted (remove1 x xs)"
 apply (induct xs)
-apply (auto simp add: sorted_Cons)
+apply (auto)
 done
 
 subsection \<open>Efficient member function for sorted lists\<close>
@@ -93,6 +92,6 @@ primrec smember :: "'a list \<Rightarrow> 'a::linorder \<Rightarrow> bool" where
 | "smember (y#ys) x \<longleftrightarrow> x = y \<or> (x > y \<and> smember ys x)"
 
 lemma "sorted xs \<Longrightarrow> smember xs x \<longleftrightarrow> (x \<in> set xs)" 
-  by (induct xs) (auto simp add: sorted_Cons)
+  by (induct xs) (auto)
 
 end

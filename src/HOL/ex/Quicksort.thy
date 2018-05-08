@@ -32,7 +32,7 @@ proof -
 qed
 
 lemma sorted_quicksort: "sorted (quicksort xs)"
-  by (induct xs rule: quicksort.induct) (auto simp add: sorted_Cons sorted_append not_le less_imp_le)
+  by (induct xs rule: quicksort.induct) (auto simp add: sorted_append not_le less_imp_le)
 
 theorem sort_quicksort:
   "sort = quicksort"

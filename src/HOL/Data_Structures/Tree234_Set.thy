@@ -9,6 +9,8 @@ imports
   Set_Specs
 begin
 
+declare sorted_wrt.simps(2)[simp del]
+
 subsection \<open>Set operations on 2-3-4 trees\<close>
 
 fun isin :: "'a::linorder tree234 \<Rightarrow> 'a \<Rightarrow> bool" where

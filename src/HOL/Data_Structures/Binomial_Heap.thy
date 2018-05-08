@@ -133,7 +133,7 @@ fun ins_tree :: "'a::linorder tree \<Rightarrow> 'a heap \<Rightarrow> 'a heap" 
 lemma invar_bheap_Cons[simp]:
   "invar_bheap (t#ts)
   \<longleftrightarrow> invar_btree t \<and> invar_bheap ts \<and> (\<forall>t'\<in>set ts. rank t < rank t')"
-by (auto simp: sorted_wrt_Cons invar_bheap_def)
+by (auto simp: invar_bheap_def)
 
 lemma invar_btree_ins_tree:
   assumes "invar_btree t"

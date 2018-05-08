@@ -351,8 +351,7 @@ text \<open>A sorted predicate w.r.t. a relation:\<close>
 
 fun sorted_wrt :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
 "sorted_wrt P [] = True" |
-"sorted_wrt P [x] = True" |
-"sorted_wrt P (x # y # zs) = (P x y \<and> sorted_wrt P (y # zs))"
+"sorted_wrt P (x # ys) = ((\<forall>y \<in> set ys. P x y) \<and> sorted_wrt P ys)"
 
 (* FIXME: define sorted in terms of sorted_wrt *)
 
@@ -363,8 +362,7 @@ begin
 
 fun sorted :: "'a list \<Rightarrow> bool" where
 "sorted [] = True" |
-"sorted [x] = True" |
-"sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
+"sorted (x # ys) = ((\<forall>y \<in> set ys. x \<le> y) \<and> sorted ys)"
 
 lemma sorted_sorted_wrt: "sorted = sorted_wrt (\<le>)"
 proof (rule ext)
@@ -4935,32 +4933,22 @@ subsection \<open>Sorting\<close>
 
 subsubsection \<open>@{const sorted_wrt}\<close>
 
-lemma sorted_wrt_Cons:
-assumes "transp P"
-shows   "sorted_wrt P (x # xs) = ((\<forall>y \<in> set xs. P x y) \<and> sorted_wrt P xs)"
-by(induction xs arbitrary: x)(auto intro: transpD[OF assms])
-
 lemma sorted_wrt_ConsI:
   "\<lbrakk> \<And>y. y \<in> set xs \<Longrightarrow> P x y; sorted_wrt P xs \<rbrakk> \<Longrightarrow> sorted_wrt P (x # xs)"
-by (induction xs rule: induct_list012) simp_all
+by (induction xs) simp_all
 
 lemma sorted_wrt_append:
-assumes "transp P"
-shows "sorted_wrt P (xs @ ys) \<longleftrightarrow>
+  "sorted_wrt P (xs @ ys) \<longleftrightarrow>
   sorted_wrt P xs \<and> sorted_wrt P ys \<and> (\<forall>x\<in>set xs. \<forall>y\<in>set ys. P x y)"
-by (induction xs) (auto simp: sorted_wrt_Cons[OF assms])
-
-lemma sorted_wrt_backwards:
-  "sorted_wrt P (xs @ [y, z]) = (P y z \<and> sorted_wrt P (xs @ [y]))"
-by (induction xs rule: induct_list012) auto
+by (induction xs) auto
 
 lemma sorted_wrt_rev:
   "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
-by (induction xs rule: induct_list012) (simp_all add: sorted_wrt_backwards)
+by (induction xs) (auto simp add: sorted_wrt_append)
 
 lemma sorted_wrt_mono:
   "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
-by(induction xs rule: induct_list012)(auto)
+by(induction xs)(auto)
 
 lemma sorted_wrt01: "length xs \<le> 1 \<Longrightarrow> sorted_wrt P xs"
 by(auto simp: le_Suc_eq length_Suc_conv)
@@ -4989,30 +4977,29 @@ subsubsection \<open>@{const sorted}\<close>
 context linorder
 begin
 
-lemma sorted_Cons: "sorted (x#xs) = (sorted xs \<and> (\<forall>y \<in> set xs. x \<le> y))"
-apply(induction xs arbitrary: x)
- apply simp
-by simp (blast intro: order_trans)
-(*
-lemma sorted_iff_wrt: "sorted xs = sorted_wrt (\<le>) xs"
-proof
-  assume "sorted xs" thus "sorted_wrt (\<le>) xs"
-  proof (induct xs rule: sorted.induct)
-    case (Cons xs x) thus ?case by (cases xs) simp_all
-  qed simp
-qed (induct xs rule: induct_list012, simp_all)
-*)
+text \<open>Sometimes the second equation in the definition of @{const sorted} is to aggressive
+because it relates each list element to \emph{all} its successors. Then this equation
+should be removed and \<open>sorted2_simps\<close> should be added instead:\<close>
+
+lemma sorted1: "sorted [x]"
+by simp
+
+lemma sorted2: "sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
+by(induction zs) auto
+
+lemmas sorted2_simps = sorted1 sorted2
+
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
-by (cases xs) (simp_all add: sorted_Cons)
+by (cases xs) (simp_all)
 
 lemma sorted_append:
   "sorted (xs@ys) = (sorted xs \<and> sorted ys \<and> (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
-by (induct xs) (auto simp add:sorted_Cons)
+by (induct xs) (auto)
 
 lemma sorted_nth_mono:
   "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
-by (induct xs arbitrary: i j) (auto simp:nth_Cons' sorted_Cons)
+by (induct xs arbitrary: i j) (auto simp:nth_Cons')
 
 lemma sorted_rev_nth_mono:
   "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
@@ -5035,13 +5022,10 @@ proof (induct xs)
     fix y assume "y \<in> set xs"
     then obtain j where "j < length xs" and "xs ! j = y"
       unfolding in_set_conv_nth by blast
-    with Cons.prems[of 0 "Suc j"]
-    have "x \<le> y"
-      by auto
+    with Cons.prems[of 0 "Suc j"] have "x \<le> y" by auto
   }
   ultimately
-  show ?case
-    unfolding sorted_Cons by auto
+  show ?case by auto
 qed simp
 
 lemma sorted_equals_nth_mono:
@@ -5050,7 +5034,7 @@ by (auto intro: sorted_nth_monoI sorted_nth_mono)
 
 lemma sorted_map_remove1:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
-by (induct xs) (auto simp add: sorted_Cons)
+by (induct xs) (auto)
 
 lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
 using sorted_map_remove1 [of "\<lambda>x. x"] by simp
@@ -5065,18 +5049,18 @@ proof -
 qed
 
 lemma sorted_replicate [simp]: "sorted(replicate n x)"
-by(induction n) (auto simp: sorted_Cons)
+by(induction n) (auto)
 
 lemma sorted_remdups[simp]:
-  "sorted l \<Longrightarrow> sorted (remdups l)"
-by (induct l) (auto simp: sorted_Cons)
+  "sorted xs \<Longrightarrow> sorted (remdups xs)"
+by (induct xs) (auto)
 
 lemma sorted_remdups_adj[simp]:
   "sorted xs \<Longrightarrow> sorted (remdups_adj xs)"
-by (induct xs rule: remdups_adj.induct, simp_all split: if_split_asm add: sorted_Cons)
+by (induct xs rule: remdups_adj.induct, simp_all split: if_split_asm)
 
 lemma sorted_nths: "sorted xs \<Longrightarrow> sorted (nths xs I)"
-by(induction xs arbitrary: I)(auto simp: sorted_Cons nths_Cons)
+by(induction xs arbitrary: I)(auto simp: nths_Cons)
 
 lemma sorted_distinct_set_unique:
 assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
@@ -5087,8 +5071,7 @@ proof -
   proof(induct rule:list_induct2[OF 1])
     case 1 show ?case by simp
   next
-    case 2 thus ?case by (simp add: sorted_Cons)
-       (metis Diff_insert_absorb antisym insertE insert_iff)
+    case 2 thus ?case by simp (metis Diff_insert_absorb antisym insertE insert_iff)
   qed
 qed
 
@@ -5123,7 +5106,7 @@ lemma sorted_takeWhile: "sorted xs \<Longrightarrow> sorted (takeWhile P xs)"
 
 lemma sorted_filter:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (filter P xs))"
-  by (induct xs) (simp_all add: sorted_Cons)
+  by (induct xs) simp_all
 
 lemma foldr_max_sorted:
   assumes "sorted (rev xs)"
@@ -5169,7 +5152,7 @@ next
   case (Cons x xs)
   then have "sorted (map f [y\<leftarrow>xs . f y = (\<lambda>xs. f x) xs])" .
   moreover from Cons have "sorted (map f [y\<leftarrow>xs . f y = (g \<circ> Cons x) xs])" .
-  ultimately show ?case by (simp_all add: sorted_Cons)
+  ultimately show ?case by simp_all
 qed
 
 lemma sorted_same:
@@ -5250,7 +5233,7 @@ lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
 by (induct xs) (simp_all add: distinct_insort)
 
 lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
-by (induct xs) (auto simp: sorted_Cons set_insort_key)
+by (induct xs) (auto simp: set_insort_key)
 
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
 using sorted_insort_key [where f="\<lambda>x. x"] by simp
@@ -5269,7 +5252,7 @@ lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> in
 by (cases xs) auto
 
 lemma sorted_sort_id: "sorted xs \<Longrightarrow> sort xs = xs"
-by (induct xs) (auto simp add: sorted_Cons insort_is_Cons)
+by (induct xs) (auto simp add: insort_is_Cons)
 
 lemma insort_key_remove1:
   assumes "a \<in> set xs" and "sorted (map f xs)" and "hd (filter (\<lambda>x. f a = f x) xs) = a"
@@ -5280,9 +5263,9 @@ using assms proof (induct xs)
   proof (cases "x = a")
     case False
     then have "f x \<noteq> f a" using Cons.prems by auto
-    then have "f x < f a" using Cons.prems by (auto simp: sorted_Cons)
-    with \<open>f x \<noteq> f a\<close> show ?thesis using Cons by (auto simp: sorted_Cons insort_is_Cons)
-  qed (auto simp: sorted_Cons insort_is_Cons)
+    then have "f x < f a" using Cons.prems by auto
+    with \<open>f x \<noteq> f a\<close> show ?thesis using Cons by (auto simp: insort_is_Cons)
+  qed (auto simp: insort_is_Cons)
 qed simp
 
 lemma insort_remove1:
@@ -5351,7 +5334,7 @@ lemma filter_insort_triv:
 
 lemma filter_insort:
   "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort_key f x xs) = insort_key f x (filter P xs)"
-  by (induct xs) (auto simp add: sorted_Cons, subst insort_is_Cons, auto)
+  by (induct xs) (auto, subst insort_is_Cons, auto)
 
 lemma filter_sort:
   "filter P (sort_key f xs) = sort_key f (filter P xs)"
@@ -5373,7 +5356,7 @@ lemma sort_upt [simp]:
 lemma sorted_upto[simp]: "sorted[i..j]"
 apply(induct i j rule:upto.induct)
 apply(subst upto.simps)
-apply(simp add:sorted_Cons)
+apply(simp)
 done
 
 lemma sorted_find_Min:
@@ -5383,11 +5366,11 @@ proof (induct xs)
 next
   case (Cons x xs) show ?case proof (cases "P x")
     case True
-    with Cons show ?thesis by (auto simp: sorted_Cons intro: Min_eqI [symmetric])
+    with Cons show ?thesis by (auto intro: Min_eqI [symmetric])
   next
     case False then have "{y. (y = x \<or> y \<in> set xs) \<and> P y} = {y \<in> set xs. P y}"
       by auto
-    with Cons False show ?thesis by (simp_all add: sorted_Cons)
+    with Cons False show ?thesis by (simp_all)
   qed
 qed
 
@@ -6269,7 +6252,7 @@ by unfold_locales(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp
 end
 
 lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
- by (induct xs) (auto dest!: insort_is_Cons simp: sorted_Cons)
+ by (induct xs) (auto dest!: insort_is_Cons)
 
 
 subsubsection \<open>Lexicographic combination of measure functions\<close>
@@ -6840,7 +6823,7 @@ next
       fix y assume "y \<in> set xs \<and> P y"
       hence "y \<in> set (filter P xs)" by auto
       thus "x \<le> y"
-        by (metis Cons eq_iff filter_sort set_ConsD set_sort sorted_Cons sorted_sort)
+        by (metis Cons eq_iff filter_sort set_ConsD set_sort sorted.simps(2) sorted_sort)
   qed
   thus ?thesis using Cons by (simp add: Bleast_def)
 qed
