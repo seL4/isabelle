@@ -556,7 +556,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
         by (simp add: subarray_nth_array_Cons, cases "l < p") (auto simp add: subarray_append subarray_Nil)
       with IH1' IH2 part_conds1' part_conds2' pivot have ?thesis
         unfolding subarray_def
-        apply (auto simp add: sorted_append sorted_Cons all_in_set_nths'_conv)
+        apply (auto simp add: sorted_append all_in_set_nths'_conv)
         by (auto simp add: set_nths' dest: order.trans [of _ "Array.get h' a ! p"])
     }
     with True cr show ?thesis
