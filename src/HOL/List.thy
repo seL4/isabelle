@@ -4979,15 +4979,18 @@ begin
 
 text \<open>Sometimes the second equation in the definition of @{const sorted} is to aggressive
 because it relates each list element to \emph{all} its successors. Then this equation
-should be removed and \<open>sorted2_simps\<close> should be added instead:\<close>
+should be removed and \<open>sorted2_simps\<close> should be added instead.
+Executable code is one such use case.\<close>
 
-lemma sorted1: "sorted [x]"
+lemma sorted1: "sorted [x] = True"
 by simp
 
 lemma sorted2: "sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
 by(induction zs) auto
 
 lemmas sorted2_simps = sorted1 sorted2
+
+lemmas [code] = sorted.simps(1) sorted2_simps
 
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
