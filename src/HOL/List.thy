@@ -4977,6 +4977,18 @@ subsubsection \<open>@{const sorted}\<close>
 context linorder
 begin
 
+text \<open>Sometimes the second equation in the definition of @{const sorted} is to aggressive
+because it relates each list element to \emph{all} its successors. Then this equation
+should be removed and \<open>sorted2_simps\<close> should be added instead:\<close>
+
+lemma sorted1: "sorted [x]"
+by simp
+
+lemma sorted2: "sorted (x # y # zs) = (x \<le> y \<and> sorted (y # zs))"
+by(induction zs) auto
+
+lemmas sorted2_simps = sorted1 sorted2
+
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
 by (cases xs) (simp_all)
