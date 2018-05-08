@@ -267,7 +267,7 @@ lemma
     and bdd_below_box[intro, simp]: "bdd_below (box a b)"
   unfolding atomize_conj
   by (metis bdd_above_Icc bdd_above_mono bdd_below_Icc bdd_below_mono bounded_box
-    bounded_subset_cbox interval_cbox)
+            bounded_subset_cbox_symmetric interval_cbox)
 
 instantiation vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
 begin

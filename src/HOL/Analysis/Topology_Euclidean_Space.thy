@@ -47,19 +47,19 @@ lemma support_on_if: "a \<noteq> 0 \<Longrightarrow> support_on A (\<lambda>x. i
 lemma support_on_if_subset: "support_on A (\<lambda>x. if P x then a else 0) \<subseteq> {x \<in> A. P x}"
   by (auto simp: support_on_def)
 
-lemma finite_support[intro]: "finite s \<Longrightarrow> finite (support_on s f)"
+lemma finite_support[intro]: "finite S \<Longrightarrow> finite (support_on S f)"
   unfolding support_on_def by auto
 
 (* TODO: is supp_sum really needed? TODO: Generalize to Finite_Set.fold *)
 definition (in comm_monoid_add) supp_sum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
-  where "supp_sum f s = (\<Sum>x\<in>support_on s f. f x)"
+  where "supp_sum f S = (\<Sum>x\<in>support_on S f. f x)"
 
 lemma supp_sum_empty[simp]: "supp_sum f {} = 0"
   unfolding supp_sum_def by auto
 
 lemma supp_sum_insert[simp]:
-  "finite (support_on s f) \<Longrightarrow>
-    supp_sum f (insert x s) = (if x \<in> s then supp_sum f s else f x + supp_sum f s)"
+  "finite (support_on S f) \<Longrightarrow>
+    supp_sum f (insert x S) = (if x \<in> S then supp_sum f S else f x + supp_sum f S)"
   by (simp add: supp_sum_def in_support_on insert_absorb)
 
 lemma supp_sum_divide_distrib: "supp_sum f A / (r::'a::field) = supp_sum (\<lambda>n. f n / r) A"
@@ -70,17 +70,36 @@ lemma supp_sum_divide_distrib: "supp_sum f A / (r::'a::field) = supp_sum (\<lamb
 
 lemma image_affinity_interval:
   fixes c :: "'a::ordered_real_vector"
-  shows "((\<lambda>x. m *\<^sub>R x + c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 <= m then {m *\<^sub>R a + c .. m  *\<^sub>R b + c}
+  shows "((\<lambda>x. m *\<^sub>R x + c) ` {a..b}) = 
+           (if {a..b}={} then {}
+            else if 0 \<le> m then {m *\<^sub>R a + c .. m  *\<^sub>R b + c}
             else {m *\<^sub>R b + c .. m *\<^sub>R a + c})"
-  apply (case_tac "m=0", force)
-  apply (auto simp: scaleR_left_mono)
-  apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI, auto simp: pos_le_divideR_eq le_diff_eq scaleR_left_mono_neg)
-  apply (metis diff_le_eq inverse_inverse_eq order.not_eq_order_implies_strict pos_le_divideR_eq positive_imp_inverse_positive)
-  apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI, auto simp: not_le neg_le_divideR_eq diff_le_eq)
-  using le_diff_eq scaleR_le_cancel_left_neg
-  apply fastforce
-  done
+         (is "?lhs = ?rhs")
+proof (cases "m=0")
+  case True
+  then show ?thesis
+    by force
+next
+  case False
+  show ?thesis
+  proof
+    show "?lhs \<subseteq> ?rhs"
+      by (auto simp: scaleR_left_mono scaleR_left_mono_neg)
+    show "?rhs \<subseteq> ?lhs"
+    proof (clarsimp, intro conjI impI subsetI)
+      show "\<lbrakk>0 \<le> m; a \<le> b; x \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}\<rbrakk>
+            \<Longrightarrow> x \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}" for x
+        apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI)
+        using False apply (auto simp: le_diff_eq pos_le_divideRI)
+        using diff_le_eq pos_le_divideR_eq by force
+      show "\<lbrakk>\<not> 0 \<le> m; a \<le> b;  x \<in> {m *\<^sub>R b + c..m *\<^sub>R a + c}\<rbrakk>
+            \<Longrightarrow> x \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}" for x
+        apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI)
+        apply (auto simp: diff_le_eq neg_le_divideR_eq)
+        using diff_eq_diff_less_eq linordered_field_class.sign_simps(11) minus_diff_eq not_less scaleR_le_cancel_left_neg by fastforce
+    qed
+  qed
+qed
 
 lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (Pi\<^sub>E I F)"
@@ -286,78 +305,83 @@ lemma countable_dense_setE:
 end
 
 lemma (in first_countable_topology) first_countable_basisE:
-  obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
-    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
-  using first_countable_basis[of x]
-  apply atomize_elim
-  apply (elim exE)
-  apply (rule_tac x="range A" in exI, auto)
-  done
+  fixes x :: 'a
+  obtains \<A> where "countable \<A>" "\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A" "\<And>A. A \<in> \<A> \<Longrightarrow> open A"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>A\<in>\<A>. A \<subseteq> S)"
+proof -
+  obtain \<A> where \<A>: "(\<forall>i::nat. x \<in> \<A> i \<and> open (\<A> i))" "(\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. \<A> i \<subseteq> S))"
+    using first_countable_basis[of x] by metis
+  show thesis
+  proof 
+    show "countable (range \<A>)"
+      by simp
+  qed (use \<A> in auto)
+qed
 
 lemma (in first_countable_topology) first_countable_basis_Int_stableE:
-  obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
-    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
-    "\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<inter> b \<in> A"
+  obtains \<A> where "countable \<A>" "\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A" "\<And>A. A \<in> \<A> \<Longrightarrow> open A"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>A\<in>\<A>. A \<subseteq> S)"
+    "\<And>A B. A \<in> \<A> \<Longrightarrow> B \<in> \<A> \<Longrightarrow> A \<inter> B \<in> \<A>"
 proof atomize_elim
-  obtain A' where A':
-    "countable A'"
-    "\<And>a. a \<in> A' \<Longrightarrow> x \<in> a"
-    "\<And>a. a \<in> A' \<Longrightarrow> open a"
-    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A'. a \<subseteq> S"
+  obtain \<B> where \<B>:
+    "countable \<B>"
+    "\<And>B. B \<in> \<B> \<Longrightarrow> x \<in> B"
+    "\<And>B. B \<in> \<B> \<Longrightarrow> open B"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>B\<in>\<B>. B \<subseteq> S"
     by (rule first_countable_basisE) blast
-  define A where [abs_def]:
-    "A = (\<lambda>N. \<Inter>((\<lambda>n. from_nat_into A' n) ` N)) ` (Collect finite::nat set set)"
-  then show "\<exists>A. countable A \<and> (\<forall>a. a \<in> A \<longrightarrow> x \<in> a) \<and> (\<forall>a. a \<in> A \<longrightarrow> open a) \<and>
-        (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<inter> b \<in> A)"
-  proof (safe intro!: exI[where x=A])
-    show "countable A"
-      unfolding A_def by (intro countable_image countable_Collect_finite)
-    fix a
-    assume "a \<in> A"
-    then show "x \<in> a" "open a"
-      using A'(4)[OF open_UNIV] by (auto simp: A_def intro: A' from_nat_into)
+  define \<A> where [abs_def]:
+    "\<A> = (\<lambda>N. \<Inter>((\<lambda>n. from_nat_into \<B> n) ` N)) ` (Collect finite::nat set set)"
+  then show "\<exists>\<A>. countable \<A> \<and> (\<forall>A. A \<in> \<A> \<longrightarrow> x \<in> A) \<and> (\<forall>A. A \<in> \<A> \<longrightarrow> open A) \<and>
+        (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> (\<exists>A\<in>\<A>. A \<subseteq> S)) \<and> (\<forall>A B. A \<in> \<A> \<longrightarrow> B \<in> \<A> \<longrightarrow> A \<inter> B \<in> \<A>)"
+  proof (safe intro!: exI[where x=\<A>])
+    show "countable \<A>"
+      unfolding \<A>_def by (intro countable_image countable_Collect_finite)
+    fix A
+    assume "A \<in> \<A>"
+    then show "x \<in> A" "open A"
+      using \<B>(4)[OF open_UNIV] by (auto simp: \<A>_def intro: \<B> from_nat_into)
   next
-    let ?int = "\<lambda>N. \<Inter>(from_nat_into A' ` N)"
-    fix a b
-    assume "a \<in> A" "b \<in> A"
-    then obtain N M where "a = ?int N" "b = ?int M" "finite (N \<union> M)"
-      by (auto simp: A_def)
-    then show "a \<inter> b \<in> A"
-      by (auto simp: A_def intro!: image_eqI[where x="N \<union> M"])
+    let ?int = "\<lambda>N. \<Inter>(from_nat_into \<B> ` N)"
+    fix A B
+    assume "A \<in> \<A>" "B \<in> \<A>"
+    then obtain N M where "A = ?int N" "B = ?int M" "finite (N \<union> M)"
+      by (auto simp: \<A>_def)
+    then show "A \<inter> B \<in> \<A>"
+      by (auto simp: \<A>_def intro!: image_eqI[where x="N \<union> M"])
   next
     fix S
     assume "open S" "x \<in> S"
-    then obtain a where a: "a\<in>A'" "a \<subseteq> S" using A' by blast
-    then show "\<exists>a\<in>A. a \<subseteq> S" using a A'
-      by (intro bexI[where x=a]) (auto simp: A_def intro: image_eqI[where x="{to_nat_on A' a}"])
+    then obtain a where a: "a\<in>\<B>" "a \<subseteq> S" using \<B> by blast
+    then show "\<exists>a\<in>\<A>. a \<subseteq> S" using a \<B>
+      by (intro bexI[where x=a]) (auto simp: \<A>_def intro: image_eqI[where x="{to_nat_on \<B> a}"])
   qed
 qed
 
 lemma (in topological_space) first_countableI:
-  assumes "countable A"
-    and 1: "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
-    and 2: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"
-  shows "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
-proof (safe intro!: exI[of _ "from_nat_into A"])
+  assumes "countable \<A>"
+    and 1: "\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A" "\<And>A. A \<in> \<A> \<Longrightarrow> open A"
+    and 2: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>A\<in>\<A>. A \<subseteq> S"
+  shows "\<exists>\<A>::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> \<A> i \<and> open (\<A> i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. \<A> i \<subseteq> S))"
+proof (safe intro!: exI[of _ "from_nat_into \<A>"])
   fix i
-  have "A \<noteq> {}" using 2[of UNIV] by auto
-  show "x \<in> from_nat_into A i" "open (from_nat_into A i)"
-    using range_from_nat_into_subset[OF \<open>A \<noteq> {}\<close>] 1 by auto
+  have "\<A> \<noteq> {}" using 2[of UNIV] by auto
+  show "x \<in> from_nat_into \<A> i" "open (from_nat_into \<A> i)"
+    using range_from_nat_into_subset[OF \<open>\<A> \<noteq> {}\<close>] 1 by auto
 next
   fix S
   assume "open S" "x\<in>S" from 2[OF this]
-  show "\<exists>i. from_nat_into A i \<subseteq> S"
-    using subset_range_from_nat_into[OF \<open>countable A\<close>] by auto
+  show "\<exists>i. from_nat_into \<A> i \<subseteq> S"
+    using subset_range_from_nat_into[OF \<open>countable \<A>\<close>] by auto
 qed
 
 instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
 proof
   fix x :: "'a \<times> 'b"
-  obtain A where A:
-      "countable A"
-      "\<And>a. a \<in> A \<Longrightarrow> fst x \<in> a"
-      "\<And>a. a \<in> A \<Longrightarrow> open a"
-      "\<And>S. open S \<Longrightarrow> fst x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"
+  obtain \<A> where \<A>:
+      "countable \<A>"
+      "\<And>a. a \<in> \<A> \<Longrightarrow> fst x \<in> a"
+      "\<And>a. a \<in> \<A> \<Longrightarrow> open a"
+      "\<And>S. open S \<Longrightarrow> fst x \<in> S \<Longrightarrow> \<exists>a\<in>\<A>. a \<subseteq> S"
     by (rule first_countable_basisE[of "fst x"]) blast
   obtain B where B:
       "countable B"
@@ -365,27 +389,28 @@ proof
       "\<And>a. a \<in> B \<Longrightarrow> open a"
       "\<And>S. open S \<Longrightarrow> snd x \<in> S \<Longrightarrow> \<exists>a\<in>B. a \<subseteq> S"
     by (rule first_countable_basisE[of "snd x"]) blast
-  show "\<exists>A::nat \<Rightarrow> ('a \<times> 'b) set.
-    (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
-  proof (rule first_countableI[of "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
+  show "\<exists>\<A>::nat \<Rightarrow> ('a \<times> 'b) set.
+    (\<forall>i. x \<in> \<A> i \<and> open (\<A> i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. \<A> i \<subseteq> S))"
+  proof (rule first_countableI[of "(\<lambda>(a, b). a \<times> b) ` (\<A> \<times> B)"], safe)
     fix a b
-    assume x: "a \<in> A" "b \<in> B"
-    with A(2, 3)[of a] B(2, 3)[of b] show "x \<in> a \<times> b" and "open (a \<times> b)"
-      unfolding mem_Times_iff
-      by (auto intro: open_Times)
+    assume x: "a \<in> \<A>" "b \<in> B"
+    show "x \<in> a \<times> b" 
+      by (simp add: \<A>(2) B(2) mem_Times_iff x)
+    show "open (a \<times> b)"
+      by (simp add: \<A>(3) B(3) open_Times x)
   next
     fix S
     assume "open S" "x \<in> S"
     then obtain a' b' where a'b': "open a'" "open b'" "x \<in> a' \<times> b'" "a' \<times> b' \<subseteq> S"
       by (rule open_prod_elim)
     moreover
-    from a'b' A(4)[of a'] B(4)[of b']
-    obtain a b where "a \<in> A" "a \<subseteq> a'" "b \<in> B" "b \<subseteq> b'"
+    from a'b' \<A>(4)[of a'] B(4)[of b']
+    obtain a b where "a \<in> \<A>" "a \<subseteq> a'" "b \<in> B" "b \<subseteq> b'"
       by auto
     ultimately
-    show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
+    show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (\<A> \<times> B). a \<subseteq> S"
       by (auto intro!: bexI[of _ "a \<times> b"] bexI[of _ a] bexI[of _ b])
-  qed (simp add: A B)
+  qed (simp add: \<A> B)
 qed
 
 class second_countable_topology = topological_space +
@@ -962,61 +987,60 @@ next
 qed
 
 lemma connected_openin:
-      "connected s \<longleftrightarrow>
-       ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
-                 openin (subtopology euclidean s) e2 \<and>
-                 s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and> e1 \<noteq> {} \<and> e2 \<noteq> {})"
+      "connected S \<longleftrightarrow>
+       ~(\<exists>E1 E2. openin (subtopology euclidean S) E1 \<and>
+                 openin (subtopology euclidean S) E2 \<and>
+                 S \<subseteq> E1 \<union> E2 \<and> E1 \<inter> E2 = {} \<and> E1 \<noteq> {} \<and> E2 \<noteq> {})"
   apply (simp add: connected_def openin_open disjoint_iff_not_equal, safe)
   apply (simp_all, blast+)  (* SLOW *)
   done
 
 lemma connected_openin_eq:
-      "connected s \<longleftrightarrow>
-       ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
-                 openin (subtopology euclidean s) e2 \<and>
-                 e1 \<union> e2 = s \<and> e1 \<inter> e2 = {} \<and>
-                 e1 \<noteq> {} \<and> e2 \<noteq> {})"
+      "connected S \<longleftrightarrow>
+       ~(\<exists>E1 E2. openin (subtopology euclidean S) E1 \<and>
+                 openin (subtopology euclidean S) E2 \<and>
+                 E1 \<union> E2 = S \<and> E1 \<inter> E2 = {} \<and>
+                 E1 \<noteq> {} \<and> E2 \<noteq> {})"
   apply (simp add: connected_openin, safe, blast)
   by (metis Int_lower1 Un_subset_iff openin_open subset_antisym)
 
 lemma connected_closedin:
-      "connected s \<longleftrightarrow>
-       ~(\<exists>e1 e2.
-             closedin (subtopology euclidean s) e1 \<and>
-             closedin (subtopology euclidean s) e2 \<and>
-             s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and>
-             e1 \<noteq> {} \<and> e2 \<noteq> {})"
-proof -
-  { fix A B x x'
-    assume s_sub: "s \<subseteq> A \<union> B"
-       and disj: "A \<inter> B \<inter> s = {}"
-       and x: "x \<in> s" "x \<in> B" and x': "x' \<in> s" "x' \<in> A"
-       and cl: "closed A" "closed B"
-    assume "\<forall>e1. (\<forall>T. closed T \<longrightarrow> e1 \<noteq> s \<inter> T) \<or> (\<forall>e2. e1 \<inter> e2 = {} \<longrightarrow> s \<subseteq> e1 \<union> e2 \<longrightarrow> (\<forall>T. closed T \<longrightarrow> e2 \<noteq> s \<inter> T) \<or> e1 = {} \<or> e2 = {})"
-    then have "\<And>C D. s \<inter> C = {} \<or> s \<inter> D = {} \<or> s \<inter> (C \<inter> (s \<inter> D)) \<noteq> {} \<or> \<not> s \<subseteq> s \<inter> (C \<union> D) \<or> \<not> closed C \<or> \<not> closed D"
-      by (metis (no_types) Int_Un_distrib Int_assoc)
-    moreover have "s \<inter> (A \<inter> B) = {}" "s \<inter> (A \<union> B) = s" "s \<inter> B \<noteq> {}"
-      using disj s_sub x by blast+
-    ultimately have "s \<inter> A = {}"
-      using cl by (metis inf.left_commute inf_bot_right order_refl)
-    then have False
-      using x' by blast
-  } note * = this
-  show ?thesis
-    apply (simp add: connected_closed closedin_closed)
-    apply (safe; simp)
-    apply blast
-    apply (blast intro: *)
-    done
+      "connected S \<longleftrightarrow>
+       (\<nexists>E1 E2.
+        closedin (subtopology euclidean S) E1 \<and>
+        closedin (subtopology euclidean S) E2 \<and>
+        S \<subseteq> E1 \<union> E2 \<and> E1 \<inter> E2 = {} \<and> E1 \<noteq> {} \<and> E2 \<noteq> {})"
+       (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs 
+    by (auto simp add: connected_closed closedin_closed)
+next
+  assume R: ?rhs
+  then show ?lhs 
+  proof (clarsimp simp add: connected_closed closedin_closed)
+    fix A B 
+    assume s_sub: "S \<subseteq> A \<union> B" "B \<inter> S \<noteq> {}"
+      and disj: "A \<inter> B \<inter> S = {}"
+      and cl: "closed A" "closed B"
+    have "S \<inter> (A \<union> B) = S"
+      using s_sub(1) by auto
+    have "S - A = B \<inter> S"
+      using Diff_subset_conv Un_Diff_Int disj s_sub(1) by auto
+    then have "S \<inter> A = {}"
+      by (metis Diff_Diff_Int Diff_disjoint Un_Diff_Int R cl closedin_closed_Int inf_commute order_refl s_sub(2))
+    then show "A \<inter> S = {}"
+      by blast
+  qed
 qed
 
 lemma connected_closedin_eq:
-      "connected s \<longleftrightarrow>
-           ~(\<exists>e1 e2.
-                 closedin (subtopology euclidean s) e1 \<and>
-                 closedin (subtopology euclidean s) e2 \<and>
-                 e1 \<union> e2 = s \<and> e1 \<inter> e2 = {} \<and>
-                 e1 \<noteq> {} \<and> e2 \<noteq> {})"
+      "connected S \<longleftrightarrow>
+           ~(\<exists>E1 E2.
+                 closedin (subtopology euclidean S) E1 \<and>
+                 closedin (subtopology euclidean S) E2 \<and>
+                 E1 \<union> E2 = S \<and> E1 \<inter> E2 = {} \<and>
+                 E1 \<noteq> {} \<and> E2 \<noteq> {})"
   apply (simp add: connected_closedin, safe, blast)
   by (metis Int_lower1 Un_subset_iff closedin_closed subset_antisym)
 
@@ -1662,100 +1686,48 @@ lemma subset_box:
     and "box c d \<subseteq> cbox a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) \<longrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th3)
     and "box c d \<subseteq> box a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) \<longrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th4)
 proof -
-  show ?th1
-    unfolding subset_eq and Ball_def and mem_box
-    by (auto intro: order_trans)
-  show ?th2
-    unfolding subset_eq and Ball_def and mem_box
-    by (auto intro: le_less_trans less_le_trans order_trans less_imp_le)
-  {
-    assume as: "box c d \<subseteq> cbox a b" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
-    then have "box c d \<noteq> {}"
-      unfolding box_eq_empty by auto
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    (** TODO combine the following two parts as done in the HOL_light version. **)
-    {
-      let ?x = "(\<Sum>j\<in>Basis. (if j=i then ((min (a\<bullet>j) (d\<bullet>j))+c\<bullet>j)/2 else (c\<bullet>j+d\<bullet>j)/2) *\<^sub>R j)::'a"
-      assume as2: "a\<bullet>i > c\<bullet>i"
-      {
-        fix j :: 'a
-        assume j: "j \<in> Basis"
-        then have "c \<bullet> j < ?x \<bullet> j \<and> ?x \<bullet> j < d \<bullet> j"
-          apply (cases "j = i")
-          using as(2)[THEN bspec[where x=j]] i
-          apply (auto simp: as2)
-          done
-      }
-      then have "?x\<in>box c d"
-        using i unfolding mem_box by auto
-      moreover
-      have "?x \<notin> cbox a b"
-        unfolding mem_box
-        apply auto
-        apply (rule_tac x=i in bexI)
-        using as(2)[THEN bspec[where x=i]] and as2 i
-        apply auto
-        done
-      ultimately have False using as by auto
-    }
-    then have "a\<bullet>i \<le> c\<bullet>i" by (rule ccontr) auto
-    moreover
-    {
-      let ?x = "(\<Sum>j\<in>Basis. (if j=i then ((max (b\<bullet>j) (c\<bullet>j))+d\<bullet>j)/2 else (c\<bullet>j+d\<bullet>j)/2) *\<^sub>R j)::'a"
-      assume as2: "b\<bullet>i < d\<bullet>i"
-      {
-        fix j :: 'a
-        assume "j\<in>Basis"
-        then have "d \<bullet> j > ?x \<bullet> j \<and> ?x \<bullet> j > c \<bullet> j"
-          apply (cases "j = i")
-          using as(2)[THEN bspec[where x=j]]
-          apply (auto simp: as2)
-          done
-      }
-      then have "?x\<in>box c d"
+  let ?lesscd = "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
+  let ?lerhs = "\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i"
+  show ?th1 ?th2
+    by (fastforce simp: mem_box)+
+  have acdb: "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i"
+    if i: "i \<in> Basis" and box: "box c d \<subseteq> cbox a b" and cd: "\<And>i. i \<in> Basis \<Longrightarrow> c\<bullet>i < d\<bullet>i" for i
+  proof -
+    have "box c d \<noteq> {}"
+      using that
+      unfolding box_eq_empty by force
+    { let ?x = "(\<Sum>j\<in>Basis. (if j=i then ((min (a\<bullet>j) (d\<bullet>j))+c\<bullet>j)/2 else (c\<bullet>j+d\<bullet>j)/2) *\<^sub>R j)::'a"
+      assume *: "a\<bullet>i > c\<bullet>i"
+      then have "c \<bullet> j < ?x \<bullet> j \<and> ?x \<bullet> j < d \<bullet> j" if "j \<in> Basis" for j
+        using cd that by (fastforce simp add: i *)
+      then have "?x \<in> box c d"
         unfolding mem_box by auto
-      moreover
-      have "?x\<notin>cbox a b"
-        unfolding mem_box
-        apply auto
-        apply (rule_tac x=i in bexI)
-        using as(2)[THEN bspec[where x=i]] and as2 using i
-        apply auto
-        done
-      ultimately have False using as by auto
+      moreover have "?x \<notin> cbox a b"
+        using i cd * by (force simp: mem_box)
+      ultimately have False using box by auto
+    }
+    then have "a\<bullet>i \<le> c\<bullet>i" by force
+    moreover
+    { let ?x = "(\<Sum>j\<in>Basis. (if j=i then ((max (b\<bullet>j) (c\<bullet>j))+d\<bullet>j)/2 else (c\<bullet>j+d\<bullet>j)/2) *\<^sub>R j)::'a"
+      assume *: "b\<bullet>i < d\<bullet>i"
+      then have "d \<bullet> j > ?x \<bullet> j \<and> ?x \<bullet> j > c \<bullet> j" if "j \<in> Basis" for j
+        using cd that by (fastforce simp add: i *)
+      then have "?x \<in> box c d"
+        unfolding mem_box by auto
+      moreover have "?x \<notin> cbox a b"
+        using i cd * by (force simp: mem_box)
+      ultimately have False using box by auto
     }
     then have "b\<bullet>i \<ge> d\<bullet>i" by (rule ccontr) auto
-    ultimately
-    have "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i" by auto
-  } note part1 = this
+    ultimately show ?thesis by auto
+  qed
   show ?th3
-    unfolding subset_eq and Ball_def and mem_box
-    apply (rule, rule, rule, rule)
-    apply (rule part1)
-    unfolding subset_eq and Ball_def and mem_box
-    prefer 4
-    apply auto
-    apply (erule_tac x=xa in allE, erule_tac x=xa in allE, fastforce)+
-    done
-  {
-    assume as: "box c d \<subseteq> box a b" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
-    fix i :: 'a
-    assume i:"i\<in>Basis"
-    from as(1) have "box c d \<subseteq> cbox a b"
-      using box_subset_cbox[of a b] by auto
-    then have "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i"
-      using part1 and as(2) using i by auto
-  } note * = this
+    using acdb by (fastforce simp add: mem_box)
+  have acdb': "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i"
+    if "i \<in> Basis" "box c d \<subseteq> box a b" "\<And>i. i \<in> Basis \<Longrightarrow> c\<bullet>i < d\<bullet>i" for i
+      using box_subset_cbox[of a b] that acdb by auto
   show ?th4
-    unfolding subset_eq and Ball_def and mem_box
-    apply (rule, rule, rule, rule)
-    apply (rule *)
-    unfolding subset_eq and Ball_def and mem_box
-    prefer 4
-    apply auto
-    apply (erule_tac x=xa in allE, simp)+
-    done
+    using acdb' by (fastforce simp add: mem_box)
 qed
 
 lemma eq_cbox: "cbox a b = cbox c d \<longleftrightarrow> cbox a b = {} \<and> cbox c d = {} \<or> a = c \<and> b = d"
@@ -1775,19 +1747,14 @@ qed
 lemma eq_cbox_box [simp]: "cbox a b = box c d \<longleftrightarrow> cbox a b = {} \<and> box c d = {}"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?lhs
-  then have "cbox a b \<subseteq> box c d" "box c d \<subseteq>cbox a b"
+  assume L: ?lhs
+  then have "cbox a b \<subseteq> box c d" "box c d \<subseteq> cbox a b"
     by auto
   then show ?rhs
     apply (simp add: subset_box)
-    using \<open>cbox a b = box c d\<close> box_ne_empty box_sing
-    apply (fastforce simp add:)
+    using L box_ne_empty box_sing apply (fastforce simp add:)
     done
-next
-  assume ?rhs
-  then show ?lhs
-    by force
-qed
+qed force
 
 lemma eq_box_cbox [simp]: "box a b = cbox c d \<longleftrightarrow> box a b = {} \<and> cbox c d = {}"
   by (metis eq_cbox_box)
@@ -1795,20 +1762,16 @@ lemma eq_box_cbox [simp]: "box a b = cbox c d \<longleftrightarrow> box a b = {}
 lemma eq_box: "box a b = box c d \<longleftrightarrow> box a b = {} \<and> box c d = {} \<or> a = c \<and> b = d"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?lhs
+  assume L: ?lhs
   then have "box a b \<subseteq> box c d" "box c d \<subseteq> box a b"
     by auto
   then show ?rhs
     apply (simp add: subset_box)
-    using box_ne_empty(2) \<open>box a b = box c d\<close>
+    using box_ne_empty(2) L
     apply auto
      apply (meson euclidean_eqI less_eq_real_def not_less)+
     done
-next
-  assume ?rhs
-  then show ?lhs
-    by force
-qed
+qed force
 
 lemma subset_box_complex:
    "cbox a b \<subseteq> cbox c d \<longleftrightarrow>
@@ -2140,7 +2103,7 @@ lemma discrete_imp_closed:
     and d: "\<forall>x \<in> S. \<forall>y \<in> S. dist y x < e \<longrightarrow> y = x"
   shows "closed S"
 proof -
-  have False if C: "\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e" for x
+  have False if C: "\<And>e. e>0 \<Longrightarrow> \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e" for x
   proof -
     from e have e2: "e/2 > 0" by arith
     from C[rule_format, OF e2] obtain y where y: "y \<in> S" "y \<noteq> x" "dist y x < e/2"
@@ -2148,7 +2111,7 @@ proof -
     let ?m = "min (e/2) (dist x y) "
     from e2 y(2) have mp: "?m > 0"
       by simp
-    from C[rule_format, OF mp] obtain z where z: "z \<in> S" "z \<noteq> x" "dist z x < ?m"
+    from C[OF mp] obtain z where z: "z \<in> S" "z \<noteq> x" "dist z x < ?m"
       by blast
     from z y have "dist z y < e"
       by (intro dist_triangle_lt [where z=x]) simp
@@ -2991,9 +2954,9 @@ proof
         assume "m < n"
         have "dist (f(Suc n)) x = dist (y (min (inverse(2 ^ (Suc n))) (dist (f n) x))) x"
           by simp
-        also have "... < dist (f n) x"
+        also have "\<dots> < dist (f n) x"
           by (metis dist_pos_lt f min.strict_order_iff min_less_iff_conj y)
-        also have "... < dist (f m) x"
+        also have "\<dots> < dist (f m) x"
           using Suc.IH \<open>m < n\<close> by blast
         finally show ?thesis .
       next
@@ -3127,9 +3090,9 @@ proof
   proof -
     have "\<bar>f x\<bar> * norm (g x) \<le> \<bar>f x\<bar> * B"
       by (simp add: mult_left_mono g)
-    also have "... \<le> \<bar>f x\<bar> * (\<bar>B\<bar> + 1)"
+    also have "\<dots> \<le> \<bar>f x\<bar> * (\<bar>B\<bar> + 1)"
       by (simp add: mult_left_mono)
-    also have "... < \<epsilon>"
+    also have "\<dots> < \<epsilon>"
       by (rule f)
     finally show ?thesis .
   qed
@@ -3290,7 +3253,7 @@ lemma closure_approachable_le:
 lemma closure_approachableD:
   assumes "x \<in> closure S" "e>0"
   shows "\<exists>y\<in>S. dist x y < e"
-  using assms unfolding closure_approachable by (auto simp add: dist_commute)
+  using assms unfolding closure_approachable by (auto simp: dist_commute)
 
 lemma closed_approachable:
   fixes S :: "'a::metric_space set"
@@ -5262,9 +5225,9 @@ lemma continuous_within_tendsto_compose:
   shows "((\<lambda>n. f (x n)) \<longlongrightarrow> f a) F"
 proof -
   have *: "filterlim x (inf (nhds a) (principal s)) F"
-    using assms(2) assms(3) unfolding at_within_def filterlim_inf by (auto simp add: filterlim_principal eventually_mono)
+    using assms(2) assms(3) unfolding at_within_def filterlim_inf by (auto simp: filterlim_principal eventually_mono)
   show ?thesis
-    by (auto simp add: assms(1) continuous_within[symmetric] tendsto_at_within_iff_tendsto_nhds[symmetric] intro!: filterlim_compose[OF _ *])
+    by (auto simp: assms(1) continuous_within[symmetric] tendsto_at_within_iff_tendsto_nhds[symmetric] intro!: filterlim_compose[OF _ *])
 qed
 
 lemma continuous_within_tendsto_compose':
@@ -5402,7 +5365,7 @@ qed
 
 lemma continuous_closed_imp_Cauchy_continuous:
   fixes S :: "('a::complete_space) set"
-  shows "\<lbrakk>continuous_on S f; closed S; Cauchy \<sigma>; \<And>n. (\<sigma> n) \<in> S\<rbrakk> \<Longrightarrow> Cauchy(f o \<sigma>)"
+  shows "\<lbrakk>continuous_on S f; closed S; Cauchy \<sigma>; \<And>n. (\<sigma> n) \<in> S\<rbrakk> \<Longrightarrow> Cauchy(f \<circ> \<sigma>)"
   apply (simp add: complete_eq_closed [symmetric] continuous_on_sequentially)
   by (meson LIMSEQ_imp_Cauchy complete_def)
 
@@ -5876,30 +5839,20 @@ proof -
   let ?b = "\<Sum>i\<in>Basis. \<bar>a\<bullet>i\<bar> + \<bar>b\<bullet>i\<bar>"
   {
     fix x :: "'a"
-    assume x: "\<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i"
-    {
-      fix i :: 'a
-      assume "i \<in> Basis"
-      then have "\<bar>x\<bullet>i\<bar> \<le> \<bar>a\<bullet>i\<bar> + \<bar>b\<bullet>i\<bar>"
-        using x[THEN bspec[where x=i]] by auto
-    }
+    assume "\<And>i. i\<in>Basis \<Longrightarrow> a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i"
     then have "(\<Sum>i\<in>Basis. \<bar>x \<bullet> i\<bar>) \<le> ?b"
-      apply -
-      apply (rule sum_mono, auto)
-      done
+      by (force simp: intro!: sum_mono)
     then have "norm x \<le> ?b"
       using norm_le_l1[of x] by auto
   }
   then show ?thesis
-    unfolding cbox_def bounded_iff by auto
+    unfolding cbox_def bounded_iff by force
 qed
 
 lemma bounded_box [simp]:
   fixes a :: "'a::euclidean_space"
   shows "bounded (box a b)"
-  using bounded_cbox[of a b]
-  using box_subset_cbox[of a b]
-  using bounded_subset[of "cbox a b" "box a b"]
+  using bounded_cbox[of a b] box_subset_cbox[of a b] bounded_subset[of "cbox a b" "box a b"]
   by simp
 
 lemma not_interval_UNIV [simp]:
@@ -5923,12 +5876,8 @@ lemma box_midpoint:
   assumes "box a b \<noteq> {}"
   shows "((1/2) *\<^sub>R (a + b)) \<in> box a b"
 proof -
-  {
-    fix i :: 'a
-    assume "i \<in> Basis"
-    then have "a \<bullet> i < ((1 / 2) *\<^sub>R (a + b)) \<bullet> i \<and> ((1 / 2) *\<^sub>R (a + b)) \<bullet> i < b \<bullet> i"
-      using assms[unfolded box_ne_empty, THEN bspec[where x=i]] by (auto simp: inner_add_left)
-  }
+  have "a \<bullet> i < ((1 / 2) *\<^sub>R (a + b)) \<bullet> i \<and> ((1 / 2) *\<^sub>R (a + b)) \<bullet> i < b \<bullet> i" if "i \<in> Basis" for i
+    using assms that by (auto simp: inner_add_left box_ne_empty)
   then show ?thesis unfolding mem_box by auto
 qed
 
@@ -5945,14 +5894,12 @@ proof -
     have "a \<bullet> i = e * (a \<bullet> i) + (1 - e) * (a \<bullet> i)"
       unfolding left_diff_distrib by simp
     also have "\<dots> < e * (x \<bullet> i) + (1 - e) * (y \<bullet> i)"
-      apply (rule add_less_le_mono)
-      using e unfolding mult_less_cancel_left and mult_le_cancel_left
-      apply simp_all
-      using x unfolding mem_box using i
-      apply simp
-      using y unfolding mem_box using i
-      apply simp
-      done
+    proof (rule add_less_le_mono)
+      show "e * (a \<bullet> i) < e * (x \<bullet> i)"
+        using \<open>0 < e\<close> i mem_box(1) x by auto
+      show "(1 - e) * (a \<bullet> i) \<le> (1 - e) * (y \<bullet> i)"
+        by (meson diff_ge_0_iff_ge \<open>e \<le> 1\<close> i mem_box(2) mult_left_mono y)
+    qed
     finally have "a \<bullet> i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i"
       unfolding inner_simps by auto
     moreover
@@ -5962,9 +5909,9 @@ proof -
       also have "\<dots> > e * (x \<bullet> i) + (1 - e) * (y \<bullet> i)"
       proof (rule add_less_le_mono)
         show "e * (x \<bullet> i) < e * (b \<bullet> i)"
-          using e(1) i mem_box(1) x by auto
+          using \<open>0 < e\<close> i mem_box(1) x by auto
         show "(1 - e) * (y \<bullet> i) \<le> (1 - e) * (b \<bullet> i)"
-          by (meson diff_ge_0_iff_ge e(2) i mem_box(2) ordered_comm_semiring_class.comm_mult_left_mono y)
+          by (meson diff_ge_0_iff_ge \<open>e \<le> 1\<close> i mem_box(2) mult_left_mono y)
       qed
       finally have "(e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i < b \<bullet> i"
         unfolding inner_simps by auto
@@ -6011,13 +5958,8 @@ proof -
       {
         fix e :: real
         assume "e > 0"
-        then have "\<exists>N::nat. inverse (real (N + 1)) < e"
-          using real_arch_inverse[of e]
-          apply (auto simp: Suc_pred')
-          apply (metis Suc_pred' of_nat_Suc)
-          done
         then obtain N :: nat where N: "inverse (real (N + 1)) < e"
-          by auto
+          using reals_Archimedean by auto
         have "inverse (real n + 1) < e" if "N \<le> n" for n
           by (auto intro!: that le_less_trans [OF _ N])
         then have "\<exists>N::nat. \<forall>n\<ge>N. inverse (real n + 1) < e" by auto
@@ -6031,9 +5973,8 @@ proof -
         by auto
     }
     ultimately have "x \<in> closure (box a b)"
-      using as and box_midpoint[OF assms]
-      unfolding closure_def
-      unfolding islimpt_sequential
+      using as box_midpoint[OF assms]
+      unfolding closure_def islimpt_sequential
       by (cases "x=?c") (auto simp: in_box_eucl_less)
   }
   then show ?thesis
@@ -6041,48 +5982,30 @@ proof -
 qed
 
 lemma bounded_subset_box_symmetric:
-  fixes s::"('a::euclidean_space) set"
-  assumes "bounded s"
-  shows "\<exists>a. s \<subseteq> box (-a) a"
+  fixes S :: "('a::euclidean_space) set"
+  assumes "bounded S"
+  obtains a where "S \<subseteq> box (-a) a"
 proof -
-  obtain b where "b>0" and b: "\<forall>x\<in>s. norm x \<le> b"
+  obtain b where "b>0" and b: "\<forall>x\<in>S. norm x \<le> b"
     using assms[unfolded bounded_pos] by auto
   define a :: 'a where "a = (\<Sum>i\<in>Basis. (b + 1) *\<^sub>R i)"
-  {
-    fix x
-    assume "x \<in> s"
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    then have "(-a)\<bullet>i < x\<bullet>i" and "x\<bullet>i < a\<bullet>i"
-      using b[THEN bspec[where x=x], OF \<open>x\<in>s\<close>]
-      using Basis_le_norm[OF i, of x]
-      unfolding inner_simps and a_def
-      by auto
-  }
-  then show ?thesis
-    by (auto intro: exI[where x=a] simp add: box_def)
+  have "(-a)\<bullet>i < x\<bullet>i" and "x\<bullet>i < a\<bullet>i" if "x \<in> S" and i: "i \<in> Basis" for x i
+    using b Basis_le_norm[OF i, of x] that by (auto simp: a_def)
+  then have "S \<subseteq> box (-a) a"
+    by (auto simp: simp add: box_def)
+  then show ?thesis ..
 qed
-
-lemma bounded_subset_open_interval:
-  fixes s :: "('a::euclidean_space) set"
-  shows "bounded s \<Longrightarrow> (\<exists>a b. s \<subseteq> box a b)"
-  by (auto dest!: bounded_subset_box_symmetric)
 
 lemma bounded_subset_cbox_symmetric:
-  fixes s :: "('a::euclidean_space) set"
-   assumes "bounded s"
-  shows "\<exists>a. s \<subseteq> cbox (-a) a"
+  fixes S :: "('a::euclidean_space) set"
+  assumes "bounded S"
+  obtains a where "S \<subseteq> cbox (-a) a"
 proof -
-  obtain a where "s \<subseteq> box (-a) a"
+  obtain a where "S \<subseteq> box (-a) a"
     using bounded_subset_box_symmetric[OF assms] by auto
   then show ?thesis
-    using box_subset_cbox[of "-a" a] by auto
+    by (meson box_subset_cbox dual_order.trans that)
 qed
-
-lemma bounded_subset_cbox:
-  fixes s :: "('a::euclidean_space) set"
-  shows "bounded s \<Longrightarrow> \<exists>a b. s \<subseteq> cbox a b"
-  using bounded_subset_cbox_symmetric[of s] by auto
 
 lemma frontier_cbox:
   fixes a b :: "'a::euclidean_space"
@@ -6113,13 +6036,12 @@ lemma Int_interval_mixed_eq_empty:
 lemma eucl_less_eq_halfspaces:
   fixes a :: "'a::euclidean_space"
   shows "{x. x <e a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i < a \<bullet> i})"
-    "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
+        "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
   by (auto simp: eucl_less_def)
 
 lemma open_Collect_eucl_less[simp, intro]:
   fixes a :: "'a::euclidean_space"
-  shows "open {x. x <e a}"
-    "open {x. a <e x}"
+  shows "open {x. x <e a}" "open {x. a <e x}"
   by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
 
 no_notation

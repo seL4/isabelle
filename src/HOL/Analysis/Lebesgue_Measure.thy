@@ -908,14 +908,17 @@ proof (rule lborel_eqI[symmetric], clarify)
 qed (simp add: borel_prod[symmetric])
 
 (* FIXME: conversion in measurable prover *)
-lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp
-lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
+lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" 
+  by simp
+
+lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel"
+  by simp
 
 lemma emeasure_bounded_finite:
   assumes "bounded A" shows "emeasure lborel A < \<infinity>"
 proof -
-  from bounded_subset_cbox[OF \<open>bounded A\<close>] obtain a b where "A \<subseteq> cbox a b"
-    by auto
+  obtain a b where "A \<subseteq> cbox a b"
+    by (meson bounded_subset_cbox_symmetric \<open>bounded A\<close>)
   then have "emeasure lborel A \<le> emeasure lborel (cbox a b)"
     by (intro emeasure_mono) auto
   then show ?thesis

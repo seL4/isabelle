@@ -685,7 +685,7 @@ lemma elementary_bounded[dest]:
 
 lemma elementary_subset_cbox:
   "p division_of S \<Longrightarrow> \<exists>a b. S \<subseteq> cbox a (b::'a::euclidean_space)"
-  by (meson elementary_bounded bounded_subset_cbox)
+  by (meson bounded_subset_cbox_symmetric elementary_bounded)
 
 lemma division_union_intervals_exists:
   fixes a b :: "'a::euclidean_space"
