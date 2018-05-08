@@ -6,6 +6,11 @@ Manage theory exports: compressed blobs.
 
 package isabelle
 
+
+import scala.annotation.tailrec
+import scala.util.matching.Regex
+
+
 object Export
 {
   /* SQL data model */
@@ -21,9 +26,17 @@ object Export
     val table =
       SQL.Table("isabelle_exports", List(session_name, theory_name, name, compressed, body))
 
-    def where_equal(session_name: String, theory_name: String): SQL.Source =
+    def where_equal(session_name: String, theory_name: String = "", name: String = ""): SQL.Source =
       "WHERE " + Data.session_name.equal(session_name) +
-      " AND " + Data.theory_name.equal(theory_name)
+        (if (theory_name == "") "" else " AND " + Data.theory_name.equal(theory_name)) +
+        (if (name == "") "" else " AND " + Data.name.equal(name))
+  }
+
+  def read_name(db: SQL.Database, session_name: String, theory_name: String, name: String): Boolean =
+  {
+    val select =
+      Data.table.select(List(Data.name), Data.where_equal(session_name, theory_name, name))
+    db.using_statement(select)(stmt => stmt.execute_query().next())
   }
 
   def read_names(db: SQL.Database, session_name: String, theory_name: String): List[String] =
@@ -33,16 +46,18 @@ object Export
       stmt.execute_query().iterator(res => res.string(Data.name)).toList)
   }
 
-  def read_name(db: SQL.Database, session_name: String, theory_name: String, name: String): Boolean =
+  def read_theory_names(db: SQL.Database, session_name: String): List[(String, String)] =
   {
-    val select =
-      Data.table.select(List(Data.name),
-        Data.where_equal(session_name, theory_name) + " AND " + Data.name.equal(name))
-    db.using_statement(select)(stmt => stmt.execute_query().next())
+    val select = Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name))
+    db.using_statement(select)(stmt =>
+      stmt.execute_query().iterator(res =>
+        (res.string(Data.theory_name), res.string(Data.name))).toList)
   }
 
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
+
+  def compound_name(a: String, b: String): String = a + ":" + b
 
   sealed case class Entry(
     session_name: String,
@@ -51,7 +66,7 @@ object Export
     compressed: Boolean,
     body: Future[Bytes])
   {
-    override def toString: String = theory_name + ":" + name
+    override def toString: String = compound_name(theory_name, name)
 
     def write(db: SQL.Database)
     {
@@ -66,6 +81,27 @@ object Export
         stmt.execute()
       })
     }
+
+    def body_uncompressed: Bytes =
+      if (compressed) body.join.uncompress() else body.join
+  }
+
+  def make_regex(pattern: String): Regex =
+  {
+    @tailrec def make(result: List[String], depth: Int, chs: List[Char]): Regex =
+      chs match {
+        case '*' :: '*' :: rest => make("[^:]*" :: result, depth, rest)
+        case '*' :: rest => make("[^:/]*" :: result, depth, rest)
+        case '?' :: rest => make("[^:/]" :: result, depth, rest)
+        case '\\' :: c :: rest => make(("\\" + c) :: result, depth, rest)
+        case '{' :: rest => make("(" :: result, depth + 1, rest)
+        case ',' :: rest if depth > 0 => make("|" :: result, depth, rest)
+        case '}' :: rest if depth > 0 => make(")" :: result, depth - 1, rest)
+        case c :: rest if ".+()".contains(c) => make(("\\" + c) :: result, depth, rest)
+        case c :: rest => make(c.toString :: result, depth, rest)
+        case Nil => result.reverse.mkString.r
+      }
+    make(Nil, 0, pattern.toList)
   }
 
   def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes): Entry =
@@ -78,7 +114,7 @@ object Export
   {
     val select =
       Data.table.select(List(Data.compressed, Data.body),
-        Data.where_equal(session_name, theory_name) + " AND " + Data.name.equal(name))
+        Data.where_equal(session_name, theory_name, name))
     db.using_statement(select)(stmt =>
     {
       val res = stmt.execute_query()
@@ -126,4 +162,113 @@ object Export
       export_errors.value.reverse
     }
   }
+
+
+  /* Isabelle tool wrapper */
+
+  val default_export_dir = Path.explode("export")
+
+  val isabelle_tool = Isabelle_Tool("export", "retrieve theory exports", args =>
+  {
+    /* arguments */
+
+    var export_dir = default_export_dir
+    var dirs: List[Path] = Nil
+    var export_list = false
+    var no_build = false
+    var options = Options.init()
+    var system_mode = false
+    var export_pattern = ""
+
+    val getopts = Getopts("""
+Usage: isabelle export [OPTIONS] SESSION
+
+  Options are:
+    -D DIR       target directory for exported files (default: """ + default_export_dir + """)
+    -d DIR       include session directory
+    -l           list exports
+    -n           no build of session
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode for session image
+    -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
+
+  List or export theory exports for SESSION: named blobs produced by
+  isabelle build. Option -l or -x is required.
+
+  The PATTERN language resembles glob patterns in the shell, with ? and *
+  (both excluding ":" and "/"), ** (excluding ":"), and [abc] or [^abc],
+  and variants {pattern1,pattern2,pattern3}.
+""",
+      "D:" -> (arg => export_dir = Path.explode(arg)),
+      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+      "l" -> (_ => export_list = true),
+      "n" -> (_ => no_build = true),
+      "o:" -> (arg => options = options + arg),
+      "s" -> (_ => system_mode = true),
+      "x:" -> (arg => export_pattern = arg))
+
+    val more_args = getopts(args)
+    val session_name =
+      more_args match {
+        case List(session_name) if export_list || export_pattern != "" => session_name
+        case _ => getopts.usage()
+      }
+
+
+    /* build */
+
+    val progress = new Console_Progress()
+
+    if (!no_build &&
+        !Build.build(options, no_build = true, dirs = dirs, system_mode = system_mode,
+          sessions = List(session_name)).ok)
+    {
+      progress.echo("Build started for Isabelle/" + session_name + " ...")
+      progress.interrupt_handler {
+        val res =
+          Build.build(options, progress = progress, dirs = dirs, system_mode = system_mode,
+            sessions = List(session_name))
+        if (!res.ok) sys.exit(res.rc)
+      }
+    }
+
+
+    /* database */
+
+    val store = Sessions.store(system_mode)
+    val database =
+      store.find_database(session_name) match {
+        case None => error("Missing database for session " + quote(session_name))
+        case Some(database) => database
+      }
+
+    using(SQLite.open_database(database))(db =>
+    {
+      db.transaction {
+        val export_names = read_theory_names(db, session_name)
+
+        // list
+        if (export_list) {
+          (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
+            sorted.foreach(Output.writeln(_, stdout = true))
+        }
+
+        // export
+        if (export_pattern != "") {
+          val regex = make_regex(export_pattern)
+          for {
+            (theory_name, name) <- export_names
+            if regex.pattern.matcher(compound_name(theory_name, name)).matches
+          } {
+            val entry = read_entry(db, session_name, theory_name, name)
+            val path = export_dir + Path.basic(theory_name) + Path.explode(name)
+
+            progress.echo("exporting " + path)
+            Isabelle_System.mkdirs(path.dir)
+            Bytes.write(path, entry.body_uncompressed)
+          }
+        }
+      }
+    })
+  })
 }

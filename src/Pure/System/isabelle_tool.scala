@@ -109,6 +109,7 @@ object Isabelle_Tool
       Build_Status.isabelle_tool,
       Check_Sources.isabelle_tool,
       Doc.isabelle_tool,
+      Export.isabelle_tool,
       Imports.isabelle_tool,
       Mkroot.isabelle_tool,
       ML_Process.isabelle_tool,

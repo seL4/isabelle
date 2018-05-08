@@ -545,4 +545,50 @@ text \<open>
   @{verbatim [display] \<open>isabelle imports -U -i -D 'some/where/My_Project'\<close>}
 \<close>
 
+
+section \<open>Retrieve theory exports\<close>
+
+text \<open>
+  The @{tool_def "export"} tool retrieves theory exports from the session
+  database. Its command-line usage is: @{verbatim [display]
+\<open>Usage: isabelle export [OPTIONS] SESSION
+
+  Options are:
+    -D DIR       target directory for exported files (default: "export")
+    -d DIR       include session directory
+    -l           list exports
+    -n           no build of session
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode for session image
+    -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
+
+  List or export theory exports for SESSION: named blobs produced by
+  isabelle build. Option -l or -x is required.
+
+  The PATTERN language resembles glob patterns in the shell, with ? and *
+  (both excluding ":" and "/"), ** (excluding ":"), and [abc] or [^abc],
+  and variants {pattern1,pattern2,pattern3}.\<close>}
+
+  \<^medskip>
+  The specified session is updated via @{tool build}
+  (\secref{sec:tool-build}), with the same options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-s\<close>. The
+  option \<^verbatim>\<open>-n\<close> suppresses the implicit build process: it means that a
+  potentially outdated session database is used!
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-l\<close> lists all stored exports, with compound names
+  \<open>theory\<close>\<^verbatim>\<open>:\<close>\<open>name\<close>.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-x\<close> extracts stored exports whose compound name matches the given
+  pattern. Note that wild cards ``\<^verbatim>\<open>?\<close>'' and ``\<^verbatim>\<open>*\<close>'' do not match the
+  separators ``\<^verbatim>\<open>:\<close>'' and ``\<^verbatim>\<open>/\<close>''; the wild card \<^verbatim>\<open>**\<close> matches over directory
+  name hierarchies separated by ``\<^verbatim>\<open>/\<close>''. Thus the pattern ``\<^verbatim>\<open>*:**\<close>'' matches
+  \<^emph>\<open>all\<close> theory exports.
+
+  Option \<^verbatim>\<open>-D\<close> specifies an alternative base directory for option \<^verbatim>\<open>-x\<close>: the
+  default is \<^verbatim>\<open>export\<close> within the current directory. Each theory creates its
+  own sub-directory hierarchy, using the session-qualified theory name.
+\<close>
+
 end
