@@ -33,6 +33,14 @@ object Export
       stmt.execute_query().iterator(res => res.string(Data.name)).toList)
   }
 
+  def read_name(db: SQL.Database, session_name: String, theory_name: String, name: String): Boolean =
+  {
+    val select =
+      Data.table.select(List(Data.name),
+        Data.where_equal(session_name, theory_name) + " AND " + Data.name.equal(name))
+    db.using_statement(select)(stmt => stmt.execute_query().next())
+  }
+
   def message(msg: String, theory_name: String, name: String): String =
     msg + " " + quote(name) + " for theory " + quote(theory_name)
 
@@ -99,7 +107,7 @@ object Export
         {
           entry.body.join
           db.transaction {
-            if (read_names(db, entry.session_name, entry.theory_name).contains(entry.name)) {
+            if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
               val err = message("Duplicate export", entry.theory_name, entry.name)
               export_errors.change(errs => err :: errs)
             }
