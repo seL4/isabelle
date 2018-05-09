@@ -115,24 +115,11 @@ lemma sums_finite:
   shows "f sums (\<Sum>n\<in>N. f n)"
 proof -
   have eq: "sum f {..<n + Suc (Max N)} = sum f N" for n
-  proof (cases "N = {}")
-    case True
-    with f have "f = (\<lambda>x. 0)" by auto
-    then show ?thesis by simp
-  next
-    case [simp]: False
-    show ?thesis
-    proof (safe intro!: sum.mono_neutral_right f)
-      fix i
-      assume "i \<in> N"
-      then have "i \<le> Max N" by simp
-      then show "i < n + Suc (Max N)" by simp
-    qed
-  qed
+    by (rule sum.mono_neutral_right) (auto simp: add_increasing less_Suc_eq_le f)
   show ?thesis
     unfolding sums_def
     by (rule LIMSEQ_offset[of _ "Suc (Max N)"])
-       (simp add: eq atLeast0LessThan del: add_Suc_right)
+      (simp add: eq atLeast0LessThan del: add_Suc_right)
 qed
 
 corollary sums_0: "(\<And>n. f n = 0) \<Longrightarrow> (f sums 0)"
