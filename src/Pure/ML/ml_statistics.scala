@@ -39,7 +39,8 @@ object ML_Statistics
 
   val tasks_fields: Fields =
     ("Future tasks",
-      List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive", "tasks_urgent"))
+      List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive",
+        "tasks_urgent", "tasks_total"))
 
   val workers_fields: Fields =
     ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
