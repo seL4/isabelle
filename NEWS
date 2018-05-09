@@ -296,7 +296,6 @@ Renamed:
   - span_eq ~> span_eq_iff
 INCOMPATIBILITY.
 
-
 * HOL-Algebra: renamed (^) to [^]
 
 * Session HOL-Analysis: Moebius functions, the Riemann mapping
@@ -305,6 +304,9 @@ integration and measures.
 
 * Class linordered_semiring_1 covers zero_less_one also, ruling out
 pathologic instances. Minor INCOMPATIBILITY.
+
+* Theory List: functions "sorted_wrt" and "sorted" now compare every
+  element in a list to all following elements, not just the next one.
 
 * Removed nat-int transfer machinery. Rare INCOMPATIBILITY.
 

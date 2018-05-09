@@ -4930,12 +4930,22 @@ by simp
 
 subsection \<open>Sorting\<close>
 
-
 subsubsection \<open>@{const sorted_wrt}\<close>
 
-lemma sorted_wrt_ConsI:
-  "\<lbrakk> \<And>y. y \<in> set xs \<Longrightarrow> P x y; sorted_wrt P xs \<rbrakk> \<Longrightarrow> sorted_wrt P (x # xs)"
-by (induction xs) simp_all
+text \<open>Sometimes the second equation in the definition of @{const sorted_wrt} is to aggressive
+because it relates each list element to \emph{all} its successors. Then this equation
+should be removed and \<open>sorted_wrt2_simps\<close> should be added instead.\<close>
+
+lemma sorted_wrt1: "sorted_wrt P [x] = True"
+by(simp)
+
+lemma sorted_wrt2: "transp P \<Longrightarrow> sorted_wrt P (x # y # zs) = (P x y \<and> sorted_wrt P (y # zs))"
+apply(induction zs arbitrary: x y)
+apply(auto dest: transpD)
+apply (meson transpD)
+done
+
+lemmas sorted_wrt2_simps = sorted_wrt1 sorted_wrt2
 
 lemma sorted_wrt_append:
   "sorted_wrt P (xs @ ys) \<longleftrightarrow>
