@@ -8,7 +8,7 @@ package object isabelle
 {
   val ERROR = Exn.ERROR
   val error = Exn.error _
-  val cat_error = Exn.cat_error _
+  def cat_error(msgs: String*): Nothing = Exn.cat_error(msgs:_*)
 
   def using[A <: { def close() }, B](x: A)(f: A => B): B = Library.using(x)(f)
   val space_explode = Library.space_explode _
