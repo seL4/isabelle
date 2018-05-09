@@ -272,6 +272,7 @@ object Present
 
     if (!result.ok) {
       cat_error(
+        Library.trim_line(result.err),
         cat_lines(Latex.latex_errors(dir, root_name) ::: Bibtex.bibtex_errors(dir, root_name)),
         "Failed to build document in " + File.path(dir.absolute_file))
     }
