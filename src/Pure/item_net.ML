@@ -9,6 +9,7 @@ signature ITEM_NET =
 sig
   type 'a T
   val init: ('a * 'a -> bool) -> ('a -> term list) -> 'a T
+  val is_empty: 'a T -> bool
   val content: 'a T -> 'a list
   val length: 'a T -> int
   val retrieve: 'a T -> term -> 'a list
@@ -38,6 +39,7 @@ fun mk_items eq index content next net =
   Items {eq = eq, index = index, content = content, next = next, net = net};
 
 fun init eq index = mk_items eq index [] ~1 Net.empty;
+fun is_empty (Items {content, ...}) = null content;
 
 fun content (Items {content, ...}) = content;
 fun length items = List.length (content items);
@@ -62,12 +64,10 @@ fun cons x (Items {eq, index, content, next, net}) =
   mk_items eq index (x :: content) (next - 1)
     (fold (fn t => Net.insert_term (K false) (t, (next, x))) (index x) net);
 
-fun merge
-    (items1 as Items {net = net1, ...},
-     items2 as Items {net = net2, content = content2, ...}) =
-  if pointer_eq (net1, net2) then items1
-  else if Net.is_empty net1 then items2
-  else fold_rev (fn y => if member items1 y then I else cons y) content2 items1;
+fun merge (items1, items2) =
+  if pointer_eq (items1, items2) then items1
+  else if is_empty items1 then items2
+  else fold_rev (fn y => if member items1 y then I else cons y) (content items2) items1;
 
 fun remove x (items as Items {eq, index, content, next, net}) =
   if member items x then
