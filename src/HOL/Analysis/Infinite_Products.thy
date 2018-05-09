@@ -688,4 +688,31 @@ proof -
     by (simp add: convergent_prod_def)
 qed
 
+lemma has_prod_If_finite_set:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  shows "finite A \<Longrightarrow> (\<lambda>r. if r \<in> A then f r else 1) has_prod (\<Prod>r\<in>A. f r)"
+  using has_prod_finite[of A "(\<lambda>r. if r \<in> A then f r else 1)"]
+  by simp
+
+lemma has_prod_If_finite:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  shows "finite {r. P r} \<Longrightarrow> (\<lambda>r. if P r then f r else 1) has_prod (\<Prod>r | P r. f r)"
+  using has_prod_If_finite_set[of "{r. P r}"] by simp
+
+lemma convergent_prod_If_finite_set[simp, intro]:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  shows "finite A \<Longrightarrow> convergent_prod (\<lambda>r. if r \<in> A then f r else 1)"
+  by (simp add: convergent_prod_finite)
+
+lemma convergent_prod_If_finite[simp, intro]:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  shows "finite {r. P r} \<Longrightarrow> convergent_prod (\<lambda>r. if P r then f r else 1)"
+  using convergent_prod_def has_prod_If_finite has_prod_def by fastforce
+
+lemma has_prod_single:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  shows "(\<lambda>r. if r = i then f r else 1) has_prod f i"
+  using has_prod_If_finite[of "\<lambda>r. r = i"] by simp
+
+
 end
