@@ -129,7 +129,7 @@ fun consolidate xs =
     val pending =
       xs |> map_filter (fn x => if is_pending x then SOME (fn () => force_result x) else NONE);
     val _ =
-      if Multithreading.relevant pending then
+      if Future.relevant pending then
         ignore (Future.forked_results {name = "Lazy.consolidate", deps = []} pending)
       else List.app (fn e => ignore (e ())) pending;
   in xs end;

@@ -190,7 +190,7 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
   end) ();
 
 fun run keywords int tr st =
-  if Goal.future_enabled 1 andalso Keyword.is_diag keywords (Toplevel.name_of tr) then
+  if Future.proofs_enabled 1 andalso Keyword.is_diag keywords (Toplevel.name_of tr) then
     (Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
       (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;
@@ -429,7 +429,7 @@ fun run_eval execution_id (Eval {exec_id, eval_process}) =
 
 fun run_print execution_id (Print {name, delay, pri, exec_id, print_process, ...}) =
   if ignore_process print_process then ()
-  else if pri <= 0 orelse (Multithreading.enabled () andalso Options.default_bool "parallel_print")
+  else if pri <= 0 orelse (Future.enabled () andalso Options.default_bool "parallel_print")
   then
     let
       val group = Future.worker_subgroup ();

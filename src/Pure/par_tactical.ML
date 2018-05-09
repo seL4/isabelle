@@ -46,7 +46,7 @@ fun PARALLEL_GOALS tac st =
       Drule.strip_imp_prems (Thm.cprop_of st)
       |> map (Thm.adjust_maxidx_cterm ~1);
   in
-    if Multithreading.relevant goals andalso forall (fn g => Thm.maxidx_of_cterm g = ~1) goals then
+    if Future.relevant goals andalso forall (fn g => Thm.maxidx_of_cterm g = ~1) goals then
       let
         fun try_goal g =
           (case SINGLE tac (Goal.init g) of

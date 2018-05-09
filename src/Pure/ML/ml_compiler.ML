@@ -120,7 +120,7 @@ fun report_parse_tree redirect depth name_space parse_tree =
       |> map (fn (pos, markup, text) => Position.reported_text pos (markup ()) (text ()))
       |> Output.report;
     val _ =
-      if not (null persistent_reports) andalso redirect andalso Multithreading.enabled ()
+      if not (null persistent_reports) andalso redirect andalso Future.enabled ()
       then
         Execution.print
           {name = "ML_Compiler.report", pos = Position.thread_data (), pri = Task_Queue.urgent_pri}

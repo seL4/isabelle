@@ -29,7 +29,7 @@ structure Par_List: PAR_LIST =
 struct
 
 fun forked_results name f xs =
-  if Multithreading.relevant xs
+  if Future.relevant xs
   then Future.forked_results {name = name, deps = []} (map (fn x => fn () => f x) xs)
   else map (Exn.capture f) xs;
 

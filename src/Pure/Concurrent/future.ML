@@ -34,6 +34,10 @@ sig
   val forked_results: {name: string, deps: Task_Queue.task list} ->
     (unit -> 'a) list -> 'a Exn.result list
   val task_context: string -> group -> ('a -> 'b) -> 'a -> 'b
+  val enabled: unit -> bool
+  val relevant: 'a list -> bool
+  val proofs_enabled: int -> bool
+  val proofs_enabled_timing: Time.time -> bool
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val cond_forks: params -> (unit -> 'a) list -> 'a future list
@@ -577,6 +581,22 @@ fun task_context name group f x =
     end);
 
 
+(* scheduling parameters *)
+
+fun enabled () =
+  Multithreading.max_threads () > 1 andalso
+    let val lim = Options.default_int "parallel_limit"
+    in lim <= 0 orelse SYNCHRONIZED "enabled" (fn () => Task_Queue.total_jobs (! queue) < lim) end;
+
+val relevant = (fn [] => false | [_] => false | _ => enabled ());
+
+fun proofs_enabled n =
+  ! Multithreading.parallel_proofs >= n andalso is_some (worker_task ()) andalso enabled ();
+
+fun proofs_enabled_timing t =
+  proofs_enabled 1 andalso Time.toReal t >= Options.default_real "parallel_subproofs_threshold";
+
+
 (* fast-path operations -- bypass task queue if possible *)
 
 fun value_result (res: 'a Exn.result) =
@@ -590,7 +610,7 @@ fun value_result (res: 'a Exn.result) =
 fun value x = value_result (Exn.Res x);
 
 fun cond_forks args es =
-  if Multithreading.enabled () then forks args es
+  if enabled () then forks args es
   else map (fn e => value_result (Exn.interruptible_capture e ())) es;
 
 fun map_future f x =

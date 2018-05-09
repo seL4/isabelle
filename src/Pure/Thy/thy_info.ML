@@ -388,7 +388,7 @@ fun use_theories {document, symbols, bibtex_entries, last_timing, qualifier, mas
       {document = document, symbols = symbols, bibtex_entries = bibtex_entries,
         last_timing = last_timing};
     val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty;
-  in if Multithreading.enabled () then schedule_futures tasks else schedule_seq tasks end;
+  in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
   use_theories

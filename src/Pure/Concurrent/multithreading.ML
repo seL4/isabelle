@@ -8,10 +8,7 @@ signature MULTITHREADING =
 sig
   val max_threads: unit -> int
   val max_threads_update: int -> unit
-  val enabled: unit -> bool
-  val relevant: 'a list -> bool
   val parallel_proofs: int ref
-  val parallel_proofs_enabled: int -> bool
   val sync_wait: Time.time option -> ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
@@ -42,9 +39,6 @@ in
 
 fun max_threads () = ! max_threads_state;
 fun max_threads_update m = max_threads_state := max_threads_result m;
-fun enabled () = max_threads () > 1;
-
-val relevant = (fn [] => false | [_] => false | _ => enabled ());
 
 end;
 
@@ -52,9 +46,6 @@ end;
 (* parallel_proofs *)
 
 val parallel_proofs = ref 1;
-
-fun parallel_proofs_enabled n =
-  enabled () andalso ! parallel_proofs >= n;
 
 
 (* synchronous wait *)

@@ -23,8 +23,6 @@ sig
   val finish: Proof.context -> thm -> thm
   val norm_result: Proof.context -> thm -> thm
   val skip_proofs_enabled: unit -> bool
-  val future_enabled: int -> bool
-  val future_enabled_timing: Time.time -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: Proof.context -> cterm list -> cterm -> (thm list -> tactic) -> thm
   val is_schematic: term -> bool
@@ -111,14 +109,6 @@ fun skip_proofs_enabled () =
     else skip
   end;
 
-fun future_enabled n =
-  Multithreading.parallel_proofs_enabled n andalso
-  is_some (Future.worker_task ());
-
-fun future_enabled_timing t =
-  future_enabled 1 andalso
-    Time.toReal t >= Options.default_real "parallel_subproofs_threshold";
-
 
 (* future_result *)
 
@@ -176,7 +166,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
 
     val schematic = exists is_schematic props;
     val immediate = is_none fork_pri;
-    val future = future_enabled 1;
+    val future = Future.proofs_enabled 1;
     val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();
 
     val pos = Position.thread_data ();
@@ -258,7 +248,7 @@ val quick_and_dirty = Config.bool quick_and_dirty_raw;
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then
     prove ctxt xs asms prop (fn _ => ALLGOALS (Skip_Proof.cheat_tac ctxt))
-  else (if future_enabled 1 then prove_future_pri ctxt ~2 else prove ctxt) xs asms prop tac;
+  else (if Future.proofs_enabled 1 then prove_future_pri ctxt ~2 else prove ctxt) xs asms prop tac;
 
 fun prove_sorry_global thy xs asms prop tac =
   Drule.export_without_context

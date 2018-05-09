@@ -71,6 +71,8 @@ option threads_trace : int = 0
 option threads_stack_limit : real = 0.25
   -- "maximum stack size for worker threads (in giga words, 0 = unlimited)"
 
+public option parallel_limit : int = 0
+  -- "approximative limit for parallel tasks (0 = unlimited)"
 public option parallel_print : bool = true
   -- "parallel and asynchronous printing of results"
 public option parallel_proofs : int = 1
