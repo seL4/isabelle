@@ -306,17 +306,17 @@ by(simp add: msort_bu_def msec_merge_all comp_def)
 
 subsubsection "Time Complexity"
 
-fun c_merge_adj :: "('a::linorder) list list \<Rightarrow> real" where
+fun c_merge_adj :: "('a::linorder) list list \<Rightarrow> nat" where
 "c_merge_adj [] = 0" |
 "c_merge_adj [x] = 0" |
 "c_merge_adj (x # y # zs) = c_merge x y + c_merge_adj zs"
 
-fun c_merge_all :: "('a::linorder) list list \<Rightarrow> real" where
+fun c_merge_all :: "('a::linorder) list list \<Rightarrow> nat" where
 "c_merge_all [] = undefined" |
 "c_merge_all [x] = 0" |
 "c_merge_all xs = c_merge_adj xs + c_merge_all (merge_adj xs)"
 
-definition c_msort_bu :: "('a::linorder) list \<Rightarrow> real" where
+definition c_msort_bu :: "('a::linorder) list \<Rightarrow> nat" where
 "c_msort_bu xs = (if xs = [] then 0 else c_merge_all (map (\<lambda>x. [x]) xs))"
 
 lemma length_merge_adj:

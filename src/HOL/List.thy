@@ -4947,17 +4947,25 @@ done
 
 lemmas sorted_wrt2_simps = sorted_wrt1 sorted_wrt2
 
+lemma sorted_wrt_true [simp]:
+  "sorted_wrt (\<lambda>_ _. True) xs"
+by (induction xs) simp_all
+
 lemma sorted_wrt_append:
   "sorted_wrt P (xs @ ys) \<longleftrightarrow>
   sorted_wrt P xs \<and> sorted_wrt P ys \<and> (\<forall>x\<in>set xs. \<forall>y\<in>set ys. P x y)"
 by (induction xs) auto
 
+lemma sorted_wrt_map:
+  "sorted_wrt R (map f xs) = sorted_wrt (\<lambda>x y. R (f x) (f y)) xs"
+by (induction xs) simp_all
+
 lemma sorted_wrt_rev:
   "sorted_wrt P (rev xs) = sorted_wrt (\<lambda>x y. P y x) xs"
 by (induction xs) (auto simp add: sorted_wrt_append)
 
-lemma sorted_wrt_mono:
-  "(\<And>x y. P x y \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
+lemma sorted_wrt_mono_rel:
+  "(\<And>x y. \<lbrakk> x \<in> set xs; y \<in> set xs; P x y \<rbrakk> \<Longrightarrow> Q x y) \<Longrightarrow> sorted_wrt P xs \<Longrightarrow> sorted_wrt Q xs"
 by(induction xs)(auto)
 
 lemma sorted_wrt01: "length xs \<le> 1 \<Longrightarrow> sorted_wrt P xs"
@@ -4965,7 +4973,7 @@ by(auto simp: le_Suc_eq length_Suc_conv)
 
 text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
 
-lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [0..<n]"
+lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [m..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
 
 text \<open>Each element is greater or equal to its index:\<close>
