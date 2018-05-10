@@ -1,5 +1,5 @@
 (*  Title:      HOL/Analysis/Determinants.thy
-    Author:     Amine Chaieb, University of Cambridge
+    Author:     Amine Chaieb, University of Cambridge; proofs reworked by LCP
 *)
 
 section \<open>Traces, Determinant of square matrices and some properties\<close>
@@ -202,7 +202,7 @@ proof -
     apply (subst sum_permutations_compose_right[OF p])
     apply (rule *)
     done
-qed 
+qed
 
 lemma det_permute_columns:
   fixes A :: "'a::comm_ring_1^'n^'n"
@@ -447,7 +447,7 @@ next
     unfolding thz step.IH det_row_mul[of i] det_row_add[of i] by simp
   then show ?case
     unfolding scalar_mult_eq_scaleR .
-qed 
+qed
 
 lemma matrix_id [simp]: "det (matrix id) = 1"
   by (simp add: matrix_id_mat_1)
@@ -734,7 +734,7 @@ next
     unfolding invertible_right_inverse matrix_right_invertible_independent_rows
     by blast
   have thr0: "- row i A = sum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
-    unfolding sum_cmul  using c ci   
+    unfolding sum_cmul  using c ci
     by (auto simp: sum.remove[OF fU iU] eq_vector_fraction_iff add_eq_0_iff)
   have thr: "- row i A \<in> vec.span {row j A| j. j \<noteq> i}"
     unfolding thr0 by (auto intro: vec.span_base vec.span_scale vec.span_sum)
@@ -1011,14 +1011,10 @@ lemma orthogonal_matrix_id: "orthogonal_matrix (mat 1 :: _^'n^'n)"
 
 lemma orthogonal_matrix_mul:
   fixes A :: "real ^'n^'n"
-  assumes oA : "orthogonal_matrix A"
-    and oB: "orthogonal_matrix B"
+  assumes  "orthogonal_matrix A" "orthogonal_matrix B"
   shows "orthogonal_matrix(A ** B)"
-  using oA oB
-  unfolding orthogonal_matrix matrix_transpose_mul
-  apply (subst matrix_mul_assoc)
-  apply (subst matrix_mul_assoc[symmetric], simp)
-  done
+  using assms
+  by (simp add: orthogonal_matrix matrix_transpose_mul matrix_left_right_inverse matrix_mul_assoc)
 
 lemma orthogonal_transformation_matrix:
   fixes f:: "real^'n \<Rightarrow> real^'n"
@@ -1058,9 +1054,8 @@ proof -
   {
     assume lf: "Vector_Spaces.linear ( *s) ( *s) f" and om: "orthogonal_matrix ?mf"
     from lf om have ?lhs
-      apply (simp only: orthogonal_matrix_def norm_eq orthogonal_transformation)
-      apply (simp only: matrix_works[OF lf, symmetric])
-      apply (subst dot_matrix_vector_mul)
+      unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
+      apply (simp only: matrix_works[OF lf, symmetric] dot_matrix_vector_mul)
       apply (simp add: dot_matrix_product linear_def scalar_mult_eq_scaleR)
       done
   }
@@ -1073,27 +1068,14 @@ lemma det_orthogonal_matrix:
   assumes oQ: "orthogonal_matrix Q"
   shows "det Q = 1 \<or> det Q = - 1"
 proof -
-  have th: "\<And>x::'a. x = 1 \<or> x = - 1 \<longleftrightarrow> x*x = 1" (is "\<And>x::'a. ?ths x")
-  proof -
-    fix x:: 'a
-    have th0: "x * x - 1 = (x - 1) * (x + 1)"
-      by (simp add: field_simps)
-    have th1: "\<And>(x::'a) y. x = - y \<longleftrightarrow> x + y = 0"
-      apply (subst eq_iff_diff_eq_0, simp)
-      done
-    have "x * x = 1 \<longleftrightarrow> x * x - 1 = 0"
-      by simp
-    also have "\<dots> \<longleftrightarrow> x = 1 \<or> x = - 1"
-      unfolding th0 th1 by simp
-    finally show "?ths x" ..
-  qed
-  from oQ have "Q ** transpose Q = mat 1"
-    by (metis orthogonal_matrix_def)
+  have "Q ** transpose Q = mat 1"
+    by (metis oQ orthogonal_matrix_def)
   then have "det (Q ** transpose Q) = det (mat 1:: 'a^'n^'n)"
     by simp
   then have "det Q * det Q = 1"
     by (simp add: det_mul)
-  then show ?thesis unfolding th .
+  then show ?thesis
+    by (simp add: square_eq_1_iff)
 qed
 
 lemma orthogonal_transformation_det [simp]:
@@ -1268,98 +1250,40 @@ subsection \<open>Can extend an isometry from unit sphere\<close>
 
 lemma isometry_sphere_extend:
   fixes f:: "'a::real_inner \<Rightarrow> 'a"
-  assumes f1: "\<forall>x. norm x = 1 \<longrightarrow> norm (f x) = 1"
-    and fd1: "\<forall> x y. norm x = 1 \<longrightarrow> norm y = 1 \<longrightarrow> dist (f x) (f y) = dist x y"
+  assumes f1: "\<And>x. norm x = 1 \<Longrightarrow> norm (f x) = 1"
+    and fd1: "\<And>x y. \<lbrakk>norm x = 1; norm y = 1\<rbrakk> \<Longrightarrow> dist (f x) (f y) = dist x y"
   shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
 proof -
   {
-    fix x y x' y' x0 y0 x0' y0' :: "'a"
-    assume H:
-      "x = norm x *\<^sub>R x0"
-      "y = norm y *\<^sub>R y0"
-      "x' = norm x *\<^sub>R x0'" "y' = norm y *\<^sub>R y0'"
-      "norm x0 = 1" "norm x0' = 1" "norm y0 = 1" "norm y0' = 1"
-      "norm(x0' - y0') = norm(x0 - y0)"
-    then have *: "x0 \<bullet> y0 = x0' \<bullet> y0' + y0' \<bullet> x0' - y0 \<bullet> x0 "
+    fix x y x' y' u v u' v' :: "'a"
+    assume H: "x = norm x *\<^sub>R u" "y = norm y *\<^sub>R v"
+              "x' = norm x *\<^sub>R u'" "y' = norm y *\<^sub>R v'"
+      and J: "norm u = 1" "norm u' = 1" "norm v = 1" "norm v' = 1" "norm(u' - v') = norm(u - v)"
+    then have *: "u \<bullet> v = u' \<bullet> v' + v' \<bullet> u' - v \<bullet> u "
       by (simp add: norm_eq norm_eq_1 inner_add inner_diff)
-    have "norm(x' - y') = norm(x - y)"
-      apply (subst H(1))
-      apply (subst H(2))
-      apply (subst H(3))
-      apply (subst H(4))
-      using H(5-9)
-      apply (simp add: norm_eq norm_eq_1)
-      apply (simp add: inner_diff scalar_mult_eq_scaleR)
-      unfolding *
-      apply (simp add: field_simps)
-      done
+    have "norm (norm x *\<^sub>R u' - norm y *\<^sub>R v') = norm (norm x *\<^sub>R u - norm y *\<^sub>R v)"
+      using J by (simp add: norm_eq norm_eq_1 inner_diff * field_simps)
+    then have "norm(x' - y') = norm(x - y)"
+      using H by metis
   }
-  note th0 = this
-  let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"
-  {
-    fix x:: "'a"
-    assume nx: "norm x = 1"
-    have "?g x = f x"
-      using nx by auto
-  }
-  then have thfg: "\<forall>x. norm x = 1 \<longrightarrow> ?g x = f x"
-    by blast
-  have g0: "?g 0 = 0"
-    by simp
-  {
-    fix x y :: "'a"
-    {
-      assume "x = 0" "y = 0"
-      then have "dist (?g x) (?g y) = dist x y"
-        by simp
-    }
-    moreover
-    {
-      assume "x = 0" "y \<noteq> 0"
-      then have "dist (?g x) (?g y) = dist x y"
-        apply (simp add: dist_norm)
-        apply (rule f1[rule_format])
-        apply (simp add: field_simps)
-        done
-    }
-    moreover
-    {
-      assume "x \<noteq> 0" "y = 0"
-      then have "dist (?g x) (?g y) = dist x y"
-        apply (simp add: dist_norm)
-        apply (rule f1[rule_format])
-        apply (simp add: field_simps)
-        done
-    }
-    moreover
-    {
-      assume z: "x \<noteq> 0" "y \<noteq> 0"
-      have th00:
-        "x = norm x *\<^sub>R (inverse (norm x) *\<^sub>R x)"
-        "y = norm y *\<^sub>R (inverse (norm y) *\<^sub>R y)"
-        "norm x *\<^sub>R f ((inverse (norm x) *\<^sub>R x)) = norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"
-        "norm y *\<^sub>R f (inverse (norm y) *\<^sub>R y) = norm y *\<^sub>R f (inverse (norm y) *\<^sub>R y)"
-        "norm (inverse (norm x) *\<^sub>R x) = 1"
-        "norm (f (inverse (norm x) *\<^sub>R x)) = 1"
-        "norm (inverse (norm y) *\<^sub>R y) = 1"
-        "norm (f (inverse (norm y) *\<^sub>R y)) = 1"
-        "norm (f (inverse (norm x) *\<^sub>R x) - f (inverse (norm y) *\<^sub>R y)) =
-          norm (inverse (norm x) *\<^sub>R x - inverse (norm y) *\<^sub>R y)"
-        using z
-        by (auto simp: field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
-      from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
-        by (simp add: dist_norm)
-    }
-    ultimately have "dist (?g x) (?g y) = dist x y"
-      by blast
-  }
-  note thd = this
-    show ?thesis
-    apply (rule exI[where x= ?g])
+  note norm_eq = this
+  let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (x /\<^sub>R norm x)"
+  have thfg: "?g x = f x" if "norm x = 1" for x
+    using that by auto
+  have thd: "dist (?g x) (?g y) = dist x y" for x y
+  proof (cases "x=0 \<or> y=0")
+    case False
+    show "dist (?g x) (?g y) = dist x y"
+      unfolding dist_norm
+    proof (rule norm_eq)
+      show "x = norm x *\<^sub>R (x /\<^sub>R norm x)" "y = norm y *\<^sub>R (y /\<^sub>R norm y)"
+           "norm (f (x /\<^sub>R norm x)) = 1" "norm (f (y /\<^sub>R norm y)) = 1"
+        using False f1 by auto
+    qed (use False in \<open>auto simp: field_simps intro: f1 fd1[unfolded dist_norm]\<close>)
+  qed (auto simp: f1)
+  show ?thesis
     unfolding orthogonal_transformation_isometry
-    using g0 thfg thd
-    apply metis
-    done
+    by (rule exI[where x= ?g]) (metis thfg thd)
 qed
 
 subsection \<open>Rotation, reflection, rotoinversion\<close>
