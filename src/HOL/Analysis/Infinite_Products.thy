@@ -201,14 +201,14 @@ proof
 next
   assume ?rhs then show ?lhs
     unfolding prod_defs
-    by (rule_tac x="0" in exI) (auto simp: )
+    by (rule_tac x=0 in exI) auto
 qed
 
 lemma convergent_prod_iff_convergent: 
   fixes f :: "nat \<Rightarrow> 'a :: {topological_semigroup_mult,t2_space,idom}"
   assumes "\<And>i. f i \<noteq> 0"
   shows "convergent_prod f \<longleftrightarrow> convergent (\<lambda>n. \<Prod>i\<le>n. f i) \<and> lim (\<lambda>n. \<Prod>i\<le>n. f i) \<noteq> 0"
-  by (force simp add: convergent_prod_iff_nz_lim assms convergent_def limI)
+  by (force simp: convergent_prod_iff_nz_lim assms convergent_def limI)
 
 
 lemma abs_convergent_prod_altdef:
@@ -566,7 +566,7 @@ proof -
       by auto
     then have "prod f {..n+M} = prod f {..<M} * prod f {M..n+M}"
       by simp (subst prod.union_disjoint; force)
-    also have "... = prod f {..<M} * (\<Prod>i\<le>n. f (i + M))"
+    also have "\<dots> = prod f {..<M} * (\<Prod>i\<le>n. f (i + M))"
       by (metis (mono_tags, lifting) add.left_neutral atMost_atLeast0 prod_shift_bounds_cl_nat_ivl)
     finally show ?thesis by metis
   qed
@@ -616,7 +616,7 @@ proof -
     case (elim n)
     then have "{..n} = {..<N} \<union> {N..n}"
       by auto
-    also have "prod f ... = prod f {..<N} * prod f {N..n}"
+    also have "prod f \<dots> = prod f {..<N} * prod f {N..n}"
       by (intro prod.union_disjoint) auto
     also from N have "prod f {N..n} = prod g {N..n}"
       by (intro prod.cong) simp_all
@@ -656,7 +656,7 @@ proof -
   have eq: "prod f {..n + Suc (Max N)} = prod f N" for n
   proof (rule prod.mono_neutral_right)
     show "N \<subseteq> {..n + Suc (Max N)}"
-      by (auto simp add: le_Suc_eq trans_le_add2)
+      by (auto simp: le_Suc_eq trans_le_add2)
     show "\<forall>i\<in>{..n + Suc (Max N)} - N. f i = 1"
       using f by blast
   qed auto
@@ -687,7 +687,7 @@ proof -
         show "{Suc (Max ?Z)..n + Max N + Suc (Max ?Z)} = (\<lambda>i. i + Suc (Max ?Z)) ` {..n + Max N}"
           using le_Suc_ex by fastforce
       qed (auto simp: inj_on_def)
-      also have "... = ?q"
+      also have "\<dots> = ?q"
         by (rule prod.mono_neutral_right)
            (use Max.coboundedI [OF \<open>finite N\<close>] f in \<open>force+\<close>)
       finally show ?thesis .

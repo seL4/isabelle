@@ -77,7 +77,7 @@ proof -
   }
   then show ?thesis
     unfolding det_def
-    by (subst sum_permutations_inverse) (blast intro: sum.cong elim: )
+    by (subst sum_permutations_inverse) (blast intro: sum.cong)
 qed
 
 lemma det_lowerdiagonal:
@@ -91,7 +91,7 @@ proof -
   have fU: "finite ?U"
     by simp
   have id0: "{id} \<subseteq> ?PU"
-    by (auto simp add: permutes_id)
+    by (auto simp: permutes_id)
   have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"
   proof
     fix p
@@ -118,7 +118,7 @@ proof -
   have fU: "finite ?U"
     by simp
   have id0: "{id} \<subseteq> ?PU"
-    by (auto simp add: permutes_id)
+    by (auto simp: permutes_id)
   have p0: "\<forall>p \<in> ?PU -{id}. ?pp p = 0"
   proof
     fix p
@@ -145,7 +145,7 @@ proof -
   have fU: "finite ?U" by simp
   from finite_permutations[OF fU] have fPU: "finite ?PU" .
   have id0: "{id} \<subseteq> ?PU"
-    by (auto simp add: permutes_id)
+    by (auto simp: permutes_id)
   have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"
   proof
     fix p
@@ -250,8 +250,8 @@ proof -
     have "sign (?t_jk \<circ> x) = sign (?t_jk) * sign x"
       by (metis (lifting) finite_class.finite_UNIV mem_Collect_eq
           permutation_permutes permutation_swap_id sign_compose x)
-    also have "... = - sign x" using sign_tjk by simp
-    also have "... \<noteq> sign x" unfolding sign_def by simp
+    also have "\<dots> = - sign x" using sign_tjk by simp
+    also have "\<dots> \<noteq> sign x" unfolding sign_def by simp
     finally have "sign (?t_jk \<circ> x) \<noteq> sign x" and "(?t_jk \<circ> x) \<in> ?S2"
       using x by force+
   }
@@ -274,9 +274,9 @@ proof -
   have "sum ?f ?S2 = sum ((\<lambda>p. of_int (sign p) * (\<Prod>i\<in>UNIV. A $ i $ p i))
   \<circ> (\<circ>) (Fun.swap j k id)) {p \<in> {p. p permutes UNIV}. evenperm p}"
     unfolding g_S1 by (rule sum.reindex[OF inj_g])
-  also have "... = sum (\<lambda>p. of_int (sign (?t_jk \<circ> p)) * (\<Prod>i\<in>UNIV. A $ i $ p i)) ?S1"
-    unfolding o_def by (rule sum.cong, auto simp add: tjk_eq)
-  also have "... = sum (\<lambda>p. - ?f p) ?S1"
+  also have "\<dots> = sum (\<lambda>p. of_int (sign (?t_jk \<circ> p)) * (\<Prod>i\<in>UNIV. A $ i $ p i)) ?S1"
+    unfolding o_def by (rule sum.cong, auto simp: tjk_eq)
+  also have "\<dots> = sum (\<lambda>p. - ?f p) ?S1"
   proof (rule sum.cong, auto)
     fix x assume x: "x permutes ?U"
       and even_x: "evenperm x"
@@ -289,14 +289,14 @@ proof -
       = - (of_int (sign x) * (\<Prod>i\<in>UNIV. A $ i $ x i))"
       by auto
   qed
-  also have "...= - sum ?f ?S1" unfolding sum_negf ..
+  also have "\<dots>= - sum ?f ?S1" unfolding sum_negf ..
   finally have *: "sum ?f ?S2 = - sum ?f ?S1" .
   have "det A = (\<Sum>p | p permutes UNIV. of_int (sign p) * (\<Prod>i\<in>UNIV. A $ i $ p i))"
     unfolding det_def ..
-  also have "...= sum ?f ?S1 + sum ?f ?S2"
+  also have "\<dots>= sum ?f ?S1 + sum ?f ?S2"
     by (subst PU_decomposition, rule sum.union_disjoint[OF _ _ disjoint], auto)
-  also have "...= sum ?f ?S1 - sum ?f ?S1 " unfolding * by auto
-  also have "...= 0" by simp
+  also have "\<dots>= sum ?f ?S1 - sum ?f ?S1 " unfolding * by auto
+  also have "\<dots>= 0" by simp
   finally show "det A = 0" by simp
 qed
 
@@ -309,7 +309,7 @@ lemma det_identical_rows:
 lemma det_zero_row:
   fixes A :: "'a::{idom, ring_char_0}^'n^'n" and F :: "'b::{field}^'m^'m"
   shows "row i A = 0 \<Longrightarrow> det A = 0" and "row j F = 0 \<Longrightarrow> det F = 0"
-  by (force simp add: row_def det_def vec_eq_iff sign_nz intro!: sum.neutral)+
+  by (force simp: row_def det_def vec_eq_iff sign_nz intro!: sum.neutral)+
 
 lemma det_zero_column:
   fixes A :: "'a::{idom, ring_char_0}^'n^'n" and F :: "'b::{field}^'m^'m"
@@ -376,7 +376,7 @@ proof (rule sum.cong)
   have kU: "?U = insert k ?Uk"
     by blast
   have eq: "prod (\<lambda>i. ?f i $ p i) ?Uk = prod (\<lambda>i. ?g i $ p i) ?Uk"
-    by (auto simp: )
+    by auto
   have Uk: "finite ?Uk" "k \<notin> ?Uk"
     by auto
   have "prod (\<lambda>i. ?f i $ p i) ?U = prod (\<lambda>i. ?f i $ p i) (insert k ?Uk)"
@@ -475,7 +475,7 @@ proof -
   proof (cases "\<forall>i j. i \<noteq> j \<longrightarrow> row i A \<noteq> row j A")
     case True
     with i have "vec.span (rows A - {row i A}) \<subseteq> vec.span {row j A |j. j \<noteq> i}"
-      by (auto simp add: rows_def intro!: vec.span_mono)
+      by (auto simp: rows_def intro!: vec.span_mono)
     then have "- row i A \<in> vec.span {row j A|j. j \<noteq> i}"
       by (meson i subsetCE vec.span_neg)
     from det_row_span[OF this]
@@ -515,17 +515,16 @@ proof (induct k)
   have *: "{f. \<forall>i. f i = i} = {id}"
     by auto
   show ?case
-    by (auto simp add: *)
+    by (auto simp: *)
 next
   case (Suc k)
   let ?f = "\<lambda>(y::nat,g) i. if i = Suc k then y else g i"
   let ?S = "?f ` (S \<times> {f. (\<forall>i\<in>{1..k}. f i \<in> S) \<and> (\<forall>i. i \<notin> {1..k} \<longrightarrow> f i = i)})"
   have "?S = {f. (\<forall>i\<in>{1.. Suc k}. f i \<in> S) \<and> (\<forall>i. i \<notin> {1.. Suc k} \<longrightarrow> f i = i)}"
-    apply (auto simp add: image_iff)
+    apply (auto simp: image_iff)
     apply (rename_tac f)
     apply (rule_tac x="f (Suc k)" in bexI)
-    apply (rule_tac x = "\<lambda>i. if i = Suc k then i else f i" in exI)
-    apply auto
+    apply (rule_tac x = "\<lambda>i. if i = Suc k then i else f i" in exI, auto)
     done
   with finite_imageI[OF finite_cartesian_product[OF fS Suc.hyps(1)], of ?f]
   show ?case
@@ -736,7 +735,7 @@ next
     by blast
   have thr0: "- row i A = sum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
     unfolding sum_cmul  using c ci   
-    by (auto simp add: sum.remove[OF fU iU] eq_vector_fraction_iff add_eq_0_iff)
+    by (auto simp: sum.remove[OF fU iU] eq_vector_fraction_iff add_eq_0_iff)
   have thr: "- row i A \<in> vec.span {row j A| j. j \<noteq> i}"
     unfolding thr0 by (auto intro: vec.span_base vec.span_scale vec.span_sum)
   let ?B = "(\<chi> k. if k = i then 0 else row k A) :: 'a^'n^'n"
@@ -789,7 +788,7 @@ proof safe
   show "\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> g \<circ> f = id"
   proof (intro exI conjI)
     show "Vector_Spaces.linear ( *s) ( *s) (\<lambda>y. B *v y)"
-      by (simp add:)
+      by simp
     show "(( *v) B) \<circ> f = id"
       unfolding o_def
       by (metis assms 1 eq_id_iff matrix_vector_mul(1) matrix_vector_mul_assoc matrix_vector_mul_lid)
@@ -817,7 +816,7 @@ proof safe
   show "\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> f \<circ> g = id"
   proof (intro exI conjI)
     show "Vector_Spaces.linear ( *s) ( *s) (( *v) B)"
-      by (simp add: )
+      by simp
     show "f \<circ> ( *v) B = id"
       using 1 assms comp_apply eq_id_iff vec.linear_id matrix_id_mat_1 matrix_vector_mul_assoc matrix_works
       by (metis (no_types, hide_lams))
@@ -967,7 +966,7 @@ lemma orthogonal_orthogonal_transformation:
 
 lemma orthogonal_transformation_compose:
    "\<lbrakk>orthogonal_transformation f; orthogonal_transformation g\<rbrakk> \<Longrightarrow> orthogonal_transformation(f \<circ> g)"
-  by (auto simp add: orthogonal_transformation_def linear_compose)
+  by (auto simp: orthogonal_transformation_def linear_compose)
 
 lemma orthogonal_transformation_neg:
   "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
@@ -1018,8 +1017,7 @@ lemma orthogonal_matrix_mul:
   using oA oB
   unfolding orthogonal_matrix matrix_transpose_mul
   apply (subst matrix_mul_assoc)
-  apply (subst matrix_mul_assoc[symmetric])
-  apply (simp add: )
+  apply (subst matrix_mul_assoc[symmetric], simp)
   done
 
 lemma orthogonal_transformation_matrix:
@@ -1081,8 +1079,7 @@ proof -
     have th0: "x * x - 1 = (x - 1) * (x + 1)"
       by (simp add: field_simps)
     have th1: "\<And>(x::'a) y. x = - y \<longleftrightarrow> x + y = 0"
-      apply (subst eq_iff_diff_eq_0)
-      apply simp
+      apply (subst eq_iff_diff_eq_0, simp)
       done
     have "x * x = 1 \<longleftrightarrow> x * x - 1 = 0"
       by simp
@@ -1199,7 +1196,7 @@ lemma orthogonal_matrix_exists_basis:
 proof -
   obtain S where "a \<in> S" "pairwise orthogonal S" and noS: "\<And>x. x \<in> S \<Longrightarrow> norm x = 1"
    and "independent S" "card S = CARD('n)" "span S = UNIV"
-    using vector_in_orthonormal_basis assms by (force simp: )
+    using vector_in_orthonormal_basis assms by force
   then obtain f0 where "bij_betw f0 (UNIV::'n set) S"
     by (metis finite_class.finite_UNIV finite_same_card_bij finiteI_independent)
   then obtain f where f: "bij_betw f (UNIV::'n set) S" and a: "a = f k"
@@ -1349,7 +1346,7 @@ proof -
         "norm (f (inverse (norm x) *\<^sub>R x) - f (inverse (norm y) *\<^sub>R y)) =
           norm (inverse (norm x) *\<^sub>R x - inverse (norm y) *\<^sub>R y)"
         using z
-        by (auto simp add: field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
+        by (auto simp: field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
         by (simp add: dist_norm)
     }
