@@ -75,8 +75,33 @@ lemma has_prod_cong: "(\<And>n. f n = g n) \<Longrightarrow> f has_prod c \<long
 lemma gen_has_prod_nonzero [simp]: "\<not> gen_has_prod f M 0"
   by (simp add: gen_has_prod_def)
 
+lemma gen_has_prod_eq_0:
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  assumes p: "gen_has_prod f m p" and i: "f i = 0" "i \<ge> m"
+  shows "p = 0"
+proof -
+  have eq0: "(\<Prod>k\<le>n. f (k+m)) = 0" if "i - m \<le> n" for n
+    by (metis i that atMost_atLeast0 atMost_iff diff_add finite_atLeastAtMost prod_zero_iff)
+  have "(\<lambda>n. \<Prod>i\<le>n. f (i + m)) \<longlonglongrightarrow> 0"
+    by (rule LIMSEQ_offset [where k = "i-m"]) (simp add: eq0)
+    with p show ?thesis
+      unfolding gen_has_prod_def
+    using LIMSEQ_unique by blast
+qed
+
 lemma has_prod_0_iff: "f has_prod 0 \<longleftrightarrow> (\<exists>i. f i = 0 \<and> (\<exists>p. gen_has_prod f (Suc i) p))"
   by (simp add: has_prod_def)
+      
+lemma has_prod_unique2: 
+  fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
+  assumes "f has_prod a" "f has_prod b" shows "a = b"
+  using assms
+  by (auto simp: has_prod_def gen_has_prod_eq_0) (meson gen_has_prod_def sequentially_bot tendsto_unique)
+
+lemma has_prod_unique:
+  fixes f :: "nat \<Rightarrow> 'a :: {idom,t2_space}"
+  shows "f has_prod s \<Longrightarrow> s = prodinf f"
+  by (simp add: has_prod_unique2 prodinf_def the_equality)
 
 lemma convergent_prod_altdef:
   fixes f :: "nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}"
@@ -385,7 +410,14 @@ proof -
     unfolding prod_defs by blast
 qed
 
-lemma abs_convergent_prod_ignore_initial_segment:
+corollary convergent_prod_ignore_nonzero_segment:
+  fixes f :: "nat \<Rightarrow> 'a :: real_normed_field"
+  assumes f: "convergent_prod f" and nz: "\<And>i. i \<ge> M \<Longrightarrow> f i \<noteq> 0"
+  shows "\<exists>p. gen_has_prod f M p"
+  using convergent_prod_ignore_initial_segment [OF f]
+  by (metis convergent_LIMSEQ_iff convergent_prod_iff_convergent le_add_same_cancel2 nz prod_defs(1) zero_order(1))
+
+corollary abs_convergent_prod_ignore_initial_segment:
   assumes "abs_convergent_prod f"
   shows   "abs_convergent_prod (\<lambda>n. f (n + m))"
   using assms unfolding abs_convergent_prod_def 
@@ -519,15 +551,13 @@ proof -
   with L show ?thesis by (auto simp: prod_defs)
 qed
 
-lemma convergent_prod_offset_0:
+lemma gen_has_prod_cases:
   fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
-  assumes "convergent_prod f" "\<And>i. f i \<noteq> 0"
-  shows "\<exists>p. gen_has_prod f 0 p"
-  using assms
-  unfolding convergent_prod_def
-proof (clarsimp simp: prod_defs)
-  fix M p
-  assume "(\<lambda>n. \<Prod>i\<le>n. f (i + M)) \<longlonglongrightarrow> p" "p \<noteq> 0"
+  assumes "gen_has_prod f M p"
+  obtains i where "i<M" "f i = 0" | p where "gen_has_prod f 0 p"
+proof -
+  have "(\<lambda>n. \<Prod>i\<le>n. f (i + M)) \<longlonglongrightarrow> p" "p \<noteq> 0"
+    using assms unfolding gen_has_prod_def by blast+
   then have "(\<lambda>n. prod f {..<M} * (\<Prod>i\<le>n. f (i + M))) \<longlonglongrightarrow> prod f {..<M} * p"
     by (metis tendsto_mult_left)
   moreover have "prod f {..<M} * (\<Prod>i\<le>n. f (i + M)) = prod f {..n+M}" for n
@@ -542,10 +572,17 @@ proof (clarsimp simp: prod_defs)
   qed
   ultimately have "(\<lambda>n. prod f {..n}) \<longlonglongrightarrow> prod f {..<M} * p"
     by (auto intro: LIMSEQ_offset [where k=M])
-  then show "\<exists>p. (\<lambda>n. prod f {..n}) \<longlonglongrightarrow> p \<and> p \<noteq> 0"
-    using \<open>p \<noteq> 0\<close> assms
-    by (rule_tac x="prod f {..<M} * p" in exI) auto
+  then have "gen_has_prod f 0 (prod f {..<M} * p)" if "\<forall>i<M. f i \<noteq> 0"
+    using \<open>p \<noteq> 0\<close> assms that by (auto simp: gen_has_prod_def)
+  then show thesis
+    using that by blast
 qed
+
+corollary convergent_prod_offset_0:
+  fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
+  assumes "convergent_prod f" "\<And>i. f i \<noteq> 0"
+  shows "\<exists>p. gen_has_prod f 0 p"
+  using assms convergent_prod_def gen_has_prod_cases by blast
 
 lemma prodinf_eq_lim:
   fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
@@ -714,5 +751,71 @@ lemma has_prod_single:
   shows "(\<lambda>r. if r = i then f r else 1) has_prod f i"
   using has_prod_If_finite[of "\<lambda>r. r = i"] by simp
 
+context
+  fixes f :: "nat \<Rightarrow> 'a :: real_normed_field"
+begin
+
+lemma convergent_prod_imp_has_prod: 
+  assumes "convergent_prod f"
+  shows "\<exists>p. f has_prod p"
+proof -
+  obtain M p where p: "gen_has_prod f M p"
+    using assms convergent_prod_def by blast
+  then have "p \<noteq> 0"
+    using gen_has_prod_nonzero by blast
+  with p have fnz: "f i \<noteq> 0" if "i \<ge> M" for i
+    using gen_has_prod_eq_0 that by blast
+  define C where "C = (\<Prod>n<M. f n)"
+  show ?thesis
+  proof (cases "\<forall>n\<le>M. f n \<noteq> 0")
+    case True
+    then have "C \<noteq> 0"
+      by (simp add: C_def)
+    then show ?thesis
+      by (meson True assms convergent_prod_offset_0 fnz has_prod_def nat_le_linear)
+  next
+    case False
+    let ?N = "GREATEST n. f n = 0"
+    have 0: "f ?N = 0"
+      using fnz False
+      by (metis (mono_tags, lifting) GreatestI_ex_nat nat_le_linear)
+    have "f i \<noteq> 0" if "i > ?N" for i
+      by (metis (mono_tags, lifting) Greatest_le_nat fnz leD linear that)
+    then have "\<exists>p. gen_has_prod f (Suc ?N) p"
+      using assms by (auto simp: intro!: convergent_prod_ignore_nonzero_segment)
+    then show ?thesis
+      unfolding has_prod_def using 0 by blast
+  qed
+qed
+
+lemma convergent_prod_has_prod [intro]:
+  shows "convergent_prod f \<Longrightarrow> f has_prod (prodinf f)"
+  unfolding prodinf_def
+  by (metis convergent_prod_imp_has_prod has_prod_unique theI')
+
+lemma convergent_prod_LIMSEQ:
+  shows "convergent_prod f \<Longrightarrow> (\<lambda>n. \<Prod>i\<le>n. f i) \<longlonglongrightarrow> prodinf f"
+  by (metis convergent_LIMSEQ_iff convergent_prod_has_prod convergent_prod_imp_convergent 
+      convergent_prod_to_zero_iff gen_has_prod_eq_0 has_prod_def prodinf_eq_lim zero_le)
+
+lemma has_prod_iff: "f has_prod x \<longleftrightarrow> convergent_prod f \<and> prodinf f = x"
+proof
+  assume "f has_prod x"
+  then show "convergent_prod f \<and> prodinf f = x"
+    apply safe
+    using convergent_prod_def has_prod_def apply blast
+    using has_prod_unique by blast
+qed auto
+
+lemma convergent_prod_has_prod_iff: "convergent_prod f \<longleftrightarrow> f has_prod prodinf f"
+  by (auto simp: has_prod_iff convergent_prod_has_prod)
+
+lemma prodinf_finite:
+  assumes N: "finite N"
+    and f: "\<And>n. n \<notin> N \<Longrightarrow> f n = 1"
+  shows "prodinf f = (\<Prod>n\<in>N. f n)"
+  using has_prod_finite[OF assms, THEN has_prod_unique] by simp
+
+end
 
 end
