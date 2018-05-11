@@ -156,11 +156,7 @@ final class Bytes private(
     if (this == Bytes(s)) (false, s) else (true, base64)
   }
 
-  override def toString: String =
-  {
-    val str = text
-    if (str.contains('\uFFFD')) "Bytes(" + length + ")" else str
-  }
+  override def toString: String = "Bytes(" + length + ")"
 
   def isEmpty: Boolean = length == 0
 
