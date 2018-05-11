@@ -7,6 +7,8 @@ file dependencies.
 
 signature THY_INFO =
 sig
+  val add_presentation: (theory -> unit) -> theory -> theory
+  val apply_presentation: theory -> unit
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
@@ -27,6 +29,23 @@ end;
 
 structure Thy_Info: THY_INFO =
 struct
+
+(** presentation of consolidated theory **)
+
+structure Presentation = Theory_Data
+(
+  type T = ((theory -> unit) * stamp) list;
+  val empty = [];
+  val extend = I;
+  fun merge data : T = Library.merge (eq_snd op =) data;
+);
+
+fun add_presentation f = Presentation.map (cons (f, stamp ()));
+
+fun apply_presentation thy =
+  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f thy));
+
+
 
 (** thy database **)
 
@@ -264,6 +283,7 @@ fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master
     fun present () =
       let
         val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
+        val _ = apply_presentation thy;
       in
         if exists (Toplevel.is_skipped_proof o #2) res then ()
         else
