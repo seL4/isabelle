@@ -247,6 +247,11 @@ option ssh_alive_count_max : int = 3
   -- "maximum number of messages to keep SSH server connection alive"
 
 
+section "Theory export"
+
+option export_theory : bool = false
+
+
 section "Build Log Database"
 
 option build_log_database_user : string = ""
