@@ -6,8 +6,8 @@ Manage theory exports: compressed blobs.
 
 signature EXPORT =
 sig
-  val export: theory -> string -> string -> unit
-  val export_raw: theory -> string -> string -> unit
+  val export: theory -> string -> string list -> unit
+  val export_raw: theory -> string -> string list -> unit
 end;
 
 structure Export: EXPORT =
@@ -31,9 +31,9 @@ fun gen_export compress thy name body =
     serial = serial (),
     theory_name = Context.theory_long_name thy,
     name = check_name name,
-    compress = compress} [body];
+    compress = compress} body;
 
-fun export thy name body = gen_export (size body > 60) thy name body;
+fun export thy name body = gen_export (fold (Integer.add o size) body 0 > 60) thy name body;
 val export_raw = gen_export false;
 
 end;
