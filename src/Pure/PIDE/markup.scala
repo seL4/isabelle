@@ -577,7 +577,7 @@ object Markup
     val THEORY_NAME = "theory_name"
     val COMPRESS = "compress"
 
-    def dest_inline(props: Properties.T): Option[(Args, Bytes)] =
+    def dest_inline(props: Properties.T): Option[(Args, Path)] =
       props match {
         case
           List(
@@ -585,8 +585,8 @@ object Markup
             (THEORY_NAME, theory_name),
             (NAME, name),
             (COMPRESS, Value.Boolean(compress)),
-            (EXPORT, hex)) =>
-          Some((Args(None, serial, theory_name, name, compress), Bytes.hex(hex)))
+            (FILE, file)) if isabelle.Path.is_valid(file) =>
+          Some((Args(None, serial, theory_name, name, compress), isabelle.Path.explode(file)))
         case _ => None
       }
 

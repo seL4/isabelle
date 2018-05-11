@@ -97,7 +97,11 @@ fun protocol_message props output =
       else if function = (Markup.functionN, Markup.exportN) andalso
         not (null args) andalso #1 (hd args) = Markup.idN
       then
-        inline_message (#2 function) (tl args @ [(Markup.exportN, hex_string (implode output))])
+        let
+          val path = Isabelle_System.create_tmp_path "export" "";
+          val _ = File.open_output (fn out => List.app (File.output out) output) path;
+          val file_name = Path.implode (Path.expand path);
+        in inline_message (#2 function) (tl args @ [(Markup.fileN, file_name)]) end
       else
         (case Markup.dest_loading_theory props of
           SOME name => writeln ("\floading_theory = " ^ name)

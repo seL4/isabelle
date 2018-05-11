@@ -286,9 +286,13 @@ object Build
                 case None =>
                   for {
                     text <- Library.try_unprefix("\fexport = ", line)
-                    (args, body) <-
+                    (args, path) <-
                       Markup.Export.dest_inline(XML.Decode.properties(YXML.parse_body(text)))
-                  } { export_consumer(name, args, body) }
+                  } {
+                    val body = Bytes.read(path)
+                    path.file.delete
+                    export_consumer(name, args, body)
+                  }
               },
             progress_limit =
               options.int("process_output_limit") match {
