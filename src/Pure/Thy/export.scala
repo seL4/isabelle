@@ -104,6 +104,13 @@ object Export
     make(Nil, 0, pattern.toList)
   }
 
+  def make_matcher(pattern: String): (String, String) => Boolean =
+  {
+    val regex = make_regex(pattern)
+    (theory_name: String, name: String) =>
+      regex.pattern.matcher(compound_name(theory_name, name)).matches
+  }
+
   def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes): Entry =
   {
     Entry(session_name, args.theory_name, args.name, args.compress,
@@ -255,11 +262,9 @@ Usage: isabelle export [OPTIONS] SESSION
 
         // export
         if (export_pattern != "") {
-          val regex = make_regex(export_pattern)
-          for {
-            (theory_name, name) <- export_names
-            if regex.pattern.matcher(compound_name(theory_name, name)).matches
-          } {
+          val matcher = make_matcher(export_pattern)
+          for { (theory_name, name) <- export_names if matcher(theory_name, name) }
+          {
             val entry = read_entry(db, session_name, theory_name, name)
             val path = export_dir + Path.basic(theory_name) + Path.explode(name)
 
