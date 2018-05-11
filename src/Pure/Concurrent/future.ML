@@ -584,9 +584,11 @@ fun task_context name group f x =
 (* scheduling parameters *)
 
 fun enabled () =
-  Multithreading.max_threads () > 1 andalso
-    let val lim = Options.default_int "parallel_limit"
-    in lim <= 0 orelse SYNCHRONIZED "enabled" (fn () => Task_Queue.total_jobs (! queue) < lim) end;
+  let val threads = Multithreading.max_threads () in
+    threads > 1 andalso
+      let val lim = threads * Options.default_int "parallel_limit"
+      in lim <= 0 orelse SYNCHRONIZED "enabled" (fn () => Task_Queue.total_jobs (! queue) < lim) end
+  end;
 
 val relevant = (fn [] => false | [_] => false | _ => enabled ());
 
