@@ -155,7 +155,6 @@ sig
   val translate_string: (string -> string) -> string -> string
   val encode_lines: string -> string
   val decode_lines: string -> string
-  val hex_string: string -> string
   val align_right: string -> int -> string -> string
   val match_string: string -> string -> bool
 
@@ -776,12 +775,6 @@ fun translate_string f = String.translate (f o String.str);
 
 val encode_lines = translate_string (fn "\n" => "\v" | c => c);
 val decode_lines = translate_string (fn "\v" => "\n" | c => c);
-
-fun hex_string s =
-  fold_string (fn c =>
-    let val (a, b) = IntInf.divMod (ord c, 16)
-    in cons (hex_digit a) #> cons (hex_digit b) end) s []
-  |> rev |> implode;
 
 fun align_right c k s =
   let

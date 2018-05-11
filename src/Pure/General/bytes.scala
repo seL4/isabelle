@@ -40,22 +40,6 @@ object Bytes
     }
 
 
-  def hex(s: String): Bytes =
-  {
-    def err(): Nothing = error("Malformed hexadecimal representation of bytes\n" + s)
-    val len = s.length
-    if (len % 2 != 0) err()
-
-    val n = len / 2
-    val a = new Array[Byte](n)
-    for (i <- 0 until n) {
-      val j = 2 * i
-      try { a(i) = Integer.parseInt(s.substring(j, j + 2), 16).toByte }
-      catch { case _: NumberFormatException => err() }
-    }
-    new Bytes(a, 0, n)
-  }
-
   def base64(s: String): Bytes =
   {
     val a = Base64.getDecoder.decode(s)
