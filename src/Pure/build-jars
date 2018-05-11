@@ -37,8 +37,6 @@ declare -a SOURCES=(
   GUI/color_value.scala
   GUI/gui.scala
   GUI/gui_thread.scala
-  GUI/html5_panel.scala
-  GUI/jfx_gui.scala
   GUI/popup.scala
   GUI/wrap_panel.scala
   General/antiquote.scala

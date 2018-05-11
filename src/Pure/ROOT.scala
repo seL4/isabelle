@@ -25,3 +25,4 @@ package object isabelle
   type UUID = java.util.UUID
   def UUID(): UUID = java.util.UUID.randomUUID()
 }
+
