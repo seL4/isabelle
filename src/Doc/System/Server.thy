@@ -826,7 +826,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Examples\<close>
+subsubsection \<open>Examples\<close>
 
 text \<open>
   Start a default Isabelle/HOL session:
