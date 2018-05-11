@@ -156,7 +156,8 @@ object Server_Commands
       theories: List[String],
       master_dir: String = "",
       pretty_margin: Double = Pretty.default_margin,
-      unicode_symbols: Boolean = false)
+      unicode_symbols: Boolean = false,
+      export_pattern: String = "")
 
     def unapply(json: JSON.T): Option[Args] =
       for {
@@ -165,10 +166,11 @@ object Server_Commands
         master_dir <- JSON.string_default(json, "master_dir")
         pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
         unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
+        export_pattern <- JSON.string_default(json, "export_pattern")
       }
       yield {
-        Args(session_id, theories, master_dir = master_dir,
-          pretty_margin = pretty_margin, unicode_symbols)
+        Args(session_id, theories, master_dir = master_dir, pretty_margin = pretty_margin,
+          unicode_symbols = unicode_symbols, export_pattern = export_pattern)
       }
 
     def command(args: Args,
@@ -214,11 +216,14 @@ object Server_Commands
                     (tree, pos) <- result.messages(name) if Protocol.is_exported(tree)
                   } yield output_message(tree, pos))) +
                 ("exports" ->
-                  (for { entry <- result.exports(name) }
-                   yield {
-                     val (base64, body) = entry.body.join.maybe_base64
-                     JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)
-                   }))))
+                  (if (args.export_pattern == "") Nil else {
+                    val matcher = Export.make_matcher(args.export_pattern)
+                    for { entry <- result.exports(name) if matcher(entry.theory_name, entry.name) }
+                    yield {
+                      val (base64, body) = entry.body.join.maybe_base64
+                      JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)
+                    }
+                  }))))
 
       (result_json, result)
     }

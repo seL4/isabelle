@@ -546,7 +546,7 @@ text \<open>
 \<close>
 
 
-section \<open>Retrieve theory exports\<close>
+section \<open>Retrieve theory exports \label{sec:tool-export}\<close>
 
 text \<open>
   The @{tool_def "export"} tool retrieves theory exports from the session

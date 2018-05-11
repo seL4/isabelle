@@ -892,8 +892,9 @@ text \<open>
   \quad\<open>{session_id: uuid,\<close> \\
   \quad~~\<open>theories: [string],\<close> \\
   \quad~~\<open>master_dir?: string,\<close> & \<^bold>\<open>default:\<close> session \<open>tmp_dir\<close> \\
-  \quad~~\<open>pretty_margin?: double\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
-  \quad~~\<open>unicode_symbols?: bool}\<close> \\[2ex]
+  \quad~~\<open>pretty_margin?: double,\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
+  \quad~~\<open>unicode_symbols?: bool,\<close> \\
+  \quad~~\<open>export_pattern?: string}\<close> \\[2ex]
   \end{tabular}
 
   \begin{tabular}{ll}
@@ -921,13 +922,13 @@ text \<open>
   that with different values for \<open>pretty_margin\<close> or \<open>unicode_symbols\<close> to get
   different formatting for \<open>errors\<close> or \<open>messages\<close>.
 
-  The \<open>exports\<close> can be arbitrary binary resources produced by a theory. An
-  \<open>export\<close> \<open>name\<close> roughly follows file-system standards: ``\<^verbatim>\<open>/\<close>'' separated
-  list of base names (excluding special names like ``\<^verbatim>\<open>.\<close>'' or ``\<^verbatim>\<open>..\<close>''). The
-  \<open>base64\<close> field specifies the format of the \<open>body\<close> string: it is true for a
-  byte vector that cannot be represented as plain text in UTF-8 encoding,
-  which means the string needs to be decoded as in
-  \<^verbatim>\<open>java.util.Base64.getDecoder.decode(String)\<close>.
+  \<^medskip> A non-empty \<open>export_pattern\<close> means that theory \<open>exports\<close> are retrieved
+  (see \secref{sec:tool-export}). An \<open>export\<close> \<open>name\<close> roughly follows
+  file-system standards: ``\<^verbatim>\<open>/\<close>'' separated list of base names (excluding
+  special names like ``\<^verbatim>\<open>.\<close>'' or ``\<^verbatim>\<open>..\<close>''). The \<open>base64\<close> field specifies the
+  format of the \<open>body\<close> string: it is true for a byte vector that cannot be
+  represented as plain text in UTF-8 encoding, which means the string needs to
+  be decoded as in \<^verbatim>\<open>java.util.Base64.getDecoder.decode(String)\<close>.
 \<close>
 
 
