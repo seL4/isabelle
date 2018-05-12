@@ -4971,6 +4971,17 @@ by(induction xs)(auto)
 lemma sorted_wrt01: "length xs \<le> 1 \<Longrightarrow> sorted_wrt P xs"
 by(auto simp: le_Suc_eq length_Suc_conv)
 
+lemma sorted_wrt_iff_nth_Suc:
+  "sorted_wrt P xs = (\<forall>i j. i < j \<longrightarrow> j < length xs \<longrightarrow> P (xs ! i) (xs ! j))"
+apply(induction xs)
+ apply simp
+apply(force simp: in_set_conv_nth nth_Cons split: nat.split)
+done
+
+lemma sorted_wrt_nth_less:
+  "\<lbrakk> sorted_wrt P xs; i < j; j < length xs \<rbrakk> \<Longrightarrow> P (xs ! i) (xs ! j)"
+by(auto simp: sorted_wrt_iff_nth_Suc)
+
 text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
 
 lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [m..<n]"
