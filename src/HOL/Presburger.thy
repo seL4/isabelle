@@ -495,11 +495,11 @@ lemma even_even_mod_4_iff:
   by presburger
 
 lemma odd_mod_4_div_2:
-  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - 1) div 2)"
+  "n mod 4 = (3::nat) \<Longrightarrow> odd ((n - Suc 0) div 2)"
   by presburger
 
 lemma even_mod_4_div_2:
-  "n mod 4 = (1::nat) \<Longrightarrow> even ((n - 1) div 2)"
+  "n mod 4 = Suc 0 \<Longrightarrow> even ((n - Suc 0) div 2)"
   by presburger
 
 

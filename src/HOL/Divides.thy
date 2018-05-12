@@ -1286,18 +1286,10 @@ lemma [code]:
 code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
-lemma dvd_eq_mod_eq_0_numeral:
-  "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semidom_modulo)"
-  by (fact dvd_eq_mod_eq_0)
-
 declare minus_div_mult_eq_mod [symmetric, nitpick_unfold]
 
 
 subsubsection \<open>Lemmas of doubtful value\<close>
-
-lemma mod_Suc_eq_Suc_mod:
-  "Suc m mod n = Suc (m mod n) mod n"
-  by (simp add: mod_simps)
 
 lemma div_geq:
   "m div n = Suc ((m - n) div n)" if "0 < n" and " \<not> m < n" for m n :: nat
@@ -1307,24 +1299,8 @@ lemma mod_geq:
   "m mod n = (m - n) mod n" if "\<not> m < n" for m n :: nat
   by (rule le_mod_geq) (use that in \<open>simp add: not_less\<close>)
 
-lemma mod_eq_0_iff: "(m mod d = 0) = (\<exists>q::nat. m = d*q)"
-  by (auto simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
-
-lemmas mod_eq_0D [dest!] = mod_eq_0_iff [THEN iffD1]
-
-(*Loses information, namely we also have r<d provided d is nonzero*)
-lemma mod_eqD:
-  fixes m d r q :: nat
-  assumes "m mod d = r"
-  shows "\<exists>q. m = r + q * d"
-proof -
-  from div_mult_mod_eq obtain q where "q * d + m mod d = m" by blast
-  with assms have "m = r + q * d" by simp
-  then show ?thesis ..
-qed
-
-lemma is_unit_int:
-  "is_unit (k::int) \<longleftrightarrow> k = 1 \<or> k = - 1"
-  by auto
+lemma mod_eq_0D [dest!]:
+  "\<exists>q. m = d * q" if "m mod d = 0" for m d :: nat
+  using that by (auto simp add: mod_eq_0_iff_dvd elim: dvdE)
 
 end

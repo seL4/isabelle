@@ -1750,13 +1750,8 @@ lemma word_nchotomy: "\<forall>w :: 'a::len word. \<exists>n. w = of_nat n \<and
 
 lemma of_nat_eq: "of_nat n = w \<longleftrightarrow> (\<exists>q. n = unat w + q * 2 ^ len_of TYPE('a))"
   for w :: "'a::len word"
-  apply (rule trans)
-   apply (rule word_unat.inverse_norm)
-  apply (rule iffI)
-   apply (rule mod_eqD)
-   apply simp
-  apply clarsimp
-  done
+  using mod_div_mult_eq [of n "2 ^ LENGTH('a)", symmetric]
+  by (auto simp add: word_unat.inverse_norm)
 
 lemma of_nat_eq_size: "of_nat n = w \<longleftrightarrow> (\<exists>q. n = unat w + q * 2 ^ size w)"
   unfolding word_size by (rule of_nat_eq)

@@ -275,7 +275,7 @@ lemma zdiv_mult_self: "m \<noteq> 0 \<Longrightarrow> (a + m * n) div m = a div 
 
 lemma mod_power_lem: "a > 1 \<Longrightarrow> a ^ n mod a ^ m = (if m \<le> n then 0 else a ^ n)"
   for a :: int
-  by (simp add: mod_eq_0_iff le_imp_power_dvd)
+  by (simp add: mod_eq_0_iff_dvd le_imp_power_dvd)
 
 lemma pl_pl_rels: "a + b = c + d \<Longrightarrow> a \<ge> c \<and> b \<le> d \<or> a \<le> c \<and> b \<ge> d"
   for a b c d :: nat

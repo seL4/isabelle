@@ -328,6 +328,15 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
+* Eliminated some theorem duplicate variations:
+  * dvd_eq_mod_eq_0_numeral can be replaced by dvd_eq_mod_eq_0.
+  * mod_Suc_eq_Suc_mod can be replaced by mod_Suc.
+  * mod_Suc_eq_Suc_mod [symmetrict] can be replaced by mod_simps.
+  * mod_eq_0_iff can be replaced by mod_eq_0_iff_dvd and dvd_def.
+  * The witness of mod_eqD can be given directly as "_ div _".
+
+INCOMPATIBILITY.
+
 
 *** ML ***
 

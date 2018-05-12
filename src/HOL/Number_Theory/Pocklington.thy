@@ -838,7 +838,7 @@ proof -
     {
       assume "a ^ ((n - 1) div p) mod n = 0"
       then obtain s where s: "a ^ ((n - 1) div p) = n * s"
-        unfolding mod_eq_0_iff by blast
+        by blast
       then have eq0: "(a^((n - 1) div p))^p = (n*s)^p" by simp
       from qrn[symmetric] have qn1: "q dvd n - 1"
         by (auto simp: dvd_def)

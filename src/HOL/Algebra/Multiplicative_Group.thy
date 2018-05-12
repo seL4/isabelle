@@ -411,8 +411,9 @@ proof
   show "?R \<subseteq> ?L" by blast
   { fix y assume "y \<in> ?L"
     then obtain x::nat where x:"y = a[^]x" by auto
-    define r where "r = x mod ord a"
-    then obtain q where q:"x = q * ord a + r" using mod_eqD by atomize_elim presburger
+    define r q where "r = x mod ord a" and "q = x div ord a"
+    then have "x = q * ord a + r"
+      by (simp add: div_mult_mod_eq)
     hence "y = (a[^]ord a)[^]q \<otimes> a[^]r"
       using x assms by (simp add: mult.commute nat_pow_mult nat_pow_pow)
     hence "y = a[^]r" using assms by (simp add: pow_ord_eq_1)
@@ -428,7 +429,10 @@ lemma ord_dvd_pow_eq_1 :
   shows "ord a dvd k"
 proof -
   define r where "r = k mod ord a"
-  then obtain q where q:"k = q*ord a + r" using mod_eqD by atomize_elim presburger
+
+  define r q where "r = k mod ord a" and "q = k div ord a"
+  then have q: "k = q * ord a + r"
+    by (simp add: div_mult_mod_eq)
   hence "a[^]k = (a[^]ord a)[^]q \<otimes> a[^]r"
       using assms by (simp add: mult.commute nat_pow_mult nat_pow_pow)
   hence "a[^]k = a[^]r" using assms by (simp add: pow_ord_eq_1)

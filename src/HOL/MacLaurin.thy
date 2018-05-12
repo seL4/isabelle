@@ -526,31 +526,24 @@ lemma Maclaurin_sin_bound: "\<bar>sin x - (\<Sum>m<n. sin_coeff m * x ^ m)\<bar>
 proof -
   have est: "x \<le> 1 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x * y \<le> 1 * y" for x y :: real
     by (rule mult_right_mono) simp_all
-  let ?diff = "\<lambda>(n::nat) x.
+  let ?diff = "\<lambda>(n::nat) (x::real).
     if n mod 4 = 0 then sin x
     else if n mod 4 = 1 then cos x
     else if n mod 4 = 2 then - sin x
     else - cos x"
   have diff_0: "?diff 0 = sin" by simp
-  have DERIV_diff: "\<forall>m x. DERIV (?diff m) x :> ?diff (Suc m) x"
-    apply clarify
-    apply (subst (1 2 3) mod_Suc_eq_Suc_mod)
-    apply (cut_tac m=m in mod_exhaust_less_4)
-    apply safe
-       apply (auto intro!: derivative_eq_intros)
-    done
+  have "DERIV (?diff m) x :> ?diff (Suc m) x" for m and x
+    using mod_exhaust_less_4 [of m]
+    by (auto simp add: mod_Suc intro!: derivative_eq_intros)
+  then have DERIV_diff: "\<forall>m x. DERIV (?diff m) x :> ?diff (Suc m) x"
+    by blast
   from Maclaurin_all_le [OF diff_0 DERIV_diff]
   obtain t where t1: "\<bar>t\<bar> \<le> \<bar>x\<bar>"
     and t2: "sin x = (\<Sum>m<n. ?diff m 0 / (fact m) * x ^ m) + ?diff n t / (fact n) * x ^ n"
     by fast
-  have diff_m_0: "\<And>m. ?diff m 0 = (if even m then 0 else (- 1) ^ ((m - Suc 0) div 2))"
-    apply (subst even_even_mod_4_iff)
-    apply (cut_tac m=m in mod_exhaust_less_4)
-    apply (elim disjE)
-       apply simp_all
-     apply (safe dest!: mod_eqD)
-     apply simp_all
-    done
+  have diff_m_0: "?diff m 0 = (if even m then 0 else (- 1) ^ ((m - Suc 0) div 2))" for m
+    using mod_exhaust_less_4 [of m]
+    by (auto simp add: minus_one_power_iff even_even_mod_4_iff [of m] dest: even_mod_4_div_2 odd_mod_4_div_2)
   show ?thesis
     unfolding sin_coeff_def
     apply (subst t2)
