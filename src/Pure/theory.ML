@@ -157,7 +157,7 @@ fun check ctxt (name, pos) =
 val axiom_table = #axioms o rep_theory;
 val axiom_space = Name_Space.space_of_table o axiom_table;
 
-fun axioms_of thy = rev (Name_Space.fold_table cons (axiom_table thy) []);
+val axioms_of = Name_Space.dest_table o axiom_table;
 fun all_axioms_of thy = maps axioms_of (nodes_of thy);
 
 val defs_of = #defs o rep_theory;
