@@ -42,7 +42,7 @@ object Isabelle_Process
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
     receiver: Prover.Receiver = (msg: Prover.Message) => Output.writeln(msg.toString, stdout = true),
-    xml_cache: XML.Cache = new XML.Cache(),
+    xml_cache: XML.Cache = XML.make_cache(),
     sessions: Option[Sessions.Structure] = None,
     store: Sessions.Store = Sessions.store()): Prover =
   {
