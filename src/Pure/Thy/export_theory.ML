@@ -20,11 +20,11 @@ fun entity_markup space name =
     val props = Markup.serial_properties serial @ Position.offset_properties_of pos;
   in (Markup.entityN, (Markup.nameN, name) :: props) end;
 
-fun export_decls export_decl parents space decls =
+fun export_decls export_decl parents thy space decls =
   (decls, []) |-> fold (fn (name, decl) =>
     if exists (fn space => Name_Space.declared space name) parents then I
     else
-      (case export_decl decl of
+      (case export_decl thy name decl of
         NONE => I
       | SOME body => cons (name, XML.Elem (entity_markup space name, body))))
   |> sort_by #1 |> map #2;
@@ -34,7 +34,7 @@ fun export_decls export_decl parents space decls =
 
 fun present get_space get_decls export name thy =
   if Options.default_bool "export_theory" then
-    (case export (map get_space (Theory.parents_of thy)) (get_space thy) (get_decls thy) of
+    (case export (map get_space (Theory.parents_of thy)) thy (get_space thy) (get_decls thy) of
       [] => ()
     | body => Export.export thy ("theory/" ^ name) [YXML.string_of_body body])
   else ();
@@ -62,7 +62,7 @@ fun export_type (Type.LogicalType n) = SOME (encode_type (Name.invent Name.conte
 
 in
 
-val _ = setup_presentation (present_types export_type "types");
+val _ = setup_presentation (present_types (K (K export_type)) "types");
 
 end;
 
@@ -76,11 +76,18 @@ val present_consts =
 
 val encode_const =
   let open XML.Encode Term_XML.Encode
-  in pair typ (option term) end;
+  in triple (list string) typ (option term) end;
+
+fun export_const thy c (T, abbrev) =
+  let
+    val T' = T |> Logic.unvarifyT_global |> Type.strip_sorts;
+    val abbrev' = abbrev |> Option.map (Logic.unvarify_global #> map_types Type.strip_sorts);
+    val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, T'));
+  in SOME (encode_const (args, T', abbrev')) end;
 
 in
 
-val _ = setup_presentation (present_consts (SOME o encode_const) "consts");
+val _ = setup_presentation (present_consts export_const "consts");
 
 end;
 

@@ -34,9 +34,6 @@ object Export_Theory
   /* types */
 
   sealed case class Type(entity: Entity, args: List[String], abbrev: Option[Term.Typ])
-  {
-    def arity: Int = args.length
-  }
 
   def decode_type(tree: XML.Tree): Type =
   {
@@ -52,16 +49,17 @@ object Export_Theory
 
   /* consts */
 
-  sealed case class Const(entity: Entity, typ: Term.Typ, abbrev: Option[Term.Term])
+  sealed case class Const(
+    entity: Entity, typargs: List[String], typ: Term.Typ, abbrev: Option[Term.Term])
 
   def decode_const(tree: XML.Tree): Const =
   {
     val (entity, body) = decode_entity(tree)
-    val (typ, abbrev) =
+    val (args, typ, abbrev) =
     {
       import XML.Decode._
-      pair(Term_XML.Decode.typ, option(Term_XML.Decode.term))(body)
+      triple(list(string), Term_XML.Decode.typ, option(Term_XML.Decode.term))(body)
     }
-    Const(entity, typ, abbrev)
+    Const(entity, args, typ, abbrev)
   }
 }
