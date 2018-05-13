@@ -337,8 +337,7 @@ lemma c_merge_all: "\<lbrakk> \<forall>x \<in> set xs. length x = m; length xs =
 proof (induction xs arbitrary: k m rule: c_merge_all.induct)
   case 1 thus ?case by simp
 next
-  case (2 x)
-  then show ?case by (simp)
+  case 2 thus ?case by simp
 next
   case (3 x y xs)
   let ?xs = "x # y # xs"
