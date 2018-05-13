@@ -119,6 +119,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   session =>
 
   val xml_cache: XML.Cache = new XML.Cache()
+  val xz_cache: XZ.Cache = XZ.make_cache()
 
 
   /* global flags */
@@ -436,8 +437,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               case Markup.Export(args)
               if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
                 val id = Value.Long.unapply(args.id.get).get
-                val entry = (args.serial, Export.make_entry("", args, msg.bytes))
-                change_command(_.add_export(id, entry))
+                val export = Export.make_entry("", args, msg.bytes, cache = xz_cache)
+                change_command(_.add_export(id, (args.serial, export)))
 
               case Markup.Assign_Update =>
                 msg.text match {
