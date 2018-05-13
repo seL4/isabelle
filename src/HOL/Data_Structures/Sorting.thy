@@ -52,9 +52,6 @@ done
 lemma set_insort: "set (insort x xs) = insert x (set xs)"
 by (metis mset_insort set_mset_add_mset_insert set_mset_mset)
 
-lemma set_isort: "set (isort xs) = set xs"
-by (metis mset_isort set_mset_mset)
-
 lemma sorted_insort: "sorted (insort a xs) = sorted xs"
 apply(induction xs)
 apply(auto simp add: set_insort)
