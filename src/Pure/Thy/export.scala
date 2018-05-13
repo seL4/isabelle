@@ -82,8 +82,8 @@ object Export
       })
     }
 
-    def body_uncompressed: Bytes =
-      if (compressed) body.join.uncompress() else body.join
+    def body_uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
+      if (compressed) body.join.uncompress(cache = cache) else body.join
   }
 
   def make_regex(pattern: String): Regex =
@@ -111,10 +111,11 @@ object Export
       regex.pattern.matcher(compound_name(theory_name, name)).matches
   }
 
-  def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes): Entry =
+  def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes,
+    cache: XZ.Cache = XZ.cache()): Entry =
   {
     Entry(session_name, args.theory_name, args.name, args.compress,
-      if (args.compress) Future.fork(body.compress()) else Future.value(body))
+      if (args.compress) Future.fork(body.compress(cache = cache)) else Future.value(body))
   }
 
   def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String): Entry =
@@ -141,6 +142,8 @@ object Export
 
   class Consumer private[Export](db: SQL.Database)
   {
+    val xz_cache = XZ.make_cache()
+
     db.create_table(Data.table)
 
     private val export_errors = Synchronized[List[String]](Nil)
@@ -160,7 +163,7 @@ object Export
         })
 
     def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
-      consumer.send(make_entry(session_name, args, body))
+      consumer.send(make_entry(session_name, args, body, cache = xz_cache))
 
     def shutdown(close: Boolean = false): List[String] =
     {
@@ -262,6 +265,8 @@ Usage: isabelle export [OPTIONS] SESSION
 
         // export
         if (export_pattern != "") {
+          val xz_cache = XZ.make_cache()
+
           val matcher = make_matcher(export_pattern)
           for { (theory_name, name) <- export_names if matcher(theory_name, name) }
           {
@@ -270,7 +275,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
             progress.echo("exporting " + path)
             Isabelle_System.mkdirs(path.dir)
-            Bytes.write(path, entry.body_uncompressed)
+            Bytes.write(path, entry.body_uncompressed(cache = xz_cache))
           }
         }
       }
