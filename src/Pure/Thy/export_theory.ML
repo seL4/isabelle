@@ -6,6 +6,7 @@ Export foundational theory content.
 
 signature EXPORT_THEORY =
 sig
+  val entity_markup: Name_Space.T -> string -> Markup.T
 end;
 
 structure Export_Theory: EXPORT_THEORY =
@@ -13,15 +14,20 @@ struct
 
 (* name space entries *)
 
+fun entity_markup space name =
+  let
+    val kind = Name_Space.kind_of space;
+    val {serial, pos, ...} = Name_Space.the_entry space name;
+    val props = Markup.serial_properties serial @ Position.properties_of pos;
+  in Markup.properties props (Markup.entity kind name) end;
+
 fun export_decls export_decl parents space decls =
   (decls, []) |-> fold (fn (name, decl) =>
     if exists (fn space => Name_Space.declared space name) parents then I
     else
       (case export_decl decl of
         NONE => I
-      | SOME body =>
-          let val markup = Name_Space.markup_def space name
-          in cons (name, XML.Elem (markup, body)) end))
+      | SOME body => cons (name, XML.Elem (entity_markup space name, body))))
   |> sort_by #1 |> map #2;
 
 
