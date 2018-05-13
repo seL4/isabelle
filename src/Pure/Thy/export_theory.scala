@@ -11,7 +11,7 @@ object Export_Theory
 {
   /* entities */
 
-  sealed case class Entity(name: String, kind: String, serial: Long, pos: Position.T)
+  sealed case class Entity(name: String, serial: Long, pos: Position.T)
   {
     override def toString: String = name
   }
@@ -23,10 +23,9 @@ object Export_Theory
     tree match {
       case XML.Elem(Markup(Markup.ENTITY, props), body) =>
         val name = Markup.Name.unapply(props) getOrElse err()
-        val kind = Markup.Kind.unapply(props) getOrElse err()
         val serial = Markup.Serial.unapply(props) getOrElse err()
         val pos = props.filter({ case (a, _) => Markup.POSITION_PROPERTIES(a) })
-        (Entity(name, kind, serial, pos), body)
+        (Entity(name, serial, pos), body)
       case _ => err()
     }
   }

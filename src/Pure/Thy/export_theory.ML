@@ -16,10 +16,9 @@ struct
 
 fun entity_markup space name =
   let
-    val kind = Name_Space.kind_of space;
     val {serial, pos, ...} = Name_Space.the_entry space name;
-    val props = Markup.serial_properties serial @ Position.properties_of pos;
-  in Markup.properties props (Markup.entity kind name) end;
+    val props = Markup.serial_properties serial @ Position.offset_properties_of pos;
+  in (Markup.entityN, (Markup.nameN, name) :: props) end;
 
 fun export_decls export_decl parents space decls =
   (decls, []) |-> fold (fn (name, decl) =>

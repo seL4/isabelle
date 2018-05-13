@@ -32,6 +32,7 @@ sig
   val parse_id: T -> int option
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
+  val offset_properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
   val entity_properties_of: bool -> serial -> T -> Properties.T
   val default_properties: T -> Properties.T -> Properties.T
@@ -160,6 +161,9 @@ fun value k i = if valid i then [(k, Value.print_int i)] else [];
 
 fun properties_of (Pos ((i, j, k), props)) =
   value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
+
+fun offset_properties_of (Pos ((_, j, k), _)) =
+  value Markup.offsetN j @ value Markup.end_offsetN k;
 
 val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
 
