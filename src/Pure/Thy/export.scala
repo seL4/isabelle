@@ -86,6 +86,9 @@ object Export
       val (compressed, bytes) = body.join
       if (compressed) bytes.uncompress(cache = cache) else bytes
     }
+
+    def uncompressed_yxml(cache: XZ.Cache = XZ.cache()): XML.Body =
+      YXML.parse_body(UTF8.decode_permissive(uncompressed(cache = cache)))
   }
 
   def make_regex(pattern: String): Regex =
