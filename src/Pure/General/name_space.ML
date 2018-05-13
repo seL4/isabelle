@@ -62,6 +62,7 @@ sig
   val alias: naming -> binding -> string -> T -> T
   val naming_of: Context.generic -> naming
   val map_naming: (naming -> naming) -> Context.generic -> Context.generic
+  val declared: T -> string -> bool
   val declare: Context.generic -> bool -> binding -> T -> string * T
   type 'a table
   val change_base: bool -> 'a table -> 'a table
@@ -80,6 +81,7 @@ sig
   val del_table: string -> 'a table -> 'a table
   val map_table_entry: string -> ('a -> 'a) -> 'a table -> 'a table
   val fold_table: (string * 'a -> 'b -> 'b) -> 'a table -> 'b -> 'b
+  val dest_table: 'a table -> (string * 'a) list
   val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*exception Change_Table.SAME*) ->
@@ -503,6 +505,8 @@ fun map_naming f (Context.Theory thy) = Context.Theory (Global_Naming.map f thy)
 
 (* declaration *)
 
+fun declared (Name_Space {entries, ...}) = Change_Table.defined entries;
+
 fun declare context strict binding space =
   let
     val naming = naming_of context;
@@ -608,6 +612,7 @@ fun map_table_entry name f (Table (space, tab)) =
   Table (space, Change_Table.map_entry name f tab);
 
 fun fold_table f (Table (_, tab)) = Change_Table.fold f tab;
+fun dest_table (Table (_, tab)) = Change_Table.dest tab;
 
 fun empty_table kind = Table (empty kind, Change_Table.empty);
 
