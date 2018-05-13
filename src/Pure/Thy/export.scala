@@ -63,14 +63,13 @@ object Export
     session_name: String,
     theory_name: String,
     name: String,
-    compressed: Boolean,
-    body: Future[Bytes])
+    body: Future[(Boolean, Bytes)])
   {
     override def toString: String = compound_name(theory_name, name)
 
     def write(db: SQL.Database)
     {
-      val bytes = body.join
+      val (compressed, bytes) = body.join
       db.using_statement(Data.table.insert())(stmt =>
       {
         stmt.string(1) = session_name
@@ -82,8 +81,11 @@ object Export
       })
     }
 
-    def body_uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
-      if (compressed) body.join.uncompress(cache = cache) else body.join
+    def uncompressed(cache: XZ.Cache = XZ.cache()): Bytes =
+    {
+      val (compressed, bytes) = body.join
+      if (compressed) bytes.uncompress(cache = cache) else bytes
+    }
   }
 
   def make_regex(pattern: String): Regex =
@@ -114,8 +116,9 @@ object Export
   def make_entry(session_name: String, args: Markup.Export.Args, body: Bytes,
     cache: XZ.Cache = XZ.cache()): Entry =
   {
-    Entry(session_name, args.theory_name, args.name, args.compress,
-      if (args.compress) Future.fork(body.compress(cache = cache)) else Future.value(body))
+    Entry(session_name, args.theory_name, args.name,
+      if (args.compress) Future.fork(body.maybe_compress(cache = cache))
+      else Future.value((false, body)))
   }
 
   def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String): Entry =
@@ -129,7 +132,7 @@ object Export
       if (res.next()) {
         val compressed = res.bool(Data.compressed)
         val body = res.bytes(Data.body)
-        Entry(session_name, theory_name, name, compressed, Future.value(body))
+        Entry(session_name, theory_name, name, Future.value(compressed, body))
       }
       else error(message("Bad export", theory_name, name))
     })
@@ -275,7 +278,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
             progress.echo("exporting " + path)
             Isabelle_System.mkdirs(path.dir)
-            Bytes.write(path, entry.body_uncompressed(cache = xz_cache))
+            Bytes.write(path, entry.uncompressed(cache = xz_cache))
           }
         }
       }

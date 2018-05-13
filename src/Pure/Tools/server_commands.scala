@@ -220,7 +220,7 @@ object Server_Commands
                     val matcher = Export.make_matcher(args.export_pattern)
                     for { entry <- result.exports(name) if matcher(entry.theory_name, entry.name) }
                     yield {
-                      val (base64, body) = entry.body.join.maybe_base64
+                      val (base64, body) = entry.uncompressed().maybe_base64
                       JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)
                     }
                   }))))

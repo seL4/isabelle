@@ -33,7 +33,7 @@ fun gen_export compress thy name body =
     name = check_name name,
     compress = compress} body;
 
-fun export thy name body = gen_export (fold (Integer.add o size) body 0 > 60) thy name body;
+val export = gen_export true;
 val export_raw = gen_export false;
 
 end;

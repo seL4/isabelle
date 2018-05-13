@@ -205,4 +205,11 @@ final class Bytes private(
     using(new XZOutputStream(result, options, cache))(write_stream(_))
     new Bytes(result.toByteArray, 0, result.size)
   }
+
+  def maybe_compress(options: XZ.Options = XZ.options(), cache: XZ.Cache = XZ.cache())
+    : (Boolean, Bytes) =
+  {
+    val compressed = compress(options = options, cache = cache)
+    if (compressed.length < length) (true, compressed) else (false, this)
+  }
 }
