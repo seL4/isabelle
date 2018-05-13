@@ -154,7 +154,10 @@ object XML
 
   /** cache for partial sharing (weak table) **/
 
-  class Cache(initial_size: Int = 131071, max_string: Int = 100)
+  def make_cache(initial_size: Int = 131071, max_string: Int = 100): Cache =
+    new Cache(initial_size, max_string)
+
+  class Cache private[XML](initial_size: Int, max_string: Int)
   {
     private val table =
       Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))

@@ -973,7 +973,7 @@ object Sessions
 
     /* SQL database content */
 
-    val xml_cache = new XML.Cache()
+    val xml_cache = XML.make_cache()
     val xz_cache = XZ.make_cache()
 
     def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =

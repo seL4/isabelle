@@ -118,7 +118,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 {
   session =>
 
-  val xml_cache: XML.Cache = new XML.Cache()
+  val xml_cache: XML.Cache = XML.make_cache()
   val xz_cache: XZ.Cache = XZ.make_cache()
 
 

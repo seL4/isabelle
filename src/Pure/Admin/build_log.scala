@@ -253,7 +253,7 @@ object Build_Log
 
     /* properties (YXML) */
 
-    val xml_cache = new XML.Cache()
+    val xml_cache = XML.make_cache()
 
     def parse_props(text: String): Properties.T =
       try {
@@ -881,7 +881,7 @@ object Build_Log
 
   class Store private[Build_Log](options: Options)
   {
-    val xml_cache: XML.Cache = new XML.Cache()
+    val xml_cache: XML.Cache = XML.make_cache()
     val xz_cache: XZ.Cache = XZ.make_cache()
 
     def open_database(
