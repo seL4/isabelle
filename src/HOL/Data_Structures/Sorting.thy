@@ -1,27 +1,14 @@
 (* Author: Tobias Nipkow *)
 
-(* FIXME adjust List.sorted to work like below; [code] is different! *)
-
 theory Sorting
 imports
   Complex_Main
   "HOL-Library.Multiset"
 begin
 
-hide_const List.sorted List.insort
+hide_const List.insort
 
 declare Let_def [simp]
-
-fun sorted :: "'a::linorder list \<Rightarrow> bool" where
-"sorted [] = True" |
-"sorted (x # xs) = ((\<forall>y\<in>set xs. x \<le> y) & sorted xs)"
-
-lemma sorted_append:
-  "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
-by (induct xs) (auto)
-
-lemma sorted01: "length xs \<le> 1 \<Longrightarrow> sorted xs"
-by(auto simp: le_Suc_eq length_Suc_conv)
 
 
 subsection "Insertion Sort"

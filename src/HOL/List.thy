@@ -5021,6 +5021,9 @@ lemmas sorted2_simps = sorted1 sorted2
 
 lemmas [code] = sorted.simps(1) sorted2_simps
 
+lemma sorted01: "length xs \<le> 1 \<Longrightarrow> sorted xs"
+by (simp add: sorted_sorted_wrt sorted_wrt01)
+
 lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
 by (cases xs) (simp_all)
