@@ -51,7 +51,7 @@ fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
   Theory.setup (add_presentation (fn {options, pos, segments} => fn thy =>
-    if exists (Toplevel.is_skipped_proof o #result_state) segments then ()
+    if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
         val body = Thy_Output.present_thy thy segments;
@@ -319,7 +319,7 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
     fun present () =
       let
         val segments = (spans ~~ maps Toplevel.join_results results)
-          |> map (fn (span, (tr, st')) => {span = span, tr = tr, result_state = st'});
+          |> map (fn (span, (tr, st')) => {span = span, command = tr, state = st'});
         val context = {options = options, pos = text_pos, segments = segments};
       in apply_presentation context thy end;
   in (thy, present, size text) end;

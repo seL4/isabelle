@@ -10,7 +10,7 @@ sig
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
   val output_source: Proof.context -> string -> Latex.text list
-  type segment = {span: Command_Span.span, tr: Toplevel.transition, result_state: Toplevel.state}
+  type segment = {span: Command_Span.span, command: Toplevel.transition, state: Toplevel.state}
   val present_thy: theory -> segment list -> Latex.text list
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -338,7 +338,7 @@ val locale =
 
 in
 
-type segment = {span: Command_Span.span, tr: Toplevel.transition, result_state: Toplevel.state};
+type segment = {span: Command_Span.span, command: Toplevel.transition, state: Toplevel.state};
 
 fun present_thy thy (segments: segment list) =
   let
@@ -415,8 +415,8 @@ fun present_thy thy (segments: segment list) =
       |> Source.exhaust;
 
     val command_results =
-      segments |> map_filter (fn {tr, result_state, ...} =>
-        if Toplevel.is_ignored tr then NONE else SOME (tr, result_state));
+      segments |> map_filter (fn {command, state, ...} =>
+        if Toplevel.is_ignored command then NONE else SOME (command, state));
 
 
     (* present commands *)
