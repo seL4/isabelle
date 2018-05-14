@@ -4932,7 +4932,7 @@ subsection \<open>Sorting\<close>
 
 subsubsection \<open>@{const sorted_wrt}\<close>
 
-text \<open>Sometimes the second equation in the definition of @{const sorted_wrt} is to aggressive
+text \<open>Sometimes the second equation in the definition of @{const sorted_wrt} is too aggressive
 because it relates each list element to \emph{all} its successors. Then this equation
 should be removed and \<open>sorted_wrt2_simps\<close> should be added instead.\<close>
 
@@ -5013,7 +5013,7 @@ subsubsection \<open>@{const sorted}\<close>
 context linorder
 begin
 
-text \<open>Sometimes the second equation in the definition of @{const sorted} is to aggressive
+text \<open>Sometimes the second equation in the definition of @{const sorted} is too aggressive
 because it relates each list element to \emph{all} its successors. Then this equation
 should be removed and \<open>sorted2_simps\<close> should be added instead.
 Executable code is one such use case.\<close>
@@ -5043,13 +5043,17 @@ lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
 by (cases xs) (simp_all)
 
-lemma sorted_iff_nth_mono:
+lemma sorted_iff_nth_mono_less:
   "sorted xs = (\<forall>i j. i < j \<longrightarrow> j < length xs \<longrightarrow> xs ! i \<le> xs ! j)"
 by (simp add: sorted_sorted_wrt sorted_wrt_iff_nth_less)
 
+lemma sorted_iff_nth_mono:
+  "sorted xs = (\<forall>i j. i \<le> j \<longrightarrow> j < length xs \<longrightarrow> xs ! i \<le> xs ! j)"
+by (auto simp: sorted_iff_nth_mono_less nat_less_le)
+
 lemma sorted_nth_mono:
   "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
-by (auto simp: sorted_iff_nth_mono nat_less_le)
+by (auto simp: sorted_iff_nth_mono)
 
 lemma sorted_rev_nth_mono:
   "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
