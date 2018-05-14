@@ -7,8 +7,10 @@ file dependencies.
 
 signature THY_INFO =
 sig
-  val add_presentation: (theory -> unit) -> theory -> theory
-  val apply_presentation: theory -> unit
+  type presentation_context =
+    {options: Options.T, pos: Position.T, segments: Thy_Output.segment list}
+  val apply_presentation: presentation_context -> theory -> unit
+  val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
@@ -31,18 +33,28 @@ struct
 
 (** presentation of consolidated theory **)
 
+type presentation_context =
+  {options: Options.T, pos: Position.T, segments: Thy_Output.segment list};
+
 structure Presentation = Theory_Data
 (
-  type T = ((theory -> unit) * stamp) list;
+  type T = ((presentation_context -> theory -> unit) * stamp) list;
   val empty = [];
   val extend = I;
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
+fun apply_presentation (context: presentation_context) thy =
+  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
+
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
-fun apply_presentation thy =
-  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f thy));
+val _ =
+  Theory.setup (add_presentation (fn {options, pos, segments} => fn thy =>
+    if exists (Toplevel.is_skipped_proof o #result_state) segments then ()
+    else
+      let val body = Thy_Output.present_thy thy segments;
+      in if Present.document_enabled options then Present.theory_output pos thy body else () end));
 
 
 
@@ -297,13 +309,8 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
       let
         val segments = (spans ~~ maps Toplevel.join_results results)
           |> map (fn (span, (tr, st')) => {span = span, tr = tr, result_state = st'});
-        val _ = apply_presentation thy;
-      in
-        if exists (Toplevel.is_skipped_proof o #result_state) segments then ()
-        else
-          let val body = Thy_Output.present_thy thy segments;
-          in if Present.document_enabled options then Present.theory_output text_pos thy body else () end
-      end;
+        val context = {options = options, pos = text_pos, segments = segments};
+      in apply_presentation context thy end;
   in (thy, present, size text) end;
 
 

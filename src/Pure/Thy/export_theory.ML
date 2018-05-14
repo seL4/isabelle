@@ -42,7 +42,7 @@ fun present get_space get_decls export name thy =
 fun present_decls get_space get_decls =
   present get_space get_decls o export_decls;
 
-val setup_presentation = Theory.setup o Thy_Info.add_presentation;
+fun setup_presentation f = Theory.setup (Thy_Info.add_presentation (K f));
 
 
 (* types *)
