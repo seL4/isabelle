@@ -53,8 +53,19 @@ val _ =
   Theory.setup (add_presentation (fn {options, pos, segments} => fn thy =>
     if exists (Toplevel.is_skipped_proof o #result_state) segments then ()
     else
-      let val body = Thy_Output.present_thy thy segments;
-      in if Present.document_enabled options then Present.theory_output pos thy body else () end));
+      let
+        val body = Thy_Output.present_thy thy segments;
+        val option = Present.document_option options;
+      in
+        if #disabled option then ()
+        else
+          let
+            val latex = Latex.isabelle_body (Context.theory_name thy) body;
+            val output = [Latex.output_text latex, Latex.output_positions pos latex];
+            val _ = Export.export thy "document.tex" output;
+            val _ = if #enabled option then Present.theory_output thy output else ();
+          in () end
+      end));
 
 
 
