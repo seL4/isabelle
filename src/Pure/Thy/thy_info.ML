@@ -8,7 +8,8 @@ file dependencies.
 signature THY_INFO =
 sig
   type presentation_context =
-    {options: Options.T, pos: Position.T, segments: Thy_Output.segment list}
+    {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
+      segments: Thy_Output.segment list}
   val apply_presentation: presentation_context -> theory -> unit
   val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
   val get_names: unit -> string list
@@ -34,7 +35,8 @@ struct
 (** presentation of consolidated theory **)
 
 type presentation_context =
-  {options: Options.T, pos: Position.T, segments: Thy_Output.segment list};
+  {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
+    segments: Thy_Output.segment list};
 
 structure Presentation = Theory_Data
 (
@@ -50,7 +52,7 @@ fun apply_presentation (context: presentation_context) thy =
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
 val _ =
-  Theory.setup (add_presentation (fn {options, pos, segments} => fn thy =>
+  Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
@@ -61,7 +63,7 @@ val _ =
         else
           let
             val latex = Latex.isabelle_body (Context.theory_name thy) body;
-            val output = [Latex.output_text latex, Latex.output_positions pos latex];
+            val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
             val _ = Export.export thy "document.tex" output;
             val _ = if #enabled option then Present.theory_output thy output else ();
           in () end
@@ -320,7 +322,8 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
       let
         val segments = (spans ~~ maps Toplevel.join_results results)
           |> map (fn (span, (tr, st')) => {span = span, command = tr, state = st'});
-        val context = {options = options, pos = text_pos, segments = segments};
+        val context: presentation_context =
+          {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
       in apply_presentation context thy end;
   in (thy, present, size text) end;
 

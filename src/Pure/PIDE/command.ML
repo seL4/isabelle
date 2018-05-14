@@ -12,13 +12,15 @@ sig
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
     blob list * int -> Token.T list -> Toplevel.transition
   type eval
+  val eval_command_id: eval -> Document_ID.command
   val eval_exec_id: eval -> Document_ID.exec
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
+  val eval_result_command: eval -> Toplevel.transition
   val eval_result_state: eval -> Toplevel.state
   val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
-    blob list * int -> Token.T list -> eval -> eval
+    blob list * int -> Document_ID.command -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
@@ -161,7 +163,11 @@ fun init_eval_state opt_thy =
   command = Toplevel.empty,
   state = (case opt_thy of NONE => Toplevel.toplevel | SOME thy => Toplevel.theory_toplevel thy)};
 
-datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state lazy};
+datatype eval =
+  Eval of
+    {command_id: Document_ID.command, exec_id: Document_ID.exec, eval_process: eval_state lazy};
+
+fun eval_command_id (Eval {command_id, ...}) = command_id;
 
 fun eval_exec_id (Eval {exec_id, ...}) = exec_id;
 val eval_eq = op = o apply2 eval_exec_id;
@@ -172,6 +178,7 @@ fun eval_finished (Eval {eval_process, ...}) = Lazy.is_finished eval_process;
 fun eval_result (Eval {eval_process, ...}) =
   task_context (Future.worker_subgroup ()) Lazy.force eval_process;
 
+val eval_result_command = #command o eval_result;
 val eval_result_state = #state o eval_result;
 
 local
@@ -259,7 +266,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
 
 in
 
-fun eval keywords master_dir init blobs_info span eval0 =
+fun eval keywords master_dir init blobs_info command_id span eval0 =
   let
     val exec_id = Document_ID.make ();
     fun process () =
@@ -271,7 +278,9 @@ fun eval keywords master_dir init blobs_info span eval0 =
             (fn () =>
               read keywords thy master_dir init blobs_info span |> Toplevel.exec_id exec_id) ();
       in eval_state keywords span tr eval_state0 end;
-  in Eval {exec_id = exec_id, eval_process = Lazy.lazy_name "Command.eval" process} end;
+  in
+    Eval {command_id = command_id, exec_id = exec_id, eval_process = Lazy.lazy_name "Command.eval" process}
+  end;
 
 end;
 
@@ -404,7 +413,9 @@ val _ =
 type exec = eval * print list;
 
 fun init_exec opt_thy : exec =
-  (Eval {exec_id = Document_ID.none, eval_process = Lazy.value (init_eval_state opt_thy)}, []);
+  (Eval
+    {command_id = Document_ID.none, exec_id = Document_ID.none,
+      eval_process = Lazy.value (init_eval_state opt_thy)}, []);
 
 val no_exec = init_exec NONE;
 
@@ -423,7 +434,7 @@ fun run_process execution_id exec_id process =
 fun ignore_process process =
   Lazy.is_running process orelse Lazy.is_finished process;
 
-fun run_eval execution_id (Eval {exec_id, eval_process}) =
+fun run_eval execution_id (Eval {exec_id, eval_process, ...}) =
   if Lazy.is_finished eval_process then ()
   else run_process execution_id exec_id eval_process;
 
