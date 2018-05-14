@@ -15,7 +15,7 @@ sig
   val file_of: T -> string option
   val advance: Symbol.symbol -> T -> T
   val advance_offset: int -> T -> T
-  val distance_of: T -> T -> int
+  val distance_of: T * T -> int option
   val none: T
   val start: T
   val file_name: string -> Properties.T
@@ -112,9 +112,8 @@ fun advance_offset offset (pos as (Pos (count as (i, j, k), props))) =
 
 (* distance of adjacent positions *)
 
-fun distance_of (Pos ((_, j, _), _)) (Pos ((_, j', _), _)) =
-  if valid j andalso valid j' then j' - j
-  else 0;
+fun distance_of (Pos ((_, j, _), _), Pos ((_, j', _), _)) =
+  if valid j andalso valid j' then SOME (j' - j) else NONE;
 
 
 (* make position *)
