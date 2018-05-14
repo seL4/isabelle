@@ -10,8 +10,8 @@ sig
   val check_comments: Proof.context -> Symbol_Pos.T list -> unit
   val output_token: Proof.context -> Token.T -> Latex.text list
   val output_source: Proof.context -> string -> Latex.text list
-  val present_thy: theory -> (Toplevel.transition * Toplevel.state) list ->
-    Token.T list -> Latex.text list
+  type segment = {span: Command_Span.span, tr: Toplevel.transition, result_state: Toplevel.state}
+  val present_thy: theory -> segment list -> Latex.text list
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val lines: Latex.text list -> Latex.text list
@@ -338,7 +338,9 @@ val locale =
 
 in
 
-fun present_thy thy command_results toks =
+type segment = {span: Command_Span.span, tr: Toplevel.transition, result_state: Toplevel.state};
+
+fun present_thy thy (segments: segment list) =
   let
     val keywords = Thy_Header.get_keywords thy;
 
@@ -404,12 +406,17 @@ fun present_thy thy command_results toks =
       >> (fn (((toks1, (cmd, tok2)), toks3), tok4) =>
           make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
 
-    val spans = toks
+    val spans = segments
+      |> maps (Command_Span.content o #span)
       |> drop_suffix Token.is_space
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))
       |> Source.source stopper (Scan.error (Scan.bulk span))
       |> Source.exhaust;
+
+    val command_results =
+      segments |> map_filter (fn {tr, result_state, ...} =>
+        if Toplevel.is_ignored tr then NONE else SOME (tr, result_state));
 
 
     (* present commands *)
@@ -421,11 +428,11 @@ fun present_thy thy command_results toks =
         (present_span thy keywords document_tags span st st');
 
     fun present _ [] = I
-      | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;
+      | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
   in
     if length command_results = length spans then
       ((NONE, []), NONE, true, [], (I, I))
-      |> present Toplevel.toplevel (command_results ~~ spans)
+      |> present Toplevel.toplevel (spans ~~ command_results)
       |> present_trailer
       |> rev
     else error "Messed-up outer syntax for presentation"

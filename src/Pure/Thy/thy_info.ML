@@ -267,8 +267,7 @@ fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master
       fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
         (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
 
-    val toks = Token.explode keywords text_pos text;
-    val spans = Outer_Syntax.parse_spans toks;
+    val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
     val elements = Thy_Syntax.parse_elements keywords spans;
 
     fun init () =
@@ -282,15 +281,15 @@ fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master
 
     fun present () =
       let
-        val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
+        val segments = (spans ~~ maps Toplevel.join_results results)
+          |> map (fn (span, (tr, st')) => {span = span, tr = tr, result_state = st'});
         val _ = apply_presentation thy;
       in
-        if exists (Toplevel.is_skipped_proof o #2) res then ()
+        if exists (Toplevel.is_skipped_proof o #result_state) segments then ()
         else
-          let val body = Thy_Output.present_thy thy res toks;
+          let val body = Thy_Output.present_thy thy segments;
           in if document then Present.theory_output text_pos thy body else () end
       end;
-
   in (thy, present, size text) end;
 
 
