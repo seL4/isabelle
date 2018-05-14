@@ -8,7 +8,7 @@ signature PRESENT =
 sig
   val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
-  val document_enabled: string -> bool
+  val document_enabled: Options.T -> bool
   val document_variants: string -> (string * string) list
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
@@ -142,7 +142,9 @@ fun is_session_theory thy =
 
 (* options *)
 
-fun document_enabled s = s <> "" andalso s <> "false";
+fun document_enabled options =
+  let val s = Options.string options "document"
+  in s <> "" andalso s <> "false" end;
 
 fun document_variants str =
   let

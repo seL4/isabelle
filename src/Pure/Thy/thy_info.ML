@@ -14,13 +14,12 @@ sig
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
-  val use_theories:
-    {document: bool,
+  type context =
+    {options: Options.T,
      symbols: HTML.symbols,
      bibtex_entries: string list,
-     last_timing: Toplevel.transition -> Time.time,
-     qualifier: string,
-     master_dir: Path.T} -> (string * Position.T) list -> unit
+     last_timing: Toplevel.transition -> Time.time}
+  val use_theories: context -> string -> Path.T -> (string * Position.T) list -> unit
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
@@ -155,6 +154,21 @@ fun update deps theory thys =
 fun update_thy deps theory = change_thys (update deps theory);
 
 
+(* context *)
+
+type context =
+  {options: Options.T,
+   symbols: HTML.symbols,
+   bibtex_entries: string list,
+   last_timing: Toplevel.transition -> Time.time};
+
+fun default_context (): context =
+  {options = Options.default (),
+   symbols = HTML.no_symbols,
+   bibtex_entries = [],
+   last_timing = K Time.zeroTime};
+
+
 (* scheduling loader tasks *)
 
 datatype result =
@@ -259,9 +273,9 @@ fun excursion keywords master_dir last_timing init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master_dir header
-    text_pos text parents =
+fun eval_thy (context: context) update_time master_dir header text_pos text parents =
   let
+    val {options, symbols, bibtex_entries, last_timing} = context;
     val (name, _) = #name header;
     val keywords =
       fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
@@ -288,7 +302,7 @@ fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master
         if exists (Toplevel.is_skipped_proof o #result_state) segments then ()
         else
           let val body = Thy_Output.present_thy thy segments;
-          in if document then Present.theory_output text_pos thy body else () end
+          in if Present.document_enabled options then Present.theory_output text_pos thy body else () end
       end;
   in (thy, present, size text) end;
 
@@ -401,20 +415,13 @@ end;
 
 (* use theories *)
 
-fun use_theories {document, symbols, bibtex_entries, last_timing, qualifier, master_dir} imports =
-  let
-    val context =
-      {document = document, symbols = symbols, bibtex_entries = bibtex_entries,
-        last_timing = last_timing};
-    val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty;
+fun use_theories context qualifier master_dir imports =
+  let val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty
   in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
-  use_theories
-    {document = false, symbols = HTML.no_symbols, bibtex_entries = [],
-      last_timing = K Time.zeroTime, qualifier = Resources.default_qualifier,
-      master_dir = Path.current}
-    [(name, Position.none)];
+  use_theories (default_context ()) Resources.default_qualifier
+    Path.current [(name, Position.none)];
 
 
 (* toplevel scripting -- without maintaining database *)
