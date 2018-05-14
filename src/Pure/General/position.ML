@@ -14,7 +14,7 @@ sig
   val end_offset_of: T -> int option
   val file_of: T -> string option
   val advance: Symbol.symbol -> T -> T
-  val advance_offset: int -> T -> T
+  val advance_offsets: int -> T -> T
   val distance_of: T * T -> int option
   val none: T
   val start: T
@@ -30,6 +30,7 @@ sig
   val get_id: T -> string option
   val put_id: string -> T -> T
   val parse_id: T -> int option
+  val adjust_offsets: (int -> int option) -> T -> T
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
   val offset_properties_of: T -> Properties.T
@@ -104,10 +105,11 @@ fun invalid_count (i, j, _: int) =
 fun advance sym (pos as (Pos (count, props))) =
   if invalid_count count then pos else Pos (advance_count sym count, props);
 
-fun advance_offset offset (pos as (Pos (count as (i, j, k), props))) =
-  if invalid_count count then pos
+fun advance_offsets offset (pos as (Pos (count as (i, j, k), props))) =
+  if offset = 0 orelse invalid_count count then pos
+  else if offset < 0 then raise Fail "Illegal offset"
   else if valid i then raise Fail "Illegal line position"
-  else Pos ((i, if_valid j (j + offset), k), props);
+  else Pos ((i, if_valid j (j + offset), if_valid k (k + offset)), props);
 
 
 (* distance of adjacent positions *)
@@ -141,6 +143,17 @@ fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Markup.idN, id) props));
 
 fun parse_id pos = Option.map Value.parse_int (get_id pos);
+
+
+fun adjust_offsets adjust (pos as Pos (_, props)) =
+  (case parse_id pos of
+    SOME id =>
+      (case adjust id of
+        SOME offset =>
+          let val Pos (count, _) = advance_offsets offset pos
+          in Pos (count, Properties.remove Markup.idN props) end
+      | NONE => pos)
+  | NONE => pos);
 
 
 (* markup properties *)

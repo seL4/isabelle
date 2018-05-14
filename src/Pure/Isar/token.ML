@@ -31,6 +31,7 @@ sig
     Files of file Exn.result list
   val pos_of: T -> Position.T
   val range_of: T list -> Position.range
+  val adjust_offsets: (int -> int option) -> T -> T
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -191,6 +192,9 @@ fun range_of (toks as tok :: _) =
       let val pos' = end_pos_of (List.last toks)
       in Position.range (pos_of tok, pos') end
   | range_of [] = Position.no_range;
+
+fun adjust_offsets adjust (Token ((x, range), y, z)) =
+  Token ((x, apply2 (Position.adjust_offsets adjust) range), y, z);
 
 
 (* stopper *)
@@ -681,7 +685,7 @@ fun print_name keywords name =
 
 fun make ((k, n), s) pos =
   let
-    val pos' = Position.advance_offset n pos;
+    val pos' = Position.advance_offsets n pos;
     val range = Position.range (pos, pos');
     val tok =
       if 0 <= k andalso k < Vector.length immediate_kinds then
