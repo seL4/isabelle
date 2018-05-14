@@ -5056,15 +5056,7 @@ lemma sorted_rev_nth_mono:
 using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
       rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
 by auto
-(*
-lemma sorted_nth_monoI:
-  "(\<And> i j. \<lbrakk> i \<le> j ; j < length xs \<rbrakk> \<Longrightarrow> xs ! i \<le> xs ! j) \<Longrightarrow> sorted xs"
-by (simp add: sorted_iff_nth_less)
 
-lemma sorted_equals_nth_mono:
-  "sorted xs = (\<forall>j < length xs. \<forall>i \<le> j. xs ! i \<le> xs ! j)"
-by (auto simp: sorted_iff_nth_less nat_less_le)
-*)
 lemma sorted_map_remove1:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
 by (induct xs) (auto)

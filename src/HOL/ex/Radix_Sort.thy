@@ -7,14 +7,21 @@ imports
   "HOL-Library.Multiset" 
 begin
 
+text \<open>The \<open>Radix_Sort\<close> locale provides a sorting function \<open>radix_sort\<close> that sorts
+lists of lists. It is parameterized by a sorting function \<open>sort1 f\<close> that also sorts
+lists of lists, but only w.r.t. the column selected by \<open>f\<close>.
+Working with lists, \<open>f\<close> is instantiated with @{term"\<lambda>xs. xs ! n"} to select the \<open>n\<close>-th element.
+A more efficient implementation would sort lists of arrays because arrays support
+constant time access to every element.\<close>
+
 locale Radix_Sort =
 fixes sort1 :: "('a list \<Rightarrow> 'a::linorder) \<Rightarrow> 'a list list \<Rightarrow> 'a list list"
-assumes sorted: "sorted (map f (sort1 f xs))"
-assumes mset: "mset (sort1 f xs) = mset xs"
+assumes sorted: "sorted (map f (sort1 f xss))"
+assumes mset: "mset (sort1 f xss) = mset xss"
 assumes stable: "stable_sort_key sort1"
 begin
 
-lemma set_sort1[simp]: "set(sort1 f xs) = set xs"
+lemma set_sort1[simp]: "set(sort1 f xss) = set xss"
 by (metis mset set_mset_mset)
 
 abbreviation "sort_col i xss \<equiv> sort1 (\<lambda>xs. xs ! i) xss"
@@ -95,7 +102,7 @@ qed
 
 corollary sorted_radix_sort: "cols xss n \<Longrightarrow> sorted (radix_sort n xss)"
 apply(frule sorted_from_radix_sort[OF _ le_refl])
- apply(auto simp add: cols_def sorted_equals_nth_mono)
+ apply(auto simp add: cols_def sorted_iff_nth_mono)
 done
 
 end
