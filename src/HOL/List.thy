@@ -4971,21 +4971,28 @@ by(induction xs)(auto)
 lemma sorted_wrt01: "length xs \<le> 1 \<Longrightarrow> sorted_wrt P xs"
 by(auto simp: le_Suc_eq length_Suc_conv)
 
-lemma sorted_wrt_iff_nth_Suc:
+lemma sorted_wrt_iff_nth_less:
   "sorted_wrt P xs = (\<forall>i j. i < j \<longrightarrow> j < length xs \<longrightarrow> P (xs ! i) (xs ! j))"
 apply(induction xs)
- apply simp
-apply(force simp: in_set_conv_nth nth_Cons split: nat.split)
+apply(auto simp add: in_set_conv_nth Ball_def nth_Cons split: nat.split)
 done
 
 lemma sorted_wrt_nth_less:
   "\<lbrakk> sorted_wrt P xs; i < j; j < length xs \<rbrakk> \<Longrightarrow> P (xs ! i) (xs ! j)"
-by(auto simp: sorted_wrt_iff_nth_Suc)
-
-text \<open>Strictly Ascending Sequences of Natural Numbers\<close>
+by(auto simp: sorted_wrt_iff_nth_less)
 
 lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [m..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
+
+lemma sorted_wrt_upto[simp]: "sorted_wrt (<) [m..n]"
+proof cases
+  assume "n < m" thus ?thesis by simp
+next
+  assume "\<not> n < m"
+  hence "m \<le> n" by simp
+  thus ?thesis
+    by(induction m rule:int_le_induct)(auto simp: upto_rec1)
+qed
 
 text \<open>Each element is greater or equal to its index:\<close>
 
@@ -5021,6 +5028,14 @@ lemmas sorted2_simps = sorted1 sorted2
 
 lemmas [code] = sorted.simps(1) sorted2_simps
 
+lemma sorted_append:
+  "sorted (xs@ys) = (sorted xs \<and> sorted ys \<and> (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
+by (simp add: sorted_sorted_wrt sorted_wrt_append)
+
+lemma sorted_map:
+  "sorted (map f xs) = sorted_wrt (\<lambda>x y. f x \<le> f y) xs"
+by (simp add: sorted_sorted_wrt sorted_wrt_map)
+
 lemma sorted01: "length xs \<le> 1 \<Longrightarrow> sorted xs"
 by (simp add: sorted_sorted_wrt sorted_wrt01)
 
@@ -5028,45 +5043,28 @@ lemma sorted_tl:
   "sorted xs \<Longrightarrow> sorted (tl xs)"
 by (cases xs) (simp_all)
 
-lemma sorted_append:
-  "sorted (xs@ys) = (sorted xs \<and> sorted ys \<and> (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
-by (induct xs) (auto)
+lemma sorted_iff_nth_mono:
+  "sorted xs = (\<forall>i j. i < j \<longrightarrow> j < length xs \<longrightarrow> xs ! i \<le> xs ! j)"
+by (simp add: sorted_sorted_wrt sorted_wrt_iff_nth_less)
 
 lemma sorted_nth_mono:
   "sorted xs \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i \<le> xs!j"
-by (induct xs arbitrary: i j) (auto simp:nth_Cons')
+by (auto simp: sorted_iff_nth_mono nat_less_le)
 
 lemma sorted_rev_nth_mono:
   "sorted (rev xs) \<Longrightarrow> i \<le> j \<Longrightarrow> j < length xs \<Longrightarrow> xs!j \<le> xs!i"
 using sorted_nth_mono[ of "rev xs" "length xs - j - 1" "length xs - i - 1"]
       rev_nth[of "length xs - i - 1" "xs"] rev_nth[of "length xs - j - 1" "xs"]
 by auto
-
+(*
 lemma sorted_nth_monoI:
   "(\<And> i j. \<lbrakk> i \<le> j ; j < length xs \<rbrakk> \<Longrightarrow> xs ! i \<le> xs ! j) \<Longrightarrow> sorted xs"
-proof (induct xs)
-  case (Cons x xs)
-  have "sorted xs"
-  proof (rule Cons.hyps)
-    fix i j assume "i \<le> j" and "j < length xs"
-    with Cons.prems[of "Suc i" "Suc j"]
-    show "xs ! i \<le> xs ! j" by auto
-  qed
-  moreover
-  {
-    fix y assume "y \<in> set xs"
-    then obtain j where "j < length xs" and "xs ! j = y"
-      unfolding in_set_conv_nth by blast
-    with Cons.prems[of 0 "Suc j"] have "x \<le> y" by auto
-  }
-  ultimately
-  show ?case by auto
-qed simp
+by (simp add: sorted_iff_nth_less)
 
 lemma sorted_equals_nth_mono:
   "sorted xs = (\<forall>j < length xs. \<forall>i \<le> j. xs ! i \<le> xs ! j)"
-by (auto intro: sorted_nth_monoI sorted_nth_mono)
-
+by (auto simp: sorted_iff_nth_less nat_less_le)
+*)
 lemma sorted_map_remove1:
   "sorted (map f xs) \<Longrightarrow> sorted (map f (remove1 x xs))"
 by (induct xs) (auto)
@@ -5446,7 +5444,7 @@ by (metis (mono_tags) filter_True sort_key_stable)
 subsubsection \<open>@{const transpose} on sorted lists\<close>
 
 lemma sorted_transpose[simp]: "sorted (rev (map length (transpose xs)))"
-by (auto simp: sorted_equals_nth_mono rev_nth nth_transpose
+by (auto simp: sorted_iff_nth_mono rev_nth nth_transpose
     length_filter_conv_card intro: card_mono)
 
 lemma transpose_max_length:
@@ -5579,7 +5577,7 @@ theorem transpose_rectangle:
     (is "?trans = ?map")
 proof (rule nth_equalityI)
   have "sorted (rev (map length xs))"
-    by (auto simp: rev_nth rect intro!: sorted_nth_monoI)
+    by (auto simp: rev_nth rect sorted_iff_nth_mono)
   from foldr_max_sorted[OF this] assms
   show len: "length ?trans = length ?map"
     by (simp_all add: length_transpose foldr_map comp_def)
