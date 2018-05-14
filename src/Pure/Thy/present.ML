@@ -8,12 +8,12 @@ signature PRESENT =
 sig
   val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
-  val document_enabled: string -> bool
+  val document_option: Options.T -> {enabled: bool, disabled: bool}
   val document_variants: string -> (string * string) list
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
-  val theory_output: Position.T -> theory -> Latex.text list -> unit
+  val theory_output: theory -> string list -> unit
   val begin_theory: string list -> int -> (unit -> HTML.text) -> theory -> theory
 end;
 
@@ -56,7 +56,7 @@ val get_bibtex_entries = #bibtex_entries o Browser_Info.get;
 
 (* type theory_info *)
 
-type theory_info = {tex_source: string, html_source: string};
+type theory_info = {tex_source: string list, html_source: string};
 
 fun make_theory_info (tex_source, html_source) =
   {tex_source = tex_source, html_source = html_source}: theory_info;
@@ -142,7 +142,11 @@ fun is_session_theory thy =
 
 (* options *)
 
-fun document_enabled s = s <> "" andalso s <> "false";
+fun document_option options =
+  (case Options.string options "document" of
+    "" => {enabled = false, disabled = false}
+  | "false" => {enabled = false, disabled = true}
+  | _ => {enabled = true, disabled = false});
 
 fun document_variants str =
   let
@@ -250,7 +254,7 @@ fun finish () =
         val _ = write_tex_index tex_index doc_dir;
         val _ =
           List.app (fn (a, {tex_source, ...}) =>
-            write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys;
+            write_tex (fold Buffer.add tex_source Buffer.empty) a doc_dir) thys;
       in
         fn () =>
           (isabelle_document {verbose = true} doc_format doc_name tags doc_dir before purge (),
@@ -277,15 +281,10 @@ fun finish () =
 
 (* theory elements *)
 
-fun theory_output pos thy body =
+fun theory_output thy output =
   with_session_info () (fn _ =>
     if is_session_theory thy then
-      let val name = Context.theory_name thy in
-        (change_theory_info name o apfst)
-          (fn _ =>
-            let val latex = Latex.isabelle_body name body
-            in Latex.output_text latex ^ Latex.output_positions pos latex end)
-      end
+      (change_theory_info (Context.theory_name thy) o apfst) (K output)
     else ());
 
 fun theory_link (curr_chapter, curr_session) thy =
@@ -310,7 +309,7 @@ fun begin_theory bibtex_entries update_time mk_text thy =
           (Option.map Url.File (theory_link (chapter, session_name) parent),
             (Context.theory_name parent)));
       val html_source = HTML.theory symbols name parent_specs (mk_text ());
-      val _ = init_theory_info name (make_theory_info ("", html_source));
+      val _ = init_theory_info name (make_theory_info ([], html_source));
 
       val bibtex_entries' =
         if is_session_theory thy then

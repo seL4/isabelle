@@ -7,20 +7,22 @@ file dependencies.
 
 signature THY_INFO =
 sig
-  val add_presentation: (theory -> unit) -> theory -> theory
-  val apply_presentation: theory -> unit
+  type presentation_context =
+    {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
+      segments: Thy_Output.segment list}
+  val apply_presentation: presentation_context -> theory -> unit
+  val add_presentation: (presentation_context -> theory -> unit) -> theory -> theory
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
-  val use_theories:
-    {document: bool,
+  type context =
+    {options: Options.T,
      symbols: HTML.symbols,
      bibtex_entries: string list,
-     last_timing: Toplevel.transition -> Time.time,
-     qualifier: string,
-     master_dir: Path.T} -> (string * Position.T) list -> unit
+     last_timing: Toplevel.transition -> Time.time}
+  val use_theories: context -> string -> Path.T -> (string * Position.T) list -> unit
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
   val register_thy: theory -> unit
@@ -32,18 +34,40 @@ struct
 
 (** presentation of consolidated theory **)
 
+type presentation_context =
+  {options: Options.T, file_pos: Position.T, adjust_pos: Position.T -> Position.T,
+    segments: Thy_Output.segment list};
+
 structure Presentation = Theory_Data
 (
-  type T = ((theory -> unit) * stamp) list;
+  type T = ((presentation_context -> theory -> unit) * stamp) list;
   val empty = [];
   val extend = I;
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
+fun apply_presentation (context: presentation_context) thy =
+  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f context thy));
+
 fun add_presentation f = Presentation.map (cons (f, stamp ()));
 
-fun apply_presentation thy =
-  ignore (Presentation.get thy |> Par_List.map (fn (f, _) => f thy));
+val _ =
+  Theory.setup (add_presentation (fn {options, file_pos, segments, ...} => fn thy =>
+    if exists (Toplevel.is_skipped_proof o #state) segments then ()
+    else
+      let
+        val body = Thy_Output.present_thy thy segments;
+        val option = Present.document_option options;
+      in
+        if #disabled option then ()
+        else
+          let
+            val latex = Latex.isabelle_body (Context.theory_name thy) body;
+            val output = [Latex.output_text latex, Latex.output_positions file_pos latex];
+            val _ = Export.export thy "document.tex" output;
+            val _ = if #enabled option then Present.theory_output thy output else ();
+          in () end
+      end));
 
 
 
@@ -155,6 +179,21 @@ fun update deps theory thys =
 fun update_thy deps theory = change_thys (update deps theory);
 
 
+(* context *)
+
+type context =
+  {options: Options.T,
+   symbols: HTML.symbols,
+   bibtex_entries: string list,
+   last_timing: Toplevel.transition -> Time.time};
+
+fun default_context (): context =
+  {options = Options.default (),
+   symbols = HTML.no_symbols,
+   bibtex_entries = [],
+   last_timing = K Time.zeroTime};
+
+
 (* scheduling loader tasks *)
 
 datatype result =
@@ -259,16 +298,15 @@ fun excursion keywords master_dir last_timing init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master_dir header
-    text_pos text parents =
+fun eval_thy (context: context) update_time master_dir header text_pos text parents =
   let
+    val {options, symbols, bibtex_entries, last_timing} = context;
     val (name, _) = #name header;
     val keywords =
       fold (curry Keyword.merge_keywords o Thy_Header.get_keywords) parents
         (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
 
-    val toks = Token.explode keywords text_pos text;
-    val spans = Outer_Syntax.parse_spans toks;
+    val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
     val elements = Thy_Syntax.parse_elements keywords spans;
 
     fun init () =
@@ -282,15 +320,11 @@ fun eval_thy {document, symbols, bibtex_entries, last_timing} update_time master
 
     fun present () =
       let
-        val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
-        val _ = apply_presentation thy;
-      in
-        if exists (Toplevel.is_skipped_proof o #2) res then ()
-        else
-          let val body = Thy_Output.present_thy thy res toks;
-          in if document then Present.theory_output text_pos thy body else () end
-      end;
-
+        val segments = (spans ~~ maps Toplevel.join_results results)
+          |> map (fn (span, (tr, st')) => {span = span, command = tr, state = st'});
+        val context: presentation_context =
+          {options = options, file_pos = text_pos, adjust_pos = I, segments = segments};
+      in apply_presentation context thy end;
   in (thy, present, size text) end;
 
 
@@ -402,20 +436,13 @@ end;
 
 (* use theories *)
 
-fun use_theories {document, symbols, bibtex_entries, last_timing, qualifier, master_dir} imports =
-  let
-    val context =
-      {document = document, symbols = symbols, bibtex_entries = bibtex_entries,
-        last_timing = last_timing};
-    val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty;
+fun use_theories context qualifier master_dir imports =
+  let val (_, tasks) = require_thys context [] qualifier master_dir imports String_Graph.empty
   in if Multithreading.max_threads () > 1 then schedule_futures tasks else schedule_seq tasks end;
 
 fun use_thy name =
-  use_theories
-    {document = false, symbols = HTML.no_symbols, bibtex_entries = [],
-      last_timing = K Time.zeroTime, qualifier = Resources.default_qualifier,
-      master_dir = Path.current}
-    [(name, Position.none)];
+  use_theories (default_context ()) Resources.default_qualifier
+    Path.current [(name, Position.none)];
 
 
 (* toplevel scripting -- without maintaining database *)

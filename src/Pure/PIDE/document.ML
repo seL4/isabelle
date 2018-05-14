@@ -177,33 +177,16 @@ fun finished_result node =
   | NONE => false);
 
 fun finished_result_theory node =
-  finished_result node andalso
+  if finished_result node then
     let val st = Command.eval_result_state (the (get_result node))
-    in (Toplevel.end_theory Position.none st; true) handle ERROR _ => false end;
+    in SOME (Toplevel.end_theory Position.none st) handle ERROR _ => NONE end
+  else NONE;
 
 val reset_consolidated =
   map_node (fn (header, keywords, perspective, entries, result, _) =>
     (header, keywords, perspective, entries, result, Lazy.lazy I));
 
-fun check_consolidated (node as Node {consolidated, ...}) =
-  Lazy.is_finished consolidated orelse
-  finished_result_theory node andalso
-    let
-      val result_id = Command.eval_exec_id (the (get_result node));
-      val eval_ids =
-        iterate_entries (fn (_, opt_exec) => fn eval_ids =>
-          (case opt_exec of
-            SOME (eval, _) => SOME (cons (Command.eval_exec_id eval) eval_ids)
-          | NONE => NONE)) node [];
-    in
-      (case Execution.snapshot eval_ids of
-        [] =>
-         (Lazy.force consolidated;
-          Position.setmp_thread_data (Position.id_only (Document_ID.print result_id))
-            (fn () => Output.status (Markup.markup_only Markup.consolidated)) ();
-          true)
-      | _ => false)
-    end;
+fun get_consolidated (Node {consolidated, ...}) = consolidated;
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -428,6 +411,9 @@ fun the_command (State {commands, ...}) command_id =
 
 val the_command_name = #1 oo the_command;
 
+fun force_command_span state =
+  Outer_Syntax.make_span o Lazy.force o #4 o the_command state;
+
 
 (* execution *)
 
@@ -527,8 +513,72 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
     in (versions, blobs, commands, execution') end));
 
 fun consolidate_execution state =
-  String_Graph.fold (fn (_, (node, _)) => fn () => ignore (check_consolidated node))
-    (nodes_of (get_execution_version state)) ();
+  let
+    fun check_consolidated node_name node =
+      if Lazy.is_finished (get_consolidated node) then ()
+      else
+        (case finished_result_theory node of
+          NONE => ()
+        | SOME thy =>
+            let
+              val result_id = Command.eval_exec_id (the (get_result node));
+              val eval_ids =
+                iterate_entries (fn (_, opt_exec) => fn eval_ids =>
+                  (case opt_exec of
+                    SOME (eval, _) => SOME (cons (Command.eval_exec_id eval) eval_ids)
+                  | NONE => NONE)) node [];
+            in
+              (case Execution.snapshot eval_ids of
+                [] =>
+                  let
+                    val (_, offsets, rev_segments) =
+                      iterate_entries (fn (_, opt_exec) => fn (offset, offsets, segments) =>
+                        (case opt_exec of
+                          SOME (eval, _) =>
+                            let
+                              val command_id = Command.eval_command_id eval;
+                              val span = force_command_span state command_id;
+
+                              val exec_id = Command.eval_exec_id eval;
+                              val tr = Command.eval_result_command eval;
+                              val st' = Command.eval_result_state eval;
+
+                              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
+                              val offsets' = offsets
+                                |> Inttab.update (command_id, offset)
+                                |> Inttab.update (exec_id, offset);
+                              val segments' = (span, tr, st') :: segments;
+                            in SOME (offset', offsets', segments') end
+                        | NONE => NONE)) node (0, Inttab.empty, []);
+
+                    val adjust = Inttab.lookup offsets;
+                    val adjust_pos = Position.adjust_offsets adjust;
+                    val adjust_token = Token.adjust_offsets adjust;
+                    val segments =
+                      rev rev_segments |> map (fn (span, tr, st') =>
+                        {span = Command_Span.adjust_offsets adjust span, command = tr, state = st'});
+
+                    val presentation_context: Thy_Info.presentation_context =
+                     {options = Options.default (),
+                      file_pos = Position.file node_name,
+                      adjust_pos = adjust_pos,
+                      segments = segments};
+
+                    val _ = Lazy.force (get_consolidated node);
+                    val _ =
+                      Position.setmp_thread_data (Position.id_only (Document_ID.print result_id))
+                        (fn () =>
+                          (if Options.default_bool "editor_document_output" then
+                            Thy_Info.apply_presentation presentation_context thy (* FIXME errors!? *)
+                           else ();
+                           Output.status (Markup.markup_only Markup.consolidated))) ();
+                  in () end
+              | _ => ())
+            end);
+      in
+        String_Graph.fold (fn (node_name, (node, _)) => fn () => check_consolidated node_name node)
+          (nodes_of (get_execution_version state)) ()
+      end;
 
 
 
@@ -657,7 +707,7 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
 
       val eval' =
         Command.eval keywords (master_directory node) (fn () => the_default illegal_init init span)
-          (blobs, blobs_index) span (#1 (#2 command_exec));
+          (blobs, blobs_index) command_id' span (#1 (#2 command_exec));
       val prints' =
         perhaps (Command.print command_visible command_overlays keywords command_name eval') [];
       val exec' = (eval', prints');

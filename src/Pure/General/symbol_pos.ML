@@ -244,7 +244,7 @@ fun pad [] = []
   | pad ((s1, pos1) :: (rest as (_, pos2) :: _)) =
       let
         val end_pos1 = Position.advance s1 pos1;
-        val d = Int.max (0, Position.distance_of end_pos1 pos2);
+        val d = Int.max (0, the_default 0 (Position.distance_of (end_pos1, pos2)));
       in s1 :: replicate d Symbol.DEL @ pad rest end;
 
 val implode = implode o pad;

@@ -113,6 +113,9 @@ fun protocol_message props output =
 
 fun build_theories symbols bibtex_entries last_timing qualifier master_dir (options, thys) =
   let
+    val context =
+      {options = options, symbols = symbols, bibtex_entries = bibtex_entries,
+        last_timing = last_timing};
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
   in
@@ -121,13 +124,7 @@ fun build_theories symbols bibtex_entries last_timing qualifier master_dir (opti
         Options.set_default options;
         Isabelle_Process.init_options ();
         Future.fork I;
-        (Thy_Info.use_theories {
-          document = Present.document_enabled (Options.string options "document"),
-          symbols = symbols,
-          bibtex_entries = bibtex_entries,
-          last_timing = last_timing,
-          qualifier = qualifier,
-          master_dir = master_dir}
+        (Thy_Info.use_theories context qualifier master_dir
         |>
           (case Options.string options "profiling" of
             "" => I
