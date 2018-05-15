@@ -4984,15 +4984,11 @@ by(auto simp: sorted_wrt_iff_nth_less)
 lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [m..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
 
-lemma sorted_wrt_upto[simp]: "sorted_wrt (<) [m..n]"
-proof cases
-  assume "n < m" thus ?thesis by simp
-next
-  assume "\<not> n < m"
-  hence "m \<le> n" by simp
-  thus ?thesis
-    by(induction m rule:int_le_induct)(auto simp: upto_rec1)
-qed
+lemma sorted_wrt_upto[simp]: "sorted_wrt (<) [i..j]"
+apply(induction i j rule: upto.induct)
+apply(subst upto.simps)
+apply(simp)
+done
 
 text \<open>Each element is greater or equal to its index:\<close>
 
@@ -5381,18 +5377,11 @@ lemma remove1_insort [simp]:
 
 end
 
-lemma sorted_upt[simp]: "sorted[i..<j]"
-by (induct j) (simp_all add:sorted_append)
+lemma sort_upt [simp]: "sort [m..<n] = [m..<n]"
+by (rule sorted_sort_id) simp
 
-lemma sort_upt [simp]:
-  "sort [m..<n] = [m..<n]"
-  by (rule sorted_sort_id) simp
-
-lemma sorted_upto[simp]: "sorted[i..j]"
-apply(induct i j rule:upto.induct)
-apply(subst upto.simps)
-apply(simp)
-done
+lemma sort_upto [simp]: "sort [i..j] = [i..j]"
+by (rule sorted_sort_id) simp
 
 lemma sorted_find_Min:
   "sorted xs \<Longrightarrow> \<exists>x \<in> set xs. P x \<Longrightarrow> List.find P xs = Some (Min {x\<in>set xs. P x})"
