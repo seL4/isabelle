@@ -5190,6 +5190,12 @@ using sorted_map_same [of "\<lambda>x. x"] by simp
 
 end
 
+lemma sorted_upt[simp]: "sorted [m..<n]"
+by(simp add: sorted_sorted_wrt sorted_wrt_mono_rel[OF _ sorted_wrt_upt])
+
+lemma sorted_upto[simp]: "sorted [m..n]"
+by(simp add: sorted_sorted_wrt sorted_wrt_mono_rel[OF _ sorted_wrt_upto])
+
 
 subsubsection \<open>Sorting functions\<close>
 
