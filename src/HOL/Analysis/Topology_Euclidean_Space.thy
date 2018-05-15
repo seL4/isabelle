@@ -10,6 +10,7 @@ theory Topology_Euclidean_Space
 imports
   "HOL-Library.Indicator_Function"
   "HOL-Library.Countable_Set"
+  "HOL-Library.FuncSet"
   Linear_Algebra
   Norm_Arith
 begin

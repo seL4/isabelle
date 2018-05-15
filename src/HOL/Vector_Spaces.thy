@@ -9,7 +9,7 @@
 section \<open>Vector Spaces\<close>
 
 theory Vector_Spaces
-  imports Modules FuncSet
+  imports Modules
 begin
 
 lemma isomorphism_expand:
@@ -847,7 +847,7 @@ lemma linear_independent_extend:
 lemma linear_exists_left_inverse_on:
   assumes lf: "linear s1 s2 f"
   assumes V: "vs1.subspace V" and f: "inj_on f V"
-  shows "\<exists>g\<in>UNIV \<rightarrow> V. linear s2 s1 g \<and> (\<forall>v\<in>V. g (f v) = v)"
+  shows "\<exists>g. g ` UNIV \<subseteq> V \<and> linear s2 s1 g \<and> (\<forall>v\<in>V. g (f v) = v)"
 proof -
   interpret linear s1 s2 f by fact
   obtain B where V_eq: "V = vs1.span B" and B: "vs1.independent B"
@@ -856,7 +856,7 @@ proof -
   have f: "inj_on f (vs1.span B)"
     using f unfolding V_eq .
   show ?thesis
-  proof (intro bexI ballI conjI)
+  proof (intro exI ballI conjI)
     interpret p: vector_space_pair s2 s1 by unfold_locales
     have fB: "vs2.independent (f ` B)"
       using independent_injective_image[OF B f] .
@@ -868,7 +868,7 @@ proof -
     moreover have "the_inv_into B f ` f ` B = B"
       by (auto simp: image_comp comp_def the_inv_into_f_f inj_on_subset[OF f vs1.span_superset]
           cong: image_cong)
-    ultimately show "?g \<in> UNIV \<rightarrow> V"
+    ultimately show "?g ` UNIV \<subseteq> V"
       by (auto simp: V_eq)
     have "(?g \<circ> f) v = id v" if "v \<in> vs1.span B" for v
     proof (rule vector_space_pair.linear_eq_on[where x=v])
@@ -890,7 +890,7 @@ qed
 lemma linear_exists_right_inverse_on:
   assumes lf: "linear s1 s2 f"
   assumes "vs1.subspace V"
-  shows "\<exists>g\<in>UNIV \<rightarrow> V. linear s2 s1 g \<and> (\<forall>v\<in>f ` V. f (g v) = v)"
+  shows "\<exists>g. g ` UNIV \<subseteq> V \<and> linear s2 s1 g \<and> (\<forall>v\<in>f ` V. f (g v) = v)"
 proof -
   obtain B where V_eq: "V = vs1.span B" and B: "vs1.independent B"
     using vs1.maximal_independent_subset[of V] vs1.span_minimal[OF _ \<open>vs1.subspace V\<close>]
@@ -900,7 +900,7 @@ proof -
   then have "\<forall>v\<in>C. \<exists>b\<in>B. v = f b" by auto
   then obtain g where g: "\<And>v. v \<in> C \<Longrightarrow> g v \<in> B" "\<And>v. v \<in> C \<Longrightarrow> f (g v) = v" by metis
   show ?thesis
-  proof (intro bexI ballI conjI)
+  proof (intro exI ballI conjI)
     interpret p: vector_space_pair s2 s1 by unfold_locales
     let ?g = "p.construct C g"
     show "linear ( *b) ( *a) ?g"
@@ -908,7 +908,7 @@ proof -
     have "?g v \<in> vs1.span (g ` C)" for v
       by (rule p.construct_in_span[OF C])
     also have "\<dots> \<subseteq> V" unfolding V_eq using g by (intro vs1.span_mono) auto
-    finally show "?g \<in> UNIV \<rightarrow> V" by auto
+    finally show "?g ` UNIV \<subseteq> V" by auto
     have "(f \<circ> ?g) v = id v" if v: "v \<in> f ` V" for v
     proof (rule vector_space_pair.linear_eq_on[where x=v])
       show "vector_space_pair ( *b) ( *b)" by unfold_locales
@@ -946,7 +946,7 @@ lemma linear_surj_right_inverse:
   assumes sf: "vs2.span T \<subseteq> f`vs1.span S"
   shows "\<exists>g. range g \<subseteq> vs1.span S \<and> linear s2 s1 g \<and> (\<forall>x\<in>vs2.span T. f (g x) = x)"
   using linear_exists_right_inverse_on[OF lf vs1.subspace_span, of S] sf
-  by (auto simp: linear_iff_module_hom)
+  by (force simp: linear_iff_module_hom)
 
 lemma linear_surjective_right_inverse: "linear s1 s2 f \<Longrightarrow> surj f \<Longrightarrow> \<exists>g. linear s2 s1 g \<and> f \<circ> g = id"
   using linear_surj_right_inverse[of f UNIV UNIV]

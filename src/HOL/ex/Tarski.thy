@@ -5,7 +5,7 @@
 section \<open>The Full Theorem of Tarski\<close>
 
 theory Tarski
-imports Main HOL.FuncSet
+imports Main "HOL-Library.FuncSet"
 begin
 
 text \<open>

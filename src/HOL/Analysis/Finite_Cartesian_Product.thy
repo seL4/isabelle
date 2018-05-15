@@ -10,6 +10,7 @@ imports
   L2_Norm
   "HOL-Library.Numeral_Type"
   "HOL-Library.Countable_Set"
+  "HOL-Library.FuncSet"
 begin
 
 subsection \<open>Finite Cartesian products, with indexing and lambdas\<close>

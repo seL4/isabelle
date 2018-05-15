@@ -8,7 +8,7 @@ Metis example featuring the full theorem of Tarski.
 section \<open>Metis Example Featuring the Full Theorem of Tarski\<close>
 
 theory Tarski
-imports Main HOL.FuncSet
+imports Main "HOL-Library.FuncSet"
 begin
 
 declare [[metis_new_skolem]]

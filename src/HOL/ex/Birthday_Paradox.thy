@@ -5,7 +5,7 @@
 section \<open>A Formulation of the Birthday Paradox\<close>
 
 theory Birthday_Paradox
-imports Main HOL.FuncSet
+imports Main "HOL-Library.FuncSet"
 begin
 
 section \<open>Cardinality\<close>

@@ -8,7 +8,7 @@ Example featuring Metis's support for lambda-abstractions.
 section \<open>Example Featuring Metis's Support for Lambda-Abstractions\<close>
 
 theory Abstraction
-imports HOL.FuncSet
+imports "HOL-Library.FuncSet"
 begin
 
 (* For Christoph Benzmüller *)
