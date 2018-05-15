@@ -177,7 +177,7 @@ fun display_name thy_id =
 fun display_names thy =
   let
     val name = display_name (theory_id thy);
-    val ancestor_names = map theory_name (ancestors_of thy);
+    val ancestor_names = map theory_long_name (ancestors_of thy);
   in rev (name :: ancestor_names) end;
 
 val pretty_thy = Pretty.str_list "{" "}" o display_names;
