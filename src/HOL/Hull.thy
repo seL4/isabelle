@@ -1,8 +1,8 @@
-(* Title:   Hull.thy
-   Author:  Amine Chaieb, University of Cambridge
-   Author:  Jose Divasón <jose.divasonm at unirioja.es>
-   Author:  Jesús Aransay <jesus-maria.aransay at unirioja.es>
-   Author:  Johannes Hölzl, VU Amsterdam
+(*  Title:      HOL/Hull.thy
+    Author:     Amine Chaieb, University of Cambridge
+    Author:     Jose Divasón <jose.divasonm at unirioja.es>
+    Author:     Jesús Aransay <jesus-maria.aransay at unirioja.es>
+    Author:     Johannes Hölzl, VU Amsterdam
 *)
 
 theory Hull

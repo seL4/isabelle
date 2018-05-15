@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/Sessions.thy
+(*  Title:      Pure/Sessions.thy
     Author:     Makarius
 
 PIDE markup for session ROOT.

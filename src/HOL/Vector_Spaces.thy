@@ -1,9 +1,9 @@
-(* Title:   Vector_Spaces.thy
-   Author:  Amine Chaieb, University of Cambridge
-   Author:  Jose Divasón <jose.divasonm at unirioja.es>
-   Author:  Jesús Aransay <jesus-maria.aransay at unirioja.es>
-   Author:  Johannes Hölzl, VU Amsterdam
-   Author: Fabian Immler, TUM
+(*  Title:      HOL/Vector_Spaces.thy
+    Author:     Amine Chaieb, University of Cambridge
+    Author:     Jose Divasón <jose.divasonm at unirioja.es>
+    Author:     Jesús Aransay <jesus-maria.aransay at unirioja.es>
+    Author:     Johannes Hölzl, VU Amsterdam
+    Author:     Fabian Immler, TUM
 *)
 
 section \<open>Vector Spaces\<close>

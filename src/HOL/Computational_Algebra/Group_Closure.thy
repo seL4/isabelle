@@ -1,4 +1,4 @@
-(*  Title:      HOL/Computational_Algebra/Field_as_Ring.thy
+(*  Title:      HOL/Computational_Algebra/Group_Closure.thy
     Author:     Johannes Hoelzl, TU Muenchen
     Author:     Florian Haftmann, TU Muenchen
 *)

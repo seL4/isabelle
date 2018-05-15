@@ -1,4 +1,4 @@
-(*  Title:      HOL/FuncSet.thy
+(*  Title:      HOL/Library/FuncSet.thy
     Author:     Florian Kammueller and Lawrence C Paulson, Lukas Bulwahn
 *)
 

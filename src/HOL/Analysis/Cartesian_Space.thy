@@ -1,10 +1,11 @@
-(* Title:   Cartesian_Space.thy
-   Author:  Amine Chaieb, University of Cambridge
-   Author:  Jose Divasón <jose.divasonm at unirioja.es>
-   Author:  Jesús Aransay <jesus-maria.aransay at unirioja.es>
-   Author:  Johannes Hölzl, VU Amsterdam
-   Author:  Fabian Immler, TUM
+(*  Title:      HOL/Analysis/Cartesian_Space.thy
+    Author:     Amine Chaieb, University of Cambridge
+    Author:     Jose Divasón <jose.divasonm at unirioja.es>
+    Author:     Jesús Aransay <jesus-maria.aransay at unirioja.es>
+    Author:     Johannes Hölzl, VU Amsterdam
+    Author:     Fabian Immler, TUM
 *)
+
 theory Cartesian_Space
   imports
     Finite_Cartesian_Product Linear_Algebra
