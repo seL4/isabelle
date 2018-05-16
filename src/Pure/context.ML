@@ -359,7 +359,7 @@ in
 
 val update_thy = change_thy false;
 val extend_thy = update_thy I;
-val finish_thy = change_thy true I;
+val finish_thy = change_thy true I #> tap extend_thy;
 
 end;
 
@@ -399,7 +399,7 @@ fun begin_thy name imports =
 
       val history = make_history name 0;
       val ancestry = make_ancestry parents ancestors;
-    in create_thy ids history ancestry (data_of thy0) end;
+    in create_thy ids history ancestry (data_of thy0) |> tap finish_thy end;
 
 end;
 
