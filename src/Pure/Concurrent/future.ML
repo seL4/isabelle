@@ -27,6 +27,7 @@ sig
   val default_params: params
   val forks: params -> (unit -> 'a) list -> 'a future list
   val fork: (unit -> 'a) -> 'a future
+  val get_finished: 'a future -> 'a
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
@@ -504,6 +505,8 @@ fun get_result x =
           [] => res
         | exns => Exn.Exn (Par_Exn.make exns))
       else res);
+
+fun get_finished x = Exn.release (get_result x);
 
 local
 
