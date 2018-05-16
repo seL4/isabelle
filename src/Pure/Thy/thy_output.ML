@@ -117,13 +117,14 @@ fun output_comment_symbols ctxt {antiq} (comment, syms) =
       |> maps output_symbols_antiq
   | (SOME comment, _) => output_comment ctxt (comment, syms));
 
-in
-
 fun output_body ctxt antiq bg en syms =
   Comment.read_body syms
   |> maps (output_comment_symbols ctxt {antiq = antiq})
-  |> Latex.enclose_body bg en
-and output_token ctxt tok =
+  |> Latex.enclose_body bg en;
+
+in
+
+fun output_token ctxt tok =
   let
     fun output antiq bg en =
       output_body ctxt antiq bg en (Input.source_explode (Token.input_of tok));
