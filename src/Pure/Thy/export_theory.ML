@@ -6,7 +6,6 @@ Export foundational theory content.
 
 signature EXPORT_THEORY =
 sig
-  val entity_markup: Name_Space.T -> string -> Markup.T
 end;
 
 structure Export_Theory: EXPORT_THEORY =
@@ -14,27 +13,29 @@ struct
 
 (* name space entries *)
 
-fun entity_markup space name =
+fun entity_markup adjust_pos space name =
   let
     val {serial, pos, ...} = Name_Space.the_entry space name;
-    val props = Markup.serial_properties serial @ Position.offset_properties_of pos;
+    val props = Markup.serial_properties serial @ Position.offset_properties_of (adjust_pos pos);
   in (Markup.entityN, (Markup.nameN, name) :: props) end;
 
-fun export_decls export_decl parents thy space decls =
+fun export_decls export_decl parents thy adjust_pos space decls =
   (decls, []) |-> fold (fn (name, decl) =>
     if exists (fn space => Name_Space.declared space name) parents then I
     else
       (case export_decl thy name decl of
         NONE => I
-      | SOME body => cons (name, XML.Elem (entity_markup space name, body))))
+      | SOME body => cons (name, XML.Elem (entity_markup adjust_pos space name, body))))
   |> sort_by #1 |> map #2;
 
 
 (* present *)
 
-fun present get_space get_decls export name thy =
+fun present get_space get_decls export name adjust_pos thy =
   if Options.default_bool "export_theory" then
-    (case export (map get_space (Theory.parents_of thy)) thy (get_space thy) (get_decls thy) of
+    (case
+      export (map get_space (Theory.parents_of thy)) thy adjust_pos (get_space thy) (get_decls thy)
+     of
       [] => ()
     | body => Export.export thy ("theory/" ^ name) [YXML.string_of_body body])
   else ();
@@ -42,7 +43,7 @@ fun present get_space get_decls export name thy =
 fun present_decls get_space get_decls =
   present get_space get_decls o export_decls;
 
-fun setup_presentation f = Theory.setup (Thy_Info.add_presentation (K f));
+val setup_presentation = Theory.setup o Thy_Info.add_presentation;
 
 
 (* types *)
@@ -62,7 +63,7 @@ fun export_type (Type.LogicalType n) = SOME (encode_type (Name.invent Name.conte
 
 in
 
-val _ = setup_presentation (present_types (K (K export_type)) "types");
+val _ = setup_presentation (present_types (K (K export_type)) "types" o #adjust_pos);
 
 end;
 
@@ -87,7 +88,7 @@ fun export_const thy c (T, abbrev) =
 
 in
 
-val _ = setup_presentation (present_consts export_const "consts");
+val _ = setup_presentation (present_consts export_const "consts" o #adjust_pos);
 
 end;
 
