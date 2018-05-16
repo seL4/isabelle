@@ -98,10 +98,9 @@ fun protocol_message props output =
         not (null args) andalso #1 (hd args) = Markup.idN
       then
         let
-          val path = Isabelle_System.create_tmp_path "export" "";
+          val path = Path.expand (Path.explode ("$ISABELLE_EXPORT_TMP/export" ^ serial_string ()));
           val _ = File.open_output (fn out => List.app (File.output out) output) path;
-          val file_name = Path.implode (Path.expand path);
-        in inline_message (#2 function) (tl args @ [(Markup.fileN, file_name)]) end
+        in inline_message (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
       else
         (case Markup.dest_loading_theory props of
           SOME name => writeln ("\floading_theory = " ^ name)

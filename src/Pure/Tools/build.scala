@@ -195,6 +195,7 @@ object Build
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
+    private val export_tmp_dir = Isabelle_System.tmp_dir("export")
     private val export_consumer = Export.consumer(SQLite.open_database(store.output_database(name)))
 
     private val future_result: Future[Process_Result] =
@@ -222,6 +223,7 @@ object Build
 
         val env =
           Isabelle_System.settings() +
+            ("ISABELLE_EXPORT_TMP" -> File.standard_path(export_tmp_dir)) +
             ("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)
 
         def save_heap: String =
@@ -322,6 +324,8 @@ object Build
           case errs if result.ok => result.copy(rc = 1).errors(errs)
           case errs => result.errors(errs)
         }
+
+      Isabelle_System.rm_tree(export_tmp_dir)
 
       if (export_result.ok)
         Present.finish(progress, store.browser_info, graph_file, info, name)
