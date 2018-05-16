@@ -189,8 +189,8 @@ option editor_execution_delay : real = 0.02
 option editor_syslog_limit : int = 100
   -- "maximum amount of buffered syslog messages"
 
-public option editor_document_output : bool = false
-  -- "dynamic document output while editing"
+public option editor_presentation : bool = false
+  -- "dynamic presentation while editing"
 
 
 section "Miscellaneous Tools"

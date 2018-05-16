@@ -55,22 +55,24 @@ type perspective =
 
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
+type consolidation = (int -> int option) * Thy_Output.segment list;
+
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   keywords: Keyword.keywords option,  (*outer syntax keywords*)
   perspective: perspective,  (*command perspective*)
   entries: Command.exec option Entries.T,  (*command entries with executions*)
   result: Command.eval option,  (*result of last execution*)
-  consolidated: unit lazy}  (*consolidation status of eval forks*)
+  consolidation: consolidation future}  (*consolidation status of eval forks*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
 
-fun make_node (header, keywords, perspective, entries, result, consolidated) =
+fun make_node (header, keywords, perspective, entries, result, consolidation) =
   Node {header = header, keywords = keywords, perspective = perspective,
-    entries = entries, result = result, consolidated = consolidated};
+    entries = entries, result = result, consolidation = consolidation};
 
-fun map_node f (Node {header, keywords, perspective, entries, result, consolidated}) =
-  make_node (f (header, keywords, perspective, entries, result, consolidated));
+fun map_node f (Node {header, keywords, perspective, entries, result, consolidation}) =
+  make_node (f (header, keywords, perspective, entries, result, consolidation));
 
 fun make_perspective (required, command_ids, overlays) : perspective =
  {required = required,
@@ -82,7 +84,8 @@ val no_header: node_header =
   {master = "", header = Thy_Header.make ("", Position.none) [] [], errors = []};
 val no_perspective = make_perspective (false, [], []);
 
-val empty_node = make_node (no_header, NONE, no_perspective, Entries.empty, NONE, Lazy.value ());
+val empty_node =
+  make_node (no_header, NONE, no_perspective, Entries.empty, NONE, Future.value (K NONE, []));
 
 fun is_no_perspective ({required, visible, visible_last, overlays}: perspective) =
   not required andalso
@@ -90,13 +93,13 @@ fun is_no_perspective ({required, visible, visible_last, overlays}: perspective)
   is_none visible_last andalso
   Inttab.is_empty overlays;
 
-fun is_empty_node (Node {header, keywords, perspective, entries, result, consolidated}) =
+fun is_empty_node (Node {header, keywords, perspective, entries, result, consolidation}) =
   header = no_header andalso
   is_none keywords andalso
   is_no_perspective perspective andalso
   Entries.is_empty entries andalso
   is_none result andalso
-  Lazy.is_finished consolidated;
+  Future.is_finished consolidation;
 
 
 (* basic components *)
@@ -107,15 +110,15 @@ fun master_directory (Node {header = {master, ...}, ...}) =
   | _ => Path.current);
 
 fun set_header master header errors =
-  map_node (fn (_, keywords, perspective, entries, result, consolidated) =>
+  map_node (fn (_, keywords, perspective, entries, result, consolidation) =>
     ({master = master, header = header, errors = errors},
-      keywords, perspective, entries, result, consolidated));
+      keywords, perspective, entries, result, consolidation));
 
 fun get_header (Node {header, ...}) = header;
 
 fun set_keywords keywords =
-  map_node (fn (header, _, perspective, entries, result, consolidated) =>
-    (header, keywords, perspective, entries, result, consolidated));
+  map_node (fn (header, _, perspective, entries, result, consolidation) =>
+    (header, keywords, perspective, entries, result, consolidation));
 
 fun get_keywords (Node {keywords, ...}) = keywords;
 
@@ -139,8 +142,8 @@ fun read_header node span =
 fun get_perspective (Node {perspective, ...}) = perspective;
 
 fun set_perspective args =
-  map_node (fn (header, keywords, _, entries, result, consolidated) =>
-    (header, keywords, make_perspective args, entries, result, consolidated));
+  map_node (fn (header, keywords, _, entries, result, consolidation) =>
+    (header, keywords, make_perspective args, entries, result, consolidation));
 
 val required_node = #required o get_perspective;
 val visible_command = Inttab.defined o #visible o get_perspective;
@@ -149,8 +152,8 @@ val visible_node = is_some o visible_last
 val overlays = Inttab.lookup_list o #overlays o get_perspective;
 
 fun map_entries f =
-  map_node (fn (header, keywords, perspective, entries, result, consolidated) =>
-    (header, keywords, perspective, f entries, result, consolidated));
+  map_node (fn (header, keywords, perspective, entries, result, consolidation) =>
+    (header, keywords, perspective, f entries, result, consolidation));
 
 fun get_entries (Node {entries, ...}) = entries;
 
@@ -163,8 +166,8 @@ fun iterate_entries_after start f (Node {entries, ...}) =
 fun get_result (Node {result, ...}) = result;
 
 fun set_result result =
-  map_node (fn (header, keywords, perspective, entries, _, consolidated) =>
-    (header, keywords, perspective, entries, result, consolidated));
+  map_node (fn (header, keywords, perspective, entries, _, consolidation) =>
+    (header, keywords, perspective, entries, result, consolidation));
 
 fun pending_result node =
   (case get_result node of
@@ -182,11 +185,11 @@ fun finished_result_theory node =
     in SOME (Toplevel.end_theory Position.none st) handle ERROR _ => NONE end
   else NONE;
 
-val reset_consolidated =
+val reset_consolidation =
   map_node (fn (header, keywords, perspective, entries, result, _) =>
-    (header, keywords, perspective, entries, result, Lazy.lazy I));
+    (header, keywords, perspective, entries, result, Future.promise I));
 
-fun get_consolidated (Node {consolidated, ...}) = consolidated;
+fun get_consolidation (Node {consolidation, ...}) = consolidation;
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -512,10 +515,22 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
         {version_id = version_id, execution_id = execution_id, delay_request = delay_request'};
     in (versions, blobs, commands, execution') end));
 
+fun presentation options thy node_name node =
+  if Options.bool options "editor_presentation" then
+    let
+      val (adjust, segments) = Future.get_finished (get_consolidation node);
+      val presentation_context: Thy_Info.presentation_context =
+       {options = options,
+        file_pos = Position.file node_name,
+        adjust_pos = Position.adjust_offsets adjust,
+        segments = segments};
+    in Thy_Info.apply_presentation presentation_context thy end
+  else ();
+
 fun consolidate_execution state =
   let
-    fun check_consolidated node_name node =
-      if Lazy.is_finished (get_consolidated node) then ()
+    fun check_consolidation node_name node =
+      if Future.is_finished (get_consolidation node) then ()
       else
         (case finished_result_theory node of
           NONE => ()
@@ -552,31 +567,22 @@ fun consolidate_execution state =
                         | NONE => NONE)) node (0, Inttab.empty, []);
 
                     val adjust = Inttab.lookup offsets;
-                    val adjust_pos = Position.adjust_offsets adjust;
-                    val adjust_token = Token.adjust_offsets adjust;
                     val segments =
                       rev rev_segments |> map (fn (span, tr, st') =>
                         {span = Command_Span.adjust_offsets adjust span, command = tr, state = st'});
 
-                    val presentation_context: Thy_Info.presentation_context =
-                     {options = Options.default (),
-                      file_pos = Position.file node_name,
-                      adjust_pos = adjust_pos,
-                      segments = segments};
-
-                    val _ = Lazy.force (get_consolidated node);
+                    val _ = Future.fulfill (get_consolidation node) (adjust, segments);
                     val _ =
                       Position.setmp_thread_data (Position.id_only (Document_ID.print result_id))
                         (fn () =>
-                          (if Options.default_bool "editor_document_output" then
-                            Thy_Info.apply_presentation presentation_context thy (* FIXME errors!? *)
-                           else ();
-                           Output.status (Markup.markup_only Markup.consolidated))) ();
+                          (Output.status (Markup.markup_only Markup.consolidated);
+                            (* FIXME avoid user operations on protocol thread *)
+                            presentation (Options.default ()) thy node_name node)) ();
                   in () end
               | _ => ())
             end);
       in
-        String_Graph.fold (fn (node_name, (node, _)) => fn () => check_consolidated node_name node)
+        String_Graph.fold (fn (node_name, (node, _)) => fn () => check_consolidation node_name node)
           (nodes_of (get_execution_version state)) ()
       end;
 
@@ -799,7 +805,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                         val node' = node
                           |> assign_update_apply assigned_execs
                           |> set_result result
-                          |> result_changed ? reset_consolidated;
+                          |> result_changed ? reset_consolidation;
                         val assigned_node = SOME (name, node');
                       in ((removed, assign_update, assigned_node, result_changed), node') end
                     else (([], [], NONE, false), node)
