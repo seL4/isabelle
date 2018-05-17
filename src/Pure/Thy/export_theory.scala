@@ -9,15 +9,73 @@ package isabelle
 
 object Export_Theory
 {
+  /** session content **/
+
+  sealed case class Session(name: String, theory_graph: Graph[String, Theory])
+  {
+    override def toString: String = name
+
+    def theory(theory_name: String): Theory =
+      if (theory_graph.defined(theory_name)) theory_graph.get_node(theory_name)
+      else error("Bad theory " + quote(theory_name))
+
+    def theories: List[Theory] =
+      theory_graph.topological_order.map(theory_graph.get_node(_))
+  }
+
+  def read_session(session_name: String,
+    system_mode: Boolean = false,
+    types: Boolean = true,
+    consts: Boolean = true): Session =
+  {
+    val store = Sessions.store(system_mode)
+
+    val thys =
+      using(SQLite.open_database(store.the_database(session_name)))(db =>
+      {
+        db.transaction {
+          Export.read_theory_names(db, session_name).iterator.map(_._1).toSet.iterator.
+            map((theory_name: String) =>
+              read_theory(db, session_name, theory_name, types = types, consts = consts)).toList
+        }
+      })
+
+    val graph0 =
+      (Graph.string[Theory] /: thys) { case (g, thy) => g.new_node(thy.name, thy) }
+    val graph1 =
+      (graph0 /: thys) { case (g0, thy) =>
+        (g0 /: thy.parents) { case (g1, parent) =>
+          g1.default_node(parent, empty_theory(parent)).add_edge_acyclic(parent, thy.name) } }
+
+    Session(session_name, graph1)
+  }
+
+
+
   /** theory content **/
 
-  sealed case class Theory(types: List[Type], consts: List[Const])
+  sealed case class Theory(
+    name: String, parents: List[String], types: List[Type], consts: List[Const])
+  {
+    override def toString: String = name
+  }
+
+  def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil)
 
   def read_theory(db: SQL.Database, session_name: String, theory_name: String,
     types: Boolean = true,
     consts: Boolean = true): Theory =
   {
-    Theory(
+    val parents =
+      Export.read_entry(db, session_name, theory_name, "theory/parents") match {
+        case Some(entry) =>
+          import XML.Decode._
+          list(string)(entry.uncompressed_yxml())
+        case None =>
+          error("Missing theory export in session " + quote(session_name) + ": " +
+            quote(theory_name))
+      }
+    Theory(theory_name, parents,
       if (types) read_types(db, session_name, theory_name) else Nil,
       if (consts) read_consts(db, session_name, theory_name) else Nil)
   }

@@ -27,6 +27,15 @@ fun export_body thy name body =
 
 val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
   let
+    (* parents *)
+
+    val parents = Theory.parents_of thy;
+    val _ =
+      export_body thy "parents"
+        let open XML.Encode
+        in list string (map Context.theory_long_name parents) end;
+
+
     (* entities *)
 
     fun entity_markup space name =
@@ -40,7 +49,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     fun export_entities export_name export get_space decls =
       let val elems =
         let
-          val parent_spaces = map get_space (Theory.parents_of thy);
+          val parent_spaces = map get_space parents;
           val space = get_space thy;
         in
           (decls, []) |-> fold (fn (name, decl) =>
