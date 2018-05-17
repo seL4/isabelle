@@ -262,6 +262,11 @@ bi_total, or type class conditions such as "respects 0") sufficient for
 parametricity. See ~~/src/HOL/ex/Conditional_Parametricity_Examples for
 some examples.
 
+* A new preprocessor for the code generator to generate code for algebraic
+  types with lazy evaluation semantics even in call-by-value target languages.
+  See theory HOL-Library.Code_Lazy for the implementation and
+  HOL-Codegenerator_Test.Code_Lazy_Test for examples.
+
 * SMT module:
   - The 'smt_oracle' option is now necessary when using the 'smt' method
     with a solver other than Z3. INCOMPATIBILITY.

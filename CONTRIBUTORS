@@ -14,6 +14,10 @@ Contributions to this Isabelle version
 * May 2018: Florian Haftmann
   Consolidation of string-like types in HOL.
 
+* May 2018: Andreas Lochbihler (Digital Asset),
+  Pascal Stoop (ETH Zurich)
+  Code generation with lazy evaluation semantics.
+
 * March 2018: Florian Haftmann
   Abstract bit operations push_bit, take_bit, drop_bit, alongside
   with an algebraic foundation for bit strings and word types in
