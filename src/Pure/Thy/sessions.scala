@@ -1025,6 +1025,9 @@ object Sessions
     def find_database(name: String): Option[Path] =
       input_dirs.map(_ + database(name)).find(_.is_file)
 
+    def the_database(name: String): Path =
+      find_database(name) getOrElse error("Missing database for session " + quote(name))
+
     def heap(name: String): Path =
       input_dirs.map(_ + Path.basic(name)).find(_.is_file) getOrElse
         error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +

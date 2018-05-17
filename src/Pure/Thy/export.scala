@@ -253,13 +253,8 @@ Usage: isabelle export [OPTIONS] SESSION
     /* database */
 
     val store = Sessions.store(system_mode)
-    val database =
-      store.find_database(session_name) match {
-        case None => error("Missing database for session " + quote(session_name))
-        case Some(database) => database
-      }
 
-    using(SQLite.open_database(database))(db =>
+    using(SQLite.open_database(store.the_database(session_name)))(db =>
     {
       db.transaction {
         val export_names = read_theory_names(db, session_name)
