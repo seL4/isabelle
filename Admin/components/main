@@ -2,8 +2,8 @@
 bash_process-1.2.2
 bib2xhtml-20171221
 csdp-6.x
-cvc4-1.5-3
-e-2.0-1
+cvc4-1.5-4
+e-2.0-2
 isabelle_fonts-20180113
 jdk-8u172
 jedit_build-20180504
@@ -16,8 +16,8 @@ postgresql-42.2.2
 scala-2.12.5
 smbc-0.4.1
 ssh-java-20161009
-spass-3.8ds
+spass-3.8ds-1
 sqlite-jdbc-3.20.0
 verit-2016post
 xz-java-1.8
-z3-4.4.0pre-1
+z3-4.4.0pre-2
