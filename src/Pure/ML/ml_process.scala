@@ -23,7 +23,7 @@ object ML_Process
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
     channel: Option[System_Channel] = None,
-    sessions: Option[Sessions.Structure] = None,
+    sessions_structure: Option[Sessions.Structure] = None,
     session_base: Option[Sessions.Base] = None,
     store: Sessions.Store = Sessions.store()): Bash.Process =
   {
@@ -33,7 +33,8 @@ object ML_Process
       else {
         val selection = Sessions.Selection(sessions = List(logic_name))
         val selected_sessions =
-          sessions.getOrElse(Sessions.load_structure(options, dirs = dirs)).selection(selection)
+          sessions_structure.getOrElse(Sessions.load_structure(options, dirs = dirs))
+            .selection(selection)
         selected_sessions.build_requirements(List(logic_name)).
           map(a => File.platform_path(store.heap(a)))
       }

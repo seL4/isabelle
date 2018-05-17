@@ -133,7 +133,7 @@ object JEdit_Sessions
   def session_start(options: Options)
   {
     Isabelle_Process.start(PIDE.session, session_options(options),
-      sessions = Some(PIDE.resources.session_base_info.sessions_structure),
+      sessions_structure = Some(PIDE.resources.session_base_info.sessions_structure),
       logic = PIDE.resources.session_name,
       store = Sessions.store(session_build_mode() == "system"),
       modes =

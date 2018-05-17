@@ -168,7 +168,8 @@ object Sessions
     def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
   }
 
-  sealed case class Deps(session_bases: Map[String, Base], all_known: Known)
+  sealed case class Deps(
+    sessions_structure: Structure, session_bases: Map[String, Base], all_known: Known)
   {
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
@@ -351,7 +352,7 @@ object Sessions
           }
       })
 
-    Deps(session_bases, Known.make(Path.current, session_bases.toList.map(_._2)))
+    Deps(sessions_structure, session_bases, Known.make(Path.current, session_bases.toList.map(_._2)))
   }
 
 
@@ -448,7 +449,7 @@ object Sessions
     val deps1 = Sessions.deps(sessions1, global_theories, progress = progress)
     val base1 = deps1(session1).copy(known = deps1.all_known)
 
-    Base_Info(options, dirs, session1, sessions1, deps1.errors, base1, infos1)
+    Base_Info(options, dirs, session1, deps1.sessions_structure, deps1.errors, base1, infos1)
   }
 
 

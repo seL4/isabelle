@@ -174,7 +174,6 @@ object Build
   private class Job(progress: Progress,
     name: String,
     val info: Sessions.Info,
-    sessions: Sessions.Structure,
     deps: Sessions.Deps,
     store: Sessions.Store,
     do_output: Boolean,
@@ -238,8 +237,8 @@ object Build
 
           val session_result = Future.promise[Process_Result]
 
-          Isabelle_Process.start(session, options, logic = parent,
-            cwd = info.dir.file, env = env, sessions = Some(sessions), store = store,
+          Isabelle_Process.start(session, options, logic = parent, cwd = info.dir.file, env = env,
+            sessions_structure = Some(deps.sessions_structure), store = store,
             phase_changed =
             {
               case Session.Ready => session.protocol_command("build_session", args_yxml)
@@ -272,12 +271,12 @@ object Build
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
                   List("--eval", eval),
-                env = env, sessions = Some(sessions), store = store,
+                env = env, sessions_structure = Some(deps.sessions_structure), store = store,
                 cleanup = () => args_file.delete)
             }
             else {
               ML_Process(options, parent, List("--eval", eval), cwd = info.dir.file,
-                env = env, sessions = Some(sessions), store = store,
+                env = env, sessions_structure = Some(deps.sessions_structure), store = store,
                 cleanup = () => args_file.delete)
             }
 
@@ -413,17 +412,16 @@ object Build
       Sessions.Selection(requirements, all_sessions, base_sessions, exclude_session_groups,
         exclude_sessions, session_groups, sessions) ++ selection
 
-    val (selected_sessions, deps) =
+    val deps =
     {
-      val selected_sessions0 = full_sessions.selection(selection1)
       val deps0 =
-        Sessions.deps(selected_sessions0, full_sessions.global_theories,
+        Sessions.deps(full_sessions.selection(selection1), full_sessions.global_theories,
           progress = progress, inlined_files = true, verbose = verbose,
           list_files = list_files, check_keywords = check_keywords).check_errors
 
       if (soft_build && !fresh_build) {
         val outdated =
-          selected_sessions0.build_topological_order.flatMap(name =>
+          deps0.sessions_structure.build_topological_order.flatMap(name =>
             store.find_database(name) match {
               case Some(database) =>
                 using(SQLite.open_database(database))(store.read_build(_, name)) match {
@@ -433,14 +431,11 @@ object Build
                 }
               case None => Some(name)
             })
-        val selected_sessions =
-          full_sessions.selection(Sessions.Selection(sessions = outdated))
-        val deps =
-          Sessions.deps(selected_sessions, full_sessions.global_theories,
-            progress = progress, inlined_files = true).check_errors
-        (selected_sessions, deps)
+
+        Sessions.deps(full_sessions.selection(Sessions.Selection(sessions = outdated)),
+          full_sessions.global_theories, progress = progress, inlined_files = true).check_errors
       }
-      else (selected_sessions0, deps0)
+      else deps0
     }
 
 
@@ -465,7 +460,7 @@ object Build
 
     /* main build process */
 
-    val queue = Queue(progress, selected_sessions, store)
+    val queue = Queue(progress, deps.sessions_structure, store)
 
     store.prepare_output()
 
@@ -592,7 +587,7 @@ object Build
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
                 val ancestor_results =
-                  selected_sessions.build_requirements(List(name)).filterNot(_ == name).
+                  deps.sessions_structure.build_requirements(List(name)).filterNot(_ == name).
                     map(results(_))
                 val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
 
@@ -636,7 +631,7 @@ object Build
 
                   val numa_node = numa_nodes.next(used_node(_))
                   val job =
-                    new Job(progress, name, info, selected_sessions, deps, store, do_output,
+                    new Job(progress, name, info, deps, store, do_output,
                       verbose, pide, numa_node, queue.command_timings(name))
                   loop(pending, running + (name -> (ancestor_heaps, job)), results)
                 }
