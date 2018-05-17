@@ -124,7 +124,8 @@ object Export
       else Future.value((false, body)))
   }
 
-  def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String): Entry =
+  def read_entry(db: SQL.Database, session_name: String, theory_name: String, name: String)
+    : Option[Entry] =
   {
     val select =
       Data.table.select(List(Data.compressed, Data.body),
@@ -135,9 +136,9 @@ object Export
       if (res.next()) {
         val compressed = res.bool(Data.compressed)
         val body = res.bytes(Data.body)
-        Entry(session_name, theory_name, name, Future.value(compressed, body))
+        Some(Entry(session_name, theory_name, name, Future.value(compressed, body)))
       }
-      else error(message("Bad export", theory_name, name))
+      else None
     })
   }
 
@@ -274,11 +275,11 @@ Usage: isabelle export [OPTIONS] SESSION
           val xz_cache = XZ.make_cache()
 
           val matcher = make_matcher(export_pattern)
-          for { (theory_name, name) <- export_names if matcher(theory_name, name) }
-          {
-            val entry = read_entry(db, session_name, theory_name, name)
+          for {
+            (theory_name, name) <- export_names if matcher(theory_name, name)
+            entry <- read_entry(db, session_name, theory_name, name)
+          } {
             val path = export_dir + Path.basic(theory_name) + Path.explode(name)
-
             progress.echo("exporting " + path)
             Isabelle_System.mkdirs(path.dir)
             Bytes.write(path, entry.uncompressed(cache = xz_cache))
