@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2018: Manuel Eberl
+  Landau symbols and asymptotic equivalence (moved from the AFP)
+
 * May 2018: Jose Divasón (Universidad de la Rioja),
   Jesús Aransay (Universidad de la Rioja), Johannes Hölzl (VU Amsterdam),
   Fabian Immler (TUM)

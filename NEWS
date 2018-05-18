@@ -201,6 +201,8 @@ dummy sort: it is effectively ignored in type-inference.
 
 *** HOL ***
 
+* Landau_Symbols from the AFP was moved to HOL-Library
+
 * Clarified relationship of characters, strings and code generation:
 
   * Type "char" is now a proper datatype of 8-bit values.
