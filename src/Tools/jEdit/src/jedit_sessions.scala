@@ -135,7 +135,7 @@ object JEdit_Sessions
     Isabelle_Process.start(PIDE.session, session_options(options),
       sessions_structure = Some(PIDE.resources.session_base_info.sessions_structure),
       logic = PIDE.resources.session_name,
-      store = Sessions.store(session_build_mode() == "system"),
+      store = Some(Sessions.store(options, session_build_mode() == "system")),
       modes =
         (space_explode(',', options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse,

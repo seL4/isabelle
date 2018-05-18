@@ -23,13 +23,11 @@ object Export_Theory
       theory_graph.topological_order.map(theory_graph.get_node(_))
   }
 
-  def read_session(session_name: String,
-    system_mode: Boolean = false,
+  def read_session(store: Sessions.Store,
+    session_name: String,
     types: Boolean = true,
     consts: Boolean = true): Session =
   {
-    val store = Sessions.store(system_mode)
-
     val thys =
       using(SQLite.open_database(store.the_database(session_name)))(db =>
       {

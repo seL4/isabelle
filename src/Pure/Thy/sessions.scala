@@ -961,9 +961,10 @@ object Sessions
     val table = SQL.Table("isabelle_session_info", build_log_columns ::: build_columns)
   }
 
-  def store(system_mode: Boolean = false): Store = new Store(system_mode)
+  def store(options: Options, system_mode: Boolean = false): Store =
+    new Store(options, system_mode)
 
-  class Store private[Sessions](system_mode: Boolean)
+  class Store private[Sessions](val options: Options, val system_mode: Boolean)
   {
     /* file names */
 

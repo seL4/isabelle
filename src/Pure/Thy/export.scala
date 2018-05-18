@@ -252,7 +252,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
     /* database */
 
-    val store = Sessions.store(system_mode)
+    val store = Sessions.store(options, system_mode)
 
     using(SQLite.open_database(store.the_database(session_name)))(db =>
     {

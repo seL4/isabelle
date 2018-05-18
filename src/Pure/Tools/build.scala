@@ -238,7 +238,7 @@ object Build
           val session_result = Future.promise[Process_Result]
 
           Isabelle_Process.start(session, options, logic = parent, cwd = info.dir.file, env = env,
-            sessions_structure = Some(deps.sessions_structure), store = store,
+            sessions_structure = Some(deps.sessions_structure), store = Some(store),
             phase_changed =
             {
               case Session.Ready => session.protocol_command("build_session", args_yxml)
@@ -271,12 +271,12 @@ object Build
                 args =
                   (for ((root, _) <- Thy_Header.ml_roots) yield List("--use", root)).flatten :::
                   List("--eval", eval),
-                env = env, sessions_structure = Some(deps.sessions_structure), store = store,
+                env = env, sessions_structure = Some(deps.sessions_structure), store = Some(store),
                 cleanup = () => args_file.delete)
             }
             else {
               ML_Process(options, parent, List("--eval", eval), cwd = info.dir.file,
-                env = env, sessions_structure = Some(deps.sessions_structure), store = store,
+                env = env, sessions_structure = Some(deps.sessions_structure), store = Some(store),
                 cleanup = () => args_file.delete)
             }
 
@@ -393,7 +393,7 @@ object Build
   {
     val build_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", true)
 
-    val store = Sessions.store(system_mode)
+    val store = Sessions.store(build_options, system_mode)
 
 
     /* session selection and dependencies */

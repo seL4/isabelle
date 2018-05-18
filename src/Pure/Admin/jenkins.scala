@@ -40,9 +40,10 @@ object Jenkins
     } yield name
 
 
-  def download_logs(job_names: List[String], dir: Path, progress: Progress = No_Progress)
+  def download_logs(
+    options: Options, job_names: List[String], dir: Path, progress: Progress = No_Progress)
   {
-    val store = Sessions.store()
+    val store = Sessions.store(options)
     val infos = job_names.flatMap(build_job_infos(_))
     Par_List.map((info: Job_Info) => info.download_log(store, dir, progress), infos)
   }

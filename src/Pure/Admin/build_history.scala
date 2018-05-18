@@ -243,7 +243,7 @@ object Build_History
 
       /* output log */
 
-      val store = Sessions.store()
+      val store = Sessions.store(options)
 
       val meta_info =
         Properties.lines_nonempty(Build_Log.Prop.build_tags.name, build_tags) :::

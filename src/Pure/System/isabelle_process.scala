@@ -21,7 +21,7 @@ object Isabelle_Process
     cwd: JFile = null,
     env: Map[String, String] = Isabelle_System.settings(),
     sessions_structure: Option[Sessions.Structure] = None,
-    store: Sessions.Store = Sessions.store(),
+    store: Option[Sessions.Store] = None,
     phase_changed: Session.Phase => Unit = null)
   {
     if (phase_changed != null)
@@ -44,7 +44,7 @@ object Isabelle_Process
     receiver: Prover.Receiver = (msg: Prover.Message) => Output.writeln(msg.toString, stdout = true),
     xml_cache: XML.Cache = XML.make_cache(),
     sessions_structure: Option[Sessions.Structure] = None,
-    store: Sessions.Store = Sessions.store()): Prover =
+    store: Option[Sessions.Store] = None): Prover =
   {
     val channel = System_Channel()
     val process =
