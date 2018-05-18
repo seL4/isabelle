@@ -29,7 +29,7 @@ object Export_Theory
     consts: Boolean = true): Session =
   {
     val thys =
-      using(SQLite.open_database(store.the_database(session_name)))(db =>
+      using(store.open_database(session_name))(db =>
       {
         db.transaction {
           Export.read_theory_names(db, session_name).iterator.map(_._1).toSet.iterator.

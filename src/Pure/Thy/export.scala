@@ -254,7 +254,7 @@ Usage: isabelle export [OPTIONS] SESSION
 
     val store = Sessions.store(options, system_mode)
 
-    using(SQLite.open_database(store.the_database(session_name)))(db =>
+    using(store.open_database(session_name))(db =>
     {
       db.transaction {
         val export_names = read_theory_names(db, session_name)
