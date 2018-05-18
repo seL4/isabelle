@@ -54,17 +54,20 @@ object Export_Theory
 
   /** theory content **/
 
-  sealed case class Theory(
-    name: String, parents: List[String], types: List[Type], consts: List[Const])
+  sealed case class Theory(name: String, parents: List[String],
+    types: List[Type],
+    consts: List[Const],
+    axioms: List[Axiom])
   {
     override def toString: String = name
   }
 
-  def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil)
+  def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil, Nil)
 
   def read_theory(db: SQL.Database, session_name: String, theory_name: String,
     types: Boolean = true,
-    consts: Boolean = true): Theory =
+    consts: Boolean = true,
+    axioms: Boolean = true): Theory =
   {
     val parents =
       Export.read_entry(db, session_name, theory_name, "theory/parents") match {
@@ -77,7 +80,8 @@ object Export_Theory
       }
     Theory(theory_name, parents,
       if (types) read_types(db, session_name, theory_name) else Nil,
-      if (consts) read_consts(db, session_name, theory_name) else Nil)
+      if (consts) read_consts(db, session_name, theory_name) else Nil,
+      if (axioms) read_axioms(db, session_name, theory_name) else Nil)
   }
 
 
@@ -146,5 +150,28 @@ object Export_Theory
             triple(list(string), Term_XML.Decode.typ, option(Term_XML.Decode.term))(body)
           }
           Const(entity, args, typ, abbrev)
+        })
+
+
+  /* axioms */
+
+  sealed case class Axiom(
+    entity: Entity,
+    typargs: List[(String, Term.Sort)],
+    args: List[(String, Term.Typ)],
+    prop: Term.Term)
+
+  def read_axioms(db: SQL.Database, session_name: String, theory_name: String): List[Axiom] =
+    read_entities(db, session_name, theory_name, "axioms",
+      (tree: XML.Tree) =>
+        {
+          val (entity, body) = decode_entity(tree)
+          val (typargs, args, prop) =
+          {
+            import XML.Decode._
+            import Term_XML.Decode._
+            triple(list(pair(string, sort)), list(pair(string, typ)), term)(body)
+          }
+          Axiom(entity, typargs, args, prop)
         })
 }

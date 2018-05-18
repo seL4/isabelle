@@ -97,6 +97,24 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       export_entities "consts" export_const Sign.const_space
         (#constants (Consts.dest (Sign.consts_of thy)));
 
+
+    (* axioms *)
+
+    val encode_axiom =
+      let open XML.Encode Term_XML.Encode
+      in triple (list (pair string sort)) (list (pair string typ)) term end;
+
+    fun export_axiom prop =
+      let
+        val prop' = Logic.unvarify_global prop;
+        val typargs = rev (Term.add_tfrees prop' []);
+        val args = rev (Term.add_frees prop' []);
+      in encode_axiom (typargs, args, prop') end;
+
+    val _ =
+      export_entities "axioms" (K (SOME o export_axiom)) Theory.axiom_space
+        (Theory.axioms_of thy);
+
     in () end);
 
 end;
