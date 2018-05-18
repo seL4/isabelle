@@ -1005,9 +1005,11 @@ object Sessions
 
     def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
-    def output_database(name: String): Path = output_dir + database(name)
     def output_log(name: String): Path = output_dir + log(name)
     def output_log_gz(name: String): Path = output_dir + log_gz(name)
+
+    def open_output_database(name: String): SQL.Database =
+      SQLite.open_database(output_dir + database(name))
 
 
     /* input */

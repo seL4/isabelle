@@ -38,32 +38,29 @@ object Build
     {
       val no_timings: Timings = (Nil, 0.0)
 
-      store.find_database(name) match {
+      store.try_open_database(name) match {
         case None => no_timings
-        case Some(database) =>
+        case Some(db) =>
           def ignore_error(msg: String) =
           {
-            progress.echo_warning("Ignoring bad database: " +
-              database.expand + (if (msg == "") "" else "\n" + msg))
+            progress.echo_warning("Ignoring bad database " + db + (if (msg == "") "" else "\n" + msg))
             no_timings
           }
           try {
-            using(SQLite.open_database(database))(db =>
-            {
-              val command_timings = store.read_command_timings(db, name)
-              val session_timing =
-                store.read_session_timing(db, name) match {
-                  case Markup.Elapsed(t) => t
-                  case _ => 0.0
-                }
-              (command_timings, session_timing)
-            })
+            val command_timings = store.read_command_timings(db, name)
+            val session_timing =
+              store.read_session_timing(db, name) match {
+                case Markup.Elapsed(t) => t
+                case _ => 0.0
+              }
+            (command_timings, session_timing)
           }
           catch {
             case ERROR(msg) => ignore_error(msg)
             case exn: java.lang.Error => ignore_error(Exn.message(exn))
             case _: XML.Error => ignore_error("")
           }
+          finally { db.close }
       }
     }
 
@@ -195,7 +192,7 @@ object Build
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
     private val export_tmp_dir = Isabelle_System.tmp_dir("export")
-    private val export_consumer = Export.consumer(SQLite.open_database(store.output_database(name)))
+    private val export_consumer = Export.consumer(store.open_output_database(name))
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
@@ -422,9 +419,9 @@ object Build
       if (soft_build && !fresh_build) {
         val outdated =
           deps0.sessions_structure.build_topological_order.flatMap(name =>
-            store.find_database(name) match {
-              case Some(database) =>
-                using(SQLite.open_database(database))(store.read_build(_, name)) match {
+            store.try_open_database(name) match {
+              case Some(db) =>
+                (try { store.read_build(db, name) } finally { db.close }) match {
                   case Some(build)
                   if build.ok && build.sources == sources_stamp(deps0, name) => None
                   case _ => Some(name)
@@ -560,7 +557,7 @@ object Build
                     ml_statistics = true,
                     task_statistics = true)
 
-              using(SQLite.open_database(store.output_database(name)))(db =>
+              using(store.open_output_database(name))(db =>
                 store.write_session_info(db, name,
                   build_log =
                     if (process_result.timeout) build_log.error("Timeout") else build_log,
@@ -629,8 +626,7 @@ object Build
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
 
                   cleanup(name)
-                  using(SQLite.open_database(store.output_database(name)))(db =>
-                    store.init_session_info(db, name))
+                  using(store.open_output_database(name))(db => store.init_session_info(db, name))
 
                   val numa_node = numa_nodes.next(used_node(_))
                   val job =
