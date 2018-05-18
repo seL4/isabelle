@@ -483,7 +483,7 @@ object Build
     // scheduler loop
     case class Result(
       current: Boolean,
-      heap_stamp: Option[String],
+      heap_digest: Option[String],
       process: Option[Process_Result],
       info: Sessions.Info)
     {
@@ -534,15 +534,15 @@ object Build
 
 
             // write log file
-            val heap_stamp =
+            val heap_digest =
               if (process_result.ok) {
-                val heap_stamp =
+                val heap_digest =
                   for (path <- job.output_path if path.is_file)
                     yield Sessions.write_heap_digest(path)
 
                 File.write_gzip(store.output_log_gz(name), terminate_lines(log_lines))
 
-                heap_stamp
+                heap_digest
               }
               else {
                 File.write(store.output_log(name), terminate_lines(log_lines))
@@ -565,7 +565,7 @@ object Build
                   build_log =
                     if (process_result.timeout) build_log.error("Timeout") else build_log,
                   build =
-                    Session_Info(sources_stamp(deps, name), input_heaps, heap_stamp,
+                    Session_Info(sources_stamp(deps, name), input_heaps, heap_digest,
                       process_result.rc)))
             }
 
@@ -580,7 +580,7 @@ object Build
             }
 
             loop(pending - name, running - name,
-              results + (name -> Result(false, heap_stamp, Some(process_result_tail), job.info)))
+              results + (name -> Result(false, heap_digest, Some(process_result_tail), job.info)))
             //}}}
           case None if running.size < (max_jobs max 1) =>
             //{{{ check/start next job
@@ -589,26 +589,26 @@ object Build
                 val ancestor_results =
                   deps.sessions_structure.build_requirements(List(name)).filterNot(_ == name).
                     map(results(_))
-                val ancestor_heaps = ancestor_results.flatMap(_.heap_stamp)
+                val ancestor_heaps = ancestor_results.flatMap(_.heap_digest)
 
                 val do_output = build_heap || Sessions.is_pure(name) || queue.is_inner(name)
 
-                val (current, heap_stamp) =
+                val (current, heap_digest) =
                 {
                   store.try_open_database(name) match {
                     case Some(db) =>
                       try {
                         store.read_build(db, name) match {
                           case Some(build) =>
-                            val heap_stamp = store.find_heap_digest(name)
+                            val heap_digest = store.find_heap_digest(name)
                             val current =
                               !fresh_build &&
                               build.ok &&
                               build.sources == sources_stamp(deps, name) &&
                               build.input_heaps == ancestor_heaps &&
-                              build.output_heap == heap_stamp &&
-                              !(do_output && heap_stamp.isEmpty)
-                            (current, heap_stamp)
+                              build.output_heap == heap_digest &&
+                              !(do_output && heap_digest.isEmpty)
+                            (current, heap_digest)
                           case None => (false, None)
                         }
                       } finally { db.close }
@@ -619,11 +619,11 @@ object Build
 
                 if (all_current)
                   loop(pending - name, running,
-                    results + (name -> Result(true, heap_stamp, Some(Process_Result(0)), info)))
+                    results + (name -> Result(true, heap_digest, Some(Process_Result(0)), info)))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
                   loop(pending - name, running,
-                    results + (name -> Result(false, heap_stamp, Some(Process_Result(1)), info)))
+                    results + (name -> Result(false, heap_digest, Some(Process_Result(1)), info)))
                 }
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
@@ -641,7 +641,7 @@ object Build
                 else {
                   progress.echo(name + " CANCELLED")
                   loop(pending - name, running,
-                    results + (name -> Result(false, heap_stamp, None, info)))
+                    results + (name -> Result(false, heap_digest, None, info)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
