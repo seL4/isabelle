@@ -28,7 +28,7 @@ object ML_Process
     store: Option[Sessions.Store] = None): Bash.Process =
   {
     val logic_name = Isabelle_System.default_logic(logic)
-    val store_ = store.getOrElse(Sessions.store(options))
+    val _store = store.getOrElse(Sessions.store(options))
 
     val heaps: List[String] =
       if (raw_ml_system) Nil
@@ -38,7 +38,7 @@ object ML_Process
           sessions_structure.getOrElse(Sessions.load_structure(options, dirs = dirs))
             .selection(selection)
         selected_sessions.build_requirements(List(logic_name)).
-          map(a => File.platform_path(store_.heap(a)))
+          map(a => File.platform_path(_store.heap(a)))
       }
 
     val eval_init =
