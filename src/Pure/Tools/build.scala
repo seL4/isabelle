@@ -595,20 +595,23 @@ object Build
 
                 val (current, heap_stamp) =
                 {
-                  store.find_database_heap(name) match {
-                    case Some((database, heap_stamp)) =>
-                      using(SQLite.open_database(database))(store.read_build(_, name)) match {
-                        case Some(build) =>
-                          val current =
-                            !fresh_build &&
-                            build.ok &&
-                            build.sources == sources_stamp(deps, name) &&
-                            build.input_heaps == ancestor_heaps &&
-                            build.output_heap == heap_stamp &&
-                            !(do_output && heap_stamp.isEmpty)
-                          (current, heap_stamp)
-                        case None => (false, None)
-                      }
+                  store.try_open_database(name) match {
+                    case Some(db) =>
+                      try {
+                        store.read_build(db, name) match {
+                          case Some(build) =>
+                            val heap_stamp = store.find_heap_digest(name)
+                            val current =
+                              !fresh_build &&
+                              build.ok &&
+                              build.sources == sources_stamp(deps, name) &&
+                              build.input_heaps == ancestor_heaps &&
+                              build.output_heap == heap_stamp &&
+                              !(do_output && heap_stamp.isEmpty)
+                            (current, heap_stamp)
+                          case None => (false, None)
+                        }
+                      } finally { db.close }
                     case None => (false, None)
                   }
                 }

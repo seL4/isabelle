@@ -1019,21 +1019,26 @@ object Sessions
         output_dir :: Path.split(Isabelle_System.getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
       }
 
-    def find_database_heap(name: String): Option[(Path, Option[String])] =
-      input_dirs.find(dir => (dir + database(name)).is_file).map(dir =>
-        (dir + database(name), read_heap_digest(dir + Path.basic(name))))
+    def find_heap(name: String): Option[Path] =
+      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
+
+    def find_heap_digest(name: String): Option[String] =
+      find_heap(name).flatMap(read_heap_digest(_))
 
     def find_database(name: String): Option[Path] =
       input_dirs.map(_ + database(name)).find(_.is_file)
 
-    def open_database(name: String): SQL.Database =
-      SQLite.open_database(
-        find_database(name) getOrElse error("Missing database for session " + quote(name)))
+    def try_open_database(name: String): Option[SQL.Database] =
+      find_database(name).map(SQLite.open_database(_))
+
+    private def error_input(msg: String): Nothing =
+      error(msg + " -- expected in:\n" + cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
 
     def heap(name: String): Path =
-      input_dirs.map(_ + Path.basic(name)).find(_.is_file) getOrElse
-        error("Unknown logic " + quote(name) + " -- no heap file found in:\n" +
-          cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+      find_heap(name) getOrElse error_input("Missing heap image for session " + quote(name))
+
+    def open_database(name: String): SQL.Database =
+      try_open_database(name) getOrElse error("Missing database file for session " + quote(name))
 
 
     /* session info */
