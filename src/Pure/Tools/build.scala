@@ -179,9 +179,6 @@ object Build
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    val output = store.output_dir + Path.basic(name)
-    def output_path: Option[Path] = if (do_output) Some(output) else None
-
     val options =
       numa_node match {
         case None => info.options
@@ -224,7 +221,8 @@ object Build
 
         def save_heap: String =
           (if (info.theories.isEmpty) "" else "ML_Heap.share_common_data (); ") +
-            "ML_Heap.save_child " + ML_Syntax.print_string_bytes(File.platform_path(output))
+            "ML_Heap.save_child " +
+            ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(name)))
 
         if (pide && !Sessions.is_pure(name)) {
           val resources = new Resources(deps(parent))
@@ -311,19 +309,19 @@ object Build
       else None
     }
 
-    def join: Process_Result =
+    def join: (Process_Result, Option[String]) =
     {
-      val result = future_result.join
-      val export_result =
+      val result0 = future_result.join
+      val result1 =
         export_consumer.shutdown(close = true).map(Output.error_message_text(_)) match {
-          case Nil => result
-          case errs if result.ok => result.copy(rc = 1).errors(errs)
-          case errs => result.errors(errs)
+          case Nil => result0
+          case errs if result0.ok => result0.copy(rc = 1).errors(errs)
+          case errs => result0.errors(errs)
         }
 
       Isabelle_System.rm_tree(export_tmp_dir)
 
-      if (export_result.ok)
+      if (result1.ok)
         Present.finish(progress, store.browser_info, graph_file, info, name)
 
       graph_file.delete
@@ -334,11 +332,19 @@ object Build
           case Some(request) => !request.cancel
         }
 
-      if (export_result.interrupted) {
-        if (was_timeout) export_result.error(Output.error_message_text("Timeout")).was_timeout
-        else export_result.error(Output.error_message_text("Interrupt"))
-      }
-      else export_result
+      val result2 =
+        if (result1.interrupted) {
+          if (was_timeout) result1.error(Output.error_message_text("Timeout")).was_timeout
+          else result1.error(Output.error_message_text("Interrupt"))
+        }
+        else result1
+
+      val heap_digest =
+        if (result2.ok && do_output && store.output_heap(name).is_file)
+          Some(Sessions.write_heap_digest(store.output_heap(name)))
+        else None
+
+      (result2, heap_digest)
     }
   }
 
@@ -517,7 +523,7 @@ object Build
           case Some((name, (input_heaps, job))) =>
             //{{{ finish job
 
-            val process_result = job.join
+            val (process_result, heap_digest) = job.join
 
             val log_lines = process_result.out_lines.filterNot(_.startsWith("\f"))
             val process_result_tail =
@@ -531,21 +537,10 @@ object Build
 
 
             // write log file
-            val heap_digest =
-              if (process_result.ok) {
-                val heap_digest =
-                  for (path <- job.output_path if path.is_file)
-                    yield Sessions.write_heap_digest(path)
-
-                File.write_gzip(store.output_log_gz(name), terminate_lines(log_lines))
-
-                heap_digest
-              }
-              else {
-                File.write(store.output_log(name), terminate_lines(log_lines))
-
-                None
-              }
+            if (process_result.ok) {
+              File.write_gzip(store.output_log_gz(name), terminate_lines(log_lines))
+            }
+            else File.write(store.output_log(name), terminate_lines(log_lines))
 
             // write database
             {

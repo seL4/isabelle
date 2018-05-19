@@ -1005,6 +1005,7 @@ object Sessions
 
     def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
+    def output_heap(name: String): Path = output_dir + Path.basic(name)
     def output_log(name: String): Path = output_dir + log(name)
     def output_log_gz(name: String): Path = output_dir + log_gz(name)
 
