@@ -1218,6 +1218,14 @@ lemma map_snd_zip[simp]:
   "length xs = length ys \<Longrightarrow> map snd (zip xs ys) = ys"
 by (induct rule:list_induct2, simp_all)
 
+lemma map_fst_zip_take:
+  "map fst (zip xs ys) = take (min (length xs) (length ys)) xs"
+by (induct xs ys rule: list_induct2') simp_all
+
+lemma map_snd_zip_take:
+  "map snd (zip xs ys) = take (min (length xs) (length ys)) ys"
+by (induct xs ys rule: list_induct2') simp_all
+
 lemma map2_map_map: "map2 h (map f xs) (map g xs) = map (\<lambda>x. h (f x) (g x)) xs"
 by (induction xs) (auto)
 
