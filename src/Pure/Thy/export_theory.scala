@@ -32,9 +32,8 @@ object Export_Theory
       using(store.open_database(session_name))(db =>
       {
         db.transaction {
-          Export.read_theory_names(db, session_name).iterator.map(_._1).toSet.iterator.
-            map((theory_name: String) =>
-              read_theory(db, session_name, theory_name, types = types, consts = consts)).toList
+          Export.read_theory_names(db, session_name).map((theory_name: String) =>
+            read_theory(db, session_name, theory_name, types = types, consts = consts))
         }
       })
 

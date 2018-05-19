@@ -46,7 +46,15 @@ object Export
       stmt.execute_query().iterator(res => res.string(Data.name)).toList)
   }
 
-  def read_theory_names(db: SQL.Database, session_name: String): List[(String, String)] =
+  def read_theory_names(db: SQL.Database, session_name: String): List[String] =
+  {
+    val select =
+      Data.table.select(List(Data.theory_name), Data.where_equal(session_name), distinct = true)
+    db.using_statement(select)(stmt =>
+      stmt.execute_query().iterator(_.string(Data.theory_name)).toList)
+  }
+
+  def read_theory_exports(db: SQL.Database, session_name: String): List[(String, String)] =
   {
     val select = Data.table.select(List(Data.theory_name, Data.name), Data.where_equal(session_name))
     db.using_statement(select)(stmt =>
@@ -255,7 +263,7 @@ Usage: isabelle export [OPTIONS] SESSION
     using(store.open_database(session_name))(db =>
     {
       db.transaction {
-        val export_names = read_theory_names(db, session_name)
+        val export_names = read_theory_exports(db, session_name)
 
         // list
         if (export_list) {
