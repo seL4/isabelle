@@ -973,24 +973,6 @@ object Sessions
     def log_gz(name: String): Path = log(name).ext("gz")
 
 
-    /* SQL database content */
-
-    val xml_cache = XML.make_cache()
-    val xz_cache = XZ.make_cache()
-
-    def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
-      db.using_statement(Session_Info.table.select(List(column),
-        Session_Info.session_name.where_equal(name)))(stmt =>
-      {
-        val res = stmt.execute_query()
-        if (!res.next()) Bytes.empty else res.bytes(column)
-      })
-
-    def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
-      Properties.uncompress(
-        read_bytes(db, name, column), cache = xz_cache, xml_cache = Some(xml_cache))
-
-
     /* output */
 
     val browser_info: Path =
@@ -1042,6 +1024,24 @@ object Sessions
 
     def open_database(name: String): SQL.Database =
       try_open_database(name) getOrElse error("Missing database file for session " + quote(name))
+
+
+    /* SQL database content */
+
+    val xml_cache = XML.make_cache()
+    val xz_cache = XZ.make_cache()
+
+    def read_bytes(db: SQL.Database, name: String, column: SQL.Column): Bytes =
+      db.using_statement(Session_Info.table.select(List(column),
+        Session_Info.session_name.where_equal(name)))(stmt =>
+      {
+        val res = stmt.execute_query()
+        if (!res.next()) Bytes.empty else res.bytes(column)
+      })
+
+    def read_properties(db: SQL.Database, name: String, column: SQL.Column): List[Properties.T] =
+      Properties.uncompress(
+        read_bytes(db, name, column), cache = xz_cache, xml_cache = Some(xml_cache))
 
 
     /* session info */
