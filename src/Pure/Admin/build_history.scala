@@ -190,7 +190,9 @@ object Build_History
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
 
-      val isabelle_output = Path.explode(other_isabelle("getenv -b ISABELLE_OUTPUT").check.out)
+      val isabelle_output =
+        other_isabelle.isabelle_home_user + Path.explode("heaps") +
+          Path.explode(other_isabelle("getenv -b ML_IDENTIFIER").check.out)
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 

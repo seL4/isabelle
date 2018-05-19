@@ -351,6 +351,12 @@ are stored persistently in the session build database.
 
 *** System ***
 
+* Settings ISABELLE_PATH and ISABELLE_OUTPUT have been discontinued:
+heap images and session databases are always stored in
+$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER (command-line default) or
+$ISABELLE_HOME/heaps/$ML_IDENTIFIER (main Isabelle application or
+"isabelle jedit -s" or "isabelle build -s").
+
 * The command-line tool retrieves theory exports from the session build
 database.
 

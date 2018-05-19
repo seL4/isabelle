@@ -966,6 +966,9 @@ object Sessions
 
   class Store private[Sessions](val options: Options, val system_mode: Boolean)
   {
+    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
+
+
     /* file names */
 
     def database(name: String): Path = Path.basic("log") + Path.basic(name).ext("db")
@@ -973,19 +976,26 @@ object Sessions
     def log_gz(name: String): Path = log(name).ext("gz")
 
 
-    /* output */
+    /* directories */
+
+    def system_output_dir: Path = Path.explode("~~/heaps/$ML_IDENTIFIER")
+    def user_output_dir: Path = Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER")
+
+    def output_dir: Path =
+      if (system_mode) system_output_dir else user_output_dir
+
+    def input_dirs: List[Path] =
+      if (system_mode) List(system_output_dir)
+      else List(user_output_dir, system_output_dir)
 
     val browser_info: Path =
       if (system_mode) Path.explode("~~/browser_info")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
-    val output_dir: Path =
-      if (system_mode) Path.explode("~~/heaps/$ML_IDENTIFIER")
-      else Path.explode("$ISABELLE_OUTPUT")
 
-    override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
+    /* output */
 
-    def prepare_output() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
+    def prepare_output_dir() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
     def output_heap(name: String): Path = output_dir + Path.basic(name)
     def output_log(name: String): Path = output_dir + log(name)
@@ -996,13 +1006,6 @@ object Sessions
 
 
     /* input */
-
-    private val input_dirs =
-      if (system_mode) List(output_dir)
-      else {
-        val ml_ident = Path.explode("$ML_IDENTIFIER").expand
-        output_dir :: Path.split(Isabelle_System.getenv_strict("ISABELLE_PATH")).map(_ + ml_ident)
-      }
 
     def find_heap(name: String): Option[Path] =
       input_dirs.map(_ + Path.basic(name)).find(_.is_file)

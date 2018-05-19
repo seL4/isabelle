@@ -77,11 +77,7 @@ ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 # Location for temporary files (should be on a local file system).
 ISABELLE_TMP_PREFIX="${TMPDIR:-/tmp}/isabelle-$USER"
 
-# Heap input locations. ML system identifier is included in lookup.
-ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
-
-# Heap output location. ML system identifier is appended automatically later on.
-ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
+# HTML browser info.
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 # Site settings check -- just to make it a little bit harder to copy this file verbatim!

@@ -145,7 +145,7 @@ text \<open>
   \<^medskip>
   Get the value only of the same settings variable, which is particularly
   useful in shell scripts:
-  @{verbatim [display] \<open>isabelle getenv -b ISABELLE_OUTPUT\<close>}
+  @{verbatim [display] \<open>isabelle getenv -b ISABELLE_HOME_USER\<close>}
 \<close>
 
 

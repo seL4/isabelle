@@ -709,8 +709,7 @@ text \<open>
   \<^medskip>
   The \<open>system_mode\<close> field set to \<^verbatim>\<open>true\<close> stores resulting session images and
   log files in @{path "$ISABELLE_HOME/heaps"} instead of the default location
-  @{setting ISABELLE_OUTPUT} (which is normally in @{setting
-  ISABELLE_HOME_USER}). See also option \<^verbatim>\<open>-s\<close> in @{tool build}.
+  @{path "$ISABELLE_HOME_USER/heaps"}. See also option \<^verbatim>\<open>-s\<close> in @{tool build}.
 
   \<^medskip>
   The \<open>verbose\<close> field set to \<^verbatim>\<open>true\<close> yields extra verbosity. The effect is

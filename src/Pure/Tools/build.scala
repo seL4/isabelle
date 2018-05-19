@@ -465,7 +465,7 @@ object Build
 
     val queue = Queue(progress, deps.sessions_structure, store)
 
-    store.prepare_output()
+    store.prepare_output_dir()
 
     // cleanup
     def cleanup(name: String, echo: Boolean = false)

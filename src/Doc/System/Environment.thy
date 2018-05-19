@@ -73,14 +73,9 @@ text \<open>
   minimum.
 
   \<^medskip>
-  A few variables are somewhat special:
-
-    \<^item> @{setting_def ISABELLE_TOOL} is set automatically to the absolute path
-    name of the @{executable isabelle} executables.
-
-    \<^item> @{setting_ref ISABELLE_OUTPUT} will have the identifiers of the Isabelle
-    distribution (cf.\ @{setting ISABELLE_IDENTIFIER}) and the ML system (cf.\
-    @{setting ML_IDENTIFIER}) appended automatically to its value.
+  A few variables are somewhat special, e.g. @{setting_def ISABELLE_TOOL} is
+  set automatically to the absolute path name of the @{executable isabelle}
+  executables.
 
   \<^medskip>
   Note that the settings environment may be inspected with the @{tool getenv}
@@ -179,15 +174,6 @@ text \<open>
   operating system platform for the Java installation of Isabelle. That is
   always the (native) 64 bit variant: \<^verbatim>\<open>x86_64-linux\<close>, \<^verbatim>\<open>x86_64-darwin\<close>,
   \<^verbatim>\<open>x86_64-windows\<close>.
-
-  \<^descr>[@{setting_def ISABELLE_PATH}] is a list of directories (separated by
-  colons) where Isabelle logic images may reside. When looking up heaps files,
-  the value of @{setting ML_IDENTIFIER} is appended to each component
-  internally.
-
-  \<^descr>[@{setting_def ISABELLE_OUTPUT}\<open>\<^sup>*\<close>] is a directory where output heap files
-  should be stored by default. The ML system and Isabelle version identifier
-  is appended here, too.
 
   \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where theory
   browser information is stored as HTML and PDF (see also \secref{sec:info}).
