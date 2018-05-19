@@ -1004,6 +1004,19 @@ object Sessions
     def open_output_database(name: String): SQL.Database =
       SQLite.open_database(output_dir + database(name))
 
+    def clean_output(name: String): (Boolean, Boolean) =
+    {
+      val res =
+        for {
+          dir <- (if (system_mode) List(user_output_dir, system_output_dir) else List(user_output_dir))
+          file <- List(Path.basic(name), database(name), log(name), log_gz(name))
+          path = dir + file if path.is_file
+        } yield path.file.delete
+      val relevant = res.nonEmpty
+      val ok = res.forall(b => b)
+      (relevant, ok)
+    }
+
 
     /* input */
 

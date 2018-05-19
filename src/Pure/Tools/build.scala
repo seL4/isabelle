@@ -467,19 +467,13 @@ object Build
 
     store.prepare_output_dir()
 
-    // cleanup
-    def cleanup(name: String, echo: Boolean = false)
-    {
-      val files =
-        List(Path.basic(name), store.database(name), store.log(name), store.log_gz(name)).
-          map(store.output_dir + _).filter(_.is_file)
-      if (files.nonEmpty) progress.echo_if(echo, "Cleaning " + name + " ...")
-      val res = files.map(p => p.file.delete)
-      if (!res.forall(ok => ok)) progress.echo_if(echo, name + " FAILED to delete")
-    }
     if (clean_build) {
       for (name <- full_sessions.build_descendants(full_sessions.build_selection(selection1))) {
-        cleanup(name, echo = true)
+        val (relevant, ok) = store.clean_output(name)
+        if (relevant) {
+          if (ok) progress.echo("Cleaned " + name)
+          else progress.echo(name + " FAILED to clean")
+        }
       }
     }
 
@@ -618,7 +612,7 @@ object Build
                 else if (ancestor_results.forall(_.ok) && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
 
-                  cleanup(name)
+                  store.clean_output(name)
                   using(store.open_output_database(name))(store.init_session_info(_, name))
 
                   val numa_node = numa_nodes.next(used_node(_))
