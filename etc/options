@@ -250,9 +250,22 @@ option ssh_alive_count_max : int = 3
   -- "maximum number of messages to keep SSH server connection alive"
 
 
-section "Theory export"
+section "Theory Export"
 
 option export_theory : bool = false
+
+
+section "Build Database"
+
+option build_database_server : bool = false
+option build_database_user : string = ""
+option build_database_password : string = ""
+option build_database_name : string = ""
+option build_database_host : string = ""
+option build_database_port : int = 0
+option build_database_ssh_host : string = ""
+option build_database_ssh_user : string = ""
+option build_database_ssh_port : int = 0
 
 
 section "Build Log Database"

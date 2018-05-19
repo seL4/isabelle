@@ -38,7 +38,7 @@ object ML_Process
           sessions_structure.getOrElse(Sessions.load_structure(options, dirs = dirs))
             .selection(selection)
         selected_sessions.build_requirements(List(logic_name)).
-          map(a => File.platform_path(_store.heap(a)))
+          map(a => File.platform_path(_store.the_heap(a)))
       }
 
     val eval_init =

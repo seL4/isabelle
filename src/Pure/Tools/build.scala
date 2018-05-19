@@ -38,7 +38,7 @@ object Build
     {
       val no_timings: Timings = (Nil, 0.0)
 
-      store.try_open_database(name) match {
+      store.access_database(name) match {
         case None => no_timings
         case Some(db) =>
           def ignore_error(msg: String) =
@@ -189,7 +189,7 @@ object Build
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
     private val export_tmp_dir = Isabelle_System.tmp_dir("export")
-    private val export_consumer = Export.consumer(store.open_output_database(name))
+    private val export_consumer = Export.consumer(store.open_database(name, output = true))
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {
@@ -425,7 +425,7 @@ object Build
       if (soft_build && !fresh_build) {
         val outdated =
           deps0.sessions_structure.build_topological_order.flatMap(name =>
-            store.try_open_database(name) match {
+            store.access_database(name) match {
               case Some(db) =>
                 using(db)(store.read_build(_, name)) match {
                   case Some(build)
@@ -546,7 +546,7 @@ object Build
                     ml_statistics = true,
                     task_statistics = true)
 
-              using(store.open_output_database(name))(db =>
+              using(store.open_database(name, output = true))(db =>
                 store.write_session_info(db, name,
                   build_log =
                     if (process_result.timeout) build_log.error("Timeout") else build_log,
@@ -581,7 +581,7 @@ object Build
 
                 val (current, heap_digest) =
                 {
-                  store.try_open_database(name) match {
+                  store.access_database(name) match {
                     case Some(db) =>
                       using(db)(store.read_build(_, name)) match {
                         case Some(build) =>
@@ -613,7 +613,7 @@ object Build
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
 
                   store.clean_output(name)
-                  using(store.open_output_database(name))(store.init_session_info(_, name))
+                  using(store.open_database(name, output = true))(store.init_session_info(_, name))
 
                   val numa_node = numa_nodes.next(used_node(_))
                   val job =

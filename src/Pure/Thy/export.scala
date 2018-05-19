@@ -151,8 +151,6 @@ object Export
   {
     val xz_cache = XZ.make_cache()
 
-    db.create_table(Data.table)
-
     private val export_errors = Synchronized[List[String]](Nil)
 
     private val consumer =

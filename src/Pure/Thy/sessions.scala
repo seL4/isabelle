@@ -969,22 +969,15 @@ object Sessions
     override def toString: String = "Store(output_dir = " + output_dir.expand + ")"
 
 
-    /* file names */
-
-    def database(name: String): Path = Path.basic("log") + Path.basic(name).ext("db")
-    def log(name: String): Path = Path.basic("log") + Path.basic(name)
-    def log_gz(name: String): Path = log(name).ext("gz")
-
-
     /* directories */
 
-    def system_output_dir: Path = Path.explode("~~/heaps/$ML_IDENTIFIER")
-    def user_output_dir: Path = Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER")
+    val system_output_dir: Path = Path.explode("~~/heaps/$ML_IDENTIFIER")
+    val user_output_dir: Path = Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER")
 
-    def output_dir: Path =
+    val output_dir: Path =
       if (system_mode) system_output_dir else user_output_dir
 
-    def input_dirs: List[Path] =
+    val input_dirs: List[Path] =
       if (system_mode) List(system_output_dir)
       else List(user_output_dir, system_output_dir)
 
@@ -993,53 +986,95 @@ object Sessions
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
 
-    /* output */
+    /* file names */
 
-    def prepare_output_dir() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
+    def heap(name: String): Path = Path.basic(name)
+    def database(name: String): Path = Path.basic("log") + Path.basic(name).ext("db")
+    def log(name: String): Path = Path.basic("log") + Path.basic(name)
+    def log_gz(name: String): Path = log(name).ext("gz")
 
-    def output_heap(name: String): Path = output_dir + Path.basic(name)
+    def output_heap(name: String): Path = output_dir + heap(name)
+    def output_database(name: String): Path = output_dir + database(name)
     def output_log(name: String): Path = output_dir + log(name)
     def output_log_gz(name: String): Path = output_dir + log_gz(name)
 
-    def open_output_database(name: String): SQL.Database =
-      SQLite.open_database(output_dir + database(name))
-
-    def clean_output(name: String): (Boolean, Boolean) =
-    {
-      val res =
-        for {
-          dir <- (if (system_mode) List(user_output_dir, system_output_dir) else List(user_output_dir))
-          file <- List(Path.basic(name), database(name), log(name), log_gz(name))
-          path = dir + file if path.is_file
-        } yield path.file.delete
-      val relevant = res.nonEmpty
-      val ok = res.forall(b => b)
-      (relevant, ok)
-    }
+    def prepare_output_dir() { Isabelle_System.mkdirs(output_dir + Path.basic("log")) }
 
 
-    /* input */
+    /* heap */
 
     def find_heap(name: String): Option[Path] =
-      input_dirs.map(_ + Path.basic(name)).find(_.is_file)
+      input_dirs.map(_ + heap(name)).find(_.is_file)
 
     def find_heap_digest(name: String): Option[String] =
       find_heap(name).flatMap(read_heap_digest(_))
 
-    def find_database(name: String): Option[Path] =
-      input_dirs.map(_ + database(name)).find(_.is_file)
+    def the_heap(name: String): Path =
+      find_heap(name) getOrElse
+        error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
+          cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
 
-    def try_open_database(name: String): Option[SQL.Database] =
-      find_database(name).map(SQLite.open_database(_))
 
-    private def error_input(msg: String): Nothing =
-      error(msg + " -- expected in:\n" + cat_lines(input_dirs.map(dir => "  " + dir.expand.implode)))
+    /* database */
 
-    def heap(name: String): Path =
-      find_heap(name) getOrElse error_input("Missing heap image for session " + quote(name))
+    private def database_server: Boolean = options.bool("build_database_server")
 
-    def open_database(name: String): SQL.Database =
-      try_open_database(name) getOrElse error("Missing database file for session " + quote(name))
+    def access_database(name: String, output: Boolean = false): Option[SQL.Database] =
+    {
+      if (database_server) {
+        val db =
+          PostgreSQL.open_database(
+            user = options.string("build_database_user"),
+            password = options.string("build_database_password"),
+            database = options.string("build_database_name"),
+            host = options.string("build_database_host"),
+            port = options.int("build_database_port"),
+            ssh =
+              proper_string(options.string("build_database_ssh_host")).map(ssh_host =>
+                SSH.open_session(options,
+                  host = ssh_host,
+                  user = options.string("build_database_ssh_user"),
+                  port = options.int("build_database_ssh_port"))),
+            ssh_close = true)
+        if (output || has_session_info(db, name)) Some(db) else { db.close; None }
+      }
+      else if (output) Some(SQLite.open_database(output_database(name)))
+      else input_dirs.map(_ + database(name)).find(_.is_file).map(SQLite.open_database(_))
+    }
+
+    def open_database(name: String, output: Boolean = false): SQL.Database =
+      access_database(name, output = output) getOrElse
+        error("Missing build database for session " + quote(name))
+
+    def clean_output(name: String): (Boolean, Boolean) =
+    {
+      val relevant_db =
+        database_server &&
+        {
+          access_database(name) match {
+            case Some(db) =>
+              try {
+                db.transaction {
+                  val relevant_db = has_session_info(db, name)
+                  init_session_info(db, name)
+                  relevant_db
+                }
+              } finally { db.close }
+            case None => false
+          }
+        }
+
+      val del =
+        for {
+          dir <- (if (system_mode) List(user_output_dir, system_output_dir) else List(user_output_dir))
+          file <- List(heap(name), database(name), log(name), log_gz(name))
+          path = dir + file if path.is_file
+        } yield path.file.delete
+
+      val relevant = relevant_db || del.nonEmpty
+      val ok = del.forall(b => b)
+      (relevant, ok)
+    }
 
 
     /* SQL database content */
@@ -1068,6 +1103,22 @@ object Sessions
         db.create_table(Session_Info.table)
         db.using_statement(
           Session_Info.table.delete(Session_Info.session_name.where_equal(name)))(_.execute)
+
+        db.create_table(Export.Data.table)
+        db.using_statement(
+          Export.Data.table.delete(Export.Data.session_name.where_equal(name)))(_.execute)
+      }
+    }
+
+    def has_session_info(db: SQL.Database, name: String): Boolean =
+    {
+      db.transaction {
+        db.tables.contains(Session_Info.table.name) &&
+        {
+          db.using_statement(
+            Session_Info.table.select(List(Session_Info.session_name),
+              Session_Info.session_name.where_equal(name)))(stmt => stmt.execute_query().next())
+        }
       }
     }
 
