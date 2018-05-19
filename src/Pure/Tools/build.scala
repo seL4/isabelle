@@ -421,7 +421,7 @@ object Build
           deps0.sessions_structure.build_topological_order.flatMap(name =>
             store.try_open_database(name) match {
               case Some(db) =>
-                (try { store.read_build(db, name) } finally { db.close }) match {
+                using(db)(store.read_build(_, name)) match {
                   case Some(build)
                   if build.ok && build.sources == sources_stamp(deps0, name) => None
                   case _ => Some(name)
@@ -594,21 +594,19 @@ object Build
                 {
                   store.try_open_database(name) match {
                     case Some(db) =>
-                      try {
-                        store.read_build(db, name) match {
-                          case Some(build) =>
-                            val heap_digest = store.find_heap_digest(name)
-                            val current =
-                              !fresh_build &&
-                              build.ok &&
-                              build.sources == sources_stamp(deps, name) &&
-                              build.input_heaps == ancestor_heaps &&
-                              build.output_heap == heap_digest &&
-                              !(do_output && heap_digest.isEmpty)
-                            (current, heap_digest)
-                          case None => (false, None)
-                        }
-                      } finally { db.close }
+                      using(db)(store.read_build(_, name)) match {
+                        case Some(build) =>
+                          val heap_digest = store.find_heap_digest(name)
+                          val current =
+                            !fresh_build &&
+                            build.ok &&
+                            build.sources == sources_stamp(deps, name) &&
+                            build.input_heaps == ancestor_heaps &&
+                            build.output_heap == heap_digest &&
+                            !(do_output && heap_digest.isEmpty)
+                          (current, heap_digest)
+                        case None => (false, None)
+                      }
                     case None => (false, None)
                   }
                 }
@@ -626,7 +624,7 @@ object Build
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
 
                   cleanup(name)
-                  using(store.open_output_database(name))(db => store.init_session_info(db, name))
+                  using(store.open_output_database(name))(store.init_session_info(_, name))
 
                   val numa_node = numa_nodes.next(used_node(_))
                   val job =
