@@ -159,7 +159,7 @@ fun option ((xname, pos), s) ctxt =
 
 fun eval ctxt (opts, src) =
   let
-    val preview_ctxt = fold option opts ctxt;
+    val preview_ctxt = fold option opts (Config.put show_markup false ctxt);
     val _ = command src preview_ctxt;
 
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
