@@ -864,7 +864,7 @@ proof -
   proof -
     define h where [abs_def]: "h z = (z - \<xi>)^2 * f z" for z
     have h0: "(h has_field_derivative 0) (at \<xi>)"
-      apply (simp add: h_def Derivative.DERIV_within_iff)
+      apply (simp add: h_def has_field_derivative_iff)
       apply (rule Lim_transform_within [OF that, of 1])
       apply (auto simp: divide_simps power2_eq_square)
       done
@@ -879,7 +879,7 @@ proof -
         case False
         then have "f field_differentiable at z within S"
           using holomorphic_onD [OF holf, of z] \<open>z \<in> S\<close>
-          unfolding field_differentiable_def DERIV_within_iff
+          unfolding field_differentiable_def has_field_derivative_iff
           by (force intro: exI [where x="dist \<xi> z"] elim: Lim_transform_within_set [unfolded eventually_at])
         then show ?thesis
           by (simp add: h_def power2_eq_square derivative_intros)
@@ -1719,7 +1719,7 @@ proof -
   have "cnj \<circ> f \<circ> cnj field_differentiable at x within S \<inter> {z. Im z < 0}"
         if "x \<in> S" "Im x < 0" "f field_differentiable at (cnj x) within S \<inter> {z. 0 < Im z}" for x
     using that
-    apply (simp add: field_differentiable_def Derivative.DERIV_within_iff Lim_within dist_norm, clarify)
+    apply (simp add: field_differentiable_def has_field_derivative_iff Lim_within dist_norm, clarify)
     apply (rule_tac x="cnj f'" in exI)
     apply (elim all_forward ex_forward conj_forward imp_forward asm_rl, clarify)
     apply (drule_tac x="cnj xa" in bspec)

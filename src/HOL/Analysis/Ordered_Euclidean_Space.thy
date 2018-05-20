@@ -250,8 +250,8 @@ done
 lemma homeomorphic_closed_intervals_real:
   fixes a::real and b and c::real and d
   assumes "a<b" and "c<d"
-    shows "{a..b} homeomorphic {c..d}"
-by (metis assms compact_interval continuous_on_id convex_real_interval(5) emptyE homeomorphic_convex_compact interior_atLeastAtMost_real mvt)
+  shows "{a..b} homeomorphic {c..d}"
+  using assms by (auto intro: homeomorphic_convex_compact)
 
 no_notation
   eucl_less (infix "<e" 50)

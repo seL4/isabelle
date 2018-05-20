@@ -17,7 +17,7 @@ lemma nonneg_Reals_cmod_eq_Re: "z \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrighta
 lemma has_derivative_mult_right:
   fixes c:: "'a :: real_normed_algebra"
   shows "((( * ) c) has_derivative (( * ) c)) F"
-by (rule has_derivative_mult_right [OF has_derivative_id])
+by (rule has_derivative_mult_right [OF has_derivative_ident])
 
 lemma has_derivative_of_real[derivative_intros, simp]:
   "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. of_real (f x)) has_derivative (\<lambda>x. of_real (f' x))) F"
@@ -382,7 +382,7 @@ lemma holomorphic_on_scaleR [holomorphic_intros]:
 lemma holomorphic_on_Un [holomorphic_intros]:
   assumes "f holomorphic_on A" "f holomorphic_on B" "open A" "open B"
   shows   "f holomorphic_on (A \<union> B)"
-  using assms by (auto simp: holomorphic_on_def  at_within_open[of _ A] 
+  using assms by (auto simp: holomorphic_on_def  at_within_open[of _ A]
                              at_within_open[of _ B]  at_within_open[of _ "A \<union> B"] open_Un)
 
 lemma holomorphic_on_If_Un [holomorphic_intros]:
@@ -839,10 +839,10 @@ proof -
   show ?thesis
     unfolding has_field_derivative_def
   proof (rule has_derivative_sequence [OF cvs _ _ x])
-  show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
-    by (rule tf)
-  next show "\<And>e. e > 0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
-    by (blast intro: **)
+    show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
+      by (rule tf)
+  next show "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
+      unfolding eventually_sequentially by (blast intro: **)
   qed (metis has_field_derivative_def df)
 qed
 
@@ -882,8 +882,8 @@ proof -
       by (metis df has_field_derivative_def mult_commute_abs)
   next show " ((\<lambda>n. f n x) sums l)"
     by (rule sf)
-  next show "\<And>e. e>0 \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
-    by (blast intro: **)
+  next show "\<And>e. e>0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>s. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
+      unfolding eventually_sequentially by (blast intro: **)
   qed
 qed
 
@@ -922,10 +922,8 @@ lemma field_differentiable_bound:
       and "x \<in> s"  "y \<in> s"
     shows "norm(f x - f y) \<le> B * norm(x - y)"
   apply (rule differentiable_bound [OF cvs])
-  apply (rule ballI, erule df [unfolded has_field_derivative_def])
-  apply (rule ballI, rule onorm_le, simp add: norm_mult mult_right_mono dn)
-  apply fact
-  apply fact
+  apply (erule df [unfolded has_field_derivative_def])
+  apply (rule onorm_le, simp_all add: norm_mult mult_right_mono assms)
   done
 
 subsection\<open>Inverse function theorem for complex derivatives\<close>
