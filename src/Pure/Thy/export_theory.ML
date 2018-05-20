@@ -97,22 +97,27 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         (#constants (Consts.dest (Sign.consts_of thy)));
 
 
-    (* axioms *)
+    (* axioms and facts *)
 
-    val encode_axiom =
+    val encode_props =
       let open XML.Encode Term_XML.Encode
-      in triple (list (pair string sort)) (list (pair string typ)) term end;
+      in triple (list (pair string sort)) (list (pair string typ)) (list term) end;
 
-    fun export_axiom prop =
+    fun export_props props =
       let
-        val prop' = Logic.unvarify_global prop;
-        val typargs = rev (Term.add_tfrees prop' []);
-        val args = rev (Term.add_frees prop' []);
-      in encode_axiom (typargs, args, prop') end;
+        val props' = map Logic.unvarify_global props;
+        val typargs = rev (fold Term.add_tfrees props' []);
+        val args = rev (fold Term.add_frees props' []);
+      in encode_props (typargs, args, props') end;
 
     val _ =
-      export_entities "axioms" (K (SOME o export_axiom)) Theory.axiom_space
+      export_entities "axioms" (K (SOME o export_props o single)) Theory.axiom_space
         (Theory.axioms_of thy);
+
+    val _ =
+      export_entities "facts" (K (SOME o export_props o map Thm.full_prop_of))
+        (Facts.space_of o Global_Theory.facts_of)
+        (Facts.dest_static true [] (Global_Theory.facts_of thy));
 
     in () end);
 

@@ -54,17 +54,19 @@ object Export_Theory
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
     consts: List[Const],
-    axioms: List[Axiom])
+    axioms: List[Axiom],
+    facts: List[Fact])
   {
     override def toString: String = name
   }
 
-  def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil, Nil)
+  def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil, Nil, Nil)
 
   def read_theory(db: SQL.Database, session_name: String, theory_name: String,
     types: Boolean = true,
     consts: Boolean = true,
-    axioms: Boolean = true): Theory =
+    axioms: Boolean = true,
+    facts: Boolean = true): Theory =
   {
     val parents =
       Export.read_entry(db, session_name, theory_name, "theory/parents") match {
@@ -76,7 +78,8 @@ object Export_Theory
     Theory(theory_name, parents,
       if (types) read_types(db, session_name, theory_name) else Nil,
       if (consts) read_consts(db, session_name, theory_name) else Nil,
-      if (axioms) read_axioms(db, session_name, theory_name) else Nil)
+      if (axioms) read_axioms(db, session_name, theory_name) else Nil,
+      if (facts) read_facts(db, session_name, theory_name) else Nil)
   }
 
 
@@ -148,7 +151,15 @@ object Export_Theory
         })
 
 
-  /* axioms */
+  /* axioms and facts */
+
+  def decode_props(body: XML.Body):
+    (List[(String, Term.Sort)], List[(String, Term.Typ)], List[Term.Term]) =
+  {
+    import XML.Decode._
+    import Term_XML.Decode._
+    triple(list(pair(string, sort)), list(pair(string, typ)), list(term))(body)
+  }
 
   sealed case class Axiom(
     entity: Entity,
@@ -161,12 +172,22 @@ object Export_Theory
       (tree: XML.Tree) =>
         {
           val (entity, body) = decode_entity(tree)
-          val (typargs, args, prop) =
-          {
-            import XML.Decode._
-            import Term_XML.Decode._
-            triple(list(pair(string, sort)), list(pair(string, typ)), term)(body)
-          }
+          val (typargs, args, List(prop)) = decode_props(body)
           Axiom(entity, typargs, args, prop)
+        })
+
+  sealed case class Fact(
+    entity: Entity,
+    typargs: List[(String, Term.Sort)],
+    args: List[(String, Term.Typ)],
+    props: List[Term.Term])
+
+  def read_facts(db: SQL.Database, session_name: String, theory_name: String): List[Fact] =
+    read_entities(db, session_name, theory_name, "facts",
+      (tree: XML.Tree) =>
+        {
+          val (entity, body) = decode_entity(tree)
+          val (typargs, args, props) = decode_props(body)
+          Fact(entity, typargs, args, props)
         })
 }
