@@ -387,7 +387,7 @@ by (auto simp add: Always_eq_includes_reachable)
 
 (*Delete the nearest invariance assumption (which will be the second one
   used by Always_Int_I) *)
-lemmas Always_thin = thin_rl [of "F \<in> Always A"]
+lemmas Always_thin = thin_rl [of "F \<in> Always A"] for F A
 
 
 subsection\<open>Totalize\<close>

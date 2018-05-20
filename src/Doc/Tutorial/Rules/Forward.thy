@@ -55,14 +55,14 @@ of, simplified
 \<close>
 
 
-lemmas gcd_mult_0 = gcd_mult_distrib2 [of k 1]
+lemmas gcd_mult_0 = gcd_mult_distrib2 [of k 1] for k
 lemmas gcd_mult_1 = gcd_mult_0 [simplified]
 
 lemmas where1 = gcd_mult_distrib2 [where m=1]
 
 lemmas where2 = gcd_mult_distrib2 [where m=1 and k=1]
 
-lemmas where3 = gcd_mult_distrib2 [where m=1 and k="j+k"]
+lemmas where3 = gcd_mult_distrib2 [where m=1 and k="j+k"] for j k
 
 text \<open>
 example using ``of'':
@@ -87,7 +87,7 @@ example using ``where'', ``and'':
 lemmas gcd_mult0 = gcd_mult_1 [THEN sym]
       (*not quite right: we need ?k but this gives k*)
 
-lemmas gcd_mult0' = gcd_mult_distrib2 [of k 1, simplified, THEN sym]
+lemmas gcd_mult0' = gcd_mult_distrib2 [of k 1, simplified, THEN sym] for k
       (*better in one step!*)
 
 text \<open>
@@ -98,7 +98,7 @@ lemma gcd_mult [simp]: "gcd k (k*n) = k"
 by (rule gcd_mult_distrib2 [of k 1, simplified, THEN sym])
 
 
-lemmas gcd_self0 = gcd_mult [of k 1, simplified]
+lemmas gcd_self0 = gcd_mult [of k 1, simplified] for k
 
 
 text \<open>
