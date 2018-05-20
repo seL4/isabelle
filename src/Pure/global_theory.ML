@@ -128,8 +128,19 @@ fun name_thmss official name fact =
 
 fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
-fun add_facts arg thy =
-  thy |> Data.map (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2);
+fun add_facts (b, fact) thy =
+  let
+    val full_name = Sign.full_name thy b;
+    val pos = Binding.pos_of b;
+    fun err msg =
+      error ("Malformed global fact " ^ quote full_name ^ Position.here pos ^ "\n" ^ msg);
+    fun check thm =
+      ignore (Logic.unvarify_global (Term_Subst.zero_var_indexes (Thm.full_prop_of thm)))
+        handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
+    val arg = (b, Lazy.map_finished (tap (List.app check)) fact);
+  in
+    thy |> Data.map (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
+  end;
 
 fun add_thms_lazy kind (b, thms) thy =
   if Binding.is_empty b then Thm.register_proofs thms thy
