@@ -638,21 +638,21 @@ qed
 lemma mvt_simple:
   fixes f :: "real \<Rightarrow> real"
   assumes "a < b"
-    and derf: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
+    and derf: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x within {a..b})"
   shows "\<exists>x\<in>{a<..<b}. f b - f a = f' x (b - a)"
 proof (rule mvt)
   have "f differentiable_on {a..b}"
-    by (meson atLeastAtMost_iff derf differentiable_at_imp_differentiable_on differentiable_def)
+    using derf unfolding differentiable_on_def differentiable_def by force
   then show "continuous_on {a..b} f"
     by (rule differentiable_imp_continuous_on)
   show "(f has_derivative f' x) (at x)" if "a < x" "x < b" for x
-    by (metis derf not_less order.asym that)
+    by (metis at_within_Icc_at derf leI order.asym that)
 qed (rule assms)
 
 lemma mvt_very_simple:
   fixes f :: "real \<Rightarrow> real"
   assumes "a \<le> b"
-    and derf: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
+    and derf: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x within {a..b})"
   shows "\<exists>x\<in>{a..b}. f b - f a = f' x (b - a)"
 proof (cases "a = b")
   interpret bounded_linear "f' b"
@@ -2822,8 +2822,7 @@ lemma has_vector_derivative_If_within_closures:
     (if x \<in> S then f' x else g' x)) (at x within u)"
   unfolding has_vector_derivative_def assms
   using x_in
-  apply (intro has_derivative_If_within_closures[where
-        ?f' = "\<lambda>x a. a *\<^sub>R f' x" and ?g' = "\<lambda>x a. a *\<^sub>R g' x",
+  apply (intro has_derivative_If_within_closures[where ?f' = "\<lambda>x a. a *\<^sub>R f' x" and ?g' = "\<lambda>x a. a *\<^sub>R g' x",
         THEN has_derivative_eq_rhs])
   subgoal by (rule f'[unfolded has_vector_derivative_def]; assumption)
   subgoal by (rule g'[unfolded has_vector_derivative_def]; assumption)
