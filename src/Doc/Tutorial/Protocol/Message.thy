@@ -785,8 +785,6 @@ text\<open>Rewrites to push in Key and Crypt messages, so that other messages ca
 lemmas pushKeys =
   insert_commute [of "Key K" "Agent C"]
   insert_commute [of "Key K" "Nonce N"]
-  insert_commute [of "Key K" "Number N"]
-  insert_commute [of "Key K" "Hash X"]
   insert_commute [of "Key K" "MPair X Y"]
   insert_commute [of "Key K" "Crypt X K'"]
   for K C N X Y K'
@@ -795,8 +793,6 @@ lemmas pushCrypts =
   insert_commute [of "Crypt X K" "Agent C"]
   insert_commute [of "Crypt X K" "Agent C"]
   insert_commute [of "Crypt X K" "Nonce N"]
-  insert_commute [of "Crypt X K" "Number N"]
-  insert_commute [of "Crypt X K" "Hash X'"]
   insert_commute [of "Crypt X K" "MPair X' Y"]
   for X K C N X' Y
 
