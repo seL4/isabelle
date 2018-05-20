@@ -518,7 +518,7 @@ fun add_lub_take_theorems
     fun prove_reach_lemma ((chain_take, lub_take), dbind) thy =
       let
         val thm =
-            Drule.zero_var_indexes
+            Drule.export_without_context
               (@{thm lub_ID_reach} OF [chain_take, lub_take])
       in
         add_qualified_thm "reach" (dbind, thm) thy
@@ -551,7 +551,7 @@ fun add_lub_take_theorems
       else
         let
           fun prove_take_induct (chain_take, lub_take) =
-              Drule.zero_var_indexes
+              Drule.export_without_context
                 (@{thm lub_ID_take_induct} OF [chain_take, lub_take])
           val take_inducts =
               map prove_take_induct (chain_take_thms ~~ lub_take_thms)
