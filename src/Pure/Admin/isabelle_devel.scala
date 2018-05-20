@@ -33,6 +33,8 @@ object Isabelle_Devel
             List(HTML.link(RELEASE_SNAPSHOT, HTML.text("release snapshot"))) :::
             HTML.text(" (for all platforms)"),
 
+            HTML.text("Cronjob ") ::: List(HTML.link(CRONJOB_LOG, HTML.text("log file"))),
+
             HTML.text("Isabelle ") :::
             List(HTML.link(BUILD_STATUS + "/index.html", HTML.text("build status"))) :::
             HTML.text(" information"),
@@ -42,9 +44,7 @@ object Isabelle_Devel
             HTML.text(" information (e.g. for ") :::
             List(HTML.link("https://sqlitebrowser.org",
               List(HTML.code(HTML.text("sqlitebrowser"))))) :::
-            HTML.text(")"),
-
-            HTML.text("Cronjob ") ::: List(HTML.link(CRONJOB_LOG, HTML.text("log file")))))))
+            HTML.text(")")))))
   }
 
 
