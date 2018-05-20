@@ -110,13 +110,14 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val args = rev (fold Term.add_frees props' []);
       in encode_props (typargs, args, props') end;
 
-    val _ =
-      export_entities "axioms" (K (SOME o export_props o single)) Theory.axiom_space
-        (Theory.axioms_of thy);
+    val export_axiom = export_props o single;
+    val export_fact = export_props o Term_Subst.zero_var_indexes_list o map Thm.full_prop_of;
 
     val _ =
-      export_entities "facts" (K (SOME o export_props o map Thm.full_prop_of))
-        (Facts.space_of o Global_Theory.facts_of)
+      export_entities "axioms" (K (SOME o export_axiom)) Theory.axiom_space
+        (Theory.axioms_of thy);
+    val _ =
+      export_entities "facts" (K (SOME o export_fact)) (Facts.space_of o Global_Theory.facts_of)
         (Facts.dest_static true [] (Global_Theory.facts_of thy));
 
     in () end);
