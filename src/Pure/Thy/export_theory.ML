@@ -32,8 +32,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val parents = Theory.parents_of thy;
     val _ =
       export_body thy "parents"
-        let open XML.Encode
-        in list string (map Context.theory_long_name parents) end;
+        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
 
 
     (* entities *)

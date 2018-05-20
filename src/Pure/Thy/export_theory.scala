@@ -68,9 +68,7 @@ object Export_Theory
   {
     val parents =
       Export.read_entry(db, session_name, theory_name, "theory/parents") match {
-        case Some(entry) =>
-          import XML.Decode._
-          list(string)(entry.uncompressed_yxml())
+        case Some(entry) => split_lines(entry.uncompressed().text)
         case None =>
           error("Missing theory export in session " + quote(session_name) + ": " +
             quote(theory_name))
