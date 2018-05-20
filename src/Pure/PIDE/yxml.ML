@@ -21,6 +21,8 @@ sig
   val embed_controls: string -> string
   val detect: string -> bool
   val output_markup: Markup.T -> string * string
+  val buffer_body: XML.body -> Buffer.T -> Buffer.T
+  val buffer: XML.tree -> Buffer.T -> Buffer.T
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
   val output_markup_elem: Markup.T -> (string * string) * string
@@ -66,17 +68,17 @@ fun output_markup (markup as (name, atts)) =
   if Markup.is_empty markup then Markup.no_output
   else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
 
-fun string_of_body body =
-  let
-    fun attrib (a, x) = Buffer.add Y #> Buffer.add a #> Buffer.add "=" #> Buffer.add x;
-    fun tree (XML.Elem ((name, atts), ts)) =
-          Buffer.add XY #> Buffer.add name #> fold attrib atts #> Buffer.add X #>
-          trees ts #>
-          Buffer.add XYX
-      | tree (XML.Text s) = Buffer.add s
-    and trees ts = fold tree ts;
-  in Buffer.empty |> trees body |> Buffer.content end;
+fun buffer_attrib (a, x) =
+  Buffer.add Y #> Buffer.add a #> Buffer.add "=" #> Buffer.add x;
 
+fun buffer_body ts = fold buffer ts
+and buffer (XML.Elem ((name, atts), ts)) =
+      Buffer.add XY #> Buffer.add name #> fold buffer_attrib atts #> Buffer.add X #>
+      buffer_body ts #>
+      Buffer.add XYX
+  | buffer (XML.Text s) = Buffer.add s
+
+fun string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content;
 val string_of = string_of_body o single;
 
 

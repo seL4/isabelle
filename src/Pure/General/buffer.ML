@@ -11,6 +11,7 @@ sig
   val add: string -> T -> T
   val markup: Markup.T -> (T -> T) -> T -> T
   val content: T -> string
+  val chunks: T -> string list
   val output: T -> BinIO.outstream -> unit
 end;
 
@@ -30,7 +31,33 @@ fun markup m body =
 
 fun content (Buffer xs) = implode (rev xs);
 
-fun output (Buffer xs) stream =
-  List.app (fn s => BinIO.output (stream, Byte.stringToBytes s)) (rev xs);
+
+(* chunks *)
+
+local
+
+val max_chunk = 4096;
+
+fun add_chunk [] res = res
+  | add_chunk chunk res = implode chunk :: res;
+
+fun rev_chunks [] _ chunk res = add_chunk chunk res
+  | rev_chunks (x :: xs) len chunk res =
+      let
+        val n = size x;
+        val len' = len + n;
+      in
+        if len' < max_chunk then rev_chunks xs len' (x :: chunk) res
+        else rev_chunks xs n [x] (add_chunk chunk res)
+      end;
+
+in
+
+fun chunks (Buffer xs) = rev_chunks xs 0 [] [];
+
+fun output buf stream =
+  List.app (fn s => BinIO.output (stream, Byte.stringToBytes s)) (chunks buf);
+
+end;
 
 end;
