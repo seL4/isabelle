@@ -29,9 +29,10 @@ sig
   val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
     term -> term
-  val zero_var_indexes: term -> term
   val zero_var_indexes_inst: term list ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+  val zero_var_indexes: term -> term
+  val zero_var_indexes_list: term list -> term list
 end;
 
 structure Term_Subst: TERM_SUBST =
@@ -224,6 +225,7 @@ fun zero_var_indexes_inst ts =
         ([], Name.context);
   in (instT, inst) end;
 
-fun zero_var_indexes t = instantiate (zero_var_indexes_inst [t]) t;
+fun zero_var_indexes_list ts = map (instantiate (zero_var_indexes_inst ts)) ts;
+val zero_var_indexes = singleton zero_var_indexes_list;
 
 end;
