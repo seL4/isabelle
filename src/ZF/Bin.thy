@@ -652,15 +652,6 @@ lemma left_zadd_zmult_distrib: "i$*u $+ (j$*u $+ k) = (i$+j)$*u $+ k"
 
 (** For cancel_numerals **)
 
-lemmas rel_iff_rel_0_rls =
-  zless_iff_zdiff_zless_0 [where y = "u $+ v"]
-  eq_iff_zdiff_eq_0 [where y = "u $+ v"]
-  zle_iff_zdiff_zle_0 [where y = "u $+ v"]
-  zless_iff_zdiff_zless_0 [where y = n]
-  eq_iff_zdiff_eq_0 [where y = n]
-  zle_iff_zdiff_zle_0 [where y = n]
-  for u v (* FIXME n (!?) *)
-
 lemma eq_add_iff1: "(i$*u $+ m = j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m = intify(n))"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
@@ -673,6 +664,18 @@ lemma eq_add_iff2: "(i$*u $+ m = j$*u $+ n) \<longleftrightarrow> (intify(m) = (
   apply (simp add: zadd_ac)
   done
 
+context fixes n :: i
+begin
+
+lemmas rel_iff_rel_0_rls =
+  zless_iff_zdiff_zless_0 [where y = "u $+ v"]
+  eq_iff_zdiff_eq_0 [where y = "u $+ v"]
+  zle_iff_zdiff_zle_0 [where y = "u $+ v"]
+  zless_iff_zdiff_zless_0 [where y = n]
+  eq_iff_zdiff_eq_0 [where y = n]
+  zle_iff_zdiff_zle_0 [where y = n]
+  for u v
+
 lemma less_add_iff1: "(i$*u $+ m $< j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m $< n)"
   apply (simp add: zdiff_def zadd_zmult_distrib zadd_ac rel_iff_rel_0_rls)
   done
@@ -680,6 +683,8 @@ lemma less_add_iff1: "(i$*u $+ m $< j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u 
 lemma less_add_iff2: "(i$*u $+ m $< j$*u $+ n) \<longleftrightarrow> (m $< (j$-i)$*u $+ n)"
   apply (simp add: zdiff_def zadd_zmult_distrib zadd_ac rel_iff_rel_0_rls)
   done
+
+end
 
 lemma le_add_iff1: "(i$*u $+ m $\<le> j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m $\<le> n)"
   apply (simp add: zdiff_def zadd_zmult_distrib)

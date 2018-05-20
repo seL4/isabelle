@@ -22,7 +22,7 @@ lemmas tree'induct =
     tree_forest.mutual_induct [THEN conjunct1, THEN spec, THEN [2] rev_mp, of concl: _ t, consumes 1]
   and forest'induct =
     tree_forest.mutual_induct [THEN conjunct2, THEN spec, THEN [2] rev_mp, of concl: _ f, consumes 1]
-  for t
+  for t f
 
 declare tree_forest.intros [simp, TC]
 
