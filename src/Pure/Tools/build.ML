@@ -99,7 +99,7 @@ fun protocol_message props output =
       then
         let
           val path = Path.expand (Path.explode ("$ISABELLE_EXPORT_TMP/export" ^ serial_string ()));
-          val _ = File.open_output (fn out => List.app (File.output out) output) path;
+          val _ = File.write_list path output;
         in inline_message (#2 function) (tl args @ [(Markup.fileN, Path.implode path)]) end
       else
         (case Markup.dest_loading_theory props of
