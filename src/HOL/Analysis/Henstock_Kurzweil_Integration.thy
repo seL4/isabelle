@@ -5089,9 +5089,9 @@ proof -
             using B' [of a b] B' [of c d] norm_triangle_half_r by blast
         qed
       qed (use \<open>B > 0\<close> in auto)}
-  then show ?thesis
-    by force
-qed
+    then show ?thesis
+      by force
+  qed
   finally show ?thesis .
 qed
 
@@ -6496,7 +6496,7 @@ proof cases
           unfolding has_vector_derivative_def[symmetric]
           using that \<open>x \<in> X0\<close>
           by (intro has_derivative_within_subset[OF fx]) auto
-        have "\<forall>x \<in> X0 \<inter> U. onorm (blinfun_apply (fx x t) - (fx x0 t)) \<le> e"
+        have "\<And>x. x \<in> X0 \<inter> U \<Longrightarrow> onorm (blinfun_apply (fx x t) - (fx x0 t)) \<le> e"
           using fx_bound t
           by (auto simp add: norm_blinfun_def fun_diff_def blinfun.bilinear_simps[symmetric])
         from differentiable_bound_linearization[OF seg deriv this] X0

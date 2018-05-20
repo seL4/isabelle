@@ -814,7 +814,7 @@ proof (rule local_lipschitzI)
     note s
     also note \<open>cball t v \<subseteq> T\<close>
     finally
-    have deriv: "\<forall>y\<in>cball x u. (f s has_derivative blinfun_apply (f' (s, y))) (at y within cball x u)"
+    have deriv: "\<And>y. y \<in> cball x u \<Longrightarrow> (f s has_derivative blinfun_apply (f' (s, y))) (at y within cball x u)"
       using \<open>_ \<subseteq> X\<close>
       by (auto intro!: has_derivative_at_withinI[OF f'])
     have "norm (f s y - f s z) \<le> B * norm (y - z)"

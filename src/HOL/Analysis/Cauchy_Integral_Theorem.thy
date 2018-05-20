@@ -1154,7 +1154,7 @@ proof -
           vector_derivative (shiftpath (1 - a) (shiftpath a g)) (at x within {0..1})"
       apply (rule vector_derivative_at_within_ivl
                   [OF has_vector_derivative_transform_within_open
-                      [where f = "(shiftpath (1 - a) (shiftpath a g))" and s = "{0<..<1}-s"]])
+                      [where f = "(shiftpath (1 - a) (shiftpath a g))" and S = "{0<..<1}-s"]])
       using s g assms x
       apply (auto simp: finite_imp_closed open_Diff shiftpath_shiftpath
                         vector_derivative_within_interior vector_derivative_works [symmetric])
@@ -4453,7 +4453,7 @@ proof -
     case True then show ?thesis
       apply (simp add: continuous_within)
       apply (rule Lim_transform_away_within [of _ "z+1" _ "\<lambda>w::complex. (f w - f z)/(w - z)"])
-      using has_field_derivative_at_within DERIV_within_iff f'
+      using has_field_derivative_at_within has_field_derivative_iff f'
       apply (fastforce simp add:)+
       done
   next
@@ -5554,7 +5554,7 @@ proof -
     apply (rule w)
     done
   show ?thes2
-    apply (simp add: DERIV_within_iff del: power_Suc)
+    apply (simp add: has_field_derivative_iff del: power_Suc)
     apply (rule Lim_transform_within [OF tendsto_mult_left [OF *] \<open>0 < d\<close> ])
     apply (simp add: \<open>k \<noteq> 0\<close> **)
     done
