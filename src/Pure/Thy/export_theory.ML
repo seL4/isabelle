@@ -20,7 +20,7 @@ fun setup_presentation f =
     if Options.bool (#options context) "export_theory" then f context thy else ()));
 
 fun export_body thy name body =
-  Export.export thy ("theory/" ^ name) [YXML.string_of_body body];
+  Export.export thy ("theory/" ^ name) (Buffer.chunks (YXML.buffer_body body Buffer.empty));
 
 
 (* presentation *)
