@@ -402,7 +402,7 @@ object Bibtex
   private def keyword(source: String): Token = Token(Token.Kind.KEYWORD, source)
 
 
-  // See also http://ctan.org/tex-archive/biblio/bibtex/base/bibtex.web
+  // See also https://ctan.org/tex-archive/biblio/bibtex/base/bibtex.web
   // module @<Scan for and process a \.{.bib} command or database entry@>.
 
   object Parsers extends RegexParsers

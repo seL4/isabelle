@@ -57,7 +57,7 @@ object Build_JDK
   def readme(version: Version): String =
 """This is JDK/JRE """ + version.full + """ as required for Isabelle.
 
-See http://www.oracle.com/technetwork/java/javase/downloads/index.html
+See https://www.oracle.com/technetwork/java/javase/downloads/index.html
 for the original downloads, which are covered by the Oracle Binary
 Code License Agreement for Java SE.
 

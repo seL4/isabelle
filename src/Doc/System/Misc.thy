@@ -29,13 +29,13 @@ text \<open>
   Resolve Isabelle components via download and installation.
   COMPONENTS are identified via base name.
 
-  ISABELLE_COMPONENT_REPOSITORY="http://isabelle.in.tum.de/components"\<close>}
+  ISABELLE_COMPONENT_REPOSITORY="https://isabelle.in.tum.de/components"\<close>}
 
   Components are initialized as described in \secref{sec:components} in a
   permissive manner, which can mark components as ``missing''. This state is
   amended by letting @{tool "components"} download and unpack components that
   are published on the default component repository
-  \<^url>\<open>http://isabelle.in.tum.de/components\<close> in particular.
+  \<^url>\<open>https://isabelle.in.tum.de/components\<close> in particular.
 
   Option \<^verbatim>\<open>-R\<close> specifies an alternative component repository. Note that
   \<^verbatim>\<open>file:///\<close> URLs can be used for local directories.

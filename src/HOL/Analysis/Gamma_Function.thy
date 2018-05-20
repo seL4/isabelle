@@ -335,7 +335,7 @@ text \<open>
   We now show that the log-Gamma series converges locally uniformly for all complex numbers except
   the non-positive integers. We do this by proving that the series is locally Cauchy, adapting this
   proof:
-  http://math.stackexchange.com/questions/887158/convergence-of-gammaz-lim-n-to-infty-fracnzn-prod-m-0nzm
+  https://math.stackexchange.com/questions/887158/convergence-of-gammaz-lim-n-to-infty-fracnzn-prod-m-0nzm
 \<close>
 
 context

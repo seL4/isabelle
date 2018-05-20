@@ -10,7 +10,7 @@ subsection \<open>Strings as list of bytes\<close>
 
 text \<open>
   When modelling strings, we follow the approach given
-  in @{url "http://utf8everywhere.org/"}:
+  in @{url "https://utf8everywhere.org/"}:
 
   \<^item> Strings are a list of bytes (8 bit).
 

@@ -20,7 +20,7 @@ text \<open>
   monads}, since a state is transformed single-threadedly).
 
   To enter from the Haskell world,
-  \<^url>\<open>http://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm\<close> makes
+  \<^url>\<open>https://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm\<close> makes
   a good motivating start.  Here we just sketch briefly how those
   monads enter the game of Isabelle/HOL.
 \<close>

@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Spell checker with completion, based on JOrtho (see
-http://sourceforge.net/projects/jortho).
+https://sourceforge.net/projects/jortho).
 */
 
 package isabelle

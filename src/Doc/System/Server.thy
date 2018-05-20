@@ -216,7 +216,7 @@ text \<open>
   Messages are read and written as byte streams (with byte lengths), but the
   content is always interpreted as plain text in terms of the UTF-8
   encoding.\<^footnote>\<open>See also the ``UTF-8 Everywhere Manifesto''
-  \<^url>\<open>http://utf8everywhere.org\<close>.\<close>
+  \<^url>\<open>https://utf8everywhere.org\<close>.\<close>
 
   Note that line-endings and other formatting characters are invariant wrt.
   UTF-8 representation of text: thus implementations are free to determine the

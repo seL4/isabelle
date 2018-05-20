@@ -38,9 +38,9 @@ text \<open>
     rich formal markup for GUI rendering.
 
     \<^descr>[jEdit] is a sophisticated text editor\<^footnote>\<open>\<^url>\<open>http://www.jedit.org\<close>\<close>
-    implemented in Java\<^footnote>\<open>\<^url>\<open>http://www.java.com\<close>\<close>. It is easily extensible by
+    implemented in Java\<^footnote>\<open>\<^url>\<open>https://www.java.com\<close>\<close>. It is easily extensible by
     plugins written in any language that works on the JVM. In the context of
-    Isabelle this is always Scala\<^footnote>\<open>\<^url>\<open>http://www.scala-lang.org\<close>\<close>.
+    Isabelle this is always Scala\<^footnote>\<open>\<^url>\<open>https://www.scala-lang.org\<close>\<close>.
 
     \<^descr>[Isabelle/jEdit] is the main application of the PIDE framework and the
     default user-interface for Isabelle. It targets both beginners and
@@ -290,7 +290,7 @@ text \<open>
   The \<^verbatim>\<open>-b\<close> and \<^verbatim>\<open>-f\<close> options control the self-build mechanism of
   Isabelle/jEdit. This is only relevant for building from sources, which also
   requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component from
-  \<^url>\<open>http://isabelle.in.tum.de/components\<close>. The official Isabelle release
+  \<^url>\<open>https://isabelle.in.tum.de/components\<close>. The official Isabelle release
   already includes a pre-built version of Isabelle/jEdit.
 
   \<^bigskip>
@@ -1925,7 +1925,7 @@ text \<open>
 chapter \<open>ML debugging within the Prover IDE\<close>
 
 text \<open>
-  Isabelle/ML is based on Poly/ML\<^footnote>\<open>\<^url>\<open>http://www.polyml.org\<close>\<close> and thus
+  Isabelle/ML is based on Poly/ML\<^footnote>\<open>\<^url>\<open>https://www.polyml.org\<close>\<close> and thus
   benefits from the source-level debugger of that implementation of Standard
   ML. The Prover IDE provides the \<^emph>\<open>Debugger\<close> dockable to connect to running
   ML threads, inspect the stack frame with local ML bindings, and evaluate ML

@@ -124,7 +124,7 @@ as a direct or indirect parent of all your theories.
 \end{warn}
 
 In addition to the theories that come with the Isabelle/HOL distribution
-(see \<^url>\<open>http://isabelle.in.tum.de/library/HOL\<close>)
+(see \<^url>\<open>https://isabelle.in.tum.de/library/HOL\<close>)
 there is also the \emph{Archive of Formal Proofs}
 at \<^url>\<open>https://isa-afp.org\<close>, a growing collection of Isabelle theories
 that everybody can contribute to.

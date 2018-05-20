@@ -3,7 +3,7 @@
 
 Panel with improved FlowLayout for wrapping of components over
 multiple lines, see also
-http://tips4java.wordpress.com/2008/11/06/wrap-layout/ and
+https://tips4java.wordpress.com/2008/11/06/wrap-layout/ and
 scala.swing.FlowPanel.
 */
 

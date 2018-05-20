@@ -521,7 +521,7 @@ val vampire_tff0 = TFF Monomorphic
 
 val vampire_basic_options = "--proof tptp --output_axiom_names on --mode casc"
 
-(* cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
+(* cf. p. 20 of https://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
 val vampire_full_proof_options =
   " --forced_options splitting=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:\
   \naming=0"

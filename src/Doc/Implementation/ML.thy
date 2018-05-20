@@ -38,7 +38,7 @@ text \<open>
   really going on and how things really work. This is a non-trivial aim, but
   it is supported by a certain style of writing Isabelle/ML that has emerged
   from long years of system development.\<^footnote>\<open>See also the interesting style guide
-  for OCaml \<^url>\<open>http://caml.inria.fr/resources/doc/guides/guidelines.en.html\<close>
+  for OCaml \<^url>\<open>https://caml.inria.fr/resources/doc/guides/guidelines.en.html\<close>
   which shares many of our means and ends.\<close>
 
   The main principle behind any coding style is \<^emph>\<open>consistency\<close>. For a single

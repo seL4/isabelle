@@ -298,7 +298,7 @@ using%unimportant assms by (auto intro: Urysohn_local [of UNIV S T a b])
 subsection\<open>The Dugundji extension theorem and Tietze variants as corollaries\<close>
 
 text%important\<open>J. Dugundji. An extension of Tietze's theorem. Pacific J. Math. Volume 1, Number 3 (1951), 353-367.
-http://projecteuclid.org/euclid.pjm/1103052106\<close>
+https://projecteuclid.org/euclid.pjm/1103052106\<close>
 
 theorem%important Dugundji:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"

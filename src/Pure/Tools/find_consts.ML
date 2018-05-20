@@ -1,7 +1,7 @@
 (*  Title:      Pure/Tools/find_consts.ML
     Author:     Timothy Bourke and Gerwin Klein, NICTA
 
-Hoogle-like (http://www-users.cs.york.ac.uk/~ndm/hoogle) searching by
+Hoogle-like (https://www-users.cs.york.ac.uk/~ndm/hoogle) searching by
 type over constants, but matching is not fuzzy.
 *)
 

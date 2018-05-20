@@ -283,7 +283,7 @@ qed
 
 text \<open>TODO: The following lemmas about adjoints should hold for any
   Hilbert space (i.e. complete inner product space).
-  (see \<^url>\<open>http://en.wikipedia.org/wiki/Hermitian_adjoint\<close>)
+  (see \<^url>\<open>https://en.wikipedia.org/wiki/Hermitian_adjoint\<close>)
 \<close>
 
 lemma adjoint_works:

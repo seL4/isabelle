@@ -40,7 +40,7 @@ object Isabelle_Devel
             HTML.text("Database with recent ") :::
             List(HTML.link(BUILD_LOG_DB, HTML.text("build log"))) :::
             HTML.text(" information (e.g. for ") :::
-            List(HTML.link("http://sqlitebrowser.org",
+            List(HTML.link("https://sqlitebrowser.org",
               List(HTML.code(HTML.text("sqlitebrowser"))))) :::
             HTML.text(")"),
 

@@ -8,7 +8,7 @@ begin
 
 text \<open>
   The proof is based on Gauss's fifth proof, which can be found at
-  \<^url>\<open>http://www.lehigh.edu/~shw2/q-recip/gauss5.pdf\<close>.
+  \<^url>\<open>https://www.lehigh.edu/~shw2/q-recip/gauss5.pdf\<close>.
 \<close>
 
 locale QR =

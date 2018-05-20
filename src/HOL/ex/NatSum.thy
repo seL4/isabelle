@@ -12,7 +12,7 @@ text \<open>
   Summing natural numbers, squares, cubes, etc.
 
   Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
-  \<^url>\<open>http://oeis.org\<close>.
+  \<^url>\<open>https://oeis.org\<close>.
 \<close>
 
 lemmas [simp] =

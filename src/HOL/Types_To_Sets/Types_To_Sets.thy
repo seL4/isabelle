@@ -7,7 +7,7 @@ section \<open>From Types to Sets\<close>
 text \<open>This theory extends Isabelle/HOL's logic by two new inference rules
   to allow translation of types to sets as described in
   O. Kunčar, A. Popescu: From Types to Sets by Local Type Definitions in Higher-Order Logic
-  available at http://www21.in.tum.de/~kuncar/documents/kuncar-popescu-t2s2016-extended.pdf.\<close>
+  available at https://www21.in.tum.de/~kuncar/documents/kuncar-popescu-t2s2016-extended.pdf.\<close>
 
 theory Types_To_Sets
   imports Main
