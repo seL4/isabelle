@@ -10,12 +10,6 @@ begin
 
 subsection "Code"
 
-(*
-WARNING baliL and baliR look symmetric but are not if you mirror them:
-the first two clauses need to be swapped in one of the two.
-Below we defined such a modified baliR. Is already modified in devel.
-*)
-
 text \<open>
 Function \<open>joinL\<close> joins two trees (and an element).
 Precondition: @{prop "bheight l \<le> bheight r"}.
@@ -30,25 +24,6 @@ fun joinL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
    else case r of
      B l' x' r' \<Rightarrow> baliL (joinL l x l') x' r' |
      R l' x' r' \<Rightarrow> R (joinL l x l') x' r')"
-
-(* rm after isabelle release > 2017 because then in distribution *)
-fun baliR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
-"baliR t1 a1 (R t2 a2 (R t3 a3 t4)) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
-"baliR t1 a1 (R (R t2 a2 t3) a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
-"baliR t1 a t2 = B t1 a t2"
-
-lemma inorder_baliR:
-  "inorder(baliR l a r) = inorder l @ a # inorder r"
-by(cases "(l,a,r)" rule: baliR.cases) (auto)
-
-lemma invc_baliR:
-  "\<lbrakk>invc l; invc2 r\<rbrakk> \<Longrightarrow> invc (baliR l a r)" 
-by (induct l a r rule: baliR.induct) auto
-
-lemma invh_baliR: 
-  "\<lbrakk> invh l; invh r; bheight l = bheight r \<rbrakk> \<Longrightarrow> invh (baliR l a r)"
-by (induct l a r rule: baliR.induct) auto
-(* end rm *)
 
 fun joinR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "joinR l x r =
