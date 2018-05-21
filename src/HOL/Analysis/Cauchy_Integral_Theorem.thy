@@ -5936,9 +5936,9 @@ next
   also have "... = u^n * deriv (\<lambda>z. (deriv ^^ n) f (u * z)) z"
     apply (rule deriv_cmult)
     apply (rule analytic_on_imp_differentiable_at [OF _ Suc.prems])
-    apply (rule analytic_on_compose_gen [where g="(deriv ^^ n) f" and t=t, unfolded o_def])
-    apply (simp add: analytic_on_linear)
-    apply (simp add: analytic_on_open f holomorphic_higher_deriv t)
+    apply (rule analytic_on_compose_gen [where g="(deriv ^^ n) f" and T=t, unfolded o_def])
+      apply (simp add: analytic_on_linear)
+     apply (simp add: analytic_on_open f holomorphic_higher_deriv t)
     apply (blast intro: fg)
     done
   also have "... = u * u ^ n * deriv ((deriv ^^ n) f) (u * z)"

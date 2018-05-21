@@ -1234,10 +1234,10 @@ proof -
   have "(exp has_field_derivative z) (at (Ln z))"
     by (metis znz DERIV_exp exp_Ln)
   then show "(Ln has_field_derivative inverse(z)) (at z)"
-    apply (rule has_complex_derivative_inverse_strong_x
-              [where s = "{w. -pi < Im(w) \<and> Im(w) < pi}"])
+    apply (rule has_field_derivative_inverse_strong_x
+              [where S = "{w. -pi < Im(w) \<and> Im(w) < pi}"])
     using znz *
-    apply (auto simp: Transcendental.continuous_on_exp [OF continuous_on_id] open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt mpi_less_Im_Ln)
+    apply (auto simp: continuous_on_exp [OF continuous_on_id] open_Collect_conj open_halfspace_Im_gt open_halfspace_Im_lt mpi_less_Im_Ln)
     done
 qed
 
@@ -3054,7 +3054,7 @@ proof -
   then have "cos (Arcsin z) \<noteq> 0"
     by (metis diff_0_right power_zero_numeral sin_squared_eq)
   then show ?thesis
-    apply (rule has_complex_derivative_inverse_basic [OF DERIV_sin _ _ open_ball [of z 1]])
+    apply (rule has_field_derivative_inverse_basic [OF DERIV_sin _ _ open_ball [of z 1]])
     apply (auto intro: isCont_Arcsin assms)
     done
 qed
@@ -3219,7 +3219,7 @@ proof -
   then have "- sin (Arccos z) \<noteq> 0"
     by (metis cos_squared_eq diff_0_right mult_zero_left neg_0_equal_iff_equal power2_eq_square)
   then have "(Arccos has_field_derivative inverse(- sin(Arccos z))) (at z)"
-    apply (rule has_complex_derivative_inverse_basic [OF DERIV_cos _ _ open_ball [of z 1]])
+    apply (rule has_field_derivative_inverse_basic [OF DERIV_cos _ _ open_ball [of z 1]])
     apply (auto intro: isCont_Arccos assms)
     done
   then show ?thesis

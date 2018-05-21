@@ -1290,7 +1290,7 @@ proof -
     have 2: "deriv f z \<noteq> 0"
       using \<open>z \<in> S\<close> \<open>open S\<close> holf holomorphic_injective_imp_regular injf by blast
     show ?thesis
-      apply (rule has_complex_derivative_inverse_strong [OF 1 2 \<open>open S\<close> \<open>z \<in> S\<close>])
+      apply (rule has_field_derivative_inverse_strong [OF 1 2 \<open>open S\<close> \<open>z \<in> S\<close>])
        apply (simp add: holf holomorphic_on_imp_continuous_on)
       by (simp add: injf the_inv_into_f_f)
   qed
