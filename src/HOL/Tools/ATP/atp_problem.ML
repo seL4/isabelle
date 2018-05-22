@@ -32,7 +32,7 @@ sig
      gen_simp : bool}
 
   datatype polymorphism = Monomorphic | Polymorphic
-  datatype thf_choice = THF_Without_Choice | THF_With_Choice
+  datatype thf_choice = THF_Lambda_Free | THF_Without_Choice | THF_With_Choice
 
   datatype atp_format =
     CNF |
@@ -188,7 +188,7 @@ type term_order =
    gen_simp : bool}
 
 datatype polymorphism = Monomorphic | Polymorphic
-datatype thf_choice = THF_Without_Choice | THF_With_Choice
+datatype thf_choice = THF_Lambda_Free | THF_Without_Choice | THF_With_Choice
 
 datatype atp_format =
   CNF |

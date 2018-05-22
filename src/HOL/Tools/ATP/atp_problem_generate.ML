@@ -162,6 +162,9 @@ val tag_neg_vars = false
 
 fun is_type_enc_native (Native _) = true
   | is_type_enc_native _ = false
+fun is_type_enc_full_higher_order (Native (Higher_Order THF_Lambda_Free, _, _)) = false
+  | is_type_enc_full_higher_order (Native (Higher_Order _, _, _)) = true
+  | is_type_enc_full_higher_order _ = false
 fun is_type_enc_higher_order (Native (Higher_Order _, _, _)) = true
   | is_type_enc_higher_order _ = false
 
@@ -668,17 +671,22 @@ fun type_enc_of_string strictness s =
         | _ => raise Same.SAME))
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s)
 
-fun adjust_order THF_Without_Choice (Higher_Order _) =
-    Higher_Order THF_Without_Choice
-  | adjust_order _ type_enc = type_enc
+fun min_hologic THF_Lambda_Free _ = THF_Lambda_Free
+  | min_hologic _ THF_Lambda_Free = THF_Lambda_Free
+  | min_hologic THF_Without_Choice _ = THF_Without_Choice
+  | min_hologic _ THF_Without_Choice = THF_Without_Choice
+  | min_hologic _ _ = THF_With_Choice
+
+fun adjust_hologic hologic (Higher_Order hologic') = Higher_Order (min_hologic hologic hologic')
+  | adjust_hologic _ type_enc = type_enc
 
 fun no_type_classes Type_Class_Polymorphic = Raw_Polymorphic With_Phantom_Type_Vars
   | no_type_classes poly = poly
 
-fun adjust_type_enc (THF (Polymorphic, choice)) (Native (order, poly, level)) =
-    Native (adjust_order choice order, no_type_classes poly, level)
-  | adjust_type_enc (THF (Monomorphic, choice)) (Native (order, _, level)) =
-    Native (adjust_order choice order, Mangled_Monomorphic, level)
+fun adjust_type_enc (THF (Polymorphic, hologic)) (Native (order, poly, level)) =
+    Native (adjust_hologic hologic order, no_type_classes poly, level)
+  | adjust_type_enc (THF (Monomorphic, hologic)) (Native (order, _, level)) =
+    Native (adjust_hologic hologic order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF Monomorphic) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (DFG Polymorphic) (Native (_, poly, level)) =
@@ -881,14 +889,15 @@ val fused_infinite_type = Type (fused_infinite_type_name, [])
 fun raw_atp_type_of_typ type_enc =
   let
     fun term (Type (s, Ts)) =
-      AType ((case (is_type_enc_higher_order type_enc, s) of
-               (true, @{type_name bool}) => `I tptp_bool_type
-             | (true, @{type_name fun}) => `I tptp_fun_type
-             | _ =>
-               if s = fused_infinite_type_name andalso is_type_enc_native type_enc then
-                 `I tptp_individual_type
-               else
-                 `make_fixed_type_const s, []), map term Ts)
+      AType
+        ((if s = @{type_name fun} andalso is_type_enc_higher_order type_enc then
+            `I tptp_fun_type
+          else if s = @{type_name bool} andalso is_type_enc_full_higher_order type_enc then
+            `I tptp_bool_type
+          else if s = fused_infinite_type_name andalso is_type_enc_native type_enc then
+            `I tptp_individual_type
+          else
+            `make_fixed_type_const s, []), map term Ts)
     | term (TFree (s, _)) = AType ((`make_tfree s, []), [])
     | term (TVar z) = AType ((tvar_name z, []), [])
   in term end
@@ -927,13 +936,22 @@ fun native_atp_type_of_raw_atp_type type_enc pred_sym ary =
       if is_type_enc_polymorphic type_enc then to_poly_atype
       else to_mangled_atype
     fun to_afun f1 f2 tys = AFun (f1 (hd tys), f2 (nth tys 1))
-    fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
-      | to_fo ary (AType (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
-      | to_fo _ _ = raise Fail "unexpected type"
     fun to_ho (ty as AType (((s, _), _), tys)) =
         if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
       | to_ho _ = raise Fail "unexpected type"
-  in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
+    fun to_lfho (ty as AType (((s, _), _), tys)) =
+        if s = tptp_fun_type then to_afun to_ho to_lfho tys
+        else if pred_sym then bool_atype
+        else to_atype ty
+      | to_lfho _ = raise Fail "unexpected type"
+    fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
+      | to_fo ary (AType (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
+      | to_fo _ _ = raise Fail "unexpected type"
+  in
+    if is_type_enc_full_higher_order type_enc then to_ho
+    else if is_type_enc_higher_order type_enc then to_lfho
+    else to_fo ary
+  end
 
 fun native_atp_type_of_typ type_enc pred_sym ary =
   native_atp_type_of_raw_atp_type type_enc pred_sym ary o raw_atp_type_of_typ type_enc
@@ -1082,7 +1100,7 @@ fun introduce_proxies_in_iterm type_enc =
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
           SOME proxy_base =>
-          if top_level orelse is_type_enc_higher_order type_enc then
+          if top_level orelse is_type_enc_full_higher_order type_enc then
             (case (top_level, s) of
               (_, "c_False") => IConst (`I tptp_false, T, [])
             | (_, "c_True") => IConst (`I tptp_true, T, [])
@@ -1238,7 +1256,7 @@ fun presimp_prop ctxt type_enc t =
               |> transform_elim_prop
               |> Object_Logic.atomize_term ctxt
     val need_trueprop = (fastype_of t = @{typ bool})
-    val is_ho = is_type_enc_higher_order type_enc
+    val is_ho = is_type_enc_full_higher_order type_enc
   in
     t |> need_trueprop ? HOLogic.mk_Trueprop
       |> (if is_ho then unextensionalize_def
@@ -1251,7 +1269,7 @@ fun presimp_prop ctxt type_enc t =
 (* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "=" for technical
    reasons. *)
 fun should_use_iff_for_eq CNF _ = false
-  | should_use_iff_for_eq (THF _) format = not (is_type_enc_higher_order format)
+  | should_use_iff_for_eq (THF _) format = not (is_type_enc_full_higher_order format)
   | should_use_iff_for_eq _ _ = true
 
 fun make_formula ctxt format type_enc iff_for_eq name stature role t =
@@ -1393,7 +1411,7 @@ fun default_sym_tab_entries type_enc =
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [], in_conj = false})) @
   ([tptp_equal, tptp_old_equal]
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [], in_conj = false}))
-  |> not (is_type_enc_higher_order type_enc)
+  |> not (is_type_enc_full_higher_order type_enc)
     ? cons (prefixed_predicator_name,
       {pred_sym = true, min_ary = 1, max_ary = 1, types = [], in_conj = false})
 
@@ -1592,7 +1610,8 @@ fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
         if is_pred_sym sym_tab s then tm else predicatify completish tm
       | _ => predicatify completish tm)
     val do_iterm =
-      not (is_type_enc_higher_order type_enc) ? (introduce_app_ops #> introduce_predicators)
+      (not (is_type_enc_higher_order type_enc) ? introduce_app_ops)
+      #> (not (is_type_enc_full_higher_order type_enc) ? introduce_predicators)
       #> filter_type_args_in_iterm thy ctrss type_enc
   in update_iformula (formula_map do_iterm) end
 
@@ -2595,7 +2614,7 @@ fun generate_atp_problem ctxt generate_info format prem_role type_enc mode lam_t
       else
         Sufficient_App_Op_And_Predicator
     val lam_trans =
-      if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
+      if lam_trans = keep_lamsN andalso not (is_type_enc_full_higher_order type_enc) then liftingN
       else lam_trans
     val (classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts

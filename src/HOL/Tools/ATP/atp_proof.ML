@@ -54,6 +54,7 @@ sig
   val e_parN : string
   val e_sineN : string
   val e_tofofN : string
+  val ehohN : string
   val iproverN : string
   val iprover_eqN : string
   val leo2N : string
@@ -124,6 +125,7 @@ val e_malesN = "e_males"
 val e_parN = "e_par"
 val e_sineN = "e_sine"
 val e_tofofN = "e_tofof"
+val ehohN = "ehoh"
 val iproverN = "iprover"
 val iprover_eqN = "iprover_eq"
 val leo2N = "leo2"

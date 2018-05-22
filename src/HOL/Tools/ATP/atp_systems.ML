@@ -353,6 +353,32 @@ val e_par_config : atp_config =
 val e_par = (e_parN, fn () => e_par_config)
 
 
+(* Ehoh *)
+
+val ehoh_thf0 = THF (Monomorphic, THF_Lambda_Free)
+
+val ehoh_config : atp_config =
+  {exec = fn _ => (["E_HOME"], ["eprover"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
+       "--auto-schedule --tstp-in --tstp-out --silent --cpu-limit=" ^
+       string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ file_name,
+   proof_delims =
+     [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
+     tstp_proof_delims,
+   known_failures =
+     [(TimedOut, "Failure: Resource limit exceeded (time)"),
+      (TimedOut, "time limit exceeded")] @
+     known_szs_status_failures,
+   prem_role = Conjecture,
+   best_slices =
+     (* FUDGE *)
+     K [(1.0, (((500, ""), ehoh_thf0, "mono_native_higher", liftingN, false), ""))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
+
+val ehoh = (ehohN, fn () => ehoh_config)
+
+
 (* iProver *)
 
 val iprover_config : atp_config =
@@ -792,10 +818,11 @@ fun effective_term_order ctxt atp =
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, leo3, satallax, spass, vampire,
-   z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e, remote_e_sine,
-   remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_leo3, remote_satallax,
-   remote_vampire, remote_snark, remote_pirate, remote_waldmeister, remote_waldmeister_new]
+  [agsyhol, alt_ergo, e, e_males, e_par, ehoh, iprover, iprover_eq, leo2, leo3, satallax, spass,
+   vampire, z3_tptp, zipperposition, dummy_thf, dummy_thf_ml, remote_agsyhol, remote_e,
+   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2, remote_leo3,
+   remote_satallax, remote_vampire, remote_snark, remote_pirate, remote_waldmeister,
+   remote_waldmeister_new]
 
 val _ = Theory.setup (fold add_atp atps)
 
