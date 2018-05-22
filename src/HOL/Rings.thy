@@ -1712,7 +1712,7 @@ lemma dvd_imp_mod_0 [simp]:
   "b mod a = 0" if "a dvd b"
   using that minus_div_mult_eq_mod [of b a] by simp
 
-lemma mod_0_imp_dvd: 
+lemma mod_0_imp_dvd [dest!]: 
   "b dvd a" if "a mod b = 0"
 proof -
   have "b dvd (a div b) * b" by simp
