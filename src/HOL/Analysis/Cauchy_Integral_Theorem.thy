@@ -287,7 +287,7 @@ John Harrison writes as follows:
 continuously differentiable, which ensures that the path integral exists at least for any continuous
 f, since all piecewise continuous functions are integrable. However, our notion of validity is
 weaker, just piecewise differentiability... [namely] continuity plus differentiability except on a
-ﬁnite set ... [Our] underlying theory of integration is the Kurzweil-Henstock theory. In contrast to
+finite set ... [Our] underlying theory of integration is the Kurzweil-Henstock theory. In contrast to
 the Riemann or Lebesgue theory (but in common with a simple notion based on antiderivatives), this
 can integrate all derivatives.''
 
