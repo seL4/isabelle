@@ -137,7 +137,7 @@ definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "dvd" 50)
 lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"
   unfolding dvd_def ..
 
-lemma dvdE [elim?]: "b dvd a \<Longrightarrow> (\<And>k. a = b * k \<Longrightarrow> P) \<Longrightarrow> P"
+lemma dvdE [elim]: "b dvd a \<Longrightarrow> (\<And>k. a = b * k \<Longrightarrow> P) \<Longrightarrow> P"
   unfolding dvd_def by blast
 
 end
