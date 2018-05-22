@@ -80,13 +80,13 @@ proof-
     assume merge: "?s1 \<noteq> T" 
     from x ss1 have "?s1 =
       (if \<forall>(pc', s')\<in>set ss1. pc' \<noteq> pc + 1 \<longrightarrow> s' <=_r c!pc'
-      then (map snd [(p', t') \<leftarrow> ss1 . p'=pc+1]) ++_f x
+      then (map snd (filter (\<lambda>(p', t'). p'=pc+1) ss1)) ++_f x
       else \<top>)" 
       by (rule merge_def)  
     with merge obtain
       app: "\<forall>(pc',s')\<in>set ss1. pc' \<noteq> pc+1 \<longrightarrow> s' <=_r c!pc'" 
            (is "?app ss1") and
-      sum: "(map snd [(p',t') \<leftarrow> ss1 . p' = pc+1] ++_f x) = ?s1" 
+      sum: "(map snd (filter (\<lambda>(p',t'). p' = pc+1) ss1) ++_f x) = ?s1" 
            (is "?map ss1 ++_f x = _" is "?sum ss1 = _")
       by (simp split: if_split_asm)
     from app less 
@@ -115,7 +115,7 @@ proof-
     from x ss2 have 
       "?s2 =
       (if \<forall>(pc', s')\<in>set ss2. pc' \<noteq> pc + 1 \<longrightarrow> s' <=_r c!pc'
-      then map snd [(p', t') \<leftarrow> ss2 . p' = pc + 1] ++_f x
+      then map snd (filter (\<lambda>(p', t'). p' = pc + 1) ss2) ++_f x
       else \<top>)" 
       by (rule merge_def)
     ultimately have ?thesis by simp
@@ -194,7 +194,7 @@ proof -
   ultimately
   have "merge c pc ?step (c!Suc pc) =
     (if \<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'
-    then map snd [(p',t') \<leftarrow> ?step.p'=pc+1] ++_f c!Suc pc
+    then map snd (filter (\<lambda>(p',t').p'=pc+1) ?step) ++_f c!Suc pc
     else \<top>)" unfolding mrg_def by (rule lbv.merge_def [OF lbvc.axioms(1), OF lbvc_axioms])
   moreover {
     fix pc' s' assume s': "(pc', s') \<in> set ?step" and suc_pc: "pc' \<noteq> pc+1"
@@ -207,7 +207,7 @@ proof -
   } hence "\<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'" by auto
   moreover
   from pc have "Suc pc = length \<phi> \<or> Suc pc < length \<phi>" by auto
-  hence "map snd [(p',t') \<leftarrow> ?step.p'=pc+1] ++_f c!Suc pc \<noteq> \<top>" 
+  hence "map snd (filter (\<lambda>(p',t').p'=pc+1) ?step) ++_f c!Suc pc \<noteq> \<top>" 
          (is "?map ++_f _ \<noteq> _")
   proof (rule disjE)
     assume pc': "Suc pc = length \<phi>"
@@ -215,7 +215,7 @@ proof -
     moreover 
     from pc' bounded pc 
     have "\<forall>(p',t')\<in>set ?step. p'\<noteq>pc+1" by clarify (drule boundedD, auto)
-    hence "[(p',t') \<leftarrow> ?step.p'=pc+1] = []" by (blast intro: filter_False) 
+    hence "filter (\<lambda>(p',t').p'=pc+1) ?step = []" by (blast intro: filter_False) 
     hence "?map = []" by simp
     ultimately show ?thesis by (simp add: B_neq_T)  
   next
@@ -262,7 +262,7 @@ proof -
   hence "merge c pc ?step (c!Suc pc) \<noteq> \<top>" by (simp add: wti)
   ultimately
   have "merge c pc ?step (c!Suc pc) =
-    map snd [(p',t')\<leftarrow> ?step.p'=pc+1] ++_f c!Suc pc" by (rule merge_not_top_s) 
+    map snd (filter (\<lambda>(p',t').p'=pc+1) ?step) ++_f c!Suc pc" by (rule merge_not_top_s) 
   hence "?wti = \<dots>" (is "_ = (?map ++_f _)" is "_ = ?sum") by (simp add: wti)
   also {
     from suc_pc phi have "\<phi>!Suc pc \<in> A" by simp

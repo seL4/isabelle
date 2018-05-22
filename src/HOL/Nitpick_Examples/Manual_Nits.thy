@@ -317,7 +317,7 @@ inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
 | "\<lbrakk>v \<in> B\<^sub>1; v \<in> B\<^sub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>1"
 
 theorem S\<^sub>1_sound:
-"w \<in> S\<^sub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+"w \<in> S\<^sub>1 \<longrightarrow> length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w)"
 nitpick [expect = genuine]
 oops
 
@@ -330,7 +330,7 @@ inductive_set S\<^sub>2 and A\<^sub>2 and B\<^sub>2 where
 | "\<lbrakk>v \<in> B\<^sub>2; v \<in> B\<^sub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>2"
 
 theorem S\<^sub>2_sound:
-"w \<in> S\<^sub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+"w \<in> S\<^sub>2 \<longrightarrow> length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w)"
 nitpick [expect = genuine]
 oops
 
@@ -343,12 +343,12 @@ inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
 | "\<lbrakk>v \<in> B\<^sub>3; w \<in> B\<^sub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>3"
 
 theorem S\<^sub>3_sound:
-"w \<in> S\<^sub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+"w \<in> S\<^sub>3 \<longrightarrow> length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w)"
 nitpick [card = 1-5, expect = none]
 sorry
 
 theorem S\<^sub>3_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>3"
+"length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w) \<longrightarrow> w \<in> S\<^sub>3"
 nitpick [expect = genuine]
 oops
 
@@ -362,19 +362,19 @@ inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
 | "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
 theorem S\<^sub>4_sound:
-"w \<in> S\<^sub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+"w \<in> S\<^sub>4 \<longrightarrow> length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w)"
 nitpick [card = 1-5, expect = none]
 sorry
 
 theorem S\<^sub>4_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>4"
+"length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w) \<longrightarrow> w \<in> S\<^sub>4"
 nitpick [card = 1-5, expect = none]
 sorry
 
 theorem S\<^sub>4_A\<^sub>4_B\<^sub>4_sound_and_complete:
-"w \<in> S\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-"w \<in> A\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
-"w \<in> B\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
+"w \<in> S\<^sub>4 \<longleftrightarrow> length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w)"
+"w \<in> A\<^sub>4 \<longleftrightarrow> length (filter (\<lambda>x. x = a) w) = length (filter (\<lambda>x. x = b) w) + 1"
+"w \<in> B\<^sub>4 \<longleftrightarrow> length (filter (\<lambda>x. x = b) w) = length (filter (\<lambda>x. x = a) w) + 1"
 nitpick [card = 1-5, expect = none]
 sorry
 

@@ -78,13 +78,13 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 "filter P [] = []" |
 "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
 
-text \<open>Special syntax for filter:\<close>
+text \<open>Special input syntax for filter:\<close>
 syntax (ASCII)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_<-_./ _])")
 syntax
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_\<leftarrow>_ ./ _])")
 translations
-  "[x<-xs . P]" \<rightleftharpoons> "CONST filter (\<lambda>x. P) xs"
+  "[x<-xs . P]" \<rightharpoonup> "CONST filter (\<lambda>x. P) xs"
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
 fold_Nil:  "fold f [] = id" |
@@ -1598,7 +1598,7 @@ by(auto dest:Cons_eq_filterD)
 
 lemma inj_on_filter_key_eq:
   assumes "inj_on f (insert y (set xs))"
-  shows "[x\<leftarrow>xs . f y = f x] = filter (HOL.eq y) xs"
+  shows "filter (\<lambda>x. f y = f x) xs = filter (HOL.eq y) xs"
   using assms by (induct xs) auto
 
 lemma filter_cong[fundef_cong]:
@@ -4430,8 +4430,8 @@ apply simp
 done
 
 lemma nths_shift_lemma:
-  "map fst [p<-zip xs [i..<i + length xs] . snd p \<in> A] =
-   map fst [p<-zip xs [0..<length xs] . snd p + i \<in> A]"
+  "map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [i..<i + length xs])) =
+   map fst (filter (\<lambda>p. snd p + i \<in> A) (zip xs [0..<length xs]))"
 by (induct xs rule: rev_induct) (simp_all add: add.commute)
 
 lemma nths_append:
@@ -4720,19 +4720,19 @@ by pat_completeness auto
 
 lemma transpose_aux_filter_head:
   "concat (map (case_list [] (\<lambda>h t. [h])) xss) =
-  map (\<lambda>xs. hd xs) [ys\<leftarrow>xss . ys \<noteq> []]"
+  map (\<lambda>xs. hd xs) (filter (\<lambda>ys. ys \<noteq> []) xss)"
   by (induct xss) (auto split: list.split)
 
 lemma transpose_aux_filter_tail:
   "concat (map (case_list [] (\<lambda>h t. [t])) xss) =
-  map (\<lambda>xs. tl xs) [ys\<leftarrow>xss . ys \<noteq> []]"
+  map (\<lambda>xs. tl xs) (filter (\<lambda>ys. ys \<noteq> []) xss)"
   by (induct xss) (auto split: list.split)
 
 lemma transpose_aux_max:
   "max (Suc (length xs)) (foldr (\<lambda>xs. max (length xs)) xss 0) =
-  Suc (max (length xs) (foldr (\<lambda>x. max (length x - Suc 0)) [ys\<leftarrow>xss . ys\<noteq>[]] 0))"
+  Suc (max (length xs) (foldr (\<lambda>x. max (length x - Suc 0)) (filter (\<lambda>ys. ys \<noteq> []) xss) 0))"
   (is "max _ ?foldB = Suc (max _ ?foldA)")
-proof (cases "[ys\<leftarrow>xss . ys\<noteq>[]] = []")
+proof (cases "(filter (\<lambda>ys. ys \<noteq> []) xss) = []")
   case True
   hence "foldr (\<lambda>xs. max (length xs)) xss 0 = 0"
   proof (induct xss)
@@ -4744,16 +4744,16 @@ proof (cases "[ys\<leftarrow>xss . ys\<noteq>[]] = []")
 next
   case False
 
-  have foldA: "?foldA = foldr (\<lambda>x. max (length x)) [ys\<leftarrow>xss . ys \<noteq> []] 0 - 1"
+  have foldA: "?foldA = foldr (\<lambda>x. max (length x)) (filter (\<lambda>ys. ys \<noteq> []) xss) 0 - 1"
     by (induct xss) auto
-  have foldB: "?foldB = foldr (\<lambda>x. max (length x)) [ys\<leftarrow>xss . ys \<noteq> []] 0"
+  have foldB: "?foldB = foldr (\<lambda>x. max (length x)) (filter (\<lambda>ys. ys \<noteq> []) xss) 0"
     by (induct xss) auto
 
   have "0 < ?foldB"
   proof -
     from False
-    obtain z zs where zs: "[ys\<leftarrow>xss . ys \<noteq> []] = z#zs" by (auto simp: neq_Nil_conv)
-    hence "z \<in> set ([ys\<leftarrow>xss . ys \<noteq> []])" by auto
+    obtain z zs where zs: "(filter (\<lambda>ys. ys \<noteq> []) xss) = z#zs" by (auto simp: neq_Nil_conv)
+    hence "z \<in> set (filter (\<lambda>ys. ys \<noteq> []) xss)" by auto
     hence "z \<noteq> []" by auto
     thus ?thesis
       unfolding foldB zs
@@ -4781,7 +4781,7 @@ lemma length_transpose:
 lemma nth_transpose:
   fixes xs :: "'a list list"
   assumes "i < length (transpose xs)"
-  shows "transpose xs ! i = map (\<lambda>xs. xs ! i) [ys \<leftarrow> xs. i < length ys]"
+  shows "transpose xs ! i = map (\<lambda>xs. xs ! i) (filter (\<lambda>ys. i < length ys) xs)"
 using assms proof (induct arbitrary: i rule: transpose.induct)
   case (3 x xs xss)
   define XS where "XS = (x # xs) # xss"
@@ -5154,7 +5154,7 @@ qed simp
 
 lemma filter_equals_takeWhile_sorted_rev:
   assumes sorted: "sorted (rev (map f xs))"
-  shows "[x \<leftarrow> xs. t < f x] = takeWhile (\<lambda> x. t < f x) xs"
+  shows "filter (\<lambda>x. t < f x) xs = takeWhile (\<lambda> x. t < f x) xs"
     (is "filter ?P xs = ?tW")
 proof (rule takeWhile_eq_filter[symmetric])
   let "?dW" = "dropWhile ?P xs"
@@ -5178,18 +5178,18 @@ proof (rule takeWhile_eq_filter[symmetric])
 qed
 
 lemma sorted_map_same:
-  "sorted (map f [x\<leftarrow>xs. f x = g xs])"
+  "sorted (map f (filter (\<lambda>x. f x = g xs) xs))"
 proof (induct xs arbitrary: g)
   case Nil then show ?case by simp
 next
   case (Cons x xs)
-  then have "sorted (map f [y\<leftarrow>xs . f y = (\<lambda>xs. f x) xs])" .
-  moreover from Cons have "sorted (map f [y\<leftarrow>xs . f y = (g \<circ> Cons x) xs])" .
+  then have "sorted (map f (filter (\<lambda>y. f y = (\<lambda>xs. f x) xs) xs))" .
+  moreover from Cons have "sorted (map f (filter (\<lambda>y. f y = (g \<circ> Cons x) xs) xs))" .
   ultimately show ?case by simp_all
 qed
 
 lemma sorted_same:
-  "sorted [x\<leftarrow>xs. x = g xs]"
+  "sorted (filter (\<lambda>x. x = g xs) xs)"
 using sorted_map_same [of "\<lambda>x. x"] by simp
 
 end
@@ -5411,7 +5411,7 @@ by (simp add: enumerate_eq_zip)
 
 text \<open>Stability of @{const sort_key}:\<close>
 
-lemma sort_key_stable: "[y <- sort_key f xs. f y = k] = [y <- xs. f y = k]"
+lemma sort_key_stable: "filter (\<lambda>y. f y = k) (sort_key f xs) = filter (\<lambda>y. f y = k) xs"
 proof (induction xs)
   case Nil thus ?case by simp
 next
@@ -5422,12 +5422,12 @@ next
       using Cons.IH by (metis (mono_tags) filter.simps(2) filter_sort)
   next
     case True
-    hence ler: "[y <- (a # xs). f y = k] = a # [y <- xs. f y = f a]" by simp
-    have "\<forall>y \<in> set (sort_key f [y <- xs. f y = f a]). f y = f a" by simp
-    hence "insort_key f a (sort_key f [y <- xs. f y = f a])
-            = a # (sort_key f [y <- xs. f y = f a])"
+    hence ler: "filter (\<lambda>y. f y = k) (a # xs) = a # filter (\<lambda>y. f y = f a) xs" by simp
+    have "\<forall>y \<in> set (sort_key f (filter (\<lambda>y. f y = f a) xs)). f y = f a" by simp
+    hence "insort_key f a (sort_key f (filter (\<lambda>y. f y = f a) xs))
+            = a # (sort_key f (filter (\<lambda>y. f y = f a) xs))"
       by (simp add: insort_is_Cons)
-    hence lel: "[y <- sort_key f (a # xs). f y = k] = a # [y <- sort_key f xs. f y = f a]"
+    hence lel: "filter (\<lambda>y. f y = k) (sort_key f (a # xs)) = a # filter (\<lambda>y. f y = f a) (sort_key f xs)"
       by (metis True filter_sort ler sort_key_simps(2))
     from lel ler show ?thesis using Cons.IH True by (auto)
   qed
@@ -5447,7 +5447,7 @@ by (auto simp: sorted_iff_nth_mono rev_nth nth_transpose
     length_filter_conv_card intro: card_mono)
 
 lemma transpose_max_length:
-  "foldr (\<lambda>xs. max (length xs)) (transpose xs) 0 = length [x \<leftarrow> xs. x \<noteq> []]"
+  "foldr (\<lambda>xs. max (length xs)) (transpose xs) 0 = length (filter (\<lambda>x. x \<noteq> []) xs)"
   (is "?L = ?R")
 proof (cases "transpose xs = []")
   case False
@@ -5459,7 +5459,7 @@ proof (cases "transpose xs = []")
     using False by (simp add: nth_transpose)
 next
   case True
-  hence "[x \<leftarrow> xs. x \<noteq> []] = []"
+  hence "filter (\<lambda>x. x \<noteq> []) xs = []"
     by (auto intro!: filter_False simp: transpose_empty)
   thus ?thesis by (simp add: transpose_empty True)
 qed
@@ -5480,7 +5480,7 @@ lemma nth_nth_transpose_sorted[simp]:
   fixes xs :: "'a list list"
   assumes sorted: "sorted (rev (map length xs))"
   and i: "i < length (transpose xs)"
-  and j: "j < length [ys \<leftarrow> xs. i < length ys]"
+  and j: "j < length (filter (\<lambda>ys. i < length ys) xs)"
   shows "transpose xs ! i ! j = xs ! j  ! i"
 using j filter_equals_takeWhile_sorted_rev[OF sorted, of i]
     nth_transpose[OF i] nth_map[OF j]
@@ -5542,7 +5542,7 @@ proof (rule nth_equalityI, safe)
     have "length (xs ! i) \<le> length (xs ! k)" by simp
     thus "Suc j \<le> length (xs ! k)" using j_less by simp
   qed
-  have i_less_filter: "i < length [ys\<leftarrow>xs . j < length ys]"
+  have i_less_filter: "i < length (filter (\<lambda>ys. j < length ys) xs) "
     unfolding filter_equals_takeWhile_sorted_rev[OF sorted, of j]
     using i_less_tW by (simp_all add: Suc_le_eq)
   from j show "?R ! j = xs ! i ! j"
@@ -5581,7 +5581,7 @@ proof (rule nth_equalityI)
   show len: "length ?trans = length ?map"
     by (simp_all add: length_transpose foldr_map comp_def)
   moreover
-  { fix i assume "i < n" hence "[ys\<leftarrow>xs . i < length ys] = xs"
+  { fix i assume "i < n" hence "filter (\<lambda>ys. i < length ys) xs = xs"
       using rect by (auto simp: in_set_conv_nth intro!: filter_True) }
   ultimately show "\<forall>i < length ?trans. ?trans ! i = ?map ! i"
     by (auto simp: nth_transpose intro: nth_equalityI)

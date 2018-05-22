@@ -9,7 +9,7 @@ atom_decl tvar var
 abbreviation
   "difference_list" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" ("_ - _" [60,60] 60) 
 where
-  "xs - ys \<equiv> [x \<leftarrow> xs. x\<notin>set ys]"
+  "xs - ys \<equiv> filter (\<lambda>x. x\<notin>set ys) xs"
 
 lemma difference_eqvt_tvar[eqvt]:
   fixes pi::"tvar prm"

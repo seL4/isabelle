@@ -2028,7 +2028,7 @@ begin
 private lemma pmf_of_list_aux:
   assumes "\<And>x. x \<in> set (map snd xs) \<Longrightarrow> x \<ge> 0"
   assumes "sum_list (map snd xs) = 1"
-  shows "(\<integral>\<^sup>+ x. ennreal (sum_list (map snd [z\<leftarrow>xs . fst z = x])) \<partial>count_space UNIV) = 1"
+  shows "(\<integral>\<^sup>+ x. ennreal (sum_list (map snd (filter (\<lambda>z. fst z = x) xs))) \<partial>count_space UNIV) = 1"
 proof -
   have "(\<integral>\<^sup>+ x. ennreal (sum_list (map snd (filter (\<lambda>z. fst z = x) xs))) \<partial>count_space UNIV) =
             (\<integral>\<^sup>+ x. ennreal (sum_list (map (\<lambda>(x',p). indicator {x'} x * p) xs)) \<partial>count_space UNIV)"
@@ -2083,7 +2083,7 @@ proof clarify
   show "x \<in> set (map fst xs)"
   proof (rule ccontr)
     assume "x \<notin> set (map fst xs)"
-    hence "[z\<leftarrow>xs . fst z = x] = []" by (auto simp: filter_empty_conv)
+    hence "filter (\<lambda>z. fst z = x) xs = []" by (auto simp: filter_empty_conv)
     with A assms show False by (simp add: pmf_pmf_of_list set_pmf_eq)
   qed
 qed
@@ -2122,10 +2122,10 @@ proof -
   have "emeasure (pmf_of_list xs) A = nn_integral (measure_pmf (pmf_of_list xs)) (indicator A)"
     by simp
   also from assms
-    have "\<dots> = (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. ennreal (sum_list (map snd [z\<leftarrow>xs . fst z = x])))"
+    have "\<dots> = (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. ennreal (sum_list (map snd (filter (\<lambda>z. fst z = x) xs))))"
     by (subst nn_integral_measure_pmf_finite) (simp_all add: finite_set_pmf_of_list pmf_pmf_of_list Int_def)
   also from assms
-    have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. sum_list (map snd [z\<leftarrow>xs . fst z = x]))"
+    have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A. sum_list (map snd (filter (\<lambda>z. fst z = x) xs)))"
     by (subst sum_ennreal) (auto simp: pmf_of_list_wf_def intro!: sum_list_nonneg)
   also have "\<dots> = ennreal (\<Sum>x\<in>set_pmf (pmf_of_list xs) \<inter> A.
       indicator A x * pmf (pmf_of_list xs) x)" (is "_ = ennreal ?S")
@@ -2184,7 +2184,7 @@ proof
   {
     fix x assume A: "x \<in> fst ` set xs" and B: "x \<notin> set_pmf (pmf_of_list xs)"
     then obtain y where y: "(x, y) \<in> set xs" by auto
-    from B have "sum_list (map snd [z\<leftarrow>xs. fst z = x]) = 0"
+    from B have "sum_list (map snd (filter (\<lambda>z. fst z = x) xs)) = 0"
       by (simp add: pmf_pmf_of_list[OF assms(1)] set_pmf_eq)
     moreover from y have "y \<in> snd ` {xa \<in> set xs. fst xa = x}" by force
     ultimately have "y = 0" using assms(1)
@@ -2199,11 +2199,11 @@ lemma pmf_of_list_remove_zeros:
   defines "xs' \<equiv> filter (\<lambda>z. snd z \<noteq> 0) xs"
   shows   "pmf_of_list_wf xs'" "pmf_of_list xs' = pmf_of_list xs"
 proof -
-  have "map snd [z\<leftarrow>xs . snd z \<noteq> 0] = filter (\<lambda>x. x \<noteq> 0) (map snd xs)"
+  have "map snd (filter (\<lambda>z. snd z \<noteq> 0) xs) = filter (\<lambda>x. x \<noteq> 0) (map snd xs)"
     by (induction xs) simp_all
   with assms(1) show wf: "pmf_of_list_wf xs'"
     by (auto simp: pmf_of_list_wf_def xs'_def sum_list_filter_nonzero)
-  have "sum_list (map snd [z\<leftarrow>xs' . fst z = i]) = sum_list (map snd [z\<leftarrow>xs . fst z = i])" for i
+  have "sum_list (map snd (filter (\<lambda>z. fst z = i) xs')) = sum_list (map snd (filter (\<lambda>z. fst z = i) xs))" for i
     unfolding xs'_def by (induction xs) simp_all
   with assms(1) wf show "pmf_of_list xs' = pmf_of_list xs"
     by (intro pmf_eqI) (simp_all add: pmf_pmf_of_list)

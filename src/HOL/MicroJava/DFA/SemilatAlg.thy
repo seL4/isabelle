@@ -155,7 +155,7 @@ qed
 lemma ub1':
   assumes "semilat (A, r, f)"
   shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
-  \<Longrightarrow> b <=_r map snd [(p', t')\<leftarrow>S. p' = a] ++_f y" 
+  \<Longrightarrow> b <=_r map snd (filter (\<lambda>(p', t'). p' = a) S) ++_f y" 
 proof -
   interpret Semilat A r f using assms by (rule Semilat.intro)
 
@@ -175,7 +175,7 @@ qed
 
 lemma plusplus_empty:  
   "\<forall>s'. (q, s') \<in> set S \<longrightarrow> s' +_f ss ! q = ss ! q \<Longrightarrow>
-   (map snd [(p', t') \<leftarrow> S. p' = q] ++_f ss ! q) = ss ! q"
+   (map snd (filter (\<lambda>(p', t'). p' = q) S) ++_f ss ! q) = ss ! q"
   by (induct S) auto 
 
 end

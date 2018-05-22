@@ -69,12 +69,12 @@ where
 definition
   inter_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  [simp]: "inter_list xs ys = [x \<leftarrow> xs. x \<in> set xs \<and> x \<in> set ys]"
+  [simp]: "inter_list xs ys = filter (\<lambda>x. x \<in> set xs \<and> x \<in> set ys) xs"
 
 definition
   diff_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
-  [simp]: "diff_list xs ys = [x \<leftarrow> xs. x \<notin> set ys]"
+  [simp]: "diff_list xs ys = filter (\<lambda>x. x \<notin> set ys) xs"
 
 definition
   rsp_fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> bool"

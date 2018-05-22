@@ -315,6 +315,9 @@ pathologic instances. Minor INCOMPATIBILITY.
 * Theory List: functions "sorted_wrt" and "sorted" now compare every
   element in a list to all following elements, not just the next one.
 
+* Theory List: the non-standard filter-syntax "[x <- xs. P]" is
+  deprecated and is currently only available as input syntax anymore.
+
 * Removed nat-int transfer machinery. Rare INCOMPATIBILITY.
 
 * Predicate coprime is now a real definition, not a mere

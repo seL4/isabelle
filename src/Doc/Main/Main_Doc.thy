@@ -572,7 +572,6 @@ Type @{typ int}
 @{term"[m..<n]"} & @{term[source]"upt m n"}\\
 @{term"[i..j]"} & @{term[source]"upto i j"}\\
 \<open>[e. x \<leftarrow> xs]\<close> & @{term"map (%x. e) xs"}\\
-@{term"[x \<leftarrow> xs. b]"} & @{term[source]"filter (\<lambda>x. b) xs"} \\
 @{term"xs[n := x]"} & @{term[source]"list_update xs n x"}\\
 @{term"\<Sum>x\<leftarrow>xs. e"} & @{term[source]"listsum (map (\<lambda>x. e) xs)"}\\
 \end{supertabular}

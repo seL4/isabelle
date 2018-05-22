@@ -1888,7 +1888,7 @@ apply (drule distinct_remdups [THEN distinct_remdups
 apply simp
 done
 
-lemma mset_compl_union [simp]: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
+lemma mset_compl_union [simp]: "mset (filter P xs) + mset (filter (\<lambda>x. \<not>P x) xs) = mset xs"
   by (induct xs) auto
 
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
@@ -2582,14 +2582,14 @@ proof (rule properties_for_sort_key)
   show "mset ys = mset xs" by simp
   from \<open>sorted (map f ys)\<close>
   show "sorted (map f ys)" .
-  show "[x\<leftarrow>ys . f k = f x] = [x\<leftarrow>xs . f k = f x]" if "k \<in> set ys" for k
+  show "filter (\<lambda>x. f k = f x) ys = filter (\<lambda>x. f k = f x) xs" if "k \<in> set ys" for k
   proof -
     from mset_equal
     have set_equal: "set xs = set ys" by (rule mset_eq_setD)
     with that have "insert k (set ys) = set ys" by auto
     with \<open>inj_on f (set xs)\<close> have inj: "inj_on f (insert k (set ys))"
       by (simp add: set_equal)
-    from inj have "[x\<leftarrow>ys . f k = f x] = filter (HOL.eq k) ys"
+    from inj have "filter (\<lambda>x. f k = f x) ys = filter (HOL.eq k) ys"
       by (auto intro!: inj_on_filter_key_eq)
     also have "\<dots> = replicate (count (mset ys) k) k"
       by (simp add: replicate_count_mset_eq_filter_eq)
@@ -2597,7 +2597,7 @@ proof (rule properties_for_sort_key)
       using mset_equal by simp
     also have "\<dots> = filter (HOL.eq k) xs"
       by (simp add: replicate_count_mset_eq_filter_eq)
-    also have "\<dots> = [x\<leftarrow>xs . f k = f x]"
+    also have "\<dots> = filter (\<lambda>x. f k = f x) xs"
       using inj by (auto intro!: inj_on_filter_key_eq [symmetric] simp add: set_equal)
     finally show ?thesis .
   qed
@@ -2610,9 +2610,9 @@ lemma sort_key_eq_sort_key:
   by (rule sort_key_inj_key_eq) (simp_all add: assms)
 
 lemma sort_key_by_quicksort:
-  "sort_key f xs = sort_key f [x\<leftarrow>xs. f x < f (xs ! (length xs div 2))]
-    @ [x\<leftarrow>xs. f x = f (xs ! (length xs div 2))]
-    @ sort_key f [x\<leftarrow>xs. f x > f (xs ! (length xs div 2))]" (is "sort_key f ?lhs = ?rhs")
+  "sort_key f xs = sort_key f (filter (\<lambda>x. f x < f (xs ! (length xs div 2))) xs)
+    @ filter (\<lambda>x. f x = f (xs ! (length xs div 2))) xs
+    @ sort_key f (filter (\<lambda>x. f x > f (xs ! (length xs div 2))) xs)" (is "sort_key f ?lhs = ?rhs")
 proof (rule properties_for_sort_key)
   show "mset ?rhs = mset ?lhs"
     by (rule multiset_eqI) (auto simp add: mset_filter)
@@ -2623,14 +2623,14 @@ next
   assume "l \<in> set ?rhs"
   let ?pivot = "f (xs ! (length xs div 2))"
   have *: "\<And>x. f l = f x \<longleftrightarrow> f x = f l" by auto
-  have "[x \<leftarrow> sort_key f xs . f x = f l] = [x \<leftarrow> xs. f x = f l]"
+  have "filter (\<lambda>x. f x = f l) (sort_key f xs) = filter (\<lambda>x. f x = f l) xs"
     unfolding filter_sort by (rule properties_for_sort_key) (auto intro: sorted_map_same)
-  with * have **: "[x \<leftarrow> sort_key f xs . f l = f x] = [x \<leftarrow> xs. f l = f x]" by simp
+  with * have **: "filter (\<lambda>x. f l = f x) (sort_key f xs) = filter (\<lambda>x. f l = f x) xs" by simp
   have "\<And>x P. P (f x) ?pivot \<and> f l = f x \<longleftrightarrow> P (f l) ?pivot \<and> f l = f x" by auto
-  then have "\<And>P. [x \<leftarrow> sort_key f xs . P (f x) ?pivot \<and> f l = f x] =
-    [x \<leftarrow> sort_key f xs. P (f l) ?pivot \<and> f l = f x]" by simp
+  then have "\<And>P. filter (\<lambda>x. P (f x) ?pivot \<and> f l = f x) (sort_key f xs) =
+    filter (\<lambda>x. P (f l) ?pivot \<and> f l = f x) (sort_key f xs)" by simp
   note *** = this [of "(<)"] this [of "(>)"] this [of "(=)"]
-  show "[x \<leftarrow> ?rhs. f l = f x] = [x \<leftarrow> ?lhs. f l = f x]"
+  show "filter (\<lambda>x. f l = f x) ?rhs = filter (\<lambda>x. f l = f x) ?lhs"
   proof (cases "f l" ?pivot rule: linorder_cases)
     case less
     then have "f l \<noteq> ?pivot" and "\<not> f l > ?pivot" by auto
@@ -2648,15 +2648,15 @@ next
 qed
 
 lemma sort_by_quicksort:
-  "sort xs = sort [x\<leftarrow>xs. x < xs ! (length xs div 2)]
-    @ [x\<leftarrow>xs. x = xs ! (length xs div 2)]
-    @ sort [x\<leftarrow>xs. x > xs ! (length xs div 2)]" (is "sort ?lhs = ?rhs")
+  "sort xs = sort (filter (\<lambda>x. x < xs ! (length xs div 2)) xs)
+    @ filter (\<lambda>x. x = xs ! (length xs div 2)) xs
+    @ sort (filter (\<lambda>x. x > xs ! (length xs div 2)) xs)" (is "sort ?lhs = ?rhs")
   using sort_key_by_quicksort [of "\<lambda>x. x", symmetric] by simp
 
 text \<open>A stable parametrized quicksort\<close>
 
 definition part :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b list \<Rightarrow> 'b list \<times> 'b list \<times> 'b list" where
-  "part f pivot xs = ([x \<leftarrow> xs. f x < pivot], [x \<leftarrow> xs. f x = pivot], [x \<leftarrow> xs. pivot < f x])"
+  "part f pivot xs = (filter (\<lambda>x. f x < pivot) xs, filter (\<lambda>x. f x = pivot) xs, filter (\<lambda>x. f x > pivot) xs)"
 
 lemma part_code [code]:
   "part f pivot [] = ([], [], [])"

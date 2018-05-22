@@ -38,7 +38,7 @@ lemmas [simp] = Let_def Semilat.le_iff_plus_unchanged [OF Semilat.intro, symmetr
 
 lemma (in Semilat) nth_merges:
  "\<And>ss. \<lbrakk>p < length ss; ss \<in> list n A; \<forall>(p,t)\<in>set ps. p<n \<and> t\<in>A \<rbrakk> \<Longrightarrow>
-  (merges f ps ss)!p = map snd [(p',t') \<leftarrow> ps. p'=p] ++_f ss!p"
+  (merges f ps ss)!p = map snd (filter (\<lambda>(p',t'). p'=p) ps) ++_f ss!p"
   (is "\<And>ss. \<lbrakk>_; _; ?steptype ps\<rbrakk> \<Longrightarrow> ?P ss ps")
 proof (induct ps)
   show "\<And>ss. ?P ss []" by simp

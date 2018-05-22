@@ -186,7 +186,7 @@ quickcheck[exhaustive, expect = counterexample]
 oops
 
 lemma
-  "i < length (List.transpose (List.transpose xs)) ==> xs ! i = map (%xs. xs ! i) [ys<-xs. i < length ys]"
+  "i < length (List.transpose (List.transpose xs)) ==> xs ! i = map (%xs. xs ! i) (filter (\<lambda>ys. i < length ys) xs)"
 quickcheck[random, iterations = 10000]
 quickcheck[exhaustive, expect = counterexample]
 oops
@@ -228,13 +228,13 @@ quickcheck[exhaustive, expect = counterexample]
 oops
 
 lemma
-  "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) [ys<-remdups xs. i < length ys]"
+  "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) (filter (\<lambda>ys. i < length ys) (remdups xs))"
 quickcheck[random]
 quickcheck[exhaustive, expect = counterexample]
 oops
 
 lemma
-  "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) [ys<-List.transpose xs. length ys \<in> {..<i}]"
+  "[| sorted (rev (map length xs)); i < length xs |] ==> xs ! i = map (%ys. ys ! i) (filter (\<lambda>ys. length ys \<in> {..<i}) (List.transpose xs))"
 quickcheck[random]
 quickcheck[exhaustive, expect = counterexample]
 oops

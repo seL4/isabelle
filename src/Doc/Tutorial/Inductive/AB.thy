@@ -64,15 +64,13 @@ B} contain one more @{term b} than @{term a}.
 \<close>
 
 lemma correctness:
-  "(w \<in> S \<longrightarrow> size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b])     \<and>
-   (w \<in> A \<longrightarrow> size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b] + 1) \<and>
-   (w \<in> B \<longrightarrow> size[x\<leftarrow>w. x=b] = size[x\<leftarrow>w. x=a] + 1)"
+  "(w \<in> S \<longrightarrow> size(filter (\<lambda>x. x=a) w) = size(filter (\<lambda>x. x=b) w))     \<and>
+   (w \<in> A \<longrightarrow> size(filter (\<lambda>x. x=a) w) = size(filter (\<lambda>x. x=b) w) + 1) \<and>
+   (w \<in> B \<longrightarrow> size(filter (\<lambda>x. x=b) w) = size(filter (\<lambda>x. x=a) w) + 1)"
 
 txt\<open>\noindent
 These propositions are expressed with the help of the predefined @{term
-filter} function on lists, which has the convenient syntax @{text"[x\<leftarrow>xs. P
-x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
-holds. Remember that on lists @{text size} and @{text length} are synonymous.
+filter} function on lists. Remember that on lists @{text size} and @{text length} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:
 \<close>
@@ -112,8 +110,8 @@ roles of @{term a}'s and @{term b}'s interchanged.
 \<close>
 
 lemma step1: "\<forall>i < size w.
-  \<bar>(int(size[x\<leftarrow>take (i+1) w. P x])-int(size[x\<leftarrow>take (i+1) w. \<not>P x]))
-   - (int(size[x\<leftarrow>take i w. P x])-int(size[x\<leftarrow>take i w. \<not>P x]))\<bar> \<le> 1"
+  \<bar>(int(size(filter P (take (i+1) w)))-int(size(filter (\<lambda>x. \<not>P x) (take (i+1) w))))
+   - (int(size(filter P (take i w)))-int(size(filter (\<lambda>x. \<not>P x) (take i w))))\<bar> \<le> 1"
 
 txt\<open>\noindent
 The lemma is a bit hard to read because of the coercion function
@@ -137,8 +135,8 @@ Finally we come to the above-mentioned lemma about cutting in half a word with t
 \<close>
 
 lemma part1:
- "size[x\<leftarrow>w. P x] = size[x\<leftarrow>w. \<not>P x]+2 \<Longrightarrow>
-  \<exists>i\<le>size w. size[x\<leftarrow>take i w. P x] = size[x\<leftarrow>take i w. \<not>P x]+1"
+ "size(filter P w) = size(filter (\<lambda>x. \<not>P x) w)+2 \<Longrightarrow>
+  \<exists>i\<le>size w. size(filter P (take i w)) = size(filter (\<lambda>x. \<not>P x) (take i w))+1"
 
 txt\<open>\noindent
 This is proved by @{text force} with the help of the intermediate value theorem,
@@ -157,10 +155,10 @@ An easy lemma deals with the suffix @{term"drop i w"}:
 
 
 lemma part2:
-  "\<lbrakk>size[x\<leftarrow>take i w @ drop i w. P x] =
-    size[x\<leftarrow>take i w @ drop i w. \<not>P x]+2;
-    size[x\<leftarrow>take i w. P x] = size[x\<leftarrow>take i w. \<not>P x]+1\<rbrakk>
-   \<Longrightarrow> size[x\<leftarrow>drop i w. P x] = size[x\<leftarrow>drop i w. \<not>P x]+1"
+  "\<lbrakk>size(filter P (take i w @ drop i w)) =
+    size(filter (\<lambda>x. \<not>P x) (take i w @ drop i w))+2;
+    size(filter P (take i w)) = size(filter (\<lambda>x. \<not>P x) (take i w))+1\<rbrakk>
+   \<Longrightarrow> size(filter P (drop i w)) = size(filter (\<lambda>x. \<not>P x) (drop i w))+1"
 by(simp del: append_take_drop_id)
 
 text\<open>\noindent
@@ -187,9 +185,9 @@ for @{term A} and @{term B}:
 \<close>
 
 theorem completeness:
-  "(size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b]     \<longrightarrow> w \<in> S) \<and>
-   (size[x\<leftarrow>w. x=a] = size[x\<leftarrow>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
-   (size[x\<leftarrow>w. x=b] = size[x\<leftarrow>w. x=a] + 1 \<longrightarrow> w \<in> B)"
+  "(size(filter (\<lambda>x. x=a) w) = size(filter (\<lambda>x. x=b) w)     \<longrightarrow> w \<in> S) \<and>
+   (size(filter (\<lambda>x. x=a) w) = size(filter (\<lambda>x. x=b) w) + 1 \<longrightarrow> w \<in> A) \<and>
+   (size(filter (\<lambda>x. x=b) w) = size(filter (\<lambda>x. x=a) w) + 1 \<longrightarrow> w \<in> B)"
 
 txt\<open>\noindent
 The proof is by induction on @{term w}. Structural induction would fail here
@@ -234,9 +232,9 @@ apply(rule conjI)
  apply(clarify)
 txt\<open>\noindent
 This yields an index @{prop"i \<le> length v"} such that
-@{prop[display]"length [x\<leftarrow>take i v . x = a] = length [x\<leftarrow>take i v . x = b] + 1"}
+@{prop[display]"length (filter (\<lambda>x. x=a) (take i v)) = length (filter (\<lambda>x. x=b) (take i v)) + 1"}
 With the help of @{thm[source]part2} it follows that
-@{prop[display]"length [x\<leftarrow>drop i v . x = a] = length [x\<leftarrow>drop i v . x = b] + 1"}
+@{prop[display]"length (filter (\<lambda>x. x=a) (drop i v)) = length (filter (\<lambda>x. x=b) (drop i v)) + 1"}
 \<close>
 
  apply(drule part2[of "\<lambda>x. x=a", simplified])

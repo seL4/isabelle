@@ -1217,8 +1217,8 @@ text \<open>
 
   \<^item> Change of binding status of variables: anything beyond the built-in
   @{keyword "binder"} mixfix annotation requires explicit syntax translations.
-  For example, consider list filter comprehension @{term "[x \<leftarrow> xs . P]"} as
-  defined in theory @{theory List} in Isabelle/HOL.
+  For example, consider the set comprehension syntax @{term "{x. P}"} as
+  defined in theory @{theory Set} in Isabelle/HOL.
 \<close>
 
 
