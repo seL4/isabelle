@@ -32,7 +32,7 @@ lemmas has_vector_derivative_real_complex = has_vector_derivative_real_field
 lemma fact_cancel:
   fixes c :: "'a::real_field"
   shows "of_nat (Suc n) * c / (fact (Suc n)) = c / (fact n)"
-  by (simp add: of_nat_mult del: of_nat_Suc times_nat.simps)
+  using of_nat_neq_0 by force
 
 lemma bilinear_times:
   fixes c::"'a::real_algebra" shows "bilinear (\<lambda>x y::'a. x*y)"
@@ -40,34 +40,6 @@ lemma bilinear_times:
 
 lemma linear_cnj: "linear cnj"
   using bounded_linear.linear[OF bounded_linear_cnj] .
-
-lemma tendsto_Re_upper:
-  assumes "~ (trivial_limit F)"
-          "(f \<longlongrightarrow> l) F"
-          "eventually (\<lambda>x. Re(f x) \<le> b) F"
-    shows  "Re(l) \<le> b"
-  by (metis assms tendsto_le [OF _ tendsto_const]  tendsto_Re)
-
-lemma tendsto_Re_lower:
-  assumes "~ (trivial_limit F)"
-          "(f \<longlongrightarrow> l) F"
-          "eventually (\<lambda>x. b \<le> Re(f x)) F"
-    shows  "b \<le> Re(l)"
-  by (metis assms tendsto_le [OF _ _ tendsto_const]  tendsto_Re)
-
-lemma tendsto_Im_upper:
-  assumes "~ (trivial_limit F)"
-          "(f \<longlongrightarrow> l) F"
-          "eventually (\<lambda>x. Im(f x) \<le> b) F"
-    shows  "Im(l) \<le> b"
-  by (metis assms tendsto_le [OF _ tendsto_const]  tendsto_Im)
-
-lemma tendsto_Im_lower:
-  assumes "~ (trivial_limit F)"
-          "(f \<longlongrightarrow> l) F"
-          "eventually (\<lambda>x. b \<le> Im(f x)) F"
-    shows  "b \<le> Im(l)"
-  by (metis assms tendsto_le [OF _ _ tendsto_const]  tendsto_Im)
 
 lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = ( * ) 0"
   by auto
@@ -116,48 +88,48 @@ subsection\<open>DERIV stuff\<close>
 
 lemma DERIV_zero_connected_constant:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
-  assumes "connected s"
-      and "open s"
-      and "finite k"
-      and "continuous_on s f"
-      and "\<forall>x\<in>(s - k). DERIV f x :> 0"
-    obtains c where "\<And>x. x \<in> s \<Longrightarrow> f(x) = c"
+  assumes "connected S"
+      and "open S"
+      and "finite K"
+      and "continuous_on S f"
+      and "\<forall>x\<in>(S - K). DERIV f x :> 0"
+    obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
 using has_derivative_zero_connected_constant [OF assms(1-4)] assms
 by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
 
 lemmas DERIV_zero_constant = has_field_derivative_zero_constant
 
 lemma DERIV_zero_unique:
-  assumes "convex s"
-      and d0: "\<And>x. x\<in>s \<Longrightarrow> (f has_field_derivative 0) (at x within s)"
-      and "a \<in> s"
-      and "x \<in> s"
+  assumes "convex S"
+      and d0: "\<And>x. x\<in>S \<Longrightarrow> (f has_field_derivative 0) (at x within S)"
+      and "a \<in> S"
+      and "x \<in> S"
     shows "f x = f a"
   by (rule has_derivative_zero_unique [OF assms(1) _ assms(4,3)])
      (metis d0 has_field_derivative_imp_has_derivative lambda_zero)
 
 lemma DERIV_zero_connected_unique:
-  assumes "connected s"
-      and "open s"
-      and d0: "\<And>x. x\<in>s \<Longrightarrow> DERIV f x :> 0"
-      and "a \<in> s"
-      and "x \<in> s"
+  assumes "connected S"
+      and "open S"
+      and d0: "\<And>x. x\<in>S \<Longrightarrow> DERIV f x :> 0"
+      and "a \<in> S"
+      and "x \<in> S"
     shows "f x = f a"
     by (rule has_derivative_zero_unique_connected [OF assms(2,1) _ assms(5,4)])
        (metis has_field_derivative_def lambda_zero d0)
 
 lemma DERIV_transform_within:
-  assumes "(f has_field_derivative f') (at a within s)"
-      and "0 < d" "a \<in> s"
-      and "\<And>x. x\<in>s \<Longrightarrow> dist x a < d \<Longrightarrow> f x = g x"
-    shows "(g has_field_derivative f') (at a within s)"
+  assumes "(f has_field_derivative f') (at a within S)"
+      and "0 < d" "a \<in> S"
+      and "\<And>x. x\<in>S \<Longrightarrow> dist x a < d \<Longrightarrow> f x = g x"
+    shows "(g has_field_derivative f') (at a within S)"
   using assms unfolding has_field_derivative_def
   by (blast intro: has_derivative_transform_within)
 
 lemma DERIV_transform_within_open:
   assumes "DERIV f a :> f'"
-      and "open s" "a \<in> s"
-      and "\<And>x. x\<in>s \<Longrightarrow> f x = g x"
+      and "open S" "a \<in> S"
+      and "\<And>x. x\<in>S \<Longrightarrow> f x = g x"
     shows "DERIV g a :> f'"
   using assms unfolding has_field_derivative_def
 by (metis has_derivative_transform_within_open)
@@ -267,8 +239,6 @@ by (metis real_lim_sequentially sum_in_Reals)
 lemma Lim_null_comparison_Re:
   assumes "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F" "(g \<longlongrightarrow> 0) F" shows "(f \<longlongrightarrow> 0) F"
   by (rule Lim_null_comparison[OF assms(1)] tendsto_eq_intros assms(2))+ simp
-
-subsection\<open>Holomorphic functions\<close>
 
 subsection\<open>Holomorphic functions\<close>
 
@@ -455,20 +425,29 @@ lemma deriv_mult [simp]:
   unfolding DERIV_deriv_iff_field_differentiable[symmetric]
   by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
-lemma deriv_cmult [simp]:
+lemma deriv_cmult:
   "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
-  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
+  by simp
 
-lemma deriv_cmult_right [simp]:
+lemma deriv_cmult_right:
   "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
-  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
+  by simp
 
-lemma deriv_cdivide_right [simp]:
+lemma deriv_inverse [simp]:
+  "\<lbrakk>f field_differentiable at z; f z \<noteq> 0\<rbrakk>
+   \<Longrightarrow> deriv (\<lambda>w. inverse (f w)) z = - deriv f z / f z ^ 2"
+  unfolding DERIV_deriv_iff_field_differentiable[symmetric]
+  by (safe intro!: DERIV_imp_deriv derivative_eq_intros) (auto simp: divide_simps power2_eq_square)
+
+lemma deriv_divide [simp]:
+  "\<lbrakk>f field_differentiable at z; g field_differentiable at z; g z \<noteq> 0\<rbrakk>
+   \<Longrightarrow> deriv (\<lambda>w. f w / g w) z = (deriv f z * g z - f z * deriv g z) / g z ^ 2"
+  by (simp add: field_class.field_divide_inverse field_differentiable_inverse)
+     (simp add: divide_simps power2_eq_square)
+
+lemma deriv_cdivide_right:
   "f field_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w / c) z = deriv f z / c"
-  unfolding Fields.field_class.field_divide_inverse
-  by (blast intro: deriv_cmult_right)
+  by (simp add: field_class.field_divide_inverse)
 
 lemma complex_derivative_transform_within_open:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk>
@@ -480,10 +459,9 @@ lemma complex_derivative_transform_within_open:
 lemma deriv_compose_linear:
   "f field_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
 apply (rule DERIV_imp_deriv)
-apply (simp add: DERIV_deriv_iff_field_differentiable [symmetric])
-apply (drule DERIV_chain' [of "times c" c z UNIV f "deriv f (c * z)", OF DERIV_cmult_Id])
-apply (simp add: algebra_simps)
-done
+  unfolding DERIV_deriv_iff_field_differentiable [symmetric]
+  by (metis (full_types) DERIV_chain2 DERIV_cmult_Id mult.commute)
+
 
 lemma nonzero_deriv_nonconstant:
   assumes df: "DERIV f \<xi> :> df" and S: "open S" "\<xi> \<in> S" and "df \<noteq> 0"
@@ -494,10 +472,8 @@ by (metis \<open>df \<noteq> 0\<close> DERIV_transform_within_open [OF df S] DER
 lemma holomorphic_nonconstant:
   assumes holf: "f holomorphic_on S" and "open S" "\<xi> \<in> S" "deriv f \<xi> \<noteq> 0"
     shows "\<not> f constant_on S"
-    apply (rule nonzero_deriv_nonconstant [of f "deriv f \<xi>" \<xi> S])
-    using assms
-    apply (auto simp: holomorphic_derivI)
-    done
+  by (rule nonzero_deriv_nonconstant [of f "deriv f \<xi>" \<xi> S])
+    (use assms in \<open>auto simp: holomorphic_derivI\<close>)
 
 subsection\<open>Caratheodory characterization\<close>
 
@@ -516,53 +492,52 @@ lemma field_differentiable_caratheodory_within:
 subsection\<open>Analyticity on a set\<close>
 
 definition analytic_on (infixl "(analytic'_on)" 50)
-  where
-   "f analytic_on s \<equiv> \<forall>x \<in> s. \<exists>e. 0 < e \<and> f holomorphic_on (ball x e)"
+  where "f analytic_on S \<equiv> \<forall>x \<in> S. \<exists>e. 0 < e \<and> f holomorphic_on (ball x e)"
 
 named_theorems analytic_intros "introduction rules for proving analyticity"
 
-lemma analytic_imp_holomorphic: "f analytic_on s \<Longrightarrow> f holomorphic_on s"
+lemma analytic_imp_holomorphic: "f analytic_on S \<Longrightarrow> f holomorphic_on S"
   by (simp add: at_within_open [OF _ open_ball] analytic_on_def holomorphic_on_def)
      (metis centre_in_ball field_differentiable_at_within)
 
-lemma analytic_on_open: "open s \<Longrightarrow> f analytic_on s \<longleftrightarrow> f holomorphic_on s"
+lemma analytic_on_open: "open S \<Longrightarrow> f analytic_on S \<longleftrightarrow> f holomorphic_on S"
 apply (auto simp: analytic_imp_holomorphic)
 apply (auto simp: analytic_on_def holomorphic_on_def)
 by (metis holomorphic_on_def holomorphic_on_subset open_contains_ball)
 
 lemma analytic_on_imp_differentiable_at:
-  "f analytic_on s \<Longrightarrow> x \<in> s \<Longrightarrow> f field_differentiable (at x)"
+  "f analytic_on S \<Longrightarrow> x \<in> S \<Longrightarrow> f field_differentiable (at x)"
  apply (auto simp: analytic_on_def holomorphic_on_def)
 by (metis open_ball centre_in_ball field_differentiable_within_open)
 
-lemma analytic_on_subset: "f analytic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f analytic_on t"
+lemma analytic_on_subset: "f analytic_on S \<Longrightarrow> T \<subseteq> S \<Longrightarrow> f analytic_on T"
   by (auto simp: analytic_on_def)
 
-lemma analytic_on_Un: "f analytic_on (s \<union> t) \<longleftrightarrow> f analytic_on s \<and> f analytic_on t"
+lemma analytic_on_Un: "f analytic_on (S \<union> T) \<longleftrightarrow> f analytic_on S \<and> f analytic_on T"
   by (auto simp: analytic_on_def)
 
-lemma analytic_on_Union: "f analytic_on (\<Union>s) \<longleftrightarrow> (\<forall>t \<in> s. f analytic_on t)"
+lemma analytic_on_Union: "f analytic_on (\<Union>\<T>) \<longleftrightarrow> (\<forall>T \<in> \<T>. f analytic_on T)"
   by (auto simp: analytic_on_def)
 
-lemma analytic_on_UN: "f analytic_on (\<Union>i\<in>I. s i) \<longleftrightarrow> (\<forall>i\<in>I. f analytic_on (s i))"
+lemma analytic_on_UN: "f analytic_on (\<Union>i\<in>I. S i) \<longleftrightarrow> (\<forall>i\<in>I. f analytic_on (S i))"
   by (auto simp: analytic_on_def)
 
 lemma analytic_on_holomorphic:
-  "f analytic_on s \<longleftrightarrow> (\<exists>t. open t \<and> s \<subseteq> t \<and> f holomorphic_on t)"
+  "f analytic_on S \<longleftrightarrow> (\<exists>T. open T \<and> S \<subseteq> T \<and> f holomorphic_on T)"
   (is "?lhs = ?rhs")
 proof -
-  have "?lhs \<longleftrightarrow> (\<exists>t. open t \<and> s \<subseteq> t \<and> f analytic_on t)"
+  have "?lhs \<longleftrightarrow> (\<exists>T. open T \<and> S \<subseteq> T \<and> f analytic_on T)"
   proof safe
-    assume "f analytic_on s"
-    then show "\<exists>t. open t \<and> s \<subseteq> t \<and> f analytic_on t"
+    assume "f analytic_on S"
+    then show "\<exists>T. open T \<and> S \<subseteq> T \<and> f analytic_on T"
       apply (simp add: analytic_on_def)
-      apply (rule exI [where x="\<Union>{u. open u \<and> f analytic_on u}"], auto)
+      apply (rule exI [where x="\<Union>{U. open U \<and> f analytic_on U}"], auto)
       apply (metis open_ball analytic_on_open centre_in_ball)
       by (metis analytic_on_def)
   next
-    fix t
-    assume "open t" "s \<subseteq> t" "f analytic_on t"
-    then show "f analytic_on s"
+    fix T
+    assume "open T" "S \<subseteq> T" "f analytic_on T"
+    then show "f analytic_on S"
         by (metis analytic_on_subset)
   qed
   also have "... \<longleftrightarrow> ?rhs"
@@ -570,26 +545,26 @@ proof -
   finally show ?thesis .
 qed
 
-lemma analytic_on_linear [analytic_intros,simp]: "(( * ) c) analytic_on s"
+lemma analytic_on_linear [analytic_intros,simp]: "(( * ) c) analytic_on S"
   by (auto simp add: analytic_on_holomorphic)
 
-lemma analytic_on_const [analytic_intros,simp]: "(\<lambda>z. c) analytic_on s"
+lemma analytic_on_const [analytic_intros,simp]: "(\<lambda>z. c) analytic_on S"
   by (metis analytic_on_def holomorphic_on_const zero_less_one)
 
-lemma analytic_on_ident [analytic_intros,simp]: "(\<lambda>x. x) analytic_on s"
+lemma analytic_on_ident [analytic_intros,simp]: "(\<lambda>x. x) analytic_on S"
   by (simp add: analytic_on_def gt_ex)
 
-lemma analytic_on_id [analytic_intros]: "id analytic_on s"
+lemma analytic_on_id [analytic_intros]: "id analytic_on S"
   unfolding id_def by (rule analytic_on_ident)
 
 lemma analytic_on_compose:
-  assumes f: "f analytic_on s"
-      and g: "g analytic_on (f ` s)"
-    shows "(g o f) analytic_on s"
+  assumes f: "f analytic_on S"
+      and g: "g analytic_on (f ` S)"
+    shows "(g o f) analytic_on S"
 unfolding analytic_on_def
 proof (intro ballI)
   fix x
-  assume x: "x \<in> s"
+  assume x: "x \<in> S"
   then obtain e where e: "0 < e" and fh: "f holomorphic_on ball x e" using f
     by (metis analytic_on_def)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball (f x) e'" using g
@@ -607,22 +582,22 @@ proof (intro ballI)
 qed
 
 lemma analytic_on_compose_gen:
-  "f analytic_on s \<Longrightarrow> g analytic_on t \<Longrightarrow> (\<And>z. z \<in> s \<Longrightarrow> f z \<in> t)
-             \<Longrightarrow> g o f analytic_on s"
+  "f analytic_on S \<Longrightarrow> g analytic_on T \<Longrightarrow> (\<And>z. z \<in> S \<Longrightarrow> f z \<in> T)
+             \<Longrightarrow> g o f analytic_on S"
 by (metis analytic_on_compose analytic_on_subset image_subset_iff)
 
 lemma analytic_on_neg [analytic_intros]:
-  "f analytic_on s \<Longrightarrow> (\<lambda>z. -(f z)) analytic_on s"
+  "f analytic_on S \<Longrightarrow> (\<lambda>z. -(f z)) analytic_on S"
 by (metis analytic_on_holomorphic holomorphic_on_minus)
 
 lemma analytic_on_add [analytic_intros]:
-  assumes f: "f analytic_on s"
-      and g: "g analytic_on s"
-    shows "(\<lambda>z. f z + g z) analytic_on s"
+  assumes f: "f analytic_on S"
+      and g: "g analytic_on S"
+    shows "(\<lambda>z. f z + g z) analytic_on S"
 unfolding analytic_on_def
 proof (intro ballI)
   fix z
-  assume z: "z \<in> s"
+  assume z: "z \<in> S"
   then obtain e where e: "0 < e" and fh: "f holomorphic_on ball z e" using f
     by (metis analytic_on_def)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball z e'" using g
@@ -636,13 +611,13 @@ proof (intro ballI)
 qed
 
 lemma analytic_on_diff [analytic_intros]:
-  assumes f: "f analytic_on s"
-      and g: "g analytic_on s"
-    shows "(\<lambda>z. f z - g z) analytic_on s"
+  assumes f: "f analytic_on S"
+      and g: "g analytic_on S"
+    shows "(\<lambda>z. f z - g z) analytic_on S"
 unfolding analytic_on_def
 proof (intro ballI)
   fix z
-  assume z: "z \<in> s"
+  assume z: "z \<in> S"
   then obtain e where e: "0 < e" and fh: "f holomorphic_on ball z e" using f
     by (metis analytic_on_def)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball z e'" using g
@@ -656,13 +631,13 @@ proof (intro ballI)
 qed
 
 lemma analytic_on_mult [analytic_intros]:
-  assumes f: "f analytic_on s"
-      and g: "g analytic_on s"
-    shows "(\<lambda>z. f z * g z) analytic_on s"
+  assumes f: "f analytic_on S"
+      and g: "g analytic_on S"
+    shows "(\<lambda>z. f z * g z) analytic_on S"
 unfolding analytic_on_def
 proof (intro ballI)
   fix z
-  assume z: "z \<in> s"
+  assume z: "z \<in> S"
   then obtain e where e: "0 < e" and fh: "f holomorphic_on ball z e" using f
     by (metis analytic_on_def)
   obtain e' where e': "0 < e'" and gh: "g holomorphic_on ball z e'" using g
@@ -676,13 +651,13 @@ proof (intro ballI)
 qed
 
 lemma analytic_on_inverse [analytic_intros]:
-  assumes f: "f analytic_on s"
-      and nz: "(\<And>z. z \<in> s \<Longrightarrow> f z \<noteq> 0)"
-    shows "(\<lambda>z. inverse (f z)) analytic_on s"
+  assumes f: "f analytic_on S"
+      and nz: "(\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0)"
+    shows "(\<lambda>z. inverse (f z)) analytic_on S"
 unfolding analytic_on_def
 proof (intro ballI)
   fix z
-  assume z: "z \<in> s"
+  assume z: "z \<in> S"
   then obtain e where e: "0 < e" and fh: "f holomorphic_on ball z e" using f
     by (metis analytic_on_def)
   have "continuous_on (ball z e) f"
@@ -698,19 +673,19 @@ proof (intro ballI)
 qed
 
 lemma analytic_on_divide [analytic_intros]:
-  assumes f: "f analytic_on s"
-      and g: "g analytic_on s"
-      and nz: "(\<And>z. z \<in> s \<Longrightarrow> g z \<noteq> 0)"
-    shows "(\<lambda>z. f z / g z) analytic_on s"
+  assumes f: "f analytic_on S"
+      and g: "g analytic_on S"
+      and nz: "(\<And>z. z \<in> S \<Longrightarrow> g z \<noteq> 0)"
+    shows "(\<lambda>z. f z / g z) analytic_on S"
 unfolding divide_inverse
 by (metis analytic_on_inverse analytic_on_mult f g nz)
 
 lemma analytic_on_power [analytic_intros]:
-  "f analytic_on s \<Longrightarrow> (\<lambda>z. (f z) ^ n) analytic_on s"
+  "f analytic_on S \<Longrightarrow> (\<lambda>z. (f z) ^ n) analytic_on S"
 by (induct n) (auto simp: analytic_on_mult)
 
 lemma analytic_on_sum [analytic_intros]:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on s"
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on S) \<Longrightarrow> (\<lambda>x. sum (\<lambda>i. f i x) I) analytic_on S"
   by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
 
 lemma deriv_left_inverse:
@@ -727,10 +702,10 @@ proof -
     using assms
     by (metis analytic_on_imp_differentiable_at analytic_on_open complex_derivative_chain image_subset_iff)
   also have "... = deriv id w"
-    apply (rule complex_derivative_transform_within_open [where s=S])
-    apply (rule assms holomorphic_on_compose_gen holomorphic_intros)+
-    apply simp
-    done
+  proof (rule complex_derivative_transform_within_open [where s=S])
+    show "g \<circ> f holomorphic_on S"
+      by (rule assms holomorphic_on_compose_gen holomorphic_intros)+
+  qed (use assms in auto)
   also have "... = 1"
     by simp
   finally show ?thesis .
@@ -811,23 +786,23 @@ subsection\<open>Complex differentiation of sequences and series\<close>
 
 (* TODO: Could probably be simplified using Uniform_Limit *)
 lemma has_complex_derivative_sequence:
-  fixes s :: "complex set"
-  assumes cvs: "convex s"
-      and df:  "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
-      and conv: "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<longrightarrow> x \<in> s \<longrightarrow> norm (f' n x - g' x) \<le> e"
-      and "\<exists>x l. x \<in> s \<and> ((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
-    shows "\<exists>g. \<forall>x \<in> s. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and>
-                       (g has_field_derivative (g' x)) (at x within s)"
+  fixes S :: "complex set"
+  assumes cvs: "convex S"
+      and df:  "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x within S)"
+      and conv: "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<longrightarrow> x \<in> S \<longrightarrow> norm (f' n x - g' x) \<le> e"
+      and "\<exists>x l. x \<in> S \<and> ((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
+    shows "\<exists>g. \<forall>x \<in> S. ((\<lambda>n. f n x) \<longlongrightarrow> g x) sequentially \<and>
+                       (g has_field_derivative (g' x)) (at x within S)"
 proof -
-  from assms obtain x l where x: "x \<in> s" and tf: "((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
+  from assms obtain x l where x: "x \<in> S" and tf: "((\<lambda>n. f n x) \<longlongrightarrow> l) sequentially"
     by blast
   { fix e::real assume e: "e > 0"
-    then obtain N where N: "\<forall>n\<ge>N. \<forall>x. x \<in> s \<longrightarrow> cmod (f' n x - g' x) \<le> e"
+    then obtain N where N: "\<forall>n\<ge>N. \<forall>x. x \<in> S \<longrightarrow> cmod (f' n x - g' x) \<le> e"
       by (metis conv)
-    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
+    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
     proof (rule exI [of _ N], clarify)
       fix n y h
-      assume "N \<le> n" "y \<in> s"
+      assume "N \<le> n" "y \<in> S"
       then have "cmod (f' n y - g' y) \<le> e"
         by (metis N)
       then have "cmod h * cmod (f' n y - g' y) \<le> cmod h * e"
@@ -841,30 +816,30 @@ proof -
   proof (rule has_derivative_sequence [OF cvs _ _ x])
     show "(\<lambda>n. f n x) \<longlonglongrightarrow> l"
       by (rule tf)
-  next show "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>s. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
+  next show "\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. \<forall>h. cmod (f' n x * h - g' x * h) \<le> e * cmod h"
       unfolding eventually_sequentially by (blast intro: **)
   qed (metis has_field_derivative_def df)
 qed
 
 lemma has_complex_derivative_series:
-  fixes s :: "complex set"
-  assumes cvs: "convex s"
-      and df:  "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
-      and conv: "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<longrightarrow> x \<in> s
+  fixes S :: "complex set"
+  assumes cvs: "convex S"
+      and df:  "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x within S)"
+      and conv: "\<And>e. 0 < e \<Longrightarrow> \<exists>N. \<forall>n x. n \<ge> N \<longrightarrow> x \<in> S
                 \<longrightarrow> cmod ((\<Sum>i<n. f' i x) - g' x) \<le> e"
-      and "\<exists>x l. x \<in> s \<and> ((\<lambda>n. f n x) sums l)"
-    shows "\<exists>g. \<forall>x \<in> s. ((\<lambda>n. f n x) sums g x) \<and> ((g has_field_derivative g' x) (at x within s))"
+      and "\<exists>x l. x \<in> S \<and> ((\<lambda>n. f n x) sums l)"
+    shows "\<exists>g. \<forall>x \<in> S. ((\<lambda>n. f n x) sums g x) \<and> ((g has_field_derivative g' x) (at x within S))"
 proof -
-  from assms obtain x l where x: "x \<in> s" and sf: "((\<lambda>n. f n x) sums l)"
+  from assms obtain x l where x: "x \<in> S" and sf: "((\<lambda>n. f n x) sums l)"
     by blast
   { fix e::real assume e: "e > 0"
-    then obtain N where N: "\<forall>n x. n \<ge> N \<longrightarrow> x \<in> s
+    then obtain N where N: "\<forall>n x. n \<ge> N \<longrightarrow> x \<in> S
             \<longrightarrow> cmod ((\<Sum>i<n. f' i x) - g' x) \<le> e"
       by (metis conv)
-    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
+    have "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
     proof (rule exI [of _ N], clarify)
       fix n y h
-      assume "N \<le> n" "y \<in> s"
+      assume "N \<le> n" "y \<in> S"
       then have "cmod ((\<Sum>i<n. f' i y) - g' y) \<le> e"
         by (metis N)
       then have "cmod h * cmod ((\<Sum>i<n. f' i y) - g' y) \<le> cmod h * e"
@@ -877,12 +852,12 @@ proof -
   unfolding has_field_derivative_def
   proof (rule has_derivative_series [OF cvs _ _ x])
     fix n x
-    assume "x \<in> s"
-    then show "((f n) has_derivative (\<lambda>z. z * f' n x)) (at x within s)"
+    assume "x \<in> S"
+    then show "((f n) has_derivative (\<lambda>z. z * f' n x)) (at x within S)"
       by (metis df has_field_derivative_def mult_commute_abs)
   next show " ((\<lambda>n. f n x) sums l)"
     by (rule sf)
-  next show "\<And>e. e>0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>s. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
+  next show "\<And>e. e>0 \<Longrightarrow> \<forall>\<^sub>F n in sequentially. \<forall>x\<in>S. \<forall>h. cmod ((\<Sum>i<n. h * f' i x) - g' x * h) \<le> e * cmod h"
       unfolding eventually_sequentially by (blast intro: **)
   qed
 qed
@@ -890,23 +865,23 @@ qed
 
 lemma field_differentiable_series:
   fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach} \<Rightarrow> 'a"
-  assumes "convex s" "open s"
-  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
-  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
-  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" and x: "x \<in> s"
+  assumes "convex S" "open S"
+  assumes "\<And>n x. x \<in> S \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on S (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> S" "summable (\<lambda>n. f n x0)" and x: "x \<in> S"
   shows  "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)"
 proof -
-  from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+  from assms(4) obtain g' where A: "uniform_limit S (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     unfolding uniformly_convergent_on_def by blast
-  from x and \<open>open s\<close> have s: "at x within s = at x" by (rule at_within_open)
-  have "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
-    by (intro has_field_derivative_series[of s f f' g' x0] assms A has_field_derivative_at_within)
-  then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
-    "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
+  from x and \<open>open S\<close> have S: "at x within S = at x" by (rule at_within_open)
+  have "\<exists>g. \<forall>x\<in>S. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within S)"
+    by (intro has_field_derivative_series[of S f f' g' x0] assms A has_field_derivative_at_within)
+  then obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
   from g(2)[OF x] have g': "(g has_derivative ( * ) (g' x)) (at x)"
-    by (simp add: has_field_derivative_def s)
+    by (simp add: has_field_derivative_def S)
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative ( * ) (g' x)) (at x)"
-    by (rule has_derivative_transform_within_open[OF g' \<open>open s\<close> x])
+    by (rule has_derivative_transform_within_open[OF g' \<open>open S\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)" unfolding differentiable_def
     by (auto simp: summable_def field_differentiable_def has_field_derivative_def)
@@ -915,11 +890,11 @@ qed
 subsection\<open>Bound theorem\<close>
 
 lemma field_differentiable_bound:
-  fixes s :: "'a::real_normed_field set"
-  assumes cvs: "convex s"
-      and df:  "\<And>z. z \<in> s \<Longrightarrow> (f has_field_derivative f' z) (at z within s)"
-      and dn:  "\<And>z. z \<in> s \<Longrightarrow> norm (f' z) \<le> B"
-      and "x \<in> s"  "y \<in> s"
+  fixes S :: "'a::real_normed_field set"
+  assumes cvs: "convex S"
+      and df:  "\<And>z. z \<in> S \<Longrightarrow> (f has_field_derivative f' z) (at z within S)"
+      and dn:  "\<And>z. z \<in> S \<Longrightarrow> norm (f' z) \<le> B"
+      and "x \<in> S"  "y \<in> S"
     shows "norm(f x - f y) \<le> B * norm(x - y)"
   apply (rule differentiable_bound [OF cvs])
   apply (erule df [unfolded has_field_derivative_def])
@@ -941,35 +916,31 @@ lemma has_field_derivative_inverse_basic:
   apply (auto simp:  bounded_linear_mult_right)
   done
 
-lemmas has_complex_derivative_inverse_basic = has_field_derivative_inverse_basic
-
 lemma has_field_derivative_inverse_strong:
   fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
   shows "DERIV f x :> f' \<Longrightarrow>
          f' \<noteq> 0 \<Longrightarrow>
-         open s \<Longrightarrow>
-         x \<in> s \<Longrightarrow>
-         continuous_on s f \<Longrightarrow>
-         (\<And>z. z \<in> s \<Longrightarrow> g (f z) = z)
+         open S \<Longrightarrow>
+         x \<in> S \<Longrightarrow>
+         continuous_on S f \<Longrightarrow>
+         (\<And>z. z \<in> S \<Longrightarrow> g (f z) = z)
          \<Longrightarrow> DERIV g (f x) :> inverse (f')"
   unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_strong [of s x f g ])
+  apply (rule has_derivative_inverse_strong [of S x f g ])
   by auto
-lemmas has_complex_derivative_inverse_strong = has_field_derivative_inverse_strong
 
 lemma has_field_derivative_inverse_strong_x:
   fixes f :: "'a::{euclidean_space,real_normed_field} \<Rightarrow> 'a"
   shows  "DERIV f (g y) :> f' \<Longrightarrow>
           f' \<noteq> 0 \<Longrightarrow>
-          open s \<Longrightarrow>
-          continuous_on s f \<Longrightarrow>
-          g y \<in> s \<Longrightarrow> f(g y) = y \<Longrightarrow>
-          (\<And>z. z \<in> s \<Longrightarrow> g (f z) = z)
+          open S \<Longrightarrow>
+          continuous_on S f \<Longrightarrow>
+          g y \<in> S \<Longrightarrow> f(g y) = y \<Longrightarrow>
+          (\<And>z. z \<in> S \<Longrightarrow> g (f z) = z)
           \<Longrightarrow> DERIV g y :> inverse (f')"
   unfolding has_field_derivative_def
-  apply (rule has_derivative_inverse_strong_x [of s g y f])
+  apply (rule has_derivative_inverse_strong_x [of S g y f])
   by auto
-lemmas has_complex_derivative_inverse_strong_x = has_field_derivative_inverse_strong_x
 
 subsection \<open>Taylor on Complex Numbers\<close>
 
@@ -979,19 +950,19 @@ lemma sum_Suc_reindex:
 by (induct n) auto
 
 lemma field_taylor:
-  assumes s: "convex s"
-      and f: "\<And>i x. x \<in> s \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within s)"
-      and B: "\<And>x. x \<in> s \<Longrightarrow> norm (f (Suc n) x) \<le> B"
-      and w: "w \<in> s"
-      and z: "z \<in> s"
+  assumes S: "convex S"
+      and f: "\<And>i x. x \<in> S \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within S)"
+      and B: "\<And>x. x \<in> S \<Longrightarrow> norm (f (Suc n) x) \<le> B"
+      and w: "w \<in> S"
+      and z: "z \<in> S"
     shows "norm(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
           \<le> B * norm(z - w)^(Suc n) / fact n"
 proof -
-  have wzs: "closed_segment w z \<subseteq> s" using assms
+  have wzs: "closed_segment w z \<subseteq> S" using assms
     by (metis convex_contains_segment)
   { fix u
     assume "u \<in> closed_segment w z"
-    then have "u \<in> s"
+    then have "u \<in> S"
       by (metis wzs subsetD)
     have "(\<Sum>i\<le>n. f i u * (- of_nat i * (z-u)^(i - 1)) / (fact i) +
                       f (Suc i) u * (z-u)^i / (fact i)) =
@@ -1033,16 +1004,16 @@ proof -
     qed
     then have "((\<lambda>v. (\<Sum>i\<le>n. f i v * (z - v)^i / (fact i)))
                 has_field_derivative f (Suc n) u * (z-u) ^ n / (fact n))
-               (at u within s)"
+               (at u within S)"
       apply (intro derivative_eq_intros)
-      apply (blast intro: assms \<open>u \<in> s\<close>)
+      apply (blast intro: assms \<open>u \<in> S\<close>)
       apply (rule refl)+
       apply (auto simp: field_simps)
       done
   } note sum_deriv = this
   { fix u
     assume u: "u \<in> closed_segment w z"
-    then have us: "u \<in> s"
+    then have us: "u \<in> S"
       by (metis wzs subsetD)
     have "norm (f (Suc n) u) * norm (z - u) ^ n \<le> norm (f (Suc n) u) * norm (u - z) ^ n"
       by (metis norm_minus_commute order_refl)
@@ -1063,7 +1034,7 @@ proof -
   also have "... \<le> B * norm (z - w) ^ n / (fact n) * norm (w - z)"
     apply (rule field_differentiable_bound
       [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
-         and s = "closed_segment w z", OF convex_closed_segment])
+         and S = "closed_segment w z", OF convex_closed_segment])
     apply (auto simp: ends_in_segment DERIV_subset [OF sum_deriv wzs]
                   norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
     done
@@ -1073,11 +1044,11 @@ proof -
 qed
 
 lemma complex_taylor:
-  assumes s: "convex s"
-      and f: "\<And>i x. x \<in> s \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within s)"
-      and B: "\<And>x. x \<in> s \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
-      and w: "w \<in> s"
-      and z: "z \<in> s"
+  assumes S: "convex S"
+      and f: "\<And>i x. x \<in> S \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within S)"
+      and B: "\<And>x. x \<in> S \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
+      and w: "w \<in> S"
+      and z: "z \<in> S"
     shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
           \<le> B * cmod(z - w)^(Suc n) / fact n"
   using assms by (rule field_taylor)
