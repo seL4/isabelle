@@ -1682,6 +1682,10 @@ lemma minus_mod_eq_div_mult: "a - a mod b = a div b * b"
 lemma minus_mod_eq_mult_div: "a - a mod b = b * (a div b)"
   by (rule add_implies_diff [symmetric]) (fact mult_div_mod_eq)
 
+lemma [nitpick_unfold]:
+  "a mod b = a - a div b * b"
+  by (fact minus_div_mult_eq_mod [symmetric])
+
 end
 
 
