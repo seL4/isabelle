@@ -152,8 +152,15 @@ text \<open>
   using the @{command_def print_codeproc} command.  @{command_def
   code_thms} (see \secref{sec:equations}) provides a convenient
   mechanism to inspect the impact of a preprocessor setup on code
-  equations.
+  equations.  Attribute @{attribute code_preproc_trace} allows
+  for low-level tracing:
 \<close>
+
+declare %quote [[code_preproc_trace]]
+
+declare %quote [[code_preproc_trace only: distinct remdups]]
+
+declare %quote [[code_preproc_trace off]]
 
 
 subsection \<open>Understanding code equations \label{sec:equations}\<close>
@@ -282,14 +289,15 @@ text %quotetypewriter \<open>
 \<close>
 
 text \<open>
-  \noindent In some cases it is desirable to have this
+  \noindent In some cases it is desirable to state this
   pseudo-\qt{partiality} more explicitly, e.g.~as follows:
 \<close>
 
 axiomatization %quote empty_queue :: 'a
 
 definition %quote strict_dequeue' :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
-  "strict_dequeue' q = (case dequeue q of (Some x, q') \<Rightarrow> (x, q') | _ \<Rightarrow> empty_queue)"
+  "strict_dequeue' q = (case dequeue q of (Some x, q') \<Rightarrow> (x, q')
+    | _ \<Rightarrow> empty_queue)"
 
 lemma %quote strict_dequeue'_AQueue [code]:
   "strict_dequeue' (AQueue xs []) = (if xs = [] then empty_queue
@@ -301,11 +309,11 @@ lemma %quote strict_dequeue'_AQueue [code]:
 text \<open>
   Observe that on the right hand side of the definition of @{const
   "strict_dequeue'"}, the unspecified constant @{const empty_queue} occurs.
-
-  Normally, if constants without any code equations occur in a
-  program, the code generator complains (since in most cases this is
-  indeed an error).  But such constants can also be thought
-  of as function definitions which always fail,
+  An attempt to generate code for @{const strict_dequeue'} would
+  make the code generator complain that @{const empty_queue} has
+  no associated code equations.  In most situations unimplemented
+  constants indeed indicated a broken program; however such
+  constants can also be thought of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
   explicitly, use the @{attribute code} attribute with
@@ -325,9 +333,14 @@ text %quotetypewriter \<open>
 
 text \<open>
   \noindent This feature however is rarely needed in practice.  Note
-  also that the HOL default setup already declares @{const undefined},
-  which is most likely to be used in such situations, as
-  @{text "code abort"}.
+  that the HOL default setup already includes
+\<close>
+
+declare %quote [[code abort: undefined]]
+
+text \<open>
+  \noindent -- hence @{const undefined} can always be used in such
+  situations.
 \<close>
 
 

@@ -2307,8 +2307,8 @@ text \<open>
     ;
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
-    @@{attribute (HOL) code} ( 'del' | 'equation' | 'abstype' | 'abstract'
-      | 'drop:' ( const + ) | 'abort:' ( const + ) )?
+    @@{attribute (HOL) code} ( 'equation' | 'nbe' | 'abstype' | 'abstract'
+      | 'del' | 'drop:' ( const + ) | 'abort:' ( const + ) )?
     ;
     @@{command (HOL) code_datatype} ( const + )
     ;
@@ -2316,7 +2316,7 @@ text \<open>
     ;
     @@{attribute (HOL) code_post} ( 'del' ) ?
     ;
-    @@{attribute (HOL) code_abbrev}
+    @@{attribute (HOL) code_abbrev} ( 'del' ) ?
     ;
     @@{command (HOL) code_thms} ( constexpr + ) ?
     ;
@@ -2401,29 +2401,37 @@ text \<open>
 
   Serializers take an optional list of arguments in parentheses.
 
-  For \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>''
-  argument; ``\<open>string_classes\<close>'' adds a ``\<^verbatim>\<open>deriving (Read, Show)\<close>'' clause 
-  to each appropriate datatype declaration.
+      \<^item> For \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>''
+      argument; ``\<open>string_classes\<close>'' adds a ``\<^verbatim>\<open>deriving (Read, Show)\<close>'' clause 
+      to each appropriate datatype declaration.
 
-  For \<^emph>\<open>Scala\<close>, ``\<open>case_insensitive\<close>'' avoids name clashes on
-  case-insensitive file systems.
+      \<^item> For \<^emph>\<open>Scala\<close>, ``\<open>case_insensitive\<close>'' avoids name clashes on
+      case-insensitive file systems.
 
-  \<^descr> @{attribute (HOL) code} declare code equations for code generation.
+  \<^descr> @{attribute (HOL) code} declares code equations for code generation.
+
   Variant \<open>code equation\<close> declares a conventional equation as code equation.
+
   Variants \<open>code abstype\<close> and \<open>code abstract\<close> declare abstract datatype
   certificates or code equations on abstract datatype representations
-  respectively. Vanilla \<open>code\<close> falls back to \<open>code equation\<close> or \<open>code abstype\<close>
-  depending on the syntactic shape of the underlying equation. Variant \<open>code
-  del\<close> deselects a code equation for code generation.
+  respectively.
+
+  Vanilla \<open>code\<close> falls back to \<open>code equation\<close> or \<open>code abstract\<close>
+  depending on the syntactic shape of the underlying equation.
+
+  Variant \<open>code del\<close> deselects a code equation for code generation.
+
+  Variant \<open>code nbe\<close> accepts also non-left-linear equations for
+  \<^emph>\<open>normalization by evaluation\<close> only.
 
   Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of constant as arguments
-  and drop all code equations declared for them. In the case of {text abort},
-  these constants then are are not required to have a definition by means of
+  and drop all code equations declared for them. In the case of \<open>abort\<close>,
+  these constants then do not require to a specification by means of
   code equations; if needed these are implemented by program abort (exception)
   instead.
 
-  Usually packages introducing code equations provide a reasonable default
-  setup for selection.
+  Packages declaring code equations usually provide a reasonable default
+  setup.
 
   \<^descr> @{command (HOL) "code_datatype"} specifies a constructor set for a logical
   type.
