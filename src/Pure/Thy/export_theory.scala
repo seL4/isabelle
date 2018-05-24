@@ -30,7 +30,8 @@ object Export_Theory
     axioms: Boolean = true,
     facts: Boolean = true,
     classes: Boolean = true,
-    typedefs: Boolean = true): Session =
+    typedefs: Boolean = true,
+    cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =
       using(store.open_database(session_name))(db =>
@@ -38,7 +39,8 @@ object Export_Theory
         db.transaction {
           Export.read_theory_names(db, session_name).map((theory_name: String) =>
             read_theory(db, session_name, theory_name, types = types, consts = consts,
-              axioms = axioms, facts = facts, classes = classes, typedefs = typedefs))
+              axioms = axioms, facts = facts, classes = classes, typedefs = typedefs,
+              cache = Some(cache)))
         }
       })
 
@@ -65,6 +67,16 @@ object Export_Theory
     typedefs: List[Typedef])
   {
     override def toString: String = name
+
+    def cache(cache: Term.Cache): Theory =
+      Theory(cache.string(name),
+        parents.map(cache.string(_)),
+        types.map(_.cache(cache)),
+        consts.map(_.cache(cache)),
+        axioms.map(_.cache(cache)),
+        facts.map(_.cache(cache)),
+        classes.map(_.cache(cache)),
+        typedefs.map(_.cache(cache)))
   }
 
   def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
@@ -75,7 +87,8 @@ object Export_Theory
     axioms: Boolean = true,
     facts: Boolean = true,
     classes: Boolean = true,
-    typedefs: Boolean = true): Theory =
+    typedefs: Boolean = true,
+    cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
       Export.read_entry(db, session_name, theory_name, "theory/parents") match {
@@ -84,13 +97,15 @@ object Export_Theory
           error("Missing theory export in session " + quote(session_name) + ": " +
             quote(theory_name))
       }
-    Theory(theory_name, parents,
-      if (types) read_types(db, session_name, theory_name) else Nil,
-      if (consts) read_consts(db, session_name, theory_name) else Nil,
-      if (axioms) read_axioms(db, session_name, theory_name) else Nil,
-      if (facts) read_facts(db, session_name, theory_name) else Nil,
-      if (classes) read_classes(db, session_name, theory_name) else Nil,
-      if (typedefs) read_typedefs(db, session_name, theory_name) else Nil)
+    val theory =
+      Theory(theory_name, parents,
+        if (types) read_types(db, session_name, theory_name) else Nil,
+        if (consts) read_consts(db, session_name, theory_name) else Nil,
+        if (axioms) read_axioms(db, session_name, theory_name) else Nil,
+        if (facts) read_facts(db, session_name, theory_name) else Nil,
+        if (classes) read_classes(db, session_name, theory_name) else Nil,
+        if (typedefs) read_typedefs(db, session_name, theory_name) else Nil)
+    if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
 
@@ -99,6 +114,9 @@ object Export_Theory
   sealed case class Entity(name: String, serial: Long, pos: Position.T)
   {
     override def toString: String = name
+
+    def cache(cache: Term.Cache): Entity =
+      Entity(cache.string(name), serial, cache.position(pos))
   }
 
   def decode_entity(tree: XML.Tree): (Entity, XML.Body) =
@@ -135,6 +153,12 @@ object Export_Theory
   /* types */
 
   sealed case class Type(entity: Entity, args: List[String], abbrev: Option[Term.Typ])
+  {
+    def cache(cache: Term.Cache): Type =
+      Type(entity.cache(cache),
+        args.map(cache.string(_)),
+        abbrev.map(cache.typ(_)))
+  }
 
   def read_types(db: SQL.Database, session_name: String, theory_name: String): List[Type] =
     read_entities(db, session_name, theory_name, "types",
@@ -154,6 +178,13 @@ object Export_Theory
 
   sealed case class Const(
     entity: Entity, typargs: List[String], typ: Term.Typ, abbrev: Option[Term.Term])
+  {
+    def cache(cache: Term.Cache): Const =
+      Const(entity.cache(cache),
+        typargs.map(cache.string(_)),
+        cache.typ(typ),
+        abbrev.map(cache.term(_)))
+  }
 
   def read_consts(db: SQL.Database, session_name: String, theory_name: String): List[Const] =
     read_entities(db, session_name, theory_name, "consts",
@@ -184,6 +215,13 @@ object Export_Theory
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
     prop: Term.Term)
+  {
+    def cache(cache: Term.Cache): Axiom =
+      Axiom(entity.cache(cache),
+        typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
+        args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
+        cache.term(prop))
+  }
 
   def read_axioms(db: SQL.Database, session_name: String, theory_name: String): List[Axiom] =
     read_entities(db, session_name, theory_name, "axioms",
@@ -199,6 +237,13 @@ object Export_Theory
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
     props: List[Term.Term])
+  {
+    def cache(cache: Term.Cache): Fact =
+      Fact(entity.cache(cache),
+        typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
+        args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
+        props.map(cache.term(_)))
+  }
 
   def read_facts(db: SQL.Database, session_name: String, theory_name: String): List[Fact] =
     read_entities(db, session_name, theory_name, "facts",
@@ -214,6 +259,12 @@ object Export_Theory
 
   sealed case class Class(
     entity: Entity, params: List[(String, Term.Typ)], axioms: List[Term.Term])
+  {
+    def cache(cache: Term.Cache): Class =
+      Class(entity.cache(cache),
+        params.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
+        axioms.map(cache.term(_)))
+  }
 
   def read_classes(db: SQL.Database, session_name: String, theory_name: String): List[Class] =
     read_entities(db, session_name, theory_name, "classes",
@@ -234,6 +285,15 @@ object Export_Theory
 
   sealed case class Typedef(name: String,
     rep_type: Term.Typ, abs_type: Term.Typ, rep_name: String, abs_name: String, axiom_name: String)
+  {
+    def cache(cache: Term.Cache): Typedef =
+      Typedef(cache.string(name),
+        cache.typ(rep_type),
+        cache.typ(abs_type),
+        cache.string(rep_name),
+        cache.string(abs_name),
+        cache.string(axiom_name))
+  }
 
   def read_typedefs(db: SQL.Database, session_name: String, theory_name: String): List[Typedef] =
     read_export(db, session_name, theory_name, "typedefs",
