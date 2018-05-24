@@ -999,7 +999,7 @@ proof-
           using real_of_int_div[OF gpdd] th2 gp0 by simp
         finally have "?lhs = Inum bs t / real_of_int n" by simp
         then have ?thesis using nnz g1 g'1 by (simp add: simp_num_pair_def) }
-      ultimately have ?thesis by blast }
+      ultimately have ?thesis by auto }
     ultimately have ?thesis by blast }
   ultimately show ?thesis by blast
 qed
@@ -1031,7 +1031,7 @@ proof-
         have "n div ?g' >0" by simp
         hence ?thesis using assms g1 g'1
           by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0)}
-      ultimately have ?thesis by blast }
+      ultimately have ?thesis by auto }
     ultimately have ?thesis by blast }
   ultimately show ?thesis by blast
 qed
@@ -1171,7 +1171,7 @@ proof-
         using rdvd_reduce[OF gpdd gpdgp g'p, where t="?t", simplified div_self[OF gp0]]
           th2[symmetric] by simp
       finally have ?thesis by simp  }
-    ultimately have ?thesis by blast
+    ultimately have ?thesis by auto
   }
   ultimately show ?thesis by blast
 qed
@@ -3397,7 +3397,7 @@ proof(induct t rule: rsplit0.induct)
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (?ff (p,n,s)))))"
-    using int_cases[rule_format] by blast
+    by (auto split: if_splits)
   also have "\<dots> =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set [(p,0,Floor s)])) Un
    (UNION {(p,n,s). (p,n,s)\<in> ?SS a\<and>n>0} (\<lambda>(p,n,s). set(map(?f(p,n,s)) [0..n]))) Un
@@ -3411,12 +3411,14 @@ proof(induct t rule: rsplit0.induct)
   also have "\<dots> =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un
-    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))" by blast
+    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))"
+    by blast
   finally
   have FS: "?SS (Floor a) =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un
-    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))"    by blast
+    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s).  {?f(p,n,s) j| j. j\<in> {n .. 0}})))"
+    by blast
   show ?case
   proof(simp only: FS, clarsimp simp del: Ifm.simps Inum.simps, -)
     fix p n s
@@ -3552,7 +3554,7 @@ next
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (?ff (p,n,s)))))"
-    using int_cases[rule_format] by blast
+    by (auto split: if_splits)
   also have "\<dots> =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set [(p,0,Floor s)])) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) [0..n]))) Un

@@ -1287,7 +1287,7 @@ proof -
     by (simp add: t_def)
 qed
 
-lemma gcd_eq_1_imp_coprime:
+lemma gcd_eq_1_imp_coprime [dest!]:
   "coprime a b" if "gcd a b = 1"
 proof (rule coprimeI)
   fix c
