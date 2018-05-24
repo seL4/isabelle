@@ -18,6 +18,8 @@ class Cache(initial_size: Int = 131071, max_string: Int = 100)
 
   def size: Int = table.size
 
+  override def toString: String = "Cache(" + size + ")"
+
   protected def lookup[A](x: A): Option[A] =
   {
     val ref = table.get(x)
