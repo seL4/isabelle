@@ -347,6 +347,11 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
+* Classical setup: Assumption "m mod d = 0" (for m d :: nat) is no
+longer aggresively destroyed to "?q. m = d * q".  INCOMPATIBILITY,
+adding "elim!: dvd" to classical proof methods in most situations
+restores broken proofs.
+
 
 *** ML ***
 

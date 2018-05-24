@@ -328,11 +328,13 @@ lemma sdrop_cycle_eq[simp]: "u \<noteq> [] \<Longrightarrow> sdrop (length u) (c
 
 lemma stake_cycle_eq_mod_0[simp]: "\<lbrakk>u \<noteq> []; n mod length u = 0\<rbrakk> \<Longrightarrow>
    stake n (cycle u) = concat (replicate (n div length u) u)"
-  by (induct "n div length u" arbitrary: n u) (auto simp: stake_add[symmetric])
+  by (induct "n div length u" arbitrary: n u)
+    (auto simp: stake_add [symmetric] mod_eq_0_iff_dvd elim!: dvdE)
 
 lemma sdrop_cycle_eq_mod_0[simp]: "\<lbrakk>u \<noteq> []; n mod length u = 0\<rbrakk> \<Longrightarrow>
    sdrop n (cycle u) = cycle u"
-  by (induct "n div length u" arbitrary: n u) (auto simp: sdrop_add[symmetric])
+  by (induct "n div length u" arbitrary: n u)
+    (auto simp: sdrop_add [symmetric] mod_eq_0_iff_dvd elim!: dvdE)
 
 lemma stake_cycle: "u \<noteq> [] \<Longrightarrow>
    stake n (cycle u) = concat (replicate (n div length u) u) @ take (n mod length u) u"

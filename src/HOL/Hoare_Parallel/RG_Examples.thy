@@ -276,8 +276,9 @@ apply simp
 apply(rule While)
     apply force
    apply force
-  apply force
- apply(rule_tac pre'="\<lbrace> \<acute>X i mod n = i \<and> (\<forall>j. j<\<acute>X i \<longrightarrow> j mod n = i \<longrightarrow> \<not>P(B!j)) \<and> (\<acute>Y i < n * q \<longrightarrow> P (B!(\<acute>Y i))) \<and> \<acute>X i<\<acute>Y i\<rbrace>" in Conseq)
+    apply force
+  apply (erule dvdE)
+ apply(rule_tac pre'="\<lbrace> \<acute>X i mod n = i \<and> (\<forall>j. j<\<acute>X i \<longrightarrow> j mod n = i \<longrightarrow> \<not>P(B!j)) \<and> (\<acute>Y i < n * k \<longrightarrow> P (B!(\<acute>Y i))) \<and> \<acute>X i<\<acute>Y i\<rbrace>" in Conseq)
      apply force
     apply(rule subset_refl)+
  apply(rule Cond)
@@ -326,7 +327,8 @@ apply (rule While)
     apply force
    apply force
   apply force
- apply(rule_tac pre'="\<lbrace>n<length \<acute>X \<and> n<length \<acute>Y \<and> \<acute>X ! i mod n = i \<and> (\<forall>j. j < \<acute>X ! i \<longrightarrow> j mod n = i \<longrightarrow> \<not> P (B ! j)) \<and> (\<acute>Y ! i < n * q \<longrightarrow> P (B ! (\<acute>Y ! i))) \<and> \<acute>X!i<\<acute>Y!i\<rbrace>" in Conseq)
+  apply (erule dvdE)
+ apply(rule_tac pre'="\<lbrace>n<length \<acute>X \<and> n<length \<acute>Y \<and> \<acute>X ! i mod n = i \<and> (\<forall>j. j < \<acute>X ! i \<longrightarrow> j mod n = i \<longrightarrow> \<not> P (B ! j)) \<and> (\<acute>Y ! i < n * k \<longrightarrow> P (B ! (\<acute>Y ! i))) \<and> \<acute>X!i<\<acute>Y!i\<rbrace>" in Conseq)
      apply force
     apply(rule subset_refl)+
  apply(rule Cond)

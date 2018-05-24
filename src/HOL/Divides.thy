@@ -1298,7 +1298,7 @@ lemma mod_geq:
   "m mod n = (m - n) mod n" if "\<not> m < n" for m n :: nat
   by (rule le_mod_geq) (use that in \<open>simp add: not_less\<close>)
 
-lemma mod_eq_0D [dest!]:
+lemma mod_eq_0D:
   "\<exists>q. m = d * q" if "m mod d = 0" for m d :: nat
   using that by (auto simp add: mod_eq_0_iff_dvd elim: dvdE)
 

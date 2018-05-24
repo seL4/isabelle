@@ -68,13 +68,11 @@ function factorise_from :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
 by pat_completeness auto
 
 termination factorise_from \<comment> \<open>tuning of this proof is left as an exercise to the reader\<close>
-term measure
-apply (relation "measure (\<lambda>(k, n). 2 * n - k)")
-apply (auto simp add: prod_eq_iff)
-apply (case_tac "k \<le> 2 * q")
-apply (rule diff_less_mono)
-apply auto
-done
+  apply (relation "measure (\<lambda>(k, n). 2 * n - k)")
+    apply (auto simp add: prod_eq_iff algebra_simps elim!: dvdE)
+  apply (case_tac "k \<le> ka * 2")
+   apply (auto intro: diff_less_mono)
+  done
 
 definition factorise :: "nat \<Rightarrow> nat list" where
   "factorise n = factorise_from 2 n"
