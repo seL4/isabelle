@@ -864,10 +864,10 @@ lemma invertible_eq_bij:
 subsection \<open>Cramer's rule\<close>
 
 lemma cramer_lemma_transpose:
-  fixes A:: "real^'n^'n"
-    and x :: "real^'n"
+  fixes A:: "'a::{field}^'n^'n"
+    and x :: "'a::{field}^'n"
   shows "det ((\<chi> i. if i = k then sum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
-                             else row i A)::real^'n^'n) = x$k * det A"
+                             else row i A)::'a::{field}^'n^'n) = x$k * det A"
   (is "?lhs = ?rhs")
 proof -
   let ?U = "UNIV :: 'n set"
@@ -900,8 +900,8 @@ proof -
 qed
 
 lemma cramer_lemma:
-  fixes A :: "real^'n^'n"
-  shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: real^'n^'n) = x$k * det A"
+  fixes A :: "'a::{field}^'n^'n"
+  shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: 'a::{field}^'n^'n) = x$k * det A"
 proof -
   let ?U = "UNIV :: 'n set"
   have *: "\<And>c. sum (\<lambda>i. c i *s row i (transpose A)) ?U = sum (\<lambda>i. c i *s column i A) ?U"
@@ -917,7 +917,7 @@ proof -
 qed
 
 lemma cramer:
-  fixes A ::"real^'n^'n"
+  fixes A ::"'a::{field}^'n^'n"
   assumes d0: "det A \<noteq> 0"
   shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
 proof -
