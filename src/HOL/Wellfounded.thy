@@ -251,14 +251,29 @@ lemma wf_insert [iff]: "wf (insert (y, x) r) \<longleftrightarrow> wf r \<and> (
 
 subsubsection \<open>Well-foundedness of image\<close>
 
+lemma wf_map_prod_image_Dom_Ran:
+  fixes r:: "('a \<times> 'a) set"
+    and f:: "'a \<Rightarrow> 'b"
+  assumes wf_r: "wf r"
+    and inj: "\<And> a a'. a \<in> Domain r \<Longrightarrow> a' \<in> Range r \<Longrightarrow> f a = f a' \<Longrightarrow> a = a'"
+  shows "wf (map_prod f f ` r)"
+proof (unfold wf_eq_minimal, clarify)
+  fix Q::"'b set" and b::"'b"
+  assume b: "b \<in> Q"
+  define Q' where "Q' \<equiv> f -` Q \<inter> Domain r"
+  show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> map_prod f f ` r \<longrightarrow> y \<notin> Q"
+  proof (cases "Q' = {}")
+    case False
+    then obtain b0 where "b0\<in>Q'" and "\<forall>b. (b, b0) \<in> r \<longrightarrow> b \<notin> Q'"
+      using wfE_min[OF wf_r] by auto
+    thus ?thesis 
+      using inj unfolding Q'_def   
+      by (intro bexI[of _ "f b0"]) auto
+  qed(insert b, unfold Q'_def, auto) 
+qed
+
 lemma wf_map_prod_image: "wf r \<Longrightarrow> inj f \<Longrightarrow> wf (map_prod f f ` r)"
-  apply (simp only: wf_eq_minimal)
-  apply clarify
-  apply (case_tac "\<exists>p. f p \<in> Q")
-   apply (erule_tac x = "{p. f p \<in> Q}" in allE)
-   apply (fast dest: inj_onD)
-  apply blast
-  done
+by(rule wf_map_prod_image_Dom_Ran) (auto dest: inj_onD)
 
 
 subsection \<open>Well-Foundedness Results for Unions\<close>
