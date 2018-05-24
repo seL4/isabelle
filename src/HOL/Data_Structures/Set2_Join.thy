@@ -1,13 +1,11 @@
 (* Author: Tobias Nipkow *)
 
-section "Join-Based BST2 Implementation of Sets"
+section "Join-Based Implementation of Sets"
 
-theory Set2_BST2_Join
+theory Set2_Join
 imports
   Isin2
 begin
-
-text \<open>Based on theory @{theory Tree2}, otherwise same as theory @{file "Set2_BST_Join.thy"}.\<close>
 
 text \<open>This theory implements the set operations \<open>insert\<close>, \<open>delete\<close>,
 \<open>union\<close>, \<open>inter\<close>section and \<open>diff\<close>erence. The implementation is based on binary search trees.
@@ -16,19 +14,19 @@ and an element \<open>x\<close> such that \<open>l < x < r\<close>.
 
 The theory is based on theory @{theory Tree2} where nodes have an additional field.
 This field is ignored here but it means that this theory can be instantiated
-with red-black trees (see theory @{file "Set2_BST2_Join_RBT.thy"}) and other balanced trees.
+with red-black trees (see theory @{file "Set2_Join_RBT.thy"}) and other balanced trees.
 This approach is very concrete and fixes the type of trees.
 Alternatively, one could assume some abstract type @{typ 't} of trees with suitable decomposition
 and recursion operators on it.\<close>
 
-locale Set2_BST2_Join =
+locale Set2_Join =
 fixes join :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> ('a,'b) tree \<Rightarrow> ('a,'b) tree"
 fixes inv :: "('a,'b) tree \<Rightarrow> bool"
-assumes inv_Leaf: "inv \<langle>\<rangle>"
-assumes set_join: "set_tree (join t1 x t2) = Set.insert x (set_tree t1 \<union> set_tree t2)"
+assumes set_join: "set_tree (join l a r) = set_tree l \<union> {a} \<union> set_tree r"
 assumes bst_join:
-  "\<lbrakk> bst l; bst r; \<forall>x \<in> set_tree l. x < k; \<forall>y \<in> set_tree r. k < y \<rbrakk>
-  \<Longrightarrow> bst (join l k r)"
+  "\<lbrakk> bst l; bst r; \<forall>x \<in> set_tree l. x < a; \<forall>y \<in> set_tree r. a < y \<rbrakk>
+  \<Longrightarrow> bst (join l a r)"
+assumes inv_Leaf: "inv \<langle>\<rangle>"
 assumes inv_join: "\<lbrakk> inv l; inv r \<rbrakk> \<Longrightarrow> inv (join l k r)"
 assumes inv_Node: "\<lbrakk> inv (Node h l x r) \<rbrakk> \<Longrightarrow> inv l \<and> inv r"
 begin
@@ -306,7 +304,7 @@ proof(induction t1 t2 rule: diff.induct)
         split!: tree.split prod.split dest: inv_Node)
 qed
 
-text \<open>Locale @{locale Set2_BST2_Join} implements locale @{locale Set2}:\<close>
+text \<open>Locale @{locale Set2_Join} implements locale @{locale Set2}:\<close>
 
 sublocale Set2
 where empty = Leaf and insert = insert and delete = delete and isin = isin
@@ -342,7 +340,7 @@ qed
 
 end
 
-interpretation unbal: Set2_BST2_Join
+interpretation unbal: Set2_Join
 where join = "\<lambda>l x r. Node () l x r" and inv = "\<lambda>t. True"
 proof (standard, goal_cases)
   case 1 show ?case by simp

@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
-section "Join-Based BST2 Implementation of Sets via RBTs"
+section "Join-Based Implementation of Sets via RBTs"
 
-theory Set2_BST2_Join_RBT
+theory Set2_Join_RBT
 imports
-  Set2_BST2_Join
+  Set2_Join
   RBT_Set
 begin
 
@@ -51,12 +51,12 @@ the two versions behave exactly the same, including complexity. Thus from a prog
 perspective they are equivalent. However, not from a verifier's perspective:
 the total version of @{const joinR} is easier
 to reason about because lemmas about it may not require preconditions. In particular
-@{prop"set_tree (joinR l x r) = Set.insert x (set_tree l \<union> set_tree r)"}
+@{prop"set_tree (joinR l x r) = set_tree l \<union> {x} \<union> set_tree r"}
 is provable outright and hence also
-@{prop"set_tree (join l x r) = Set.insert x (set_tree l \<union> set_tree r)"}.
-This is necessary because locale @{locale Set2_BST2_Join} unconditionally assumes
+@{prop"set_tree (join l x r) = set_tree l \<union> {x} \<union> set_tree r"}.
+This is necessary because locale @{locale Set2_Join} unconditionally assumes
 exactly that. Adding preconditions to this assumptions significantly complicates
-the proofs within @{locale Set2_BST2_Join}, which we want to avoid.
+the proofs within @{locale Set2_Join}, which we want to avoid.
 
 Why not work with the partial version of @{const joinR} and add the precondition
 @{prop "bheight l \<ge> bheight r"} to lemmas about @{const joinR}? After all, that is how
@@ -66,7 +66,7 @@ makes the difference: it descends along the left spine, just like @{const joinL}
 Function @{const joinR}, however, descends along the right spine and thus @{const bheight}
 may change all the time. Thus we would need the further precondition @{prop "invh l"}.
 This is what we really wanted to avoid in order to satisfy the unconditional assumption
-in @{locale Set2_BST2_Join}.
+in @{locale Set2_Join}.
 \<close>
 
 subsection "Properties"
@@ -165,22 +165,22 @@ by(auto simp: inorder_joinL inorder_joinR inorder_paint split!: tree.splits colo
 subsubsection "Set and bst properties"
 
 lemma set_baliL:
-  "set_tree(baliL l a r) = Set.insert a (set_tree l \<union> set_tree r)"
+  "set_tree(baliL l a r) = set_tree l \<union> {a} \<union> set_tree r"
 by(cases "(l,a,r)" rule: baliL.cases) (auto)
 
 lemma set_joinL:
-  "bheight l \<le> bheight r \<Longrightarrow> set_tree (joinL l x r) = Set.insert x (set_tree l \<union> set_tree r)"
+  "bheight l \<le> bheight r \<Longrightarrow> set_tree (joinL l x r) = set_tree l \<union> {x} \<union> set_tree r"
 proof(induction l x r rule: joinL.induct)
   case (1 l x r)
   thus ?case by(auto simp: set_baliL joinL.simps[of l x r] split!: tree.splits color.splits)
 qed
 
 lemma set_baliR:
-  "set_tree(baliR l a r) = Set.insert a (set_tree l \<union> set_tree r)"
+  "set_tree(baliR l a r) = set_tree l \<union> {a} \<union> set_tree r"
 by(cases "(l,a,r)" rule: baliR.cases) (auto)
 
 lemma set_joinR:
-  "set_tree (joinR l x r) = Set.insert x (set_tree l \<union> set_tree r)"
+  "set_tree (joinR l x r) = set_tree l \<union> {x} \<union> set_tree r"
 proof(induction l x r rule: joinR.induct)
   case (1 l x r)
   thus ?case by(force simp: set_baliR joinR.simps[of l x r] split!: tree.splits color.splits)
@@ -189,7 +189,7 @@ qed
 lemma set_paint: "set_tree (paint c t) = set_tree t"
 by (cases t) auto
 
-lemma set_join: "set_tree (join l x r) = Set.insert x (set_tree l \<union> set_tree r)"
+lemma set_join: "set_tree (join l x r) = set_tree l \<union> {x} \<union> set_tree r"
 by(simp add: set_joinL set_joinR set_paint)
 
 lemma bst_baliL:
@@ -231,18 +231,18 @@ lemma bst_join:
 by(auto simp: bst_paint bst_joinL bst_joinR)
 
 
-subsubsection "Interpretation of @{locale Set2_BST2_Join} with Red-Black Tree"
+subsubsection "Interpretation of @{locale Set2_Join} with Red-Black Tree"
 
-global_interpretation RBT: Set2_BST2_Join
+global_interpretation RBT: Set2_Join
 where join = join and inv = "\<lambda>t. invc t \<and> invh t"
 defines insert_rbt = RBT.insert and delete_rbt = RBT.delete and split_rbt = RBT.split
 and join2_rbt = RBT.join2 and split_min_rbt = RBT.split_min
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (rule set_join)
 next
-  case 2 show ?case by (rule set_join)
+  case 2 thus ?case by (rule bst_join)
 next
-  case 3 thus ?case by (rule bst_join)
+  case 3 show ?case by simp
 next
   case 4 thus ?case
     by (simp add: invc2_joinL invc2_joinR invc_paint_Black invh_joinL invh_joinR invh_paint)
