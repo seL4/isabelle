@@ -27,6 +27,9 @@ fun export_body thy name body =
 
 val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
   let
+    val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
+
+
     (* parents *)
 
     val parents = Theory.parents_of thy;
@@ -76,7 +79,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val _ =
       export_entities "types" (K export_type) Sign.type_space
-        (Name_Space.dest_table (#types (Type.rep_tsig (Sign.tsig_of thy))));
+        (Name_Space.dest_table (#types rep_tsig));
 
 
     (* consts *)
@@ -119,6 +122,24 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val _ =
       export_entities "facts" (K (SOME o export_fact)) (Facts.space_of o Global_Theory.facts_of)
         (Facts.dest_static true [] (Global_Theory.facts_of thy));
+
+
+    (* type classes *)
+
+    val encode_class =
+      let open XML.Encode Term_XML.Encode
+      in pair (list (pair string typ)) (list term) end;
+
+    fun export_class name =
+      (case try (Axclass.get_info thy) name of
+        NONE => ([], [])
+      | SOME {params, axioms, ...} =>
+          (params, map (Logic.unvarify_global o Thm.full_prop_of) axioms))
+      |> encode_class |> SOME;
+
+    val _ =
+      export_entities "classes" (fn name => fn () => export_class name)
+        Sign.class_space (map (rpair ()) (Graph.keys (Sorts.classes_of (#2 (#classes rep_tsig)))));
 
     in () end);
 
