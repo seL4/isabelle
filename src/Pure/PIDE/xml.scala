@@ -7,11 +7,6 @@ Untyped XML trees and basic data representation.
 package isabelle
 
 
-import java.util.{Collections, WeakHashMap}
-import java.lang.ref.WeakReference
-import javax.xml.parsers.DocumentBuilderFactory
-
-
 object XML
 {
   /** XML trees **/
@@ -152,55 +147,26 @@ object XML
 
 
 
-  /** cache for partial sharing (weak table) **/
+  /** cache **/
 
   def make_cache(initial_size: Int = 131071, max_string: Int = 100): Cache =
     new Cache(initial_size, max_string)
 
   class Cache private[XML](initial_size: Int, max_string: Int)
+    extends isabelle.Cache(initial_size, max_string)
   {
-    private val table =
-      Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
-
-    def size: Int = table.size
-
-    private def lookup[A](x: A): Option[A] =
+    protected def cache_props(x: Properties.T): Properties.T =
     {
-      val ref = table.get(x)
-      if (ref == null) None
-      else {
-        val y = ref.asInstanceOf[WeakReference[A]].get
-        if (y == null) None
-        else Some(y)
-      }
-    }
-    private def store[A](x: A): A =
-    {
-      table.put(x, new WeakReference[Any](x))
-      x
-    }
-
-    private def cache_string(x: String): String =
-      if (x == "") ""
-      else if (x == "true") "true"
-      else if (x == "false") "false"
-      else if (x == "0.0") "0.0"
-      else if (Library.is_small_int(x)) Library.signed_string_of_int(Integer.parseInt(x))
-      else
-        lookup(x) match {
-          case Some(y) => y
-          case None =>
-            val z = Library.isolate_substring(x)
-            if (z.length > max_string) z else store(z)
-        }
-    private def cache_props(x: Properties.T): Properties.T =
       if (x.isEmpty) x
       else
         lookup(x) match {
           case Some(y) => y
           case None => store(x.map(p => (Library.isolate_substring(p._1).intern, cache_string(p._2))))
         }
-    private def cache_markup(x: Markup): Markup =
+    }
+
+    protected def cache_markup(x: Markup): Markup =
+    {
       lookup(x) match {
         case Some(y) => y
         case None =>
@@ -209,7 +175,10 @@ object XML
               store(Markup(cache_string(name), cache_props(props)))
           }
       }
-    private def cache_tree(x: XML.Tree): XML.Tree =
+    }
+
+    protected def cache_tree(x: XML.Tree): XML.Tree =
+    {
       lookup(x) match {
         case Some(y) => y
         case None =>
@@ -219,16 +188,19 @@ object XML
             case XML.Text(text) => store(XML.Text(cache_string(text)))
           }
       }
-    private def cache_body(x: XML.Body): XML.Body =
+    }
+
+    protected def cache_body(x: XML.Body): XML.Body =
+    {
       if (x.isEmpty) x
       else
         lookup(x) match {
           case Some(y) => y
           case None => x.map(cache_tree(_))
         }
+    }
 
     // main methods
-    def string(x: String): String = synchronized { cache_string(x) }
     def props(x: Properties.T): Properties.T = synchronized { cache_props(x) }
     def markup(x: Markup): Markup = synchronized { cache_markup(x) }
     def tree(x: XML.Tree): XML.Tree = synchronized { cache_tree(x) }
