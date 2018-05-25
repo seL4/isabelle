@@ -97,12 +97,18 @@ in
 
 fun pretty_mixfix NoSyn = Pretty.str ""
   | pretty_mixfix (Mixfix (s, ps, p, _)) =
-      parens (Pretty.breaks [quoted s, brackets (Pretty.commas (map int ps)), int p])
+      parens
+        (Pretty.breaks
+          (quoted s ::
+            (if null ps then [] else [brackets (Pretty.commas (map int ps))]) @
+            (if p = 1000 then [] else [int p])))
   | pretty_mixfix (Infix (s, p, _)) = parens (Pretty.breaks [keyword "infix", quoted s, int p])
   | pretty_mixfix (Infixl (s, p, _)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
   | pretty_mixfix (Infixr (s, p, _)) = parens (Pretty.breaks [keyword "infixr", quoted s, int p])
   | pretty_mixfix (Binder (s, p1, p2, _)) =
-      parens (Pretty.breaks [keyword "binder", quoted s, brackets [int p1], int p2])
+      parens
+        (Pretty.breaks
+          ([keyword "binder", quoted s] @ (if p1 = p2 then [] else [brackets [int p1]]) @ [int p2]))
   | pretty_mixfix (Structure _) = parens [keyword "structure"];
 
 end;
