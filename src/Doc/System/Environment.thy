@@ -365,7 +365,7 @@ text \<open>
 \<close>
 
 
-subsubsection \<open>Example\<close>
+subsubsection \<open>Examples\<close>
 
 text \<open>
   The subsequent example retrieves the \<^verbatim>\<open>Main\<close> theory value from the theory
@@ -375,6 +375,12 @@ text \<open>
   Observe the delicate quoting rules for the GNU bash shell vs.\ ML. The
   Isabelle/ML and Scala libraries provide functions for that, but here we need
   to do it manually.
+
+  \<^medskip>
+  This is how to invoke a function body with proper return code and printing
+  of errors, and without printing of a redundant \<^verbatim>\<open>val it = (): unit\<close> result:
+  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool0 (fn () => writeln "OK")'\<close>}
+  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool0 (fn () => error "Bad")'\<close>}
 \<close>
 
 
