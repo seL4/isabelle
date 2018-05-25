@@ -171,9 +171,8 @@ fun gen_pretty_ctxt show_attribs ctxt =
       | prt_mixfix mx = [Pretty.brk 2, Mixfix.pretty_mixfix mx];
 
     fun prt_fix (x, SOME T, mx) = Pretty.block (prt_name (Binding.name_of x) :: Pretty.str " ::" ::
-          Pretty.brk 1 :: prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
-      | prt_fix (x, NONE, mx) = Pretty.block (prt_name (Binding.name_of x) ::
-          Pretty.brk 1 :: prt_mixfix mx);
+          Pretty.brk 1 :: prt_typ T :: prt_mixfix mx)
+      | prt_fix (x, NONE, mx) = Pretty.block (prt_name (Binding.name_of x) :: prt_mixfix mx);
     fun prt_constrain (x, T) = prt_fix (Binding.name x, SOME T, NoSyn);
 
     fun prt_asm (a, ts) =
