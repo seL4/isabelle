@@ -11,6 +11,6 @@ object profile extends isabelle.CI_Profile
   def pre_hook(args: List[String]) = {}
   def post_hook(results: Build.Results) = {}
 
-  def selection = Sessions.Selection(all_sessions = true)
+  def selection = Sessions.Selection(all_sessions = true, exclude_sessions = List("HOL-Proofs"))
 
 }
