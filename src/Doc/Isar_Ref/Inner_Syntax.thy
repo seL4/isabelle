@@ -281,12 +281,14 @@ text \<open>
     @{syntax_def mixfix}: '('
       (@{syntax template} prios? @{syntax nat}? |
         (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
-        @'binder' @{syntax template} prios? @{syntax nat} |
+        @'binder' @{syntax template} prio? @{syntax nat} |
         @'structure') ')'
     ;
     @{syntax template}: string
     ;
     prios: '[' (@{syntax nat} + ',') ']'
+    ;
+    prio: '[' @{syntax nat} ']'
   \<close>}
 
   The string given as \<open>template\<close> may include literal text, spacing, blocks,
