@@ -1111,7 +1111,7 @@ text \<open>
 
   \<^descr> \<^theory_text>\<open>ML_export\<close> is similar to \<^theory_text>\<open>ML\<close>, but the resulting toplevel bindings are
   exported to the global bootstrap environment of the ML process --- it has
-  has a lasting effect that cannot be retracted. This allows ML evaluation
+  a lasting effect that cannot be retracted. This allows ML evaluation
   without a formal theory context, e.g. for command-line tools via @{tool
   process} @{cite "isabelle-system"}.
 
