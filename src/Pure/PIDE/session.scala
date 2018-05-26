@@ -386,9 +386,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
           prover.get.define_command(command)
         }
       }
-      change.doc_edits foreach {
-        case (_, edit) =>
-          edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
+      for { (_, edit) <- change.doc_edits } {
+        edit.foreach({ case (c1, c2) => c1.foreach(id_command); c2.foreach(id_command) })
       }
 
       val assignment = global_state.value.the_assignment(change.previous).check_finished
