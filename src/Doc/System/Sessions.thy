@@ -562,7 +562,7 @@ text \<open>
     -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
-  isabelle build. Option -l or -x is required.
+  isabelle build. Option -l or -x is required; option -x may be repeated.
 
   The PATTERN language resembles glob patterns in the shell, with ? and *
   (both excluding ":" and "/"), ** (excluding ":"), and [abc] or [^abc],
@@ -583,7 +583,8 @@ text \<open>
   pattern. Note that wild cards ``\<^verbatim>\<open>?\<close>'' and ``\<^verbatim>\<open>*\<close>'' do not match the
   separators ``\<^verbatim>\<open>:\<close>'' and ``\<^verbatim>\<open>/\<close>''; the wild card \<^verbatim>\<open>**\<close> matches over directory
   name hierarchies separated by ``\<^verbatim>\<open>/\<close>''. Thus the pattern ``\<^verbatim>\<open>*:**\<close>'' matches
-  \<^emph>\<open>all\<close> theory exports.
+  \<^emph>\<open>all\<close> theory exports. Multiple options \<^verbatim>\<open>-x\<close> refer to the union of all
+  specified patterns.
 
   Option \<^verbatim>\<open>-D\<close> specifies an alternative base directory for option \<^verbatim>\<open>-x\<close>: the
   default is \<^verbatim>\<open>export\<close> within the current directory. Each theory creates its

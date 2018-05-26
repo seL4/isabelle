@@ -193,7 +193,7 @@ object Export
     export_dir: Path,
     progress: Progress = No_Progress,
     export_list: Boolean = false,
-    export_pattern: String = "")
+    export_patterns: List[String] = Nil)
   {
     using(store.open_database(session_name))(db =>
     {
@@ -207,10 +207,16 @@ object Export
         }
 
         // export
-        if (export_pattern != "") {
-          val matcher = make_matcher(export_pattern)
+        if (export_patterns.nonEmpty) {
+          val exports =
+            (for {
+              export_pattern <- export_patterns.iterator
+              matcher = make_matcher(export_pattern)
+              (theory_name, name) <- export_names if matcher(theory_name, name)
+            } yield (theory_name, name)).toSet
           for {
-            (theory_name, name) <- export_names if matcher(theory_name, name)
+            (theory_name, group) <- exports.toList.groupBy(_._1).toList.sortBy(_._1)
+            name <- group.map(_._2).sorted
             entry <- read_entry(db, session_name, theory_name, name)
           } {
             val path = export_dir + Path.basic(theory_name) + Path.explode(name)
@@ -238,7 +244,7 @@ object Export
     var no_build = false
     var options = Options.init()
     var system_mode = false
-    var export_pattern = ""
+    var export_patterns: List[String] = Nil
 
     val getopts = Getopts("""
 Usage: isabelle export [OPTIONS] SESSION
@@ -253,7 +259,7 @@ Usage: isabelle export [OPTIONS] SESSION
     -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
-  isabelle build. Option -l or -x is required.
+  isabelle build. Option -l or -x is required; option -x may be repeated.
 
   The PATTERN language resembles glob patterns in the shell, with ? and *
   (both excluding ":" and "/"), ** (excluding ":"), and [abc] or [^abc],
@@ -265,12 +271,12 @@ Usage: isabelle export [OPTIONS] SESSION
       "n" -> (_ => no_build = true),
       "o:" -> (arg => options = options + arg),
       "s" -> (_ => system_mode = true),
-      "x:" -> (arg => export_pattern = arg))
+      "x:" -> (arg => export_patterns ::= arg))
 
     val more_args = getopts(args)
     val session_name =
       more_args match {
-        case List(session_name) if export_list || export_pattern != "" => session_name
+        case List(session_name) if export_list || export_patterns.nonEmpty => session_name
         case _ => getopts.usage()
       }
 
@@ -297,6 +303,6 @@ Usage: isabelle export [OPTIONS] SESSION
 
     val store = Sessions.store(options, system_mode)
     export_files(store, session_name, export_dir, progress = progress,
-      export_list = export_list, export_pattern = export_pattern)
+      export_list = export_list, export_patterns = export_patterns)
   })
 }
