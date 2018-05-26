@@ -144,7 +144,7 @@ object Position
           case (None, Some(name)) => "file " + quote(name)
           case _ => ""
         }
-      val s = if (s0 == "") s0 else if (delimited) " (" + s0 + ")" else " " + s0
+      val s = if (s0 == "") s0 else if (delimited) " (" + s0 + ")" else s0
       Markup(Markup.POSITION, pos).markup(s)
     }
   }
