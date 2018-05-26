@@ -189,7 +189,8 @@ object Build
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
 
     private val export_tmp_dir = Isabelle_System.tmp_dir("export")
-    private val export_consumer = Export.consumer(store.open_database(name, output = true))
+    private val export_consumer =
+      Export.consumer(store.open_database(name, output = true), cache = store.xz_cache)
 
     private val future_result: Future[Process_Result] =
       Future.thread("build") {

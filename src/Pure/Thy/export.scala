@@ -153,12 +153,10 @@ object Export
 
   /* database consumer thread */
 
-  def consumer(db: SQL.Database): Consumer = new Consumer(db)
+  def consumer(db: SQL.Database, cache: XZ.Cache = XZ.cache()): Consumer = new Consumer(db, cache)
 
-  class Consumer private[Export](db: SQL.Database)
+  class Consumer private[Export](db: SQL.Database, cache: XZ.Cache)
   {
-    val xz_cache = XZ.make_cache()
-
     private val export_errors = Synchronized[List[String]](Nil)
 
     private val consumer =
@@ -176,7 +174,7 @@ object Export
         })
 
     def apply(session_name: String, args: Markup.Export.Args, body: Bytes): Unit =
-      consumer.send(make_entry(session_name, args, body, cache = xz_cache))
+      consumer.send(make_entry(session_name, args, body, cache = cache))
 
     def shutdown(close: Boolean = false): List[String] =
     {
@@ -210,8 +208,6 @@ object Export
 
         // export
         if (export_pattern != "") {
-          val xz_cache = XZ.make_cache()
-
           val matcher = make_matcher(export_pattern)
           for {
             (theory_name, name) <- export_names if matcher(theory_name, name)
@@ -220,7 +216,7 @@ object Export
             val path = export_dir + Path.basic(theory_name) + Path.explode(name)
             progress.echo("exporting " + path)
             Isabelle_System.mkdirs(path.dir)
-            Bytes.write(path, entry.uncompressed(cache = xz_cache))
+            Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
           }
         }
       }
