@@ -193,7 +193,8 @@ object Export
     export_dir: Path,
     progress: Progress = No_Progress,
     export_list: Boolean = false,
-    export_patterns: List[String] = Nil)
+    export_patterns: List[String] = Nil,
+    export_prefix: String = "")
   {
     using(store.open_database(session_name))(db =>
     {
@@ -203,7 +204,7 @@ object Export
         // list
         if (export_list) {
           (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
-            sorted.foreach(Output.writeln(_, stdout = true))
+            sorted.foreach(progress.echo(_))
         }
 
         // export
@@ -220,7 +221,7 @@ object Export
             entry <- read_entry(db, session_name, theory_name, name)
           } {
             val path = export_dir + Path.basic(theory_name) + Path.explode(name)
-            progress.echo("exporting " + path)
+            progress.echo(export_prefix + "export " + path)
             Isabelle_System.mkdirs(path.dir)
             Bytes.write(path, entry.uncompressed(cache = store.xz_cache))
           }
