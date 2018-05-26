@@ -322,8 +322,15 @@ object Build
 
       Isabelle_System.rm_tree(export_tmp_dir)
 
-      if (result1.ok)
+      if (result1.ok) {
+        for ((dir, pats) <- info.export_files) {
+          Export.export_files(store, name, info.dir + dir,
+            progress = if (verbose) progress else No_Progress,
+            export_patterns = pats,
+            export_prefix = name + ": ")
+        }
         Present.finish(progress, store.browser_info, graph_file, info, name)
+      }
 
       graph_file.delete
 

@@ -428,7 +428,8 @@ object Sessions
                   options = Nil,
                   imports = info.deps,
                   theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
-                  document_files = Nil))))
+                  document_files = Nil,
+                  export_files = Nil))))
         }
       }
       else (session, Nil)
@@ -469,6 +470,7 @@ object Sessions
     theories: List[(Options, List[(String, Position.T)])],
     global_theories: List[String],
     document_files: List[(Path, Path)],
+    export_files: List[(Path, List[String])],
     meta_digest: SHA1.Digest)
   {
     def deps: List[String] = parent.toList ::: imports
@@ -520,13 +522,16 @@ object Sessions
       val document_files =
         entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
 
+      val export_files =
+        entry.export_files.map({ case (dir, pats) => (Path.explode(dir), pats) })
+
       val meta_digest =
         SHA1.digest((name, chapter, entry.parent, entry.options, entry.imports,
-          entry.theories_no_position, conditions, entry.document_files).toString)
+          entry.theories_no_position, conditions, entry.document_files, entry.export_files).toString)
 
       Info(name, chapter, dir_selected, entry.pos, entry.groups,
         dir + Path.explode(entry.path), entry.parent, entry.description, session_options,
-        entry.imports, theories, global_theories, document_files, meta_digest)
+        entry.imports, theories, global_theories, document_files, export_files, meta_digest)
     }
     catch {
       case ERROR(msg) =>
@@ -703,6 +708,7 @@ object Sessions
   private val THEORIES = "theories"
   private val GLOBAL = "global"
   private val DOCUMENT_FILES = "document_files"
+  private val EXPORT_FILES = "export_files"
 
   val root_syntax =
     Outer_Syntax.empty + "(" + ")" + "+" + "," + "=" + "[" + "]" + GLOBAL + IN +
@@ -712,7 +718,8 @@ object Sessions
       (OPTIONS, Keyword.QUASI_COMMAND) +
       (SESSIONS, Keyword.QUASI_COMMAND) +
       (THEORIES, Keyword.QUASI_COMMAND) +
-      (DOCUMENT_FILES, Keyword.QUASI_COMMAND)
+      (DOCUMENT_FILES, Keyword.QUASI_COMMAND) +
+      (EXPORT_FILES, Keyword.QUASI_COMMAND)
 
   abstract class Entry
   sealed case class Chapter(name: String) extends Entry
@@ -726,7 +733,8 @@ object Sessions
     options: List[Options.Spec],
     imports: List[String],
     theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
-    document_files: List[(String, String)]) extends Entry
+    document_files: List[(String, String)],
+    export_files: List[(String, List[String])]) extends Entry
   {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
@@ -759,11 +767,15 @@ object Sessions
           ((options | success(Nil)) ~ rep1(theory_entry)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
+      val in_path = $$$("(") ~! ($$$(IN) ~ path ~ $$$(")")) ^^ { case _ ~ (_ ~ x ~ _) => x }
+
       val document_files =
         $$$(DOCUMENT_FILES) ~!
-          (($$$("(") ~! ($$$(IN) ~ path ~ $$$(")")) ^^
-              { case _ ~ (_ ~ x ~ _) => x } | success("document")) ~
-            rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
+          ((in_path | success("document")) ~ rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
+
+      val export_files =
+        $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ rep1(name)) ^^
+          { case _ ~ (x ~ y) => (x, y) }
 
       command(SESSION) ~!
         (position(session_name) ~
@@ -775,9 +787,10 @@ object Sessions
               (($$$(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               (($$$(SESSIONS) ~! rep1(session_name)  ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep(theories) ~
-              (rep(document_files) ^^ (x => x.flatten))))) ^^
-        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
+              (rep(document_files) ^^ (x => x.flatten)) ~
+              (rep(export_files))))) ^^
+        { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j) }
     }
 
     def parse_root(path: Path): List[Entry] =

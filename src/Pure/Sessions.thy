@@ -7,7 +7,8 @@ PIDE markup for session ROOT.
 theory Sessions
   imports Pure
   keywords "session" :: thy_decl
-    and "description" "options" "sessions" "theories" "document_files" :: quasi_command
+    and "description" "options" "sessions" "theories"
+      "document_files" "export_files" :: quasi_command
     and "global"
 begin
 

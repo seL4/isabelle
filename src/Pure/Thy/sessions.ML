@@ -27,14 +27,17 @@ val theory_entry = Parse.position Parse.theory_name --| global;
 val theories =
   Parse.$$$ "theories" |-- Parse.!!! (Scan.optional Parse.options [] -- Scan.repeat1 theory_entry);
 
+val in_path =
+  Parse.$$$ "(" |-- Parse.!!! (Parse.$$$ "in" |-- Parse.position Parse.path --| Parse.$$$ ")");
+
 val document_files =
   Parse.$$$ "document_files" |--
-    Parse.!!!
-      (Scan.optional
-        (Parse.$$$ "(" |--
-            Parse.!!! (Parse.$$$ "in" |-- Parse.position Parse.path --| Parse.$$$ ")"))
-        ("document", Position.none)
+    Parse.!!! (Scan.optional in_path ("document", Position.none)
       -- Scan.repeat1 (Parse.position Parse.path));
+
+val export_files =
+  Parse.$$$ "export_files" |--
+    Parse.!!! (Scan.optional in_path ("export", Position.none) -- Scan.repeat1 Parse.name);
 
 in
 
@@ -49,9 +52,10 @@ val command_parser =
       Scan.optional (Parse.$$$ "sessions" |--
         Parse.!!! (Scan.repeat1 (Parse.position Parse.session_name))) [] --
       Scan.repeat theories --
-      Scan.repeat document_files))
+      Scan.repeat document_files --
+      Scan.repeat export_files))
   >> (fn (((session, _), dir),
-          ((((((parent, descr), options), sessions), theories), document_files))) =>
+          (((((((parent, descr), options), sessions), theories), document_files), export_files))) =>
     Toplevel.keep (fn state =>
       let
         val ctxt = Toplevel.context_of state;
@@ -89,6 +93,10 @@ val command_parser =
               val dir = Resources.check_dir ctxt session_dir doc_dir;
               val _ = List.app (ignore o Resources.check_file ctxt dir) doc_files;
             in () end);
+
+        val _ =
+          export_files |> List.app (fn (export_dir, _) =>
+            ignore (Resources.check_path ctxt session_dir export_dir));
       in () end));
 
 end;

@@ -54,7 +54,7 @@ text \<open>
 
     @{syntax_def session_entry}: @'session' @{syntax system_name} groups? dir? '=' \<newline>
       (@{syntax system_name} '+')? description? options? \<newline>
-      (sessions?) (theories*) (document_files*)
+      (sessions?) (theories*) (document_files*) \<newline> (export_files*)
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
@@ -75,6 +75,8 @@ text \<open>
     theory_entry: @{syntax system_name} ('(' @'global' ')')?
     ;
     document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
+    ;
+    export_files: @'export_files' ('(' dir ')')? (@{syntax name}+)
   \<close>}
 
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
@@ -138,12 +140,14 @@ text \<open>
   directory to the document output directory, before formal document
   processing is started (see also \secref{sec:tool-document}). The local path
   structure of the \<open>files\<close> is preserved, which allows to reconstruct the
-  original directory hierarchy of \<open>base_dir\<close>.
+  original directory hierarchy of \<open>base_dir\<close>. The default \<open>base_dir\<close> is
+  \<^verbatim>\<open>document\<close> within the session root directory.
 
-  \<^descr> \isakeyword{document_files}~\<open>files\<close> abbreviates
-  \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>document) files\<close>, i.e.\
-  document sources are taken from the base directory \<^verbatim>\<open>document\<close> within the
-  session root directory.
+  \<^descr> \isakeyword{export_files}~\<open>(\<close>\isakeyword{in}~\<open>target_dir) patterns\<close> writes
+  theory exports to the file-system: the \<open>target_dir\<close> specification is
+  relative to the session root directory; its default is \<^verbatim>\<open>export\<close>. Exports
+  are selected via \<open>patterns\<close> as in @{tool_ref export}
+  (\secref{sec:tool-export}).
 \<close>
 
 

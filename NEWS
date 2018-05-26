@@ -372,8 +372,8 @@ $ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER (command-line default) or
 $ISABELLE_HOME/heaps/$ML_IDENTIFIER (main Isabelle application or
 "isabelle jedit -s" or "isabelle build -s").
 
-* The command-line tool retrieves theory exports from the session build
-database.
+* The command-line tool "export" and 'export_files' in session ROOT
+entries retrieve theory exports from the session build database.
 
 * The command-line tools "isabelle server" and "isabelle client" provide
 access to the Isabelle Server: it supports responsive session management
