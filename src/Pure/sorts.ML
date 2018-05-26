@@ -43,6 +43,9 @@ sig
   val add_arities: Context.generic -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
   val merge_algebra: Context.generic -> algebra * algebra -> algebra
+  val dest_algebra: algebra list -> algebra ->
+    {classrel: (class * class list) list,
+     arities: (string * sort list * class) list}
   val subalgebra: Context.generic -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
@@ -297,6 +300,26 @@ fun merge_algebra context
           |> add_arities_table context algebra0 arities1
           |> add_arities_table context algebra0 arities2);
   in make_algebra (classes', arities') end;
+
+
+(* destruct *)
+
+fun dest_algebra parents (Algebra {classes, arities}) =
+  let
+    fun new_classrel rel = not (exists (fn algebra => class_less algebra rel) parents);
+    val classrel =
+      (classes, []) |-> Graph.fold (fn (c, (_, (_, ds))) =>
+        (case filter (fn d => new_classrel (c, d)) (Graph.Keys.dest ds) of
+          [] => I
+        | ds' => cons (c, sort_strings ds')))
+      |> sort_by #1;
+
+    fun is_arity t ar algebra = member (op =) (Symtab.lookup_list (arities_of algebra) t) ar;
+    fun add_arity t (c, Ss) = not (exists (is_arity t (c, Ss)) parents) ? cons (t, Ss, c);
+    val arities =
+      (arities, []) |-> Symtab.fold (fn (t, ars) => fold_rev (add_arity t) (sort_by #1 ars))
+      |> sort_by #1;
+  in {classrel = classrel, arities = arities} end;
 
 
 (* algebra projections *)  (* FIXME potentially violates abstract type integrity *)

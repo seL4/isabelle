@@ -141,6 +141,24 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       export_entities "classes" (fn name => fn () => export_class name)
         Sign.class_space (map (rpair ()) (Graph.keys (Sorts.classes_of (#2 (#classes rep_tsig)))));
 
-    in () end);
+
+    (* sort algebra *)
+
+    val {classrel, arities} =
+      Sorts.dest_algebra (map (#2 o #classes o Type.rep_tsig o Sign.tsig_of) parents)
+        (#2 (#classes rep_tsig));
+
+    val encode_classrel =
+      let open XML.Encode
+      in list (pair string (list string)) end;
+
+    val encode_arities =
+      let open XML.Encode Term_XML.Encode
+      in list (triple string (list sort) string) end;
+
+    val _ = if null classrel then () else export_body thy "classrel" (encode_classrel classrel);
+    val _ = if null arities then () else export_body thy "arities" (encode_arities arities);
+
+  in () end);
 
 end;

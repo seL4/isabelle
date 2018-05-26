@@ -31,6 +31,8 @@ object Export_Theory
     facts: Boolean = true,
     classes: Boolean = true,
     typedefs: Boolean = true,
+    classrel: Boolean = true,
+    arities: Boolean = true,
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =
@@ -64,7 +66,9 @@ object Export_Theory
     axioms: List[Axiom],
     facts: List[Fact],
     classes: List[Class],
-    typedefs: List[Typedef])
+    typedefs: List[Typedef],
+    classrel: List[Classrel],
+    arities: List[Arity])
   {
     override def toString: String = name
 
@@ -76,10 +80,13 @@ object Export_Theory
         axioms.map(_.cache(cache)),
         facts.map(_.cache(cache)),
         classes.map(_.cache(cache)),
-        typedefs.map(_.cache(cache)))
+        typedefs.map(_.cache(cache)),
+        classrel.map(_.cache(cache)),
+        arities.map(_.cache(cache)))
   }
 
-  def empty_theory(name: String): Theory = Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
+  def empty_theory(name: String): Theory =
+    Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
 
   def read_theory(db: SQL.Database, session_name: String, theory_name: String,
     types: Boolean = true,
@@ -88,6 +95,8 @@ object Export_Theory
     facts: Boolean = true,
     classes: Boolean = true,
     typedefs: Boolean = true,
+    classrel: Boolean = true,
+    arities: Boolean = true,
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
@@ -104,7 +113,9 @@ object Export_Theory
         if (axioms) read_axioms(db, session_name, theory_name) else Nil,
         if (facts) read_facts(db, session_name, theory_name) else Nil,
         if (classes) read_classes(db, session_name, theory_name) else Nil,
-        if (typedefs) read_typedefs(db, session_name, theory_name) else Nil)
+        if (typedefs) read_typedefs(db, session_name, theory_name) else Nil,
+        if (classrel) read_classrel(db, session_name, theory_name) else Nil,
+        if (arities) read_arities(db, session_name, theory_name) else Nil)
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
@@ -278,6 +289,46 @@ object Export_Theory
             pair(list(pair(string, typ)), list(term))(body)
           }
           Class(entity, params, axioms)
+        })
+
+
+  /* sort algebra */
+
+  sealed case class Classrel(class_name: String, super_names: List[String])
+  {
+    def cache(cache: Term.Cache): Classrel =
+      Classrel(cache.string(class_name), super_names.map(cache.string(_)))
+  }
+
+  def read_classrel(db: SQL.Database, session_name: String, theory_name: String): List[Classrel] =
+    read_export(db, session_name, theory_name, "classrel",
+      (body: XML.Body) =>
+        {
+          val classrel =
+          {
+            import XML.Decode._
+            list(pair(string, list(string)))(body)
+          }
+          for ((c, cs) <- classrel) yield Classrel(c, cs)
+        })
+
+  sealed case class Arity(type_name: String, domain: List[Term.Sort], codomain: String)
+  {
+    def cache(cache: Term.Cache): Arity =
+      Arity(cache.string(type_name), domain.map(cache.sort(_)), cache.string(codomain))
+  }
+
+  def read_arities(db: SQL.Database, session_name: String, theory_name: String): List[Arity] =
+    read_export(db, session_name, theory_name, "arities",
+      (body: XML.Body) =>
+        {
+          val arities =
+          {
+            import XML.Decode._
+            import Term_XML.Decode._
+            list(triple(string, list(sort), string))(body)
+          }
+          for ((a, b, c) <- arities) yield Arity(a, b, c)
         })
 
 
