@@ -23,7 +23,7 @@ keywords
   and "external_file" "bibtex_file" :: thy_load
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
-  and "SML_import" "SML_export" :: thy_decl % "ML"
+  and "SML_import" "SML_export" "ML_export" :: thy_decl % "ML"
   and "ML_prf" :: prf_decl % "proof"  (* FIXME % "ML" ?? *)
   and "ML_val" "ML_command" :: diag % "ML"
   and "simproc_setup" :: thy_decl % "ML"
@@ -189,6 +189,18 @@ val _ =
           (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>
             Local_Theory.propagate_ml_env)
       end));
+
+val _ =
+  Outer_Syntax.command ("ML_export", \<^here>)
+    "ML text within theory or local theory, and export to bootstrap environment"
+    (Parse.ML_source >> (fn source =>
+      Toplevel.generic_theory (fn context =>
+        context
+        |> ML_Env.set_bootstrap true
+        |> ML_Context.exec (fn () =>
+            ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source)
+        |> ML_Env.restore_bootstrap context
+        |> Local_Theory.propagate_ml_env)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>ML_prf\<close> "ML text within proof"

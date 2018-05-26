@@ -13,6 +13,8 @@ sig
   val add_breakpoints: (serial * (bool Unsynchronized.ref * Thread_Position.T)) list -> unit
   val init_bootstrap: Context.generic -> Context.generic
   val SML_environment: bool Config.T
+  val set_bootstrap: bool -> Context.generic -> Context.generic
+  val restore_bootstrap: Context.generic -> Context.generic -> Context.generic
   val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
   val make_name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
   val context: ML_Compiler0.context
@@ -129,6 +131,12 @@ val init_bootstrap =
                 (#allSig ML_Name_Space.global ()) signature1;
             in (val2, type1, fixity1, structure2, signature2, functor1) end);
     in make_data (bootstrap, tables, sml_tables', breakpoints) end);
+
+fun set_bootstrap bootstrap =
+  Env.map (fn {tables, sml_tables, breakpoints, ...} =>
+    make_data (bootstrap, tables, sml_tables, breakpoints));
+
+val restore_bootstrap = set_bootstrap o #bootstrap o Env.get;
 
 fun add_name_space {SML} (space: ML_Name_Space.T) =
   Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>

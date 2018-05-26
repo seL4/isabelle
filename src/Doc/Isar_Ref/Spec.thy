@@ -1058,6 +1058,7 @@ text \<open>
     @{command_def "ML_file_debug"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML_file_no_debug"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "ML_export"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "ML_prf"} & : & \<open>proof \<rightarrow> proof\<close> \\
     @{command_def "ML_val"} & : & \<open>any \<rightarrow>\<close> \\
     @{command_def "ML_command"} & : & \<open>any \<rightarrow>\<close> \\
@@ -1081,8 +1082,9 @@ text \<open>
       @@{command ML_file_debug} |
       @@{command ML_file_no_debug}) @{syntax name} ';'?
     ;
-    (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
-      @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
+    (@@{command ML} | @@{command ML_export} | @@{command ML_prf} |
+      @@{command ML_val} | @@{command ML_command} | @@{command setup} |
+      @@{command local_setup}) @{syntax text}
     ;
     @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
@@ -1103,9 +1105,15 @@ text \<open>
   \<^theory_text>\<open>ML_file_no_debug\<close> change the @{attribute ML_debugger} option locally while
   the given file is compiled.
 
-  \<^descr> \<^theory_text>\<open>ML text\<close> is similar to \<^theory_text>\<open>ML_file\<close>, but evaluates directly the given
-  \<open>text\<close>. Top-level ML bindings are stored within the (global or local) theory
+  \<^descr> \<^theory_text>\<open>ML\<close> is similar to \<^theory_text>\<open>ML_file\<close>, but evaluates directly the given \<open>text\<close>.
+  Top-level ML bindings are stored within the (global or local) theory
   context.
+
+  \<^descr> \<^theory_text>\<open>ML_export\<close> is similar to \<^theory_text>\<open>ML\<close>, but the resulting toplevel bindings are
+  exported to the global bootstrap environment of the ML process --- it has
+  a lasting effect that cannot be retracted. This allows ML evaluation
+  without a formal theory context, e.g. for command-line tools via @{tool
+  process} @{cite "isabelle-system"}.
 
   \<^descr> \<^theory_text>\<open>ML_prf\<close> is analogous to \<^theory_text>\<open>ML\<close> but works within a proof context.
   Top-level ML bindings are stored within the proof context in a purely

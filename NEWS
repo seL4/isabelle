@@ -358,6 +358,11 @@ restores broken proofs.
 * Operation Export.export emits theory exports (arbitrary blobs), which
 are stored persistently in the session build database.
 
+* Command 'ML_export' exports ML toplevel bindings to the global
+bootstrap environment of the ML process. This allows ML evaluation
+without a formal theory context, e.g. in command-line tools like
+"isabelle process".
+
 
 *** System ***
 
