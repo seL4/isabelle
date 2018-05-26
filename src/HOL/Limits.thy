@@ -842,6 +842,32 @@ lemmas tendsto_mult_left_zero =
 lemmas tendsto_mult_right_zero =
   bounded_bilinear.tendsto_right_zero [OF bounded_bilinear_mult]
 
+
+lemma continuous_mult_left:
+  fixes c::"'a::real_normed_algebra"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. c * f x)"
+by (rule continuous_mult [OF continuous_const])
+
+lemma continuous_mult_right:
+  fixes c::"'a::real_normed_algebra"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x * c)"
+by (rule continuous_mult [OF _ continuous_const])
+
+lemma continuous_on_mult_left:
+  fixes c::"'a::real_normed_algebra"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. c * f x)"
+by (rule continuous_on_mult [OF continuous_on_const])
+
+lemma continuous_on_mult_right:
+  fixes c::"'a::real_normed_algebra"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x * c)"
+by (rule continuous_on_mult [OF _ continuous_on_const])
+
+lemma continuous_on_mult_const [simp]:
+  fixes c::"'a::real_normed_algebra"
+  shows "continuous_on s (( * ) c)"
+  by (intro continuous_on_mult_left continuous_on_id)
+
 lemma tendsto_divide_zero:
   fixes c :: "'a::real_normed_field"
   shows "(f \<longlongrightarrow> 0) F \<Longrightarrow> ((\<lambda>x. f x / c) \<longlongrightarrow> 0) F"

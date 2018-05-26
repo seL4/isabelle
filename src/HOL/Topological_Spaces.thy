@@ -1924,13 +1924,13 @@ lemma continuous_on_cases:
     continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
   by (rule continuous_on_If) auto
 
-lemma continuous_on_id[continuous_intros]: "continuous_on s (\<lambda>x. x)"
+lemma continuous_on_id[continuous_intros,simp]: "continuous_on s (\<lambda>x. x)"
   unfolding continuous_on_def by fast
 
-lemma continuous_on_id'[continuous_intros]: "continuous_on s id"
+lemma continuous_on_id'[continuous_intros,simp]: "continuous_on s id"
   unfolding continuous_on_def id_def by fast
 
-lemma continuous_on_const[continuous_intros]: "continuous_on s (\<lambda>x. c)"
+lemma continuous_on_const[continuous_intros,simp]: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by auto
 
 lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous_on t f"
