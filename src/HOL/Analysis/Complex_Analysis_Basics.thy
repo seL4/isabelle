@@ -47,26 +47,6 @@ lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = ( * ) 0"
 lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = ( * ) 1"
   by auto
 
-lemma continuous_mult_left:
-  fixes c::"'a::real_normed_algebra"
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. c * f x)"
-by (rule continuous_mult [OF continuous_const])
-
-lemma continuous_mult_right:
-  fixes c::"'a::real_normed_algebra"
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x * c)"
-by (rule continuous_mult [OF _ continuous_const])
-
-lemma continuous_on_mult_left:
-  fixes c::"'a::real_normed_algebra"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. c * f x)"
-by (rule continuous_on_mult [OF continuous_on_const])
-
-lemma continuous_on_mult_right:
-  fixes c::"'a::real_normed_algebra"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x * c)"
-by (rule continuous_on_mult [OF _ continuous_on_const])
-
 lemma uniformly_continuous_on_cmul_right [continuous_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
   shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f x * c)"

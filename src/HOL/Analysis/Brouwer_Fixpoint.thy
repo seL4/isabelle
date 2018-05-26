@@ -2036,7 +2036,8 @@ lemma retraction_refl [simp]: "retraction S S (\<lambda>x. x)"
 by (simp add: continuous_on_id retraction)
 
 lemma retract_of_refl [iff]: "S retract_of S"
-  using continuous_on_id retract_of_def retraction_def by fastforce
+  unfolding retract_of_def retraction_def
+  using continuous_on_id by blast
 
 lemma retract_of_imp_subset:
    "S retract_of T \<Longrightarrow> S \<subseteq> T"
@@ -2047,8 +2048,7 @@ lemma retract_of_empty [simp]:
 by (auto simp: retract_of_def retraction_def)
 
 lemma retract_of_singleton [iff]: "({x} retract_of S) \<longleftrightarrow> x \<in> S"
-  using continuous_on_const
-  by (auto simp: retract_of_def retraction_def)
+  unfolding retract_of_def retraction_def by force
 
 lemma retraction_comp:
    "\<lbrakk>retraction S T f; retraction T U g\<rbrakk>

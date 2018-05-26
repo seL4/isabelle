@@ -8371,15 +8371,12 @@ proposition%important nullhomotopic_from_sphere_extension:
                (\<forall>x \<in> sphere a r. g x = f x))"
          (is "?lhs = ?rhs")
 proof%unimportant (cases r "0::real" rule: linorder_cases)
-  case less
-  then show ?thesis by simp
-next
   case equal
-  with continuous_on_const show ?thesis
+  then show ?thesis
     apply (auto simp: homotopic_with)
     apply (rule_tac x="\<lambda>x. h (0, a)" in exI)
-    apply (fastforce simp add:)
-    done
+     apply (fastforce simp add:)
+    using continuous_on_const by blast
 next
   case greater
   let ?P = "continuous_on {x. norm(x - a) = r} f \<and> f ` {x. norm(x - a) = r} \<subseteq> S"
@@ -8494,6 +8491,6 @@ next
   qed
   ultimately
   show ?thesis by meson
-qed
+qed simp
 
 end
