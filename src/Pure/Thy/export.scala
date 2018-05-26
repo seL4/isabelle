@@ -187,6 +187,47 @@ object Export
   }
 
 
+  /* export to file-system */
+
+  def export_files(
+    store: Sessions.Store,
+    session_name: String,
+    export_dir: Path,
+    progress: Progress = No_Progress,
+    export_list: Boolean = false,
+    export_pattern: String = "")
+  {
+    using(store.open_database(session_name))(db =>
+    {
+      db.transaction {
+        val export_names = read_theory_exports(db, session_name)
+
+        // list
+        if (export_list) {
+          (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
+            sorted.foreach(Output.writeln(_, stdout = true))
+        }
+
+        // export
+        if (export_pattern != "") {
+          val xz_cache = XZ.make_cache()
+
+          val matcher = make_matcher(export_pattern)
+          for {
+            (theory_name, name) <- export_names if matcher(theory_name, name)
+            entry <- read_entry(db, session_name, theory_name, name)
+          } {
+            val path = export_dir + Path.basic(theory_name) + Path.explode(name)
+            progress.echo("exporting " + path)
+            Isabelle_System.mkdirs(path.dir)
+            Bytes.write(path, entry.uncompressed(cache = xz_cache))
+          }
+        }
+      }
+    })
+  }
+
+
   /* Isabelle tool wrapper */
 
   val default_export_dir = Path.explode("export")
@@ -256,37 +297,10 @@ Usage: isabelle export [OPTIONS] SESSION
     }
 
 
-    /* database */
+    /* export files */
 
     val store = Sessions.store(options, system_mode)
-
-    using(store.open_database(session_name))(db =>
-    {
-      db.transaction {
-        val export_names = read_theory_exports(db, session_name)
-
-        // list
-        if (export_list) {
-          (for ((theory_name, name) <- export_names) yield compound_name(theory_name, name)).
-            sorted.foreach(Output.writeln(_, stdout = true))
-        }
-
-        // export
-        if (export_pattern != "") {
-          val xz_cache = XZ.make_cache()
-
-          val matcher = make_matcher(export_pattern)
-          for {
-            (theory_name, name) <- export_names if matcher(theory_name, name)
-            entry <- read_entry(db, session_name, theory_name, name)
-          } {
-            val path = export_dir + Path.basic(theory_name) + Path.explode(name)
-            progress.echo("exporting " + path)
-            Isabelle_System.mkdirs(path.dir)
-            Bytes.write(path, entry.uncompressed(cache = xz_cache))
-          }
-        }
-      }
-    })
+    export_files(store, session_name, export_dir, progress = progress,
+      export_list = export_list, export_pattern = export_pattern)
   })
 }
