@@ -1796,8 +1796,7 @@ lemma powr_nat:
 
 lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = exp(Re z * ln(Re w))"
   apply (simp add: powr_def)
-  using Im_Ln_eq_0 complex_is_Real_iff norm_complex_def
-  by auto
+  using Im_Ln_eq_0 complex_is_Real_iff norm_complex_def  by auto
 
 lemma powr_complexpow [simp]:
   fixes x::complex shows "x \<noteq> 0 \<Longrightarrow> x powr (of_nat n) = x^n"
@@ -1817,10 +1816,14 @@ proof (cases "a = 0")
 qed simp
 
 lemma powr_real_real:
-    "\<lbrakk>w \<in> \<real>; z \<in> \<real>; 0 < Re w\<rbrakk> \<Longrightarrow> w powr z = exp(Re z * ln(Re w))"
-  apply (simp add: powr_def)
-  by (metis complex_eq complex_is_Real_iff diff_0 diff_0_right diff_minus_eq_add exp_ln exp_not_eq_zero
-       exp_of_real Ln_of_real mult_zero_right of_real_0 of_real_mult)
+  assumes "w \<in> \<real>" "z \<in> \<real>" "0 < Re w"
+  shows "w powr z = exp(Re z * ln(Re w))"
+proof -
+  have "w \<noteq> 0"
+    using assms by auto
+  with assms show ?thesis
+    by (simp add: powr_def Ln_Reals_eq of_real_exp)
+qed
 
 lemma powr_of_real:
   fixes x::real and y::real
@@ -1874,13 +1877,14 @@ lemma has_field_derivative_powr:
   shows "((\<lambda>z. z powr s) has_field_derivative (s * z powr (s - 1))) (at z)"
 proof (cases "z=0")
   case False
-  with assms show ?thesis
-  apply (simp add: powr_def)
-  apply (rule DERIV_transform_at [where d = "norm z" and f = "\<lambda>z. exp (s * Ln z)"])
-  apply (auto simp: dist_complex_def)
-    apply (intro derivative_eq_intros | simp)+
-  apply (simp add: field_simps exp_diff)
-  done
+  show ?thesis
+    unfolding powr_def
+  proof (rule DERIV_transform_at)
+    show "((\<lambda>z. exp (s * Ln z)) has_field_derivative s * (if z = 0 then 0 else exp ((s - 1) * Ln z)))
+           (at z)"
+      apply (intro derivative_eq_intros | simp add: assms)+
+      by (simp add: False divide_complex_def exp_diff left_diff_distrib')
+  qed (use False in auto)
 qed (use assms in auto)
 
 declare has_field_derivative_powr[THEN DERIV_chain2, derivative_intros]
@@ -1908,12 +1912,12 @@ proof -
                 \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative dd') (at z within s)"
       by simp
     also have "... \<longleftrightarrow> ((\<lambda>z. g z ^ nat n) has_field_derivative dd') (at z within s)"
-      apply (rule has_field_derivative_cong_eventually)
-      subgoal unfolding eventually_at
+    proof (rule has_field_derivative_cong_eventually)
+      show "\<forall>\<^sub>F x in at z within s. g x powr of_int n = g x ^ nat n"
+        unfolding eventually_at
         apply (rule exI[where x=e])
         using powr_of_int that \<open>e>0\<close> e_dist by (simp add: dist_commute)
-      subgoal using powr_of_int \<open>g z\<noteq>0\<close> that by simp
-      done
+    qed (use powr_of_int \<open>g z\<noteq>0\<close> that in simp)
     also have "..." unfolding dd'_def using gderiv that
       by (auto intro!: derivative_eq_intros)
     finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)" .
@@ -1933,17 +1937,20 @@ proof -
                 \<longleftrightarrow> ((\<lambda>z. g z powr of_int n) has_field_derivative dd') (at z within s)"
       by simp
     also have "... \<longleftrightarrow> ((\<lambda>z. inverse (g z ^ nat (-n))) has_field_derivative dd') (at z within s)"
-      apply (rule has_field_derivative_cong_eventually)
-      subgoal unfolding eventually_at
+    proof (rule has_field_derivative_cong_eventually)
+      show "\<forall>\<^sub>F x in at z within s. g x powr of_int n = inverse (g x ^ nat (- n))"
+         unfolding eventually_at
         apply (rule exI[where x=e])
         using powr_of_int that \<open>e>0\<close> e_dist by (simp add: dist_commute)
-      subgoal using powr_of_int \<open>g z\<noteq>0\<close> that by simp
-      done
-    also have "..." unfolding dd'_def using gderiv that \<open>g z\<noteq>0\<close>
-      apply (auto intro!: derivative_eq_intros)
-      apply (simp add:divide_simps power_add[symmetric])
-      apply (subgoal_tac "nat (- n) + nat (1 - n) - Suc 0 = nat (- n) + nat (- n)")
-      by auto
+    qed (use powr_of_int \<open>g z\<noteq>0\<close> that in simp)
+    also have "..."
+    proof -
+      have "nat (- n) + nat (1 - n) - Suc 0 = nat (- n) + nat (- n)"
+        by auto
+      then show ?thesis
+        unfolding dd'_def using gderiv that \<open>g z\<noteq>0\<close>
+        by (auto intro!: derivative_eq_intros simp add:divide_simps power_add[symmetric])
+    qed
     finally have "((\<lambda>z. g z powr of_int n) has_field_derivative dd) (at z within s)" .
     then show ?thesis unfolding dd_def by simp
   qed
@@ -1990,15 +1997,11 @@ lemma holomorphic_on_powr_right [holomorphic_intros]:
   assumes "f holomorphic_on s"
   shows "(\<lambda>z. w powr (f z)) holomorphic_on s"
 proof (cases "w = 0")
-  case True
-  then show ?thesis
-    by simp
-next
   case False
   with assms show ?thesis
     unfolding holomorphic_on_def field_differentiable_def
     by (metis (full_types) DERIV_chain' has_field_derivative_powr_right)
-qed
+qed simp
 
 lemma holomorphic_on_divide_gen [holomorphic_intros]:
   assumes f: "f holomorphic_on s" and g: "g holomorphic_on s" and 0: "\<And>z z'. \<lbrakk>z \<in> s; z' \<in> s\<rbrakk> \<Longrightarrow> g z = 0 \<longleftrightarrow> g z' = 0"
@@ -2019,14 +2022,7 @@ qed
 
 lemma norm_powr_real_powr:
   "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"
-  by (cases "w = 0") 
-     (auto simp add: norm_powr_real powr_def Im_Ln_eq_0
-                     complex_is_Real_iff in_Reals_norm complex_eq_iff)
-
-lemma tendsto_ln_complex [tendsto_intros]:
-  assumes "(f \<longlongrightarrow> a) F" "a \<notin> \<real>\<^sub>\<le>\<^sub>0"
-  shows   "((\<lambda>z. ln (f z :: complex)) \<longlongrightarrow> ln a) F"
-  using tendsto_compose[OF continuous_at_Ln[of a, unfolded isCont_def] assms(1)] assms(2) by simp
+  by (metis dual_order.order_iff_strict norm_powr_real norm_zero of_real_0 of_real_Re powr_def)
 
 lemma tendsto_powr_complex:
   fixes f g :: "_ \<Rightarrow> complex"
@@ -2095,16 +2091,9 @@ qed
 
 lemma tendsto_powr_complex' [tendsto_intros]:
   fixes f g :: "_ \<Rightarrow> complex"
-  assumes fz: "a \<notin> \<real>\<^sub>\<le>\<^sub>0 \<or> (a = 0 \<and> Re b > 0)"
-  assumes fg: "(f \<longlongrightarrow> a) F" "(g \<longlongrightarrow> b) F"
+  assumes "a \<notin> \<real>\<^sub>\<le>\<^sub>0 \<or> (a = 0 \<and> Re b > 0)" and "(f \<longlongrightarrow> a) F" "(g \<longlongrightarrow> b) F"
   shows   "((\<lambda>z. f z powr g z) \<longlongrightarrow> a powr b) F"
-proof (cases "a = 0")
-  case True
-  with assms show ?thesis by (auto intro!: tendsto_powr_complex_0)
-next
-  case False
-  with assms show ?thesis by (auto intro!: tendsto_powr_complex elim!: nonpos_Reals_cases)
-qed
+  using assms tendsto_powr_complex tendsto_powr_complex_0 by fastforce
 
 lemma tendsto_neg_powr_complex_of_real:
   assumes "filterlim f at_top F" and "Re s < 0"
@@ -2185,12 +2174,13 @@ proof (simp add: lim_sequentially dist_norm, clarify)
       using e assms by simp
     with x have "x > 0"
       by linarith
-    then show "0 < e * 2 + (e * Re s * 2 - 2) * x + e * (Re s)\<^sup>2 * x\<^sup>2"
-      using e assms x
-      apply (auto simp: field_simps)
-      apply (rule_tac y = "e * (x\<^sup>2 * (Re s)\<^sup>2)" in le_less_trans)
-      apply (auto simp: power2_eq_square field_simps add_pos_pos)
-      done
+    then have "x * 2 \<le> e * (x\<^sup>2 * (Re s)\<^sup>2)"
+      using e assms x by (auto simp: power2_eq_square field_simps)
+    also have "... < e * (2 + (x * (Re s * 2) + x\<^sup>2 * (Re s)\<^sup>2))"
+      using e assms \<open>x > 0\<close>
+      by (auto simp: power2_eq_square field_simps add_pos_pos)
+    finally show "0 < e * 2 + (e * Re s * 2 - 2) * x + e * (Re s)\<^sup>2 * x\<^sup>2"
+      by (auto simp: algebra_simps)
   qed
   then have "\<exists>xo>0. \<forall>x\<ge>xo. x / e < 1 + (Re s * x) + (1/2) * (Re s * x)^2"
     using e  by (simp add: field_simps)
@@ -2217,8 +2207,7 @@ lemma lim_ln_over_power:
     shows "((\<lambda>n. ln n / (n powr s)) \<longlongrightarrow> 0) sequentially"
   using lim_Ln_over_power [of "of_real s", THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
-  apply (simp add: lim_sequentially dist_norm
-          Ln_Reals_eq norm_powr_real_powr norm_divide)
+  apply (simp add: lim_sequentially dist_norm Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
 lemma lim_ln_over_n: "((\<lambda>n. ln(real_of_nat n) / of_nat n) \<longlongrightarrow> 0) sequentially"
@@ -2414,14 +2403,15 @@ lemma continuous_within_csqrt_posreal:
     "continuous (at z within (\<real> \<inter> {w. 0 \<le> Re(w)})) csqrt"
 proof (cases "z \<in> \<real>\<^sub>\<le>\<^sub>0")
   case True
-  then have "Im z = 0" "Re z < 0 \<or> z = 0"
-    using cnj.code complex_cnj_zero_iff  by (auto simp: Complex_eq complex_nonpos_Reals_iff) fastforce
-  then show ?thesis
+  have *: "\<And>e. \<lbrakk>0 < e\<rbrakk>
+         \<Longrightarrow> \<forall>x'\<in>\<real> \<inter> {w. 0 \<le> Re w}. cmod x' < e^2 \<longrightarrow> cmod (csqrt x') < e"
+    by (auto simp: Reals_def real_less_lsqrt)
+  have "Im z = 0" "Re z < 0 \<or> z = 0"
+    using True cnj.code complex_cnj_zero_iff  by (auto simp: Complex_eq complex_nonpos_Reals_iff) fastforce
+  with * show ?thesis
     apply (auto simp: continuous_within_closed_nontrivial [OF closed_Real_halfspace_Re_ge])
-    apply (auto simp: continuous_within_eps_delta norm_conv_dist [symmetric])
-    apply (rule_tac x="e^2" in exI)
-    apply (auto simp: Reals_def)
-    by (metis linear not_less real_sqrt_less_iff real_sqrt_pow2_iff real_sqrt_power)
+    apply (auto simp: continuous_within_eps_delta)
+    using zero_less_power by blast
 next
   case False
     then show ?thesis   by (blast intro: continuous_within_csqrt)
@@ -2514,8 +2504,8 @@ lemma
 proof -
   have nz0: "1 + \<i>*z \<noteq> 0"
     using assms
-    by (metis abs_one complex_i_mult_minus diff_0_right diff_minus_eq_add imaginary_unit.simps
-              less_irrefl minus_diff_eq mult.right_neutral right_minus_eq)
+    by (metis abs_one add_diff_cancel_left' complex_i_mult_minus diff_0 i_squared imaginary_unit.simps 
+                less_asym neg_equal_iff_equal)
   have "z \<noteq> -\<i>" using assms
     by auto
   then have zz: "1 + z * z \<noteq> 0"
@@ -2543,11 +2533,10 @@ proof -
     done
   show "(Arctan has_field_derivative inverse(1 + z\<^sup>2)) (at z)"
     unfolding Arctan_def scaleR_conv_of_real
-    apply (rule DERIV_cong)
     apply (intro derivative_eq_intros | simp add: nz0 *)+
     using nz0 nz1 zz
-    apply (simp add: divide_simps power2_eq_square)
-    apply (auto simp: algebra_simps)
+    apply (simp add: algebra_simps divide_simps power2_eq_square)
+    apply algebra
     done
 qed
 
@@ -2594,8 +2583,8 @@ proof -
     proof
       fix n
       have "ereal (norm (h u n) / norm (h u (Suc n))) =
-             ereal (inverse (norm u)^2) * ereal ((of_nat (2*Suc n+1) / of_nat (Suc n)) /
-                 (of_nat (2*Suc n-1) / of_nat (Suc n)))"
+             ereal (inverse (norm u)^2) * ereal (((2*Suc n+1) / (Suc n)) /
+                 ((2*Suc n-1) / (Suc n)))"
       by (simp add: h_def norm_mult norm_power norm_divide divide_simps
                     power2_eq_square eval_nat_numeral del: of_nat_add of_nat_Suc)
       also have "of_nat (2*Suc n+1) / of_nat (Suc n) = (2::real) + inverse (real (Suc n))"
@@ -2641,10 +2630,10 @@ proof -
     finally have "(G has_field_derivative inverse (1 + u\<^sup>2)) (at u)" .
     from DERIV_diff[OF has_field_derivative_Arctan this] Im_u u
       show "((\<lambda>u. Arctan u - G u) has_field_derivative 0) (at u within ball 0 1)"
-      by (simp_all add: dist_0_norm at_within_open[OF _ open_ball])
+      by (simp_all add: at_within_open[OF _ open_ball])
   qed simp_all
-  then obtain c where c: "\<And>u. norm u < 1 \<Longrightarrow> Arctan u - G u = c" by (auto simp: dist_0_norm)
-  from this[of 0] have "c = 0" by (simp add: G_def g_def powser_zero)
+  then obtain c where c: "\<And>u. norm u < 1 \<Longrightarrow> Arctan u - G u = c" by auto
+  from this[of 0] have "c = 0" by (simp add: G_def g_def)
   with c z have "Arctan z = G z" by simp
   with summable[OF z] show "(\<lambda>n. g n * z^n) sums Arctan z" unfolding G_def by (simp add: sums_iff)
   thus "h z sums Arctan z" by (subst (asm) sums_mono_reindex[of "\<lambda>n. 2*n+1", symmetric])
@@ -2690,14 +2679,19 @@ lemma norm_exp_imaginary: "norm(exp z) = 1 \<Longrightarrow> Re z = 0"
   by simp
 
 lemma Im_Arctan_of_real [simp]: "Im (Arctan (of_real x)) = 0"
-  unfolding Arctan_def divide_complex_def
-  apply (simp add: complex_eq_iff)
-  apply (rule norm_exp_imaginary)
-  apply (subst exp_Ln, auto)
-  apply (simp_all add: cmod_def complex_eq_iff)
-  apply (auto simp: divide_simps)
-  apply (metis power_one sum_power2_eq_zero_iff zero_neq_one, algebra)
-  done
+proof -
+  have ne: "1 + x\<^sup>2 \<noteq> 0"
+    by (metis power_one sum_power2_eq_zero_iff zero_neq_one)
+  have "Re (Ln ((1 - \<i> * x) * inverse (1 + \<i> * x))) = 0"
+    apply (rule norm_exp_imaginary)
+    apply (subst exp_Ln)
+    using ne apply (simp_all add: cmod_def complex_eq_iff)
+    apply (auto simp: divide_simps)
+    apply algebra
+    done
+  then show ?thesis
+    unfolding Arctan_def divide_complex_def by (simp add: complex_eq_iff)
+qed
 
 lemma arctan_eq_Re_Arctan: "arctan x = Re (Arctan (of_real x))"
 proof (rule arctan_unique)
@@ -2796,15 +2790,13 @@ qed
 lemma abs_arctan_le:
   fixes x::real shows "\<bar>arctan x\<bar> \<le> \<bar>x\<bar>"
 proof -
-  { fix w::complex and z::complex
-    assume *: "w \<in> \<real>" "z \<in> \<real>"
-    have "cmod (Arctan w - Arctan z) \<le> 1 * cmod (w-z)"
-      apply (rule field_differentiable_bound [OF convex_Reals, of Arctan _ 1])
-      apply (rule has_field_derivative_at_within [OF has_field_derivative_Arctan])
-      apply (force simp add: Reals_def)
-      apply (simp add: norm_divide divide_simps in_Reals_norm complex_is_Real_iff power2_eq_square)
-      using * by auto
-  }
+  have 1: "\<And>x. x \<in> \<real> \<Longrightarrow> cmod (inverse (1 + x\<^sup>2)) \<le> 1"
+    by (simp add: norm_divide divide_simps in_Reals_norm complex_is_Real_iff power2_eq_square)
+  have "cmod (Arctan w - Arctan z) \<le> 1 * cmod (w-z)" if "w \<in> \<real>" "z \<in> \<real>" for w z
+    apply (rule field_differentiable_bound [OF convex_Reals, of Arctan _ 1])
+       apply (rule has_field_derivative_at_within [OF has_field_derivative_Arctan])
+    using 1 that apply (auto simp: Reals_def)
+    done
   then have "cmod (Arctan (of_real x) - Arctan 0) \<le> 1 * cmod (of_real x -0)"
     using Reals_0 Reals_of_real by blast
   then show ?thesis
@@ -2826,15 +2818,14 @@ lemma arctan_bounds:
     "arctan x \<le> (\<Sum>k<2 * n + 1. (- 1) ^ k * (1 / real (k * 2 + 1) * x ^ (k * 2 + 1)))"
 proof -
   have tendsto_zero: "?a \<longlonglongrightarrow> 0"
-    using assms
-    apply -
-    apply (rule tendsto_eq_rhs[where x="0 * 0"])
-    subgoal by (intro tendsto_mult real_tendsto_divide_at_top)
+  proof (rule tendsto_eq_rhs)
+    show "(\<lambda>k. 1 / real (k * 2 + 1) * x ^ (k * 2 + 1)) \<longlonglongrightarrow> 0 * 0"
+      using assms
+      by (intro tendsto_mult real_tendsto_divide_at_top)
         (auto simp: filterlim_real_sequentially filterlim_sequentially_iff_filterlim_real
           intro!: real_tendsto_divide_at_top tendsto_power_zero filterlim_real_sequentially
-           tendsto_eq_intros filterlim_at_top_mult_tendsto_pos filterlim_tendsto_add_at_top)
-    subgoal by simp
-    done
+          tendsto_eq_intros filterlim_at_top_mult_tendsto_pos filterlim_tendsto_add_at_top)
+  qed simp
   have nonneg: "0 \<le> ?a n" for n
     by (force intro!: divide_nonneg_nonneg mult_nonneg_nonneg zero_le_power assms)
   have le: "?a (Suc n) \<le> ?a n" for n
@@ -2849,8 +2840,7 @@ qed
 subsection \<open>Bounds on pi using real arctangent\<close>
 
 lemma pi_machin: "pi = 16 * arctan (1 / 5) - 4 * arctan (1 / 239)"
-  using machin
-  by simp
+  using machin by simp
 
 lemma pi_approx: "3.141592653588 \<le> pi" "pi \<le> 3.1415926535899"
   unfolding pi_machin
@@ -2885,10 +2875,10 @@ lemma Im_Arcsin: "Im(Arcsin z) = - ln (cmod (\<i> * z + csqrt (1 - z\<^sup>2)))"
 lemma one_minus_z2_notin_nonpos_Reals:
   assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
   shows "1 - z\<^sup>2 \<notin> \<real>\<^sub>\<le>\<^sub>0"
-    using assms
-    apply (auto simp: complex_nonpos_Reals_iff Re_power2 Im_power2)
-    using power2_less_0 [of "Im z"] apply force
-    using abs_square_less_1 not_le by blast
+  using assms
+  apply (auto simp: complex_nonpos_Reals_iff Re_power2 Im_power2)
+  using power2_less_0 [of "Im z"] apply force
+  using abs_square_less_1 not_le by blast
 
 lemma isCont_Arcsin_lemma:
   assumes le0: "Re (\<i> * z + csqrt (1 - z\<^sup>2)) \<le> 0" and "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
@@ -2899,6 +2889,8 @@ proof (cases "Im z = 0")
     using assms by (fastforce simp: cmod_def abs_square_less_1 [symmetric])
 next
   case False
+  have leim: "(cmod (1 - z\<^sup>2) + (1 - Re (z\<^sup>2))) / 2 \<le> (Im z)\<^sup>2"
+    using le0 sqrt_le_D by fastforce
   have neq: "(cmod z)\<^sup>2 \<noteq> 1 + cmod (1 - z\<^sup>2)"
   proof (clarsimp simp add: cmod_def)
     assume "(Re z)\<^sup>2 + (Im z)\<^sup>2 = 1 + sqrt ((1 - Re (z\<^sup>2))\<^sup>2 + (Im (z\<^sup>2))\<^sup>2)"
@@ -2908,12 +2900,8 @@ next
       by (simp add: power2_eq_square algebra_simps)
   qed
   moreover have 2: "(Im z)\<^sup>2 = (1 + ((Im z)\<^sup>2 + cmod (1 - z\<^sup>2)) - (Re z)\<^sup>2) / 2"
-    using le0
-    apply simp
-    apply (drule sqrt_le_D)
-    using cmod_power2 [of z] norm_triangle_ineq2 [of "z^2" 1]
-    apply (simp add: norm_power Re_power2 norm_minus_commute [of 1])
-    done
+    using leim cmod_power2 [of z] norm_triangle_ineq2 [of "z^2" 1]
+    by (simp add: norm_power Re_power2 norm_minus_commute [of 1])
   ultimately show False
     by (simp add: Re_power2 Im_power2 cmod_power2)
 qed
@@ -2922,15 +2910,12 @@ lemma isCont_Arcsin:
   assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
     shows "isCont Arcsin z"
 proof -
-  have *: "\<i> * z + csqrt (1 - z\<^sup>2) \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  have 1: "\<i> * z + csqrt (1 - z\<^sup>2) \<notin> \<real>\<^sub>\<le>\<^sub>0"
     by (metis isCont_Arcsin_lemma assms complex_nonpos_Reals_iff)
+  have 2: "1 - z\<^sup>2 \<notin> \<real>\<^sub>\<le>\<^sub>0"
+    by (simp add: one_minus_z2_notin_nonpos_Reals assms)
   show ?thesis
-    using assms
-    apply (simp add: Arcsin_def)
-    apply (rule isCont_Ln' isCont_csqrt' continuous_intros)+
-    apply (simp add: one_minus_z2_notin_nonpos_Reals assms)
-    apply (rule *)
-    done
+    using assms unfolding Arcsin_def by (intro isCont_Ln' isCont_csqrt' continuous_intros 1 2)
 qed
 
 lemma isCont_Arcsin' [simp]:
@@ -2982,10 +2967,7 @@ proof -
   also have "... =  - (\<i> * Ln (exp (\<i>*z)))"
     by (simp add: field_simps power2_eq_square)
   also have "... = z"
-    apply (subst Complex_Transcendental.Ln_exp)
-    using assms
-    apply (auto simp: abs_if simp del: eq_divide_eq_numeral1 split: if_split_asm)
-    done
+    using assms by (auto simp: abs_if simp del: eq_divide_eq_numeral1 split: if_split_asm)
   finally show ?thesis .
 qed
 
@@ -3003,21 +2985,15 @@ lemma Arcsin_minus_1 [simp]: "Arcsin(-1) = - (pi/2)"
   by (metis Arcsin_1 Arcsin_sin Im_complex_of_real Re_complex_of_real abs_of_nonneg of_real_minus pi_half_ge_zero power2_minus real_sqrt_abs sin_Arcsin sin_minus)
 
 lemma has_field_derivative_Arcsin:
-  assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
+  assumes "Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1"
     shows "(Arcsin has_field_derivative inverse(cos(Arcsin z))) (at z)"
-proof -
+proof - 
   have "(sin (Arcsin z))\<^sup>2 \<noteq> 1"
-    using assms
-    apply atomize
-    apply (auto simp: complex_eq_iff Re_power2 Im_power2 abs_square_eq_1)
-    apply (metis abs_minus_cancel abs_one abs_power2 numeral_One numeral_neq_neg_one)
-    by (metis abs_minus_cancel abs_one abs_power2 one_neq_neg_one)
+    using assms one_minus_z2_notin_nonpos_Reals by force
   then have "cos (Arcsin z) \<noteq> 0"
     by (metis diff_0_right power_zero_numeral sin_squared_eq)
   then show ?thesis
-    apply (rule has_field_derivative_inverse_basic [OF DERIV_sin _ _ open_ball [of z 1]])
-    apply (auto intro: isCont_Arcsin assms)
-    done
+    by (rule has_field_derivative_inverse_basic [OF DERIV_sin _ _ open_ball [of z 1]]) (auto intro: isCont_Arcsin assms)
 qed
 
 declare has_field_derivative_Arcsin [derivative_intros]
@@ -3049,13 +3025,11 @@ definition Arccos :: "complex \<Rightarrow> complex" where
    "Arccos \<equiv> \<lambda>z. -\<i> * Ln(z + \<i> * csqrt(1 - z\<^sup>2))"
 
 lemma Arccos_range_lemma: "\<bar>Re z\<bar> < 1 \<Longrightarrow> 0 < Im(z + \<i> * csqrt(1 - z\<^sup>2))"
-  using Arcsin_range_lemma [of "-z"]
-  by simp
+  using Arcsin_range_lemma [of "-z"]  by simp
 
 lemma Arccos_body_lemma: "z + \<i> * csqrt(1 - z\<^sup>2) \<noteq> 0"
   using Arcsin_body_lemma [of z]
-  by (metis complex_i_mult_minus diff_add_cancel minus_diff_eq minus_unique mult.assoc mult.left_commute
-           power2_csqrt power2_eq_square zero_neq_one)
+  by (metis Arcsin_body_lemma complex_i_mult_minus diff_minus_eq_add power2_minus right_minus_eq)
 
 lemma Re_Arccos: "Re(Arccos z) = Im (Ln (z + \<i> * csqrt(1 - z\<^sup>2)))"
   by (simp add: Arccos_def)
@@ -3158,7 +3132,7 @@ lemma Arccos_unique:
   using Arccos_cos by blast
 
 lemma Arccos_0 [simp]: "Arccos 0 = pi/2"
-  by (rule Arccos_unique) (auto simp: of_real_numeral)
+  by (rule Arccos_unique) auto
 
 lemma Arccos_1 [simp]: "Arccos 1 = 0"
   by (rule Arccos_unique) auto
@@ -3170,19 +3144,15 @@ lemma has_field_derivative_Arccos:
   assumes "(Im z = 0 \<Longrightarrow> \<bar>Re z\<bar> < 1)"
     shows "(Arccos has_field_derivative - inverse(sin(Arccos z))) (at z)"
 proof -
-  have "(cos (Arccos z))\<^sup>2 \<noteq> 1"
-    using assms
-    apply atomize
-    apply (auto simp: complex_eq_iff Re_power2 Im_power2 abs_square_eq_1)
-    apply (metis abs_minus_cancel abs_one abs_power2 numeral_One numeral_neq_neg_one)
-    apply (metis left_minus less_irrefl power_one sum_power2_gt_zero_iff zero_neq_neg_one)
-    done
+  have "x\<^sup>2 \<noteq> -1" for x::real
+    by (sos "((R<1 + (([~1] * A=0) + (R<1 * (R<1 * [x__]^2)))))")
+  with assms have "(cos (Arccos z))\<^sup>2 \<noteq> 1"
+    by (auto simp: complex_eq_iff Re_power2 Im_power2 abs_square_eq_1)
   then have "- sin (Arccos z) \<noteq> 0"
     by (metis cos_squared_eq diff_0_right mult_zero_left neg_0_equal_iff_equal power2_eq_square)
   then have "(Arccos has_field_derivative inverse(- sin(Arccos z))) (at z)"
-    apply (rule has_field_derivative_inverse_basic [OF DERIV_cos _ _ open_ball [of z 1]])
-    apply (auto intro: isCont_Arccos assms)
-    done
+    by (rule has_field_derivative_inverse_basic [OF DERIV_cos _ _ open_ball [of z 1]])
+       (auto intro: isCont_Arccos assms)
   then show ?thesis
     by simp
 qed

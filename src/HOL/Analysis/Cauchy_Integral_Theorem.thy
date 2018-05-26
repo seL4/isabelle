@@ -91,14 +91,14 @@ definition piecewise_differentiable_on
            (infixr "piecewise'_differentiable'_on" 50)
   where "f piecewise_differentiable_on i  \<equiv>
            continuous_on i f \<and>
-           (\<exists>s. finite s \<and> (\<forall>x \<in> i - s. f differentiable (at x within i)))"
+           (\<exists>S. finite S \<and> (\<forall>x \<in> i - S. f differentiable (at x within i)))"
 
 lemma piecewise_differentiable_on_imp_continuous_on:
-    "f piecewise_differentiable_on s \<Longrightarrow> continuous_on s f"
+    "f piecewise_differentiable_on S \<Longrightarrow> continuous_on S f"
 by (simp add: piecewise_differentiable_on_def)
 
 lemma piecewise_differentiable_on_subset:
-    "f piecewise_differentiable_on s \<Longrightarrow> t \<le> s \<Longrightarrow> f piecewise_differentiable_on t"
+    "f piecewise_differentiable_on S \<Longrightarrow> T \<le> S \<Longrightarrow> f piecewise_differentiable_on T"
   using continuous_on_subset
   unfolding piecewise_differentiable_on_def
   apply safe
@@ -113,29 +113,29 @@ lemma differentiable_on_imp_piecewise_differentiable:
   done
 
 lemma differentiable_imp_piecewise_differentiable:
-    "(\<And>x. x \<in> s \<Longrightarrow> f differentiable (at x within s))
-         \<Longrightarrow> f piecewise_differentiable_on s"
+    "(\<And>x. x \<in> S \<Longrightarrow> f differentiable (at x within S))
+         \<Longrightarrow> f piecewise_differentiable_on S"
 by (auto simp: piecewise_differentiable_on_def differentiable_imp_continuous_on differentiable_on_def
          intro: differentiable_within_subset)
 
-lemma piecewise_differentiable_const [iff]: "(\<lambda>x. z) piecewise_differentiable_on s"
+lemma piecewise_differentiable_const [iff]: "(\<lambda>x. z) piecewise_differentiable_on S"
   by (simp add: differentiable_imp_piecewise_differentiable)
 
 lemma piecewise_differentiable_compose:
-    "\<lbrakk>f piecewise_differentiable_on s; g piecewise_differentiable_on (f ` s);
-      \<And>x. finite (s \<inter> f-`{x})\<rbrakk>
-      \<Longrightarrow> (g o f) piecewise_differentiable_on s"
+    "\<lbrakk>f piecewise_differentiable_on S; g piecewise_differentiable_on (f ` S);
+      \<And>x. finite (S \<inter> f-`{x})\<rbrakk>
+      \<Longrightarrow> (g o f) piecewise_differentiable_on S"
   apply (simp add: piecewise_differentiable_on_def, safe)
   apply (blast intro: continuous_on_compose2)
   apply (rename_tac A B)
-  apply (rule_tac x="A \<union> (\<Union>x\<in>B. s \<inter> f-`{x})" in exI)
+  apply (rule_tac x="A \<union> (\<Union>x\<in>B. S \<inter> f-`{x})" in exI)
   apply (blast intro!: differentiable_chain_within)
   done
 
 lemma piecewise_differentiable_affine:
   fixes m::real
-  assumes "f piecewise_differentiable_on ((\<lambda>x. m *\<^sub>R x + c) ` s)"
-  shows "(f o (\<lambda>x. m *\<^sub>R x + c)) piecewise_differentiable_on s"
+  assumes "f piecewise_differentiable_on ((\<lambda>x. m *\<^sub>R x + c) ` S)"
+  shows "(f o (\<lambda>x. m *\<^sub>R x + c)) piecewise_differentiable_on S"
 proof (cases "m = 0")
   case True
   then show ?thesis
@@ -156,13 +156,13 @@ lemma piecewise_differentiable_cases:
            "a \<le> c" "c \<le> b" "f c = g c"
   shows "(\<lambda>x. if x \<le> c then f x else g x) piecewise_differentiable_on {a..b}"
 proof -
-  obtain s t where st: "finite s" "finite t"
-                       "\<forall>x\<in>{a..c} - s. f differentiable at x within {a..c}"
-                       "\<forall>x\<in>{c..b} - t. g differentiable at x within {c..b}"
+  obtain S T where st: "finite S" "finite T"
+               and fd: "\<And>x. x \<in> {a..c} - S \<Longrightarrow> f differentiable at x within {a..c}"
+               and gd: "\<And>x. x \<in> {c..b} - T \<Longrightarrow> g differentiable at x within {c..b}"
     using assms
     by (auto simp: piecewise_differentiable_on_def)
-  have finabc: "finite ({a,b,c} \<union> (s \<union> t))"
-    by (metis \<open>finite s\<close> \<open>finite t\<close> finite_Un finite_insert finite.emptyI)
+  have finabc: "finite ({a,b,c} \<union> (S \<union> T))"
+    by (metis \<open>finite S\<close> \<open>finite T\<close> finite_Un finite_insert finite.emptyI)
   have "continuous_on {a..c} f" "continuous_on {c..b} g"
     using assms piecewise_differentiable_on_def by auto
   then have "continuous_on {a..b} (\<lambda>x. if x \<le> c then f x else g x)"
@@ -172,43 +172,35 @@ proof -
     by (force simp: ivl_disj_un_two_touch)
   moreover
   { fix x
-    assume x: "x \<in> {a..b} - ({a,b,c} \<union> (s \<union> t))"
+    assume x: "x \<in> {a..b} - ({a,b,c} \<union> (S \<union> T))"
     have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b}" (is "?diff_fg")
     proof (cases x c rule: le_cases)
       case le show ?diff_fg
-      proof (rule differentiable_transform_within [where d = "dist x c" and f = f])
-        have "f differentiable at x within ({a<..<c} - s)"
-          apply (rule differentiable_at_withinI)
-          using x le st
-          by (metis (no_types, lifting) DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost_real le st(3) x)
-        moreover have "open ({a<..<c} - s)"
-          by (blast intro: open_greaterThanLessThan \<open>finite s\<close> finite_imp_closed)
-        ultimately show "f differentiable at x within {a..b}"
-          using x le by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI)
+      proof (rule differentiable_transform_within [where d = "dist x c"])
+        have "f differentiable at x"
+          using x le fd [of x] at_within_interior [of x "{a..c}"] by simp
+        then show "f differentiable at x within {a..b}"
+          by (simp add: differentiable_at_withinI)
       qed (use x le st dist_real_def in auto)
     next
       case ge show ?diff_fg
-      proof (rule differentiable_transform_within [where d = "dist x c" and f = g])
-        have "g differentiable at x within ({c<..<b} - t)"
-          apply (rule differentiable_at_withinI)
-          using x ge st
-          by (metis DiffD1 DiffD2 DiffI UnCI atLeastAtMost_diff_ends atLeastAtMost_iff at_within_interior insert_iff interior_atLeastAtMost_real)
-        moreover have "open ({c<..<b} - t)"
-          by (blast intro: open_greaterThanLessThan \<open>finite t\<close> finite_imp_closed)
-        ultimately show "g differentiable at x within {a..b}"
-          using x ge by (auto simp add: at_within_open_NO_MATCH differentiable_at_withinI)
+      proof (rule differentiable_transform_within [where d = "dist x c"])
+        have "g differentiable at x"
+          using x ge gd [of x] at_within_interior [of x "{c..b}"] by simp
+        then show "g differentiable at x within {a..b}"
+          by (simp add: differentiable_at_withinI)
       qed (use x ge st dist_real_def in auto)
     qed
   }
-  then have "\<exists>s. finite s \<and>
-                 (\<forall>x\<in>{a..b} - s. (\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b})"
+  then have "\<exists>S. finite S \<and>
+                 (\<forall>x\<in>{a..b} - S. (\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b})"
     by (meson finabc)
   ultimately show ?thesis
     by (simp add: piecewise_differentiable_on_def)
 qed
 
 lemma piecewise_differentiable_neg:
-    "f piecewise_differentiable_on s \<Longrightarrow> (\<lambda>x. -(f x)) piecewise_differentiable_on s"
+    "f piecewise_differentiable_on S \<Longrightarrow> (\<lambda>x. -(f x)) piecewise_differentiable_on S"
   by (auto simp: piecewise_differentiable_on_def continuous_on_minus)
 
 lemma piecewise_differentiable_add:
@@ -216,11 +208,11 @@ lemma piecewise_differentiable_add:
           "g piecewise_differentiable_on i"
     shows "(\<lambda>x. f x + g x) piecewise_differentiable_on i"
 proof -
-  obtain s t where st: "finite s" "finite t"
-                       "\<forall>x\<in>i - s. f differentiable at x within i"
-                       "\<forall>x\<in>i - t. g differentiable at x within i"
+  obtain S T where st: "finite S" "finite T"
+                       "\<forall>x\<in>i - S. f differentiable at x within i"
+                       "\<forall>x\<in>i - T. g differentiable at x within i"
     using assms by (auto simp: piecewise_differentiable_on_def)
-  then have "finite (s \<union> t) \<and> (\<forall>x\<in>i - (s \<union> t). (\<lambda>x. f x + g x) differentiable at x within i)"
+  then have "finite (S \<union> T) \<and> (\<forall>x\<in>i - (S \<union> T). (\<lambda>x. f x + g x) differentiable at x within i)"
     by auto
   moreover have "continuous_on i f" "continuous_on i g"
     using assms piecewise_differentiable_on_def by auto
@@ -229,8 +221,8 @@ proof -
 qed
 
 lemma piecewise_differentiable_diff:
-    "\<lbrakk>f piecewise_differentiable_on s;  g piecewise_differentiable_on s\<rbrakk>
-     \<Longrightarrow> (\<lambda>x. f x - g x) piecewise_differentiable_on s"
+    "\<lbrakk>f piecewise_differentiable_on S;  g piecewise_differentiable_on S\<rbrakk>
+     \<Longrightarrow> (\<lambda>x. f x - g x) piecewise_differentiable_on S"
   unfolding diff_conv_add_uminus
   by (metis piecewise_differentiable_add piecewise_differentiable_neg)
 
@@ -249,33 +241,63 @@ lemma continuous_on_joinpaths_D2:
   done
 
 lemma piecewise_differentiable_D1:
-    "(g1 +++ g2) piecewise_differentiable_on {0..1} \<Longrightarrow> g1 piecewise_differentiable_on {0..1}"
-  apply (clarsimp simp add: piecewise_differentiable_on_def dest!: continuous_on_joinpaths_D1)
-  apply (rule_tac x="insert 1 ((( * )2)`s)" in exI)
-  apply simp
-  apply (intro ballI)
-  apply (rule_tac d="dist (x/2) (1/2)" and f = "(g1 +++ g2) o (( * )(inverse 2))"
-       in differentiable_transform_within)
-  apply (auto simp: dist_real_def joinpaths_def)
-  apply (rule differentiable_chain_within derivative_intros | simp)+
-  apply (rule differentiable_subset)
-  apply (force simp:)+
-  done
+  assumes "(g1 +++ g2) piecewise_differentiable_on {0..1}"
+  shows "g1 piecewise_differentiable_on {0..1}"
+proof -
+  obtain S where cont: "continuous_on {0..1} g1" and "finite S"
+    and S: "\<And>x. x \<in> {0..1} - S \<Longrightarrow> g1 +++ g2 differentiable at x within {0..1}"
+    using assms unfolding piecewise_differentiable_on_def
+    by (blast dest!: continuous_on_joinpaths_D1)
+  show ?thesis
+    unfolding piecewise_differentiable_on_def
+  proof (intro exI conjI ballI cont)
+    show "finite (insert 1 ((( * )2) ` S))"
+      by (simp add: \<open>finite S\<close>)
+    show "g1 differentiable at x within {0..1}" if "x \<in> {0..1} - insert 1 (( * ) 2 ` S)" for x
+    proof (rule_tac d="dist (x/2) (1/2)" in differentiable_transform_within)
+      have "g1 +++ g2 differentiable at (x / 2) within {0..1 / 2}"
+        by (rule differentiable_subset [OF S [of "x/2"]] | use that in force)+
+      then show "g1 +++ g2 \<circ> ( * ) (inverse 2) differentiable at x within {0..1}"
+        by (auto intro: differentiable_chain_within)
+    qed (use that in \<open>auto simp: joinpaths_def\<close>)
+  qed
+qed
 
 lemma piecewise_differentiable_D2:
-    "\<lbrakk>(g1 +++ g2) piecewise_differentiable_on {0..1}; pathfinish g1 = pathstart g2\<rbrakk>
-    \<Longrightarrow> g2 piecewise_differentiable_on {0..1}"
-  apply (clarsimp simp add: piecewise_differentiable_on_def dest!: continuous_on_joinpaths_D2)
-  apply (rule_tac x="insert 0 ((\<lambda>x. 2*x-1)`s)" in exI)
-  apply simp
-  apply (intro ballI)
-  apply (rule_tac d="dist ((x+1)/2) (1/2)" and f = "(g1 +++ g2) o (\<lambda>x. (x+1)/2)"
-          in differentiable_transform_within)
-  apply (auto simp: dist_real_def joinpaths_def abs_if field_simps split: if_split_asm)
-  apply (rule differentiable_chain_within derivative_intros | simp)+
-  apply (rule differentiable_subset)
-  apply (force simp: divide_simps)+
-  done
+  assumes "(g1 +++ g2) piecewise_differentiable_on {0..1}" and eq: "pathfinish g1 = pathstart g2"
+  shows "g2 piecewise_differentiable_on {0..1}"
+proof -
+  have [simp]: "g1 1 = g2 0"
+    using eq by (simp add: pathfinish_def pathstart_def)
+  obtain S where cont: "continuous_on {0..1} g2" and "finite S"
+    and S: "\<And>x. x \<in> {0..1} - S \<Longrightarrow> g1 +++ g2 differentiable at x within {0..1}"
+    using assms unfolding piecewise_differentiable_on_def
+    by (blast dest!: continuous_on_joinpaths_D2)
+  show ?thesis
+    unfolding piecewise_differentiable_on_def
+  proof (intro exI conjI ballI cont)
+    show "finite (insert 0 ((\<lambda>x. 2*x-1)`S))"
+      by (simp add: \<open>finite S\<close>)
+    show "g2 differentiable at x within {0..1}" if "x \<in> {0..1} - insert 0 ((\<lambda>x. 2*x-1)`S)" for x
+    proof (rule_tac d="dist ((x+1)/2) (1/2)" in differentiable_transform_within)
+      have x2: "(x + 1) / 2 \<notin> S"
+        using that
+        apply (clarsimp simp: image_iff)
+        by (metis add.commute add_diff_cancel_left' mult_2 real_sum_of_halves)
+      have "g1 +++ g2 \<circ> (\<lambda>x. (x+1) / 2) differentiable at x within {0..1}"
+        by (rule differentiable_chain_within differentiable_subset [OF S [of "(x+1)/2"]] | use x2 that in force)+
+      then show "g1 +++ g2 \<circ> (\<lambda>x. (x+1) / 2) differentiable at x within {0..1}"
+        by (auto intro: differentiable_chain_within)
+      show "(g1 +++ g2 \<circ> (\<lambda>x. (x + 1) / 2)) x' = g2 x'" if "x' \<in> {0..1}" "dist x' x < dist ((x + 1) / 2) (1 / 2)" for x'
+      proof -
+        have [simp]: "(2*x'+2)/2 = x'+1"
+          by (simp add: divide_simps)
+        show ?thesis
+          using that by (auto simp: joinpaths_def)
+      qed
+    qed (use that in \<open>auto simp: joinpaths_def\<close>)
+  qed
+qed
 
 
 subsubsection\<open>The concept of continuously differentiable\<close>
@@ -590,7 +612,7 @@ proof -
     apply (simp_all add: dist_real_def joinpaths_def)
     apply (auto simp: dist_real_def joinpaths_def field_simps)
     apply (rule differentiable_chain_at derivative_intros | force)+
-    apply (drule_tac x= "(x + 1) / 2" in bspec, force simp: divide_simps)
+    apply (drule_tac x= "(x+1) / 2" in bspec, force simp: divide_simps)
     apply assumption
     done
   have [simp]: "vector_derivative (g2 \<circ> (\<lambda>x. 2*x-1)) (at ((x+1)/2)) = 2 *\<^sub>R vector_derivative g2 (at x)"
@@ -604,7 +626,7 @@ proof -
     apply (auto simp: dist_real_def field_simps joinpaths_def vector_derivative_works [symmetric]
                 intro!: g2D differentiable_chain_at)
     done
-  have [simp]: "((\<lambda>x. (x + 1) / 2) ` ({0..1} - insert 0 ((\<lambda>x. 2 * x - 1) ` s))) = ({1/2..1} - insert (1/2) s)"
+  have [simp]: "((\<lambda>x. (x+1) / 2) ` ({0..1} - insert 0 ((\<lambda>x. 2 * x - 1) ` s))) = ({1/2..1} - insert (1/2) s)"
     apply (simp add: image_set_diff inj_on_def image_image)
     apply (auto simp: image_affinity_atLeastAtMost_div add_divide_distrib)
     done
