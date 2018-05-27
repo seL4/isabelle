@@ -364,8 +364,8 @@ object Document
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
 
-    def purge(pred: Node.Name => Boolean): Option[Nodes] =
-      graph.keys_iterator.filter(pred).toList match {
+    def purge_suppressed: Option[Nodes] =
+      graph.keys_iterator.filter(is_suppressed(_)).toList match {
         case Nil => None
         case del => Some(new Nodes((graph /: del)(_.del_node(_))))
       }
@@ -409,10 +409,6 @@ object Document
     val init: Version = new Version()
     def make(nodes: Nodes): Version = new Version(Document_ID.make(), nodes)
 
-    def purge(f: Version => Option[Version], versions: Map[Document_ID.Version, Version])
-      : Map[Document_ID.Version, Version] =
-      (versions /: (for ((id, v) <- versions.iterator; v1 <- f(v)) yield (id, v1)))(_ + _)
-
     def purge_future(versions: Map[Document_ID.Version, Version], future: Future[Version])
       : Future[Version] =
     {
@@ -425,6 +421,13 @@ object Document
       }
       else future
     }
+
+    def purge_suppressed(
+      versions: Map[Document_ID.Version, Version]): Map[Document_ID.Version, Version] =
+    {
+      (versions /:
+        (for ((id, v) <- versions.iterator; v1 <- v.purge_suppressed) yield (id, v1)))(_ + _)
+    }
   }
 
   final class Version private(
@@ -434,11 +437,7 @@ object Document
     override def toString: String = "Version(" + id + ")"
 
     def purge_suppressed: Option[Version] =
-      nodes.purge(nodes.is_suppressed(_)).map(new Version(id, _))
-
-    def purge_blobs(blobs: Set[Node.Name]): Option[Version] =
-      nodes.purge(name => nodes(name).get_blob.isDefined && !blobs.contains(name)).
-        map(new Version(id, _))
+      nodes.purge_suppressed.map(new Version(id, _))
   }
 
 
@@ -807,7 +806,7 @@ object Document
 
     def removed_versions(removed: List[Document_ID.Version]): State =
     {
-      val versions1 = Version.purge(_.purge_suppressed, versions -- removed)
+      val versions1 = Version.purge_suppressed(versions -- removed)
 
       val assignments1 = assignments -- removed
       var blobs1_names = Set.empty[Node.Name]
@@ -834,16 +833,14 @@ object Document
         }
       }
 
-      val versions2 = Version.purge(_.purge_blobs(blobs1_names), versions1)
-
       copy(
-        versions = versions2,
+        versions = versions1,
         blobs = blobs1,
         commands = commands1,
         execs = execs1,
         commands_redirection = commands_redirection.restrict(commands1.isDefinedAt(_)),
         assignments = assignments1,
-        history = history.purge(versions2),
+        history = history.purge(versions1),
         removing_versions = false)
     }
 
