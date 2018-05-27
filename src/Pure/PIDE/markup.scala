@@ -242,6 +242,8 @@ object Markup
 
   val HIDDEN = "hidden"
 
+  val DELETE = "delete"
+
 
   /* misc entities */
 

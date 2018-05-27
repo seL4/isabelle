@@ -54,6 +54,7 @@ sig
   val is_blank: T -> bool
   val is_newline: T -> bool
   val content_of: T -> string
+  val source_of: T -> string
   val input_of: T -> Input.source
   val inner_syntax_of: T -> string
   val keyword_markup: bool * Markup.T -> string -> Markup.T
@@ -266,6 +267,7 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 (* token content *)
 
 fun content_of (Token (_, (_, x), _)) = x;
+fun source_of (Token ((source, _), _, _)) = source;
 
 fun input_of (Token ((source, range), (kind, _), _)) =
   Input.source (delimited_kind kind) source range;
@@ -318,8 +320,11 @@ fun reports keywords tok =
     keyword_reports tok
       [keyword_markup (false, Markup.keyword2 |> Markup.keyword_properties) (content_of tok)]
   else
-    let val (m, text) = token_kind_markup (kind_of tok)
-    in [((pos_of tok, m), text)] end;
+    let
+      val pos = pos_of tok;
+      val (m, text) = token_kind_markup (kind_of tok);
+      val delete = #2 (Symbol_Pos.explode_delete (source_of tok, pos));
+    in ((pos, m), text) :: map (fn p => ((p, Markup.delete), "")) delete end;
 
 fun markups keywords = map (#2 o #1) o reports keywords;
 
