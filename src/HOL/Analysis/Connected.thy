@@ -1169,61 +1169,61 @@ qed
 subsection%unimportant \<open>Bounded closed nest property (proof does not use Heine-Borel)\<close>
 
 lemma bounded_closed_nest:
-  fixes s :: "nat \<Rightarrow> ('a::heine_borel) set"
-  assumes "\<forall>n. closed (s n)"
-    and "\<forall>n. s n \<noteq> {}"
-    and "\<forall>m n. m \<le> n \<longrightarrow> s n \<subseteq> s m"
-    and "bounded (s 0)"
-  shows "\<exists>a. \<forall>n. a \<in> s n"
+  fixes S :: "nat \<Rightarrow> ('a::heine_borel) set"
+  assumes "\<And>n. closed (S n)"
+      and "\<And>n. S n \<noteq> {}"
+      and "\<And>m n. m \<le> n \<Longrightarrow> S n \<subseteq> S m"
+      and "bounded (S 0)"
+  obtains a where "\<And>n. a \<in> S n"
 proof -
-  from assms(2) obtain x where x: "\<forall>n. x n \<in> s n"
-    using choice[of "\<lambda>n x. x \<in> s n"] by auto
-  from assms(4,1) have "seq_compact (s 0)"
+  from assms(2) obtain x where x: "\<forall>n. x n \<in> S n"
+    using choice[of "\<lambda>n x. x \<in> S n"] by auto
+  from assms(4,1) have "seq_compact (S 0)"
     by (simp add: bounded_closed_imp_seq_compact)
-  then obtain l r where lr: "l \<in> s 0" "strict_mono r" "(x \<circ> r) \<longlonglongrightarrow> l"
+  then obtain l r where lr: "l \<in> S 0" "strict_mono r" "(x \<circ> r) \<longlonglongrightarrow> l"
     using x and assms(3) unfolding seq_compact_def by blast
-  have "\<forall>n. l \<in> s n"
+  have "\<forall>n. l \<in> S n"
   proof
     fix n :: nat
-    have "closed (s n)"
+    have "closed (S n)"
       using assms(1) by simp
-    moreover have "\<forall>i. (x \<circ> r) i \<in> s i"
+    moreover have "\<forall>i. (x \<circ> r) i \<in> S i"
       using x and assms(3) and lr(2) [THEN seq_suble] by auto
-    then have "\<forall>i. (x \<circ> r) (i + n) \<in> s n"
+    then have "\<forall>i. (x \<circ> r) (i + n) \<in> S n"
       using assms(3) by (fast intro!: le_add2)
     moreover have "(\<lambda>i. (x \<circ> r) (i + n)) \<longlonglongrightarrow> l"
       using lr(3) by (rule LIMSEQ_ignore_initial_segment)
-    ultimately show "l \<in> s n"
+    ultimately show "l \<in> S n"
       by (rule closed_sequentially)
   qed
-  then show ?thesis ..
+  then show ?thesis 
+    using that by blast
 qed
 
 text \<open>Decreasing case does not even need compactness, just completeness.\<close>
 
 lemma decreasing_closed_nest:
-  fixes s :: "nat \<Rightarrow> ('a::complete_space) set"
-  assumes
-    "\<forall>n. closed (s n)"
-    "\<forall>n. s n \<noteq> {}"
-    "\<forall>m n. m \<le> n \<longrightarrow> s n \<subseteq> s m"
-    "\<forall>e>0. \<exists>n. \<forall>x\<in>s n. \<forall>y\<in>s n. dist x y < e"
-  shows "\<exists>a. \<forall>n. a \<in> s n"
+  fixes S :: "nat \<Rightarrow> ('a::complete_space) set"
+  assumes "\<And>n. closed (S n)"
+          "\<And>n. S n \<noteq> {}"
+          "\<And>m n. m \<le> n \<Longrightarrow> S n \<subseteq> S m"
+          "\<And>e. e>0 \<Longrightarrow> \<exists>n. \<forall>x\<in>S n. \<forall>y\<in>S n. dist x y < e"
+  obtains a where "\<And>n. a \<in> S n"
 proof -
-  have "\<forall>n. \<exists>x. x \<in> s n"
+  have "\<forall>n. \<exists>x. x \<in> S n"
     using assms(2) by auto
-  then have "\<exists>t. \<forall>n. t n \<in> s n"
-    using choice[of "\<lambda>n x. x \<in> s n"] by auto
-  then obtain t where t: "\<forall>n. t n \<in> s n" by auto
+  then have "\<exists>t. \<forall>n. t n \<in> S n"
+    using choice[of "\<lambda>n x. x \<in> S n"] by auto
+  then obtain t where t: "\<forall>n. t n \<in> S n" by auto
   {
     fix e :: real
     assume "e > 0"
-    then obtain N where N:"\<forall>x\<in>s N. \<forall>y\<in>s N. dist x y < e"
-      using assms(4) by auto
+    then obtain N where N: "\<forall>x\<in>S N. \<forall>y\<in>S N. dist x y < e"
+      using assms(4) by blast
     {
       fix m n :: nat
       assume "N \<le> m \<and> N \<le> n"
-      then have "t m \<in> s N" "t n \<in> s N"
+      then have "t m \<in> S N" "t n \<in> S N"
         using assms(3) t unfolding  subset_eq t by blast+
       then have "dist (t m) (t n) < e"
         using N by auto
@@ -1235,42 +1235,38 @@ proof -
     unfolding cauchy_def by auto
   then obtain l where l:"(t \<longlongrightarrow> l) sequentially"
     using complete_UNIV unfolding complete_def by auto
-  {
-    fix n :: nat
-    {
-      fix e :: real
+  { fix n :: nat
+    { fix e :: real
       assume "e > 0"
       then obtain N :: nat where N: "\<forall>n\<ge>N. dist (t n) l < e"
         using l[unfolded lim_sequentially] by auto
-      have "t (max n N) \<in> s n"
+      have "t (max n N) \<in> S n"
         by (meson assms(3) contra_subsetD max.cobounded1 t)
-      then have "\<exists>y\<in>s n. dist y l < e"
+      then have "\<exists>y\<in>S n. dist y l < e"
         using N max.cobounded2 by blast
     }
-    then have "l \<in> s n"
-      using closed_approachable[of "s n" l] assms(1) by auto
+    then have "l \<in> S n"
+      using closed_approachable[of "S n" l] assms(1) by auto
   }
-  then show ?thesis by auto
+  then show ?thesis
+    using that by blast
 qed
 
 text \<open>Strengthen it to the intersection actually being a singleton.\<close>
 
 lemma decreasing_closed_nest_sing:
-  fixes s :: "nat \<Rightarrow> 'a::complete_space set"
-  assumes
-    "\<forall>n. closed(s n)"
-    "\<forall>n. s n \<noteq> {}"
-    "\<forall>m n. m \<le> n \<longrightarrow> s n \<subseteq> s m"
-    "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y\<in>(s n). dist x y < e"
-  shows "\<exists>a. \<Inter>(range s) = {a}"
+  fixes S :: "nat \<Rightarrow> 'a::complete_space set"
+  assumes "\<And>n. closed(S n)"
+          "\<And>n. S n \<noteq> {}"
+          "\<And>m n. m \<le> n \<Longrightarrow> S n \<subseteq> S m"
+          "\<And>e. e>0 \<Longrightarrow> \<exists>n. \<forall>x \<in> (S n). \<forall> y\<in>(S n). dist x y < e"
+  shows "\<exists>a. \<Inter>(range S) = {a}"
 proof -
-  obtain a where a: "\<forall>n. a \<in> s n"
-    using decreasing_closed_nest[of s] using assms by auto
-  {
-    fix b
-    assume b: "b \<in> \<Inter>(range s)"
-    {
-      fix e :: real
+  obtain a where a: "\<forall>n. a \<in> S n"
+    using decreasing_closed_nest[of S] using assms by auto
+  { fix b
+    assume b: "b \<in> \<Inter>(range S)"
+    { fix e :: real
       assume "e > 0"
       then have "dist a b < e"
         using assms(4) and b and a by blast
@@ -1278,7 +1274,7 @@ proof -
     then have "dist a b = 0"
       by (metis dist_eq_0_iff dist_nz less_le)
   }
-  with a have "\<Inter>(range s) = {a}"
+  with a have "\<Inter>(range S) = {a}"
     unfolding image_def by auto
   then show ?thesis ..
 qed

@@ -2147,15 +2147,10 @@ proof -
         using AB by (intro order_trans[OF step.IH] subset_box_imp) auto
     qed simp
   } note ABsubset = this
-  have "\<exists>a. \<forall>n. a\<in> cbox (A n) (B n)"
-  proof (rule decreasing_closed_nest)
-    show "\<forall>n. closed (cbox (A n) (B n))"
-      by (simp add: closed_cbox)
-    show "\<forall>n. cbox (A n) (B n) \<noteq> {}"
-      by (meson AB dual_order.trans interval_not_empty)
-  qed (use ABsubset interv in auto)
+  have "\<And>n. cbox (A n) (B n) \<noteq> {}"
+    by (meson AB dual_order.trans interval_not_empty)
   then obtain x0 where x0: "\<And>n. x0 \<in> cbox (A n) (B n)"
-    by blast
+    using decreasing_closed_nest [OF closed_cbox] ABsubset interv by blast
   show thesis
   proof (rule that[rule_format, of x0])
     show "x0\<in>cbox a b"
