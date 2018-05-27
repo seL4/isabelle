@@ -15,9 +15,6 @@ fun lookup_remove _ _ [] = (NONE, [])
     if eq (k, k') then (SOME (k', v), kvs)
     else apsnd (cons (k', v)) (lookup_remove eq k kvs)
 
-fun map_option _ NONE = NONE
-  | map_option f (SOME x) = SOME (f x)
-
 fun mk_abort msg t =
   let 
     val T = fastype_of t
@@ -72,7 +69,7 @@ fun term_to_coordinates P term =
       then SOME (End (body_type T))
       else
         let
-          fun f (i, t) = term_to_coordinates P t |> map_option (pair i)
+          fun f (i, t) = term_to_coordinates P t |> Option.map (pair i)
           val tcos = map_filter I (map_index f args)
         in
           if null tcos then NONE
@@ -474,7 +471,7 @@ fun build_case_t replace_ctr ctr_count head lhss rhss ctxt =
     val (typ_list, poss) = lhss
       |> Ctr_Sugar_Util.transpose
       |> map_index to_coordinates
-      |> map_filter (map_option add_T)
+      |> map_filter (Option.map add_T)
       |> flat
       |> split_list 
   in
