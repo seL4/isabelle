@@ -245,7 +245,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       })
 
     val nodes_status2 =
-      nodes_status1 -- nodes_status1.keysIterator.filter(nodes.is_hidden(_))
+      nodes_status1 -- nodes_status1.keysIterator.filter(nodes.is_suppressed(_))
 
     if (nodes_status != nodes_status2) {
       nodes_status = nodes_status2

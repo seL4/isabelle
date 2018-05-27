@@ -358,7 +358,7 @@ object Document
     def apply(name: Node.Name): Node =
       graph.default_node(name, Node.empty).get_node(name)
 
-    def is_hidden(name: Node.Name): Boolean =
+    def is_suppressed(name: Node.Name): Boolean =
     {
       val graph1 = graph.default_node(name, Node.empty)
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
@@ -433,8 +433,8 @@ object Document
   {
     override def toString: String = "Version(" + id + ")"
 
-    def purge_hidden: Option[Version] =
-      nodes.purge(nodes.is_hidden(_)).map(new Version(id, _))
+    def purge_suppressed: Option[Version] =
+      nodes.purge(nodes.is_suppressed(_)).map(new Version(id, _))
 
     def purge_blobs(blobs: Set[Node.Name]): Option[Version] =
       nodes.purge(name => nodes(name).get_blob.isDefined && !blobs.contains(name)).
@@ -807,7 +807,7 @@ object Document
 
     def removed_versions(removed: List[Document_ID.Version]): State =
     {
-      val versions1 = Version.purge(_.purge_hidden, versions -- removed)
+      val versions1 = Version.purge(_.purge_suppressed, versions -- removed)
 
       val assignments1 = assignments -- removed
       var blobs1_names = Set.empty[Node.Name]
