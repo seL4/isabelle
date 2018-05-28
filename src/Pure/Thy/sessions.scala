@@ -120,19 +120,10 @@ object Sessions
 
     lazy val theory_graph: Graph[Document.Node.Name, Unit] =
     {
-      val graph0 =
-        (Graph.empty[Document.Node.Name, Unit](Document.Node.Name.Ordering) /: theories)(
-          {
-            case (g1, (_, entry)) =>
-              (g1.default_node(entry.name, ()) /: entry.header.imports)(
-                { case (g2, (parent, _)) => g2.default_node(parent, ()) })
-          })
-      (graph0 /: theories)(
-        {
-          case (g1, (_, entry)) =>
-            (g1 /: entry.header.imports)(
-              { case (g2, (parent, _)) => g2.add_edge(parent, entry.name) })
-        })
+      val entries =
+        for ((_, entry) <- theories.toList)
+        yield ((entry.name, ()), entry.header.imports.map(imp => theories(imp._1.theory).name))
+      Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
     }
 
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
@@ -375,7 +366,10 @@ object Sessions
           }
       })
 
-    Deps(sessions_structure, session_bases, Known.make(Path.current, session_bases.toList.map(_._2)))
+    val all_known =
+      Known.make(Path.current, sessions_structure.imports_topological_order.map(session_bases(_)))
+
+    Deps(sessions_structure, session_bases, all_known)
   }
 
 
