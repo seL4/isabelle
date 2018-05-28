@@ -2192,7 +2192,7 @@ proof -
       then have "norm ((x \<bullet> b) *\<^sub>R b) = norm x"
         by simp
       with b have "\<bar>x \<bullet> b\<bar> = norm x"
-        using norm_Basis by fastforce
+        using norm_Basis by (simp add: b)
       with xb show ?thesis
         apply (simp add: abs_if split: if_split_asm)
         apply (metis add.inverse_inverse real_vector.scale_minus_left xb)

@@ -253,6 +253,12 @@ end
 lemma DIM_complex[simp]: "DIM(complex) = 2"
   unfolding Basis_complex_def by simp
 
+lemma complex_Basis_1 [iff]: "(1::complex) \<in> Basis"
+  by (simp add: Basis_complex_def)
+
+lemma complex_Basis_i [iff]: "\<i> \<in> Basis"
+  by (simp add: Basis_complex_def)
+
 subsubsection%unimportant \<open>Type @{typ "'a \<times> 'b"}\<close>
 
 instantiation%important prod :: (euclidean_space, euclidean_space) euclidean_space

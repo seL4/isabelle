@@ -536,17 +536,13 @@ proof -
       case True
       then show ?L
         apply (rule_tac x="(x$2 - a$2) / (b$2 - a$2)" in exI)
-        unfolding assms True
-        using \<open>?R\<close>
-        apply (auto simp add: field_simps)
+        unfolding assms True using \<open>?R\<close> apply (auto simp add: field_simps)
         done
     next
       case False
       then show ?L
         apply (rule_tac x="1 - (x$2 - b$2) / (a$2 - b$2)" in exI)
-        unfolding assms
-        using \<open>?R\<close>
-        apply (auto simp add: field_simps)
+        unfolding assms using \<open>?R\<close> apply (auto simp add: field_simps)
         done
     qed
   }
