@@ -1576,7 +1576,7 @@ next
     by (simp add: continuous_on_subset)
   then have "(f has_contour_integral 0)
          (linepath a b +++ linepath b a' +++ linepath a' b' +++ linepath b' a)"
-    apply (rule Cauchy_theorem_convex [where k = "{}"])
+    apply (rule Cauchy_theorem_convex [where K = "{}"])
     apply (simp_all add: path_image_join convex_Int convex_halfspace_le \<open>convex S\<close> fcd_le ab_le
                 closed_segment_subset abc a'b' ba')
     by (metis \<open>d \<bullet> a' = k\<close> \<open>d \<bullet> b' = k\<close> convex_contains_segment convex_halfspace_le lek(1) mem_Collect_eq order_refl)
@@ -1601,7 +1601,7 @@ next
   have "continuous_on (S \<inter> {x. k \<le> d \<bullet> x}) f" using contf
     by (simp add: continuous_on_subset)
   then have "(f has_contour_integral 0) (linepath a' c +++ linepath c b' +++ linepath b' a')"
-    apply (rule Cauchy_theorem_convex [where k = "{}"])
+    apply (rule Cauchy_theorem_convex [where K = "{}"])
     apply (simp_all add: path_image_join convex_Int convex_halfspace_ge \<open>convex S\<close>
                       fcd_ge closed_segment_subset abc a'b' a'c)
     by (metis \<open>d \<bullet> a' = k\<close> b'c closed_segment_commute convex_contains_segment
