@@ -679,6 +679,15 @@ object Sessions
       new Structure(restrict(build_graph), restrict(imports_graph))
     }
 
+    def selection_deps(sel: Selection,
+      progress: Progress = No_Progress,
+      inlined_files: Boolean = false,
+      verbose: Boolean = false): Deps =
+    {
+      Sessions.deps(selection(sel), global_theories,
+        progress = progress, inlined_files = inlined_files, verbose = verbose)
+    }
+
     def build_selection(sel: Selection): List[String] = sel.selected(build_graph)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
     def build_requirements(ss: List[String]): List[String] = build_graph.all_preds(ss).reverse

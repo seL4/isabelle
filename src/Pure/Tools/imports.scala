@@ -99,11 +99,9 @@ object Imports
     select_dirs: List[Path] = Nil,
     verbose: Boolean = false) =
   {
-    val full_sessions = Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs)
-
     val deps =
-      Sessions.deps(full_sessions.selection(selection), full_sessions.global_theories,
-        progress = progress, verbose = verbose).check_errors
+      Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
+        selection_deps(selection, progress = progress, verbose = verbose).check_errors
 
     val root_keywords = Sessions.root_syntax.keywords
 
