@@ -822,4 +822,24 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
     sys.exit(results.rc)
   })
+
+
+  /* build logic image */
+
+  def build_logic(options: Options, logic: String,
+    progress: Progress = No_Progress,
+    build_heap: Boolean = false,
+    dirs: List[Path] = Nil,
+    system_mode: Boolean = false): Int =
+  {
+    if (build(options, build_heap = build_heap, no_build = true, dirs = dirs,
+        system_mode = system_mode, sessions = List(logic)).ok) 0
+    else {
+      progress.echo("Build started for Isabelle/" + logic + " ...")
+      progress.interrupt_handler {
+        Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
+          system_mode = system_mode, sessions = List(logic)).rc
+      }
+    }
+  }
 }

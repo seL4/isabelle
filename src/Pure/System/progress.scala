@@ -23,6 +23,7 @@ class Progress
     Timing.timeit(message, enabled, echo(_))(e)
 
   def stopped: Boolean = false
+  def interrupt_handler[A](e: => A): A = e
   def expose_interrupt() { if (stopped) throw Exn.Interrupt() }
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
 
@@ -53,7 +54,8 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
     if (verbose) echo(session + ": theory " + theory)
 
   @volatile private var is_stopped = false
-  def interrupt_handler[A](e: => A): A = POSIX_Interrupt.handler { is_stopped = true } { e }
+  override def interrupt_handler[A](e: => A): A =
+    POSIX_Interrupt.handler { is_stopped = true } { e }
   override def stopped: Boolean =
   {
     if (Thread.interrupted) is_stopped = true

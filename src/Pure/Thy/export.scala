@@ -281,22 +281,16 @@ Usage: isabelle export [OPTIONS] SESSION
         case _ => getopts.usage()
       }
 
+    val progress = new Console_Progress()
+
 
     /* build */
 
-    val progress = new Console_Progress()
-
-    if (!no_build &&
-        !Build.build(options, no_build = true, dirs = dirs, system_mode = system_mode,
-          sessions = List(session_name)).ok)
-    {
-      progress.echo("Build started for Isabelle/" + session_name + " ...")
-      progress.interrupt_handler {
-        val res =
-          Build.build(options, progress = progress, dirs = dirs, system_mode = system_mode,
-            sessions = List(session_name))
-        if (!res.ok) sys.exit(res.rc)
-      }
+    if (!no_build) {
+      val rc =
+        Build.build_logic(options, session_name, progress = progress,
+          dirs = dirs, system_mode = system_mode)
+      if (rc != 0) sys.exit(rc)
     }
 
 

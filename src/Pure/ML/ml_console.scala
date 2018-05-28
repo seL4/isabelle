@@ -50,19 +50,13 @@ Usage: isabelle console [OPTIONS]
       if (!more_args.isEmpty) getopts.usage()
 
 
-      // build
-      if (!no_build && !raw_ml_system &&
-          !Build.build(options, build_heap = true, no_build = true,
-            dirs = dirs, system_mode = system_mode, sessions = List(logic)).ok)
-      {
+      // build logic
+      if (!no_build && !raw_ml_system) {
         val progress = new Console_Progress()
-        progress.echo("Build started for Isabelle/" + logic + " ...")
-        progress.interrupt_handler {
-          val res =
-            Build.build(options, progress = progress, build_heap = true,
-              dirs = dirs, system_mode = system_mode, sessions = List(logic))
-          if (!res.ok) sys.exit(res.rc)
-        }
+        val rc =
+          Build.build_logic(options, logic, build_heap = true, progress = progress,
+            dirs = dirs, system_mode = system_mode)
+        if (rc != 0) sys.exit(rc)
       }
 
       // process loop
