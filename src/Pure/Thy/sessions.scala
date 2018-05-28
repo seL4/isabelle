@@ -41,42 +41,45 @@ object Sessions
 
     def make(local_dir: Path, bases: List[Base],
       sessions: List[(String, Position.T)] = Nil,
-      theories: List[Document.Node.Name] = Nil,
+      theories: List[Document.Node.Entry] = Nil,
       loaded_files: List[(String, List[Path])] = Nil): Known =
     {
       def bases_iterator(local: Boolean) =
         for {
           base <- bases.iterator
-          (_, name) <- (if (local) base.known.theories_local else base.known.theories).iterator
-        } yield name
+          (_, entry) <- (if (local) base.known.theories_local else base.known.theories).iterator
+        } yield entry
 
       def local_theories_iterator =
       {
         val local_path = local_dir.canonical_file.toPath
-        theories.iterator.filter(name => name.path.canonical_file.toPath.startsWith(local_path))
+        theories.iterator.filter(entry =>
+          entry.name.path.canonical_file.toPath.startsWith(local_path))
       }
 
       val known_sessions =
         (sessions.toMap /: bases)({ case (known, base) => known ++ base.known.sessions })
 
       val known_theories =
-        (Map.empty[String, Document.Node.Name] /: (bases_iterator(false) ++ theories.iterator))({
-          case (known, name) =>
-            known.get(name.theory) match {
-              case Some(name1) if name != name1 =>
-                error("Duplicate theory " + quote(name.node) + " vs. " + quote(name1.node))
-              case _ => known + (name.theory -> name)
+        (Map.empty[String, Document.Node.Entry] /: (bases_iterator(false) ++ theories.iterator))({
+          case (known, entry) =>
+            known.get(entry.name.theory) match {
+              case Some(entry1) if entry.name != entry1.name =>
+                error("Duplicate theory " + quote(entry.name.node) + " vs. " +
+                  quote(entry1.name.node))
+              case _ => known + (entry.name.theory -> entry)
             }
           })
       val known_theories_local =
-        (Map.empty[String, Document.Node.Name] /:
+        (Map.empty[String, Document.Node.Entry] /:
             (bases_iterator(true) ++ local_theories_iterator))({
-          case (known, name) => known + (name.theory -> name)
+          case (known, entry) => known + (entry.name.theory -> entry)
         })
       val known_files =
         (Map.empty[JFile, List[Document.Node.Name]] /:
             (bases_iterator(true) ++ bases_iterator(false) ++ theories.iterator))({
-          case (known, name) =>
+          case (known, entry) =>
+            val name = entry.name
             val file = name.path.canonical_file
             val theories1 = known.getOrElse(file, Nil)
             if (theories1.exists(name1 => name.node == name1.node && name.theory == name1.theory))
@@ -89,7 +92,8 @@ object Sessions
 
       Known(
         known_sessions,
-        known_theories, known_theories_local,
+        known_theories,
+        known_theories_local,
         known_files.iterator.map(p => (p._1, p._2.reverse)).toMap,
         known_loaded_files)
     }
@@ -97,8 +101,8 @@ object Sessions
 
   sealed case class Known(
     sessions: Map[String, Position.T] = Map.empty,
-    theories: Map[String, Document.Node.Name] = Map.empty,
-    theories_local: Map[String, Document.Node.Name] = Map.empty,
+    theories: Map[String, Document.Node.Entry] = Map.empty,
+    theories_local: Map[String, Document.Node.Entry] = Map.empty,
     files: Map[JFile, List[Document.Node.Name]] = Map.empty,
     loaded_files: Map[String, List[Path]] = Map.empty)
   {
@@ -111,6 +115,25 @@ object Sessions
       copy(theories = for ((a, b) <- theories) yield (a, b.map(File.standard_path(_))),
         theories_local = for ((a, b) <- theories_local) yield (a, b.map(File.standard_path(_))),
         files = for ((a, b) <- files) yield (a, b.map(c => c.map(File.standard_path(_)))))
+
+    def theory_names: List[Document.Node.Name] = theories.iterator.map(p => p._2.name).toList
+
+    lazy val theory_graph: Graph[Document.Node.Name, Unit] =
+    {
+      val graph0 =
+        (Graph.empty[Document.Node.Name, Unit](Document.Node.Name.Ordering) /: theories)(
+          {
+            case (g1, (_, entry)) =>
+              (g1.default_node(entry.name, ()) /: entry.header.imports)(
+                { case (g2, (parent, _)) => g2.default_node(parent, ()) })
+          })
+      (graph0 /: theories)(
+        {
+          case (g1, (_, entry)) =>
+            (g1 /: entry.header.imports)(
+              { case (g2, (parent, _)) => g2.add_edge(parent, entry.name) })
+        })
+    }
 
     def get_file(file: JFile, bootstrap: Boolean = false): Option[Document.Node.Name] =
     {
@@ -159,11 +182,11 @@ object Sessions
       nodes(name).syntax orElse loaded_theory_syntax(name) getOrElse overall_syntax
 
     def known_theory(name: String): Option[Document.Node.Name] =
-      known.theories.get(name)
+      known.theories.get(name).map(_.name)
 
     def dest_known_theories: List[(String, String)] =
-      for ((theory, node_name) <- known.theories.toList)
-        yield (theory, node_name.node)
+      for ((theory, entry) <- known.theories.toList)
+        yield (theory, entry.name.node)
 
     def get_imports: Base = imports getOrElse Base.bootstrap(global_theories)
   }
@@ -319,7 +342,7 @@ object Sessions
             val known =
               Known.make(info.dir, List(imports_base),
                 sessions = List(info.name -> info.pos),
-                theories = dependencies.theories,
+                theories = dependencies.entries,
                 loaded_files = loaded_files)
 
             val sources_errors =

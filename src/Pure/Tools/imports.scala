@@ -117,7 +117,7 @@ object Imports
 
             val extra_imports =
               (for {
-                (_, a) <- session_base.known.theories.iterator
+                a <- session_base.known.theory_names
                 if session_base.theory_qualifier(a) == info.name
                 b <- deps.all_known.get_file(a.path.file)
                 qualifier = session_base.theory_qualifier(b)
@@ -127,7 +127,7 @@ object Imports
             val loaded_imports =
               deps.sessions_structure.imports_requirements(
                 session_base.loaded_theories.keys.map(a =>
-                  session_base.theory_qualifier(session_base.known.theories(a))))
+                  session_base.theory_qualifier(session_base.known.theories(a).name)))
               .toSet - session_name
 
             val minimal_imports =
@@ -188,13 +188,13 @@ object Imports
               } yield upd
 
             val updates_theories =
-              for {
-                (_, name) <- session_base.known.theories_local.toList
+              (for {
+                name <- session_base.known.theories_local.iterator.map(p => p._2.name)
                 if session_base.theory_qualifier(name) == info.name
                 (_, pos) <- session_resources.check_thy(name, Token.Pos.file(name.node)).imports
                 upd <- update_name(session_base.overall_syntax.keywords, pos,
                   standard_import(session_base.theory_qualifier(name), name.master_dir, _))
-              } yield upd
+              } yield upd).toList
 
             updates_root ::: updates_theories
           })

@@ -277,7 +277,7 @@ class Resources(
         loaded_theories.all_preds(theories.map(_.theory)).
           filter(session_base.loaded_theories.defined(_))
 
-      base_theories.map(theory => session_base.known.theories(theory).path) :::
+      base_theories.map(theory => session_base.known.theories(theory).name.path) :::
       base_theories.flatMap(session_base.known.loaded_files(_))
     }
 

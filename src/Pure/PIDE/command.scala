@@ -511,7 +511,7 @@ object Command
                 val qualifier = resources.session_base.theory_qualifier(node_name)
                 val dir = node_name.master_dir
                 for {
-                  (_, known_name) <- resources.session_base.known.theories.toList
+                  known_name <- resources.session_base.known.theory_names
                   if completed(known_name.theory_base_name)
                 }
                 yield {

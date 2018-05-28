@@ -137,6 +137,8 @@ object Document
 
     sealed case class Entry(name: Node.Name, header: Node.Header)
     {
+      def map(f: String => String): Entry = copy(name = name.map(f))
+
       override def toString: String = name.toString
     }
 
