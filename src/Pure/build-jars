@@ -137,6 +137,7 @@ declare -a SOURCES=(
   Thy/thy_header.scala
   Thy/thy_resources.scala
   Thy/thy_syntax.scala
+  Tools/dump.scala
   Tools/build.scala
   Tools/build_docker.scala
   Tools/check_keywords.scala
