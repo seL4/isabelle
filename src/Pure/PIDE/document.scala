@@ -383,6 +383,8 @@ object Document
       new Nodes(graph3.map_node(name, _ => node))
     }
 
+    def domain: Set[Node.Name] = graph.domain
+
     def iterator: Iterator[(Node.Name, Node)] =
       graph.iterator.map({ case (name, (node, _)) => (name, node) })
 
@@ -529,7 +531,6 @@ object Document
 
     def node_name: Node.Name
     def node: Node
-    def node_consolidated: Boolean
 
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
@@ -920,6 +921,13 @@ object Document
       }
     }
 
+    def node_initialized(version: Version, name: Node.Name): Boolean =
+      name.is_theory &&
+      (version.nodes(name).commands.iterator.find(_.potentially_initialized) match {
+        case None => false
+        case Some(command) => command_states(version, command).headOption.exists(_.initialized)
+      })
+
     def node_consolidated(version: Version, name: Node.Name): Boolean =
       !name.is_theory ||
         version.nodes(name).commands.reverse.iterator.
@@ -968,8 +976,6 @@ object Document
 
         val node_name: Node.Name = name
         val node: Node = version.nodes(name)
-
-        def node_consolidated: Boolean = state.node_consolidated(version, node_name)
 
         val commands_loading: List[Command] =
           if (node_name.is_theory) Nil

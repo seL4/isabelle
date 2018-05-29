@@ -251,7 +251,7 @@ object Export
 Usage: isabelle export [OPTIONS] SESSION
 
   Options are:
-    -D DIR       target directory for exported files (default: """ + default_export_dir + """)
+    -O DIR       output directory for exported files (default: """ + default_export_dir + """)
     -d DIR       include session directory
     -l           list exports
     -n           no build of session
@@ -266,7 +266,7 @@ Usage: isabelle export [OPTIONS] SESSION
   (both excluding ":" and "/"), ** (excluding ":"), and [abc] or [^abc],
   and variants {pattern1,pattern2,pattern3}.
 """,
-      "D:" -> (arg => export_dir = Path.explode(arg)),
+      "O:" -> (arg => export_dir = Path.explode(arg)),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "l" -> (_ => export_list = true),
       "n" -> (_ => no_build = true),

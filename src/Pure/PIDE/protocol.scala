@@ -142,7 +142,8 @@ object Protocol
   /* node status */
 
   sealed case class Node_Status(
-    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int, consolidated: Boolean)
+    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int,
+    initialized: Boolean, consolidated: Boolean)
   {
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
@@ -150,15 +151,16 @@ object Protocol
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
-        "consolidated" -> consolidated)
+        "initialized" -> initialized, "consolidated" -> consolidated)
   }
 
   def node_status(
     state: Document.State,
     version: Document.Version,
-    name: Document.Node.Name,
-    node: Document.Node): Node_Status =
+    name: Document.Node.Name): Node_Status =
   {
+    val node = version.nodes(name)
+
     var unprocessed = 0
     var running = 0
     var warned = 0
@@ -174,9 +176,10 @@ object Protocol
       else if (status.is_finished) finished += 1
       else unprocessed += 1
     }
+    val initialized = state.node_initialized(version, name)
     val consolidated = state.node_consolidated(version, name)
 
-    Node_Status(unprocessed, running, warned, failed, finished, consolidated)
+    Node_Status(unprocessed, running, warned, failed, finished, initialized, consolidated)
   }
 
 

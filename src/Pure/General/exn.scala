@@ -81,6 +81,10 @@ object Exn
     found_interrupt
   }
 
+  def interruptible_capture[A](e: => A): Result[A] =
+    try { Res(e) }
+    catch { case exn: Throwable if !is_interrupt(exn) => Exn[A](exn) }
+
   object Interrupt
   {
     def apply(): Throwable = new InterruptedException
