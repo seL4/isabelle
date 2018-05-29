@@ -557,7 +557,7 @@ text \<open>
 \<open>Usage: isabelle export [OPTIONS] SESSION
 
   Options are:
-    -D DIR       target directory for exported files (default: "export")
+    -O DIR       output directory for exported files (default: "export")
     -d DIR       include session directory
     -l           list exports
     -n           no build of session
@@ -590,7 +590,7 @@ text \<open>
   \<^emph>\<open>all\<close> theory exports. Multiple options \<^verbatim>\<open>-x\<close> refer to the union of all
   specified patterns.
 
-  Option \<^verbatim>\<open>-D\<close> specifies an alternative base directory for option \<^verbatim>\<open>-x\<close>: the
+  Option \<^verbatim>\<open>-O\<close> specifies an alternative output directory for option \<^verbatim>\<open>-x\<close>: the
   default is \<^verbatim>\<open>export\<close> within the current directory. Each theory creates its
   own sub-directory hierarchy, using the session-qualified theory name.
 \<close>
