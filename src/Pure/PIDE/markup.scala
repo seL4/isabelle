@@ -426,6 +426,8 @@ object Markup
   val RUNNING = "running"
   val FINISHED = "finished"
   val FAILED = "failed"
+
+  val INITIALIZED = "initialized"
   val CONSOLIDATED = "consolidated"
 
 

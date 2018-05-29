@@ -260,6 +260,8 @@ object Command
     exports: Exports = Exports.empty,
     markups: Markups = Markups.empty)
   {
+    def initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
+
     lazy val consolidated: Boolean =
       status.exists(markup => markup.name == Markup.CONSOLIDATED)
 
@@ -564,6 +566,8 @@ final class Command private(
   def is_undefined: Boolean = id == Document_ID.none
   val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
   val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
+
+  def potentially_initialized: Boolean = span.name == Thy_Header.THEORY
 
 
   /* blobs */

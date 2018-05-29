@@ -633,7 +633,9 @@ fun init_theory deps node span =
     val parents =
       if null parents_reports then [Theory.get_pure ()] else map #1 parents_reports;
     val _ = Position.reports (map #2 parents_reports);
-  in Resources.begin_theory master_dir header parents end;
+    val thy = Resources.begin_theory master_dir header parents;
+    val _ = Output.status (Markup.markup_only Markup.initialized);
+  in thy end;
 
 fun check_root_theory node =
   let

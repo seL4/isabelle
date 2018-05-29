@@ -516,13 +516,14 @@ text \<open>
   session-qualified theory name (e.g.\ \<^verbatim>\<open>HOL-ex.Seq\<close>).
 
   \<^item> \<^bold>\<open>type\<close> \<open>node_status = {ok: bool, total: int, unprocessed: int, running:
-  int, warned: int, failed: int, finished: int, consolidated: bool}\<close>
-  represents a formal theory node status of the PIDE document model. Fields
-  \<open>total\<close>, \<open>unprocessed\<close>, \<open>running\<close>, \<open>warned\<close>, \<open>failed\<close>, \<open>finished\<close> account
-  for individual commands within a theory node; \<open>ok\<close> is an abstraction for
-  \<open>failed = 0\<close>. The \<open>consolidated\<close> flag indicates whether the outermost theory
-  command structure has finished (or failed) and the final \<^theory_text>\<open>end\<close> command has
-  been checked.
+  int, warned: int, failed: int, finished: int, initialized: bool,
+  consolidated: bool}\<close> represents a formal theory node status of the PIDE
+  document model. Fields \<open>total\<close>, \<open>unprocessed\<close>, \<open>running\<close>, \<open>warned\<close>,
+  \<open>failed\<close>, \<open>finished\<close> account for individual commands within a theory node;
+  \<open>ok\<close> is an abstraction for \<open>failed = 0\<close>. The \<open>initialized\<close> flag indicates
+  that the initial \<^theory_text>\<open>theory\<close> command has been processed. The \<open>consolidated\<close>
+  flag indicates whether the outermost theory command structure has finished
+  (or failed) and the final \<^theory_text>\<open>end\<close> command has been checked.
 \<close>
 
 
