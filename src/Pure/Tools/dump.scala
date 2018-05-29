@@ -9,12 +9,38 @@ package isabelle
 
 object Dump
 {
+  /* aspects */
+
+  sealed case class Aspect_Args(
+    options: Options, progress: Progress, output_dir: Path, result: Thy_Resources.Theories_Result)
+
+  sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit)
+
+  private val known_aspects =
+    List(
+      Aspect("list", "list theory nodes",
+        { case args => for ((node, _) <- args.result.nodes) args.progress.echo(node.toString) })
+    )
+
+  def show_aspects: String =
+    cat_lines(known_aspects.map(aspect => aspect.name + " - " + aspect.description))
+
+  def the_aspect(name: String): Aspect =
+    known_aspects.find(aspect => aspect.name == name) getOrElse
+      error("Unknown aspect " + quote(name))
+
+
+  /* dump */
+
+  val default_output_dir = Path.explode("dump")
+
   def dump(options: Options, logic: String,
-    consume: Thy_Resources.Theories_Result => Unit = _ => (),
+    aspects: List[Aspect] = Nil,
     progress: Progress = No_Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
+    output_dir: Path = default_output_dir,
     verbose: Boolean = false,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
@@ -36,9 +62,10 @@ object Dump
     val theories = deps.all_known.theory_graph.topological_order.map(_.theory)
     val theories_result = session.use_theories(theories, progress = progress)
 
-    try { consume(theories_result) }
-    catch { case exn: Throwable => session.stop (); throw exn }
+    val args = Aspect_Args(dump_options, progress, output_dir, theories_result)
 
+    try { aspects.foreach(aspect => aspect.operation(args)) }
+    catch { case exn: Throwable => session.stop (); throw exn }
     session.stop()
   }
 
@@ -48,8 +75,10 @@ object Dump
   val isabelle_tool =
     Isabelle_Tool("dump", "dump build database produced by PIDE session.", args =>
     {
+      var aspects: List[Aspect] = Nil
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
+      var output_dir = default_output_dir
       var requirements = false
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
@@ -65,8 +94,10 @@ object Dump
 Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
   Options are:
+    -A NAMES     dump named aspects (comma-separated list, see below)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
+    -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -78,9 +109,14 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Dump build database (PIDE markup etc.) based on dynamic session.""",
+  Dump build database produced by PIDE session. The following dump aspects
+  are known (option -A):
+
+""" + Library.prefix_lines("    ", show_aspects) + "\n",
+      "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
+      "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
@@ -96,18 +132,13 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      def consume(theories_result: Thy_Resources.Theories_Result)
-      {
-        // FIXME
-        for ((node, _) <- theories_result.nodes) progress.echo(node.toString)
-      }
-
       val result =
         dump(options, logic,
-          consume = consume _,
+          aspects = aspects,
           progress = progress,
           dirs = dirs,
           select_dirs = select_dirs,
+          output_dir = output_dir,
           verbose = verbose,
           selection = Sessions.Selection(
             requirements = requirements,
