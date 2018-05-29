@@ -300,7 +300,7 @@ class Resources(
   private def require_thy(
     progress: Progress,
     initiators: List[Document.Node.Name],
-    required: Dependencies,
+    dependencies: Dependencies,
     thy: (Document.Node.Name, Position.T)): Dependencies =
   {
     val (name, pos) = thy
@@ -309,10 +309,10 @@ class Resources(
       "The error(s) above occurred for theory " + quote(name.theory) +
         required_by(initiators) + Position.here(pos)
 
-    if (required.seen(name)) required
+    if (dependencies.seen(name)) dependencies
     else {
-      val required1 = required + name
-      if (session_base.loaded_theory(name)) required1
+      val dependencies1 = dependencies + name
+      if (session_base.loaded_theory(name)) dependencies1
       else {
         try {
           if (initiators.contains(name)) error(cycle_msg(initiators))
@@ -322,11 +322,11 @@ class Resources(
             try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
             catch { case ERROR(msg) => cat_error(msg, message) }
           Document.Node.Entry(name, header) ::
-            require_thys(progress, name :: initiators, required1, header.imports)
+            require_thys(progress, name :: initiators, dependencies1, header.imports)
         }
         catch {
           case e: Throwable =>
-            Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: required1
+            Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: dependencies1
         }
       }
     }
@@ -335,9 +335,9 @@ class Resources(
   private def require_thys(
       progress: Progress,
       initiators: List[Document.Node.Name],
-      required: Dependencies,
+      dependencies: Dependencies,
       thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    (required /: thys)(require_thy(progress, initiators, _, _))
+    (dependencies /: thys)(require_thy(progress, initiators, _, _))
 
   def dependencies(
       thys: List[(Document.Node.Name, Position.T)],
