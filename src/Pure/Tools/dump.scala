@@ -13,17 +13,46 @@ object Dump
 
   sealed case class Aspect_Args(
     options: Options, progress: Progress, output_dir: Path, result: Thy_Resources.Theories_Result)
+  {
+    def write(node_name: Document.Node.Name, file_name: String, bytes: Bytes)
+    {
+      val path = output_dir + Path.basic(node_name.theory) + Path.basic(file_name)
+      Isabelle_System.mkdirs(path.dir)
+      Bytes.write(path, bytes)
+    }
+
+    def write(node_name: Document.Node.Name, file_name: String, text: String)
+    {
+      write(node_name, file_name, Bytes(text))
+    }
+  }
 
   sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit)
 
   private val known_aspects =
     List(
       Aspect("list", "list theory nodes",
-        { case args => for ((node, _) <- args.result.nodes) args.progress.echo(node.toString) })
+        { case args =>
+            for (node_name <- args.result.node_names) args.progress.echo(node_name.toString)
+        }),
+      Aspect("messages", "output messages (YXML format)",
+        { case args =>
+            for (node_name <- args.result.node_names) {
+              args.write(node_name, "messages.yxml",
+                YXML.string_of_body(args.result.messages(node_name).iterator.map(_._1).toList))
+            }
+        }),
+      Aspect("markup", "PIDE markup (YXML format)",
+        { case args =>
+            for (node_name <- args.result.node_names) {
+              args.write(node_name, "markup.yxml",
+                YXML.string_of_body(args.result.markup_to_XML(node_name)))
+            }
+        })
     )
 
   def show_aspects: String =
-    cat_lines(known_aspects.map(aspect => aspect.name + " - " + aspect.description))
+    cat_lines(known_aspects.sortBy(_.name).map(aspect => aspect.name + " - " + aspect.description))
 
   def the_aspect(name: String): Aspect =
     known_aspects.find(aspect => aspect.name == name) getOrElse
