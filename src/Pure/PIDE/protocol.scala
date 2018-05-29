@@ -156,9 +156,10 @@ object Protocol
   def node_status(
     state: Document.State,
     version: Document.Version,
-    name: Document.Node.Name,
-    node: Document.Node): Node_Status =
+    name: Document.Node.Name): Node_Status =
   {
+    val node = version.nodes(name)
+
     var unprocessed = 0
     var running = 0
     var warned = 0

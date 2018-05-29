@@ -66,6 +66,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
 
   def is_empty: Boolean = rep.isEmpty
   def defined(x: Key): Boolean = rep.isDefinedAt(x)
+  def domain: Set[Key] = rep.keySet
 
   def iterator: Iterator[(Key, Entry)] = rep.iterator
 

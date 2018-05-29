@@ -383,6 +383,8 @@ object Document
       new Nodes(graph3.map_node(name, _ => node))
     }
 
+    def domain: Set[Node.Name] = graph.domain
+
     def iterator: Iterator[(Node.Name, Node)] =
       graph.iterator.map({ case (name, (node, _)) => (name, node) })
 

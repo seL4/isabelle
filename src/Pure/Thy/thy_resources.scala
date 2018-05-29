@@ -133,7 +133,7 @@ object Thy_Resources
           case Some(version) if dep_theories.forall(state.node_consolidated(version, _)) =>
             val nodes =
               for (name <- dep_theories)
-              yield (name -> Protocol.node_status(state, version, name, version.nodes(name)))
+              yield (name -> Protocol.node_status(state, version, name))
             try { result.fulfill(Theories_Result(state, version, nodes)) }
             catch { case _: IllegalStateException => }
           case _ =>
