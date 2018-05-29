@@ -455,80 +455,93 @@ qed simp_all
 
 subsection \<open>Height-Size Relation\<close>
 
-text \<open>By Daniel St\"uwe\<close>
+text \<open>By Daniel St\"uwe, Manuel Eberl and Peter Lammich.\<close>
 
-fun fib_tree :: "nat \<Rightarrow> unit avl_tree" where
-"fib_tree 0 = Leaf" |
-"fib_tree (Suc 0) = Node 1 Leaf () Leaf" |
-"fib_tree (Suc(Suc n)) = Node (Suc(Suc(n))) (fib_tree (Suc n)) () (fib_tree n)"
-
-lemma [simp]: "ht (fib_tree h) = h"
-by (induction h rule: "fib_tree.induct") auto
-
-lemma [simp]: "height (fib_tree h) = h"
-by (induction h rule: "fib_tree.induct") auto
-
-lemma "avl(fib_tree h)"          
-by (induction h rule: "fib_tree.induct") auto
-
-lemma fib_tree_size1: "size1 (fib_tree h) = fib (h+2)"
-by (induction h rule: fib_tree.induct) auto
-
-lemma height_invers[simp]: 
+lemma height_invers: 
   "(height t = 0) = (t = Leaf)"
   "avl t \<Longrightarrow> (height t = Suc h) = (\<exists> l a r . t = Node (Suc h) l a r)"
 by (induction t) auto
 
-lemma fib_Suc_lt: "fib n \<le> fib (Suc n)"
-by (induction n rule: fib.induct) auto
+text \<open>Any AVL tree of height \<open>h\<close> has at least \<open>fib (h+2)\<close> leaves:\<close>
 
-lemma fib_mono: "n \<le> m \<Longrightarrow> fib n \<le> fib m"
-proof (induction n arbitrary: m rule: fib.induct )
-  case (2 m)
-  thus ?case using fib_neq_0_nat[of m] by auto
+lemma avl_fib_bound: "avl t \<Longrightarrow> height t = h \<Longrightarrow> fib (h+2) \<le> size1 t"
+proof (induction h arbitrary: t rule: fib.induct)
+  case 1 thus ?case by (simp add: height_invers)
 next
-  case (3 n m)
-  from 3 obtain m' where "m = Suc (Suc m')"
-    by (metis le_Suc_ex plus_nat.simps(2)) 
-  thus ?case using 3(1)[of "Suc m'"] 3(2)[of m'] 3(3) by auto
-qed simp
-
-lemma size1_fib_tree_mono:
-  assumes "n \<le> m"
-  shows   "size1 (fib_tree n) \<le> size1 (fib_tree m)"
-using fib_tree_size1 fib_mono[OF assms] fib_mono[of "Suc n"] add_le_mono assms by fastforce 
-
-lemma fib_tree_minimal: "avl t \<Longrightarrow> size1 (fib_tree (ht t)) \<le> size1 t"
-proof (induction "ht t" arbitrary: t rule: fib_tree.induct)
-  case (2 t)
-  from 2 obtain l a r where "t = Node (Suc 0) l a r" by (cases t) auto
-  with 2 show ?case by auto
+  case 2 thus ?case by (cases t) (auto simp: height_invers)
 next
-  case (3 h t)
-  note [simp] = 3(3)[symmetric] 
-  from 3 obtain l a r where [simp]: "t = Node (Suc (Suc h)) l a r" by (cases t) auto
-  show ?case proof (cases rule: linorder_cases[of "ht l" "ht r"]) 
-    case equal
-    with 3(3,4) have ht: "ht l = Suc h" "ht r = Suc h" by auto
-    with 3 have "size1 (fib_tree (ht l)) \<le> size1 l" by auto moreover
-    from 3(1)[of r] 3(3,4) ht(2) have "size1 (fib_tree (ht r)) \<le> size1 r" by auto ultimately
-    show ?thesis using ht size1_fib_tree_mono[of h "Suc h"] by auto
-  next
-    case greater
-    with 3(3,4) have ht: "ht l = Suc h"  "ht r = h" by auto
-    from ht 3(1,2,4) have "size1 (fib_tree (Suc h)) \<le> size1 l" by auto moreover
-    from ht 3(1,2,4) have "size1 (fib_tree h) \<le> size1 r" by auto ultimately
-    show ?thesis by auto
-  next
-    case less (* analogously *)
-    with 3 have ht: "ht l = h"  "Suc h = ht r" by auto
-    from ht 3 have "size1 (fib_tree h) \<le> size1 l" by auto moreover
-    from ht 3 have "size1 (fib_tree (Suc h)) \<le> size1 r" by auto ultimately
-    show ?thesis by auto
-  qed
-qed auto
+  case (3 h)
+  from "3.prems" obtain l a r where
+    [simp]: "t = Node (Suc(Suc h)) l a r" "avl l" "avl r"
+    and C: "
+      height r = Suc h \<and> height l = Suc h
+    \<or> height r = Suc h \<and> height l = h
+    \<or> height r = h \<and> height l = Suc h" (is "?C1 \<or> ?C2 \<or> ?C3")
+    by (cases t) (simp, fastforce)
+  {
+    assume ?C1
+    with "3.IH"(1)
+    have "fib (h + 3) \<le> size1 l" "fib (h + 3) \<le> size1 r"
+      by (simp_all add: eval_nat_numeral)
+    hence ?case by (auto simp: eval_nat_numeral)
+  } moreover {
+    assume ?C2
+    hence ?case using "3.IH"(1)[of r] "3.IH"(2)[of l] by auto
+  } moreover {
+    assume ?C3
+    hence ?case using "3.IH"(1)[of l] "3.IH"(2)[of r] by auto
+  } ultimately show ?case using C by blast
+qed
 
-theorem avl_size_bound: "avl t \<Longrightarrow> fib(height t + 2) \<le> size1 t" 
-using fib_tree_minimal fib_tree_size1 by fastforce
+lemma fib_alt_induct [consumes 1, case_names 1 2 rec]:
+  assumes "n > 0" "P 1" "P 2" "\<And>n. n > 0 \<Longrightarrow> P n \<Longrightarrow> P (Suc n) \<Longrightarrow> P (Suc (Suc n))"
+  shows   "P n"
+  using assms(1)
+proof (induction n rule: fib.induct)
+  case (3 n)
+  thus ?case using assms by (cases n) (auto simp: eval_nat_numeral)
+qed (insert assms, auto)
+
+text \<open>An exponential lower bound for @{const fib}:\<close>
+
+lemma fib_lowerbound:
+  defines "\<phi> \<equiv> (1 + sqrt 5) / 2"
+  defines "c \<equiv> 1 / \<phi> ^ 2"
+  assumes "n > 0"
+  shows   "real (fib n) \<ge> c * \<phi> ^ n"
+proof -
+  have "\<phi> > 1" by (simp add: \<phi>_def)
+  hence "c > 0" by (simp add: c_def)
+  from \<open>n > 0\<close> show ?thesis
+  proof (induction n rule: fib_alt_induct)
+    case (rec n)
+    have "c * \<phi> ^ Suc (Suc n) = \<phi> ^ 2 * (c * \<phi> ^ n)"
+      by (simp add: field_simps power2_eq_square)
+    also have "\<dots> \<le> (\<phi> + 1) * (c * \<phi> ^ n)"
+      by (rule mult_right_mono) (insert \<open>c > 0\<close>, simp_all add: \<phi>_def power2_eq_square field_simps)
+    also have "\<dots> = c * \<phi> ^ Suc n + c * \<phi> ^ n"
+      by (simp add: field_simps)
+    also have "\<dots> \<le> real (fib (Suc n)) + real (fib n)"
+      by (intro add_mono rec.IH)
+    finally show ?case by simp
+  qed (insert \<open>\<phi> > 1\<close>, simp_all add: c_def power2_eq_square eval_nat_numeral)
+qed
+
+text \<open>The size of an AVL tree is (at least) exponential in its height:\<close>
+
+lemma avl_lowerbound:
+  defines "\<phi> \<equiv> (1 + sqrt 5) / 2"
+  assumes "avl t"
+  shows   "real (size1 t) \<ge> \<phi> ^ (height t)"
+proof -
+  have "\<phi> > 0" by(simp add: \<phi>_def add_pos_nonneg)
+  hence "\<phi> ^ height t = (1 / \<phi> ^ 2) * \<phi> ^ (height t + 2)"
+    by(simp add: field_simps power2_eq_square)
+  also have "\<dots> \<le> real (fib (height t + 2))"
+    using fib_lowerbound[of "height t + 2"] by(simp add: \<phi>_def)
+  also have "\<dots> \<le> real (size1 t)"
+    using avl_fib_bound[of t "height t"] assms by simp
+  finally show ?thesis .
+qed
 
 end
