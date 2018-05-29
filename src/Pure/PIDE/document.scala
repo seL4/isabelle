@@ -531,7 +531,6 @@ object Document
 
     def node_name: Node.Name
     def node: Node
-    def node_consolidated: Boolean
 
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
@@ -970,8 +969,6 @@ object Document
 
         val node_name: Node.Name = name
         val node: Node = version.nodes(name)
-
-        def node_consolidated: Boolean = state.node_consolidated(version, node_name)
 
         val commands_loading: List[Command] =
           if (node_name.is_theory) Nil
