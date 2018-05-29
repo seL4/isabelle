@@ -100,13 +100,16 @@ object Dump
       Thy_Resources.start_session(dump_options, logic, session_dirs = dirs,
         include_sessions = include_sessions, progress = progress, log = log)
 
-    try {
-      val theories_result = session.use_theories(use_theories, progress = progress)
-      val args = Aspect_Args(dump_options, progress, output_dir, theories_result)
-      aspects.foreach(_.operation(args))
-    }
-    catch { case exn: Throwable => session.stop (); throw exn }
-    session.stop()
+    val theories_result = session.use_theories(use_theories, progress = progress)
+    val session_result = session.stop()
+
+
+    /* dump aspects */
+
+    val aspect_args = Aspect_Args(dump_options, progress, output_dir, theories_result)
+    aspects.foreach(_.operation(aspect_args))
+
+    session_result
   }
 
 
