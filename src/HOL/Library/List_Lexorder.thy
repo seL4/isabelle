@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/List_lexord.thy
+(*  Title:      HOL/Library/List_Lexorder.thy
     Author:     Norbert Voelker
 *)
 
 section \<open>Lexicographic order on lists\<close>
 
-theory List_lexord
+theory List_Lexorder
 imports Main
 begin
 

@@ -2,7 +2,7 @@
 
 theory Radix_Sort
 imports
-  "HOL-Library.List_lexord" 
+  "HOL-Library.List_Lexorder" 
   "HOL-Library.Sublist" 
   "HOL-Library.Multiset" 
 begin
