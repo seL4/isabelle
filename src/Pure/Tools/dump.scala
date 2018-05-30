@@ -21,10 +21,11 @@ object Dump
       Bytes.write(path, bytes)
     }
 
-    def write(node_name: Document.Node.Name, file_name: String, text: String)
-    {
+    def write(node_name: Document.Node.Name, file_name: String, text: String): Unit =
       write(node_name, file_name, Bytes(text))
-    }
+
+    def write(node_name: Document.Node.Name, file_name: String, body: XML.Body): Unit =
+      write(node_name, file_name, Symbol.encode(YXML.string_of_body(body)))
   }
 
   sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit)
@@ -35,14 +36,13 @@ object Dump
         { case args =>
             for (node_name <- args.result.node_names) {
               args.write(node_name, "messages.yxml",
-                YXML.string_of_body(args.result.messages(node_name).iterator.map(_._1).toList))
+                args.result.messages(node_name).iterator.map(_._1).toList)
             }
         }),
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
             for (node_name <- args.result.node_names) {
-              args.write(node_name, "markup.yxml",
-                YXML.string_of_body(args.result.markup_to_XML(node_name)))
+              args.write(node_name, "markup.yxml", args.result.markup_to_XML(node_name))
             }
         })
     )
