@@ -172,21 +172,23 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
       val progress = new Console_Progress(verbose = verbose)
 
       val result =
-        dump(options, logic,
-          aspects = aspects,
-          progress = progress,
-          dirs = dirs,
-          select_dirs = select_dirs,
-          output_dir = output_dir,
-          verbose = verbose,
-          selection = Sessions.Selection(
-            requirements = requirements,
-            all_sessions = all_sessions,
-            base_sessions = base_sessions,
-            exclude_session_groups = exclude_session_groups,
-            exclude_sessions = exclude_sessions,
-            session_groups = session_groups,
-            sessions = sessions))
+        progress.interrupt_handler {
+          dump(options, logic,
+            aspects = aspects,
+            progress = progress,
+            dirs = dirs,
+            select_dirs = select_dirs,
+            output_dir = output_dir,
+            verbose = verbose,
+            selection = Sessions.Selection(
+              requirements = requirements,
+              all_sessions = all_sessions,
+              base_sessions = base_sessions,
+              exclude_session_groups = exclude_session_groups,
+              exclude_sessions = exclude_sessions,
+              session_groups = session_groups,
+              sessions = sessions))
+        }
 
       progress.echo(result.timing.message_resources)
 
