@@ -429,7 +429,6 @@ syntax
   (*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
   "_lc_end" :: "lc_quals" ("]")
   "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals"  (", __")
-  "_lc_abs" :: "'a => 'b list => 'b list"
 
 syntax (ASCII)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ <- _")
