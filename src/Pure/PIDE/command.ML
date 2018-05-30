@@ -317,35 +317,35 @@ fun print_persistent (Print {persistent, ...}) = persistent;
 
 val overlay_ord = prod_ord string_ord (list_ord string_ord);
 
+fun make_print (name, args) {delay, pri, persistent, strict, print_fn} eval =
+  let
+    val exec_id = Document_ID.make ();
+    fun process () =
+      let
+        val {failed, command, state = st', ...} = eval_result eval;
+        val tr = Toplevel.exec_id exec_id command;
+        val opt_context = try Toplevel.generic_theory_of st';
+      in
+        if failed andalso strict then ()
+        else print_error tr opt_context (fn () => print_fn tr st')
+      end;
+  in
+    Print {
+      name = name, args = args, delay = delay, pri = pri, persistent = persistent,
+      exec_id = exec_id, print_process = Lazy.lazy_name "Command.print" process}
+  end;
+
+fun bad_print name_args exn =
+  make_print name_args {delay = NONE, pri = 0, persistent = false,
+    strict = false, print_fn = fn _ => fn _ => Exn.reraise exn};
+
 in
 
 fun print command_visible command_overlays keywords command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
 
-    fun make_print name args {delay, pri, persistent, strict, print_fn} =
-      let
-        val exec_id = Document_ID.make ();
-        fun process () =
-          let
-            val {failed, command, state = st', ...} = eval_result eval;
-            val tr = Toplevel.exec_id exec_id command;
-            val opt_context = try Toplevel.generic_theory_of st';
-          in
-            if failed andalso strict then ()
-            else print_error tr opt_context (fn () => print_fn tr st')
-          end;
-      in
-        Print {
-          name = name, args = args, delay = delay, pri = pri, persistent = persistent,
-          exec_id = exec_id, print_process = Lazy.lazy_name "Command.print" process}
-      end;
-
-    fun bad_print name args exn =
-      make_print name args {delay = NONE, pri = 0, persistent = false,
-        strict = false, print_fn = fn _ => fn _ => Exn.reraise exn};
-
-    fun new_print name args get_pr =
+    fun new_print (name, args) get_pr =
       let
         val params =
          {keywords = keywords,
@@ -355,21 +355,22 @@ fun print command_visible command_overlays keywords command_name eval old_prints
       in
         (case Exn.capture (Runtime.controlled_execution NONE get_pr) params of
           Exn.Res NONE => NONE
-        | Exn.Res (SOME pr) => SOME (make_print name args pr)
-        | Exn.Exn exn => SOME (bad_print name args exn))
+        | Exn.Res (SOME pr) => SOME (make_print (name, args) pr eval)
+        | Exn.Exn exn => SOME (bad_print (name, args) exn eval))
       end;
 
-    fun get_print (a, b) =
-      (case find_first (fn Print {name, args, ...} => name = a andalso args = b) old_prints of
+    fun get_print (name, args) =
+      (case find_first (fn Print print => (#name print, #args print) = (name, args)) old_prints of
         NONE =>
-          (case AList.lookup (op =) print_functions a of
-            NONE => SOME (bad_print a b (ERROR ("Missing print function " ^ quote a)))
-          | SOME get_pr => new_print a b get_pr)
+          (case AList.lookup (op =) print_functions name of
+            NONE =>
+              SOME (bad_print (name, args) (ERROR ("Missing print function " ^ quote name)) eval)
+          | SOME get_pr => new_print (name, args) get_pr)
       | some => some);
 
     val new_prints =
       if command_visible then
-        fold (fn (a, _) => cons (a, [])) print_functions command_overlays
+        fold (fn (name, _) => cons (name, [])) print_functions command_overlays
         |> sort_distinct overlay_ord
         |> map_filter get_print
       else filter (fn print => print_finished print andalso print_persistent print) old_prints;
