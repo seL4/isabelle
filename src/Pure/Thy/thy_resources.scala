@@ -144,9 +144,32 @@ object Thy_Resources
         Event_Timer.request(Time.now(), repeat = Some(Time.seconds(0.5)))
           { if (progress.stopped) result.cancel else check_state }
 
+      val theories_progress = Synchronized(Set.empty[Document.Node.Name])
+
       val consumer =
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
-          case changed => if (dep_theories.exists(changed.nodes)) check_state
+          case changed =>
+            if (dep_theories.exists(changed.nodes)) {
+
+              val check_theories =
+                (for (command <- changed.commands.iterator if command.potentially_initialized)
+                  yield command.node_name).toSet
+
+              if (check_theories.nonEmpty) {
+                val snapshot = session.snapshot()
+                val initialized =
+                  theories_progress.change_result(theories =>
+                  {
+                    val initialized =
+                      (check_theories -- theories).toList.filter(name =>
+                        Protocol.node_status(snapshot.state, snapshot.version, name).initialized)
+                    (initialized, theories ++ initialized)
+                  })
+                initialized.map(_.theory).sorted.foreach(progress.theory("", _))
+              }
+
+              check_state
+            }
         }
 
       try {

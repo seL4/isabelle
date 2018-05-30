@@ -31,10 +31,6 @@ object Dump
 
   private val known_aspects =
     List(
-      Aspect("list", "list theory nodes",
-        { case args =>
-            for (node_name <- args.result.node_names) args.progress.echo(node_name.toString)
-        }),
       Aspect("messages", "output messages (YXML format)",
         { case args =>
             for (node_name <- args.result.node_names) {
