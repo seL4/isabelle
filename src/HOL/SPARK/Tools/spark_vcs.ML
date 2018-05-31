@@ -101,7 +101,7 @@ fun mk_times (t, u) =
     val T = HOLogic.dest_setT setT;
     val U = HOLogic.dest_setT (fastype_of u)
   in
-    Const (@{const_name Sigma}, setT --> (T --> HOLogic.mk_setT U) -->
+    Const (\<^const_name>\<open>Sigma\<close>, setT --> (T --> HOLogic.mk_setT U) -->
       HOLogic.mk_setT (HOLogic.mk_prodT (T, U))) $ t $ Abs ("", T, u)
   end;
 
@@ -150,7 +150,7 @@ fun mk_variables thy prfx xs ty (tab, ctxt) =
   in (zs, (fold (Symtab.update o apsnd (rpair ty)) (xs ~~ zs) tab, ctxt')) end;
 
 fun get_record_info thy T = (case Record.dest_recTs T of
-    [(tyname, [@{typ unit}])] =>
+    [(tyname, [\<^typ>\<open>unit\<close>])] =>
       Record.get_info thy (Long_Name.qualifier tyname)
   | _ => NONE);
 
@@ -177,9 +177,9 @@ fun add_enum_type tyname tyname' thy =
     val cs = map Const (the (BNF_LFP_Compat.get_constrs thy tyname'));
     val k = length cs;
     val T = Type (tyname', []);
-    val p = Const (@{const_name pos}, T --> HOLogic.intT);
-    val v = Const (@{const_name val}, HOLogic.intT --> T);
-    val card = Const (@{const_name card},
+    val p = Const (\<^const_name>\<open>pos\<close>, T --> HOLogic.intT);
+    val v = Const (\<^const_name>\<open>val\<close>, HOLogic.intT --> T);
+    val card = Const (\<^const_name>\<open>card\<close>,
       HOLogic.mk_setT T --> HOLogic.natT) $ HOLogic.mk_UNIV T;
 
     fun mk_binrel_def s f = Logic.mk_equals
@@ -190,7 +190,7 @@ fun add_enum_type tyname tyname' thy =
 
     val (((def1, def2), def3), lthy) = thy |>
 
-      Class.instantiation ([tyname'], [], @{sort spark_enum}) |>
+      Class.instantiation ([tyname'], [], \<^sort>\<open>spark_enum\<close>) |>
 
       define_overloaded ("pos_" ^ tyname ^ "_def", Logic.mk_equals
         (p,
@@ -199,9 +199,9 @@ fun add_enum_type tyname tyname' thy =
            map (HOLogic.mk_number HOLogic.intT) (0 upto k - 1)))) ||>>
 
       define_overloaded ("less_eq_" ^ tyname ^ "_def",
-        mk_binrel_def @{const_name less_eq} p) ||>>
+        mk_binrel_def \<^const_name>\<open>less_eq\<close> p) ||>>
       define_overloaded ("less_" ^ tyname ^ "_def",
-        mk_binrel_def @{const_name less} p);
+        mk_binrel_def \<^const_name>\<open>less\<close> p);
 
     val UNIV_eq = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -214,7 +214,7 @@ fun add_enum_type tyname tyname' thy =
          ALLGOALS (asm_full_simp_tac ctxt));
 
     val finite_UNIV = Goal.prove lthy [] []
-      (HOLogic.mk_Trueprop (Const (@{const_name finite},
+      (HOLogic.mk_Trueprop (Const (\<^const_name>\<open>finite\<close>,
          HOLogic.mk_setT T --> HOLogic.boolT) $ HOLogic.mk_UNIV T))
       (fn {context = ctxt, ...} => simp_tac (ctxt addsimps [UNIV_eq]) 1);
 
@@ -225,13 +225,13 @@ fun add_enum_type tyname tyname' thy =
 
     val range_pos = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
-         (Const (@{const_name image}, (T --> HOLogic.intT) -->
+         (Const (\<^const_name>\<open>image\<close>, (T --> HOLogic.intT) -->
             HOLogic.mk_setT T --> HOLogic.mk_setT HOLogic.intT) $
               p $ HOLogic.mk_UNIV T,
-          Const (@{const_name atLeastLessThan}, HOLogic.intT -->
+          Const (\<^const_name>\<open>atLeastLessThan\<close>, HOLogic.intT -->
             HOLogic.intT --> HOLogic.mk_setT HOLogic.intT) $
               HOLogic.mk_number HOLogic.intT 0 $
-              (@{term int} $ card))))
+              (\<^term>\<open>int\<close> $ card))))
       (fn {context = ctxt, ...} =>
          simp_tac (ctxt addsimps [card_UNIV]) 1 THEN
          simp_tac (ctxt addsimps [UNIV_eq, def1]) 1 THEN
@@ -264,12 +264,12 @@ fun add_enum_type tyname tyname' thy =
 
     val first_el = Goal.prove lthy' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
-         (Const (@{const_name first_el}, T), hd cs)))
+         (Const (\<^const_name>\<open>first_el\<close>, T), hd cs)))
       (fn {context = ctxt, ...} => simp_tac (ctxt addsimps [@{thm first_el_def}, hd val_eqs]) 1);
 
     val last_el = Goal.prove lthy' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
-         (Const (@{const_name last_el}, T), List.last cs)))
+         (Const (\<^const_name>\<open>last_el\<close>, T), List.last cs)))
       (fn {context = ctxt, ...} =>
         simp_tac (ctxt addsimps [@{thm last_el_def}, List.last val_eqs, card_UNIV]) 1);
   in
@@ -414,43 +414,43 @@ fun term_of_expr thy prfx types pfuns =
       | tm_of vs (Funct ("<>", [e, e'])) = (HOLogic.mk_not
           (HOLogic.mk_eq (fst (tm_of vs e), fst (tm_of vs e'))), booleanN)
 
-      | tm_of vs (Funct ("<", [e, e'])) = (HOLogic.mk_binrel @{const_name less}
+      | tm_of vs (Funct ("<", [e, e'])) = (HOLogic.mk_binrel \<^const_name>\<open>less\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), booleanN)
 
-      | tm_of vs (Funct (">", [e, e'])) = (HOLogic.mk_binrel @{const_name less}
+      | tm_of vs (Funct (">", [e, e'])) = (HOLogic.mk_binrel \<^const_name>\<open>less\<close>
           (fst (tm_of vs e'), fst (tm_of vs e)), booleanN)
 
-      | tm_of vs (Funct ("<=", [e, e'])) = (HOLogic.mk_binrel @{const_name less_eq}
+      | tm_of vs (Funct ("<=", [e, e'])) = (HOLogic.mk_binrel \<^const_name>\<open>less_eq\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), booleanN)
 
-      | tm_of vs (Funct (">=", [e, e'])) = (HOLogic.mk_binrel @{const_name less_eq}
+      | tm_of vs (Funct (">=", [e, e'])) = (HOLogic.mk_binrel \<^const_name>\<open>less_eq\<close>
           (fst (tm_of vs e'), fst (tm_of vs e)), booleanN)
 
-      | tm_of vs (Funct ("+", [e, e'])) = (HOLogic.mk_binop @{const_name plus}
+      | tm_of vs (Funct ("+", [e, e'])) = (HOLogic.mk_binop \<^const_name>\<open>plus\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("-", [e, e'])) = (HOLogic.mk_binop @{const_name minus}
+      | tm_of vs (Funct ("-", [e, e'])) = (HOLogic.mk_binop \<^const_name>\<open>minus\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("*", [e, e'])) = (HOLogic.mk_binop @{const_name times}
+      | tm_of vs (Funct ("*", [e, e'])) = (HOLogic.mk_binop \<^const_name>\<open>times\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("/", [e, e'])) = (HOLogic.mk_binop @{const_name divide}
+      | tm_of vs (Funct ("/", [e, e'])) = (HOLogic.mk_binop \<^const_name>\<open>divide\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("div", [e, e'])) = (HOLogic.mk_binop @{const_name sdiv}
+      | tm_of vs (Funct ("div", [e, e'])) = (HOLogic.mk_binop \<^const_name>\<open>sdiv\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("mod", [e, e'])) = (HOLogic.mk_binop @{const_name modulo}
+      | tm_of vs (Funct ("mod", [e, e'])) = (HOLogic.mk_binop \<^const_name>\<open>modulo\<close>
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
       | tm_of vs (Funct ("-", [e])) =
-          (mk_unop @{const_name uminus} (fst (tm_of vs e)), integerN)
+          (mk_unop \<^const_name>\<open>uminus\<close> (fst (tm_of vs e)), integerN)
 
       | tm_of vs (Funct ("**", [e, e'])) =
-          (Const (@{const_name power}, HOLogic.intT --> HOLogic.natT -->
+          (Const (\<^const_name>\<open>power\<close>, HOLogic.intT --> HOLogic.natT -->
              HOLogic.intT) $ fst (tm_of vs e) $
-               (@{const nat} $ fst (tm_of vs e')), integerN)
+               (\<^const>\<open>nat\<close> $ fst (tm_of vs e')), integerN)
 
       | tm_of (tab, _) (Ident s) =
           (case Symtab.lookup tab s of
@@ -528,7 +528,7 @@ fun term_of_expr thy prfx types pfuns =
           (* enumeration type to integer *)
           (case try (unsuffix "__pos") s of
              SOME tyname => (case es of
-               [e] => (Const (@{const_name pos},
+               [e] => (Const (\<^const_name>\<open>pos\<close>,
                    mk_type thy prfx tyname --> HOLogic.intT) $ fst (tm_of vs e),
                  integerN)
              | _ => error ("Function " ^ s ^ " expects one argument"))
@@ -537,7 +537,7 @@ fun term_of_expr thy prfx types pfuns =
           (* integer to enumeration type *)
           (case try (unsuffix "__val") s of
              SOME tyname => (case es of
-               [e] => (Const (@{const_name val},
+               [e] => (Const (\<^const_name>\<open>val\<close>,
                    HOLogic.intT --> mk_type thy prfx tyname) $ fst (tm_of vs e),
                  tyname)
              | _ => error ("Function " ^ s ^ " expects one argument"))
@@ -550,8 +550,8 @@ fun term_of_expr thy prfx types pfuns =
                   val (t, tyname) = tm_of vs e;
                   val T = mk_type thy prfx tyname
                 in (Const
-                  (if s = "succ" then @{const_name succ}
-                   else @{const_name pred}, T --> T) $ t, tyname)
+                  (if s = "succ" then \<^const_name>\<open>succ\<close>
+                   else \<^const_name>\<open>pred\<close>, T --> T) $ t, tyname)
                 end
             | _ => error ("Function " ^ s ^ " expects one argument"))
 
@@ -580,7 +580,7 @@ fun term_of_expr thy prfx types pfuns =
                   val U = mk_type thy prfx elty;
                   val fT = T --> U
                 in
-                  (Const (@{const_name fun_upd}, fT --> T --> U --> fT) $
+                  (Const (\<^const_name>\<open>fun_upd\<close>, fT --> T --> U --> fT) $
                      t $ foldr1 HOLogic.mk_prod (map (fst o tm_of vs) es) $
                        fst (tm_of vs e'),
                    ty)
@@ -628,7 +628,7 @@ fun term_of_expr thy prfx types pfuns =
                  val T = foldr1 HOLogic.mk_prodT Ts;
                  val U = mk_type thy prfx elty;
                  fun mk_idx' T (e, NONE) = HOLogic.mk_set T [fst (tm_of vs e)]
-                   | mk_idx' T (e, SOME e') = Const (@{const_name atLeastAtMost},
+                   | mk_idx' T (e, SOME e') = Const (\<^const_name>\<open>atLeastAtMost\<close>,
                        T --> T --> HOLogic.mk_setT T) $
                          fst (tm_of vs e) $ fst (tm_of vs e');
                  fun mk_idx idx =
@@ -638,22 +638,22 @@ fun term_of_expr thy prfx types pfuns =
                  fun mk_upd (idxs, e) t =
                    if length idxs = 1 andalso forall (is_none o snd) (hd idxs)
                    then
-                     Const (@{const_name fun_upd}, (T --> U) -->
+                     Const (\<^const_name>\<open>fun_upd\<close>, (T --> U) -->
                          T --> U --> T --> U) $ t $
                        foldl1 HOLogic.mk_prod
                          (map (fst o tm_of vs o fst) (hd idxs)) $
                        fst (tm_of vs e)
                    else
-                     Const (@{const_name fun_upds}, (T --> U) -->
+                     Const (\<^const_name>\<open>fun_upds\<close>, (T --> U) -->
                          HOLogic.mk_setT T --> U --> T --> U) $ t $
-                       foldl1 (HOLogic.mk_binop @{const_name sup})
+                       foldl1 (HOLogic.mk_binop \<^const_name>\<open>sup\<close>)
                          (map mk_idx idxs) $
                        fst (tm_of vs e)
                in
                  (fold mk_upd assocs
                     (case default of
                        SOME e => Abs ("x", T, fst (tm_of vs e))
-                     | NONE => Const (@{const_name undefined}, T --> U)),
+                     | NONE => Const (\<^const_name>\<open>undefined\<close>, T --> U)),
                   s)
                end
            | _ => error (s ^ " is not an array type"))
@@ -973,7 +973,7 @@ fun close incomplete thy =
              \because their proofs contain oracles:" proved'));
           val prv_path = Path.ext "prv" path;
           val _ =
-            if File.exists prv_path orelse Options.default_bool @{system_option spark_prv} then
+            if File.exists prv_path orelse Options.default_bool \<^system_option>\<open>spark_prv\<close> then
               File.write prv_path
                (implode (map (fn (s, _) => snd (strip_number s) ^
                   " -- proved by " ^ Distribution.version ^ "\n") proved''))
@@ -1096,8 +1096,8 @@ fun set_vcs ({types, vars, consts, funs} : decls)
 
     val (((defs', vars''), ivars), (ids, thy')) =
       ((Symtab.empty |>
-        Symtab.update ("false", (@{term False}, booleanN)) |>
-        Symtab.update ("true", (@{term True}, booleanN)),
+        Symtab.update ("false", (\<^term>\<open>False\<close>, booleanN)) |>
+        Symtab.update ("true", (\<^term>\<open>True\<close>, booleanN)),
         Name.context),
        thy |> Sign.add_path
          ((if prfx' = "" then "" else prfx' ^ "__") ^ Long_Name.base_name ident)) |>
