@@ -215,8 +215,9 @@ class Resources(
       reparse_limit: Int,
       previous: Document.Version,
       doc_blobs: Document.Blobs,
-      edits: List[Document.Edit_Text]): Session.Change =
-    Thy_Syntax.parse_change(resources, reparse_limit, previous, doc_blobs, edits)
+      edits: List[Document.Edit_Text],
+      consolidate: Boolean): Session.Change =
+    Thy_Syntax.parse_change(resources, reparse_limit, previous, doc_blobs, edits, consolidate)
 
   def commit(change: Session.Change) { }
 

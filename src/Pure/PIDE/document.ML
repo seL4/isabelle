@@ -24,8 +24,7 @@ sig
   val command_exec: state -> string -> Document_ID.command -> Command.exec option
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
-  val consolidate_execution: state -> unit
-  val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
+  val update: Document_ID.version -> Document_ID.version -> edit list -> bool -> state ->
     Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
   val change_state: (state -> state) -> unit
@@ -55,24 +54,22 @@ type perspective =
 
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
-type consolidation = (int -> int option) * Thy_Output.segment list;
-
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   keywords: Keyword.keywords option,  (*outer syntax keywords*)
   perspective: perspective,  (*command perspective*)
   entries: Command.exec option Entries.T,  (*command entries with executions*)
-  result: Command.eval option,  (*result of last execution*)
-  consolidation: consolidation future}  (*consolidation status of eval forks*)
+  result: (Document_ID.command * Command.eval) option,  (*result of last execution*)
+  consolidated: unit lazy}  (*consolidated status of eval forks*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
 
-fun make_node (header, keywords, perspective, entries, result, consolidation) =
+fun make_node (header, keywords, perspective, entries, result, consolidated) =
   Node {header = header, keywords = keywords, perspective = perspective,
-    entries = entries, result = result, consolidation = consolidation};
+    entries = entries, result = result, consolidated = consolidated};
 
-fun map_node f (Node {header, keywords, perspective, entries, result, consolidation}) =
-  make_node (f (header, keywords, perspective, entries, result, consolidation));
+fun map_node f (Node {header, keywords, perspective, entries, result, consolidated}) =
+  make_node (f (header, keywords, perspective, entries, result, consolidated));
 
 fun make_perspective (required, command_ids, overlays) : perspective =
  {required = required,
@@ -85,7 +82,7 @@ val no_header: node_header =
 val no_perspective = make_perspective (false, [], []);
 
 val empty_node =
-  make_node (no_header, NONE, no_perspective, Entries.empty, NONE, Future.value (K NONE, []));
+  make_node (no_header, NONE, no_perspective, Entries.empty, NONE, Lazy.value ());
 
 fun is_no_perspective ({required, visible, visible_last, overlays}: perspective) =
   not required andalso
@@ -93,13 +90,13 @@ fun is_no_perspective ({required, visible, visible_last, overlays}: perspective)
   is_none visible_last andalso
   Inttab.is_empty overlays;
 
-fun is_empty_node (Node {header, keywords, perspective, entries, result, consolidation}) =
+fun is_empty_node (Node {header, keywords, perspective, entries, result, consolidated}) =
   header = no_header andalso
   is_none keywords andalso
   is_no_perspective perspective andalso
   Entries.is_empty entries andalso
   is_none result andalso
-  Future.is_finished consolidation;
+  Lazy.is_finished consolidated;
 
 
 (* basic components *)
@@ -110,15 +107,15 @@ fun master_directory (Node {header = {master, ...}, ...}) =
   | _ => Path.current);
 
 fun set_header master header errors =
-  map_node (fn (_, keywords, perspective, entries, result, consolidation) =>
+  map_node (fn (_, keywords, perspective, entries, result, consolidated) =>
     ({master = master, header = header, errors = errors},
-      keywords, perspective, entries, result, consolidation));
+      keywords, perspective, entries, result, consolidated));
 
 fun get_header (Node {header, ...}) = header;
 
 fun set_keywords keywords =
-  map_node (fn (header, _, perspective, entries, result, consolidation) =>
-    (header, keywords, perspective, entries, result, consolidation));
+  map_node (fn (header, _, perspective, entries, result, consolidated) =>
+    (header, keywords, perspective, entries, result, consolidated));
 
 fun get_keywords (Node {keywords, ...}) = keywords;
 
@@ -142,8 +139,8 @@ fun read_header node span =
 fun get_perspective (Node {perspective, ...}) = perspective;
 
 fun set_perspective args =
-  map_node (fn (header, keywords, _, entries, result, consolidation) =>
-    (header, keywords, make_perspective args, entries, result, consolidation));
+  map_node (fn (header, keywords, _, entries, result, consolidated) =>
+    (header, keywords, make_perspective args, entries, result, consolidated));
 
 val required_node = #required o get_perspective;
 val visible_command = Inttab.defined o #visible o get_perspective;
@@ -152,8 +149,8 @@ val visible_node = is_some o visible_last
 val overlays = Inttab.lookup_list o #overlays o get_perspective;
 
 fun map_entries f =
-  map_node (fn (header, keywords, perspective, entries, result, consolidation) =>
-    (header, keywords, perspective, f entries, result, consolidation));
+  map_node (fn (header, keywords, perspective, entries, result, consolidated) =>
+    (header, keywords, perspective, f entries, result, consolidated));
 
 fun get_entries (Node {entries, ...}) = entries;
 
@@ -166,30 +163,40 @@ fun iterate_entries_after start f (Node {entries, ...}) =
 fun get_result (Node {result, ...}) = result;
 
 fun set_result result =
-  map_node (fn (header, keywords, perspective, entries, _, consolidation) =>
-    (header, keywords, perspective, entries, result, consolidation));
+  map_node (fn (header, keywords, perspective, entries, _, consolidated) =>
+    (header, keywords, perspective, entries, result, consolidated));
 
 fun pending_result node =
   (case get_result node of
-    SOME eval => not (Command.eval_finished eval)
+    SOME (_, eval) => not (Command.eval_finished eval)
   | NONE => false);
 
 fun finished_result node =
   (case get_result node of
-    SOME eval => Command.eval_finished eval
+    SOME (_, eval) => Command.eval_finished eval
   | NONE => false);
 
 fun finished_result_theory node =
   if finished_result node then
-    let val st = Command.eval_result_state (the (get_result node))
-    in SOME (Toplevel.end_theory Position.none st) handle ERROR _ => NONE end
+    let
+      val (result_id, eval) = the (get_result node);
+      val st = Command.eval_result_state eval;
+    in SOME (result_id, Toplevel.end_theory Position.none st) handle ERROR _ => NONE end
   else NONE;
 
-val reset_consolidation =
+val reset_consolidated =
   map_node (fn (header, keywords, perspective, entries, result, _) =>
-    (header, keywords, perspective, entries, result, Future.promise I));
+    (header, keywords, perspective, entries, result, Lazy.lazy I));
 
-fun get_consolidation (Node {consolidation, ...}) = consolidation;
+fun get_consolidated (Node {consolidated, ...}) = consolidated;
+
+val is_consolidated = Lazy.is_finished o get_consolidated;
+
+fun commit_consolidated node =
+  (Lazy.force (get_consolidated node); Output.status (Markup.markup_only Markup.consolidated));
+
+fun could_consolidate node =
+  not (is_consolidated node) andalso is_some (finished_result_theory node);
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -414,9 +421,6 @@ fun the_command (State {commands, ...}) command_id =
 
 val the_command_name = #1 oo the_command;
 
-fun force_command_span state =
-  Outer_Syntax.make_span o Lazy.force o #4 o the_command state;
-
 
 (* execution *)
 
@@ -515,77 +519,6 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
         {version_id = version_id, execution_id = execution_id, delay_request = delay_request'};
     in (versions, blobs, commands, execution') end));
 
-fun presentation options thy node_name node =
-  if Options.bool options "editor_presentation" then
-    let
-      val (adjust, segments) = Future.get_finished (get_consolidation node);
-      val presentation_context: Thy_Info.presentation_context =
-       {options = options,
-        file_pos = Position.file node_name,
-        adjust_pos = Position.adjust_offsets adjust,
-        segments = segments};
-    in Thy_Info.apply_presentation presentation_context thy end
-  else ();
-
-fun consolidate_execution state =
-  let
-    fun check_consolidation node_name node =
-      if Future.is_finished (get_consolidation node) then ()
-      else
-        (case finished_result_theory node of
-          NONE => ()
-        | SOME thy =>
-            let
-              val result_id = Command.eval_exec_id (the (get_result node));
-              val eval_ids =
-                iterate_entries (fn (_, opt_exec) => fn eval_ids =>
-                  (case opt_exec of
-                    SOME (eval, _) => SOME (cons (Command.eval_exec_id eval) eval_ids)
-                  | NONE => NONE)) node [];
-            in
-              (case Execution.snapshot eval_ids of
-                [] =>
-                  let
-                    val (_, offsets, rev_segments) =
-                      iterate_entries (fn (_, opt_exec) => fn (offset, offsets, segments) =>
-                        (case opt_exec of
-                          SOME (eval, _) =>
-                            let
-                              val command_id = Command.eval_command_id eval;
-                              val span = force_command_span state command_id;
-
-                              val exec_id = Command.eval_exec_id eval;
-                              val tr = Command.eval_result_command eval;
-                              val st' = Command.eval_result_state eval;
-
-                              val offset' = offset + the_default 0 (Command_Span.symbol_length span);
-                              val offsets' = offsets
-                                |> Inttab.update (command_id, offset)
-                                |> Inttab.update (exec_id, offset);
-                              val segments' = (span, tr, st') :: segments;
-                            in SOME (offset', offsets', segments') end
-                        | NONE => NONE)) node (0, Inttab.empty, []);
-
-                    val adjust = Inttab.lookup offsets;
-                    val segments =
-                      rev rev_segments |> map (fn (span, tr, st') =>
-                        {span = Command_Span.adjust_offsets adjust span, command = tr, state = st'});
-
-                    val _ = Future.fulfill (get_consolidation node) (adjust, segments);
-                    val _ =
-                      Position.setmp_thread_data (Position.id_only (Document_ID.print result_id))
-                        (fn () =>
-                          (Output.status (Markup.markup_only Markup.consolidated);
-                            (* FIXME avoid user operations on protocol thread *)
-                            presentation (Options.default ()) thy node_name node)) ();
-                  in () end
-              | _ => ())
-            end);
-      in
-        String_Graph.fold (fn (node_name, (node, _)) => fn () => check_consolidation node_name node)
-          (nodes_of (get_execution_version state)) ()
-      end;
-
 
 
 (** document update **)
@@ -596,6 +529,7 @@ type assign_update = Command.exec option Inttab.table;  (*command id -> exec*)
 
 val assign_update_empty: assign_update = Inttab.empty;
 fun assign_update_defined (tab: assign_update) command_id = Inttab.defined tab command_id;
+fun assign_update_change entry (tab: assign_update) = Inttab.update entry tab;
 fun assign_update_apply (tab: assign_update) node = Inttab.fold assign_entry tab node;
 
 fun assign_update_new upd (tab: assign_update) =
@@ -626,7 +560,7 @@ fun init_theory deps node span =
             maybe_end_theory pos
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
                 NONE => Toplevel.toplevel
-              | SOME eval => Command.eval_result_state eval)
+              | SOME (_, eval) => Command.eval_result_state eval)
         | some => some)
         |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy))));
 
@@ -727,10 +661,78 @@ fun new_exec keywords state node proper_init command_id' (assign_update, command
 fun removed_execs node0 (command_id, exec_ids) =
   subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id));
 
+fun print_consolidation options the_command_span node_name (assign_update, node) =
+  (case finished_result_theory node of
+    SOME (result_id, thy) =>
+      let
+        val eval_ids =
+          iterate_entries (fn (_, opt_exec) => fn eval_ids =>
+            (case opt_exec of
+              SOME (eval, _) => SOME (cons (Command.eval_exec_id eval) eval_ids)
+            | NONE => NONE)) node [];
+      in
+        if null (Execution.snapshot eval_ids) then
+          let
+            val consolidation =
+              if Options.bool options "editor_presentation" then
+                let
+                  val (_, offsets, rev_segments) =
+                    iterate_entries (fn (_, opt_exec) => fn (offset, offsets, segments) =>
+                      (case opt_exec of
+                        SOME (eval, _) =>
+                          let
+                            val command_id = Command.eval_command_id eval;
+                            val span = the_command_span command_id;
+
+                            val exec_id = Command.eval_exec_id eval;
+                            val tr = Command.eval_result_command eval;
+                            val st' = Command.eval_result_state eval;
+
+                            val offset' = offset + the_default 0 (Command_Span.symbol_length span);
+                            val offsets' = offsets
+                              |> Inttab.update (command_id, offset)
+                              |> Inttab.update (exec_id, offset);
+                            val segments' = (span, tr, st') :: segments;
+                          in SOME (offset', offsets', segments') end
+                      | NONE => NONE)) node (0, Inttab.empty, []);
+
+                  val adjust = Inttab.lookup offsets;
+                  val segments =
+                    rev rev_segments |> map (fn (span, tr, st') =>
+                      {span = Command_Span.adjust_offsets adjust span, command = tr, state = st'});
+
+                  val presentation_context: Thy_Info.presentation_context =
+                   {options = options,
+                    file_pos = Position.file node_name,
+                    adjust_pos = Position.adjust_offsets adjust,
+                    segments = segments};
+                in
+                  fn () =>
+                    (Thy_Info.apply_presentation presentation_context thy;
+                     commit_consolidated node)
+                end
+              else fn () => commit_consolidated node;
+
+            val result_entry =
+              (case lookup_entry node result_id of
+                NONE => err_undef "result command entry" result_id
+              | SOME (eval, prints) =>
+                  (result_id, SOME (eval, Command.print0 consolidation eval :: prints)));
+
+            val assign_update' = assign_update |> assign_update_change result_entry;
+            val node' = node |> assign_entry result_entry;
+          in (assign_update', node') end
+        else (assign_update, node)
+      end
+  | NONE => (assign_update, node));
 in
 
-fun update old_version_id new_version_id edits state = Runtime.exn_trace_system (fn () =>
+fun update old_version_id new_version_id edits consolidate state =
+  Runtime.exn_trace_system (fn () =>
   let
+    val options = Options.default ();
+    val the_command_span = Outer_Syntax.make_span o Lazy.force o #4 o the_command state;
+
     val old_version = the_version state old_version_id;
     val new_version =
       timeit "Document.edit_nodes"
@@ -753,12 +755,15 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                   let
                     val root_theory = check_root_theory node;
                     val keywords = the_default (Session.get_keywords ()) (get_keywords node);
+
+                    val maybe_consolidate = consolidate andalso could_consolidate node;
                     val imports = map (apsnd Future.join) deps;
                     val imports_result_changed = exists (#4 o #1 o #2) imports;
                     val node_required = Symtab.defined required name;
                   in
-                    if Symtab.defined edited name orelse visible_node node orelse
-                      imports_result_changed orelse Symtab.defined required0 name <> node_required
+                    if Symtab.defined edited name orelse maybe_consolidate orelse
+                      visible_node node orelse imports_result_changed orelse
+                      Symtab.defined required0 name <> node_required
                     then
                       let
                         val node0 = node_of old_version name;
@@ -785,7 +790,7 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                                 if not node_required andalso prev = visible_last node then NONE
                                 else new_exec keywords state node proper_init id res) node;
 
-                        val assigned_execs =
+                        val assign_update =
                           (node0, updated_execs) |-> iterate_entries_after common
                             (fn ((_, command_id0), exec0) => fn res =>
                               if is_none exec0 then NONE
@@ -796,32 +801,36 @@ fun update old_version_id new_version_id edits state = Runtime.exn_trace_system 
                           if command_id' = Document_ID.none then NONE else SOME command_id';
                         val result =
                           if is_none last_exec orelse is_some (after_entry node last_exec) then NONE
-                          else SOME (#1 exec');
-
-                        val assign_update = assign_update_result assigned_execs;
-                        val removed = maps (removed_execs node0) assign_update;
-                        val _ = List.app Execution.cancel removed;
+                          else SOME (command_id', #1 exec');
 
                         val result_changed =
-                          not (eq_option Command.eval_eq (get_result node0, result));
-                        val node' = node
-                          |> assign_update_apply assigned_execs
+                          not (eq_option (Command.eval_eq o apply2 #2) (get_result node0, result));
+                        val (assign_update', node') = node
+                          |> assign_update_apply assign_update
                           |> set_result result
-                          |> result_changed ? reset_consolidation;
+                          |> result_changed ? reset_consolidated
+                          |> pair assign_update
+                          |> (not result_changed andalso maybe_consolidate) ?
+                              print_consolidation options the_command_span name;
+
+                        val assign_result = assign_update_result assign_update';
+                        val removed = maps (removed_execs node0) assign_result;
+                        val _ = List.app Execution.cancel removed;
+
                         val assigned_node = SOME (name, node');
-                      in ((removed, assign_update, assigned_node, result_changed), node') end
+                      in ((removed, assign_result, assigned_node, result_changed), node') end
                     else (([], [], NONE, false), node)
                   end))))
       |> Future.joins |> map #1);
 
     val removed = maps #1 updated;
-    val assign_update = maps #2 updated;
+    val assign_result = maps #2 updated;
     val assigned_nodes = map_filter #3 updated;
 
     val state' = state
       |> define_version new_version_id (fold put_node assigned_nodes new_version);
 
-  in (removed, assign_update, state') end);
+  in (removed, assign_result, state') end);
 
 end;
 

@@ -50,6 +50,7 @@ object Session
     syntax_changed: List[Document.Node.Name],
     deps_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
+    consolidate: Boolean,
     version: Document.Version)
 
   case object Change_Flush
@@ -230,15 +231,16 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     previous: Future[Document.Version],
     doc_blobs: Document.Blobs,
     text_edits: List[Document.Edit_Text],
+    consolidate: Boolean,
     version_result: Promise[Document.Version])
 
   private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
   {
-    case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
+    case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
       val prev = previous.get_finished
       val change =
         Timing.timeit("parse_change", timing) {
-          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
+          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits, consolidate)
         }
       version_result.fulfill(change.version)
       manager.send(change)
@@ -342,7 +344,10 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   {
     /* raw edits */
 
-    def handle_raw_edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
+    def handle_raw_edits(
+      doc_blobs: Document.Blobs = Document.Blobs.empty,
+      edits: List[Document.Edit_Text] = Nil,
+      consolidate: Boolean = false)
     //{{{
     {
       require(prover.defined)
@@ -354,7 +359,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
       global_state.change(_.continue_history(previous, edits, version))
 
       raw_edits.post(Session.Raw_Edits(doc_blobs, edits))
-      change_parser.send(Text_Edits(previous, doc_blobs, edits, version))
+      change_parser.send(Text_Edits(previous, doc_blobs, edits, consolidate, version))
     }
     //}}}
 
@@ -392,7 +397,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
       val assignment = global_state.value.the_assignment(change.previous).check_finished
       global_state.change(_.define_version(change.version, assignment))
-      prover.get.update(change.previous.id, change.version.id, change.doc_edits)
+      prover.get.update(change.previous.id, change.version.id, change.doc_edits, change.consolidate)
       resources.commit(change)
     }
     //}}}
@@ -529,7 +534,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
             }
 
           case Consolidate_Execution =>
-            if (prover.defined) prover.get.consolidate_execution()
+            if (prover.defined) handle_raw_edits(consolidate = true)
 
           case Prune_History =>
             if (prover.defined) {
@@ -540,7 +545,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
           case Update_Options(options) =>
             if (prover.defined && is_ready) {
               prover.get.options(options)
-              handle_raw_edits(Document.Blobs.empty, Nil)
+              handle_raw_edits()
             }
             global_options.post(Session.Global_Options(options))
 
@@ -548,7 +553,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
             prover.get.cancel_exec(exec_id)
 
           case Session.Raw_Edits(doc_blobs, edits) if prover.defined =>
-            handle_raw_edits(doc_blobs, edits)
+            handle_raw_edits(doc_blobs = doc_blobs, edits = edits)
 
           case Session.Dialog_Result(id, serial, result) if prover.defined =>
             prover.get.dialog_result(serial, result)
