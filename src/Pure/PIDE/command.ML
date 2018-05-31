@@ -22,6 +22,7 @@ sig
   val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
     blob list * int -> Document_ID.command -> Token.T list -> eval -> eval
   type print
+  val print0: (unit -> unit) -> eval -> print
   val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
@@ -341,6 +342,10 @@ fun bad_print name_args exn =
 
 in
 
+fun print0 e =
+  make_print ("", [serial_string ()])
+    {delay = NONE, pri = 0, persistent = true, strict = true, print_fn = fn _ => fn _ => e ()};
+
 fun print command_visible command_overlays keywords command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
@@ -368,19 +373,23 @@ fun print command_visible command_overlays keywords command_name eval old_prints
           | SOME get_pr => new_print (name, args) get_pr)
       | some => some);
 
-    val new_prints =
+    val retained_prints =
+      filter (fn print => print_finished print andalso print_persistent print) old_prints;
+    val visible_prints =
       if command_visible then
         fold (fn (name, _) => cons (name, [])) print_functions command_overlays
         |> sort_distinct overlay_ord
         |> map_filter get_print
-      else filter (fn print => print_finished print andalso print_persistent print) old_prints;
+      else [];
+    val new_prints = visible_prints @ retained_prints;
   in
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints
   end;
 
 fun print_function name f =
   Synchronized.change print_functions (fn funs =>
-   (if not (AList.defined (op =) funs name) then ()
+   (if name = "" then error "Unnamed print function" else ();
+    if not (AList.defined (op =) funs name) then ()
     else warning ("Redefining command print function: " ^ quote name);
     AList.update (op =) (name, f) funs));
 
