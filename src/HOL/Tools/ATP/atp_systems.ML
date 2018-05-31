@@ -369,7 +369,7 @@ val ehoh_config : atp_config =
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded")] @
      known_szs_status_failures,
-   prem_role = Conjecture,
+   prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
      K [(1.0, (((500, ""), ehoh_thf0, "mono_native_higher", liftingN, false), ""))],
