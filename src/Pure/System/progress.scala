@@ -51,7 +51,10 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
   }
 
   override def theory(session: String, theory: String): Unit =
-    if (verbose) echo(session + ": theory " + theory)
+    if (verbose) {
+      if (session == "") echo("theory " + theory)
+      else echo(session + ": theory " + theory)
+    }
 
   @volatile private var is_stopped = false
   override def interrupt_handler[A](e: => A): A =

@@ -21,32 +21,28 @@ object Dump
       Bytes.write(path, bytes)
     }
 
-    def write(node_name: Document.Node.Name, file_name: String, text: String)
-    {
+    def write(node_name: Document.Node.Name, file_name: String, text: String): Unit =
       write(node_name, file_name, Bytes(text))
-    }
+
+    def write(node_name: Document.Node.Name, file_name: String, body: XML.Body): Unit =
+      write(node_name, file_name, Symbol.encode(YXML.string_of_body(body)))
   }
 
   sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit)
 
   private val known_aspects =
     List(
-      Aspect("list", "list theory nodes",
-        { case args =>
-            for (node_name <- args.result.node_names) args.progress.echo(node_name.toString)
-        }),
       Aspect("messages", "output messages (YXML format)",
         { case args =>
             for (node_name <- args.result.node_names) {
               args.write(node_name, "messages.yxml",
-                YXML.string_of_body(args.result.messages(node_name).iterator.map(_._1).toList))
+                args.result.messages(node_name).iterator.map(_._1).toList)
             }
         }),
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
             for (node_name <- args.result.node_names) {
-              args.write(node_name, "markup.yxml",
-                YXML.string_of_body(args.result.markup_to_XML(node_name)))
+              args.write(node_name, "markup.yxml", args.result.markup_to_XML(node_name))
             }
         })
     )
@@ -176,21 +172,23 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
       val progress = new Console_Progress(verbose = verbose)
 
       val result =
-        dump(options, logic,
-          aspects = aspects,
-          progress = progress,
-          dirs = dirs,
-          select_dirs = select_dirs,
-          output_dir = output_dir,
-          verbose = verbose,
-          selection = Sessions.Selection(
-            requirements = requirements,
-            all_sessions = all_sessions,
-            base_sessions = base_sessions,
-            exclude_session_groups = exclude_session_groups,
-            exclude_sessions = exclude_sessions,
-            session_groups = session_groups,
-            sessions = sessions))
+        progress.interrupt_handler {
+          dump(options, logic,
+            aspects = aspects,
+            progress = progress,
+            dirs = dirs,
+            select_dirs = select_dirs,
+            output_dir = output_dir,
+            verbose = verbose,
+            selection = Sessions.Selection(
+              requirements = requirements,
+              all_sessions = all_sessions,
+              base_sessions = base_sessions,
+              exclude_session_groups = exclude_session_groups,
+              exclude_sessions = exclude_sessions,
+              session_groups = session_groups,
+              sessions = sessions))
+        }
 
       progress.echo(result.timing.message_resources)
 

@@ -288,8 +288,10 @@ Usage: isabelle export [OPTIONS] SESSION
 
     if (!no_build) {
       val rc =
-        Build.build_logic(options, session_name, progress = progress,
-          dirs = dirs, system_mode = system_mode)
+        progress.interrupt_handler {
+          Build.build_logic(options, session_name, progress = progress,
+            dirs = dirs, system_mode = system_mode)
+        }
       if (rc != 0) sys.exit(rc)
     }
 

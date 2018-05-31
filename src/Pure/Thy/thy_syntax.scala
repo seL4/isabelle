@@ -296,7 +296,8 @@ object Thy_Syntax
       reparse_limit: Int,
       previous: Document.Version,
       doc_blobs: Document.Blobs,
-      edits: List[Document.Edit_Text]): Session.Change =
+      edits: List[Document.Edit_Text],
+      consolidate: Boolean): Session.Change =
   {
     val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 
@@ -356,6 +357,7 @@ object Thy_Syntax
         (doc_edits.toList.filterNot(_._2.is_void), Document.Version.make(nodes))
       }
 
-    Session.Change(previous, syntax_changed, syntax_changed.nonEmpty, doc_edits, version)
+    Session.Change(
+      previous, syntax_changed, syntax_changed.nonEmpty, doc_edits, consolidate, version)
   }
 }

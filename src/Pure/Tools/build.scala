@@ -836,10 +836,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         system_mode = system_mode, sessions = List(logic)).ok) 0
     else {
       progress.echo("Build started for Isabelle/" + logic + " ...")
-      progress.interrupt_handler {
-        Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
-          system_mode = system_mode, sessions = List(logic)).rc
-      }
+      Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
+        system_mode = system_mode, sessions = List(logic)).rc
     }
   }
 }

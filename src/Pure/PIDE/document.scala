@@ -930,8 +930,10 @@ object Document
 
     def node_consolidated(version: Version, name: Node.Name): Boolean =
       !name.is_theory ||
-        version.nodes(name).commands.reverse.iterator.
-          flatMap(command_states(version, _)).exists(_.consolidated)
+      {
+        val it = version.nodes(name).commands.reverse.iterator
+        it.hasNext && command_states(version, it.next).exists(_.consolidated)
+      }
 
     // persistent user-view
     def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)

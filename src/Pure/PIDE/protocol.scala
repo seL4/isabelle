@@ -409,9 +409,6 @@ trait Protocol
 
   /* execution */
 
-  def consolidate_execution(): Unit =
-    protocol_command("Document.consolidate_execution")
-
   def discontinue_execution(): Unit =
     protocol_command("Document.discontinue_execution")
 
@@ -422,7 +419,7 @@ trait Protocol
   /* document versions */
 
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
-    edits: List[Document.Edit_Command])
+    edits: List[Document.Edit_Command], consolidate: Boolean)
   {
     val edits_yxml =
     {
@@ -450,7 +447,8 @@ trait Protocol
         pair(string, encode_edit(name))(name.node, edit)
       })
       Symbol.encode_yxml(encode_edits(edits)) }
-    protocol_command("Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml)
+    protocol_command(
+      "Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml, consolidate.toString)
   }
 
   def remove_versions(versions: List[Document.Version])
