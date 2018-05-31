@@ -261,9 +261,7 @@ object Command
     markups: Markups = Markups.empty)
   {
     def initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
-
-    lazy val consolidated: Boolean =
-      status.exists(markup => markup.name == Markup.CONSOLIDATED)
+    def consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
 
     lazy val protocol_status: Protocol.Status =
     {
