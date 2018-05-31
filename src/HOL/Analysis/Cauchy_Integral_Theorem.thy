@@ -3336,21 +3336,21 @@ text\<open>We can treat even non-rectifiable paths as having a "length" for boun
 
 subsection\<open>Winding Numbers\<close>
 
+definition winding_number_prop :: "[real \<Rightarrow> complex, complex, real, real \<Rightarrow> complex, complex] \<Rightarrow> bool" where
+  "winding_number_prop \<gamma> z e p n \<equiv>
+      valid_path p \<and> z \<notin> path_image p \<and>
+      pathstart p = pathstart \<gamma> \<and>
+      pathfinish p = pathfinish \<gamma> \<and>
+      (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
+      contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
+
 definition winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow> complex" where
-  "winding_number \<gamma> z \<equiv>
-    SOME n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
-                        pathstart p = pathstart \<gamma> \<and>
-                        pathfinish p = pathfinish \<gamma> \<and>
-                        (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
-                        contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
+  "winding_number \<gamma> z \<equiv> SOME n. \<forall>e > 0. \<exists>p. winding_number_prop \<gamma> z e p n"
+
 
 lemma winding_number:
   assumes "path \<gamma>" "z \<notin> path_image \<gamma>" "0 < e"
-    shows "\<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
-               pathstart p = pathstart \<gamma> \<and>
-               pathfinish p = pathfinish \<gamma> \<and>
-               (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-               contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * winding_number \<gamma> z"
+    shows "\<exists>p. winding_number_prop \<gamma> z e p (winding_number \<gamma> z)"
 proof -
   have "path_image \<gamma> \<subseteq> UNIV - {z}"
     using assms by blast
@@ -3366,11 +3366,7 @@ proof -
                           (\<forall>t \<in> {0..1}. norm(h t - \<gamma> t) < d/2)"
     using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "d/2"] d by auto
   define nn where "nn = 1/(2* pi*\<i>) * contour_integral h (\<lambda>w. 1/(w - z))"
-  have "\<exists>n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
-                        pathstart p = pathstart \<gamma> \<and>  pathfinish p = pathfinish \<gamma> \<and>
-                        (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
-                        contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
-                    (is "\<exists>n. \<forall>e > 0. ?PP e n")
+  have "\<exists>n. \<forall>e > 0. \<exists>p. winding_number_prop \<gamma> z e p n"
     proof (rule_tac x=nn in exI, clarify)
       fix e::real
       assume e: "e>0"
@@ -3379,26 +3375,19 @@ proof -
         using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "min e (d/2)"] d \<open>0<e\<close> by auto
       have "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
         by (auto simp: intro!: holomorphic_intros)
-      then show "?PP e nn"
+      then show "\<exists>p. winding_number_prop \<gamma> z e p nn"
         apply (rule_tac x=p in exI)
         using pi_eq [of h p] h p d
-        apply (auto simp: valid_path_polynomial_function norm_minus_commute nn_def)
+        apply (auto simp: valid_path_polynomial_function norm_minus_commute nn_def winding_number_prop_def)
         done
     qed
   then show ?thesis
-    unfolding winding_number_def
-    apply (rule someI2_ex)
-    apply (blast intro: \<open>0<e\<close>)
-    done
+    unfolding winding_number_def by (rule someI2_ex) (blast intro: \<open>0<e\<close>)
 qed
 
 lemma winding_number_unique:
   assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
-      and pi:
-        "\<And>e. e>0 \<Longrightarrow> \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
-                          pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
-                          (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-                          contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
+      and pi: "\<And>e. e>0 \<Longrightarrow> \<exists>p. winding_number_prop \<gamma> z e p n"
    shows "winding_number \<gamma> z = n"
 proof -
   have "path_image \<gamma> \<subseteq> UNIV - {z}"
@@ -3410,31 +3399,25 @@ proof -
                     pathstart h2 = pathstart h1; pathfinish h2 = pathfinish h1; f holomorphic_on UNIV - {z}\<rbrakk> \<Longrightarrow>
                     contour_integral h2 f = contour_integral h1 f"
     using contour_integral_nearby_ends [of "UNIV - {z}" \<gamma>] assms  by (auto simp: open_delete)
-  obtain p where p:
-     "valid_path p \<and> z \<notin> path_image p \<and>
-      pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
-      (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
-      contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
+  obtain p where p: "winding_number_prop \<gamma> z e p n"
     using pi [OF e] by blast
-  obtain q where q:
-     "valid_path q \<and> z \<notin> path_image q \<and>
-      pathstart q = pathstart \<gamma> \<and> pathfinish q = pathfinish \<gamma> \<and>
-      (\<forall>t\<in>{0..1}. cmod (\<gamma> t - q t) < e) \<and> contour_integral q (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+  obtain q where q: "winding_number_prop \<gamma> z e q (winding_number \<gamma> z)"
     using winding_number [OF \<gamma> e] by blast
   have "2 * complex_of_real pi * \<i> * n = contour_integral p (\<lambda>w. 1 / (w - z))"
-    using p by auto
+    using p by (auto simp: winding_number_prop_def)
   also have "... = contour_integral q (\<lambda>w. 1 / (w - z))"
   proof (rule pi_eq)
     show "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
       by (auto intro!: holomorphic_intros)
-  qed (use p q in \<open>auto simp: norm_minus_commute\<close>)
+  qed (use p q in \<open>auto simp: winding_number_prop_def norm_minus_commute\<close>)
   also have "... = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z"
-    using q by auto
+    using q by (auto simp: winding_number_prop_def)
   finally have "2 * complex_of_real pi * \<i> * n = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z" .
   then show ?thesis
     by simp
 qed
 
+(*NB not winding_number_prop here due to the loop in p*)
 lemma winding_number_unique_loop:
   assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
       and loop: "pathfinish \<gamma> = pathstart \<gamma>"
@@ -3455,15 +3438,11 @@ proof -
                     contour_integral h2 f = contour_integral h1 f"
     using contour_integral_nearby_loops [of "UNIV - {z}" \<gamma>] assms  by (auto simp: open_delete)
   obtain p where p:
-     "valid_path p \<and> z \<notin> path_image p \<and>
-      pathfinish p = pathstart p \<and>
+     "valid_path p \<and> z \<notin> path_image p \<and> pathfinish p = pathstart p \<and>
       (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
       contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
     using pi [OF e] by blast
-  obtain q where q:
-     "valid_path q \<and> z \<notin> path_image q \<and>
-      pathstart q = pathstart \<gamma> \<and> pathfinish q = pathfinish \<gamma> \<and>
-      (\<forall>t\<in>{0..1}. cmod (\<gamma> t - q t) < e) \<and> contour_integral q (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+  obtain q where q: "winding_number_prop \<gamma> z e q (winding_number \<gamma> z)"
     using winding_number [OF \<gamma> e] by blast
   have "2 * complex_of_real pi * \<i> * n = contour_integral p (\<lambda>w. 1 / (w - z))"
     using p by auto
@@ -3471,9 +3450,9 @@ proof -
   proof (rule pi_eq)
     show "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
       by (auto intro!: holomorphic_intros)
-  qed (use p q loop in \<open>auto simp: norm_minus_commute\<close>)
+  qed (use p q loop in \<open>auto simp: winding_number_prop_def norm_minus_commute\<close>)
   also have "... = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z"
-    using q by auto
+    using q by (auto simp: winding_number_prop_def)
   finally have "2 * complex_of_real pi * \<i> * n = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z" .
   then show ?thesis
     by simp
@@ -3481,8 +3460,9 @@ qed
 
 lemma winding_number_valid_path:
   assumes "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
-    shows "winding_number \<gamma> z = 1/(2*pi*\<i>) * contour_integral \<gamma> (\<lambda>w. 1/(w - z))"
-  using assms by (auto simp: valid_path_imp_path intro!: winding_number_unique)
+  shows "winding_number \<gamma> z = 1/(2*pi*\<i>) * contour_integral \<gamma> (\<lambda>w. 1/(w - z))"
+  by (rule winding_number_unique)
+  (use assms in \<open>auto simp: valid_path_imp_path winding_number_prop_def\<close>)
 
 lemma has_contour_integral_winding_number:
   assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
@@ -3496,44 +3476,69 @@ lemma winding_number_subpath_trivial [simp]: "z \<noteq> g x \<Longrightarrow> w
   by (simp add: path_image_subpath winding_number_valid_path)
 
 lemma winding_number_join:
-  assumes g1: "path g1" "z \<notin> path_image g1"
-      and g2: "path g2" "z \<notin> path_image g2"
-      and "pathfinish g1 = pathstart g2"
-    shows "winding_number(g1 +++ g2) z = winding_number g1 z + winding_number g2 z"
-  apply (rule winding_number_unique)
-  using assms apply (simp_all add: not_in_path_image_join)
-  apply (frule winding_number [OF g2])
-  apply (frule winding_number [OF g1], clarify)
-  apply (rename_tac p2 p1)
-  apply (rule_tac x="p1+++p2" in exI)
-  apply (simp add: not_in_path_image_join contour_integrable_inversediff algebra_simps)
-  apply (auto simp: joinpaths_def)
-  done
+  assumes \<gamma>1: "path \<gamma>1" "z \<notin> path_image \<gamma>1"
+      and \<gamma>2: "path \<gamma>2" "z \<notin> path_image \<gamma>2"
+      and "pathfinish \<gamma>1 = pathstart \<gamma>2"
+    shows "winding_number(\<gamma>1 +++ \<gamma>2) z = winding_number \<gamma>1 z + winding_number \<gamma>2 z"
+proof (rule winding_number_unique)
+  show "\<exists>p. winding_number_prop (\<gamma>1 +++ \<gamma>2) z e p
+              (winding_number \<gamma>1 z + winding_number \<gamma>2 z)" if "e > 0" for e
+  proof -
+    obtain p1 where "winding_number_prop \<gamma>1 z e p1 (winding_number \<gamma>1 z)"
+      using \<open>0 < e\<close> \<gamma>1 winding_number by blast
+    moreover
+    obtain p2 where "winding_number_prop \<gamma>2 z e p2 (winding_number \<gamma>2 z)"
+      using \<open>0 < e\<close> \<gamma>2 winding_number by blast
+    ultimately
+    have "winding_number_prop (\<gamma>1+++\<gamma>2) z e (p1+++p2) (winding_number \<gamma>1 z + winding_number \<gamma>2 z)"
+      using assms
+      apply (simp add: winding_number_prop_def not_in_path_image_join contour_integrable_inversediff algebra_simps)
+      apply (auto simp: joinpaths_def)
+      done
+    then show ?thesis
+      by blast
+  qed
+qed (use assms in \<open>auto simp: not_in_path_image_join\<close>)
 
 lemma winding_number_reversepath:
   assumes "path \<gamma>" "z \<notin> path_image \<gamma>"
     shows "winding_number(reversepath \<gamma>) z = - (winding_number \<gamma> z)"
-  apply (rule winding_number_unique)
-  using assms
-  apply simp_all
-  apply (frule winding_number [OF assms], clarify)
-  apply (rule_tac x="reversepath p" in exI)
-  apply (simp add: contour_integral_reversepath contour_integrable_inversediff valid_path_imp_reverse)
-  apply (auto simp: reversepath_def)
-  done
+proof (rule winding_number_unique)
+  show "\<exists>p. winding_number_prop (reversepath \<gamma>) z e p (- winding_number \<gamma> z)" if "e > 0" for e
+  proof -
+    obtain p where "winding_number_prop \<gamma> z e p (winding_number \<gamma> z)"
+      using \<open>0 < e\<close> assms winding_number by blast
+    then have "winding_number_prop (reversepath \<gamma>) z e (reversepath p) (- winding_number \<gamma> z)"
+      using assms
+      apply (simp add: winding_number_prop_def contour_integral_reversepath contour_integrable_inversediff valid_path_imp_reverse)
+      apply (auto simp: reversepath_def)
+      done
+    then show ?thesis
+      by blast
+  qed
+qed (use assms in auto)
 
 lemma winding_number_shiftpath:
   assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
       and "pathfinish \<gamma> = pathstart \<gamma>" "a \<in> {0..1}"
     shows "winding_number(shiftpath a \<gamma>) z = winding_number \<gamma> z"
-  apply (rule winding_number_unique_loop)
-  using assms
-  apply (simp_all add: path_shiftpath path_image_shiftpath pathfinish_shiftpath pathstart_shiftpath)
-  apply (frule winding_number [OF \<gamma>], clarify)
-  apply (rule_tac x="shiftpath a p" in exI)
-  apply (simp add: contour_integral_shiftpath path_image_shiftpath pathfinish_shiftpath pathstart_shiftpath valid_path_shiftpath)
-  apply (auto simp: shiftpath_def)
-  done
+proof (rule winding_number_unique_loop)
+  show "\<exists>p. valid_path p \<and> z \<notin> path_image p \<and> pathfinish p = pathstart p \<and>
+            (\<forall>t\<in>{0..1}. cmod (shiftpath a \<gamma> t - p t) < e) \<and>
+            contour_integral p (\<lambda>w. 1 / (w - z)) =
+            complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+    if "e > 0" for e
+  proof -
+    obtain p where "winding_number_prop \<gamma> z e p (winding_number \<gamma> z)"
+      using \<open>0 < e\<close> assms winding_number by blast
+    then show ?thesis
+      apply (rule_tac x="shiftpath a p" in exI)
+      using assms that
+      apply (auto simp: winding_number_prop_def path_image_shiftpath pathfinish_shiftpath pathstart_shiftpath contour_integral_shiftpath)
+      apply (simp add: shiftpath_def)
+      done
+  qed
+qed (use assms in \<open>auto simp: path_shiftpath path_image_shiftpath pathfinish_shiftpath pathstart_shiftpath\<close>)
 
 lemma winding_number_split_linepath:
   assumes "c \<in> closed_segment a b" "z \<notin> closed_segment a b"
@@ -3548,10 +3553,10 @@ qed
 
 lemma winding_number_cong:
    "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> p t = q t) \<Longrightarrow> winding_number p z = winding_number q z"
-  by (simp add: winding_number_def pathstart_def pathfinish_def)
+  by (simp add: winding_number_def winding_number_prop_def pathstart_def pathfinish_def)
 
 lemma winding_number_offset: "winding_number p z = winding_number (\<lambda>w. p w - z) 0"
-  apply (simp add: winding_number_def contour_integral_integral path_image_def valid_path_def pathstart_def pathfinish_def)
+  apply (simp add: winding_number_def winding_number_prop_def contour_integral_integral path_image_def valid_path_def pathstart_def pathfinish_def)
   apply (intro ext arg_cong [where f = Eps] arg_cong [where f = All] imp_cong refl, safe)
   apply (rename_tac g)
   apply (rule_tac x="\<lambda>t. g t - z" in exI)
@@ -3834,7 +3839,7 @@ qed
 corollary winding_number_exp_2pi:
     "\<lbrakk>path p; z \<notin> path_image p\<rbrakk>
      \<Longrightarrow> pathfinish p - z = exp (2 * pi * \<i> * winding_number p z) * (pathstart p - z)"
-using winding_number [of p z 1] unfolding valid_path_def path_image_def pathstart_def pathfinish_def
+using winding_number [of p z 1] unfolding valid_path_def path_image_def pathstart_def pathfinish_def winding_number_prop_def
   by (force dest: winding_number_exp_integral(2) [of _ 0 1 z] simp: field_simps contour_integral_integral exp_minus)
 
 
@@ -3849,7 +3854,7 @@ proof -
   obtain p where p: "valid_path p" "z \<notin> path_image p"
                     "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
                     "contour_integral p (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
-    using winding_number [OF assms, of 1] by auto
+    using winding_number [OF assms, of 1] unfolding winding_number_prop_def by auto
   have [simp]: "(winding_number \<gamma> z \<in> \<int>) = (exp (contour_integral p (\<lambda>w. 1 / (w - z))) = 1)"
       using p by (simp add: exp_eq_1 complex_is_Int_iff)
   have "winding_number p z \<in> \<int> \<longleftrightarrow> pathfinish p = pathstart p"
@@ -4002,7 +4007,7 @@ proof -
                     "pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma>"
               and pg: "\<And>t. t\<in>{0..1} \<Longrightarrow> cmod (\<gamma> t - p t) < min d e / 2"
               and pi: "contour_integral p (\<lambda>x. 1 / (x - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
-    using winding_number [OF \<gamma> z, of "min d e / 2"] \<open>d>0\<close> \<open>e>0\<close> by auto
+    using winding_number [OF \<gamma> z, of "min d e / 2"] \<open>d>0\<close> \<open>e>0\<close> by (auto simp: winding_number_prop_def)
   { fix w
     assume d2: "cmod (w - z) < d/2" and e2: "cmod (w - z) < e/2"
     then have wnotp: "w \<notin> path_image p"
@@ -4021,7 +4026,7 @@ proof -
                     and qg: "\<And>t. t \<in> {0..1} \<Longrightarrow> cmod (\<gamma> t - q t) < min k (min d e) / 2"
                     and qi: "contour_integral q (\<lambda>u. 1 / (u - w)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> w"
         using winding_number [OF \<gamma> wnotg, of "min k (min d e) / 2"] \<open>d>0\<close> \<open>e>0\<close> k
-        by (force simp: min_divide_distrib_right)
+        by (force simp: min_divide_distrib_right winding_number_prop_def)
       have "contour_integral p (\<lambda>u. 1 / (u - w)) = contour_integral q (\<lambda>u. 1 / (u - w))"
         apply (rule pi_eq [OF \<open>valid_path q\<close> \<open>valid_path p\<close>, THEN conjunct2, THEN conjunct2, rule_format])
         apply (frule pg)
@@ -4037,7 +4042,7 @@ proof -
     then have "winding_number p w = winding_number \<gamma> w"
       apply (rule winding_number_unique [OF _ wnotp])
       apply (rule_tac x=p in exI)
-      apply (simp add: p wnotp min_divide_distrib_right pip)
+      apply (simp add: p wnotp min_divide_distrib_right pip winding_number_prop_def)
       done
   } note wnwn = this
   obtain pe where "pe>0" and cbp: "cball z (3 / 4 * pe) \<subseteq> - path_image p"
@@ -4224,7 +4229,7 @@ proof -
         done
     }
     then show ?thesis
-      by (auto intro: winding_number_unique [OF \<gamma>] simp add: wnot)
+      by (auto intro: winding_number_unique [OF \<gamma>] simp add: winding_number_prop_def wnot)
   qed
   finally show ?thesis .
 qed
@@ -4716,13 +4721,13 @@ proof -
        "pathstart p = pathstart g" "pathfinish p = pathfinish g"
        and gp_less:"\<forall>t\<in>{0..1}. cmod (g t - p t) < d"
        and pap: "contour_integral p (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number g z"
-    using winding_number [OF \<open>path g\<close> pag \<open>0 < d\<close>] by blast
+    using winding_number [OF \<open>path g\<close> pag \<open>0 < d\<close>] unfolding winding_number_prop_def by blast
   obtain q where q:
        "valid_path q" "z \<notin> path_image q"
        "pathstart q = pathstart h" "pathfinish q = pathfinish h"
        and hq_less: "\<forall>t\<in>{0..1}. cmod (h t - q t) < e"
        and paq:  "contour_integral q (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number h z"
-    using winding_number [OF \<open>path h\<close> pah \<open>0 < e\<close>] by blast
+    using winding_number [OF \<open>path h\<close> pah \<open>0 < e\<close>] unfolding winding_number_prop_def by blast
   have gp: "homotopic_paths (- {z}) g p"
     by (simp add: d p valid_path_imp_path norm_minus_commute gp_less)
   have hq: "homotopic_paths (- {z}) h q"
@@ -4756,13 +4761,13 @@ proof -
        "pathstart p = pathstart g" "pathfinish p = pathfinish g"
        and gp_less:"\<forall>t\<in>{0..1}. cmod (g t - p t) < d"
        and pap: "contour_integral p (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number g z"
-    using winding_number [OF \<open>path g\<close> pag \<open>0 < d\<close>] by blast
+    using winding_number [OF \<open>path g\<close> pag \<open>0 < d\<close>] unfolding winding_number_prop_def by blast
   obtain q where q:
        "valid_path q" "z \<notin> path_image q"
        "pathstart q = pathstart h" "pathfinish q = pathfinish h"
        and hq_less: "\<forall>t\<in>{0..1}. cmod (h t - q t) < e"
        and paq:  "contour_integral q (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number h z"
-    using winding_number [OF \<open>path h\<close> pah \<open>0 < e\<close>] by blast
+    using winding_number [OF \<open>path h\<close> pah \<open>0 < e\<close>] unfolding winding_number_prop_def by blast
   have gp: "homotopic_loops (- {z}) g p"
     by (simp add: gloop d gp_less norm_minus_commute p valid_path_imp_path)
   have hq: "homotopic_loops (- {z}) h q"
