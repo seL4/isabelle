@@ -595,4 +595,85 @@ text \<open>
   own sub-directory hierarchy, using the session-qualified theory name.
 \<close>
 
+
+section \<open>Dump PIDE session database \label{sec:tool-dump}\<close>
+
+text \<open>
+  The @{tool_def "dump"} tool dumps information from the cumulative PIDE
+  session database (which is processed on the spot). Its command-line usage
+  is: @{verbatim [display]
+\<open>Usage: isabelle dump [OPTIONS] [SESSIONS ...]
+
+  Options are:
+    -A NAMES     dump named aspects (default: ...)
+    -B NAME      include session NAME and all descendants
+    -D DIR       include session directory and select its sessions
+    -O DIR       output directory for dumped files (default: "dump")
+    -R           operate on requirements of selected sessions
+    -X NAME      exclude sessions from group NAME and all descendants
+    -a           select all sessions
+    -d DIR       include session directory
+    -g NAME      select session group NAME
+    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -s           system build mode for logic image
+    -v           verbose
+    -x NAME      exclude session NAME and all descendants
+
+  Dump cumulative PIDE session database, with the following aspects:
+    ...\<close>}
+
+  \<^medskip> Options \<^verbatim>\<open>-B\<close>, \<^verbatim>\<open>-D\<close>, \<^verbatim>\<open>-R\<close>, \<^verbatim>\<open>-X\<close>, \<^verbatim>\<open>-a\<close>, \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-g\<close>, \<^verbatim>\<open>-x\<close> and the
+  remaining command-line arguments specify sessions as in @{tool build}
+  (\secref{sec:tool-build}): the cumulative PIDE database of all their loaded
+  theories is dumped to the output directory of option \<^verbatim>\<open>-O\<close> (default: \<^verbatim>\<open>dump\<close>
+  in the current directory).
+
+  \<^medskip> Option \<^verbatim>\<open>-l\<close> specifies a logic image for the underlying prover process:
+  its theories are not processed again, and their PIDE session database is
+  excluded from the dump. Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close> when building
+  the logic image (\secref{sec:tool-build}).
+
+  \<^medskip> Option \<^verbatim>\<open>-o\<close> overrides Isabelle system options as for @{tool build}
+  (\secref{sec:tool-build}).
+
+  \<^medskip> Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity.
+
+  \<^medskip> Option \<^verbatim>\<open>-A\<close> specifies named aspects of the dump, as a comma-separated
+  list. The default is to dump all known aspects, as given in the command-line
+  usage of the tool. The underlying Isabelle/Scala function
+  \<^verbatim>\<open>isabelle.Dump.dump()\<close> takes aspects as user-defined operations on the
+  final PIDE state and document version. This allows to imitate Prover IDE
+  rendering under program control.
+\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Dump all Isabelle/ZF sessions (which are rather small):
+  @{verbatim [display] \<open>isabelle dump -v -B ZF\<close>}
+
+  \<^smallskip>
+  Dump the quite substantial \<^verbatim>\<open>HOL-Analysis\<close> session, using main Isabelle/HOL
+  as starting point:
+  @{verbatim [display] \<open>isabelle dump -v -l HOL HOL-Analysis\<close>}
+
+  \<^smallskip>
+  Dump all sessions connected to HOL-Analysis, including a full bootstrap of
+  Isabelle/HOL from Isabelle/Pure:
+  @{verbatim [display] \<open>isabelle dump -v -l Pure -B HOL-Analysis\<close>}
+
+  This results in uniform PIDE markup for everything, except for the
+  Isabelle/Pure bootstrap process itself. Producing that on the spot requires
+  several GB of heap space, both for the Isabelle/Scala and Isabelle/ML
+  process (in 64bit mode). Here are some relevant settings (\secref{sec:boot})
+  for such ambitious applications:
+  @{verbatim [display]
+\<open>ISABELLE_TOOL_JAVA_OPTIONS="-Xms4g -Xmx32g -Xss16m"
+ML_OPTIONS="--minheap 4G --maxheap 32G"
+\<close>}
+
+\<close>
+
 end

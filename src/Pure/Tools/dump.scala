@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/dump.scala
     Author:     Makarius
 
-Dump build database produced by PIDE session.
+Dump cumulative PIDE session database.
 */
 
 package isabelle
@@ -135,7 +135,7 @@ object Dump
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("dump", "dump build database produced by PIDE session.", args =>
+    Isabelle_Tool("dump", "dump cumulative PIDE session database", args =>
     {
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
@@ -171,8 +171,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Dump build database produced by PIDE session. The following dump aspects
-  are available:
+  Dump cumulative PIDE session database, with the following aspects:
 
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),

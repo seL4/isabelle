@@ -380,6 +380,11 @@ access to the Isabelle Server: it supports responsive session management
 and concurrent use of theories, based on Isabelle/PIDE infrastructure.
 See also the "system" manual.
 
+* The command-line tool "dump" dumps information from the cumulative
+PIDE session database: many sessions may be loaded into a given logic
+image, results from all loaded theories are written to the output
+directory.
+
 * The command-line tool "isabelle update_comments" normalizes formal
 comments in outer syntax as follows: \<comment> \<open>text\<close> (whith a single space to
 approximate the appearance in document output). This is more specific
