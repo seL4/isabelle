@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/dump.scala
     Author:     Makarius
 
-Dump build database produced by PIDE session.
+Dump cumulative PIDE session database.
 */
 
 package isabelle
@@ -14,41 +14,62 @@ object Dump
   sealed case class Aspect_Args(
     options: Options, progress: Progress, output_dir: Path, result: Thy_Resources.Theories_Result)
   {
-    def write(node_name: Document.Node.Name, file_name: String, bytes: Bytes)
+    def write(node_name: Document.Node.Name, file_name: Path, bytes: Bytes)
     {
-      val path = output_dir + Path.basic(node_name.theory) + Path.basic(file_name)
+      val path = output_dir + Path.basic(node_name.theory) + file_name
       Isabelle_System.mkdirs(path.dir)
       Bytes.write(path, bytes)
     }
 
-    def write(node_name: Document.Node.Name, file_name: String, text: String): Unit =
+    def write(node_name: Document.Node.Name, file_name: Path, text: String): Unit =
       write(node_name, file_name, Bytes(text))
 
-    def write(node_name: Document.Node.Name, file_name: String, body: XML.Body): Unit =
+    def write(node_name: Document.Node.Name, file_name: Path, body: XML.Body): Unit =
       write(node_name, file_name, Symbol.encode(YXML.string_of_body(body)))
   }
 
-  sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit)
+  sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit,
+    options: List[String] = Nil)
+  {
+    override def toString: String = name
+  }
 
-  private val known_aspects =
+  val known_aspects =
     List(
       Aspect("messages", "output messages (YXML format)",
         { case args =>
             for (node_name <- args.result.node_names) {
-              args.write(node_name, "messages.yxml",
+              args.write(node_name, Path.explode("messages.yxml"),
                 args.result.messages(node_name).iterator.map(_._1).toList)
             }
         }),
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
             for (node_name <- args.result.node_names) {
-              args.write(node_name, "markup.yxml", args.result.markup_to_XML(node_name))
+              args.write(node_name, Path.explode("markup.yxml"),
+                args.result.markup_to_XML(node_name))
             }
-        })
-    )
+        }),
+      Aspect("latex", "generated LaTeX source",
+        { case args =>
+            for {
+              node_name <- args.result.node_names
+              entry <- args.result.exports(node_name)
+              if entry.name == "document.tex"
+            } args.write(node_name, Path.explode(entry.name), entry.uncompressed())
+        }, options = List("editor_presentation")),
+      Aspect("theory", "foundational theory content",
+        { case args =>
+            for {
+              node_name <- args.result.node_names
+              entry <- args.result.exports(node_name)
+              if entry.name.startsWith(Export_Theory.export_prefix)
+            } args.write(node_name, Path.explode(entry.name), entry.uncompressed())
+        }, options = List("editor_presentation", "export_theory"))
+    ).sortBy(_.name)
 
   def show_aspects: String =
-    cat_lines(known_aspects.sortBy(_.name).map(aspect => aspect.name + " - " + aspect.description))
+    cat_lines(known_aspects.map(aspect => aspect.name + " - " + aspect.description))
 
   def the_aspect(name: String): Aspect =
     known_aspects.find(aspect => aspect.name == name) getOrElse
@@ -73,7 +94,9 @@ object Dump
     if (Build.build_logic(options, logic, progress = progress, dirs = dirs,
       system_mode = system_mode) != 0) error(logic + " FAILED")
 
-    val dump_options = options.int.update("completion_limit", 0).bool.update("ML_statistics", false)
+    val dump_options =
+      (options.int.update("completion_limit", 0).bool.update("ML_statistics", false) /: aspects)(
+        { case (opts, aspect) => (opts /: aspect.options)(_ + _) })
 
 
     /* dependencies */
@@ -112,9 +135,9 @@ object Dump
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
-    Isabelle_Tool("dump", "dump build database produced by PIDE session.", args =>
+    Isabelle_Tool("dump", "dump cumulative PIDE session database", args =>
     {
-      var aspects: List[Aspect] = Nil
+      var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
@@ -133,7 +156,7 @@ object Dump
 Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
   Options are:
-    -A NAMES     dump named aspects (comma-separated list, see below)
+    -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
@@ -148,8 +171,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Dump build database produced by PIDE session. The following dump aspects
-  are known (option -A):
+  Dump cumulative PIDE session database, with the following aspects:
 
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),

@@ -22,10 +22,10 @@ sig
   val eval: Keyword.keywords -> Path.T -> (unit -> theory) ->
     blob list * int -> Document_ID.command -> Token.T list -> eval -> eval
   type print
-  val print0: (unit -> unit) -> eval -> print
+  type print_fn = Toplevel.transition -> Toplevel.state -> unit
+  val print0: {pri: int, print_fn: print_fn} -> eval -> print
   val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
-  type print_fn = Toplevel.transition -> Toplevel.state -> unit
   type print_function =
     {keywords: Keyword.keywords, command_name: string, args: string list, exec_id: Document_ID.exec} ->
       {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option
@@ -342,9 +342,9 @@ fun bad_print name_args exn =
 
 in
 
-fun print0 e =
+fun print0 {pri, print_fn} =
   make_print ("", [serial_string ()])
-    {delay = NONE, pri = 0, persistent = true, strict = true, print_fn = fn _ => fn _ => e ()};
+    {delay = NONE, pri = pri, persistent = true, strict = true, print_fn = print_fn};
 
 fun print command_visible command_overlays keywords command_name eval old_prints =
   let

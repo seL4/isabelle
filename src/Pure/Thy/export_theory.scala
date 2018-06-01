@@ -60,6 +60,8 @@ object Export_Theory
 
   /** theory content **/
 
+  val export_prefix: String = "theory/"
+
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
     consts: List[Const],
@@ -100,7 +102,7 @@ object Export_Theory
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
-      Export.read_entry(db, session_name, theory_name, "theory/parents") match {
+      Export.read_entry(db, session_name, theory_name, export_prefix + "parents") match {
         case Some(entry) => split_lines(entry.uncompressed().text)
         case None =>
           error("Missing theory export in session " + quote(session_name) + ": " +
@@ -147,7 +149,7 @@ object Export_Theory
   def read_export[A](db: SQL.Database, session_name: String, theory_name: String,
     export_name: String, decode: XML.Body => List[A]): List[A] =
   {
-    Export.read_entry(db, session_name, theory_name, "theory/" + export_name) match {
+    Export.read_entry(db, session_name, theory_name, export_prefix + export_name) match {
       case Some(entry) => decode(entry.uncompressed_yxml())
       case None => Nil
     }

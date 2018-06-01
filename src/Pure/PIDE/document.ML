@@ -707,17 +707,20 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                     adjust_pos = Position.adjust_offsets adjust,
                     segments = segments};
                 in
-                  fn () =>
+                  fn _ =>
                     (Thy_Info.apply_presentation presentation_context thy;
                      commit_consolidated node)
                 end
-              else fn () => commit_consolidated node;
+              else fn _ => commit_consolidated node;
 
             val result_entry =
               (case lookup_entry node result_id of
                 NONE => err_undef "result command entry" result_id
               | SOME (eval, prints) =>
-                  (result_id, SOME (eval, Command.print0 consolidation eval :: prints)));
+                  let
+                    val print = eval |> Command.print0
+                      {pri = Task_Queue.urgent_pri + 1, print_fn = K consolidation};
+                  in (result_id, SOME (eval, print :: prints)) end);
 
             val assign_update' = assign_update |> assign_update_change result_entry;
             val node' = node |> assign_entry result_entry;
