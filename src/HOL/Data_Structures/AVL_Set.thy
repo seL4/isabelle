@@ -455,7 +455,7 @@ qed simp_all
 
 subsection \<open>Height-Size Relation\<close>
 
-text \<open>By Daniel St\"uwe, Manuel Eberl and Peter Lammich.\<close>
+text \<open>Based on theorems by Daniel St\"uwe, Manuel Eberl and Peter Lammich.\<close>
 
 lemma height_invers: 
   "(height t = 0) = (t = Leaf)"
@@ -529,18 +529,35 @@ qed
 
 text \<open>The size of an AVL tree is (at least) exponential in its height:\<close>
 
-lemma avl_lowerbound:
+lemma avl_size_lowerbound:
   defines "\<phi> \<equiv> (1 + sqrt 5) / 2"
   assumes "avl t"
-  shows   "real (size1 t) \<ge> \<phi> ^ (height t)"
+  shows   "\<phi> ^ (height t) \<le> size1 t"
 proof -
   have "\<phi> > 0" by(simp add: \<phi>_def add_pos_nonneg)
   hence "\<phi> ^ height t = (1 / \<phi> ^ 2) * \<phi> ^ (height t + 2)"
     by(simp add: field_simps power2_eq_square)
-  also have "\<dots> \<le> real (fib (height t + 2))"
+  also have "\<dots> \<le> fib (height t + 2)"
     using fib_lowerbound[of "height t + 2"] by(simp add: \<phi>_def)
-  also have "\<dots> \<le> real (size1 t)"
+  also have "\<dots> \<le> size1 t"
     using avl_fib_bound[of t "height t"] assms by simp
+  finally show ?thesis .
+qed
+
+text \<open>The height of an AVL tree is most @{term "(1/log 2 \<phi>)"} \<open>\<approx> 1.44\<close> times worse
+than @{term "log 2 (size1 t)"}:\<close>
+
+lemma  avl_height_upperbound:
+  defines "\<phi> \<equiv> (1 + sqrt 5) / 2"
+  assumes "avl t"
+  shows   "height t \<le> (1/log 2 \<phi>) * log 2 (size1 t)"
+proof -
+  have "\<phi> > 0" "\<phi> > 1" by(auto simp: \<phi>_def pos_add_strict)
+  hence "height t = log \<phi> (\<phi> ^ height t)" by(simp add: log_nat_power)
+  also have "\<dots> \<le> log \<phi> (size1 t)"
+    using avl_size_lowerbound[OF assms(2), folded \<phi>_def] \<open>1 < \<phi>\<close>  by simp
+  also have "\<dots> = (1/log 2 \<phi>) * log 2 (size1 t)"
+    by(simp add: log_base_change[of 2 \<phi>])
   finally show ?thesis .
 qed
 
