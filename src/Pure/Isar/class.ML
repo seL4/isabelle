@@ -375,12 +375,11 @@ fun dangling_params_for lthy class (type_params, term_params) =
   in (type_params, dangling_term_params) end;
 
 fun global_def (b, eq) thy =
-  thy
-  |> Thm.add_def_global false false (b, eq)
-  |>> (Thm.varifyT_global o snd)
-  |-> (fn def_thm => Global_Theory.store_thm (b, def_thm)
-      #> snd
-      #> pair def_thm);
+  let
+    val ((_, def_thm), thy') = thy |> Thm.add_def_global false false (b, eq);
+    val def_thm' = def_thm |> Thm.varifyT_global;
+    val (_, thy'') = thy' |> Global_Theory.store_thm (b, def_thm');
+  in (def_thm', thy'') end;
 
 fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
   let
