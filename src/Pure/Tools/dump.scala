@@ -29,6 +29,9 @@ object Dump
   }
 
   sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit)
+  {
+    override def toString: String = name
+  }
 
   private val known_aspects =
     List(
@@ -45,10 +48,10 @@ object Dump
               args.write(node_name, "markup.yxml", args.result.markup_to_XML(node_name))
             }
         })
-    )
+    ).sortBy(_.name)
 
   def show_aspects: String =
-    cat_lines(known_aspects.sortBy(_.name).map(aspect => aspect.name + " - " + aspect.description))
+    cat_lines(known_aspects.map(aspect => aspect.name + " - " + aspect.description))
 
   def the_aspect(name: String): Aspect =
     known_aspects.find(aspect => aspect.name == name) getOrElse
@@ -114,7 +117,7 @@ object Dump
   val isabelle_tool =
     Isabelle_Tool("dump", "dump build database produced by PIDE session.", args =>
     {
-      var aspects: List[Aspect] = Nil
+      var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
@@ -133,7 +136,7 @@ object Dump
 Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
   Options are:
-    -A NAMES     dump named aspects (comma-separated list, see below)
+    -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
@@ -149,7 +152,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -x NAME      exclude session NAME and all descendants
 
   Dump build database produced by PIDE session. The following dump aspects
-  are known (option -A):
+  are available:
 
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
