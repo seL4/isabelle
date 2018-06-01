@@ -377,7 +377,7 @@ fun dangling_params_for lthy class (type_params, term_params) =
 fun global_def (b, eq) thy =
   let
     val ((_, def_thm), thy') = thy |> Thm.add_def_global false false (b, eq);
-    val def_thm' = def_thm |> Thm.varifyT_global;
+    val def_thm' = def_thm |> Thm.forall_intr_frees |> Thm.forall_elim_vars 0 |> Thm.varifyT_global;
     val (_, thy'') = thy' |> Global_Theory.store_thm (b, def_thm');
   in (def_thm', thy'') end;
 
