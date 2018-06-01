@@ -308,8 +308,8 @@ John Harrison writes as follows:
 ``The usual assumption in complex analysis texts is that a path \<open>\<gamma>\<close> should be piecewise
 continuously differentiable, which ensures that the path integral exists at least for any continuous
 f, since all piecewise continuous functions are integrable. However, our notion of validity is
-weaker, just piecewise differentiability\<dots> [namely] continuity plus differentiability except on a
-finite set \<dots> [Our] underlying theory of integration is the Kurzweil-Henstock theory. In contrast to
+weaker, just piecewise differentiability\ldots{} [namely] continuity plus differentiability except on a
+finite set\ldots{} [Our] underlying theory of integration is the Kurzweil-Henstock theory. In contrast to
 the Riemann or Lebesgue theory (but in common with a simple notion based on antiderivatives), this
 can integrate all derivatives.''
 
