@@ -341,12 +341,12 @@ lemmas [domain_deflation] =
 
 setup \<open>
   fold Domain_Take_Proofs.add_rec_type
-    [(@{type_name cfun}, [true, true]),
-     (@{type_name "sfun"}, [true, true]),
-     (@{type_name ssum}, [true, true]),
-     (@{type_name sprod}, [true, true]),
-     (@{type_name prod}, [true, true]),
-     (@{type_name "u"}, [true])]
+    [(\<^type_name>\<open>cfun\<close>, [true, true]),
+     (\<^type_name>\<open>sfun\<close>, [true, true]),
+     (\<^type_name>\<open>ssum\<close>, [true, true]),
+     (\<^type_name>\<open>sprod\<close>, [true, true]),
+     (\<^type_name>\<open>prod\<close>, [true, true]),
+     (\<^type_name>\<open>u\<close>, [true])]
 \<close>
 
 end
