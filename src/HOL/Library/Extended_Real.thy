@@ -627,9 +627,10 @@ lemma real_less_ereal_iff:
   "real_of_ereal y < x \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y < ereal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 < x)"
   by (cases y) auto
 
-(*To help with inferences like  a < ereal x \<Longrightarrow> x < y \<Longrightarrow> a < ereal y,
+text \<open>
+  To help with inferences like \<^prop>\<open>a < ereal x \<Longrightarrow> x < y \<Longrightarrow> a < ereal y\<close>,
   where x and y are real.
-*)
+\<close>
 
 lemma le_ereal_le: "a \<le> ereal x \<Longrightarrow> x \<le> y \<Longrightarrow> a \<le> ereal y"
   using ereal_less_eq(3) order.trans by blast

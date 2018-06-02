@@ -221,7 +221,7 @@ lemma Bseq_isLub: "\<And>X :: nat \<Rightarrow> real. Bseq X \<Longrightarrow> \
 
 lemma isLub_mono_imp_LIMSEQ:
   fixes X :: "nat \<Rightarrow> real"
-  assumes u: "isLub UNIV {x. \<exists>n. X n = x} u" (* FIXME: use 'range X' *)
+  assumes u: "isLub UNIV {x. \<exists>n. X n = x} u" (* FIXME: use \<open>range X\<close> *)
   assumes X: "\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n"
   shows "X \<longlonglongrightarrow> u"
 proof -
