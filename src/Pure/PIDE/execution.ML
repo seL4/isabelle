@@ -31,17 +31,34 @@ struct
 (* global state *)
 
 type print = {name: string, pri: int, body: unit -> unit};
-type exec_state = Future.group list * print list;  (*active forks, prints*)
-type state =
-  Document_ID.execution * (*overall document execution*)
-  exec_state Inttab.table;  (*running command execs*)
+type execs = (Future.group list * print list) (*active forks, prints*) Inttab.table;
+val init_execs: execs = Inttab.make [(Document_ID.none, ([], []))];
 
-val init_state: state = (Document_ID.none, Inttab.make [(Document_ID.none, ([], []))]);
-val state = Synchronized.var "Execution.state" init_state;
+datatype state =
+  State of
+   {execution_id: Document_ID.execution,  (*overall document execution*)
+    execs: execs};  (*running command execs*)
 
-fun get_state () = Synchronized.value state;
-fun change_state_result f = Synchronized.change_result state f;
-fun change_state f = Synchronized.change state f;
+fun make_state (execution_id, execs) =
+  State {execution_id = execution_id, execs = execs};
+
+local
+  val state =
+    Synchronized.var "Execution.state" (make_state (Document_ID.none, init_execs));
+in
+
+fun get_state () = let val State args = Synchronized.value state in args end;
+
+fun change_state_result f =
+  Synchronized.change_result state (fn (State {execution_id, execs}) =>
+    let val (result, args') = f (execution_id, execs)
+    in (result, make_state args') end);
+
+fun change_state f =
+  Synchronized.change state (fn (State {execution_id, execs}) =>
+    make_state (f (execution_id, execs)));
+
+end;
 
 fun unregistered exec_id = "Unregistered execution: " ^ Document_ID.print exec_id;
 
@@ -56,13 +73,14 @@ fun start () =
 
 fun discontinue () = change_state (apfst (K Document_ID.none));
 
-fun is_running execution_id = execution_id = #1 (get_state ());
+fun is_running execution_id =
+  execution_id = #execution_id (get_state ());
 
 
 (* running execs *)
 
 fun is_running_exec exec_id =
-  Inttab.defined (#2 (get_state ())) exec_id;
+  Inttab.defined (#execs (get_state ())) exec_id;
 
 fun running execution_id exec_id groups =
   change_state_result (fn (execution_id', execs) =>
@@ -74,13 +92,13 @@ fun running execution_id exec_id groups =
 
 (* exec groups and tasks *)
 
-fun exec_groups ((_, execs): state) exec_id =
+fun exec_groups (execs: execs) exec_id =
   (case Inttab.lookup execs exec_id of
     SOME (groups, _) => groups
   | NONE => []);
 
 fun snapshot exec_ids =
-  change_state_result (`(fn state => Future.snapshot (maps (exec_groups state) exec_ids)));
+  change_state_result (`(fn (_, execs) => Future.snapshot (maps (exec_groups execs) exec_ids)));
 
 fun join exec_ids =
   (case snapshot exec_ids of
@@ -91,7 +109,7 @@ fun join exec_ids =
           deps = tasks, pri = 0, interrupts = false} I
       |> Future.join; join exec_ids));
 
-fun peek exec_id = exec_groups (get_state ()) exec_id;
+fun peek exec_id = exec_groups (#execs (get_state ())) exec_id;
 
 fun cancel exec_id = List.app Future.cancel_group (peek exec_id);
 
@@ -160,7 +178,7 @@ fun print ({name, pos, pri}: params) e =
     end));
 
 fun fork_prints exec_id =
-  (case Inttab.lookup (#2 (get_state ())) exec_id of
+  (case Inttab.lookup (#execs (get_state ())) exec_id of
     SOME (_, prints) =>
       if Future.relevant prints then
         let val pos = Position.thread_data () in
@@ -188,7 +206,7 @@ fun purge exec_ids =
 fun reset () =
   change_state_result (fn (_, execs) =>
     let val groups = Inttab.fold (append o #1 o #2) execs []
-    in (groups, init_state) end);
+    in (groups, (Document_ID.none, init_execs)) end);
 
 fun shutdown () =
   (Future.shutdown ();
@@ -197,4 +215,3 @@ fun shutdown () =
     | exns => raise Par_Exn.make exns));
 
 end;
-
