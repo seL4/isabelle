@@ -188,14 +188,14 @@ lemma u_map_oo: "u_map\<cdot>(f oo g) = u_map\<cdot>f oo u_map\<cdot>g"
 
 lemma ep_pair_u_map: "ep_pair e p \<Longrightarrow> ep_pair (u_map\<cdot>e) (u_map\<cdot>p)"
   apply standard
-  subgoal for x by (cases x, simp, simp add: ep_pair.e_inverse)
-  subgoal for y by (cases y, simp, simp add: ep_pair.e_p_below)
+  subgoal for x by (cases x) (simp_all add: ep_pair.e_inverse)
+  subgoal for y by (cases y) (simp_all add: ep_pair.e_p_below)
   done
 
 lemma deflation_u_map: "deflation d \<Longrightarrow> deflation (u_map\<cdot>d)"
   apply standard
-  subgoal for x by (cases x, simp, simp add: deflation.idem)
-  subgoal for x by (cases x, simp, simp add: deflation.below)
+  subgoal for x by (cases x) (simp_all add: deflation.idem)
+  subgoal for x by (cases x) (simp_all add: deflation.below)
   done
 
 lemma finite_deflation_u_map:
@@ -235,12 +235,17 @@ lemma sprod_map_map:
   "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
     sprod_map\<cdot>f1\<cdot>g1\<cdot>(sprod_map\<cdot>f2\<cdot>g2\<cdot>p) =
      sprod_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-  apply (induct p)
-   apply simp
-  apply (case_tac "f2\<cdot>x = \<bottom>", simp)
-  apply (case_tac "g2\<cdot>y = \<bottom>", simp)
-  apply simp
-  done
+proof (induct p)
+  case bottom
+  then show ?case by simp
+next
+  case (spair x y)
+  then show ?case
+    apply (cases "f2\<cdot>x = \<bottom>", simp)
+    apply (cases "g2\<cdot>y = \<bottom>", simp)
+    apply simp
+    done
+qed
 
 lemma ep_pair_sprod_map:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"
@@ -251,11 +256,17 @@ proof
   show "sprod_map\<cdot>p1\<cdot>p2\<cdot>(sprod_map\<cdot>e1\<cdot>e2\<cdot>x) = x" for x
     by (induct x) simp_all
   show "sprod_map\<cdot>e1\<cdot>e2\<cdot>(sprod_map\<cdot>p1\<cdot>p2\<cdot>y) \<sqsubseteq> y" for y
-    apply (induct y)
-     apply simp
-    apply (case_tac "p1\<cdot>x = \<bottom>", simp, case_tac "p2\<cdot>y = \<bottom>", simp)
-    apply (simp add: monofun_cfun e1p1.e_p_below e2p2.e_p_below)
-    done
+  proof (induct y)
+    case bottom
+    then show ?case by simp
+  next
+    case (spair x y)
+    then show ?case
+      apply simp
+      apply (cases "p1\<cdot>x = \<bottom>", simp, cases "p2\<cdot>y = \<bottom>", simp)
+      apply (simp add: monofun_cfun e1p1.e_p_below e2p2.e_p_below)
+      done
+  qed
 qed
 
 lemma deflation_sprod_map:
@@ -266,14 +277,24 @@ proof
   interpret d2: deflation d2 by fact
   fix x
   show "sprod_map\<cdot>d1\<cdot>d2\<cdot>(sprod_map\<cdot>d1\<cdot>d2\<cdot>x) = sprod_map\<cdot>d1\<cdot>d2\<cdot>x"
-    apply (induct x, simp)
-    apply (case_tac "d1\<cdot>x = \<bottom>", simp, case_tac "d2\<cdot>y = \<bottom>", simp)
-    apply (simp add: d1.idem d2.idem)
-    done
+  proof (induct x)
+    case bottom
+    then show ?case by simp
+  next
+    case (spair x y)
+    then show ?case
+      apply (cases "d1\<cdot>x = \<bottom>", simp, cases "d2\<cdot>y = \<bottom>", simp)
+      apply (simp add: d1.idem d2.idem)
+      done
+  qed
   show "sprod_map\<cdot>d1\<cdot>d2\<cdot>x \<sqsubseteq> x"
-    apply (induct x, simp)
-    apply (simp add: monofun_cfun d1.below d2.below)
-    done
+  proof (induct x)
+    case bottom
+    then show ?case by simp
+  next
+    case spair
+    then show ?case by (simp add: monofun_cfun d1.below d2.below)
+  qed
 qed
 
 lemma finite_deflation_sprod_map:
@@ -319,11 +340,16 @@ lemma ssum_map_map:
   "\<lbrakk>f1\<cdot>\<bottom> = \<bottom>; g1\<cdot>\<bottom> = \<bottom>\<rbrakk> \<Longrightarrow>
     ssum_map\<cdot>f1\<cdot>g1\<cdot>(ssum_map\<cdot>f2\<cdot>g2\<cdot>p) =
      ssum_map\<cdot>(\<Lambda> x. f1\<cdot>(f2\<cdot>x))\<cdot>(\<Lambda> x. g1\<cdot>(g2\<cdot>x))\<cdot>p"
-  apply (induct p)
-    apply simp
-   apply (case_tac "f2\<cdot>x = \<bottom>", simp, simp)
-  apply (case_tac "g2\<cdot>y = \<bottom>", simp, simp)
-  done
+proof (induct p)
+  case bottom
+  then show ?case by simp
+next
+  case (sinl x)
+  then show ?case by (cases "f2\<cdot>x = \<bottom>") simp_all
+next
+  case (sinr y)
+  then show ?case by (cases "g2\<cdot>y = \<bottom>") simp_all
+qed
 
 lemma ep_pair_ssum_map:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"
@@ -334,11 +360,16 @@ proof
   show "ssum_map\<cdot>p1\<cdot>p2\<cdot>(ssum_map\<cdot>e1\<cdot>e2\<cdot>x) = x" for x
     by (induct x) simp_all
   show "ssum_map\<cdot>e1\<cdot>e2\<cdot>(ssum_map\<cdot>p1\<cdot>p2\<cdot>y) \<sqsubseteq> y" for y
-    apply (induct y)
-      apply simp
-     apply (case_tac "p1\<cdot>x = \<bottom>", simp, simp add: e1p1.e_p_below)
-    apply (case_tac "p2\<cdot>y = \<bottom>", simp, simp add: e2p2.e_p_below)
-    done
+  proof (induct y)
+    case bottom
+    then show ?case by simp
+  next
+    case (sinl x)
+    then show ?case by (cases "p1\<cdot>x = \<bottom>") (simp_all add: e1p1.e_p_below)
+  next
+    case (sinr y)
+    then show ?case by (cases "p2\<cdot>y = \<bottom>") (simp_all add: e2p2.e_p_below)
+  qed
 qed
 
 lemma deflation_ssum_map:
@@ -349,15 +380,27 @@ proof
   interpret d2: deflation d2 by fact
   fix x
   show "ssum_map\<cdot>d1\<cdot>d2\<cdot>(ssum_map\<cdot>d1\<cdot>d2\<cdot>x) = ssum_map\<cdot>d1\<cdot>d2\<cdot>x"
-    apply (induct x, simp)
-    apply (case_tac "d1\<cdot>x = \<bottom>", simp, simp add: d1.idem)
-    apply (case_tac "d2\<cdot>y = \<bottom>", simp, simp add: d2.idem)
-    done
+  proof (induct x)
+    case bottom
+    then show ?case by simp
+  next
+    case (sinl x)
+    then show ?case by (cases "d1\<cdot>x = \<bottom>") (simp_all add: d1.idem)
+  next
+    case (sinr y)
+    then show ?case by (cases "d2\<cdot>y = \<bottom>") (simp_all add: d2.idem)
+  qed
   show "ssum_map\<cdot>d1\<cdot>d2\<cdot>x \<sqsubseteq> x"
-    apply (induct x, simp)
-    apply (case_tac "d1\<cdot>x = \<bottom>", simp, simp add: d1.below)
-    apply (case_tac "d2\<cdot>y = \<bottom>", simp, simp add: d2.below)
-    done
+  proof (induct x)
+    case bottom
+    then show ?case by simp
+  next
+    case (sinl x)
+    then show ?case by (cases "d1\<cdot>x = \<bottom>") (simp_all add: d1.below)
+  next
+    case (sinr y)
+    then show ?case by (cases "d2\<cdot>y = \<bottom>") (simp_all add: d2.below)
+  qed
 qed
 
 lemma finite_deflation_ssum_map:
