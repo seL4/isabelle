@@ -2489,7 +2489,7 @@ proof -
   finally have **: "g \<midarrow>z\<rightarrow> g z" .
 
   have g_holo: "g holomorphic_on s"
-    by (rule no_isolated_singularity'[where k = "{z}"])
+    by (rule no_isolated_singularity'[where K = "{z}"])
        (insert assms * **, simp_all add: at_within_open_NO_MATCH)
   from s and this have "residue (\<lambda>w. g w / (w - z)) z = g z"
     by (rule residue_simple)
