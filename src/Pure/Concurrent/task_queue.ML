@@ -21,6 +21,7 @@ sig
   val group_of_task: task -> group
   val name_of_task: task -> string
   val pri_of_task: task -> int
+  val eq_task: task * task -> bool
   val str_of_task: task -> string
   val str_of_task_groups: task -> string
   val task_statistics: task -> Properties.T
@@ -129,7 +130,10 @@ fun new_task group name pri =
 
 fun group_of_task (Task {group, ...}) = group;
 fun name_of_task (Task {name, ...}) = name;
+fun id_of_task (Task {id, ...}) = id;
 fun pri_of_task (Task {pri, ...}) = the_default 0 pri;
+
+fun eq_task (task1, task2) = id_of_task task1 = id_of_task task2;
 
 fun str_of_task (Task {name, id, ...}) =
   if name = "" then string_of_int id else string_of_int id ^ " (" ^ name ^ ")";
