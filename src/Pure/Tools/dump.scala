@@ -12,7 +12,11 @@ object Dump
   /* aspects */
 
   sealed case class Aspect_Args(
-    options: Options, progress: Progress, output_dir: Path, result: Thy_Resources.Theories_Result)
+    options: Options,
+    progress: Progress,
+    output_dir: Path,
+    deps: Sessions.Deps,
+    result: Thy_Resources.Theories_Result)
   {
     def write(node_name: Document.Node.Name, file_name: Path, bytes: Bytes)
     {
@@ -125,7 +129,7 @@ object Dump
 
     /* dump aspects */
 
-    val aspect_args = Aspect_Args(dump_options, progress, output_dir, theories_result)
+    val aspect_args = Aspect_Args(dump_options, progress, output_dir, deps, theories_result)
     aspects.foreach(_.operation(aspect_args))
 
     session_result
