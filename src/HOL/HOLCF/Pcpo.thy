@@ -198,16 +198,20 @@ class flat = pcpo +
 begin
 
 subclass chfin
-  apply standard
-  apply (unfold max_in_chain_def)
-  apply (case_tac "\<forall>i. Y i = \<bottom>")
-   apply simp
-  apply simp
-  apply (erule exE)
-  apply (rule_tac x="i" in exI)
-  apply clarify
-  apply (blast dest: chain_mono ax_flat)
-  done
+proof
+  fix Y
+  assume *: "chain Y"
+  show "\<exists>n. max_in_chain n Y"
+    apply (unfold max_in_chain_def)
+    apply (cases "\<forall>i. Y i = \<bottom>")
+     apply simp
+    apply simp
+    apply (erule exE)
+    apply (rule_tac x="i" in exI)
+    apply clarify
+    using * apply (blast dest: chain_mono ax_flat)
+    done
+qed
 
 lemma flat_below_iff: "x \<sqsubseteq> y \<longleftrightarrow> x = \<bottom> \<or> x = y"
   by (safe dest!: ax_flat)

@@ -112,18 +112,21 @@ unfolding discr_approx_def
 by (rule chainI, simp add: monofun_cfun monofun_LAM)
 
 lemma lub_discr_approx [simp]: "(\<Squnion>i. discr_approx i) = ID"
-apply (rule cfun_eqI)
-apply (simp add: contlub_cfun_fun)
-apply (simp add: discr_approx_def)
-apply (case_tac x, simp)
-apply (rule lub_eqI)
-apply (rule is_lubI)
-apply (rule ub_rangeI, simp)
-apply (drule ub_rangeD)
-apply (erule rev_below_trans)
-apply simp
-apply (rule lessI)
-done
+  apply (rule cfun_eqI)
+  apply (simp add: contlub_cfun_fun)
+  apply (simp add: discr_approx_def)
+  subgoal for x
+    apply (cases x)
+     apply simp
+    apply (rule lub_eqI)
+    apply (rule is_lubI)
+     apply (rule ub_rangeI, simp)
+    apply (drule ub_rangeD)
+    apply (erule rev_below_trans)
+    apply simp
+    apply (rule lessI)
+    done
+  done
 
 lemma inj_on_undiscr [simp]: "inj_on undiscr A"
 using Discr_undiscr by (rule inj_on_inverseI)
@@ -203,14 +206,21 @@ definition "encode_prod_u = (\<Lambda>(up\<cdot>(x, y)). (:up\<cdot>x, up\<cdot>
 definition "decode_prod_u = (\<Lambda>(:up\<cdot>x, up\<cdot>y:). up\<cdot>(x, y))"
 
 lemma decode_encode_prod_u [simp]: "decode_prod_u\<cdot>(encode_prod_u\<cdot>x) = x"
-unfolding encode_prod_u_def decode_prod_u_def
-by (case_tac x, simp, rename_tac y, case_tac y, simp)
+  unfolding encode_prod_u_def decode_prod_u_def
+  apply (cases x)
+   apply simp
+  subgoal for y by (cases y) simp
+  done
 
 lemma encode_decode_prod_u [simp]: "encode_prod_u\<cdot>(decode_prod_u\<cdot>y) = y"
-unfolding encode_prod_u_def decode_prod_u_def
-apply (case_tac y, simp, rename_tac a b)
-apply (case_tac a, simp, case_tac b, simp, simp)
-done
+  unfolding encode_prod_u_def decode_prod_u_def
+  apply (cases y)
+   apply simp
+  subgoal for a b
+    apply (cases a, simp)
+    apply (cases b, simp, simp)
+    done
+  done
 
 instance prod :: (profinite, profinite) profinite
 proof
