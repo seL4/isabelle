@@ -205,25 +205,27 @@ object Server_Commands
           "errors" ->
             (for {
               (name, status) <- result.nodes if !status.ok
-              (tree, pos) <- result.messages(name) if Protocol.is_error(tree)
+              (tree, pos) <- result.snapshot(name).messages if Protocol.is_error(tree)
             } yield output_message(tree, pos)),
           "nodes" ->
-            (for ((name, status) <- result.nodes) yield
+            (for ((name, status) <- result.nodes) yield {
+              val snapshot = result.snapshot(name)
               name.json +
                 ("status" -> status.json) +
                 ("messages" ->
                   (for {
-                    (tree, pos) <- result.messages(name) if Protocol.is_exported(tree)
+                    (tree, pos) <- snapshot.messages if Protocol.is_exported(tree)
                   } yield output_message(tree, pos))) +
                 ("exports" ->
                   (if (args.export_pattern == "") Nil else {
                     val matcher = Export.make_matcher(args.export_pattern)
-                    for { entry <- result.exports(name) if matcher(entry.theory_name, entry.name) }
+                    for { entry <- snapshot.exports if matcher(entry.theory_name, entry.name) }
                     yield {
                       val (base64, body) = entry.uncompressed().maybe_base64
                       JSON.Object("name" -> entry.name, "base64" -> base64, "body" -> body)
                     }
-                  }))))
+                  }))
+            }))
 
       (result_json, result)
     }

@@ -55,7 +55,7 @@ object Thy_Resources
     }
   }
 
-  sealed case class Theories_Result(
+  class Theories_Result private[Thy_Resources](
     val state: Document.State,
     val version: Document.Version,
     val nodes: List[(Document.Node.Name, Protocol.Node_Status)])
@@ -63,32 +63,11 @@ object Thy_Resources
     def node_names: List[Document.Node.Name] = nodes.map(_._1)
     def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
 
-    def messages(node_name: Document.Node.Name): List[(XML.Tree, Position.T)] =
+    def snapshot(node_name: Document.Node.Name): Document.Snapshot =
     {
-      val node = version.nodes(node_name)
-      (for {
-        (command, start) <-
-          Document.Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
-        pos = command.span.keyword_pos(start).position(command.span.name)
-        (_, tree) <- state.command_results(version, command).iterator
-       } yield (tree, pos)).toList
-    }
-
-    def markup_to_XML(node_name: Document.Node.Name,
-      range: Text.Range = Text.Range.full,
-      elements: Markup.Elements = Markup.Elements.full): XML.Body =
-    {
-      state.markup_to_XML(version, node_name, range, elements)
-    }
-
-    def exports(node_name: Document.Node.Name): List[Export.Entry] =
-    {
-      val node = version.nodes(node_name)
-      Command.Exports.merge(
-        for {
-          command <- node.commands.iterator
-          st <- state.command_states(version, command).iterator
-        } yield st.exports).iterator.map(_._2).toList
+      val snapshot = state.snapshot(node_name)
+      assert(version.id == snapshot.version.id)
+      snapshot
     }
   }
 
@@ -134,7 +113,7 @@ object Thy_Resources
             val nodes =
               for (name <- dep_theories)
               yield (name -> Protocol.node_status(state, version, name))
-            try { result.fulfill(Theories_Result(state, version, nodes)) }
+            try { result.fulfill(new Theories_Result(state, version, nodes)) }
             catch { case _: IllegalStateException => }
           case _ =>
         }

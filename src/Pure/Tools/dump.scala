@@ -14,22 +14,24 @@ object Dump
   sealed case class Aspect_Args(
     options: Options,
     progress: Progress,
-    output_dir: Path,
     deps: Sessions.Deps,
-    result: Thy_Resources.Theories_Result)
+    output_dir: Path,
+    node_name: Document.Node.Name,
+    node_status: Protocol.Node_Status,
+    snapshot: Document.Snapshot)
   {
-    def write(node_name: Document.Node.Name, file_name: Path, bytes: Bytes)
+    def write(file_name: Path, bytes: Bytes)
     {
       val path = output_dir + Path.basic(node_name.theory) + file_name
       Isabelle_System.mkdirs(path.dir)
       Bytes.write(path, bytes)
     }
 
-    def write(node_name: Document.Node.Name, file_name: Path, text: String): Unit =
-      write(node_name, file_name, Bytes(text))
+    def write(file_name: Path, text: String): Unit =
+      write(file_name, Bytes(text))
 
-    def write(node_name: Document.Node.Name, file_name: Path, body: XML.Body): Unit =
-      write(node_name, file_name, Symbol.encode(YXML.string_of_body(body)))
+    def write(file_name: Path, body: XML.Body): Unit =
+      write(file_name, Symbol.encode(YXML.string_of_body(body)))
   }
 
   sealed case class Aspect(name: String, description: String, operation: Aspect_Args => Unit,
@@ -40,35 +42,27 @@ object Dump
 
   val known_aspects =
     List(
-      Aspect("messages", "output messages (YXML format)",
-        { case args =>
-            for (node_name <- args.result.node_names) {
-              args.write(node_name, Path.explode("messages.yxml"),
-                args.result.messages(node_name).iterator.map(_._1).toList)
-            }
-        }),
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
-            for (node_name <- args.result.node_names) {
-              args.write(node_name, Path.explode("markup.yxml"),
-                args.result.markup_to_XML(node_name))
-            }
+            args.write(Path.explode("markup.yxml"),
+              args.snapshot.markup_to_XML(Text.Range.full, Markup.Elements.full))
+        }),
+      Aspect("messages", "output messages (YXML format)",
+        { case args =>
+            args.write(Path.explode("messages.yxml"),
+              args.snapshot.messages.iterator.map(_._1).toList)
         }),
       Aspect("latex", "generated LaTeX source",
         { case args =>
-            for {
-              node_name <- args.result.node_names
-              entry <- args.result.exports(node_name)
-              if entry.name == "document.tex"
-            } args.write(node_name, Path.explode(entry.name), entry.uncompressed())
+            for (entry <- args.snapshot.exports if entry.name == "document.tex")
+              args.write(Path.explode(entry.name), entry.uncompressed())
         }, options = List("editor_presentation")),
       Aspect("theory", "foundational theory content",
         { case args =>
             for {
-              node_name <- args.result.node_names
-              entry <- args.result.exports(node_name)
+              entry <- args.snapshot.exports
               if entry.name.startsWith(Export_Theory.export_prefix)
-            } args.write(node_name, Path.explode(entry.name), entry.uncompressed())
+            } args.write(Path.explode(entry.name), entry.uncompressed())
         }, options = List("editor_presentation", "export_theory"))
     ).sortBy(_.name)
 
@@ -129,8 +123,12 @@ object Dump
 
     /* dump aspects */
 
-    val aspect_args = Aspect_Args(dump_options, progress, output_dir, deps, theories_result)
-    aspects.foreach(_.operation(aspect_args))
+    for ((node_name, node_status) <- theories_result.nodes) {
+      val snapshot = theories_result.snapshot(node_name)
+      val aspect_args =
+        Aspect_Args(dump_options, progress, deps, output_dir, node_name, node_status, snapshot)
+      aspects.foreach(_.operation(aspect_args))
+    }
 
     session_result
   }
