@@ -507,7 +507,7 @@ by (auto simp: set_eq_iff intro: top_le le_bot)
 lemma Iio_eq_empty_iff: "{..< n::'a::{linorder, order_bot}} = {} \<longleftrightarrow> n = bot"
   by (auto simp: set_eq_iff not_less le_bot)
 
-lemma Iio_eq_empty_iff_nat: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
+lemma lessThan_empty_iff: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
   by (simp add: Iio_eq_empty_iff bot_nat_def)
 
 lemma mono_image_least:
@@ -709,7 +709,7 @@ lemma lessThan_Suc_eq_insert_0: "{..<Suc n} = insert 0 (Suc ` {..<n})"
 lemma lessThan_Suc_atMost: "lessThan (Suc k) = atMost k"
 by (simp add: lessThan_def atMost_def less_Suc_eq_le)
 
-lemma Iic_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
+lemma atMost_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
   unfolding lessThan_Suc_atMost[symmetric] lessThan_Suc_eq_insert_0[of "Suc n"] ..
 
 lemma UN_lessThan_UNIV: "(UN m::nat. lessThan m) = UNIV"
@@ -803,7 +803,7 @@ lemma atLeast0_atMost_Suc:
 
 lemma atLeast0_atMost_Suc_eq_insert_0:
   "{0..Suc n} = insert 0 (Suc ` {0..n})"
-  by (simp add: atLeast0AtMost Iic_Suc_eq_insert_0)
+  by (simp add: atLeast0AtMost atMost_Suc_eq_insert_0)
 
 
 subsubsection \<open>Intervals of nats with @{term Suc}\<close>
@@ -2408,6 +2408,16 @@ translations
   "\<Prod>i\<le>n. t" \<rightleftharpoons> "CONST prod (\<lambda>i. t) {..n}"
   "\<Prod>i<n. t" \<rightleftharpoons> "CONST prod (\<lambda>i. t) {..<n}"
 
+lemma prod_atLeast1_atMost_eq:
+  "prod f {Suc 0..n} = (\<Prod>k<n. f (Suc k))"
+proof -
+  have "prod f {Suc 0..n} = prod f (Suc ` {..<n})"
+    by (simp add: image_Suc_lessThan)
+  also have "\<dots> = (\<Prod>k<n. f (Suc k))"
+    by (simp add: prod.reindex)
+  finally show ?thesis .
+qed
+
 lemma prod_int_plus_eq: "prod int {i..i+j} =  \<Prod>{int i..int (i+j)}"
   by (induct j) (auto simp add: atLeastAtMostSuc_conv atLeastAtMostPlus1_int_conv)
 
@@ -2441,7 +2451,7 @@ corollary prod_shift_bounds_Suc_ivl:
   "prod f {Suc m..<Suc n} = prod (%i. f(Suc i)){m..<n}"
 by (simp add:prod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
-lemma prod_lessThan_Suc: "prod f {..<Suc n} = prod f {..<n} * f n"
+lemma prod_lessThan_Suc [simp]: "prod f {..<Suc n} = prod f {..<n} * f n"
   by (simp add: lessThan_Suc mult.commute)
 
 lemma prod_lessThan_Suc_shift:"(\<Prod>i<Suc n. f i) = f 0 * (\<Prod>i<n. f (Suc i))"

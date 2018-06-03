@@ -1353,6 +1353,12 @@ lemma LIMSEQ_imp_Suc: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow> l \<Lon
 lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow> l = f \<longlonglongrightarrow> l"
   by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
 
+lemma LIMSEQ_lessThan_iff_atMost:
+  shows "(\<lambda>n. f {..<n}) \<longlonglongrightarrow> x \<longleftrightarrow> (\<lambda>n. f {..n}) \<longlonglongrightarrow> x"
+  apply (subst LIMSEQ_Suc_iff [symmetric])
+  apply (simp only: lessThan_Suc_atMost)
+  done
+
 lemma LIMSEQ_unique: "X \<longlonglongrightarrow> a \<Longrightarrow> X \<longlonglongrightarrow> b \<Longrightarrow> a = b"
   for a b :: "'a::t2_space"
   using trivial_limit_sequentially by (rule tendsto_unique)

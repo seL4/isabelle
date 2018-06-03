@@ -1302,17 +1302,20 @@ proof -
     by simp
 qed
 
-lemma (in linordered_semidom) prod_nonneg: "(\<forall>a\<in>A. 0 \<le> f a) \<Longrightarrow> 0 \<le> prod f A"
+context linordered_semidom
+begin
+
+lemma prod_nonneg: "(\<forall>a\<in>A. 0 \<le> f a) \<Longrightarrow> 0 \<le> prod f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma (in linordered_semidom) prod_pos: "(\<forall>a\<in>A. 0 < f a) \<Longrightarrow> 0 < prod f A"
+lemma prod_pos: "(\<forall>a\<in>A. 0 < f a) \<Longrightarrow> 0 < prod f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
-lemma (in linordered_semidom) prod_mono:
+lemma prod_mono:
   "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i \<le> g i) \<Longrightarrow> prod f A \<le> prod g A"
   by (induct A rule: infinite_finite_induct) (force intro!: prod_nonneg mult_mono)+
 
-lemma (in linordered_semidom) prod_mono_strict:
+lemma prod_mono_strict:
   assumes "finite A" "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
   shows "prod f A < prod g A"
   using assms
@@ -1322,6 +1325,42 @@ proof (induct A rule: finite_induct)
 next
   case insert
   then show ?case by (force intro: mult_strict_mono' prod_nonneg)
+qed
+
+end
+
+lemma prod_mono2:
+  fixes f :: "'a \<Rightarrow> 'b :: linordered_idom"
+  assumes fin: "finite B"
+    and sub: "A \<subseteq> B"
+    and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 1 \<le> f b"
+    and A: "\<And>a. a \<in> A \<Longrightarrow> 0 \<le> f a"
+  shows "prod f A \<le> prod f B"
+proof -
+  have "prod f A \<le> prod f A * prod f (B-A)"
+    by (metis prod_ge_1 A mult_le_cancel_left1 nn not_less prod_nonneg)
+  also from fin finite_subset[OF sub fin] have "\<dots> = prod f (A \<union> (B-A))"
+    by (simp add: prod.union_disjoint del: Un_Diff_cancel)
+  also from sub have "A \<union> (B-A) = B" by blast
+  finally show ?thesis .
+qed
+
+lemma less_1_prod:
+  fixes f :: "'a \<Rightarrow> 'b::linordered_idom"
+  shows "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> 1 < f i) \<Longrightarrow> 1 < prod f I"
+  by (induct I rule: finite_ne_induct) (auto intro: less_1_mult)
+
+lemma less_1_prod2:
+  fixes f :: "'a \<Rightarrow> 'b::linordered_idom"
+  assumes I: "finite I" "i \<in> I" "1 < f i" "\<And>i. i \<in> I \<Longrightarrow> 1 \<le> f i"
+  shows "1 < prod f I"
+proof -
+  have "1 < f i * prod f (I - {i})"
+    using assms
+    by (meson DiffD1 leI less_1_mult less_le_trans mult_le_cancel_left1 prod_ge_1)
+  also have "\<dots> = prod f I"
+    using assms by (simp add: prod.remove)
+  finally show ?thesis .
 qed
 
 lemma (in linordered_field) abs_prod: "\<bar>prod f A\<bar> = (\<Prod>x\<in>A. \<bar>f x\<bar>)"

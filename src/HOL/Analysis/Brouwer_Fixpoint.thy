@@ -40,9 +40,7 @@ lemma swap_image:
 
 lemmas swap_apply1 = swap_apply(1)
 lemmas swap_apply2 = swap_apply(2)
-lemmas lessThan_empty_iff = Iio_eq_empty_iff_nat
 lemmas Zero_notin_Suc = zero_notin_Suc_image
-lemmas atMost_Suc_eq_insert_0 = Iic_Suc_eq_insert_0
 
 lemma pointwise_minimal_pointwise_maximal:
   fixes s :: "(nat \<Rightarrow> nat) set"

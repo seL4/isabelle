@@ -3925,55 +3925,42 @@ qed
 subsection \<open>Stronger form with finite number of exceptional points\<close>
 
 lemma fundamental_theorem_of_calculus_interior_strong:
-  fixes f :: "real \<Rightarrow> 'a::banach"
-  assumes "finite s"
-    and "a \<le> b"
-    and "continuous_on {a..b} f"
-    and "\<forall>x\<in>{a <..< b} - s. (f has_vector_derivative f'(x)) (at x)"
-  shows "(f' has_integral (f b - f a)) {a..b}"
+ fixes f :: "real \<Rightarrow> 'a::banach"
+ assumes "finite S"
+   and "a \<le> b" "\<And>x. x \<in> {a <..< b} - S \<Longrightarrow> (f has_vector_derivative f'(x)) (at x)"
+   and "continuous_on {a .. b} f"
+ shows "(f' has_integral (f b - f a)) {a .. b}"
   using assms
-proof (induct "card s" arbitrary: s a b)
-  case 0
+proof (induction arbitrary: a b)
+case empty
   then show ?case
-    by (force simp add: intro: fundamental_theorem_of_calculus_interior)
+    using fundamental_theorem_of_calculus_interior by force
 next
-  case (Suc n)
-  then obtain c s' where cs: "s = insert c s'" and n: "n = card s'"
-    by (metis card_eq_SucD)
-  then have "finite s'"
-    using \<open>finite s\<close> by force
+case (insert x S)
   show ?case
-  proof (cases "c \<in> box a b")
-    case False
-    with \<open>finite s'\<close> show ?thesis
-      using cs n Suc
-      by (metis Diff_iff box_real(1) insert_iff)
+  proof (cases "x \<in> {a<..<b}")
+    case False then show ?thesis
+      using insert by blast
   next
-    let ?P = "\<lambda>i j. \<forall>x\<in>{i <..< j} - s'. (f has_vector_derivative f' x) (at x)"
-    case True
-    then have "a \<le> c" "c \<le> b"
-      by (auto simp: mem_box)
-    moreover have "?P a c" "?P c b"
-      using Suc.prems(4) True \<open>a \<le> c\<close> cs(1) by auto
-    moreover have "continuous_on {a..c} f" "continuous_on {c..b} f"
-      using \<open>continuous_on {a..b} f\<close> \<open>a \<le> c\<close> \<open>c \<le> b\<close> continuous_on_subset by fastforce+
-    ultimately have "(f' has_integral f c - f a + (f b - f c)) {a..b}"
-      using Suc.hyps(1) \<open>finite s'\<close> \<open>n = card s'\<close> by (blast intro: has_integral_combine)
-      then show ?thesis
-        by auto
+    case True then have "a < x" "x < b"
+      by auto
+    have "(f' has_integral f x - f a) {a..x}" "(f' has_integral f b - f x) {x..b}"
+      using \<open>continuous_on {a..b} f\<close> \<open>a < x\<close> \<open>x < b\<close> continuous_on_subset by (force simp: intro!: insert)+
+    then have "(f' has_integral f x - f a + (f b - f x)) {a..b}"
+      using \<open>a < x\<close> \<open>x < b\<close> has_integral_combine less_imp_le by blast
+    then show ?thesis
+      by simp
   qed
 qed
 
 corollary fundamental_theorem_of_calculus_strong:
   fixes f :: "real \<Rightarrow> 'a::banach"
-  assumes "finite s"
+  assumes "finite S"
     and "a \<le> b"
+    and vec: "\<And>x. x \<in> {a..b} - S \<Longrightarrow> (f has_vector_derivative f'(x)) (at x)"
     and "continuous_on {a..b} f"
-    and vec: "\<forall>x\<in>{a..b} - s. (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f b - f a)) {a..b}"
-  apply (rule fundamental_theorem_of_calculus_interior_strong[OF assms(1-3), of f'])
-  using vec apply (auto simp: mem_box)
-  done
+  by (rule fundamental_theorem_of_calculus_interior_strong [OF \<open>finite S\<close>]) (force simp: assms)+
 
 proposition indefinite_integral_continuous_left:
   fixes f:: "real \<Rightarrow> 'a::banach"
@@ -7242,7 +7229,6 @@ proof (cases "c = 0")
   define f where "f = (\<lambda>k x. if x \<in> {inverse (of_nat (Suc k))..c} then x powr a else 0)"
   define F where "F = (\<lambda>k. if inverse (of_nat (Suc k)) \<le> c then
                              c powr (a+1)/(a+1) - inverse (real (Suc k)) powr (a+1)/(a+1) else 0)"
-
   {
     fix k :: nat
     have "(f k has_integral F k) {0..c}"
@@ -7448,8 +7434,8 @@ lemma integrable_const_ivl[intro]:
 
 lemma integrable_on_subinterval:
   fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on s" "{a..b} \<subseteq> s"
+  assumes "f integrable_on S" "{a..b} \<subseteq> S"
   shows "f integrable_on {a..b}"
-  using integrable_on_subcbox[of f s a b] assms by (simp add: cbox_interval)
+  using integrable_on_subcbox[of f S a b] assms by (simp add: cbox_interval)
 
 end
