@@ -26,6 +26,7 @@ sig
   val print0: {pri: int, print_fn: print_fn} -> eval -> print
   val print: bool -> (string * string list) list -> Keyword.keywords -> string ->
     eval -> print list -> print list option
+  val parallel_print: print -> bool
   type print_function =
     {keywords: Keyword.keywords, command_name: string, args: string list, exec_id: Document_ID.exec} ->
       {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option
@@ -36,6 +37,7 @@ sig
   val no_exec: exec
   val exec_ids: exec option -> Document_ID.exec list
   val exec: Document_ID.execution -> exec -> unit
+  val exec_parallel_prints: Document_ID.execution -> Future.task list -> exec -> exec option
 end;
 
 structure Command: COMMAND =
@@ -386,6 +388,9 @@ fun print command_visible command_overlays keywords command_name eval old_prints
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints
   end;
 
+fun parallel_print (Print {pri, ...}) =
+  pri <= 0 orelse (Future.enabled () andalso Options.default_bool "parallel_print");
+
 fun print_function name f =
   Synchronized.change print_functions (fn funs =>
    (if name = "" then error "Unnamed print function" else ();
@@ -448,23 +453,24 @@ fun run_eval execution_id (Eval {exec_id, eval_process, ...}) =
   if Lazy.is_finished eval_process then ()
   else run_process execution_id exec_id eval_process;
 
-fun run_print execution_id (Print {name, delay, pri, exec_id, print_process, ...}) =
+fun fork_print execution_id deps (Print {name, delay, pri, exec_id, print_process, ...}) =
+  let
+    val group = Future.worker_subgroup ();
+    fun fork () =
+      ignore ((singleton o Future.forks)
+        {name = name, group = SOME group, deps = deps, pri = pri, interrupts = true}
+        (fn () =>
+          if ignore_process print_process then ()
+          else run_process execution_id exec_id print_process));
+  in
+    (case delay of
+      NONE => fork ()
+    | SOME d => ignore (Event_Timer.request (Time.now () + d) fork))
+  end;
+
+fun run_print execution_id (print as Print {exec_id, print_process, ...}) =
   if ignore_process print_process then ()
-  else if pri <= 0 orelse (Future.enabled () andalso Options.default_bool "parallel_print")
-  then
-    let
-      val group = Future.worker_subgroup ();
-      fun fork () =
-        ignore ((singleton o Future.forks)
-          {name = name, group = SOME group, deps = [], pri = pri, interrupts = true}
-          (fn () =>
-            if ignore_process print_process then ()
-            else run_process execution_id exec_id print_process));
-    in
-      (case delay of
-        NONE => fork ()
-      | SOME d => ignore (Event_Timer.request (Time.now () + d) fork))
-    end
+  else if parallel_print print then fork_print execution_id [] print
   else run_process execution_id exec_id print_process;
 
 in
@@ -472,7 +478,11 @@ in
 fun exec execution_id (eval, prints) =
   (run_eval execution_id eval; List.app (run_print execution_id) prints);
 
-end;
+fun exec_parallel_prints execution_id deps (exec as (Eval {eval_process, ...}, prints)) =
+  if Lazy.is_finished eval_process
+  then (List.app (fork_print execution_id deps) prints; NONE)
+  else SOME exec;
 
 end;
 
+end;
