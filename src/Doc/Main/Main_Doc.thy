@@ -571,13 +571,15 @@ Type @{typ int}
 \<open>[x\<^sub>1,\<dots>,x\<^sub>n]\<close> & \<open>x\<^sub>1 # \<dots> # x\<^sub>n # []\<close>\\
 @{term"[m..<n]"} & @{term[source]"upt m n"}\\
 @{term"[i..j]"} & @{term[source]"upto i j"}\\
-\<open>[e. x \<leftarrow> xs]\<close> & @{term"map (%x. e) xs"}\\
 @{term"xs[n := x]"} & @{term[source]"list_update xs n x"}\\
 @{term"\<Sum>x\<leftarrow>xs. e"} & @{term[source]"listsum (map (\<lambda>x. e) xs)"}\\
 \end{supertabular}
 \<^medskip>
 
-List comprehension: \<open>[e. q\<^sub>1, \<dots>, q\<^sub>n]\<close> where each
+Filter input syntax \<open>[pat \<leftarrow> e. b]\<close>, where
+\<open>pat\<close> is a tuple pattern, which stands for @{term "filter (\<lambda>pat. b) e"}.
+
+List comprehension input syntax: \<open>[e. q\<^sub>1, \<dots>, q\<^sub>n]\<close> where each
 qualifier \<open>q\<^sub>i\<close> is either a generator \mbox{\<open>pat \<leftarrow> e\<close>} or a
 guard, i.e.\ boolean expression.
 
