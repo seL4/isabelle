@@ -71,6 +71,9 @@ INCOMPATIBILITY, e.g. copy-paste of historic Isabelle HTML output.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Slightly more parallel checking, notably for high priority print
+functions (e.g. State output).
+
 * The view title is set dynamically, according to the Isabelle
 distribution and the logic session name. The user can override this via
 set-view-title (stored persistently in $JEDIT_SETTINGS/perspective.xml).
