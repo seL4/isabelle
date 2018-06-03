@@ -433,75 +433,70 @@ syntax
 syntax (ASCII)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ <- _")
 
-(* These are easier than ML code but cannot express the optimized
-   translation of [e. p<-xs]
-translations
-  "[e. p<-xs]" => "concat(map (_lc_abs p [e]) xs)"
-  "_listcompr e (_lc_gen p xs) (_lc_quals Q Qs)"
-   => "concat (map (_lc_abs p (_listcompr e Q Qs)) xs)"
-  "[e. P]" => "if P then [e] else []"
-  "_listcompr e (_lc_test P) (_lc_quals Q Qs)"
-   => "if P then (_listcompr e Q Qs) else []"
-  "_listcompr e (_lc_let b) (_lc_quals Q Qs)"
-   => "_Let b (_listcompr e Q Qs)"
-*)
-
 parse_translation \<open>
-  let
-    val NilC = Syntax.const @{const_syntax Nil};
-    val ConsC = Syntax.const @{const_syntax Cons};
-    val mapC = Syntax.const @{const_syntax map};
-    val concatC = Syntax.const @{const_syntax concat};
-    val IfC = Syntax.const @{const_syntax If};
+let
+  val NilC = Syntax.const @{const_syntax Nil};
+  val ConsC = Syntax.const @{const_syntax Cons};
+  val mapC = Syntax.const @{const_syntax map};
+  val concatC = Syntax.const @{const_syntax concat};
+  val IfC = Syntax.const @{const_syntax If};
+  val dummyC = Syntax.const @{const_syntax Pure.dummy_pattern}
 
-    fun single x = ConsC $ x $ NilC;
+  fun single x = ConsC $ x $ NilC;
 
-    fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
-      let
-        (* FIXME proper name context!? *)
-        val x =
-          Free (singleton (Name.variant_list (fold Term.add_free_names [p, e] [])) "x", dummyT);
-        val e = if opti then single e else e;
-        val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
-        val case2 =
-          Syntax.const @{syntax_const "_case1"} $
-            Syntax.const @{const_syntax Pure.dummy_pattern} $ NilC;
-        val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
-      in Syntax_Trans.abs_tr [x, Case_Translation.case_tr false ctxt [x, cs]] end;
+  fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
+    let
+      (* FIXME proper name context!? *)
+      val x =
+        Free (singleton (Name.variant_list (fold Term.add_free_names [p, e] [])) "x", dummyT);
+      val e = if opti then single e else e;
+      val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
+      val case2 =
+        Syntax.const @{syntax_const "_case1"} $ dummyC $ NilC;
+      val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
+    in Syntax_Trans.abs_tr [x, Case_Translation.case_tr false ctxt [x, cs]] end;
 
-    fun abs_tr ctxt p e opti =
-      (case Term_Position.strip_positions p of
-        Free (s, T) =>
-          let
-            val thy = Proof_Context.theory_of ctxt;
-            val s' = Proof_Context.intern_const ctxt s;
-          in
-            if Sign.declared_const thy s'
-            then (pat_tr ctxt p e opti, false)
-            else (Syntax_Trans.abs_tr [p, e], true)
-          end
-      | _ => (pat_tr ctxt p e opti, false));
+  fun pair_pat_tr (x as Free _) e = Syntax_Trans.abs_tr [x, e]
+    | pair_pat_tr (_ $ p1 $ p2) e =
+        Syntax.const @{const_syntax case_prod} $ pair_pat_tr p1 (pair_pat_tr p2 e)
+    | pair_pat_tr dummy e = Syntax_Trans.abs_tr [Syntax.const "_idtdummy", e]
 
-    fun lc_tr ctxt [e, Const (@{syntax_const "_lc_test"}, _) $ b, qs] =
-          let
-            val res =
-              (case qs of
-                Const (@{syntax_const "_lc_end"}, _) => single e
-              | Const (@{syntax_const "_lc_quals"}, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
-          in IfC $ b $ res $ NilC end
-      | lc_tr ctxt
-            [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
-              Const(@{syntax_const "_lc_end"}, _)] =
-          (case abs_tr ctxt p e true of
-            (f, true) => mapC $ f $ es
-          | (f, false) => concatC $ (mapC $ f $ es))
-      | lc_tr ctxt
-            [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
-              Const (@{syntax_const "_lc_quals"}, _) $ q $ qs] =
-          let val e' = lc_tr ctxt [e, q, qs];
-          in concatC $ (mapC $ (fst (abs_tr ctxt p e' false)) $ es) end;
+  fun pair_pat ctxt (Const (@{const_syntax "Pair"},_) $ s $ t) =
+        pair_pat ctxt s andalso pair_pat ctxt t
+    | pair_pat ctxt (Free (s,_)) =
+        let
+          val thy = Proof_Context.theory_of ctxt;
+          val s' = Proof_Context.intern_const ctxt s;
+        in not (Sign.declared_const thy s') end
+    | pair_pat _ t = (t = dummyC);
 
-  in [(@{syntax_const "_listcompr"}, lc_tr)] end
+  fun abs_tr ctxt p e opti =
+    let val p = Term_Position.strip_positions p
+    in if pair_pat ctxt p
+       then (pair_pat_tr p e, true)
+       else (pat_tr ctxt p e opti, false)
+    end
+
+  fun lc_tr ctxt [e, Const (@{syntax_const "_lc_test"}, _) $ b, qs] =
+    let
+      val res =
+        (case qs of
+           Const (@{syntax_const "_lc_end"}, _) => single e
+         | Const (@{syntax_const "_lc_quals"}, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
+    in IfC $ b $ res $ NilC end
+  | lc_tr ctxt
+      [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
+          Const(@{syntax_const "_lc_end"}, _)] =
+      (case abs_tr ctxt p e true of
+         (f, true) => mapC $ f $ es
+       | (f, false) => concatC $ (mapC $ f $ es))
+  | lc_tr ctxt
+      [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
+          Const (@{syntax_const "_lc_quals"}, _) $ q $ qs] =
+      let val e' = lc_tr ctxt [e, q, qs];
+      in concatC $ (mapC $ (fst (abs_tr ctxt p e' false)) $ es) end;
+
+in [(@{syntax_const "_listcompr"}, lc_tr)] end
 \<close>
 
 ML_val \<open>
@@ -513,8 +508,8 @@ ML_val \<open>
           quote (Input.source_content s1) ^ Position.here_list [Input.pos_of s1, Input.pos_of s2]);
   in
     check \<open>[(x,y,z). b]\<close> \<open>if b then [(x, y, z)] else []\<close>;
-    check \<open>[(x,y,z). x\<leftarrow>xs]\<close> \<open>map (\<lambda>x. (x, y, z)) xs\<close>;
-    check \<open>[e x y. x\<leftarrow>xs, y\<leftarrow>ys]\<close> \<open>concat (map (\<lambda>x. map (\<lambda>y. e x y) ys) xs)\<close>;
+    check \<open>[(x,y,z). (x,_,y)\<leftarrow>xs]\<close> \<open>map (\<lambda>(x,_,y). (x, y, z)) xs\<close>;
+    check \<open>[e x y. (x,_)\<leftarrow>xs, y\<leftarrow>ys]\<close> \<open>concat (map (\<lambda>(x,_). map (\<lambda>y. e x y) ys) xs)\<close>;
     check \<open>[(x,y,z). x<a, x>b]\<close> \<open>if x < a then if b < x then [(x, y, z)] else [] else []\<close>;
     check \<open>[(x,y,z). x\<leftarrow>xs, x>b]\<close> \<open>concat (map (\<lambda>x. if b < x then [(x, y, z)] else []) xs)\<close>;
     check \<open>[(x,y,z). x<a, x\<leftarrow>xs]\<close> \<open>if x < a then map (\<lambda>x. (x, y, z)) xs else []\<close>;
@@ -526,25 +521,20 @@ ML_val \<open>
       \<open>if x < a then if b < x then if x = d then [(x, y, z)] else [] else [] else []\<close>;
     check \<open>[(x,y,z). x<a, x>b, y\<leftarrow>ys]\<close>
       \<open>if x < a then if b < x then map (\<lambda>y. (x, y, z)) ys else [] else []\<close>;
-    check \<open>[(x,y,z). x<a, x\<leftarrow>xs,y>b]\<close>
-      \<open>if x < a then concat (map (\<lambda>x. if b < y then [(x, y, z)] else []) xs) else []\<close>;
+    check \<open>[(x,y,z). x<a, (_,x)\<leftarrow>xs,y>b]\<close>
+      \<open>if x < a then concat (map (\<lambda>(_,x). if b < y then [(x, y, z)] else []) xs) else []\<close>;
     check \<open>[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]\<close>
       \<open>if x < a then concat (map (\<lambda>x. map (\<lambda>y. (x, y, z)) ys) xs) else []\<close>;
     check \<open>[(x,y,z). x\<leftarrow>xs, x>b, y<a]\<close>
       \<open>concat (map (\<lambda>x. if b < x then if y < a then [(x, y, z)] else [] else []) xs)\<close>;
     check \<open>[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]\<close>
       \<open>concat (map (\<lambda>x. if b < x then map (\<lambda>y. (x, y, z)) ys else []) xs)\<close>;
-    check \<open>[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]\<close>
-      \<open>concat (map (\<lambda>x. concat (map (\<lambda>y. if x < y then [(x, y, z)] else []) ys)) xs)\<close>;
+    check \<open>[(x,y,z). x\<leftarrow>xs, (y,_)\<leftarrow>ys,y>x]\<close>
+      \<open>concat (map (\<lambda>x. concat (map (\<lambda>(y,_). if x < y then [(x, y, z)] else []) ys)) xs)\<close>;
     check \<open>[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]\<close>
       \<open>concat (map (\<lambda>x. concat (map (\<lambda>y. map (\<lambda>z. (x, y, z)) zs) ys)) xs)\<close>
   end;
 \<close>
-
-(*
-term "[(x,y). x\<leftarrow>xs, let xx = x+x, y\<leftarrow>ys, y \<noteq> xx]"
-*)
-
 
 ML \<open>
 (* Simproc for rewriting list comprehensions applied to List.set to set
