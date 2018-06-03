@@ -515,7 +515,7 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
             if Symtab.defined required name orelse visible_node node orelse pending_result node then
               let
                 fun body () =
-                 (Execution.worker_task_active true;
+                 (Execution.worker_task_active true name;
                   if forall finished_import deps then
                     iterate_entries (fn (_, opt_exec) => fn () =>
                       (case opt_exec of
@@ -525,10 +525,10 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
                           else NONE
                       | NONE => NONE)) node ()
                   else ();
-                  Execution.worker_task_active false)
+                  Execution.worker_task_active false name)
                   handle exn =>
                    (Output.system_message (Runtime.exn_message exn);
-                    Execution.worker_task_active false;
+                    Execution.worker_task_active false name;
                     Exn.reraise exn);
                 val future =
                   (singleton o Future.forks)
