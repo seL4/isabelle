@@ -6005,7 +6005,7 @@ proposition no_isolated_singularity:
     shows "f holomorphic_on S"
 proof -
   { fix z
-    assume "z \<in> S" and cdf: "\<And>x. x\<in>S - K \<Longrightarrow> f field_differentiable at x"
+    assume "z \<in> S" and cdf: "\<And>x. x \<in> S - K \<Longrightarrow> f field_differentiable at x"
     have "f field_differentiable at z"
     proof (cases "z \<in> K")
       case False then show ?thesis by (blast intro: cdf \<open>z \<in> S\<close>)
@@ -6018,14 +6018,15 @@ proof -
         using  S \<open>z \<in> S\<close> by (force simp: open_contains_ball)
       have fde: "continuous_on (ball z (min d e)) f"
         by (metis Int_iff ball_min_Int continuous_on_subset e f subsetI)
+      have cont: "{a,b,c} \<subseteq> ball z (min d e) \<Longrightarrow> continuous_on (convex hull {a, b, c}) f" for a b c
+        by (simp add: hull_minimal continuous_on_subset [OF fde])
+      have fd: "\<lbrakk>{a,b,c} \<subseteq> ball z (min d e); x \<in> interior (convex hull {a, b, c}) - K\<rbrakk>
+            \<Longrightarrow> f field_differentiable at x" for a b c x
+        by (metis cdf Diff_iff Int_iff ball_min_Int subsetD convex_ball e interior_mono interior_subset subset_hull)
       obtain g where "\<And>w. w \<in> ball z (min d e) \<Longrightarrow> (g has_field_derivative f w) (at w within ball z (min d e))"
-        apply (rule contour_integral_convex_primitive [OF convex_ball fde])
-        apply (rule Cauchy_theorem_triangle_cofinite [OF _ K])
-         apply (metis continuous_on_subset [OF fde] closed_segment_subset convex_ball starlike_convex_subset)
-        apply (rule cdf)
-        apply (metis Diff_iff Int_iff ball_min_Int bot_least contra_subsetD convex_ball e insert_subset
-               interior_mono interior_subset subset_hull)
-        by auto
+        apply (rule contour_integral_convex_primitive 
+                     [OF convex_ball fde Cauchy_theorem_triangle_cofinite [OF _ K]])
+        using cont fd by auto
       then have "f holomorphic_on ball z (min d e)"
         by (metis open_ball at_within_open derivative_is_holomorphic)
       then show ?thesis
@@ -6061,20 +6062,21 @@ proof (rule no_isolated_singularity[OF _ assms(2-)])
 qed
 
 proposition Cauchy_integral_formula_convex:
-    assumes S: "convex S" and K: "finite K" and contf: "continuous_on S f"
-        and fcd: "(\<And>x. x \<in> interior S - K \<Longrightarrow> f field_differentiable at x)"
-        and z: "z \<in> interior S" and vpg: "valid_path \<gamma>"
-        and pasz: "path_image \<gamma> \<subseteq> S - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
-      shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
-  apply (rule Cauchy_integral_formula_weak [OF S finite.emptyI contf])
-  apply (simp add: holomorphic_on_open [symmetric] field_differentiable_def)
-  using no_isolated_singularity [where S = "interior S"]
-  apply (metis K contf fcd holomorphic_on_open field_differentiable_def continuous_on_subset
-               has_field_derivative_at_within holomorphic_on_def interior_subset open_interior)
-  using assms
-  apply auto
-  done
-
+  assumes S: "convex S" and K: "finite K" and contf: "continuous_on S f"
+    and fcd: "(\<And>x. x \<in> interior S - K \<Longrightarrow> f field_differentiable at x)"
+    and z: "z \<in> interior S" and vpg: "valid_path \<gamma>"
+    and pasz: "path_image \<gamma> \<subseteq> S - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+  shows "((\<lambda>w. f w / (w - z)) has_contour_integral (2*pi * \<i> * winding_number \<gamma> z * f z)) \<gamma>"
+proof -
+  have *: "\<And>x. x \<in> interior S \<Longrightarrow> f field_differentiable at x"
+    unfolding holomorphic_on_open [symmetric] field_differentiable_def
+    using no_isolated_singularity [where S = "interior S"]
+    by (meson K contf continuous_at_imp_continuous_on continuous_on_interior fcd 
+          field_differentiable_at_within field_differentiable_def holomorphic_onI
+          holomorphic_on_imp_differentiable_at open_interior)
+  show ?thesis
+    by (rule Cauchy_integral_formula_weak [OF S finite.emptyI contf]) (use * assms in auto)
+qed
 
 text\<open> Formula for higher derivatives.\<close>
 
@@ -6155,33 +6157,32 @@ theorem holomorphic_power_series:
       and w: "w \<in> ball z r"
     shows "((\<lambda>n. (deriv ^^ n) f z / (fact n) * (w - z)^n) sums f w)"
 proof -
-  have fh': "f holomorphic_on cball z ((r + dist w z) / 2)"
-     apply (rule holomorphic_on_subset [OF holf])
-     apply (clarsimp simp del: divide_const_simps)
-     apply (metis add.commute dist_commute le_less_trans mem_ball real_gt_half_sum w)
-     done
-  \<comment> \<open>Replacing @{term r} and the original (weak) premises\<close>
-  obtain r where "0 < r" and holfc: "f holomorphic_on cball z r" and w: "w \<in> ball z r"
-    apply (rule that [of "(r + dist w z) / 2"])
-      apply (simp_all add: fh')
-     apply (metis add_0_iff ball_eq_empty dist_nz dist_self empty_iff not_less pos_add_strict w)
-    apply (metis add_less_cancel_right dist_commute mem_ball mult_2_right w)
-    done
-  then have holf: "f holomorphic_on ball z r" and contf: "continuous_on (cball z r) f"
-    using ball_subset_cball holomorphic_on_subset apply blast
+  \<comment> \<open>Replacing @{term r} and the original (weak) premises with stronger ones\<close>
+  obtain r where "r > 0" and holfc: "f holomorphic_on cball z r" and w: "w \<in> ball z r"
+  proof 
+    have "cball z ((r + dist w z) / 2) \<subseteq> ball z r"
+      using w by (simp add: dist_commute real_sum_of_halves subset_eq)
+    then show "f holomorphic_on cball z ((r + dist w z) / 2)"
+      by (rule holomorphic_on_subset [OF holf])
+    have "r > 0"
+      using w by clarsimp (metis dist_norm le_less_trans norm_ge_zero)
+    then show "0 < (r + dist w z) / 2"
+      by simp (use zero_le_dist [of w z] in linarith)
+  qed (use w in \<open>auto simp: dist_commute\<close>)
+  then have holf: "f holomorphic_on ball z r" 
+    using ball_subset_cball holomorphic_on_subset by blast
+  have contf: "continuous_on (cball z r) f"
     by (simp add: holfc holomorphic_on_imp_continuous_on)
   have cint: "\<And>k. (\<lambda>u. f u / (u - z) ^ Suc k) contour_integrable_on circlepath z r"
-    apply (rule Cauchy_higher_derivative_integral_circlepath [OF contf holf])
-    apply (simp add: \<open>0 < r\<close>)
-    done
+    by (rule Cauchy_higher_derivative_integral_circlepath [OF contf holf]) (simp add: \<open>0 < r\<close>)
   obtain B where "0 < B" and B: "\<And>u. u \<in> cball z r \<Longrightarrow> norm(f u) \<le> B"
     by (metis (no_types) bounded_pos compact_cball compact_continuous_image compact_imp_bounded contf image_eqI)
   obtain k where k: "0 < k" "k \<le> r" and wz_eq: "norm(w - z) = r - k"
              and kle: "\<And>u. norm(u - z) = r \<Longrightarrow> k \<le> norm(u - w)"
-    apply (rule_tac k = "r - dist z w" in that)
-    using w
-    apply (auto simp: dist_norm norm_minus_commute)
-    by (metis add_diff_eq diff_add_cancel norm_diff_ineq norm_minus_commute)
+  proof 
+    show "\<And>u. cmod (u - z) = r \<Longrightarrow> r - dist z w \<le> cmod (u - w)"
+      by (metis add_diff_eq diff_add_cancel dist_norm norm_diff_ineq)
+  qed (use w in \<open>auto simp: dist_norm norm_minus_commute\<close>)
   have ul: "uniform_limit (sphere z r) (\<lambda>n x. (\<Sum>k<n. (w - z) ^ k * (f x / (x - z) ^ Suc k))) (\<lambda>x. f x / (x - w)) sequentially"
     unfolding uniform_limit_iff dist_norm 
   proof clarify
@@ -6239,16 +6240,14 @@ proof -
     using contour_integrable_lmul [OF cint, of "(w - z) ^ a" for a] apply (simp add: field_simps)
     apply (simp only: contour_integral_lmul cint algebra_simps)
     done
+  have cic: "\<And>u. (\<lambda>y. \<Sum>k<u. (w - z) ^ k * (f y / (y - z) ^ Suc k)) contour_integrable_on circlepath z r"
+    apply (intro contour_integrable_sum contour_integrable_lmul, simp)
+    using \<open>0 < r\<close> by (force intro!: Cauchy_higher_derivative_integral_circlepath [OF contf holf])
   have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u/(u - z)^(Suc k)) * (w - z)^k)
         sums contour_integral (circlepath z r) (\<lambda>u. f u/(u - w))"
     unfolding sums_def
-    apply (rule Lim_transform_eventually [OF eq])
-    apply (rule contour_integral_uniform_limit_circlepath [OF eventuallyI ul])
-    apply (rule contour_integrable_sum, simp)
-    apply (rule contour_integrable_lmul)
-    apply (rule Cauchy_higher_derivative_integral_circlepath [OF contf holf])
-    using \<open>0 < r\<close>
-    apply auto
+    apply (intro Lim_transform_eventually [OF eq] contour_integral_uniform_limit_circlepath [OF eventuallyI ul] cic)
+    using \<open>0 < r\<close> apply auto
     done
   then have "(\<lambda>k. contour_integral (circlepath z r) (\<lambda>u. f u/(u - z)^(Suc k)) * (w - z)^k)
              sums (2 * of_real pi * \<i> * f w)"
@@ -6288,16 +6287,12 @@ proof (rule ccontr)
     apply (rule Cauchy_integral_circlepath)
     using \<open>R > 0\<close> apply (auto intro: holomorphic_on_subset [OF holf] holomorphic_on_imp_continuous_on)+
     done
-  have "cmod (x - z) = R \<Longrightarrow> cmod (f x) * 2 \<le> cmod (f z)" for x
-    apply (simp add: R_def)
-    apply (rule less_imp_le)
-    apply (rule B)
-    using norm_triangle_ineq4 [of x z]
-    apply auto
-    done
-  with  \<open>R > 0\<close> fz show False
+  have "cmod (x - z) = R \<Longrightarrow> cmod (f x) * 2 < cmod (f z)" for x
+    unfolding R_def
+    by (rule B) (use norm_triangle_ineq4 [of x z] in auto)
+  with \<open>R > 0\<close> fz show False
     using has_contour_integral_bound_circlepath [OF *, of "norm(f z)/2/R"]
-    by (auto simp: norm_mult norm_divide divide_simps)
+    by (auto simp: less_imp_le norm_mult norm_divide divide_simps)
 qed
 
 proposition Liouville_weak:
@@ -6342,7 +6337,7 @@ next
   assume i: "i \<in> {1..n}" and nz: "a i \<noteq> 0"
   have 1: "(\<lambda>z. \<Sum>i\<le>n. a i * z^i) holomorphic_on UNIV"
     by (rule holomorphic_intros)+
-  show ?thesis
+  show thesis
     apply (rule Liouville_weak_inverse [OF 1])
     apply (rule polyfun_extremal)
     apply (rule nz)
