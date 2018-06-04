@@ -239,14 +239,14 @@ INCOMPATIBILITY.
 * Abstract bit operations as part of Main: push_bit, take_bit,
 drop_bit.
 
-* New, more general, axiomatization of complete_distrib_lattice. 
+* New, more general, axiomatization of complete_distrib_lattice.
 The former axioms:
 "sup x (Inf X) = Inf (sup x ` X)" and "inf x (Sup X) = Sup (inf x ` X)"
-are replaced by 
+are replaced by
 "Inf (Sup ` A) <= Sup (Inf ` {f ` A | f . (! Y \<in> A . f Y \<in> Y)})"
-The instantiations of sets and functions as complete_distrib_lattice 
+The instantiations of sets and functions as complete_distrib_lattice
 are moved to Hilbert_Choice.thy because their proofs need the Hilbert
-choice operator. The dual of this property is also proved in 
+choice operator. The dual of this property is also proved in
 Hilbert_Choice.thy.
 
 * New syntax for the minimum/maximum of a function over a finite set:
@@ -295,7 +295,7 @@ interpretation of abstract locales. INCOMPATIBILITY.
 * Predicate pairwise_coprime abolished, use "pairwise coprime" instead.
 INCOMPATIBILITY.
 
-* The relator rel_filter on filters has been strengthened to its 
+* The relator rel_filter on filters has been strengthened to its
 canonical categorical definition with better properties. INCOMPATIBILITY.
 
 * Generalized linear algebra involving linear, span, dependent, dim
@@ -308,7 +308,7 @@ INCOMPATIBILITY.
 
 * HOL-Algebra: renamed (^) to [^]
 
-* Session HOL-Analysis: Moebius functions, the Riemann mapping
+* Session HOL-Analysis: infinite products, Moebius functions, the Riemann mapping
 theorem, the Vitali covering theorem, change-of-variables results for
 integration and measures.
 
