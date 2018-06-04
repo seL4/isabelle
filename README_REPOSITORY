@@ -5,10 +5,10 @@ Quick start in 30min
 --------------------
 
 1a. Linux and Mac OS X: ensure that Mercurial is installed
-    (see also http://www.selenic.com/mercurial)
+    (see also https://www.mercurial-scm.org)
 
 1b. Windows: ensure that Cygwin64 with curl and Mercurial is installed
-    (see also http://www.cygwin.com)
+    (see also https://www.cygwin.com)
 
 2. Clone repository (bash shell commands):
 
@@ -46,7 +46,7 @@ Quick start in 30min
 Introduction
 ------------
 
-Mercurial http://www.selenic.com/mercurial belongs to source code
+Mercurial https://www.mercurial-scm.org belongs to source code
 management systems that follow the so-called paradigm of "distributed
 version control".  This means plain revision control without the
 legacy of CVS or SVN (and without the extra complexity introduced by
