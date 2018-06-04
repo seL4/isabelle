@@ -9,7 +9,7 @@ package isabelle
 
 object Build_Cygwin
 {
-  val default_mirror: String = "http://isabelle.in.tum.de/cygwin_2017"
+  val default_mirror: String = "https://isabelle.sketis.net/cygwin_2018"
 
   val packages: List[String] =
     List("curl", "nano", "perl", "perl-libwww-perl", "rlwrap", "unzip")
@@ -32,6 +32,8 @@ object Build_Cygwin
         Bytes.write(cygwin_exe,
           try { Bytes.read(Url(cygwin_exe_name)) }
           catch { case ERROR(_) => error("Failed to download " + quote(cygwin_exe_name)) })
+
+        File.write(cygwin_isabelle + Path.explode("cygwin_mirror"), mirror)
 
         Isabelle_System.bash(
           "chmod +x " + File.bash_path(cygwin_exe) + " && " +

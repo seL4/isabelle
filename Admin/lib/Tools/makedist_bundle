@@ -284,8 +284,12 @@ case "$PLATFORM_FAMILY" in
     (
       cd "$ISABELLE_TARGET"
 
-      cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
-        "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" .
+      cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" .
+
+      CYGWIN_MIRROR="$(cat contrib/cygwin/isabelle/cygwin_mirror)"
+      cat "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" | \
+        perl -p > "Cygwin-Setup.bat" -e "s,{MIRROR},$CYGWIN_MIRROR,;"
+      chmod +x "Cygwin-Setup.bat"
 
       for NAME in postinstall rebaseall
       do
