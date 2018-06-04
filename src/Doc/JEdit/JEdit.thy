@@ -228,15 +228,12 @@ text \<open>
 \<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
-    -A           specify ancestor for base session image (default: parent)
-    -B           use base session image, with theories from other sessions
-    -F           focus on selected logic session: ignore unrelated theories
+    -A NAME      ancestor session for options -R and -S (default: parent)
     -D NAME=X    set JVM system property
     -J OPTION    add JVM runtime option
                  (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)
-    -P           use parent session image
-    -R           open ROOT entry of logic session
-    -S NAME      edit specified logic session, abbreviates -B -F -R -l NAME
+    -R NAME      build image with requirements from other sessions
+    -S NAME      like option -R, with focus on selected session
     -b           build only
     -d DIR       include session directory
     -f           fresh build
@@ -261,18 +258,15 @@ text \<open>
   The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for the selected
   session image.
 
-  Option \<^verbatim>\<open>-P\<close> and \<^verbatim>\<open>-B\<close> and are mutually exclusive and modify the meaning of
-  option \<^verbatim>\<open>-l\<close> as follows. Option \<^verbatim>\<open>-P\<close> opens the parent session image. Option
-  \<^verbatim>\<open>-B\<close> prepares a logic image on the spot, based on the required theory
-  imports from other sessions, relative to an ancestor session given by option
-  \<^verbatim>\<open>-A\<close> (default: parent session).
+  Option \<^verbatim>\<open>-R\<close> builds an auxiliary logic image with all required theories from
+  \<^emph>\<open>other\<close> sessions, relative to an ancestor session given by option \<^verbatim>\<open>-A\<close>
+  (default: parent session). Option \<^verbatim>\<open>-R\<close> also opens the session \<^verbatim>\<open>ROOT\<close> entry
+  in the editor, to facilitate editing of the main session.
 
-  Option \<^verbatim>\<open>-F\<close> focuses on the effective logic session: the accessible
-  namespace of theories is restricted to sessions that are connected to it.
-
-  Option \<^verbatim>\<open>-R\<close> opens the ROOT entry of the specified logic session in the
-  editor. Option \<^verbatim>\<open>-S\<close> sets up the development environment to edit the
-  specified session: it abbreviates \<^verbatim>\<open>-B\<close> \<^verbatim>\<open>-F\<close> \<^verbatim>\<open>-R\<close> \<^verbatim>\<open>-l\<close>.
+  Option \<^verbatim>\<open>-S\<close> is like \<^verbatim>\<open>-R\<close>, with a focus on the selected session and its
+  descendants: the namespace of accessible theories is restricted accordingly.
+  This reduces startup time for big projects, notably the ``Archive of Formal
+  Proofs''.
 
   The \<^verbatim>\<open>-m\<close> option specifies additional print modes for the prover process.
   Note that the system option @{system_option_ref jedit_print_mode} allows to

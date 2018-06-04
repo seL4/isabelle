@@ -97,15 +97,12 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
-  echo "    -A           specify ancestor for base session image (default: parent)"
-  echo "    -B           use base session image, with theories from other sessions"
-  echo "    -F           focus on selected logic session: ignore unrelated theories"
+  echo "    -A NAME      ancestor session for options -R and -S (default: parent)"
   echo "    -D NAME=X    set JVM system property"
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
-  echo "    -P           use parent session image"
-  echo "    -R           open ROOT entry of logic session"
-  echo "    -S NAME      edit specified logic session, abbreviates -B -F -R -l NAME"
+  echo "    -R NAME      build image with requirements from other sessions"
+  echo "    -S NAME      like option -R, with focus on selected session"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
@@ -143,11 +140,9 @@ BUILD_ONLY=false
 BUILD_JARS="jars"
 ML_PROCESS_POLICY=""
 JEDIT_LOGIC_ANCESTOR=""
-JEDIT_LOGIC_BASE=""
+JEDIT_LOGIC_REQUIREMENTS=""
 JEDIT_LOGIC_FOCUS=""
 JEDIT_SESSION_DIRS=""
-JEDIT_LOGIC_ROOT=""
-JEDIT_LOGIC_PARENT=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 JEDIT_BUILD_MODE="normal"
@@ -155,38 +150,26 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "A:BFD:J:PRS:bd:fj:l:m:np:s" OPT
+  while getopts "A:BFD:J:R:S:bd:fj:l:m:np:s" OPT
   do
     case "$OPT" in
       A)
         JEDIT_LOGIC_ANCESTOR="$OPTARG"
         ;;
-      B)
-        JEDIT_LOGIC_BASE="true"
-        JEDIT_LOGIC_PARENT=""
-        ;;
       D)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="-D$OPTARG"
-        ;;
-      F)
-        JEDIT_LOGIC_FOCUS="true"
         ;;
       J)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
         ;;
-      P)
-        JEDIT_LOGIC_PARENT="true"
-        JEDIT_LOGIC_BASE=""
-        ;;
       R)
-        JEDIT_LOGIC_ROOT="true"
+        JEDIT_LOGIC="$OPTARG"
+        JEDIT_LOGIC_REQUIREMENTS="true"
         ;;
       S)
         JEDIT_LOGIC="$OPTARG"
-        JEDIT_LOGIC_BASE="true"
-        JEDIT_LOGIC_PARENT=""
+        JEDIT_LOGIC_REQUIREMENTS="true"
         JEDIT_LOGIC_FOCUS="true"
-        JEDIT_LOGIC_ROOT="true"
         ;;
       b)
         BUILD_ONLY=true
@@ -429,8 +412,8 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]
 then
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_BASE JEDIT_LOGIC_FOCUS \
-    JEDIT_LOGIC_PARENT JEDIT_LOGIC_ROOT JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
+    JEDIT_LOGIC_FOCUS JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"

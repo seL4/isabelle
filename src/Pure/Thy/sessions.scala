@@ -394,21 +394,21 @@ object Sessions
     progress: Progress = No_Progress,
     dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
-    ancestor_session: Option[String] = None,
-    all_known: Boolean = false,
-    focus_session: Boolean = false,
-    required_session: Boolean = false): Base_Info =
+    session_ancestor: Option[String] = None,
+    session_requirements: Boolean = false,
+    session_focus: Boolean = false,
+    all_known: Boolean = false): Base_Info =
   {
     val full_sessions = load_structure(options, dirs = dirs)
     val global_theories = full_sessions.global_theories
 
     val selected_sessions =
-      full_sessions.selection(Selection(sessions = session :: ancestor_session.toList))
+      full_sessions.selection(Selection(sessions = session :: session_ancestor.toList))
     val info = selected_sessions(session)
-    val ancestor = ancestor_session orElse info.parent
+    val ancestor = session_ancestor orElse info.parent
 
     val (session1, infos1) =
-      if (required_session && ancestor.isDefined) {
+      if (session_requirements && ancestor.isDefined) {
         val deps = Sessions.deps(selected_sessions, global_theories, progress = progress)
         val base = deps(session)
 
@@ -430,7 +430,7 @@ object Sessions
 
         if (required_theories.isEmpty) (ancestor.get, Nil)
         else {
-          val other_name = info.name + "_base(" + ancestor.get + ")"
+          val other_name = info.name + "_requirements(" + ancestor.get + ")"
           (other_name,
             List(
               make_info(info.options,
@@ -461,7 +461,7 @@ object Sessions
     {
       val sel_sessions1 = session1 :: include_sessions
       val select_sessions1 =
-        if (focus_session) full_sessions1.imports_descendants(sel_sessions1) else sel_sessions1
+        if (session_focus) full_sessions1.imports_descendants(sel_sessions1) else sel_sessions1
       full_sessions1.selection(Selection(sessions = select_sessions1))
     }
 

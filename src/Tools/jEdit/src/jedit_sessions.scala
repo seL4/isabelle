@@ -40,9 +40,8 @@ object JEdit_Sessions
       options.string(jedit_logic_option))
 
   def logic_ancestor: Option[String] = proper_string(Isabelle_System.getenv("JEDIT_LOGIC_ANCESTOR"))
+  def logic_requirements: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_REQUIREMENTS") == "true"
   def logic_focus: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_FOCUS") == "true"
-  def logic_base: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_BASE") == "true"
-  def logic_parent: Boolean = Isabelle_System.getenv("JEDIT_LOGIC_PARENT") == "true"
 
   def logic_info(options: Options): Option[Sessions.Info] =
     try {
@@ -52,9 +51,7 @@ object JEdit_Sessions
     catch { case ERROR(_) => None }
 
   def logic_root(options: Options): Position.T =
-    if (Isabelle_System.getenv("JEDIT_LOGIC_ROOT") == "true") {
-      logic_info(options).map(_.pos) getOrElse Position.none
-    }
+    if (logic_requirements) logic_info(options).map(_.pos) getOrElse Position.none
     else Position.none
 
 
@@ -111,13 +108,11 @@ object JEdit_Sessions
   def session_base_info(options: Options): Sessions.Base_Info =
     Sessions.base_info(options,
       dirs = JEdit_Sessions.session_dirs(),
-      session =
-        if (logic_parent) logic_info(options).flatMap(_.parent) getOrElse logic_name(options)
-        else logic_name(options),
-      ancestor_session = logic_ancestor,
-      all_known = !logic_focus,
-      focus_session = logic_focus,
-      required_session = logic_base)
+      session = logic_name(options),
+      session_ancestor = logic_ancestor,
+      session_requirements = logic_requirements,
+      session_focus = logic_focus,
+      all_known = !logic_focus)
 
   def session_build(
     options: Options, progress: Progress = No_Progress, no_build: Boolean = false): Int =

@@ -89,16 +89,16 @@ follow links to theories and document files etc.
 E.g. "Prob" may be completed to "HOL-Probability.Probability".
 
 * The command-line tool "isabelle jedit" provides more flexible options
-for session selection:
-  - options -P opens the parent session image of -l
-  - options -A and -B modify the meaning of -l to produce a base
-    image on the spot, based on the specified ancestor (or parent)
-  - option -F focuses on the specified logic session
-  - option -R has changed: it only opens the session ROOT entry
-  - option -S sets up the development environment to edit the
-    specified session: it abbreviates -B -F -R -l
+for session management:
+  - option -R builds an auxiliary logic image with all required theories
+    from other sessions, relative to an ancestor session given by option
+    -A (default: parent)
+  - option -S is like -R, with a focus on the selected session and its
+    descendants (this reduces startup time for big projects like AFP)
 
   Examples:
+    isabelle jedit -R HOL-Number_Theory
+    isabelle jedit -R HOL-Number_Theory -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
 
