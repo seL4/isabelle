@@ -252,7 +252,6 @@ object Isabelle_Cronjob
       Remote_Build("Mac OS X 10.8 Mountain Lion", "macbroy30", options = "-m32 -M2", args = "-a",
         detect = Build_Log.Prop.build_start + " < date '2017-03-03'"))
 
-
   val remote_builds1: List[List[Remote_Build]] =
   {
     List(
@@ -260,6 +259,12 @@ object Isabelle_Cronjob
         options = "-m32 -B -M1x2,2", args = "-N -g timing")),
       List(Remote_Build("Linux B", "lxbroy10", historic = true, history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
+      List(Remote_Build("Linux Benchmarks", "lxbroy5", historic = true, history = 90,
+        options = "-m32 -B -M1,2 -t Benchmarks" +
+            " -e ISABELLE_GHC=ghc -e ISABELLE_MLTON=mlton -e ISABELLE_OCAML=ocaml" +
+            " -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_SMLNJ=sml -e ISABELLE_SWIPL=swipl",
+          args = "-N -a -d '~~/src/Benchmarks'",
+          detect = Build_Log.Prop.build_tags + " = " + SQL.string("Benchmarks"))),
       List(
         Remote_Build("Mac OS X", "macbroy2",
           options = "-m32 -M8" +
