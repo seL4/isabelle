@@ -115,8 +115,10 @@ fun exec_groups (execs: execs) exec_id =
     SOME (groups, _) => groups
   | NONE => []);
 
-fun snapshot exec_ids =
-  change_state_result (`(fn (_, _, execs) => Future.snapshot (maps (exec_groups execs) exec_ids)));
+fun snapshot [] = []
+  | snapshot exec_ids =
+      change_state_result
+        (`(fn (_, _, execs) => Future.snapshot (maps (exec_groups execs) exec_ids)));
 
 fun join exec_ids =
   (case snapshot exec_ids of

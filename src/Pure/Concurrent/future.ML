@@ -692,9 +692,10 @@ fun fulfill x res = fulfill_result x (Exn.Res res);
 
 (* snapshot: current tasks of groups *)
 
-fun snapshot groups =
-  SYNCHRONIZED "snapshot" (fn () =>
-    Task_Queue.group_tasks (! queue) groups);
+fun snapshot [] = []
+  | snapshot groups =
+      SYNCHRONIZED "snapshot" (fn () =>
+        Task_Queue.group_tasks (! queue) groups);
 
 
 (* shutdown *)
