@@ -263,6 +263,8 @@ object Command
     def initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
     def consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
 
+    lazy val maybe_consolidated: Boolean = Protocol.maybe_consolidated(status)
+
     lazy val protocol_status: Protocol.Status =
     {
       val warnings =

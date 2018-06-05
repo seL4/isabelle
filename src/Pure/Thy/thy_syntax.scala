@@ -297,7 +297,7 @@ object Thy_Syntax
       previous: Document.Version,
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text],
-      consolidate: Boolean): Session.Change =
+      consolidate: List[Document.Node.Name]): Session.Change =
   {
     val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 

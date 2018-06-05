@@ -849,6 +849,18 @@ object Document
         removing_versions = false)
     }
 
+    def command_state_eval(version: Version, command: Command): Option[Command.State] =
+    {
+      require(is_assigned(version))
+      try {
+        the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil) match {
+          case eval_id :: _ => Some(the_dynamic_state(eval_id))
+          case Nil => None
+        }
+      }
+      catch { case _: State.Fail => None }
+    }
+
     private def command_states_self(version: Version, command: Command)
       : List[(Document_ID.Generic, Command.State)] =
     {
@@ -929,6 +941,16 @@ object Document
         case None => false
         case Some(command) => command_states(version, command).headOption.exists(_.initialized)
       })
+
+    def node_maybe_consolidated(version: Version, name: Node.Name): Boolean =
+      name.is_theory &&
+      {
+        version.nodes(name).commands.reverse.iterator.forall(command =>
+          command_state_eval(version, command) match {
+            case None => false
+            case Some(st) => st.maybe_consolidated
+          })
+      }
 
     def node_consolidated(version: Version, name: Node.Name): Boolean =
       !name.is_theory ||

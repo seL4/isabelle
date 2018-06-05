@@ -24,7 +24,7 @@ sig
   val command_exec: state -> string -> Document_ID.command -> Command.exec option
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
-  val update: Document_ID.version -> Document_ID.version -> edit list -> bool -> state ->
+  val update: Document_ID.version -> Document_ID.version -> edit list -> string list -> state ->
     Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
   val change_state: (state -> state) -> unit
@@ -768,6 +768,7 @@ fun update old_version_id new_version_id edits consolidate state =
       timeit "Document.edit_nodes"
         (fn () => old_version |> fold edit_nodes edits |> edit_keywords edits);
 
+    val consolidate = Symtab.defined (Symtab.make_set consolidate);
     val nodes = nodes_of new_version;
     val required = make_required nodes;
     val required0 = make_required (nodes_of old_version);
@@ -786,7 +787,7 @@ fun update old_version_id new_version_id edits consolidate state =
                     val root_theory = check_root_theory node;
                     val keywords = the_default (Session.get_keywords ()) (get_keywords node);
 
-                    val maybe_consolidate = consolidate andalso could_consolidate node;
+                    val maybe_consolidate = consolidate name andalso could_consolidate node;
                     val imports = map (apsnd Future.join) deps;
                     val imports_result_changed = exists (#4 o #1 o #2) imports;
                     val node_required = Symtab.defined required name;

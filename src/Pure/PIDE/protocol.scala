@@ -38,6 +38,26 @@ object Protocol
   }
 
 
+  /* consolidation status */
+
+  def maybe_consolidated(markups: List[Markup]): Boolean =
+  {
+    var touched = false
+    var forks = 0
+    var runs = 0
+    for (markup <- markups) {
+      markup.name match {
+        case Markup.FORKED => touched = true; forks += 1
+        case Markup.JOINED => forks -= 1
+        case Markup.RUNNING => touched = true; runs += 1
+        case Markup.FINISHED => runs -= 1
+        case _ =>
+      }
+    }
+    touched && forks == 0 && runs == 0
+  }
+
+
   /* command status */
 
   object Status
@@ -419,7 +439,7 @@ trait Protocol
   /* document versions */
 
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
-    edits: List[Document.Edit_Command], consolidate: Boolean)
+    edits: List[Document.Edit_Command], consolidate: List[Document.Node.Name])
   {
     val edits_yxml =
     {
@@ -446,9 +466,17 @@ trait Protocol
         val (name, edit) = node_edit
         pair(string, encode_edit(name))(name.node, edit)
       })
-      Symbol.encode_yxml(encode_edits(edits)) }
+      Symbol.encode_yxml(encode_edits(edits))
+    }
+
+    val consolidate_yxml =
+    {
+      import XML.Encode._
+      Symbol.encode_yxml(list(string)(consolidate.map(_.node)))
+    }
+
     protocol_command(
-      "Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml, consolidate.toString)
+      "Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml, consolidate_yxml)
   }
 
   def remove_versions(versions: List[Document.Version])

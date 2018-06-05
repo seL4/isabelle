@@ -50,7 +50,7 @@ object Session
     syntax_changed: List[Document.Node.Name],
     deps_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
-    consolidate: Boolean,
+    consolidate: List[Document.Node.Name],
     version: Document.Version)
 
   case object Change_Flush
@@ -231,7 +231,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     previous: Future[Document.Version],
     doc_blobs: Document.Blobs,
     text_edits: List[Document.Edit_Text],
-    consolidate: Boolean,
+    consolidate: List[Document.Node.Name],
     version_result: Promise[Document.Version])
 
   private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true)
@@ -259,6 +259,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     def flush(): Unit = synchronized {
       if (assignment || nodes.nonEmpty || commands.nonEmpty)
         commands_changed.post(Session.Commands_Changed(assignment, nodes, commands))
+      if (nodes.nonEmpty) consolidation.update(nodes)
       assignment = false
       nodes = Set.empty
       commands = Set.empty
@@ -296,6 +297,28 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
       postponed = unassigned
       assigned.reverse
     }
+  }
+
+
+  /* node consolidation */
+
+  private object consolidation
+  {
+    private val delay =
+      Standard_Thread.delay_first(consolidate_delay) { manager.send(Consolidate_Execution) }
+
+    private val changed_nodes = Synchronized(Set.empty[Document.Node.Name])
+
+    def update(new_nodes: Set[Document.Node.Name] = Set.empty)
+    {
+      changed_nodes.change(nodes => if (nodes.isEmpty) new_nodes else nodes ++ new_nodes)
+      delay.invoke()
+    }
+
+    def flush(): Set[Document.Node.Name] =
+      changed_nodes.change_result(nodes => (nodes, Set.empty))
+
+    def shutdown() { delay.revoke() }
   }
 
 
@@ -347,7 +370,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     def handle_raw_edits(
       doc_blobs: Document.Blobs = Document.Blobs.empty,
       edits: List[Document.Edit_Text] = Nil,
-      consolidate: Boolean = false)
+      consolidate: List[Document.Node.Name] = Nil)
     //{{{
     {
       require(prover.defined)
@@ -534,7 +557,19 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
             }
 
           case Consolidate_Execution =>
-            if (prover.defined) handle_raw_edits(consolidate = true)
+            if (prover.defined) {
+              val state = global_state.value
+              state.stable_tip_version match {
+                case None => consolidation.update()
+                case Some(version) =>
+                  val consolidate =
+                    consolidation.flush().iterator.filter(name =>
+                      !resources.session_base.loaded_theory(name) &&
+                      !state.node_consolidated(version, name) &&
+                      state.node_maybe_consolidated(version, name)).toList
+                  if (consolidate.nonEmpty) handle_raw_edits(consolidate = consolidate)
+              }
+            }
 
           case Prune_History =>
             if (prover.defined) {
@@ -581,28 +616,6 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     }
   }
 
-  private val consolidator: Thread =
-    Standard_Thread.fork("Session.consolidator", daemon = true) {
-      try {
-        while (true) {
-          Thread.sleep(consolidate_delay.ms)
-
-          val state = global_state.value
-          state.stable_tip_version match {
-            case None =>
-            case Some(version) =>
-              val consolidated =
-                version.nodes.iterator.forall(
-                  { case (name, _) =>
-                      resources.session_base.loaded_theory(name) ||
-                      state.node_consolidated(version, name) })
-              if (!consolidated) manager.send(Consolidate_Execution)
-          }
-        }
-      }
-      catch { case Exn.Interrupt() => }
-    }
-
 
   /* main operations */
 
@@ -641,8 +654,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
     change_parser.shutdown()
     change_buffer.shutdown()
-    consolidator.interrupt
-    consolidator.join
+    consolidation.shutdown()
     manager.shutdown()
     dispatcher.shutdown()
 
