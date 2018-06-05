@@ -689,13 +689,16 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
   (case finished_result_theory node of
     SOME (result_id, thy) =>
       let
-        val eval_ids =
-          iterate_entries (fn (_, opt_exec) => fn eval_ids =>
-            (case opt_exec of
-              SOME (eval, _) => SOME (cons (Command.eval_exec_id eval) eval_ids)
-            | NONE => NONE)) node [];
+        val active_tasks =
+          (node, false) |-> iterate_entries (fn (_, opt_exec) => fn active =>
+            if active then NONE
+            else
+              (case opt_exec of
+                NONE => NONE
+              | SOME (eval, _) =>
+                  SOME (not (null (Execution.snapshot [Command.eval_exec_id eval])))));
       in
-        if null (Execution.snapshot eval_ids) then
+        if not active_tasks then
           let
             val consolidation =
               if Options.bool options "editor_presentation" then
