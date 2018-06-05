@@ -394,7 +394,7 @@ lemma flat_eqI: "x \<sqsubseteq> y \<Longrightarrow> x \<noteq> \<bottom> \<Long
 
 lemma flat_codom: "f\<cdot>x = c \<Longrightarrow> f\<cdot>\<bottom> = \<bottom> \<or> (\<forall>z. f\<cdot>z = c)"
   for c :: "'b::flat"
-  apply (case_tac "f\<cdot>x = \<bottom>")
+  apply (cases "f\<cdot>x = \<bottom>")
    apply (rule disjI1)
    apply (rule bottomI)
    apply (erule_tac t="\<bottom>" in subst)

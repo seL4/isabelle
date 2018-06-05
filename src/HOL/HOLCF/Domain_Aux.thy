@@ -199,32 +199,40 @@ lemma decisive_ssum_map:
   assumes f: "decisive f"
   assumes g: "decisive g"
   shows "decisive (ssum_map\<cdot>f\<cdot>g)"
-apply (rule decisiveI, rename_tac s)
-apply (case_tac s, simp_all)
-apply (rule_tac x=x in decisive_cases [OF f], simp_all)
-apply (rule_tac x=y in decisive_cases [OF g], simp_all)
-done
+  apply (rule decisiveI)
+  subgoal for s
+    apply (cases s, simp_all)
+     apply (rule_tac x=x in decisive_cases [OF f], simp_all)
+    apply (rule_tac x=y in decisive_cases [OF g], simp_all)
+    done
+  done
 
 lemma decisive_sprod_map:
   assumes f: "decisive f"
   assumes g: "decisive g"
   shows "decisive (sprod_map\<cdot>f\<cdot>g)"
-apply (rule decisiveI, rename_tac s)
-apply (case_tac s, simp_all)
-apply (rule_tac x=x in decisive_cases [OF f], simp_all)
-apply (rule_tac x=y in decisive_cases [OF g], simp_all)
-done
+  apply (rule decisiveI)
+  subgoal for s
+    apply (cases s, simp)
+    subgoal for x y
+      apply (rule decisive_cases [OF f, where x = x], simp_all)
+      apply (rule decisive_cases [OF g, where x = y], simp_all)
+      done
+    done
+  done
 
 lemma decisive_abs_rep:
   fixes abs rep
   assumes iso: "iso abs rep"
   assumes d: "decisive d"
   shows "decisive (abs oo d oo rep)"
-apply (rule decisiveI)
-apply (rule_tac x="rep\<cdot>x" in decisive_cases [OF d])
-apply (simp add: iso.rep_iso [OF iso])
-apply (simp add: iso.abs_strict [OF iso])
-done
+  apply (rule decisiveI)
+  subgoal for s
+    apply (rule decisive_cases [OF d, where x="rep\<cdot>s"])
+     apply (simp add: iso.rep_iso [OF iso])
+    apply (simp add: iso.abs_strict [OF iso])
+    done
+  done
 
 lemma lub_ID_finite:
   assumes chain: "chain d"

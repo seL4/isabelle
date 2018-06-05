@@ -41,13 +41,13 @@ lemma idealD3:
 unfolding ideal_def by fast
 
 lemma ideal_principal: "ideal {x. x \<preceq> z}"
-apply (rule idealI)
-apply (rule_tac x=z in exI)
-apply (fast intro: r_refl)
-apply (rule_tac x=z in bexI, fast)
-apply (fast intro: r_refl)
-apply (fast intro: r_trans)
-done
+  apply (rule idealI)
+    apply (rule exI [where x = z])
+    apply (fast intro: r_refl)
+   apply (rule bexI [where x = z], fast)
+   apply (fast intro: r_refl)
+  apply (fast intro: r_trans)
+  done
 
 lemma ex_ideal: "\<exists>A. A \<in> {A. ideal A}"
 by (fast intro: ideal_principal)
@@ -59,17 +59,19 @@ lemma ideal_UN:
   assumes ideal_A: "\<And>i. ideal (A i)"
   assumes chain_A: "\<And>i j. i \<le> j \<Longrightarrow> A i \<subseteq> A j"
   shows "ideal (\<Union>i. A i)"
- apply (rule idealI)
-   apply (cut_tac idealD1 [OF ideal_A], fast)
-  apply (clarify, rename_tac i j)
-  apply (drule subsetD [OF chain_A [OF max.cobounded1]])
-  apply (drule subsetD [OF chain_A [OF max.cobounded2]])
-  apply (drule (1) idealD2 [OF ideal_A])
-  apply blast
- apply clarify
- apply (drule (1) idealD3 [OF ideal_A])
- apply fast
-done
+  apply (rule idealI)
+  using idealD1 [OF ideal_A] apply fast
+   apply (clarify)
+  subgoal for i j
+    apply (drule subsetD [OF chain_A [OF max.cobounded1]])
+    apply (drule subsetD [OF chain_A [OF max.cobounded2]])
+    apply (drule (1) idealD2 [OF ideal_A])
+    apply blast
+    done
+  apply clarify
+  apply (drule (1) idealD3 [OF ideal_A])
+  apply fast
+  done
 
 lemma typedef_ideal_po:
   fixes Abs :: "'a set \<Rightarrow> 'b::below"
@@ -208,10 +210,10 @@ proof -
   have a_mem: "enum a \<in> rep x"
     unfolding a_def
     apply (rule LeastI_ex)
-    apply (cut_tac ideal_rep [of x])
+    apply (insert ideal_rep [of x])
     apply (drule idealD1)
-    apply (clarify, rename_tac a)
-    apply (rule_tac x="count a" in exI, simp)
+    apply (clarify)
+    subgoal for a by (rule exI [where x="count a"]) simp
     done
   have b: "\<And>i. P i \<Longrightarrow> enum i \<in> rep x
     \<Longrightarrow> enum (b i) \<in> rep x \<and> \<not> enum (b i) \<preceq> enum i"
@@ -220,50 +222,63 @@ proof -
     \<Longrightarrow> enum (c i j) \<in> rep x \<and> enum i \<preceq> enum (c i j) \<and> enum j \<preceq> enum (c i j)"
     unfolding c_def
     apply (drule (1) idealD2 [OF ideal_rep], clarify)
-    apply (rule_tac a="count z" in LeastI2, simp, simp)
+    subgoal for \<dots> z by (rule LeastI2 [where a="count z"], simp, simp)
     done
-  have X_mem: "\<And>n. enum (X n) \<in> rep x"
-    apply (induct_tac n)
-    apply (simp add: X_0 a_mem)
-    apply (clarsimp simp add: X_Suc, rename_tac n)
-    apply (simp add: b c)
-    done
+  have X_mem: "enum (X n) \<in> rep x" for n
+  proof (induct n)
+    case 0
+    then show ?case by (simp add: X_0 a_mem)
+  next
+    case (Suc n)
+    with b c show ?case by (auto simp: X_Suc)
+  qed
   have X_chain: "\<And>n. enum (X n) \<preceq> enum (X (Suc n))"
     apply (clarsimp simp add: X_Suc r_refl)
     apply (simp add: b c X_mem)
     done
   have less_b: "\<And>n i. n < b i \<Longrightarrow> enum n \<in> rep x \<Longrightarrow> enum n \<preceq> enum i"
     unfolding b_def by (drule not_less_Least, simp)
-  have X_covers: "\<And>n. \<forall>k\<le>n. enum k \<in> rep x \<longrightarrow> enum k \<preceq> enum (X n)"
-    apply (induct_tac n)
-    apply (clarsimp simp add: X_0 a_def)
-    apply (drule_tac k=0 in Least_le, simp add: r_refl)
-    apply (clarsimp, rename_tac n k)
-    apply (erule le_SucE)
-    apply (rule r_trans [OF _ X_chain], simp)
-    apply (case_tac "P (X n)", simp add: X_Suc)
-    apply (rule_tac x="b (X n)" and y="Suc n" in linorder_cases)
-    apply (simp only: less_Suc_eq_le)
-    apply (drule spec, drule (1) mp, simp add: b X_mem)
-    apply (simp add: c X_mem)
-    apply (drule (1) less_b)
-    apply (erule r_trans)
-    apply (simp add: b c X_mem)
-    apply (simp add: X_Suc)
-    apply (simp add: P_def)
-    done
+  have X_covers: "\<forall>k\<le>n. enum k \<in> rep x \<longrightarrow> enum k \<preceq> enum (X n)" for n
+  proof (induct n)
+    case 0
+    then show ?case
+      apply (clarsimp simp add: X_0 a_def)
+      apply (drule Least_le [where k=0], simp add: r_refl)
+      done
+  next
+    case (Suc n)
+    then show ?case
+      apply clarsimp
+      apply (erule le_SucE)
+       apply (rule r_trans [OF _ X_chain], simp)
+      apply (cases "P (X n)", simp add: X_Suc)
+       apply (rule linorder_cases [where x="b (X n)" and y="Suc n"])
+         apply (simp only: less_Suc_eq_le)
+         apply (drule spec, drule (1) mp, simp add: b X_mem)
+        apply (simp add: c X_mem)
+       apply (drule (1) less_b)
+       apply (erule r_trans)
+       apply (simp add: b c X_mem)
+      apply (simp add: X_Suc)
+      apply (simp add: P_def)
+      done
+  qed
   have 1: "\<forall>i. enum (X i) \<preceq> enum (X (Suc i))"
     by (simp add: X_chain)
-  have 2: "x = (\<Squnion>n. principal (enum (X n)))"
+  have "x = (\<Squnion>n. principal (enum (X n)))"
     apply (simp add: eq_iff rep_lub 1 rep_principal)
-    apply (auto, rename_tac a)
-    apply (subgoal_tac "\<exists>i. a = enum i", erule exE)
-    apply (rule_tac x=i in exI, simp add: X_covers)
-    apply (rule_tac x="count a" in exI, simp)
-    apply (erule idealD3 [OF ideal_rep])
-    apply (rule X_mem)
+    apply auto
+    subgoal for a
+      apply (subgoal_tac "\<exists>i. a = enum i", erule exE)
+       apply (rule_tac x=i in exI, simp add: X_covers)
+      apply (rule_tac x="count a" in exI, simp)
+      done
+    subgoal
+      apply (erule idealD3 [OF ideal_rep])
+      apply (rule X_mem)
+      done
     done
-  from 1 2 show ?thesis ..
+  with 1 show ?thesis ..
 qed
 
 lemma principal_induct:
@@ -301,16 +316,20 @@ proof -
     by (simp add: x rep_lub Y rep_principal)
   have "f ` rep x <<| (\<Squnion>n. f (Y n))"
     apply (rule is_lubI)
-    apply (rule ub_imageI, rename_tac a)
-    apply (clarsimp simp add: rep_x)
-    apply (drule f_mono)
-    apply (erule below_lub [OF chain])
+     apply (rule ub_imageI)
+    subgoal for a
+      apply (clarsimp simp add: rep_x)
+      apply (drule f_mono)
+      apply (erule below_lub [OF chain])
+      done
     apply (rule lub_below [OF chain])
-    apply (drule_tac x="Y n" in ub_imageD)
-    apply (simp add: rep_x, fast intro: r_refl)
-    apply assumption
+    subgoal for \<dots> n
+      apply (drule ub_imageD [where x="Y n"])
+       apply (simp add: rep_x, fast intro: r_refl)
+      apply assumption
+      done
     done
-  thus ?thesis ..
+  then show ?thesis ..
 qed
 
 lemma extension_beta:
@@ -353,16 +372,18 @@ lemma extension_mono:
   assumes g_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> g a \<sqsubseteq> g b"
   assumes below: "\<And>a. f a \<sqsubseteq> g a"
   shows "extension f \<sqsubseteq> extension g"
- apply (rule cfun_belowI)
- apply (simp only: extension_beta f_mono g_mono)
- apply (rule is_lub_thelub_ex)
-  apply (rule extension_lemma, erule f_mono)
- apply (rule ub_imageI, rename_tac a)
- apply (rule below_trans [OF below])
- apply (rule is_ub_thelub_ex)
-  apply (rule extension_lemma, erule g_mono)
- apply (erule imageI)
-done
+  apply (rule cfun_belowI)
+  apply (simp only: extension_beta f_mono g_mono)
+  apply (rule is_lub_thelub_ex)
+   apply (rule extension_lemma, erule f_mono)
+  apply (rule ub_imageI)
+  subgoal for x a
+    apply (rule below_trans [OF below])
+    apply (rule is_ub_thelub_ex)
+     apply (rule extension_lemma, erule g_mono)
+    apply (erule imageI)
+    done
+  done
 
 lemma cont_extension:
   assumes f_mono: "\<And>a b x. a \<preceq> b \<Longrightarrow> f x a \<sqsubseteq> f x b"
