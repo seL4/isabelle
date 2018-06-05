@@ -318,7 +318,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     def flush(): Set[Document.Node.Name] =
       changed_nodes.change_result(nodes => (nodes, Set.empty))
 
-    def shutdown() { delay.revoke() }
+    def revoke() { delay.revoke() }
   }
 
 
@@ -549,6 +549,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
             prover.set(start_prover(manager.send(_)))
 
           case Stop =>
+            consolidation.revoke()
             delay_prune.revoke()
             if (prover.defined) {
               protocol_handlers.exit()
@@ -654,7 +655,6 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
     change_parser.shutdown()
     change_buffer.shutdown()
-    consolidation.shutdown()
     manager.shutdown()
     dispatcher.shutdown()
 
