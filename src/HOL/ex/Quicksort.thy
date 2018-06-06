@@ -13,11 +13,11 @@ begin
 
 fun quicksort :: "'a list \<Rightarrow> 'a list" where
   "quicksort []     = []"
-| "quicksort (x#xs) = quicksort (filter (\<lambda>y. \<not> x\<le>y) xs) @ [x] @ quicksort (filter (\<lambda>y. x\<le>y) xs)"
+| "quicksort (x#xs) = quicksort [y\<leftarrow>xs. \<not> x\<le>y] @ [x] @ quicksort [y\<leftarrow>xs. x\<le>y]"
 
 lemma [code]:
   "quicksort []     = []"
-  "quicksort (x#xs) = quicksort (filter (\<lambda>y. \<not> x\<le>y) xs) @ [x] @ quicksort (filter (\<lambda>y. x\<le>y) xs)"
+  "quicksort (x#xs) = quicksort [y\<leftarrow>xs. y<x] @ [x] @ quicksort [y\<leftarrow>xs. x\<le>y]"
   by (simp_all add: not_le)
 
 lemma quicksort_permutes [simp]:

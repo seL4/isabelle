@@ -84,10 +84,10 @@ by transfer_prover
 definition map_filter :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "map_filter P m = (\<lambda>x. if P x then m x else None)"
 
-lemma map_filter_map_of[simp]: "map_filter P (map_of m) = map_of (filter (\<lambda>(k, _). P k) m)"
+lemma map_filter_map_of[simp]: "map_filter P (map_of m) = map_of [(k, _) \<leftarrow> m. P k]"
 proof
   fix x
-  show "map_filter P (map_of m) x = map_of (filter (\<lambda>(k, _). P k) m) x"
+  show "map_filter P (map_of m) x = map_of [(k, _) \<leftarrow> m. P k] x"
     by (induct m) (auto simp: map_filter_def)
 qed
 

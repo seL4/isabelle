@@ -116,7 +116,7 @@ lemma select_weight_cons_zero:
 lemma select_weight_drop_zero:
   "select_weight (filter (\<lambda>(k, _). k > 0) xs) = select_weight xs"
 proof -
-  have "sum_list (map fst (filter (\<lambda>(k, _). 0 < k) xs)) = sum_list (map fst xs)"
+  have "sum_list (map fst [(k, _)\<leftarrow>xs . 0 < k]) = sum_list (map fst xs)"
     by (induct xs) (auto simp add: less_natural_def natural_eq_iff)
   then show ?thesis by (simp only: select_weight_def pick_drop_zero)
 qed
