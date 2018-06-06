@@ -50,14 +50,6 @@ sublocale comm_group \<subseteq> comm_monoid_cancel ..
 
 subsection \<open>Products of Units in Monoids\<close>
 
-lemma (in monoid) Units_m_closed[simp, intro]:
-  assumes h1unit: "h1 \<in> Units G"
-    and h2unit: "h2 \<in> Units G"
-  shows "h1 \<otimes> h2 \<in> Units G"
-  unfolding Units_def
-  using assms
-  by auto (metis Units_inv_closed Units_l_inv Units_m_closed Units_r_inv)
-
 lemma (in monoid) prod_unit_l:
   assumes abunit[simp]: "a \<otimes> b \<in> Units G"
     and aunit[simp]: "a \<in> Units G"

@@ -79,7 +79,7 @@ proof -
   show ?thesis
   proof
     show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
-      by (simp add: inj_on_def l_cancel [of m1 x y, THEN iffD1] H_def m1)
+      by (simp add: H_def inj_on_def m1)
     show "restrict ((\<otimes>) m1) H \<in> H \<rightarrow> M1"
     proof (rule restrictI)
       fix z
