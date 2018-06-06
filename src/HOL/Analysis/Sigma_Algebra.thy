@@ -2085,7 +2085,7 @@ proof (rule measure_eqI)
   have "(\<lambda>x. g (f x)) \<in> X \<rightarrow> space M" "\<And>A. A \<inter> f -` Y \<inter> X = A \<inter> X"
     using * by auto
   with * show "sets ?VV = sets ?V"
-    by (simp add: sets_vimage_algebra2 vimage_comp comp_def reorient: ex_simps)
+    by (simp add: sets_vimage_algebra2 vimage_comp comp_def flip: ex_simps)
 qed (simp add: vimage_algebra_def emeasure_sigma)
 
 subsubsection \<open>Restricted Space Sigma Algebra\<close>

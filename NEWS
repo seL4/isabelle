@@ -195,6 +195,12 @@ back to reading the clause first.  This helps avoid qualification of
 locale instances where the qualifier's sole purpose is avoiding
 duplicate constant declarations.
 
+* Proof method 'simp' now supports a new modifier 'flip:' followed by a list
+of theorems. Each of these theorems is removed from the simpset
+(without warning if it is not there) and the symmetric version of the theorem
+(i.e. lhs and rhs exchanged) is added to the simpset.
+For 'auto' and friends the modifier is "simp flip:".
+
 
 *** Pure ***
 

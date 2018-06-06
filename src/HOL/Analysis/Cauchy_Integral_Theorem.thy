@@ -4145,7 +4145,7 @@ proof -
     have "winding_number \<gamma> y \<in> \<int>"  "winding_number \<gamma> z \<in>  \<int>"
       using that integer_winding_number [OF \<gamma> loop] sg \<open>y \<in> S\<close> by auto
     with ne show ?thesis
-      by (auto simp: Ints_def reorient: of_int_diff)
+      by (auto simp: Ints_def simp flip: of_int_diff)
   qed
   have cont: "continuous_on S (\<lambda>w. winding_number \<gamma> w)"
     using continuous_on_winding_number [OF \<gamma>] sg
@@ -6667,7 +6667,7 @@ proof (cases "0 < r")
       by (rule derivative_eq_intros | simp)+
     have y_le: "\<lbrakk>cmod (z - y) * 2 < r - cmod z\<rbrakk> \<Longrightarrow> cmod y \<le> cmod (of_real r + of_real (cmod z)) / 2" for z y
       using \<open>r > 0\<close>
-      apply (auto simp: algebra_simps norm_mult norm_divide norm_power reorient: of_real_add)
+      apply (auto simp: algebra_simps norm_mult norm_divide norm_power simp flip: of_real_add)
       using norm_triangle_ineq2 [of y z]
       apply (simp only: diff_le_eq norm_minus_commute mult_2)
       done
@@ -6675,7 +6675,7 @@ proof (cases "0 < r")
       using assms \<open>r > 0\<close> by simp
     moreover have "\<And>z. cmod z < r \<Longrightarrow> cmod ((of_real r + of_real (cmod z)) / 2) < cmod (of_real r)"
       using \<open>r > 0\<close>
-      by (simp reorient: of_real_add)
+      by (simp flip: of_real_add)
     ultimately have sum: "\<And>z. cmod z < r \<Longrightarrow> summable (\<lambda>n. of_real (cmod (a n)) * ((of_real r + complex_of_real (cmod z)) / 2) ^ n)"
       by (rule power_series_conv_imp_absconv_weak)
     have "\<exists>g g'. \<forall>z \<in> ball 0 r. (\<lambda>n.  (a n) * z ^ n) sums g z \<and>
@@ -6723,7 +6723,7 @@ proof -
       then have "0 \<le> r"
         by (meson less_eq_real_def norm_ge_zero order_trans)
       show ?thesis
-        using w by (simp add: dist_norm \<open>0\<le>r\<close> reorient: of_real_add)
+        using w by (simp add: dist_norm \<open>0\<le>r\<close> flip: of_real_add)
     qed
     have sum: "summable (\<lambda>n. a n * of_real (((cmod (z - w) + r) / 2) ^ n))"
       using assms [OF inb] by (force simp: summable_def dist_norm)

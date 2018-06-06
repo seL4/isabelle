@@ -275,8 +275,9 @@ text \<open>
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
-    @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | '!' | 'del') |
-      'cong' (() | 'add' | 'del')) ':' @{syntax thms}
+    @{syntax_def simpmod}: ('add' | 'del' | 'flip' | 'only' |
+      'split' (() | '!' | 'del') | 'cong' (() | 'add' | 'del'))
+    ':' @{syntax thms}
   \<close>}
 
   \<^descr> @{method simp} invokes the Simplifier on the first subgoal, after
@@ -290,6 +291,11 @@ text \<open>
   without further simplification. This may lead to slightly different behavior
   in either case, which might be required precisely like that in some boundary
   situations to perform the intended simplification step!
+
+  \<^medskip>
+Modifier \<open>flip\<close> deletes the following theorems from the simpset and adds
+their symmetric version (i.e.\ lhs and rhs exchanged). No warning is shown
+if the original theorem was not present.
 
   \<^medskip>
   The \<open>only\<close> modifier first removes all other rewrite rules, looper tactics

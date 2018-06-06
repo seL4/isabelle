@@ -107,7 +107,7 @@ proof -
     finally have "measure M (space M) \<le> measure M K + e"
       using \<open>0 < e\<close> by simp
     hence "emeasure M (space M) \<le> emeasure M K + e"
-      using \<open>0 < e\<close> by (simp add: emeasure_eq_measure reorient: ennreal_plus)
+      using \<open>0 < e\<close> by (simp add: emeasure_eq_measure flip: ennreal_plus)
     moreover have "compact K"
       unfolding compact_eq_totally_bounded
     proof safe
@@ -139,9 +139,9 @@ proof -
       also have "\<dots> \<le> measure M (space M) - measure M K"
         by (simp add: emeasure_eq_measure sU sb finite_measure_mono)
       also have "\<dots> \<le> e"
-        using K \<open>0 < e\<close> by (simp add: emeasure_eq_measure reorient: ennreal_plus)
+        using K \<open>0 < e\<close> by (simp add: emeasure_eq_measure flip: ennreal_plus)
       finally have "emeasure M A \<le> emeasure M (A \<inter> K) + ennreal e"
-        using \<open>0<e\<close> by (simp add: emeasure_eq_measure algebra_simps reorient: ennreal_plus)
+        using \<open>0<e\<close> by (simp add: emeasure_eq_measure algebra_simps flip: ennreal_plus)
       moreover have "A \<inter> K \<subseteq> A" "compact (A \<inter> K)" using \<open>closed A\<close> \<open>compact K\<close> by auto
       ultimately show "\<exists>K \<subseteq> A. compact K \<and> emeasure M A \<le> emeasure M K + ennreal e"
         by blast
@@ -301,7 +301,7 @@ proof -
       have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (D i)) + e/2" using n0 by simp
       also have "(\<Sum>i<n0. measure M (D i)) \<le> (\<Sum>i<n0. measure M (K i) + e/(2*Suc n0))"
         using K \<open>0 < e\<close>
-        by (auto intro: sum_mono simp: emeasure_eq_measure reorient: ennreal_plus)
+        by (auto intro: sum_mono simp: emeasure_eq_measure simp flip: ennreal_plus)
       also have "\<dots> = (\<Sum>i<n0. measure M (K i)) + (\<Sum>i<n0. e/(2*Suc n0))"
         by (simp add: sum.distrib)
       also have "\<dots> \<le> (\<Sum>i<n0. measure M (K i)) +  e / 2" using \<open>0 < e\<close>
@@ -310,7 +310,7 @@ proof -
       have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (K i)) + e / 2 + e / 2"
         by auto
       hence "M (\<Union>i. D i) < M ?K + e"
-        using \<open>0<e\<close> by (auto simp: mK emeasure_eq_measure sum_nonneg ennreal_less_iff reorient: ennreal_plus)
+        using \<open>0<e\<close> by (auto simp: mK emeasure_eq_measure sum_nonneg ennreal_less_iff simp flip: ennreal_plus)
       moreover
       have "?K \<subseteq> (\<Union>i. D i)" using K by auto
       moreover
@@ -334,7 +334,7 @@ proof -
           using \<open>0<e\<close>
           by (auto simp: emeasure_eq_measure sum_nonneg ennreal_less_iff ennreal_minus
                          finite_measure_mono sb
-                   reorient: ennreal_plus)
+                   simp flip: ennreal_plus)
       qed
       then obtain U where U: "\<And>i. D i \<subseteq> U i" "\<And>i. open (U i)"
         "\<And>i. e/(2 powr Suc i) > emeasure M (U i) - emeasure M (D i)"
@@ -367,7 +367,7 @@ proof -
       also have "\<dots> = ennreal e"
         by (subst suminf_ennreal_eq[OF zero_le_power power_half_series]) auto
       finally have "emeasure M ?U \<le> emeasure M (\<Union>i. D i) + ennreal e"
-        using \<open>0<e\<close> by (simp add: emeasure_eq_measure reorient: ennreal_plus)
+        using \<open>0<e\<close> by (simp add: emeasure_eq_measure flip: ennreal_plus)
       moreover
       have "(\<Union>i. D i) \<subseteq> ?U" using U by auto
       moreover

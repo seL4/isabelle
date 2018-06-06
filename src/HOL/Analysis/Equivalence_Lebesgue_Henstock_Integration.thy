@@ -244,7 +244,7 @@ proof (rule cld_measure.borel_measurable_cld)
       finally have "?\<mu> E - 2*e \<le> ?\<mu> (E - (E \<inter> \<Union>(snd`(p - s))))"
         using \<open>0 < e\<close> \<open>E \<in> sets ?L\<close> tagged_division_ofD(1)[OF p(1)]
         by (subst emeasure_Diff)
-           (auto simp: top_unique reorient: ennreal_plus
+           (auto simp: top_unique simp flip: ennreal_plus
                  intro!: sets.Int sets.finite_UN ennreal_mono_minus intro: p_in_L)
       also have "\<dots> \<le> ?\<mu> (\<Union>x\<in>p \<inter> s. snd x)"
       proof (safe intro!: emeasure_mono subsetI)
@@ -481,7 +481,7 @@ next
     by (simp add: nn_integral_add)
   with add obtain a b where "0 \<le> a" "0 \<le> b" "(\<integral>\<^sup>+ x. h x \<partial>lborel) = ennreal a" "(\<integral>\<^sup>+ x. g x \<partial>lborel) = ennreal b" "r = a + b"
     by (cases "\<integral>\<^sup>+ x. h x \<partial>lborel" "\<integral>\<^sup>+ x. g x \<partial>lborel" rule: ennreal2_cases)
-       (auto simp: add_top nn_integral_add top_add reorient: ennreal_plus)
+       (auto simp: add_top nn_integral_add top_add simp flip: ennreal_plus)
   with add show ?case
     by (auto intro!: has_integral_add)
 next
