@@ -933,7 +933,7 @@ lemma drop_bit_numeral_bit1 [simp]:
 
 lemma drop_bit_of_nat:
   "drop_bit n (of_nat m) = of_nat (drop_bit n m)"
-	by (simp add: drop_bit_eq_div Parity.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
+  by (simp add: drop_bit_eq_div Parity.drop_bit_eq_div of_nat_div [of m "2 ^ n"])
 
 end
 

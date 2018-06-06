@@ -4,10 +4,20 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2018 (August 2018)
+---------------------------------
 
 *** General ***
+
+* Session-qualified theory names are mandatory: it is no longer possible
+to refer to unqualified theories from the parent session.
+INCOMPATIBILITY for old developments that have not been updated to
+Isabelle2017 yet (using the "isabelle imports" tool).
+
+* Only the most fundamental theory names are global, usually the entry
+points to major logic sessions: Pure, Main, Complex_Main, HOLCF, IFOL,
+FOL, ZF, ZFC etc. INCOMPATIBILITY, need to use qualified names for
+formerly global "HOL-Probability.Probability" and "HOL-SPARK.SPARK".
 
 * Marginal comments need to be written exclusively in the new-style form
 "\<comment> \<open>text\<close>", old ASCII variants like "-- {* ... *}" are no longer
@@ -29,22 +39,8 @@ update_op" converts all files in the current directory (recursively).
 In case you want to exclude conversion of ML files (because the tool
 frequently also converts ML's "op" syntax), use option "-m".
 
-* The old 'def' command has been discontinued (legacy since
-Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
-object-logic equality or equivalence.
-
-* Session-qualified theory names are mandatory: it is no longer possible
-to refer to unqualified theories from the parent session.
-INCOMPATIBILITY for old developments that have not been updated to
-Isabelle2017 yet (using the "isabelle imports" tool).
-
 * Theory header 'abbrevs' specifications need to be separated by 'and'.
 INCOMPATIBILITY.
-
-* Only the most fundamental theory names are global, usually the entry
-points to major logic sessions: Pure, Main, Complex_Main, HOLCF, IFOL,
-FOL, ZF, ZFC etc. INCOMPATIBILITY, need to use qualified names for
-formerly global "HOL-Probability.Probability" and "HOL-SPARK.SPARK".
 
 * Command 'external_file' declares the formal dependency on the given
 file name, such that the Isabelle build process knows about it, but
@@ -64,12 +60,44 @@ specification of $ISABELLE_HOME_USER/ROOTS or command-line options like
 * The command 'display_drafts' has been discontinued. INCOMPATIBILITY,
 use action "isabelle.draft" (or "print") in Isabelle/jEdit instead.
 
-* Isabelle symbol "\<hyphen>" is rendered as explicit Unicode hyphen U+2010, to
-avoid unclear meaning of the old "soft hyphen" U+00AD. Rare
-INCOMPATIBILITY, e.g. copy-paste of historic Isabelle HTML output.
+* In HTML output, the Isabelle symbol "\<hyphen>" is rendered as explicit
+Unicode hyphen U+2010, to avoid unclear meaning of the old "soft hyphen"
+U+00AD. Rare INCOMPATIBILITY, e.g. copy-paste of historic Isabelle HTML
+output.
 
 
 *** Isabelle/jEdit Prover IDE ***
+
+* The command-line tool "isabelle jedit" provides more flexible options
+for session management:
+
+  - option -R builds an auxiliary logic image with all required theories
+    from other sessions, relative to an ancestor session given by option
+    -A (default: parent)
+
+  - option -S is like -R, with a focus on the selected session and its
+    descendants (this reduces startup time for big projects like AFP)
+
+  Examples:
+    isabelle jedit -R HOL-Number_Theory
+    isabelle jedit -R HOL-Number_Theory -A HOL
+    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
+    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
+
+* PIDE markup for session ROOT files: allows to complete session names,
+follow links to theories and document files etc.
+
+* Completion supports theory header imports, using theory base name.
+E.g. "Prob" may be completed to "HOL-Probability.Probability".
+
+* Named control symbols (without special Unicode rendering) are shown as
+bold-italic keyword. This is particularly useful for the short form of
+antiquotations with control symbol: \<^name>\<open>argument\<close>. The action
+"isabelle.antiquoted_cartouche" turns an antiquotation with 0 or 1
+arguments into this format.
+
+* Completion provides templates for named symbols with arguments,
+e.g. "\<comment> \<open>ARGUMENT\<close>" or "\<^emph>\<open>ARGUMENT\<close>".
 
 * Slightly more parallel checking, notably for high priority print
 functions (e.g. State output).
@@ -82,43 +110,14 @@ set-view-title (stored persistently in $JEDIT_SETTINGS/perspective.xml).
 supersede former "spell_checker_elements" to determine regions of text
 that are subject to spell-checking. Minor INCOMPATIBILITY.
 
-* PIDE markup for session ROOT files: allows to complete session names,
-follow links to theories and document files etc.
-
-* Completion supports theory header imports, using theory base name.
-E.g. "Prob" may be completed to "HOL-Probability.Probability".
-
-* The command-line tool "isabelle jedit" provides more flexible options
-for session management:
-  - option -R builds an auxiliary logic image with all required theories
-    from other sessions, relative to an ancestor session given by option
-    -A (default: parent)
-  - option -S is like -R, with a focus on the selected session and its
-    descendants (this reduces startup time for big projects like AFP)
-
-  Examples:
-    isabelle jedit -R HOL-Number_Theory
-    isabelle jedit -R HOL-Number_Theory -A HOL
-    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
-    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
-
-* Named control symbols (without special Unicode rendering) are shown as
-bold-italic keyword. This is particularly useful for the short form of
-antiquotations with control symbol: \<^name>\<open>argument\<close>. The action
-"isabelle.antiquoted_cartouche" turns an antiquotation with 0 or 1
-arguments into this format.
-
-* Completion provides templates for named symbols with arguments,
-e.g. "\<comment> \<open>ARGUMENT\<close>" or "\<^emph>\<open>ARGUMENT\<close>".
-
-* Bibtex database files (.bib) are semantically checked.
-
 * Action "isabelle.preview" is able to present more file formats,
 notably bibtex database files and ML files.
 
 * Action "isabelle.draft" is similar to "isabelle.preview", but shows a
 plain-text document draft. Both are available via the menu "Plugins /
 Isabelle".
+
+* Bibtex database files (.bib) are semantically checked.
 
 * When loading text files, the Isabelle symbols encoding UTF-8-Isabelle
 is only used if there is no conflict with existing Unicode sequences in
@@ -163,18 +162,22 @@ identifier syntax with underscore, prime, digits. This is relevant for
 antiquotations in control symbol notation, e.g. \<^const_name> becomes
 \isactrlconstUNDERSCOREname.
 
-* Document antiquotation @{cite} now checks the given Bibtex entries
-against the Bibtex database files -- only in batch-mode session builds.
+* Document preparation with skip_proofs option now preserves the content
+more accurately: only terminal proof steps ('by' etc.) are skipped.
 
 * Document antiquotation @{session name} checks and prints the given
 session name verbatim.
 
-* Document preparation with skip_proofs option now preserves the content
-more accurately: only terminal proof steps ('by' etc.) are skipped.
+* Document antiquotation @{cite} now checks the given Bibtex entries
+against the Bibtex database files -- only in batch-mode session builds.
 
 * Command-line tool "isabelle document" has been re-implemented in
 Isabelle/Scala, with simplified arguments and explicit errors from the
 latex and bibtex process. Minor INCOMPATIBILITY.
+
+* Session ROOT entry: empty 'document_files' means there is no document
+for this session. There is no need to specify options [document = false]
+anymore.
 
 
 *** Isar ***
@@ -185,13 +188,17 @@ improves modularity of proofs and scalability of locale interpretation.
 Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
 (e.g. use 'find_theorems' or 'try' to figure this out).
 
-* Rewrites clauses (keyword 'rewrites') were moved into the locale
-expression syntax, where they are part of locale instances.  In
-interpretation commands rewrites clauses now need to occur before
-'for' and 'defines'.  Minor INCOMPATIBILITY.
+* The old 'def' command has been discontinued (legacy since
+Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
+object-logic equality or equivalence.
 
-* For rewrites clauses, if activating a locale instance fails, fall
-back to reading the clause first.  This helps avoid qualification of
+* Rewrites clauses (keyword 'rewrites') were moved into the locale
+expression syntax, where they are part of locale instances. In
+interpretation commands rewrites clauses now need to occur before 'for'
+and 'defines'. Minor INCOMPATIBILITY.
+
+* For 'rewrites' clauses, if activating a locale instance fails, fall
+back to reading the clause first. This helps avoid qualification of
 locale instances where the qualifier's sole purpose is avoiding
 duplicate constant declarations.
 
@@ -204,54 +211,55 @@ dummy sort: it is effectively ignored in type-inference.
 
 *** HOL ***
 
-* Landau_Symbols from the AFP was moved to HOL-Library
-
 * Clarified relationship of characters, strings and code generation:
 
-  * Type "char" is now a proper datatype of 8-bit values.
+  - Type "char" is now a proper datatype of 8-bit values.
 
-  * Conversions "nat_of_char" and "char_of_nat" are gone; use more
-    general conversions "of_char" and "char_of" with suitable
-    type constraints instead.
+  - Conversions "nat_of_char" and "char_of_nat" are gone; use more
+    general conversions "of_char" and "char_of" with suitable type
+    constraints instead.
 
-  * The zero character is just written "CHR 0x00", not
-    "0" any longer.
+  - The zero character is just written "CHR 0x00", not "0" any longer.
 
-  * Type "String.literal" (for code generation) is now isomorphic
-    to lists of 7-bit (ASCII) values; concrete values can be written
-    as "STR ''...''" for sequences of printable characters and
-    "STR 0x..." for one single ASCII code point given
-    as hexadecimal numeral.
+  - Type "String.literal" (for code generation) is now isomorphic to
+    lists of 7-bit (ASCII) values; concrete values can be written as
+    "STR ''...''" for sequences of printable characters and "STR 0x..."
+    for one single ASCII code point given as hexadecimal numeral.
 
-  * Type "String.literal" supports concatenation "... + ..."
-    for all standard target languages.
+  - Type "String.literal" supports concatenation "... + ..." for all
+    standard target languages.
 
-  * Theory Library/Code_Char is gone; study the explanations concerning
-    "String.literal" in the tutorial on code generation to get an idea
-    how target-language string literals can be converted to HOL string
-    values and vice versa.
+  - Theory HOL-Library.Code_Char is gone; study the explanations
+    concerning "String.literal" in the tutorial on code generation to
+    get an idea how target-language string literals can be converted to
+    HOL string values and vice versa.
 
-  * Imperative-HOL: operation "raise" directly takes a value of type
-    "String.literal" as argument, not type "string".
+  - Session Imperative-HOL: operation "raise" directly takes a value of
+    type "String.literal" as argument, not type "string".
 
 INCOMPATIBILITY.
 
-* Abstract bit operations as part of Main: push_bit, take_bit,
-drop_bit.
+* Code generation: Code generation takes an explicit option
+"case_insensitive" to accomodate case-insensitive file systems.
 
-* New, more general, axiomatization of complete_distrib_lattice.
-The former axioms:
-"sup x (Inf X) = Inf (sup x ` X)" and "inf x (Sup X) = Sup (inf x ` X)"
-are replaced by
-"Inf (Sup ` A) <= Sup (Inf ` {f ` A | f . (! Y \<in> A . f Y \<in> Y)})"
-The instantiations of sets and functions as complete_distrib_lattice
-are moved to Hilbert_Choice.thy because their proofs need the Hilbert
-choice operator. The dual of this property is also proved in
-Hilbert_Choice.thy.
+* Abstract bit operations as part of Main: push_bit, take_bit, drop_bit.
+
+* New, more general, axiomatization of complete_distrib_lattice. The
+former axioms:
+
+  "sup x (Inf X) = Inf (sup x ` X)" and "inf x (Sup X) = Sup (inf x ` X)"
+
+are replaced by:
+
+  "Inf (Sup ` A) <= Sup (Inf ` {f ` A | f . (! Y \<in> A . f Y \<in> Y)})"
+
+The instantiations of sets and functions as complete_distrib_lattice are
+moved to Hilbert_Choice.thy because their proofs need the Hilbert choice
+operator. The dual of this property is also proved in theory
+HOL.Hilbert_Choice.
 
 * New syntax for the minimum/maximum of a function over a finite set:
-MIN x\<in>A. B  and even  MIN x. B (only useful for finite types), also
-MAX.
+MIN x\<in>A. B and even MIN x. B (only useful for finite types), also MAX.
 
 * Clarifed theorem names:
 
@@ -260,83 +268,59 @@ MAX.
 
 Minor INCOMPATIBILITY.
 
-* A new command parametric_constant for proving parametricity of
-non-recursive definitions. For constants that are not fully parametric
-the command will infer conditions on relations (e.g., bi_unique,
-bi_total, or type class conditions such as "respects 0") sufficient for
-parametricity. See ~~/src/HOL/ex/Conditional_Parametricity_Examples for
-some examples.
-
-* A new preprocessor for the code generator to generate code for algebraic
-  types with lazy evaluation semantics even in call-by-value target languages.
-  See theory HOL-Library.Code_Lazy for the implementation and
-  HOL-Codegenerator_Test.Code_Lazy_Test for examples.
-
 * SMT module:
+
   - The 'smt_oracle' option is now necessary when using the 'smt' method
     with a solver other than Z3. INCOMPATIBILITY.
+
   - The encoding to first-order logic is now more complete in the
     presence of higher-order quantifiers. An 'smt_explicit_application'
     option has been added to control this. INCOMPATIBILITY.
-
-* Datatypes:
-  - The legacy command 'old_datatype', provided by
-    '~~/src/HOL/Library/Old_Datatype.thy', has been removed. INCOMPATIBILITY.
-
-* Theory HOL-Computational_Algebra.Polynomial_Factorial does not provide
-instances of rat, real, complex as factorial rings etc. Import
-HOL-Computational_Algebra.Field_as_Ring explicitly in case of need.
-INCOMPATIBILITY.
 
 * Facts sum.commute(_restrict) and prod.commute(_restrict) renamed to
 sum.swap(_restrict) and prod.swap(_restrict), to avoid name clashes on
 interpretation of abstract locales. INCOMPATIBILITY.
 
+* Predicate coprime is now a real definition, not a mere abbreviation.
+INCOMPATIBILITY.
+
 * Predicate pairwise_coprime abolished, use "pairwise coprime" instead.
 INCOMPATIBILITY.
 
 * The relator rel_filter on filters has been strengthened to its
-canonical categorical definition with better properties. INCOMPATIBILITY.
+canonical categorical definition with better properties.
+INCOMPATIBILITY.
 
 * Generalized linear algebra involving linear, span, dependent, dim
 from type class real_vector to locales module and vector_space.
 Renamed:
-  - span_inc ~> span_superset
-  - span_superset ~> span_base
-  - span_eq ~> span_eq_iff
+
+  span_inc ~> span_superset
+  span_superset ~> span_base
+  span_eq ~> span_eq_iff
+
 INCOMPATIBILITY.
-
-* HOL-Algebra: renamed (^) to [^]
-
-* Session HOL-Analysis: infinite products, Moebius functions, the Riemann mapping
-theorem, the Vitali covering theorem, change-of-variables results for
-integration and measures.
 
 * Class linordered_semiring_1 covers zero_less_one also, ruling out
 pathologic instances. Minor INCOMPATIBILITY.
 
-* Theory List: functions "sorted_wrt" and "sorted" now compare every
-  element in a list to all following elements, not just the next one.
+* Theory HOL.List: functions "sorted_wrt" and "sorted" now compare every
+element in a list to all following elements, not just the next one.
 
-* Theory List: Synatx:
-  - filter-syntax "[x <- xs. P]" is no longer output syntax
-    but only input syntax.
-  - list comprehension syntax now supports tuple patterns in "pat <- xs".
+* Theory HOL.List syntax:
+
+  - filter-syntax "[x <- xs. P]" is no longer output syntax, but only
+    input syntax
+
+  - list comprehension syntax now supports tuple patterns in "pat <- xs"
 
 * Removed nat-int transfer machinery. Rare INCOMPATIBILITY.
-
-* Predicate coprime is now a real definition, not a mere
-abbreviation. INCOMPATIBILITY.
-
-* Code generation: Code generation takes an explicit option
-"case_insensitive" to accomodate case-insensitive file systems.
 
 * Fact mod_mult_self4 (on nat) renamed to Suc_mod_mult_self3, to avoid
 clash with fact mod_mult_self4 (on more generic semirings).
 INCOMPATIBILITY.
 
 * Eliminated some theorem aliasses:
-
   even_times_iff ~> even_mult_iff
   mod_2_not_eq_zero_eq_one_nat ~> not_mod_2_eq_0_eq_1
   even_of_nat ~> even_int_iff
@@ -344,18 +328,48 @@ INCOMPATIBILITY.
 INCOMPATIBILITY.
 
 * Eliminated some theorem duplicate variations:
-  * dvd_eq_mod_eq_0_numeral can be replaced by dvd_eq_mod_eq_0.
-  * mod_Suc_eq_Suc_mod can be replaced by mod_Suc.
-  * mod_Suc_eq_Suc_mod [symmetrict] can be replaced by mod_simps.
-  * mod_eq_0_iff can be replaced by mod_eq_0_iff_dvd and dvd_def.
-  * The witness of mod_eqD can be given directly as "_ div _".
+
+  - dvd_eq_mod_eq_0_numeral can be replaced by dvd_eq_mod_eq_0
+  - mod_Suc_eq_Suc_mod can be replaced by mod_Suc
+  - mod_Suc_eq_Suc_mod [symmetrict] can be replaced by mod_simps
+  - mod_eq_0_iff can be replaced by mod_eq_0_iff_dvd and dvd_def
+  - the witness of mod_eqD can be given directly as "_ div _"
 
 INCOMPATIBILITY.
 
 * Classical setup: Assumption "m mod d = 0" (for m d :: nat) is no
-longer aggresively destroyed to "?q. m = d * q".  INCOMPATIBILITY,
-adding "elim!: dvd" to classical proof methods in most situations
-restores broken proofs.
+longer aggresively destroyed to "\<exists>q. m = d * q". INCOMPATIBILITY, adding
+"elim!: dvd" to classical proof methods in most situations restores
+broken proofs.
+
+* Theory HOL-Library.Conditional_Parametricity provides command
+'parametric_constant' for proving parametricity of non-recursive
+definitions. For constants that are not fully parametric the command
+will infer conditions on relations (e.g., bi_unique, bi_total, or type
+class conditions such as "respects 0") sufficient for parametricity. See
+theory HOL-ex.Conditional_Parametricity_Examples for some examples.
+
+* Theory HOL-Library.Code_Lazy provides a new preprocessor for the code
+generator to generate code for algebraic types with lazy evaluation
+semantics even in call-by-value target languages. See theory
+HOL-Codegenerator_Test.Code_Lazy_Test for some examples.
+
+* Theory HOL-Library.Landau_Symbols has been moved here from AFP.
+
+* Theory HOL-Library.Old_Datatype no longer provides the legacy command
+'old_datatype'. INCOMPATIBILITY.
+
+* Theory HOL-Computational_Algebra.Polynomial_Factorial does not provide
+instances of rat, real, complex as factorial rings etc. Import
+HOL-Computational_Algebra.Field_as_Ring explicitly in case of need.
+INCOMPATIBILITY.
+
+* Session HOL-Algebra: renamed (^) to [^] to avoid conflict with new
+infix/prefix notation.
+
+* Session HOL-Analysis: infinite products, Moebius functions, the
+Riemann mapping theorem, the Vitali covering theorem,
+change-of-variables results for integration and measures.
 
 
 *** ML ***
@@ -371,46 +385,11 @@ without a formal theory context, e.g. in command-line tools like
 
 *** System ***
 
-* Settings ISABELLE_PATH and ISABELLE_OUTPUT have been discontinued:
-heap images and session databases are always stored in
-$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER (command-line default) or
-$ISABELLE_HOME/heaps/$ML_IDENTIFIER (main Isabelle application or
-"isabelle jedit -s" or "isabelle build -s").
-
-* The command-line tool "export" and 'export_files' in session ROOT
-entries retrieve theory exports from the session build database.
-
-* The command-line tools "isabelle server" and "isabelle client" provide
-access to the Isabelle Server: it supports responsive session management
-and concurrent use of theories, based on Isabelle/PIDE infrastructure.
-See also the "system" manual.
-
-* The command-line tool "dump" dumps information from the cumulative
-PIDE session database: many sessions may be loaded into a given logic
-image, results from all loaded theories are written to the output
-directory.
-
-* The command-line tool "isabelle update_comments" normalizes formal
-comments in outer syntax as follows: \<comment> \<open>text\<close> (whith a single space to
-approximate the appearance in document output). This is more specific
-than former "isabelle update_cartouches -c": the latter tool option has
-been discontinued.
-
-* Session ROOT entry: empty 'document_files' means there is no document
-for this session. There is no need to specify options [document = false]
-anymore.
-
-* The command-line tool "isabelle mkroot" now always produces a document
-outline: its options have been adapted accordingly. INCOMPATIBILITY.
-
-* The command-line tool "isabelle mkroot -I" initializes a Mercurial
-repository for the generated session files.
-
-* Linux and Windows/Cygwin is for x86_64 only. Old 32bit platform
-support has been discontinued.
-
 * Mac OS X 10.10 Yosemite is now the baseline version; Mavericks is no
 longer supported.
+
+* Linux and Windows/Cygwin is for x86_64 only, old 32bit platform
+support has been discontinued.
 
 * Java runtime is for x86_64 only. Corresponding Isabelle settings have
 been renamed to ISABELLE_TOOL_JAVA_OPTIONS and JEDIT_JAVA_OPTIONS,
@@ -439,17 +418,46 @@ quotes):
 corresponding environment values into account, when determining the
 up-to-date status of a session.
 
+* The command-line tool "dump" dumps information from the cumulative
+PIDE session database: many sessions may be loaded into a given logic
+image, results from all loaded theories are written to the output
+directory.
+
 * Command-line tool "isabelle imports -I" also reports actual session
 imports. This helps to minimize the session dependency graph.
 
-* Update to current Poly/ML 5.7.1 with slightly improved performance and
-PIDE markup for identifier bindings.
+* The command-line tool "export" and 'export_files' in session ROOT
+entries retrieve theory exports from the session build database.
+
+* The command-line tools "isabelle server" and "isabelle client" provide
+access to the Isabelle Server: it supports responsive session management
+and concurrent use of theories, based on Isabelle/PIDE infrastructure.
+See also the "system" manual.
+
+* The command-line tool "isabelle update_comments" normalizes formal
+comments in outer syntax as follows: \<comment> \<open>text\<close> (whith a single space to
+approximate the appearance in document output). This is more specific
+than former "isabelle update_cartouches -c": the latter tool option has
+been discontinued.
+
+* The command-line tool "isabelle mkroot" now always produces a document
+outline: its options have been adapted accordingly. INCOMPATIBILITY.
+
+* The command-line tool "isabelle mkroot -I" initializes a Mercurial
+repository for the generated session files.
+
+* Settings ISABELLE_PATH and ISABELLE_OUTPUT have been discontinued:
+heap images and session databases are always stored in
+$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER (command-line default) or
+$ISABELLE_HOME/heaps/$ML_IDENTIFIER (main Isabelle application or
+"isabelle jedit -s" or "isabelle build -s").
 
 * ISABELLE_LATEX and ISABELLE_PDFLATEX now include platform-specific
 options for improved error reporting. Potential INCOMPATIBILITY with
 unusual LaTeX installations, may have to adapt these settings.
 
-* The bundled Poly/ML 5.7.1 now uses The GNU Multiple Precision
+* Update to Poly/ML 5.7.1 with slightly improved performance and PIDE
+markup for identifier bindings. It now uses The GNU Multiple Precision
 Arithmetic Library (libgmp) on all platforms, notably Mac OS X with
 32/64 bit.
 

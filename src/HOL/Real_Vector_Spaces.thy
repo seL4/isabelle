@@ -70,7 +70,7 @@ global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> '
   apply (force simp add: linear_def real_scaleR_def[abs_def])
   done
 
-hide_const (open)\<comment>\<open>locale constants\<close>
+hide_const (open)\<comment> \<open>locale constants\<close>
   real_vector.dependent
   real_vector.independent
   real_vector.representation
@@ -89,7 +89,7 @@ global_interpretation real_vector?: vector_space_pair "scaleR::_\<Rightarrow>_\<
   unfolding linear_def real_scaleR_def
   by (rule refl)+
 
-hide_const (open)\<comment>\<open>locale constants\<close>
+hide_const (open)\<comment> \<open>locale constants\<close>
   real_vector.construct
 
 lemma linear_compose: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (g o f)"
@@ -168,7 +168,7 @@ lemma inverse_scaleR_distrib: "inverse (scaleR a x) = scaleR (inverse a) (invers
   apply (erule (1) nonzero_inverse_scaleR_distrib)
   done
 
-lemmas sum_constant_scaleR = real_vector.sum_constant_scale\<comment>\<open>legacy name\<close>
+lemmas sum_constant_scaleR = real_vector.sum_constant_scale\<comment> \<open>legacy name\<close>
 
 named_theorems vector_add_divide_simps "to simplify sums of scaled vectors"
 

@@ -3,11 +3,11 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2018
+-----------------------------
 
 * May 2018: Manuel Eberl
-  Landau symbols and asymptotic equivalence (moved from the AFP)
+  Landau symbols and asymptotic equivalence (moved from the AFP).
 
 * May 2018: Jose Divasón (Universidad de la Rioja),
   Jesús Aransay (Universidad de la Rioja), Johannes Hölzl (VU Amsterdam),
@@ -22,9 +22,8 @@ Contributions to this Isabelle version
   Code generation with lazy evaluation semantics.
 
 * March 2018: Florian Haftmann
-  Abstract bit operations push_bit, take_bit, drop_bit, alongside
-  with an algebraic foundation for bit strings and word types in
-  HOL-ex.
+  Abstract bit operations push_bit, take_bit, drop_bit, alongside with an
+  algebraic foundation for bit strings and word types in HOL-ex.
 
 * March 2018: Viorel Preoteasa
   Generalisation of complete_distrib_lattice
@@ -36,7 +35,8 @@ Contributions to this Isabelle version
   A new conditional parametricity prover.
 
 * October 2017: Alexander Maletzky
-  Derivation of axiom "iff" in HOL.thy from the other axioms.
+  Derivation of axiom "iff" in theory HOL.HOL from the other axioms.
+
 
 Contributions to Isabelle2017
 -----------------------------

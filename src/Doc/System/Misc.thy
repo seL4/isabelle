@@ -220,7 +220,7 @@ text \<open>
 
   \<^medskip>
   The default is to output the full version string of the Isabelle
-  distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2017: October 2017\<close>.
+  distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2018: August 2018\<close>.
 
   The \<^verbatim>\<open>-i\<close> option produces a short identification derived from the Mercurial
   id of the @{setting ISABELLE_HOME} directory.

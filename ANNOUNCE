@@ -1,32 +1,15 @@
-Subject: Announcing Isabelle2017
+Subject: Announcing Isabelle2018
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2017 is now available.
+Isabelle2018 is now available.
 
-This version introduces many changes over Isabelle2016-1: see the NEWS
+This version introduces many changes over Isabelle2017: see the NEWS
 file for further details. Some notable points:
 
-* Experimental support for Visual Studio Code as alternative PIDE front-end.
-
-* Improved Isabelle/jEdit Prover IDE: management of session sources
-independently of editor buffers, removal of unused theories, explicit
-indication of theory status, more careful auto-indentation.
-
-* Session-qualified theory imports.
-
-* Code generator improvements: support for statically embedded computations.
-
-* Numerous HOL library improvements.
-
-* More material in HOL-Algebra, HOL-Computational_Algebra and HOL-Analysis
-(ported from HOL-Light).
-
-* Improved Nunchaku model finder, now in main HOL.
-
-* SQL database support in Isabelle/Scala.
+* FIXME.
 
 
-You may get Isabelle2017 from the following mirror sites:
+You may get Isabelle2018 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     http://isabelle.in.tum.de
