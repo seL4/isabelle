@@ -45,7 +45,7 @@ lemma distinct_update:
   using assms by (simp add: update_keys)
 
 lemma update_filter:
-  "a \<noteq> k \<Longrightarrow> update k v (filter (\<lambda>q. fst q \<noteq> a) ps) = filter (\<lambda>q. fst q \<noteq> a) (update k v ps)"
+  "a \<noteq> k \<Longrightarrow> update k v [q\<leftarrow>ps. fst q \<noteq> a] = [q\<leftarrow>update k v ps. fst q \<noteq> a]"
   by (induct ps) auto
 
 lemma update_triv: "map_of al k = Some v \<Longrightarrow> update k v al = al"
@@ -361,12 +361,12 @@ lemma restr_delete [simp]:
 proof -
   have "y \<noteq> x \<longleftrightarrow> x \<noteq> y" for y
     by auto
-  then show "filter (\<lambda>p. fst p \<in> D \<and> x \<noteq> fst p) al = filter (\<lambda>p. fst p \<in> D \<and> fst p \<noteq> x) al"
+  then show "[p \<leftarrow> al. fst p \<in> D \<and> x \<noteq> fst p] = [p \<leftarrow> al. fst p \<in> D \<and> fst p \<noteq> x]"
     by simp
   assume "x \<notin> D"
   then have "y \<in> D \<longleftrightarrow> y \<in> D \<and> x \<noteq> y" for y
     by auto
-  then show "filter (\<lambda>p. fst p \<in> D \<and> x \<noteq> fst p) al = filter (\<lambda>p. fst p \<in> D) al"
+  then show "[p \<leftarrow> al . fst p \<in> D \<and> x \<noteq> fst p] = [p \<leftarrow> al . fst p \<in> D]"
     by simp
 qed
 
@@ -492,7 +492,7 @@ lemma map_ran_conv: "map_of (map_ran f al) k = map_option (f k) (map_of al k)"
 lemma distinct_map_ran: "distinct (map fst al) \<Longrightarrow> distinct (map fst (map_ran f al))"
   by (simp add: map_ran_def split_def comp_def)
 
-lemma map_ran_filter: "map_ran f (filter (\<lambda>p. fst p \<noteq> a) ps) = filter (\<lambda>p. fst p \<noteq> a) (map_ran f ps)"
+lemma map_ran_filter: "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<leftarrow>map_ran f ps. fst p \<noteq> a]"
   by (simp add: map_ran_def filter_map split_def comp_def)
 
 lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"

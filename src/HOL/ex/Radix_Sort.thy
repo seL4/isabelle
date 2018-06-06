@@ -44,7 +44,7 @@ by(simp add: cols_def)
 lemma sorted_from_Suc2:
   "\<lbrakk> cols xss n; i < n;
     sorted_col i xss;
-    \<And>x. sorted_from (i+1) (filter (\<lambda>ys. ys!i = x) xss) \<rbrakk>
+    \<And>x. sorted_from (i+1) [ys \<leftarrow> xss. ys!i = x] \<rbrakk>
   \<Longrightarrow> sorted_from i xss"
 proof(induction xss rule: induct_list012)
   case 1 show ?case by simp
@@ -68,7 +68,7 @@ next
   proof(rule "3.IH"[OF _ "3.prems"(2)])
     show "cols (xs2 # xss) n" using "3.prems"(1) by(simp add: cols_def)
     show "sorted_col i (xs2 # xss)" using "3.prems"(3) by simp
-    show "\<And>x. sorted_from (i+1) (filter (\<lambda>ys. ys ! i = x) (xs2 # xss))"
+    show "\<And>x. sorted_from (i+1) [ys\<leftarrow>xs2 # xss . ys ! i = x]"
       using "3.prems"(4)
         sorted_antimono_suffix[OF map_mono_suffix[OF filter_mono_suffix[OF suffix_ConsI[OF suffix_order.order.refl]]]]
       by fastforce
@@ -81,7 +81,7 @@ assumes "cols xss n" and "i < n" and "sorted_from (i+1) xss"
 shows "sorted_from i (sort_col i xss)"
 proof (rule sorted_from_Suc2[OF cols_sort1[OF assms(1)] assms(2)])
   show "sorted_col i (sort_col i xss)" by(simp add: sorted)
-  fix x show "sorted_from (i+1) (filter (\<lambda>ys. ys ! i = x) (sort_col i xss))"
+  fix x show "sorted_from (i+1) [ys \<leftarrow> sort_col i xss . ys ! i = x]"
   proof -
     from assms(3)
     have "sorted_from (i+1) (filter (\<lambda>ys. ys!i = x) xss)"

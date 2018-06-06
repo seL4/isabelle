@@ -71,7 +71,7 @@ quickcheck[tester = smart_exhaustive, iterations=1]
 oops
 
 theorem S\<^sub>1_sound:
-"S\<^sub>1p w \<Longrightarrow> length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w)"
+"S\<^sub>1p w \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester=smart_exhaustive, size=15]
 oops
 
@@ -113,7 +113,7 @@ quickcheck[generator=predicate_compile, size = 10, iterations = 1]
 oops
 *)
 theorem S\<^sub>2_sound:
-"S\<^sub>2p w \<longrightarrow> length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w)"
+"S\<^sub>2p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester=smart_exhaustive, size=5, iterations=10]
 oops
 
@@ -133,16 +133,16 @@ values 10 "{x. S\<^sub>3 x}"
 
 
 lemma S\<^sub>3_sound:
-"S\<^sub>3p w \<longrightarrow> length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w)"
+"S\<^sub>3p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester=smart_exhaustive, size=10, iterations=10]
 oops
 
-lemma "\<not> (length w > 2) \<or> \<not> (length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w))"
+lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
 quickcheck[size=10, tester = smart_exhaustive]
 oops
 
 theorem S\<^sub>3_complete:
-"length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w) \<longrightarrow> S\<^sub>3p w"
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. b = x] \<longrightarrow> S\<^sub>3p w"
 (*quickcheck[generator=SML]*)
 quickcheck[tester=smart_exhaustive, size=10, iterations=100]
 oops
@@ -158,12 +158,12 @@ inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
 | "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
 theorem S\<^sub>4_sound:
-"S\<^sub>4p w \<longrightarrow> length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w)"
+"S\<^sub>4p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester = smart_exhaustive, size=5, iterations=1]
 oops
 
 theorem S\<^sub>4_complete:
-"length (filter (\<lambda>x. x=a) w) = length (filter (\<lambda>x. x=b) w) \<longrightarrow> S\<^sub>4p w"
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> S\<^sub>4p w"
 quickcheck[tester = smart_exhaustive, size=5, iterations=1]
 oops
 
@@ -301,7 +301,7 @@ text \<open>
 
 subsection "Compressed matrix"
 
-definition "sparsify xs = filter (\<lambda>i. snd i \<noteq> 0) (zip [0..<length xs] xs)"
+definition "sparsify xs = [i \<leftarrow> zip [0..<length xs] xs. snd i \<noteq> 0]"
 (*
 lemma sparsify_length: "(i, x) \<in> set (sparsify xs) \<Longrightarrow> i < length xs"
   by (auto simp: sparsify_def set_zip)
