@@ -5,7 +5,7 @@
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
 plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
-plugin.isabelle.jedit.Plugin.version=9.0
+plugin.isabelle.jedit.Plugin.version=10.0
 plugin.isabelle.jedit.Plugin.description=Isabelle Prover IDE
 
 #system parameters
@@ -14,7 +14,7 @@ plugin.isabelle.jedit.Plugin.usePluginHome=false
 
 #dependencies
 plugin.isabelle.jedit.Plugin.depend.0=jdk 1.8
-plugin.isabelle.jedit.Plugin.depend.1=jedit 05.04.00.00
+plugin.isabelle.jedit.Plugin.depend.1=jedit 05.05.00.00
 plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
 plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
 plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
