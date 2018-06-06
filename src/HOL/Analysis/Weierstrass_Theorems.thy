@@ -104,7 +104,7 @@ proof -
         by (simp add: algebra_simps power2_eq_square)
       have "(\<Sum>k\<le>n. (k - n * x)\<^sup>2 * Bernstein n k x) = n * x * (1 - x)"
         apply (simp add: * sum.distrib)
-        apply (simp add: sum_distrib_left [symmetric] mult.assoc)
+        apply (simp flip: sum_distrib_left add: mult.assoc)
         apply (simp add: algebra_simps power2_eq_square)
         done
       then have "(\<Sum>k\<le>n. (k - n * x)\<^sup>2 * Bernstein n k x)/n^2 = x * (1 - x) / n"
@@ -383,7 +383,7 @@ proof -
       done
     also have "... = (1/(k * (p t))^n) * (1 - p t ^ (2*n)) ^ (k^n)"
       using pt_pos [OF t] \<open>k>0\<close>
-      by (simp add: algebra_simps power_mult power2_eq_square power_mult_distrib [symmetric])
+      by (simp add: algebra_simps power_mult power2_eq_square flip: power_mult_distrib)
     also have "... \<le> (1/(k * (p t))^n) * 1"
       apply (rule mult_left_mono [OF power_le_one])
       using pt_pos \<open>k>0\<close> p01 power_le_one t apply auto
@@ -550,7 +550,7 @@ lemma (in function_ring_on) two:
     shows "\<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>x \<in> A. f x < e) \<and> (\<forall>x \<in> B. f x > 1 - e)"
 proof (cases "A \<noteq> {} \<and> B \<noteq> {}")
   case True then show ?thesis
-    apply (simp add: ex_in_conv [symmetric])
+    apply (simp flip: ex_in_conv)
     using assms
     apply safe
     apply (force simp add: intro!: two_special)
@@ -657,7 +657,7 @@ proof -
       using xf01 t by force
     have "g t = e * (\<Sum>i<j. xf i t) + e * (\<Sum>i=j..n. xf i t)"
       using j1 jn e
-      apply (simp add: g_def distrib_left [symmetric])
+      apply (simp add: g_def flip: distrib_left)
       apply (subst sum.union_disjoint [symmetric])
       apply (auto simp: ivl_disj_un)
       done
@@ -1147,7 +1147,7 @@ proof -
   show ?thesis
     apply (subst euclidean_representation_sum_fun [of f, symmetric])
     apply (rule_tac x="\<lambda>x. \<Sum>b\<in>Basis. pf b x *\<^sub>R b" in exI)
-    apply (auto simp: sum_subtractf [symmetric])
+    apply (auto simp flip: sum_subtractf)
     done
 qed
 

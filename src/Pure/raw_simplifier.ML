@@ -90,7 +90,7 @@ sig
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context
-  val reorient_simp: thm -> Proof.context -> Proof.context
+  val flip_simp: thm -> Proof.context -> Proof.context
   val init_simpset: thm list -> Proof.context -> Proof.context
   val add_eqcong: thm -> Proof.context -> Proof.context
   val del_eqcong: thm -> Proof.context -> Proof.context
@@ -463,11 +463,14 @@ fun add_prems ths =
 
 (* maintain simp rules *)
 
-fun del_rrule (rrule as {thm, elhs, ...}) ctxt =
+fun del_rrule loud (rrule as {thm, elhs, ...}) ctxt =
   ctxt |> map_simpset1 (fn (rules, prems, depth) =>
     (Net.delete_term eq_rrule (Thm.term_of elhs, rrule) rules, prems, depth))
   handle Net.DELETE =>
-    (cond_warning ctxt (fn () => print_thm ctxt "Rewrite rule not in simpset:" ("", thm)); ctxt);
+    (if not loud then ()
+     else cond_warning ctxt
+            (fn () => print_thm ctxt "Rewrite rule not in simpset:" ("", thm));
+     ctxt);
 
 fun insert_rrule (rrule as {thm, name, ...}) ctxt =
  (cond_tracing ctxt (fn () => print_thm ctxt "Adding rewrite rule" (name, thm));
@@ -597,11 +600,14 @@ fun addsymsimps ctxt thms =
   comb_simps ctxt insert_rrule (mk_rrule ctxt) true thms;
 
 fun ctxt delsimps thms =
-  comb_simps ctxt del_rrule (map mk_rrule2 o mk_rrule ctxt) false thms;
+  comb_simps ctxt (del_rrule true) (map mk_rrule2 o mk_rrule ctxt) false thms;
+
+fun delsimps_quiet ctxt thms =
+  comb_simps ctxt (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms;
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
-fun reorient_simp thm ctxt = addsymsimps (ctxt delsimps [thm]) [thm];
+fun flip_simp thm ctxt = addsymsimps (delsimps_quiet ctxt [thm]) [thm];
 
 end;
 

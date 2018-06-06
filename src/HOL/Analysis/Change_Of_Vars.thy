@@ -1280,7 +1280,7 @@ proof -
       proof (rule add_mono)
         have "(\<Sum>k\<le>n. real k * e * ?\<mu> (T k)) = (\<Sum>k\<le>n. integral (T k) (\<lambda>x. k * e))"
           by (simp add: lmeasure_integral [OF meas_t]
-                   reorient: integral_mult_right integral_mult_left)
+                   flip: integral_mult_right integral_mult_left)
         also have "\<dots> \<le> (\<Sum>k\<le>n. integral (T k) (\<lambda>x.  (abs (det (matrix (f' x))))))"
         proof (rule sum_mono)
           fix k
