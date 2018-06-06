@@ -1,4 +1,4 @@
-/*  Title:      Pure/cache.scala
+/*  Title:      Pure/General/cache.scala
     Author:     Makarius
 
 cache for partial sharing (weak table).
