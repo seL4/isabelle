@@ -17,7 +17,7 @@ begin
 text \<open>
   This theory and the CodeLazy tool described in @{cite "LochbihlerStoop2018"}.
 
-  It hooks into Isabelle’s code generator such that the generated code evaluates a user-specified
+  It hooks into Isabelle's code generator such that the generated code evaluates a user-specified
   set of type constructors lazily, even in target languages with eager evaluation.
   The lazy type must be algebraic, i.e., values must be built from constructors and a
   corresponding case operator decomposes them. Every datatype and codatatype is algebraic
