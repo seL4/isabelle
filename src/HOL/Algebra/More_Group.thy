@@ -81,31 +81,16 @@ lemma (in group) surj_const_mult: "a \<in> carrier G \<Longrightarrow> (\<lambda
   done
 
 lemma (in group) l_cancel_one [simp]: "x \<in> carrier G \<Longrightarrow> a \<in> carrier G \<Longrightarrow> x \<otimes> a = x \<longleftrightarrow> a = one G"
-  apply auto
-  apply (subst l_cancel [symmetric])
-     prefer 4
-     apply (erule ssubst)
-     apply auto
-  done
+  by (metis Units_eq Units_l_cancel monoid.r_one monoid_axioms one_closed)
 
 lemma (in group) r_cancel_one [simp]: "x \<in> carrier G \<Longrightarrow> a \<in> carrier G \<Longrightarrow> a \<otimes> x = x \<longleftrightarrow> a = one G"
-  apply auto
-  apply (subst r_cancel [symmetric])
-     prefer 4
-     apply (erule ssubst)
-     apply auto
-  done
+  by (metis monoid.l_one monoid_axioms one_closed right_cancel)
 
-(* Is there a better way to do this? *)
 lemma (in group) l_cancel_one' [simp]: "x \<in> carrier G \<Longrightarrow> a \<in> carrier G \<Longrightarrow> x = x \<otimes> a \<longleftrightarrow> a = one G"
-  apply (subst eq_commute)
-  apply simp
-  done
+  using l_cancel_one by fastforce
 
 lemma (in group) r_cancel_one' [simp]: "x \<in> carrier G \<Longrightarrow> a \<in> carrier G \<Longrightarrow> x = a \<otimes> x \<longleftrightarrow> a = one G"
-  apply (subst eq_commute)
-  apply simp
-  done
+  using r_cancel_one by fastforce
 
 (* This should be generalized to arbitrary groups, not just commutative
    ones, using Lagrange's theorem. *)

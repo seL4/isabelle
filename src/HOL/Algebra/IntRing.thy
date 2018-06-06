@@ -4,7 +4,7 @@
 *)
 
 theory IntRing
-imports "HOL-Computational_Algebra.Primes" QuotRing Lattice
+imports "HOL-Computational_Algebra.Primes" QuotRing Lattice 
 begin
 
 section \<open>The Ring of Integers\<close>
@@ -229,7 +229,7 @@ lemma multiples_principalideal: "principalideal {x * a | x. True } \<Z>"
   by (metis UNIV_I int.cgenideal_eq_genideal int.cgenideal_is_principalideal int_Idl)
 
 lemma prime_primeideal:
-  assumes prime: "prime p"
+  assumes prime: "Factorial_Ring.prime p"
   shows "primeideal (Idl\<^bsub>\<Z>\<^esub> {p}) \<Z>"
 apply (rule primeidealI)
    apply (rule int.genideal_ideal, simp)
@@ -404,7 +404,7 @@ lemma ZFact_one: "carrier (ZFact 1) = {UNIV}"
   done
 
 lemma ZFact_prime_is_domain:
-  assumes pprime: "prime p"
+  assumes pprime: "Factorial_Ring.prime p"
   shows "domain (ZFact p)"
   apply (unfold ZFact_def)
   apply (rule primeideal.quotient_is_domain)

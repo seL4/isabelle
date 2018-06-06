@@ -184,8 +184,6 @@ lemma minus_closed [intro, simp]:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<ominus> y \<in> carrier G"
   by (simp add: a_minus_def)
 
-lemmas a_l_cancel = add.l_cancel
-lemmas a_r_cancel = add.r_cancel
 lemmas l_neg = add.l_inv [simp del]
 lemmas r_neg = add.r_inv [simp del]
 lemmas minus_zero = add.inv_one

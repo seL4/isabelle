@@ -324,39 +324,19 @@ lemma (in group) r_inv_ex [simp]:
 
 lemma (in group) l_inv [simp]:
   "x \<in> carrier G ==> inv x \<otimes> x = \<one>"
-  using Units_l_inv by simp
+  by simp
 
 
 subsection \<open>Cancellation Laws and Basic Properties\<close>
 
-lemma (in group) l_cancel [simp]:
-  "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
-   (x \<otimes> y = x \<otimes> z) = (y = z)"
-  using Units_l_inv by simp
-
 lemma (in group) r_inv [simp]:
   "x \<in> carrier G ==> x \<otimes> inv x = \<one>"
-proof -
-  assume x: "x \<in> carrier G"
-  then have "inv x \<otimes> (x \<otimes> inv x) = inv x \<otimes> \<one>"
-    by (simp add: m_assoc [symmetric])
-  with x show ?thesis by (simp del: r_one)
-qed
+  by simp
 
-lemma (in group) r_cancel [simp]:
+lemma (in group) right_cancel [simp]:
   "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
    (y \<otimes> x = z \<otimes> x) = (y = z)"
-proof
-  assume eq: "y \<otimes> x = z \<otimes> x"
-    and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
-  then have "y \<otimes> (x \<otimes> inv x) = z \<otimes> (x \<otimes> inv x)"
-    by (simp add: m_assoc [symmetric] del: r_inv Units_r_inv)
-  with G show "y = z" by simp
-next
-  assume eq: "y = z"
-    and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
-  then show "y \<otimes> x = z \<otimes> x" by simp
-qed
+  by (metis inv_closed m_assoc r_inv r_one)
 
 lemma (in group) inv_one [simp]:
   "inv \<one> = \<one>"
@@ -389,11 +369,7 @@ lemma (in group) inv_comm:
 
 lemma (in group) inv_equality:
      "[|y \<otimes> x = \<one>; x \<in> carrier G; y \<in> carrier G|] ==> inv x = y"
-apply (simp add: m_inv_def)
-apply (rule the_equality)
- apply (simp add: inv_comm [of y x])
-apply (rule r_cancel [THEN iffD1], auto)
-done
+  using inv_unique r_inv by blast
 
 (* Contributed by Joachim Breitner *)
 lemma (in group) inv_solve_left:
