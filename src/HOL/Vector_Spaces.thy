@@ -41,7 +41,7 @@ qed
 
 locale vector_space =
   fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
-  assumes vector_space_assms:\<comment>\<open>re-stating the assumptions of \<open>module\<close> instead of extending \<open>module\<close>
+  assumes vector_space_assms:\<comment> \<open>re-stating the assumptions of \<open>module\<close> instead of extending \<open>module\<close>
    allows us to rewrite in the sublocale.\<close>
     "a *s (x + y) = a *s x + a *s y"
     "(a + b) *s x = a *s x + b *s x"
@@ -68,7 +68,7 @@ context vector_space begin
 sublocale module scale rewrites "module_hom = linear"
   by (unfold_locales) (fact vector_space_assms module_hom_eq_linear)+
 
-lemmas\<comment>\<open>from \<open>module\<close>\<close>
+lemmas\<comment> \<open>from \<open>module\<close>\<close>
       linear_id = module_hom_id
   and linear_ident = module_hom_ident
   and linear_scale_self = module_hom_scale_self
@@ -607,7 +607,7 @@ begin
 
 context fixes f assumes "linear s1 s2 f" begin
 interpretation linear s1 s2 f by fact
-lemmas\<comment>\<open>from locale \<open>module_hom\<close>\<close>
+lemmas\<comment> \<open>from locale \<open>module_hom\<close>\<close>
       linear_0 = zero
   and linear_add = add
   and linear_scale = scale
@@ -634,7 +634,7 @@ sublocale module_pair
   rewrites "module_hom = linear"
   by unfold_locales (fact module_hom_eq_linear)
 
-lemmas\<comment>\<open>from locale \<open>module_pair\<close>\<close>
+lemmas\<comment> \<open>from locale \<open>module_pair\<close>\<close>
       linear_eq_on_span = module_hom_eq_on_span
   and linear_compose_scale_right = module_hom_scale
   and linear_compose_add = module_hom_add
@@ -834,7 +834,7 @@ lemma range_construct_eq_span:
   by (auto simp: that construct_in_span in_span_in_range_construct)
 
 lemma linear_independent_extend_subspace:
-  \<comment>\<open>legacy: use @{term construct} instead\<close>
+  \<comment> \<open>legacy: use @{term construct} instead\<close>
   assumes "vs1.independent B"
   shows "\<exists>g. linear s1 s2 g \<and> (\<forall>x\<in>B. g x = f x) \<and> range g = vs2.span (f`B)"
   by (rule exI[where x="construct B f"])
