@@ -591,6 +591,27 @@ fun comb_simps ctxt comb mk_rrule sym thms =
   let val rews = extract_rews ctxt sym (map (Thm.transfer' ctxt) thms);
   in fold (fold comb o mk_rrule) rews ctxt end;
 
+(*
+This code checks if the symetric version of a rule is already in the simpset.
+However, the variable names in the two versions of the rule may differ.
+Thus the current test modulo eq_rrule is too weak to be useful
+and needs to be refined.
+
+fun present ctxt rules (rrule as {thm, elhs, ...}) =
+  (Net.insert_term eq_rrule (Thm.term_of elhs, trim_context_rrule rrule) rules;
+   false)
+  handle Net.INSERT =>
+    (cond_warning ctxt
+       (fn () => print_thm ctxt "Symmetric rewrite rule already in simpset:" ("", thm));
+     true);
+
+fun sym_present ctxt thms =
+  let
+    val rews = extract_rews ctxt true (map (Thm.transfer' ctxt) thms);
+    val rrules = map mk_rrule2 (flat(map (mk_rrule ctxt) rews))
+    val Simpset({rules, ...},_) = simpset_of ctxt
+  in exists (present ctxt rules) rrules end
+*)
 in
 
 fun ctxt addsimps thms =
@@ -606,6 +627,12 @@ fun delsimps_quiet ctxt thms =
   comb_simps ctxt (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms;
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
+(*
+with check for presence of symmetric version:
+  if sym_present ctxt [thm]
+  then (cond_warning ctxt (fn () => print_thm ctxt "Ignoring rewrite rule:" ("", thm)); ctxt)
+  else ctxt addsimps [thm];
+*)
 fun del_simp thm ctxt = ctxt delsimps [thm];
 fun flip_simp thm ctxt = addsymsimps (delsimps_quiet ctxt [thm]) [thm];
 
