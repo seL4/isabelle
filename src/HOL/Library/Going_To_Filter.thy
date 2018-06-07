@@ -80,7 +80,7 @@ lemma going_to_within_empty [simp]: "f going_to F within {} = bot"
 
 lemma going_to_within_union [simp]: 
   "f going_to F within (A \<union> B) = sup (f going_to F within A) (f going_to F within B)"
-  by (simp add: going_to_within_def inf_sup_distrib1 [symmetric])
+  by (simp add: going_to_within_def flip: inf_sup_distrib1)
 
 lemma eventually_going_to_at_top_linorder:
   fixes f :: "'a \<Rightarrow> 'b :: linorder"

@@ -125,7 +125,7 @@ lemma cUnion_transfer [transfer_rule]:
 proof -
   have "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) (\<lambda>A. UNION A id) (\<lambda>A. cUNION A id)"
     by transfer_prover
-  then show ?thesis by (simp add: cUnion_def [symmetric])
+  then show ?thesis by (simp flip: cUnion_def)
 qed
 
 lemmas cset_eqI = set_eqI[Transfer.transferred]

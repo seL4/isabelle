@@ -79,7 +79,7 @@ proof
   then obtain a where *: "affected f = {a}"
     by (rule card_1_singletonE)
   then have **: "f \<langle>$\<rangle> a \<noteq> a"
-    by (simp add: in_affected [symmetric])
+    by (simp flip: in_affected)
   with * have "f \<langle>$\<rangle> a \<notin> affected f"
     by simp
   then have "f \<langle>$\<rangle> (f \<langle>$\<rangle> a) = f \<langle>$\<rangle> a"
@@ -545,7 +545,7 @@ proof -
   have "(f ^ n) \<langle>$\<rangle> a = (f ^ (n mod order f a + order f a * (n div order f a))) \<langle>$\<rangle> a"
     by simp
   also have "\<dots> = (f ^ (n mod order f a) * f ^ (order f a * (n div order f a))) \<langle>$\<rangle> a"
-    by (simp add: power_add [symmetric])
+    by (simp flip: power_add)
   finally show ?thesis
     by (simp add: apply_times)
 qed  

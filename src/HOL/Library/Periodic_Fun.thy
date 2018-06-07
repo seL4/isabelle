@@ -54,7 +54,7 @@ lemma minus_numeral: "f (gm x (numeral n)) = f x"
   by (subst of_nat_numeral[symmetric], subst minus_of_nat) (rule refl)
 
 lemma minus_1: "f (gn1 x) = f x"
-  using minus_of_nat[of x 1] by (simp add: minus_1_eq minus_eq[symmetric])
+  using minus_of_nat[of x 1] by (simp flip: minus_1_eq minus_eq)
 
 lemmas periodic_simps = plus_of_nat minus_of_nat plus_of_int minus_of_int 
                         plus_numeral minus_numeral plus_1 minus_1

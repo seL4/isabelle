@@ -101,7 +101,7 @@ end
 lemma add_mset_in_multiset:
   assumes M: \<open>M \<in> multiset\<close>
   shows \<open>(\<lambda>b. if b = a then Suc (M b) else M b) \<in> multiset\<close>
-  using assms by (simp add: multiset_def insert_Collect[symmetric])
+  using assms by (simp add: multiset_def flip: insert_Collect)
 
 lift_definition add_mset :: "'a \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" is
   "\<lambda>a M b. if b = a then Suc (M b) else M b"
@@ -244,8 +244,7 @@ lemma finite_set_mset [iff]:
   using count [of M] by (simp add: multiset_def)
 
 lemma set_mset_add_mset_insert [simp]: \<open>set_mset (add_mset a A) = insert a (set_mset A)\<close>
-  by (auto simp del: count_greater_eq_Suc_zero_iff
-      simp: count_greater_eq_Suc_zero_iff[symmetric] split: if_splits)
+  by (auto simp flip: count_greater_eq_Suc_zero_iff split: if_splits)
 
 lemma multiset_nonemptyE [elim]:
   assumes "A \<noteq> {#}"
@@ -1216,8 +1215,8 @@ proof safe
       using that by (auto simp: subseteq_mset_def algebra_simps not_in_iff)
     hence "Sup A \<subseteq># Sup A - {#x#}" by (intro subset_mset.cSup_least nonempty)
     with \<open>x \<in># Sup A\<close> show False
-      by (auto simp: subseteq_mset_def count_greater_zero_iff [symmetric]
-               simp del: count_greater_zero_iff dest!: spec[of _ x])
+      by (auto simp: subseteq_mset_def simp flip: count_greater_zero_iff
+               dest!: spec[of _ x])
   qed
 next
   fix x X assume "x \<in> set_mset X" "X \<in> A"
@@ -2158,7 +2157,7 @@ lemma image_replicate_mset [simp]:
 lemma replicate_mset_msubseteq_iff:
   "replicate_mset m a \<subseteq># replicate_mset n b \<longleftrightarrow> m = 0 \<or> a = b \<and> m \<le> n"
   by (cases m)
-    (auto simp add: insert_subset_eq_iff count_le_replicate_mset_subset_eq [symmetric])
+    (auto simp: insert_subset_eq_iff simp flip: count_le_replicate_mset_subset_eq)
 
 lemma msubseteq_replicate_msetE:
   assumes "A \<subseteq># replicate_mset n a"
@@ -2991,7 +2990,7 @@ lemma mult_cancel_max:
   assumes "trans s" and "irrefl s"
   shows "(X, Y) \<in> mult s \<longleftrightarrow> (X - X \<inter># Y, Y - X \<inter># Y) \<in> mult s" (is "?L \<longleftrightarrow> ?R")
 proof -
-  have "X - X \<inter># Y + X \<inter># Y = X" "Y - X \<inter># Y + X \<inter># Y = Y" by (auto simp: count_inject[symmetric])
+  have "X - X \<inter># Y + X \<inter># Y = X" "Y - X \<inter># Y + X \<inter># Y = Y" by (auto simp flip: count_inject)
   thus ?thesis using mult_cancel[OF assms, of "X - X \<inter># Y"  "X \<inter># Y" "Y - X \<inter># Y"] by auto
 qed
 
@@ -3020,7 +3019,7 @@ lemma multp_iff:
   shows "multp P N M \<longleftrightarrow> (N, M) \<in> mult R" (is "?L \<longleftrightarrow> ?R")
 proof -
   have *: "M \<inter># N + (N - M \<inter># N) = N" "M \<inter># N + (M - M \<inter># N) = M"
-    "(M - M \<inter># N) \<inter># (N - M \<inter># N) = {#}" by (auto simp: count_inject[symmetric])
+    "(M - M \<inter># N) \<inter># (N - M \<inter># N) = {#}" by (auto simp flip: count_inject)
   show ?thesis
   proof
     assume ?L thus ?R
@@ -3041,9 +3040,9 @@ lemma multeqp_iff:
   shows "multeqp P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
 proof -
   { assume "N \<noteq> M" "M - M \<inter># N = {#}"
-    then obtain y where "count N y \<noteq> count M y" by (auto simp: count_inject[symmetric])
+    then obtain y where "count N y \<noteq> count M y" by (auto simp flip: count_inject)
     then have "\<exists>y. count M y < count N y" using \<open>M - M \<inter># N = {#}\<close>
-      by (auto simp: count_inject[symmetric] dest!: le_neq_implies_less fun_cong[of _ _ y])
+      by (auto simp flip: count_inject dest!: le_neq_implies_less fun_cong[of _ _ y])
   }
   then have "multeqp P N M \<longleftrightarrow> multp P N M \<or> N = M"
     by (auto simp: multeqp_def multp_def Let_def in_diff_count)
@@ -3695,7 +3694,7 @@ proof -
     apply (rule ext)+
     apply safe
      apply (rule_tac x = "mset (zip xs ys)" in exI;
-       auto simp: in_set_zip list_all2_iff mset_map[symmetric])
+       auto simp: in_set_zip list_all2_iff simp flip: mset_map)
     apply (rename_tac XY)
     apply (cut_tac X = XY in ex_mset)
     apply (erule exE)
@@ -3894,7 +3893,7 @@ lemma size_Suc_Diff1: "x \<in># M \<Longrightarrow> Suc (size (M - {#x#})) = siz
   using arg_cong[OF insert_DiffM, of _ _ size] by simp
 
 lemma size_Diff_singleton: "x \<in># M \<Longrightarrow> size (M - {#x#}) = size M - 1"
-  by (simp add: size_Suc_Diff1 [symmetric])
+  by (simp flip: size_Suc_Diff1)
 
 lemma size_Diff_singleton_if: "size (A - {#x#}) = (if x \<in># A then size A - 1 else size A)"
   by (simp add: diff_single_trivial size_Diff_singleton)

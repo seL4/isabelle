@@ -486,10 +486,10 @@ lemma ennreal_top_neq_zero[simp]: "(top::ennreal) \<noteq> 0"
   by transfer (simp add: top_ereal_def)
 
 lemma ennreal_top_neq_one[simp]: "top \<noteq> (1::ennreal)"
-  by transfer (simp add: top_ereal_def one_ereal_def ereal_max[symmetric] del: ereal_max)
+  by transfer (simp add: top_ereal_def one_ereal_def flip: ereal_max)
 
 lemma ennreal_one_neq_top[simp]: "1 \<noteq> (top::ennreal)"
-  by transfer (simp add: top_ereal_def one_ereal_def ereal_max[symmetric] del: ereal_max)
+  by transfer (simp add: top_ereal_def one_ereal_def flip: ereal_max)
 
 lemma ennreal_add_less_top[simp]:
   fixes a b :: ennreal
@@ -636,7 +636,7 @@ lemma sup_const_add_ennreal:
   apply transfer
   subgoal for a b c
     apply (cases a b c rule: ereal3_cases)
-    apply (auto simp: ereal_max[symmetric] simp del: ereal_max)
+    apply (auto simp flip: ereal_max)
     done
   done
 
@@ -654,7 +654,7 @@ lemma mult_divide_eq_ennreal:
   unfolding divide_ennreal_def
   apply transfer
   apply (subst mult.assoc)
-  apply (simp add: top_ereal_def divide_ereal_def[symmetric])
+  apply (simp add: top_ereal_def flip: divide_ereal_def)
   done
 
 lemma divide_mult_eq: "a \<noteq> 0 \<Longrightarrow> a \<noteq> \<infinity> \<Longrightarrow> x * a / (b * a) = x / (b::ennreal)"
@@ -672,7 +672,7 @@ lemma ennreal_mult_divide_eq:
   unfolding divide_ennreal_def
   apply transfer
   apply (subst mult.assoc)
-  apply (simp add: top_ereal_def divide_ereal_def[symmetric])
+  apply (simp add: top_ereal_def flip: divide_ereal_def)
   done
 
 lemma ennreal_add_diff_cancel:
@@ -686,7 +686,7 @@ lemma ennreal_minus_eq_0:
   apply transfer
   subgoal for a b
     apply (cases a b rule: ereal2_cases)
-    apply (auto simp: zero_ereal_def ereal_max[symmetric] max.absorb2 simp del: ereal_max)
+    apply (auto simp: zero_ereal_def max.absorb2 simp flip: ereal_max)
     done
   done
 
@@ -859,7 +859,7 @@ lemmas ennreal2_cases = ennreal_cases[case_product ennreal_cases]
 lemmas ennreal3_cases = ennreal_cases[case_product ennreal2_cases]
 
 lemma ennreal_neq_top[simp]: "ennreal r \<noteq> top"
-  by transfer (simp add: top_ereal_def zero_ereal_def ereal_max[symmetric] del: ereal_max)
+  by transfer (simp add: top_ereal_def zero_ereal_def flip: ereal_max)
 
 lemma top_neq_ennreal[simp]: "top \<noteq> ennreal r"
   using ennreal_neq_top[of r] by (auto simp del: ennreal_neq_top)
@@ -920,16 +920,13 @@ lemma ennreal_le_iff2: "ennreal x \<le> ennreal y \<longleftrightarrow> ((0 \<le
   by (cases "0 \<le> y") (auto simp: ennreal_eq_0_iff ennreal_neg)
 
 lemma ennreal_eq_1[simp]: "ennreal x = 1 \<longleftrightarrow> x = 1"
-  by (cases "0 \<le> x")
-     (auto simp: ennreal_neg ennreal_1[symmetric] simp del: ennreal_1)
+  by (cases "0 \<le> x") (auto simp: ennreal_neg simp flip: ennreal_1)
 
 lemma ennreal_le_1[simp]: "ennreal x \<le> 1 \<longleftrightarrow> x \<le> 1"
-  by (cases "0 \<le> x")
-     (auto simp: ennreal_neg ennreal_1[symmetric] simp del: ennreal_1)
+  by (cases "0 \<le> x") (auto simp: ennreal_neg simp flip: ennreal_1)
 
 lemma ennreal_ge_1[simp]: "ennreal x \<ge> 1 \<longleftrightarrow> x \<ge> 1"
-  by (cases "0 \<le> x")
-     (auto simp: ennreal_neg ennreal_1[symmetric] simp del: ennreal_1)
+  by (cases "0 \<le> x") (auto simp: ennreal_neg simp flip: ennreal_1)
 
 lemma one_less_ennreal[simp]: "1 < ennreal x \<longleftrightarrow> 1 < x"
   by transfer (auto simp: max.absorb2 less_max_iff_disj)
@@ -977,7 +974,7 @@ lemma ennreal_half[simp]: "ennreal (1/2) = inverse 2"
 
 lemma ennreal_minus: "0 \<le> q \<Longrightarrow> ennreal r - ennreal q = ennreal (r - q)"
   by transfer
-     (simp add: max.absorb2 zero_ereal_def ereal_max[symmetric] del: ereal_max)
+     (simp add: max.absorb2 zero_ereal_def flip: ereal_max)
 
 lemma ennreal_minus_top[simp]: "ennreal a - top = 0"
   by (simp add: minus_top_ennreal)
@@ -1050,8 +1047,7 @@ lemma ennreal_le_epsilon:
   "(\<And>e::real. y < top \<Longrightarrow> 0 < e \<Longrightarrow> x \<le> y + ennreal e) \<Longrightarrow> x \<le> y"
   apply (cases y rule: ennreal_cases)
   apply (cases x rule: ennreal_cases)
-  apply (auto simp del: ennreal_plus simp add: top_unique ennreal_plus[symmetric]
-    intro: zero_less_one field_le_epsilon)
+  apply (auto simp flip: ennreal_plus simp add: top_unique intro: zero_less_one field_le_epsilon)
   done
 
 lemma ennreal_rat_dense:
@@ -1394,7 +1390,7 @@ lemma ennreal_suminf_divide[simp]: "(\<Sum>i. f i / r) = (\<Sum>i. f i::ennreal)
 
 lemma ennreal_suminf_neq_top: "summable f \<Longrightarrow> (\<And>i. 0 \<le> f i) \<Longrightarrow> (\<Sum>i. ennreal (f i)) \<noteq> top"
   using sums_ennreal[of f "suminf f"]
-  by (simp add: suminf_nonneg sums_unique[symmetric] summable_sums_iff[symmetric] del: sums_ennreal)
+  by (simp add: suminf_nonneg flip: sums_unique summable_sums_iff del: sums_ennreal)
 
 lemma suminf_ennreal_eq:
   "(\<And>i. 0 \<le> f i) \<Longrightarrow> f sums x \<Longrightarrow> (\<Sum>i. ennreal (f i)) = ennreal x"
@@ -1598,7 +1594,7 @@ lemma ennreal_Inf_countable_INF:
   apply transfer
   subgoal for A
     using Inf_countable_INF[of A]
-    apply (clarsimp simp add: decseq_def[symmetric])
+    apply (clarsimp simp flip: decseq_def)
     subgoal for f
       by (intro exI[of _ f]) auto
     done
@@ -1794,19 +1790,17 @@ lemma neq_top_trans: fixes x y :: ennreal shows "\<lbrakk> y \<noteq> top; x \<l
 by (auto simp: top_unique)
 
 lemma diff_diff_ennreal: fixes a b :: ennreal shows "a \<le> b \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> b - (b - a) = a"
-  by (cases a b rule: ennreal2_cases)
-     (auto simp: ennreal_minus top_unique)
+  by (cases a b rule: ennreal2_cases) (auto simp: ennreal_minus top_unique)
 
 lemma ennreal_less_one_iff[simp]: "ennreal x < 1 \<longleftrightarrow> x < 1"
-  by (cases "0 \<le> x")
-     (auto simp: ennreal_neg ennreal_1[symmetric] ennreal_less_iff simp del: ennreal_1)
+  by (cases "0 \<le> x") (auto simp: ennreal_neg ennreal_less_iff simp flip: ennreal_1)
 
 lemma SUP_const_minus_ennreal:
   fixes f :: "'a \<Rightarrow> ennreal" shows "I \<noteq> {} \<Longrightarrow> (SUP x:I. c - f x) = c - (INF x:I. f x)"
   including ennreal.lifting
   by (transfer fixing: I)
-     (simp add: sup_ereal_def[symmetric] SUP_sup_distrib[symmetric] SUP_ereal_minus_right
-           del: sup_ereal_def)
+     (simp add: SUP_sup_distrib[symmetric] SUP_ereal_minus_right
+           flip: sup_ereal_def)
 
 lemma zero_minus_ennreal[simp]: "0 - (a::ennreal) = 0"
   including ennreal.lifting
@@ -1846,10 +1840,8 @@ qed (simp add: add_diff_inverse_ennreal)
 lemma add_diff_le_ennreal: "a + b - c \<le> a + (b - c::ennreal)"
   apply (cases a b c rule: ennreal3_cases)
   subgoal for a' b' c'
-    by (cases "0 \<le> b' - c'")
-       (simp_all add: ennreal_minus ennreal_plus[symmetric] top_add ennreal_neg
-                 del: ennreal_plus)
-  apply (simp_all add: top_add ennreal_plus[symmetric] del: ennreal_plus)
+    by (cases "0 \<le> b' - c'") (simp_all add: ennreal_minus top_add ennreal_neg flip: ennreal_plus)
+  apply (simp_all add: top_add flip: ennreal_plus)
   done
 
 lemma diff_eq_0_ennreal: "a < top \<Longrightarrow> a \<le> b \<Longrightarrow> a - b = (0::ennreal)"
@@ -1857,14 +1849,14 @@ lemma diff_eq_0_ennreal: "a < top \<Longrightarrow> a \<le> b \<Longrightarrow> 
 
 lemma diff_diff_ennreal': fixes x y z :: ennreal shows "z \<le> y \<Longrightarrow> y - z \<le> x \<Longrightarrow> x - (y - z) = x + z - y"
   by (cases x; cases y; cases z)
-     (auto simp add: top_add add_top minus_top_ennreal ennreal_minus ennreal_plus[symmetric] top_unique
-           simp del: ennreal_plus)
+     (auto simp add: top_add add_top minus_top_ennreal ennreal_minus top_unique
+           simp flip: ennreal_plus)
 
 lemma diff_diff_ennreal'': fixes x y z :: ennreal
   shows "z \<le> y \<Longrightarrow> x - (y - z) = (if y - z \<le> x then x + z - y else 0)"
   by (cases x; cases y; cases z)
-     (auto simp add: top_add add_top minus_top_ennreal ennreal_minus ennreal_plus[symmetric] top_unique ennreal_neg
-           simp del: ennreal_plus)
+     (auto simp add: top_add add_top minus_top_ennreal ennreal_minus top_unique ennreal_neg
+           simp flip: ennreal_plus)
 
 lemma power_less_top_ennreal: fixes x :: ennreal shows "x ^ n < top \<longleftrightarrow> x < top \<or> n = 0"
   using power_eq_top_ennreal[of x n] by (auto simp: less_top)
@@ -1880,7 +1872,7 @@ lemma divide_less_ennreal: "b \<noteq> 0 \<Longrightarrow> b < top \<Longrightar
      (auto simp: divide_ennreal ennreal_mult[symmetric] ennreal_less_iff field_simps ennreal_top_mult ennreal_top_divide)
 
 lemma one_less_numeral[simp]: "1 < (numeral n::ennreal) \<longleftrightarrow> (num.One < n)"
-  by (simp del: ennreal_1 ennreal_numeral add: ennreal_1[symmetric] ennreal_numeral[symmetric] ennreal_less_iff)
+  by (simp flip: ennreal_1 ennreal_numeral add: ennreal_less_iff)
 
 lemma divide_eq_1_ennreal: "a / b = (1::ennreal) \<longleftrightarrow> (b \<noteq> top \<and> b \<noteq> 0 \<and> b = a)"
   by (cases a ; cases b; cases "b = 0") (auto simp: ennreal_top_divide divide_ennreal split: if_split_asm)
@@ -1902,17 +1894,16 @@ lemma ennreal_diff_le_mono_left: "a \<le> b \<Longrightarrow> a - c \<le> (b::en
 
 lemma ennreal_minus_le_iff: "a - b \<le> c \<longleftrightarrow> (a \<le> b + (c::ennreal) \<and> (a = top \<and> b = top \<longrightarrow> c = top))"
   by (cases a; cases b; cases c)
-     (auto simp: top_unique top_add add_top ennreal_minus ennreal_plus[symmetric]
-           simp del: ennreal_plus)
+     (auto simp: top_unique top_add add_top ennreal_minus simp flip: ennreal_plus)
 
 lemma ennreal_le_minus_iff: "a \<le> b - c \<longleftrightarrow> (a + c \<le> (b::ennreal) \<or> (a = 0 \<and> b \<le> c))"
   by (cases a; cases b; cases c)
-     (auto simp: top_unique top_add add_top ennreal_minus ennreal_plus[symmetric] ennreal_le_iff2
-           simp del: ennreal_plus)
+     (auto simp: top_unique top_add add_top ennreal_minus ennreal_le_iff2
+           simp flip: ennreal_plus)
 
 lemma diff_add_eq_diff_diff_swap_ennreal: "x - (y + z :: ennreal) = x - y - z"
   by (cases x; cases y; cases z)
-     (auto simp: ennreal_plus[symmetric] ennreal_minus_if add_top top_add simp del: ennreal_plus)
+     (auto simp: ennreal_minus_if add_top top_add simp flip: ennreal_plus)
 
 lemma diff_add_assoc2_ennreal: "b \<le> a \<Longrightarrow> (a - b + c::ennreal) = a + c - b"
   by (cases a; cases b; cases c)

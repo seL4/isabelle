@@ -430,8 +430,8 @@ lemma sset_fromN[simp]: "sset (fromN n) = {n ..}"
 
 lemma stream_smap_fromN: "s = smap (\<lambda>j. let i = j - n in s !! i) (fromN n)"
   by (coinduction arbitrary: s n)
-    (force simp: neq_Nil_conv Let_def snth.simps(2)[symmetric] Suc_diff_Suc
-      intro: stream.map_cong split: if_splits simp del: snth.simps(2))
+    (force simp: neq_Nil_conv Let_def Suc_diff_Suc simp flip: snth.simps(2)
+      intro: stream.map_cong split: if_splits)
 
 lemma stream_smap_nats: "s = smap (snth s) nats"
   using stream_smap_fromN[where n = 0] by simp

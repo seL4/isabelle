@@ -195,7 +195,7 @@ next
     by (subst sum_atMost_Suc_shift) (simp add: sum.distrib ring_distribs)
   also have "\<dots> = pochhammer x (Suc n)"
     by (subst sum_atMost_Suc_shift [symmetric])
-      (simp add: algebra_simps sum.distrib sum_distrib_left pochhammer_Suc Suc [symmetric])
+      (simp add: algebra_simps sum.distrib sum_distrib_left pochhammer_Suc flip: Suc)
   finally show ?case .
 qed
 
@@ -262,7 +262,7 @@ next
   also have "zip_with_prev f y ys = map (\<lambda>i. f (xs ! i) (xs ! (i + 1))) [0..<length xs - 1]"
     unfolding Cons
     by (induct ys arbitrary: y)
-      (simp_all add: zip_with_prev_def upt_conv_Cons map_Suc_upt [symmetric] del: upt_Suc)
+      (simp_all add: zip_with_prev_def upt_conv_Cons flip: map_Suc_upt del: upt_Suc)
   finally show ?thesis
     using Cons by simp
 qed

@@ -174,7 +174,7 @@ next
     then obtain n m where "{enat n<..} \<subseteq> A" "{enat m<..} \<subseteq> B"
       by auto
     then have "{enat (max n m) <..} \<subseteq> A \<inter> B"
-      by (auto simp add: subset_eq Ball_def max_def enat_ord_code(1)[symmetric] simp del: enat_ord_code(1))
+      by (auto simp add: subset_eq Ball_def max_def simp flip: enat_ord_code(1))
     then show ?case
       by auto
   next
@@ -415,7 +415,7 @@ end
 
 lemma ereal_0_plus [simp]: "ereal 0 + x = x"
   and plus_ereal_0 [simp]: "x + ereal 0 = x"
-by(simp_all add: zero_ereal_def[symmetric])
+by(simp_all flip: zero_ereal_def)
 
 instance ereal :: numeral ..
 
@@ -939,7 +939,7 @@ end
 lemma [simp]:
   shows ereal_1_times: "ereal 1 * x = x"
   and times_ereal_1: "x * ereal 1 = x"
-by(simp_all add: one_ereal_def[symmetric])
+by(simp_all flip: one_ereal_def)
 
 lemma one_not_le_zero_ereal[simp]: "\<not> (1 \<le> (0::ereal))"
   by (simp add: one_ereal_def zero_ereal_def)
@@ -2117,7 +2117,7 @@ proof (rule continuous_at_Sup_mono)
   obtain r where r: "ereal r = (SUP a:A. ereal a)" "A \<noteq> {}"
     using * by (force simp: bot_ereal_def)
   then show "bdd_above A" "A \<noteq> {}"
-    by (auto intro!: SUP_upper bdd_aboveI[of _ r] simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
+    by (auto intro!: SUP_upper bdd_aboveI[of _ r] simp flip: ereal_less_eq)
 qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
 lemma ereal_SUP: "\<bar>SUP a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (SUP a:A. f a) = (SUP a:A. ereal (f a))"
@@ -2130,7 +2130,7 @@ proof (rule continuous_at_Inf_mono)
   obtain r where r: "ereal r = (INF a:A. ereal a)" "A \<noteq> {}"
     using * by (force simp: top_ereal_def)
   then show "bdd_below A" "A \<noteq> {}"
-    by (auto intro!: INF_lower bdd_belowI[of _ r] simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
+    by (auto intro!: INF_lower bdd_belowI[of _ r] simp flip: ereal_less_eq)
 qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
 lemma ereal_Inf':
@@ -2527,13 +2527,13 @@ lemma numeral_less_ereal_of_enat_iff[simp]: "numeral m < ereal_of_enat n \<longl
   by (cases n) auto
 
 lemma ereal_of_enat_ge_zero_cancel_iff[simp]: "0 \<le> ereal_of_enat n \<longleftrightarrow> 0 \<le> n"
-  by (cases n) (auto simp: enat_0[symmetric])
+  by (cases n) (auto simp flip: enat_0)
 
 lemma ereal_of_enat_gt_zero_cancel_iff[simp]: "0 < ereal_of_enat n \<longleftrightarrow> 0 < n"
-  by (cases n) (auto simp: enat_0[symmetric])
+  by (cases n) (auto simp flip: enat_0)
 
 lemma ereal_of_enat_zero[simp]: "ereal_of_enat 0 = 0"
-  by (auto simp: enat_0[symmetric])
+  by (auto simp flip: enat_0)
 
 lemma ereal_of_enat_inf[simp]: "ereal_of_enat n = \<infinity> \<longleftrightarrow> n = \<infinity>"
   by (cases n) auto
@@ -3639,7 +3639,7 @@ lemma suminf_ereal': "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) = erea
   by (metis sums_ereal sums_unique summable_def)
 
 lemma suminf_ereal_finite: "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) \<noteq> \<infinity>"
-  by (auto simp: sums_ereal[symmetric] summable_def sums_unique[symmetric])
+  by (auto simp: summable_def simp flip: sums_ereal sums_unique)
 
 lemma suminf_ereal_finite_neg:
   assumes "summable f"
@@ -3779,8 +3779,8 @@ proof -
     apply auto
     done
   also have "(\<lambda>x. inverse m * (x + -t)) -` S = (\<lambda>x. (x - t) / m) -` S"
-    using m t by (auto simp: divide_ereal_def mult.commute uminus_ereal.simps[symmetric] minus_ereal_def
-                       simp del: uminus_ereal.simps)
+    using m t by (auto simp: divide_ereal_def mult.commute minus_ereal_def
+                       simp flip: uminus_ereal.simps)
   also have "(\<lambda>x. (x - t) / m) -` S = (\<lambda>x. m * x + t) ` S"
     using m t
     by (simp add: set_eq_iff image_iff)
@@ -4252,7 +4252,7 @@ lemma ereal_diff_nonpos:
   by (cases rule: ereal2_cases[of a b]) auto
 
 lemma minus_ereal_0 [simp]: "x - ereal 0 = x"
-by(simp add: zero_ereal_def[symmetric])
+by(simp flip: zero_ereal_def)
 
 lemma ereal_diff_eq_0_iff: fixes a b :: ereal
   shows "(\<bar>a\<bar> = \<infinity> \<Longrightarrow> \<bar>b\<bar> \<noteq> \<infinity>) \<Longrightarrow> a - b = 0 \<longleftrightarrow> a = b"

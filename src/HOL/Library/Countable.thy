@@ -101,8 +101,8 @@ unfolding sum_encode_def by simp
 
 qualified termination
 by (relation "measure id")
-  (auto simp add: sum_encode_eq [symmetric] prod_encode_eq [symmetric]
-    le_imp_less_Suc le_sum_encode_Inl le_sum_encode_Inr
+  (auto simp flip: sum_encode_eq prod_encode_eq
+    simp: le_imp_less_Suc le_sum_encode_Inl le_sum_encode_Inr
     le_prod_encode_1 le_prod_encode_2)
 
 lemma nth_item_covers: "finite_item x \<Longrightarrow> \<exists>n. nth_item n = x"

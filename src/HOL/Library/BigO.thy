@@ -188,7 +188,7 @@ lemma bigo_bounded_alt: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. f
   apply (rule_tac x = "\<bar>c\<bar>" in exI)
   apply auto
   apply (drule_tac x = x in spec)+
-  apply (simp add: abs_mult [symmetric])
+  apply (simp flip: abs_mult)
   done
 
 lemma bigo_bounded: "\<forall>x. 0 \<le> f x \<Longrightarrow> \<forall>x. f x \<le> g x \<Longrightarrow> f \<in> O(g)"
@@ -271,7 +271,7 @@ proof -
   also have "\<dots> = O(\<lambda>x. \<bar>g x\<bar>) + O(\<lambda>x. \<bar>h x\<bar>)"
     by (rule bigo_plus_eq, auto)
   finally show ?thesis
-    by (simp add: bigo_abs3 [symmetric])
+    by (simp flip: bigo_abs3)
 qed
 
 lemma bigo_mult [intro]: "O(f)*O(g) \<subseteq> O(f * g)"
@@ -447,7 +447,7 @@ lemma bigo_const3: "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. 1) \<in> O(\<lam
   for c :: "'a::linordered_field"
   apply (simp add: bigo_def)
   apply (rule_tac x = "\<bar>inverse c\<bar>" in exI)
-  apply (simp add: abs_mult [symmetric])
+  apply (simp flip: abs_mult)
   done
 
 lemma bigo_const4: "c \<noteq> 0 \<Longrightarrow> O(\<lambda>x. 1) \<subseteq> O(\<lambda>x. c)"
@@ -468,7 +468,7 @@ lemma bigo_const [simp]: "c \<noteq> 0 \<Longrightarrow> O(\<lambda>x. c) = O(\<
 lemma bigo_const_mult1: "(\<lambda>x. c * f x) \<in> O(f)"
   apply (simp add: bigo_def)
   apply (rule_tac x = "\<bar>c\<bar>" in exI)
-  apply (auto simp add: abs_mult [symmetric])
+  apply (auto simp flip: abs_mult)
   done
 
 lemma bigo_const_mult2: "O(\<lambda>x. c * f x) \<subseteq> O(f)"

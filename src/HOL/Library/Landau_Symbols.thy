@@ -1524,7 +1524,7 @@ proof-
   proof (cases p q rule: linorder_cases)
     assume "p < q"
     hence "(\<lambda>x. g x powr p) \<in> o[F](\<lambda>x. g x powr q)" using assms A
-      by (auto intro!: smalloI_tendsto tendsto_neg_powr simp: powr_diff [symmetric] )
+      by (auto intro!: smalloI_tendsto tendsto_neg_powr simp flip: powr_diff)
     with `p < q` show ?thesis by auto
   next
     assume "p = q"
@@ -1533,7 +1533,7 @@ proof-
   next
     assume "p > q"
     hence "(\<lambda>x. g x powr q) \<in> O[F](\<lambda>x. g x powr p)" using assms A
-      by (auto intro!: smalloI_tendsto tendsto_neg_powr landau_o.small_imp_big simp: powr_diff [symmetric] )
+      by (auto intro!: smalloI_tendsto tendsto_neg_powr landau_o.small_imp_big simp flip: powr_diff)
     with B `p > q` show ?thesis by auto
   qed
 qed
@@ -1555,7 +1555,7 @@ proof-
   proof (cases p q rule: linorder_cases)
     assume "p < q"
     hence "(\<lambda>x. g x powr p) \<in> o[F](\<lambda>x. g x powr q)" using assms A
-      by (auto intro!: smalloI_tendsto tendsto_neg_powr simp: powr_diff [symmetric] )
+      by (auto intro!: smalloI_tendsto tendsto_neg_powr simp flip: powr_diff)
     with `p < q` show ?thesis by (auto intro: landau_o.small_imp_big)
   next
     assume "p = q"
@@ -1564,7 +1564,7 @@ proof-
   next
     assume "p > q"
     hence "(\<lambda>x. g x powr q) \<in> o[F](\<lambda>x. g x powr p)" using assms A
-      by (auto intro!: smalloI_tendsto tendsto_neg_powr simp: powr_diff [symmetric] )
+      by (auto intro!: smalloI_tendsto tendsto_neg_powr simp flip: powr_diff)
     with B `p > q` show ?thesis by (auto intro: landau_o.small_imp_big)
   qed
 qed

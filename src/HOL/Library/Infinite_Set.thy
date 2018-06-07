@@ -68,7 +68,7 @@ proof -
   have "inj_on nat (abs ` A)" for A
     by (rule inj_onI) auto
   then show ?thesis
-    by (auto simp add: image_comp [symmetric] dest: finite_image_absD finite_imageD)
+    by (auto simp flip: image_comp dest: finite_image_absD finite_imageD)
 qed
 
 proposition infinite_int_iff_unbounded_le: "infinite S \<longleftrightarrow> (\<forall>m. \<exists>n. \<bar>n\<bar> \<ge> m \<and> n \<in> S)"
@@ -161,11 +161,11 @@ text \<open>Properties of quantifiers over the naturals.\<close>
 
 lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<exists>m. \<forall>n>m. P n)"
   for P :: "nat \<Rightarrow> bool"
-  by (auto simp add: eventually_cofinite finite_nat_iff_bounded_le subset_eq not_le[symmetric])
+  by (auto simp add: eventually_cofinite finite_nat_iff_bounded_le subset_eq simp flip: not_le)
 
 lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<exists>m. \<forall>n\<ge>m. P n)"
   for P :: "nat \<Rightarrow> bool"
-  by (auto simp add: eventually_cofinite finite_nat_iff_bounded subset_eq not_le[symmetric])
+  by (auto simp add: eventually_cofinite finite_nat_iff_bounded subset_eq simp flip: not_le)
 
 lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P n) \<longleftrightarrow> (\<forall>m. \<exists>n>m. P n)"
   for P :: "nat \<Rightarrow> bool"
@@ -286,7 +286,7 @@ next
     apply (subst Suc)
      apply (use \<open>infinite S\<close> in simp)
     apply (intro arg_cong[where f = Least] ext)
-    apply (auto simp: enumerate_Suc'[symmetric])
+    apply (auto simp flip: enumerate_Suc')
     done
 qed
 

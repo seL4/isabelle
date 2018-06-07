@@ -62,7 +62,7 @@ lemma card_option [simp]: "CARD('a option) = Suc CARD('a::finite)"
 by(simp add: card_UNIV_option)
 
 lemma card_UNIV_set: "CARD('a set) = (if CARD('a) = 0 then 0 else 2 ^ CARD('a))"
-by(simp add: Pow_UNIV[symmetric] card_eq_0_iff card_Pow del: Pow_UNIV)
+by(simp add: card_eq_0_iff card_Pow flip: Pow_UNIV)
 
 lemma card_set [simp]: "CARD('a set) = 2 ^ CARD('a::finite)"
 by(simp add: card_UNIV_set)
@@ -267,7 +267,7 @@ instantiation sum :: (finite_UNIV, finite_UNIV) finite_UNIV begin
 definition "finite_UNIV = Phantom('a + 'b)
   (of_phantom (finite_UNIV :: 'a finite_UNIV) \<and> of_phantom (finite_UNIV :: 'b finite_UNIV))"
 instance
-  by intro_classes (simp add: UNIV_Plus_UNIV[symmetric] finite_UNIV_sum_def finite_UNIV del: UNIV_Plus_UNIV)
+  by intro_classes (simp add: finite_UNIV_sum_def finite_UNIV)
 end
 
 instantiation sum :: (card_UNIV, card_UNIV) card_UNIV begin

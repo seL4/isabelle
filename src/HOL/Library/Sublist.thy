@@ -105,7 +105,7 @@ theorem prefix_append:
   "prefix xs (ys @ zs) = (prefix xs ys \<or> (\<exists>us. xs = ys @ us \<and> prefix us zs))"
   apply (induct zs rule: rev_induct)
    apply force
-  apply (simp del: append_assoc add: append_assoc [symmetric])
+  apply (simp flip: append_assoc)
   apply (metis append_eq_appendI)
   done
 

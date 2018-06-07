@@ -321,7 +321,7 @@ lemma eSuc_minus_eSuc [simp]: "eSuc n - eSuc m = n - m"
   by (simp add: eSuc_def split: enat.split)
 
 lemma eSuc_minus_1 [simp]: "eSuc n - 1 = n"
-  by (simp add: one_enat_def eSuc_enat[symmetric] zero_enat_def[symmetric])
+  by (simp add: one_enat_def flip: eSuc_enat zero_enat_def)
 
 (*lemmas idiff_self_eq_0_enat = idiff_self_eq_0[unfolded zero_enat_def]*)
 

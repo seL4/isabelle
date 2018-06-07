@@ -216,7 +216,7 @@ qed simp_all
 theorem card_permutations_of_multiset:
   "card (permutations_of_multiset A) = fact (size A) div (\<Prod>x\<in>set_mset A. fact (count A x))"
   "(\<Prod>x\<in>set_mset A. fact (count A x) :: nat) dvd fact (size A)"
-  by (simp_all add: card_permutations_of_multiset_aux[of A, symmetric])
+  by (simp_all flip: card_permutations_of_multiset_aux[of A])
 
 lemma card_permutations_of_multiset_insert_aux:
   "card (permutations_of_multiset (A + {#x#})) * (count A x + 1) = 

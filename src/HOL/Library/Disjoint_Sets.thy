@@ -55,7 +55,7 @@ proof (safe intro!: disjointI del: equalityI)
   moreover assume "\<forall>i\<in>I. A i \<in> F i" "\<forall>i\<in>I. B i \<in> F i"
   ultimately show "(\<Inter>i\<in>I. A i) \<inter> (\<Inter>i\<in>I. B i) = {}"
     using *[OF \<open>i\<in>I\<close>, THEN disjointD, of "A i" "B i"]
-    by (auto simp: INT_Int_distrib[symmetric])
+    by (auto simp flip: INT_Int_distrib)
 qed
 
 subsubsection "Family of Disjoint Sets"

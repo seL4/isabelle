@@ -37,7 +37,7 @@ proof
     also have "\<dots> < b powr (\<lfloor>log b x\<rfloor> + 1)"
       using assms by (intro powr_less_mono) auto
     also have "\<dots> = b ^ nat (\<lfloor>log b (real_of_int x)\<rfloor> + 1)"
-      using assms by (simp add: powr_realpow[symmetric])
+      using assms by (simp flip: powr_realpow)
     finally
     have "x < b ^ nat (\<lfloor>log b (int x)\<rfloor> + 1)"
       by (rule of_nat_less_imp_less)
@@ -182,7 +182,7 @@ proof -
       by (auto simp: )
     then have "?l \<le> b powr log (real b) (real x)"
       using \<open>b > 1\<close>
-      by (auto simp add: powr_realpow[symmetric] intro!: powr_mono of_nat_floor)
+      by (auto simp flip: powr_realpow intro!: powr_mono of_nat_floor)
     also have "\<dots> = x" using \<open>b > 1\<close> \<open>0 < x\<close>
       by auto
     finally show ?thesis
@@ -269,7 +269,7 @@ lemma less_power_nat_iff_bitlen: "x < 2 ^ w \<longleftrightarrow> bitlen (int x)
 
 lemma bitlen_ge_iff_power: "w \<le> bitlen x \<longleftrightarrow> w \<le> 0 \<or> 2 ^ (nat w - 1) \<le> x"
   unfolding bitlen_def
-  by (auto simp: nat_le_iff[symmetric] intro: floorlog_geI dest: floorlog_geD)
+  by (auto simp flip: nat_le_iff intro: floorlog_geI dest: floorlog_geD)
 
 lemma bitlen_twopow_add_eq: "bitlen (2 ^ w + b) = w + 1" if "0 \<le> b" "b < 2 ^ w"
   by (auto simp: that nat_add_distrib bitlen_le_iff_power bitlen_ge_iff_power intro!: antisym)

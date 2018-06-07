@@ -136,7 +136,7 @@ proof -
 qed
 
 lemma prts: "a = pprt a + nprt a"
-  by (simp add: pprt_def nprt_def add_eq_inf_sup[symmetric])
+  by (simp add: pprt_def nprt_def flip: add_eq_inf_sup)
 
 lemma zero_le_pprt[simp]: "0 \<le> pprt a"
   by (simp add: pprt_def)
@@ -266,7 +266,7 @@ lemma le_minus_self_iff: "a \<le> - a \<longleftrightarrow> a \<le> 0"
 proof -
   from add_le_cancel_left [of "uminus a" "plus a a" zero]
   have "a \<le> - a \<longleftrightarrow> a + a \<le> 0"
-    by (simp add: add.assoc[symmetric])
+    by (simp flip: add.assoc)
   then show ?thesis
     by simp
 qed
@@ -275,7 +275,7 @@ lemma minus_le_self_iff: "- a \<le> a \<longleftrightarrow> 0 \<le> a"
 proof -
   have "- a \<le> a \<longleftrightarrow> 0 \<le> a + a"
     using add_le_cancel_left [of "uminus a" zero "plus a a"]
-    by (simp add: add.assoc[symmetric])
+    by (simp flip: add.assoc)
   then show ?thesis
     by simp
 qed
@@ -461,7 +461,7 @@ proof
       apply blast
       done
     have mulprts: "a * b = (pprt a + nprt a) * (pprt b + nprt b)"
-      by (simp add: prts[symmetric])
+      by (simp flip: prts)
     show ?thesis
     proof (cases "0 \<le> a * b")
       case True

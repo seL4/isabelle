@@ -531,7 +531,7 @@ proof
        (auto simp: stl)
 next
   assume "alw (\<lambda>x. P (f x)) s" then show "alw P (f s)"
-    by (coinduction arbitrary: s rule: alw_coinduct) (auto simp: stl[symmetric])
+    by (coinduction arbitrary: s rule: alw_coinduct) (auto simp flip: stl)
 qed
 
 lemma ev_inv:
@@ -542,7 +542,7 @@ proof
     by (induction "f s" arbitrary: s) (auto simp: stl)
 next
   assume "ev (\<lambda>x. P (f x)) s" then show "ev P (f s)"
-    by induction (auto simp: stl[symmetric])
+    by induction (auto simp flip: stl)
 qed
 
 lemma alw_smap: "alw P (smap f s) \<longleftrightarrow> alw (\<lambda>x. P (smap f x)) s"
@@ -624,7 +624,7 @@ proof
     by (induction "f s" arbitrary: s) (auto simp: stl intro: suntil.intros)
 next
   assume "((\<lambda>x. P (f x)) suntil (\<lambda>x. Q (f x))) s" then show "(P suntil Q) (f s)"
-    by induction (auto simp: stl[symmetric] intro: suntil.intros)
+    by induction (auto simp flip: stl intro: suntil.intros)
 qed
 
 lemma suntil_smap: "(P suntil Q) (smap f s) \<longleftrightarrow> ((\<lambda>x. P (smap f x)) suntil (\<lambda>x. Q (smap f x))) s"
@@ -778,7 +778,7 @@ proof -
     using \<open>alw (HLD s) \<omega>\<close> by (simp add: alw_iff_sdrop HLD_iff)
   from pigeonhole_infinite_rel[OF infinite_UNIV_nat \<open>finite s\<close> this]
   show ?thesis
-    by (simp add: HLD_iff infinite_iff_alw_ev[symmetric])
+    by (simp add: HLD_iff flip: infinite_iff_alw_ev)
 qed
 
 lemma ev_eq_suntil: "ev P \<omega> \<longleftrightarrow> (not P suntil P) \<omega>"
