@@ -49,7 +49,7 @@ the \texttt{GCD} theory. The list of imported theories is followed by the
 \isa{\isacommand{begin}} keyword. In order to interactively process the theory
 shown in \figref{fig:gcd-proof}, we start Isabelle with the command
 \begin{verbatim}
-  isabelle emacs -l HOL-SPARK Greatest_Common_Divisor.thy
+  isabelle jedit -l HOL-SPARK Greatest_Common_Divisor.thy
 \end{verbatim}
 The option ``\texttt{-l HOL-SPARK}'' instructs Isabelle to load the right
 object logic image containing the verification environment. Each proof function
