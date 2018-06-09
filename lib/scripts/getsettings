@@ -102,7 +102,9 @@ fi
 if [ -z "$ML_PLATFORM" ]; then
   ML_IDENTIFIER="$ML_SYSTEM"
 else
-  ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
+  # encode ISABELLE_HOME and L4_ARCH into path to keep images for different
+  # repo checkouts and architectures separate and reduce rebuilds.
+  ML_IDENTIFIER="${L4V_ARCH}${ISABELLE_HOME//\//-}_${ML_SYSTEM}_${ML_PLATFORM}"
 fi
 
 #enforce ISABELLE_OCAMLFIND
