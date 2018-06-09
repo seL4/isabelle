@@ -32,13 +32,10 @@ object Isabelle_System
   def bootstrap_directory(
     preference: String, envar: String, property: String, description: String): String =
   {
-    def check(s: String): Option[String] =
-      if (s != null && s != "") Some(s) else None
-
     val value =
-      check(preference) orElse  // explicit argument
-      check(System.getenv(envar)) orElse  // e.g. inherited from running isabelle tool
-      check(System.getProperty(property)) getOrElse  // e.g. via JVM application boot process
+      proper_string(preference) orElse  // explicit argument
+      proper_string(System.getenv(envar)) orElse  // e.g. inherited from running isabelle tool
+      proper_string(System.getProperty(property)) getOrElse  // e.g. via JVM application boot process
       error("Unknown " + description + " directory")
 
     if ((new JFile(value)).isDirectory) value
