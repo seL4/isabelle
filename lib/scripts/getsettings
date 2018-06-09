@@ -93,6 +93,10 @@ else
   chmod $(umask -S) "$ISABELLE_HOME_USER"
 fi
 
+# encode ISABELLE_HOME and L4_ARCH into path to keep images for different
+# repo checkouts and architectures separate and reduce rebuilds.
+ISABELLE_HEAPS="$ISABELLE_HOME_USER/heaps/${L4V_ARCH}${ISABELLE_HOME//\//-}"
+
 #enforce ISABELLE_OCAMLFIND
 if [ -d "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin" ]; then
   ISABELLE_OCAMLFIND="$ISABELLE_HOME/lib/scripts/ocamlfind"
