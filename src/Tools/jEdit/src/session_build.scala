@@ -68,7 +68,7 @@ object Session_Build
         }
 
       override def theory(session: String, theory: String): Unit =
-        echo(session + ": theory " + theory)
+        echo(Progress.theory_message(session, theory))
 
       override def stopped: Boolean = is_stopped
     }

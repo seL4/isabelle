@@ -10,6 +10,12 @@ package isabelle
 import java.io.{File => JFile}
 
 
+object Progress
+{
+  def theory_message(session: String, theory: String): String =
+    if (session == "") "theory " + theory else session + ": theory " + theory
+}
+
 class Progress
 {
   def echo(msg: String) {}
@@ -51,10 +57,7 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
   }
 
   override def theory(session: String, theory: String): Unit =
-    if (verbose) {
-      if (session == "") echo("theory " + theory)
-      else echo(session + ": theory " + theory)
-    }
+    if (verbose) echo(Progress.theory_message(session, theory))
 
   @volatile private var is_stopped = false
   override def interrupt_handler[A](e: => A): A =
@@ -72,7 +75,7 @@ class File_Progress(path: Path, verbose: Boolean = false) extends Progress
     File.append(path, msg + "\n")
 
   override def theory(session: String, theory: String): Unit =
-    if (verbose) echo(session + ": theory " + theory)
+    if (verbose) echo(Progress.theory_message(session, theory))
 
   override def toString: String = path.toString
 }

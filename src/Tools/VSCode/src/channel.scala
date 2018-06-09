@@ -104,6 +104,6 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
       override def echo_warning(msg: String): Unit = log_warning(msg)
       override def echo_error_message(msg: String): Unit = log_error_message(msg)
       override def theory(session: String, theory: String): Unit =
-        if (verbose) echo(session + ": theory " + theory)
+        if (verbose) echo(Progress.theory_message(session, theory))
     }
 }

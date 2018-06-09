@@ -269,7 +269,7 @@ object Server
     override def echo_warning(msg: String): Unit = context.warning(msg, more:_*)
     override def echo_error_message(msg: String): Unit = context.error_message(msg, more:_*)
     override def theory(session: String, theory: String): Unit =
-      context.writeln(session + ": theory " + theory,
+      context.writeln(Progress.theory_message(session, theory),
         (List("session" -> session, "theory" -> theory) ::: more.toList):_*)
 
     @volatile private var is_stopped = false
