@@ -78,6 +78,10 @@ object Dump
 
   val default_output_dir = Path.explode("dump")
 
+  def make_options(options: Options, aspects: List[Aspect]): Options =
+    (options.int.update("completion_limit", 0).bool.update("ML_statistics", false) /: aspects)(
+      { case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+
   def dump(options: Options, logic: String,
     aspects: List[Aspect] = Nil,
     progress: Progress = No_Progress,
@@ -92,9 +96,7 @@ object Dump
     if (Build.build_logic(options, logic, progress = progress, dirs = dirs,
       system_mode = system_mode) != 0) error(logic + " FAILED")
 
-    val dump_options =
-      (options.int.update("completion_limit", 0).bool.update("ML_statistics", false) /: aspects)(
-        { case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+    val dump_options = make_options(options, aspects)
 
 
     /* dependencies */
