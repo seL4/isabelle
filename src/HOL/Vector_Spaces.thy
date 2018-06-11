@@ -524,7 +524,8 @@ next
 qed
 
 definition dim :: "'b set \<Rightarrow> nat"
-  where "dim V = card (SOME b. independent b \<and> span b = span V)"
+  where "dim V = (if \<exists>b. independent b \<and> span b = span V then
+    card (SOME b. independent b \<and> span b = span V) else 0)"
 
 lemma dim_eq_card:
   assumes BV: "span B = span V" and B: "independent B"
@@ -538,7 +539,8 @@ proof -
   then have "card B = card (SOME B. p B)"
     by (auto intro: bij_betw_same_card)
   then show ?thesis
-    by (simp add: dim_def p_def)
+    using BV B
+    by (auto simp add: dim_def p_def)
 qed
 
 lemma basis_card_eq_dim: "B \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = dim V"
@@ -552,7 +554,7 @@ lemma dim_eq_card_independent: "independent B \<Longrightarrow> dim B = card B"
   by (rule dim_eq_card[OF refl])
 
 lemma dim_span[simp]: "dim (span S) = dim S"
-  by (simp add: dim_def span_span)
+  by (auto simp add: dim_def span_span)
 
 lemma dim_span_eq_card_independent: "independent B \<Longrightarrow> dim (span B) = card B"
   by (simp add: dim_eq_card)
