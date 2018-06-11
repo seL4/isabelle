@@ -14,60 +14,60 @@ type_synonym 'a aa_tree = "('a,nat) tree"
 
 fun lvl :: "'a aa_tree \<Rightarrow> nat" where
 "lvl Leaf = 0" |
-"lvl (Node lv _ _ _) = lv"
+"lvl (Node _ _ lv _) = lv"
 
 fun invar :: "'a aa_tree \<Rightarrow> bool" where
 "invar Leaf = True" |
-"invar (Node h l a r) =
+"invar (Node l a h r) =
  (invar l \<and> invar r \<and>
-  h = lvl l + 1 \<and> (h = lvl r + 1 \<or> (\<exists>lr b rr. r = Node h lr b rr \<and> h = lvl rr + 1)))"
+  h = lvl l + 1 \<and> (h = lvl r + 1 \<or> (\<exists>lr b rr. r = Node lr b h rr \<and> h = lvl rr + 1)))"
 
 fun skew :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
-"skew (Node lva (Node lvb t1 b t2) a t3) =
-  (if lva = lvb then Node lva t1 b (Node lva t2 a t3) else Node lva (Node lvb t1 b t2) a t3)" |
+"skew (Node (Node t1 b lvb t2) a lva t3) =
+  (if lva = lvb then Node t1 b lvb (Node t2 a lva t3) else Node (Node t1 b lvb t2) a lva t3)" |
 "skew t = t"
 
 fun split :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
-"split (Node lva t1 a (Node lvb t2 b (Node lvc t3 c t4))) =
+"split (Node t1 a lva (Node t2 b lvb (Node t3 c lvc t4))) =
    (if lva = lvb \<and> lvb = lvc \<comment> \<open>\<open>lva = lvc\<close> suffices\<close>
-    then Node (lva+1) (Node lva t1 a t2) b (Node lva t3 c t4)
-    else Node lva t1 a (Node lvb t2 b (Node lvc t3 c t4)))" |
+    then Node (Node t1 a lva t2) b (lva+1) (Node t3 c lva t4)
+    else Node t1 a lva (Node t2 b lvb (Node t3 c lvc t4)))" |
 "split t = t"
 
 hide_const (open) insert
 
 fun insert :: "'a::linorder \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
-"insert x Leaf = Node 1 Leaf x Leaf" |
-"insert x (Node lv t1 a t2) =
+"insert x Leaf = Node Leaf x 1 Leaf" |
+"insert x (Node t1 a lv t2) =
   (case cmp x a of
-     LT \<Rightarrow> split (skew (Node lv (insert x t1) a t2)) |
-     GT \<Rightarrow> split (skew (Node lv t1 a (insert x t2))) |
-     EQ \<Rightarrow> Node lv t1 x t2)"
+     LT \<Rightarrow> split (skew (Node (insert x t1) a lv t2)) |
+     GT \<Rightarrow> split (skew (Node t1 a lv (insert x t2))) |
+     EQ \<Rightarrow> Node t1 x lv t2)"
 
 fun sngl :: "'a aa_tree \<Rightarrow> bool" where
 "sngl Leaf = False" |
 "sngl (Node _ _ _ Leaf) = True" |
-"sngl (Node lva _ _ (Node lvb _ _ _)) = (lva > lvb)"
+"sngl (Node _ _ lva (Node _ _ lvb _)) = (lva > lvb)"
 
 definition adjust :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 "adjust t =
  (case t of
-  Node lv l x r \<Rightarrow>
+  Node l x lv r \<Rightarrow>
    (if lvl l >= lv-1 \<and> lvl r >= lv-1 then t else
-    if lvl r < lv-1 \<and> sngl l then skew (Node (lv-1) l x r) else
+    if lvl r < lv-1 \<and> sngl l then skew (Node l x (lv-1) r) else
     if lvl r < lv-1
     then case l of
-           Node lva t1 a (Node lvb t2 b t3)
-             \<Rightarrow> Node (lvb+1) (Node lva t1 a t2) b (Node (lv-1) t3 x r) 
+           Node t1 a lva (Node t2 b lvb t3)
+             \<Rightarrow> Node (Node t1 a lva t2) b (lvb+1) (Node t3 x (lv-1) r) 
     else
-    if lvl r < lv then split (Node (lv-1) l x r)
+    if lvl r < lv then split (Node l x (lv-1) r)
     else
       case r of
-        Node lvb t1 b t4 \<Rightarrow>
+        Node t1 b lvb t4 \<Rightarrow>
           (case t1 of
-             Node lva t2 a t3
-               \<Rightarrow> Node (lva+1) (Node (lv-1) l x t2) a
-                    (split (Node (if sngl t1 then lva else lva+1) t3 b t4)))))"
+             Node t2 a lva t3
+               \<Rightarrow> Node (Node l x (lv-1) t2) a (lva+1)
+                    (split (Node t3 b (if sngl t1 then lva else lva+1) t4)))))"
 
 text\<open>In the paper, the last case of @{const adjust} is expressed with the help of an
 incorrect auxiliary function \texttt{nlvl}.
@@ -78,20 +78,20 @@ element but recurses on the left instead of the right subtree; the invariant
 is not restored.\<close>
 
 fun split_max :: "'a aa_tree \<Rightarrow> 'a aa_tree * 'a" where
-"split_max (Node lv l a Leaf) = (l,a)" |
-"split_max (Node lv l a r) = (let (r',b) = split_max r in (adjust(Node lv l a r'), b))"
+"split_max (Node l a lv Leaf) = (l,a)" |
+"split_max (Node l a lv r) = (let (r',b) = split_max r in (adjust(Node l a lv r'), b))"
 
 fun delete :: "'a::linorder \<Rightarrow> 'a aa_tree \<Rightarrow> 'a aa_tree" where
 "delete _ Leaf = Leaf" |
-"delete x (Node lv l a r) =
+"delete x (Node l a lv r) =
   (case cmp x a of
-     LT \<Rightarrow> adjust (Node lv (delete x l) a r) |
-     GT \<Rightarrow> adjust (Node lv l a (delete x r)) |
+     LT \<Rightarrow> adjust (Node (delete x l) a lv r) |
+     GT \<Rightarrow> adjust (Node l a lv (delete x r)) |
      EQ \<Rightarrow> (if l = Leaf then r
-            else let (l',b) = split_max l in adjust (Node lv l' b r)))"
+            else let (l',b) = split_max l in adjust (Node l' b lv r)))"
 
 fun pre_adjust where
-"pre_adjust (Node lv l a r) = (invar l \<and> invar r \<and>
+"pre_adjust (Node l a lv r) = (invar l \<and> invar r \<and>
     ((lv = lvl l + 1 \<and> (lv = lvl r + 1 \<or> lv = lvl r + 2 \<or> lv = lvl r \<and> sngl r)) \<or>
      (lv = lvl l + 2 \<and> (lv = lvl r + 1 \<or> lv = lvl r \<and> sngl r))))"
 
@@ -100,23 +100,23 @@ declare pre_adjust.simps [simp del]
 subsection "Auxiliary Proofs"
 
 lemma split_case: "split t = (case t of
-  Node lvx a x (Node lvy b y (Node lvz c z d)) \<Rightarrow>
+  Node t1 x lvx (Node t2 y lvy (Node t3 z lvz t4)) \<Rightarrow>
    (if lvx = lvy \<and> lvy = lvz
-    then Node (lvx+1) (Node lvx a x b) y (Node lvx c z d)
+    then Node (Node t1 x lvx t2) y (lvx+1) (Node t3 z lvx t4)
     else t)
   | t \<Rightarrow> t)"
 by(auto split: tree.split)
 
 lemma skew_case: "skew t = (case t of
-  Node lvx (Node lvy a y b) x c \<Rightarrow>
-  (if lvx = lvy then Node lvx a y (Node lvx b x c) else t)
+  Node (Node t1 y lvy t2) x lvx t3 \<Rightarrow>
+  (if lvx = lvy then Node t1 y lvx (Node t2 x lvx t3) else t)
  | t \<Rightarrow> t)"
 by(auto split: tree.split)
 
 lemma lvl_0_iff: "invar t \<Longrightarrow> lvl t = 0 \<longleftrightarrow> t = Leaf"
 by(cases t) auto
 
-lemma lvl_Suc_iff: "lvl t = Suc n \<longleftrightarrow> (\<exists> l a r. t = Node (Suc n) l a r)"
+lemma lvl_Suc_iff: "lvl t = Suc n \<longleftrightarrow> (\<exists> l a r. t = Node l a (Suc n) r)"
 by(cases t) auto
 
 lemma lvl_skew: "lvl (skew t) = lvl t"
@@ -125,16 +125,16 @@ by(cases t rule: skew.cases) auto
 lemma lvl_split: "lvl (split t) = lvl t \<or> lvl (split t) = lvl t + 1 \<and> sngl (split t)"
 by(cases t rule: split.cases) auto
 
-lemma invar_2Nodes:"invar (Node lv l x (Node rlv rl rx rr)) =
-     (invar l \<and> invar \<langle>rlv, rl, rx, rr\<rangle> \<and> lv = Suc (lvl l) \<and>
+lemma invar_2Nodes:"invar (Node l x lv (Node rl rx rlv rr)) =
+     (invar l \<and> invar \<langle>rl, rx, rlv, rr\<rangle> \<and> lv = Suc (lvl l) \<and>
      (lv = Suc rlv \<or> rlv = lv \<and> lv = Suc (lvl rr)))"
 by simp
 
 lemma invar_NodeLeaf[simp]:
-  "invar (Node lv l x Leaf) = (invar l \<and> lv = Suc (lvl l) \<and> lv = Suc 0)"
+  "invar (Node l x lv Leaf) = (invar l \<and> lv = Suc (lvl l) \<and> lv = Suc 0)"
 by simp
 
-lemma sngl_if_invar: "invar (Node n l a r) \<Longrightarrow> n = lvl r \<Longrightarrow> sngl r"
+lemma sngl_if_invar: "invar (Node l a n r) \<Longrightarrow> n = lvl r \<Longrightarrow> sngl r"
 by(cases r rule: sngl.cases) clarsimp+
 
 
@@ -156,7 +156,7 @@ using lvl_insert_aux by blast
 
 lemma lvl_insert_sngl: "invar t \<Longrightarrow> sngl t \<Longrightarrow> lvl(insert x t) = lvl t"
 proof (induction t rule: insert.induct)
-  case (2 x lv t1 a t2)
+  case (2 x t1 a lv t2)
   consider (LT) "x < a" | (GT) "x > a" | (EQ) "x = a" 
     using less_linear by blast 
   thus ?case proof cases
@@ -180,20 +180,20 @@ lemma split_invar: "invar t \<Longrightarrow> split t = t"
 by(cases t rule: split.cases) clarsimp+
 
 lemma invar_NodeL:
-  "\<lbrakk> invar(Node n l x r); invar l'; lvl l' = lvl l \<rbrakk> \<Longrightarrow> invar(Node n l' x r)"
+  "\<lbrakk> invar(Node l x n r); invar l'; lvl l' = lvl l \<rbrakk> \<Longrightarrow> invar(Node l' x n r)"
 by(auto)
 
 lemma invar_NodeR:
-  "\<lbrakk> invar(Node n l x r); n = lvl r + 1; invar r'; lvl r' = lvl r \<rbrakk> \<Longrightarrow> invar(Node n l x r')"
+  "\<lbrakk> invar(Node l x n r); n = lvl r + 1; invar r'; lvl r' = lvl r \<rbrakk> \<Longrightarrow> invar(Node l x n r')"
 by(auto)
 
 lemma invar_NodeR2:
-  "\<lbrakk> invar(Node n l x r); sngl r'; n = lvl r + 1; invar r'; lvl r' = n \<rbrakk> \<Longrightarrow> invar(Node n l x r')"
+  "\<lbrakk> invar(Node l x n r); sngl r'; n = lvl r + 1; invar r'; lvl r' = n \<rbrakk> \<Longrightarrow> invar(Node l x n r')"
 by(cases r' rule: sngl.cases) clarsimp+
 
 
 lemma lvl_insert_incr_iff: "(lvl(insert a t) = lvl t + 1) \<longleftrightarrow>
-  (\<exists>l x r. insert a t = Node (lvl t + 1) l x r \<and> lvl l = lvl r)"
+  (\<exists>l x r. insert a t = Node l x (lvl t + 1) r \<and> lvl l = lvl r)"
 apply(cases t)
 apply(auto simp add: skew_case split_case split: if_splits)
 apply(auto split: tree.splits if_splits)
@@ -201,11 +201,11 @@ done
 
 lemma invar_insert: "invar t \<Longrightarrow> invar(insert a t)"
 proof(induction t)
-  case N: (Node n l x r)
+  case N: (Node l x n r)
   hence il: "invar l" and ir: "invar r" by auto
   note iil = N.IH(1)[OF il]
   note iir = N.IH(2)[OF ir]
-  let ?t = "Node n l x r"
+  let ?t = "Node l x n r"
   have "a < x \<or> a = x \<or> x < a" by auto
   moreover
   have ?case if "a < x"
@@ -215,13 +215,13 @@ proof(induction t)
       by (simp add: skew_invar split_invar del: invar.simps)
   next
     case (Incr)
-    then obtain t1 w t2 where ial[simp]: "insert a l = Node n t1 w t2"
+    then obtain t1 w t2 where ial[simp]: "insert a l = Node t1 w n t2"
       using N.prems by (auto simp: lvl_Suc_iff)
     have l12: "lvl t1 = lvl t2"
       by (metis Incr(1) ial lvl_insert_incr_iff tree.inject)
-    have "insert a ?t = split(skew(Node n (insert a l) x r))"
+    have "insert a ?t = split(skew(Node (insert a l) x n r))"
       by(simp add: \<open>a<x\<close>)
-    also have "skew(Node n (insert a l) x r) = Node n t1 w (Node n t2 x r)"
+    also have "skew(Node (insert a l) x n r) = Node t1 w n (Node t2 x n r)"
       by(simp)
     also have "invar(split \<dots>)"
     proof (cases r)
@@ -229,7 +229,7 @@ proof(induction t)
       hence "l = Leaf" using N.prems by(auto simp: lvl_0_iff)
       thus ?thesis using Leaf ial by simp
     next
-      case [simp]: (Node m t3 y t4)
+      case [simp]: (Node t3 y m t4)
       show ?thesis (*using N(3) iil l12 by(auto)*)
       proof cases
         assume "m = n" thus ?thesis using N(3) iil by(auto)
@@ -246,14 +246,14 @@ proof(induction t)
     thus ?case
     proof
       assume 0: "n = lvl r"
-      have "insert a ?t = split(skew(Node n l x (insert a r)))"
+      have "insert a ?t = split(skew(Node l x n (insert a r)))"
         using \<open>a>x\<close> by(auto)
-      also have "skew(Node n l x (insert a r)) = Node n l x (insert a r)"
+      also have "skew(Node l x n (insert a r)) = Node l x n (insert a r)"
         using N.prems by(simp add: skew_case split: tree.split)
       also have "invar(split \<dots>)"
       proof -
         from lvl_insert_sngl[OF ir sngl_if_invar[OF \<open>invar ?t\<close> 0], of a]
-        obtain t1 y t2 where iar: "insert a r = Node n t1 y t2"
+        obtain t1 y t2 where iar: "insert a r = Node t1 y n t2"
           using N.prems 0 by (auto simp: lvl_Suc_iff)
         from N.prems iar 0 iir
         show ?thesis by (auto simp: split_case split: tree.splits)
@@ -282,21 +282,21 @@ qed simp
 
 subsubsection "Proofs for delete"
 
-lemma invarL: "ASSUMPTION(invar \<langle>lv, l, a, r\<rangle>) \<Longrightarrow> invar l"
+lemma invarL: "ASSUMPTION(invar \<langle>l, a, lv, r\<rangle>) \<Longrightarrow> invar l"
 by(simp add: ASSUMPTION_def)
 
 lemma invarR: "ASSUMPTION(invar \<langle>lv, l, a, r\<rangle>) \<Longrightarrow> invar r"
 by(simp add: ASSUMPTION_def)
 
 lemma sngl_NodeI:
-  "sngl (Node lv l a r) \<Longrightarrow> sngl (Node lv l' a' r)"
+  "sngl (Node l a lv r) \<Longrightarrow> sngl (Node l' a' lv r)"
 by(cases r) (simp_all)
 
 
 declare invarL[simp] invarR[simp]
 
 lemma pre_cases:
-assumes "pre_adjust (Node lv l x r)"
+assumes "pre_adjust (Node l x lv r)"
 obtains
  (tSngl) "invar l \<and> invar r \<and>
     lv = Suc (lvl r) \<and> lvl l = lvl r" |
@@ -314,38 +314,38 @@ by auto
 declare invar.simps(2)[simp del] invar_2Nodes[simp add]
 
 lemma invar_adjust:
-  assumes pre: "pre_adjust (Node lv l a r)"
-  shows  "invar(adjust (Node lv l a r))"
+  assumes pre: "pre_adjust (Node l a lv r)"
+  shows  "invar(adjust (Node l a lv r))"
 using pre proof (cases rule: pre_cases)
   case (tDouble) thus ?thesis unfolding adjust_def by (cases r) (auto simp: invar.simps(2)) 
 next 
   case (rDown)
-  from rDown obtain llv ll la lr where l: "l = Node llv ll la lr" by (cases l) auto
+  from rDown obtain llv ll la lr where l: "l = Node ll la llv lr" by (cases l) auto
   from rDown show ?thesis unfolding adjust_def by (auto simp: l invar.simps(2) split: tree.splits)
 next
   case (lDown_tDouble)
-  from lDown_tDouble obtain rlv rr ra rl where r: "r = Node rlv rl ra rr" by (cases r) auto
+  from lDown_tDouble obtain rlv rr ra rl where r: "r = Node rl ra rlv rr" by (cases r) auto
   from lDown_tDouble and r obtain rrlv rrr rra rrl where
-    rr :"rr = Node rrlv rrr rra rrl" by (cases rr) auto
+    rr :"rr = Node rrr rra rrlv rrl" by (cases rr) auto
   from  lDown_tDouble show ?thesis unfolding adjust_def r rr
     apply (cases rl) apply (auto simp add: invar.simps(2) split!: if_split)
     using lDown_tDouble by (auto simp: split_case lvl_0_iff  elim:lvl.elims split: tree.split)
 qed (auto simp: split_case invar.simps(2) adjust_def split: tree.splits)
 
 lemma lvl_adjust:
-  assumes "pre_adjust (Node lv l a r)"
-  shows "lv = lvl (adjust(Node lv l a r)) \<or> lv = lvl (adjust(Node lv l a r)) + 1"
+  assumes "pre_adjust (Node l a lv r)"
+  shows "lv = lvl (adjust(Node l a lv r)) \<or> lv = lvl (adjust(Node l a lv r)) + 1"
 using assms(1) proof(cases rule: pre_cases)
   case lDown_tSngl thus ?thesis
-    using lvl_split[of "\<langle>lvl r, l, a, r\<rangle>"] by (auto simp: adjust_def)
+    using lvl_split[of "\<langle>l, a, lvl r, r\<rangle>"] by (auto simp: adjust_def)
 next
   case lDown_tDouble thus ?thesis
     by (auto simp: adjust_def invar.simps(2) split: tree.split)
 qed (auto simp: adjust_def split: tree.splits)
 
-lemma sngl_adjust: assumes "pre_adjust (Node lv l a r)"
-  "sngl \<langle>lv, l, a, r\<rangle>" "lv = lvl (adjust \<langle>lv, l, a, r\<rangle>)"
-  shows "sngl (adjust \<langle>lv, l, a, r\<rangle>)" 
+lemma sngl_adjust: assumes "pre_adjust (Node l a lv r)"
+  "sngl \<langle>l, a, lv, r\<rangle>" "lv = lvl (adjust \<langle>l, a, lv, r\<rangle>)"
+  shows "sngl (adjust \<langle>l, a, lv, r\<rangle>)" 
 using assms proof (cases rule: pre_cases)
   case rDown
   thus ?thesis using assms(2,3) unfolding adjust_def
@@ -363,13 +363,13 @@ by(cases "sngl r")
   (auto simp: pre_adjust.simps post_del_def invar.simps(2) elim: sngl.elims)
 
 lemma pre_adj_if_postL:
-  "invar\<langle>lv, l, a, r\<rangle> \<Longrightarrow> post_del l l' \<Longrightarrow> pre_adjust \<langle>lv, l', b, r\<rangle>"
+  "invar\<langle>l, a, lv, r\<rangle> \<Longrightarrow> post_del l l' \<Longrightarrow> pre_adjust \<langle>l', b, lv, r\<rangle>"
 by(cases "sngl r")
   (auto simp: pre_adjust.simps post_del_def invar.simps(2) elim: sngl.elims)
 
 lemma post_del_adjL:
-  "\<lbrakk> invar\<langle>lv, l, a, r\<rangle>; pre_adjust \<langle>lv, l', b, r\<rangle> \<rbrakk>
-  \<Longrightarrow> post_del \<langle>lv, l, a, r\<rangle> (adjust \<langle>lv, l', b, r\<rangle>)"
+  "\<lbrakk> invar\<langle>l, a, lv, r\<rangle>; pre_adjust \<langle>l', b, lv, r\<rangle> \<rbrakk>
+  \<Longrightarrow> post_del \<langle>l, a, lv, r\<rangle> (adjust \<langle>l', b, lv, r\<rangle>)"
 unfolding post_del_def
 by (metis invar_adjust lvl_adjust sngl_NodeI sngl_adjust lvl.simps(2))
 
@@ -412,10 +412,10 @@ qed (auto simp: post_del_def)
 
 theorem post_delete: "invar t \<Longrightarrow> post_del t (delete x t)"
 proof (induction t)
-  case (Node lv l a r)
+  case (Node l a lv r)
 
   let ?l' = "delete x l" and ?r' = "delete x r"
-  let ?t = "Node lv l a r" let ?t' = "delete x ?t"
+  let ?t = "Node l a lv r" let ?t' = "delete x ?t"
 
   from Node.prems have inv_l: "invar l" and inv_r: "invar r" by (auto)
 

@@ -11,7 +11,7 @@ begin
 
 fun isin :: "('a::linorder,'b) tree \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
-"isin (Node _ l a r) x =
+"isin (Node l a _ r) x =
   (case cmp x a of
      LT \<Rightarrow> isin l x |
      EQ \<Rightarrow> True |

@@ -9,16 +9,16 @@ imports
 begin
 
 fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
-"update x y Leaf = Node 1 Leaf (x,y) Leaf" |
-"update x y (Node h l (a,b) r) = (case cmp x a of
-   EQ \<Rightarrow> Node h l (x,y) r |
+"update x y Leaf = Node Leaf (x,y) 1 Leaf" |
+"update x y (Node l (a,b) h r) = (case cmp x a of
+   EQ \<Rightarrow> Node l (x,y) h r |
    LT \<Rightarrow> balL (update x y l) (a,b) r |
    GT \<Rightarrow> balR l (a,b) (update x y r))"
 
 fun delete :: "'a::linorder \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
 "delete _ Leaf = Leaf" |
-"delete x (Node h l (a,b) r) = (case cmp x a of
-   EQ \<Rightarrow> del_root (Node h l (a,b) r) |
+"delete x (Node l (a,b) h r) = (case cmp x a of
+   EQ \<Rightarrow> del_root (Node l (a,b) h r) |
    LT \<Rightarrow> balR (delete x l) (a,b) r |
    GT \<Rightarrow> balL l (a,b) (delete x r))"
 
