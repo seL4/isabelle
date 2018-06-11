@@ -1431,7 +1431,7 @@ lemma prodinf_exp_real:
 
 subsection\<open>Embeddings from the reals into some complete real normed field\<close>
 
-lemma tendsto_of_real:
+lemma tendsto_eq_of_real_lim:
   assumes "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) \<longlonglongrightarrow> q"
   shows "q = of_real (lim f)"
 proof -
@@ -1444,10 +1444,10 @@ proof -
     by (metis LIMSEQ_unique assms convergentD sequentially_bot tendsto_Lim tendsto_of_real)
 qed
 
-lemma tendsto_of_real':
+lemma tendsto_eq_of_real:
   assumes "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) \<longlonglongrightarrow> q"
   obtains r where "q = of_real r"
-  using tendsto_of_real assms by blast
+  using tendsto_eq_of_real_lim assms by blast
 
 lemma has_prod_of_real_iff:
   "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) has_prod of_real c \<longleftrightarrow> f has_prod c"
@@ -1456,7 +1456,7 @@ proof
   assume ?lhs
   then show ?rhs
     apply (auto simp: prod_defs LIMSEQ_prod_0 tendsto_of_real_iff simp flip: of_real_prod)
-    using tendsto_of_real'
+    using tendsto_eq_of_real
     by (metis of_real_0 tendsto_of_real_iff)
 next
   assume ?rhs
