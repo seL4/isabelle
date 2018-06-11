@@ -10,8 +10,8 @@ datatype color = Red | Black
 
 type_synonym 'a rbt = "('a,color)tree"
 
-abbreviation R where "R l a r \<equiv> Node Red l a r"
-abbreviation B where "B l a r \<equiv> Node Black l a r"
+abbreviation R where "R l a r \<equiv> Node l a Red r"
+abbreviation B where "B l a r \<equiv> Node l a Black r"
 
 fun baliL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "baliL (R (R t1 a1 t2) a2 t3) a3 t4 = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
@@ -25,7 +25,7 @@ fun baliR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt"
 
 fun paint :: "color \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "paint c Leaf = Leaf" |
-"paint c (Node _ l a r) = Node c l a r"
+"paint c (Node l a _ r) = Node l a c r"
 
 fun baldL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "baldL (R t1 x t2) y t3 = R (B t1 x t2) y t3" |

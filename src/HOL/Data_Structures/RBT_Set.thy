@@ -28,11 +28,11 @@ definition insert :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" wh
 
 fun color :: "'a rbt \<Rightarrow> color" where
 "color Leaf = Black" |
-"color (Node c _ _ _) = c"
+"color (Node _ _ c _) = c"
 
 fun del :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "del x Leaf = Leaf" |
-"del x (Node _ l a r) =
+"del x (Node l a _ r) =
   (case cmp x a of
      LT \<Rightarrow> if l \<noteq> Leaf \<and> color l = Black
            then baldL (del x l) a r else R (del x l) a r |
@@ -97,20 +97,20 @@ text\<open>The proofs are due to Markus Reiter and Alexander Krauss.\<close>
 
 fun bheight :: "'a rbt \<Rightarrow> nat" where
 "bheight Leaf = 0" |
-"bheight (Node c l x r) = (if c = Black then bheight l + 1 else bheight l)"
+"bheight (Node l x c r) = (if c = Black then bheight l + 1 else bheight l)"
 
 fun invc :: "'a rbt \<Rightarrow> bool" where
 "invc Leaf = True" |
-"invc (Node c l a r) =
+"invc (Node l a c r) =
   (invc l \<and> invc r \<and> (c = Red \<longrightarrow> color l = Black \<and> color r = Black))"
 
 fun invc2 :: "'a rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close> where
 "invc2 Leaf = True" |
-"invc2 (Node c l a r) = (invc l \<and> invc r)"
+"invc2 (Node l a c r) = (invc l \<and> invc r)"
 
 fun invh :: "'a rbt \<Rightarrow> bool" where
 "invh Leaf = True" |
-"invh (Node c l x r) = (invh l \<and> invh r \<and> bheight l = bheight r)"
+"invh (Node l x c r) = (invh l \<and> invh r \<and> bheight l = bheight r)"
 
 lemma invc2I: "invc t \<Longrightarrow> invc2 t"
 by (cases t) simp+
@@ -232,7 +232,7 @@ lemma del_invc_invh: "invh t \<Longrightarrow> invc t \<Longrightarrow> invh (de
    (color t = Red \<and> bheight (del x t) = bheight t \<and> invc (del x t) \<or>
     color t = Black \<and> bheight (del x t) = bheight t - 1 \<and> invc2 (del x t))"
 proof (induct x t rule: del.induct)
-case (2 x c _ y)
+case (2 x _ y c)
   have "x = y \<or> x < y \<or> x > y" by auto
   thus ?case proof (elim disjE)
     assume "x = y"

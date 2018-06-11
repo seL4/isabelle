@@ -28,7 +28,7 @@ assumes bst_join:
   \<Longrightarrow> bst (join l a r)"
 assumes inv_Leaf: "inv \<langle>\<rangle>"
 assumes inv_join: "\<lbrakk> inv l; inv r \<rbrakk> \<Longrightarrow> inv (join l k r)"
-assumes inv_Node: "\<lbrakk> inv (Node h l x r) \<rbrakk> \<Longrightarrow> inv l \<and> inv r"
+assumes inv_Node: "\<lbrakk> inv (Node l x h r) \<rbrakk> \<Longrightarrow> inv l \<and> inv r"
 begin
 
 declare set_join [simp]
@@ -36,7 +36,7 @@ declare set_join [simp]
 subsection "\<open>split_min\<close>"
 
 fun split_min :: "('a,'b) tree \<Rightarrow> 'a \<times> ('a,'b) tree" where
-"split_min (Node _ l x r) =
+"split_min (Node l x _ r) =
   (if l = Leaf then (x,r) else let (m,l') = split_min l in (m, join l' x r))"
 
 lemma split_min_set:
@@ -84,7 +84,7 @@ subsection "\<open>split\<close>"
 
 fun split :: "('a,'b)tree \<Rightarrow> 'a \<Rightarrow> ('a,'b)tree \<times> bool \<times> ('a,'b)tree" where
 "split Leaf k = (Leaf, False, Leaf)" |
-"split (Node _ l a r) k =
+"split (Node l a _ r) k =
   (if k < a then let (l1,b,l2) = split l k in (l1, b, join l2 a r) else
    if a < k then let (r1,b,r2) = split r k in (join l a r1, b, r2)
    else (l, True, r))"
@@ -145,7 +145,7 @@ fun union :: "('a,'b)tree \<Rightarrow> ('a,'b)tree \<Rightarrow> ('a,'b)tree" w
 "union t1 t2 =
   (if t1 = Leaf then t2 else
    if t2 = Leaf then t1 else
-   case t1 of Node _ l1 k r1 \<Rightarrow>
+   case t1 of Node l1 k _ r1 \<Rightarrow>
    let (l2,_ ,r2) = split t2 k;
        l' = union l1 l2; r' = union r1 r2
    in join l' k r')"
@@ -181,7 +181,7 @@ fun inter :: "('a,'b)tree \<Rightarrow> ('a,'b)tree \<Rightarrow> ('a,'b)tree" w
 "inter t1 t2 =
   (if t1 = Leaf then Leaf else
    if t2 = Leaf then Leaf else
-   case t1 of Node _ l1 k r1 \<Rightarrow>
+   case t1 of Node l1 k _ r1 \<Rightarrow>
    let (l2,kin,r2) = split t2 k;
        l' = inter l1 l2; r' = inter r1 r2
    in if kin then join l' k r' else join2 l' r')"
@@ -196,7 +196,7 @@ proof(induction t1 t2 rule: inter.induct)
   proof (cases t1)
     case Leaf thus ?thesis by (simp add: inter.simps)
   next
-    case [simp]: (Node _ l1 k r1)
+    case [simp]: (Node l1 k _ r1)
     show ?thesis
     proof (cases "t2 = Leaf")
       case True thus ?thesis by (simp add: inter.simps)
@@ -246,7 +246,7 @@ fun diff :: "('a,'b)tree \<Rightarrow> ('a,'b)tree \<Rightarrow> ('a,'b)tree" wh
 "diff t1 t2 =
   (if t1 = Leaf then Leaf else
    if t2 = Leaf then t1 else
-   case t2 of Node _ l2 k r2 \<Rightarrow>
+   case t2 of Node l2 k _ r2 \<Rightarrow>
    let (l1,_,r1) = split t1 k;
        l' = diff l1 l2; r' = diff r1 r2
    in join2 l' r')"
@@ -261,7 +261,7 @@ proof(induction t1 t2 rule: diff.induct)
   proof (cases t2)
     case Leaf thus ?thesis by (simp add: diff.simps)
   next
-    case [simp]: (Node _ l2 k r2)
+    case [simp]: (Node l2 k _ r2)
     show ?thesis
     proof (cases "t1 = Leaf")
       case True thus ?thesis by (simp add: diff.simps)
@@ -341,7 +341,7 @@ qed
 end
 
 interpretation unbal: Set2_Join
-where join = "\<lambda>l x r. Node () l x r" and inv = "\<lambda>t. True"
+where join = "\<lambda>l x r. Node l x () r" and inv = "\<lambda>t. True"
 proof (standard, goal_cases)
   case 1 show ?case by simp
 next

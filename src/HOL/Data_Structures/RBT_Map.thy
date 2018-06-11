@@ -27,7 +27,7 @@ and delL :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightar
 and delR :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
 where
 "del x Leaf = Leaf" |
-"del x (Node c t1 (a,b) t2) = (case cmp x a of
+"del x (Node t1 (a,b) c t2) = (case cmp x a of
   LT \<Rightarrow> delL x t1 (a,b) t2 |
   GT \<Rightarrow> delR x t1 (a,b) t2 |
   EQ \<Rightarrow> combine t1 t2)" |

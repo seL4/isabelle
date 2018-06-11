@@ -11,7 +11,7 @@ begin
 
 fun lookup :: "('a::linorder * 'b, 'c) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
-"lookup (Node _ l (a,b) r) x =
+"lookup (Node l (a,b) _ r) x =
   (case cmp x a of LT \<Rightarrow> lookup l x | GT \<Rightarrow> lookup r x | EQ \<Rightarrow> Some b)"
 
 lemma lookup_map_of:
