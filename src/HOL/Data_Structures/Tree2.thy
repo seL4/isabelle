@@ -33,4 +33,7 @@ by (simp_all add: size1_def)
 lemma size1_ge0[simp]: "0 < size1 t"
 by (simp add: size1_def)
 
+lemma finite_set_tree[simp]: "finite(set_tree t)"
+by(induction t) auto
+
 end
