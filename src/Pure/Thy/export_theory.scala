@@ -40,7 +40,8 @@ object Export_Theory
       {
         db.transaction {
           Export.read_theory_names(db, session_name).map((theory_name: String) =>
-            read_theory(db, session_name, theory_name, types = types, consts = consts,
+            read_theory(Export.Provider.database(db, session_name, theory_name),
+              session_name, theory_name, types = types, consts = consts,
               axioms = axioms, facts = facts, classes = classes, typedefs = typedefs,
               cache = Some(cache)))
         }
@@ -90,7 +91,7 @@ object Export_Theory
   def empty_theory(name: String): Theory =
     Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
 
-  def read_theory(db: SQL.Database, session_name: String, theory_name: String,
+  def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
     types: Boolean = true,
     consts: Boolean = true,
     axioms: Boolean = true,
@@ -102,7 +103,7 @@ object Export_Theory
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
-      Export.read_entry(db, session_name, theory_name, export_prefix + "parents") match {
+      provider(export_prefix + "parents") match {
         case Some(entry) => split_lines(entry.uncompressed().text)
         case None =>
           error("Missing theory export in session " + quote(session_name) + ": " +
@@ -110,14 +111,14 @@ object Export_Theory
       }
     val theory =
       Theory(theory_name, parents,
-        if (types) read_types(db, session_name, theory_name) else Nil,
-        if (consts) read_consts(db, session_name, theory_name) else Nil,
-        if (axioms) read_axioms(db, session_name, theory_name) else Nil,
-        if (facts) read_facts(db, session_name, theory_name) else Nil,
-        if (classes) read_classes(db, session_name, theory_name) else Nil,
-        if (typedefs) read_typedefs(db, session_name, theory_name) else Nil,
-        if (classrel) read_classrel(db, session_name, theory_name) else Nil,
-        if (arities) read_arities(db, session_name, theory_name) else Nil)
+        if (types) read_types(provider) else Nil,
+        if (consts) read_consts(provider) else Nil,
+        if (axioms) read_axioms(provider) else Nil,
+        if (facts) read_facts(provider) else Nil,
+        if (classes) read_classes(provider) else Nil,
+        if (typedefs) read_typedefs(provider) else Nil,
+        if (classrel) read_classrel(provider) else Nil,
+        if (arities) read_arities(provider) else Nil)
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
@@ -146,22 +147,6 @@ object Export_Theory
     }
   }
 
-  def read_export[A](db: SQL.Database, session_name: String, theory_name: String,
-    export_name: String, decode: XML.Body => List[A]): List[A] =
-  {
-    Export.read_entry(db, session_name, theory_name, export_prefix + export_name) match {
-      case Some(entry) => decode(entry.uncompressed_yxml())
-      case None => Nil
-    }
-  }
-
-  def read_entities[A](db: SQL.Database, session_name: String, theory_name: String,
-    export_name: String, decode: XML.Tree => A): List[A] =
-  {
-    read_export(db, session_name, theory_name, export_name,
-      (body: XML.Body) => body.map(decode(_)))
-  }
-
 
   /* types */
 
@@ -173,18 +158,17 @@ object Export_Theory
         abbrev.map(cache.typ(_)))
   }
 
-  def read_types(db: SQL.Database, session_name: String, theory_name: String): List[Type] =
-    read_entities(db, session_name, theory_name, "types",
-      (tree: XML.Tree) =>
+  def read_types(provider: Export.Provider): List[Type] =
+    provider.uncompressed_yxml(export_prefix + "types").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(tree)
+        val (args, abbrev) =
         {
-          val (entity, body) = decode_entity(tree)
-          val (args, abbrev) =
-          {
-            import XML.Decode._
-            pair(list(string), option(Term_XML.Decode.typ))(body)
-          }
-          Type(entity, args, abbrev)
-        })
+          import XML.Decode._
+          pair(list(string), option(Term_XML.Decode.typ))(body)
+        }
+        Type(entity, args, abbrev)
+      })
 
 
   /* consts */
@@ -199,18 +183,17 @@ object Export_Theory
         abbrev.map(cache.term(_)))
   }
 
-  def read_consts(db: SQL.Database, session_name: String, theory_name: String): List[Const] =
-    read_entities(db, session_name, theory_name, "consts",
-      (tree: XML.Tree) =>
+  def read_consts(provider: Export.Provider): List[Const] =
+    provider.uncompressed_yxml(export_prefix + "consts").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(tree)
+        val (args, typ, abbrev) =
         {
-          val (entity, body) = decode_entity(tree)
-          val (args, typ, abbrev) =
-          {
-            import XML.Decode._
-            triple(list(string), Term_XML.Decode.typ, option(Term_XML.Decode.term))(body)
-          }
-          Const(entity, args, typ, abbrev)
-        })
+          import XML.Decode._
+          triple(list(string), Term_XML.Decode.typ, option(Term_XML.Decode.term))(body)
+        }
+        Const(entity, args, typ, abbrev)
+      })
 
 
   /* axioms and facts */
@@ -236,14 +219,13 @@ object Export_Theory
         cache.term(prop))
   }
 
-  def read_axioms(db: SQL.Database, session_name: String, theory_name: String): List[Axiom] =
-    read_entities(db, session_name, theory_name, "axioms",
-      (tree: XML.Tree) =>
-        {
-          val (entity, body) = decode_entity(tree)
-          val (typargs, args, List(prop)) = decode_props(body)
-          Axiom(entity, typargs, args, prop)
-        })
+  def read_axioms(provider: Export.Provider): List[Axiom] =
+    provider.uncompressed_yxml(export_prefix + "axioms").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(tree)
+        val (typargs, args, List(prop)) = decode_props(body)
+        Axiom(entity, typargs, args, prop)
+      })
 
   sealed case class Fact(
     entity: Entity,
@@ -258,14 +240,13 @@ object Export_Theory
         props.map(cache.term(_)))
   }
 
-  def read_facts(db: SQL.Database, session_name: String, theory_name: String): List[Fact] =
-    read_entities(db, session_name, theory_name, "facts",
-      (tree: XML.Tree) =>
-        {
-          val (entity, body) = decode_entity(tree)
-          val (typargs, args, props) = decode_props(body)
-          Fact(entity, typargs, args, props)
-        })
+  def read_facts(provider: Export.Provider): List[Fact] =
+    provider.uncompressed_yxml(export_prefix + "facts").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(tree)
+        val (typargs, args, props) = decode_props(body)
+        Fact(entity, typargs, args, props)
+      })
 
 
   /* type classes */
@@ -279,19 +260,18 @@ object Export_Theory
         axioms.map(cache.term(_)))
   }
 
-  def read_classes(db: SQL.Database, session_name: String, theory_name: String): List[Class] =
-    read_entities(db, session_name, theory_name, "classes",
-      (tree: XML.Tree) =>
+  def read_classes(provider: Export.Provider): List[Class] =
+    provider.uncompressed_yxml(export_prefix + "classes").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(tree)
+        val (params, axioms) =
         {
-          val (entity, body) = decode_entity(tree)
-          val (params, axioms) =
-          {
-            import XML.Decode._
-            import Term_XML.Decode._
-            pair(list(pair(string, typ)), list(term))(body)
-          }
-          Class(entity, params, axioms)
-        })
+          import XML.Decode._
+          import Term_XML.Decode._
+          pair(list(pair(string, typ)), list(term))(body)
+        }
+        Class(entity, params, axioms)
+      })
 
 
   /* sort algebra */
@@ -302,17 +282,16 @@ object Export_Theory
       Classrel(cache.string(class_name), super_names.map(cache.string(_)))
   }
 
-  def read_classrel(db: SQL.Database, session_name: String, theory_name: String): List[Classrel] =
-    read_export(db, session_name, theory_name, "classrel",
-      (body: XML.Body) =>
-        {
-          val classrel =
-          {
-            import XML.Decode._
-            list(pair(string, list(string)))(body)
-          }
-          for ((c, cs) <- classrel) yield Classrel(c, cs)
-        })
+  def read_classrel(provider: Export.Provider): List[Classrel] =
+  {
+    val body = provider.uncompressed_yxml(export_prefix + "classrel")
+    val classrel =
+    {
+      import XML.Decode._
+      list(pair(string, list(string)))(body)
+    }
+    for ((c, cs) <- classrel) yield Classrel(c, cs)
+  }
 
   sealed case class Arity(type_name: String, domain: List[Term.Sort], codomain: String)
   {
@@ -320,18 +299,17 @@ object Export_Theory
       Arity(cache.string(type_name), domain.map(cache.sort(_)), cache.string(codomain))
   }
 
-  def read_arities(db: SQL.Database, session_name: String, theory_name: String): List[Arity] =
-    read_export(db, session_name, theory_name, "arities",
-      (body: XML.Body) =>
-        {
-          val arities =
-          {
-            import XML.Decode._
-            import Term_XML.Decode._
-            list(triple(string, list(sort), string))(body)
-          }
-          for ((a, b, c) <- arities) yield Arity(a, b, c)
-        })
+  def read_arities(provider: Export.Provider): List[Arity] =
+  {
+    val body = provider.uncompressed_yxml(export_prefix + "arities")
+    val arities =
+    {
+      import XML.Decode._
+      import Term_XML.Decode._
+      list(triple(string, list(sort), string))(body)
+    }
+    for ((a, b, c) <- arities) yield Arity(a, b, c)
+  }
 
 
   /* HOL typedefs */
@@ -348,17 +326,16 @@ object Export_Theory
         cache.string(axiom_name))
   }
 
-  def read_typedefs(db: SQL.Database, session_name: String, theory_name: String): List[Typedef] =
-    read_export(db, session_name, theory_name, "typedefs",
-      (body: XML.Body) =>
-        {
-          val typedefs =
-          {
-            import XML.Decode._
-            import Term_XML.Decode._
-            list(pair(string, pair(typ, pair(typ, pair(string, pair(string, string))))))(body)
-          }
-          for { (name, (rep_type, (abs_type, (rep_name, (abs_name, axiom_name))))) <- typedefs }
-          yield Typedef(name, rep_type, abs_type, rep_name, abs_name, axiom_name)
-        })
+  def read_typedefs(provider: Export.Provider): List[Typedef] =
+  {
+    val body = provider.uncompressed_yxml(export_prefix + "typedefs")
+    val typedefs =
+    {
+      import XML.Decode._
+      import Term_XML.Decode._
+      list(pair(string, pair(typ, pair(typ, pair(string, pair(string, string))))))(body)
+    }
+    for { (name, (rep_type, (abs_type, (rep_name, (abs_name, axiom_name))))) <- typedefs }
+    yield Typedef(name, rep_type, abs_type, rep_name, abs_name, axiom_name)
+  }
 }

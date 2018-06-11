@@ -185,6 +185,35 @@ object Export
   }
 
 
+  /* abstract provider */
+
+  object Provider
+  {
+    def database(db: SQL.Database, session_name: String, theory_name: String): Provider =
+      new Provider {
+        def apply(export_name: String): Option[Entry] =
+          read_entry(db, session_name, theory_name, export_name)
+      }
+
+    def snapshot(snapshot: Document.Snapshot): Provider =
+      new Provider {
+        def apply(export_name: String): Option[Entry] =
+          snapshot.exports_map.get(export_name)
+      }
+  }
+
+  trait Provider
+  {
+    def apply(export_name: String): Option[Entry]
+
+    def uncompressed_yxml(export_name: String, cache: XZ.Cache = XZ.cache()): XML.Body =
+      apply(export_name) match {
+        case Some(entry) => entry.uncompressed_yxml(cache = cache)
+        case None => Nil
+      }
+  }
+
+
   /* export to file-system */
 
   def export_files(

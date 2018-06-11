@@ -539,6 +539,7 @@ object Document
     def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body
     def messages: List[(XML.Tree, Position.T)]
     def exports: List[Export.Entry]
+    def exports_map: Map[String, Export.Entry]
 
     def find_command(id: Document_ID.Generic): Option[(Node, Command)]
     def find_command_position(id: Document_ID.Generic, offset: Symbol.Offset)
@@ -1030,7 +1031,7 @@ object Document
         def markup_to_XML(range: Text.Range, elements: Markup.Elements): XML.Body =
           state.markup_to_XML(version, node_name, range, elements)
 
-        def messages: List[(XML.Tree, Position.T)] =
+        lazy val messages: List[(XML.Tree, Position.T)] =
           (for {
             (command, start) <-
               Document.Node.Commands.starts_pos(
@@ -1039,12 +1040,15 @@ object Document
             (_, tree) <- state.command_results(version, command).iterator
            } yield (tree, pos)).toList
 
-        def exports: List[Export.Entry] =
+        lazy val exports: List[Export.Entry] =
           Command.Exports.merge(
             for {
               command <- node.commands.iterator
               st <- state.command_states(version, command).iterator
             } yield st.exports).iterator.map(_._2).toList
+
+        lazy val exports_map: Map[String, Export.Entry] =
+          (for (entry <- exports.iterator) yield (entry.name, entry)).toMap
 
 
         /* find command */
