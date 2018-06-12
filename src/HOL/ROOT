@@ -302,6 +302,8 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     More_Group
     More_Finite_Product
     Multiplicative_Group
+    Zassenhaus            (* The Zassenhaus lemma *)
+
 
     (* Rings *)
     Divisibility         (* Rings *)

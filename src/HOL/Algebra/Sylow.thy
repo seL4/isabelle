@@ -189,7 +189,7 @@ lemma finite_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> finite (M1 #> g)"
   using rcosetGM1g_subset_G finite_G M1_subset_G cosets_finite rcosetsI by blast
 
 lemma M1_cardeq_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> card (M1 #> g) = card M1"
-  by (simp add: card_cosets_equal rcosetsI)
+  by (metis M1_subset_G card_rcosets_equal rcosetsI)
 
 lemma M1_RelM_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> (M1, M1 #> g) \<in> RelM"
   apply (simp add: RelM_def calM_def card_M1)
