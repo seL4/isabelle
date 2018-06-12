@@ -12,6 +12,9 @@ begin
 
 type_synonym 'a aa_tree = "('a,nat) tree"
 
+definition empty :: "'a aa_tree" where
+"empty = Leaf"
+
 fun lvl :: "'a aa_tree \<Rightarrow> nat" where
 "lvl Leaf = 0" |
 "lvl (Node _ _ lv _) = lv"
@@ -483,10 +486,10 @@ by(induction t)
               post_split_max post_delete split_maxD split: prod.splits)
 
 interpretation I: Set_by_Ordered
-where empty = Leaf and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = invar
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case 2 thus ?case by(simp add: isin_set_inorder)
 next
@@ -494,7 +497,7 @@ next
 next
   case 4 thus ?case by(simp add: inorder_delete)
 next
-  case 5 thus ?case by(simp)
+  case 5 thus ?case by(simp add: empty_def)
 next
   case 6 thus ?case by(simp add: invar_insert)
 next

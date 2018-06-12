@@ -9,6 +9,9 @@ imports
   Set_Specs
 begin
 
+definition empty :: "'a tree" where
+"empty == Leaf"
+
 fun isin :: "'a::linorder tree \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node l a r) x =
@@ -60,10 +63,10 @@ lemma inorder_delete:
 by(induction t) (auto simp: del_list_simps split_minD split: prod.splits)
 
 interpretation Set_by_Ordered
-where empty = Leaf and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case 2 thus ?case by(simp add: isin_set)
 next

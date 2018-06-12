@@ -25,12 +25,12 @@ fun delete :: "'a::linorder \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b)
 
 subsection \<open>Functional Correctness\<close>
 
-theorem inorder_update:
+theorem inorder_update_avl:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 by (induct t) (auto simp: upd_list_simps inorder_balL inorder_balR)
 
 
-theorem inorder_delete:
+theorem inorder_delete_avl:
   "sorted1(inorder t) \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_balL inorder_balR
@@ -181,18 +181,18 @@ qed simp_all
 
 
 interpretation Map_by_Ordered
-where empty = Leaf and lookup = lookup and update = update and delete = delete
+where empty = empty and lookup = lookup and update = update and delete = delete
 and inorder = inorder and inv = avl
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case 2 thus ?case by(simp add: lookup_map_of)
 next
-  case 3 thus ?case by(simp add: inorder_update)
+  case 3 thus ?case by(simp add: inorder_update_avl)
 next
-  case 4 thus ?case by(simp add: inorder_delete)
+  case 4 thus ?case by(simp add: inorder_delete_avl)
 next
-  case 5 show ?case by simp
+  case 5 show ?case by (simp add: empty_def)
 next
   case 6 thus ?case by(simp add: avl_update(1))
 next

@@ -14,6 +14,9 @@ begin
 
 type_synonym 'a avl_tree = "('a,nat) tree"
 
+definition empty :: "'a avl_tree" where
+"empty = Leaf"
+
 text \<open>Invariant:\<close>
 
 fun avl :: "'a avl_tree \<Rightarrow> bool" where
@@ -421,10 +424,10 @@ qed simp_all
 subsection "Overall correctness"
 
 interpretation Set_by_Ordered
-where empty = Leaf and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = avl
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case 2 thus ?case by(simp add: isin_set_inorder)
 next
@@ -432,7 +435,7 @@ next
 next
   case 4 thus ?case by(simp add: inorder_delete)
 next
-  case 5 thus ?case by simp
+  case 5 thus ?case by (simp add: empty_def)
 next
   case 6 thus ?case by (simp add: avl_insert(1))
 next

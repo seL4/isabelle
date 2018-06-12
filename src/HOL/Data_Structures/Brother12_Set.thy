@@ -19,6 +19,9 @@ datatype 'a bro =
   L2 'a |
   N3 "'a bro" 'a "'a bro" 'a "'a bro"
 
+definition empty :: "'a bro" where
+"empty = N0"
+
 fun inorder :: "'a bro \<Rightarrow> 'a list" where
 "inorder N0 = []" |
 "inorder (N1 t) = inorder t" |
@@ -465,7 +468,7 @@ end
 subsection "Overall correctness"
 
 interpretation Set_by_Ordered
-where empty = N0 and isin = isin and insert = insert.insert
+where empty = empty and isin = isin and insert = insert.insert
 and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> B h"
 proof (standard, goal_cases)
   case 2 thus ?case by(auto intro!: isin_set)
@@ -477,7 +480,7 @@ next
   case 6 thus ?case using insert.insert_type by blast
 next
   case 7 thus ?case using delete.delete_type by blast
-qed auto
+qed (auto simp: empty_def)
 
 
 subsection \<open>Height-Size Relation\<close>

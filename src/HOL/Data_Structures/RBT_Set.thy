@@ -10,6 +10,9 @@ imports
   Isin2
 begin
 
+definition empty :: "'a rbt" where
+"empty = Leaf"
+
 fun ins :: "'a::linorder \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "ins x Leaf = R Leaf x Leaf" |
 "ins x (B l a r) =
@@ -120,9 +123,6 @@ definition rbt :: "'a rbt \<Rightarrow> bool" where
 
 lemma color_paint_Black: "color (paint Black t) = Black"
 by (cases t) auto
-
-theorem rbt_Leaf: "rbt Leaf"
-by (simp add: rbt_def)
 
 lemma paint_invc2: "invc2 t \<Longrightarrow> invc2 (paint c t)"
 by (cases t) auto
@@ -257,10 +257,10 @@ by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black in
 text \<open>Overall correctness:\<close>
 
 interpretation Set_by_Ordered
-where empty = Leaf and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = rbt
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case 2 thus ?case by(simp add: isin_set_inorder)
 next
@@ -268,7 +268,7 @@ next
 next
   case 4 thus ?case by(simp add: inorder_delete)
 next
-  case 5 thus ?case by (simp add: rbt_Leaf) 
+  case 5 thus ?case by (simp add: rbt_def empty_def) 
 next
   case 6 thus ?case by (simp add: rbt_insert) 
 next

@@ -31,36 +31,41 @@ fixes delete :: "'a \<Rightarrow> 't \<Rightarrow> 't"
 fixes lookup :: "'t \<Rightarrow> 'a \<Rightarrow> 'b option"
 fixes inorder :: "'t \<Rightarrow> ('a * 'b) list"
 fixes inv :: "'t \<Rightarrow> bool"
-assumes empty: "inorder empty = []"
-and lookup: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
+assumes inorder_empty: "inorder empty = []"
+and inorder_lookup: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
   lookup t a = map_of (inorder t) a"
-and update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
+and inorder_update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
   inorder(update a b t) = upd_list a b (inorder t)"
-and delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
+and inorder_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
   inorder(delete a t) = del_list a (inorder t)"
-and inv_empty:  "inv empty"
-and inv_update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(update a b t)"
-and inv_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(delete a t)"
+and inorder_inv_empty:  "inv empty"
+and inorder_inv_update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(update a b t)"
+and inorder_inv_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(delete a t)"
 begin
 
 text \<open>It implements the traditional specification:\<close>
 
+definition invar :: "'t \<Rightarrow> bool" where
+"invar t == inv t \<and> sorted1 (inorder t)"
+
 sublocale Map
-  empty update delete lookup "\<lambda>t. inv t \<and> sorted1 (inorder t)"
+  empty update delete lookup invar
 proof(standard, goal_cases)
-  case 1 show ?case by (auto simp: lookup empty inv_empty)
+  case 1 show ?case by (auto simp: inorder_lookup inorder_empty inorder_inv_empty)
 next
   case 2 thus ?case
-    by(simp add: fun_eq_iff update inv_update map_of_ins_list lookup sorted_upd_list)
+    by(simp add: fun_eq_iff inorder_update inorder_inv_update map_of_ins_list inorder_lookup
+         sorted_upd_list invar_def)
 next
   case 3 thus ?case
-    by(simp add: fun_eq_iff delete inv_delete map_of_del_list lookup sorted_del_list)
+    by(simp add: fun_eq_iff inorder_delete inorder_inv_delete map_of_del_list inorder_lookup
+         sorted_del_list invar_def)
 next
-  case 4 thus ?case by(simp add: empty inv_empty)
+  case 4 thus ?case by(simp add: inorder_empty inorder_inv_empty invar_def)
 next
-  case 5 thus ?case by(simp add: update inv_update sorted_upd_list)
+  case 5 thus ?case by(simp add: inorder_update inorder_inv_update sorted_upd_list invar_def)
 next
-  case 6 thus ?case by (auto simp: delete inv_delete sorted_del_list)
+  case 6 thus ?case by (auto simp: inorder_delete inorder_inv_delete sorted_del_list invar_def)
 qed
 
 end

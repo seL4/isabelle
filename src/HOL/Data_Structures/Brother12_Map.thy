@@ -192,7 +192,7 @@ end
 subsection "Overall correctness"
 
 interpretation Map_by_Ordered
-where empty = N0 and lookup = lookup and update = update.update
+where empty = empty and lookup = lookup and update = update.update
 and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> B h"
 proof (standard, goal_cases)
   case 2 thus ?case by(auto intro!: lookup_map_of)
@@ -204,6 +204,6 @@ next
   case 6 thus ?case using update.update_type by (metis Un_iff)
 next
   case 7 thus ?case using delete.delete_type by blast
-qed auto
+qed (auto simp: empty_def)
 
 end
