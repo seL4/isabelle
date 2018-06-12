@@ -207,10 +207,10 @@ by(induction t)
               post_split_max post_delete split_maxD split: prod.splits)
 
 interpretation I: Map_by_Ordered
-where empty = Leaf and lookup = lookup and update = update and delete = delete
+where empty = empty and lookup = lookup and update = update and delete = delete
 and inorder = inorder and inv = invar
 proof (standard, goal_cases)
-  case 1 show ?case by simp
+  case 1 show ?case by (simp add: empty_def)
 next
   case 2 thus ?case by(simp add: lookup_map_of)
 next
@@ -218,7 +218,7 @@ next
 next
   case 4 thus ?case by(simp add: inorder_delete)
 next
-  case 5 thus ?case by(simp)
+  case 5 thus ?case by(simp add: empty_def)
 next
   case 6 thus ?case by(simp add: invar_update)
 next

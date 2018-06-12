@@ -13,6 +13,9 @@ declare sorted_wrt.simps(2)[simp del]
 
 subsection \<open>Set operations on 2-3-4 trees\<close>
 
+definition empty :: "'a tree234" where
+"empty = Leaf"
+
 fun isin :: "'a::linorder tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node2 l a r) x =
@@ -502,7 +505,7 @@ by(simp add: delete_def bal_tree\<^sub>d_del)
 subsection \<open>Overall Correctness\<close>
 
 interpretation Set_by_Ordered
-where empty = Leaf and isin = isin and insert = insert and delete = delete
+where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = bal
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: isin_set)
@@ -514,6 +517,6 @@ next
   case 6 thus ?case by(simp add: bal_insert)
 next
   case 7 thus ?case by(simp add: bal_delete)
-qed simp+
+qed (simp add: empty_def)+
 
 end
