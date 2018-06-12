@@ -24,4 +24,8 @@ ML_file "unoverloading.ML"
 text\<open>The following file implements a derived rule that internalizes type class annotations.\<close>
 ML_file "internalize_sort.ML"
 
+text\<open>The following file provides some automation to unoverload and internalize the parameters o
+  the sort constraints of a type variable.\<close>
+ML_file \<open>unoverload_type.ML\<close>
+
 end

@@ -120,6 +120,9 @@ text\<open>The theorem with internalized type classes and compiled out operation
      for the original relativization algorithm.\<close>
 thm dictionary_second_step
 
+text \<open>Alternative construction using \<open>unoverload_type\<close>
+  (This does not require fiddling with \<open>Sign.add_const_constraint\<close>).\<close>
+lemmas dictionary_second_step' = dictionary_first_step[unoverload_type 'a]
 
 text\<open>This is the set-based variant of the theorem compact_imp_closed.\<close>
 lemma compact_imp_closed_set_based:
