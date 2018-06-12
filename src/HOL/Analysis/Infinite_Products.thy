@@ -6,9 +6,11 @@
 *)
 section \<open>Infinite Products\<close>
 theory Infinite_Products
-  imports Complex_Main
+  imports Topology_Euclidean_Space
 begin
-    
+
+subsection\<open>Preliminaries\<close>
+
 lemma sum_le_prod:
   fixes f :: "'a \<Rightarrow> 'b :: linordered_semidom"
   assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<ge> 0"
@@ -49,6 +51,8 @@ proof (rule lhopital)
   show "(\<lambda>x::real. inverse (1 + x) / 1) \<midarrow>0\<rightarrow> 1"
     by (rule tendsto_eq_intros refl | simp)+
 qed auto
+
+subsection\<open>Definitions and basic properties\<close>
 
 definition raw_has_prod :: "[nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}, nat, 'a] \<Rightarrow> bool" 
   where "raw_has_prod f M p \<equiv> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> p \<and> p \<noteq> 0"
@@ -134,6 +138,9 @@ proof
   with * show "(\<exists>M L. (\<forall>n\<ge>M. f n \<noteq> 0) \<and> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> L \<and> L \<noteq> 0)" 
     by blast
 qed (auto simp: prod_defs)
+
+
+subsection\<open>Absolutely convergent products\<close>
 
 definition abs_convergent_prod :: "(nat \<Rightarrow> _) \<Rightarrow> bool" where
   "abs_convergent_prod f \<longleftrightarrow> convergent_prod (\<lambda>i. 1 + norm (f i - 1))"
@@ -383,6 +390,8 @@ lemma abs_convergent_prod_offset:
   shows   "abs_convergent_prod f"
   using assms unfolding abs_convergent_prod_def by (rule convergent_prod_offset)
 
+subsection\<open>Ignoring initial segments\<close>
+
 lemma raw_has_prod_ignore_initial_segment:
   fixes f :: "nat \<Rightarrow> 'a :: real_normed_field"
   assumes "raw_has_prod f M p" "N \<ge> M"
@@ -568,6 +577,8 @@ proof -
   qed
   with L show ?thesis by (auto simp: prod_defs)
 qed
+
+subsection\<open>More elementary properties\<close>
 
 lemma raw_has_prod_cases:
   fixes f :: "nat \<Rightarrow> 'a :: {idom,topological_semigroup_mult,t2_space}"
@@ -1040,7 +1051,7 @@ lemma convergent_prodI_nonneg_bounded:
   using convergent_prod_def raw_has_prodI_bounded [OF assms] by blast
 
 
-subsection \<open>Infinite products on topological monoids\<close>
+subsection \<open>Infinite products on topological spaces\<close>
 
 context
   fixes f g :: "nat \<Rightarrow> 'a::{t2_space,topological_semigroup_mult,idom}"
@@ -1141,7 +1152,7 @@ lemma convergent_prod_prod: "(\<And>i. i \<in> I \<Longrightarrow> convergent_pr
 
 end
 
-subsection \<open>Infinite summability on real normed vector spaces\<close>
+subsection \<open>Infinite summability on real normed fields\<close>
 
 context
   fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
@@ -1224,7 +1235,7 @@ lemma convergent_prod_inverse:
 
 end
 
-context (* Separate contexts are necessary to allow general use of the results above, here. *)
+context 
   fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
 begin
 
@@ -1298,7 +1309,7 @@ lemma prodinf_split_head:
 
 end
 
-context (* Separate contexts are necessary to allow general use of the results above, here. *)
+context 
   fixes f :: "nat \<Rightarrow> 'a::real_normed_field"
 begin
 
@@ -1328,5 +1339,129 @@ lemma prodinf_power: "convergent_prod f \<Longrightarrow> prodinf (\<lambda>i. f
   by (metis has_prod_unique convergent_prod_imp_has_prod has_prod_power)
 
 end
+
+
+subsection\<open>Exponentials and logarithms\<close>
+
+context 
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
+begin
+
+lemma sums_imp_has_prod_exp: 
+  assumes "f sums s"
+  shows "raw_has_prod (\<lambda>i. exp (f i)) 0 (exp s)"
+  using assms continuous_on_exp [of UNIV "\<lambda>x::'a. x"]
+  using continuous_on_tendsto_compose [of UNIV exp "(\<lambda>n. sum f {..n})" s]
+  by (simp add: prod_defs sums_def_le exp_sum)
+
+lemma convergent_prod_exp: 
+  assumes "summable f"
+  shows "convergent_prod (\<lambda>i. exp (f i))"
+  using sums_imp_has_prod_exp assms unfolding summable_def convergent_prod_def  by blast
+
+lemma prodinf_exp: 
+  assumes "summable f"
+  shows "prodinf (\<lambda>i. exp (f i)) = exp (suminf f)"
+proof -
+  have "f sums suminf f"
+    using assms by blast
+  then have "(\<lambda>i. exp (f i)) has_prod exp (suminf f)"
+    by (simp add: has_prod_def sums_imp_has_prod_exp)
+  then show ?thesis
+    by (rule has_prod_unique [symmetric])
+qed
+
+end
+
+lemma has_prod_imp_sums_ln_real: 
+  fixes f :: "nat \<Rightarrow> real"
+  assumes "raw_has_prod f 0 p" and 0: "\<And>x. f x > 0"
+  shows "(\<lambda>i. ln (f i)) sums (ln p)"
+proof -
+  have "p > 0"
+    using assms unfolding prod_defs by (metis LIMSEQ_prod_nonneg less_eq_real_def)
+  then show ?thesis
+  using assms continuous_on_ln [of "{0<..}" "\<lambda>x. x"]
+  using continuous_on_tendsto_compose [of "{0<..}" ln "(\<lambda>n. prod f {..n})" p]
+  by (auto simp: prod_defs sums_def_le ln_prod order_tendstoD)
+qed
+
+lemma summable_ln_real: 
+  fixes f :: "nat \<Rightarrow> real"
+  assumes f: "convergent_prod f" and 0: "\<And>x. f x > 0"
+  shows "summable (\<lambda>i. ln (f i))"
+proof -
+  obtain M p where "raw_has_prod f M p"
+    using f convergent_prod_def by blast
+  then consider i where "i<M" "f i = 0" | p where "raw_has_prod f 0 p"
+    using raw_has_prod_cases by blast
+  then show ?thesis
+  proof cases
+    case 1
+    with 0 show ?thesis
+      by (metis less_irrefl)
+  next
+    case 2
+    then show ?thesis
+      using "0" has_prod_imp_sums_ln_real summable_def by blast
+  qed
+qed
+
+lemma suminf_ln_real: 
+  fixes f :: "nat \<Rightarrow> real"
+  assumes f: "convergent_prod f" and 0: "\<And>x. f x > 0"
+  shows "suminf (\<lambda>i. ln (f i)) = ln (prodinf f)"
+proof -
+  have "f has_prod prodinf f"
+    by (simp add: f has_prod_iff)
+  then have "raw_has_prod f 0 (prodinf f)"
+    by (metis "0" has_prod_def less_irrefl)
+  then have "(\<lambda>i. ln (f i)) sums ln (prodinf f)"
+    using "0" has_prod_imp_sums_ln_real by blast
+  then show ?thesis
+    by (rule sums_unique [symmetric])
+qed
+
+lemma prodinf_exp_real: 
+  fixes f :: "nat \<Rightarrow> real"
+  assumes f: "convergent_prod f" and 0: "\<And>x. f x > 0"
+  shows "prodinf f = exp (suminf (\<lambda>i. ln (f i)))"
+  by (simp add: "0" f less_0_prodinf suminf_ln_real)
+
+
+subsection\<open>Embeddings from the reals into some complete real normed field\<close>
+
+lemma tendsto_eq_of_real_lim:
+  assumes "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) \<longlonglongrightarrow> q"
+  shows "q = of_real (lim f)"
+proof -
+  have "convergent (\<lambda>n. of_real (f n) :: 'a)"
+    using assms convergent_def by blast 
+  then have "convergent f"
+    unfolding convergent_def
+    by (simp add: convergent_eq_Cauchy Cauchy_def)
+  then show ?thesis
+    by (metis LIMSEQ_unique assms convergentD sequentially_bot tendsto_Lim tendsto_of_real)
+qed
+
+lemma tendsto_eq_of_real:
+  assumes "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) \<longlonglongrightarrow> q"
+  obtains r where "q = of_real r"
+  using tendsto_eq_of_real_lim assms by blast
+
+lemma has_prod_of_real_iff:
+  "(\<lambda>n. of_real (f n) :: 'a::{complete_space,real_normed_field}) has_prod of_real c \<longleftrightarrow> f has_prod c"
+  (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (auto simp: prod_defs LIMSEQ_prod_0 tendsto_of_real_iff simp flip: of_real_prod)
+    using tendsto_eq_of_real
+    by (metis of_real_0 tendsto_of_real_iff)
+next
+  assume ?rhs
+  with tendsto_of_real_iff show ?lhs
+    by (fastforce simp: prod_defs simp flip: of_real_prod)
+qed
 
 end
