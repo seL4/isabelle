@@ -121,22 +121,6 @@ by(induction t)
     inorder_del_root inorder_split_maxD split: prod.splits)
 
 
-subsubsection "Overall functional correctness"
-
-interpretation Set_by_Ordered
-where empty = Leaf and isin = isin and insert = insert and delete = delete
-and inorder = inorder and inv = "\<lambda>_. True"
-proof (standard, goal_cases)
-  case 1 show ?case by simp
-next
-  case 2 thus ?case by(simp add: isin_set_inorder)
-next
-  case 3 thus ?case by(simp add: inorder_insert)
-next
-  case 4 thus ?case by(simp add: inorder_delete)
-qed (rule TrueI)+
-
-
 subsection \<open>AVL invariants\<close>
 
 text\<open>Essentially the AFP/AVL proofs\<close>
@@ -224,7 +208,7 @@ qed
 
 text\<open>Insertion maintains the AVL property:\<close>
 
-theorem avl_insert_aux:
+theorem avl_insert:
   assumes "avl t"
   shows "avl(insert x t)"
         "(height (insert x t) = height t \<or> height (insert x t) = height t + 1)"
@@ -232,32 +216,28 @@ using assms
 proof (induction t)
   case (Node l a h r)
   case 1
-  with Node show ?case
+  show ?case
   proof(cases "x = a")
-    case True
-    with Node 1 show ?thesis by simp
+    case True with Node 1 show ?thesis by simp
   next
     case False
-    with Node 1 show ?thesis 
+    show ?thesis 
     proof(cases "x<a")
-      case True
-      with Node 1 show ?thesis by (auto simp add:avl_balL)
+      case True with Node 1 show ?thesis by (auto simp add:avl_balL)
     next
-      case False
-      with Node 1 \<open>x\<noteq>a\<close> show ?thesis by (auto simp add:avl_balR)
+      case False with Node 1 \<open>x\<noteq>a\<close> show ?thesis by (auto simp add:avl_balR)
     qed
   qed
   case 2
-  from 2 Node show ?case
+  show ?case
   proof(cases "x = a")
-    case True
-    with Node 1 show ?thesis by simp
+    case True with Node 1 show ?thesis by simp
   next
     case False
-    with Node 1 show ?thesis 
-     proof(cases "x<a")
+    show ?thesis 
+    proof(cases "x<a")
       case True
-      with Node 2 show ?thesis
+      show ?thesis
       proof(cases "height (insert x l) = height r + 2")
         case False with Node 2 \<open>x < a\<close> show ?thesis by (auto simp: height_balL2)
       next
@@ -267,19 +247,16 @@ proof (induction t)
           using Node 2 by (intro height_balL) simp_all
         thus ?thesis
         proof
-          assume ?A
-          with 2 \<open>x < a\<close> show ?thesis by (auto)
+          assume ?A with 2 \<open>x < a\<close> show ?thesis by (auto)
         next
-          assume ?B
-          with True 1 Node(2) \<open>x < a\<close> show ?thesis by (simp) arith
+          assume ?B with True 1 Node(2) \<open>x < a\<close> show ?thesis by (simp) arith
         qed
       qed
     next
       case False
-      with Node 2 show ?thesis 
+      show ?thesis 
       proof(cases "height (insert x r) = height l + 2")
-        case False
-        with Node 2 \<open>\<not>x < a\<close> show ?thesis by (auto simp: height_balR2)
+        case False with Node 2 \<open>\<not>x < a\<close> show ?thesis by (auto simp: height_balR2)
       next
         case True 
         hence "(height (balR l a (insert x r)) = height l + 2) \<or>
@@ -287,11 +264,9 @@ proof (induction t)
           using Node 2 by (intro height_balR) simp_all
         thus ?thesis 
         proof
-          assume ?A
-          with 2 \<open>\<not>x < a\<close> show ?thesis by (auto)
+          assume ?A with 2 \<open>\<not>x < a\<close> show ?thesis by (auto)
         next
-          assume ?B
-          with True 1 Node(4) \<open>\<not>x < a\<close> show ?thesis by (simp) arith
+          assume ?B with True 1 Node(4) \<open>\<not>x < a\<close> show ?thesis by (simp) arith
         qed
       qed
     qed
@@ -310,9 +285,7 @@ proof (induct x rule: split_max_induct)
   case (Node l a h r)
   case 1
   thus ?case using Node
-    by (auto simp: height_balL height_balL2 avl_balL
-      linorder_class.max.absorb1 linorder_class.max.absorb2
-      split:prod.split)
+    by (auto simp: height_balL height_balL2 avl_balL split:prod.split)
 next
   case (Node l a h r)
   case 2
@@ -360,16 +333,15 @@ proof (cases t rule: del_root_cases)
   have "height t = height ?t' \<or> height t = height ?t' + 1" using  \<open>avl t\<close> Node_Node
   proof(cases "height ?r = height ?l' + 2")
     case False
-    show ?thesis using l'_height t_height False by (subst  height_balR2[OF \<open>avl ?l'\<close> \<open>avl ?r\<close> False])+ arith
+    show ?thesis using l'_height t_height False
+      by (subst height_balR2[OF \<open>avl ?l'\<close> \<open>avl ?r\<close> False])+ arith
   next
     case True
     show ?thesis
     proof(cases rule: disjE[OF height_balR[OF True \<open>avl ?l'\<close> \<open>avl ?r\<close>, of "snd (split_max ?l)"]])
-      case 1
-      thus ?thesis using l'_height t_height True by arith
+      case 1 thus ?thesis using l'_height t_height True by arith
     next
-      case 2
-      thus ?thesis using l'_height t_height True by arith
+      case 2 thus ?thesis using l'_height t_height True by arith
     qed
   qed
   thus ?thesis using Node_Node by (auto split:prod.splits)
@@ -377,30 +349,27 @@ qed simp_all
 
 text\<open>Deletion maintains the AVL property:\<close>
 
-theorem avl_delete_aux:
+theorem avl_delete:
   assumes "avl t" 
   shows "avl(delete x t)" and "height t = (height (delete x t)) \<or> height t = height (delete x t) + 1"
 using assms
 proof (induct t)
   case (Node l n h r)
   case 1
-  with Node show ?case
+  show ?case
   proof(cases "x = n")
-    case True
-    with Node 1 show ?thesis by (auto simp:avl_del_root)
+    case True with Node 1 show ?thesis by (auto simp:avl_del_root)
   next
     case False
-    with Node 1 show ?thesis 
+    show ?thesis 
     proof(cases "x<n")
-      case True
-      with Node 1 show ?thesis by (auto simp add:avl_balR)
+      case True with Node 1 show ?thesis by (auto simp add:avl_balR)
     next
-      case False
-      with Node 1 \<open>x\<noteq>n\<close> show ?thesis by (auto simp add:avl_balL)
+      case False with Node 1 \<open>x\<noteq>n\<close> show ?thesis by (auto simp add:avl_balL)
     qed
   qed
   case 2
-  with Node show ?case
+  show ?case
   proof(cases "x = n")
     case True
     with 1 have "height (Node l n h r) = height(del_root (Node l n h r))
@@ -409,8 +378,8 @@ proof (induct t)
     with True show ?thesis by simp
   next
     case False
-    with Node 1 show ?thesis 
-     proof(cases "x<n")
+    show ?thesis 
+    proof(cases "x<n")
       case True
       show ?thesis
       proof(cases "height r = height (delete x l) + 2")
@@ -422,11 +391,9 @@ proof (induct t)
           using Node 2 by (intro height_balR) auto
         thus ?thesis 
         proof
-          assume ?A
-          with \<open>x < n\<close> Node 2 show ?thesis by(auto simp: balR_def)
+          assume ?A with \<open>x < n\<close> Node 2 show ?thesis by(auto simp: balR_def)
         next
-          assume ?B
-          with \<open>x < n\<close> Node 2 show ?thesis by(auto simp: balR_def)
+          assume ?B with \<open>x < n\<close> Node 2 show ?thesis by(auto simp: balR_def)
         qed
       qed
     next
@@ -441,16 +408,36 @@ proof (induct t)
           using Node 2 by (intro height_balL) auto
         thus ?thesis 
         proof
-          assume ?A
-          with \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> Node 2 show ?thesis by(auto simp: balL_def)
+          assume ?A with \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> Node 2 show ?thesis by(auto simp: balL_def)
         next
-          assume ?B
-          with \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> Node 2 show ?thesis by(auto simp: balL_def)
+          assume ?B with \<open>\<not>x < n\<close> \<open>x \<noteq> n\<close> Node 2 show ?thesis by(auto simp: balL_def)
         qed
       qed
     qed
   qed
 qed simp_all
+
+
+subsection "Overall correctness"
+
+interpretation Set_by_Ordered
+where empty = Leaf and isin = isin and insert = insert and delete = delete
+and inorder = inorder and inv = avl
+proof (standard, goal_cases)
+  case 1 show ?case by simp
+next
+  case 2 thus ?case by(simp add: isin_set_inorder)
+next
+  case 3 thus ?case by(simp add: inorder_insert)
+next
+  case 4 thus ?case by(simp add: inorder_delete)
+next
+  case 5 thus ?case by simp
+next
+  case 6 thus ?case by (simp add: avl_insert(1))
+next
+  case 7 thus ?case by (simp add: avl_delete(1))
+qed
 
 
 subsection \<open>Height-Size Relation\<close>
