@@ -27,6 +27,18 @@ fun params_of_sort context sort =
       List.concat
   in params end
 
+fun internalize_sort' ctvar thm =
+  let
+    val (_, thm') = Internalize_Sort.internalize_sort ctvar thm
+    val class_premise = case Thm.prems_of thm' of t::_=> t | [] =>
+      raise THM ("unoverload_type: no premise?", 0, [thm'])
+    val class_vars = Term.add_tvars class_premise []
+    val tvar = case class_vars of [x] => TVar x | _ =>
+      raise TERM ("unoverload_type: not one type class variable.", [class_premise])
+  in
+    (tvar, thm')
+  end
+
 fun unoverload_type context s thm =
   let
     val tvars = Term.add_tvars (Thm.prop_of thm) []
@@ -36,7 +48,7 @@ fun unoverload_type context s thm =
     raise THM ("unoverload_internalize_deps: type variable ("^s^") not in theorem", 0, [thm])
   | SOME (x as (_, sort)) =>
     let
-      val (tvar, thm') = Internalize_Sort.internalize_sort (Thm.global_ctyp_of thy (TVar x)) thm
+      val (tvar, thm') = internalize_sort' (Thm.global_ctyp_of thy (TVar x)) thm
       val consts = params_of_sort context sort |>
         map (apsnd (map_type_tfree (fn ("'a", _) =>  tvar | x => TFree x)))
     in
