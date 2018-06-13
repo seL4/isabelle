@@ -6,8 +6,8 @@ Internalize sorts and unoverload parameters of a type variable.
 
 signature UNOVERLOAD_TYPE =
 sig
-  val unoverload_type: Context.generic -> indexname -> thm -> thm
-  val unoverload_type_attr: indexname -> attribute
+  val unoverload_type: Context.generic -> indexname list -> thm -> thm
+  val unoverload_type_attr: indexname list -> attribute
 end;
 
 structure Unoverload_Type : UNOVERLOAD_TYPE =
@@ -39,7 +39,7 @@ fun internalize_sort' ctvar thm =
     (tvar, thm')
   end
 
-fun unoverload_type context x thm =
+fun unoverload_single_type context x thm =
   let
     val tvars = Term.add_tvars (Thm.prop_of thm) []
     val thy = Context.theory_of context
@@ -56,9 +56,11 @@ fun unoverload_type context x thm =
     end
   end
 
-fun unoverload_type_attr x = Thm.rule_attribute [] (fn context => unoverload_type context x)
+fun unoverload_type context xs = fold (unoverload_single_type context) xs
+
+fun unoverload_type_attr xs = Thm.rule_attribute [] (fn context => unoverload_type context xs)
 
 val _ = Context.>> (Context.map_theory (Attrib.setup @{binding unoverload_type}
-  (Scan.lift Args.var >> unoverload_type_attr) "internalize a sort"))
+  (Scan.lift (Scan.repeat Args.var) >> unoverload_type_attr) "internalize a sort"))
 
 end
