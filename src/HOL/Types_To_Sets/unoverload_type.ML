@@ -6,8 +6,8 @@ Internalize sorts and unoverload parameters of a type variable.
 
 signature UNOVERLOAD_TYPE =
 sig
-  val unoverload_type: Context.generic -> string -> thm -> thm
-  val unoverload_type_attr: string -> attribute
+  val unoverload_type: Context.generic -> indexname -> thm -> thm
+  val unoverload_type_attr: indexname -> attribute
 end;
 
 structure Unoverload_Type : UNOVERLOAD_TYPE =
@@ -39,13 +39,13 @@ fun internalize_sort' ctvar thm =
     (tvar, thm')
   end
 
-fun unoverload_type context s thm =
+fun unoverload_type context x thm =
   let
     val tvars = Term.add_tvars (Thm.prop_of thm) []
     val thy = Context.theory_of context
   in
-  case find_first (fn ((n,_), _) => n = s) tvars of NONE =>
-    raise THM ("unoverload_type: type variable ("^s^") not in theorem", 0, [thm])
+  case find_first (fn (y, _) => x = y) tvars of NONE =>
+    raise THM ("unoverload_type: type variable ("^(@{make_string} x)^") not in theorem", 0, [thm])
   | SOME (x as (_, sort)) =>
     let
       val (tvar, thm') = internalize_sort' (Thm.global_ctyp_of thy (TVar x)) thm
@@ -56,13 +56,9 @@ fun unoverload_type context s thm =
     end
   end
 
-val tyN = (Args.context -- Args.typ) >>
-  (fn (_, TFree (n, _)) => n
-  | (ctxt, t) => error ("Not a type variable: " ^ Syntax.string_of_typ ctxt t))
-
-fun unoverload_type_attr n = Thm.rule_attribute [] (fn context => unoverload_type context n)
+fun unoverload_type_attr x = Thm.rule_attribute [] (fn context => unoverload_type context x)
 
 val _ = Context.>> (Context.map_theory (Attrib.setup @{binding unoverload_type}
-  (tyN >> unoverload_type_attr) "internalize a sort"))
+  (Scan.lift Args.var >> unoverload_type_attr) "internalize a sort"))
 
 end
