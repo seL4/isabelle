@@ -13,20 +13,6 @@ end;
 structure Unoverload_Type : UNOVERLOAD_TYPE =
 struct
 
-fun those [] = []
-  | those (NONE::xs) = those xs
-  | those (SOME x::xs) = x::those xs
-
-fun params_of_sort context sort =
-  let
-    val algebra = Sign.classes_of (Context.theory_of context)
-    val params = List.concat (map (Sorts.super_classes algebra) sort) |>
-      map (try (Axclass.get_info (Context.theory_of context))) |>
-      those |>
-      map #params |>
-      List.concat
-  in params end
-
 fun internalize_sort' ctvar thm =
   let
     val (_, thm') = Internalize_Sort.internalize_sort ctvar thm
@@ -39,6 +25,15 @@ fun internalize_sort' ctvar thm =
     (tvar, thm')
   end
 
+fun params_of_class thy class = try (Axclass.get_info thy #> #params) class |> these
+
+fun params_of_super_classes thy class =
+  Sorts.super_classes (Sign.classes_of thy) class |> maps (params_of_class thy)
+
+fun params_of_sort thy sort = maps (params_of_super_classes thy) sort
+
+fun subst_TFree n' ty' ty = map_type_tfree (fn x as (n, _) => if n = n' then ty' else TFree x) ty
+
 fun unoverload_single_type context x thm =
   let
     val tvars = Term.add_tvars (Thm.prop_of thm) []
@@ -49,10 +44,10 @@ fun unoverload_single_type context x thm =
   | SOME (x as (_, sort)) =>
     let
       val (tvar, thm') = internalize_sort' (Thm.global_ctyp_of thy (TVar x)) thm
-      val consts = params_of_sort context sort |>
-        map (apsnd (map_type_tfree (fn ("'a", _) =>  tvar | x => TFree x)))
+      val consts = params_of_sort thy sort
+        |> map (apsnd (subst_TFree "'a" tvar) #> Const #> Thm.global_cterm_of thy)
     in
-      fold (fn c => Unoverloading.unoverload (Thm.global_cterm_of thy (Const c))) consts thm'
+      fold Unoverloading.unoverload consts thm'
       |> Raw_Simplifier.norm_hhf (Context.proof_of context)
     end
   end
