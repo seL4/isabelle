@@ -40,7 +40,7 @@ fun unoverload_single_type context x thm =
     val thy = Context.theory_of context
   in
   case find_first (fn (y, _) => x = y) tvars of NONE =>
-    raise THM ("unoverload_type: type variable ("^(@{make_string} x)^") not in theorem", 0, [thm])
+    raise TYPE ("unoverload_type: no such type variable in theorem", [TVar (x,[])], [])
   | SOME (x as (_, sort)) =>
     let
       val (tvar, thm') = internalize_sort' (Thm.global_ctyp_of thy (TVar x)) thm
