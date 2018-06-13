@@ -53,6 +53,7 @@ fun unoverload_single_type context x thm =
         map (apsnd (map_type_tfree (fn ("'a", _) =>  tvar | x => TFree x)))
     in
       fold (fn c => Unoverloading.unoverload (Thm.global_cterm_of thy (Const c))) consts thm'
+      |> Raw_Simplifier.norm_hhf (Context.proof_of context)
     end
   end
 
