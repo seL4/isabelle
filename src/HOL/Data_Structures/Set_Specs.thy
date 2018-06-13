@@ -47,23 +47,29 @@ begin
 
 text \<open>It implements the traditional specification:\<close>
 
+definition set :: "'t \<Rightarrow> 'a set" where
+"set == List.set o inorder"
+
+definition invar :: "'t \<Rightarrow> bool" where
+"invar t == inv t \<and> sorted (inorder t)"
+
 sublocale Set
-  empty insert delete isin "set o inorder" "\<lambda>t. inv t \<and> sorted(inorder t)"
+  empty insert delete isin set invar
 proof(standard, goal_cases)
-  case 1 show ?case by (auto simp: empty)
+  case 1 show ?case by (auto simp: empty set_def)
 next
-  case 2 thus ?case by(simp add: isin)
+  case 2 thus ?case by(simp add: isin invar_def set_def)
 next
-  case 3 thus ?case by(simp add: insert set_ins_list)
+  case 3 thus ?case by(simp add: insert set_ins_list set_def invar_def)
 next
   case (4 s x) thus ?case
-    using delete[OF 4, of x] by (auto simp: distinct_if_sorted set_del_list_eq)
+    by (auto simp: delete distinct_if_sorted set_del_list_eq invar_def set_def)
 next
-  case 5 thus ?case by(simp add: empty inv_empty)
+  case 5 thus ?case by(simp add: empty inv_empty invar_def)
 next
-  case 6 thus ?case by(simp add: insert inv_insert sorted_ins_list)
+  case 6 thus ?case by(simp add: insert inv_insert sorted_ins_list invar_def)
 next
-  case 7 thus ?case by (auto simp: delete inv_delete sorted_del_list)
+  case 7 thus ?case by (auto simp: delete inv_delete sorted_del_list invar_def)
 qed
 
 end
