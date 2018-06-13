@@ -42,7 +42,7 @@ lemma inorder_upd:
 by(induction x y t rule: upd.induct)
   (auto simp: upd_list_simps inorder_baliL inorder_baliR)
 
-lemma inorder_update_rbt:
+lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 by(simp add: update_def inorder_upd inorder_paint)
 
@@ -51,7 +51,7 @@ lemma inorder_del:
 by(induction x t rule: del.induct)
   (auto simp: del_list_simps inorder_combine inorder_baldL inorder_baldR)
 
-lemma inorder_delete_rbt:
+lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
 by(simp add: delete_def inorder_del inorder_paint)
 
@@ -104,7 +104,7 @@ qed auto
 theorem rbt_delete: "rbt t \<Longrightarrow> rbt (delete k t)"
 by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black invc2I invh_paint)
 
-interpretation Map_by_Ordered
+interpretation M: Map_by_Ordered
 where empty = empty and lookup = lookup and update = update and delete = delete
 and inorder = inorder and inv = rbt
 proof (standard, goal_cases)
@@ -112,9 +112,9 @@ proof (standard, goal_cases)
 next
   case 2 thus ?case by(simp add: lookup_map_of)
 next
-  case 3 thus ?case by(simp add: inorder_update_rbt)
+  case 3 thus ?case by(simp add: inorder_update)
 next
-  case 4 thus ?case by(simp add: inorder_delete_rbt)
+  case 4 thus ?case by(simp add: inorder_delete)
 next
   case 5 thus ?case by (simp add: rbt_def empty_def) 
 next

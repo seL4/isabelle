@@ -485,7 +485,7 @@ by(induction t)
   (auto simp: del_list_simps inorder_adjust pre_adj_if_postL pre_adj_if_postR 
               post_split_max post_delete split_maxD split: prod.splits)
 
-interpretation I: Set_by_Ordered
+interpretation S: Set_by_Ordered
 where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = invar
 proof (standard, goal_cases)

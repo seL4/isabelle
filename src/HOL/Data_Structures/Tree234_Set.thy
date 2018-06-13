@@ -504,7 +504,7 @@ by(simp add: delete_def bal_tree\<^sub>d_del)
 
 subsection \<open>Overall Correctness\<close>
 
-interpretation Set_by_Ordered
+interpretation S: Set_by_Ordered
 where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = bal
 proof (standard, goal_cases)

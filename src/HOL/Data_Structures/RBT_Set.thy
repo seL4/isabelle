@@ -256,7 +256,7 @@ by (metis delete_def rbt_def color_paint_Black del_invc_invh invc_paint_Black in
 
 text \<open>Overall correctness:\<close>
 
-interpretation Set_by_Ordered
+interpretation S: Set_by_Ordered
 where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = rbt
 proof (standard, goal_cases)

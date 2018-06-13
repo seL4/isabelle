@@ -81,7 +81,7 @@ lemma inorder_upd:
   "sorted1(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(upd x y t)) = upd_list x y (inorder t)"
 by(induction t) (auto simp: upd_list_simps split: up\<^sub>i.splits)
 
-corollary inorder_update_23:
+corollary inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 by(simp add: update_def inorder_upd)
 
@@ -91,7 +91,7 @@ lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightar
 by(induction t rule: del.induct)
   (auto simp: del_list_simps inorder_nodes split_minD split!: if_split prod.splits)
 
-corollary inorder_delete_23: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
+corollary inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
 by(simp add: delete_def inorder_del)
 
@@ -119,7 +119,7 @@ by(simp add: delete_def bal_tree\<^sub>d_del)
 
 subsection \<open>Overall Correctness\<close>
 
-interpretation Map_by_Ordered
+interpretation M: Map_by_Ordered
 where empty = empty and lookup = lookup and update = update and delete = delete
 and inorder = inorder and inv = bal
 proof (standard, goal_cases)
@@ -127,9 +127,9 @@ proof (standard, goal_cases)
 next
   case 2 thus ?case by(simp add: lookup_map_of)
 next
-  case 3 thus ?case by(simp add: inorder_update_23)
+  case 3 thus ?case by(simp add: inorder_update)
 next
-  case 4 thus ?case by(simp add: inorder_delete_23)
+  case 4 thus ?case by(simp add: inorder_delete)
 next
   case 5 thus ?case by(simp add: empty_def)
 next

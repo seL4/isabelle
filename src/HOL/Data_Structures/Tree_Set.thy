@@ -62,7 +62,7 @@ lemma inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
 by(induction t) (auto simp: del_list_simps split_minD split: prod.splits)
 
-interpretation Set_by_Ordered
+interpretation S: Set_by_Ordered
 where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)

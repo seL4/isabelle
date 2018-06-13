@@ -34,15 +34,15 @@ lemma lookup_map_of:
   "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 by (induction t) (auto simp: map_of_simps split: option.split)
 
-lemma inorder_update_tree:
+lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update a b t) = upd_list a b (inorder t)"
 by(induction t) (auto simp: upd_list_simps)
 
-lemma inorder_delete_tree:
+lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
 by(induction t) (auto simp: del_list_simps split_minD split: prod.splits)
 
-interpretation Map_by_Ordered
+interpretation M: Map_by_Ordered
 where empty = empty and lookup = lookup and update = update and delete = delete
 and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
@@ -50,9 +50,9 @@ proof (standard, goal_cases)
 next
   case 2 thus ?case by(simp add: lookup_map_of)
 next
-  case 3 thus ?case by(simp add: inorder_update_tree)
+  case 3 thus ?case by(simp add: inorder_update)
 next
-  case 4 thus ?case by(simp add: inorder_delete_tree)
+  case 4 thus ?case by(simp add: inorder_delete)
 qed auto
 
 end

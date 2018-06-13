@@ -423,7 +423,7 @@ qed simp_all
 
 subsection "Overall correctness"
 
-interpretation Set_by_Ordered
+interpretation S: Set_by_Ordered
 where empty = empty and isin = isin and insert = insert and delete = delete
 and inorder = inorder and inv = avl
 proof (standard, goal_cases)
