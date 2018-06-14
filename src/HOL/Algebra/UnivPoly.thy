@@ -116,14 +116,15 @@ lemma up_a_inv_closed:
 proof
   assume R: "p \<in> up R"
   then obtain n where "bound \<zero> n p" by auto
-  then have "bound \<zero> n (\<lambda>i. \<ominus> p i)" by auto
+  then have "bound \<zero> n (\<lambda>i. \<ominus> p i)"
+    by (simp add: bound_def minus_equality)
   then show "\<exists>n. bound \<zero> n (\<lambda>i. \<ominus> p i)" by auto
 qed auto
 
 lemma up_minus_closed:
   "[| p \<in> up R; q \<in> up R |] ==> (\<lambda>i. p i \<ominus> q i) \<in> up R"
-  using mem_upD [of p R] mem_upD [of q R] up_add_closed up_a_inv_closed a_minus_def [of _ R]
-  by auto
+  unfolding a_minus_def
+  using mem_upD [of p R] mem_upD [of q R] up_add_closed up_a_inv_closed  by auto
 
 lemma up_mult_closed:
   "[| p \<in> up R; q \<in> up R |] ==>
@@ -695,7 +696,7 @@ qed (simp_all add: a_in_R b_in_R)
 
 lemma monom_a_inv [simp]:
   "a \<in> carrier R ==> monom P (\<ominus> a) n = \<ominus>\<^bsub>P\<^esub> monom P a n"
-  by (rule up_eqI) simp_all
+  by (rule up_eqI) auto
 
 lemma monom_inj:
   "inj_on (\<lambda>a. monom P a n) (carrier R)"
@@ -1462,9 +1463,9 @@ lemma lcoeff_nonzero2: assumes p_in_R: "p \<in> carrier P" and p_not_zero: "p \<
 subsection\<open>The long division algorithm: some previous facts.\<close>
 
 lemma coeff_minus [simp]:
-  assumes p: "p \<in> carrier P" and q: "q \<in> carrier P" shows "coeff P (p \<ominus>\<^bsub>P\<^esub> q) n = coeff P p n \<ominus> coeff P q n"
-  unfolding a_minus_def [OF p q] unfolding coeff_add [OF p a_inv_closed [OF q]] unfolding coeff_a_inv [OF q]
-  using coeff_closed [OF p, of n] using coeff_closed [OF q, of n] by algebra
+  assumes p: "p \<in> carrier P" and q: "q \<in> carrier P" 
+  shows "coeff P (p \<ominus>\<^bsub>P\<^esub> q) n = coeff P p n \<ominus> coeff P q n"
+  by (simp add: a_minus_def p q)
 
 lemma lcoeff_closed [simp]: assumes p: "p \<in> carrier P" shows "lcoeff p \<in> carrier R"
   using coeff_closed [OF p, of "deg R p"] by simp
@@ -1719,10 +1720,7 @@ proof -
     and min_mon0_closed: "\<ominus>\<^bsub>P\<^esub> monom P a 0 \<in> carrier P"
     using a R.a_inv_closed by auto
   have "eval R R id a ?g = eval R R id a (monom P \<one> 1) \<ominus> eval R R id a (monom P a 0)"
-    unfolding P.minus_eq [OF mon1_closed mon0_closed]
-    unfolding hom_add [OF mon1_closed min_mon0_closed]
-    unfolding hom_a_inv [OF mon0_closed]
-    using R.minus_eq [symmetric] mon1_closed mon0_closed by auto
+    by (simp add: a_minus_def mon0_closed)
   also have "\<dots> = a \<ominus> a"
     using eval_monom [OF R.one_closed a, of 1] using eval_monom [OF a a, of 0] using a by simp
   also have "\<dots> = \<zero>"

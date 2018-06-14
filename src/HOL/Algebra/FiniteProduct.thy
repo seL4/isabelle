@@ -524,4 +524,49 @@ lemma finprod_singleton:
 
 end
 
+(* Jeremy Avigad. This should be generalized to arbitrary groups, not just commutative
+   ones, using Lagrange's theorem. *)
+
+lemma (in comm_group) power_order_eq_one:
+  assumes fin [simp]: "finite (carrier G)"
+    and a [simp]: "a \<in> carrier G"
+  shows "a [^] card(carrier G) = one G"
+proof -
+  have "(\<Otimes>x\<in>carrier G. x) = (\<Otimes>x\<in>carrier G. a \<otimes> x)"
+    by (subst (2) finprod_reindex [symmetric],
+      auto simp add: Pi_def inj_on_const_mult surj_const_mult)
+  also have "\<dots> = (\<Otimes>x\<in>carrier G. a) \<otimes> (\<Otimes>x\<in>carrier G. x)"
+    by (auto simp add: finprod_multf Pi_def)
+  also have "(\<Otimes>x\<in>carrier G. a) = a [^] card(carrier G)"
+    by (auto simp add: finprod_const)
+  finally show ?thesis
+(* uses the preceeding lemma *)
+    by auto
+qed
+
+
+lemma (in comm_monoid) finprod_UN_disjoint:
+  "finite I \<Longrightarrow> (\<forall>i\<in>I. finite (A i)) \<longrightarrow> (\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}) \<longrightarrow>
+    (\<forall>i\<in>I. \<forall>x \<in> A i. g x \<in> carrier G) \<longrightarrow>
+    finprod G g (UNION I A) = finprod G (\<lambda>i. finprod G g (A i)) I"
+  apply (induct set: finite)
+   apply force
+  apply clarsimp
+  apply (subst finprod_Un_disjoint)
+       apply blast
+      apply (erule finite_UN_I)
+      apply blast
+     apply (fastforce)
+    apply (auto intro!: funcsetI finprod_closed)
+  done
+
+lemma (in comm_monoid) finprod_Union_disjoint:
+  "finite C \<Longrightarrow>
+    \<forall>A\<in>C. finite A \<and> (\<forall>x\<in>A. f x \<in> carrier G) \<Longrightarrow>
+    \<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A \<inter> B = {} \<Longrightarrow>
+    finprod G f (\<Union>C) = finprod G (finprod G f) C"
+  apply (frule finprod_UN_disjoint [of C id f])
+  apply auto
+  done
+
 end
