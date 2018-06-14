@@ -294,22 +294,16 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
-
     (* Groups *)
     FiniteProduct        (* Product operator for commutative groups *)
     Sylow                (* Sylow's theorem *)
     Bij                  (* Automorphism Groups *)
-    More_Group
-    More_Finite_Product
     Multiplicative_Group
     Zassenhaus            (* The Zassenhaus lemma *)
-
-
     (* Rings *)
     Divisibility         (* Rings *)
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
-    More_Ring
   document_files "root.bib" "root.tex"
 
 session "HOL-Auth" (timing) in Auth = "HOL-Library" +

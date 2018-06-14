@@ -25,10 +25,9 @@ definition
   a_inv :: "[('a, 'm) ring_scheme, 'a ] \<Rightarrow> 'a" ("\<ominus>\<index> _" [81] 80)
   where "a_inv R = m_inv (add_monoid R)"
 
-
 definition
   a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" ("(_ \<ominus>\<index> _)" [65,66] 65)
-  where "\<lbrakk> x \<in> carrier R; y \<in> carrier R \<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
+  where "x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 definition
   add_pow :: "[_, ('b :: semiring_1), 'a] \<Rightarrow> 'a" ("[_] \<cdot>\<index> _" [81, 81] 80)
@@ -212,7 +211,6 @@ lemma minus_closed [intro, simp]:
 
 lemmas l_neg = add.l_inv [simp del]
 lemmas r_neg = add.r_inv [simp del]
-lemmas minus_zero = add.inv_one
 lemmas minus_minus = add.inv_inv
 lemmas a_inv_inj = add.inv_inj
 lemmas minus_equality = add.inv_equality
@@ -344,6 +342,8 @@ lemma (in cring) is_comm_monoid:
 lemma (in cring) is_cring:
   "cring R" by (rule cring_axioms)
 
+lemma (in ring) minus_zero [simp]: "\<ominus> \<zero> = \<zero>"
+  by (simp add: a_inv_def)
 
 subsubsection \<open>Normaliser for Rings\<close>
 
@@ -416,9 +416,8 @@ qed
 
 end
 
-lemma (in abelian_group) minus_eq:
-  "\<lbrakk> x \<in> carrier G; y \<in> carrier G \<rbrakk> \<Longrightarrow> x \<ominus> y = x \<oplus> (\<ominus> y)"
-  by (simp only: a_minus_def)
+lemma (in abelian_group) minus_eq: "x \<ominus> y = x \<oplus> (\<ominus> y)"
+  by (rule a_minus_def)
 
 text \<open>Setup algebra method:
   compute distributive normal form in locale contexts\<close>
@@ -602,7 +601,6 @@ next
     using add_pow_int_lt[of k R b] add_pow_int_lt[of k R "a \<otimes> b"]
           add_pow_rdistr[OF assms, of "nat (- k)"] assms r_minus by auto 
 qed
-(* ************************************************************************** *)
 
 
 subsection \<open>Integral Domains\<close>
@@ -631,7 +629,7 @@ proof
   with R have "a \<otimes> (b \<ominus> c) = \<zero>" by algebra
   with R have "a = \<zero> \<or> (b \<ominus> c) = \<zero>" by (simp add: integral_iff)
   with prem and R have "b \<ominus> c = \<zero>" by auto 
-  with R have "b = b \<ominus> (b \<ominus> c)" by algebra 
+  with R have "b = b \<ominus> (b \<ominus> c)" by algebra
   also from R have "b \<ominus> (b \<ominus> c) = c" by algebra
   finally show "b = c" .
 next
@@ -804,5 +802,112 @@ lemma id_ring_hom [simp]: "id \<in> ring_hom R R"
 lemma ring_hom_trans:
   "\<lbrakk> f \<in> ring_hom R S; g \<in> ring_hom S T \<rbrakk> \<Longrightarrow> g \<circ> f \<in> ring_hom R T"
   by (rule ring_hom_memI) (auto simp add: ring_hom_closed ring_hom_mult ring_hom_add ring_hom_one)
+
+subsection\<open>Jeremy Avigad's @{text"More_Finite_Product"} material\<close>
+
+(* need better simplification rules for rings *)
+(* the next one holds more generally for abelian groups *)
+
+lemma (in cring) sum_zero_eq_neg: "x \<in> carrier R \<Longrightarrow> y \<in> carrier R \<Longrightarrow> x \<oplus> y = \<zero> \<Longrightarrow> x = \<ominus> y"
+  by (metis minus_equality)
+
+lemma (in domain) square_eq_one:
+  fixes x
+  assumes [simp]: "x \<in> carrier R"
+    and "x \<otimes> x = \<one>"
+  shows "x = \<one> \<or> x = \<ominus>\<one>"
+proof -
+  have "(x \<oplus> \<one>) \<otimes> (x \<oplus> \<ominus> \<one>) = x \<otimes> x \<oplus> \<ominus> \<one>"
+    by (simp add: ring_simprules)
+  also from \<open>x \<otimes> x = \<one>\<close> have "\<dots> = \<zero>"
+    by (simp add: ring_simprules)
+  finally have "(x \<oplus> \<one>) \<otimes> (x \<oplus> \<ominus> \<one>) = \<zero>" .
+  then have "(x \<oplus> \<one>) = \<zero> \<or> (x \<oplus> \<ominus> \<one>) = \<zero>"
+    by (intro integral) auto
+  then show ?thesis
+    by (metis add.inv_closed add.inv_solve_right assms(1) l_zero one_closed zero_closed)
+qed
+
+lemma (in domain) inv_eq_self: "x \<in> Units R \<Longrightarrow> x = inv x \<Longrightarrow> x = \<one> \<or> x = \<ominus>\<one>"
+  by (metis Units_closed Units_l_inv square_eq_one)
+
+
+text \<open>
+  The following translates theorems about groups to the facts about
+  the units of a ring. (The list should be expanded as more things are
+  needed.)
+\<close>
+
+lemma (in ring) finite_ring_finite_units [intro]: "finite (carrier R) \<Longrightarrow> finite (Units R)"
+  by (rule finite_subset) auto
+
+lemma (in monoid) units_of_pow:
+  fixes n :: nat
+  shows "x \<in> Units G \<Longrightarrow> x [^]\<^bsub>units_of G\<^esub> n = x [^]\<^bsub>G\<^esub> n"
+  apply (induct n)
+  apply (auto simp add: units_group group.is_monoid
+    monoid.nat_pow_0 monoid.nat_pow_Suc units_of_one units_of_mult)
+  done
+
+lemma (in cring) units_power_order_eq_one:
+  "finite (Units R) \<Longrightarrow> a \<in> Units R \<Longrightarrow> a [^] card(Units R) = \<one>"
+  by (metis comm_group.power_order_eq_one units_comm_group units_of_carrier units_of_one units_of_pow)
+
+subsection\<open>Jeremy Avigad's @{text"More_Ring"} material\<close>
+
+lemma (in cring) field_intro2: "\<zero>\<^bsub>R\<^esub> \<noteq> \<one>\<^bsub>R\<^esub> \<Longrightarrow> \<forall>x \<in> carrier R - {\<zero>\<^bsub>R\<^esub>}. x \<in> Units R \<Longrightarrow> field R"
+  apply (unfold_locales)
+    apply (use cring_axioms in auto)
+   apply (rule trans)
+    apply (subgoal_tac "a = (a \<otimes> b) \<otimes> inv b")
+     apply assumption
+    apply (subst m_assoc)
+       apply auto
+  apply (unfold Units_def)
+  apply auto
+  done
+
+lemma (in monoid) inv_char:
+  "x \<in> carrier G \<Longrightarrow> y \<in> carrier G \<Longrightarrow> x \<otimes> y = \<one> \<Longrightarrow> y \<otimes> x = \<one> \<Longrightarrow> inv x = y"
+  apply (subgoal_tac "x \<in> Units G")
+   apply (subgoal_tac "y = inv x \<otimes> \<one>")
+    apply simp
+   apply (erule subst)
+   apply (subst m_assoc [symmetric])
+      apply auto
+  apply (unfold Units_def)
+  apply auto
+  done
+
+lemma (in comm_monoid) comm_inv_char: "x \<in> carrier G \<Longrightarrow> y \<in> carrier G \<Longrightarrow> x \<otimes> y = \<one> \<Longrightarrow> inv x = y"
+  by (simp add: inv_char m_comm)
+
+lemma (in ring) inv_neg_one [simp]: "inv (\<ominus> \<one>) = \<ominus> \<one>"
+  apply (rule inv_char)
+     apply (auto simp add: l_minus r_minus)
+  done
+
+lemma (in monoid) inv_eq_imp_eq: "x \<in> Units G \<Longrightarrow> y \<in> Units G \<Longrightarrow> inv x = inv y \<Longrightarrow> x = y"
+  apply (subgoal_tac "inv (inv x) = inv (inv y)")
+   apply (subst (asm) Units_inv_inv)+
+    apply auto
+  done
+
+lemma (in ring) Units_minus_one_closed [intro]: "\<ominus> \<one> \<in> Units R"
+  apply (unfold Units_def)
+  apply auto
+  apply (rule_tac x = "\<ominus> \<one>" in bexI)
+   apply auto
+  apply (simp add: l_minus r_minus)
+  done
+
+lemma (in ring) inv_eq_neg_one_eq: "x \<in> Units R \<Longrightarrow> inv x = \<ominus> \<one> \<longleftrightarrow> x = \<ominus> \<one>"
+  apply auto
+  apply (subst Units_inv_inv [symmetric])
+   apply auto
+  done
+
+lemma (in monoid) inv_eq_one_eq: "x \<in> Units G \<Longrightarrow> inv x = \<one> \<longleftrightarrow> x = \<one>"
+  by (metis Units_inv_inv inv_one)
 
 end

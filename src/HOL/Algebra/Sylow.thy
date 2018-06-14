@@ -223,7 +223,7 @@ lemmas M_elem_map_eq = M_elem_map [THEN someI_ex, THEN conjunct2]
 
 lemma M_funcset_rcosets_H:
   "(\<lambda>x\<in>M. H #> (SOME g. g \<in> carrier G \<and> M1 #> g = x)) \<in> M \<rightarrow> rcosets H"
-  by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup_imp_subset)
+  by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup.subset)
 
 lemma inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets H. inj_on f M"
   apply (rule bexI)

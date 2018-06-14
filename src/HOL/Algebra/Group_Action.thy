@@ -1,7 +1,5 @@
-(* ************************************************************************** *)
 (* Title:      Group_Action.thy                                               *)
 (* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
 
 theory Group_Action
 imports Bij Coset Congruence
@@ -313,7 +311,7 @@ subsection \<open>The Orbit-Stabilizer Theorem\<close>
 
 text \<open>In this subsection, we prove the Orbit-Stabilizer theorem.
       Our approach is to show the existence of a bijection between
-      "rcosets (stabilizer G \<phi> x)" and "orbit G \<phi> x". Then we use
+      "rcosets (stabilizer G phi x)" and "orbit G phi x". Then we use
       Lagrange's theorem to find the cardinal of the first set.\<close>
 
 subsubsection \<open>Rcosets - Supporting Lemmas\<close>
@@ -766,11 +764,11 @@ lemma (in group) subgroup_conjugation_is_bij:
   unfolding bij_betw_def
 proof
   show "inj_on ?\<phi> {H. subgroup H G}"
-    using subgroup_conjugation_is_inj assms inj_on_def subgroup_imp_subset
+    using subgroup_conjugation_is_inj assms inj_on_def subgroup.subset
     by (metis (mono_tags, lifting) inj_on_restrict_eq mem_Collect_eq)
 next
   have "\<And>H. H \<in> {H. subgroup H G} \<Longrightarrow> ?\<phi> ((inv g) <# H #> g) = H"
-    by (simp add: assms subgroup_imp_subset subgroup_conjugation_is_surj0
+    by (simp add: assms subgroup.subset subgroup_conjugation_is_surj0
                   subgroup_conjugation_is_surj1 is_group)
   hence "\<And>H. H \<in> {H. subgroup H G} \<Longrightarrow> \<exists>H' \<in> {H. subgroup H G}. ?\<phi> H' = H"
     using assms subgroup_conjugation_is_surj1 by fastforce
@@ -800,11 +798,11 @@ proof -
       by (simp add: H g2 subgroup_conjugation_is_surj2)
     also have " ... = g1 <# (g2 <# H) #> ((inv g2) \<otimes> (inv g1))"
       by (simp add: H coset_mult_assoc g1 g2 group.coset_assoc
-                    is_group l_coset_subset_G subgroup_imp_subset)
+                    is_group l_coset_subset_G subgroup.subset)
     also have " ... = g1 <# (g2 <# H) #> inv (g1 \<otimes> g2)"
       using g1 g2 by (simp add: inv_mult_group)
     finally have "(?\<phi> g1) ((?\<phi> g2) H) = ?\<psi> (g1 \<otimes> g2) H"
-      by (simp add: H g1 g2 lcos_m_assoc subgroup_imp_subset)
+      by (simp add: H g1 g2 lcos_m_assoc subgroup.subset)
     thus "?\<psi> (g1 \<otimes> g2) H = (?\<phi> g1) ((?\<phi> g2) H)" by auto
   qed
   hence "\<And> g1 g2. \<lbrakk> g1 \<in> carrier G; g2 \<in> carrier G \<rbrakk> \<Longrightarrow>

@@ -14,7 +14,7 @@ subsubsection \<open>General definition\<close>
 
 locale ideal = additive_subgroup I R + ring R for I and R (structure) +
   assumes I_l_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> a \<in> I"
-    and I_r_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
+      and I_r_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
 
 sublocale ideal \<subseteq> abelian_subgroup I R
   apply (intro abelian_subgroupI3 abelian_group.intro)
@@ -74,7 +74,7 @@ subsubsection \<open>Maximal Ideals\<close>
 
 locale maximalideal = ideal +
   assumes I_notcarr: "carrier R \<noteq> I"
-    and I_maximal: "\<lbrakk>ideal J R; I \<subseteq> J; J \<subseteq> carrier R\<rbrakk> \<Longrightarrow> J = I \<or> J = carrier R"
+    and I_maximal: "\<lbrakk>ideal J R; I \<subseteq> J; J \<subseteq> carrier R\<rbrakk> \<Longrightarrow> (J = I) \<or> (J = carrier R)"
 
 lemma (in maximalideal) is_maximalideal: "maximalideal I R"
   by (rule maximalideal_axioms)
@@ -83,7 +83,7 @@ lemma maximalidealI:
   fixes R
   assumes "ideal I R"
     and I_notcarr: "carrier R \<noteq> I"
-    and I_maximal: "\<And>J. \<lbrakk>ideal J R; I \<subseteq> J; J \<subseteq> carrier R\<rbrakk> \<Longrightarrow> J = I \<or> J = carrier R"
+    and I_maximal: "\<And>J. \<lbrakk>ideal J R; I \<subseteq> J; J \<subseteq> carrier R\<rbrakk> \<Longrightarrow> (J = I) \<or> (J = carrier R)"
   shows "maximalideal I R"
 proof -
   interpret ideal I R by fact
@@ -143,26 +143,17 @@ qed
 subsection \<open>Special Ideals\<close>
 
 lemma (in ring) zeroideal: "ideal {\<zero>} R"
-  apply (intro idealI subgroup.intro)
-        apply (rule is_ring)
-       apply simp+
-    apply (fold a_inv_def, simp)
-   apply simp+
-  done
+  by (intro idealI subgroup.intro) (simp_all add: is_ring)
 
 lemma (in ring) oneideal: "ideal (carrier R) R"
   by (rule idealI) (auto intro: is_ring add.subgroupI)
 
 lemma (in "domain") zeroprimeideal: "primeideal {\<zero>} R"
-  apply (intro primeidealI)
-     apply (rule zeroideal)
-    apply (rule domain.axioms, rule domain_axioms)
-   defer 1
-   apply (simp add: integral)
-proof (rule ccontr, simp)
-  assume "carrier R = {\<zero>}"
-  then have "\<one> = \<zero>" by (rule one_zeroI)
-  with one_not_zero show False by simp
+proof -
+  have "carrier R \<noteq> {\<zero>}"
+    by (simp add: carrier_one_not_zero)
+  then show ?thesis
+    by (metis (no_types, lifting) domain_axioms domain_def integral primeidealI singleton_iff zeroideal)
 qed
 
 
@@ -651,6 +642,46 @@ proof -
 qed
 
 
+(* Next lemma contributed by Paulo Emílio de Vilhena. *)
+
+text \<open>This next lemma would be trivial if placed in a theory that imports QuotRing,
+      but it makes more sense to have it here (easier to find and coherent with the
+      previous developments).\<close>
+
+lemma (in cring) cgenideal_prod:
+  assumes "a \<in> carrier R" "b \<in> carrier R"
+  shows "(PIdl a) <#> (PIdl b) = PIdl (a \<otimes> b)"
+proof -
+  have "(carrier R #> a) <#> (carrier R #> b) = carrier R #> (a \<otimes> b)"
+  proof
+    show "(carrier R #> a) <#> (carrier R #> b) \<subseteq> carrier R #> a \<otimes> b"
+    proof
+      fix x assume "x \<in> (carrier R #> a) <#> (carrier R #> b)"
+      then obtain r1 r2 where r1: "r1 \<in> carrier R" and r2: "r2 \<in> carrier R"
+                          and "x = (r1 \<otimes> a) \<otimes> (r2 \<otimes> b)"
+        unfolding set_mult_def r_coset_def by blast
+      hence "x = (r1 \<otimes> r2) \<otimes> (a \<otimes> b)"
+        by (simp add: assms local.ring_axioms m_lcomm ring.ring_simprules(11))
+      thus "x \<in> carrier R #> a \<otimes> b"
+        unfolding r_coset_def using r1 r2 assms by blast 
+    qed
+  next
+    show "carrier R #> a \<otimes> b \<subseteq> (carrier R #> a) <#> (carrier R #> b)"
+    proof
+      fix x assume "x \<in> carrier R #> a \<otimes> b"
+      then obtain r where r: "r \<in> carrier R" "x = r \<otimes> (a \<otimes> b)"
+        unfolding r_coset_def by blast
+      hence "x = (r \<otimes> a) \<otimes> (\<one> \<otimes> b)"
+        using assms by (simp add: m_assoc)
+      thus "x \<in> (carrier R #> a) <#> (carrier R #> b)"
+        unfolding set_mult_def r_coset_def using assms r by blast
+    qed
+  qed
+  thus ?thesis
+    using cgenideal_eq_rcos[of a] cgenideal_eq_rcos[of b] cgenideal_eq_rcos[of "a \<otimes> b"] by simp
+qed
+
+
 subsection \<open>Prime Ideals\<close>
 
 lemma (in ideal) primeidealCD:
@@ -918,7 +949,7 @@ proof -
   qed
 qed (simp add: zeroideal oneideal)
 
-\<comment> \<open>Jacobson Theorem 2.2\<close>
+\<comment>\<open>"Jacobson Theorem 2.2"\<close>
 lemma (in cring) trivialideals_eq_field:
   assumes carrnzero: "carrier R \<noteq> {\<zero>}"
   shows "({I. ideal I R} = {{\<zero>}, carrier R}) = field R"
