@@ -332,14 +332,17 @@ lemma finprod_insert [simp]:
   apply (auto simp add: finprod_def)
   done
 
-lemma finprod_one [simp]: "(\<Otimes>i\<in>A. \<one>) = \<one>"
+lemma finprod_one_eqI: "(\<And>x. x \<in> A \<Longrightarrow> f x = \<one>) \<Longrightarrow> finprod G f A = \<one>"
 proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
   case (insert a A)
-  have "(%i. \<one>) \<in> A \<rightarrow> carrier G" by auto
+  have "(\<lambda>i. \<one>) \<in> A \<rightarrow> carrier G" by auto
   with insert show ?case by simp
 qed simp
+
+lemma finprod_one [simp]: "(\<Otimes>i\<in>A. \<one>) = \<one>"
+  by (simp add: finprod_one_eqI)
 
 lemma finprod_closed [simp]:
   fixes A

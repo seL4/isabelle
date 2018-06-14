@@ -10,9 +10,6 @@ section \<open>Residue rings\<close>
 theory Residues
 imports
   Cong
-  "HOL-Algebra.More_Group"
-  "HOL-Algebra.More_Ring"
-  "HOL-Algebra.More_Finite_Product"
   "HOL-Algebra.Multiplicative_Group"
   Totient
 begin
@@ -355,7 +352,7 @@ proof -
      apply (metis Units_inv_inv)+
     done
   also have "\<dots> = \<one>"
-    apply (rule finprod_one)
+    apply (rule finprod_one_eqI)
      apply auto
     apply (subst finprod_insert)
         apply auto
