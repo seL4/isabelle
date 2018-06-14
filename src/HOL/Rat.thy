@@ -710,13 +710,13 @@ lemma of_rat_prod: "of_rat (\<Prod>a\<in>A. f a) = (\<Prod>a\<in>A. of_rat (f a)
 lemma nonzero_of_rat_inverse: "a \<noteq> 0 \<Longrightarrow> of_rat (inverse a) = inverse (of_rat a)"
   by (rule inverse_unique [symmetric]) (simp add: of_rat_mult [symmetric])
 
-lemma of_rat_inverse: "(of_rat (inverse a) :: 'a::{field_char_0,field}) = inverse (of_rat a)"
+lemma of_rat_inverse: "(of_rat (inverse a) :: 'a::field_char_0) = inverse (of_rat a)"
   by (cases "a = 0") (simp_all add: nonzero_of_rat_inverse)
 
 lemma nonzero_of_rat_divide: "b \<noteq> 0 \<Longrightarrow> of_rat (a / b) = of_rat a / of_rat b"
   by (simp add: divide_inverse of_rat_mult nonzero_of_rat_inverse)
 
-lemma of_rat_divide: "(of_rat (a / b) :: 'a::{field_char_0,field}) = of_rat a / of_rat b"
+lemma of_rat_divide: "(of_rat (a / b) :: 'a::field_char_0) = of_rat a / of_rat b"
   by (cases "b = 0") (simp_all add: nonzero_of_rat_divide)
 
 lemma of_rat_power: "(of_rat (a ^ n) :: 'a::field_char_0) = of_rat a ^ n"
@@ -869,29 +869,15 @@ lemma Rats_mult [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longr
   apply (rule of_rat_mult [symmetric])
   done
 
-lemma nonzero_Rats_inverse: "a \<in> \<rat> \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> inverse a \<in> \<rat>"
-  for a :: "'a::field_char_0"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (erule nonzero_of_rat_inverse [symmetric])
-  done
-
 lemma Rats_inverse [simp]: "a \<in> \<rat> \<Longrightarrow> inverse a \<in> \<rat>"
-  for a :: "'a::{field_char_0,field}"
+  for a :: "'a::field_char_0"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (rule of_rat_inverse [symmetric])
   done
 
-lemma nonzero_Rats_divide: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a / b \<in> \<rat>"
-  for a b :: "'a::field_char_0"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (erule nonzero_of_rat_divide [symmetric])
-  done
-
 lemma Rats_divide [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a / b \<in> \<rat>"
-  for a b :: "'a::{field_char_0, field}"
+  for a b :: "'a::field_char_0"
   apply (auto simp add: Rats_def)
   apply (rule range_eqI)
   apply (rule of_rat_divide [symmetric])
