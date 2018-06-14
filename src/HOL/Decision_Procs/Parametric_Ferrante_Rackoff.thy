@@ -35,7 +35,7 @@ instance ..
 end
 
 text \<open>Semantics of terms tm.\<close>
-primrec Itm :: "'a::{field_char_0,field} list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
+primrec Itm :: "'a::field_char_0 list \<Rightarrow> 'a list \<Rightarrow> tm \<Rightarrow> 'a"
   where
     "Itm vs bs (CP c) = (Ipoly vs c)"
   | "Itm vs bs (Bound n) = bs!n"
@@ -319,7 +319,7 @@ lemma tmmul_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n (tmmul t i
   by (induct t arbitrary: i rule: tmmul.induct) (auto simp add: Let_def)
 
 lemma tmmul_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "allpolys isnpoly t \<Longrightarrow> isnpoly c \<Longrightarrow> allpolys isnpoly (tmmul t c)"
   by (induct t rule: tmmul.induct) (simp_all add: Let_def polymul_norm)
 
@@ -345,7 +345,7 @@ lemma [simp]: "isnpoly (C (-1, 1))"
   by (simp add: isnpoly_def)
 
 lemma tmneg_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly (tmneg t)"
   by (auto simp: tmneg_def)
 
@@ -362,7 +362,7 @@ lemma tmsub_blt[simp]: "tmboundslt n t \<Longrightarrow> tmboundslt n s \<Longri
   using tmsub_def by simp
 
 lemma tmsub_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmsub t s)"
   by (simp add: tmsub_def isnpoly_def)
 
@@ -379,7 +379,7 @@ fun simptm :: "tm \<Rightarrow> tm"
       (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p)) (simptm t))"
 
 lemma polynate_stupid:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "polynate t = 0\<^sub>p \<Longrightarrow> Ipoly bs t = (0::'a)"
   apply (subst polynate[symmetric])
   apply simp
@@ -402,7 +402,7 @@ lemma [simp]: "isnpoly 0\<^sub>p"
   by (simp_all add: isnpoly_def)
 
 lemma simptm_allpolys_npoly[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "allpolys isnpoly (simptm p)"
   by (induct p rule: simptm.induct) (auto simp add: Let_def)
 
@@ -452,7 +452,7 @@ proof -
 qed
 
 lemma split0_nb0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "split0 t = (c',t') \<Longrightarrow>  tmbound 0 t'"
 proof -
   fix c' t'
@@ -464,7 +464,7 @@ proof -
 qed
 
 lemma split0_nb0'[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "tmbound0 (snd (split0 t))"
   using split0_nb0[of t "fst (split0 t)" "snd (split0 t)"]
   by (simp add: tmbound0_tmbound_iff)
@@ -492,7 +492,7 @@ lemma allpolys_split0: "allpolys isnpoly p \<Longrightarrow> allpolys isnpoly (s
   by (induct p rule: split0.induct) (auto simp  add: isnpoly_def Let_def split_def)
 
 lemma isnpoly_fst_split0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "allpolys isnpoly p \<Longrightarrow> isnpoly (fst (split0 p))"
   by (induct p rule: split0.induct)
     (auto simp  add: polyadd_norm polysub_norm polyneg_norm polymul_norm Let_def split_def)
@@ -1172,7 +1172,7 @@ definition "simpeq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then eq
 definition "simpneq t = (let (c,s) = split0 (simptm t) in if c= 0\<^sub>p then neq s else NEq (CNP 0 c s))"
 
 lemma simplt_islin [simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "islin (simplt t)"
   unfolding simplt_def
   using split0_nb0'
@@ -1180,7 +1180,7 @@ lemma simplt_islin [simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly])
 
 lemma simple_islin [simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "islin (simple t)"
   unfolding simple_def
   using split0_nb0'
@@ -1188,7 +1188,7 @@ lemma simple_islin [simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly] le_lin)
 
 lemma simpeq_islin [simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "islin (simpeq t)"
   unfolding simpeq_def
   using split0_nb0'
@@ -1196,7 +1196,7 @@ lemma simpeq_islin [simp]:
       islin_stupid allpolys_split0[OF simptm_allpolys_npoly] eq_lin)
 
 lemma simpneq_islin [simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "islin (simpneq t)"
   unfolding simpneq_def
   using split0_nb0'
@@ -1207,7 +1207,7 @@ lemma really_stupid: "\<not> (\<forall>c1 s'. (c1, s') \<noteq> split0 s)"
   by (cases "split0 s") auto
 
 lemma split0_npoly:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
     and *: "allpolys isnpoly t"
   shows "isnpoly (fst (split0 t))"
     and "allpolys isnpoly (snd (split0 t))"
@@ -1323,7 +1323,7 @@ lemma neq_nb: "tmbound0 t \<Longrightarrow> bound0 (neq t)"
   done
 
 lemma simplt_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "tmbound0 t \<Longrightarrow> bound0 (simplt t)"
 proof (simp add: simplt_def Let_def split_def)
   assume "tmbound0 t"
@@ -1344,7 +1344,7 @@ proof (simp add: simplt_def Let_def split_def)
 qed
 
 lemma simple_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "tmbound0 t \<Longrightarrow> bound0 (simple t)"
 proof(simp add: simple_def Let_def split_def)
   assume "tmbound0 t"
@@ -1365,7 +1365,7 @@ proof(simp add: simple_def Let_def split_def)
 qed
 
 lemma simpeq_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpeq t)"
 proof (simp add: simpeq_def Let_def split_def)
   assume "tmbound0 t"
@@ -1386,7 +1386,7 @@ proof (simp add: simpeq_def Let_def split_def)
 qed
 
 lemma simpneq_nb[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "tmbound0 t \<Longrightarrow> bound0 (simpneq t)"
 proof (simp add: simpneq_def Let_def split_def)
   assume "tmbound0 t"
@@ -1541,7 +1541,7 @@ lemma simpfm[simp]: "Ifm vs bs (simpfm p) = Ifm vs bs p"
   by (induct p arbitrary: bs rule: simpfm.induct) auto
 
 lemma simpfm_bound0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "bound0 p \<Longrightarrow> bound0 (simpfm p)"
   by (induct p rule: simpfm.induct) auto
 
@@ -1591,7 +1591,7 @@ lemma conj_lin: "islin p \<Longrightarrow> islin q \<Longrightarrow> islin (conj
   by (simp add: conj_def)
 
 lemma
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (simp_all add: conj_lin disj_lin)
 
@@ -3313,7 +3313,7 @@ proof -
 qed
 
 lemma simpfm_lin:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct) (auto simp add: conj_lin disj_lin)
 
@@ -3627,7 +3627,7 @@ lemma msubstpos_nb:
     (auto simp add: msubsteq2_nb msubstltpos_nb msubstlepos_nb)
 
 lemma msubstneg_nb:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
     and lp: "islin p"
     and tnb: "tmbound0 t"
   shows "bound0 (msubstneg p c t)"
@@ -3636,7 +3636,7 @@ lemma msubstneg_nb:
     (auto simp add: msubsteq2_nb msubstltneg_nb msubstleneg_nb)
 
 lemma msubst2_nb:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
     and lp: "islin p"
     and tnb: "tmbound0 t"
   shows "bound0 (msubst2 p c t)"

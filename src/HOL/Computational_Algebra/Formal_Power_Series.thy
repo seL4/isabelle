@@ -4601,7 +4601,7 @@ lemma fps_demoivre:
 
 subsection \<open>Hypergeometric series\<close>
 
-definition "fps_hypergeo as bs (c::'a::{field_char_0,field}) =
+definition "fps_hypergeo as bs (c::'a::field_char_0) =
   Abs_fps (\<lambda>n. (foldl (\<lambda>r a. r* pochhammer a n) 1 as * c^n) /
     (foldl (\<lambda>r b. r * pochhammer b n) 1 bs * of_nat (fact n)))"
 
@@ -4686,11 +4686,11 @@ lemma fps_XDp_fps_integral [simp]: "fps_XDp 0 (fps_integral a c) = fps_X * a"
   by (simp add: fps_eq_iff fps_integral_def)
 
 lemma fps_hypergeo_minus_nat:
-  "fps_hypergeo [- of_nat n] [- of_nat (n + m)] (c::'a::{field_char_0,field}) $ k =
+  "fps_hypergeo [- of_nat n] [- of_nat (n + m)] (c::'a::field_char_0) $ k =
     (if k \<le> n then
       pochhammer (- of_nat n) k * c ^ k / (pochhammer (- of_nat (n + m)) k * of_nat (fact k))
      else 0)"
-  "fps_hypergeo [- of_nat m] [- of_nat (m + n)] (c::'a::{field_char_0,field}) $ k =
+  "fps_hypergeo [- of_nat m] [- of_nat (m + n)] (c::'a::field_char_0) $ k =
     (if k \<le> m then
       pochhammer (- of_nat m) k * c ^ k / (pochhammer (- of_nat (m + n)) k * of_nat (fact k))
      else 0)"

@@ -177,7 +177,7 @@ lemma INum_int [simp]: "INum (i)\<^sub>N = (of_int i ::'a::field)" "INum 0\<^sub
 lemma isnormNum_unique[simp]:
   assumes na: "isnormNum x"
     and nb: "isnormNum y"
-  shows "(INum x ::'a::{field_char_0,field}) = INum y \<longleftrightarrow> x = y"
+  shows "(INum x ::'a::field_char_0) = INum y \<longleftrightarrow> x = y"
   (is "?lhs = ?rhs")
 proof
   obtain a b where x: "x = (a, b)" by (cases x)
@@ -217,7 +217,7 @@ proof
     using that by simp
 qed
 
-lemma isnormNum0[simp]: "isnormNum x \<Longrightarrow> INum x = (0::'a::{field_char_0,field}) \<longleftrightarrow> x = 0\<^sub>N"
+lemma isnormNum0[simp]: "isnormNum x \<Longrightarrow> INum x = (0::'a::field_char_0) \<longleftrightarrow> x = 0\<^sub>N"
   unfolding INum_int(2)[symmetric]
   by (rule isnormNum_unique) simp_all
 
@@ -244,7 +244,7 @@ lemma of_int_div:
   shows "(of_int (n div d) ::'a::field_char_0) = of_int n / of_int d"
   using assms of_int_div_aux [of d n, where ?'a = 'a] by simp
 
-lemma normNum[simp]: "INum (normNum x) = (INum x :: 'a::{field_char_0,field})"
+lemma normNum[simp]: "INum (normNum x) = (INum x :: 'a::field_char_0)"
 proof -
   obtain a b where x: "x = (a, b)" by (cases x)
   consider "a = 0 \<or> b = 0" | "a \<noteq> 0" "b \<noteq> 0" by blast
@@ -262,7 +262,7 @@ proof -
   qed
 qed
 
-lemma INum_normNum_iff: "(INum x ::'a::{field_char_0,field}) = INum y \<longleftrightarrow> normNum x = normNum y"
+lemma INum_normNum_iff: "(INum x ::'a::field_char_0) = INum y \<longleftrightarrow> normNum x = normNum y"
   (is "?lhs \<longleftrightarrow> _")
 proof -
   have "normNum x = normNum y \<longleftrightarrow> (INum (normNum x) :: 'a) = INum (normNum y)"
@@ -271,7 +271,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma Nadd[simp]: "INum (x +\<^sub>N y) = INum x + (INum y :: 'a :: {field_char_0,field})"
+lemma Nadd[simp]: "INum (x +\<^sub>N y) = INum x + (INum y :: 'a :: field_char_0)"
 proof -
   let ?z = "0::'a"
   obtain a b where x: "x = (a, b)" by (cases x)
@@ -319,7 +319,7 @@ proof -
   qed
 qed
 
-lemma Nmul[simp]: "INum (x *\<^sub>N y) = INum x * (INum y:: 'a::{field_char_0,field})"
+lemma Nmul[simp]: "INum (x *\<^sub>N y) = INum x * (INum y:: 'a::field_char_0)"
 proof -
   let ?z = "0::'a"
   obtain a b where x: "x = (a, b)" by (cases x)
@@ -346,13 +346,13 @@ qed
 lemma Nneg[simp]: "INum (~\<^sub>N x) = - (INum x :: 'a::field)"
   by (simp add: Nneg_def split_def INum_def)
 
-lemma Nsub[simp]: "INum (x -\<^sub>N y) = INum x - (INum y:: 'a::{field_char_0,field})"
+lemma Nsub[simp]: "INum (x -\<^sub>N y) = INum x - (INum y:: 'a::field_char_0)"
   by (simp add: Nsub_def split_def)
 
 lemma Ninv[simp]: "INum (Ninv x) = (1 :: 'a::field) / INum x"
   by (simp add: Ninv_def INum_def split_def)
 
-lemma Ndiv[simp]: "INum (x \<div>\<^sub>N y) = INum x / (INum y :: 'a::{field_char_0,field})"
+lemma Ndiv[simp]: "INum (x \<div>\<^sub>N y) = INum x / (INum y :: 'a::field_char_0)"
   by (simp add: Ndiv_def)
 
 lemma Nlt0_iff[simp]:
@@ -463,7 +463,7 @@ proof -
 qed
 
 lemma Nadd_commute:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "x +\<^sub>N y = y +\<^sub>N x"
 proof -
   have n: "isnormNum (x +\<^sub>N y)" "isnormNum (y +\<^sub>N x)"
@@ -475,7 +475,7 @@ proof -
 qed
 
 lemma [simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "(0, b) +\<^sub>N y = normNum y"
     and "(a, 0) +\<^sub>N y = normNum y"
     and "x +\<^sub>N (0, b) = normNum x"
@@ -489,7 +489,7 @@ lemma [simp]:
   done
 
 lemma normNum_nilpotent_aux[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   assumes nx: "isnormNum x"
   shows "normNum x = x"
 proof -
@@ -500,7 +500,7 @@ proof -
 qed
 
 lemma normNum_nilpotent[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "normNum (normNum x) = normNum x"
   by simp
 
@@ -508,12 +508,12 @@ lemma normNum0[simp]: "normNum (0, b) = 0\<^sub>N" "normNum (a, 0) = 0\<^sub>N"
   by (simp_all add: normNum_def)
 
 lemma normNum_Nadd:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "normNum (x +\<^sub>N y) = x +\<^sub>N y"
   by simp
 
 lemma Nadd_normNum1[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "normNum x +\<^sub>N y = x +\<^sub>N y"
 proof -
   have n: "isnormNum (normNum x +\<^sub>N y)" "isnormNum (x +\<^sub>N y)"
@@ -527,7 +527,7 @@ proof -
 qed
 
 lemma Nadd_normNum2[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "x +\<^sub>N normNum y = x +\<^sub>N y"
 proof -
   have n: "isnormNum (x +\<^sub>N normNum y)" "isnormNum (x +\<^sub>N y)"
@@ -541,7 +541,7 @@ proof -
 qed
 
 lemma Nadd_assoc:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   shows "x +\<^sub>N y +\<^sub>N z = x +\<^sub>N (y +\<^sub>N z)"
 proof -
   have n: "isnormNum (x +\<^sub>N y +\<^sub>N z)" "isnormNum (x +\<^sub>N (y +\<^sub>N z))"
@@ -556,7 +556,7 @@ lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow>
   by (simp add: Nmul_def split_def Let_def gcd.commute mult.commute)
 
 lemma Nmul_assoc:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   assumes nx: "isnormNum x"
     and ny: "isnormNum y"
     and nz: "isnormNum z"
@@ -571,7 +571,7 @@ proof -
 qed
 
 lemma Nsub0:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   assumes x: "isnormNum x"
     and y: "isnormNum y"
   shows "x -\<^sub>N y = 0\<^sub>N \<longleftrightarrow> x = y"
@@ -590,7 +590,7 @@ lemma Nmul0[simp]: "c *\<^sub>N 0\<^sub>N = 0\<^sub>N" " 0\<^sub>N *\<^sub>N c =
   by (simp_all add: Nmul_def Let_def split_def)
 
 lemma Nmul_eq0[simp]:
-  assumes "SORT_CONSTRAINT('a::{field_char_0,field})"
+  assumes "SORT_CONSTRAINT('a::field_char_0)"
   assumes nx: "isnormNum x"
     and ny: "isnormNum y"
   shows "x*\<^sub>N y = 0\<^sub>N \<longleftrightarrow> x = 0\<^sub>N \<or> y = 0\<^sub>N"
