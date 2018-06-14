@@ -7,8 +7,6 @@ theory Multiplicative_Group
 imports
   Complex_Main
   Group
-  More_Group
-  More_Finite_Product
   Coset
   UnivPoly
 begin

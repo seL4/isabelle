@@ -189,7 +189,7 @@ lemma finite_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> finite (M1 #> g)"
   using rcosetGM1g_subset_G finite_G M1_subset_G cosets_finite rcosetsI by blast
 
 lemma M1_cardeq_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> card (M1 #> g) = card M1"
-  by (simp add: card_cosets_equal rcosetsI)
+  by (metis M1_subset_G card_rcosets_equal rcosetsI)
 
 lemma M1_RelM_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> (M1, M1 #> g) \<in> RelM"
   apply (simp add: RelM_def calM_def card_M1)
@@ -223,7 +223,7 @@ lemmas M_elem_map_eq = M_elem_map [THEN someI_ex, THEN conjunct2]
 
 lemma M_funcset_rcosets_H:
   "(\<lambda>x\<in>M. H #> (SOME g. g \<in> carrier G \<and> M1 #> g = x)) \<in> M \<rightarrow> rcosets H"
-  by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup_imp_subset)
+  by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup.subset)
 
 lemma inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets H. inj_on f M"
   apply (rule bexI)
