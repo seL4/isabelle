@@ -303,7 +303,7 @@ lemma (in comm_group) mult_subgroups:
   shows "subgroup (H <#> K) G"
 proof (rule subgroup.intro)
   show "H <#> K \<subseteq> carrier G"
-    by (simp add: setmult_subset_G assms subgroup_imp_subset)
+    by (simp add: setmult_subset_G assms subgroup.subset)
 next
   have "\<one> \<otimes> \<one> \<in> H <#> K"
     unfolding set_mult_def using assms subgroup.one_closed by blast
@@ -821,7 +821,7 @@ apply (subst mult.commute)
 apply (rule card_partition)
    apply (simp add: rcosets_subset_PowG [THEN finite_subset])
   apply (simp add: rcosets_part_G)
-  apply (simp add: card_rcosets_equal subgroup_imp_subset)
+  apply (simp add: card_rcosets_equal subgroup.subset)
 apply (simp add: rcos_disjoint)
 done
 
@@ -843,11 +843,11 @@ next
       hence finite_rcos: "finite (rcosets H)" by simp
       hence "card (\<Union>(rcosets H)) = (\<Sum>R\<in>(rcosets H). card R)"
         using card_Union_disjoint[of "rcosets H"] finite_H rcos_disjoint[OF assms(1)]
-              rcosets_finite[where ?H = H] by (simp add: assms subgroup_imp_subset)
+              rcosets_finite[where ?H = H] by (simp add: assms subgroup.subset)
       hence "order G = (\<Sum>R\<in>(rcosets H). card R)"
         by (simp add: assms order_def rcosets_part_G)
       hence "order G = (\<Sum>R\<in>(rcosets H). card H)"
-        using card_rcosets_equal by (simp add: assms subgroup_imp_subset)
+        using card_rcosets_equal by (simp add: assms subgroup.subset)
       hence "order G = (card H) * (card (rcosets H))" by simp
       hence "order G \<noteq> 0" using finite_rcos finite_H assms ex_in_conv
                                 rcosets_part_G subgroup.one_closed by fastforce
@@ -1094,13 +1094,13 @@ proof (intro group.normal_invI[OF DirProd_group[OF group_axioms assms(1)]])
   show "\<And>x h. x \<in> carrier (G\<times>\<times>K) \<Longrightarrow> h \<in> H\<times>N \<Longrightarrow> x \<otimes>\<^bsub>G\<times>\<times>K\<^esub> h \<otimes>\<^bsub>G\<times>\<times>K\<^esub> inv\<^bsub>G\<times>\<times>K\<^esub> x \<in> H\<times>N"
   proof-
     fix x h assume xGK : "x \<in> carrier (G \<times>\<times> K)" and hHN : " h \<in> H \<times> N"
-    hence hGK : "h \<in> carrier (G \<times>\<times> K)" using subgroup_imp_subset[OF sub] by auto
+    hence hGK : "h \<in> carrier (G \<times>\<times> K)" using subgroup.subset[OF sub] by auto
     from xGK obtain x1 x2 where x1x2 :"x1 \<in> carrier G" "x2 \<in> carrier K" "x = (x1,x2)"
       unfolding DirProd_def by fastforce
     from hHN obtain h1 h2 where h1h2 : "h1 \<in> H" "h2 \<in> N" "h = (h1,h2)"
       unfolding DirProd_def by fastforce
     hence h1h2GK : "h1 \<in> carrier G" "h2 \<in> carrier K"
-      using normal_imp_subgroup subgroup_imp_subset assms apply blast+.
+      using normal_imp_subgroup subgroup.subset assms apply blast+.
     have "inv\<^bsub>G \<times>\<times> K\<^esub> x = (inv\<^bsub>G\<^esub> x1,inv\<^bsub>K\<^esub> x2)"
       using inv_DirProd[OF group_axioms assms(1) x1x2(1)x1x2(2)] x1x2 by auto
     hence "x \<otimes>\<^bsub>G \<times>\<times> K\<^esub> h \<otimes>\<^bsub>G \<times>\<times> K\<^esub> inv\<^bsub>G \<times>\<times> K\<^esub> x = (x1 \<otimes> h1 \<otimes> inv x1,x2 \<otimes>\<^bsub>K\<^esub> h2 \<otimes>\<^bsub>K\<^esub> inv\<^bsub>K\<^esub> x2)"
@@ -1160,7 +1160,7 @@ lemma (in group) set_mult_carrier_idem:
   shows "(carrier G) <#> H = carrier G"
 proof
   show "(carrier G)<#>H \<subseteq> carrier G" 
-    unfolding set_mult_def using subgroup_imp_subset assms by blast
+    unfolding set_mult_def using subgroup.subset assms by blast
 next
   have " (carrier G) #>  \<one> = carrier G" unfolding set_mult_def r_coset_def group_axioms by simp
   moreover have "(carrier G) #>  \<one> \<subseteq> (carrier G) <#> H" unfolding set_mult_def r_coset_def
@@ -1173,7 +1173,7 @@ lemma (in group) set_mult_subgroup_idem:
   assumes "subgroup H G"
     and "subgroup N (G\<lparr>carrier:=H\<rparr>)"
   shows "H<#>N = H"
-  using group.set_mult_carrier_idem[OF subgroup_imp_group] subgroup_imp_subset assms
+  using group.set_mult_carrier_idem[OF subgroup_imp_group] subgroup.subset assms
   by (metis monoid.cases_scheme order_refl partial_object.simps(1)
       partial_object.update_convs(1) subgroup_set_mult_equality)
 
@@ -1196,9 +1196,9 @@ lemma (in group) commut_normal_subgroup:
     and "subgroup K (G\<lparr>carrier:=H\<rparr>)"
   shows "K<#>N = N<#>K"
 proof-
-  have "N \<subseteq> carrier (G\<lparr>carrier := H\<rparr>)" using assms normal_imp_subgroup subgroup_imp_subset by blast
+  have "N \<subseteq> carrier (G\<lparr>carrier := H\<rparr>)" using assms normal_imp_subgroup subgroup.subset by blast
   hence NH : "N \<subseteq> H" by simp
-  have "K \<subseteq> carrier(G\<lparr>carrier := H\<rparr>)" using subgroup_imp_subset assms by blast
+  have "K \<subseteq> carrier(G\<lparr>carrier := H\<rparr>)" using subgroup.subset assms by blast
   hence KH : "K \<subseteq> H" by simp
   have Egal : "K <#>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> N = N <#>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> K"
   using group.commut_normal[where ?G = "G\<lparr>carrier :=H\<rparr>", of K N,OF subgroup_imp_group[OF assms(1)]
@@ -1235,7 +1235,7 @@ proof-
       show "subgroup (H\<inter>K) G" using HK_def subgroups_Inter_pair assms by auto
     next
       have "H1 \<subseteq> (carrier (G\<lparr>carrier:=H\<rparr>))" 
-        using  assms(3) normal_imp_subgroup subgroup_imp_subset by blast
+        using  assms(3) normal_imp_subgroup subgroup.subset by blast
       also have "... \<subseteq> H" by simp
       thus "H1K \<subseteq>H\<inter>K" 
         using H1K_def calculation by auto
@@ -1256,7 +1256,7 @@ proof-
       hence invx:"inv\<^bsub>GHK\<^esub> x = inv\<^bsub>GH\<^esub> x"
         using invHK assms GHK_def HK_def GH_def subgroup_inv_equality subgroups_Inter_pair by simp
       have "H1\<subseteq>carrier(GH)"
-        using assms GH_def normal_imp_subgroup subgroup_imp_subset by blast
+        using assms GH_def normal_imp_subgroup subgroup.subset by blast
       hence hHK:"h\<in>HK" 
         using p2 H1K_def HK_def GH_def by auto
       hence xhx_egal : "x \<otimes>\<^bsub>GHK\<^esub> h \<otimes>\<^bsub>GHK\<^esub> inv\<^bsub>GHK\<^esub>x =  x \<otimes>\<^bsub>GH\<^esub> h \<otimes>\<^bsub>GH\<^esub> inv\<^bsub>GH\<^esub> x"
@@ -1291,7 +1291,7 @@ proof -
   moreover have "normal N (G \<lparr>carrier :=K\<rparr>)" using assms K_def by simp
   ultimately have "N \<inter> H \<lhd> G\<lparr>carrier := K \<inter> H\<rparr>"
     using normal_inter[of K H N] assms(1) by blast
-  moreover have "K \<inter> H = H" using K_def assms subgroup_imp_subset by blast
+  moreover have "K \<inter> H = H" using K_def assms subgroup.subset by blast
   ultimately show "normal (N\<inter>H) (G\<lparr>carrier := H\<rparr>)" by auto
 qed
 

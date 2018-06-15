@@ -1274,9 +1274,9 @@ lemma (in group) incl_subgroup:
     and "subgroup I (G\<lparr>carrier:=J\<rparr>)"
   shows "subgroup I G" unfolding subgroup_def
 proof
-  have H1: "I \<subseteq> carrier (G\<lparr>carrier:=J\<rparr>)" using assms(2) subgroup_imp_subset by blast
+  have H1: "I \<subseteq> carrier (G\<lparr>carrier:=J\<rparr>)" using assms(2) subgroup.subset by blast
   also have H2: "...\<subseteq>J" by simp
-  also  have "...\<subseteq>(carrier G)"  by (simp add: assms(1) subgroup_imp_subset)
+  also  have "...\<subseteq>(carrier G)"  by (simp add: assms(1) subgroup.subset)
   finally have H: "I \<subseteq> carrier G" by simp
   have "(\<And>x y. \<lbrakk>x \<in> I ; y \<in> I\<rbrakk> \<Longrightarrow> x \<otimes> y \<in> I)" using assms(2) by (auto simp add: subgroup_def)
   thus  "I \<subseteq> carrier G \<and> (\<forall>x y. x \<in> I \<longrightarrow> y \<in> I \<longrightarrow> x \<otimes> y \<in> I)"  using H by blast
