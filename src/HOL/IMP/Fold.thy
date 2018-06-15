@@ -192,13 +192,13 @@ qed
 
 
 lemma approx_empty [simp]:
-  "approx empty = (\<lambda>_. True)"
+  "approx Map.empty = (\<lambda>_. True)"
   by (auto simp: approx_def)
 
 
 theorem constant_folding_equiv:
-  "fold c empty \<sim> c"
-  using approx_eq [of empty c]
+  "fold c Map.empty \<sim> c"
+  using approx_eq [of Map.empty c]
   by (simp add: equiv_up_to_True sim_sym)
 
 

@@ -10,7 +10,7 @@ definition blank :: "'c prog \<Rightarrow> cname \<Rightarrow> obj" where
   "blank G C \<equiv> (C,init_vars (fields(G,C)))" 
 
 definition start_heap :: "'c prog \<Rightarrow> aheap" where
-  "start_heap G \<equiv> empty (XcptRef NullPointer \<mapsto> blank G (Xcpt NullPointer))
+  "start_heap G \<equiv> Map.empty (XcptRef NullPointer \<mapsto> blank G (Xcpt NullPointer))
                         (XcptRef ClassCast \<mapsto> blank G (Xcpt ClassCast))
                         (XcptRef OutOfMemory \<mapsto> blank G (Xcpt OutOfMemory))"
 

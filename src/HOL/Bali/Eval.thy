@@ -346,7 +346,7 @@ where
               (case k of
                  EName e 
                    \<Rightarrow> (case e of 
-                         VNam v \<Rightarrow> (empty ((pars m)[\<mapsto>]pvs)) v
+                         VNam v \<Rightarrow> (Map.empty ((pars m)[\<mapsto>]pvs)) v
                        | Res    \<Rightarrow> None)
                | This 
                    \<Rightarrow> (if mode=Static then None else Some a'))
@@ -362,7 +362,7 @@ lemma init_lvars_def2: \<comment> \<open>better suited for simplification\<close
           EName e 
             \<Rightarrow> (case e of 
                   VNam v 
-                  \<Rightarrow> (empty ((pars (mthd (the (methd G C sig))))[\<mapsto>]pvs)) v
+                  \<Rightarrow> (Map.empty ((pars (mthd (the (methd G C sig))))[\<mapsto>]pvs)) v
                | Res \<Rightarrow> None)
         | This 
             \<Rightarrow> (if mode=Static then None else Some a')))
@@ -578,7 +578,7 @@ where
           if inited C (globs s0) then s3 = Norm s0
           else (G\<turnstile>Norm (init_class_obj G C s0) 
                   \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1 \<and>
-               G\<turnstile>set_lvars empty s1 \<midarrow>init c\<rightarrow> s2 \<and> s3 = restore_lvars s1 s2)\<rbrakk> 
+               G\<turnstile>set_lvars Map.empty s1 \<midarrow>init c\<rightarrow> s2 \<and> s3 = restore_lvars s1 s2)\<rbrakk> 
               \<Longrightarrow>
                  G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s3"
    \<comment> \<open>This class initialisation rule is a little bit inaccurate. Look at the
@@ -1022,7 +1022,7 @@ lemma eval_Init:
 "\<lbrakk>if inited C (globs s0) then s3 = Norm s0 
   else G\<turnstile>Norm (init_class_obj G C s0)  
          \<midarrow>(if C = Object then Skip else Init (super (the (class G C))))\<rightarrow> s1 \<and>
-       G\<turnstile>set_lvars empty s1 \<midarrow>(init (the (class G C)))\<rightarrow> s2 \<and> 
+       G\<turnstile>set_lvars Map.empty s1 \<midarrow>(init (the (class G C)))\<rightarrow> s2 \<and> 
       s3 = restore_lvars s1 s2\<rbrakk> \<Longrightarrow>  
   G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s3"
 apply (rule eval.Init)

@@ -226,7 +226,7 @@ definition
 lemmas table_classes_defs = 
      Classes_def standard_classes_def ObjectC_def SXcptC_def
 
-lemma table_ifaces [simp]: "table_of Ifaces = empty(HasFoo\<mapsto>HasFooInt)"
+lemma table_ifaces [simp]: "table_of Ifaces = Map.empty(HasFoo\<mapsto>HasFooInt)"
 apply (unfold Ifaces_def)
 apply (simp (no_asm))
 done
@@ -462,13 +462,13 @@ lemmas imethds_rec' = imethds_rec [OF _ ws_tprg]
 lemmas methd_rec'  = methd_rec  [OF _ ws_tprg]
 
 lemma imethds_HasFoo [simp]: 
-  "imethds tprg HasFoo = set_option \<circ> empty(foo_sig\<mapsto>(HasFoo, foo_mhead))"
+  "imethds tprg HasFoo = set_option \<circ> Map.empty(foo_sig\<mapsto>(HasFoo, foo_mhead))"
 apply (rule trans)
 apply (rule imethds_rec')
 apply  (auto simp add: HasFooInt_def)
 done
 
-lemma methd_tprg_Object [simp]: "methd tprg Object = empty"
+lemma methd_tprg_Object [simp]: "methd tprg Object = Map.empty"
 apply (subst methd_rec')
 apply (auto simp add: Object_mdecls_def)
 done
@@ -518,9 +518,9 @@ by (auto simp add: inherits_def foo_sig_not_undeclared_in_Ext)
 
 lemma Ext_method_inheritance:
  "filter_tab (\<lambda>sig m. tprg \<turnstile> Ext inherits method sig m)
-     (empty(fst ((\<lambda>(s, m). (s, Base, m)) Base_foo)\<mapsto>
+     (Map.empty(fst ((\<lambda>(s, m). (s, Base, m)) Base_foo)\<mapsto>
       snd ((\<lambda>(s, m). (s, Base, m)) Base_foo)))
-  = empty"
+  = Map.empty"
 proof -
   from Base_foo_not_inherited_in_Ext
   show ?thesis
@@ -592,7 +592,7 @@ by (simp add: is_acc_class_def)
 lemma Ext_is_acc_type[simp]: "is_acc_type tprg P (Class Ext)"
 by (simp add: is_acc_type_def)
 
-lemma accmethd_tprg_Object [simp]: "accmethd tprg S Object = empty"
+lemma accmethd_tprg_Object [simp]: "accmethd tprg S Object = Map.empty"
 apply (unfold accmethd_def)
 apply (simp)
 done
@@ -1082,7 +1082,7 @@ by (simp add: max_spec_def appl_methds_Base_foo Collect_conv_if)
 
 subsubsection "well-typedness"
 
-schematic_goal wt_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
+schematic_goal wt_test: "\<lparr>prg=tprg,cls=Main,lcl=Map.empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
 apply (unfold test_def arr_viewed_from_def)
 (* ?pTs = [Class Base] *)
 apply (rule wtIs (* ;; *))
@@ -1134,7 +1134,7 @@ done
 
 subsubsection "definite assignment"
 
-schematic_goal da_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>
+schematic_goal da_test: "\<lparr>prg=tprg,cls=Main,lcl=Map.empty(VName e\<mapsto>Class Base)\<rparr>
                   \<turnstile>{} \<guillemotright>\<langle>test ?pTs\<rangle>\<guillemotright> \<lparr>nrm={VName e},brk=\<lambda> l. UNIV\<rparr>"
 apply (unfold test_def arr_viewed_from_def)
 apply (rule da.Comp)
@@ -1208,40 +1208,40 @@ abbreviation "four == Suc three"
 
 abbreviation
   "obj_a == \<lparr>tag=Arr (PrimT Boolean) 2
-                ,values= empty(Inr 0\<mapsto>Bool False)(Inr 1\<mapsto>Bool False)\<rparr>"
+                ,values= Map.empty(Inr 0\<mapsto>Bool False)(Inr 1\<mapsto>Bool False)\<rparr>"
 
 abbreviation
   "obj_b == \<lparr>tag=CInst Ext
-                ,values=(empty(Inl (vee, Base)\<mapsto>Null   )
+                ,values=(Map.empty(Inl (vee, Base)\<mapsto>Null   )
                               (Inl (vee, Ext )\<mapsto>Intg 0))\<rparr>"
 
 abbreviation
-  "obj_c == \<lparr>tag=CInst (SXcpt NullPointer),values=CONST empty\<rparr>"
+  "obj_c == \<lparr>tag=CInst (SXcpt NullPointer),values=CONST Map.empty\<rparr>"
 
-abbreviation "arr_N == empty(Inl (arr, Base)\<mapsto>Null)"
-abbreviation "arr_a == empty(Inl (arr, Base)\<mapsto>Addr a)"
+abbreviation "arr_N == Map.empty(Inl (arr, Base)\<mapsto>Null)"
+abbreviation "arr_a == Map.empty(Inl (arr, Base)\<mapsto>Addr a)"
 
 abbreviation
-  "globs1 == empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)
+  "globs1 == Map.empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)
                      (Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_N\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)"
+                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)"
 
 abbreviation
-  "globs2 == empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=empty\<rparr>)
+  "globs2 == Map.empty(Inr Ext   \<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=undefined, values=Map.empty\<rparr>)
                      (Inl a\<mapsto>obj_a)
                      (Inr Base  \<mapsto>\<lparr>tag=undefined, values=arr_a\<rparr>)"
 
 abbreviation "globs3 == globs2(Inl b\<mapsto>obj_b)"
 abbreviation "globs8 == globs3(Inl c\<mapsto>obj_c)"
-abbreviation "locs3 == empty(VName e\<mapsto>Addr b)"
+abbreviation "locs3 == Map.empty(VName e\<mapsto>Addr b)"
 abbreviation "locs8 == locs3(VName z\<mapsto>Addr c)"
 
-abbreviation "s0 == st empty empty"
+abbreviation "s0 == st Map.empty Map.empty"
 abbreviation "s0' == Norm  s0"
-abbreviation "s1 == st globs1 empty"
+abbreviation "s1 == st globs1 Map.empty"
 abbreviation "s1' == Norm s1"
-abbreviation "s2 == st globs2 empty"
+abbreviation "s2 == st globs2 Map.empty"
 abbreviation "s2' == Norm s2"
 abbreviation "s3 == st globs3 locs3"
 abbreviation "s3' == Norm s3"

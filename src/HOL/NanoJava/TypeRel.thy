@@ -93,10 +93,10 @@ definition class_rec ::"cname \<Rightarrow> (class \<Rightarrow> ('a \<times> 'b
 where
   "class_rec \<equiv> wfrec (subcls1\<inverse>) (\<lambda>rec C f.
      case class C of None \<Rightarrow> undefined
-      | Some m \<Rightarrow> (if C = Object then empty else rec (super m) f) ++ map_of (f m))"
+      | Some m \<Rightarrow> (if C = Object then Map.empty else rec (super m) f) ++ map_of (f m))"
 
 lemma class_rec: "\<lbrakk>class C = Some m;  ws_prog\<rbrakk> \<Longrightarrow>
- class_rec C f = (if C = Object then empty else class_rec (super m) f) ++ 
+ class_rec C f = (if C = Object then Map.empty else class_rec (super m) f) ++ 
                  map_of (f m)"
 apply (drule wf_subcls1)
 apply (subst def_wfrec[OF class_rec_def], auto)
@@ -108,7 +108,7 @@ definition "method" :: "cname => (mname \<rightharpoonup> methd)" where
   "method C \<equiv> class_rec C methods"
 
 lemma method_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
-method C = (if C=Object then empty else method (super m)) ++ map_of (methods m)"
+method C = (if C=Object then Map.empty else method (super m)) ++ map_of (methods m)"
 apply (unfold method_def)
 apply (erule (1) class_rec [THEN trans])
 apply simp
@@ -120,7 +120,7 @@ definition field  :: "cname => (fname \<rightharpoonup> ty)" where
   "field C \<equiv> class_rec C flds"
 
 lemma flds_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
-field C = (if C=Object then empty else field (super m)) ++ map_of (flds m)"
+field C = (if C=Object then Map.empty else field (super m)) ++ map_of (flds m)"
 apply (unfold field_def)
 apply (erule (1) class_rec [THEN trans])
 apply simp

@@ -77,7 +77,7 @@ axiomatization where method_Nat_suc [simp]: "method Nat suc = Some
   \<lparr> par=NT, res=Class Nat, lcl=[], 
    bdy= Res :== new Nat;; LAcc Res..pred :== LAcc This \<rparr>"
 
-axiomatization where field_Nat [simp]: "field Nat = empty(pred\<mapsto>Class Nat)"
+axiomatization where field_Nat [simp]: "field Nat = Map.empty(pred\<mapsto>Class Nat)"
 
 lemma init_locs_Nat_add [simp]: "init_locs Nat add s = s"
 by (simp add: init_locs_def init_vars_def)
@@ -86,7 +86,7 @@ lemma init_locs_Nat_suc [simp]: "init_locs Nat suc s = s"
 by (simp add: init_locs_def init_vars_def)
 
 lemma upd_obj_new_obj_Nat [simp]: 
-  "upd_obj a pred v (new_obj a Nat s) = hupd(a\<mapsto>(Nat, empty(pred\<mapsto>v))) s"
+  "upd_obj a pred v (new_obj a Nat s) = hupd(a\<mapsto>(Nat, Map.empty(pred\<mapsto>v))) s"
 by (simp add: new_obj_def init_vars_def upd_obj_def Let_def)
 
 

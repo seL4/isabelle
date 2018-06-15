@@ -332,7 +332,7 @@ proof (rule MGFn_free_wt [rule_format],elim exE,rule MGFn_NormalI)
         qed
       next
         from mgf_hyp'
-        show "\<forall>l. G,A\<turnstile>{?Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars empty} 
+        show "\<forall>l. G,A\<turnstile>{?Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars Map.empty} 
                       .init c.
                       {set_lvars l .; ?R}"
           apply (rule MGFnD' [THEN conseq12, THEN allI])

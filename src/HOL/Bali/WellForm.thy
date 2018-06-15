@@ -330,7 +330,7 @@ lemma entailsD:
  "\<lbrakk>t entails P; t k = Some x\<rbrakk> \<Longrightarrow> P x"
 by (simp add: entails_def)
 
-lemma empty_entails[simp]: "empty entails P"
+lemma empty_entails[simp]: "Map.empty entails P"
 by (simp add: entails_def)
 
 definition
@@ -346,8 +346,8 @@ definition
       (\<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f) \<and> unique (cfields c) \<and> 
       (\<forall>m\<in>set (methods c). wf_mdecl G C m) \<and> unique (methods c) \<and>
       jumpNestingOkS {} (init c) \<and>
-      (\<exists> A. \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<guillemotright> A) \<and>
-      \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd> \<and> ws_cdecl G C (super c) \<and>
+      (\<exists> A. \<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<guillemotright> A) \<and>
+      \<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile>(init c)\<Colon>\<surd> \<and> ws_cdecl G C (super c) \<and>
       (C \<noteq> Object \<longrightarrow> 
             (is_acc_class G (pid C) (super c) \<and>
             (table_of (map (\<lambda> (s,m). (s,C,m)) (methods c)) 
@@ -403,8 +403,8 @@ lemma wf_cdeclE [consumes 1]:
       \<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f; unique (cfields c); 
       \<forall>m\<in>set (methods c). wf_mdecl G C m; unique (methods c);
       jumpNestingOkS {} (init c);
-      \<exists> A. \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<guillemotright> A;
-      \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>; 
+      \<exists> A. \<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<guillemotright> A;
+      \<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>; 
       ws_cdecl G C (super c); 
       (C \<noteq> Object \<longrightarrow> 
             (is_acc_class G (pid C) (super c) \<and>
@@ -494,7 +494,7 @@ apply (auto dest: hides_eq_sigD simp add: msig_def)
 done
 
 lemma wf_cdecl_wt_init: 
- "wf_cdecl G (C, c) \<Longrightarrow> \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>init c\<Colon>\<surd>"
+ "wf_cdecl G (C, c) \<Longrightarrow> \<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile>init c\<Colon>\<surd>"
 apply (unfold wf_cdecl_def)
 apply auto
 done
@@ -621,7 +621,7 @@ lemma fields_Object [simp]: "wf_prog G \<Longrightarrow> DeclConcepts.fields G O
 by (force intro: fields_emptyI)
 
 lemma accfield_Object [simp]: 
- "wf_prog G \<Longrightarrow> accfield G S Object = empty"
+ "wf_prog G \<Longrightarrow> accfield G S Object = Map.empty"
 apply (unfold accfield_def)
 apply (simp (no_asm_simp) add: Let_def)
 done

@@ -266,7 +266,7 @@ lemmas fields_rec = wf_subcls1 [THEN [2] fields_rec_lemma]
 
 lemma field_rec: "\<lbrakk>class G C = Some (D, fs, ms); ws_prog G\<rbrakk>
 \<Longrightarrow> field (G, C) =
-   (if C = Object then empty else field (G, D)) ++
+   (if C = Object then Map.empty else field (G, D)) ++
    map_of (map (\<lambda>(s, f). (s, C, f)) fs)"
 apply (simp only: field_def)
 apply (frule fields_rec, assumption)

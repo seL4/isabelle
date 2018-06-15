@@ -605,16 +605,16 @@ proof -
         from hyp_s1 [OF _ _ wt_super G]
         have "?Jmp jmps s1" 
           by simp
-        hence jmp_s1: "?Jmp jmps ((set_lvars empty) s1)" by (cases s1) simp
+        hence jmp_s1: "?Jmp jmps ((set_lvars Map.empty) s1)" by (cases s1) simp
         from False Init.hyps
-        have "?HypObj (In1r (init c)) ((set_lvars empty) s1) s2 (\<diamondsuit>::vals)" 
+        have "?HypObj (In1r (init c)) ((set_lvars Map.empty) s1) s2 (\<diamondsuit>::vals)" 
           apply (simp (no_asm_use) only: False if_False simp_thms)
           apply (erule conjE)+
           apply assumption
           done
         note hyp_init_c = this [rule_format (no_asm)] 
         from wf_cdecl 
-        have wt_init_c: "\<lparr>prg = G, cls = C, lcl = empty\<rparr>\<turnstile>init c\<Colon>\<surd>"
+        have wt_init_c: "\<lparr>prg = G, cls = C, lcl = Map.empty\<rparr>\<turnstile>init c\<Colon>\<surd>"
           by (rule wf_cdecl_wt_init)
         from wf_cdecl have "jumpNestingOkS {} (init c)" 
           by (cases rule: wf_cdeclE)
@@ -3498,7 +3498,7 @@ proof -
       obtain eval_initC: 
               "prg Env\<turnstile>Norm ((init_class_obj G C) s0) 
                        \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1" and
-             eval_init: "prg Env\<turnstile>(set_lvars empty) s1 \<midarrow>init c\<rightarrow> s2" and
+             eval_init: "prg Env\<turnstile>(set_lvars Map.empty) s1 \<midarrow>init c\<rightarrow> s2" and
              s3: "s3=(set_lvars (locals (store s1))) s2"
         by simp
       have "?NormalAssigned s3 A"

@@ -20,7 +20,7 @@ definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<botto
   where "h1 \<bottom> h2 \<longleftrightarrow> dom h1 \<inter> dom h2 = {}"
 
 definition is_empty :: "heap \<Rightarrow> bool"
-  where "is_empty h \<longleftrightarrow> h = empty"
+  where "is_empty h \<longleftrightarrow> h = Map.empty"
 
 definition singl:: "heap \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
   where "singl h x y \<longleftrightarrow> dom h = {x} & h x = Some y"

@@ -814,7 +814,7 @@ subsubsection "Call"
 lemma conforms_init_lvars_lemma: "\<lbrakk>wf_prog G;  
   wf_mhead G P sig mh;
   list_all2 (conf G s) pvs pTsa; G\<turnstile>pTsa[\<preceq>](parTs sig)\<rbrakk> \<Longrightarrow>  
-  G,s\<turnstile>empty (pars mh[\<mapsto>]pvs)
+  G,s\<turnstile>Map.empty (pars mh[\<mapsto>]pvs)
       [\<sim>\<Colon>\<preceq>]table_of lvars(pars mh[\<mapsto>]parTs sig)"
 apply (unfold wf_mhead_def)
 apply clarify
@@ -1561,7 +1561,7 @@ proof -
   have static_m': "is_static m = static m"
     by simp
   from len
-  have dom_vnames: "dom (empty(pars m[\<mapsto>]pvs))=set (pars m)"
+  have dom_vnames: "dom (Map.empty(pars m[\<mapsto>]pvs))=set (pars m)"
     by (simp add: dom_map_upds)
   show ?thesis
   proof (cases "static m")
@@ -2289,14 +2289,14 @@ proof -
            eval_init_super: 
            "G\<turnstile>Norm ((init_class_obj G C) s0) 
               \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1" and
-        eval_init: "G\<turnstile>(set_lvars empty) s1 \<midarrow>init c\<rightarrow> s2" and
+        eval_init: "G\<turnstile>(set_lvars Map.empty) s1 \<midarrow>init c\<rightarrow> s2" and
         s3: "s3 = (set_lvars (locals (store s1))) s2" 
         by simp
       have "?TypeSafeObj (Norm ((init_class_obj G C) s0)) s1
                       (In1r (if C = Object then Skip else Init (super c))) \<diamondsuit>"
         using False Init.hyps by simp
       note hyp_init_super = this [rule_format] 
-      have "?TypeSafeObj ((set_lvars empty) s1) s2 (In1r (init c)) \<diamondsuit>"
+      have "?TypeSafeObj ((set_lvars Map.empty) s1) s2 (In1r (init c)) \<diamondsuit>"
         using False Init.hyps by simp
       note hyp_init_c = this [rule_format]
       from conf_s0 wf cls_C False
@@ -2330,29 +2330,29 @@ proof -
         by - (rule eval_statement_no_jump [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>"],
               auto)
       with conf_s1
-      have "(set_lvars empty) s1\<Colon>\<preceq>(G, empty)"
+      have "(set_lvars Map.empty) s1\<Colon>\<preceq>(G, Map.empty)"
         by (cases s1) (auto intro: conforms_set_locals)
       moreover 
       from error_free_s1
-      have error_free_empty: "error_free ((set_lvars empty) s1)"
+      have error_free_empty: "error_free ((set_lvars Map.empty) s1)"
         by simp
-      from cls_C wf have wt_init_c: "\<lparr>prg=G, cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>"
+      from cls_C wf have wt_init_c: "\<lparr>prg=G, cls=C,lcl=Map.empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>"
         by (rule wf_prog_cdecl [THEN wf_cdecl_wt_init])
       moreover from cls_C wf obtain I
-        where "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>In1r (init c)\<guillemotright> I"
+        where "\<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile> {} \<guillemotright>In1r (init c)\<guillemotright> I"
         by (rule wf_prog_cdecl [THEN wf_cdeclE,simplified]) blast
        (*  simplified: to rewrite \<langle>init c\<rangle> to In1r (init c) *) 
       then obtain I' where
-        "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>dom (locals (store ((set_lvars empty) s1))) 
+        "\<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile>dom (locals (store ((set_lvars Map.empty) s1))) 
             \<guillemotright>In1r (init c)\<guillemotright> I'"
           by (rule da_weakenE) simp
       ultimately
-      obtain conf_s2: "s2\<Colon>\<preceq>(G, empty)" and error_free_s2: "error_free s2"
+      obtain conf_s2: "s2\<Colon>\<preceq>(G, Map.empty)" and error_free_s2: "error_free s2"
         by (rule hyp_init_c [elim_format]) (simp add: error_free_empty)
       have "abrupt s2 \<noteq> Some (Jump Ret)"
       proof -
         from s1_no_ret 
-        have "\<And> j. abrupt ((set_lvars empty) s1) \<noteq> Some (Jump j)"
+        have "\<And> j. abrupt ((set_lvars Map.empty) s1) \<noteq> Some (Jump j)"
           by simp
         moreover
         from cls_C wf have "jumpNestingOkS {} (init c)"
@@ -2361,7 +2361,7 @@ proof -
         show ?thesis
           using eval_init wt_init_c wf
           by - (rule eval_statement_no_jump 
-                     [where ?Env="\<lparr>prg=G,cls=C,lcl=empty\<rparr>"],simp+)
+                     [where ?Env="\<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>"],simp+)
       qed
       with conf_s2 s3 conf_s1 eval_init
       have "s3\<Colon>\<preceq>(G, L)"

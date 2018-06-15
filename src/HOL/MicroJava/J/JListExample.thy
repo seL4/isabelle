@@ -162,10 +162,10 @@ definition E where
          append_name({[RefT (ClassT list_name)]}[LAcc l4_name]))"
 
 definition test where
-  "test = Predicate.Pred (\<lambda>s. example_prg\<turnstile>Norm (empty, empty) -E-> s)"
+  "test = Predicate.Pred (\<lambda>s. example_prg\<turnstile>Norm (Map.empty, Map.empty) -E-> s)"
 
 lemma test_code [code]:
-  "test = exec_i_i_i_o example_prg (Norm (empty, empty)) E"
+  "test = exec_i_i_i_o example_prg (Norm (Map.empty, Map.empty)) E"
 by(auto intro: exec_i_i_i_oI intro!: pred_eqI elim: exec_i_i_i_oE simp add: test_def)
 
 ML_val \<open>

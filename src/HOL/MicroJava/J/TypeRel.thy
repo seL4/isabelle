@@ -178,7 +178,7 @@ qed
 
 definition "method" :: "'c prog \<times> cname => (sig \<rightharpoonup> cname \<times> ty \<times> 'c)"
   \<comment> \<open>methods of a class, with inheritance, overriding and hiding, cf. 8.4.6\<close>
-  where [code]: "method \<equiv> \<lambda>(G,C). class_rec G C empty (\<lambda>C fs ms ts.
+  where [code]: "method \<equiv> \<lambda>(G,C). class_rec G C Map.empty (\<lambda>C fs ms ts.
                            ts ++ map_of (map (\<lambda>(s,m). (s,(C,m))) ms))"
 
 definition fields :: "'c prog \<times> cname => ((vname \<times> cname) \<times> ty) list"
@@ -190,7 +190,7 @@ definition field :: "'c prog \<times> cname => (vname \<rightharpoonup> cname \<
   where [code]: "field == map_of o (map (\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
 
 lemma method_rec_lemma: "[|class G C = Some (D,fs,ms); wf ((subcls1 G)\<inverse>)|] ==>
-  method (G,C) = (if C = Object then empty else method (G,D)) ++  
+  method (G,C) = (if C = Object then Map.empty else method (G,D)) ++  
   map_of (map (\<lambda>(s,m). (s,(C,m))) ms)"
 apply (unfold method_def)
 apply (simp split del: if_split)

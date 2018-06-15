@@ -65,7 +65,7 @@ definition locvars_locals :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig
 
 definition locals_locvars :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> locvars \<Rightarrow> State.locals" where
   "locals_locvars G C S lvs == 
-  empty ((gjmb_plns (gmb G C S))[\<mapsto>](tl lvs)) (This\<mapsto>(hd lvs))"
+  Map.empty ((gjmb_plns (gmb G C S))[\<mapsto>](tl lvs)) (This\<mapsto>(hd lvs))"
 
 definition locvars_xstate :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig \<Rightarrow> xstate \<Rightarrow> locvars" where
   "locvars_xstate G C S xs == locvars_locals G C S (gl xs)"

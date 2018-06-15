@@ -45,7 +45,7 @@ translations
   (type) "state" \<leftharpoondown> (type) "(|heap :: heap, locals :: locals|)"
 
 definition del_locs :: "state => state" where
- "del_locs s \<equiv> s (| locals := empty |)"
+ "del_locs s \<equiv> s (| locals := Map.empty |)"
 
 definition init_locs     :: "cname => mname => state => state" where
  "init_locs C m s \<equiv> s (| locals := locals s ++ 

@@ -120,12 +120,12 @@ abbreviation
 
 abbreviation
   obj1  :: obj where
-  "obj1 == (Ext, empty((vee, Base)\<mapsto>Bool False) ((vee, Ext )\<mapsto>Intg 0))"
+  "obj1 == (Ext, Map.empty((vee, Base)\<mapsto>Bool False) ((vee, Ext )\<mapsto>Intg 0))"
 
-abbreviation "s0 == Norm    (empty, empty)"
-abbreviation "s1 == Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
-abbreviation "s2 == Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
-abbreviation "s3 == (Some NP, empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
+abbreviation "s0 == Norm    (Map.empty, Map.empty)"
+abbreviation "s1 == Norm    (Map.empty(a\<mapsto>obj1),Map.empty(e\<mapsto>Addr a))"
+abbreviation "s2 == Norm    (Map.empty(a\<mapsto>obj1),Map.empty(x\<mapsto>Null)(This\<mapsto>Addr a))"
+abbreviation "s3 == (Some NP, Map.empty(a\<mapsto>obj1),Map.empty(e\<mapsto>Addr a))"
 
 lemmas map_of_Cons = map_of.simps(2)
 
@@ -375,7 +375,7 @@ apply (auto simp add: appl_methds_foo_Base)
 done
 
 lemmas t = ty_expr_ty_exprs_wt_stmt.intros
-schematic_goal wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
+schematic_goal wt_test: "(tprg, Map.empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
 apply (rule ty_expr_ty_exprs_wt_stmt.intros) \<comment> \<open>;;\<close>
 apply  (rule t) \<comment> \<open>Expr\<close>

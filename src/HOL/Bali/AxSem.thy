@@ -623,7 +623,7 @@ where
 | Init: "\<lbrakk>the (class G C) = c;
           G,A\<turnstile>{Normal ((P \<and>. Not \<circ> initd C) ;. supd (init_class_obj G C))}
               .(if C = Object then Skip else Init (super c)). {Q};
-      \<forall>l. G,A\<turnstile>{Q \<and>. (\<lambda>s. l = locals (store s)) ;. set_lvars empty}
+      \<forall>l. G,A\<turnstile>{Q \<and>. (\<lambda>s. l = locals (store s)) ;. set_lvars Map.empty}
               .init c. {set_lvars l .; R}\<rbrakk> \<Longrightarrow>
                                G,A\<turnstile>{Normal (P \<and>. Not \<circ> initd C)} .Init C. {R}"
 
@@ -1088,7 +1088,7 @@ done
 subsubsection "rules derived from Init and Done"
 
   lemma ax_InitS: "\<lbrakk>the (class G C) = c; C \<noteq> Object;  
-     \<forall>l. G,A\<turnstile>{Q \<and>. (\<lambda>s. l = locals (store s)) ;. set_lvars empty}  
+     \<forall>l. G,A\<turnstile>{Q \<and>. (\<lambda>s. l = locals (store s)) ;. set_lvars Map.empty}  
             .init c. {set_lvars l .; R};   
          G,A\<turnstile>{Normal ((P \<and>. Not \<circ> initd C) ;. supd (init_class_obj G C))}  
   .Init (super c). {Q}\<rbrakk> \<Longrightarrow>  

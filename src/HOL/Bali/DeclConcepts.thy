@@ -1416,7 +1416,7 @@ text \<open>only returns imethds if the interface is accessible\<close>
 definition
   methd :: "prog \<Rightarrow> qtname  \<Rightarrow> (sig,qtname \<times> methd) table" where
   "methd G C =
-    class_rec G C empty
+    class_rec G C Map.empty
              (\<lambda>C c subcls_mthds. 
                filter_tab (\<lambda>sig m. G\<turnstile>C inherits method sig m)
                           subcls_mthds 
@@ -1450,7 +1450,7 @@ definition
           then (case methd G statC sig of
                   None \<Rightarrow> None
                 | Some statM 
-                    \<Rightarrow> (class_rec G dynC empty
+                    \<Rightarrow> (class_rec G dynC Map.empty
                          (\<lambda>C c subcls_mthds. 
                             subcls_mthds
                             ++
@@ -1493,7 +1493,7 @@ definition
   dynlookup :: "prog  \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> methd) table" where
   "dynlookup G statT dynC =
     (case statT of
-      NullT        \<Rightarrow> empty
+      NullT        \<Rightarrow> Map.empty
     | IfaceT I     \<Rightarrow> dynimethd G I      dynC
     | ClassT statC \<Rightarrow> dynmethd  G statC  dynC
     | ArrayT ty    \<Rightarrow> dynmethd  G Object dynC)"
@@ -1602,7 +1602,7 @@ subsection "methd"
 lemma methd_rec: "\<lbrakk>class G C = Some c; ws_prog G\<rbrakk> \<Longrightarrow>  
   methd G C 
     = (if C = Object 
-          then empty 
+          then Map.empty 
           else filter_tab (\<lambda>sig m. G\<turnstile>C inherits method sig m)
                           (methd G (super c))) 
       ++ table_of (map (\<lambda>(s,m). (s,C,m)) (methods c))"
@@ -1827,7 +1827,7 @@ proof -
                 (\<lambda>_ dynM. G,sig \<turnstile> dynM overrides statM \<or> dynM = statM)
                 (methd G C)"
         let ?class_rec =
-              "\<lambda>C. class_rec G C empty
+              "\<lambda>C. class_rec G C Map.empty
                            (\<lambda>C c subcls_mthds. subcls_mthds ++ (?filter C))"
         from statM Subcls ws subclseq_dynC_statC
         have dynmethd_dynC_def:
@@ -2133,7 +2133,7 @@ subsection "dynlookup"
 
 lemma dynlookup_cases:
   assumes "dynlookup G statT dynC sig = x"
-  obtains (NullT) "statT = NullT" and "empty sig = x"
+  obtains (NullT) "statT = NullT" and "Map.empty sig = x"
     | (IfaceT) I where "statT = IfaceT I" and "dynimethd G I dynC sig = x"
     | (ClassT) statC where "statT = ClassT statC" and "dynmethd G statC dynC sig = x"
     | (ArrayT) ty where "statT = ArrayT ty" and "dynmethd G Object dynC sig = x"

@@ -237,7 +237,7 @@ apply (simp only: lconf_def)
 apply fast
 done
 
-lemma lconf_empty [simp, intro!]: "G,s\<turnstile>vs[\<Colon>\<preceq>]empty"
+lemma lconf_empty [simp, intro!]: "G,s\<turnstile>vs[\<Colon>\<preceq>]Map.empty"
 apply (unfold lconf_def)
 apply force
 done
@@ -320,12 +320,12 @@ apply (simp only: wlconf_def)
 apply fast
 done
 
-lemma wlconf_empty [simp, intro!]: "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]empty"
+lemma wlconf_empty [simp, intro!]: "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Map.empty"
 apply (unfold wlconf_def)
 apply force
 done
 
-lemma wlconf_empty_vals: "G,s\<turnstile>empty[\<sim>\<Colon>\<preceq>]ts"
+lemma wlconf_empty_vals: "G,s\<turnstile>Map.empty[\<sim>\<Colon>\<preceq>]ts"
   by (simp add: wlconf_def)
 
 lemma wlconf_init_vals [intro!]: 

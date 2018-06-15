@@ -195,7 +195,7 @@ text \<open>
 definition
   "init users =
     Env \<lparr>owner = 0, others = {Readable}\<rparr>
-      (\<lambda>u. if u \<in> users then Some (Env \<lparr>owner = u, others = {Readable}\<rparr> empty)
+      (\<lambda>u. if u \<in> users then Some (Env \<lparr>owner = u, others = {Readable}\<rparr> Map.empty)
         else None)"
 
 
@@ -364,7 +364,7 @@ inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Right
       and "access root path uid {} = Some (Val plain)"
   | mkdir:
       "root \<midarrow>(Mkdir uid perms path)\<rightarrow>
-        update path (Some (Env \<lparr>owner = uid, others = perms\<rparr> empty)) root"
+        update path (Some (Env \<lparr>owner = uid, others = perms\<rparr> Map.empty)) root"
       if "path = parent_path @ [name]"
       and "access root parent_path uid {Writable} = Some (Env att parent)"
       and "access root path uid {} = None"
@@ -372,7 +372,7 @@ inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Right
       "root \<midarrow>(Rmdir uid path)\<rightarrow> update path None root"
       if "path = parent_path @ [name]"
       and "access root parent_path uid {Writable} = Some (Env att parent)"
-      and "access root path uid {} = Some (Env att' empty)"
+      and "access root path uid {} = Some (Env att' Map.empty)"
   | readdir:
       "root \<midarrow>(Readdir uid names path)\<rightarrow> root"
       if "access root path uid {Readable} = Some (Env att dir)"
@@ -822,7 +822,7 @@ text \<open>
 definition
   "invariant root path \<longleftrightarrow>
     (\<exists>att dir.
-      access root path user\<^sub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
+      access root path user\<^sub>1 {} = Some (Env att dir) \<and> dir \<noteq> Map.empty \<and>
       user\<^sub>1 \<noteq> owner att \<and>
       access root path user\<^sub>1 {Writable} = None)"
 
@@ -860,9 +860,9 @@ proof -
   from inv obtain "file" where "access root bogus_path user\<^sub>1 {} = Some file"
     unfolding invariant_def by blast
   moreover
-  from rmdir obtain att where "access root [user\<^sub>1, name\<^sub>1] user\<^sub>1 {} = Some (Env att empty)"
+  from rmdir obtain att where "access root [user\<^sub>1, name\<^sub>1] user\<^sub>1 {} = Some (Env att Map.empty)"
     by cases auto
-  then have "access root ([user\<^sub>1, name\<^sub>1] @ [name\<^sub>2]) user\<^sub>1 {} = empty name\<^sub>2"
+  then have "access root ([user\<^sub>1, name\<^sub>1] @ [name\<^sub>2]) user\<^sub>1 {} = Map.empty name\<^sub>2"
     by (simp only: access_empty_lookup lookup_append_some) simp
   ultimately show False by (simp add: bogus_path_def)
 qed
@@ -898,7 +898,7 @@ lemma preserve_invariant:
 proof -
   from inv obtain att dir where
       inv1: "access root path user\<^sub>1 {} = Some (Env att dir)" and
-      inv2: "dir \<noteq> empty" and
+      inv2: "dir \<noteq> Map.empty" and
       inv3: "user\<^sub>1 \<noteq> owner att" and
       inv4: "access root path user\<^sub>1 {Writable} = None"
     by (auto simp add: invariant_def)
@@ -969,7 +969,7 @@ proof -
 
       obtain dir' where
         lookup': "lookup root' path = Some (Env att dir')" and
-        inv2': "dir' \<noteq> empty"
+        inv2': "dir' \<noteq> Map.empty"
       proof (cases ys)
         assume "ys = []"
         with path have parent: "path_of x = path @ [y]" by simp
@@ -978,7 +978,7 @@ proof -
           by cases auto
         with lookup parent have "lookup root' path = Some (Env att (dir(y\<mapsto>file)))"
           by (simp only: update_append_some update_cons_nil_env)
-        moreover have "dir(y\<mapsto>file) \<noteq> empty" by simp
+        moreover have "dir(y\<mapsto>file) \<noteq> Map.empty" by simp
         ultimately show ?thesis ..
       next
         fix z zs assume ys: "ys = z # zs"
@@ -1009,7 +1009,7 @@ proof -
           qed
           with ys show ?thesis using that by auto
         qed
-        also have "dir(y\<mapsto>file') \<noteq> empty" by simp
+        also have "dir(y\<mapsto>file') \<noteq> Map.empty" by simp
         ultimately show ?thesis ..
       qed
 

@@ -191,10 +191,10 @@ definition
   "var_tys G oi r =
     (case r of 
       Heap a \<Rightarrow> (case oi of 
-                   CInst C \<Rightarrow> fields_table G C (\<lambda>n f. \<not>static f) (+) empty
-                 | Arr T k \<Rightarrow> empty (+) arr_comps T k)
+                   CInst C \<Rightarrow> fields_table G C (\<lambda>n f. \<not>static f) (+) Map.empty
+                 | Arr T k \<Rightarrow> Map.empty (+) arr_comps T k)
     | Stat C \<Rightarrow> fields_table G C (\<lambda>fn f. declclassf fn = C \<and> static f) 
-                (+) empty)"
+                (+) Map.empty)"
 
 lemma var_tys_Some_eq: 
  "var_tys G oi r n = Some T 
@@ -285,7 +285,7 @@ subsection "initialization"
 abbreviation init_vals :: "('a, ty) table \<Rightarrow> ('a, val) table"
   where "init_vals vs == map_option default_val \<circ> vs"
 
-lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = empty"
+lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = Map.empty"
 apply (unfold arr_comps_def in_bounds_def)
 apply (rule ext)
 apply auto
@@ -697,7 +697,7 @@ definition
   initd :: "qtname \<Rightarrow> state \<Rightarrow> bool"
   where "initd C = inited C \<circ> globs \<circ> store"
 
-lemma not_inited_empty [simp]: "\<not>inited C empty"
+lemma not_inited_empty [simp]: "\<not>inited C Map.empty"
 apply (unfold inited_def)
 apply (simp (no_asm))
 done

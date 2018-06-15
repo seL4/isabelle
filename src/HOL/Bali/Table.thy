@@ -65,10 +65,10 @@ definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarro
                                          then Some new_val     
                                          else Some old_val))))"
 
-lemma cond_override_empty1[simp]: "cond_override c empty t = t"
+lemma cond_override_empty1[simp]: "cond_override c Map.empty t = t"
   by (simp add: cond_override_def fun_eq_iff)
 
-lemma cond_override_empty2[simp]: "cond_override c t empty = t"
+lemma cond_override_empty2[simp]: "cond_override c t Map.empty = t"
   by (simp add: cond_override_def fun_eq_iff)
 
 lemma cond_override_None[simp]:
@@ -103,13 +103,13 @@ definition filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow>
                              None   \<Rightarrow> None
                            | Some x \<Rightarrow> if c k x then Some x else None))"
 
-lemma filter_tab_empty[simp]: "filter_tab c empty = empty"
+lemma filter_tab_empty[simp]: "filter_tab c Map.empty = Map.empty"
 by (simp add: filter_tab_def empty_def)
 
 lemma filter_tab_True[simp]: "filter_tab (\<lambda>x y. True) t = t"
 by (simp add: fun_eq_iff filter_tab_def)
 
-lemma filter_tab_False[simp]: "filter_tab (\<lambda>x y. False) t = empty"
+lemma filter_tab_False[simp]: "filter_tab (\<lambda>x y. False) t = Map.empty"
 by (simp add: fun_eq_iff filter_tab_def empty_def)
 
 lemma filter_tab_ran_subset: "ran (filter_tab c t) \<subseteq> ran t"
@@ -144,7 +144,7 @@ lemma filter_tab_all_True_Some:
 by (auto simp add: filter_tab_def fun_eq_iff)
 
 lemma filter_tab_all_False: 
- "\<forall> k y. t k = Some y \<longrightarrow> \<not> p k y \<Longrightarrow>filter_tab p t = empty"
+ "\<forall> k y. t k = Some y \<longrightarrow> \<not> p k y \<Longrightarrow>filter_tab p t = Map.empty"
 by (auto simp add: filter_tab_def fun_eq_iff)
 
 lemma filter_tab_None: "t k = None \<Longrightarrow> filter_tab p t k = None"
@@ -328,10 +328,10 @@ lemma hiding_entailsD:
   "t hiding s entails R \<Longrightarrow> t k = Some x \<Longrightarrow> s k = Some y \<Longrightarrow> R x y"
   by (simp add: hiding_entails_def)
 
-lemma empty_hiding_entails [simp]: "empty hiding s entails R"
+lemma empty_hiding_entails [simp]: "Map.empty hiding s entails R"
   by (simp add: hiding_entails_def)
 
-lemma hiding_empty_entails [simp]: "t hiding empty entails R"
+lemma hiding_empty_entails [simp]: "t hiding Map.empty entails R"
   by (simp add: hiding_entails_def)
 
 
@@ -341,10 +341,10 @@ lemma cond_hiding_entailsD:
 "\<lbrakk>t hiding s under C entails R; t k = Some x; s k = Some y; C x y\<rbrakk> \<Longrightarrow> R x y"
 by (simp add: cond_hiding_entails_def)
 
-lemma empty_cond_hiding_entails[simp]: "empty hiding s under C entails R"
+lemma empty_cond_hiding_entails[simp]: "Map.empty hiding s under C entails R"
 by (simp add: cond_hiding_entails_def)
 
-lemma cond_hiding_empty_entails[simp]: "t hiding empty under C entails R"
+lemma cond_hiding_empty_entails[simp]: "t hiding Map.empty under C entails R"
 by (simp add: cond_hiding_entails_def)
 
 lemma hidings_entailsD: "\<lbrakk>t hidings s entails R; x \<in> t k; y \<in> s k\<rbrakk> \<Longrightarrow> R x y"

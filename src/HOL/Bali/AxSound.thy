@@ -1350,7 +1350,7 @@ next
           with R s3 invDeclC invC l abrupt_s3
           have R': "PROP ?R"
             by auto
-          have conf_s3': "s3'\<Colon>\<preceq>(G, empty)"
+          have conf_s3': "s3'\<Colon>\<preceq>(G, Map.empty)"
            (* we need an arbirary environment (here empty) that s2' conforms to
               to apply validE *)
           proof -
@@ -2506,7 +2506,7 @@ next
                  .(if C = Object then Skip else Init (super c)). 
                  {Q} }\<close>
   have valid_init: 
-        "\<And> l.  G,A|\<Turnstile>\<Colon>{ {Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars empty} 
+        "\<And> l.  G,A|\<Turnstile>\<Colon>{ {Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars Map.empty} 
                         .init c.
                         {set_lvars l .; R} }"
     using Init.hyps by simp
@@ -2528,7 +2528,7 @@ next
         eval_super: 
         "G\<turnstile>Norm ((init_class_obj G C) (store s0)) 
            \<midarrow>(if C = Object then Skip else Init (super c))\<midarrow>n\<rightarrow> s1" and
-        eval_init: "G\<turnstile>(set_lvars empty) s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2" and
+        eval_init: "G\<turnstile>(set_lvars Map.empty) s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2" and
         s3: "s3 = (set_lvars (locals (store s1))) s2"
         using normal_s0 by (auto elim!: evaln_elim_cases)
       from wt c have
@@ -2566,18 +2566,18 @@ next
       obtain Q: "Q \<diamondsuit> s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G,L)"
         by (rule validE)
       
-      from cls_C wf have wt_init: "\<lparr>prg=G, cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>"
+      from cls_C wf have wt_init: "\<lparr>prg=G, cls=C,lcl=Map.empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>"
         by (rule wf_prog_cdecl [THEN wf_cdecl_wt_init])
       from cls_C wf obtain I where 
-        "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<^sub>s\<guillemotright> I"
+        "\<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<^sub>s\<guillemotright> I"
         by (rule wf_prog_cdecl [THEN wf_cdeclE,simplified]) blast
        (*  simplified: to rewrite \<langle>init c\<rangle> to In1r (init c) *) 
       then obtain I' where
         da_init:
-        "\<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>dom (locals (store ((set_lvars empty) s1))) 
+        "\<lparr>prg=G,cls=C,lcl=Map.empty\<rparr>\<turnstile>dom (locals (store ((set_lvars Map.empty) s1))) 
             \<guillemotright>\<langle>init c\<rangle>\<^sub>s\<guillemotright> I'"
         by (rule da_weakenE) simp
-      have conf_s1_empty: "(set_lvars empty) s1\<Colon>\<preceq>(G, empty)"
+      have conf_s1_empty: "(set_lvars Map.empty) s1\<Colon>\<preceq>(G, Map.empty)"
       proof -
         from eval_super have
           "G\<turnstile>Norm ((init_class_obj G C) (store s0)) 
@@ -2595,8 +2595,8 @@ next
       obtain l where l: "l = locals (store s1)"
         by simp
       with Q 
-      have Q': "(Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars empty)
-                  \<diamondsuit> ((set_lvars empty) s1) Z"
+      have Q': "(Q \<and>. (\<lambda>s. l = locals (snd s)) ;. set_lvars Map.empty)
+                  \<diamondsuit> ((set_lvars Map.empty) s1) Z"
         by auto
       from valid_init Q' valid_A conf_s1_empty eval_init wt_init da_init
       have "(set_lvars l .; R) \<diamondsuit> s2 Z"

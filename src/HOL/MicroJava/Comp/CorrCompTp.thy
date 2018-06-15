@@ -83,7 +83,7 @@ lemma map_of_append:
                     list.map map_of.simps map_upds_Cons list.sel)
   done
 
-lemma map_of_as_map_upds: "map_of (rev xs) = empty ((map fst xs) [\<mapsto>] (map snd xs))"
+lemma map_of_as_map_upds: "map_of (rev xs) = Map.empty ((map fst xs) [\<mapsto>] (map snd xs))"
   by (rule map_of_append [of _ "[]", simplified])
 
 lemma map_of_rev: "unique xs \<Longrightarrow> map_of (rev xs) = map_of xs"
@@ -105,7 +105,7 @@ lemma map_upds_rev:
   done
 
 lemma map_upds_takeWhile [rule_format]:
-  "\<forall>ks. (empty(rev ks[\<mapsto>]rev xs)) k = Some x \<longrightarrow> length ks = length xs \<longrightarrow>
+  "\<forall>ks. (Map.empty(rev ks[\<mapsto>]rev xs)) k = Some x \<longrightarrow> length ks = length xs \<longrightarrow>
     xs ! length (takeWhile (\<lambda>z. z \<noteq> k) ks) = x"
   apply (induct xs)
    apply simp
@@ -114,7 +114,7 @@ lemma map_upds_takeWhile [rule_format]:
    apply (clarify)
    apply (drule_tac x=kr in spec)
    apply (simp only: rev.simps)
-   apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
+   apply (subgoal_tac "(Map.empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = Map.empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
     apply (simp split:if_split_asm)
    apply (simp add: map_upds_append [symmetric])
   apply (case_tac ks)

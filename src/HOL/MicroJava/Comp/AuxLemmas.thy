@@ -90,7 +90,7 @@ lemma map_upds_distinct [simp]:
   done
 
 lemma map_of_map_as_map_upd:
-  "distinct (map f zs) \<Longrightarrow> map_of (map (\<lambda> p. (f p, g p)) zs) = empty (map f zs [\<mapsto>] map g zs)"
+  "distinct (map f zs) \<Longrightarrow> map_of (map (\<lambda> p. (f p, g p)) zs) = Map.empty (map f zs [\<mapsto>] map g zs)"
   by (induct zs) auto
 
 (* In analogy to Map.map_of_SomeD *)

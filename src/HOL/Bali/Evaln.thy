@@ -185,7 +185,7 @@ where
           if inited C (globs s0) then s3 = Norm s0
           else (G\<turnstile>Norm (init_class_obj G C s0)
                   \<midarrow>(if C = Object then Skip else Init (super c))\<midarrow>n\<rightarrow> s1 \<and>
-                G\<turnstile>set_lvars empty s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2 \<and> 
+                G\<turnstile>set_lvars Map.empty s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2 \<and> 
                 s3 = restore_lvars s1 s2)\<rbrakk>
           \<Longrightarrow>
                  G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s3"
@@ -434,7 +434,7 @@ next
            then s3 = Norm s0
            else G\<turnstile>Norm ((init_class_obj G C) s0) 
                   \<midarrow>(if C = Object then Skip else Init (super c))\<rightarrow> s1 \<and>
-                G\<turnstile>(set_lvars empty) s1 \<midarrow>init c\<rightarrow> s2 \<and>
+                G\<turnstile>(set_lvars Map.empty) s1 \<midarrow>init c\<rightarrow> s2 \<and>
                 s3 = (set_lvars (locals (store s1))) s2"
     using Init.hyps by simp
   ultimately show ?case by (rule eval.Init)
@@ -628,7 +628,7 @@ next
       "if inited C (globs s0) then s3 = Norm s0
        else (G\<turnstile>Norm (init_class_obj G C s0)
               \<midarrow>(if C = Object then Skip else Init (super c))\<midarrow>n\<rightarrow> s1 \<and>
-                   G\<turnstile>set_lvars empty s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2 \<and> 
+                   G\<turnstile>set_lvars Map.empty s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2 \<and> 
                    s3 = restore_lvars s1 s2)"
     by (auto intro: evaln_nonstrict max.cobounded1 max.cobounded2)
   ultimately have "G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s3"
