@@ -11,22 +11,22 @@ lemma (in group) subgroup_in_normalizer:
   shows "normal H (G\<lparr>carrier:= (normalizer G H)\<rparr>)"
 proof(intro group.normal_invI)
   show "Group.group (G\<lparr>carrier := normalizer G H\<rparr>)"
-    by (simp add: assms group.normalizer_imp_subgroup is_group subgroup_imp_group subgroup_imp_subset)
+    by (simp add: assms group.normalizer_imp_subgroup is_group subgroup_imp_group subgroup.subset)
   have K:"H \<subseteq> (normalizer G H)" unfolding normalizer_def
   proof
     fix x assume xH: "x \<in> H"
-    from xH have xG : "x \<in> carrier G" using subgroup_imp_subset assms by auto
+    from xH have xG : "x \<in> carrier G" using subgroup.subset assms by auto
     have "x <# H = H"
       by (metis \<open>x \<in> H\<close> assms group.lcos_mult_one is_group
-         l_repr_independence one_closed subgroup_imp_subset)
+         l_repr_independence one_closed subgroup.subset)
     moreover have "H #> inv x = H" 
       by (simp add: xH assms is_group subgroup.rcos_const subgroup.m_inv_closed)
     ultimately have "x <# H #> (inv x) = H" by simp
     thus " x \<in> stabilizer G (\<lambda>g. \<lambda>H\<in>{H. H \<subseteq> carrier G}. g <# H #> inv g) H"
-      using assms xG subgroup_imp_subset unfolding stabilizer_def by auto
+      using assms xG subgroup.subset unfolding stabilizer_def by auto
   qed
   thus "subgroup H (G\<lparr>carrier:= (normalizer G H)\<rparr>)"
-    using subgroup_incl normalizer_imp_subgroup assms by (simp add: subgroup_imp_subset)
+    using subgroup_incl normalizer_imp_subgroup assms by (simp add: subgroup.subset)
   show  " \<And>x h. x \<in> carrier (G\<lparr>carrier := normalizer G H\<rparr>) \<Longrightarrow> h \<in> H \<Longrightarrow>
              x \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> h
                \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> x \<in> H"
@@ -37,7 +37,7 @@ proof(intro group.normal_invI)
     ultimately have "x \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> h = x \<otimes> h" by simp
     moreover have " inv\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> x =  inv x"
       using xnormalizer
-      by (simp add: assms normalizer_imp_subgroup subgroup_imp_subset subgroup_inv_equality)
+      by (simp add: assms normalizer_imp_subgroup subgroup.subset subgroup_inv_equality)
     ultimately  have xhxegal: "x \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> h
                 \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> x
                   = x \<otimes>h \<otimes> inv x"
@@ -45,7 +45,7 @@ proof(intro group.normal_invI)
     have  "x \<otimes>h \<otimes> inv x \<in> (x <# H #> inv x)"
       unfolding l_coset_def r_coset_def using hH  by auto
     moreover have "x <# H #> inv x = H"
-      using xnormalizer assms subgroup_imp_subset[OF assms]
+      using xnormalizer assms subgroup.subset[OF assms]
       unfolding normalizer_def stabilizer_def by auto
     ultimately have "x \<otimes>h \<otimes> inv x \<in> H" by simp
     thus  " x \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> h
@@ -61,12 +61,12 @@ lemma (in group) normal_imp_subgroup_normalizer:
   shows "subgroup H (G\<lparr>carrier := normalizer G N\<rparr>)" 
 proof-
   have N_carrierG : "N \<subseteq> carrier(G)"
-    using assms normal_imp_subgroup subgroup_imp_subset
+    using assms normal_imp_subgroup subgroup.subset
     by (smt monoid.cases_scheme order_trans partial_object.simps(1) partial_object.update_convs(1))
   {have "H \<subseteq> normalizer G N" unfolding normalizer_def stabilizer_def
     proof
       fix x assume xH : "x \<in> H"
-      hence xcarrierG : "x \<in> carrier(G)" using assms subgroup_imp_subset  by auto
+      hence xcarrierG : "x \<in> carrier(G)" using assms subgroup.subset  by auto
       have "   N #> x = x <# N" using assms xH
         unfolding r_coset_def l_coset_def normal_def normal_axioms_def subgroup_imp_group by auto
       hence "x <# N #> inv x =(N #> x) #> inv x"
@@ -79,7 +79,7 @@ proof-
     qed}
   thus "subgroup H (G\<lparr>carrier := normalizer G N\<rparr>)"
     using subgroup_incl[OF assms(1) normalizer_imp_subgroup]
-      assms normal_imp_subgroup subgroup_imp_subset
+      assms normal_imp_subgroup subgroup.subset
     by (metis  group.incl_subgroup is_group)
 qed
 
@@ -92,7 +92,7 @@ lemma (in group) mult_norm_subgroup:
   shows "subgroup (N<#>H) G" unfolding subgroup_def
 proof-
   have  A :"N <#> H \<subseteq> carrier G"
-    using assms  setmult_subset_G by (simp add: normal_imp_subgroup subgroup_imp_subset)
+    using assms  setmult_subset_G by (simp add: normal_imp_subgroup subgroup.subset)
 
   have B :"\<And> x y. \<lbrakk>x \<in> (N <#> H); y \<in> (N <#> H)\<rbrakk> \<Longrightarrow> (x \<otimes> y) \<in> (N<#>H)"
   proof-
@@ -102,7 +102,7 @@ proof-
     obtain n2 h2 where B3:"n2 \<in> N \<and> h2 \<in> H \<and> n2\<otimes>h2 = y"
       using set_mult_def B1b by (metis (no_types, lifting) UN_E singletonD)
     have "N #> h1 = h1 <# N"
-      using normalI B2 assms normal.coset_eq subgroup_imp_subset by blast
+      using normalI B2 assms normal.coset_eq subgroup.subset by blast
     hence "h1\<otimes>n2 \<in> N #> h1" 
       using B2 B3 assms l_coset_def by fastforce
     from this obtain y2 where y2_def:"y2 \<in> N" and y2_prop:"y2\<otimes>h1 = h1\<otimes>n2" 
@@ -132,7 +132,7 @@ proof-
     hence  C4:"(inv h \<otimes> inv n \<otimes> h) \<otimes> inv h \<in> (N<#>H)" 
       using   C2 assms subgroup.m_inv_closed[of H G h] unfolding set_mult_def by auto
     have "inv h \<otimes> inv n \<otimes> h \<otimes> inv h = inv h \<otimes> inv n"
-      using  subgroup_imp_subset[OF assms(2)] 
+      using  subgroup.subset[OF assms(2)] 
       by (metis A C1 C2 C3 inv_closed inv_solve_right m_closed subsetCE)
     thus "inv(x)\<in>N<#>H" using C4 C2 C3 by simp
   qed
@@ -159,10 +159,10 @@ lemma (in group) mult_norm_sub_in_sub:
 proof-
   have Hyp:"subgroup (N <#>\<^bsub>G\<lparr>carrier := K\<rparr>\<^esub> H) (G\<lparr>carrier := K\<rparr>)"
     using group.mult_norm_subgroup[where ?G = "G\<lparr>carrier := K\<rparr>"] assms subgroup_imp_group by auto
-  have "H \<subseteq> carrier(G\<lparr>carrier := K\<rparr>)" using assms subgroup_imp_subset by blast
+  have "H \<subseteq> carrier(G\<lparr>carrier := K\<rparr>)" using assms subgroup.subset by blast
   also have "... \<subseteq> K" by simp
   finally have Incl1:"H \<subseteq> K" by simp
-  have "N \<subseteq> carrier(G\<lparr>carrier := K\<rparr>)" using assms normal_imp_subgroup subgroup_imp_subset by blast
+  have "N \<subseteq> carrier(G\<lparr>carrier := K\<rparr>)" using assms normal_imp_subgroup subgroup.subset by blast
   also have "... \<subseteq> K" by simp
   finally have Incl2:"N \<subseteq> K" by simp
   have "(N <#>\<^bsub>G\<lparr>carrier := K\<rparr>\<^esub> H) = (N <#> H)"
@@ -209,7 +209,7 @@ proof-
   have GroupNH : "Group.group (G\<lparr>carrier := N<#>H\<rparr>)"
     using subgroup_imp_group assms mult_norm_subgroup by simp
   have  HcarrierNH :"H \<subseteq> carrier(G\<lparr>carrier := N<#>H\<rparr>)"
-    using assms subgroup_of_normal_set_mult subgroup_imp_subset by blast
+    using assms subgroup_of_normal_set_mult subgroup.subset by blast
   hence HNH :"H \<subseteq> N<#>H" by simp
   have op_hom : "f \<in> hom (G\<lparr>carrier := H\<rparr>) (G\<lparr>carrier := N <#> H\<rparr> Mod N)" unfolding hom_def
   proof
@@ -277,7 +277,7 @@ proof-
       have  "x = (#>\<^bsub>G\<lparr>carrier := N <#> H\<rparr>\<^esub>) N (n \<otimes> h)" using K nhnh by simp
       hence  "x = (#>) N (n \<otimes> h)" using K nhnh unfolding r_coset_def by auto
       also have "... = (N #> n) #>h"
-        using coset_mult_assoc hH nN assms subgroup_imp_subset normal_imp_subgroup
+        using coset_mult_assoc hH nN assms subgroup.subset normal_imp_subgroup
         by (metis subgroup.mem_carrier)
       finally have "x = (#>) N h"
         using coset_join2[of n N] nN assms by (simp add: normal_imp_subgroup subgroup.mem_carrier)
@@ -326,9 +326,9 @@ proof-
          G\<lparr>carrier := normalizer G N, carrier := H\<rparr> Mod N \<inter> H =
           (G\<lparr>carrier:= N<#>H\<rparr> Mod N)  \<cong>
          G\<lparr>carrier := normalizer G N, carrier := H\<rparr> Mod N \<inter> H" 
-    using subgroup_set_mult_equality[OF  normalizer_imp_subgroup[OF subgroup_imp_subset[OF assms(2)]], of N H] 
-          subgroup_imp_subset[OF assms(3)]
-          subgroup_imp_subset[OF normal_imp_subgroup[OF subgroup_in_normalizer[OF assms(2)]]]
+    using subgroup_set_mult_equality[OF  normalizer_imp_subgroup[OF subgroup.subset[OF assms(2)]], of N H] 
+          subgroup.subset[OF assms(3)]
+          subgroup.subset[OF normal_imp_subgroup[OF subgroup_in_normalizer[OF assms(2)]]]
     by simp
   ultimately have "G\<lparr>carrier := normalizer G N,
                     carrier := N <#>\<^bsub>G\<lparr>carrier := normalizer G N\<rparr>\<^esub> H\<rparr> Mod N  \<cong>
@@ -338,7 +338,7 @@ proof-
                     carrier := N <#>\<^bsub>G\<lparr>carrier := normalizer G N\<rparr>\<^esub> H\<rparr> Mod N  \<cong>
                   G\<lparr>carrier := normalizer G N, carrier := H\<rparr> Mod N \<inter> H"
     using group.weak_snd_iso_thme[OF subgroup_imp_group[OF normalizer_imp_subgroup[OF
-          subgroup_imp_subset[OF assms(2)]]] assms(3) subgroup_in_normalizer[OF assms(2)]]
+          subgroup.subset[OF assms(2)]]] assms(3) subgroup_in_normalizer[OF assms(2)]]
     by simp
   moreover have "H\<inter>N = N\<inter>H" using assms  by auto
   ultimately show "(G\<lparr>carrier:= N<#>H\<rparr> Mod N)  \<cong>  G\<lparr>carrier := H\<rparr> Mod H \<inter> N" by auto
@@ -350,7 +350,7 @@ corollary (in group) snd_iso_thme_recip :
     and "subgroup N G"
     and "subgroup H (G\<lparr>carrier:= (normalizer G N)\<rparr>)"
   shows "(G\<lparr>carrier:= H<#>N\<rparr> Mod N)  \<cong> (G\<lparr>carrier:= H\<rparr> Mod (H\<inter>N))"
-  by (metis assms commut_normal_subgroup group.subgroup_in_normalizer is_group subgroup_imp_subset
+  by (metis assms commut_normal_subgroup group.subgroup_in_normalizer is_group subgroup.subset
       normalizer_imp_subgroup snd_iso_thme)
 
 
@@ -365,29 +365,29 @@ lemma (in group) distinc:
   shows "subgroup (H\<inter>K) (G\<lparr>carrier:=(normalizer G (H1<#>(H\<inter>K1))) \<rparr>)"
 proof (intro subgroup_incl[OF subgroups_Inter_pair[OF assms(1) assms(3)]])
   show "subgroup (normalizer G (H1 <#> H \<inter> K1)) G"
-    using normalizer_imp_subgroup assms normal_imp_subgroup subgroup_imp_subset
+    using normalizer_imp_subgroup assms normal_imp_subgroup subgroup.subset
     by (metis group.incl_subgroup is_group setmult_subset_G subgroups_Inter_pair)
 next
   show "H \<inter> K \<subseteq> normalizer G (H1 <#> H \<inter> K1)" unfolding normalizer_def stabilizer_def
   proof
     fix x assume xHK : "x \<in> H \<inter> K"
     hence xG : "{x} \<subseteq> carrier G" "{inv x} \<subseteq> carrier G"
-      using subgroup_imp_subset assms inv_closed xHK by auto
+      using subgroup.subset assms inv_closed xHK by auto
     have allG : "H \<subseteq> carrier G" "K \<subseteq> carrier G" "H1 \<subseteq> carrier G"  "K1 \<subseteq> carrier G"
-      using assms subgroup_imp_subset normal_imp_subgroup incl_subgroup apply blast+ .
+      using assms subgroup.subset normal_imp_subgroup incl_subgroup apply blast+ .
     have HK1_normal: "H\<inter>K1 \<lhd> (G\<lparr>carrier :=  H \<inter> K\<rparr>)" using normal_inter[OF assms(3)assms(1)assms(4)]
       by (simp add : inf_commute)
     have "H \<inter> K \<subseteq> normalizer G (H \<inter> K1)"
-      using subgroup_imp_subset[OF normal_imp_subgroup_normalizer[OF subgroups_Inter_pair[OF
+      using subgroup.subset[OF normal_imp_subgroup_normalizer[OF subgroups_Inter_pair[OF
             assms(1)assms(3)]HK1_normal]] by auto
     hence "x <# (H \<inter> K1) #> inv x = (H \<inter> K1)"
-      using xHK subgroup_imp_subset[OF subgroups_Inter_pair[OF assms(1) incl_subgroup[OF assms(3)
+      using xHK subgroup.subset[OF subgroups_Inter_pair[OF assms(1) incl_subgroup[OF assms(3)
                                                             normal_imp_subgroup[OF assms(4)]]]]
       unfolding normalizer_def stabilizer_def by auto
     moreover have "H \<subseteq>  normalizer G H1"
-      using subgroup_imp_subset[OF normal_imp_subgroup_normalizer[OF assms(1)assms(2)]] by auto
+      using subgroup.subset[OF normal_imp_subgroup_normalizer[OF assms(1)assms(2)]] by auto
     hence "x <# H1 #> inv x = H1"
-      using xHK subgroup_imp_subset[OF  incl_subgroup[OF assms(1) normal_imp_subgroup[OF assms(2)]]]
+      using xHK subgroup.subset[OF  incl_subgroup[OF assms(1) normal_imp_subgroup[OF assms(2)]]]
       unfolding normalizer_def stabilizer_def by auto
     ultimately have "H1 <#> H \<inter> K1 = (x <# H1 #> inv x) <#> (x <#  H \<inter> K1 #> inv x)" by auto
     also have "... = ({x} <#> H1) <#> {inv x} <#> ({x} <#>  H \<inter> K1 <#> {inv x})"
@@ -418,31 +418,31 @@ lemma (in group) preliminary1:
   shows " (H\<inter>K) \<inter> (H1<#>(H\<inter>K1)) = (H1\<inter>K)<#>(H\<inter>K1)"
 proof
   have all_inclG : "H \<subseteq> carrier G" "H1 \<subseteq> carrier G" "K \<subseteq> carrier G" "K1 \<subseteq> carrier G"
-    using assms subgroup_imp_subset normal_imp_subgroup incl_subgroup apply blast+.
+    using assms subgroup.subset normal_imp_subgroup incl_subgroup apply blast+.
   show "H \<inter> K \<inter> (H1 <#> H \<inter> K1) \<subseteq> H1 \<inter> K <#> H \<inter> K1"
   proof
     fix x assume x_def : "x \<in> (H \<inter> K) \<inter> (H1 <#> (H \<inter> K1))"
     from x_def have x_incl : "x \<in> H" "x \<in> K" "x \<in> (H1 <#> (H \<inter> K1))" by auto
     then obtain h1 hk1 where h1hk1_def : "h1 \<in> H1" "hk1 \<in> H \<inter> K1" "h1 \<otimes> hk1 = x"
       using assms unfolding set_mult_def by blast
-    hence "hk1 \<in> H \<inter> K" using subgroup_imp_subset[OF normal_imp_subgroup[OF assms(4)]] by auto
+    hence "hk1 \<in> H \<inter> K" using subgroup.subset[OF normal_imp_subgroup[OF assms(4)]] by auto
     hence "inv hk1 \<in> H \<inter> K" using subgroup.m_inv_closed[OF subgroups_Inter_pair] assms by auto
     moreover have "h1 \<otimes> hk1 \<in> H \<inter> K" using x_incl h1hk1_def by auto
     ultimately have "h1 \<otimes> hk1 \<otimes> inv hk1 \<in> H \<inter> K"
       using subgroup.m_closed[OF subgroups_Inter_pair] assms by auto
-    hence "h1 \<in> H \<inter> K" using  h1hk1_def assms subgroup_imp_subset incl_subgroup normal_imp_subgroup
+    hence "h1 \<in> H \<inter> K" using  h1hk1_def assms subgroup.subset incl_subgroup normal_imp_subgroup
       by (metis Int_iff contra_subsetD inv_solve_right m_closed)
     hence "h1 \<in> H1 \<inter> H \<inter> K" using h1hk1_def by auto
-    hence "h1 \<in> H1 \<inter> K" using subgroup_imp_subset[OF normal_imp_subgroup[OF assms(2)]] by auto
+    hence "h1 \<in> H1 \<inter> K" using subgroup.subset[OF normal_imp_subgroup[OF assms(2)]] by auto
     hence "h1 \<otimes> hk1 \<in> (H1\<inter>K)<#>(H\<inter>K1)"
       using h1hk1_def unfolding set_mult_def by auto
     thus " x \<in> (H1\<inter>K)<#>(H\<inter>K1)" using h1hk1_def x_def by auto
   qed
   show "H1 \<inter> K <#> H \<inter> K1 \<subseteq> H \<inter> K \<inter> (H1 <#> H \<inter> K1)"
   proof-
-    have "H1 \<inter> K \<subseteq> H \<inter> K" using subgroup_imp_subset[OF normal_imp_subgroup[OF assms(2)]] by auto
+    have "H1 \<inter> K \<subseteq> H \<inter> K" using subgroup.subset[OF normal_imp_subgroup[OF assms(2)]] by auto
     moreover have "H \<inter> K1 \<subseteq> H \<inter> K"
-      using subgroup_imp_subset[OF normal_imp_subgroup[OF assms(4)]] by auto
+      using subgroup.subset[OF normal_imp_subgroup[OF assms(4)]] by auto
     ultimately have "H1 \<inter> K <#> H \<inter> K1 \<subseteq> H \<inter> K" unfolding set_mult_def
       using subgroup.m_closed[OF subgroups_Inter_pair [OF assms(1)assms(3)]] by blast
     moreover have "H1 \<inter> K \<subseteq> H1" by auto
@@ -459,7 +459,7 @@ lemma (in group) preliminary2:
   shows "(H1<#>(H\<inter>K1)) \<lhd> G\<lparr>carrier:=(H1<#>(H\<inter>K))\<rparr>"
 proof-
   have all_inclG : "H \<subseteq> carrier G" "H1 \<subseteq> carrier G" "K \<subseteq> carrier G" "K1 \<subseteq> carrier G"
-    using assms subgroup_imp_subset normal_imp_subgroup incl_subgroup apply blast+.
+    using assms subgroup.subset normal_imp_subgroup incl_subgroup apply blast+.
   have subH1:"subgroup (H1 <#> H \<inter> K) (G\<lparr>carrier := H\<rparr>)" 
     using mult_norm_sub_in_sub[OF assms(2)subgroup_incl[OF subgroups_Inter_pair[OF assms(1)assms(3)]
           assms(1)]] assms by auto
@@ -469,13 +469,13 @@ proof-
     using mult_norm_sub_in_sub[OF assms(2) subgroup_incl[OF subgroups_Inter_pair[OF
            assms(1) incl_subgroup[OF assms(3)normal_imp_subgroup[OF assms(4)]]]]] assms by auto
   hence "(H\<inter>K1) \<subseteq> (H\<inter>K)"
-    using assms subgroup_imp_subset normal_imp_subgroup monoid.cases_scheme
+    using assms subgroup.subset normal_imp_subgroup monoid.cases_scheme
     by (metis inf.mono  partial_object.simps(1) partial_object.update_convs(1) subset_refl)
-  hence incl:"(H1<#>(H\<inter>K1)) \<subseteq> H1<#>(H\<inter>K)" using assms subgroup_imp_subset normal_imp_subgroup
+  hence incl:"(H1<#>(H\<inter>K1)) \<subseteq> H1<#>(H\<inter>K)" using assms subgroup.subset normal_imp_subgroup
     unfolding set_mult_def by blast
   hence "subgroup (H1 <#> H \<inter> K1) (G\<lparr>carrier := (H1<#>(H\<inter>K))\<rparr>)"
     using assms subgroup_incl[OF incl_subgroup[OF assms(1)subH2]incl_subgroup[OF assms(1)
-          subH1]] normal_imp_subgroup subgroup_imp_subset unfolding set_mult_def by blast
+          subH1]] normal_imp_subgroup subgroup.subset unfolding set_mult_def by blast
   moreover have " (\<And> x. x\<in>carrier (G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>) \<Longrightarrow>
         H1 <#> H\<inter>K1 #>\<^bsub>G\<lparr>carrier := H1 <#> H\<inter>K\<rparr>\<^esub> x = x <#\<^bsub>G\<lparr>carrier := H1 <#> H\<inter>K\<rparr>\<^esub> (H1 <#> H\<inter>K1))"
   proof-
@@ -483,14 +483,14 @@ proof-
     hence x_def : "x \<in> H1 <#> H \<inter> K" by simp
     from this obtain h1 hk where h1hk_def :"h1 \<in> H1" "hk \<in> H \<inter> K" "h1 \<otimes> hk = x"
       unfolding set_mult_def by blast
-    have xH : "x \<in> H" using subgroup_imp_subset[OF subH1] using x_def by auto
+    have xH : "x \<in> H" using subgroup.subset[OF subH1] using x_def by auto
     hence allG : "h1 \<in> carrier G" "hk \<in> carrier G" "x \<in> carrier G"
-      using assms subgroup_imp_subset h1hk_def normal_imp_subgroup incl_subgroup apply blast+.
+      using assms subgroup.subset h1hk_def normal_imp_subgroup incl_subgroup apply blast+.
     hence "x <#\<^bsub>G\<lparr>carrier := H1 <#> H\<inter>K\<rparr>\<^esub> (H1 <#> H\<inter>K1) =h1 \<otimes> hk <# (H1 <#> H\<inter>K1)"
-      using subgroup_set_mult_equality subgroup_imp_subset xH h1hk_def by (simp add: l_coset_def)
+      using subgroup_set_mult_equality subgroup.subset xH h1hk_def by (simp add: l_coset_def)
     also have "... = h1 <# (hk <# (H1 <#> H\<inter>K1))"
-      using lcos_m_assoc[OF subgroup_imp_subset[OF incl_subgroup[OF assms(1) subH1]]allG(1)allG(2)]
-      by (metis allG(1) allG(2) assms(1) incl_subgroup lcos_m_assoc subH2 subgroup_imp_subset)
+      using lcos_m_assoc[OF subgroup.subset[OF incl_subgroup[OF assms(1) subH1]]allG(1)allG(2)]
+      by (metis allG(1) allG(2) assms(1) incl_subgroup lcos_m_assoc subH2 subgroup.subset)
     also have "... = h1 <# (hk <# H1 <#> H\<inter>K1)"
       using set_mult_assoc all_inclG allG by (simp add: l_coset_eq_set_mult inf.coboundedI1)
     also have "... = h1 <# (hk <# H1 #> \<one> <#> H\<inter>K1 #> \<one>)"
@@ -504,18 +504,18 @@ proof-
       using rcos_assoc_lcos allG all_inclG
       by (smt inf_le1 inv_closed l_coset_subset_G r_coset_subset_G setmult_rcos_assoc subset_trans)
     moreover have "H \<subseteq>  normalizer G H1"
-      using assms h1hk_def subgroup_imp_subset[OF normal_imp_subgroup_normalizer] by simp
+      using assms h1hk_def subgroup.subset[OF normal_imp_subgroup_normalizer] by simp
     hence "\<And>g. g \<in> H \<Longrightarrow>  g \<in> {g \<in> carrier G. (\<lambda>H\<in>{H. H \<subseteq> carrier G}. g <# H #> inv g) H1 = H1}"
       using all_inclG assms unfolding normalizer_def stabilizer_def by auto
     hence "\<And>g. g \<in> H \<Longrightarrow>  g <# H1 #> inv g = H1" using all_inclG by simp
     hence "(hk <# H1 #> inv hk) = H1" using h1hk_def all_inclG by simp
     moreover have "H\<inter>K \<subseteq> normalizer G (H\<inter>K1)"
       using normal_inter[OF assms(3)assms(1)assms(4)] assms subgroups_Inter_pair
-            subgroup_imp_subset[OF normal_imp_subgroup_normalizer] by (simp add: inf_commute)
+            subgroup.subset[OF normal_imp_subgroup_normalizer] by (simp add: inf_commute)
     hence "\<And>g. g\<in>H\<inter>K \<Longrightarrow> g\<in>{g\<in>carrier G. (\<lambda>H\<in>{H. H \<subseteq> carrier G}. g <# H #> inv g) (H\<inter>K1) = H\<inter>K1}"
       using all_inclG assms unfolding normalizer_def stabilizer_def by auto
     hence "\<And>g. g \<in> H\<inter>K \<Longrightarrow>  g <# (H\<inter>K1) #> inv g = H\<inter>K1"
-      using subgroup_imp_subset[OF subgroups_Inter_pair[OF assms(1) incl_subgroup[OF
+      using subgroup.subset[OF subgroups_Inter_pair[OF assms(1) incl_subgroup[OF
             assms(3)normal_imp_subgroup[OF assms(4)]]]] by auto
     hence "(hk <# H\<inter>K1 #> inv hk) = H\<inter>K1" using h1hk_def by simp
     ultimately have "x <#\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> (H1 <#> H \<inter> K1) = h1 <#(H1 <#> (H \<inter> K1)#> hk)"
@@ -529,7 +529,7 @@ proof-
     finally have eq1 : "x <#\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> (H1 <#> H \<inter> K1) = H1 <#> (H \<inter> K1) #> hk"
       by (simp add: allG(2) all_inclG inf.coboundedI2 setmult_rcos_assoc)
     have "H1 <#> H \<inter> K1 #>\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> x = H1 <#> H \<inter> K1 #> (h1 \<otimes> hk)"
-      using subgroup_set_mult_equality subgroup_imp_subset xH h1hk_def by (simp add: r_coset_def)
+      using subgroup_set_mult_equality subgroup.subset xH h1hk_def by (simp add: r_coset_def)
     also have "... = H1 <#> H \<inter> K1 #> h1 #> hk"
       using coset_mult_assoc by (simp add: allG all_inclG inf.coboundedI2 setmult_subset_G)
     also have"... =  H \<inter> K1 <#> H1 #> h1 #> hk"
@@ -565,18 +565,18 @@ proof-
   have H_simp: "N<#>N1 = H1<#> (H\<inter>K)"
   proof-
     have H1_incl_G : "H1 \<subseteq> carrier G"
-      using assms normal_imp_subgroup incl_subgroup subgroup_imp_subset by blast
+      using assms normal_imp_subgroup incl_subgroup subgroup.subset by blast
     have K1_incl_G :"K1 \<subseteq> carrier G"
-      using assms normal_imp_subgroup incl_subgroup subgroup_imp_subset by blast
+      using assms normal_imp_subgroup incl_subgroup subgroup.subset by blast
     have "N<#>N1=  (H\<inter>K)<#> (H1<#>(H\<inter>K1))" by (auto simp add: N_def N1_def)
     also have "... = ((H\<inter>K)<#>H1) <#>(H\<inter>K1)"
       using set_mult_assoc[where ?M = "H\<inter>K"] K1_incl_G H1_incl_G assms
-      by (simp add: inf.coboundedI2 subgroup_imp_subset)
+      by (simp add: inf.coboundedI2 subgroup.subset)
     also have "... = (H1<#>(H\<inter>K))<#>(H\<inter>K1)" 
       using commut_normal_subgroup assms subgroup_incl subgroups_Inter_pair by auto
     also have "... =  H1 <#> ((H\<inter>K)<#>(H\<inter>K1))"
       using set_mult_assoc K1_incl_G H1_incl_G assms
-      by (simp add: inf.coboundedI2 subgroup_imp_subset)
+      by (simp add: inf.coboundedI2 subgroup.subset)
     also have " ((H\<inter>K)<#>(H\<inter>K1)) = (H\<inter>K)"
     proof (intro set_mult_subgroup_idem[where ?H = "H\<inter>K" and ?N="H\<inter>K1",
              OF subgroups_Inter_pair[OF assms(1) assms(3)]])

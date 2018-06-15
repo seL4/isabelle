@@ -98,6 +98,10 @@ proof -
     using LIMSEQ_unique by blast
 qed
 
+lemma raw_has_prod_Suc: 
+  "raw_has_prod f (Suc M) a \<longleftrightarrow> raw_has_prod (\<lambda>n. f (Suc n)) M a"
+  unfolding raw_has_prod_def by auto
+
 lemma has_prod_0_iff: "f has_prod 0 \<longleftrightarrow> (\<exists>i. f i = 0 \<and> (\<exists>p. raw_has_prod f (Suc i) p))"
   by (simp add: has_prod_def)
       
@@ -1203,21 +1207,37 @@ next
 qed
 
 lemma convergent_prod_Suc_iff:
-  assumes "\<And>k. f k \<noteq> 0" shows "convergent_prod (\<lambda>n. f (Suc n)) = convergent_prod f"
+  shows "convergent_prod (\<lambda>n. f (Suc n)) = convergent_prod f"
 proof
   assume "convergent_prod f"
-  then have "f has_prod prodinf f"
-    by (rule convergent_prod_has_prod)
-  moreover have "prodinf f \<noteq> 0"
-    by (simp add: \<open>convergent_prod f\<close> assms prodinf_nonzero)
-  ultimately have "(\<lambda>n. f (Suc n)) has_prod (prodinf f * inverse (f 0))"
-    by (simp add: has_prod_Suc_iff inverse_eq_divide assms)
-  then show "convergent_prod (\<lambda>n. f (Suc n))"
-    using has_prod_iff by blast
+  then obtain M L where M_nz:"\<forall>n\<ge>M. f n \<noteq> 0" and 
+        M_L:"(\<lambda>n. \<Prod>i\<le>n. f (i + M)) \<longlonglongrightarrow> L" and "L \<noteq> 0" 
+    unfolding convergent_prod_altdef by auto
+  have "(\<lambda>n. \<Prod>i\<le>n. f (Suc (i + M))) \<longlonglongrightarrow> L / f M"
+  proof -
+    have "(\<lambda>n. \<Prod>i\<in>{0..Suc n}. f (i + M)) \<longlonglongrightarrow> L"
+      using M_L 
+      apply (subst (asm) LIMSEQ_Suc_iff[symmetric]) 
+      using atLeast0AtMost by auto
+    then have "(\<lambda>n. f M * (\<Prod>i\<in>{0..n}. f (Suc (i + M)))) \<longlonglongrightarrow> L"
+      apply (subst (asm) prod.atLeast0_atMost_Suc_shift)
+      by simp
+    then have "(\<lambda>n. (\<Prod>i\<in>{0..n}. f (Suc (i + M)))) \<longlonglongrightarrow> L/f M"
+      apply (drule_tac tendsto_divide)
+      using M_nz[rule_format,of M,simplified] by auto
+    then show ?thesis unfolding atLeast0AtMost .
+  qed
+  then show "convergent_prod (\<lambda>n. f (Suc n))" unfolding convergent_prod_altdef
+    apply (rule_tac exI[where x=M])
+    apply (rule_tac exI[where x="L/f M"])
+    using M_nz \<open>L\<noteq>0\<close> by auto
 next
   assume "convergent_prod (\<lambda>n. f (Suc n))"
-  then show "convergent_prod f"
-    using assms convergent_prod_def raw_has_prod_Suc_iff by blast
+  then obtain M where "\<exists>L. (\<forall>n\<ge>M. f (Suc n) \<noteq> 0) \<and> (\<lambda>n. \<Prod>i\<le>n. f (Suc (i + M))) \<longlonglongrightarrow> L \<and> L \<noteq> 0"
+    unfolding convergent_prod_altdef by auto
+  then show "convergent_prod f" unfolding convergent_prod_altdef
+    apply (rule_tac exI[where x="Suc M"])
+    using Suc_le_D by auto
 qed
 
 lemma raw_has_prod_inverse: 
@@ -1255,6 +1275,26 @@ lemma prodinf_divide: "convergent_prod f \<Longrightarrow> convergent_prod g \<L
 
 lemma prodinf_inverse: "convergent_prod f \<Longrightarrow> (\<Prod>n. inverse (f n)) = inverse (\<Prod>n. f n)"
   by (intro has_prod_unique [symmetric] has_prod_inverse convergent_prod_has_prod)
+
+lemma has_prod_Suc_imp: 
+  assumes "(\<lambda>n. f (Suc n)) has_prod a"
+  shows "f has_prod (a * f 0)"
+proof -
+  have "f has_prod (a * f 0)" when "raw_has_prod (\<lambda>n. f (Suc n)) 0 a" 
+    apply (cases "f 0=0")
+    using that unfolding has_prod_def raw_has_prod_Suc 
+    by (auto simp add: raw_has_prod_Suc_iff)
+  moreover have "f has_prod (a * f 0)" when 
+    "(\<exists>i q. a = 0 \<and> f (Suc i) = 0 \<and> raw_has_prod (\<lambda>n. f (Suc n)) (Suc i) q)" 
+  proof -
+    from that 
+    obtain i q where "a = 0" "f (Suc i) = 0" "raw_has_prod (\<lambda>n. f (Suc n)) (Suc i) q"
+      by auto
+    then show ?thesis unfolding has_prod_def 
+      by (auto intro!:exI[where x="Suc i"] simp:raw_has_prod_Suc)
+  qed
+  ultimately show "f has_prod (a * f 0)" using assms unfolding has_prod_def by auto
+qed
 
 lemma has_prod_iff_shift: 
   assumes "\<And>i. i < n \<Longrightarrow> f i \<noteq> 0"
@@ -1372,6 +1412,24 @@ proof -
 qed
 
 end
+
+lemma exp_suminf_prodinf_real:
+  fixes f :: "nat \<Rightarrow> real"
+  assumes ge0:"\<And>n. f n \<ge> 0" and ac: "abs_convergent_prod (\<lambda>n. exp (f n))"
+  shows "prodinf (\<lambda>i. exp (f i)) = exp (suminf f)"
+proof -
+  have "summable f" 
+    using ac unfolding abs_convergent_prod_conv_summable
+  proof (elim summable_comparison_test')
+    fix n
+    show "norm (f n) \<le> norm (exp (f n) - 1)" 
+      using ge0[of n] 
+      by (metis abs_of_nonneg add.commute diff_add_cancel diff_ge_0_iff_ge exp_ge_add_one_self 
+          exp_le_cancel_iff one_le_exp_iff real_norm_def)
+  qed
+  then show ?thesis
+    by (simp add: prodinf_exp)
+qed
 
 lemma has_prod_imp_sums_ln_real: 
   fixes f :: "nat \<Rightarrow> real"
