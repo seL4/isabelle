@@ -826,4 +826,6 @@ next
   qed
 qed
 
+hide_const (open) Map.empty
+
 end

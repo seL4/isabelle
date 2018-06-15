@@ -166,7 +166,7 @@ by (induct t) auto
 lemma rbt_lookup_rbt_greater[simp]: "k \<guillemotleft>| t \<Longrightarrow> rbt_lookup t k = None"
 by (induct t) auto
 
-lemma rbt_lookup_Empty: "rbt_lookup Empty = empty"
+lemma rbt_lookup_Empty: "rbt_lookup Empty = Map.empty"
 by (rule ext) simp
 
 end

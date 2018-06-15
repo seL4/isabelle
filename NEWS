@@ -320,6 +320,8 @@ element in a list to all following elements, not just the next one.
 
   - list comprehension syntax now supports tuple patterns in "pat <- xs"
 
+* Theory Map: "empty" must now be qualified as "Map.empty".
+
 * Removed nat-int transfer machinery. Rare INCOMPATIBILITY.
 
 * Fact mod_mult_self4 (on nat) renamed to Suc_mod_mult_self3, to avoid
