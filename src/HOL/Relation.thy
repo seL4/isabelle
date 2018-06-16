@@ -836,8 +836,22 @@ lemma total_on_converse [simp]: "total_on A (r\<inverse>) = total_on A r"
   by (auto simp: total_on_def)
 
 lemma finite_converse [iff]: "finite (r\<inverse>) = finite r"
-  unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
-  by (auto elim: finite_imageD simp: inj_on_def)
+unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
+by (auto elim: finite_imageD simp: inj_on_def)
+
+lemma card_inverse[simp]: "card (R\<inverse>) = card R"
+proof -
+  have *: "\<And>R. prod.swap ` R = R\<inverse>" by auto
+  {
+    assume "\<not>finite R"
+    hence ?thesis
+      by auto
+  } moreover {
+    assume "finite R"
+    with card_image_le[of R prod.swap] card_image_le[of "R\<inverse>" prod.swap]
+    have ?thesis by (auto simp: *)
+  } ultimately show ?thesis by blast
+qed  
 
 lemma conversep_noteq [simp]: "(\<noteq>)\<inverse>\<inverse> = (\<noteq>)"
   by (auto simp add: fun_eq_iff)
@@ -1030,8 +1044,11 @@ lemma rev_ImageI: "a \<in> A \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> 
   \<comment> \<open>This version's more effective when we already have the required \<open>a\<close>\<close>
   by blast
 
-lemma Image_empty [simp]: "R``{} = {}"
-  by blast
+lemma Image_empty1 [simp]: "{} `` X = {}"
+by auto
+
+lemma Image_empty2 [simp]: "R``{} = {}"
+by blast
 
 lemma Image_Id [simp]: "Id `` A = A"
   by blast
@@ -1089,6 +1106,9 @@ lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"
 
 lemma relcomp_Image: "(X O Y) `` Z = Y `` (X `` Z)"
   by auto
+
+lemma finite_Image[simp]: assumes "finite R" shows "finite (R `` A)"
+by(rule finite_subset[OF _ finite_Range[OF assms]]) auto
 
 
 subsubsection \<open>Inverse image\<close>

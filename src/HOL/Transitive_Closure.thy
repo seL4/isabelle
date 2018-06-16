@@ -659,6 +659,13 @@ lemma finite_trancl[simp]: "finite (r\<^sup>+) = finite r"
    apply (auto simp add: finite_Field)
   done
 
+lemma finite_rtrancl_Image: assumes "finite R" "finite A" shows "finite (R\<^sup>* `` A)"
+proof (rule ccontr)
+  assume "infinite (R\<^sup>* `` A)"
+  with assms show False
+    by(simp add: rtrancl_trancl_reflcl Un_Image del: reflcl_trancl)
+qed
+
 text \<open>More about converse \<open>rtrancl\<close> and \<open>trancl\<close>, should
   be merged with main body.\<close>
 
