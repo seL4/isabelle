@@ -126,6 +126,13 @@ done
 
 subsection \<open>@{term [source] map_of}\<close>
 
+lemma map_of_eq_empty_iff [simp]:
+  "map_of xys = empty \<longleftrightarrow> xys = []"
+proof
+  show "map_of xys = empty \<Longrightarrow> xys = []"
+    by (induction xys) simp_all
+qed simp
+
 lemma map_of_eq_None_iff:
   "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
 by (induct xys) simp_all
@@ -760,6 +767,14 @@ next
     qed
   qed
 qed
+
+lemma map_add_eq_empty_iff[simp]:
+  "(f++g = empty) \<longleftrightarrow> f = empty \<and> g = empty"
+by (metis map_add_None)
+
+lemma empty_eq_map_add_iff[simp]:
+  "(empty = f++g) \<longleftrightarrow> f = empty \<and> g = empty"
+by(subst map_add_eq_empty_iff[symmetric])(rule eq_commute)
 
 
 subsection \<open>Various\<close>
