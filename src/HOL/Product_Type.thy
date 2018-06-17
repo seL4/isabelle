@@ -670,6 +670,9 @@ lemma split_comp_eq:
 lemma pair_imageI [intro]: "(a, b) \<in> A \<Longrightarrow> f a b \<in> (\<lambda>(a, b). f a b) ` A"
   by (rule image_eqI [where x = "(a, b)"]) auto
 
+lemma Collect_const_case_prod[simp]: "{(a,b). P} = (if P then UNIV else {})"
+by auto
+
 lemma The_split_eq [simp]: "(THE (x',y'). x = x' \<and> y = y') = (x, y)"
   by blast
 
