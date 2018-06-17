@@ -136,10 +136,7 @@ lemma (in monoid) Units_l_inv [simp]:
 
 lemma (in monoid) Units_r_inv [simp]:
   "x \<in> Units G ==> x \<otimes> inv x = \<one>"
-  apply (unfold Units_def m_inv_def, auto)
-  apply (rule theI2, fast)
-   apply (fast intro: inv_unique, fast)
-  done
+  by (metis (full_types) Units_closed Units_inv_closed Units_l_inv Units_r_inv_ex inv_unique)
 
 lemma (in monoid) inv_one [simp]:
   "inv \<one> = \<one>"
@@ -503,10 +500,6 @@ lemma (in submonoid) mem_carrier [simp]:
   "x \<in> H \<Longrightarrow> x \<in> carrier G"
   using subset by blast
 
-lemma submonoid_imp_subset:
-  "submonoid H G \<Longrightarrow> H \<subseteq> carrier G"
-  by (rule submonoid.subset)
-
 lemma (in submonoid) submonoid_is_monoid [intro]:
   assumes "monoid G"
   shows "monoid (G\<lparr>carrier := H\<rparr>)"
@@ -515,15 +508,6 @@ proof -
   show ?thesis
     by (simp add: monoid_def m_assoc)
 qed
-
-lemma (in monoid) submonoidE:
-  assumes "submonoid H G"
-  shows "H \<subseteq> carrier G"
-    and "H \<noteq> {}"
-    and "\<And>a b. \<lbrakk>a \<in> H; b \<in> H\<rbrakk> \<Longrightarrow> a \<otimes> b \<in> H"
-  using assms submonoid_imp_subset apply blast
-  using assms submonoid_def apply auto[1]
-  by (simp add: assms submonoid.m_closed)+
 
 lemma submonoid_nonempty:
   "~ submonoid {} G"
@@ -569,21 +553,15 @@ lemma (in subgroup) mem_carrier [simp]:
   "x \<in> H \<Longrightarrow> x \<in> carrier G"
   using subset by blast
 
-(*DELETE*)
-lemma subgroup_imp_subset:
-  "subgroup H G \<Longrightarrow> H \<subseteq> carrier G"
-  by (rule subgroup.subset)
-
 lemma (in subgroup) subgroup_is_group [intro]:
   assumes "group G"
   shows "group (G\<lparr>carrier := H\<rparr>)"
 proof -
   interpret group G by fact
-  show ?thesis
-    apply (rule monoid.group_l_invI)
-    apply (unfold_locales) [1]
-    apply (auto intro: m_assoc l_inv mem_carrier)
-    done
+  have "Group.monoid (G\<lparr>carrier := H\<rparr>)"
+    by (simp add: monoid_axioms submonoid.intro submonoid.submonoid_is_monoid subset)
+  then show ?thesis
+    by (rule monoid.group_l_invI) (auto intro: l_inv mem_carrier)
 qed
 
 lemma (in group) subgroup_inv_equality:
@@ -808,23 +786,42 @@ corollary iso_refl : "G \<cong> G"
   using iso_set_refl unfolding is_iso_def by auto
 
 lemma (in group) iso_set_sym:
-     "h \<in> iso G H \<Longrightarrow> inv_into (carrier G) h \<in> (iso H G)"
-apply (simp add: iso_def bij_betw_inv_into)
-apply (subgoal_tac "inv_into (carrier G) h \<in> carrier H \<rightarrow> carrier G")
- prefer 2 apply (simp add: bij_betw_imp_funcset [OF bij_betw_inv_into])
-apply (simp add: hom_def bij_betw_def inv_into_f_eq f_inv_into_f Pi_def)
-done
+  assumes "h \<in> iso G H"
+  shows "inv_into (carrier G) h \<in> iso H G"
+proof -
+  have h: "h \<in> hom G H" "bij_betw h (carrier G) (carrier H)"
+    using assms by (auto simp add: iso_def bij_betw_inv_into)
+  then have HG: "bij_betw (inv_into (carrier G) h) (carrier H) (carrier G)"
+    by (simp add: bij_betw_inv_into)
+  have "inv_into (carrier G) h \<in> hom H G"
+    unfolding hom_def
+  proof safe
+    show *: "\<And>x. x \<in> carrier H \<Longrightarrow> inv_into (carrier G) h x \<in> carrier G"
+      by (meson HG bij_betwE)
+    show "inv_into (carrier G) h (x \<otimes>\<^bsub>H\<^esub> y) = inv_into (carrier G) h x \<otimes> inv_into (carrier G) h y"
+      if "x \<in> carrier H" "y \<in> carrier H" for x y
+    proof (rule inv_into_f_eq)
+      show "inj_on h (carrier G)"
+        using bij_betw_def h(2) by blast
+      show "inv_into (carrier G) h x \<otimes> inv_into (carrier G) h y \<in> carrier G"
+        by (simp add: * that)
+      show "h (inv_into (carrier G) h x \<otimes> inv_into (carrier G) h y) = x \<otimes>\<^bsub>H\<^esub> y"
+        using h bij_betw_inv_into_right [of h] unfolding hom_def by (simp add: "*" that)
+    qed
+  qed
+  then show ?thesis
+    by (simp add: Group.iso_def bij_betw_inv_into h)
+qed
 
-corollary (in group) iso_sym :
-"G \<cong> H \<Longrightarrow> H \<cong> G"
+
+corollary (in group) iso_sym: "G \<cong> H \<Longrightarrow> H \<cong> G"
   using iso_set_sym unfolding is_iso_def by auto
 
 lemma (in group) iso_set_trans:
      "[|h \<in> iso G H; i \<in> iso H I|] ==> (compose (carrier G) i h) \<in> iso G I"
 by (auto simp add: iso_def hom_compose bij_betw_compose)
 
-corollary (in group) iso_trans :
-"\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Longrightarrow> G \<cong> I"
+corollary (in group) iso_trans: "\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Longrightarrow> G \<cong> I"
   using iso_set_trans unfolding is_iso_def by blast
 
 (* Next four lemmas contributed by Paulo. *)
@@ -1143,15 +1140,6 @@ lemma (in monoid) monoid_comm_monoidI:
   shows "comm_monoid G"
   by (rule comm_monoidI) (auto intro: m_assoc m_comm)
 
-(*lemma (in comm_monoid) r_one [simp]:
-  "x \<in> carrier G ==> x \<otimes> \<one> = x"
-proof -
-  assume G: "x \<in> carrier G"
-  then have "x \<otimes> \<one> = \<one> \<otimes> x" by (simp add: m_comm)
-  also from G have "... = x" by simp
-  finally show ?thesis .
-qed*)
-
 lemma (in comm_monoid) nat_pow_distr:
   "[| x \<in> carrier G; y \<in> carrier G |] ==>
   (x \<otimes> y) [^] (n::nat) = x [^] n \<otimes> y [^] n"
@@ -1397,22 +1385,24 @@ definition units_of :: "('a, 'b) monoid_scheme \<Rightarrow> 'a monoid"
     \<lparr>carrier = Units G, Group.monoid.mult = Group.monoid.mult G, one  = one G\<rparr>"
 
 lemma (in monoid) units_group: "group (units_of G)"
-  apply (unfold units_of_def)
-  apply (rule groupI)
-      apply auto
-   apply (subst m_assoc)
-      apply auto
-  apply (rule_tac x = "inv x" in bexI)
-   apply auto
-  done
+proof -
+  have "\<And>x y z. \<lbrakk>x \<in> Units G; y \<in> Units G; z \<in> Units G\<rbrakk> \<Longrightarrow> x \<otimes> y \<otimes> z = x \<otimes> (y \<otimes> z)"
+    by (simp add: Units_closed m_assoc)
+  moreover have "\<And>x. x \<in> Units G \<Longrightarrow> \<exists>y\<in>Units G. y \<otimes> x = \<one>"
+    using Units_l_inv by blast
+  ultimately show ?thesis
+    unfolding units_of_def
+    by (force intro!: groupI)
+qed
 
 lemma (in comm_monoid) units_comm_group: "comm_group (units_of G)"
-  apply (rule group.group_comm_groupI)
-   apply (rule units_group)
-  apply (insert comm_monoid_axioms)
-  apply (unfold units_of_def Units_def comm_monoid_def comm_monoid_axioms_def)
-  apply auto
-  done
+proof -
+  have "\<And>x y. \<lbrakk>x \<in> carrier (units_of G); y \<in> carrier (units_of G)\<rbrakk>
+              \<Longrightarrow> x \<otimes>\<^bsub>units_of G\<^esub> y = y \<otimes>\<^bsub>units_of G\<^esub> x"
+    by (simp add: Units_closed m_comm units_of_def)
+  then show ?thesis
+    by (rule group.group_comm_groupI [OF units_group]) auto
+qed
 
 lemma units_of_carrier: "carrier (units_of G) = Units G"
   by (auto simp: units_of_def)
@@ -1423,39 +1413,14 @@ lemma units_of_mult: "mult (units_of G) = mult G"
 lemma units_of_one: "one (units_of G) = one G"
   by (auto simp: units_of_def)
 
-lemma (in monoid) units_of_inv: "x \<in> Units G \<Longrightarrow> m_inv (units_of G) x = m_inv G x"
-  apply (rule sym)
-  apply (subst m_inv_def)
-  apply (rule the1_equality)
-   apply (rule ex_ex1I)
-    apply (subst (asm) Units_def)
-    apply auto
-     apply (erule inv_unique)
-        apply auto
-    apply (rule Units_closed)
-    apply (simp_all only: units_of_carrier [symmetric])
-    apply (insert units_group)
-    apply auto
-   apply (subst units_of_mult [symmetric])
-   apply (subst units_of_one [symmetric])
-   apply (erule group.r_inv, assumption)
-  apply (subst units_of_mult [symmetric])
-  apply (subst units_of_one [symmetric])
-  apply (erule group.l_inv, assumption)
-  done
-
-lemma (in group) inj_on_const_mult: "a \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. a \<otimes> x) (carrier G)"
-  unfolding inj_on_def by auto
+lemma (in monoid) units_of_inv: 
+  assumes "x \<in> Units G"
+  shows "m_inv (units_of G) x = m_inv G x"
+  by (simp add: assms group.inv_equality units_group units_of_carrier units_of_mult units_of_one)
 
 lemma (in group) surj_const_mult: "a \<in> carrier G \<Longrightarrow> (\<lambda>x. a \<otimes> x) ` carrier G = carrier G"
   apply (auto simp add: image_def)
-  apply (rule_tac x = "(m_inv G a) \<otimes> x" in bexI)
-  apply auto
-(* auto should get this. I suppose we need "comm_monoid_simprules"
-   for ac_simps rewriting. *)
-  apply (subst m_assoc [symmetric])
-  apply auto
-  done
+  by (metis inv_closed inv_solve_left m_closed)
 
 lemma (in group) l_cancel_one [simp]: "x \<in> carrier G \<Longrightarrow> a \<in> carrier G \<Longrightarrow> x \<otimes> a = x \<longleftrightarrow> a = one G"
   by (metis Units_eq Units_l_cancel monoid.r_one monoid_axioms one_closed)

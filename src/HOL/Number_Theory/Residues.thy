@@ -348,7 +348,7 @@ proof -
     done
   also have "(\<Otimes>i\<in>(\<Union>?Inverse_Pairs). i) = (\<Otimes>A\<in>?Inverse_Pairs. (\<Otimes>y\<in>A. y))"
     apply (subst finprod_Union_disjoint)
-       apply auto
+       apply (auto simp: pairwise_def disjnt_def)
      apply (metis Units_inv_inv)+
     done
   also have "\<dots> = \<one>"

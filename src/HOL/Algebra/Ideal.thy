@@ -17,11 +17,14 @@ locale ideal = additive_subgroup I R + ring R for I and R (structure) +
       and I_r_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
 
 sublocale ideal \<subseteq> abelian_subgroup I R
-  apply (intro abelian_subgroupI3 abelian_group.intro)
-    apply (rule ideal.axioms, rule ideal_axioms)
-   apply (rule abelian_group.axioms, rule ring.axioms, rule ideal.axioms, rule ideal_axioms)
-  apply (rule abelian_group.axioms, rule ring.axioms, rule ideal.axioms, rule ideal_axioms)
-  done
+proof (intro abelian_subgroupI3 abelian_group.intro)
+  show "additive_subgroup I R"
+    by (simp add: is_additive_subgroup)
+  show "abelian_monoid R"
+    by (simp add: abelian_monoid_axioms)
+  show "abelian_group_axioms R"
+    using abelian_group_def is_abelian_group by blast
+qed
 
 lemma (in ideal) is_ideal: "ideal I R"
   by (rule ideal_axioms)
