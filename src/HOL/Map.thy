@@ -133,6 +133,10 @@ proof
     by (induction xys) simp_all
 qed simp
 
+lemma empty_eq_map_of_iff [simp]:
+  "empty = map_of xys \<longleftrightarrow> xys = []"
+by(subst eq_commute) simp
+
 lemma map_of_eq_None_iff:
   "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
 by (induct xys) simp_all
