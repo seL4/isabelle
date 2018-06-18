@@ -38,12 +38,8 @@ lemma idealI:
   shows "ideal I R"
 proof -
   interpret ring R by fact
-  show ?thesis  apply (intro ideal.intro ideal_axioms.intro additive_subgroupI)
-     apply (rule a_subgroup)
-    apply (rule is_ring)
-   apply (erule (1) I_l_closed)
-  apply (erule (1) I_r_closed)
-  done
+  show ?thesis  
+    by (auto simp: ideal.intro ideal_axioms.intro additive_subgroupI a_subgroup is_ring I_l_closed I_r_closed)
 qed
 
 
@@ -132,14 +128,11 @@ lemma primeidealI2:
 proof -
   interpret additive_subgroup I R by fact
   interpret cring R by fact
-  show ?thesis apply (intro_locales)
+  show ?thesis apply intro_locales
     apply (intro ideal_axioms.intro)
     apply (erule (1) I_l_closed)
     apply (erule (1) I_r_closed)
-    apply (intro primeideal_axioms.intro)
-    apply (rule I_notcarr)
-    apply (erule (2) I_prime)
-    done
+    by (simp add: I_notcarr I_prime primeideal_axioms.intro)
 qed
 
 
@@ -165,14 +158,11 @@ subsection \<open>General Ideal Properies\<close>
 lemma (in ideal) one_imp_carrier:
   assumes I_one_closed: "\<one> \<in> I"
   shows "I = carrier R"
-  apply (rule)
-  apply (rule)
-  apply (rule a_Hcarr, simp)
 proof
-  fix x
-  assume xcarr: "x \<in> carrier R"
-  with I_one_closed have "x \<otimes> \<one> \<in> I" by (intro I_l_closed)
-  with xcarr show "x \<in> I" by simp
+  show "carrier R \<subseteq> I"
+    using I_r_closed assms by fastforce
+  show "I \<subseteq> carrier R"
+    by (rule a_subset)
 qed
 
 lemma (in ideal) Icarr:
@@ -193,142 +183,81 @@ lemma (in ring) i_intersect:
 proof -
   interpret ideal I R by fact
   interpret ideal J R by fact
+  have IJ: "I \<inter> J \<subseteq> carrier R"
+    by (force simp: a_subset)
   show ?thesis
     apply (intro idealI subgroup.intro)
-          apply (rule is_ring)
-         apply (force simp add: a_subset)
-        apply (simp add: a_inv_def[symmetric])
-       apply simp
-      apply (simp add: a_inv_def[symmetric])
-     apply (clarsimp, rule)
-      apply (fast intro: ideal.I_l_closed ideal.intro assms)+
-    apply (clarsimp, rule)
-     apply (fast intro: ideal.I_r_closed ideal.intro assms)+
+    apply (simp_all add: IJ is_ring I_l_closed assms ideal.I_l_closed ideal.I_r_closed flip: a_inv_def)
     done
 qed
 
-text \<open>The intersection of any Number of Ideals is again
-        an Ideal in @{term R}\<close>
+text \<open>The intersection of any Number of Ideals is again an Ideal in @{term R}\<close>
+
 lemma (in ring) i_Intersect:
-  assumes Sideals: "\<And>I. I \<in> S \<Longrightarrow> ideal I R"
-    and notempty: "S \<noteq> {}"
+  assumes Sideals: "\<And>I. I \<in> S \<Longrightarrow> ideal I R" and notempty: "S \<noteq> {}"
   shows "ideal (\<Inter>S) R"
-  apply (unfold_locales)
-  apply (simp_all add: Inter_eq)
-        apply rule unfolding mem_Collect_eq defer 1
-        apply rule defer 1
-        apply rule defer 1
-        apply (fold a_inv_def, rule) defer 1
-        apply rule defer 1
-        apply rule defer 1
 proof -
-  fix x y
-  assume "\<forall>I\<in>S. x \<in> I"
-  then have xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
-  assume "\<forall>I\<in>S. y \<in> I"
-  then have yI: "\<And>I. I \<in> S \<Longrightarrow> y \<in> I" by simp
-
-  fix J
-  assume JS: "J \<in> S"
-  interpret ideal J R by (rule Sideals[OF JS])
-  from xI[OF JS] and yI[OF JS] show "x \<oplus> y \<in> J" by (rule a_closed)
-next
-  fix J
-  assume JS: "J \<in> S"
-  interpret ideal J R by (rule Sideals[OF JS])
-  show "\<zero> \<in> J" by simp
-next
-  fix x
-  assume "\<forall>I\<in>S. x \<in> I"
-  then have xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
-
-  fix J
-  assume JS: "J \<in> S"
-  interpret ideal J R by (rule Sideals[OF JS])
-
-  from xI[OF JS] show "\<ominus> x \<in> J" by (rule a_inv_closed)
-next
-  fix x y
-  assume "\<forall>I\<in>S. x \<in> I"
-  then have xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
-  assume ycarr: "y \<in> carrier R"
-
-  fix J
-  assume JS: "J \<in> S"
-  interpret ideal J R by (rule Sideals[OF JS])
-
-  from xI[OF JS] and ycarr show "y \<otimes> x \<in> J" by (rule I_l_closed)
-next
-  fix x y
-  assume "\<forall>I\<in>S. x \<in> I"
-  then have xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
-  assume ycarr: "y \<in> carrier R"
-
-  fix J
-  assume JS: "J \<in> S"
-  interpret ideal J R by (rule Sideals[OF JS])
-
-  from xI[OF JS] and ycarr show "x \<otimes> y \<in> J" by (rule I_r_closed)
-next
-  fix x
-  assume "\<forall>I\<in>S. x \<in> I"
-  then have xI: "\<And>I. I \<in> S \<Longrightarrow> x \<in> I" by simp
-
-  from notempty have "\<exists>I0. I0 \<in> S" by blast
-  then obtain I0 where I0S: "I0 \<in> S" by auto
-
-  interpret ideal I0 R by (rule Sideals[OF I0S])
-
-  from xI[OF I0S] have "x \<in> I0" .
-  with a_subset show "x \<in> carrier R" by fast
-next
-
+  { fix x y J
+    assume "\<forall>I\<in>S. x \<in> I" "\<forall>I\<in>S. y \<in> I" and JS: "J \<in> S"
+    interpret ideal J R by (rule Sideals[OF JS])
+    have "x \<oplus> y \<in> J"
+      by (simp add: JS \<open>\<forall>I\<in>S. x \<in> I\<close> \<open>\<forall>I\<in>S. y \<in> I\<close>) }
+  moreover
+    have "\<zero> \<in> J" if "J \<in> S" for J
+      by (simp add: that Sideals additive_subgroup.zero_closed ideal.axioms(1)) 
+  moreover
+  { fix x J
+    assume "\<forall>I\<in>S. x \<in> I" and JS: "J \<in> S"
+    interpret ideal J R by (rule Sideals[OF JS])
+    have "\<ominus> x \<in> J"
+      by (simp add: JS \<open>\<forall>I\<in>S. x \<in> I\<close>) }
+  moreover
+  { fix x y J
+    assume "\<forall>I\<in>S. x \<in> I" and ycarr: "y \<in> carrier R" and JS: "J \<in> S"
+    interpret ideal J R by (rule Sideals[OF JS])
+    have "y \<otimes> x \<in> J" "x \<otimes> y \<in> J" 
+      using I_l_closed I_r_closed JS \<open>\<forall>I\<in>S. x \<in> I\<close> ycarr by blast+ }
+  moreover
+  { fix x
+    assume "\<forall>I\<in>S. x \<in> I"
+    obtain I0 where I0S: "I0 \<in> S"
+      using notempty by blast
+    interpret ideal I0 R by (rule Sideals[OF I0S])
+    have "x \<in> I0"
+      by (simp add: I0S \<open>\<forall>I\<in>S. x \<in> I\<close>) 
+    with a_subset have "x \<in> carrier R" by fast }
+  ultimately show ?thesis
+    by unfold_locales (auto simp: Inter_eq simp flip: a_inv_def)
 qed
 
 
 subsection \<open>Addition of Ideals\<close>
 
 lemma (in ring) add_ideals:
-  assumes idealI: "ideal I R"
-      and idealJ: "ideal J R"
+  assumes idealI: "ideal I R" and idealJ: "ideal J R"
   shows "ideal (I <+> J) R"
-  apply (rule ideal.intro)
-    apply (rule add_additive_subgroups)
-     apply (intro ideal.axioms[OF idealI])
-    apply (intro ideal.axioms[OF idealJ])
-   apply (rule is_ring)
-  apply (rule ideal_axioms.intro)
-   apply (simp add: set_add_defs, clarsimp) defer 1
-   apply (simp add: set_add_defs, clarsimp) defer 1
-proof -
-  fix x i j
-  assume xcarr: "x \<in> carrier R"
-    and iI: "i \<in> I"
-    and jJ: "j \<in> J"
-  from xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
-  have c: "(i \<oplus> j) \<otimes> x = (i \<otimes> x) \<oplus> (j \<otimes> x)"
-    by algebra
-  from xcarr and iI have a: "i \<otimes> x \<in> I"
-    by (simp add: ideal.I_r_closed[OF idealI])
-  from xcarr and jJ have b: "j \<otimes> x \<in> J"
-    by (simp add: ideal.I_r_closed[OF idealJ])
-  from a b c show "\<exists>ha\<in>I. \<exists>ka\<in>J. (i \<oplus> j) \<otimes> x = ha \<oplus> ka"
-    by fast
-next
-  fix x i j
-  assume xcarr: "x \<in> carrier R"
-    and iI: "i \<in> I"
-    and jJ: "j \<in> J"
-  from xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
-  have c: "x \<otimes> (i \<oplus> j) = (x \<otimes> i) \<oplus> (x \<otimes> j)" by algebra
-  from xcarr and iI have a: "x \<otimes> i \<in> I"
-    by (simp add: ideal.I_l_closed[OF idealI])
-  from xcarr and jJ have b: "x \<otimes> j \<in> J"
-    by (simp add: ideal.I_l_closed[OF idealJ])
-  from a b c show "\<exists>ha\<in>I. \<exists>ka\<in>J. x \<otimes> (i \<oplus> j) = ha \<oplus> ka"
-    by fast
+proof (rule ideal.intro)
+  show "additive_subgroup (I <+> J) R"
+    by (intro ideal.axioms[OF idealI] ideal.axioms[OF idealJ] add_additive_subgroups)
+  show "ring R"
+    by (rule is_ring)
+  show "ideal_axioms (I <+> J) R"
+  proof -
+    { fix x i j
+      assume xcarr: "x \<in> carrier R" and iI: "i \<in> I" and jJ: "j \<in> J"
+      from xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
+      have "\<exists>h\<in>I. \<exists>k\<in>J. (i \<oplus> j) \<otimes> x = h \<oplus> k"
+        by (meson iI ideal.I_r_closed idealJ jJ l_distr local.idealI) }
+    moreover
+    { fix x i j
+      assume xcarr: "x \<in> carrier R" and iI: "i \<in> I" and jJ: "j \<in> J"
+      from xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
+      have "\<exists>h\<in>I. \<exists>k\<in>J. x \<otimes> (i \<oplus> j) = h \<oplus> k"
+        by (meson iI ideal.I_l_closed idealJ jJ local.idealI r_distr) }
+    ultimately show "ideal_axioms (I <+> J) R"
+      by (intro ideal_axioms.intro) (auto simp: set_add_defs)
+  qed
 qed
-
 
 subsection (in ring) \<open>Ideals generated by a subset of @{term "carrier R"}\<close>
 
@@ -350,17 +279,13 @@ lemma (in ring) genideal_self:
 lemma (in ring) genideal_self':
   assumes carr: "i \<in> carrier R"
   shows "i \<in> Idl {i}"
-proof -
-  from carr have "{i} \<subseteq> Idl {i}" by (fast intro!: genideal_self)
-  then show "i \<in> Idl {i}" by fast
-qed
+  by (simp add: genideal_def)
 
 text \<open>@{term genideal} generates the minimal ideal\<close>
 lemma (in ring) genideal_minimal:
-  assumes a: "ideal I R"
-    and b: "S \<subseteq> I"
+  assumes "ideal I R" "S \<subseteq> I"
   shows "Idl S \<subseteq> I"
-  unfolding genideal_def by rule (elim InterD, simp add: a b)
+  unfolding genideal_def by rule (elim InterD, simp add: assms)
 
 text \<open>Generated ideals and subsets\<close>
 lemma (in ring) Idl_subset_ideal:
@@ -383,40 +308,40 @@ lemma (in ring) subset_Idl_subset:
     and HI: "H \<subseteq> I"
   shows "Idl H \<subseteq> Idl I"
 proof -
-  from HI and genideal_self[OF Icarr] have HIdlI: "H \<subseteq> Idl I"
-    by fast
-
   from Icarr have Iideal: "ideal (Idl I) R"
     by (rule genideal_ideal)
   from HI and Icarr have "H \<subseteq> carrier R"
     by fast
   with Iideal have "(H \<subseteq> Idl I) = (Idl H \<subseteq> Idl I)"
     by (rule Idl_subset_ideal[symmetric])
-
-  with HIdlI show "Idl H \<subseteq> Idl I" by simp
+  then show "Idl H \<subseteq> Idl I"
+    by (meson HI Icarr genideal_self order_trans)
 qed
 
 lemma (in ring) Idl_subset_ideal':
   assumes acarr: "a \<in> carrier R" and bcarr: "b \<in> carrier R"
-  shows "(Idl {a} \<subseteq> Idl {b}) = (a \<in> Idl {b})"
-  apply (subst Idl_subset_ideal[OF genideal_ideal[of "{b}"], of "{a}"])
-    apply (fast intro: bcarr, fast intro: acarr)
-  apply fast
-  done
+  shows "Idl {a} \<subseteq> Idl {b} \<longleftrightarrow> a \<in> Idl {b}"
+proof -
+  have "Idl {a} \<subseteq> Idl {b} \<longleftrightarrow> {a} \<subseteq> Idl {b}"
+    by (simp add: Idl_subset_ideal acarr bcarr genideal_ideal)
+  also have "\<dots> \<longleftrightarrow> a \<in> Idl {b}"
+    by blast
+  finally show ?thesis .
+qed
 
 lemma (in ring) genideal_zero: "Idl {\<zero>} = {\<zero>}"
-  apply rule
-   apply (rule genideal_minimal[OF zeroideal], simp)
-  apply (simp add: genideal_self')
-  done
+proof
+  show "Idl {\<zero>} \<subseteq> {\<zero>}"
+    by (simp add: genideal_minimal zeroideal)
+  show "{\<zero>} \<subseteq> Idl {\<zero>}"
+    by (simp add: genideal_self')
+qed
 
 lemma (in ring) genideal_one: "Idl {\<one>} = carrier R"
 proof -
   interpret ideal "Idl {\<one>}" "R" by (rule genideal_ideal) fast
   show "Idl {\<one>} = carrier R"
-  apply (rule, rule a_subset)
-  apply (simp add: one_imp_carrier genideal_self')
-  done
+    using genideal_self' one_imp_carrier by blast
 qed
 
 
@@ -429,58 +354,24 @@ text \<open>genhideal (?) really generates an ideal\<close>
 lemma (in cring) cgenideal_ideal:
   assumes acarr: "a \<in> carrier R"
   shows "ideal (PIdl a) R"
-  apply (unfold cgenideal_def)
-  apply (rule idealI[OF is_ring])
-     apply (rule subgroup.intro)
-        apply simp_all
-        apply (blast intro: acarr)
-        apply clarsimp defer 1
-        defer 1
-        apply (fold a_inv_def, clarsimp) defer 1
-        apply clarsimp defer 1
-        apply clarsimp defer 1
-proof -
-  fix x y
-  assume xcarr: "x \<in> carrier R"
-    and ycarr: "y \<in> carrier R"
-  note carr = acarr xcarr ycarr
-
-  from carr have "x \<otimes> a \<oplus> y \<otimes> a = (x \<oplus> y) \<otimes> a"
-    by (simp add: l_distr)
-  with carr show "\<exists>z. x \<otimes> a \<oplus> y \<otimes> a = z \<otimes> a \<and> z \<in> carrier R"
-    by fast
-next
-  from l_null[OF acarr, symmetric] and zero_closed
-  show "\<exists>x. \<zero> = x \<otimes> a \<and> x \<in> carrier R" by fast
-next
-  fix x
-  assume xcarr: "x \<in> carrier R"
-  note carr = acarr xcarr
-
-  from carr have "\<ominus> (x \<otimes> a) = (\<ominus> x) \<otimes> a"
-    by (simp add: l_minus)
-  with carr show "\<exists>z. \<ominus> (x \<otimes> a) = z \<otimes> a \<and> z \<in> carrier R"
-    by fast
-next
-  fix x y
-  assume xcarr: "x \<in> carrier R"
-     and ycarr: "y \<in> carrier R"
-  note carr = acarr xcarr ycarr
-  
-  from carr have "y \<otimes> a \<otimes> x = (y \<otimes> x) \<otimes> a"
-    by (simp add: m_assoc) (simp add: m_comm)
-  with carr show "\<exists>z. y \<otimes> a \<otimes> x = z \<otimes> a \<and> z \<in> carrier R"
-    by fast
-next
-  fix x y
-  assume xcarr: "x \<in> carrier R"
-     and ycarr: "y \<in> carrier R"
-  note carr = acarr xcarr ycarr
-
-  from carr have "x \<otimes> (y \<otimes> a) = (x \<otimes> y) \<otimes> a"
-    by (simp add: m_assoc)
-  with carr show "\<exists>z. x \<otimes> (y \<otimes> a) = z \<otimes> a \<and> z \<in> carrier R"
-    by fast
+  unfolding cgenideal_def
+proof (intro subgroup.intro idealI[OF is_ring], simp_all)
+  show "{x \<otimes> a |x. x \<in> carrier R} \<subseteq> carrier R"
+    by (blast intro: acarr)
+  show "\<And>x y. \<lbrakk>\<exists>u. x = u \<otimes> a \<and> u \<in> carrier R; \<exists>x. y = x \<otimes> a \<and> x \<in> carrier R\<rbrakk>
+              \<Longrightarrow> \<exists>v. x \<oplus> y = v \<otimes> a \<and> v \<in> carrier R"
+    by (metis assms cring.cring_simprules(1) is_cring l_distr)
+  show "\<exists>x. \<zero> = x \<otimes> a \<and> x \<in> carrier R"
+    by (metis assms l_null zero_closed)
+  show "\<And>x. \<exists>u. x = u \<otimes> a \<and> u \<in> carrier R 
+            \<Longrightarrow> \<exists>v. inv\<^bsub>add_monoid R\<^esub> x = v \<otimes> a \<and> v \<in> carrier R"
+    by (metis a_inv_def add.inv_closed assms l_minus)
+  show "\<And>b x. \<lbrakk>\<exists>x. b = x \<otimes> a \<and> x \<in> carrier R; x \<in> carrier R\<rbrakk>
+       \<Longrightarrow> \<exists>z. x \<otimes> b = z \<otimes> a \<and> z \<in> carrier R"
+    by (metis assms m_assoc m_closed)
+  show "\<And>b x. \<lbrakk>\<exists>x. b = x \<otimes> a \<and> x \<in> carrier R; x \<in> carrier R\<rbrakk>
+       \<Longrightarrow> \<exists>z. b \<otimes> x = z \<otimes> a \<and> z \<in> carrier R"
+    by (metis assms m_assoc m_comm m_closed)
 qed
 
 lemma (in ring) cgenideal_self:
@@ -504,119 +395,64 @@ proof -
   interpret ideal J R by fact
   show ?thesis
     unfolding cgenideal_def
-    apply rule
-    apply clarify
-    using aJ
-    apply (erule I_l_closed)
-    done
+    using I_l_closed aJ by blast
 qed
 
 lemma (in cring) cgenideal_eq_genideal:
   assumes icarr: "i \<in> carrier R"
   shows "PIdl i = Idl {i}"
-  apply rule
-   apply (intro cgenideal_minimal)
-    apply (rule genideal_ideal, fast intro: icarr)
-   apply (rule genideal_self', fast intro: icarr)
-  apply (intro genideal_minimal)
-   apply (rule cgenideal_ideal [OF icarr])
-  apply (simp, rule cgenideal_self [OF icarr])
-  done
+proof
+  show "PIdl i \<subseteq> Idl {i}"
+    by (simp add: cgenideal_minimal genideal_ideal genideal_self' icarr)
+  show "Idl {i} \<subseteq> PIdl i"
+    by (simp add: cgenideal_ideal cgenideal_self genideal_minimal icarr)
+qed
 
 lemma (in cring) cgenideal_eq_rcos: "PIdl i = carrier R #> i"
   unfolding cgenideal_def r_coset_def by fast
 
 lemma (in cring) cgenideal_is_principalideal:
-  assumes icarr: "i \<in> carrier R"
+  assumes "i \<in> carrier R"
   shows "principalideal (PIdl i) R"
-  apply (rule principalidealI)
-  apply (rule cgenideal_ideal [OF icarr])
 proof -
-  from icarr have "PIdl i = Idl {i}"
-    by (rule cgenideal_eq_genideal)
-  with icarr show "\<exists>i'\<in>carrier R. PIdl i = Idl {i'}"
-    by fast
+  have "\<exists>i'\<in>carrier R. PIdl i = Idl {i'}"
+    using cgenideal_eq_genideal assms by auto
+  then show ?thesis
+    by (simp add: cgenideal_ideal assms principalidealI)
 qed
 
 
 subsection \<open>Union of Ideals\<close>
 
 lemma (in ring) union_genideal:
-  assumes idealI: "ideal I R"
-    and idealJ: "ideal J R"
+  assumes idealI: "ideal I R" and idealJ: "ideal J R"
   shows "Idl (I \<union> J) = I <+> J"
-  apply rule
-   apply (rule ring.genideal_minimal)
-     apply (rule is_ring)
-    apply (rule add_ideals[OF idealI idealJ])
-   apply (rule)
-   apply (simp add: set_add_defs) apply (elim disjE) defer 1 defer 1
-   apply (rule) apply (simp add: set_add_defs genideal_def) apply clarsimp defer 1
-proof -
-  fix x
-  assume xI: "x \<in> I"
-  have ZJ: "\<zero> \<in> J"
-    by (intro additive_subgroup.zero_closed) (rule ideal.axioms[OF idealJ])
-  from ideal.Icarr[OF idealI xI] have "x = x \<oplus> \<zero>"
-    by algebra
-  with xI and ZJ show "\<exists>h\<in>I. \<exists>k\<in>J. x = h \<oplus> k"
-    by fast
+proof
+  show "Idl (I \<union> J) \<subseteq> I <+> J"
+  proof (rule ring.genideal_minimal [OF is_ring])
+    show "ideal (I <+> J) R"
+      by (rule add_ideals[OF idealI idealJ])
+    have "\<And>x. x \<in> I \<Longrightarrow> \<exists>xa\<in>I. \<exists>xb\<in>J. x = xa \<oplus> xb"
+      by (metis additive_subgroup.zero_closed ideal.Icarr idealJ ideal_def local.idealI r_zero)
+    moreover have "\<And>x. x \<in> J \<Longrightarrow> \<exists>xa\<in>I. \<exists>xb\<in>J. x = xa \<oplus> xb"
+      by (metis additive_subgroup.zero_closed ideal.Icarr idealJ ideal_def l_zero local.idealI)
+    ultimately show "I \<union> J \<subseteq> I <+> J"
+      by (auto simp: set_add_defs) 
+  qed
 next
-  fix x
-  assume xJ: "x \<in> J"
-  have ZI: "\<zero> \<in> I"
-    by (intro additive_subgroup.zero_closed, rule ideal.axioms[OF idealI])
-  from ideal.Icarr[OF idealJ xJ] have "x = \<zero> \<oplus> x"
-    by algebra
-  with ZI and xJ show "\<exists>h\<in>I. \<exists>k\<in>J. x = h \<oplus> k"
-    by fast
-next
-  fix i j K
-  assume iI: "i \<in> I"
-    and jJ: "j \<in> J"
-    and idealK: "ideal K R"
-    and IK: "I \<subseteq> K"
-    and JK: "J \<subseteq> K"
-  from iI and IK have iK: "i \<in> K" by fast
-  from jJ and JK have jK: "j \<in> K" by fast
-  from iK and jK show "i \<oplus> j \<in> K"
-    by (intro additive_subgroup.a_closed) (rule ideal.axioms[OF idealK])
+  show "I <+> J \<subseteq> Idl (I \<union> J)"
+    by (auto simp: set_add_defs genideal_def additive_subgroup.a_closed ideal_def set_mp)
 qed
-
 
 subsection \<open>Properties of Principal Ideals\<close>
 
-text \<open>\<open>\<zero>\<close> generates the zero ideal\<close>
-lemma (in ring) zero_genideal: "Idl {\<zero>} = {\<zero>}"
-  apply rule
-  apply (simp add: genideal_minimal zeroideal)
-  apply (fast intro!: genideal_self)
-  done
-
-text \<open>\<open>\<one>\<close> generates the unit ideal\<close>
-lemma (in ring) one_genideal: "Idl {\<one>} = carrier R"
-proof -
-  have "\<one> \<in> Idl {\<one>}"
-    by (simp add: genideal_self')
-  then show "Idl {\<one>} = carrier R"
-    by (intro ideal.one_imp_carrier) (fast intro: genideal_ideal)
-qed
-
-
 text \<open>The zero ideal is a principal ideal\<close>
 corollary (in ring) zeropideal: "principalideal {\<zero>} R"
-  apply (rule principalidealI)
-   apply (rule zeroideal)
-  apply (blast intro!: zero_genideal[symmetric])
-  done
+  using genideal_zero principalidealI zeroideal by blast
 
 text \<open>The unit ideal is a principal ideal\<close>
 corollary (in ring) onepideal: "principalideal (carrier R) R"
-  apply (rule principalidealI)
-   apply (rule oneideal)
-  apply (blast intro!: one_genideal[symmetric])
-  done
-
+  using genideal_one oneideal principalidealI by blast
 
 text \<open>Every principal ideal is a right coset of the carrier\<close>
 lemma (in principalideal) rcos_generate:
@@ -626,21 +462,13 @@ proof -
   interpret cring R by fact
   from generate obtain i where icarr: "i \<in> carrier R" and I1: "I = Idl {i}"
     by fast+
-
-  from icarr and genideal_self[of "{i}"] have "i \<in> Idl {i}"
-    by fast
-  then have iI: "i \<in> I" by (simp add: I1)
-
-  from I1 icarr have I2: "I = PIdl i"
+  then have "I = PIdl i"
     by (simp add: cgenideal_eq_genideal)
-
-  have "PIdl i = carrier R #> i"
+  moreover have "i \<in> I"
+    by (simp add: I1 genideal_self' icarr)
+  moreover have "PIdl i = carrier R #> i"
     unfolding cgenideal_def r_coset_def by fast
-
-  with I2 have "I = carrier R #> i"
-    by simp
-
-  with iI show "\<exists>x\<in>I. I = carrier R #> x"
+  ultimately show "\<exists>x\<in>I. I = carrier R #> x"
     by fast
 qed
 
@@ -698,11 +526,7 @@ proof (rule ccontr, clarsimp)
   then have I_prime: "\<And> a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I"
     by simp
   have "primeideal I R"
-    apply (rule primeideal.intro [OF is_ideal is_cring])
-    apply (rule primeideal_axioms.intro)
-     apply (rule InR)
-    apply (erule (2) I_prime)
-    done
+    by (simp add: I_prime InR is_cring is_ideal primeidealI)
   with notprime show False by simp
 qed
 
@@ -722,23 +546,15 @@ text \<open>If \<open>{\<zero>}\<close> is a prime ideal of a commutative ring, 
 lemma (in cring) zeroprimeideal_domainI:
   assumes pi: "primeideal {\<zero>} R"
   shows "domain R"
-  apply (rule domain.intro, rule is_cring)
-  apply (rule domain_axioms.intro)
-proof (rule ccontr, simp)
-  interpret primeideal "{\<zero>}" "R" by (rule pi)
-  assume "\<one> = \<zero>"
-  then have "carrier R = {\<zero>}" by (rule one_zeroD)
-  from this[symmetric] and I_notcarr show False
-    by simp
-next
-  interpret primeideal "{\<zero>}" "R" by (rule pi)
-  fix a b
-  assume ab: "a \<otimes> b = \<zero>" and carr: "a \<in> carrier R" "b \<in> carrier R"
-  from ab have abI: "a \<otimes> b \<in> {\<zero>}"
-    by fast
-  with carr have "a \<in> {\<zero>} \<or> b \<in> {\<zero>}"
-    by (rule I_prime)
-  then show "a = \<zero> \<or> b = \<zero>" by simp
+proof (intro domain.intro is_cring domain_axioms.intro)
+  show "\<one> \<noteq> \<zero>"
+    using genideal_one genideal_zero pi primeideal.I_notcarr by force
+  show "a = \<zero> \<or> b = \<zero>" if ab: "a \<otimes> b = \<zero>" and carr: "a \<in> carrier R" "b \<in> carrier R" for a b
+  proof -
+    interpret primeideal "{\<zero>}" "R" by (rule pi)
+    show "a = \<zero> \<or> b = \<zero>"
+      using I_prime ab carr by blast
+  qed
 qed
 
 corollary (in cring) domain_eq_zeroprimeideal: "domain R = primeideal {\<zero>} R"
@@ -765,37 +581,18 @@ lemma (in ideal) helper_max_prime:
   shows "ideal {x\<in>carrier R. a \<otimes> x \<in> I} R"
 proof -
   interpret cring R by fact
-  show ?thesis apply (rule idealI)
-    apply (rule cring.axioms[OF is_cring])
-    apply (rule subgroup.intro)
-    apply (simp, fast)
-    apply clarsimp apply (simp add: r_distr acarr)
-    apply (simp add: acarr)
-    apply (simp add: a_inv_def[symmetric], clarify) defer 1
-    apply clarsimp defer 1
-    apply (fast intro!: helper_I_closed acarr)
-  proof -
-    fix x
-    assume xcarr: "x \<in> carrier R"
-      and ax: "a \<otimes> x \<in> I"
-    from ax and acarr xcarr
-    have "\<ominus>(a \<otimes> x) \<in> I" by simp
-    also from acarr xcarr
-    have "\<ominus>(a \<otimes> x) = a \<otimes> (\<ominus>x)" by algebra
-    finally show "a \<otimes> (\<ominus>x) \<in> I" .
-    from acarr have "a \<otimes> \<zero> = \<zero>" by simp
-  next
-    fix x y
-    assume xcarr: "x \<in> carrier R"
-      and ycarr: "y \<in> carrier R"
-      and ayI: "a \<otimes> y \<in> I"
-    from ayI and acarr xcarr ycarr have "a \<otimes> (y \<otimes> x) \<in> I"
-      by (simp add: helper_I_closed)
-    moreover
-    from xcarr ycarr have "y \<otimes> x = x \<otimes> y"
-      by (simp add: m_comm)
-    ultimately
-    show "a \<otimes> (x \<otimes> y) \<in> I" by simp
+  show ?thesis 
+  proof (rule idealI, simp_all)
+    show "ring R"
+      by (simp add: local.ring_axioms)
+    show "subgroup {x \<in> carrier R. a \<otimes> x \<in> I} (add_monoid R)"
+      by (rule subgroup.intro) (auto simp: r_distr acarr r_minus simp flip: a_inv_def)
+    show "\<And>b x. \<lbrakk>b \<in> carrier R \<and> a \<otimes> b \<in> I; x \<in> carrier R\<rbrakk>
+                 \<Longrightarrow> a \<otimes> (x \<otimes> b) \<in> I"
+      using acarr helper_I_closed m_comm by auto
+    show "\<And>b x. \<lbrakk>b \<in> carrier R \<and> a \<otimes> b \<in> I; x \<in> carrier R\<rbrakk>
+                \<Longrightarrow> a \<otimes> (b \<otimes> x) \<in> I"
+      by (simp add: acarr helper_I_closed)
   qed
 qed
 
@@ -805,53 +602,27 @@ lemma (in cring) maximalideal_prime:
   shows "primeideal I R"
 proof -
   interpret maximalideal I R by fact
-  show ?thesis apply (rule ccontr)
-    apply (rule primeidealCE)
-    apply (rule is_cring)
-    apply assumption
-    apply (simp add: I_notcarr)
-  proof -
-    assume "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I"
-    then obtain a b where
-      acarr: "a \<in> carrier R" and
-      bcarr: "b \<in> carrier R" and
-      abI: "a \<otimes> b \<in> I" and
-      anI: "a \<notin> I" and
-      bnI: "b \<notin> I" by fast
+  show ?thesis 
+  proof (rule ccontr)
+    assume neg: "\<not> primeideal I R"
+    then obtain a b where acarr: "a \<in> carrier R" and bcarr: "b \<in> carrier R"
+      and abI: "a \<otimes> b \<in> I" and anI: "a \<notin> I" and bnI: "b \<notin> I" 
+      using primeidealCE [OF is_cring]
+      by (metis I_notcarr)
     define J where "J = {x\<in>carrier R. a \<otimes> x \<in> I}"
-    
     from is_cring and acarr have idealJ: "ideal J R"
       unfolding J_def by (rule helper_max_prime)
-    
     have IsubJ: "I \<subseteq> J"
-    proof
-      fix x
-      assume xI: "x \<in> I"
-      with acarr have "a \<otimes> x \<in> I"
-        by (intro I_l_closed)
-      with xI[THEN a_Hcarr] show "x \<in> J"
-        unfolding J_def by fast
-    qed
-    
+      using I_l_closed J_def a_Hcarr acarr by blast
     from abI and acarr bcarr have "b \<in> J"
       unfolding J_def by fast
     with bnI have JnI: "J \<noteq> I" by fast
-    from acarr
-    have "a = a \<otimes> \<one>" by algebra
-    with anI have "a \<otimes> \<one> \<notin> I" by simp
-    with one_closed have "\<one> \<notin> J"
-      unfolding J_def by fast
+    have "\<one> \<notin> J"
+      unfolding J_def by (simp add: acarr anI)
     then have Jncarr: "J \<noteq> carrier R" by fast
-    
-    interpret ideal J R by (rule idealJ)
-    
+    interpret ideal J R by (rule idealJ)    
     have "J = I \<or> J = carrier R"
-      apply (intro I_maximal)
-      apply (rule idealJ)
-      apply (rule IsubJ)
-      apply (rule a_subset)
-      done
-    
+      by (simp add: I_maximal IsubJ a_subset is_ideal)
     with JnI and Jncarr show False by simp
   qed
 qed
@@ -859,54 +630,39 @@ qed
 
 subsection \<open>Derived Theorems\<close>
 
-\<comment> \<open>A non-zero cring that has only the two trivial ideals is a field\<close>
+text \<open>A non-zero cring that has only the two trivial ideals is a field\<close>
 lemma (in cring) trivialideals_fieldI:
   assumes carrnzero: "carrier R \<noteq> {\<zero>}"
     and haveideals: "{I. ideal I R} = {{\<zero>}, carrier R}"
   shows "field R"
-  apply (rule cring_fieldI)
-  apply (rule, rule, rule)
-   apply (erule Units_closed)
-  defer 1
-    apply rule
-  defer 1
-proof (rule ccontr, simp)
-  assume zUnit: "\<zero> \<in> Units R"
-  then have a: "\<zero> \<otimes> inv \<zero> = \<one>" by (rule Units_r_inv)
-  from zUnit have "\<zero> \<otimes> inv \<zero> = \<zero>"
-    by (intro l_null) (rule Units_inv_closed)
-  with a[symmetric] have "\<one> = \<zero>" by simp
-  then have "carrier R = {\<zero>}" by (rule one_zeroD)
-  with carrnzero show False by simp
-next
-  fix x
-  assume xcarr': "x \<in> carrier R - {\<zero>}"
-  then have xcarr: "x \<in> carrier R" by fast
-  from xcarr' have xnZ: "x \<noteq> \<zero>" by fast
-  from xcarr have xIdl: "ideal (PIdl x) R"
-    by (intro cgenideal_ideal) fast
-
-  from xcarr have "x \<in> PIdl x"
-    by (intro cgenideal_self) fast
-  with xnZ have "PIdl x \<noteq> {\<zero>}" by fast
-  with haveideals have "PIdl x = carrier R"
-    by (blast intro!: xIdl)
-  then have "\<one> \<in> PIdl x" by simp
-  then have "\<exists>y. \<one> = y \<otimes> x \<and> y \<in> carrier R"
-    unfolding cgenideal_def by blast
-  then obtain y where ycarr: " y \<in> carrier R" and ylinv: "\<one> = y \<otimes> x"
-    by fast+
-  from ylinv and xcarr ycarr have yrinv: "\<one> = x \<otimes> y"
-    by (simp add: m_comm)
-  from ycarr and ylinv[symmetric] and yrinv[symmetric]
-  have "\<exists>y \<in> carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by fast
-  with xcarr show "x \<in> Units R"
-    unfolding Units_def by fast
+proof (intro cring_fieldI equalityI)
+  show "Units R \<subseteq> carrier R - {\<zero>}"
+    by (metis Diff_empty Units_closed Units_r_inv_ex carrnzero l_null one_zeroD subsetI subset_Diff_insert)
+  show "carrier R - {\<zero>} \<subseteq> Units R"
+  proof
+    fix x
+    assume xcarr': "x \<in> carrier R - {\<zero>}"
+    then have xcarr: "x \<in> carrier R" and xnZ: "x \<noteq> \<zero>" by auto
+    from xcarr have xIdl: "ideal (PIdl x) R"
+      by (intro cgenideal_ideal) fast
+    have "PIdl x \<noteq> {\<zero>}"
+      using xcarr xnZ cgenideal_self by blast 
+    with haveideals have "PIdl x = carrier R"
+      by (blast intro!: xIdl)
+    then have "\<one> \<in> PIdl x" by simp
+    then have "\<exists>y. \<one> = y \<otimes> x \<and> y \<in> carrier R"
+      unfolding cgenideal_def by blast
+    then obtain y where ycarr: " y \<in> carrier R" and ylinv: "\<one> = y \<otimes> x"
+      by fast    
+    have "\<exists>y \<in> carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>"
+      using m_comm xcarr ycarr ylinv by auto
+    with xcarr show "x \<in> Units R"
+      unfolding Units_def by fast
+  qed
 qed
 
 lemma (in field) all_ideals: "{I. ideal I R} = {{\<zero>}, carrier R}"
-  apply (rule, rule)
-proof -
+proof (intro equalityI subsetI)
   fix I
   assume a: "I \<in> {I. ideal I R}"
   then interpret ideal I R by simp
@@ -916,41 +672,26 @@ proof -
     case True
     then obtain a where aI: "a \<in> I" and anZ: "a \<noteq> \<zero>"
       by fast+
-    from aI[THEN a_Hcarr] anZ have aUnit: "a \<in> Units R"
-      by (simp add: field_Units)
+    have aUnit: "a \<in> Units R"
+      by (simp add: aI anZ field_Units)
     then have a: "a \<otimes> inv a = \<one>" by (rule Units_r_inv)
     from aI and aUnit have "a \<otimes> inv a \<in> I"
       by (simp add: I_r_closed del: Units_r_inv)
     then have oneI: "\<one> \<in> I" by (simp add: a[symmetric])
-
     have "carrier R \<subseteq> I"
-    proof
-      fix x
-      assume xcarr: "x \<in> carrier R"
-      with oneI have "\<one> \<otimes> x \<in> I" by (rule I_r_closed)
-      with xcarr show "x \<in> I" by simp
-    qed
+      using oneI one_imp_carrier by auto
     with a_subset have "I = carrier R" by fast
     then show "I \<in> {{\<zero>}, carrier R}" by fast
   next
     case False
     then have IZ: "\<And>a. a \<in> I \<Longrightarrow> a = \<zero>" by simp
-
     have a: "I \<subseteq> {\<zero>}"
-    proof
-      fix x
-      assume "x \<in> I"
-      then have "x = \<zero>" by (rule IZ)
-      then show "x \<in> {\<zero>}" by fast
-    qed
-
+      using False by auto
     have "\<zero> \<in> I" by simp
-    then have "{\<zero>} \<subseteq> I" by fast
-
     with a have "I = {\<zero>}" by fast
     then show "I \<in> {{\<zero>}, carrier R}" by fast
   qed
-qed (simp add: zeroideal oneideal)
+qed (auto simp: zeroideal oneideal)
 
 \<comment>\<open>"Jacobson Theorem 2.2"\<close>
 lemma (in cring) trivialideals_eq_field:
@@ -961,9 +702,7 @@ lemma (in cring) trivialideals_eq_field:
 
 text \<open>Like zeroprimeideal for domains\<close>
 lemma (in field) zeromaximalideal: "maximalideal {\<zero>} R"
-  apply (rule maximalidealI)
-    apply (rule zeroideal)
-proof-
+proof (intro maximalidealI zeroideal)
   from one_not_zero have "\<one> \<notin> {\<zero>}" by simp
   with one_closed show "carrier R \<noteq> {\<zero>}" by fast
 next
@@ -977,20 +716,20 @@ qed
 lemma (in cring) zeromaximalideal_fieldI:
   assumes zeromax: "maximalideal {\<zero>} R"
   shows "field R"
-  apply (rule trivialideals_fieldI, rule maximalideal.I_notcarr[OF zeromax])
-  apply rule apply clarsimp defer 1
-   apply (simp add: zeroideal oneideal)
-proof -
-  fix J
-  assume Jn0: "J \<noteq> {\<zero>}"
-    and idealJ: "ideal J R"
-  interpret ideal J R by (rule idealJ)
-  have "{\<zero>} \<subseteq> J" by (rule ccontr) simp
-  from zeromax and idealJ and this and a_subset
-  have "J = {\<zero>} \<or> J = carrier R"
-    by (rule maximalideal.I_maximal)
-  with Jn0 show "J = carrier R"
-    by simp
+proof (intro trivialideals_fieldI maximalideal.I_notcarr[OF zeromax])
+  have "J = carrier R" if Jn0: "J \<noteq> {\<zero>}" and idealJ: "ideal J R" for J
+  proof -
+    interpret ideal J R by (rule idealJ)
+    have "{\<zero>} \<subseteq> J"
+      by force
+    from zeromax idealJ this a_subset
+    have "J = {\<zero>} \<or> J = carrier R"
+      by (rule maximalideal.I_maximal)
+    with Jn0 show "J = carrier R"
+      by simp
+  qed
+  then show "{I. ideal I R} = {{\<zero>}, carrier R}"
+    by (auto simp: zeroideal oneideal)
 qed
 
 lemma (in cring) zeromaximalideal_eq_field: "maximalideal {\<zero>} R = field R"
