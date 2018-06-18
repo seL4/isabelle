@@ -5,19 +5,19 @@
 section \<open>Type of finite maps defined as a subtype of maps\<close>
 
 theory Finite_Map
-  imports FSet AList
+  imports FSet AList Conditional_Parametricity
   abbrevs "(=" = "\<subseteq>\<^sub>f"
 begin
 
 subsection \<open>Auxiliary constants and lemmas over @{type map}\<close>
 
+parametric_constant map_add_transfer[transfer_rule]: map_add_def
+parametric_constant map_of_transfer[transfer_rule]: map_of_def
+
 context includes lifting_syntax begin
 
 abbreviation rel_map :: "('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map f \<equiv> (=) ===> rel_option f"
-
-lemma map_empty_transfer[transfer_rule]: "rel_map A Map.empty Map.empty"
-by transfer_prover
 
 lemma ran_transfer[transfer_rule]: "(rel_map A ===> rel_set A) ran ran"
 proof
@@ -58,31 +58,17 @@ qed
 lemma ran_alt_def: "ran m = (the \<circ> m) ` dom m"
 unfolding ran_def dom_def by force
 
-lemma dom_transfer[transfer_rule]: "(rel_map A ===> (=)) dom dom"
-proof
-  fix m n
-  assume "rel_map A m n"
-  have "m a \<noteq> None \<longleftrightarrow> n a \<noteq> None" for a
-    proof -
-      from \<open>rel_map A m n\<close> have "rel_option A (m a) (n a)"
-        unfolding rel_fun_def by auto
-      then show ?thesis
-        by cases auto
-    qed
-  then show "dom m = dom n"
-    by auto
-qed
+parametric_constant dom_transfer[transfer_rule]: dom_def
 
 definition map_upd :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "map_upd k v m = m(k \<mapsto> v)"
 
-lemma map_upd_transfer[transfer_rule]:
-  "((=) ===> A ===> rel_map A ===> rel_map A) map_upd map_upd"
-unfolding map_upd_def[abs_def]
-by transfer_prover
+parametric_constant map_upd_transfer[transfer_rule]: map_upd_def
 
 definition map_filter :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "map_filter P m = (\<lambda>x. if P x then m x else None)"
+
+parametric_constant map_filter_transfer[transfer_rule]: map_filter_def
 
 lemma map_filter_map_of[simp]: "map_filter P (map_of m) = map_of [(k, _) \<leftarrow> m. P k]"
 proof
@@ -90,11 +76,6 @@ proof
   show "map_filter P (map_of m) x = map_of [(k, _) \<leftarrow> m. P k] x"
     by (induct m) (auto simp: map_filter_def)
 qed
-
-lemma map_filter_transfer[transfer_rule]:
-  "((=) ===> rel_map A ===> rel_map A) map_filter map_filter"
-unfolding map_filter_def[abs_def]
-by transfer_prover
 
 lemma map_filter_finite[intro]:
   assumes "finite (dom m)"
@@ -111,47 +92,25 @@ qed
 definition map_drop :: "'a \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "map_drop a = map_filter (\<lambda>a'. a' \<noteq> a)"
 
-lemma map_drop_transfer[transfer_rule]:
-  "((=) ===> rel_map A ===> rel_map A) map_drop map_drop"
-unfolding map_drop_def[abs_def]
-by transfer_prover
+parametric_constant map_drop_transfer[transfer_rule]: map_drop_def
 
 definition map_drop_set :: "'a set \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "map_drop_set A = map_filter (\<lambda>a. a \<notin> A)"
 
-lemma map_drop_set_transfer[transfer_rule]:
-  "((=) ===> rel_map A ===> rel_map A) map_drop_set map_drop_set"
-unfolding map_drop_set_def[abs_def]
-by transfer_prover
+parametric_constant map_drop_set_transfer[transfer_rule]: map_drop_set_def
 
 definition map_restrict_set :: "'a set \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "map_restrict_set A = map_filter (\<lambda>a. a \<in> A)"
 
-lemma map_restrict_set_transfer[transfer_rule]:
-  "((=) ===> rel_map A ===> rel_map A) map_restrict_set map_restrict_set"
-unfolding map_restrict_set_def[abs_def]
-by transfer_prover
-
-lemma map_add_transfer[transfer_rule]:
-  "(rel_map A ===> rel_map A ===> rel_map A) (++) (++)"
-unfolding map_add_def[abs_def]
-by transfer_prover
+parametric_constant map_restrict_set_transfer[transfer_rule]: map_restrict_set_def
 
 definition map_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool" where
 "map_pred P m \<longleftrightarrow> (\<forall>x. case m x of None \<Rightarrow> True | Some y \<Rightarrow> P x y)"
 
-lemma map_pred_transfer[transfer_rule]:
-  "(((=) ===> A ===> (=)) ===> rel_map A ===> (=)) map_pred map_pred"
-unfolding map_pred_def[abs_def]
-by transfer_prover
+parametric_constant map_pred_transfer[transfer_rule]: map_pred_def
 
 definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map_on_set S P = eq_onp (\<lambda>x. x \<in> S) ===> rel_option P"
-
-lemma map_of_transfer[transfer_rule]:
-  includes lifting_syntax
-  shows "(list_all2 (rel_prod (=) A) ===> rel_map A) map_of map_of"
-unfolding map_of_def by transfer_prover
 
 definition set_of_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) set" where
 "set_of_map m = {(k, v)|k v. m k = Some v}"
@@ -208,7 +167,7 @@ begin
 lift_definition fmran :: "('a, 'b) fmap \<Rightarrow> 'b fset"
   is ran
   parametric ran_transfer
-unfolding ran_alt_def by auto
+by (rule finite_ran)
 
 lemma fmlookup_ran_iff: "y |\<in>| fmran m \<longleftrightarrow> (\<exists>x. fmlookup m x = Some y)"
 by transfer' (auto simp: ran_def)
@@ -259,7 +218,6 @@ by transfer' force
 
 lift_definition fmempty :: "('a, 'b) fmap"
   is Map.empty
-  parametric map_empty_transfer
 by simp
 
 lemma fmempty_lookup[simp]: "fmlookup fmempty x = None"
