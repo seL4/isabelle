@@ -36,6 +36,9 @@ lemma not_None_eq [iff]: "x \<noteq> None \<longleftrightarrow> (\<exists>y. x =
 lemma not_Some_eq [iff]: "(\<forall>y. x \<noteq> Some y) \<longleftrightarrow> x = None"
   by (induct x) auto
 
+lemma comp_the_Some[simp]: "the o Some = id"
+by auto
+
 text \<open>Although it may appear that both of these equalities are helpful
 only when applied to assumptions, in practice it seems better to give
 them the uniform iff attribute.\<close>
