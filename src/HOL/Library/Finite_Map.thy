@@ -946,6 +946,20 @@ unfolding fmfilter_alt_defs by simp
 lemma fmmap_keys_subset[intro]: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmmap_keys f m \<subseteq>\<^sub>f fmmap_keys f n"
 by transfer' (auto simp: map_le_def dom_def)
 
+definition sorted_list_of_fmap :: "('a::linorder, 'b) fmap \<Rightarrow> ('a \<times> 'b) list" where
+"sorted_list_of_fmap m = map (\<lambda>k. (k, the (fmlookup m k))) (sorted_list_of_fset (fmdom m))"
+
+lemma list_all_sorted_list[simp]: "list_all P (sorted_list_of_fmap m) = fmpred (curry P) m"
+unfolding sorted_list_of_fmap_def curry_def list.pred_map
+apply (auto simp: list_all_iff)
+including fmap.lifting fset.lifting
+by (transfer; auto simp: dom_def map_pred_def split: option.splits)+
+
+lemma map_of_sorted_list[simp]: "map_of (sorted_list_of_fmap m) = fmlookup m"
+unfolding sorted_list_of_fmap_def
+including fmap.lifting fset.lifting
+by transfer (simp add: map_of_map_keys)
+
 
 subsection \<open>Lifting/transfer setup\<close>
 

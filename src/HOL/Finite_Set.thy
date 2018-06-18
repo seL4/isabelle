@@ -491,6 +491,9 @@ lemma finite_bind:
   shows "finite (Set.bind S f)"
 using assms by (simp add: bind_UNION)
 
+lemma finite_filter [simp]: "finite S \<Longrightarrow> finite (Set.filter P S)"
+unfolding Set.filter_def by simp
+
 lemma finite_set_of_finite_funs:
   assumes "finite A" "finite B"
   shows "finite {f. \<forall>x. (x \<in> A \<longrightarrow> f x \<in> B) \<and> (x \<notin> A \<longrightarrow> f x = d)}" (is "finite ?S")

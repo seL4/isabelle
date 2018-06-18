@@ -203,6 +203,8 @@ lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> '
 
 lift_definition fset_of_list :: "'a list \<Rightarrow> 'a fset" is set by (rule finite_set)
 
+lift_definition sorted_list_of_fset :: "'a::linorder fset \<Rightarrow> 'a list" is sorted_list_of_set .
+
 subsection \<open>Transferred lemmas from Set.thy\<close>
 
 lemmas fset_eqI = set_eqI[Transfer.transferred]
@@ -387,6 +389,9 @@ lemmas fsubset_funion_eq = subset_Un_eq[Transfer.transferred]
 lemmas funion_fempty[iff] = Un_empty[Transfer.transferred]
 lemmas funion_fsubset_iff[no_atp, simp] = Un_subset_iff[Transfer.transferred]
 lemmas funion_fminus_finter = Un_Diff_Int[Transfer.transferred]
+lemmas ffunion_empty[simp] = Union_empty[Transfer.transferred]
+lemmas ffunion_mono = Union_mono[Transfer.transferred]
+lemmas ffunion_insert[simp] = Union_insert[Transfer.transferred]
 lemmas fminus_finter2 = Diff_Int2[Transfer.transferred]
 lemmas funion_finter_assoc_eq = Un_Int_assoc_eq[Transfer.transferred]
 lemmas fBall_funion = ball_Un[Transfer.transferred]
@@ -583,6 +588,8 @@ apply (rule equal_intr_rule)
 lemma fBall_mono[mono]: "P \<le> Q \<Longrightarrow> fBall S P \<le> fBall S Q"
 by auto
 
+lemma fBex_mono[mono]: "P \<le> Q \<Longrightarrow> fBex S P \<le> fBex S Q"
+by auto
 
 end
 
@@ -668,6 +675,14 @@ by transfer (rule card_Diff1_le)
 
 lemma fcard_pfsubset: "A |\<subseteq>| B \<Longrightarrow> fcard A < fcard B \<Longrightarrow> A < B"
 by transfer (rule card_psubset)
+
+
+subsubsection \<open>\<open>sorted_list_of_fset\<close>\<close>
+
+lemma sorted_list_of_fset_simps[simp]:
+  "set (sorted_list_of_fset S) = fset S"
+  "fset_of_list (sorted_list_of_fset S) = S"
+by (transfer, simp)+
 
 
 subsubsection \<open>\<open>ffold\<close>\<close>
