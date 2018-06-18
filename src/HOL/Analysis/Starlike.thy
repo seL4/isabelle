@@ -188,6 +188,14 @@ lemma convex_contains_segment:
   "convex S \<longleftrightarrow> (\<forall>a\<in>S. \<forall>b\<in>S. closed_segment a b \<subseteq> S)"
   unfolding convex_alt closed_segment_def by auto
 
+lemma closed_segment_in_Reals:
+   "\<lbrakk>x \<in> closed_segment a b; a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> x \<in> Reals"
+  by (meson subsetD convex_Reals convex_contains_segment)
+
+lemma open_segment_in_Reals:
+   "\<lbrakk>x \<in> open_segment a b; a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> x \<in> Reals"
+  by (metis Diff_iff closed_segment_in_Reals open_segment_def)
+
 lemma closed_segment_subset: "\<lbrakk>x \<in> S; y \<in> S; convex S\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> S"
   by (simp add: convex_contains_segment)
 

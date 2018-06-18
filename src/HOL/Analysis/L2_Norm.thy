@@ -110,12 +110,6 @@ lemma L2_set_le_sum [rule_format]:
   apply simp
   done
 
-lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<^sup>2 + y\<^sup>2) \<le> \<bar>x\<bar> + \<bar>y\<bar>"
-  apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum)
-  apply simp
-  done
-
 lemma L2_set_le_sum_abs: "L2_set f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
   apply (cases "finite A")
   apply (induct set: finite)
@@ -125,19 +119,6 @@ lemma L2_set_le_sum_abs: "L2_set f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
   apply simp
   apply simp
   done
-
-lemma L2_set_mult_ineq_lemma:
-  fixes a b c d :: real
-  shows "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
-proof -
-  have "0 \<le> (a * d - b * c)\<^sup>2" by simp
-  also have "\<dots> = a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2 - 2 * (a * d) * (b * c)"
-    by (simp only: power2_diff power_mult_distrib)
-  also have "\<dots> = a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2 - 2 * (a * c) * (b * d)"
-    by simp
-  finally show "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
-    by simp
-qed
 
 lemma L2_set_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le> L2_set f A * L2_set g A"
   apply (cases "finite A")

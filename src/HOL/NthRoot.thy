@@ -665,30 +665,34 @@ lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
 
 lemma sqrt_sum_squares_le_sum:
   "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) \<le> x + y"
-  apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum)
-  apply simp
-  done
+  by (rule power2_le_imp_le) (simp_all add: power2_sum)
+
+lemma L2_set_mult_ineq_lemma:
+  fixes a b c d :: real
+  shows "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
+proof -
+  have "0 \<le> (a * d - b * c)\<^sup>2" by simp
+  also have "\<dots> = a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2 - 2 * (a * d) * (b * c)"
+    by (simp only: power2_diff power_mult_distrib)
+  also have "\<dots> = a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2 - 2 * (a * c) * (b * d)"
+    by simp
+  finally show "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
+    by simp
+qed
+
+lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<^sup>2 + y\<^sup>2) \<le> \<bar>x\<bar> + \<bar>y\<bar>"
+  by (rule power2_le_imp_le) (simp_all add: power2_sum)
 
 lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<^sup>2 + (b + d)\<^sup>2) \<le> sqrt (a\<^sup>2 + b\<^sup>2) + sqrt (c\<^sup>2 + d\<^sup>2)"
-  apply (rule power2_le_imp_le)
-   apply simp
-   apply (simp add: power2_sum)
-   apply (simp only: mult.assoc distrib_left [symmetric])
-   apply (rule mult_left_mono)
-    apply (rule power2_le_imp_le)
-     apply (simp add: power2_sum power_mult_distrib)
-     apply (simp add: ring_distribs)
-     apply (subgoal_tac "0 \<le> b\<^sup>2 * c\<^sup>2 + a\<^sup>2 * d\<^sup>2 - 2 * (a * c) * (b * d)")
-      apply simp
-     apply (rule_tac b="(a * d - b * c)\<^sup>2" in ord_le_eq_trans)
-      apply (rule zero_le_power2)
-     apply (simp add: power2_diff power_mult_distrib)
-    apply simp
-   apply simp
-  apply (simp add: add_increasing)
-  done
+proof -
+  have "(a * c + b * d) \<le> (sqrt (a\<^sup>2 + b\<^sup>2) * sqrt (c\<^sup>2 + d\<^sup>2))"
+    by (rule power2_le_imp_le) (simp_all add: power2_sum power_mult_distrib ring_distribs L2_set_mult_ineq_lemma add.commute)
+  then have "(a + c)\<^sup>2 + (b + d)\<^sup>2 \<le> (sqrt (a\<^sup>2 + b\<^sup>2) + sqrt (c\<^sup>2 + d\<^sup>2))\<^sup>2"
+    by (simp add: power2_sum)
+  then show ?thesis
+    by (auto intro: power2_le_imp_le)
+qed
 
 lemma real_sqrt_sum_squares_less: "\<bar>x\<bar> < u / sqrt 2 \<Longrightarrow> \<bar>y\<bar> < u / sqrt 2 \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) < u"
   apply (rule power2_less_imp_less)

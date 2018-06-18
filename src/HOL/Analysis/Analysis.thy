@@ -7,6 +7,7 @@ imports
   Radon_Nikodym
   Fashoda_Theorem
   Determinants
+  Cross3
   Homeomorphism
   Bounded_Continuous_Function
   Function_Topology
