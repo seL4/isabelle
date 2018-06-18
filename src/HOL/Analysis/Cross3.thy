@@ -1,8 +1,14 @@
+(* Title:      HOL/Analysis/Cross3.thy
+   Author:     L C Paulson, University of Cambridge
+
+Ported from HOL Light
+*)
+
+section\<open>Vector Cross Products in 3 Dimensions.\<close>
+
 theory "Cross3"
   imports Determinants
 begin
-
-subsection\<open>Vector Cross products in real^3.                                                 \<close>
 
 definition cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr "\<times>" 80)
   where "a \<times> b \<equiv>
@@ -10,7 +16,7 @@ definition cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr "\<times>"
             a$3 * b$1 - a$1 * b$3,
             a$1 * b$2 - a$2 * b$1]"
 
-subsubsection\<open> Basic lemmas.\<close>
+subsection\<open> Basic lemmas.\<close>
 
 lemmas cross3_simps = cross3_def inner_vec_def sum_3 det_3 vec_eq_iff vector_def algebra_simps
 
