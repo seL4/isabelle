@@ -195,7 +195,8 @@ object-logic equality or equivalence.
 * Rewrites clauses (keyword 'rewrites') were moved into the locale
 expression syntax, where they are part of locale instances. In
 interpretation commands rewrites clauses now need to occur before 'for'
-and 'defines'. Minor INCOMPATIBILITY.
+and 'defines'. Rare INCOMPATIBILITY; definitions immediately subject to
+rewriting may need to be pulled up into the surrounding theory.
 
 * For 'rewrites' clauses, if activating a locale instance fails, fall
 back to reading the clause first. This helps avoid qualification of
