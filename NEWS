@@ -375,6 +375,10 @@ INCOMPATIBILITY.
 * Session HOL-Algebra: renamed (^) to [^] to avoid conflict with new
 infix/prefix notation.
 
+* Session HOL-Algebra: Revamped with much new material.
+The set of isomorphisms between two groups is now denoted iso rather than iso_set.
+INCOMPATIBILITY.
+
 * Session HOL-Analysis: infinite products, Moebius functions, the
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.

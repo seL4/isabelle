@@ -905,6 +905,11 @@ proof -
     using assms by (force intro: power_eq_imp_eq_base)
 qed
 
+lemma power_eq_1_iff:
+  fixes w :: "'a::real_normed_div_algebra"
+  shows "w ^ n = 1 \<Longrightarrow> norm w = 1 \<or> n = 0"
+  by (metis norm_one power_0_left power_eq_0_iff power_eq_imp_eq_norm power_one)
+
 lemma norm_mult_numeral1 [simp]: "norm (numeral w * a) = numeral w * norm a"
   for a b :: "'a::{real_normed_field,field}"
   by (simp add: norm_mult)
