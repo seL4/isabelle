@@ -963,6 +963,13 @@ abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b
 
 hide_const (open) Times
 
+bundle no_Set_Product_syntax begin
+no_notation Product_Type.Times (infixr "\<times>" 80)
+end
+bundle Set_Product_syntax begin
+notation Product_Type.Times (infixr "\<times>" 80)
+end
+
 syntax
   "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 translations

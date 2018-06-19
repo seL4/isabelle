@@ -10,11 +10,28 @@ theory "Cross3"
   imports Determinants
 begin
 
+context includes no_Set_Product_syntax 
+begin \<comment>\<open>locally disable syntax for set product, to avoid warnings\<close>
+
 definition cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr "\<times>" 80)
   where "a \<times> b \<equiv>
     vector [a$2 * b$3 - a$3 * b$2,
             a$3 * b$1 - a$1 * b$3,
             a$1 * b$2 - a$2 * b$1]"
+
+end
+
+bundle cross3_syntax begin
+notation cross3 (infixr "\<times>" 80)
+no_notation Product_Type.Times (infixr "\<times>" 80)
+end
+
+bundle no_cross3_syntax begin
+no_notation cross3 (infixr "\<times>" 80)
+notation Product_Type.Times (infixr "\<times>" 80)
+end
+
+unbundle cross3_syntax
 
 subsection\<open> Basic lemmas.\<close>
 
@@ -59,6 +76,8 @@ lemma left_diff_distrib: "(x - y) \<times> z = x \<times> z - y \<times> z" for 
 
 lemma right_diff_distrib: "x \<times> (y - z) = x \<times> y - x \<times> z" for x::"real^3"
   by (simp add: cross3_simps)
+
+hide_fact (open) left_diff_distrib right_diff_distrib
 
 lemma Jacobi: "x \<times> (y \<times> z) + y \<times> (z \<times> x) + z \<times> (x \<times> y) = 0" for x::"real^3"
   by (simp add: cross3_simps)
@@ -201,6 +220,8 @@ lemma continuous_on_cross:
   fixes f :: "'a::t2_space \<Rightarrow> real^3"
   shows "\<lbrakk>continuous_on S f; continuous_on S g\<rbrakk> \<Longrightarrow> continuous_on S (\<lambda>x. (f x) \<times> (g x))"
   by (simp add: continuous_on_eq_continuous_within continuous_cross)
+
+unbundle no_cross3_syntax
 
 end
 
