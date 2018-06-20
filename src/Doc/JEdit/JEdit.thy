@@ -251,22 +251,20 @@ text \<open>
   The \<^verbatim>\<open>-l\<close> option specifies the session name of the logic image to be used
   for proof processing. Additional session root directories may be included
   via option \<^verbatim>\<open>-d\<close> to augment the session name space (see also @{cite
-  "isabelle-system"}).
+  "isabelle-system"}). By default, the specified image is checked and built on
+  demand. The \<^verbatim>\<open>-s\<close> option determines where to store the result session image
+  of @{tool build}. The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for
+  the selected session image.
 
-  By default, the specified image is checked and built on demand. The \<^verbatim>\<open>-s\<close>
-  option determines where to store the result session image of @{tool build}.
-  The \<^verbatim>\<open>-n\<close> option bypasses the implicit build process for the selected
-  session image.
-
-  Option \<^verbatim>\<open>-R\<close> builds an auxiliary logic image with all required theories from
-  \<^emph>\<open>other\<close> sessions, relative to an ancestor session given by option \<^verbatim>\<open>-A\<close>
-  (default: parent session). Option \<^verbatim>\<open>-R\<close> also opens the session \<^verbatim>\<open>ROOT\<close> entry
-  in the editor, to facilitate editing of the main session.
-
-  Option \<^verbatim>\<open>-S\<close> is like \<^verbatim>\<open>-R\<close>, with a focus on the selected session and its
-  descendants: the namespace of accessible theories is restricted accordingly.
-  This reduces startup time for big projects, notably the ``Archive of Formal
-  Proofs''.
+  The \<^verbatim>\<open>-R\<close> option builds an auxiliary logic image with all theories from
+  other sessions that are not already present in its parent; it also opens the
+  session \<^verbatim>\<open>ROOT\<close> entry in the editor to facilitate editing of the main
+  session. The \<^verbatim>\<open>-S\<close> option is like \<^verbatim>\<open>-R\<close>, with a focus on the selected
+  session and its descendants: the namespace of accessible theories is
+  restricted accordingly. This reduces startup time for big projects, notably
+  the ``Archive of Formal Proofs''. The \<^verbatim>\<open>-A\<close> option specifies and alternative
+  ancestor session for options \<^verbatim>\<open>-R\<close> and \<^verbatim>\<open>-S\<close>: this allows to restructure the
+  hierarchy of session images on the spot.
 
   The \<^verbatim>\<open>-m\<close> option specifies additional print modes for the prover process.
   Note that the system option @{system_option_ref jedit_print_mode} allows to

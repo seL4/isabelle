@@ -71,12 +71,14 @@ output.
 * The command-line tool "isabelle jedit" provides more flexible options
 for session management:
 
-  - option -R builds an auxiliary logic image with all required theories
-    from other sessions, relative to an ancestor session given by option
-    -A (default: parent)
+  - option -R builds an auxiliary logic image with all theories from
+    other sessions that are not already present in its parent
 
   - option -S is like -R, with a focus on the selected session and its
     descendants (this reduces startup time for big projects like AFP)
+
+  - option -A specifies an alternative ancestor session for options -R
+    and -S
 
   Examples:
     isabelle jedit -R HOL-Number_Theory
