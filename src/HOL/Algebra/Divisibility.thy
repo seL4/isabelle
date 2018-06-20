@@ -1429,15 +1429,13 @@ lemma (in monoid) factors_mult:
     and ascarr: "set fa \<subseteq> carrier G"
     and bscarr: "set fb \<subseteq> carrier G"
   shows "factors G (fa @ fb) (a \<otimes> b)"
-  using assms
-  unfolding factors_def
-  apply safe
-   apply force
-  apply hypsubst_thin
-  apply (induct fa)
-   apply simp
-  apply (simp add: m_assoc)
-  done
+proof -
+  have "foldr (\<otimes>) (fa @ fb) \<one> = foldr (\<otimes>) fa \<one> \<otimes> foldr (\<otimes>) fb \<one>" if "set fa \<subseteq> carrier G" 
+    "Ball (set fa) (irreducible G)"
+    using that bscarr by (induct fa) (simp_all add: m_assoc)
+  then show ?thesis
+    using assms unfolding factors_def by force
+qed
 
 lemma (in comm_monoid_cancel) wfactors_mult [intro]:
   assumes asf: "wfactors G as a" and bsf:"wfactors G bs b"
@@ -1555,16 +1553,10 @@ definition "fmset G as = mset (map (\<lambda>a. assocs G a) as)"
 text \<open>Helper lemmas\<close>
 
 lemma (in monoid) assocs_repr_independence:
-  assumes "y \<in> assocs G x"
-    and "x \<in> carrier G"
+  assumes "y \<in> assocs G x" "x \<in> carrier G"
   shows "assocs G x = assocs G y"
   using assms
-  apply safe
-   apply (elim closure_ofE2, intro closure_ofI2[of _ _ y])
-     apply (clarsimp, iprover intro: associated_trans associated_sym, simp+)
-  apply (elim closure_ofE2, intro closure_ofI2[of _ _ x])
-    apply (clarsimp, iprover intro: associated_trans, simp+)
-  done
+  by (simp add: eq_closure_of_def elem_def) (use associated_sym associated_trans in \<open>blast+\<close>)
 
 lemma (in monoid) assocs_self:
   assumes "x \<in> carrier G"
@@ -1572,14 +1564,12 @@ lemma (in monoid) assocs_self:
   using assms by (fastforce intro: closure_ofI2)
 
 lemma (in monoid) assocs_repr_independenceD:
-  assumes repr: "assocs G x = assocs G y"
-    and ycarr: "y \<in> carrier G"
+  assumes repr: "assocs G x = assocs G y" and ycarr: "y \<in> carrier G"
   shows "y \<in> assocs G x"
   unfolding repr using ycarr by (intro assocs_self)
 
 lemma (in comm_monoid) assocs_assoc:
-  assumes "a \<in> assocs G b"
-    and "b \<in> carrier G"
+  assumes "a \<in> assocs G b" "b \<in> carrier G"
   shows "a \<sim> b"
   using assms by (elim closure_ofE2) simp
 
@@ -1594,30 +1584,23 @@ lemma (in monoid) fmset_perm_cong:
   using perm_map[OF prm] unfolding mset_eq_perm fmset_def by blast
 
 lemma (in comm_monoid_cancel) eqc_listassoc_cong:
-  assumes "as [\<sim>] bs"
-    and "set as \<subseteq> carrier G" and "set bs \<subseteq> carrier G"
+  assumes "as [\<sim>] bs" and "set as \<subseteq> carrier G" and "set bs \<subseteq> carrier G"
   shows "map (assocs G) as = map (assocs G) bs"
   using assms
-  apply (induct as arbitrary: bs, simp)
-  apply (clarsimp simp add: Cons_eq_map_conv list_all2_Cons1, safe)
-   apply (clarsimp elim!: closure_ofE2) defer 1
-   apply (clarsimp elim!: closure_ofE2) defer 1
-proof -
-  fix a x z
-  assume carr[simp]: "a \<in> carrier G"  "x \<in> carrier G"  "z \<in> carrier G"
-  assume "x \<sim> a"
-  also assume "a \<sim> z"
-  finally have "x \<sim> z" by simp
-  with carr show "x \<in> assocs G z"
-    by (intro closure_ofI2) simp_all
+proof (induction as arbitrary: bs)
+  case Nil
+  then show ?case by simp
 next
-  fix a x z
-  assume carr[simp]: "a \<in> carrier G"  "x \<in> carrier G"  "z \<in> carrier G"
-  assume "x \<sim> z"
-  also assume [symmetric]: "a \<sim> z"
-  finally have "x \<sim> a" by simp
-  with carr show "x \<in> assocs G a"
-    by (intro closure_ofI2) simp_all
+  case (Cons a as)
+  then show ?case
+  proof (clarsimp simp add: Cons_eq_map_conv list_all2_Cons1)
+    fix z zs 
+    assume zzs: "a \<in> carrier G" "set as \<subseteq> carrier G" "bs = z # zs" "a \<sim> z"
+      "as [\<sim>] zs" "z \<in> carrier G" "set zs \<subseteq> carrier G"
+    then show "assocs G a = assocs G z"
+      apply (simp add: eq_closure_of_def elem_def)
+      using \<open>a \<in> carrier G\<close> \<open>z \<in> carrier G\<close> \<open>a \<sim> z\<close> associated_sym associated_trans by blast+
+  qed
 qed
 
 lemma (in comm_monoid_cancel) fmset_listassoc_cong:
@@ -1636,7 +1619,6 @@ proof (elim essentially_equalE)
   assume prm: "as <~~> as'"
   from prm ascarr have as'carr: "set as' \<subseteq> carrier G"
     by (rule perm_closed)
-
   from prm have "fmset G as = fmset G as'"
     by (rule fmset_perm_cong)
   also assume "as' [\<sim>] bs"
@@ -1645,99 +1627,31 @@ proof (elim essentially_equalE)
   finally show "fmset G as = fmset G bs" .
 qed
 
-lemma (in monoid_cancel) fmset_ee__hlp_induct:
-  assumes prm: "cas <~~> cbs"
-    and cdef: "cas = map (assocs G) as"  "cbs = map (assocs G) bs"
-  shows "\<forall>as bs. (cas <~~> cbs \<and> cas = map (assocs G) as \<and>
-    cbs = map (assocs G) bs) \<longrightarrow> (\<exists>as'. as <~~> as' \<and> map (assocs G) as' = cbs)"
-  apply (rule perm.induct[of cas cbs], rule prm)
-     apply safe
-     apply (simp_all del: mset_map)
-    apply (simp add: map_eq_Cons_conv)
-    apply blast
-   apply force
-proof -
-  fix ys as bs
-  assume p1: "map (assocs G) as <~~> ys"
-    and r1[rule_format]:
-      "\<forall>asa bs. map (assocs G) as = map (assocs G) asa \<and> ys = map (assocs G) bs
-        \<longrightarrow> (\<exists>as'. asa <~~> as' \<and> map (assocs G) as' = map (assocs G) bs)"
-    and p2: "ys <~~> map (assocs G) bs"
-    and r2[rule_format]: "\<forall>as bsa. ys = map (assocs G) as \<and> map (assocs G) bs = map (assocs G) bsa
-      \<longrightarrow> (\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bsa)"
-    and p3: "map (assocs G) as <~~> map (assocs G) bs"
-
-  from p1 have "mset (map (assocs G) as) = mset ys"
-    by (simp add: mset_eq_perm del: mset_map)
-  then have setys: "set (map (assocs G) as) = set ys"
-    by (rule mset_eq_setD)
-
-  have "set (map (assocs G) as) = {assocs G x | x. x \<in> set as}" by auto
-  with setys have "set ys \<subseteq> { assocs G x | x. x \<in> set as}" by simp
-  then have "\<exists>yy. ys = map (assocs G) yy"
-  proof (induct ys)
-    case Nil
-    then show ?case by simp
-  next
-    case Cons
-    then show ?case
-    proof clarsimp
-      fix yy x
-      show "\<exists>yya. assocs G x # map (assocs G) yy = map (assocs G) yya"
-        by (rule exI[of _ "x#yy"]) simp
-    qed
-  qed
-  then obtain yy where ys: "ys = map (assocs G) yy" ..
-
-  from p1 ys have "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) yy"
-    by (intro r1) simp
-  then obtain as' where asas': "as <~~> as'" and as'yy: "map (assocs G) as' = map (assocs G) yy"
-    by auto
-
-  from p2 ys have "\<exists>as'. yy <~~> as' \<and> map (assocs G) as' = map (assocs G) bs"
-    by (intro r2) simp
-  then obtain as'' where yyas'': "yy <~~> as''" and as''bs: "map (assocs G) as'' = map (assocs G) bs"
-    by auto
-
-  from perm_map_switch [OF as'yy yyas'']
-  obtain cs where as'cs: "as' <~~> cs" and csas'': "map (assocs G) cs = map (assocs G) as''"
-    by blast
-
-  from asas' and as'cs have ascs: "as <~~> cs"
-    by fast
-  from csas'' and as''bs have "map (assocs G) cs = map (assocs G) bs"
-    by simp
-  with ascs show "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bs"
-    by fast
-qed
+lemma (in monoid_cancel) fmset_ee_aux:
+  assumes "cas <~~> cbs" "cas = map (assocs G) as" "cbs = map (assocs G) bs"
+  shows "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = cbs"
+  using assms
+proof (induction cas cbs arbitrary: as bs rule: perm.induct)
+  case (Cons xs ys z)
+  then show ?case
+    by (clarsimp simp add: map_eq_Cons_conv) blast
+next
+  case (trans xs ys zs)
+  then show ?case
+    by (smt ex_map_conv perm.trans perm_setP)
+qed auto
 
 lemma (in comm_monoid_cancel) fmset_ee:
   assumes mset: "fmset G as = fmset G bs"
     and ascarr: "set as \<subseteq> carrier G" and bscarr: "set bs \<subseteq> carrier G"
   shows "essentially_equal G as bs"
 proof -
-  from mset have mpp: "map (assocs G) as <~~> map (assocs G) bs"
+  from mset have "map (assocs G) as <~~> map (assocs G) bs"
     by (simp add: fmset_def mset_eq_perm del: mset_map)
-
-  define cas where "cas = map (assocs G) as"
-  define cbs where "cbs = map (assocs G) bs"
-
-  from cas_def cbs_def mpp have [rule_format]:
-    "\<forall>as bs. (cas <~~> cbs \<and> cas = map (assocs G) as \<and> cbs = map (assocs G) bs)
-      \<longrightarrow> (\<exists>as'. as <~~> as' \<and> map (assocs G) as' = cbs)"
-    by (intro fmset_ee__hlp_induct, simp+)
-  with mpp cas_def cbs_def have "\<exists>as'. as <~~> as' \<and> map (assocs G) as' = map (assocs G) bs"
-    by simp
-
   then obtain as' where tp: "as <~~> as'" and tm: "map (assocs G) as' = map (assocs G) bs"
-    by auto
-  from tm have lene: "length as' = length bs"
-    by (rule map_eq_imp_length_eq)
-  from tp have "set as = set as'"
-    by (simp add: mset_eq_perm mset_eq_setD)
+    using fmset_ee_aux by blast
   with ascarr have as'carr: "set as' \<subseteq> carrier G"
-    by simp
-
+    using perm_closed by blast
   from tm as'carr[THEN subsetD] bscarr[THEN subsetD] have "as' [\<sim>] bs"
     by (induct as' arbitrary: bs) (simp, fastforce dest: assocs_eqD[THEN associated_sym])
   with tp show "essentially_equal G as bs"
@@ -1958,13 +1872,9 @@ lemma (in factorial_monoid) properfactor_fmset:
     and "set bs \<subseteq> carrier G"
   shows "fmset G as \<subseteq># fmset G bs \<and> fmset G as \<noteq> fmset G bs"
   using pf
-  apply (elim properfactorE)
-  apply rule
-   apply (intro divides_fmsubset, assumption)
-        apply (rule assms)+
-  using assms(2,3,4,6,7) divides_as_fmsubset
-  apply auto
-  done
+  apply safe
+   apply (meson assms divides_as_fmsubset monoid.properfactor_divides monoid_axioms)
+  by (meson assms associated_def comm_monoid_cancel.ee_wfactorsD comm_monoid_cancel.fmset_ee factorial_monoid_axioms factorial_monoid_def properfactorE)
 
 subsection \<open>Irreducible Elements are Prime\<close>
 
@@ -2377,11 +2287,7 @@ proof -
       by (rule divides_fmsubset) fact+
 
     from ya yb csmset have "fmset G cs \<subseteq># fmset G ys"
-      apply (simp add: subseteq_mset_def, clarify)
-      apply (case_tac "count (fmset G as) a < count (fmset G bs) a")
-       apply simp
-      apply simp
-      done
+      using subset_eq_diff_conv subset_mset.le_diff_conv2 by fastforce
     then show "c divides y"
       by (rule fmsubset_divides) fact+
   qed
@@ -2399,8 +2305,7 @@ lemma (in gcd_condition_monoid) division_weak_lower_semilattice [simp]:
 proof -
   interpret weak_partial_order "division_rel G" ..
   show ?thesis
-    apply (unfold_locales, simp_all)
-  proof -
+  proof (unfold_locales, simp_all)
     fix x y
     assume carr: "x \<in> carrier G"  "y \<in> carrier G"
     from gcdof_exists [OF this] obtain z where zcarr: "z \<in> carrier G" and isgcd: "z gcdof x y"
@@ -2420,11 +2325,10 @@ lemma (in gcd_condition_monoid) gcdof_cong_l:
 proof -
   note carr = a'carr carr'
   interpret weak_lower_semilattice "division_rel G" by simp
-  have "a' \<in> carrier G \<and> a' gcdof b c"
-    apply (simp add: gcdof_greatestLower carr')
-    apply (subst greatest_Lower_cong_l[of _ a])
-        apply (simp_all add: a'a carr gcdof_greatestLower[symmetric] agcd)
-    done
+  have "is_glb (division_rel G) a' {b, c}"
+    by (subst greatest_Lower_cong_l[of _ a]) (simp_all add: a'a carr gcdof_greatestLower[symmetric] agcd)
+  then have "a' \<in> carrier G \<and> a' gcdof b c"
+    by (simp add: gcdof_greatestLower carr')
   then show ?thesis ..
 qed
 
@@ -2446,10 +2350,7 @@ proof -
   interpret weak_lower_semilattice "division_rel G"
     by simp
   from carr have "somegcd G a b \<in> carrier G \<and> (somegcd G a b) gcdof a b"
-    apply (subst gcdof_greatestLower, simp, simp)
-    apply (simp add: somegcd_meet[OF carr] meet_def)
-    apply (rule inf_of_two_greatest[simplified], assumption+)
-    done
+    by (simp add: gcdof_greatestLower inf_of_two_greatest meet_def somegcd_meet)
   then show "(somegcd G a b) gcdof a b"
     by simp
 qed
@@ -2541,21 +2442,23 @@ lemmas (in gcd_condition_monoid) asc_cong_gcd_split [simp] =
 
 lemma (in gcd_condition_monoid) gcdI:
   assumes dvd: "a divides b"  "a divides c"
-    and others: "\<forall>y\<in>carrier G. y divides b \<and> y divides c \<longrightarrow> y divides a"
+    and others: "\<And>y. \<lbrakk>y\<in>carrier G; y divides b; y divides c\<rbrakk> \<Longrightarrow> y divides a"
     and acarr: "a \<in> carrier G" and bcarr: "b \<in> carrier G" and ccarr: "c \<in> carrier G"
   shows "a \<sim> somegcd G b c"
-  apply (simp add: somegcd_def)
-  apply (rule someI2_ex)
-   apply (rule exI[of _ a], simp add: isgcd_def)
-   apply (simp add: assms)
-  apply (simp add: isgcd_def assms, clarify)
-  apply (insert assms, blast intro: associatedI)
-  done
+proof -
+  have "\<exists>a. a \<in> carrier G \<and> a gcdof b c"
+    by (simp add: bcarr ccarr gcdof_exists)
+  moreover have "\<And>x. x \<in> carrier G \<and> x gcdof b c \<Longrightarrow> a \<sim> x"
+    by (simp add: acarr associated_def dvd isgcd_def others)
+  ultimately show ?thesis
+    unfolding somegcd_def by (blast intro: someI2_ex)
+qed
 
 lemma (in gcd_condition_monoid) gcdI2:
   assumes "a gcdof b c" and "a \<in> carrier G" and "b \<in> carrier G" and "c \<in> carrier G"
   shows "a \<sim> somegcd G b c"
-  using assms unfolding isgcd_def by (blast intro: gcdI)
+  using assms unfolding isgcd_def
+  by (simp add: gcdI)
 
 lemma (in gcd_condition_monoid) SomeGcd_ex:
   assumes "finite A"  "A \<subseteq> carrier G"  "A \<noteq> {}"
@@ -3193,10 +3096,7 @@ proof (rule properfactorE[OF pf], elim dividesE)
     with nbdvda show False by simp
   qed
   with cfs have "length cs > 0"
-    apply -
-    apply (rule ccontr, simp)
-    apply (metis Units_one_closed ccarr cscarr l_one one_closed properfactorI3 properfactor_fmset unit_wfactors)
-    done
+    by (metis Units_one_closed assoc_unit_r ccarr foldr.simps(1) id_apply length_greater_0_conv wfactors_def)
   with fca fcb show ?thesis
     by simp
 qed
