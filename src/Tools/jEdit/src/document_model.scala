@@ -36,6 +36,13 @@ object Document_Model
         if model.isInstanceOf[File_Model]
       } yield (node_name, model.asInstanceOf[File_Model])
 
+    def document_blobs: Document.Blobs =
+      Document.Blobs(
+        (for {
+          (node_name, model) <- models.iterator
+          blob <- model.get_blob
+        } yield (node_name -> blob)).toMap)
+
     def open_buffer(session: Session, node_name: Document.Node.Name, buffer: Buffer)
       : (Buffer_Model, State) =
     {
@@ -76,6 +83,8 @@ object Document_Model
   def get_models(): Map[Document.Node.Name, Document_Model] = state.value.models
   def get(name: Document.Node.Name): Option[Document_Model] = get_models.get(name)
   def get(buffer: JEditBuffer): Option[Buffer_Model] = state.value.buffer_models.get(buffer)
+
+  def document_blobs(): Document.Blobs = state.value.document_blobs
 
 
   /* bibtex */
@@ -218,12 +227,7 @@ object Document_Model
 
     state.change_result(st =>
       {
-        val doc_blobs =
-          Document.Blobs(
-            (for {
-              (node_name, model) <- st.models.iterator
-              blob <- model.get_blob
-            } yield (node_name -> blob)).toMap)
+        val doc_blobs = st.document_blobs
 
         val buffer_edits =
           (for {
