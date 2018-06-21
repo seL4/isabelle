@@ -167,7 +167,7 @@ text \<open>
     @{syntax_def antiquotation_body}:
       (@@{antiquotation text} | @@{antiquotation cartouche} | @@{antiquotation theory_text})
         options @{syntax text} |
-      @@{antiquotation theory} options @{syntax name} |
+      @@{antiquotation theory} options @{syntax embedded} |
       @@{antiquotation thm} options styles @{syntax thms} |
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
       @@{antiquotation prop} options styles @{syntax prop} |

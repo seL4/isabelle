@@ -82,7 +82,7 @@ val _ = Theory.setup
   basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.name)) pretty_locale #>
   basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
   basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded) pretty_type #>
-  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.name)) pretty_theory #>
+  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.embedded)) pretty_theory #>
   basic_entities \<^binding>\<open>prf\<close> Attrib.thms (pretty_prf false) #>
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
   Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
