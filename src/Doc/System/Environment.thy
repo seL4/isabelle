@@ -205,6 +205,11 @@ text \<open>
   \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}\<open>\<^sup>*\<close>] is the prefix from which any
   running Isabelle ML process derives an individual directory for temporary
   files.
+
+  \<^descr>[@{setting_def ISABELLE_TOOL_JAVA_OPTIONS}] is passed to the \<^verbatim>\<open>java\<close>
+  executable when running Isabelle tools (e.g. @{tool build}). This is
+  occasionally helpful to provide more heap space, via additional options like
+  \<^verbatim>\<open>-Xms1g -Xmx4g\<close>.
 \<close>
 
 
