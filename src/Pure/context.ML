@@ -37,11 +37,11 @@ sig
   val theory_id_name: theory_id -> string
   val theory_long_name: theory -> string
   val theory_name: theory -> string
+  val theory_name': {long: bool} -> theory -> string
   val PureN: string
   val pretty_thy: theory -> Pretty.T
   val pretty_abbrev_thy: theory -> Pretty.T
-  val get_theory: theory -> string -> theory
-  val this_theory: theory -> string -> theory
+  val get_theory: {long: bool} -> theory -> string -> theory
   val eq_thy_id: theory_id * theory_id -> bool
   val eq_thy: theory * theory -> bool
   val proper_subthy_id: theory_id * theory_id -> bool
@@ -160,6 +160,7 @@ val theory_id_long_name = #name o history_of_id;
 val theory_id_name = Long_Name.base_name o theory_id_long_name;
 val theory_long_name = #name o history_of;
 val theory_name = Long_Name.base_name o theory_long_name;
+fun theory_name' {long} = if long then theory_long_name else theory_name;
 
 val parents_of = #parents o ancestry_of;
 val ancestors_of = #ancestors o ancestry_of;
@@ -191,17 +192,13 @@ fun pretty_abbrev_thy thy =
     val abbrev = if n > 5 then "..." :: List.drop (names, n - 5) else names;
   in Pretty.str_list "{" "}" abbrev end;
 
-fun get_theory thy name =
-  if theory_name thy <> name then
-    (case find_first (fn thy' => theory_name thy' = name) (ancestors_of thy) of
+fun get_theory long thy name =
+  if theory_name' long thy <> name then
+    (case find_first (fn thy' => theory_name' long thy' = name) (ancestors_of thy) of
       SOME thy' => thy'
     | NONE => error ("Unknown ancestor theory " ^ quote name))
   else if #stage (history_of thy) = finished then thy
   else error ("Unfinished theory " ^ quote name);
-
-fun this_theory thy name =
-  if theory_name thy = name then thy
-  else get_theory thy name;
 
 
 (* build ids *)
@@ -472,7 +469,7 @@ structure Proof_Context =
 struct
   fun theory_of (Proof.Context (_, thy)) = thy;
   fun init_global thy = Proof.Context (init_data thy, thy);
-  fun get_global thy name = init_global (get_theory thy name);
+  fun get_global thy name = init_global (get_theory {long = false} thy name);
 end;
 
 structure Proof_Data =

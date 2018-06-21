@@ -942,6 +942,10 @@ fun static_value (ctxt_postproc_consts as { ctxt, consts, ... }) comp =
 fun read_const_exprs_internal ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
+    fun this_theory name =
+      if Context.theory_name thy = name then thy
+      else Context.get_theory {long = false} thy name;
+
     fun consts_of thy' =
       fold (fn (c, (_, NONE)) => cons c | _ => I)
         (#constants (Consts.dest (Sign.consts_of thy'))) []
@@ -954,7 +958,7 @@ fun read_const_exprs_internal ctxt =
         SOME "_" => ([], consts_of thy)
       | SOME s =>
           if String.isSuffix "._" s
-          then ([], consts_of_select (Context.this_theory thy (unsuffix "._" s)))
+          then ([], consts_of_select (this_theory (unsuffix "._" s)))
           else ([Code.read_const thy str], [])
       | NONE => ([Code.read_const thy str], []));
   in apply2 flat o split_list o map read_const_expr end;

@@ -27,7 +27,7 @@ fun thm_deps thy thms =
             val session =
               (case prefix of
                 a :: _ =>
-                  (case try (Context.get_theory thy) a of
+                  (case try (Context.get_theory {long = false} thy) a of
                     SOME thy =>
                       (case Present.theory_qualifier thy of
                         "" => []

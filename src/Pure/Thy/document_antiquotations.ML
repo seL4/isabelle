@@ -60,7 +60,8 @@ fun pretty_type ctxt s =
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_clean_proof_of ctxt full;
 
-fun pretty_theory ctxt (name, pos) = (Theory.check ctxt (name, pos); Pretty.str name);
+fun pretty_theory ctxt (name, pos) =
+  (Theory.check {long = false} ctxt (name, pos); Pretty.str name);
 
 val basic_entity = Thy_Output.antiquotation_pretty_source;
 
