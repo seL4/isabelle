@@ -659,9 +659,7 @@ lemma (in monoid_cancel) irreducible_cong [trans]:
     and aa': "a \<sim> a'" "a \<in> carrier G"  "a' \<in> carrier G"
   shows "irreducible G a'"
   using assms
-  apply (elim irreducibleE, intro irreducibleI)
-   apply simp_all
-   apply (metis assms(2) assms(3) assoc_unit_l)
+  apply (auto simp: irreducible_def assoc_unit_l)
   apply (metis aa' associated_sym properfactor_cong_r)
   done
 
@@ -757,12 +755,11 @@ lemma (in comm_monoid_cancel) prime_divides:
   using assms by (blast elim: primeE)
 
 lemma (in monoid_cancel) prime_cong [trans]:
-  assumes pprime: "prime G p"
+  assumes "prime G p"
     and pp': "p \<sim> p'" "p \<in> carrier G"  "p' \<in> carrier G"
   shows "prime G p'"
-  using pprime
-  apply (elim primeE, intro primeI)
-   apply (metis assms(2) assms(3) assoc_unit_l)
+  using assms
+  apply (auto simp: prime_def assoc_unit_l)
   apply (metis pp' associated_sym divides_cong_l)
   done
 
@@ -1015,14 +1012,13 @@ lemma (in comm_monoid) multlist_perm_cong:
     and ascarr: "set as \<subseteq> carrier G"
   shows "foldr (\<otimes>) as \<one> = foldr (\<otimes>) bs \<one>"
   using prm ascarr
-  apply (induct, simp, clarsimp simp add: m_ac, clarsimp)
-proof clarsimp
-  fix xs ys zs
-  assume "xs <~~> ys"  "set xs \<subseteq> carrier G"
-  then have "set ys \<subseteq> carrier G" by (rule perm_closed)
-  moreover assume "set ys \<subseteq> carrier G \<Longrightarrow> foldr (\<otimes>) ys \<one> = foldr (\<otimes>) zs \<one>"
-  ultimately show "foldr (\<otimes>) ys \<one> = foldr (\<otimes>) zs \<one>" by simp
-qed
+proof induction
+  case (swap y x l) then show ?case
+    by (simp add: m_lcomm)
+next
+  case (trans xs ys zs) then show ?case
+    using perm_closed by auto
+qed auto
 
 lemma (in comm_monoid_cancel) multlist_ee_cong:
   assumes "essentially_equal G fs fs'"
@@ -1673,23 +1669,17 @@ proof -
   from surjE[OF surj_mset] obtain Cs' where Cs: "Cs = mset Cs'"
     by blast
   have "\<exists>cs. (\<forall>c \<in> set cs. P c) \<and> mset (map (assocs G) cs) = Cs"
-    using elems
-    unfolding Cs
-    apply (induct Cs', simp)
-  proof (clarsimp simp del: mset_map)
-    fix a Cs' cs
-    assume ih: "\<And>X. X = a \<or> X \<in> set Cs' \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
-      and csP: "\<forall>x\<in>set cs. P x"
-      and mset: "mset (map (assocs G) cs) = mset Cs'"
-    from ih obtain c where cP: "P c" and a: "a = assocs G c"
-      by auto
-    from cP csP have tP: "\<forall>x\<in>set (c#cs). P x"
+    using elems unfolding Cs
+  proof (induction Cs')
+    case (Cons a Cs')
+    then obtain c cs where csP: "\<forall>x\<in>set cs. P x" and mset: "mset (map (assocs G) cs) = mset Cs'"
+            and cP: "P c" and a: "a = assocs G c"
+      by force
+    then have tP: "\<forall>x\<in>set (c#cs). P x"
       by simp
-    from mset a have "mset (map (assocs G) (c#cs)) = add_mset a (mset Cs')"
-      by simp
-    with tP show "\<exists>cs. (\<forall>x\<in>set cs. P x) \<and> mset (map (assocs G) cs) = add_mset a (mset Cs')"
-      by fast
-  qed
+    show ?case
+      using tP mset a by fastforce
+  qed auto
   then show ?thesis by (simp add: fmset_def)
 qed
 
@@ -1851,15 +1841,11 @@ lemma (in factorial_monoid) fmset_properfactor:
     and "set as \<subseteq> carrier G"
     and "set bs \<subseteq> carrier G"
   shows "properfactor G a b"
-  apply (rule properfactorI)
-   apply (rule fmsubset_divides[of as bs], fact+)
-proof
-  assume "b divides a"
-  then have "fmset G bs \<subseteq># fmset G as"
-    by (rule divides_fmsubset) fact+
-  with asubb have "fmset G as = fmset G bs"
-    by (rule subset_mset.antisym)
-  with anb show False ..
+proof (rule properfactorI)
+  show "a divides b"
+    using assms asubb fmsubset_divides by blast
+  show "\<not> b divides a"
+    by (meson anb assms asubb factorial_monoid.divides_fmsubset factorial_monoid_axioms subset_mset.antisym)
 qed
 
 lemma (in factorial_monoid) properfactor_fmset:
@@ -1879,8 +1865,7 @@ lemma (in factorial_monoid) properfactor_fmset:
 subsection \<open>Irreducible Elements are Prime\<close>
 
 lemma (in factorial_monoid) irreducible_prime:
-  assumes pirr: "irreducible G p"
-    and pcarr: "p \<in> carrier G"
+  assumes pirr: "irreducible G p" and pcarr: "p \<in> carrier G"
   shows "prime G p"
   using pirr
 proof (elim irreducibleE, intro primeI)
@@ -1892,32 +1877,19 @@ proof (elim irreducibleE, intro primeI)
     "\<forall>b. b \<in> carrier G \<and> properfactor G b p \<longrightarrow> b \<in> Units G"
   from pdvdab obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
     by (rule dividesE)
-
-  from wfactors_exist [OF acarr]
   obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
-    by blast
-
-  from wfactors_exist [OF bcarr]
+    using wfactors_exist [OF acarr] by blast
   obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfs: "wfactors G bs b"
-    by auto
-
-  from wfactors_exist [OF ccarr]
+    using wfactors_exist [OF bcarr] by blast
   obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfs: "wfactors G cs c"
-    by auto
-
+    using wfactors_exist [OF ccarr] by blast
   note carr[simp] = pcarr acarr bcarr ccarr ascarr bscarr cscarr
-
-  from afs and bfs have abfs: "wfactors G (as @ bs) (a \<otimes> b)"
-    by (rule wfactors_mult) fact+
-
-  from pirr cfs have pcfs: "wfactors G (p # cs) (p \<otimes> c)"
-    by (rule wfactors_mult_single) fact+
-  with abpc have abfs': "wfactors G (p # cs) (a \<otimes> b)"
-    by simp
-
-  from abfs' abfs have "essentially_equal G (p # cs) (as @ bs)"
+  from pirr cfs  abpc have "wfactors G (p # cs) (a \<otimes> b)"
+    by (simp add: wfactors_mult_single)
+  moreover have  "wfactors G (as @ bs) (a \<otimes> b)"
+    by (rule wfactors_mult [OF afs bfs]) fact+
+  ultimately have "essentially_equal G (p # cs) (as @ bs)"
     by (rule wfactors_unique) simp+
-
   then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
     by (fast elim: essentially_equalE)
   then have "p \<in> set ds"
@@ -1926,138 +1898,69 @@ proof (elim irreducibleE, intro primeI)
     unfolding list_all2_conv_all_nth set_conv_nth by force
   then consider "p' \<in> set as" | "p' \<in> set bs" by auto
   then show "p divides a \<or> p divides b"
-  proof cases
-    case 1
-    with ascarr have [simp]: "p' \<in> carrier G" by fast
-
-    note pp'
-    also from afs
-    have "p' divides a" by (rule wfactors_dividesI) fact+
-    finally have "p divides a" by simp
-    then show ?thesis ..
-  next
-    case 2
-    with bscarr have [simp]: "p' \<in> carrier G" by fast
-
-    note pp'
-    also from bfs
-    have "p' divides b" by (rule wfactors_dividesI) fact+
-    finally have "p divides b" by simp
-    then show ?thesis ..
-  qed
+    using afs bfs divides_cong_l pp' wfactors_dividesI
+    by (meson acarr ascarr bcarr bscarr pcarr)
 qed
 
 
 \<comment> \<open>A version using @{const factors}, more complicated\<close>
 lemma (in factorial_monoid) factors_irreducible_prime:
-  assumes pirr: "irreducible G p"
-    and pcarr: "p \<in> carrier G"
+  assumes pirr: "irreducible G p" and pcarr: "p \<in> carrier G"
   shows "prime G p"
-  using pirr
-  apply (elim irreducibleE, intro primeI)
-   apply assumption
-proof -
-  fix a b
-  assume acarr: "a \<in> carrier G"
-    and bcarr: "b \<in> carrier G"
-    and pdvdab: "p divides (a \<otimes> b)"
-  assume irreduc[rule_format]: "\<forall>b. b \<in> carrier G \<and> properfactor G b p \<longrightarrow> b \<in> Units G"
-  from pdvdab obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
-    by (rule dividesE)
-  note [simp] = pcarr acarr bcarr ccarr
+proof (rule primeI)
+  show "p \<notin> Units G"
+    by (meson irreducibleE pirr)
+  have irreduc: "\<And>b. \<lbrakk>b \<in> carrier G; properfactor G b p\<rbrakk> \<Longrightarrow> b \<in> Units G"
+    using pirr by (auto simp: irreducible_def)
+  show "p divides a \<or> p divides b" 
+    if acarr: "a \<in> carrier G" and bcarr: "b \<in> carrier G" and pdvdab: "p divides (a \<otimes> b)" for a b
+  proof -
+    from pdvdab obtain c where ccarr: "c \<in> carrier G" and abpc: "a \<otimes> b = p \<otimes> c"
+      by (rule dividesE)
+    note [simp] = pcarr acarr bcarr ccarr
 
-  show "p divides a \<or> p divides b"
-  proof (cases "a \<in> Units G")
-    case aunit: True
-
-    note pdvdab
-    also have "a \<otimes> b = b \<otimes> a" by (simp add: m_comm)
-    also from aunit have bab: "b \<otimes> a \<sim> b"
-      by (intro associatedI2[of "a"], simp+)
-    finally have "p divides b" by simp
-    then show ?thesis ..
-  next
-    case anunit: False
-    show ?thesis
-    proof (cases "b \<in> Units G")
-      case bunit: True
-      note pdvdab
-      also from bunit
-      have baa: "a \<otimes> b \<sim> a"
-        by (intro associatedI2[of "b"], simp+)
-      finally have "p divides a" by simp
+    show "p divides a \<or> p divides b"
+    proof (cases "a \<in> Units G")
+      case True
+      then have "p divides b"
+        by (metis acarr associatedI2' associated_def bcarr divides_trans m_comm pcarr pdvdab) 
       then show ?thesis ..
     next
-      case bnunit: False
-      have cnunit: "c \<notin> Units G"
-      proof
-        assume cunit: "c \<in> Units G"
-        from bnunit have "properfactor G a (a \<otimes> b)"
-          by (intro properfactorI3[of _ _ b], simp+)
-        also note abpc
-        also from cunit have "p \<otimes> c \<sim> p"
-          by (intro associatedI2[of c], simp+)
-        finally have "properfactor G a p" by simp
-        with acarr have "a \<in> Units G" by (fast intro: irreduc)
-        with anunit show False ..
-      qed
-
-      have abnunit: "a \<otimes> b \<notin> Units G"
-      proof clarsimp
-        assume "a \<otimes> b \<in> Units G"
-        then have "a \<in> Units G" by (rule unit_factor) fact+
-        with anunit show False ..
-      qed
-
-      from factors_exist [OF acarr anunit]
-      obtain as where ascarr: "set as \<subseteq> carrier G" and afac: "factors G as a"
-        by blast
-
-      from factors_exist [OF bcarr bnunit]
-      obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfac: "factors G bs b"
-        by blast
-
-      from factors_exist [OF ccarr cnunit]
-      obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfac: "factors G cs c"
-        by auto
-
-      note [simp] = ascarr bscarr cscarr
-
-      from afac and bfac have abfac: "factors G (as @ bs) (a \<otimes> b)"
-        by (rule factors_mult) fact+
-
-      from pirr cfac have pcfac: "factors G (p # cs) (p \<otimes> c)"
-        by (rule factors_mult_single) fact+
-      with abpc have abfac': "factors G (p # cs) (a \<otimes> b)"
-        by simp
-
-      from abfac' abfac have "essentially_equal G (p # cs) (as @ bs)"
-        by (rule factors_unique) (fact | simp)+
-      then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
-        by (fast elim: essentially_equalE)
-      then have "p \<in> set ds"
-        by (simp add: perm_set_eq[symmetric])
-      with dsassoc obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
-        unfolding list_all2_conv_all_nth set_conv_nth by force
-      then consider "p' \<in> set as" | "p' \<in> set bs" by auto
-      then show "p divides a \<or> p divides b"
-      proof cases
-        case 1
-        with ascarr have [simp]: "p' \<in> carrier G" by fast
-
-        note pp'
-        also from afac 1 have "p' divides a" by (rule factors_dividesI) fact+
-        finally have "p divides a" by simp
+      case anunit: False
+      show ?thesis
+      proof (cases "b \<in> Units G")
+        case True 
+        then have "p divides a"
+          by (meson acarr bcarr divides_unit irreducible_prime pcarr pdvdab pirr prime_def)
         then show ?thesis ..
       next
-        case 2
-        with bscarr have [simp]: "p' \<in> carrier G" by fast
-
-        note pp'
-        also from bfac
-        have "p' divides b" by (rule factors_dividesI) fact+
-        finally have "p divides b" by simp
-        then show ?thesis ..
+        case bnunit: False
+        then have cnunit: "c \<notin> Units G"
+          by (metis abpc acarr anunit bcarr ccarr irreducible_prodE irreducible_prod_rI pcarr pirr)
+        then have abnunit: "a \<otimes> b \<notin> Units G"
+          using acarr anunit bcarr unit_factor by blast
+        obtain as where ascarr: "set as \<subseteq> carrier G" and afac: "factors G as a"
+          using factors_exist [OF acarr anunit] by blast
+        obtain bs where bscarr: "set bs \<subseteq> carrier G" and bfac: "factors G bs b"
+          using factors_exist [OF bcarr bnunit] by blast
+        obtain cs where cscarr: "set cs \<subseteq> carrier G" and cfac: "factors G cs c"
+          using factors_exist [OF ccarr cnunit] by auto
+        note [simp] = ascarr bscarr cscarr
+        from pirr cfac abpc have abfac': "factors G (p # cs) (a \<otimes> b)"
+          by (simp add: factors_mult_single)
+        from afac and bfac have "factors G (as @ bs) (a \<otimes> b)"
+          by (rule factors_mult) fact+
+        with abfac' have "essentially_equal G (p # cs) (as @ bs)"
+          using abnunit factors_unique by auto
+        then obtain ds where "p # cs <~~> ds" and dsassoc: "ds [\<sim>] (as @ bs)"
+          by (fast elim: essentially_equalE)
+        then have "p \<in> set ds"
+          by (simp add: perm_set_eq[symmetric])
+        with dsassoc obtain p' where "p' \<in> set (as@bs)" and pp': "p \<sim> p'"
+          unfolding list_all2_conv_all_nth set_conv_nth by force
+        then consider "p' \<in> set as" | "p' \<in> set bs" by auto
+        then show "p divides a \<or> p divides b"
+          by (meson afac bfac divides_cong_l factors_dividesI pp' ascarr bscarr pcarr)
       qed
     qed
   qed
@@ -2597,73 +2500,47 @@ proof -
 qed
 
 lemma (in gcd_condition_monoid) primeness_condition: "primeness_condition_monoid G"
-  apply unfold_locales
-  apply (rule primeI)
-   apply (elim irreducibleE, assumption)
 proof -
-  fix p a b
-  assume pcarr: "p \<in> carrier G" and acarr: "a \<in> carrier G" and bcarr: "b \<in> carrier G"
-    and pirr: "irreducible G p"
-    and pdvdab: "p divides a \<otimes> b"
-  from pirr have pnunit: "p \<notin> Units G"
-    and r[rule_format]: "\<forall>b. b \<in> carrier G \<and> properfactor G b p \<longrightarrow> b \<in> Units G"
-    by (fast elim: irreducibleE)+
-
-  show "p divides a \<or> p divides b"
-  proof (rule ccontr, clarsimp)
-    assume npdvda: "\<not> p divides a"
-    with pcarr acarr have "\<one> \<sim> somegcd G p a"
-      apply (intro gcdI, simp, simp, simp)
-           apply (fast intro: unit_divides)
-          apply (fast intro: unit_divides)
-         apply (clarsimp simp add: Unit_eq_dividesone[symmetric])
-         apply (rule r, rule, assumption)
-         apply (rule properfactorI, assumption)
-    proof
-      fix y
-      assume ycarr: "y \<in> carrier G"
-      assume "p divides y"
-      also assume "y divides a"
-      finally have "p divides a"
-        by (simp add: pcarr ycarr acarr)
-      with npdvda show False ..
-    qed simp_all
-    with pcarr acarr have pa: "somegcd G p a \<sim> \<one>"
-      by (fast intro: associated_sym[of "\<one>"] gcd_closed)
-
-    assume npdvdb: "\<not> p divides b"
-    with pcarr bcarr have "\<one> \<sim> somegcd G p b"
-      apply (intro gcdI, simp, simp, simp)
-           apply (fast intro: unit_divides)
-          apply (fast intro: unit_divides)
-         apply (clarsimp simp add: Unit_eq_dividesone[symmetric])
-         apply (rule r, rule, assumption)
-         apply (rule properfactorI, assumption)
-    proof
-      fix y
-      assume ycarr: "y \<in> carrier G"
-      assume "p divides y"
-      also assume "y divides b"
-      finally have "p divides b" by (simp add: pcarr ycarr bcarr)
-      with npdvdb
-      show "False" ..
-    qed simp_all
-    with pcarr bcarr have pb: "somegcd G p b \<sim> \<one>"
-      by (fast intro: associated_sym[of "\<one>"] gcd_closed)
-
-    from pcarr acarr bcarr pdvdab have "p gcdof p (a \<otimes> b)"
-      by (fast intro: isgcd_divides_l)
-    with pcarr acarr bcarr have "p \<sim> somegcd G p (a \<otimes> b)"
-      by (fast intro: gcdI2)
-    also from pa pb pcarr acarr bcarr have "somegcd G p (a \<otimes> b) \<sim> \<one>"
-      by (rule relprime_mult)
-    finally have "p \<sim> \<one>"
-      by (simp add: pcarr acarr bcarr)
-    with pcarr have "p \<in> Units G"
-      by (fast intro: assoc_unit_l)
-    with pnunit show False ..
+  have *: "p divides a \<or> p divides b"
+    if pcarr[simp]: "p \<in> carrier G" and acarr[simp]: "a \<in> carrier G" and bcarr[simp]: "b \<in> carrier G"
+      and pirr: "irreducible G p" and pdvdab: "p divides a \<otimes> b"
+    for p a b
+  proof -
+    from pirr have pnunit: "p \<notin> Units G"
+      and r: "\<And>b. \<lbrakk>b \<in> carrier G; properfactor G b p\<rbrakk> \<Longrightarrow> b \<in> Units G"
+      by (fast elim: irreducibleE)+
+    show "p divides a \<or> p divides b"
+    proof (rule ccontr, clarsimp)
+      assume npdvda: "\<not> p divides a" and npdvdb: "\<not> p divides b"
+      have "\<one> \<sim> somegcd G p a"
+      proof (intro gcdI unit_divides)
+        show "\<And>y. \<lbrakk>y \<in> carrier G; y divides p; y divides a\<rbrakk> \<Longrightarrow> y \<in> Units G"
+          by (meson divides_trans npdvda pcarr properfactorI r)
+      qed auto
+      with pcarr acarr have pa: "somegcd G p a \<sim> \<one>"
+        by (fast intro: associated_sym[of "\<one>"] gcd_closed)
+      have "\<one> \<sim> somegcd G p b"
+      proof (intro gcdI unit_divides)
+        show "\<And>y. \<lbrakk>y \<in> carrier G; y divides p; y divides b\<rbrakk> \<Longrightarrow> y \<in> Units G"
+          by (meson divides_trans npdvdb pcarr properfactorI r)
+      qed auto
+      with pcarr bcarr have pb: "somegcd G p b \<sim> \<one>"
+        by (fast intro: associated_sym[of "\<one>"] gcd_closed)
+      have "p \<sim> somegcd G p (a \<otimes> b)"
+        using pdvdab by (simp add: gcdI2 isgcd_divides_l)
+      also from pa pb pcarr acarr bcarr have "somegcd G p (a \<otimes> b) \<sim> \<one>"
+        by (rule relprime_mult)
+      finally have "p \<sim> \<one>"
+        by simp
+      with pcarr have "p \<in> Units G"
+        by (fast intro: assoc_unit_l)
+      with pnunit show False ..
+    qed
   qed
-qed
+  show ?thesis
+    by unfold_locales (metis * primeI irreducibleE)
+qed    
+
 
 sublocale gcd_condition_monoid \<subseteq> primeness_condition_monoid
   by (rule primeness_condition)
@@ -2675,63 +2552,45 @@ lemma (in divisor_chain_condition_monoid) wfactors_exist:
   assumes acarr: "a \<in> carrier G"
   shows "\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a"
 proof -
-  have r[rule_format]: "a \<in> carrier G \<longrightarrow> (\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a)"
-  proof (rule wf_induct[OF division_wellfounded])
-    fix x
-    assume ih: "\<forall>y. (y, x) \<in> {(x, y). x \<in> carrier G \<and> y \<in> carrier G \<and> properfactor G x y}
-                    \<longrightarrow> y \<in> carrier G \<longrightarrow> (\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as y)"
-
-    show "x \<in> carrier G \<longrightarrow> (\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as x)"
-      apply clarify
-      apply (cases "x \<in> Units G")
-       apply (rule exI[of _ "[]"], simp)
-      apply (cases "irreducible G x")
-       apply (rule exI[of _ "[x]"], simp add: wfactors_def)
-    proof -
-      assume xcarr: "x \<in> carrier G"
-        and xnunit: "x \<notin> Units G"
-        and xnirr: "\<not> irreducible G x"
-      then have "\<exists>y. y \<in> carrier G \<and> properfactor G y x \<and> y \<notin> Units G"
-        apply -
-        apply (rule ccontr)
-        apply simp
-        apply (subgoal_tac "irreducible G x", simp)
-        apply (rule irreducibleI, simp, simp)
-        done
-      then obtain y where ycarr: "y \<in> carrier G" and ynunit: "y \<notin> Units G"
-        and pfyx: "properfactor G y x"
-        by blast
-
-      have ih': "\<And>y. \<lbrakk>y \<in> carrier G; properfactor G y x\<rbrakk>
-          \<Longrightarrow> \<exists>as. set as \<subseteq> carrier G \<and> wfactors G as y"
-        by (rule ih[rule_format, simplified]) (simp add: xcarr)+
-
-      from ih' [OF ycarr pfyx]
-      obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
-        by blast
-
-      from pfyx have "y divides x" and nyx: "\<not> y \<sim> x"
-        by (fast elim: properfactorE2)+
-      then obtain z where zcarr: "z \<in> carrier G" and x: "x = y \<otimes> z"
-        by blast
-
-      from zcarr ycarr have "properfactor G z x"
-        apply (subst x)
-        apply (intro properfactorI3[of _ _ y])
-            apply (simp add: m_comm)
-           apply (simp add: ynunit)+
-        done
-      from ih' [OF zcarr this]
-      obtain zs where zscarr: "set zs \<subseteq> carrier G" and zfs: "wfactors G zs z"
-        by blast
-      from yscarr zscarr have xscarr: "set (ys@zs) \<subseteq> carrier G"
-        by simp
-      from yfs zfs ycarr zcarr yscarr zscarr have "wfactors G (ys@zs) (y\<otimes>z)"
-        by (rule wfactors_mult)
-      then have "wfactors G (ys@zs) x"
-        by (simp add: x)
-      with xscarr show "\<exists>xs. set xs \<subseteq> carrier G \<and> wfactors G xs x"
-        by fast
+  have r: "a \<in> carrier G \<Longrightarrow> (\<exists>as. set as \<subseteq> carrier G \<and> wfactors G as a)"
+    using division_wellfounded
+  proof (induction rule: wf_induct_rule)
+    case (less x)
+    then have xcarr: "x \<in> carrier G"
+      by auto
+    show ?case
+    proof (cases "x \<in> Units G")
+      case True
+      then show ?thesis
+        by (metis bot.extremum list.set(1) unit_wfactors)
+    next
+      case xnunit: False
+      show ?thesis
+      proof (cases "irreducible G x")
+        case True
+        then show ?thesis
+          by (rule_tac x="[x]" in exI) (simp add: wfactors_def xcarr)
+      next
+        case False
+        then obtain y where ycarr: "y \<in> carrier G" and ynunit: "y \<notin> Units G" and pfyx: "properfactor G y x"
+          by (meson irreducible_def xnunit)
+        obtain ys where yscarr: "set ys \<subseteq> carrier G" and yfs: "wfactors G ys y"
+          using less ycarr pfyx by blast
+        then obtain z where zcarr: "z \<in> carrier G" and x: "x = y \<otimes> z"
+          by (meson dividesE pfyx properfactorE2)
+        from zcarr ycarr have "properfactor G z x"
+          using m_comm properfactorI3 x ynunit by blast
+        with less zcarr obtain zs where zscarr: "set zs \<subseteq> carrier G" and zfs: "wfactors G zs z"
+          by blast
+        from yscarr zscarr have xscarr: "set (ys@zs) \<subseteq> carrier G"
+          by simp
+        have "wfactors G (ys@zs) (y\<otimes>z)"
+          using xscarr ycarr yfs zcarr zfs by auto
+        then have "wfactors G (ys@zs) x"
+          by (simp add: x)
+        with xscarr show "\<exists>xs. set xs \<subseteq> carrier G \<and> wfactors G xs x"
+          by fast
+      qed
     qed
   qed
   from acarr show ?thesis by (rule r)
@@ -2741,46 +2600,24 @@ qed
 subsubsection \<open>Primeness condition\<close>
 
 lemma (in comm_monoid_cancel) multlist_prime_pos:
-  assumes carr: "a \<in> carrier G"  "set as \<subseteq> carrier G"
-    and aprime: "prime G a"
-    and "a divides (foldr (\<otimes>) as \<one>)"
-  shows "\<exists>i<length as. a divides (as!i)"
-proof -
-  have r[rule_format]: "set as \<subseteq> carrier G \<and> a divides (foldr (\<otimes>) as \<one>)
-    \<longrightarrow> (\<exists>i. i < length as \<and> a divides (as!i))"
-    apply (induct as)
-     apply clarsimp defer 1
-     apply clarsimp defer 1
-  proof -
-    assume "a divides \<one>"
-    with carr have "a \<in> Units G"
-      by (fast intro: divides_unit[of a \<one>])
-    with aprime show False
-      by (elim primeE, simp)
-  next
-    fix aa as
-    assume ih[rule_format]: "a divides foldr (\<otimes>) as \<one> \<longrightarrow> (\<exists>i<length as. a divides as ! i)"
-      and carr': "aa \<in> carrier G"  "set as \<subseteq> carrier G"
-      and "a divides aa \<otimes> foldr (\<otimes>) as \<one>"
-    with carr aprime have "a divides aa \<or> a divides foldr (\<otimes>) as \<one>"
-      by (intro prime_divides) simp+
-    then show "\<exists>i<Suc (length as). a divides (aa # as) ! i"
-    proof
-      assume "a divides aa"
-      then have p1: "a divides (aa#as)!0" by simp
-      have "0 < Suc (length as)" by simp
-      with p1 show ?thesis by fast
-    next
-      assume "a divides foldr (\<otimes>) as \<one>"
-      from ih [OF this] obtain i where "a divides as ! i" and len: "i < length as" by auto
-      then have p1: "a divides (aa#as) ! (Suc i)" by simp
-      from len have "Suc i < Suc (length as)" by simp
-      with p1 show ?thesis by force
-   qed
-  qed
-  from assms show ?thesis
-    by (intro r) auto
+  assumes aprime: "prime G a" and carr: "a \<in> carrier G" 
+     and as: "set as \<subseteq> carrier G" "a divides (foldr (\<otimes>) as \<one>)"
+   shows "\<exists>i<length as. a divides (as!i)"
+  using as
+proof (induction as)
+  case Nil
+  then show ?case
+    by simp (meson Units_one_closed aprime carr divides_unit primeE)
+next
+  case (Cons x as)
+  then have "x \<in> carrier G"  "set as \<subseteq> carrier G" and "a divides x \<otimes> foldr (\<otimes>) as \<one>"
+    by (auto simp: )
+  with carr aprime have "a divides x \<or> a divides foldr (\<otimes>) as \<one>"
+    by (intro prime_divides) simp+
+  then show ?case
+    using Cons.IH Cons.prems(1) by force
 qed
+
 
 lemma (in primeness_condition_monoid) wfactors_unique__hlp_induct:
   "\<forall>a as'. a \<in> carrier G \<and> set as \<subseteq> carrier G \<and> set as' \<subseteq> carrier G \<and>
@@ -2788,17 +2625,8 @@ lemma (in primeness_condition_monoid) wfactors_unique__hlp_induct:
 proof (induct as)
   case Nil
   show ?case
-  proof auto
-    fix a as'
-    assume a: "a \<in> carrier G"
-    assume "wfactors G [] a"
-    then obtain "\<one> \<sim> a" by (auto elim: wfactorsE)
-    with a have "a \<in> Units G" by (auto intro: assoc_unit_r)
-    moreover assume "wfactors G as' a"
-    moreover assume "set as' \<subseteq> carrier G"
-    ultimately have "as' = []" by (rule unit_wfactors_empty)
-    then show "essentially_equal G [] as'" by simp
-  qed
+    apply (clarsimp simp: wfactors_def)
+    by (metis Units_one_closed assoc_unit_r list_update_nonempty unit_wfactors_empty unitfactor_ee wfactorsI)
 next
   case (Cons ah as)
   then show ?case
