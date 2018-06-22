@@ -30,7 +30,7 @@ text \<open>
   arbitrary ML code as well.
 
   A typical example for @{command code_reflect} can be found in the
-  @{theory Predicate} theory.
+  @{theory HOL.Predicate} theory.
 \<close>
 
 

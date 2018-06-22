@@ -1269,7 +1269,7 @@ val _ =
             val thy = Toplevel.theory_of st;
             val ctxt = Toplevel.context_of st;
             fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
-            val check = Theory.check ctxt;
+            val check = Theory.check {long = false} ctxt;
           in
             Thm_Deps.unused_thms
               (case opt_range of

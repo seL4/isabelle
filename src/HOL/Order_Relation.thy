@@ -351,7 +351,7 @@ qed
 subsection \<open>Variations on Well-Founded Relations\<close>
 
 text \<open>
-  This subsection contains some variations of the results from @{theory Wellfounded}:
+  This subsection contains some variations of the results from \<^theory>\<open>HOL.Wellfounded\<close>:
     \<^item> means for slightly more direct definitions by well-founded recursion;
     \<^item> variations of well-founded induction;
     \<^item> means for proving a linear order to be a well-order.

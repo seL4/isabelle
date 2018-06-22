@@ -188,7 +188,7 @@ text \<open>
   of distinct elements.
 
   The specification of @{typ "'a dlist"} itself can be found in theory
-  @{theory Dlist}.
+  @{theory "HOL-Library.Dlist"}.
 
   The first step is to decide on which representation the abstract
   type (in our example @{typ "'a dlist"}) should be implemented.
@@ -271,9 +271,9 @@ text \<open>
   for the meta theory of datatype refinement involving invariants.
 
   Typical data structures implemented by representations involving
-  invariants are available in the library, theory @{theory Mapping}
+  invariants are available in the library, theory @{theory "HOL-Library.Mapping"}
   specifies key-value-mappings (type @{typ "('a, 'b) mapping"});
-  these can be implemented by red-black-trees (theory @{theory RBT}).
+  these can be implemented by red-black-trees (theory @{theory "HOL-Library.RBT"}).
 \<close>
 
 end

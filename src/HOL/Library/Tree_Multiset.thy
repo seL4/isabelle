@@ -6,9 +6,11 @@ theory Tree_Multiset
 imports Multiset Tree
 begin
 
-text\<open>Kept separate from theory @{theory Tree} to avoid importing all of
-theory @{theory Multiset} into @{theory Tree}. Should be merged if
-@{theory Multiset} ever becomes part of @{theory Main}.\<close>
+text \<open>
+  Kept separate from theory @{theory "HOL-Library.Tree"} to avoid importing all of theory @{theory
+  "HOL-Library.Multiset"} into @{theory "HOL-Library.Tree"}. Should be merged if @{theory
+  "HOL-Library.Multiset"} ever becomes part of @{theory Main}.
+\<close>
 
 fun mset_tree :: "'a tree \<Rightarrow> 'a multiset" where
 "mset_tree Leaf = {#}" |

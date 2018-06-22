@@ -14,7 +14,7 @@ sig
   val install_pure: theory -> unit
   val get_pure: unit -> theory
   val get_markup: theory -> Markup.T
-  val check: Proof.context -> string * Position.T -> theory
+  val check: {long: bool} -> Proof.context -> string * Position.T -> theory
   val axiom_table: theory -> term Name_Space.table
   val axiom_space: theory -> Name_Space.T
   val axioms_of: theory -> (string * term) list
@@ -132,18 +132,18 @@ fun get_markup thy =
   let val {pos, id, ...} = rep_theory thy
   in theory_markup false (Context.theory_name thy) id pos end;
 
-fun check ctxt (name, pos) =
+fun check long ctxt (name, pos) =
   let
     val thy = Proof_Context.theory_of ctxt;
     val thy' =
-      Context.get_theory thy name
+      Context.get_theory long thy name
         handle ERROR msg =>
           let
             val completion =
               Completion.make (name, pos)
                 (fn completed =>
-                  map Context.theory_name (ancestors_of thy)
-                  |> filter completed
+                  map (Context.theory_name' long) (ancestors_of thy)
+                  |> filter (completed o Long_Name.base_name)
                   |> sort_strings
                   |> map (fn a => (a, (Markup.theoryN, a))));
             val report = Markup.markup_report (Completion.reported_text completion);

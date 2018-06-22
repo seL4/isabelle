@@ -8,7 +8,7 @@ theory Erdoes_Szekeres
 imports Main
 begin
 
-subsection \<open>Addition to @{theory Lattices_Big} Theory\<close>
+subsection \<open>Addition to @{theory HOL.Lattices_Big} Theory\<close>
 
 lemma Max_gr:
   assumes "finite A"
@@ -16,7 +16,7 @@ lemma Max_gr:
   shows "x < Max A"
 using assms Max_ge less_le_trans by blast
 
-subsection \<open>Additions to @{theory Finite_Set} Theory\<close>
+subsection \<open>Additions to @{theory HOL.Finite_Set} Theory\<close>
 
 lemma obtain_subset_with_card_n:
   assumes "n \<le> card S"

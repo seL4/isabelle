@@ -17,7 +17,7 @@ imports
   "HOL-ex.Records"
 begin
 
-text \<open>Drop technical stuff from @{theory Quickcheck_Narrowing} which is tailored towards Haskell\<close>
+text \<open>Drop technical stuff from @{theory HOL.Quickcheck_Narrowing} which is tailored towards Haskell\<close>
 
 setup \<open>
 fn thy =>

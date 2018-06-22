@@ -254,7 +254,7 @@ Table~\ref{tab:overloading} in the appendix.  Section
 \emph{with} axioms.
 
 Further note that classes may contain axioms but \emph{no} operations.
-An example is class @{class finite} from theory @{theory Finite_Set}
+An example is class @{class finite} from theory @{theory "HOL.Finite_Set"}
 which specifies a type to be finite: @{lemma [source] "finite (UNIV :: 'a::finite
 set)" by (fact finite_UNIV)}.\<close>
 

@@ -17,7 +17,7 @@ text \<open>
   @{cite "scala-overview-tech-report"}.
 
   To profit from this tutorial, some familiarity and experience with
-  @{theory HOL} @{cite "isa-tutorial"} and its basic theories is assumed.
+  Isabelle/HOL @{cite "isa-tutorial"} and its basic theories is assumed.
 \<close>
 
 

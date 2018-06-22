@@ -183,7 +183,7 @@ text \<open>
 @{const Truue}, @{const Faalse}, and @{const Perhaaps} have the type @{typ trool}.
 
 Polymorphic types are possible, such as the following option type, modeled after
-its homologue from the @{theory Option} theory:
+its homologue from the @{theory HOL.Option} theory:
 \<close>
 
 (*<*)

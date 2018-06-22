@@ -113,7 +113,7 @@ end
 text \<open>
   This theory defines abstract red-black trees as an efficient
   representation of finite maps, backed by the implementation
-  in @{theory RBT_Impl}.
+  in @{theory "HOL-Library.RBT_Impl"}.
 \<close>
 
 subsection \<open>Data type and invariant\<close>

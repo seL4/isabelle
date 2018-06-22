@@ -167,6 +167,10 @@ antiquotations in control symbol notation, e.g. \<^const_name> becomes
 * Document preparation with skip_proofs option now preserves the content
 more accurately: only terminal proof steps ('by' etc.) are skipped.
 
+* Document antiquotation @{theory name} requires the long
+session-qualified theory name: this is what users reading the text
+normally need to import.
+
 * Document antiquotation @{session name} checks and prints the given
 session name verbatim.
 

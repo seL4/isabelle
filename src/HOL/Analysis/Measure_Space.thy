@@ -55,8 +55,8 @@ proof -
 qed
 
 text \<open>
-  The type for emeasure spaces is already defined in @{theory Sigma_Algebra}, as it is also used to
-  represent sigma algebras (with an arbitrary emeasure).
+  The type for emeasure spaces is already defined in @{theory "HOL-Analysis.Sigma_Algebra"}, as it
+  is also used to represent sigma algebras (with an arbitrary emeasure).
 \<close>
 
 subsection%unimportant "Extend binary sets"
@@ -95,7 +95,7 @@ subsection%unimportant \<open>Properties of a premeasure @{term \<mu>}\<close>
 
 text \<open>
   The definitions for @{const positive} and @{const countably_additive} should be here, by they are
-  necessary to define @{typ "'a measure"} in @{theory Sigma_Algebra}.
+  necessary to define @{typ "'a measure"} in @{theory "HOL-Analysis.Sigma_Algebra"}.
 \<close>
 
 definition subadditive where

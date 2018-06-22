@@ -151,7 +151,7 @@ text \<open>
 subsection \<open>Common adaptation applications \label{sec:common_adaptation}\<close>
 
 text \<open>
-  The @{theory HOL} @{theory Main} theory already provides a code
+  The @{theory Main} theory of Isabelle/HOL already provides a code
   generator setup which should be suitable for most applications.
   Common extensions and modifications are available by certain
   theories in \<^dir>\<open>~~/src/HOL/Library\<close>; beside being useful in
@@ -160,7 +160,7 @@ text \<open>
 
   \begin{description}
 
-    \item[@{theory "Code_Numeral"}] provides additional numeric
+    \item[@{theory "HOL.Code_Numeral"}] provides additional numeric
        types @{typ integer} and @{typ natural} isomorphic to types
        @{typ int} and @{typ nat} respectively.  Type @{typ integer}
        is mapped to target-language built-in integers; @{typ natural}
@@ -168,7 +168,7 @@ text \<open>
        Useful for code setups which involve e.g.~indexing
        of target-language arrays.  Part of @{text "HOL-Main"}.
 
-    \item[@{theory "String"}] provides an additional datatype @{typ
+    \item[@{theory "HOL.String"}] provides an additional datatype @{typ
        String.literal} which is isomorphic to lists of 7-bit (ASCII) characters;
        @{typ String.literal}s are mapped to target-language strings.
 
@@ -215,7 +215,7 @@ text \<open>
        containing both @{text "Code_Target_Nat"} and
        @{text "Code_Target_Int"}.
 
-    \item[@{theory "IArray"}] provides a type @{typ "'a iarray"}
+    \item[@{theory "HOL-Library.IArray"}] provides a type @{typ "'a iarray"}
        isomorphic to lists but implemented by (effectively immutable)
        arrays \emph{in SML only}.
 

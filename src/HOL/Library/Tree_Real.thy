@@ -6,8 +6,10 @@ imports
   Tree
 begin
 
-text \<open>This theory is separate from @{theory Tree} because the former is discrete and builds on
-@{theory Main} whereas this theory builds on @{theory Complex_Main}.\<close>
+text \<open>
+  This theory is separate from @{theory "HOL-Library.Tree"} because the former is discrete and
+  builds on @{theory Main} whereas this theory builds on @{theory Complex_Main}.
+\<close>
 
 
 lemma size1_height_log: "log 2 (size1 t) \<le> height t"

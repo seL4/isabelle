@@ -167,7 +167,7 @@ text \<open>
     @{syntax_def antiquotation_body}:
       (@@{antiquotation text} | @@{antiquotation cartouche} | @@{antiquotation theory_text})
         options @{syntax text} |
-      @@{antiquotation theory} options @{syntax name} |
+      @@{antiquotation theory} options @{syntax embedded} |
       @@{antiquotation thm} options styles @{syntax thms} |
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
       @@{antiquotation prop} options styles @{syntax prop} |
@@ -221,8 +221,8 @@ text \<open>
   \<^descr> \<open>@{theory_text s}\<close> prints uninterpreted theory source text \<open>s\<close>, i.e.\
   outer syntax with command keywords and other tokens.
 
-  \<^descr> \<open>@{theory A}\<close> prints the name \<open>A\<close>, which is guaranteed to refer to a valid
-  ancestor theory in the current context.
+  \<^descr> \<open>@{theory A}\<close> prints the session-qualified theory name \<open>A\<close>, which is
+  guaranteed to refer to a valid ancestor theory in the current context.
 
   \<^descr> \<open>@{thm a\<^sub>1 \<dots> a\<^sub>n}\<close> prints theorems \<open>a\<^sub>1 \<dots> a\<^sub>n\<close>. Full fact expressions are
   allowed here, including attributes (\secref{sec:syn-att}).

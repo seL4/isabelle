@@ -12,8 +12,11 @@ theory Extended_Real
 imports Complex_Main Extended_Nat Liminf_Limsup
 begin
 
-text \<open>This should be part of @{theory Extended_Nat} or @{theory Order_Continuity}, but then the
-AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload certain named from @{theory Complex_Main}.\<close>
+text \<open>
+  This should be part of @{theory "HOL-Library.Extended_Nat"} or @{theory
+  "HOL-Library.Order_Continuity"}, but then the AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload
+  certain named from @{theory Complex_Main}.
+\<close>
 
 lemma incseq_sumI2:
   fixes f :: "'i \<Rightarrow> nat \<Rightarrow> 'a::ordered_comm_monoid_add"

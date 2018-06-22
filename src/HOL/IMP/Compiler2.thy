@@ -6,7 +6,7 @@ begin
 
 text \<open>
 The preservation of the source code semantics is already shown in the 
-parent theory @{theory Compiler}. This here shows the second direction.
+parent theory @{theory "HOL-IMP.Compiler"}. This here shows the second direction.
 \<close>
 
 section \<open>Compiler Correctness, Reverse Direction\<close>

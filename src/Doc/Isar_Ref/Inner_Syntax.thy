@@ -1215,12 +1215,12 @@ text \<open>
 
   \<^item> Iterated replacement via recursive @{command translations}. For example,
   consider list enumeration @{term "[a, b, c, d]"} as defined in theory
-  @{theory List} in Isabelle/HOL.
+  @{theory HOL.List}.
 
   \<^item> Change of binding status of variables: anything beyond the built-in
   @{keyword "binder"} mixfix annotation requires explicit syntax translations.
   For example, consider the set comprehension syntax @{term "{x. P}"} as
-  defined in theory @{theory Set} in Isabelle/HOL.
+  defined in theory @{theory HOL.Set}.
 \<close>
 
 

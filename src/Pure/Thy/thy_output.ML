@@ -246,7 +246,7 @@ fun present_span thy keywords document_tags span state state'
   let
     val ctxt' =
       Toplevel.presentation_context state'
-        handle Toplevel.UNDEF => Proof_Context.init_global (Context.get_theory thy Context.PureN);
+        handle Toplevel.UNDEF => Proof_Context.get_global thy Context.PureN;
     val present = fold (fn (tok, (flag, 0)) =>
         fold cons (present_token ctxt' tok)
         #> cons (Latex.string flag)

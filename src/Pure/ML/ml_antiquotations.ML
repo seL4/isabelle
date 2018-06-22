@@ -46,13 +46,14 @@ val _ = Theory.setup
 
   ML_Antiquotation.value \<^binding>\<open>theory\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
-      (Theory.check ctxt (name, pos);
-       "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name))
+      (Theory.check {long = false} ctxt (name, pos);
+       "Context.get_theory {long = false} (Proof_Context.theory_of ML_context) " ^
+        ML_Syntax.print_string name))
     || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
   ML_Antiquotation.value \<^binding>\<open>theory_context\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
-      (Theory.check ctxt (name, pos);
+      (Theory.check {long = false} ctxt (name, pos);
        "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))) #>
 

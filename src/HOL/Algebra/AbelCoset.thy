@@ -10,7 +10,7 @@ subsection \<open>More Lifting from Groups to Abelian Groups\<close>
 
 subsubsection \<open>Definitions\<close>
 
-text \<open>Hiding \<open><+>\<close> from @{theory Sum_Type} until I come
+text \<open>Hiding \<open><+>\<close> from @{theory HOL.Sum_Type} until I come
   up with better syntax here\<close>
 
 no_notation Sum_Type.Plus (infixr "<+>" 65)

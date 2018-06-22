@@ -54,7 +54,7 @@ primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
 where
   "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (\<lambda>c. f \<circ> c) cs)"
 
-subsubsection \<open>From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms\<close>
+subsubsection \<open>From narrowing's deep representation of terms to @{theory HOL.Code_Evaluation}'s terms\<close>
 
 class partial_term_of = typerep +
   fixes partial_term_of :: "'a itself => narrowing_term => Code_Evaluation.term"

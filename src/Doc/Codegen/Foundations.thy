@@ -11,9 +11,9 @@ text \<open>
   components which can be customised individually.
 
   Conceptually all components operate on Isabelle's logic framework
-  @{theory Pure}.  Practically, the object logic @{theory HOL}
+  Pure.  Practically, the object logic HOL
   provides the necessary facilities to make use of the code generator,
-  mainly since it is an extension of @{theory Pure}.
+  mainly since it is an extension of Isabelle/Pure.
 
   The constellation of the different components is visualized in the
   following picture.
