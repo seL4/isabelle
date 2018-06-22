@@ -12,7 +12,7 @@ text \<open>This theory implements the set operations \<open>insert\<close>, \<o
 All operations are reduced to a single operation \<open>join l x r\<close> that joins two BSTs \<open>l\<close> and \<open>r\<close>
 and an element \<open>x\<close> such that \<open>l < x < r\<close>.
 
-The theory is based on theory @{theory Tree2} where nodes have an additional field.
+The theory is based on theory @{theory "HOL-Data_Structures.Tree2"} where nodes have an additional field.
 This field is ignored here but it means that this theory can be instantiated
 with red-black trees (see theory @{file "Set2_Join_RBT.thy"}) and other balanced trees.
 This approach is very concrete and fixes the type of trees.

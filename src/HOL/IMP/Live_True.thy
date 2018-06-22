@@ -115,7 +115,7 @@ proof(induction c arbitrary: X)
 qed auto
 
 text\<open>Make @{const L} executable by replacing @{const lfp} with the @{const
-while} combinator from theory @{theory While_Combinator}. The @{const while}
+while} combinator from theory @{theory "HOL-Library.While_Combinator"}. The @{const while}
 combinator obeys the recursion equation
 @{thm[display] While_Combinator.while_unfold[no_vars]}
 and is thus executable.\<close>

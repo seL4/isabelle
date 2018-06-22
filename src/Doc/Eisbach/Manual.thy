@@ -896,9 +896,9 @@ section \<open>Tracing methods\<close>
 
 text \<open>
   Method tracing is supported by auxiliary print methods provided by @{theory
-  Eisbach_Tools}. These include @{method print_fact}, @{method print_term} and
-  @{method print_type}. Whenever a print method is evaluated it leaves the
-  goal unchanged and writes its argument as tracing output.
+  "HOL-Eisbach.Eisbach_Tools"}. These include @{method print_fact}, @{method
+  print_term} and @{method print_type}. Whenever a print method is evaluated
+  it leaves the goal unchanged and writes its argument as tracing output.
 
   Print methods can be combined with the @{method fail} method to investigate
   the backtracking behaviour of a method.

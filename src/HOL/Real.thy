@@ -1387,7 +1387,7 @@ lemma real_lbound_gt_zero: "0 < d1 \<Longrightarrow> 0 < d2 \<Longrightarrow> \<
   for d1 d2 :: real
   by (rule exI [where x = "min d1 d2 / 2"]) (simp add: min_def)
 
-text \<open>Similar results are proved in @{theory Fields}\<close>
+text \<open>Similar results are proved in @{theory HOL.Fields}\<close>
 lemma real_less_half_sum: "x < y \<Longrightarrow> x < (x + y) / 2"
   for x y :: real
   by auto

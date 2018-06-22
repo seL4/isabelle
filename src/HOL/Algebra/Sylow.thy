@@ -8,7 +8,7 @@ begin
 
 text \<open>See also @{cite "Kammueller-Paulson:1999"}.\<close>
 
-text \<open>The combinatorial argument is in theory @{theory Exponent}.\<close>
+text \<open>The combinatorial argument is in theory @{theory "HOL-Algebra.Exponent"}.\<close>
 
 lemma le_extend_mult: "\<lbrakk>0 < c; a \<le> b\<rbrakk> \<Longrightarrow> a \<le> b * c"
   for c :: nat

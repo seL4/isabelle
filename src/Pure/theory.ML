@@ -143,7 +143,7 @@ fun check long ctxt (name, pos) =
               Completion.make (name, pos)
                 (fn completed =>
                   map (Context.theory_name' long) (ancestors_of thy)
-                  |> filter completed
+                  |> filter (completed o Long_Name.base_name)
                   |> sort_strings
                   |> map (fn a => (a, (Markup.theoryN, a))));
             val report = Markup.markup_report (Completion.reported_text completion);

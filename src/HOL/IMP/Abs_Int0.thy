@@ -7,7 +7,7 @@ begin
 subsection "Orderings"
 
 text\<open>The basic type classes @{class order}, @{class semilattice_sup} and @{class order_top} are
-defined in @{theory Main}, more precisely in theories @{theory Orderings} and @{theory Lattices}.
+defined in @{theory Main}, more precisely in theories @{theory HOL.Orderings} and @{theory HOL.Lattices}.
 If you view this theory with jedit, just click on the names to get there.\<close>
 
 class semilattice_sup_top = semilattice_sup + order_top

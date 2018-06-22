@@ -32,10 +32,10 @@ text \<open>
   well as the @{method match} method, as well as discussing their integration
   with existing Isar concepts such as @{command named_theorems}.
 
-  These commands are provided by theory @{theory "Eisbach"} (see
-  \<^file>\<open>~~/src/HOL/Eisbach/Eisbach.thy\<close>): it needs to be imported by all Eisbach
-  applications. Theory theory @{theory "Eisbach_Tools"} provides additional
-  proof methods and attributes that are occasionally useful.
+  These commands are provided by theory @{theory "HOL-Eisbach.Eisbach"}: it
+  needs to be imported by all Eisbach applications. Theory theory @{theory
+  "HOL-Eisbach.Eisbach_Tools"} provides additional proof methods and
+  attributes that are occasionally useful.
 \<close>
 
 end

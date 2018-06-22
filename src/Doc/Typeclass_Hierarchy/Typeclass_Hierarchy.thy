@@ -328,9 +328,9 @@ text \<open>
 
     \<^item> The concrete additive inverse operation emerges through
 
-      \<^item> @{command class} @{class group_add} = @{class minus} + @{class uminus} + @{class monoid_add} (in @{theory Groups}) \\
+      \<^item> @{command class} @{class group_add} = @{class minus} + @{class uminus} + @{class monoid_add} (in @{theory HOL.Groups}) \\
 
-      \<^item> @{command class} @{class ab_group_add} = @{class minus} + @{class uminus} + @{class comm_monoid_add} (in @{theory Groups})
+      \<^item> @{command class} @{class ab_group_add} = @{class minus} + @{class uminus} + @{class comm_monoid_add} (in @{theory HOL.Groups})
 
       and corresponding interpretation of locale @{locale group}, yielding e.g.
 

@@ -1875,7 +1875,7 @@ text \<open>
     class @{class random} generates a pseudo-random value of the given size
     and a lazy term reconstruction of the value in the type @{typ
     Code_Evaluation.term}. A pseudo-randomness generator is defined in theory
-    @{theory Random}.
+    @{theory HOL.Random}.
 
     \<^descr>[\<open>narrowing\<close>] implements Haskell's Lazy Smallcheck @{cite
     "runciman-naylor-lindblad"} using the type classes @{class narrowing} and
@@ -1997,7 +1997,7 @@ text \<open>
   the definition of syntatic constructs (usually extralogical, i.e., processed
   and stripped during type inference), that should not be destroyed by the
   insertion of coercions (see, for example, the setup for the case syntax in
-  @{theory Ctr_Sugar}).
+  @{theory HOL.Ctr_Sugar}).
 
   \<^descr> @{attribute (HOL) "coercion_enabled"} enables the coercion inference
   algorithm.

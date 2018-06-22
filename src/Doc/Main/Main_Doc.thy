@@ -78,7 +78,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \section*{Lattices}
 
 Classes semilattice, lattice, distributive lattice and complete lattice (the
-latter in theory @{theory Set}).
+latter in theory @{theory HOL.Set}).
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Lattices.inf} & @{typeof Lattices.inf}\\
@@ -182,7 +182,7 @@ Hilbert's selection ($\varepsilon$) operator: @{term"SOME x. P"}.
 
 \section*{Fixed Points}
 
-Theory: @{theory Inductive}.
+Theory: @{theory HOL.Inductive}.
 
 Least and greatest fixed points in a complete lattice @{typ 'a}:
 
@@ -303,8 +303,8 @@ Type synonym \ @{typ"'a rel"} \<open>=\<close> @{expanded_typ "'a rel"}
 
 \section*{Algebra}
 
-Theories @{theory Groups}, @{theory Rings}, @{theory Fields} and @{theory
-Divides} define a large collection of classes describing common algebraic
+Theories @{theory HOL.Groups}, @{theory HOL.Rings}, @{theory HOL.Fields} and @{theory
+HOL.Divides} define a large collection of classes describing common algebraic
 structures from semigroups up to fields. Everything is done in terms of
 overloaded operators:
 
@@ -454,7 +454,7 @@ Type @{typ int}
 \end{supertabular}
 
 
-\section*{Set\_Interval} % @{theory Set_Interval}
+\section*{Set\_Interval} % @{theory HOL.Set_Interval}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const lessThan} & @{term_type_only lessThan "'a::ord \<Rightarrow> 'a set"}\\
