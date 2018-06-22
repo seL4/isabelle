@@ -459,7 +459,7 @@ object Sessions
 
     val selected_sessions1 =
     {
-      val sel_sessions1 = session1 :: include_sessions
+      val sel_sessions1 = session1 :: session :: include_sessions
       val select_sessions1 =
         if (session_focus) full_sessions1.imports_descendants(sel_sessions1) else sel_sessions1
       full_sessions1.selection(Selection(sessions = select_sessions1))
