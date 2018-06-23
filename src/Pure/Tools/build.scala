@@ -64,6 +64,21 @@ object Build
       }
     }
 
+    def make_session_timing(sessions: Sessions.Structure, timing: Map[String, Double])
+      : Map[String, Double] =
+    {
+      def desc_timing(name: String): Double =
+      {
+        val g = sessions.build_graph.restrict(sessions.build_descendants(List(name)).toSet)
+        (0.0 :: g.maximals.flatMap(desc => {
+          val ps = g.all_preds(List(desc))
+          if (ps.exists(p => timing.get(p).isEmpty)) None
+          else Some(ps.map(timing(_)).sum)
+        })).max
+      }
+      timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
+    }
+
     def apply(progress: Progress, sessions: Sessions.Structure, store: Sessions.Store): Queue =
     {
       val graph = sessions.build_graph
@@ -71,11 +86,9 @@ object Build
 
       val timings = names.map(name => (name, load_timings(progress, store, name)))
       val command_timings =
-        Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
+        timings.map({ case (name, (ts, _)) => (name, ts) }).toMap.withDefaultValue(Nil)
       val session_timing =
-        Map(timings.map({ case (name, (_, t)) => (name, t) }): _*).withDefaultValue(0.0)
-
-      def outdegree(name: String): Int = graph.imm_succs(name).size
+        make_session_timing(sessions, timings.map({ case (name, (_, t)) => (name, t) }).toMap)
 
       object Ordering extends scala.math.Ordering[String]
       {
@@ -88,14 +101,10 @@ object Build
         }
 
         def compare(name1: String, name2: String): Int =
-          outdegree(name2) compare outdegree(name1) match {
+          compare_timing(name2, name1) match {
             case 0 =>
-              compare_timing(name2, name1) match {
-                case 0 =>
-                  sessions(name2).timeout compare sessions(name1).timeout match {
-                    case 0 => name1 compare name2
-                    case ord => ord
-                  }
+              sessions(name2).timeout compare sessions(name1).timeout match {
+                case 0 => name1 compare name2
                 case ord => ord
               }
             case ord => ord
