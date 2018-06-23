@@ -67,14 +67,18 @@ object Build
     def make_session_timing(sessions: Sessions.Structure, timing: Map[String, Double])
       : Map[String, Double] =
     {
+      val maximals = sessions.build_graph.maximals.toSet
       def desc_timing(name: String): Double =
       {
-        val g = sessions.build_graph.restrict(sessions.build_descendants(List(name)).toSet)
-        (0.0 :: g.maximals.flatMap(desc => {
-          val ps = g.all_preds(List(desc))
-          if (ps.exists(p => timing.get(p).isEmpty)) None
-          else Some(ps.map(timing(_)).sum)
-        })).max
+        if (maximals.contains(name)) timing(name)
+        else {
+          val g = sessions.build_graph.restrict(sessions.build_descendants(List(name)).toSet)
+          (0.0 :: g.maximals.flatMap(desc => {
+            val ps = g.all_preds(List(desc))
+            if (ps.exists(p => timing.get(p).isEmpty)) None
+            else Some(ps.map(timing(_)).sum)
+          })).max
+        }
       }
       timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
     }
