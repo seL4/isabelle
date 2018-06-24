@@ -252,6 +252,8 @@ option ssh_alive_count_max : int = 3
 
 section "Theory Export"
 
+option export_document : bool = false
+
 option export_theory : bool = false
 
 
