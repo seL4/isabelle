@@ -2382,10 +2382,8 @@ proof -
   interpret weak_lower_semilattice "division_rel G"
     by simp
   show ?thesis
-    apply (subst (2 3) somegcd_meet, (simp add: carr)+)
-    apply (simp add: somegcd_meet carr)
-    apply (rule weak_meet_assoc[simplified], fact+)
-    done
+    unfolding associated_def
+    by (meson carr divides_trans gcd_divides gcd_divides_l gcd_divides_r gcd_exists)
 qed
 
 lemma (in gcd_condition_monoid) gcd_mult:
@@ -2645,10 +2643,7 @@ next
       by blast
     have a'fs: "wfactors G as a'"
       apply (rule wfactorsE[OF afs], rule wfactorsI, simp)
-      apply (simp add: a)
-      apply (insert ascarr a'carr)
-      apply (intro assoc_l_cancel[of ah _ a'] multlist_closed ahcarr, assumption+)
-      done
+      by (metis a a'carr ahcarr ascarr assoc_l_cancel factorsI factors_def factors_mult_single list.set_intros(1) list.set_intros(2) multlist_closed)
     from afs have ahirr: "irreducible G ah"
       by (elim wfactorsE) simp
     with ascarr have ahprime: "prime G ah"
@@ -2674,31 +2669,18 @@ next
     from ahdvd obtain x where "x \<in> carrier G" and asi: "as'!i = ah \<otimes> x"
       by blast
     with carr irrasi[simplified asi] have asiah: "as'!i \<sim> ah"
-      apply -
-      apply (elim irreducible_prodE[of "ah" "x"], assumption+)
-       apply (rule associatedI2[of x], assumption+)
-      apply (rule irreducibleE[OF ahirr], simp)
-      done
-
+      by (metis ahprime associatedI2 irreducible_prodE primeE)
     note setparts = set_take_subset[of i as'] set_drop_subset[of "Suc i" as']
     note partscarr [simp] = setparts[THEN subset_trans[OF _ as'carr]]
     note carr = carr partscarr
 
     have "\<exists>aa_1. aa_1 \<in> carrier G \<and> wfactors G (take i as') aa_1"
-      apply (intro wfactors_prod_exists)
-      using setparts afs'
-       apply (fast elim: wfactorsE)
-      apply simp
-      done
+      by (meson afs' in_set_takeD partscarr(1) wfactorsE wfactors_prod_exists)
     then obtain aa_1 where aa1carr: "aa_1 \<in> carrier G" and aa1fs: "wfactors G (take i as') aa_1"
       by auto
 
     have "\<exists>aa_2. aa_2 \<in> carrier G \<and> wfactors G (drop (Suc i) as') aa_2"
-      apply (intro wfactors_prod_exists)
-      using setparts afs'
-       apply (fast elim: wfactorsE)
-      apply simp
-      done
+      by (meson afs' in_set_dropD partscarr(2) wfactors_def wfactors_prod_exists)
     then obtain aa_2 where aa2carr: "aa_2 \<in> carrier G"
       and aa2fs: "wfactors G (drop (Suc i) as') aa_2"
       by auto
@@ -2709,21 +2691,12 @@ next
     have v1: "wfactors G (take i as' @ drop (Suc i) as') (aa_1 \<otimes> aa_2)"
       by (intro wfactors_mult, simp+)
     then have v1': "wfactors G (as'!i # take i as' @ drop (Suc i) as') (as'!i \<otimes> (aa_1 \<otimes> aa_2))"
-      apply (intro wfactors_mult_single)
-      using setparts afs'
-          apply (fast intro: nth_mem[OF len] elim: wfactorsE)
-         apply simp_all
-      done
-
+      using irrasi wfactors_mult_single by auto
     from aa2carr carr aa1fs aa2fs have "wfactors G (as'!i # drop (Suc i) as') (as'!i \<otimes> aa_2)"
       by (metis irrasi wfactors_mult_single)
     with len carr aa1carr aa2carr aa1fs
     have v2: "wfactors G (take i as' @ as'!i # drop (Suc i) as') (aa_1 \<otimes> (as'!i \<otimes> aa_2))"
-      apply (intro wfactors_mult)
-           apply fast
-          apply (simp, (fast intro: nth_mem[OF len])?)+
-      done
-
+      using wfactors_mult by auto
     from len have as': "as' = (take i as' @ as'!i # drop (Suc i) as')"
       by (simp add: Cons_nth_drop_Suc)
     with carr have eer: "essentially_equal G (take i as' @ as'!i # drop (Suc i) as') as'"
@@ -2763,14 +2736,8 @@ next
     note ee1
     also note ee2
     also have "essentially_equal G (as' ! i # take i as' @ drop (Suc i) as')
-      (take i as' @ as' ! i # drop (Suc i) as')"
-      apply (intro essentially_equalI)
-       apply (subgoal_tac "as' ! i # take i as' @ drop (Suc i) as' <~~>
-          take i as' @ as' ! i # drop (Suc i) as'")
-        apply simp
-       apply (rule perm_append_Cons)
-      apply simp
-      done
+                                   (take i as' @ as' ! i # drop (Suc i) as')"
+      by (metis as' as'carr listassoc_refl essentially_equalI perm_append_Cons)
     finally have "essentially_equal G (ah # as) (take i as' @ as' ! i # drop (Suc i) as')"
       by simp
     then show "essentially_equal G (ah # as) as'"
@@ -2813,21 +2780,17 @@ qed
 
 lemma (in factorial_monoid) factorcount_unique:
   assumes afs: "wfactors G as a"
-    and acarr[simp]: "a \<in> carrier G" and ascarr[simp]: "set as \<subseteq> carrier G"
+    and acarr[simp]: "a \<in> carrier G" and ascarr: "set as \<subseteq> carrier G"
   shows "factorcount G a = length as"
 proof -
   have "\<exists>ac. \<forall>as. set as \<subseteq> carrier G \<and> wfactors G as a \<longrightarrow> ac = length as"
     by (rule factorcount_exists) simp
   then obtain ac where alen: "\<forall>as. set as \<subseteq> carrier G \<and> wfactors G as a \<longrightarrow> ac = length as"
     by auto
-  have ac: "ac = factorcount G a"
-    apply (simp add: factorcount_def)
-    apply (rule theI2)
-      apply (rule alen)
-     apply (metis afs alen ascarr)+
-    done
+  then have ac: "ac = factorcount G a"
+    unfolding factorcount_def using ascarr by (blast intro: theI2 afs)
   from ascarr afs have "ac = length as"
-    by (iprover intro: alen[rule_format])
+    by (simp add: alen)
   with ac show ?thesis
     by simp
 qed
@@ -2872,11 +2835,8 @@ lemma (in factorial_monoid) associated_fcount:
     and bcarr: "b \<in> carrier G"
     and asc: "a \<sim> b"
   shows "factorcount G a = factorcount G b"
-  apply (rule associatedE[OF asc])
-  apply (drule divides_fcount[OF _ acarr bcarr])
-  apply (drule divides_fcount[OF _ bcarr acarr])
-  apply simp
-  done
+  using assms
+  by (auto simp: associated_def factorial_monoid.divides_fcount factorial_monoid_axioms le_antisym)
 
 lemma (in factorial_monoid) properfactor_fcount:
   assumes acarr: "a \<in> carrier G" and bcarr:"b \<in> carrier G"

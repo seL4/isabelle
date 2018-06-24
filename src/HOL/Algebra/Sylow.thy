@@ -161,23 +161,17 @@ lemma H_m_closed: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<
   by (simp add: H_def coset_mult_assoc [symmetric])
 
 lemma H_not_empty: "H \<noteq> {}"
-  apply (simp add: H_def)
-  apply (rule exI [of _ \<one>])
-  apply simp
-  done
+  by (force simp add: H_def intro: exI [of _ \<one>])
 
 lemma H_is_subgroup: "subgroup H G"
-  apply (rule subgroupI)
-     apply (rule subsetI)
-     apply (erule H_into_carrier_G)
-    apply (rule H_not_empty)
-   apply (simp add: H_def)
-   apply clarify
-   apply (erule_tac P = "\<lambda>z. lhs z = M1" for lhs in subst)
-   apply (simp add: coset_mult_assoc )
-  apply (blast intro: H_m_closed)
-  done
-
+proof (rule subgroupI)
+  show "H \<subseteq> carrier G"
+    using H_into_carrier_G by blast
+  show "\<And>a. a \<in> H \<Longrightarrow> inv a \<in> H"
+    by (metis H_I H_into_carrier_G H_m_closed M1_subset_G Units_eq Units_inv_closed Units_inv_inv coset_mult_inv1 in_H_imp_eq)
+  show "\<And>a b. \<lbrakk>a \<in> H; b \<in> H\<rbrakk> \<Longrightarrow> a \<otimes> b \<in> H"
+    by (blast intro: H_m_closed)
+qed (use H_not_empty in auto)
 
 lemma rcosetGM1g_subset_G: "\<lbrakk>g \<in> carrier G; x \<in> M1 #> g\<rbrakk> \<Longrightarrow> x \<in> carrier G"
   by (blast intro: M1_subset_G [THEN r_coset_subset_G, THEN subsetD])
@@ -191,13 +185,19 @@ lemma finite_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> finite (M1 #> g)"
 lemma M1_cardeq_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> card (M1 #> g) = card M1"
   by (metis M1_subset_G card_rcosets_equal rcosetsI)
 
-lemma M1_RelM_rcosetGM1g: "g \<in> carrier G \<Longrightarrow> (M1, M1 #> g) \<in> RelM"
-  apply (simp add: RelM_def calM_def card_M1)
-  apply (rule conjI)
-   apply (blast intro: rcosetGM1g_subset_G)
-  apply (simp add: card_M1 M1_cardeq_rcosetGM1g)
-  apply (metis M1_subset_G coset_mult_assoc coset_mult_one r_inv_ex)
-  done
+lemma M1_RelM_rcosetGM1g: 
+  assumes "g \<in> carrier G"
+  shows "(M1, M1 #> g) \<in> RelM"
+proof -
+  have "M1 #> g \<subseteq> carrier G"
+    by (simp add: assms r_coset_subset_G)
+  moreover have "card (M1 #> g) = p ^ a"
+    using assms by (simp add: card_M1 M1_cardeq_rcosetGM1g)
+  moreover have "\<exists>h\<in>carrier G. M1 = M1 #> g #> h"
+    by (metis assms M1_subset_G coset_mult_assoc coset_mult_one r_inv_ex)
+  ultimately show ?thesis
+    by (simp add: RelM_def calM_def card_M1)
+qed
 
 end
 
@@ -226,20 +226,26 @@ lemma M_funcset_rcosets_H:
   by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup.subset)
 
 lemma inj_M_GmodH: "\<exists>f \<in> M \<rightarrow> rcosets H. inj_on f M"
-  apply (rule bexI)
-   apply (rule_tac [2] M_funcset_rcosets_H)
-  apply (rule inj_onI, simp)
-  apply (rule trans [OF _ M_elem_map_eq])
-   prefer 2 apply assumption
-  apply (rule M_elem_map_eq [symmetric, THEN trans], assumption)
-  apply (rule coset_mult_inv1)
-     apply (erule_tac [2] M_elem_map_carrier)+
-   apply (rule_tac [2] M1_subset_G)
-  apply (rule coset_join1 [THEN in_H_imp_eq])
-    apply (rule_tac [3] H_is_subgroup)
-   prefer 2 apply (blast intro: M_elem_map_carrier)
-  apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_eq)
-  done
+proof
+  let ?inv = "\<lambda>x. SOME g. g \<in> carrier G \<and> M1 #> g = x"
+  show "inj_on (\<lambda>x\<in>M. H #> ?inv x) M"
+  proof (rule inj_onI, simp)
+    fix x y
+    assume eq: "H #> ?inv x = H #> ?inv y" and xy: "x \<in> M" "y \<in> M"
+    have "x = M1 #> ?inv x"
+      by (simp add: M_elem_map_eq \<open>x \<in> M\<close>)
+    also have "... = M1 #> ?inv y"
+    proof (rule coset_mult_inv1 [OF in_H_imp_eq [OF coset_join1]])
+      show "H #> ?inv x \<otimes> inv (?inv y) = H"
+        by (simp add: H_into_carrier_G M_elem_map_carrier xy coset_mult_inv2 eq subsetI)
+    qed (simp_all add: H_is_subgroup M_elem_map_carrier xy)
+    also have "... = y"
+      using M_elem_map_eq \<open>y \<in> M\<close> by simp
+    finally show "x=y" .
+  qed
+  show "(\<lambda>x\<in>M. H #> ?inv x) \<in> M \<rightarrow> rcosets H"
+    by (rule M_funcset_rcosets_H)
+qed
 
 end
 
@@ -258,28 +264,34 @@ lemmas H_elem_map_eq = H_elem_map [THEN someI_ex, THEN conjunct2]
 
 lemma rcosets_H_funcset_M:
   "(\<lambda>C \<in> rcosets H. M1 #> (SOME g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
-  apply (simp add: RCOSETS_def)
-  apply (fast intro: someI2
-      intro!: M1_in_M in_quotient_imp_closed [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
-  done
+  using in_quotient_imp_closed [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g]
+  by (simp add: M1_in_M H_elem_map_carrier RCOSETS_def)
 
-text \<open>Close to a duplicate of \<open>inj_M_GmodH\<close>.\<close>
 lemma inj_GmodH_M: "\<exists>g \<in> rcosets H\<rightarrow>M. inj_on g (rcosets H)"
-  apply (rule bexI)
-   apply (rule_tac [2] rcosets_H_funcset_M)
-  apply (rule inj_onI)
-  apply (simp)
-  apply (rule trans [OF _ H_elem_map_eq])
-   prefer 2 apply assumption
-  apply (rule H_elem_map_eq [symmetric, THEN trans], assumption)
-  apply (rule coset_mult_inv1)
-     apply (erule_tac [2] H_elem_map_carrier)+
-   apply (rule_tac [2] H_is_subgroup [THEN subgroup.subset])
-  apply (rule coset_join2)
-    apply (blast intro: H_elem_map_carrier)
-   apply (rule H_is_subgroup)
-  apply (simp add: H_I coset_mult_inv2 H_elem_map_carrier)
-  done
+proof
+  let ?inv = "\<lambda>x. SOME g. g \<in> carrier G \<and> H #> g = x"
+  show "inj_on (\<lambda>C\<in>rcosets H. M1 #> ?inv C) (rcosets H)"
+  proof (rule inj_onI, simp)
+    fix x y
+    assume eq: "M1 #> ?inv x = M1 #> ?inv y" and xy: "x \<in> rcosets H" "y \<in> rcosets H"
+    have "x = H #> ?inv x"
+      by (simp add: H_elem_map_eq \<open>x \<in> rcosets H\<close>)
+    also have "... = H #> ?inv y"
+    proof (rule coset_mult_inv1 [OF coset_join2])
+      show "?inv x \<otimes> inv (?inv y) \<in> carrier G"
+        by (simp add: H_elem_map_carrier \<open>x \<in> rcosets H\<close> \<open>y \<in> rcosets H\<close>)
+      then show "(?inv x) \<otimes> inv (?inv y) \<in> H"
+        by (simp add: H_I H_elem_map_carrier xy coset_mult_inv2 eq)
+      show "H \<subseteq> carrier G"
+        by (simp add: H_is_subgroup subgroup.subset)
+    qed (simp_all add: H_is_subgroup H_elem_map_carrier xy)
+    also have "... = y"
+      by (simp add: H_elem_map_eq \<open>y \<in> rcosets H\<close>)
+    finally show "x=y" .
+  qed
+  show "(\<lambda>C\<in>rcosets H. M1 #> ?inv C) \<in> rcosets H \<rightarrow> M"
+    using rcosets_H_funcset_M by blast
+qed
 
 lemma calM_subset_PowG: "calM \<subseteq> Pow (carrier G)"
   by (auto simp: calM_def)
@@ -289,41 +301,42 @@ lemma finite_M: "finite M"
   by (metis M_subset_calM finite_calM rev_finite_subset)
 
 lemma cardMeqIndexH: "card M = card (rcosets H)"
-  apply (insert inj_M_GmodH inj_GmodH_M)
-  apply (blast intro: card_bij finite_M H_is_subgroup
-      rcosets_subset_PowG [THEN finite_subset]
-      finite_Pow_iff [THEN iffD2])
-  done
+  using inj_M_GmodH inj_GmodH_M
+  by (blast intro: card_bij finite_M H_is_subgroup rcosets_subset_PowG [THEN finite_subset])
 
 lemma index_lem: "card M * card H = order G"
   by (simp add: cardMeqIndexH lagrange H_is_subgroup)
 
-lemma lemma_leq1: "p^a \<le> card H"
-  apply (rule dvd_imp_le)
-   apply (rule div_combine [OF prime_imp_prime_elem[OF prime_p] not_dvd_M])
-   prefer 2 apply (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
-  apply (simp add: index_lem order_G power_add mult_dvd_mono multiplicity_dvd zero_less_m)
-  done
-
-lemma lemma_leq2: "card H \<le> p^a"
-  apply (subst card_M1 [symmetric])
-  apply (cut_tac M1_inj_H)
-  apply (blast intro!: M1_subset_G intro: card_inj H_into_carrier_G finite_subset [OF _ finite_G])
-  done
-
 lemma card_H_eq: "card H = p^a"
-  by (blast intro: le_antisym lemma_leq1 lemma_leq2)
+proof (rule antisym)
+  show "p^a \<le> card H"
+  proof (rule dvd_imp_le)
+    show "p ^ a dvd card H"
+      apply (rule div_combine [OF prime_imp_prime_elem[OF prime_p] not_dvd_M])
+      by (simp add: index_lem multiplicity_dvd order_G power_add)
+    show "0 < card H"
+      by (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
+  qed
+next
+  show "card H \<le> p^a"
+    using M1_inj_H card_M1 card_inj finite_M1 by fastforce
+qed
 
 end
 
 lemma (in sylow) sylow_thm: "\<exists>H. subgroup H G \<and> card H = p^a"
-  using lemma_A1
-  apply clarify
-  apply (frule existsM1inM, clarify)
-  apply (subgoal_tac "sylow_central G p a m M1 M")
-   apply (blast dest: sylow_central.H_is_subgroup sylow_central.card_H_eq)
-  apply (simp add: sylow_central_def sylow_central_axioms_def sylow_axioms calM_def RelM_def)
-  done
+proof -
+  obtain M where M: "M \<in> calM // RelM" "\<not> (p ^ Suc (multiplicity p m) dvd card M)"
+    using lemma_A1 by blast
+  then obtain M1 where "M1 \<in> M"
+    by (metis existsM1inM) 
+  define H where "H \<equiv> {g. g \<in> carrier G \<and> M1 #> g = M1}"
+  with M \<open>M1 \<in> M\<close>
+  interpret sylow_central G p a m calM RelM H M1 M
+    by unfold_locales (auto simp add: H_def calM_def RelM_def)
+  show ?thesis
+    using H_is_subgroup card_H_eq by blast
+qed
 
 text \<open>Needed because the locale's automatic definition refers to
   @{term "semigroup G"} and @{term "group_axioms G"} rather than

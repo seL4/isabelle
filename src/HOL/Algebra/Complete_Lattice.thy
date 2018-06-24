@@ -43,11 +43,8 @@ lemma (in weak_complete_lattice) dual_weak_complete_lattice:
 proof -
   interpret dual: weak_lattice "inv_gorder L"
     by (metis dual_weak_lattice)
-
   show ?thesis
-    apply (unfold_locales)
-    apply (simp_all add:inf_exists sup_exists)
-  done
+    by (unfold_locales) (simp_all add:inf_exists sup_exists)
 qed
 
 lemma (in weak_complete_lattice) supI:
@@ -125,32 +122,21 @@ proof (rule weak_complete_latticeI)
   have B_L: "?B \<subseteq> carrier L" by simp
   from inf_exists [OF B_L B_non_empty]
   obtain b where b_inf_B: "greatest L b (Lower L ?B)" ..
+  then have bcarr: "b \<in> carrier L"
+    by auto
   have "least L b (Upper L A)"
-apply (rule least_UpperI)
-   apply (rule greatest_le [where A = "Lower L ?B"])
-    apply (rule b_inf_B)
-   apply (rule Lower_memI)
-    apply (erule Upper_memD [THEN conjunct1])
-     apply assumption
-    apply (rule L)
-   apply (fast intro: L [THEN subsetD])
-  apply (erule greatest_Lower_below [OF b_inf_B])
-  apply simp
- apply (rule L)
-apply (rule greatest_closed [OF b_inf_B])
-done
+  proof (rule least_UpperI)
+    show "\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> b"
+      by (meson L Lower_memI Upper_memD b_inf_B greatest_le set_mp)
+    show "\<And>y. y \<in> Upper L A \<Longrightarrow> b \<sqsubseteq> y"
+      by (meson B_L b_inf_B greatest_Lower_below)
+  qed (use bcarr L in auto)
   then show "\<exists>s. least L s (Upper L A)" ..
 next
   fix A
   assume L: "A \<subseteq> carrier L"
   show "\<exists>i. greatest L i (Lower L A)"
-  proof (cases "A = {}")
-    case True then show ?thesis
-      by (simp add: top_exists)
-  next
-    case False with L show ?thesis
-      by (rule inf_exists)
-  qed
+    by (metis L Lower_empty inf_exists top_exists)
 qed
 
 
@@ -205,12 +191,8 @@ lemma inf_glb:
 proof -
   obtain i where "greatest L i (Lower L A)"
     by (metis assms inf_exists)
-
   thus ?thesis
-    apply (simp add: inf_def)
-    apply (rule someI2[of _ "i"])
-    apply (auto)
-  done
+    by (metis inf_def someI_ex)
 qed
 
 lemma inf_lower:
@@ -231,17 +213,20 @@ lemma weak_inf_carrier [simp]: "\<Sqinter>carrier L .= \<bottom>"
   by (metis bottom_weak_eq inf_closed inf_lower subset_refl)
 
 lemma weak_inf_insert [simp]: 
-  "\<lbrakk> a \<in> carrier L; A \<subseteq> carrier L \<rbrakk> \<Longrightarrow> \<Sqinter>insert a A .= a \<sqinter> \<Sqinter>A"
-  apply (rule weak_le_antisym)
-  apply (force intro: meet_le inf_greatest inf_lower inf_closed)
-  apply (rule inf_greatest)
-  apply (force)
-  apply (force intro: inf_closed)
-  apply (auto)
-  apply (metis inf_closed meet_left)
-  apply (force intro: le_trans inf_closed meet_right meet_left inf_lower)
-done
-
+  assumes "a \<in> carrier L" "A \<subseteq> carrier L"
+  shows "\<Sqinter>insert a A .= a \<sqinter> \<Sqinter>A"
+proof (rule weak_le_antisym)
+  show "\<Sqinter>insert a A \<sqsubseteq> a \<sqinter> \<Sqinter>A"
+    by (simp add: assms inf_lower local.inf_greatest meet_le)
+  show aA: "a \<sqinter> \<Sqinter>A \<in> carrier L"
+    using assms by simp
+  show "a \<sqinter> \<Sqinter>A \<sqsubseteq> \<Sqinter>insert a A"
+    apply (rule inf_greatest)
+    using assms apply (simp_all add: aA)
+    by (meson aA inf_closed inf_lower local.le_trans meet_left meet_right subsetCE)
+  show "\<Sqinter>insert a A \<in> carrier L"
+    using assms by (force intro: le_trans inf_closed meet_right meet_left inf_lower)
+qed
 
 subsection \<open>Supremum Laws\<close>
 
@@ -268,17 +253,20 @@ lemma weak_sup_carrier [simp]: "\<Squnion>carrier L .= \<top>"
   by (metis Lower_closed Lower_empty sup_closed sup_upper top_closed top_higher weak_le_antisym)
 
 lemma weak_sup_insert [simp]: 
-  "\<lbrakk> a \<in> carrier L; A \<subseteq> carrier L \<rbrakk> \<Longrightarrow> \<Squnion>insert a A .= a \<squnion> \<Squnion>A"
-  apply (rule weak_le_antisym)
-  apply (rule sup_least)
-  apply (auto)
-  apply (metis join_left sup_closed)
-  apply (rule le_trans) defer
-  apply (rule join_right)
-  apply (auto)
-  apply (rule join_le)
-  apply (auto intro: sup_upper sup_least sup_closed)
-done
+  assumes "a \<in> carrier L" "A \<subseteq> carrier L"
+  shows "\<Squnion>insert a A .= a \<squnion> \<Squnion>A"
+proof (rule weak_le_antisym)
+  show aA: "a \<squnion> \<Squnion>A \<in> carrier L"
+    using assms by simp
+  show "\<Squnion>insert a A \<sqsubseteq> a \<squnion> \<Squnion>A"
+    apply (rule sup_least)
+    using assms apply (simp_all add: aA)
+    by (meson aA join_left join_right local.le_trans subsetCE sup_closed sup_upper)
+  show "a \<squnion> \<Squnion>A \<sqsubseteq> \<Squnion>insert a A"
+    by (simp add: assms join_le local.sup_least sup_upper)
+  show "\<Squnion>insert a A \<in> carrier L"
+    using assms by (force intro: le_trans inf_closed meet_right meet_left inf_lower)
+qed
 
 end
 
@@ -303,30 +291,26 @@ lemma (in weak_complete_lattice) fps_sup_image:
 proof -
   from assms(2) have AL: "A \<subseteq> carrier L"
     by (auto simp add: fps_def)
-  
   show ?thesis
   proof (rule sup_cong, simp_all add: AL)
     from assms(1) AL show "f ` A \<subseteq> carrier L"
-      by (auto)
+      by auto
+    then have *: "\<And>b. \<lbrakk>A \<subseteq> {x \<in> carrier L. f x .= x}; b \<in> A\<rbrakk> \<Longrightarrow> \<exists>a\<in>f ` A. b .= a"
+      by (meson AL assms(2) image_eqI local.sym subsetCE use_fps)
     from assms(2) show "f ` A {.=} A"
-      apply (auto simp add: fps_def)
-      apply (rule set_eqI2)
-      apply blast
-      apply (rename_tac b)
-      apply (rule_tac x="f b" in bexI)
-      apply (metis (mono_tags, lifting) Ball_Collect assms(1) Pi_iff local.sym)
-      apply (auto)
-    done
+      by (auto simp add: fps_def intro: set_eqI2 [OF _ *])
   qed
 qed
 
 lemma (in weak_complete_lattice) fps_idem:
-  "\<lbrakk> f \<in> carrier L \<rightarrow> carrier L; Idem f \<rbrakk> \<Longrightarrow> fps L f {.=} f ` carrier L"
-  apply (rule set_eqI2)
-  apply (auto simp add: idempotent_def fps_def)
-  apply (metis Pi_iff local.sym)
-  apply force
-done
+  assumes "f \<in> carrier L \<rightarrow> carrier L" "Idem f"
+  shows "fps L f {.=} f ` carrier L"
+proof (rule set_eqI2)
+  show "\<And>a. a \<in> fps L f \<Longrightarrow> \<exists>b\<in>f ` carrier L. a .= b"
+    using assms by (force simp add: fps_def intro: local.sym)
+  show "\<And>b. b \<in> f ` carrier L \<Longrightarrow> \<exists>a\<in>fps L f. b .= a"
+    using assms by (force simp add: idempotent_def fps_def)
+qed
 
 context weak_complete_lattice
 begin
@@ -392,20 +376,19 @@ lemma LFP_greatest:
 lemma LFP_lemma2: 
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "f (LFP f) \<sqsubseteq> LFP f"
-  using assms
-  apply (auto simp add:Pi_def)
-  apply (rule LFP_greatest)
-  apply (metis LFP_closed)
-  apply (metis LFP_closed LFP_lowerbound le_trans use_iso1)
-done
+proof (rule LFP_greatest)
+  have f: "\<And>x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+    using assms by (auto simp add: Pi_def)
+  with assms show "f (LFP f) \<in> carrier L"
+    by blast
+  show "\<And>u. \<lbrakk>u \<in> carrier L; f u \<sqsubseteq> u\<rbrakk> \<Longrightarrow> f (LFP f) \<sqsubseteq> u"
+    by (meson LFP_closed LFP_lowerbound assms(1) f local.le_trans use_iso1)
+qed
 
 lemma LFP_lemma3: 
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "LFP f \<sqsubseteq> f (LFP f)"
-  using assms
-  apply (auto simp add:Pi_def)
-  apply (metis LFP_closed LFP_lemma2 LFP_lowerbound assms(2) use_iso2)
-done
+  using assms by (simp add: Pi_def) (metis LFP_closed LFP_lemma2 LFP_lowerbound assms(2) use_iso2)
 
 lemma LFP_weak_unfold: 
   "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> LFP f .= f (LFP f)"
@@ -477,12 +460,14 @@ lemma GFP_least:
 lemma GFP_lemma2:
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
   shows "GFP f \<sqsubseteq> f (GFP f)"
-  using assms
-  apply (auto simp add:Pi_def)
-  apply (rule GFP_least)
-  apply (metis GFP_closed)
-  apply (metis GFP_closed GFP_upperbound le_trans use_iso2)
-done
+proof (rule GFP_least)
+  have f: "\<And>x. x \<in> carrier L \<Longrightarrow> f x \<in> carrier L"
+    using assms by (auto simp add: Pi_def)
+  with assms show "f (GFP f) \<in> carrier L"
+    by blast
+  show "\<And>u. \<lbrakk>u \<in> carrier L; u \<sqsubseteq> f u\<rbrakk> \<Longrightarrow> u \<sqsubseteq> f (GFP f)"
+    by (meson GFP_closed GFP_upperbound le_trans assms(1) f local.le_trans use_iso1)
+qed
 
 lemma GFP_lemma3:
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
@@ -599,20 +584,15 @@ proof (rule complete_latticeI)
   have B_L: "?B \<subseteq> carrier L" by simp
   from inf_exists [OF B_L B_non_empty]
   obtain b where b_inf_B: "greatest L b (Lower L ?B)" ..
+  then have bcarr: "b \<in> carrier L"
+    by blast
   have "least L b (Upper L A)"
-apply (rule least_UpperI)
-   apply (rule greatest_le [where A = "Lower L ?B"])
-    apply (rule b_inf_B)
-   apply (rule Lower_memI)
-    apply (erule Upper_memD [THEN conjunct1])
-     apply assumption
-    apply (rule L)
-   apply (fast intro: L [THEN subsetD])
-  apply (erule greatest_Lower_below [OF b_inf_B])
-  apply simp
- apply (rule L)
-apply (rule greatest_closed [OF b_inf_B])
-done
+  proof (rule least_UpperI)
+    show "\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> b"
+      by (meson L Lower_memI Upper_memD b_inf_B greatest_le set_rev_mp)
+    show "\<And>y. y \<in> Upper L A \<Longrightarrow> b \<sqsubseteq> y"
+      by (auto elim: greatest_Lower_below [OF b_inf_B])
+  qed (use L bcarr in auto)
   then show "\<exists>s. least L s (Upper L A)" ..
 next
   fix A
@@ -666,23 +646,11 @@ subsection \<open>Interval complete lattices\<close>
 context weak_complete_lattice
 begin
 
-  lemma at_least_at_most_Sup:
-    "\<lbrakk> a \<in> carrier L; b \<in> carrier L; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> \<Squnion> \<lbrace>a..b\<rbrace> .= b"
-    apply (rule weak_le_antisym)
-    apply (rule sup_least)
-    apply (auto simp add: at_least_at_most_closed)
-    apply (rule sup_upper)
-    apply (auto simp add: at_least_at_most_closed)
-  done
+  lemma at_least_at_most_Sup: "\<lbrakk> a \<in> carrier L; b \<in> carrier L; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> \<Squnion> \<lbrace>a..b\<rbrace> .= b"
+    by (rule weak_le_antisym [OF sup_least sup_upper]) (auto simp add: at_least_at_most_closed)
 
-  lemma at_least_at_most_Inf:
-    "\<lbrakk> a \<in> carrier L; b \<in> carrier L; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> \<Sqinter> \<lbrace>a..b\<rbrace> .= a"
-    apply (rule weak_le_antisym)
-    apply (rule inf_lower)
-    apply (auto simp add: at_least_at_most_closed)
-    apply (rule inf_greatest)
-    apply (auto simp add: at_least_at_most_closed)
-  done
+  lemma at_least_at_most_Inf: "\<lbrakk> a \<in> carrier L; b \<in> carrier L; a \<sqsubseteq> b \<rbrakk> \<Longrightarrow> \<Sqinter> \<lbrace>a..b\<rbrace> .= a"
+    by (rule weak_le_antisym [OF inf_lower inf_greatest]) (auto simp add: at_least_at_most_closed)
 
 end
 
@@ -695,7 +663,7 @@ proof -
   interpret weak_partial_order "L \<lparr> carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub> \<rparr>"
   proof -
     have "\<lbrace>a..b\<rbrace>\<^bsub>L\<^esub> \<subseteq> carrier L"
-      by (auto, simp add: at_least_at_most_def)
+      by (auto simp add: at_least_at_most_def)
     thus "weak_partial_order (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>)"
       by (simp add: L.weak_partial_order_axioms weak_partial_order_subset)
   qed
