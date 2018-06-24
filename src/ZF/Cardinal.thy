@@ -5,7 +5,7 @@
 
 section\<open>Cardinal Numbers Without the Axiom of Choice\<close>
 
-theory Cardinal imports OrderType Finite Nat_ZF Sum begin
+theory Cardinal imports OrderType Finite Nat Sum begin
 
 definition
   (*least ordinal operator*)

@@ -1,12 +1,12 @@
-(*  Title:      ZF/Datatype_ZF.thy
+(*  Title:      ZF/Datatype.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 *)
 
 section\<open>Datatype and CoDatatype Definitions\<close>
 
-theory Datatype_ZF
-imports Inductive_ZF Univ QUniv
+theory Datatype
+imports Inductive Univ QUniv
 keywords "datatype" "codatatype" :: thy_decl
 begin
 

@@ -1,6 +1,6 @@
 section\<open>Main ZF Theory: Everything Except AC\<close>
 
-theory ZF imports List_ZF IntDiv_ZF CardinalArith begin
+theory ZF imports List IntDiv CardinalArith begin
 
 (*The theory of "iterates" logically belongs to Nat, but can't go there because
   primrec isn't available into after Datatype.*)

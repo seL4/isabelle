@@ -5,7 +5,7 @@
 
 section\<open>Infinite-Branching Datatype Definitions\<close>
 
-theory InfDatatype imports Datatype_ZF Univ Finite Cardinal_AC begin
+theory InfDatatype imports Datatype Univ Finite Cardinal_AC begin
 
 lemmas fun_Limit_VfromE =
     Limit_VfromE [OF apply_funtype InfCard_csucc [THEN InfCard_is_Limit]]

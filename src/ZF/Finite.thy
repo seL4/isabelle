@@ -7,7 +7,7 @@ prove:  b \<in> Fin(A) ==> inj(b,b) \<subseteq> surj(b,b)
 
 section\<open>Finite Powerset Operator and Finite Function Space\<close>
 
-theory Finite imports Inductive_ZF Epsilon Nat_ZF begin
+theory Finite imports Inductive Epsilon Nat begin
 
 (*The natural numbers as a datatype*)
 rep_datatype

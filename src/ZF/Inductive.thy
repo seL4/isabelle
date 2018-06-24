@@ -1,4 +1,4 @@
-(*  Title:      ZF/Inductive_ZF.thy
+(*  Title:      ZF/Inductive.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -11,8 +11,8 @@ Products are used only to derive "streamlined" induction rules for relations
 
 section\<open>Inductive and Coinductive Definitions\<close>
 
-theory Inductive_ZF
-imports Fixedpt QPair Nat_ZF
+theory Inductive
+imports Fixedpt QPair Nat
 keywords
   "inductive" "coinductive" "inductive_cases" "rep_datatype" "primrec" :: thy_decl and
   "domains" "intros" "monos" "con_defs" "type_intros" "type_elims"

@@ -16,7 +16,7 @@ For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 section\<open>Arithmetic on Binary Integers\<close>
 
 theory Bin
-imports Int_ZF Datatype_ZF
+imports Int Datatype
 begin
 
 consts  bin :: i

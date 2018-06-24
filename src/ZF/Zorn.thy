@@ -5,7 +5,7 @@
 
 section\<open>Zorn's Lemma\<close>
 
-theory Zorn imports OrderArith AC Inductive_ZF begin
+theory Zorn imports OrderArith AC Inductive begin
 
 text\<open>Based upon the unpublished article ``Towards the Mechanization of the
 Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.\<close>

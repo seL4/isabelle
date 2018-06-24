@@ -1,11 +1,11 @@
-(*  Title:      ZF/Nat_ZF.thy
+(*  Title:      ZF/Nat.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 *)
 
 section\<open>The Natural numbers As a Least Fixed Point\<close>
 
-theory Nat_ZF imports OrdQuant Bool begin
+theory Nat imports OrdQuant Bool begin
 
 definition
   nat :: i  where

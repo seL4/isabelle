@@ -5,7 +5,7 @@
 
 section\<open>Epsilon Induction and Recursion\<close>
 
-theory Epsilon imports Nat_ZF begin
+theory Epsilon imports Nat begin
 
 definition
   eclose    :: "i=>i"  where

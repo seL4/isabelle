@@ -1,11 +1,11 @@
-(*  Title:      ZF/Int_ZF.thy
+(*  Title:      ZF/Int.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 *)
 
 section\<open>The Integers as Equivalence Classes Over Pairs of Natural Numbers\<close>
 
-theory Int_ZF imports EquivClass ArithSimp begin
+theory Int imports EquivClass ArithSimp begin
 
 definition
   intrel :: i  where

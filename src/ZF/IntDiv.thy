@@ -1,4 +1,4 @@
-(*  Title:      ZF/IntDiv_ZF.thy
+(*  Title:      ZF/IntDiv.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
@@ -29,7 +29,7 @@ Here is the division algorithm in ML:
 
 section\<open>The Division Operators Div and Mod\<close>
 
-theory IntDiv_ZF
+theory IntDiv
 imports Bin OrderArith
 begin
 

@@ -1,11 +1,11 @@
-(*  Title:      ZF/List_ZF.thy
+(*  Title:      ZF/List.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 *)
 
 section\<open>Lists in Zermelo-Fraenkel Set Theory\<close>
 
-theory List_ZF imports Datatype_ZF ArithSimp begin
+theory List imports Datatype ArithSimp begin
 
 consts
   list       :: "i=>i"
