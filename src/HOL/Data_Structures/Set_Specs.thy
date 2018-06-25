@@ -23,6 +23,8 @@ assumes invar_empty:  "invar empty"
 assumes invar_insert: "invar s \<Longrightarrow> invar(insert x s)"
 assumes invar_delete: "invar s \<Longrightarrow> invar(delete x s)"
 
+lemmas (in Set) set_specs =
+  set_empty set_isin set_insert set_delete invar_empty invar_insert invar_delete
 
 text \<open>The basic set interface with \<open>inorder\<close>-based specification:\<close>
 
@@ -43,6 +45,7 @@ assumes inorder_delete: "inv t \<and> sorted(inorder t) \<Longrightarrow>
 assumes inorder_inv_empty:  "inv empty"
 assumes inorder_inv_insert: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(insert x t)"
 assumes inorder_inv_delete: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(delete x t)"
+
 begin
 
 text \<open>It implements the traditional specification:\<close>

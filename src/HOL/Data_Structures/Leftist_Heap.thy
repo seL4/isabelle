@@ -6,7 +6,7 @@ theory Leftist_Heap
 imports
   Base_FDS
   Tree2
-  Priority_Queue
+  Priority_Queue_Specs
   Complex_Main
 begin
 

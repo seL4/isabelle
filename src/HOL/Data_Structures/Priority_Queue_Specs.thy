@@ -1,12 +1,12 @@
 (* Author: Tobias Nipkow, Peter Lammich *)
 
-section \<open>Priority Queue Interface\<close>
+section \<open>Priority Queue Specifications\<close>
 
-theory Priority_Queue
+theory Priority_Queue_Specs
 imports "HOL-Library.Multiset"
 begin
 
-text \<open>Priority queue interface:\<close>
+text \<open>Priority queue interface + specification:\<close>
     
 locale Priority_Queue =
 fixes empty :: "'q"

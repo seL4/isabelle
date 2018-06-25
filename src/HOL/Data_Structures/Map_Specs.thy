@@ -21,6 +21,9 @@ and invar_empty: "invar empty"
 and invar_update: "invar m \<Longrightarrow> invar(update a b m)"
 and invar_delete: "invar m \<Longrightarrow> invar(delete a m)"
 
+lemmas (in Map) map_specs =
+  map_empty map_update map_delete invar_empty invar_update invar_delete
+
 
 text \<open>The basic map interface with \<open>inorder\<close>-based specification:\<close>
 
@@ -41,6 +44,7 @@ and inorder_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
 and inorder_inv_empty:  "inv empty"
 and inorder_inv_update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(update a b t)"
 and inorder_inv_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(delete a t)"
+
 begin
 
 text \<open>It implements the traditional specification:\<close>

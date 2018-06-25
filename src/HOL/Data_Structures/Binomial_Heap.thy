@@ -8,7 +8,7 @@ theory Binomial_Heap
 imports
   Base_FDS
   Complex_Main
-  Priority_Queue
+  Priority_Queue_Specs
 begin
 
 text \<open>
