@@ -84,7 +84,7 @@ lemma inside_simple_curve_imp_closed:
     shows "\<lbrakk>simple_path \<gamma>; x \<in> inside(path_image \<gamma>)\<rbrakk> \<Longrightarrow> pathfinish \<gamma> = pathstart \<gamma>"
   using arc_simple_path  inside_arc_empty by blast
 
-    
+
 subsection \<open>Piecewise differentiable functions\<close>
 
 definition piecewise_differentiable_on
@@ -466,7 +466,7 @@ proof (cases "m = 0")
 next
   case False
   have *: "\<And>x. finite (S \<inter> {y. m * y + c = x})"
-    using False not_finite_existsD by fastforce 
+    using False not_finite_existsD by fastforce
   show ?thesis
     apply (rule piecewise_C1_differentiable_compose [OF C1_differentiable_imp_piecewise])
     apply (rule * assms derivative_intros | simp add: False vimage_def)+
@@ -601,7 +601,7 @@ proof -
   have g1D: "g1 differentiable at x" if "x \<in> {0..1} - insert 1 (( *) 2 ` S)" for x
   proof (rule differentiable_transform_within)
     show "g1 +++ g2 \<circ> ( *) (inverse 2) differentiable at x"
-      using that g12D 
+      using that g12D
       apply (simp only: joinpaths_def)
       by (rule differentiable_chain_at derivative_intros | force)+
     show "\<And>x'. \<lbrakk>dist x' x < dist (x/2) (1/2)\<rbrakk>
@@ -740,7 +740,7 @@ proof -
         by (meson C1_differentiable_on_eq \<open>g C1_differentiable_on {0..1} - S\<close> that)
     next
       have "g t\<in>path_image g" using that DiffD1 image_eqI path_image_def by metis
-      then show "f differentiable at (g t)" 
+      then show "f differentiable at (g t)"
         using der[THEN field_differentiable_imp_differentiable] by auto
     qed
   moreover have "continuous_on ({0..1} - S) (\<lambda>x. vector_derivative (f \<circ> g) (at x))"
@@ -767,7 +767,7 @@ proof -
     qed
   ultimately have "f \<circ> g C1_differentiable_on {0..1} - S"
     using C1_differentiable_on_eq by blast
-  moreover have "path (f \<circ> g)" 
+  moreover have "path (f \<circ> g)"
     apply (rule path_continuous_image[OF valid_path_imp_path[OF \<open>valid_path g\<close>]])
     using der
     by (simp add: continuous_at_imp_continuous_on field_differentiable_imp_continuous_at)
@@ -898,7 +898,7 @@ proof -
        {0..1}"
     using has_integral_affinity01 [where m= "-1" and c=1, OF f [unfolded has_contour_integral_def]]
     by (simp add: has_integral_neg)
-  then show ?thesis 
+  then show ?thesis
     using S
     apply (clarsimp simp: reversepath_def has_contour_integral_def)
     apply (rule_tac S = "(\<lambda>x. 1 - x) ` S" in has_integral_spike_finite)
@@ -2155,7 +2155,7 @@ proof -
       done
   } note * = this
   show ?thesis
-    using cd e 
+    using cd e
     apply (simp add: field_differentiable_def has_field_derivative_def has_derivative_within_alt approachable_lt_le2 Ball_def)
     apply (clarify dest!: spec mp)
     using * unfolding dist_norm
@@ -2508,7 +2508,7 @@ proof -
             by (blast intro: uv continuous_on_subset [OF contf closed_segment_subset_convex_hull])
           have **: "\<And>f' x' f x::complex. f'*x' - f*x = f'*(x' - x) + x*(f' - f)"
             by (simp add: algebra_simps)
-          have "norm (?pathint (shrink u) (shrink v) - ?pathint u v) 
+          have "norm (?pathint (shrink u) (shrink v) - ?pathint u v)
                 \<le> (B*(norm y /24/C/B)*2*C + (2*C)*(norm y/24/C)) * content (cbox 0 (1::real))"
             apply (rule has_integral_bound
                     [of _ "\<lambda>x. f(linepath (shrink u) (shrink v) x) * (shrink v - shrink u) - f(linepath u v x)*(v - u)"
@@ -2835,7 +2835,7 @@ proof -
 qed
 
 lemma contour_integral_convex_primitive:
-  assumes "convex S" "continuous_on S f" 
+  assumes "convex S" "continuous_on S f"
           "\<And>a b c. \<lbrakk>a \<in> S; b \<in> S; c \<in> S\<rbrakk> \<Longrightarrow> (f has_contour_integral 0) (linepath a b +++ linepath b c +++ linepath c a)"
   obtains g where "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative f x) (at x within S)"
 proof (cases "S={}")
@@ -2846,7 +2846,7 @@ qed auto
 
 lemma holomorphic_convex_primitive:
   fixes f :: "complex \<Rightarrow> complex"
-  assumes "convex S" "finite K" and contf: "continuous_on S f" 
+  assumes "convex S" "finite K" and contf: "continuous_on S f"
     and fd: "\<And>x. x \<in> interior S - K \<Longrightarrow> f field_differentiable at x"
   obtains g where "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative f x) (at x within S)"
 proof (rule contour_integral_convex_primitive [OF \<open>convex S\<close> contf Cauchy_theorem_triangle_cofinite])
@@ -2871,7 +2871,7 @@ qed (use assms in \<open>auto intro: holomorphic_on_imp_continuous_on\<close>)
 corollary Cauchy_theorem_convex:
     "\<lbrakk>continuous_on S f; convex S; finite K;
       \<And>x. x \<in> interior S - K \<Longrightarrow> f field_differentiable at x;
-      valid_path g; path_image g \<subseteq> S; pathfinish g = pathstart g\<rbrakk> 
+      valid_path g; path_image g \<subseteq> S; pathfinish g = pathstart g\<rbrakk>
      \<Longrightarrow> (f has_contour_integral 0) g"
   by (metis holomorphic_convex_primitive Cauchy_theorem_primitive)
 
@@ -3561,14 +3561,14 @@ proof (intro ext arg_cong [where f = Eps] arg_cong [where f = All] imp_cong refl
   assume "0 < e" and g: "winding_number_prop p z e g n"
   then show "\<exists>r. winding_number_prop (\<lambda>w. p w - z) 0 e r n"
     by (rule_tac x="\<lambda>t. g t - z" in exI)
-       (force simp: winding_number_prop_def contour_integral_integral valid_path_def path_defs  
+       (force simp: winding_number_prop_def contour_integral_integral valid_path_def path_defs
                 vector_derivative_def has_vector_derivative_diff_const piecewise_C1_differentiable_diff C1_differentiable_imp_piecewise)
 next
   fix n e g
   assume "0 < e" and g: "winding_number_prop (\<lambda>w. p w - z) 0 e g n"
   then show "\<exists>r. winding_number_prop p z e r n"
     apply (rule_tac x="\<lambda>t. g t + z" in exI)
-    apply (simp add: winding_number_prop_def contour_integral_integral valid_path_def path_defs 
+    apply (simp add: winding_number_prop_def contour_integral_integral valid_path_def path_defs
         piecewise_C1_differentiable_add vector_derivative_def has_vector_derivative_add_const C1_differentiable_imp_piecewise)
     apply (force simp: algebra_simps)
     done
@@ -3665,7 +3665,7 @@ proof -
       by (force simp: ge0)
     show "((\<lambda>x. if 0 < x \<and> x < 1 then ?vd x else 0) has_integral ?int z) (cbox 0 1)"
       by (rule has_integral_spike_interior [OF hi]) simp
-  qed 
+  qed
   then show ?thesis
     by (simp add: Re_winding_number [OF \<gamma>] field_simps)
 qed
@@ -3679,7 +3679,7 @@ proof -
   let ?vd = "\<lambda>x. 1 / (\<gamma> x - z) * vector_derivative \<gamma> (at x)"
   let ?int = "\<lambda>z. contour_integral \<gamma> (\<lambda>w. 1 / (w - z))"
   have hi: "(?vd has_integral ?int z) (cbox 0 1)"
-    unfolding box_real 
+    unfolding box_real
     apply (subst has_contour_integral [symmetric])
     using \<gamma> by (simp add: contour_integrable_inversediff has_contour_integral_integral)
   have "e \<le> Im (contour_integral \<gamma> (\<lambda>w. 1 / (w - z)))"
@@ -3782,7 +3782,7 @@ proof -
     unfolding integrable_on_def [symmetric]
   proof (rule contour_integral_local_primitive_any [OF piecewise_C1_imp_differentiable [OF \<gamma>]])
     show "\<exists>d h. 0 < d \<and>
-               (\<forall>y. cmod (y - w) < d \<longrightarrow> (h has_field_derivative inverse (y - z))(at y within - {z}))" 
+               (\<forall>y. cmod (y - w) < d \<longrightarrow> (h has_field_derivative inverse (y - z))(at y within - {z}))"
           if "w \<in> - {z}" for w
       apply (rule_tac x="norm(w - z)" in exI)
       using that inverse_eq_divide has_field_derivative_at_within h
@@ -3899,21 +3899,21 @@ proof -
   have cont: "continuous_on {0..1}
      (\<lambda>x. Im (integral {0..x} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))))"
     by (intro continuous_intros indefinite_integral_continuous_1 winding_number_exp_integral [OF gpd]; simp)
-  have "Arg r \<le> 2*pi"
-    by (simp add: Arg less_eq_real_def)
+  have "Arg2pi r \<le> 2*pi"
+    by (simp add: Arg2pi less_eq_real_def)
   also have "\<dots> \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))"
     using 1
     apply (simp add: winding_number_valid_path [OF \<gamma> z] contour_integral_integral)
     apply (simp add: Complex.Re_divide field_simps power2_eq_square)
     done
-  finally have "Arg r \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))" .
-  then have "\<exists>t. t \<in> {0..1} \<and> Im(integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
-    by (simp add: Arg_ge_0 cont IVT')
+  finally have "Arg2pi r \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))" .
+  then have "\<exists>t. t \<in> {0..1} \<and> Im(integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg2pi r"
+    by (simp add: Arg2pi_ge_0 cont IVT')
   then obtain t where t:     "t \<in> {0..1}"
-                  and eqArg: "Im (integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
+                  and eqArg: "Im (integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg2pi r"
     by blast
   define i where "i = integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
-  have iArg: "Arg r = Im i"
+  have iArg: "Arg2pi r = Im i"
     using eqArg by (simp add: i_def)
   have gpdt: "\<gamma> piecewise_C1_differentiable_on {0..t}"
     by (metis atLeastAtMost_iff atLeastatMost_subset_iff order_refl piecewise_C1_differentiable_on_subset gpd t)
@@ -3927,7 +3927,7 @@ proof -
     by (simp add: r_def)
   then have "z + complex_of_real (exp (Re i)) * (w - z) / complex_of_real (cmod r) = \<gamma> t"
     apply simp
-    apply (subst Complex_Transcendental.Arg_eq [of r])
+    apply (subst Complex_Transcendental.Arg2pi_eq [of r])
     apply (simp add: iArg)
     using * apply (simp add: exp_eq_polar field_simps)
     done
@@ -4158,7 +4158,7 @@ qed
 lemma winding_number_eq:
      "\<lbrakk>path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; w \<in> S; z \<in> S; connected S; S \<inter> path_image \<gamma> = {}\<rbrakk>
       \<Longrightarrow> winding_number \<gamma> w = winding_number \<gamma> z"
-  using winding_number_constant by (metis constant_on_def) 
+  using winding_number_constant by (metis constant_on_def)
 
 lemma open_winding_number_levelsets:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
@@ -5329,7 +5329,7 @@ proof -
       using \<open>0 \<le> B\<close>  \<open>0 < e\<close> by (simp add: divide_simps)
     have "\<exists>h. (\<forall>x\<in>{0..1}. cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - h x) \<le> e) \<and> h integrable_on {0..1}"
     proof (intro exI conjI ballI)
-      show "cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - f a (\<gamma> x) * vector_derivative \<gamma> (at x)) \<le> e" 
+      show "cmod (l (\<gamma> x) * vector_derivative \<gamma> (at x) - f a (\<gamma> x) * vector_derivative \<gamma> (at x)) \<le> e"
         if "x \<in> {0..1}" for x
         apply (rule order_trans [OF _ Ble])
         using noleB [OF that] fga [OF that] \<open>0 \<le> B\<close> \<open>0 < e\<close>
@@ -5339,13 +5339,13 @@ proof -
     qed (rule inta)
   }
   then show lintg: "l contour_integrable_on \<gamma>"
-    unfolding contour_integrable_on by (metis (mono_tags, lifting)integrable_uniform_limit_real) 
+    unfolding contour_integrable_on by (metis (mono_tags, lifting)integrable_uniform_limit_real)
   { fix e::real
     define B' where "B' = B + 1"
     have B': "B' > 0" "B' > B" using  \<open>0 \<le> B\<close> by (auto simp: B'_def)
     assume "0 < e"
     then have ev_no': "\<forall>\<^sub>F n in F. \<forall>x\<in>path_image \<gamma>. 2 * cmod (f n x - l x) < e / B'"
-      using ul_f [unfolded uniform_limit_iff dist_norm, rule_format, of "e / B' / 2"] B' 
+      using ul_f [unfolded uniform_limit_iff dist_norm, rule_format, of "e / B' / 2"] B'
         by (simp add: field_simps)
     have ie: "integral {0..1::real} (\<lambda>x. e / 2) < e" using \<open>0 < e\<close> by simp
     have *: "cmod (f x (\<gamma> t) * vector_derivative \<gamma> (at t) - l (\<gamma> t) * vector_derivative \<gamma> (at t)) \<le> e / 2"
@@ -6024,7 +6024,7 @@ proof -
             \<Longrightarrow> f field_differentiable at x" for a b c x
         by (metis cdf Diff_iff Int_iff ball_min_Int subsetD convex_ball e interior_mono interior_subset subset_hull)
       obtain g where "\<And>w. w \<in> ball z (min d e) \<Longrightarrow> (g has_field_derivative f w) (at w within ball z (min d e))"
-        apply (rule contour_integral_convex_primitive 
+        apply (rule contour_integral_convex_primitive
                      [OF convex_ball fde Cauchy_theorem_triangle_cofinite [OF _ K]])
         using cont fd by auto
       then have "f holomorphic_on ball z (min d e)"
@@ -6040,7 +6040,7 @@ qed
 
 lemma no_isolated_singularity':
   fixes z::complex
-  assumes f: "\<And>z. z \<in> K \<Longrightarrow> (f \<longlongrightarrow> f z) (at z within S)" 
+  assumes f: "\<And>z. z \<in> K \<Longrightarrow> (f \<longlongrightarrow> f z) (at z within S)"
       and holf: "f holomorphic_on (S - K)" and S: "open S" and K: "finite K"
     shows "f holomorphic_on S"
 proof (rule no_isolated_singularity[OF _ assms(2-)])
@@ -6050,9 +6050,9 @@ proof (rule no_isolated_singularity[OF _ assms(2-)])
     show "(f \<longlongrightarrow> f z) (at z within S)"
     proof (cases "z \<in> K")
       case False
-      from holf have "continuous_on (S - K) f" 
+      from holf have "continuous_on (S - K) f"
         by (rule holomorphic_on_imp_continuous_on)
-      with z False have "(f \<longlongrightarrow> f z) (at z within (S - K))" 
+      with z False have "(f \<longlongrightarrow> f z) (at z within (S - K))"
         by (simp add: continuous_on_def)
       also from z K S False have "at z within (S - K) = at z within S"
         by (subst (1 2) at_within_open) (auto intro: finite_imp_closed)
@@ -6071,7 +6071,7 @@ proof -
   have *: "\<And>x. x \<in> interior S \<Longrightarrow> f field_differentiable at x"
     unfolding holomorphic_on_open [symmetric] field_differentiable_def
     using no_isolated_singularity [where S = "interior S"]
-    by (meson K contf continuous_at_imp_continuous_on continuous_on_interior fcd 
+    by (meson K contf continuous_at_imp_continuous_on continuous_on_interior fcd
           field_differentiable_at_within field_differentiable_def holomorphic_onI
           holomorphic_on_imp_differentiable_at open_interior)
   show ?thesis
@@ -6159,7 +6159,7 @@ theorem holomorphic_power_series:
 proof -
   \<comment> \<open>Replacing @{term r} and the original (weak) premises with stronger ones\<close>
   obtain r where "r > 0" and holfc: "f holomorphic_on cball z r" and w: "w \<in> ball z r"
-  proof 
+  proof
     have "cball z ((r + dist w z) / 2) \<subseteq> ball z r"
       using w by (simp add: dist_commute real_sum_of_halves subset_eq)
     then show "f holomorphic_on cball z ((r + dist w z) / 2)"
@@ -6169,7 +6169,7 @@ proof -
     then show "0 < (r + dist w z) / 2"
       by simp (use zero_le_dist [of w z] in linarith)
   qed (use w in \<open>auto simp: dist_commute\<close>)
-  then have holf: "f holomorphic_on ball z r" 
+  then have holf: "f holomorphic_on ball z r"
     using ball_subset_cball holomorphic_on_subset by blast
   have contf: "continuous_on (cball z r) f"
     by (simp add: holfc holomorphic_on_imp_continuous_on)
@@ -6179,12 +6179,12 @@ proof -
     by (metis (no_types) bounded_pos compact_cball compact_continuous_image compact_imp_bounded contf image_eqI)
   obtain k where k: "0 < k" "k \<le> r" and wz_eq: "norm(w - z) = r - k"
              and kle: "\<And>u. norm(u - z) = r \<Longrightarrow> k \<le> norm(u - w)"
-  proof 
+  proof
     show "\<And>u. cmod (u - z) = r \<Longrightarrow> r - dist z w \<le> cmod (u - w)"
       by (metis add_diff_eq diff_add_cancel dist_norm norm_diff_ineq)
   qed (use w in \<open>auto simp: dist_norm norm_minus_commute\<close>)
   have ul: "uniform_limit (sphere z r) (\<lambda>n x. (\<Sum>k<n. (w - z) ^ k * (f x / (x - z) ^ Suc k))) (\<lambda>x. f x / (x - w)) sequentially"
-    unfolding uniform_limit_iff dist_norm 
+    unfolding uniform_limit_iff dist_norm
   proof clarify
     fix e::real
     assume "0 < e"
@@ -6378,7 +6378,7 @@ next
       apply (auto intro: Cauchy_higher_derivative_integral_circlepath [where k=0, simplified])
       done
     have ul_less: "uniform_limit (sphere z r) (\<lambda>n x. f n x / (x - w)) (\<lambda>x. g x / (x - w)) F"
-      using greater \<open>0 < d\<close> 
+      using greater \<open>0 < d\<close>
       apply (clarsimp simp add: uniform_limit_iff dist_norm norm_divide diff_divide_distrib [symmetric] divide_simps)
       apply (rule_tac e1="e * d" in eventually_mono [OF uniform_limitD [OF ulim]])
        apply (force simp: dist_norm intro: dle mult_left_mono less_le_trans)+
@@ -6389,7 +6389,7 @@ next
       by (rule contour_integral_uniform_limit_circlepath [OF ev_int ul_less F \<open>0 < r\<close>])
     have f_tends_cig: "((\<lambda>n. 2 * of_real pi * \<i> * f n w) \<longlongrightarrow> contour_integral (circlepath z r) (\<lambda>u. g u / (u - w))) F"
     proof (rule Lim_transform_eventually)
-      show "\<forall>\<^sub>F x in F. contour_integral (circlepath z r) (\<lambda>u. f x u / (u - w)) 
+      show "\<forall>\<^sub>F x in F. contour_integral (circlepath z r) (\<lambda>u. f x u / (u - w))
                      = 2 * of_real pi * \<i> * f x w"
         apply (rule eventually_mono [OF cont contour_integral_unique [OF Cauchy_integral_circlepath]])
         using w\<open>0 < d\<close> d_def by auto
@@ -6507,7 +6507,7 @@ proof -
   proof -
     obtain r where "0 < r" and r: "cball z r \<subseteq> S"
                and ul: "uniform_limit (cball z r) f g sequentially"
-      using ulim_g [OF \<open>z \<in> S\<close>] by blast 
+      using ulim_g [OF \<open>z \<in> S\<close>] by blast
     have *: "\<forall>\<^sub>F n in sequentially. continuous_on (cball z r) (f n) \<and> f n holomorphic_on ball z r"
     proof (intro eventuallyI conjI)
       show "continuous_on (cball z r) (f x)" for x
@@ -6537,7 +6537,7 @@ proof -
   proof -
     obtain r where "0 < r" and r: "cball z r \<subseteq> S"
                and ul: "uniform_limit (cball z r) f g sequentially"
-      using ulim_g [OF \<open>z \<in> S\<close>] by blast 
+      using ulim_g [OF \<open>z \<in> S\<close>] by blast
     have *: "\<forall>\<^sub>F n in sequentially. continuous_on (cball z r) (f n) \<and>
                                    (\<forall>w \<in> ball z r. ((f n) has_field_derivative (f' n w)) (at w))"
     proof (intro eventuallyI conjI ballI)
@@ -6555,7 +6555,7 @@ qed
 
 
 subsection\<open>On analytic functions defined by a series\<close>
- 
+
 lemma series_and_derivative_comparison:
   fixes S :: "complex set"
   assumes S: "open S"
@@ -6878,7 +6878,7 @@ proof -
     have "isCont (\<lambda>z. if z = a then deriv f a else (f z - f a) / (z - a)) x"
             if "dist a x < e" for x
     proof (cases "x=a")
-      case True 
+      case True
       then have "f field_differentiable at a"
         using holfb \<open>0 < e\<close> holomorphic_on_imp_differentiable_at by auto
       with True show ?thesis
@@ -6961,10 +6961,10 @@ lemma pole_theorem_analytic:
              \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>w \<in> ball z d - {a}. g w = (w - a) * f w)"
     shows "(\<lambda>z. if z = a then deriv g a else f z - g a/(z - a)) analytic_on S" (is "?F analytic_on S")
   unfolding analytic_on_def
-proof 
+proof
   fix x
   assume "x \<in> S"
-  with g obtain e where "0 < e" and e: "g holomorphic_on ball x e" 
+  with g obtain e where "0 < e" and e: "g holomorphic_on ball x e"
     by (auto simp add: analytic_on_def)
   obtain d where "0 < d" and d: "\<And>w. w \<in> ball x d - {a} \<Longrightarrow> g w = (w - a) * f w"
     using \<open>x \<in> S\<close> eq by blast
@@ -7279,7 +7279,7 @@ proof -
       obtain k1 where "k1>0" and k1: "\<And>x'. norm (x' - x) \<le> k1 \<Longrightarrow> norm (deriv f x' - deriv f x) < e"
         using \<open>0 < e\<close> continuous_within_E [OF con_derf [OF \<open>x \<in> U\<close>]]
         by (metis UNIV_I dist_norm)
-      obtain k2 where "k2>0" and k2: "ball x k2 \<subseteq> U" 
+      obtain k2 where "k2>0" and k2: "ball x k2 \<subseteq> U"
         by (blast intro: openE [OF \<open>open U\<close>] \<open>x \<in> U\<close>)
       have neq: "norm ((f z' - f x') / (z' - x') - deriv f x) \<le> e"
                     if "z' \<noteq> x'" and less_k1: "norm (x'-x, z'-x) < k1" and less_k2: "norm (x'-x, z'-x) < k2"
@@ -7518,7 +7518,7 @@ proof -
   then have wn0: "\<And>w. w \<notin> S \<Longrightarrow> winding_number p w = 0"
     by (simp add: zero)
   show ?thesis
-    using Cauchy_integral_formula_global_weak [OF S holf z polyp paps ploop wn0] hols 
+    using Cauchy_integral_formula_global_weak [OF S holf z polyp paps ploop wn0] hols
     by (metis wn_eq cint_eq has_contour_integral_eqpath cint_fw cint_eq)
 qed
 
@@ -7579,7 +7579,7 @@ apply (auto intro!: Cauchy_theorem_null_homotopic [where a = "pathstart g"]
 using valid_path_imp_path by blast
 
 proposition holomorphic_logarithm_exists:
-  assumes A: "convex A" "open A" 
+  assumes A: "convex A" "open A"
       and f: "f holomorphic_on A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
       and z0: "z0 \<in> A"
     obtains g where "g holomorphic_on A" and "\<And>x. x \<in> A \<Longrightarrow> exp (g x) = f x"
