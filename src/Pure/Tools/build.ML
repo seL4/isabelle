@@ -208,7 +208,7 @@ fun build_session (Args {symbol_codes, command_timings, do_output, verbose, brow
         browser_info
         (Options.default_string "document")
         (Options.default_string "document_output")
-        (Present.document_variants (Options.default_string "document_variants"))
+        (Present.document_variants (Options.default ()))
         document_files
         graph_file
         parent_name

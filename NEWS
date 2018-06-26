@@ -151,9 +151,9 @@ are supported:
 theory Pure. Thus elementary antiquotations may be used in markup
 commands (e.g. 'chapter', 'section', 'text') and formal comments.
 
-* System option "document_tags" specifies a default for otherwise
-untagged commands. This is occasionally useful to control the global
-visibility of commands via session options (e.g. in ROOT).
+* System option "document_tags" specifies alternative command tags. This
+is occasionally useful to control the global visibility of commands via
+session options (e.g. in ROOT).
 
 * Document markup commands ('section', 'text' etc.) are implicitly
 tagged as "document" and visible by default. This avoids the application

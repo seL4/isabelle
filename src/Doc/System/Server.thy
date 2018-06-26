@@ -481,7 +481,7 @@ text \<open>
   when building a session image). Apart from a regular output message, it also
   reveals the formal theory name (e.g.\ \<^verbatim>\<open>"HOL.Nat"\<close>) and session name (e.g.\
   \<^verbatim>\<open>"HOL"\<close>). Note that some rare theory names lack a proper session prefix,
-  e.g. theory \<^verbatim>\<open>"Main"\<close> in session \<^verbatim>\<open>"HOL"\<close>.
+  e.g.\ theory \<^verbatim>\<open>"Main"\<close> in session \<^verbatim>\<open>"HOL"\<close>.
 
   \<^item> \<^bold>\<open>type\<close>~\<open>timing = {elapsed: double, cpu: double, gc: double}\<close> refers to
   common Isabelle timing information in seconds, usually with a precision of

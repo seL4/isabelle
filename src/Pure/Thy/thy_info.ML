@@ -56,7 +56,7 @@ val _ =
     if exists (Toplevel.is_skipped_proof o #state) segments then ()
     else
       let
-        val body = Thy_Output.present_thy thy segments;
+        val body = Thy_Output.present_thy options thy segments;
         val option = Present.document_option options;
       in
         if #disabled option then ()

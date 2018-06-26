@@ -199,9 +199,11 @@ text \<open>
     possible to use different document variant names (without tags) for
     different document root entries, see also \secref{sec:tool-document}.
 
-    \<^item> @{system_option_def "document_tags"} specifies a default for otherwise
-    untagged commands. This is occasionally useful to control the global
-    visibility of commands via session options (e.g. in \<^verbatim>\<open>ROOT\<close>).
+    \<^item> @{system_option_def "document_tags"} specifies alternative command tags
+    as a comma-separated list of items: either ``\<open>command\<close>\<^verbatim>\<open>%\<close>\<open>tag\<close>'' for a
+    specific command, or ``\<^verbatim>\<open>%\<close>\<open>tag\<close>'' as default for all other commands. This
+    is occasionally useful to control the global visibility of commands via
+    session options (e.g.\ in \<^verbatim>\<open>ROOT\<close>).
 
     \<^item> @{system_option_def "threads"} determines the number of worker threads
     for parallel checking of theories and proofs. The default \<open>0\<close> means that a
@@ -563,7 +565,7 @@ text \<open>
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode for session image
-    -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
+    -x PATTERN   extract files matching pattern (e.g.\ "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
   isabelle build. Option -l or -x is required; option -x may be repeated.
