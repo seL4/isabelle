@@ -56,7 +56,7 @@ subclass (in finite) countable
 proof
   have "finite (UNIV::'a set)" by (rule finite_UNIV)
   with finite_conv_nat_seg_image [of "UNIV::'a set"]
-  obtain n and f :: "nat \<Rightarrow> 'a" 
+  obtain n and f :: "nat \<Rightarrow> 'a"
     where "UNIV = f ` {i. i < n}" by auto
   then have "surj f" unfolding surj_def by auto
   then have "inj (inv f)" by (rule surj_imp_inj_inv)
@@ -322,5 +322,8 @@ proof
       by (rule surj_imp_inj_inv)
   qed
 qed
+
+theorem rat_denum: "\<exists>f :: nat \<Rightarrow> rat. surj f"
+ using surj_nat_to_rat_surj by metis
 
 end
