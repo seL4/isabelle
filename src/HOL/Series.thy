@@ -36,6 +36,21 @@ lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f 
 lemma sums_def_le: "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i\<le>n. f i) \<longlonglongrightarrow> s"
   by (simp add: sums_def' atMost_atLeast0)
 
+lemma bounded_imp_summable:
+  fixes a :: "nat \<Rightarrow> 'a::{conditionally_complete_linorder,linorder_topology,linordered_comm_semiring_strict}"
+  assumes 0: "\<And>n. a n \<ge> 0" and bounded: "\<And>n. (\<Sum>k\<le>n. a k) \<le> B"
+  shows "summable a" 
+proof -
+  have "bdd_above (range(\<lambda>n. \<Sum>k\<le>n. a k))"
+    by (meson bdd_aboveI2 bounded)
+  moreover have "incseq (\<lambda>n. \<Sum>k\<le>n. a k)"
+    by (simp add: mono_def "0" sum_mono2)
+  ultimately obtain s where "(\<lambda>n. \<Sum>k\<le>n. a k) \<longlonglongrightarrow> s"
+    using LIMSEQ_incseq_SUP by blast
+  then show ?thesis
+    by (auto simp: sums_def_le summable_def)
+qed
+
 
 subsection \<open>Infinite summability on topological monoids\<close>
 

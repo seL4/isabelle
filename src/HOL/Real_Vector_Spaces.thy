@@ -388,6 +388,10 @@ lemma Reals_add [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Lon
 lemma Reals_minus [simp]: "a \<in> \<real> \<Longrightarrow> - a \<in> \<real>"
   by (auto simp add: Reals_def)
 
+lemma Reals_minus_iff [simp]: "- a \<in> \<real> \<longleftrightarrow> a \<in> \<real>"
+  apply (auto simp: Reals_def)
+  by (metis add.inverse_inverse of_real_minus rangeI)
+
 lemma Reals_diff [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a - b \<in> \<real>"
   apply (auto simp add: Reals_def)
   apply (rule range_eqI)

@@ -211,7 +211,7 @@ proof (induction A rule: infinite_finite_induct)
     by simp
   also from insert.prems have "f x \<in> \<real>" by simp
   hence "Im (f x) = 0" by (auto elim!: Reals_cases)
-  also have "Re (prod f A) = (\<Prod>x\<in>A. Re (f x))" 
+  also have "Re (prod f A) = (\<Prod>x\<in>A. Re (f x))"
     by (intro insert.IH insert.prems) auto
   finally show ?case using insert.hyps by simp
 qed auto
@@ -590,6 +590,9 @@ lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im z) * \<i>"
 lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<^sup>2 + (Im z)\<^sup>2)"
   by (simp add: complex_eq_iff power2_eq_square)
 
+lemma cnj_add_mult_eq_Re: "z * cnj w + cnj z * w = 2 * Re (z * cnj w)"
+  by (rule complex_eqI) auto
+
 lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<^sup>2"
   by (simp add: norm_mult power2_eq_square)
 
@@ -796,7 +799,7 @@ lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re (cis a ^ n)"
 lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im (cis a ^ n)"
   by (auto simp add: DeMoivre)
 
-lemma cis_pi: "cis pi = -1"
+lemma cis_pi [simp]: "cis pi = -1"
   by (simp add: complex_eq_iff)
 
 
@@ -976,7 +979,7 @@ subsection \<open>Complex n-th roots\<close>
 
 lemma bij_betw_roots_unity:
   assumes "n > 0"
-  shows   "bij_betw (\<lambda>k. cis (2 * pi * real k / real n)) {..<n} {z. z ^ n = 1}" 
+  shows   "bij_betw (\<lambda>k. cis (2 * pi * real k / real n)) {..<n} {z. z ^ n = 1}"
     (is "bij_betw ?f _ _")
   unfolding bij_betw_def
 proof (intro conjI)
@@ -1015,7 +1018,7 @@ proof (intro conjI)
   finally have card: "card {z::complex. z ^ n = 1} = n"
     using assms by (intro antisym card_roots_unity) auto
 
-  have "card (?f ` {..<n}) = card {z::complex. z ^ n = 1}" 
+  have "card (?f ` {..<n}) = card {z::complex. z ^ n = 1}"
     using card inj by (subst card_image) auto
   with subset and assms show "?f ` {..<n} = {z::complex. z ^ n = 1}"
     by (intro card_subset_eq finite_roots_unity) auto
@@ -1219,12 +1222,7 @@ qed
 
 text \<open>Legacy theorem names\<close>
 
-lemmas expand_complex_eq = complex_eq_iff
-lemmas complex_Re_Im_cancel_iff = complex_eq_iff
-lemmas complex_equality = complex_eqI
 lemmas cmod_def = norm_complex_def
-lemmas complex_norm_def = norm_complex_def
-lemmas complex_divide_def = divide_complex_def
 
 lemma legacy_Complex_simps:
   shows Complex_eq_0: "Complex a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"

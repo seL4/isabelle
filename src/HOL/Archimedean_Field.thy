@@ -453,6 +453,16 @@ next
     by simp
 qed
 
+lemma floor_divide_lower:
+  fixes q :: "'a::floor_ceiling"
+  shows "q > 0 \<Longrightarrow> of_int \<lfloor>p / q\<rfloor> * q \<le> p"
+  using of_int_floor_le pos_le_divide_eq by blast
+
+lemma floor_divide_upper:
+  fixes q :: "'a::floor_ceiling"
+  shows "q > 0 \<Longrightarrow> p < (of_int \<lfloor>p / q\<rfloor> + 1) * q"
+  by (meson floor_eq_iff pos_divide_less_eq)
+
 
 subsection \<open>Ceiling function\<close>
 
@@ -650,6 +660,16 @@ proof
     by metis 
 qed
 
+lemma ceiling_divide_upper:
+  fixes q :: "'a::floor_ceiling"
+  shows "q > 0 \<Longrightarrow> p \<le> of_int (ceiling (p / q)) * q"
+  by (meson divide_le_eq le_of_int_ceiling)
+
+lemma ceiling_divide_lower:
+  fixes q :: "'a::floor_ceiling"
+  shows "q > 0 \<Longrightarrow> (of_int \<lceil>p / q\<rceil> - 1) * q < p"
+  by (meson ceiling_eq_iff pos_less_divide_eq)
+
 subsection \<open>Negation\<close>
 
 lemma floor_minus: "\<lfloor>- x\<rfloor> = - \<lceil>x\<rceil>"
@@ -657,7 +677,6 @@ lemma floor_minus: "\<lfloor>- x\<rfloor> = - \<lceil>x\<rceil>"
 
 lemma ceiling_minus: "\<lceil>- x\<rceil> = - \<lfloor>x\<rfloor>"
   unfolding ceiling_def by simp
-
 
 subsection \<open>Natural numbers\<close>
 
