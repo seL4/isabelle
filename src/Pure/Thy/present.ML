@@ -9,7 +9,7 @@ sig
   val get_bibtex_entries: theory -> string list
   val theory_qualifier: theory -> string
   val document_option: Options.T -> {enabled: bool, disabled: bool}
-  val document_variants: string -> (string * string) list
+  val document_variants: Options.T -> (string * string) list
   val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
@@ -148,14 +148,14 @@ fun document_option options =
   | "false" => {enabled = false, disabled = true}
   | _ => {enabled = true, disabled = false});
 
-fun document_variants str =
+fun document_variants options =
   let
-    fun read_variant s =
-      (case space_explode "=" s of
-        [name] => (name, "")
-      | [name, tags] => (name, tags)
-      | _ => error ("Malformed document variant specification: " ^ quote s));
-    val variants = map read_variant (space_explode ":" str);
+    val variants =
+      space_explode ":" (Options.string options "document_variants") |> map (fn s =>
+        (case space_explode "=" s of
+          [name] => (name, "")
+        | [name, tags] => (name, tags)
+        | _ => error ("Malformed document variant specification: " ^ quote s)));
     val _ =
       (case duplicates (op =) (map #1 variants) of
         [] => ()
