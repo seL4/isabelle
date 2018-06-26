@@ -669,6 +669,16 @@ object Document
     /*intermediate state between remove_versions/removed_versions*/
     removing_versions: Boolean = false)
   {
+    override def toString: String =
+      "State(versions = " + versions.size +
+      ", blobs = " + blobs.size +
+      ", commands = " + commands.size +
+      ", execs = " + execs.size +
+      ", assignments = " + assignments.size +
+      ", commands_redirection = " + commands_redirection.size +
+      ", history = " + history.undo_list.size +
+      ", removing_versions = " + removing_versions + ")"
+
     private def fail[A]: A = throw new State.Fail(this)
 
     def define_version(version: Version, assignment: State.Assignment): State =
