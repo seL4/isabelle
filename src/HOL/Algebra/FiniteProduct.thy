@@ -31,9 +31,7 @@ definition
   foldD :: "['a set, 'b \<Rightarrow> 'a \<Rightarrow> 'a, 'a, 'b set] \<Rightarrow> 'a"
   where "foldD D f e A = (THE x. (A, x) \<in> foldSetD D f e)"
 
-lemma foldSetD_closed:
-  "\<lbrakk>(A, z) \<in> foldSetD D f e; e \<in> D; \<And>x y. \<lbrakk>x \<in> A; y \<in> D\<rbrakk> \<Longrightarrow> f x y \<in> D\<rbrakk>
-    \<Longrightarrow> z \<in> D"
+lemma foldSetD_closed: "(A, z) \<in> foldSetD D f e \<Longrightarrow> z \<in> D"
   by (erule foldSetD.cases) auto
 
 lemma Diff1_foldSetD:
@@ -58,8 +56,12 @@ next
   then show ?case ..
 qed
 
+lemma foldSetD_backwards:
+  assumes "A \<noteq> {}" "(A, z) \<in> foldSetD D f e"
+  shows "\<exists>x y. x \<in> A \<and> (A - { x }, y) \<in> foldSetD D f e \<and> z = f x y"
+  using assms(2) by (cases) (simp add: assms(1), metis Diff_insert_absorb insertI1)
 
-text \<open>Left-Commutative Operations\<close>
+subsubsection \<open>Left-Commutative Operations\<close>
 
 locale LCD =
   fixes B :: "'b set"
@@ -392,9 +394,9 @@ lemma finprod_Un_disjoint:
    \<Longrightarrow> finprod G g (A Un B) = finprod G g A \<otimes> finprod G g B"
   by (metis Pi_split_domain finprod_Un_Int finprod_closed finprod_empty r_one)
 
-lemma finprod_multf:
+lemma finprod_multf [simp]:
   "\<lbrakk>f \<in> A \<rightarrow> carrier G; g \<in> A \<rightarrow> carrier G\<rbrakk> \<Longrightarrow>
-   finprod G (%x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
+   finprod G (\<lambda>x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
 proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
@@ -472,7 +474,20 @@ context comm_monoid begin
 
 lemma finprod_0 [simp]:
   "f \<in> {0::nat} \<rightarrow> carrier G \<Longrightarrow> finprod G f {..0} = f 0"
-by (simp add: Pi_def)
+  by (simp add: Pi_def)
+
+lemma finprod_0':
+  "f \<in> {..n} \<rightarrow> carrier G \<Longrightarrow> (f 0) \<otimes> finprod G f {Suc 0..n} = finprod G f {..n}"
+proof -
+  assume A: "f \<in> {.. n} \<rightarrow> carrier G"
+  hence "(f 0) \<otimes> finprod G f {Suc 0..n} = finprod G f {..0} \<otimes> finprod G f {Suc 0..n}"
+    using finprod_0[of f] by (simp add: funcset_mem)
+  also have " ... = finprod G f ({..0} \<union> {Suc 0..n})"
+    using finprod_Un_disjoint[of "{..0}" "{Suc 0..n}" f] A by (simp add: funcset_mem)
+  also have " ... = finprod G f {..n}"
+    by (simp add: atLeastAtMost_insertL atMost_atLeast0)
+  finally show ?thesis .
+qed
 
 lemma finprod_Suc [simp]:
   "f \<in> {..Suc n} \<rightarrow> carrier G \<Longrightarrow>
@@ -488,11 +503,19 @@ next
   case Suc thus ?case by (simp add: m_assoc Pi_def)
 qed
 
-lemma finprod_mult [simp]:
-  "\<lbrakk>f \<in> {..n} \<rightarrow> carrier G; g \<in> {..n} \<rightarrow> carrier G\<rbrakk> \<Longrightarrow>
-     finprod G (%i. f i \<otimes> g i) {..n::nat} =
-     finprod G f {..n} \<otimes> finprod G g {..n}"
-  by (induct n) (simp_all add: m_ac Pi_def)
+lemma finprod_Suc3:
+  assumes "f \<in> {..n :: nat} \<rightarrow> carrier G"
+  shows "finprod G f {.. n} = (f n) \<otimes> finprod G f {..< n}"
+proof (cases "n = 0")
+  case True thus ?thesis
+   using assms atMost_Suc by simp
+next
+  case False
+  then obtain k where "n = Suc k"
+    using not0_implies_Suc by blast
+  thus ?thesis
+    using finprod_Suc[of f k] assms atMost_Suc lessThan_Suc_atMost by simp
+qed
 
 (* The following two were contributed by Jeremy Avigad. *)
 
@@ -546,7 +569,6 @@ proof -
   also have "(\<Otimes>x\<in>carrier G. a) = a [^] card(carrier G)"
     by (auto simp add: finprod_const)
   finally show ?thesis
-(* uses the preceeding lemma *)
     by auto
 qed
 
@@ -573,8 +595,6 @@ qed
 lemma (in comm_monoid) finprod_Union_disjoint:
   "\<lbrakk>finite C; \<And>A. A \<in> C \<Longrightarrow> finite A \<and> (\<forall>x\<in>A. f x \<in> carrier G); pairwise disjnt C\<rbrakk> \<Longrightarrow>
     finprod G f (\<Union>C) = finprod G (finprod G f) C"
-  apply (frule finprod_UN_disjoint [of C id f])
-  apply auto
-  done
+  by (frule finprod_UN_disjoint [of C id f]) auto
 
 end

@@ -319,7 +319,7 @@ subsubsection \<open>Rcosets - Supporting Lemmas\<close>
 corollary (in group_action) stab_rcosets_not_empty:
   assumes "x \<in> E" "R \<in> rcosets (stabilizer G \<phi> x)"
   shows "R \<noteq> {}"
-  using subgroup.rcosets_not_empty[OF stabilizer_subgroup[OF assms(1)] assms(2)] by simp
+  using subgroup.rcosets_non_empty[OF stabilizer_subgroup[OF assms(1)] assms(2)] by simp
 
 corollary (in group_action) diff_stabilizes:
   assumes "x \<in> E" "R \<in> rcosets (stabilizer G \<phi> x)"

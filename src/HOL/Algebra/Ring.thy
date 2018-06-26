@@ -103,7 +103,7 @@ lemma abelian_groupE:
 
 lemma (in abelian_monoid) a_monoid:
   "monoid (add_monoid G)"
-by (rule comm_monoid.axioms, rule a_comm_monoid) 
+by (rule comm_monoid.axioms, rule a_comm_monoid)
 
 lemma (in abelian_group) a_group:
   "group (add_monoid G)"
@@ -125,7 +125,7 @@ sublocale abelian_monoid <
 context abelian_monoid
 begin
 
-lemmas a_closed = add.m_closed 
+lemmas a_closed = add.m_closed
 lemmas zero_closed = add.one_closed
 lemmas a_assoc = add.m_assoc
 lemmas l_zero = add.l_one
@@ -160,7 +160,6 @@ lemmas finsum_cong' = add.finprod_cong'
 lemmas finsum_0 = add.finprod_0
 lemmas finsum_Suc = add.finprod_Suc
 lemmas finsum_Suc2 = add.finprod_Suc2
-lemmas finsum_add = add.finprod_mult
 lemmas finsum_infinite = add.finprod_infinite
 
 lemmas finsum_cong = add.finprod_cong
@@ -228,7 +227,7 @@ sublocale abelian_group <
   by (rule a_comm_group) (auto simp: m_inv_def a_inv_def finsum_def add_pow_def)
 
 lemmas (in abelian_group) minus_add = add.inv_mult
- 
+
 text \<open>Derive an \<open>abelian_group\<close> from a \<open>comm_group\<close>\<close>
 
 lemma comm_group_abelian_groupI:
@@ -316,7 +315,7 @@ proof (intro cring.intro ring.intro)
     note [simp] = comm_monoid.axioms [OF comm_monoid]
       abelian_group.axioms [OF abelian_group]
       abelian_monoid.a_closed
-        
+
     from R have "z \<otimes> (x \<oplus> y) = (x \<oplus> y) \<otimes> z"
       by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
     also from R have "... = x \<otimes> z \<oplus> y \<otimes> z" by (simp add: l_distr)
@@ -351,7 +350,7 @@ lemma (in abelian_group) r_neg1:
   "\<lbrakk> x \<in> carrier G; y \<in> carrier G \<rbrakk> \<Longrightarrow> (\<ominus> x) \<oplus> (x \<oplus> y) = y"
 proof -
   assume G: "x \<in> carrier G" "y \<in> carrier G"
-  then have "(\<ominus> x \<oplus> x) \<oplus> y = y" 
+  then have "(\<ominus> x \<oplus> x) \<oplus> y = y"
     by (simp only: l_neg l_zero)
   with G show ?thesis by (simp add: a_ac)
 qed
@@ -439,7 +438,7 @@ lemmas (in semiring) semiring_simprules
   [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
   a_closed zero_closed  m_closed one_closed
   a_assoc l_zero  a_comm m_assoc l_one l_distr r_zero
-  a_lcomm r_distr l_null r_null 
+  a_lcomm r_distr l_null r_null
 
 lemmas (in ring) ring_simprules
   [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
@@ -549,7 +548,7 @@ lemma add_pow_int_ge: "(k :: int) \<ge> 0 \<Longrightarrow> [ k ] \<cdot>\<^bsub
   by (simp add: add_pow_def int_pow_def nat_pow_def)
 
 lemma add_pow_int_lt: "(k :: int) < 0 \<Longrightarrow> [ k ] \<cdot>\<^bsub>R\<^esub> a = \<ominus>\<^bsub>R\<^esub> ([ nat (- k) ] \<cdot>\<^bsub>R\<^esub> a)"
-  by (simp add: int_pow_def nat_pow_def a_inv_def add_pow_def) 
+  by (simp add: int_pow_def nat_pow_def a_inv_def add_pow_def)
 
 corollary (in semiring) add_pow_ldistr:
   assumes "a \<in> carrier R" "b \<in> carrier R"
@@ -575,7 +574,7 @@ proof -
   also have " ... = [k] \<cdot> (a \<otimes> b)"
     using add.finprod_const[of "a \<otimes> b" "{..<k}"] assms by simp
   finally show ?thesis .
-qed 
+qed
 
 (* For integers, we need the uniqueness of the additive inverse *)
 lemma (in ring) add_pow_ldistr_int:
@@ -587,7 +586,7 @@ proof (cases "k \<ge> 0")
 next
   case False thus ?thesis
     using add_pow_int_lt[of k R a] add_pow_int_lt[of k R "a \<otimes> b"]
-          add_pow_ldistr[OF assms, of "nat (- k)"] assms l_minus by auto 
+          add_pow_ldistr[OF assms, of "nat (- k)"] assms l_minus by auto
 qed
 
 lemma (in ring) add_pow_rdistr_int:
@@ -599,7 +598,7 @@ proof (cases "k \<ge> 0")
 next
   case False thus ?thesis
     using add_pow_int_lt[of k R b] add_pow_int_lt[of k R "a \<otimes> b"]
-          add_pow_rdistr[OF assms, of "nat (- k)"] assms r_minus by auto 
+          add_pow_rdistr[OF assms, of "nat (- k)"] assms r_minus by auto
 qed
 
 
@@ -628,7 +627,7 @@ proof
   assume eq: "a \<otimes> b = a \<otimes> c"
   with R have "a \<otimes> (b \<ominus> c) = \<zero>" by algebra
   with R have "a = \<zero> \<or> (b \<ominus> c) = \<zero>" by (simp add: integral_iff)
-  with prem and R have "b \<ominus> c = \<zero>" by auto 
+  with prem and R have "b \<ominus> c = \<zero>" by auto
   with R have "b = b \<ominus> (b \<ominus> c)" by algebra
   also from R have "b \<ominus> (b \<ominus> c) = c" by algebra
   finally show "b = c" .

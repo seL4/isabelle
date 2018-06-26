@@ -50,13 +50,9 @@ lemma r_coset_eq_set_mult:
   shows "H #> x = H <#> {x}"
   unfolding r_coset_def set_mult_def by simp
 
-(* ************************************************************************** *)
-
-
-(* ************************************************************************** *)
 (* Next five lemmas contributed by Paulo Emílio de Vilhena.                    *)
 
-lemma (in subgroup) rcosets_not_empty:
+lemma (in subgroup) rcosets_non_empty:
   assumes "R \<in> rcosets H"
   shows "R \<noteq> {}"
 proof -
@@ -87,6 +83,9 @@ proof -
   thus "r1 \<otimes> inv r2 \<in> H" by (metis assms(1) h1(1) h2(1) subgroup_def)
 qed
 
+lemma mono_set_mult: "\<lbrakk> H \<subseteq> H'; K \<subseteq> K' \<rbrakk> \<Longrightarrow> H <#>\<^bsub>G\<^esub> K \<subseteq> H' <#>\<^bsub>G\<^esub> K'"
+  unfolding set_mult_def by (simp add: UN_mono)
+
 
 subsection \<open>Stable Operations for Subgroups\<close>
 
@@ -105,7 +104,17 @@ lemma (in group) subgroup_lcos_equality[simp]:
   shows "h <#\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> I = h <# I"
   using subgroup_set_mult_equality by (simp add: l_coset_eq_set_mult assms)
 
-                                 
+lemma set_mult_consistent [simp]:
+  "N <#>\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> K = N <#>\<^bsub>G\<^esub> K"
+  unfolding set_mult_def by simp
+
+lemma r_coset_consistent [simp]:
+  "I #>\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> h = I #>\<^bsub>G\<^esub> h"
+  unfolding r_coset_def by simp
+
+lemma l_coset_consistent [simp]:
+  "h <#\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> I = h <#\<^bsub>G\<^esub> I"
+  unfolding l_coset_def by simp
 
 subsection \<open>Basic Properties of set multiplication\<close>
 
@@ -1123,15 +1132,15 @@ proof-
     unfolding r_coset_def Sigma_def DirProd_def FactGroup_def RCOSETS_def apply simp by blast
   moreover have "(\<forall>x\<in>carrier (G Mod H). \<forall>y\<in>carrier (K Mod N). \<forall>xa\<in>carrier (G Mod H).
                 \<forall>ya\<in>carrier (K Mod N). (x <#> xa) \<times> (y <#>\<^bsub>K\<^esub> ya) =  x \<times> y <#>\<^bsub>G \<times>\<times> K\<^esub> xa \<times> ya)"
-    unfolding set_mult_def apply auto apply blast+.
+    unfolding set_mult_def by force
   moreover have "(\<forall>x\<in>carrier (G Mod H). \<forall>y\<in>carrier (K Mod N). \<forall>xa\<in>carrier (G Mod H).
                  \<forall>ya\<in>carrier (K Mod N).  x \<times> y = xa \<times> ya \<longrightarrow> x = xa \<and> y = ya)"
-    unfolding  FactGroup_def using times_eq_iff subgroup.rcosets_not_empty
+    unfolding  FactGroup_def using times_eq_iff subgroup.rcosets_non_empty
     by (metis assms(2) assms(3) normal_def partial_object.select_convs(1))
   moreover have "(\<lambda>(X, Y). X \<times> Y) ` (carrier (G Mod H) \<times> carrier (K Mod N)) = 
                                      carrier (G \<times>\<times> K Mod H \<times> N)"
     unfolding image_def  apply auto using R apply force
-    unfolding DirProd_def FactGroup_def RCOSETS_def r_coset_def apply auto apply force.
+    unfolding DirProd_def FactGroup_def RCOSETS_def r_coset_def by force
   ultimately show ?thesis
     unfolding iso_def hom_def bij_betw_def inj_on_def by simp
 qed
