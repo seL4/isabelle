@@ -86,7 +86,7 @@ keywords
     "prop" "term" "typ" "print_codesetup" "unused_thms" :: diag
   and "print_state" :: diag
   and "welcome" :: diag
-  and "end" :: thy_end % "theory"
+  and "end" :: thy_end
   and "realizers" :: thy_decl
   and "realizability" :: thy_decl
   and "extract_type" "extract" :: thy_decl

@@ -21,6 +21,7 @@ sig
   val theory_of: state -> theory
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
+  val is_end_theory: state -> bool
   val end_theory: Position.T -> state -> theory
   val presentation_context: state -> Proof.context
   val presentation_state: Proof.context -> state
@@ -164,6 +165,9 @@ fun proof_position_of state =
   (case node_of state of
     Proof (prf, _) => Proof_Node.position prf
   | _ => ~1);
+
+fun is_end_theory (State (NONE, SOME (Theory (Context.Theory _, _)))) = true
+  | is_end_theory _ = false;
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
   | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.here pos)

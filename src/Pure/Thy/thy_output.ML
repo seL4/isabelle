@@ -261,7 +261,7 @@ fun present_span thy keywords document_tags span state state'
 
     val active_tag' =
       if is_some tag' then tag'
-      else if cmd_name = "end" andalso not (Toplevel.is_toplevel state') then NONE
+      else if cmd_name = "end" andalso Toplevel.is_end_theory state' then SOME "theory"
       else
         (case Keyword.command_tags keywords cmd_name @ document_tags of
           default_tag :: _ => SOME default_tag
