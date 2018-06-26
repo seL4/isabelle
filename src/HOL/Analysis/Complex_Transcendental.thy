@@ -777,6 +777,23 @@ definition is_Arg :: "[complex,real] \<Rightarrow> bool"
 definition Arg2pi :: "complex \<Rightarrow> real"
   where "Arg2pi z \<equiv> if z = 0 then 0 else THE t. 0 \<le> t \<and> t < 2*pi \<and> is_Arg z t"
 
+lemma is_Arg_2pi_iff: "is_Arg z (r + of_int k * (2 * pi)) \<longleftrightarrow> is_Arg z r"
+  by (simp add: algebra_simps is_Arg_def)
+
+lemma is_Arg_eqI:
+  assumes r: "is_Arg z r" and s: "is_Arg z s" and rs: "abs (r-s) < 2*pi" and "z \<noteq> 0"
+  shows "r = s"
+proof -
+  have zr: "z = (cmod z) * exp (\<i> * r)" and zs: "z = (cmod z) * exp (\<i> * s)"
+    using r s by (auto simp: is_Arg_def)
+  with \<open>z \<noteq> 0\<close> have eq: "exp (\<i> * r) = exp (\<i> * s)"
+    by (metis mult_eq_0_iff vector_space_over_itself.scale_left_imp_eq)
+  have  "\<i> * r = \<i> * s"
+    by (rule exp_complex_eqI) (use rs in \<open>auto simp: eq exp_complex_eqI\<close>)
+  then show ?thesis
+    by simp
+qed
+
 text\<open>This function returns the angle of a complex number from its representation in polar coordinates.
 Due to periodicity, its range is arbitrary. @{term Arg2pi} follows HOL Light in adopting the interval $[0,2\pi)$.
 But we have the same periodicity issue with logarithms, and it is usual to adopt the same interval
@@ -924,15 +941,15 @@ corollary Arg2pi_gt_0:
   using Arg2pi_eq_0 Arg2pi_ge_0 assms dual_order.strict_iff_order
   unfolding nonneg_Reals_def by fastforce
 
-lemma Arg2pi_of_real: "Arg2pi(of_real x) = 0 \<longleftrightarrow> 0 \<le> x"
-  by (simp add: Arg2pi_eq_0)
-
 lemma Arg2pi_eq_pi: "Arg2pi z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
     using Arg2pi_le_pi [of z] Arg2pi_lt_pi [of z] Arg2pi_eq_0 [of z] Arg2pi_ge_0 [of z] 
     by (fastforce simp: complex_is_Real_iff)
 
 lemma Arg2pi_eq_0_pi: "Arg2pi z = 0 \<or> Arg2pi z = pi \<longleftrightarrow> z \<in> \<real>"
   using Arg2pi_eq_0 Arg2pi_eq_pi not_le by auto
+
+lemma Arg2pi_of_real: "Arg2pi (of_real r) = (if r<0 then pi else 0)"
+  using Arg2pi_eq_0_pi Arg2pi_eq_pi by fastforce
 
 lemma Arg2pi_real: "z \<in> \<real> \<Longrightarrow> Arg2pi z = (if 0 \<le> Re z then 0 else pi)"
   using Arg2pi_eq_0 Arg2pi_eq_0_pi by auto
@@ -1654,8 +1671,8 @@ lemma Arg_eq_0: "Arg z = 0 \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> 
 corollary Arg_ne_0: assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0" shows "Arg z \<noteq> 0"
   using assms by (auto simp: nonneg_Reals_def Arg_eq_0)
 
-lemma Arg_of_real: "Arg(of_real x) = 0 \<longleftrightarrow> 0 \<le> x"
-  by (simp add: Arg_eq_0)
+lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
+  by (simp add: Im_Ln_eq_pi Arg_def)
 
 lemma Arg_eq_pi_iff: "Arg z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
 proof (cases "z=0")
@@ -1712,6 +1729,22 @@ lemma Arg_exp: "-pi < Im z \<Longrightarrow> Im z \<le> pi \<Longrightarrow> Arg
 lemma Ln_Arg: "z\<noteq>0 \<Longrightarrow> Ln(z) = ln(norm z) + \<i> * Arg(z)"
   by (metis Arg_def Re_Ln complex_eq)
 
+lemma continuous_at_Arg:
+  assumes "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
+    shows "continuous (at z) Arg"
+proof -
+  have [simp]: "(\<lambda>z. Im (Ln z)) \<midarrow>z\<rightarrow> Arg z"
+    using Arg_def assms continuous_at by fastforce
+  show ?thesis
+    unfolding continuous_at
+  proof (rule Lim_transform_within_open)
+    show "\<And>w. \<lbrakk>w \<in> - \<real>\<^sub>\<le>\<^sub>0; w \<noteq> z\<rbrakk> \<Longrightarrow> Im (Ln w) = Arg w"
+      by (metis Arg_def Compl_iff nonpos_Reals_zero_I)
+  qed (use assms in auto)
+qed
+
+lemma continuous_within_Arg: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within S) Arg"
+  using continuous_at_Arg continuous_at_imp_continuous_within by blast
 
 
 subsection\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
@@ -4061,10 +4094,8 @@ proof -
      moreover have "\<exists>z\<in>sphere 0 1. \<gamma> x = \<gamma> (Arg2pi z / (2*pi))" if "0 \<le> x" "x \<le> 1" for x
      proof (cases "x=1")
        case True
-       then show ?thesis
-         apply (rule_tac x=1 in bexI)
-         apply (metis loop Arg2pi_of_real divide_eq_0_iff of_real_1 pathfinish_def pathstart_def \<open>0 \<le> x\<close>, auto)
-         done
+       with Arg2pi_of_real [of 1] loop show ?thesis
+         by (rule_tac x=1 in bexI) (auto simp: pathfinish_def pathstart_def \<open>0 \<le> x\<close>)
      next
        case False
        then have *: "(Arg2pi (exp (\<i>*(2* of_real pi* of_real x))) / (2*pi)) = x"

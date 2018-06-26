@@ -1418,14 +1418,16 @@ lemma exp_suminf_prodinf_real:
   assumes ge0:"\<And>n. f n \<ge> 0" and ac: "abs_convergent_prod (\<lambda>n. exp (f n))"
   shows "prodinf (\<lambda>i. exp (f i)) = exp (suminf f)"
 proof -
-  have "summable f" 
+  have "summable f"
     using ac unfolding abs_convergent_prod_conv_summable
   proof (elim summable_comparison_test')
     fix n
-    show "norm (f n) \<le> norm (exp (f n) - 1)" 
-      using ge0[of n] 
-      by (metis abs_of_nonneg add.commute diff_add_cancel diff_ge_0_iff_ge exp_ge_add_one_self 
-          exp_le_cancel_iff one_le_exp_iff real_norm_def)
+    have "\<bar>f n\<bar> = f n"
+      by (simp add: ge0)
+    also have "\<dots> \<le> exp (f n) - 1"
+      by (metis diff_diff_add exp_ge_add_one_self ge_iff_diff_ge_0)
+    finally show "norm (f n) \<le> norm (exp (f n) - 1)"
+      by simp
   qed
   then show ?thesis
     by (simp add: prodinf_exp)

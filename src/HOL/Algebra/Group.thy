@@ -535,6 +535,32 @@ proof (intro submonoid.intro[OF assms(1)])
   show "\<one> \<in> H " using monoid.one_closed[OF assms(2)] assms by simp
 qed
 
+lemma (in monoid) inv_unique':
+  assumes "x \<in> carrier G" "y \<in> carrier G"
+  shows "\<lbrakk> x \<otimes> y = \<one>; y \<otimes> x = \<one> \<rbrakk> \<Longrightarrow> y = inv x"
+proof -
+  assume "x \<otimes> y = \<one>" and l_inv: "y \<otimes> x = \<one>"
+  hence unit: "x \<in> Units G"
+    using assms unfolding Units_def by auto
+  show "y = inv x"
+    using inv_unique[OF l_inv Units_r_inv[OF unit] assms Units_inv_closed[OF unit]] .
+qed
+
+lemma (in monoid) m_inv_monoid_consistent: (* contributed by Paulo *)
+  assumes "x \<in> Units (G \<lparr> carrier := H \<rparr>)" and "submonoid H G"
+  shows "inv\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> x = inv x"
+proof -
+  have monoid: "monoid (G \<lparr> carrier := H \<rparr>)"
+    using submonoid.submonoid_is_monoid[OF assms(2) monoid_axioms] .
+  obtain y where y: "y \<in> H" "x \<otimes> y = \<one>" "y \<otimes> x = \<one>"
+    using assms(1) unfolding Units_def by auto
+  have x: "x \<in> H" and in_carrier: "x \<in> carrier G" "y \<in> carrier G"
+    using y(1) submonoid.subset[OF assms(2)] assms(1) unfolding Units_def by auto
+  show ?thesis
+    using monoid.inv_unique'[OF monoid, of x y] x y
+    using inv_unique'[OF in_carrier y(2-3)] by auto
+qed
+
 subsection \<open>Subgroups\<close>
 
 locale subgroup =
@@ -620,16 +646,13 @@ proof (simp add: subgroup_def assms)
   show "\<one> \<in> H" by (rule one_in_subset) (auto simp only: assms)
 qed
 
-
 lemma (in group) subgroupE:
   assumes "subgroup H G"
   shows "H \<subseteq> carrier G"
     and "H \<noteq> {}"
     and "\<And>a. a \<in> H \<Longrightarrow> inv a \<in> H"
-    and "\<And>a b. \<lbrakk>a \<in> H; b \<in> H\<rbrakk> \<Longrightarrow> a \<otimes> b \<in> H"
-  using assms subgroup.subset apply blast
-  using assms subgroup_def apply auto[1]
-  by (simp add: assms subgroup.m_closed subgroup.m_inv_closed)+
+    and "\<And>a b. \<lbrakk> a \<in> H; b \<in> H \<rbrakk> \<Longrightarrow> a \<otimes> b \<in> H"
+  using assms unfolding subgroup_def[of H G] by auto
 
 declare monoid.one_closed [iff] group.inv_closed [simp]
   monoid.l_one [simp] monoid.r_one [simp] group.inv_inv [simp]
@@ -638,14 +661,8 @@ lemma subgroup_nonempty:
   "\<not> subgroup {} G"
   by (blast dest: subgroup.one_closed)
 
-lemma (in subgroup) finite_imp_card_positive:
-  "finite (carrier G) ==> 0 < card H"
-proof (rule classical)
-  assume "finite (carrier G)" and a: "\<not> 0 < card H"
-  then have "finite H" by (blast intro: finite_subset [OF subset])
-  with is_subgroup a have "subgroup {} G" by simp
-  with subgroup_nonempty show ?thesis by contradiction
-qed
+lemma (in subgroup) finite_imp_card_positive: "finite (carrier G) \<Longrightarrow> 0 < card H"
+  using subset one_closed card_gt_0_iff finite_subset by blast
 
 (*Following 3 lemmas contributed by Martin Baillon*)
 
@@ -1219,21 +1236,24 @@ next
   finally show "x \<otimes>\<^bsub>(?h_img)\<^esub> y = y \<otimes>\<^bsub>(?h_img)\<^esub> x" .
 qed
 
+lemma (in comm_group) hom_imp_img_comm_group:
+  assumes "h \<in> hom G H"
+  shows "comm_group (H \<lparr> carrier := h ` (carrier G), one := h \<one>\<^bsub>G\<^esub> \<rparr>)"
+  unfolding comm_group_def
+  using hom_imp_img_group[OF assms] hom_imp_img_comm_monoid[OF assms] by simp
+
 lemma (in comm_group) iso_imp_img_comm_group:
   assumes "h \<in> iso G H"
   shows "comm_group (H \<lparr> one := h \<one>\<^bsub>G\<^esub> \<rparr>)"
 proof -
   let ?h_img = "H \<lparr> carrier := h ` (carrier G), one := h \<one> \<rparr>"
-  have "comm_monoid ?h_img"
-    using hom_imp_img_comm_monoid[of h H] assms unfolding iso_def by simp
+  have "comm_group ?h_img"
+    using hom_imp_img_comm_group[of h H] assms unfolding iso_def by auto
   moreover have "carrier H = carrier ?h_img"
     using assms unfolding iso_def bij_betw_def by simp
   hence "H \<lparr> one := h \<one> \<rparr> = ?h_img"
     by simp
-  ultimately have "comm_monoid (H \<lparr> one := h \<one>\<^bsub>G\<^esub> \<rparr>)"
-    by simp
-  thus ?thesis
-    unfolding comm_group_def using iso_imp_img_group[OF assms] by simp
+  ultimately show ?thesis by simp
 qed
 
 lemma (in comm_group) iso_imp_comm_group:
