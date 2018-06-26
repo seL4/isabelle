@@ -132,12 +132,6 @@ lemma hnorm_scaleHR_less: "\<bar>x\<bar> < r \<Longrightarrow> hnorm y < s \<Lon
 
 subsection \<open>Closure Laws for the Standard Reals\<close>
 
-lemma Reals_minus_iff [simp]: "- x \<in> \<real> \<longleftrightarrow> x \<in> \<real>"
-  apply auto
-  apply (drule Reals_minus)
-  apply auto
-  done
-
 lemma Reals_add_cancel: "x + y \<in> \<real> \<Longrightarrow> y \<in> \<real> \<Longrightarrow> x \<in> \<real>"
   by (drule (1) Reals_diff) simp
 
