@@ -111,10 +111,10 @@ lemma hcmod_def: "hcmod = *f* cmod"
 subsection \<open>Properties of Nonstandard Real and Imaginary Parts\<close>
 
 lemma hcomplex_hRe_hIm_cancel_iff: "\<And>w z. w = z \<longleftrightarrow> hRe w = hRe z \<and> hIm w = hIm z"
-  by transfer (rule complex_Re_Im_cancel_iff)
+  by transfer (rule complex_eq_iff)
 
 lemma hcomplex_equality [intro?]: "\<And>z w. hRe z = hRe w \<Longrightarrow> hIm z = hIm w \<Longrightarrow> z = w"
-  by transfer (rule complex_equality)
+  by transfer (rule complex_eqI)
 
 lemma hcomplex_hRe_zero [simp]: "hRe 0 = 0"
   by transfer simp

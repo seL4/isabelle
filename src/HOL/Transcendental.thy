@@ -4512,13 +4512,11 @@ lemma cos_integer_2pi: "n \<in> \<int> \<Longrightarrow> cos(2 * pi * n) = 1"
 lemma sin_integer_2pi: "n \<in> \<int> \<Longrightarrow> sin(2 * pi * n) = 0"
   by (metis sin_two_pi Ints_mult mult.assoc mult.commute sin_times_pi_eq_0)
 
-lemma cos_int_2npi [simp]: "cos (2 * of_int n * pi) = 1"
-  for n :: int
+lemma cos_int_2pin [simp]: "cos ((2 * pi) * of_int n) = 1"
   by (simp add: cos_one_2pi_int)
 
-lemma sin_int_2npi [simp]: "sin (2 * of_int n * pi) = 0"
-  for n :: int
-  by (metis Ints_of_int mult.assoc mult.commute sin_integer_2pi)
+lemma sin_int_2pin [simp]: "sin ((2 * pi) * of_int n) = 0"
+  by (metis Ints_of_int sin_integer_2pi)
 
 lemma sincos_principal_value: "\<exists>y. (- pi < y \<and> y \<le> pi) \<and> (sin y = sin x \<and> cos y = cos x)"
   apply (rule exI [where x="pi - (2 * pi) * frac ((pi - x) / (2 * pi))"])
@@ -5434,6 +5432,62 @@ lemma arccos_le_arccos: "- 1 \<le> x \<Longrightarrow> x \<le> y \<Longrightarro
 lemma arccos_eq_iff: "\<bar>x\<bar> \<le> 1 \<and> \<bar>y\<bar> \<le> 1 \<Longrightarrow> arccos x = arccos y \<longleftrightarrow> x = y"
   using cos_arccos_abs by fastforce
 
+
+lemma arccos_cos_eq_abs:
+  assumes "\<bar>\<theta>\<bar> \<le> pi"
+  shows "arccos (cos \<theta>) = \<bar>\<theta>\<bar>"
+  unfolding arccos_def 
+proof (intro the_equality conjI; clarify?)
+  show "cos \<bar>\<theta>\<bar> = cos \<theta>"
+    by (simp add: abs_real_def)
+  show "x = \<bar>\<theta>\<bar>" if "cos x = cos \<theta>" "0 \<le> x" "x \<le> pi" for x
+    by (simp add: \<open>cos \<bar>\<theta>\<bar> = cos \<theta>\<close> assms cos_inj_pi that)
+qed (use assms in auto)
+
+lemma arccos_cos_eq_abs_2pi:
+  obtains k where "arccos (cos \<theta>) = \<bar>\<theta> - of_int k * (2 * pi)\<bar>"
+proof -
+  define k where "k \<equiv>  \<lfloor>(\<theta> + pi) / (2 * pi)\<rfloor>"
+  have lepi: "\<bar>\<theta> - of_int k * (2 * pi)\<bar> \<le> pi"
+    using floor_divide_lower [of "2*pi" "\<theta> + pi"] floor_divide_upper [of "2*pi" "\<theta> + pi"]
+    by (auto simp: k_def abs_if algebra_simps)
+  have "arccos (cos \<theta>) = arccos (cos (\<theta> - of_int k * (2 * pi)))"
+    using cos_int_2pin sin_int_2pin by (simp add: cos_diff mult.commute)
+  also have "... = \<bar>\<theta> - of_int k * (2 * pi)\<bar>"
+    using arccos_cos_eq_abs lepi by blast
+  finally show ?thesis 
+    using that by metis
+qed
+
+lemma cos_limit_1:
+  assumes "(\<lambda>j. cos (\<theta> j)) \<longlonglongrightarrow> 1"
+  shows "\<exists>k. (\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> 0"
+proof -
+  have "\<forall>\<^sub>F j in sequentially. cos (\<theta> j) \<in> {- 1..1}"
+    by auto
+  then have "(\<lambda>j. arccos (cos (\<theta> j))) \<longlonglongrightarrow> arccos 1"
+    using continuous_on_tendsto_compose [OF continuous_on_arccos' assms] by auto
+  moreover have "\<And>j. \<exists>k. arccos (cos (\<theta> j)) = \<bar>\<theta> j - of_int k * (2 * pi)\<bar>"
+    using arccos_cos_eq_abs_2pi by metis
+  then have "\<exists>k. \<forall>j. arccos (cos (\<theta> j)) = \<bar>\<theta> j - of_int (k j) * (2 * pi)\<bar>"
+    by metis
+  ultimately have "\<exists>k. (\<lambda>j. \<bar>\<theta> j - of_int (k j) * (2 * pi)\<bar>) \<longlonglongrightarrow> 0"
+    by auto
+  then show ?thesis
+    by (simp add: tendsto_rabs_zero_iff)
+qed
+
+lemma cos_diff_limit_1:
+  assumes "(\<lambda>j. cos (\<theta> j - \<Theta>)) \<longlonglongrightarrow> 1"
+  obtains k where "(\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> \<Theta>"
+proof -
+  obtain k where "(\<lambda>j. (\<theta> j - \<Theta>) - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> 0"
+    using cos_limit_1 [OF assms] by auto
+  then have "(\<lambda>j. \<Theta> + ((\<theta> j - \<Theta>) - of_int (k j) * (2 * pi))) \<longlonglongrightarrow> \<Theta> + 0"
+    by (rule tendsto_add [OF tendsto_const])
+  with that show ?thesis
+    by (auto simp: )
+qed
 
 subsection \<open>Machin's formula\<close>
 

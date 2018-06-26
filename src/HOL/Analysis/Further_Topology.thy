@@ -3242,7 +3242,7 @@ proof -
         have [simp]: "cmod (z - z * x / z') = cmod (z' - x)" if "x \<noteq> 0" for x
         proof -
           have "cmod (z - z * x / z') = cmod z * cmod (1 - x / z')"
-            by (metis (no_types) ab_semigroup_mult_class.mult_ac(1) complex_divide_def mult.right_neutral norm_mult right_diff_distrib')
+            by (metis (no_types) ab_semigroup_mult_class.mult_ac(1) divide_complex_def mult.right_neutral norm_mult right_diff_distrib')
           also have "... = cmod z' * cmod (1 - x / z')"
             by (simp add: nz')
           also have "... = cmod (z' - x)"
@@ -3256,7 +3256,7 @@ proof -
           have "cmod (z * (1 - x * inverse z)) = cmod (z - x)"
             by (metis \<open>z \<noteq> 0\<close> diff_divide_distrib divide_complex_def divide_self_if nonzero_eq_divide_eq semiring_normalization_rules(7))
           then show ?thesis
-            by (metis (no_types) mult.assoc complex_divide_def mult.right_neutral norm_mult nz' right_diff_distrib')
+            by (metis (no_types) mult.assoc divide_complex_def mult.right_neutral norm_mult nz' right_diff_distrib')
         qed
         show ?thesis
           unfolding image_def ball_def

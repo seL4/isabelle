@@ -322,9 +322,9 @@ proof
     unfolding inner_complex_def by simp
   show "inner x x = 0 \<longleftrightarrow> x = 0"
     unfolding inner_complex_def
-    by (simp add: add_nonneg_eq_0_iff complex_Re_Im_cancel_iff)
+    by (simp add: add_nonneg_eq_0_iff complex_eq_iff)
   show "norm x = sqrt (inner x x)"
-    unfolding inner_complex_def complex_norm_def
+    unfolding inner_complex_def norm_complex_def
     by (simp add: power2_eq_square)
 qed
 

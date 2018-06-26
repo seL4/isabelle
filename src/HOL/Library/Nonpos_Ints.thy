@@ -291,6 +291,11 @@ lemma nonpos_Reals_divide_of_nat_iff:
   apply (auto simp: divide_simps mult_le_0_iff)
   done
 
+lemma nonpos_Reals_inverse_iff [simp]:
+  fixes a :: "'a::real_div_algebra"
+  shows "inverse a \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> a \<in> \<real>\<^sub>\<le>\<^sub>0"
+  using nonpos_Reals_inverse_I by fastforce
+
 lemma nonpos_Reals_pow_I: "\<lbrakk>a \<in> \<real>\<^sub>\<le>\<^sub>0; odd n\<rbrakk> \<Longrightarrow> a^n \<in> \<real>\<^sub>\<le>\<^sub>0"
   by (metis nonneg_Reals_pow_I power_minus_odd uminus_nonneg_Reals_iff)
 

@@ -9,12 +9,6 @@ imports
    "HOL-Library.Periodic_Fun"
 begin
 
-(* TODO: MOVE *)
-lemma nonpos_Reals_inverse_iff [simp]:
-  fixes a :: "'a::real_div_algebra"
-  shows "inverse a \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> a \<in> \<real>\<^sub>\<le>\<^sub>0"
-  using nonpos_Reals_inverse_I by fastforce
-
 (* TODO: Figure out what to do with Möbius transformations *)
 definition "moebius a b c d = (\<lambda>z. (a*z+b) / (c*z+d :: 'a :: field))"
 
@@ -69,6 +63,12 @@ next
 qed
 
 subsection\<open>The Exponential Function is Differentiable and Continuous\<close>
+
+lemma norm_exp_i_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
+  by simp
+
+lemma norm_exp_imaginary: "norm(exp z) = 1 \<Longrightarrow> Re z = 0"
+  by simp
 
 lemma field_differentiable_within_exp: "exp field_differentiable (at z within s)"
   using DERIV_exp field_differentiable_at_within field_differentiable_def by blast
@@ -218,7 +218,8 @@ proof
     by (metis Re_exp complex_Re_of_int cos_one_2pi_int exp_zero mult.commute mult_numeral_1 numeral_One of_int_mult of_int_numeral)
 next
   assume ?rhs then show ?lhs
-    using Im_exp Re_exp complex_Re_Im_cancel_iff by force
+    using Im_exp Re_exp complex_eq_iff
+    by (simp add: cos_one_2pi_int cos_one_sin_zero mult.commute)
 qed
 
 lemma exp_eq: "exp w = exp z \<longleftrightarrow> (\<exists>n::int. w = z + (of_int (2 * n) * pi) * \<i>)"
@@ -277,16 +278,16 @@ proof (clarsimp simp: inj_on_def exp_eq)
     by (auto simp: norm_mult)
 qed
 
-lemma sin_cos_eq_iff: "sin y = sin x \<and> cos y = cos x \<longleftrightarrow> (\<exists>n::int. y = x + 2 * n * pi)"
+lemma sin_cos_eq_iff: "sin y = sin x \<and> cos y = cos x \<longleftrightarrow> (\<exists>n::int. y = x + 2 * pi * n)"
 proof -
   { assume "sin y = sin x" "cos y = cos x"
     then have "cos (y-x) = 1"
       using cos_add [of y "-x"] by simp
-    then have "\<exists>n::int. y-x = n * 2 * pi"
-      using cos_one_2pi_int by blast }
+    then have "\<exists>n::int. y-x = 2 * pi * n"
+      using cos_one_2pi_int by auto }
   then show ?thesis
   apply (auto simp: sin_add cos_add)
-  apply (metis add.commute diff_add_cancel mult.commute)
+  apply (metis add.commute diff_add_cancel)
   done
 qed
 
@@ -768,19 +769,26 @@ text\<open>Apparently redundant. But many arguments involve integers.\<close>
 lemma ln3_gt_1: "ln 3 > (1::real)"
   by (simp add: less_trans [OF ln_272_gt_1])
 
-subsection\<open>The argument of a complex number\<close>
+subsection\<open>The argument of a complex number (HOL Light version)\<close>
 
-definition Arg2pi :: "complex \<Rightarrow> real" where
- "Arg2pi z \<equiv> if z = 0 then 0
-           else THE t. 0 \<le> t \<and> t < 2*pi \<and>
-                    z = of_real(norm z) * exp(\<i> * of_real t)"
+definition is_Arg :: "[complex,real] \<Rightarrow> bool"
+  where "is_Arg z r \<equiv> z = of_real(norm z) * exp(\<i> * of_real r)"
+
+definition Arg2pi :: "complex \<Rightarrow> real"
+  where "Arg2pi z \<equiv> if z = 0 then 0 else THE t. 0 \<le> t \<and> t < 2*pi \<and> is_Arg z t"
+
+text\<open>This function returns the angle of a complex number from its representation in polar coordinates.
+Due to periodicity, its range is arbitrary. @{term Arg2pi} follows HOL Light in adopting the interval $[0,2\pi)$.
+But we have the same periodicity issue with logarithms, and it is usual to adopt the same interval
+for the complex logarithm and argument functions. Further on down, we shall define both functions for the interval $(-\pi,\pi]$.
+The present version is provided for compatibility.\<close>
 
 lemma Arg2pi_0 [simp]: "Arg2pi(0) = 0"
   by (simp add: Arg2pi_def)
 
 lemma Arg2pi_unique_lemma:
-  assumes z:  "z = of_real(norm z) * exp(\<i> * of_real t)"
-      and z': "z = of_real(norm z) * exp(\<i> * of_real t')"
+  assumes z:  "is_Arg z t"
+      and z': "is_Arg z t'"
       and t:  "0 \<le> t"  "t < 2*pi"
       and t': "0 \<le> t'" "t' < 2*pi"
       and nz: "z \<noteq> 0"
@@ -789,9 +797,9 @@ proof -
   have [dest]: "\<And>x y z::real. x\<ge>0 \<Longrightarrow> x+y < z \<Longrightarrow> y<z"
     by arith
   have "of_real (cmod z) * exp (\<i> * of_real t') = of_real (cmod z) * exp (\<i> * of_real t)"
-    by (metis z z')
+    by (metis z z' is_Arg_def)
   then have "exp (\<i> * of_real t') = exp (\<i> * of_real t)"
-    by (metis nz mult_left_cancel mult_zero_left z)
+    by (metis nz mult_left_cancel mult_zero_left z is_Arg_def)
   then have "sin t' = sin t \<and> cos t' = cos t"
     apply (simp add: exp_Euler sin_of_real cos_of_real)
     by (metis Complex_eq complex.sel)
@@ -803,17 +811,18 @@ proof -
     by (simp add: n)
 qed
 
-lemma Arg2pi: "0 \<le> Arg2pi z & Arg2pi z < 2*pi & z = of_real(norm z) * exp(\<i> * of_real(Arg2pi z))"
+lemma Arg2pi: "0 \<le> Arg2pi z \<and> Arg2pi z < 2*pi \<and> is_Arg z (Arg2pi z)"
 proof (cases "z=0")
   case True then show ?thesis
-    by (simp add: Arg2pi_def)
+    by (simp add: Arg2pi_def is_Arg_def)
 next
   case False
   obtain t where t: "0 \<le> t" "t < 2*pi"
              and ReIm: "Re z / cmod z = cos t" "Im z / cmod z = sin t"
     using sincos_total_2pi [OF complex_unit_circle [OF False]]
     by blast
-  have z: "z = of_real(norm z) * exp(\<i> * of_real t)"
+  have z: "is_Arg z t"
+    unfolding is_Arg_def
     apply (rule complex_eqI)
     using t False ReIm
     apply (auto simp: exp_Euler sin_of_real cos_of_real divide_simps)
@@ -830,14 +839,13 @@ corollary
   shows Arg2pi_ge_0: "0 \<le> Arg2pi z"
     and Arg2pi_lt_2pi: "Arg2pi z < 2*pi"
     and Arg2pi_eq: "z = of_real(norm z) * exp(\<i> * of_real(Arg2pi z))"
-  using Arg2pi by auto
+  using Arg2pi is_Arg_def by auto
 
 lemma complex_norm_eq_1_exp: "norm z = 1 \<longleftrightarrow> exp(\<i> * of_real (Arg2pi z)) = z"
   by (metis Arg2pi_eq cis_conv_exp mult.left_neutral norm_cis of_real_1)
 
 lemma Arg2pi_unique: "\<lbrakk>of_real r * exp(\<i> * of_real a) = z; 0 < r; 0 \<le> a; a < 2*pi\<rbrakk> \<Longrightarrow> Arg2pi z = a"
-  by (rule Arg2pi_unique_lemma [OF _ Arg2pi_eq])
-  (use Arg2pi [of z] in \<open>auto simp: norm_mult\<close>)
+  by (rule Arg2pi_unique_lemma [unfolded is_Arg_def, OF _ Arg2pi_eq]) (use Arg2pi [of z] in \<open>auto simp: norm_mult\<close>)
 
 lemma Arg2pi_minus: "z \<noteq> 0 \<Longrightarrow> Arg2pi (-z) = (if Arg2pi z < pi then Arg2pi z + pi else Arg2pi z - pi)"
   apply (rule Arg2pi_unique [of "norm z"])
@@ -852,7 +860,7 @@ lemma Arg2pi_times_of_real [simp]:
 proof (cases "z=0")
   case False
   show ?thesis
-    by (rule Arg2pi_unique [of "r * norm z"]) (use Arg2pi False assms in auto)
+    by (rule Arg2pi_unique [of "r * norm z"]) (use Arg2pi False assms is_Arg_def in auto)
 qed auto
 
 lemma Arg2pi_times_of_real2 [simp]: "0 < r \<Longrightarrow> Arg2pi (z * of_real r) = Arg2pi z"
@@ -911,28 +919,31 @@ proof (cases "z=0")
 qed auto
 
 corollary Arg2pi_gt_0:
-  assumes "z \<in> \<real> \<Longrightarrow> Re z < 0"
+  assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0"
     shows "Arg2pi z > 0"
-  using Arg2pi_eq_0 Arg2pi_ge_0 assms dual_order.strict_iff_order by fastforce
+  using Arg2pi_eq_0 Arg2pi_ge_0 assms dual_order.strict_iff_order
+  unfolding nonneg_Reals_def by fastforce
 
 lemma Arg2pi_of_real: "Arg2pi(of_real x) = 0 \<longleftrightarrow> 0 \<le> x"
   by (simp add: Arg2pi_eq_0)
 
 lemma Arg2pi_eq_pi: "Arg2pi z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
-  using Arg2pi_eq_0 [of "-z"]
-  by (metis Arg2pi_eq_0 Arg2pi_gt_0 Arg2pi_le_pi Arg2pi_lt_pi complex_is_Real_iff dual_order.order_iff_strict not_less pi_neq_zero)
+    using Arg2pi_le_pi [of z] Arg2pi_lt_pi [of z] Arg2pi_eq_0 [of z] Arg2pi_ge_0 [of z] 
+    by (fastforce simp: complex_is_Real_iff)
 
 lemma Arg2pi_eq_0_pi: "Arg2pi z = 0 \<or> Arg2pi z = pi \<longleftrightarrow> z \<in> \<real>"
   using Arg2pi_eq_0 Arg2pi_eq_pi not_le by auto
 
-lemma Arg2pi_inverse: "Arg2pi(inverse z) = (if z \<in> \<real> \<and> 0 \<le> Re z then Arg2pi z else 2*pi - Arg2pi z)"
+lemma Arg2pi_real: "z \<in> \<real> \<Longrightarrow> Arg2pi z = (if 0 \<le> Re z then 0 else pi)"
+  using Arg2pi_eq_0 Arg2pi_eq_0_pi by auto
+
+lemma Arg2pi_inverse: "Arg2pi(inverse z) = (if z \<in> \<real> then Arg2pi z else 2*pi - Arg2pi z)"
 proof (cases "z=0")
   case False
   show ?thesis
     apply (rule Arg2pi_unique [of "inverse (norm z)"])
-    using False Arg2pi_ge_0 [of z] Arg2pi_lt_2pi [of z] Arg2pi_eq [of z] Arg2pi_eq_0 [of z]
-       apply (auto simp: exp_diff field_simps)
-    done
+    using Arg2pi_eq False Arg2pi_ge_0 [of z] Arg2pi_lt_2pi [of z] Arg2pi_eq_0 [of z]
+    by (auto simp: Arg2pi_real in_Reals_norm exp_diff field_simps)
 qed auto
 
 lemma Arg2pi_eq_iff:
@@ -968,9 +979,8 @@ lemma Arg2pi_le_div_sum_eq:
 lemma Arg2pi_diff:
   assumes "w \<noteq> 0" "z \<noteq> 0"
     shows "Arg2pi w - Arg2pi z = (if Arg2pi z \<le> Arg2pi w then Arg2pi(w / z) else Arg2pi(w/z) - 2*pi)"
-  using assms Arg2pi_divide Arg2pi_inverse [of "w/z"]
-  apply (clarsimp simp add: Arg2pi_ge_0 Arg2pi_divide not_le)
-  by (metis Arg2pi_eq_0 less_irrefl minus_diff_eq right_minus_eq)
+  using assms Arg2pi_divide Arg2pi_inverse [of "w/z"] Arg2pi_eq_0_pi
+  by (force simp add: Arg2pi_ge_0 Arg2pi_divide not_le split: if_split_asm)
 
 lemma Arg2pi_add:
   assumes "w \<noteq> 0" "z \<noteq> 0"
@@ -992,22 +1002,19 @@ lemma Arg2pi_cnj_eq_inverse: "z\<noteq>0 \<Longrightarrow> Arg2pi (cnj z) = Arg2
   apply (simp add: Arg2pi_eq_iff divide_simps complex_norm_square [symmetric] mult.commute)
   by (metis of_real_power zero_less_norm_iff zero_less_power)
 
-lemma Arg2pi_cnj: "Arg2pi(cnj z) = (if z \<in> \<real> \<and> 0 \<le> Re z then Arg2pi z else 2*pi - Arg2pi z)"
+lemma Arg2pi_cnj: "Arg2pi(cnj z) = (if z \<in> \<real> then Arg2pi z else 2*pi - Arg2pi z)"
 proof (cases "z=0")
   case False
   then show ?thesis
     by (simp add: Arg2pi_cnj_eq_inverse Arg2pi_inverse)
 qed auto
 
-lemma Arg2pi_real: "z \<in> \<real> \<Longrightarrow> Arg2pi z = (if 0 \<le> Re z then 0 else pi)"
-  using Arg2pi_eq_0 Arg2pi_eq_0_pi by auto
-
 lemma Arg2pi_exp: "0 \<le> Im z \<Longrightarrow> Im z < 2*pi \<Longrightarrow> Arg2pi(exp z) = Im z"
   by (rule Arg2pi_unique [of "exp(Re z)"]) (auto simp: exp_eq_polar)
 
 lemma complex_split_polar:
   obtains r a::real where "z = complex_of_real r * (cos a + \<i> * sin a)" "0 \<le> r" "0 \<le> a" "a < 2*pi"
-  using Arg2pi cis.ctr cis_conv_exp unfolding Complex_eq by fastforce
+  using Arg2pi cis.ctr cis_conv_exp unfolding Complex_eq is_Arg_def by fastforce
 
 lemma Re_Im_le_cmod: "Im w * sin \<phi> + Re w * cos \<phi> \<le> cmod w"
 proof (cases w rule: complex_split_polar)
@@ -1447,6 +1454,23 @@ using Ln_times_of_real [of "inverse r" z]
 by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse of_real_inverse [symmetric]
          del: of_real_inverse)
 
+corollary Ln_prod:
+  fixes f :: "'a \<Rightarrow> complex"
+  assumes "finite A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
+  shows "\<exists>n. Ln (prod f A) = (\<Sum>x \<in> A. Ln (f x) + (of_int (n x) * (2 * pi)) * \<i>)"
+  using assms
+proof (induction A)
+  case (insert x A)
+  then obtain n where n: "Ln (prod f A) = (\<Sum>x\<in>A. Ln (f x) + of_real (of_int (n x) * (2 * pi)) * \<i>)"
+    by auto
+  define D where "D \<equiv> Im (Ln (f x)) + Im (Ln (prod f A))"
+  define q::int where "q \<equiv> (if D \<le> -pi then 1 else if D > pi then -1 else 0)"
+  have "prod f A \<noteq> 0" "f x \<noteq> 0"
+    by (auto simp: insert.hyps insert.prems)
+  with insert.hyps pi_ge_zero show ?case
+    by (rule_tac x="n(x:=q)" in exI) (force simp: Ln_times q_def D_def n intro!: sum.cong)
+qed auto
+
 lemma Ln_minus:
   assumes "z \<noteq> 0"
     shows "Ln(-z) = (if Im(z) \<le> 0 \<and> ~(Re(z) < 0 \<and> Im(z) = 0)
@@ -1528,6 +1552,167 @@ lemma powr_complex_measurable [measurable]:
   shows   "(\<lambda>x. f x powr g x :: complex) \<in> measurable M borel"
   using assms by (simp add: powr_def)
 
+subsection\<open>The Argument of a Complex Number\<close>
+
+definition Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
+
+text\<open>Finally the Argument is defined for the same interval as the complex logarithm: $(-\pi,\pi]$.\<close>
+
+lemma Arg_unique_lemma:
+  assumes z:  "is_Arg z t"
+      and z': "is_Arg z t'"
+      and t:  "- pi < t"  "t \<le> pi"
+      and t': "- pi < t'" "t' \<le> pi"
+      and nz: "z \<noteq> 0"
+    shows "t' = t"
+  using Arg2pi_unique_lemma [of "- (inverse z)"]
+proof -
+  have "pi - t' = pi - t"
+  proof (rule Arg2pi_unique_lemma [of "- (inverse z)"])
+    have "- (inverse z) = - (inverse (of_real(norm z) * exp(\<i> * t)))"
+      by (metis is_Arg_def z)
+    also have "... = (cmod (- inverse z)) * exp (\<i> * (pi - t))"
+      by (auto simp: field_simps exp_diff norm_divide)
+    finally show "is_Arg (- inverse z) (pi - t)"
+      unfolding is_Arg_def .
+    have "- (inverse z) = - (inverse (of_real(norm z) * exp(\<i> * t')))"
+      by (metis is_Arg_def z')
+    also have "... = (cmod (- inverse z)) * exp (\<i> * (pi - t'))"
+      by (auto simp: field_simps exp_diff norm_divide)
+    finally show "is_Arg (- inverse z) (pi - t')"
+      unfolding is_Arg_def .
+  qed (use assms in auto)
+  then show ?thesis
+    by simp
+qed
+
+lemma
+  assumes "z \<noteq> 0"
+  shows mpi_less_Arg: "-pi < Arg z"
+    and Arg_le_pi: "Arg z \<le> pi"
+    and Arg_eq: "z = of_real(norm z) * exp(\<i> * Arg z)"
+  using assms exp_Ln exp_eq_polar
+  by (auto simp: mpi_less_Im_Ln Im_Ln_le_pi Arg_def)
+
+lemma complex_norm_eq_1_exp_eq: "norm z = 1 \<longleftrightarrow> exp(\<i> * (Arg z)) = z"
+  by (metis Arg_eq exp_not_eq_zero exp_zero mult.left_neutral norm_zero of_real_1 norm_exp_i_times)
+
+lemma Arg_unique: "\<lbrakk>of_real r * exp(\<i> * a) = z; 0 < r; -pi < a; a \<le> pi\<rbrakk> \<Longrightarrow> Arg z = a"
+  by (rule Arg_unique_lemma [unfolded is_Arg_def, OF _ Arg_eq])
+     (use mpi_less_Arg Arg_le_pi in \<open>auto simp: norm_mult\<close>)
+
+
+lemma Arg_minus:
+  assumes "z \<noteq> 0"
+  shows "Arg (-z) = (if Arg z \<le> 0 then Arg z + pi else Arg z - pi)"
+proof -
+  have [simp]: "cmod z * cos (Arg z) = Re z"
+    using assms Arg_eq [of z] by (metis Re_exp exp_Ln norm_exp_eq_Re Arg_def)
+  have [simp]: "cmod z * sin (Arg z) = Im z"
+    using assms Arg_eq [of z] by (metis Im_exp exp_Ln norm_exp_eq_Re Arg_def)
+  show ?thesis
+    apply (rule Arg_unique [of "norm z"])
+       apply (rule complex_eqI)
+    using mpi_less_Arg [of z] Arg_le_pi [of z] assms
+        apply (auto simp: Re_exp Im_exp cos_diff sin_diff cis_conv_exp [symmetric])
+    done
+qed
+
+lemma Arg_times_of_real [simp]:
+  assumes "0 < r" shows "Arg (of_real r * z) = Arg z"
+proof (cases "z=0")
+  case True
+  then show ?thesis
+    by (simp add: Arg_def)
+next
+  case False
+  with Arg_eq assms show ?thesis
+  by (auto simp: mpi_less_Arg Arg_le_pi intro!:  Arg_unique [of "r * norm z"])
+qed
+
+lemma Arg_times_of_real2 [simp]: "0 < r \<Longrightarrow> Arg (z * of_real r) = Arg z"
+  by (metis Arg_times_of_real mult.commute)
+
+lemma Arg_divide_of_real [simp]: "0 < r \<Longrightarrow> Arg (z / of_real r) = Arg z"
+  by (metis Arg_times_of_real2 less_numeral_extra(3) nonzero_eq_divide_eq of_real_eq_0_iff)
+
+lemma Arg_less_0: "0 \<le> Arg z \<longleftrightarrow> 0 \<le> Im z"
+  using Im_Ln_le_pi Im_Ln_pos_le
+  by (simp add: Arg_def)
+
+lemma Arg_eq_pi: "Arg z = pi \<longleftrightarrow> Re z < 0 \<and> Im z = 0"
+  by (auto simp: Arg_def Im_Ln_eq_pi)
+
+lemma Arg_lt_pi: "0 < Arg z \<and> Arg z < pi \<longleftrightarrow> 0 < Im z"
+  using Arg_less_0 [of z] Im_Ln_pos_lt
+  by (auto simp: order.order_iff_strict Arg_def)
+
+lemma Arg_eq_0: "Arg z = 0 \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re z"
+  using complex_is_Real_iff
+  by (simp add: Arg_def Im_Ln_eq_0) (metis less_eq_real_def of_real_Re of_real_def scale_zero_left)
+
+corollary Arg_ne_0: assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0" shows "Arg z \<noteq> 0"
+  using assms by (auto simp: nonneg_Reals_def Arg_eq_0)
+
+lemma Arg_of_real: "Arg(of_real x) = 0 \<longleftrightarrow> 0 \<le> x"
+  by (simp add: Arg_eq_0)
+
+lemma Arg_eq_pi_iff: "Arg z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
+proof (cases "z=0")
+  case False
+  then show ?thesis
+    using Arg_eq_0 [of "-z"] Arg_eq_pi complex_is_Real_iff by blast
+qed (simp add: Arg_def)
+
+lemma Arg_eq_0_pi: "Arg z = 0 \<or> Arg z = pi \<longleftrightarrow> z \<in> \<real>"
+  using Arg_eq_pi_iff Arg_eq_0 by force
+
+lemma Arg_real: "z \<in> \<real> \<Longrightarrow> Arg z = (if 0 \<le> Re z then 0 else pi)"
+  using Arg_eq_0 Arg_eq_0_pi by auto
+
+lemma Arg_inverse: "Arg(inverse z) = (if z \<in> \<real> then Arg z else - Arg z)"
+proof (cases "z \<in> \<real>")
+  case True
+  then show ?thesis
+    by simp (metis Arg2pi_inverse Arg2pi_real Arg_real Reals_inverse)
+next
+  case False
+  then have "Arg z < pi" "z \<noteq> 0"
+    using Arg_def Arg_eq_0_pi Arg_le_pi by fastforce+
+  then show ?thesis
+    apply (simp add: False)
+    apply (rule Arg_unique [of "inverse (norm z)"])
+    using False mpi_less_Arg [of z] Arg_eq [of z]
+    apply (auto simp: exp_minus field_simps)
+    done
+qed
+
+lemma Arg_eq_iff:
+  assumes "w \<noteq> 0" "z \<noteq> 0"
+     shows "Arg w = Arg z \<longleftrightarrow> (\<exists>x. 0 < x \<and> w = of_real x * z)"
+  using assms Arg_eq [of z] Arg_eq [of w]
+  apply auto
+  apply (rule_tac x="norm w / norm z" in exI)
+  apply (simp add: divide_simps)
+  by (metis mult.commute mult.left_commute)
+
+lemma Arg_inverse_eq_0: "Arg(inverse z) = 0 \<longleftrightarrow> Arg z = 0"
+  by (metis Arg_eq_0 Arg_inverse inverse_inverse_eq)
+
+lemma Arg_cnj_eq_inverse: "z\<noteq>0 \<Longrightarrow> Arg (cnj z) = Arg (inverse z)"
+  apply (simp add: Arg_eq_iff divide_simps complex_norm_square [symmetric] mult.commute)
+  by (metis of_real_power zero_less_norm_iff zero_less_power)
+
+lemma Arg_cnj: "Arg(cnj z) = (if z \<in> \<real> then Arg z else - Arg z)"
+  by (metis Arg_cnj_eq_inverse Arg_inverse Reals_0 complex_cnj_zero)
+
+lemma Arg_exp: "-pi < Im z \<Longrightarrow> Im z \<le> pi \<Longrightarrow> Arg(exp z) = Im z"
+  by (rule Arg_unique [of "exp(Re z)"]) (auto simp: exp_eq_polar)
+
+lemma Ln_Arg: "z\<noteq>0 \<Longrightarrow> Ln(z) = ln(norm z) + \<i> * Arg(z)"
+  by (metis Arg_def Re_Ln complex_eq)
+
+
 
 subsection\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
 
@@ -1541,7 +1726,7 @@ next
   case False
   then have "z / of_real(norm z) = exp(\<i> * of_real(Arg2pi z))"
     using Arg2pi [of z]
-    by (metis abs_norm_cancel nonzero_mult_div_cancel_left norm_of_real zero_less_norm_iff)
+    by (metis is_Arg_def abs_norm_cancel nonzero_mult_div_cancel_left norm_of_real zero_less_norm_iff)
   then have "- z / of_real(norm z) = exp (\<i> * (of_real (Arg2pi z) - pi))"
     using cis_conv_exp cis_pi
     by (auto simp: exp_diff algebra_simps)
@@ -1565,12 +1750,12 @@ lemma continuous_at_Arg2pi:
 proof -
   have *: "isCont (\<lambda>z. Im (Ln (- z)) + pi) z"
     by (rule Complex.isCont_Im isCont_Ln' continuous_intros | simp add: assms complex_is_Real_iff)+
-  have [simp]: "\<And>x. \<lbrakk>Im x \<noteq> 0\<rbrakk> \<Longrightarrow> Im (Ln (- x)) + pi = Arg2pi x"
-    using Arg2pi_Ln Arg2pi_gt_0 complex_is_Real_iff by auto
+  have [simp]: "Im x \<noteq> 0 \<Longrightarrow> Im (Ln (- x)) + pi = Arg2pi x" for x
+    using Arg2pi_Ln  by (simp add: Arg2pi_gt_0 complex_nonneg_Reals_iff)
   consider "Re z < 0" | "Im z \<noteq> 0" using assms
     using complex_nonneg_Reals_iff not_le by blast
   then have [simp]: "(\<lambda>z. Im (Ln (- z)) + pi) \<midarrow>z\<rightarrow> Arg2pi z"
-    using "*"  by (simp add: isCont_def) (metis Arg2pi_Ln Arg2pi_gt_0 complex_is_Real_iff)
+    using "*" by (simp add: Arg2pi_Ln Arg2pi_gt_0 assms continuous_within) 
   show ?thesis
     unfolding continuous_at
   proof (rule Lim_transform_within_open)
@@ -2671,12 +2856,6 @@ proof -
 qed
 
 subsection \<open>Real arctangent\<close>
-
-lemma norm_exp_i_times [simp]: "norm (exp(\<i> * of_real y)) = 1"
-  by simp
-
-lemma norm_exp_imaginary: "norm(exp z) = 1 \<Longrightarrow> Re z = 0"
-  by simp
 
 lemma Im_Arctan_of_real [simp]: "Im (Arctan (of_real x)) = 0"
 proof -
@@ -3875,7 +4054,7 @@ proof -
           by (metis eq_divide_eq_1 not_less_iff_gr_or_eq)
       qed
       with xy show "x = y"
-        by (metis Arg2pi Arg2pi_0 dist_0_norm divide_cancel_right dual_order.strict_iff_order mem_sphere)
+        by (metis is_Arg_def Arg2pi Arg2pi_0 dist_0_norm divide_cancel_right dual_order.strict_iff_order mem_sphere)
     qed
     have "\<And>z. cmod z = 1 \<Longrightarrow> \<exists>x\<in>{0..1}. \<gamma> (Arg2pi z / (2*pi)) = \<gamma> x"
        by (metis Arg2pi_ge_0 Arg2pi_lt_2pi atLeastAtMost_iff divide_less_eq_1 less_eq_real_def zero_less_mult_iff pi_gt_zero zero_le_divide_iff zero_less_numeral)

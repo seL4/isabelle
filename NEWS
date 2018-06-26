@@ -386,6 +386,10 @@ infix/prefix notation.
 The set of isomorphisms between two groups is now denoted iso rather than iso_set.
 INCOMPATIBILITY.
 
+* Session HOL-Analysis: the Arg function now respects the same interval as
+Ln, namely (-pi,pi]; the old Arg function has been renamed Arg2pi. 
+INCOMPATIBILITY.
+
 * Session HOL-Analysis: infinite products, Moebius functions, the
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.
