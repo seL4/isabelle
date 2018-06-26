@@ -11,7 +11,7 @@ sig
   val output_token: Proof.context -> Token.T -> Latex.text list
   val output_source: Proof.context -> string -> Latex.text list
   type segment = {span: Command_Span.span, command: Toplevel.transition, state: Toplevel.state}
-  val present_thy: theory -> segment list -> Latex.text list
+  val present_thy: Options.T -> theory -> segment list -> Latex.text list
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val lines: Latex.text list -> Latex.text list
@@ -241,7 +241,27 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 
 in
 
-fun present_span thy keywords document_tags span state state'
+fun make_command_tag options keywords =
+  let
+    val document_tags = space_explode "," (Options.string options \<^system_option>\<open>document_tags\<close>);
+  in
+    fn {cmd_name, cmd_tags, tag, active_tag} => fn state => fn state' =>
+      let
+        val tag' = try hd (fold (update (op =)) cmd_tags (the_list tag));
+        val active_tag' =
+          if is_some tag' then tag'
+          else if cmd_name = "end" andalso Toplevel.is_end_theory state' then SOME "theory"
+          else
+            (case Keyword.command_tags keywords cmd_name @ document_tags of
+              default_tag :: _ => SOME default_tag
+            | [] =>
+                if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
+                then active_tag
+                else NONE);
+      in {tag' = tag', active_tag' = active_tag'} end
+  end;
+
+fun present_span thy command_tag span state state'
     (tag_stack, active_tag, newline, latex, present_cont) =
   let
     val ctxt' =
@@ -255,22 +275,12 @@ fun present_span thy keywords document_tags span state state'
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
 
     val (tag, tags) = tag_stack;
-    val tag' = try hd (fold (update (op =)) cmd_tags (the_list tag));
+    val {tag', active_tag'} =
+      command_tag {cmd_name = cmd_name, cmd_tags = cmd_tags, tag = tag, active_tag = active_tag}
+        state state';
+    val edge = (active_tag, active_tag');
 
     val nesting = Toplevel.level state' - Toplevel.level state;
-
-    val active_tag' =
-      if is_some tag' then tag'
-      else if cmd_name = "end" andalso Toplevel.is_end_theory state' then SOME "theory"
-      else
-        (case Keyword.command_tags keywords cmd_name @ document_tags of
-          default_tag :: _ => SOME default_tag
-        | [] =>
-            if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
-            then active_tag
-            else NONE);
-
-    val edge = (active_tag, active_tag');
 
     val newline' =
       if is_none active_tag' then span_newline else newline;
@@ -341,7 +351,7 @@ in
 
 type segment = {span: Command_Span.span, command: Toplevel.transition, state: Toplevel.state};
 
-fun present_thy thy (segments: segment list) =
+fun present_thy options thy (segments: segment list) =
   let
     val keywords = Thy_Header.get_keywords thy;
 
@@ -422,11 +432,10 @@ fun present_thy thy (segments: segment list) =
 
     (* present commands *)
 
-    val document_tags = space_explode "," (Options.default_string \<^system_option>\<open>document_tags\<close>);
+    val command_tag = make_command_tag options keywords;
 
     fun present_command tr span st st' =
-      Toplevel.setmp_thread_position tr
-        (present_span thy keywords document_tags span st st');
+      Toplevel.setmp_thread_position tr (present_span thy command_tag span st st');
 
     fun present _ [] = I
       | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
