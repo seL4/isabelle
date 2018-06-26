@@ -263,7 +263,9 @@ fun make_command_tag options keywords =
       let
         val tag' = try hd (fold (update (op =)) cmd_tags (the_list tag));
 
-        val keyword_tags = Keyword.command_tags keywords cmd_name;
+        val keyword_tags =
+          if cmd_name = "end" andalso Toplevel.is_end_theory state' then ["theory"]
+          else Keyword.command_tags keywords cmd_name;
         val command_tags =
           the_list (AList.lookup (op =) document_tags_command cmd_name) @
           map_filter (AList.lookup (op =) document_tags_category) keyword_tags @
@@ -271,7 +273,6 @@ fun make_command_tag options keywords =
 
         val active_tag' =
           if is_some tag' then tag'
-          else if cmd_name = "end" andalso Toplevel.is_end_theory state' then SOME "theory"
           else
             (case command_tags of
               default_tag :: _ => SOME default_tag
