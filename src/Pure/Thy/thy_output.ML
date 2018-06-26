@@ -239,11 +239,32 @@ val end_tag = edge #1 Latex.end_tag;
 fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.end_delim e;
 fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
 
+fun read_tag s =
+  (case space_explode "=" s of
+    [] => (SOME s, NONE, NONE)
+  | [_] => (SOME s, NONE, NONE)
+  | [a, b] =>
+      if String.isPrefix "[" a andalso String.isSuffix "]" a
+      then (NONE, SOME (unenclose a, b), NONE)
+      else (NONE, NONE, SOME (a, b))
+  | _ => error ("Bad document_tags specification: " ^ quote s));
+
 in
 
 fun make_command_tag options keywords =
   let
-    val document_tags = space_explode "," (Options.string options \<^system_option>\<open>document_tags\<close>);
+    val document_tags =
+      map read_tag (space_explode "," (Options.string options \<^system_option>\<open>document_tags\<close>));
+    val document_tags_default = map_filter #1 document_tags;
+    val document_tags_category = map_filter #2 document_tags;
+    val document_tags_command = map_filter #3 document_tags;
+
+    fun command_tags cmd_name =
+      let val keyword_tags = Keyword.command_tags keywords cmd_name in
+        the_list (AList.lookup (op =) document_tags_command cmd_name) @
+        map_filter (AList.lookup (op =) document_tags_category) keyword_tags @
+        keyword_tags @ document_tags_default
+      end;
   in
     fn {cmd_name, cmd_tags, tag, active_tag} => fn state => fn state' =>
       let
@@ -252,7 +273,7 @@ fun make_command_tag options keywords =
           if is_some tag' then tag'
           else if cmd_name = "end" andalso Toplevel.is_end_theory state' then SOME "theory"
           else
-            (case Keyword.command_tags keywords cmd_name @ document_tags of
+            (case command_tags cmd_name of
               default_tag :: _ => SOME default_tag
             | [] =>
                 if Keyword.is_vacuous keywords cmd_name andalso Toplevel.is_proof state
