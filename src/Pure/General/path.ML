@@ -214,15 +214,16 @@ fun smart_implode path =
   let
     val full_name = implode_path (expand path);
     fun fold_path a =
-      let val b = implode_path (expand (explode_path a)) in
-        if full_name = b then SOME a
-        else
-          (case try (unprefix (b ^ "/")) full_name of
-            SOME name => SOME (a ^ "/" ^ name)
-          | NONE => NONE)
-      end;
+      (case try (implode_path o expand o explode_path) a of
+        SOME b =>
+          if full_name = b then SOME a
+          else
+            (case try (unprefix (b ^ "/")) full_name of
+              SOME name => SOME (a ^ "/" ^ name)
+            | NONE => NONE)
+      | NONE => NONE);
   in
-    (case get_first fold_path ["~~", "$ISABELLE_HOME_USER", "~"] of
+    (case get_first fold_path ["$AFP", "~~", "$ISABELLE_HOME_USER", "~"] of
       SOME name => name
     | NONE => implode_path path)
   end;
