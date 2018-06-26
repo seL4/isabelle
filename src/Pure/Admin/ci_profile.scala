@@ -24,6 +24,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         progress = progress,
         clean_build = clean,
         verbose = true,
+        numa_shuffling = numa,
         max_jobs = jobs,
         dirs = include,
         select_dirs = select,
@@ -137,6 +138,7 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
   def documents: Boolean = true
   def clean: Boolean = true
+  def numa: Boolean = false
 
   def threads: Int
   def jobs: Int
