@@ -58,7 +58,7 @@ session "HOL-Library" (main timing) in Library = HOL +
   document_files "root.bib" "root.tex"
 
 session "HOL-Analysis" (main timing) in Analysis = HOL +
-  options [document_tags = "*=unimportant",
+  options [document_tags = "%unimportant",
     document_variants = "document:manual=-proof,-ML,-unimportant"]
   sessions
     "HOL-Library"

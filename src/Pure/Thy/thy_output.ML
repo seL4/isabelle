@@ -240,8 +240,8 @@ fun open_delim delim e = edge #2 Latex.begin_delim e #> delim #> edge #2 Latex.e
 fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.end_delim e;
 
 fun read_tag s =
-  (case space_explode "=" s of
-    ["*", b] => (SOME b, NONE)
+  (case space_explode "%" s of
+    ["", b] => (SOME b, NONE)
   | [a, b] => (NONE, SOME (a, b))
   | _ => error ("Bad document_tags specification: " ^ quote s));
 
