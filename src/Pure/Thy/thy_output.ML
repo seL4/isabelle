@@ -241,12 +241,8 @@ fun close_delim delim e = edge #1 Latex.begin_delim e #> delim #> edge #1 Latex.
 
 fun read_tag s =
   (case space_explode "=" s of
-    [] => (SOME s, NONE, NONE)
-  | [_] => (SOME s, NONE, NONE)
-  | [a, b] =>
-      if String.isPrefix "[" a andalso String.isSuffix "]" a
-      then (NONE, SOME (unenclose a, b), NONE)
-      else (NONE, NONE, SOME (a, b))
+    ["*", b] => (SOME b, NONE)
+  | [a, b] => (NONE, SOME (a, b))
   | _ => error ("Bad document_tags specification: " ^ quote s));
 
 in
@@ -256,8 +252,7 @@ fun make_command_tag options keywords =
     val document_tags =
       map read_tag (space_explode "," (Options.string options \<^system_option>\<open>document_tags\<close>));
     val document_tags_default = map_filter #1 document_tags;
-    val document_tags_category = map_filter #2 document_tags;
-    val document_tags_command = map_filter #3 document_tags;
+    val document_tags_command = map_filter #2 document_tags;
   in
     fn {cmd_name, cmd_tags, tag, active_tag} => fn state => fn state' =>
       let
@@ -268,7 +263,6 @@ fun make_command_tag options keywords =
           else Keyword.command_tags keywords cmd_name;
         val command_tags =
           the_list (AList.lookup (op =) document_tags_command cmd_name) @
-          map_filter (AList.lookup (op =) document_tags_category) keyword_tags @
           keyword_tags @ document_tags_default;
 
         val active_tag' =
