@@ -73,7 +73,7 @@ text \<open>
   minimum.
 
   \<^medskip>
-  A few variables are somewhat special, e.g. @{setting_def ISABELLE_TOOL} is
+  A few variables are somewhat special, e.g.\ @{setting_def ISABELLE_TOOL} is
   set automatically to the absolute path name of the @{executable isabelle}
   executables.
 
@@ -207,7 +207,7 @@ text \<open>
   files.
 
   \<^descr>[@{setting_def ISABELLE_TOOL_JAVA_OPTIONS}] is passed to the \<^verbatim>\<open>java\<close>
-  executable when running Isabelle tools (e.g. @{tool build}). This is
+  executable when running Isabelle tools (e.g.\ @{tool build}). This is
   occasionally helpful to provide more heap space, via additional options like
   \<^verbatim>\<open>-Xms1g -Xmx4g\<close>.
 \<close>

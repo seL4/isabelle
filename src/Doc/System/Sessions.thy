@@ -565,7 +565,7 @@ text \<open>
     -n           no build of session
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode for session image
-    -x PATTERN   extract files matching pattern (e.g. "*:**" for all)
+    -x PATTERN   extract files matching pattern (e.g.\ "*:**" for all)
 
   List or export theory exports for SESSION: named blobs produced by
   isabelle build. Option -l or -x is required; option -x may be repeated.
