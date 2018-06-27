@@ -215,6 +215,12 @@ lemma subset_transfer [transfer_rule]:
   shows "(rel_set A ===> rel_set A ===> (=)) (\<subseteq>) (\<subseteq>)"
   unfolding subset_eq [abs_def] by transfer_prover
 
+lemma strict_subset_transfer [transfer_rule]:
+  includes lifting_syntax
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(rel_set A ===> rel_set A ===> (=)) (\<subset>) (\<subset>)"
+  unfolding subset_not_subset_eq by transfer_prover
+
 declare right_total_UNIV_transfer[transfer_rule]
 
 lemma UNIV_transfer [transfer_rule]:
@@ -259,6 +265,20 @@ lemma card_transfer [transfer_rule]:
   by (rule rel_funI, erule (1) bi_unique_rel_set_lemma)
      (simp add: card_image)
 
+lemma vimage_right_total_transfer[transfer_rule]:
+  includes lifting_syntax
+  assumes [transfer_rule]: "bi_unique B" "right_total A"
+  shows "((A ===> B) ===> rel_set B ===> rel_set A) (\<lambda>f X. f -` X \<inter> Collect (Domainp A)) vimage"
+proof -
+  let ?vimage = "(\<lambda>f B. {x. f x \<in> B \<and> Domainp A x})"
+  have "((A ===> B) ===> rel_set B ===> rel_set A) ?vimage vimage"
+    unfolding vimage_def
+    by transfer_prover
+  also have "?vimage = (\<lambda>f X. f -` X \<inter> Collect (Domainp A))"
+    by auto
+  finally show ?thesis .
+qed
+
 lemma vimage_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_total A" "bi_unique B"
   shows "((A ===> B) ===> rel_set B ===> rel_set A) vimage vimage"
@@ -269,6 +289,12 @@ lemma Image_parametric [transfer_rule]:
   shows "(rel_set (rel_prod A B) ===> rel_set A ===> rel_set B) (``) (``)"
   by (intro rel_funI rel_setI)
     (force dest: rel_setD1 bi_uniqueDr[OF assms], force dest: rel_setD2 bi_uniqueDl[OF assms])
+
+lemma inj_on_transfer[transfer_rule]:
+  "((A ===> B) ===> rel_set A ===> (=)) inj_on inj_on"
+  if [transfer_rule]: "bi_unique A" "bi_unique B"
+  unfolding inj_on_def
+  by transfer_prover
 
 end
 

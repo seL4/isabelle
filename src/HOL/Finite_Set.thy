@@ -715,8 +715,44 @@ inductive fold_graph :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b
 
 inductive_cases empty_fold_graphE [elim!]: "fold_graph f z {} x"
 
+lemma fold_graph_closed_lemma:
+  "fold_graph f z A x \<and> x \<in> B"
+  if "fold_graph g z A x"
+    "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> f a b = g a b"
+    "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> g a b \<in> B"
+    "z \<in> B"
+  using that(1-3)
+proof (induction rule: fold_graph.induct)
+  case (insertI x A y)
+  have "fold_graph f z A y" "y \<in> B"
+    unfolding atomize_conj
+    by (rule insertI.IH) (auto intro: insertI.prems)
+  then have "g x y \<in> B" and f_eq: "f x y = g x y"
+    by (auto simp: insertI.prems)
+  moreover have "fold_graph f z (insert x A) (f x y)"
+    by (rule fold_graph.insertI; fact)
+  ultimately
+  show ?case
+    by (simp add: f_eq)
+qed (auto intro!: that)
+
+lemma fold_graph_closed_eq:
+  "fold_graph f z A = fold_graph g z A"
+  if "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> f a b = g a b"
+     "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> g a b \<in> B"
+     "z \<in> B"
+  using fold_graph_closed_lemma[of f z A _ B g] fold_graph_closed_lemma[of g z A _ B f] that
+  by auto
+
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"
   where "fold f z A = (if finite A then (THE y. fold_graph f z A y) else z)"
+
+lemma fold_closed_eq: "fold f z A = fold g z A"
+  if "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> f a b = g a b"
+     "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> g a b \<in> B"
+     "z \<in> B"
+  unfolding Finite_Set.fold_def
+  by (subst fold_graph_closed_eq[where B=B and g=g]) (auto simp: that)
 
 text \<open>
   A tempting alternative for the definiens is
