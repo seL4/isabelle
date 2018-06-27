@@ -77,8 +77,13 @@ ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 # Location for temporary files (should be on a local file system).
 ISABELLE_TMP_PREFIX="${TMPDIR:-/tmp}/isabelle-$USER"
 
+# Heap locations.
+ISABELLE_HEAPS="$ISABELLE_HOME_USER/heaps"
+ISABELLE_HEAPS_SYSTEM="$ISABELLE_HOME/heaps"
+
 # HTML browser info.
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
+ISABELLE_BROWSER_INFO_SYSTEM="$ISABELLE_HOME/browser_info"
 
 # Site settings check -- just to make it a little bit harder to copy this file verbatim!
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \

@@ -175,9 +175,17 @@ text \<open>
   always the (native) 64 bit variant: \<^verbatim>\<open>x86_64-linux\<close>, \<^verbatim>\<open>x86_64-darwin\<close>,
   \<^verbatim>\<open>x86_64-windows\<close>.
 
-  \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where theory
-  browser information is stored as HTML and PDF (see also \secref{sec:info}).
-  The default value is @{path "$ISABELLE_HOME_USER/browser_info"}.
+  \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where HTML and PDF
+  browser information is stored (see also \secref{sec:info}); its default is
+  @{path "$ISABELLE_HOME_USER/browser_info"}. For ``system build mode'' (see
+  \secref{sec:tool-build}), @{setting_def ISABELLE_BROWSER_INFO_SYSTEM} is
+  used instead; its default is @{path "$ISABELLE_HOME/browser_info"}.
+
+  \<^descr>[@{setting_def ISABELLE_HEAPS}] is the directory where session heap images,
+  log files, and build databases are stored; its default is @{path
+  "$ISABELLE_HOME_USER/heaps"}. For ``system build mode'' (see
+  \secref{sec:tool-build}), @{setting_def ISABELLE_HEAPS_SYSTEM} is used
+  instead; its default is @{path "$ISABELLE_HOME/heaps"}.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.

@@ -1012,8 +1012,8 @@ object Sessions
 
     /* directories */
 
-    val system_output_dir: Path = Path.explode("~~/heaps/$ML_IDENTIFIER")
-    val user_output_dir: Path = Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER")
+    val system_output_dir: Path = Path.explode("$ISABELLE_HEAPS_SYSTEM/$ML_IDENTIFIER")
+    val user_output_dir: Path = Path.explode("$ISABELLE_HEAPS/$ML_IDENTIFIER")
 
     val output_dir: Path =
       if (system_mode) system_output_dir else user_output_dir
@@ -1023,7 +1023,7 @@ object Sessions
       else List(user_output_dir, system_output_dir)
 
     val browser_info: Path =
-      if (system_mode) Path.explode("~~/browser_info")
+      if (system_mode) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
       else Path.explode("$ISABELLE_BROWSER_INFO")
 
 

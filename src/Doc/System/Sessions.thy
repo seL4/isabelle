@@ -395,9 +395,9 @@ text \<open>
   performance tuning on Linux servers with separate CPU/memory modules.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which means that resulting heap images
-  and log files are stored in @{path "$ISABELLE_HOME/heaps"} instead of the
-  default location @{path "$ISABELLE_HOME_USER/heaps"}.
+  Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which means that session images are
+  stored in @{path "$ISABELLE_HEAPS_SYSTEM"} instead of @{path
+  "$ISABELLE_HEAPS"}.
 
   \<^medskip>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists

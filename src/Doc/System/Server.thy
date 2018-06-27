@@ -708,9 +708,9 @@ text \<open>
   in a robust manner, instead of relying on directory locations.
 
   \<^medskip>
-  The \<open>system_mode\<close> field set to \<^verbatim>\<open>true\<close> stores resulting session images and
-  log files in @{path "$ISABELLE_HOME/heaps"} instead of the default location
-  @{path "$ISABELLE_HOME_USER/heaps"}. See also option \<^verbatim>\<open>-s\<close> in @{tool build}.
+  If \<open>system_mode\<close> is \<^verbatim>\<open>true\<close>, session images are stored in @{path
+  "$ISABELLE_HEAPS_SYSTEM"} instead of @{path "$ISABELLE_HEAPS"}. See also
+  option \<^verbatim>\<open>-s\<close> in @{tool build} (\secref{sec:tool-build}).
 
   \<^medskip>
   The \<open>verbose\<close> field set to \<^verbatim>\<open>true\<close> yields extra verbosity. The effect is

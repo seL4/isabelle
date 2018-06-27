@@ -474,10 +474,16 @@ outline: its options have been adapted accordingly. INCOMPATIBILITY.
 * The command-line tool "isabelle mkroot -I" initializes a Mercurial
 repository for the generated session files.
 
+* Settings ISABELLE_HEAPS + ISABELLE_BROWSER_INFO (or
+ISABELLE_HEAPS_SYSTEM + ISABELLE_BROWSER_INFO_SYSTEM in "system build
+mode") determine the directory locations of the main build artefacts --
+instead of hard-wired directories in ISABELLE_HOME_USER (or
+ISABELLE_HOME).
+
 * Settings ISABELLE_PATH and ISABELLE_OUTPUT have been discontinued:
 heap images and session databases are always stored in
-$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER (command-line default) or
-$ISABELLE_HOME/heaps/$ML_IDENTIFIER (main Isabelle application or
+$ISABELLE_HEAPS/$ML_IDENTIFIER (command-line default) or
+$ISABELLE_HEAPS_SYSTEM/$ML_IDENTIFIER (main Isabelle application or
 "isabelle jedit -s" or "isabelle build -s").
 
 * ISABELLE_LATEX and ISABELLE_PDFLATEX now include platform-specific
