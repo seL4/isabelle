@@ -394,6 +394,11 @@ INCOMPATIBILITY.
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.
 
+* Session HOL-Types_To_Sets: more tool support
+(unoverload_type combines internalize_sorts and unoverload) and larger
+experimental application (type based linear algebra transferred to linear
+algebra on subspaces).
+
 
 *** ML ***
 
