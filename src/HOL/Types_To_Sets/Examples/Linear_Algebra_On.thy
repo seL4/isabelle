@@ -100,20 +100,9 @@ lemma implicit_module_hom_on_with[implicit_ab_group_add]:
     module_hom_on_axioms_def
   by (auto intro!: ext)
 
-locale vector_space_on = \<comment>\<open>here we do the same trick as in \<open>module\<close> vs \<open>vector_space\<close>.\<close>
-  fixes S and scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
-  assumes scale_right_distrib [algebra_simps]: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> a *s (x + y) = a *s x + a *s y"
-    and scale_left_distrib [algebra_simps]: "x \<in> S \<Longrightarrow> (a + b) *s x = a *s x + b *s x"
-    and scale_scale [simp]: "x \<in> S \<Longrightarrow> a *s (b *s x) = (a * b) *s x"
-    and scale_one [simp]: "x \<in> S \<Longrightarrow> 1 *s x = x"
-    and mem_add: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x + y \<in> S"
-    and mem_zero: "0 \<in> S"
-    and mem_scale: "x \<in> S \<Longrightarrow> a *s x \<in> S"
+locale vector_space_on = module_on S scale
+  for S and scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
 begin
-
-sublocale module_on S "( *s)"
-  using vector_space_on_axioms[unfolded vector_space_on_def]
-  by unfold_locales auto
 
 definition dim :: "'b set \<Rightarrow> nat"
   where "dim V = (if \<exists>b\<subseteq>S. \<not> dependent b \<and> span b = span V
@@ -230,13 +219,13 @@ lemmas right_total_cr_S = typedef_right_total[OF type_definition_S cr_S_def, tra
 end
 
 locale local_typedef_ab_group_add = local_typedef S s for S ::"'b::ab_group_add set" and s::"'s itself" +
-  assumes mem_zero: "0 \<in> S"
-  assumes mem_add: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x + y \<in> S"
-  assumes mem_uminus: "x \<in> S \<Longrightarrow> -x \<in> S"
+  assumes mem_zero_lt: "0 \<in> S"
+  assumes mem_add_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x + y \<in> S"
+  assumes mem_uminus_lt: "x \<in> S \<Longrightarrow> -x \<in> S"
 begin
 
-lemma mem_minus: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
-  using mem_add[OF _ mem_uminus] by auto
+lemma mem_minus_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
+  using mem_add_lt[OF _ mem_uminus_lt] by auto
 
 context includes lifting_syntax begin
 
@@ -247,19 +236,19 @@ definition zero_S::"'s" where "zero_S = Abs 0"
 
 lemma plus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) plus plus_S"
   unfolding plus_S_def
-  by (auto simp: cr_S_def mem_add intro!: rel_funI)
+  by (auto simp: cr_S_def mem_add_lt intro!: rel_funI)
 
 lemma minus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) minus minus_S"
   unfolding minus_S_def
-  by (auto simp: cr_S_def mem_minus intro!: rel_funI)
+  by (auto simp: cr_S_def mem_minus_lt intro!: rel_funI)
 
 lemma uminus_S_transfer[transfer_rule]: "(cr_S ===> cr_S) uminus uminus_S"
   unfolding uminus_S_def
-  by (auto simp: cr_S_def mem_uminus intro!: rel_funI)
+  by (auto simp: cr_S_def mem_uminus_lt intro!: rel_funI)
 
 lemma zero_S_transfer[transfer_rule]: "cr_S 0 zero_S"
   unfolding zero_S_def
-  by (auto simp: cr_S_def mem_zero intro!: rel_funI)
+  by (auto simp: cr_S_def mem_zero_lt intro!: rel_funI)
 
 end
 
@@ -538,11 +527,7 @@ lemmas_with [var_simplified explicit_ab_group_add,
     OF type.ab_group_add_axioms type_module_on_with,
     untransferred,
     var_simplified implicit_ab_group_add]:
-      lt_scale_right_distrib = module.scale_right_distrib
-  and lt_scale_left_distrib = module.scale_left_distrib
-  and lt_scale_scale = module.scale_scale
-  and lt_scale_one = module.scale_one
-  and lt_scale_left_commute = module.scale_left_commute
+    lt_scale_left_commute = module.scale_left_commute
   and lt_scale_zero_left = module.scale_zero_left
   and lt_scale_minus_left = module.scale_minus_left
   and lt_scale_left_diff_distrib = module.scale_left_diff_distrib
@@ -647,11 +632,7 @@ lemmas_with [cancel_type_definition,
     folded subset_iff',
     simplified pred_fun_def,
     simplified\<comment>\<open>too much?\<close>]:
-      scale_right_distrib = lt_scale_right_distrib
-  and scale_left_distrib = lt_scale_left_distrib
-  and scale_scale = lt_scale_scale
-  and scale_one = lt_scale_one
-  and scale_left_commute = lt_scale_left_commute
+      scale_left_commute = lt_scale_left_commute
   and scale_zero_left = lt_scale_zero_left
   and scale_minus_left = lt_scale_minus_left
   and scale_left_diff_distrib = lt_scale_left_diff_distrib
