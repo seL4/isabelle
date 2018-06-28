@@ -1575,6 +1575,55 @@ definition Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 t
 
 text\<open>Finally the Argument is defined for the same interval as the complex logarithm: $(-\pi,\pi]$.\<close>
 
+lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
+  by (simp add: Im_Ln_eq_pi Arg_def)
+
+lemma mpi_less_Arg: "-pi < Arg z"
+    and Arg_le_pi: "Arg z \<le> pi"
+  by (auto simp: Arg_def mpi_less_Im_Ln Im_Ln_le_pi)
+
+lemma
+  assumes "z \<noteq> 0"
+  shows Arg_eq: "z = of_real(norm z) * exp(\<i> * Arg z)"
+  using assms exp_Ln exp_eq_polar
+  by (auto simp:  Arg_def)
+
+lemma Argument_exists:
+  assumes "z \<noteq> 0" and R: "R = {r-pi<..r+pi}"
+  obtains s where "is_Arg z s" "s\<in>R"
+proof -
+  let ?rp = "r - Arg z + pi"
+  define k where "k \<equiv> \<lfloor>?rp / (2 * pi)\<rfloor>"
+  have "(Arg z + of_int k * (2 * pi)) \<in> R"
+    using floor_divide_lower [of "2*pi" ?rp] floor_divide_upper [of "2*pi" ?rp]
+    by (auto simp: k_def algebra_simps R)
+  then show ?thesis
+    using Arg_eq \<open>z \<noteq> 0\<close> is_Arg_2pi_iff is_Arg_def that by blast
+qed
+
+lemma Argument_exists_unique:
+  assumes "z \<noteq> 0" and R: "R = {r-pi<..r+pi}"
+  obtains s where "is_Arg z s" "s\<in>R" "\<And>t. \<lbrakk>is_Arg z t; t\<in>R\<rbrakk> \<Longrightarrow> s=t"
+proof -
+  obtain s where s: "is_Arg z s" "s\<in>R"
+    using Argument_exists [OF assms] .
+  moreover have "\<And>t. \<lbrakk>is_Arg z t; t\<in>R\<rbrakk> \<Longrightarrow> s=t"
+    using assms s  by (auto simp: is_Arg_eqI)
+  ultimately show thesis
+    using that by blast
+qed
+
+lemma Argument_Ex1:
+  assumes "z \<noteq> 0" and R: "R = {r-pi<..r+pi}"
+  shows "\<exists>!s. is_Arg z s \<and> s \<in> R"
+  using Argument_exists_unique [OF assms]  by metis
+
+lemma Arg_divide:
+  assumes "w \<noteq> 0" "z \<noteq> 0"
+  shows "is_Arg (z / w) (Arg z - Arg w)"
+  using Arg_eq [of z] Arg_eq [of w] Arg_eq [of "norm(z / w)"] assms
+  by (auto simp: is_Arg_def norm_divide field_simps exp_diff Arg_of_real)
+
 lemma Arg_unique_lemma:
   assumes z:  "is_Arg z t"
       and z': "is_Arg z t'"
@@ -1603,21 +1652,12 @@ proof -
     by simp
 qed
 
-lemma
-  assumes "z \<noteq> 0"
-  shows mpi_less_Arg: "-pi < Arg z"
-    and Arg_le_pi: "Arg z \<le> pi"
-    and Arg_eq: "z = of_real(norm z) * exp(\<i> * Arg z)"
-  using assms exp_Ln exp_eq_polar
-  by (auto simp: mpi_less_Im_Ln Im_Ln_le_pi Arg_def)
-
 lemma complex_norm_eq_1_exp_eq: "norm z = 1 \<longleftrightarrow> exp(\<i> * (Arg z)) = z"
   by (metis Arg_eq exp_not_eq_zero exp_zero mult.left_neutral norm_zero of_real_1 norm_exp_i_times)
 
 lemma Arg_unique: "\<lbrakk>of_real r * exp(\<i> * a) = z; 0 < r; -pi < a; a \<le> pi\<rbrakk> \<Longrightarrow> Arg z = a"
   by (rule Arg_unique_lemma [unfolded is_Arg_def, OF _ Arg_eq])
      (use mpi_less_Arg Arg_le_pi in \<open>auto simp: norm_mult\<close>)
-
 
 lemma Arg_minus:
   assumes "z \<noteq> 0"
@@ -1671,9 +1711,6 @@ lemma Arg_eq_0: "Arg z = 0 \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> 
 corollary Arg_ne_0: assumes "z \<notin> \<real>\<^sub>\<ge>\<^sub>0" shows "Arg z \<noteq> 0"
   using assms by (auto simp: nonneg_Reals_def Arg_eq_0)
 
-lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
-  by (simp add: Im_Ln_eq_pi Arg_def)
-
 lemma Arg_eq_pi_iff: "Arg z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
 proof (cases "z=0")
   case False
@@ -1695,7 +1732,7 @@ proof (cases "z \<in> \<real>")
 next
   case False
   then have "Arg z < pi" "z \<noteq> 0"
-    using Arg_def Arg_eq_0_pi Arg_le_pi by fastforce+
+    using Arg_eq_0_pi Arg_le_pi by (auto simp: less_eq_real_def)
   then show ?thesis
     apply (simp add: False)
     apply (rule Arg_unique [of "inverse (norm z)"])

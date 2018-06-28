@@ -2871,7 +2871,7 @@ next
     then obtain C where C: "x \<in> C" "C \<in> \<C>"
       using \<open>S \<subseteq> \<Union>\<C>\<close> by blast
     then obtain r where r: "r>0" "ball x (2*r) \<subseteq> C"
-      by (metis mult.commute mult_2_right not_le ope openE real_sum_of_halves zero_le_numeral zero_less_mult_iff)
+      by (metis mult.commute mult_2_right not_le ope openE field_sum_of_halves zero_le_numeral zero_less_mult_iff)
     then have "\<exists>r C. r > 0 \<and> ball x (2*r) \<subseteq> C \<and> C \<in> \<C>"
       using C by blast
   }

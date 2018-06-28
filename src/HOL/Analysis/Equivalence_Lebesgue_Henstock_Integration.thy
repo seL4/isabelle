@@ -1371,7 +1371,7 @@ proof
     by (metis dual_order.strict_implies_order negligible_imp_measurable negligible_imp_measure0 order_refl)
 next
   assume ?rhs then show "negligible S"
-    by (metis le_less_trans negligible_outer real_lbound_gt_zero)
+    by (metis le_less_trans negligible_outer field_lbound_gt_zero)
 qed
 
 lemma negligible_UNIV: "negligible S \<longleftrightarrow> (indicat_real S has_integral 0) UNIV" (is "_=?rhs")

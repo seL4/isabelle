@@ -1209,7 +1209,7 @@ proof -
         have "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e/2 + e/2"
           using eventually_conj [OF K z1]
           apply (rule eventually_mono)
-          by (metis (no_types, hide_lams) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half real_sum_of_halves)
+          by (metis (no_types, hide_lams) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half field_sum_of_halves)
         then
         show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e"
           by simp

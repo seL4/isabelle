@@ -1132,7 +1132,7 @@ proof -
     obtain d2 where "0 < d2" and d2: "\<And>u. dist u y < d2 \<Longrightarrow> u \<in> T"
       using \<open>open T\<close> \<open>y \<in> T\<close> unfolding open_dist by blast
     obtain d where d: "0 < d" "d < d1" "d < d2"
-      using real_lbound_gt_zero[OF \<open>0 < d1\<close> \<open>0 < d2\<close>] by blast
+      using field_lbound_gt_zero[OF \<open>0 < d1\<close> \<open>0 < d2\<close>] by blast
     show "\<exists>d>0. \<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e * norm (g z - g y)"
     proof (intro exI allI impI conjI)
       fix z
@@ -1188,7 +1188,7 @@ proof -
         "\<And>z. norm (z - y) < d' \<Longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
       using lem1 * by blast
     obtain k where k: "0 < k" "k < d" "k < d'"
-      using real_lbound_gt_zero[OF \<open>0 < d\<close> \<open>0 < d'\<close>] by blast
+      using field_lbound_gt_zero[OF \<open>0 < d\<close> \<open>0 < d'\<close>] by blast
     show "\<exists>d>0. \<forall>ya. norm (ya - y) < d \<longrightarrow> norm (g ya - g y - g' (ya - y)) \<le> e * norm (ya - y)"
     proof (intro exI allI impI conjI)
       fix z
@@ -1331,7 +1331,7 @@ proof -
     using mem_interior_cball x by blast
   have *: "0 < e0 / B" "0 < e1 / B" using e0 e1 B by auto
   obtain e where e: "0 < e" "e < e0 / B" "e < e1 / B"
-    using real_lbound_gt_zero[OF *] by blast
+    using field_lbound_gt_zero[OF *] by blast
   have lem: "\<exists>y\<in>cball (f x) e. f (x + g' (y - f x)) = z" if "z\<in>cball (f x) (e / 2)" for z
   proof (rule brouwer_surjective_cball)
     have z: "z \<in> S" if as: "y \<in>cball (f x) e" "z = x + (g' y - g' (f x))" for y z
@@ -1544,7 +1544,7 @@ proof -
   obtain d2 where d2: "0 < d2" "ball a d2 \<subseteq> S"
     using \<open>0 < d2\<close> \<open>ball a d2 \<subseteq> S\<close> by blast
   obtain d where d: "0 < d" "d < d1" "d < d2"
-    using real_lbound_gt_zero[OF d1(1) d2(1)] by blast
+    using field_lbound_gt_zero[OF d1(1) d2(1)] by blast
   show ?thesis
   proof
     show "0 < d" by (fact d)

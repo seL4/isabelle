@@ -2234,7 +2234,7 @@ proof (rule ccontr)
   then obtain y where "y\<in>s" and y: "f x > f y" by auto
   then have xy: "0 < dist x y"  by auto
   then obtain u where "0 < u" "u \<le> 1" and u: "u < e / dist x y"
-    using real_lbound_gt_zero[of 1 "e / dist x y"] xy \<open>e>0\<close> by auto
+    using field_lbound_gt_zero[of 1 "e / dist x y"] xy \<open>e>0\<close> by auto
   then have "f ((1-u) *\<^sub>R x + u *\<^sub>R y) \<le> (1-u) * f x + u * f y"
     using \<open>x\<in>s\<close> \<open>y\<in>s\<close>
     using assms(2)[unfolded convex_on_def,
@@ -5052,7 +5052,7 @@ proof induct
       next
         assume "u \<noteq> 0" "v \<noteq> 0"
         then obtain w where w: "w>0" "w<u" "w<v"
-          using real_lbound_gt_zero[of u v] and obt(1,2) by auto
+          using field_lbound_gt_zero[of u v] and obt(1,2) by auto
         have "x \<noteq> b"
         proof
           assume "x = b"

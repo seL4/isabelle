@@ -1243,7 +1243,7 @@ proof -
         by (metis atLeastAtMost_iff a_ge_0 b_le_1 order.trans)+
       moreover have "y < \<delta> + c (real m / 2 ^ n)" "c (real m / 2 ^ n) < \<delta> + y"
         using y apply simp_all
-        using alec [of m n] cleb [of m n] n real_sum_of_halves close_ab [OF \<open>odd m\<close>, of n]
+        using alec [of m n] cleb [of m n] n field_sum_of_halves close_ab [OF \<open>odd m\<close>, of n]
         by linarith+
       moreover note \<open>0 < m\<close> mless \<open>0 \<le> x\<close> \<open>x \<le> 1\<close>
       ultimately show "\<exists>k. \<exists>m\<in>{0<..<2 ^ k}. dist (h (real m / 2 ^ k)) (f x) < e"

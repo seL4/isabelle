@@ -4381,19 +4381,20 @@ by (induct n) (simp_all add:rotate_def)
 
 lemma rotate_rev:
   "rotate n (rev xs) = rev(rotate (length xs - (n mod length xs)) xs)"
-apply(simp add:rotate_drop_take rev_drop rev_take)
-apply(cases "length xs = 0")
- apply simp
-apply(cases "n mod length xs = 0")
- apply simp
-apply(simp add:rotate_drop_take rev_drop rev_take)
-done
+proof (cases "length xs = 0 \<or> n mod length xs = 0")
+  case False
+  then show ?thesis
+    by(simp add:rotate_drop_take rev_drop rev_take)
+qed force
 
 lemma hd_rotate_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd(rotate n xs) = xs!(n mod length xs)"
 apply(simp add:rotate_drop_take hd_append hd_drop_conv_nth hd_conv_nth)
 apply(subgoal_tac "length xs \<noteq> 0")
  prefer 2 apply simp
 using mod_less_divisor[of "length xs" n] by arith
+
+lemma rotate_append: "rotate (length l) (l @ q) = q @ l"
+  by (induct l arbitrary: q) (auto simp add: rotate1_rotate_swap)
 
 
 subsubsection \<open>@{const nths} --- a generalization of @{const nth} to sets\<close>

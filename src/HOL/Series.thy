@@ -213,11 +213,12 @@ begin
 lemma suminf_le: "\<forall>n. f n \<le> g n \<Longrightarrow> summable f \<Longrightarrow> summable g \<Longrightarrow> suminf f \<le> suminf g"
   by (auto dest: sums_summable intro: sums_le)
 
-lemma sum_le_suminf: "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> sum f {..<n} \<le> suminf f"
+lemma sum_le_suminf:
+  shows "summable f \<Longrightarrow> finite I \<Longrightarrow> \<forall>m\<in>- I. 0 \<le> f m \<Longrightarrow> sum f I \<le> suminf f"
   by (rule sums_le[OF _ sums_If_finite_set summable_sums]) auto
 
 lemma suminf_nonneg: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 \<le> suminf f"
-  using sum_le_suminf[of 0] by simp
+  using sum_le_suminf by force
 
 lemma suminf_le_const: "summable f \<Longrightarrow> (\<And>n. sum f {..<n} \<le> x) \<Longrightarrow> suminf f \<le> x"
   by (metis LIMSEQ_le_const2 summable_LIMSEQ)
@@ -237,7 +238,7 @@ proof
 qed (metis suminf_zero fun_eq_iff)
 
 lemma suminf_pos_iff: "summable f \<Longrightarrow> \<forall>n. 0 \<le> f n \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
-  using sum_le_suminf[of 0] suminf_eq_zero_iff by (simp add: less_le)
+  using sum_le_suminf[of "{}"] suminf_eq_zero_iff by (simp add: less_le)
 
 lemma suminf_pos2:
   assumes "summable f" "\<forall>n. 0 \<le> f n" "0 < f i"
@@ -261,7 +262,7 @@ begin
 
 lemma sum_less_suminf2:
   "summable f \<Longrightarrow> \<forall>m\<ge>n. 0 \<le> f m \<Longrightarrow> n \<le> i \<Longrightarrow> 0 < f i \<Longrightarrow> sum f {..<n} < suminf f"
-  using sum_le_suminf[of f "Suc i"]
+  using sum_le_suminf[of f "{..< Suc i}"]
     and add_strict_increasing[of "f i" "sum f {..<n}" "sum f {..<i}"]
     and sum_mono2[of "{..<i}" "{..<n}" f]
   by (auto simp: less_imp_le ac_simps)
@@ -287,6 +288,11 @@ qed
 lemma summableI[intro, simp]: "summable f"
   for f :: "nat \<Rightarrow> 'a::{canonically_ordered_monoid_add,linorder_topology,complete_linorder}"
   by (intro summableI_nonneg_bounded[where x=top] zero_le top_greatest)
+
+lemma suminf_eq_SUP_real:
+  assumes X: "summable X" "\<And>i. 0 \<le> X i" shows "suminf X = (SUP i. \<Sum>n<i. X n::real)"
+  by (intro LIMSEQ_unique[OF summable_LIMSEQ] X LIMSEQ_incseq_SUP)
+     (auto intro!: bdd_aboveI2[where M="\<Sum>i. X i"] sum_le_suminf X monoI sum_mono2)
 
 
 subsection \<open>Infinite summability on topological monoids\<close>
@@ -1116,7 +1122,8 @@ proof -
     also have "\<dots> \<le> (\<Sum>i<m. f i)"
       by (rule sum_mono2) (auto simp add: pos n[rule_format])
     also have "\<dots> \<le> suminf f"
-      using \<open>summable f\<close> by (rule sum_le_suminf) (simp add: pos)
+      using \<open>summable f\<close>
+      by (rule sum_le_suminf) (simp_all add: pos)
     finally show "(\<Sum>i<n. (f \<circ>  g) i) \<le> suminf f"
       by simp
   qed
@@ -1151,7 +1158,7 @@ proof -
     also have "\<dots> \<le> (\<Sum>i<m. (f \<circ> g) i)"
       by (rule sum_mono2)(auto simp add: pos n)
     also have "\<dots> \<le> suminf (f \<circ> g)"
-      using \<open>summable (f \<circ> g)\<close> by (rule sum_le_suminf) (simp add: pos)
+      using \<open>summable (f \<circ> g)\<close> by (rule sum_le_suminf) (simp_all add: pos)
     finally show "sum f {..<n} \<le> suminf (f \<circ> g)" .
   qed
   with le show "suminf (f \<circ> g) = suminf f"

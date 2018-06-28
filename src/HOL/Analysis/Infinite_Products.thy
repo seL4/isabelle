@@ -226,6 +226,23 @@ lemma convergent_prod_iff_convergent:
   shows "convergent_prod f \<longleftrightarrow> convergent (\<lambda>n. \<Prod>i\<le>n. f i) \<and> lim (\<lambda>n. \<Prod>i\<le>n. f i) \<noteq> 0"
   by (force simp: convergent_prod_iff_nz_lim assms convergent_def limI)
 
+lemma bounded_imp_convergent_prod:
+  fixes a :: "nat \<Rightarrow> real"
+  assumes 1: "\<And>n. a n \<ge> 1" and bounded: "\<And>n. (\<Prod>i\<le>n. a i) \<le> B"
+  shows "convergent_prod a"
+proof -
+  have "bdd_above (range(\<lambda>n. \<Prod>i\<le>n. a i))"
+    by (meson bdd_aboveI2 bounded)
+  moreover have "incseq (\<lambda>n. \<Prod>i\<le>n. a i)"
+    unfolding mono_def by (metis 1 prod_mono2 atMost_subset_iff dual_order.trans finite_atMost zero_le_one)
+  ultimately obtain p where p: "(\<lambda>n. \<Prod>i\<le>n. a i) \<longlonglongrightarrow> p"
+    using LIMSEQ_incseq_SUP by blast
+  then have "p \<noteq> 0"
+    by (metis "1" not_one_le_zero prod_ge_1 LIMSEQ_le_const)
+  with 1 p show ?thesis
+    by (metis convergent_prod_iff_nz_lim not_one_le_zero)
+qed
+
 
 lemma abs_convergent_prod_altdef:
   fixes f :: "nat \<Rightarrow> 'a :: {one,real_normed_vector}"
