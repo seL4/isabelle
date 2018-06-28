@@ -596,11 +596,11 @@ lemmas_with [var_simplified explicit_ab_group_add,
   and lt_module_hom_id = module.module_hom_id
   and lt_module_hom_ident = module.module_hom_ident
   and lt_module_hom_uminus = module.module_hom_uminus
-  and subspace_UNIV = module.subspace_UNIV
-  and span_alt = module.span_alt
+  and lt_subspace_UNIV = module.subspace_UNIV
 (* should work but don't:
   and span_def = module.span_def
   and span_UNIV = module.span_UNIV
+  and lt_span_alt = module.span_alt
   and dependent_alt = module.dependent_alt
   and independent_alt = module.independent_alt
   and unique_representation = module.unique_representation
@@ -701,7 +701,7 @@ lemmas_with [cancel_type_definition,
   and module_hom_id = lt_module_hom_id
   and module_hom_ident = lt_module_hom_ident
   and module_hom_uminus = lt_module_hom_uminus
-
+  and subspace_UNIV = lt_subspace_UNIV
 end
 
 subsubsection \<open>Vector Spaces\<close>
@@ -717,8 +717,7 @@ lemmas_with [var_simplified explicit_ab_group_add,
     OF type.ab_group_add_axioms type_vector_space_on_with,
     untransferred,
     var_simplified implicit_ab_group_add]:
- lt_vector_space_assms = vector_space.vector_space_assms
-and lt_linear_id = vector_space.linear_id
+    lt_linear_id = vector_space.linear_id
 and lt_linear_ident = vector_space.linear_ident
 and lt_linear_scale_self = vector_space.linear_scale_self
 and lt_linear_scale_left = vector_space.linear_scale_left
@@ -779,8 +778,7 @@ lemmas_with [cancel_type_definition,
     folded subset_iff',
     simplified pred_fun_def,
     simplified\<comment>\<open>too much?\<close>]:
- vector_space_assms = lt_vector_space_assms
-and linear_id = lt_linear_id
+    linear_id = lt_linear_id
 and linear_ident = lt_linear_ident
 and linear_scale_self = lt_linear_scale_self
 and linear_scale_left = lt_linear_scale_left
@@ -869,37 +867,34 @@ lemmas_with [cancel_type_definition,
     folded subset_iff',
     simplified pred_fun_def,
     simplified\<comment>\<open>too much?\<close>]:
- vector_space_assms = lt_vector_space_assms
-and linear_id = lt_linear_id
-and linear_ident = lt_linear_ident
-and linear_scale_self = lt_linear_scale_self
-and linear_scale_left = lt_linear_scale_left
-and linear_uminus = lt_linear_uminus
-and linear_imp_scale["consumes" - 1, "case_names" "1"] = lt_linear_imp_scale
-and scale_eq_0_iff = lt_scale_eq_0_iff
-and scale_left_imp_eq = lt_scale_left_imp_eq
-and scale_right_imp_eq = lt_scale_right_imp_eq
-and scale_cancel_left = lt_scale_cancel_left
-and scale_cancel_right = lt_scale_cancel_right
-and dependent_def = lt_dependent_def
-and dependent_single = lt_dependent_single
-and in_span_insert = lt_in_span_insert
-and dependent_insertD = lt_dependent_insertD
-and independent_insertI = lt_independent_insertI
-and independent_insert = lt_independent_insert
-and maximal_independent_subset_extend["consumes" - 1, "case_names" "1"] = lt_maximal_independent_subset_extend
-and maximal_independent_subset["consumes" - 1, "case_names" "1"] = lt_maximal_independent_subset
-and in_span_delete = lt_in_span_delete
-and span_redundant = lt_span_redundant
-and span_trans = lt_span_trans
-and span_insert_0 = lt_span_insert_0
-and span_delete_0 = lt_span_delete_0
-and span_image_scale = lt_span_image_scale
-and exchange_lemma = lt_exchange_lemma
-and independent_span_bound = lt_independent_span_bound
-and independent_explicit_finite_subsets = lt_independent_explicit_finite_subsets
-and independent_if_scalars_zero = lt_independent_if_scalars_zero
-and subspace_sums = lt_subspace_sums
+     finiteI_independent = lt_finiteI_independent
+and  dim_empty = lt_dim_empty
+and  dim_insert = lt_dim_insert
+and  dim_singleton = lt_dim_singleton
+and  choose_subspace_of_subspace["consumes" - 1, "case_names" "1"] = lt_choose_subspace_of_subspace
+and  basis_subspace_exists["consumes" - 1, "case_names" "1"] = lt_basis_subspace_exists
+and  dim_mono = lt_dim_mono
+and  dim_subset = lt_dim_subset
+and  dim_eq_0 = lt_dim_eq_0
+and  dim_UNIV = lt_dim_UNIV
+and  independent_card_le_dim = lt_independent_card_le_dim
+and  card_ge_dim_independent = lt_card_ge_dim_independent
+and  card_le_dim_spanning = lt_card_le_dim_spanning
+and  card_eq_dim = lt_card_eq_dim
+and  subspace_dim_equal = lt_subspace_dim_equal
+and  dim_eq_span = lt_dim_eq_span
+and  dim_psubset = lt_dim_psubset
+and  indep_card_eq_dim_span = lt_indep_card_eq_dim_span
+and  independent_bound_general = lt_independent_bound_general
+and  independent_explicit = lt_independent_explicit
+and  dim_sums_Int = lt_dim_sums_Int
+and  dependent_biggerset_general = lt_dependent_biggerset_general
+and  subset_le_dim = lt_subset_le_dim
+and  linear_inj_imp_surj = lt_linear_inj_imp_surj
+and  linear_surj_imp_inj = lt_linear_surj_imp_inj
+and  linear_inverse_left = lt_linear_inverse_left
+and  left_inverse_linear = lt_left_inverse_linear
+and  right_inverse_linear = lt_right_inverse_linear
 
 end
 
