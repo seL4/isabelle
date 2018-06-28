@@ -715,6 +715,7 @@ interpretation local_typedef_vector_space_on S scale "TYPE('s)" by unfold_locale
 lemmas_with [var_simplified explicit_ab_group_add,
     unoverload_type 'd,
     OF type.ab_group_add_axioms type_vector_space_on_with,
+    folded dim_S_def,
     untransferred,
     var_simplified implicit_ab_group_add]:
     lt_linear_id = vector_space.linear_id
@@ -748,13 +749,10 @@ and lt_independent_span_bound = vector_space.independent_span_bound
 and lt_independent_explicit_finite_subsets = vector_space.independent_explicit_finite_subsets
 and lt_independent_if_scalars_zero = vector_space.independent_if_scalars_zero
 and lt_subspace_sums = vector_space.subspace_sums
-(* should work but don't:
-and lt_injective_scale = vector_space.lt_injective_scale
-and lt_bij_if_span_eq_span_bases = vector_space.bij_if_span_eq_span_bases
-and lt_dim_def = vector_space.dim_def
+and lt_dim_unique = vector_space.dim_unique
 and lt_dim_eq_card = vector_space.dim_eq_card
 and lt_basis_card_eq_dim = vector_space.basis_card_eq_dim
-and lt_basis_exists["consumes" - 1, "case_names" "1"] = vector_space.basis_exists
+and lt_basis_exists = vector_space.basis_exists
 and lt_dim_eq_card_independent = vector_space.dim_eq_card_independent
 and lt_dim_span = vector_space.dim_span
 and lt_dim_span_eq_card_independent = vector_space.dim_span_eq_card_independent
@@ -762,10 +760,12 @@ and lt_dim_le_card = vector_space.dim_le_card
 and lt_span_eq_dim = vector_space.span_eq_dim
 and lt_dim_le_card' = vector_space.dim_le_card'
 and lt_span_card_ge_dim = vector_space.span_card_ge_dim
-and lt_dim_unique = vector_space.dim_unique
-and     lt_dim_with = vector_space.dim_with
+and lt_dim_with = vector_space.dim_with
+(* should work but don't:
+and lt_bij_if_span_eq_span_bases = vector_space.bij_if_span_eq_span_bases
 *)
 (* not expected to work:
+and lt_dim_def = vector_space.dim_def
 and lt_extend_basis_superset = vector_space.extend_basis_superset
 and lt_independent_extend_basis = vector_space.independent_extend_basis
 and lt_span_extend_basis = vector_space.span_extend_basis
@@ -808,6 +808,18 @@ and independent_span_bound = lt_independent_span_bound
 and independent_explicit_finite_subsets = lt_independent_explicit_finite_subsets
 and independent_if_scalars_zero = lt_independent_if_scalars_zero
 and subspace_sums = lt_subspace_sums
+and dim_unique = lt_dim_unique
+and dim_eq_card = lt_dim_eq_card
+and basis_card_eq_dim = lt_basis_card_eq_dim
+and basis_exists["consumes" - 1, "case_names" "1"] = lt_basis_exists
+and dim_eq_card_independent = lt_dim_eq_card_independent
+and dim_span = lt_dim_span
+and dim_span_eq_card_independent = lt_dim_span_eq_card_independent
+and dim_le_card = lt_dim_le_card
+and span_eq_dim = lt_span_eq_dim
+and dim_le_card' = lt_dim_le_card'
+and span_card_ge_dim = lt_span_card_ge_dim
+and dim_with = lt_dim_with
 
 end
 
