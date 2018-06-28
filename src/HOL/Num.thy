@@ -1282,13 +1282,19 @@ text \<open>
   numeral for 1 reduces the number of special cases.
 \<close>
 
-lemma mult_1s:
+lemma mult_1s_semiring_numeral:
   "Numeral1 * a = a"
   "a * Numeral1 = a"
+  for a :: "'a::semiring_numeral"
+  by simp_all
+
+lemma mult_1s_ring_1:
   "- Numeral1 * b = - b"
   "b * - Numeral1 = - b"
-  for a :: "'a::semiring_numeral" and b :: "'b::ring_1"
+  for b :: "'a::ring_1"
   by simp_all
+
+lemmas mult_1s = mult_1s_semiring_numeral mult_1s_ring_1
 
 setup \<open>
   Reorient_Proc.add
@@ -1385,12 +1391,19 @@ lemma add_neg_numeral_left [simp]:
   "- numeral v + (- numeral w + y) = (- numeral(v + w) + y)"
   by (simp_all add: add.assoc [symmetric])
 
-lemma mult_numeral_left [simp]:
+lemma mult_numeral_left_semiring_numeral:
   "numeral v * (numeral w * z) = (numeral(v * w) * z :: 'a::semiring_numeral)"
-  "- numeral v * (numeral w * y) = (- numeral(v * w) * y :: 'b::ring_1)"
-  "numeral v * (- numeral w * y) = (- numeral(v * w) * y :: 'b::ring_1)"
-  "- numeral v * (- numeral w * y) = (numeral(v * w) * y :: 'b::ring_1)"
+  by (simp add: mult.assoc [symmetric])
+
+lemma mult_numeral_left_ring_1:
+  "- numeral v * (numeral w * y) = (- numeral(v * w) * y :: 'a::ring_1)"
+  "numeral v * (- numeral w * y) = (- numeral(v * w) * y :: 'a::ring_1)"
+  "- numeral v * (- numeral w * y) = (numeral(v * w) * y :: 'a::ring_1)"
   by (simp_all add: mult.assoc [symmetric])
+
+lemmas mult_numeral_left [simp] =
+  mult_numeral_left_semiring_numeral
+  mult_numeral_left_ring_1
 
 hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 

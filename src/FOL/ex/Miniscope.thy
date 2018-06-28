@@ -17,13 +17,18 @@ subsection \<open>Negation Normal Form\<close>
 
 subsubsection \<open>de Morgan laws\<close>
 
-lemma demorgans:
+lemma demorgans1:
   "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"
   "\<not> (P \<or> Q) \<longleftrightarrow> \<not> P \<and> \<not> Q"
   "\<not> \<not> P \<longleftrightarrow> P"
+  by blast+
+
+lemma demorgans2:
   "\<And>P. \<not> (\<forall>x. P(x)) \<longleftrightarrow> (\<exists>x. \<not> P(x))"
   "\<And>P. \<not> (\<exists>x. P(x)) \<longleftrightarrow> (\<forall>x. \<not> P(x))"
   by blast+
+
+lemmas demorgans = demorgans1 demorgans2
 
 (*** Removal of --> and <-> (positive and negative occurrences) ***)
 (*Last one is important for computing a compact CNF*)

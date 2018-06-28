@@ -529,6 +529,10 @@ qed
 
 end
 
+lemmas (in linordered_field) sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
+lemmas sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
+
+
 instantiation rat :: distrib_lattice
 begin
 
