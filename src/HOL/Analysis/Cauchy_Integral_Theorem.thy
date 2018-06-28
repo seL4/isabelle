@@ -774,7 +774,27 @@ proof -
   ultimately show ?thesis unfolding valid_path_def piecewise_C1_differentiable_on_def path_def
     using \<open>finite S\<close> by auto
 qed
+  
+lemma valid_path_uminus_comp[simp]:
+  fixes g::"real \<Rightarrow> 'a ::real_normed_field"
+  shows "valid_path (uminus \<circ> g) \<longleftrightarrow> valid_path g"
+proof 
+  show "valid_path g \<Longrightarrow> valid_path (uminus \<circ> g)" for g::"real \<Rightarrow> 'a"
+    by (auto intro!: valid_path_compose derivative_intros simp add: deriv_linear[of "-1",simplified])  
+  then show "valid_path g" when "valid_path (uminus \<circ> g)"
+    by (metis fun.map_comp group_add_class.minus_comp_minus id_comp that)
+qed
 
+lemma valid_path_offset[simp]:
+  shows "valid_path (\<lambda>t. g t - z) \<longleftrightarrow> valid_path g"  
+proof 
+  show *: "valid_path (g::real\<Rightarrow>'a) \<Longrightarrow> valid_path (\<lambda>t. g t - z)" for g z
+    unfolding valid_path_def
+    by (fastforce intro:derivative_intros C1_differentiable_imp_piecewise piecewise_C1_differentiable_diff)
+  show "valid_path (\<lambda>t. g t - z) \<Longrightarrow> valid_path g"
+    using *[of "\<lambda>t. g t - z" "-z",simplified] .
+qed
+  
 
 subsection\<open>Contour Integrals along a path\<close>
 
@@ -3554,6 +3574,19 @@ lemma winding_number_cong:
    "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> p t = q t) \<Longrightarrow> winding_number p z = winding_number q z"
   by (simp add: winding_number_def winding_number_prop_def pathstart_def pathfinish_def)
 
+lemma winding_number_constI:
+  assumes "c\<noteq>z" "\<And>t. \<lbrakk>0\<le>t; t\<le>1\<rbrakk> \<Longrightarrow> g t = c" 
+  shows "winding_number g z = 0"
+proof -
+  have "winding_number g z = winding_number (linepath c c) z"
+    apply (rule winding_number_cong)
+    using assms unfolding linepath_def by auto
+  moreover have "winding_number (linepath c c) z =0"
+    apply (rule winding_number_trivial)
+    using assms by auto
+  ultimately show ?thesis by auto
+qed
+
 lemma winding_number_offset: "winding_number p z = winding_number (\<lambda>w. p w - z) 0"
   unfolding winding_number_def
 proof (intro ext arg_cong [where f = Eps] arg_cong [where f = All] imp_cong refl, safe)
@@ -4812,8 +4845,7 @@ proposition winding_number_subpath_combine:
           winding_number (subpath u w g) z"
 apply (rule trans [OF winding_number_join [THEN sym]
                       winding_number_homotopic_paths [OF homotopic_join_subpaths]])
-apply (auto dest: path_image_subpath_subset)
-done
+  using path_image_subpath_subset by auto
 
 
 subsection\<open>Partial circle path\<close>
@@ -4829,6 +4861,11 @@ lemma pathfinish_part_circlepath [simp]:
      "pathfinish(part_circlepath z r s t) = z + r*exp(\<i>*t)"
 by (metis part_circlepath_def pathfinish_def pathfinish_linepath)
 
+lemma reversepath_part_circlepath[simp]:
+    "reversepath (part_circlepath z r s t) = part_circlepath z r t s"
+  unfolding part_circlepath_def reversepath_def linepath_def 
+  by (auto simp:algebra_simps)
+    
 proposition has_vector_derivative_part_circlepath [derivative_intros]:
     "((part_circlepath z r s t) has_vector_derivative
       (\<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)))

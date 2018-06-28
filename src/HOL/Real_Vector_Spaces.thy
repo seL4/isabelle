@@ -1092,7 +1092,7 @@ proof -
   then show ?thesis
     by simp
 qed
-
+  
 subclass uniform_space
 proof
   fix E x

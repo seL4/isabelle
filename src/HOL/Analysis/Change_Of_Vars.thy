@@ -2937,7 +2937,7 @@ proof -
   moreover have "integral (g ` S) (h n) \<le> integral S (\<lambda>x. ?D x * f (g x))" for n
     using hint by (blast intro: le order_trans)
   ultimately show ?thesis
-    by (auto intro: Lim_bounded_ereal)
+    by (auto intro: Lim_bounded)
 qed
 
 

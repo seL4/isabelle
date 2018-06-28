@@ -2921,17 +2921,6 @@ lemma tendsto_explicit:
 lemma Lim_bounded_PInfty2: "f \<longlonglongrightarrow> l \<Longrightarrow> \<forall>n\<ge>N. f n \<le> ereal B \<Longrightarrow> l \<noteq> \<infinity>"
   using LIMSEQ_le_const2[of f l "ereal B"] by fastforce
 
-lemma Lim_bounded_ereal: "f \<longlonglongrightarrow> (l :: 'a::linorder_topology) \<Longrightarrow> \<forall>n\<ge>M. f n \<le> C \<Longrightarrow> l \<le> C"
-  by (intro LIMSEQ_le_const2) auto
-
-lemma Lim_bounded2_ereal:
-  assumes lim:"f \<longlonglongrightarrow> (l :: 'a::linorder_topology)"
-    and ge: "\<forall>n\<ge>N. f n \<ge> C"
-  shows "l \<ge> C"
-  using ge
-  by (intro tendsto_le[OF trivial_limit_sequentially lim tendsto_const])
-     (auto simp: eventually_sequentially)
-
 lemma real_of_ereal_mult[simp]:
   fixes a b :: ereal
   shows "real_of_ereal (a * b) = real_of_ereal a * real_of_ereal b"
@@ -3341,7 +3330,7 @@ lemma suminf_bound:
   assumes "\<forall>N. (\<Sum>n<N. f n) \<le> x"
     and pos: "\<And>n. 0 \<le> f n"
   shows "suminf f \<le> x"
-proof (rule Lim_bounded_ereal)
+proof (rule Lim_bounded)
   have "summable f" using pos[THEN summable_ereal_pos] .
   then show "(\<lambda>N. \<Sum>n<N. f n) \<longlonglongrightarrow> suminf f"
     by (auto dest!: summable_sums simp: sums_def atLeast0LessThan)
@@ -3879,66 +3868,6 @@ lemma limsup_MInfty:
   shows "X \<longlonglongrightarrow> -\<infinity> \<longleftrightarrow> limsup X = -\<infinity>"
   by (metis Limsup_MInfty trivial_limit_sequentially)
 
-lemma ereal_lim_mono:
-  fixes X Y :: "nat \<Rightarrow> 'a::linorder_topology"
-  assumes "\<And>n. N \<le> n \<Longrightarrow> X n \<le> Y n"
-    and "X \<longlonglongrightarrow> x"
-    and "Y \<longlonglongrightarrow> y"
-  shows "x \<le> y"
-  using assms(1) by (intro LIMSEQ_le[OF assms(2,3)]) auto
-
-lemma incseq_le_ereal:
-  fixes X :: "nat \<Rightarrow> 'a::linorder_topology"
-  assumes inc: "incseq X"
-    and lim: "X \<longlonglongrightarrow> L"
-  shows "X N \<le> L"
-  using inc
-  by (intro ereal_lim_mono[of N, OF _ tendsto_const lim]) (simp add: incseq_def)
-
-lemma decseq_ge_ereal:
-  assumes dec: "decseq X"
-    and lim: "X \<longlonglongrightarrow> (L::'a::linorder_topology)"
-  shows "X N \<ge> L"
-  using dec by (intro ereal_lim_mono[of N, OF _ lim tendsto_const]) (simp add: decseq_def)
-
-lemma bounded_abs:
-  fixes a :: real
-  assumes "a \<le> x"
-    and "x \<le> b"
-  shows "\<bar>x\<bar> \<le> max \<bar>a\<bar> \<bar>b\<bar>"
-  by (metis abs_less_iff assms leI le_max_iff_disj
-    less_eq_real_def less_le_not_le less_minus_iff minus_minus)
-
-lemma ereal_Sup_lim:
-  fixes a :: "'a::{complete_linorder,linorder_topology}"
-  assumes "\<And>n. b n \<in> s"
-    and "b \<longlonglongrightarrow> a"
-  shows "a \<le> Sup s"
-  by (metis Lim_bounded_ereal assms complete_lattice_class.Sup_upper)
-
-lemma ereal_Inf_lim:
-  fixes a :: "'a::{complete_linorder,linorder_topology}"
-  assumes "\<And>n. b n \<in> s"
-    and "b \<longlonglongrightarrow> a"
-  shows "Inf s \<le> a"
-  by (metis Lim_bounded2_ereal assms complete_lattice_class.Inf_lower)
-
-lemma SUP_Lim_ereal:
-  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
-  assumes inc: "incseq X"
-    and l: "X \<longlonglongrightarrow> l"
-  shows "(SUP n. X n) = l"
-  using LIMSEQ_SUP[OF inc] tendsto_unique[OF trivial_limit_sequentially l]
-  by simp
-
-lemma INF_Lim_ereal:
-  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
-  assumes dec: "decseq X"
-    and l: "X \<longlonglongrightarrow> l"
-  shows "(INF n. X n) = l"
-  using LIMSEQ_INF[OF dec] tendsto_unique[OF trivial_limit_sequentially l]
-  by simp
-
 lemma SUP_eq_LIMSEQ:
   assumes "mono f"
   shows "(SUP n. ereal (f n)) = ereal x \<longleftrightarrow> f \<longlonglongrightarrow> x"
@@ -3949,7 +3878,7 @@ proof
     assume "f \<longlonglongrightarrow> x"
     then have "(\<lambda>i. ereal (f i)) \<longlonglongrightarrow> ereal x"
       by auto
-    from SUP_Lim_ereal[OF inc this] show "(SUP n. ereal (f n)) = ereal x" .
+    from SUP_Lim[OF inc this] show "(SUP n. ereal (f n)) = ereal x" .
   next
     assume "(SUP n. ereal (f n)) = ereal x"
     with LIMSEQ_SUP[OF inc] show "f \<longlonglongrightarrow> x" by auto

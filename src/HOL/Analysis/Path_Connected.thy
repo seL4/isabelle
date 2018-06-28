@@ -929,10 +929,10 @@ lemma arc_simple_path_subpath_interior:
     done
 
 lemma path_image_subpath_subset:
-    "\<lbrakk>path g; u \<in> {0..1}; v \<in> {0..1}\<rbrakk> \<Longrightarrow> path_image(subpath u v g) \<subseteq> path_image g"
+    "\<lbrakk>u \<in> {0..1}; v \<in> {0..1}\<rbrakk> \<Longrightarrow> path_image(subpath u v g) \<subseteq> path_image g"
   apply (simp add: closed_segment_real_eq image_affinity_atLeastAtMost path_image_subpath)
   apply (auto simp: path_image_def)
-  done
+  done  
 
 lemma join_subpaths_middle: "subpath (0) ((1 / 2)) p +++ subpath ((1 / 2)) 1 p = p"
   by (rule ext) (simp add: joinpaths_def subpath_def divide_simps)
@@ -1751,14 +1751,14 @@ proof -
     by (simp add: path_connected_def)
 qed
 
-lemma path_component: "path_component s x y \<longleftrightarrow> (\<exists>t. path_connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t)"
+lemma path_component: "path_component S x y \<longleftrightarrow> (\<exists>t. path_connected t \<and> t \<subseteq> S \<and> x \<in> t \<and> y \<in> t)"
   apply (intro iffI)
   apply (metis path_connected_path_image path_defs(5) pathfinish_in_path_image pathstart_in_path_image)
   using path_component_of_subset path_connected_component by blast
 
 lemma path_component_path_component [simp]:
-   "path_component_set (path_component_set s x) x = path_component_set s x"
-proof (cases "x \<in> s")
+   "path_component_set (path_component_set S x) x = path_component_set S x"
+proof (cases "x \<in> S")
   case True show ?thesis
     apply (rule subset_antisym)
     apply (simp add: path_component_subset)
@@ -1769,11 +1769,11 @@ next
 qed
 
 lemma path_component_subset_connected_component:
-   "(path_component_set s x) \<subseteq> (connected_component_set s x)"
-proof (cases "x \<in> s")
+   "(path_component_set S x) \<subseteq> (connected_component_set S x)"
+proof (cases "x \<in> S")
   case True show ?thesis
     apply (rule connected_component_maximal)
-    apply (auto simp: True path_component_subset path_component_refl path_connected_imp_connected path_connected_path_component)
+    apply (auto simp: True path_component_subset path_component_refl path_connected_imp_connected)
     done
 next
   case False then show ?thesis
@@ -1784,11 +1784,11 @@ subsection%unimportant\<open>Lemmas about path-connectedness\<close>
 
 lemma path_connected_linear_image:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "path_connected s" "bounded_linear f"
-    shows "path_connected(f ` s)"
+  assumes "path_connected S" "bounded_linear f"
+    shows "path_connected(f ` S)"
 by (auto simp: linear_continuous_on assms path_connected_continuous_image)
 
-lemma is_interval_path_connected: "is_interval s \<Longrightarrow> path_connected s"
+lemma is_interval_path_connected: "is_interval S \<Longrightarrow> path_connected S"
   by (simp add: convex_imp_path_connected is_interval_convex)
 
 lemma linear_homeomorphism_image:

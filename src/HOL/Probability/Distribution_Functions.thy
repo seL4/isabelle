@@ -107,7 +107,7 @@ proof (rule tendsto_at_right_sequentially[where b="a + 1"])
     using \<open>decseq f\<close> unfolding cdf_def
     by (intro finite_Lim_measure_decseq) (auto simp: decseq_def)
   also have "(\<Inter>i. {.. f i}) = {.. a}"
-    using decseq_le[OF f] by (auto intro: order_trans LIMSEQ_le_const[OF f(2)])
+    using decseq_ge[OF f] by (auto intro: order_trans LIMSEQ_le_const[OF f(2)])
   finally show "(\<lambda>n. cdf M (f n)) \<longlonglongrightarrow> cdf M a"
     by (simp add: cdf_def)
 qed simp

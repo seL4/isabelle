@@ -1832,9 +1832,12 @@ next
     by simp
 qed
 
-(* Next two lemmas contributed by Wenda Li *)
+(* Next three lemmas contributed by Wenda Li *)
 lemma order_1_eq_0 [simp]:"order x 1 = 0"
   by (metis order_root poly_1 zero_neq_one)
+
+lemma order_uminus[simp]: "order x (-p) = order x p"
+  by (metis neg_equal_0_iff_equal order_smult smult_1_left smult_minus_left) 
 
 lemma order_power_n_n: "order a ([:-a,1:]^n)=n"
 proof (induct n) (*might be proved more concisely using nat_less_induct*)
@@ -2575,27 +2578,34 @@ lemma DERIV_add_const: "DERIV f x :> D \<Longrightarrow> DERIV (\<lambda>x. a + 
 lemma poly_DERIV [simp]: "DERIV (\<lambda>x. poly p x) x :> poly (pderiv p) x"
   by (induct p) (auto intro!: derivative_eq_intros simp add: pderiv_pCons)
 
+lemma poly_isCont[simp]: 
+  fixes x::"'a::real_normed_field"
+  shows "isCont (\<lambda>x. poly p x) x"
+by (rule poly_DERIV [THEN DERIV_isCont])
+
+lemma tendsto_poly [tendsto_intros]: "(f \<longlongrightarrow> a) F \<Longrightarrow> ((\<lambda>x. poly p (f x)) \<longlongrightarrow> poly p a) F"
+  for f :: "_ \<Rightarrow> 'a::real_normed_field"  
+  by (rule isCont_tendsto_compose [OF poly_isCont])
+
+lemma continuous_within_poly: "continuous (at z within s) (poly p)"
+  for z :: "'a::{real_normed_field}"
+  by (simp add: continuous_within tendsto_poly)  
+    
+lemma continuous_poly [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. poly p (f x))"
+  for f :: "_ \<Rightarrow> 'a::real_normed_field"
+  unfolding continuous_def by (rule tendsto_poly)
+      
 lemma continuous_on_poly [continuous_intros]:
   fixes p :: "'a :: {real_normed_field} poly"
   assumes "continuous_on A f"
   shows "continuous_on A (\<lambda>x. poly p (f x))"
-proof -
-  have "continuous_on A (\<lambda>x. (\<Sum>i\<le>degree p. (f x) ^ i * coeff p i))"
-    by (intro continuous_intros assms)
-  also have "\<dots> = (\<lambda>x. poly p (f x))"
-    by (rule ext) (simp add: poly_altdef mult_ac)
-  finally show ?thesis .
-qed
+  by (metis DERIV_continuous_on assms continuous_on_compose2 poly_DERIV subset_UNIV)
 
 text \<open>Consequences of the derivative theorem above.\<close>
 
 lemma poly_differentiable[simp]: "(\<lambda>x. poly p x) differentiable (at x)"
   for x :: real
   by (simp add: real_differentiable_def) (blast intro: poly_DERIV)
-
-lemma poly_isCont[simp]: "isCont (\<lambda>x. poly p x) x"
-  for x :: real
-  by (rule poly_DERIV [THEN DERIV_isCont])
 
 lemma poly_IVT_pos: "a < b \<Longrightarrow> poly p a < 0 \<Longrightarrow> 0 < poly p b \<Longrightarrow> \<exists>x. a < x \<and> x < b \<and> poly p x = 0"
   for a b :: real
