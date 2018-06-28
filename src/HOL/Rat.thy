@@ -821,6 +821,16 @@ definition Rats :: "'a set" ("\<rat>")
 
 end
 
+lemma Rats_cases [cases set: Rats]:
+  assumes "q \<in> \<rat>"
+  obtains (of_rat) r where "q = of_rat r"
+proof -
+  from \<open>q \<in> \<rat>\<close> have "q \<in> range of_rat"
+    by (simp only: Rats_def)
+  then obtain r where "q = of_rat r" ..
+  then show thesis ..
+qed
+
 lemma Rats_of_rat [simp]: "of_rat r \<in> \<rat>"
   by (simp add: Rats_def)
 
@@ -851,11 +861,8 @@ lemma Rats_add [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longri
   apply (rule of_rat_add [symmetric])
   done
 
-lemma Rats_minus [simp]: "a \<in> \<rat> \<Longrightarrow> - a \<in> \<rat>"
-  apply (auto simp add: Rats_def)
-  apply (rule range_eqI)
-  apply (rule of_rat_minus [symmetric])
-  done
+lemma Rats_minus_iff [simp]: "- a \<in> \<rat> \<longleftrightarrow> a \<in> \<rat>"
+by (metis Rats_cases Rats_of_rat add.inverse_inverse of_rat_minus)
 
 lemma Rats_diff [simp]: "a \<in> \<rat> \<Longrightarrow> b \<in> \<rat> \<Longrightarrow> a - b \<in> \<rat>"
   apply (auto simp add: Rats_def)
@@ -889,16 +896,6 @@ lemma Rats_power [simp]: "a \<in> \<rat> \<Longrightarrow> a ^ n \<in> \<rat>"
   apply (rule range_eqI)
   apply (rule of_rat_power [symmetric])
   done
-
-lemma Rats_cases [cases set: Rats]:
-  assumes "q \<in> \<rat>"
-  obtains (of_rat) r where "q = of_rat r"
-proof -
-  from \<open>q \<in> \<rat>\<close> have "q \<in> range of_rat"
-    by (simp only: Rats_def)
-  then obtain r where "q = of_rat r" ..
-  then show thesis ..
-qed
 
 lemma Rats_induct [case_names of_rat, induct set: Rats]: "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
   by (rule Rats_cases) auto

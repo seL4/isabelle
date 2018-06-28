@@ -1192,6 +1192,10 @@ lemma real_archimedian_rdiv_eq_0:
 
 subsection \<open>Rationals\<close>
 
+lemma Rats_abs_iff[simp]:
+  "\<bar>(x::real)\<bar> \<in> \<rat> \<longleftrightarrow> x \<in> \<rat>"
+by(simp add: abs_real_def split: if_splits)
+
 lemma Rats_eq_int_div_int: "\<rat> = {real_of_int i / real_of_int j | i j. j \<noteq> 0}"  (is "_ = ?S")
 proof
   show "\<rat> \<subseteq> ?S"
