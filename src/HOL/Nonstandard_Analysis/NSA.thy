@@ -273,13 +273,9 @@ lemma InfinitesimalD2: "x \<in> Infinitesimal \<Longrightarrow> 0 < r \<Longrigh
 lemma Infinitesimal_zero [iff]: "0 \<in> Infinitesimal"
   by (simp add: Infinitesimal_def)
 
-lemma hypreal_sum_of_halves: "x / 2 + x / 2 = x"
-  for x :: hypreal
-  by auto
-
 lemma Infinitesimal_add: "x \<in> Infinitesimal \<Longrightarrow> y \<in> Infinitesimal \<Longrightarrow> x + y \<in> Infinitesimal"
   apply (rule InfinitesimalI)
-  apply (rule hypreal_sum_of_halves [THEN subst])
+  apply (rule field_sum_of_halves [THEN subst])
   apply (drule half_gt_zero)
   apply (blast intro: hnorm_add_less SReal_divide_numeral dest: InfinitesimalD)
   done

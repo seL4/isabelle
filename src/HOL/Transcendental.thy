@@ -4643,7 +4643,7 @@ lemma lemma_tan_total: "0 < y \<Longrightarrow> \<exists>x. 0 < x \<and> x < pi/
   apply (drule_tac x = "inverse y" in spec)
   apply safe
    apply force
-  apply (drule_tac ?d1.0 = s in pi_half_gt_zero [THEN [2] real_lbound_gt_zero])
+  apply (drule_tac ?d1.0 = s in pi_half_gt_zero [THEN [2] field_lbound_gt_zero])
   apply safe
   apply (rule_tac x = "(pi/2) - e" in exI)
   apply (simp (no_asm_simp))

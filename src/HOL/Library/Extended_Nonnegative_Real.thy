@@ -190,16 +190,6 @@ lemma one_less_of_natD:
     done
   done
 
-lemma sum_le_suminf:
-  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
-  shows "summable f \<Longrightarrow> finite I \<Longrightarrow> \<forall>m\<in>- I. 0 \<le> f m \<Longrightarrow> sum f I \<le> suminf f"
-  by (rule sums_le[OF _ sums_If_finite_set summable_sums]) auto
-
-lemma suminf_eq_SUP_real:
-  assumes X: "summable X" "\<And>i. 0 \<le> X i" shows "suminf X = (SUP i. \<Sum>n<i. X n::real)"
-  by (intro LIMSEQ_unique[OF summable_LIMSEQ] X LIMSEQ_incseq_SUP)
-     (auto intro!: bdd_aboveI2[where M="\<Sum>i. X i"] sum_le_suminf X monoI sum_mono2)
-
 subsection \<open>Defining the extended non-negative reals\<close>
 
 text \<open>Basic definitions and type class setup\<close>

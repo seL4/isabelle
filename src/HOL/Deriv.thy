@@ -1234,7 +1234,7 @@ next
   obtain d' where d': "0 < d'" and lt: "\<forall>h > 0. h < d' \<longrightarrow> f x < f (x - h)"
     by blast
   obtain e where "0 < e \<and> e < d \<and> e < d'"
-    using real_lbound_gt_zero [OF d d']  ..
+    using field_lbound_gt_zero [OF d d']  ..
   with lt le [THEN spec [where x="x - e"]] show ?thesis
     by (auto simp add: abs_if)
 next
@@ -1243,7 +1243,7 @@ next
   obtain d' where d': "0 < d'" and lt: "\<forall>h > 0. h < d' \<longrightarrow> f x < f (x + h)"
     by blast
   obtain e where "0 < e \<and> e < d \<and> e < d'"
-    using real_lbound_gt_zero [OF d d'] ..
+    using field_lbound_gt_zero [OF d d'] ..
   with lt le [THEN spec [where x="x + e"]] show ?thesis
     by (auto simp add: abs_if)
 qed

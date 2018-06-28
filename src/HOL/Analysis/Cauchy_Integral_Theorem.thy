@@ -283,7 +283,7 @@ proof -
       have x2: "(x + 1) / 2 \<notin> S"
         using that
         apply (clarsimp simp: image_iff)
-        by (metis add.commute add_diff_cancel_left' mult_2 real_sum_of_halves)
+        by (metis add.commute add_diff_cancel_left' mult_2 field_sum_of_halves)
       have "g1 +++ g2 \<circ> (\<lambda>x. (x+1) / 2) differentiable at x within {0..1}"
         by (rule differentiable_chain_within differentiable_subset [OF S [of "(x+1)/2"]] | use x2 that in force)+
       then show "g1 +++ g2 \<circ> (\<lambda>x. (x+1) / 2) differentiable at x within {0..1}"
@@ -6161,7 +6161,7 @@ proof -
   obtain r where "r > 0" and holfc: "f holomorphic_on cball z r" and w: "w \<in> ball z r"
   proof
     have "cball z ((r + dist w z) / 2) \<subseteq> ball z r"
-      using w by (simp add: dist_commute real_sum_of_halves subset_eq)
+      using w by (simp add: dist_commute field_sum_of_halves subset_eq)
     then show "f holomorphic_on cball z ((r + dist w z) / 2)"
       by (rule holomorphic_on_subset [OF holf])
     have "r > 0"

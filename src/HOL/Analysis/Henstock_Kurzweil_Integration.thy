@@ -7086,7 +7086,7 @@ next
                 \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX/2"
         by (simp only: integral_diff [symmetric] int_integrable integrable_const)
       have norm_xx: "\<lbrakk>x' = y'; norm(x - x') \<le> e/2; norm(y - y') \<le> e/2\<rbrakk> \<Longrightarrow> norm(x - y) \<le> e" for x::'c and y x' y' e
-        using norm_triangle_mono [of "x-y'" "e/2" "y'-y" "e/2"] real_sum_of_halves
+        using norm_triangle_mono [of "x-y'" "e/2" "y'-y" "e/2"] field_sum_of_halves
         by (simp add: norm_minus_commute)
       have "norm (integral (cbox (u,w) (v,z)) f - integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y))))
             \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX"

@@ -454,7 +454,7 @@ lemma csegment_midpoint_subset: "closed_segment (midpoint a b) b \<subseteq> clo
   apply (clarsimp simp: midpoint_def in_segment)
   apply (rule_tac x="(1 + u) / 2" in exI)
   apply (auto simp: algebra_simps add_divide_distrib diff_divide_distrib)
-  by (metis real_sum_of_halves scaleR_left.add)
+  by (metis field_sum_of_halves scaleR_left.add)
 
 lemma notin_segment_midpoint:
   fixes a :: "'a :: euclidean_space"

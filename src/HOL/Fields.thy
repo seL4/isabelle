@@ -425,17 +425,9 @@ text \<open>Calculations with fractions\<close>
 text\<open>There is a whole bunch of simp-rules just for class \<open>field\<close> but none for class \<open>field\<close> and \<open>nonzero_divides\<close>
 because the latter are covered by a simproc.\<close>
 
-lemma mult_divide_mult_cancel_left:
-  "c \<noteq> 0 \<Longrightarrow> (c * a) / (c * b) = a / b"
-apply (cases "b = 0")
-apply simp_all
-done
+lemmas mult_divide_mult_cancel_left = nonzero_mult_divide_mult_cancel_left
 
-lemma mult_divide_mult_cancel_right:
-  "c \<noteq> 0 \<Longrightarrow> (a * c) / (b * c) = a / b"
-apply (cases "b = 0")
-apply simp_all
-done
+lemmas mult_divide_mult_cancel_right = nonzero_mult_divide_mult_cancel_right
 
 lemma divide_divide_eq_right [simp]:
   "a / (b / c) = (a * c) / b"
@@ -468,9 +460,7 @@ lemma divide_minus_right [simp]:
 
 lemma minus_divide_divide:
   "(- a) / (- b) = a / b"
-apply (cases "b=0", simp)
-apply (simp add: nonzero_minus_divide_divide)
-done
+  by (cases "b=0") (simp_all add: nonzero_minus_divide_divide)
 
 lemma inverse_eq_1_iff [simp]:
   "inverse x = 1 \<longleftrightarrow> x = 1"
@@ -482,21 +472,15 @@ lemma divide_eq_0_iff [simp]:
 
 lemma divide_cancel_right [simp]:
   "a / c = b / c \<longleftrightarrow> c = 0 \<or> a = b"
-  apply (cases "c=0", simp)
-  apply (simp add: divide_inverse)
-  done
+  by (cases "c=0") (simp_all add: divide_inverse)
 
 lemma divide_cancel_left [simp]:
   "c / a = c / b \<longleftrightarrow> c = 0 \<or> a = b"
-  apply (cases "c=0", simp)
-  apply (simp add: divide_inverse)
-  done
+  by (cases "c=0") (simp_all add: divide_inverse)
 
 lemma divide_eq_1_iff [simp]:
   "a / b = 1 \<longleftrightarrow> b \<noteq> 0 \<and> a = b"
-  apply (cases "b=0", simp)
-  apply (simp add: right_inverse_eq)
-  done
+  by (cases "b=0") (simp_all add: right_inverse_eq)
 
 lemma one_eq_divide_iff [simp]:
   "1 = a / b \<longleftrightarrow> b \<noteq> 0 \<and> a = b"
@@ -521,17 +505,13 @@ lemma add_num_frac:
 lemma dvd_field_iff:
   "a dvd b \<longleftrightarrow> (a = 0 \<longrightarrow> b = 0)"
 proof (cases "a = 0")
-  case True
-  then show ?thesis
-    by simp
-next
   case False
   then have "b = a * (b / a)"
     by (simp add: field_simps)
   then have "a dvd b" ..
   with False show ?thesis
     by simp
-qed
+qed simp
 
 end
 

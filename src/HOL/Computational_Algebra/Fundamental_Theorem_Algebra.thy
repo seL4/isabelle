@@ -337,13 +337,13 @@ proof -
       by (simp add: field_simps)
     have one0: "1 > (0::real)"
       by arith
-    from real_lbound_gt_zero[OF one0 em0]
+    from field_lbound_gt_zero[OF one0 em0]
     obtain d where d: "d > 0" "d < 1" "d < e / m"
       by blast
     from d(1,3) m(1) have dm: "d * m > 0" "d * m < e"
       by (simp_all add: field_simps)
     show ?case
-    proof (rule ex_forward[OF real_lbound_gt_zero[OF one0 em0]], clarsimp simp add: norm_mult)
+    proof (rule ex_forward[OF field_lbound_gt_zero[OF one0 em0]], clarsimp simp add: norm_mult)
       fix d w
       assume H: "d > 0" "d < 1" "d < e/m" "w \<noteq> z" "norm (w - z) < d"
       then have d1: "norm (w-z) \<le> 1" "d \<ge> 0"
@@ -754,7 +754,7 @@ proof (induct "psize p" arbitrary: p rule: less_induct)
       have inv0: "0 < inverse (cmod w ^ (k + 1) * m)"
         using norm_ge_zero[of w] w0 m(1)
         by (simp add: inverse_eq_divide zero_less_mult_iff)
-      with real_lbound_gt_zero[OF zero_less_one] obtain t where
+      with field_lbound_gt_zero[OF zero_less_one] obtain t where
         t: "t > 0" "t < 1" "t < inverse (cmod w ^ (k + 1) * m)" by blast
       let ?ct = "complex_of_real t"
       let ?w = "?ct * w"
@@ -844,7 +844,7 @@ next
             m: "m > 0" "\<forall>z. \<forall>z. cmod z \<le> 1 \<longrightarrow> cmod (poly ds z) \<le> m" by blast
           have dm: "cmod d / m > 0"
             using False m(1) by (simp add: field_simps)
-          from real_lbound_gt_zero[OF dm zero_less_one]
+          from field_lbound_gt_zero[OF dm zero_less_one]
           obtain x where x: "x > 0" "x < cmod d / m" "x < 1"
             by blast
           let ?x = "complex_of_real x"

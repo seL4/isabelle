@@ -1383,21 +1383,16 @@ lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> x\<^sup>2"
 
 subsection \<open>Density of the Reals\<close>
 
-lemma real_lbound_gt_zero: "0 < d1 \<Longrightarrow> 0 < d2 \<Longrightarrow> \<exists>e. 0 < e \<and> e < d1 \<and> e < d2"
-  for d1 d2 :: real
+lemma field_lbound_gt_zero: "0 < d1 \<Longrightarrow> 0 < d2 \<Longrightarrow> \<exists>e. 0 < e \<and> e < d1 \<and> e < d2"
+  for d1 d2 :: "'a::linordered_field"
   by (rule exI [where x = "min d1 d2 / 2"]) (simp add: min_def)
 
-text \<open>Similar results are proved in @{theory HOL.Fields}\<close>
-lemma real_less_half_sum: "x < y \<Longrightarrow> x < (x + y) / 2"
-  for x y :: real
+lemma field_less_half_sum: "x < y \<Longrightarrow> x < (x + y) / 2"
+  for x y :: "'a::linordered_field"
   by auto
 
-lemma real_gt_half_sum: "x < y \<Longrightarrow> (x + y) / 2 < y"
-  for x y :: real
-  by auto
-
-lemma real_sum_of_halves: "x / 2 + x / 2 = x"
-  for x :: real
+lemma field_sum_of_halves: "x / 2 + x / 2 = x"
+  for x :: "'a::linordered_field"
   by simp
 
 
