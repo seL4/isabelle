@@ -36,13 +36,13 @@ instead.
 * The "op <infix-op>" syntax for infix operators has been replaced by
 "(<infix-op>)". If <infix-op> begins or ends with a "*", there needs to
 be a space between the "*" and the corresponding parenthesis.
-INCOMPATIBILITY.
-There is an Isabelle tool "update_op" that converts theory and ML files
-to the new syntax. Because it is based on regular expression matching,
-the result may need a bit of manual postprocessing. Invoking "isabelle
-update_op" converts all files in the current directory (recursively).
-In case you want to exclude conversion of ML files (because the tool
-frequently also converts ML's "op" syntax), use option "-m".
+INCOMPATIBILITY, use the command-line tool "isabelle update_op" to
+convert theory and ML files to the new syntax. Because it is based on
+regular expression matching, the result may need a bit of manual
+postprocessing. Invoking "isabelle update_op" converts all files in the
+current directory (recursively). In case you want to exclude conversion
+of ML files (because the tool frequently also converts ML's "op"
+syntax), use option "-m".
 
 * Theory header 'abbrevs' specifications need to be separated by 'and'.
 INCOMPATIBILITY.
@@ -207,6 +207,12 @@ Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
 Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
 object-logic equality or equivalence.
 
+
+*** Pure ***
+
+* The inner syntax category "sort" now includes notation "_" for the
+dummy sort: it is effectively ignored in type-inference.
+
 * Rewrites clauses (keyword 'rewrites') were moved into the locale
 expression syntax, where they are part of locale instances. In
 interpretation commands rewrites clauses now need to occur before 'for'
@@ -218,17 +224,11 @@ back to reading the clause first. This helps avoid qualification of
 locale instances where the qualifier's sole purpose is avoiding
 duplicate constant declarations.
 
-* Proof method 'simp' now supports a new modifier 'flip:' followed by a list
-of theorems. Each of these theorems is removed from the simpset
-(without warning if it is not there) and the symmetric version of the theorem
-(i.e. lhs and rhs exchanged) is added to the simpset.
-For 'auto' and friends the modifier is "simp flip:".
-
-
-*** Pure ***
-
-* The inner syntax category "sort" now includes notation "_" for the
-dummy sort: it is effectively ignored in type-inference.
+* Proof method "simp" now supports a new modifier "flip:" followed by a
+list of theorems. Each of these theorems is removed from the simpset
+(without warning if it is not there) and the symmetric version of the
+theorem (i.e. lhs and rhs exchanged) is added to the simpset. For "auto"
+and friends the modifier is "simp flip:".
 
 
 *** HOL ***
@@ -391,12 +391,12 @@ INCOMPATIBILITY.
 * Session HOL-Algebra: renamed (^) to [^] to avoid conflict with new
 infix/prefix notation.
 
-* Session HOL-Algebra: Revamped with much new material.
-The set of isomorphisms between two groups is now denoted iso rather than iso_set.
+* Session HOL-Algebra: revamped with much new material. The set of
+isomorphisms between two groups is now denoted iso rather than iso_set.
 INCOMPATIBILITY.
 
-* Session HOL-Analysis: the Arg function now respects the same interval as
-Ln, namely (-pi,pi]; the old Arg function has been renamed Arg2pi. 
+* Session HOL-Analysis: the Arg function now respects the same interval
+as Ln, namely (-pi,pi]; the old Arg function has been renamed Arg2pi.
 INCOMPATIBILITY.
 
 * Session HOL-Analysis: infinite products, Moebius functions, the
