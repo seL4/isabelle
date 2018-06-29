@@ -42,7 +42,8 @@ Contributions to Isabelle2018
   Generalisation of complete_distrib_lattice
 
 * February 2018: Wenda Li
-  A unified definition for the order of zeros and poles. Improved reasoning around non-essential singularities.
+  A unified definition for the order of zeros and poles. Improved reasoning
+  around non-essential singularities.
 
 * January 2018: Sebastien Gouezel
   Various small additions to HOL-Analysis
