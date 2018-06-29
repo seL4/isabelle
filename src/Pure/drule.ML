@@ -98,6 +98,8 @@ sig
   val is_sort_constraint: term -> bool
   val sort_constraintI: thm
   val sort_constraint_eq: thm
+  val sort_constraint_intr: indexname * sort -> thm -> thm
+  val sort_constraint_intr_shyps: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
   val comp_no_flatten: thm * int -> int -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
@@ -646,6 +648,26 @@ val sort_constraint_eq =
       (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA)
         (Thm.unvarify_global (Context.the_global_context ()) sort_constraintI)))
       (implies_intr_list [A, C] (Thm.assume A)));
+
+val sort_constraint_eq' = Thm.symmetric sort_constraint_eq;
+
+fun sort_constraint_intr tvar thm =
+  Thm.equal_elim
+    (Thm.instantiate
+      ([((("'a", 0), []), Thm.global_ctyp_of (Thm.theory_of_thm thm) (TVar tvar))],
+       [((("A", 0), propT), Thm.cprop_of thm)])
+      sort_constraint_eq') thm;
+
+fun sort_constraint_intr_shyps raw_thm =
+  let val thm = Thm.strip_shyps raw_thm in
+    (case Thm.extra_shyps thm of
+      [] => thm
+    | shyps =>
+        let
+          val names = Name.make_context (map #1 (Thm.fold_terms Term.add_tvar_names thm []));
+          val constraints = map (rpair 0) (Name.invent names Name.aT (length shyps)) ~~ shyps;
+        in Thm.strip_shyps (fold_rev sort_constraint_intr constraints thm) end)
+  end;
 
 end;
 
