@@ -1177,21 +1177,6 @@ corollary exists_complex_root_nonzero:
   obtains w where "w \<noteq> 0" "z = w ^ n"
   by (metis exists_complex_root [of n z] assms power_0_left)
 
-subsection\<open>The Unwinding Number and the Ln-product Formula\<close>
-
-text\<open>Note that in this special case the unwinding number is -1, 0 or 1.\<close>
-
-definition unwinding :: "complex \<Rightarrow> complex" where
-   "unwinding(z) = (z - Ln(exp z)) / (of_real(2*pi) * \<i>)"
-
-lemma unwinding_2pi: "(2*pi) * \<i> * unwinding(z) = z - Ln(exp z)"
-  by (simp add: unwinding_def)
-
-lemma Ln_times_unwinding:
-    "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z) - (2*pi) * \<i> * unwinding(Ln w + Ln z)"
-  using unwinding_2pi by (simp add: exp_add)
-
-
 subsection\<open>Derivative of Ln away from the branch cut\<close>
 
 lemma
@@ -1465,6 +1450,10 @@ corollary Ln_times_of_real:
   using mpi_less_Im_Ln Im_Ln_le_pi
   by (force simp: Ln_times)
 
+corollary Ln_times_Reals:
+    "\<lbrakk>r \<in> Reals; Re r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(r * z) = ln (Re r) + Ln(z)"
+  using Ln_Reals_eq Ln_times_of_real by fastforce
+
 corollary Ln_divide_of_real:
     "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(z / of_real r) = Ln(z) - ln r"
 using Ln_times_of_real [of "inverse r" z]
@@ -1571,9 +1560,9 @@ lemma powr_complex_measurable [measurable]:
 
 subsection\<open>The Argument of a Complex Number\<close>
 
-definition Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
+text\<open>Finally: it's is defined for the same interval as the complex logarithm: $(-\pi,\pi]$.\<close>
 
-text\<open>Finally the Argument is defined for the same interval as the complex logarithm: $(-\pi,\pi]$.\<close>
+definition Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
 
 lemma Arg_of_real: "Arg (of_real r) = (if r<0 then pi else 0)"
   by (simp add: Im_Ln_eq_pi Arg_def)
@@ -1587,6 +1576,9 @@ lemma
   shows Arg_eq: "z = of_real(norm z) * exp(\<i> * Arg z)"
   using assms exp_Ln exp_eq_polar
   by (auto simp:  Arg_def)
+
+lemma is_Arg_Arg: "z \<noteq> 0 \<Longrightarrow> is_Arg z (Arg z)"
+  by (simp add: Arg_eq is_Arg_def)
 
 lemma Argument_exists:
   assumes "z \<noteq> 0" and R: "R = {r-pi<..r+pi}"
@@ -1782,6 +1774,47 @@ qed
 
 lemma continuous_within_Arg: "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> continuous (at z within S) Arg"
   using continuous_at_Arg continuous_at_imp_continuous_within by blast
+
+
+subsection\<open>The Unwinding Number and the Ln-product Formula\<close>
+
+text\<open>Note that in this special case the unwinding number is -1, 0 or 1. But it's always an integer.\<close>
+
+lemma is_Arg_exp_Im: "is_Arg (exp z) (Im z)"
+  using exp_eq_polar is_Arg_def norm_exp_eq_Re by auto
+
+lemma is_Arg_exp_diff_2pi:
+  assumes "is_Arg (exp z) \<theta>"
+  shows "\<exists>k. Im z - of_int k * (2 * pi) = \<theta>"
+proof (intro exI is_Arg_eqI)
+  let ?k = "\<lfloor>(Im z - \<theta>) / (2 * pi)\<rfloor>"
+  show "is_Arg (exp z) (Im z - real_of_int ?k * (2 * pi))"
+    by (metis diff_add_cancel is_Arg_2pi_iff is_Arg_exp_Im)
+  show "\<bar>Im z - real_of_int ?k * (2 * pi) - \<theta>\<bar> < 2 * pi"
+    using floor_divide_upper [of "2*pi" "Im z - \<theta>"] floor_divide_lower [of "2*pi" "Im z - \<theta>"]
+    by (auto simp: algebra_simps abs_if)
+qed (auto simp: is_Arg_exp_Im assms)
+
+lemma Arg_exp_diff_2pi: "\<exists>k. Im z - of_int k * (2 * pi) = Arg (exp z)"
+  using is_Arg_exp_diff_2pi [OF is_Arg_Arg] by auto
+
+lemma unwinding_in_Ints: "(z - Ln(exp z)) / (of_real(2*pi) * \<i>) \<in> \<int>"
+  using Arg_exp_diff_2pi [of z]
+  by (force simp: Ints_def image_def field_simps Arg_def intro!: complex_eqI)
+
+definition unwinding :: "complex \<Rightarrow> int" where
+   "unwinding z \<equiv> THE k. of_int k = (z - Ln(exp z)) / (of_real(2*pi) * \<i>)"
+
+lemma unwinding: "of_int (unwinding z) = (z - Ln(exp z)) / (of_real(2*pi) * \<i>)"
+  using unwinding_in_Ints [of z]
+  unfolding unwinding_def Ints_def by force
+
+lemma unwinding_2pi: "(2*pi) * \<i> * unwinding(z) = z - Ln(exp z)"
+  by (simp add: unwinding)
+
+lemma Ln_times_unwinding:
+    "w \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> Ln(w * z) = Ln(w) + Ln(z) - (2*pi) * \<i> * unwinding(Ln w + Ln z)"
+  using unwinding_2pi by (simp add: exp_add)
 
 
 subsection\<open>Relation between Ln and Arg2pi, and hence continuity of Arg2pi\<close>
