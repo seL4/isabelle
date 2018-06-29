@@ -85,11 +85,15 @@ for session management:
   - option -A specifies an alternative ancestor session for options -R
     and -S
 
+  - option -i includes additional sessions into the name-space of
+    theories
+
   Examples:
     isabelle jedit -R HOL-Number_Theory
     isabelle jedit -R HOL-Number_Theory -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
+    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis -i CryptHOL
 
 * PIDE markup for session ROOT files: allows to complete session names,
 follow links to theories and document files etc.

@@ -237,6 +237,7 @@ text \<open>
     -b           build only
     -d DIR       include session directory
     -f           fresh build
+    -i NAME      include session in name-space of theories
     -j OPTION    add jEdit runtime option
                  (default $JEDIT_OPTIONS)
     -l NAME      logic image name
@@ -265,6 +266,9 @@ text \<open>
   the ``Archive of Formal Proofs''. The \<^verbatim>\<open>-A\<close> option specifies and alternative
   ancestor session for options \<^verbatim>\<open>-R\<close> and \<^verbatim>\<open>-S\<close>: this allows to restructure the
   hierarchy of session images on the spot.
+
+  The \<^verbatim>\<open>-i\<close> option includes additional sessions into the name-space of
+  theories: multiple occurrences are possible.
 
   The \<^verbatim>\<open>-m\<close> option specifies additional print modes for the prover process.
   Note that the system option @{system_option_ref jedit_print_mode} allows to

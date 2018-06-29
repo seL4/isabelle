@@ -15,6 +15,7 @@ object ML_Console
   {
     Command_Line.tool {
       var dirs: List[Path] = Nil
+      var include_sessions: List[String] = Nil
       var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
       var modes: List[String] = Nil
       var no_build = false
@@ -27,6 +28,7 @@ Usage: isabelle console [OPTIONS]
 
   Options are:
     -d DIR       include session directory
+    -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MODE      add print mode for output
     -n           no build of session image on startup
@@ -39,6 +41,7 @@ Usage: isabelle console [OPTIONS]
   quote(Isabelle_System.getenv("ISABELLE_LINE_EDITOR")) + """.
 """,
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "n" -> (arg => no_build = true),
@@ -69,7 +72,8 @@ Usage: isabelle console [OPTIONS]
           store = Some(Sessions.store(options, system_mode)),
           session_base =
             if (raw_ml_system) None
-            else Some(Sessions.base_info(options, logic, dirs = dirs).check_base))
+            else Some(Sessions.base_info(
+              options, logic, dirs = dirs, include_sessions = include_sessions).check_base))
 
       val tty_loop = new TTY_Loop(process.stdin, process.stdout, Some(process.interrupt _))
       val process_result = Future.thread[Int]("process_result") {
