@@ -102,7 +102,7 @@ object Server
                   val session = context.server.the_session(args.session_id)
                   Server_Commands.Use_Theories.command(
                     args, session, id = task.id, progress = task.progress)._1
-                }),
+                })
           },
         "purge_theories" ->
           { case (context, Server_Commands.Purge_Theories(args)) =>

@@ -299,7 +299,7 @@ object Isabelle_Cronjob
             " -e ISABELLE_GHC=/usr/local/ghc-8.0.2/bin/ghc" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj-110.81/bin/sml",
           args = "-a",
-          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows"))),
+          detect = Build_Log.Settings.ML_PLATFORM + " = " + SQL.string("x86_64-windows")))
     ) :::
     {
       for { (n, hosts) <- List(1 -> List("lxbroy6"), 2 -> List("lxbroy8", "lxbroy5")) }
