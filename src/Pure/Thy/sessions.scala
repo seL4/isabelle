@@ -461,7 +461,11 @@ object Sessions
     {
       val sel_sessions1 = session1 :: session :: include_sessions
       val select_sessions1 =
-        if (session_focus) full_sessions1.imports_descendants(sel_sessions1) else sel_sessions1
+        if (session_focus) {
+          full_sessions1.check_sessions(sel_sessions1)
+          full_sessions1.imports_descendants(sel_sessions1)
+        }
+        else sel_sessions1
       full_sessions1.selection(Selection(sessions = select_sessions1))
     }
 
@@ -679,13 +683,16 @@ object Sessions
               }
           })
 
-    def selection(sel: Selection): Structure =
+    def check_sessions(names: List[String])
     {
-      val bad_sessions =
-        SortedSet((sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions).
-          filterNot(defined(_)): _*).toList
+      val bad_sessions = SortedSet(names.filterNot(defined(_)): _*).toList
       if (bad_sessions.nonEmpty)
         error("Undefined session(s): " + commas_quote(bad_sessions))
+    }
+
+    def selection(sel: Selection): Structure =
+    {
+      check_sessions(sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions)
 
       val excluded = sel.excluded(build_graph).toSet
 
