@@ -128,13 +128,13 @@ notably bibtex database files and ML files.
 plain-text document draft. Both are available via the menu "Plugins /
 Isabelle".
 
-* Bibtex database files (.bib) are semantically checked.
-
 * When loading text files, the Isabelle symbols encoding UTF-8-Isabelle
 is only used if there is no conflict with existing Unicode sequences in
 the file. Otherwise, the fallback encoding is plain UTF-8 and Isabelle
 symbols remain in literal \<symbol> form. This avoids accidental loss of
 Unicode content when saving the file.
+
+* Bibtex database files (.bib) are semantically checked.
 
 * Update to jedit-5.5.0, the latest release.
 
@@ -403,10 +403,9 @@ INCOMPATIBILITY.
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.
 
-* Session HOL-Types_To_Sets: more tool support
-(unoverload_type combines internalize_sorts and unoverload) and larger
-experimental application (type based linear algebra transferred to linear
-algebra on subspaces).
+* Session HOL-Types_To_Sets: more tool support (unoverload_type combines
+internalize_sorts and unoverload) and larger experimental application
+(type based linear algebra transferred to linear algebra on subspaces).
 
 
 *** ML ***

@@ -4,9 +4,25 @@ To: isabelle-users@cl.cam.ac.uk
 Isabelle2018 is now available.
 
 This version introduces many changes over Isabelle2017: see the NEWS
-file for further details. Some notable points:
+file for further details. Here are the main points:
 
-* FIXME.
+* Improved infix notation within terms.
+
+* Improved syntax for formal comments, within terms and other languages.
+
+* Improved management of ROOT files and session-qualified theories.
+
+* Various improvements of document preparation.
+
+* Many Isabelle/jEdit improvements, including semantic IDE for Bibtex.
+
+* Numerous HOL library improvements, including HOL-Algebra.
+
+* Substantial additions to HOL-Analysis.
+
+* Isabelle server for reactive communication with other programs.
+
+* More uniform 64-bit platform support: smaller Isabelle application.
 
 
 You may get Isabelle2018 from the following mirror sites:
