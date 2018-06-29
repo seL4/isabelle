@@ -752,7 +752,7 @@ lemma conv_radius_ratio_limit_ereal:
   assumes lim: "(\<lambda>n. ereal (norm (f n) / norm (f (Suc n)))) \<longlonglongrightarrow> c"
   shows   "conv_radius f = c"
 proof (rule conv_radius_eqI')
-  show "c \<ge> 0" by (intro Lim_bounded2_ereal[OF lim]) simp_all
+  show "c \<ge> 0" by (intro Lim_bounded2[OF lim]) simp_all
 next
   fix r assume r: "0 < r" "ereal r < c"
   let ?l = "liminf (\<lambda>n. ereal (norm (f n * of_real r ^ n) / norm (f (Suc n) * of_real r ^ Suc n)))"

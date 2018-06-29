@@ -875,7 +875,7 @@ proof -
       using A apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (l i)" in spec, auto)
     hence A3: "\<And>i. g (l i) \<ge> A"
-      by (intro decseq_le, auto simp: decseq_def)
+      by (intro decseq_ge, auto simp: decseq_def)
     have B2: "(\<lambda>i. g (u i)) \<longlonglongrightarrow> B"
       using B apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (u i)" in spec, auto)
@@ -972,7 +972,7 @@ proof -
       using A apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (l i)" in spec, auto)
     hence A3: "\<And>i. g (l i) \<ge> A"
-      by (intro decseq_le, auto simp: decseq_def)
+      by (intro decseq_ge, auto simp: decseq_def)
     have B2: "(\<lambda>i. g (u i)) \<longlonglongrightarrow> B"
       using B apply (auto simp: einterval_def tendsto_at_iff_sequentially comp_def)
       by (drule_tac x = "\<lambda>i. ereal (u i)" in spec, auto)

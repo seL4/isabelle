@@ -1347,12 +1347,17 @@ lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
   unfolding filterlim_at_bot eventually_at_top_dense
   by (metis leI less_minus_iff order_less_asym)
 
-lemma at_top_mirror: "at_top = filtermap uminus (at_bot :: real filter)"
-  by (rule filtermap_fun_inverse[symmetric, of uminus])
-     (auto intro: filterlim_uminus_at_bot_at_top filterlim_uminus_at_top_at_bot)
+lemma at_bot_mirror : 
+  shows "(at_bot::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_top" 
+  apply (rule filtermap_fun_inverse[of uminus, symmetric])
+  subgoal unfolding filterlim_at_top eventually_at_bot_linorder using le_minus_iff by auto
+  subgoal unfolding filterlim_at_bot eventually_at_top_linorder using minus_le_iff by auto
+  by auto
 
-lemma at_bot_mirror: "at_bot = filtermap uminus (at_top :: real filter)"
-  unfolding at_top_mirror filtermap_filtermap by (simp add: filtermap_ident)
+lemma at_top_mirror : 
+  shows "(at_top::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_bot"  
+  apply (subst at_bot_mirror)
+  by (auto simp add: filtermap_filtermap)
 
 lemma filterlim_at_top_mirror: "(LIM x at_top. f x :> F) \<longleftrightarrow> (LIM x at_bot. f (-x::real) :> F)"
   unfolding filterlim_def at_top_mirror filtermap_filtermap ..
@@ -2294,7 +2299,7 @@ proof atomize_elim
   obtain L where "X \<longlonglongrightarrow> L"
     by (auto simp: convergent_def monoseq_def decseq_def)
   with \<open>decseq X\<close> show "\<exists>L. X \<longlonglongrightarrow> L \<and> (\<forall>i. L \<le> X i)"
-    by (auto intro!: exI[of _ L] decseq_le)
+    by (auto intro!: exI[of _ L] decseq_ge)
 qed
 
 

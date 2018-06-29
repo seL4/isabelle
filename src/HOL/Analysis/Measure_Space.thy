@@ -389,7 +389,7 @@ next
     show "range (\<lambda>i. A i - (\<Inter>i. A i)) \<subseteq> M" "(\<Inter>i. A i - (\<Inter>i. A i)) = {}"
       using A by auto
   qed
-  from INF_Lim_ereal[OF decseq_f this]
+  from INF_Lim[OF decseq_f this]
   have "(INF n. f (A n - (\<Inter>i. A i))) = 0" .
   moreover have "(INF n. f (\<Inter>i. A i)) = f (\<Inter>i. A i)"
     by auto
@@ -2020,7 +2020,7 @@ proof -
     finally show ?thesis by simp
   qed
   ultimately have "emeasure M (\<Union>N. B N) \<le> ennreal (\<Sum>n. measure M (A n))"
-    by (simp add: Lim_bounded_ereal)
+    by (simp add: Lim_bounded)
   then show "emeasure M (\<Union>n. A n) \<le> (\<Sum>n. measure M (A n))"
     unfolding B_def by (metis UN_UN_flatten UN_lessThan_UNIV)
   then show "emeasure M (\<Union>n. A n) < \<infinity>"

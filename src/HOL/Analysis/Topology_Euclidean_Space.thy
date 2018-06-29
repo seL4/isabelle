@@ -2068,32 +2068,45 @@ lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<l
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
   by (auto simp: islimpt_def)
 
+lemma finite_ball_include:
+  fixes a :: "'a::metric_space"
+  assumes "finite S" 
+  shows "\<exists>e>0. S \<subseteq> ball a e"
+  using assms
+proof induction
+  case (insert x S)
+  then obtain e0 where "e0>0" and e0:"S \<subseteq> ball a e0" by auto
+  define e where "e = max e0 (2 * dist a x)"
+  have "e>0" unfolding e_def using \<open>e0>0\<close> by auto
+  moreover have "insert x S \<subseteq> ball a e"
+    using e0 \<open>e>0\<close> unfolding e_def by auto
+  ultimately show ?case by auto
+qed (auto intro: zero_less_one)
+
 lemma finite_set_avoid:
   fixes a :: "'a::metric_space"
-  assumes fS: "finite S"
+  assumes "finite S"
   shows "\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<longrightarrow> d \<le> dist a x"
-proof (induct rule: finite_induct[OF fS])
-  case 1
-  then show ?case by (auto intro: zero_less_one)
-next
-  case (2 x F)
-  from 2 obtain d where d: "d > 0" "\<forall>x\<in>F. x \<noteq> a \<longrightarrow> d \<le> dist a x"
+  using assms
+proof induction
+  case (insert x S)
+  then obtain d where "d > 0" and d: "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> d \<le> dist a x"
     by blast
   show ?case
   proof (cases "x = a")
     case True
-    with d show ?thesis by auto
+    with \<open>d > 0 \<close>d show ?thesis by auto
   next
     case False
     let ?d = "min d (dist a x)"
-    from False d(1) have dp: "?d > 0"
+    from False \<open>d > 0\<close> have dp: "?d > 0"
       by auto
-    from d have d': "\<forall>x\<in>F. x \<noteq> a \<longrightarrow> ?d \<le> dist a x"
+    from d have d': "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> ?d \<le> dist a x"
       by auto
     with dp False show ?thesis
-      by (auto intro!: exI[where x="?d"])
+      by (metis insert_iff le_less min_less_iff_conj not_less)
   qed
-qed
+qed (auto intro: zero_less_one)
 
 lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<or> x islimpt T"
   by (simp add: islimpt_iff_eventually eventually_conj_iff)

@@ -1109,7 +1109,7 @@ lemma lim_def: "lim X = (THE L. X \<longlonglongrightarrow> L)"
   unfolding Lim_def ..
 
 
-subsubsection \<open>Monotone sequences and subsequences\<close>
+subsection \<open>Monotone sequences and subsequences\<close>
 
 text \<open>
   Definition of monotonicity.
@@ -1132,7 +1132,7 @@ abbreviation decseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool"
 lemma decseq_def: "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
   unfolding antimono_def ..
 
-text \<open>Definition of subsequence.\<close>
+subsubsection \<open>Definition of subsequence.\<close>
 
 (* For compatibility with the old "subseq" *)
 lemma strict_mono_leD: "strict_mono r \<Longrightarrow> m \<le> n \<Longrightarrow> r m \<le> r n"
@@ -1205,7 +1205,7 @@ next
 qed
 
 
-text \<open>Subsequence (alternative definition, (e.g. Hoskins)\<close>
+subsubsection \<open>Subsequence (alternative definition, (e.g. Hoskins)\<close>
 
 lemma strict_mono_Suc_iff: "strict_mono f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
 proof (intro iffI strict_monoI)
@@ -1351,7 +1351,7 @@ lemma LIMSEQ_imp_Suc: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow> l \<Lon
   by (rule LIMSEQ_offset [where k="Suc 0"]) simp
 
 lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) \<longlonglongrightarrow> l = f \<longlonglongrightarrow> l"
-  by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
+  by (rule filterlim_sequentially_Suc)
 
 lemma LIMSEQ_lessThan_iff_atMost:
   shows "(\<lambda>n. f {..<n}) \<longlonglongrightarrow> x \<longleftrightarrow> (\<lambda>n. f {..n}) \<longlonglongrightarrow> x"
@@ -1374,6 +1374,56 @@ lemma LIMSEQ_le: "X \<longlonglongrightarrow> x \<Longrightarrow> Y \<longlonglo
 lemma LIMSEQ_le_const2: "X \<longlonglongrightarrow> x \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. X n \<le> a \<Longrightarrow> x \<le> a"
   for a x :: "'a::linorder_topology"
   by (rule LIMSEQ_le[of X x "\<lambda>n. a"]) auto
+
+lemma Lim_bounded: "f \<longlonglongrightarrow> l \<Longrightarrow> \<forall>n\<ge>M. f n \<le> C \<Longrightarrow> l \<le> C"
+  for l :: "'a::linorder_topology"
+  by (intro LIMSEQ_le_const2) auto
+
+lemma Lim_bounded2:
+  fixes f :: "nat \<Rightarrow> 'a::linorder_topology"
+  assumes lim:"f \<longlonglongrightarrow> l" and ge: "\<forall>n\<ge>N. f n \<ge> C"
+  shows "l \<ge> C"
+  using ge
+  by (intro tendsto_le[OF trivial_limit_sequentially lim tendsto_const])
+     (auto simp: eventually_sequentially)
+
+lemma lim_mono:
+  fixes X Y :: "nat \<Rightarrow> 'a::linorder_topology"
+  assumes "\<And>n. N \<le> n \<Longrightarrow> X n \<le> Y n"
+    and "X \<longlonglongrightarrow> x"
+    and "Y \<longlonglongrightarrow> y"
+  shows "x \<le> y"
+  using assms(1) by (intro LIMSEQ_le[OF assms(2,3)]) auto
+
+lemma Sup_lim:
+  fixes a :: "'a::{complete_linorder,linorder_topology}"
+  assumes "\<And>n. b n \<in> s"
+    and "b \<longlonglongrightarrow> a"
+  shows "a \<le> Sup s"
+  by (metis Lim_bounded assms complete_lattice_class.Sup_upper)
+
+lemma Inf_lim:
+  fixes a :: "'a::{complete_linorder,linorder_topology}"
+  assumes "\<And>n. b n \<in> s"
+    and "b \<longlonglongrightarrow> a"
+  shows "Inf s \<le> a"
+  by (metis Lim_bounded2 assms complete_lattice_class.Inf_lower)
+
+lemma SUP_Lim:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  assumes inc: "incseq X"
+    and l: "X \<longlonglongrightarrow> l"
+  shows "(SUP n. X n) = l"
+  using LIMSEQ_SUP[OF inc] tendsto_unique[OF trivial_limit_sequentially l]
+  by simp
+
+lemma INF_Lim:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  assumes dec: "decseq X"
+    and l: "X \<longlonglongrightarrow> l"
+  shows "(INF n. X n) = l"
+  using LIMSEQ_INF[OF dec] tendsto_unique[OF trivial_limit_sequentially l]
+  by simp
 
 lemma convergentD: "convergent X \<Longrightarrow> \<exists>L. X \<longlonglongrightarrow> L"
   by (simp add: convergent_def)
@@ -1417,7 +1467,7 @@ lemma incseq_le: "incseq X \<Longrightarrow> X \<longlonglongrightarrow> L \<Lon
   for L :: "'a::linorder_topology"
   by (metis incseq_def LIMSEQ_le_const)
 
-lemma decseq_le: "decseq X \<Longrightarrow> X \<longlonglongrightarrow> L \<Longrightarrow> L \<le> X n"
+lemma decseq_ge: "decseq X \<Longrightarrow> X \<longlonglongrightarrow> L \<Longrightarrow> L \<le> X n"
   for L :: "'a::linorder_topology"
   by (metis decseq_def LIMSEQ_le_const2)
 
