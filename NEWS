@@ -390,6 +390,10 @@ INCOMPATIBILITY.
 Ln, namely (-pi,pi]; the old Arg function has been renamed Arg2pi. 
 INCOMPATIBILITY.
 
+* Session HOL-Analysis: the functions zorder, zer_poly, porder and pol_poly have been redefined. 
+All related lemmas have been reworked.
+INCOMPATIBILITY.
+
 * Session HOL-Analysis: infinite products, Moebius functions, the
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.
