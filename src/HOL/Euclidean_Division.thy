@@ -1638,7 +1638,7 @@ next
       by (simp only: *, simp only: l q divide_int_unfold)
         (auto simp add: sgn_mult sgn_0_0 sgn_1_pos algebra_simps dest: dvd_imp_le)
   qed
-qed (use mult_le_mono2 [of 1] in \<open>auto simp add: division_segment_int_def not_le sign_simps abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
+qed (use mult_le_mono2 [of 1] in \<open>auto simp add: division_segment_int_def not_le zero_less_mult_iff mult_less_0_iff abs_mult sgn_mult abs_mod_less sgn_mod nat_mult_distrib\<close>)
 
 end
 

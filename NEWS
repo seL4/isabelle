@@ -19,6 +19,11 @@ points to major logic sessions: Pure, Main, Complex_Main, HOLCF, IFOL,
 FOL, ZF, ZFC etc. INCOMPATIBILITY, need to use qualified names for
 formerly global "HOL-Probability.Probability" and "HOL-SPARK.SPARK".
 
+* Global facts need to be closed: no free variables, no hypotheses, no
+pending sort hypotheses. Rare INCOMPATIBILITY: sort hypotheses can be
+allowed via "declare [[pending_shyps]]" in the global theory context,
+but it should be reset to false afterwards.
+
 * Marginal comments need to be written exclusively in the new-style form
 "\<comment> \<open>text\<close>", old ASCII variants like "-- {* ... *}" are no longer
 supported. INCOMPATIBILITY, use the command-line tool "isabelle
@@ -31,13 +36,13 @@ instead.
 * The "op <infix-op>" syntax for infix operators has been replaced by
 "(<infix-op>)". If <infix-op> begins or ends with a "*", there needs to
 be a space between the "*" and the corresponding parenthesis.
-INCOMPATIBILITY.
-There is an Isabelle tool "update_op" that converts theory and ML files
-to the new syntax. Because it is based on regular expression matching,
-the result may need a bit of manual postprocessing. Invoking "isabelle
-update_op" converts all files in the current directory (recursively).
-In case you want to exclude conversion of ML files (because the tool
-frequently also converts ML's "op" syntax), use option "-m".
+INCOMPATIBILITY, use the command-line tool "isabelle update_op" to
+convert theory and ML files to the new syntax. Because it is based on
+regular expression matching, the result may need a bit of manual
+postprocessing. Invoking "isabelle update_op" converts all files in the
+current directory (recursively). In case you want to exclude conversion
+of ML files (because the tool frequently also converts ML's "op"
+syntax), use option "-m".
 
 * Theory header 'abbrevs' specifications need to be separated by 'and'.
 INCOMPATIBILITY.
@@ -80,11 +85,15 @@ for session management:
   - option -A specifies an alternative ancestor session for options -R
     and -S
 
+  - option -i includes additional sessions into the name-space of
+    theories
+
   Examples:
     isabelle jedit -R HOL-Number_Theory
     isabelle jedit -R HOL-Number_Theory -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL
     isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis
+    isabelle jedit -d '$AFP' -S Formal_SSA -A HOL-Analysis -i CryptHOL
 
 * PIDE markup for session ROOT files: allows to complete session names,
 follow links to theories and document files etc.
@@ -119,13 +128,13 @@ notably bibtex database files and ML files.
 plain-text document draft. Both are available via the menu "Plugins /
 Isabelle".
 
-* Bibtex database files (.bib) are semantically checked.
-
 * When loading text files, the Isabelle symbols encoding UTF-8-Isabelle
 is only used if there is no conflict with existing Unicode sequences in
 the file. Otherwise, the fallback encoding is plain UTF-8 and Isabelle
 symbols remain in literal \<symbol> form. This avoids accidental loss of
 Unicode content when saving the file.
+
+* Bibtex database files (.bib) are semantically checked.
 
 * Update to jedit-5.5.0, the latest release.
 
@@ -198,6 +207,12 @@ Rare INCOMPATIBILITY, need to refer to explicitly named facts instead
 Isbelle2016-1). INCOMPATIBILITY, use 'define' instead -- usually with
 object-logic equality or equivalence.
 
+
+*** Pure ***
+
+* The inner syntax category "sort" now includes notation "_" for the
+dummy sort: it is effectively ignored in type-inference.
+
 * Rewrites clauses (keyword 'rewrites') were moved into the locale
 expression syntax, where they are part of locale instances. In
 interpretation commands rewrites clauses now need to occur before 'for'
@@ -209,17 +224,11 @@ back to reading the clause first. This helps avoid qualification of
 locale instances where the qualifier's sole purpose is avoiding
 duplicate constant declarations.
 
-* Proof method 'simp' now supports a new modifier 'flip:' followed by a list
-of theorems. Each of these theorems is removed from the simpset
-(without warning if it is not there) and the symmetric version of the theorem
-(i.e. lhs and rhs exchanged) is added to the simpset.
-For 'auto' and friends the modifier is "simp flip:".
-
-
-*** Pure ***
-
-* The inner syntax category "sort" now includes notation "_" for the
-dummy sort: it is effectively ignored in type-inference.
+* Proof method "simp" now supports a new modifier "flip:" followed by a
+list of theorems. Each of these theorems is removed from the simpset
+(without warning if it is not there) and the symmetric version of the
+theorem (i.e. lhs and rhs exchanged) is added to the simpset. For "auto"
+and friends the modifier is "simp flip:".
 
 
 *** HOL ***
@@ -382,12 +391,12 @@ INCOMPATIBILITY.
 * Session HOL-Algebra: renamed (^) to [^] to avoid conflict with new
 infix/prefix notation.
 
-* Session HOL-Algebra: Revamped with much new material.
-The set of isomorphisms between two groups is now denoted iso rather than iso_set.
+* Session HOL-Algebra: revamped with much new material. The set of
+isomorphisms between two groups is now denoted iso rather than iso_set.
 INCOMPATIBILITY.
 
-* Session HOL-Analysis: the Arg function now respects the same interval as
-Ln, namely (-pi,pi]; the old Arg function has been renamed Arg2pi. 
+* Session HOL-Analysis: the Arg function now respects the same interval
+as Ln, namely (-pi,pi]; the old Arg function has been renamed Arg2pi.
 INCOMPATIBILITY.
 
 * Session HOL-Analysis: the functions zorder, zer_poly, porder and pol_poly have been redefined. 
@@ -398,10 +407,9 @@ INCOMPATIBILITY.
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.
 
-* Session HOL-Types_To_Sets: more tool support
-(unoverload_type combines internalize_sorts and unoverload) and larger
-experimental application (type based linear algebra transferred to linear
-algebra on subspaces).
+* Session HOL-Types_To_Sets: more tool support (unoverload_type combines
+internalize_sorts and unoverload) and larger experimental application
+(type based linear algebra transferred to linear algebra on subspaces).
 
 
 *** ML ***

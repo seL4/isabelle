@@ -843,10 +843,6 @@ text\<open>Lemmas \<open>sign_simps\<close> is a first attempt to automate proof
 of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close> because the former can lead to case
 explosions.\<close>
 
-lemmas sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
-
-lemmas (in -) sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
-
 (* Only works once linear arithmetic is installed:
 text{*An example:*}
 lemma fixes a b c d e f :: "'a::linordered_field"

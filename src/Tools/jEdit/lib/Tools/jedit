@@ -106,6 +106,7 @@ function usage()
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
+  echo "    -i NAME      include session in name-space of theories"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default $JEDIT_OPTIONS)"
   echo "    -l NAME      logic session name"
@@ -142,6 +143,7 @@ ML_PROCESS_POLICY=""
 JEDIT_LOGIC_ANCESTOR=""
 JEDIT_LOGIC_REQUIREMENTS=""
 JEDIT_LOGIC_FOCUS=""
+JEDIT_INCLUDE_SESSIONS=""
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
@@ -150,7 +152,7 @@ JEDIT_BUILD_MODE="normal"
 function getoptions()
 {
   OPTIND=1
-  while getopts "A:BFD:J:R:S:bd:fj:l:m:np:s" OPT
+  while getopts "A:BFD:J:R:S:bd:fi:j:l:m:np:s" OPT
   do
     case "$OPT" in
       A)
@@ -179,6 +181,13 @@ function getoptions()
           JEDIT_SESSION_DIRS="$OPTARG"
         else
           JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
+        fi
+        ;;
+      i)
+        if [ -z "$JEDIT_INCLUDE_SESSIONS" ]; then
+          JEDIT_INCLUDE_SESSIONS="$OPTARG"
+        else
+          JEDIT_INCLUDE_SESSIONS="$JEDIT_INCLUDE_SESSIONS:$OPTARG"
         fi
         ;;
       f)
@@ -413,7 +422,7 @@ popd >/dev/null
 if [ "$BUILD_ONLY" = false ]
 then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
-    JEDIT_LOGIC_FOCUS JEDIT_PRINT_MODE JEDIT_BUILD_MODE
+    JEDIT_LOGIC_FOCUS JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_BUILD_MODE
   export JEDIT_ML_PROCESS_POLICY="$ML_PROCESS_POLICY"
   classpath "$JEDIT_HOME/dist/jedit.jar"
   exec isabelle java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"

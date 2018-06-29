@@ -457,7 +457,7 @@ proof -
   hence "\<exists>(v::'a) (u::'a) SKF\<^sub>7::'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
     by (metis mult_left_mono)
   then show "\<exists>ca::'a. \<forall>x::'b. inverse \<bar>c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
-    using A2 F4 by (metis F1 \<open>0 < \<bar>inverse c\<bar>\<close> linordered_field_class.sign_simps(23) mult_le_cancel_left_pos)
+    using A2 F4 by (metis F1 \<open>0 < \<bar>inverse c\<bar>\<close> mult.assoc mult_le_cancel_left_pos)
 qed
 
 lemma bigo_const_mult6 [intro]: "(\<lambda>x. c) *o O(f) <= O(f)"

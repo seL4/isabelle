@@ -15,6 +15,10 @@ Contributions to Isabelle2018
 * June 2018: Wenda Li
   New/strengthened results involving analysis, topology, etc.
 
+* May/June 2018: Makarius Wenzel
+  System infrastructure to export blobs as theory presentation, and to dump
+  PIDE database content in batch mode.
+
 * May 2018: Manuel Eberl
   Landau symbols and asymptotic equivalence (moved from the AFP).
 

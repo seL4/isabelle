@@ -407,6 +407,7 @@ text \<open>
 
   Options are:
     -d DIR       include session directory
+    -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC)
     -m MODE      add print mode for output
     -n           no build of session image on startup
@@ -420,6 +421,9 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the logic session name. By default, its heap image is
   checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that.
+
+  Option \<^verbatim>\<open>-i\<close> includes additional sessions into the name-space of theories:
+  multiple occurrences are possible.
 
   Option \<^verbatim>\<open>-r\<close> indicates a bootstrap from the raw Poly/ML system, which is
   relevant for Isabelle/Pure development.
