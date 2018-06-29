@@ -5,6 +5,14 @@ Checklist for official releases
 
 - check Admin/components;
 
+- test "isabelle dump -l Pure ZF";
+
+- test "isabelle -o export_theory -f ZF";
+
+- test "isabelle server" according to "system" manual;
+
+- test Isabelle/VSCode;
+
 - test Isabelle/jEdit: print buffer
 
 - test "#!/usr/bin/env isabelle_scala_script";
