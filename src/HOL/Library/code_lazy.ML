@@ -487,9 +487,9 @@ fun code_lazy_type eager_type_string thy =
     val add_lazy_ctr_thms = fold (Code.add_eqn_global o rpair true) ctrs_lazy_thms
     val add_lazy_case_thms =
       fold Code.del_eqn_global case_thms
-      #> Code.add_eqn_global (case_lazy_thm, false)
+      #> Code.add_eqn_global (case_lazy_thm, true)
     val add_eager_case_thms = Code.del_eqn_global case_lazy_thm
-      #> fold (Code.add_eqn_global o rpair false) case_thms
+      #> fold (Code.add_eqn_global o rpair true) case_thms
 
     val delay_dummy_thm = (pat_def_thm RS @{thm symmetric})
       |> Drule.infer_instantiate' lthy10
