@@ -24,6 +24,8 @@ sig
   val name_thm: bool -> bool -> string -> thm -> thm
   val name_thms: bool -> bool -> string -> thm list -> thm list
   val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
+  val pending_shyps_raw: Config.raw
+  val pending_shyps: bool Config.T
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
   val store_thm_open: binding * thm -> theory -> thm * theory
@@ -128,16 +130,35 @@ fun name_thmss official name fact =
 
 fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
+val pending_shyps_raw = Config.declare ("pending_shyps", \<^here>) (K (Config.Bool false));
+val pending_shyps = Config.bool pending_shyps_raw;
+
 fun add_facts (b, fact) thy =
   let
     val full_name = Sign.full_name thy b;
     val pos = Binding.pos_of b;
-    fun err msg =
-      error ("Malformed global fact " ^ quote full_name ^ Position.here pos ^ "\n" ^ msg);
-    fun check thm =
-      ignore (Logic.unvarify_global (Term_Subst.zero_var_indexes (Thm.full_prop_of thm)))
-        handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
-    val arg = (b, Lazy.map_finished (tap (List.app check)) fact);
+    fun check fact =
+      fact |> map_index (fn (i, thm) =>
+        let
+          fun err msg =
+            error ("Malformed global fact " ^
+              quote (full_name ^
+                (if length fact = 1 then "" else "(" ^ string_of_int (i + 1) ^ ")")) ^
+              Position.here pos ^ "\n" ^ msg);
+          val prop = Thm.plain_prop_of thm
+            handle THM _ =>
+              thm
+              |> not (Config.get_global thy pending_shyps) ?
+                  Thm.check_shyps (Proof_Context.init_global thy)
+              |> Thm.check_hyps (Context.Theory thy)
+              |> Thm.full_prop_of;
+        in
+          ignore (Logic.unvarify_global (Term_Subst.zero_var_indexes prop))
+            handle TYPE (msg, _, _) => err msg
+              | TERM (msg, _) => err msg
+              | ERROR msg => err msg
+        end);
+    val arg = (b, Lazy.map_finished (tap check) fact);
   in
     thy |> Data.map (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
   end;
