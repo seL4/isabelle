@@ -15,6 +15,10 @@ sig
   val finish: unit -> unit
   val protocol_handler: string -> unit
   val init_protocol_handlers: unit -> unit
+  (* Additional code to run before shutdown *)
+  val register_shutdown_hook: (unit -> unit) -> unit
+  (* Raw version, does not catch and ignore exceptions raised *)
+  val register_raw_shutdown_hook: (unit -> unit) -> unit
 end;
 
 structure Session: SESSION =
@@ -60,6 +64,20 @@ fun init symbols build info info_path doc doc_output doc_variants doc_files grap
 
 (* finish *)
 
+val shutdown_hooks : (unit -> unit) list Synchronized.var =
+    Synchronized.var "Session.shutdown_hooks" [];
+
+fun register_raw_shutdown_hook h =
+  (Synchronized.change shutdown_hooks (fn hs => hs @ [h]);
+   ());
+
+fun register_shutdown_hook h =
+  register_raw_shutdown_hook (fn () =>
+    h () handle _ => ());
+
+fun run_shutdown_hooks () =
+  app (fn f => f ()) (Synchronized.value shutdown_hooks);
+
 fun shutdown () =
  (Execution.shutdown ();
   Event_Timer.shutdown ();
@@ -70,6 +88,7 @@ fun finish () =
   Thy_Info.finish ();
   Present.finish ();
   shutdown ();
+  run_shutdown_hooks ();
   update_keywords ();
   Synchronized.change session (apsnd (K true)));
 
