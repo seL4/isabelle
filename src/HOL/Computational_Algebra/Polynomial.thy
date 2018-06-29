@@ -9,7 +9,7 @@ section \<open>Polynomials as type over a ring structure\<close>
 
 theory Polynomial
 imports
-  HOL.Deriv
+  Complex_Main
   "HOL-Library.More_List"
   "HOL-Library.Infinite_Set"
   Factorial_Ring
