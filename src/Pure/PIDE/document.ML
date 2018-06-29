@@ -735,8 +735,9 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
                     segments = segments};
                 in
                   fn _ =>
-                    (Thy_Info.apply_presentation presentation_context thy;
-                     commit_consolidated node)
+                    Exn.release
+                      (Exn.capture (Thy_Info.apply_presentation presentation_context) thy
+                        before commit_consolidated node)
                 end
               else fn _ => commit_consolidated node;
 
