@@ -93,8 +93,8 @@ object Dump
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
   {
-    if (Build.build_logic(options, logic, progress = progress, dirs = dirs,
-      system_mode = system_mode) != 0) error(logic + " FAILED")
+    if (Build.build_logic(options, logic, build_heap = true, progress = progress,
+      dirs = dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
 
     val dump_options = make_options(options, aspects)
 
