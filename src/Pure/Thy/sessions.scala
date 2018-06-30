@@ -1094,7 +1094,9 @@ object Sessions
     /* directories */
 
     val system_output_dir: Path = Path.explode("$ISABELLE_HEAPS_SYSTEM/$ML_IDENTIFIER")
-    val user_output_dir: Path = Path.explode("$ISABELLE_HEAPS/$ML_IDENTIFIER")
+    val user_output_dir: Path =
+        if (Path.is_valid("$ISABELLE_OUTPUT")) Path.explode("$ISABELLE_OUTPUT")
+        else Path.explode("$ISABELLE_HEAPS/$ML_IDENTIFIER")
 
     def system_heaps: Boolean = options.bool("system_heaps")
 
