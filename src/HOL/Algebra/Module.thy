@@ -1,6 +1,6 @@
 (*  Title:      HOL/Algebra/Module.thy
     Author:     Clemens Ballarin, started 15 April 2003
-    Copyright:  Clemens Ballarin
+		with contributions by Martin Baillon
 *)
 
 theory Module
