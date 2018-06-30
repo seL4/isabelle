@@ -203,4 +203,37 @@ next
       show "x \<in> a_kernel R S h +> a" by (rule homeq_imp_rcos)
 qed
 
+(*contributed by Paulo Emílio de Vilhena*)
+lemma (in ring_hom_ring) inj_on_domain:
+  assumes "inj_on h (carrier R)"
+  shows "domain S \<Longrightarrow> domain R"
+proof -
+  assume A: "domain S" show "domain R"
+  proof
+    have "h \<one> = \<one>\<^bsub>S\<^esub> \<and> h \<zero> = \<zero>\<^bsub>S\<^esub>" by simp
+    hence "h \<one> \<noteq> h \<zero>"
+      using domain.one_not_zero[OF A] by simp
+    thus "\<one> \<noteq> \<zero>"
+      using assms unfolding inj_on_def by fastforce 
+  next
+    fix a b
+    assume a: "a \<in> carrier R"
+       and b: "b \<in> carrier R"
+    have "h (a \<otimes> b) = (h a) \<otimes>\<^bsub>S\<^esub> (h b)" by (simp add: a b)
+    also have " ... = (h b) \<otimes>\<^bsub>S\<^esub> (h a)" using a b A cringE(1)[of S]
+      by (simp add: cring.cring_simprules(14) domain_def)
+    also have " ... = h (b \<otimes> a)" by (simp add: a b)
+    finally have "h (a \<otimes> b) = h (b \<otimes> a)" .
+    thus "a \<otimes> b = b \<otimes> a"
+      using assms a b unfolding inj_on_def by simp 
+    
+    assume  ab: "a \<otimes> b = \<zero>"
+    hence "h (a \<otimes> b) = \<zero>\<^bsub>S\<^esub>" by simp
+    hence "(h a) \<otimes>\<^bsub>S\<^esub> (h b) = \<zero>\<^bsub>S\<^esub>" using a b by simp
+    hence "h a =  \<zero>\<^bsub>S\<^esub> \<or> h b =  \<zero>\<^bsub>S\<^esub>" using a b domain.integral[OF A] by simp
+    thus "a = \<zero> \<or> b = \<zero>"
+      using a b assms unfolding inj_on_def by force
+  qed
+qed
+
 end

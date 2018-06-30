@@ -333,11 +333,6 @@ lemma cringE:
     and "\<And>x y z. \<lbrakk> x \<in> carrier R; y \<in> carrier R; z \<in> carrier R \<rbrakk> \<Longrightarrow> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
   using assms cring_def apply auto by (simp add: assms cring.axioms(1) ringE(3))
 
-(*
-lemma (in cring) is_comm_monoid:
-  "comm_monoid R"
-  by (auto intro!: comm_monoidI m_assoc m_comm)
-*)
 lemma (in cring) is_cring:
   "cring R" by (rule cring_axioms)
 
@@ -651,6 +646,15 @@ subsection \<open>Fields\<close>
 
 text \<open>Field would not need to be derived from domain, the properties
   for domain follow from the assumptions of field\<close>
+
+lemma fieldE :
+  fixes R (structure)
+  assumes "field R"
+  shows "cring R"
+    and one_not_zero : "\<one> \<noteq> \<zero>"
+    and integral: "\<And>a b. \<lbrakk> a \<otimes> b = \<zero>; a \<in> carrier R; b \<in> carrier R \<rbrakk> \<Longrightarrow> a = \<zero> \<or> b = \<zero>"
+  and field_Units: "Units R = carrier R - {\<zero>}"
+  using assms unfolding field_def field_axioms_def domain_def domain_axioms_def by simp_all
 
 lemma (in cring) cring_fieldI:
   assumes field_Units: "Units R = carrier R - {\<zero>}"

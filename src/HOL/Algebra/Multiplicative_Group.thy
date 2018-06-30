@@ -590,7 +590,11 @@ lemma one_mult_of: "\<one>\<^bsub>mult_of R\<^esub> = \<one>\<^bsub>R\<^esub>"
 
 lemmas mult_of_simps = carrier_mult_of mult_mult_of nat_pow_mult_of one_mult_of
 
-context field begin
+context field 
+begin
+
+lemma mult_of_is_Units: "mult_of R = units_of R" 
+  unfolding mult_of_def units_of_def using field_Units by auto
 
 lemma field_mult_group :
   shows "group (mult_of R)"

@@ -1438,6 +1438,9 @@ lemma (in monoid) units_of_inv:
   shows "m_inv (units_of G) x = m_inv G x"
   by (simp add: assms group.inv_equality units_group units_of_carrier units_of_mult units_of_one)
 
+lemma units_of_units [simp] : "Units (units_of G) = Units G"
+  unfolding units_of_def Units_def by force
+
 lemma (in group) surj_const_mult: "a \<in> carrier G \<Longrightarrow> (\<lambda>x. a \<otimes> x) ` carrier G = carrier G"
   apply (auto simp add: image_def)
   by (metis inv_closed inv_solve_left m_closed)

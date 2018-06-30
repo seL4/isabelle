@@ -763,6 +763,27 @@ lemma (in monoid_cancel) prime_cong [trans]:
   apply (metis pp' associated_sym divides_cong_l)
   done
 
+(*by Paulo Emílio de Vilhena*)
+lemma (in comm_monoid_cancel) prime_irreducible:
+  assumes "prime G p"
+  shows "irreducible G p"
+proof (rule irreducibleI)
+  show "p \<notin> Units G"
+    using assms unfolding prime_def by simp
+next
+  fix b assume A: "b \<in> carrier G" "properfactor G b p"
+  then obtain c where c: "c \<in> carrier G" "p = b \<otimes> c"
+    unfolding properfactor_def factor_def by auto
+  hence "p divides c"
+    using A assms unfolding prime_def properfactor_def by auto
+  then obtain b' where b': "b' \<in> carrier G" "c = p \<otimes> b'"
+    unfolding factor_def by auto
+  hence "\<one> = b \<otimes> b'"
+    by (metis A(1) l_cancel m_closed m_lcomm one_closed r_one c)
+  thus "b \<in> Units G"
+    using A(1) Units_one_closed b'(1) unit_factor by presburger
+qed
+
 
 subsection \<open>Factorization and Factorial Monoids\<close>
 
