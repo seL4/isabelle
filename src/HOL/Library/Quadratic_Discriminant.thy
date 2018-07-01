@@ -14,18 +14,8 @@ definition discrim :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> 
   where "discrim a b c \<equiv> b\<^sup>2 - 4 * a * c"
 
 lemma complete_square:
-  fixes a b c x :: "real"
-  assumes "a \<noteq> 0"
-  shows "a * x\<^sup>2 + b * x + c = 0 \<longleftrightarrow> (2 * a * x + b)\<^sup>2 = discrim a b c"
-proof -
-  have "4 * a\<^sup>2 * x\<^sup>2 + 4 * a * b * x + 4 * a * c = 4 * a * (a * x\<^sup>2 + b * x + c)"
-    by (simp add: algebra_simps power2_eq_square)
-  with \<open>a \<noteq> 0\<close>
-  have "a * x\<^sup>2 + b * x + c = 0 \<longleftrightarrow> 4 * a\<^sup>2 * x\<^sup>2 + 4 * a * b * x + 4 * a * c = 0"
-    by simp
-  then show "a * x\<^sup>2 + b * x + c = 0 \<longleftrightarrow> (2 * a * x + b)\<^sup>2 = discrim a b c"
-    by (simp add: discrim_def power2_eq_square algebra_simps)
-qed
+  "a \<noteq> 0 \<Longrightarrow> a * x\<^sup>2 + b * x + c = 0 \<longleftrightarrow> (2 * a * x + b)\<^sup>2 = discrim a b c"
+by (simp add: discrim_def) algebra
 
 lemma discriminant_negative:
   fixes a b c x :: real
@@ -188,6 +178,24 @@ proof -
     with \<open>a * w\<^sup>2 + b * w + c = 0\<close> show ?thesis
       by auto
   qed
+qed
+
+lemma Rats_solution_QE:
+  assumes "a \<in> \<rat>" "b \<in> \<rat>" "a \<noteq> 0"
+  and "a*x^2 + b*x + c = 0"
+  and "sqrt (discrim a b c) \<in> \<rat>"
+  shows "x \<in> \<rat>" 
+using assms(1,2,5) discriminant_iff[THEN iffD1, OF assms(3,4)] by auto
+
+lemma Rats_solution_QE_converse:
+  assumes "a \<in> \<rat>" "b \<in> \<rat>"
+  and "a*x^2 + b*x + c = 0"
+  and "x \<in> \<rat>"
+  shows "sqrt (discrim a b c) \<in> \<rat>"
+proof -
+  from assms(3) have "discrim a b c = (2*a*x+b)^2" unfolding discrim_def by algebra
+  hence "sqrt (discrim a b c) = \<bar>2*a*x+b\<bar>" by (simp)
+  thus ?thesis using \<open>a \<in> \<rat>\<close> \<open>b \<in> \<rat>\<close> \<open>x \<in> \<rat>\<close> by (simp)
 qed
 
 end
