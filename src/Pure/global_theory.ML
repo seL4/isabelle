@@ -24,8 +24,6 @@ sig
   val name_thm: bool -> bool -> string -> thm -> thm
   val name_thms: bool -> bool -> string -> thm list -> thm list
   val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
-  val pending_shyps_raw: Config.raw
-  val pending_shyps: bool Config.T
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
   val store_thm_open: binding * thm -> theory -> thm * theory
@@ -130,9 +128,6 @@ fun name_thmss official name fact =
 
 fun register_proofs thms thy = (thms, Thm.register_proofs (Lazy.value thms) thy);
 
-val pending_shyps_raw = Config.declare ("pending_shyps", \<^here>) (K (Config.Bool false));
-val pending_shyps = Config.bool pending_shyps_raw;
-
 fun add_facts (b, fact) thy =
   let
     val full_name = Sign.full_name thy b;
@@ -148,8 +143,6 @@ fun add_facts (b, fact) thy =
           val prop = Thm.plain_prop_of thm
             handle THM _ =>
               thm
-              |> not (Config.get_global thy pending_shyps) ?
-                  Thm.check_shyps (Proof_Context.init_global thy)
               |> Thm.check_hyps (Context.Theory thy)
               |> Thm.full_prop_of;
         in

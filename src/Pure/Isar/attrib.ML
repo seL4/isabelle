@@ -591,7 +591,6 @@ val _ = Theory.setup
   register_config ML_Options.exception_trace_raw #>
   register_config ML_Options.exception_debugger_raw #>
   register_config ML_Options.debugger_raw #>
-  register_config Global_Theory.pending_shyps_raw #>
   register_config Proof_Context.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>
   register_config Goal_Display.show_main_goal_raw #>

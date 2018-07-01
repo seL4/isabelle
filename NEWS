@@ -19,10 +19,8 @@ points to major logic sessions: Pure, Main, Complex_Main, HOLCF, IFOL,
 FOL, ZF, ZFC etc. INCOMPATIBILITY, need to use qualified names for
 formerly global "HOL-Probability.Probability" and "HOL-SPARK.SPARK".
 
-* Global facts need to be closed: no free variables, no hypotheses, no
-pending sort hypotheses. Rare INCOMPATIBILITY: sort hypotheses can be
-allowed via "declare [[pending_shyps]]" in the global theory context,
-but it should be reset to false afterwards.
+* Global facts need to be closed: no free variables and no hypotheses.
+Rare INCOMPATIBILITY.
 
 * Marginal comments need to be written exclusively in the new-style form
 "\<comment> \<open>text\<close>", old ASCII variants like "-- {* ... *}" are no longer
