@@ -596,6 +596,11 @@ begin
 lemma mult_of_is_Units: "mult_of R = units_of R" 
   unfolding mult_of_def units_of_def using field_Units by auto
 
+lemma m_inv_mult_of :
+"\<And>x. x \<in> carrier (mult_of R) \<Longrightarrow> m_inv (mult_of R) x = m_inv R x"
+  using mult_of_is_Units units_of_inv unfolding units_of_def
+  by simp 
+
 lemma field_mult_group :
   shows "group (mult_of R)"
   apply (rule groupI)
