@@ -862,12 +862,8 @@ text %mlex \<open>
 class empty =
   assumes bad: "\<And>(x::'a) y. x \<noteq> y"
 
-declare [[pending_shyps]]
-
 theorem (in empty) false: False
   using bad by blast
-
-declare [[pending_shyps = false]]
 
 ML_val \<open>@{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])\<close>
 

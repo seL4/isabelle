@@ -132,7 +132,15 @@ object Dump
       aspects.foreach(_.operation(aspect_args))
     }
 
-    session_result
+    if (theories_result.ok) session_result
+    else {
+      for {
+        (name, status) <- theories_result.nodes if !status.ok
+        (tree, pos) <- theories_result.snapshot(name).messages if Protocol.is_error(tree)
+      } progress.echo_error_message(XML.content(Pretty.formatted(List(tree))))
+
+      session_result.copy(rc = session_result.rc max 1)
+    }
   }
 
 
