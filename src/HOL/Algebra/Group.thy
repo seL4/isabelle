@@ -590,12 +590,18 @@ proof -
     by (rule monoid.group_l_invI) (auto intro: l_inv mem_carrier)
 qed
 
-lemma (in group) subgroup_inv_equality:
+lemma subgroup_is_submonoid:
+  assumes "subgroup H G" shows "submonoid H G"
+  using assms by (auto intro: submonoid.intro simp add: subgroup_def)
+
+lemma (in group) subgroup_Units:
+  assumes "subgroup H G" shows "H \<subseteq> Units (G \<lparr> carrier := H \<rparr>)"
+  using group.Units[OF subgroup.subgroup_is_group[OF assms group_axioms]] by simp
+
+lemma (in group) m_inv_consistent:
   assumes "subgroup H G" "x \<in> H"
-  shows "m_inv (G \<lparr>carrier := H\<rparr>) x = inv x"
-  unfolding m_inv_def apply auto
-  using subgroup.m_inv_closed[OF assms] inv_equality
-  by (metis (no_types, hide_lams) assms subgroup.mem_carrier)
+  shows "inv\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> x = inv x"
+  using assms m_inv_monoid_consistent[OF _ subgroup_is_submonoid] subgroup_Units[of H] by auto
 
 lemma (in group) int_pow_consistent: (* by Paulo *)
   assumes "subgroup H G" "x \<in> H"
@@ -616,7 +622,7 @@ next
   also have " ... = (inv x) [^] (nat (- n))"
     by (metis assms nat_pow_inv subgroup.mem_carrier)
   also have " ... = (inv\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> x) [^]\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> (nat (- n))"
-    using subgroup_inv_equality[OF assms] nat_pow_consistent by auto
+    using m_inv_consistent[OF assms] nat_pow_consistent by auto
   also have " ... = inv\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> (x [^]\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> (nat (- n)))"
     using group.nat_pow_inv[OF subgroup.subgroup_is_group[OF assms(1) is_group]] assms(2) by auto
   also have " ... = x [^]\<^bsub>(G \<lparr> carrier := H \<rparr>)\<^esub> n"
@@ -1290,18 +1296,16 @@ proof
   thus  "I \<subseteq> carrier G \<and> (\<forall>x y. x \<in> I \<longrightarrow> y \<in> I \<longrightarrow> x \<otimes> y \<in> I)"  using H by blast
   have K: "\<one> \<in> I" using assms(2) by (auto simp add: subgroup_def)
   have "(\<And>x. x \<in> I \<Longrightarrow> inv x \<in> I)" using assms  subgroup.m_inv_closed H
-    by (metis H1 H2  subgroup_inv_equality subsetCE)
+    by (metis H1 H2 m_inv_consistent subsetCE)
   thus "\<one> \<in> I \<and> (\<forall>x. x \<in> I \<longrightarrow> inv x \<in> I)" using K by blast
 qed
 
 (*A subgroup included in another subgroup is a subgroup of the subgroup*)
 lemma (in group) subgroup_incl:
-  assumes "subgroup I G"
-    and "subgroup J G"
-    and "I\<subseteq>J"
-  shows "subgroup I (G\<lparr>carrier:=J\<rparr>)"using assms subgroup_inv_equality
-  by (auto simp add: subgroup_def)
-
+  assumes "subgroup I G" and "subgroup J G" and "I \<subseteq> J"
+  shows "subgroup I (G \<lparr> carrier := J \<rparr>)"
+  using group.group_incl_imp_subgroup[of "G \<lparr> carrier := J \<rparr>" I]
+        assms(1-2)[THEN subgroup.subgroup_is_group[OF _ group_axioms]] assms(3) by auto
 
 
 subsection \<open>The Lattice of Subgroups of a Group\<close>
@@ -1433,7 +1437,7 @@ lemma units_of_mult: "mult (units_of G) = mult G"
 lemma units_of_one: "one (units_of G) = one G"
   by (auto simp: units_of_def)
 
-lemma (in monoid) units_of_inv: 
+lemma (in monoid) units_of_inv:
   assumes "x \<in> Units G"
   shows "m_inv (units_of G) x = m_inv G x"
   by (simp add: assms group.inv_equality units_group units_of_carrier units_of_mult units_of_one)

@@ -43,7 +43,7 @@ proof(intro group.normal_invI)
     ultimately have "x \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> h = x \<otimes> h" by simp
     moreover have " inv\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> x =  inv x"
       using xnormalizer
-      by (simp add: assms normalizer_imp_subgroup subgroup.subset subgroup_inv_equality)
+      by (simp add: assms normalizer_imp_subgroup subgroup.subset m_inv_consistent)
     ultimately  have xhxegal: "x \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> h
                 \<otimes>\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := normalizer G H\<rparr>\<^esub> x
                   = x \<otimes>h \<otimes> inv x"
@@ -172,7 +172,7 @@ proof-
   also have "... \<subseteq> K" by simp
   finally have Incl2:"N \<subseteq> K" by simp
   have "(N <#>\<^bsub>G\<lparr>carrier := K\<rparr>\<^esub> H) = (N <#> H)"
-    using subgroup_set_mult_equality[of K] assms Incl1 Incl2 by simp
+    using set_mult_consistent by simp
   thus "subgroup (N<#>H) (G\<lparr>carrier:=K\<rparr>)" using Hyp by auto
 qed
 
@@ -332,8 +332,7 @@ proof-
          G\<lparr>carrier := normalizer G N, carrier := H\<rparr> Mod N \<inter> H =
           (G\<lparr>carrier:= N<#>H\<rparr> Mod N)  \<cong>
          G\<lparr>carrier := normalizer G N, carrier := H\<rparr> Mod N \<inter> H"
-    using subgroup_set_mult_equality[OF  normalizer_imp_subgroup[OF subgroup.subset[OF assms(2)]], of N H]
-          subgroup.subset[OF assms(3)]
+    using subgroup.subset[OF assms(3)]
           subgroup.subset[OF normal_imp_subgroup[OF subgroup_in_normalizer[OF assms(2)]]]
     by simp
   ultimately have "G\<lparr>carrier := normalizer G N,
@@ -493,7 +492,7 @@ proof-
     hence allG : "h1 \<in> carrier G" "hk \<in> carrier G" "x \<in> carrier G"
       using assms subgroup.subset h1hk_def normal_imp_subgroup incl_subgroup apply blast+.
     hence "x <#\<^bsub>G\<lparr>carrier := H1 <#> H\<inter>K\<rparr>\<^esub> (H1 <#> H\<inter>K1) =h1 \<otimes> hk <# (H1 <#> H\<inter>K1)"
-      using subgroup_set_mult_equality subgroup.subset xH h1hk_def by (simp add: l_coset_def)
+      using subgroup.subset xH h1hk_def by (simp add: l_coset_def)
     also have "... = h1 <# (hk <# (H1 <#> H\<inter>K1))"
       using lcos_m_assoc[OF subgroup.subset[OF incl_subgroup[OF assms(1) subH1]]allG(1)allG(2)]
       by (metis allG(1) allG(2) assms(1) incl_subgroup lcos_m_assoc subH2 subgroup.subset)
@@ -535,7 +534,7 @@ proof-
     finally have eq1 : "x <#\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> (H1 <#> H \<inter> K1) = H1 <#> (H \<inter> K1) #> hk"
       by (simp add: allG(2) all_inclG inf.coboundedI2 setmult_rcos_assoc)
     have "H1 <#> H \<inter> K1 #>\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> x = H1 <#> H \<inter> K1 #> (h1 \<otimes> hk)"
-      using subgroup_set_mult_equality subgroup.subset xH h1hk_def by (simp add: r_coset_def)
+      using subgroup.subset xH h1hk_def by (simp add: r_coset_def)
     also have "... = H1 <#> H \<inter> K1 #> h1 #> hk"
       using coset_mult_assoc by (simp add: allG all_inclG inf.coboundedI2 setmult_subset_G)
     also have"... =  H \<inter> K1 <#> H1 #> h1 #> hk"
