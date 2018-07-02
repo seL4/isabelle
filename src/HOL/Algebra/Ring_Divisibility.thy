@@ -8,7 +8,7 @@ imports Ideal Divisibility QuotRing
 
 begin
 
-section \<open>Definitions ported from Multiplicative_Group.thy\<close>
+section \<open>Definitions ported from @{text "Multiplicative_Group.thy"}\<close>
 
 definition mult_of :: "('a, 'b) ring_scheme \<Rightarrow> 'a monoid" where
   "mult_of R \<equiv> \<lparr> carrier = carrier R - { \<zero>\<^bsub>R\<^esub> }, mult = mult R, one = \<one>\<^bsub>R\<^esub> \<rparr>"
