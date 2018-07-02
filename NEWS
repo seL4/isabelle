@@ -231,6 +231,9 @@ and friends the modifier is "simp flip:".
 
 *** HOL ***
 
+* Sledgehammer: bundled version of "vampire" (for non-commercial users)
+helps to avoid fragility of "remote_vampire" service.
+
 * Clarified relationship of characters, strings and code generation:
 
   - Type "char" is now a proper datatype of 8-bit values.
