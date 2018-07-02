@@ -51,7 +51,7 @@ proof (intro subgroupI)
   show "\<And>h. h \<in> generate G H \<Longrightarrow> inv h \<in> generate G H"
     using generate_m_inv_closed[OF assms] by blast
   show "\<And>h1 h2. \<lbrakk> h1 \<in> generate G H; h2 \<in> generate G H \<rbrakk> \<Longrightarrow> h1 \<otimes> h2 \<in> generate G H"
-    by (simp add: generate.eng) 
+    by (simp add: generate.eng)
 qed
 
 
@@ -64,11 +64,11 @@ lemma (in group) generate_min_subgroup1:
 proof
   fix h show "h \<in> generate G H \<Longrightarrow> h \<in> E"
   proof (induct rule: generate.induct)
-    case one  thus ?case using subgroup.one_closed[OF assms(2)] by simp 
+    case one  thus ?case using subgroup.one_closed[OF assms(2)] by simp
     case incl thus ?case using assms(3) by blast
     case inv  thus ?case using subgroup.m_inv_closed[OF assms(2)] assms(3) by blast
   next
-    case eng thus ?case using subgroup.m_closed[OF assms(2)] by simp 
+    case eng thus ?case using subgroup.m_closed[OF assms(2)] by simp
   qed
 qed
 
@@ -119,14 +119,14 @@ fun norm :: "('a, 'b) monoid_scheme \<Rightarrow> 'a repr \<Rightarrow> 'a"
   where
     "norm G (One) = \<one>\<^bsub>G\<^esub>"
   | "norm G (Inv h) = (inv\<^bsub>G\<^esub> h)"
-  | "norm G (Leaf h) = h" 
+  | "norm G (Leaf h) = h"
   | "norm G (Mult h1 h2) = (norm G h1) \<otimes>\<^bsub>G\<^esub> (norm G h2)"
 
 fun elts :: "'a repr \<Rightarrow> 'a set"
   where
     "elts (One) = {}"
   | "elts (Inv h) = { h }"
-  | "elts (Leaf h) = { h }" 
+  | "elts (Leaf h) = { h }"
   | "elts (Mult h1 h2) = (elts h1) \<union> (elts h2)"
 
 lemma (in group) generate_repr_iff:
@@ -136,7 +136,7 @@ proof
   show "h \<in> generate G H \<Longrightarrow> \<exists>r. (elts r) \<subseteq> H \<and> norm G r = h"
   proof (induction rule: generate.induct)
     case one thus ?case
-      using elts.simps(1) norm.simps(1)[of G] by fastforce 
+      using elts.simps(1) norm.simps(1)[of G] by fastforce
   next
     case (incl h)
     hence "elts (Leaf h) \<subseteq> H \<and> norm G (Leaf h) = h" by simp
@@ -150,7 +150,7 @@ proof
     then obtain r1 r2 where r1: "elts r1 \<subseteq> H" "norm G r1 = h1"
                         and r2: "elts r2 \<subseteq> H" "norm G r2 = h2" by blast
     hence "elts (Mult r1 r2) \<subseteq> H \<and> norm G (Mult r1 r2) = h1 \<otimes> h2" by simp
-    thus ?case by blast 
+    thus ?case by blast
   qed
 
   show "\<exists>r. elts r \<subseteq> H \<and> norm G r = h \<Longrightarrow> h \<in> generate G H"
@@ -161,7 +161,7 @@ proof
     proof (induction arbitrary: h rule: repr.induct)
       case One thus ?case using generate.one by auto
     next
-      case Inv thus ?case using generate.simps by force 
+      case Inv thus ?case using generate.simps by force
     next
       case Leaf thus ?case using generate.simps by force
     next
@@ -207,10 +207,10 @@ proof -
     proof (induction r rule: repr.induct)
       case One thus ?case by simp
     next
-      case (Inv k) hence "k \<in> K" using A by simp 
+      case (Inv k) hence "k \<in> K" using A by simp
       thus ?case using m_inv_consistent[OF assms(1)] assms(2) by auto
     next
-      case (Leaf k) hence "k \<in> K" using A by simp 
+      case (Leaf k) hence "k \<in> K" using A by simp
       thus ?case using m_inv_consistent[OF assms(1)] assms(2) by auto
     next
       case (Mult k1 k2) thus ?case using mult_eq by auto
@@ -259,7 +259,7 @@ next
     thus "(g \<otimes> (norm G r) \<otimes> (inv g)) \<in> (generate G H)"
     proof (induction r rule: repr.induct)
       case One thus ?case
-        by (simp add: generate.one) 
+        by (simp add: generate.one)
     next
       case (Inv h)
       hence "g \<otimes> h \<otimes> (inv g) \<in> H" using assms(2) by simp
@@ -267,7 +267,7 @@ next
         using Inv.prems(1) Inv.prems(2) assms(1) inv_mult_group m_assoc by auto
       ultimately have "\<exists>r. elts r \<subseteq> H \<and> norm G r = g \<otimes> (inv h) \<otimes> (inv g)"
         by (metis elts.simps(2) empty_subsetI insert_subset)
-      thus ?case by (simp add: assms(1) generate_repr_iff) 
+      thus ?case by (simp add: assms(1) generate_repr_iff)
     next
       case (Leaf h)
       thus ?case using assms(2)[of h g] generate.incl[of "g \<otimes> h \<otimes> inv g" H] by simp
@@ -305,16 +305,16 @@ proof
   proof
     fix h  show "h \<in> generate G { a } \<Longrightarrow> h \<in> { a [^] k | k. k \<in> (UNIV :: int set) }"
     proof (induction rule: generate.induct)
-      case one thus ?case by (metis (mono_tags, lifting) UNIV_I int_pow_0 mem_Collect_eq) 
+      case one thus ?case by (metis (mono_tags, lifting) UNIV_I int_pow_0 mem_Collect_eq)
     next
       case (incl h) hence "h = a" by auto thus ?case
-        by (metis (mono_tags, lifting) CollectI UNIV_I assms group.int_pow_1 is_group) 
+        by (metis (mono_tags, lifting) CollectI UNIV_I assms group.int_pow_1 is_group)
     next
       case (inv h) hence "h = a" by auto thus ?case
         by (metis (mono_tags, lifting) mem_Collect_eq UNIV_I assms group.int_pow_1 int_pow_neg is_group)
     next
       case (eng h1 h2) thus ?case
-        by (smt assms group.int_pow_mult is_group iso_tuple_UNIV_I mem_Collect_eq) 
+        by (smt assms group.int_pow_mult is_group iso_tuple_UNIV_I mem_Collect_eq)
     qed
   qed
 
@@ -444,7 +444,7 @@ proof -
     qed
     thus ?thesis by simp
   qed
-  thus ?thesis unfolding derived_def using generate_empty generate_one by presburger 
+  thus ?thesis unfolding derived_def using generate_empty generate_one by presburger
 qed
 
 lemma (in group) derived_set_in_carrier:
@@ -569,7 +569,7 @@ proof -
   have "group (G \<lparr> carrier := H \<rparr>)"
     using assms subgroup_imp_group by auto
   thus ?thesis
-    using group.derived_quot_is_comm_group subgroup_derived_equality[OF assms] by fastforce 
+    using group.derived_quot_is_comm_group subgroup_derived_equality[OF assms] by fastforce
 qed
 
 lemma (in group) mono_derived:
@@ -610,8 +610,8 @@ next
   also have " ... \<subseteq> (derived G) (carrier G)"
     using mono_derived[of "carrier G" "(derived G ^^ n) H" 1] Suc by simp
   also have " ... \<subseteq> carrier G" unfolding derived_def
-    by (simp add: derived_set_incl generate_min_subgroup1 subgroup_self) 
-  finally show ?case .  
+    by (simp add: derived_set_incl generate_min_subgroup1 subgroup_self)
+  finally show ?case .
 qed
 
 lemma (in group) exp_of_derived_is_subgroup:
@@ -624,8 +624,10 @@ next
   have "(derived G ^^ n) H \<subseteq> carrier G"
     by (simp add: Suc.IH assms subgroup.subset)
   hence "subgroup ((derived G) ((derived G ^^ n) H)) G"
-    unfolding derived_def using derived_set_in_carrier generate_is_subgroup by auto 
+    unfolding derived_def using derived_set_in_carrier generate_is_subgroup by auto
   thus ?case by simp
 qed
+
+hide_const (open) norm
 
 end

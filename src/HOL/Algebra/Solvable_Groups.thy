@@ -174,9 +174,9 @@ proof
   show "generate H (h ` K) \<subseteq> h ` generate G K"
   proof
     fix x assume "x \<in> generate H (h ` K)"
-    then obtain r where r: "elts r \<subseteq> (h ` K)" "norm H r = x"
+    then obtain r where r: "elts r \<subseteq> (h ` K)" "Generated_Groups.norm H r = x"
       using H.generate_repr_iff img_in_carrier by auto
-    from \<open>elts r \<subseteq> (h ` K)\<close> have "norm H r \<in> h ` generate G K"
+    from \<open>elts r \<subseteq> (h ` K)\<close> have "Generated_Groups.norm H r \<in> h ` generate G K"
     proof (induct r rule: repr.induct)
       case One
       have "\<one>\<^bsub>G\<^esub> \<in> generate G K" using generate.one[of G] by simp
@@ -193,11 +193,11 @@ proof
       thus ?case by (simp add: generate.incl)
     next
       case (Mult x1 x2) hence A: "elts x1 \<union> elts x2 \<subseteq> h ` K" by simp
-      have "norm H x1 \<in> h ` (generate G K)" using A Mult by simp
-      moreover have "norm H x2 \<in> h ` (generate G K)" using A Mult by simp
-      ultimately obtain k1 k2 where k1: "k1 \<in> generate G K" "norm H x1 = h k1"
-                                and k2: "k2 \<in> generate G K" "norm H x2 = h k2" by blast
-      hence "norm H (Mult x1 x2) = h (k1 \<otimes> k2)"
+      have "Generated_Groups.norm H x1 \<in> h ` (generate G K)" using A Mult by simp
+      moreover have "Generated_Groups.norm H x2 \<in> h ` (generate G K)" using A Mult by simp
+      ultimately obtain k1 k2 where k1: "k1 \<in> generate G K" "Generated_Groups.norm H x1 = h k1"
+                                and k2: "k2 \<in> generate G K" "Generated_Groups.norm H x2 = h k2" by blast
+      hence "Generated_Groups.norm H (Mult x1 x2) = h (k1 \<otimes> k2)"
         using G.generate_in_carrier assms by auto
       thus ?case using k1 k2 by (simp add: generate.eng) 
     qed
@@ -208,24 +208,24 @@ next
   show "h ` generate G K \<subseteq> generate H (h ` K)"
   proof
     fix x assume "x \<in> h ` generate G K"
-    then obtain r where r: "elts r \<subseteq> K" "x = h (norm G r)" using G.generate_repr_iff assms by auto
-    from \<open>elts r \<subseteq> K\<close> have "h (norm G r) \<in> generate H (h ` K)"
+    then obtain r where r: "elts r \<subseteq> K" "x = h (Generated_Groups.norm G r)" using G.generate_repr_iff assms by auto
+    from \<open>elts r \<subseteq> K\<close> have "h (Generated_Groups.norm G r) \<in> generate H (h ` K)"
     proof (induct r rule: repr.induct)
       case One thus ?case by (simp add: generate.one) 
     next
       case (Inv x) hence A: "x \<in> K" by simp
-      hence "h (norm G (Inv x)) = inv\<^bsub>H\<^esub> (h x)" using assms by auto
+      hence "h (Generated_Groups.norm G (Inv x)) = inv\<^bsub>H\<^esub> (h x)" using assms by auto
       moreover have "h x \<in> generate H (h ` K)" using A by (simp add: generate.incl)
       ultimately show ?case by (simp add: A generate.inv)
     next
       case (Leaf x) thus ?case by (simp add: generate.incl)
     next
       case (Mult x1 x2) hence A: "elts x1 \<union> elts x2 \<subseteq> K" by simp
-      have "norm G x1 \<in> carrier G"
+      have "Generated_Groups.norm G x1 \<in> carrier G"
         by (meson A G.generateE(1) G.generate_repr_iff Un_subset_iff assms subgroup.mem_carrier)
-      moreover have "norm G x2 \<in> carrier G"
+      moreover have "Generated_Groups.norm G x2 \<in> carrier G"
         by (meson A G.generateE(1) G.generate_repr_iff Un_subset_iff assms subgroup.mem_carrier)
-      ultimately have "h (norm G (Mult x1 x2)) = h (norm G x1) \<otimes>\<^bsub>H\<^esub> h (norm G x2)" by simp
+      ultimately have "h (Generated_Groups.norm G (Mult x1 x2)) = h (Generated_Groups.norm G x1) \<otimes>\<^bsub>H\<^esub> h (Generated_Groups.norm G x2)" by simp
       thus ?case using Mult A by (simp add: generate.eng) 
     qed
     thus "x \<in> generate H (h ` K)" using r by simp
