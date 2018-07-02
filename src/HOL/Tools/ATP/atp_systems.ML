@@ -46,6 +46,7 @@ sig
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
   val spass_extra_options : string Config.T
+  val is_vampire_noncommercial_license_accepted : unit -> bool option
   val remote_atp : string -> string -> string list -> (string * string) list ->
     (atp_failure * string) list -> atp_formula_role -> (Proof.context -> slice_spec * string) ->
     string * (unit -> atp_config)
@@ -169,8 +170,7 @@ val agsyhol_thf0 = THF (Monomorphic, THF_Without_Choice)
 val agsyhol_config : atp_config =
   {exec = K (["AGSYHOL_HOME"], ["agsyHOL"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^
-       file_name,
+     "--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
@@ -188,8 +188,8 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 val alt_ergo_config : atp_config =
   {exec = K (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^
-       string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+     "--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^ string_of_int (to_secs 1 timeout) ^
+     " " ^ file_name,
    proof_delims = [],
    known_failures =
      [(ProofMissing, ": Valid"),
@@ -320,7 +320,7 @@ val e = (eN, fn () => e_config)
 val e_males_config : atp_config =
   {exec = K (["E_MALES_HOME"], ["emales.py"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "-t " ^ string_of_int (to_secs 1 timeout) ^ " -p " ^ file_name,
+     "-t " ^ string_of_int (to_secs 1 timeout) ^ " -p " ^ file_name,
    proof_delims = tstp_proof_delims,
    known_failures = #known_failures e_config,
    prem_role = Conjecture,
@@ -341,8 +341,7 @@ val e_males = (e_malesN, fn () => e_males_config)
 val e_par_config : atp_config =
   {exec = K (["E_HOME"], ["runepar.pl"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       string_of_int (to_secs 1 timeout) ^ " 1 " (* SInE *) ^ file_name ^
-       " 2" (* proofs *),
+     string_of_int (to_secs 1 timeout) ^ " 1 " (* SInE *) ^ file_name ^ " 2" (* proofs *),
    proof_delims = tstp_proof_delims,
    known_failures = #known_failures e_config,
    prem_role = Conjecture,
@@ -360,8 +359,8 @@ val ehoh_thf0 = THF (Monomorphic, THF_Lambda_Free)
 val ehoh_config : atp_config =
   {exec = fn _ => (["E_HOME"], ["eprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--auto-schedule --tstp-in --tstp-out --silent --cpu-limit=" ^
-       string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ file_name,
+     "--auto-schedule --tstp-in --tstp-out --silent --cpu-limit=" ^
+     string_of_int (to_secs 2 timeout) ^ " --proof-object=1 " ^ file_name,
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
@@ -384,8 +383,8 @@ val ehoh = (ehohN, fn () => ehoh_config)
 val iprover_config : atp_config =
   {exec = K (["IPROVER_HOME"], ["iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--clausifier \"$IPROVER_HOME\"/vclausify_rel --time_out_real " ^
-       string_of_real (Time.toReal timeout) ^ " " ^ file_name,
+     "--clausifier \"$IPROVER_HOME\"/vclausify_rel --time_out_real " ^
+     string_of_real (Time.toReal timeout) ^ " " ^ file_name,
    proof_delims = tstp_proof_delims,
    known_failures =
      [(ProofIncomplete, "% SZS output start CNFRefutation")] @
@@ -473,7 +472,7 @@ val satallax_thf0 = THF (Monomorphic, THF_Without_Choice)
 val satallax_config : atp_config =
   {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+     "-p tstp -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims =
      [("% SZS output start Proof", "% SZS output end Proof")],
    known_failures = known_szs_status_failures,
@@ -501,11 +500,10 @@ val spass_extra_options =
 
 val spass_config : atp_config =
   {exec = K (["SPASS_HOME"], ["SPASS"]),
-   arguments = fn _ => fn full_proofs => fn extra_options => fn timeout =>
-       fn file_name => fn _ =>
-       "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
-       "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
-       |> extra_options <> "" ? prefix (extra_options ^ " "),
+   arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn file_name => fn _ =>
+     "-Isabelle=1 " ^ (if full_proofs then "-CNFRenaming=0 -Splits=0 " else "") ^
+     "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
+     |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(GaveUp, "SPASS beiseite: Completion found"),
@@ -538,14 +536,34 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire *)
 
-(* Vampire 1.8 has TFF0 support, but the support was buggy until revision
-   1435 (or shortly before). *)
-fun is_vampire_at_least_1_8 () = is_greater_equal (string_ord (getenv "VAMPIRE_VERSION", "1.8"))
-fun is_vampire_beyond_1_8 () = is_greater (string_ord (getenv "VAMPIRE_VERSION", "1.8"))
+fun is_vampire_noncommercial_license_accepted () =
+  let
+    val flag = Options.default_string @{system_option vampire_noncommercial}
+      |> String.map Char.toLower
+  in
+    if flag = "yes" then
+      SOME true
+    else if flag = "no" then
+      SOME false
+    else
+      NONE
+  end
+
+fun check_vampire_noncommercial () =
+  (case is_vampire_noncommercial_license_accepted () of
+    SOME true => ()
+  | SOME false =>
+    error (Pretty.string_of (Pretty.para
+      "The Vampire prover may be used only for noncommercial applications"))
+  | NONE =>
+    error (Pretty.string_of (Pretty.para
+      "The Vampire prover is not activated; to activate it, set the Isabelle system option \
+      \\"vampire_noncommercial\" to \"yes\" (e.g. via the Isabelle/jEdit menu Plugin Options \
+      \/ Isabelle / General)")))
 
 val vampire_tff0 = TFF Monomorphic
 
-val vampire_basic_options = "--proof tptp --output_axiom_names on --mode casc"
+val vampire_basic_options = "--proof tptp --output_axiom_names on $VAMPIRE_EXTRA_OPTIONS"
 
 (* cf. p. 20 of https://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
 val vampire_full_proof_options =
@@ -558,11 +576,10 @@ val remote_vampire_full_proof_command =
 val vampire_config : atp_config =
   {exec = K (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn full_proofs => fn sos => fn timeout => fn file_name => fn _ =>
-     vampire_basic_options ^
-     (if is_vampire_at_least_1_8 () andalso full_proofs then " " ^ vampire_full_proof_options
-      else "") ^
-     " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ file_name
-     |> sos = sosN ? prefix "--sos on ",
+     (check_vampire_noncommercial ();
+      vampire_basic_options ^ (if full_proofs then " " ^ vampire_full_proof_options else "") ^
+      " -t " ^ string_of_int (to_secs 1 timeout) ^ " --input_file " ^ file_name
+      |> sos = sosN ? prefix "--sos on "),
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation =======")] @
@@ -577,19 +594,15 @@ val vampire_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     (if is_vampire_beyond_1_8 () then
-        [(0.333, (((500, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), sosN)),
-         (0.333, (((150, meshN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), sosN)),
-         (0.334, (((50, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
-      else
-        [(0.333, (((150, meshN), FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
-         (0.333, (((500, meshN), FOF, "mono_tags??", combs_or_liftingN, false), sosN)),
-         (0.334, (((50, meshN), FOF, "mono_guards??", combs_or_liftingN, false), no_sosN))])
+     [(0.333, (((500, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), sosN)),
+      (0.333, (((150, meshN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), sosN)),
+      (0.334, (((50, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
      |> Config.get ctxt force_sos ? (hd #> apfst (K 1.0) #> single),
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val vampire = (vampireN, fn () => vampire_config)
+
 
 (* Z3 with TPTP syntax (half experimental, half legacy) *)
 
@@ -619,8 +632,8 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 val zipperposition_config : atp_config =
   {exec = K (["ZIPPERPOSITION_HOME"], ["zipperposition"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "-print none -proof tstp -print-types -timeout " ^
-       string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+     "-print none -proof tstp -print-types -timeout " ^ string_of_int (to_secs 1 timeout) ^ " " ^
+     file_name,
    proof_delims = tstp_proof_delims,
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,

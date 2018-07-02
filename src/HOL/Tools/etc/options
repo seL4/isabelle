@@ -32,5 +32,8 @@ public option sledgehammer_provers : string = "cvc4 z3 spass e remote_vampire"
 public option sledgehammer_timeout : int = 30
   -- "provers will be interrupted after this time (in seconds)"
 
+public option vampire_noncommercial : string = "unknown"
+  -- "status of Vampire activation for noncommercial use (yes, no, unknown)"
+
 public option MaSh : string = "sml"
   -- "machine learning algorithm to use by Sledgehammer (nb_knn, nb, knn, none)"
