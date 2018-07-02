@@ -288,7 +288,7 @@ session "HOL-Nitpick_Examples" in Nitpick_Examples = "HOL-Library" +
 
 session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   description {*
-    Author: Clemens Ballarin, started 24 September 1999
+    Author: Clemens Ballarin, started 24 September 1999, and many others
 
     The Isabelle Algebraic Library.
   *}
@@ -305,6 +305,8 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     Divisibility         (* Rings *)
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
+    (* Main theory *)
+    Algebra             
   document_files "root.bib" "root.tex"
 
 session "HOL-Auth" (timing) in Auth = "HOL-Library" +
