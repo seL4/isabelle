@@ -122,7 +122,7 @@ next
 qed
 
 
-subsection \<open>Some Basic Properties of Linear_Ind\<close>
+subsection \<open>Some Basic Properties of Linear Independence\<close>
 
 lemma independent_in_carrier: "independent K Us \<Longrightarrow> set Us \<subseteq> carrier R"
   by (induct Us rule: independent.induct) (simp_all)
@@ -362,7 +362,7 @@ corollary Span_mem_iff_length_version:
   using Span_eq_combine_set_length_version[OF assms] by blast
 
 
-subsection \<open>Span as the minimal subgroup that contains K <#> (set Us)\<close>
+subsection \<open>Span as the minimal subgroup that contains @{term"K <#> (set Us)"}\<close>
 
 text \<open>Now we show the link between Span and Group.generate\<close>
 
