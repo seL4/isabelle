@@ -9,6 +9,7 @@ imports
   Group
   Coset
   UnivPoly
+  Generated_Groups
 begin
 
 section \<open>Simplification Rules for Polynomials\<close>
@@ -120,7 +121,7 @@ text\<open>
   $\sum_{d | n}^n \varphi(d) = n$ holds.
 \<close>
 
-lemma dvd_div_ge_1 :
+lemma dvd_div_ge_1:
   fixes a b :: nat
   assumes "a \<ge> 1" "b dvd a"
   shows "a div b \<ge> 1"
@@ -129,7 +130,7 @@ proof -
   with \<open>a \<ge> 1\<close> show ?thesis by simp
 qed
 
-lemma dvd_nat_bounds :
+lemma dvd_nat_bounds:
  fixes n p :: nat
  assumes "p > 0" "n dvd p"
  shows "n > 0 \<and> n \<le> p"
@@ -142,7 +143,7 @@ definition phi' :: "nat => nat"
 notation (latex output)
   phi' ("\<phi> _")
 
-lemma phi'_nonzero :
+lemma phi'_nonzero:
   assumes "m > 0"
   shows "phi' m > 0"
 proof -
@@ -207,7 +208,7 @@ text\<open>
   @{term "(\<Union>d \<in> {d. d dvd n}. {m \<in> {1::nat .. n}. n div gcd m n = d}) \<supseteq> {1 .. n}"}
   (this is our counting argument) the thesis follows.
 \<close>
-lemma sum_phi'_factors :
+lemma sum_phi'_factors:
  fixes n :: nat
  assumes "n > 0"
  shows "(\<Sum>d | d dvd n. phi' d) = n"
@@ -266,7 +267,7 @@ text_raw \<open>\label{sec:order-elem}\<close>
 
 context group begin
 
-lemma pow_eq_div2 :
+lemma pow_eq_div2:
   fixes m n :: nat
   assumes x_car: "x \<in> carrier G"
   assumes pow_eq: "x [^] m = x [^] n"
@@ -319,7 +320,7 @@ proof -
     by (auto simp: order_def)
 qed
 
-lemma finite_group_elem_finite_ord :
+lemma finite_group_elem_finite_ord:
   assumes "finite (carrier G)" "x \<in> carrier G"
   shows "\<exists> d::nat. d \<ge> 1 \<and> x [^] d = \<one>"
   using assms ord_ge_1 pow_ord_eq_1 by auto
@@ -345,7 +346,7 @@ proof -
   qed
 qed
 
-lemma ord_inj :
+lemma ord_inj:
   assumes finite: "finite (carrier G)"
   assumes a: "a \<in> carrier G"
   shows "inj_on (\<lambda> x . a [^] x) {0 .. ord a - 1}"
@@ -377,7 +378,7 @@ proof (rule inj_onI, rule ccontr)
   show False by fastforce
 qed
 
-lemma ord_inj' :
+lemma ord_inj':
   assumes finite: "finite (carrier G)"
   assumes a: "a \<in> carrier G"
   shows "inj_on (\<lambda> x . a [^] x) {1 .. ord a}"
@@ -402,7 +403,7 @@ proof (rule inj_onI, rule ccontr)
   ultimately show False using A  by force
 qed
 
-lemma ord_elems :
+lemma ord_elems:
   assumes "finite (carrier G)" "a \<in> carrier G"
   shows "{a[^]x | x. x \<in> (UNIV :: nat set)} = {a[^]x | x. x \<in> {0 .. ord a - 1}}" (is "?L = ?R")
 proof
@@ -420,6 +421,75 @@ proof
     hence "y \<in> {a[^]x | x. x \<in> {0 .. ord a - 1}}" using \<open>y=a[^]r\<close> by blast
   }
   thus "?L \<subseteq> ?R" by auto
+qed
+
+(* Next three lemmas contributed by Paulo Emílio de Vilhena*)
+lemma generate_pow_on_finite_carrier:
+  assumes "finite (carrier G)" and "a \<in> carrier G"
+  shows "generate G { a } = { a [^] k | k. k \<in> (UNIV :: nat set) }"
+proof
+  show "{ a [^] k | k. k \<in> (UNIV :: nat set) } \<subseteq> generate G { a }"
+  proof
+    fix b assume "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }"
+    then obtain k :: nat where "b = a [^] k" by blast
+    hence "b = a [^] (int k)"
+      using int_pow_def2 by auto
+    thus "b \<in> generate G { a }"
+      unfolding generate_pow[OF assms(2)] by blast
+  qed
+next
+  show "generate G { a } \<subseteq> { a [^] k | k. k \<in> (UNIV :: nat set) }"
+  proof
+    fix b assume "b \<in> generate G { a }"
+    then obtain k :: int where k: "b = a [^] k"
+      unfolding generate_pow[OF assms(2)] by blast
+    show "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }"
+    proof (cases "k < 0")
+      assume "\<not> k < 0"
+      hence "b = a [^] (nat k)"
+        using k int_pow_def2 by auto
+      thus ?thesis by blast
+    next
+      assume "k < 0"
+      hence b: "b = inv (a [^] (nat (- k)))"
+        using k int_pow_def2 by auto
+
+      obtain m where m: "ord a * m \<ge> nat (- k)"
+        by (metis assms mult.left_neutral mult_le_mono1 ord_ge_1)
+      hence "a [^] (ord a * m) = \<one>"
+        by (metis assms nat_pow_one nat_pow_pow pow_ord_eq_1)
+      then obtain k' :: nat where "(a [^] (nat (- k))) \<otimes> (a [^] k') = \<one>"
+        using m assms(2) nat_le_iff_add nat_pow_mult by auto
+      hence "b = a [^] k'"
+        using b assms(2) by (metis inv_unique' nat_pow_closed nat_pow_comm)
+      thus "b \<in> { a [^] k | k. k \<in> (UNIV :: nat set) }" by blast
+    qed
+  qed
+qed
+
+lemma generate_pow_card:
+  assumes "finite (carrier G)" and "a \<in> carrier G"
+  shows "ord a = card (generate G { a })"
+proof -
+  have "generate G { a } = (([^]) a) ` {0..ord a - 1}"
+    using generate_pow_on_finite_carrier[OF assms] unfolding ord_elems[OF assms] by auto
+  thus ?thesis
+    using ord_inj[OF assms] ord_ge_1[OF assms] by (simp add: card_image)
+qed
+
+(* This lemma was a suggestion of generalization given by Jeremy Avigad
+   at the end of the theory FiniteProduct. *)
+corollary power_order_eq_one_group_version:
+  assumes "finite (carrier G)" and "a \<in> carrier G"
+  shows "a [^] (order G) = \<one>"
+proof -
+  have "(ord a) dvd (order G)"
+    using lagrange[OF generate_is_subgroup[of " { a }"]] assms(2)
+    unfolding generate_pow_card[OF assms]
+    by (metis dvd_triv_right empty_subsetI insert_subset)
+  then obtain k :: nat where "order G = ord a * k" by blast
+  thus ?thesis
+    using assms(2) pow_ord_eq_1[OF assms] by (metis nat_pow_one nat_pow_pow)
 qed
 
 lemma ord_dvd_pow_eq_1 :
@@ -514,57 +584,20 @@ lemma ord_1_eq_1 :
   shows "ord \<one> = 1"
  using assms ord_ge_1 ord_min[of 1 \<one>] by force
 
-theorem lagrange_dvd:
- assumes "finite(carrier G)" "subgroup H G" shows "(card H) dvd (order G)"
- using assms by (simp add: lagrange[symmetric])
-
 lemma element_generates_subgroup:
   assumes finite[simp]: "finite (carrier G)"
   assumes a[simp]: "a \<in> carrier G"
   shows "subgroup {a [^] i | i. i \<in> {0 .. ord a - 1}} G"
-proof
-  show "{a[^]i | i. i \<in> {0 .. ord a - 1} } \<subseteq> carrier G" by auto
-next
-  fix x y
-  assume A: "x \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}" "y \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}"
-  obtain i::nat where i:"x = a[^]i" and i2:"i \<in> UNIV" using A by auto
-  obtain j::nat where j:"y = a[^]j" and j2:"j \<in> UNIV" using A by auto
-  have "a[^](i+j) \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}" using ord_elems[OF assms] A by auto
-  thus "x \<otimes> y \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}"
-    using i j a ord_elems assms by (auto simp add: nat_pow_mult)
-next
-  show "\<one> \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}" by force
-next
-  fix x assume x: "x \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}"
-  hence x_in_carrier: "x \<in> carrier G" by auto
-  then obtain d::nat where d:"x [^] d = \<one>" and "d\<ge>1"
-    using finite_group_elem_finite_ord by auto
-  have inv_1:"x[^](d - 1) \<otimes> x = \<one>" using \<open>d\<ge>1\<close> d nat_pow_Suc[of x "d - 1"] by simp
-  have elem:"x [^] (d - 1) \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}"
-  proof -
-    obtain i::nat where i:"x = a[^]i" using x by auto
-    hence "x[^](d - 1) \<in> {a[^]i | i. i \<in> (UNIV::nat set)}" by (auto simp add: nat_pow_pow)
-    thus ?thesis using ord_elems[of a] by auto
-  qed
-  have inv:"inv x = x[^](d - 1)" using inv_equality[OF inv_1] x_in_carrier by blast
-  thus "inv x \<in> {a[^]i | i. i \<in> {0 .. ord a - 1}}" using elem inv by auto
-qed
+  using generate_is_subgroup[of "{ a }"] assms(2)
+        generate_pow_on_finite_carrier[OF assms]
+  unfolding ord_elems[OF assms] by auto
 
-lemma ord_dvd_group_order :
-  assumes finite[simp]: "finite (carrier G)"
-  assumes a[simp]: "a \<in> carrier G"
-  shows "ord a dvd order G"
-proof -
-  have card_dvd:"card {a[^]i | i. i \<in> {0 .. ord a - 1}} dvd card (carrier G)"
-    using lagrange_dvd element_generates_subgroup unfolding order_def by simp
-  have "inj_on (\<lambda> i . a[^]i) {0..ord a - 1}" using ord_inj by simp
-  hence cards_eq:"card ( (\<lambda> i . a[^]i) ` {0..ord a - 1}) = card {0..ord a - 1}"
-    using card_image[of "\<lambda> i . a[^]i" "{0..ord a - 1}"] by auto
-  have "(\<lambda> i . a[^]i) ` {0..ord a - 1} = {a[^]i | i. i \<in> {0..ord a - 1}}" by auto
-  hence "card {a[^]i | i. i \<in> {0..ord a - 1}} = card {0..ord a - 1}" using cards_eq by simp
-  also have "\<dots> = ord a" using ord_ge_1[of a] by simp
-  finally show ?thesis using card_dvd by (simp add: order_def)
-qed
+lemma ord_dvd_group_order: (* <- DELETE *)
+  assumes "finite (carrier G)" and "a \<in> carrier G"
+  shows "(ord a) dvd (order G)"
+  using lagrange[OF generate_is_subgroup[of " { a }"]] assms(2)
+  unfolding generate_pow_card[OF assms]
+  by (metis dvd_triv_right empty_subsetI insert_subset)
 
 end
 
@@ -590,16 +623,16 @@ lemma one_mult_of: "\<one>\<^bsub>mult_of R\<^esub> = \<one>\<^bsub>R\<^esub>"
 
 lemmas mult_of_simps = carrier_mult_of mult_mult_of nat_pow_mult_of one_mult_of
 
-context field 
+context field
 begin
 
-lemma mult_of_is_Units: "mult_of R = units_of R" 
+lemma mult_of_is_Units: "mult_of R = units_of R"
   unfolding mult_of_def units_of_def using field_Units by auto
 
 lemma m_inv_mult_of :
 "\<And>x. x \<in> carrier (mult_of R) \<Longrightarrow> m_inv (mult_of R) x = m_inv R x"
   using mult_of_is_Units units_of_inv unfolding units_of_def
-  by simp 
+  by simp
 
 lemma field_mult_group :
   shows "group (mult_of R)"
