@@ -377,7 +377,7 @@ lemma prefix_replicate_zero_coeff: "coeff p = coeff ((replicate n \<zero>) @ p)"
 end
 
 
-subsection \<open>Poly_Add\<close>
+subsection \<open>Polynomial addition\<close>
 
 context ring
 begin
@@ -727,7 +727,7 @@ qed
 end
 
 
-subsection \<open>Poly_Mult\<close>
+subsection \<open>Polynomial multiplication\<close>
 
 context ring
 begin

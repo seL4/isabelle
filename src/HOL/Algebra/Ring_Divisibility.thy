@@ -364,7 +364,7 @@ next
 qed
 
 
-text \<open>Helper definition for the lemma: trivial_ideal_seq_imp_noetherian\<close>
+text \<open>Helper definition for the proofs below\<close>
 fun S_builder :: "_ \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> 'a set" where
   "S_builder R J 0 = {}" |
   "S_builder R J (Suc n) =
