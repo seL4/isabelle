@@ -92,17 +92,14 @@ Lawrence C. Paulson \\
 \def\prew{\pre\advance\rightskip by-\leftmargin}
 \def\postw{\post}
 
+
 \section{Introduction}
 \label{introduction}
 
 Sledgehammer is a tool that applies automatic theorem provers (ATPs)
 and satisfiability-modulo-theories (SMT) solvers on the current goal.%
 \footnote{The distinction between ATPs and SMT solvers is convenient but mostly
-historical. The two communities are converging, with more and more ATPs
-supporting typical SMT features such as arithmetic and sorts, and a few SMT
-solvers parsing ATP syntaxes. There is also a strong technological connection
-between instantiation-based ATPs (such as iProver and iProver-Eq) and SMT
-solvers.}
+historical.}
 %
 The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF \cite{tofof}, iProver
@@ -143,10 +140,6 @@ imported---this is rarely a problem in practice since it is part of
 Comments and bug reports concerning Sledgehammer or this manual should be
 directed to the author at \authoremail.
 
-%\vskip2.5\smallskipamount
-%
-%\textbf{Acknowledgment.} The author would like to thank Mark Summerfield for
-%suggesting several textual improvements.
 
 \section{Installation}
 \label{installation}
@@ -165,18 +158,21 @@ There are three main ways to install automatic provers on your machine:
 \begin{sloppy}
 \begin{enum}
 \item[\labelitemi] If you installed an official Isabelle package, it should
-already include properly setup executables for CVC4, E, SPASS, veriT, and Z3, ready to use.
+already include properly setup executables for CVC4, E, SPASS, Vampire, veriT,
+and Z3, ready to use. To use Vampire, you must confirm that you are a
+noncommercial user, as indicated by the message that is displayed when
+Sledgehammer is invoked the first time.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3,
-CVC4, E, SPASS, and Z3 binary packages from \download. Extract the archives,
-then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash
+CVC4, E, SPASS, Vampire, and Z3 binary packages from \download. Extract the
+archives, then add a line to your \texttt{\$ISABELLE\_HOME\_USER\slash etc\slash
 components}%
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
-file with the absolute path to CVC3, CVC4, E, SPASS, or Z3. For example, if the
-\texttt{components} file does not exist yet and you extracted SPASS to
-\texttt{/usr/local/spass-3.8ds}, create it with the single line
+file with the absolute path to CVC3, CVC4, E, SPASS, Vampire, or Z3. For
+example, if the \texttt{components} file does not exist yet and you extracted
+SPASS to \texttt{/usr/local/spass-3.8ds}, create it with the single line
 
 \prew
 \texttt{/usr/local/spass-3.8ds}
@@ -184,27 +180,21 @@ file with the absolute path to CVC3, CVC4, E, SPASS, or Z3. For example, if the
 
 in it.
 
-\item[\labelitemi] If you prefer to build AgsyHOL, Alt-Ergo, E, LEO-II, Leo-III, or
-Satallax manually, or found a Vampire executable somewhere (e.g.,
-\url{http://www.vprover.org/}), set the environment variable
+\item[\labelitemi] If you prefer to build AgsyHOL, Alt-Ergo, E, LEO-II,
+Leo-III, or Satallax manually, set the environment variable
 \texttt{AGSYHOL\_HOME}, \texttt{E\_HOME}, \texttt{LEO2\_HOME},
-\texttt{LEO3\_HOME}, \texttt{SATALLAX\_HOME}, or
-\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{agsyHOL},
+\texttt{LEO3\_HOME}, or \texttt{SATALLAX\_HOME}
+to the directory that contains the \texttt{agsyHOL},
 \texttt{eprover} (and/or \texttt{eproof} or \texttt{eproof\_ram}),
-\texttt{leo}, \texttt{leo3}, \texttt{satallax}, or \texttt{vampire} executable;
-for Alt-Ergo, set the
-environment variable \texttt{WHY3\_HOME} to the directory that contains the
-\texttt{why3} executable.
-Sledgehammer has been tested with AgsyHOL 1.0, Alt-Ergo 0.95.2, E 1.6 to 2.0,
-LEO-II 1.3.4, Leo-III 1.1, Satallax 2.2 to 2.7, and Vampire 0.6 to 4.0.%
-\footnote{Following the rewrite of Vampire, the counter for version numbers was
-reset to 0; hence the (new) Vampire versions 0.6, 1.0, 1.8, 2.6, and 3.0 are more
-recent than 9.0 or 11.5.}%
-Since the ATPs' output formats are neither documented nor stable, other
-versions might not work well with Sledgehammer. Ideally,
-you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
-\texttt{LEO3\_VERSION}, \texttt{SATALLAX\_VERSION}, or
-\texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``4.0'').
+\texttt{leo}, \texttt{leo3}, or \texttt{satallax} executable;
+for Alt-Ergo, set the environment variable \texttt{WHY3\_HOME} to the
+directory that contains the \texttt{why3} executable. Sledgehammer has been
+tested with AgsyHOL 1.0, Alt-Ergo 0.95.2, E 1.6 to 2.0, LEO-II 1.3.4, Leo-III
+1.1, and Satallax 2.2 to 2.7. Since the ATPs' output formats are neither
+documented nor stable, other versions might not work well with Sledgehammer.
+Ideally, you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
+\texttt{LEO3\_VERSION}, or \texttt{SATALLAX\_VERSION} to the prover's version
+number (e.g., ``2.7'').
 
 Similarly, if you want to install CVC3, CVC4, veriT, or Z3, set the environment
 variable \texttt{CVC3\_\allowbreak SOLVER}, \texttt{CVC4\_\allowbreak SOLVER},
@@ -236,6 +226,7 @@ examples:
 \texttt{http\_proxy=http://proxy.example.org:8080} \\
 \texttt{http\_proxy=http://joeblow:pAsSwRd@proxy.example.org}
 \postw
+
 
 \section{First Steps}
 \label{first-steps}
@@ -288,6 +279,7 @@ When Isar proof construction is successful, it can yield proofs that are more
 readable and also faster than the \textit{metis} or \textit{smt} one-line
 proofs. This feature is experimental and is only available for ATPs.
 
+
 \section{Hints}
 \label{hints}
 
@@ -297,6 +289,7 @@ Sledgehammer. Frequently asked questions are answered in
 
 %\newcommand\point[1]{\medskip\par{\sl\bfseries#1}\par\nopagebreak}
 \newcommand\point[1]{\subsection{\emph{#1}}}
+
 
 \point{Presimplify the goal}
 
@@ -310,6 +303,7 @@ undirected, they often prove theorems that require the reverse orientation of a
 is better for first-order problems. Hence, you may get better results if you
 first simplify the problem to remove higher-order features.
 
+
 \point{Familiarize yourself with the main options}
 
 Sledgehammer's options are fully documented in \S\ref{command-syntax}. Many of
@@ -319,10 +313,10 @@ familiarize themselves with the following options:
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
 the automatic provers (ATPs and SMT solvers) that should be run whenever
-Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{e spass
-remote\_vampire\/}''). For convenience, you can omit ``\textit{provers}~=''
-and simply write the prover names as a space-separated list (e.g., ``\textit{e
-spass remote\_vampire\/}'').
+Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{cvc4 e spass
+vampire\/}''). For convenience, you can omit ``\textit{provers}~=''
+and simply write the prover names as a space-separated list (e.g., ``\textit{cvc4 e
+spass vampire\/}'').
 
 \item[\labelitemi] \textbf{\textit{max\_facts}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
@@ -347,6 +341,7 @@ to ensure that certain facts are included, or simply ``$(\textit{my\_facts})$''
 to force Sledgehammer to run only with $\textit{my\_facts}$ (and any facts
 chained into the goal).
 
+
 \section{Frequently Asked Questions}
 \label{frequently-asked-questions}
 
@@ -354,6 +349,7 @@ This sections answers frequently (and infrequently) asked questions about
 Sledgehammer. It is a good idea to skim over it now even if you do not have any
 questions at this stage. And if you have any further questions not listed here,
 send them to the author at \authoremail.
+
 
 \point{Which facts are passed to the automatic provers?}
 
@@ -421,12 +417,14 @@ iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
 \textbf{sledgehammer}
 \postw
 
+
 \point{Why does Metis fail to reconstruct the proof?}
 
 There are many reasons. If Metis runs seemingly forever, that is a sign that the
 proof is too difficult for it. Metis's search is complete for first-order logic
-with equality, so if the proof was found by an ATP such as E, SPASS, or Vampire,
-Metis should eventually find it, but that's little consolation.
+with equality, so if the proof was found by a superposition-based ATP such as
+E, SPASS, or Vampire, Metis should eventually find it, but that is little
+consolation.
 
 In some rare cases, \textit{metis} fails fairly quickly, and you get the error
 message ``One-line proof reconstruction failed.'' This indicates that
@@ -437,6 +435,7 @@ the \textit{strict} option (\S\ref{problem-encoding}).
 If the goal is actually unprovable and you did not specify an unsound encoding
 using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
 strongly encouraged to report this to the author at \authoremail.
+
 
 \point{How can I tell whether a suggested proof is sound?}
 
@@ -461,6 +460,7 @@ does actually hold, and the \textit{metis} call can be repaired by adding
 We hope to address this problem in a future version of Isabelle. In the
 meantime, you can avoid it by passing the \textit{strict} option
 (\S\ref{problem-encoding}).
+
 
 \point{What are the \textit{full\_types}, \textit{no\_types}, and
 \textit{mono\_tags} arguments to Metis?}
@@ -497,6 +497,7 @@ Metis: Falling back on ``\textit{metis} (\textit{full\_types})''
 for a successful \textit{metis} proof, you can advantageously pass the
 \textit{full\_types} option to \textit{metis} directly.
 
+
 \point{And what are the \textit{lifting} and \textit{hide\_lams} arguments
 to Metis?}
 
@@ -507,7 +508,8 @@ $\lambda$-lifting, and a ``hiding'' scheme that disables all reasoning under
 $\lambda$-abstractions. The more powerful schemes also give the automatic
 provers more rope to hang themselves. See the \textit{lam\_trans} option (\S\ref{problem-encoding}) for details.
 
-\point{Are generated proofs minimal?}
+
+\point{Are the generated proofs minimal?}
 
 Automatic provers frequently use many more facts than are necessary.
 Sledgehammer includes a minimization tool that takes a set of facts returned by
@@ -520,10 +522,12 @@ accompanied by a suggestion to invoke the minimization tool. This step is now
 performed by default but can be disabled using the \textit{minimize} option
 (\S\ref{mode-of-operation}).
 
+
 \point{A strange error occurred---what should I do?}
 
 Sledgehammer tries to give informative error messages. Please report any strange
 error to the author at \authoremail.
+
 
 \point{Auto can solve it---why not Sledgehammer?}
 
@@ -533,11 +537,13 @@ Because the system refers to all theorems known to Isabelle, it is particularly
 suitable when your goal has a short proof but requires lemmas that you do not
 know about.
 
+
 \point{Why are there so many options?}
 
 Sledgehammer's philosophy should work out of the box, without user guidance.
 Many of the options are meant to be used mostly by the Sledgehammer developers
 for experiments. Of course, feel free to try them out if you are so inclined.
+
 
 \section{Command Syntax}
 \label{command-syntax}
@@ -636,6 +642,7 @@ passed to the prover, \textit{fact\_filter} (\S\ref{relevance-filter}) is set to
 superseded by the ``Auto Time Limit'' option in jEdit. Sledgehammer's output is
 also more concise.
 
+
 \subsection{Metis}
 \label{metis}
 
@@ -662,6 +669,7 @@ For convenience, the following aliases are provided:
 \item[\labelitemi] \textbf{\textit{partial\_types}:} Alias for \textit{poly\_args}.
 \item[\labelitemi] \textbf{\textit{no\_types}:} Alias for \textit{erased}.
 \end{enum}
+
 
 \section{Option Reference}
 \label{option-reference}
@@ -708,13 +716,14 @@ have a negative counterpart (e.g., \textit{minimize} vs.\
 \textit{dont\_minimize}). When setting Boolean options or their negative
 counterparts, ``= \textit{true\/}'' may be omitted.
 
+
 \subsection{Mode of Operation}
 \label{mode-of-operation}
 
 \begin{enum}
 \opnodefaultbrk{provers}{string}
 Specifies the automatic provers to use as a space-separated list (e.g.,
-``\textit{e}~\textit{spass}~\textit{remote\_vampire\/}'').
+``\textit{cvc4}~\textit{e}~\textit{spass}~\textit{vampire\/}'').
 Provers can be run locally or remotely; see \S\ref{installation} for
 installation instructions.
 
@@ -816,8 +825,8 @@ resolution prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
-``3.0''). Sledgehammer has been tested with versions 0.6 to 3.0.
-Versions strictly above 1.8 support the TPTP typed first-order format (TFF0).
+``4.2.2''). Sledgehammer has been tested with versions 1.8 to 4.2.2 (in the
+post-2010 numbering scheme).
 
 \item[\labelitemi] \textbf{\textit{verit}:} veriT \cite{bouton-et-al-2009} is an
 SMT solver developed by David D\'eharbe, Pascal Fontaine, and their colleagues.
@@ -956,6 +965,7 @@ simultaneously. The files are identified by the prefixes \texttt{prob\_} and
 {\small See also \textit{debug} (\S\ref{output-format}).}
 \end{enum}
 
+
 \subsection{Relevance Filter}
 \label{relevance-filter}
 
@@ -1039,6 +1049,7 @@ For most provers, this value is 3.
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
 \end{enum}
+
 
 \subsection{Problem Encoding}
 \label{problem-encoding}
@@ -1205,6 +1216,7 @@ generated problems. This option has no effect if \textit{type\_enc} is
 deliberately set to an unsound encoding.
 \end{enum}
 
+
 \subsection{Output Format}
 \label{output-format}
 
@@ -1252,6 +1264,7 @@ default), the \textit{smt} method is used for one-line proofs but not in Isar
 proofs.
 \end{enum}
 
+
 \subsection{Regression Testing}
 \label{regression-testing}
 
@@ -1273,6 +1286,7 @@ useful for regression testing.
 \nopagebreak
 {\small See also \textit{timeout} (\S\ref{timeouts}).}
 \end{enum}
+
 
 \subsection{Timeouts}
 \label{timeouts}
