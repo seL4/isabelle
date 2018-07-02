@@ -4,7 +4,7 @@ To: isabelle-users@cl.cam.ac.uk
 Isabelle2018 is now available.
 
 This version introduces many changes over Isabelle2017: see the NEWS
-file for further details. Here are the main points:
+file for further details. Here are some notable points:
 
 * Improved infix notation within terms.
 
