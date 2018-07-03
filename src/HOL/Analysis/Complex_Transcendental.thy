@@ -278,6 +278,84 @@ proof (clarsimp simp: inj_on_def exp_eq)
     by (auto simp: norm_mult)
 qed
 
+lemma cmod_add_squared:
+  fixes r1 r2::real
+  assumes "r1 \<ge> 0" "r2 \<ge> 0"
+  shows "(cmod (r1 * exp (\<i> * \<theta>1) + r2 * exp (\<i> * \<theta>2)))\<^sup>2 = r1\<^sup>2 + r2\<^sup>2 + 2 * r1 * r2 * cos (\<theta>1 - \<theta>2)" (is "(cmod (?z1 + ?z2))\<^sup>2 = ?rhs")
+proof -
+  have "(cmod (?z1 + ?z2))\<^sup>2 = (?z1 + ?z2) * cnj (?z1 + ?z2)"
+    by (rule complex_norm_square)
+  also have "\<dots> = (?z1 * cnj ?z1 + ?z2 * cnj ?z2) + (?z1 * cnj ?z2 + cnj ?z1 * ?z2)"
+    by (simp add: algebra_simps)
+  also have "\<dots> = (norm ?z1)\<^sup>2 + (norm ?z2)\<^sup>2 + 2 * Re (?z1 * cnj ?z2)"
+    unfolding complex_norm_square [symmetric] cnj_add_mult_eq_Re by simp
+  also have "\<dots> = ?rhs"
+    by (simp add: norm_mult) (simp add: exp_Euler complex_is_Real_iff [THEN iffD1] cos_diff algebra_simps)
+  finally show ?thesis
+    using of_real_eq_iff by blast
+qed
+
+lemma cmod_diff_squared:
+  fixes r1 r2::real
+  assumes "r1 \<ge> 0" "r2 \<ge> 0"
+  shows "(cmod (r1 * exp (\<i> * \<theta>1) - r2 * exp (\<i> * \<theta>2)))\<^sup>2 = r1\<^sup>2 + r2\<^sup>2 - 2*r1*r2*cos (\<theta>1 - \<theta>2)" (is "(cmod (?z1 - ?z2))\<^sup>2 = ?rhs")
+proof -
+  have "exp (\<i> * (\<theta>2 + pi)) = - exp (\<i> * \<theta>2)"
+    by (simp add: exp_Euler cos_plus_pi sin_plus_pi)
+  then have "(cmod (?z1 - ?z2))\<^sup>2 = cmod (?z1 + r2 * exp (\<i> * (\<theta>2 + pi))) ^2"
+    by simp
+  also have "\<dots> = r1\<^sup>2 + r2\<^sup>2 + 2*r1*r2*cos (\<theta>1 - (\<theta>2 + pi))"
+    using assms cmod_add_squared by blast
+  also have "\<dots> = ?rhs"
+    by (simp add: add.commute diff_add_eq_diff_diff_swap)
+  finally show ?thesis .
+qed
+
+lemma polar_convergence:
+  fixes R::real
+  assumes "\<And>j. r j > 0" "R > 0"
+  shows "((\<lambda>j. r j * exp (\<i> * \<theta> j)) \<longlonglongrightarrow> (R * exp (\<i> * \<Theta>))) \<longleftrightarrow>
+         (r \<longlonglongrightarrow> R) \<and> (\<exists>k. (\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> \<Theta>)"    (is "(?z \<longlonglongrightarrow> ?Z) = ?rhs")
+proof
+  assume L: "?z \<longlonglongrightarrow> ?Z"
+  have rR: "r \<longlonglongrightarrow> R"
+    using tendsto_norm [OF L] assms by (auto simp: norm_mult abs_of_pos)
+  moreover obtain k where "(\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> \<Theta>"
+  proof -
+    have "cos (\<theta> j - \<Theta>) = ((r j)\<^sup>2 + R\<^sup>2 - (norm(?z j - ?Z))\<^sup>2) / (2 * R * r j)" for j
+      apply (subst cmod_diff_squared)
+      using assms by (auto simp: divide_simps less_le)
+    moreover have "(\<lambda>j. ((r j)\<^sup>2 + R\<^sup>2 - (norm(?z j - ?Z))\<^sup>2) / (2 * R * r j)) \<longlonglongrightarrow> ((R\<^sup>2 + R\<^sup>2 - (norm(?Z - ?Z))\<^sup>2) / (2 * R * R))"
+      by (intro L rR tendsto_intros) (use \<open>R > 0\<close> in force)
+    moreover have "((R\<^sup>2 + R\<^sup>2 - (norm(?Z - ?Z))\<^sup>2) / (2 * R * R)) = 1"
+      using \<open>R > 0\<close> by (simp add: power2_eq_square divide_simps)
+    ultimately have "(\<lambda>j. cos (\<theta> j - \<Theta>)) \<longlonglongrightarrow> 1"
+      by auto
+    then show ?thesis
+      using that cos_diff_limit_1 by blast
+  qed
+  ultimately show ?rhs
+    by metis
+next
+  assume R: ?rhs
+  show "?z \<longlonglongrightarrow> ?Z"
+  proof (rule tendsto_mult)
+    show "(\<lambda>x. complex_of_real (r x)) \<longlonglongrightarrow> of_real R"
+      using R by (auto simp: tendsto_of_real_iff)
+    obtain k where "(\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> \<Theta>"
+      using R by metis
+    then have "(\<lambda>j. complex_of_real (\<theta> j - of_int (k j) * (2 * pi))) \<longlonglongrightarrow> of_real \<Theta>"
+      using tendsto_of_real_iff by force
+    then have "(\<lambda>j.  exp (\<i> * of_real (\<theta> j - of_int (k j) * (2 * pi)))) \<longlonglongrightarrow> exp (\<i> * \<Theta>)"
+      using tendsto_mult [OF tendsto_const] isCont_exp isCont_tendsto_compose by blast
+    moreover have "exp (\<i> * of_real (\<theta> j - of_int (k j) * (2 * pi))) = exp (\<i> * \<theta> j)" for j
+      unfolding exp_eq
+      by (rule_tac x="- k j" in exI) (auto simp: algebra_simps)
+    ultimately show "(\<lambda>j. exp (\<i> * \<theta> j)) \<longlonglongrightarrow> exp (\<i> * \<Theta>)"
+      by auto
+  qed
+qed
+
 lemma sin_cos_eq_iff: "sin y = sin x \<and> cos y = cos x \<longleftrightarrow> (\<exists>n::int. y = x + 2 * pi * n)"
 proof -
   { assume "sin y = sin x" "cos y = cos x"

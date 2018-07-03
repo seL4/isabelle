@@ -6,7 +6,7 @@
 *)
 section \<open>Infinite Products\<close>
 theory Infinite_Products
-  imports Topology_Euclidean_Space
+  imports Topology_Euclidean_Space Complex_Transcendental
 begin
 
 subsection\<open>Preliminaries\<close>
@@ -1430,6 +1430,56 @@ qed
 
 end
 
+lemma convergent_prod_iff_summable_real:
+  fixes a :: "nat \<Rightarrow> real"
+  assumes "\<And>n. a n > 0"
+  shows "convergent_prod (\<lambda>k. 1 + a k) \<longleftrightarrow> summable a" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain p where "raw_has_prod (\<lambda>k. 1 + a k) 0 p"
+    by (metis assms add_less_same_cancel2 convergent_prod_offset_0 not_one_less_zero)
+  then have to_p: "(\<lambda>n. \<Prod>k\<le>n. 1 + a k) \<longlonglongrightarrow> p"
+    by (auto simp: raw_has_prod_def)
+  moreover have le: "(\<Sum>k\<le>n. a k) \<le> (\<Prod>k\<le>n. 1 + a k)" for n
+    by (rule sum_le_prod) (use assms less_le in force)
+  have "(\<Prod>k\<le>n. 1 + a k) \<le> p" for n
+  proof (rule incseq_le [OF _ to_p])
+    show "incseq (\<lambda>n. \<Prod>k\<le>n. 1 + a k)"
+      using assms by (auto simp: mono_def order.strict_implies_order intro!: prod_mono2)
+  qed
+  with le have "(\<Sum>k\<le>n. a k) \<le> p" for n
+    by (metis order_trans)
+  with assms bounded_imp_summable show ?rhs
+    by (metis not_less order.asym)
+next
+  assume R: ?rhs
+  have "(\<Prod>k\<le>n. 1 + a k) \<le> exp (suminf a)" for n
+  proof -
+    have "(\<Prod>k\<le>n. 1 + a k) \<le> exp (\<Sum>k\<le>n. a k)" for n
+      by (rule prod_le_exp_sum) (use assms less_le in force)
+    moreover have "exp (\<Sum>k\<le>n. a k) \<le> exp (suminf a)" for n
+      unfolding exp_le_cancel_iff
+      by (meson sum_le_suminf R assms finite_atMost less_eq_real_def)
+    ultimately show ?thesis
+      by (meson order_trans)
+  qed
+  then obtain L where L: "(\<lambda>n. \<Prod>k\<le>n. 1 + a k) \<longlonglongrightarrow> L"
+    by (metis assms bounded_imp_convergent_prod convergent_prod_iff_nz_lim le_add_same_cancel1 le_add_same_cancel2 less_le not_le zero_le_one)
+  moreover have "L \<noteq> 0"
+  proof
+    assume "L = 0"
+    with L have "(\<lambda>n. \<Prod>k\<le>n. 1 + a k) \<longlonglongrightarrow> 0"
+      by simp
+    moreover have "(\<Prod>k\<le>n. 1 + a k) > 1" for n
+      by (simp add: assms less_1_prod)
+    ultimately show False
+      by (meson Lim_bounded2 not_one_le_zero less_imp_le)
+  qed
+  ultimately show ?lhs
+    using assms convergent_prod_iff_nz_lim
+    by (metis add_less_same_cancel1 less_le not_le zero_less_one)
+qed
+
 lemma exp_suminf_prodinf_real:
   fixes f :: "nat \<Rightarrow> real"
   assumes ge0:"\<And>n. f n \<ge> 0" and ac: "abs_convergent_prod (\<lambda>n. exp (f n))"
@@ -1505,6 +1555,159 @@ lemma prodinf_exp_real:
   shows "prodinf f = exp (suminf (\<lambda>i. ln (f i)))"
   by (simp add: "0" f less_0_prodinf suminf_ln_real)
 
+
+lemma Ln_prodinf_complex:
+  fixes z :: "nat \<Rightarrow> complex"
+  assumes z: "\<And>j. z j \<noteq> 0" and \<xi>: "\<xi> \<noteq> 0"
+  shows "((\<lambda>n. \<Prod>j\<le>n. z j) \<longlonglongrightarrow> \<xi>) \<longleftrightarrow> (\<exists>k. (\<lambda>n. (\<Sum>j\<le>n. Ln (z j))) \<longlonglongrightarrow> Ln \<xi> + of_int k * (of_real(2*pi) * \<i>))" (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  have pnz: "(\<Prod>j\<le>n. z j) \<noteq> 0" for n
+    using z by auto
+  define \<Theta> where "\<Theta> \<equiv> Arg \<xi> + 2*pi"
+  then have "\<Theta> > pi"
+    using Arg_def mpi_less_Im_Ln by fastforce
+  have \<xi>_eq: "\<xi> = cmod \<xi> * exp (\<i> * \<Theta>)"
+    using Arg_def Arg_eq \<xi> unfolding \<Theta>_def by (simp add: algebra_simps exp_add)
+  define \<theta> where "\<theta> \<equiv> \<lambda>n. THE t. is_Arg (\<Prod>j\<le>n. z j) t \<and> t \<in> {\<Theta>-pi<..\<Theta>+pi}"
+  have uniq: "\<exists>!s. is_Arg (\<Prod>j\<le>n. z j) s \<and> s \<in> {\<Theta>-pi<..\<Theta>+pi}" for n
+    using Argument_exists_unique [OF pnz] by metis
+  have \<theta>: "is_Arg (\<Prod>j\<le>n. z j) (\<theta> n)" and \<theta>_interval: "\<theta> n \<in> {\<Theta>-pi<..\<Theta>+pi}" for n
+    unfolding \<theta>_def
+    using theI' [OF uniq] by metis+
+  have \<theta>_pos: "\<And>j. \<theta> j > 0"
+    using \<theta>_interval \<open>\<Theta> > pi\<close> by simp (meson diff_gt_0_iff_gt less_trans)
+  have "(\<Prod>j\<le>n. z j) = cmod (\<Prod>j\<le>n. z j) * exp (\<i> * \<theta> n)" for n
+    using \<theta> by (auto simp: is_Arg_def)
+  then have eq: "(\<lambda>n. \<Prod>j\<le>n. z j) = (\<lambda>n. cmod (\<Prod>j\<le>n. z j) * exp (\<i> * \<theta> n))"
+    by simp
+  then have "(\<lambda>n. (cmod (\<Prod>j\<le>n. z j)) * exp (\<i> * (\<theta> n))) \<longlonglongrightarrow> \<xi>"
+    using L by force
+  then obtain k where k: "(\<lambda>j. \<theta> j - of_int (k j) * (2 * pi)) \<longlonglongrightarrow> \<Theta>"
+    using L by (subst (asm) \<xi>_eq) (auto simp add: eq z \<xi> polar_convergence)
+  moreover have "\<forall>\<^sub>F n in sequentially. k n = 0"
+  proof -
+    have *: "kj = 0" if "dist (vj - real_of_int kj * 2) V < 1" "vj \<in> {V - 1<..V + 1}" for kj vj V
+      using that  by (auto simp: dist_norm)
+    have "\<forall>\<^sub>F j in sequentially. dist (\<theta> j - of_int (k j) * (2 * pi)) \<Theta> < pi"
+      using tendstoD [OF k] pi_gt_zero by blast
+    then show ?thesis
+    proof (rule eventually_mono)
+      fix j
+      assume d: "dist (\<theta> j - real_of_int (k j) * (2 * pi)) \<Theta> < pi"
+      show "k j = 0"
+        by (rule * [of "\<theta> j/pi" _ "\<Theta>/pi"])
+           (use \<theta>_interval [of j] d in \<open>simp_all add: divide_simps dist_norm\<close>)
+    qed
+  qed
+  ultimately have \<theta>to\<Theta>: "\<theta> \<longlonglongrightarrow> \<Theta>"
+    apply (simp only: tendsto_def)
+    apply (erule all_forward imp_forward asm_rl)+
+    apply (drule (1) eventually_conj)
+    apply (auto elim: eventually_mono)
+    done
+  then have to0: "(\<lambda>n. \<bar>\<theta> (Suc n) - \<theta> n\<bar>) \<longlonglongrightarrow> 0"
+    by (metis (full_types) diff_self filterlim_sequentially_Suc tendsto_diff tendsto_rabs_zero)
+  have "\<exists>k. Im (\<Sum>j\<le>n. Ln (z j)) - of_int k * (2*pi) = \<theta> n" for n
+  proof (rule is_Arg_exp_diff_2pi)
+    show "is_Arg (exp (\<Sum>j\<le>n. Ln (z j))) (\<theta> n)"
+      using pnz \<theta> by (simp add: is_Arg_def exp_sum prod_norm)
+  qed
+  then have "\<exists>k. (\<Sum>j\<le>n. Im (Ln (z j))) = \<theta> n + of_int k * (2*pi)" for n
+    by (simp add: algebra_simps)
+  then obtain k where k: "\<And>n. (\<Sum>j\<le>n. Im (Ln (z j))) = \<theta> n + of_int (k n) * (2*pi)"
+    by metis
+  obtain K where "\<forall>\<^sub>F n in sequentially. k n = K"
+  proof -
+    have k_le: "(2*pi) * \<bar>k (Suc n) - k n\<bar> \<le> \<bar>\<theta> (Suc n) - \<theta> n\<bar> + \<bar>Im (Ln (z (Suc n)))\<bar>" for n
+    proof -
+      have "(\<Sum>j\<le>Suc n. Im (Ln (z j))) - (\<Sum>j\<le>n. Im (Ln (z j))) = Im (Ln (z (Suc n)))"
+        by simp
+      then show ?thesis
+        using k [of "Suc n"] k [of n] by (auto simp: abs_if algebra_simps)
+    qed
+    have "z \<longlonglongrightarrow> 1"
+      using L \<xi> convergent_prod_iff_nz_lim z by (blast intro: convergent_prod_imp_LIMSEQ)
+    with z have "(\<lambda>n. Ln (z n)) \<longlonglongrightarrow> Ln 1"
+      using isCont_tendsto_compose [OF continuous_at_Ln] nonpos_Reals_one_I by blast
+    then have "(\<lambda>n. Ln (z n)) \<longlonglongrightarrow> 0"
+      by simp
+    then have "(\<lambda>n. \<bar>Im (Ln (z (Suc n)))\<bar>) \<longlonglongrightarrow> 0"
+      by (metis LIMSEQ_unique \<open>z \<longlonglongrightarrow> 1\<close> continuous_at_Ln filterlim_sequentially_Suc isCont_tendsto_compose nonpos_Reals_one_I tendsto_Im tendsto_rabs_zero_iff zero_complex.simps(2))
+    then have "\<forall>\<^sub>F n in sequentially. \<bar>Im (Ln (z (Suc n)))\<bar> < 1"
+      by (simp add: order_tendsto_iff)
+    moreover have "\<forall>\<^sub>F n in sequentially. \<bar>\<theta> (Suc n) - \<theta> n\<bar> < 1"
+      using to0 by (simp add: order_tendsto_iff)
+    ultimately have "\<forall>\<^sub>F n in sequentially. (2*pi) * \<bar>k (Suc n) - k n\<bar> < 1 + 1" 
+    proof (rule eventually_elim2) 
+      fix n 
+      assume "\<bar>Im (Ln (z (Suc n)))\<bar> < 1" and "\<bar>\<theta> (Suc n) - \<theta> n\<bar> < 1"
+      with k_le [of n] show "2 * pi * real_of_int \<bar>k (Suc n) - k n\<bar> < 1 + 1"
+        by linarith
+    qed
+    then have "\<forall>\<^sub>F n in sequentially. real_of_int\<bar>k (Suc n) - k n\<bar> < 1" 
+    proof (rule eventually_mono)
+      fix n :: "nat"
+      assume "2 * pi * \<bar>k (Suc n) - k n\<bar> < 1 + 1"
+      then have "\<bar>k (Suc n) - k n\<bar> < 2 / (2*pi)"
+        by (simp add: field_simps)
+      also have "... < 1"
+        using pi_ge_two by auto
+      finally show "real_of_int \<bar>k (Suc n) - k n\<bar> < 1" .
+    qed
+  then obtain N where N: "\<And>n. n\<ge>N \<Longrightarrow> \<bar>k (Suc n) - k n\<bar> = 0"
+    using eventually_sequentially less_irrefl of_int_abs by fastforce
+  have "k (N+i) = k N" for i
+  proof (induction i)
+    case (Suc i)
+    with N [of "N+i"] show ?case
+      by auto
+  qed simp
+  then have "\<And>n. n\<ge>N \<Longrightarrow> k n = k N"
+    using le_Suc_ex by auto
+  then show ?thesis
+    by (force simp add: eventually_sequentially intro: that)
+  qed
+  with \<theta>to\<Theta> have "(\<lambda>n. (\<Sum>j\<le>n. Im (Ln (z j)))) \<longlonglongrightarrow> \<Theta> + of_int K * (2*pi)"
+    by (simp add: k tendsto_add tendsto_mult Lim_eventually)
+  moreover have "(\<lambda>n. (\<Sum>k\<le>n. Re (Ln (z k)))) \<longlonglongrightarrow> Re (Ln \<xi>)"
+    using assms continuous_imp_tendsto [OF isCont_ln tendsto_norm [OF L]]
+    by (simp add: o_def flip: prod_norm ln_prod)
+  ultimately show ?rhs
+    by (rule_tac x="K+1" in exI) (auto simp: tendsto_complex_iff \<Theta>_def Arg_def assms algebra_simps)
+next
+  assume ?rhs
+  then obtain r where r: "(\<lambda>n. (\<Sum>k\<le>n. Ln (z k))) \<longlonglongrightarrow> Ln \<xi> + of_int r * (of_real(2*pi) * \<i>)" ..
+  have "(\<lambda>n. exp (\<Sum>k\<le>n. Ln (z k))) \<longlonglongrightarrow> \<xi>"
+    using assms continuous_imp_tendsto [OF isCont_exp r] exp_integer_2pi [of r]
+    by (simp add: o_def exp_add algebra_simps)
+  moreover have "exp (\<Sum>k\<le>n. Ln (z k)) = (\<Prod>k\<le>n. z k)" for n
+    by (simp add: exp_sum add_eq_0_iff assms)
+  ultimately show ?lhs
+    by auto
+qed
+
+text\<open>Prop 17.2 of Bak and Newman, Complex Analysis, p.242\<close>
+proposition convergent_prod_iff_summable_complex:
+  fixes z :: "nat \<Rightarrow> complex"
+  assumes "\<And>k. z k \<noteq> 0"
+  shows "convergent_prod (\<lambda>k. z k) \<longleftrightarrow> summable (\<lambda>k. Ln (z k))" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then obtain p where p: "(\<lambda>n. \<Prod>k\<le>n. z k) \<longlonglongrightarrow> p" and "p \<noteq> 0"
+    using convergent_prod_LIMSEQ prodinf_nonzero add_eq_0_iff assms by fastforce
+  then show ?rhs
+    using Ln_prodinf_complex assms
+    by (auto simp: prodinf_nonzero summable_def sums_def_le)
+next
+  assume R: ?rhs
+  have "(\<Prod>k\<le>n. z k) = exp (\<Sum>k\<le>n. Ln (z k))" for n
+    by (simp add: exp_sum add_eq_0_iff assms)
+  then have "(\<lambda>n. \<Prod>k\<le>n. z k) \<longlonglongrightarrow> exp (suminf (\<lambda>k. Ln (z k)))"
+    using continuous_imp_tendsto [OF isCont_exp summable_LIMSEQ' [OF R]] by (simp add: o_def)
+  then show ?lhs
+    by (subst convergent_prod_iff_convergent) (auto simp: convergent_def tendsto_Lim assms add_eq_0_iff)
+qed
 
 subsection\<open>Embeddings from the reals into some complete real normed field\<close>
 
