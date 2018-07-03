@@ -1021,6 +1021,18 @@ corollary (in ring_hom_ring) FactRing_iso:
   shows "R Quot (a_kernel R S h) \<simeq> S"
   using FactRing_iso_set assms is_ring_iso_def by auto
 
+corollary (in ring) FactRing_zeroideal:
+  shows "R Quot { \<zero> } \<simeq> R" and "R \<simeq> R Quot { \<zero> }"
+proof -
+  have "ring_hom_ring R R id"
+    using ring_axioms by (auto intro: ring_hom_ringI)
+  moreover have "a_kernel R R id = { \<zero> }"
+    unfolding a_kernel_def' by auto
+  ultimately show "R Quot { \<zero> } \<simeq> R" and "R \<simeq> R Quot { \<zero> }"
+    using ring_hom_ring.FactRing_iso[of R R id]
+          ring_iso_sym[OF ideal.quotient_is_ring[OF zeroideal], of R] by auto
+qed
+
 lemma (in ring_hom_ring) img_is_ring: "ring (S \<lparr> carrier := h ` (carrier R) \<rparr>)"
 proof -
   let ?the_elem = "\<lambda>X. the_elem (h ` X)"
