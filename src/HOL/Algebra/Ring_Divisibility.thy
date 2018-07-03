@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Ring_Divisibility.thy                                          *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Ring_Divisibility.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Ring_Divisibility
 imports Ideal Divisibility QuotRing
-
 begin
 
 section \<open>Definitions ported from @{text "Multiplicative_Group.thy"}\<close>

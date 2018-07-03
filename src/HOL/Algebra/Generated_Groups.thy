@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Generated_Groups.thy                                           *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Generated_Groups.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Generated_Groups
   imports Group Coset
-
 begin
 
 section\<open>Generated Groups\<close>

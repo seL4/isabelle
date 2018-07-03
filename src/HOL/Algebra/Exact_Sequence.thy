@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Exact_Sequence.thy                                             *)
-(* Author:     Martin Baillon                                                 *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Exact_Sequence.thy
+    Author:     Martin Baillon
+*)
 
 theory Exact_Sequence
   imports Group Coset Solvable_Groups
-    
 begin
 
 section \<open>Exact Sequences\<close>
@@ -176,4 +174,3 @@ proposition exact_seq_solvable_iff :
   using exact_seq_solvable_recip exact_seq_solvable_imp assms by blast
 
 end
-         

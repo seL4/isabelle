@@ -1,12 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Generated_Fields.thy                                           *)
-(* Author:     Martin Baillon                                                 *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Generated_Fields.thy
+    Author:     Martin Baillon
+*)
 
 theory Generated_Fields
-
 imports Generated_Rings Subrings Multiplicative_Group
-
 begin
 
 inductive_set
@@ -184,7 +181,4 @@ lemma (in field) subfield_gen_equality:
         subfield_gen_incl[OF carrier_is_subfield assms(1) _ assms(2)] subfieldE(1)[OF assms(1)]
   by force
 
-
-
 end
-

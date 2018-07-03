@@ -1,9 +1,9 @@
-(* Title:      Group_Action.thy                                               *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
+(*  Title:      HOL/Algebra/Group_Action.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Group_Action
 imports Bij Coset Congruence
-
 begin
 
 section \<open>Group Actions\<close>

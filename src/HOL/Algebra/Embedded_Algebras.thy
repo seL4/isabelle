@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Embedded_Algebras.thy                                          *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Embedded_Algebras.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Embedded_Algebras
   imports Subrings Generated_Groups
-
 begin
 
 section \<open>Definitions\<close>

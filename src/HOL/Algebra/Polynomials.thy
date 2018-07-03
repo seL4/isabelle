@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Polynomials.thy                                                *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Polynomials.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Polynomials
   imports Ring Ring_Divisibility Subrings
-
 begin
 
 section \<open>Polynomials\<close>
@@ -1850,6 +1848,5 @@ proposition (in cring) eval_is_hom:
   by (auto intro!: ring_hom_memI
          simp add: univ_poly_def degree_def
          simp del: poly_add.simps poly_mult.simps)
-
 
 end

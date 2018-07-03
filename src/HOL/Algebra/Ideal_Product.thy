@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Ideal_Product.thy                                              *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Ideal_Product.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Ideal_Product
   imports Ideal
-    
 begin
 
 section \<open>Product of Ideals\<close>

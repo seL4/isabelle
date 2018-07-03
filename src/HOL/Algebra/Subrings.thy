@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Subrings.thy                                                   *)
-(* Authors:    Martin Baillon and Paulo Emílio de Vilhena                     *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Subrings.thy
+    Authors:    Martin Baillon and Paulo Emílio de Vilhena
+*)
 
 theory Subrings
   imports Ring RingHom QuotRing Multiplicative_Group
-
 begin
 
 section \<open>Subrings\<close>

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Algebra/QuotRing.thy
     Author:     Stephan Hohe
     Author:     Paulo Emílio de Vilhena
-
 *)
 
 theory QuotRing

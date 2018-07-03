@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Cycles.thy                                                     *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Cycles.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Cycles
   imports "HOL-Library.Permutations" "HOL-Library.FuncSet"
-    
 begin
 
 section \<open>Cycles\<close>

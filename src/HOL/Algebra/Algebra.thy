@@ -1,4 +1,4 @@
-(*  Title:      HOL/Algebra/Algebra *)
+(*  Title:      HOL/Algebra/Algebra.thy *)
 
 theory Algebra
   imports Sylow Chinese_Remainder Zassenhaus Galois_Connection Generated_Fields

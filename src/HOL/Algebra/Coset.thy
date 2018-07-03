@@ -1,5 +1,6 @@
 (*  Title:      HOL/Algebra/Coset.thy
-    Authors:     Florian Kammueller, L C Paulson, Stephan Hohe
+    Authors:    Florian Kammueller, L C Paulson, Stephan Hohe
+
 With additional contributions from Martin Baillon and Paulo Emílio de Vilhena.
 *)
 

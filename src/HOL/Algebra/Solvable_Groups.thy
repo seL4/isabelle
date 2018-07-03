@@ -1,11 +1,9 @@
-(* ************************************************************************** *)
-(* Title:      Solvable_Groups.thy                                            *)
-(* Author:     Paulo Emílio de Vilhena                                        *)
-(* ************************************************************************** *)
+(*  Title:      HOL/Algebra/Solvable_Groups.thy
+    Author:     Paulo Emílio de Vilhena
+*)
 
 theory Solvable_Groups
   imports Group Coset Generated_Groups
-    
 begin
 
 inductive solvable_seq :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> bool" for G where
