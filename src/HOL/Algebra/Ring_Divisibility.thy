@@ -4,29 +4,9 @@
 (* ************************************************************************** *)
 
 theory Ring_Divisibility
-imports Ideal Divisibility QuotRing
+imports Ideal Divisibility QuotRing Multiplicative_Group
 
 begin
-
-section \<open>Definitions ported from @{text "Multiplicative_Group.thy"}\<close>
-
-definition mult_of :: "('a, 'b) ring_scheme \<Rightarrow> 'a monoid" where
-  "mult_of R \<equiv> \<lparr> carrier = carrier R - { \<zero>\<^bsub>R\<^esub> }, mult = mult R, one = \<one>\<^bsub>R\<^esub> \<rparr>"
-
-lemma carrier_mult_of [simp]: "carrier (mult_of R) = carrier R - { \<zero>\<^bsub>R\<^esub> }"
-  by (simp add: mult_of_def)
-
-lemma mult_mult_of [simp]: "mult (mult_of R) = mult R"
- by (simp add: mult_of_def)
-
-lemma nat_pow_mult_of: "([^]\<^bsub>mult_of R\<^esub>) = (([^]\<^bsub>R\<^esub>) :: _ \<Rightarrow> nat \<Rightarrow> _)"
-  by (simp add: mult_of_def fun_eq_iff nat_pow_def)
-
-lemma one_mult_of [simp]: "\<one>\<^bsub>mult_of R\<^esub> = \<one>\<^bsub>R\<^esub>"
-  by (simp add: mult_of_def)
-
-lemmas mult_of_simps = carrier_mult_of mult_mult_of nat_pow_mult_of one_mult_of
-
 
 section \<open>The Arithmetic of Rings\<close>
 
@@ -127,14 +107,14 @@ text \<open>Links between domains and commutative cancellative monoids\<close>
 lemma (in cring) to_contain_is_to_divide:
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "(PIdl b \<subseteq> PIdl a) = (a divides b)"
-proof 
+proof
   show "PIdl b \<subseteq> PIdl a \<Longrightarrow> a divides b"
   proof -
     assume "PIdl b \<subseteq> PIdl a"
     hence "b \<in> PIdl a"
       by (meson assms(2) local.ring_axioms ring.cgenideal_self subsetCE)
     thus ?thesis
-      unfolding factor_def cgenideal_def using m_comm assms(1) by blast  
+      unfolding factor_def cgenideal_def using m_comm assms(1) by blast
   qed
   show "a divides b \<Longrightarrow> PIdl b \<subseteq> PIdl a"
   proof -
@@ -166,15 +146,23 @@ lemma divides_mult_imp_divides [simp]: "a divides\<^bsub>(mult_of R)\<^esub> b \
 lemma (in domain) divides_imp_divides_mult [simp]:
   "\<lbrakk> a \<in> carrier R; b \<in> carrier R - { \<zero> } \<rbrakk> \<Longrightarrow>
      a divides\<^bsub>R\<^esub> b \<Longrightarrow> a divides\<^bsub>(mult_of R)\<^esub> b"
-  unfolding factor_def using integral_iff by auto 
+  unfolding factor_def using integral_iff by auto
 
 lemma assoc_mult_imp_assoc [simp]: "a \<sim>\<^bsub>(mult_of R)\<^esub> b \<Longrightarrow> a \<sim>\<^bsub>R\<^esub> b"
   unfolding associated_def by simp
 
 lemma (in domain) assoc_imp_assoc_mult [simp]:
-  "\<lbrakk> a \<in> carrier R - { \<zero> } ; b \<in> carrier R - { \<zero> } \<rbrakk> \<Longrightarrow>
-     a \<sim>\<^bsub>R\<^esub> b \<Longrightarrow> a \<sim>\<^bsub>(mult_of R)\<^esub> b"
-  unfolding associated_def by simp
+  assumes "a \<in> carrier R - { \<zero> }" and "b \<in> carrier R"
+  shows "a \<sim>\<^bsub>R\<^esub> b \<Longrightarrow> a \<sim>\<^bsub>(mult_of R)\<^esub> b"
+proof -
+  assume A: "a \<sim>\<^bsub>R\<^esub> b"
+  then obtain c where "c \<in> carrier R" "a = b \<otimes> c"
+    unfolding associated_def factor_def by auto
+  hence "b \<in> carrier R - { \<zero> }"
+    using assms integral by auto
+  thus "a \<sim>\<^bsub>(mult_of R)\<^esub> b"
+    using A assms(1) unfolding associated_def by simp
+qed
 
 lemma (in domain) Units_mult_eq_Units [simp]: "Units (mult_of R) = Units R"
   unfolding Units_def using insert_Diff integral_iff by auto
@@ -198,7 +186,7 @@ proof -
     using c A integral_iff by auto
   thus "properfactor R b a"
     using A divides_imp_divides_mult[of a b] unfolding properfactor_def
-    by (meson DiffI divides_mult_imp_divides empty_iff insert_iff) 
+    by (meson DiffI divides_mult_imp_divides empty_iff insert_iff)
 qed
 
 lemma (in domain) properfactor_imp_properfactor_mult:
@@ -269,7 +257,7 @@ next
           qed
         qed
         moreover have "PIdl p \<noteq> carrier R" using A primeideal.I_notcarr by auto
-        ultimately show False by simp 
+        ultimately show False by simp
       qed
     next
       { fix a assume "a \<in> PIdl p" and a: "a \<noteq> \<zero>"
@@ -333,12 +321,12 @@ proof -
 
   from \<open>finite S\<close> and \<open>S \<subseteq> (\<Union>i. I i)\<close> have "\<exists>n. S \<subseteq> I n"
   proof (induct S set: "finite")
-    case empty thus ?case by simp 
+    case empty thus ?case by simp
   next
     case (insert x S')
     then obtain n m where m: "S' \<subseteq> I m" and n: "x \<in> I n" by blast
     hence "insert x S' \<subseteq> I (max m n)"
-      by (meson assms(2) insert_subsetI max.cobounded1 max.cobounded2 rev_subsetD subset_trans) 
+      by (meson assms(2) insert_subsetI max.cobounded1 max.cobounded2 rev_subsetD subset_trans)
     thus ?case by blast
   qed
   then obtain n where "S \<subseteq> I n" by blast
@@ -427,7 +415,7 @@ proof -
       using S_builder_incl[of R J] J S_def I_def
       by (meson additive_subgroup.a_subset dual_order.trans ideal.axioms(1) subset_Idl_subset)
     ultimately obtain n where "\<And>k. k \<ge> n \<Longrightarrow> I k = I n"
-      using assms increasing_set_seq_iff[of I] by (metis lift_Suc_mono_le) 
+      using assms increasing_set_seq_iff[of I] by (metis lift_Suc_mono_le)
     hence "J = Idl (S_builder R J n)"
       using S_builder_const1[OF J, of n] S_builder_const2[OF J, of n] I_def S_def
       by (meson Suc_n_not_le_n le_cases)
@@ -436,7 +424,7 @@ proof -
       by (meson J S_builder_incl ideal.Icarr set_rev_mp subsetI)
   qed
   thus ?thesis
-    by (simp add: local.ring_axioms noetherian_ring_axioms_def noetherian_ring_def) 
+    by (simp add: local.ring_axioms noetherian_ring_axioms_def noetherian_ring_def)
 qed
 
 lemma (in noetherian_domain) wfactors_exists:
@@ -450,7 +438,7 @@ proof (rule ccontr)
       have "\<not> irreducible (mult_of R) x"
       proof (rule ccontr)
         assume "\<not> (\<not> irreducible (mult_of R) x)" hence "irreducible (mult_of R) x" by simp
-        hence "wfactors (mult_of R) [ x ] x" unfolding wfactors_def using A by auto 
+        hence "wfactors (mult_of R) [ x ] x" unfolding wfactors_def using A by auto
         thus False using A by auto
       qed
       moreover have  "\<not> x \<in> Units (mult_of R)"
@@ -472,11 +460,11 @@ proof (rule ccontr)
           using fs_a fs_b a b mult_of.wfactors_mult by simp
         moreover have "set (fs_a @ fs_b) \<subseteq> carrier (mult_of R)"
           using fs_a fs_b by auto
-        ultimately show False using A by blast 
+        ultimately show False using A by blast
       qed
       thus ?thesis using a b b_properfactor mult_of.m_comm by blast
     qed } note aux_lemma = this
-  
+
   assume A: "\<not> ?P x"
 
   define f :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -485,7 +473,7 @@ proof (rule ccontr)
     where "factor_seq = rec_nat x (\<lambda>n y. (SOME a. f a y))"
   define I where "I = (\<lambda>i. PIdl (factor_seq i))"
   have factor_seq_props:
-    "\<And>n. properfactor (mult_of R) (factor_seq (Suc n)) (factor_seq n) \<and> 
+    "\<And>n. properfactor (mult_of R) (factor_seq (Suc n)) (factor_seq n) \<and>
          (factor_seq n) \<in> carrier (mult_of R) \<and> \<not> ?P (factor_seq n)" (is "\<And>n. ?Q n")
   proof -
     fix n show "?Q n"
@@ -519,7 +507,7 @@ proof (rule ccontr)
   qed
 
   have in_carrier: "\<And>i. factor_seq i \<in> carrier R"
-    using factor_seq_props by simp 
+    using factor_seq_props by simp
   hence "\<And>i. ideal (I i) R"
     using I_def by (simp add: cgenideal_ideal)
 
@@ -582,11 +570,12 @@ next
   hence "q divides p"
     using to_contain_is_to_divide[of q p] using assms(1) J(1-2) by simp
   hence q_div_p: "q divides\<^bsub>(mult_of R)\<^esub> p"
-    using assms(1) divides_imp_divides_mult[OF q(1), of p] by (simp add: \<open>q divides p\<close>) 
+    using assms(1) divides_imp_divides_mult[OF q(1), of p] by (simp add: \<open>q divides p\<close>)
   show "J = PIdl p \<or> J = carrier R"
   proof (cases "q \<in> Units R")
     case True thus ?thesis
-      by (metis J(1) Units_r_inv_ex cgenideal_self ideal.I_r_closed ideal.one_imp_carrier q(1) q(2))
+      by (metis J(3) Unit_eq_dividesone cgenideal_eq_genideal genideal_one one_closed q 
+                subset_antisym to_contain_is_to_divide)
   next
     case False
     have q_in_carr: "q \<in> carrier (mult_of R)"
@@ -749,12 +738,12 @@ proof (auto)
 next
   fix I assume I: "ideal I R" show "principalideal I R"
   proof (cases "I = { \<zero> }")
-    case True thus ?thesis by (simp add: zeropideal) 
+    case True thus ?thesis by (simp add: zeropideal)
   next
     case False hence A: "I - { \<zero> } \<noteq> {}"
-      using I additive_subgroup.zero_closed ideal.axioms(1) by auto 
+      using I additive_subgroup.zero_closed ideal.axioms(1) by auto
     define phi_img :: "nat set" where "phi_img = (\<phi> ` (I - { \<zero> }))"
-    hence "phi_img \<noteq> {}" using A by simp 
+    hence "phi_img \<noteq> {}" using A by simp
     then obtain m where "m \<in> phi_img" "\<And>k. k \<in> phi_img \<Longrightarrow> m \<le> k"
       using exists_least_iff[of "\<lambda>n. n \<in> phi_img"] not_less by force
     then obtain a where a: "a \<in> I - { \<zero> }" "\<And>b. b \<in> I - { \<zero> } \<Longrightarrow> \<phi> a \<le> \<phi> b"
@@ -773,7 +762,7 @@ next
         unfolding cgenideal_def using m_comm[of a] ideal.Icarr[OF I] a(1) by auto
       hence 1: "\<phi> r < \<phi> a \<and> r \<noteq> \<zero>"
         using eucl_div(4) b(2) by auto
- 
+
       have "r = (\<ominus> (a \<otimes> q)) \<oplus> b"
         using eucl_div(1-3) a(1) b(1) ideal.Icarr[OF I] r_neg1 by auto
       moreover have "\<ominus> (a \<otimes> q) \<in> I"
