@@ -20,6 +20,8 @@ axiomatization catch_match :: "'a => 'a => 'a"
 code_printing
   constant catch_match \<rightharpoonup> (Quickcheck) "((_) handle Match => _)"
 
+code_reserved Quickcheck Match
+
 subsection \<open>The \<open>random\<close> class\<close>
 
 class random = typerep +
@@ -63,7 +65,7 @@ end
 instantiation String.literal :: random
 begin
 
-definition 
+definition
   "random _ = Pair (STR '''', \<lambda>u. Code_Evaluation.term_of (STR ''''))"
 
 instance ..
@@ -207,7 +209,7 @@ lemma random_aux_rec:
 
 subsection \<open>Deriving random generators for datatypes\<close>
 
-ML_file "Tools/Quickcheck/quickcheck_common.ML" 
+ML_file "Tools/Quickcheck/quickcheck_common.ML"
 ML_file "Tools/Quickcheck/random_generators.ML"
 
 
@@ -223,7 +225,7 @@ code_reserved Quickcheck Random_Generators
 
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
-    
+
 hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
 
 hide_fact (open) collapse_def beyond_def random_fun_lift_def
