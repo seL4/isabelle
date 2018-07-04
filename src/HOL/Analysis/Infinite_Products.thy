@@ -1709,6 +1709,60 @@ next
     by (subst convergent_prod_iff_convergent) (auto simp: convergent_def tendsto_Lim assms add_eq_0_iff)
 qed
 
+text\<open>Prop 17.3 of Bak and Newman, Complex Analysis\<close>
+proposition summable_imp_convergent_prod_complex:
+  fixes z :: "nat \<Rightarrow> complex"
+  assumes z: "summable (\<lambda>k. norm (z k))" and non0: "\<And>k. z k \<noteq> -1"
+  shows "convergent_prod (\<lambda>k. 1 + z k)" 
+proof -
+  note if_cong [cong] power_Suc [simp del]
+  obtain N where N: "\<And>k. k\<ge>N \<Longrightarrow> norm (z k) < 1/2"
+    using summable_LIMSEQ_zero [OF z]
+    by (metis diff_zero dist_norm half_gt_zero_iff less_numeral_extra(1) lim_sequentially tendsto_norm_zero_iff)
+  have "norm (Ln (1 + z k)) \<le> 2 * norm (z k)" if "k \<ge> N" for k
+  proof (cases "z k = 0")
+    case False
+    let ?f = "\<lambda>i. cmod ((- 1) ^ i * z k ^ i / of_nat (Suc i))"
+    have normf: "norm (?f n) \<le> (1 / 2) ^ n" for n
+    proof -
+      have "norm (?f n) = cmod (z k) ^ n / cmod (1 + of_nat n)"
+        by (auto simp: norm_divide norm_mult norm_power)
+      also have "\<dots> \<le> cmod (z k) ^ n"
+        by (auto simp: divide_simps mult_le_cancel_left1 in_Reals_norm)
+      also have "\<dots> \<le> (1 / 2) ^ n"
+        using N [OF that] by (simp add: power_mono)
+      finally show "norm (?f n) \<le> (1 / 2) ^ n" .
+    qed
+    have summablef: "summable ?f"
+      by (intro normf summable_comparison_test' [OF summable_geometric [of "1/2"]]) auto
+    have "(\<lambda>n. (- 1) ^ Suc n / of_nat n * z k ^ n) sums Ln (1 + z k)"
+      using Ln_series [of "z k"] N that by fastforce
+    then have *: "(\<lambda>i. z k * (((- 1) ^ i * z k ^ i) / (Suc i))) sums Ln (1 + z k)"
+      using sums_split_initial_segment [where n= 1]  by (force simp: power_Suc mult_ac)
+    then have "norm (Ln (1 + z k)) = norm (suminf (\<lambda>i. z k * (((- 1) ^ i * z k ^ i) / (Suc i))))"
+      using sums_unique by force
+    also have "\<dots> = norm (z k * suminf (\<lambda>i. ((- 1) ^ i * z k ^ i) / (Suc i)))"
+      apply (subst suminf_mult)
+      using * False
+      by (auto simp: sums_summable intro: summable_mult_D [of "z k"])
+    also have "\<dots> = norm (z k) * norm (suminf (\<lambda>i. ((- 1) ^ i * z k ^ i) / (Suc i)))"
+      by (simp add: norm_mult)
+    also have "\<dots> \<le> norm (z k) * suminf (\<lambda>i. norm (((- 1) ^ i * z k ^ i) / (Suc i)))"
+      by (intro mult_left_mono summable_norm summablef) auto
+    also have "\<dots> \<le> norm (z k) * suminf (\<lambda>i. (1/2) ^ i)"
+      by (intro mult_left_mono suminf_le) (use summable_geometric [of "1/2"] summablef normf in auto)
+    also have "\<dots> \<le> norm (z k) * 2"
+      using suminf_geometric [of "1/2::real"] by simp
+    finally show ?thesis
+      by (simp add: mult_ac)
+  qed simp
+  then have "summable (\<lambda>k. Ln (1 + z k))"
+    by (metis summable_comparison_test summable_mult z)
+  with non0 show ?thesis
+    by (simp add: add_eq_0_iff convergent_prod_iff_summable_complex)
+qed
+
+
 subsection\<open>Embeddings from the reals into some complete real normed field\<close>
 
 lemma tendsto_eq_of_real_lim:
