@@ -2442,7 +2442,7 @@ lemma LIM_equal2:
   assumes "0 < R"
     and "\<And>x. x \<noteq> a \<Longrightarrow> norm (x - a) < R \<Longrightarrow> f x = g x"
   shows "g \<midarrow>a\<rightarrow> l \<Longrightarrow> f \<midarrow>a\<rightarrow> l"
-  by (rule metric_LIM_equal2 [OF assms]) (simp_all add: dist_norm)
+  by (rule metric_LIM_equal2 [OF _ assms]) (simp_all add: dist_norm)
 
 lemma LIM_compose2:
   fixes a :: "'a::real_normed_vector"
@@ -2556,15 +2556,7 @@ lemma uniformly_continuous_on_Cauchy:
   assumes "uniformly_continuous_on S f" "Cauchy X" "\<And>n. X n \<in> S"
   shows "Cauchy (\<lambda>n. f (X n))"
   using assms
-  apply (simp only: uniformly_continuous_on_def)
-  apply (rule metric_CauchyI)
-  apply (drule_tac x=e in spec)
-  apply safe
-  apply (drule_tac e=d in metric_CauchyD)
-   apply safe
-  apply (rule_tac x=M in exI)
-  apply simp
-  done
+  unfolding uniformly_continuous_on_def  by (meson Cauchy_def)
 
 lemma isUCont_Cauchy: "isUCont f \<Longrightarrow> Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
   by (rule uniformly_continuous_on_Cauchy[where S=UNIV and f=f]) simp_all

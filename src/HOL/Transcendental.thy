@@ -626,38 +626,41 @@ lemma lemma_termdiff2:
   fixes h :: "'a::field"
   assumes h: "h \<noteq> 0"
   shows "((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0) =
-    h * (\<Sum>p< n - Suc 0. \<Sum>q< n - Suc 0 - p. (z + h) ^ q * z ^ (n - 2 - q))"
+         h * (\<Sum>p< n - Suc 0. \<Sum>q< n - Suc 0 - p. (z + h) ^ q * z ^ (n - 2 - q))"
     (is "?lhs = ?rhs")
-  apply (subgoal_tac "h * ?lhs = h * ?rhs")
-   apply (simp add: h)
-  apply (simp add: right_diff_distrib diff_divide_distrib h)
-  apply (simp add: mult.assoc [symmetric])
-  apply (cases n)
-  apply simp
-  apply (simp add: diff_power_eq_sum h right_diff_distrib [symmetric] mult.assoc
-      del: power_Suc sum_lessThan_Suc of_nat_Suc)
-  apply (subst lemma_realpow_rev_sumr)
-  apply (subst sumr_diff_mult_const2)
-  apply simp
-  apply (simp only: lemma_termdiff1 sum_distrib_left)
-  apply (rule sum.cong [OF refl])
-  apply (simp add: less_iff_Suc_add)
-  apply clarify
-  apply (simp add: sum_distrib_left diff_power_eq_sum ac_simps
-      del: sum_lessThan_Suc power_Suc)
-  apply (subst mult.assoc [symmetric], subst power_add [symmetric])
-  apply (simp add: ac_simps)
-  done
+proof (cases n)
+  case (Suc n)
+  have 0: "\<And>x k. (\<Sum>n<Suc k. h * (z ^ x * (z ^ (k - n) * (h + z) ^ n))) =
+                 (\<Sum>j<Suc k.  h * ((h + z) ^ j * z ^ (x + k - j)))"
+    apply (rule sum.cong [OF refl])
+    by (simp add: power_add [symmetric] mult.commute)
+  have *: "(\<Sum>i<n. z ^ i * ((z + h) ^ (n - i) - z ^ (n - i))) =
+           (\<Sum>i<n. \<Sum>j<n - i. h * ((z + h) ^ j * z ^ (n - Suc j)))"
+    apply (rule sum.cong [OF refl])
+    apply (clarsimp simp add: less_iff_Suc_add sum_distrib_left diff_power_eq_sum ac_simps 0
+        simp del: sum_lessThan_Suc power_Suc)
+    done
+  have "h * ?lhs = h * ?rhs"
+    apply (simp add: right_diff_distrib diff_divide_distrib h mult.assoc [symmetric])
+    using Suc
+    apply (simp add: diff_power_eq_sum h right_diff_distrib [symmetric] mult.assoc
+        del: power_Suc sum_lessThan_Suc of_nat_Suc)
+    apply (subst lemma_realpow_rev_sumr)
+    apply (subst sumr_diff_mult_const2)
+    apply (simp add: lemma_termdiff1 sum_distrib_left *)
+    done
+  then show ?thesis
+    by (simp add: h)
+qed auto
+
 
 lemma real_sum_nat_ivl_bounded2:
   fixes K :: "'a::linordered_semidom"
   assumes f: "\<And>p::nat. p < n \<Longrightarrow> f p \<le> K"
     and K: "0 \<le> K"
   shows "sum f {..<n-k} \<le> of_nat n * K"
-  apply (rule order_trans [OF sum_mono])
-   apply (rule f)
-   apply simp
-  apply (simp add: mult_right_mono K)
+  apply (rule order_trans [OF sum_mono [OF f]])
+  apply (auto simp add: mult_right_mono K)
   done
 
 lemma lemma_termdiff3:
@@ -775,9 +778,8 @@ proof -
     also have "(\<lambda>n. of_nat n * diffs (\<lambda>n. norm (c n)) n * r ^ (n - Suc 0)) =
       (\<lambda>n. diffs (\<lambda>m. of_nat (m - Suc 0) * norm (c m) * inverse r) n * (r ^ n))"
       apply (rule ext)
-      apply (simp add: diffs_def)
       apply (case_tac n)
-       apply (simp_all add: r_neq_0)
+      apply (simp_all add: diffs_def r_neq_0)
       done
     finally have "summable
       (\<lambda>n. of_nat n * (of_nat (n - Suc 0) * norm (c n) * inverse r) * r ^ (n - Suc 0))"
@@ -874,12 +876,13 @@ next
     apply (auto simp: norm_divide norm_mult norm_power field_simps)
     done
   have "summable (\<lambda>n. (of_nat n * c n) * x ^ n)"
-    apply (rule summable_comparison_test' [of "\<lambda>n. norm(c n * (of_real r) ^ n)" N])
-     apply (rule powser_insidea [OF sm [of "of_real ((r+K)/2)"]])
-    using N r norm_of_real [of "r + K", where 'a = 'a]
-      apply (auto simp add: norm_divide norm_mult norm_power field_simps)
-    apply (fastforce simp: less_eq_real_def)
-    done
+  proof (rule summable_comparison_test')
+    show "summable (\<lambda>n. norm (c n * of_real r ^ n))"
+      apply (rule powser_insidea [OF sm [of "of_real ((r+K)/2)"]])
+      using N r norm_of_real [of "r + K", where 'a = 'a] by auto
+    show "\<And>n. N \<le> n \<Longrightarrow> norm (of_nat n * c n * x ^ n) \<le> norm (c n * of_real r ^ n)"
+      using N r by (fastforce simp add: norm_mult norm_power less_eq_real_def)
+  qed
   then have "summable (\<lambda>n. (of_nat (Suc n) * c(Suc n)) * x ^ Suc n)"
     using summable_iff_shift [of "\<lambda>n. of_nat n * c n * x ^ n" 1]
     by simp
@@ -894,10 +897,7 @@ lemma termdiff_converges_all:
   fixes x :: "'a::{real_normed_field,banach}"
   assumes "\<And>x. summable (\<lambda>n. c n * x^n)"
   shows "summable (\<lambda>n. diffs c n * x^n)"
-  apply (rule termdiff_converges [where K = "1 + norm x"])
-  using assms
-   apply auto
-  done
+  by (rule termdiff_converges [where K = "1 + norm x"]) (use assms in auto)
 
 lemma termdiffs_strong:
   fixes K x :: "'a::{real_normed_field,banach}"
@@ -921,9 +921,9 @@ proof -
     by (blast intro: sm termdiff_converges powser_inside)
   ultimately show ?thesis
     apply (rule termdiffs [where K = "of_real (norm x + norm K) / 2"])
-      apply (auto simp: field_simps)
     using K
-    apply (simp_all add: of_real_add [symmetric] del: of_real_add)
+      apply (auto simp: field_simps)
+    apply (simp flip: of_real_add)
     done
 qed
 

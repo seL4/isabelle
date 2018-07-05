@@ -28,7 +28,7 @@ definition suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add
 
 text\<open>Variants of the definition\<close>
 lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f i) \<longlonglongrightarrow> s"
-  apply (simp add: sums_def)
+  unfolding sums_def
   apply (subst LIMSEQ_Suc_iff [symmetric])
   apply (simp only: lessThan_Suc_atMost atLeast0AtMost)
   done
@@ -81,15 +81,9 @@ lemma summable_zero[simp, intro]: "summable (\<lambda>n. 0)"
 
 lemma sums_group: "f sums s \<Longrightarrow> 0 < k \<Longrightarrow> (\<lambda>n. sum f {n * k ..< n * k + k}) sums s"
   apply (simp only: sums_def sum_nat_group tendsto_def eventually_sequentially)
-  apply safe
-  apply (erule_tac x=S in allE)
-  apply safe
-  apply (rule_tac x="N" in exI, safe)
-  apply (drule_tac x="n*k" in spec)
-  apply (erule mp)
-  apply (erule order_trans)
-  apply simp
-  done
+  apply (erule all_forward imp_forward exE| assumption)+
+  apply (rule_tac x="N" in exI)
+  by (metis le_square mult.commute mult.left_neutral mult_le_cancel2 mult_le_mono)
 
 lemma suminf_cong: "(\<And>n. f n = g n) \<Longrightarrow> suminf f = suminf g"
   by (rule arg_cong[of f g], rule ext) simp
@@ -454,16 +448,7 @@ lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f \<longlonglongrighta
   apply (drule summable_iff_convergent [THEN iffD1])
   apply (drule convergent_Cauchy)
   apply (simp only: Cauchy_iff LIMSEQ_iff)
-  apply safe
-  apply (drule_tac x="r" in spec)
-  apply safe
-  apply (rule_tac x="M" in exI)
-  apply safe
-  apply (drule_tac x="Suc n" in spec)
-  apply simp
-  apply (drule_tac x="n" in spec)
-  apply simp
-  done
+  by (metis add.commute add_diff_cancel_right' diff_zero le_SucI sum_lessThan_Suc)
 
 lemma summable_imp_convergent: "summable f \<Longrightarrow> convergent f"
   by (force dest!: summable_LIMSEQ_zero simp: convergent_def)
@@ -725,17 +710,9 @@ begin
 text \<open>Absolute convergence imples normal convergence.\<close>
 
 lemma summable_norm_cancel: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> summable f"
-  apply (simp only: summable_Cauchy)
-  apply safe
-  apply (drule_tac x="e" in spec)
-  apply safe
-  apply (rule_tac x="N" in exI)
-  apply safe
-  apply (drule_tac x="m" in spec)
-  apply safe
-  apply (rule order_le_less_trans [OF norm_sum])
-  apply (rule order_le_less_trans [OF abs_ge_self])
-  apply simp
+  unfolding summable_Cauchy
+  apply (erule all_forward imp_forward ex_forward | assumption)+
+  apply (fastforce simp add: order_le_less_trans [OF norm_sum] order_le_less_trans [OF abs_ge_self])
   done
 
 lemma summable_norm: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (suminf f) \<le> (\<Sum>n. norm (f n))"
@@ -834,16 +811,10 @@ lemma Abel_lemma:
   shows "summable (\<lambda>n. norm (a n) * r^n)"
 proof (rule summable_comparison_test')
   show "summable (\<lambda>n. M * (r / r0) ^ n)"
-    using assms
-    by (auto simp add: summable_mult summable_geometric)
+    using assms by (auto simp add: summable_mult summable_geometric)
   show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n" for n
-    using r r0 M [of n]
-    apply (auto simp add: abs_mult field_simps)
-    apply (cases "r = 0")
-     apply simp
-     apply (cases n)
-      apply auto
-    done
+    using r r0 M [of n] dual_order.order_iff_strict
+    by (fastforce simp add: abs_mult field_simps)
 qed
 
 
