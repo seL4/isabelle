@@ -54,7 +54,7 @@ end
 
 global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
   rewrites "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
-    and "Vector_Spaces.linear ( * ) ( *\<^sub>R) = linear"
+    and "Vector_Spaces.linear ( *) ( *\<^sub>R) = linear"
   defines dependent_raw_def: dependent = real_vector.dependent
     and representation_raw_def: representation = real_vector.representation
     and subspace_raw_def: subspace = real_vector.subspace
@@ -66,8 +66,8 @@ global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> '
       apply (rule scaleR_add_left)
      apply (rule scaleR_scaleR)
     apply (rule scaleR_one)
-   apply (force simp add: linear_def)
-  apply (force simp add: linear_def real_scaleR_def[abs_def])
+   apply (force simp: linear_def)
+  apply (force simp: linear_def real_scaleR_def[abs_def])
   done
 
 hide_const (open)\<comment> \<open>locale constants\<close>
@@ -83,7 +83,7 @@ abbreviation "independent x \<equiv> \<not> dependent x"
 
 global_interpretation real_vector?: vector_space_pair "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
   rewrites  "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
-    and "Vector_Spaces.linear ( * ) ( *\<^sub>R) = linear"
+    and "Vector_Spaces.linear ( *) ( *\<^sub>R) = linear"
   defines construct_raw_def: construct = real_vector.construct
   apply unfold_locales
   unfolding linear_def real_scaleR_def
@@ -92,7 +92,7 @@ global_interpretation real_vector?: vector_space_pair "scaleR::_\<Rightarrow>_\<
 hide_const (open)\<comment> \<open>locale constants\<close>
   real_vector.construct
 
-lemma linear_compose: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (g o f)"
+lemma linear_compose: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (g \<circ> f)"
   unfolding linear_def by (rule Vector_Spaces.linear_compose)
 
 text \<open>Recover original theorem names\<close>
@@ -161,12 +161,7 @@ lemma nonzero_inverse_scaleR_distrib:
 
 lemma inverse_scaleR_distrib: "inverse (scaleR a x) = scaleR (inverse a) (inverse x)"
   for x :: "'a::{real_div_algebra,division_ring}"
-  apply (cases "a = 0")
-   apply simp
-  apply (cases "x = 0")
-   apply simp
-  apply (erule (1) nonzero_inverse_scaleR_distrib)
-  done
+  by (metis inverse_zero nonzero_inverse_scaleR_distrib scale_eq_0_iff)
 
 lemmas sum_constant_scaleR = real_vector.sum_constant_scale\<comment> \<open>legacy name\<close>
 
@@ -367,56 +362,32 @@ lemma Reals_of_nat [simp]: "of_nat n \<in> \<real>"
 lemma Reals_numeral [simp]: "numeral w \<in> \<real>"
   by (subst of_real_numeral [symmetric], rule Reals_of_real)
 
-lemma Reals_0 [simp]: "0 \<in> \<real>"
-  apply (unfold Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_0 [symmetric])
-  done
-
-lemma Reals_1 [simp]: "1 \<in> \<real>"
-  apply (unfold Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_1 [symmetric])
-  done
+lemma Reals_0 [simp]: "0 \<in> \<real>" and Reals_1 [simp]: "1 \<in> \<real>"
+  by (simp_all add: Reals_def)
 
 lemma Reals_add [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a + b \<in> \<real>"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_add [symmetric])
-  done
+  by (metis (no_types, hide_lams) Reals_def Reals_of_real imageE of_real_add)
 
 lemma Reals_minus [simp]: "a \<in> \<real> \<Longrightarrow> - a \<in> \<real>"
-  by (auto simp add: Reals_def)
+  by (auto simp: Reals_def)
 
 lemma Reals_minus_iff [simp]: "- a \<in> \<real> \<longleftrightarrow> a \<in> \<real>"
   apply (auto simp: Reals_def)
   by (metis add.inverse_inverse of_real_minus rangeI)
 
 lemma Reals_diff [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a - b \<in> \<real>"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_diff [symmetric])
-  done
+  by (metis Reals_add Reals_minus_iff add_uminus_conv_diff)
 
 lemma Reals_mult [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a * b \<in> \<real>"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_mult [symmetric])
-  done
+  by (metis (no_types, lifting) Reals_def Reals_of_real imageE of_real_mult)
 
 lemma nonzero_Reals_inverse: "a \<in> \<real> \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> inverse a \<in> \<real>"
   for a :: "'a::real_div_algebra"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (erule nonzero_of_real_inverse [symmetric])
-  done
+  by (metis Reals_def Reals_of_real imageE of_real_inverse)
 
 lemma Reals_inverse: "a \<in> \<real> \<Longrightarrow> inverse a \<in> \<real>"
   for a :: "'a::{real_div_algebra,division_ring}"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_inverse [symmetric])
-  done
+  using nonzero_Reals_inverse by fastforce
 
 lemma Reals_inverse_iff [simp]: "inverse x \<in> \<real> \<longleftrightarrow> x \<in> \<real>"
   for x :: "'a::{real_div_algebra,division_ring}"
@@ -424,24 +395,15 @@ lemma Reals_inverse_iff [simp]: "inverse x \<in> \<real> \<longleftrightarrow> x
 
 lemma nonzero_Reals_divide: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a / b \<in> \<real>"
   for a b :: "'a::real_field"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (erule nonzero_of_real_divide [symmetric])
-  done
+  by (simp add: divide_inverse)
 
 lemma Reals_divide [simp]: "a \<in> \<real> \<Longrightarrow> b \<in> \<real> \<Longrightarrow> a / b \<in> \<real>"
   for a b :: "'a::{real_field,field}"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_divide [symmetric])
-  done
+  using nonzero_Reals_divide by fastforce
 
 lemma Reals_power [simp]: "a \<in> \<real> \<Longrightarrow> a ^ n \<in> \<real>"
   for a :: "'a::real_algebra_1"
-  apply (auto simp add: Reals_def)
-  apply (rule range_eqI)
-  apply (rule of_real_power [symmetric])
-  done
+  by (metis Reals_def Reals_of_real imageE of_real_power)
 
 lemma Reals_cases [cases set: Reals]:
   assumes "q \<in> \<real>"
@@ -478,11 +440,7 @@ class ordered_real_vector = real_vector + ordered_ab_group_add +
 begin
 
 lemma scaleR_mono: "a \<le> b \<Longrightarrow> x \<le> y \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> x \<Longrightarrow> a *\<^sub>R x \<le> b *\<^sub>R y"
-  apply (erule scaleR_right_mono [THEN order_trans])
-   apply assumption
-  apply (erule scaleR_left_mono)
-  apply assumption
-  done
+  by (meson local.dual_order.trans local.scaleR_left_mono local.scaleR_right_mono)
 
 lemma scaleR_mono': "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R d"
   by (rule scaleR_mono) (auto intro: order.trans)
@@ -542,7 +500,7 @@ lemma scaleR_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> x \<Longrightar
 
 lemma split_scaleR_neg_le: "(0 \<le> a \<and> x \<le> 0) \<or> (a \<le> 0 \<and> 0 \<le> x) \<Longrightarrow> a *\<^sub>R x \<le> 0"
   for x :: "'a::ordered_real_vector"
-  by (auto simp add: scaleR_nonneg_nonpos scaleR_nonpos_nonneg)
+  by (auto simp: scaleR_nonneg_nonpos scaleR_nonpos_nonneg)
 
 lemma le_add_iff1: "a *\<^sub>R e + c \<le> b *\<^sub>R e + d \<longleftrightarrow> (a - b) *\<^sub>R e + c \<le> d"
   for c d e :: "'a::ordered_real_vector"
@@ -554,14 +512,12 @@ lemma le_add_iff2: "a *\<^sub>R e + c \<le> b *\<^sub>R e + d \<longleftrightarr
 
 lemma scaleR_left_mono_neg: "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c *\<^sub>R a \<le> c *\<^sub>R b"
   for a b :: "'a::ordered_real_vector"
-  apply (drule scaleR_left_mono [of _ _ "- c"])
-   apply simp_all
+  apply (drule scaleR_left_mono [of _ _ "- c"], simp_all)
   done
 
 lemma scaleR_right_mono_neg: "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R c"
   for c :: "'a::ordered_real_vector"
-  apply (drule scaleR_right_mono [of _ _ "- c"])
-   apply simp_all
+  apply (drule scaleR_right_mono [of _ _ "- c"], simp_all)
   done
 
 lemma scaleR_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a *\<^sub>R b"
@@ -570,7 +526,7 @@ lemma scaleR_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightar
 
 lemma split_scaleR_pos_le: "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b \<le> 0) \<Longrightarrow> 0 \<le> a *\<^sub>R b"
   for b :: "'a::ordered_real_vector"
-  by (auto simp add: scaleR_nonneg_nonneg scaleR_nonpos_nonpos)
+  by (auto simp: scaleR_nonneg_nonneg scaleR_nonpos_nonpos)
 
 lemma zero_le_scaleR_iff:
   fixes b :: "'a::ordered_real_vector"
@@ -612,7 +568,7 @@ lemma scaleR_le_0_iff: "a *\<^sub>R b \<le> 0 \<longleftrightarrow> 0 < a \<and>
 
 lemma scaleR_le_cancel_left: "c *\<^sub>R a \<le> c *\<^sub>R b \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
   for b :: "'a::ordered_real_vector"
-  by (auto simp add: neq_iff scaleR_left_mono scaleR_left_mono_neg
+  by (auto simp: neq_iff scaleR_left_mono scaleR_left_mono_neg
       dest: scaleR_left_mono[where a="inverse c"] scaleR_left_mono_neg[where c="inverse c"])
 
 lemma scaleR_le_cancel_left_pos: "0 < c \<Longrightarrow> c *\<^sub>R a \<le> c *\<^sub>R b \<longleftrightarrow> a \<le> b"
@@ -752,12 +708,14 @@ qed
 
 lemma norm_triangle_ineq3: "\<bar>norm a - norm b\<bar> \<le> norm (a - b)"
   for a b :: "'a::real_normed_vector"
-  apply (subst abs_le_iff)
-  apply auto
-   apply (rule norm_triangle_ineq2)
-  apply (subst norm_minus_commute)
-  apply (rule norm_triangle_ineq2)
-  done
+proof -
+  have "norm a - norm b \<le> norm (a - b)"
+    by (simp add: norm_triangle_ineq2)
+  moreover have "norm b - norm a \<le> norm (a - b)"
+    by (metis norm_minus_commute norm_triangle_ineq2)
+  ultimately show ?thesis
+    by (simp add: abs_le_iff)
+qed
 
 lemma norm_triangle_ineq4: "norm (a - b) \<le> norm a + norm b"
   for a b :: "'a::real_normed_vector"
@@ -854,22 +812,15 @@ lemma norm_of_int [simp]: "norm (of_int z::'a::real_normed_algebra_1) = \<bar>of
   by (subst of_real_of_int_eq [symmetric], rule norm_of_real)
 
 lemma norm_of_nat [simp]: "norm (of_nat n::'a::real_normed_algebra_1) = of_nat n"
-  apply (subst of_real_of_nat_eq [symmetric])
-  apply (subst norm_of_real, simp)
-  done
+  by (metis abs_of_nat norm_of_real of_real_of_nat_eq)
 
 lemma nonzero_norm_inverse: "a \<noteq> 0 \<Longrightarrow> norm (inverse a) = inverse (norm a)"
   for a :: "'a::real_normed_div_algebra"
-  apply (rule inverse_unique [symmetric])
-  apply (simp add: norm_mult [symmetric])
-  done
+  by (metis inverse_unique norm_mult norm_one right_inverse)
 
 lemma norm_inverse: "norm (inverse a) = inverse (norm a)"
   for a :: "'a::{real_normed_div_algebra,division_ring}"
-  apply (cases "a = 0")
-   apply simp
-  apply (erule nonzero_norm_inverse)
-  done
+  by (metis inverse_zero nonzero_norm_inverse norm_zero)
 
 lemma nonzero_norm_divide: "b \<noteq> 0 \<Longrightarrow> norm (a / b) = norm a / norm b"
   for a b :: "'a::real_normed_field"
@@ -982,7 +933,7 @@ next
   have "norm ((\<Prod>i\<in>insert i I. z i) - (\<Prod>i\<in>insert i I. w i)) =
     norm ((\<Prod>i\<in>I. z i) * (z i - w i) + ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) * w i)"
     (is "_ = norm (?t1 + ?t2)")
-    by (auto simp add: field_simps)
+    by (auto simp: field_simps)
   also have "\<dots> \<le> norm ?t1 + norm ?t2"
     by (rule norm_triangle_ineq)
   also have "norm ?t1 \<le> norm (\<Prod>i\<in>I. z i) * norm (z i - w i)"
@@ -998,7 +949,7 @@ next
   also have "norm ((\<Prod>i\<in>I. z i) - (\<Prod>i\<in>I. w i)) \<le> (\<Sum>i\<in>I. norm (z i - w i))"
     using insert by auto
   finally show ?case
-    by (auto simp add: ac_simps mult_right_mono mult_left_mono)
+    by (auto simp: ac_simps mult_right_mono mult_left_mono)
 next
   case infinite
   then show ?case by simp
@@ -1012,7 +963,7 @@ proof -
   have "norm (z^m - w^m) = norm ((\<Prod> i < m. z) - (\<Prod> i < m. w))"
     by (simp add: prod_constant)
   also have "\<dots> \<le> (\<Sum>i<m. norm (z - w))"
-    by (intro norm_prod_diff) (auto simp add: assms)
+    by (intro norm_prod_diff) (auto simp: assms)
   also have "\<dots> = m * norm (z - w)"
     by simp
   finally show ?thesis .
@@ -1184,17 +1135,7 @@ definition open_real_def [code del]:
 definition real_norm_def [simp]: "norm r = \<bar>r\<bar>"
 
 instance
-  apply intro_classes
-         apply (unfold real_norm_def real_scaleR_def)
-         apply (rule dist_real_def)
-        apply (simp add: sgn_real_def)
-       apply (rule uniformity_real_def)
-      apply (rule open_real_def)
-     apply (rule abs_eq_0)
-    apply (rule abs_triangle_ineq)
-   apply (rule abs_mult)
-  apply (rule abs_mult)
-  done
+  by intro_classes (auto simp: abs_mult open_real_def dist_real_def sgn_real_def uniformity_real_def)
 
 end
 
@@ -1369,7 +1310,7 @@ lemmas linear_imp_scaleR = linear_imp_scale
 
 corollary real_linearD:
   fixes f :: "real \<Rightarrow> real"
-  assumes "linear f" obtains c where "f = ( * ) c"
+  assumes "linear f" obtains c where "f = ( *) c"
   by (rule linear_imp_scaleR [OF assms]) (force simp: scaleR_conv_of_real)
 
 lemma linear_times_of_real: "linear (\<lambda>x. a * of_real x)"
@@ -1467,22 +1408,20 @@ lemma sum_right: "prod x (sum g S) = sum ((\<lambda>i. (prod x (g i)))) S"
 
 
 lemma bounded_linear_left: "bounded_linear (\<lambda>a. a ** b)"
-  apply (insert bounded)
-  apply safe
-  apply (rule_tac K="norm b * K" in bounded_linear_intro)
-    apply (rule add_left)
-   apply (rule scaleR_left)
-  apply (simp add: ac_simps)
-  done
+proof -
+  obtain K where "\<And>a b. norm (a ** b) \<le> norm a * norm b * K"
+    using pos_bounded by blast
+  then show ?thesis
+    by (rule_tac K="norm b * K" in bounded_linear_intro) (auto simp: algebra_simps scaleR_left add_left)
+qed
 
 lemma bounded_linear_right: "bounded_linear (\<lambda>b. a ** b)"
-  apply (insert bounded)
-  apply safe
-  apply (rule_tac K="norm a * K" in bounded_linear_intro)
-    apply (rule add_right)
-   apply (rule scaleR_right)
-  apply (simp add: ac_simps)
-  done
+proof -
+  obtain K where "\<And>a b. norm (a ** b) \<le> norm a * norm b * K"
+    using pos_bounded by blast
+  then show ?thesis
+    by (rule_tac K="norm a * K" in bounded_linear_intro) (auto simp: algebra_simps scaleR_right add_right)
+qed
 
 lemma prod_diff_prod: "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a ** (y - b)"
   by (simp add: diff_left diff_right)
@@ -1493,14 +1432,11 @@ lemma flip: "bounded_bilinear (\<lambda>x y. y ** x)"
      apply (rule add_left)
     apply (rule scaleR_right)
    apply (rule scaleR_left)
-  apply (subst mult.commute)
-  apply (insert bounded)
-  apply blast
-  done
+  by (metis bounded mult.commute)
 
 lemma comp1:
   assumes "bounded_linear g"
-  shows "bounded_bilinear (\<lambda>x. ( ** ) (g x))"
+  shows "bounded_bilinear (\<lambda>x. ( **) (g x))"
 proof unfold_locales
   interpret g: bounded_linear g by fact
   show "\<And>a a' b. g (a + a') ** b = g a ** b + g a' ** b"
@@ -1564,7 +1500,7 @@ qed
 
 lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g \<Longrightarrow> bounded_linear (\<lambda>x. f x - g x)"
   using bounded_linear_add[of f "\<lambda>x. - g x"] bounded_linear_minus[of g]
-  by (auto simp add: algebra_simps)
+  by (auto simp: algebra_simps)
 
 lemma bounded_linear_sum:
   fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -1602,13 +1538,10 @@ proof -
   qed
 qed
 
-lemma bounded_bilinear_mult: "bounded_bilinear (( * ) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
+lemma bounded_bilinear_mult: "bounded_bilinear (( *) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
   apply (rule bounded_bilinear.intro)
-      apply (rule distrib_right)
-     apply (rule distrib_left)
-    apply (rule mult_scaleR_left)
-   apply (rule mult_scaleR_right)
-  apply (rule_tac x="1" in exI)
+      apply (auto simp: algebra_simps)
+  apply (rule_tac x=1 in exI)
   apply (simp add: norm_mult_ineq)
   done
 
@@ -1632,12 +1565,8 @@ lemma bounded_linear_divide: "bounded_linear (\<lambda>x. x / y)"
 
 lemma bounded_bilinear_scaleR: "bounded_bilinear scaleR"
   apply (rule bounded_bilinear.intro)
-      apply (rule scaleR_left_distrib)
-     apply (rule scaleR_right_distrib)
-    apply simp
-   apply (rule scaleR_left_commute)
-  apply (rule_tac x="1" in exI)
-  apply simp
+      apply (auto simp: algebra_simps)
+  apply (rule_tac x=1 in exI, simp)
   done
 
 lemma bounded_linear_scaleR_left: "bounded_linear (\<lambda>r. scaleR r x)"
@@ -1674,8 +1603,7 @@ qed
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof
   show "\<not> open {x}" for x :: 'a
-    apply (simp only: open_dist dist_norm)
-    apply clarsimp
+    apply (clarsimp simp: open_dist dist_norm)
     apply (rule_tac x = "x + of_real (e/2)" in exI)
     apply simp
     done
@@ -1725,10 +1653,9 @@ lemma frequently_at: "frequently P (at a within S) \<longleftrightarrow> (\<fora
 
 lemma eventually_at_le: "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<and> dist x a \<le> d \<longrightarrow> P x)"
   for a :: "'a::metric_space"
-  apply (simp only: eventually_at_filter eventually_nhds_metric)
-  apply auto
-  apply (rule_tac x="d / 2" in exI)
-  apply auto
+  unfolding eventually_at_filter eventually_nhds_metric
+  apply safe
+  apply (rule_tac x="d / 2" in exI, auto)
   done
 
 lemma eventually_at_left_real: "a > (b :: real) \<Longrightarrow> eventually (\<lambda>x. x \<in> {b<..<a}) (at_left a)"
@@ -1752,23 +1679,25 @@ proof (rule tendstoI)
 qed
 
 lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
-  apply (simp only: filterlim_at_top)
-  apply (intro allI)
-  apply (rule_tac c="nat \<lceil>Z + 1\<rceil>" in eventually_sequentiallyI)
-  apply linarith
+  apply (clarsimp simp: filterlim_at_top)
+  apply (rule_tac c="nat \<lceil>Z + 1\<rceil>" in eventually_sequentiallyI, linarith)
   done
 
 lemma filterlim_nat_sequentially: "filterlim nat sequentially at_top"
-  unfolding filterlim_at_top
-  apply (rule allI)
-  subgoal for Z by (auto intro!: eventually_at_top_linorderI[where c="int Z"])
-  done
+proof -
+  have "\<forall>\<^sub>F x in at_top. Z \<le> nat x" for Z
+    by (auto intro!: eventually_at_top_linorderI[where c="int Z"])
+  then show ?thesis
+    unfolding filterlim_at_top ..
+qed
 
 lemma filterlim_floor_sequentially: "filterlim floor at_top at_top"
-  unfolding filterlim_at_top
-  apply (rule allI)
-  subgoal for Z by (auto simp: le_floor_iff intro!: eventually_at_top_linorderI[where c="of_int Z"])
-  done
+proof -
+  have "\<forall>\<^sub>F x in at_top. Z \<le> \<lfloor>x\<rfloor>" for Z
+    by (auto simp: le_floor_iff intro!: eventually_at_top_linorderI[where c="of_int Z"])
+  then show ?thesis
+    unfolding filterlim_at_top ..
+qed
 
 lemma filterlim_sequentially_iff_filterlim_real:
   "filterlim f sequentially F \<longleftrightarrow> filterlim (\<lambda>x. real (f x)) at_top F"
@@ -1847,22 +1776,22 @@ lemma metric_LIM_imp_LIM:
   assumes f: "f \<midarrow>a\<rightarrow> l"
     and le: "\<And>x. x \<noteq> a \<Longrightarrow> dist (g x) m \<le> dist (f x) l"
   shows "g \<midarrow>a\<rightarrow> m"
-  by (rule metric_tendsto_imp_tendsto [OF f]) (auto simp add: eventually_at_topological le)
+  by (rule metric_tendsto_imp_tendsto [OF f]) (auto simp: eventually_at_topological le)
 
 lemma metric_LIM_equal2:
   fixes a :: "'a::metric_space"
-  assumes "0 < R"
+  assumes "g \<midarrow>a\<rightarrow> l" "0 < R"
     and "\<And>x. x \<noteq> a \<Longrightarrow> dist x a < R \<Longrightarrow> f x = g x"
-  shows "g \<midarrow>a\<rightarrow> l \<Longrightarrow> f \<midarrow>a\<rightarrow> l"
-  apply (rule topological_tendstoI)
-  apply (drule (2) topological_tendstoD)
-  apply (simp add: eventually_at)
-  apply safe
-  apply (rule_tac x="min d R" in exI)
-  apply safe
-   apply (simp add: assms(1))
-  apply (simp add: assms(2))
-  done
+  shows "f \<midarrow>a\<rightarrow> l"
+proof -
+  have "\<And>S. \<lbrakk>open S; l \<in> S; \<forall>\<^sub>F x in at a. g x \<in> S\<rbrakk> \<Longrightarrow> \<forall>\<^sub>F x in at a. f x \<in> S"
+    apply (clarsimp simp add: eventually_at)
+    apply (rule_tac x="min d R" in exI)
+     apply (auto simp: assms)
+    done
+  then show ?thesis
+    using assms by (simp add: tendsto_def)
+qed
 
 lemma metric_LIM_compose2:
   fixes a :: "'a::metric_space"
@@ -1933,7 +1862,7 @@ qed
 lemma (in metric_space) Cauchy_altdef2: "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
 proof 
   assume "Cauchy s"
-  then show ?rhs by (force simp add: Cauchy_def)
+  then show ?rhs by (force simp: Cauchy_def)
 next
     assume ?rhs
     {
@@ -1971,19 +1900,8 @@ lemma (in metric_space) metric_CauchyD:
 
 lemma (in metric_space) metric_Cauchy_iff2:
   "Cauchy X = (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < inverse(real (Suc j))))"
-  apply (simp add: Cauchy_def)
-  apply auto
-  apply (drule reals_Archimedean)
-  apply safe
-  apply (drule_tac x = n in spec)
-  apply auto
-  apply (rule_tac x = M in exI)
-  apply auto
-  apply (drule_tac x = m in spec)
-  apply simp
-  apply (drule_tac x = na in spec)
-  apply auto
-  done
+  apply (auto simp add: Cauchy_def)
+  by (metis less_trans of_nat_Suc reals_Archimedean)
 
 lemma Cauchy_iff2: "Cauchy X \<longleftrightarrow> (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse (real (Suc j))))"
   by (simp only: metric_Cauchy_iff2 dist_real_def)
@@ -2092,12 +2010,12 @@ next
   qed fact
 qed
 
+text\<open>apparently unused\<close>
 lemma (in metric_space) totally_bounded_metric:
   "totally_bounded S \<longleftrightarrow> (\<forall>e>0. \<exists>k. finite k \<and> S \<subseteq> (\<Union>x\<in>k. {y. dist x y < e}))"
-  apply (simp only: totally_bounded_def eventually_uniformity_metric imp_ex)
+  unfolding totally_bounded_def eventually_uniformity_metric imp_ex
   apply (subst all_comm)
-  apply (intro arg_cong[where f=All] ext)
-  apply safe
+  apply (intro arg_cong[where f=All] ext, safe)
   subgoal for e
     apply (erule allE[of _ "\<lambda>(x, y). dist x y < e"])
     apply auto
@@ -2125,7 +2043,7 @@ lemma Cauchy_converges_subseq:
   fixes u::"nat \<Rightarrow> 'a::metric_space"
   assumes "Cauchy u"
     "strict_mono r"
-    "(u o r) \<longlonglongrightarrow> l"
+    "(u \<circ> r) \<longlonglongrightarrow> l"
   shows "u \<longlonglongrightarrow> l"
 proof -
   have *: "eventually (\<lambda>n. dist (u n) l < e) sequentially" if "e > 0" for e
@@ -2133,17 +2051,17 @@ proof -
     have "e/2 > 0" using that by auto
     then obtain N1 where N1: "\<And>m n. m \<ge> N1 \<Longrightarrow> n \<ge> N1 \<Longrightarrow> dist (u m) (u n) < e/2"
       using \<open>Cauchy u\<close> unfolding Cauchy_def by blast
-    obtain N2 where N2: "\<And>n. n \<ge> N2 \<Longrightarrow> dist ((u o r) n) l < e / 2"
-      using order_tendstoD(2)[OF iffD1[OF tendsto_dist_iff \<open>(u o r) \<longlonglongrightarrow> l\<close>] \<open>e/2 > 0\<close>]
+    obtain N2 where N2: "\<And>n. n \<ge> N2 \<Longrightarrow> dist ((u \<circ> r) n) l < e / 2"
+      using order_tendstoD(2)[OF iffD1[OF tendsto_dist_iff \<open>(u \<circ> r) \<longlonglongrightarrow> l\<close>] \<open>e/2 > 0\<close>]
       unfolding eventually_sequentially by auto
     have "dist (u n) l < e" if "n \<ge> max N1 N2" for n
     proof -
-      have "dist (u n) l \<le> dist (u n) ((u o r) n) + dist ((u o r) n) l"
+      have "dist (u n) l \<le> dist (u n) ((u \<circ> r) n) + dist ((u \<circ> r) n) l"
         by (rule dist_triangle)
-      also have "... < e/2 + e/2"
+      also have "\<dots> < e/2 + e/2"
         apply (intro add_strict_mono)
         using N1[of n "r n"] N2[of n] that unfolding comp_def
-        by (auto simp add: less_imp_le) (meson assms(2) less_imp_le order.trans seq_suble)
+        by (auto simp: less_imp_le) (meson assms(2) less_imp_le order.trans seq_suble)
       finally show ?thesis by simp
     qed 
     then show ?thesis unfolding eventually_sequentially by blast
