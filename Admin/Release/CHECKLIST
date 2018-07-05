@@ -17,6 +17,9 @@ Checklist for official releases
 
 - test "#!/usr/bin/env isabelle_scala_script";
 
+- test Windows 10 subsystem for Linux:
+  https://docs.microsoft.com/en-us/windows/wsl/install-win10
+
 - check sources:
     isabelle check_sources '~~' '$AFP_BASE'
     isabelle imports -M -a -d '~~/src/Benchmarks'
