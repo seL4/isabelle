@@ -100,9 +100,9 @@ fun force_result (Value a) = Exn.Res a
                     (*semantic race: some other threads might see the same
                       interrupt, until there is a fresh start*)
                     val _ =
-                      if Exn.is_interrupt_exn res then
-                        Synchronized.change var (fn _ => Expr (name, e))
-                      else ();
+                      if Exn.is_interrupt_exn res
+                      then Synchronized.change var (fn _ => Expr (name, e))
+                      else Synchronized.change var (fn _ => Result (Future.value_result res));
                   in res end
               | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
             end) ());
