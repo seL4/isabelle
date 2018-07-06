@@ -222,17 +222,17 @@ proof (auto intro! : moduleI abelian_group.intro)
     unfolding abelian_group_axioms_def comm_group_def abelian_monoid_def module_def abelian_group_def
     by auto
   show "\<And>z. z \<in> H \<Longrightarrow> \<one>\<^bsub>R\<^esub> \<odot> z = z"
-    using subgroup_imp_subset[OF subgroup_axioms] module.smult_one[OF assms]
+    using subgroup.subset[OF subgroup_axioms] module.smult_one[OF assms]
     by auto
   fix a b x y assume a : "a \<in> carrier R" and b : "b \<in> carrier R" and x : "x \<in> H" and y : "y \<in> H"
   show "(a \<oplus>\<^bsub>R\<^esub> b) \<odot> x = a \<odot> x \<oplus> b \<odot> x"
-    using a b x module.smult_l_distr[OF assms] subgroup_imp_subset[OF subgroup_axioms]
+    using a b x module.smult_l_distr[OF assms] subgroup.subset[OF subgroup_axioms]
     by auto
   show "a \<odot> (x \<oplus> y) = a \<odot> x \<oplus> a \<odot> y"
-    using a x y module.smult_r_distr[OF assms] subgroup_imp_subset[OF subgroup_axioms]
+    using a x y module.smult_r_distr[OF assms] subgroup.subset[OF subgroup_axioms]
     by auto
   show "a \<otimes>\<^bsub>R\<^esub> b \<odot> x = a \<odot> (b \<odot> x)"
-    using a b x module.smult_assoc1[OF assms] subgroup_imp_subset[OF subgroup_axioms]
+    using a b x module.smult_assoc1[OF assms] subgroup.subset[OF subgroup_axioms]
     by auto
 qed
 
