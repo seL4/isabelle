@@ -53,13 +53,13 @@ fun merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> 'a lheap" where
 "merge t1 Leaf = t1" |
 "merge (Node l1 a1 n1 r1 =: t1) (Node l2 a2 n2 r2 =: t2) =
    (if a1 \<le> a2 then node l1 a1 (merge r1 t2)
-    else node l2 a2 (merge r2 t1))"
+    else node l2 a2 (merge t1 r2))"
 
 lemma merge_code: "merge t1 t2 = (case (t1,t2) of
   (Leaf, _) \<Rightarrow> t2 |
   (_, Leaf) \<Rightarrow> t1 |
   (Node l1 a1 n1 r1, Node l2 a2 n2 r2) \<Rightarrow>
-    if a1 \<le> a2 then node l1 a1 (merge r1 t2) else node l2 a2 (merge r2 t1))"
+    if a1 \<le> a2 then node l1 a1 (merge r1 t2) else node l2 a2 (merge t1 r2))"
 by(induction t1 t2 rule: merge.induct) (simp_all split: tree.split)
 
 hide_const (open) insert
@@ -191,7 +191,7 @@ fun t_merge :: "'a::ord lheap \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_merge t2 Leaf = 1" |
 "t_merge (Node l1 a1 n1 r1 =: t1) (Node l2 a2 n2 r2 =: t2) =
   (if a1 \<le> a2 then 1 + t_merge r1 t2
-   else 1 + t_merge r2 t1)"
+   else 1 + t_merge t1 r2)"
 
 definition t_insert :: "'a::ord \<Rightarrow> 'a lheap \<Rightarrow> nat" where
 "t_insert x t = t_merge (Node Leaf x 1 Leaf) t"
@@ -202,8 +202,7 @@ fun t_del_min :: "'a::ord lheap \<Rightarrow> nat" where
 
 lemma t_merge_rank: "t_merge l r \<le> rank l + rank r + 1"
 proof(induction l r rule: merge.induct)
-  case 3 thus ?case
-    by(simp)(fastforce split: tree.splits simp del: t_merge.simps)
+  case 3 thus ?case by(simp)
 qed simp_all
 
 corollary t_merge_log: assumes "ltree l" "ltree r"
