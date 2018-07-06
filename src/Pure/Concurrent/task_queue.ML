@@ -62,12 +62,13 @@ val new_id = Counter.make ();
 abstype group = Group of
  {parent: group option,
   id: int,
-  status: exn option Synchronized.var}
+  status: exn option Unsynchronized.ref}
 with
 
 fun make_group (parent, id, status) = Group {parent = parent, id = id, status = status};
 
-fun new_group parent = make_group (parent, new_id (), Synchronized.var "group_status" NONE);
+fun new_group parent =
+  make_group (parent, new_id (), Unsynchronized.ref NONE);
 
 fun group_id (Group {id, ...}) = id;
 fun eq_group (group1, group2) = group_id group1 = group_id group2;
@@ -78,17 +79,32 @@ fun fold_groups f (g as Group {parent = NONE, ...}) a = f g a
 
 (* group status *)
 
+local
+
+fun is_canceled_unsynchronized (Group {parent, status, ...}) =
+  is_some (! status) orelse
+    (case parent of NONE => false | SOME group => is_canceled_unsynchronized group);
+
+fun group_status_unsynchronized (Group {parent, status, ...}) =
+  the_list (! status) @
+    (case parent of NONE => [] | SOME group => group_status_unsynchronized group);
+
+val lock = Mutex.mutex ();
+fun SYNCHRONIZED e = Multithreading.synchronized "group_status" lock e;
+
+in
+
 fun cancel_group (Group {status, ...}) exn =
-  Synchronized.change status
-    (fn exns => SOME (Par_Exn.make (exn :: the_list exns)));
+  SYNCHRONIZED (fn () =>
+    Unsynchronized.change status (fn exns => SOME (Par_Exn.make (exn :: the_list exns))));
 
-fun is_canceled (Group {parent, status, ...}) =
-  is_some (Synchronized.value status) orelse
-    (case parent of NONE => false | SOME group => is_canceled group);
+fun is_canceled group =
+  SYNCHRONIZED (fn () => is_canceled_unsynchronized group);
 
-fun group_status (Group {parent, status, ...}) =
-  the_list (Synchronized.value status) @
-    (case parent of NONE => [] | SOME group => group_status group);
+fun group_status group =
+  SYNCHRONIZED (fn () => group_status_unsynchronized group);
+
+end;
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));
