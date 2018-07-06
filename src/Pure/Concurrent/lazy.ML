@@ -89,7 +89,11 @@ fun force_result (Value a) = Exn.Res a
                   (fn Expr (name, e) =>
                         let val x = Future.promise_name name I
                         in ((SOME (name, e), x), Result x) end
-                    | Result x => ((NONE, x), Result x));
+                    | Result x => ((NONE, x), Result x))
+                  handle exn as Fail _ =>
+                    (case Synchronized.value var of
+                      Expr _ => Exn.reraise exn
+                    | Result x => (NONE, x));
             in
               (case expr of
                 SOME (name, e) =>
@@ -102,7 +106,7 @@ fun force_result (Value a) = Exn.Res a
                     val _ =
                       if Exn.is_interrupt_exn res
                       then Synchronized.change var (fn _ => Expr (name, e))
-                      else Synchronized.change var (fn _ => Result (Future.value_result res));
+                      else Synchronized.assign var (Result (Future.value_result res));
                   in res end
               | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
             end) ());

@@ -9,6 +9,7 @@ sig
   type 'a var
   val var: string -> 'a -> 'a var
   val value: 'a var -> 'a
+  val assign: 'a var -> 'a -> unit
   val timed_access: 'a var -> ('a -> Time.time option) -> ('a -> ('b * 'a) option) -> 'b option
   val guarded_access: 'a var -> ('a -> ('b * 'a) option) -> 'b
   val change_result: 'a var -> ('a -> 'b * 'a) -> 'b
@@ -20,41 +21,66 @@ struct
 
 (* state variable *)
 
-abstype 'a var = Var of
- {name: string,
-  lock: Mutex.mutex,
-  cond: ConditionVar.conditionVar,
-  var: 'a Unsynchronized.ref}
+datatype 'a state =
+    Immutable of 'a
+  | Mutable of {lock: Mutex.mutex, cond: ConditionVar.conditionVar, content: 'a};
+
+fun init_state x =
+  Mutable {lock = Mutex.mutex (), cond = ConditionVar.conditionVar (), content = x};
+
+fun immutable_fail name = raise Fail ("Illegal access to immutable value " ^ name);
+
+abstype 'a var = Var of {name: string, state: 'a state Unsynchronized.ref}
 with
 
-fun var name x = Var
- {name = name,
-  lock = Mutex.mutex (),
-  cond = ConditionVar.conditionVar (),
-  var = Unsynchronized.ref x};
+fun var name x =
+  Var {name = name, state = Unsynchronized.ref (init_state x)};
 
-fun value (Var {name, lock, var, ...}) =
-  Multithreading.synchronized name lock (fn () => ! var);
+fun value (Var {name, state}) =
+  (case ! state of
+    Immutable x => x
+  | Mutable {lock, ...} =>
+      Multithreading.synchronized name lock (fn () =>
+        (case ! state of
+          Immutable x => x
+        | Mutable {content, ...} => content)));
+
+fun assign (Var {name, state}) x =
+  (case ! state of
+    Immutable _ => immutable_fail name
+  | Mutable {lock, cond, ...} =>
+      Multithreading.synchronized name lock (fn () =>
+        (case ! state of
+          Immutable _ => immutable_fail name
+        | Mutable _ =>
+            Thread_Attributes.uninterruptible (fn _ => fn () =>
+             (state := Immutable x; (* FIXME RunCall.clearMutableBit state; *)
+               ConditionVar.broadcast cond)) ())));
 
 
 (* synchronized access *)
 
-fun timed_access (Var {name, lock, cond, var}) time_limit f =
-  Multithreading.synchronized name lock (fn () =>
-    let
-      fun try_change () =
-        let val x = ! var in
-          (case f x of
-            NONE =>
-              (case Multithreading.sync_wait (time_limit x) cond lock of
-                Exn.Res true => try_change ()
-              | Exn.Res false => NONE
-              | Exn.Exn exn => Exn.reraise exn)
-          | SOME (y, x') =>
-              Thread_Attributes.uninterruptible (fn _ => fn () =>
-                (var := x'; ConditionVar.broadcast cond; SOME y)) ())
-        end;
-    in try_change () end);
+fun timed_access (Var {name, state}) time_limit f =
+  (case ! state of
+    Immutable _ => immutable_fail name
+  | Mutable {lock, cond, ...} =>
+      Multithreading.synchronized name lock (fn () =>
+        let
+          fun try_change () =
+            (case ! state of
+              Immutable _ => immutable_fail name
+            | Mutable {content = x, ...} =>
+                (case f x of
+                  NONE =>
+                    (case Multithreading.sync_wait (time_limit x) cond lock of
+                      Exn.Res true => try_change ()
+                    | Exn.Res false => NONE
+                    | Exn.Exn exn => Exn.reraise exn)
+                | SOME (y, x') =>
+                    Thread_Attributes.uninterruptible (fn _ => fn () =>
+                      (state := Mutable {lock = lock, cond = cond, content = x'};
+                        ConditionVar.broadcast cond; SOME y)) ()));
+        in try_change () end));
 
 fun guarded_access var f = the (timed_access var (fn _ => NONE) f);
 
