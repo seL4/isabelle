@@ -1418,8 +1418,22 @@ lemma MVT2:
   apply (blast dest: DERIV_unique order_less_imp_le)
   done
 
+lemma pos_deriv_imp_strict_mono:
+  assumes "\<And>x. (f has_real_derivative f' x) (at x)"
+  assumes "\<And>x. f' x > 0"
+  shows   "strict_mono f"
+proof (rule strict_monoI)
+  fix x y :: real assume xy: "x < y"
+  from assms and xy have "\<exists>z>x. z < y \<and> f y - f x = (y - x) * f' z"
+    by (intro MVT2) (auto dest: connectedD_interval)
+  then obtain z where z: "z > x" "z < y" "f y - f x = (y - x) * f' z" by blast
+  note \<open>f y - f x = (y - x) * f' z\<close>
+  also have "(y - x) * f' z > 0" using xy assms by (intro mult_pos_pos) auto
+  finally show "f x < f y" by simp
+qed
 
-text \<open>A function is constant if its derivative is 0 over an interval.\<close>
+
+subsubsection \<open>A function is constant if its derivative is 0 over an interval.\<close>
 
 lemma DERIV_isconst_end:
   fixes f :: "real \<Rightarrow> real"
@@ -1547,10 +1561,8 @@ next
     using neq by (force simp add: add.commute)
 qed
 
-text \<open>
-  A function with positive derivative is increasing.
-  A simple proof using the MVT, by Jeremy Avigad. And variants.
-\<close>
+subsubsection\<open>A function with positive derivative is increasing\<close>
+text \<open>A simple proof using the MVT, by Jeremy Avigad. And variants.\<close>
 lemma DERIV_pos_imp_increasing_open:
   fixes a b :: real
     and f :: "real \<Rightarrow> real"

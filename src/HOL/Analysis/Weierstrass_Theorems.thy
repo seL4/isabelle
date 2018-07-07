@@ -39,7 +39,7 @@ lemma binomial_deriv2:
 lemma sum_k_Bernstein [simp]: "(\<Sum>k\<le>n. real k * Bernstein n k x) = of_nat n * x"
   apply (subst binomial_deriv1 [of n x "1-x", simplified, symmetric])
   apply (simp add: sum_distrib_right)
-  apply (auto simp: Bernstein_def algebra_simps realpow_num_eq_if intro!: sum.cong)
+  apply (auto simp: Bernstein_def algebra_simps power_eq_if intro!: sum.cong)
   done
 
 lemma sum_kk_Bernstein [simp]: "(\<Sum>k\<le>n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
