@@ -77,7 +77,15 @@ proof -
     using inv_mult_group is_group assms(1) g(1) subgroup.mem_carrier by fastforce
   also have " ... =  (h1 \<otimes> (g \<otimes> inv g) \<otimes> inv h2)"
     using h1 h2 assms(1) g(1) inv_closed m_closed monoid.m_assoc
-          monoid_axioms subgroup.mem_carrier by smt
+          monoid_axioms subgroup.mem_carrier
+  proof -
+    have "h1 \<in> carrier G"
+      by (meson subgroup.mem_carrier assms(1) h1(1))
+    moreover have "h2 \<in> carrier G"
+      by (meson subgroup.mem_carrier assms(1) h2(1))
+    ultimately show ?thesis
+      using g(1) inv_closed m_assoc m_closed by presburger
+  qed
   finally have "r1 \<otimes> inv r2 = h1 \<otimes> inv h2"
     using assms(1) g(1) h1(1) subgroup.mem_carrier by fastforce
   thus "r1 \<otimes> inv r2 \<in> H" by (metis assms(1) h1(1) h2(1) subgroup_def)
@@ -210,7 +218,8 @@ proof
   thus "x <# H \<subseteq> H" unfolding l_coset_def by blast
 next
   have "\<And>h. h \<in> H \<Longrightarrow> x \<otimes> ((inv x) \<otimes> h) = h"
-    by (smt assms inv_closed l_one m_assoc r_inv subgroup.mem_carrier)
+    by (metis (no_types, lifting) assms group.inv_closed group.inv_solve_left is_group 
+              monoid.m_closed monoid_axioms subgroup.mem_carrier)
   moreover have "\<And>h. h \<in> H \<Longrightarrow> (inv x) \<otimes> h \<in> H"
     by (simp add: assms subgroup.m_closed subgroup.m_inv_closed)
   ultimately show "H \<subseteq> x <# H" unfolding l_coset_def by blast
@@ -293,7 +302,7 @@ lemma (in subgroup) rcosets_carrier:
 text \<open>Multiplication of general subsets\<close>
 
 lemma (in comm_group) mult_subgroups:
-  assumes "subgroup H G" and "subgroup K G"
+  assumes HG: "subgroup H G" and KG: "subgroup K G"
   shows "subgroup (H <#> K) G"
 proof (rule subgroup.intro)
   show "H <#> K \<subseteq> carrier G"
@@ -323,13 +332,16 @@ next
     then obtain h1 k1 h2 k2 where h1k1: "h1 \<in> H" "k1 \<in> K" "x = h1 \<otimes> k1"
                               and h2k2: "h2 \<in> H" "k2 \<in> K" "y = h2 \<otimes> k2"
       unfolding set_mult_def by blast
-    hence "x \<otimes> y = (h1 \<otimes> k1) \<otimes> (h2 \<otimes> k2)" by simp
+    with KG HG have carr: "k1 \<in> carrier G" "h1 \<in> carrier G" "k2 \<in> carrier G" "h2 \<in> carrier G"
+        by (meson subgroup.mem_carrier)+
+    have "x \<otimes> y = (h1 \<otimes> k1) \<otimes> (h2 \<otimes> k2)"
+      using h1k1 h2k2 by simp
     also have " ... = h1 \<otimes> (k1 \<otimes> h2) \<otimes> k2"
-      by (smt h1k1 h2k2 m_assoc m_closed assms subgroup.mem_carrier)
+        by (simp add: carr comm_groupE(3) comm_group_axioms)
     also have " ... = h1 \<otimes> (h2 \<otimes> k1) \<otimes> k2"
-      by (metis (no_types, hide_lams) assms m_comm h1k1(2) h2k2(1) subgroup.mem_carrier)
+      by (simp add: carr m_comm)
     finally have "x \<otimes> y  = (h1 \<otimes> h2) \<otimes> (k1 \<otimes> k2)"
-      by (smt assms h1k1 h2k2 m_assoc monoid.m_closed monoid_axioms subgroup.mem_carrier)
+      by (simp add: carr comm_groupE(3) comm_group_axioms)
     thus "x \<otimes> y \<in> H <#> K" unfolding set_mult_def
       using subgroup.m_closed[OF assms(1) h1k1(1) h2k2(1)]
             subgroup.m_closed[OF assms(2) h1k1(2) h2k2(2)] by blast
@@ -452,8 +464,15 @@ lemma (in group) l_repr_independence:
 proof -
   obtain h' where h': "h' \<in> H" "y = x \<otimes> h'"
     using assms(1) unfolding l_coset_def by blast
-  hence "\<And> h. h \<in> H \<Longrightarrow> x \<otimes> h = y \<otimes> ((inv h') \<otimes> h)"
-    by (smt assms(2-3) inv_closed inv_solve_right m_assoc m_closed subgroup.mem_carrier)
+  hence "x \<otimes> h = y \<otimes> ((inv h') \<otimes> h)" if "h \<in> H" for h
+  proof -
+    have f3: "h' \<in> carrier G"
+      by (meson assms(3) h'(1) subgroup.mem_carrier)
+    have f4: "h \<in> carrier G"
+      by (meson assms(3) subgroup.mem_carrier that)
+    then show ?thesis
+      by (metis assms(2) f3 h'(2) inv_closed inv_solve_right m_assoc m_closed)
+  qed
   hence "\<And> xh. xh \<in> x <# H \<Longrightarrow> xh \<in> y <# H"
     unfolding l_coset_def by (metis (no_types, lifting) UN_iff assms(3) h'(1) subgroup_def)
   moreover have "\<And> h. h \<in> H \<Longrightarrow> y \<otimes> h = x \<otimes> (h' \<otimes> h)"
@@ -494,7 +513,7 @@ proof
   proof
     fix x assume x: "x \<in> H" thus "x \<in> H <#> H" unfolding set_mult_def
       using subgroup.m_closed[OF assms subgroup.one_closed[OF assms] x] subgroup.one_closed[OF assms]
-      by (smt UN_iff assms coset_join3 l_coset_def subgroup.mem_carrier)
+      using assms subgroup.mem_carrier by force
   qed
 qed
 

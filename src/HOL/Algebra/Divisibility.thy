@@ -1654,8 +1654,10 @@ proof (induction cas cbs arbitrary: as bs rule: perm.induct)
     by (clarsimp simp add: map_eq_Cons_conv) blast
 next
   case (trans xs ys zs)
+  then obtain as' where " as <~~> as' \<and> map (assocs G) as' = ys"
+    by (metis (no_types, lifting) ex_map_conv mset_eq_perm set_mset_mset)
   then show ?case
-    by (smt ex_map_conv perm.trans perm_setP)
+    using trans.IH(2) trans.prems(2) by blast
 qed auto
 
 lemma (in comm_monoid_cancel) fmset_ee:

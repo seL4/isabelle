@@ -68,7 +68,7 @@ lemma (in group) normal_imp_subgroup_normalizer:
 proof-
   have N_carrierG : "N \<subseteq> carrier(G)"
     using assms normal_imp_subgroup subgroup.subset
-    by (smt monoid.cases_scheme order_trans partial_object.simps(1) partial_object.update_convs(1))
+    using incl_subgroup by blast
   {have "H \<subseteq> normalizer G N" unfolding normalizer_def stabilizer_def
     proof
       fix x assume xH : "x \<in> H"
@@ -113,8 +113,10 @@ proof-
       using B2 B3 assms l_coset_def by fastforce
     from this obtain y2 where y2_def:"y2 \<in> N" and y2_prop:"y2\<otimes>h1 = h1\<otimes>n2"
       using singletonD by (metis (no_types, lifting) UN_E r_coset_def)
-    have " x\<otimes>y =  n1 \<otimes> y2 \<otimes> h1 \<otimes> h2" using y2_def B2 B3
-      by (smt assms y2_prop m_assoc m_closed normal_imp_subgroup subgroup.mem_carrier)
+    have "\<And>a. a \<in> N \<Longrightarrow> a \<in> carrier G"  "\<And>a. a \<in> H \<Longrightarrow> a \<in> carrier G"
+      by (meson assms normal_def subgroup.mem_carrier)+
+    then have "x\<otimes>y =  n1 \<otimes> y2 \<otimes> h1 \<otimes> h2" using y2_def B2 B3
+      by (metis (no_types) B2 B3 \<open>\<And>a. a \<in> N \<Longrightarrow> a \<in> carrier G\<close> m_assoc m_closed y2_def y2_prop)
     moreover have B4 :"n1 \<otimes> y2 \<in>N"
       using B2 y2_def assms normal_imp_subgroup by (metis subgroup_def)
     moreover have "h1 \<otimes> h2 \<in>H" using B2 B3 assms by (simp add: subgroup.m_closed)

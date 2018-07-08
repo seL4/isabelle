@@ -235,7 +235,8 @@ proof -
   hence "inv k \<otimes> (k \<otimes> a) \<in> Span K Us"
     using Span_smult_closed[OF assms _ ka] by simp
   thus ?thesis
-    using inv_k subring_props(1)a k by (smt DiffD1 l_one m_assoc set_rev_mp)
+    using inv_k subring_props(1)a k
+    by (metis (no_types, lifting) DiffE l_one m_assoc subset_iff)
 qed
 
 

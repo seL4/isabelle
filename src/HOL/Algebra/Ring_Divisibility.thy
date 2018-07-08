@@ -216,7 +216,7 @@ proof
     proof (rule ccontr)
       assume "\<not> carrier R \<noteq> PIdl p" hence "carrier R = PIdl p" by simp
       then obtain c where "c \<in> carrier R" "c \<otimes> p = \<one>"
-        unfolding cgenideal_def using one_closed by (smt mem_Collect_eq)
+        unfolding cginideal_def' by (metis (no_types, lifting) image_iff one_closed)
       hence "p \<in> Units R" unfolding Units_def using m_comm assms by auto
       thus False using A unfolding prime_def by simp
     qed

@@ -854,14 +854,13 @@ corollary ring_iso_trans: "\<lbrakk> R \<simeq> S; S \<simeq> Q \<rbrakk> \<Long
   using ring_iso_set_trans unfolding is_ring_iso_def by blast 
 
 lemma ring_iso_set_sym:
-  assumes "ring R"
-  shows "h \<in> ring_iso R S \<Longrightarrow> (inv_into (carrier R) h) \<in> ring_iso S R"
+  assumes "ring R" and h: "h \<in> ring_iso R S"
+  shows "(inv_into (carrier R) h) \<in> ring_iso S R"
 proof -
-  assume h: "h \<in> ring_iso R S"
-  hence h_hom:  "h \<in> ring_hom R S"
+  have h_hom: "h \<in> ring_hom R S"
     and h_surj: "h ` (carrier R) = (carrier S)"
     and h_inj:  "\<And> x1 x2. \<lbrakk> x1 \<in> carrier R; x2 \<in> carrier R \<rbrakk> \<Longrightarrow>  h x1 = h x2 \<Longrightarrow> x1 = x2"
-    unfolding ring_iso_def bij_betw_def inj_on_def by auto
+    using h unfolding ring_iso_def bij_betw_def inj_on_def by auto
 
   have h_inv_bij: "bij_betw (inv_into (carrier R) h) (carrier S) (carrier R)"
       using bij_betw_inv_into h ring_iso_def by fastforce
@@ -869,13 +868,12 @@ proof -
   show "inv_into (carrier R) h \<in> ring_iso S R"
     apply (rule ring_iso_memI)
     apply (simp add: h_surj inv_into_into)
-    apply (auto simp add: h_inv_bij)
-    apply (smt assms f_inv_into_f h_hom h_inj h_surj inv_into_into
-           ring.ring_simprules(5) ring_hom_closed ring_hom_mult)
-    apply (smt assms f_inv_into_f h_hom h_inj h_surj inv_into_into
-           ring.ring_simprules(1) ring_hom_add ring_hom_closed)
-    by (metis (no_types, hide_lams) assms f_inv_into_f h_hom h_inj
-        imageI inv_into_into ring.ring_simprules(6) ring_hom_one)
+       apply (auto simp add: h_inv_bij)
+    using ring_iso_memE [OF h] bij_betwE [OF h_inv_bij] 
+    apply (simp_all add: \<open>ring R\<close> bij_betw_def bij_betw_inv_into_right inv_into_f_eq ring.ring_simprules(5))
+    using ring_iso_memE [OF h] bij_betw_inv_into_right [of h "carrier R" "carrier S"]
+    apply (simp add: \<open>ring R\<close> inv_into_f_eq ring.ring_simprules(1))
+    by (simp add: \<open>ring R\<close> inv_into_f_eq ring.ring_simprules(6))
 qed
 
 corollary ring_iso_sym:

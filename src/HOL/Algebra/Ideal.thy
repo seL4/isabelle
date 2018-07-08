@@ -348,7 +348,10 @@ qed
 text \<open>Generation of Principal Ideals in Commutative Rings\<close>
 
 definition cgenideal :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set"  ("PIdl\<index> _" [80] 79)
-  where "cgenideal R a = {x \<otimes>\<^bsub>R\<^esub> a | x. x \<in> carrier R}"
+  where "cgenideal R a \<equiv> {x \<otimes>\<^bsub>R\<^esub> a | x. x \<in> carrier R}"
+
+lemma cginideal_def': "cgenideal R a = (\<lambda>x. x \<otimes>\<^bsub>R\<^esub> a) ` carrier R"
+  by (auto simp add: cgenideal_def)
 
 text \<open>genhideal (?) really generates an ideal\<close>
 lemma (in cring) cgenideal_ideal:

@@ -328,7 +328,7 @@ qed
 
 
 
-abbreviation three_cycles :: "nat \<Rightarrow> (nat \<Rightarrow> nat) set"
+definition three_cycles :: "nat \<Rightarrow> (nat \<Rightarrow> nat) set"
   where "three_cycles n \<equiv>
            { cycle_of_list cs | cs. cycle cs \<and> length cs = 3 \<and> set cs \<subseteq> {1..n} }"
 
@@ -354,7 +354,8 @@ proof
       proof -
         from \<open>p \<in> three_cycles n\<close>
         obtain cs where p: "p = cycle_of_list cs"
-                    and cs: "cycle cs" "length cs = 3" "set cs \<subseteq> {1..n}" by blast
+                    and cs: "cycle cs" "length cs = 3" "set cs \<subseteq> {1..n}"
+          using three_cycles_def by blast
         hence "p = (Fun.swap (cs ! 0) (cs ! 1) id) \<circ> (Fun.swap (cs ! 1) (cs ! 2) id)"
           using stupid_lemma[OF cs(2)] p
           by (metis comp_id cycle_of_list.simps(1) cycle_of_list.simps(3)) 
@@ -395,12 +396,16 @@ next
           thus "q \<in> generate (alt_group n) (three_cycles n)"
             using generate.one[of "alt_group n"] by (simp add: alt_group_def sym_group_def)
         next
-          assume "c \<noteq> a" hence "q \<in> (three_cycles n)"
-            by (smt A distinct.simps(2) distinct_singleton empty_set length_Cons
-                list.simps(15) list.size(3) mem_Collect_eq numeral_3_eq_3 set_ConsD)
+          assume "c \<noteq> a" 
+          have "q \<in> (three_cycles n)"
+            unfolding three_cycles_def mem_Collect_eq
+          proof (intro exI conjI)
+            show "cycle [a,b,c]"
+              using A \<open>c \<noteq> a\<close> by auto
+          qed (use A in auto)
           thus "q \<in> generate (alt_group n) (three_cycles n)"
             by (simp add: generate.incl)
-        qed } note aux_lemma1 = this
+        qed } note gen3 = this
       
       { fix S :: "nat set" and q :: "nat \<Rightarrow> nat" assume A: "swapidseq_ext S 2 q" "S \<subseteq> {1..n}"
         have "q \<in> generate (alt_group n) (three_cycles n)"
@@ -416,20 +421,20 @@ next
           thus ?thesis
           proof (cases)
             assume Eq: "b = c" hence "q = cycle_of_list [a, b, d]" by (simp add: q)
-            thus ?thesis using aux_lemma1 ab cd Eq incl by simp
+            thus ?thesis using gen3 ab cd Eq incl by simp
           next
             assume In: "b \<noteq> c"
             have "q = (cycle_of_list [a, b, c]) \<circ> (cycle_of_list [b, c, d])"
               by (metis (no_types, lifting) comp_id cycle_of_list.simps(1)
                   cycle_of_list.simps(3) fun.map_comp q swap_id_idempotent)
-            thus ?thesis
-              using aux_lemma1[of a b c] aux_lemma1[of b c d]
-                    generate.eng[where ?h1.0 = "cycle_of_list [a, b, c]"
-                                   and ?h2.0 = "cycle_of_list [b, c, d]"]
-              using In ab alt_group_def cd sym_group_def incl
-              by (smt insert_subset monoid.select_convs(1) partial_object.simps(3)) 
+            moreover have "... = cycle_of_list [a, b, c] \<otimes>\<^bsub>alt_group n\<^esub> cycle_of_list [b, c, d]"
+              by (simp add: alt_group_def sym_group_def)
+            ultimately show ?thesis
+              by (metis (no_types) In generate.eng[where ?h1.0 = "cycle_of_list [a, b, c]"
+                    and ?h2.0 = "cycle_of_list [b, c, d]"]
+                  gen3[of a b c] gen3[of b c d] \<open>a \<noteq> b\<close> \<open>c \<noteq> d\<close> insert_subset incl)
           qed
-        qed } note aux_lemma2 = this
+        qed } note gen3swap = this
       
       have "p permutes {1..n}"
         using p permutation_permutes unfolding alt_group_def by auto
@@ -452,19 +457,17 @@ next
         case (Suc k)
         then obtain S1 S2 q r
           where split: "swapidseq_ext S1 2 q" "swapidseq_ext S2 (2 * k) r" "p = q \<circ> r" "S1 \<union> S2 = {1..n}"
-          using split_swapidseq_ext[of 2 "2 * Suc k" "{1..n}" p]
-          by (smt One_nat_def Suc_1 Suc_leI Suc_le_mono add_diff_cancel_left' le_Suc_eq
-              mult_Suc_right nat_mult_eq_1_iff one_le_mult_iff zero_less_Suc)
+          using split_swapidseq_ext[of 2 "2 * Suc k" "{1..n}" p]  by auto
 
         hence "r \<in> generate (alt_group n) (three_cycles n)"
           using Suc.hyps swapidseq_ext_finite_expansion[of "{1..n}" S2 "2 * k" r]
           by (metis (no_types, lifting) Suc.prems Un_commute sup.right_idem swapidseq_ext_finite)
 
         moreover have "q \<in> generate (alt_group n) (three_cycles n)"
-          using aux_lemma2[OF split(1)] \<open>S1 \<union> S2 = {1..n}\<close> by auto
+          using gen3swap[OF split(1)] \<open>S1 \<union> S2 = {1..n}\<close> by auto
         ultimately show ?case
           using split generate.eng[of q "alt_group n" "three_cycles n" r]
-          by (smt alt_group_def monoid.select_convs(1) partial_object.simps(3) sym_group_def)
+          by (metis (full_types) alt_group_def monoid.simps(1) partial_object.simps(3) sym_group_def)
       qed
     qed
   qed
@@ -530,7 +533,8 @@ next
     proof
       fix p :: "nat \<Rightarrow> nat" assume "p \<in> three_cycles n"
       then obtain cs
-        where cs: "cycle cs" "length cs = 3" "set cs \<subseteq> {1..n}" and p: "p = cycle_of_list cs" by blast
+        where cs: "cycle cs" "length cs = 3" "set cs \<subseteq> {1..n}" and p: "p = cycle_of_list cs"
+        unfolding three_cycles_def by blast
       then obtain i j k where i: "i = cs ! 0" and j: "j = cs ! 1" and k: "k = cs ! 2"
                           and ijk: "cs = [i, j, k]" using stupid_lemma[OF cs(2)] by blast
 
@@ -559,10 +563,10 @@ next
           ultimately show ?thesis using \<open>l \<in> {i, j, k}\<close> by auto
         qed
       qed
-      hence "p ^^ 2 = (Fun.swap j k id) \<circ> (cycle_of_list [i, j, k]) \<circ> (inv' (Fun.swap j k id))"
+      hence p2: "p ^^ 2 = (Fun.swap j k id) \<circ> (cycle_of_list [i, j, k]) \<circ> (inv' (Fun.swap j k id))"
         using conjugation_of_cycle[of "[i, j, k]" "Fun.swap j k id"] cs(1) ijk by auto
 
-      moreover have "card ({1..n} - {i, j, k}) \<ge> card {1..n} - card {i, j, k}"
+      have "card ({1..n} - {i, j, k}) \<ge> card {1..n} - card {i, j, k}"
         by (meson diff_card_le_card_Diff finite.emptyI finite.insertI)
       hence card_ge_two: "card ({1..n} - {i, j, k}) \<ge> 2"
         using assms cs ijk by simp
@@ -570,21 +574,35 @@ next
         using elts_from_card[OF card_ge_two] by blast  
       then obtain g h where gh: "g = f 1" "h = f 2" "g \<noteq> h"
         by (metis Suc_1 atLeastAtMost_iff diff_Suc_1 diff_Suc_Suc inj_onD nat.simps(3) one_le_numeral order_refl)
-      hence g: "g \<in> {1..n} - {i, j, k}" using f(2) gh(2) by force
-      hence h: "h \<in> {1..n} - {i, j, k}" using f(2) gh(2) by force
+      hence g: "g \<in> {1..n} - {i, j, k}" and h: "h \<in> {1..n} - {i, j, k}" using f(2) gh(2) by force+
       hence gh_simps: "g \<noteq> h \<and> g \<in> {1..n} \<and> h \<in> {1..n} \<and> g \<notin> {i, j, k} \<and> h \<notin> {i, j, k}"
         using g gh(3) by blast
-
-      ultimately have final_step:
+      moreover have ijjk: "Fun.swap i j id = Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id)"
+               and jkij: "Fun.swap j k id \<circ> (Fun.swap i j id \<circ> Fun.swap j k id) \<circ> inv' (Fun.swap j k id) = Fun.swap g h (Fun.swap g h (Fun.swap i j (Fun.swap j k id)))"
+        by (simp_all add: comp_swap inv_swap_id)
+      moreover have "Fun.swap g h (Fun.swap i j id) = Fun.swap i j (Fun.swap g h id)"
+        by (metis (no_types) comp_id comp_swap gh_simps insert_iff swap_id_independent)
+      moreover have "Fun.swap i j (Fun.swap g h (Fun.swap j k id \<circ> id)) = Fun.swap g h (Fun.swap i j (Fun.swap j k id))"
+        by (metis (no_types) calculation(4) comp_id comp_swap)
+      moreover have "inj (Fun.swap j k id)" "bij (Fun.swap g h id)" "bij (Fun.swap j k id)"
+        by auto
+      moreover have "Fun.swap j k id \<circ> inv' (Fun.swap j k id \<circ> Fun.swap g h id) = Fun.swap g h id"
+        by (metis (no_types) bij_betw_id bij_swap_iff comp_id comp_swap gh_simps insert_iff inv_swap_id o_inv_distrib swap_id_independent swap_nilpotent)
+      moreover have "Fun.swap j k id \<circ> (Fun.swap j k id \<circ> (Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id) \<circ> Fun.swap j k id)) \<circ> inv' (Fun.swap j k id) = Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id)"
+        by (simp add: comp_swap inv_swap_id)
+      moreover have "Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id) \<circ> Fun.swap j k id = Fun.swap j k id \<circ> (Fun.swap j k id \<circ> (Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id) \<circ> Fun.swap j k id))"
+        by (simp add: comp_swap inv_swap_id)
+      moreover have "Fun.swap g h id \<circ> (Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id) \<circ> Fun.swap j k id) \<circ> inv' (Fun.swap j k id \<circ> Fun.swap g h id) = Fun.swap j k id \<circ> (Fun.swap j k id \<circ> (Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id) \<circ> Fun.swap j k id)) \<circ> inv' (Fun.swap j k id)"
+        by (metis calculation(10) calculation(4) calculation(9) comp_assoc comp_id comp_swap swap_nilpotent)
+      ultimately have "Fun.swap i j (Fun.swap j k id) = Fun.swap j k id \<circ> Fun.swap g h id \<circ> (Fun.swap j k id \<circ> Fun.swap i j (Fun.swap j k id) \<circ> Fun.swap j k id) \<circ> inv' (Fun.swap j k id \<circ> Fun.swap g h id)"
+        by (simp add: comp_assoc)
+      then have final_step:
         "p ^^ 2 = ((Fun.swap j k id) \<circ> (Fun.swap g h id)) \<circ>
                   (cycle_of_list [i, j, k]) \<circ>
                   (inv' ((Fun.swap j k id) \<circ> (Fun.swap g h id)))"
-        by (smt bij_id bij_swap_iff comp_id cycle_of_list.simps(1) cycle_of_list.simps(3)
-            fun.map_comp insertCI inv_swap_id o_inv_distrib o_inv_o_cancel surj_id
-            surj_imp_inj_inv surj_imp_surj_swap swap_id_independent)
-      
-      define q where "q = (Fun.swap j k id) \<circ> (Fun.swap g h id)"
+        using ijjk jkij by (auto simp: p2)
 
+      define q where "q \<equiv> (Fun.swap j k id) \<circ> (Fun.swap g h id)"
       hence "(p \<circ> p) = q \<circ> p \<circ> (inv' q)"
         by (metis final_step One_nat_def Suc_1 comp_id funpow.simps(2) funpow_simps_right(1) ijk p)
       hence "(p \<circ> p) \<circ> (inv' p) = q \<circ> p \<circ> (inv' q) \<circ> (inv' p)" by simp
@@ -632,7 +650,8 @@ proof (rule ccontr)
   have "set [1 :: nat, 2, 3] \<subseteq> {1..n}" using assms by auto
   moreover have "cycle [1 :: nat, 2, 3]" by simp
   moreover have "length [1 :: nat, 2, 3] = 3" by simp
-  ultimately have "cycle_of_list [1 :: nat, 2, 3] \<in> three_cycles n" by blast
+  ultimately have "cycle_of_list [1 :: nat, 2, 3] \<in> three_cycles n"
+    unfolding three_cycles_def by blast
   hence "cycle_of_list [1 :: nat, 2, 3] \<in> carrier (alt_group n)"
     using alt_group_as_three_cycles by (simp add: generate.incl)
 
