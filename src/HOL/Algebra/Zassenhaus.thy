@@ -382,6 +382,8 @@ next
       using subgroup.subset assms inv_closed xHK by auto
     have allG : "H \<subseteq> carrier G" "K \<subseteq> carrier G" "H1 \<subseteq> carrier G"  "K1 \<subseteq> carrier G"
       using assms subgroup.subset normal_imp_subgroup incl_subgroup apply blast+ .
+    have HK1: "H \<inter> K1 \<subseteq> carrier G"
+      by (simp add: allG(1) le_infI1)
     have HK1_normal: "H\<inter>K1 \<lhd> (G\<lparr>carrier :=  H \<inter> K\<rparr>)" using normal_inter[OF assms(3)assms(1)assms(4)]
       by (simp add : inf_commute)
     have "H \<inter> K \<subseteq> normalizer G (H \<inter> K1)"
@@ -400,7 +402,7 @@ next
     also have "... = ({x} <#> H1) <#> {inv x} <#> ({x} <#>  H \<inter> K1 <#> {inv x})"
       by (simp add : r_coset_eq_set_mult l_coset_eq_set_mult)
     also have "... = ({x} <#> H1 <#> {inv x} <#> {x}) <#>  (H \<inter> K1 <#> {inv x})"
-      by (smt Int_lower1 allG xG set_mult_assoc subset_trans setmult_subset_G)
+      using HK1 allG(3) set_mult_assoc setmult_subset_G xG(1) by auto
     also have "... = ({x} <#> H1 <#> {\<one>}) <#>  (H \<inter> K1 <#> {inv x})"
       using allG xG coset_mult_assoc by (simp add: r_coset_eq_set_mult setmult_subset_G)
     also have "... =({x} <#> H1) <#>  (H \<inter> K1 <#> {inv x})"
@@ -490,6 +492,8 @@ proof-
     hence x_def : "x \<in> H1 <#> H \<inter> K" by simp
     from this obtain h1 hk where h1hk_def :"h1 \<in> H1" "hk \<in> H \<inter> K" "h1 \<otimes> hk = x"
       unfolding set_mult_def by blast
+    have HK1: "H \<inter> K1 \<subseteq> carrier G"
+      by (simp add: all_inclG(1) le_infI1)
     have xH : "x \<in> H" using subgroup.subset[OF subH1] using x_def by auto
     hence allG : "h1 \<in> carrier G" "hk \<in> carrier G" "x \<in> carrier G"
       using assms subgroup.subset h1hk_def normal_imp_subgroup incl_subgroup apply blast+.
@@ -502,14 +506,14 @@ proof-
       using set_mult_assoc all_inclG allG by (simp add: l_coset_eq_set_mult inf.coboundedI1)
     also have "... = h1 <# (hk <# H1 #> \<one> <#> H\<inter>K1 #> \<one>)"
       using coset_mult_one allG all_inclG l_coset_subset_G
-      by (smt inf_le2 setmult_subset_G subset_trans)
+      by (simp add: inf.coboundedI2 setmult_subset_G)
     also have "... = h1 <# (hk <# H1 #> inv hk #> hk <#> H\<inter>K1 #> inv hk #> hk)"
       using all_inclG allG coset_mult_assoc l_coset_subset_G
       by (simp add: inf.coboundedI1 setmult_subset_G)
-    finally  have "x <#\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> (H1 <#> H \<inter> K1) =
-                    h1 <# ((hk <# H1 #> inv hk) <#> (hk <# H\<inter>K1 #> inv hk) #> hk)"
-      using rcos_assoc_lcos allG all_inclG
-      by (smt inf_le1 inv_closed l_coset_subset_G r_coset_subset_G setmult_rcos_assoc subset_trans)
+    finally have "x <#\<^bsub>G\<lparr>carrier := H1 <#> H \<inter> K\<rparr>\<^esub> (H1 <#> H \<inter> K1) 
+                  = h1 <# ((hk <# H1 #> inv hk) <#> (hk <# H\<inter>K1 #> inv hk) #> hk)"
+      using rcos_assoc_lcos allG all_inclG HK1
+      by (simp add: l_coset_subset_G r_coset_subset_G setmult_rcos_assoc)
     moreover have "H \<subseteq>  normalizer G H1"
       using assms h1hk_def subgroup.subset[OF normal_imp_subgroup_normalizer] by simp
     hence "\<And>g. g \<in> H \<Longrightarrow>  g \<in> {g \<in> carrier G. (\<lambda>H\<in>{H. H \<subseteq> carrier G}. g <# H #> inv g) H1 = H1}"

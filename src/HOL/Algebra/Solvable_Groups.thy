@@ -70,6 +70,8 @@ proof -
                       "comm_group ((G \<lparr> carrier := H \<rparr>) Mod K)"
     have "derived G H \<subseteq> K"
     proof -
+      have Hcarr: "\<And>a. a \<in> H \<Longrightarrow> a \<in> carrier G"
+        by (meson A(4) subgroup.mem_carrier)
       have "derived_set G H \<subseteq> K"
       proof
         fix h assume "h \<in> derived_set G H"
@@ -91,15 +93,19 @@ proof -
         finally have "K #>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> (h1 \<otimes> h2) = K #>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> (h2 \<otimes> h1)"
           using normal.rcos_sum[OF A(2),of h2 h1] h12(1-2) by simp
 
-        moreover have "h1 \<otimes> h2 \<in> H" and "h2 \<otimes> h1 \<in> H"
+        moreover have h12H: "h1 \<otimes> h2 \<in> H" and "h2 \<otimes> h1 \<in> H"
           using h12 subgroupE(4)[OF A(4)] by auto
         ultimately have "K #> (h1 \<otimes> h2) = K #> (h2 \<otimes> h1)" by auto
 
         then obtain k where k: "k \<in> K" "\<one> \<otimes> (h1 \<otimes> h2) = k \<otimes> (h2 \<otimes> h1)"
           using subgroup.one_closed[OF A(3)] unfolding r_coset_def by blast
         hence "(h1 \<otimes> h2) \<otimes> (inv h1 \<otimes> inv h2) = k"
-          by (smt A(1) A(4) h12(1-2) inv_mult_group inv_solve_right
-              l_one m_closed subgroup.mem_carrier subsetCE)
+        proof -
+          have "k \<in> carrier G"
+            by (meson A(3) k(1) subgroup.mem_carrier)
+          with Hcarr h12 show ?thesis
+            by (metis h12H inv_mult_group inv_solve_right k(2) r_cancel_one' subgroup_def subgroup_self)
+        qed
         hence "h = k" using h12
           by (meson A(4) \<open>h1 \<otimes> h2 \<in> H\<close> inv_closed m_assoc subgroup.mem_carrier)
         thus "h \<in> K" using k(1) by simp
@@ -237,6 +243,8 @@ proof -
   { fix K assume A: "K \<subseteq> carrier G"
     have "derived H (h ` K) = h ` (derived G K)"
     proof -
+      have Kcarr: "\<And>a. a \<in> K \<Longrightarrow> a \<in> carrier G"
+        by (metis (no_types) A subsetCE)
       have "derived_set H (h ` K) = h ` (derived_set G K)"
       proof
         show "derived_set H (h ` K) \<subseteq> h ` derived_set G K"
@@ -244,9 +252,14 @@ proof -
           fix x assume "x \<in> derived_set H (h ` K)"
           then obtain k1 k2
             where k12: "k1 \<in> K" "k2 \<in> K"
-              and "x = (h k1) \<otimes>\<^bsub>H\<^esub> (h k2) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k1) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub>(h k2)" by blast
+              and xeq: "x = (h k1) \<otimes>\<^bsub>H\<^esub> (h k2) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k1) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub>(h k2)" by blast
           hence "x = h (k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2)"
-            by (smt G.inv_closed G.m_closed A hom_inv hom_mult subsetCE)
+          proof -
+            have "k1 \<in> carrier G" "k2 \<in> carrier G"
+              using A \<open>k1 \<in> K\<close> \<open>k2 \<in> K\<close> by blast+
+            then show ?thesis
+              using G.inv_closed G.m_closed xeq hom_inv hom_mult by presburger
+          qed
           thus "x \<in> h ` (derived_set G K)" using k12 by blast
         qed
       next
@@ -256,7 +269,7 @@ proof -
           then obtain k1 k2 where k12: "k1 \<in> K" "k2 \<in> K"
                               and "x = h (k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2)" by blast
           hence "x = (h k1) \<otimes>\<^bsub>H\<^esub> (h k2) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k1) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub>(h k2)"
-            by (smt G.inv_closed G.m_closed A hom_inv hom_mult subsetCE)
+            by (metis (no_types) Kcarr G.inv_closed G.m_closed hom_inv hom_mult)
           thus "x \<in> derived_set H (h ` K)" using k12 by blast
         qed
       qed

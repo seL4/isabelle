@@ -297,26 +297,27 @@ subsection\<open>Basic Properties of Generated Groups - Second Part\<close>
 
 lemma (in group) generate_pow:
   assumes "a \<in> carrier G"
-  shows "generate G { a } = { a [^] k | k. k \<in> (UNIV :: int set) }"
+  shows "generate G { a } = range (\<lambda>k::int. a [^] k)" (is "?lhs = ?rhs")
 proof
-  show "generate G { a } \<subseteq> { a [^] k | k. k \<in> (UNIV :: int set) }"
+  show "?lhs \<subseteq> ?rhs"
   proof
-    fix h  show "h \<in> generate G { a } \<Longrightarrow> h \<in> { a [^] k | k. k \<in> (UNIV :: int set) }"
+    fix h  show "h \<in> generate G { a } \<Longrightarrow> h \<in> range (\<lambda>k::int. a [^] k)"
     proof (induction rule: generate.induct)
-      case one thus ?case by (metis (mono_tags, lifting) UNIV_I int_pow_0 mem_Collect_eq)
+      case one thus ?case
+        by (metis (full_types) int_pow_0 rangeI) 
     next
       case (incl h) hence "h = a" by auto thus ?case
-        by (metis (mono_tags, lifting) CollectI UNIV_I assms group.int_pow_1 is_group)
+        by (metis \<open>h = a\<close> assms group.int_pow_1 is_group rangeI)
     next
       case (inv h) hence "h = a" by auto thus ?case
-        by (metis (mono_tags, lifting) mem_Collect_eq UNIV_I assms group.int_pow_1 int_pow_neg is_group)
+        by (metis (mono_tags) rangeI assms group.int_pow_1 int_pow_neg is_group)
     next
       case (eng h1 h2) thus ?case
-        by (smt assms group.int_pow_mult is_group iso_tuple_UNIV_I mem_Collect_eq)
+        using assms is_group   by (auto simp: image_iff simp flip: int_pow_mult)
     qed
   qed
 
-  show "{ a [^] k | k. k \<in> (UNIV :: int set) } \<subseteq> generate G { a }"
+  show "?rhs \<subseteq> ?lhs"
   proof
     { fix k :: "nat" have "a [^] k \<in> generate G { a }"
       proof (induction k)
@@ -325,16 +326,18 @@ proof
         case (Suc k) thus ?case by (simp add: generate.eng generate.incl)
       qed } note aux_lemma = this
 
-    fix h assume "h \<in> { a [^] k | k. k \<in> (UNIV :: int set) }"
+    fix h assume "h \<in> ?rhs"
     then obtain k :: "nat" where "h = a [^] k \<or> h = inv (a [^] k)"
-      by (smt group.int_pow_def2 is_group mem_Collect_eq)
+      by (auto simp: int_pow_def2)
     thus "h \<in> generate G { a }" using aux_lemma
       using assms generate_m_inv_closed by auto
   qed
 qed
 
+(*  { a [^] k | k. k \<in> (UNIV :: int set) } *)
+
 corollary (in group) generate_one: "generate G { \<one> } = { \<one> }"
-  using generate_pow[of "\<one>", OF one_closed] by simp
+  using generate_pow[of "\<one>", OF one_closed] by auto
 
 corollary (in group) generate_empty: "generate G {} = { \<one> }"
   using mono_generate[of "{}" "{ \<one> }"] generate_one generate.one one_closed by blast
@@ -425,9 +428,12 @@ proof -
         proof -
           obtain h1 h2 where h1: "h1 \<in> H" and h2: "h2 \<in> H" and h: "h = h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2"
             using A by blast
-          hence "h = (h1 \<otimes> inv h1) \<otimes> (h2 \<otimes> inv h2)" using assms
-            by (smt inv_closed inv_mult m_assoc m_closed r_inv set_rev_mp)
-          thus ?thesis using h1 h2 assms by (metis contra_subsetD one_closed r_inv r_one)
+          then have "h1 \<in> carrier G" "h2 \<in> carrier G"
+            using assms by auto
+          then have "\<one> = h"
+            by (metis \<open>h1 \<in> carrier G\<close> \<open>h2 \<in> carrier G\<close> h inv_closed inv_mult m_assoc m_closed r_inv)
+          then show ?thesis
+            using \<open>h1 \<in> carrier G\<close> \<open>h2 \<in> carrier G\<close> by force
         qed } note aux_lemma = this
       show ?thesis
       proof
@@ -585,8 +591,15 @@ proof -
       case 0 thus ?case using A by simp
     next
       case (Suc n) thus ?case
-        using aux_lemma1 derived_self_is_normal funpow_simps_right(2) funpow_swap1
-                normal_def o_apply order.trans order_refl subgroup.subset by smt
+        using aux_lemma1 derived_self_is_normal  normal_def o_apply  
+      proof auto  (*FIXME a mess*)
+        fix x :: 'a
+        assume a1: "derived G (carrier G) \<lhd> G"
+        assume a2: "x \<in> derived G ((derived G ^^ n) I)"
+        assume "\<And>Ja Ia. \<lbrakk>Ja \<subseteq> carrier G; Ia \<subseteq> Ja\<rbrakk> \<Longrightarrow> derived G Ia \<subseteq> derived G Ja"
+        then show "x \<in> carrier G"
+          using a2 a1 by (meson Suc.IH normal_def order_refl subgroup.subset subsetCE)
+      qed
     qed } note aux_lemma2 = this
 
   show ?thesis

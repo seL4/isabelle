@@ -454,23 +454,22 @@ proof (cases)
       using n_ge nat_pow_pow[OF assms, of "nat n" "nat m"] int_pow_def2
       by (simp add: mult_less_0_iff nat_mult_distrib)
   next
-    assume m_lt: "\<not> m \<ge> 0" thus ?thesis
-      using n_ge int_pow_def2 nat_pow_pow[OF assms, of "nat n" "nat (- m)"]
-      by (smt assms group.int_pow_neg is_group mult_minus_right nat_mult_distrib split_mult_neg_le)
+    assume m_lt: "\<not> m \<ge> 0" 
+    with n_ge show ?thesis
+      apply (simp add: int_pow_def2 mult_less_0_iff)
+      by (metis assms mult_minus_right n_ge nat_mult_distrib nat_pow_pow)
   qed
 next
   assume n_lt: "\<not> n \<ge> 0" thus ?thesis
   proof (cases)
-    assume m_ge: "m \<ge> 0" thus ?thesis
-      using n_lt nat_pow_pow[OF assms, of "nat (- n)" "nat m"]
-            nat_pow_inv[of "x [^] nat (- n)" "nat m"] int_pow_def2
-      by (smt assms group.int_pow_closed group.int_pow_neg is_group mult_minus_right
-          mult_nonpos_nonpos nat_mult_distrib_neg)
+    assume m_ge: "m \<ge> 0" 
+    have "inv x [^] (nat m * nat (- n)) = inv x [^] nat (- (m * n))"
+      by (metis (full_types) m_ge mult_minus_right nat_mult_distrib)
+    with m_ge n_lt show ?thesis
+      by (simp add: int_pow_def2 mult_less_0_iff assms mult.commute nat_pow_inv nat_pow_pow)
   next
     assume m_lt: "\<not> m \<ge> 0" thus ?thesis
-      using n_lt nat_pow_pow[OF assms, of "nat (- n)" "nat (- m)"]
-            nat_pow_inv[of "x [^] nat (- n)" "nat (- m)"] int_pow_def2
-      by (smt assms inv_inv mult_nonpos_nonpos nat_mult_distrib_neg nat_pow_closed)
+      using n_lt by (auto simp: int_pow_def2 mult_less_0_iff assms nat_mult_distrib_neg nat_pow_inv nat_pow_pow)
   qed
 qed
 
@@ -698,8 +697,9 @@ proof (intro submonoid_subgroupI[OF monoid_incl_imp_submonoid[OF assms(1)]])
   hence "a \<otimes> inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> a= \<one>"
     using aH assms group.inv_closed[OF assms(2)] ab_eq by simp
   ultimately have "inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> a = inv a"
-    by (smt aH assms(1) contra_subsetD group.inv_inv is_group local.inv_equality)
-  moreover have "inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> a \<in> H" using aH group.inv_closed[OF assms(2)] by auto
+    by (metis aH assms(1) contra_subsetD group.inv_inv is_group local.inv_equality)
+  moreover have "inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> a \<in> H" 
+    using aH group.inv_closed[OF assms(2)] by auto
   ultimately show "inv a \<in> H" by auto
 qed
 
@@ -1072,8 +1072,7 @@ lemma (in group_hom) img_is_subgroup: "subgroup (h ` (carrier G)) H"
   apply (rule subgroupI)
   apply (auto simp add: image_subsetI)
   apply (metis (no_types, hide_lams) G.inv_closed hom_inv image_iff)
-  apply (smt G.monoid_axioms hom_mult image_iff monoid.m_closed)
-  done
+  by (metis G.monoid_axioms hom_mult image_eqI monoid.m_closed)
 
 lemma (in group_hom) subgroup_img_is_subgroup:
   assumes "subgroup I G"

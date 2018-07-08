@@ -319,7 +319,7 @@ proof -
   moreover obtain n where "n * k > m"
     by (metis calculation(1) dividend_less_times_div mult.commute mult_Suc_right)
   ultimately show ?thesis
-    using funpow_mult[of n k p] id_funpow[of n] mult.commute[of k n] by smt
+      by (metis (full_types) funpow_mult id_funpow mult.commute)
 qed
 
 
@@ -595,9 +595,8 @@ proof -
     finally show "p ((support p x) ! i) = (support p x) ! (i + 1)" .
   qed
   hence 1: "map p (butlast (support p x)) = tl (support p x)"
-    using nth_equalityI[of "map p (butlast (support p x))" "tl (support p x)"]
-    by (smt Suc_eq_plus1 le0 length_butlast length_map length_tl nth_butlast nth_map nth_tl)
-
+    using nth_butlast [where 'a='a] nth_tl [where 'a='a]
+      nth_equalityI[of "map p (butlast (support p x))" "tl (support p x)"] by force
   have "p ((support p x) ! (length (support p x) - 1)) = p ((p ^^ (length (support p x) - 1)) x)"
     using assms(2) by auto
   also have " ... = (p ^^ (length (support p x))) x"
@@ -672,7 +671,8 @@ proof -
   qed
   hence "bij_betw p ?S' ?S'"
     by (metis DiffD1 assms(1) bij_betw_subset permutes_imp_bij subsetI)
-  hence "bij_betw ?q ?S' ?S'" by (smt bij_betw_cong) 
+  hence "bij_betw ?q ?S' ?S'"
+    by (rule rev_iffD1 [OF _ bij_betw_cong]) auto
   moreover have "\<And>y. y \<notin> ?S' \<Longrightarrow> ?q y = y" by auto
   ultimately show ?thesis
     using bij_imp_permutes by blast 
@@ -686,7 +686,6 @@ proof(induct arbitrary: S p rule: less_induct)
   case (less x) thus ?case
   proof (cases "S = {}")
     case True thus ?thesis
-      (* using less empty by auto *)
       by (metis empty less.prems(1) permutes_empty) 
   next
     case False
@@ -696,7 +695,7 @@ proof(induct arbitrary: S p rule: less_induct)
     hence q_permutes: "q permutes S'"
       using semidecomposition[OF less.prems(1-2), of x] S' q by blast
     moreover have "x \<in> set (support p x)"
-      by (smt add.left_neutral diff_zero funpow_0 in_set_conv_nth least_power_gt_zero
+      by (metis (no_types, lifting) add.left_neutral diff_zero funpow_0 in_set_conv_nth least_power_gt_zero
           length_map length_upt less.prems(1) less.prems(2) nth_map_upt permutation_permutes)
     hence "card S' < card S"
       by (metis Diff_iff S' \<open>x \<in> S\<close> card_seteq leI less.prems(2) subsetI)
@@ -710,7 +709,6 @@ proof(induct arbitrary: S p rule: less_induct)
         assume y: "y \<in> set (support p x)" hence "y \<notin> S'" using S' by simp
         hence "q y = y" using q by simp
         thus ?thesis
-          (* using cycle_restrict less.prems(1) less.prems(2) permutation_permutes y by fastforce *)
           using comp_apply cycle_restrict less.prems permutation_permutes y by fastforce
       next
         assume y: "y \<notin> set (support p x)" thus ?thesis

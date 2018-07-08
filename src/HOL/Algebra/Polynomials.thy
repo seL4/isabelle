@@ -440,8 +440,10 @@ proof -
       let ?p2 = "(replicate (length p1 - length p2) \<zero>) @ p2"
       have p1: "p1 \<noteq> []" and p2: "?p2 \<noteq> []"
         using A(3) by auto
+      then have "zip p1 (replicate (length p1 - length p2) \<zero> @ p2) = zip (lead_coeff p1 # tl p1) (lead_coeff (replicate (length p1 - length p2) \<zero> @ p2) # tl (replicate (length p1 - length p2) \<zero> @ p2))"
+        by auto
       hence "lead_coeff (map2 (\<oplus>) p1 ?p2) = lead_coeff p1 \<oplus> lead_coeff ?p2"
-        by (smt case_prod_conv list.exhaust_sel list.map(2) list.sel(1) zip_Cons_Cons)
+        by simp
       moreover have "lead_coeff p1 \<in> carrier R"
         using p1 A(1) unfolding polynomial_def by auto
       ultimately have "lead_coeff (map2 (\<oplus>) p1 ?p2) = lead_coeff p1"
@@ -465,7 +467,7 @@ lemma poly_add_degree_eq:
   assumes "polynomial R p1" "polynomial R p2" and "degree p1 \<noteq> degree p2"
   shows "degree (poly_add p1 p2) = max (degree p1) (degree p2)"
   using poly_add_length_eq[of p1 p2] assms
-  by (smt degree_def diff_le_mono le_cases max.absorb1 max_def)
+  by (metis (no_types, lifting) degree_def diff_le_mono max.absorb_iff1 max_def)
 
 lemma poly_add_coeff_aux:
   assumes "length p1 \<ge> length p2"
@@ -1032,7 +1034,12 @@ proof -
     also have " ... = poly_add ((map (\<lambda>a. \<zero> \<otimes> a) p) @ (replicate n \<zero>)) []"
       using Suc by (simp add: degree_def)
     also have " ... = poly_add ((map (\<lambda>a. \<zero>) p) @ (replicate n \<zero>)) []"
-      using Suc(2) by (smt map_eq_conv ring_simprules(24) subset_code(1))
+    proof -
+      have "map ((\<otimes>) \<zero>) p = map (\<lambda>a. \<zero>) p"
+        using Suc.prems by auto
+      then show ?thesis
+        by presburger
+    qed
     also have " ... = poly_add (replicate (length p + n) \<zero>) []"
       by (simp add: map_replicate_const replicate_add)
     also have " ... = poly_add [] []"
@@ -1158,9 +1165,9 @@ next
       using p1 p2 polynomial_in_carrier[OF assms(1)] polynomial_in_carrier[OF assms(2)] by auto
     have "(coeff (poly_mult p1 p2)) ((degree p1) + (degree p2)) = a \<otimes> b"
       using poly_mult_lead_coeff_aux[OF assms] p1 p2 by simp
-    hence "(coeff (poly_mult p1 p2)) ((degree p1) + (degree p2)) \<noteq> \<zero>"
+    hence neq0: "(coeff (poly_mult p1 p2)) ((degree p1) + (degree p2)) \<noteq> \<zero>"
       using assms p1 p2 integral[of a b] unfolding polynomial_def by auto
-    moreover have "\<And>i. i > (degree p1) + (degree p2) \<Longrightarrow> (coeff (poly_mult p1 p2)) i = \<zero>"
+    moreover have eq0: "\<And>i. i > (degree p1) + (degree p2) \<Longrightarrow> (coeff (poly_mult p1 p2)) i = \<zero>"
     proof -
       have aux_lemma: "degree (poly_mult p1 p2) \<le> (degree p1) + (degree p2)"
       proof (induct p1)
@@ -1184,8 +1191,8 @@ next
         using coeff_degree aux_lemma by simp
     qed
     ultimately have "degree (poly_mult p1 p2) = degree p1 + degree p2"
-      using degree_def'[OF poly_mult_closed[OF assms]]
-      by (smt coeff_degree linorder_cases not_less_Least)
+      by (metis eq0 neq0 assms coeff.simps(1) coeff_degree lead_coeff_simp length_greater_0_conv 
+              normalize_idem normalize_length_lt not_less_iff_gr_or_eq poly_mult_closed)
     thus ?thesis
       using p1 p2 by auto
   qed

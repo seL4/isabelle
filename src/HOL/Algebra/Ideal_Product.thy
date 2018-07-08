@@ -58,6 +58,8 @@ next
       by (simp add: additive_subgroup.zero_closed assms ideal.axioms(1))
   next
     fix s1 s2 assume s1: "s1 \<in> I \<cdot> J" and s2: "s2 \<in> I \<cdot> J"
+    have IJcarr: "\<And>a. a \<in> I \<cdot> J \<Longrightarrow> a \<in> carrier R"
+      by (meson assms subsetD ideal_prod_in_carrier)
     show "s1 \<in> carrier R" using ideal_prod_in_carrier[OF assms] s1 by blast
     show "s1 \<oplus> s2 \<in> I \<cdot> J" by (simp add: ideal_prod.sum[OF s1 s2])
     show "inv\<^bsub>add_monoid R\<^esub> s1 \<in> I \<cdot> J" using s1
@@ -69,8 +71,7 @@ next
         by (simp add: additive_subgroup.a_subgroup ideal.axioms(1) prod.hyps subgroup.m_inv_closed)
     next
       case (sum s1 s2) thus ?case
-        by (smt a_inv_def add.inv_mult_group contra_subsetD
-                assms ideal_prod.sum ideal_prod_in_carrier) 
+        by (metis (no_types) IJcarr a_inv_def add.inv_mult_group ideal_prod.sum sum.hyps)
     qed
   qed
 next
@@ -81,16 +82,29 @@ next
       by (simp add: x ideal.I_l_closed ideal.Icarr m_assoc)
   next
     case (sum s1 s2) thus ?case
-      by (smt assms contra_subsetD ideal_prod.sum ideal_prod_in_carrier r_distr x) 
+    proof -
+      have IJ: "I \<cdot> J \<subseteq> carrier R"
+        by (metis (no_types) assms(1) assms(2) ideal.axioms(2) ring.ideal_prod_in_carrier)
+      then have "s2 \<in> carrier R"
+        using sum.hyps(3) by blast
+      moreover have "s1 \<in> carrier R"
+        using IJ sum.hyps(1) by blast
+      ultimately show ?thesis
+        by (simp add: ideal_prod.sum r_distr sum.hyps x)
+    qed
   qed
-
   show "s \<otimes> x \<in> I \<cdot> J" using s
   proof (induct s rule: ideal_prod.induct)
     case (prod i j) thus ?case using ideal_prod.prod[of i I "j \<otimes> x" J R] assms x
       by (simp add: x ideal.I_r_closed ideal.Icarr m_assoc)
   next
     case (sum s1 s2) thus ?case 
-      by (smt assms contra_subsetD ideal_prod.sum ideal_prod_in_carrier l_distr x) 
+    proof -
+      have "s1 \<in> carrier R" "s2 \<in> carrier R"
+        by (meson assms subsetD ideal_prod_in_carrier sum.hyps)+
+      then show ?thesis
+        by (metis ideal_prod.sum l_distr sum.hyps(2) sum.hyps(4) x)
+    qed
   qed
 qed
 
@@ -198,8 +212,14 @@ proof
           by (metis assms ideal.Icarr m_assoc) 
       next
         case (sum s1 s2) thus ?case
-          by (smt additive_subgroup.a_Hcarr contra_subsetD ideal.axioms(1)
-                  assms ideal_prod.sum ideal_prod_in_carrier l_distr) 
+        proof -
+          have "s1 \<in> carrier R" "s2 \<in> carrier R"
+            by (meson assms subsetD ideal.axioms(2) ring.ideal_prod_in_carrier sum.hyps)+
+          moreover have "k \<in> carrier R"
+            by (meson additive_subgroup.a_Hcarr assms(3) ideal.axioms(1) sum.prems)
+          ultimately show ?thesis
+            by (metis ideal_prod.sum l_distr sum.hyps(2) sum.hyps(4) sum.prems)
+        qed
       qed
     qed
   qed
@@ -217,8 +237,14 @@ next
           by (metis assms ideal.Icarr m_assoc)
       next
         case (sum s1 s2) thus ?case
-          by (smt additive_subgroup.a_Hcarr contra_subsetD ideal.axioms(1)
-                  assms ideal_prod.sum ideal_prod_in_carrier r_distr)
+        proof -
+          have "\<And>a A B. \<lbrakk>a \<in> B \<cdot> A; ideal A R; ideal B R\<rbrakk> \<Longrightarrow> a \<in> carrier R"
+            by (meson subsetD ideal_prod_in_carrier)
+          moreover have "i \<in> carrier R"
+            by (meson additive_subgroup.a_Hcarr assms(1) ideal.axioms(1) sum.prems)
+          ultimately show ?thesis
+            by (metis (no_types) assms(2) assms(3) ideal_prod.sum r_distr sum)
+        qed
       qed
     qed
   qed
@@ -428,8 +454,7 @@ next
   have I_SucSuc_I0: "ideal (I (Suc (Suc n))) R \<and> ideal (I 0) R"
     using Suc.prems(1) by auto
   have fprod_cl2: "ideal (\<Otimes>\<^bsub>(ideals_set R)\<^esub> k \<in> {..Suc n}. I k) R"
-    by (smt ISet.finprod_closed I_carr Pi_split_insert_domain atMost_Suc ideals_set_def mem_Collect_eq partial_object.select_convs(1))
-
+    by (metis (no_types) ISet.finprod_closed I_carr Pi_split_insert_domain atMost_Suc ideals_set_def mem_Collect_eq partial_object.select_convs(1))
   have "carrier R = I (Suc (Suc n)) <+> I 0"
     by (simp add: Suc.prems(2))
   also have " ... = I (Suc (Suc n)) <+>
