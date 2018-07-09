@@ -590,16 +590,12 @@ proof -
     proof (induction n)
       case 0 thus ?case using A by simp
     next
-      case (Suc n) thus ?case
-        using aux_lemma1 derived_self_is_normal  normal_def o_apply  
-      proof auto  (*FIXME a mess*)
-        fix x :: 'a
-        assume a1: "derived G (carrier G) \<lhd> G"
-        assume a2: "x \<in> derived G ((derived G ^^ n) I)"
-        assume "\<And>Ja Ia. \<lbrakk>Ja \<subseteq> carrier G; Ia \<subseteq> Ja\<rbrakk> \<Longrightarrow> derived G Ia \<subseteq> derived G Ja"
-        then show "x \<in> carrier G"
-          using a2 a1 by (meson Suc.IH normal_def order_refl subgroup.subset subsetCE)
-      qed
+      case (Suc n)
+      with aux_lemma1 have "(derived G ^^ Suc n) I \<subseteq> derived G (carrier G)"
+        by auto
+      also have "... \<subseteq> carrier G"
+        by (simp add: derived_incl subgroup_self)
+      finally show ?case .
     qed } note aux_lemma2 = this
 
   show ?thesis
