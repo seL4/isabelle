@@ -134,7 +134,7 @@ lemma (in group_action) orbit_sym:
   shows "x \<in> orbit G \<phi> y"
 proof -
   have "\<exists> g \<in> carrier G. (\<phi> g) x = y"
-    by (smt assms(3) mem_Collect_eq orbit_def)
+    using assms by (auto simp: orbit_def)
   then obtain g where g: "g \<in> carrier G \<and> (\<phi> g) x = y" by blast
   hence "(\<phi> (inv g)) y = x"
     using orbit_sym_aux by (simp add: assms(1))
@@ -149,15 +149,10 @@ lemma (in group_action) orbit_trans:
 proof -
   interpret group G
     using group_hom group_hom.axioms(1) by auto
-
-  have "\<exists> g1 \<in> carrier G. (\<phi> g1) x = y"
-    by (smt assms mem_Collect_eq orbit_def)
-  then obtain g1 where g1: "g1 \<in> carrier G \<and> (\<phi> g1) x = y" by blast
-
-  have "\<exists> g2 \<in> carrier G. (\<phi> g2) y = z"
-    by (smt assms mem_Collect_eq orbit_def)
-  then obtain g2 where g2: "g2 \<in> carrier G \<and> (\<phi> g2) y = z" by blast
-  
+  obtain g1 where g1: "g1 \<in> carrier G \<and> (\<phi> g1) x = y" 
+    using assms by (auto simp: orbit_def)
+  obtain g2 where g2: "g2 \<in> carrier G \<and> (\<phi> g2) y = z" 
+    using assms by (auto simp: orbit_def)  
   have "(\<phi> (g2 \<otimes> g1)) x = ((\<phi> g2) \<otimes>\<^bsub>BijGroup E\<^esub> (\<phi> g1)) x"
     using g1 g2 group_hom group_hom.hom_mult by fastforce
   also have " ... = (\<phi> g2) ((\<phi> g1) x)"
@@ -170,12 +165,8 @@ qed
 
 lemma (in group_action) orbits_as_classes:
   "classes\<^bsub>\<lparr> carrier = E, eq = \<lambda>x. \<lambda>y. y \<in> orbit G \<phi> x \<rparr>\<^esub> = orbits G E \<phi>"
-  unfolding eq_classes_def eq_class_of_def orbits_def apply simp
-proof -
-  have "\<And>x. x \<in> E \<Longrightarrow> {y \<in> E. y \<in> orbit G \<phi> x} = orbit G \<phi> x"
-    by (smt Collect_cong element_image mem_Collect_eq orbit_def)
-  thus "{{y \<in> E. y \<in> orbit G \<phi> x} |x. x \<in> E} = {orbit G \<phi> x |x. x \<in> E}" by blast
-qed
+  unfolding eq_classes_def eq_class_of_def orbits_def orbit_def 
+  using element_image by auto
 
 theorem (in group_action) orbit_partition:
   "partition E (orbits G E \<phi>)"
@@ -722,14 +713,15 @@ next
   show " \<And> x y. \<lbrakk> x \<in> inv g <# H #> g; y \<in> inv g <# H #> g \<rbrakk> \<Longrightarrow> x \<otimes> y \<in> inv g <# H #> g"
   proof -
     fix x y assume "x \<in> inv g <# H #> g"  "y \<in> inv g <# H #> g"
-    hence "\<exists> h1 \<in> H. \<exists> h2 \<in> H. x = (inv g) \<otimes> h1 \<otimes> g \<and> y = (inv g) \<otimes> h2 \<otimes> g"
+    then obtain h1 h2 where h12: "h1 \<in> H" "h2 \<in> H" and "x = (inv g) \<otimes> h1 \<otimes> g \<and> y = (inv g) \<otimes> h2 \<otimes> g"
       unfolding l_coset_def r_coset_def by blast
-    hence "\<exists> h1 \<in> H. \<exists> h2 \<in> H. x \<otimes> y = ((inv g) \<otimes> h1 \<otimes> g) \<otimes> ((inv g) \<otimes> h2 \<otimes> g)" by blast
-    hence "\<exists> h1 \<in> H. \<exists> h2 \<in> H. x \<otimes> y = ((inv g) \<otimes> (h1 \<otimes> h2) \<otimes> g)"
-      using assms is_group inv_closed l_one m_assoc m_closed
-            monoid_axioms r_inv subgroup.mem_carrier by smt
-    hence "\<exists> h \<in> H. x \<otimes> y = (inv g) \<otimes> h \<otimes> g"
-      by (meson assms(2) subgroup_def)
+    hence "x \<otimes> y = ((inv g) \<otimes> h1 \<otimes> g) \<otimes> ((inv g) \<otimes> h2 \<otimes> g)" by blast
+    also have "\<dots> = ((inv g) \<otimes> h1 \<otimes> (g \<otimes> inv g) \<otimes> h2 \<otimes> g)"
+      using h12 assms inv_closed  m_assoc m_closed subgroup.mem_carrier [OF \<open>subgroup H G\<close>] by presburger 
+    also have "\<dots> = ((inv g) \<otimes> (h1 \<otimes> h2) \<otimes> g)"
+      by (simp add: h12 assms m_assoc subgroup.mem_carrier [OF \<open>subgroup H G\<close>])
+    finally have "\<exists> h \<in> H. x \<otimes> y = (inv g) \<otimes> h \<otimes> g"
+      by (meson assms(2) h12 subgroup_def)
     thus "x \<otimes> y \<in> inv g <# H #> g"
       unfolding l_coset_def r_coset_def by blast
   qed
@@ -741,11 +733,9 @@ next
       unfolding r_coset_def l_coset_def by blast
     then obtain h where h: "h \<in> H \<and> x = (inv g) \<otimes> h \<otimes> g" by blast
     hence "x \<otimes> (inv g) \<otimes> (inv h) \<otimes> g = \<one>"
-      using assms inv_closed m_assoc m_closed monoid_axioms
-            r_inv r_one subgroup.mem_carrier by smt
+      using assms m_assoc monoid_axioms by (simp add: subgroup.mem_carrier)
     hence "inv x = (inv g) \<otimes> (inv h) \<otimes> g"
-      using assms h inv_closed inv_inv inv_mult_group m_assoc
-            m_closed monoid_axioms subgroup.mem_carrier by smt
+      using assms h inv_mult_group m_assoc monoid_axioms by (simp add: subgroup.mem_carrier)
     moreover have "inv h \<in> H"
       by (simp add: assms h subgroup.m_inv_closed)
     ultimately show "inv x \<in> inv g <# H #> g" unfolding r_coset_def l_coset_def by blast
@@ -843,8 +833,7 @@ next
     by (metis assms l_coset_subset_G mem_Collect_eq r_coset_subset_G subgroup_def subgroup_self)
   hence "{H. H \<subseteq> carrier G} \<subseteq> ?\<phi> ` {H. H \<subseteq> carrier G}" by blast
   moreover have "?\<phi> ` {H. H \<subseteq> carrier G} \<subseteq> {H. H \<subseteq> carrier G}"
-    by (smt assms image_subsetI inv_closed l_coset_subset_G
-            mem_Collect_eq r_coset_subset_G restrict_apply')
+    by clarsimp (meson assms contra_subsetD inv_closed l_coset_subset_G r_coset_subset_G)
   ultimately show "?\<phi> ` {H. H \<subseteq> carrier G} = {H. H \<subseteq> carrier G}" by simp
 qed
 

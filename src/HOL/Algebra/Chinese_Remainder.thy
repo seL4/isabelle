@@ -133,9 +133,7 @@ proof -
     by (metis abelian_subgroup.a_rcos_sum abelian_subgroupI3 additive_subgroup.a_Hcarr assms(1-2)
         ideal.axioms(1) is_abelian_group j m_closed r_zero x zero_closed)
   finally have Ix: "I +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = I +> x" using mod_I
-    by (smt additive_subgroup.a_Hcarr assms ideal.axioms(1) ideal.rcoset_mult_add j
-        monoid.l_one monoid_axioms one_closed x)
-
+    by (metis (full_types) assms ideal.Icarr ideal.rcoset_mult_add is_monoid j monoid.l_one one_closed x)
   have "J +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = (J +> (j \<otimes> x)) <+> (J +> (i \<otimes> y))"
     by (metis abelian_subgroup.a_rcos_sum abelian_subgroupI3 assms i ideal.Icarr
         ideal.axioms(1) is_abelian_group j m_closed x y)
@@ -147,9 +145,7 @@ proof -
         additive_subgroup.a_Hcarr additive_subgroup.a_subset assms i ideal.axioms(1)
         is_abelian_group m_closed y)
   finally have Jy: "J +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = J +> y" using mod_J
-    by (smt additive_subgroup.a_Hcarr assms ideal.axioms(1) ideal.rcoset_mult_add i j
-        monoid.l_one monoid_axioms one_closed y x)
-  
+    by (metis (full_types) assms i ideal.Icarr ideal.rcoset_mult_add local.semiring_axioms one_closed semiring.semiring_simprules(9) y)  
   have "(j \<otimes> x) \<oplus> (i \<otimes> y) \<in> carrier R"
     by (meson x y i j assms add.m_closed additive_subgroup.a_Hcarr ideal.axioms(1) m_closed)
   thus "\<exists>a \<in> carrier R. I +> a = I +> x \<and> J +> a = J +> y" using Ix Jy by blast
@@ -231,21 +227,20 @@ qed
 subsection \<open>First Generalization - The Extended Canonical Projection is Surjective\<close>
 
 lemma (in cring) canonical_proj_ext_is_surj:
-  assumes "\<And>i. i \<in> {..n :: nat} \<Longrightarrow> x i \<in> carrier R"
-      and "\<And>i. i \<in> {..n} \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<in> {..n}; j \<in> {..n}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-    shows "\<exists> a \<in> carrier R. \<forall> i \<in> {..n}. (I i) +> a = (I i) +> (x i)" using assms
+  fixes n::nat
+  assumes "\<And>i. i \<le> n \<Longrightarrow> x i \<in> carrier R"
+      and "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
+      and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
+    shows "\<exists> a \<in> carrier R. \<forall> i \<le> n. (I i) +> a = (I i) +> (x i)" using assms
 proof (induct n)
   case 0 thus ?case by blast 
 next
   case (Suc n)
-  then obtain a where a: "a \<in> carrier R" "\<And>i. i \<in> {..n :: nat} \<Longrightarrow> (I i) +> a = (I i) +> (x i)"
+  then obtain a where a: "a \<in> carrier R" "\<And>i. i \<le> n \<Longrightarrow> (I i) +> a = (I i) +> (x i)"
     by force
   
   have inter_is_ideal: "ideal (\<Inter> i \<le> n. I i) R"
-    by (metis (mono_tags, lifting) Suc.prems(2) atMost_Suc i_Intersect image_iff
-        image_is_empty insert_iff not_empty_eq_Iic_eq_empty)
-
+    by (metis (mono_tags, lifting) Suc.prems(2) atMost_iff i_Intersect imageE image_is_empty le_SucI not_empty_eq_Iic_eq_empty)
   have "(\<Inter> i \<le> n. I i) <+> I (Suc n) = carrier R"
     using inter_plus_ideal_eq_carrier Suc by simp
   then obtain b where b: "b \<in> carrier R"
@@ -255,36 +250,35 @@ next
   hence b_inter: "b \<in> (\<Inter> i \<le> n. I i)"
     using ideal.set_add_zero_imp_mem[OF inter_is_ideal b]
     by (metis additive_subgroup.zero_closed ideal.axioms(1) ideal.set_add_zero inter_is_ideal)
-  hence eq_zero: "\<And>i. i \<in> {..n :: nat} \<Longrightarrow> (I i) +> b = (I i) +> \<zero>"
+  hence eq_zero: "\<And>i. i \<le> n \<Longrightarrow> (I i) +> b = (I i) +> \<zero>"
   proof -
-    fix i assume i: "i \<in> {..n :: nat}"
+    fix i assume i: "i \<le> n"
     hence "b \<in> I i" using  b_inter by blast
     moreover have "ideal (I i) R" using Suc i by simp 
     ultimately show "(I i) +> b = (I i) +> \<zero>"
       by (metis b ideal.I_r_closed ideal.set_add_zero r_null zero_closed)
   qed
   
-  have "\<And>i. i \<in> {..Suc n} \<Longrightarrow> (I i) +> (a \<oplus> b) = (I i) +> (x i)"
+  have "(I i) +> (a \<oplus> b) = (I i) +> (x i)" if "i \<le> Suc n" for i
   proof -
-    fix i assume i: "i \<in> {..Suc n}" thus "(I i) +> (a \<oplus> b) = (I i) +> (x i)"
+    show "(I i) +> (a \<oplus> b) = (I i) +> (x i)"
+      using that
     proof (cases)
-      assume 1: "i \<in> {..n}"
+      assume 1: "i \<le> n"
       hence "(I i) +> (a \<oplus> b) = ((I i) +> (x i)) <+> ((I i) +> b)"
-        by (metis Suc.prems(2) a b i abelian_subgroup.a_rcos_sum
-            abelian_subgroupI3 ideal.axioms(1) is_abelian_group)
+        by (metis Suc.prems(2) a abelian_subgroup.a_rcos_sum abelian_subgroupI3 b ideal_def le_SucI ring_def)
       also have " ... = ((I i) +> (x i)) <+> ((I i) +> \<zero>)"
         using eq_zero[OF 1] by simp
       also have " ... = I i +> ((x i) \<oplus> \<zero>)"
-        by (meson Suc abelian_subgroup.a_rcos_sum abelian_subgroupI3 i
-                  ideal.axioms(1) is_abelian_group zero_closed)
+        by (meson Suc.prems abelian_subgroup.a_rcos_sum abelian_subgroupI3 atMost_iff that ideal_def ring_def zero_closed)
       finally show "(I i) +> (a \<oplus> b) = (I i) +> (x i)"
-        using Suc.prems(1) i by auto
+        using Suc.prems(1) that by auto
     next
-      assume "i \<notin> {..n}" hence 2: "i = Suc n" using i by simp
+      assume "\<not> i \<le> n" hence 2: "i = Suc n" using that by simp
       hence "I i +> (a \<oplus> b) = I (Suc n) +> (a \<oplus> b)" by simp
       also have " ... = (I (Suc n) +> a) <+> (I (Suc n) +> (x (Suc n) \<ominus> a))"
-        using S a b Suc.prems(2)[of "Suc n"] 2 abelian_subgroup.a_rcos_sum
-              abelian_subgroupI3 i ideal.axioms(1) is_abelian_group by metis
+        by (metis le_Suc_eq S a b Suc.prems(2)[of "Suc n"] 2 abelian_subgroup.a_rcos_sum
+              abelian_subgroupI3 ideal.axioms(1) is_abelian_group)
       also have " ... = I (Suc n) +> (a \<oplus> (x (Suc n) \<ominus> a))"
         by (simp add: Suc.prems(1-2) a(1) abelian_subgroup.a_rcos_sum
                       abelian_subgroupI3 ideal.axioms(1) is_abelian_group)
@@ -322,7 +316,7 @@ next
 qed
 
 lemma DirProd_list_in_carrierI:
-  assumes "\<And>i. i \<in> {..<(length rs)} \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
+  assumes "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
     and "length rs = length Rs"
   shows "rs \<in> carrier (DirProd_list Rs)" using assms
 proof (induct Rs arbitrary: rs rule: DirProd_list.induct)
@@ -338,7 +332,7 @@ qed
 
 lemma DirProd_list_in_carrierE:
   assumes "rs \<in> carrier (DirProd_list Rs)"
-  shows "\<And>i. i \<in> {..<(length rs)} \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)" using assms
+  shows "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)" using assms
 proof (induct Rs arbitrary: rs rule: DirProd_list.induct)
   case 1 thus ?case by simp 
 next
@@ -358,7 +352,7 @@ qed
 
 lemma DirProd_list_m_closed:
   assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+    and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2 \<in> carrier (DirProd_list Rs)" using assms
 proof (induct Rs arbitrary: r1 r2 rule: DirProd_list.induct)
   case 1 thus ?case by simp 
@@ -370,7 +364,7 @@ next
       and "rs2' \<in> carrier (DirProd_list Rs)"
       and r1: "r1 = r1' # rs1'"
       and r2: "r2 = r2' # rs2'" by auto
-  moreover have "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+  moreover have "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
     using "2.prems"(3) by force
   ultimately have "rs1' \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> rs2' \<in> carrier (DirProd_list Rs)"
     using "2.hyps"(1) by blast
@@ -383,7 +377,7 @@ qed
 
 lemma DirProd_list_m_output:
   assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
-  shows "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow>
+  shows "\<And>i. i < length Rs \<Longrightarrow>
              (r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)" using assms
 proof (induct Rs arbitrary: r1 r2 rule: DirProd_list.induct)
   case 1 thus ?case by simp 
@@ -400,7 +394,7 @@ qed
 
 lemma DirProd_list_m_comm:
   assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> comm_monoid (Rs ! i)"
+    and "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
   shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2 = r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1"
   apply (rule nth_equalityI) apply auto
 proof -
@@ -423,7 +417,7 @@ lemma DirProd_list_m_assoc:
   assumes "r1 \<in> carrier (DirProd_list Rs)"
       and "r2 \<in> carrier (DirProd_list Rs)"
       and "r3 \<in> carrier (DirProd_list Rs)"
-      and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+      and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "(r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2) \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r3 =
           r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> (r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r3)"
   apply (rule nth_equalityI) apply auto
@@ -447,22 +441,22 @@ proof -
 qed
 
 lemma DirProd_list_one:
-  "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> (\<one>\<^bsub>(DirProd_list Rs)\<^esub>) ! i =  \<one>\<^bsub>(Rs ! i)\<^esub>"
+  "\<And>i. i < length Rs \<Longrightarrow> (\<one>\<^bsub>(DirProd_list Rs)\<^esub>) ! i =  \<one>\<^bsub>(Rs ! i)\<^esub>"
   by (induct Rs rule: DirProd_list.induct) (simp_all add: nth_Cons')
 
 lemma DirProd_list_one_closed:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "\<one>\<^bsub>(DirProd_list Rs)\<^esub> \<in> carrier (DirProd_list Rs)"
 proof (rule DirProd_list_in_carrierI)
   show eq_len: "length \<one>\<^bsub>DirProd_list Rs\<^esub> = length Rs"
     by (induct Rs rule: DirProd_list.induct) (simp_all)
-  show "\<And>i. i \<in> {..<length \<one>\<^bsub>DirProd_list Rs\<^esub>} \<Longrightarrow> \<one>\<^bsub>DirProd_list Rs\<^esub> ! i \<in> carrier (Rs ! i)"
+  show "\<And>i. i < length \<one>\<^bsub>DirProd_list Rs\<^esub> \<Longrightarrow> \<one>\<^bsub>DirProd_list Rs\<^esub> ! i \<in> carrier (Rs ! i)"
     using eq_len DirProd_list_one[where ?Rs = Rs] monoid.one_closed by (simp add: assms)
 qed
 
 lemma DirProd_list_l_one:
   assumes "r1 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+    and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "\<one>\<^bsub>(DirProd_list Rs)\<^esub> \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1 = r1"
   apply (rule nth_equalityI) apply auto
 proof -
@@ -485,7 +479,7 @@ qed
 
 lemma DirProd_list_r_one:
   assumes "r1 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+    and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> \<one>\<^bsub>(DirProd_list Rs)\<^esub> = r1"
 proof -
   have "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> \<one>\<^bsub>(DirProd_list Rs)\<^esub> =
@@ -512,7 +506,7 @@ proof -
 qed
 
 lemma DirProd_list_monoid:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "monoid (DirProd_list Rs)"
   unfolding monoid_def apply auto
 proof -
@@ -535,7 +529,7 @@ proof -
 qed
 
 lemma DirProd_list_comm_monoid:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> comm_monoid (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
   shows "comm_monoid (DirProd_list Rs)"
   unfolding comm_monoid_def comm_monoid_axioms_def apply auto
   using DirProd_list_monoid Group.comm_monoid.axioms(1) assms apply blast
@@ -557,7 +551,7 @@ proof -
 qed
 
 lemma DirProd_list_group:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> group (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> group (Rs ! i)"
   shows "group (DirProd_list Rs)" using assms
 proof (induction Rs rule: DirProd_list.induct)
   case 1 thus ?case
@@ -577,7 +571,7 @@ next
 qed
 
 lemma DirProd_list_comm_group:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> comm_group (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> comm_group (Rs ! i)"
   shows "comm_group (DirProd_list Rs)"
   using assms unfolding comm_group_def
   using DirProd_list_group DirProd_list_comm_monoid by auto
@@ -604,8 +598,8 @@ qed
 
 lemma DirProd_list_m_inv:
   assumes "r \<in> carrier (DirProd_list Rs)"
-      and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> group (Rs ! i)"
-    shows "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> (inv\<^bsub>(DirProd_list Rs)\<^esub> r) ! i = inv\<^bsub>(Rs ! i)\<^esub> (r ! i)"
+      and "\<And>i. i < length Rs \<Longrightarrow> group (Rs ! i)"
+    shows "\<And>i. i < length Rs \<Longrightarrow> (inv\<^bsub>(DirProd_list Rs)\<^esub> r) ! i = inv\<^bsub>(Rs ! i)\<^esub> (r ! i)"
   using assms
 proof (induct Rs arbitrary: r rule: DirProd_list.induct)
   case 1
@@ -656,7 +650,7 @@ lemma RDirProd_list_mult_monoid:
   by (simp add: monoid.defs)
 
 lemma RDirProd_list_monoid:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> monoid (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "monoid (RDirProd_list Rs)"
 proof -
   have "monoid (DirProd_list Rs)"
@@ -670,7 +664,7 @@ proof -
 qed
 
 lemma RDirProd_list_comm_monoid:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> comm_monoid (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
   shows "comm_monoid (RDirProd_list Rs)"
 proof -
   have "comm_monoid (DirProd_list Rs)"
@@ -686,10 +680,10 @@ proof -
 qed
 
 lemma RDirProd_list_abelian_monoid:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> abelian_monoid (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> abelian_monoid (Rs ! i)"
   shows "abelian_monoid (RDirProd_list Rs)"
 proof -
-  have "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> comm_monoid ((map add_monoid Rs) ! i)"
+  have "\<And>i. i < length Rs \<Longrightarrow> comm_monoid ((map add_monoid Rs) ! i)"
     using assms unfolding abelian_monoid_def by simp
   hence "comm_monoid (DirProd_list (map add_monoid Rs))"
     by (metis (no_types, lifting) DirProd_list_comm_monoid length_map)
@@ -698,10 +692,10 @@ proof -
 qed
 
 lemma RDirProd_list_abelian_group:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> abelian_group (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> abelian_group (Rs ! i)"
   shows "abelian_group (RDirProd_list Rs)"
 proof -
-  have "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> comm_group ((map add_monoid Rs) ! i)"
+  have "\<And>i. i < length Rs \<Longrightarrow> comm_group ((map add_monoid Rs) ! i)"
     using assms unfolding abelian_group_def abelian_group_axioms_def by simp
   hence "comm_group (DirProd_list (map add_monoid Rs))"
     by (metis (no_types, lifting) DirProd_list_comm_group length_map)
@@ -717,50 +711,69 @@ lemma RDirProd_list_carrier_elts:
 
 lemma RDirProd_list_in_carrierE:
   assumes "rs \<in> carrier (RDirProd_list Rs)"
-  shows "\<And>i. i \<in> {..<(length rs)} \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
+  shows "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
   using assms by (simp add: DirProd_list_in_carrierE monoid.defs)
 
 lemma RDirProd_list_in_carrierI:
-  assumes "\<And>i. i \<in> {..<(length rs)} \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
+  assumes "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
       and "length rs = length Rs"
     shows "rs \<in> carrier (RDirProd_list Rs)"
   using DirProd_list_in_carrierI assms by (simp add: monoid.defs, blast)
 
 lemma RDirProd_list_one:
-  "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> (\<one>\<^bsub>(RDirProd_list Rs)\<^esub>) ! i =  \<one>\<^bsub>(Rs ! i)\<^esub>"
+  "\<And>i. i < length Rs \<Longrightarrow> (\<one>\<^bsub>(RDirProd_list Rs)\<^esub>) ! i =  \<one>\<^bsub>(Rs ! i)\<^esub>"
   by (simp add: DirProd_list_one monoid.defs)
 
 lemma RDirProd_list_zero:
-  "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list Rs)\<^esub>) ! i =  \<zero>\<^bsub>(Rs ! i)\<^esub>"
+  "\<And>i. i < length Rs \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list Rs)\<^esub>) ! i =  \<zero>\<^bsub>(Rs ! i)\<^esub>"
   by (induct Rs rule: DirProd_list.induct) (simp_all add: monoid.defs nth_Cons')
 
 lemma RDirProd_list_m_output:
   assumes "r1 \<in> carrier (RDirProd_list Rs)" "r2 \<in> carrier (RDirProd_list Rs)"
-  shows "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow>
+  shows "\<And>i. i < length Rs \<Longrightarrow>
              (r1 \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
   using assms by (simp add: DirProd_list_m_output monoid.defs)
 
 lemma RDirProd_list_a_output:
-  assumes "r1 \<in> carrier (RDirProd_list Rs)" "r2 \<in> carrier (RDirProd_list Rs)"
-  shows "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow>
-             (r1 \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<oplus>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
+  fixes i
+  assumes "r1 \<in> carrier (RDirProd_list Rs)" "r2 \<in> carrier (RDirProd_list Rs)" "i < length Rs"
+  shows "(r1 \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<oplus>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
   using RDirProd_list_add_monoid[of Rs] monoid.defs(3)
-  by (smt DirProd_list_m_output assms length_map lessThan_iff
-      monoid.select_convs(1) nth_map partial_object.select_convs(1))
+proof -
+  have "(\<otimes>\<^bsub>DirProd_list (map add_monoid Rs)\<^esub>) = (\<oplus>\<^bsub>RDirProd_list Rs\<^esub>)"
+    by (metis \<open>add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)\<close> monoid.select_convs(1))
+  moreover have "r1 \<in> carrier (DirProd_list (map add_monoid Rs))"
+    by (metis \<open>add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)\<close> assms(1) partial_object.select_convs(1))
+  moreover have "r2 \<in> carrier (DirProd_list (map add_monoid Rs))"
+    by (metis \<open>add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)\<close> assms(2) partial_object.select_convs(1))
+  ultimately show ?thesis
+    by (simp add: DirProd_list_m_output assms(3))
+qed
 
 lemma RDirProd_list_a_inv:
+  fixes i
   assumes "r \<in> carrier (RDirProd_list Rs)"
-      and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> abelian_group (Rs ! i)"
-    shows "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> (\<ominus>\<^bsub>(RDirProd_list Rs)\<^esub> r) ! i = \<ominus>\<^bsub>(Rs ! i)\<^esub> (r ! i)"
-  using RDirProd_list_add_monoid[of Rs] monoid.defs(3) DirProd_list_m_inv
-  by (smt a_inv_def abelian_group.a_group assms length_map lessThan_iff
-      monoid.surjective nth_map partial_object.ext_inject) 
+      and "\<And>i. i < length Rs \<Longrightarrow> abelian_group (Rs ! i)"
+      and "i < length Rs"
+    shows "(\<ominus>\<^bsub>(RDirProd_list Rs)\<^esub> r) ! i = \<ominus>\<^bsub>(Rs ! i)\<^esub> (r ! i)"
+proof -
+  have f1: "m_inv (DirProd_list (map add_monoid Rs)) = a_inv (RDirProd_list Rs)"
+    by (metis RDirProd_list_add_monoid a_inv_def)
+moreover
+  have f4: "r \<in> carrier (DirProd_list (map add_monoid Rs))"
+    by (metis RDirProd_list_add_monoid assms(1) partial_object.select_convs(1))
+moreover
+  have f3: "a_inv (Rs ! i) = m_inv (map add_monoid Rs ! i)"
+    by (simp add: a_inv_def assms(3))
+  ultimately show ?thesis  using RDirProd_list_add_monoid[of Rs] monoid.defs(3) DirProd_list_m_inv
+    by (smt abelian_group.a_group assms(2) assms(3) length_map nth_map)
+qed
 
 lemma RDirProd_list_l_distr:
   assumes "x \<in> carrier (RDirProd_list Rs)"
       and "y \<in> carrier (RDirProd_list Rs)"
       and "z \<in> carrier (RDirProd_list Rs)"
-      and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> ring (Rs ! i)"
+      and "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)"
     shows "(x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z =
            (x \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (y \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z)"
 proof -
@@ -802,7 +815,7 @@ lemma RDirProd_list_r_distr:
   assumes "x \<in> carrier (RDirProd_list Rs)"
       and "y \<in> carrier (RDirProd_list Rs)"
       and "z \<in> carrier (RDirProd_list Rs)"
-      and "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> ring (Rs ! i)"
+      and "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)"
     shows "z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) =
           (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> x) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> y)"
 proof -
@@ -841,19 +854,19 @@ proof -
 qed
 
 theorem RDirProd_list_ring:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> ring (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)"
   shows "ring (RDirProd_list Rs)"
   using assms unfolding ring_def ring_axioms_def using assms 
   by (meson RDirProd_list_abelian_group RDirProd_list_l_distr
             RDirProd_list_monoid RDirProd_list_r_distr)
 
 theorem RDirProd_list_cring:
-  assumes "\<And>i. i \<in> {..<(length Rs)} \<Longrightarrow> cring (Rs ! i)"
+  assumes "\<And>i. i < length Rs \<Longrightarrow> cring (Rs ! i)"
   shows "cring (RDirProd_list Rs)"
   by (meson RDirProd_list_comm_monoid RDirProd_list_ring assms cring_def)
 
 corollary (in cring) RDirProd_list_of_quot_is_cring:
-  assumes "\<And>i. i \<in> {..< n} \<Longrightarrow> ideal (I i) R"
+  assumes "\<And>i. i < n \<Longrightarrow> ideal (I i) R"
     shows "cring (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< n]))"
       (is "cring (RDirProd_list ?Rs)")
 proof -
@@ -948,8 +961,9 @@ subsection \<open>Second Generalization - The Extended Canonical Projection is a
                                     Description of its Kernel\<close>
 
 theorem (in cring) canonical_proj_ext_is_hom:
-  assumes "\<And>i. i \<in> {..< (n :: nat)} \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<in> {..< n}; j \<in> {..< n}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
+  fixes n::nat
+  assumes "\<And>i. i < n \<Longrightarrow> ideal (I i) R"
+      and "\<And>i j. \<lbrakk> i < n; j < n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
     shows "(\<lambda>a. (map (\<lambda>i. (I i) +> a) [0..< n])) \<in>
             ring_hom R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< n]))" (is "?\<phi> \<in> ?ring_hom")
 proof (rule ring_hom_memI)
@@ -960,7 +974,6 @@ proof (rule ring_hom_memI)
   note aux_lemma = this
 
   fix x y assume x: "x \<in> carrier R" and y: "y \<in> carrier R"
-
   show x': "?\<phi> x \<in> carrier (RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
     using aux_lemma[OF x] .
   hence x'': "?\<phi> x \<in> carrier (DirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
@@ -977,8 +990,7 @@ proof (rule ring_hom_memI)
                  cring.cring_simprules(5) length_map x' y')
     apply (simp add: monoid.defs)
     using DirProd_list_m_output [of "?\<phi> x" "(map (\<lambda>i. R Quot I i) [0..<n])" "?\<phi> y"] x'' y''
-    by (simp add: x'' y'' FactRing_def add.left_neutral assms(1) diff_zero ideal.rcoset_mult_add
-                  length_map length_upt lessThan_iff monoid.simps(1) nth_map_upt x y)
+    by (simp add: x'' y'' FactRing_def  assms(1) ideal.rcoset_mult_add x y)
 
   show "?\<phi> (x \<oplus> y) = ?\<phi> x \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> ?\<phi> y"
   proof -
@@ -995,10 +1007,21 @@ proof (rule ring_hom_memI)
       have "(?\<phi> (x \<oplus> y)) ! j = I j +> x \<oplus> y" using j by simp
       also have " ... = (I j +> x) \<oplus>\<^bsub>(R Quot I j)\<^esub> (I j +> y)"
         by (simp add: FactRing_def abelian_subgroup.a_rcos_sum abelian_subgroupI3
-                      assms(1) ideal.axioms(1) is_abelian_group j x y)
+            assms(1) ideal.axioms(1) is_abelian_group j x y)
       also have " ... = ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y)) ! j"
-        by (smt RDirProd_list_a_output add.left_neutral diff_zero j
-            length_map length_upt lessThan_iff nth_map nth_upt x' y')
+      proof -
+        have "R Quot I j = map (\<lambda>n. R Quot I n) [0..<n] ! j"
+             "I j +> x = I ([0..<n] ! j) +> x" 
+             "I j +> y = I ([0..<n] ! j) +> y"
+          by (simp_all add: j)
+        moreover have "\<And>n ns f. n < length ns \<Longrightarrow> map f ns ! n = (f (ns ! n::nat)::'a set)"
+          by simp
+        moreover have "\<And>B ps C n. \<lbrakk>B \<in> carrier (RDirProd_list ps); C \<in> carrier (RDirProd_list ps); n < length ps\<rbrakk> 
+                     \<Longrightarrow> (B \<oplus>\<^bsub>RDirProd_list ps\<^esub> C) ! n = (B ! n::'a set) \<oplus>\<^bsub>ps ! n\<^esub> C ! n"
+          by (meson RDirProd_list_a_output)
+        ultimately show ?thesis
+          by (metis (mono_tags, lifting) diff_zero j length_map length_upt x' y') 
+      qed
       finally show "(?\<phi> (x \<oplus> y)) ! j =
                     ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y)) ! j" .
     qed
@@ -1016,8 +1039,9 @@ qed
 
 
 theorem (in cring) canonical_proj_ext_kernel:
-  assumes "\<And>i. i \<in> {..(n :: nat)} \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<in> {..n}; j \<in> {..n}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
+  fixes n::nat
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
+      and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
     shows "(\<Inter>i \<le> n. I i) = a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))
                            (\<lambda>a. (map (\<lambda>i. (I i) +> a) [0..< Suc n]))"
 proof -
@@ -1035,16 +1059,18 @@ proof -
         "\<And>i. i \<le> n \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>) ! i =
                          \<zero>\<^bsub>(R Quot (I i))\<^esub>"
         using RDirProd_list_zero[where ?Rs = "map (\<lambda>i. R Quot I i) [0..<Suc n]"]
-        by (metis (no_types, lifting) add.left_neutral atMost_iff le_imp_less_Suc
-            length_map length_upt lessThan_Suc_atMost nth_map_upt diff_zero)
+        by (metis (no_types, lifting) add.left_neutral le_imp_less_Suc
+            length_map length_upt nth_map_upt diff_zero)
       hence 
         "\<And>i. i \<le> n \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>) ! i = I i"
         unfolding FactRing_def by simp
       moreover
       have "length (\<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>) = Suc n"
+
         using RDirProd_list_carrier_elts RDirProd_list_cring
-        by (smt add.left_neutral assms(1) cring.cring_simprules(2) diff_zero nth_map_upt
-            ideal.quotient_is_cring is_cring length_map length_upt lessThan_Suc_atMost lessThan_iff)
+         add.left_neutral assms(1) cring.cring_simprules(2) diff_zero nth_map_upt
+            ideal.quotient_is_cring is_cring length_map length_upt lessThan_Suc_atMost lessThan_iff
+        by (smt less_Suc_eq_le)
       moreover have "length (?\<phi> s) = Suc n" by simp
       ultimately have "?\<phi> s = \<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>"
         by (simp add: nth_equalityI)
@@ -1060,10 +1086,9 @@ proof -
       fix s assume s: "s \<in> a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi>"
       hence "?\<phi> s = \<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>"
         unfolding a_kernel_def kernel_def by (simp add: monoid.defs)
-      hence "\<And>i. i \<le> n \<Longrightarrow> (I i) +> s = \<zero>\<^bsub>(R Quot (I i))\<^esub>"
+      hence "(I i) +> s = \<zero>\<^bsub>(R Quot (I i))\<^esub>" if "i \<le> n" for i
         using RDirProd_list_zero[where ?Rs = "map (\<lambda>i. R Quot I i) [0..<Suc n]"]
-        by (smt add.left_neutral atMost_iff diff_zero le_imp_less_Suc
-            length_map length_upt lessThan_Suc_atMost nth_map_upt)
+          by (metis (no_types) that add.left_neutral diff_zero le_imp_less_Suc length_map length_upt nth_map_upt)
       hence "\<And>i. i \<le> n \<Longrightarrow> (I i) +> s = I i"
         unfolding FactRing_def by simp
       moreover have "s \<in> carrier R"
@@ -1078,8 +1103,9 @@ qed
 subsection \<open>Final Generalization\<close>
 
 theorem (in cring) chinese_remainder:
-  assumes "\<And>i. i \<in> {..(n :: nat)} \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<in> {..n}; j \<in> {..n}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
+  fixes n::nat
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
+      and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
     shows "R Quot (\<Inter>i \<le> n. I i) \<simeq>  RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"
   using assms
 proof (induct n)
@@ -1100,9 +1126,8 @@ next
   have inter_ideal: "ideal (\<Inter> i \<le> n. I i) R"
     using Suc.prems(1) i_Intersect[of "I ` {..n}"] atMost_Suc atLeast1_atMost_eq_remove0 by auto
   hence "R Quot (\<Inter> i \<le> Suc n. I i) \<simeq> RDirProd (R Quot (\<Inter> i \<le> n. I i)) (R Quot (I (Suc n)))"
-    using chinese_remainder_simple[of "\<Inter> i \<le> n. I i" "I (Suc n)"]
-          inter_plus_ideal_eq_carrier[of n I] by (simp add: Int_commute Suc.prems(1-2) atMost_Suc)
-
+    using chinese_remainder_simple[of "\<Inter> i \<le> n. I i" "I (Suc n)"] inter_plus_ideal_eq_carrier[of n I]
+    by (simp add: Int_commute Suc.prems(1-2) atMost_Suc)
   moreover have "R Quot (\<Inter> i \<le> n. I i) \<simeq> RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"
     using Suc.hyps Suc.prems(1-2) by auto
   hence "RDirProd (R Quot (\<Inter> i \<le> n. I i)) (R Quot (I (Suc n))) \<simeq>
@@ -1122,84 +1147,6 @@ next
          RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc (Suc n)])" by simp
 
   ultimately show ?case using ring_iso_trans by simp
-qed
-
-theorem (in cring) (* chinese_remainder: another proof *)
-  assumes "\<And>i. i \<in> {..(n :: nat)} \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<in> {..n}; j \<in> {..n}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-    shows "R Quot (\<Inter>i \<le> n. I i) \<simeq>  RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"
-proof -
-  let ?\<phi> = "\<lambda>a. (map (\<lambda>i. (I i) +> a) [0..< Suc n])"
-
-  have phi_hom: "?\<phi> \<in> ring_hom R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
-    using canonical_proj_ext_is_hom[of "Suc n"] assms by simp 
-
-  moreover have "?\<phi> ` (carrier R) = carrier (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
-  proof
-    show "carrier (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) \<subseteq> ?\<phi> ` (carrier R)"
-    proof
-      fix x assume x: "x \<in> carrier (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
-      hence x_nth_eq: "\<And>i. i \<in> {..< Suc n} \<Longrightarrow> x ! i \<in> carrier (R Quot (I i))"
-        using RDirProd_list_in_carrierE
-        by (smt RDirProd_list_carrier_elts add.left_neutral diff_zero length_map
-            length_upt lessThan_iff nth_map nth_upt)
-      then obtain y where y: "\<And>i. i \<in> {..< Suc n} \<Longrightarrow> x ! i = (I i) +> (y i)"
-                             "\<And>i. i \<in> {..< Suc n} \<Longrightarrow> y i \<in> carrier R"
-      proof -
-        from x_nth_eq have "\<exists>y. (\<forall>i \<in> {..< Suc n}. x ! i = (I i) +> (y i)) \<and>
-                                (\<forall>i \<in> {..< Suc n}. y i \<in> carrier R)"
-        proof (induct n)
-          case 0
-          have "x ! 0 \<in> carrier (R Quot (I 0))" using x_nth_eq by simp
-          then obtain x_0 where x_0: "x ! 0 = (I 0) +> x_0" "x_0 \<in> carrier R"
-            unfolding FactRing_def using A_RCOSETS_def'[of R "I 0"] by auto
-          define y :: "nat \<Rightarrow> 'a"  where "y = (\<lambda>i. x_0)"
-          hence "x ! 0 = (I 0) +> (y 0) \<and> (y 0) \<in> carrier R"
-            using x_0 by simp
-          thus ?case using x_0 by blast
-        next
-          case (Suc n)
-          then obtain y' where y': "\<And>i. i \<in> {..<Suc n} \<Longrightarrow> x ! i = I i +> y' i"
-                                   "\<And>i. i \<in> {..<Suc n} \<Longrightarrow> y' i \<in> carrier R" by auto
-
-          have "x ! (Suc n) \<in> carrier (R Quot (I (Suc n)))" using Suc by simp
-          then obtain x_Sn where x_Sn: "x ! (Suc n) = (I (Suc n)) +> x_Sn"
-                                       "x_Sn \<in> carrier R"
-            unfolding FactRing_def using A_RCOSETS_def'[of R "I (Suc n)"] by auto
-
-          define y where "y = (\<lambda>i. if i = (Suc n) then x_Sn else (y' i))"
-          thus ?case using y' x_Sn
-            by (metis (full_types) insert_iff lessThan_Suc) 
-        qed
-        thus ?thesis using that by blast
-      qed
-
-      then obtain a where a: "a \<in> carrier R"
-                      and "\<And>i. i \<in> {..< Suc n} \<Longrightarrow> (I i) +> a = (I i) +> (y i)"
-        using canonical_proj_ext_is_surj[of n y I] assms(1-2) by auto
-      hence a_x: "\<And>i. i \<in> {..< Suc n} \<Longrightarrow> (I i) +> a = x ! i"
-        using y by simp
-      have "?\<phi> a = x"
-        apply (rule nth_equalityI)
-        using RDirProd_list_carrier_elts x apply fastforce
-        by (metis a_x add.left_neutral diff_zero length_map length_upt lessThan_iff nth_map_upt)
-      thus "x \<in> ?\<phi> ` (carrier R)"
-        using a by blast
-    qed
-  next
-    show "?\<phi> ` carrier R \<subseteq> carrier (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
-      using phi_hom unfolding ring_hom_def by blast
-  qed
-
-  moreover have "a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi> = (\<Inter>i \<le> n. I i)"
-    using canonical_proj_ext_kernel assms by blast
-
-  moreover have "ring (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
-    using RDirProd_list_of_quot_is_cring assms(1) cring_def lessThan_Suc_atMost by blast
-
-  ultimately show ?thesis
-    using ring_hom_ring.FactRing_iso[of R "RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])" ?\<phi>]
-          is_ring by (simp add: ring_hom_ringI2) 
 qed
 
 end

@@ -296,7 +296,7 @@ next
     with 2 have "a + Suc b = Suc c \<and> p ^ a dvd m \<and> p ^ Suc b dvd n"
       by (auto intro: mult_dvd_mono)
     with Suc.hyps [of m y] show "\<exists>a b. a + b = Suc c \<and> p ^ a dvd m \<and> p ^ b dvd n"
-      by force
+      by blast
   qed
 qed
 

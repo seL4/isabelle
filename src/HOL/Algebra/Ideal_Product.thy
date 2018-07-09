@@ -400,7 +400,7 @@ qed
 
 lemma (in cring) ideal_prod_eq_Inter_aux:
   assumes "I: {..(Suc n)} \<rightarrow> { J. ideal J R }" 
-    and "\<And>i j. \<lbrakk> i \<in> {..(Suc n)}; j \<in> {..(Suc n)} \<rbrakk> \<Longrightarrow>
+    and "\<And>i j. \<lbrakk> i \<le> Suc n; j \<le> Suc n \<rbrakk> \<Longrightarrow>
                  i \<noteq> j \<Longrightarrow> (I i) <+> (I j) = carrier R"
   shows "(\<Otimes>\<^bsub>(ideals_set R)\<^esub> k \<in> {..n}. I k) <+> (I (Suc n)) = carrier R" using assms
 proof (induct n arbitrary: I)
@@ -419,7 +419,7 @@ next
   let ?I' = "\<lambda>i. I (Suc i)"
   have "?I': {..(Suc n)} \<rightarrow> { J. ideal J R }"
     using Suc.prems(1) by auto
-  moreover have "\<And>i j. \<lbrakk> i \<in> {..(Suc n)}; j \<in> {..(Suc n)} \<rbrakk> \<Longrightarrow>
+  moreover have "\<And>i j. \<lbrakk> i \<le> Suc n; j \<le> Suc n \<rbrakk> \<Longrightarrow>
                          i \<noteq> j \<Longrightarrow> (?I' i) <+> (?I' j) = carrier R"
     by (simp add: Suc.prems(2))
   ultimately have "(\<Otimes>\<^bsub>(ideals_set R)\<^esub> k \<in> {..n}. ?I' k) <+> (?I' (Suc n)) = carrier R"
@@ -508,23 +508,23 @@ next
 qed
 
 corollary (in cring) inter_plus_ideal_eq_carrier:
-  assumes "\<And>i. i \<in> {..(Suc n)} \<Longrightarrow> ideal (I i) R" 
-      and "\<And>i j. \<lbrakk> i \<in> {..(Suc n)}; j \<in> {..(Suc n)}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
+  assumes "\<And>i. i \<le> Suc n \<Longrightarrow> ideal (I i) R" 
+      and "\<And>i j. \<lbrakk> i \<le> Suc n; j \<le> Suc n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
   shows "(\<Inter> i \<le> n. I i) <+> (I (Suc n)) = carrier R"
   using ideal_prod_eq_Inter[of I n] ideal_prod_eq_Inter_aux[of I n] by (auto simp add: assms)
 
 corollary (in cring) inter_plus_ideal_eq_carrier_arbitrary:
-  assumes "\<And>i. i \<in> {..(Suc n)} \<Longrightarrow> ideal (I i) R" 
-      and "\<And>i j. \<lbrakk> i \<in> {..(Suc n)}; j \<in> {..(Suc n)}; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-      and "j \<in> {..(Suc n)}"
+  assumes "\<And>i. i \<le> Suc n \<Longrightarrow> ideal (I i) R" 
+      and "\<And>i j. \<lbrakk> i \<le> Suc n; j \<le> Suc n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
+      and "j \<le> Suc n"
   shows "(\<Inter> i \<in> ({..(Suc n)} - { j }). I i) <+> (I j) = carrier R"
 proof -
   define I' where "I' = (\<lambda>i. if i = Suc n then (I j) else
                              if i = j     then (I (Suc n))
                                           else (I i))"
-  have "\<And>i. i \<in> {..(Suc n)} \<Longrightarrow> ideal (I' i) R"
+  have "\<And>i. i \<le> Suc n \<Longrightarrow> ideal (I' i) R"
     using I'_def assms(1) assms(3) by auto
-  moreover have "\<And>i j. \<lbrakk> i \<in> {..(Suc n)}; j \<in> {..(Suc n)}; i \<noteq> j \<rbrakk> \<Longrightarrow> I' i <+> I' j = carrier R"
+  moreover have "\<And>i j. \<lbrakk> i \<le> Suc n; j \<le> Suc n; i \<noteq> j \<rbrakk> \<Longrightarrow> I' i <+> I' j = carrier R"
     using I'_def assms(2-3) by force
   ultimately have "(\<Inter> i \<le> n. I' i) <+> (I' (Suc n)) = carrier R"
     using inter_plus_ideal_eq_carrier by simp
