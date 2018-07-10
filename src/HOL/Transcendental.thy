@@ -10,7 +10,7 @@ theory Transcendental
 imports Series Deriv NthRoot
 begin
 
-text \<open>A fact theorem on reals.\<close>
+text \<open>A theorem about the factcorial function on the reals.\<close>
 
 lemma square_fact_le_2_fact: "fact n * fact n \<le> (fact (2 * n) :: real)"
 proof (induct n)
@@ -1822,7 +1822,7 @@ lemma isCont_ln:
 proof (cases "0 < x")
   case True
   then have "isCont ln (exp (ln x))"
-    by (intro isCont_inv_fun[where d = "\<bar>x\<bar>" and f = exp]) auto
+    by (intro isCont_inverse_function[where d = "\<bar>x\<bar>" and f = exp]) auto
   with True show ?thesis
     by simp
 next
@@ -4540,6 +4540,9 @@ lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inver
   unfolding tan_def
   by (auto intro!: derivative_eq_intros, simp add: divide_inverse power2_eq_square)
 
+declare DERIV_tan[THEN DERIV_chain2, derivative_intros]
+  and DERIV_tan[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
+
 lemmas has_derivative_tan[derivative_intros] = DERIV_tan[THEN DERIV_compose_FDERIV]
 
 lemma isCont_tan: "cos x \<noteq> 0 \<Longrightarrow> isCont tan x"
@@ -4633,20 +4636,42 @@ next
     by (rule_tac x="-x" in exI) auto
 qed
 
-lemma tan_total: "\<exists>! x. -(pi/2) < x \<and> x < (pi/2) \<and> tan x = y"
-  apply (insert lemma_tan_total1 [where y = y], auto)
-  apply hypsubst_thin
-  apply (cut_tac x = xa and y = y in linorder_less_linear, auto)
-   apply (subgoal_tac [2] "\<exists>z. y < z \<and> z < xa \<and> DERIV tan z :> 0")
-    apply (subgoal_tac "\<exists>z. xa < z \<and> z < y \<and> DERIV tan z :> 0")
-     apply (rule_tac [4] Rolle)
-        apply (rule_tac [2] Rolle)
-           apply (auto del: exI intro!: DERIV_tan DERIV_isCont exI
-            simp add: real_differentiable_def)
-       apply (rule_tac [!] DERIV_tan asm_rl)
-       apply (auto dest!: DERIV_unique [OF _ DERIV_tan]
-        simp add: cos_gt_zero_pi [THEN less_imp_neq, THEN not_sym])
-  done
+proposition tan_total: "\<exists>! x. -(pi/2) < x \<and> x < (pi/2) \<and> tan x = y"
+proof -
+  have "u = v" if u: "- (pi / 2) < u" "u < pi / 2" and v: "- (pi / 2) < v" "v < pi / 2"
+    and eq: "tan u = tan v" for u v
+  proof (cases u v rule: linorder_cases)
+    case less
+    have "\<And>x. u \<le> x \<and> x \<le> v \<longrightarrow> isCont tan x"
+      by (metis cos_gt_zero_pi isCont_tan less_numeral_extra(3) less_trans order.not_eq_order_implies_strict u v)
+    moreover have "\<And>x. u < x \<and> x < v \<Longrightarrow> tan differentiable (at x)"
+      by (metis DERIV_tan cos_gt_zero_pi differentiableI less_numeral_extra(3) order.strict_trans u(1) v(2))
+    ultimately obtain z where "u < z" "z < v" "DERIV tan z :> 0"
+      by (metis less Rolle eq)
+    moreover have "cos z \<noteq> 0"
+      by (metis (no_types) \<open>u < z\<close> \<open>z < v\<close> cos_gt_zero_pi less_le_trans linorder_not_less not_less_iff_gr_or_eq u(1) v(2))
+    ultimately show ?thesis
+      using DERIV_unique [OF _ DERIV_tan] by fastforce
+  next
+    case greater
+    have "\<And>x. v \<le> x \<and> x \<le> u \<Longrightarrow> isCont tan x"
+      by (metis cos_gt_zero_pi isCont_tan less_numeral_extra(3) less_trans order.not_eq_order_implies_strict u v)
+    moreover have "\<And>x. v < x \<and> x < u \<Longrightarrow> tan differentiable (at x)"
+      by (metis DERIV_tan cos_gt_zero_pi differentiableI less_numeral_extra(3) order.strict_trans u(2) v(1))
+    ultimately obtain z where "v < z" "z < u" "DERIV tan z :> 0"
+      by (metis greater Rolle eq)
+    moreover have "cos z \<noteq> 0"
+      by (metis  \<open>v < z\<close> \<open>z < u\<close> cos_gt_zero_pi less_le_trans linorder_not_less not_less_iff_gr_or_eq u(2) v(1))
+    ultimately show ?thesis
+      using DERIV_unique [OF _ DERIV_tan] by fastforce
+  qed auto
+  then have "\<exists>!x. - (pi / 2) < x \<and> x < pi / 2 \<and> tan x = y" 
+    if x: "- (pi / 2) < x" "x < pi / 2" "tan x = y" for x
+    using that by auto
+  then show ?thesis
+    using lemma_tan_total1 [where y = y]
+    by auto
+qed
 
 lemma tan_monotone:
   assumes "- (pi/2) < y" and "y < x" and "x < pi/2"
@@ -4898,21 +4923,21 @@ lemma arcsin_lbound: "- 1 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> 
 lemma arcsin_ubound: "- 1 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arcsin y \<le> pi/2"
   by (blast dest: arcsin)
 
-lemma arcsin_lt_bounded: "- 1 < y \<Longrightarrow> y < 1 \<Longrightarrow> - (pi/2) < arcsin y \<and> arcsin y < pi/2"
-  apply (frule order_less_imp_le)
-  apply (frule_tac y = y in order_less_imp_le)
-  apply (frule arcsin_bounded, safe)
-    apply simp
-   apply (drule_tac y = "arcsin y" in order_le_imp_less_or_eq)
-   apply (drule_tac [2] y = "pi/2" in order_le_imp_less_or_eq, safe)
-   apply (drule_tac [!] f = sin in arg_cong, auto)
-  done
+lemma arcsin_lt_bounded:
+  assumes "- 1 < y" "y < 1"
+  shows  "- (pi/2) < arcsin y \<and> arcsin y < pi/2"
+proof -
+  have "arcsin y \<noteq> pi/2"
+    by (metis arcsin assms not_less not_less_iff_gr_or_eq sin_pi_half)
+  moreover have "arcsin y \<noteq> - pi/2"
+    by (metis arcsin assms minus_divide_left not_less not_less_iff_gr_or_eq sin_minus sin_pi_half)
+  ultimately show ?thesis
+    using arcsin_bounded [of y] assms by auto
+qed
 
 lemma arcsin_sin: "- (pi/2) \<le> x \<Longrightarrow> x \<le> pi/2 \<Longrightarrow> arcsin (sin x) = x"
-  apply (unfold arcsin_def)
-  apply (rule the1_equality)
-   apply (rule sin_total, auto)
-  done
+  unfolding arcsin_def
+  using the1_equality [OF sin_total]  by simp
 
 lemma arcsin_0 [simp]: "arcsin 0 = 0"
   using arcsin_sin [of 0] by simp
@@ -4947,14 +4972,18 @@ lemma arccos_lbound: "- 1 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> 
 lemma arccos_ubound: "- 1 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arccos y \<le> pi"
   by (blast dest: arccos)
 
-lemma arccos_lt_bounded: "- 1 < y \<Longrightarrow> y < 1 \<Longrightarrow> 0 < arccos y \<and> arccos y < pi"
-  apply (frule order_less_imp_le)
-  apply (frule_tac y = y in order_less_imp_le)
-  apply (frule arccos_bounded, auto)
-   apply (drule_tac y = "arccos y" in order_le_imp_less_or_eq)
-   apply (drule_tac [2] y = pi in order_le_imp_less_or_eq, auto)
-   apply (drule_tac [!] f = cos in arg_cong, auto)
-  done
+lemma arccos_lt_bounded: 
+  assumes "- 1 < y" "y < 1"
+  shows  "0 < arccos y \<and> arccos y < pi"
+proof -
+  have "arccos y \<noteq> 0"
+    by (metis (no_types) arccos assms(1) assms(2) cos_zero less_eq_real_def less_irrefl)
+  moreover have "arccos y \<noteq> -pi"
+    by (metis arccos assms(1) assms(2) cos_minus cos_pi not_less not_less_iff_gr_or_eq)
+  ultimately show ?thesis
+    using arccos_bounded [of y] assms
+    by (metis arccos cos_pi not_less not_less_iff_gr_or_eq)
+qed
 
 lemma arccos_cos: "0 \<le> x \<Longrightarrow> x \<le> pi \<Longrightarrow> arccos (cos x) = x"
   by (auto simp: arccos_def intro!: the1_equality cos_total)
@@ -4962,31 +4991,29 @@ lemma arccos_cos: "0 \<le> x \<Longrightarrow> x \<le> pi \<Longrightarrow> arcc
 lemma arccos_cos2: "x \<le> 0 \<Longrightarrow> - pi \<le> x \<Longrightarrow> arccos (cos x) = -x"
   by (auto simp: arccos_def intro!: the1_equality cos_total)
 
-lemma cos_arcsin: "- 1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> cos (arcsin x) = sqrt (1 - x\<^sup>2)"
-  apply (subgoal_tac "x\<^sup>2 \<le> 1")
-   apply (rule power2_eq_imp_eq)
-     apply (simp add: cos_squared_eq)
-    apply (rule cos_ge_zero)
-     apply (erule (1) arcsin_lbound)
-    apply (erule (1) arcsin_ubound)
-   apply simp
-  apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 \<le> 1\<^sup>2", simp)
-  apply (rule power_mono, simp)
-  apply simp
-  done
+lemma cos_arcsin:
+  assumes "- 1 \<le> x" "x \<le> 1"
+  shows "cos (arcsin x) = sqrt (1 - x\<^sup>2)"
+proof (rule power2_eq_imp_eq)
+  show "(cos (arcsin x))\<^sup>2 = (sqrt (1 - x\<^sup>2))\<^sup>2"
+    by (simp add: square_le_1 assms cos_squared_eq)
+  show "0 \<le> cos (arcsin x)"
+    using arcsin assms cos_ge_zero by blast
+  show "0 \<le> sqrt (1 - x\<^sup>2)"
+    by (simp add: square_le_1 assms)
+qed
 
-lemma sin_arccos: "- 1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> sin (arccos x) = sqrt (1 - x\<^sup>2)"
-  apply (subgoal_tac "x\<^sup>2 \<le> 1")
-   apply (rule power2_eq_imp_eq)
-     apply (simp add: sin_squared_eq)
-    apply (rule sin_ge_zero)
-     apply (erule (1) arccos_lbound)
-    apply (erule (1) arccos_ubound)
-   apply simp
-  apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 \<le> 1\<^sup>2", simp)
-  apply (rule power_mono, simp)
-  apply simp
-  done
+lemma sin_arccos:
+  assumes "- 1 \<le> x" "x \<le> 1"
+  shows "sin (arccos x) = sqrt (1 - x\<^sup>2)"
+proof (rule power2_eq_imp_eq)
+  show "(sin (arccos x))\<^sup>2 = (sqrt (1 - x\<^sup>2))\<^sup>2"
+    by (simp add: square_le_1 assms sin_squared_eq)
+  show "0 \<le> sin (arccos x)"
+    by (simp add: arccos_bounded assms sin_ge_zero)
+  show "0 \<le> sqrt (1 - x\<^sup>2)"
+    by (simp add: square_le_1 assms)
+qed
 
 lemma arccos_0 [simp]: "arccos 0 = pi/2"
   by (metis arccos_cos cos_gt_zero cos_pi cos_pi_half pi_gt_zero
@@ -5063,10 +5090,7 @@ lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
 
 lemma tan_sec: "cos x \<noteq> 0 \<Longrightarrow> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
   for x :: "'a::{real_normed_field,banach,field}"
-  apply (rule power_inverse [THEN subst])
-  apply (rule_tac c1 = "(cos x)\<^sup>2" in mult_right_cancel [THEN iffD1])
-   apply (auto simp: tan_def field_simps)
-  done
+  by (simp add: add_divide_eq_iff inverse_eq_divide power2_eq_square tan_def)
 
 lemma arctan_less_iff: "arctan x < arctan y \<longleftrightarrow> x < y"
   by (metis tan_monotone' arctan_lbound arctan_ubound tan_arctan)
@@ -5141,14 +5165,21 @@ lemma isCont_arccos: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont ar
   by (auto simp: continuous_on_eq_continuous_at subset_eq)
 
 lemma isCont_arctan: "isCont arctan x"
-  apply (rule arctan_lbound [of x, THEN dense, THEN exE], clarify)
-  apply (rule arctan_ubound [of x, THEN dense, THEN exE], clarify)
-  apply (subgoal_tac "isCont arctan (tan (arctan x))")
-   apply (simp add: arctan)
-  apply (erule (1) isCont_inverse_function2 [where f=tan])
-   apply (metis arctan_tan order_le_less_trans order_less_le_trans)
-  apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans less_le)
-  done
+proof -
+  obtain u where u: "- (pi / 2) < u" "u < arctan x"
+    by (meson arctan arctan_less_iff linordered_field_no_lb)
+  obtain v where v: "arctan x < v" "v < pi / 2"
+    by (meson arctan_less_iff arctan_ubound linordered_field_no_ub)
+  have "isCont arctan (tan (arctan x))"
+  proof (rule isCont_inverse_function2 [of u "arctan x" v])
+    show "\<And>z. \<lbrakk>u \<le> z; z \<le> v\<rbrakk> \<Longrightarrow> arctan (tan z) = z"
+      using arctan_unique u(1) v(2) by auto
+    then show "\<And>z. \<lbrakk>u \<le> z; z \<le> v\<rbrakk> \<Longrightarrow> isCont tan z"
+      by (metis arctan cos_gt_zero_pi isCont_tan less_irrefl)
+  qed (use u v in auto)
+  then show ?thesis
+    by (simp add: arctan)
+qed
 
 lemma tendsto_arctan [tendsto_intros]: "(f \<longlongrightarrow> x) F \<Longrightarrow> ((\<lambda>x. arctan (f x)) \<longlongrightarrow> arctan x) F"
   by (rule isCont_tendsto_compose [OF isCont_arctan])
@@ -5160,43 +5191,36 @@ lemma continuous_on_arctan [continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. arctan (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_arctan)
 
-lemma DERIV_arcsin: "- 1 < x \<Longrightarrow> x < 1 \<Longrightarrow> DERIV arcsin x :> inverse (sqrt (1 - x\<^sup>2))"
-  apply (rule DERIV_inverse_function [where f=sin and a="-1" and b=1])
-       apply (rule DERIV_cong [OF DERIV_sin])
-       apply (simp add: cos_arcsin)
-      apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 < 1\<^sup>2", simp)
-      apply (rule power_strict_mono, simp)
-       apply simp
-      apply simp
-     apply assumption
-    apply assumption
-   apply simp
-  apply (erule (1) isCont_arcsin)
-  done
+lemma DERIV_arcsin:
+  assumes "- 1 < x" "x < 1"
+  shows "DERIV arcsin x :> inverse (sqrt (1 - x\<^sup>2))"
+proof (rule DERIV_inverse_function)
+  show "(sin has_real_derivative sqrt (1 - x\<^sup>2)) (at (arcsin x))"
+    by (rule derivative_eq_intros | use assms cos_arcsin in force)+
+  show "sqrt (1 - x\<^sup>2) \<noteq> 0"
+    using abs_square_eq_1 assms by force
+qed (use assms isCont_arcsin in auto)
 
-lemma DERIV_arccos: "- 1 < x \<Longrightarrow> x < 1 \<Longrightarrow> DERIV arccos x :> inverse (- sqrt (1 - x\<^sup>2))"
-  apply (rule DERIV_inverse_function [where f=cos and a="-1" and b=1])
-       apply (rule DERIV_cong [OF DERIV_cos])
-       apply (simp add: sin_arccos)
-      apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 < 1\<^sup>2", simp)
-      apply (rule power_strict_mono, simp)
-       apply simp
-      apply simp
-     apply assumption
-    apply assumption
-   apply simp
-  apply (erule (1) isCont_arccos)
-  done
+lemma DERIV_arccos:
+  assumes "- 1 < x" "x < 1"
+  shows "DERIV arccos x :> inverse (- sqrt (1 - x\<^sup>2))"
+proof (rule DERIV_inverse_function)
+  show "(cos has_real_derivative - sqrt (1 - x\<^sup>2)) (at (arccos x))"
+    by (rule derivative_eq_intros | use assms sin_arccos in force)+
+  show "- sqrt (1 - x\<^sup>2) \<noteq> 0"
+    using abs_square_eq_1 assms by force
+qed (use assms isCont_arccos in auto)
 
 lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<^sup>2)"
-  apply (rule DERIV_inverse_function [where f=tan and a="x - 1" and b="x + 1"])
-       apply (rule DERIV_cong [OF DERIV_tan])
-        apply (rule cos_arctan_not_zero)
-       apply (simp_all add: add_pos_nonneg arctan isCont_arctan)
-   apply (simp add: arctan power_inverse [symmetric] tan_sec [symmetric])
-  apply (subgoal_tac "0 < 1 + x\<^sup>2", simp)
-  apply (simp_all add: add_pos_nonneg arctan isCont_arctan)
-  done
+proof (rule DERIV_inverse_function [where f=tan and a="x - 1" and b="x + 1"])
+  show "(tan has_real_derivative 1 + x\<^sup>2) (at (arctan x))"
+    apply (rule derivative_eq_intros | simp)+
+    by (metis arctan cos_arctan_not_zero power_inverse tan_sec)
+  show "\<And>y. \<lbrakk>x - 1 < y; y < x + 1\<rbrakk> \<Longrightarrow> tan (arctan y) = y"
+    using tan_arctan by blast
+  show "1 + x\<^sup>2 \<noteq> 0"
+    by (metis power_one sum_power2_eq_zero_iff zero_neq_one)
+qed (use isCont_arctan in auto)
 
 declare
   DERIV_arcsin[THEN DERIV_chain2, derivative_intros]
@@ -5830,7 +5854,7 @@ proof -
       moreover have "isCont (\<lambda> x. ?a x n - ?diff x n) x" for x
         unfolding diff_conv_add_uminus divide_inverse
         by (auto intro!: isCont_add isCont_rabs continuous_ident isCont_minus isCont_arctan
-          continuous_at_inverse isCont_mult isCont_power continuous_const isCont_sum
+          continuous_at_within_inverse isCont_mult isCont_power continuous_const isCont_sum
           simp del: add_uminus_conv_diff)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n"
         by (rule LIM_less_bound)

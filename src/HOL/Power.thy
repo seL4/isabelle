@@ -745,6 +745,12 @@ lemma abs_square_eq_1: "x\<^sup>2 = 1 \<longleftrightarrow> \<bar>x\<bar> = 1"
 lemma abs_square_less_1: "x\<^sup>2 < 1 \<longleftrightarrow> \<bar>x\<bar> < 1"
   using  abs_square_eq_1 [of x] abs_square_le_1 [of x] by (auto simp add: le_less)
 
+lemma square_le_1:
+  assumes "- 1 \<le> x" "x \<le> 1"
+  shows "x\<^sup>2 \<le> 1"
+    using assms
+    by (metis add.inverse_inverse linear mult_le_one neg_equal_0_iff_equal neg_le_iff_le power2_eq_square power_minus_Bit0)
+
 end
 
 

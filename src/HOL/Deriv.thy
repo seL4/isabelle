@@ -1695,7 +1695,7 @@ lemma DERIV_inverse_function:
   assumes der: "DERIV f (g x) :> D"
     and neq: "D \<noteq> 0"
     and x: "a < x" "x < b"
-    and inj: "\<forall>y. a < y \<and> y < b \<longrightarrow> f (g y) = y"
+    and inj: "\<And>y. \<lbrakk>a < y; y < b\<rbrakk> \<Longrightarrow> f (g y) = y"
     and cont: "isCont g x"
   shows "DERIV g x :> inverse D"
 unfolding DERIV_iff2

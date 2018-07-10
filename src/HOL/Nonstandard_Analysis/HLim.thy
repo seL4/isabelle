@@ -234,7 +234,7 @@ lemma isNSCont_minus: "isNSCont f a \<Longrightarrow> isNSCont (\<lambda>x. - f 
 
 lemma isNSCont_inverse: "isNSCont f x \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> isNSCont (\<lambda>x. inverse (f x)) x"
   for f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_div_algebra"
-  by (auto intro: continuous_at_inverse simp add: isNSCont_isCont_iff)
+  using NSLIM_inverse NSLIM_isNSCont isNSCont_NSLIM by blast
 
 lemma isNSCont_const [simp]: "isNSCont (\<lambda>x. k) a"
   by (simp add: isNSCont_def)

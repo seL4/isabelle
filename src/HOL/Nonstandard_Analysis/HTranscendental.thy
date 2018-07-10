@@ -60,7 +60,7 @@ lemma hypreal_sqrt_mult_distrib:
     "!!x y. [|0 < x; 0 <y |] ==>
       ( *f* sqrt)(x*y) = ( *f* sqrt)(x) * ( *f* sqrt)(y)"
 apply transfer
-apply (auto intro: real_sqrt_mult_distrib) 
+apply (auto intro: real_sqrt_mult) 
 done
 
 lemma hypreal_sqrt_mult_distrib2:
