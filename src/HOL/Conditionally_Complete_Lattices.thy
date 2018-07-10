@@ -526,6 +526,13 @@ qed
 
 end
 
+lemma Inf_nat_def1:
+  fixes K::"nat set"
+  assumes "K \<noteq> {}"
+  shows "Inf K \<in> K"
+by (auto simp add: Min_def Inf_nat_def) (meson LeastI assms bot.extremum_unique subsetI)
+
+
 instantiation int :: conditionally_complete_linorder
 begin
 

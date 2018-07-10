@@ -268,6 +268,92 @@ lemma bij_vimage_eq_inv_image: "bij f \<Longrightarrow> f -` A = inv f ` A"
   apply (blast intro: bij_is_inj [THEN inv_into_f_f, symmetric])
   done
 
+lemma inv_fn_o_fn_is_id:
+  fixes f::"'a \<Rightarrow> 'a"
+  assumes "bij f"
+  shows "((inv f)^^n) o (f^^n) = (\<lambda>x. x)"
+proof -
+  have "((inv f)^^n)((f^^n) x) = x" for x n
+  proof (induction n)
+    case (Suc n)
+    have *: "(inv f) (f y) = y" for y
+      by (simp add: assms bij_is_inj)
+    have "(inv f ^^ Suc n) ((f ^^ Suc n) x) = (inv f^^n) (inv f (f ((f^^n) x)))"
+      by (simp add: funpow_swap1)
+    also have "... = (inv f^^n) ((f^^n) x)"
+      using * by auto
+    also have "... = x" using Suc.IH by auto
+    finally show ?case by simp
+  qed (auto)
+  then show ?thesis unfolding o_def by blast
+qed
+
+lemma fn_o_inv_fn_is_id:
+  fixes f::"'a \<Rightarrow> 'a"
+  assumes "bij f"
+  shows "(f^^n) o ((inv f)^^n) = (\<lambda>x. x)"
+proof -
+  have "(f^^n) (((inv f)^^n) x) = x" for x n
+  proof (induction n)
+    case (Suc n)
+    have *: "f(inv f y) = y" for y
+      using bij_inv_eq_iff[OF assms] by auto
+    have "(f ^^ Suc n) ((inv f ^^ Suc n) x) = (f^^n) (f (inv f ((inv f^^n) x)))"
+      by (simp add: funpow_swap1)
+    also have "... = (f^^n) ((inv f^^n) x)"
+      using * by auto
+    also have "... = x" using Suc.IH by auto
+    finally show ?case by simp
+  qed (auto)
+  then show ?thesis unfolding o_def by blast
+qed
+
+lemma inv_fn:
+  fixes f::"'a \<Rightarrow> 'a"
+  assumes "bij f"
+  shows "inv (f^^n) = ((inv f)^^n)"
+proof -
+  have "inv (f^^n) x = ((inv f)^^n) x" for x
+  apply (rule inv_into_f_eq, auto simp add: inj_fn[OF bij_is_inj[OF assms]])
+  using fn_o_inv_fn_is_id[OF assms, of n, THEN fun_cong] by (simp)
+  then show ?thesis by auto
+qed
+
+lemma mono_inv:
+  fixes f::"'a::linorder \<Rightarrow> 'b::linorder"
+  assumes "mono f" "bij f"
+  shows "mono (inv f)"
+proof
+  fix x y::'b assume "x \<le> y"
+  from \<open>bij f\<close> obtain a b where x: "x = f a" and y: "y = f b" by(fastforce simp: bij_def surj_def)
+  show "inv f x \<le> inv f y"
+  proof (rule le_cases)
+    assume "a \<le> b"
+    thus ?thesis using  \<open>bij f\<close> x y by(simp add: bij_def inv_f_f)
+  next
+    assume "b \<le> a"
+    hence "f b \<le> f a" by(rule monoD[OF \<open>mono f\<close>])
+    hence "y \<le> x" using x y by simp
+    hence "x = y" using \<open>x \<le> y\<close> by auto
+    thus ?thesis by simp
+  qed
+qed
+
+lemma mono_bij_Inf:
+  fixes f :: "'a::complete_linorder \<Rightarrow> 'b::complete_linorder"
+  assumes "mono f" "bij f"
+  shows "f (Inf A) = Inf (f`A)"
+proof -
+  have "surj f" using \<open>bij f\<close> by (auto simp: bij_betw_def)
+  have *: "(inv f) (Inf (f`A)) \<le> Inf ((inv f)`(f`A))"
+    using mono_Inf[OF mono_inv[OF assms], of "f`A"] by simp
+  have "Inf (f`A) \<le> f (Inf ((inv f)`(f`A)))"
+    using monoD[OF \<open>mono f\<close> *] by(simp add: surj_f_inv_f[OF \<open>surj f\<close>])
+  also have "... = f(Inf A)"
+    using assms by (simp add: bij_is_inj)
+  finally show ?thesis using mono_Inf[OF assms(1), of A] by auto
+qed
+
 lemma finite_fun_UNIVD1:
   assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
     and card: "card (UNIV :: 'b set) \<noteq> Suc 0"

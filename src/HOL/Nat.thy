@@ -1582,6 +1582,28 @@ next
   qed
 qed
 
+lemma inj_fn[simp]:
+  fixes f::"'a \<Rightarrow> 'a"
+  assumes "inj f"
+  shows "inj (f^^n)"
+proof (induction n)
+  case Suc thus ?case using inj_comp[OF assms Suc.IH] by (simp del: comp_apply)
+qed simp
+
+lemma surj_fn[simp]:
+  fixes f::"'a \<Rightarrow> 'a"
+  assumes "surj f"
+  shows "surj (f^^n)"
+proof (induction n)
+  case Suc thus ?case by (simp add: comp_surj[OF Suc.IH assms] del: comp_apply)
+qed simp
+
+lemma bij_fn[simp]:
+  fixes f::"'a \<Rightarrow> 'a"
+  assumes "bij f"
+  shows "bij (f^^n)"
+by (rule bijI[OF inj_fn[OF bij_is_inj[OF assms]] surj_fn[OF bij_is_surj[OF assms]]])
+
 
 subsection \<open>Kleene iteration\<close>
 
