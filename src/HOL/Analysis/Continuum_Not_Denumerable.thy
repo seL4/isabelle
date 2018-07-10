@@ -33,8 +33,8 @@ text \<open>
   Nested Interval Property.
 \<close>
 
-theorem%important real_non_denum: "\<nexists>f :: nat \<Rightarrow> real. surj f"
-proof%unimportant
+theorem real_non_denum: "\<nexists>f :: nat \<Rightarrow> real. surj f"
+proof
   assume "\<exists>f::nat \<Rightarrow> real. surj f"
   then obtain f :: "nat \<Rightarrow> real" where "surj f" ..
 

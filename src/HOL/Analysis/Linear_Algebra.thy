@@ -377,11 +377,11 @@ qed
 subsection \<open>Archimedean properties and useful consequences\<close>
 
 text\<open>Bernoulli's inequality\<close>
-proposition%important Bernoulli_inequality:
+proposition Bernoulli_inequality:
   fixes x :: real
   assumes "-1 \<le> x"
     shows "1 + n * x \<le> (1 + x) ^ n"
-proof%unimportant (induct n)
+proof (induct n)
   case 0
   then show ?case by simp
 next

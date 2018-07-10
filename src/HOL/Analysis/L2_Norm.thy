@@ -73,9 +73,9 @@ lemma L2_set_eq_0_iff: "finite A \<Longrightarrow> L2_set f A = 0 \<longleftrigh
   unfolding L2_set_def
   by (simp add: sum_nonneg sum_nonneg_eq_0_iff)
 
-lemma %important L2_set_triangle_ineq:
+proposition L2_set_triangle_ineq:
   "L2_set (\<lambda>i. f i + g i) A \<le> L2_set f A + L2_set g A"
-proof %unimportant (cases "finite A")
+proof (cases "finite A")
   case False
   thus ?thesis by simp
 next

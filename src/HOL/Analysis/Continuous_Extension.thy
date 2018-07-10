@@ -13,7 +13,7 @@ subsection\<open>Partitions of unity subordinate to locally finite open covering
 text\<open>A difference from HOL Light: all summations over infinite sets equal zero,
    so the "support" must be made explicit in the summation below!\<close>
 
-proposition%important subordinate_partition_of_unity:
+proposition subordinate_partition_of_unity:
   fixes S :: "'a :: euclidean_space set"
   assumes "S \<subseteq> \<Union>\<C>" and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
       and fin: "\<And>x. x \<in> S \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. U \<inter> V \<noteq> {}}"
@@ -22,7 +22,7 @@ proposition%important subordinate_partition_of_unity:
       and "\<And>x U. \<lbrakk>U \<in> \<C>; x \<in> S; x \<notin> U\<rbrakk> \<Longrightarrow> F U x = 0"
       and "\<And>x. x \<in> S \<Longrightarrow> supp_sum (\<lambda>W. F W x) \<C> = 1"
       and "\<And>x. x \<in> S \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and> finite {U \<in> \<C>. \<exists>x\<in>V. F U x \<noteq> 0}"
-proof%unimportant (cases "\<exists>W. W \<in> \<C> \<and> S \<subseteq> W")
+proof (cases "\<exists>W. W \<in> \<C> \<and> S \<subseteq> W")
   case True
     then obtain W where "W \<in> \<C>" "S \<subseteq> W" by metis
     then show ?thesis
@@ -283,7 +283,7 @@ lemma Urysohn_strong:
           "\<And>x. f x = b \<longleftrightarrow> x \<in> T"
 using assms by (auto intro: Urysohn_local_strong [of UNIV S T])
 
-proposition%important Urysohn:
+proposition Urysohn:
   assumes US: "closed S"
       and UT: "closed T"
       and "S \<inter> T = {}"
@@ -292,7 +292,7 @@ proposition%important Urysohn:
           "\<And>x. f x \<in> closed_segment a b"
           "\<And>x. x \<in> S \<Longrightarrow> f x = a"
           "\<And>x. x \<in> T \<Longrightarrow> f x = b"
-using%unimportant assms by (auto intro: Urysohn_local [of UNIV S T a b])
+  using assms by (auto intro: Urysohn_local [of UNIV S T a b])
 
 
 subsection\<open>The Dugundji extension theorem and Tietze variants as corollaries\<close>
@@ -300,14 +300,14 @@ subsection\<open>The Dugundji extension theorem and Tietze variants as corollari
 text%important\<open>J. Dugundji. An extension of Tietze's theorem. Pacific J. Math. Volume 1, Number 3 (1951), 353-367.
 https://projecteuclid.org/euclid.pjm/1103052106\<close>
 
-theorem%important Dugundji:
+theorem Dugundji:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
   assumes "convex C" "C \<noteq> {}"
       and cloin: "closedin (subtopology euclidean U) S"
       and contf: "continuous_on S f" and "f ` S \<subseteq> C"
   obtains g where "continuous_on U g" "g ` U \<subseteq> C"
                   "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof%unimportant (cases "S = {}")
+proof (cases "S = {}")
   case True then show thesis
     apply (rule_tac g="\<lambda>x. SOME y. y \<in> C" in that)
       apply (rule continuous_intros)
@@ -475,7 +475,7 @@ next
 qed
 
 
-corollary%important Tietze:
+corollary Tietze:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
       and "closedin (subtopology euclidean U) S"
@@ -483,7 +483,7 @@ corollary%important Tietze:
       and "\<And>x. x \<in> S \<Longrightarrow> norm(f x) \<le> B"
   obtains g where "continuous_on U g" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
                   "\<And>x. x \<in> U \<Longrightarrow> norm(g x) \<le> B"
-using%unimportant assms
+  using assms
 by (auto simp: image_subset_iff intro: Dugundji [of "cball 0 B" U S f])
 
 corollary Tietze_closed_interval:

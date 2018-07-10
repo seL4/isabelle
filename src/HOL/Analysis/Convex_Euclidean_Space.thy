@@ -2005,9 +2005,9 @@ lemma mem_cone_hull:
   shows "c *\<^sub>R x \<in> cone hull S"
   by (metis assms cone_cone_hull hull_inc mem_cone)
 
-proposition%important cone_hull_expl: "cone hull S = {c *\<^sub>R x | c x. c \<ge> 0 \<and> x \<in> S}"
+proposition cone_hull_expl: "cone hull S = {c *\<^sub>R x | c x. c \<ge> 0 \<and> x \<in> S}"
   (is "?lhs = ?rhs")
-proof%unimportant -
+proof -
   {
     fix x
     assume "x \<in> ?rhs"
@@ -2089,7 +2089,7 @@ lemma affine_independent_Diff:
    "~ affine_dependent s \<Longrightarrow> ~ affine_dependent(s - t)"
 by (meson Diff_subset affine_dependent_subset)
 
-proposition%important affine_dependent_explicit:
+proposition affine_dependent_explicit:
   "affine_dependent p \<longleftrightarrow>
     (\<exists>S u. finite S \<and> S \<subseteq> p \<and> sum u S = 0 \<and> (\<exists>v\<in>S. u v \<noteq> 0) \<and> sum (\<lambda>v. u v *\<^sub>R v) S = 0)"
 proof -
@@ -2524,7 +2524,7 @@ lemma convex_hull_insert_alt:
 
 subsubsection%unimportant \<open>Explicit expression for convex hull\<close>
 
-proposition%important convex_hull_indexed:
+proposition convex_hull_indexed:
   fixes S :: "'a::real_vector set"
   shows "convex hull S =
     {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> S) \<and>
@@ -4020,11 +4020,11 @@ next
     by (auto simp: convex_hull_explicit)
 qed
 
-theorem%important caratheodory:
+theorem caratheodory:
   "convex hull p =
     {x::'a::euclidean_space. \<exists>s. finite s \<and> s \<subseteq> p \<and>
       card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s}"
-proof%unimportant safe
+proof safe
   fix x
   assume "x \<in> convex hull p"
   then obtain s u where "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1"
@@ -5871,10 +5871,10 @@ proof -
     done
 qed
 
-theorem%important radon:
+theorem radon:
   assumes "affine_dependent c"
   obtains m p where "m \<subseteq> c" "p \<subseteq> c" "m \<inter> p = {}" "(convex hull m) \<inter> (convex hull p) \<noteq> {}"
-proof%unimportant -
+proof -
   from assms[unfolded affine_dependent_explicit]
   obtain s u where
       "finite s" "s \<subseteq> c" "sum u s = 0" "\<exists>v\<in>s. u v \<noteq> 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
@@ -5965,12 +5965,12 @@ next
   qed 
 qed
 
-theorem%important helly:
+theorem helly:
   fixes f :: "'a::euclidean_space set set"
   assumes "card f \<ge> DIM('a) + 1" "\<forall>s\<in>f. convex s"
     and "\<And>t. \<lbrakk>t\<subseteq>f; card t = DIM('a) + 1\<rbrakk> \<Longrightarrow> \<Inter>t \<noteq> {}"
   shows "\<Inter>f \<noteq> {}"
-  apply%unimportant (rule helly_induct)
+  apply (rule helly_induct)
   using assms
   apply auto
   done

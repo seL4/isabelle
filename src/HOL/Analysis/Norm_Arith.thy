@@ -138,7 +138,7 @@ method_setup%important norm = \<open>
 
 text \<open>Hence more metric properties.\<close>
 
-lemma%important dist_triangle_add:
+proposition dist_triangle_add:
   fixes x y x' y' :: "'a::real_normed_vector"
   shows "dist (x + y) (x' + y') \<le> dist x x' + dist y y'"
   by norm

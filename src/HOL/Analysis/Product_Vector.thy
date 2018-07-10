@@ -314,11 +314,11 @@ instance prod :: (banach, banach) banach ..
 
 subsubsection%unimportant \<open>Pair operations are linear\<close>
 
-lemma%important bounded_linear_fst: "bounded_linear fst"
+proposition bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
-lemma%important bounded_linear_snd: "bounded_linear snd"
+proposition bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
@@ -354,10 +354,10 @@ qed
 
 subsubsection%unimportant \<open>Frechet derivatives involving pairs\<close>
 
-lemma%important has_derivative_Pair [derivative_intros]:
+proposition has_derivative_Pair [derivative_intros]:
   assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
   shows "((\<lambda>x. (f x, g x)) has_derivative (\<lambda>h. (f' h, g' h))) (at x within s)"
-proof%unimportant (rule has_derivativeI_sandwich[of 1])
+proof (rule has_derivativeI_sandwich[of 1])
   show "bounded_linear (\<lambda>h. (f' h, g' h))"
     using f g by (intro bounded_linear_Pair has_derivative_bounded_linear)
   let ?Rf = "\<lambda>y. f y - f x - f' (y - x)"

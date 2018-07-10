@@ -1513,7 +1513,7 @@ lemma null_sets_distr_iff:
   "f \<in> measurable M N \<Longrightarrow> A \<in> null_sets (distr M N f) \<longleftrightarrow> f -` A \<inter> space M \<in> null_sets M \<and> A \<in> sets N"
   by (auto simp add: null_sets_def emeasure_distr)
 
-lemma%important distr_distr:
+proposition distr_distr:
   "g \<in> measurable N L \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> distr (distr M N f) L g = distr M L (g \<circ> f)"
   by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
@@ -2804,11 +2804,11 @@ proof -
   qed auto
 qed
 
-lemma%important unsigned_Hahn_decomposition:
+proposition unsigned_Hahn_decomposition:
   assumes [simp]: "sets N = sets M" and [measurable]: "A \<in> sets M"
     and [simp]: "emeasure M A \<noteq> top" "emeasure N A \<noteq> top"
   shows "\<exists>Y\<in>sets M. Y \<subseteq> A \<and> (\<forall>X\<in>sets M. X \<subseteq> Y \<longrightarrow> N X \<le> M X) \<and> (\<forall>X\<in>sets M. X \<subseteq> A \<longrightarrow> X \<inter> Y = {} \<longrightarrow> M X \<le> N X)"
-proof%unimportant -
+proof -
   have "\<exists>Y\<in>sets (restrict_space M A).
     (\<forall>X\<in>sets (restrict_space M A). X \<subseteq> Y \<longrightarrow> (restrict_space N A) X \<le> (restrict_space M A) X) \<and>
     (\<forall>X\<in>sets (restrict_space M A). X \<inter> Y = {} \<longrightarrow> (restrict_space M A) X \<le> (restrict_space N A) X)"
@@ -2867,8 +2867,8 @@ qed (auto simp: le_measure_iff less_measure_def split: if_split_asm intro: measu
 
 end
 
-lemma%important le_measure: "sets M = sets N \<Longrightarrow> M \<le> N \<longleftrightarrow> (\<forall>A\<in>sets M. emeasure M A \<le> emeasure N A)"
-  apply%unimportant -
+proposition le_measure: "sets M = sets N \<Longrightarrow> M \<le> N \<longleftrightarrow> (\<forall>A\<in>sets M. emeasure M A \<le> emeasure N A)"
+  apply -
   apply (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq)
   subgoal for X
     by (cases "X \<in> sets M") (auto simp: emeasure_notin_sets)

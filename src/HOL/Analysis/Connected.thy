@@ -776,12 +776,12 @@ lemma closedin_component:
 
 subsection \<open>Intersecting chains of compact sets and the Baire property\<close>
 
-proposition%important bounded_closed_chain:
+proposition bounded_closed_chain:
   fixes \<F> :: "'a::heine_borel set set"
   assumes "B \<in> \<F>" "bounded B" and \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> closed S" and "{} \<notin> \<F>"
       and chain: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
     shows "\<Inter>\<F> \<noteq> {}"
-proof%unimportant -
+proof -
   have "B \<inter> \<Inter>\<F> \<noteq> {}"
   proof (rule compact_imp_fip)
     show "compact B" "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
@@ -824,12 +824,12 @@ proof%unimportant -
   then show ?thesis by blast
 qed
 
-corollary%important compact_chain:
+corollary compact_chain:
   fixes \<F> :: "'a::heine_borel set set"
   assumes "\<And>S. S \<in> \<F> \<Longrightarrow> compact S" "{} \<notin> \<F>"
           "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
     shows "\<Inter> \<F> \<noteq> {}"
-proof%unimportant (cases "\<F> = {}")
+proof (cases "\<F> = {}")
   case True
   then show ?thesis by auto
 next
@@ -852,12 +852,12 @@ proof -
 qed
 
 text\<open>The Baire property of dense sets\<close>
-theorem%important Baire:
+theorem Baire:
   fixes S::"'a::{real_normed_vector,heine_borel} set"
   assumes "closed S" "countable \<G>"
       and ope: "\<And>T. T \<in> \<G> \<Longrightarrow> openin (subtopology euclidean S) T \<and> S \<subseteq> closure T"
  shows "S \<subseteq> closure(\<Inter>\<G>)"
-proof%unimportant (cases "\<G> = {}")
+proof (cases "\<G> = {}")
   case True
   then show ?thesis
     using closure_subset by auto
@@ -2443,11 +2443,11 @@ proof -
   ultimately show ?thesis using that by blast
 qed
 
-corollary%important compact_uniformly_continuous:
+corollary compact_uniformly_continuous:
   fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
   assumes f: "continuous_on S f" and S: "compact S"
   shows "uniformly_continuous_on S f"
-  using%unimportant f
+  using f
     unfolding continuous_on_iff uniformly_continuous_on_def
     by (force intro: compact_uniformly_equicontinuous [OF S, of "{f}"])
 
@@ -2929,11 +2929,11 @@ lemma diameter_cbox:
 
 subsection \<open>Separation between points and sets\<close>
 
-lemma%important separate_point_closed:
+proposition separate_point_closed:
   fixes s :: "'a::heine_borel set"
   assumes "closed s" and "a \<notin> s"
   shows "\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x"
-proof%unimportant (cases "s = {}")
+proof (cases "s = {}")
   case True
   then show ?thesis by(auto intro!: exI[where x=1])
 next
@@ -2944,12 +2944,12 @@ next
     by blast
 qed
 
-lemma%important separate_compact_closed:
+proposition separate_compact_closed:
   fixes s t :: "'a::heine_borel set"
   assumes "compact s"
     and t: "closed t" "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
-proof%unimportant cases
+proof cases
   assume "s \<noteq> {} \<and> t \<noteq> {}"
   then have "s \<noteq> {}" "t \<noteq> {}" by auto
   let ?inf = "\<lambda>x. infdist x t"
@@ -2964,27 +2964,27 @@ proof%unimportant cases
   ultimately show ?thesis by auto
 qed (auto intro!: exI[of _ 1])
 
-lemma%important separate_closed_compact:
+proposition separate_closed_compact:
   fixes s t :: "'a::heine_borel set"
   assumes "closed s"
     and "compact t"
     and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
-proof%unimportant -
+proof -
   have *: "t \<inter> s = {}"
     using assms(3) by auto
   show ?thesis
     using separate_compact_closed[OF assms(2,1) *] by (force simp: dist_commute)
 qed
 
-lemma%important compact_in_open_separated:
+proposition compact_in_open_separated:
   fixes A::"'a::heine_borel set"
   assumes "A \<noteq> {}"
   assumes "compact A"
   assumes "open B"
   assumes "A \<subseteq> B"
   obtains e where "e > 0" "{x. infdist x A \<le> e} \<subseteq> B"
-proof%unimportant atomize_elim
+proof atomize_elim
   have "closed (- B)" "compact A" "- B \<inter> A = {}"
     using assms by (auto simp: open_Diff compact_eq_bounded_closed)
   from separate_closed_compact[OF this]
@@ -3959,12 +3959,12 @@ proof -
     unfolding complete_def by auto
 qed
 
-lemma%important injective_imp_isometric:
+proposition injective_imp_isometric:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes s: "closed s" "subspace s"
     and f: "bounded_linear f" "\<forall>x\<in>s. f x = 0 \<longrightarrow> x = 0"
   shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm x"
-proof%unimportant (cases "s \<subseteq> {0::'a}")
+proof (cases "s \<subseteq> {0::'a}")
   case True
   have "norm x \<le> norm (f x)" if "x \<in> s" for x
   proof -
@@ -4032,11 +4032,11 @@ next
   ultimately show ?thesis by auto
 qed
 
-lemma%important closed_injective_image_subspace:
+proposition closed_injective_image_subspace:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "subspace s" "bounded_linear f" "\<forall>x\<in>s. f x = 0 \<longrightarrow> x = 0" "closed s"
   shows "closed(f ` s)"
-proof%unimportant -
+proof -
   obtain e where "e > 0" and e: "\<forall>x\<in>s. e * norm x \<le> norm (f x)"
     using injective_imp_isometric[OF assms(4,1,2,3)] by auto
   show ?thesis
@@ -4182,13 +4182,13 @@ lemma real_eq_affinity: "m \<noteq> 0 \<Longrightarrow> y = m * x + c  \<longlef
 
 subsection \<open>Banach fixed point theorem (not really topological ...)\<close>
 
-theorem%important banach_fix:
+theorem banach_fix:
   assumes s: "complete s" "s \<noteq> {}"
     and c: "0 \<le> c" "c < 1"
     and f: "f ` s \<subseteq> s"
     and lipschitz: "\<forall>x\<in>s. \<forall>y\<in>s. dist (f x) (f y) \<le> c * dist x y"
   shows "\<exists>!x\<in>s. f x = x"
-proof%unimportant -
+proof -
   from c have "1 - c > 0" by simp
 
   from s(2) obtain z0 where z0: "z0 \<in> s" by blast
@@ -4338,13 +4338,13 @@ lemma banach_fix_type:
 
 subsection \<open>Edelstein fixed point theorem\<close>
 
-theorem%important edelstein_fix:
+theorem edelstein_fix:
   fixes s :: "'a::metric_space set"
   assumes s: "compact s" "s \<noteq> {}"
     and gs: "(g ` s) \<subseteq> s"
     and dist: "\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
   shows "\<exists>!x\<in>s. g x = x"
-proof%unimportant -
+proof -
   let ?D = "(\<lambda>x. (x, x)) ` s"
   have D: "compact ?D" "?D \<noteq> {}"
     by (rule compact_continuous_image)
@@ -4693,10 +4693,10 @@ proof -
     done
 qed
 
-proposition%important separable:
+proposition separable:
   fixes S :: "'a:: euclidean_space set"
   obtains T where "countable T" "T \<subseteq> S" "S \<subseteq> closure T"
-proof%unimportant -
+proof -
   obtain \<B> :: "'a:: euclidean_space set set"
     where "countable \<B>"
       and "{} \<notin> \<B>"
@@ -4739,11 +4739,11 @@ proof%unimportant -
   qed
 qed
 
-proposition%important Lindelof:
+proposition Lindelof:
   fixes \<F> :: "'a::euclidean_space set set"
   assumes \<F>: "\<And>S. S \<in> \<F> \<Longrightarrow> open S"
   obtains \<F>' where "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
-proof%unimportant -
+proof -
   obtain \<B> :: "'a set set"
     where "countable \<B>" "\<And>C. C \<in> \<B> \<Longrightarrow> open C"
       and \<B>: "\<And>S. open S \<Longrightarrow> \<exists>U. U \<subseteq> \<B> \<and> S = \<Union>U"
@@ -5045,11 +5045,11 @@ proof -
 qed
 
 
-proposition%important component_diff_connected:
+proposition component_diff_connected:
   fixes S :: "'a::metric_space set"
   assumes "connected S" "connected U" "S \<subseteq> U" and C: "C \<in> components (U - S)"
   shows "connected(U - C)"
-  using%unimportant \<open>connected S\<close> unfolding connected_closedin_eq not_ex de_Morgan_conj
+  using \<open>connected S\<close> unfolding connected_closedin_eq not_ex de_Morgan_conj
 proof clarify
   fix H3 H4 
   assume clo3: "closedin (subtopology euclidean (U - C)) H3" 
@@ -5175,11 +5175,11 @@ proof (rule openI, simp)
     by (metis (no_types, lifting) \<open>0 < e\<close> \<open>open S\<close> half_gt_zero_iff mem_Collect_eq mem_ball open_contains_ball_eq subsetI)
 qed
 
-proposition%important tendsto_componentwise_iff:
+proposition tendsto_componentwise_iff:
   fixes f :: "_ \<Rightarrow> 'b::euclidean_space"
   shows "(f \<longlongrightarrow> l) F \<longleftrightarrow> (\<forall>i \<in> Basis. ((\<lambda>x. (f x \<bullet> i)) \<longlongrightarrow> (l \<bullet> i)) F)"
          (is "?lhs = ?rhs")
-proof%unimportant
+proof
   assume ?lhs
   then show ?rhs
     unfolding tendsto_def

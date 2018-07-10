@@ -5063,12 +5063,12 @@ qed
 
 subsection\<open>Connectedness of the intersection of a chain\<close>
 
-proposition%important connected_chain:
+proposition connected_chain:
   fixes \<F> :: "'a :: euclidean_space set set"
   assumes cc: "\<And>S. S \<in> \<F> \<Longrightarrow> compact S \<and> connected S"
       and linear: "\<And>S T. S \<in> \<F> \<and> T \<in> \<F> \<Longrightarrow> S \<subseteq> T \<or> T \<subseteq> S"
   shows "connected(\<Inter>\<F>)"
-proof%unimportant (cases "\<F> = {}")
+proof (cases "\<F> = {}")
   case True then show ?thesis
     by auto
 next
@@ -5212,13 +5212,13 @@ next
       by (meson le_max_iff_disj)
 qed
 
-proposition%important proper_map:
+proposition proper_map:
   fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
   assumes "closedin (subtopology euclidean S) K"
       and com: "\<And>U. \<lbrakk>U \<subseteq> T; compact U\<rbrakk> \<Longrightarrow> compact (S \<inter> f -` U)"
       and "f ` S \<subseteq> T"
     shows "closedin (subtopology euclidean T) (f ` K)"
-proof%unimportant -
+proof -
   have "K \<subseteq> S"
     using assms closedin_imp_subset by metis
   obtain C where "closed C" and Keq: "K = S \<inter> C"
@@ -6708,11 +6708,11 @@ lemma orthogonal_to_span:
   by (metis a orthogonal_clauses(1,2,4)
       span_induct_alt x)
 
-proposition%important Gram_Schmidt_step:
+proposition Gram_Schmidt_step:
   fixes S :: "'a::euclidean_space set"
   assumes S: "pairwise orthogonal S" and x: "x \<in> span S"
     shows "orthogonal x (a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b))"
-proof%unimportant -
+proof -
   have "finite S"
     by (simp add: S pairwise_orthogonal_imp_finite)
   have "orthogonal (a - (\<Sum>b\<in>S. (b \<bullet> a / (b \<bullet> b)) *\<^sub>R b)) x"
@@ -6767,11 +6767,11 @@ next
 qed
 
 
-proposition%important orthogonal_extension:
+proposition orthogonal_extension:
   fixes S :: "'a::euclidean_space set"
   assumes S: "pairwise orthogonal S"
   obtains U where "pairwise orthogonal (S \<union> U)" "span (S \<union> U) = span (S \<union> T)"
-proof%unimportant -
+proof -
   obtain B where "finite B" "span B = span T"
     using basis_subspace_exists [of "span T"] subspace_span by metis
   with orthogonal_extension_aux [of B S]
@@ -6827,13 +6827,13 @@ proof -
     done
 qed
 
-proposition%important orthonormal_basis_subspace:
+proposition orthonormal_basis_subspace:
   fixes S :: "'a :: euclidean_space set"
   assumes "subspace S"
   obtains B where "B \<subseteq> S" "pairwise orthogonal B"
               and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
               and "independent B" "card B = dim S" "span B = S"
-proof%unimportant -
+proof -
   obtain B where "0 \<notin> B" "B \<subseteq> S"
              and orth: "pairwise orthogonal B"
              and "independent B" "card B = dim S" "span B = S"
@@ -6864,11 +6864,11 @@ proof%unimportant -
 qed
 
 
-proposition%important orthogonal_to_subspace_exists_gen:
+proposition orthogonal_to_subspace_exists_gen:
   fixes S :: "'a :: euclidean_space set"
   assumes "span S \<subset> span T"
   obtains x where "x \<noteq> 0" "x \<in> span T" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
-proof%unimportant -
+proof -
   obtain B where "B \<subseteq> span S" and orthB: "pairwise orthogonal B"
              and "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" "card B = dim S" "span B = span S"
@@ -6933,10 +6933,10 @@ proof -
     by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_base that)
 qed
 
-proposition%important orthogonal_subspace_decomp_exists:
+proposition orthogonal_subspace_decomp_exists:
   fixes S :: "'a :: euclidean_space set"
   obtains y z where "y \<in> span S" "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w" "x = y + z"
-proof%unimportant -
+proof -
   obtain T where "0 \<notin> T" "T \<subseteq> span S" "pairwise orthogonal T" "independent T"
     "card T = dim (span S)" "span T = span S"
     using orthogonal_basis_subspace subspace_span by blast
@@ -7030,11 +7030,11 @@ proof -
   qed
 qed
 
-proposition%important dim_orthogonal_sum:
+proposition dim_orthogonal_sum:
   fixes A :: "'a::euclidean_space set"
   assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     shows "dim(A \<union> B) = dim A + dim B"
-proof%unimportant -
+proof -
   have 1: "\<And>x y. \<lbrakk>x \<in> span A; y \<in> B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
     by (erule span_induct [OF _ subspace_hyperplane2]; simp add: assms)
   have "\<And>x y. \<lbrakk>x \<in> span A; y \<in> span B\<rbrakk> \<Longrightarrow> x \<bullet> y = 0"
@@ -7163,10 +7163,10 @@ qed
 
 subsection\<open>Lower-dimensional affine subsets are nowhere dense\<close>
 
-proposition%important dense_complement_subspace:
+proposition dense_complement_subspace:
   fixes S :: "'a :: euclidean_space set"
   assumes dim_less: "dim T < dim S" and "subspace S" shows "closure(S - T) = S"
-proof%unimportant -
+proof -
   have "closure(S - U) = S" if "dim U < dim S" "U \<subseteq> S" for U
   proof -
     have "span U \<subset> span S"
@@ -7465,7 +7465,7 @@ qed
 
 subsection\<open>Several Variants of Paracompactness\<close>
 
-proposition%important paracompact:
+proposition paracompact:
   fixes S :: "'a :: euclidean_space set"
   assumes "S \<subseteq> \<Union>\<C>" and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
   obtains \<C>' where "S \<subseteq> \<Union> \<C>'"
@@ -7473,7 +7473,7 @@ proposition%important paracompact:
                and "\<And>x. x \<in> S
                        \<Longrightarrow> \<exists>V. open V \<and> x \<in> V \<and>
                                finite {U. U \<in> \<C>' \<and> (U \<inter> V \<noteq> {})}"
-proof%unimportant (cases "S = {}")
+proof (cases "S = {}")
   case True with that show ?thesis by blast
 next
   case False
@@ -7858,14 +7858,14 @@ qed
 
 subsection\<open>Covering an open set by a countable chain of compact sets\<close>
   
-proposition%important open_Union_compact_subsets:
+proposition open_Union_compact_subsets:
   fixes S :: "'a::euclidean_space set"
   assumes "open S"
   obtains C where "\<And>n. compact(C n)" "\<And>n. C n \<subseteq> S"
                   "\<And>n. C n \<subseteq> interior(C(Suc n))"
                   "\<Union>(range C) = S"
                   "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. K \<subseteq> (C n)"
-proof%unimportant (cases "S = {}")
+proof (cases "S = {}")
   case True
   then show ?thesis
     by (rule_tac C = "\<lambda>n. {}" in that) auto
