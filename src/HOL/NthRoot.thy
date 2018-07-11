@@ -314,34 +314,28 @@ proof (rule DERIV_inverse_function)
     using x .
   show "x < x + 1"
     by simp
-  show "\<forall>y. 0 < y \<and> y < x + 1 \<longrightarrow> root n y ^ n = y"
-    using n by simp
   show "DERIV (\<lambda>x. x ^ n) (root n x) :> real n * root n x ^ (n - Suc 0)"
     by (rule DERIV_pow)
   show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using n x by simp
   show "isCont (root n) x"
     by (rule isCont_real_root)
-qed
+qed (use n in auto)
 
 lemma DERIV_odd_real_root:
   assumes n: "odd n"
     and x: "x \<noteq> 0"
   shows "DERIV (root n) x :> inverse (real n * root n x ^ (n - Suc 0))"
 proof (rule DERIV_inverse_function)
-  show "x - 1 < x"
-    by simp
-  show "x < x + 1"
-    by simp
-  show "\<forall>y. x - 1 < y \<and> y < x + 1 \<longrightarrow> root n y ^ n = y"
-    using n by (simp add: odd_real_root_pow)
+  show "x - 1 < x" "x < x + 1"
+    by auto
   show "DERIV (\<lambda>x. x ^ n) (root n x) :> real n * root n x ^ (n - Suc 0)"
     by (rule DERIV_pow)
   show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using odd_pos [OF n] x by simp
   show "isCont (root n) x"
     by (rule isCont_real_root)
-qed
+qed (use n odd_real_root_pow in auto)
 
 lemma DERIV_even_real_root:
   assumes n: "0 < n"
@@ -353,10 +347,10 @@ proof (rule DERIV_inverse_function)
     by simp
   show "x < 0"
     using x .
-  show "\<forall>y. x - 1 < y \<and> y < 0 \<longrightarrow> - (root n y ^ n) = y"
-  proof (rule allI, rule impI, erule conjE)
-    fix y assume "x - 1 < y" and "y < 0"
-    then have "root n (-y) ^ n = -y" using \<open>0 < n\<close> by simp
+  show "- (root n y ^ n) = y" if "x - 1 < y" and "y < 0" for y
+  proof -
+    have "root n (-y) ^ n = -y" 
+      using that \<open>0 < n\<close> by simp
     with real_root_minus and \<open>even n\<close>
     show "- (root n y ^ n) = y" by simp
   qed
@@ -816,8 +810,6 @@ text "Legacy theorem names:"
 lemmas real_root_pos2 = real_root_power_cancel
 lemmas real_root_pos_pos = real_root_gt_zero [THEN order_less_imp_le]
 lemmas real_root_pos_pos_le = real_root_ge_zero
-lemmas real_sqrt_mult_distrib = real_sqrt_mult
-lemmas real_sqrt_mult_distrib2 = real_sqrt_mult
 lemmas real_sqrt_eq_zero_cancel_iff = real_sqrt_eq_0_iff
 
 end

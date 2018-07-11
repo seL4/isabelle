@@ -153,7 +153,7 @@ proof
         unfolding norm_eq_sqrt_inner by simp
     qed
   have "sqrt (a\<^sup>2 * inner x x) = \<bar>a\<bar> * sqrt (inner x x)"
-    by (simp add: real_sqrt_mult_distrib)
+    by (simp add: real_sqrt_mult)
   then show "norm (a *\<^sub>R x) = \<bar>a\<bar> * norm x"
     unfolding norm_eq_sqrt_inner
     by (simp add: power2_eq_square mult.assoc)

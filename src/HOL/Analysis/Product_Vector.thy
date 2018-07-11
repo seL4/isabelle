@@ -297,7 +297,7 @@ proof
     unfolding norm_prod_def
     apply (simp add: power_mult_distrib)
     apply (simp add: distrib_left [symmetric])
-    apply (simp add: real_sqrt_mult_distrib)
+    apply (simp add: real_sqrt_mult)
     done
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule sgn_prod_def)

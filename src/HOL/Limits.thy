@@ -1030,13 +1030,6 @@ lemma continuous_at_within_inverse[continuous_intros]:
   shows "continuous (at a within s) (\<lambda>x. inverse (f x))"
   using assms unfolding continuous_within by (rule tendsto_inverse)
 
-lemma continuous_at_inverse[continuous_intros, simp]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "isCont f a"
-    and "f a \<noteq> 0"
-  shows "isCont (\<lambda>x. inverse (f x)) a"
-  using assms unfolding continuous_at by (rule tendsto_inverse)
-
 lemma continuous_on_inverse[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous_on s f"
@@ -1135,14 +1128,14 @@ lemma filterlim_at_infinity_imp_norm_at_top:
   shows   "filterlim (\<lambda>x. norm (f x)) at_top F"
 proof -
   {
-    fix r :: real 
-    have "\<forall>\<^sub>F x in F. r \<le> norm (f x)" using filterlim_at_infinity[of 0 f F] assms 
-      by (cases "r > 0") 
+    fix r :: real
+    have "\<forall>\<^sub>F x in F. r \<le> norm (f x)" using filterlim_at_infinity[of 0 f F] assms
+      by (cases "r > 0")
          (auto simp: not_less intro: always_eventually order.trans[OF _ norm_ge_zero])
   }
   thus ?thesis by (auto simp: filterlim_at_top)
 qed
-  
+
 lemma filterlim_norm_at_top_imp_at_infinity:
   fixes F
   assumes "filterlim (\<lambda>x. norm (f x)) at_top F"
@@ -1203,7 +1196,7 @@ qed (simp_all add: filterlim_ident)
 lemma filterlim_of_real_at_infinity [tendsto_intros]:
   "filterlim (of_real :: real \<Rightarrow> 'a :: real_normed_algebra_1) at_infinity at_top"
   by (intro filterlim_norm_at_top_imp_at_infinity) (auto simp: filterlim_abs_real)
-    
+
 lemma not_tendsto_and_filterlim_at_infinity:
   fixes c :: "'a::real_normed_vector"
   assumes "F \<noteq> bot"
@@ -1347,15 +1340,15 @@ lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
   unfolding filterlim_at_bot eventually_at_top_dense
   by (metis leI less_minus_iff order_less_asym)
 
-lemma at_bot_mirror : 
-  shows "(at_bot::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_top" 
+lemma at_bot_mirror :
+  shows "(at_bot::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_top"
   apply (rule filtermap_fun_inverse[of uminus, symmetric])
   subgoal unfolding filterlim_at_top eventually_at_bot_linorder using le_minus_iff by auto
   subgoal unfolding filterlim_at_bot eventually_at_top_linorder using minus_le_iff by auto
   by auto
 
-lemma at_top_mirror : 
-  shows "(at_top::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_bot"  
+lemma at_top_mirror :
+  shows "(at_top::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_bot"
   apply (subst at_bot_mirror)
   by (auto simp add: filtermap_filtermap)
 
@@ -1553,7 +1546,7 @@ proof -
     by (auto intro: filterlim_at_infinity_imp_eventually_ne tendsto_imp_eventually_ne eventually_conj)
   then show ?thesis
     by (subst filterlim_inverse_at_iff[symmetric]) simp_all
-qed  
+qed
 
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) \<longlongrightarrow> 0) F"
  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
@@ -1734,7 +1727,7 @@ lemma filterlim_power_at_infinity [tendsto_intros]:
   assumes "filterlim f at_infinity F" "n > 0"
   shows   "filterlim (\<lambda>x. f x ^ n) at_infinity F"
   by (rule filterlim_norm_at_top_imp_at_infinity)
-     (auto simp: norm_power intro!: filterlim_pow_at_top assms 
+     (auto simp: norm_power intro!: filterlim_pow_at_top assms
            intro: filterlim_at_infinity_imp_norm_at_top)
 
 lemma filterlim_tendsto_add_at_top:
@@ -2560,7 +2553,7 @@ lemma uniformly_continuous_on_Cauchy:
 
 lemma isUCont_Cauchy: "isUCont f \<Longrightarrow> Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
   by (rule uniformly_continuous_on_Cauchy[where S=UNIV and f=f]) simp_all
-  
+
 lemma uniformly_continuous_imp_Cauchy_continuous:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   shows "\<lbrakk>uniformly_continuous_on S f; Cauchy \<sigma>; \<And>n. (\<sigma> n) \<in> S\<rbrakk> \<Longrightarrow> Cauchy(f \<circ> \<sigma>)"
@@ -2824,8 +2817,8 @@ text \<open>Continuity of inverse function.\<close>
 lemma isCont_inverse_function:
   fixes f g :: "real \<Rightarrow> real"
   assumes d: "0 < d"
-    and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d \<longrightarrow> g (f z) = z"
-    and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d \<longrightarrow> isCont f z"
+    and inj: "\<And>z. \<bar>z-x\<bar> \<le> d \<Longrightarrow> g (f z) = z"
+    and cont: "\<And>z. \<bar>z-x\<bar> \<le> d \<Longrightarrow> isCont f z"
   shows "isCont g (f x)"
 proof -
   let ?A = "f (x - d)"
@@ -2854,19 +2847,12 @@ qed
 lemma isCont_inverse_function2:
   fixes f g :: "real \<Rightarrow> real"
   shows
-    "a < x \<Longrightarrow> x < b \<Longrightarrow>
-      \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> g (f z) = z \<Longrightarrow>
-      \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> isCont f z \<Longrightarrow> isCont g (f x)"
+    "\<lbrakk>a < x; x < b;
+      \<And>z. \<lbrakk>a \<le> z; z \<le> b\<rbrakk> \<Longrightarrow> g (f z) = z;
+      \<And>z. \<lbrakk>a \<le> z; z \<le> b\<rbrakk> \<Longrightarrow> isCont f z\<rbrakk> \<Longrightarrow> isCont g (f x)"
   apply (rule isCont_inverse_function [where f=f and d="min (x - a) (b - x)"])
   apply (simp_all add: abs_le_iff)
   done
-
-(* need to rename second continuous_at_inverse *)
-lemma isCont_inv_fun:
-  fixes f g :: "real \<Rightarrow> real"
-  shows "0 < d \<Longrightarrow> (\<forall>z. \<bar>z - x\<bar> \<le> d \<longrightarrow> g (f z) = z) \<Longrightarrow>
-    \<forall>z. \<bar>z - x\<bar> \<le> d \<longrightarrow> isCont f z \<Longrightarrow> isCont g (f x)"
-  by (rule isCont_inverse_function)
 
 text \<open>Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110.\<close>
 lemma LIM_fun_gt_zero: "f \<midarrow>c\<rightarrow> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> 0 < f x)"
