@@ -1629,7 +1629,7 @@ lemma ennreal_SUP_add_left:
   apply transfer
   apply (simp add: SUP_ereal_add_left)
   apply (subst (1 2) max.absorb2)
-  apply (auto intro: SUP_upper2 ereal_add_nonneg_nonneg)
+  apply (auto intro: SUP_upper2 add_nonneg_nonneg)
   done
 
 lemma ennreal_SUP_const_minus: (* TODO: rename: ennreal_SUP_const_minus *)
@@ -1814,7 +1814,7 @@ lemma add_diff_eq_ennreal:
   shows "z \<le> y \<Longrightarrow> x + (y - z) = x + y - z"
   including ennreal.lifting
   by transfer
-     (insert ereal_add_mono[of 0], auto simp add: ereal_diff_positive max.absorb2 add_diff_eq_ereal)
+     (insert add_mono[of "0::ereal"], auto simp add: ereal_diff_positive max.absorb2 add_diff_eq_ereal)
 
 lemma add_diff_inverse_ennreal:
   fixes x y :: ennreal shows "x \<le> y \<Longrightarrow> x + (y - x) = y"

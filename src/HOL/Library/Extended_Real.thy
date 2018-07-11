@@ -593,16 +593,16 @@ proof (cases x)
     using reals_Archimedean2[of r] by simp
 qed simp_all
 
-lemma ereal_add_mono:
+lemma ereal_add_strict_mono2:
   fixes a b c d :: ereal
-  assumes "a \<le> b"
-    and "c \<le> d"
-  shows "a + c \<le> b + d"
-  using assms
-  apply (cases a)
-  apply (cases rule: ereal3_cases[of b c d], auto)
-  apply (cases rule: ereal3_cases[of b c d], auto)
-  done
+  assumes "a < b"
+    and "c < d"
+  shows "a + c < b + d"
+using assms
+apply (cases a)
+apply (cases rule: ereal3_cases[of b c d], auto)
+apply (cases rule: ereal3_cases[of b c d], auto)
+done
 
 lemma ereal_minus_le_minus[simp]:
   fixes a b :: ereal
@@ -673,6 +673,11 @@ lemma ereal_abs_leI:
   fixes x y :: ereal
   shows "\<lbrakk> x \<le> y; -x \<le> y \<rbrakk> \<Longrightarrow> \<bar>x\<bar> \<le> y"
 by(cases x y rule: ereal2_cases)(simp_all)
+
+lemma ereal_abs_add:
+  fixes a b::ereal
+  shows "abs(a+b) \<le> abs a + abs b"
+by (cases rule: ereal2_cases[of a b]) (auto)
 
 lemma real_of_ereal_le_0[simp]: "real_of_ereal (x :: ereal) \<le> 0 \<longleftrightarrow> x \<le> 0 \<or> x = \<infinity>"
   by (cases x) auto
@@ -782,11 +787,6 @@ lemma
 
 lemma incseq_ereal: "incseq f \<Longrightarrow> incseq (\<lambda>x. ereal (f x))"
   unfolding incseq_def by auto
-
-lemma ereal_add_nonneg_nonneg[simp]:
-  fixes a b :: ereal
-  shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
-  using add_mono[of 0 a 0 b] by simp
 
 lemma sum_ereal[simp]: "(\<Sum>x\<in>A. ereal (f x)) = ereal (\<Sum>x\<in>A. f x)"
 proof (cases "finite A")
@@ -1049,6 +1049,35 @@ lemma ereal_mult_left_mono:
   shows "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
   using ereal_mult_right_mono
   by (simp add: mult.commute[of c])
+
+lemma ereal_mult_mono:
+  fixes a b c d::ereal
+  assumes "b \<ge> 0" "c \<ge> 0" "a \<le> b" "c \<le> d"
+  shows "a * c \<le> b * d"
+by (metis ereal_mult_right_mono mult.commute order_trans assms)
+
+lemma ereal_mult_mono':
+  fixes a b c d::ereal
+  assumes "a \<ge> 0" "c \<ge> 0" "a \<le> b" "c \<le> d"
+  shows "a * c \<le> b * d"
+by (metis ereal_mult_right_mono mult.commute order_trans assms)
+
+lemma ereal_mult_mono_strict:
+  fixes a b c d::ereal
+  assumes "b > 0" "c > 0" "a < b" "c < d"
+  shows "a * c < b * d"
+proof -
+  have "c < \<infinity>" using \<open>c < d\<close> by auto
+  then have "a * c < b * c" by (metis ereal_mult_strict_left_mono[OF assms(3) assms(2)] mult.commute)
+  moreover have "b * c \<le> b * d" using assms(2) assms(4) by (simp add: assms(1) ereal_mult_left_mono less_imp_le)
+  ultimately show ?thesis by simp
+qed
+
+lemma ereal_mult_mono_strict':
+  fixes a b c d::ereal
+  assumes "a > 0" "c > 0" "a < b" "c < d"
+  shows "a * c < b * d"
+apply (rule ereal_mult_mono_strict, auto simp add: assms) using assms by auto
 
 lemma zero_less_one_ereal[simp]: "0 \<le> (1::ereal)"
   by (simp add: one_ereal_def zero_ereal_def)
@@ -1483,6 +1512,12 @@ by(cases x y rule: ereal2_cases) simp_all
 
 lemma ediff_le_self [simp]: "x - y \<le> (x :: enat)"
 by(cases x y rule: enat.exhaust[case_product enat.exhaust]) simp_all
+
+lemma ereal_abs_diff:
+  fixes a b::ereal
+  shows "abs(a-b) \<le> abs a + abs b"
+by (cases rule: ereal2_cases[of a b]) (auto)
+
 
 subsubsection \<open>Division\<close>
 
@@ -2263,7 +2298,7 @@ next
   case False
   then show ?thesis
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. x + c"])
-       (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
+       (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
 qed
 
 lemma SUP_ereal_add_right:
@@ -2322,7 +2357,7 @@ lemma SUP_ereal_add:
   apply (subst (2) add.commute)
   apply (subst SUP_ereal_add_left[symmetric, OF UNIV_not_empty assms(3)])
   apply (subst (2) add.commute)
-  apply (rule SUP_combine[symmetric] ereal_add_mono inc[THEN monoD] | assumption)+
+  apply (rule SUP_combine[symmetric] add_mono inc[THEN monoD] | assumption)+
   done
 
 lemma INF_eq_minf: "(INF i:I. f i::ereal) \<noteq> -\<infinity> \<longleftrightarrow> (\<exists>b>-\<infinity>. \<forall>i\<in>I. b \<le> f i)"
@@ -2336,7 +2371,7 @@ proof -
     unfolding INF_eq_minf using assms by (intro exI[of _ 0]) auto
   then show ?thesis
     by (subst continuous_at_Inf_mono[where f="\<lambda>x. x + c"])
-       (auto simp: mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close> continuous_at_imp_continuous_at_within continuous_at)
+       (auto simp: mono_def add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close> continuous_at_imp_continuous_at_within continuous_at)
 qed
 
 lemma INF_ereal_add_right:
@@ -2357,7 +2392,7 @@ next
   show ?thesis
   proof (rule antisym)
     show "(INF i:I. f i) + (INF i:I. g i) \<le> (INF i:I. f i + g i)"
-      by (rule INF_greatest; intro ereal_add_mono INF_lower)
+      by (rule INF_greatest; intro add_mono INF_lower)
   next
     have "(INF i:I. f i + g i) \<le> (INF i:I. (INF j:I. f i + g j))"
       using directed by (intro INF_greatest) (blast intro: INF_lower2)
@@ -3093,12 +3128,6 @@ lemma ereal_pos_distrib:
   by (cases rule: ereal3_cases[of a b c])
     (auto simp add: field_simps not_le mult_le_0_iff mult_less_0_iff)
 
-lemma ereal_max_mono: "(a::ereal) \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> max a c \<le> max b d"
-  by (metis sup_ereal_def sup_mono)
-
-lemma ereal_max_least: "(a::ereal) \<le> x \<Longrightarrow> c \<le> x \<Longrightarrow> max a c \<le> x"
-  by (metis sup_ereal_def sup_least)
-
 lemma ereal_LimI_finite:
   fixes x :: ereal
   assumes "\<bar>x\<bar> \<noteq> \<infinity>"
@@ -3206,7 +3235,7 @@ proof (subst SUP_ereal_add_left[symmetric])
     with ev show "eventually ?P' F"
       by eventually_elim auto
     have "?INF P f + (SUP P:?F. ?INF P g) \<le> ?INF ?P' f + (SUP P:?F. ?INF P g)"
-      by (intro ereal_add_mono INF_mono) auto
+      by (intro add_mono INF_mono) auto
     also have "\<dots> = (SUP P':?F. ?INF ?P' f + ?INF P' g)"
     proof (rule SUP_ereal_add_right[symmetric])
       show "INFIMUM {x. P x \<and> 0 \<le> f x} f \<noteq> - \<infinity>"
@@ -3223,7 +3252,7 @@ proof (subst SUP_ereal_add_left[symmetric])
       show "(\<lambda>x. P x \<and> Q x) \<in> ?F"
         using * by (auto simp: eventually_conj)
       show "?INF P f + ?INF Q g \<le> (INF x:{x. P x \<and> Q x}. f x + g x)"
-        by (intro INF_greatest ereal_add_mono) (auto intro: INF_lower)
+        by (intro INF_greatest add_mono) (auto intro: INF_lower)
     qed
   qed
   finally show "(SUP P:?F. ?INF P f + (SUP P:?F. ?INF P g)) \<le> (SUP P:?F. INF x:Collect P. f x + g x)" .
@@ -3300,7 +3329,7 @@ lemma sums_ereal_positive:
   shows "f sums (SUP n. \<Sum>i<n. f i)"
 proof -
   have "incseq (\<lambda>i. \<Sum>j=0..<i. f j)"
-    using ereal_add_mono[OF _ assms]
+    using add_mono[OF _ assms]
     by (auto intro!: incseq_SucI)
   from LIMSEQ_SUP[OF this]
   show ?thesis unfolding sums_def
@@ -3399,7 +3428,7 @@ lemma suminf_add_ereal:
   shows "(\<Sum>i. f i + g i) = suminf f + suminf g"
   apply (subst (1 2 3) suminf_ereal_eq_SUP)
   unfolding sum.distrib
-  apply (intro assms ereal_add_nonneg_nonneg SUP_ereal_add_pos incseq_sumI sum_nonneg ballI)+
+  apply (intro assms add_nonneg_nonneg SUP_ereal_add_pos incseq_sumI sum_nonneg ballI)+
   done
 
 lemma suminf_cmult_ereal:
@@ -3656,7 +3685,7 @@ next
   show ?thesis
   proof (rule antisym)
     show "(SUP i:I. f i + g i) \<le> (SUP i:I. f i) + (SUP i:I. g i)"
-      by (rule SUP_least; intro ereal_add_mono SUP_upper)
+      by (rule SUP_least; intro add_mono SUP_upper)
   next
     have "bot < (SUP i:I. g i)"
       using \<open>I \<noteq> {}\<close> nonneg(2) by (auto simp: bot_ereal_def less_SUP_iff)
@@ -3688,7 +3717,7 @@ proof -
       fix i j assume "i \<in> I" "j \<in> I"
       from directed[OF \<open>insert n N \<subseteq> A\<close> this] guess k ..
       then show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)"
-        by (intro bexI[of _ k]) (auto intro!: ereal_add_mono sum_mono)
+        by (intro bexI[of _ k]) (auto intro!: add_mono sum_mono)
     qed
     ultimately show ?case
       by simp
@@ -4104,7 +4133,7 @@ lemma limsup_ereal_mult_left:
 
 lemma Limsup_add_ereal_right:
   "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Limsup F (\<lambda>n. g n + (c :: ereal)) = Limsup F g + c"
-  by (rule Limsup_compose_continuous_mono) (auto simp: mono_def ereal_add_mono continuous_on_def)
+  by (rule Limsup_compose_continuous_mono) (auto simp: mono_def add_mono continuous_on_def)
 
 lemma Limsup_add_ereal_left:
   "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Limsup F (\<lambda>n. (c :: ereal) + g n) = c + Limsup F g"
@@ -4112,7 +4141,7 @@ lemma Limsup_add_ereal_left:
 
 lemma Liminf_add_ereal_right:
   "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Liminf F (\<lambda>n. g n + (c :: ereal)) = Liminf F g + c"
-  by (rule Liminf_compose_continuous_mono) (auto simp: mono_def ereal_add_mono continuous_on_def)
+  by (rule Liminf_compose_continuous_mono) (auto simp: mono_def add_mono continuous_on_def)
 
 lemma Liminf_add_ereal_left:
   "F \<noteq> bot \<Longrightarrow> abs c \<noteq> \<infinity> \<Longrightarrow> Liminf F (\<lambda>n. (c :: ereal) + g n) = c + Liminf F g"

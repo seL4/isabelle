@@ -361,59 +361,6 @@ lemma min_Liminf_at:
 
 subsection \<open>Extended-Real.thy\<close>
 
-text\<open>The proof of this one is copied from \verb+ereal_add_mono+.\<close>
-lemma ereal_add_strict_mono2:
-  fixes a b c d :: ereal
-  assumes "a < b"
-    and "c < d"
-  shows "a + c < b + d"
-using assms
-apply (cases a)
-apply (cases rule: ereal3_cases[of b c d], auto)
-apply (cases rule: ereal3_cases[of b c d], auto)
-done
-
-text \<open>The next ones are analogues of \verb+mult_mono+ and \verb+mult_mono'+ in ereal.\<close>
-
-lemma ereal_mult_mono:
-  fixes a b c d::ereal
-  assumes "b \<ge> 0" "c \<ge> 0" "a \<le> b" "c \<le> d"
-  shows "a * c \<le> b * d"
-by (metis ereal_mult_right_mono mult.commute order_trans assms)
-
-lemma ereal_mult_mono':
-  fixes a b c d::ereal
-  assumes "a \<ge> 0" "c \<ge> 0" "a \<le> b" "c \<le> d"
-  shows "a * c \<le> b * d"
-by (metis ereal_mult_right_mono mult.commute order_trans assms)
-
-lemma ereal_mult_mono_strict:
-  fixes a b c d::ereal
-  assumes "b > 0" "c > 0" "a < b" "c < d"
-  shows "a * c < b * d"
-proof -
-  have "c < \<infinity>" using \<open>c < d\<close> by auto
-  then have "a * c < b * c" by (metis ereal_mult_strict_left_mono[OF assms(3) assms(2)] mult.commute)
-  moreover have "b * c \<le> b * d" using assms(2) assms(4) by (simp add: assms(1) ereal_mult_left_mono less_imp_le)
-  ultimately show ?thesis by simp
-qed
-
-lemma ereal_mult_mono_strict':
-  fixes a b c d::ereal
-  assumes "a > 0" "c > 0" "a < b" "c < d"
-  shows "a * c < b * d"
-apply (rule ereal_mult_mono_strict, auto simp add: assms) using assms by auto
-
-lemma ereal_abs_add:
-  fixes a b::ereal
-  shows "abs(a+b) \<le> abs a + abs b"
-by (cases rule: ereal2_cases[of a b]) (auto)
-
-lemma ereal_abs_diff:
-  fixes a b::ereal
-  shows "abs(a-b) \<le> abs a + abs b"
-by (cases rule: ereal2_cases[of a b]) (auto)
-
 lemma sum_constant_ereal:
   fixes a::ereal
   shows "(\<Sum>i\<in>I. a) = a * card I"
@@ -1569,7 +1516,7 @@ next
   ultimately have "(w o a) \<longlonglongrightarrow> limsup (u o r) + limsup (v o r o s)" by simp
   then have "limsup w = limsup (u o r) + limsup (v o r o s)" using l(1) LIMSEQ_unique by blast
   then have "limsup w \<le> limsup u + limsup v"
-    using \<open>limsup (u o r) \<le> limsup u\<close> \<open>limsup (v o r o s) \<le> limsup v\<close> ereal_add_mono by simp
+    using \<open>limsup (u o r) \<le> limsup u\<close> \<open>limsup (v o r o s) \<le> limsup v\<close> add_mono by simp
   then show ?thesis unfolding w_def by simp
 qed
 
@@ -1616,7 +1563,7 @@ next
   ultimately have "(w o a) \<longlonglongrightarrow> liminf (u o r) + liminf (v o r o s)" by simp
   then have "liminf w = liminf (u o r) + liminf (v o r o s)" using l(1) LIMSEQ_unique by blast
   then have "liminf w \<ge> liminf u + liminf v"
-    using \<open>liminf (u o r) \<ge> liminf u\<close> \<open>liminf (v o r o s) \<ge> liminf v\<close> ereal_add_mono by simp
+    using \<open>liminf (u o r) \<ge> liminf u\<close> \<open>liminf (v o r o s) \<ge> liminf v\<close> add_mono by simp
   then show ?thesis unfolding w_def by simp
 qed
 
