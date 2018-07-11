@@ -349,11 +349,8 @@ lemma babs_simp:
   apply(rule iffI)
   apply(simp_all only: babs_rsp[OF q])
   apply(auto simp add: Babs_def rel_fun_def)
-  apply (subgoal_tac "x \<in> Respects R1 \<and> y \<in> Respects R1")
-  apply(metis Babs_def)
-  apply (simp add: in_respects)
-  using Quotient3_rel[OF q]
-  by metis
+  apply(metis Babs_def in_respects  Quotient3_rel[OF q])
+  done
 
 (* If a user proves that a particular functional relation
    is an equivalence this may be useful in regularising *)
@@ -401,51 +398,17 @@ where
 lemma bex1_rel_aux:
   "\<lbrakk>\<forall>xa ya. R xa ya \<longrightarrow> x xa = y ya; Bex1_rel R x\<rbrakk> \<Longrightarrow> Bex1_rel R y"
   unfolding Bex1_rel_def
-  apply (erule conjE)+
-  apply (erule bexE)
-  apply rule
-  apply (rule_tac x="xa" in bexI)
-  apply metis
-  apply metis
-  apply rule+
-  apply (erule_tac x="xaa" in ballE)
-  prefer 2
-  apply (metis)
-  apply (erule_tac x="ya" in ballE)
-  prefer 2
-  apply (metis)
-  apply (metis in_respects)
-  done
+  by (metis in_respects)
 
 lemma bex1_rel_aux2:
   "\<lbrakk>\<forall>xa ya. R xa ya \<longrightarrow> x xa = y ya; Bex1_rel R y\<rbrakk> \<Longrightarrow> Bex1_rel R x"
   unfolding Bex1_rel_def
-  apply (erule conjE)+
-  apply (erule bexE)
-  apply rule
-  apply (rule_tac x="xa" in bexI)
-  apply metis
-  apply metis
-  apply rule+
-  apply (erule_tac x="xaa" in ballE)
-  prefer 2
-  apply (metis)
-  apply (erule_tac x="ya" in ballE)
-  prefer 2
-  apply (metis)
-  apply (metis in_respects)
-  done
+  by (metis in_respects)
 
 lemma bex1_rel_rsp:
   assumes a: "Quotient3 R absf repf"
   shows "((R ===> (=)) ===> (=)) (Bex1_rel R) (Bex1_rel R)"
-  apply (simp add: rel_fun_def)
-  apply clarify
-  apply rule
-  apply (simp_all add: bex1_rel_aux bex1_rel_aux2)
-  apply (erule bex1_rel_aux2)
-  apply assumption
-  done
+  unfolding rel_fun_def by (metis bex1_rel_aux bex1_rel_aux2)
 
 
 lemma ex1_prs:

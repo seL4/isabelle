@@ -830,6 +830,11 @@ lemma norm_divide: "norm (a / b) = norm a / norm b"
   for a b :: "'a::{real_normed_field,field}"
   by (simp add: divide_inverse norm_mult norm_inverse)
 
+lemma norm_inverse_le_norm:
+  fixes x :: "'a::real_normed_div_algebra"
+  shows "r \<le> norm x \<Longrightarrow> 0 < r \<Longrightarrow> norm (inverse x) \<le> inverse r"
+  by (simp add: le_imp_inverse_le norm_inverse)
+
 lemma norm_power_ineq: "norm (x ^ n) \<le> norm x ^ n"
   for x :: "'a::real_normed_algebra_1"
 proof (induct n)

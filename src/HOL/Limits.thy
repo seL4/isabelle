@@ -36,7 +36,7 @@ proof -
   have 3: "\<forall>x. u \<le> \<bar>x\<bar> \<longrightarrow> A x \<Longrightarrow> \<exists>N. \<forall>n\<le>N. A n" for A and u::real
     by (metis (full_types) abs_ge_self abs_minus_cancel le_minus_iff order_trans)
   show ?thesis
-    by (auto simp add: filter_eq_iff eventually_sup eventually_at_infinity
+    by (auto simp: filter_eq_iff eventually_sup eventually_at_infinity
       eventually_at_top_linorder eventually_at_bot_linorder intro: 1 2 3)
 qed
 
@@ -136,7 +136,7 @@ lemma BseqD: "Bseq X \<Longrightarrow> \<exists>K. 0 < K \<and> (\<forall>n. nor
   by (simp add: Bseq_def)
 
 lemma BseqI: "0 < K \<Longrightarrow> \<forall>n. norm (X n) \<le> K \<Longrightarrow> Bseq X"
-  by (auto simp add: Bseq_def)
+  by (auto simp: Bseq_def)
 
 lemma Bseq_bdd_above: "Bseq X \<Longrightarrow> bdd_above (range X)"
   for X :: "nat \<Rightarrow> real"
@@ -222,7 +222,7 @@ lemma Bseq_iff3: "Bseq X \<longleftrightarrow> (\<exists>k>0. \<exists>N. \<fora
 proof
   assume ?P
   then obtain K where *: "0 < K" and **: "\<And>n. norm (X n) \<le> K"
-    by (auto simp add: Bseq_def)
+    by (auto simp: Bseq_def)
   from * have "0 < K + norm (X 0)" by (rule order_less_le_trans) simp
   from ** have "\<forall>n. norm (X n - X 0) \<le> K + norm (X 0)"
     by (auto intro: order_trans norm_triangle_ineq4)
@@ -231,7 +231,7 @@ proof
   with \<open>0 < K + norm (X 0)\<close> show ?Q by blast
 next
   assume ?Q
-  then show ?P by (auto simp add: Bseq_iff2)
+  then show ?P by (auto simp: Bseq_iff2)
 qed
 
 
@@ -688,7 +688,7 @@ proof
     unfolding tendsto_Zfun_iff add_diff_add
     using tendsto_fst[OF filterlim_ident, of "(a,b)"] tendsto_snd[OF filterlim_ident, of "(a,b)"]
     by (intro Zfun_add)
-       (auto simp add: tendsto_Zfun_iff[symmetric] nhds_prod[symmetric] intro!: tendsto_fst)
+       (auto simp: tendsto_Zfun_iff[symmetric] nhds_prod[symmetric] intro!: tendsto_fst)
   show "(uminus \<longlongrightarrow> - a) (nhds a)"
     unfolding tendsto_Zfun_iff minus_diff_minus
     using filterlim_ident[of "nhds a"]
@@ -826,7 +826,7 @@ by (rule continuous_on_mult [OF _ continuous_on_const])
 
 lemma continuous_on_mult_const [simp]:
   fixes c::"'a::real_normed_algebra"
-  shows "continuous_on s (( * ) c)"
+  shows "continuous_on s (( *) c)"
   by (intro continuous_on_mult_left continuous_on_id)
 
 lemma tendsto_divide_zero:
@@ -909,14 +909,6 @@ lemma (in bounded_bilinear) Bfun_prod_Zfun:
     and g: "Zfun g F"
   shows "Zfun (\<lambda>x. f x ** g x) F"
   using flip g f by (rule bounded_bilinear.Zfun_prod_Bfun)
-
-lemma Bfun_inverse_lemma:
-  fixes x :: "'a::real_normed_div_algebra"
-  shows "r \<le> norm x \<Longrightarrow> 0 < r \<Longrightarrow> norm (inverse x) \<le> inverse r"
-  apply (subst nonzero_norm_inverse)
-  apply clarsimp
-  apply (erule (1) le_imp_inverse_le)
-  done
 
 lemma Bfun_inverse:
   fixes a :: "'a::real_normed_div_algebra"
@@ -1304,14 +1296,14 @@ lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
 lemma at_bot_mirror :
   shows "(at_bot::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_top"
   apply (rule filtermap_fun_inverse[of uminus, symmetric])
-  subgoal unfolding filterlim_at_top eventually_at_bot_linorder using le_minus_iff by auto
+  subgoal unfolding filterlim_at_top filterlim_at_bot eventually_at_bot_linorder using le_minus_iff by auto
   subgoal unfolding filterlim_at_bot eventually_at_top_linorder using minus_le_iff by auto
   by auto
 
 lemma at_top_mirror :
   shows "(at_top::('a::{ordered_ab_group_add,linorder} filter)) = filtermap uminus at_bot"
   apply (subst at_bot_mirror)
-  by (auto simp add: filtermap_filtermap)
+  by (auto simp: filtermap_filtermap)
 
 lemma filterlim_at_top_mirror: "(LIM x at_top. f x :> F) \<longleftrightarrow> (LIM x at_bot. f (-x::real) :> F)"
   unfolding filterlim_def at_top_mirror filtermap_filtermap ..
@@ -1355,7 +1347,7 @@ proof safe
   fix Z :: real
   assume [arith]: "0 < Z"
   then have "eventually (\<lambda>x. x < inverse Z) (nhds 0)"
-    by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
+    by (auto simp: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
   then show "eventually (\<lambda>x. x \<noteq> 0 \<longrightarrow> x \<in> {0<..} \<longrightarrow> Z \<le> inverse x) (nhds 0)"
     by (auto elim!: eventually_mono simp: inverse_eq_divide field_simps)
 qed
@@ -1563,10 +1555,7 @@ proof (rule antisym)
   have "(inverse \<longlongrightarrow> (0::'a)) at_infinity"
     by (fact tendsto_inverse_0)
   then show "filtermap inverse at_infinity \<le> at (0::'a)"
-    apply (simp add: le_principal eventually_filtermap eventually_at_infinity filterlim_def at_within_def)
-    apply (rule_tac x="1" in exI)
-    apply auto
-    done
+    using filterlim_def filterlim_ident filterlim_inverse_at_iff by fastforce
 next
   have "filtermap inverse (filtermap inverse (at (0::'a))) \<le> filtermap inverse at_infinity"
     using filterlim_inverse_at_infinity unfolding filterlim_def
@@ -1873,16 +1862,6 @@ lemma LIMSEQ_linear: "X \<longlonglongrightarrow> x \<Longrightarrow> l > 0 \<Lo
   unfolding tendsto_def eventually_sequentially
   by (metis div_le_dividend div_mult_self1_is_m le_trans mult.commute)
 
-lemma norm_inverse_le_norm: "r \<le> norm x \<Longrightarrow> 0 < r \<Longrightarrow> norm (inverse x) \<le> inverse r"
-  for x :: "'a::real_normed_div_algebra"
-  apply (subst nonzero_norm_inverse, clarsimp)
-  apply (erule (1) le_imp_inverse_le)
-  done
-
-lemma Bseq_inverse: "X \<longlonglongrightarrow> a \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
-  for a :: "'a::real_normed_div_algebra"
-  by (rule Bfun_inverse)
-
 
 text \<open>Transformation of limit.\<close>
 
@@ -1900,11 +1879,7 @@ proposition Lim_transform_eq: "((\<lambda>x. f x - g x) \<longlongrightarrow> 0)
 
 lemma Lim_transform_eventually:
   "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f \<longlongrightarrow> l) net \<Longrightarrow> (g \<longlongrightarrow> l) net"
-  apply (rule topological_tendstoI)
-  apply (drule (2) topological_tendstoD)
-  apply (erule (1) eventually_elim2)
-  apply simp
-  done
+  using eventually_elim2 by (fastforce simp add: tendsto_def)
 
 lemma Lim_transform_within:
   assumes "(f \<longlongrightarrow> l) (at x within S)"
@@ -1988,9 +1963,7 @@ lemma LIMSEQ_inverse_zero:
   assumes "\<And>r::real. \<exists>N. \<forall>n\<ge>N. r < X n"
   shows "(\<lambda>n. inverse (X n)) \<longlonglongrightarrow> 0"
   apply (rule filterlim_compose[OF tendsto_inverse_0])
-  apply (simp add: filterlim_at_infinity[OF order_refl] eventually_sequentially)
-  apply (metis assms abs_le_D1 linorder_le_cases linorder_not_le)
-  done
+  by (metis assms eventually_at_top_linorderI filterlim_at_top_dense filterlim_at_top_imp_at_infinity)
 
 text \<open>The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity.\<close>
 lemma LIMSEQ_inverse_real_of_nat: "(\<lambda>n. inverse (real (Suc n))) \<longlonglongrightarrow> 0"
@@ -2261,18 +2234,11 @@ subsection \<open>Power Sequences\<close>
 
 lemma Bseq_realpow: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> Bseq (\<lambda>n. x ^ n)"
   for x :: real
-  apply (simp add: Bseq_def)
-  apply (rule_tac x = 1 in exI)
-  apply (simp add: power_abs)
-  apply (auto dest: power_mono)
-  done
+  by (metis decseq_bounded decseq_def power_decreasing zero_le_power)
 
 lemma monoseq_realpow: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> monoseq (\<lambda>n. x ^ n)"
   for x :: real
-  apply (clarify intro!: mono_SucI2)
-  apply (cut_tac n = n and N = "Suc n" and a = x in power_decreasing)
-     apply auto
-  done
+  using monoseq_def power_decreasing by blast
 
 lemma convergent_realpow: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> convergent (\<lambda>n. x ^ n)"
   for x :: real
@@ -2303,9 +2269,7 @@ qed
 lemma LIMSEQ_power_zero: "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) \<longlonglongrightarrow> 0"
   for x :: "'a::real_normed_algebra_1"
   apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
-  apply (simp only: tendsto_Zfun_iff, erule Zfun_le)
-  apply (simp add: power_abs norm_power_ineq)
-  done
+  by (simp add: Zfun_le norm_power_ineq tendsto_Zfun_iff)
 
 lemma LIMSEQ_divide_realpow_zero: "1 < x \<Longrightarrow> (\<lambda>n. a / (x ^ n) :: real) \<longlonglongrightarrow> 0"
   by (rule tendsto_divide_0 [OF tendsto_const filterlim_realpow_sequentially_gt1]) simp
@@ -2327,7 +2291,7 @@ proof (rule tendstoI)
     using \<open>filterlim f sequentially F\<close>
     by (simp add: filterlim_at_top)
   then show "\<forall>\<^sub>F i in F. dist (x ^ f i) 0 < e"
-    by (eventually_elim) (auto simp: N)
+    by eventually_elim (auto simp: N)
 qed
 
 text \<open>Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}.\<close>
@@ -2717,14 +2681,14 @@ lemma isCont_eq_Ub:
   shows "a \<le> b \<Longrightarrow> \<forall>x::real. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
     \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M) \<and> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
   using continuous_attains_sup[of "{a..b}" f]
-  by (auto simp add: continuous_at_imp_continuous_on Ball_def Bex_def)
+  by (auto simp: continuous_at_imp_continuous_on Ball_def Bex_def)
 
 lemma isCont_eq_Lb:
   fixes f :: "real \<Rightarrow> 'a::linorder_topology"
   shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
     \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> M \<le> f x) \<and> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
   using continuous_attains_inf[of "{a..b}" f]
-  by (auto simp add: continuous_at_imp_continuous_on Ball_def Bex_def)
+  by (auto simp: continuous_at_imp_continuous_on Ball_def Bex_def)
 
 lemma isCont_bounded:
   fixes f :: "real \<Rightarrow> 'a::linorder_topology"
@@ -2760,16 +2724,20 @@ proof -
     using isCont_eq_Ub[OF assms] by auto
   obtain L where L: "a \<le> L" "L \<le> b" "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f L \<le> f x"
     using isCont_eq_Lb[OF assms] by auto
-  show ?thesis
-    using IVT[of f L _ M] IVT2[of f L _ M] M L assms
-    apply (rule_tac x="f L" in exI)
-    apply (rule_tac x="f M" in exI)
-    apply (cases "L \<le> M")
-     apply simp
-     apply (metis order_trans)
-    apply simp
-    apply (metis order_trans)
-    done
+  have "(\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f L \<le> f x \<and> f x \<le> f M)"
+    using M L by simp
+  moreover
+  have "(\<forall>y. f L \<le> y \<and> y \<le> f M \<longrightarrow> (\<exists>x\<ge>a. x \<le> b \<and> f x = y))"
+  proof (cases "L \<le> M")
+    case True then show ?thesis
+    using IVT[of f L _ M] M L assms by (metis order.trans)
+  next
+    case False then show ?thesis
+    using IVT2[of f L _ M]
+    by (metis L(2) M(1) assms(2) le_cases order.trans)
+qed
+  ultimately show ?thesis
+    by blast
 qed
 
 
@@ -2800,8 +2768,7 @@ proof -
     using d inj by (intro continuous_inj_imp_mono[OF _ _ f] inj_on_imageI2[of g, OF inj_onI]) auto
   then have "f x \<in> {min ?A ?B <..< max ?A ?B}"
     by auto
-  ultimately
-  show ?thesis
+  ultimately show ?thesis
     by (simp add: continuous_on_eq_continuous_at)
 qed
 
@@ -2818,23 +2785,14 @@ lemma isCont_inverse_function2:
 text \<open>Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110.\<close>
 lemma LIM_fun_gt_zero: "f \<midarrow>c\<rightarrow> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> 0 < f x)"
   for f :: "real \<Rightarrow> real"
-  apply (drule (1) LIM_D)
-  apply clarify
-  apply (rule_tac x = s in exI)
-  apply (simp add: abs_less_iff)
-  done
+  by (force simp: dest: LIM_D)
 
 lemma LIM_fun_less_zero: "f \<midarrow>c\<rightarrow> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x < 0)"
   for f :: "real \<Rightarrow> real"
-  apply (drule LIM_D [where r="-l"])
-   apply simp
-  apply clarify
-  apply (rule_tac x = s in exI)
-  apply (simp add: abs_less_iff)
-  done
+  by (drule LIM_D [where r="-l"]) force+
 
 lemma LIM_fun_not_zero: "f \<midarrow>c\<rightarrow> l \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x \<noteq> 0)"
   for f :: "real \<Rightarrow> real"
-  using LIM_fun_gt_zero[of f l c] LIM_fun_less_zero[of f l c] by (auto simp add: neq_iff)
+  using LIM_fun_gt_zero[of f l c] LIM_fun_less_zero[of f l c] by (auto simp: neq_iff)
 
 end
