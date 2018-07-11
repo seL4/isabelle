@@ -80,13 +80,15 @@ proof -
     using cos_gt_zero_pi[of x] by (subst tan_sec) (auto intro!: DERIV_tan simp: power_inverse)
   have 2: "- (pi / 2) < x \<Longrightarrow> x * 2 < pi \<Longrightarrow> isCont (\<lambda>x. 1 + (tan x)\<^sup>2) x" for x
     using cos_gt_zero_pi[of x] by auto
+  have 3: "\<lbrakk>- (pi / 2) < x; x * 2 < pi\<rbrakk>  \<Longrightarrow> isCont (\<lambda>x. inverse (1 + x\<^sup>2)) (tan x)" for x
+    by (rule continuous_intros | simp add: add_nonneg_eq_0_iff)+
   show "LBINT x=-\<infinity>..\<infinity>. inverse (1 + x^2) = pi"
     by (subst interval_integral_substitution_nonneg[of "-pi/2" "pi/2" tan "\<lambda>x. 1 + (tan x)^2"])
-       (auto intro: derivative_eq_intros 1 2 filterlim_tan_at_right
+       (auto intro: derivative_eq_intros 1 2 3 filterlim_tan_at_right
              simp add: ereal_tendsto_simps filterlim_tan_at_left add_nonneg_eq_0_iff set_integrable_def)
   show "set_integrable lborel (einterval (-\<infinity>) \<infinity>) (\<lambda>x. inverse (1 + x^2))"
     by (subst interval_integral_substitution_nonneg[of "-pi/2" "pi/2" tan "\<lambda>x. 1 + (tan x)^2"])
-       (auto intro: derivative_eq_intros 1 2 filterlim_tan_at_right
+       (auto intro: derivative_eq_intros 1 2 3 filterlim_tan_at_right
              simp add: ereal_tendsto_simps filterlim_tan_at_left add_nonneg_eq_0_iff set_integrable_def)
 qed
 
@@ -395,11 +397,7 @@ proof -
   } note aux2 = this
   show ?thesis
     using assms unfolding Si_def interval_lebesgue_integral_def set_lebesgue_integral_def sgn_real_def einterval_eq zero_ereal_def
-    apply auto
-    apply (erule aux1)
-    apply (rule aux2)
-    apply auto
-    done
+    by (auto simp: aux1 aux2)
 qed
 
 end
