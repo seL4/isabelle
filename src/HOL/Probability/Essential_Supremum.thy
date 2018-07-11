@@ -119,7 +119,7 @@ proof (cases "f \<in> borel_measurable M \<and> g \<in> borel_measurable M")
   case True
   then have [measurable]: "(\<lambda>x. f x + g x) \<in> borel_measurable M" by auto
   have "f x + g x \<le> esssup M f + esssup M g" if "f x \<le> esssup M f" "g x \<le> esssup M g" for x
-    using that ereal_add_mono by auto
+    using that add_mono by auto
   then have "AE x in M. f x + g x \<le> esssup M f + esssup M g"
     using esssup_AE[of f M] esssup_AE[of g M] by auto
   then show ?thesis using esssup_I by auto
