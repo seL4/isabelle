@@ -354,8 +354,9 @@ text \<open>The best of both worlds: Easier to prove this result as a standard
    theorem and then use equivalence to "transfer" it into the
    equivalent nonstandard form if needed!\<close>
 
-lemma Bmonoseq_NSLIMSEQ: "\<forall>n \<ge> m. X n = X m \<Longrightarrow> \<exists>L. X \<longlonglongrightarrow>\<^sub>N\<^sub>S L"
-  by (auto dest!: Bmonoseq_LIMSEQ simp add: LIMSEQ_NSLIMSEQ_iff)
+lemma Bmonoseq_NSLIMSEQ: "\<forall>\<^sub>F k in sequentially. X k = X m \<Longrightarrow> X \<longlonglongrightarrow>\<^sub>N\<^sub>S X m"
+  unfolding LIMSEQ_NSLIMSEQ_iff[symmetric]
+  by (simp add: eventually_mono eventually_nhds_x_imp_x filterlim_iff)
 
 lemma NSBseq_mono_NSconvergent: "NSBseq X \<Longrightarrow> \<forall>m. \<forall>n \<ge> m. X m \<le> X n \<Longrightarrow> NSconvergent X"
   for X :: "nat \<Rightarrow> real"
@@ -452,22 +453,22 @@ text \<open>Equivalence of Cauchy criterion and convergence:
 lemma NSconvergent_NSCauchy: "NSconvergent X \<Longrightarrow> NSCauchy X"
   by (simp add: NSconvergent_def NSLIMSEQ_def NSCauchy_def) (auto intro: approx_trans2)
 
-lemma real_NSCauchy_NSconvergent: "NSCauchy X \<Longrightarrow> NSconvergent X"
-  for X :: "nat \<Rightarrow> real"
-  apply (simp add: NSconvergent_def NSLIMSEQ_def)
-  apply (frule NSCauchy_NSBseq)
-  apply (simp add: NSBseq_def NSCauchy_def)
-  apply (drule HNatInfinite_whn [THEN [2] bspec])
-  apply (drule HNatInfinite_whn [THEN [2] bspec])
-  apply (auto dest!: st_part_Ex simp add: SReal_iff)
-  apply (blast intro: approx_trans3)
-  done
+lemma real_NSCauchy_NSconvergent: 
+  fixes X :: "nat \<Rightarrow> real"
+  assumes "NSCauchy X" shows "NSconvergent X"
+  unfolding NSconvergent_def NSLIMSEQ_def
+proof -
+  have "( *f* X) whn \<in> HFinite"
+    by (simp add: NSBseqD2 NSCauchy_NSBseq assms)
+  moreover have "\<forall>N\<in>HNatInfinite. ( *f* X) whn \<approx> ( *f* X) N"
+    using HNatInfinite_whn NSCauchy_def assms by blast
+  ultimately show "\<exists>L. \<forall>N\<in>HNatInfinite. ( *f* X) N \<approx> hypreal_of_real L"
+    by (force dest!: st_part_Ex simp add: SReal_iff intro: approx_trans3)
+qed
 
 lemma NSCauchy_NSconvergent: "NSCauchy X \<Longrightarrow> NSconvergent X"
   for X :: "nat \<Rightarrow> 'a::banach"
-  apply (drule NSCauchy_Cauchy [THEN Cauchy_convergent])
-  apply (erule convergent_NSconvergent_iff [THEN iffD1])
-  done
+  using Cauchy_convergent NSCauchy_Cauchy convergent_NSconvergent_iff by auto
 
 lemma NSCauchy_NSconvergent_iff: "NSCauchy X = NSconvergent X"
   for X :: "nat \<Rightarrow> 'a::banach"
@@ -481,42 +482,34 @@ text \<open>The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{ter
   also fact that bounded and monotonic sequence converges.\<close>
 
 text \<open>We now use NS criterion to bring proof of theorem through.\<close>
-lemma NSLIMSEQ_realpow_zero: "0 \<le> x \<Longrightarrow> x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
-  for x :: real
-  apply (simp add: NSLIMSEQ_def)
-  apply (auto dest!: convergent_realpow simp add: convergent_NSconvergent_iff)
-  apply (frule NSconvergentD)
-  apply (auto simp add: NSLIMSEQ_def NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfun_pow)
-  apply (frule HNatInfinite_add_one)
-  apply (drule bspec, assumption)
-  apply (drule bspec, assumption)
-  apply (drule_tac x = "N + 1" in bspec, assumption)
-  apply (simp add: hyperpow_add)
-  apply (drule approx_mult_subst_star_of, assumption)
-  apply (drule approx_trans3, assumption)
-  apply (auto simp del: star_of_mult simp add: star_of_mult [symmetric])
-  done
+lemma NSLIMSEQ_realpow_zero:
+  fixes x :: real
+  assumes "0 \<le> x" "x < 1" shows "(\<lambda>n. x ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
+proof -
+  have "( *f* (^) x) N \<approx> 0"
+    if N: "N \<in> HNatInfinite" and x: "NSconvergent ((^) x)" for N
+  proof -
+    have "hypreal_of_real x pow N \<approx> hypreal_of_real x pow (N + 1)"
+      by (metis HNatInfinite_add N NSCauchy_NSconvergent_iff NSCauchy_def starfun_pow x)
+    moreover obtain L where L: "hypreal_of_real x pow N \<approx> hypreal_of_real L"
+      using NSconvergentD [OF x] N by (auto simp add: NSLIMSEQ_def starfun_pow)
+    ultimately have "hypreal_of_real x pow N \<approx> hypreal_of_real L * hypreal_of_real x"
+      by (simp add: approx_mult_subst_star_of hyperpow_add)
+    then have "hypreal_of_real L \<approx> hypreal_of_real L * hypreal_of_real x"
+      using L approx_trans3 by blast
+    then show ?thesis
+      by (metis L \<open>x < 1\<close> hyperpow_def less_irrefl mult.right_neutral mult_left_cancel star_of_approx_iff star_of_mult star_of_simps(9) starfun2_star_of)
+  qed
+  with assms show ?thesis
+    by (force dest!: convergent_realpow simp add: NSLIMSEQ_def convergent_NSconvergent_iff)
+qed
 
-lemma NSLIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
+lemma NSLIMSEQ_abs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
   for c :: real
-  by (simp add: LIMSEQ_rabs_realpow_zero LIMSEQ_NSLIMSEQ_iff [symmetric])
+  by (simp add: LIMSEQ_abs_realpow_zero LIMSEQ_NSLIMSEQ_iff [symmetric])
 
-lemma NSLIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. c ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
+lemma NSLIMSEQ_abs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. c ^ n) \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
   for c :: real
-  by (simp add: LIMSEQ_rabs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
-
-(***---------------------------------------------------------------
-    Theorems proved by Harrison in HOL that we do not need
-    in order to prove equivalence between Cauchy criterion
-    and convergence:
- -- Show that every sequence contains a monotonic subsequence
-Goal "\<exists>f. subseq f & monoseq (%n. s (f n))"
- -- Show that a subsequence of a bounded sequence is bounded
-Goal "Bseq X ==> Bseq (%n. X (f n))";
- -- Show we can take subsequential terms arbitrarily far
-    up a sequence
-Goal "subseq f ==> n \<le> f(n)";
-Goal "subseq f ==> \<exists>n. N1 \<le> n & N2 \<le> f(n)";
- ---------------------------------------------------------------***)
+  by (simp add: LIMSEQ_abs_realpow_zero2 LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 end

@@ -5697,16 +5697,9 @@ proof -
       if x'_bounds: "x' \<in> {- 1 <..< 1}" for x' :: real
     proof -
       from that have "\<bar>x'\<bar> < 1" by auto
-      then have *: "summable (\<lambda>n. (- 1) ^ n * x' ^ (2 * n))"
-        by (rule summable_Integral)
-      show ?thesis
-        unfolding if_eq
-        apply (rule sums_summable [where l="0 + (\<Sum>n. (-1)^n * x'^(2 * n))"])
-        apply (rule sums_if)
-         apply (rule sums_zero)
-        apply (rule summable_sums)
-        apply (rule *)
-        done
+      then show ?thesis
+        using that sums_summable sums_if [OF sums_0 [of "\<lambda>x. 0"] summable_sums [OF summable_Integral]]   
+        by (auto simp add: if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
     qed
   qed auto
   then show ?thesis

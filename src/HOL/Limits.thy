@@ -23,24 +23,22 @@ lemma eventually_at_infinity: "eventually P at_infinity \<longleftrightarrow> (\
 
 corollary eventually_at_infinity_pos:
   "eventually p at_infinity \<longleftrightarrow> (\<exists>b. 0 < b \<and> (\<forall>x. norm x \<ge> b \<longrightarrow> p x))"
-  apply (simp add: eventually_at_infinity)
-  apply auto
-  apply (case_tac "b \<le> 0")
-  using norm_ge_zero order_trans zero_less_one apply blast
-  apply force
-  done
+  unfolding eventually_at_infinity
+  by (meson le_less_trans norm_ge_zero not_le zero_less_one)
 
 lemma at_infinity_eq_at_top_bot: "(at_infinity :: real filter) = sup at_top at_bot"
-  apply (simp add: filter_eq_iff eventually_sup eventually_at_infinity
-      eventually_at_top_linorder eventually_at_bot_linorder)
-  apply safe
-    apply (rule_tac x="b" in exI)
-    apply simp
-   apply (rule_tac x="- b" in exI)
-   apply simp
-  apply (rule_tac x="max (- Na) N" in exI)
-  apply (auto simp: abs_real_def)
-  done
+proof -
+  have 1: "\<lbrakk>\<forall>n\<ge>u. A n; \<forall>n\<le>v. A n\<rbrakk>
+       \<Longrightarrow> \<exists>b. \<forall>x. b \<le> \<bar>x\<bar> \<longrightarrow> A x" for A and u v::real
+    by (rule_tac x="max (- v) u" in exI) (auto simp: abs_real_def)
+  have 2: "\<forall>x. u \<le> \<bar>x\<bar> \<longrightarrow> A x \<Longrightarrow> \<exists>N. \<forall>n\<ge>N. A n" for A and u::real
+    by (meson abs_less_iff le_cases less_le_not_le)
+  have 3: "\<forall>x. u \<le> \<bar>x\<bar> \<longrightarrow> A x \<Longrightarrow> \<exists>N. \<forall>n\<le>N. A n" for A and u::real
+    by (metis (full_types) abs_ge_self abs_minus_cancel le_minus_iff order_trans)
+  show ?thesis
+    by (auto simp add: filter_eq_iff eventually_sup eventually_at_infinity
+      eventually_at_top_linorder eventually_at_bot_linorder intro: 1 2 3)
+qed
 
 lemma at_top_le_at_infinity: "at_top \<le> (at_infinity :: real filter)"
   unfolding at_infinity_eq_at_top_bot by simp
@@ -103,19 +101,15 @@ lemma BfunE:
   obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) F"
   using assms unfolding Bfun_def by blast
 
-lemma Cauchy_Bseq: "Cauchy X \<Longrightarrow> Bseq X"
-  unfolding Cauchy_def Bfun_metric_def eventually_sequentially
-  apply (erule_tac x=1 in allE)
-  apply simp
-  apply safe
-  apply (rule_tac x="X M" in exI)
-  apply (rule_tac x=1 in exI)
-  apply (erule_tac x=M in allE)
-  apply simp
-  apply (rule_tac x=M in exI)
-  apply (auto simp: dist_commute)
-  done
-
+lemma Cauchy_Bseq:
+  assumes "Cauchy X" shows "Bseq X"
+proof -
+  have "\<exists>y K. 0 < K \<and> (\<exists>N. \<forall>n\<ge>N. dist (X n) y \<le> K)"
+    if "\<And>m n. \<lbrakk>m \<ge> M; n \<ge> M\<rbrakk> \<Longrightarrow> dist (X m) (X n) < 1" for M
+    by (meson order.order_iff_strict that zero_less_one)
+  with assms show ?thesis
+    by (force simp: Cauchy_def Bfun_metric_def eventually_sequentially)
+qed
 
 subsubsection \<open>Bounded Sequences\<close>
 
@@ -202,15 +196,14 @@ lemma Bseq_iff: "Bseq X \<longleftrightarrow> (\<exists>N. \<forall>n. norm (X n
   by (simp add: Bseq_def) (simp add: lemma_NBseq_def)
 
 lemma lemma_NBseq_def2: "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
-  apply (subst lemma_NBseq_def)
-  apply auto
-   apply (rule_tac x = "Suc N" in exI)
-   apply (rule_tac [2] x = N in exI)
-   apply auto
-   prefer 2 apply (blast intro: order_less_imp_le)
-  apply (drule_tac x = n in spec)
-  apply simp
-  done
+proof -
+  have *: "\<And>N. \<forall>n. norm (X n) \<le> 1 + real N \<Longrightarrow>
+         \<exists>N. \<forall>n. norm (X n) < 1 + real N"
+    by (metis add.commute le_less_trans less_add_one of_nat_Suc)
+  then show ?thesis
+    unfolding lemma_NBseq_def
+    by (metis less_le_not_le not_less_iff_gr_or_eq of_nat_Suc)
+qed
 
 text \<open>Yet another definition for Bseq.\<close>
 lemma Bseq_iff1a: "Bseq X \<longleftrightarrow> (\<exists>N. \<forall>n. norm (X n) < real (Suc N))"
@@ -220,19 +213,8 @@ subsubsection \<open>A Few More Equivalence Theorems for Boundedness\<close>
 
 text \<open>Alternative formulation for boundedness.\<close>
 lemma Bseq_iff2: "Bseq X \<longleftrightarrow> (\<exists>k > 0. \<exists>x. \<forall>n. norm (X n + - x) \<le> k)"
-  apply (unfold Bseq_def)
-  apply safe
-   apply (rule_tac [2] x = "k + norm x" in exI)
-   apply (rule_tac x = K in exI)
-   apply simp
-   apply (rule exI [where x = 0])
-   apply auto
-   apply (erule order_less_le_trans)
-   apply simp
-  apply (drule_tac x=n in spec)
-  apply (drule order_trans [OF norm_triangle_ineq2])
-  apply simp
-  done
+  by (metis BseqE BseqI' add.commute add_cancel_right_left add_uminus_conv_diff norm_add_leD
+            norm_minus_cancel norm_minus_commute)
 
 text \<open>Alternative formulation for boundedness.\<close>
 lemma Bseq_iff3: "Bseq X \<longleftrightarrow> (\<exists>k>0. \<exists>N. \<forall>n. norm (X n + - X N) \<le> k)"
@@ -251,15 +233,6 @@ next
   assume ?Q
   then show ?P by (auto simp add: Bseq_iff2)
 qed
-
-lemma BseqI2: "\<forall>n. k \<le> f n \<and> f n \<le> K \<Longrightarrow> Bseq f"
-  for k K :: real
-  apply (simp add: Bseq_def)
-  apply (rule_tac x = "(\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI)
-  apply auto
-  apply (drule_tac x = n in spec)
-  apply arith
-  done
 
 
 subsubsection \<open>Upper Bounds and Lubs of Bounded Sequences\<close>
@@ -351,11 +324,13 @@ lemma nonneg_incseq_Bseq_subseq_iff:
 
 lemma Bseq_eq_bounded: "range f \<subseteq> {a..b} \<Longrightarrow> Bseq f"
   for a b :: real
-  apply (simp add: subset_eq)
-  apply (rule BseqI'[where K="max (norm a) (norm b)"])
-  apply (erule_tac x=n in allE)
-  apply auto
-  done
+proof (rule BseqI'[where K="max (norm a) (norm b)"])
+  fix n assume "range f \<subseteq> {a..b}"
+  then have "f n \<in> {a..b}"
+    by blast
+  then show "norm (f n) \<le> max (norm a) (norm b)"
+    by auto
+qed
 
 lemma incseq_bounded: "incseq X \<Longrightarrow> \<forall>i. X i \<le> B \<Longrightarrow> Bseq X"
   for B :: real
@@ -364,20 +339,6 @@ lemma incseq_bounded: "incseq X \<Longrightarrow> \<forall>i. X i \<le> B \<Long
 lemma decseq_bounded: "decseq X \<Longrightarrow> \<forall>i. B \<le> X i \<Longrightarrow> Bseq X"
   for B :: real
   by (intro Bseq_eq_bounded[of X B "X 0"]) (auto simp: decseq_def)
-
-
-subsection \<open>Bounded Monotonic Sequences\<close>
-
-subsubsection \<open>A Bounded and Monotonic Sequence Converges\<close>
-
-(* TODO: delete *)
-(* FIXME: one use in NSA/HSEQ.thy *)
-lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n \<longrightarrow> X n = X m \<Longrightarrow> \<exists>L. X \<longlonglongrightarrow> L"
-  apply (rule_tac x="X m" in exI)
-  apply (rule filterlim_cong[THEN iffD2, OF refl refl _ tendsto_const])
-  unfolding eventually_sequentially
-  apply blast
-  done
 
 
 subsection \<open>Convergence to Zero\<close>
@@ -2371,10 +2332,10 @@ qed
 
 text \<open>Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}.\<close>
 
-lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n :: real) \<longlonglongrightarrow> 0"
+lemma LIMSEQ_abs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n :: real) \<longlonglongrightarrow> 0"
   by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])
 
-lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. c ^ n :: real) \<longlonglongrightarrow> 0"
+lemma LIMSEQ_abs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. c ^ n :: real) \<longlonglongrightarrow> 0"
   by (rule LIMSEQ_power_zero) simp
 
 
