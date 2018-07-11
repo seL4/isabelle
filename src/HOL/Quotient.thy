@@ -410,63 +410,23 @@ lemma bex1_rel_rsp:
   shows "((R ===> (=)) ===> (=)) (Bex1_rel R) (Bex1_rel R)"
   unfolding rel_fun_def by (metis bex1_rel_aux bex1_rel_aux2)
 
-
 lemma ex1_prs:
-  assumes a: "Quotient3 R absf repf"
+  assumes "Quotient3 R absf repf"
   shows "((absf ---> id) ---> id) (Bex1_rel R) f = Ex1 f"
-apply (simp add:)
-apply (subst Bex1_rel_def)
-apply (subst Bex_def)
-apply (subst Ex1_def)
-apply simp
-apply rule
- apply (erule conjE)+
- apply (erule_tac exE)
- apply (erule conjE)
- apply (subgoal_tac "\<forall>y. R y y \<longrightarrow> f (absf y) \<longrightarrow> R x y")
-  apply (rule_tac x="absf x" in exI)
-  apply (simp)
-  apply rule+
-  using a unfolding Quotient3_def
-  apply metis
- apply rule+
- apply (erule_tac x="x" in ballE)
-  apply (erule_tac x="y" in ballE)
-   apply simp
-  apply (simp add: in_respects)
- apply (simp add: in_respects)
-apply (erule_tac exE)
- apply rule
- apply (rule_tac x="repf x" in exI)
- apply (simp only: in_respects)
-  apply rule
- apply (metis Quotient3_rel_rep[OF a])
-using a unfolding Quotient3_def apply (simp)
-apply rule+
-using a unfolding Quotient3_def in_respects
-apply metis
-done
+  apply (auto simp: Bex1_rel_def Respects_def)
+  apply (metis Quotient3_def assms)
+  apply (metis (full_types) Quotient3_def assms)
+  by (meson Quotient3_rel assms)
 
 lemma bex1_bexeq_reg:
   shows "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
   by (auto simp add: Ex1_def Bex1_rel_def Bex_def Ball_def in_respects)
-
+ 
 lemma bex1_bexeq_reg_eqv:
   assumes a: "equivp R"
   shows "(\<exists>!x. P x) \<longrightarrow> Bex1_rel R P"
   using equivp_reflp[OF a]
-  apply (intro impI)
-  apply (elim ex1E)
-  apply (rule mp[OF bex1_bexeq_reg])
-  apply (rule_tac a="x" in ex1I)
-  apply (subst in_respects)
-  apply (rule conjI)
-  apply assumption
-  apply assumption
-  apply clarify
-  apply (erule_tac x="xa" in allE)
-  apply simp
-  done
+  by (metis (full_types) Bex1_rel_def in_respects)
 
 subsection \<open>Various respects and preserve lemmas\<close>
 
@@ -474,9 +434,7 @@ lemma quot_rel_rsp:
   assumes a: "Quotient3 R Abs Rep"
   shows "(R ===> R ===> (=)) R R"
   apply(rule rel_funI)+
-  apply(rule equals_rsp[OF a])
-  apply(assumption)+
-  done
+  by (meson assms equals_rsp)
 
 lemma o_prs:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
@@ -588,6 +546,7 @@ end
 
 subsection \<open>Quotient composition\<close>
 
+
 lemma OOO_quotient3:
   fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   fixes Abs1 :: "'a \<Rightarrow> 'b" and Rep1 :: "'b \<Rightarrow> 'a"
@@ -599,76 +558,38 @@ lemma OOO_quotient3:
   assumes Abs1: "\<And>x y. R2' x y \<Longrightarrow> R1 x x \<Longrightarrow> R1 y y \<Longrightarrow> R2 (Abs1 x) (Abs1 y)"
   assumes Rep1: "\<And>x y. R2 x y \<Longrightarrow> R2' (Rep1 x) (Rep1 y)"
   shows "Quotient3 (R1 OO R2' OO R1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2)"
-apply (rule Quotient3I)
-   apply (simp add: o_def Quotient3_abs_rep [OF R2] Quotient3_abs_rep [OF R1])
-  apply simp
-  apply (rule_tac b="Rep1 (Rep2 a)" in relcomppI)
-   apply (rule Quotient3_rep_reflp [OF R1])
-  apply (rule_tac b="Rep1 (Rep2 a)" in relcomppI [rotated])
-   apply (rule Quotient3_rep_reflp [OF R1])
-  apply (rule Rep1)
-  apply (rule Quotient3_rep_reflp [OF R2])
- apply safe
-    apply (rename_tac x y)
-    apply (drule Abs1)
-      apply (erule Quotient3_refl2 [OF R1])
-     apply (erule Quotient3_refl1 [OF R1])
-    apply (drule Quotient3_refl1 [OF R2], drule Rep1)
-    apply (subgoal_tac "R1 r (Rep1 (Abs1 x))")
-     apply (rule_tac b="Rep1 (Abs1 x)" in relcomppI, assumption)
-     apply (erule relcomppI)
-     apply (erule Quotient3_symp [OF R1, THEN sympD])
-    apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
-    apply (rule conjI, erule Quotient3_refl1 [OF R1])
-    apply (rule conjI, rule Quotient3_rep_reflp [OF R1])
-    apply (subst Quotient3_abs_rep [OF R1])
-    apply (erule Quotient3_rel_abs [OF R1])
-   apply (rename_tac x y)
-   apply (drule Abs1)
-     apply (erule Quotient3_refl2 [OF R1])
-    apply (erule Quotient3_refl1 [OF R1])
-   apply (drule Quotient3_refl2 [OF R2], drule Rep1)
-   apply (subgoal_tac "R1 s (Rep1 (Abs1 y))")
-    apply (rule_tac b="Rep1 (Abs1 y)" in relcomppI, assumption)
-    apply (erule relcomppI)
-    apply (erule Quotient3_symp [OF R1, THEN sympD])
-   apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
-   apply (rule conjI, erule Quotient3_refl2 [OF R1])
-   apply (rule conjI, rule Quotient3_rep_reflp [OF R1])
-   apply (subst Quotient3_abs_rep [OF R1])
-   apply (erule Quotient3_rel_abs [OF R1, THEN sym])
-  apply simp
-  apply (rule Quotient3_rel_abs [OF R2])
-  apply (rule Quotient3_rel_abs [OF R1, THEN ssubst], assumption)
-  apply (rule Quotient3_rel_abs [OF R1, THEN subst], assumption)
-  apply (erule Abs1)
-   apply (erule Quotient3_refl2 [OF R1])
-  apply (erule Quotient3_refl1 [OF R1])
- apply (rename_tac a b c d)
- apply simp
- apply (rule_tac b="Rep1 (Abs1 r)" in relcomppI)
-  apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
-  apply (rule conjI, erule Quotient3_refl1 [OF R1])
-  apply (simp add: Quotient3_abs_rep [OF R1] Quotient3_rep_reflp [OF R1])
- apply (rule_tac b="Rep1 (Abs1 s)" in relcomppI [rotated])
-  apply (rule Quotient3_rel[symmetric, OF R1, THEN iffD2])
-  apply (simp add: Quotient3_abs_rep [OF R1] Quotient3_rep_reflp [OF R1])
-  apply (erule Quotient3_refl2 [OF R1])
- apply (rule Rep1)
- apply (drule Abs1)
-   apply (erule Quotient3_refl2 [OF R1])
-  apply (erule Quotient3_refl1 [OF R1])
- apply (drule Abs1)
-  apply (erule Quotient3_refl2 [OF R1])
- apply (erule Quotient3_refl1 [OF R1])
- apply (drule Quotient3_rel_abs [OF R1])
- apply (drule Quotient3_rel_abs [OF R1])
- apply (drule Quotient3_rel_abs [OF R1])
- apply (drule Quotient3_rel_abs [OF R1])
- apply simp
- apply (rule Quotient3_rel[symmetric, OF R2, THEN iffD2])
- apply simp
-done
+proof -
+  have *: "(R1 OOO R2') r r \<and> (R1 OOO R2') s s \<and> (Abs2 \<circ> Abs1) r = (Abs2 \<circ> Abs1) s 
+           \<longleftrightarrow> (R1 OOO R2') r s" for r s
+    apply safe
+    subgoal for a b c d
+      apply simp
+      apply (rule_tac b="Rep1 (Abs1 r)" in relcomppI)
+      using Quotient3_refl1 R1 rep_abs_rsp apply fastforce
+      apply (rule_tac b="Rep1 (Abs1 s)" in relcomppI)
+       apply (metis (full_types) Rep1 Abs1 Quotient3_rel R2  Quotient3_refl1 [OF R1] Quotient3_refl2 [OF R1] Quotient3_rel_abs [OF R1])
+      by (metis Quotient3_rel R1 rep_abs_rsp_left)
+    subgoal for x y
+      apply (drule Abs1)
+        apply (erule Quotient3_refl2 [OF R1])
+       apply (erule Quotient3_refl1 [OF R1])
+      apply (drule Quotient3_refl1 [OF R2], drule Rep1)
+      by (metis (full_types) Quotient3_def R1 relcompp.relcompI)
+    subgoal for x y
+      apply (drule Abs1)
+        apply (erule Quotient3_refl2 [OF R1])
+       apply (erule Quotient3_refl1 [OF R1])
+      apply (drule Quotient3_refl2 [OF R2], drule Rep1)
+      by (metis (full_types) Quotient3_def R1 relcompp.relcompI)
+    subgoal for x y
+      by simp (metis (full_types) Abs1 Quotient3_rel R1 R2)
+    done
+  show ?thesis
+    apply (rule Quotient3I)
+    using * apply (simp_all add: o_def Quotient3_abs_rep [OF R2] Quotient3_abs_rep [OF R1])
+    apply (metis Quotient3_rep_reflp R1 R2 Rep1 relcompp.relcompI)
+    done
+qed
 
 lemma OOO_eq_quotient3:
   fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"

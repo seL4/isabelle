@@ -1762,6 +1762,12 @@ proof -
     by (simp add: add_eq_0_iff convergent_prod_iff_summable_complex)
 qed
 
+lemma summable_Ln_complex:
+  fixes z :: "nat \<Rightarrow> complex"
+  assumes "convergent_prod z" "\<And>k. z k \<noteq> 0"
+  shows "summable (\<lambda>k. Ln (z k))"
+  using convergent_prod_def assms convergent_prod_iff_summable_complex by blast
+
 
 subsection\<open>Embeddings from the reals into some complete real normed field\<close>
 
