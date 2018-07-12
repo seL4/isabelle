@@ -2093,7 +2093,7 @@ lemma min_diff: "min (m - i) (n - i) = min m n - i"
 
 lemma inj_on_diff_nat:
   fixes k :: nat
-  assumes "\<forall>n \<in> N. k \<le> n"
+  assumes "\<And>n. n \<in> N \<Longrightarrow> k \<le> n"
   shows "inj_on (\<lambda>n. n - k) N"
 proof (rule inj_onI)
   fix x y

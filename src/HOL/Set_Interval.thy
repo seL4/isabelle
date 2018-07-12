@@ -91,29 +91,27 @@ by (simp add: lessThan_def)
 
 lemma Compl_lessThan [simp]:
     "!!k:: 'a::linorder. -lessThan k = atLeast k"
-apply (auto simp add: lessThan_def atLeast_def)
-done
+  by (auto simp add: lessThan_def atLeast_def)
 
 lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
-by auto
+  by auto
 
 lemma (in ord) greaterThan_iff [iff]: "(i \<in> greaterThan k) = (k<i)"
-by (simp add: greaterThan_def)
+  by (simp add: greaterThan_def)
 
 lemma Compl_greaterThan [simp]:
     "!!k:: 'a::linorder. -greaterThan k = atMost k"
   by (auto simp add: greaterThan_def atMost_def)
 
 lemma Compl_atMost [simp]: "!!k:: 'a::linorder. -atMost k = greaterThan k"
-apply (subst Compl_greaterThan [symmetric])
-apply (rule double_complement)
-done
+  apply (subst Compl_greaterThan [symmetric])
+  apply (rule double_complement)
+  done
 
 lemma (in ord) atLeast_iff [iff]: "(i \<in> atLeast k) = (k<=i)"
 by (simp add: atLeast_def)
 
-lemma Compl_atLeast [simp]:
-    "!!k:: 'a::linorder. -atLeast k = lessThan k"
+lemma Compl_atLeast [simp]: "!!k:: 'a::linorder. -atLeast k = lessThan k"
   by (auto simp add: lessThan_def atLeast_def)
 
 lemma (in ord) atMost_iff [iff]: "(i \<in> atMost k) = (i<=k)"
@@ -146,35 +144,25 @@ by (blast intro: order_antisym order_trans)
 
 lemma greaterThan_subset_iff [iff]:
      "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))"
-apply (auto simp add: greaterThan_def)
- apply (subst linorder_not_less [symmetric], blast)
-done
+  unfolding greaterThan_def by (auto simp: linorder_not_less [symmetric])
 
 lemma greaterThan_eq_iff [iff]:
      "(greaterThan x = greaterThan y) = (x = (y::'a::linorder))"
-apply (rule iffI)
- apply (erule equalityE)
- apply simp_all
-done
+  by (auto simp: elim!: equalityE)
 
 lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::order))"
-by (blast intro: order_trans)
+  by (blast intro: order_trans)
 
 lemma atMost_eq_iff [iff]: "(atMost x = atMost y) = (x = (y::'a::linorder))"
-by (blast intro: order_antisym order_trans)
+  by (blast intro: order_antisym order_trans)
 
 lemma lessThan_subset_iff [iff]:
      "(lessThan x \<subseteq> lessThan y) = (x \<le> (y::'a::linorder))"
-apply (auto simp add: lessThan_def)
- apply (subst linorder_not_less [symmetric], blast)
-done
+  unfolding lessThan_def by (auto simp: linorder_not_less [symmetric])
 
 lemma lessThan_eq_iff [iff]:
      "(lessThan x = lessThan y) = (x = (y::'a::linorder))"
-apply (rule iffI)
- apply (erule equalityE)
- apply simp_all
-done
+  by (auto simp: elim!: equalityE)
 
 lemma lessThan_strict_subset_iff:
   fixes m n :: "'a::linorder"
@@ -195,21 +183,17 @@ subsection \<open>Two-sided intervals\<close>
 context ord
 begin
 
-lemma greaterThanLessThan_iff [simp]:
-  "(i \<in> {l<..<u}) = (l < i \<and> i < u)"
-by (simp add: greaterThanLessThan_def)
+lemma greaterThanLessThan_iff [simp]: "(i \<in> {l<..<u}) = (l < i \<and> i < u)"
+  by (simp add: greaterThanLessThan_def)
 
-lemma atLeastLessThan_iff [simp]:
-  "(i \<in> {l..<u}) = (l \<le> i \<and> i < u)"
-by (simp add: atLeastLessThan_def)
+lemma atLeastLessThan_iff [simp]: "(i \<in> {l..<u}) = (l \<le> i \<and> i < u)"
+  by (simp add: atLeastLessThan_def)
 
-lemma greaterThanAtMost_iff [simp]:
-  "(i \<in> {l<..u}) = (l < i \<and> i \<le> u)"
-by (simp add: greaterThanAtMost_def)
+lemma greaterThanAtMost_iff [simp]: "(i \<in> {l<..u}) = (l < i \<and> i \<le> u)"
+  by (simp add: greaterThanAtMost_def)
 
-lemma atLeastAtMost_iff [simp]:
-  "(i \<in> {l..u}) = (l \<le> i \<and> i \<le> u)"
-by (simp add: atLeastAtMost_def)
+lemma atLeastAtMost_iff [simp]: "(i \<in> {l..u}) = (l \<le> i \<and> i \<le> u)"
+  by (simp add: atLeastAtMost_def)
 
 text \<open>The above four lemmas could be declared as iffs. Unfortunately this
 breaks many proofs. Since it only helps blast, it is better to leave them
@@ -467,11 +451,11 @@ end
 
 lemma (in linorder) atLeastLessThan_subset_iff:
   "{a..<b} \<subseteq> {c..<d} \<Longrightarrow> b \<le> a \<or> c\<le>a \<and> b\<le>d"
-apply (auto simp:subset_eq Ball_def)
-apply(frule_tac x=a in spec)
-apply(erule_tac x=d in allE)
-apply (simp add: less_imp_le)
-done
+  apply (auto simp:subset_eq Ball_def not_le)
+  apply(frule_tac x=a in spec)
+  apply(erule_tac x=d in allE)
+  apply (auto simp: )
+  done
 
 lemma atLeastLessThan_inj:
   fixes a b c d :: "'a::linorder"
@@ -718,17 +702,15 @@ by blast
 subsubsection \<open>The Constant @{term greaterThan}\<close>
 
 lemma greaterThan_0: "greaterThan 0 = range Suc"
-apply (simp add: greaterThan_def)
-apply (blast dest: gr0_conv_Suc [THEN iffD1])
-done
+  unfolding greaterThan_def
+  by (blast dest: gr0_conv_Suc [THEN iffD1])
 
 lemma greaterThan_Suc: "greaterThan (Suc k) = greaterThan k - {Suc k}"
-apply (simp add: greaterThan_def)
-apply (auto elim: linorder_neqE)
-done
+  unfolding greaterThan_def
+  by (auto elim: linorder_neqE)
 
 lemma INT_greaterThan_UNIV: "(INT m::nat. greaterThan m) = {}"
-by blast
+  by blast
 
 subsubsection \<open>The Constant @{term atLeast}\<close>
 
@@ -736,29 +718,24 @@ lemma atLeast_0 [simp]: "atLeast (0::nat) = UNIV"
 by (unfold atLeast_def UNIV_def, simp)
 
 lemma atLeast_Suc: "atLeast (Suc k) = atLeast k - {k}"
-apply (simp add: atLeast_def)
-apply (simp add: Suc_le_eq)
-apply (simp add: order_le_less, blast)
-done
+  unfolding atLeast_def by (auto simp: order_le_less Suc_le_eq)
 
 lemma atLeast_Suc_greaterThan: "atLeast (Suc k) = greaterThan k"
   by (auto simp add: greaterThan_def atLeast_def less_Suc_eq_le)
 
 lemma UN_atLeast_UNIV: "(UN m::nat. atLeast m) = UNIV"
-by blast
+  by blast
 
 subsubsection \<open>The Constant @{term atMost}\<close>
 
 lemma atMost_0 [simp]: "atMost (0::nat) = {0}"
-by (simp add: atMost_def)
+  by (simp add: atMost_def)
 
 lemma atMost_Suc: "atMost (Suc k) = insert (Suc k) (atMost k)"
-apply (simp add: atMost_def)
-apply (simp add: less_Suc_eq order_le_less, blast)
-done
+  unfolding atMost_def by (auto simp add: less_Suc_eq order_le_less)
 
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
-by blast
+  by blast
 
 subsubsection \<open>The Constant @{term atLeastLessThan}\<close>
 
@@ -770,28 +747,24 @@ used, the opposite orientation seems preferable because it reduces a
 specific concept to a more general one.\<close>
 
 lemma atLeast0LessThan [code_abbrev]: "{0::nat..<n} = {..<n}"
-by(simp add:lessThan_def atLeastLessThan_def)
+  by(simp add:lessThan_def atLeastLessThan_def)
 
 lemma atLeast0AtMost [code_abbrev]: "{0..n::nat} = {..n}"
-by(simp add:atMost_def atLeastAtMost_def)
+  by(simp add:atMost_def atLeastAtMost_def)
 
-lemma lessThan_atLeast0:
-  "{..<n} = {0::nat..<n}"
+lemma lessThan_atLeast0: "{..<n} = {0::nat..<n}"
   by (simp add: atLeast0LessThan)
 
-lemma atMost_atLeast0:
-  "{..n} = {0::nat..n}"
+lemma atMost_atLeast0: "{..n} = {0::nat..n}"
   by (simp add: atLeast0AtMost)
 
 lemma atLeastLessThan0: "{m..<0::nat} = {}"
-by (simp add: atLeastLessThan_def)
+  by (simp add: atLeastLessThan_def)
 
-lemma atLeast0_lessThan_Suc:
-  "{0..<Suc n} = insert n {0..<n}"
+lemma atLeast0_lessThan_Suc: "{0..<Suc n} = insert n {0..<n}"
   by (simp add: atLeast0LessThan lessThan_Suc)
 
-lemma atLeast0_lessThan_Suc_eq_insert_0:
-  "{0..<Suc n} = insert 0 (Suc ` {0..<n})"
+lemma atLeast0_lessThan_Suc_eq_insert_0: "{0..<Suc n} = insert 0 (Suc ` {0..<n})"
   by (simp add: atLeast0LessThan lessThan_Suc_eq_insert_0)
 
 
@@ -815,19 +788,13 @@ by (auto simp add: atLeastLessThan_def)
 
 lemma atLeastLessThan_singleton [simp]: "{m..<Suc m} = {m}"
 by (auto simp add: atLeastLessThan_def)
-(*
-lemma atLeast_sum_LessThan [simp]: "{m + k..<k::nat} = {}"
-by (induct k, simp_all add: atLeastLessThanSuc)
 
-lemma atLeastSucLessThan [simp]: "{Suc n..<n} = {}"
-by (auto simp add: atLeastLessThan_def)
-*)
 lemma atLeastLessThanSuc_atLeastAtMost: "{l..<Suc u} = {l..u}"
   by (simp add: lessThan_Suc_atMost atLeastAtMost_def atLeastLessThan_def)
 
 lemma atLeastSucAtMost_greaterThanAtMost: "{Suc l..u} = {l<..u}"
   by (simp add: atLeast_Suc_greaterThan atLeastAtMost_def
-    greaterThanAtMost_def)
+      greaterThanAtMost_def)
 
 lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
   by (simp add: atLeast_Suc_greaterThan atLeastLessThan_def
@@ -846,9 +813,7 @@ lemma atLeastAtMostPlus1_int_conv:
   by (auto intro: set_eqI)
 
 lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \<union> {j..<j+k::nat}"
-  apply (induct k)
-  apply (simp_all add: atLeastLessThanSuc)
-  done
+  by (induct k) (simp_all add: atLeastLessThanSuc)
 
 
 subsubsection \<open>Intervals and numerals\<close>
@@ -1123,7 +1088,7 @@ lemma atLeast1_atMost_eq_remove0:
   by auto
 
 lemma image_add_int_atLeastLessThan:
-    "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
+    "(\<lambda>x. x + (l::int)) ` {0..<u-l} = {l..<u}"
   apply (auto simp add: image_def)
   apply (rule_tac x = "x - l" in bexI)
   apply auto
@@ -1165,25 +1130,23 @@ lemma finite_atMost [iff]: fixes k :: nat shows "finite {..k}"
 
 lemma finite_greaterThanLessThan [iff]:
   fixes l :: nat shows "finite {l<..<u}"
-by (simp add: greaterThanLessThan_def)
+  by (simp add: greaterThanLessThan_def)
 
 lemma finite_atLeastLessThan [iff]:
   fixes l :: nat shows "finite {l..<u}"
-by (simp add: atLeastLessThan_def)
+  by (simp add: atLeastLessThan_def)
 
 lemma finite_greaterThanAtMost [iff]:
   fixes l :: nat shows "finite {l<..u}"
-by (simp add: greaterThanAtMost_def)
+  by (simp add: greaterThanAtMost_def)
 
 lemma finite_atLeastAtMost [iff]:
   fixes l :: nat shows "finite {l..u}"
-by (simp add: atLeastAtMost_def)
+  by (simp add: atLeastAtMost_def)
 
 text \<open>A bounded set of natural numbers is finite.\<close>
 lemma bounded_nat_set_is_finite: "(\<forall>i\<in>N. i < (n::nat)) \<Longrightarrow> finite N"
-apply (rule finite_subset)
- apply (rule_tac [2] finite_lessThan, auto)
-done
+  by (rule finite_subset [OF _ finite_lessThan]) auto
 
 text \<open>A set of natural numbers is finite iff it is bounded.\<close>
 lemma finite_nat_set_iff_bounded:
@@ -1195,11 +1158,9 @@ next
   assume ?B show ?F using \<open>?B\<close> by(blast intro:bounded_nat_set_is_finite)
 qed
 
-lemma finite_nat_set_iff_bounded_le:
-  "finite(N::nat set) = (\<exists>m. \<forall>n\<in>N. n<=m)"
-apply(simp add:finite_nat_set_iff_bounded)
-apply(blast dest:less_imp_le_nat le_imp_less_Suc)
-done
+lemma finite_nat_set_iff_bounded_le: "finite(N::nat set) = (\<exists>m. \<forall>n\<in>N. n\<le>m)"
+  unfolding finite_nat_set_iff_bounded
+  by (blast dest:less_imp_le_nat le_imp_less_Suc)
 
 lemma finite_less_ub:
      "!!f::nat=>nat. (!!n. n \<le> f n) ==> finite {n. f n \<le> u}"
@@ -1298,10 +1259,9 @@ qed
 lemma UN_finite2_eq:
   "(\<And>n::nat. (\<Union>i\<in>{0..<n}. A i) = (\<Union>i\<in>{0..<n + k}. B i)) \<Longrightarrow>
     (\<Union>n. A n) = (\<Union>n. B n)"
-  apply (rule subset_antisym)
-   apply (rule UN_finite2_subset, blast)
-  apply (rule UN_finite2_subset [where k=k])
-  apply (force simp add: atLeastLessThan_add_Un [of 0])
+  apply (rule subset_antisym [OF UN_finite_subset UN_finite2_subset])
+   apply auto
+  apply (force simp add: atLeastLessThan_add_Un [of 0])+
   done
 
 
@@ -1315,7 +1275,7 @@ lemma card_atMost [simp]: "card {..u} = Suc u"
 
 lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
 proof -
-  have "{l..<u} = (%x. x + l) ` {..<u-l}"
+  have "{l..<u} = (\<lambda>x. x + l) ` {..<u-l}"
     apply (auto simp add: image_def atLeastLessThan_def lessThan_def)
     apply (rule_tac x = "x - l" in exI)
     apply arith
@@ -1349,24 +1309,24 @@ lemma subset_eq_atLeast0_atMost_finite:
 
 lemma ex_bij_betw_nat_finite:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h {0..<card M} M"
-apply(drule finite_imp_nat_seg_image_inj_on)
-apply(auto simp:atLeast0LessThan[symmetric] lessThan_def[symmetric] card_image bij_betw_def)
-done
+  apply(drule finite_imp_nat_seg_image_inj_on)
+  apply(auto simp:atLeast0LessThan[symmetric] lessThan_def[symmetric] card_image bij_betw_def)
+  done
 
 lemma ex_bij_betw_finite_nat:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h M {0..<card M}"
-by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
+  by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
 
 lemma finite_same_card_bij:
   "finite A \<Longrightarrow> finite B \<Longrightarrow> card A = card B \<Longrightarrow> \<exists>h. bij_betw h A B"
-apply(drule ex_bij_betw_finite_nat)
-apply(drule ex_bij_betw_nat_finite)
-apply(auto intro!:bij_betw_trans)
-done
+  apply(drule ex_bij_betw_finite_nat)
+  apply(drule ex_bij_betw_nat_finite)
+  apply(auto intro!:bij_betw_trans)
+  done
 
 lemma ex_bij_betw_nat_finite_1:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h {1 .. card M} M"
-by (rule finite_same_card_bij) auto
+  by (rule finite_same_card_bij) auto
 
 lemma bij_betw_iff_card:
   assumes "finite A" "finite B"
@@ -1428,26 +1388,21 @@ subsubsection \<open>Finiteness\<close>
 
 lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
     {(0::int)..<u} = int ` {..<nat u}"
-  apply (unfold image_def lessThan_def)
+  unfolding image_def lessThan_def
   apply auto
   apply (rule_tac x = "nat x" in exI)
   apply (auto simp add: zless_nat_eq_int_zless [THEN sym])
   done
 
 lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
-  apply (cases "0 \<le> u")
-  apply (subst image_atLeastZeroLessThan_int, assumption)
-  apply (rule finite_imageI)
-  apply auto
-  done
+proof (cases "0 \<le> u")
+  case True
+  then show ?thesis
+    by (auto simp: image_atLeastZeroLessThan_int)
+qed auto
 
 lemma finite_atLeastLessThan_int [iff]: "finite {l..<u::int}"
-  apply (subgoal_tac "(%x. x + l) ` {0..<u-l} = {l..<u}")
-  apply (erule subst)
-  apply (rule finite_imageI)
-  apply (rule finite_atLeastZeroLessThan_int)
-  apply (rule image_add_int_atLeastLessThan)
-  done
+  by (simp only: image_add_int_atLeastLessThan [symmetric, of l] finite_imageI finite_atLeastZeroLessThan_int)
 
 lemma finite_atLeastAtMost_int [iff]: "finite {l..(u::int)}"
   by (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym], simp)
@@ -1462,32 +1417,33 @@ lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}"
 subsubsection \<open>Cardinality\<close>
 
 lemma card_atLeastZeroLessThan_int: "card {(0::int)..<u} = nat u"
-  apply (cases "0 \<le> u")
-  apply (subst image_atLeastZeroLessThan_int, assumption)
-  apply (subst card_image)
-  apply (auto simp add: inj_on_def)
-  done
+proof (cases "0 \<le> u")
+  case True
+  then show ?thesis
+    by (auto simp: image_atLeastZeroLessThan_int card_image inj_on_def)    
+qed auto
 
 lemma card_atLeastLessThan_int [simp]: "card {l..<u} = nat (u - l)"
-  apply (subgoal_tac "card {l..<u} = card {0..<u-l}")
-  apply (erule ssubst, rule card_atLeastZeroLessThan_int)
-  apply (subgoal_tac "(%x. x + l) ` {0..<u-l} = {l..<u}")
-  apply (erule subst)
-  apply (rule card_image)
-  apply (simp add: inj_on_def)
-  apply (rule image_add_int_atLeastLessThan)
-  done
+proof -
+  have "card {l..<u} = card {0..<u-l}"
+    apply (subst image_add_int_atLeastLessThan [symmetric])
+    apply (rule card_image)
+    apply (simp add: inj_on_def)
+    done
+  then show ?thesis
+    by (simp add: card_atLeastZeroLessThan_int)
+qed
 
 lemma card_atLeastAtMost_int [simp]: "card {l..u} = nat (u - l + 1)"
-apply (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym])
-apply (auto simp add: algebra_simps)
-done
+  apply (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym])
+  apply (auto simp add: algebra_simps)
+  done
 
 lemma card_greaterThanAtMost_int [simp]: "card {l<..u} = nat (u - l)"
-by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
+  by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
 
 lemma card_greaterThanLessThan_int [simp]: "card {l<..<u} = nat (u - (l + 1))"
-by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
+  by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
 lemma finite_M_bounded_by_nat: "finite {k. P k \<and> k < (i::nat)}"
 proof -
@@ -1496,43 +1452,44 @@ proof -
 qed
 
 lemma card_less:
-assumes zero_in_M: "0 \<in> M"
-shows "card {k \<in> M. k < Suc i} \<noteq> 0"
+  assumes zero_in_M: "0 \<in> M"
+  shows "card {k \<in> M. k < Suc i} \<noteq> 0"
 proof -
   from zero_in_M have "{k \<in> M. k < Suc i} \<noteq> {}" by auto
   with finite_M_bounded_by_nat show ?thesis by (auto simp add: card_eq_0_iff)
 qed
 
-lemma card_less_Suc2: "0 \<notin> M \<Longrightarrow> card {k. Suc k \<in> M \<and> k < i} = card {k \<in> M. k < Suc i}"
-apply (rule card_bij_eq [of Suc _ _ "\<lambda>x. x - Suc 0"])
-apply auto
-apply (rule inj_on_diff_nat)
-apply auto
-apply (case_tac x)
-apply auto
-apply (case_tac xa)
-apply auto
-apply (case_tac xa)
-apply auto
-done
+lemma card_less_Suc2: 
+  assumes "0 \<notin> M" shows "card {k. Suc k \<in> M \<and> k < i} = card {k \<in> M. k < Suc i}"
+proof -
+  have *: "\<lbrakk>j \<in> M; j < Suc i\<rbrakk> \<Longrightarrow> j - Suc 0 < i \<and> Suc (j - Suc 0) \<in> M \<and> Suc 0 \<le> j" for j
+    by (cases j) (use assms in auto)
+  show ?thesis
+  proof (rule card_bij_eq)
+    show "inj_on Suc {k. Suc k \<in> M \<and> k < i}"
+      by force
+    show "inj_on (\<lambda>x. x - Suc 0) {k \<in> M. k < Suc i}"
+      by (rule inj_on_diff_nat) (use * in blast)
+  qed (use * in auto)
+qed
 
 lemma card_less_Suc:
-  assumes zero_in_M: "0 \<in> M"
+  assumes "0 \<in> M"
     shows "Suc (card {k. Suc k \<in> M \<and> k < i}) = card {k \<in> M. k < Suc i}"
 proof -
-  from assms have a: "0 \<in> {k \<in> M. k < Suc i}" by simp
-  hence c: "{k \<in> M. k < Suc i} = insert 0 ({k \<in> M. k < Suc i} - {0})"
-    by (auto simp only: insert_Diff)
-  have b: "{k \<in> M. k < Suc i} - {0} = {k \<in> M - {0}. k < Suc i}"  by auto
-  from finite_M_bounded_by_nat[of "\<lambda>x. x \<in> M" "Suc i"]
-  have "Suc (card {k. Suc k \<in> M \<and> k < i}) = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
-    apply (subst card_insert)
-    apply simp_all
-    apply (subst b)
-    apply (subst card_less_Suc2[symmetric])
-    apply simp_all
-    done
-  with c show ?thesis by simp
+  have "Suc (card {k. Suc k \<in> M \<and> k < i}) = Suc (card {k. Suc k \<in> M - {0} \<and> k < i})"
+    by simp
+  also have "\<dots> = Suc (card {k \<in> M - {0}. k < Suc i})"
+    apply (subst card_less_Suc2)
+    using assms by auto
+  also have "\<dots> = Suc (card ({k \<in> M. k < Suc i} - {0}))"
+    by (force intro: arg_cong [where f=card])
+  also have "\<dots> = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
+    by (simp add: card_insert)
+  also have "... = card {k \<in> M. k < Suc i}"
+    using assms
+    by (force simp add: intro: arg_cong [where f=card])
+  finally show ?thesis.
 qed
 
 
@@ -1549,41 +1506,41 @@ lemma ivl_disj_un_singleton:
   "{..<u} Un {u::'a::linorder} = {..u}"
   "(l::'a::linorder) < u ==> {l} Un {l<..<u} = {l..<u}"
   "(l::'a::linorder) < u ==> {l<..<u} Un {u} = {l<..u}"
-  "(l::'a::linorder) <= u ==> {l} Un {l<..u} = {l..u}"
-  "(l::'a::linorder) <= u ==> {l..<u} Un {u} = {l..u}"
+  "(l::'a::linorder) \<le> u ==> {l} Un {l<..u} = {l..u}"
+  "(l::'a::linorder) \<le> u ==> {l..<u} Un {u} = {l..u}"
 by auto
 
 text \<open>One- and two-sided intervals\<close>
 
 lemma ivl_disj_un_one:
   "(l::'a::linorder) < u ==> {..l} Un {l<..<u} = {..<u}"
-  "(l::'a::linorder) <= u ==> {..<l} Un {l..<u} = {..<u}"
-  "(l::'a::linorder) <= u ==> {..l} Un {l<..u} = {..u}"
-  "(l::'a::linorder) <= u ==> {..<l} Un {l..u} = {..u}"
-  "(l::'a::linorder) <= u ==> {l<..u} Un {u<..} = {l<..}"
+  "(l::'a::linorder) \<le> u ==> {..<l} Un {l..<u} = {..<u}"
+  "(l::'a::linorder) \<le> u ==> {..l} Un {l<..u} = {..u}"
+  "(l::'a::linorder) \<le> u ==> {..<l} Un {l..u} = {..u}"
+  "(l::'a::linorder) \<le> u ==> {l<..u} Un {u<..} = {l<..}"
   "(l::'a::linorder) < u ==> {l<..<u} Un {u..} = {l<..}"
-  "(l::'a::linorder) <= u ==> {l..u} Un {u<..} = {l..}"
-  "(l::'a::linorder) <= u ==> {l..<u} Un {u..} = {l..}"
+  "(l::'a::linorder) \<le> u ==> {l..u} Un {u<..} = {l..}"
+  "(l::'a::linorder) \<le> u ==> {l..<u} Un {u..} = {l..}"
 by auto
 
 text \<open>Two- and two-sided intervals\<close>
 
 lemma ivl_disj_un_two:
-  "[| (l::'a::linorder) < m; m <= u |] ==> {l<..<m} Un {m..<u} = {l<..<u}"
-  "[| (l::'a::linorder) <= m; m < u |] ==> {l<..m} Un {m<..<u} = {l<..<u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..<m} Un {m..<u} = {l..<u}"
-  "[| (l::'a::linorder) <= m; m < u |] ==> {l..m} Un {m<..<u} = {l..<u}"
-  "[| (l::'a::linorder) < m; m <= u |] ==> {l<..<m} Un {m..u} = {l<..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l<..m} Un {m<..u} = {l<..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..<m} Un {m..u} = {l..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {m<..u} = {l..u}"
+  "[| (l::'a::linorder) < m; m \<le> u |] ==> {l<..<m} Un {m..<u} = {l<..<u}"
+  "[| (l::'a::linorder) \<le> m; m < u |] ==> {l<..m} Un {m<..<u} = {l<..<u}"
+  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..<m} Un {m..<u} = {l..<u}"
+  "[| (l::'a::linorder) \<le> m; m < u |] ==> {l..m} Un {m<..<u} = {l..<u}"
+  "[| (l::'a::linorder) < m; m \<le> u |] ==> {l<..<m} Un {m..u} = {l<..u}"
+  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l<..m} Un {m<..u} = {l<..u}"
+  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..<m} Un {m..u} = {l..u}"
+  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..m} Un {m<..u} = {l..u}"
 by auto
 
 lemma ivl_disj_un_two_touch:
   "[| (l::'a::linorder) < m; m < u |] ==> {l<..m} Un {m..<u} = {l<..<u}"
-  "[| (l::'a::linorder) <= m; m < u |] ==> {l..m} Un {m..<u} = {l..<u}"
-  "[| (l::'a::linorder) < m; m <= u |] ==> {l<..m} Un {m..u} = {l<..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {m..u} = {l..u}"
+  "[| (l::'a::linorder) \<le> m; m < u |] ==> {l..m} Un {m..<u} = {l..<u}"
+  "[| (l::'a::linorder) < m; m \<le> u |] ==> {l<..m} Un {m..u} = {l<..u}"
+  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..m} Un {m..u} = {l..u}"
 by auto
 
 lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two ivl_disj_un_two_touch
@@ -1635,14 +1592,11 @@ lemma (in linorder) atLeastAtMost_diff_ends:
 
 subsubsection \<open>Some Subset Conditions\<close>
 
-lemma ivl_subset [simp]:
- "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<le> i \<and> j \<le> (n::'a::linorder))"
-apply(auto simp:linorder_not_le)
-apply(rule ccontr)
-apply(insert linorder_le_less_linear[of i n])
-apply(clarsimp simp:linorder_not_le)
-apply(fastforce)
-done
+lemma ivl_subset [simp]: "({i..<j} \<subseteq> {m..<n}) = (j \<le> i \<or> m \<le> i \<and> j \<le> (n::'a::linorder))"
+  using linorder_class.le_less_linear[of i n]
+  apply (auto simp: linorder_not_le)
+   apply (force intro: leI)+
+  done
 
 
 subsection \<open>Generic big monoid operation over intervals\<close>
@@ -1866,14 +1820,14 @@ lemma sum_op_ivl_Suc [simp]:
   "sum f {m..<Suc n} = (if n < m then 0 else sum f {m..<n} + f(n))"
   by (auto simp: ac_simps atLeastLessThanSuc)
 (*
-lemma sum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
+lemma sum_cl_ivl_add_one_nat: "(n::nat) \<le> m + 1 ==>
     (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
 by (auto simp:ac_simps atLeastAtMostSuc_conv)
 *)
 
 lemma sum_head:
   fixes n :: nat
-  assumes mn: "m <= n"
+  assumes mn: "m \<le> n"
   shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
 proof -
   from mn
@@ -1904,24 +1858,25 @@ qed
 lemmas sum_add_nat_ivl = sum.atLeastLessThan_concat
 
 lemma sum_diff_nat_ivl:
-fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
-shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
-  sum f {m..<p} - sum f {m..<n} = sum f {n..<p}"
-using sum_add_nat_ivl [of m n p f,symmetric]
-apply (simp add: ac_simps)
-done
+  fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
+  shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow> sum f {m..<p} - sum f {m..<n} = sum f {n..<p}"
+  using sum_add_nat_ivl [of m n p f,symmetric]
+  by (simp add: ac_simps)
 
 lemma sum_natinterval_difff:
   fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
   shows  "sum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
-          (if m <= n then f m - f(n + 1) else 0)"
+          (if m \<le> n then f m - f(n + 1) else 0)"
 by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 
 lemma sum_nat_group: "(\<Sum>m<n::nat. sum f {m * k ..< m*k + k}) = sum f {..< n * k}"
-  apply (subgoal_tac "k = 0 \<or> 0 < k", auto)
-  apply (induct "n")
-  apply (simp_all add: sum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
-  done
+proof (cases k)
+  case (Suc l)
+  then have "k > 0"
+    by auto
+  then show ?thesis
+    by (induct n) (simp_all add: sum_add_nat_ivl add.commute atLeast0LessThan[symmetric])
+qed auto   
 
 lemma sum_triangle_reindex:
   fixes n :: nat
@@ -1971,19 +1926,19 @@ end
 subsubsection \<open>Shifting bounds\<close>
 
 lemma sum_shift_bounds_nat_ivl:
-  "sum f {m+k..<n+k} = sum (%i. f(i + k)){m..<n::nat}"
+  "sum f {m+k..<n+k} = sum (\<lambda>i. f(i + k)){m..<n::nat}"
 by (induct "n", auto simp:atLeastLessThanSuc)
 
 lemma sum_shift_bounds_cl_nat_ivl:
-  "sum f {m+k..n+k} = sum (%i. f(i + k)){m..n::nat}"
+  "sum f {m+k..n+k} = sum (\<lambda>i. f(i + k)){m..n::nat}"
   by (rule sum.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
 
 corollary sum_shift_bounds_cl_Suc_ivl:
-  "sum f {Suc m..Suc n} = sum (%i. f(Suc i)){m..n}"
+  "sum f {Suc m..Suc n} = sum (\<lambda>i. f(Suc i)){m..n}"
 by (simp add:sum_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
 
 corollary sum_shift_bounds_Suc_ivl:
-  "sum f {Suc m..<Suc n} = sum (%i. f(Suc i)){m..<n}"
+  "sum f {Suc m..<Suc n} = sum (\<lambda>i. f(Suc i)){m..<n}"
 by (simp add:sum_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
 context comm_monoid_add
@@ -2008,8 +1963,7 @@ next
     using \<open>f 0 = 0\<close> by simp
 qed
 
-lemma sum_shift_lb_Suc0_0:
-  "sum f {Suc 0..k} = sum f {0..k}"
+lemma sum_shift_lb_Suc0_0: "sum f {Suc 0..k} = sum f {0..k}"
 proof (cases k)
   case 0
   with \<open>f 0 = 0\<close> show ?thesis
@@ -2054,7 +2008,7 @@ lemma sum_atMost_shift:
   shows "(\<Sum>i\<le>n. f i) = f 0 + (\<Sum>i<n. f (Suc i))"
 by (metis atLeast0AtMost atLeast0LessThan atLeastLessThanSuc_atLeastAtMost atLeastSucAtMost_greaterThanAtMost le0 sum_head sum_shift_bounds_Suc_ivl)
 
-lemma sum_last_plus: fixes n::nat shows "m <= n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
+lemma sum_last_plus: fixes n::nat shows "m \<le> n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
   by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add.commute)
 
 lemma sum_Suc_diff:
@@ -2436,19 +2390,19 @@ qed
 subsubsection \<open>Shifting bounds\<close>
 
 lemma prod_shift_bounds_nat_ivl:
-  "prod f {m+k..<n+k} = prod (%i. f(i + k)){m..<n::nat}"
+  "prod f {m+k..<n+k} = prod (\<lambda>i. f(i + k)){m..<n::nat}"
 by (induct "n", auto simp:atLeastLessThanSuc)
 
 lemma prod_shift_bounds_cl_nat_ivl:
-  "prod f {m+k..n+k} = prod (%i. f(i + k)){m..n::nat}"
+  "prod f {m+k..n+k} = prod (\<lambda>i. f(i + k)){m..n::nat}"
   by (rule prod.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
 
 corollary prod_shift_bounds_cl_Suc_ivl:
-  "prod f {Suc m..Suc n} = prod (%i. f(Suc i)){m..n}"
+  "prod f {Suc m..Suc n} = prod (\<lambda>i. f(Suc i)){m..n}"
 by (simp add:prod_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
 
 corollary prod_shift_bounds_Suc_ivl:
-  "prod f {Suc m..<Suc n} = prod (%i. f(Suc i)){m..<n}"
+  "prod f {Suc m..<Suc n} = prod (\<lambda>i. f(Suc i)){m..<n}"
 by (simp add:prod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
 
 lemma prod_lessThan_Suc [simp]: "prod f {..<Suc n} = prod f {..<n} * f n"
