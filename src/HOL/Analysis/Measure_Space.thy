@@ -2834,7 +2834,7 @@ text%important \<open>
   of the lexicographical order are point-wise ordered.
 \<close>
 
-instantiation%important measure :: (type) order_bot
+instantiation measure :: (type) order_bot
 begin
 
 inductive less_eq_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
@@ -3028,7 +3028,7 @@ lemma sigma_le_iff: "\<A> \<subseteq> Pow \<Omega> \<Longrightarrow> sigma \<Ome
      (simp_all add: eq_commute[of _ "sets x"] le_measure_iff emeasure_sigma le_fun_def
                     sigma_sets_superset_generator sigma_sets_le_sets_iff)
 
-instantiation%important measure :: (type) semilattice_sup
+instantiation measure :: (type) semilattice_sup
 begin
 
 definition%important sup_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
@@ -3159,7 +3159,7 @@ next
     by (simp add: A(3))
 qed
 
-instantiation%important measure :: (type) complete_lattice
+instantiation measure :: (type) complete_lattice
 begin
 
 interpretation sup_measure: comm_monoid_set sup "bot :: 'a measure"

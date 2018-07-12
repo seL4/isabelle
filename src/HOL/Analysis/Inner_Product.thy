@@ -274,7 +274,7 @@ lemma differentiable_inner [simp]:
 
 subsection \<open>Class instances\<close>
 
-instantiation%important real :: real_inner
+instantiation real :: real_inner
 begin
 
 definition inner_real_def [simp]: "inner = ( * )"
@@ -303,7 +303,7 @@ lemma
     and real_inner_1_right[simp]: "inner x 1 = x"
   by simp_all
 
-instantiation%important complex :: real_inner
+instantiation complex :: real_inner
 begin
 
 definition inner_complex_def:

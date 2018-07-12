@@ -12,7 +12,7 @@ begin
 
 subsection \<open>Type class of Euclidean spaces\<close>
 
-class%important euclidean_space = real_inner +
+class euclidean_space = real_inner +
   fixes Basis :: "'a set"
   assumes nonempty_Basis [simp]: "Basis \<noteq> {}"
   assumes finite_Basis [simp]: "finite Basis"
@@ -224,7 +224,7 @@ subsection \<open>Class instances\<close>
 
 subsubsection%unimportant \<open>Type @{typ real}\<close>
 
-instantiation%important real :: euclidean_space
+instantiation real :: euclidean_space
 begin
 
 definition
@@ -240,7 +240,7 @@ lemma DIM_real[simp]: "DIM(real) = 1"
 
 subsubsection%unimportant \<open>Type @{typ complex}\<close>
 
-instantiation%important complex :: euclidean_space
+instantiation complex :: euclidean_space
 begin
 
 definition Basis_complex_def: "Basis = {1, \<i>}"
@@ -261,7 +261,7 @@ lemma complex_Basis_i [iff]: "\<i> \<in> Basis"
 
 subsubsection%unimportant \<open>Type @{typ "'a \<times> 'b"}\<close>
 
-instantiation%important prod :: (euclidean_space, euclidean_space) euclidean_space
+instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
 begin
 
 definition

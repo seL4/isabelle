@@ -603,7 +603,7 @@ subsection%important \<open>Polish spaces\<close>
 text \<open>Textbooks define Polish spaces as completely metrizable.
   We assume the topology to be complete for a given metric.\<close>
 
-class%important polish_space = complete_space + second_countable_topology
+class polish_space = complete_space + second_countable_topology
 
 subsection \<open>General notion of a topology as a value\<close>
 
@@ -4573,7 +4573,7 @@ text \<open>
   Heine-Borel property if every closed and bounded subset is compact.
 \<close>
 
-class%important heine_borel = metric_space +
+class heine_borel = metric_space +
   assumes bounded_imp_convergent_subsequence:
     "bounded (range f) \<Longrightarrow> \<exists>l r. strict_mono (r::nat\<Rightarrow>nat) \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
 

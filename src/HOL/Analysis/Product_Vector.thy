@@ -58,7 +58,7 @@ end
 
 subsection \<open>Product is a real vector space\<close>
 
-instantiation%important prod :: (real_vector, real_vector) real_vector
+instantiation prod :: (real_vector, real_vector) real_vector
 begin
 
 definition scaleR_prod_def:
@@ -113,7 +113,7 @@ subsection \<open>Product is a metric space\<close>
 
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation%important prod :: (metric_space, metric_space) dist
+instantiation prod :: (metric_space, metric_space) dist
 begin
 
 definition%important dist_prod_def[code del]:
@@ -135,7 +135,7 @@ end
 
 declare uniformity_Abort[where 'a="'a :: metric_space \<times> 'b :: metric_space", code]
 
-instantiation%important prod :: (metric_space, metric_space) metric_space
+instantiation prod :: (metric_space, metric_space) metric_space
 begin
 
 lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
@@ -270,7 +270,7 @@ qed
 
 subsection \<open>Product is a normed vector space\<close>
 
-instantiation%important prod :: (real_normed_vector, real_normed_vector) real_normed_vector
+instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
 definition norm_prod_def[code del]:
@@ -398,7 +398,7 @@ lemma has_vector_derivative_Pair[derivative_intros]:
 
 subsection \<open>Product is an inner product space\<close>
 
-instantiation%important prod :: (real_inner, real_inner) real_inner
+instantiation prod :: (real_inner, real_inner) real_inner
 begin
 
 definition inner_prod_def:
