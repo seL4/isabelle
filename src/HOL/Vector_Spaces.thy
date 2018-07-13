@@ -281,16 +281,9 @@ proof -
 qed
 
 lemma in_span_delete:
-  assumes a: "a \<in> span S"
-    and na: "a \<notin> span (S - {b})"
+  assumes a: "a \<in> span S" and na: "a \<notin> span (S - {b})"
   shows "b \<in> span (insert a (S - {b}))"
-  apply (rule in_span_insert)
-  apply (rule set_rev_mp)
-  apply (rule a)
-  apply (rule span_mono)
-  apply blast
-  apply (rule na)
-  done
+  by (metis Diff_empty Diff_insert0 a in_span_insert insert_Diff na)
 
 lemma span_redundant: "x \<in> span S \<Longrightarrow> span (insert x S) = span S"
   unfolding span_def by (rule hull_redundant)
@@ -484,7 +477,7 @@ next
       have \<open>b \<in> span C\<close>
         using \<open>b \<in> B\<close> unfolding eq[symmetric] by (rule span_base)
       have \<open>(\<Sum>v | ?R' b v \<noteq> 0. \<Sum>w | ?R v w \<noteq> 0. (?R' b v * ?R v w) *s w) =
-          (\<Sum>v | ?R' b v \<noteq> 0. ?R' b v *s (\<Sum>w | ?R v w \<noteq> 0. ?R v w *s w))\<close>
+           (\<Sum>v | ?R' b v \<noteq> 0. ?R' b v *s (\<Sum>w | ?R v w \<noteq> 0. ?R v w *s w))\<close>
         by (simp add: scale_sum_right)
       also have \<open>\<dots> = (\<Sum>v | ?R' b v \<noteq> 0. ?R' b v *s v)\<close>
         by (auto simp: sum_nonzero_representation_eq B eq span_base representation_ne_zero)
@@ -492,15 +485,13 @@ next
         by (rule sum_nonzero_representation_eq[OF C \<open>b \<in> span C\<close>])
       finally have "?R b b = ?R (\<Sum>v | ?R' b v \<noteq> 0. \<Sum>w | ?R v w \<noteq> 0. (?R' b v * ?R v w) *s w) b"
         by simp
+      also have "... = (\<Sum>i\<in>{v. ?R' b v \<noteq> 0}. ?R (\<Sum>w | ?R i w \<noteq> 0. (?R' b i * ?R i w) *s w) b)"
+        by (subst representation_sum[OF B])  (auto intro: span_sum span_scale span_base representation_ne_zero)
+      also have "... = (\<Sum>i\<in>{v. ?R' b v \<noteq> 0}.
+           \<Sum>j \<in> {w. ?R i w \<noteq> 0}. ?R ((?R' b i * ?R i j ) *s  j ) b)"
+        by (subst representation_sum[OF B]) (auto simp add: span_sum span_scale span_base representation_ne_zero)
       also have \<open>\<dots> = (\<Sum>v | ?R' b v \<noteq> 0. \<Sum>w | ?R v w \<noteq> 0. ?R' b v * ?R v w * ?R w b)\<close>
-        using B \<open>b \<in> B\<close>
-        apply (subst representation_sum[OF B])
-         apply (fastforce intro: span_sum span_scale span_base representation_ne_zero)
-        apply (rule sum.cong[OF refl])
-        apply (subst representation_sum[OF B])
-         apply (simp add: span_sum span_scale span_base representation_ne_zero)
-        apply (simp add: representation_scale[OF B] span_base representation_ne_zero)
-        done
+        using B \<open>b \<in> B\<close> by (simp add: representation_scale[OF B] span_base representation_ne_zero)
       finally have "(\<Sum>v | ?R' b v \<noteq> 0. \<Sum>w | ?R v w \<noteq> 0. ?R' b v * ?R v w * ?R w b) \<noteq> 0"
         using representation_basis[OF B \<open>b \<in> B\<close>] by auto
       then obtain v w where bv: "?R' b v \<noteq> 0" and vw: "?R v w \<noteq> 0" and "?R' b v * ?R v w * ?R w b \<noteq> 0"
@@ -516,7 +507,7 @@ next
     proof (subst B_eq, rule card_of_UNION_ordLeq_infinite[OF \<open>infinite C\<close>])
       show "ordLeq3 (card_of C) (card_of C)"
         by (intro ordLeq_refl card_of_Card_order)
-      show "\<forall>c\<in>C. ordLeq3 (card_of {v. representation B c v \<noteq> 0}) (card_of C)"
+      show "\<forall>c\<in>C. ordLeq3 (card_of {v. ?R c v \<noteq> 0}) (card_of C)"
         by (intro ballI ordLeq3_finite_infinite \<open>infinite C\<close> finite_representation)
     qed }
   from this[of B C] this[of C B] B C eq \<open>infinite C\<close> \<open>infinite B\<close>
@@ -584,10 +575,9 @@ lemma dim_unique:
 
 lemma subspace_sums: "\<lbrakk>subspace S; subspace T\<rbrakk> \<Longrightarrow> subspace {x + y|x y. x \<in> S \<and> y \<in> T}"
   apply (simp add: subspace_def)
-  apply (intro conjI impI allI)
-  using add.right_neutral apply blast
-   apply clarify
-   apply (metis add.assoc add.left_commute)
+  apply (intro conjI impI allI; clarsimp simp: algebra_simps)
+  using add.left_neutral apply blast
+   apply (metis add.assoc)
   using scale_right_distrib by blast
 
 end
@@ -876,10 +866,10 @@ proof -
     proof (rule vector_space_pair.linear_eq_on[where x=v])
       show "vector_space_pair ( *a) ( *a)" by unfold_locales
       show "linear ( *a) ( *a) (?g \<circ> f)"
-        apply (rule Vector_Spaces.linear_compose[of _ "( *b)"])
-        subgoal by unfold_locales
-        apply fact
-        done
+      proof (rule Vector_Spaces.linear_compose[of _ "( *b)"])
+        show "linear ( *a) ( *b) f"
+          by unfold_locales
+      qed fact
       show "linear ( *a) ( *a) id" by (rule vs1.linear_id)
       show "v \<in> vs1.span B" by fact
       show "b \<in> B \<Longrightarrow> (p.construct (f ` B) (the_inv_into B f) \<circ> f) b = id b" for b
@@ -915,10 +905,7 @@ proof -
     proof (rule vector_space_pair.linear_eq_on[where x=v])
       show "vector_space_pair ( *b) ( *b)" by unfold_locales
       show "linear ( *b) ( *b) (f \<circ> ?g)"
-        apply (rule Vector_Spaces.linear_compose[of _ "( *a)"])
-        apply fact
-        subgoal by fact
-        done
+        by (rule Vector_Spaces.linear_compose[of _ "( *a)"]) fact+
       show "linear ( *b) ( *b) id" by (rule vs2.linear_id)
       have "vs2.span (f ` B) = vs2.span C"
         using fB_C vs2.span_mono[of C "f ` B"] vs2.span_minimal[of "f`B" "vs2.span C"]
@@ -985,8 +972,7 @@ proof
           by (metis member_remove remove_def)
       qed
       also have " \<dots> \<le> card (S - {y})"
-        apply (rule card_image_le)
-        using fS by simp
+        by (simp add: card_image_le fS)
       also have "\<dots> \<le> card S - 1" using y fS by simp
       finally show False using S0 by arith
     qed
@@ -1026,22 +1012,23 @@ proof -
     case False
     obtain B where B: "B \<subseteq> span S" "independent B" "span S \<subseteq> span B" "card B = dim (span S)"
       using basis_exists [of "span S"] by blast
-    have 1: "insert x B \<subseteq> span (insert x S)"
-      by (meson B(1) insertI1 insert_subset order_trans span_base span_mono subset_insertI)
-    have 2: "span (insert x S) \<subseteq> span (insert x B)"
-      by (metis \<open>B \<subseteq> span S\<close> \<open>span S \<subseteq> span B\<close> span_breakdown_eq span_subspace subsetI subspace_span)
-    have 3: "independent (insert x B)"
-      by (metis B(1-3) independent_insert span_subspace subspace_span False)
     have "dim (span (insert x S)) = Suc (dim S)"
-      apply (rule dim_unique [OF 1 2 3])
-      by (metis B False card_insert_disjoint dim_span finiteI_independent span_base span_eq span_span)
+    proof (rule dim_unique)
+      show "insert x B \<subseteq> span (insert x S)"
+        by (meson B(1) insertI1 insert_subset order_trans span_base span_mono subset_insertI)
+      show "span (insert x S) \<subseteq> span (insert x B)"
+        by (metis \<open>B \<subseteq> span S\<close> \<open>span S \<subseteq> span B\<close> span_breakdown_eq span_subspace subsetI subspace_span)
+      show "independent (insert x B)"
+        by (metis B(1-3) independent_insert span_subspace subspace_span False)
+      show "card (insert x B) = Suc (dim S)"
+        using B False finiteI_independent by force
+    qed
     then show ?thesis
       by (metis False Suc_eq_plus1 dim_span)
   qed
 qed
 
-lemma dim_singleton [simp]:
-  "dim{x} = (if x = 0 then 0 else 1)"
+lemma dim_singleton [simp]: "dim{x} = (if x = 0 then 0 else 1)"
   by (simp add: dim_insert)
 
 proposition choose_subspace_of_subspace:
@@ -1059,9 +1046,10 @@ proof -
     then show ?case
     proof (cases "span S \<subseteq> span T")
       case True
-      have "dim S = dim T"
-        apply (rule span_eq_dim [OF subset_antisym [OF True]])
+      have "span T \<subseteq> span S"
         by (simp add: \<open>T \<subseteq> span S\<close> span_minimal)
+      then have "dim S = dim T"
+        by (rule span_eq_dim [OF subset_antisym [OF True]])
       then show ?thesis
         using Suc.prems \<open>dim T = n\<close> by linarith
     next
@@ -1072,8 +1060,7 @@ proof -
         by (metis (no_types) \<open>T \<subseteq> span S\<close> subsetD insert_subset span_superset span_mono span_span)
       with \<open>dim T = n\<close>  \<open>subspace T\<close> y show ?thesis
         apply (rule_tac x="span(insert y T)" in exI)
-        apply (auto simp: dim_insert)
-        using span_eq_iff by blast
+        using span_eq_iff by (fastforce simp: dim_insert)
     qed
   qed
   with that show ?thesis by blast
@@ -1218,15 +1205,12 @@ lemma independent_bound_general:
 
 lemma independent_explicit:
   shows "independent B \<longleftrightarrow> finite B \<and> (\<forall>c. (\<Sum>v\<in>B. c v *s v) = 0 \<longrightarrow> (\<forall>v \<in> B. c v = 0))"
-  apply (cases "finite B")
-   apply (force simp: dependent_finite)
   using independent_bound_general
-  apply auto
-  done
+  by (fastforce simp: dependent_finite)
 
 proposition dim_sums_Int:
   assumes "subspace S" "subspace T"
-  shows "dim {x + y |x y. x \<in> S \<and> y \<in> T} + dim(S \<inter> T) = dim S + dim T"
+  shows "dim {x + y |x y. x \<in> S \<and> y \<in> T} + dim(S \<inter> T) = dim S + dim T" (is "dim ?ST + _ = _")
 proof -
   obtain B where B: "B \<subseteq> S \<inter> T" "S \<inter> T \<subseteq> span B"
              and indB: "independent B"
@@ -1239,29 +1223,28 @@ proof -
   then have "finite B" "finite C" "finite D"
     by (simp_all add: finiteI_independent indB independent_bound_general)
   have Beq: "B = C \<inter> D"
-    apply (rule sym)
-    apply (rule spanning_subset_independent)
-    using \<open>B \<subseteq> C\<close> \<open>B \<subseteq> D\<close> apply blast
-    apply (meson \<open>independent C\<close> independent_mono inf.cobounded1)
-    using B \<open>C \<subseteq> S\<close> \<open>D \<subseteq> T\<close> apply auto
-    done
+  proof (rule spanning_subset_independent [symmetric])
+    show "independent (C \<inter> D)"
+      by (meson \<open>independent C\<close> independent_mono inf.cobounded1)
+  qed (use B \<open>C \<subseteq> S\<close> \<open>D \<subseteq> T\<close> \<open>B \<subseteq> C\<close> \<open>B \<subseteq> D\<close> in auto)
   then have Deq: "D = B \<union> (D - C)"
     by blast
-  have CUD: "C \<union> D \<subseteq> {x + y |x y. x \<in> S \<and> y \<in> T}"
-    apply safe
-    apply (metis add.right_neutral subsetCE \<open>C \<subseteq> S\<close> \<open>subspace T\<close> set_eq_subset span_zero span_minimal)
-    apply (metis add.left_neutral subsetCE \<open>D \<subseteq> T\<close> \<open>subspace S\<close> set_eq_subset span_zero span_minimal)
-    done
+  have CUD: "C \<union> D \<subseteq> ?ST"
+  proof (simp, intro conjI)
+    show "C \<subseteq> ?ST"
+      using span_zero span_minimal [OF _ \<open>subspace T\<close>] \<open>C \<subseteq> S\<close> by force
+    show "D \<subseteq> ?ST"
+      using span_zero span_minimal [OF _ \<open>subspace S\<close>] \<open>D \<subseteq> T\<close> by force
+  qed
   have "a v = 0" if 0: "(\<Sum>v\<in>C. a v *s v) + (\<Sum>v\<in>D - C. a v *s v) = 0"
                  and v: "v \<in> C \<union> (D-C)" for a v
   proof -
+    have CsS: "\<And>x. x \<in> C \<Longrightarrow> a x *s x \<in> S"
+      using \<open>C \<subseteq> S\<close> \<open>subspace S\<close> subspace_scale by auto
     have eq: "(\<Sum>v\<in>D - C. a v *s v) = - (\<Sum>v\<in>C. a v *s v)"
       using that add_eq_0_iff by blast
     have "(\<Sum>v\<in>D - C. a v *s v) \<in> S"
-      apply (subst eq)
-      apply (rule subspace_neg [OF \<open>subspace S\<close>])
-      apply (rule subspace_sum [OF \<open>subspace S\<close>])
-      by (meson subsetCE subspace_scale \<open>C \<subseteq> S\<close> \<open>subspace S\<close>)
+      by (simp add: eq CsS \<open>subspace S\<close> subspace_neg subspace_sum)
     moreover have "(\<Sum>v\<in>D - C. a v *s v) \<in> T"
       apply (rule subspace_sum [OF \<open>subspace T\<close>])
       by (meson DiffD1 \<open>D \<subseteq> T\<close> \<open>subspace T\<close> subset_eq subspace_def)
@@ -1300,8 +1283,7 @@ proof -
         using Beq \<open>(\<Sum>x\<in>C - B. a x *s x) = 0\<close> f3 f4 by auto
     qed
     with 0 have Dcc0: "(\<Sum>v\<in>D. a v *s v) = 0"
-      apply (subst Deq)
-      by (simp add: \<open>finite B\<close> \<open>finite D\<close> sum_Un)
+      by (subst Deq) (simp add: \<open>finite B\<close> \<open>finite D\<close> sum_Un)
     then have D0: "\<And>v. v \<in> D \<Longrightarrow> a v = 0"
       using independent_explicit \<open>independent D\<close> \<open>finite D\<close> by blast
     show ?thesis
@@ -1318,10 +1300,13 @@ proof -
     by (metis \<open>C \<subseteq> S\<close> \<open>independent C\<close> \<open>S \<subseteq> span C\<close> basis_card_eq_dim)
   moreover have "dim T = card D"
     by (metis \<open>D \<subseteq> T\<close> \<open>independent D\<close> \<open>T \<subseteq> span D\<close> basis_card_eq_dim)
-  moreover have "dim {x + y |x y. x \<in> S \<and> y \<in> T} = card(C \<union> D)"
-    apply (rule dim_unique [OF CUD _ indCUD refl], clarify)
-    apply (meson \<open>S \<subseteq> span C\<close> \<open>T \<subseteq> span D\<close> span_add span_superset span_minimal subsetCE subspace_span sup.bounded_iff)
-    done
+  moreover have "dim ?ST = card(C \<union> D)"
+  proof -
+    have *: "\<And>x y. \<lbrakk>x \<in> S; y \<in> T\<rbrakk> \<Longrightarrow> x + y \<in> span (C \<union> D)"
+      by (meson \<open>S \<subseteq> span C\<close> \<open>T \<subseteq> span D\<close> span_add span_mono subsetCE sup.cobounded1 sup.cobounded2)
+    show ?thesis
+      by (auto intro: * dim_unique [OF CUD _ indCUD refl])
+  qed
   ultimately show ?thesis
     using \<open>B = C \<inter> D\<close> [symmetric]
     by (simp add:  \<open>independent C\<close> \<open>independent D\<close> card_Un_Int finiteI_independent)
@@ -1346,20 +1331,16 @@ proof -
     by blast
   from B(4) have d: "dim UNIV = card B"
     by simp
-  have th: "UNIV \<subseteq> span (f ` B)"
-    apply (rule card_ge_dim_independent)
-      apply blast
-    using B(2) inj_on_subset[OF fi]
-     apply (rule lf.independent_inj_on_image)
-     apply blast
-    apply (rule order_eq_refl)
-    apply (rule sym)
-    unfolding d
-    apply (rule card_image)
-    apply (rule subset_inj_on[OF fi])
-    apply blast
-    done
-  from th show ?thesis
+  have "UNIV \<subseteq> span (f ` B)"
+  proof (rule card_ge_dim_independent)
+    show "independent (f ` B)"
+      by (simp add: B(2) fi lf.independent_inj_image)
+    have "card (f ` B) = dim UNIV"
+      by (metis B(1) card_image d fi inj_on_subset)
+    then show "dim UNIV \<le> card (f ` B)"
+      by simp
+  qed blast
+  then show ?thesis
     unfolding lf.span_image surj_def
     using B(3) by blast
 qed
@@ -1437,38 +1418,19 @@ lemma linear_injective_isomorphism:
     and fi: "inj f"
     and dims: "vs2.dim UNIV = vs1.dim UNIV"
   shows "\<exists>f'. linear s2 s1 f' \<and> (\<forall>x. f' (f x) = x) \<and> (\<forall>x. f (f' x) = x)"
-proof -
-  show ?thesis
-    unfolding isomorphism_expand[symmetric]
-    using linear_exists_right_inverse_on[OF lf vs1.subspace_UNIV]
-      linear_exists_left_inverse_on[OF lf vs1.subspace_UNIV fi]
-    apply (auto simp: module_hom_iff_linear)
-    subgoal for f' f''
-      apply (rule exI[where x=f''])
-      using linear_injective_imp_surjective[OF lf fi dims]
-      apply auto
-      by (metis comp_apply eq_id_iff surj_def)
-    done
-qed
+  unfolding isomorphism_expand[symmetric]
+  using linear_injective_imp_surjective[OF lf fi dims]
+  using fi left_right_inverse_eq lf linear_injective_left_inverse linear_surjective_right_inverse by blast
 
 lemma linear_surjective_isomorphism:
   assumes lf: "linear s1 s2 f"
     and sf: "surj f"
     and dims: "vs2.dim UNIV = vs1.dim UNIV"
   shows "\<exists>f'. linear s2 s1 f' \<and> (\<forall>x. f' (f x) = x) \<and> (\<forall>x. f (f' x) = x)"
-proof -
-  show ?thesis
-    unfolding isomorphism_expand[symmetric]
-    using linear_exists_right_inverse_on[OF lf vs1.subspace_UNIV]
-      linear_exists_left_inverse_on[OF lf vs1.subspace_UNIV]
-    using linear_surjective_imp_injective[OF lf sf dims] sf
-    apply (auto simp: module_hom_iff_linear)
-    subgoal for f' f''
-      apply (rule exI[where x=f''])
-      apply auto
-      by (metis isomorphism_expand)
-    done
-qed
+  using linear_surjective_imp_injective[OF lf sf dims] sf
+    linear_exists_right_inverse_on[OF lf vs1.subspace_UNIV]
+    linear_exists_left_inverse_on[OF lf vs1.subspace_UNIV]
+    dims lf linear_injective_isomorphism by auto
 
 lemma dim_image_eq:
   assumes lf: "linear s1 s2 f"
@@ -1650,12 +1612,8 @@ proof -
   from linear_surjective_isomorphism[OF lf fi]
   obtain h:: "'b \<Rightarrow> 'b" where h: "linear scale scale h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x"
     by blast
-  have "h = g"
-    apply (rule ext)
-    using gf h(2,3)
-    apply (simp add: o_def id_def fun_eq_iff)
-    apply metis
-    done
+  then have "h = g"
+    by (metis gf isomorphism_expand left_right_inverse_eq)
   with h(1) show ?thesis by blast
 qed
 
