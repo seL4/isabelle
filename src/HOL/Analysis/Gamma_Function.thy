@@ -230,22 +230,22 @@ next
 qed
 
 
-subsection \<open>Definitions\<close>
+subsection \<open>The Euler form and the logarithmic Gamma function\<close>
 
 text \<open>
-  We define the Gamma function by first defining its multiplicative inverse @{term "Gamma_inv"}.
-  This is more convenient because @{term "Gamma_inv"} is entire, which makes proofs of its
+  We define the Gamma function by first defining its multiplicative inverse \<open>rGamma\<close>.
+  This is more convenient because \<open>rGamma\<close> is entire, which makes proofs of its
   properties more convenient because one does not have to watch out for discontinuities.
-  (e.g. @{term "Gamma_inv"} fulfils @{term "rGamma z = z * rGamma (z + 1)"} everywhere,
-  whereas @{term "Gamma"} does not fulfil the analogous equation on the non-positive integers)
+  (e.g. \<open>rGamma\<close> fulfils \<open>rGamma z = z * rGamma (z + 1)\<close> everywhere, whereas the \<open>\<Gamma>\<close> function
+  does not fulfil the analogous equation on the non-positive integers)
 
-  We define the Gamma function (resp. its inverse) in the Euler form. This form has the advantage
+  We define the \<open>\<Gamma>\<close> function (resp.\ its reciprocale) in the Euler form. This form has the advantage
   that it is a relatively simple limit that converges everywhere. The limit at the poles is 0
-  (due to division by 0). The functional equation @{term "Gamma (z + 1) = z * Gamma z"} follows
+  (due to division by 0). The functional equation \<open>Gamma (z + 1) = z * Gamma z\<close> follows
   immediately from the definition.
 \<close>
 
-definition Gamma_series :: "('a :: {banach,real_normed_field}) \<Rightarrow> nat \<Rightarrow> 'a" where
+definition%important Gamma_series :: "('a :: {banach,real_normed_field}) \<Rightarrow> nat \<Rightarrow> 'a" where
   "Gamma_series z n = fact n * exp (z * of_real (ln (of_nat n))) / pochhammer z (n+1)"
 
 definition Gamma_series' :: "('a :: {banach,real_normed_field}) \<Rightarrow> nat \<Rightarrow> 'a" where
@@ -304,11 +304,8 @@ proof (rule Lim_transform_eventually)
   from tendsto_add[OF this tendsto_const[of 1]] show "(\<lambda>n. z / of_nat n + 1) \<longlonglongrightarrow> 1" by simp
 qed
 
-
-subsection \<open>Convergence of the Euler series form\<close>
-
 text \<open>
-  We now show that the series that defines the Gamma function in the Euler form converges
+  We now show that the series that defines the \<open>\<Gamma>\<close> function in the Euler form converges
   and that the function defined by it is continuous on the complex halfspace with positive
   real part.
 
@@ -320,10 +317,10 @@ text \<open>
   function to the inverse of the Gamma function, and from that to the Gamma function itself.
 \<close>
 
-definition ln_Gamma_series :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
+definition%important ln_Gamma_series :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
   "ln_Gamma_series z n = z * ln (of_nat n) - ln z - (\<Sum>k=1..n. ln (z / of_nat k + 1))"
 
-definition ln_Gamma_series' :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
+definition%unimportant ln_Gamma_series' :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> nat \<Rightarrow> 'a" where
   "ln_Gamma_series' z n =
      - euler_mascheroni*z - ln z + (\<Sum>k=1..n. z / of_nat n - ln (z / of_nat k + 1))"
 
@@ -333,9 +330,7 @@ definition ln_Gamma :: "('a :: {banach,real_normed_field,ln}) \<Rightarrow> 'a" 
 
 text \<open>
   We now show that the log-Gamma series converges locally uniformly for all complex numbers except
-  the non-positive integers. We do this by proving that the series is locally Cauchy, adapting this
-  proof:
-  https://math.stackexchange.com/questions/887158/convergence-of-gammaz-lim-n-to-infty-fracnzn-prod-m-0nzm
+  the non-positive integers. We do this by proving that the series is locally Cauchy.
 \<close>
 
 context
@@ -497,7 +492,7 @@ qed
 lemma ln_Gamma_series_complex_converges'': "(z :: complex) \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> convergent (ln_Gamma_series z)"
   by (drule ln_Gamma_series_complex_converges') (auto intro: uniformly_convergent_imp_convergent)
 
-lemma ln_Gamma_complex_LIMSEQ: "(z :: complex) \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> ln_Gamma_series z \<longlonglongrightarrow> ln_Gamma z"
+theorem ln_Gamma_complex_LIMSEQ: "(z :: complex) \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> ln_Gamma_series z \<longlonglongrightarrow> ln_Gamma z"
   using ln_Gamma_series_complex_converges'' by (simp add: convergent_LIMSEQ_iff ln_Gamma_def)
 
 lemma exp_ln_Gamma_series_complex:
@@ -609,6 +604,9 @@ next
     by (subst summable_Suc_iff) (simp add: summable_mult inverse_power_summable)
 qed
 
+
+subsection \<open>The Polygamma functions\<close>
+
 lemma summable_deriv_ln_Gamma:
   "z \<noteq> (0 :: 'a :: {real_normed_field,banach}) \<Longrightarrow>
      summable (\<lambda>n. inverse (of_nat (Suc n)) - inverse (z + of_nat (Suc n)))"
@@ -616,13 +614,12 @@ lemma summable_deriv_ln_Gamma:
   by (rule uniformly_convergent_imp_convergent,
       rule uniformly_summable_deriv_ln_Gamma[of z "norm z/2"]) simp_all
 
-
-definition Polygamma :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
+definition%important Polygamma :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
   "Polygamma n z = (if n = 0 then
       (\<Sum>k. inverse (of_nat (Suc k)) - inverse (z + of_nat k)) - euler_mascheroni else
       (-1)^Suc n * fact n * (\<Sum>k. inverse ((z + of_nat k)^Suc n)))"
 
-abbreviation Digamma :: "('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
+abbreviation%important Digamma :: "('a :: {real_normed_field,banach}) \<Rightarrow> 'a" where
   "Digamma \<equiv> Polygamma 0"
 
 lemma Digamma_def:
@@ -708,7 +705,7 @@ lemma Polygamma_converges':
   using uniformly_convergent_imp_convergent[OF Polygamma_converges[OF assms, of 1], of z]
   by (simp add: summable_iff_convergent)
 
-lemma Digamma_LIMSEQ:
+theorem Digamma_LIMSEQ:
   fixes z :: "'a :: {banach,real_normed_field}"
   assumes z: "z \<noteq> 0"
   shows   "(\<lambda>m. of_real (ln (real m)) - (\<Sum>n<m. inverse (z + of_nat n))) \<longlonglongrightarrow> Digamma z"
@@ -739,7 +736,14 @@ proof -
   finally show ?thesis by (rule Lim_transform) (insert lim, simp)
 qed
 
-lemma has_field_derivative_ln_Gamma_complex [derivative_intros]:
+theorem Polygamma_LIMSEQ:
+  fixes z :: "'a :: {banach,real_normed_field}"
+  assumes "z \<noteq> 0" and "n > 0"
+  shows   "(\<lambda>k. inverse ((z + of_nat k)^Suc n)) sums ((-1) ^ Suc n * Polygamma n z / fact n)"
+  using Polygamma_converges'[OF assms(1), of "Suc n"] assms(2)
+  by (simp add: sums_iff Polygamma_def)
+
+theorem has_field_derivative_ln_Gamma_complex [derivative_intros]:
   fixes z :: complex
   assumes z: "z \<notin> \<real>\<^sub>\<le>\<^sub>0"
   shows   "(ln_Gamma has_field_derivative Digamma z) (at z)"
@@ -814,7 +818,7 @@ proof -
   finally show ?thesis by (simp add: Digamma_def[of z])
 qed
 
-lemma Polygamma_plus1:
+theorem Polygamma_plus1:
   assumes "z \<noteq> 0"
   shows   "Polygamma n (z + 1) = Polygamma n z + (-1)^n * fact n / (z ^ Suc n)"
 proof (cases "n = 0")
@@ -832,7 +836,7 @@ proof (cases "n = 0")
   finally show ?thesis .
 qed (insert assms, simp add: Digamma_plus1 inverse_eq_divide)
 
-lemma Digamma_of_nat:
+theorem Digamma_of_nat:
   "Digamma (of_nat (Suc n) :: 'a :: {real_normed_field,banach}) = harm n - euler_mascheroni"
 proof (induction n)
   case (Suc n)
@@ -897,7 +901,7 @@ proof -
 qed
 
 
-lemma has_field_derivative_Polygamma [derivative_intros]:
+theorem has_field_derivative_Polygamma [derivative_intros]:
   fixes z :: "'a :: {real_normed_field,euclidean_space}"
   assumes z: "z \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows "(Polygamma n has_field_derivative Polygamma (Suc n) z) (at z within A)"
@@ -1017,7 +1021,7 @@ text \<open>
   the reals and for the complex numbers with a minimal amount of proof duplication.
 \<close>
 
-class Gamma = real_normed_field + complete_space +
+class%unimportant Gamma = real_normed_field + complete_space +
   fixes rGamma :: "'a \<Rightarrow> 'a"
   assumes rGamma_eq_zero_iff_aux: "rGamma z = 0 \<longleftrightarrow> (\<exists>n. z = - of_nat n)"
   assumes differentiable_rGamma_aux1:
@@ -1070,7 +1074,7 @@ proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
                   exp_def of_real_def[symmetric] suminf_def sums_def[abs_def] atLeast0AtMost)
 qed (insert rGamma_eq_zero_iff[of z], simp_all add: rGamma_series_nonpos_Ints_LIMSEQ)
 
-lemma Gamma_series_LIMSEQ [tendsto_intros]:
+theorem Gamma_series_LIMSEQ [tendsto_intros]:
   "Gamma_series z \<longlonglongrightarrow> Gamma z"
 proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case False
@@ -1128,10 +1132,10 @@ proof (induction n arbitrary: z)
   finally show ?case by (simp add: add_ac pochhammer_rec')
 qed simp_all
 
-lemma Gamma_plus1: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Gamma (z + 1) = z * Gamma z"
+theorem Gamma_plus1: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> Gamma (z + 1) = z * Gamma z"
   using rGamma_plus1[of z] by (simp add: rGamma_inverse_Gamma field_simps Gamma_eq_zero_iff)
 
-lemma pochhammer_Gamma: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> pochhammer z n = Gamma (z + of_nat n) / Gamma z"
+theorem pochhammer_Gamma: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> pochhammer z n = Gamma (z + of_nat n) / Gamma z"
   using pochhammer_rGamma[of z]
   by (simp add: rGamma_inverse_Gamma Gamma_eq_zero_iff field_simps)
 
@@ -1147,7 +1151,7 @@ lemma Gamma_0 [simp]: "Gamma 0 = 0"
 
 lemma Gamma_1 [simp]: "Gamma 1 = 1" unfolding Gamma_def by simp
 
-lemma Gamma_fact: "Gamma (1 + of_nat n) = fact n"
+theorem Gamma_fact: "Gamma (1 + of_nat n) = fact n"
   by (simp add: pochhammer_fact pochhammer_Gamma of_nat_in_nonpos_Ints_iff flip: of_nat_Suc)
 
 lemma Gamma_numeral: "Gamma (numeral n) = fact (pred_numeral n)"
@@ -1230,8 +1234,7 @@ declare has_field_derivative_rGamma_nonpos_int [derivative_intros]
 declare has_field_derivative_rGamma_no_nonpos_int [derivative_intros]
 declare has_field_derivative_rGamma [derivative_intros]
 
-
-lemma has_field_derivative_Gamma [derivative_intros]:
+theorem has_field_derivative_Gamma [derivative_intros]:
   "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> (Gamma has_field_derivative Gamma z * Digamma z) (at z within A)"
   unfolding Gamma_def [abs_def]
   by (fastforce intro!: derivative_eq_intros simp: rGamma_eq_zero_iff)
@@ -1241,13 +1244,6 @@ declare has_field_derivative_Gamma[THEN DERIV_chain2, derivative_intros]
 (* TODO: Hide ugly facts properly *)
 hide_fact rGamma_eq_zero_iff_aux differentiable_rGamma_aux1 differentiable_rGamma_aux2
           differentiable_rGamma_aux2 rGamma_series_aux Gamma_class.rGamma_eq_zero_iff_aux
-
-
-
-(* TODO: differentiable etc. *)
-
-
-subsection \<open>Continuity\<close>
 
 lemma continuous_on_rGamma [continuous_intros]: "continuous_on A rGamma"
   by (rule DERIV_continuous_on has_field_derivative_rGamma)+
@@ -1263,14 +1259,12 @@ lemma isCont_Gamma [continuous_intros]:
   "isCont f z \<Longrightarrow> f z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> isCont (\<lambda>x. Gamma (f x)) z"
   by (rule isCont_o2[OF _  DERIV_isCont[OF has_field_derivative_Gamma]])
 
+subsection%unimportant \<open>The complex Gamma function\<close>
 
-
-text \<open>The complex Gamma function\<close>
-
-instantiation complex :: Gamma
+instantiation%unimportant complex :: Gamma
 begin
 
-definition rGamma_complex :: "complex \<Rightarrow> complex" where
+definition%unimportant rGamma_complex :: "complex \<Rightarrow> complex" where
   "rGamma_complex z = lim (rGamma_series z)"
 
 lemma rGamma_series_complex_converges:
@@ -1305,7 +1299,7 @@ proof -
   thus "?thesis1" "?thesis2" by blast+
 qed
 
-context
+context%unimportant
 begin
 
 (* TODO: duplication *)
@@ -1514,7 +1508,7 @@ lemma analytic_on_Polygamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longr
 
 
 
-text \<open>The real Gamma function\<close>
+subsection%unimportant \<open>The real Gamma function\<close>
 
 lemma rGamma_series_real:
   "eventually (\<lambda>n. rGamma_series x n = Re (rGamma_series (of_real x) n)) sequentially"
@@ -1532,7 +1526,7 @@ proof eventually_elim
   finally show "rGamma_series x n = Re (rGamma_series (of_real x) n)" ..
 qed
 
-instantiation real :: Gamma
+instantiation%unimportant real :: Gamma
 begin
 
 definition "rGamma_real x = Re (rGamma (of_real x :: complex))"
@@ -1777,7 +1771,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma log_convex_Gamma_real: "convex_on {0<..} (ln \<circ> Gamma :: real \<Rightarrow> real)"
+theorem log_convex_Gamma_real: "convex_on {0<..} (ln \<circ> Gamma :: real \<Rightarrow> real)"
   by (rule convex_on_realI[of _ _ Digamma])
      (auto intro!: derivative_eq_intros Polygamma_real_mono Gamma_real_pos
            simp: o_def Gamma_eq_zero_iff elim!: nonpos_Ints_cases')
@@ -1795,7 +1789,7 @@ text \<open>
   integers, where the Gamma function is not defined).
 \<close>
 
-context
+context%unimportant
   fixes G :: "real \<Rightarrow> real"
   assumes G_1: "G 1 = 1"
   assumes G_plus1: "x > 0 \<Longrightarrow> G (x + 1) = x * G x"
@@ -1928,7 +1922,7 @@ qed
 end
 
 
-subsection \<open>Beta function\<close>
+subsection \<open>The Beta function\<close>
 
 definition Beta where "Beta a b = Gamma a * Gamma b / Gamma (a + b)"
 
@@ -1959,7 +1953,7 @@ lemma has_field_derivative_Beta2 [derivative_intros]:
                (at y within A)"
   using has_field_derivative_Beta1[of y x A] assms by (simp add: Beta_commute add_ac)
 
-lemma Beta_plus1_plus1:
+theorem Beta_plus1_plus1:
   assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "Beta (x + 1) y + Beta x (y + 1) = Beta x y"
 proof -
@@ -1972,7 +1966,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Beta_plus1_left:
+theorem Beta_plus1_left:
   assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(x + y) * Beta (x + 1) y = x * Beta x y"
 proof -
@@ -1983,7 +1977,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Beta_plus1_right:
+theorem Beta_plus1_right:
   assumes "y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(x + y) * Beta x (y + 1) = y * Beta x y"
   using Beta_plus1_left[of y x] assms by (simp_all add: Beta_commute add.commute)
@@ -2052,7 +2046,7 @@ proof -
     by (simp add: divide_simps Gamma_eq_zero_iff ring_distribs exp_diff exp_of_real ac_simps)
 qed
 
-lemma Gamma_reflection_complex:
+theorem Gamma_reflection_complex:
   fixes z :: complex
   shows "Gamma z * Gamma (1 - z) = of_real pi / sin (of_real pi * z)"
 proof -
@@ -2367,7 +2361,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Gamma_legendre_duplication:
+theorem Gamma_legendre_duplication:
   fixes z :: complex
   assumes "z \<notin> \<int>\<^sub>\<le>\<^sub>0" "z + 1/2 \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows "Gamma z * Gamma (z + 1/2) =
@@ -2377,7 +2371,7 @@ lemma Gamma_legendre_duplication:
 end
 
 
-subsection \<open>Limits and residues\<close>
+subsection%unimportant \<open>Limits and residues\<close>
 
 text \<open>
   The inverse of the Gamma function has simple zeros:
@@ -2477,7 +2471,7 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma Gamma_series_euler':
+theorem Gamma_series_euler':
   assumes z: "(z :: 'a :: Gamma) \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows "(\<lambda>n. Gamma_series_euler' z n) \<longlonglongrightarrow> Gamma z"
 proof (rule Gamma_seriesI, rule Lim_transform_eventually)
@@ -2520,7 +2514,8 @@ definition Gamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Right
   "Gamma_series_weierstrass z n =
      exp (-euler_mascheroni * z) / z * (\<Prod>k=1..n. exp (z / of_nat k) / (1 + z / of_nat k))"
 
-definition rGamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
+definition%unimportant
+  rGamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
   "rGamma_series_weierstrass z n =
      exp (euler_mascheroni * z) * z * (\<Prod>k=1..n. (1 + z / of_nat k) * exp (-z / of_nat k))"
 
@@ -2532,7 +2527,7 @@ lemma rGamma_series_weierstrass_nonpos_Ints:
   "eventually (\<lambda>k. rGamma_series_weierstrass (- of_nat n) k = 0) sequentially"
   using eventually_ge_at_top[of n] by eventually_elim (auto simp: rGamma_series_weierstrass_def)
 
-lemma Gamma_weierstrass_complex: "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma (z :: complex)"
+theorem Gamma_weierstrass_complex: "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma (z :: complex)"
 proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case True
   then obtain n where "z = - of_nat n" by (elim nonpos_Ints_cases')
@@ -2684,7 +2679,7 @@ next
   qed
 qed
 
-lemma gbinomial_Gamma:
+theorem gbinomial_Gamma:
   assumes "z + 1 \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "(z gchoose n) = Gamma (z + 1) / (fact n * Gamma (z - of_nat n + 1))"
 proof -
@@ -2785,7 +2780,7 @@ proof -
     by (rule integrable_Un') (insert c, auto simp: max_def)
 qed
 
-lemma Gamma_integral_complex:
+theorem Gamma_integral_complex:
   assumes z: "Re z > 0"
   shows   "((\<lambda>t. of_real t powr (z - 1) / of_real (exp t)) has_integral Gamma z) {0..}"
 proof -
@@ -3067,7 +3062,7 @@ lemma integrable_Beta':
   shows   "(\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1)) integrable_on {0..1}"
   using integrable_Beta[OF assms] by (rule set_borel_integral_eq_integral)
 
-lemma has_integral_Beta_real:
+theorem has_integral_Beta_real:
   assumes a: "a > 0" and b: "b > (0 :: real)"
   shows "((\<lambda>t. t powr (a - 1) * (1 - t) powr (b - 1)) has_integral Beta a b) {0..1}"
 proof -
@@ -3158,7 +3153,7 @@ qed
 
 subsection \<open>The Weierstraß product formula for the sine\<close>
 
-lemma sin_product_formula_complex:
+theorem sin_product_formula_complex:
   fixes z :: complex
   shows "(\<lambda>n. of_real pi * z * (\<Prod>k=1..n. 1 - z^2 / of_nat k^2)) \<longlonglongrightarrow> sin (of_real pi * z)"
 proof -
