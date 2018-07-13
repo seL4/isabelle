@@ -27,7 +27,7 @@ setup \<open>Sign.add_const_constraint
 setup \<open>Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"})\<close>
 
-class%important real_inner = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
+class real_inner = real_vector + sgn_div_norm + dist_norm + uniformity_dist + open_uniformity +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
   assumes inner_commute: "inner x y = inner y x"
   and inner_add_left: "inner (x + y) z = inner x z + inner y z"

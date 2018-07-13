@@ -39,7 +39,7 @@ Thomas Marthedal Rasmussen, Jeremy Avigad, and David Gray.
 section \<open>Primes\<close>
 
 theory Primes
-imports HOL.Binomial Euclidean_Algorithm
+imports Euclidean_Algorithm
 begin
 
 subsection \<open>Primes on @{typ nat} and @{typ int}\<close>
