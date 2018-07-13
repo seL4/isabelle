@@ -25,6 +25,7 @@ imports
   Gamma_Function
   Change_Of_Vars
   Lipschitz
+  Simplex_Content
 begin
 
 end
