@@ -26,16 +26,17 @@ lemma eucl_rel_int_iff:
     simp add: ac_simps sgn_1_pos sgn_1_neg)
 
 lemma unique_quotient_lemma:
-  "b * q' + r' \<le> b * q + r \<Longrightarrow> 0 \<le> r' \<Longrightarrow> r' < b \<Longrightarrow> r < b \<Longrightarrow> q' \<le> (q::int)"
-apply (subgoal_tac "r' + b * (q'-q) \<le> r")
- prefer 2 apply (simp add: right_diff_distrib)
-apply (subgoal_tac "0 < b * (1 + q - q') ")
-apply (erule_tac [2] order_le_less_trans)
- prefer 2 apply (simp add: right_diff_distrib distrib_left)
-apply (subgoal_tac "b * q' < b * (1 + q) ")
- prefer 2 apply (simp add: right_diff_distrib distrib_left)
-apply (simp add: mult_less_cancel_left)
-done
+  assumes "b * q' + r' \<le> b * q + r" "0 \<le> r'" "r' < b" "r < b" shows "q' \<le> (q::int)"
+proof -
+  have "r' + b * (q'-q) \<le> r"
+    using assms by (simp add: right_diff_distrib)
+  moreover have "0 < b * (1 + q - q') "
+    using assms by (simp add: right_diff_distrib distrib_left)
+  moreover have "b * q' < b * (1 + q)"
+    using assms by (simp add: right_diff_distrib distrib_left)
+  ultimately show ?thesis
+    using assms by (simp add: mult_less_cancel_left)
+qed
 
 lemma unique_quotient_lemma_neg:
   "b * q' + r' \<le> b*q + r \<Longrightarrow> r \<le> 0 \<Longrightarrow> b < r \<Longrightarrow> b < r' \<Longrightarrow> q \<le> (q'::int)"
@@ -43,10 +44,9 @@ lemma unique_quotient_lemma_neg:
 
 lemma unique_quotient:
   "eucl_rel_int a b (q, r) \<Longrightarrow> eucl_rel_int a b (q', r') \<Longrightarrow> q = q'"
-  apply (simp add: eucl_rel_int_iff linorder_neq_iff split: if_split_asm)
-  apply (blast intro: order_antisym
-    dest: order_eq_refl [THEN unique_quotient_lemma]
-    order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
+  apply (rule order_antisym)
+   apply (simp_all add: eucl_rel_int_iff linorder_neq_iff split: if_split_asm)
+     apply (blast intro: order_eq_refl [THEN unique_quotient_lemma] order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
   done
 
 lemma unique_remainder:
