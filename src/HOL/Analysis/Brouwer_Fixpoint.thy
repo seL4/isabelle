@@ -18,40 +18,6 @@ theory Brouwer_Fixpoint
 imports Path_Connected Homeomorphism
 begin
 
-subsection \<open>Unit cubes\<close>
-
-(* FIXME mv euclidean topological space *)
-definition unit_cube :: "'a::euclidean_space set"
-  where "unit_cube = {x. \<forall>i\<in>Basis. 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1}"
-
-lemma mem_unit_cube: "x \<in> unit_cube \<longleftrightarrow> (\<forall>i\<in>Basis. 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
-  unfolding unit_cube_def by simp
-
-lemma bounded_unit_cube: "bounded unit_cube"
-  unfolding bounded_def
-proof (intro exI ballI)
-  fix y :: 'a assume y: "y \<in> unit_cube"
-  have "dist 0 y = norm y" by (rule dist_0_norm)
-  also have "\<dots> = norm (\<Sum>i\<in>Basis. (y \<bullet> i) *\<^sub>R i)" unfolding euclidean_representation ..
-  also have "\<dots> \<le> (\<Sum>i\<in>Basis. norm ((y \<bullet> i) *\<^sub>R i))" by (rule norm_sum)
-  also have "\<dots> \<le> (\<Sum>i::'a\<in>Basis. 1)"
-    by (rule sum_mono, simp add: y [unfolded mem_unit_cube])
-  finally show "dist 0 y \<le> (\<Sum>i::'a\<in>Basis. 1)" .
-qed
-
-lemma closed_unit_cube: "closed unit_cube"
-  unfolding unit_cube_def Collect_ball_eq Collect_conj_eq
-  by (rule closed_INT, auto intro!: closed_Collect_le continuous_on_inner continuous_on_const continuous_on_id)
-
-lemma compact_unit_cube: "compact unit_cube" (is "compact ?C")
-  unfolding compact_eq_seq_compact_metric
-  using bounded_unit_cube closed_unit_cube
-  by (rule bounded_closed_imp_seq_compact)
-
-lemma convex_unit_cube: "convex unit_cube"
-  by (rule is_interval_convex) (fastforce simp add: is_interval_def mem_unit_cube)
-
-
 (* FIXME mv topology euclidean space *)
 subsection \<open>Retractions\<close>
 
@@ -3126,44 +3092,44 @@ qed
 
 subsection \<open>Brouwer's fixed point theorem\<close>
 
-text \<open>We start proving Brouwer's fixed point theorem for unit cubes.\<close>
+text \<open>We start proving Brouwer's fixed point theorem for the unit cube = \<open>cbox 0 One\<close>.\<close>
 
 lemma brouwer_cube:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
-  assumes "continuous_on unit_cube f"
-    and "f ` unit_cube \<subseteq> unit_cube"
-  shows "\<exists>x\<in>unit_cube. f x = x"
+  assumes "continuous_on (cbox 0 One) f"
+    and "f ` cbox 0 One \<subseteq> cbox 0 One"
+  shows "\<exists>x\<in>cbox 0 One. f x = x"
 proof (rule ccontr)
   define n where "n = DIM('a)"
   have n: "1 \<le> n" "0 < n" "n \<noteq> 0"
     unfolding n_def by (auto simp: Suc_le_eq DIM_positive)
   assume "\<not> ?thesis"
-  then have *: "\<not> (\<exists>x\<in>unit_cube. f x - x = 0)"
+  then have *: "\<not> (\<exists>x\<in>cbox 0 One. f x - x = 0)"
     by auto
   obtain d where
-      d: "d > 0" "\<And>x. x \<in> unit_cube \<Longrightarrow> d \<le> norm (f x - x)"
-    apply (rule brouwer_compactness_lemma[OF compact_unit_cube _ *])
+      d: "d > 0" "\<And>x. x \<in> cbox 0 One \<Longrightarrow> d \<le> norm (f x - x)"
+    apply (rule brouwer_compactness_lemma[OF compact_cbox _ *])
     apply (rule continuous_intros assms)+
     apply blast
     done
-  have *: "\<forall>x. x \<in> unit_cube \<longrightarrow> f x \<in> unit_cube"
-    "\<forall>x. x \<in> (unit_cube::'a set) \<longrightarrow> (\<forall>i\<in>Basis. True \<longrightarrow> 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
+  have *: "\<forall>x. x \<in> cbox 0 One \<longrightarrow> f x \<in> cbox 0 One"
+    "\<forall>x. x \<in> (cbox 0 One::'a set) \<longrightarrow> (\<forall>i\<in>Basis. True \<longrightarrow> 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
     using assms(2)[unfolded image_subset_iff Ball_def]
-    unfolding mem_unit_cube
+    unfolding cbox_def
     by auto
   obtain label :: "'a \<Rightarrow> 'a \<Rightarrow> nat" where label [rule_format]:
     "\<forall>x. \<forall>i\<in>Basis. label x i \<le> 1"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> x \<bullet> i = 0 \<longrightarrow> label x i = 0"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> x \<bullet> i = 1 \<longrightarrow> label x i = 1"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> label x i = 0 \<longrightarrow> x \<bullet> i \<le> f x \<bullet> i"
-    "\<forall>x. \<forall>i\<in>Basis. x \<in> unit_cube \<and> label x i = 1 \<longrightarrow> f x \<bullet> i \<le> x \<bullet> i"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> cbox 0 One \<and> x \<bullet> i = 0 \<longrightarrow> label x i = 0"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> cbox 0 One \<and> x \<bullet> i = 1 \<longrightarrow> label x i = 1"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> cbox 0 One \<and> label x i = 0 \<longrightarrow> x \<bullet> i \<le> f x \<bullet> i"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> cbox 0 One \<and> label x i = 1 \<longrightarrow> f x \<bullet> i \<le> x \<bullet> i"
     using kuhn_labelling_lemma[OF *] by auto
   note label = this [rule_format]
-  have lem1: "\<forall>x\<in>unit_cube. \<forall>y\<in>unit_cube. \<forall>i\<in>Basis. label x i \<noteq> label y i \<longrightarrow>
+  have lem1: "\<forall>x\<in>cbox 0 One. \<forall>y\<in>cbox 0 One. \<forall>i\<in>Basis. label x i \<noteq> label y i \<longrightarrow>
     \<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y - f x) + norm (y - x)"
   proof safe
     fix x y :: 'a
-    assume x: "x \<in> unit_cube" and y: "y \<in> unit_cube"
+    assume x: "x \<in> cbox 0 One" and y: "y \<in> cbox 0 One"
     fix i
     assume i: "label x i \<noteq> label y i" "i \<in> Basis"
     have *: "\<And>x y fx fy :: real. x \<le> fx \<and> fy \<le> y \<or> fx \<le> x \<and> y \<le> fy \<Longrightarrow>
@@ -3188,18 +3154,18 @@ proof (rule ccontr)
     finally show "\<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y - f x) + norm (y - x)"
       unfolding inner_simps .
   qed
-  have "\<exists>e>0. \<forall>x\<in>unit_cube. \<forall>y\<in>unit_cube. \<forall>z\<in>unit_cube. \<forall>i\<in>Basis.
+  have "\<exists>e>0. \<forall>x\<in>cbox 0 One. \<forall>y\<in>cbox 0 One. \<forall>z\<in>cbox 0 One. \<forall>i\<in>Basis.
     norm (x - z) < e \<longrightarrow> norm (y - z) < e \<longrightarrow> label x i \<noteq> label y i \<longrightarrow>
       \<bar>(f(z) - z)\<bullet>i\<bar> < d / (real n)"
   proof -
     have d': "d / real n / 8 > 0"
       using d(1) by (simp add: n_def DIM_positive)
-    have *: "uniformly_continuous_on unit_cube f"
-      by (rule compact_uniformly_continuous[OF assms(1) compact_unit_cube])
+    have *: "uniformly_continuous_on (cbox 0 One) f"
+      by (rule compact_uniformly_continuous[OF assms(1) compact_cbox])
     obtain e where e:
         "e > 0"
-        "\<And>x x'. x \<in> unit_cube \<Longrightarrow>
-          x' \<in> unit_cube \<Longrightarrow>
+        "\<And>x x'. x \<in> cbox 0 One \<Longrightarrow>
+          x' \<in> cbox 0 One \<Longrightarrow>
           norm (x' - x) < e \<Longrightarrow>
           norm (f x' - f x) < d / real n / 8"
       using *[unfolded uniformly_continuous_on_def,rule_format,OF d']
@@ -3211,7 +3177,7 @@ proof (rule ccontr)
         using d' e by auto
       fix x y z i
       assume as:
-        "x \<in> unit_cube" "y \<in> unit_cube" "z \<in> unit_cube"
+        "x \<in> cbox 0 One" "y \<in> cbox 0 One" "z \<in> cbox 0 One"
         "norm (x - z) < min (e / 2) (d / real n / 8)"
         "norm (y - z) < min (e / 2) (d / real n / 8)"
         "label x i \<noteq> label y i"
@@ -3249,9 +3215,9 @@ proof (rule ccontr)
   then
   obtain e where e:
     "e > 0"
-    "\<And>x y z i. x \<in> unit_cube \<Longrightarrow>
-      y \<in> unit_cube \<Longrightarrow>
-      z \<in> unit_cube \<Longrightarrow>
+    "\<And>x y z i. x \<in> cbox 0 One \<Longrightarrow>
+      y \<in> cbox 0 One \<Longrightarrow>
+      z \<in> cbox 0 One \<Longrightarrow>
       i \<in> Basis \<Longrightarrow>
       norm (x - z) < e \<and> norm (y - z) < e \<and> label x i \<noteq> label y i \<Longrightarrow>
       \<bar>(f z - z) \<bullet> i\<bar> < d / real n"
@@ -3290,9 +3256,9 @@ proof (rule ccontr)
     using label(1)[OF b'']
     by auto
   { fix x :: "nat \<Rightarrow> nat" and i assume "\<forall>i<n. x i \<le> p" "i < n" "x i = p \<or> x i = 0"
-    then have "(\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<in> (unit_cube::'a set)"
+    then have "(\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<in> (cbox 0 One::'a set)"
       using b'_Basis
-      by (auto simp: mem_unit_cube inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1) }
+      by (auto simp: cbox_def inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1) }
   note cube = this
   have q2: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = 0 \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0)"
@@ -3314,8 +3280,8 @@ proof (rule ccontr)
     have "\<forall>i\<in>Basis. q (b' i) \<in> {0..p}"
       using q(1) b'
       by (auto intro: less_imp_le simp: bij_betw_def)
-    then have "z \<in> unit_cube"
-      unfolding z_def mem_unit_cube
+    then have "z \<in> cbox 0 One"
+      unfolding z_def cbox_def
       using b'_Basis
       by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1)
     then have d_fz_z: "d \<le> norm (f z - z)"
@@ -3353,18 +3319,18 @@ proof (rule ccontr)
     using q(1)[rule_format,OF b'_im]
     apply (auto simp: Suc_le_eq)
     done
-  then have "r' \<in> unit_cube"
-    unfolding r'_def mem_unit_cube
+  then have "r' \<in> cbox 0 One"
+    unfolding r'_def cbox_def
     using b'_Basis
     by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1)
   define s' :: 'a where "s' = (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i)"
   have "\<And>i. i \<in> Basis \<Longrightarrow> s (b' i) \<le> p"
     using b'_im q(1) rs(2) by fastforce
-  then have "s' \<in> unit_cube"
-    unfolding s'_def mem_unit_cube
+  then have "s' \<in> cbox 0 One"
+    unfolding s'_def cbox_def
     using b'_Basis by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1)
-  have "z \<in> unit_cube"
-    unfolding z_def mem_unit_cube
+  have "z \<in> cbox 0 One"
+    unfolding z_def cbox_def
     using b'_Basis q(1)[rule_format,OF b'_im] \<open>p > 0\<close>
     by (auto simp: bij_betw_def zero_le_divide_iff divide_le_eq_1 less_imp_le)
   {
@@ -3394,7 +3360,7 @@ proof (rule ccontr)
   then have "\<bar>(f z - z) \<bullet> i\<bar> < d / real n"
     using rs(3) i
     unfolding r'_def[symmetric] s'_def[symmetric] o_def bb'
-    by (intro e(2)[OF \<open>r'\<in>unit_cube\<close> \<open>s'\<in>unit_cube\<close> \<open>z\<in>unit_cube\<close>]) auto
+    by (intro e(2)[OF \<open>r'\<in>cbox 0 One\<close> \<open>s'\<in>cbox 0 One\<close> \<open>z\<in>cbox 0 One\<close>]) auto
   then show False
     using i by auto
 qed
@@ -3410,7 +3376,7 @@ lemma brouwer_weak:
     and "f ` S \<subseteq> S"
   obtains x where "x \<in> S" and "f x = x"
 proof -
-  let ?U = "unit_cube :: 'a set"
+  let ?U = "cbox 0 One :: 'a set"
   have "\<Sum>Basis /\<^sub>R 2 \<in> interior ?U"
   proof (rule interiorI)
     let ?I = "(\<Inter>i\<in>Basis. {x::'a. 0 < x \<bullet> i} \<inter> {x. x \<bullet> i < 1})"
@@ -3418,12 +3384,12 @@ proof -
       by (intro open_INT finite_Basis ballI open_Int, auto intro: open_Collect_less simp: continuous_on_inner continuous_on_const continuous_on_id)
     show "\<Sum>Basis /\<^sub>R 2 \<in> ?I"
       by simp
-    show "?I \<subseteq> unit_cube"
-      unfolding unit_cube_def by force
+    show "?I \<subseteq> cbox 0 One"
+      unfolding cbox_def by force
   qed
   then have *: "interior ?U \<noteq> {}" by fast
   have *: "?U homeomorphic S"
-    using homeomorphic_convex_compact[OF convex_unit_cube compact_unit_cube * assms(2,1,3)] .
+    using homeomorphic_convex_compact[OF convex_box(1) compact_cbox * assms(2,1,3)] .
   have "\<forall>f. continuous_on ?U f \<and> f ` ?U \<subseteq> ?U \<longrightarrow>
     (\<exists>x\<in>?U. f x = x)"
     using brouwer_cube by auto
