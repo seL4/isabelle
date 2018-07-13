@@ -142,6 +142,14 @@ locale vector_space_pair_on = m1: vector_space_on S1 scale1 +
   for S1:: "'b::ab_group_add set" and S2::"'c::ab_group_add set"
     and scale1::"'a::field \<Rightarrow> _" and scale2::"'a \<Rightarrow> _"
 
+locale finite_dimensional_vector_space_pair_1_on =
+  vs1: finite_dimensional_vector_space_on S1 scale1 Basis1 +
+  vs2: vector_space_on S2 scale2
+  for S1 S2
+    and scale1::"'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b"
+    and scale2::"'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c"
+    and Basis1
+
 locale finite_dimensional_vector_space_pair_on =
   vs1: finite_dimensional_vector_space_on S1 scale1 Basis1 +
   vs2: finite_dimensional_vector_space_on S2 scale2 Basis2
@@ -489,6 +497,24 @@ lemma type_vector_space_pair_on_with:
   lt2.plus_S lt2.minus_S lt2.uminus_S (lt2.zero_S::'t) lt2.scale_S"
   by (simp add: type_module_pair_on_with vector_space_pair_on_with_def)
 
+sublocale lt1: local_typedef_vector_space_on S1 scale1 s by unfold_locales
+sublocale lt2: local_typedef_vector_space_on S2 scale2 t by unfold_locales
+
+end
+
+locale local_typedef_finite_dimensional_vector_space_pair_1 =
+  lt1: local_typedef_finite_dimensional_vector_space_on S1 scale1 Basis1 s +
+  lt2: local_typedef_vector_space_on S2 scale2 t
+  for S1::"'b::ab_group_add set" and scale1::"'a::field \<Rightarrow> 'b \<Rightarrow> 'b" and Basis1 and s::"'s itself"
+    and S2::"'c::ab_group_add set" and scale2::"'a \<Rightarrow> 'c \<Rightarrow> 'c" and t::"'t itself"
+begin
+
+lemma type_finite_dimensional_vector_space_pair_1_on_with:
+  "finite_dimensional_vector_space_pair_1_on_with UNIV UNIV lt1.plus_S lt1.minus_S lt1.uminus_S (lt1.zero_S::'s) lt1.scale_S lt1.Basis_S
+  lt2.plus_S lt2.minus_S lt2.uminus_S (lt2.zero_S::'t) lt2.scale_S"
+  by (simp add: finite_dimensional_vector_space_pair_1_on_with_def
+      lt1.type_finite_dimensional_vector_space_on_with lt2.type_vector_space_on_with)
+
 end
 
 locale local_typedef_finite_dimensional_vector_space_pair =
@@ -506,6 +532,7 @@ lemma type_finite_dimensional_vector_space_pair_on_with:
       lt2.type_finite_dimensional_vector_space_on_with)
 
 end
+
 
 subsection \<open>Transfer from type-based @{theory HOL.Modules} and @{theory HOL.Vector_Spaces}\<close>
 
@@ -964,9 +991,12 @@ context includes lifting_syntax
 
 interpretation local_typedef_vector_space_pair S1 scale1 "TYPE('s)" S2 scale2 "TYPE('t)" by unfold_locales fact+
 
+
+
 lemmas_with [var_simplified explicit_ab_group_add,
     unoverload_type 'e 'b,
   OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_vector_space_pair_on_with,
+  folded lt1.dim_S_def lt2.dim_S_def,
   untransferred,
   var_simplified implicit_ab_group_add]:
   lt_linear_0 = vector_space_pair.linear_0
@@ -1007,6 +1037,7 @@ and lt_linear_inj_on_left_inverse = vector_space_pair.linear_inj_on_left_inverse
 and lt_linear_injective_left_inverse = vector_space_pair.linear_injective_left_inverse
 and lt_linear_surj_right_inverse = vector_space_pair.linear_surj_right_inverse
 and lt_linear_surjective_right_inverse = vector_space_pair.linear_surjective_right_inverse
+and lt_finite_basis_to_basis_subspace_isomorphism = vector_space_pair.finite_basis_to_basis_subspace_isomorphism
 (* should work, but doesnt
 *)
 (* not expected to work:
@@ -1067,8 +1098,41 @@ lemmas_with [cancel_type_definition, OF m1.S_ne,
   and linear_injective_left_inverse = lt_linear_injective_left_inverse
   and linear_surj_right_inverse = lt_linear_surj_right_inverse
   and linear_surjective_right_inverse = lt_linear_surjective_right_inverse
+  and finite_basis_to_basis_subspace_isomorphism = lt_finite_basis_to_basis_subspace_isomorphism
 
 end
+
+context finite_dimensional_vector_space_pair_1_on begin
+
+context includes lifting_syntax
+  notes [transfer_rule del] = Collect_transfer
+  assumes
+    "\<exists>(Rep::'s \<Rightarrow> 'b) (Abs::'b \<Rightarrow> 's). type_definition Rep Abs S1"
+    "\<exists>(Rep::'t \<Rightarrow> 'c) (Abs::'c \<Rightarrow> 't). type_definition Rep Abs S2" begin
+
+interpretation local_typedef_finite_dimensional_vector_space_pair_1 S1 scale1 Basis1 "TYPE('s)" S2 scale2 "TYPE('t)" by unfold_locales fact+
+
+lemmas_with [var_simplified explicit_ab_group_add,
+    unoverload_type 'e 'b,
+  OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_finite_dimensional_vector_space_pair_1_on_with,
+  folded lt1.dim_S_def lt2.dim_S_def,
+  untransferred,
+  var_simplified implicit_ab_group_add]:
+   lt_dim_image_eq = finite_dimensional_vector_space_pair_1.dim_image_eq
+and lt_dim_image_le = finite_dimensional_vector_space_pair_1.dim_image_le
+
+end
+
+lemmas_with [cancel_type_definition, OF vs1.S_ne,
+    cancel_type_definition, OF vs2.S_ne,
+    folded subset_iff' top_set_def,
+    simplified pred_fun_def,
+    simplified\<comment>\<open>too much?\<close>]:
+  dim_image_eq = lt_dim_image_eq
+and dim_image_le = lt_dim_image_le
+
+end
+
 
 context finite_dimensional_vector_space_pair_on begin
 
@@ -1090,9 +1154,7 @@ lt_linear_surjective_imp_injective = finite_dimensional_vector_space_pair.linear
 and lt_linear_injective_imp_surjective = finite_dimensional_vector_space_pair.linear_injective_imp_surjective
 and lt_linear_injective_isomorphism = finite_dimensional_vector_space_pair.linear_injective_isomorphism
 and lt_linear_surjective_isomorphism = finite_dimensional_vector_space_pair.linear_surjective_isomorphism
-and lt_dim_image_eq = finite_dimensional_vector_space_pair.dim_image_eq
 and lt_basis_to_basis_subspace_isomorphism = finite_dimensional_vector_space_pair.basis_to_basis_subspace_isomorphism
-and lt_dim_image_le = finite_dimensional_vector_space_pair.dim_image_le
 and lt_subspace_isomorphism = finite_dimensional_vector_space_pair.subspace_isomorphism
 
 end
@@ -1106,9 +1168,7 @@ linear_surjective_imp_injective = lt_linear_surjective_imp_injective
 and linear_injective_imp_surjective = lt_linear_injective_imp_surjective
 and linear_injective_isomorphism = lt_linear_injective_isomorphism
 and linear_surjective_isomorphism = lt_linear_surjective_isomorphism
-and dim_image_eq = lt_dim_image_eq
 and basis_to_basis_subspace_isomorphism = lt_basis_to_basis_subspace_isomorphism
-and dim_image_le = lt_dim_image_le
 and subspace_isomorphism = lt_subspace_isomorphism
 
 end

@@ -954,6 +954,56 @@ lemma linear_surjective_right_inverse: "linear s1 s2 f \<Longrightarrow> surj f 
   using linear_surj_right_inverse[of f UNIV UNIV]
   by (auto simp: fun_eq_iff)
 
+lemma finite_basis_to_basis_subspace_isomorphism:
+  assumes s: "vs1.subspace S"
+    and t: "vs2.subspace T"
+    and d: "vs1.dim S = vs2.dim T"
+    and fB: "finite B"
+    and B: "B \<subseteq> S" "vs1.independent B" "S \<subseteq> vs1.span B" "card B = vs1.dim S"
+    and fC: "finite C"
+    and C: "C \<subseteq> T" "vs2.independent C" "T \<subseteq> vs2.span C" "card C = vs2.dim T"
+  shows "\<exists>f. linear s1 s2 f \<and> f ` B = C \<and> f ` S = T \<and> inj_on f S"
+proof -
+  from B(4) C(4) card_le_inj[of B C] d obtain f where
+    f: "f ` B \<subseteq> C" "inj_on f B" using \<open>finite B\<close> \<open>finite C\<close> by auto
+  from linear_independent_extend[OF B(2)] obtain g where
+    g: "linear s1 s2 g" "\<forall>x \<in> B. g x = f x" by blast
+  interpret g: linear s1 s2 g by fact
+  from inj_on_iff_eq_card[OF fB, of f] f(2)
+  have "card (f ` B) = card B" by simp
+  with B(4) C(4) have ceq: "card (f ` B) = card C" using d
+    by simp
+  have "g ` B = f ` B" using g(2)
+    by (auto simp add: image_iff)
+  also have "\<dots> = C" using card_subset_eq[OF fC f(1) ceq] .
+  finally have gBC: "g ` B = C" .
+  have gi: "inj_on g B" using f(2) g(2)
+    by (auto simp add: inj_on_def)
+  note g0 = linear_indep_image_lemma[OF g(1) fB, unfolded gBC, OF C(2) gi]
+  {
+    fix x y
+    assume x: "x \<in> S" and y: "y \<in> S" and gxy: "g x = g y"
+    from B(3) x y have x': "x \<in> vs1.span B" and y': "y \<in> vs1.span B"
+      by blast+
+    from gxy have th0: "g (x - y) = 0"
+      by (simp add: g.diff)
+    have th1: "x - y \<in> vs1.span B" using x' y'
+      by (metis vs1.span_diff)
+    have "x = y" using g0[OF th1 th0] by simp
+  }
+  then have giS: "inj_on g S" unfolding inj_on_def by blast
+  from vs1.span_subspace[OF B(1,3) s]
+  have "g ` S = vs2.span (g ` B)"
+    by (simp add: g.span_image)
+  also have "\<dots> = vs2.span C"
+    unfolding gBC ..
+  also have "\<dots> = T"
+    using vs2.span_subspace[OF C(1,3) t] .
+  finally have gS: "g ` S = T" .
+  from g(1) gS giS gBC show ?thesis
+    by blast
+qed
+
 end
 
 lemma surjective_iff_injective_gen:
@@ -1366,6 +1416,54 @@ qed
 
 end
 
+locale finite_dimensional_vector_space_pair_1 =
+  vs1: finite_dimensional_vector_space s1 B1 + vs2: vector_space s2
+  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
+  and B1 :: "'b set"
+  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr "*b" 75)
+begin
+
+sublocale vector_space_pair s1 s2 by unfold_locales
+
+lemma dim_image_eq:
+  assumes lf: "linear s1 s2 f"
+    and fi: "inj_on f (vs1.span S)"
+  shows "vs2.dim (f ` S) = vs1.dim S"
+proof -
+  interpret lf: linear by fact
+  obtain B where B: "B \<subseteq> S" "vs1.independent B" "S \<subseteq> vs1.span B" "card B = vs1.dim S"
+    using vs1.basis_exists[of S] by auto
+  then have "vs1.span S = vs1.span B"
+    using vs1.span_mono[of B S] vs1.span_mono[of S "vs1.span B"] vs1.span_span[of B] by auto
+  moreover have "card (f ` B) = card B"
+    using assms card_image[of f B] subset_inj_on[of f "vs1.span S" B] B vs1.span_superset by auto
+  moreover have "(f ` B) \<subseteq> (f ` S)"
+    using B by auto
+  ultimately show ?thesis
+    by (metis B(2) B(4) fi lf.dependent_inj_imageD lf.span_image vs2.dim_eq_card_independent vs2.dim_span)
+qed
+
+lemma dim_image_le:
+  assumes lf: "linear s1 s2 f"
+  shows "vs2.dim (f ` S) \<le> vs1.dim (S)"
+proof -
+  from vs1.basis_exists[of S] obtain B where
+    B: "B \<subseteq> S" "vs1.independent B" "S \<subseteq> vs1.span B" "card B = vs1.dim S" by blast
+  from B have fB: "finite B" "card B = vs1.dim S"
+    using vs1.independent_bound_general by blast+
+  have "vs2.dim (f ` S) \<le> card (f ` B)"
+    apply (rule vs2.span_card_ge_dim)
+    using lf B fB
+      apply (auto simp add: module_hom.span_image module_hom.spans_image subset_image_iff
+        linear_iff_module_hom)
+    done
+  also have "\<dots> \<le> vs1.dim S"
+    using card_image_le[OF fB(1)] fB by simp
+  finally show ?thesis .
+qed
+
+end
+
 locale finite_dimensional_vector_space_pair =
   vs1: finite_dimensional_vector_space s1 B1 + vs2: finite_dimensional_vector_space s2 B2
   for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
@@ -1374,7 +1472,7 @@ locale finite_dimensional_vector_space_pair =
   and B2 :: "'c set"
 begin
 
-sublocale vector_space_pair s1 s2 by unfold_locales
+sublocale finite_dimensional_vector_space_pair_1 ..
 
 lemma linear_surjective_imp_injective:
   assumes lf: "linear s1 s2 f" and sf: "surj f" and eq: "vs2.dim UNIV = vs1.dim UNIV"
@@ -1470,24 +1568,6 @@ proof -
     done
 qed
 
-lemma dim_image_eq:
-  assumes lf: "linear s1 s2 f"
-    and fi: "inj_on f (vs1.span S)"
-  shows "vs2.dim (f ` S) = vs1.dim S"
-proof -
-  interpret lf: linear by fact
-  obtain B where B: "B \<subseteq> S" "vs1.independent B" "S \<subseteq> vs1.span B" "card B = vs1.dim S"
-    using vs1.basis_exists[of S] by auto
-  then have "vs1.span S = vs1.span B"
-    using vs1.span_mono[of B S] vs1.span_mono[of S "vs1.span B"] vs1.span_span[of B] by auto
-  moreover have "card (f ` B) = card B"
-    using assms card_image[of f B] subset_inj_on[of f "vs1.span S" B] B vs1.span_superset by auto
-  moreover have "(f ` B) \<subseteq> (f ` S)"
-    using B by auto
-  ultimately show ?thesis
-    by (metis B(2) B(4) fi lf.dependent_inj_imageD lf.span_image vs2.dim_eq_card_independent vs2.dim_span)
-qed
-
 lemma basis_to_basis_subspace_isomorphism:
   assumes s: "vs1.subspace S"
     and t: "vs2.subspace T"
@@ -1500,63 +1580,7 @@ proof -
     by (simp add: vs1.finiteI_independent)
   from C have fC: "finite C"
     by (simp add: vs2.finiteI_independent)
-  from B(4) C(4) card_le_inj[of B C] d obtain f where
-    f: "f ` B \<subseteq> C" "inj_on f B" using \<open>finite B\<close> \<open>finite C\<close> by auto
-  from linear_independent_extend[OF B(2)] obtain g where
-    g: "linear s1 s2 g" "\<forall>x \<in> B. g x = f x" by blast
-  interpret g: linear s1 s2 g by fact
-  from inj_on_iff_eq_card[OF fB, of f] f(2)
-  have "card (f ` B) = card B" by simp
-  with B(4) C(4) have ceq: "card (f ` B) = card C" using d
-    by simp
-  have "g ` B = f ` B" using g(2)
-    by (auto simp add: image_iff)
-  also have "\<dots> = C" using card_subset_eq[OF fC f(1) ceq] .
-  finally have gBC: "g ` B = C" .
-  have gi: "inj_on g B" using f(2) g(2)
-    by (auto simp add: inj_on_def)
-  note g0 = linear_indep_image_lemma[OF g(1) fB, unfolded gBC, OF C(2) gi]
-  {
-    fix x y
-    assume x: "x \<in> S" and y: "y \<in> S" and gxy: "g x = g y"
-    from B(3) x y have x': "x \<in> vs1.span B" and y': "y \<in> vs1.span B"
-      by blast+
-    from gxy have th0: "g (x - y) = 0"
-      by (simp add: g.diff)
-    have th1: "x - y \<in> vs1.span B" using x' y'
-      by (metis vs1.span_diff)
-    have "x = y" using g0[OF th1 th0] by simp
-  }
-  then have giS: "inj_on g S" unfolding inj_on_def by blast
-  from vs1.span_subspace[OF B(1,3) s]
-  have "g ` S = vs2.span (g ` B)"
-    by (simp add: g.span_image)
-  also have "\<dots> = vs2.span C"
-    unfolding gBC ..
-  also have "\<dots> = T"
-    using vs2.span_subspace[OF C(1,3) t] .
-  finally have gS: "g ` S = T" .
-  from g(1) gS giS gBC show ?thesis
-    by blast
-qed
-
-lemma dim_image_le:
-  assumes lf: "linear s1 s2 f"
-  shows "vs2.dim (f ` S) \<le> vs1.dim (S)"
-proof -
-  from vs1.basis_exists[of S] obtain B where
-    B: "B \<subseteq> S" "vs1.independent B" "S \<subseteq> vs1.span B" "card B = vs1.dim S" by blast
-  from B have fB: "finite B" "card B = vs1.dim S"
-    using vs1.independent_bound_general by blast+
-  have "vs2.dim (f ` S) \<le> card (f ` B)"
-    apply (rule vs2.span_card_ge_dim)
-    using lf B fB
-      apply (auto simp add: module_hom.span_image module_hom.spans_image subset_image_iff
-        linear_iff_module_hom)
-    done
-  also have "\<dots> \<le> vs1.dim S"
-    using card_image_le[OF fB(1)] fB by simp
-  finally show ?thesis .
+  from finite_basis_to_basis_subspace_isomorphism[OF s t d fB B fC C] show ?thesis .
 qed
 
 end

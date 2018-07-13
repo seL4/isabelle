@@ -341,6 +341,11 @@ interpretation eucl?: finite_dimensional_vector_space "scaleR :: real => 'a => '
       intro!: finite_dimensional_vector_space.dimension_def
       finite_dimensional_vector_space_euclidean)
 
+interpretation eucl?: finite_dimensional_vector_space_pair_1
+  "scaleR::real\<Rightarrow>'a::euclidean_space\<Rightarrow>'a" Basis
+  "scaleR::real\<Rightarrow>'b::real_vector \<Rightarrow> 'b"
+  by unfold_locales
+
 interpretation eucl?: finite_dimensional_vector_space_prod scaleR scaleR Basis Basis
   rewrites "Basis_pair = Basis"
     and "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = (scaleR::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"

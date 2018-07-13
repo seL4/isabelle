@@ -119,6 +119,11 @@ definition "finite_dimensional_vector_space_on_with S pls mns um zero (scl::'a::
     \<not> dependent_with pls zero scl basis \<and>
     span_with pls zero scl basis = S"
 
+definition "finite_dimensional_vector_space_pair_1_on_with S S' pls mns um zero (scl::'a::field\<Rightarrow>_) b
+  pls' mns' um' zero' (scl'::'a::field\<Rightarrow>_) \<longleftrightarrow>
+  finite_dimensional_vector_space_on_with S pls mns um zero (scl::'a::field\<Rightarrow>_) b \<and>
+  vector_space_on_with S' pls' mns' um' zero' (scl'::'a::field\<Rightarrow>_)"
+
 definition "finite_dimensional_vector_space_pair_on_with S S' pls mns um zero (scl::'a::field\<Rightarrow>_) b
   pls' mns' um' zero' (scl'::'a::field\<Rightarrow>_) b' \<longleftrightarrow>
   finite_dimensional_vector_space_on_with S pls mns um zero (scl::'a::field\<Rightarrow>_) b \<and>
@@ -239,6 +244,13 @@ lemma vector_space_pair_with[explicit_ab_group_add]:
   by (auto simp: module_pair_on_with_def explicit_ab_group_add
       vector_space_pair_on_with_def vector_space_pair_def module_on_with_def vector_space_on_with_def)
 
+lemma finite_dimensional_vector_space_pair_1_with[explicit_ab_group_add]:
+  "finite_dimensional_vector_space_pair_1 s1 b1 s2 \<longleftrightarrow>
+    finite_dimensional_vector_space_pair_1_on_with UNIV UNIV (+) (-) uminus 0 s1 b1 (+) (-) uminus 0 s2"
+  by (auto simp: finite_dimensional_vector_space_pair_1_def
+      finite_dimensional_vector_space_pair_1_on_with_def finite_dimensional_vector_space_on_with
+      vector_space_on_with)
+
 lemma finite_dimensional_vector_space_pair_with[explicit_ab_group_add]:
   "finite_dimensional_vector_space_pair s1 b1 s2 b2 \<longleftrightarrow>
     finite_dimensional_vector_space_pair_on_with UNIV UNIV (+) (-) uminus 0 s1 b1 (+) (-) uminus 0 s2 b2"
@@ -261,21 +273,24 @@ lemma vector_space_pair_with_imp_vector_space_with[explicit_ab_group_add]:
   using that
   by (auto simp: vector_space_pair_on_with_def module_pair_on_with_def vector_space_on_with_def)
 
-lemma finite_dimensional_vector_space_pair_with_imp_finite_dimensional_vector_space_with[explicit_ab_group_add]:
+lemma finite_dimensional_vector_space_pair_1_with_imp_with[explicit_ab_group_add]:
+  "vector_space_on_with S (+) (-) uminus 0 s"
   "finite_dimensional_vector_space_on_with S (+) (-) uminus 0 s b"
+  "vector_space_on_with T (+) (-) uminus 0 t"
+  if "finite_dimensional_vector_space_pair_1_on_with S T (+) (-) uminus 0 s b (+) (-) uminus 0 t"
+  using that
+  unfolding finite_dimensional_vector_space_pair_1_on_with_def
+  by (simp_all add: finite_dimensional_vector_space_on_with_def)
+
+lemma finite_dimensional_vector_space_pair_with_imp_finite_dimensional_vector_space_with[explicit_ab_group_add]:
+  "vector_space_on_with S (+) (-) uminus 0 s"
+  "finite_dimensional_vector_space_on_with T (+) (-) uminus 0 t c"
+  "vector_space_on_with T (+) (-) uminus 0 t"
   "finite_dimensional_vector_space_on_with T (+) (-) uminus 0 t c"
   if "finite_dimensional_vector_space_pair_on_with S T (+) (-) uminus 0 s b (+) (-) uminus 0 t c"
   using that
   unfolding finite_dimensional_vector_space_pair_on_with_def
-  by simp_all
-
-lemma finite_dimensional_vector_space_pair_with_imp_vector_space_with[explicit_ab_group_add]:
-  \<comment>\<open>this rule is strange: why is it needed, but not the one with \<open>module_with\<close> as conclusions?\<close>
-  "vector_space_on_with S (+) (-) uminus 0 s"
-  "vector_space_on_with T (+) (-) uminus 0 t"
-  if "finite_dimensional_vector_space_pair_on_with S T (+) (-) uminus 0 s b (+) (-) uminus 0 t c"
-  using that
-  by (auto simp: finite_dimensional_vector_space_pair_on_with_def finite_dimensional_vector_space_on_with_def)
+  by (simp_all add: finite_dimensional_vector_space_on_with_def)
 
 lemma finite_dimensional_vector_space_on_with_transfer[transfer_rule]:
   includes lifting_syntax
