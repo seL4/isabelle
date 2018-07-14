@@ -370,7 +370,7 @@ proof
     moreover from x have "(int p - 1) div 2 \<le> - 1 + x mod p"
       by (auto simp: BuDuF_def)
     moreover have "int p * (int q - 1) div 2 = int p * ((int q - 1) div 2)"
-      using zdiv_zmult1_eq odd_q by auto
+      using div_mult1_eq odd_q by auto
     then have "p * (int q - 1) div 2 = p * ((int q + 1) div 2 - 1)"
       by fastforce
     ultimately have "x \<le> p * ((int q + 1) div 2 - 1) - 1 + x mod p"
@@ -409,7 +409,7 @@ proof
     then have "snd x \<le> (int q - 1) div 2"
       by force
     moreover have "int p * ((int q - 1) div 2) = (int p * int q - int p) div 2"
-      using int_distrib(4) zdiv_zmult1_eq[of "int p" "int q - 1" 2] odd_q by fastforce
+      using int_distrib(4) div_mult1_eq[of "int p" "int q - 1" 2] odd_q by fastforce
     ultimately have "(snd x) * int p \<le> (int q * int p - int p) div 2"
       using mult_right_mono[of "snd x" "(int q - 1) div 2" p] mult.commute[of "(int q - 1) div 2" p]
         pq_commute
