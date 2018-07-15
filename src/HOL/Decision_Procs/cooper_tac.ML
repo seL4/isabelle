@@ -47,7 +47,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
       put_simpset HOL_basic_ss ctxt
       addsimps @{thms refl mod_add_eq mod_add_left_eq
           mod_add_right_eq
-          div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
+          div_add1_eq [symmetric] div_add1_eq [symmetric]
           mod_self
           div_by_0 mod_by_0 div_0 mod_0
           div_by_1 mod_by_1 div_by_Suc_0 mod_by_Suc_0
