@@ -117,7 +117,7 @@ text\<open>
 @{thm[display] dvd_add[no_vars]}
 \rulename{dvd_add}
 
-For the integers, I'd list a few theorems that somehow involve negative 
+For the integers, I'd list a few theorems that somehow involve negative
 numbers.\<close>
 
 
@@ -137,8 +137,8 @@ Division, remainder of negatives
 @{thm[display] neg_mod_bound[no_vars]}
 \rulename{neg_mod_bound}
 
-@{thm[display] zdiv_zadd1_eq[no_vars]}
-\rulename{zdiv_zadd1_eq}
+@{thm[display] div_add1_eq[no_vars]}
+\rulename{div_add1_eq}
 
 @{thm[display] mod_add_eq[no_vars]}
 \rulename{mod_add_eq}
@@ -154,13 +154,13 @@ Division, remainder of negatives
 
 @{thm[display] zmod_zmult2_eq[no_vars]}
 \rulename{zmod_zmult2_eq}
-\<close>  
+\<close>
 
 lemma "abs (x+y) \<le> abs x + abs (y :: int)"
 by arith
 
 lemma "abs (2*x) = 2 * abs (x :: int)"
-by (simp add: abs_if) 
+by (simp add: abs_if)
 
 
 text \<open>Induction rules for the Integers
@@ -176,7 +176,7 @@ text \<open>Induction rules for the Integers
 
 @{thm[display] int_less_induct[no_vars]}
 \rulename{int_less_induct}
-\<close>  
+\<close>
 
 text \<open>FIELDS
 
@@ -208,13 +208,13 @@ This last NOT a simprule
 \<close>
 
 lemma "3/4 < (7/8 :: real)"
-by simp 
+by simp
 
 lemma "P ((3/4) * (8/15 :: real))"
 txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 \<close>
-apply simp 
+apply simp
 txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 \<close>
@@ -224,7 +224,7 @@ lemma "(3/4) * (8/15) < (x :: real)"
 txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 \<close>
-apply simp 
+apply simp
 txt\<open>
 @{subgoals[display,indent=0,margin=65]}
 \<close>

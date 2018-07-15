@@ -1031,25 +1031,26 @@ qed
 
 lemma has_field_derivative_cong_ev:
   assumes "x = y"
-    and *: "eventually (\<lambda>x. x \<in> s \<longrightarrow> f x = g x) (nhds x)"
-    and "u = v" "s = t" "x \<in> s"
-  shows "(f has_field_derivative u) (at x within s) = (g has_field_derivative v) (at y within t)"
+    and *: "eventually (\<lambda>x. x \<in> S \<longrightarrow> f x = g x) (nhds x)"
+    and "u = v" "S = t" "x \<in> S"
+  shows "(f has_field_derivative u) (at x within S) = (g has_field_derivative v) (at y within t)"
   unfolding has_field_derivative_iff
 proof (rule filterlim_cong)
   from assms have "f y = g y"
     by (auto simp: eventually_nhds)
-  with * show "\<forall>\<^sub>F xa in at x within s. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)"
+  with * show "\<forall>\<^sub>F z in at x within S. (f z - f x) / (z - x) = (g z - g y) / (z - y)"
     unfolding eventually_at_filter
     by eventually_elim (auto simp: assms \<open>f y = g y\<close>)
 qed (simp_all add: assms)
 
 lemma has_field_derivative_cong_eventually:
-  assumes "eventually (\<lambda>x. f x = g x) (at x within s)" "f x=g x"
-  shows "(f has_field_derivative u) (at x within s) = (g has_field_derivative u) (at x within s)"
+  assumes "eventually (\<lambda>x. f x = g x) (at x within S)" "f x = g x"
+  shows "(f has_field_derivative u) (at x within S) = (g has_field_derivative u) (at x within S)"
   unfolding has_field_derivative_iff
-  apply (rule tendsto_cong)
-  apply (insert assms)
-  by (auto elim: eventually_mono)
+proof (rule tendsto_cong)
+  show "\<forall>\<^sub>F y in at x within S. (f y - f x) / (y - x) = (g y - g x) / (y - x)"
+    using assms by (auto elim: eventually_mono)
+qed
 
 lemma DERIV_cong_ev:
   "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
@@ -1257,22 +1258,24 @@ lemma DERIV_local_const:
 subsection \<open>Rolle's Theorem\<close>
 
 text \<open>Lemma about introducing open ball in open interval\<close>
-lemma lemma_interval_lt: "a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a < y \<and> y < b)"
-  for a b x :: real
-  apply (simp add: abs_less_iff)
-  apply (insert linorder_linear [of "x - a" "b - x"])
-  apply safe
-   apply (rule_tac x = "x - a" in exI)
-   apply (rule_tac [2] x = "b - x" in exI)
-   apply auto
-  done
+lemma lemma_interval_lt: 
+  fixes a b x :: real
+  assumes "a < x" "x < b"
+  shows "\<exists>d. 0 < d \<and> (\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a < y \<and> y < b)"
+  using linorder_linear [of "x - a" "b - x"]
+proof 
+  assume "x - a \<le> b - x"
+  with assms show ?thesis
+    by (rule_tac x = "x - a" in exI) auto
+next
+  assume "b - x \<le> x - a"
+  with assms show ?thesis
+    by (rule_tac x = "b - x" in exI) auto
+qed
 
 lemma lemma_interval: "a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b)"
   for a b x :: real
-  apply (drule lemma_interval_lt)
-   apply auto
-  apply force
-  done
+  by (force dest: lemma_interval_lt)
 
 text \<open>Rolle's Theorem.
    If @{term f} is defined and continuous on the closed interval
@@ -1401,14 +1404,23 @@ proof -
   qed
 qed
 
-lemma MVT2:
-  "a < b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> DERIV f x :> f' x \<Longrightarrow>
-    \<exists>z::real. a < z \<and> z < b \<and> (f b - f a = (b - a) * f' z)"
-  apply (drule MVT)
-    apply (blast intro: DERIV_isCont)
-   apply (force dest: order_less_imp_le simp add: real_differentiable_def)
-  apply (blast dest: DERIV_unique order_less_imp_le)
-  done
+corollary MVT2:
+  assumes "a < b" and der: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> DERIV f x :> f' x"
+  shows "\<exists>z::real. a < z \<and> z < b \<and> (f b - f a = (b - a) * f' z)"
+proof -
+  have "\<exists>l z. a < z \<and>
+           z < b \<and>
+           (f has_real_derivative l) (at z) \<and>
+           f b - f a = (b - a) * l"
+  proof (rule MVT [OF \<open>a < b\<close>])
+    show "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
+      using assms by (blast intro: DERIV_isCont)
+    show "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable at x"
+      using assms by (force dest: order_less_imp_le simp add: real_differentiable_def)
+  qed
+  with assms show ?thesis
+    by (blast dest: DERIV_unique order_less_imp_le)
+qed
 
 lemma pos_deriv_imp_strict_mono:
   assumes "\<And>x. (f has_real_derivative f' x) (at x)"
