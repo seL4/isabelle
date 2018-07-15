@@ -2236,7 +2236,7 @@ proof -
     assume "1 < x"
     from dense[OF this] obtain a where "1 < a" "a < x" by blast
     from \<open>a < x\<close> have "?l x < ?l a"
-    proof (rule DERIV_neg_imp_decreasing, safe)
+    proof (rule DERIV_neg_imp_decreasing)
       fix y
       assume "a \<le> y" "y \<le> x"
       with \<open>1 < a\<close> have "1 / y - 1 < 0" "0 < y"
@@ -2367,10 +2367,8 @@ lemma real_le_x_sinh:
   shows "x \<le> (exp x - inverse(exp x)) / 2"
 proof -
   have *: "exp a - inverse(exp a) - 2*a \<le> exp b - inverse(exp b) - 2*b" if "a \<le> b" for a b::real
-    apply (rule DERIV_nonneg_imp_nondecreasing [OF that])
     using exp_plus_inverse_exp
-    apply (intro exI allI impI conjI derivative_eq_intros | force)+
-    done
+    by (fastforce intro: derivative_eq_intros DERIV_nonneg_imp_nondecreasing [OF that])
   show ?thesis
     using*[OF assms] by simp
 qed
@@ -2559,9 +2557,7 @@ lemma log_eq_one [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow>
   by (simp add: log_def)
 
 lemma log_inverse: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> log a (inverse x) = - log a x"
-  apply (rule add_left_cancel [THEN iffD1, where a1 = "log a x"])
-  apply (simp add: log_mult [symmetric])
-  done
+  using ln_inverse log_def by auto
 
 lemma log_divide: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> log a (x/y) = log a x - log a y"
   by (simp add: log_mult divide_inverse log_inverse)
@@ -3134,10 +3130,7 @@ next
     show "eventually (\<lambda>xa. exp (ln (1 + x * xa) / xa) = (1 + x * xa) powr (1 / xa)) (at_right 0)"
       unfolding eventually_at_right[OF zero_less_one]
       using False
-      apply (intro exI[of _ "1 / \<bar>x\<bar>"])
-      apply (auto simp: field_simps powr_def abs_if)
-      apply (metis add_less_same_cancel1 mult_less_0_iff not_less_iff_gr_or_eq zero_less_one)
-      done
+      by (intro exI[of _ "1 / \<bar>x\<bar>"]) (auto simp: field_simps powr_def abs_if add_nonneg_eq_0_iff)
   qed (simp_all add: at_eq_sup_left_right)
 qed
 
@@ -5758,9 +5751,9 @@ proof -
         qed
         then have DERIV_in_rball: "\<forall>y. a \<le> y \<and> y \<le> b \<longrightarrow> DERIV (\<lambda>x. suminf (?c x) - arctan x) y :> 0"
           using \<open>-r < a\<close> \<open>b < r\<close> by auto
-        then show "\<forall>y. a < y \<and> y < b \<longrightarrow> DERIV (\<lambda>x. suminf (?c x) - arctan x) y :> 0"
+        then show "\<And>y. \<lbrakk>a < y; y < b\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. suminf (?c x) - arctan x) y :> 0"
           using \<open>\<bar>x\<bar> < r\<close> by auto
-        show "\<forall>y. a \<le> y \<and> y \<le> b \<longrightarrow> isCont (\<lambda>x. suminf (?c x) - arctan x) y"
+        show "\<And>y. \<lbrakk>a \<le> y; y \<le> b\<rbrakk> \<Longrightarrow>  isCont (\<lambda>x. suminf (?c x) - arctan x) y"
           using DERIV_in_rball DERIV_isCont by auto
       qed
     qed

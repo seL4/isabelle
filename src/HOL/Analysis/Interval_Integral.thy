@@ -863,10 +863,10 @@ proof -
   have lle[simp]: "\<And>i j. i \<le> j \<Longrightarrow> l j \<le> l i" by (rule decseqD, rule approx)
   have [simp]: "\<And>i j. i \<le> j \<Longrightarrow> u i \<le> u j" by (rule incseqD, rule approx)
   have g_nondec [simp]: "g x \<le> g y" if "a < x" "x \<le> y" "y < b" for x y
-  proof (rule DERIV_nonneg_imp_nondecreasing [OF \<open>x \<le> y\<close>], intro exI conjI allI impI)
-    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> (g has_real_derivative g' u) (at u)"
+  proof (rule DERIV_nonneg_imp_nondecreasing [OF \<open>x \<le> y\<close>], intro exI conjI)
+    show "\<And>u. x \<le> u \<Longrightarrow> u \<le> y \<Longrightarrow> (g has_real_derivative g' u) (at u)"
       by (meson deriv_g ereal_less_eq(3) le_less_trans less_le_trans that)
-    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> 0 \<le> g' u"
+    show "\<And>u. x \<le> u \<Longrightarrow> u \<le> y \<Longrightarrow> 0 \<le> g' u"
       by (meson assms(5) dual_order.trans le_ereal_le less_imp_le order_refl that)
   qed
   have "A \<le> B" and un: "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"
@@ -960,10 +960,10 @@ proof -
   have [simp]: "\<And>i j. i \<le> j \<Longrightarrow> l j \<le> l i" by (rule decseqD, rule approx)
   have uleu[simp]: "\<And>i j. i \<le> j \<Longrightarrow> u i \<le> u j" by (rule incseqD, rule approx)
   have g_nondec [simp]: "g x \<le> g y" if "a < x" "x \<le> y" "y < b" for x y
-  proof (rule DERIV_nonneg_imp_nondecreasing [OF \<open>x \<le> y\<close>], intro exI conjI allI impI)
-    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> (g has_real_derivative g' u) (at u)"
+  proof (rule DERIV_nonneg_imp_nondecreasing [OF \<open>x \<le> y\<close>], intro exI conjI)
+    show "\<And>u. x \<le> u \<Longrightarrow> u \<le> y \<Longrightarrow> (g has_real_derivative g' u) (at u)"
       by (meson deriv_g ereal_less_eq(3) le_less_trans less_le_trans that)
-    show "\<And>u. x \<le> u \<and> u \<le> y \<Longrightarrow> 0 \<le> g' u"
+    show "\<And>u. x \<le> u \<Longrightarrow> u \<le> y \<Longrightarrow> 0 \<le> g' u"
       by (meson g'_nonneg less_ereal.simps(1) less_trans not_less that)
   qed
   have "A \<le> B" and un: "einterval A B = (\<Union>i. {g(l i)<..<g(u i)})"

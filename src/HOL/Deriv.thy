@@ -1372,8 +1372,8 @@ lemma lemma_MVT: "f a - (f b - f a) / (b - a) * a = f b - (f b - f a) / (b - a) 
 theorem MVT:
   fixes a b :: real
   assumes lt: "a < b"
-    and con: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
-    and dif [rule_format]: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable (at x)"
+    and con:  "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> isCont f x" 
+    and dif: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> f differentiable (at x)"
   shows "\<exists>l z. a < z \<and> z < b \<and> DERIV f z :> l \<and> f b - f a = (b - a) * l"
 proof -
   let ?F = "\<lambda>x. f x - ((f b - f a) / (b - a)) * x"
@@ -1384,7 +1384,7 @@ proof -
     fix x :: real
     assume x: "a < x" "x < b"
     obtain l where der: "DERIV f x :> l"
-      using differentiableD [OF dif [OF conjI [OF x]]] ..
+      using differentiableD [OF dif] x by blast 
     show "?F differentiable (at x)"
       by (rule differentiableI [where D = "l - (f b - f a) / (b - a)"],
           blast intro: DERIV_diff DERIV_cmult_Id der)
@@ -1413,9 +1413,9 @@ proof -
            (f has_real_derivative l) (at z) \<and>
            f b - f a = (b - a) * l"
   proof (rule MVT [OF \<open>a < b\<close>])
-    show "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
+    show  "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> isCont f x" 
       using assms by (blast intro: DERIV_isCont)
-    show "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable at x"
+    show "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> f differentiable (at x)"
       using assms by (force dest: order_less_imp_le simp add: real_differentiable_def)
   qed
   with assms show ?thesis
@@ -1441,34 +1441,21 @@ subsubsection \<open>A function is constant if its derivative is 0 over an inter
 
 lemma DERIV_isconst_end:
   fixes f :: "real \<Rightarrow> real"
-  shows "a < b \<Longrightarrow>
-    \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
-    \<forall>x. a < x \<and> x < b \<longrightarrow> DERIV f x :> 0 \<Longrightarrow> f b = f a"
-  apply (drule (1) MVT)
-   apply (blast intro: differentiableI)
-  apply (auto dest!: DERIV_unique simp add: diff_eq_eq)
-  done
-
-lemma DERIV_isconst1:
-  fixes f :: "real \<Rightarrow> real"
-  shows "a < b \<Longrightarrow>
-    \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
-    \<forall>x. a < x \<and> x < b \<longrightarrow> DERIV f x :> 0 \<Longrightarrow>
-    \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x = f a"
-  apply safe
-  apply (drule_tac x = a in order_le_imp_less_or_eq)
-  apply safe
-  apply (drule_tac b = x in DERIV_isconst_end)
-    apply auto
-  done
+  assumes "a < b" and contf: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> isCont f x" 
+    and 0: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> DERIV f x :> 0"
+  shows "f b = f a"
+  using  MVT [OF \<open>a < b\<close>] "0" DERIV_unique contf real_differentiable_def by fastforce
 
 lemma DERIV_isconst2:
   fixes f :: "real \<Rightarrow> real"
-  shows "a < b \<Longrightarrow>
-    \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
-    \<forall>x. a < x \<and> x < b \<longrightarrow> DERIV f x :> 0 \<Longrightarrow>
-    a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> f x = f a"
-  by (blast dest: DERIV_isconst1)
+  assumes "a < b" "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> isCont f x" "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> DERIV f x :> 0"
+    and "a \<le> x" "x \<le> b"
+shows "f x = f a"
+proof (cases "x=a")
+  case False
+  show ?thesis
+    by (rule DERIV_isconst_end [where f=f]) (use False assms in auto)
+qed auto
 
 lemma DERIV_isconst3:
   fixes a b x y :: real
@@ -1482,17 +1469,15 @@ proof (cases "x = y")
   let ?a = "min x y"
   let ?b = "max x y"
 
-  have "\<forall>z. ?a \<le> z \<and> z \<le> ?b \<longrightarrow> DERIV f z :> 0"
-  proof (rule allI, rule impI)
-    fix z :: real
-    assume "?a \<le> z \<and> z \<le> ?b"
-    then have "a < z" and "z < b"
-      using \<open>x \<in> {a <..< b}\<close> and \<open>y \<in> {a <..< b}\<close> by auto
+  have "DERIV f z :> 0" if "?a \<le> z" "z \<le> ?b" for z
+  proof -
+    have "a < z" and "z < b"
+      using that \<open>x \<in> {a <..< b}\<close> and \<open>y \<in> {a <..< b}\<close> by auto
     then have "z \<in> {a<..<b}" by auto
     then show "DERIV f z :> 0" by (rule derivable)
   qed
-  then have isCont: "\<forall>z. ?a \<le> z \<and> z \<le> ?b \<longrightarrow> isCont f z"
-    and DERIV: "\<forall>z. ?a < z \<and> z < ?b \<longrightarrow> DERIV f z :> 0"
+  then have isCont: "\<And>z. \<lbrakk>?a \<le> z; z \<le> ?b\<rbrakk> \<Longrightarrow> isCont f z"
+    and DERIV: "\<And>z. \<lbrakk>?a < z; z < ?b\<rbrakk> \<Longrightarrow> DERIV f z :> 0"
     using DERIV_isCont by auto
 
   have "?a < ?b" using \<open>x \<noteq> y\<close> by auto
@@ -1509,20 +1494,24 @@ lemma DERIV_isconst_all:
 
 lemma DERIV_const_ratio_const:
   fixes f :: "real \<Rightarrow> real"
-  shows "a \<noteq> b \<Longrightarrow> \<forall>x. DERIV f x :> k \<Longrightarrow> f b - f a = (b - a) * k"
-  apply (rule linorder_cases [of a b])
-    apply auto
-   apply (drule_tac [!] f = f in MVT)
-       apply (auto dest: DERIV_isCont DERIV_unique simp: real_differentiable_def)
-  apply (auto dest: DERIV_unique simp: ring_distribs)
-  done
+  assumes "a \<noteq> b" and df: "\<And>x. DERIV f x :> k"
+  shows "f b - f a = (b - a) * k"
+proof (cases a b rule: linorder_cases)
+  case less
+  show ?thesis
+    using MVT [OF less] df by (auto dest: DERIV_isCont DERIV_unique simp: real_differentiable_def)
+next
+  case greater
+  show ?thesis
+    using MVT [OF greater] df
+    by (fastforce dest: DERIV_continuous DERIV_unique simp: real_differentiable_def algebra_simps)
+qed auto
 
 lemma DERIV_const_ratio_const2:
   fixes f :: "real \<Rightarrow> real"
-  shows "a \<noteq> b \<Longrightarrow> \<forall>x. DERIV f x :> k \<Longrightarrow> (f b - f a) / (b - a) = k"
-  apply (rule_tac c1 = "b-a" in mult_right_cancel [THEN iffD1])
-   apply (auto dest!: DERIV_const_ratio_const simp add: mult.assoc)
-  done
+  assumes "a \<noteq> b" and df: "\<And>x. DERIV f x :> k"
+  shows "(f b - f a) / (b - a) = k"
+  using DERIV_const_ratio_const [OF assms] \<open>a \<noteq> b\<close> by auto
 
 lemma real_average_minus_first [simp]: "(a + b) / 2 - a = (b - a) / 2"
   for a b :: real
@@ -1538,7 +1527,7 @@ lemma DERIV_const_average:
   fixes v :: "real \<Rightarrow> real"
     and a b :: real
   assumes neq: "a \<noteq> b"
-    and der: "\<forall>x. DERIV v x :> k"
+    and der: "\<And>x. DERIV v x :> k"
   shows "v ((a + b) / 2) = (v a + v b) / 2"
 proof (cases rule: linorder_cases [of a b])
   case equal
@@ -1598,7 +1587,7 @@ lemma DERIV_nonneg_imp_nondecreasing:
   fixes a b :: real
     and f :: "real \<Rightarrow> real"
   assumes "a \<le> b"
-    and "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> (\<exists>y. DERIV f x :> y \<and> y \<ge> 0)"
+    and "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> \<exists>y. DERIV f x :> y \<and> y \<ge> 0"
   shows "f a \<le> f b"
 proof (rule ccontr, cases "a = b")
   assume "\<not> ?thesis" and "a = b"
@@ -1606,13 +1595,11 @@ proof (rule ccontr, cases "a = b")
 next
   assume *: "\<not> ?thesis"
   assume "a \<noteq> b"
+  with \<open>a \<le> b\<close> have "a < b"
+    by linarith
   with assms have "\<exists>l z. a < z \<and> z < b \<and> DERIV f z :> l \<and> f b - f a = (b - a) * l"
-    apply -
-    apply (rule MVT)
-      apply auto
-     apply (metis DERIV_isCont)
-    apply (metis differentiableI less_le)
-    done
+    by (metis (no_types) not_le not_less_iff_gr_or_eq  
+                         MVT [OF \<open>a < b\<close>, of f] DERIV_isCont [of f] differentiableI)
   then obtain l z where lz: "a < z" "z < b" "DERIV f z :> l" and **: "f b - f a = (b - a) * l"
     by auto
   with * have "a < b" "f b < f a" by auto
@@ -1626,16 +1613,16 @@ lemma DERIV_neg_imp_decreasing_open:
   fixes a b :: real
     and f :: "real \<Rightarrow> real"
   assumes "a < b"
-    and "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (\<exists>y. DERIV f x :> y \<and> y < 0)"
+    and "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>y. DERIV f x :> y \<and> y < 0"
     and con: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
   shows "f a > f b"
 proof -
   have "(\<lambda>x. -f x) a < (\<lambda>x. -f x) b"
-    apply (rule DERIV_pos_imp_increasing_open [of a b "\<lambda>x. -f x"])
-    using assms
-      apply auto
-    apply (metis field_differentiable_minus neg_0_less_iff_less)
-    done
+  proof (rule DERIV_pos_imp_increasing_open [of a b])
+    show "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> \<exists>y. ((\<lambda>x. - f x) has_real_derivative y) (at x) \<and> 0 < y"
+      using assms
+      by simp (metis field_differentiable_minus neg_0_less_iff_less)
+  qed (use assms in auto)
   then show ?thesis
     by simp
 qed
@@ -1644,7 +1631,7 @@ lemma DERIV_neg_imp_decreasing:
   fixes a b :: real
     and f :: "real \<Rightarrow> real"
   assumes "a < b"
-    and "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> (\<exists>y. DERIV f x :> y \<and> y < 0)"
+    and "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> \<exists>y. DERIV f x :> y \<and> y < 0"
   shows "f a > f b"
   by (metis DERIV_neg_imp_decreasing_open [of a b f] assms DERIV_continuous less_imp_le)
 
@@ -1652,15 +1639,11 @@ lemma DERIV_nonpos_imp_nonincreasing:
   fixes a b :: real
     and f :: "real \<Rightarrow> real"
   assumes "a \<le> b"
-    and "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> (\<exists>y. DERIV f x :> y \<and> y \<le> 0)"
+    and "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> \<exists>y. DERIV f x :> y \<and> y \<le> 0"
   shows "f a \<ge> f b"
 proof -
   have "(\<lambda>x. -f x) a \<le> (\<lambda>x. -f x) b"
-    apply (rule DERIV_nonneg_imp_nondecreasing [of a b "\<lambda>x. -f x"])
-    using assms
-     apply auto
-    apply (metis DERIV_minus neg_0_le_iff_le)
-    done
+    using DERIV_nonneg_imp_nondecreasing [of a b "\<lambda>x. -f x"] assms DERIV_minus by fastforce
   then show ?thesis
     by simp
 qed
@@ -1672,11 +1655,9 @@ lemma DERIV_pos_imp_increasing_at_bot:
   shows "flim < f b"
 proof -
   have "\<exists>N. \<forall>n\<le>N. f n \<le> f (b - 1)"
-    apply (rule_tac x="b - 2" in exI)
-    apply (force intro: order.strict_implies_order DERIV_pos_imp_increasing [where f=f] assms)
-    done
+    by (rule_tac x="b - 2" in exI) (force intro: order.strict_implies_order DERIV_pos_imp_increasing assms)
   then have "flim \<le> f (b - 1)"
-     by (auto simp: trivial_limit_at_bot_linorder eventually_at_bot_linorder tendsto_upperbound [OF lim])
+     by (auto simp: eventually_at_bot_linorder tendsto_upperbound [OF lim])
   also have "\<dots> < f b"
     by (force intro: DERIV_pos_imp_increasing [where f=f] assms)
   finally show ?thesis .
@@ -1684,7 +1665,7 @@ qed
 
 lemma DERIV_neg_imp_decreasing_at_top:
   fixes f :: "real \<Rightarrow> real"
-  assumes der: "\<And>x. x \<ge> b \<Longrightarrow> (\<exists>y. DERIV f x :> y \<and> y < 0)"
+  assumes der: "\<And>x. x \<ge> b \<Longrightarrow> \<exists>y. DERIV f x :> y \<and> y < 0"
     and lim: "(f \<longlongrightarrow> flim) at_top"
   shows "flim < f b"
   apply (rule DERIV_pos_imp_increasing_at_bot [where f = "\<lambda>i. f (-i)" and b = "-b", simplified])
@@ -1755,9 +1736,9 @@ proof -
   have "\<exists>l z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l"
   proof (rule MVT)
     from assms show "a < b" by simp
-    show "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?h x"
+    show "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> isCont ?h x"
       using fc gc by simp
-    show "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable (at x)"
+    show "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> ?h differentiable (at x)"
       using fd gd by simp
   qed
   then obtain l where l: "\<exists>z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" ..
@@ -1822,15 +1803,20 @@ subsection \<open>L'Hopitals rule\<close>
 
 lemma isCont_If_ge:
   fixes a :: "'a :: linorder_topology"
-  shows "continuous (at_left a) g \<Longrightarrow> (f \<longlongrightarrow> g a) (at_right a) \<Longrightarrow>
-    isCont (\<lambda>x. if x \<le> a then g x else f x) a"
-  unfolding isCont_def continuous_within
-  apply (intro filterlim_split_at)
-   apply (subst filterlim_cong[OF refl refl, where g=g])
-    apply (simp_all add: eventually_at_filter less_le)
-  apply (subst filterlim_cong[OF refl refl, where g=f])
-   apply (simp_all add: eventually_at_filter less_le)
-  done
+  assumes "continuous (at_left a) g" and f: "(f \<longlongrightarrow> g a) (at_right a)"
+  shows "isCont (\<lambda>x. if x \<le> a then g x else f x) a" (is "isCont ?gf a")
+proof -
+  have g: "(g \<longlongrightarrow> g a) (at_left a)"
+    using assms continuous_within by blast
+  show ?thesis
+    unfolding isCont_def continuous_within
+  proof (intro filterlim_split_at; simp)
+    show "(?gf \<longlongrightarrow> g a) (at_left a)"
+      by (subst filterlim_cong[OF refl refl, where g=g]) (simp_all add: eventually_at_filter less_le g)
+    show "(?gf \<longlongrightarrow> g a) (at_right a)"
+      by (subst filterlim_cong[OF refl refl, where g=f]) (simp_all add: eventually_at_filter less_le f)
+  qed
+qed
 
 lemma lhopital_right_0:
   fixes f0 g0 :: "real \<Rightarrow> real"
@@ -2089,19 +2075,11 @@ proof (rule lhopital_right_0_at_top)
   show "eventually (\<lambda>x. DERIV ?G x  :> ?D g' x) ?R"
     unfolding eventually_at_right_to_top
     using Dg eventually_ge_at_top[where c=1]
-    apply eventually_elim
-    apply (rule DERIV_cong)
-     apply (rule DERIV_chain'[where f=inverse])
-      apply (auto intro!:  DERIV_inverse)
-    done
+    by eventually_elim (rule derivative_eq_intros DERIV_chain'[where f=inverse] | simp)+
   show "eventually (\<lambda>x. DERIV ?F x  :> ?D f' x) ?R"
     unfolding eventually_at_right_to_top
     using Df eventually_ge_at_top[where c=1]
-    apply eventually_elim
-    apply (rule DERIV_cong)
-     apply (rule DERIV_chain'[where f=inverse])
-      apply (auto intro!:  DERIV_inverse)
-    done
+    by eventually_elim (rule derivative_eq_intros DERIV_chain'[where f=inverse] | simp)+
   show "eventually (\<lambda>x. ?D g' x \<noteq> 0) ?R"
     unfolding eventually_at_right_to_top
     using g' eventually_ge_at_top[where c=1]
