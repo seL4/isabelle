@@ -359,6 +359,20 @@ session Prog_Prove (doc) in "Prog_Prove" = HOL +
     "root.tex"
     "svmono.cls"
 
+session Real_Asymp (doc) in "Real_Asymp" = "HOL-Real_Asymp" +
+  theories
+    Real_Asymp_Doc
+  document_files (in "..")
+    "prepare_document"
+    "pdfsetup.sty"
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "manual.bib"
+  document_files
+    "root.tex"
+    "style.sty"
+
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
   options [document_variants = "sledgehammer"]
   document_files (in "..")

@@ -231,6 +231,9 @@ and friends the modifier is "simp flip:".
 
 *** HOL ***
 
+* New proof method "real_asymp" to prove asymptotics or real-valued 
+  functions (limits, "Big-O", etc.) automatically.
+
 * Sledgehammer: bundled version of "vampire" (for non-commercial users)
 helps to avoid fragility of "remote_vampire" service.
 

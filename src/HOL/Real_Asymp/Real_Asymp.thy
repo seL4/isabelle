@@ -1,0 +1,49 @@
+theory Real_Asymp
+  imports Multiseries_Expansion_Bounds
+keywords
+  "real_limit" "real_expansion" :: diag  
+begin
+
+ML_file \<open>real_asymp_diag.ML\<close>
+
+(*<*)
+(* Hide constants and lemmas to avoid polluting global namespace *)
+hide_const (open)
+gbinomial_series lcoeff mssnth MSSCons MSLNil MSLCons mslmap convergent_powser convergent_powser' 
+powser mssalternate basis_wf eval_monom inverse_monom is_expansion expansion_level eval 
+zero_expansion const_expansion powr_expansion power_expansion trimmed dominant_term trimmed_pos
+trimmed_neg ms_aux_hd_exp ms_exp_gt modify_eval is_lifting expands_to asymp_powser flip_cmp_result
+compare_lists compare_expansions compare_list_0 powr_nat rfloor rceil rnatmod
+
+hide_fact (open)
+convergent_powser_stl isCont_powser powser_MSLNil powser_MSLCons
+convergent_powser'_imp_convergent_powser convergent_powser'_eventually 
+convergent_powser'_geometric convergent_powser'_exp convergent_powser'_ln gbinomial_series_abort 
+convergent_powser'_gbinomial convergent_powser'_gbinomial' convergent_powser_sin_series_stream
+convergent_powser_cos_series_stream convergent_powser_arctan basis_wf_Nil basis_wf_Cons
+basis_wf_snoc basis_wf_singleton basis_wf_many eval_monom_Nil1 eval_monom_Nil2 eval_monom_Cons 
+length_snd_inverse_monom eval_monom_pos eval_monom_uminus eval_monom_neg eval_monom_nonzero 
+eval_real eval_inverse_monom eval_monom_smallo' eval_monom_smallomega' eval_monom_smallo
+eval_monom_smallomega hd_exp_powser hd_exp_inverse eval_pos_if_dominant_term_pos 
+eval_pos_if_dominant_term_pos' eval_neg_if_dominant_term_neg' eval_modify_eval trimmed_pos_real_iff 
+trimmed_pos_ms_iff not_trimmed_pos_MSLNil trimmed_pos_MSLCons is_liftingD is_lifting_lift hd_exp_map 
+is_expansion_map is_expansion_map_aux is_expansion_map_final trimmed_map_ms is_lifting_map 
+is_lifting_id is_lifting_trans is_expansion_X dominant_term_expands_to trimmed_lifting
+trimmed_pos_lifting hd_exp_powser' compare_lists.simps compare_lists_Nil compare_lists_Cons
+flip_compare_lists compare_lists_induct eval_monom_smallo_eval_monom eval_monom_eq
+compare_expansions_real compare_expansions_MSLCons_eval compare_expansions_LT_I 
+compare_expansions_GT_I compare_expansions_same_exp compare_expansions_GT_flip compare_expansions_LT
+compare_expansions_GT compare_expansions_EQ compare_expansions_EQ_imp_bigo 
+compare_expansions_EQ_same compare_expansions_EQ_imp_bigtheta compare_expansions_LT' 
+compare_expansions_GT' compare_expansions_EQ' compare_list_0.simps compare_reals_diff_sgnD 
+trimmed_realI trimmed_pos_realI trimmed_neg_realI trimmed_pos_hd_coeff lift_trimmed lift_trimmed_pos
+lift_trimmed_neg lift_trimmed_pos' lift_trimmed_neg' trimmed_eq_cong trimmed_pos_eq_cong
+trimmed_neg_eq_cong trimmed_hd trim_lift_eq basis_wf_manyI trimmed_pos_uminus
+trimmed_pos_imp_trimmed trimmed_neg_imp_trimmed intyness_0 intyness_1 intyness_numeral
+intyness_uminus intyness_of_nat intyness_simps powr_nat_of_nat powr_nat_conv_powr reify_power
+sqrt_conv_root tan_conv_sin_cos landau_meta_eq_cong 
+asymp_equiv_meta_eq_cong eventually_lt_imp_eventually_le eventually_conv_filtermap 
+filterlim_conv_filtermap eval_simps real_eqI lift_ms_simps nhds_leI 
+(*>*)
+
+end

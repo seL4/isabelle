@@ -6,6 +6,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2018
 -----------------------------
 
+* July 2018: Manuel Eberl
+  "real_asymp" proof method for automatic proofs of real limits, "Big-O"
+  statements, etc.
+
 * June 2018: Fabian Immler
   More tool support for HOL-Types_To_Sets.
 

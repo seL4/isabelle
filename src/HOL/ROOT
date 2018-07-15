@@ -78,6 +78,14 @@ session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "
     (*conflicting type class instantiations and dependent applications*)
     Field_as_Ring
 
+session "HOL-Real_Asymp" in Real_Asymp = HOL +
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Real_Asymp
+    Real_Asymp_Approx
+    Real_Asymp_Examples    
+
 session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
   description {*
     Author:     Gertrud Bauer, TU Munich
