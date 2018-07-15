@@ -9,6 +9,7 @@ imports Cauchy_Integral_Theorem
 
 begin
 
+(* FIXME mv to Cauchy_Integral_Theorem.thy *)
 subsection\<open>Cauchy's inequality and more versions of Liouville\<close>
 
 lemma Cauchy_higher_deriv_bound:
@@ -54,7 +55,7 @@ proof -
     by (auto simp: norm_divide norm_mult norm_power field_simps der_dif le_B0)
 qed
 
-proposition Cauchy_inequality:
+lemma Cauchy_inequality:
     assumes holf: "f holomorphic_on (ball \<xi> r)"
         and contf: "continuous_on (cball \<xi> r) f"
         and "0 < r"
@@ -79,7 +80,7 @@ proof -
     by (simp add: norm_divide norm_mult field_simps)
 qed
 
-proposition Liouville_polynomial:
+lemma Liouville_polynomial:
     assumes holf: "f holomorphic_on UNIV"
         and nof: "\<And>z. A \<le> norm z \<Longrightarrow> norm(f z) \<le> B * norm z ^ n"
       shows "f \<xi> = (\<Sum>k\<le>n. (deriv^^k) f 0 / fact k * \<xi> ^ k)"
@@ -165,11 +166,9 @@ proof -
     using Liouville_polynomial [OF holf, of 0 B 0, simplified] that by blast
 qed
 
-
-
 text\<open>A holomorphic function f has only isolated zeros unless f is 0.\<close>
 
-proposition powser_0_nonzero:
+lemma powser_0_nonzero:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
   assumes r: "0 < r"
       and sm: "\<And>x. norm (x - \<xi>) < r \<Longrightarrow> (\<lambda>n. a n * (x - \<xi>) ^ n) sums (f x)"
@@ -222,10 +221,13 @@ proof -
     using \<open>0 < r\<close> \<open>0 < s\<close> by (auto simp: dist_commute dist_norm)
 qed
 
+subsection \<open>Analytic continuation\<close>
+
 proposition isolated_zeros:
   assumes holf: "f holomorphic_on S"
       and "open S" "connected S" "\<xi> \<in> S" "f \<xi> = 0" "\<beta> \<in> S" "f \<beta> \<noteq> 0"
-  obtains r where "0 < r" "ball \<xi> r \<subseteq> S" "\<And>z. z \<in> ball \<xi> r - {\<xi>} \<Longrightarrow> f z \<noteq> 0"
+    obtains r where "0 < r" and "ball \<xi> r \<subseteq> S" and 
+        "\<And>z. z \<in> ball \<xi> r - {\<xi>} \<Longrightarrow> f z \<noteq> 0"
 proof -
   obtain r where "0 < r" and r: "ball \<xi> r \<subseteq> S"
     using \<open>open S\<close> \<open>\<xi> \<in> S\<close> open_contains_ball_eq by blast
@@ -246,11 +248,10 @@ proof -
     using r s by auto
 qed
 
-
 proposition analytic_continuation:
   assumes holf: "f holomorphic_on S"
-      and S: "open S" "connected S"
-      and "U \<subseteq> S" "\<xi> \<in> S"
+      and "open S" and "connected S"
+      and "U \<subseteq> S" and "\<xi> \<in> S"
       and "\<xi> islimpt U"
       and fU0 [simp]: "\<And>z. z \<in> U \<Longrightarrow> f z = 0"
       and "w \<in> S"
@@ -279,8 +280,10 @@ proof -
 qed
 
 corollary analytic_continuation_open:
-  assumes "open s" "open s'" "s \<noteq> {}" "connected s'" "s \<subseteq> s'"
-  assumes "f holomorphic_on s'" "g holomorphic_on s'" "\<And>z. z \<in> s \<Longrightarrow> f z = g z"
+  assumes "open s" and "open s'" and "s \<noteq> {}" and "connected s'" 
+      and "s \<subseteq> s'"
+  assumes "f holomorphic_on s'" and "g holomorphic_on s'" 
+      and "\<And>z. z \<in> s \<Longrightarrow> f z = g z"
   assumes "z \<in> s'"
   shows   "f z = g z"
 proof -
@@ -292,7 +295,6 @@ proof -
        (insert assms \<open>\<xi> \<in> s\<close> \<xi>, auto intro: holomorphic_intros)
   thus ?thesis by simp
 qed
-
 
 subsection\<open>Open mapping theorem\<close>
 
@@ -353,11 +355,10 @@ proof -
   with that show ?thesis by blast
 qed
 
-
 theorem open_mapping_thm:
   assumes holf: "f holomorphic_on S"
-      and S: "open S" "connected S"
-      and "open U" "U \<subseteq> S"
+      and S: "open S" and "connected S"
+      and "open U" and "U \<subseteq> S"
       and fne: "~ f constant_on S"
     shows "open (f ` U)"
 proof -
@@ -449,8 +450,8 @@ proof -
         using w \<open>open X\<close> interior_eq by auto
       have hol: "(\<lambda>z. f z - x) holomorphic_on S"
         by (simp add: holf holomorphic_on_diff)
-      with fne [unfolded constant_on_def] analytic_continuation [OF hol S \<open>X \<subseteq> S\<close> _ wis]
-           not \<open>X \<subseteq> S\<close> w
+      with fne [unfolded constant_on_def] 
+           analytic_continuation[OF hol S \<open>connected S\<close> \<open>X \<subseteq> S\<close> _ wis] not \<open>X \<subseteq> S\<close> w
       show False by auto
     qed
     ultimately show ?thesis
@@ -462,9 +463,8 @@ proof -
     by force
 qed
 
-
 text\<open>No need for @{term S} to be connected. But the nonconstant condition is stronger.\<close>
-corollary open_mapping_thm2:
+corollary%unimportant open_mapping_thm2:
   assumes holf: "f holomorphic_on S"
       and S: "open S"
       and "open U" "U \<subseteq> S"
@@ -494,7 +494,7 @@ proof -
     by force
 qed
 
-corollary open_mapping_thm3:
+corollary%unimportant open_mapping_thm3:
   assumes holf: "f holomorphic_on S"
       and "open S" and injf: "inj_on f S"
     shows  "open (f ` S)"
@@ -503,17 +503,15 @@ using assms
 apply (simp_all add:)
 using injective_not_constant subset_inj_on by blast
 
-
-
-subsection\<open>Maximum Modulus Principle\<close>
+subsection\<open>Maximum modulus principle\<close>
 
 text\<open>If @{term f} is holomorphic, then its norm (modulus) cannot exhibit a true local maximum that is
    properly within the domain of @{term f}.\<close>
 
 proposition maximum_modulus_principle:
   assumes holf: "f holomorphic_on S"
-      and S: "open S" "connected S"
-      and "open U" "U \<subseteq> S" "\<xi> \<in> U"
+      and S: "open S" and "connected S"
+      and "open U" and "U \<subseteq> S" and "\<xi> \<in> U"
       and no: "\<And>z. z \<in> U \<Longrightarrow> norm(f z) \<le> norm(f \<xi>)"
     shows "f constant_on S"
 proof (rule ccontr)
@@ -534,7 +532,6 @@ proof (rule ccontr)
   ultimately show False
     by blast
 qed
-
 
 proposition maximum_modulus_frontier:
   assumes holf: "f holomorphic_on (interior S)"
@@ -588,7 +585,7 @@ using frontier_interior_subset frontier_of_connected_component_subset by blast
     using z \<open>\<xi> \<in> S\<close> closure_subset by fastforce
 qed
 
-corollary maximum_real_frontier:
+corollary%unimportant maximum_real_frontier:
   assumes holf: "f holomorphic_on (interior S)"
       and contf: "continuous_on (closure S) f"
       and bos: "bounded S"
@@ -599,8 +596,7 @@ using maximum_modulus_frontier [of "exp o f" S "exp B"]
       Transcendental.continuous_on_exp holomorphic_on_compose holomorphic_on_exp assms
 by auto
 
-
-subsection\<open>Factoring out a zero according to its order\<close>
+subsection%unimportant \<open>Factoring out a zero according to its order\<close>
 
 lemma holomorphic_factor_order_of_zero:
   assumes holf: "f holomorphic_on S"
@@ -900,8 +896,7 @@ proof -
     by meson+
 qed
 
-
-proposition pole_at_infinity:
+lemma pole_at_infinity:
   assumes holf: "f holomorphic_on UNIV" and lim: "((inverse o f) \<longlongrightarrow> l) at_infinity"
   obtains a n where "\<And>z. f z = (\<Sum>i\<le>n. a i * z^i)"
 proof (cases "l = 0")
@@ -1016,10 +1011,9 @@ next
     qed
 qed
 
+subsection%unimportant \<open>Entire proper functions are precisely the non-trivial polynomials\<close>
 
-subsection\<open>Entire proper functions are precisely the non-trivial polynomials\<close>
-
-proposition proper_map_polyfun:
+lemma proper_map_polyfun:
     fixes c :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,heine_borel}"
   assumes "closed S" and "compact K" and c: "c i \<noteq> 0" "1 \<le> i" "i \<le> n"
     shows "compact (S \<inter> {z. (\<Sum>i\<le>n. c i * z^i) \<in> K})"
@@ -1048,14 +1042,13 @@ proof -
     by (auto simp add: vimage_def)
 qed
 
-corollary proper_map_polyfun_univ:
+lemma proper_map_polyfun_univ:
     fixes c :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,heine_borel}"
   assumes "compact K" "c i \<noteq> 0" "1 \<le> i" "i \<le> n"
     shows "compact ({z. (\<Sum>i\<le>n. c i * z^i) \<in> K})"
-using proper_map_polyfun [of UNIV K c i n] assms by simp
+  using proper_map_polyfun [of UNIV K c i n] assms by simp
 
-
-proposition proper_map_polyfun_eq:
+lemma proper_map_polyfun_eq:
   assumes "f holomorphic_on UNIV"
     shows "(\<forall>k. compact k \<longrightarrow> compact {z. f z \<in> k}) \<longleftrightarrow>
            (\<exists>c n. 0 < n \<and> (c n \<noteq> 0) \<and> f = (\<lambda>z. \<Sum>i\<le>n. c i * z^i))"
@@ -1113,10 +1106,9 @@ next
   then show ?lhs by blast
 qed
 
+subsection \<open>Relating invertibility and nonvanishing of derivative\<close>
 
-subsection\<open>Relating invertibility and nonvanishing of derivative\<close>
-
-proposition has_complex_derivative_locally_injective:
+lemma has_complex_derivative_locally_injective:
   assumes holf: "f holomorphic_on S"
       and S: "\<xi> \<in> S" "open S"
       and dnz: "deriv f \<xi> \<noteq> 0"
@@ -1155,8 +1147,7 @@ proof -
     done
 qed
 
-
-proposition has_complex_derivative_locally_invertible:
+lemma has_complex_derivative_locally_invertible:
   assumes holf: "f holomorphic_on S"
       and S: "\<xi> \<in> S" "open S"
       and dnz: "deriv f \<xi> \<noteq> 0"
@@ -1177,8 +1168,7 @@ proof -
     using \<open>0 < r\<close> \<open>ball \<xi> r \<subseteq> S\<close> \<open>inj_on f (ball \<xi> r)\<close> that  by blast
 qed
 
-
-proposition holomorphic_injective_imp_regular:
+lemma holomorphic_injective_imp_regular:
   assumes holf: "f holomorphic_on S"
       and "open S" and injf: "inj_on f S"
       and "\<xi> \<in> S"
@@ -1268,7 +1258,6 @@ proof -
   qed
 qed
 
-
 text\<open>Hence a nice clean inverse function theorem\<close>
 
 proposition holomorphic_has_inverse:
@@ -1311,7 +1300,6 @@ proof -
   qed
 qed
 
-
 subsection\<open>The Schwarz Lemma\<close>
 
 lemma Schwarz1:
@@ -1321,7 +1309,7 @@ lemma Schwarz1:
       and boS: "bounded S"
       and "S \<noteq> {}"
   obtains w where "w \<in> frontier S"
-                  "\<And>z. z \<in> closure S \<Longrightarrow> norm (f z) \<le> norm (f w)"
+       "\<And>z. z \<in> closure S \<Longrightarrow> norm (f z) \<le> norm (f w)"
 proof -
   have connf: "continuous_on (closure S) (norm o f)"
     using contf continuous_on_compose continuous_on_norm_id by blast
@@ -1376,14 +1364,15 @@ proof -
     using that by blast
 qed
 
-
 proposition Schwarz_Lemma:
   assumes holf: "f holomorphic_on (ball 0 1)" and [simp]: "f 0 = 0"
       and no: "\<And>z. norm z < 1 \<Longrightarrow> norm (f z) < 1"
       and \<xi>: "norm \<xi> < 1"
     shows "norm (f \<xi>) \<le> norm \<xi>" and "norm(deriv f 0) \<le> 1"
-      and "((\<exists>z. norm z < 1 \<and> z \<noteq> 0 \<and> norm(f z) = norm z) \<or> norm(deriv f 0) = 1)
-           \<Longrightarrow> \<exists>\<alpha>. (\<forall>z. norm z < 1 \<longrightarrow> f z = \<alpha> * z) \<and> norm \<alpha> = 1" (is "?P \<Longrightarrow> ?Q")
+      and "((\<exists>z. norm z < 1 \<and> z \<noteq> 0 \<and> norm(f z) = norm z) 
+            \<or> norm(deriv f 0) = 1)
+           \<Longrightarrow> \<exists>\<alpha>. (\<forall>z. norm z < 1 \<longrightarrow> f z = \<alpha> * z) \<and> norm \<alpha> = 1" 
+      (is "?P \<Longrightarrow> ?Q")
 proof -
   obtain h where holh: "h holomorphic_on (ball 0 1)"
              and fz_eq: "\<And>z. norm z < 1 \<Longrightarrow> f z = z * (h z)" and df0: "deriv f 0 = h 0"
@@ -1457,9 +1446,11 @@ qed
 corollary Schwarz_Lemma':
   assumes holf: "f holomorphic_on (ball 0 1)" and [simp]: "f 0 = 0"
       and no: "\<And>z. norm z < 1 \<Longrightarrow> norm (f z) < 1"
-    shows "((\<forall>\<xi>. norm \<xi> < 1 \<longrightarrow> norm (f \<xi>) \<le> norm \<xi>) \<and> norm(deriv f 0) \<le> 1) \<and>
-           (((\<exists>z. norm z < 1 \<and> z \<noteq> 0 \<and> norm(f z) = norm z) \<or> norm(deriv f 0) = 1)
-           \<longrightarrow> (\<exists>\<alpha>. (\<forall>z. norm z < 1 \<longrightarrow> f z = \<alpha> * z) \<and> norm \<alpha> = 1))"
+    shows "((\<forall>\<xi>. norm \<xi> < 1 \<longrightarrow> norm (f \<xi>) \<le> norm \<xi>) 
+            \<and> norm(deriv f 0) \<le> 1) 
+            \<and> (((\<exists>z. norm z < 1 \<and> z \<noteq> 0 \<and> norm(f z) = norm z) 
+              \<or> norm(deriv f 0) = 1)
+              \<longrightarrow> (\<exists>\<alpha>. (\<forall>z. norm z < 1 \<longrightarrow> f z = \<alpha> * z) \<and> norm \<alpha> = 1))"
   using Schwarz_Lemma [OF assms]
   by (metis (no_types) norm_eq_zero zero_less_one)
 
@@ -1667,7 +1658,7 @@ next
     using \<open>d \<noteq> 0\<close> False by (simp_all add: holf1 holf2 contf)
 qed
 
-proposition holomorphic_on_paste_across_line:
+lemma holomorphic_on_paste_across_line:
   assumes S: "open S" and "d \<noteq> 0"
       and holf1: "f holomorphic_on (S \<inter> {z. d \<bullet> z < k})"
       and holf2: "f holomorphic_on (S \<inter> {z. k < d \<bullet> z})"
@@ -1954,7 +1945,7 @@ qed
 
 proposition Bloch_unit:
   assumes holf: "f holomorphic_on ball a 1" and [simp]: "deriv f a = 1"
-  obtains b r where "1/12 < r" "ball b r \<subseteq> f ` (ball a 1)"
+  obtains b r where "1/12 < r" and "ball b r \<subseteq> f ` (ball a 1)"
 proof -
   define r :: real where "r = 249/256"
   have "0 < r" "r < 1" by (auto simp: r_def)
@@ -2041,7 +2032,6 @@ proof -
   with ** show ?thesis
     by (rule that)
 qed
-
 
 theorem Bloch:
   assumes holf: "f holomorphic_on ball a r" and "0 < r"
@@ -2158,12 +2148,12 @@ proof -
   qed
 qed
 
-subsection \<open>Foundations of Cauchy's residue theorem\<close>
+subsection \<open>Cauchy's residue theorem\<close>
 
 text\<open>Wenda Li and LC Paulson (2016). A Formal Proof of Cauchy's Residue Theorem.
     Interactive Theorem Proving\<close>
 
-definition residue :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
+definition%important residue :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex" where
   "residue f z = (SOME int. \<exists>e>0. \<forall>\<epsilon>>0. \<epsilon><e
     \<longrightarrow> (f has_contour_integral 2*pi* \<i> *int) (circlepath z \<epsilon>))"
 
@@ -2356,7 +2346,6 @@ proof -
     by (auto elim: has_contour_integral_eqpath[of _ _ "circlepath z \<epsilon>" "circlepath z r"])
 qed
 
-
 lemma residue_holo:
   assumes "open s" "z \<in> s" and f_holo: "f holomorphic_on s"
   shows "residue f z = 0"
@@ -2375,10 +2364,8 @@ proof -
   thus ?thesis unfolding c_def  by auto
 qed
 
-
 lemma residue_const:"residue (\<lambda>_. c) z = 0"
   by (intro residue_holo[of "UNIV::complex set"],auto intro:holomorphic_intros)
-
 
 lemma residue_add:
   assumes "open s" "z \<in> s" and f_holo: "f holomorphic_on s - {z}"
@@ -2401,7 +2388,6 @@ proof -
   thus ?thesis unfolding fg_def
     by (auto simp add:c_def)
 qed
-
 
 lemma residue_lmul:
   assumes "open s" "z \<in> s" and f_holo: "f holomorphic_on s - {z}"
@@ -2523,8 +2509,6 @@ lemma residue_holomorphic_over_power':
   assumes "open A" "0 \<in> A" "f holomorphic_on A"
   shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = (deriv ^^ n) f 0 / fact n"
   using residue_holomorphic_over_power[OF assms] by simp
-
-subsubsection \<open>Cauchy's residue theorem\<close>
 
 lemma get_integrable_path:
   assumes "open s" "connected (s-pts)" "finite pts" "f holomorphic_on (s-pts) " "a\<in>s-pts" "b\<in>s-pts"
@@ -2929,7 +2913,7 @@ proof -
     by auto
 qed
 
-lemma Residue_theorem:
+theorem Residue_theorem:
   fixes s pts::"complex set" and f::"complex \<Rightarrow> complex"
     and g::"real \<Rightarrow> complex"
   assumes "open s" "connected s" "finite pts" and
@@ -2973,7 +2957,8 @@ qed
 
 subsection \<open>Non-essential singular points\<close>
 
-definition is_pole :: "('a::topological_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool" where
+definition%important is_pole :: 
+  "('a::topological_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool" where
   "is_pole f a =  (LIM x (at a). f x :> at_infinity)"
 
 lemma is_pole_cong:
@@ -3699,13 +3684,17 @@ lemma isolated_singularity_at_holomorphic:
 
 subsubsection \<open>The order of non-essential singularities (i.e. removable singularities or poles)\<close>
 
-definition zorder :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> int" where
-  "zorder f z = (THE n. (\<exists>h r. r>0 \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
-                   \<and> (\<forall>w\<in>cball z r - {z}. f w =  h w * (w-z) powr (of_int n) \<and> h w \<noteq>0)))"
 
-definition zor_poly::"[complex \<Rightarrow> complex,complex]\<Rightarrow>complex \<Rightarrow> complex" where
-  "zor_poly f z = (SOME h. \<exists>r . r>0 \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
-                   \<and> (\<forall>w\<in>cball z r-{z}. f w =  h w * (w-z) powr (zorder f z) \<and> h w \<noteq>0))"
+definition%important zorder :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> int" where
+  "zorder f z = (THE n. (\<exists>h r. r>0 \<and> h holomorphic_on cball z r \<and> h z\<noteq>0
+                   \<and> (\<forall>w\<in>cball z r - {z}. f w =  h w * (w-z) powr (of_int n)
+                   \<and> h w \<noteq>0)))"
+
+definition%important zor_poly
+    ::"[complex \<Rightarrow> complex, complex] \<Rightarrow> complex \<Rightarrow> complex" where
+  "zor_poly f z = (SOME h. \<exists>r. r > 0 \<and> h holomorphic_on cball z r \<and> h z \<noteq> 0
+                   \<and> (\<forall>w\<in>cball z r - {z}. f w =  h w * (w - z) powr (zorder f z)
+                   \<and> h w \<noteq>0))"
 
 lemma zorder_exist:
   fixes f::"complex \<Rightarrow> complex" and z::complex
@@ -3802,7 +3791,6 @@ proof -
     apply (rule_tac x=r1 in exI)
     by (auto simp add:dist_commute)
 qed
-
 
 lemma 
   fixes f g::"complex \<Rightarrow> complex" and z::complex
@@ -4881,8 +4869,8 @@ subsection \<open>Rouche's theorem \<close>
 
 theorem Rouche_theorem:
   fixes f g::"complex \<Rightarrow> complex" and s:: "complex set"
-  defines "fg\<equiv>(\<lambda>p. f p+ g p)"
-  defines "zeros_fg\<equiv>{p. fg p =0}" and "zeros_f\<equiv>{p. f p=0}"
+  defines "fg\<equiv>(\<lambda>p. f p + g p)"
+  defines "zeros_fg\<equiv>{p. fg p = 0}" and "zeros_f\<equiv>{p. f p = 0}"
   assumes
     "open s" and "connected s" and
     "finite zeros_fg" and
