@@ -9,7 +9,7 @@ sig
   type entry
   val get: Proof.context -> entry
   val del: term list -> attribute
-  val add: term list -> attribute 
+  val add: term list -> attribute
   exception COOPER of string
   val conv: Proof.context -> conv
   val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
@@ -20,13 +20,13 @@ struct
 
 type entry = simpset * term list;
 
-val allowed_consts = 
+val allowed_consts =
   [@{term "(+) :: int => _"}, @{term "(+) :: nat => _"},
    @{term "(-) :: int => _"}, @{term "(-) :: nat => _"},
    @{term "( * ) :: int => _"}, @{term "( * ) :: nat => _"},
    @{term "(div) :: int => _"}, @{term "(div) :: nat => _"},
    @{term "(mod) :: int => _"}, @{term "(mod) :: nat => _"},
-   @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, 
+   @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies},
    @{term "(=) :: int => _"}, @{term "(=) :: nat => _"}, @{term "(=) :: bool => _"},
    @{term "(<) :: int => _"}, @{term "(<) :: nat => _"},
    @{term "(<=) :: int => _"}, @{term "(<=) :: nat => _"},
@@ -55,12 +55,12 @@ structure Data = Generic_Data
 
 val get = Data.get o Context.Proof;
 
-fun add ts = Thm.declaration_attribute (fn th => fn context => 
+fun add ts = Thm.declaration_attribute (fn th => fn context =>
   context |> Data.map (fn (ss, ts') =>
      (simpset_map (Context.proof_of context) (fn ctxt => ctxt addsimps [th]) ss,
       merge (op aconv) (ts', ts))))
 
-fun del ts = Thm.declaration_attribute (fn th => fn context => 
+fun del ts = Thm.declaration_attribute (fn th => fn context =>
   context |> Data.map (fn (ss, ts') =>
      (simpset_map (Context.proof_of context) (fn ctxt => ctxt delsimps [th]) ss,
       subtract (op aconv) ts' ts)))
@@ -709,9 +709,9 @@ fun strip_objimp ct =
       in A :: strip_objimp B end
   | _ => [ct]);
 
-fun strip_objall ct = 
- case Thm.term_of ct of 
-  Const (@{const_name All}, _) $ Abs (xn,_,_) => 
+fun strip_objall ct =
+ case Thm.term_of ct of
+  Const (@{const_name All}, _) $ Abs (xn,_,_) =>
    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
    end
@@ -730,12 +730,12 @@ fun thin_prems_tac ctxt P =
      val (ps, c) = split_last (strip_objimp p)
      val qs = filter P ps
      val q = if P c then c else @{cterm "False"}
-     val ng = fold_rev (fn (a,v) => fn t => Thm.apply a (Thm.lambda v t)) qvs 
+     val ng = fold_rev (fn (a,v) => fn t => Thm.apply a (Thm.lambda v t)) qvs
          (fold_rev (fn p => fn q => Thm.apply (Thm.apply @{cterm HOL.implies} p) q) qs q)
      val g = Thm.apply (Thm.apply @{cterm "(==>)"} (Thm.apply @{cterm "Trueprop"} ng)) p'
      val ntac = (case qs of [] => q aconvc @{cterm "False"}
                          | _ => false)
-    in 
+    in
       if ntac then no_tac
       else
         (case try (fn () =>
@@ -746,7 +746,7 @@ fun thin_prems_tac ctxt P =
 end;
 
 local
- fun isnum t = case t of 
+ fun isnum t = case t of
    Const(@{const_name Groups.zero},_) => true
  | Const(@{const_name Groups.one},_) => true
  | @{term Suc}$s => isnum s
@@ -761,10 +761,10 @@ local
  | Const(@{const_name Rings.divide},_)$l$r => isnum l andalso isnum r
  | _ => is_number t orelse can HOLogic.dest_nat t
 
- fun ty cts t = 
+ fun ty cts t =
   if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of_cterm t))
-  then false 
-  else case Thm.term_of t of 
+  then false
+  else case Thm.term_of t of
     c$l$r => if member (op =) [@{term"( * )::int => _"}, @{term"( * )::nat => _"}] c
              then not (isnum l orelse isnum r)
              else not (member (op aconv) cts c)
@@ -778,8 +778,8 @@ local
   | Abs (_,_,t) => h acc t
   | _ => acc
  in h [] end;
-in 
-fun is_relevant ctxt ct = 
+in
+fun is_relevant ctxt ct =
  subset (op aconv) (term_constants (Thm.term_of ct), snd (get ctxt))
  andalso
   forall (fn Free (_, T) => member (op =) [@{typ int}, @{typ nat}] T)
@@ -789,7 +789,7 @@ fun is_relevant ctxt ct =
     (Misc_Legacy.term_vars (Thm.term_of ct));
 
 fun int_nat_terms ctxt ct =
- let 
+ let
   val cts = snd (get ctxt)
   fun h acc t = if ty cts t then insert (op aconvc) t acc else
    case Thm.term_of t of
@@ -800,7 +800,7 @@ fun int_nat_terms ctxt ct =
 end;
 
 fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
- let 
+ let
    fun all x t =
     Thm.apply (Thm.cterm_of ctxt (Logic.all_const (Thm.typ_of_cterm x))) (Thm.lambda x t)
    val ts = sort Thm.fast_term_ord (f p)
@@ -810,22 +810,22 @@ fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
 local
 val ss1 =
   simpset_of (put_simpset comp_ss @{context}
-    addsimps @{thms simp_thms} @ 
-            [@{thm "nat_numeral"} RS sym, @{thm int_dvd_int_iff [symmetric]}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] 
+    addsimps @{thms simp_thms} @
+            [@{thm "nat_numeral"} RS sym, @{thm int_dvd_int_iff [symmetric]}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}]
         @ map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff" [where ?'a = int]}]
     |> Splitter.add_split @{thm "zdiff_int_split"})
 
 val ss2 =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps [@{thm "nat_0_le"}, @{thm "of_nat_numeral"},
-              @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "zero_le_numeral"}, 
+              @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "zero_le_numeral"},
               @{thm "le_numeral_extra"(3)}, @{thm "of_nat_0"}, @{thm "of_nat_1"}, @{thm "Suc_eq_plus1"}]
     |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}])
 val div_mod_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps @{thms simp_thms
       mod_eq_0_iff_dvd mod_add_left_eq mod_add_right_eq
-      mod_add_eq div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
+      mod_add_eq div_add1_eq [symmetric] div_add1_eq [symmetric]
       mod_self mod_by_0 div_by_0
       div_0 mod_0 div_by_1 mod_by_1
       div_by_Suc_0 mod_by_Suc_0 Suc_eq_plus1
@@ -835,11 +835,11 @@ val splits_ss =
   simpset_of (put_simpset comp_ss @{context}
     addsimps [@{thm minus_div_mult_eq_mod [symmetric]}]
     |> fold Splitter.add_split
-      [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
+      [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"},
        @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
 in
 
-fun nat_to_int_tac ctxt = 
+fun nat_to_int_tac ctxt =
   simp_tac (put_simpset ss1 ctxt) THEN_ALL_NEW
   simp_tac (put_simpset ss2 ctxt) THEN_ALL_NEW
   simp_tac (put_simpset comp_ss ctxt);
@@ -851,7 +851,7 @@ end;
 
 fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
    let
-     val cpth = 
+     val cpth =
        if Config.get ctxt quick_and_dirty
        then oracle (ctxt, Envir.beta_norm (Envir.eta_long [] (Thm.term_of (Thm.dest_arg p))))
        else Conv.arg_conv (conv ctxt) p

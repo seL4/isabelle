@@ -3987,7 +3987,7 @@ proof -
   have "g field_differentiable at z within S" if "f field_differentiable at z within S" "z \<in> S" for z
   proof -
     obtain f' where f': "((\<lambda>y. (f y - f z) / (y - z)) \<longlongrightarrow> f') (at z within S)"
-      using \<open>f field_differentiable at z within S\<close> by (auto simp: field_differentiable_def DERIV_iff2)
+      using \<open>f field_differentiable at z within S\<close> by (auto simp: field_differentiable_def has_field_derivative_iff)
     then have ee: "((\<lambda>x. (exp(g x) - exp(g z)) / (x - z)) \<longlongrightarrow> f') (at z within S)"
       by (simp add: feq \<open>z \<in> S\<close> Lim_transform_within [OF _ zero_less_one])
     have "(((\<lambda>y. if y = g z then exp (g z) else (exp y - exp (g z)) / (y - g z)) \<circ> g) \<longlongrightarrow> exp (g z))
@@ -4013,7 +4013,7 @@ proof -
     then have "((\<lambda>y. (g y - g z) / (y - z)) \<longlongrightarrow> f' / exp (g z)) (at z within S)"
       by (auto intro!: Lim_transform_eventually [OF _ tendsto_divide [OF ee dd]])
     then show ?thesis
-      by (auto simp: field_differentiable_def DERIV_iff2)
+      by (auto simp: field_differentiable_def has_field_derivative_iff)
   qed
   then have "g holomorphic_on S"
     using holf holomorphic_on_def by auto
@@ -4035,7 +4035,7 @@ proof -
   have "g field_differentiable at z within S" if "f field_differentiable at z within S" "z \<in> S" for z
   proof -
     obtain f' where f': "((\<lambda>y. (f y - f z) / (y - z)) \<longlongrightarrow> f') (at z within S)"
-      using \<open>f field_differentiable at z within S\<close> by (auto simp: field_differentiable_def DERIV_iff2)
+      using \<open>f field_differentiable at z within S\<close> by (auto simp: field_differentiable_def has_field_derivative_iff)
     then have ee: "((\<lambda>x. (exp(g x) - exp(g z)) / (x - z)) \<longlongrightarrow> f') (at z within S)"
       by (simp add: feq \<open>z \<in> S\<close> Lim_transform_within [OF _ zero_less_one])
     have "(((\<lambda>y. if y = g z then exp (g z) else (exp y - exp (g z)) / (y - g z)) \<circ> g) \<longlongrightarrow> exp (g z))
@@ -4061,7 +4061,7 @@ proof -
     then have "((\<lambda>y. (g y - g z) / (y - z)) \<longlongrightarrow> f' / exp (g z)) (at z within S)"
       by (auto intro!: Lim_transform_eventually [OF _ tendsto_divide [OF ee dd]])
     then show ?thesis
-      by (auto simp: field_differentiable_def DERIV_iff2)
+      by (auto simp: field_differentiable_def has_field_derivative_iff)
   qed
   then have "g holomorphic_on S"
     using holf holomorphic_on_def by auto

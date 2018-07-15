@@ -6919,7 +6919,7 @@ proof -
       then have "f field_differentiable at a"
         using holfb \<open>0 < e\<close> holomorphic_on_imp_differentiable_at by auto
       with True show ?thesis
-        by (auto simp: continuous_at DERIV_iff2 simp flip: DERIV_deriv_iff_field_differentiable
+        by (auto simp: continuous_at has_field_derivative_iff simp flip: DERIV_deriv_iff_field_differentiable
                 elim: rev_iffD1 [OF _ LIM_equal])
     next
       case False with 2 that show ?thesis

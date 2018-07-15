@@ -2303,7 +2303,7 @@ proof -
   have "((\<lambda>z::'a. exp(z) - 1) has_field_derivative 1) (at 0)"
     by (intro derivative_eq_intros | simp)+
   then show ?thesis
-    by (simp add: Deriv.DERIV_iff2)
+    by (simp add: Deriv.has_field_derivative_iff)
 qed
 
 lemma ln_at_0: "LIM x at_right 0. ln (x::real) :> at_bot"
@@ -4165,7 +4165,7 @@ lemma cos_monotone_0_pi:
   shows "cos x < cos y"
 proof -
   have "- (x - y) < 0" using assms by auto
-  from MVT2[OF \<open>y < x\<close> DERIV_cos[THEN impI, THEN allI]]
+  from MVT2[OF \<open>y < x\<close> DERIV_cos]
   obtain z where "y < z" and "z < x" and cos_diff: "cos x - cos y = (x - y) * - sin z"
     by auto
   then have "0 < z" and "z < pi"
@@ -4677,14 +4677,11 @@ lemma tan_monotone:
   assumes "- (pi/2) < y" and "y < x" and "x < pi/2"
   shows "tan y < tan x"
 proof -
-  have "\<forall>x'. y \<le> x' \<and> x' \<le> x \<longrightarrow> DERIV tan x' :> inverse ((cos x')\<^sup>2)"
-  proof (rule allI, rule impI)
-    fix x' :: real
-    assume "y \<le> x' \<and> x' \<le> x"
-    then have "-(pi/2) < x'" and "x' < pi/2"
-      using assms by auto
-    from cos_gt_zero_pi[OF this]
-    have "cos x' \<noteq> 0" by auto
+  have "DERIV tan x' :> inverse ((cos x')\<^sup>2)" if "y \<le> x'" "x' \<le> x" for x'
+  proof -
+    have "-(pi/2) < x'" and "x' < pi/2"
+      using that assms by auto
+    with cos_gt_zero_pi have "cos x' \<noteq> 0" by force
     then show "DERIV tan x' :> inverse ((cos x')\<^sup>2)"
       by (rule DERIV_tan)
   qed

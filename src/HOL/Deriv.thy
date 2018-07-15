@@ -93,11 +93,7 @@ lemma (in bounded_linear) bounded_linear: "bounded_linear f" ..
 lemma (in bounded_linear) has_derivative:
   "(g has_derivative g') F \<Longrightarrow> ((\<lambda>x. f (g x)) has_derivative (\<lambda>x. f (g' x))) F"
   unfolding has_derivative_def
-  apply safe
-   apply (erule bounded_linear_compose [OF bounded_linear])
-  apply (drule tendsto)
-  apply (simp add: scaleR diff add zero)
-  done
+  by (auto simp add: bounded_linear_compose [OF bounded_linear] scaleR diff dest: tendsto)
 
 lemmas has_derivative_scaleR_right [derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_scaleR_right]
@@ -157,15 +153,18 @@ lemma has_derivative_at:
 
 lemma field_has_derivative_at:
   fixes x :: "'a::real_normed_field"
-  shows "(f has_derivative ( * ) D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
-  apply (unfold has_derivative_at)
-  apply (simp add: bounded_linear_mult_right)
-  apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
-  apply (subst diff_divide_distrib)
-  apply (subst times_divide_eq_left [symmetric])
-  apply (simp cong: LIM_cong)
-  apply (simp add: tendsto_norm_zero_iff LIM_zero_iff)
-  done
+  shows "(f has_derivative ( * ) D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<lambda>h. norm (f (x + h) - f x - D * h) / norm h) \<midarrow>0 \<rightarrow> 0"
+    by (simp add: bounded_linear_mult_right has_derivative_at)
+  also have "... = (\<lambda>y. norm ((f (x + y) - f x - D * y) / y)) \<midarrow>0\<rightarrow> 0"
+    by (simp cong: LIM_cong flip: nonzero_norm_divide)
+  also have "... = (\<lambda>y. norm ((f (x + y) - f x) / y - D / y * y)) \<midarrow>0\<rightarrow> 0"
+    by (simp only: diff_divide_distrib times_divide_eq_left [symmetric])
+  also have "... = ?rhs"
+    by (simp add: tendsto_norm_zero_iff LIM_zero_iff cong: LIM_cong)
+  finally show ?thesis .
+qed
 
 lemma has_derivativeI:
   "bounded_linear f' \<Longrightarrow>
@@ -414,8 +413,8 @@ lemmas has_derivative_scaleR[simp, derivative_intros] = bounded_bilinear.FDERIV[
 
 lemma has_derivative_prod[simp, derivative_intros]:
   fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
-  shows "(\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) (at x within s)) \<Longrightarrow>
-    ((\<lambda>x. \<Prod>i\<in>I. f i x) has_derivative (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))) (at x within s)"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) (at x within S)) \<Longrightarrow>
+    ((\<lambda>x. \<Prod>i\<in>I. f i x) has_derivative (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))) (at x within S)"
 proof (induct I rule: infinite_finite_induct)
   case infinite
   then show ?case by simp
@@ -425,7 +424,7 @@ next
 next
   case (insert i I)
   let ?P = "\<lambda>y. f i x * (\<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x)) + (f' i y) * (\<Prod>i\<in>I. f i x)"
-  have "((\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) has_derivative ?P) (at x within s)"
+  have "((\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) has_derivative ?P) (at x within S)"
     using insert by (intro has_derivative_mult) auto
   also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
     using insert(1,2)
@@ -436,69 +435,56 @@ qed
 
 lemma has_derivative_power[simp, derivative_intros]:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
-  assumes f: "(f has_derivative f') (at x within s)"
-  shows "((\<lambda>x. f x^n) has_derivative (\<lambda>y. of_nat n * f' y * f x^(n - 1))) (at x within s)"
+  assumes f: "(f has_derivative f') (at x within S)"
+  shows "((\<lambda>x. f x^n) has_derivative (\<lambda>y. of_nat n * f' y * f x^(n - 1))) (at x within S)"
   using has_derivative_prod[OF f, of "{..< n}"] by (simp add: prod_constant ac_simps)
 
 lemma has_derivative_inverse':
   fixes x :: "'a::real_normed_div_algebra"
   assumes x: "x \<noteq> 0"
-  shows "(inverse has_derivative (\<lambda>h. - (inverse x * h * inverse x))) (at x within s)"
-    (is "(?inv has_derivative ?f) _")
+  shows "(inverse has_derivative (\<lambda>h. - (inverse x * h * inverse x))) (at x within S)"
+    (is "(_ has_derivative ?f) _")
 proof (rule has_derivativeI_sandwich)
-  show "bounded_linear (\<lambda>h. - (?inv x * h * ?inv x))"
-    apply (rule bounded_linear_minus)
-    apply (rule bounded_linear_mult_const)
-    apply (rule bounded_linear_const_mult)
-    apply (rule bounded_linear_ident)
-    done
+  show "bounded_linear (\<lambda>h. - (inverse x * h * inverse x))"
+    by (simp add: bounded_linear_minus bounded_linear_mult_const bounded_linear_mult_right)
   show "0 < norm x" using x by simp
-  show "((\<lambda>y. norm (?inv y - ?inv x) * norm (?inv x)) \<longlongrightarrow> 0) (at x within s)"
-    apply (rule tendsto_mult_left_zero)
-    apply (rule tendsto_norm_zero)
-    apply (rule LIM_zero)
-    apply (rule tendsto_inverse)
-     apply (rule tendsto_ident_at)
-    apply (rule x)
-    done
+  have "(inverse \<longlongrightarrow> inverse x) (at x within S)"
+    using tendsto_inverse tendsto_ident_at x by auto
+  then show "((\<lambda>y. norm (inverse y - inverse x) * norm (inverse x)) \<longlongrightarrow> 0) (at x within S)"
+    by (simp add: LIM_zero_iff tendsto_mult_left_zero tendsto_norm_zero)
 next
   fix y :: 'a
   assume h: "y \<noteq> x" "dist y x < norm x"
   then have "y \<noteq> 0" by auto
-  have "norm (?inv y - ?inv x - ?f (y -x)) / norm (y - x) =
-      norm ((?inv y - ?inv x) * (y - x) * ?inv x) / norm (y - x)"
-    apply (subst inverse_diff_inverse [OF \<open>y \<noteq> 0\<close> x])
-    apply (subst minus_diff_minus)
-    apply (subst norm_minus_cancel)
-    apply (simp add: left_diff_distrib)
-    done
-  also have "\<dots> \<le> norm (?inv y - ?inv x) * norm (y - x) * norm (?inv x) / norm (y - x)"
-    apply (rule divide_right_mono [OF _ norm_ge_zero])
-    apply (rule order_trans [OF norm_mult_ineq])
-    apply (rule mult_right_mono [OF _ norm_ge_zero])
-    apply (rule norm_mult_ineq)
-    done
-  also have "\<dots> = norm (?inv y - ?inv x) * norm (?inv x)"
+  have "norm (inverse y - inverse x - ?f (y -x)) / norm (y - x) 
+        = norm (- (inverse y * (y - x) * inverse x - inverse x * (y - x) * inverse x)) /
+                norm (y - x)"
+    by (simp add: \<open>y \<noteq> 0\<close> inverse_diff_inverse x)
+  also have "... = norm ((inverse y - inverse x) * (y - x) * inverse x) / norm (y - x)"
+    by (simp add: left_diff_distrib norm_minus_commute)
+  also have "\<dots> \<le> norm (inverse y - inverse x) * norm (y - x) * norm (inverse x) / norm (y - x)"
+    by (simp add: norm_mult)
+  also have "\<dots> = norm (inverse y - inverse x) * norm (inverse x)"
     by simp
-  finally show "norm (?inv y - ?inv x - ?f (y -x)) / norm (y - x) \<le>
-    norm (?inv y - ?inv x) * norm (?inv x)" .
+  finally show "norm (inverse y - inverse x - ?f (y -x)) / norm (y - x) \<le>
+    norm (inverse y - inverse x) * norm (inverse x)" .
 qed
 
 lemma has_derivative_inverse[simp, derivative_intros]:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
   assumes x:  "f x \<noteq> 0"
-    and f: "(f has_derivative f') (at x within s)"
+    and f: "(f has_derivative f') (at x within S)"
   shows "((\<lambda>x. inverse (f x)) has_derivative (\<lambda>h. - (inverse (f x) * f' h * inverse (f x))))
-    (at x within s)"
+    (at x within S)"
   using has_derivative_compose[OF f has_derivative_inverse', OF x] .
 
 lemma has_derivative_divide[simp, derivative_intros]:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
-  assumes f: "(f has_derivative f') (at x within s)"
-    and g: "(g has_derivative g') (at x within s)"
+  assumes f: "(f has_derivative f') (at x within S)"
+    and g: "(g has_derivative g') (at x within S)"
   assumes x: "g x \<noteq> 0"
   shows "((\<lambda>x. f x / g x) has_derivative
-                (\<lambda>h. - f x * (inverse (g x) * g' h * inverse (g x)) + f' h / g x)) (at x within s)"
+                (\<lambda>h. - f x * (inverse (g x) * g' h * inverse (g x)) + f' h / g x)) (at x within S)"
   using has_derivative_mult[OF f has_derivative_inverse[OF x g]]
   by (simp add: field_simps)
 
@@ -507,10 +493,10 @@ text \<open>Conventional form requires mult-AC laws. Types real and complex only
 
 lemma has_derivative_divide'[derivative_intros]:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_field"
-  assumes f: "(f has_derivative f') (at x within s)"
-    and g: "(g has_derivative g') (at x within s)"
+  assumes f: "(f has_derivative f') (at x within S)"
+    and g: "(g has_derivative g') (at x within S)"
     and x: "g x \<noteq> 0"
-  shows "((\<lambda>x. f x / g x) has_derivative (\<lambda>h. (f' h * g x - f x * g' h) / (g x * g x))) (at x within s)"
+  shows "((\<lambda>x. f x / g x) has_derivative (\<lambda>h. (f' h * g x - f x * g' h) / (g x * g x))) (at x within S)"
 proof -
   have "f' h / g x - f x * (inverse (g x) * g' h * inverse (g x)) =
       (f' h * g x - f x * g' h) / (g x * g x)" for h
@@ -550,12 +536,12 @@ proof -
         by (auto simp add: F.zero)
       with ** have "0 < ?r h"
         by simp
-      from LIM_D [OF * this] obtain s
-        where s: "0 < s" and r: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> ?r x < ?r h"
+      from LIM_D [OF * this] obtain S
+        where S: "0 < S" and r: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < S \<Longrightarrow> ?r x < ?r h"
         by auto
-      from dense [OF s] obtain t where t: "0 < t \<and> t < s" ..
+      from dense [OF S] obtain t where t: "0 < t \<and> t < S" ..
       let ?x = "scaleR (t / norm h) h"
-      have "?x \<noteq> 0" and "norm ?x < s"
+      have "?x \<noteq> 0" and "norm ?x < S"
         using t h by simp_all
       then have "?r ?x < ?r h"
         by (rule r)
@@ -711,12 +697,15 @@ lemma differentiableI:
 lemma has_field_derivative_iff:
   "(f has_field_derivative D) (at x within S) \<longleftrightarrow>
     ((\<lambda>y. (f y - f x) / (y - x)) \<longlongrightarrow> D) (at x within S)"
-  apply (simp add: has_field_derivative_def has_derivative_iff_norm bounded_linear_mult_right
-      LIM_zero_iff[symmetric, of _ D])
-  apply (subst (2) tendsto_norm_zero_iff[symmetric])
-  apply (rule filterlim_cong)
-    apply (simp_all add: eventually_at_filter field_simps nonzero_norm_divide)
-  done
+proof -
+  have "((\<lambda>y. norm (f y - f x - D * (y - x)) / norm (y - x)) \<longlongrightarrow> 0) (at x within S) 
+      = ((\<lambda>y. (f y - f x) / (y - x) - D) \<longlongrightarrow> 0) (at x within S)"
+    apply (subst tendsto_norm_zero_iff[symmetric], rule filterlim_cong)
+      apply (simp_all add: eventually_at_filter field_simps nonzero_norm_divide)
+    done
+  then show ?thesis
+    by (simp add: has_field_derivative_def has_derivative_iff_norm bounded_linear_mult_right LIM_zero_iff)
+qed
 
 lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
@@ -773,10 +762,8 @@ lemma has_vector_derivative_diff[derivative_intros]:
 lemma has_vector_derivative_add_const:
   "((\<lambda>t. g t + z) has_vector_derivative f') net = ((\<lambda>t. g t) has_vector_derivative f') net"
   apply (intro iffI)
-   apply (drule has_vector_derivative_diff [where g = "\<lambda>t. z", OF _ has_vector_derivative_const])
-   apply simp
-  apply (drule has_vector_derivative_add [OF _ has_vector_derivative_const])
-  apply simp
+   apply (force dest: has_vector_derivative_diff [where g = "\<lambda>t. z", OF _ has_vector_derivative_const])
+  apply (force dest: has_vector_derivative_add [OF _ has_vector_derivative_const])
   done
 
 lemma has_vector_derivative_diff_const:
@@ -1027,37 +1014,43 @@ text \<open>Alternative definition for differentiability\<close>
 
 lemma DERIV_LIM_iff:
   fixes f :: "'a::{real_normed_vector,inverse} \<Rightarrow> 'a"
-  shows "((\<lambda>h. (f (a + h) - f a) / h) \<midarrow>0\<rightarrow> D) = ((\<lambda>x. (f x - f a) / (x - a)) \<midarrow>a\<rightarrow> D)"
-  apply (rule iffI)
-   apply (drule_tac k="- a" in LIM_offset)
-   apply simp
-  apply (drule_tac k="a" in LIM_offset)
-  apply (simp add: add.commute)
-  done
-
-lemmas DERIV_iff2 = has_field_derivative_iff
+  shows "((\<lambda>h. (f (a + h) - f a) / h) \<midarrow>0\<rightarrow> D) = ((\<lambda>x. (f x - f a) / (x - a)) \<midarrow>a\<rightarrow> D)" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then have "(\<lambda>x. (f (a + (x + - a)) - f a) / (x + - a)) \<midarrow>0 - - a\<rightarrow> D"
+    by (rule LIM_offset)
+  then show ?rhs
+    by simp
+next
+  assume ?rhs
+  then have "(\<lambda>x. (f (x+a) - f a) / ((x+a) - a)) \<midarrow>a-a\<rightarrow> D"
+    by (rule LIM_offset)
+  then show ?lhs
+    by (simp add: add.commute)
+qed
 
 lemma has_field_derivative_cong_ev:
   assumes "x = y"
-    and *: "eventually (\<lambda>x. x \<in> s \<longrightarrow> f x = g x) (nhds x)"
-    and "u = v" "s = t" "x \<in> s"
-  shows "(f has_field_derivative u) (at x within s) = (g has_field_derivative v) (at y within t)"
-  unfolding DERIV_iff2
+    and *: "eventually (\<lambda>x. x \<in> S \<longrightarrow> f x = g x) (nhds x)"
+    and "u = v" "S = t" "x \<in> S"
+  shows "(f has_field_derivative u) (at x within S) = (g has_field_derivative v) (at y within t)"
+  unfolding has_field_derivative_iff
 proof (rule filterlim_cong)
   from assms have "f y = g y"
     by (auto simp: eventually_nhds)
-  with * show "\<forall>\<^sub>F xa in at x within s. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)"
+  with * show "\<forall>\<^sub>F z in at x within S. (f z - f x) / (z - x) = (g z - g y) / (z - y)"
     unfolding eventually_at_filter
     by eventually_elim (auto simp: assms \<open>f y = g y\<close>)
 qed (simp_all add: assms)
 
 lemma has_field_derivative_cong_eventually:
-  assumes "eventually (\<lambda>x. f x = g x) (at x within s)" "f x=g x"
-  shows "(f has_field_derivative u) (at x within s) = (g has_field_derivative u) (at x within s)"
-  unfolding DERIV_iff2
-  apply (rule tendsto_cong)
-  apply (insert assms)
-  by (auto elim: eventually_mono)
+  assumes "eventually (\<lambda>x. f x = g x) (at x within S)" "f x = g x"
+  shows "(f has_field_derivative u) (at x within S) = (g has_field_derivative u) (at x within S)"
+  unfolding has_field_derivative_iff
+proof (rule tendsto_cong)
+  show "\<forall>\<^sub>F y in at x within S. (f y - f x) / (y - x) = (g y - g x) / (y - x)"
+    using assms by (auto elim: eventually_mono)
+qed
 
 lemma DERIV_cong_ev:
   "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
@@ -1265,22 +1258,24 @@ lemma DERIV_local_const:
 subsection \<open>Rolle's Theorem\<close>
 
 text \<open>Lemma about introducing open ball in open interval\<close>
-lemma lemma_interval_lt: "a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a < y \<and> y < b)"
-  for a b x :: real
-  apply (simp add: abs_less_iff)
-  apply (insert linorder_linear [of "x - a" "b - x"])
-  apply safe
-   apply (rule_tac x = "x - a" in exI)
-   apply (rule_tac [2] x = "b - x" in exI)
-   apply auto
-  done
+lemma lemma_interval_lt: 
+  fixes a b x :: real
+  assumes "a < x" "x < b"
+  shows "\<exists>d. 0 < d \<and> (\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a < y \<and> y < b)"
+  using linorder_linear [of "x - a" "b - x"]
+proof 
+  assume "x - a \<le> b - x"
+  with assms show ?thesis
+    by (rule_tac x = "x - a" in exI) auto
+next
+  assume "b - x \<le> x - a"
+  with assms show ?thesis
+    by (rule_tac x = "b - x" in exI) auto
+qed
 
 lemma lemma_interval: "a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b)"
   for a b x :: real
-  apply (drule lemma_interval_lt)
-   apply auto
-  apply force
-  done
+  by (force dest: lemma_interval_lt)
 
 text \<open>Rolle's Theorem.
    If @{term f} is defined and continuous on the closed interval
@@ -1409,14 +1404,23 @@ proof -
   qed
 qed
 
-lemma MVT2:
-  "a < b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> DERIV f x :> f' x \<Longrightarrow>
-    \<exists>z::real. a < z \<and> z < b \<and> (f b - f a = (b - a) * f' z)"
-  apply (drule MVT)
-    apply (blast intro: DERIV_isCont)
-   apply (force dest: order_less_imp_le simp add: real_differentiable_def)
-  apply (blast dest: DERIV_unique order_less_imp_le)
-  done
+corollary MVT2:
+  assumes "a < b" and der: "\<And>x. \<lbrakk>a \<le> x; x \<le> b\<rbrakk> \<Longrightarrow> DERIV f x :> f' x"
+  shows "\<exists>z::real. a < z \<and> z < b \<and> (f b - f a = (b - a) * f' z)"
+proof -
+  have "\<exists>l z. a < z \<and>
+           z < b \<and>
+           (f has_real_derivative l) (at z) \<and>
+           f b - f a = (b - a) * l"
+  proof (rule MVT [OF \<open>a < b\<close>])
+    show "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
+      using assms by (blast intro: DERIV_isCont)
+    show "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable at x"
+      using assms by (force dest: order_less_imp_le simp add: real_differentiable_def)
+  qed
+  with assms show ?thesis
+    by (blast dest: DERIV_unique order_less_imp_le)
+qed
 
 lemma pos_deriv_imp_strict_mono:
   assumes "\<And>x. (f has_real_derivative f' x) (at x)"
@@ -1698,7 +1702,7 @@ lemma DERIV_inverse_function:
     and inj: "\<And>y. \<lbrakk>a < y; y < b\<rbrakk> \<Longrightarrow> f (g y) = y"
     and cont: "isCont g x"
   shows "DERIV g x :> inverse D"
-unfolding DERIV_iff2
+unfolding has_field_derivative_iff
 proof (rule LIM_equal2)
   show "0 < min (x - a) (b - x)"
     using x by arith
@@ -1711,7 +1715,7 @@ next
     by (simp add: inj)
 next
   have "(\<lambda>z. (f z - f (g x)) / (z - g x)) \<midarrow>g x\<rightarrow> D"
-    by (rule der [unfolded DERIV_iff2])
+    by (rule der [unfolded has_field_derivative_iff])
   then have 1: "(\<lambda>z. (f z - x) / (z - g x)) \<midarrow>g x\<rightarrow> D"
     using inj x by simp
   have 2: "\<exists>d>0. \<forall>y. y \<noteq> x \<and> norm (y - x) < d \<longrightarrow> g y \<noteq> g x"

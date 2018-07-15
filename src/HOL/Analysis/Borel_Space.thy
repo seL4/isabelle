@@ -254,8 +254,8 @@ lemma deriv_nonneg_imp_mono:
   shows "g a \<le> g b"
 proof (cases "a < b")
   assume "a < b"
-  from deriv have "\<forall>x. x \<ge> a \<and> x \<le> b \<longrightarrow> (g has_real_derivative g' x) (at x)" by simp
-  from MVT2[OF \<open>a < b\<close> this] and deriv
+  from deriv have "\<And>x. \<lbrakk>x \<ge> a; x \<le> b\<rbrakk> \<Longrightarrow> (g has_real_derivative g' x) (at x)" by simp
+  with MVT2[OF \<open>a < b\<close>] and deriv
     obtain \<xi> where \<xi>_ab: "\<xi> > a" "\<xi> < b" and g_ab: "g b - g a = (b - a) * g' \<xi>" by blast
   from \<xi>_ab ab nonneg have "(b - a) * g' \<xi> \<ge> 0" by simp
   with g_ab show ?thesis by simp

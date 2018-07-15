@@ -540,7 +540,7 @@ proof -
     fix x :: real assume "a \<le> x" and "x \<le> b"
     with f' have "DERIV f x :> f'(x)" by simp
     then have "\<forall>r>0. \<exists>s>0. \<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < r"
-      by (simp add: DERIV_iff2 LIM_eq)
+      by (simp add: has_field_derivative_iff LIM_eq)
     with \<open>0 < e\<close> obtain s
     where "z \<noteq> x \<Longrightarrow> \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2" and "0 < s" for z
       by (drule_tac x="e/2" in spec, auto)
