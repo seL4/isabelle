@@ -2303,7 +2303,7 @@ proof -
   have "((\<lambda>z::'a. exp(z) - 1) has_field_derivative 1) (at 0)"
     by (intro derivative_eq_intros | simp)+
   then show ?thesis
-    by (simp add: Deriv.DERIV_iff2)
+    by (simp add: Deriv.has_field_derivative_iff)
 qed
 
 lemma ln_at_0: "LIM x at_right 0. ln (x::real) :> at_bot"

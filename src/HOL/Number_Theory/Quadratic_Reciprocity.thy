@@ -370,7 +370,7 @@ proof
     moreover from x have "(int p - 1) div 2 \<le> - 1 + x mod p"
       by (auto simp: BuDuF_def)
     moreover have "int p * (int q - 1) div 2 = int p * ((int q - 1) div 2)"
-      using div_mult1_eq odd_q by auto
+      by (subst div_mult1_eq) (simp add: odd_q)
     then have "p * (int q - 1) div 2 = p * ((int q + 1) div 2 - 1)"
       by fastforce
     ultimately have "x \<le> p * ((int q + 1) div 2 - 1) - 1 + x mod p"

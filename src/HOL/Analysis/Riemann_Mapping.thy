@@ -1363,7 +1363,7 @@ proof (clarsimp simp add: simply_connected_eq_holomorphic_sqrt [OF openS] \<open
         using \<open>z \<in> S\<close> contg continuous_on_eq_continuous_at isCont_def openS apply blast
         by (simp add: \<open>g z \<noteq> 0\<close>)
       then have "(g has_field_derivative deriv f z / (g z + g z)) (at z)"
-        unfolding DERIV_iff2
+        unfolding has_field_derivative_iff
       proof (rule Lim_transform_within_open)
         show "open (ball z \<delta> \<inter> S)"
           by (simp add: openS open_Int)
