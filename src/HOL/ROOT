@@ -534,6 +534,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Chinese
     Classical
     Code_Binary_Nat_examples
+    Code_Lazy_Demo
     Code_Timing
     Coercion_Examples
     Coherent

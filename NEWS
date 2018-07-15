@@ -376,8 +376,9 @@ theory HOL-ex.Conditional_Parametricity_Examples for some examples.
 
 * Theory HOL-Library.Code_Lazy provides a new preprocessor for the code
 generator to generate code for algebraic types with lazy evaluation
-semantics even in call-by-value target languages. See theory
-HOL-Codegenerator_Test.Code_Lazy_Test for some examples.
+semantics even in call-by-value target languages. See the theories
+HOL-ex.Code_Lazy_Demo and HOL-Codegenerator_Test.Code_Lazy_Test for
+some examples.
 
 * Theory HOL-Library.Landau_Symbols has been moved here from AFP.
 
