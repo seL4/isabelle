@@ -228,15 +228,16 @@ by (force simp add: eucl_rel_int_iff right_diff_distrib)
 
 lemma zdiv_zminus1_eq_if:
      "b \<noteq> (0::int)
-      ==> (-a) div b =
-          (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
+      \<Longrightarrow> (-a) div b = (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
 by (blast intro: eucl_rel_int [THEN zminus1_lemma, THEN div_int_unique])
 
 lemma zmod_zminus1_eq_if:
      "(-a::int) mod b = (if a mod b = 0 then 0 else  b - (a mod b))"
-apply (case_tac "b = 0", simp)
-apply (blast intro: eucl_rel_int [THEN zminus1_lemma, THEN mod_int_unique])
-done
+proof (cases "b = 0")
+  case False
+  then show ?thesis
+    by (blast intro: eucl_rel_int [THEN zminus1_lemma, THEN mod_int_unique])
+qed auto
 
 lemma zmod_zminus1_not_zero:
   fixes k l :: int
@@ -261,101 +262,93 @@ lemma zmod_zminus2_eq_if:
 
 subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
 
-lemma zdiv_mono1: "[| a \<le> a';  0 < (b::int) |] ==> a div b \<le> a' div b"
-using mult_div_mod_eq [symmetric, of a b]
-using mult_div_mod_eq [symmetric, of a' b]
-apply -
-apply (rule unique_quotient_lemma)
-apply (erule subst)
-apply (erule subst, simp_all)
-done
+lemma zdiv_mono1:
+  fixes b::int
+  assumes "a \<le> a'" "0 < b" shows "a div b \<le> a' div b"
+proof (rule unique_quotient_lemma)
+  show "b * (a div b) + a mod b \<le> b * (a' div b) + a' mod b"
+    using assms(1) by auto
+qed (use assms in auto)
 
-lemma zdiv_mono1_neg: "[| a \<le> a';  (b::int) < 0 |] ==> a' div b \<le> a div b"
-using mult_div_mod_eq [symmetric, of a b]
-using mult_div_mod_eq [symmetric, of a' b]
-apply -
-apply (rule unique_quotient_lemma_neg)
-apply (erule subst)
-apply (erule subst, simp_all)
-done
+lemma zdiv_mono1_neg:
+  fixes b::int
+  assumes "a \<le> a'" "b < 0" shows "a' div b \<le> a div b"
+proof (rule unique_quotient_lemma_neg)
+  show "b * (a div b) + a mod b \<le> b * (a' div b) + a' mod b"
+    using assms(1) by auto
+qed (use assms in auto)
 
 
 subsubsection \<open>Monotonicity in the Second Argument (Divisor)\<close>
 
 lemma q_pos_lemma:
-     "[| 0 \<le> b'*q' + r'; r' < b';  0 < b' |] ==> 0 \<le> (q'::int)"
-apply (subgoal_tac "0 < b'* (q' + 1) ")
- apply (simp add: zero_less_mult_iff)
-apply (simp add: distrib_left)
-done
+  fixes q'::int
+  assumes "0 \<le> b'*q' + r'" "r' < b'" "0 < b'"
+  shows "0 \<le> q'"
+proof -
+  have "0 < b'* (q' + 1)"
+    using assms by (simp add: distrib_left)
+  with assms show ?thesis
+    by (simp add: zero_less_mult_iff)
+qed
 
 lemma zdiv_mono2_lemma:
-     "[| b*q + r = b'*q' + r';  0 \<le> b'*q' + r';
-         r' < b';  0 \<le> r;  0 < b';  b' \<le> b |]
-      ==> q \<le> (q'::int)"
-apply (frule q_pos_lemma, assumption+)
-apply (subgoal_tac "b*q < b* (q' + 1) ")
- apply (simp add: mult_less_cancel_left)
-apply (subgoal_tac "b*q = r' - r + b'*q'")
- prefer 2 apply simp
-apply (simp (no_asm_simp) add: distrib_left)
-apply (subst add.commute, rule add_less_le_mono, arith)
-apply (rule mult_right_mono, auto)
-done
+  fixes q'::int
+  assumes eq: "b*q + r = b'*q' + r'" and le: "0 \<le> b'*q' + r'" and "r' < b'" "0 \<le> r" "0 < b'" "b' \<le> b"
+  shows "q \<le> q'"
+proof -
+  have "0 \<le> q'"
+    using q_pos_lemma le \<open>r' < b'\<close> \<open>0 < b'\<close> by blast
+  moreover have "b*q = r' - r + b'*q'"
+    using eq by linarith
+  ultimately have "b*q < b* (q' + 1)"
+    using mult_right_mono assms unfolding distrib_left by fastforce
+  with assms show ?thesis
+    by (simp add: mult_less_cancel_left_pos)
+qed
 
 lemma zdiv_mono2:
-     "[| (0::int) \<le> a;  0 < b';  b' \<le> b |] ==> a div b \<le> a div b'"
-apply (subgoal_tac "b \<noteq> 0")
-  prefer 2 apply arith
-using mult_div_mod_eq [symmetric, of a b]
-using mult_div_mod_eq [symmetric, of a b']
-apply -
-apply (rule zdiv_mono2_lemma)
-apply (erule subst)
-apply (erule subst, simp_all)
-done
-
-lemma q_neg_lemma:
-     "[| b'*q' + r' < 0;  0 \<le> r';  0 < b' |] ==> q' \<le> (0::int)"
-apply (subgoal_tac "b'*q' < 0")
- apply (simp add: mult_less_0_iff, arith)
-done
+  fixes a::int
+  assumes "0 \<le> a" "0 < b'" "b' \<le> b" shows "a div b \<le> a div b'"
+proof (rule zdiv_mono2_lemma)
+  have "b \<noteq> 0"
+    using assms by linarith
+  show "b * (a div b) + a mod b = b' * (a div b') + a mod b'"
+    by simp
+qed (use assms in auto)
 
 lemma zdiv_mono2_neg_lemma:
-     "[| b*q + r = b'*q' + r';  b'*q' + r' < 0;
-         r < b;  0 \<le> r';  0 < b';  b' \<le> b |]
-      ==> q' \<le> (q::int)"
-apply (frule q_neg_lemma, assumption+)
-apply (subgoal_tac "b*q' < b* (q + 1) ")
- apply (simp add: mult_less_cancel_left)
-apply (simp add: distrib_left)
-apply (subgoal_tac "b*q' \<le> b'*q'")
- prefer 2 apply (simp add: mult_right_mono_neg, arith)
-done
+    fixes q'::int
+    assumes "b*q + r = b'*q' + r'" "b'*q' + r' < 0" "r < b" "0 \<le> r'" "0 < b'" "b' \<le> b"
+    shows "q' \<le> q"
+proof -
+  have "b'*q' < 0"
+    using assms by linarith
+  with assms have "q' \<le> 0"
+    by (simp add: mult_less_0_iff)
+  have "b*q' \<le> b'*q'"
+    by (simp add: \<open>q' \<le> 0\<close> assms(6) mult_right_mono_neg)
+  then have "b*q' < b* (q + 1)"
+    using assms by (simp add: distrib_left)
+  then show ?thesis
+    using assms by (simp add: mult_less_cancel_left)
+qed
 
 lemma zdiv_mono2_neg:
-     "[| a < (0::int);  0 < b';  b' \<le> b |] ==> a div b' \<le> a div b"
-using mult_div_mod_eq [symmetric, of a b]
-using mult_div_mod_eq [symmetric, of a b']
-apply -
-apply (rule zdiv_mono2_neg_lemma)
-apply (erule subst)
-apply (erule subst, simp_all)
-done
+  fixes a::int
+  assumes "a < 0" "0 < b'" "b' \<le> b" shows "a div b' \<le> a div b"
+proof (rule zdiv_mono2_neg_lemma)
+  have "b \<noteq> 0"
+    using assms by linarith
+  show "b * (a div b) + a mod b = b' * (a div b') + a mod b'"
+    by simp
+qed (use assms in auto)
 
 
 subsubsection \<open>More Algebraic Laws for div and mod\<close>
 
-lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
-  by (fact div_mult1_eq)
-
-(*NOT suitable for rewriting: the RHS has an instance of the LHS*)
-lemma zdiv_zadd1_eq:
-     "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)"
-  by (fact div_add1_eq)
-
 lemma zmod_eq_0_iff: "(m mod d = 0) = (\<exists>q::int. m = d*q)"
-by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
+  by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 
 (* REVISIT: should this be generalized to all semiring_div types? *)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
@@ -369,40 +362,53 @@ subsubsection \<open>Proving  @{term "a div (b * c) = (a div b) div c"}\<close>
 
 text\<open>first, four lemmas to bound the remainder for the cases b<0 and b>0\<close>
 
-lemma zmult2_lemma_aux1: "[| (0::int) < c;  b < r;  r \<le> 0 |] ==> b * c < b * (q mod c) + r"
-apply (subgoal_tac "b * (c - q mod c) < r * 1")
- apply (simp add: algebra_simps)
-apply (rule order_le_less_trans)
- apply (erule_tac [2] mult_strict_right_mono)
- apply (rule mult_left_mono_neg)
-  using add1_zle_eq[of "q mod c"]apply(simp add: algebra_simps)
- apply (simp)
-apply (simp)
-done
+lemma zmult2_lemma_aux1: 
+  fixes c::int
+  assumes "0 < c" "b < r" "r \<le> 0"
+  shows "b * c < b * (q mod c) + r"
+proof -
+  have "b * (c - q mod c) \<le> b * 1"
+    by (rule mult_left_mono_neg) (use assms in \<open>auto simp: int_one_le_iff_zero_less\<close>)
+  also have "... < r * 1"
+    by (simp add: \<open>b < r\<close>)
+  finally show ?thesis
+    by (simp add: algebra_simps)
+qed
 
 lemma zmult2_lemma_aux2:
-     "[| (0::int) < c;   b < r;  r \<le> 0 |] ==> b * (q mod c) + r \<le> 0"
-apply (subgoal_tac "b * (q mod c) \<le> 0")
- apply arith
-apply (simp add: mult_le_0_iff)
-done
+  fixes c::int
+  assumes "0 < c" "b < r" "r \<le> 0"
+  shows "b * (q mod c) + r \<le> 0"
+proof -
+  have "b * (q mod c) \<le> 0"
+    using assms by (simp add: mult_le_0_iff)
+  with assms show ?thesis
+    by arith
+qed
 
-lemma zmult2_lemma_aux3: "[| (0::int) < c;  0 \<le> r;  r < b |] ==> 0 \<le> b * (q mod c) + r"
-apply (subgoal_tac "0 \<le> b * (q mod c) ")
-apply arith
-apply (simp add: zero_le_mult_iff)
-done
+lemma zmult2_lemma_aux3:
+  fixes c::int
+  assumes "0 < c" "0 \<le> r" "r < b"
+  shows "0 \<le> b * (q mod c) + r"
+proof -
+  have "0 \<le> b * (q mod c)"
+    using assms by (simp add: mult_le_0_iff)
+  with assms show ?thesis
+    by arith
+qed
 
-lemma zmult2_lemma_aux4: "[| (0::int) < c; 0 \<le> r; r < b |] ==> b * (q mod c) + r < b * c"
-apply (subgoal_tac "r * 1 < b * (c - q mod c) ")
- apply (simp add: right_diff_distrib)
-apply (rule order_less_le_trans)
- apply (erule mult_strict_right_mono)
- apply (rule_tac [2] mult_left_mono)
-  apply simp
- using add1_zle_eq[of "q mod c"] apply (simp add: algebra_simps)
-apply simp
-done
+lemma zmult2_lemma_aux4: 
+  fixes c::int
+  assumes "0 < c" "0 \<le> r" "r < b"
+  shows "b * (q mod c) + r < b * c"
+proof -
+  have "r * 1 < b * 1"
+    by (simp add: \<open>r < b\<close>)
+  also have "\<dots> \<le> b * (c - q mod c) "
+    by (rule mult_left_mono) (use assms in \<open>auto simp: int_one_le_iff_zero_less\<close>)
+  finally show ?thesis
+    by (simp add: algebra_simps)
+qed
 
 lemma zmult2_lemma: "[| eucl_rel_int a b (q, r); 0 < c |]
       ==> eucl_rel_int a (b * c) (q div c, b*(q mod c) + r)"
@@ -412,17 +418,23 @@ by (auto simp add: mult.assoc eucl_rel_int_iff linorder_neq_iff
 
 lemma zdiv_zmult2_eq:
   fixes a b c :: int
-  shows "0 \<le> c \<Longrightarrow> a div (b * c) = (a div b) div c"
-apply (case_tac "b = 0", simp)
-apply (force simp add: le_less eucl_rel_int [THEN zmult2_lemma, THEN div_int_unique])
-done
+  assumes "0 \<le> c"
+  shows "a div (b * c) = (a div b) div c"
+proof (cases "b = 0")
+  case False
+  with assms show ?thesis
+    by (force simp add: le_less eucl_rel_int [THEN zmult2_lemma, THEN div_int_unique])
+qed auto
 
 lemma zmod_zmult2_eq:
   fixes a b c :: int
-  shows "0 \<le> c \<Longrightarrow> a mod (b * c) = b * (a div b mod c) + a mod b"
-apply (case_tac "b = 0", simp)
-apply (force simp add: le_less eucl_rel_int [THEN zmult2_lemma, THEN mod_int_unique])
-done
+  assumes "0 \<le> c"
+  shows "a mod (b * c) = b * (a div b mod c) + a mod b"
+proof (cases "b = 0")
+  case False
+  with assms show ?thesis
+    by (force simp add: le_less eucl_rel_int [THEN zmult2_lemma, THEN mod_int_unique])
+qed auto
 
 lemma div_pos_geq:
   fixes k l :: int
@@ -464,24 +476,24 @@ lemma split_zdiv:
   ((k = 0 \<longrightarrow> P 0) \<and>
    (0<k \<longrightarrow> (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P i)) \<and>
    (k<0 \<longrightarrow> (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P i)))"
-  apply (cases "k = 0")
-  apply simp
-apply (simp only: linorder_neq_iff)
- apply (auto simp add: split_pos_lemma [of concl: "%x y. P x"]
-                      split_neg_lemma [of concl: "%x y. P x"])
-done
+proof (cases "k = 0")
+  case False
+  then show ?thesis
+    unfolding linorder_neq_iff
+    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P x"] split_neg_lemma [of concl: "\<lambda>x y. P x"])
+qed auto
 
 lemma split_zmod:
  "P(n mod k :: int) =
   ((k = 0 \<longrightarrow> P n) \<and>
    (0<k \<longrightarrow> (\<forall>i j. 0\<le>j \<and> j<k \<and> n = k*i + j \<longrightarrow> P j)) \<and>
    (k<0 \<longrightarrow> (\<forall>i j. k<j \<and> j\<le>0 \<and> n = k*i + j \<longrightarrow> P j)))"
-apply (case_tac "k=0", simp)
-apply (simp only: linorder_neq_iff)
-apply (erule disjE)
- apply (simp_all add: split_pos_lemma [of concl: "%x y. P y"]
-                      split_neg_lemma [of concl: "%x y. P y"])
-done
+proof (cases "k = 0")
+  case False
+  then show ?thesis
+    unfolding linorder_neq_iff
+    by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P y"] split_neg_lemma [of concl: "\<lambda>x y. P y"])
+qed auto
 
 text \<open>Enable (lin)arith to deal with @{const divide} and @{const modulo}
   when these are applied to some constant that is of the form
@@ -515,7 +527,6 @@ lemma neg_zdiv_mult_2:
   using neg_eucl_rel_int_mult_2 [OF A eucl_rel_int]
   by (rule div_int_unique)
 
-(* FIXME: add rules for negative numerals *)
 lemma zdiv_numeral_Bit0 [simp]:
   "numeral (Num.Bit0 v) div numeral (Num.Bit0 w) =
     numeral v div (numeral w :: int)"
@@ -543,7 +554,6 @@ lemma neg_zmod_mult_2:
   using neg_eucl_rel_int_mult_2 [OF assms eucl_rel_int]
   by (rule mod_int_unique)
 
-(* FIXME: add rules for negative numerals *)
 lemma zmod_numeral_Bit0 [simp]:
   "numeral (Num.Bit0 v) mod numeral (Num.Bit0 w) =
     (2::int) * (numeral v mod numeral w)"
@@ -591,68 +601,81 @@ lemma div_eq_minus1: "0 < b \<Longrightarrow> - 1 div b = - 1" for b :: int
 lemma zmod_minus1: "0 < b \<Longrightarrow> - 1 mod b = b - 1" for b :: int
   by (auto simp add: modulo_int_def)
 
-lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
-apply (subgoal_tac "a div b \<le> -1", force)
-apply (rule order_trans)
-apply (rule_tac a' = "-1" in zdiv_mono1)
-apply (auto simp add: div_eq_minus1)
-done
+lemma div_neg_pos_less0:
+  fixes a::int
+  assumes "a < 0" "0 < b" 
+  shows "a div b < 0"
+proof -
+  have "a div b \<le> - 1 div b"
+    using Divides.zdiv_mono1 assms by auto
+  also have "... \<le> -1"
+    by (simp add: assms(2) div_eq_minus1)
+  finally show ?thesis 
+    by force
+qed
 
 lemma div_nonneg_neg_le0: "[| (0::int) \<le> a; b < 0 |] ==> a div b \<le> 0"
-by (drule zdiv_mono1_neg, auto)
+  by (drule zdiv_mono1_neg, auto)
 
 lemma div_nonpos_pos_le0: "[| (a::int) \<le> 0; b > 0 |] ==> a div b \<le> 0"
-by (drule zdiv_mono1, auto)
+  by (drule zdiv_mono1, auto)
 
 text\<open>Now for some equivalences of the form \<open>a div b >=< 0 \<longleftrightarrow> \<dots>\<close>
 conditional upon the sign of \<open>a\<close> or \<open>b\<close>. There are many more.
 They should all be simp rules unless that causes too much search.\<close>
 
-lemma pos_imp_zdiv_nonneg_iff: "(0::int) < b ==> (0 \<le> a div b) = (0 \<le> a)"
-apply auto
-apply (drule_tac [2] zdiv_mono1)
-apply (auto simp add: linorder_neq_iff)
-apply (simp (no_asm_use) add: linorder_not_less [symmetric])
-apply (blast intro: div_neg_pos_less0)
-done
+lemma pos_imp_zdiv_nonneg_iff:
+      fixes a::int
+      assumes "0 < b" 
+      shows "(0 \<le> a div b) = (0 \<le> a)"
+proof
+  show "0 \<le> a div b \<Longrightarrow> 0 \<le> a"
+    using assms
+    by (simp add: linorder_not_less [symmetric]) (blast intro: div_neg_pos_less0)
+next
+  assume "0 \<le> a"
+  then have "0 div b \<le> a div b"
+    using zdiv_mono1 assms by blast
+  then show "0 \<le> a div b"
+    by auto
+qed
 
 lemma pos_imp_zdiv_pos_iff:
   "0<k \<Longrightarrow> 0 < (i::int) div k \<longleftrightarrow> k \<le> i"
-using pos_imp_zdiv_nonneg_iff[of k i] zdiv_eq_0_iff[of i k]
-by arith
+  using pos_imp_zdiv_nonneg_iff[of k i] zdiv_eq_0_iff[of i k] by arith
+
 
 lemma neg_imp_zdiv_nonneg_iff:
-  "b < (0::int) ==> (0 \<le> a div b) = (a \<le> (0::int))"
-apply (subst div_minus_minus [symmetric])
-apply (subst pos_imp_zdiv_nonneg_iff, auto)
-done
+  fixes a::int
+  assumes "b < 0" 
+  shows "(0 \<le> a div b) = (a \<le> 0)"
+  using assms by (simp add: div_minus_minus [of a, symmetric] pos_imp_zdiv_nonneg_iff del: div_minus_minus)
 
 (*But not (a div b \<le> 0 iff a\<le>0); consider a=1, b=2 when a div b = 0.*)
 lemma pos_imp_zdiv_neg_iff: "(0::int) < b ==> (a div b < 0) = (a < 0)"
-by (simp add: linorder_not_le [symmetric] pos_imp_zdiv_nonneg_iff)
+  by (simp add: linorder_not_le [symmetric] pos_imp_zdiv_nonneg_iff)
 
 (*Again the law fails for \<le>: consider a = -1, b = -2 when a div b = 0*)
 lemma neg_imp_zdiv_neg_iff: "b < (0::int) ==> (a div b < 0) = (0 < a)"
-by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
+  by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
 
 lemma nonneg1_imp_zdiv_pos_iff:
-  "(0::int) \<le> a \<Longrightarrow> (a div b > 0) = (a \<ge> b \<and> b>0)"
-apply rule
- apply rule
-  using div_pos_pos_trivial[of a b]apply arith
- apply(cases "b=0")apply simp
- using div_nonneg_neg_le0[of a b]apply arith
-using int_one_le_iff_zero_less[of "a div b"] zdiv_mono1[of b a b]apply simp
-done
+  fixes a::int
+  assumes "0 \<le> a" 
+  shows "a div b > 0 \<longleftrightarrow> a \<ge> b \<and> b>0"
+proof -
+  have "0 < a div b \<Longrightarrow> b \<le> a"
+    using div_pos_pos_trivial[of a b] assms by arith
+  moreover have "0 < a div b \<Longrightarrow> b > 0"
+    using assms div_nonneg_neg_le0[of a b]  by(cases "b=0"; force)
+  moreover have "b \<le> a \<and> 0 < b \<Longrightarrow> 0 < a div b"
+    using int_one_le_iff_zero_less[of "a div b"] zdiv_mono1[of b a b] by simp
+  ultimately show ?thesis
+    by blast
+qed
 
-lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 ==> m mod k \<le> m"
-apply (rule split_zmod[THEN iffD2])
-apply(fastforce dest: q_pos_lemma intro: split_mult_pos_le)
-done
-
-
-subsubsection \<open>Computation of Division and Remainder\<close>
-
+lemma zmod_le_nonneg_dividend: "(m::int) \<ge> 0 \<Longrightarrow> m mod k \<le> m"
+  by (rule split_zmod[THEN iffD2]) (fastforce dest: q_pos_lemma intro: split_mult_pos_le)
 
 
 subsubsection \<open>Further properties\<close>
@@ -661,21 +684,23 @@ lemma div_int_pos_iff:
   "k div l \<ge> 0 \<longleftrightarrow> k = 0 \<or> l = 0 \<or> k \<ge> 0 \<and> l \<ge> 0
     \<or> k < 0 \<and> l < 0"
   for k l :: int
-  apply (cases "k = 0 \<or> l = 0")
+proof (cases "k = 0 \<or> l = 0")
+  case False
+  then show ?thesis
    apply (auto simp add: pos_imp_zdiv_nonneg_iff neg_imp_zdiv_nonneg_iff)
-  apply (rule ccontr)
-  apply (simp add: neg_imp_zdiv_nonneg_iff)
-  done
+    by (meson neg_imp_zdiv_neg_iff not_le not_less_iff_gr_or_eq)
+qed auto
 
 lemma mod_int_pos_iff:
   "k mod l \<ge> 0 \<longleftrightarrow> l dvd k \<or> l = 0 \<and> k \<ge> 0 \<or> l > 0"
   for k l :: int
-  apply (cases "l > 0")
-   apply (simp_all add: dvd_eq_mod_eq_0)
-  apply (use neg_mod_conj [of l k] in \<open>auto simp add: le_less not_less\<close>)
-  done
+proof (cases "l > 0")
+  case False
+  then show ?thesis 
+    by (simp add: dvd_eq_mod_eq_0) (use neg_mod_conj [of l k] in \<open>auto simp add: le_less not_less\<close>)
+qed auto
 
-text \<open>Simplify expresions in which div and mod combine numerical constants\<close>
+text \<open>Simplify expressions in which div and mod combine numerical constants\<close>
 
 lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
   by (rule div_int_unique [of a b q r]) (simp add: eucl_rel_int_iff)
@@ -693,39 +718,56 @@ lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> 
     simp add: eucl_rel_int_iff)
 
 lemma abs_div: "(y::int) dvd x \<Longrightarrow> \<bar>x div y\<bar> = \<bar>x\<bar> div \<bar>y\<bar>"
-by (unfold dvd_def, cases "y=0", auto simp add: abs_mult)
+  unfolding dvd_def by (cases "y=0") (auto simp add: abs_mult)
 
 text\<open>Suggested by Matthias Daum\<close>
 lemma int_power_div_base:
-     "\<lbrakk>0 < m; 0 < k\<rbrakk> \<Longrightarrow> k ^ m div k = (k::int) ^ (m - Suc 0)"
-apply (subgoal_tac "k ^ m = k ^ ((m - Suc 0) + Suc 0)")
- apply (erule ssubst)
- apply (simp only: power_add)
- apply simp_all
-done
+  fixes k :: int
+  assumes "0 < m" "0 < k"
+  shows "k ^ m div k = (k::int) ^ (m - Suc 0)"
+proof -
+  have eq: "k ^ m = k ^ ((m - Suc 0) + Suc 0)"
+    by (simp add: assms)
+  show ?thesis
+    using assms by (simp only: power_add eq) auto
+qed
 
 text \<open>Distributive laws for function \<open>nat\<close>.\<close>
 
-lemma nat_div_distrib: "0 \<le> x \<Longrightarrow> nat (x div y) = nat x div nat y"
-apply (rule linorder_cases [of y 0])
-apply (simp add: div_nonneg_neg_le0)
-apply simp
-apply (simp add: nat_eq_iff pos_imp_zdiv_nonneg_iff zdiv_int)
-done
+lemma nat_div_distrib:
+  assumes "0 \<le> x"
+  shows "nat (x div y) = nat x div nat y"
+proof (cases y "0::int" rule: linorder_cases)
+  case less
+  with assms show ?thesis
+    using div_nonneg_neg_le0 by auto
+next
+  case greater
+  then show ?thesis
+    by (simp add: nat_eq_iff pos_imp_zdiv_nonneg_iff zdiv_int)
+qed auto
 
 (*Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't*)
 lemma nat_mod_distrib:
-  "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> nat (x mod y) = nat x mod nat y"
-apply (case_tac "y = 0", simp)
-apply (simp add: nat_eq_iff zmod_int)
-done
+  assumes "0 \<le> x" "0 \<le> y"
+  shows "nat (x mod y) = nat x mod nat y"
+proof (cases "y = 0")
+  case False
+  with assms show ?thesis
+    by (simp add: nat_eq_iff zmod_int)
+qed auto
 
 text\<open>Suggested by Matthias Daum\<close>
-lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
-apply (subgoal_tac "nat x div nat k < nat x")
- apply (simp add: nat_div_distrib [symmetric])
-apply (rule div_less_dividend, simp_all)
-done
+lemma int_div_less_self:
+  fixes x::int
+  assumes "0 < x" "1 < k"
+  shows  "x div k < x"
+proof -
+  have "nat x div nat k < nat x"
+    by (simp add: assms)
+  with assms show ?thesis
+    by (simp add: nat_div_distrib [symmetric])
+qed
 
 lemma mod_eq_dvd_iff_nat:
   "m mod q = n mod q \<longleftrightarrow> q dvd m - n" if "m \<ge> n" for m n q :: nat
@@ -1290,16 +1332,13 @@ code_identifier
 
 subsection \<open>Lemmas of doubtful value\<close>
 
-lemma div_geq:
-  "m div n = Suc ((m - n) div n)" if "0 < n" and " \<not> m < n" for m n :: nat
+lemma div_geq: "m div n = Suc ((m - n) div n)" if "0 < n" and " \<not> m < n" for m n :: nat
   by (rule le_div_geq) (use that in \<open>simp_all add: not_less\<close>)
 
-lemma mod_geq:
-  "m mod n = (m - n) mod n" if "\<not> m < n" for m n :: nat
+lemma mod_geq: "m mod n = (m - n) mod n" if "\<not> m < n" for m n :: nat
   by (rule le_mod_geq) (use that in \<open>simp add: not_less\<close>)
 
-lemma mod_eq_0D:
-  "\<exists>q. m = d * q" if "m mod d = 0" for m d :: nat
-  using that by (auto simp add: mod_eq_0_iff_dvd elim: dvdE)
+lemma mod_eq_0D: "\<exists>q. m = d * q" if "m mod d = 0" for m d :: nat
+  using that by (auto simp add: mod_eq_0_iff_dvd)
 
 end
