@@ -19,7 +19,7 @@ text \<open>
 
 subsection \<open>The Harmonic numbers\<close>
 
-definition harm :: "nat \<Rightarrow> 'a :: real_normed_field" where
+definition%important harm :: "nat \<Rightarrow> 'a :: real_normed_field" where
   "harm n = (\<Sum>k=1..n. inverse (of_nat k))"
 
 lemma harm_altdef: "harm n = (\<Sum>k<n. inverse (of_nat (Suc k)))"
@@ -54,7 +54,7 @@ proof -
   finally show "harm (numeral n) = harm (pred_numeral n) + inverse (numeral n)" .
 qed (simp_all add: harm_def)
 
-lemma not_convergent_harm: "\<not>convergent (harm :: nat \<Rightarrow> 'a :: real_normed_field)"
+theorem not_convergent_harm: "\<not>convergent (harm :: nat \<Rightarrow> 'a :: real_normed_field)"
 proof -
   have "convergent (\<lambda>n. norm (harm n :: 'a)) \<longleftrightarrow>
             convergent (harm :: nat \<Rightarrow> real)" by (simp add: norm_harm)
@@ -156,7 +156,7 @@ proof -
   thus ?thesis by (subst (asm) convergent_Suc_iff)
 qed
 
-lemma euler_mascheroni_LIMSEQ:
+lemma%important euler_mascheroni_LIMSEQ:
   "(\<lambda>n. harm n - ln (of_nat n) :: real) \<longlonglongrightarrow> euler_mascheroni"
   unfolding euler_mascheroni_def
   by (simp add: convergent_LIMSEQ_iff [symmetric] euler_mascheroni_convergent)
@@ -187,7 +187,7 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma alternating_harmonic_series_sums: "(\<lambda>k. (-1)^k / real_of_nat (Suc k)) sums ln 2"
+theorem alternating_harmonic_series_sums: "(\<lambda>k. (-1)^k / real_of_nat (Suc k)) sums ln 2"
 proof -
   let ?f = "\<lambda>n. harm n - ln (real_of_nat n)"
   let ?g = "\<lambda>n. if even n then 0 else (2::real)"
@@ -250,7 +250,7 @@ proof (rule Lim_transform_eventually)
 qed
 
 
-subsection \<open>Bounds on the Euler-Mascheroni constant\<close>
+subsection%unimportant \<open>Bounds on the Euler-Mascheroni constant\<close>
 
 (* TODO: Move? *)
 lemma ln_inverse_approx_le:
@@ -340,9 +340,9 @@ qed
 
 
 lemma euler_mascheroni_lower:
-        "euler_mascheroni \<ge> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 2))"
-  and euler_mascheroni_upper:
-        "euler_mascheroni \<le> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 1))"
+          "euler_mascheroni \<ge> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 2))"
+    and euler_mascheroni_upper:
+          "euler_mascheroni \<le> harm (Suc n) - ln (real_of_nat (n + 2)) + 1/real_of_nat (2 * (n + 1))"
 proof -
   define D :: "_ \<Rightarrow> real"
     where "D n = inverse (of_nat (n+1)) + ln (of_nat (n+1)) - ln (of_nat (n+2))" for n

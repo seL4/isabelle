@@ -19,7 +19,7 @@ text \<open>
 \<close>
 
 (* TODO: continuous_in \<rightarrow> integrable_on *)
-locale antimono_fun_sum_integral_diff =
+locale%important antimono_fun_sum_integral_diff =
   fixes f :: "real \<Rightarrow> real"
   assumes dec: "\<And>x y. x \<ge> 0 \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<ge> f y"
   assumes nonneg: "\<And>x. x \<ge> 0 \<Longrightarrow> f x \<ge> 0"
@@ -89,7 +89,7 @@ lemma sum_integral_diff_series_convergent: "convergent sum_integral_diff_series"
   using sum_integral_diff_series_Bseq sum_integral_diff_series_monoseq
   by (blast intro!: Bseq_monoseq_convergent)
 
-lemma integral_test:
+theorem integral_test:
   "summable (\<lambda>n. f (of_nat n)) \<longleftrightarrow> convergent (\<lambda>n. integral {0..of_nat n} f)"
 proof -
   have "summable (\<lambda>n. f (of_nat n)) \<longleftrightarrow> convergent (\<lambda>n. \<Sum>k\<le>n. f (of_nat k))"

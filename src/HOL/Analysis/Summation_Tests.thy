@@ -50,7 +50,7 @@ lemma limsup_root_limit':
   shows   "limsup (\<lambda>n. ereal (root n (norm (f n)))) = ereal l"
   by (intro limsup_root_limit tendsto_ereal assms)
 
-lemma root_test_convergence':
+theorem root_test_convergence':
   fixes f :: "nat \<Rightarrow> 'a :: banach"
   defines "l \<equiv> limsup (\<lambda>n. ereal (root n (norm (f n))))"
   assumes l: "l < 1"
@@ -82,7 +82,7 @@ proof -
     by (rule summable_comparison_test_ev[OF _ summable_geometric]) (simp add: c)
 qed
 
-lemma root_test_divergence:
+theorem root_test_divergence:
   fixes f :: "nat \<Rightarrow> 'a :: banach"
   defines "l \<equiv> limsup (\<lambda>n. ereal (root n (norm (f n))))"
   assumes l: "l > 1"
@@ -167,7 +167,7 @@ proof (induction n)
   finally show ?case by simp
 qed simp
 
-lemma condensation_test:
+theorem condensation_test:
   assumes mono: "\<And>m. 0 < m \<Longrightarrow> f (Suc m) \<le> f m"
   assumes nonneg: "\<And>n. f n \<ge> 0"
   shows "summable f \<longleftrightarrow> summable (\<lambda>n. 2^n * f (2^n))"
@@ -273,7 +273,7 @@ next
   finally show ?thesis .
 qed
 
-lemma summable_complex_powr_iff:
+theorem summable_complex_powr_iff:
   assumes "Re s < -1"
   shows   "summable (\<lambda>n. exp (of_real (ln (of_nat n)) * s))"
   by (rule summable_norm_cancel, subst abs_summable_complex_powr_iff) fact
@@ -312,7 +312,7 @@ qed
 
 subsubsection \<open>Kummer's test\<close>
 
-lemma kummers_test_convergence:
+theorem kummers_test_convergence:
   fixes f p :: "nat \<Rightarrow> real"
   assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   assumes nonneg_p: "eventually (\<lambda>n. p n \<ge> 0) sequentially"
@@ -372,7 +372,7 @@ proof -
 qed
 
 
-lemma kummers_test_divergence:
+theorem kummers_test_divergence:
   fixes f p :: "nat \<Rightarrow> real"
   assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   assumes pos_p: "eventually (\<lambda>n. p n > 0) sequentially"
@@ -403,7 +403,7 @@ qed
 
 subsubsection \<open>Ratio test\<close>
 
-lemma ratio_test_convergence:
+theorem ratio_test_convergence:
   fixes f :: "nat \<Rightarrow> real"
   assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   defines "l \<equiv> liminf (\<lambda>n. ereal (f n / f (Suc n)))"
@@ -417,7 +417,7 @@ proof (rule kummers_test_convergence[OF pos_f])
     by (cases "liminf (\<lambda>n. ereal (1 * f n / f (Suc n) - 1))") simp_all
 qed simp
 
-lemma ratio_test_divergence:
+theorem ratio_test_divergence:
   fixes f :: "nat \<Rightarrow> real"
   assumes pos_f: "eventually (\<lambda>n. f n > 0) sequentially"
   defines "l \<equiv> limsup (\<lambda>n. ereal (f n / f (Suc n)))"
@@ -434,7 +434,7 @@ qed (simp_all add: summable_const_iff)
 
 subsubsection \<open>Raabe's test\<close>
 
-lemma raabes_test_convergence:
+theorem raabes_test_convergence:
 fixes f :: "nat \<Rightarrow> real"
   assumes pos: "eventually (\<lambda>n. f n > 0) sequentially"
   defines "l \<equiv> liminf (\<lambda>n. ereal (of_nat n * (f n / f (Suc n) - 1)))"
@@ -449,7 +449,7 @@ proof (rule kummers_test_convergence)
   finally show "?l' > 0" by (cases ?l') (simp_all add: algebra_simps)
 qed (simp_all add: pos)
 
-lemma raabes_test_divergence:
+theorem raabes_test_divergence:
 fixes f :: "nat \<Rightarrow> real"
   assumes pos: "eventually (\<lambda>n. f n > 0) sequentially"
   defines "l \<equiv> limsup (\<lambda>n. ereal (of_nat n * (f n / f (Suc n) - 1)))"
@@ -473,7 +473,7 @@ text \<open>
   all inputs with a norm that is smaller than that radius and to diverge for all inputs with a
   norm that is greater.
 \<close>
-definition conv_radius :: "(nat \<Rightarrow> 'a :: banach) \<Rightarrow> ereal" where
+definition%important conv_radius :: "(nat \<Rightarrow> 'a :: banach) \<Rightarrow> ereal" where
   "conv_radius f = inverse (limsup (\<lambda>n. ereal (root n (norm (f n)))))"
 
 lemma conv_radius_cong_weak [cong]: "(\<And>n. f n = g n) \<Longrightarrow> conv_radius f = conv_radius g"
@@ -505,7 +505,7 @@ lemma conv_radius_cong:
   shows   "conv_radius f = conv_radius g"
   unfolding conv_radius_altdef by (intro Liminf_eq eventually_mono [OF assms]) auto
 
-lemma abs_summable_in_conv_radius:
+theorem abs_summable_in_conv_radius:
   fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
   assumes "ereal (norm z) < conv_radius f"
   shows   "summable (\<lambda>n. norm (f n * z ^ n))"
@@ -543,7 +543,7 @@ lemma summable_in_conv_radius:
   shows   "summable (\<lambda>n. f n * z ^ n)"
   by (rule summable_norm_cancel, rule abs_summable_in_conv_radius) fact+
 
-lemma not_summable_outside_conv_radius:
+theorem not_summable_outside_conv_radius:
   fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
   assumes "ereal (norm z) > conv_radius f"
   shows   "\<not>summable (\<lambda>n. f n * z ^ n)"

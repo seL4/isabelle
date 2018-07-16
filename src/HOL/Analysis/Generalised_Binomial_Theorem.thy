@@ -70,7 +70,7 @@ next
   with a show ?thesis by simp
 qed
 
-lemma gen_binomial_complex:
+theorem gen_binomial_complex:
   fixes z :: complex
   assumes "norm z < 1"
   shows   "(\<lambda>n. (a gchoose n) * z^n) sums (1 + z) powr a"

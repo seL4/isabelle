@@ -13,7 +13,7 @@ imports
   "HOL-Computational_Algebra.Formal_Power_Series"
 begin
 
-subsection \<open>Balls with extended real radius\<close>
+subsection%unimportant \<open>Balls with extended real radius\<close>
 
 text \<open>
   The following is a variant of @{const ball} that also allows an infinite radius.
@@ -54,13 +54,13 @@ lemma open_eball [simp, intro]: "open (eball z r)"
 
 subsection \<open>Basic properties of convergent power series\<close>
 
-definition fps_conv_radius :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> ereal" where
+definition%important fps_conv_radius :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> ereal" where
   "fps_conv_radius f = conv_radius (fps_nth f)"
 
-definition eval_fps :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition%important eval_fps :: "'a :: {banach, real_normed_div_algebra} fps \<Rightarrow> 'a \<Rightarrow> 'a" where
   "eval_fps f z = (\<Sum>n. fps_nth f n * z ^ n)"
 
-definition fps_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex fps" where
+definition%important fps_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> complex fps" where
   "fps_expansion f z0 = Abs_fps (\<lambda>n. (deriv ^^ n) f z0 / fact n)"
 
 lemma norm_summable_fps:
@@ -73,7 +73,7 @@ lemma summable_fps:
   shows "norm z < fps_conv_radius f \<Longrightarrow> summable (\<lambda>n. fps_nth f n * z ^ n)"
   by (rule summable_in_conv_radius) (simp_all add: fps_conv_radius_def)
 
-lemma sums_eval_fps:
+theorem sums_eval_fps:
   fixes f :: "'a :: {banach, real_normed_div_algebra} fps"
   assumes "norm z < fps_conv_radius f"
   shows   "(\<lambda>n. fps_nth f n * z ^ n) sums eval_fps f z"
@@ -194,7 +194,7 @@ proof (rule analytic_on_subset [OF _ assms])
 qed
 
 
-subsection \<open>Lower bounds on radius of convergence\<close>
+subsection%unimportant \<open>Lower bounds on radius of convergence\<close>
 
 lemma fps_conv_radius_deriv:
   fixes f :: "'a :: {banach, real_normed_field} fps"
@@ -447,12 +447,12 @@ qed
 
 subsection \<open>Evaluating power series\<close>
 
-lemma eval_fps_deriv:
+theorem eval_fps_deriv:
   assumes "norm z < fps_conv_radius f"
   shows   "eval_fps (fps_deriv f) z = deriv (eval_fps f) z"
   by (intro DERIV_imp_deriv [symmetric] has_field_derivative_eval_fps assms)
 
-lemma fps_nth_conv_deriv:
+theorem fps_nth_conv_deriv:
   fixes f :: "complex fps"
   assumes "fps_conv_radius f > 0"
   shows   "fps_nth f n = (deriv ^^ n) (eval_fps f) 0 / fact n"
@@ -478,7 +478,7 @@ next
   finally show ?case by (simp add: divide_simps)
 qed
 
-lemma eval_fps_eqD:
+theorem eval_fps_eqD:
   fixes f g :: "complex fps"
   assumes "fps_conv_radius f > 0" "fps_conv_radius g > 0"
   assumes "eventually (\<lambda>z. eval_fps f z = eval_fps g z) (nhds 0)"
@@ -792,7 +792,8 @@ text \<open>
   the coefficients of the series with the singularities of the function, this predicate
   is enough.
 \<close>
-definition has_fps_expansion :: "('a :: {banach,real_normed_div_algebra} \<Rightarrow> 'a) \<Rightarrow> 'a fps \<Rightarrow> bool"
+definition%important
+  has_fps_expansion :: "('a :: {banach,real_normed_div_algebra} \<Rightarrow> 'a) \<Rightarrow> 'a fps \<Rightarrow> bool"
   (infixl "has'_fps'_expansion" 60) 
   where "(f has_fps_expansion F) \<longleftrightarrow> 
             fps_conv_radius F > 0 \<and> eventually (\<lambda>z. eval_fps F z = f z) (nhds 0)"
@@ -1261,7 +1262,7 @@ proof -
     by (intro that[of ?s']) (auto simp: has_fps_expansion_def zero_ereal_def)
 qed
 
-lemma residue_fps_expansion_over_power_at_0:
+theorem residue_fps_expansion_over_power_at_0:
   assumes "f has_fps_expansion F"
   shows   "residue (\<lambda>z. f z / z ^ Suc n) 0 = fps_nth F n"
 proof -
