@@ -117,10 +117,7 @@ lemma starfunNat_sumr: "\<And>N. ( *f* (\<lambda>n. sum f {0..<n})) N = sumhr (0
 
 lemma sumhr_hrabs_approx [simp]: "sumhr (0, M, f) \<approx> sumhr (0, N, f) \<Longrightarrow> \<bar>sumhr (M, N, f)\<bar> \<approx> 0"
   using linorder_less_linear [where x = M and y = N]
-  apply auto
-  apply (drule approx_sym [THEN approx_minus_iff [THEN iffD1]])
-  apply (auto dest: approx_hrabs simp add: sumhr_split_diff)
-  done
+  by (metis (no_types, lifting) abs_zero approx_hrabs approx_minus_iff approx_refl approx_sym sumhr_eq_bounds sumhr_less_bounds_zero sumhr_split_diff)
 
 
 subsection \<open>Infinite sums: Standard and NS theorems\<close>
@@ -153,26 +150,16 @@ lemma NSsummable_NSCauchy:
       summable_iff_convergent convergent_NSconvergent_iff atLeast0LessThan[symmetric]
       NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfunNat_sumr)
   apply (cut_tac x = M and y = N in linorder_less_linear)
-  apply auto
-   apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
-   apply (rule_tac [2] approx_minus_iff [THEN iffD2])
-   apply (auto dest: approx_hrabs_zero_cancel simp: sumhr_split_diff atLeast0LessThan[symmetric])
-  done
+  by (metis approx_hrabs_zero_cancel approx_minus_iff approx_refl approx_sym sumhr_split_diff)
 
 text \<open>Terms of a convergent series tend to zero.\<close>
 lemma NSsummable_NSLIMSEQ_zero: "NSsummable f \<Longrightarrow> f \<longlonglongrightarrow>\<^sub>N\<^sub>S 0"
   apply (auto simp add: NSLIMSEQ_def NSsummable_NSCauchy)
-  apply (drule bspec)
-   apply auto
-  apply (drule_tac x = "N + 1 " in bspec)
-   apply (auto intro: HNatInfinite_add_one approx_hrabs_zero_cancel)
-  done
+  by (metis HNatInfinite_add_one approx_hrabs_zero_cancel sumhr_Suc)
 
 text \<open>Nonstandard comparison test.\<close>
 lemma NSsummable_comparison_test: "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> \<bar>f n\<bar> \<le> g n \<Longrightarrow> NSsummable g \<Longrightarrow> NSsummable f"
-  apply (fold summable_NSsummable_iff)
-  apply (rule summable_comparison_test, simp, assumption)
-  done
+  by (metis real_norm_def summable_NSsummable_iff summable_comparison_test)
 
 lemma NSsummable_rabs_comparison_test:
   "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> \<bar>f n\<bar> \<le> g n \<Longrightarrow> NSsummable g \<Longrightarrow> NSsummable (\<lambda>k. \<bar>f k\<bar>)"

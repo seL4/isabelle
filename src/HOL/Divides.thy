@@ -607,7 +607,7 @@ lemma div_neg_pos_less0:
   shows "a div b < 0"
 proof -
   have "a div b \<le> - 1 div b"
-    using Divides.zdiv_mono1 assms by auto
+    using zdiv_mono1 assms by auto
   also have "... \<le> -1"
     by (simp add: assms(2) div_eq_minus1)
   finally show ?thesis 

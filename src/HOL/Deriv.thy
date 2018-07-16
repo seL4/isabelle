@@ -1086,7 +1086,7 @@ lemmas has_derivative_floor[derivative_intros] =
 
 text \<open>Caratheodory formulation of derivative at a point\<close>
 
-lemma CARAT_DERIV: (*FIXME: SUPERSEDED BY THE ONE IN Deriv.thy. But still used by NSA/HDeriv.thy*)
+lemma CARAT_DERIV:
   "(DERIV f x :> l) \<longleftrightarrow> (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> isCont g x \<and> g x = l)"
   (is "?lhs = ?rhs")
 proof
@@ -1103,8 +1103,6 @@ proof
   qed
 next
   assume ?rhs
-  then obtain g where "(\<forall>z. f z - f x = g z * (z - x))" and "isCont g x" and "g x = l"
-    by blast
   then show ?lhs
     by (auto simp add: isCont_iff DERIV_def cong: LIM_cong)
 qed
