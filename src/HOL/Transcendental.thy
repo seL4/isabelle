@@ -7199,6 +7199,7 @@ fun sqrt_simproc ctxt ct =
         SOME (Thm.instantiate' [] (map (SOME o Thm.cterm_of ctxt o HOLogic.mk_numeral) [m, n])
                   @{thm sqrt_numeral_simproc_aux})
   end
+    handle TERM _ => NONE
 
 fun root_simproc (threshold1, threshold2) ctxt ct =
   let
@@ -7212,6 +7213,8 @@ fun root_simproc (threshold1, threshold2) ctxt ct =
           SOME (Thm.instantiate' [] (map (SOME o Thm.cterm_of ctxt o HOLogic.mk_numeral) [m, n, x])
             @{thm root_numeral_simproc_aux})
   end
+    handle TERM _ => NONE
+         | Match => NONE
 
 fun powr_simproc (threshold1, threshold2) ctxt ct =
   let
@@ -7233,6 +7236,8 @@ fun powr_simproc (threshold1, threshold2) ctxt ct =
             SOME (@{thm transitive} OF [eq_thm, thm])
           end
   end
+    handle TERM _ => NONE
+         | Match => NONE
 
 end
 \<close>
