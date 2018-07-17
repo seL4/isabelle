@@ -5804,14 +5804,11 @@ lemma lexn_length:
 by (induct n arbitrary: xs ys) auto
 
 lemma wf_lex [intro!]: "wf r ==> wf (lex r)"
-apply (unfold lex_def)
-apply (rule wf_UN)
-apply (blast intro: wf_lexn, clarify)
-apply (rename_tac m n)
-apply (subgoal_tac "m \<noteq> n")
- prefer 2 apply blast
-apply (blast dest: lexn_length not_sym)
-done
+  apply (unfold lex_def)
+  apply (rule wf_UN)
+   apply (simp add: wf_lexn)
+  apply (metis DomainE Int_emptyI RangeE lexn_length)
+  done
 
 lemma lexn_conv:
   "lexn r n =

@@ -323,12 +323,10 @@ apply (subgoal_tac
  apply (blast intro: lesssub_list_impl_same_size)
 apply (rule wf_UN)
  prefer 2
- apply clarify
  apply (rename_tac m n)
  apply (case_tac "m=n")
   apply simp
  apply (fast intro!: equals0I dest: not_sym)
-apply clarify
 apply (rename_tac n)
 apply (induct_tac n)
  apply (simp add: lesssub_def cong: conj_cong)
@@ -353,7 +351,7 @@ apply (erule impE)
  apply blast
 apply clarify
 apply (thin_tac "m \<in> M")
-apply (thin_tac "maxA#xs \<in> M")
+  apply (thin_tac "maxA#xs \<in> M")
 apply (rule bexI)
  prefer 2
  apply assumption

@@ -132,13 +132,9 @@ proof (rule wfI_pf)
 qed
 
 lemma wf_eq_minimal: "wf r \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q))"
-  apply auto
-   apply (erule wfE_min)
-    apply assumption
-   apply blast
-  apply (rule wfI_min)
-  apply auto
-  done
+  apply (rule iffI)
+   apply (blast intro:  elim!: wfE_min)
+  by (rule wfI_min) auto
 
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
@@ -223,30 +219,45 @@ proof (rule wfI_pf)
 qed
 
 text \<open>Well-foundedness of \<open>insert\<close>.\<close>
-lemma wf_insert [iff]: "wf (insert (y, x) r) \<longleftrightarrow> wf r \<and> (x, y) \<notin> r\<^sup>*"
-  apply (rule iffI)
-   apply (blast elim: wf_trancl [THEN wf_irrefl]
-      intro: rtrancl_into_trancl1 wf_subset rtrancl_mono [THEN [2] rev_subsetD])
-  apply (simp add: wf_eq_minimal)
-  apply safe
-  apply (rule allE)
-   apply assumption
-  apply (erule impE)
-   apply blast
-  apply (erule bexE)
-  apply (rename_tac a, case_tac "a = x")
-   prefer 2
-   apply blast
-  apply (case_tac "y \<in> Q")
-   prefer 2
-   apply blast
-  apply (rule_tac x = "{z. z \<in> Q \<and> (z,y) \<in> r\<^sup>*}" in allE)
-   apply assumption
-  apply (erule_tac V = "\<forall>Q. (\<exists>x. x \<in> Q) \<longrightarrow> P Q" for P in thin_rl)
-  (*essential for speed*)
-  (*blast with new substOccur fails*)
-  apply (fast intro: converse_rtrancl_into_rtrancl)
-  done
+lemma wf_insert [iff]: "wf (insert (y,x) r) \<longleftrightarrow> wf r \<and> (x,y) \<notin> r\<^sup>*" (is "?lhs = ?rhs")
+proof
+  assume ?lhs then show ?rhs
+    by (blast elim: wf_trancl [THEN wf_irrefl]
+        intro: rtrancl_into_trancl1 wf_subset rtrancl_mono [THEN subsetD])
+next
+  assume R: ?rhs 
+  then have R': "Q \<noteq> {} \<Longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)" for Q
+    by (auto simp: wf_eq_minimal)
+  show ?lhs
+    unfolding wf_eq_minimal
+  proof clarify
+    fix Q :: "'a set" and q
+    assume "q \<in> Q"
+    then obtain a where "a \<in> Q" and a: "\<And>y. (y, a) \<in> r \<Longrightarrow> y \<notin> Q"
+      using R by (auto simp: wf_eq_minimal)
+    show "\<exists>z\<in>Q. \<forall>y'. (y', z) \<in> insert (y, x) r \<longrightarrow> y' \<notin> Q"
+    proof (cases "a=x")
+      case True
+      show ?thesis
+      proof (cases "y \<in> Q")
+        case True
+        then obtain z where "z \<in> Q" "(z, y) \<in> r\<^sup>*"
+                            "\<And>z'. (z', z) \<in> r \<longrightarrow> z' \<in> Q \<longrightarrow> (z', y) \<notin> r\<^sup>*"
+          using R' [of "{z \<in> Q. (z,y) \<in> r\<^sup>*}"] by auto
+        with R show ?thesis
+          by (rule_tac x="z" in bexI) (blast intro: rtrancl_trans)
+      next
+        case False
+        then show ?thesis
+          using a \<open>a \<in> Q\<close> by blast
+      qed
+    next
+      case False
+      with a \<open>a \<in> Q\<close> show ?thesis
+        by blast
+    qed
+  qed
+qed
 
 
 subsubsection \<open>Well-foundedness of image\<close>
@@ -307,20 +318,29 @@ qed
 text \<open>Well-foundedness of indexed union with disjoint domains and ranges.\<close>
 
 lemma wf_UN:
-  assumes "\<forall>i\<in>I. wf (r i)"
-    and "\<forall>i\<in>I. \<forall>j\<in>I. r i \<noteq> r j \<longrightarrow> Domain (r i) \<inter> Range (r j) = {}"
+  assumes r: "\<And>i. i \<in> I \<Longrightarrow> wf (r i)"
+    and disj: "\<And>i j. \<lbrakk>i \<in> I; j \<in> I; r i \<noteq> r j\<rbrakk> \<Longrightarrow> Domain (r i) \<inter> Range (r j) = {}"
   shows "wf (\<Union>i\<in>I. r i)"
-  using assms
-  apply (simp only: wf_eq_minimal)
-  apply clarify
-  apply (rename_tac A a, case_tac "\<exists>i\<in>I. \<exists>a\<in>A. \<exists>b\<in>A. (b, a) \<in> r i")
-   prefer 2
-   apply force
-  apply clarify
-  apply (drule bspec, assumption)
-  apply (erule_tac x="{a. a \<in> A \<and> (\<exists>b\<in>A. (b, a) \<in> r i) }" in allE)
-  apply (blast elim!: allE)
-  done
+  unfolding wf_eq_minimal
+proof clarify
+  fix A and a :: "'b"
+  assume "a \<in> A"
+  show "\<exists>z\<in>A. \<forall>y. (y, z) \<in> UNION I r \<longrightarrow> y \<notin> A"
+  proof (cases "\<exists>i\<in>I. \<exists>a\<in>A. \<exists>b\<in>A. (b, a) \<in> r i")
+    case True
+    then obtain i b c where ibc: "i \<in> I" "b \<in> A" "c \<in> A" "(c,b) \<in> r i"
+      by blast
+    have ri: "\<And>Q. Q \<noteq> {} \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> r i \<longrightarrow> y \<notin> Q"
+      using r [OF \<open>i \<in> I\<close>] unfolding wf_eq_minimal by auto
+    show ?thesis
+      using ri [of "{a. a \<in> A \<and> (\<exists>b\<in>A. (b, a) \<in> r i) }"] ibc disj 
+      by blast
+  next
+    case False
+    with \<open>a \<in> A\<close> show ?thesis
+      by blast
+  qed
+qed
 
 lemma wfP_SUP:
   "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (Domainp (r i)) (Rangep (r j)) = bot \<Longrightarrow>
@@ -482,11 +502,14 @@ lemmas wfP_acyclicP = wf_acyclic [to_pred]
 
 subsubsection \<open>Wellfoundedness of finite acyclic relations\<close>
 
-lemma finite_acyclic_wf [rule_format]: "finite r \<Longrightarrow> acyclic r \<longrightarrow> wf r"
-  apply (erule finite_induct)
-   apply blast
-  apply (simp add: split_tupled_all)
-  done
+lemma finite_acyclic_wf:
+  assumes "finite r" "acyclic r" shows "wf r"
+  using assms
+proof (induction r rule: finite_induct)
+  case (insert x r)
+  then show ?case
+    by (cases x) simp
+qed simp
 
 lemma finite_acyclic_wf_converse: "finite r \<Longrightarrow> acyclic r \<Longrightarrow> wf (r\<inverse>)"
   apply (erule finite_converse [THEN iffD2, THEN finite_acyclic_wf])
@@ -595,8 +618,7 @@ theorem accp_induct:
   apply (rule major [THEN accp.induct])
   apply (rule hyp)
    apply (rule accp.accI)
-   apply fast
-  apply fast
+   apply auto
   done
 
 lemmas accp_induct_rule = accp_induct [rule_format, induct set: accp]
@@ -631,8 +653,7 @@ theorem accp_downwards: "accp r a \<Longrightarrow> r\<^sup>*\<^sup>* b a \<Long
 theorem accp_wfPI: "\<forall>x. accp r x \<Longrightarrow> wfP r"
   apply (rule wfPUNIVI)
   apply (rule_tac P = P in accp_induct)
-   apply blast
-  apply blast
+   apply blast+
   done
 
 theorem accp_wfPD: "wfP r \<Longrightarrow> accp r x"
@@ -728,11 +749,8 @@ lemma wf_measure [iff]: "wf (measure f)"
 
 lemma wf_if_measure: "(\<And>x. P x \<Longrightarrow> f(g x) < f x) \<Longrightarrow> wf {(y,x). P x \<and> y = g x}"
   for f :: "'a \<Rightarrow> nat"
-  apply (insert wf_measure[of f])
-  apply (simp only: measure_def inv_image_def less_than_def less_eq)
-  apply (erule wf_subset)
-  apply auto
-  done
+  using wf_measure[of f] unfolding measure_def inv_image_def less_than_def less_eq
+  by (rule wf_subset) auto
 
 
 subsubsection \<open>Lexicographic combinations\<close>
@@ -742,7 +760,7 @@ definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \
   where "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
 
 lemma wf_lex_prod [intro!]: "wf ra \<Longrightarrow> wf rb \<Longrightarrow> wf (ra <*lex*> rb)"
-  apply (unfold wf_def lex_prod_def)
+  unfolding wf_def lex_prod_def
   apply (rule allI)
   apply (rule impI)
   apply (simp only: split_paired_All)
