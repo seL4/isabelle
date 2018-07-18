@@ -30,11 +30,11 @@ qualified definition sub :: "'a iarray \<Rightarrow> nat \<Rightarrow> 'a" (infi
 qualified definition length :: "'a iarray \<Rightarrow> nat" where
 [simp]: "length as = List.length (IArray.list_of as)"
 
-qualified fun all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
-"all p (IArray as) = (\<forall>a \<in> set as. p a)"
+qualified primrec all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
+"all p (IArray as) \<longleftrightarrow> (\<forall>a \<in> set as. p a)"
 
-qualified fun exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
-"exists p (IArray as) = (\<exists>a \<in> set as. p a)"
+qualified primrec exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
+"exists p (IArray as) \<longleftrightarrow> (\<exists>a \<in> set as. p a)"
 
 lemma list_of_code [code]:
 "IArray.list_of as = map (\<lambda>n. as !! n) [0 ..< IArray.length as]"
