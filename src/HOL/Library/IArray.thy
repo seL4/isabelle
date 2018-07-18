@@ -1,4 +1,4 @@
-section "Immutable Arrays with Code Generation"
+section \<open>Immutable Arrays with Code Generation\<close>
 
 theory IArray
 imports Main
@@ -43,7 +43,7 @@ by (cases as) (simp add: map_nth)
 end
 
 
-subsection "Code Generation"
+subsection \<open>Code Generation\<close>
 
 code_reserved SML Vector
 
