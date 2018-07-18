@@ -52,7 +52,7 @@ end
 subsection \<open>Generic code equations\<close>
 
 lemma [code]:
-  "size (as :: 'a iarray) = Suc (length (IArray.list_of as))"
+  "size (as :: 'a iarray) = Suc (IArray.length as)"
   by (cases as) simp
 
 lemma [code]:
