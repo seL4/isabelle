@@ -7,7 +7,7 @@ Paulson.
 *)
 
 theory Quotient_Int
-imports "HOL-Library.Quotient_Product" HOL.Nat
+imports "HOL-Library.Quotient_Product"
 begin
 
 fun
