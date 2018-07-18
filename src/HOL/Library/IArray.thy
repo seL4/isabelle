@@ -1,17 +1,19 @@
+(*  Title:      HOL/Library/IArray.thy
+    Author:     Tobias Nipkow, TU Muenchen
+*)
+
 section \<open>Immutable Arrays with Code Generation\<close>
 
 theory IArray
 imports Main
 begin
 
-text\<open>Immutable arrays are lists wrapped up in an additional constructor.
+subsection \<open>Fundamental operations\<close>
+
+text \<open>Immutable arrays are lists wrapped up in an additional constructor.
 There are no update operations. Hence code generation can safely implement
 this type by efficient target language arrays.  Currently only SML is
-provided. Should be extended to other target languages and more operations.
-
-Note that arrays cannot be printed directly but only by turning them into
-lists first. Arrays could be converted back into lists for printing if they
-were wrapped up in an additional constructor.\<close>
+provided. Could be extended to other target languages and more operations.\<close>
 
 context
 begin
@@ -47,15 +49,7 @@ using that by (simp add: map_nth)
 end
 
 
-subsection \<open>Code Generation\<close>
-
-code_reserved SML Vector
-
-code_printing
-  type_constructor iarray \<rightharpoonup> (SML) "_ Vector.vector"
-| constant IArray \<rightharpoonup> (SML) "Vector.fromList"
-| constant IArray.all \<rightharpoonup> (SML) "Vector.all"
-| constant IArray.exists \<rightharpoonup> (SML) "Vector.exists"
+subsection \<open>Generic code equations\<close>
 
 lemma [code]:
   "size (as :: 'a iarray) = Suc (length (IArray.list_of as))"
@@ -89,56 +83,6 @@ lemma [code]:
   "HOL.equal as bs \<longleftrightarrow> HOL.equal (IArray.list_of as) (IArray.list_of bs)"
   by (cases as, cases bs) (simp add: equal)
 
-context
-begin
-
-qualified primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
-  "tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
-
-end
-
-lemma [code]:
-  "IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
-  by simp
-
-code_printing
-  constant IArray.tabulate \<rightharpoonup> (SML) "Vector.tabulate"
-
-context
-begin
-
-qualified primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
-  [code del]: "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
-
-end
-
-lemma [code]:
-  "IArray.sub' (IArray as, n) = as ! nat_of_integer n"
-  by simp
-
-lemma [code]:
-  "as !! n = IArray.sub' (as, integer_of_nat n)"
-  by simp
-
-code_printing
-  constant IArray.sub' \<rightharpoonup> (SML) "Vector.sub"
-
-context
-begin
-
-qualified definition length' :: "'a iarray \<Rightarrow> integer" where
-  [code del, simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
-
-end
-
-lemma [code]:
-  "IArray.length' (IArray as) = integer_of_nat (List.length as)" 
-  by simp
-
-lemma [code]:
-  "IArray.length as = nat_of_integer (IArray.length' as)"
-  by simp
-
 context term_syntax
 begin
 
@@ -149,7 +93,59 @@ lemma [code]:
 
 end
 
+
+subsection \<open>Auxiliary operations for code generation\<close>
+
+context
+begin
+
+qualified primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
+  "tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
+
+lemma [code]:
+  "IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
+  by simp
+
+qualified primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
+  "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
+
+lemma [code]:
+  "IArray.sub' (IArray as, n) = as ! nat_of_integer n"
+  by simp
+
+lemma [code]:
+  "as !! n = IArray.sub' (as, integer_of_nat n)"
+  by simp
+
+qualified definition length' :: "'a iarray \<Rightarrow> integer" where
+  [simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
+
+lemma [code]:
+  "IArray.length' (IArray as) = integer_of_nat (List.length as)"
+  by simp
+
+lemma [code]:
+  "IArray.length as = nat_of_integer (IArray.length' as)"
+  by simp
+
+end
+
+
+subsection \<open>Code Generation for SML\<close>
+
+text \<open>Note that arrays cannot be printed directly but only by turning them into
+lists first. Arrays could be converted back into lists for printing if they
+were wrapped up in an additional constructor.\<close>
+
+code_reserved SML Vector
+
 code_printing
-  constant IArray.length' \<rightharpoonup> (SML) "Vector.length"
+  type_constructor iarray \<rightharpoonup> (SML) "_ Vector.vector"
+| constant IArray \<rightharpoonup> (SML) "Vector.fromList"
+| constant IArray.all \<rightharpoonup> (SML) "Vector.all"
+| constant IArray.exists \<rightharpoonup> (SML) "Vector.exists"
+| constant IArray.tabulate \<rightharpoonup> (SML) "Vector.tabulate"
+| constant IArray.sub' \<rightharpoonup> (SML) "Vector.sub"
+| constant IArray.length' \<rightharpoonup> (SML) "Vector.length"
 
 end
