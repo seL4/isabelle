@@ -20,6 +20,10 @@ file for further details. Here are some notable points:
 
 * Substantial additions to HOL-Analysis.
 
+* HOL-Library.Code_Lazy: code generation for lazy evaluation.
+
+* HOL-Real_Asymp: tools for semi-automatic real asymptotics.
+
 * Isabelle server for reactive communication with other programs.
 
 * More uniform 64-bit platform support: smaller Isabelle application.
