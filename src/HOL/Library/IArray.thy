@@ -40,6 +40,10 @@ lemma list_of_code [code]:
 "IArray.list_of as = map (\<lambda>n. as !! n) [0 ..< IArray.length as]"
 by (cases as) (simp add: map_nth)
 
+lemma of_fun_nth:
+"IArray.of_fun f n !! i = f i" if "i < n"
+using that by (simp add: map_nth)
+
 end
 
 
