@@ -38,7 +38,7 @@ Authentic archives
 
 Isabelle components are managed as authentic .tar.gz archives in
 /home/isabelle/components from where they are made publicly available
-on http://isabelle.in.tum.de/components/.
+on https://isabelle.in.tum.de/components/.
 
 Visibility on the HTTP server depends on local Unix file permission:
 nonfree components should omit "read" mode for the Unix group/other;

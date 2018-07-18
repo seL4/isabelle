@@ -188,7 +188,7 @@ session "HOL-IMPP" in IMPP = HOL +
 
     This is an extension of IMP with local variables and mutually recursive
     procedures. For documentation see "Hoare Logic for Mutual Recursion and
-    Local Variables" (http://isabelle.in.tum.de/Bali/papers/FSTTCS99.html).
+    Local Variables" (https://isabelle.in.tum.de/Bali/papers/FSTTCS99.html).
   *}
   theories EvenOdd
 
