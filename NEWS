@@ -231,9 +231,6 @@ and friends the modifier is "simp flip:".
 
 *** HOL ***
 
-* New proof method "real_asymp" to prove asymptotics or real-valued 
-  functions (limits, "Big-O", etc.) automatically.
-
 * Sledgehammer: bundled version of "vampire" (for non-commercial users)
 helps to avoid fragility of "remote_vampire" service.
 
@@ -380,8 +377,8 @@ theory HOL-ex.Conditional_Parametricity_Examples for some examples.
 * Theory HOL-Library.Code_Lazy provides a new preprocessor for the code
 generator to generate code for algebraic types with lazy evaluation
 semantics even in call-by-value target languages. See the theories
-HOL-ex.Code_Lazy_Demo and HOL-Codegenerator_Test.Code_Lazy_Test for
-some examples.
+HOL-ex.Code_Lazy_Demo and HOL-Codegenerator_Test.Code_Lazy_Test for some
+examples.
 
 * Theory HOL-Library.Landau_Symbols has been moved here from AFP.
 
@@ -411,6 +408,9 @@ INCOMPATIBILITY.
 * Session HOL-Analysis: infinite products, Moebius functions, the
 Riemann mapping theorem, the Vitali covering theorem,
 change-of-variables results for integration and measures.
+
+* Session HOL-Real_Asymp: proof method "real_asymp" proves asymptotics
+or real-valued functions (limits, "Big-O", etc.) automatically.
 
 * Session HOL-Types_To_Sets: more tool support (unoverload_type combines
 internalize_sorts and unoverload) and larger experimental application
