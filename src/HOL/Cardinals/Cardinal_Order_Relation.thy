@@ -8,7 +8,7 @@ Cardinal-order relations.
 section \<open>Cardinal-Order Relations\<close>
 
 theory Cardinal_Order_Relation
-imports HOL.BNF_Cardinal_Order_Relation Wellorder_Constructions
+imports Wellorder_Constructions
 begin
 
 declare

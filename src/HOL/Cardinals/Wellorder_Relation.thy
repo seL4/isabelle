@@ -8,7 +8,7 @@ Well-order relations.
 section \<open>Well-Order Relations\<close>
 
 theory Wellorder_Relation
-imports HOL.BNF_Wellorder_Relation Wellfounded_More
+imports Wellfounded_More
 begin
 
 context wo_rel
