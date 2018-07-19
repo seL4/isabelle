@@ -76,12 +76,16 @@ lemma vanishesD: "vanishes X \<Longrightarrow> 0 < r \<Longrightarrow> \<exists>
   unfolding vanishes_def by simp
 
 lemma vanishes_const [simp]: "vanishes (\<lambda>n. c) \<longleftrightarrow> c = 0"
-  unfolding vanishes_def
-  apply (cases "c = 0")
-   apply auto
-  apply (rule exI [where x = "\<bar>c\<bar>"])
-  apply auto
-  done
+proof (cases "c = 0")
+  case True
+  then show ?thesis
+    by (simp add: vanishesI)    
+next
+  case False
+  then show ?thesis
+    unfolding vanishes_def
+    using zero_less_abs_iff by blast
+qed
 
 lemma vanishes_minus: "vanishes X \<Longrightarrow> vanishes (\<lambda>n. - X n)"
   unfolding vanishes_def by simp
@@ -290,12 +294,7 @@ lemma cauchy_not_vanishes:
     and nz: "\<not> vanishes X"
   shows "\<exists>b>0. \<exists>k. \<forall>n\<ge>k. b < \<bar>X n\<bar>"
   using cauchy_not_vanishes_cases [OF assms]
-  apply clarify
-  apply (rule exI)
-  apply (erule conjI)
-  apply (rule_tac x = k in exI)
-  apply auto
-  done
+  by (elim ex_forward conj_forward asm_rl) auto
 
 lemma cauchy_inverse [simp]:
   assumes X: "cauchy X"
@@ -378,12 +377,7 @@ lemma realrel_refl: "cauchy X \<Longrightarrow> realrel X X"
   by (simp add: realrel_def)
 
 lemma symp_realrel: "symp realrel"
-  unfolding realrel_def
-  apply (rule sympI)
-  apply clarify
-  apply (drule vanishes_minus)
-  apply simp
-  done
+  by (simp add: abs_minus_commute realrel_def symp_def vanishes_def)
 
 lemma transp_realrel: "transp realrel"
   unfolding realrel_def
@@ -440,10 +434,14 @@ lift_definition uminus_real :: "real \<Rightarrow> real" is "\<lambda>X n. - X n
   by (simp only: cauchy_minus vanishes_minus simp_thms)
 
 lift_definition times_real :: "real \<Rightarrow> real \<Rightarrow> real" is "\<lambda>X Y n. X n * Y n"
-  unfolding realrel_def mult_diff_mult
-  apply (subst (4) mult.commute)
-  apply (simp only: cauchy_mult vanishes_add vanishes_mult_bounded cauchy_imp_bounded simp_thms)
-  done
+proof -
+  fix f1 f2 f3 f4
+  have "\<lbrakk>cauchy f1; cauchy f4; vanishes (\<lambda>n. f1 n - f2 n); vanishes (\<lambda>n. f3 n - f4 n)\<rbrakk>
+       \<Longrightarrow> vanishes (\<lambda>n. f1 n * (f3 n - f4 n) + f4 n * (f1 n - f2 n))"
+    by (simp add: vanishes_add vanishes_mult_bounded cauchy_imp_bounded)
+  then show "\<lbrakk>realrel f1 f2; realrel f3 f4\<rbrakk> \<Longrightarrow> realrel (\<lambda>n. f1 n * f3 n) (\<lambda>n. f2 n * f4 n)"
+    by (simp add: mult.commute realrel_def mult_diff_mult)
+qed
 
 lift_definition inverse_real :: "real \<Rightarrow> real"
   is "\<lambda>X. if vanishes X then (\<lambda>n. 0) else (\<lambda>n. inverse (X n))"
@@ -510,17 +508,17 @@ proof
     by transfer (simp add: distrib_right realrel_def)
   show "(0::real) \<noteq> (1::real)"
     by transfer (simp add: realrel_def)
-  show "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
-    apply transfer
-    apply (simp add: realrel_def)
-    apply (rule vanishesI)
-    apply (frule (1) cauchy_not_vanishes)
-    apply clarify
-    apply (rule_tac x=k in exI)
-    apply clarify
-    apply (drule_tac x=n in spec)
-    apply simp
-    done
+  have "vanishes (\<lambda>n. inverse (X n) * X n - 1)" if X: "cauchy X" "\<not> vanishes X" for X
+  proof (rule vanishesI)
+    fix r::rat
+    assume "0 < r"
+    obtain b k where "b>0" "\<forall>n\<ge>k. b < \<bar>X n\<bar>"
+      using X cauchy_not_vanishes by blast
+    then show "\<exists>k. \<forall>n\<ge>k. \<bar>inverse (X n) * X n - 1\<bar> < r" 
+      using \<open>0 < r\<close> by force
+  qed
+  then show "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
+    by transfer (simp add: realrel_def)
   show "a div b = a * inverse b"
     by (rule divide_real_def)
   show "inverse (0::real) = 0"
@@ -595,9 +593,7 @@ lemma positive_mult: "positive x \<Longrightarrow> positive y \<Longrightarrow> 
 lemma positive_minus: "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
   apply transfer
   apply (simp add: realrel_def)
-  apply (drule (1) cauchy_not_vanishes_cases)
-  apply safe
-   apply blast+
+  apply (blast intro: dest: cauchy_not_vanishes_cases)
   done
 
 instantiation real :: linordered_field
@@ -617,38 +613,18 @@ proof
   show "\<bar>a\<bar> = (if a < 0 then - a else a)"
     by (rule abs_real_def)
   show "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a"
+       "a \<le> b \<Longrightarrow> b \<le> c \<Longrightarrow> a \<le> c"  "a \<le> a" 
+       "a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> a = b"
+       "a \<le> b \<Longrightarrow> c + a \<le> c + b"
     unfolding less_eq_real_def less_real_def
-    apply auto
-     apply (drule (1) positive_add)
-     apply (simp_all add: positive_zero)
-    done
-  show "a \<le> a"
-    unfolding less_eq_real_def by simp
-  show "a \<le> b \<Longrightarrow> b \<le> c \<Longrightarrow> a \<le> c"
-    unfolding less_eq_real_def less_real_def
-    apply auto
-    apply (drule (1) positive_add)
-    apply (simp add: algebra_simps)
-    done
-  show "a \<le> b \<Longrightarrow> b \<le> a \<Longrightarrow> a = b"
-    unfolding less_eq_real_def less_real_def
-    apply auto
-    apply (drule (1) positive_add)
-    apply (simp add: positive_zero)
-    done
-  show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    by (auto simp: less_eq_real_def less_real_def)
-    (* FIXME: Procedure int_combine_numerals: c + b - (c + a) \<equiv> b + - a *)
-    (* Should produce c + b - (c + a) \<equiv> b - a *)
+    by (force simp add: positive_zero dest: positive_add)+
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
     by (rule sgn_real_def)
   show "a \<le> b \<or> b \<le> a"
     by (auto dest!: positive_minus simp: less_eq_real_def less_real_def)
   show "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
     unfolding less_real_def
-    apply (drule (1) positive_mult)
-    apply (simp add: algebra_simps)
-    done
+    by (force simp add: algebra_simps dest: positive_mult)
 qed
 
 end
@@ -672,28 +648,30 @@ lemma of_int_Real: "of_int x = Real (\<lambda>n. of_int x)"
   by (cases x rule: int_diff_cases) (simp add: of_nat_Real diff_Real)
 
 lemma of_rat_Real: "of_rat x = Real (\<lambda>n. x)"
-  apply (induct x)
+proof (induct x)
+  case (Fract a b)
+  then show ?case 
   apply (simp add: Fract_of_int_quotient of_rat_divide)
-  apply (simp add: of_int_Real divide_inverse)
-  apply (simp add: inverse_Real mult_Real)
+  apply (simp add: of_int_Real divide_inverse inverse_Real mult_Real)
   done
+qed
 
 instance real :: archimedean_field
 proof
   show "\<exists>z. x \<le> of_int z" for x :: real
-    apply (induct x)
-    apply (frule cauchy_imp_bounded, clarify)
-    apply (rule_tac x="\<lceil>b\<rceil> + 1" in exI)
-    apply (rule less_imp_le)
-    apply (simp add: of_int_Real less_real_def diff_Real positive_Real)
-    apply (rule_tac x=1 in exI)
-    apply (simp add: algebra_simps)
-    apply (rule_tac x=0 in exI)
-    apply clarsimp
-    apply (rule le_less_trans [OF abs_ge_self])
-    apply (rule less_le_trans [OF _ le_of_int_ceiling])
-    apply simp
-    done
+  proof (induct x)
+    case (1 X)
+    then obtain b where "0 < b" and b: "\<And>n. \<bar>X n\<bar> < b"
+      by (blast dest: cauchy_imp_bounded)
+    then have "Real X < of_int (\<lceil>b\<rceil> + 1)"
+      using 1
+      apply (simp add: of_int_Real less_real_def diff_Real positive_Real)
+      apply (rule_tac x=1 in exI)
+      apply (simp add: algebra_simps)
+      by (metis abs_ge_self le_less_trans le_of_int_ceiling less_le)
+    then show ?case
+      using less_eq_real_def by blast 
+  qed
 qed
 
 instantiation real :: floor_ceiling
@@ -712,30 +690,17 @@ end
 
 subsection \<open>Completeness\<close>
 
-lemma not_positive_Real: "\<not> positive (Real X) \<longleftrightarrow> (\<forall>r>0. \<exists>k. \<forall>n\<ge>k. X n \<le> r)" if "cauchy X"
-  apply (simp only: positive_Real [OF that])
+lemma not_positive_Real: "\<not> positive (Real X) \<longleftrightarrow> (\<forall>r>0. \<exists>k. \<forall>n\<ge>k. X n \<le> r)" (is "?lhs = ?rhs")
+  if "cauchy X"
+  unfolding positive_Real [OF that]
   apply auto
    apply (unfold not_less)
    apply (erule obtain_pos_sum)
    apply (drule_tac x=s in spec)
    apply simp
    apply (drule_tac r=t in cauchyD [OF that])
-   apply clarify
-   apply (drule_tac x=k in spec)
-   apply clarsimp
-   apply (rule_tac x=n in exI)
-   apply clarify
-   apply (rename_tac m)
-   apply (drule_tac x=m in spec)
-   apply simp
-   apply (drule_tac x=n in spec)
-   apply simp
-  apply (drule spec)
-  apply (drule (1) mp)
-  apply clarify
-  apply (rename_tac i)
-  apply (rule_tac x = "max i k" in exI)
-  apply simp
+   apply fastforce
+  apply (meson le_cases)
   done
 
 lemma le_Real:
@@ -857,12 +822,7 @@ proof -
     apply (frule_tac y=y in ex_less_of_nat_mult)
     apply clarify
     apply (rule_tac x=n in exI)
-    apply (erule less_trans)
-    apply (rule mult_strict_right_mono)
-     apply (rule le_less_trans [OF _ of_nat_less_two_power])
-     apply simp
-    apply assumption
-    done
+    by (metis less_trans mult.commute mult_less_cancel_left_pos of_nat_less_two_power)
 
   have PA: "\<not> P (A n)" for n
     by (induct n) (simp_all add: a)
@@ -871,10 +831,7 @@ proof -
   have ab: "a < b"
     using a b unfolding P_def
     apply (clarsimp simp add: not_le)
-    apply (drule (1) bspec)
-    apply (drule (1) less_le_trans)
-    apply (simp add: of_rat_less)
-    done
+    using less_le_trans of_rat_less by blast
   have AB: "A n < B n" for n
     by (induct n) (simp_all add: ab C_def avg_def)
   have A_mono: "\<And>i j. i \<le> j \<Longrightarrow> A i \<le> A j"
