@@ -23,7 +23,7 @@ object Isabelle_Cronjob
   val current_log = main_dir + Path.explode("run/main.log")  // owned by log service
   val cumulative_log = main_dir + Path.explode("log/main.log")  // owned by log service
 
-  val isabelle_repos_source = "https://isabelle.in.tum.de/repos/isabelle"
+  val isabelle_repos_source = "https://isabelle.sketis.net/repos/isabelle"
   val isabelle_repos = main_dir + Path.explode("isabelle")
   val afp_repos = main_dir + Path.explode("AFP")
 

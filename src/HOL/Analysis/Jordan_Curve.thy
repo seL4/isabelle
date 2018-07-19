@@ -6,7 +6,6 @@ section \<open>The Jordan Curve Theorem and Applications\<close>
 
 theory Jordan_Curve
   imports Arcwise_Connected Further_Topology
-
 begin
 
 subsection\<open>Janiszewski's theorem\<close>
@@ -114,8 +113,8 @@ qed
 
 
 theorem Janiszewski:
-  fixes a b::complex
-  assumes "compact S" "closed T" and conST: "connected(S \<inter> T)"
+  fixes a b :: complex
+  assumes "compact S" "closed T" and conST: "connected (S \<inter> T)"
       and ccS: "connected_component (- S) a b" and ccT: "connected_component (- T) a b"
     shows "connected_component (- (S \<union> T)) a b"
 proof -
@@ -165,6 +164,7 @@ lemma Janiszewski_connected:
     shows "connected(- (S \<union> T))"
 using Janiszewski [OF ST]
 by (metis IntD1 IntD2 notST compl_sup connected_iff_connected_component)
+
 
 subsection\<open>The Jordan Curve theorem\<close>
 
@@ -219,7 +219,7 @@ proof -
 qed
 
 
-theorem Jordan_curve:
+theorem%unimportant Jordan_curve:
   fixes c :: "real \<Rightarrow> complex"
   assumes "simple_path c" and loop: "pathfinish c = pathstart c"
   obtains inner outer where
@@ -389,7 +389,7 @@ proof -
 qed
 
 
-corollary Jordan_disconnected:
+corollary%unimportant Jordan_disconnected:
   fixes c :: "real \<Rightarrow> complex"
   assumes "simple_path c" "pathfinish c = pathstart c"
     shows "\<not> connected(- path_image c)"

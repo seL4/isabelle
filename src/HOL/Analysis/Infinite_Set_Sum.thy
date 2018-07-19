@@ -86,14 +86,14 @@ qed (simp_all add: countable_PiE assms)
 
 
 
-definition abs_summable_on ::
+definition%important abs_summable_on ::
     "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool" 
     (infix "abs'_summable'_on" 50)
  where
    "f abs_summable_on A \<longleftrightarrow> integrable (count_space A) f"
 
 
-definition infsetsum ::
+definition%important infsetsum ::
     "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> 'b"
  where
    "infsetsum f A = lebesgue_integral (count_space A) f"
@@ -553,7 +553,7 @@ proof -
        (insert assms, auto simp: bij_betw_def)    
 qed
 
-lemma infsetsum_reindex:
+theorem infsetsum_reindex:
   assumes "inj_on g A"
   shows   "infsetsum f (g ` A) = infsetsum (\<lambda>x. f (g x)) A"
   by (intro infsetsum_reindex_bij_betw [symmetric] inj_on_imp_bij_betw assms)
@@ -607,7 +607,7 @@ lemma norm_infsetsum_bound:
   unfolding abs_summable_on_def infsetsum_def
   by (rule Bochner_Integration.integral_norm_bound)
 
-lemma infsetsum_Sigma:
+theorem infsetsum_Sigma:
   fixes A :: "'a set" and B :: "'a \<Rightarrow> 'b set"
   assumes [simp]: "countable A" and "\<And>i. countable (B i)"
   assumes summable: "f abs_summable_on (Sigma A B)"
@@ -692,7 +692,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma abs_summable_on_Sigma_iff:
+theorem abs_summable_on_Sigma_iff:
   assumes [simp]: "countable A" and "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
   shows   "f abs_summable_on Sigma A B \<longleftrightarrow> 
              (\<forall>x\<in>A. (\<lambda>y. f (x, y)) abs_summable_on B x) \<and>
@@ -783,7 +783,7 @@ lemma abs_summable_on_Sigma_project1':
   by (intro abs_summable_on_comparison_test' [OF abs_summable_on_Sigma_project1[OF assms]]
         norm_infsetsum_bound)
 
-lemma infsetsum_prod_PiE:
+theorem infsetsum_prod_PiE:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c :: {real_normed_field,banach,second_countable_topology}"
   assumes finite: "finite A" and countable: "\<And>x. x \<in> A \<Longrightarrow> countable (B x)"
   assumes summable: "\<And>x. x \<in> A \<Longrightarrow> f x abs_summable_on B x"
