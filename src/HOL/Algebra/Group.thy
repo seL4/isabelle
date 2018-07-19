@@ -114,10 +114,8 @@ lemma (in monoid) Units_one_closed [intro, simp]:
 
 lemma (in monoid) Units_inv_closed [intro, simp]:
   "x \<in> Units G ==> inv x \<in> carrier G"
-  apply (unfold Units_def m_inv_def, auto)
-  apply (rule theI2, fast)
-   apply (fast intro: inv_unique, fast)
-  done
+  apply (simp add: Units_def m_inv_def)
+  by (metis (mono_tags, lifting) inv_unique the_equality)
 
 lemma (in monoid) Units_l_inv_ex:
   "x \<in> Units G ==> \<exists>y \<in> carrier G. y \<otimes> x = \<one>"
@@ -129,10 +127,8 @@ lemma (in monoid) Units_r_inv_ex:
 
 lemma (in monoid) Units_l_inv [simp]:
   "x \<in> Units G ==> inv x \<otimes> x = \<one>"
-  apply (unfold Units_def m_inv_def, auto)
-  apply (rule theI2, fast)
-   apply (fast intro: inv_unique, fast)
-  done
+  apply (unfold Units_def m_inv_def, simp)
+  by (metis (mono_tags, lifting) inv_unique the_equality)
 
 lemma (in monoid) Units_r_inv [simp]:
   "x \<in> Units G ==> x \<otimes> inv x = \<one>"
@@ -415,16 +411,15 @@ lemma (in group) int_pow_neg:
   by (simp add: int_pow_def2)
 
 lemma (in group) int_pow_mult:
-  "x \<in> carrier G \<Longrightarrow> x [^] (i + j::int) = x [^] i \<otimes> x [^] j"
+  assumes "x \<in> carrier G" shows "x [^] (i + j::int) = x [^] i \<otimes> x [^] j"
 proof -
   have [simp]: "-i - j = -j - i" by simp
-  assume "x \<in> carrier G" then
   show ?thesis
-    by (auto simp add: int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult )
+    by (auto simp add: assms int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult )
 qed
 
 lemma (in group) nat_pow_inv:
-  "x \<in> carrier G \<Longrightarrow> (inv x) [^] (i :: nat) = inv (x [^] i)"
+  assumes "x \<in> carrier G" shows "(inv x) [^] (i :: nat) = inv (x [^] i)"
 proof (induction i)
   case 0 thus ?case by simp
 next
@@ -434,9 +429,9 @@ next
   also have " ... = (inv (x [^] i)) \<otimes> inv x"
     by (simp add: Suc.IH Suc.prems)
   also have " ... = inv (x \<otimes> (x [^] i))"
-    using inv_mult_group[OF Suc.prems nat_pow_closed[OF Suc.prems, of i]] by simp
+    by (simp add: assms inv_mult_group)
   also have " ... = inv (x [^] (Suc i))"
-    using Suc.prems nat_pow_Suc2 by auto
+    using assms nat_pow_Suc2 by auto
   finally show ?case .
 qed
 
@@ -475,13 +470,13 @@ qed
 
 lemma (in group) int_pow_diff:
   "x \<in> carrier G \<Longrightarrow> x [^] (n - m :: int) = x [^] n \<otimes> inv (x [^] m)"
-by(simp only: diff_conv_add_uminus int_pow_mult int_pow_neg)
+  by(simp only: diff_conv_add_uminus int_pow_mult int_pow_neg)
 
 lemma (in group) inj_on_multc: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. x \<otimes> c) (carrier G)"
-by(simp add: inj_on_def)
+  by(simp add: inj_on_def)
 
 lemma (in group) inj_on_cmult: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. c \<otimes> x) (carrier G)"
-by(simp add: inj_on_def)
+  by(simp add: inj_on_def)
 
 (*Following subsection contributed by Martin Baillon*)
 subsection \<open>Submonoids\<close>
@@ -736,20 +731,16 @@ proof -
            simp add: DirProd_def)
 qed
 
-lemma carrier_DirProd [simp]:
-     "carrier (G \<times>\<times> H) = carrier G \<times> carrier H"
+lemma carrier_DirProd [simp]: "carrier (G \<times>\<times> H) = carrier G \<times> carrier H"
   by (simp add: DirProd_def)
 
-lemma one_DirProd [simp]:
-     "\<one>\<^bsub>G \<times>\<times> H\<^esub> = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)"
+lemma one_DirProd [simp]: "\<one>\<^bsub>G \<times>\<times> H\<^esub> = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)"
   by (simp add: DirProd_def)
 
-lemma mult_DirProd [simp]:
-     "(g, h) \<otimes>\<^bsub>(G \<times>\<times> H)\<^esub> (g', h') = (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')"
+lemma mult_DirProd [simp]: "(g, h) \<otimes>\<^bsub>(G \<times>\<times> H)\<^esub> (g', h') = (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')"
   by (simp add: DirProd_def)
 
-lemma DirProd_assoc :
-"(G \<times>\<times> H \<times>\<times> I) = (G \<times>\<times> (H \<times>\<times> I))"
+lemma DirProd_assoc: "(G \<times>\<times> H \<times>\<times> I) = (G \<times>\<times> (H \<times>\<times> I))"
   by auto
 
 lemma inv_DirProd [simp]:
@@ -841,8 +832,8 @@ corollary (in group) iso_sym: "G \<cong> H \<Longrightarrow> H \<cong> G"
   using iso_set_sym unfolding is_iso_def by auto
 
 lemma (in group) iso_set_trans:
-     "[|h \<in> iso G H; i \<in> iso H I|] ==> (compose (carrier G) i h) \<in> iso G I"
-by (auto simp add: iso_def hom_compose bij_betw_compose)
+  "[|h \<in> iso G H; i \<in> iso H I|] ==> (compose (carrier G) i h) \<in> iso G I"
+  by (auto simp add: iso_def hom_compose bij_betw_compose)
 
 corollary (in group) iso_trans: "\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Longrightarrow> G \<cong> I"
   using iso_set_trans unfolding is_iso_def by blast
@@ -918,12 +909,11 @@ proof -
     using iso_set_sym assms unfolding is_iso_def by blast
   define \<psi> where psi_def: "\<psi> = inv_into (carrier G) \<phi>"
 
-  from phi
   have surj: "\<phi> ` (carrier G) = (carrier H)" "\<psi> ` (carrier H) = (carrier G)"
    and inj: "inj_on \<phi> (carrier G)" "inj_on \<psi> (carrier H)"
    and phi_hom: "\<And>g1 g2. \<lbrakk> g1 \<in> carrier G; g2 \<in> carrier G \<rbrakk> \<Longrightarrow> \<phi> (g1 \<otimes> g2) = (\<phi> g1) \<otimes>\<^bsub>H\<^esub> (\<phi> g2)"
    and psi_hom: "\<And>h1 h2. \<lbrakk> h1 \<in> carrier H; h2 \<in> carrier H \<rbrakk> \<Longrightarrow> \<psi> (h1 \<otimes>\<^bsub>H\<^esub> h2) = (\<psi> h1) \<otimes> (\<psi> h2)"
-   using psi_def unfolding iso_def bij_betw_def hom_def by auto
+   using phi psi_def unfolding iso_def bij_betw_def hom_def by auto
 
   have phi_one: "\<phi> \<one> = \<one>\<^bsub>H\<^esub>"
   proof -
@@ -1007,8 +997,7 @@ proof-
 qed
 
 corollary (in group) DirProd_iso_trans :
-  assumes "G \<cong> G2"
-    and "H \<cong> I"
+  assumes "G \<cong> G2" and "H \<cong> I"
   shows "G \<times>\<times> H \<cong> G2 \<times>\<times> I"
   using DirProd_iso_set_trans assms unfolding is_iso_def by blast
 
@@ -1033,12 +1022,10 @@ proof -
   with homh [unfolded hom_def] show ?thesis by auto
 qed
 
-lemma (in group_hom) one_closed [simp]:
-  "h \<one> \<in> carrier H"
+lemma (in group_hom) one_closed [simp]: "h \<one> \<in> carrier H"
   by simp
 
-lemma (in group_hom) hom_one [simp]:
-  "h \<one> = \<one>\<^bsub>H\<^esub>"
+lemma (in group_hom) hom_one [simp]: "h \<one> = \<one>\<^bsub>H\<^esub>"
 proof -
   have "h \<one> \<otimes>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = h \<one> \<otimes>\<^bsub>H\<^esub> h \<one>"
     by (simp add: hom_mult [symmetric] del: hom_mult)
@@ -1050,15 +1037,11 @@ lemma (in group_hom) inv_closed [simp]:
   by simp
 
 lemma (in group_hom) hom_inv [simp]:
-  "x \<in> carrier G ==> h (inv x) = inv\<^bsub>H\<^esub> (h x)"
+  assumes "x \<in> carrier G" shows "h (inv x) = inv\<^bsub>H\<^esub> (h x)"
 proof -
-  assume x: "x \<in> carrier G"
-  then have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = \<one>\<^bsub>H\<^esub>"
-    by (simp add: hom_mult [symmetric] del: hom_mult)
-  also from x have "... = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)"
-    by (simp add: hom_mult [symmetric] del: hom_mult)
-  finally have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)" .
-  with x show ?thesis by (simp del: H.r_inv H.Units_r_inv)
+  have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)" 
+    using assms by (simp flip: hom_mult)
+  with assms show ?thesis by (simp del: H.r_inv H.Units_r_inv)
 qed
 
 (* Contributed by Joachim Breitner *)
@@ -1182,8 +1165,7 @@ qed
 locale comm_group = comm_monoid + group
 
 lemma (in group) group_comm_groupI:
-  assumes m_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==>
-      x \<otimes> y = y \<otimes> x"
+  assumes m_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y = y \<otimes> x"
   shows "comm_group G"
   by standard (simp_all add: m_comm)
 
