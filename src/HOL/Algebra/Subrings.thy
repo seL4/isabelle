@@ -67,12 +67,16 @@ proof (rule subringI, auto simp add: assms subringE[of _ R])
     using assms subringE(1)[of _ R] by blast
 qed
 
-lemma (in subring) subring_is_ring:
-  assumes "ring R"
-  shows "ring (R \<lparr> carrier := H \<rparr>)"
-  apply unfold_locales
-  using assms subring_axioms submonoid.one_closed[OF subgroup_is_submonoid] subgroup_is_group
-  by (simp_all add: subringE ring.ring_simprules abelian_group.a_group group.Units_eq ring_def)
+lemma (in ring) subring_is_ring:
+  assumes "subring H R" shows "ring (R \<lparr> carrier := H \<rparr>)"
+proof -
+  interpret group "add_monoid (R \<lparr> carrier := H \<rparr>)" + monoid "R \<lparr> carrier := H \<rparr>"
+    using subgroup.subgroup_is_group[OF subring.axioms(1) add.is_group] assms
+          submonoid.submonoid_is_monoid[OF subring.axioms(2) monoid_axioms] by auto
+  show ?thesis
+    using subringE(1)[OF assms]
+    by (unfold_locales, simp_all add: subringE(1)[OF assms] add.m_comm subset_eq l_distr r_distr)
+qed
 
 lemma (in ring) ring_incl_imp_subring:
   assumes "H \<subseteq> carrier R"
@@ -86,9 +90,9 @@ lemma (in ring) ring_incl_imp_subring:
 lemma (in ring) subring_iff:
   assumes "H \<subseteq> carrier R"
   shows "subring H R \<longleftrightarrow> ring (R \<lparr> carrier := H \<rparr>)"
-  using subring.subring_is_ring[OF _ ring_axioms] ring_incl_imp_subring[OF assms] by auto
+  using subring_is_ring ring_incl_imp_subring[OF assms] by auto
 
-  
+
 subsubsection \<open>Subcrings\<close>
 
 lemma (in ring) subcringI:
@@ -216,6 +220,10 @@ next
     using subdomain.intro[OF subcring] domain.integral[OF A] domain.one_not_zero[OF A]
     unfolding subdomain_axioms_def by auto
 qed
+
+lemma (in domain) subring_is_domain:
+  assumes "subring H R" shows "domain (R \<lparr> carrier := H \<rparr>)"
+  using subdomainI'[OF assms] unfolding subdomain_iff[OF subringE(1)[OF assms]] .
 
 
 subsubsection \<open>Subfields\<close>
@@ -370,7 +378,7 @@ lemma (in ring) hom_imp_img_subring:
   shows "ring (S \<lparr> carrier := h ` K, one := h \<one>, zero := h \<zero> \<rparr>)"
 proof -
   have "ring (R \<lparr> carrier := K \<rparr>)"
-    using subring.subring_is_ring[OF assms(2) ring_axioms] by simp
+    by (simp add: assms(2) subring_is_ring)
   moreover have "h \<in> ring_hom (R \<lparr> carrier := K \<rparr>) S"
     using assms subringE(1)[OF assms (2)] unfolding ring_hom_def
     apply simp
@@ -398,17 +406,17 @@ proof -
   have K: "K \<subseteq> carrier R" "subring K R" "subring (h ` K) S"
     using subfieldE(1)[OF assms(1)] subringE(1) img_is_subring by auto
   have field: "field (R \<lparr> carrier := K \<rparr>)"
-   and ring: "ring (R \<lparr> carrier := K \<rparr>)" "ring (S \<lparr> carrier := h ` K \<rparr>)"
-    using R.subfield_iff assms(1)
-          subring.subring_is_ring[OF K(2) R.ring_axioms]
-          subring.subring_is_ring[OF K(3) S.ring_axioms] by auto
-
-  hence h: "h \<in> ring_hom (R \<lparr> carrier := K \<rparr>) (S \<lparr> carrier := h ` K \<rparr>)"
+    using R.subfield_iff(2) \<open>subfield K R\<close> by blast
+  moreover have ring: "ring (R \<lparr> carrier := K \<rparr>)"
+    using K R.ring_axioms R.subring_is_ring by blast
+  moreover have ringS: "ring (S \<lparr> carrier := h ` K \<rparr>)"
+    using subring_is_ring K by simp
+  ultimately have h: "h \<in> ring_hom (R \<lparr> carrier := K \<rparr>) (S \<lparr> carrier := h ` K \<rparr>)"
     unfolding ring_hom_def apply auto
     using ring_hom_memE[OF homh] K
     by (meson contra_subsetD)+
   hence ring_hom: "ring_hom_ring (R \<lparr> carrier := K \<rparr>) (S \<lparr> carrier := h ` K \<rparr>) h"
-    using ring_axioms ring ring_hom_ringI2 by blast
+    using ring_axioms ring ringS ring_hom_ringI2 by blast
   have "h ` K \<noteq> { \<zero>\<^bsub>S\<^esub> }"
     using subfieldE(1, 5)[OF assms(1)] subringE(3) assms(2)
     by (metis hom_one image_eqI singletonD)
