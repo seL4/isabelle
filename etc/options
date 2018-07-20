@@ -92,6 +92,8 @@ option quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
 option skip_proofs : bool = false
   -- "skip over proofs (implicit 'sorry')"
+option strict_facts : bool = false
+  -- "force lazy facts when defined in context"
 
 
 section "Global Session Parameters"

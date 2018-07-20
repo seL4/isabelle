@@ -22,6 +22,12 @@ formerly global "HOL-Probability.Probability" and "HOL-SPARK.SPARK".
 * Global facts need to be closed: no free variables and no hypotheses.
 Rare INCOMPATIBILITY.
 
+* Facts stemming from locale interpretation are subject to lazy
+evaluation for improved performance. Rare INCOMPATIBILITY: errors
+stemming from interpretation morphisms might be deferred and thus
+difficult to locate; enable system option "strict_facts" temporarily to
+avoid this.
+
 * Marginal comments need to be written exclusively in the new-style form
 "\<comment> \<open>text\<close>", old ASCII variants like "-- {* ... *}" are no longer
 supported. INCOMPATIBILITY, use the command-line tool "isabelle

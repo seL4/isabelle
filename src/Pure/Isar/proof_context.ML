@@ -1077,7 +1077,8 @@ in
 fun add_thms_lazy kind (b, ths) ctxt =
   let
     val name = full_name ctxt b;
-    val ths' = ths
+    val ths' =
+      Global_Theory.check_thms_lazy ths
       |> Lazy.map_finished (Global_Theory.name_thms true false name #> map (Thm.kind_rule kind));
     val (_, ctxt') = add_facts {index = is_stmt ctxt} (b, ths') ctxt;
   in ctxt' end;

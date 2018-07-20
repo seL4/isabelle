@@ -24,6 +24,7 @@ sig
   val name_thm: bool -> bool -> string -> thm -> thm
   val name_thms: bool -> bool -> string -> thm list -> thm list
   val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
+  val check_thms_lazy: thm list lazy -> thm list lazy
   val add_thms_lazy: string -> (binding * thm list lazy) -> theory -> theory
   val store_thm: binding * thm -> theory -> thm * theory
   val store_thm_open: binding * thm -> theory -> thm * theory
@@ -156,12 +157,16 @@ fun add_facts (b, fact) thy =
     thy |> Data.map (Facts.add_static (Context.Theory thy) {strict = true, index = false} arg #> #2)
   end;
 
+fun check_thms_lazy (thms: thm list lazy) =
+  if Options.default_bool "strict_facts" then (Lazy.force thms; thms) else thms;
+
 fun add_thms_lazy kind (b, thms) thy =
-  if Binding.is_empty b then Thm.register_proofs thms thy
+  if Binding.is_empty b then Thm.register_proofs (check_thms_lazy thms) thy
   else
     let
       val name = Sign.full_name thy b;
-      val thms' = thms
+      val thms' =
+        check_thms_lazy thms
         |> Lazy.map_finished (name_thms true true name #> map (Thm.kind_rule kind));
     in thy |> Thm.register_proofs thms' |> add_facts (b, thms') end;
 
