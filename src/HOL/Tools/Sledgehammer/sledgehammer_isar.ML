@@ -424,8 +424,13 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                    (case isar_proof of
                      Proof (_, _, [Prove (_, _, _, _, _, (_, gfs), meth :: _, _)]) =>
                      let
-                       val used_facts' = filter (fn (s, (sc, _)) =>
-                         member (op =) gfs s andalso sc <> Chained) used_facts
+                       val used_facts' =
+                         map_filter (fn s =>
+                            if exists (fn (s', (sc, _)) => s' = s andalso sc = Chained)
+                                used_facts then
+                              NONE
+                            else
+                              SOME (s, (Global, General))) gfs
                      in
                        ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
                      end)
