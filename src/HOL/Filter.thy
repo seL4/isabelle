@@ -1104,6 +1104,34 @@ lemma prod_filter_INF1: "I \<noteq> {} \<Longrightarrow> (\<Sqinter>i\<in>I. A i
 lemma prod_filter_INF2: "J \<noteq> {} \<Longrightarrow> A \<times>\<^sub>F (\<Sqinter>i\<in>J. B i) = (\<Sqinter>i\<in>J. A \<times>\<^sub>F B i)"
   using prod_filter_INF[of "{A}" J "\<lambda>x. x" B] by simp
 
+lemma prod_filtermap1: "prod_filter (filtermap f F) G = filtermap (apfst f) (prod_filter F G)"
+  apply(clarsimp simp add: filter_eq_iff eventually_filtermap eventually_prod_filter; safe)
+  subgoal by auto
+  subgoal for P Q R by(rule exI[where x="\<lambda>y. \<exists>x. y = f x \<and> Q x"])(auto intro: eventually_mono)
+  done
+
+lemma prod_filtermap2: "prod_filter F (filtermap g G) = filtermap (apsnd g) (prod_filter F G)"
+  apply(clarsimp simp add: filter_eq_iff eventually_filtermap eventually_prod_filter; safe)
+  subgoal by auto
+  subgoal for P Q R  by(auto intro: exI[where x="\<lambda>y. \<exists>x. y = g x \<and> R x"] eventually_mono)
+  done
+
+lemma prod_filter_assoc:
+  "prod_filter (prod_filter F G) H = filtermap (\<lambda>(x, y, z). ((x, y), z)) (prod_filter F (prod_filter G H))"
+  apply(clarsimp simp add: filter_eq_iff eventually_filtermap eventually_prod_filter; safe)
+  subgoal for P Q R S T by(auto 4 4 intro: exI[where x="\<lambda>(a, b). T a \<and> S b"])
+  subgoal for P Q R S T by(auto 4 3 intro: exI[where x="\<lambda>(a, b). Q a \<and> S b"])
+  done
+
+lemma prod_filter_principal_singleton: "prod_filter (principal {x}) F = filtermap (Pair x) F"
+  by(fastforce simp add: filter_eq_iff eventually_prod_filter eventually_principal eventually_filtermap elim: eventually_mono intro: exI[where x="\<lambda>a. a = x"])
+
+lemma prod_filter_principal_singleton2: "prod_filter F (principal {x}) = filtermap (\<lambda>a. (a, x)) F"
+  by(fastforce simp add: filter_eq_iff eventually_prod_filter eventually_principal eventually_filtermap elim: eventually_mono intro: exI[where x="\<lambda>a. a = x"])
+
+lemma prod_filter_commute: "prod_filter F G = filtermap prod.swap (prod_filter G F)"
+  by(auto simp add: filter_eq_iff eventually_prod_filter eventually_filtermap)
+
 subsection \<open>Limits\<close>
 
 definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter \<Rightarrow> bool" where
@@ -1698,6 +1726,50 @@ end
 end
 
 end
+
+lemma prod_filter_parametric [transfer_rule]: includes lifting_syntax shows
+   "(rel_filter R ===> rel_filter S ===> rel_filter (rel_prod R S)) prod_filter prod_filter"
+proof(intro rel_funI; elim rel_filter.cases; hypsubst)
+  fix F G
+  assume F: "\<forall>\<^sub>F (x, y) in F. R x y" and G: "\<forall>\<^sub>F (x, y) in G. S x y"
+  show "rel_filter (rel_prod R S)
+    (map_filter_on {(x, y). R x y} fst F \<times>\<^sub>F map_filter_on {(x, y). S x y} fst G)
+    (map_filter_on {(x, y). R x y} snd F \<times>\<^sub>F map_filter_on {(x, y). S x y} snd G)"
+    (is "rel_filter ?RS ?F ?G")
+  proof
+    let ?Z = "filtermap (\<lambda>((a, b), (a', b')). ((a, a'), (b, b'))) (prod_filter F G)"
+    show *: "\<forall>\<^sub>F (x, y) in ?Z. rel_prod R S x y" using F G
+      by(auto simp add: eventually_filtermap split_beta eventually_prod_filter)
+    show "map_filter_on {(x, y). ?RS x y} fst ?Z = ?F"
+      using F G
+      apply(clarsimp simp add: filter_eq_iff eventually_map_filter_on *)
+      apply(simp add: eventually_filtermap split_beta eventually_prod_filter)
+      apply(subst eventually_map_filter_on; simp)+
+      apply(rule iffI; clarsimp)
+      subgoal for P P' P''
+        apply(rule exI[where x="\<lambda>a. \<exists>b. P' (a, b) \<and> R a b"]; rule conjI)
+        subgoal by(fastforce elim: eventually_rev_mp eventually_mono)
+        subgoal
+          by(rule exI[where x="\<lambda>a. \<exists>b. P'' (a, b) \<and> S a b"])(fastforce elim: eventually_rev_mp eventually_mono)
+        done
+      subgoal by fastforce
+      done
+    show "map_filter_on {(x, y). ?RS x y} snd ?Z = ?G"
+      using F G
+      apply(clarsimp simp add: filter_eq_iff eventually_map_filter_on *)
+      apply(simp add: eventually_filtermap split_beta eventually_prod_filter)
+      apply(subst eventually_map_filter_on; simp)+
+      apply(rule iffI; clarsimp)
+      subgoal for P P' P''
+        apply(rule exI[where x="\<lambda>b. \<exists>a. P' (a, b) \<and> R a b"]; rule conjI)
+        subgoal by(fastforce elim: eventually_rev_mp eventually_mono)
+        subgoal
+          by(rule exI[where x="\<lambda>b. \<exists>a. P'' (a, b) \<and> S a b"])(fastforce elim: eventually_rev_mp eventually_mono)
+        done
+      subgoal by fastforce
+      done
+  qed
+qed
 
 text \<open>Code generation for filters\<close>
 
