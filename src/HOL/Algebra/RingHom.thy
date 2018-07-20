@@ -20,12 +20,8 @@ sublocale ring_hom_cring \<subseteq> ring: ring_hom_ring
   by standard (rule homh)
 
 sublocale ring_hom_ring \<subseteq> abelian_group?: abelian_group_hom R S
-apply (rule abelian_group_homI)
-  apply (rule R.is_abelian_group)
- apply (rule S.is_abelian_group)
-apply (intro group_hom.intro group_hom_axioms.intro)
-  apply (rule R.a_group)
- apply (rule S.a_group)
+apply (intro abelian_group_homI R.is_abelian_group S.is_abelian_group)
+apply (intro group_hom.intro group_hom_axioms.intro R.a_group S.a_group)
 apply (insert homh, unfold hom_def ring_hom_def)
 apply simp
 done
@@ -178,30 +174,35 @@ qed
 corollary (in ring_hom_ring) rcos_eq_homeq:
   assumes acarr: "a \<in> carrier R"
   shows "(a_kernel R S h) +> a = {x \<in> carrier R. h x = h a}"
-apply rule defer 1
-apply clarsimp defer 1
+  apply rule defer 1
+   apply clarsimp defer 1
 proof
   interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
 
   fix x
   assume xrcos: "x \<in> a_kernel R S h +> a"
   from acarr and this
-      have xcarr: "x \<in> carrier R"
-      by (rule a_elemrcos_carrier)
+  have xcarr: "x \<in> carrier R"
+    by (rule a_elemrcos_carrier)
 
   from xrcos
-      have "h x = h a" by (rule rcos_imp_homeq[OF acarr])
+  have "h x = h a" by (rule rcos_imp_homeq[OF acarr])
   from xcarr and this
-      show "x \<in> {x \<in> carrier R. h x = h a}" by fast
+  show "x \<in> {x \<in> carrier R. h x = h a}" by fast
 next
   interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
 
   fix x
   assume xcarr: "x \<in> carrier R"
-     and hx: "h x = h a"
+    and hx: "h x = h a"
   from acarr xcarr hx
-      show "x \<in> a_kernel R S h +> a" by (rule homeq_imp_rcos)
+  show "x \<in> a_kernel R S h +> a" by (rule homeq_imp_rcos)
 qed
+
+lemma (in ring_hom_ring) nat_pow_hom:
+  "x \<in> carrier R \<Longrightarrow> h (x [^] (n :: nat)) = (h x) [^]\<^bsub>S\<^esub> n"
+  by (induct n) (auto)
+
 
 (*contributed by Paulo Emílio de Vilhena*)
 lemma (in ring_hom_ring) inj_on_domain:

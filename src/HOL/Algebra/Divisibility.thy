@@ -467,6 +467,11 @@ lemma (in comm_monoid) Units_Lower: "Units G = Lower (division_rel G) (carrier G
   apply (metis Unit_eq_dividesone Units_r_inv_ex m_ac(2) one_closed)
   done
 
+lemma (in monoid_cancel) associated_iff:
+  assumes "a \<in> carrier G" "b \<in> carrier G"
+  shows "a \<sim> b \<longleftrightarrow> (\<exists>c \<in> Units G. a = b \<otimes> c)"
+  using assms associatedI2' associatedD2 by auto
+
 
 subsubsection \<open>Proper factors\<close>
 
@@ -1512,7 +1517,7 @@ qed
 subsubsection \<open>Factorial monoids and wfactors\<close>
 
 lemma (in comm_monoid_cancel) factorial_monoidI:
-  assumes wfactors_exists: "\<And>a. a \<in> carrier G \<Longrightarrow> \<exists>fs. set fs \<subseteq> carrier G \<and> wfactors G fs a"
+  assumes wfactors_exists: "\<And>a. \<lbrakk> a \<in> carrier G; a \<notin> Units G \<rbrakk> \<Longrightarrow> \<exists>fs. set fs \<subseteq> carrier G \<and> wfactors G fs a"
     and wfactors_unique:
       "\<And>a fs fs'. \<lbrakk>a \<in> carrier G; set fs \<subseteq> carrier G; set fs' \<subseteq> carrier G;
         wfactors G fs a; wfactors G fs' a\<rbrakk> \<Longrightarrow> essentially_equal G fs fs'"
@@ -1520,8 +1525,7 @@ lemma (in comm_monoid_cancel) factorial_monoidI:
 proof
   fix a
   assume acarr: "a \<in> carrier G" and anunit: "a \<notin> Units G"
-
-  from wfactors_exists[OF acarr]
+  from wfactors_exists[OF acarr anunit]
   obtain as where ascarr: "set as \<subseteq> carrier G" and afs: "wfactors G as a"
     by blast
   from wfactors_factors [OF afs ascarr] obtain a' where afs': "factors G as a'" and a'a: "a' \<sim> a"
@@ -1540,7 +1544,6 @@ proof
     by (blast elim: associatedE2)
 
   note [simp] = acarr Units_closed[OF uunit] Units_inv_closed[OF uunit]
-
   have "a = a \<otimes> \<one>" by simp
   also have "\<dots> = a \<otimes> (u \<otimes> inv u)" by (simp add: uunit)
   also have "\<dots> = a' \<otimes> inv u" by (simp add: m_assoc[symmetric] a'[symmetric])
@@ -1548,7 +1551,6 @@ proof
 
   from ascarr uunit have cr: "set (as[0:=(as!0 \<otimes> inv u)]) \<subseteq> carrier G"
     by (cases as) auto
-
   from afs' uunit a'nunit acarr ascarr have "factors G (as[0:=(as!0 \<otimes> inv u)]) a"
     by (simp add: a factors_cong_unit)
   with cr show "\<exists>fs. set fs \<subseteq> carrier G \<and> factors G fs a"
