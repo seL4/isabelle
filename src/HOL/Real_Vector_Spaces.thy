@@ -512,13 +512,11 @@ lemma le_add_iff2: "a *\<^sub>R e + c \<le> b *\<^sub>R e + d \<longleftrightarr
 
 lemma scaleR_left_mono_neg: "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c *\<^sub>R a \<le> c *\<^sub>R b"
   for a b :: "'a::ordered_real_vector"
-  apply (drule scaleR_left_mono [of _ _ "- c"], simp_all)
-  done
+  by (drule scaleR_left_mono [of _ _ "- c"], simp_all)
 
 lemma scaleR_right_mono_neg: "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R c"
   for c :: "'a::ordered_real_vector"
-  apply (drule scaleR_right_mono [of _ _ "- c"], simp_all)
-  done
+  by (drule scaleR_right_mono [of _ _ "- c"], simp_all)
 
 lemma scaleR_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a *\<^sub>R b"
   for b :: "'a::ordered_real_vector"
@@ -1433,10 +1431,7 @@ lemma prod_diff_prod: "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a
 
 lemma flip: "bounded_bilinear (\<lambda>x y. y ** x)"
   apply standard
-      apply (rule add_right)
-     apply (rule add_left)
-    apply (rule scaleR_right)
-   apply (rule scaleR_left)
+      apply (simp_all add: add_right add_left scaleR_right scaleR_left)
   by (metis bounded mult.commute)
 
 lemma comp1:
@@ -1496,11 +1491,7 @@ lemma bounded_linear_minus:
 proof -
   interpret f: bounded_linear f by fact
   show ?thesis
-    apply unfold_locales
-      apply (simp add: f.add)
-     apply (simp add: f.scaleR)
-    apply (simp add: f.bounded)
-    done
+    by unfold_locales (simp_all add: f.add f.scaleR f.bounded)
 qed
 
 lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g \<Longrightarrow> bounded_linear (\<lambda>x. f x - g x)"

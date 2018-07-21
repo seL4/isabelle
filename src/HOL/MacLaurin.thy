@@ -146,13 +146,6 @@ proof -
   qed
 qed
 
-lemma Maclaurin_objl:
-  "0 < h \<and> n > 0 \<and> diff 0 = f \<and>
-    (\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t) \<longrightarrow>
-    (\<exists>t. 0 < t \<and> t < h \<and> f h = (\<Sum>m<n. diff m 0 / (fact m) * h ^ m) + diff n t / fact n * h ^ n)"
-  for n :: nat and h :: real
-  by (blast intro: Maclaurin)
-
 lemma Maclaurin2:
   fixes n :: nat
     and h :: real
@@ -171,13 +164,6 @@ next
     by (rule Maclaurin)
   then show ?thesis by fastforce
 qed
-
-lemma Maclaurin2_objl:
-  "0 < h \<and> diff 0 = f \<and>
-    (\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t) \<longrightarrow>
-    (\<exists>t. 0 < t \<and> t \<le> h \<and> f h = (\<Sum>m<n. diff m 0 / fact m * h ^ m) + diff n t / fact n * h ^ n)"
-  for n :: nat and h :: real
-  by (blast intro: Maclaurin2)
 
 lemma Maclaurin_minus:
   fixes n :: nat and h :: real
@@ -205,23 +191,8 @@ proof -
   then show ?thesis ..
 qed
 
-lemma Maclaurin_minus_objl:
-  fixes n :: nat and h :: real
-  shows
-    "h < 0 \<and> n > 0 \<and> diff 0 = f \<and>
-      (\<forall>m t. m < n \<and> h \<le> t \<and> t \<le> 0 \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t) \<longrightarrow>
-    (\<exists>t. h < t \<and> t < 0 \<and> f h = (\<Sum>m<n. diff m 0 / fact m * h ^ m) + diff n t / fact n * h ^ n)"
-  by (blast intro: Maclaurin_minus)
-
 
 subsection \<open>More Convenient "Bidirectional" Version.\<close>
-
-(* not good for PVS sin_approx, cos_approx *)
-
-lemma Maclaurin_bi_le_lemma:
-  "n > 0 \<Longrightarrow>
-    diff 0 0 = (\<Sum>m<n. diff m 0 * 0 ^ m / (fact m)) + diff n 0 * 0 ^ n / (fact n :: real)"
-  by (induct n) auto
 
 lemma Maclaurin_bi_le:
   fixes n :: nat and x :: real
@@ -238,7 +209,7 @@ next
   proof (cases rule: linorder_cases)
     assume "x = 0"
     with \<open>n \<noteq> 0\<close> \<open>diff 0 = f\<close> DERIV have "\<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0"
-      by (auto simp add: Maclaurin_bi_le_lemma)
+      by auto
     then show ?thesis ..
   next
     assume "x < 0"
@@ -294,18 +265,9 @@ next
   then show ?thesis ..
 qed
 
-
-lemma Maclaurin_all_lt_objl:
-  fixes x :: real
-  shows
-    "diff 0 = f \<and> (\<forall>m x. DERIV (diff m) x :> diff (Suc m) x) \<and> x \<noteq> 0 \<and> n > 0 \<longrightarrow>
-    (\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and>
-      f x = (\<Sum>m<n. (diff m 0 / fact m) * x ^ m) + (diff n t / fact n) * x ^ n)"
-  by (blast intro: Maclaurin_all_lt)
-
 lemma Maclaurin_zero: "x = 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> (\<Sum>m<n. (diff m 0 / fact m) * x ^ m) = diff 0 0"
   for x :: real and n :: nat
-  by (induct n) auto
+  by simp
 
 
 lemma Maclaurin_all_le:
@@ -352,7 +314,7 @@ lemma Maclaurin_exp_lt:
   shows
     "x \<noteq> 0 \<Longrightarrow> n > 0 \<Longrightarrow>
       (\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> exp x = (\<Sum>m<n. (x ^ m) / fact m) + (exp t / fact n) * x ^ n)"
- using Maclaurin_all_lt_objl [where diff = "\<lambda>n. exp" and f = exp and x = x and n = n] by auto
+ using Maclaurin_all_lt [where diff = "\<lambda>n. exp" and f = exp and x = x and n = n] by auto
 
 lemma Maclaurin_exp_le:
   fixes x :: real and n :: nat
@@ -377,15 +339,6 @@ lemma mod_exhaust_less_4: "m mod 4 = 0 \<or> m mod 4 = 1 \<or> m mod 4 = 2 \<or>
   for m :: nat
   by auto
 
-lemma Suc_Suc_mult_two_diff_two [simp]: "n \<noteq> 0 \<Longrightarrow> Suc (Suc (2 * n - 2)) = 2 * n"
-  by (induct n) auto
-
-lemma lemma_Suc_Suc_4n_diff_2 [simp]: "n \<noteq> 0 \<Longrightarrow> Suc (Suc (4 * n - 2)) = 4 * n"
-  by (induct n) auto
-
-lemma Suc_mult_two_diff_one [simp]: "n \<noteq> 0 \<Longrightarrow> Suc (2 * n - 1) = 2 * n"
-  by (induct n) auto
-
 
 text \<open>It is unclear why so many variant results are needed.\<close>
 
@@ -395,61 +348,72 @@ lemma sin_expansion_lemma: "sin (x + real (Suc m) * pi / 2) = cos (x + real m * 
 lemma Maclaurin_sin_expansion2:
   "\<exists>t. \<bar>t\<bar> \<le> \<bar>x\<bar> \<and>
     sin x = (\<Sum>m<n. sin_coeff m * x ^ m) + (sin (t + 1/2 * real n * pi) / fact n) * x ^ n"
-  using Maclaurin_all_lt_objl
-    [where f = sin and n = n and x = x and diff = "\<lambda>n x. sin (x + 1/2 * real n * pi)"]
-  apply safe
-      apply simp
-     apply (simp add: sin_expansion_lemma del: of_nat_Suc)
-     apply (force intro!: derivative_eq_intros)
-    apply (subst (asm) sum.neutral; auto)
-   apply (rule ccontr)
-   apply simp
-   apply (drule_tac x = x in spec)
-   apply simp
-  apply (erule ssubst)
-  apply (rule_tac x = t in exI)
-  apply simp
-  apply (rule sum.cong[OF refl])
-  apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
-  done
+proof (cases "n = 0 \<or> x = 0")
+  case False
+  let ?diff = "\<lambda>n x. sin (x + 1/2 * real n * pi)"
+  have "\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> sin x =
+      (\<Sum>m<n. (?diff m 0 / fact m) * x ^ m) + (?diff n t / fact n) * x ^ n"
+  proof (rule Maclaurin_all_lt)
+    show "\<forall>m x. ((\<lambda>t. sin (t + 1/2 * real m * pi)) has_real_derivative
+           sin (x + 1/2 * real (Suc m) * pi)) (at x)"
+      by (rule allI derivative_eq_intros | use sin_expansion_lemma in force)+
+  qed (use False in auto)
+  then show ?thesis
+    apply (rule ex_forward)
+    apply simp
+    apply (rule sum.cong[OF refl])
+    apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
+    done
+qed auto
 
 lemma Maclaurin_sin_expansion:
   "\<exists>t. sin x = (\<Sum>m<n. sin_coeff m * x ^ m) + (sin (t + 1/2 * real n * pi) / fact n) * x ^ n"
   using Maclaurin_sin_expansion2 [of x n] by blast
 
 lemma Maclaurin_sin_expansion3:
-  "n > 0 \<Longrightarrow> 0 < x \<Longrightarrow>
-    \<exists>t. 0 < t \<and> t < x \<and>
-       sin x = (\<Sum>m<n. sin_coeff m * x ^ m) + (sin (t + 1/2 * real n * pi) / fact n) * x ^ n"
-  using Maclaurin_objl
-    [where f = sin and n = n and h = x and diff = "\<lambda>n x. sin (x + 1/2 * real n * pi)"]
-  apply safe
+  assumes "n > 0" "x > 0"
+    shows "\<exists>t. 0 < t \<and> t < x \<and>
+          sin x = (\<Sum>m<n. sin_coeff m * x ^ m) + (sin (t + 1/2 * real n * pi) / fact n) * x ^ n"
+proof -
+  let ?diff = "\<lambda>n x. sin (x + 1/2 * real n * pi)"
+  have "\<exists>t. 0 < t \<and> t < x \<and> sin x = (\<Sum>m<n. ?diff m 0 / (fact m) * x ^ m) + ?diff n t / fact n * x ^ n"
+  proof (rule Maclaurin)
+    show "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> x \<longrightarrow>
+                ((\<lambda>u. sin (u + 1/2 * real m * pi)) has_real_derivative
+                 sin (t + 1/2 * real (Suc m) * pi)) (at t)"
+      apply (simp add: sin_expansion_lemma del: of_nat_Suc)
+      apply (force intro!: derivative_eq_intros)
+      done
+  qed (use assms in auto)
+  then show ?thesis
+    apply (rule ex_forward)
     apply simp
-   apply (simp (no_asm) add: sin_expansion_lemma del: of_nat_Suc)
-   apply (force intro!: derivative_eq_intros)
-  apply (erule ssubst)
-  apply (rule_tac x = t in exI)
-  apply simp
-  apply (rule sum.cong[OF refl])
-  apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
-  done
+    apply (rule sum.cong[OF refl])
+    apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
+    done
+qed
 
 lemma Maclaurin_sin_expansion4:
-  "0 < x \<Longrightarrow>
-    \<exists>t. 0 < t \<and> t \<le> x \<and>
-      sin x = (\<Sum>m<n. sin_coeff m * x ^ m) + (sin (t + 1/2 * real n * pi) / fact n) * x ^ n"
-  using Maclaurin2_objl
-    [where f = sin and n = n and h = x and diff = "\<lambda>n x. sin (x + 1/2 * real n * pi)"]
-  apply safe
+  assumes "0 < x"
+  shows "\<exists>t. 0 < t \<and> t \<le> x \<and> sin x = (\<Sum>m<n. sin_coeff m * x ^ m) + (sin (t + 1/2 * real n * pi) / fact n) * x ^ n"
+proof -
+  let ?diff = "\<lambda>n x. sin (x + 1/2 * real n * pi)"
+  have "\<exists>t. 0 < t \<and> t \<le> x \<and> sin x = (\<Sum>m<n. ?diff m 0 / (fact m) * x ^ m) + ?diff n t / fact n * x ^ n"
+  proof (rule Maclaurin2)
+    show "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> x \<longrightarrow>
+                ((\<lambda>u. sin (u + 1/2 * real m * pi)) has_real_derivative
+                 sin (t + 1/2 * real (Suc m) * pi)) (at t)"
+      apply (simp add: sin_expansion_lemma del: of_nat_Suc)
+      apply (force intro!: derivative_eq_intros)
+      done
+  qed (use assms in auto)
+  then show ?thesis
+    apply (rule ex_forward)
     apply simp
-   apply (simp (no_asm) add: sin_expansion_lemma del: of_nat_Suc)
-   apply (force intro!: derivative_eq_intros)
-  apply (erule ssubst)
-  apply (rule_tac x = t in exI)
-  apply simp
-  apply (rule sum.cong[OF refl])
-  apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
-  done
+    apply (rule sum.cong[OF refl])
+    apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
+    done
+qed
 
 
 subsection \<open>Maclaurin Expansion for Cosine Function\<close>
@@ -463,56 +427,66 @@ lemma cos_expansion_lemma: "cos (x + real (Suc m) * pi / 2) = - sin (x + real m 
 lemma Maclaurin_cos_expansion:
   "\<exists>t::real. \<bar>t\<bar> \<le> \<bar>x\<bar> \<and>
     cos x = (\<Sum>m<n. cos_coeff m * x ^ m) + (cos(t + 1/2 * real n * pi) / fact n) * x ^ n"
-  using Maclaurin_all_lt_objl
-    [where f = cos and n = n and x = x and diff = "\<lambda>n x. cos (x + 1/2 * real n * pi)"]
-  apply safe
-      apply simp
-     apply (simp add: cos_expansion_lemma del: of_nat_Suc)
-    apply (cases n)
-     apply simp
-    apply (simp del: sum_lessThan_Suc)
-   apply (rule ccontr)
-   apply simp
-   apply (drule_tac x = x in spec)
-   apply simp
-  apply (erule ssubst)
-  apply (rule_tac x = t in exI)
-  apply simp
-  apply (rule sum.cong[OF refl])
-  apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
-  done
+proof (cases "n = 0 \<or> x = 0")
+  case False
+  let ?diff = "\<lambda>n x. cos (x + 1/2 * real n * pi)"
+  have "\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> cos x =
+      (\<Sum>m<n. (?diff m 0 / fact m) * x ^ m) + (?diff n t / fact n) * x ^ n"
+  proof (rule Maclaurin_all_lt)
+    show "\<forall>m x. ((\<lambda>t. cos (t + 1/2 * real m * pi)) has_real_derivative
+           cos (x + 1/2 * real (Suc m) * pi)) (at x)"
+      apply (rule allI derivative_eq_intros | simp)+
+      using cos_expansion_lemma by force
+  qed (use False in auto)
+  then show ?thesis
+    apply (rule ex_forward)
+    apply simp
+    apply (rule sum.cong[OF refl])
+    apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE simp del: of_nat_Suc)
+    done
+qed auto
 
 lemma Maclaurin_cos_expansion2:
-  "0 < x \<Longrightarrow> n > 0 \<Longrightarrow>
-    \<exists>t. 0 < t \<and> t < x \<and>
+  assumes "n > 0" "x > 0"
+  shows "\<exists>t. 0 < t \<and> t < x \<and>
       cos x = (\<Sum>m<n. cos_coeff m * x ^ m) + (cos (t + 1/2 * real n * pi) / fact n) * x ^ n"
-  using Maclaurin_objl
-    [where f = cos and n = n and h = x and diff = "\<lambda>n x. cos (x + 1/2 * real n * pi)"]
-  apply safe
+proof -
+  let ?diff = "\<lambda>n x. cos (x + 1/2 * real n * pi)"
+  have "\<exists>t. 0 < t \<and> t < x \<and> cos x = (\<Sum>m<n. ?diff m 0 / (fact m) * x ^ m) + ?diff n t / fact n * x ^ n"
+  proof (rule Maclaurin)
+    show "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> x \<longrightarrow>
+              ((\<lambda>u. cos (u + 1 / 2 * real m * pi)) has_real_derivative 
+               cos (t + 1 / 2 * real (Suc m) * pi)) (at t)"
+      by (simp add: cos_expansion_lemma del: of_nat_Suc)
+  qed (use assms in auto)
+  then show ?thesis
+    apply (rule ex_forward)
     apply simp
-   apply (simp add: cos_expansion_lemma del: of_nat_Suc)
-  apply (erule ssubst)
-  apply (rule_tac x = t in exI)
-  apply simp
-  apply (rule sum.cong[OF refl])
-  apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE)
-  done
+    apply (rule sum.cong[OF refl])
+    apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
+    done
+qed
 
 lemma Maclaurin_minus_cos_expansion:
-  "x < 0 \<Longrightarrow> n > 0 \<Longrightarrow>
-    \<exists>t. x < t \<and> t < 0 \<and>
-      cos x = (\<Sum>m<n. cos_coeff m * x ^ m) + ((cos (t + 1/2 * real n * pi) / fact n) * x ^ n)"
-  using Maclaurin_minus_objl
-    [where f = cos and n = n and h = x and diff = "\<lambda>n x. cos (x + 1/2 * real n *pi)"]
-  apply safe
+  assumes "n > 0" "x < 0"
+  shows "\<exists>t. x < t \<and> t < 0 \<and>
+         cos x = (\<Sum>m<n. cos_coeff m * x ^ m) + ((cos (t + 1/2 * real n * pi) / fact n) * x ^ n)"
+proof -
+  let ?diff = "\<lambda>n x. cos (x + 1/2 * real n * pi)"
+  have "\<exists>t. x < t \<and> t < 0 \<and> cos x = (\<Sum>m<n. ?diff m 0 / (fact m) * x ^ m) + ?diff n t / fact n * x ^ n"
+  proof (rule Maclaurin_minus)
+    show "\<forall>m t. m < n \<and> x \<le> t \<and> t \<le> 0 \<longrightarrow>
+              ((\<lambda>u. cos (u + 1 / 2 * real m * pi)) has_real_derivative 
+               cos (t + 1 / 2 * real (Suc m) * pi)) (at t)"
+      by (simp add: cos_expansion_lemma del: of_nat_Suc)
+  qed (use assms in auto)
+  then show ?thesis
+    apply (rule ex_forward)
     apply simp
-   apply (simp add: cos_expansion_lemma del: of_nat_Suc)
-  apply (erule ssubst)
-  apply (rule_tac x = t in exI)
-  apply simp
-  apply (rule sum.cong[OF refl])
-  apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE)
-  done
+    apply (rule sum.cong[OF refl])
+    apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
+    done
+qed
 
 
 (* Version for ln(1 +/- x). Where is it?? *)
