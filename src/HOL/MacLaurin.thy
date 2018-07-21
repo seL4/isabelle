@@ -48,7 +48,7 @@ proof (rule allI impI)+
     unfolding atLeast0LessThan[symmetric] by auto
   have "(\<Sum>x<n - m. real x * t ^ (x - Suc 0) * diff (m + x) 0 / fact x) =
       (\<Sum>x<n - Suc m. real (Suc x) * t ^ x * diff (Suc m + x) 0 / fact (Suc x))"
-    unfolding intvl by (subst sum.insert) (auto simp add: sum.reindex)
+    unfolding intvl by (subst sum.insert) (auto simp: sum.reindex)
   moreover
   have fact_neq_0: "\<And>x. (fact x) + real x * (fact x) \<noteq> 0"
     by (metis add_pos_pos fact_gt_zero less_add_same_cancel1 less_add_same_cancel2
@@ -359,10 +359,9 @@ proof (cases "n = 0 \<or> x = 0")
       by (rule allI derivative_eq_intros | use sin_expansion_lemma in force)+
   qed (use False in auto)
   then show ?thesis
-    apply (rule ex_forward)
-    apply simp
+    apply (rule ex_forward, simp)
     apply (rule sum.cong[OF refl])
-    apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
+    apply (auto simp: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
     done
 qed auto
 
@@ -386,10 +385,9 @@ proof -
       done
   qed (use assms in auto)
   then show ?thesis
-    apply (rule ex_forward)
-    apply simp
+    apply (rule ex_forward, simp)
     apply (rule sum.cong[OF refl])
-    apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
+    apply (auto simp: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
     done
 qed
 
@@ -408,10 +406,9 @@ proof -
       done
   qed (use assms in auto)
   then show ?thesis
-    apply (rule ex_forward)
-    apply simp
+    apply (rule ex_forward, simp)
     apply (rule sum.cong[OF refl])
-    apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
+    apply (auto simp: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
     done
 qed
 
@@ -439,15 +436,14 @@ proof (cases "n = 0 \<or> x = 0")
       using cos_expansion_lemma by force
   qed (use False in auto)
   then show ?thesis
-    apply (rule ex_forward)
-    apply simp
+    apply (rule ex_forward, simp)
     apply (rule sum.cong[OF refl])
-    apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE simp del: of_nat_Suc)
+    apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE simp del: of_nat_Suc)
     done
 qed auto
 
 lemma Maclaurin_cos_expansion2:
-  assumes "n > 0" "x > 0"
+  assumes "x > 0" "n > 0"
   shows "\<exists>t. 0 < t \<and> t < x \<and>
       cos x = (\<Sum>m<n. cos_coeff m * x ^ m) + (cos (t + 1/2 * real n * pi) / fact n) * x ^ n"
 proof -
@@ -460,10 +456,9 @@ proof -
       by (simp add: cos_expansion_lemma del: of_nat_Suc)
   qed (use assms in auto)
   then show ?thesis
-    apply (rule ex_forward)
-    apply simp
+    apply (rule ex_forward, simp)
     apply (rule sum.cong[OF refl])
-    apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
+    apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE)
     done
 qed
 
@@ -481,10 +476,9 @@ proof -
       by (simp add: cos_expansion_lemma del: of_nat_Suc)
   qed (use assms in auto)
   then show ?thesis
-    apply (rule ex_forward)
-    apply simp
+    apply (rule ex_forward, simp)
     apply (rule sum.cong[OF refl])
-    apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
+    apply (auto simp: cos_coeff_def cos_zero_iff elim: evenE)
     done
 qed
 
@@ -508,7 +502,7 @@ proof -
   have diff_0: "?diff 0 = sin" by simp
   have "DERIV (?diff m) x :> ?diff (Suc m) x" for m and x
     using mod_exhaust_less_4 [of m]
-    by (auto simp add: mod_Suc intro!: derivative_eq_intros)
+    by (auto simp: mod_Suc intro!: derivative_eq_intros)
   then have DERIV_diff: "\<forall>m x. DERIV (?diff m) x :> ?diff (Suc m) x"
     by blast
   from Maclaurin_all_le [OF diff_0 DERIV_diff]
@@ -517,7 +511,7 @@ proof -
     by fast
   have diff_m_0: "?diff m 0 = (if even m then 0 else (- 1) ^ ((m - Suc 0) div 2))" for m
     using mod_exhaust_less_4 [of m]
-    by (auto simp add: minus_one_power_iff even_even_mod_4_iff [of m] dest: even_mod_4_div_2 odd_mod_4_div_2)
+    by (auto simp: minus_one_power_iff even_even_mod_4_iff [of m] dest: even_mod_4_div_2 odd_mod_4_div_2)
   show ?thesis
     unfolding sin_coeff_def
     apply (subst t2)
