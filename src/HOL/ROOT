@@ -84,7 +84,18 @@ session "HOL-Real_Asymp" in Real_Asymp = HOL +
   theories
     Real_Asymp
     Real_Asymp_Approx
-    Real_Asymp_Examples    
+    Real_Asymp_Examples
+
+session "HOL-Real_Asymp-Manual" in "Real_Asymp/Manual" = "HOL-Real_Asymp" +
+  theories
+    Real_Asymp_Doc
+  document_files (in "~~/src/Doc")
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+  document_files
+    "root.tex"
+    "style.sty"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
   description {*
