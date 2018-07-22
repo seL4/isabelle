@@ -2,8 +2,8 @@ Poly/ML for Isabelle
 ====================
 
 This compilation of Poly/ML 5.7.1 (http://www.polyml.org) is based on the
-source distribution from https://github.com/polyml/polyml/releases/tag/v5.7.1
-with commit 86c52cbd8f6d from the "fixes-5.7.1" branch.
+source distribution from https://github.com/polyml/polyml/commits/fixes-5.7.1
+commit 31643fd67f47.
 
 The Isabelle repository provides the administrative tool "build_polyml",
 which can be used in the polyml component directory as follows.
@@ -54,4 +54,4 @@ will be placed in /usr/local).
 
 
         Makarius
-        20-Jun-2018
+        22-Jul-2018
