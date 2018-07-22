@@ -54,7 +54,7 @@ fun assign (Var {name, state}) x =
           Immutable _ => immutable_fail name
         | Mutable _ =>
             Thread_Attributes.uninterruptible (fn _ => fn () =>
-             (state := Immutable x; (* FIXME RunCall.clearMutableBit state; *)
+             (state := Immutable x; RunCall.clearMutableBit state;
                ConditionVar.broadcast cond)) ())));
 
 
