@@ -16,60 +16,33 @@ definition rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Right
   where "rcoset_mult R I A B = (\<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b))"
 
 
-text \<open>@{const "rcoset_mult"} fulfils the properties required by
-  congruences\<close>
+text \<open>@{const "rcoset_mult"} fulfils the properties required by congruences\<close>
 lemma (in ideal) rcoset_mult_add:
-    "x \<in> carrier R \<Longrightarrow> y \<in> carrier R \<Longrightarrow> [mod I:] (I +> x) \<Otimes> (I +> y) = I +> (x \<otimes> y)"
-  apply rule
-  apply (rule, simp add: rcoset_mult_def, clarsimp)
-  defer 1
-  apply (rule, simp add: rcoset_mult_def)
-  defer 1
+  assumes "x \<in> carrier R" "y \<in> carrier R"
+  shows "[mod I:] (I +> x) \<Otimes> (I +> y) = I +> (x \<otimes> y)"
 proof -
-  fix z x' y'
-  assume carr: "x \<in> carrier R" "y \<in> carrier R"
-    and x'rcos: "x' \<in> I +> x"
-    and y'rcos: "y' \<in> I +> y"
-    and zrcos: "z \<in> I +> x' \<otimes> y'"
-
-  from x'rcos have "\<exists>h\<in>I. x' = h \<oplus> x"
-    by (simp add: a_r_coset_def r_coset_def)
-  then obtain hx where hxI: "hx \<in> I" and x': "x' = hx \<oplus> x"
-    by fast+
-
-  from y'rcos have "\<exists>h\<in>I. y' = h \<oplus> y"
-    by (simp add: a_r_coset_def r_coset_def)
-  then obtain hy where hyI: "hy \<in> I" and y': "y' = hy \<oplus> y"
-    by fast+
-
-  from zrcos have "\<exists>h\<in>I. z = h \<oplus> (x' \<otimes> y')"
-    by (simp add: a_r_coset_def r_coset_def)
-  then obtain hz where hzI: "hz \<in> I" and z: "z = hz \<oplus> (x' \<otimes> y')"
-    by fast+
-
-  note carr = carr hxI[THEN a_Hcarr] hyI[THEN a_Hcarr] hzI[THEN a_Hcarr]
-
-  from z have "z = hz \<oplus> (x' \<otimes> y')" .
-  also from x' y' have "\<dots> = hz \<oplus> ((hx \<oplus> x) \<otimes> (hy \<oplus> y))" by simp
-  also from carr have "\<dots> = (hz \<oplus> (hx \<otimes> (hy \<oplus> y)) \<oplus> x \<otimes> hy) \<oplus> x \<otimes> y" by algebra
-  finally have z2: "z = (hz \<oplus> (hx \<otimes> (hy \<oplus> y)) \<oplus> x \<otimes> hy) \<oplus> x \<otimes> y" .
-
-  from hxI hyI hzI carr have "hz \<oplus> (hx \<otimes> (hy \<oplus> y)) \<oplus> x \<otimes> hy \<in> I"
-    by (simp add: I_l_closed I_r_closed)
-
-  with z2 have "\<exists>h\<in>I. z = h \<oplus> x \<otimes> y" by fast
-  then show "z \<in> I +> x \<otimes> y" by (simp add: a_r_coset_def r_coset_def)
-next
-  fix z
-  assume xcarr: "x \<in> carrier R"
-    and ycarr: "y \<in> carrier R"
-    and zrcos: "z \<in> I +> x \<otimes> y"
-  from xcarr have xself: "x \<in> I +> x" by (intro a_rcos_self)
-  from ycarr have yself: "y \<in> I +> y" by (intro a_rcos_self)
-  show "\<exists>a\<in>I +> x. \<exists>b\<in>I +> y. z \<in> I +> a \<otimes> b"
-    using xself and yself and zrcos by fast
+  have 1: "z \<in> I +> x \<otimes> y" 
+    if x'rcos: "x' \<in> I +> x" and y'rcos: "y' \<in> I +> y" and zrcos: "z \<in> I +> x' \<otimes> y'" for z x' y'
+  proof -
+    from that
+    obtain hx hy hz where hxI: "hx \<in> I" and x': "x' = hx \<oplus> x" and hyI: "hy \<in> I" and y': "y' = hy \<oplus> y"
+      and hzI: "hz \<in> I" and z: "z = hz \<oplus> (x' \<otimes> y')"
+      by (auto simp: a_r_coset_def r_coset_def)
+    note carr = assms hxI[THEN a_Hcarr] hyI[THEN a_Hcarr] hzI[THEN a_Hcarr]
+    from z  x' y' have "z = hz \<oplus> ((hx \<oplus> x) \<otimes> (hy \<oplus> y))" by simp
+    also from carr have "\<dots> = (hz \<oplus> (hx \<otimes> (hy \<oplus> y)) \<oplus> x \<otimes> hy) \<oplus> x \<otimes> y" by algebra
+    finally have z2: "z = (hz \<oplus> (hx \<otimes> (hy \<oplus> y)) \<oplus> x \<otimes> hy) \<oplus> x \<otimes> y" .
+    from hxI hyI hzI carr have "hz \<oplus> (hx \<otimes> (hy \<oplus> y)) \<oplus> x \<otimes> hy \<in> I"
+      by (simp add: I_l_closed I_r_closed)
+    with z2 show ?thesis
+      by (auto simp add: a_r_coset_def r_coset_def)
+  qed
+  have 2: "\<exists>a\<in>I +> x. \<exists>b\<in>I +> y. z \<in> I +> a \<otimes> b" if "z \<in> I +> x \<otimes> y" for z
+    using assms a_rcos_self that by blast
+  show ?thesis
+    unfolding rcoset_mult_def using assms
+    by (auto simp: intro!: 1 2)
 qed
-
 
 subsection \<open>Quotient Ring Definition\<close>
 
@@ -79,59 +52,30 @@ definition FactRing :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) rin
     \<lparr>carrier = a_rcosets\<^bsub>R\<^esub> I, mult = rcoset_mult R I,
       one = (I +>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub>), zero = I, add = set_add R\<rparr>"
 
+lemmas FactRing_simps = FactRing_def A_RCOSETS_defs a_r_coset_def[symmetric]
 
 subsection \<open>Factorization over General Ideals\<close>
 
 text \<open>The quotient is a ring\<close>
 lemma (in ideal) quotient_is_ring: "ring (R Quot I)"
-apply (rule ringI)
-   \<comment> \<open>abelian group\<close>
-   apply (rule comm_group_abelian_groupI)
-   apply (simp add: FactRing_def)
-   apply (rule a_factorgroup_is_comm_group[unfolded A_FactGroup_def'])
-  \<comment> \<open>mult monoid\<close>
-  apply (rule monoidI)
-      apply (simp_all add: FactRing_def A_RCOSETS_def RCOSETS_def
-             a_r_coset_def[symmetric])
-      \<comment> \<open>mult closed\<close>
-      apply (clarify)
-      apply (simp add: rcoset_mult_add, fast)
-     \<comment> \<open>mult \<open>one_closed\<close>\<close>
-     apply force
-    \<comment> \<open>mult assoc\<close>
-    apply clarify
-    apply (simp add: rcoset_mult_add m_assoc)
-   \<comment> \<open>mult one\<close>
-   apply clarify
-   apply (simp add: rcoset_mult_add)
-  apply clarify
-  apply (simp add: rcoset_mult_add)
- \<comment> \<open>distr\<close>
- apply clarify
- apply (simp add: rcoset_mult_add a_rcos_sum l_distr)
-apply clarify
-apply (simp add: rcoset_mult_add a_rcos_sum r_distr)
-done
+proof (rule ringI)
+  show "abelian_group (R Quot I)"
+    apply (rule comm_group_abelian_groupI)
+    apply (simp add: FactRing_def a_factorgroup_is_comm_group[unfolded A_FactGroup_def'])
+    done
+  show "Group.monoid (R Quot I)"
+    by (rule monoidI)
+      (auto simp add: FactRing_simps rcoset_mult_add m_assoc)
+qed (auto simp: FactRing_simps rcoset_mult_add a_rcos_sum l_distr r_distr)
 
 
 text \<open>This is a ring homomorphism\<close>
 
 lemma (in ideal) rcos_ring_hom: "((+>) I) \<in> ring_hom R (R Quot I)"
-apply (rule ring_hom_memI)
-   apply (simp add: FactRing_def a_rcosetsI[OF a_subset])
-  apply (simp add: FactRing_def rcoset_mult_add)
- apply (simp add: FactRing_def a_rcos_sum)
-apply (simp add: FactRing_def)
-done
+  by (simp add: ring_hom_memI FactRing_def a_rcosetsI[OF a_subset] rcoset_mult_add a_rcos_sum)
 
 lemma (in ideal) rcos_ring_hom_ring: "ring_hom_ring R (R Quot I) ((+>) I)"
-apply (rule ring_hom_ringI)
-     apply (rule is_ring, rule quotient_is_ring)
-   apply (simp add: FactRing_def a_rcosetsI[OF a_subset])
-  apply (simp add: FactRing_def rcoset_mult_add)
- apply (simp add: FactRing_def a_rcos_sum)
-apply (simp add: FactRing_def)
-done
+  by (simp add: local.ring_axioms quotient_is_ring rcos_ring_hom ring_hom_ringI2)
 
 text \<open>The quotient of a cring is also commutative\<close>
 lemma (in ideal) quotient_is_cring:
@@ -140,12 +84,9 @@ lemma (in ideal) quotient_is_cring:
 proof -
   interpret cring R by fact
   show ?thesis
-    apply (intro cring.intro comm_monoid.intro comm_monoid_axioms.intro)
-      apply (rule quotient_is_ring)
+    apply (intro cring.intro comm_monoid.intro comm_monoid_axioms.intro quotient_is_ring)
      apply (rule ring.axioms[OF quotient_is_ring])
-    apply (simp add: FactRing_def A_RCOSETS_defs a_r_coset_def[symmetric])
-    apply clarify
-    apply (simp add: rcoset_mult_add m_comm)
+    apply (auto simp add: FactRing_simps rcoset_mult_add m_comm)
     done
 qed
 
@@ -169,37 +110,19 @@ subsection \<open>Factorization over Prime Ideals\<close>
 
 text \<open>The quotient ring generated by a prime ideal is a domain\<close>
 lemma (in primeideal) quotient_is_domain: "domain (R Quot I)"
-  apply (rule domain.intro)
-   apply (rule quotient_is_cring, rule is_cring)
-  apply (rule domain_axioms.intro)
-   apply (simp add: FactRing_def) defer 1
-    apply (simp add: FactRing_def A_RCOSETS_defs a_r_coset_def[symmetric], clarify)
-    apply (simp add: rcoset_mult_add) defer 1
-proof (rule ccontr, clarsimp)
-  assume "I +> \<one> = I"
-  then have "\<one> \<in> I" by (simp only: a_coset_join1 one_closed a_subgroup)
-  then have "carrier R \<subseteq> I" by (subst one_imp_carrier, simp, fast)
-  with a_subset have "I = carrier R" by fast
-  with I_notcarr show False by fast
-next
-  fix x y
-  assume carr: "x \<in> carrier R" "y \<in> carrier R"
+proof -
+  have 1: "I +> \<one> = I \<Longrightarrow> False"
+    using I_notcarr a_rcos_self one_imp_carrier by blast
+  have 2: "I +> x = I"
+    if  carr: "x \<in> carrier R" "y \<in> carrier R"
     and a: "I +> x \<otimes> y = I"
-    and b: "I +> y \<noteq> I"
-
-  have ynI: "y \<notin> I"
-  proof (rule ccontr, simp)
-    assume "y \<in> I"
-    then have "I +> y = I" by (rule a_rcos_const)
-    with b show False by simp
-  qed
-
-  from carr have "x \<otimes> y \<in> I +> x \<otimes> y" by (simp add: a_rcos_self)
-  then have xyI: "x \<otimes> y \<in> I" by (simp add: a)
-
-  from xyI and carr have xI: "x \<in> I \<or> y \<in> I" by (simp add: I_prime)
-  with ynI have "x \<in> I" by fast
-  then show "I +> x = I" by (rule a_rcos_const)
+    and b: "I +> y \<noteq> I" for x y
+    by (metis I_prime a a_rcos_const a_rcos_self b m_closed that)
+  show ?thesis
+    apply (intro domain.intro quotient_is_cring is_cring domain_axioms.intro)
+     apply (metis "1" FactRing_def monoid.simps(2) ring.simps(1))
+    apply (simp add: FactRing_simps)
+    by (metis "2" rcoset_mult_add)
 qed
 
 text \<open>Generating right cosets of a prime ideal is a homomorphism
@@ -210,88 +133,58 @@ lemma (in primeideal) rcos_ring_hom_cring: "ring_hom_cring R (R Quot I) ((+>) I)
 
 subsection \<open>Factorization over Maximal Ideals\<close>
 
-text \<open>In a commutative ring, the quotient ring over a maximal ideal
-        is a field.
-        The proof follows ``W. Adkins, S. Weintraub: Algebra --
-        An Approach via Module Theory''\<close>
-lemma (in maximalideal) quotient_is_field:
+text \<open>In a commutative ring, the quotient ring over a maximal ideal is a field.
+        The proof follows ``W. Adkins, S. Weintraub: Algebra -- An Approach via Module Theory''\<close>
+proposition (in maximalideal) quotient_is_field:
   assumes "cring R"
   shows "field (R Quot I)"
 proof -
   interpret cring R by fact
-  show ?thesis
-    apply (intro cring.cring_fieldI2)
-      apply (rule quotient_is_cring, rule is_cring)
-     defer 1
-     apply (simp add: FactRing_def A_RCOSETS_defs a_r_coset_def[symmetric], clarsimp)
-     apply (simp add: rcoset_mult_add) defer 1
-  proof (rule ccontr, simp)
-    \<comment> \<open>Quotient is not empty\<close>
+  have 1: "\<zero>\<^bsub>R Quot I\<^esub> \<noteq> \<one>\<^bsub>R Quot I\<^esub>"  \<comment> \<open>Quotient is not empty\<close>
+  proof
     assume "\<zero>\<^bsub>R Quot I\<^esub> = \<one>\<^bsub>R Quot I\<^esub>"
     then have II1: "I = I +> \<one>" by (simp add: FactRing_def)
-    from a_rcos_self[OF one_closed] have "\<one> \<in> I"
-      by (simp add: II1[symmetric])
-    then have "I = carrier R" by (rule one_imp_carrier)
+    then have "I = carrier R"
+      using a_rcos_self one_imp_carrier by blast 
     with I_notcarr show False by simp
-  next
+  qed
+  have 2: "\<exists>y\<in>carrier R. I +> a \<otimes> y = I +> \<one>" if IanI: "I +> a \<noteq> I" and acarr: "a \<in> carrier R" for a
     \<comment> \<open>Existence of Inverse\<close>
-    fix a
-    assume IanI: "I +> a \<noteq> I" and acarr: "a \<in> carrier R"
-
+  proof -
     \<comment> \<open>Helper ideal \<open>J\<close>\<close>
     define J :: "'a set" where "J = (carrier R #> a) <+> I"
     have idealJ: "ideal J R"
-      apply (unfold J_def, rule add_ideals)
-       apply (simp only: cgenideal_eq_rcos[symmetric], rule cgenideal_ideal, rule acarr)
-      apply (rule is_ideal)
-      done
-
-    \<comment> \<open>Showing @{term "J"} not smaller than @{term "I"}\<close>
+      using J_def acarr add_ideals cgenideal_eq_rcos cgenideal_ideal is_ideal by auto
     have IinJ: "I \<subseteq> J"
-    proof (rule, simp add: J_def r_coset_def set_add_defs)
+    proof (clarsimp simp: J_def r_coset_def set_add_defs)
       fix x
       assume xI: "x \<in> I"
-      have Zcarr: "\<zero> \<in> carrier R" by fast
-      from xI[THEN a_Hcarr] acarr
-      have "x = \<zero> \<otimes> a \<oplus> x" by algebra
-      with Zcarr and xI show "\<exists>xa\<in>carrier R. \<exists>k\<in>I. x = xa \<otimes> a \<oplus> k" by fast
+      have "x = \<zero> \<otimes> a \<oplus> x"
+        by (simp add: acarr xI)
+      with xI show "\<exists>xa\<in>carrier R. \<exists>k\<in>I. x = xa \<otimes> a \<oplus> k" by fast
     qed
-
-    \<comment> \<open>Showing @{term "J \<noteq> I"}\<close>
-    have anI: "a \<notin> I"
-    proof (rule ccontr, simp)
-      assume "a \<in> I"
-      then have "I +> a = I" by (rule a_rcos_const)
-      with IanI show False by simp
+    have JnI: "J \<noteq> I" 
+    proof -
+      have "a \<notin> I"
+        using IanI a_rcos_const by blast
+      moreover have "a \<in> J"
+      proof (simp add: J_def r_coset_def set_add_defs)
+        from acarr
+        have "a = \<one> \<otimes> a \<oplus> \<zero>" by algebra
+        with one_closed and additive_subgroup.zero_closed[OF is_additive_subgroup]
+        show "\<exists>x\<in>carrier R. \<exists>k\<in>I. a = x \<otimes> a \<oplus> k" by fast
+      qed
+      ultimately show ?thesis by blast
     qed
-
-    have aJ: "a \<in> J"
-    proof (simp add: J_def r_coset_def set_add_defs)
-      from acarr
-      have "a = \<one> \<otimes> a \<oplus> \<zero>" by algebra
-      with one_closed and additive_subgroup.zero_closed[OF is_additive_subgroup]
-      show "\<exists>x\<in>carrier R. \<exists>k\<in>I. a = x \<otimes> a \<oplus> k" by fast
-    qed
-
-    from aJ and anI have JnI: "J \<noteq> I" by fast
-
-    \<comment> \<open>Deducing @{term "J = carrier R"} because @{term "I"} is maximal\<close>
-    from idealJ and IinJ have "J = I \<or> J = carrier R"
-    proof (rule I_maximal, unfold J_def)
-      have "carrier R #> a \<subseteq> carrier R"
-        using subset_refl acarr by (rule r_coset_subset_G)
-      then show "carrier R #> a <+> I \<subseteq> carrier R"
-        using a_subset by (rule set_add_closed)
-    qed
-
-    with JnI have Jcarr: "J = carrier R" by simp
+    then have Jcarr: "J = carrier R"
+      using I_maximal IinJ additive_subgroup.a_subset idealJ ideal_def by blast
 
     \<comment> \<open>Calculating an inverse for @{term "a"}\<close>
     from one_closed[folded Jcarr]
-    have "\<exists>r\<in>carrier R. \<exists>i\<in>I. \<one> = r \<otimes> a \<oplus> i"
-      by (simp add: J_def r_coset_def set_add_defs)
-    then obtain r i where rcarr: "r \<in> carrier R"
-      and iI: "i \<in> I" and one: "\<one> = r \<otimes> a \<oplus> i" by fast
+    obtain r i where rcarr: "r \<in> carrier R"
+      and iI: "i \<in> I" and one: "\<one> = r \<otimes> a \<oplus> i" 
+      by (auto simp add: J_def r_coset_def set_add_defs)
+
     from one and rcarr and acarr and iI[THEN a_Hcarr]
     have rai1: "a \<otimes> r = \<ominus>i \<oplus> \<one>" by algebra
 
@@ -305,6 +198,10 @@ proof -
     from rcarr and this[symmetric]
     show "\<exists>r\<in>carrier R. I +> a \<otimes> r = I +> \<one>" by fast
   qed
+  show ?thesis
+    apply (intro cring.cring_fieldI2 quotient_is_cring is_cring 1)
+     apply (clarsimp simp add: FactRing_simps rcoset_mult_add 2)
+    done
 qed
 
 
@@ -916,7 +813,7 @@ lemma (in ring_hom_ring) quot_mem:
 proof -
   fix X assume "X \<in> carrier (R Quot (a_kernel R S h))"
   thus "\<exists>x \<in> carrier R. X = (a_kernel R S h) +> x"
-    unfolding FactRing_def RCOSETS_def A_RCOSETS_def by (simp add: a_r_coset_def)
+    unfolding FactRing_simps by (simp add: a_r_coset_def)
 qed
 
 lemma (in ring_hom_ring) the_elem_wf:
@@ -989,7 +886,7 @@ next
       by (metis image_iff)
     hence "the_elem (h ` ((a_kernel R S h) +> x)) = y" by simp
     moreover have "(a_kernel R S h) +> x \<in> carrier (R Quot (a_kernel R S h))"
-     unfolding FactRing_def RCOSETS_def A_RCOSETS_def by (auto simp add: x a_r_coset_def)
+     unfolding FactRing_simps by (auto simp add: x a_r_coset_def)
     ultimately show "y \<in> (\<lambda>X. (the_elem (h ` X))) ` carrier (R Quot (a_kernel R S h))" by blast
   qed
 qed
