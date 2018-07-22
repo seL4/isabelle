@@ -332,7 +332,7 @@ lemma cringE:
   assumes "cring R"
   shows "comm_monoid R"
     and "\<And>x y z. \<lbrakk> x \<in> carrier R; y \<in> carrier R; z \<in> carrier R \<rbrakk> \<Longrightarrow> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
-  using assms cring_def apply auto by (simp add: assms cring.axioms(1) ringE(3))
+  using assms cring_def by auto (simp add: assms cring.axioms(1) ringE(3))
 
 lemma (in cring) is_cring:
   "cring R" by (rule cring_axioms)
@@ -481,10 +481,7 @@ proof -
 qed
 
 lemma carrier_one_zero: "(carrier R = {\<zero>}) = (\<one> = \<zero>)"
-  apply rule
-   apply (erule one_zeroI)
-  apply (erule one_zeroD)
-  done
+  using one_zeroD by blast
 
 lemma carrier_one_not_zero: "(carrier R \<noteq> {\<zero>}) = (\<one> \<noteq> \<zero>)"
   by (simp add: carrier_one_zero)
@@ -687,19 +684,22 @@ qed (rule field_Units)
 text \<open>Another variant to show that something is a field\<close>
 lemma (in cring) cring_fieldI2:
   assumes notzero: "\<zero> \<noteq> \<one>"
-  and invex: "\<And>a. \<lbrakk>a \<in> carrier R; a \<noteq> \<zero>\<rbrakk> \<Longrightarrow> \<exists>b\<in>carrier R. a \<otimes> b = \<one>"
+    and invex: "\<And>a. \<lbrakk>a \<in> carrier R; a \<noteq> \<zero>\<rbrakk> \<Longrightarrow> \<exists>b\<in>carrier R. a \<otimes> b = \<one>"
   shows "field R"
-  apply (rule cring_fieldI, simp add: Units_def)
-  apply (rule, clarsimp)
-  apply (simp add: notzero)
-proof (clarsimp)
-  fix x
-  assume xcarr: "x \<in> carrier R"
-    and "x \<noteq> \<zero>"
-  then have "\<exists>y\<in>carrier R. x \<otimes> y = \<one>" by (rule invex)
-  then obtain y where ycarr: "y \<in> carrier R" and xy: "x \<otimes> y = \<one>" by fast
-  from xy xcarr ycarr have "y \<otimes> x = \<one>" by (simp add: m_comm)
-  with ycarr and xy show "\<exists>y\<in>carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>" by fast
+proof -
+  have *: "carrier R - {\<zero>} \<subseteq> {y \<in> carrier R. \<exists>x\<in>carrier R. x \<otimes> y = \<one> \<and> y \<otimes> x = \<one>}"
+  proof (clarsimp)
+    fix x
+    assume xcarr: "x \<in> carrier R" and "x \<noteq> \<zero>"
+    obtain y where ycarr: "y \<in> carrier R" and xy: "x \<otimes> y = \<one>"
+      using \<open>x \<noteq> \<zero>\<close> invex xcarr by blast 
+    with ycarr and xy show "\<exists>y\<in>carrier R. y \<otimes> x = \<one> \<and> x \<otimes> y = \<one>"
+      using m_comm xcarr by fastforce 
+  qed
+  show ?thesis
+    apply (rule cring_fieldI, simp add: Units_def)
+    using *
+    using group_l_invI notzero set_diff_eq by auto
 qed
 
 
@@ -859,57 +859,36 @@ lemma (in cring) units_power_order_eq_one:
 
 subsection\<open>Jeremy Avigad's @{text"More_Ring"} material\<close>
 
-lemma (in cring) field_intro2: "\<zero>\<^bsub>R\<^esub> \<noteq> \<one>\<^bsub>R\<^esub> \<Longrightarrow> \<forall>x \<in> carrier R - {\<zero>\<^bsub>R\<^esub>}. x \<in> Units R \<Longrightarrow> field R"
-  apply (unfold_locales)
-    apply (use cring_axioms in auto)
-   apply (rule trans)
-    apply (subgoal_tac "a = (a \<otimes> b) \<otimes> inv b")
-     apply assumption
-    apply (subst m_assoc)
-       apply auto
-  apply (unfold Units_def)
-  apply auto
-  done
+lemma (in cring) field_intro2: 
+  assumes "\<zero>\<^bsub>R\<^esub> \<noteq> \<one>\<^bsub>R\<^esub>" and un: "\<And>x. x \<in> carrier R - {\<zero>\<^bsub>R\<^esub>} \<Longrightarrow> x \<in> Units R"
+  shows "field R"
+proof unfold_locales
+  show "\<one> \<noteq> \<zero>" using assms by auto
+  show "\<lbrakk>a \<otimes> b = \<zero>; a \<in> carrier R;
+            b \<in> carrier R\<rbrakk>
+           \<Longrightarrow> a = \<zero> \<or> b = \<zero>" for a b
+    by (metis un Units_l_cancel insert_Diff_single insert_iff r_null zero_closed)
+qed (use assms in \<open>auto simp: Units_def\<close>)
 
 lemma (in monoid) inv_char:
-  "x \<in> carrier G \<Longrightarrow> y \<in> carrier G \<Longrightarrow> x \<otimes> y = \<one> \<Longrightarrow> y \<otimes> x = \<one> \<Longrightarrow> inv x = y"
-  apply (subgoal_tac "x \<in> Units G")
-   apply (subgoal_tac "y = inv x \<otimes> \<one>")
-    apply simp
-   apply (erule subst)
-   apply (subst m_assoc [symmetric])
-      apply auto
-  apply (unfold Units_def)
-  apply auto
-  done
+  assumes "x \<in> carrier G" "y \<in> carrier G" "x \<otimes> y = \<one>" "y \<otimes> x = \<one>" 
+  shows "inv x = y"
+  using assms inv_unique' by auto
 
 lemma (in comm_monoid) comm_inv_char: "x \<in> carrier G \<Longrightarrow> y \<in> carrier G \<Longrightarrow> x \<otimes> y = \<one> \<Longrightarrow> inv x = y"
   by (simp add: inv_char m_comm)
 
 lemma (in ring) inv_neg_one [simp]: "inv (\<ominus> \<one>) = \<ominus> \<one>"
-  apply (rule inv_char)
-     apply (auto simp add: l_minus r_minus)
-  done
+  by (simp add: inv_char local.ring_axioms ring.r_minus)
 
 lemma (in monoid) inv_eq_imp_eq: "x \<in> Units G \<Longrightarrow> y \<in> Units G \<Longrightarrow> inv x = inv y \<Longrightarrow> x = y"
-  apply (subgoal_tac "inv (inv x) = inv (inv y)")
-   apply (subst (asm) Units_inv_inv)+
-    apply auto
-  done
+  by (metis Units_inv_inv)
 
 lemma (in ring) Units_minus_one_closed [intro]: "\<ominus> \<one> \<in> Units R"
-  apply (unfold Units_def)
-  apply auto
-  apply (rule_tac x = "\<ominus> \<one>" in bexI)
-   apply auto
-  apply (simp add: l_minus r_minus)
-  done
+  by (simp add: Units_def) (metis add.l_inv_ex local.minus_minus minus_equality one_closed r_minus r_one)
 
 lemma (in ring) inv_eq_neg_one_eq: "x \<in> Units R \<Longrightarrow> inv x = \<ominus> \<one> \<longleftrightarrow> x = \<ominus> \<one>"
-  apply auto
-  apply (subst Units_inv_inv [symmetric])
-   apply auto
-  done
+  by (metis Units_inv_inv inv_neg_one)
 
 lemma (in monoid) inv_eq_one_eq: "x \<in> Units G \<Longrightarrow> inv x = \<one> \<longleftrightarrow> x = \<one>"
   by (metis Units_inv_inv inv_one)
