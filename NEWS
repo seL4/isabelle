@@ -417,6 +417,7 @@ change-of-variables results for integration and measures.
 
 * Session HOL-Real_Asymp: proof method "real_asymp" proves asymptotics
 or real-valued functions (limits, "Big-O", etc.) automatically.
+See also ~~/src/HOL/Real_Asymp/Manual for some documentation.
 
 * Session HOL-Types_To_Sets: more tool support (unoverload_type combines
 internalize_sorts and unoverload) and larger experimental application
