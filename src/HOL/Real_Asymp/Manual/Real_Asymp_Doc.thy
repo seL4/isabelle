@@ -201,7 +201,7 @@ text \<open>
     By default, the first three terms are output and the \<open>strict\<close> option is disabled.
 
   Note that these two commands are intended for diagnostic use only. While the central part
-  of their implementation – finding a multiseries expansion and reading off the limit – are the
+  of their implementation -- finding a multiseries expansion and reading off the limit -- are the
   same as in the @{method real_asymp} method and therefore trustworthy, there is a small amount
   of unverified code involved in pre-processing and printing (e.\,g.\ for reducing all the
   different options for the \<open>limit\<close> option to the @{term at_top} case).

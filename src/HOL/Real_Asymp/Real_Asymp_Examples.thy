@@ -100,7 +100,7 @@ lemma
   unfolding f_def by real_asymp+
 
   
-subsection \<open>Asymptotic inequalities related to the Akra–Bazzi theorem\<close>
+subsection \<open>Asymptotic inequalities related to the Akra--Bazzi theorem\<close>
   
 definition "akra_bazzi_asymptotic1 b hb e p x \<longleftrightarrow>
   (1 - hb * inverse b * ln x powr -(1+e)) powr p * (1 + ln (b*x + hb*x/ln x powr (1+e)) powr (-e/2))
