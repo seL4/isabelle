@@ -144,7 +144,7 @@ else
     elif [ -d "$FULL_NAME" ]; then
       echo "Skipping existing component \"$FULL_NAME\""
     else
-      if [ ! -e "${FULL_NAME}.tar.gz" ]; then
+      if [ ! -s "${FULL_NAME}.tar.gz" ]; then
         download_file "$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz" "${FULL_NAME}.tar.gz" || exit $?
       fi
       if [ -e "${FULL_NAME}.tar.gz" ]; then
