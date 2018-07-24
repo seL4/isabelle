@@ -140,7 +140,7 @@ else
     elif [ -d "$FULL_NAME" ]; then
       echo "Skipping existing component \"$FULL_NAME\""
     else
-      if [ ! -e "${FULL_NAME}.tar.gz" ]; then
+      if [ ! -s "${FULL_NAME}.tar.gz" ]; then
         REMOTE="$COMPONENT_REPOSITORY/${BASE_NAME}.tar.gz"
         type -p curl > /dev/null || fail "Cannot download files: missing curl"
         echo "Getting \"$REMOTE\""
