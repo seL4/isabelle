@@ -31,9 +31,12 @@ object Server
   val isabelle_tool = Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", args =>
   {
     try {
-      var all_known = false
+      var logic_ancestor: Option[String] = None
       var log_file: Option[Path] = None
+      var logic_requirements = false
+      var logic_focus = false
       var dirs: List[Path] = Nil
+      var include_sessions: List[String] = Nil
       var logic = default_logic
       var modes: List[String] = Nil
       var options = Options.init()
@@ -44,9 +47,12 @@ object Server
 Usage: isabelle vscode_server [OPTIONS]
 
   Options are:
-    -A           explore theory name space of all known sessions (potentially slow)
+    -A NAME      ancestor session for options -R and -S (default: parent)
     -L FILE      logging on FILE
+    -R NAME      build image with requirements from other sessions
+    -S NAME      like option -R, with focus on selected session
     -d DIR       include session directory
+    -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -55,9 +61,12 @@ Usage: isabelle vscode_server [OPTIONS]
 
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
-        "A" -> (_ => all_known = true),
+        "A:" -> (arg => logic_ancestor = Some(arg)),
         "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+        "R:" -> (arg => { logic = arg; logic_requirements = true }),
+        "S:" -> (arg => { logic = arg; logic_requirements = true; logic_focus = true }),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
+        "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "o:" -> (arg => options = options + arg),
@@ -71,7 +80,9 @@ Usage: isabelle vscode_server [OPTIONS]
       val channel = new Channel(System.in, System.out, log, verbose)
       val server =
         new Server(channel, options, session_name = logic, session_dirs = dirs,
-          all_known = all_known, modes = modes, system_mode = system_mode, log = log)
+          include_sessions = include_sessions, session_ancestor = logic_ancestor,
+          session_requirements = logic_requirements, session_focus = logic_focus,
+          all_known = !logic_focus, modes = modes, system_mode = system_mode, log = log)
 
       // prevent spurious garbage on the main protocol channel
       val orig_out = System.out
@@ -95,6 +106,10 @@ class Server(
   options: Options,
   session_name: String = Server.default_logic,
   session_dirs: List[Path] = Nil,
+  include_sessions: List[String] = Nil,
+  session_ancestor: Option[String] = None,
+  session_requirements: Boolean = false,
+  session_focus: Boolean = false,
   all_known: Boolean = false,
   modes: List[String] = Nil,
   system_mode: Boolean = false,
@@ -242,35 +257,41 @@ class Server(
 
   def init(id: Protocol.Id)
   {
-    def reply(err: String)
+    def reply_ok(msg: String)
     {
-      channel.write(Protocol.Initialize.reply(id, err))
-      if (err == "")
-        channel.writeln("Welcome to Isabelle/" + session_name + " (" + Distribution.version + ")")
-      else channel.error_message(err)
+      channel.write(Protocol.Initialize.reply(id, ""))
+      channel.writeln(msg)
+    }
+
+    def reply_error(msg: String)
+    {
+      channel.write(Protocol.Initialize.reply(id, msg))
+      channel.error_message(msg)
     }
 
     val try_session =
       try {
-        if (!Build.build(options, build_heap = true, no_build = true,
-            system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
-        {
-          val start_msg = "Build started for Isabelle/" + session_name + " ..."
+        val base_info =
+          Sessions.base_info(
+            options, session_name, dirs = session_dirs, include_sessions = include_sessions,
+            session_ancestor = session_ancestor, session_requirements = session_requirements,
+            session_focus = session_focus, all_known = all_known)
+        val session_base = base_info.check_base
+
+        def build(no_build: Boolean = false): Build.Results =
+          Build.build(options, build_heap = true, no_build = no_build, system_mode = system_mode,
+            dirs = session_dirs, infos = base_info.infos, sessions = List(base_info.session))
+
+        if (!build(no_build = true).ok) {
+          val start_msg = "Build started for Isabelle/" + base_info.session + " ..."
           val fail_msg = "Session build failed -- prover process remains inactive!"
 
           val progress = channel.progress(verbose = true)
           progress.echo(start_msg); channel.writeln(start_msg)
 
-          if (!Build.build(options, progress = progress, build_heap = true,
-              system_mode = system_mode, dirs = session_dirs, sessions = List(session_name)).ok)
-          {
-            progress.echo(fail_msg); error(fail_msg)
-          }
+          if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
         }
 
-        val session_base =
-          Sessions.base_info(
-            options, session_name, dirs = session_dirs, all_known = all_known).check_base
         val resources = new VSCode_Resources(options, session_base, log)
           {
             override def commit(change: Session.Change): Unit =
@@ -279,11 +300,13 @@ class Server(
           }
 
         val session_options = options.bool("editor_output_state") = true
-        Some(new Session(session_options, resources))
-      }
-      catch { case ERROR(msg) => reply(msg); None }
+        val session = new Session(session_options, resources)
 
-    for (session <- try_session) {
+        Some((base_info, session))
+      }
+      catch { case ERROR(msg) => reply_error(msg); None }
+
+    for ((base_info, session) <- try_session) {
       session_.change(_ => Some(session))
 
       session.commands_changed += prover_output
@@ -296,16 +319,16 @@ class Server(
         Session.Consumer(getClass.getName) {
           case Session.Ready =>
             session.phase_changed -= session_phase
-            reply("")
+            reply_ok("Welcome to Isabelle/" + base_info.session + " (" + Distribution.version + ")")
           case Session.Terminated(result) if !result.ok =>
             session.phase_changed -= session_phase
-            reply("Prover startup failed: return code " + result.rc)
+            reply_error("Prover startup failed: return code " + result.rc)
           case _ =>
         }
       session.phase_changed += session_phase
 
-      Isabelle_Process.start(session, options,
-        logic = session_name, dirs = session_dirs, modes = modes)
+      Isabelle_Process.start(session, options, modes = modes,
+        sessions_structure = Some(base_info.sessions_structure), logic = base_info.session)
     }
   }
 

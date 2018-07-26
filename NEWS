@@ -148,6 +148,13 @@ Unicode content when saving the file.
 * HTML preview of theories and other file-formats similar to
 Isabelle/jEdit.
 
+* Command-line tool "isabelle vscode_server" accepts the same options
+-A, -R, -S, -i for session selection as "isabelle jedit". This is
+relevant for isabelle.args configuration settings in VSCode. The former
+option -A (explore all known session files) has been discontinued: it is
+enabled by default, unless option -S is used to focus on a particular
+spot in the session structure. INCOMPATIBILITY.
+
 
 *** Document preparation ***
 
