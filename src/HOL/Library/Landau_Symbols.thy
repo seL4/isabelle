@@ -630,8 +630,6 @@ proof
   {
     fix f g :: "'a \<Rightarrow> 'b" and F assume A: "eventually (\<lambda>x. f x = g x) F"
     show "L F (f) = L F (g)" unfolding L_def
-      
-      thm eventually_subst A
       by (subst eventually_subst'[OF A]) (rule refl)
   }
   {
