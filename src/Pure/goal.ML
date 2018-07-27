@@ -129,9 +129,9 @@ fun future_result ctxt result prop =
       |> Thm.weaken_sorts' ctxt;
     val global_result = result |> Future.map
       (Drule.flexflex_unique (SOME ctxt) #>
-        Thm.adjust_maxidx_thm ~1 #>
         Drule.implies_intr_list assms #>
         Drule.forall_intr_list fixes #>
+        Thm.adjust_maxidx_thm ~1 #>
         Thm.generalize (map #1 tfrees, []) 0 #>
         Thm.strip_shyps);
     val local_result =
