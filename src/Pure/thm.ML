@@ -822,14 +822,14 @@ fun implies_elim thAB thA =
   \<And>x. A
 *)
 fun forall_intr
-    (ct as Cterm {t = x, T, sorts, ...})
-    (th as Thm (der, {maxidx, shyps, hyps, tpairs, prop, ...})) =
+    (ct as Cterm {maxidx = maxidx1, t = x, T, sorts, ...})
+    (th as Thm (der, {maxidx = maxidx2, shyps, hyps, tpairs, prop, ...})) =
   let
     fun result a =
       Thm (deriv_rule1 (Proofterm.forall_intr_proof x a) der,
        {cert = join_certificate1 (ct, th),
         tags = [],
-        maxidx = maxidx,
+        maxidx = Int.max (maxidx1, maxidx2),
         shyps = Sorts.union sorts shyps,
         hyps = hyps,
         tpairs = tpairs,
