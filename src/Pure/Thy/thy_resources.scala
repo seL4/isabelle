@@ -71,6 +71,9 @@ object Thy_Resources
     }
   }
 
+  val default_use_theories_check_delay: Double = 0.5
+
+
   class Session private[Thy_Resources](
     session_name: String,
     session_options: Options,
@@ -96,6 +99,8 @@ object Thy_Resources
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
+      check_delay: Time = Time.seconds(default_use_theories_check_delay),
+      check_limit: Int = 0,
       id: UUID = UUID(),
       progress: Progress = No_Progress): Theories_Result =
     {
@@ -105,23 +110,34 @@ object Thy_Resources
 
       val result = Future.promise[Theories_Result]
 
-      def check_state
+      def check_state(beyond_limit: Boolean = false)
       {
         val state = session.current_state()
         state.stable_tip_version match {
-          case Some(version) if dep_theories.forall(state.node_consolidated(version, _)) =>
-            val nodes =
-              for (name <- dep_theories)
-              yield (name -> Protocol.node_status(state, version, name))
-            try { result.fulfill(new Theories_Result(state, version, nodes)) }
-            catch { case _: IllegalStateException => }
-          case _ =>
+          case Some(version) =>
+            if (beyond_limit || dep_theories.forall(state.node_consolidated(version, _))) {
+              val nodes =
+                for (name <- dep_theories)
+                yield (name -> Protocol.node_status(state, version, name))
+              try { result.fulfill(new Theories_Result(state, version, nodes)) }
+              catch { case _: IllegalStateException => }
+            }
+          case None =>
         }
       }
 
       val check_progress =
-        Event_Timer.request(Time.now(), repeat = Some(Time.seconds(0.5)))
-          { if (progress.stopped) result.cancel else check_state }
+      {
+        var check_count = 0
+        Event_Timer.request(Time.now(), repeat = Some(check_delay))
+          {
+            if (progress.stopped) result.cancel
+            else {
+              check_count += 1
+              check_state(check_limit > 0 && check_count > check_limit)
+            }
+          }
+      }
 
       val theories_progress = Synchronized(Set.empty[Document.Node.Name])
 
@@ -147,7 +163,7 @@ object Thy_Resources
                 initialized.map(_.theory).sorted.foreach(progress.theory("", _))
               }
 
-              check_state
+              check_state()
             }
         }
 

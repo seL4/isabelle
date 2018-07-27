@@ -894,7 +894,9 @@ text \<open>
   \quad~~\<open>master_dir?: string,\<close> & \<^bold>\<open>default:\<close> session \<open>tmp_dir\<close> \\
   \quad~~\<open>pretty_margin?: double,\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>76\<close> \\
   \quad~~\<open>unicode_symbols?: bool,\<close> \\
-  \quad~~\<open>export_pattern?: string}\<close> \\[2ex]
+  \quad~~\<open>export_pattern?: string,\<close> \\
+  \quad~~\<open>check_delay?: double,\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>0.5\<close> \\
+  \quad~~\<open>check_limit?: int}\<close> \\
   \end{tabular}
 
   \begin{tabular}{ll}
@@ -929,6 +931,13 @@ text \<open>
   format of the \<open>body\<close> string: it is true for a byte vector that cannot be
   represented as plain text in UTF-8 encoding, which means the string needs to
   be decoded as in \<^verbatim>\<open>java.util.Base64.getDecoder.decode(String)\<close>.
+
+  \<^medskip> Due to asynchronous nature of PIDE document processing, structurally
+  broken theories never reach the \<open>consolidated\<close> state: consequently
+  \<^verbatim>\<open>use_theories\<close> will wait forever. The status is checked every \<open>check_delay\<close>
+  seconds, and bounded by \<open>check_limit\<close> attempts (default: 0, i.e.\
+  unbounded). A \<open>check_limit > 0\<close> effectively specifies a timeout of
+  \<open>check_delay \<times> check_limit\<close> seconds.
 \<close>
 
 
