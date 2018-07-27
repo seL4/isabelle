@@ -772,15 +772,15 @@ fun assume raw_ct =
   A \<Longrightarrow> B
 *)
 fun implies_intr
-    (ct as Cterm {t = A, T, maxidx = maxidxA, sorts, ...})
-    (th as Thm (der, {maxidx, hyps, shyps, tpairs, prop, ...})) =
+    (ct as Cterm {t = A, T, maxidx = maxidx1, sorts, ...})
+    (th as Thm (der, {maxidx = maxidx2, hyps, shyps, tpairs, prop, ...})) =
   if T <> propT then
     raise THM ("implies_intr: assumptions must have type prop", 0, [th])
   else
     Thm (deriv_rule1 (Proofterm.implies_intr_proof A) der,
      {cert = join_certificate1 (ct, th),
       tags = [],
-      maxidx = Int.max (maxidxA, maxidx),
+      maxidx = Int.max (maxidx1, maxidx2),
       shyps = Sorts.union sorts shyps,
       hyps = remove_hyps A hyps,
       tpairs = tpairs,
@@ -794,9 +794,9 @@ fun implies_intr
 *)
 fun implies_elim thAB thA =
   let
-    val Thm (derA, {maxidx = maxA, hyps = hypsA, shyps = shypsA, tpairs = tpairsA,
+    val Thm (derA, {maxidx = maxidx1, hyps = hypsA, shyps = shypsA, tpairs = tpairsA,
       prop = propA, ...}) = thA
-    and Thm (der, {maxidx, hyps, shyps, tpairs, prop, ...}) = thAB;
+    and Thm (der, {maxidx = maxidx2, hyps, shyps, tpairs, prop, ...}) = thAB;
     fun err () = raise THM ("implies_elim: major premise", 0, [thAB, thA]);
   in
     case prop of
@@ -805,7 +805,7 @@ fun implies_elim thAB thA =
           Thm (deriv_rule2 (curry Proofterm.%%) der derA,
            {cert = join_certificate2 (thAB, thA),
             tags = [],
-            maxidx = Int.max (maxA, maxidx),
+            maxidx = Int.max (maxidx1, maxidx2),
             shyps = Sorts.union shypsA shyps,
             hyps = union_hyps hypsA hyps,
             tpairs = union_tpairs tpairsA tpairs,
@@ -851,8 +851,8 @@ fun forall_intr
   A[t/x]
 *)
 fun forall_elim
-    (ct as Cterm {t, T, maxidx = maxt, sorts, ...})
-    (th as Thm (der, {maxidx, shyps, hyps, tpairs, prop, ...})) =
+    (ct as Cterm {t, T, maxidx = maxidx1, sorts, ...})
+    (th as Thm (der, {maxidx = maxidx2, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
     Const ("Pure.all", Type ("fun", [Type ("fun", [qary, _]), _])) $ A =>
       if T <> qary then
@@ -861,7 +861,7 @@ fun forall_elim
         Thm (deriv_rule1 (Proofterm.% o rpair (SOME t)) der,
          {cert = join_certificate1 (ct, th),
           tags = [],
-          maxidx = Int.max (maxidx, maxt),
+          maxidx = Int.max (maxidx1, maxidx2),
           shyps = Sorts.union sorts shyps,
           hyps = hyps,
           tpairs = tpairs,
@@ -909,9 +909,9 @@ fun symmetric (th as Thm (der, {cert, maxidx, shyps, hyps, tpairs, prop, ...})) 
 *)
 fun transitive th1 th2 =
   let
-    val Thm (der1, {maxidx = max1, hyps = hyps1, shyps = shyps1, tpairs = tpairs1,
+    val Thm (der1, {maxidx = maxidx1, hyps = hyps1, shyps = shyps1, tpairs = tpairs1,
       prop = prop1, ...}) = th1
-    and Thm (der2, {maxidx = max2, hyps = hyps2, shyps = shyps2, tpairs = tpairs2,
+    and Thm (der2, {maxidx = maxidx2, hyps = hyps2, shyps = shyps2, tpairs = tpairs2,
       prop = prop2, ...}) = th2;
     fun err msg = raise THM ("transitive: " ^ msg, 0, [th1, th2]);
   in
@@ -922,7 +922,7 @@ fun transitive th1 th2 =
           Thm (deriv_rule2 (Proofterm.transitive u T) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
-            maxidx = Int.max (max1, max2),
+            maxidx = Int.max (maxidx1, maxidx2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1011,9 +1011,9 @@ fun abstract_rule a
 *)
 fun combination th1 th2 =
   let
-    val Thm (der1, {maxidx = max1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
+    val Thm (der1, {maxidx = maxidx1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
       prop = prop1, ...}) = th1
-    and Thm (der2, {maxidx = max2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
+    and Thm (der2, {maxidx = maxidx2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
       prop = prop2, ...}) = th2;
     fun chktypes fT tT =
       (case fT of
@@ -1030,7 +1030,7 @@ fun combination th1 th2 =
           Thm (deriv_rule2 (Proofterm.combination f g t u fT) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
-            maxidx = Int.max (max1, max2),
+            maxidx = Int.max (maxidx1, maxidx2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1045,9 +1045,9 @@ fun combination th1 th2 =
 *)
 fun equal_intr th1 th2 =
   let
-    val Thm (der1, {maxidx = max1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
+    val Thm (der1, {maxidx = maxidx1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
       prop = prop1, ...}) = th1
-    and Thm (der2, {maxidx = max2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
+    and Thm (der2, {maxidx = maxidx2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
       prop = prop2, ...}) = th2;
     fun err msg = raise THM ("equal_intr: " ^ msg, 0, [th1, th2]);
   in
@@ -1057,7 +1057,7 @@ fun equal_intr th1 th2 =
           Thm (deriv_rule2 (Proofterm.equal_intr A B) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
-            maxidx = Int.max (max1, max2),
+            maxidx = Int.max (maxidx1, maxidx2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
@@ -1073,9 +1073,9 @@ fun equal_intr th1 th2 =
 *)
 fun equal_elim th1 th2 =
   let
-    val Thm (der1, {maxidx = max1, shyps = shyps1, hyps = hyps1,
+    val Thm (der1, {maxidx = maxidx1, shyps = shyps1, hyps = hyps1,
       tpairs = tpairs1, prop = prop1, ...}) = th1
-    and Thm (der2, {maxidx = max2, shyps = shyps2, hyps = hyps2,
+    and Thm (der2, {maxidx = maxidx2, shyps = shyps2, hyps = hyps2,
       tpairs = tpairs2, prop = prop2, ...}) = th2;
     fun err msg = raise THM ("equal_elim: " ^ msg, 0, [th1, th2]);
   in
@@ -1085,7 +1085,7 @@ fun equal_elim th1 th2 =
           Thm (deriv_rule2 (Proofterm.equal_elim A B) der1 der2,
            {cert = join_certificate2 (th1, th2),
             tags = [],
-            maxidx = Int.max (max1, max2),
+            maxidx = Int.max (maxidx1, maxidx2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
