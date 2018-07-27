@@ -937,7 +937,9 @@ text \<open>
   \<^verbatim>\<open>use_theories\<close> will wait forever. The status is checked every \<open>check_delay\<close>
   seconds, and bounded by \<open>check_limit\<close> attempts (default: 0, i.e.\
   unbounded). A \<open>check_limit > 0\<close> effectively specifies a timeout of
-  \<open>check_delay \<times> check_limit\<close> seconds.
+  \<open>check_delay \<times> check_limit\<close> seconds; it needs to be greater than the system
+  option @{system_option editor_consolidate_delay} to give PIDE processing a
+  chance to consolidate document nodes in the first place.
 \<close>
 
 
