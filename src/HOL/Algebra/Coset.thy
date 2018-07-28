@@ -440,45 +440,36 @@ corollary (in group) normal_invI:
   shows "N \<lhd> G"
   using assms normal_inv_iff by blast
 
-corollary (in group) normal_invE:
-  assumes "N \<lhd> G"
-  shows "subgroup N G" and "\<And>x h. \<lbrakk> x \<in> carrier G; h \<in> N \<rbrakk> \<Longrightarrow> x \<otimes> h \<otimes> inv x \<in> N"
-  using assms normal_inv_iff apply blast
-  by (simp add: assms normal.inv_op_closed2)
-
-
-lemma (in group) one_is_normal :
-   "{\<one>} \<lhd> G"
-proof(intro normal_invI )
+lemma (in group) one_is_normal: "{\<one>} \<lhd> G"
+proof(intro normal_invI)
   show "subgroup {\<one>} G"
     by (simp add: subgroup_def)
-  show "\<And>x h. x \<in> carrier G \<Longrightarrow> h \<in> {\<one>} \<Longrightarrow> x \<otimes> h \<otimes> inv x \<in> {\<one>}" by simp
-qed
+qed simp
 
 
 subsection\<open>More Properties of Left Cosets\<close>
 
 lemma (in group) l_repr_independence:
-  assumes "y \<in> x <# H" "x \<in> carrier G" "subgroup H G"
+  assumes "y \<in> x <# H" "x \<in> carrier G" and HG: "subgroup H G"
   shows "x <# H = y <# H"
 proof -
   obtain h' where h': "h' \<in> H" "y = x \<otimes> h'"
     using assms(1) unfolding l_coset_def by blast
   hence "x \<otimes> h = y \<otimes> ((inv h') \<otimes> h)" if "h \<in> H" for h
   proof -
-    have f3: "h' \<in> carrier G"
-      by (meson assms(3) h'(1) subgroup.mem_carrier)
-    have f4: "h \<in> carrier G"
-      by (meson assms(3) subgroup.mem_carrier that)
-    then show ?thesis
-      by (metis assms(2) f3 h'(2) inv_closed inv_solve_right m_assoc m_closed)
+    have "h' \<in> carrier G"
+      by (meson HG h'(1) subgroup.mem_carrier)
+    moreover have "h \<in> carrier G"
+      by (meson HG subgroup.mem_carrier that)
+    ultimately show ?thesis
+      by (metis assms(2) h'(2) inv_closed inv_solve_right m_assoc m_closed)
   qed
-  hence "\<And> xh. xh \<in> x <# H \<Longrightarrow> xh \<in> y <# H"
-    unfolding l_coset_def by (metis (no_types, lifting) UN_iff assms(3) h'(1) subgroup_def)
-  moreover have "\<And> h. h \<in> H \<Longrightarrow> y \<otimes> h = x \<otimes> (h' \<otimes> h)"
-    using h' by (meson assms(2) assms(3) m_assoc subgroup.mem_carrier)
-  hence "\<And> yh. yh \<in> y <# H \<Longrightarrow> yh \<in> x <# H"
-    unfolding l_coset_def using subgroup.m_closed[OF assms(3) h'(1)] by blast
+  hence "\<And>xh. xh \<in> x <# H \<Longrightarrow> xh \<in> y <# H"
+    unfolding l_coset_def by (metis (no_types, lifting) UN_iff HG h'(1) subgroup_def)
+  moreover have "\<And>h. h \<in> H \<Longrightarrow> y \<otimes> h = x \<otimes> (h' \<otimes> h)"
+    using h' by (meson assms(2) HG m_assoc subgroup.mem_carrier)
+  hence "\<And>yh. yh \<in> y <# H \<Longrightarrow> yh \<in> x <# H"
+    unfolding l_coset_def using subgroup.m_closed[OF HG h'(1)] by blast
   ultimately show ?thesis by blast
 qed
 
@@ -655,8 +646,8 @@ lemma (in group) rcos_equation:
   shows "hb \<otimes> a \<in> (\<Union>h\<in>H. {h \<otimes> b})"
 proof -
   interpret subgroup H G by fact
-  from p show ?thesis apply (rule_tac UN_I [of "hb \<otimes> ((inv ha) \<otimes> h)"])
-    apply blast by (simp add: inv_solve_left m_assoc)
+  from p show ?thesis 
+    by (rule_tac UN_I [of "hb \<otimes> ((inv ha) \<otimes> h)"]) (auto simp: inv_solve_left m_assoc)
 qed
 
 lemma (in group) rcos_disjoint:
@@ -666,9 +657,8 @@ lemma (in group) rcos_disjoint:
 proof -
   interpret subgroup H G by fact
   from p show ?thesis
-    apply (simp add: RCOSETS_def r_coset_def)
-    apply (blast intro: rcos_equation assms sym)
-    done
+    unfolding RCOSETS_def r_coset_def
+    by (blast intro: rcos_equation assms sym)
 qed
 
 
@@ -761,26 +751,26 @@ lemma (in group) rcosets_part_G:
 proof -
   interpret subgroup H G by fact
   show ?thesis
-    apply (rule equalityI)
-    apply (force simp add: RCOSETS_def r_coset_def)
-    apply (auto simp add: RCOSETS_def intro: rcos_self assms)
-    done
+    unfolding RCOSETS_def r_coset_def by auto
 qed
 
 lemma (in group) cosets_finite:
      "\<lbrakk>c \<in> rcosets H;  H \<subseteq> carrier G;  finite (carrier G)\<rbrakk> \<Longrightarrow> finite c"
-apply (auto simp add: RCOSETS_def)
-apply (simp add: r_coset_subset_G [THEN finite_subset])
-done
+  unfolding RCOSETS_def
+  by (auto simp add: r_coset_subset_G [THEN finite_subset])
 
 text\<open>The next two lemmas support the proof of \<open>card_cosets_equal\<close>.\<close>
 lemma (in group) inj_on_f:
-    "\<lbrakk>H \<subseteq> carrier G;  a \<in> carrier G\<rbrakk> \<Longrightarrow> inj_on (\<lambda>y. y \<otimes> inv a) (H #> a)"
-apply (rule inj_onI)
-apply (subgoal_tac "x \<in> carrier G \<and> y \<in> carrier G")
- prefer 2 apply (blast intro: r_coset_subset_G [THEN subsetD])
-apply (simp add: subsetD)
-done
+  assumes "H \<subseteq> carrier G" and a: "a \<in> carrier G"
+  shows "inj_on (\<lambda>y. y \<otimes> inv a) (H #> a)"
+proof 
+  fix x y
+  assume "x \<in> H #> a" "y \<in> H #> a" and xy: "x \<otimes> inv a = y \<otimes> inv a"
+  then have "x \<in> carrier G" "y \<in> carrier G"
+    using assms r_coset_subset_G by blast+
+  with xy a show "x = y"
+    by auto
+qed
 
 lemma (in group) inj_on_g:
     "\<lbrakk>H \<subseteq> carrier G;  a \<in> carrier G\<rbrakk> \<Longrightarrow> inj_on (\<lambda>y. y \<otimes> a) H"
@@ -827,16 +817,17 @@ lemma (in group) rcosets_subset_PowG:
   using rcosets_part_G by auto
 
 proposition (in group) lagrange_finite:
-     "\<lbrakk>finite(carrier G); subgroup H G\<rbrakk>
-      \<Longrightarrow> card(rcosets H) * card(H) = order(G)"
-apply (simp (no_asm_simp) add: order_def rcosets_part_G [symmetric])
-apply (subst mult.commute)
-apply (rule card_partition)
-   apply (simp add: rcosets_subset_PowG [THEN finite_subset])
-  apply (simp add: rcosets_part_G)
-  apply (simp add: card_rcosets_equal subgroup.subset)
-apply (simp add: rcos_disjoint)
-done
+  assumes "finite(carrier G)" and HG: "subgroup H G"
+  shows "card(rcosets H) * card(H) = order(G)"
+proof -
+  have "card H * card (rcosets H) = card (\<Union>(rcosets H))"
+  proof (rule card_partition)
+    show "\<And>c1 c2. \<lbrakk>c1 \<in> rcosets H; c2 \<in> rcosets H; c1 \<noteq> c2\<rbrakk> \<Longrightarrow> c1 \<inter> c2 = {}"
+      using HG rcos_disjoint by auto
+  qed (auto simp: assms finite_UnionD rcosets_part_G card_rcosets_equal subgroup.subset)
+  then show ?thesis
+    by (simp add: HG mult.commute order_def rcosets_part_G)
+qed
 
 theorem (in group) lagrange:
   assumes "subgroup H G"
@@ -844,29 +835,29 @@ theorem (in group) lagrange:
 proof (cases "finite (carrier G)")
   case True thus ?thesis using lagrange_finite assms by simp
 next
-  case False note inf_G = this
+  case False 
   thus ?thesis
   proof (cases "finite H")
-    case False thus ?thesis using inf_G  by (simp add: order_def)
+    case False thus ?thesis using \<open>infinite (carrier G)\<close>  by (simp add: order_def)
   next
-    case True note finite_H = this
+    case True 
     have "infinite (rcosets H)"
-    proof (rule ccontr)
-      assume "\<not> infinite (rcosets H)"
+    proof 
+      assume "finite (rcosets H)"
       hence finite_rcos: "finite (rcosets H)" by simp
       hence "card (\<Union>(rcosets H)) = (\<Sum>R\<in>(rcosets H). card R)"
-        using card_Union_disjoint[of "rcosets H"] finite_H rcos_disjoint[OF assms(1)]
+        using card_Union_disjoint[of "rcosets H"] \<open>finite H\<close> rcos_disjoint[OF assms(1)]
               rcosets_finite[where ?H = H] by (simp add: assms subgroup.subset)
       hence "order G = (\<Sum>R\<in>(rcosets H). card R)"
         by (simp add: assms order_def rcosets_part_G)
       hence "order G = (\<Sum>R\<in>(rcosets H). card H)"
         using card_rcosets_equal by (simp add: assms subgroup.subset)
       hence "order G = (card H) * (card (rcosets H))" by simp
-      hence "order G \<noteq> 0" using finite_rcos finite_H assms ex_in_conv
+      hence "order G \<noteq> 0" using finite_rcos \<open>finite H\<close> assms ex_in_conv
                                 rcosets_part_G subgroup.one_closed by fastforce
-      thus False using inf_G order_gt_0_iff_finite by blast
+      thus False using \<open>infinite (carrier G)\<close> order_gt_0_iff_finite by blast
     qed
-    thus ?thesis using inf_G by (simp add: order_def)
+    thus ?thesis using \<open>infinite (carrier G)\<close> by (simp add: order_def)
   qed
 qed
 
@@ -908,8 +899,8 @@ by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal.axioms n
 
 theorem (in normal) factorgroup_is_group:
   "group (G Mod H)"
-apply (simp add: FactGroup_def)
-apply (rule groupI)
+  unfolding FactGroup_def
+  apply (rule groupI)
     apply (simp add: setmult_closed)
    apply (simp add: normal_imp_subgroup subgroup_in_rcosets [OF is_group])
   apply (simp add: restrictI setmult_closed rcosets_assoc)
@@ -922,10 +913,20 @@ lemma mult_FactGroup [simp]: "X \<otimes>\<^bsub>(G Mod H)\<^esub> X' = X <#>\<^
   by (simp add: FactGroup_def)
 
 lemma (in normal) inv_FactGroup:
-     "X \<in> carrier (G Mod H) \<Longrightarrow> inv\<^bsub>G Mod H\<^esub> X = set_inv X"
-apply (rule group.inv_equality [OF factorgroup_is_group])
-apply (simp_all add: FactGroup_def setinv_closed rcosets_inv_mult_group_eq)
-done
+  assumes "X \<in> carrier (G Mod H)"
+  shows "inv\<^bsub>G Mod H\<^esub> X = set_inv X"
+proof -
+  have X: "X \<in> rcosets H"
+    using assms by (simp add: FactGroup_def)
+  moreover have "set_inv X <#> X = H"
+    using X by (simp add: normal.rcosets_inv_mult_group_eq normal_axioms)
+  moreover have "Group.group (G Mod H)"
+    using normal.factorgroup_is_group normal_axioms by blast
+  moreover have "set_inv X \<in> rcosets H"
+    by (simp add: \<open>X \<in> rcosets H\<close> setinv_closed)
+  ultimately show ?thesis
+    by (simp add: FactGroup_def group.inv_equality)
+qed
 
 text\<open>The coset map is a homomorphism from @{term G} to the quotient group
   @{term "G Mod H"}\<close>
@@ -945,15 +946,13 @@ definition
   where "kernel G H h = {x. x \<in> carrier G \<and> h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
-apply (rule subgroup.intro)
-apply (auto simp add: kernel_def group.intro is_group)
-done
+  by (auto simp add: kernel_def group.intro is_group intro: subgroup.intro)
 
 text\<open>The kernel of a homomorphism is a normal subgroup\<close>
 lemma (in group_hom) normal_kernel: "(kernel G H h) \<lhd> G"
-apply (simp add: G.normal_inv_iff subgroup_kernel)
-apply (simp add: kernel_def)
-done
+  apply (simp only: G.normal_inv_iff subgroup_kernel)
+  apply (simp add: kernel_def)
+  done
 
 lemma (in group_hom) FactGroup_nonempty:
   assumes X: "X \<in> carrier (G Mod kernel G H h)"
@@ -982,37 +981,40 @@ qed
 
 lemma (in group_hom) FactGroup_hom:
      "(\<lambda>X. the_elem (h`X)) \<in> hom (G Mod (kernel G H h)) H"
-apply (simp add: hom_def FactGroup_the_elem_mem normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)
-proof (intro ballI)
-  fix X and X'
-  assume X:  "X  \<in> carrier (G Mod kernel G H h)"
-     and X': "X' \<in> carrier (G Mod kernel G H h)"
-  then
-  obtain g and g'
-           where "g \<in> carrier G" and "g' \<in> carrier G"
-             and "X = kernel G H h #> g" and "X' = kernel G H h #> g'"
-    by (auto simp add: FactGroup_def RCOSETS_def)
-  hence all: "\<forall>x\<in>X. h x = h g" "\<forall>x\<in>X'. h x = h g'"
-    and Xsub: "X \<subseteq> carrier G" and X'sub: "X' \<subseteq> carrier G"
-    by (force simp add: kernel_def r_coset_def image_def)+
-  hence "h ` (X <#> X') = {h g \<otimes>\<^bsub>H\<^esub> h g'}" using X X'
-    by (auto dest!: FactGroup_nonempty intro!: image_eqI
-             simp add: set_mult_def
-                       subsetD [OF Xsub] subsetD [OF X'sub])
-  then show "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
-    by (auto simp add: all FactGroup_nonempty X X' the_elem_image_unique)
+proof -
+  have "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
+    if X: "X  \<in> carrier (G Mod kernel G H h)" and X': "X' \<in> carrier (G Mod kernel G H h)" for X X'
+  proof -
+    obtain g and g'
+      where "g \<in> carrier G" and "g' \<in> carrier G"
+        and "X = kernel G H h #> g" and "X' = kernel G H h #> g'"
+      using X X' by (auto simp add: FactGroup_def RCOSETS_def)
+    hence all: "\<forall>x\<in>X. h x = h g" "\<forall>x\<in>X'. h x = h g'"
+      and Xsub: "X \<subseteq> carrier G" and X'sub: "X' \<subseteq> carrier G"
+      by (force simp add: kernel_def r_coset_def image_def)+
+    hence "h ` (X <#> X') = {h g \<otimes>\<^bsub>H\<^esub> h g'}" using X X'
+      by (auto dest!: FactGroup_nonempty intro!: image_eqI
+          simp add: set_mult_def
+          subsetD [OF Xsub] subsetD [OF X'sub])
+    then show "the_elem (h ` (X <#> X')) = the_elem (h ` X) \<otimes>\<^bsub>H\<^esub> the_elem (h ` X')"
+      by (auto simp add: all FactGroup_nonempty X X' the_elem_image_unique)
+  qed
+  then show ?thesis
+    by (simp add: hom_def FactGroup_the_elem_mem normal.factorgroup_is_group [OF normal_kernel] group.axioms monoid.m_closed)
 qed
 
 
 text\<open>Lemma for the following injectivity result\<close>
 lemma (in group_hom) FactGroup_subset:
-     "\<lbrakk>g \<in> carrier G; g' \<in> carrier G; h g = h g'\<rbrakk>
-      \<Longrightarrow>  kernel G H h #> g \<subseteq> kernel G H h #> g'"
-apply (clarsimp simp add: kernel_def r_coset_def)
-apply (rename_tac y)
-apply (rule_tac x="y \<otimes> g \<otimes> inv g'" in exI)
-apply (simp add: G.m_assoc)
-done
+  assumes "g \<in> carrier G" "g' \<in> carrier G" "h g = h g'"
+  shows "kernel G H h #> g \<subseteq> kernel G H h #> g'"
+  unfolding kernel_def r_coset_def
+proof clarsimp
+  fix y 
+  assume "y \<in> carrier G" "h y = \<one>\<^bsub>H\<^esub>"
+  with assms show "\<exists>x. x \<in> carrier G \<and> h x = \<one>\<^bsub>H\<^esub> \<and> y \<otimes> g = x \<otimes> g'"
+    by (rule_tac x="y \<otimes> g \<otimes> inv g'" in exI) (auto simp: G.m_assoc)
+qed
 
 lemma (in group_hom) FactGroup_inj_on:
      "inj_on (\<lambda>X. the_elem (h ` X)) (carrier (G Mod kernel G H h))"
@@ -1113,13 +1115,13 @@ proof (intro group.normal_invI[OF DirProd_group[OF group_axioms assms(1)]])
     from hHN obtain h1 h2 where h1h2 : "h1 \<in> H" "h2 \<in> N" "h = (h1,h2)"
       unfolding DirProd_def by fastforce
     hence h1h2GK : "h1 \<in> carrier G" "h2 \<in> carrier K"
-      using normal_imp_subgroup subgroup.subset assms apply blast+.
+      using normal_imp_subgroup subgroup.subset assms by blast+
     have "inv\<^bsub>G \<times>\<times> K\<^esub> x = (inv\<^bsub>G\<^esub> x1,inv\<^bsub>K\<^esub> x2)"
       using inv_DirProd[OF group_axioms assms(1) x1x2(1)x1x2(2)] x1x2 by auto
     hence "x \<otimes>\<^bsub>G \<times>\<times> K\<^esub> h \<otimes>\<^bsub>G \<times>\<times> K\<^esub> inv\<^bsub>G \<times>\<times> K\<^esub> x = (x1 \<otimes> h1 \<otimes> inv x1,x2 \<otimes>\<^bsub>K\<^esub> h2 \<otimes>\<^bsub>K\<^esub> inv\<^bsub>K\<^esub> x2)"
       using h1h2 x1x2 h1h2GK by auto
     moreover have "x1 \<otimes> h1 \<otimes> inv x1 \<in> H" "x2 \<otimes>\<^bsub>K\<^esub> h2 \<otimes>\<^bsub>K\<^esub> inv\<^bsub>K\<^esub> x2 \<in> N"
-      using normal_invE group.normal_invE[OF assms(1)] assms x1x2 h1h2 apply auto.
+      using assms x1x2 h1h2 assms by (simp_all add: normal.inv_op_closed2)
     hence "(x1 \<otimes> h1 \<otimes> inv x1, x2 \<otimes>\<^bsub>K\<^esub> h2 \<otimes>\<^bsub>K\<^esub> inv\<^bsub>K\<^esub> x2)\<in> H \<times> N" by auto
     ultimately show " x \<otimes>\<^bsub>G \<times>\<times> K\<^esub> h \<otimes>\<^bsub>G \<times>\<times> K\<^esub> inv\<^bsub>G \<times>\<times> K\<^esub> x \<in> H \<times> N" by auto
   qed
@@ -1133,7 +1135,7 @@ lemma (in group) FactGroup_DirProd_multiplication_iso_set :
 
 proof-
   have R :"(\<lambda>(X, Y). X \<times> Y) \<in> carrier (G Mod H) \<times> carrier (K Mod N) \<rightarrow> carrier (G \<times>\<times> K Mod H \<times> N)"
-    unfolding r_coset_def Sigma_def DirProd_def FactGroup_def RCOSETS_def apply simp by blast
+    unfolding r_coset_def Sigma_def DirProd_def FactGroup_def RCOSETS_def by force
   moreover have "(\<forall>x\<in>carrier (G Mod H). \<forall>y\<in>carrier (K Mod N). \<forall>xa\<in>carrier (G Mod H).
                 \<forall>ya\<in>carrier (K Mod N). (x <#> xa) \<times> (y <#>\<^bsub>K\<^esub> ya) =  x \<times> y <#>\<^bsub>G \<times>\<times> K\<^esub> xa \<times> ya)"
     unfolding set_mult_def by force
@@ -1143,8 +1145,14 @@ proof-
     by (metis assms(2) assms(3) normal_def partial_object.select_convs(1))
   moreover have "(\<lambda>(X, Y). X \<times> Y) ` (carrier (G Mod H) \<times> carrier (K Mod N)) =
                                      carrier (G \<times>\<times> K Mod H \<times> N)"
-    unfolding image_def  apply auto using R apply force
-    unfolding DirProd_def FactGroup_def RCOSETS_def r_coset_def by force
+  proof -
+    have 1: "\<And>x a b. \<lbrakk>a \<in> carrier (G Mod H); b \<in> carrier (K Mod N)\<rbrakk> \<Longrightarrow> a \<times> b \<in> carrier (G \<times>\<times> K Mod H \<times> N)"
+      using R by force
+    have 2: "\<And>z. z \<in> carrier (G \<times>\<times> K Mod H \<times> N) \<Longrightarrow> \<exists>x\<in>carrier (G Mod H). \<exists>y\<in>carrier (K Mod N). z = x \<times> y"
+      unfolding DirProd_def FactGroup_def RCOSETS_def r_coset_def by force
+    show ?thesis
+      unfolding image_def by (auto simp: intro: 1 2)
+  qed
   ultimately show ?thesis
     unfolding iso_def hom_def bij_betw_def inj_on_def by simp
 qed
@@ -1262,7 +1270,7 @@ proof-
       have hH:"h\<in>carrier(GH)"
         using hHK HK_def GH_def by auto
       have  "(\<forall>x\<in>carrier (GH). \<forall>h\<in>H1.  x \<otimes>\<^bsub>GH\<^esub> h \<otimes>\<^bsub>GH\<^esub> inv\<^bsub>GH\<^esub> x \<in> H1)"
-        using assms normal_invE GH_def normal.inv_op_closed2 by fastforce
+        using assms GH_def normal.inv_op_closed2 by fastforce
       hence INCL_1 : "x \<otimes>\<^bsub>GH\<^esub> h \<otimes>\<^bsub>GH\<^esub> inv\<^bsub>GH\<^esub> x \<in> H1"
         using  xH H1K_def p2 by blast
       have " x \<otimes>\<^bsub>GH\<^esub> h \<otimes>\<^bsub>GH\<^esub> inv\<^bsub>GH\<^esub> x \<in> HK"
@@ -1274,7 +1282,6 @@ proof-
     qed
   qed
 qed
-
 
 lemma (in group) normal_inter_subgroup:
   assumes "subgroup H G"
@@ -1288,8 +1295,8 @@ proof -
   ultimately have "N \<inter> H \<lhd> G\<lparr>carrier := K \<inter> H\<rparr>"
     using normal_inter[of K H N] assms(1) by blast
   moreover have "K \<inter> H = H" using K_def assms subgroup.subset by blast
-  ultimately show "normal (N\<inter>H) (G\<lparr>carrier := H\<rparr>)" by auto
+  ultimately show "normal (N\<inter>H) (G\<lparr>carrier := H\<rparr>)"
+ by auto
 qed
-
 
 end

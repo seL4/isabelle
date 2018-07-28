@@ -763,13 +763,13 @@ lemma DirProd_subgroups :
     and "subgroup I K"
   shows "subgroup (H \<times> I) (G \<times>\<times> K)"
 proof (intro group.group_incl_imp_subgroup[OF DirProd_group[OF assms(1)assms(3)]])
-  have "H \<subseteq> carrier G" "I \<subseteq> carrier K" using subgroup.subset assms apply blast+.
+  have "H \<subseteq> carrier G" "I \<subseteq> carrier K" using subgroup.subset assms by blast+
   thus "(H \<times> I) \<subseteq> carrier (G \<times>\<times> K)" unfolding DirProd_def by auto
   have "Group.group ((G\<lparr>carrier := H\<rparr>) \<times>\<times> (K\<lparr>carrier := I\<rparr>))"
     using DirProd_group[OF subgroup.subgroup_is_group[OF assms(2)assms(1)]
         subgroup.subgroup_is_group[OF assms(4)assms(3)]].
   moreover have "((G\<lparr>carrier := H\<rparr>) \<times>\<times> (K\<lparr>carrier := I\<rparr>)) = ((G \<times>\<times> K)\<lparr>carrier := H \<times> I\<rparr>)"
-    unfolding DirProd_def using assms apply simp.
+    unfolding DirProd_def using assms by simp
   ultimately show "Group.group ((G \<times>\<times> K)\<lparr>carrier := H \<times> I\<rparr>)" by simp
 qed
 
@@ -1054,7 +1054,7 @@ lemma (in group) int_pow_is_hom:
 lemma (in group_hom) img_is_subgroup: "subgroup (h ` (carrier G)) H"
   apply (rule subgroupI)
   apply (auto simp add: image_subsetI)
-  apply (metis (no_types, hide_lams) G.inv_closed hom_inv image_iff)
+  apply (metis G.inv_closed hom_inv image_iff)
   by (metis G.monoid_axioms hom_mult image_eqI monoid.m_closed)
 
 lemma (in group_hom) subgroup_img_is_subgroup:
@@ -1157,9 +1157,8 @@ proof (intro monoid.monoid_comm_monoidI)
   show "monoid (G\<lparr>carrier := H\<rparr>)"
     using submonoid.submonoid_is_monoid assms comm_monoid_axioms comm_monoid_def by blast
   show "\<And>x y. x \<in> carrier (G\<lparr>carrier := H\<rparr>) \<Longrightarrow> y \<in> carrier (G\<lparr>carrier := H\<rparr>)
-        \<Longrightarrow> x \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> y = y \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> x" apply simp
-    using  assms comm_monoid_axioms_def submonoid.mem_carrier
-    by (metis m_comm)
+        \<Longrightarrow> x \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> y = y \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> x" 
+    by simp (meson assms m_comm submonoid.mem_carrier)
 qed
 
 locale comm_group = comm_monoid + group
