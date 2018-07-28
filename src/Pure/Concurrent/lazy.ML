@@ -19,7 +19,6 @@ sig
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val force_value: 'a lazy -> 'a lazy
-  val trim_value: 'a lazy -> 'a lazy
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
   val map_finished: ('a -> 'b) -> 'a lazy -> 'b lazy
   val consolidate: 'a lazy list -> 'a lazy list
@@ -116,7 +115,6 @@ end;
 fun force x = Exn.release (force_result x);
 
 fun force_value x = if is_value x then x else value (force x);
-fun trim_value x = if is_pending x then x else force_value x;
 
 
 (* map *)
