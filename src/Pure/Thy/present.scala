@@ -277,8 +277,8 @@ object Present
         "Failed to build document in " + File.path(dir.absolute_file))
     }
 
-    bash("[ -f " + root_bash(document_format) + " ] && cp -f " +
-      root_bash(document_format) + " " + File.bash_path(document_target)).check
+    bash("if [ -f " + root_bash(document_format) + " ]; then cp -f " +
+      root_bash(document_format) + " " + File.bash_path(document_target) + "; fi").check
   }
 
 
