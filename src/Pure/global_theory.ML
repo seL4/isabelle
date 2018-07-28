@@ -158,7 +158,8 @@ fun add_facts (b, fact) thy =
   end;
 
 fun check_thms_lazy (thms: thm list lazy) =
-  if Options.default_bool "strict_facts" then Lazy.force_value thms else thms;
+  if Proofterm.proofs_enabled () orelse Options.default_bool "strict_facts"
+  then Lazy.force_value thms else thms;
 
 fun add_thms_lazy kind (b, thms) thy =
   if Binding.is_empty b then Thm.register_proofs (check_thms_lazy thms) thy
