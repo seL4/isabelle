@@ -4,7 +4,7 @@
 <!-- Isabelle NEWS mode -->
 <MODE>
   <PROPS>
-    <PROPERTY NAME="noWordSep" VALUE="_'?⇩"/>
+    <PROPERTY NAME="noWordSep" VALUE="_'?⇩\^&lt;&gt;"/>
     <PROPERTY NAME="unalignedOpenBrackets" VALUE="{[(«‹⟨⌈⌊⦇⟦⦃" />
     <PROPERTY NAME="unalignedCloseBrackets" VALUE="⦄⟧⦈⌋⌉⟩›»)]}" />
     <PROPERTY NAME="tabSize" VALUE="2" />
