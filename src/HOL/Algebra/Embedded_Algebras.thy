@@ -187,7 +187,7 @@ qed
 
 corollary Span_is_add_subgroup:
   "set Us \<subseteq> carrier R \<Longrightarrow> subgroup (Span K Us) (add_monoid R)"
-  using line_extension_is_subgroup add.normal_invE(1)[OF add.one_is_normal] by (induct Us) (auto)
+  using line_extension_is_subgroup normal_imp_subgroup[OF add.one_is_normal] by (induct Us) (auto)
 
 lemma line_extension_smult_closed:
   assumes "\<And>k v. \<lbrakk> k \<in> K; v \<in> E \<rbrakk> \<Longrightarrow> k \<otimes> v \<in> E" and "E \<subseteq> carrier R" "a \<in> carrier R"
@@ -246,7 +246,7 @@ text \<open>We show that Span is the set of linear combinations\<close>
 
 lemma line_extension_of_combine_set:
   assumes "u \<in> carrier R"
-  shows "line_extension K u { combine Ks Us | Ks. set Ks \<subseteq> K } = 
+  shows "line_extension K u { combine Ks Us | Ks. set Ks \<subseteq> K } =
                 { combine Ks (u # Us) | Ks. set Ks \<subseteq> K }"
   (is "?line_extension = ?combinations")
 proof
@@ -292,7 +292,7 @@ lemma Span_eq_combine_set:
 
 lemma line_extension_of_combine_set_length_version:
   assumes "u \<in> carrier R"
-  shows "line_extension K u { combine Ks Us | Ks. length Ks = length Us \<and> set Ks \<subseteq> K } = 
+  shows "line_extension K u { combine Ks Us | Ks. length Ks = length Us \<and> set Ks \<subseteq> K } =
                       { combine Ks (u # Us) | Ks. length Ks = length (u # Us) \<and> set Ks \<subseteq> K }"
   (is "?line_extension = ?combinations")
 proof
@@ -329,16 +329,16 @@ corollary Span_mem_iff:
   assumes "set Us \<subseteq> carrier R" and "a \<in> carrier R"
   shows "a \<in> Span K Us \<longleftrightarrow> (\<exists>k \<in> K - { \<zero> }. \<exists>Ks. set Ks \<subseteq> K \<and> combine (k # Ks) (a # Us) = \<zero>)"
          (is "?in_Span \<longleftrightarrow> ?exists_combine")
-proof 
+proof
   assume "?in_Span"
   then obtain Ks where Ks: "set Ks \<subseteq> K" "a = combine Ks Us"
     using Span_eq_combine_set[OF assms(1)] by auto
   hence "((\<ominus> \<one>) \<otimes> a) \<oplus> a = combine ((\<ominus> \<one>) # Ks) (a # Us)"
     by auto
   moreover have "((\<ominus> \<one>) \<otimes> a) \<oplus> a = \<zero>"
-    using assms(2) l_minus l_neg by auto  
+    using assms(2) l_minus l_neg by auto
   moreover have "\<ominus> \<one> \<noteq> \<zero>"
-    using subfieldE(6)[OF K] l_neg by force 
+    using subfieldE(6)[OF K] l_neg by force
   ultimately show "?exists_combine"
     using subring_props(3,5) Ks(1) by (force simp del: combine.simps)
 next
@@ -391,14 +391,14 @@ proof -
     proof (induct Ks Us rule: combine.induct)
       case (1 k Ks u Us)
       hence "k \<in> K" and "u \<in> set (u # Us)" by auto
-      hence "k \<otimes> u \<in> E" 
+      hence "k \<otimes> u \<in> E"
         using 1(4) unfolding set_mult_def by auto
       moreover have "K <#> set Us \<subseteq> E"
         using 1(4) unfolding set_mult_def by auto
       hence "combine Ks Us \<in> E"
         using 1 by auto
       ultimately show ?case
-        using add.subgroupE(4)[OF assms(2)] by auto 
+        using add.subgroupE(4)[OF assms(2)] by auto
     next
       case "2_1" thus ?case
         using subgroup.one_closed[OF assms(2)] by auto
@@ -436,7 +436,7 @@ next
       hence "combine [ k ] (u # Us) \<in> Span K (u # Us)"
         using Span_eq_combine_set[OF Cons(2)] by (auto simp del: combine.simps)
       moreover have "k \<in> carrier R" and "u \<in> carrier R"
-        using Cons(2) k subring_props(1) by (blast, auto) 
+        using Cons(2) k subring_props(1) by (blast, auto)
       ultimately show "k \<otimes> u \<in> Span K (u # Us)"
         by (auto simp del: Span.simps)
     qed
@@ -455,7 +455,7 @@ subsubsection \<open>Corollaries\<close>
 corollary Span_same_set:
   assumes "set Us \<subseteq> carrier R"
   shows "set Us = set Vs \<Longrightarrow> Span K Us = Span K Vs"
-  using Span_eq_generate assms by auto 
+  using Span_eq_generate assms by auto
 
 corollary Span_incl: "set Us \<subseteq> carrier R \<Longrightarrow> K <#> (set Us) \<subseteq> Span K Us"
   using Span_eq_generate generate.incl[of _ _ "add_monoid R"] by auto
@@ -583,7 +583,7 @@ proof -
   moreover have "Span K Us \<subseteq> Span K (u # Us)"
     using mono_Span independent_in_carrier[OF assms] by auto
   ultimately show ?thesis
-    using independent_backwards(1)[OF assms] by auto 
+    using independent_backwards(1)[OF assms] by auto
 qed
 
 corollary independent_replacement:
@@ -624,7 +624,7 @@ next
   from assms show "Span K Us \<inter> Span K Vs = { \<zero> }"
   proof (induct Us rule: list.induct)
     case Nil thus ?case
-      using Span_subgroup_props(2)[OF independent_in_carrier[of K Vs]] by simp 
+      using Span_subgroup_props(2)[OF independent_in_carrier[of K Vs]] by simp
   next
     case (Cons u Us)
     hence IH: "Span K Us \<inter> Span K Vs = {\<zero>}" by auto
@@ -653,7 +653,7 @@ next
       hence "k \<otimes> u = (\<ominus> u') \<oplus> v'"
         using in_carrier(1) k(2) u'(2) v'(2) add.m_comm r_neg1 by auto
       hence "k \<otimes> u \<in> Span K (Us @ Vs)"
-        using Span_subgroup_props(4)[OF in_carrier(2) u'(1)] v'(1) 
+        using Span_subgroup_props(4)[OF in_carrier(2) u'(1)] v'(1)
               Span_append_eq_set_add[OF in_carrier(2-3)] unfolding set_add_def' by blast
       hence "u \<in> Span K (Us @ Vs)"
         using Cons(2) Span_m_inv_simprule[OF _ _ in_carrier(1), of "Us @ Vs" k]
@@ -678,7 +678,7 @@ next
   hence in_carrier:
     "u \<in> carrier R" "set Us \<subseteq> carrier R" "set Vs \<subseteq> carrier R" "set (u # Us) \<subseteq> carrier R"
     using Cons(2-3)[THEN independent_in_carrier] by auto
-  hence "Span K Us \<subseteq> Span K (u # Us)" 
+  hence "Span K Us \<subseteq> Span K (u # Us)"
     using mono_Span by auto
   hence "Span K Us \<inter> Span K Vs = { \<zero> }"
     using Cons(4) Span_subgroup_props(2)[OF in_carrier(2)] by auto
@@ -733,7 +733,7 @@ next
     hence "combine Ks' Us = \<zero>"
       using combine_in_carrier[OF _ Us, of Ks'] Ks' u Cons(3) subring_props(1) unfolding Ks by auto
     hence "set (take (length Us) Ks') \<subseteq> { \<zero> }"
-      using Cons(1)[OF Ks' _ independent_backwards(2)[OF Cons(4)]] by simp 
+      using Cons(1)[OF Ks' _ independent_backwards(2)[OF Cons(4)]] by simp
     thus ?thesis
       using k_zero unfolding Ks by auto
   qed
@@ -878,10 +878,10 @@ proof -
     case (Cons u Us)
     then obtain Vs' Vs'' where Vs: "Vs = Vs' @ (u # Vs'')"
       by (metis list.set_intros(1) split_list)
-    
+
     have in_carrier: "u \<in> carrier R" "set Us \<subseteq> carrier R"
-      using independent_in_carrier[OF Cons(2)] by auto 
-    
+      using independent_in_carrier[OF Cons(2)] by auto
+
     have "distinct Vs"
       using Cons(3-4) independent_distinct[OF Cons(2)]
       by (metis card_distinct distinct_card)
@@ -905,7 +905,7 @@ lemma replacement_theorem:
   shows "\<exists>Vs'. set Vs' \<subseteq> set Vs \<and> length Vs' = length Us' \<and> independent K (Vs' @ Us)"
   using assms
 proof (induct "length Us'" arbitrary: Us' Us)
-  case 0 thus ?case by auto 
+  case 0 thus ?case by auto
 next
   case (Suc n)
   then obtain u Us'' where Us'': "Us' = Us'' @ [u]"
@@ -1074,9 +1074,9 @@ proof -
         using space_subgroup_props(1)[OF assms(1)] li_Cons[OF _ v(2) step(4)] by auto
       then obtain Vs
         where "length (Vs @ (v # Us)) = n" "independent K (Vs @ (v # Us))" "Span K (Vs @ (v # Us)) = E"
-        using step(3)[of "v # Us"] step(1-2,4-6) v by auto 
+        using step(3)[of "v # Us"] step(1-2,4-6) v by auto
       thus ?case
-        by (metis append.assoc append_Cons append_Nil)  
+        by (metis append.assoc append_Cons append_Nil)
     qed } note aux_lemma = this
 
   have "length Us \<le> n"
@@ -1119,7 +1119,7 @@ proof -
   hence in_carrier: "set Us \<subseteq> carrier R" "set (Vs @ Bs) \<subseteq> carrier R"
     using independent_in_carrier[OF Us(2)] independent_in_carrier[OF Vs(2)] by auto
   hence "Span K Us \<inter> (Span K (Vs @ Bs)) \<subseteq> Span K Bs"
-    using Bs(4) Us(3) Vs(3) mono_Span_append(1)[OF _ Bs(1), of Us] by auto 
+    using Bs(4) Us(3) Vs(3) mono_Span_append(1)[OF _ Bs(1), of Us] by auto
   hence "Span K Us \<inter> (Span K (Vs @ Bs)) \<subseteq> { \<zero> }"
     using independent_split(3)[OF Us(2)] by blast
   hence "Span K Us \<inter> (Span K (Vs @ Bs)) = { \<zero> }"
@@ -1147,7 +1147,7 @@ proof -
     ultimately show "v \<in> (Span K Us) <+>\<^bsub>R\<^esub> F"
       using u1' unfolding set_add_def' by auto
   qed
-  ultimately have "Span K (Us @ (Vs @ Bs)) = E <+>\<^bsub>R\<^esub> F" 
+  ultimately have "Span K (Us @ (Vs @ Bs)) = E <+>\<^bsub>R\<^esub> F"
     using Span_append_eq_set_add[OF in_carrier] Vs(3) by auto
 
   thus ?thesis using dim by simp
@@ -1169,7 +1169,7 @@ proof -
     by (metis One_nat_def length_0_conv length_Suc_conv)
   have in_carrier: "set (map (\<lambda>u'. u' \<otimes> u) Us) \<subseteq> carrier R"
     using Us(1) u(1) by (induct Us) (auto)
-  
+
   have li: "independent K (map (\<lambda>u'. u' \<otimes> u) Us)"
   proof (rule trivial_combine_imp_independent[OF assms(1) in_carrier])
     fix Ks assume Ks: "set Ks \<subseteq> K" and "combine Ks (map (\<lambda>u'. u' \<otimes> u) Us) = \<zero>"
@@ -1244,7 +1244,7 @@ next
   ultimately have "dimension (n * Suc m) K (Span F [ v ] <+>\<^bsub>R\<^esub> Span F Vs')"
     using dimension_direct_sum_space[OF assms(1) _ _ inter] by auto
   thus "dimension (n * Suc m) K E"
-    using Span_append_eq_set_add[OF assms(2) li[THEN independent_in_carrier]] Vs(4) v by auto 
+    using Span_append_eq_set_add[OF assms(2) li[THEN independent_in_carrier]] Vs(4) v by auto
 qed
 
 
@@ -1271,14 +1271,14 @@ next
   hence "combine Ks Us = (combine (take (length Us) Ks) Us) \<oplus> \<zero>"
     using combine_append[OF _ _ assms(2), of "take (length Us) Ks" "drop (length Us) Ks" "[]"] len by auto
   also have " ... = combine (take (length Us) Ks) Us"
-    using combine_in_carrier[OF set_t assms(2)] by auto 
+    using combine_in_carrier[OF set_t assms(2)] by auto
   finally show "combine Ks Us = combine (take (length Us) Ks) Us" .
 qed
 *)
 
 (*
 lemma combine_normalize:
-  assumes "set Ks \<subseteq> K" "set Us \<subseteq> carrier R" "a = combine Ks Us" 
+  assumes "set Ks \<subseteq> K" "set Us \<subseteq> carrier R" "a = combine Ks Us"
   shows "\<exists>Ks'. set Ks' \<subseteq> K \<and> length Ks' = length Us \<and> a = combine Ks' Us"
 proof (cases "length Ks \<le> length Us")
   assume "\<not> length Ks \<le> length Us"
@@ -1291,12 +1291,12 @@ proof (cases "length Ks \<le> length Us")
 next
   assume len: "length Ks \<le> length Us"
   have Ks: "set Ks \<subseteq> carrier R" and set_r: "set (replicate (length Us - length Ks) \<zero>) \<subseteq> carrier R"
-    using assms subring_props(1) zero_closed by (metis dual_order.trans, auto) 
+    using assms subring_props(1) zero_closed by (metis dual_order.trans, auto)
   moreover
   have set_t: "set (take (length Ks) Us) \<subseteq> carrier R"
    and set_d: "set (drop (length Ks) Us) \<subseteq> carrier R"
     using assms(2) len dual_order.trans by (metis set_take_subset, metis set_drop_subset)
-  ultimately 
+  ultimately
   have "combine (Ks @ (replicate (length Us - length Ks) \<zero>)) Us =
        (combine Ks (take (length Ks) Us)) \<oplus>
        (combine (replicate (length Us - length Ks) \<zero>) (drop (length Ks) Us))"
