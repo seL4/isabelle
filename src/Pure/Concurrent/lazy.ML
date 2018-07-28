@@ -13,7 +13,6 @@ sig
   val lazy_name: string -> (unit -> 'a) -> 'a lazy
   val lazy: (unit -> 'a) -> 'a lazy
   val peek: 'a lazy -> 'a Exn.result option
-  val is_pending: 'a lazy -> bool
   val is_running: 'a lazy -> bool
   val is_finished: 'a lazy -> bool
   val force_result: 'a lazy -> 'a Exn.result
@@ -53,12 +52,6 @@ fun peek (Value a) = SOME (Exn.Res a)
 
 fun is_value (Value _) = true
   | is_value (Lazy _) = false;
-
-fun is_pending (Value _) = false
-  | is_pending (Lazy var) =
-      (case Synchronized.value var of
-        Expr _ => true
-      | Result _ => false);
 
 fun is_running (Value _) = false
   | is_running (Lazy var) =
@@ -128,12 +121,12 @@ fun map_finished f x = if is_finished x then value (f (force x)) else map f x;
 
 fun consolidate xs =
   let
-    val pending =
-      xs |> map_filter (fn x => if is_pending x then SOME (fn () => force_result x) else NONE);
+    val unfinished =
+      xs |> map_filter (fn x => if is_finished x then NONE else SOME (fn () => force_result x));
     val _ =
-      if Future.relevant pending then
-        ignore (Future.forked_results {name = "Lazy.consolidate", deps = []} pending)
-      else List.app (fn e => ignore (e ())) pending;
+      if Future.relevant unfinished then
+        ignore (Future.forked_results {name = "Lazy.consolidate", deps = []} unfinished)
+      else List.app (fn e => ignore (e ())) unfinished;
   in xs end;
 
 

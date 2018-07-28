@@ -208,9 +208,9 @@ fun fold_static_lazy f =
 
 fun consolidate facts =
   let
-    val pending =
-      (facts, []) |-> fold_static_lazy (fn (_, ths) => if Lazy.is_pending ths then cons ths else I);
-    val _ = Lazy.consolidate pending;
+    val unfinished =
+      (facts, []) |-> fold_static_lazy (fn (_, ths) => if Lazy.is_finished ths then I else cons ths);
+    val _ = Lazy.consolidate unfinished;
   in facts end;
 
 fun included verbose prev_facts facts name =
