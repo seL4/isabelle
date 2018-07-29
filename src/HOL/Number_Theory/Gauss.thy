@@ -18,7 +18,7 @@ lemma cong_prime_prod_zero_nat:
 lemma cong_prime_prod_zero_int:
   "[a * b = 0] (mod p) \<Longrightarrow> prime p \<Longrightarrow> [a = 0] (mod p) \<or> [b = 0] (mod p)"
   for a :: int
-  by (auto simp add: cong_altdef_int prime_dvd_mult_iff)
+  by (simp add: cong_0_iff prime_dvd_mult_iff)
 
 
 locale GAUSS =
@@ -114,11 +114,11 @@ proof -
     for x y
   proof -
     from p_a_relprime have "\<not> p dvd a"
-      by (simp add: cong_altdef_int)
+      by (simp add: cong_0_iff)
     with p_prime prime_imp_coprime [of _ "nat \<bar>a\<bar>"]
     have "coprime a (int p)"
       by (simp_all add: ac_simps)
-    with a cong_mult_rcancel_int [of a "int p" x y] have "[x = y] (mod p)"
+    with a cong_mult_rcancel [of a "int p" x y] have "[x = y] (mod p)"
       by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
       order_le_less_trans [of x "(int p - 1) div 2" p]
@@ -127,12 +127,8 @@ proof -
       by (metis b c cong_less_imp_eq_int d e zero_less_imp_eq_int of_nat_0_le_iff)
   qed
   show ?thesis
-    apply (insert p_ge_2 p_a_relprime p_minus_one_l)
-    apply (auto simp add: B_def)
-    apply (rule ResSet_image)
-      apply (auto simp add: A_res)
-    apply (auto simp add: A_def *)
-    done
+    using p_ge_2 p_a_relprime p_minus_one_l
+    by (metis "*" A_def A_res B_def GAUSS.ResSet_image GAUSS_axioms greaterThanAtMost_iff odd_p odd_pos of_nat_0_less_iff)
 qed
 
 lemma SR_B_inj: "inj_on (\<lambda>x. x mod p) B"
@@ -149,11 +145,11 @@ proof -
     from a have a': "[x * a = y * a](mod p)"
       using cong_def by blast
     from p_a_relprime have "\<not>p dvd a"
-      by (simp add: cong_altdef_int)
+      by (simp add: cong_0_iff)
     with p_prime prime_imp_coprime [of _ "nat \<bar>a\<bar>"]
     have "coprime a (int p)"
       by (simp_all add: ac_simps)  
-    with a' cong_mult_rcancel_int [of a "int p" x y]
+    with a' cong_mult_rcancel [of a "int p" x y]
     have "[x = y] (mod p)" by simp
     with cong_less_imp_eq_int [of x y p] p_minus_one_l
       order_le_less_trans [of x "(int p - 1) div 2" p]
@@ -224,7 +220,7 @@ lemma all_A_relprime:
   "coprime x p" if "x \<in> A"
 proof -
   from A_ncong_p [OF that] have "\<not> int p dvd x"
-    by (simp add: cong_altdef_int)
+    by (simp add: cong_0_iff)
   with p_prime show ?thesis
     by (metis (no_types) coprime_commute prime_imp_coprime prime_nat_int_transfer)
 qed
@@ -370,7 +366,7 @@ proof -
   then have "[prod id A * (-1)^(card E) = prod id A * a^(card A)](mod p)"
     by (rule cong_trans) (simp add: aux cong del: prod.strong_cong)
   with A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
-    by (metis cong_mult_lcancel_int)
+    by (metis cong_mult_lcancel)
   then show ?thesis
     by (simp add: A_card_eq cong_sym)
 qed
@@ -390,7 +386,8 @@ proof -
   moreover have "(-1::int) ^ (card E) = 1 \<or> (-1::int) ^ (card E) = -1"
     using neg_one_even_power neg_one_odd_power by blast
   moreover have "[1 \<noteq> - 1] (mod int p)"
-    using cong_altdef_int nonzero_mod_p[of 2] p_odd_int by fastforce
+    using cong_iff_dvd_diff [where 'a=int] nonzero_mod_p[of 2] p_odd_int   
+    by fastforce
   ultimately show ?thesis
     by (auto simp add: cong_sym)
 qed

@@ -121,7 +121,7 @@ proof -
   obtain x where x: "x < a * b" "[x = m] (mod a)" "[x = n] (mod b)" "\<forall>y. ?P y \<longrightarrow> y = x"
     by blast
   from ma nb x have "coprime x a" "coprime x b"
-    using cong_imp_coprime_nat cong_sym by blast+
+    using cong_imp_coprime cong_sym by blast+
   then have "coprime x (a*b)"
     by simp
   with x show ?thesis
@@ -209,7 +209,7 @@ proof-
     by arith+
   from mod_less_divisor[of n 1] n01 have onen: "1 mod n = 1"
     by simp
-  from lucas_coprime_lemma[OF n01(3) an1] cong_imp_coprime_nat an1
+  from lucas_coprime_lemma[OF n01(3) an1] cong_imp_coprime an1
   have an: "coprime a n" "coprime (a ^ (n - 1)) n"
     using \<open>n \<ge> 2\<close> by simp_all
   have False if H0: "\<exists>m. 0 < m \<and> m < n - 1 \<and> [a ^ m = 1] (mod n)" (is "\<exists>m. ?P m")
@@ -716,7 +716,7 @@ proof -
         by simp
     qed
     then have b1: "b \<ge> 1" by arith
-    from cong_imp_coprime_nat[OF Cong.cong_diff_nat[OF cong_sym [OF b(1)] cong_refl [of 1] b1]]
+    from cong_imp_coprime[OF Cong.cong_diff_nat[OF cong_sym [OF b(1)] cong_refl [of 1] b1]]
       ath b1 b nqr
     have "coprime (a ^ ((n - 1) div p) - 1) n"
       by simp
@@ -858,7 +858,7 @@ proof -
     have "[a ^ ((n - 1) div p) mod n - 1 = a ^ ((n - 1) div p) - 1] (mod n)"
       by (simp add: cong_diff_nat)
     then show ?thesis
-      by (metis cong_imp_coprime_nat eq1 p')
+      by (metis cong_imp_coprime eq1 p')
   qed
   with pocklington[OF n qrn[symmetric] nq2 an1] show ?thesis
     by blast

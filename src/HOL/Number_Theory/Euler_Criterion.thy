@@ -48,8 +48,8 @@ proof -
     have "[nat \<bar>b\<bar> ^ (p - 1) = 1] (mod p)"
     using p_prime proof (rule fermat_theorem)
       from b p_a_relprime show "\<not> p dvd nat \<bar>b\<bar>"
-        by (auto simp add: cong_altdef_int power2_eq_square)
-          (metis cong_altdef_int cong_dvd_iff dvd_mult2) 
+        by (auto simp add: cong_iff_dvd_diff power2_eq_square)
+          (metis cong_iff_dvd_diff cong_dvd_iff dvd_mult2) 
     qed
     then have "nat \<bar>b\<bar> ^ (p - 1) mod p = 1 mod p"
       by (simp add: cong_def)
@@ -90,13 +90,13 @@ proof -
     cong_scalar_right [of "x * y'" 1 "int p" a]
     by (auto simp add: cong_def ac_simps)
   moreover have "y \<in> {0 .. int p - 1}" unfolding y_def using p_ge_2 by auto
-  hence "y \<in> S1" using calculation cong_altdef_int p_a_relprime S1_def by auto
+  hence "y \<in> S1" using calculation cong_iff_dvd_diff p_a_relprime S1_def cong_dvd_iff by fastforce
   ultimately have "P x y" unfolding P_def by blast
   moreover {
     fix y1 y2
     assume "P x y1" "P x y2"
     moreover hence "[y1 = y2] (mod p)" unfolding P_def
-      using co_xp cong_mult_lcancel_int[of x p y1 y2] cong_sym cong_trans by blast
+      using co_xp cong_mult_lcancel[of x p y1 y2] cong_sym cong_trans by blast
     ultimately have "y1 = y2" unfolding P_def S1_def using cong_less_imp_eq_int by auto
   }
   ultimately show ?thesis by blast
@@ -200,7 +200,8 @@ proof (cases "[a = 0] (mod p)")
   moreover have "(0::int) ^ ((p - 1) div 2) = 0"
     using zero_power [of "(p - 1) div 2"] assms(2) by simp
   ultimately have "[a ^ ((p - 1) div 2) = 0] (mod p)"
-    using True assms(1) cong_altdef_int prime_dvd_power_int_iff by auto
+    using True assms(1) prime_dvd_power_int_iff
+    by (simp add: cong_iff_dvd_diff)
   then show ?thesis unfolding Legendre_def using True cong_sym
     by auto
 next
