@@ -680,22 +680,25 @@ proof -
     next
       case False
       show ?thesis
-      proof (rule_tac x="\<Squnion>\<^bsub>L\<^esub> A" in exI, rule least_UpperI, simp_all)
+      proof (intro exI least_UpperI, simp_all)
         show b:"\<And> x. x \<in> A \<Longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
           using a by (auto intro: L.sup_upper, meson L.at_least_at_most_closed L.sup_upper subset_trans)
         show "\<And>y. y \<in> Upper (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) A \<Longrightarrow> \<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> y"
           using a L.at_least_at_most_closed by (rule_tac L.sup_least, auto intro: funcset_mem simp add: Upper_def)
-        from a show "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
-          by (auto)
-        from a show "\<Squnion>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
-          apply (rule_tac L.at_least_at_most_member)
-          apply (auto)
-          apply (meson L.at_least_at_most_closed L.sup_closed subset_trans)
-          apply (meson False L.at_least_at_most_closed L.at_least_at_most_lower L.le_trans L.sup_closed b all_not_in_conv assms(2) contra_subsetD subset_trans)
-          apply (rule L.sup_least)
-          apply (auto simp add: assms)
-          using L.at_least_at_most_closed apply blast
-        done
+        from a show *: "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+          by auto
+        show "\<Squnion>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+        proof (rule_tac L.at_least_at_most_member)
+          show 1: "\<Squnion>\<^bsub>L\<^esub>A \<in> carrier L"
+            by (meson L.at_least_at_most_closed L.sup_closed subset_trans *)
+          show "a \<sqsubseteq>\<^bsub>L\<^esub> \<Squnion>\<^bsub>L\<^esub>A"
+            by (meson "*" False L.at_least_at_most_closed L.at_least_at_most_lower L.le_trans L.sup_upper 1 all_not_in_conv assms(2) set_mp subset_trans)
+          show "\<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> b"
+          proof (rule L.sup_least)
+            show "A \<subseteq> carrier L" "\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> b"
+              using * L.at_least_at_most_closed by blast+
+          qed (simp add: assms)
+        qed
       qed
     qed
     show "\<exists>s. is_glb (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) s A"
@@ -711,15 +714,17 @@ proof -
           using a L.at_least_at_most_closed by (force intro!: L.inf_lower)
         show "\<And>y. y \<in> Lower (L\<lparr>carrier := \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>\<rparr>) A \<Longrightarrow> y \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
            using a L.at_least_at_most_closed by (rule_tac L.inf_greatest, auto intro: funcset_carrier' simp add: Lower_def)
-        from a show "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
-          by (auto)
-        from a show "\<Sqinter>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
-          apply (rule_tac L.at_least_at_most_member)
-          apply (auto)
-          apply (meson L.at_least_at_most_closed L.inf_closed subset_trans)
-          apply (meson L.at_least_at_most_closed L.at_least_at_most_lower L.inf_greatest assms(2) set_rev_mp subset_trans)
-          apply (meson False L.at_least_at_most_closed L.at_least_at_most_upper L.inf_closed L.le_trans b all_not_in_conv assms(3) contra_subsetD subset_trans)            
-        done
+        from a show *: "A \<subseteq> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+          by auto
+        show "\<Sqinter>\<^bsub>L\<^esub>A \<in> \<lbrace>a..b\<rbrace>\<^bsub>L\<^esub>"
+        proof (rule_tac L.at_least_at_most_member)
+          show 1: "\<Sqinter>\<^bsub>L\<^esub>A \<in> carrier L"
+            by (meson "*" L.at_least_at_most_closed L.inf_closed subset_trans)
+          show "a \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
+            by (meson "*" L.at_least_at_most_closed L.at_least_at_most_lower L.inf_greatest assms(2) subsetD subset_trans)
+          show "\<Sqinter>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> b"
+            by (meson * 1 False L.at_least_at_most_closed L.at_least_at_most_upper L.inf_lower L.le_trans all_not_in_conv assms(3) set_mp subset_trans)
+        qed
       qed
     qed
   qed
@@ -731,7 +736,7 @@ subsection \<open>Knaster-Tarski theorem and variants\<close>
 text \<open>The set of fixed points of a complete lattice is itself a complete lattice\<close>
 
 theorem Knaster_Tarski:
-  assumes "weak_complete_lattice L" "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f"
+  assumes "weak_complete_lattice L" and f: "f \<in> carrier L \<rightarrow> carrier L" and "isotone L L f"
   shows "weak_complete_lattice (fpl L f)" (is "weak_complete_lattice ?L'")
 proof -
   interpret L: weak_complete_lattice L
@@ -805,15 +810,14 @@ proof -
       show "is_lub ?L'' (LFP\<^bsub>?L'\<^esub> f) A"
       proof (rule least_UpperI, simp_all)
         fix x
-        assume "x \<in> Upper ?L'' A"
-        hence "LFP\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>?L'\<^esub> x"
-          apply (rule_tac L'.LFP_lowerbound)
-          apply (auto simp add: Upper_def)
-          apply (simp add: A AL L.at_least_at_most_member L.sup_least set_rev_mp)          
-          apply (simp add: Pi_iff assms(2) fps_def, rule_tac L.weak_refl)
-          apply (auto)
-          apply (rule funcset_mem[of f "carrier L"], simp_all add: assms(2))
-        done
+        assume x: "x \<in> Upper ?L'' A"
+        have "LFP\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>?L'\<^esub> x"
+        proof (rule L'.LFP_lowerbound, simp_all)
+          show "x \<in> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
+            using x by (auto simp add: Upper_def A AL L.at_least_at_most_member L.sup_least set_rev_mp)    
+          with x show "f x \<sqsubseteq>\<^bsub>L\<^esub> x"
+            by (simp add: Upper_def) (meson L.at_least_at_most_closed L.use_fps L.weak_refl subsetD f_top_chain imageI)
+        qed
         thus " LFP\<^bsub>?L'\<^esub> f \<sqsubseteq>\<^bsub>L\<^esub> x"
           by (simp)
       next
@@ -838,17 +842,13 @@ proof -
              by (auto simp add: at_least_at_most_def)
           have "LFP\<^bsub>?L'\<^esub> f .=\<^bsub>?L'\<^esub> f (LFP\<^bsub>?L'\<^esub> f)"
           proof (rule "L'.LFP_weak_unfold", simp_all)
-            show "f \<in> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
-              apply (auto simp add: Pi_def at_least_at_most_def)
-              using assms(2) apply blast
-              apply (meson AL funcset_mem L.le_trans L.sup_closed assms(2) assms(3) pf_w use_iso2)
-              using assms(2) apply blast
-            done
-            from assms(3) show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
-              apply (auto simp add: isotone_def)
-              using L'.weak_partial_order_axioms apply blast
-              apply (meson L.at_least_at_most_closed subsetCE)
-            done
+            have "\<And>x. \<lbrakk>x \<in> carrier L; \<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> x\<rbrakk> \<Longrightarrow> \<Squnion>\<^bsub>L\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f x"
+              by (meson AL funcset_mem L.le_trans L.sup_closed assms(2) assms(3) pf_w use_iso2)
+            with f show "f \<in> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>"
+              by (auto simp add: Pi_def at_least_at_most_def)
+            show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<Squnion>\<^bsub>L\<^esub>A..\<top>\<^bsub>L\<^esub>\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
+              using L'.weak_partial_order_axioms assms(3) 
+              by (auto simp add: isotone_def) (meson L.at_least_at_most_closed subsetCE)
           qed
           thus "f (LFP\<^bsub>?L'\<^esub> f) .=\<^bsub>L\<^esub> LFP\<^bsub>?L'\<^esub> f"
             by (simp add: L.equivalence_axioms funcset_carrier' c assms(2) equivalence.sym) 
@@ -889,7 +889,6 @@ proof -
           thus ?thesis
             by (meson AL L.inf_closed L.le_trans assms(3) b(1) b(2) fx use_iso2 w)
         qed
-   
         show "\<bottom>\<^bsub>L\<^esub> \<sqsubseteq>\<^bsub>L\<^esub> f x"
           by (simp add: fx)
       qed
@@ -905,12 +904,16 @@ proof -
       proof (rule greatest_LowerI, simp_all)
         fix x
         assume "x \<in> Lower ?L'' A"
-        hence "x \<sqsubseteq>\<^bsub>?L'\<^esub> GFP\<^bsub>?L'\<^esub> f"
-          apply (rule_tac L'.GFP_upperbound)
-          apply (auto simp add: Lower_def)
-          apply (meson A AL L.at_least_at_most_member L.bottom_lower L.weak_complete_lattice_axioms fps_carrier subsetCE weak_complete_lattice.inf_greatest)
-          apply (simp add: funcset_carrier' L.sym assms(2) fps_def)          
-        done
+        then have x: "\<forall>y. y \<in> A \<and> y \<in> fps L f \<longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y" "x \<in> fps L f"
+          by (auto simp add: Lower_def)
+        have "x \<sqsubseteq>\<^bsub>?L'\<^esub> GFP\<^bsub>?L'\<^esub> f"
+          unfolding Lower_def
+        proof (rule_tac L'.GFP_upperbound; simp)
+          show "x \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..\<Sqinter>\<^bsub>L\<^esub>A\<rbrace>\<^bsub>L\<^esub>"
+            by (meson x A AL L.at_least_at_most_member L.bottom_lower L.inf_greatest contra_subsetD fps_carrier)
+          show "x \<sqsubseteq>\<^bsub>L\<^esub> f x"
+            using x by (simp add: funcset_carrier' L.sym assms(2) fps_def)
+        qed
         thus "x \<sqsubseteq>\<^bsub>L\<^esub> GFP\<^bsub>?L'\<^esub> f"
           by (simp)
       next
@@ -935,17 +938,14 @@ proof -
              by (auto simp add: at_least_at_most_def)
           have "GFP\<^bsub>?L'\<^esub> f .=\<^bsub>?L'\<^esub> f (GFP\<^bsub>?L'\<^esub> f)"
           proof (rule "L'.GFP_weak_unfold", simp_all)
-            show "f \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
-              apply (auto simp add: Pi_def at_least_at_most_def)
-              using assms(2) apply blast
-              apply (simp add: funcset_carrier' assms(2))
-              apply (meson AL funcset_carrier L.inf_closed L.le_trans assms(2) assms(3) pf_w use_iso2)
-            done
-            from assms(3) show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
-              apply (auto simp add: isotone_def)
-              using L'.weak_partial_order_axioms apply blast
-              using L.at_least_at_most_closed apply (blast intro: funcset_carrier')
-            done
+            have "\<And>x. \<lbrakk>x \<in> carrier L; x \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>L\<^esub> \<Sqinter>\<^bsub>L\<^esub>A"
+              by (meson AL funcset_carrier L.inf_closed L.le_trans assms(2) assms(3) pf_w use_iso2)
+            with assms(2) show "f \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
+              by (auto simp add: Pi_def at_least_at_most_def)
+            have "\<And>x y. \<lbrakk>x \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..\<Sqinter>\<^bsub>L\<^esub>A\<rbrace>\<^bsub>L\<^esub>; y \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..\<Sqinter>\<^bsub>L\<^esub>A\<rbrace>\<^bsub>L\<^esub>; x \<sqsubseteq>\<^bsub>L\<^esub> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>L\<^esub> f y"
+              by (meson L.at_least_at_most_closed subsetD use_iso1  assms(3)) 
+            with L'.weak_partial_order_axioms show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
+              by (auto simp add: isotone_def)
           qed
           thus "f (GFP\<^bsub>?L'\<^esub> f) .=\<^bsub>L\<^esub> GFP\<^bsub>?L'\<^esub> f"
             by (simp add: L.equivalence_axioms funcset_carrier' c assms(2) equivalence.sym) 
@@ -1117,17 +1117,16 @@ proof -
     qed
     show "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f (\<Sqinter>\<^bsub>L\<^esub>A)"
     proof -
+      have *: "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<in> carrier L"
+        using FA infA by blast
       have "\<And>x. x \<in> A \<Longrightarrow> \<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>fpl L f\<^esub> x"
         by (rule L'.inf_lower, simp_all add: assms)
       hence "\<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> (\<Sqinter>\<^bsub>L\<^esub>A)"
-        apply (rule_tac L.inf_greatest, simp_all add: A)
-        using FA infA apply blast
-        done
+        by (rule_tac L.inf_greatest, simp_all add: A *)
       hence 1:"f(\<Sqinter>\<^bsub>fpl L f\<^esub>A) \<sqsubseteq>\<^bsub>L\<^esub> f(\<Sqinter>\<^bsub>L\<^esub>A)"
         by (metis (no_types, lifting) A FA L.inf_closed assms(2) infA subsetCE use_iso1)
       have 2:"\<Sqinter>\<^bsub>fpl L f\<^esub>A \<sqsubseteq>\<^bsub>L\<^esub> f (\<Sqinter>\<^bsub>fpl L f\<^esub>A)"
         by (metis (no_types, lifting) FA L.sym L.use_fps L.weak_complete_lattice_axioms PiE assms(4) infA subsetCE weak_complete_lattice_def weak_partial_order.weak_refl)
-        
       show ?thesis  
         using FA fA infA by (auto intro!: L.le_trans[OF 2 1] ic fc, metis FA PiE assms(4) subsetCE)
     qed
@@ -1189,21 +1188,11 @@ lemma weak_inf_pres:
 lemma sup_pres_is_join_pres:
   assumes "weak_sup_pres X Y f"
   shows "join_pres X Y f"
-  using assms
-  apply (simp add: join_pres_def weak_sup_pres_def, safe)
-  apply (rename_tac x y)
-  apply (drule_tac x="{x, y}" in spec)
-  apply (auto simp add: join_def)
-done
+  using assms by (auto simp: join_pres_def weak_sup_pres_def join_def)
 
 lemma inf_pres_is_meet_pres:
   assumes "weak_inf_pres X Y f"
   shows "meet_pres X Y f"
-  using assms
-  apply (simp add: meet_pres_def weak_inf_pres_def, safe)
-  apply (rename_tac x y)
-  apply (drule_tac x="{x, y}" in spec)
-  apply (auto simp add: meet_def)
-done
+  using assms by (auto simp: meet_pres_def weak_inf_pres_def meet_def)
 
 end

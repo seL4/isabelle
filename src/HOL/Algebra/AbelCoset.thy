@@ -269,17 +269,15 @@ proof -
     by (rule a_comm_group)
   interpret subgroup "H" "(add_monoid G)"
     by (rule a_subgroup)
-
-  show "abelian_subgroup H G"
-    apply unfold_locales
-  proof (simp add: r_coset_def l_coset_def, clarsimp)
-    fix x
-    assume xcarr: "x \<in> carrier G"
-    from a_subgroup have Hcarr: "H \<subseteq> carrier G"
-      unfolding subgroup_def by simp
-    from xcarr Hcarr show "(\<Union>h\<in>H. {h \<oplus>\<^bsub>G\<^esub> x}) = (\<Union>h\<in>H. {x \<oplus>\<^bsub>G\<^esub> h})"
+  have "(\<Union>xa\<in>H. {xa \<oplus> x}) = (\<Union>xa\<in>H. {x \<oplus> xa})" if "x \<in> carrier G" for x
+  proof -
+    have "H \<subseteq> carrier G"
+      using a_subgroup that unfolding subgroup_def by simp
+    with that show "(\<Union>h\<in>H. {h \<oplus>\<^bsub>G\<^esub> x}) = (\<Union>h\<in>H. {x \<oplus>\<^bsub>G\<^esub> h})"
       using m_comm [simplified] by fastforce
   qed
+  then show "abelian_subgroup H G"
+    by unfold_locales (auto simp: r_coset_def l_coset_def)
 qed
 
 lemma abelian_subgroupI3:
@@ -304,14 +302,6 @@ lemma (in abelian_subgroup) a_inv_op_closed2:
 by (rule normal.inv_op_closed2 [OF a_normal,
     folded a_inv_def, simplified monoid_record_simps])
 
-text\<open>Alternative characterization of normal subgroups\<close>
-lemma (in abelian_group) a_normal_inv_iff:
-     "(N \<lhd> (add_monoid G)) = 
-      (subgroup N (add_monoid G) & (\<forall>x \<in> carrier G. \<forall>h \<in> N. x \<oplus> h \<oplus> (\<ominus> x) \<in> N))"
-      (is "_ = ?rhs")
-by (rule group.normal_inv_iff [OF a_group,
-    folded a_inv_def, simplified monoid_record_simps])
-
 lemma (in abelian_group) a_lcos_m_assoc:
   "\<lbrakk> M \<subseteq> carrier G; g \<in> carrier G; h \<in> carrier G \<rbrakk> \<Longrightarrow> g <+ (h <+ M) = (g \<oplus> h) <+ M"
 by (rule group.lcos_m_assoc [OF a_group,
@@ -322,12 +312,10 @@ lemma (in abelian_group) a_lcos_mult_one:
 by (rule group.lcos_mult_one [OF a_group,
     folded a_l_coset_def, simplified monoid_record_simps])
 
-
 lemma (in abelian_group) a_l_coset_subset_G:
   "\<lbrakk> H \<subseteq> carrier G; x \<in> carrier G \<rbrakk> \<Longrightarrow> x <+ H \<subseteq> carrier G"
 by (rule group.l_coset_subset_G [OF a_group,
     folded a_l_coset_def, simplified monoid_record_simps])
-
 
 lemma (in abelian_group) a_l_coset_swap:
      "\<lbrakk>y \<in> x <+ H;  x \<in> carrier G;  subgroup H (add_monoid G)\<rbrakk> \<Longrightarrow> x \<in> y <+ H"
@@ -498,15 +486,15 @@ by (rule normal.factorgroup_is_group [OF a_normal,
 
 text \<open>Since the Factorization is based on an \emph{abelian} subgroup, is results in 
         a commutative group\<close>
-theorem (in abelian_subgroup) a_factorgroup_is_comm_group:
-  "comm_group (G A_Mod H)"
-apply (intro comm_group.intro comm_monoid.intro) prefer 3
-  apply (rule a_factorgroup_is_group)
- apply (rule group.axioms[OF a_factorgroup_is_group])
-apply (rule comm_monoid_axioms.intro)
-apply (unfold A_FactGroup_def FactGroup_def RCOSETS_def, fold set_add_def a_r_coset_def, clarsimp)
-apply (simp add: a_rcos_sum a_comm)
-done
+theorem (in abelian_subgroup) a_factorgroup_is_comm_group: "comm_group (G A_Mod H)"
+proof -
+  have "Group.comm_monoid_axioms (G A_Mod H)"
+    apply (rule comm_monoid_axioms.intro)
+    apply (auto simp: A_FactGroup_def FactGroup_def RCOSETS_def a_normal add.m_comm normal.rcos_sum)
+    done
+  then show ?thesis
+    by (intro comm_group.intro comm_monoid.intro) (simp_all add: a_factorgroup_is_group group.is_monoid)
+qed
 
 lemma add_A_FactGroup [simp]: "X \<otimes>\<^bsub>(G A_Mod H)\<^esub> X' = X <+>\<^bsub>G\<^esub> X'"
 by (simp add: A_FactGroup_def set_add_def)
@@ -552,11 +540,8 @@ proof -
   interpret G: abelian_group G by fact
   interpret H: abelian_group H by fact
   show ?thesis
-    apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
-      apply fact
-     apply fact
-    apply (rule a_group_hom)
-    done
+    by (intro abelian_group_hom.intro abelian_group_hom_axioms.intro 
+        G.abelian_group_axioms H.abelian_group_axioms a_group_hom)
 qed
 
 lemma (in abelian_group_hom) is_abelian_group_hom:
@@ -576,8 +561,7 @@ by (rule group_hom.hom_closed[OF a_group_hom,
 
 lemma (in abelian_group_hom) zero_closed [simp]:
   "h \<zero> \<in> carrier H"
-by (rule group_hom.one_closed[OF a_group_hom,
-    simplified ring_record_simps])
+  by simp
 
 lemma (in abelian_group_hom) hom_zero [simp]:
   "h \<zero> = \<zero>\<^bsub>H\<^esub>"
@@ -586,8 +570,7 @@ by (rule group_hom.hom_one[OF a_group_hom,
 
 lemma (in abelian_group_hom) a_inv_closed [simp]:
   "x \<in> carrier G ==> h (\<ominus>x) \<in> carrier H"
-by (rule group_hom.inv_closed[OF a_group_hom,
-    folded a_inv_def, simplified ring_record_simps])
+  by simp
 
 lemma (in abelian_group_hom) hom_a_inv [simp]:
   "x \<in> carrier G ==> h (\<ominus>x) = \<ominus>\<^bsub>H\<^esub> (h x)"
@@ -596,19 +579,15 @@ by (rule group_hom.hom_inv[OF a_group_hom,
 
 lemma (in abelian_group_hom) additive_subgroup_a_kernel:
   "additive_subgroup (a_kernel G H h) G"
-apply (rule additive_subgroup.intro)
-apply (rule group_hom.subgroup_kernel[OF a_group_hom,
-       folded a_kernel_def, simplified ring_record_simps])
-done
+  by (simp add: additive_subgroup.intro a_group_hom a_kernel_def group_hom.subgroup_kernel)
 
 text\<open>The kernel of a homomorphism is an abelian subgroup\<close>
 lemma (in abelian_group_hom) abelian_subgroup_a_kernel:
   "abelian_subgroup (a_kernel G H h) G"
-apply (rule abelian_subgroupI)
-apply (rule group_hom.normal_kernel[OF a_group_hom,
-       folded a_kernel_def, simplified ring_record_simps])
-apply (simp add: G.a_comm)
-done
+  apply (rule abelian_subgroupI)
+   apply (simp add: G.abelian_group_axioms abelian_subgroup.a_normal abelian_subgroupI3 additive_subgroup_a_kernel)
+  apply (simp add: G.a_comm)
+  done
 
 lemma (in abelian_group_hom) A_FactGroup_nonempty:
   assumes X: "X \<in> carrier (G A_Mod a_kernel G H h)"
@@ -715,48 +694,34 @@ proof -
 qed
 
 lemma (in abelian_subgroup) a_repr_independence':
-  assumes y: "y \<in> H +> x"
-      and xcarr: "x \<in> carrier G"
+  assumes "y \<in> H +> x" "x \<in> carrier G"
   shows "H +> x = H +> y"
-  apply (rule a_repr_independence)
-    apply (rule y)
-   apply (rule xcarr)
-  apply (rule a_subgroup)
-  done
+  using a_repr_independence a_subgroup assms by blast
 
 lemma (in abelian_subgroup) a_repr_independenceD:
-  assumes ycarr: "y \<in> carrier G"
-      and repr:  "H +> x = H +> y"
+  assumes "y \<in> carrier G" "H +> x = H +> y"
   shows "y \<in> H +> x"
-by (rule group.repr_independenceD [OF a_group a_subgroup,
-    folded a_r_coset_def, simplified monoid_record_simps]) (rule ycarr, rule repr)
+  by (simp add: a_rcos_self assms)
 
 
 lemma (in abelian_subgroup) a_rcosets_carrier:
   "X \<in> a_rcosets H \<Longrightarrow> X \<subseteq> carrier G"
-by (rule subgroup.rcosets_carrier [OF a_subgroup a_group,
-    folded A_RCOSETS_def, simplified monoid_record_simps])
+  using a_rcosets_part_G by auto
 
 
 subsubsection \<open>Addition of Subgroups\<close>
 
 lemma (in abelian_monoid) set_add_closed:
-  assumes Acarr: "A \<subseteq> carrier G"
-      and Bcarr: "B \<subseteq> carrier G"
+  assumes "A \<subseteq> carrier G" "B \<subseteq> carrier G"
   shows "A <+> B \<subseteq> carrier G"
-by (rule monoid.set_mult_closed [OF a_monoid,
-    folded set_add_def, simplified monoid_record_simps]) (rule Acarr, rule Bcarr)
+  by (simp add: assms add.set_mult_closed set_add_defs(1))
 
 lemma (in abelian_group) add_additive_subgroups:
   assumes subH: "additive_subgroup H G"
-      and subK: "additive_subgroup K G"
+    and subK: "additive_subgroup K G"
   shows "additive_subgroup (H <+> K) G"
-apply (rule additive_subgroup.intro)
-apply (unfold set_add_def)
-apply (intro comm_group.mult_subgroups)
-  apply (rule a_comm_group)
- apply (rule additive_subgroup.a_subgroup[OF subH])
-apply (rule additive_subgroup.a_subgroup[OF subK])
-done
+  unfolding set_add_def
+  using add.mult_subgroups additive_subgroup_def subH subK
+  by (blast intro: additive_subgroup.intro)
 
 end

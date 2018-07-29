@@ -128,10 +128,9 @@ lemma primeidealI2:
 proof -
   interpret additive_subgroup I R by fact
   interpret cring R by fact
-  show ?thesis apply intro_locales
-    apply (intro ideal_axioms.intro)
-    apply (erule (1) I_l_closed)
-    apply (erule (1) I_r_closed)
+  show ?thesis
+    apply intro_locales
+    apply (simp add: I_l_closed I_r_closed ideal_axioms_def)
     by (simp add: I_notcarr I_prime primeideal_axioms.intro)
 qed
 

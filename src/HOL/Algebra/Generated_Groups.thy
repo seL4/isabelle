@@ -466,7 +466,7 @@ lemma (in group) derived_is_normal:
   shows "derived G H \<lhd> G" unfolding derived_def
 proof (rule normal_generateI)
   show "(\<Union>h1 \<in> H. \<Union>h2 \<in> H. { h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2 }) \<subseteq> carrier G"
-    using subgroup.subset assms normal_invE(1) by blast
+    using subgroup.subset assms normal_imp_subgroup by blast
 next
   show "\<And>h g. \<lbrakk> h \<in> derived_set G H; g \<in> carrier G \<rbrakk> \<Longrightarrow> g \<otimes> h \<otimes> inv g \<in> derived_set G H"
   proof -
@@ -474,7 +474,7 @@ next
     then obtain h1 h2 where h1: "h1 \<in> H" "h1 \<in> carrier G"
                         and h2: "h2 \<in> H" "h2 \<in> carrier G"
                         and h:  "h = h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2"
-      using subgroup.subset assms normal_invE(1) by blast
+      using subgroup.subset assms normal_imp_subgroup by blast
     hence "g \<otimes> h \<otimes> inv g =
            g \<otimes> h1 \<otimes> (inv g \<otimes> g) \<otimes> h2 \<otimes> (inv g \<otimes> g) \<otimes> inv h1 \<otimes> (inv g \<otimes> g) \<otimes> inv h2 \<otimes> inv g"
       by (simp add: g m_assoc)
@@ -486,8 +486,8 @@ next
     have "g \<otimes> h \<otimes> inv g =
          (g \<otimes> h1 \<otimes> inv g) \<otimes> (g \<otimes> h2 \<otimes> inv g) \<otimes> inv (g \<otimes> h1 \<otimes> inv g) \<otimes> inv (g \<otimes> h2 \<otimes> inv g)"
       by (simp add: g h1 h2 inv_mult_group m_assoc)
-    moreover have "g \<otimes> h1 \<otimes> inv g \<in> H" by (simp add: assms normal_invE(2) g h1)
-    moreover have "g \<otimes> h2 \<otimes> inv g \<in> H" by (simp add: assms normal_invE(2) g h2)
+    moreover have "g \<otimes> h1 \<otimes> inv g \<in> H" by (simp add: assms normal.inv_op_closed2 g h1)
+    moreover have "g \<otimes> h2 \<otimes> inv g \<in> H" by (simp add: assms normal.inv_op_closed2 g h2)
     ultimately show "g \<otimes> h \<otimes> inv g \<in> derived_set G H" by blast
   qed
 qed
