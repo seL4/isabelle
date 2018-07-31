@@ -233,7 +233,7 @@ local
 fun ship span =
   let
     val kind =
-      if forall Token.is_improper span then Command_Span.Ignored_Span
+      if forall Token.is_ignored span then Command_Span.Ignored_Span
       else if exists Token.is_error span then Command_Span.Malformed_Span
       else
         (case find_first Token.is_command span of
@@ -241,18 +241,18 @@ fun ship span =
         | SOME cmd => Command_Span.Command_Span (Token.content_of cmd, Token.pos_of cmd));
   in cons (Command_Span.Span (kind, span)) end;
 
-fun flush (result, content, improper) =
+fun flush (result, content, ignored) =
   result
   |> not (null content) ? ship (rev content)
-  |> not (null improper) ? ship (rev improper);
+  |> not (null ignored) ? ship (rev ignored);
 
-fun parse tok (result, content, improper) =
-  if Token.is_improper tok then (result, content, tok :: improper)
+fun parse tok (result, content, ignored) =
+  if Token.is_ignored tok then (result, content, tok :: ignored)
   else if Token.is_command_modifier tok orelse
     Token.is_command tok andalso
       (not (exists Token.is_command_modifier content) orelse exists Token.is_command content)
-  then (flush (result, content, improper), [tok], [])
-  else (result, tok :: (improper @ content), []);
+  then (flush (result, content, ignored), [tok], [])
+  else (result, tok :: (ignored @ content), []);
 
 in
 

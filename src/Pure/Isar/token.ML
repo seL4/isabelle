@@ -47,6 +47,7 @@ sig
   val is_comment: T -> bool
   val is_informal_comment: T -> bool
   val is_formal_comment: T -> bool
+  val is_ignored: T -> bool
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
   val is_error: T -> bool
@@ -226,6 +227,10 @@ val is_command_modifier = keyword_with (fn x => x = "private" orelse x = "qualif
 
 fun ident_with pred (Token (_, (Ident, x), _)) = pred x
   | ident_with _ _ = false;
+
+fun is_ignored (Token (_, (Space, _), _)) = true
+  | is_ignored (Token (_, (Comment NONE, _), _)) = true
+  | is_ignored _ = false;
 
 fun is_proper (Token (_, (Space, _), _)) = false
   | is_proper (Token (_, (Comment _, _), _)) = false

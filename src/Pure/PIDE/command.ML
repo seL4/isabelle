@@ -136,7 +136,7 @@ fun read keywords thy master_dir init blobs_info span =
   let
     val command_reports = Outer_Syntax.command_reports thy;
 
-    val core_range = Token.range_of (drop_suffix Token.is_improper span);
+    val core_range = Token.range_of (drop_suffix Token.is_ignored span);
     val pos =
       (case find_first Token.is_command span of
         SOME tok => Token.pos_of tok

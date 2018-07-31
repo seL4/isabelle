@@ -161,12 +161,12 @@ final class Outer_Syntax private(
   {
     val result = new mutable.ListBuffer[Command_Span.Span]
     val content = new mutable.ListBuffer[Token]
-    val improper = new mutable.ListBuffer[Token]
+    val ignored = new mutable.ListBuffer[Token]
 
     def ship(span: List[Token])
     {
       val kind =
-        if (span.forall(_.is_improper)) Command_Span.Ignored_Span
+        if (span.forall(_.is_ignored)) Command_Span.Ignored_Span
         else if (span.exists(_.is_error)) Command_Span.Malformed_Span
         else
           span.find(_.is_command) match {
@@ -186,16 +186,16 @@ final class Outer_Syntax private(
     def flush()
     {
       if (content.nonEmpty) { ship(content.toList); content.clear }
-      if (improper.nonEmpty) { ship(improper.toList); improper.clear }
+      if (ignored.nonEmpty) { ship(ignored.toList); ignored.clear }
     }
 
     for (tok <- toks) {
-      if (tok.is_improper) improper += tok
+      if (tok.is_ignored) ignored += tok
       else if (keywords.is_before_command(tok) ||
         tok.is_command &&
           (!content.exists(keywords.is_before_command(_)) || content.exists(_.is_command)))
       { flush(); content += tok }
-      else { content ++= improper; improper.clear; content += tok }
+      else { content ++= ignored; ignored.clear; content += tok }
     }
     flush()
 

@@ -605,7 +605,7 @@ final class Command private(
 
   val core_range: Text.Range =
     Text.Range(0,
-      (length /: span.content.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
+      (length /: span.content.reverse.iterator.takeWhile(_.is_ignored))(_ - _.source.length))
 
   def source(range: Text.Range): String = range.substring(source)
 
