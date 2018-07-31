@@ -136,11 +136,11 @@ fun read keywords thy master_dir init blobs_info span =
   let
     val command_reports = Outer_Syntax.command_reports thy;
 
-    val proper_range = Token.range_of (drop_suffix Token.is_improper span);
+    val core_range = Token.range_of (drop_suffix Token.is_improper span);
     val pos =
       (case find_first Token.is_command span of
         SOME tok => Token.pos_of tok
-      | NONE => #1 proper_range);
+      | NONE => #1 core_range);
 
     val token_reports = map (reports_of_token keywords) span;
     val _ = Position.reports_text (maps #2 token_reports @ maps command_reports span);
@@ -150,8 +150,8 @@ fun read keywords thy master_dir init blobs_info span =
       (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs_info span) of
         [tr] => Toplevel.modify_init init tr
       | [] => Toplevel.ignored (#1 (Token.range_of span))
-      | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")
-      handle ERROR msg => Toplevel.malformed (#1 proper_range) msg
+      | _ => Toplevel.malformed (#1 core_range) "Exactly one command expected")
+      handle ERROR msg => Toplevel.malformed (#1 core_range) msg
   end;
 
 end;

@@ -319,7 +319,7 @@ object Command
               case elem @ XML.Elem(markup, Nil) =>
                 state.
                   add_status(markup).
-                  add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.proper_range, elem))
+                  add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.core_range, elem))
               case _ =>
                 Output.warning("Ignored status message: " + msg)
                 state
@@ -355,7 +355,7 @@ object Command
 
                 case XML.Elem(Markup(name, atts), args)
                 if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
-                  val range = command.proper_range
+                  val range = command.core_range
                   val props = Position.purge(atts)
                   val elem = xml_cache.elem(XML.Elem(Markup(name, props), args))
                   state.add_markup(false, Symbol.Text_Chunk.Default, Text.Info(range, elem))
@@ -603,7 +603,7 @@ final class Command private(
   def length: Int = source.length
   def range: Text.Range = chunk.range
 
-  val proper_range: Text.Range =
+  val core_range: Text.Range =
     Text.Range(0,
       (length /: span.content.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 

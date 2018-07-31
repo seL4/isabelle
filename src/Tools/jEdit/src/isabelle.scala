@@ -334,7 +334,7 @@ object Isabelle
           node.command_start(command) match {
             case Some(start) =>
               JEdit_Lib.buffer_edit(buffer) {
-                val range = command.proper_range + start
+                val range = command.core_range + start
                 JEdit_Lib.buffer_edit(buffer) {
                   if (padding) {
                     text_area.moveCaretPosition(start + range.length)

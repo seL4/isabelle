@@ -1024,7 +1024,7 @@ object Document
             blob_name <- cmd.blobs_names.iterator
             if pred(blob_name)
             start <- node.command_start(cmd)
-          } yield convert(cmd.proper_range + start)).toList
+          } yield convert(cmd.core_range + start)).toList
 
         def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
           if (other_node_name.is_theory) {
