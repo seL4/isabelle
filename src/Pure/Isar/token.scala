@@ -297,7 +297,6 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_formal_comment: Boolean = kind == Token.Kind.FORMAL_COMMENT
   def is_comment: Boolean = is_informal_comment || is_formal_comment
   def is_ignored: Boolean = is_space || is_informal_comment
-  def is_improper: Boolean = is_space || is_comment
   def is_proper: Boolean = !is_space && !is_comment
   def is_error: Boolean = kind == Token.Kind.ERROR
   def is_unparsed: Boolean = kind == Token.Kind.UNPARSED

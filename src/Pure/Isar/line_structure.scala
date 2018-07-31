@@ -23,7 +23,7 @@ sealed case class Line_Structure(
 {
   def update(keywords: Keyword.Keywords, tokens: List[Token]): Line_Structure =
   {
-    val improper1 = tokens.forall(_.is_improper)
+    val improper1 = tokens.forall(tok => !tok.is_proper)
     val blank1 = tokens.forall(_.is_space)
     val command1 = tokens.exists(_.is_begin_or_command)
 

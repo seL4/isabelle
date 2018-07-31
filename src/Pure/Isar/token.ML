@@ -43,7 +43,6 @@ sig
   val is_command_modifier: T -> bool
   val ident_with: (string -> bool) -> T -> bool
   val is_proper: T -> bool
-  val is_improper: T -> bool
   val is_comment: T -> bool
   val is_informal_comment: T -> bool
   val is_formal_comment: T -> bool
@@ -235,8 +234,6 @@ fun is_ignored (Token (_, (Space, _), _)) = true
 fun is_proper (Token (_, (Space, _), _)) = false
   | is_proper (Token (_, (Comment _, _), _)) = false
   | is_proper _ = true;
-
-val is_improper = not o is_proper;
 
 fun is_comment (Token (_, (Comment _, _), _)) = true
   | is_comment _ = false;

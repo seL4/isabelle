@@ -26,13 +26,13 @@ object Text_Structure
     def iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_iterator(syntax, buffer, line, line + lim)
-      if (comments) it.filterNot(_.info.is_space) else it.filterNot(_.info.is_improper)
+      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
     }
 
     def reverse_iterator(line: Int, lim: Int = limit): Iterator[Text.Info[Token]] =
     {
       val it = Token_Markup.line_token_reverse_iterator(syntax, buffer, line, line - lim)
-      if (comments) it.filterNot(_.info.is_space) else it.filterNot(_.info.is_improper)
+      if (comments) it.filterNot(_.info.is_space) else it.filter(_.info.is_proper)
     }
   }
 
