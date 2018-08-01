@@ -64,15 +64,16 @@ object Build
       }
     }
 
-    def make_session_timing(sessions: Sessions.Structure, timing: Map[String, Double])
+    def make_session_timing(sessions_structure: Sessions.Structure, timing: Map[String, Double])
       : Map[String, Double] =
     {
-      val maximals = sessions.build_graph.maximals.toSet
+      val maximals = sessions_structure.build_graph.maximals.toSet
       def desc_timing(name: String): Double =
       {
         if (maximals.contains(name)) timing(name)
         else {
-          val g = sessions.build_graph.restrict(sessions.build_descendants(List(name)).toSet)
+          val descendants = sessions_structure.build_descendants(List(name)).toSet
+          val g = sessions_structure.build_graph.restrict(descendants)
           (0.0 :: g.maximals.flatMap(desc => {
             val ps = g.all_preds(List(desc))
             if (ps.exists(p => timing.get(p).isEmpty)) None
@@ -83,16 +84,18 @@ object Build
       timing.keySet.iterator.map(name => (name -> desc_timing(name))).toMap.withDefaultValue(0.0)
     }
 
-    def apply(progress: Progress, sessions: Sessions.Structure, store: Sessions.Store): Queue =
+    def apply(progress: Progress, sessions_structure: Sessions.Structure, store: Sessions.Store)
+      : Queue =
     {
-      val graph = sessions.build_graph
+      val graph = sessions_structure.build_graph
       val names = graph.keys
 
       val timings = names.map(name => (name, load_timings(progress, store, name)))
       val command_timings =
         timings.map({ case (name, (ts, _)) => (name, ts) }).toMap.withDefaultValue(Nil)
       val session_timing =
-        make_session_timing(sessions, timings.map({ case (name, (_, t)) => (name, t) }).toMap)
+        make_session_timing(sessions_structure,
+          timings.map({ case (name, (_, t)) => (name, t) }).toMap)
 
       object Ordering extends scala.math.Ordering[String]
       {
@@ -107,7 +110,7 @@ object Build
         def compare(name1: String, name2: String): Int =
           compare_timing(name2, name1) match {
             case 0 =>
-              sessions(name2).timeout compare sessions(name1).timeout match {
+              sessions_structure(name2).timeout compare sessions_structure(name1).timeout match {
                 case 0 => name1 compare name2
                 case ord => ord
               }
