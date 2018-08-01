@@ -492,7 +492,7 @@ object Build
     store.prepare_output_dir()
 
     if (clean_build) {
-      for (name <- full_sessions.build_descendants(full_sessions.build_selection(selection1))) {
+      for (name <- full_sessions.imports_descendants(full_sessions.imports_selection(selection1))) {
         val (relevant, ok) = store.clean_output(name)
         if (relevant) {
           if (ok) progress.echo("Cleaned " + name)

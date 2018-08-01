@@ -668,7 +668,7 @@ object Sessions
       check_sessions(sel)
 
       val select_group = sel.session_groups.toSet
-      val select_session = sel.sessions.toSet ++ graph.all_succs(sel.base_sessions)
+      val select_session = sel.sessions.toSet ++ imports_graph.all_succs(sel.base_sessions)
 
       val selected0 =
         if (sel.all_sessions) graph.keys
@@ -693,10 +693,10 @@ object Sessions
         val exclude_group = sel.exclude_session_groups.toSet
         val exclude_group_sessions =
           (for {
-            (name, (info, _)) <- build_graph.iterator
-            if build_graph.get_node(name).groups.exists(exclude_group)
+            (name, (info, _)) <- imports_graph.iterator
+            if imports_graph.get_node(name).groups.exists(exclude_group)
           } yield name).toList
-        build_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
+        imports_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
       }
 
       def restrict(graph: Graph[String, Info]): Graph[String, Info] =

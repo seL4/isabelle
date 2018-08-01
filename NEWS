@@ -473,6 +473,11 @@ quotes):
   - option -S: only observe changes of sources, not heap images
   - option -f: forces a fresh build
 
+* Command-line tool "isabelle build" options -c -x -B refer to
+descendants wrt. the session parent or import graph. Subtle
+INCOMPATIBILITY: options -c -x used to refer to the session parent graph
+only.
+
 * Command-line tool "isabelle build" takes "condition" options with the
 corresponding environment values into account, when determining the
 up-to-date status of a session.

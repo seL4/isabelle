@@ -333,14 +333,14 @@ text \<open>
   completed by including all ancestors.
 
   \<^medskip>
-  One or more options \<^verbatim>\<open>-B\<close>~\<open>NAME\<close> specify base sessions. All descendants
-  are included.
+  One or more options \<^verbatim>\<open>-B\<close>~\<open>NAME\<close> specify base sessions to be included (all
+  descendants wrt.\ the session parent or import graph).
 
   \<^medskip>
-  One or more options \<^verbatim>\<open>-x\<close>~\<open>NAME\<close> specify sessions to be excluded. All
-  descendents of excluded sessions are removed from the selection as specified
-  above. Option \<^verbatim>\<open>-X\<close> is analogous to this, but excluded sessions are
-  specified by session group membership.
+  One or more options \<^verbatim>\<open>-x\<close>~\<open>NAME\<close> specify sessions to be excluded (all
+  descendants wrt.\ the session parent or import graph). Option \<^verbatim>\<open>-X\<close> is
+  analogous to this, but excluded sessions are specified by session group
+  membership.
 
   \<^medskip>
   Option \<^verbatim>\<open>-R\<close> reverses the selection in the sense that it refers to its
@@ -373,8 +373,8 @@ text \<open>
   of sessions, as required for other sessions to continue later on.
 
   \<^medskip>
-  Option \<^verbatim>\<open>-c\<close> cleans all descendants of the selected sessions before
-  performing the specified build operation.
+  Option \<^verbatim>\<open>-c\<close> cleans the selected sessions (all descendants wrt.\ the session
+  parent or import graph) before performing the specified build operation.
 
   \<^medskip>
   Option \<^verbatim>\<open>-f\<close> forces a fresh build of all selected sessions and their
