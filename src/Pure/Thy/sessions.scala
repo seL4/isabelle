@@ -587,36 +587,6 @@ object Sessions
         exclude_sessions = Library.merge(exclude_sessions, other.exclude_sessions),
         session_groups = Library.merge(session_groups, other.session_groups),
         sessions = Library.merge(sessions, other.sessions))
-
-    def selected(graph: Graph[String, Info]): List[String] =
-    {
-      val select_group = session_groups.toSet
-      val select_session = sessions.toSet ++ graph.all_succs(base_sessions)
-
-      val selected0 =
-        if (all_sessions) graph.keys
-        else {
-          (for {
-            (name, (info, _)) <- graph.iterator
-            if info.dir_selected || select_session(name) ||
-              graph.get_node(name).groups.exists(select_group)
-          } yield name).toList
-        }
-
-      if (requirements) (graph.all_preds(selected0).toSet -- selected0).toList
-      else selected0
-    }
-
-    def excluded(graph: Graph[String, Info]): List[String] =
-    {
-      val exclude_group = exclude_session_groups.toSet
-      val exclude_group_sessions =
-        (for {
-          (name, (info, _)) <- graph.iterator
-          if graph.get_node(name).groups.exists(exclude_group)
-        } yield name).toList
-      graph.all_succs(exclude_group_sessions ::: exclude_sessions)
-    }
   }
 
   def make(infos: List[Info]): Structure =
@@ -690,15 +660,43 @@ object Sessions
         error("Undefined session(s): " + commas_quote(bad_sessions))
     }
 
+    private def selected(graph: Graph[String, Info], sel: Selection): List[String] =
+    {
+      val select_group = sel.session_groups.toSet
+      val select_session = sel.sessions.toSet ++ graph.all_succs(sel.base_sessions)
+
+      val selected0 =
+        if (sel.all_sessions) graph.keys
+        else {
+          (for {
+            (name, (info, _)) <- graph.iterator
+            if info.dir_selected || select_session(name) ||
+              graph.get_node(name).groups.exists(select_group)
+          } yield name).toList
+        }
+
+      if (sel.requirements) (graph.all_preds(selected0).toSet -- selected0).toList
+      else selected0
+    }
+
     def selection(sel: Selection): Structure =
     {
       check_sessions(sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions)
 
-      val excluded = sel.excluded(build_graph).toSet
+      val excluded =
+      {
+        val exclude_group = sel.exclude_session_groups.toSet
+        val exclude_group_sessions =
+          (for {
+            (name, (info, _)) <- build_graph.iterator
+            if build_graph.get_node(name).groups.exists(exclude_group)
+          } yield name).toList
+        build_graph.all_succs(exclude_group_sessions ::: sel.exclude_sessions).toSet
+      }
 
       def restrict(graph: Graph[String, Info]): Graph[String, Info] =
       {
-        val sessions = graph.all_preds(sel.selected(graph)).filterNot(excluded)
+        val sessions = graph.all_preds(selected(graph, sel)).filterNot(excluded)
         graph.restrict(graph.all_preds(sessions).toSet)
       }
 
@@ -714,12 +712,12 @@ object Sessions
         progress = progress, inlined_files = inlined_files, verbose = verbose)
     }
 
-    def build_selection(sel: Selection): List[String] = sel.selected(build_graph)
+    def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
     def build_descendants(ss: List[String]): List[String] = build_graph.all_succs(ss)
     def build_requirements(ss: List[String]): List[String] = build_graph.all_preds(ss).reverse
     def build_topological_order: List[String] = build_graph.topological_order
 
-    def imports_selection(sel: Selection): List[String] = sel.selected(imports_graph)
+    def imports_selection(sel: Selection): List[String] = selected(imports_graph, sel)
     def imports_descendants(ss: List[String]): List[String] = imports_graph.all_succs(ss)
     def imports_requirements(ss: List[String]): List[String] = imports_graph.all_preds(ss).reverse
     def imports_topological_order: List[String] = imports_graph.topological_order
