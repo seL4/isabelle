@@ -660,8 +660,13 @@ object Sessions
         error("Undefined session(s): " + commas_quote(bad_sessions))
     }
 
+    def check_sessions(sel: Selection): Unit =
+      check_sessions(sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions)
+
     private def selected(graph: Graph[String, Info], sel: Selection): List[String] =
     {
+      check_sessions(sel)
+
       val select_group = sel.session_groups.toSet
       val select_session = sel.sessions.toSet ++ graph.all_succs(sel.base_sessions)
 
@@ -681,7 +686,7 @@ object Sessions
 
     def selection(sel: Selection): Structure =
     {
-      check_sessions(sel.base_sessions ::: sel.exclude_sessions ::: sel.sessions)
+      check_sessions(sel)
 
       val excluded =
       {
