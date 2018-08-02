@@ -174,6 +174,8 @@ object Export_Theory
 
   sealed case class Type(entity: Entity, args: List[String], abbrev: Option[Term.Typ])
   {
+    def kind: String = "type"
+
     def cache(cache: Term.Cache): Type =
       Type(entity.cache(cache),
         args.map(cache.string(_)),
@@ -198,6 +200,8 @@ object Export_Theory
   sealed case class Const(
     entity: Entity, typargs: List[String], typ: Term.Typ, abbrev: Option[Term.Term])
   {
+    def kind: String = "const"
+
     def cache(cache: Term.Cache): Const =
       Const(entity.cache(cache),
         typargs.map(cache.string(_)),
@@ -234,6 +238,8 @@ object Export_Theory
     args: List[(String, Term.Typ)],
     prop: Term.Term)
   {
+    def kind: String = "axiom"
+
     def cache(cache: Term.Cache): Axiom =
       Axiom(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
@@ -255,6 +261,8 @@ object Export_Theory
     args: List[(String, Term.Typ)],
     props: List[Term.Term])
   {
+    def kind: String = "fact"
+
     def cache(cache: Term.Cache): Fact =
       Fact(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
@@ -276,6 +284,8 @@ object Export_Theory
   sealed case class Class(
     entity: Entity, params: List[(String, Term.Typ)], axioms: List[Term.Term])
   {
+    def kind: String = "class"
+
     def cache(cache: Term.Cache): Class =
       Class(entity.cache(cache),
         params.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
