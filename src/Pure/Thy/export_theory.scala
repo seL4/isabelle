@@ -122,6 +122,20 @@ object Export_Theory
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
+  def read_pure_theory(store: Sessions.Store, cache: Term.Cache = Term.make_cache()): Theory =
+  {
+    val session_name = Thy_Header.PURE
+    val theory_name = Thy_Header.PURE
+
+    using(store.open_database(session_name))(db =>
+    {
+      db.transaction {
+        read_theory(Export.Provider.database(db, session_name, theory_name),
+          session_name, theory_name, cache = Some(cache))
+      }
+    })
+  }
+
 
   /* entities */
 
