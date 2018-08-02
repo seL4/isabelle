@@ -75,6 +75,14 @@ object Export_Theory
   {
     override def toString: String = name
 
+    lazy val entities: Set[Long] =
+      Set.empty[Long] ++
+        types.iterator.map(_.entity.serial) ++
+        consts.iterator.map(_.entity.serial) ++
+        axioms.iterator.map(_.entity.serial) ++
+        facts.iterator.map(_.entity.serial) ++
+        classes.iterator.map(_.entity.serial)
+
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
         parents.map(cache.string(_)),
@@ -122,7 +130,7 @@ object Export_Theory
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
-  def read_pure_theory(store: Sessions.Store, cache: Term.Cache = Term.make_cache()): Theory =
+  def read_pure_theory(store: Sessions.Store, cache: Option[Term.Cache] = None): Theory =
   {
     val session_name = Thy_Header.PURE
     val theory_name = Thy_Header.PURE
@@ -131,7 +139,7 @@ object Export_Theory
     {
       db.transaction {
         read_theory(Export.Provider.database(db, session_name, theory_name),
-          session_name, theory_name, cache = Some(cache))
+          session_name, theory_name, cache = cache)
       }
     })
   }
