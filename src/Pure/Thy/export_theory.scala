@@ -147,15 +147,24 @@ object Export_Theory
 
   /* entities */
 
-  sealed case class Entity(name: String, serial: Long, pos: Position.T)
+  object Kind extends Enumeration
   {
-    override def toString: String = name
-
-    def cache(cache: Term.Cache): Entity =
-      Entity(cache.string(name), serial, cache.position(pos))
+    val TYPE = Value("type")
+    val CONST = Value("const")
+    val AXIOM = Value("axiom")
+    val FACT = Value("fact")
+    val CLASS = Value("class")
   }
 
-  def decode_entity(tree: XML.Tree): (Entity, XML.Body) =
+  sealed case class Entity(kind: Kind.Value, name: String, serial: Long, pos: Position.T)
+  {
+    override def toString: String = kind.toString + quote(name)
+
+    def cache(cache: Term.Cache): Entity =
+      Entity(kind, cache.string(name), serial, cache.position(pos))
+  }
+
+  def decode_entity(kind: Kind.Value, tree: XML.Tree): (Entity, XML.Body) =
   {
     def err(): Nothing = throw new XML.XML_Body(List(tree))
 
@@ -164,7 +173,7 @@ object Export_Theory
         val name = Markup.Name.unapply(props) getOrElse err()
         val serial = Markup.Serial.unapply(props) getOrElse err()
         val pos = props.filter({ case (a, _) => Markup.POSITION_PROPERTIES(a) })
-        (Entity(name, serial, pos), body)
+        (Entity(kind, name, serial, pos), body)
       case _ => err()
     }
   }
@@ -174,8 +183,6 @@ object Export_Theory
 
   sealed case class Type(entity: Entity, args: List[String], abbrev: Option[Term.Typ])
   {
-    def kind: String = "type"
-
     def cache(cache: Term.Cache): Type =
       Type(entity.cache(cache),
         args.map(cache.string(_)),
@@ -185,7 +192,7 @@ object Export_Theory
   def read_types(provider: Export.Provider): List[Type] =
     provider.uncompressed_yxml(export_prefix + "types").map((tree: XML.Tree) =>
       {
-        val (entity, body) = decode_entity(tree)
+        val (entity, body) = decode_entity(Kind.TYPE, tree)
         val (args, abbrev) =
         {
           import XML.Decode._
@@ -200,8 +207,6 @@ object Export_Theory
   sealed case class Const(
     entity: Entity, typargs: List[String], typ: Term.Typ, abbrev: Option[Term.Term])
   {
-    def kind: String = "const"
-
     def cache(cache: Term.Cache): Const =
       Const(entity.cache(cache),
         typargs.map(cache.string(_)),
@@ -212,7 +217,7 @@ object Export_Theory
   def read_consts(provider: Export.Provider): List[Const] =
     provider.uncompressed_yxml(export_prefix + "consts").map((tree: XML.Tree) =>
       {
-        val (entity, body) = decode_entity(tree)
+        val (entity, body) = decode_entity(Kind.CONST, tree)
         val (args, typ, abbrev) =
         {
           import XML.Decode._
@@ -238,8 +243,6 @@ object Export_Theory
     args: List[(String, Term.Typ)],
     prop: Term.Term)
   {
-    def kind: String = "axiom"
-
     def cache(cache: Term.Cache): Axiom =
       Axiom(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
@@ -250,7 +253,7 @@ object Export_Theory
   def read_axioms(provider: Export.Provider): List[Axiom] =
     provider.uncompressed_yxml(export_prefix + "axioms").map((tree: XML.Tree) =>
       {
-        val (entity, body) = decode_entity(tree)
+        val (entity, body) = decode_entity(Kind.AXIOM, tree)
         val (typargs, args, List(prop)) = decode_props(body)
         Axiom(entity, typargs, args, prop)
       })
@@ -261,8 +264,6 @@ object Export_Theory
     args: List[(String, Term.Typ)],
     props: List[Term.Term])
   {
-    def kind: String = "fact"
-
     def cache(cache: Term.Cache): Fact =
       Fact(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
@@ -273,7 +274,7 @@ object Export_Theory
   def read_facts(provider: Export.Provider): List[Fact] =
     provider.uncompressed_yxml(export_prefix + "facts").map((tree: XML.Tree) =>
       {
-        val (entity, body) = decode_entity(tree)
+        val (entity, body) = decode_entity(Kind.FACT, tree)
         val (typargs, args, props) = decode_props(body)
         Fact(entity, typargs, args, props)
       })
@@ -284,8 +285,6 @@ object Export_Theory
   sealed case class Class(
     entity: Entity, params: List[(String, Term.Typ)], axioms: List[Term.Term])
   {
-    def kind: String = "class"
-
     def cache(cache: Term.Cache): Class =
       Class(entity.cache(cache),
         params.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
@@ -295,7 +294,7 @@ object Export_Theory
   def read_classes(provider: Export.Provider): List[Class] =
     provider.uncompressed_yxml(export_prefix + "classes").map((tree: XML.Tree) =>
       {
-        val (entity, body) = decode_entity(tree)
+        val (entity, body) = decode_entity(Kind.CLASS, tree)
         val (params, axioms) =
         {
           import XML.Decode._
