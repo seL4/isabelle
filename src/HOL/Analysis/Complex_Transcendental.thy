@@ -176,6 +176,16 @@ lemma holomorphic_on_sin: "sin holomorphic_on S"
 lemma holomorphic_on_cos: "cos holomorphic_on S"
   by (simp add: field_differentiable_within_cos holomorphic_on_def)
 
+lemma holomorphic_on_sin' [holomorphic_intros]:
+  assumes "f holomorphic_on A"
+  shows   "(\<lambda>x. sin (f x)) holomorphic_on A"
+  using holomorphic_on_compose[OF assms holomorphic_on_sin] by (simp add: o_def)
+
+lemma holomorphic_on_cos' [holomorphic_intros]:
+  assumes "f holomorphic_on A"
+  shows   "(\<lambda>x. cos (f x)) holomorphic_on A"
+  using holomorphic_on_compose[OF assms holomorphic_on_cos] by (simp add: o_def)
+
 subsection\<open>Get a nice real/imaginary separation in Euler's formula\<close>
 
 lemma Euler: "exp(z) = of_real(exp(Re z)) *
@@ -1307,6 +1317,11 @@ lemma continuous_on_Ln' [continuous_intros]:
 
 lemma holomorphic_on_Ln [holomorphic_intros]: "(\<And>z. z \<in> S \<Longrightarrow> z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> Ln holomorphic_on S"
   by (simp add: field_differentiable_within_Ln holomorphic_on_def)
+
+lemma holomorphic_on_Ln' [holomorphic_intros]:
+  "(\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<real>\<^sub>\<le>\<^sub>0) \<Longrightarrow> f holomorphic_on A \<Longrightarrow> (\<lambda>z. Ln (f z)) holomorphic_on A"
+  using holomorphic_on_compose_gen[OF _ holomorphic_on_Ln, of f A "- \<real>\<^sub>\<le>\<^sub>0"]
+  by (auto simp: o_def)
 
 lemma tendsto_Ln [tendsto_intros]:
   fixes L F

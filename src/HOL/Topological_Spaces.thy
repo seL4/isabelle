@@ -2131,6 +2131,9 @@ abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rig
 lemma isCont_def: "isCont f a \<longleftrightarrow> f \<midarrow>a\<rightarrow> f a"
   by (rule continuous_at)
 
+lemma isContD: "isCont f x \<Longrightarrow> f \<midarrow>x\<rightarrow> f x"
+  by (simp add: isCont_def)
+
 lemma isCont_cong:
   assumes "eventually (\<lambda>x. f x = g x) (nhds x)"
   shows "isCont f x \<longleftrightarrow> isCont g x"

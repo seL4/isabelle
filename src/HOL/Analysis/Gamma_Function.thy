@@ -1457,6 +1457,15 @@ lemma field_differentiable_rGamma: "rGamma field_differentiable (at z within A)"
 lemma holomorphic_rGamma [holomorphic_intros]: "rGamma holomorphic_on A"
   unfolding holomorphic_on_def by (auto intro!: field_differentiable_rGamma)
 
+lemma holomorphic_rGamma' [holomorphic_intros]: 
+  assumes "f holomorphic_on A"
+  shows   "(\<lambda>x. rGamma (f x)) holomorphic_on A"
+proof -
+  have "rGamma \<circ> f holomorphic_on A" using assms
+    by (intro holomorphic_on_compose assms holomorphic_rGamma)
+  thus ?thesis by (simp only: o_def)
+qed
+
 lemma analytic_rGamma: "rGamma analytic_on A"
   unfolding analytic_on_def by (auto intro!: exI[of _ 1] holomorphic_rGamma)
 
@@ -1466,6 +1475,15 @@ lemma field_differentiable_Gamma: "z \<notin> \<int>\<^sub>\<le>\<^sub>0 \<Longr
 
 lemma holomorphic_Gamma [holomorphic_intros]: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Gamma holomorphic_on A"
   unfolding holomorphic_on_def by (auto intro!: field_differentiable_Gamma)
+
+lemma holomorphic_Gamma' [holomorphic_intros]: 
+  assumes "f holomorphic_on A" and "\<And>x. x \<in> A \<Longrightarrow> f x \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "(\<lambda>x. Gamma (f x)) holomorphic_on A"
+proof -
+  have "Gamma \<circ> f holomorphic_on A" using assms
+    by (intro holomorphic_on_compose assms holomorphic_Gamma) auto
+  thus ?thesis by (simp only: o_def)
+qed
 
 lemma analytic_Gamma: "A \<inter> \<int>\<^sub>\<le>\<^sub>0 = {} \<Longrightarrow> Gamma analytic_on A"
   by (rule analytic_on_subset[of _ "UNIV - \<int>\<^sub>\<le>\<^sub>0"], subst analytic_on_open)

@@ -41,6 +41,24 @@ lemma bilinear_times:
 lemma linear_cnj: "linear cnj"
   using bounded_linear.linear[OF bounded_linear_cnj] .
 
+lemma vector_derivative_cnj_within:
+  assumes "at x within A \<noteq> bot" and "f differentiable at x within A"
+  shows   "vector_derivative (\<lambda>z. cnj (f z)) (at x within A) = 
+             cnj (vector_derivative f (at x within A))" (is "_ = cnj ?D")
+proof -
+  let ?D = "vector_derivative f (at x within A)"
+  from assms have "(f has_vector_derivative ?D) (at x within A)"
+    by (subst (asm) vector_derivative_works)
+  hence "((\<lambda>x. cnj (f x)) has_vector_derivative cnj ?D) (at x within A)"
+    by (rule has_vector_derivative_cnj)
+  thus ?thesis using assms by (auto dest: vector_derivative_within)
+qed
+
+lemma vector_derivative_cnj:
+  assumes "f differentiable at x"
+  shows   "vector_derivative (\<lambda>z. cnj (f z)) (at x) = cnj (vector_derivative f (at x))"
+  using assms by (intro vector_derivative_cnj_within) auto
+
 lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = ( * ) 0"
   by auto
 
@@ -285,6 +303,35 @@ lemma holomorphic_on_compose:
 lemma holomorphic_on_compose_gen:
   "f holomorphic_on s \<Longrightarrow> g holomorphic_on t \<Longrightarrow> f ` s \<subseteq> t \<Longrightarrow> (g o f) holomorphic_on s"
   by (metis holomorphic_on_compose holomorphic_on_subset)
+
+lemma holomorphic_on_balls_imp_entire:
+  assumes "\<not>bdd_above A" "\<And>r. r \<in> A \<Longrightarrow> f holomorphic_on ball c r"
+  shows   "f holomorphic_on B"
+proof (rule holomorphic_on_subset)
+  show "f holomorphic_on UNIV" unfolding holomorphic_on_def
+  proof
+    fix z :: complex
+    from \<open>\<not>bdd_above A\<close> obtain r where r: "r \<in> A" "r > norm (z - c)"
+      by (meson bdd_aboveI not_le)
+    with assms(2) have "f holomorphic_on ball c r" by blast
+    moreover from r have "z \<in> ball c r" by (auto simp: dist_norm norm_minus_commute)
+    ultimately show "f field_differentiable at z"
+      by (auto simp: holomorphic_on_def at_within_open[of _ "ball c r"])
+  qed
+qed auto
+
+lemma holomorphic_on_balls_imp_entire':
+  assumes "\<And>r. r > 0 \<Longrightarrow> f holomorphic_on ball c r"
+  shows   "f holomorphic_on B"
+proof (rule holomorphic_on_balls_imp_entire)
+  {
+    fix M :: real
+    have "\<exists>x. x > max M 0" by (intro gt_ex)
+    hence "\<exists>x>0. x > M" by auto
+  }
+  thus "\<not>bdd_above {(0::real)<..}" unfolding bdd_above_def
+    by (auto simp: not_le)
+qed (insert assms, auto)
 
 lemma holomorphic_on_minus [holomorphic_intros]: "f holomorphic_on s \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on s"
   by (metis field_differentiable_minus holomorphic_on_def)

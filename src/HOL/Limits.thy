@@ -1316,6 +1316,16 @@ lemma filterlim_uminus_at_top: "(LIM x F. f x :> at_top) \<longleftrightarrow> (
     and filterlim_compose[OF filterlim_uminus_at_top_at_bot, of "\<lambda>x. - f x" F]
   by auto
 
+lemma tendsto_at_botI_sequentially:
+  fixes f :: "real \<Rightarrow> 'b::first_countable_topology"
+  assumes *: "\<And>X. filterlim X at_bot sequentially \<Longrightarrow> (\<lambda>n. f (X n)) \<longlonglongrightarrow> y"
+  shows "(f \<longlongrightarrow> y) at_bot"
+  unfolding filterlim_at_bot_mirror
+proof (rule tendsto_at_topI_sequentially)
+  fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
+  thus "(\<lambda>n. f (-X n)) \<longlonglongrightarrow> y" by (intro *) (auto simp: filterlim_uminus_at_top)
+qed
+
 lemma filterlim_at_infinity_imp_filterlim_at_top:
   assumes "filterlim (f :: 'a \<Rightarrow> real) at_infinity F"
   assumes "eventually (\<lambda>x. f x > 0) F"
