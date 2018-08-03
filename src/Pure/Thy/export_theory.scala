@@ -158,8 +158,6 @@ object Export_Theory
 
   sealed case class Entity(kind: Kind.Value, name: String, serial: Long, pos: Position.T)
   {
-    def kind_name: (Kind.Value, String) = (kind, name)
-
     override def toString: String = kind.toString + quote(name)
 
     def cache(cache: Term.Cache): Entity =
