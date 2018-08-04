@@ -9,6 +9,7 @@ package isabelle
 
 object Pure_Thy
 {
+  val DUMMY: String = "dummy"
   val FUN: String = "fun"
   val PROP: String = "prop"
   val ITSELF: String = "itself"
