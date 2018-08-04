@@ -59,9 +59,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
             else
               (case export name decl of
                 NONE => I
-              | SOME body => cons (name, XML.Elem (entity_markup space name, body))))
-          |> sort_by #1 |> map #2
+              | SOME body =>
+                  cons (#serial (Name_Space.the_entry space name),
+                    XML.Elem (entity_markup space name, body))))
+          |> sort (int_ord o apply2 #1) |> map #2
         end;
+
       in if null elems then () else export_body thy export_name elems end;
 
 
