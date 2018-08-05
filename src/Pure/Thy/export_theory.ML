@@ -13,6 +13,28 @@ end;
 structure Export_Theory: EXPORT_THEORY =
 struct
 
+(* names for bound variables *)
+
+local
+  fun declare_names (Abs (_, _, b)) = declare_names b
+    | declare_names (t $ u) = declare_names t #> declare_names u
+    | declare_names (Const (c, _)) = Name.declare (Long_Name.base_name c)
+    | declare_names (Free (x, _)) = Name.declare x
+    | declare_names _ = I;
+
+  fun variant_abs bs (Abs (x, T, t)) =
+        let
+          val names = fold Name.declare bs (declare_names t Name.context);
+          val x' = #1 (Name.variant x names);
+          val t' = variant_abs (x' :: bs) t;
+        in Abs (x', T, t') end
+    | variant_abs bs (t $ u) = variant_abs bs t $ variant_abs bs u
+    | variant_abs _ t = t;
+in
+  val named_bounds = variant_abs [];
+end;
+
+
 (* general setup *)
 
 fun setup_presentation f =
@@ -89,7 +111,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_const =
       let open XML.Encode Term_XML.Encode
-      in triple (list string) typ (option term) end;
+      in triple (list string) typ (option (term o named_bounds)) end;
 
     fun export_const c (T, abbrev) =
       let
@@ -113,7 +135,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_props =
       let open XML.Encode Term_XML.Encode
-      in triple (list (pair string sort)) (list (pair string typ)) (list term) end;
+      in triple (list (pair string sort)) (list (pair string typ)) (list (term o named_bounds)) end;
 
     fun export_props props =
       let
@@ -137,7 +159,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_class =
       let open XML.Encode Term_XML.Encode
-      in pair (list (pair string typ)) (list term) end;
+      in pair (list (pair string typ)) (list (term o named_bounds)) end;
 
     fun export_class name =
       (case try (Axclass.get_info thy) name of
