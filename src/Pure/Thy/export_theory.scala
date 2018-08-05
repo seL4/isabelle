@@ -66,8 +66,8 @@ object Export_Theory
   sealed case class Theory(name: String, parents: List[String],
     types: List[Type],
     consts: List[Const],
-    axioms: List[Axiom],
-    facts: List[Fact],
+    axioms: List[Fact_Single],
+    facts: List[Fact_Multi],
     classes: List[Class],
     typedefs: List[Typedef],
     classrel: List[Classrel],
@@ -227,56 +227,65 @@ object Export_Theory
       })
 
 
-  /* axioms and facts */
+  /* facts */
 
-  def decode_props(body: XML.Body):
-    (List[(String, Term.Sort)], List[(String, Term.Typ)], List[Term.Term]) =
-  {
-    import XML.Decode._
-    import Term_XML.Decode._
-    triple(list(pair(string, sort)), list(pair(string, typ)), list(term))(body)
-  }
-
-  sealed case class Axiom(
-    entity: Entity,
+  sealed case class Prop(
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
-    prop: Term.Term)
+    term: Term.Term)
   {
-    def cache(cache: Term.Cache): Axiom =
-      Axiom(entity.cache(cache),
+    def cache(cache: Term.Cache): Prop =
+      Prop(
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
-        cache.term(prop))
+        cache.term(term))
   }
 
-  def read_axioms(provider: Export.Provider): List[Axiom] =
+  def decode_prop(body: XML.Body): Prop =
+  {
+    val (typargs, args, t) =
+    {
+      import XML.Decode._
+      import Term_XML.Decode._
+      triple(list(pair(string, sort)), list(pair(string, typ)), term)(body)
+    }
+    Prop(typargs, args, t)
+  }
+
+  sealed case class Fact_Single(entity: Entity, prop: Prop)
+  {
+    def cache(cache: Term.Cache): Fact_Single =
+      Fact_Single(entity.cache(cache), prop.cache(cache))
+  }
+
+  sealed case class Fact_Multi(entity: Entity, props: List[Prop])
+  {
+    def cache(cache: Term.Cache): Fact_Multi =
+      Fact_Multi(entity.cache(cache), props.map(_.cache(cache)))
+
+    def split: List[Fact_Single] =
+      props match {
+        case List(prop) => List(Fact_Single(entity, prop))
+        case _ =>
+          for ((prop, i) <- props.zipWithIndex)
+          yield Fact_Single(entity.copy(name = entity.name + "(" + (i + 1) + ")"), prop)
+      }
+  }
+
+  def read_axioms(provider: Export.Provider): List[Fact_Single] =
     provider.uncompressed_yxml(export_prefix + "axioms").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.AXIOM, tree)
-        val (typargs, args, List(prop)) = decode_props(body)
-        Axiom(entity, typargs, args, prop)
+        val prop = decode_prop(body)
+        Fact_Single(entity, prop)
       })
 
-  sealed case class Fact(
-    entity: Entity,
-    typargs: List[(String, Term.Sort)],
-    args: List[(String, Term.Typ)],
-    props: List[Term.Term])
-  {
-    def cache(cache: Term.Cache): Fact =
-      Fact(entity.cache(cache),
-        typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
-        args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
-        props.map(cache.term(_)))
-  }
-
-  def read_facts(provider: Export.Provider): List[Fact] =
+  def read_facts(provider: Export.Provider): List[Fact_Multi] =
     provider.uncompressed_yxml(export_prefix + "facts").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.FACT, tree)
-        val (typargs, args, props) = decode_props(body)
-        Fact(entity, typargs, args, props)
+        val props = XML.Decode.list(decode_prop)(body)
+        Fact_Multi(entity, props)
       })
 
 
