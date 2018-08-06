@@ -86,7 +86,7 @@ Packaging
 
 - Docker image:
 
-  isabelle build_docker -E -t makarius/isabelle:Isabelle2017 Isabelle2017_app.tar.gz
+  isabelle build_docker -o Dockerfile -E -t makarius/isabelle:Isabelle2018 Isabelle2018_app.tar.gz
 
   https://hub.docker.com/r/makarius/isabelle
   https://docs.docker.com/docker-cloud/builds/push-images
