@@ -365,9 +365,9 @@ subsection \<open>Displays with very high resolution \label{sec:hdpi}\<close>
 text \<open>
   In distant past, displays with $1024 \times 768$ or $1280 \times 1024$
   pixels were considered ``high resolution'' and bitmap fonts with 12 or 14
-  pixels as adequate for text rendering. In 2017, we routinely see much higher
-  resolutions, e.g. ``Full HD'' at $1920 \times 1080$ pixels or ``Ultra HD'' /
-  ``4K'' at $3840 \times 2160$.
+  pixels as adequate for text rendering. After 2016, we have routinely seen
+  much higher resolutions, e.g. ``Full HD'' at $1920 \times 1080$ pixels or
+  ``Ultra HD'' / ``4K'' at $3840 \times 2160$.
 
   GUI frameworks are usually lagging behind, with hard-wired icon sizes and
   tiny fonts. Java and jEdit do provide reasonable support for very high
@@ -1381,14 +1381,20 @@ text \<open>
 
   Completion via abbreviations like \<^verbatim>\<open>ALL\<close> or \<^verbatim>\<open>-->\<close> depends on the semantic
   language context (\secref{sec:completion-context}). In contrast, backslash
-  sequences like \<^verbatim>\<open>\forall\<close> \<^verbatim>\<open>\<forall>\<close> are always possible, but require
-  additional interaction to confirm (via popup).
+  sequences like \<^verbatim>\<open>\forall\<close> \<^verbatim>\<open>\<forall>\<close> are always possible, but require additional
+  interaction to confirm (via popup). This is important in ambiguous
+  situations, e.g.\ for Isabelle document source, which may contain formal
+  symbols or informal {\LaTeX} macros. Backslash sequences also help when
+  input is broken, and thus escapes its normal semantic context: e.g.\
+  antiquotations or string literals in ML, which do not allow arbitrary
+  backslash sequences.
 
-  The latter is important in ambiguous situations, e.g.\ for Isabelle document
-  source, which may contain formal symbols or informal {\LaTeX} macros.
-  Backslash sequences also help when input is broken, and thus escapes its
-  normal semantic context: e.g.\ antiquotations or string literals in ML,
-  which do not allow arbitrary backslash sequences.
+  Special symbols like \<^verbatim>\<open>\<comment>\<close> or control symbols like \<^verbatim>\<open>\<^cancel>\<close>,
+  \<^verbatim>\<open>\<^latex>\<close>, \<^verbatim>\<open>\<^binding>\<close> can have an argument: completing on a name
+  prefix offers a template with an empty cartouche. Thus completion of \<^verbatim>\<open>\co\<close>
+  or \<^verbatim>\<open>\ca\<close> allows to compose formal document comments quickly.\<^footnote>\<open>It is
+  customary to put a space between \<^verbatim>\<open>\<comment>\<close> and its argument, while
+  control symbols do \<^emph>\<open>not\<close> allow extra space here.\<close>
 \<close>
 
 
@@ -1889,11 +1895,13 @@ text \<open>
   \label{fig:cite-completion}
   \end{figure}
 
-  Isabelle/jEdit also provides some support for editing \<^verbatim>\<open>.bib\<close> files
+  Isabelle/jEdit also provides IDE support for editing \<^verbatim>\<open>.bib\<close> files
   themselves. There is syntax highlighting based on entry types (according to
   standard Bib{\TeX} styles), a context-menu to compose entries
   systematically, and a SideKick tree view of the overall content; see
-  \figref{fig:bibtex-mode}.
+  \figref{fig:bibtex-mode}. Semantic checking with errors and warnings is
+  performed by the original \<^verbatim>\<open>bibtex\<close> tool using style \<^verbatim>\<open>plain\<close>: different
+  Bib{\TeX} styles may produce slightly different results.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1902,10 +1910,14 @@ text \<open>
   \caption{Bib{\TeX} mode with context menu and SideKick tree view}
   \label{fig:bibtex-mode}
   \end{figure}
+
+  Regular document preview (\secref{sec:document-preview}) of \<^verbatim>\<open>.bib\<close> files
+  approximates the usual {\LaTeX} bibliography output in HTML (using style
+  \<^verbatim>\<open>unsort\<close>).
 \<close>
 
 
-section \<open>Document preview\<close>
+section \<open>Document preview \label{sec:document-preview}\<close>
 
 text \<open>
   The action @{action_def isabelle.preview} opens an HTML preview of the
