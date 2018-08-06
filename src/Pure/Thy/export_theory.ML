@@ -127,28 +127,33 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* axioms and facts *)
 
-    val standard_prop_of =
-      Thm.transfer thy #>
-      Thm.check_hyps (Context.Theory thy) #>
-      Drule.sort_constraint_intr_shyps #>
-      Thm.full_prop_of #>
-      Term_Subst.zero_var_indexes;
+    fun standard_prop_of raw_thm =
+      let
+        val thm = raw_thm
+          |> Thm.transfer thy
+          |> Thm.check_hyps (Context.Theory thy)
+          |> Thm.strip_shyps;
+        val prop = thm
+          |> Thm.full_prop_of
+          |> Term_Subst.zero_var_indexes;
+      in (Thm.extra_shyps thm, prop) end;
 
-    fun encode_prop prop =
+    fun encode_prop (Ss, prop) =
       let
         val prop' = Logic.unvarify_global (named_bounds prop);
         val typargs = rev (Term.add_tfrees prop' []);
+        val sorts = Name.invent (Name.make_context (map #1 typargs)) Name.aT (length Ss) ~~ Ss;
         val args = rev (Term.add_frees prop' []);
-        open XML.Encode Term_XML.Encode;
       in
-        triple (list (pair string sort)) (list (pair string typ)) term
-          (typargs, args, prop')
+        (sorts @ typargs, args, prop') |>
+          let open XML.Encode Term_XML.Encode
+          in triple (list (pair string sort)) (list (pair string typ)) term end
       end;
 
     val encode_fact = XML.Encode.list encode_prop o map standard_prop_of;
 
     val _ =
-      export_entities "axioms" (K (SOME o encode_prop)) Theory.axiom_space
+      export_entities "axioms" (fn _ => fn t => SOME (encode_prop ([], t))) Theory.axiom_space
         (Theory.axioms_of thy);
     val _ =
       export_entities "facts" (K (SOME o encode_fact)) (Facts.space_of o Global_Theory.facts_of)
