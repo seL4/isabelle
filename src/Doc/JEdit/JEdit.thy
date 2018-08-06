@@ -1907,7 +1907,8 @@ text \<open>
   \begin{center}
   \includegraphics[scale=0.333]{bibtex-mode}
   \end{center}
-  \caption{Bib{\TeX} mode with context menu and SideKick tree view}
+  \caption{Bib{\TeX} mode with context menu, SideKick tree view, and
+    semantic output from the \<^verbatim>\<open>bibtex\<close> tool}
   \label{fig:bibtex-mode}
   \end{figure}
 
