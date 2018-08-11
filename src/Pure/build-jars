@@ -159,6 +159,7 @@ declare -a SOURCES=(
   Tools/update_then.scala
   Tools/update_theorems.scala
   library.scala
+  pure_thy.scala
   term.scala
   term_xml.scala
   ../Tools/Graphview/graph_file.scala

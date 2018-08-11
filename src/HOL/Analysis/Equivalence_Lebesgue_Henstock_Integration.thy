@@ -4612,6 +4612,93 @@ proof -
     unfolding absolutely_integrable_restrict_UNIV .
 qed
 
+lemma uniform_limit_set_lebesgue_integral_at_top:
+  fixes f :: "'a \<Rightarrow> real \<Rightarrow> 'b::{banach, second_countable_topology}"
+    and g :: "real \<Rightarrow> real"
+  assumes bound: "\<And>x y. x \<in> A \<Longrightarrow> y \<ge> a \<Longrightarrow> norm (f x y) \<le> g y"
+  assumes integrable: "set_integrable M {a..} g"
+  assumes measurable: "\<And>x. x \<in> A \<Longrightarrow> set_borel_measurable M {a..} (f x)"
+  assumes "sets borel \<subseteq> sets M"
+  shows   "uniform_limit A (\<lambda>b x. LINT y:{a..b}|M. f x y) (\<lambda>x. LINT y:{a..}|M. f x y) at_top"
+proof (cases "A = {}")
+  case False
+  then obtain x where x: "x \<in> A" by auto
+  have g_nonneg: "g y \<ge> 0" if "y \<ge> a" for y
+  proof -
+    have "0 \<le> norm (f x y)" by simp
+    also have "\<dots> \<le> g y" using bound[OF x that] by simp
+    finally show ?thesis .
+  qed
+
+  have integrable': "set_integrable M {a..} (\<lambda>y. f x y)" if "x \<in> A" for x
+    unfolding set_integrable_def
+  proof (rule Bochner_Integration.integrable_bound)
+    show "integrable M (\<lambda>x. indicator {a..} x * g x)"
+      using integrable by (simp add: set_integrable_def)
+    show "(\<lambda>y. indicat_real {a..} y *\<^sub>R f x y) \<in> borel_measurable M" using measurable[OF that]
+      by (simp add: set_borel_measurable_def)
+    show "AE y in M. norm (indicat_real {a..} y *\<^sub>R f x y) \<le> norm (indicat_real {a..} y * g y)"
+      using bound[OF that] by (intro AE_I2) (auto simp: indicator_def g_nonneg)
+  qed
+
+  show ?thesis
+  proof (rule uniform_limitI)
+    fix e :: real assume e: "e > 0"
+    have sets [intro]: "A \<in> sets M" if "A \<in> sets borel" for A
+      using that assms by blast
+  
+    have "((\<lambda>b. LINT y:{a..b}|M. g y) \<longlongrightarrow> (LINT y:{a..}|M. g y)) at_top"
+      by (intro tendsto_set_lebesgue_integral_at_top assms sets) auto
+    with e obtain b0 :: real where b0: "\<forall>b\<ge>b0. \<bar>(LINT y:{a..}|M. g y) - (LINT y:{a..b}|M. g y)\<bar> < e"
+      by (auto simp: tendsto_iff eventually_at_top_linorder dist_real_def abs_minus_commute)
+    define b where "b = max a b0"
+    have "a \<le> b" by (simp add: b_def)
+    from b0 have "\<bar>(LINT y:{a..}|M. g y) - (LINT y:{a..b}|M. g y)\<bar> < e"
+      by (auto simp: b_def)
+    also have "{a..} = {a..b} \<union> {b<..}" by (auto simp: b_def)
+    also have "\<bar>(LINT y:\<dots>|M. g y) - (LINT y:{a..b}|M. g y)\<bar> = \<bar>(LINT y:{b<..}|M. g y)\<bar>"
+      using \<open>a \<le> b\<close> by (subst set_integral_Un) (auto intro!: set_integrable_subset[OF integrable])
+    also have "(LINT y:{b<..}|M. g y) \<ge> 0"
+      using g_nonneg \<open>a \<le> b\<close> unfolding set_lebesgue_integral_def
+      by (intro Bochner_Integration.integral_nonneg) (auto simp: indicator_def)
+    hence "\<bar>(LINT y:{b<..}|M. g y)\<bar> = (LINT y:{b<..}|M. g y)" by simp
+    finally have less: "(LINT y:{b<..}|M. g y) < e" .
+
+    have "eventually (\<lambda>b. b \<ge> b0) at_top" by (rule eventually_ge_at_top)
+    moreover have "eventually (\<lambda>b. b \<ge> a) at_top" by (rule eventually_ge_at_top)
+    ultimately show "eventually (\<lambda>b. \<forall>x\<in>A. 
+                       dist (LINT y:{a..b}|M. f x y) (LINT y:{a..}|M. f x y) < e) at_top"
+    proof eventually_elim
+      case (elim b)
+      show ?case
+      proof
+        fix x assume x: "x \<in> A"
+        have "dist (LINT y:{a..b}|M. f x y) (LINT y:{a..}|M. f x y) =
+                norm ((LINT y:{a..}|M. f x y) - (LINT y:{a..b}|M. f x y))"
+          by (simp add: dist_norm norm_minus_commute)
+        also have "{a..} = {a..b} \<union> {b<..}" using elim by auto
+        also have "(LINT y:\<dots>|M. f x y) - (LINT y:{a..b}|M. f x y) = (LINT y:{b<..}|M. f x y)"
+          using elim x
+          by (subst set_integral_Un) (auto intro!: set_integrable_subset[OF integrable'])
+        also have "norm \<dots> \<le> (LINT y:{b<..}|M. norm (f x y))" using elim x
+          by (intro set_integral_norm_bound set_integrable_subset[OF integrable']) auto
+        also have "\<dots> \<le> (LINT y:{b<..}|M. g y)" using elim x bound g_nonneg
+          by (intro set_integral_mono set_integrable_norm set_integrable_subset[OF integrable']
+                    set_integrable_subset[OF integrable]) auto
+        also have "(LINT y:{b<..}|M. g y) \<ge> 0"
+          using g_nonneg \<open>a \<le> b\<close> unfolding set_lebesgue_integral_def
+          by (intro Bochner_Integration.integral_nonneg) (auto simp: indicator_def)
+        hence "(LINT y:{b<..}|M. g y) = \<bar>(LINT y:{b<..}|M. g y)\<bar>" by simp
+        also have "\<dots> = \<bar>(LINT y:{a..b} \<union> {b<..}|M. g y) - (LINT y:{a..b}|M. g y)\<bar>"
+          using elim by (subst set_integral_Un) (auto intro!: set_integrable_subset[OF integrable])
+        also have "{a..b} \<union> {b<..} = {a..}" using elim by auto
+        also have "\<bar>(LINT y:{a..}|M. g y) - (LINT y:{a..b}|M. g y)\<bar> < e"
+          using b0 elim by blast
+        finally show "dist (LINT y:{a..b}|M. f x y) (LINT y:{a..}|M. f x y) < e" .
+      qed
+    qed
+  qed
+qed auto
 
 
 

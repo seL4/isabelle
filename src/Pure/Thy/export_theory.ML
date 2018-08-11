@@ -13,6 +13,28 @@ end;
 structure Export_Theory: EXPORT_THEORY =
 struct
 
+(* names for bound variables *)
+
+local
+  fun declare_names (Abs (_, _, b)) = declare_names b
+    | declare_names (t $ u) = declare_names t #> declare_names u
+    | declare_names (Const (c, _)) = Name.declare (Long_Name.base_name c)
+    | declare_names (Free (x, _)) = Name.declare x
+    | declare_names _ = I;
+
+  fun variant_abs bs (Abs (x, T, t)) =
+        let
+          val names = fold Name.declare bs (declare_names t Name.context);
+          val x' = #1 (Name.variant x names);
+          val t' = variant_abs (x' :: bs) t;
+        in Abs (x', T, t') end
+    | variant_abs bs (t $ u) = variant_abs bs t $ variant_abs bs u
+    | variant_abs _ t = t;
+in
+  val named_bounds = variant_abs [];
+end;
+
+
 (* general setup *)
 
 fun setup_presentation f =
@@ -59,9 +81,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
             else
               (case export name decl of
                 NONE => I
-              | SOME body => cons (name, XML.Elem (entity_markup space name, body))))
-          |> sort_by #1 |> map #2
+              | SOME body =>
+                  cons (#serial (Name_Space.the_entry space name),
+                    XML.Elem (entity_markup space name, body))))
+          |> sort (int_ord o apply2 #1) |> map #2
         end;
+
       in if null elems then () else export_body thy export_name elems end;
 
 
@@ -86,7 +111,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_const =
       let open XML.Encode Term_XML.Encode
-      in triple (list string) typ (option term) end;
+      in triple (list string) typ (option (term o named_bounds)) end;
 
     fun export_const c (T, abbrev) =
       let
@@ -102,31 +127,36 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* axioms and facts *)
 
-    val standard_prop_of =
-      Thm.transfer thy #>
-      Thm.check_hyps (Context.Theory thy) #>
-      Drule.sort_constraint_intr_shyps #>
-      Thm.full_prop_of;
-
-    val encode_props =
-      let open XML.Encode Term_XML.Encode
-      in triple (list (pair string sort)) (list (pair string typ)) (list term) end;
-
-    fun export_props props =
+    fun standard_prop_of raw_thm =
       let
-        val props' = map Logic.unvarify_global props;
-        val typargs = rev (fold Term.add_tfrees props' []);
-        val args = rev (fold Term.add_frees props' []);
-      in encode_props (typargs, args, props') end;
+        val thm = raw_thm
+          |> Thm.transfer thy
+          |> Thm.check_hyps (Context.Theory thy)
+          |> Thm.strip_shyps;
+        val prop = thm
+          |> Thm.full_prop_of
+          |> Term_Subst.zero_var_indexes;
+      in (Thm.extra_shyps thm, prop) end;
 
-    val export_axiom = export_props o single;
-    val export_fact = export_props o Term_Subst.zero_var_indexes_list o map standard_prop_of;
+    fun encode_prop (Ss, prop) =
+      let
+        val prop' = Logic.unvarify_global (named_bounds prop);
+        val typargs = rev (Term.add_tfrees prop' []);
+        val sorts = Name.invent (Name.make_context (map #1 typargs)) Name.aT (length Ss) ~~ Ss;
+        val args = rev (Term.add_frees prop' []);
+      in
+        (sorts @ typargs, args, prop') |>
+          let open XML.Encode Term_XML.Encode
+          in triple (list (pair string sort)) (list (pair string typ)) term end
+      end;
+
+    val encode_fact = XML.Encode.list encode_prop o map standard_prop_of;
 
     val _ =
-      export_entities "axioms" (K (SOME o export_axiom)) Theory.axiom_space
+      export_entities "axioms" (fn _ => fn t => SOME (encode_prop ([], t))) Theory.axiom_space
         (Theory.axioms_of thy);
     val _ =
-      export_entities "facts" (K (SOME o export_fact)) (Facts.space_of o Global_Theory.facts_of)
+      export_entities "facts" (K (SOME o encode_fact)) (Facts.space_of o Global_Theory.facts_of)
         (Facts.dest_static true [] (Global_Theory.facts_of thy));
 
 
@@ -134,7 +164,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_class =
       let open XML.Encode Term_XML.Encode
-      in pair (list (pair string typ)) (list term) end;
+      in pair (list (pair string typ)) (list (term o named_bounds)) end;
 
     fun export_class name =
       (case try (Axclass.get_info thy) name of

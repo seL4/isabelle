@@ -110,7 +110,7 @@ lemma in_idem:
   assumes "a \<in> A"
   shows "a \<^bold>* F A = F A"
   using assms by (induct A rule: infinite_finite_induct)
-    (auto simp add: left_commute [of a])
+    (auto simp: left_commute [of a])
 
 lemma union:
   "F (A \<union> B) = F A \<^bold>* F B"
@@ -239,7 +239,7 @@ qed
 
 lemma is_unit_gcd_iff [simp]:
   "is_unit (gcd a b) \<longleftrightarrow> gcd a b = 1"
-  by (cases "a = 0 \<and> b = 0") (auto simp add: unit_factor_gcd dest: is_unit_unit_factor)
+  by (cases "a = 0 \<and> b = 0") (auto simp: unit_factor_gcd dest: is_unit_unit_factor)
 
 sublocale gcd: abel_semigroup gcd
 proof
@@ -569,20 +569,17 @@ lemma normalize_lcm_left: "lcm (normalize a) b = lcm a b"
 lemma normalize_lcm_right: "lcm a (normalize b) = lcm a b"
   by (fact lcm.normalize_right_idem)
 
-lemma gcd_mult_unit1: "is_unit a \<Longrightarrow> gcd (b * a) c = gcd b c"
-  apply (rule gcdI)
-     apply simp_all
-  apply (rule dvd_trans)
-   apply (rule gcd_dvd1)
-  apply (simp add: unit_simps)
-  done
+lemma gcd_mult_unit1: 
+  assumes "is_unit a" shows "gcd (b * a) c = gcd b c"
+proof -
+  have "gcd (b * a) c dvd b"
+    using assms local.dvd_mult_unit_iff by blast
+  then show ?thesis
+    by (rule gcdI) simp_all
+qed
 
 lemma gcd_mult_unit2: "is_unit a \<Longrightarrow> gcd b (c * a) = gcd b c"
-  apply (subst gcd.commute)
-  apply (subst gcd_mult_unit1)
-   apply assumption
-  apply (rule gcd.commute)
-  done
+  using gcd.commute gcd_mult_unit1 by auto
 
 lemma gcd_div_unit1: "is_unit a \<Longrightarrow> gcd (b div a) c = gcd b c"
   by (erule is_unitE [of _ b]) (simp add: gcd_mult_unit1)
@@ -652,13 +649,13 @@ lemma lcm_unique:
   "a dvd d \<and> b dvd d \<and> normalize d = d \<and> (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by rule (auto intro: lcmI simp: lcm_least lcm_eq_0_iff)
 
-lemma lcm_proj1_if_dvd: "b dvd a \<Longrightarrow> lcm a b = normalize a"
-  apply (cases "a = 0")
-   apply simp
-  apply (rule sym)
-  apply (rule lcmI)
-     apply simp_all
-  done
+lemma lcm_proj1_if_dvd:
+  assumes "b dvd a" shows "lcm a b = normalize a"
+proof (cases "a = 0")
+  case False
+  then show ?thesis
+    using assms gcd_proj2_if_dvd lcm_mult_gcd local.lcm_gcd by auto
+qed auto
 
 lemma lcm_proj2_if_dvd: "a dvd b \<Longrightarrow> lcm a b = normalize b"
   using lcm_proj1_if_dvd [of a b] by (simp add: ac_simps)
@@ -841,14 +838,12 @@ lemma Lcm_subset: "A \<subseteq> B \<Longrightarrow> Lcm A dvd Lcm B"
   by (blast intro: Lcm_least dvd_Lcm)
 
 lemma Lcm_Un: "Lcm (A \<union> B) = lcm (Lcm A) (Lcm B)"
-  apply (rule lcmI)
-     apply (blast intro: Lcm_subset)
-    apply (blast intro: Lcm_subset)
-   apply (intro Lcm_least ballI, elim UnE)
-    apply (rule dvd_trans, erule dvd_Lcm, assumption)
-   apply (rule dvd_trans, erule dvd_Lcm, assumption)
-  apply simp
-  done
+proof -
+  have "\<And>d. \<lbrakk>Lcm A dvd d; Lcm B dvd d\<rbrakk> \<Longrightarrow> Lcm (A \<union> B) dvd d"
+    by (meson UnE local.Lcm_least local.dvd_Lcm local.dvd_trans)
+  then show ?thesis
+    by (meson Lcm_subset local.lcm_unique local.normalize_Lcm sup.cobounded1 sup.cobounded2)
+qed
 
 lemma Gcd_0_iff [simp]: "Gcd A = 0 \<longleftrightarrow> A \<subseteq> {0}"
   (is "?P \<longleftrightarrow> ?Q")
@@ -963,7 +958,7 @@ proof (cases "A = {}")
 next
   case False
   with assms show ?thesis
-    by (induct A rule: finite_ne_induct) (auto simp add: lcm_eq_0_iff)
+    by (induct A rule: finite_ne_induct) (auto simp: lcm_eq_0_iff)
 qed
 
 lemma Gcd_image_normalize [simp]: "Gcd (normalize ` A) = Gcd A"
@@ -996,25 +991,25 @@ lemma dvd_GcdD: "x dvd Gcd A \<Longrightarrow> y \<in> A \<Longrightarrow> x dvd
 lemma dvd_Gcd_iff: "x dvd Gcd A \<longleftrightarrow> (\<forall>y\<in>A. x dvd y)"
   by (blast dest: dvd_GcdD intro: Gcd_greatest)
 
-lemma Gcd_mult: "Gcd (( * ) c ` A) = normalize c * Gcd A"
+lemma Gcd_mult: "Gcd (( *) c ` A) = normalize c * Gcd A"
 proof (cases "c = 0")
   case True
   then show ?thesis by auto
 next
   case [simp]: False
-  have "Gcd (( * ) c ` A) div c dvd Gcd A"
+  have "Gcd (( *) c ` A) div c dvd Gcd A"
     by (intro Gcd_greatest, subst div_dvd_iff_mult)
        (auto intro!: Gcd_greatest Gcd_dvd simp: mult.commute[of _ c])
-  then have "Gcd (( * ) c ` A) dvd c * Gcd A"
+  then have "Gcd (( *) c ` A) dvd c * Gcd A"
     by (subst (asm) div_dvd_iff_mult) (auto intro: Gcd_greatest simp: mult_ac)
   also have "c * Gcd A = (normalize c * Gcd A) * unit_factor c"
     by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
-  also have "Gcd (( * ) c ` A) dvd \<dots> \<longleftrightarrow> Gcd (( * ) c ` A) dvd normalize c * Gcd A"
+  also have "Gcd (( *) c ` A) dvd \<dots> \<longleftrightarrow> Gcd (( *) c ` A) dvd normalize c * Gcd A"
     by (simp add: dvd_mult_unit_iff)
-  finally have "Gcd (( * ) c ` A) dvd normalize c * Gcd A" .
-  moreover have "normalize c * Gcd A dvd Gcd (( * ) c ` A)"
+  finally have "Gcd (( *) c ` A) dvd normalize c * Gcd A" .
+  moreover have "normalize c * Gcd A dvd Gcd (( *) c ` A)"
     by (intro Gcd_greatest) (auto intro: mult_dvd_mono Gcd_dvd)
-  ultimately have "normalize (Gcd (( * ) c ` A)) = normalize (normalize c * Gcd A)"
+  ultimately have "normalize (Gcd (( *) c ` A)) = normalize (normalize c * Gcd A)"
     by (rule associatedI)
   then show ?thesis
     by (simp add: normalize_mult)
@@ -1035,10 +1030,10 @@ lemma Lcm_dvd_iff: "Lcm A dvd x \<longleftrightarrow> (\<forall>y\<in>A. y dvd x
 
 lemma Lcm_mult:
   assumes "A \<noteq> {}"
-  shows "Lcm (( * ) c ` A) = normalize c * Lcm A"
+  shows "Lcm (( *) c ` A) = normalize c * Lcm A"
 proof (cases "c = 0")
   case True
-  with assms have "( * ) c ` A = {0}"
+  with assms have "( *) c ` A = {0}"
     by auto
   with True show ?thesis by auto
 next
@@ -1047,23 +1042,23 @@ next
     by blast
   have "c dvd c * x"
     by simp
-  also from x have "c * x dvd Lcm (( * ) c ` A)"
+  also from x have "c * x dvd Lcm (( *) c ` A)"
     by (intro dvd_Lcm) auto
-  finally have dvd: "c dvd Lcm (( * ) c ` A)" .
+  finally have dvd: "c dvd Lcm (( *) c ` A)" .
 
-  have "Lcm A dvd Lcm (( * ) c ` A) div c"
+  have "Lcm A dvd Lcm (( *) c ` A) div c"
     by (intro Lcm_least dvd_mult_imp_div)
       (auto intro!: Lcm_least dvd_Lcm simp: mult.commute[of _ c])
-  then have "c * Lcm A dvd Lcm (( * ) c ` A)"
+  then have "c * Lcm A dvd Lcm (( *) c ` A)"
     by (subst (asm) dvd_div_iff_mult) (auto intro!: Lcm_least simp: mult_ac dvd)
   also have "c * Lcm A = (normalize c * Lcm A) * unit_factor c"
     by (subst unit_factor_mult_normalize [symmetric]) (simp only: mult_ac)
-  also have "\<dots> dvd Lcm (( * ) c ` A) \<longleftrightarrow> normalize c * Lcm A dvd Lcm (( * ) c ` A)"
+  also have "\<dots> dvd Lcm (( *) c ` A) \<longleftrightarrow> normalize c * Lcm A dvd Lcm (( *) c ` A)"
     by (simp add: mult_unit_dvd_iff)
-  finally have "normalize c * Lcm A dvd Lcm (( * ) c ` A)" .
-  moreover have "Lcm (( * ) c ` A) dvd normalize c * Lcm A"
+  finally have "normalize c * Lcm A dvd Lcm (( *) c ` A)" .
+  moreover have "Lcm (( *) c ` A) dvd normalize c * Lcm A"
     by (intro Lcm_least) (auto intro: mult_dvd_mono dvd_Lcm)
-  ultimately have "normalize (normalize c * Lcm A) = normalize (Lcm (( * ) c ` A))"
+  ultimately have "normalize (normalize c * Lcm A) = normalize (Lcm (( *) c ` A))"
     by (rule associatedI)
   then show ?thesis
     by (simp add: normalize_mult)
@@ -1240,7 +1235,7 @@ lemma Gcd_fin_0_iff:
 
 lemma Lcm_fin_0_iff:
   "Lcm\<^sub>f\<^sub>i\<^sub>n A = 0 \<longleftrightarrow> 0 \<in> A" if "finite A"
-  using that by (induct A) (auto simp add: lcm_eq_0_iff)
+  using that by (induct A) (auto simp: lcm_eq_0_iff)
 
 lemma Lcm_fin_1_iff:
   "Lcm\<^sub>f\<^sub>i\<^sub>n A = 1 \<longleftrightarrow> (\<forall>a\<in>A. is_unit a) \<and> finite A"
@@ -1452,7 +1447,7 @@ proof -
   from this [symmetric] have "?g * ?a' = (?g * ?g') * ka'" "?g * ?b' = (?g * ?g') * kb'"
     by (simp_all add: mult.assoc mult.left_commute [of "gcd a b"])
   then have dvdgg':"?g * ?g' dvd a" "?g* ?g' dvd b"
-    by (auto simp add: dvd_mult_div_cancel [OF dvdg(1)] dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
+    by (auto simp: dvd_mult_div_cancel [OF dvdg(1)] dvd_mult_div_cancel [OF dvdg(2)] dvd_def)
   have "?g \<noteq> 0"
     using assms by simp
   moreover from gcd_greatest [OF dvdgg'] have "?g * ?g' dvd ?g" .
@@ -1480,11 +1475,12 @@ qed
 lemma gcd_coprime_exists:
   assumes "gcd a b \<noteq> 0"
   shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> coprime a' b'"
-  apply (rule_tac x = "a div gcd a b" in exI)
-  apply (rule_tac x = "b div gcd a b" in exI)
-  using assms
-  apply (auto intro: div_gcd_coprime)
-  done
+proof -
+  have "coprime (a div gcd a b) (b div gcd a b)"
+    using assms div_gcd_coprime by auto
+  then show ?thesis
+    by force
+qed
 
 lemma pow_divides_pow_iff [simp]:
   "a ^ n dvd b ^ n \<longleftrightarrow> a dvd b" if "n > 0"
@@ -1628,7 +1624,7 @@ next
     by simp
   also note gcd_mult_distrib
   also have "unit_factor (gcd a b ^ n) = 1"
-    using False by (auto simp add: unit_factor_power unit_factor_gcd)
+    using False by (auto simp: unit_factor_power unit_factor_gcd)
   also have "(gcd a b) ^ n * (a div gcd a b) ^ n = a ^ n"
     by (simp add: ac_simps div_power dvd_power_same)
   also have "(gcd a b) ^ n * (b div gcd a b) ^ n = b ^ n"
@@ -1809,16 +1805,16 @@ lemma abs_lcm_int [simp]: "\<bar>lcm i j\<bar> = lcm i j"
   for i j :: int
   by (simp only: lcm_int_def)
 
-lemma gcd_nat_induct:
+lemma gcd_nat_induct [case_names base step]:
   fixes m n :: nat
   assumes "\<And>m. P m 0"
     and "\<And>m n. 0 < n \<Longrightarrow> P n (m mod n) \<Longrightarrow> P m n"
   shows "P m n"
-  apply (rule gcd_nat.induct)
-  apply (case_tac "y = 0")
-  using assms
-   apply simp_all
-  done
+proof (induction m n rule: gcd_nat.induct)
+  case (1 x y)
+  then show ?case
+    using assms neq0_conv by blast
+qed
 
 lemma gcd_neg1_int [simp]: "gcd (- x) y = gcd x y"
   for x y :: int
@@ -1856,7 +1852,7 @@ lemma lcm_cases_int:
     and "x \<le> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> P (lcm (- x) y)"
     and "x \<le> 0 \<Longrightarrow> y \<le> 0 \<Longrightarrow> P (lcm (- x) (- y))"
   shows "P (lcm x y)"
-  using assms by (auto simp add: lcm_neg1_int lcm_neg2_int) arith
+  using assms by (auto simp: lcm_neg1_int lcm_neg2_int) arith
 
 lemma lcm_ge_0_int [simp]: "lcm x y \<ge> 0"
   for x y :: int
@@ -1907,7 +1903,7 @@ lemma gcd_idem_nat: "gcd x x = x"
 
 lemma gcd_idem_int: "gcd x x = \<bar>x\<bar>"
   for x :: int
-  by (auto simp add: gcd_int_def)
+  by (auto simp: gcd_int_def)
 
 declare gcd_nat.simps [simp del]
 
@@ -1921,13 +1917,10 @@ proof
   fix m n :: nat
   show "gcd m n dvd m" and "gcd m n dvd n"
   proof (induct m n rule: gcd_nat_induct)
-    fix m n :: nat
-    assume "gcd n (m mod n) dvd m mod n"
-      and "gcd n (m mod n) dvd n"
+    case (step m n)
     then have "gcd n (m mod n) dvd m"
-      by (rule dvd_mod_imp_dvd)
-    moreover assume "0 < n"
-    ultimately show "gcd m n dvd m"
+      by (metis dvd_mod_imp_dvd)
+    with step show "gcd m n dvd m"
       by (simp add: gcd_non_0_nat)
   qed (simp_all add: gcd_0_nat gcd_non_0_nat)
 next
@@ -1979,25 +1972,16 @@ lemma gcd_pos_int [simp]: "gcd m n > 0 \<longleftrightarrow> m \<noteq> 0 \<or> 
 
 lemma gcd_unique_nat: "d dvd a \<and> d dvd b \<and> (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
   for d a :: nat
-  apply auto
-  apply (rule dvd_antisym)
-   apply (erule (1) gcd_greatest)
-  apply auto
-  done
+  using gcd_unique by fastforce
 
 lemma gcd_unique_int:
   "d \<ge> 0 \<and> d dvd a \<and> d dvd b \<and> (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
   for d a :: int
-  apply (cases "d = 0")
-   apply simp
-  apply (rule iffI)
-   apply (rule zdvd_antisym_nonneg)
-      apply (auto intro: gcd_greatest)
-  done
+  using zdvd_antisym_nonneg by auto
 
 interpretation gcd_nat:
   semilattice_neutr_order gcd "0::nat" Rings.dvd "\<lambda>m n. m dvd n \<and> m \<noteq> n"
-  by standard (auto simp add: gcd_unique_nat [symmetric] intro: dvd_antisym dvd_trans)
+  by standard (auto simp: gcd_unique_nat [symmetric] intro: dvd_antisym dvd_trans)
 
 lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd x y = \<bar>x\<bar>"
   for x y :: int
@@ -2013,11 +1997,11 @@ text \<open>\<^medskip> Multiplication laws.\<close>
 lemma gcd_mult_distrib_nat: "k * gcd m n = gcd (k * m) (k * n)"
   for k m n :: nat
   \<comment> \<open>@{cite \<open>page 27\<close> davenport92}\<close>
-  apply (induct m n rule: gcd_nat_induct)
-   apply simp
-  apply (cases "k = 0")
-   apply (simp_all add: gcd_non_0_nat)
-  done
+proof (induct m n rule: gcd_nat_induct)
+  case (step m n)
+  then show ?case
+    by (metis gcd_mult_distrib' gcd_red_nat)
+qed auto
 
 lemma gcd_mult_distrib_int: "\<bar>k\<bar> * gcd m n = gcd (k * m) (k * n)"
   for k m n :: int
@@ -2033,34 +2017,49 @@ lemma gcd_diff1_nat: "m \<ge> n \<Longrightarrow> gcd (m - n) n = gcd m n"
 
 lemma gcd_diff2_nat: "n \<ge> m \<Longrightarrow> gcd (n - m) n = gcd m n"
   for m n :: nat
-  apply (subst gcd.commute)
-  apply (subst gcd_diff1_nat [symmetric])
-   apply auto
-  apply (subst gcd.commute)
-  apply (subst gcd_diff1_nat)
-   apply assumption
-  apply (rule gcd.commute)
-  done
+  by (metis gcd.commute gcd_add2 gcd_diff1_nat le_add_diff_inverse2)
 
-lemma gcd_non_0_int: "y > 0 \<Longrightarrow> gcd x y = gcd y (x mod y)"
-  for x y :: int
-  apply (frule_tac b = y and a = x in pos_mod_sign)
-  apply (simp del: Euclidean_Division.pos_mod_sign add: gcd_int_def abs_if nat_mod_distrib)
-  apply (auto simp add: gcd_non_0_nat nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
-  apply (frule_tac a = x in pos_mod_bound)
-  apply (subst (1 2) gcd.commute)
-  apply (simp del: Euclidean_Division.pos_mod_bound add: nat_diff_distrib gcd_diff2_nat nat_le_eq_zle)
-  done
+lemma gcd_non_0_int: 
+  fixes x y :: int
+  assumes "y > 0" shows "gcd x y = gcd y (x mod y)"
+proof (cases "x mod y = 0")
+  case False
+  then have neg: "x mod y = y - (- x) mod y"
+    by (simp add: zmod_zminus1_eq_if)
+  have xy: "0 \<le> x mod y" 
+    by (simp add: assms)
+  show ?thesis
+  proof (cases "x < 0")
+    case True
+    have "nat (- x mod y) \<le> nat y"
+      by (simp add: assms dual_order.order_iff_strict)
+    moreover have "gcd (nat (- x)) (nat y) = gcd (nat (- x mod y)) (nat y)"
+      using True assms gcd_non_0_nat nat_mod_distrib by auto
+    ultimately have "gcd (nat (- x)) (nat y) = gcd (nat y) (nat (x mod y))"
+      using assms 
+      by (simp add: neg nat_diff_distrib') (metis gcd.commute gcd_diff2_nat)
+    with assms \<open>0 \<le> x mod y\<close> show ?thesis
+      by (simp add: True dual_order.order_iff_strict gcd_int_def)
+  next
+    case False
+    with assms xy have "gcd (nat x) (nat y) = gcd (nat y) (nat x mod nat y)"
+      using gcd_red_nat by blast
+    with False assms show ?thesis
+      by (simp add: gcd_int_def nat_mod_distrib)
+  qed
+qed (use assms in auto)
 
 lemma gcd_red_int: "gcd x y = gcd y (x mod y)"
   for x y :: int
-  apply (cases "y = 0")
-   apply force
-  apply (cases "y > 0")
-   apply (subst gcd_non_0_int, auto)
-  apply (insert gcd_non_0_int [of "- y" "- x"])
-  apply auto
-  done
+proof (cases y "0::int" rule: linorder_cases)
+  case less
+  with gcd_non_0_int [of "- y" "- x"] show ?thesis
+    by auto
+next
+  case greater
+  with gcd_non_0_int [of y x] show ?thesis
+    by auto
+qed auto
 
 (* TODO: differences, and all variations of addition rules
     as simplification rules for nat and int *)
@@ -2092,34 +2091,34 @@ proof -
 qed
 
 lemma Max_divisors_self_nat [simp]: "n \<noteq> 0 \<Longrightarrow> Max {d::nat. d dvd n} = n"
-  apply (rule antisym)
-   apply (fastforce intro: Max_le_iff[THEN iffD2] simp: dvd_imp_le)
-  apply simp
-  done
+  by (fastforce intro: antisym Max_le_iff[THEN iffD2] simp: dvd_imp_le)
 
-lemma Max_divisors_self_int [simp]: "n \<noteq> 0 \<Longrightarrow> Max {d::int. d dvd n} = \<bar>n\<bar>"
-  apply (rule antisym)
-   apply (rule Max_le_iff [THEN iffD2])
-     apply (auto intro: abs_le_D1 dvd_imp_le_int)
-  done
+lemma Max_divisors_self_int [simp]: 
+  assumes "n \<noteq> 0" shows "Max {d::int. d dvd n} = \<bar>n\<bar>"
+proof (rule antisym)
+  show "Max {d. d dvd n} \<le> \<bar>n\<bar>"
+    using assms by (auto intro: abs_le_D1 dvd_imp_le_int intro!: Max_le_iff [THEN iffD2])
+qed (simp add: assms)
 
-lemma gcd_is_Max_divisors_nat: "m > 0 \<Longrightarrow> n > 0 \<Longrightarrow> gcd m n = Max {d. d dvd m \<and> d dvd n}"
-  for m n :: nat
-  apply (rule Max_eqI[THEN sym])
-    apply (metis finite_Collect_conjI finite_divisors_nat)
-   apply simp
-   apply (metis Suc_diff_1 Suc_neq_Zero dvd_imp_le gcd_greatest_iff gcd_pos_nat)
-  apply simp
-  done
+lemma gcd_is_Max_divisors_nat:
+  fixes m n :: nat
+  assumes "n > 0" shows "gcd m n = Max {d. d dvd m \<and> d dvd n}"
+proof (rule Max_eqI[THEN sym], simp_all)
+  show "finite {d. d dvd m \<and> d dvd n}"
+    by (simp add: \<open>n > 0\<close>)
+  show "\<And>y. y dvd m \<and> y dvd n \<Longrightarrow> y \<le> gcd m n"
+    by (simp add: \<open>n > 0\<close> dvd_imp_le)
+qed
 
-lemma gcd_is_Max_divisors_int: "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> gcd m n = Max {d. d dvd m \<and> d dvd n}"
-  for m n :: int
-  apply (rule Max_eqI[THEN sym])
-    apply (metis finite_Collect_conjI finite_divisors_int)
-   apply simp
-   apply (metis gcd_greatest_iff gcd_pos_int zdvd_imp_le)
-  apply simp
-  done
+lemma gcd_is_Max_divisors_int:
+  fixes m n :: int
+  assumes "n \<noteq> 0" shows "gcd m n = Max {d. d dvd m \<and> d dvd n}"
+proof (rule Max_eqI[THEN sym], simp_all)
+  show "finite {d. d dvd m \<and> d dvd n}"
+    by (simp add: \<open>n \<noteq> 0\<close>)
+  show "\<And>y. y dvd m \<and> y dvd n \<Longrightarrow> y \<le> gcd m n"
+    by (simp add: \<open>n \<noteq> 0\<close> zdvd_imp_le)
+qed
 
 lemma gcd_code_int [code]: "gcd k l = \<bar>if l = 0 then k else gcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
   for k l :: int
@@ -2178,25 +2177,22 @@ lemma bezw_non_0:
 
 declare bezw.simps [simp del]
 
-lemma bezw_aux: "fst (bezw x y) * int x + snd (bezw x y) * int y = int (gcd x y)"
+
+lemma bezw_aux: "int (gcd x y) = fst (bezw x y) * int x + snd (bezw x y) * int y"
 proof (induct x y rule: gcd_nat_induct)
-  fix m :: nat
-  show "fst (bezw m 0) * int m + snd (bezw m 0) * int 0 = int (gcd m 0)"
-    by auto
-next
-  fix m n :: nat
-  assume ngt0: "n > 0"
-    and ih: "fst (bezw n (m mod n)) * int n + snd (bezw n (m mod n)) * int (m mod n) =
-      int (gcd n (m mod n))"
-  then show "fst (bezw m n) * int m + snd (bezw m n) * int n = int (gcd m n)"
-    apply (simp add: bezw_non_0 gcd_non_0_nat)
-    apply (erule subst)
-    apply (simp add: field_simps)
-    apply (subst div_mult_mod_eq [of m n, symmetric])
-      (* applying simp here undoes the last substitution! what is procedure cancel_div_mod? *)
-    apply (simp only: NO_MATCH_def field_simps of_nat_add of_nat_mult)
-    done
-qed
+  case (step m n)
+  then have "fst (bezw m n) * int m + snd (bezw m n) * int n - int (gcd m n) 
+             = int m * snd (bezw n (m mod n)) -
+               (int (m mod n) * snd (bezw n (m mod n)) + int n * (int (m div n) * snd (bezw n (m mod n))))"
+    by (simp add: bezw_non_0 gcd_non_0_nat field_simps)
+  also have "\<dots> = int m * snd (bezw n (m mod n)) - (int (m mod n) + int (n * (m div n))) * snd (bezw n (m mod n))"
+    by (simp add: distrib_right)
+  also have "\<dots> = 0"
+    by (metis cancel_comm_monoid_add_class.diff_cancel mod_mult_div_eq of_nat_add)
+  finally show ?case
+    by simp
+qed auto
+
 
 lemma bezout_int: "\<exists>u v. u * x + v * y = gcd x y"
   for x y :: int
@@ -2204,13 +2200,9 @@ proof -
   have aux: "x \<ge> 0 \<Longrightarrow> y \<ge> 0 \<Longrightarrow> \<exists>u v. u * x + v * y = gcd x y" for x y :: int
     apply (rule_tac x = "fst (bezw (nat x) (nat y))" in exI)
     apply (rule_tac x = "snd (bezw (nat x) (nat y))" in exI)
-    apply (unfold gcd_int_def)
-    apply simp
-    apply (subst bezw_aux [symmetric])
-    apply auto
-    done
+    by (simp add: bezw_aux gcd_int_def)
   consider "x \<ge> 0" "y \<ge> 0" | "x \<ge> 0" "y \<le> 0" | "x \<le> 0" "y \<ge> 0" | "x \<le> 0" "y \<le> 0"
-    by atomize_elim auto
+    using linear by blast
   then show ?thesis
   proof cases
     case 1
@@ -2218,48 +2210,29 @@ proof -
   next
     case 2
     then show ?thesis
-      apply -
-      apply (insert aux [of x "-y"])
-      apply auto
-      apply (rule_tac x = u in exI)
-      apply (rule_tac x = "-v" in exI)
-      apply (subst gcd_neg2_int [symmetric])
-      apply auto
-      done
+      using aux [of x "-y"]
+      by (metis gcd_neg2_int mult.commute mult_minus_right neg_0_le_iff_le)
   next
     case 3
     then show ?thesis
-      apply -
-      apply (insert aux [of "-x" y])
-      apply auto
-      apply (rule_tac x = "-u" in exI)
-      apply (rule_tac x = v in exI)
-      apply (subst gcd_neg1_int [symmetric])
-      apply auto
-      done
+      using aux [of "-x" y]
+      by (metis gcd.commute gcd_neg2_int mult.commute mult_minus_right neg_0_le_iff_le)
   next
     case 4
     then show ?thesis
-      apply -
-      apply (insert aux [of "-x" "-y"])
-      apply auto
-      apply (rule_tac x = "-u" in exI)
-      apply (rule_tac x = "-v" in exI)
-      apply (subst gcd_neg1_int [symmetric])
-      apply (subst gcd_neg2_int [symmetric])
-      apply auto
-      done
+      using aux [of "-x" "-y"]
+      by (metis diff_0 diff_ge_0_iff_ge gcd_neg1_int gcd_neg2_int mult.commute mult_minus_right)
   qed
 qed
 
 
 text \<open>Versions of Bezout for \<open>nat\<close>, by Amine Chaieb.\<close>
 
-lemma ind_euclid:
+lemma Euclid_induct [case_names swap zero add]:
   fixes P :: "nat \<Rightarrow> nat \<Rightarrow> bool"
-  assumes c: " \<forall>a b. P a b \<longleftrightarrow> P b a"
-    and z: "\<forall>a. P a 0"
-    and add: "\<forall>a b. P a b \<longrightarrow> P a (a + b)"
+  assumes c: "\<And>a b. P a b \<longleftrightarrow> P b a"
+    and z: "\<And>a. P a 0"
+    and add: "\<And>a b. P a b \<longrightarrow> P a (a + b)"
   shows "P a b"
 proof (induct "a + b" arbitrary: a b rule: less_induct)
   case less
@@ -2302,53 +2275,32 @@ proof (induct "a + b" arbitrary: a b rule: less_induct)
 qed
 
 lemma bezout_lemma_nat:
-  assumes ex: "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and>
-    (a * x = b * y + d \<or> b * x = a * y + d)"
-  shows "\<exists>d x y. d dvd a \<and> d dvd a + b \<and>
-    (a * x = (a + b) * y + d \<or> (a + b) * x = a * y + d)"
-  using ex
-  apply clarsimp
-  apply (rule_tac x="d" in exI)
-  apply simp
-  apply (case_tac "a * x = b * y + d")
-   apply simp_all
-   apply (rule_tac x="x + y" in exI)
-   apply (rule_tac x="y" in exI)
-   apply algebra
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="x + y" in exI)
-  apply algebra
-  done
-
-lemma bezout_add_nat: "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and>
-    (a * x = b * y + d \<or> b * x = a * y + d)"
-  apply (induct a b rule: ind_euclid)
-    apply blast
-   apply clarify
-   apply (rule_tac x="a" in exI)
-   apply simp
-  apply clarsimp
-  apply (rule_tac x="d" in exI)
-  apply (case_tac "a * x = b * y + d")
-   apply simp_all
-   apply (rule_tac x="x+y" in exI)
-   apply (rule_tac x="y" in exI)
-   apply algebra
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="x+y" in exI)
-  apply algebra
-  done
-
-lemma bezout1_nat: "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and>
-    (a * x - b * y = d \<or> b * x - a * y = d)"
-  using bezout_add_nat[of a b]
-  apply clarsimp
-  apply (rule_tac x="d" in exI)
-  apply simp
-  apply (rule_tac x="x" in exI)
-  apply (rule_tac x="y" in exI)
+  fixes d::nat
+  shows "\<lbrakk>d dvd a; d dvd b; a * x = b * y + d \<or> b * x = a * y + d\<rbrakk>
+    \<Longrightarrow> \<exists>x y. d dvd a \<and> d dvd a + b \<and> (a * x = (a + b) * y + d \<or> (a + b) * x = a * y + d)"
   apply auto
-  done
+  apply (metis add_mult_distrib2 left_add_mult_distrib)
+  apply (rule_tac x=x in exI)
+  by (metis add_mult_distrib2 mult.commute add.assoc)
+
+lemma bezout_add_nat: 
+  "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and> (a * x = b * y + d \<or> b * x = a * y + d)"
+proof (induct a b rule: Euclid_induct)
+  case (swap a b)
+  then show ?case
+    by blast
+next
+  case (zero a)
+  then show ?case
+    by fastforce    
+next
+  case (add a b)
+  then show ?case
+    by (meson bezout_lemma_nat)
+qed
+
+lemma bezout1_nat: "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and> (a * x - b * y = d \<or> b * x - a * y = d)"
+  using bezout_add_nat[of a b]  by (metis add_diff_cancel_left')
 
 lemma bezout_add_strong_nat:
   fixes a b :: nat
@@ -2356,7 +2308,7 @@ lemma bezout_add_strong_nat:
   shows "\<exists>d x y. d dvd a \<and> d dvd b \<and> a * x = b * y + d"
 proof -
   consider d x y where "d dvd a" "d dvd b" "a * x = b * y + d"
-    | d x y where "d dvd a" "d dvd b" "b * x = a * y + d"
+         | d x y where "d dvd a" "d dvd b" "b * x = a * y + d"
     using bezout_add_nat [of a b] by blast
   then show ?thesis
   proof cases
@@ -2377,13 +2329,7 @@ proof -
       proof cases
         case 1
         with a H show ?thesis
-          apply simp
-          apply (rule exI[where x = b])
-          apply simp
-          apply (rule exI[where x = b])
-          apply (rule exI[where x = "a - 1"])
-          apply (simp add: diff_mult_distrib2)
-          done
+          by (metis Suc_pred add.commute mult.commute mult_Suc_right neq0_conv)
       next
         case 2
         show ?thesis
@@ -2410,13 +2356,7 @@ proof -
           then have "a * ((b - 1) * y) = b * (x * (b - 1) - d) + d"
             by (simp only: diff_mult_distrib2 ac_simps)
           with H(1,2) show ?thesis
-            apply -
-            apply (rule exI [where x = d])
-            apply simp
-            apply (rule exI [where x = "(b - 1) * y"])
-            apply (rule exI [where x = "x * (b - 1) - d"])
-            apply simp
-            done
+            by blast
         qed
       qed
     qed
@@ -2451,17 +2391,11 @@ lemma lcm_altdef_int [code]: "lcm a b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a 
   
 lemma prod_gcd_lcm_nat: "m * n = gcd m n * lcm m n"
   for m n :: nat
-  unfolding lcm_nat_def
-  by (simp add: dvd_mult_div_cancel [OF gcd_dvd_prod])
+  by simp
 
 lemma prod_gcd_lcm_int: "\<bar>m\<bar> * \<bar>n\<bar> = gcd m n * lcm m n"
   for m n :: int
-  unfolding lcm_int_def gcd_int_def
-  apply (subst of_nat_mult [symmetric])
-  apply (subst prod_gcd_lcm_nat [symmetric])
-  apply (subst nat_abs_mult_distrib [symmetric])
-  apply (simp add: abs_mult)
-  done
+  by simp
 
 lemma lcm_pos_nat: "m > 0 \<Longrightarrow> n > 0 \<Longrightarrow> lcm m n > 0"
   for m n :: nat
@@ -2473,7 +2407,7 @@ lemma lcm_pos_int: "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow
 
 lemma dvd_pos_nat: "n > 0 \<Longrightarrow> m dvd n \<Longrightarrow> m > 0"  (* FIXME move *)
   for m n :: nat
-  by (cases m) auto
+  by auto
 
 lemma lcm_unique_nat:
   "a dvd d \<and> b dvd d \<and> (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
@@ -2487,17 +2421,11 @@ lemma lcm_unique_int:
 
 lemma lcm_proj2_if_dvd_nat [simp]: "x dvd y \<Longrightarrow> lcm x y = y"
   for x y :: nat
-  apply (rule sym)
-  apply (subst lcm_unique_nat [symmetric])
-  apply auto
-  done
+  by (simp add: lcm_proj2_if_dvd)
 
 lemma lcm_proj2_if_dvd_int [simp]: "x dvd y \<Longrightarrow> lcm x y = \<bar>y\<bar>"
   for x y :: int
-  apply (rule sym)
-  apply (subst lcm_unique_int [symmetric])
-  apply auto
-  done
+  by (simp add: lcm_proj2_if_dvd)
 
 lemma lcm_proj1_if_dvd_nat [simp]: "x dvd y \<Longrightarrow> lcm y x = y"
   for x y :: nat
@@ -2551,7 +2479,7 @@ lemma Lcm_nat_empty: "Lcm {} = (1::nat)"
   by (simp add: Lcm_nat_def del: One_nat_def)
 
 lemma Lcm_nat_insert: "Lcm (insert n M) = lcm n (Lcm M)" for n :: nat
-  by (cases "finite M") (auto simp add: Lcm_nat_def simp del: One_nat_def)
+  by (cases "finite M") (auto simp: Lcm_nat_def simp del: One_nat_def)
 
 lemma Lcm_nat_infinite: "infinite M \<Longrightarrow> Lcm M = 0" for M :: "nat set"
   by (simp add: Lcm_nat_def)
@@ -2595,9 +2523,9 @@ proof
   fix N :: "nat set"
   fix n :: nat
   show "Gcd N dvd n" if "n \<in> N"
-    using that by (induct N rule: infinite_finite_induct) (auto simp add: Gcd_nat_def)
+    using that by (induct N rule: infinite_finite_induct) (auto simp: Gcd_nat_def)
   show "n dvd Gcd N" if "\<And>m. m \<in> N \<Longrightarrow> n dvd m"
-    using that by (induct N rule: infinite_finite_induct) (auto simp add: Gcd_nat_def)
+    using that by (induct N rule: infinite_finite_induct) (auto simp: Gcd_nat_def)
   show "n dvd Lcm N" if "n \<in> N"
     using that by (induct N rule: infinite_finite_induct) auto
   show "Lcm N dvd n" if "\<And>m. m \<in> N \<Longrightarrow> m dvd n"
@@ -2629,52 +2557,51 @@ proof (rule antisym)
   from fin show "Gcd M \<le> Max (\<Inter>m\<in>M. {d. d dvd m})"
     by (auto intro: Max_ge Gcd_dvd)
   from fin show "Max (\<Inter>m\<in>M. {d. d dvd m}) \<le> Gcd M"
-    apply (rule Max.boundedI)
-     apply auto
-    apply (meson Gcd_dvd Gcd_greatest \<open>0 < m\<close> \<open>m \<in> M\<close> dvd_imp_le dvd_pos_nat)
-    done
+  proof (rule Max.boundedI, simp_all)
+    show "(\<Inter>m\<in>M. {d. d dvd m}) \<noteq> {}"
+      by auto
+    show "\<And>a. \<forall>x\<in>M. a dvd x \<Longrightarrow> a \<le> Gcd M"
+      by (meson Gcd_dvd Gcd_greatest \<open>0 < m\<close> \<open>m \<in> M\<close> dvd_imp_le dvd_pos_nat)
+  qed
 qed
 
 lemma Gcd_remove0_nat: "finite M \<Longrightarrow> Gcd M = Gcd (M - {0})"
   for M :: "nat set"
-  apply (induct pred: finite)
-   apply simp
-  apply (case_tac "x = 0")
-   apply simp
-  apply (subgoal_tac "insert x F - {0} = insert x (F - {0})")
-   apply simp
-  apply blast
-  done
+proof (induct pred: finite)
+  case (insert x M)
+  then show ?case
+    by (simp add: insert_Diff_if)
+qed auto
 
 lemma Lcm_in_lcm_closed_set_nat:
-  "finite M \<Longrightarrow> M \<noteq> {} \<Longrightarrow> \<forall>m n. m \<in> M \<longrightarrow> n \<in> M \<longrightarrow> lcm m n \<in> M \<Longrightarrow> Lcm M \<in> M"
-  for M :: "nat set"
-  apply (induct rule: finite_linorder_min_induct)
-   apply simp
-  apply simp
-  apply (subgoal_tac "\<forall>m n. m \<in> A \<longrightarrow> n \<in> A \<longrightarrow> lcm m n \<in> A")
-   apply simp
-   apply(case_tac "A = {}")
-    apply simp
-   apply simp
-  apply (metis lcm_pos_nat lcm_unique_nat linorder_neq_iff nat_dvd_not_less not_less0)
-  done
+  fixes M :: "nat set" 
+  assumes "finite M" "M \<noteq> {}" "\<And>m n. \<lbrakk>m \<in> M; n \<in> M\<rbrakk> \<Longrightarrow> lcm m n \<in> M"
+  shows "Lcm M \<in> M"
+  using assms
+proof (induction M rule: finite_linorder_min_induct)
+  case (insert x M)
+  then have "\<And>m n. m \<in> M \<Longrightarrow> n \<in> M \<Longrightarrow> lcm m n \<in> M"
+    by (metis dvd_lcm1 gr0I insert_iff lcm_pos_nat nat_dvd_not_less)
+  with insert show ?case
+    by simp (metis Lcm_nat_empty One_nat_def dvd_1_left dvd_lcm2)
+qed auto
 
 lemma Lcm_eq_Max_nat:
-  "finite M \<Longrightarrow> M \<noteq> {} \<Longrightarrow> 0 \<notin> M \<Longrightarrow> \<forall>m n. m \<in> M \<longrightarrow> n \<in> M \<longrightarrow> lcm m n \<in> M \<Longrightarrow> Lcm M = Max M"
-  for M :: "nat set"
-  apply (rule antisym)
-   apply (rule Max_ge)
-    apply assumption
-   apply (erule (2) Lcm_in_lcm_closed_set_nat)
-  apply (auto simp add: not_le Lcm_0_iff dvd_imp_le leD le_neq_trans)
-  done
+  fixes M :: "nat set" 
+  assumes M: "finite M" "M \<noteq> {}" "0 \<notin> M" and lcm: "\<And>m n. \<lbrakk>m \<in> M; n \<in> M\<rbrakk> \<Longrightarrow> lcm m n \<in> M"
+  shows "Lcm M = Max M"
+proof (rule antisym)
+  show "Lcm M \<le> Max M"
+    by (simp add: Lcm_in_lcm_closed_set_nat \<open>finite M\<close> \<open>M \<noteq> {}\<close> lcm)
+  show "Max M \<le> Lcm M"
+    by (meson Lcm_0_iff Max_in M dvd_Lcm dvd_imp_le le_0_eq not_le)
+qed
 
 lemma mult_inj_if_coprime_nat:
-  "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> \<forall>a\<in>A. \<forall>b\<in>B. coprime (f a) (g b) \<Longrightarrow>
+  "inj_on f A \<Longrightarrow> inj_on g B \<Longrightarrow> (\<And>a b. \<lbrakk>a\<in>A; b\<in>B\<rbrakk> \<Longrightarrow> coprime (f a) (g b)) \<Longrightarrow>
     inj_on (\<lambda>(a, b). f a * g b) (A \<times> B)"
   for f :: "'a \<Rightarrow> nat" and g :: "'b \<Rightarrow> nat"
-  by (auto simp add: inj_on_def coprime_crossproduct_nat simp del: One_nat_def)
+  by (auto simp: inj_on_def coprime_crossproduct_nat simp del: One_nat_def)
 
 
 subsubsection \<open>Setwise GCD and LCM for integers\<close>

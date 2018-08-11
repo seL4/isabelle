@@ -93,7 +93,7 @@ definition "f = card F"
 
 lemma Gpq: "GAUSS p q"
   using p_prime pq_neq p_ge_2 q_prime
-  by (auto simp: GAUSS_def cong_altdef_int dest: primes_dvd_imp_eq)
+  by (auto simp: GAUSS_def cong_iff_dvd_diff dest: primes_dvd_imp_eq)
 
 lemma Gqp: "GAUSS q p"
   by (simp add: QRqp QR.Gpq)
@@ -304,7 +304,7 @@ lemma f_2_lemma_1: "f_2 (f_2 x) = x"
   by (simp add: f_2_def)
 
 lemma f_2_lemma_2: "[f_2 x = int p - x] (mod p)"
-  by (simp add: f_2_def cong_altdef_int)
+  by (simp add: f_2_def cong_iff_dvd_diff)
 
 lemma f_2_lemma_3: "f_2 x \<in> S \<Longrightarrow> x \<in> f_2 ` S"
   using f_2_lemma_1[of x] image_eqI[of x f_2 "f_2 x" S] by presburger

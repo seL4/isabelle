@@ -892,6 +892,9 @@ lemma Ints_minus [simp]: "a \<in> \<int> \<Longrightarrow> -a \<in> \<int>"
   apply (rule of_int_minus [symmetric])
   done
 
+lemma minus_in_Ints_iff: "-x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
+  using Ints_minus[of x] Ints_minus[of "-x"] by auto
+
 lemma Ints_diff [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a - b \<in> \<int>"
   apply (auto simp add: Ints_def)
   apply (rule range_eqI)

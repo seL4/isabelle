@@ -193,6 +193,24 @@ proof (rule analytic_on_subset [OF _ assms])
     by (subst analytic_on_open) auto
 qed
 
+lemma continuous_eval_fps [continuous_intros]:
+  fixes z :: "'a::{real_normed_field,banach}"
+  assumes "norm z < fps_conv_radius F"
+  shows   "continuous (at z within A) (eval_fps F)"
+proof -
+  from ereal_dense2[OF assms] obtain K :: real where K: "norm z < K" "K < fps_conv_radius F"
+    by auto
+  have "0 \<le> norm z" by simp
+  also have "norm z < K" by fact
+  finally have "K > 0" .
+  from K and \<open>K > 0\<close> have "summable (\<lambda>n. fps_nth F n * of_real K ^ n)"
+    by (intro summable_fps) auto
+  from this have "isCont (eval_fps F) z" unfolding eval_fps_def
+    by (rule isCont_powser) (use K in auto)
+  thus "continuous (at z within A)  (eval_fps F)"
+    by (simp add: continuous_at_imp_continuous_within)
+qed
+
 
 subsection%unimportant \<open>Lower bounds on radius of convergence\<close>
 
@@ -829,6 +847,20 @@ proof -
   hence "eventually (\<lambda>z. eval_fps (fps_expansion f 0) z = f z) (nhds 0)"
     by eventually_elim (subst eval_fps_expansion'[OF holo], auto)
   ultimately show ?thesis using r(1) by (auto simp: has_fps_expansion_def)
+qed
+
+lemma has_fps_expansion_imp_continuous:
+  fixes F :: "'a::{real_normed_field,banach} fps"
+  assumes "f has_fps_expansion F"
+  shows   "continuous (at 0 within A) f"
+proof -
+  from assms have "isCont (eval_fps F) 0"
+    by (intro continuous_eval_fps) (auto simp: has_fps_expansion_def zero_ereal_def)
+  also have "?this \<longleftrightarrow> isCont f 0" using assms
+    by (intro isCont_cong) (auto simp: has_fps_expansion_def)
+  finally have "isCont f 0" .
+  thus "continuous (at 0 within A) f"
+    by (simp add: continuous_at_imp_continuous_within)
 qed
 
 lemma has_fps_expansion_const [simp, intro, fps_expansion_intros]:

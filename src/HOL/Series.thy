@@ -703,6 +703,27 @@ next
   qed
 qed
 
+lemma summable_Cauchy':
+  fixes f :: "nat \<Rightarrow> 'a :: banach"
+  assumes "eventually (\<lambda>m. \<forall>n\<ge>m. norm (sum f {m..<n}) \<le> g m) sequentially"
+  assumes "filterlim g (nhds 0) sequentially"
+  shows "summable f"
+proof (subst summable_Cauchy, intro allI impI, goal_cases)
+  case (1 e)
+  from order_tendstoD(2)[OF assms(2) this] and assms(1)
+  have "eventually (\<lambda>m. \<forall>n. norm (sum f {m..<n}) < e) at_top"
+  proof eventually_elim
+    case (elim m)
+    show ?case
+    proof
+      fix n
+      from elim show "norm (sum f {m..<n}) < e"
+        by (cases "n \<ge> m") auto
+    qed
+  qed
+  thus ?case by (auto simp: eventually_at_top_linorder)
+qed
+
 context
   fixes f :: "nat \<Rightarrow> 'a::banach"
 begin

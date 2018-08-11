@@ -1177,6 +1177,21 @@ lemma pathfinish_linepath[simp]: "pathfinish (linepath a b) = b"
   unfolding pathfinish_def linepath_def
   by auto
 
+lemma linepath_inner: "linepath a b x \<bullet> v = linepath (a \<bullet> v) (b \<bullet> v) x"
+  by (simp add: linepath_def algebra_simps)
+
+lemma Re_linepath': "Re (linepath a b x) = linepath (Re a) (Re b) x"
+  by (simp add: linepath_def)
+
+lemma Im_linepath': "Im (linepath a b x) = linepath (Im a) (Im b) x"
+  by (simp add: linepath_def)
+
+lemma linepath_0': "linepath a b 0 = a"
+  by (simp add: linepath_def)
+
+lemma linepath_1': "linepath a b 1 = b"
+  by (simp add: linepath_def)
+
 lemma continuous_linepath_at[intro]: "continuous (at x) (linepath a b)"
   unfolding linepath_def
   by (intro continuous_intros)
@@ -1198,6 +1213,9 @@ lemma reversepath_linepath[simp]: "reversepath (linepath a b) = linepath b a"
   by auto
 
 lemma linepath_0 [simp]: "linepath 0 b x = x *\<^sub>R b"
+  by (simp add: linepath_def)
+
+lemma linepath_cnj: "cnj (linepath a b x) = linepath (cnj a) (cnj b) x"
   by (simp add: linepath_def)
 
 lemma arc_linepath:

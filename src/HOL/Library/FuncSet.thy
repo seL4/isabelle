@@ -163,8 +163,6 @@ lemma funcset_compose: "f \<in> A \<rightarrow> B \<Longrightarrow> g \<in> B \<
 
 lemma compose_assoc:
   assumes "f \<in> A \<rightarrow> B"
-    and "g \<in> B \<rightarrow> C"
-    and "h \<in> C \<rightarrow> D"
   shows "compose A h (compose A g f) = compose A (compose B h g) f"
   using assms by (simp add: fun_eq_iff Pi_def compose_def restrict_def)
 

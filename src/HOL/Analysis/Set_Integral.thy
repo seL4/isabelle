@@ -54,6 +54,15 @@ lemma indicator_abs_eq: "\<And>A x. \<bar>indicator A x\<bar> = ((indicator A x)
   by (auto simp add: indicator_def)
 *)
 
+lemma set_integrable_cong:
+  assumes "M = M'" "A = A'" "\<And>x. x \<in> A \<Longrightarrow> f x = f' x"
+  shows   "set_integrable M A f = set_integrable M' A' f'"
+proof -
+  have "(\<lambda>x. indicator A x *\<^sub>R f x) = (\<lambda>x. indicator A' x *\<^sub>R f' x)"
+    using assms by (auto simp: indicator_def)
+  thus ?thesis by (simp add: set_integrable_def assms)
+qed
+
 lemma set_borel_measurable_sets:
   fixes f :: "_ \<Rightarrow> _::real_normed_vector"
   assumes "set_borel_measurable M X f" "B \<in> sets borel" "X \<in> sets M"
@@ -924,5 +933,128 @@ proof (rule Scheffe_lemma1)
   then have "(\<integral>\<^sup>+ x. norm(F n x) \<partial>M) < \<infinity>" using assms(4)[of n] by auto
   then show "integrable M (F n)" by (subst integrable_iff_bounded, simp add: assms(1)[of n])
 qed (auto simp add: assms Limsup_bounded)
+
+lemma tendsto_set_lebesgue_integral_at_right:
+  fixes a b :: real and f :: "real \<Rightarrow> 'a :: {banach,second_countable_topology}"
+  assumes "a < b" and sets: "\<And>a'. a' \<in> {a<..b} \<Longrightarrow> {a'..b} \<in> sets M"
+      and "set_integrable M {a<..b} f"
+  shows   "((\<lambda>a'. set_lebesgue_integral M {a'..b} f) \<longlongrightarrow>
+             set_lebesgue_integral M {a<..b} f) (at_right a)"
+proof (rule tendsto_at_right_sequentially[OF assms(1)], goal_cases)
+  case (1 S)
+  have eq: "(\<Union>n. {S n..b}) = {a<..b}"
+  proof safe
+    fix x n assume "x \<in> {S n..b}"
+    with 1(1,2)[of n] show "x \<in> {a<..b}" by auto
+  next
+    fix x assume "x \<in> {a<..b}"
+    with order_tendstoD[OF \<open>S \<longlonglongrightarrow> a\<close>, of x] show "x \<in> (\<Union>n. {S n..b})"
+      by (force simp: eventually_at_top_linorder dest: less_imp_le)
+  qed
+  have "(\<lambda>n. set_lebesgue_integral M {S n..b} f) \<longlonglongrightarrow> set_lebesgue_integral M (\<Union>n. {S n..b}) f"
+    by (rule set_integral_cont_up) (insert assms 1, auto simp: eq incseq_def decseq_def less_imp_le)
+  with eq show ?case by simp
+qed
+
+
+text \<open>
+  The next lemmas relate convergence of integrals over an interval to
+  improper integrals.
+\<close>
+lemma tendsto_set_lebesgue_integral_at_left:
+  fixes a b :: real and f :: "real \<Rightarrow> 'a :: {banach,second_countable_topology}"
+  assumes "a < b" and sets: "\<And>b'. b' \<in> {a..<b} \<Longrightarrow> {a..b'} \<in> sets M"
+      and "set_integrable M {a..<b} f"
+  shows   "((\<lambda>b'. set_lebesgue_integral M {a..b'} f) \<longlongrightarrow>
+             set_lebesgue_integral M {a..<b} f) (at_left b)"
+proof (rule tendsto_at_left_sequentially[OF assms(1)], goal_cases)
+  case (1 S)
+  have eq: "(\<Union>n. {a..S n}) = {a..<b}"
+  proof safe
+    fix x n assume "x \<in> {a..S n}"
+    with 1(1,2)[of n] show "x \<in> {a..<b}" by auto
+  next
+    fix x assume "x \<in> {a..<b}"
+    with order_tendstoD[OF \<open>S \<longlonglongrightarrow> b\<close>, of x] show "x \<in> (\<Union>n. {a..S n})"
+      by (force simp: eventually_at_top_linorder dest: less_imp_le)
+  qed
+  have "(\<lambda>n. set_lebesgue_integral M {a..S n} f) \<longlonglongrightarrow> set_lebesgue_integral M (\<Union>n. {a..S n}) f"
+    by (rule set_integral_cont_up) (insert assms 1, auto simp: eq incseq_def decseq_def less_imp_le)
+  with eq show ?case by simp
+qed
+
+lemma tendsto_set_lebesgue_integral_at_top:
+  fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
+  assumes sets: "\<And>b. b \<ge> a \<Longrightarrow> {a..b} \<in> sets M"
+      and int: "set_integrable M {a..} f"
+  shows "((\<lambda>b. set_lebesgue_integral M {a..b} f) \<longlongrightarrow> set_lebesgue_integral M {a..} f) at_top"
+proof (rule tendsto_at_topI_sequentially)
+  fix X :: "nat \<Rightarrow> real" assume "filterlim X at_top sequentially"
+  show "(\<lambda>n. set_lebesgue_integral M {a..X n} f) \<longlonglongrightarrow> set_lebesgue_integral M {a..} f"
+    unfolding set_lebesgue_integral_def
+  proof (rule integral_dominated_convergence)
+    show "integrable M (\<lambda>x. indicat_real {a..} x *\<^sub>R norm (f x))"
+      using integrable_norm[OF int[unfolded set_integrable_def]] by simp
+    show "AE x in M. (\<lambda>n. indicator {a..X n} x *\<^sub>R f x) \<longlonglongrightarrow> indicat_real {a..} x *\<^sub>R f x"
+    proof
+      fix x
+      from \<open>filterlim X at_top sequentially\<close>
+      have "eventually (\<lambda>n. x \<le> X n) sequentially"
+        unfolding filterlim_at_top_ge[where c=x] by auto
+      then show "(\<lambda>n. indicator {a..X n} x *\<^sub>R f x) \<longlonglongrightarrow> indicat_real {a..} x *\<^sub>R f x"
+        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_mono)
+    qed
+    fix n show "AE x in M. norm (indicator {a..X n} x *\<^sub>R f x) \<le> 
+                             indicator {a..} x *\<^sub>R norm (f x)"
+      by (auto split: split_indicator)
+  next
+    from int show "(\<lambda>x. indicat_real {a..} x *\<^sub>R f x) \<in> borel_measurable M"
+      by (simp add: set_integrable_def)
+  next
+    fix n :: nat
+    from sets have "{a..X n} \<in> sets M" by (cases "X n \<ge> a") auto
+    with int have "set_integrable M {a..X n} f"
+      by (rule set_integrable_subset) auto
+    thus "(\<lambda>x. indicat_real {a..X n} x *\<^sub>R f x) \<in> borel_measurable M"
+      by (simp add: set_integrable_def)
+  qed
+qed
+
+lemma tendsto_set_lebesgue_integral_at_bot:
+  fixes f :: "real \<Rightarrow> 'a::{banach, second_countable_topology}"
+  assumes sets: "\<And>a. a \<le> b \<Longrightarrow> {a..b} \<in> sets M"
+      and int: "set_integrable M {..b} f"
+    shows "((\<lambda>a. set_lebesgue_integral M {a..b} f) \<longlongrightarrow> set_lebesgue_integral M {..b} f) at_bot"
+proof (rule tendsto_at_botI_sequentially)
+  fix X :: "nat \<Rightarrow> real" assume "filterlim X at_bot sequentially"
+  show "(\<lambda>n. set_lebesgue_integral M {X n..b} f) \<longlonglongrightarrow> set_lebesgue_integral M {..b} f"
+    unfolding set_lebesgue_integral_def
+  proof (rule integral_dominated_convergence)
+    show "integrable M (\<lambda>x. indicat_real {..b} x *\<^sub>R norm (f x))"
+      using integrable_norm[OF int[unfolded set_integrable_def]] by simp
+    show "AE x in M. (\<lambda>n. indicator {X n..b} x *\<^sub>R f x) \<longlonglongrightarrow> indicat_real {..b} x *\<^sub>R f x"
+    proof
+      fix x
+      from \<open>filterlim X at_bot sequentially\<close>
+      have "eventually (\<lambda>n. x \<ge> X n) sequentially"
+        unfolding filterlim_at_bot_le[where c=x] by auto
+      then show "(\<lambda>n. indicator {X n..b} x *\<^sub>R f x) \<longlonglongrightarrow> indicat_real {..b} x *\<^sub>R f x"
+        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_mono)
+    qed
+    fix n show "AE x in M. norm (indicator {X n..b} x *\<^sub>R f x) \<le> 
+                             indicator {..b} x *\<^sub>R norm (f x)"
+      by (auto split: split_indicator)
+  next
+    from int show "(\<lambda>x. indicat_real {..b} x *\<^sub>R f x) \<in> borel_measurable M"
+      by (simp add: set_integrable_def)
+  next
+    fix n :: nat
+    from sets have "{X n..b} \<in> sets M" by (cases "X n \<le> b") auto
+    with int have "set_integrable M {X n..b} f"
+      by (rule set_integrable_subset) auto
+    thus "(\<lambda>x. indicat_real {X n..b} x *\<^sub>R f x) \<in> borel_measurable M"
+      by (simp add: set_integrable_def)
+  qed
+qed
 
 end

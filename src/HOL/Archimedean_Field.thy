@@ -707,6 +707,9 @@ lemma frac_gt_0_iff [simp]: "frac x > 0 \<longleftrightarrow> x \<notin> \<int>"
 lemma frac_of_int [simp]: "frac (of_int z) = 0"
   by (simp add: frac_def)
 
+lemma frac_frac [simp]: "frac (frac x) = frac x"
+  by (simp add: frac_def)
+
 lemma floor_add: "\<lfloor>x + y\<rfloor> = (if frac x + frac y < 1 then \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor> else (\<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>) + 1)"
 proof -
   have "x + y < 1 + (of_int \<lfloor>x\<rfloor> + of_int \<lfloor>y\<rfloor>) \<Longrightarrow> \<lfloor>x + y\<rfloor> = \<lfloor>x\<rfloor> + \<lfloor>y\<rfloor>"
@@ -742,6 +745,14 @@ lemma frac_neg: "frac (- x) = (if x \<in> \<int> then 0 else 1 - frac x)"
    apply (simp add: frac_def)
   apply (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
   done
+
+lemma frac_in_Ints_iff [simp]: "frac x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
+proof safe
+  assume "frac x \<in> \<int>"
+  hence "of_int \<lfloor>x\<rfloor> + frac x \<in> \<int>" by auto
+  also have "of_int \<lfloor>x\<rfloor> + frac x = x" by (simp add: frac_def)
+  finally show "x \<in> \<int>" .
+qed (auto simp: frac_def)
 
 
 subsection \<open>Rounding to the nearest integer\<close>

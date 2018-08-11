@@ -687,6 +687,17 @@ lemma integral_linear:
   apply (simp_all add: integrable_integral integrable_linear has_integral_linear )
   done
 
+lemma integrable_on_cnj_iff:
+  "(\<lambda>x. cnj (f x)) integrable_on A \<longleftrightarrow> f integrable_on A"
+  using integrable_linear[OF _ bounded_linear_cnj, of f A]
+        integrable_linear[OF _ bounded_linear_cnj, of "cnj \<circ> f" A]
+  by (auto simp: o_def)
+
+lemma integral_cnj: "cnj (integral A f) = integral A (\<lambda>x. cnj (f x))"
+  by (cases "f integrable_on A")
+     (simp_all add: integral_linear[OF _ bounded_linear_cnj, symmetric]
+                    o_def integrable_on_cnj_iff not_integrable_integral)
+
 lemma integral_component_eq[simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "f integrable_on S"
@@ -3439,6 +3450,64 @@ lemma integrable_affinity:
   done
 
 lemmas has_integral_affinity01 = has_integral_affinity [of _ _ 0 "1::real", simplified]
+
+lemma integrable_on_affinity:
+  assumes "m \<noteq> 0" "f integrable_on (cbox a b)"
+  shows   "(\<lambda>x. f (m *\<^sub>R x + c)) integrable_on ((\<lambda>x. (1 / m) *\<^sub>R x - ((1 / m) *\<^sub>R c)) ` cbox a b)"
+proof -
+  from assms obtain I where "(f has_integral I) (cbox a b)"
+    by (auto simp: integrable_on_def)
+  from has_integral_affinity[OF this assms(1), of c] show ?thesis
+    by (auto simp: integrable_on_def)
+qed
+
+lemma has_integral_cmul_iff:
+  assumes "c \<noteq> 0"
+  shows   "((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R I)) A \<longleftrightarrow> (f has_integral I) A"
+  using assms has_integral_cmul[of f I A c]
+        has_integral_cmul[of "\<lambda>x. c *\<^sub>R f x" "c *\<^sub>R I" A "inverse c"] by (auto simp: field_simps)
+
+lemma has_integral_affinity':
+  fixes a :: "'a::euclidean_space"
+  assumes "(f has_integral i) (cbox a b)" and "m > 0"
+  shows "((\<lambda>x. f(m *\<^sub>R x + c)) has_integral (i /\<^sub>R m ^ DIM('a)))
+           (cbox ((a - c) /\<^sub>R m) ((b - c) /\<^sub>R m))"
+proof (cases "cbox a b = {}")
+  case True
+  hence "(cbox ((a - c) /\<^sub>R m) ((b - c) /\<^sub>R m)) = {}"
+    using \<open>m > 0\<close> unfolding box_eq_empty by (auto simp: algebra_simps)
+  with True and assms show ?thesis by simp
+next
+  case False
+  have "((\<lambda>x. f (m *\<^sub>R x + c)) has_integral (1 / \<bar>m\<bar> ^ DIM('a)) *\<^sub>R i)
+          ((\<lambda>x. (1 / m) *\<^sub>R x + - ((1 / m) *\<^sub>R c)) ` cbox a b)"
+    using assms by (intro has_integral_affinity) auto
+  also have "((\<lambda>x. (1 / m) *\<^sub>R x + - ((1 / m) *\<^sub>R c)) ` cbox a b) =
+               ((\<lambda>x.  - ((1 / m) *\<^sub>R c) + x) ` (\<lambda>x. (1 / m) *\<^sub>R x) ` cbox a b)"
+    by (simp add: image_image algebra_simps)
+  also have "(\<lambda>x. (1 / m) *\<^sub>R x) ` cbox a b = cbox ((1 / m) *\<^sub>R a) ((1 / m) *\<^sub>R b)" using \<open>m > 0\<close> False
+    by (subst image_smult_cbox) simp_all
+  also have "(\<lambda>x. - ((1 / m) *\<^sub>R c) + x) ` \<dots> = cbox ((a - c) /\<^sub>R m) ((b - c) /\<^sub>R m)"
+    by (subst cbox_translation [symmetric]) (simp add: field_simps vector_add_divide_simps)
+  finally show ?thesis using \<open>m > 0\<close> by (simp add: field_simps)
+qed
+
+lemma has_integral_affinity_iff:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: real_normed_vector"
+  assumes "m > 0"
+  shows   "((\<lambda>x. f (m *\<^sub>R x + c)) has_integral (I /\<^sub>R m ^ DIM('a)))
+               (cbox ((a - c) /\<^sub>R m) ((b - c) /\<^sub>R m)) \<longleftrightarrow>
+           (f has_integral I) (cbox a b)" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  from has_integral_affinity'[OF this, of "1 / m" "-c /\<^sub>R m"] and \<open>m > 0\<close>
+    show ?rhs by (simp add: field_simps vector_add_divide_simps)
+next
+  assume ?rhs
+  from has_integral_affinity'[OF this, of m c] and \<open>m > 0\<close>
+  show ?lhs by simp
+qed
+
 
 subsection \<open>Special case of stretching coordinate axes separately\<close>
 
