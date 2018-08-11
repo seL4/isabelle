@@ -376,4 +376,9 @@ object JSON
     value(obj, name, Value.List.unapply(_, unapply))
   def list_default[A](obj: T, name: String, unapply: T => Option[A], default: => List[A] = Nil)
     : Option[List[A]] = value_default(obj, name, Value.List.unapply(_, unapply), default)
+
+  def strings(obj: T, name: String): Option[List[String]] =
+    list(obj, name, JSON.Value.String.unapply _)
+  def strings_default(obj: T, name: String, default: => List[String] = Nil): Option[List[String]] =
+    list_default(obj, name, JSON.Value.String.unapply _, default)
 }

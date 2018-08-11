@@ -36,9 +36,9 @@ object Server_Commands
       for {
         session <- JSON.string(json, "session")
         preferences <- JSON.string_default(json, "preferences", default_preferences)
-        options <- JSON.list_default(json, "options", JSON.Value.String.unapply _)
-        dirs <- JSON.list_default(json, "dirs", JSON.Value.String.unapply _)
-        include_sessions <- JSON.list_default(json, "include_sessions", JSON.Value.String.unapply _)
+        options <- JSON.strings_default(json, "options")
+        dirs <- JSON.strings_default(json, "dirs")
+        include_sessions <- JSON.strings_default(json, "include_sessions")
         system_mode <- JSON.bool_default(json, "system_mode")
         verbose <- JSON.bool_default(json, "verbose")
       }
@@ -102,7 +102,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[Args] =
       for {
         build <- Session_Build.unapply(json)
-        print_mode <- JSON.list_default(json, "print_mode", JSON.Value.String.unapply _)
+        print_mode <- JSON.strings_default(json, "print_mode")
       }
       yield Args(build = build, print_mode = print_mode)
 
@@ -164,7 +164,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[Args] =
       for {
         session_id <- JSON.uuid(json, "session_id")
-        theories <- JSON.list(json, "theories", JSON.Value.String.unapply _)
+        theories <- JSON.strings(json, "theories")
         master_dir <- JSON.string_default(json, "master_dir")
         pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
         unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
@@ -249,7 +249,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[Args] =
       for {
         session_id <- JSON.uuid(json, "session_id")
-        theories <- JSON.list_default(json, "theories", JSON.Value.String.unapply _)
+        theories <- JSON.strings_default(json, "theories")
         master_dir <- JSON.string_default(json, "master_dir")
         all <- JSON.bool_default(json, "all")
       }
