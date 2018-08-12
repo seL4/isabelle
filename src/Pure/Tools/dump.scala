@@ -94,7 +94,7 @@ object Dump
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
   {
     if (Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
+      dirs = dirs ::: select_dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
 
     val dump_options = make_options(options, aspects)
 
@@ -116,7 +116,7 @@ object Dump
     /* session */
 
     val session =
-      Thy_Resources.start_session(dump_options, logic, session_dirs = dirs,
+      Thy_Resources.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
         include_sessions = include_sessions, progress = progress, log = log)
 
     val theories_result = session.use_theories(use_theories, progress = progress)
