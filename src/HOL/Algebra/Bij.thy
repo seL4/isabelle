@@ -46,15 +46,11 @@ lemma Bij_compose_restrict_eq:
   by (simp add: Bij_def compose_inv_into_id)
 
 theorem group_BijGroup: "group (BijGroup S)"
-apply (simp add: BijGroup_def)
-apply (rule groupI)
-    apply (simp add: compose_Bij)
-   apply (simp add: id_Bij)
-  apply (simp add: compose_Bij)
-  apply (blast intro: compose_assoc [symmetric] dest: Bij_imp_funcset)
- apply (simp add: id_Bij Bij_imp_funcset Bij_imp_extensional, simp)
-apply (blast intro: Bij_compose_restrict_eq restrict_inv_into_Bij)
-done
+  apply (simp add: BijGroup_def)
+  apply (rule groupI)
+      apply (auto simp: compose_Bij id_Bij Bij_imp_funcset Bij_imp_extensional compose_assoc [symmetric])
+  apply (blast intro: Bij_compose_restrict_eq restrict_inv_into_Bij)
+  done
 
 
 subsection\<open>Automorphisms Form a Group\<close>
@@ -63,13 +59,18 @@ lemma Bij_inv_into_mem: "\<lbrakk> f \<in> Bij S;  x \<in> S\<rbrakk> \<Longrigh
 by (simp add: Bij_def bij_betw_def inv_into_into)
 
 lemma Bij_inv_into_lemma:
- assumes eq: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> h(g x y) = g (h x) (h y)"
- shows "\<lbrakk>h \<in> Bij S;  g \<in> S \<rightarrow> S \<rightarrow> S;  x \<in> S;  y \<in> S\<rbrakk>
-        \<Longrightarrow> inv_into S h (g x y) = g (inv_into S h x) (inv_into S h y)"
-apply (simp add: Bij_def bij_betw_def)
-apply (subgoal_tac "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' \<and> y = h y'", clarify)
- apply (simp add: eq [symmetric] inv_f_f funcset_mem [THEN funcset_mem], blast)
-done
+  assumes eq: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> h(g x y) = g (h x) (h y)"
+      and hg: "h \<in> Bij S" "g \<in> S \<rightarrow> S \<rightarrow> S" and "x \<in> S" "y \<in> S"
+  shows "inv_into S h (g x y) = g (inv_into S h x) (inv_into S h y)"
+proof -
+  have "h ` S = S"
+    by (metis (no_types) Bij_def Int_iff assms(2) bij_betw_def mem_Collect_eq)
+  with \<open>x \<in> S\<close> \<open>y \<in> S\<close> have "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' \<and> y = h y'"
+    by auto
+  then show ?thesis
+    using assms
+    by (auto simp add: Bij_def bij_betw_def eq [symmetric] inv_f_f funcset_mem [THEN funcset_mem])
+qed
 
 
 definition
@@ -94,8 +95,7 @@ lemma (in group) restrict_inv_into_hom:
 
 lemma inv_BijGroup:
      "f \<in> Bij S \<Longrightarrow> m_inv (BijGroup S) f = (\<lambda>x \<in> S. (inv_into S f) x)"
-apply (rule group.inv_equality)
-apply (rule group_BijGroup)
+apply (rule group.inv_equality [OF group_BijGroup])
 apply (simp_all add:BijGroup_def restrict_inv_into_Bij Bij_compose_restrict_eq)
 done
 

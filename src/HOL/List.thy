@@ -1,5 +1,5 @@
 (*  Title:      HOL/List.thy
-    Author:     Tobias Nipkow
+    Author:     Tobias Nipkow; proofs tidied by LCP
 *)
 
 section \<open>The datatype of finite lists\<close>
@@ -166,7 +166,7 @@ primrec product_lists :: "'a list list \<Rightarrow> 'a list list" where
 
 primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" ("(1[_..</_'])") where
 upt_0: "[i..<0] = []" |
-upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
+upt_Suc: "[i..<(Suc j)] = (if i \<le> j then [i..<j] @ [j] else [])"
 
 definition insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "insert x xs = (if x \<in> set xs then xs else x # xs)"
@@ -834,11 +834,9 @@ by (induct xs) auto
 
 lemma Suc_length_conv:
   "(Suc n = length xs) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
-apply (induct xs, simp, simp)
-apply blast
-done
+  by (induct xs; simp; blast)
 
-lemma impossible_Cons: "length xs <= length ys ==> xs = x # ys = False"
+lemma impossible_Cons: "length xs \<le> length ys ==> xs = x # ys = False"
 by (induct xs) auto
 
 lemma list_induct2 [consumes 1, case_names Nil Cons]:
@@ -846,10 +844,8 @@ lemma list_induct2 [consumes 1, case_names Nil Cons]:
    (\<And>x xs y ys. length xs = length ys \<Longrightarrow> P xs ys \<Longrightarrow> P (x#xs) (y#ys))
    \<Longrightarrow> P xs ys"
 proof (induct xs arbitrary: ys)
-  case Nil then show ?case by simp
-next
   case (Cons x xs ys) then show ?case by (cases ys) simp_all
-qed
+qed simp
 
 lemma list_induct3 [consumes 2, case_names Nil Cons]:
   "length xs = length ys \<Longrightarrow> length ys = length zs \<Longrightarrow> P [] [] [] \<Longrightarrow>
@@ -960,19 +956,15 @@ by (induct xs) auto
 lemma append_eq_append_conv [simp]:
   "length xs = length ys \<or> length us = length vs
   ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
-apply (induct xs arbitrary: ys)
- apply (case_tac ys, simp, force)
-apply (case_tac ys, force, simp)
-done
+  by (induct xs arbitrary: ys; case_tac ys; force)
 
 lemma append_eq_append_conv2: "(xs @ ys = zs @ ts) =
   (\<exists>us. xs = zs @ us \<and> us @ ys = ts \<or> xs @ us = zs \<and> ys = us @ ts)"
-apply (induct xs arbitrary: ys zs ts)
- apply fastforce
-apply(case_tac zs)
- apply simp
-apply fastforce
-done
+proof (induct xs arbitrary: ys zs ts)
+  case (Cons x xs)
+  then show ?case
+    by (case_tac zs) auto
+qed fastforce
 
 lemma same_append_eq [iff, induct_simp]: "(xs @ ys = xs @ zs) = (ys = zs)"
 by simp
@@ -1152,15 +1144,14 @@ next
 qed
 
 lemma map_inj_on:
- "[| map f xs = map f ys; inj_on f (set xs Un set ys) |]
-  ==> xs = ys"
-apply(frule map_eq_imp_length_eq)
-apply(rotate_tac -1)
-apply(induct rule:list_induct2)
- apply simp
-apply(simp)
-apply (blast intro:sym)
-done
+  assumes map: "map f xs = map f ys" and inj: "inj_on f (set xs Un set ys)"
+  shows "xs = ys"
+  using map_eq_imp_length_eq [OF map] assms
+proof (induct rule: list_induct2)
+  case (Cons x xs y ys)
+  then show ?case
+    by (auto intro: sym)
+qed auto
 
 lemma inj_on_map_eq_map:
   "inj_on f (set xs Un set ys) \<Longrightarrow> (map f xs = map f ys) = (xs = ys)"
@@ -1177,21 +1168,13 @@ lemma inj_mapI: "inj f ==> inj (map f)"
 by (iprover dest: map_injective injD intro: inj_onI)
 
 lemma inj_mapD: "inj (map f) ==> inj f"
-  apply (unfold inj_def)
-  apply clarify
-  apply (erule_tac x = "[x]" in allE)
-  apply (erule_tac x = "[y]" in allE)
-  apply auto
-  done
+  by (metis (no_types, hide_lams) injI list.inject list.simps(9) the_inv_f_f)
 
 lemma inj_map[iff]: "inj (map f) = inj f"
 by (blast dest: inj_mapD intro: inj_mapI)
 
 lemma inj_on_mapI: "inj_on f (\<Union>(set ` A)) \<Longrightarrow> inj_on (map f) A"
-apply(rule inj_onI)
-apply(erule map_inj_on)
-apply(blast intro:inj_onI dest:inj_onD)
-done
+  by (blast intro:inj_onI dest:inj_onD map_inj_on)
 
 lemma map_idI: "(\<And>x. x \<in> set xs \<Longrightarrow> f x = x) \<Longrightarrow> map f xs = xs"
 by (induct xs, auto)
@@ -1248,9 +1231,11 @@ lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
 lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
-apply (induct xs arbitrary: ys, force)
-apply (case_tac ys, simp, force)
-done
+proof  (induct xs arbitrary: ys)
+  case (Cons a xs)
+  then show ?case 
+    by (case_tac ys) auto
+qed force
 
 lemma inj_on_rev[iff]: "inj_on rev A"
 by(simp add:inj_on_def)
@@ -1481,11 +1466,12 @@ lemma filter_empty_conv: "(filter P xs = []) = (\<forall>x\<in>set xs. \<not> P 
 by (induct xs) simp_all
 
 lemma filter_id_conv: "(filter P xs = xs) = (\<forall>x\<in>set xs. P x)"
-apply (induct xs)
- apply auto
-apply(cut_tac P=P and xs=xs in length_filter_le)
-apply simp
-done
+proof (induct xs)
+  case (Cons x xs)
+  then show ?case
+    using length_filter_le
+    by (simp add: impossible_Cons)
+qed auto
 
 lemma filter_map: "filter P (map f xs) = map f (filter (P \<circ> f) xs)"
 by (induct xs) simp_all
@@ -1503,9 +1489,7 @@ proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs) thus ?case
-    apply (auto split:if_split_asm)
-    using length_filter_le[of P xs] apply arith
-  done
+    using Suc_le_eq by fastforce
 qed
 
 lemma length_filter_conv_card:
@@ -1573,17 +1557,17 @@ qed
 lemma filter_eq_ConsD:
   "filter P ys = x#xs \<Longrightarrow>
   \<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs"
-by(rule Cons_eq_filterD) simp
+  by(rule Cons_eq_filterD) simp
 
 lemma filter_eq_Cons_iff:
   "(filter P ys = x#xs) =
   (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
-by(auto dest:filter_eq_ConsD)
+  by(auto dest:filter_eq_ConsD)
 
 lemma Cons_eq_filter_iff:
   "(x#xs = filter P ys) =
   (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
-by(auto dest:Cons_eq_filterD)
+  by(auto dest:Cons_eq_filterD)
 
 lemma inj_on_filter_key_eq:
   assumes "inj_on f (insert y (set xs))"
@@ -1592,24 +1576,22 @@ lemma inj_on_filter_key_eq:
 
 lemma filter_cong[fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x) \<Longrightarrow> filter P xs = filter Q ys"
-apply simp
-apply(erule thin_rl)
-by (induct ys) simp_all
+  by (induct ys arbitrary: xs) auto
 
 
 subsubsection \<open>List partitioning\<close>
 
 primrec partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> 'a list \<times> 'a list" where
-"partition P [] = ([], [])" |
-"partition P (x # xs) =
+  "partition P [] = ([], [])" |
+  "partition P (x # xs) =
   (let (yes, no) = partition P xs
    in if P x then (x # yes, no) else (yes, x # no))"
 
 lemma partition_filter1: "fst (partition P xs) = filter P xs"
-by (induct xs) (auto simp add: Let_def split_def)
+  by (induct xs) (auto simp add: Let_def split_def)
 
 lemma partition_filter2: "snd (partition P xs) = filter (Not \<circ> P) xs"
-by (induct xs) (auto simp add: Let_def split_def)
+  by (induct xs) (auto simp add: Let_def split_def)
 
 lemma partition_P:
   assumes "partition P xs = (yes, no)"
@@ -1631,8 +1613,8 @@ qed
 
 lemma partition_filter_conv[simp]:
   "partition f xs = (filter f xs,filter (Not \<circ> f) xs)"
-unfolding partition_filter2[symmetric]
-unfolding partition_filter1[symmetric] by simp
+  unfolding partition_filter2[symmetric]
+  unfolding partition_filter1[symmetric] by simp
 
 declare partition.simps[simp del]
 
@@ -1640,28 +1622,28 @@ declare partition.simps[simp del]
 subsubsection \<open>@{const concat}\<close>
 
 lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma concat_eq_Nil_conv [simp]: "(concat xss = []) = (\<forall>xs \<in> set xss. xs = [])"
-by (induct xss) auto
+  by (induct xss) auto
 
 lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
-by (induct xss) auto
+  by (induct xss) auto
 
 lemma set_concat [simp]: "set (concat xs) = (UN x:set xs. set x)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma concat_map_singleton[simp]: "concat(map (%x. [f x]) xs) = map f xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma map_concat: "map f (concat xs) = concat (map (map f) xs)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma filter_concat: "filter p (concat xs) = concat (map (filter p) xs)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma rev_concat: "rev (concat xs) = concat (map rev (rev xs))"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma concat_eq_concat_iff: "\<forall>(x, y) \<in> set (zip xs ys). length x = length y ==> length xs = length ys ==> (concat xs = concat ys) = (xs = ys)"
 proof (induct xs arbitrary: ys)
@@ -1670,66 +1652,78 @@ proof (induct xs arbitrary: ys)
 qed (auto)
 
 lemma concat_injective: "concat xs = concat ys ==> length xs = length ys ==> \<forall>(x, y) \<in> set (zip xs ys). length x = length y ==> xs = ys"
-by (simp add: concat_eq_concat_iff)
+  by (simp add: concat_eq_concat_iff)
 
 
 subsubsection \<open>@{const nth}\<close>
 
 lemma nth_Cons_0 [simp, code]: "(x # xs)!0 = x"
-by auto
+  by auto
 
 lemma nth_Cons_Suc [simp, code]: "(x # xs)!(Suc n) = xs!n"
-by auto
+  by auto
 
 declare nth.simps [simp del]
 
 lemma nth_Cons_pos[simp]: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
-by(auto simp: Nat.gr0_conv_Suc)
+  by(auto simp: Nat.gr0_conv_Suc)
 
 lemma nth_append:
   "(xs @ ys)!n = (if n < length xs then xs!n else ys!(n - length xs))"
-apply (induct xs arbitrary: n, simp)
-apply (case_tac n, auto)
-done
+proof (induct xs arbitrary: n)
+  case (Cons x xs)
+  then show ?case
+    using less_Suc_eq_0_disj by auto
+qed simp
 
 lemma nth_append_length [simp]: "(xs @ x # ys) ! length xs = x"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma nth_append_length_plus[simp]: "(xs @ ys) ! (length xs + n) = ys ! n"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma nth_map [simp]: "n < length xs ==> (map f xs)!n = f(xs!n)"
-apply (induct xs arbitrary: n, simp)
-apply (case_tac n, auto)
-done
+proof (induct xs arbitrary: n)
+  case (Cons x xs)
+  then show ?case
+    using less_Suc_eq_0_disj by auto
+qed simp
 
 lemma nth_tl: "n < length (tl xs) \<Longrightarrow> tl xs ! n = xs ! Suc n"
-by (induction xs) auto
+  by (induction xs) auto
 
 lemma hd_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd xs = xs!0"
-by(cases xs) simp_all
+  by(cases xs) simp_all
 
 
 lemma list_eq_iff_nth_eq:
   "(xs = ys) = (length xs = length ys \<and> (\<forall>i<length xs. xs!i = ys!i))"
-apply(induct xs arbitrary: ys)
- apply force
-apply(case_tac ys)
- apply simp
-apply(simp add:nth_Cons split:nat.split)apply blast
-done
+proof (induct xs arbitrary: ys)
+  case (Cons x xs ys)
+  show ?case 
+  proof (cases ys)
+    case (Cons y ys)
+    then show ?thesis
+      using Cons.hyps by fastforce
+  qed simp
+qed force
 
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
-apply (induct xs, simp, simp)
-apply safe
-apply (metis nat.case(1) nth.simps zero_less_Suc)
-apply (metis less_Suc_eq_0_disj nth_Cons_Suc)
-apply (case_tac i, simp)
-apply (metis diff_Suc_Suc nat.case(2) nth.simps zero_less_diff)
-done
+proof (induct xs)
+  case (Cons x xs)
+  have "insert x {xs ! i |i. i < length xs} = {(x # xs) ! i |i. i < Suc (length xs)}" (is "?L=?R")
+  proof
+    show "?L \<subseteq> ?R"
+      by force
+    show "?R \<subseteq> ?L"
+      using less_Suc_eq_0_disj by auto
+  qed
+  with Cons show ?case
+    by simp
+qed simp
 
 lemma in_set_conv_nth: "(x \<in> set xs) = (\<exists>i < length xs. xs!i = x)"
-by(auto simp:set_conv_nth)
+  by(auto simp:set_conv_nth)
 
 lemma nth_equal_first_eq:
   assumes "x \<notin> set xs"
@@ -1761,18 +1755,18 @@ next
 qed
 
 lemma list_ball_nth: "\<lbrakk>n < length xs; \<forall>x \<in> set xs. P x\<rbrakk> \<Longrightarrow> P(xs!n)"
-by (auto simp add: set_conv_nth)
+  by (auto simp add: set_conv_nth)
 
 lemma nth_mem [simp]: "n < length xs \<Longrightarrow> xs!n \<in> set xs"
-by (auto simp add: set_conv_nth)
+  by (auto simp add: set_conv_nth)
 
 lemma all_nth_imp_all_set:
   "\<lbrakk>\<forall>i < length xs. P(xs!i); x \<in> set xs\<rbrakk> \<Longrightarrow> P x"
-by (auto simp add: set_conv_nth)
+  by (auto simp add: set_conv_nth)
 
 lemma all_set_conv_all_nth:
   "(\<forall>x \<in> set xs. P x) = (\<forall>i. i < length xs \<longrightarrow> P (xs ! i))"
-by (auto simp add: set_conv_nth)
+  by (auto simp add: set_conv_nth)
 
 lemma rev_nth:
   "n < size xs \<Longrightarrow> rev xs ! n = xs ! (length xs - Suc n)"
@@ -1816,149 +1810,141 @@ qed
 subsubsection \<open>@{const list_update}\<close>
 
 lemma length_list_update [simp]: "length(xs[i:=x]) = length xs"
-by (induct xs arbitrary: i) (auto split: nat.split)
+  by (induct xs arbitrary: i) (auto split: nat.split)
 
 lemma nth_list_update:
-"i < length xs==> (xs[i:=x])!j = (if i = j then x else xs!j)"
-by (induct xs arbitrary: i j) (auto simp add: nth_Cons split: nat.split)
+  "i < length xs==> (xs[i:=x])!j = (if i = j then x else xs!j)"
+  by (induct xs arbitrary: i j) (auto simp add: nth_Cons split: nat.split)
 
 lemma nth_list_update_eq [simp]: "i < length xs ==> (xs[i:=x])!i = x"
-by (simp add: nth_list_update)
+  by (simp add: nth_list_update)
 
 lemma nth_list_update_neq [simp]: "i \<noteq> j ==> xs[i:=x]!j = xs!j"
-by (induct xs arbitrary: i j) (auto simp add: nth_Cons split: nat.split)
+  by (induct xs arbitrary: i j) (auto simp add: nth_Cons split: nat.split)
 
 lemma list_update_id[simp]: "xs[i := xs!i] = xs"
-by (induct xs arbitrary: i) (simp_all split:nat.splits)
+  by (induct xs arbitrary: i) (simp_all split:nat.splits)
 
 lemma list_update_beyond[simp]: "length xs \<le> i \<Longrightarrow> xs[i:=x] = xs"
-apply (induct xs arbitrary: i)
- apply simp
-apply (case_tac i)
-apply simp_all
-done
+proof (induct xs arbitrary: i)
+  case (Cons x xs i)
+  then show ?case
+    by (metis leD length_list_update list_eq_iff_nth_eq nth_list_update_neq)
+qed simp
 
 lemma list_update_nonempty[simp]: "xs[k:=x] = [] \<longleftrightarrow> xs=[]"
-by (simp only: length_0_conv[symmetric] length_list_update)
+  by (simp only: length_0_conv[symmetric] length_list_update)
 
 lemma list_update_same_conv:
   "i < length xs ==> (xs[i := x] = xs) = (xs!i = x)"
-by (induct xs arbitrary: i) (auto split: nat.split)
+  by (induct xs arbitrary: i) (auto split: nat.split)
 
 lemma list_update_append1:
   "i < size xs \<Longrightarrow> (xs @ ys)[i:=x] = xs[i:=x] @ ys"
-by (induct xs arbitrary: i)(auto split:nat.split)
+  by (induct xs arbitrary: i)(auto split:nat.split)
 
 lemma list_update_append:
   "(xs @ ys) [n:= x] =
   (if n < length xs then xs[n:= x] @ ys else xs @ (ys [n-length xs:= x]))"
-by (induct xs arbitrary: n) (auto split:nat.splits)
+  by (induct xs arbitrary: n) (auto split:nat.splits)
 
 lemma list_update_length [simp]:
   "(xs @ x # ys)[length xs := y] = (xs @ y # ys)"
-by (induct xs, auto)
+  by (induct xs, auto)
 
 lemma map_update: "map f (xs[k:= y]) = (map f xs)[k := f y]"
-by(induct xs arbitrary: k)(auto split:nat.splits)
+  by(induct xs arbitrary: k)(auto split:nat.splits)
 
 lemma rev_update:
   "k < length xs \<Longrightarrow> rev (xs[k:= y]) = (rev xs)[length xs - k - 1 := y]"
-by (induct xs arbitrary: k) (auto simp: list_update_append split:nat.splits)
+  by (induct xs arbitrary: k) (auto simp: list_update_append split:nat.splits)
 
 lemma update_zip:
   "(zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
-by (induct ys arbitrary: i xy xs) (auto, case_tac xs, auto split: nat.split)
+  by (induct ys arbitrary: i xy xs) (auto, case_tac xs, auto split: nat.split)
 
-lemma set_update_subset_insert: "set(xs[i:=x]) <= insert x (set xs)"
-by (induct xs arbitrary: i) (auto split: nat.split)
+lemma set_update_subset_insert: "set(xs[i:=x]) \<le> insert x (set xs)"
+  by (induct xs arbitrary: i) (auto split: nat.split)
 
 lemma set_update_subsetI: "\<lbrakk>set xs \<subseteq> A; x \<in> A\<rbrakk> \<Longrightarrow> set(xs[i := x]) \<subseteq> A"
-by (blast dest!: set_update_subset_insert [THEN subsetD])
+  by (blast dest!: set_update_subset_insert [THEN subsetD])
 
 lemma set_update_memI: "n < length xs \<Longrightarrow> x \<in> set (xs[n := x])"
-by (induct xs arbitrary: n) (auto split:nat.splits)
+  by (induct xs arbitrary: n) (auto split:nat.splits)
 
 lemma list_update_overwrite[simp]:
   "xs [i := x, i := y] = xs [i := y]"
-apply (induct xs arbitrary: i) apply simp
-apply (case_tac i, simp_all)
-done
+  by (induct xs arbitrary: i) (simp_all split: nat.split)
 
 lemma list_update_swap:
   "i \<noteq> i' \<Longrightarrow> xs [i := x, i' := x'] = xs [i' := x', i := x]"
-apply (induct xs arbitrary: i i')
- apply simp
-apply (case_tac i, case_tac i')
-  apply auto
-apply (case_tac i')
-apply auto
-done
+  by (induct xs arbitrary: i i') (simp_all split: nat.split)
 
 lemma list_update_code [code]:
   "[][i := y] = []"
   "(x # xs)[0 := y] = y # xs"
   "(x # xs)[Suc i := y] = x # xs[i := y]"
-by simp_all
+  by simp_all
 
 
 subsubsection \<open>@{const last} and @{const butlast}\<close>
 
 lemma last_snoc [simp]: "last (xs @ [x]) = x"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma butlast_snoc [simp]: "butlast (xs @ [x]) = xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma last_ConsL: "xs = [] \<Longrightarrow> last(x#xs) = x"
-by simp
+  by simp
 
 lemma last_ConsR: "xs \<noteq> [] \<Longrightarrow> last(x#xs) = last xs"
-by simp
+  by simp
 
 lemma last_append: "last(xs @ ys) = (if ys = [] then last xs else last ys)"
-by (induct xs) (auto)
+  by (induct xs) (auto)
 
 lemma last_appendL[simp]: "ys = [] \<Longrightarrow> last(xs @ ys) = last xs"
-by(simp add:last_append)
+  by(simp add:last_append)
 
 lemma last_appendR[simp]: "ys \<noteq> [] \<Longrightarrow> last(xs @ ys) = last ys"
-by(simp add:last_append)
+  by(simp add:last_append)
 
 lemma last_tl: "xs = [] \<or> tl xs \<noteq> [] \<Longrightarrow>last (tl xs) = last xs"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma butlast_tl: "butlast (tl xs) = tl (butlast xs)"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma hd_rev: "xs \<noteq> [] \<Longrightarrow> hd(rev xs) = last xs"
-by(rule rev_exhaust[of xs]) simp_all
+  by(rule rev_exhaust[of xs]) simp_all
 
 lemma last_rev: "xs \<noteq> [] \<Longrightarrow> last(rev xs) = hd xs"
-by(cases xs) simp_all
+  by(cases xs) simp_all
 
 lemma last_in_set[simp]: "as \<noteq> [] \<Longrightarrow> last as \<in> set as"
-by (induct as) auto
+  by (induct as) auto
 
 lemma length_butlast [simp]: "length (butlast xs) = length xs - 1"
-by (induct xs rule: rev_induct) auto
+  by (induct xs rule: rev_induct) auto
 
 lemma butlast_append:
   "butlast (xs @ ys) = (if ys = [] then butlast xs else xs @ butlast ys)"
-by (induct xs arbitrary: ys) auto
+  by (induct xs arbitrary: ys) auto
 
 lemma append_butlast_last_id [simp]:
   "xs \<noteq> [] \<Longrightarrow> butlast xs @ [last xs] = xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma in_set_butlastD: "x \<in> set (butlast xs) \<Longrightarrow> x \<in> set xs"
-by (induct xs) (auto split: if_split_asm)
+  by (induct xs) (auto split: if_split_asm)
 
 lemma in_set_butlast_appendI:
   "x \<in> set (butlast xs) \<or> x \<in> set (butlast ys) \<Longrightarrow> x \<in> set (butlast (xs @ ys))"
-by (auto dest: in_set_butlastD simp add: butlast_append)
+  by (auto dest: in_set_butlastD simp add: butlast_append)
 
 lemma last_drop[simp]: "n < length xs \<Longrightarrow> last (drop n xs) = last xs"
-by (induct xs arbitrary: n)(auto split:nat.split)
+  by (induct xs arbitrary: n)(auto split:nat.split)
 
 lemma nth_butlast:
   assumes "n < length (butlast xs)" shows "butlast xs ! n = xs ! n"
@@ -1970,164 +1956,173 @@ proof (cases xs)
 qed simp
 
 lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
-by(induct xs)(auto simp:neq_Nil_conv)
+  by(induct xs)(auto simp:neq_Nil_conv)
 
 lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
-by (induction xs rule: induct_list012) simp_all
+  by (induction xs rule: induct_list012) simp_all
 
 lemma last_list_update:
   "xs \<noteq> [] \<Longrightarrow> last(xs[k:=x]) = (if k = size xs - 1 then x else last xs)"
-by (auto simp: last_conv_nth)
+  by (auto simp: last_conv_nth)
 
 lemma butlast_list_update:
   "butlast(xs[k:=x]) =
   (if k = size xs - 1 then butlast xs else (butlast xs)[k:=x])"
-by(cases xs rule:rev_cases)(auto simp: list_update_append split: nat.splits)
+  by(cases xs rule:rev_cases)(auto simp: list_update_append split: nat.splits)
 
 lemma last_map: "xs \<noteq> [] \<Longrightarrow> last (map f xs) = f (last xs)"
-by (cases xs rule: rev_cases) simp_all
+  by (cases xs rule: rev_cases) simp_all
 
 lemma map_butlast: "map f (butlast xs) = butlast (map f xs)"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma snoc_eq_iff_butlast:
   "xs @ [x] = ys \<longleftrightarrow> (ys \<noteq> [] \<and> butlast ys = xs \<and> last ys = x)"
-by fastforce
+  by fastforce
 
 corollary longest_common_suffix:
   "\<exists>ss xs' ys'. xs = xs' @ ss \<and> ys = ys' @ ss
        \<and> (xs' = [] \<or> ys' = [] \<or> last xs' \<noteq> last ys')"
-using longest_common_prefix[of "rev xs" "rev ys"]
-unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
+  using longest_common_prefix[of "rev xs" "rev ys"]
+  unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
 
 
 subsubsection \<open>@{const take} and @{const drop}\<close>
 
 lemma take_0: "take 0 xs = []"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma drop_0: "drop 0 xs = xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma take0[simp]: "take 0 = (\<lambda>xs. [])"
-by(rule ext) (rule take_0)
+  by(rule ext) (rule take_0)
 
 lemma drop0[simp]: "drop 0 = (\<lambda>x. x)"
-by(rule ext) (rule drop_0)
+  by(rule ext) (rule drop_0)
 
 lemma take_Suc_Cons [simp]: "take (Suc n) (x # xs) = x # take n xs"
-by simp
+  by simp
 
 lemma drop_Suc_Cons [simp]: "drop (Suc n) (x # xs) = drop n xs"
-by simp
+  by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
 
 lemma take_Suc: "xs \<noteq> [] \<Longrightarrow> take (Suc n) xs = hd xs # take n (tl xs)"
-by(clarsimp simp add:neq_Nil_conv)
+  by(clarsimp simp add:neq_Nil_conv)
 
 lemma drop_Suc: "drop (Suc n) xs = drop n (tl xs)"
-by(cases xs, simp_all)
+  by(cases xs, simp_all)
 
 lemma hd_take[simp]: "j > 0 \<Longrightarrow> hd (take j xs) = hd xs"
-by (metis gr0_conv_Suc list.sel(1) take.simps(1) take_Suc)
+  by (metis gr0_conv_Suc list.sel(1) take.simps(1) take_Suc)
 
 lemma take_tl: "take n (tl xs) = tl (take (Suc n) xs)"
-by (induct xs arbitrary: n) simp_all
+  by (induct xs arbitrary: n) simp_all
 
 lemma drop_tl: "drop n (tl xs) = tl(drop n xs)"
-by(induct xs arbitrary: n, simp_all add:drop_Cons drop_Suc split:nat.split)
+  by(induct xs arbitrary: n, simp_all add:drop_Cons drop_Suc split:nat.split)
 
 lemma tl_take: "tl (take n xs) = take (n - 1) (tl xs)"
-by (cases n, simp, cases xs, auto)
+  by (cases n, simp, cases xs, auto)
 
 lemma tl_drop: "tl (drop n xs) = drop n (tl xs)"
-by (simp only: drop_tl)
+  by (simp only: drop_tl)
 
 lemma nth_via_drop: "drop n xs = y#ys \<Longrightarrow> xs!n = y"
-by (induct xs arbitrary: n, simp)(auto simp: drop_Cons nth_Cons split: nat.splits)
+  by (induct xs arbitrary: n, simp)(auto simp: drop_Cons nth_Cons split: nat.splits)
 
 lemma take_Suc_conv_app_nth:
   "i < length xs \<Longrightarrow> take (Suc i) xs = take i xs @ [xs!i]"
-apply (induct xs arbitrary: i, simp)
-apply (case_tac i, auto)
-done
+proof (induct xs arbitrary: i)
+  case (Cons x xs) then show ?case
+    by (case_tac i, auto)
+qed simp
 
 lemma Cons_nth_drop_Suc:
   "i < length xs \<Longrightarrow> (xs!i) # (drop (Suc i) xs) = drop i xs"
-apply (induct xs arbitrary: i, simp)
-apply (case_tac i, auto)
-done
+proof (induct xs arbitrary: i)
+  case (Cons x xs) then show ?case
+    by (case_tac i, auto)
+qed simp
 
 lemma length_take [simp]: "length (take n xs) = min (length xs) n"
-by (induct n arbitrary: xs) (auto, case_tac xs, auto)
+  by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
 lemma length_drop [simp]: "length (drop n xs) = (length xs - n)"
-by (induct n arbitrary: xs) (auto, case_tac xs, auto)
+  by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
-lemma take_all [simp]: "length xs <= n ==> take n xs = xs"
-by (induct n arbitrary: xs) (auto, case_tac xs, auto)
+lemma take_all [simp]: "length xs \<le> n ==> take n xs = xs"
+  by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
-lemma drop_all [simp]: "length xs <= n ==> drop n xs = []"
-by (induct n arbitrary: xs) (auto, case_tac xs, auto)
+lemma drop_all [simp]: "length xs \<le> n ==> drop n xs = []"
+  by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
 lemma take_append [simp]:
   "take n (xs @ ys) = (take n xs @ take (n - length xs) ys)"
-by (induct n arbitrary: xs) (auto, case_tac xs, auto)
+  by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
 lemma drop_append [simp]:
   "drop n (xs @ ys) = drop n xs @ drop (n - length xs) ys"
-by (induct n arbitrary: xs) (auto, case_tac xs, auto)
+  by (induct n arbitrary: xs) (auto, case_tac xs, auto)
 
 lemma take_take [simp]: "take n (take m xs) = take (min n m) xs"
-apply (induct m arbitrary: xs n, auto)
- apply (case_tac xs, auto)
-apply (case_tac n, auto)
-done
+proof (induct m arbitrary: xs n)
+  case (Suc m) then show ?case
+    by (case_tac xs; case_tac n; simp)
+qed auto
 
 lemma drop_drop [simp]: "drop n (drop m xs) = drop (n + m) xs"
-apply (induct m arbitrary: xs, auto)
- apply (case_tac xs, auto)
-done
+proof (induct m arbitrary: xs)
+  case (Suc m) then show ?case
+    by (case_tac xs; simp)
+qed auto
 
 lemma take_drop: "take n (drop m xs) = drop m (take (n + m) xs)"
-apply (induct m arbitrary: xs n, auto)
- apply (case_tac xs, auto)
-done
+proof (induct m arbitrary: xs n)
+  case (Suc m) then show ?case
+    by (case_tac xs; case_tac n; simp)
+qed auto
 
 lemma drop_take: "drop n (take m xs) = take (m-n) (drop n xs)"
-by(induct xs arbitrary: m n)(auto simp: take_Cons drop_Cons split: nat.split)
+  by(induct xs arbitrary: m n)(auto simp: take_Cons drop_Cons split: nat.split)
 
 lemma append_take_drop_id [simp]: "take n xs @ drop n xs = xs"
-apply (induct n arbitrary: xs, auto)
-apply (case_tac xs, auto)
-done
+proof (induct n arbitrary: xs)
+  case (Suc n) then show ?case
+    by (case_tac xs; simp)
+qed auto
 
 lemma take_eq_Nil[simp]: "(take n xs = []) = (n = 0 \<or> xs = [])"
-by(induct xs arbitrary: n)(auto simp: take_Cons split:nat.split)
+  by(induct xs arbitrary: n)(auto simp: take_Cons split:nat.split)
 
-lemma drop_eq_Nil[simp]: "(drop n xs = []) = (length xs <= n)"
-by (induct xs arbitrary: n) (auto simp: drop_Cons split:nat.split)
+lemma drop_eq_Nil[simp]: "(drop n xs = []) = (length xs \<le> n)"
+  by (induct xs arbitrary: n) (auto simp: drop_Cons split:nat.split)
 
 lemma take_map: "take n (map f xs) = map f (take n xs)"
-apply (induct n arbitrary: xs, auto)
- apply (case_tac xs, auto)
-done
+proof (induct n arbitrary: xs)
+  case (Suc n) then show ?case
+    by (case_tac xs; simp)
+qed auto
 
 lemma drop_map: "drop n (map f xs) = map f (drop n xs)"
-apply (induct n arbitrary: xs, auto)
- apply (case_tac xs, auto)
-done
+proof (induct n arbitrary: xs)
+  case (Suc n) then show ?case
+    by (case_tac xs; simp)
+qed auto
 
 lemma rev_take: "rev (take i xs) = drop (length xs - i) (rev xs)"
-apply (induct xs arbitrary: i, auto)
- apply (case_tac i, auto)
-done
+proof (induct xs arbitrary: i)
+  case (Cons x xs) then show ?case
+    by (case_tac i, auto)
+qed simp
 
 lemma rev_drop: "rev (drop i xs) = take (length xs - i) (rev xs)"
-apply (induct xs arbitrary: i, auto)
- apply (case_tac i, auto)
-done
+proof (induct xs arbitrary: i)
+  case (Cons x xs) then show ?case
+    by (case_tac i, auto)
+qed simp
 
 lemma drop_rev: "drop n (rev xs) = rev (take (length xs - n) xs)"
   by (cases "length xs < n") (auto simp: rev_take)
@@ -2136,87 +2131,87 @@ lemma take_rev: "take n (rev xs) = rev (drop (length xs - n) xs)"
   by (cases "length xs < n") (auto simp: rev_drop)
 
 lemma nth_take [simp]: "i < n ==> (take n xs)!i = xs!i"
-apply (induct xs arbitrary: i n, auto)
- apply (case_tac n, blast)
-apply (case_tac i, auto)
-done
+proof (induct xs arbitrary: i n)
+  case (Cons x xs) then show ?case
+    by (case_tac n; case_tac i; simp)
+qed auto
 
 lemma nth_drop [simp]:
-  "n <= length xs ==> (drop n xs)!i = xs!(n + i)"
-apply (induct n arbitrary: xs i, auto)
- apply (case_tac xs, auto)
-done
+  "n \<le> length xs ==> (drop n xs)!i = xs!(n + i)"
+proof (induct n arbitrary: xs)
+  case (Suc n) then show ?case
+    by (case_tac xs; simp)
+qed auto
 
 lemma butlast_take:
-  "n <= length xs ==> butlast (take n xs) = take (n - 1) xs"
-by (simp add: butlast_conv_take min.absorb1 min.absorb2)
+  "n \<le> length xs ==> butlast (take n xs) = take (n - 1) xs"
+  by (simp add: butlast_conv_take min.absorb1 min.absorb2)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
-by (simp add: butlast_conv_take drop_take ac_simps)
+  by (simp add: butlast_conv_take drop_take ac_simps)
 
 lemma take_butlast: "n < length xs ==> take n (butlast xs) = take n xs"
-by (simp add: butlast_conv_take min.absorb1)
+  by (simp add: butlast_conv_take min.absorb1)
 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
-by (simp add: butlast_conv_take drop_take ac_simps)
+  by (simp add: butlast_conv_take drop_take ac_simps)
 
 lemma hd_drop_conv_nth: "n < length xs \<Longrightarrow> hd(drop n xs) = xs!n"
-by(simp add: hd_conv_nth)
+  by(simp add: hd_conv_nth)
 
 lemma set_take_subset_set_take:
-  "m <= n \<Longrightarrow> set(take m xs) <= set(take n xs)"
-apply (induct xs arbitrary: m n)
- apply simp
-apply (case_tac n)
-apply (auto simp: take_Cons)
-done
+  "m \<le> n \<Longrightarrow> set(take m xs) \<le> set(take n xs)"
+proof (induct xs arbitrary: m n)
+  case (Cons x xs m n) then show ?case
+    by (cases n) (auto simp: take_Cons)
+qed simp
 
 lemma set_take_subset: "set(take n xs) \<subseteq> set xs"
-by(induct xs arbitrary: n)(auto simp:take_Cons split:nat.split)
+  by(induct xs arbitrary: n)(auto simp:take_Cons split:nat.split)
 
 lemma set_drop_subset: "set(drop n xs) \<subseteq> set xs"
-by(induct xs arbitrary: n)(auto simp:drop_Cons split:nat.split)
+  by(induct xs arbitrary: n)(auto simp:drop_Cons split:nat.split)
 
 lemma set_drop_subset_set_drop:
-  "m >= n \<Longrightarrow> set(drop m xs) <= set(drop n xs)"
-apply(induct xs arbitrary: m n)
- apply(auto simp:drop_Cons split:nat.split)
-by (metis set_drop_subset subset_iff)
+  "m \<ge> n \<Longrightarrow> set(drop m xs) \<le> set(drop n xs)"
+proof (induct xs arbitrary: m n)
+  case (Cons x xs m n)
+  then show ?case
+    by (clarsimp simp: drop_Cons split: nat.split) (metis set_drop_subset subset_iff)
+qed simp
 
 lemma in_set_takeD: "x \<in> set(take n xs) \<Longrightarrow> x \<in> set xs"
-using set_take_subset by fast
+  using set_take_subset by fast
 
 lemma in_set_dropD: "x \<in> set(drop n xs) \<Longrightarrow> x \<in> set xs"
-using set_drop_subset by fast
+  using set_drop_subset by fast
 
 lemma append_eq_conv_conj:
   "(xs @ ys = zs) = (xs = take (length xs) zs \<and> ys = drop (length xs) zs)"
-apply (induct xs arbitrary: zs, simp, clarsimp)
- apply (case_tac zs, auto)
-done
+proof (induct xs arbitrary: zs)
+  case (Cons x xs zs) then show ?case
+    by (cases zs, auto)
+qed auto
 
 lemma take_add:  "take (i+j) xs = take i xs @ take j (drop i xs)"
-apply (induct xs arbitrary: i, auto)
- apply (case_tac i, simp_all)
-done
+proof (induct xs arbitrary: i)
+  case (Cons x xs i) then show ?case
+    by (cases i, auto)
+qed auto
 
 lemma append_eq_append_conv_if:
   "(xs\<^sub>1 @ xs\<^sub>2 = ys\<^sub>1 @ ys\<^sub>2) =
   (if size xs\<^sub>1 \<le> size ys\<^sub>1
    then xs\<^sub>1 = take (size xs\<^sub>1) ys\<^sub>1 \<and> xs\<^sub>2 = drop (size xs\<^sub>1) ys\<^sub>1 @ ys\<^sub>2
    else take (size ys\<^sub>1) xs\<^sub>1 = ys\<^sub>1 \<and> drop (size ys\<^sub>1) xs\<^sub>1 @ xs\<^sub>2 = ys\<^sub>2)"
-apply(induct xs\<^sub>1 arbitrary: ys\<^sub>1)
- apply simp
-apply(case_tac ys\<^sub>1)
-apply simp_all
-done
+proof (induct xs\<^sub>1 arbitrary: ys\<^sub>1)
+  case (Cons a xs\<^sub>1 ys\<^sub>1) then show ?case
+    by (cases ys\<^sub>1, auto)
+qed auto
 
 lemma take_hd_drop:
   "n < length xs \<Longrightarrow> take n xs @ [hd (drop n xs)] = take (Suc n) xs"
-apply(induct xs arbitrary: n)
- apply simp
-apply(simp add:drop_Cons split:nat.split)
-done
+  by (induct xs arbitrary: n) (simp_all add:drop_Cons split:nat.split)
 
 lemma id_take_nth_drop:
   "i < length xs \<Longrightarrow> xs = take i xs @ xs!i # drop (Suc i) xs"
@@ -2225,15 +2220,15 @@ proof -
   hence "xs = take (Suc i) xs @ drop (Suc i) xs" by auto
   moreover
   from si have "take (Suc i) xs = take i xs @ [xs!i]"
-    apply (rule_tac take_Suc_conv_app_nth) by arith
+    using take_Suc_conv_app_nth by blast
   ultimately show ?thesis by auto
 qed
 
 lemma take_update_cancel[simp]: "n \<le> m \<Longrightarrow> take n (xs[m := y]) = take n xs"
-by(simp add: list_eq_iff_nth_eq)
+  by(simp add: list_eq_iff_nth_eq)
 
 lemma drop_update_cancel[simp]: "n < m \<Longrightarrow> drop m (xs[n := x]) = drop m xs"
-by(simp add: list_eq_iff_nth_eq)
+  by(simp add: list_eq_iff_nth_eq)
 
 lemma upd_conv_take_nth_drop:
   "i < length xs \<Longrightarrow> xs[i:=a] = take i xs @ a # drop (Suc i) xs"
@@ -2247,105 +2242,107 @@ proof -
 qed
 
 lemma take_update_swap: "take m (xs[n := x]) = (take m xs)[n := x]"
-apply(cases "n \<ge> length xs")
- apply simp
-apply(simp add: upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc
-  split: nat.split)
-done
+proof (cases "n \<ge> length xs")
+  case False
+  then show ?thesis
+    by (simp add: upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc split: nat.split)
+qed auto
 
-lemma drop_update_swap: "m \<le> n \<Longrightarrow> drop m (xs[n := x]) = (drop m xs)[n-m := x]"
-apply(cases "n \<ge> length xs")
- apply simp
-apply(simp add: upd_conv_take_nth_drop drop_take)
-done
+lemma drop_update_swap: 
+  assumes "m \<le> n" shows "drop m (xs[n := x]) = (drop m xs)[n-m := x]"
+proof (cases "n \<ge> length xs")
+  case False
+  with assms show ?thesis
+    by (simp add: upd_conv_take_nth_drop drop_take)
+qed auto
 
 lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take l xs)"
-by(auto simp: set_conv_nth image_def) (metis Suc_le_eq nth_take order_trans)
+  by(auto simp: set_conv_nth image_def) (metis Suc_le_eq nth_take order_trans)
 
 
 subsubsection \<open>@{const takeWhile} and @{const dropWhile}\<close>
 
 lemma length_takeWhile_le: "length (takeWhile P xs) \<le> length xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_dropWhile_id [simp]: "takeWhile P xs @ dropWhile P xs = xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_append1 [simp]:
   "\<lbrakk>x \<in> set xs; \<not>P(x)\<rbrakk> \<Longrightarrow> takeWhile P (xs @ ys) = takeWhile P xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_append2 [simp]:
   "(\<And>x. x \<in> set xs \<Longrightarrow> P x) \<Longrightarrow> takeWhile P (xs @ ys) = xs @ takeWhile P ys"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_tail: "\<not> P x \<Longrightarrow> takeWhile P (xs @ (x#l)) = takeWhile P xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_nth: "j < length (takeWhile P xs) \<Longrightarrow> takeWhile P xs ! j = xs ! j"
-apply (subst (3) takeWhile_dropWhile_id[symmetric]) unfolding nth_append by auto
+  by (metis nth_append takeWhile_dropWhile_id)
 
 lemma dropWhile_nth: "j < length (dropWhile P xs) \<Longrightarrow>
   dropWhile P xs ! j = xs ! (j + length (takeWhile P xs))"
-apply (subst (3) takeWhile_dropWhile_id[symmetric]) unfolding nth_append by auto
+  by (metis add.commute nth_append_length_plus takeWhile_dropWhile_id)
 
 lemma length_dropWhile_le: "length (dropWhile P xs) \<le> length xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_append1 [simp]:
   "\<lbrakk>x \<in> set xs; \<not>P(x)\<rbrakk> \<Longrightarrow> dropWhile P (xs @ ys) = (dropWhile P xs)@ys"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_append2 [simp]:
   "(\<And>x. x \<in> set xs \<Longrightarrow> P(x)) ==> dropWhile P (xs @ ys) = dropWhile P ys"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_append3:
   "\<not> P y \<Longrightarrow>dropWhile P (xs @ y # ys) = dropWhile P xs @ y # ys"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_last:
   "x \<in> set xs \<Longrightarrow> \<not> P x \<Longrightarrow> last (dropWhile P xs) = last xs"
-by (auto simp add: dropWhile_append3 in_set_conv_decomp)
+  by (auto simp add: dropWhile_append3 in_set_conv_decomp)
 
 lemma set_dropWhileD: "x \<in> set (dropWhile P xs) \<Longrightarrow> x \<in> set xs"
-by (induct xs) (auto split: if_split_asm)
+  by (induct xs) (auto split: if_split_asm)
 
 lemma set_takeWhileD: "x \<in> set (takeWhile P xs) \<Longrightarrow> x \<in> set xs \<and> P x"
-by (induct xs) (auto split: if_split_asm)
+  by (induct xs) (auto split: if_split_asm)
 
 lemma takeWhile_eq_all_conv[simp]:
   "(takeWhile P xs = xs) = (\<forall>x \<in> set xs. P x)"
-by(induct xs, auto)
+  by(induct xs, auto)
 
 lemma dropWhile_eq_Nil_conv[simp]:
   "(dropWhile P xs = []) = (\<forall>x \<in> set xs. P x)"
-by(induct xs, auto)
+  by(induct xs, auto)
 
 lemma dropWhile_eq_Cons_conv:
   "(dropWhile P xs = y#ys) = (xs = takeWhile P xs @ y # ys \<and> \<not> P y)"
-by(induct xs, auto)
+  by(induct xs, auto)
 
 lemma distinct_takeWhile[simp]: "distinct xs ==> distinct (takeWhile P xs)"
-by (induct xs) (auto dest: set_takeWhileD)
+  by (induct xs) (auto dest: set_takeWhileD)
 
 lemma distinct_dropWhile[simp]: "distinct xs ==> distinct (dropWhile P xs)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_map: "takeWhile P (map f xs) = map f (takeWhile (P \<circ> f) xs)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_map: "dropWhile P (map f xs) = map f (dropWhile (P \<circ> f) xs)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_eq_take: "takeWhile P xs = take (length (takeWhile P xs)) xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_eq_drop: "dropWhile P xs = drop (length (takeWhile P xs)) xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma hd_dropWhile: "dropWhile P xs \<noteq> [] \<Longrightarrow> \<not> P (hd (dropWhile P xs))"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma takeWhile_eq_filter:
   assumes "\<And> x. x \<in> set (dropWhile P xs) \<Longrightarrow> \<not> P x"
@@ -2386,12 +2383,12 @@ next
       thus "\<not> P (xs ! n')" using Cons by auto
     qed
     ultimately show ?thesis by simp
-   qed
+  qed
 qed
 
 lemma nth_length_takeWhile:
   "length (takeWhile P xs) < length xs \<Longrightarrow> \<not> P (xs ! length (takeWhile P xs))"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma length_takeWhile_less_P_nth:
   assumes all: "\<And> i. i < j \<Longrightarrow> P (xs ! i)" and "j \<le> length xs"
@@ -2404,47 +2401,46 @@ qed
 
 lemma takeWhile_neq_rev: "\<lbrakk>distinct xs; x \<in> set xs\<rbrakk> \<Longrightarrow>
   takeWhile (\<lambda>y. y \<noteq> x) (rev xs) = rev (tl (dropWhile (\<lambda>y. y \<noteq> x) xs))"
-by(induct xs) (auto simp: takeWhile_tail[where l="[]"])
+  by(induct xs) (auto simp: takeWhile_tail[where l="[]"])
 
 lemma dropWhile_neq_rev: "\<lbrakk>distinct xs; x \<in> set xs\<rbrakk> \<Longrightarrow>
   dropWhile (\<lambda>y. y \<noteq> x) (rev xs) = x # rev (takeWhile (\<lambda>y. y \<noteq> x) xs)"
-apply(induct xs)
- apply simp
-apply auto
-apply(subst dropWhile_append2)
-apply auto
-done
+proof (induct xs)
+  case (Cons a xs)
+  then show ?case
+    by(auto, subst dropWhile_append2, auto)
+qed simp
 
 lemma takeWhile_not_last:
   "distinct xs \<Longrightarrow> takeWhile (\<lambda>y. y \<noteq> last xs) xs = butlast xs"
-by(induction xs rule: induct_list012) auto
+  by(induction xs rule: induct_list012) auto
 
 lemma takeWhile_cong [fundef_cong]:
   "\<lbrakk>l = k; \<And>x. x \<in> set l \<Longrightarrow> P x = Q x\<rbrakk>
   \<Longrightarrow> takeWhile P l = takeWhile Q k"
-by (induct k arbitrary: l) (simp_all)
+  by (induct k arbitrary: l) (simp_all)
 
 lemma dropWhile_cong [fundef_cong]:
   "\<lbrakk>l = k; \<And>x. x \<in> set l \<Longrightarrow> P x = Q x\<rbrakk>
   \<Longrightarrow> dropWhile P l = dropWhile Q k"
-by (induct k arbitrary: l, simp_all)
+  by (induct k arbitrary: l, simp_all)
 
 lemma takeWhile_idem [simp]:
   "takeWhile P (takeWhile P xs) = takeWhile P xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma dropWhile_idem [simp]:
   "dropWhile P (dropWhile P xs) = dropWhile P xs"
-by (induct xs) auto
+  by (induct xs) auto
 
 
 subsubsection \<open>@{const zip}\<close>
 
 lemma zip_Nil [simp]: "zip [] ys = []"
-by (induct ys) auto
+  by (induct ys) auto
 
 lemma zip_Cons_Cons [simp]: "zip (x # xs) (y # ys) = (x, y) # zip xs ys"
-by simp
+  by simp
 
 declare zip_Cons [simp del]
 
@@ -2452,15 +2448,15 @@ lemma [code]:
   "zip [] ys = []"
   "zip xs [] = []"
   "zip (x # xs) (y # ys) = (x, y) # zip xs ys"
-by (fact zip_Nil zip.simps(1) zip_Cons_Cons)+
+  by (fact zip_Nil zip.simps(1) zip_Cons_Cons)+
 
 lemma zip_Cons1:
   "zip (x#xs) ys = (case ys of [] \<Rightarrow> [] | y#ys \<Rightarrow> (x,y)#zip xs ys)"
-by(auto split:list.split)
+  by(auto split:list.split)
 
 lemma length_zip [simp]:
   "length (zip xs ys) = min (length xs) (length ys)"
-by (induct xs ys rule:list_induct2') auto
+  by (induct xs ys rule:list_induct2') auto
 
 lemma zip_obtain_same_length:
   assumes "\<And>zs ws n. length zs = length ws \<Longrightarrow> n = min (length xs) (length ys)
@@ -2482,21 +2478,21 @@ qed
 lemma zip_append1:
   "zip (xs @ ys) zs =
   zip xs (take (length xs) zs) @ zip ys (drop (length xs) zs)"
-by (induct xs zs rule:list_induct2') auto
+  by (induct xs zs rule:list_induct2') auto
 
 lemma zip_append2:
   "zip xs (ys @ zs) =
   zip (take (length ys) xs) ys @ zip (drop (length ys) xs) zs"
-by (induct xs ys rule:list_induct2') auto
+  by (induct xs ys rule:list_induct2') auto
 
 lemma zip_append [simp]:
   "[| length xs = length us |] ==>
   zip (xs@ys) (us@vs) = zip xs us @ zip ys vs"
-by (simp add: zip_append1)
+  by (simp add: zip_append1)
 
 lemma zip_rev:
   "length xs = length ys ==> zip (rev xs) (rev ys) = rev (zip xs ys)"
-by (induct rule:list_induct2, simp_all)
+  by (induct rule:list_induct2, simp_all)
 
 lemma zip_map_map:
   "zip (map f xs) (map g ys) = map (\<lambda> (x, y). (f x, g y)) (zip xs ys)"
@@ -2511,66 +2507,66 @@ qed simp
 
 lemma zip_map1:
   "zip (map f xs) ys = map (\<lambda>(x, y). (f x, y)) (zip xs ys)"
-using zip_map_map[of f xs "\<lambda>x. x" ys] by simp
+  using zip_map_map[of f xs "\<lambda>x. x" ys] by simp
 
 lemma zip_map2:
   "zip xs (map f ys) = map (\<lambda>(x, y). (x, f y)) (zip xs ys)"
-using zip_map_map[of "\<lambda>x. x" xs f ys] by simp
+  using zip_map_map[of "\<lambda>x. x" xs f ys] by simp
 
 lemma map_zip_map:
   "map f (zip (map g xs) ys) = map (%(x,y). f(g x, y)) (zip xs ys)"
-by (auto simp: zip_map1)
+  by (auto simp: zip_map1)
 
 lemma map_zip_map2:
   "map f (zip xs (map g ys)) = map (%(x,y). f(x, g y)) (zip xs ys)"
-by (auto simp: zip_map2)
+  by (auto simp: zip_map2)
 
 text\<open>Courtesy of Andreas Lochbihler:\<close>
 lemma zip_same_conv_map: "zip xs xs = map (\<lambda>x. (x, x)) xs"
-by(induct xs) auto
+  by(induct xs) auto
 
 lemma nth_zip [simp]:
   "[| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
-apply (induct ys arbitrary: i xs, simp)
-apply (case_tac xs)
- apply (simp_all add: nth.simps split: nat.split)
-done
+proof (induct ys arbitrary: i xs)
+  case (Cons y ys)
+  then show ?case
+    by (cases xs) (simp_all add: nth.simps split: nat.split)
+qed auto
 
 lemma set_zip:
   "set (zip xs ys) = {(xs!i, ys!i) | i. i < min (length xs) (length ys)}"
-by(simp add: set_conv_nth cong: rev_conj_cong)
+  by(simp add: set_conv_nth cong: rev_conj_cong)
 
 lemma zip_same: "((a,b) \<in> set (zip xs xs)) = (a \<in> set xs \<and> a = b)"
-by(induct xs) auto
+  by(induct xs) auto
 
-lemma zip_update:
-  "zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
-by(rule sym, simp add: update_zip)
+lemma zip_update: "zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
+  by (simp add: update_zip)
 
 lemma zip_replicate [simp]:
   "zip (replicate i x) (replicate j y) = replicate (min i j) (x,y)"
-apply (induct i arbitrary: j, auto)
-apply (case_tac j, auto)
-done
+proof (induct i arbitrary: j)
+  case (Suc i)
+  then show ?case
+    by (cases j, auto)
+qed auto
 
 lemma zip_replicate1: "zip (replicate n x) ys = map (Pair x) (take n ys)"
-by(induction ys arbitrary: n)(case_tac [2] n, simp_all)
+  by(induction ys arbitrary: n)(case_tac [2] n, simp_all)
 
-lemma take_zip:
-  "take n (zip xs ys) = zip (take n xs) (take n ys)"
-apply (induct n arbitrary: xs ys)
- apply simp
-apply (case_tac xs, simp)
-apply (case_tac ys, simp_all)
-done
+lemma take_zip: "take n (zip xs ys) = zip (take n xs) (take n ys)"
+proof (induct n arbitrary: xs ys)
+  case (Suc n)
+  then show ?case
+    by (case_tac xs; case_tac ys; simp)
+qed simp
 
-lemma drop_zip:
-  "drop n (zip xs ys) = zip (drop n xs) (drop n ys)"
-apply (induct n arbitrary: xs ys)
- apply simp
-apply (case_tac xs, simp)
-apply (case_tac ys, simp_all)
-done
+lemma drop_zip: "drop n (zip xs ys) = zip (drop n xs) (drop n ys)"
+proof (induct n arbitrary: xs ys)
+  case (Suc n)
+  then show ?case
+    by (case_tac xs; case_tac ys; simp)
+qed simp
 
 lemma zip_takeWhile_fst: "zip (takeWhile P xs) ys = takeWhile (P \<circ> fst) (zip xs ys)"
 proof (induct xs arbitrary: ys)
@@ -2583,26 +2579,26 @@ proof (induct xs arbitrary: ys)
 qed simp
 
 lemma set_zip_leftD: "(x,y)\<in> set (zip xs ys) \<Longrightarrow> x \<in> set xs"
-by (induct xs ys rule:list_induct2') auto
+  by (induct xs ys rule:list_induct2') auto
 
 lemma set_zip_rightD: "(x,y)\<in> set (zip xs ys) \<Longrightarrow> y \<in> set ys"
-by (induct xs ys rule:list_induct2') auto
+  by (induct xs ys rule:list_induct2') auto
 
 lemma in_set_zipE:
   "(x,y) \<in> set(zip xs ys) \<Longrightarrow> (\<lbrakk> x \<in> set xs; y \<in> set ys \<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R"
-by(blast dest: set_zip_leftD set_zip_rightD)
+  by(blast dest: set_zip_leftD set_zip_rightD)
 
 lemma zip_map_fst_snd: "zip (map fst zs) (map snd zs) = zs"
-by (induct zs) simp_all
+  by (induct zs) simp_all
 
 lemma zip_eq_conv:
   "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
-by (auto simp add: zip_map_fst_snd)
+  by (auto simp add: zip_map_fst_snd)
 
 lemma in_set_zip:
   "p \<in> set (zip xs ys) \<longleftrightarrow> (\<exists>n. xs ! n = fst p \<and> ys ! n = snd p
   \<and> n < length xs \<and> n < length ys)"
-by (cases p) (auto simp add: set_zip)
+  by (cases p) (auto simp add: set_zip)
 
 lemma in_set_impl_in_set_zip1:
   assumes "length xs = length ys"
@@ -2636,25 +2632,25 @@ subsubsection \<open>@{const list_all2}\<close>
 
 lemma list_all2_lengthD [intro?]:
   "list_all2 P xs ys ==> length xs = length ys"
-by (simp add: list_all2_iff)
+  by (simp add: list_all2_iff)
 
 lemma list_all2_Nil [iff, code]: "list_all2 P [] ys = (ys = [])"
-by (simp add: list_all2_iff)
+  by (simp add: list_all2_iff)
 
 lemma list_all2_Nil2 [iff, code]: "list_all2 P xs [] = (xs = [])"
-by (simp add: list_all2_iff)
+  by (simp add: list_all2_iff)
 
 lemma list_all2_Cons [iff, code]:
   "list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
-by (auto simp add: list_all2_iff)
+  by (auto simp add: list_all2_iff)
 
 lemma list_all2_Cons1:
   "list_all2 P (x # xs) ys = (\<exists>z zs. ys = z # zs \<and> P x z \<and> list_all2 P xs zs)"
-by (cases ys) auto
+  by (cases ys) auto
 
 lemma list_all2_Cons2:
   "list_all2 P xs (y # ys) = (\<exists>z zs. xs = z # zs \<and> P z y \<and> list_all2 P zs ys)"
-by (cases xs) auto
+  by (cases xs) auto
 
 lemma list_all2_induct
   [consumes 1, case_names Nil Cons, induct set: list_all2]:
@@ -2663,59 +2659,69 @@ lemma list_all2_induct
   assumes Cons: "\<And>x xs y ys.
     \<lbrakk>P x y; list_all2 P xs ys; R xs ys\<rbrakk> \<Longrightarrow> R (x # xs) (y # ys)"
   shows "R xs ys"
-using P
-by (induct xs arbitrary: ys) (auto simp add: list_all2_Cons1 Nil Cons)
+  using P
+  by (induct xs arbitrary: ys) (auto simp add: list_all2_Cons1 Nil Cons)
 
 lemma list_all2_rev [iff]:
   "list_all2 P (rev xs) (rev ys) = list_all2 P xs ys"
-by (simp add: list_all2_iff zip_rev cong: conj_cong)
+  by (simp add: list_all2_iff zip_rev cong: conj_cong)
 
 lemma list_all2_rev1:
   "list_all2 P (rev xs) ys = list_all2 P xs (rev ys)"
-by (subst list_all2_rev [symmetric]) simp
+  by (subst list_all2_rev [symmetric]) simp
 
 lemma list_all2_append1:
   "list_all2 P (xs @ ys) zs =
   (\<exists>us vs. zs = us @ vs \<and> length us = length xs \<and> length vs = length ys \<and>
-    list_all2 P xs us \<and> list_all2 P ys vs)"
-apply (simp add: list_all2_iff zip_append1)
-apply (rule iffI)
- apply (rule_tac x = "take (length xs) zs" in exI)
- apply (rule_tac x = "drop (length xs) zs" in exI)
- apply (force split: nat_diff_split simp add: min_def, clarify)
-apply (simp add: ball_Un)
-done
+    list_all2 P xs us \<and> list_all2 P ys vs)" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (rule_tac x = "take (length xs) zs" in exI)
+    apply (rule_tac x = "drop (length xs) zs" in exI)
+    apply (force split: nat_diff_split simp add: list_all2_iff zip_append1)
+    done
+next
+  assume ?rhs
+  then show ?lhs
+    by (auto simp add: list_all2_iff)
+qed
 
 lemma list_all2_append2:
   "list_all2 P xs (ys @ zs) =
   (\<exists>us vs. xs = us @ vs \<and> length us = length ys \<and> length vs = length zs \<and>
-    list_all2 P us ys \<and> list_all2 P vs zs)"
-apply (simp add: list_all2_iff zip_append2)
-apply (rule iffI)
- apply (rule_tac x = "take (length ys) xs" in exI)
- apply (rule_tac x = "drop (length ys) xs" in exI)
- apply (force split: nat_diff_split simp add: min_def, clarify)
-apply (simp add: ball_Un)
-done
+    list_all2 P us ys \<and> list_all2 P vs zs)" (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    apply (rule_tac x = "take (length ys) xs" in exI)
+    apply (rule_tac x = "drop (length ys) xs" in exI)
+    apply (force split: nat_diff_split simp add: list_all2_iff zip_append2)
+    done
+next
+  assume ?rhs
+  then show ?lhs
+    by (auto simp add: list_all2_iff)
+qed
 
 lemma list_all2_append:
   "length xs = length ys \<Longrightarrow>
   list_all2 P (xs@us) (ys@vs) = (list_all2 P xs ys \<and> list_all2 P us vs)"
-by (induct rule:list_induct2, simp_all)
+  by (induct rule:list_induct2, simp_all)
 
 lemma list_all2_appendI [intro?, trans]:
   "\<lbrakk> list_all2 P a b; list_all2 P c d \<rbrakk> \<Longrightarrow> list_all2 P (a@c) (b@d)"
-by (simp add: list_all2_append list_all2_lengthD)
+  by (simp add: list_all2_append list_all2_lengthD)
 
 lemma list_all2_conv_all_nth:
   "list_all2 P xs ys =
   (length xs = length ys \<and> (\<forall>i < length xs. P (xs!i) (ys!i)))"
-by (force simp add: list_all2_iff set_zip)
+  by (force simp add: list_all2_iff set_zip)
 
 lemma list_all2_trans:
   assumes tr: "!!a b c. P1 a b ==> P2 b c ==> P3 a c"
   shows "!!bs cs. list_all2 P1 as bs ==> list_all2 P2 bs cs ==> list_all2 P3 as cs"
-        (is "!!bs cs. PROP ?Q as bs cs")
+    (is "!!bs cs. PROP ?Q as bs cs")
 proof (induct as)
   fix x xs bs assume I1: "!!bs cs. PROP ?Q xs bs cs"
   show "!!cs. PROP ?Q (x # xs) bs cs"
@@ -2728,100 +2734,98 @@ qed simp
 
 lemma list_all2_all_nthI [intro?]:
   "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> P (a!n) (b!n)) \<Longrightarrow> list_all2 P a b"
-by (simp add: list_all2_conv_all_nth)
+  by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2I:
   "\<forall>x \<in> set (zip a b). case_prod P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
-by (simp add: list_all2_iff)
+  by (simp add: list_all2_iff)
 
 lemma list_all2_nthD:
   "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
-by (simp add: list_all2_conv_all_nth)
+  by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_nthD2:
   "\<lbrakk>list_all2 P xs ys; p < size ys\<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
-by (frule list_all2_lengthD) (auto intro: list_all2_nthD)
+  by (frule list_all2_lengthD) (auto intro: list_all2_nthD)
 
 lemma list_all2_map1:
   "list_all2 P (map f as) bs = list_all2 (\<lambda>x y. P (f x) y) as bs"
-by (simp add: list_all2_conv_all_nth)
+  by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_map2:
   "list_all2 P as (map f bs) = list_all2 (\<lambda>x y. P x (f y)) as bs"
-by (auto simp add: list_all2_conv_all_nth)
+  by (auto simp add: list_all2_conv_all_nth)
 
 lemma list_all2_refl [intro?]:
   "(\<And>x. P x x) \<Longrightarrow> list_all2 P xs xs"
-by (simp add: list_all2_conv_all_nth)
+  by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2_update_cong:
   "\<lbrakk> list_all2 P xs ys; P x y \<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
-by (cases "i < length ys") (auto simp add: list_all2_conv_all_nth nth_list_update)
+  by (cases "i < length ys") (auto simp add: list_all2_conv_all_nth nth_list_update)
 
 lemma list_all2_takeI [simp,intro?]:
   "list_all2 P xs ys \<Longrightarrow> list_all2 P (take n xs) (take n ys)"
-apply (induct xs arbitrary: n ys)
- apply simp
-apply (clarsimp simp add: list_all2_Cons1)
-apply (case_tac n)
-apply auto
-done
+proof (induct xs arbitrary: n ys)
+  case (Cons x xs)
+  then show ?case
+    by (cases n) (auto simp: list_all2_Cons1)
+qed auto
 
 lemma list_all2_dropI [simp,intro?]:
-  "list_all2 P as bs \<Longrightarrow> list_all2 P (drop n as) (drop n bs)"
-apply (induct as arbitrary: n bs, simp)
-apply (clarsimp simp add: list_all2_Cons1)
-apply (case_tac n, simp, simp)
-done
+  "list_all2 P xs ys \<Longrightarrow> list_all2 P (drop n xs) (drop n ys)"
+proof (induct xs arbitrary: n ys)
+  case (Cons x xs)
+  then show ?case
+    by (cases n) (auto simp: list_all2_Cons1)
+qed auto
 
 lemma list_all2_mono [intro?]:
   "list_all2 P xs ys \<Longrightarrow> (\<And>xs ys. P xs ys \<Longrightarrow> Q xs ys) \<Longrightarrow> list_all2 Q xs ys"
-apply (induct xs arbitrary: ys, simp)
-apply (case_tac ys, auto)
-done
+  by (rule list.rel_mono_strong)
 
 lemma list_all2_eq:
   "xs = ys \<longleftrightarrow> list_all2 (=) xs ys"
-by (induct xs ys rule: list_induct2') auto
+  by (induct xs ys rule: list_induct2') auto
 
 lemma list_eq_iff_zip_eq:
   "xs = ys \<longleftrightarrow> length xs = length ys \<and> (\<forall>(x,y) \<in> set (zip xs ys). x = y)"
-by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
+  by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
 lemma list_all2_same: "list_all2 P xs xs \<longleftrightarrow> (\<forall>x\<in>set xs. P x x)"
-by(auto simp add: list_all2_conv_all_nth set_conv_nth)
+  by(auto simp add: list_all2_conv_all_nth set_conv_nth)
 
 lemma zip_assoc:
   "zip xs (zip ys zs) = map (\<lambda>((x, y), z). (x, y, z)) (zip (zip xs ys) zs)"
-by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
+  by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
 
 lemma zip_commute: "zip xs ys = map (\<lambda>(x, y). (y, x)) (zip ys xs)"
-by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
+  by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
 
 lemma zip_left_commute:
   "zip xs (zip ys zs) = map (\<lambda>(y, (x, z)). (x, y, z)) (zip ys (zip xs zs))"
-by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
+  by(rule list_all2_all_nthI[where P="(=)", unfolded list.rel_eq]) simp_all
 
 lemma zip_replicate2: "zip xs (replicate n y) = map (\<lambda>x. (x, y)) (take n xs)"
-by(subst zip_commute)(simp add: zip_replicate1)
+  by(subst zip_commute)(simp add: zip_replicate1)
 
 subsubsection \<open>@{const List.product} and @{const product_lists}\<close>
 
 lemma product_concat_map:
   "List.product xs ys = concat (map (\<lambda>x. map (\<lambda>y. (x,y)) ys) xs)"
-by(induction xs) (simp)+
+  by(induction xs) (simp)+
 
 lemma set_product[simp]: "set (List.product xs ys) = set xs \<times> set ys"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma length_product [simp]:
   "length (List.product xs ys) = length xs * length ys"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma product_nth:
   assumes "n < length xs * length ys"
   shows "List.product xs ys ! n = (xs ! (n div length ys), ys ! (n mod length ys))"
-using assms proof (induct xs arbitrary: n)
+  using assms proof (induct xs arbitrary: n)
   case Nil then show ?case by simp
 next
   case (Cons x xs n)
@@ -2832,7 +2836,7 @@ qed
 
 lemma in_set_product_lists_length:
   "xs \<in> set (product_lists xss) \<Longrightarrow> length xs = length xss"
-by (induct xss arbitrary: xs) auto
+  by (induct xss arbitrary: xs) auto
 
 lemma product_lists_set:
   "set (product_lists xss) = {xs. list_all2 (\<lambda>x ys. x \<in> set ys) xs xss}" (is "?L = Collect ?R")
@@ -2851,25 +2855,25 @@ subsubsection \<open>@{const fold} with natural argument order\<close>
 lemma fold_simps [code]: \<comment> \<open>eta-expanded variant for generated code -- enables tail-recursion optimisation in Scala\<close>
   "fold f [] s = s"
   "fold f (x # xs) s = fold f xs (f x s)"
-by simp_all
+  by simp_all
 
 lemma fold_remove1_split:
   "\<lbrakk> \<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x;
     x \<in> set xs \<rbrakk>
   \<Longrightarrow> fold f xs = fold f (remove1 x xs) \<circ> f x"
-by (induct xs) (auto simp add: comp_assoc)
+  by (induct xs) (auto simp add: comp_assoc)
 
 lemma fold_cong [fundef_cong]:
   "a = b \<Longrightarrow> xs = ys \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> f x = g x)
     \<Longrightarrow> fold f xs a = fold g ys b"
-by (induct ys arbitrary: a b xs) simp_all
+  by (induct ys arbitrary: a b xs) simp_all
 
 lemma fold_id: "(\<And>x. x \<in> set xs \<Longrightarrow> f x = id) \<Longrightarrow> fold f xs = id"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma fold_commute:
   "(\<And>x. x \<in> set xs \<Longrightarrow> h \<circ> g x = f x \<circ> h) \<Longrightarrow> h \<circ> fold g xs = fold f xs \<circ> h"
-by (induct xs) (simp_all add: fun_eq_iff)
+  by (induct xs) (simp_all add: fun_eq_iff)
 
 lemma fold_commute_apply:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> h \<circ> g x = f x \<circ> h"
@@ -2882,41 +2886,41 @@ qed
 lemma fold_invariant:
   "\<lbrakk> \<And>x. x \<in> set xs \<Longrightarrow> Q x;  P s;  \<And>x s. Q x \<Longrightarrow> P s \<Longrightarrow> P (f x s) \<rbrakk>
   \<Longrightarrow> P (fold f xs s)"
-by (induct xs arbitrary: s) simp_all
+  by (induct xs arbitrary: s) simp_all
 
 lemma fold_append [simp]: "fold f (xs @ ys) = fold f ys \<circ> fold f xs"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma fold_map [code_unfold]: "fold g (map f xs) = fold (g \<circ> f) xs"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma fold_filter:
   "fold f (filter P xs) = fold (\<lambda>x. if P x then f x else id) xs"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma fold_rev:
   "(\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y)
   \<Longrightarrow> fold f (rev xs) = fold f xs"
-by (induct xs) (simp_all add: fold_commute_apply fun_eq_iff)
+  by (induct xs) (simp_all add: fold_commute_apply fun_eq_iff)
 
 lemma fold_Cons_rev: "fold Cons xs = append (rev xs)"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma rev_conv_fold [code]: "rev xs = fold Cons xs []"
-by (simp add: fold_Cons_rev)
+  by (simp add: fold_Cons_rev)
 
 lemma fold_append_concat_rev: "fold append xss = append (concat (rev xss))"
-by (induct xss) simp_all
+  by (induct xss) simp_all
 
 text \<open>@{const Finite_Set.fold} and @{const fold}\<close>
 
 lemma (in comp_fun_commute) fold_set_fold_remdups:
   "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
-by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm insert_absorb)
+  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm insert_absorb)
 
 lemma (in comp_fun_idem) fold_set_fold:
   "Finite_Set.fold f y (set xs) = fold f xs y"
-by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm)
+  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm)
 
 lemma union_set_fold [code]: "set xs \<union> A = fold Set.insert xs A"
 proof -
@@ -2927,7 +2931,7 @@ qed
 
 lemma union_coset_filter [code]:
   "List.coset xs \<union> A = List.coset (List.filter (\<lambda>x. x \<notin> A) xs)"
-by auto
+  by auto
 
 lemma minus_set_fold [code]: "A - set xs = fold Set.remove xs A"
 proof -
@@ -2939,15 +2943,15 @@ qed
 
 lemma minus_coset_filter [code]:
   "A - List.coset xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
-by auto
+  by auto
 
 lemma inter_set_filter [code]:
   "A \<inter> set xs = set (List.filter (\<lambda>x. x \<in> A) xs)"
-by auto
+  by auto
 
 lemma inter_coset_fold [code]:
   "A \<inter> List.coset xs = fold Set.remove xs A"
-by (simp add: Diff_eq [symmetric] minus_set_fold)
+  by (simp add: Diff_eq [symmetric] minus_set_fold)
 
 lemma (in semilattice_set) set_eq_fold [code]:
   "F (set (x # xs)) = fold f xs x"
@@ -2995,82 +2999,82 @@ subsubsection \<open>Fold variants: @{const foldr} and @{const foldl}\<close>
 text \<open>Correspondence\<close>
 
 lemma foldr_conv_fold [code_abbrev]: "foldr f xs = fold f (rev xs)"
-by (induct xs) simp_all
+  by (induct xs) simp_all
 
 lemma foldl_conv_fold: "foldl f s xs = fold (\<lambda>x s. f s x) xs s"
-by (induct xs arbitrary: s) simp_all
+  by (induct xs arbitrary: s) simp_all
 
 lemma foldr_conv_foldl: \<comment> \<open>The ``Third Duality Theorem'' in Bird \& Wadler:\<close>
   "foldr f xs a = foldl (\<lambda>x y. f y x) a (rev xs)"
-by (simp add: foldr_conv_fold foldl_conv_fold)
+  by (simp add: foldr_conv_fold foldl_conv_fold)
 
 lemma foldl_conv_foldr:
   "foldl f a xs = foldr (\<lambda>x y. f y x) (rev xs) a"
-by (simp add: foldr_conv_fold foldl_conv_fold)
+  by (simp add: foldr_conv_fold foldl_conv_fold)
 
 lemma foldr_fold:
   "(\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f y \<circ> f x = f x \<circ> f y)
   \<Longrightarrow> foldr f xs = fold f xs"
-unfolding foldr_conv_fold by (rule fold_rev)
+  unfolding foldr_conv_fold by (rule fold_rev)
 
 lemma foldr_cong [fundef_cong]:
   "a = b \<Longrightarrow> l = k \<Longrightarrow> (\<And>a x. x \<in> set l \<Longrightarrow> f x a = g x a) \<Longrightarrow> foldr f l a = foldr g k b"
-by (auto simp add: foldr_conv_fold intro!: fold_cong)
+  by (auto simp add: foldr_conv_fold intro!: fold_cong)
 
 lemma foldl_cong [fundef_cong]:
   "a = b \<Longrightarrow> l = k \<Longrightarrow> (\<And>a x. x \<in> set l \<Longrightarrow> f a x = g a x) \<Longrightarrow> foldl f a l = foldl g b k"
-by (auto simp add: foldl_conv_fold intro!: fold_cong)
+  by (auto simp add: foldl_conv_fold intro!: fold_cong)
 
 lemma foldr_append [simp]: "foldr f (xs @ ys) a = foldr f xs (foldr f ys a)"
-by (simp add: foldr_conv_fold)
+  by (simp add: foldr_conv_fold)
 
 lemma foldl_append [simp]: "foldl f a (xs @ ys) = foldl f (foldl f a xs) ys"
-by (simp add: foldl_conv_fold)
+  by (simp add: foldl_conv_fold)
 
 lemma foldr_map [code_unfold]: "foldr g (map f xs) a = foldr (g \<circ> f) xs a"
-by (simp add: foldr_conv_fold fold_map rev_map)
+  by (simp add: foldr_conv_fold fold_map rev_map)
 
 lemma foldr_filter:
   "foldr f (filter P xs) = foldr (\<lambda>x. if P x then f x else id) xs"
-by (simp add: foldr_conv_fold rev_filter fold_filter)
+  by (simp add: foldr_conv_fold rev_filter fold_filter)
 
 lemma foldl_map [code_unfold]:
   "foldl g a (map f xs) = foldl (\<lambda>a x. g a (f x)) a xs"
-by (simp add: foldl_conv_fold fold_map comp_def)
+  by (simp add: foldl_conv_fold fold_map comp_def)
 
 lemma concat_conv_foldr [code]:
   "concat xss = foldr append xss []"
-by (simp add: fold_append_concat_rev foldr_conv_fold)
+  by (simp add: fold_append_concat_rev foldr_conv_fold)
 
 
 subsubsection \<open>@{const upt}\<close>
 
 lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
-\<comment> \<open>simp does not terminate!\<close>
-by (induct j) auto
+  \<comment> \<open>simp does not terminate!\<close>
+  by (induct j) auto
 
 lemmas upt_rec_numeral[simp] = upt_rec[of "numeral m" "numeral n"] for m n
 
-lemma upt_conv_Nil [simp]: "j <= i ==> [i..<j] = []"
-by (subst upt_rec) simp
+lemma upt_conv_Nil [simp]: "j \<le> i ==> [i..<j] = []"
+  by (subst upt_rec) simp
 
-lemma upt_eq_Nil_conv[simp]: "([i..<j] = []) = (j = 0 \<or> j <= i)"
-by(induct j)simp_all
+lemma upt_eq_Nil_conv[simp]: "([i..<j] = []) = (j = 0 \<or> j \<le> i)"
+  by(induct j)simp_all
 
 lemma upt_eq_Cons_conv:
- "([i..<j] = x#xs) = (i < j \<and> i = x \<and> [i+1..<j] = xs)"
-apply(induct j arbitrary: x xs)
- apply simp
-apply(clarsimp simp add: append_eq_Cons_conv)
-apply arith
-done
+  "([i..<j] = x#xs) = (i < j \<and> i = x \<and> [i+1..<j] = xs)"
+proof (induct j arbitrary: x xs)
+  case (Suc j)
+  then show ?case
+    by (simp add: upt_rec)
+qed simp
 
-lemma upt_Suc_append: "i <= j ==> [i..<(Suc j)] = [i..<j]@[j]"
-\<comment> \<open>Only needed if \<open>upt_Suc\<close> is deleted from the simpset.\<close>
-by simp
+lemma upt_Suc_append: "i \<le> j ==> [i..<(Suc j)] = [i..<j]@[j]"
+  \<comment> \<open>Only needed if \<open>upt_Suc\<close> is deleted from the simpset.\<close>
+  by simp
 
 lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
-by (simp add: upt_rec)
+  by (simp add: upt_rec)
 
 lemma upt_conv_Cons_Cons: \<comment> \<open>no precondition\<close>
   "m # n # ns = [m..<q] \<longleftrightarrow> n # ns = [Suc m..<q]"
@@ -3081,90 +3085,79 @@ next
 qed
 
 lemma upt_add_eq_append: "i<=j ==> [i..<j+k] = [i..<j]@[j..<j+k]"
-\<comment> \<open>LOOPS as a simprule, since \<open>j <= j\<close>.\<close>
-by (induct k) auto
+  \<comment> \<open>LOOPS as a simprule, since \<open>j \<le> j\<close>.\<close>
+  by (induct k) auto
 
 lemma length_upt [simp]: "length [i..<j] = j - i"
-by (induct j) (auto simp add: Suc_diff_le)
+  by (induct j) (auto simp add: Suc_diff_le)
 
 lemma nth_upt [simp]: "i + k < j ==> [i..<j] ! k = i + k"
-by (induct j) (auto simp add: less_Suc_eq nth_append split: nat_diff_split)
+  by (induct j) (auto simp add: less_Suc_eq nth_append split: nat_diff_split)
 
 lemma hd_upt[simp]: "i < j \<Longrightarrow> hd[i..<j] = i"
-by(simp add:upt_conv_Cons)
+  by(simp add:upt_conv_Cons)
 
 lemma tl_upt: "tl [m..<n] = [Suc m..<n]"
-by (simp add: upt_rec)
+  by (simp add: upt_rec)
 
 lemma last_upt[simp]: "i < j \<Longrightarrow> last[i..<j] = j - 1"
-by(cases j)(auto simp: upt_Suc_append)
+  by(cases j)(auto simp: upt_Suc_append)
 
-lemma take_upt [simp]: "i+m <= n ==> take m [i..<n] = [i..<i+m]"
-apply (induct m arbitrary: i, simp)
-apply (subst upt_rec)
-apply (rule sym)
-apply (subst upt_rec)
-apply (simp del: upt.simps)
-done
+lemma take_upt [simp]: "i+m \<le> n ==> take m [i..<n] = [i..<i+m]"
+proof (induct m arbitrary: i)
+  case (Suc m)
+  then show ?case
+    by (subst take_Suc_conv_app_nth) auto
+qed simp
 
 lemma drop_upt[simp]: "drop m [i..<j] = [i+m..<j]"
-by(induct j) auto
+  by(induct j) auto
 
 lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..<Suc n]"
-by (induct n) auto
+  by (induct n) auto
 
 lemma map_add_upt: "map (\<lambda>i. i + n) [0..<m] = [n..<m + n]"
-by (induct m) simp_all
+  by (induct m) simp_all
 
 lemma nth_map_upt: "i < n-m ==> (map f [m..<n]) ! i = f(m+i)"
-apply (induct n m  arbitrary: i rule: diff_induct)
-  prefer 3 apply (subst map_Suc_upt[symmetric])
-  apply (auto simp add: less_diff_conv)
-done
+proof (induct n m  arbitrary: i rule: diff_induct)
+  case (3 x y)
+  then show ?case
+    by (metis add.commute length_upt less_diff_conv nth_map nth_upt)
+qed auto
 
 lemma map_decr_upt: "map (\<lambda>n. n - Suc 0) [Suc m..<Suc n] = [m..<n]"
-by (induct n) simp_all
+  by (induct n) simp_all
 
 lemma map_upt_Suc: "map f [0 ..< Suc n] = f 0 # map (\<lambda>i. f (Suc i)) [0 ..< n]"
-by (induct n arbitrary: f) auto
-
+  by (induct n arbitrary: f) auto
 
 lemma nth_take_lemma:
   "k \<le> length xs \<Longrightarrow> k \<le> length ys \<Longrightarrow>
      (\<And>i. i < k \<longrightarrow> xs!i = ys!i) \<Longrightarrow> take k xs = take k ys"
-apply (atomize, induct k arbitrary: xs ys)
-apply (simp_all add: less_Suc_eq_0_disj all_conj_distrib, clarify)
-txt \<open>Both lists must be non-empty\<close>
-apply (case_tac xs, simp)
-apply (case_tac ys, clarify)
- apply (simp (no_asm_use))
-apply clarify
-txt \<open>prenexing's needed, not miniscoping\<close>
-apply (simp (no_asm_use) add: all_simps [symmetric] del: all_simps)
-apply blast
-done
+proof (induct k arbitrary: xs ys)
+  case (Suc k)
+  then show ?case
+    apply (simp add: less_Suc_eq_0_disj)
+    by (simp add: Suc.prems(3) take_Suc_conv_app_nth)
+qed simp
 
 lemma nth_equalityI:
   "[| length xs = length ys; \<forall>i < length xs. xs!i = ys!i |] ==> xs = ys"
-by (frule nth_take_lemma [OF le_refl eq_imp_le]) simp_all
+  by (frule nth_take_lemma [OF le_refl eq_imp_le]) simp_all
 
 lemma map_nth:
   "map (\<lambda>i. xs ! i) [0..<length xs] = xs"
-by (rule nth_equalityI, auto)
+  by (rule nth_equalityI, auto)
 
 lemma list_all2_antisym:
   "\<lbrakk> (\<And>x y. \<lbrakk>P x y; Q y x\<rbrakk> \<Longrightarrow> x = y); list_all2 P xs ys; list_all2 Q ys xs \<rbrakk>
   \<Longrightarrow> xs = ys"
-apply (simp add: list_all2_conv_all_nth)
-apply (rule nth_equalityI, blast, simp)
-done
+  by (simp add: list_all2_conv_all_nth nth_equalityI)
 
 lemma take_equalityI: "(\<forall>i. take i xs = take i ys) ==> xs = ys"
 \<comment> \<open>The famous take-lemma.\<close>
-apply (drule_tac x = "max (length xs) (length ys)" in spec)
-apply (simp add: le_max_iff_disj)
-done
-
+  by (metis length_take min.commute order_refl take_all)
 
 lemma take_Cons':
   "take n (x # xs) = (if n = 0 then [] else x # take (n - 1) xs)"
@@ -3241,7 +3234,7 @@ proof(induct i j rule:upto.induct)
 qed
 
 lemma nth_upto: "i + int k \<le> j \<Longrightarrow> [i..j] ! k = i + int k"
-apply(induction i j arbitrary: k rule: upto.induct)
+  apply(induction i j arbitrary: k rule: upto.induct)
 apply(subst upto_rec1)
 apply(auto simp add: nth_Cons')
 done
@@ -3307,17 +3300,16 @@ by (induct x, auto)
 lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
 by (induct x, auto)
 
-lemma length_remdups_leq[iff]: "length(remdups xs) <= length xs"
+lemma length_remdups_leq[iff]: "length(remdups xs) \<le> length xs"
 by (induct xs) auto
 
 lemma length_remdups_eq[iff]:
   "(length (remdups xs) = length xs) = (remdups xs = xs)"
-apply(induct xs)
- apply auto
-apply(subgoal_tac "length (remdups xs) <= length xs")
- apply arith
-apply(rule length_remdups_leq)
-done
+proof (induct xs)
+  case (Cons a xs)
+  then show ?case
+    by simp (metis Suc_n_not_le_n impossible_Cons length_remdups_leq)
+qed auto
 
 lemma remdups_filter: "remdups(filter P xs) = filter P (remdups xs)"
 by (induct xs) auto
@@ -3343,31 +3335,38 @@ apply(simp)
 done
 
 lemma distinct_take[simp]: "distinct xs \<Longrightarrow> distinct (take i xs)"
-apply(induct xs arbitrary: i)
- apply simp
-apply (case_tac i)
- apply simp_all
-apply(blast dest:in_set_takeD)
-done
+proof (induct xs arbitrary: i)
+  case (Cons a xs)
+  then show ?case
+    by (metis Cons.prems append_take_drop_id distinct_append)
+qed auto
 
 lemma distinct_drop[simp]: "distinct xs \<Longrightarrow> distinct (drop i xs)"
-apply(induct xs arbitrary: i)
- apply simp
-apply (case_tac i)
- apply simp_all
-done
+proof (induct xs arbitrary: i)
+  case (Cons a xs)
+  then show ?case
+    by (metis Cons.prems append_take_drop_id distinct_append)
+qed auto
 
 lemma distinct_list_update:
-assumes d: "distinct xs" and a: "a \<notin> set xs - {xs!i}"
-shows "distinct (xs[i:=a])"
+  assumes d: "distinct xs" and a: "a \<notin> set xs - {xs!i}"
+  shows "distinct (xs[i:=a])"
 proof (cases "i < length xs")
   case True
-  with a have "a \<notin> set (take i xs @ xs ! i # drop (Suc i) xs) - {xs!i}"
-    apply (drule_tac id_take_nth_drop) by simp
-  with d True show ?thesis
-    apply (simp add: upd_conv_take_nth_drop)
-    apply (drule subst [OF id_take_nth_drop]) apply assumption
-    apply simp apply (cases "a = xs!i") apply simp by blast
+  with a have anot: "a \<notin> set (take i xs @ xs ! i # drop (Suc i) xs) - {xs!i}"
+    by simp (metis in_set_dropD in_set_takeD)
+  show ?thesis
+  proof (cases "a = xs!i")
+    case True
+    with d show ?thesis
+      by auto
+  next
+    case False
+    then show ?thesis
+      using d anot \<open>i < length xs\<close> 
+      apply (simp add: upd_conv_take_nth_drop)
+      by (metis disjoint_insert(1) distinct_append id_take_nth_drop set_simps(2))
+  qed
 next
   case False with d show ?thesis by auto
 qed
@@ -3382,22 +3381,14 @@ by (induct xs) auto
 text \<open>It is best to avoid this indexed version of distinct, but
 sometimes it is useful.\<close>
 
-lemma distinct_conv_nth:
-"distinct xs = (\<forall>i < size xs. \<forall>j < size xs. i \<noteq> j \<longrightarrow> xs!i \<noteq> xs!j)"
-apply (induct xs, simp, simp)
-apply (rule iffI, clarsimp)
- apply (case_tac i)
-apply (case_tac j, simp)
-apply (simp add: set_conv_nth)
- apply (case_tac j)
-apply (clarsimp simp add: set_conv_nth, simp)
-apply (rule conjI)
- apply (clarsimp simp add: set_conv_nth)
- apply (erule_tac x = 0 in allE, simp)
- apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
-apply (erule_tac x = "Suc i" in allE, simp)
-apply (erule_tac x = "Suc j" in allE, simp)
-done
+lemma distinct_conv_nth: "distinct xs = (\<forall>i < size xs. \<forall>j < size xs. i \<noteq> j \<longrightarrow> xs!i \<noteq> xs!j)"
+proof (induct xs)
+  case (Cons x xs)
+  show ?case
+    apply (auto simp add: Cons nth_Cons split: nat.split_asm)
+    apply (metis Suc_less_eq2 in_set_conv_nth less_not_refl zero_less_Suc)+
+    done
+qed auto
 
 lemma nth_eq_iff_index_eq:
   "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
@@ -3422,7 +3413,7 @@ by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
 
 lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow>
   distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
-apply (simp add: distinct_conv_nth nth_list_update)
+  apply (simp add: distinct_conv_nth nth_list_update)
 apply safe
 apply metis+
 done
@@ -3436,8 +3427,6 @@ by (induct xs) auto
 
 lemma card_distinct: "card (set xs) = size xs ==> distinct xs"
 proof (induct xs)
-  case Nil thus ?case by simp
-next
   case (Cons x xs)
   show ?case
   proof (cases "x \<in> set xs")
@@ -3450,17 +3439,20 @@ next
     ultimately have False by simp
     thus ?thesis ..
   qed
-qed
+qed simp
 
 lemma distinct_length_filter: "distinct xs \<Longrightarrow> length (filter P xs) = card ({x. P x} Int set xs)"
 by (induct xs) (auto)
 
 lemma not_distinct_decomp: "\<not> distinct ws \<Longrightarrow> \<exists>xs ys zs y. ws = xs@[y]@ys@[y]@zs"
-apply (induct n == "length ws" arbitrary:ws) apply simp
-apply(case_tac ws) apply simp
-apply (simp split:if_split_asm)
-apply (metis Cons_eq_appendI eq_Nil_appendI split_list)
-done
+proof (induct n == "length ws" arbitrary:ws)
+  case (Suc n ws)
+  then show ?case
+    using length_Suc_conv [of ws n]
+    apply (auto simp: eq_commute)
+     apply (metis append_Nil in_set_conv_decomp_first)
+    by (metis append_Cons)
+qed simp
 
 lemma not_distinct_conv_prefix:
   defines "dec as xs y ys \<equiv> y \<in> set xs \<and> distinct xs \<and> as = xs @ y # ys"
@@ -3692,7 +3684,6 @@ next
         then have "Suc 0 \<notin> f ` {0 ..< length (x1 # x2 # xs)}" by auto
         then show False using f_img \<open>2 \<le> length ys\<close> by auto
       qed
-
       obtain ys' where "ys = x1 # x2 # ys'"
         using \<open>2 \<le> length ys\<close> f_nth[of 0] f_nth[of 1]
         apply (cases ys)
@@ -3717,10 +3708,7 @@ next
           using Suc0_le_f_Suc f_mono by (auto simp: f'_def mono_iff_le_Suc le_diff_iff)
       next
         have "f' ` {0 ..< length (x2 # xs)} = (\<lambda>x. f x - 1) ` {0 ..< length (x1 # x2 #xs)}"
-          apply safe
-          apply (rename_tac [!] n,  case_tac [!] n)
-          apply (auto simp: f'_def \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close> intro: rev_image_eqI)
-          done
+          by (auto simp: f'_def \<open>f 0 = 0\<close> \<open>f (Suc 0) = Suc 0\<close> image_def Bex_def less_Suc_eq_0_disj)
         also have "\<dots> = (\<lambda>x. x - 1) ` f ` {0 ..< length (x1 # x2 #xs)}"
           by (auto simp: image_comp)
         also have "\<dots> = (\<lambda>x. x - 1) ` {0 ..< length ys}"
@@ -3887,10 +3875,12 @@ by (induction xs) auto
 
 lemma sum_count_set:
   "set xs \<subseteq> X \<Longrightarrow> finite X \<Longrightarrow> sum (count_list xs) X = length xs"
-apply(induction xs arbitrary: X)
- apply simp
-apply (simp add: sum.If_cases)
-by (metis Diff_eq sum.remove)
+proof (induction xs arbitrary: X)
+  case (Cons x xs)
+  then show ?case
+    apply (auto simp: sum.If_cases sum.remove)
+    by (metis (no_types) Cons.IH Cons.prems(2) diff_eq sum.remove)
+qed simp
 
 
 subsubsection \<open>@{const List.extract}\<close>
@@ -3933,23 +3923,13 @@ by (induct zs) auto
 
 lemma in_set_remove1[simp]:
   "a \<noteq> b \<Longrightarrow> a \<in> set(remove1 b xs) = (a \<in> set xs)"
-apply (induct xs)
- apply auto
-done
+  by (induct xs) auto
 
 lemma set_remove1_subset: "set(remove1 x xs) \<subseteq> set xs"
-apply(induct xs)
- apply simp
-apply simp
-apply blast
-done
+  by (induct xs) auto
 
 lemma set_remove1_eq [simp]: "distinct xs \<Longrightarrow> set(remove1 x xs) = set xs - {x}"
-apply(induct xs)
- apply simp
-apply simp
-apply blast
-done
+  by (induct xs) auto
 
 lemma length_remove1:
   "length(remove1 x xs) = (if x \<in> set xs then length xs - 1 else length xs)"
@@ -4069,9 +4049,7 @@ by (induct n) auto
 text\<open>Courtesy of Matthias Daum:\<close>
 lemma append_replicate_commute:
   "replicate n x @ replicate k x = replicate k x @ replicate n x"
-apply (simp add: replicate_add [symmetric])
-apply (simp add: add.commute)
-done
+  by (metis add.commute replicate_add)
 
 text\<open>Courtesy of Andreas Lochbihler:\<close>
 lemma filter_replicate:
@@ -4092,23 +4070,24 @@ by (induct n arbitrary: i)(auto simp: nth_Cons split: nat.split)
 
 text\<open>Courtesy of Matthias Daum (2 lemmas):\<close>
 lemma take_replicate[simp]: "take i (replicate k x) = replicate (min i k) x"
-apply (case_tac "k \<le> i")
- apply  (simp add: min_def)
-apply (drule not_le_imp_less)
-apply (simp add: min_def)
-apply (subgoal_tac "replicate k x = replicate i x @ replicate (k - i) x")
- apply  simp
-apply (simp add: replicate_add [symmetric])
-done
+proof (cases "k \<le> i")
+  case True
+  then show ?thesis
+    by (simp add: min_def)
+next
+  case False
+  then have "replicate k x = replicate i x @ replicate (k - i) x"
+    by (simp add: replicate_add [symmetric])
+  then show ?thesis
+    by (simp add: min_def)
+qed
 
 lemma drop_replicate[simp]: "drop i (replicate k x) = replicate (k-i) x"
-apply (induct k arbitrary: i)
- apply simp
-apply clarsimp
-apply (case_tac i)
- apply simp
-apply clarsimp
-done
+proof (induct k arbitrary: i)
+  case (Suc k)
+  then show ?case
+    by (simp add: drop_Cons')
+qed simp
 
 lemma set_replicate_Suc: "set (replicate (Suc n) x) = {x}"
 by (induct n) auto
@@ -4150,11 +4129,11 @@ by (induct n) auto
 
 lemma replicate_eq_replicate[simp]:
   "(replicate m x = replicate n y) \<longleftrightarrow> (m=n \<and> (m\<noteq>0 \<longrightarrow> x=y))"
-apply(induct m arbitrary: n)
- apply simp
-apply(induct_tac n)
-apply auto
-done
+proof (induct m arbitrary: n)
+  case (Suc m n)
+  then show ?case
+    by (induct n) auto
+qed simp
 
 lemma replicate_length_filter:
   "replicate (length (filter (\<lambda>y. x = y) xs)) x = filter (\<lambda>y. x = y) xs"
@@ -4241,10 +4220,7 @@ subsubsection \<open>@{const enumerate}\<close>
 lemma enumerate_simps [simp, code]:
   "enumerate n [] = []"
   "enumerate n (x # xs) = (n, x) # enumerate (Suc n) xs"
-apply (auto simp add: enumerate_eq_zip not_le)
-apply (cases "n < n + length xs")
- apply (auto simp add: upt_conv_Cons)
-done
+  by (simp_all add: enumerate_eq_zip upt_rec)
 
 lemma length_enumerate [simp]:
   "length (enumerate n xs) = length xs"
@@ -4290,12 +4266,7 @@ by (simp add: enumerate_eq_zip distinct_zipI1)
 
 lemma enumerate_append_eq:
   "enumerate n (xs @ ys) = enumerate n xs @ enumerate (n + length xs) ys"
-unfolding enumerate_eq_zip
-apply auto
- apply (subst zip_append [symmetric]) apply simp
- apply (subst upt_add_eq_append [symmetric])
- apply (simp_all add: ac_simps)
-done
+  by (simp add: enumerate_eq_zip add.assoc zip_append2)
 
 lemma enumerate_map_upt:
   "enumerate n (map f [n..<m]) = map (\<lambda>k. (k, f k)) [n..<m]"
@@ -4320,31 +4291,37 @@ by(simp add:rotate_add)
 lemma rotate1_rotate_swap: "rotate1 (rotate n xs) = rotate n (rotate1 xs)"
 by(simp add:rotate_def funpow_swap1)
 
-lemma rotate1_length01[simp]: "length xs <= 1 \<Longrightarrow> rotate1 xs = xs"
+lemma rotate1_length01[simp]: "length xs \<le> 1 \<Longrightarrow> rotate1 xs = xs"
 by(cases xs) simp_all
 
-lemma rotate_length01[simp]: "length xs <= 1 \<Longrightarrow> rotate n xs = xs"
-apply(induct n)
- apply simp
-apply (simp add:rotate_def)
-done
+lemma rotate_length01[simp]: "length xs \<le> 1 \<Longrightarrow> rotate n xs = xs"
+  by (induct n) (simp_all add:rotate_def)
 
 lemma rotate1_hd_tl: "xs \<noteq> [] \<Longrightarrow> rotate1 xs = tl xs @ [hd xs]"
 by (cases xs) simp_all
 
 lemma rotate_drop_take:
   "rotate n xs = drop (n mod length xs) xs @ take (n mod length xs) xs"
-apply(induct n)
- apply simp
-apply(simp add:rotate_def)
-apply(cases "xs = []")
- apply (simp)
-apply(case_tac "n mod length xs = 0")
- apply(simp add:mod_Suc)
- apply(simp add: rotate1_hd_tl drop_Suc take_Suc)
-apply(simp add:mod_Suc rotate1_hd_tl drop_Suc[symmetric] drop_tl[symmetric]
-                take_hd_drop linorder_not_le)
-done
+proof (induct n)
+  case (Suc n)
+  show ?case
+  proof (cases "xs = []")
+    case False
+    then show ?thesis
+    proof (cases "n mod length xs = 0")
+      case True
+      then show ?thesis
+        apply (simp add: mod_Suc)
+        by (simp add: False Suc.hyps drop_Suc rotate1_hd_tl take_Suc)
+    next
+      case False
+      with \<open>xs \<noteq> []\<close> Suc
+      show ?thesis
+        by (simp add: rotate_def mod_Suc rotate1_hd_tl drop_Suc[symmetric] drop_tl[symmetric]
+            take_hd_drop linorder_not_le)
+    qed
+  qed simp
+qed simp
 
 lemma rotate_conv_mod: "rotate n xs = rotate (n mod length xs) xs"
 by(simp add:rotate_drop_take)
@@ -4387,11 +4364,14 @@ proof (cases "length xs = 0 \<or> n mod length xs = 0")
     by(simp add:rotate_drop_take rev_drop rev_take)
 qed force
 
-lemma hd_rotate_conv_nth: "xs \<noteq> [] \<Longrightarrow> hd(rotate n xs) = xs!(n mod length xs)"
-apply(simp add:rotate_drop_take hd_append hd_drop_conv_nth hd_conv_nth)
-apply(subgoal_tac "length xs \<noteq> 0")
- prefer 2 apply simp
-using mod_less_divisor[of "length xs" n] by arith
+lemma hd_rotate_conv_nth:
+  assumes "xs \<noteq> []" shows "hd(rotate n xs) = xs!(n mod length xs)"
+proof -
+  have "n mod length xs < length xs"
+    using assms by simp
+  then show ?thesis
+    by (metis drop_eq_Nil hd_append2 hd_drop_conv_nth leD rotate_drop_take)
+qed
 
 lemma rotate_append: "rotate (length l) (l @ q) = q @ l"
   by (induct l arbitrary: q) (auto simp add: rotate1_rotate_swap)
@@ -4410,14 +4390,13 @@ lemma length_nths:
 by(simp add: nths_def length_filter_conv_card cong:conj_cong)
 
 lemma nths_shift_lemma_Suc:
-  "map fst (filter (%p. P(Suc(snd p))) (zip xs is)) =
-   map fst (filter (%p. P(snd p)) (zip xs (map Suc is)))"
-apply(induct xs arbitrary: "is")
- apply simp
-apply (case_tac "is")
- apply simp
-apply simp
-done
+  "map fst (filter (\<lambda>p. P(Suc(snd p))) (zip xs is)) =
+   map fst (filter (\<lambda>p. P(snd p)) (zip xs (map Suc is)))"
+proof (induct xs arbitrary: "is")
+  case (Cons x xs "is")
+  show ?case
+    by (cases "is") (auto simp add: Cons.hyps)
+qed simp
 
 lemma nths_shift_lemma:
   "map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [i..<i + length xs])) =
@@ -4426,26 +4405,26 @@ by (induct xs rule: rev_induct) (simp_all add: add.commute)
 
 lemma nths_append:
   "nths (l @ l') A = nths l A @ nths l' {j. j + length l \<in> A}"
-apply (unfold nths_def)
-apply (induct l' rule: rev_induct, simp)
-apply (simp add: upt_add_eq_append[of 0] nths_shift_lemma)
-apply (simp add: add.commute)
-done
+  unfolding nths_def
+proof (induct l' rule: rev_induct)
+  case (snoc x xs)
+  then show ?case
+    by (simp add: upt_add_eq_append[of 0] nths_shift_lemma add.commute)
+qed auto
 
 lemma nths_Cons:
   "nths (x # l) A = (if 0 \<in> A then [x] else []) @ nths l {j. Suc j \<in> A}"
-apply (induct l rule: rev_induct)
- apply (simp add: nths_def)
-apply (simp del: append_Cons add: append_Cons[symmetric] nths_append)
-done
+proof (induct l rule: rev_induct)
+  case (snoc x xs)
+  then show ?case
+    by (simp flip: append_Cons add: nths_append)
+qed (auto simp: nths_def)
 
 lemma nths_map: "nths (map f xs) I = map f (nths xs I)"
 by(induction xs arbitrary: I) (simp_all add: nths_Cons)
 
 lemma set_nths: "set(nths xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
-apply(induct xs arbitrary: I)
-apply(auto simp: nths_Cons nth_Cons split:nat.split dest!: gr0_implies_Suc)
-done
+  by (induct xs arbitrary: I) (auto simp: nths_Cons nth_Cons split:nat.split dest!: gr0_implies_Suc)
 
 lemma set_nths_subset: "set(nths xs I) \<subseteq> set xs"
 by(auto simp add:set_nths)
@@ -4794,8 +4773,7 @@ using assms proof (induct arbitrary: i rule: transpose.induct)
     show ?thesis
       unfolding transpose.simps \<open>i = Suc j\<close> nth_Cons_Suc "3.hyps"[OF j_less]
       apply (auto simp: transpose_aux_filter_tail filter_map comp_def length_transpose * ** *** XS_def[symmetric])
-      apply (rule list.exhaust)
-      by auto
+      by (simp add: nth_tl)
   qed
 qed simp_all
 
@@ -4919,11 +4897,7 @@ proof -
 qed
 
 lemma infinite_UNIV_listI: "\<not> finite(UNIV::'a list set)"
-apply (rule notI)
-apply (drule finite_maxlen)
-apply clarsimp
-apply (erule_tac x = "replicate n undefined" in allE)
-by simp
+  by (metis UNIV_I finite_maxlen length_replicate less_irrefl)
 
 
 subsection \<open>Sorting\<close>
@@ -4938,10 +4912,11 @@ lemma sorted_wrt1: "sorted_wrt P [x] = True"
 by(simp)
 
 lemma sorted_wrt2: "transp P \<Longrightarrow> sorted_wrt P (x # y # zs) = (P x y \<and> sorted_wrt P (y # zs))"
-apply(induction zs arbitrary: x y)
-apply(auto dest: transpD)
-apply (meson transpD)
-done
+proof (induction zs arbitrary: x y)
+  case (Cons z zs)
+  then show ?case
+    by simp (meson transpD)+
+qed auto
 
 lemmas sorted_wrt2_simps = sorted_wrt1 sorted_wrt2
 
@@ -4971,9 +4946,7 @@ by(auto simp: le_Suc_eq length_Suc_conv)
 
 lemma sorted_wrt_iff_nth_less:
   "sorted_wrt P xs = (\<forall>i j. i < j \<longrightarrow> j < length xs \<longrightarrow> P (xs ! i) (xs ! j))"
-apply(induction xs)
-apply(auto simp add: in_set_conv_nth Ball_def nth_Cons split: nat.split)
-done
+  by (induction xs) (auto simp add: in_set_conv_nth Ball_def nth_Cons split: nat.split)
 
 lemma sorted_wrt_nth_less:
   "\<lbrakk> sorted_wrt P xs; i < j; j < length xs \<rbrakk> \<Longrightarrow> P (xs ! i) (xs ! j)"
@@ -4983,10 +4956,11 @@ lemma sorted_wrt_upt[simp]: "sorted_wrt (<) [m..<n]"
 by(induction n) (auto simp: sorted_wrt_append)
 
 lemma sorted_wrt_upto[simp]: "sorted_wrt (<) [i..j]"
-apply(induction i j rule: upto.induct)
-apply(subst upto.simps)
-apply(simp)
-done
+proof(induct i j rule:upto.induct)
+  case (1 i j)
+  from this show ?case
+    unfolding upto.simps[of i j] by auto
+qed
 
 text \<open>Each element is greater or equal to its index:\<close>
 
@@ -5315,12 +5289,13 @@ proof (rule insort_key_remove1)
 qed
 
 lemma finite_sorted_distinct_unique:
-shows "finite A \<Longrightarrow> \<exists>!xs. set xs = A \<and> sorted xs \<and> distinct xs"
-apply(drule finite_distinct_list)
-apply clarify
-apply(rule_tac a="sort xs" in ex1I)
-apply (auto simp: sorted_distinct_set_unique)
-done
+  assumes "finite A" shows "\<exists>!xs. set xs = A \<and> sorted xs \<and> distinct xs"
+proof -
+  obtain xs where "distinct xs" "A = set xs"
+    using finite_distinct_list [OF assms] by metis
+  then show ?thesis
+    by (rule_tac a="sort xs" in ex1I) (auto simp: sorted_distinct_set_unique)
+qed
 
 lemma insort_insert_key_triv:
   "f x \<in> f ` set xs \<Longrightarrow> insort_insert_key f x xs = xs"
@@ -5719,7 +5694,7 @@ by (rule in_listsp_conv_set [THEN iffD2])
 
 lemmas in_listsI [intro!] = in_listspI [to_set]
 
-lemma lists_eq_set: "lists A = {xs. set xs <= A}"
+lemma lists_eq_set: "lists A = {xs. set xs \<le> A}"
 by auto
 
 lemma lists_empty [simp]: "lists {} = {[]}"
@@ -5743,12 +5718,12 @@ where
   | insert:  "ListMem x xs \<Longrightarrow> ListMem x (y # xs)"
 
 lemma ListMem_iff: "(ListMem x xs) = (x \<in> set xs)"
-apply (rule iffI)
- apply (induct set: ListMem)
-  apply auto
-apply (induct xs)
- apply (auto intro: ListMem.intros)
-done
+proof
+  show "ListMem x xs \<Longrightarrow> x \<in> set xs"
+    by (induct set: ListMem) auto
+  show "x \<in> set xs \<Longrightarrow> ListMem x xs"
+    by (induct xs) (auto intro: ListMem.intros)
+qed
 
 
 subsubsection \<open>Lists as Cartesian products\<close>
@@ -5791,20 +5766,23 @@ definition lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set" wh
 "lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
         \<comment> \<open>Compares lists by their length and then lexicographically\<close>
 
-lemma wf_lexn: "wf r ==> wf (lexn r n)"
-apply (induct n, simp, simp)
-apply(rule wf_subset)
- prefer 2 apply (rule Int_lower1)
-apply(rule wf_map_prod_image)
- prefer 2 apply (rule inj_onI, auto)
-done
+lemma wf_lexn: assumes "wf r" shows "wf (lexn r n)"
+proof (induct n)
+  case (Suc n)
+  have inj: "inj (\<lambda>(x, xs). x # xs)"
+    using assms by (auto simp: inj_on_def)
+  have wf: "wf (map_prod (\<lambda>(x, xs). x # xs) (\<lambda>(x, xs). x # xs) ` (r <*lex*> lexn r n))"
+    by (simp add: Suc.hyps assms wf_lex_prod wf_map_prod_image [OF _ inj])
+  then show ?case
+    by (rule wf_subset) auto
+qed auto
 
 lemma lexn_length:
   "(xs, ys) \<in> lexn r n \<Longrightarrow> length xs = n \<and> length ys = n"
 by (induct n arbitrary: xs ys) auto
 
 lemma wf_lex [intro!]: "wf r ==> wf (lex r)"
-  apply (unfold lex_def)
+  unfolding lex_def
   apply (rule wf_UN)
    apply (simp add: wf_lexn)
   apply (metis DomainE Int_emptyI RangeE lexn_length)
@@ -5907,14 +5885,12 @@ lemma Nil2_notin_lex [iff]: "(xs, []) \<notin> lex r"
 by (simp add:lex_conv)
 
 lemma Cons_in_lex [simp]:
-    "((x # xs, y # ys) \<in> lex r) =
+  "((x # xs, y # ys) \<in> lex r) =
       ((x, y) \<in> r \<and> length xs = length ys \<or> x = y \<and> (xs, ys) \<in> lex r)"
-apply (simp add: lex_conv)
-apply (rule iffI)
- prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
-apply (case_tac xys, simp, simp)
-apply blast
-  done
+  apply (simp add: lex_conv)
+  apply (rule iffI)
+   prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
+  by (metis hd_append append_Nil list.sel(1) list.sel(3) tl_append2)
 
 lemma lex_append_rightI:
   "(xs, ys) \<in> lex r \<Longrightarrow> length vs = length us \<Longrightarrow> (xs @ us, ys @ vs) \<in> lex r"
@@ -5962,12 +5938,13 @@ lemma lexord_Nil_right[simp]: "(x,[]) \<notin> lexord r"
 by (unfold lexord_def, induct_tac x, auto)
 
 lemma lexord_cons_cons[simp]:
-     "((a # x, b # y) \<in> lexord r) = ((a,b)\<in> r \<or> (a = b \<and> (x,y)\<in> lexord r))"
-  apply (unfold lexord_def, safe, simp_all)
-  apply (case_tac u, simp, simp)
-  apply (case_tac u, simp, clarsimp, blast, blast, clarsimp)
-  apply (erule_tac x="b # u" in allE)
-  by force
+  "((a # x, b # y) \<in> lexord r) = ((a,b)\<in> r \<or> (a = b \<and> (x,y)\<in> lexord r))"
+  unfolding lexord_def
+  apply (safe, simp_all)
+     apply (metis hd_append list.sel(1))
+    apply (metis hd_append list.sel(1) list.sel(3) tl_append2)
+   apply blast
+  by (meson Cons_eq_appendI)
 
 lemmas lexord_simps = lexord_Nil_left lexord_Nil_right lexord_cons_cons
 
@@ -5991,24 +5968,17 @@ lemma lexord_take_index_conv:
      (\<exists>i. i < min(length x)(length y) \<and> take i x = take i y \<and> (x!i,y!i) \<in> r))"
   apply (unfold lexord_def Let_def, clarsimp)
   apply (rule_tac f = "(% a b. a \<or> b)" in arg_cong2)
+  apply (metis Cons_nth_drop_Suc append_eq_conv_conj drop_all list.simps(3) not_le)
   apply auto
-  apply (rule_tac x="hd (drop (length x) y)" in exI)
-  apply (rule_tac x="tl (drop (length x) y)" in exI)
-  apply (erule subst, simp add: min_def)
   apply (rule_tac x ="length u" in exI, simp)
-  apply (rule_tac x ="take i x" in exI)
-  apply (rule_tac x ="x ! i" in exI)
-  apply (rule_tac x ="y ! i" in exI, safe)
-  apply (rule_tac x="drop (Suc i) x" in exI)
-  apply (drule sym, simp add: Cons_nth_drop_Suc)
-  apply (rule_tac x="drop (Suc i) y" in exI)
-  by (simp add: Cons_nth_drop_Suc)
+  by (metis id_take_nth_drop)
 
 \<comment> \<open>lexord is extension of partial ordering List.lex\<close>
 lemma lexord_lex: "(x,y) \<in> lex r = ((x,y) \<in> lexord r \<and> length x = length y)"
-  apply (rule_tac x = y in spec)
-  apply (induct_tac x, clarsimp)
-  by (clarify, case_tac x, simp, force)
+proof (induction x arbitrary: y)
+  case (Cons a x y) then show ?case
+    by (cases y) (force+)
+qed auto
 
 lemma lexord_irreflexive: "\<forall>x. (x,x) \<notin> r \<Longrightarrow> (xs,xs) \<notin> lexord r"
 by (induct xs) auto
@@ -6051,12 +6021,15 @@ by(auto simp: trans_def intro:lexord_partial_trans)
 lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
 by (rule transI, drule lexord_trans, blast)
 
-lemma lexord_linear: "(\<forall>a b. (a,b)\<in> r \<or> a = b \<or> (b,a) \<in> r) \<Longrightarrow> (x,y) \<in> lexord r \<or> x = y \<or> (y,x) \<in> lexord r"
-  apply (rule_tac x = y in spec)
-  apply (induct_tac x, rule allI)
-  apply (case_tac x, simp, simp)
-  apply (rule allI, case_tac x, simp, simp)
-  by blast
+lemma lexord_linear: "(\<forall>a b. (a,b) \<in> r \<or> a = b \<or> (b,a) \<in> r) \<Longrightarrow> (x,y) \<in> lexord r \<or> x = y \<or> (y,x) \<in> lexord r"
+proof (induction x arbitrary: y)
+  case Nil
+  then show ?case
+    by (metis lexord_Nil_left list.exhaust)
+next
+  case (Cons a x y) then show ?case
+    by (cases y) (force+)
+qed 
 
 lemma lexord_irrefl:
   "irrefl R \<Longrightarrow> irrefl (lexord R)"
@@ -6222,27 +6195,17 @@ using assms by induct simp_all
 lemma lexordp_eq_trans:
   assumes "lexordp_eq xs ys" and "lexordp_eq ys zs"
   shows "lexordp_eq xs zs"
-using assms
-apply(induct arbitrary: zs)
-apply(case_tac [2-3] zs)
-apply auto
-done
+  using assms
+  by (induct arbitrary: zs) (case_tac zs; auto)+
 
 lemma lexordp_trans:
   assumes "lexordp xs ys" "lexordp ys zs"
   shows "lexordp xs zs"
-using assms
-apply(induct arbitrary: zs)
-apply(case_tac [2-3] zs)
-apply auto
-done
+  using assms
+  by (induct arbitrary: zs) (case_tac zs; auto)+
 
 lemma lexordp_linear: "lexordp xs ys \<or> xs = ys \<or> lexordp ys xs"
-proof(induct xs arbitrary: ys)
-  case Nil thus ?case by(cases ys) simp_all
-next
-  case Cons thus ?case by(cases ys) auto
-qed
+  by(induct xs arbitrary: ys; case_tac ys; fastforce)
 
 lemma lexordp_conv_lexordp_eq: "lexordp xs ys \<longleftrightarrow> lexordp_eq xs ys \<and> \<not> lexordp_eq ys xs"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -6260,13 +6223,11 @@ lemma lexordp_eq_conv_lexord: "lexordp_eq xs ys \<longleftrightarrow> xs = ys \<
 by(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl dest: lexordp_eq_antisym)
 
 lemma lexordp_eq_linear: "lexordp_eq xs ys \<or> lexordp_eq ys xs"
-apply(induct xs arbitrary: ys)
-apply(case_tac [!] ys)
-apply auto
-done
+  by (induct xs arbitrary: ys) (case_tac ys; auto)+
 
 lemma lexordp_linorder: "class.linorder lexordp_eq lexordp"
-by unfold_locales(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
+  by unfold_locales
+     (auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
 
 end
 
@@ -6294,7 +6255,7 @@ by auto
 lemma measures_less: "f x < f y ==> (x, y) \<in> measures (f#fs)"
 by simp
 
-lemma measures_lesseq: "f x <= f y ==> (x, y) \<in> measures fs ==> (x, y) \<in> measures (f#fs)"
+lemma measures_lesseq: "f x \<le> f y ==> (x, y) \<in> measures fs ==> (x, y) \<in> measures (f#fs)"
 by auto
 
 
@@ -6404,17 +6365,20 @@ lemma Cons_acc_listrel1I [intro!]:
 apply (induct arbitrary: xs set: Wellfounded.acc)
 apply (erule thin_rl)
 apply (erule acc_induct)
-apply (rule accI)
+  apply (rule accI)
 apply (blast)
 done
 
 lemma lists_accD: "xs \<in> lists (Wellfounded.acc r) \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r)"
-apply (induct set: lists)
- apply (rule accI)
- apply simp
-apply (rule accI)
-apply (fast dest: acc_downward)
-done
+proof (induct set: lists)
+  case Nil
+  then show ?case
+    by (meson acc.intros not_listrel1_Nil)
+next
+  case (Cons a l)
+  then show ?case
+    by blast
+qed
 
 lemma lists_accI: "xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> xs \<in> lists (Wellfounded.acc r)"
 apply (induct set: Wellfounded.acc)
@@ -6461,10 +6425,7 @@ by (auto simp add: all_set_conv_all_nth listrel_iff_zip)
 
 
 lemma listrel_mono: "r \<subseteq> s \<Longrightarrow> listrel r \<subseteq> listrel s"
-apply clarify
-apply (erule listrel.induct)
-apply (blast intro: listrel.intros)+
-done
+  by (meson listrel_iff_nth subrelI subset_eq)
 
 lemma listrel_subset: "r \<subseteq> A \<times> A \<Longrightarrow> listrel r \<subseteq> lists A \<times> lists A"
 apply clarify
@@ -6479,10 +6440,7 @@ apply (auto intro: listrel.intros)
 done
 
 lemma listrel_sym: "sym r \<Longrightarrow> sym (listrel r)"
-apply (auto simp add: sym_def)
-apply (erule listrel.induct)
-apply (blast intro: listrel.intros)+
-done
+  by (simp add: listrel_iff_nth sym_def)
 
 lemma listrel_trans: "trans r \<Longrightarrow> trans (listrel r)"
 apply (simp add: trans_def)
@@ -7138,7 +7096,7 @@ lemma image_set [code]:
 lemma subset_code [code]:
   "set xs \<le> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
   "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
-  "List.coset [] \<le> set [] \<longleftrightarrow> False"
+  "List.coset [] \<subseteq> set [] \<longleftrightarrow> False"
   by auto
 
 text \<open>A frequent case -- avoid intermediate sets\<close>
@@ -7367,10 +7325,7 @@ lemma set_Cons_transfer [transfer_rule]:
   "(rel_set A ===> rel_set (list_all2 A) ===> rel_set (list_all2 A))
     set_Cons set_Cons"
   unfolding rel_fun_def rel_set_def set_Cons_def
-  apply safe
-  apply (simp add: list_all2_Cons1, fast)
-  apply (simp add: list_all2_Cons2, fast)
-  done
+  by (fastforce simp add: list_all2_Cons1 list_all2_Cons2)
 
 lemma listset_transfer [transfer_rule]:
   "(list_all2 (rel_set A) ===> rel_set (list_all2 A)) listset listset"

@@ -259,6 +259,15 @@ object Library
     result.toList
   }
 
+  def replicate[A](n: Int, a: A): List[A] =
+    if (n < 0) throw new IllegalArgumentException
+    else if (n == 0) Nil
+    else {
+      val res = new mutable.ListBuffer[A]
+      (1 to n).foreach(_ => res += a)
+      res.toList
+    }
+
 
   /* proper values */
 

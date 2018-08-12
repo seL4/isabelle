@@ -395,11 +395,8 @@ lemma cong_add_rcancel_0_nat: "[x + a = a] (mod n) \<longleftrightarrow> [x = 0]
 
 lemma cong_dvd_modulus_nat: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> [x = y] (mod n)"
   for x y :: nat
-  apply (auto simp add: cong_iff_lin_nat dvd_def)
-  apply (rule_tac x= "k1 * k" in exI)
-  apply (rule_tac x= "k2 * k" in exI)
-  apply (simp add: field_simps)
-  done
+  unfolding cong_iff_lin_nat dvd_def
+  by (metis mult.commute mult.left_commute)
 
 lemma cong_to_1_nat:
   fixes a :: nat
@@ -433,41 +430,36 @@ lemma cong_le_nat: "y \<le> x \<Longrightarrow> [x = y] (mod n) \<longleftrighta
   for x y :: nat
   by (auto simp add: cong_altdef_nat le_imp_diff_is_add elim!: dvdE)
 
+
 lemma cong_solve_nat:
   fixes a :: nat
-  assumes "a \<noteq> 0"
   shows "\<exists>x. [a * x = gcd a n] (mod n)"
-proof (cases "n = 0")
+proof (cases "a = 0 \<or> n = 0")
   case True
-  then show ?thesis by force
+  then show ?thesis
+    by (force simp add: cong_0_iff cong_sym)
 next
   case False
   then show ?thesis
-    using bezout_nat [of a n, OF \<open>a \<noteq> 0\<close>]
+    using bezout_nat [of a n]
     by auto (metis cong_add_rcancel_0_nat cong_mult_self_left)
 qed
 
-lemma cong_solve_int: "a \<noteq> 0 \<Longrightarrow> \<exists>x. [a * x = gcd a n] (mod n)"
-  for a :: int
-  apply (cases "n = 0")
-   apply (cases "a \<ge> 0")
-    apply auto
-   apply (rule_tac x = "-1" in exI)
-   apply auto
-  apply (insert bezout_int [of a n], auto)
-  apply (metis cong_iff_lin mult.commute)
-  done
+lemma cong_solve_int:
+  fixes a :: int
+  shows "\<exists>x. [a * x = gcd a n] (mod n)"
+    by (metis bezout_int cong_iff_lin mult.commute)
 
 lemma cong_solve_dvd_nat:
   fixes a :: nat
-  assumes a: "a \<noteq> 0" and b: "gcd a n dvd d"
+  assumes "gcd a n dvd d"
   shows "\<exists>x. [a * x = d] (mod n)"
 proof -
-  from cong_solve_nat [OF a] obtain x where "[a * x = gcd a n](mod n)"
+  from cong_solve_nat [of a] obtain x where "[a * x = gcd a n](mod n)"
     by auto
   then have "[(d div gcd a n) * (a * x) = (d div gcd a n) * gcd a n] (mod n)"
     using cong_scalar_left by blast
-  also from b have "(d div gcd a n) * gcd a n = d"
+  also from assms have "(d div gcd a n) * gcd a n = d"
     by (rule dvd_div_mult_self)
   also have "(d div gcd a n) * (a * x) = a * (d div gcd a n * x)"
     by auto
@@ -476,10 +468,11 @@ proof -
 qed
 
 lemma cong_solve_dvd_int:
-  assumes a: "(a::int) \<noteq> 0" and b: "gcd a n dvd d"
+  fixes a::int
+  assumes b: "gcd a n dvd d"
   shows "\<exists>x. [a * x = d] (mod n)"
 proof -
-  from cong_solve_int [OF a] obtain x where "[a * x = gcd a n](mod n)"
+  from cong_solve_int [of a] obtain x where "[a * x = gcd a n](mod n)"
     by auto
   then have "[(d div gcd a n) * (a * x) = (d div gcd a n) * gcd a n] (mod n)"
     using cong_scalar_left by blast
@@ -493,12 +486,11 @@ qed
 
 lemma cong_solve_coprime_nat:
   "\<exists>x. [a * x = Suc 0] (mod n)" if "coprime a n"
-  using that cong_solve_nat [of a n] by (cases "a = 0") simp_all
+  using that cong_solve_nat [of a n] by auto
 
 lemma cong_solve_coprime_int:
   "\<exists>x. [a * x = 1] (mod n)" if "coprime a n" for a n x :: int
-  using that cong_solve_int [of a n] by (cases "a = 0")
-    (auto simp add: zabs_def split: if_splits)
+  using that cong_solve_int [of a n] by (auto simp add: zabs_def split: if_splits)
 
 lemma coprime_iff_invertible_nat:
   "coprime a m \<longleftrightarrow> (\<exists>x. [a * x = Suc 0] (mod m))" (is "?P \<longleftrightarrow> ?Q")
@@ -529,27 +521,29 @@ next
 qed
 
 lemma coprime_iff_invertible'_nat:
-  "m > 0 \<Longrightarrow> coprime a m \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> x < m \<and> [a * x = Suc 0] (mod m))"
-  apply (subst coprime_iff_invertible_nat)
-   apply auto
-  apply (auto simp add: cong_def)
-  apply (metis mod_less_divisor mod_mult_right_eq)
-  done
+  assumes "m > 0"
+  shows "coprime a m \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> x < m \<and> [a * x = Suc 0] (mod m))"
+proof -
+  have "\<And>b. \<lbrakk>0 < m; [a * b = Suc 0] (mod m)\<rbrakk> \<Longrightarrow> \<exists>b'<m. [a * b' = Suc 0] (mod m)"
+    by (metis cong_def mod_less_divisor [OF assms] mod_mult_right_eq)
+  then show ?thesis
+    using assms coprime_iff_invertible_nat by auto
+qed
 
 lemma coprime_iff_invertible'_int:
-  "m > 0 \<Longrightarrow> coprime a m \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> x < m \<and> [a * x = 1] (mod m))"
-  for m :: int
-  apply (subst coprime_iff_invertible_int)
-   apply (auto simp add: cong_def)
-  apply (metis mod_mult_right_eq pos_mod_conj)
-  done
+  fixes m :: int
+  assumes "m > 0"
+  shows "coprime a m \<longleftrightarrow> (\<exists>x. 0 \<le> x \<and> x < m \<and> [a * x = 1] (mod m))"
+proof -
+  have "\<And>b. \<lbrakk>0 < m; [a * b = 1] (mod m)\<rbrakk> \<Longrightarrow> \<exists>b'<m. [a * b' = 1] (mod m)"
+    by (meson cong_less_unique_int cong_scalar_left cong_sym cong_trans)
+  then show ?thesis
+    by (metis assms coprime_iff_invertible_int cong_def cong_mult_lcancel mod_pos_pos_trivial pos_mod_conj)
+qed
 
 lemma cong_cong_lcm_nat: "[x = y] (mod a) \<Longrightarrow> [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   for x y :: nat
-  apply (cases "y \<le> x")
-   apply (simp add: cong_altdef_nat)
-  apply (meson cong_altdef_nat cong_sym lcm_least_iff nat_le_linear)
-  done
+  by (meson cong_altdef_nat' lcm_least)
 
 lemma cong_cong_lcm_int: "[x = y] (mod a) \<Longrightarrow> [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   for x y :: int
@@ -636,10 +630,7 @@ qed
 
 lemma cong_modulus_mult_nat: "[x = y] (mod m * n) \<Longrightarrow> [x = y] (mod m)"
   for x y :: nat
-  apply (cases "y \<le> x")
-   apply (auto simp add: cong_altdef_nat elim: dvd_mult_left)
-  apply (metis cong_def mod_mult_cong_right)
-  done
+  by (metis cong_def mod_mult_cong_right)
 
 lemma cong_less_modulus_unique_nat: "[x = y] (mod m) \<Longrightarrow> x < m \<Longrightarrow> y < m \<Longrightarrow> x = y"
   for x y :: nat
@@ -651,50 +642,28 @@ lemma binary_chinese_remainder_unique_nat:
     and nz: "m1 \<noteq> 0" "m2 \<noteq> 0"
   shows "\<exists>!x. x < m1 * m2 \<and> [x = u1] (mod m1) \<and> [x = u2] (mod m2)"
 proof -
-  from binary_chinese_remainder_nat [OF a] obtain y
-    where "[y = u1] (mod m1)" and "[y = u2] (mod m2)"
-    by blast
+  obtain y where y1: "[y = u1] (mod m1)" and y2: "[y = u2] (mod m2)"
+    using binary_chinese_remainder_nat [OF a] by blast
   let ?x = "y mod (m1 * m2)"
   from nz have less: "?x < m1 * m2"
     by auto
   have 1: "[?x = u1] (mod m1)"
-    apply (rule cong_trans)
-     prefer 2
-     apply (rule \<open>[y = u1] (mod m1)\<close>)
-    apply (rule cong_modulus_mult_nat [of _ _ _ m2])
-    apply simp
-    done
+    using y1 mod_mult_cong_right by blast
   have 2: "[?x = u2] (mod m2)"
-    apply (rule cong_trans)
-     prefer 2
-     apply (rule \<open>[y = u2] (mod m2)\<close>)
-    apply (subst mult.commute)
-    apply (rule cong_modulus_mult_nat [of _ _ _ m1])
-    apply simp
-    done
-  have "\<forall>z. z < m1 * m2 \<and> [z = u1] (mod m1) \<and> [z = u2] (mod m2) \<longrightarrow> z = ?x"
-  proof clarify
-    fix z
-    assume "z < m1 * m2"
-    assume "[z = u1] (mod m1)" and  "[z = u2] (mod m2)"
+    using y2 mod_mult_cong_left by blast
+  have "z = ?x" if "z < m1 * m2" "[z = u1] (mod m1)"  "[z = u2] (mod m2)" for z
+  proof -
     have "[?x = z] (mod m1)"
-      apply (rule cong_trans)
-       apply (rule \<open>[?x = u1] (mod m1)\<close>)
-      apply (rule cong_sym)
-      apply (rule \<open>[z = u1] (mod m1)\<close>)
-      done
+      by (metis "1" cong_def that(2))
     moreover have "[?x = z] (mod m2)"
-      apply (rule cong_trans)
-       apply (rule \<open>[?x = u2] (mod m2)\<close>)
-      apply (rule cong_sym)
-      apply (rule \<open>[z = u2] (mod m2)\<close>)
-      done
+      by (metis "2" cong_def that(3))
     ultimately have "[?x = z] (mod m1 * m2)"
       using a by (auto intro: coprime_cong_mult_nat simp add: mod_mult_cong_left mod_mult_cong_right)
     with \<open>z < m1 * m2\<close> \<open>?x < m1 * m2\<close> show "z = ?x"
       by (auto simp add: cong_def)
   qed
-  with less 1 2 show ?thesis by auto
+  with less 1 2 show ?thesis
+    by blast
  qed
 
 lemma chinese_remainder_nat:
@@ -720,7 +689,7 @@ proof -
     ultimately show "\<exists>a. [a = 1] (mod m i) \<and> [a = 0] (mod prod m (A - {i}))"
       by blast
   qed
-  then obtain b where b: "\<forall>i \<in> A. [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
+  then obtain b where b: "\<And>i. i \<in> A \<Longrightarrow> [b i = 1] (mod m i) \<and> [b i = 0] (mod (\<Prod>j \<in> A - {i}. m j))"
     by blast
   let ?x = "\<Sum>i\<in>A. (u i) * (b i)"
   show ?thesis
@@ -735,29 +704,32 @@ proof -
         by auto
       also have "[u i * b i + (\<Sum>j \<in> A - {i}. u j * b j) =
                   u i * 1 + (\<Sum>j \<in> A - {i}. u j * 0)] (mod m i)"
-        apply (rule cong_add)
-         apply (rule cong_scalar_left)
-        using b a apply blast
-        apply (rule cong_sum)
-        apply (rule cong_scalar_left)
-        using b apply (auto simp add: mod_eq_0_iff_dvd cong_def)
-        apply (rule dvd_trans [of _ "prod m (A - {x})" "b x" for x])
-        using a fin apply auto
-        done
+      proof (intro cong_add cong_scalar_left cong_sum)
+        show "[b i = 1] (mod m i)"
+          using a b by blast
+        show "[b x = 0] (mod m i)" if "x \<in> A - {i}" for x
+        proof -
+          have "x \<in> A" "x \<noteq> i"
+            using that by auto
+          then show ?thesis
+            using a b [OF \<open>x \<in> A\<close>] cong_dvd_modulus_nat fin by blast
+        qed
+      qed
       finally show ?thesis
         by simp
     qed
   qed
 qed
 
-lemma coprime_cong_prod_nat:
-  "[x = y] (mod (\<Prod>i\<in>A. m i))"
-  if "\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))"
-    and "\<forall>i\<in>A. [x = y] (mod m i)" for x y :: nat
-  using that apply (induct A rule: infinite_finite_induct)
-    apply auto
-  apply (metis coprime_cong_mult_nat prod_coprime_right)
-  done
+lemma coprime_cong_prod_nat: "[x = y] (mod (\<Prod>i\<in>A. m i))"
+  if "\<And>i j. \<lbrakk>i \<in> A; j \<in> A; i \<noteq> j\<rbrakk> \<Longrightarrow> coprime (m i) (m j)"
+    and "\<And>i. i \<in> A \<Longrightarrow> [x = y] (mod m i)" for x y :: nat
+  using that 
+proof (induct A rule: infinite_finite_induct)
+  case (insert x A)
+  then show ?case
+    by simp (metis coprime_cong_mult_nat prod_coprime_right)
+qed auto
 
 lemma chinese_remainder_unique_nat:
   fixes A :: "'a set"
@@ -794,95 +766,5 @@ proof -
   from less cong unique show ?thesis
     by blast
 qed
-
-
-subsection \<open>Aliasses\<close>
-
-lemma cong_altdef_int:
-  "[a = b] (mod m) \<longleftrightarrow> m dvd (a - b)"
-  for a b :: int
-  by (fact cong_iff_dvd_diff)
-
-lemma cong_iff_lin_int: "[a = b] (mod m) \<longleftrightarrow> (\<exists>k. b = a + m * k)"
-  for a b :: int
-  by (fact cong_iff_lin)
-
-lemma cong_minus_int: "[a = b] (mod - m) \<longleftrightarrow> [a = b] (mod m)"
-  for a b :: int
-  by (fact cong_modulus_minus_iff)
-
-lemma cong_add_lcancel_int: "[a + x = a + y] (mod n) \<longleftrightarrow> [x = y] (mod n)"
-  for a x y :: int
-  by (fact cong_add_lcancel)
-
-lemma cong_add_rcancel_int: "[x + a = y + a] (mod n) \<longleftrightarrow> [x = y] (mod n)"
-  for a x y :: int
-  by (fact cong_add_rcancel)
-
-lemma cong_add_lcancel_0_int:
-  "[a + x = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
-  for a x :: int
-  by (fact cong_add_lcancel_0)
-
-lemma cong_add_rcancel_0_int:
-  "[x + a = a] (mod n) \<longleftrightarrow> [x = 0] (mod n)"
-  for a x :: int
-  by (fact cong_add_rcancel_0) 
-
-lemma cong_dvd_modulus_int: "[x = y] (mod m) \<Longrightarrow> n dvd m \<Longrightarrow> [x = y] (mod n)"
-  for x y :: int
-  by (fact cong_dvd_modulus)
-
-lemma cong_abs_int:
-  "[x = y] (mod \<bar>m\<bar>) \<longleftrightarrow> [x = y] (mod m)"
-  for x y :: int
-  by (fact cong_abs)
-
-lemma cong_square_int:
-  "prime p \<Longrightarrow> 0 < a \<Longrightarrow> [a * a = 1] (mod p) \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
-  for a :: int
-  by (fact cong_square)
-
-lemma cong_mult_rcancel_int:
-  "[a * k = b * k] (mod m) \<longleftrightarrow> [a = b] (mod m)"
-  if "coprime k m" for a k m :: int
-  using that by (fact cong_mult_rcancel)
-
-lemma cong_mult_lcancel_int:
-  "[k * a = k * b] (mod m) = [a = b] (mod m)"
-  if "coprime k m" for a k m :: int
-  using that by (fact cong_mult_lcancel)
-
-lemma coprime_cong_mult_int:
-  "[a = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n \<Longrightarrow> [a = b] (mod m * n)"
-  for a b :: int
-  by (fact coprime_cong_mult)
-
-lemma cong_gcd_eq_nat: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
-  for a b :: nat
-  by (fact cong_gcd_eq)
-
-lemma cong_gcd_eq_int: "[a = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
-  for a b :: int
-  by (fact cong_gcd_eq)
-
-lemma cong_imp_coprime_nat: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
-  for a b :: nat
-  by (fact cong_imp_coprime)
-
-lemma cong_imp_coprime_int: "[a = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
-  for a b :: int
-  by (fact cong_imp_coprime)
-
-lemma cong_cong_prod_coprime_int:
-  "[x = y] (mod (\<Prod>i\<in>A. m i))" if
-    "(\<forall>i\<in>A. [x = y] (mod m i))"
-    "(\<forall>i\<in>A. (\<forall>j\<in>A. i \<noteq> j \<longrightarrow> coprime (m i) (m j)))"
-  for x y :: int
-  using that by (fact cong_cong_prod_coprime)
-
-lemma cong_modulus_mult_int: "[x = y] (mod m * n) \<Longrightarrow> [x = y] (mod m)"
-  for x y :: int
-  by (fact cong_modulus_mult)
 
 end

@@ -45,4 +45,23 @@ datatype_record (plugins del: code) (dead 'a :: finite, b_set: 'b) rec =
 lemma "b_set \<lparr> field_1 = True, field_2 = False \<rparr> = {False}"
   by simp
 
+text \<open>More tests\<close>
+
+datatype_record ('a, 'b) test1 =
+  field_t11 :: 'a
+  field_t12 :: 'b
+  field_t13 :: nat
+  field_t14 :: int
+
+thm test1.record_simps
+
+definition ID where "ID x = x"
+lemma ID_cong[cong]: "ID x = ID x" by (rule refl)
+
+lemma "update_field_t11 f (update_field_t12 g (update_field_t11 h x)) = ID (update_field_t12 g (update_field_t11 (\<lambda>x. f (h x)) x))"
+  apply (simp only: test1.record_simps)
+  apply (subst ID_def)
+  apply (rule refl)
+  done
+
 end

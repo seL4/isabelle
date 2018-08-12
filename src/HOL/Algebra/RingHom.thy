@@ -20,11 +20,10 @@ sublocale ring_hom_cring \<subseteq> ring: ring_hom_ring
   by standard (rule homh)
 
 sublocale ring_hom_ring \<subseteq> abelian_group?: abelian_group_hom R S
-apply (intro abelian_group_homI R.is_abelian_group S.is_abelian_group)
-apply (intro group_hom.intro group_hom_axioms.intro R.a_group S.a_group)
-apply (insert homh, unfold hom_def ring_hom_def)
-apply simp
-done
+proof 
+  show "h \<in> hom (add_monoid R) (add_monoid S)"
+    using homh by (simp add: hom_def ring_hom_def)
+qed
 
 lemma (in ring_hom_ring) is_ring_hom_ring:
   "ring_hom_ring R S h"
@@ -33,8 +32,7 @@ lemma (in ring_hom_ring) is_ring_hom_ring:
 lemma ring_hom_ringI:
   fixes R (structure) and S (structure)
   assumes "ring R" "ring S"
-  assumes (* morphism: "h \<in> carrier R \<rightarrow> carrier S" *)
-          hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
+  assumes hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
       and compatible_mult: "\<And>x y. [| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
       and compatible_add: "\<And>x y. [| x \<in> carrier R; y \<in> carrier R |] ==> h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
@@ -42,13 +40,12 @@ lemma ring_hom_ringI:
 proof -
   interpret ring R by fact
   interpret ring S by fact
-  show ?thesis apply unfold_locales
-apply (unfold ring_hom_def, safe)
-   apply (simp add: hom_closed Pi_def)
-  apply (erule (1) compatible_mult)
- apply (erule (1) compatible_add)
-apply (rule compatible_one)
-done
+  show ?thesis
+  proof
+    show "h \<in> ring_hom R S"
+      unfolding ring_hom_def
+      by (auto simp: compatible_mult compatible_add compatible_one hom_closed)
+  qed
 qed
 
 lemma ring_hom_ringI2:
@@ -58,11 +55,11 @@ lemma ring_hom_ringI2:
 proof -
   interpret R: ring R by fact
   interpret S: ring S by fact
-  show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
-    apply (rule R.is_ring)
-    apply (rule S.is_ring)
-    apply (rule h)
-    done
+  show ?thesis 
+  proof
+    show "h \<in> ring_hom R S"
+      using h .
+  qed
 qed
 
 lemma ring_hom_ringI3:
@@ -75,13 +72,11 @@ proof -
   interpret abelian_group_hom R S h by fact
   interpret R: ring R by fact
   interpret S: ring S by fact
-  show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, rule R.is_ring, rule S.is_ring)
-    apply (insert group_hom.homh[OF a_group_hom])
-    apply (unfold hom_def ring_hom_def, simp)
-    apply safe
-    apply (erule (1) compatible_mult)
-    apply (rule compatible_one)
-    done
+  show ?thesis
+  proof
+    show "h \<in> ring_hom R S"
+      unfolding ring_hom_def by (auto simp: compatible_one compatible_mult)
+  qed
 qed
 
 lemma ring_hom_cringI:
@@ -91,21 +86,22 @@ proof -
   interpret ring_hom_ring R S h by fact
   interpret R: cring R by fact
   interpret S: cring S by fact
-  show ?thesis by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
-    (rule R.is_cring, rule S.is_cring, rule homh)
+  show ?thesis 
+  proof
+    show "h \<in> ring_hom R S"
+      by (simp add: homh)
+  qed
 qed
 
 
 subsection \<open>The Kernel of a Ring Homomorphism\<close>
 
 \<comment> \<open>the kernel of a ring homomorphism is an ideal\<close>
-lemma (in ring_hom_ring) kernel_is_ideal:
-  shows "ideal (a_kernel R S h) R"
-apply (rule idealI)
-   apply (rule R.is_ring)
-  apply (rule additive_subgroup.a_subgroup[OF additive_subgroup_a_kernel])
- apply (unfold a_kernel_def', simp+)
-done
+lemma (in ring_hom_ring) kernel_is_ideal: "ideal (a_kernel R S h) R"
+  apply (rule idealI [OF R.is_ring])
+    apply (rule additive_subgroup.a_subgroup[OF additive_subgroup_a_kernel])
+   apply (auto simp: a_kernel_def')
+  done
 
 text \<open>Elements of the kernel are mapped to zero\<close>
 lemma (in abelian_group_hom) kernel_zero [simp]:
@@ -174,29 +170,10 @@ qed
 corollary (in ring_hom_ring) rcos_eq_homeq:
   assumes acarr: "a \<in> carrier R"
   shows "(a_kernel R S h) +> a = {x \<in> carrier R. h x = h a}"
-  apply rule defer 1
-   apply clarsimp defer 1
-proof
+proof -
   interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
-
-  fix x
-  assume xrcos: "x \<in> a_kernel R S h +> a"
-  from acarr and this
-  have xcarr: "x \<in> carrier R"
-    by (rule a_elemrcos_carrier)
-
-  from xrcos
-  have "h x = h a" by (rule rcos_imp_homeq[OF acarr])
-  from xcarr and this
-  show "x \<in> {x \<in> carrier R. h x = h a}" by fast
-next
-  interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
-
-  fix x
-  assume xcarr: "x \<in> carrier R"
-    and hx: "h x = h a"
-  from acarr xcarr hx
-  show "x \<in> a_kernel R S h +> a" by (rule homeq_imp_rcos)
+  show ?thesis
+    using assms by (auto simp: intro: homeq_imp_rcos rcos_imp_homeq a_elemrcos_carrier)
 qed
 
 lemma (in ring_hom_ring) nat_pow_hom:

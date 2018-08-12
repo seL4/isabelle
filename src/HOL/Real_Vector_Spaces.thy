@@ -1012,6 +1012,9 @@ lemma dist_triangle: "dist x z \<le> dist x y + dist y z"
 lemma dist_triangle3: "dist x y \<le> dist a x + dist a y"
   using dist_triangle2 [of x y a] by (simp add: dist_commute)
 
+lemma abs_dist_diff_le: "\<bar>dist a b - dist b c\<bar> \<le> dist a c"
+  using dist_triangle3[of b c a] dist_triangle2[of a b c] by simp
+
 lemma dist_pos_lt: "x \<noteq> y \<Longrightarrow> 0 < dist x y"
   by (simp add: zero_less_dist_iff)
 

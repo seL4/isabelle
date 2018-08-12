@@ -623,6 +623,27 @@ lemma lim_cnj: "((\<lambda>x. cnj(f x)) \<longlongrightarrow> cnj l) F \<longlef
 lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f sums l)"
   by (simp add: sums_def lim_cnj cnj_sum [symmetric] del: cnj_sum)
 
+lemma differentiable_cnj_iff:
+  "(\<lambda>z. cnj (f z)) differentiable at x within A \<longleftrightarrow> f differentiable at x within A"
+proof
+  assume "(\<lambda>z. cnj (f z)) differentiable at x within A"
+  then obtain D where "((\<lambda>z. cnj (f z)) has_derivative D) (at x within A)"
+    by (auto simp: differentiable_def)
+  from has_derivative_cnj[OF this] show "f differentiable at x within A"
+    by (auto simp: differentiable_def)
+next
+  assume "f differentiable at x within A"
+  then obtain D where "(f has_derivative D) (at x within A)"
+    by (auto simp: differentiable_def)
+  from has_derivative_cnj[OF this] show "(\<lambda>z. cnj (f z)) differentiable at x within A"
+    by (auto simp: differentiable_def)
+qed
+
+lemma has_vector_derivative_cnj [derivative_intros]:
+  assumes "(f has_vector_derivative f') (at z within A)"
+  shows   "((\<lambda>z. cnj (f z)) has_vector_derivative cnj f') (at z within A)"
+  using assms by (auto simp: has_vector_derivative_complex_iff intro: derivative_intros)
+
 
 subsection \<open>Basic Lemmas\<close>
 
@@ -778,8 +799,14 @@ lemma norm_cis [simp]: "norm (cis a) = 1"
 lemma sgn_cis [simp]: "sgn (cis a) = cis a"
   by (simp add: sgn_div_norm)
 
+lemma cis_2pi [simp]: "cis (2 * pi) = 1"
+  by (simp add: cis.ctr complex_eq_iff)
+
 lemma cis_neq_zero [simp]: "cis a \<noteq> 0"
   by (metis norm_cis norm_zero zero_neq_one)
+
+lemma cis_cnj: "cnj (cis t) = cis (-t)"
+  by (simp add: complex_eq_iff)
 
 lemma cis_mult: "cis a * cis b = cis (a + b)"
   by (simp add: complex_eq_iff cos_add sin_add)
@@ -801,6 +828,15 @@ lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im (cis a ^ n)"
 
 lemma cis_pi [simp]: "cis pi = -1"
   by (simp add: complex_eq_iff)
+
+lemma cis_pi_half[simp]: "cis (pi / 2) = \<i>"
+  by (simp add: cis.ctr complex_eq_iff)
+
+lemma cis_minus_pi_half[simp]: "cis (-(pi / 2)) = -\<i>"
+  by (simp add: cis.ctr complex_eq_iff)
+
+lemma cis_multiple_2pi[simp]: "n \<in> \<int> \<Longrightarrow> cis (2 * pi * n) = 1"
+  by (auto elim!: Ints_cases simp: cis.ctr one_complex.ctr)
 
 
 subsubsection \<open>$r(\cos \theta + i \sin \theta)$\<close>
@@ -846,6 +882,11 @@ lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1 / r2) (a - b)"
 
 
 subsubsection \<open>Complex exponential\<close>
+
+lemma exp_Reals_eq:
+  assumes "z \<in> \<real>"
+  shows   "exp z = of_real (exp (Re z))"
+  using assms by (auto elim!: Reals_cases simp: exp_of_real)
 
 lemma cis_conv_exp: "cis b = exp (\<i> * b)"
 proof -
@@ -900,6 +941,10 @@ lemma exp_two_pi_i [simp]: "exp (2 * of_real pi * \<i>) = 1"
 
 lemma exp_two_pi_i' [simp]: "exp (\<i> * (of_real pi * 2)) = 1"
   by (metis exp_two_pi_i mult.commute)
+
+lemma continuous_on_cis [continuous_intros]:
+  "continuous_on A f \<Longrightarrow> continuous_on A (\<lambda>x. cis (f x))"
+  by (auto simp: cis_conv_exp intro!: continuous_intros)
 
 
 subsubsection \<open>Complex argument\<close>
