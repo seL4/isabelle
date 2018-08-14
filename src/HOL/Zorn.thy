@@ -491,7 +491,7 @@ lemma chainsD2: "c \<in> chains S \<Longrightarrow> c \<subseteq> S"
 
 lemma Zorns_po_lemma:
   assumes po: "Partial_order r"
-    and u: "\<forall>C\<in>Chains r. \<exists>u\<in>Field r. \<forall>a\<in>C. (a, u) \<in> r"
+    and u: "\<And>C. C \<in> Chains r \<Longrightarrow> \<exists>u\<in>Field r. \<forall>a\<in>C. (a, u) \<in> r"
   shows "\<exists>m\<in>Field r. \<forall>a\<in>Field r. (m, a) \<in> r \<longrightarrow> a = m"
 proof -
   have "Preorder r"
@@ -513,7 +513,8 @@ proof -
         using \<open>Preorder r\<close> and \<open>a \<in> Field r\<close> and \<open>b \<in> Field r\<close>
         by (simp add:subset_Image1_Image1_iff)
     qed
-    with u obtain u where uA: "u \<in> Field r" "\<forall>a\<in>?A. (a, u) \<in> r" by auto
+    then obtain u where uA: "u \<in> Field r" "\<forall>a\<in>?A. (a, u) \<in> r"
+      by (auto simp: dest: u)
     have "?P u"
     proof auto
       fix a B assume aB: "B \<in> C" "a \<in> B"
@@ -537,6 +538,22 @@ proof -
     by (auto simp: subset_Image1_Image1_iff Partial_order_eq_Image1_Image1_iff)
   then show ?thesis
     using \<open>m \<in> Field r\<close> by blast
+qed
+
+lemma predicate_Zorn:
+  assumes po: "partial_order_on A (relation_of P A)"
+    and ch: "\<And>C. C \<in> Chains (relation_of P A) \<Longrightarrow> \<exists>u \<in> A. \<forall>a \<in> C. P a u"
+  shows "\<exists>m \<in> A. \<forall>a \<in> A. P m a \<longrightarrow> a = m"
+proof -
+  have "a \<in> A" if "C \<in> Chains (relation_of P A)" and "a \<in> C" for C a
+    using that unfolding Chains_def relation_of_def by auto
+  moreover have "(a, u) \<in> relation_of P A" if "a \<in> A" and "u \<in> A" and "P a u" for a u
+    unfolding relation_of_def using that by auto
+  ultimately have "\<exists>m\<in>A. \<forall>a\<in>A. (m, a) \<in> relation_of P A \<longrightarrow> a = m"
+    using Zorns_po_lemma[OF Partial_order_relation_ofI[OF po], rule_format] ch
+    unfolding Field_relation_of[OF partial_order_onD(1)[OF po]] by blast
+  then show ?thesis
+    by (auto simp: relation_of_def)
 qed
 
 
@@ -701,8 +718,8 @@ proof -
       using mono_Chains [OF I_init] Chains_wo[of R] and \<open>R \<in> Chains I\<close>
       unfolding I_def by blast
   qed
-  then have 1: "\<forall>R \<in> Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I"
-    by (subst FI) blast
+  then have 1: "\<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" if "R \<in> Chains I" for R
+    using that by (subst FI) blast
 \<comment> \<open>Zorn's Lemma yields a maximal well-order \<open>m\<close>:\<close>
   then obtain m :: "'a rel"
     where "Well_order m"

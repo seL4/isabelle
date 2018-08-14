@@ -118,32 +118,26 @@ proof -
     show "Partial_order ?R"
       by (auto simp: partial_order_on_def preorder_on_def
           antisym_def refl_on_def trans_def Field_def bot_unique)
-    show "\<forall>C\<in>Chains ?R. \<exists>u\<in>Field ?R. \<forall>a\<in>C. (a, u) \<in> ?R"
-    proof (safe intro!: bexI del: notI)
-      fix c x
-      assume c: "c \<in> Chains ?R"
-
-      have Inf_c: "Inf c \<noteq> bot" "Inf c \<le> F" if "c \<noteq> {}"
+    show "\<exists>u\<in>Field ?R. \<forall>a\<in>C. (a, u) \<in> ?R" if C: "C \<in> Chains ?R" for C
+    proof (simp, intro exI conjI ballI)
+      have Inf_C: "Inf C \<noteq> bot" "Inf C \<le> F" if "C \<noteq> {}"
       proof -
-        from c that have "Inf c = bot \<longleftrightarrow> (\<exists>x\<in>c. x = bot)"
+        from C that have "Inf C = bot \<longleftrightarrow> (\<exists>x\<in>C. x = bot)"
           unfolding trivial_limit_def by (intro eventually_Inf_base) (auto simp: Chains_def)
-        with c show "Inf c \<noteq> bot"
+        with C show "Inf C \<noteq> bot"
           by (simp add: bot_notin_R)
-        from that obtain x where "x \<in> c" by auto
-        with c show "Inf c \<le> F"
+        from that obtain x where "x \<in> C" by auto
+        with C show "Inf C \<le> F"
           by (auto intro!: Inf_lower2[of x] simp: Chains_def)
       qed
-      then have [simp]: "inf F (Inf c) = (if c = {} then F else Inf c)"
-        using c by (auto simp add: inf_absorb2)
-
-      from c show "inf F (Inf c) \<noteq> bot"
-        by (simp add: F Inf_c)
-      from c show "inf F (Inf c) \<in> Field ?R"
-        by (simp add: Chains_def Inf_c F)
-
-      assume "x \<in> c"
-      with c show "inf F (Inf c) \<le> x" "x \<le> F"
-        by (auto intro: Inf_lower simp: Chains_def)
+      then have [simp]: "inf F (Inf C) = (if C = {} then F else Inf C)"
+        using C by (auto simp add: inf_absorb2)
+      from C show "inf F (Inf C) \<noteq> bot"
+        by (simp add: F Inf_C)
+      from C show "inf F (Inf C) \<le> F"
+        by (simp add: Chains_def Inf_C F)
+      with C show "inf F (Inf C) \<le> x" "x \<le> F" if "x \<in> C" for x
+        using that  by (auto intro: Inf_lower simp: Chains_def)
     qed
   qed
   then obtain U where U: "U \<in> ?A" "?B U" ..

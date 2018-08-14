@@ -25,6 +25,9 @@ lemmas order_on_defs =
   preorder_on_def partial_order_on_def linear_order_on_def
   strict_linear_order_on_def well_order_on_def
 
+lemma partial_order_onD:
+  assumes "partial_order_on A r" shows "refl_on A r" and "trans r" and "antisym r"
+  using assms unfolding partial_order_on_def preorder_on_def by auto
 
 lemma preorder_on_empty[simp]: "preorder_on {} {}"
   by (simp add: preorder_on_def trans_def)
@@ -132,6 +135,34 @@ proof auto
   with * \<open>Total r\<close> have "(a, d) \<in> r \<or> (d, a) \<in> r" by (simp add: total_on_def)
   with \<open>d \<noteq> a\<close> show "a \<in> Field (r - Id)" unfolding Field_def by blast
 qed
+
+subsection\<open>Relations given by a predicate and the field\<close>
+
+definition relation_of :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set"
+  where "relation_of P A \<equiv> { (a, b) \<in> A \<times> A. P a b }"
+
+lemma Field_relation_of:
+  assumes "refl_on A (relation_of P A)" shows "Field (relation_of P A) = A"
+  using assms unfolding refl_on_def Field_def by auto
+
+lemma partial_order_on_relation_ofI:
+  assumes refl: "\<And>a. a \<in> A \<Longrightarrow> P a a"
+    and trans: "\<And>a b c. \<lbrakk> a \<in> A; b \<in> A; c \<in> A \<rbrakk> \<Longrightarrow> P a b \<Longrightarrow> P b c \<Longrightarrow> P a c"
+    and antisym: "\<And>a b. \<lbrakk> a \<in> A; b \<in> A \<rbrakk> \<Longrightarrow> P a b \<Longrightarrow> P b a \<Longrightarrow> a = b"
+  shows "partial_order_on A (relation_of P A)"
+proof -
+  from refl have "refl_on A (relation_of P A)"
+    unfolding refl_on_def relation_of_def by auto
+  moreover have "trans (relation_of P A)" and "antisym (relation_of P A)"
+    unfolding relation_of_def
+    by (auto intro: transI dest: trans, auto intro: antisymI dest: antisym)
+  ultimately show ?thesis
+    unfolding partial_order_on_def preorder_on_def by simp
+qed
+
+lemma Partial_order_relation_ofI:
+  assumes "partial_order_on A (relation_of P A)" shows "Partial_order (relation_of P A)"
+  using Field_relation_of assms partial_order_on_def preorder_on_def by fastforce
 
 
 subsection \<open>Orders on a type\<close>

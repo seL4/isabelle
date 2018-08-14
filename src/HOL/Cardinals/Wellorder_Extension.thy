@@ -110,7 +110,8 @@ proof -
       using mono_Chains [OF I_init] and \<open>R \<in> Chains I\<close>
       by (simp (no_asm) add: I_def del: Field_Union) (metis Chains_wo)
   }
-  then have 1: "\<forall>R\<in>Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" by (subst FI) blast
+  then have 1: "\<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" if "R\<in>Chains I" for R 
+    using that by (subst FI) blast
   txt \<open>Zorn's Lemma yields a maximal wellorder m.\<close>
   from Zorns_po_lemma [OF 0 1] obtain m :: "('a \<times> 'a) set"
     where "Well_order m" and "downset_on (Field m) p" and "extension_on (Field m) m p" and
