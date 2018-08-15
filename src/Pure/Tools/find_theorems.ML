@@ -454,23 +454,7 @@ end;
 
 (* pretty_theorems *)
 
-local
-
-fun pretty_ref ctxt thmref =
-  let
-    val (name, sel) =
-      (case thmref of
-        Facts.Named ((name, _), sel) => (name, sel)
-      | Facts.Fact _ => raise Fail "Illegal literal fact");
-  in
-    [Pretty.marks_str (#1 (Proof_Context.markup_extern_fact ctxt name), name),
-      Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1]
-  end;
-
-in
-
-fun pretty_thm ctxt (thmref, thm) =
-  Pretty.block (pretty_ref ctxt thmref @ [Thm.pretty_thm ctxt thm]);
+val pretty_thm = Proof_Context.pretty_thm;
 
 fun pretty_theorems state opt_limit rem_dups raw_criteria =
   let
@@ -503,8 +487,6 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
        Pretty.str (tally_msg ^ ":") ::
        grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
-
-end;
 
 
 
