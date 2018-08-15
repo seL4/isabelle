@@ -78,6 +78,7 @@ sig
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     (xstring * Position.T) list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
+  val warn_shadows: bool Config.T
 end;
 
 structure Specification: SPECIFICATION =
@@ -94,6 +95,10 @@ fun read_props raw_props raw_fixes ctxt =
     val ctxt3 = ctxt2 |> fold Variable.declare_term props3;
   in (props3, ctxt3) end;
 
+
+(* Warn shadows configuration *)
+
+val warn_shadows = Attrib.setup_config_bool @{binding warn_shadows} (K false)
 
 (* prepare specification *)
 
@@ -428,6 +433,37 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
       |> bundle_includes raw_includes
       |> prep_statement (prep_att lthy) prep_stmt elems raw_concl;
     val atts = more_atts @ map (prep_att lthy) raw_atts;
+
+    fun flag f = Config.get goal_ctxt f
+    val _ =
+      if flag warn_shadows
+      then
+        if not (flag Goal.quick_and_dirty)
+        then
+          error ("The option 'Specification.warn_shadows' is not allowed to be set" ^
+            " unless option 'Goal.quick_and_dirty' is set.")
+        else
+          let
+            val stmt_name = Binding.name_of (fst (fst (hd stmt)));
+            fun fact_pair thm = (Facts.named (Thm.get_name_hint thm), thm);
+            val shadows =
+              try (Proof_Context.get_thms goal_ctxt) stmt_name
+                |> these
+                |> List.map (fact_pair #> (Proof_Context.pretty_thm goal_ctxt));
+            val pretty_shadows =
+              shadows
+                |> Pretty.list "  " ""
+                |> Pretty.symbolic_string_of;
+          in
+            if not (List.null shadows) andalso not (stmt_name = "")
+            then
+              warning ("Current goal name " ^ quote stmt_name ^
+                " shadows the following facts:\n" ^ pretty_shadows)
+            else
+              ()
+        end
+      else
+        ();
 
     val pos = Position.thread_data ();
     fun after_qed' results goal_ctxt' =
