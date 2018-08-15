@@ -67,6 +67,7 @@ sig
   val pretty_name: Proof.context -> string -> Pretty.T
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
+  val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
   val read_class: Proof.context -> string -> class
   val read_typ: Proof.context -> string -> typ
@@ -450,6 +451,19 @@ fun pretty_fact ctxt =
      | (a, ths) => Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: pretty_thms ths))
   end;
 
+fun pretty_thm ctxt (thmref, thm) =
+  let
+    val (name, sel) =
+      (case thmref of
+        Facts.Named ((name, _), sel) => (name, sel)
+      | Facts.Fact _ => raise Fail "Illegal literal fact");
+    val pretty_name =
+      [Pretty.marks_str (#1 (markup_extern_fact ctxt name), name),
+        Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1];
+    val pretty_thm = Thm.pretty_thm ctxt thm;
+  in
+    Pretty.block (pretty_name @ [pretty_thm])
+  end
 
 
 (** prepare types **)
