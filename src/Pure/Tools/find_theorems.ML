@@ -451,16 +451,7 @@ end;
 
 (* pretty_theorems *)
 
-local
-
-fun pretty_thm_head ctxt (name, i) =
-  [Pretty.marks_str (#1 (Proof_Context.markup_extern_fact ctxt name), name),
-    Pretty.str (Thm_Name.print_suffix (name, i)), Pretty.str ":", Pretty.brk 1];
-
-in
-
-fun pretty_thm ctxt (thm_name, thm) =
-  Pretty.block (pretty_thm_head ctxt thm_name @ [Thm.pretty_thm ctxt thm]);
+val pretty_thm = Proof_Context.pretty_thm;
 
 fun pretty_theorems state opt_limit rem_dups raw_criteria =
   let
@@ -493,8 +484,6 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
        Pretty.str (tally_msg ^ ":") ::
        grouped 10 Par_List.map (Pretty.item o single o pretty_thm ctxt) (rev theorems))
   end |> Pretty.fbreaks |> Pretty.block0;
-
-end;
 
 
 
