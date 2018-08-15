@@ -72,6 +72,7 @@ sig
   val augment: term -> Proof.context -> Proof.context
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
+  val pretty_thm: Proof.context -> Thm_Name.T * thm -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
   val read_class: Proof.context -> string -> class
   val read_typ: Proof.context -> string -> typ
@@ -514,7 +515,18 @@ fun pretty_fact ctxt =
         Pretty.block (pretty_fact_name ctxt a :: Pretty.fbreaks (Pretty.str ":" :: pretty_thms ths))
   end;
 
+local
 
+fun pretty_thm_head ctxt (name, i) =
+  [Pretty.marks_str (#1 (markup_extern_fact ctxt name), name),
+    Pretty.str (Thm_Name.print_suffix (name, i)), Pretty.str ":", Pretty.brk 1];
+
+in
+
+fun pretty_thm ctxt (thm_name, thm) =
+  Pretty.block (pretty_thm_head ctxt thm_name @ [Thm.pretty_thm ctxt thm]);
+
+end
 
 (** prepare types **)
 
