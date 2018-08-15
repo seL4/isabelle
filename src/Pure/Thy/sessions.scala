@@ -882,7 +882,8 @@ object Sessions
   def directories(dirs: List[Path], select_dirs: List[Path]): List[(Boolean, Path)] =
   {
     val default_dirs = Isabelle_System.components().filter(is_session_dir(_))
-    (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _))
+    for { (select, dir) <- (default_dirs ::: dirs).map((false, _)) ::: select_dirs.map((true, _)) }
+    yield (select, dir.canonical)
   }
 
   def load_structure(options: Options,
