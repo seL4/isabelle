@@ -78,8 +78,16 @@ by simp
 qualified definition ap :: "('s, 'a \<Rightarrow> 'b) state \<Rightarrow> ('s, 'a) state \<Rightarrow> ('s, 'b) state" where
 "ap f x = State (\<lambda>s. case run_state f s of (g, s') \<Rightarrow> case run_state x s' of (y, s'') \<Rightarrow> (g y, s''))"
 
+lemma run_state_ap[simp]:
+  "run_state (ap f x) s = (case run_state f s of (g, s') \<Rightarrow> case run_state x s' of (y, s'') \<Rightarrow> (g y, s''))"
+unfolding ap_def by auto
+
 qualified definition bind :: "('s, 'a) state \<Rightarrow> ('a \<Rightarrow> ('s, 'b) state) \<Rightarrow> ('s, 'b) state" where
 "bind x f = State (\<lambda>s. case run_state x s of (a, s') \<Rightarrow> run_state (f a) s')"
+
+lemma run_state_bind[simp]:
+  "run_state (bind x f) s = (case run_state x s of (a, s') \<Rightarrow> run_state (f a) s')"
+unfolding bind_def by auto
 
 adhoc_overloading Monad_Syntax.bind bind
 
@@ -102,8 +110,14 @@ using assms by (auto split: prod.splits)
 qualified definition get :: "('s, 's) state" where
 "get = State (\<lambda>s. (s, s))"
 
+lemma run_state_get[simp]: "run_state get s = (s, s)"
+unfolding get_def by simp
+
 qualified definition set :: "'s \<Rightarrow> ('s, unit) state" where
 "set s' = State (\<lambda>_. ((), s'))"
+
+lemma run_state_set[simp]: "run_state (set s') s = ((), s')"
+unfolding set_def by simp
 
 lemma get_set[simp]: "bind get set = return ()"
 unfolding bind_def get_def set_def return_def
