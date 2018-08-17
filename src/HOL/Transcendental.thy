@@ -1693,7 +1693,7 @@ class ln = real_normed_algebra_1 + banach +
 
 definition powr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a::ln"  (infixr "powr" 80)
   \<comment> \<open>exponentation via ln and exp\<close>
-  where  [code del]: "x powr a \<equiv> if x = 0 then 0 else exp (a * ln x)"
+  where "x powr a \<equiv> if x = 0 then 0 else exp (a * ln x)"
 
 lemma powr_0 [simp]: "0 powr z = 0"
   by (simp add: powr_def)
@@ -2789,12 +2789,15 @@ next
     by (simp add: assms powr_realpow[symmetric])
 qed
 
-lemma compute_powr[code]:
-  fixes i :: real
-  shows "b powr i =
-    (if b \<le> 0 then Code.abort (STR ''op powr with nonpositive base'') (\<lambda>_. b powr i)
+definition powr_real :: "real \<Rightarrow> real \<Rightarrow> real"
+  where [code_abbrev, simp]: "powr_real = Transcendental.powr"
+
+lemma compute_powr_real [code]:
+  "powr_real b i =
+    (if b \<le> 0 then Code.abort (STR ''powr_real with nonpositive base'') (\<lambda>_. powr_real b i)
      else if \<lfloor>i\<rfloor> = i then (if 0 \<le> i then b ^ nat \<lfloor>i\<rfloor> else 1 / b ^ nat \<lfloor>- i\<rfloor>)
-     else Code.abort (STR ''op powr with non-integer exponent'') (\<lambda>_. b powr i))"
+     else Code.abort (STR ''powr_real with non-integer exponent'') (\<lambda>_. powr_real b i))"
+    for b i :: real
   by (auto simp: powr_int)
 
 lemma powr_one: "0 \<le> x \<Longrightarrow> x powr 1 = x"
