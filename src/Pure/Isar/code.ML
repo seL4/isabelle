@@ -1521,25 +1521,30 @@ fun declare_undefined_global c =
 fun code_attribute f = Thm.declaration_attribute
   (fn thm => Context.mapping (f thm) I);
 
-fun code_const_attribute f cs =
-  code_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
+fun code_thm_attribute g f =
+  g |-- Scan.succeed (code_attribute f);
+
+fun code_const_attribute g f =
+  g -- Args.colon |-- Scan.repeat1 Parse.term
+    >> (fn ts => code_attribute (K (fold (fn t => fn thy => f (read_const thy t) thy) ts)));
 
 val _ = Theory.setup
   (let
     val code_attribute_parser =
-      Args.$$$ "equation" |-- Scan.succeed (code_attribute
-          (fn thm => generic_add_eqn Liberal (thm, true)))
-      || Args.$$$ "nbe" |-- Scan.succeed (code_attribute
-          (fn thm => generic_add_eqn Liberal (thm, false)))
-      || Args.$$$ "abstract" |-- Scan.succeed (code_attribute
-          (generic_declare_abstract_eqn Liberal))
-      || Args.$$$ "abstype" |-- Scan.succeed (code_attribute
-          (generic_declare_abstype Liberal))
-      || Args.del |-- Scan.succeed (code_attribute del_eqn_global)
-      || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term
-          >> code_const_attribute declare_aborting_global)
-      || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term
-          >> code_const_attribute declare_unimplemented_global)
+      code_thm_attribute (Args.$$$ "equation")
+        (fn thm => generic_add_eqn Liberal (thm, true))
+      || code_thm_attribute (Args.$$$ "nbe")
+          (fn thm => generic_add_eqn Liberal (thm, false))
+      || code_thm_attribute (Args.$$$ "abstract")
+          (generic_declare_abstract_eqn Liberal)
+      || code_thm_attribute (Args.$$$ "abstype")
+          (generic_declare_abstype Liberal)
+      || code_thm_attribute Args.del
+          del_eqn_global
+      || code_const_attribute (Args.$$$ "abort")
+          declare_aborting_global
+      || code_const_attribute (Args.$$$ "drop")
+          declare_unimplemented_global
       || Scan.succeed (code_attribute
           add_maybe_abs_eqn_liberal);
   in
