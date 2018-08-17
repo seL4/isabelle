@@ -55,7 +55,9 @@ class Other_Isabelle(
   val isabelle_home_user: Path =
     Path.explode(other_isabelle("getenv -b ISABELLE_HOME_USER").check.out)
 
-  val etc_settings: Path = isabelle_home_user + Path.explode("etc/settings")
+  val etc: Path = isabelle_home_user + Path.explode("etc")
+  val etc_settings: Path = etc + Path.explode("settings")
+  val etc_preferences: Path = etc + Path.explode("preferences")
 
 
   /* init settings */
