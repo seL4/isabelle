@@ -166,6 +166,9 @@ object Build_Release
               Other_Isabelle(tmp_dir + Path.explode(name),
                 isabelle_identifier = name + "-build", progress = progress)
 
+            Isabelle_System.mkdirs(other_isabelle.etc)
+            File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
+
             other_isabelle.bash("bin/isabelle build" + jobs_option +
                 " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
                 " -s -c -a -d '~~/src/Benchmarks'", echo = true).check
