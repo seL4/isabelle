@@ -213,7 +213,7 @@ fun pretty_context state =
             Theory (gthy, _) => gthy
           | Proof (_, (_, gthy)) => gthy
           | Skipped_Proof (_, (_, gthy)) => gthy);
-        val lthy = Context.cases (Named_Target.theory_init) I gthy;
+        val lthy = Context.cases Named_Target.theory_init I gthy;
       in Local_Theory.pretty lthy end);
 
 fun pretty_state state =
