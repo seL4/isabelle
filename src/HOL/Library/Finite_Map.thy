@@ -491,6 +491,17 @@ apply (erule_tac x = x in fBallE)
 apply simp
 by (simp add: fmlookup_dom_iff)
 
+lemma fmpred_mono_strong:
+  assumes "\<And>x y. fmlookup m x = Some y \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+  shows "fmpred P m \<Longrightarrow> fmpred Q m"
+using assms unfolding fmpred_iff by auto
+
+lemma fmpred_mono[mono]: "P \<le> Q \<Longrightarrow> fmpred P \<le> fmpred Q"
+apply rule
+apply (rule fmpred_mono_strong[where P = P and Q = Q])
+apply auto
+done
+
 lemma fmpred_empty[intro!, simp]: "fmpred P fmempty"
 by auto
 
