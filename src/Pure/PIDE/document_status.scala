@@ -185,6 +185,9 @@ object Document_Status
     def + (entry: (Document.Node.Name, Node_Status)): Nodes_Status =
       new Nodes_Status(rep + entry)
 
+    def restrict(domain: Set[Document.Node.Name]): Nodes_Status =
+      new Nodes_Status(rep -- rep.keysIterator.filterNot(domain))
+
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
       that match {

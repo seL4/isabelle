@@ -210,7 +210,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
   status.renderer = new Node_Renderer
 
-  private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
+  private def handle_update(
+    restriction: Option[Set[Document.Node.Name]] = None,
+    trim: Boolean = false)
   {
     GUI_Thread.require {}
 
@@ -230,8 +232,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             }
         })
 
-    if (nodes_status != nodes_status1) {
-      nodes_status = nodes_status1
+    val nodes_status2 =
+      if (trim) nodes_status1.restrict(nodes.domain) else nodes_status1
+
+    if (nodes_status != nodes_status2) {
+      nodes_status = nodes_status2
       status.listData = nodes.topological_order.filter(nodes_status.defined(_))
     }
   }
@@ -253,7 +258,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         }
 
       case changed: Session.Commands_Changed =>
-        GUI_Thread.later { handle_update(Some(changed.nodes)) }
+        GUI_Thread.later {
+          handle_update(restriction = Some(changed.nodes), trim = changed.assignment)
+        }
     }
 
   override def init()
