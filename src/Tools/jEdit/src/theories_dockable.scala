@@ -210,9 +210,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
   status.renderer = new Node_Renderer
 
-  private def handle_update(
-    restriction: Option[Set[Document.Node.Name]] = None,
-    trim: Boolean = false)
+  private def handle_update(domain: Option[Set[Document.Node.Name]] = None, trim: Boolean = false)
   {
     GUI_Thread.require {}
 
@@ -221,7 +219,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     for {
       (nodes_status1, nodes_list) <-
         nodes_status.update(
-          PIDE.resources.session_base, snapshot.state, snapshot.version, restriction, trim)
+          PIDE.resources.session_base, snapshot.state, snapshot.version, domain, trim)
     } {
       nodes_status = nodes_status1
       status.listData = nodes_list
@@ -245,9 +243,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         }
 
       case changed: Session.Commands_Changed =>
-        GUI_Thread.later {
-          handle_update(restriction = Some(changed.nodes), trim = changed.assignment)
-        }
+        GUI_Thread.later { handle_update(domain = Some(changed.nodes), trim = changed.assignment) }
     }
 
   override def init()

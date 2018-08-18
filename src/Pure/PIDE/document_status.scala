@@ -185,13 +185,13 @@ object Document_Status
       session_base: Sessions.Base,
       state: Document.State,
       version: Document.Version,
-      restriction: Option[Set[Document.Node.Name]],
+      domain: Option[Set[Document.Node.Name]],
       trim: Boolean): Option[(Nodes_Status, List[Document.Node.Name])] =
     {
       val nodes = version.nodes
       val update_iterator =
         for {
-          name <- restriction.getOrElse(nodes.domain).iterator
+          name <- domain.getOrElse(nodes.domain).iterator
           if !Sessions.is_hidden(name) &&
               !session_base.loaded_theory(name) &&
               !nodes.is_suppressed(name) &&
