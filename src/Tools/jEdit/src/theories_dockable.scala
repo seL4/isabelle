@@ -218,13 +218,13 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     val snapshot = PIDE.session.snapshot()
 
-    val nodes_status1 =
-      nodes_status.update(
-        PIDE.resources.session_base, snapshot.state, snapshot.version, restriction, trim)
-
-    if (nodes_status != nodes_status1) {
+    for {
+      (nodes_status1, nodes_list) <-
+        nodes_status.update(
+          PIDE.resources.session_base, snapshot.state, snapshot.version, restriction, trim)
+    } {
       nodes_status = nodes_status1
-      status.listData = snapshot.version.nodes.topological_order.filter(nodes_status.defined(_))
+      status.listData = nodes_list
     }
   }
 

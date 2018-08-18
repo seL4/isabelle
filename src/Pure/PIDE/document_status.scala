@@ -172,7 +172,6 @@ object Document_Status
 
   final class Nodes_Status private(private val rep: Map[Document.Node.Name, Node_Status])
   {
-    def defined(name: Document.Node.Name): Boolean = rep.isDefinedAt(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
     def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
@@ -187,7 +186,7 @@ object Document_Status
       state: Document.State,
       version: Document.Version,
       restriction: Option[Set[Document.Node.Name]],
-      trim: Boolean): Nodes_Status =
+      trim: Boolean): Option[(Nodes_Status, List[Document.Node.Name])] =
     {
       val nodes = version.nodes
       val update_iterator =
@@ -202,7 +201,9 @@ object Document_Status
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
       val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes.domain) else rep1
-      new Nodes_Status(rep2)
+
+      if (rep == rep2) None
+      else Some(new Nodes_Status(rep2), version.nodes.topological_order.filter(rep2.keySet))
     }
 
     override def hashCode: Int = rep.hashCode
