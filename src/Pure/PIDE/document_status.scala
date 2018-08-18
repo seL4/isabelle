@@ -182,11 +182,28 @@ object Document_Status
         case _ => Overall_Node_Status.pending
       }
 
-    def + (entry: (Document.Node.Name, Node_Status)): Nodes_Status =
-      new Nodes_Status(rep + entry)
-
-    def restrict(domain: Set[Document.Node.Name]): Nodes_Status =
-      new Nodes_Status(rep -- rep.keysIterator.filterNot(domain))
+    def update(
+      session_base: Sessions.Base,
+      state: Document.State,
+      version: Document.Version,
+      restriction: Option[Set[Document.Node.Name]],
+      trim: Boolean): Nodes_Status =
+    {
+      val nodes = version.nodes
+      val update_iterator =
+        for {
+          name <- restriction.getOrElse(nodes.domain).iterator
+          if !Sessions.is_hidden(name) &&
+              !session_base.loaded_theory(name) &&
+              !nodes.is_suppressed(name) &&
+              !nodes(name).is_empty
+          st = Document_Status.Node_Status.make(state, version, name)
+          if !rep.isDefinedAt(name) || rep(name) != st
+        } yield (name -> st)
+      val rep1 = rep ++ update_iterator
+      val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes.domain) else rep1
+      new Nodes_Status(rep2)
+    }
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =

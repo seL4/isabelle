@@ -217,27 +217,14 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     GUI_Thread.require {}
 
     val snapshot = PIDE.session.snapshot()
-    val nodes = snapshot.version.nodes
 
     val nodes_status1 =
-      (nodes_status /: (restriction.getOrElse(nodes.domain).iterator))(
-        { case (status, name) =>
-            if (Sessions.is_hidden(name) ||
-                PIDE.resources.session_base.loaded_theory(name) ||
-                nodes.is_suppressed(name) ||
-                nodes(name).is_empty) status
-            else {
-              val st = Document_Status.Node_Status.make(snapshot.state, snapshot.version, name)
-              status + (name -> st)
-            }
-        })
+      nodes_status.update(
+        PIDE.resources.session_base, snapshot.state, snapshot.version, restriction, trim)
 
-    val nodes_status2 =
-      if (trim) nodes_status1.restrict(nodes.domain) else nodes_status1
-
-    if (nodes_status != nodes_status2) {
-      nodes_status = nodes_status2
-      status.listData = nodes.topological_order.filter(nodes_status.defined(_))
+    if (nodes_status != nodes_status1) {
+      nodes_status = nodes_status1
+      status.listData = snapshot.version.nodes.topological_order.filter(nodes_status.defined(_))
     }
   }
 
