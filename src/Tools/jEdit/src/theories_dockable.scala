@@ -50,10 +50,10 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           tooltip = "Mark as required for continuous checking"
         else if (index >= 0 && in_label(index_location, point)) {
           val name = listData(index)
-          val st = overall_node_status(name)
+          val st = nodes_status.overall_node_status(name)
           tooltip =
             "theory " + quote(name.theory) +
-              (if (st == Overall_Node_Status.ok) "" else " (" + st + ")")
+              (if (st == Document_Status.Overall_Node_Status.ok) "" else " (" + st + ")")
         }
         else tooltip = null
     }
@@ -97,20 +97,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* component state -- owned by GUI thread */
 
-  private var nodes_status: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty
+  private var nodes_status = Document_Status.Nodes_Status.empty
   private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
-
-  private object Overall_Node_Status extends Enumeration
-  {
-    val ok, failed, pending = Value
-  }
-
-  private def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
-    nodes_status.get(name) match {
-      case Some(st) if st.consolidated =>
-        if (st.ok) Overall_Node_Status.ok else Overall_Node_Status.failed
-      case _ => Overall_Node_Status.pending
-    }
 
   private def in(geometry: Option[(Point, Dimension)], loc0: Point, p: Point): Boolean =
     geometry match {
@@ -189,11 +177,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     def label_border(name: Document.Node.Name)
     {
-      val status = overall_node_status(name)
+      val status = nodes_status.overall_node_status(name)
       val color =
-        if (status == Overall_Node_Status.failed) PIDE.options.color_value("error_color")
+        if (status == Document_Status.Overall_Node_Status.failed)
+          PIDE.options.color_value("error_color")
         else label.foreground
-      val thickness1 = if (status == Overall_Node_Status.pending) 1 else 2
+      val thickness1 = if (status == Document_Status.Overall_Node_Status.pending) 1 else 2
       val thickness2 = 3 - thickness1
 
       label.border =
@@ -241,11 +230,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         })
 
     val nodes_status2 =
-      nodes_status1 -- nodes_status1.keysIterator.filter(nodes.is_suppressed(_))
+      (nodes_status1 /: nodes_status1.keys_iterator.filter(nodes.is_suppressed(_)))(_ - _)
 
     if (nodes_status != nodes_status2) {
       nodes_status = nodes_status2
-      status.listData = nodes.topological_order.filter(nodes_status.isDefinedAt(_))
+      status.listData = nodes.topological_order.filter(nodes_status.defined(_))
     }
   }
 

@@ -156,4 +156,46 @@ object Document_Status
   }
 
   sealed case class Node_Timing(total: Double, commands: Map[Command, Double])
+
+
+  /* nodes status */
+
+  object Overall_Node_Status extends Enumeration
+  {
+    val ok, failed, pending = Value
+  }
+
+  object Nodes_Status
+  {
+    val empty: Nodes_Status = new Nodes_Status(Map.empty)
+  }
+
+  final class Nodes_Status private(private val rep: Map[Document.Node.Name, Node_Status])
+  {
+    def keys_iterator: Iterator[Document.Node.Name] = rep.keysIterator
+
+    def defined(name: Document.Node.Name): Boolean = rep.isDefinedAt(name)
+    def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
+
+    def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
+      rep.get(name) match {
+        case Some(st) if st.consolidated =>
+          if (st.ok) Overall_Node_Status.ok else Overall_Node_Status.failed
+        case _ => Overall_Node_Status.pending
+      }
+
+    def + (entry: (Document.Node.Name, Node_Status)): Nodes_Status =
+      new Nodes_Status(rep + entry)
+
+    def - (name: Document.Node.Name): Nodes_Status =
+      new Nodes_Status(rep - name)
+
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Nodes_Status => rep == other.rep
+        case _ => false
+      }
+    override def toString: String = rep.iterator.mkString("Nodes_Status(", ", ", ")")
+  }
 }
