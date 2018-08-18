@@ -17,7 +17,7 @@ object Dump
     deps: Sessions.Deps,
     output_dir: Path,
     node_name: Document.Node.Name,
-    node_status: Protocol.Node_Status,
+    node_status: Document_Status.Node_Status,
     snapshot: Document.Snapshot)
   {
     def write(file_name: Path, bytes: Bytes)

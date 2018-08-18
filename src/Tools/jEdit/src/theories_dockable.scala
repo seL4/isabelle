@@ -97,7 +97,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* component state -- owned by GUI thread */
 
-  private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
+  private var nodes_status: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty
   private var nodes_required: Set[Document.Node.Name] = Document_Model.required_nodes()
 
   private object Overall_Node_Status extends Enumeration
@@ -235,7 +235,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
                 PIDE.resources.session_base.loaded_theory(name) ||
                 nodes(name).is_empty) status
             else {
-              val st = Protocol.node_status(snapshot.state, snapshot.version, name)
+              val st = Document_Status.Node_Status.make(snapshot.state, snapshot.version, name)
               status + (name -> st)
             }
         })

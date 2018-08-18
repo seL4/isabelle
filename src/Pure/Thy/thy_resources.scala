@@ -58,7 +58,7 @@ object Thy_Resources
   class Theories_Result private[Thy_Resources](
     val state: Document.State,
     val version: Document.Version,
-    val nodes: List[(Document.Node.Name, Protocol.Node_Status)])
+    val nodes: List[(Document.Node.Name, Document_Status.Node_Status)])
   {
     def node_names: List[Document.Node.Name] = nodes.map(_._1)
     def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
@@ -118,7 +118,7 @@ object Thy_Resources
             if (beyond_limit || dep_theories.forall(state.node_consolidated(version, _))) {
               val nodes =
                 for (name <- dep_theories)
-                yield (name -> Protocol.node_status(state, version, name))
+                yield (name -> Document_Status.Node_Status.make(state, version, name))
               try { result.fulfill(new Theories_Result(state, version, nodes)) }
               catch { case _: IllegalStateException => }
             }
@@ -157,7 +157,8 @@ object Thy_Resources
                   {
                     val initialized =
                       (check_theories -- theories).toList.filter(name =>
-                        Protocol.node_status(snapshot.state, snapshot.version, name).initialized)
+                        Document_Status.Node_Status.make(
+                          snapshot.state, snapshot.version, name).initialized)
                     (initialized, theories ++ initialized)
                   })
                 initialized.map(_.theory).sorted.foreach(progress.theory("", _))

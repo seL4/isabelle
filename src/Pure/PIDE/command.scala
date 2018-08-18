@@ -263,9 +263,24 @@ object Command
     def initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
     def consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
 
-    lazy val maybe_consolidated: Boolean = Protocol.maybe_consolidated(status)
+    lazy val maybe_consolidated: Boolean =
+    {
+      var touched = false
+      var forks = 0
+      var runs = 0
+      for (markup <- status) {
+        markup.name match {
+          case Markup.FORKED => touched = true; forks += 1
+          case Markup.JOINED => forks -= 1
+          case Markup.RUNNING => touched = true; runs += 1
+          case Markup.FINISHED => runs -= 1
+          case _ =>
+        }
+      }
+      touched && forks == 0 && runs == 0
+    }
 
-    lazy val protocol_status: Protocol.Status =
+    lazy val document_status: Document_Status.Command_Status =
     {
       val warnings =
         if (results.iterator.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2)))
@@ -275,7 +290,7 @@ object Command
         if (results.iterator.exists(p => Protocol.is_error(p._2)))
           List(Markup(Markup.ERROR, Nil))
         else Nil
-      Protocol.Status.make((warnings ::: errors ::: status).iterator)
+      Document_Status.Command_Status.make((warnings ::: errors ::: status).iterator)
     }
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
@@ -301,7 +316,7 @@ object Command
       status: Boolean, chunk_name: Symbol.Text_Chunk.Name, m: Text.Markup): State =
     {
       val markups1 =
-        if (status || Protocol.liberal_status_elements(m.info.name))
+        if (status || Document_Status.Command_Status.liberal_elements(m.info.name))
           markups.add(Markup_Index(true, chunk_name), m)
         else markups
       copy(markups = markups1.add(Markup_Index(false, chunk_name), m))

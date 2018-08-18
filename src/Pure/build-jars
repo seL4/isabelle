@@ -93,6 +93,7 @@ declare -a SOURCES=(
   PIDE/command_span.scala
   PIDE/document.scala
   PIDE/document_id.scala
+  PIDE/document_status.scala
   PIDE/editor.scala
   PIDE/line.scala
   PIDE/markup.scala

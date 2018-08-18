@@ -182,7 +182,7 @@ object Rendering
       Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
 
   val background_elements =
-    Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
+    Document_Status.Command_Status.proper_elements + Markup.WRITELN_MESSAGE +
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
@@ -393,7 +393,7 @@ abstract class Rendering(
           command_states =>
             {
               case (((markups, color), Text.Info(_, XML.Elem(markup, _))))
-              if markups.nonEmpty && Protocol.proper_status_elements(markup.name) =>
+              if markups.nonEmpty && Document_Status.Command_Status.proper_elements(markup.name) =>
                 Some((markup :: markups, color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                 Some((Nil, Some(Rendering.Color.bad)))
@@ -431,7 +431,7 @@ abstract class Rendering(
       color <-
         (result match {
           case (markups, opt_color) if markups.nonEmpty =>
-            val status = Protocol.Status.make(markups.iterator)
+            val status = Document_Status.Command_Status.make(markups.iterator)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
             else if (status.is_running) Some(Rendering.Color.running1)
             else opt_color
@@ -648,13 +648,14 @@ abstract class Rendering(
     if (snapshot.is_outdated) None
     else {
       val results =
-        snapshot.cumulate[List[Markup]](range, Nil, Protocol.liberal_status_elements, _ =>
-          {
-            case (status, Text.Info(_, elem)) => Some(elem.markup :: status)
-          }, status = true)
+        snapshot.cumulate[List[Markup]](range, Nil, Document_Status.Command_Status.liberal_elements,
+          _ =>
+            {
+              case (status, Text.Info(_, elem)) => Some(elem.markup :: status)
+            }, status = true)
       if (results.isEmpty) None
       else {
-        val status = Protocol.Status.make(results.iterator.flatMap(_.info))
+        val status = Document_Status.Command_Status.make(results.iterator.flatMap(_.info))
 
         if (status.is_running) Some(Rendering.Color.running)
         else if (status.is_failed) Some(Rendering.Color.error)
