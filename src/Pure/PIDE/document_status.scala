@@ -212,6 +212,20 @@ object Document_Status
         case other: Nodes_Status => rep == other.rep
         case _ => false
       }
-    override def toString: String = rep.iterator.mkString("Nodes_Status(", ", ", ")")
+
+    override def toString: String =
+    {
+      var ok = 0
+      var failed = 0
+      var pending = 0
+      for (name <- rep.keysIterator) {
+        overall_node_status(name) match {
+          case Overall_Node_Status.ok => ok += 1
+          case Overall_Node_Status.failed => failed += 1
+          case Overall_Node_Status.pending => pending += 1
+        }
+      }
+      "Nodes_Status(ok = " + ok + ", failed = " + failed + ", pending = " + pending + ")"
+    }
   }
 }
