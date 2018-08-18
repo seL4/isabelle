@@ -177,12 +177,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     def label_border(name: Document.Node.Name)
     {
-      val status = nodes_status.overall_node_status(name)
+      val st = nodes_status.overall_node_status(name)
       val color =
-        if (status == Document_Status.Overall_Node_Status.failed)
+        if (st == Document_Status.Overall_Node_Status.failed)
           PIDE.options.color_value("error_color")
         else label.foreground
-      val thickness1 = if (status == Document_Status.Overall_Node_Status.pending) 1 else 2
+      val thickness1 = if (st == Document_Status.Overall_Node_Status.pending) 1 else 2
       val thickness2 = 3 - thickness1
 
       label.border =
