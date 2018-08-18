@@ -172,8 +172,6 @@ object Document_Status
 
   final class Nodes_Status private(private val rep: Map[Document.Node.Name, Node_Status])
   {
-    def keys_iterator: Iterator[Document.Node.Name] = rep.keysIterator
-
     def defined(name: Document.Node.Name): Boolean = rep.isDefinedAt(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
@@ -186,9 +184,6 @@ object Document_Status
 
     def + (entry: (Document.Node.Name, Node_Status)): Nodes_Status =
       new Nodes_Status(rep + entry)
-
-    def - (name: Document.Node.Name): Nodes_Status =
-      new Nodes_Status(rep - name)
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
