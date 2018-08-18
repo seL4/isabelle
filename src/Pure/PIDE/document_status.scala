@@ -185,8 +185,8 @@ object Document_Status
       session_base: Sessions.Base,
       state: Document.State,
       version: Document.Version,
-      domain: Option[Set[Document.Node.Name]],
-      trim: Boolean): Option[(Nodes_Status, List[Document.Node.Name])] =
+      domain: Option[Set[Document.Node.Name]] = None,
+      trim: Boolean = false): Option[(Nodes_Status, List[Document.Node.Name])] =
     {
       val nodes = version.nodes
       val update_iterator =

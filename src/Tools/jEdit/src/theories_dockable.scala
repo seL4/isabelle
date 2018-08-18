@@ -219,7 +219,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     for {
       (nodes_status1, nodes_list1) <-
-        nodes_status.update(session_base, snapshot.state, snapshot.version, domain, trim)
+        nodes_status.update(
+          session_base, snapshot.state, snapshot.version, domain = domain, trim = trim)
     } { nodes_status = nodes_status1; status.listData = nodes_list1 }
   }
 
