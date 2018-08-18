@@ -26,6 +26,9 @@ object Sessions
 
   def is_pure(name: String): Boolean = name == Thy_Header.PURE
 
+  def is_hidden(name: Document.Node.Name): Boolean =
+    !name.is_theory || name.theory == Sessions.root_name || name.is_bibtex_theory
+
 
   def exclude_session(name: String): Boolean = name == "" || name == DRAFT
 

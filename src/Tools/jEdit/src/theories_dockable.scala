@@ -222,7 +222,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     val nodes_status1 =
       (nodes_status /: (restriction.getOrElse(nodes.domain).iterator))(
         { case (status, name) =>
-            if (PIDE.resources.is_hidden(name) ||
+            if (Sessions.is_hidden(name) ||
                 PIDE.resources.session_base.loaded_theory(name) ||
                 nodes.is_suppressed(name) ||
                 nodes(name).is_empty) status
