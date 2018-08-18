@@ -7,6 +7,11 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** System ***
+
+* Isabelle server command "use_theories" supports "nodes_status_delay"
+for continuous output of node status information. The time interval is
+specified in seconds; a negative value means it is disabled (default).
 
 
 New in Isabelle2018 (August 2018)

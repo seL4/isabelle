@@ -456,6 +456,7 @@ object Markup
   val WARNING = "warning"
   val LEGACY = "legacy"
   val ERROR = "error"
+  val NODES_STATUS = "nodes_status"
   val PROTOCOL = "protocol"
   val SYSTEM = "system"
   val STDOUT = "stdout"

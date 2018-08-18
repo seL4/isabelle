@@ -896,7 +896,8 @@ text \<open>
   \quad~~\<open>unicode_symbols?: bool,\<close> \\
   \quad~~\<open>export_pattern?: string,\<close> \\
   \quad~~\<open>check_delay?: double,\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>0.5\<close> \\
-  \quad~~\<open>check_limit?: int}\<close> \\
+  \quad~~\<open>check_limit?: int,\<close> \\
+  \quad~~\<open>nodes_status_delay?: double}\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>-1.0\<close> \\
   \end{tabular}
 
   \begin{tabular}{ll}
@@ -904,6 +905,8 @@ text \<open>
   \quad~~\<open>{name: string, base64: bool, body: string}\<close> \\
   \<^bold>\<open>type\<close> \<open>node_results =\<close> \\
   \quad~~\<open>{status: node_status, messages: [message], exports: [export]}\<close> \\
+  \<^bold>\<open>type\<close> \<open>nodes_status =\<close> \\
+  \quad~~\<open>[node \<oplus> {status: node_status}]\<close> \\
   \<^bold>\<open>type\<close> \<open>use_theories_results =\<close> \\
   \quad\<open>{ok: bool,\<close> \\
   \quad~~\<open>errors: [message],\<close> \\
@@ -940,6 +943,11 @@ text \<open>
   \<open>check_delay \<times> check_limit\<close> seconds; it needs to be greater than the system
   option @{system_option editor_consolidate_delay} to give PIDE processing a
   chance to consolidate document nodes in the first place.
+
+  \<^medskip> A non-negative \<open>nodes_status_delay\<close> enables continuous notifications of
+  kind \<open>nodes_status\<close>, with a field of name and type \<open>nodes_status\<close>. The time
+  interval is specified in seconds; by default it is negative and thus
+  disabled.
 \<close>
 
 

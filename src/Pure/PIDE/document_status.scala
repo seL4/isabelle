@@ -168,10 +168,15 @@ object Document_Status
   object Nodes_Status
   {
     val empty: Nodes_Status = new Nodes_Status(Map.empty)
+
+    type Update = (Nodes_Status, List[Document.Node.Name])
+    val empty_update: Update = (empty, Nil)
   }
 
   final class Nodes_Status private(private val rep: Map[Document.Node.Name, Node_Status])
   {
+    def is_empty: Boolean = rep.isEmpty
+    def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
     def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
@@ -186,7 +191,7 @@ object Document_Status
       state: Document.State,
       version: Document.Version,
       domain: Option[Set[Document.Node.Name]] = None,
-      trim: Boolean = false): Option[(Nodes_Status, List[Document.Node.Name])] =
+      trim: Boolean = false): Option[Nodes_Status.Update] =
     {
       val nodes = version.nodes
       val update_iterator =

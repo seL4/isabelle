@@ -268,9 +268,19 @@ object Server
     override def echo(msg: String): Unit = context.writeln(msg, more:_*)
     override def echo_warning(msg: String): Unit = context.warning(msg, more:_*)
     override def echo_error_message(msg: String): Unit = context.error_message(msg, more:_*)
+
     override def theory(session: String, theory: String): Unit =
       context.writeln(Progress.theory_message(session, theory),
         (List("session" -> session, "theory" -> theory) ::: more.toList):_*)
+
+    override def nodes_status(
+      nodes_status: List[(Document.Node.Name, Document_Status.Node_Status)])
+    {
+      val json =
+        for ((name, status) <- nodes_status)
+        yield name.json + ("status" -> status.json)
+      context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
+    }
 
     @volatile private var is_stopped = false
     override def stopped: Boolean = is_stopped

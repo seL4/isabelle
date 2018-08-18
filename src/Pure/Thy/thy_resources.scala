@@ -71,7 +71,8 @@ object Thy_Resources
     }
   }
 
-  val default_use_theories_check_delay: Double = 0.5
+  val default_check_delay: Double = 0.5
+  val default_nodes_status_delay: Double = -1.0
 
 
   class Session private[Thy_Resources](
@@ -99,14 +100,16 @@ object Thy_Resources
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
-      check_delay: Time = Time.seconds(default_use_theories_check_delay),
+      check_delay: Time = Time.seconds(default_check_delay),
       check_limit: Int = 0,
+      nodes_status_delay: Time = Time.seconds(default_nodes_status_delay),
       id: UUID = UUID(),
       progress: Progress = No_Progress): Theories_Result =
     {
       val dep_theories =
         resources.load_theories(session, id, theories, qualifier = qualifier,
           master_dir = proper_string(master_dir) getOrElse tmp_dir_name, progress = progress)
+      val dep_theories_set = dep_theories.toSet
 
       val result = Future.promise[Theories_Result]
 
@@ -141,24 +144,51 @@ object Thy_Resources
 
       val theories_progress = Synchronized(Set.empty[Document.Node.Name])
 
+      val nodes_status_update = Synchronized(Document_Status.Nodes_Status.empty_update)
+
+      val delay_nodes_status =
+        Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
+          val (nodes_status, names) = nodes_status_update.value
+          progress.nodes_status(names.map(name => (name -> nodes_status(name))))
+        }
+
       val consumer =
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
           case changed =>
-            if (dep_theories.exists(changed.nodes)) {
+            if (changed.nodes.exists(dep_theories_set)) {
+              val snapshot = session.snapshot()
+              val state = snapshot.state
+              val version = snapshot.version
+
+              if (nodes_status_delay >= Time.zero) {
+                nodes_status_update.change(
+                  { case (nodes_status, names) =>
+                      val domain =
+                        if (nodes_status.is_empty) dep_theories_set
+                        else changed.nodes.iterator.filter(dep_theories_set).toSet
+                      val update =
+                        nodes_status.update(resources.session_base, state, version,
+                          domain = Some(domain), trim = changed.assignment)
+                      update match {
+                        case None => (nodes_status, names)
+                        case Some(upd) => delay_nodes_status.invoke; upd
+                      }
+                  })
+              }
 
               val check_theories =
-                (for (command <- changed.commands.iterator if command.potentially_initialized)
-                  yield command.node_name).toSet
+                (for {
+                  command <- changed.commands.iterator
+                  if dep_theories_set(command.node_name) && command.potentially_initialized
+                } yield command.node_name).toSet
 
               if (check_theories.nonEmpty) {
-                val snapshot = session.snapshot()
                 val initialized =
                   theories_progress.change_result(theories =>
                   {
                     val initialized =
                       (check_theories -- theories).toList.filter(name =>
-                        Document_Status.Node_Status.make(
-                          snapshot.state, snapshot.version, name).initialized)
+                        Document_Status.Node_Status.make(state, version, name).initialized)
                     (initialized, theories ++ initialized)
                   })
                 initialized.map(_.theory).sorted.foreach(progress.theory("", _))
