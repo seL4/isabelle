@@ -162,17 +162,15 @@ object Thy_Resources
 
               if (nodes_status_delay >= Time.zero) {
                 nodes_status_update.change(
-                  { case (nodes_status, names) =>
+                  { case upd @ (nodes_status, _) =>
                       val domain =
                         if (nodes_status.is_empty) dep_theories_set
                         else changed.nodes.iterator.filter(dep_theories_set).toSet
-                      val update =
+                      val upd1 =
                         nodes_status.update(resources.session_base, state, version,
-                          domain = Some(domain), trim = changed.assignment)
-                      update match {
-                        case None => (nodes_status, names)
-                        case Some(upd) => delay_nodes_status.invoke; upd
-                      }
+                          domain = Some(domain), trim = changed.assignment).getOrElse(upd)
+                      if (upd == upd1) upd
+                      else { delay_nodes_status.invoke; upd1 }
                   })
               }
 
