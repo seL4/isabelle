@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsubsection "Hoare Logic for Total Correctness With Logical Variables"
+
 theory Hoare_Total_EX2
 imports Hoare
 begin
-
-subsubsection "Hoare Logic for Total Correctness --- With Logical Variables"
 
 text\<open>This is the standard set of rules that you find in many publications.
 In the while-rule, a logical variable is needed to remember the pre-value

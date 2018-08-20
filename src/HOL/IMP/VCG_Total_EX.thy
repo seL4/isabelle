@@ -1,10 +1,12 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Verification Conditions for Total Correctness"
+
+subsubsection "The Standard Approach"
+
 theory VCG_Total_EX
 imports Hoare_Total_EX
 begin
-
-subsection "Verification Conditions for Total Correctness"
 
 text\<open>Annotated commands: commands where loops are annotated with
 invariants.\<close>

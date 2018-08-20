@@ -1,7 +1,9 @@
+subsection "Termination-Sensitive Systems"
+
 theory Sec_TypingT imports Sec_Type_Expr
 begin
 
-subsection "A Termination-Sensitive Syntax Directed System"
+subsubsection "A Syntax Directed System"
 
 inductive sec_type :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile> _)" [0,0] 50) where
 Skip:
@@ -163,7 +165,7 @@ next
     by (metis \<open>s' = t' (\<le> l)\<close>)
 qed
 
-subsection "The Standard Termination-Sensitive System"
+subsubsection "The Standard System"
 
 text\<open>The predicate @{prop"l \<turnstile> c"} is nicely intuitive and executable. The
 standard formulation, however, is slightly different, replacing the maximum

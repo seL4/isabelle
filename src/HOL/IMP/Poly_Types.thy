@@ -1,6 +1,6 @@
-theory Poly_Types imports Types begin
-
 subsection "Type Variables"
+
+theory Poly_Types imports Types begin
 
 datatype ty = Ity | Rty | TV nat
 

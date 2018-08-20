@@ -1,8 +1,8 @@
 section "Arithmetic and Boolean Expressions"
 
-theory AExp imports Main begin
-
 subsection "Arithmetic Expressions"
+
+theory AExp imports Main begin
 
 type_synonym vname = string
 type_synonym val = int

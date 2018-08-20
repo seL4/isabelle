@@ -2,11 +2,11 @@
 
 subsection "Hoare Logic for Total Correctness"
 
+subsubsection "Separate Termination Relation"
+
 theory Hoare_Total
 imports Hoare_Examples
 begin
-
-subsubsection "Hoare Logic for Total Correctness --- Separate Termination Relation"
 
 text\<open>Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
 works if execution is deterministic (which it is in our case).\<close>

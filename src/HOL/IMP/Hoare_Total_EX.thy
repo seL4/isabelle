@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsubsection "\<open>nat\<close>-Indexed Invariant"
+
 theory Hoare_Total_EX
 imports Hoare
 begin
-
-subsubsection "Hoare Logic for Total Correctness --- \<open>nat\<close>-Indexed Invariant"
 
 text\<open>This is the standard set of rules that you find in many publications.
 The While-rule is different from the one in Concrete Semantics in that the

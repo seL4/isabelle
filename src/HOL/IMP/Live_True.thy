@@ -1,10 +1,12 @@
 (* Author: Tobias Nipkow *)
 
+subsection "True Liveness Analysis"
+
 theory Live_True
 imports "HOL-Library.While_Combinator" Vars Big_Step
 begin
 
-subsection "True Liveness Analysis"
+subsubsection "Analysis"
 
 fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "L SKIP X = X" |
@@ -50,7 +52,7 @@ text\<open>Disable @{text "L WHILE"} equation and reason only with @{text "L WHI
 declare L.simps(5)[simp del]
 
 
-subsection "Correctness"
+subsubsection "Correctness"
 
 theorem L_correct:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
@@ -103,7 +105,7 @@ next
 qed
 
 
-subsection "Executability"
+subsubsection "Executability"
 
 lemma L_subset_vars: "L c X \<subseteq> rvars c \<union> X"
 proof(induction c arbitrary: X)
@@ -157,7 +159,7 @@ lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x'';; ''x'' ::= V ''z''
 by eval
 
 
-subsection "Limiting the number of iterations"
+subsubsection "Limiting the number of iterations"
 
 text\<open>The final parameter is the default value:\<close>
 
