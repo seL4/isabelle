@@ -1,15 +1,15 @@
 (* Author: Gerwin Klein *)
 
+section \<open>Compiler Correctness, Reverse Direction\<close>
+
 theory Compiler2
 imports Compiler
 begin
 
 text \<open>
 The preservation of the source code semantics is already shown in the 
-parent theory @{theory "HOL-IMP.Compiler"}. This here shows the second direction.
+parent theory @{text "Compiler"}. This here shows the second direction.
 \<close>
-
-section \<open>Compiler Correctness, Reverse Direction\<close>
 
 subsection \<open>Definitions\<close>
 

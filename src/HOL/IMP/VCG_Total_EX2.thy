@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsubsection "VCG for Total Correctness With Logical Variables"
+
 theory VCG_Total_EX2
 imports Hoare_Total_EX2
 begin
-
-subsection "Verification Conditions for Total Correctness"
 
 text \<open>
 Theory \<open>VCG_Total_EX\<close> conatins a VCG built on top of a Hoare logic without logical variables.

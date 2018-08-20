@@ -1,6 +1,6 @@
-theory BExp imports AExp begin
-
 subsection "Boolean Expressions"
+
+theory BExp imports AExp begin
 
 datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 

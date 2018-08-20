@@ -1,11 +1,12 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Verification Condition Generation"
+
 theory VCG imports Hoare begin
 
-subsection "Verification Conditions"
+subsubsection "Annotated Commands"
 
-text\<open>Annotated commands: commands where loops are annotated with
-invariants.\<close>
+text\<open>Commands where loops are annotated with invariants.\<close>
 
 datatype acom =
   Askip                  ("SKIP") |
@@ -25,7 +26,9 @@ fun strip :: "acom \<Rightarrow> com" where
 "strip (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = (IF b THEN strip C\<^sub>1 ELSE strip C\<^sub>2)" |
 "strip ({_} WHILE b DO C) = (WHILE b DO strip C)"
 
-text\<open>Weakest precondition from annotated commands:\<close>
+subsubsection "Weeakest Precondistion and Verification Condition"
+
+text\<open>Weakest precondition:\<close>
 
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre SKIP Q = Q" |
@@ -48,7 +51,7 @@ fun vc :: "acom \<Rightarrow> assn \<Rightarrow> bool" where
     vc C I)"
 
 
-text \<open>Soundness:\<close>
+subsubsection "Soundness"
 
 lemma vc_sound: "vc C Q \<Longrightarrow> \<turnstile> {pre C Q} strip C {Q}"
 proof(induction C arbitrary: Q)
@@ -70,7 +73,7 @@ corollary vc_sound':
 by (metis strengthen_pre vc_sound)
 
 
-text\<open>Completeness:\<close>
+subsubsection "Completeness"
 
 lemma pre_mono:
   "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> pre C P s \<Longrightarrow> pre C P' s"

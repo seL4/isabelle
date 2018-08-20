@@ -2,9 +2,9 @@
 
 section "Hoare Logic"
 
-theory Hoare imports Big_Step begin
-
 subsection "Hoare Logic for Partial Correctness"
+
+theory Hoare imports Big_Step begin
 
 type_synonym assn = "state \<Rightarrow> bool"
 

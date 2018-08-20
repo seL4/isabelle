@@ -1,9 +1,11 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Security Typing of Commands"
+
 theory Sec_Typing imports Sec_Type_Expr
 begin
 
-subsection "Syntax Directed Typing"
+subsubsection "Syntax Directed Typing"
 
 inductive sec_type :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile> _)" [0,0] 50) where
 Skip:
@@ -174,7 +176,7 @@ next
 qed
 
 
-subsection "The Standard Typing System"
+subsubsection "The Standard Typing System"
 
 text\<open>The predicate @{prop"l \<turnstile> c"} is nicely intuitive and executable. The
 standard formulation, however, is slightly different, replacing the maximum
@@ -213,7 +215,7 @@ apply (metis max.absorb2 If)
 apply (metis max.absorb2 While)
 by (metis anti_mono)
 
-subsection "A Bottom-Up Typing System"
+subsubsection "A Bottom-Up Typing System"
 
 inductive sec_type2 :: "com \<Rightarrow> level \<Rightarrow> bool" ("(\<turnstile> _ : _)" [0,0] 50) where
 Skip2:

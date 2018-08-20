@@ -1,9 +1,9 @@
 section "Security Type Systems"
 
+subsection "Security Levels and Expressions"
+
 theory Sec_Type_Expr imports Big_Step
 begin
-
-subsection "Security Levels and Expressions"
 
 type_synonym level = nat
 

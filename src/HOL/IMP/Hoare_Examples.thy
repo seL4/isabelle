@@ -1,5 +1,7 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Examples"
+
 theory Hoare_Examples imports Hoare begin
 
 hide_const (open) sum
