@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Parity Analysis"
+
 theory Abs_Int1_parity
 imports Abs_Int1
 begin
-
-subsection "Parity Analysis"
 
 datatype parity = Even | Odd | Either
 

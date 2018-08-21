@@ -1,8 +1,10 @@
+subsection "Collecting Semantics Examples"
+
 theory Collecting_Examples
 imports Collecting Vars
 begin
 
-subsection "Pretty printing state sets"
+subsubsection "Pretty printing state sets"
 
 text\<open>Tweak code generation to work with sets of non-equality types:\<close>
 declare insert_code[code del] union_coset_filter[code del]
@@ -27,7 +29,7 @@ definition show_acom :: "state set acom \<Rightarrow> (vname*val)set set acom" w
    annotate (\<lambda>p. (\<lambda>s. (\<lambda>x. (x, s x)) ` (vars_acom C)) ` anno C p) (strip C)"
 
 
-subsection "Examples"
+subsubsection "Examples"
 
 definition "c0 = WHILE Less (V ''x'') (N 3)
                 DO ''x'' ::= Plus (V ''x'') (N 2)"

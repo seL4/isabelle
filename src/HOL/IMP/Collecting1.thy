@@ -1,8 +1,8 @@
+subsection "A small step semantics on annotated commands"
+
 theory Collecting1
 imports Collecting
 begin
-
-subsection "A small step semantics on annotated commands"
 
 text\<open>The idea: the state is propagated through the annotated command as an
 annotation @{term "{s}"}, all other annotations are @{term "{}"}. It is easy

@@ -1,8 +1,10 @@
+(* Author: Tobias Nipkow *)
+
+subsection "Abstract Interpretation Test Programs"
+
 theory Abs_Int_Tests
 imports Com
 begin
-
-subsection "Test Programs"
 
 text\<open>For constant propagation:\<close>
 

@@ -1,11 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Widening and Narrowing"
+
 theory Abs_Int3
 imports Abs_Int2_ivl
 begin
-
-
-subsection "Widening and Narrowing"
 
 class widen =
 fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<nabla>" 65)

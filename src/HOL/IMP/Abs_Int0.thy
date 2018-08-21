@@ -1,10 +1,12 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Abstract Interpretation"
+
 theory Abs_Int0
 imports Abs_Int_init
 begin
 
-subsection "Orderings"
+subsubsection "Orderings"
 
 text\<open>The basic type classes @{class order}, @{class semilattice_sup} and @{class order_top} are
 defined in @{theory Main}, more precisely in theories @{theory HOL.Orderings} and @{theory HOL.Lattices}.
@@ -139,7 +141,7 @@ assumes "\<And>x. g(f x) = g x" and "pfp f x0 = Some x" shows "g x = g x0"
 using pfp_inv[OF assms(2), where P = "%x. g x = g x0"] assms(1) by simp
 
 
-subsection "Abstract Interpretation"
+subsubsection "Abstract Interpretation"
 
 definition \<gamma>_fun :: "('a \<Rightarrow> 'b set) \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> ('c \<Rightarrow> 'b)set" where
 "\<gamma>_fun \<gamma> F = {f. \<forall>x. f x \<in> \<gamma>(F x)}"

@@ -1,5 +1,7 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Backward Analysis of Expressions"
+
 theory Abs_Int2
 imports Abs_Int1
 begin
@@ -24,7 +26,7 @@ qed
 end
 
 
-subsection "Backward Analysis of Expressions"
+subsubsection "Extended Framework"
 
 subclass (in bounded_lattice) semilattice_sup_top ..
 

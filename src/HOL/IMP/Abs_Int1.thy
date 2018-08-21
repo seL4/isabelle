@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Computable Abstract Interpretation"
+
 theory Abs_Int1
 imports Abs_State
 begin
-
-subsection "Computable Abstract Interpretation"
 
 text\<open>Abstract interpretation over type @{text st} instead of functions.\<close>
 

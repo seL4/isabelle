@@ -1,8 +1,12 @@
+(* Author: Tobias Nipkow *)
+
+subsection "Collecting Semantics of Commands"
+
 theory Collecting
 imports Complete_Lattice Big_Step ACom
 begin
 
-subsection "The generic Step function"
+subsubsection "The generic Step function"
 
 notation
   sup (infixl "\<squnion>" 65) and
@@ -29,8 +33,6 @@ end
 lemma strip_Step[simp]: "strip(Step f g S C) = strip C"
 by(induct C arbitrary: S) auto
 
-
-subsection "Collecting Semantics of Commands"
 
 subsubsection "Annotated commands as a complete lattice"
 

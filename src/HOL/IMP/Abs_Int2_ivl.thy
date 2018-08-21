@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Interval Analysis"
+
 theory Abs_Int2_ivl
 imports Abs_Int2
 begin
-
-subsection "Interval Analysis"
 
 type_synonym eint = "int extended"
 type_synonym eint2 = "eint * eint"

@@ -1,5 +1,7 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Computable State"
+
 theory Abs_State
 imports Abs_Int0
 begin

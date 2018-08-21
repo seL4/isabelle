@@ -1,4 +1,8 @@
+(* Author: Tobias Nipkow *)
+
 section "Abstract Interpretation"
+
+subsection "Complete Lattice"
 
 theory Complete_Lattice
 imports Main

@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Constant Propagation"
+
 theory Abs_Int1_const
 imports Abs_Int1
 begin
-
-subsection "Constant Propagation"
 
 datatype const = Const val | Any
 

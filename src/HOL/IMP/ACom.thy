@@ -1,10 +1,10 @@
 (* Author: Tobias Nipkow *)
 
+subsection "Annotated Commands"
+
 theory ACom
 imports Com
 begin
-
-subsection "Annotated Commands"
 
 datatype 'a acom =
   SKIP 'a                           ("SKIP {_}" 61) |
