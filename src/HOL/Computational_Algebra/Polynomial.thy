@@ -4546,22 +4546,20 @@ proof -
 qed
 
 lemma content_decompose:
-  obtains p' :: "'a::semiring_gcd poly" where "p = smult (content p) p'" "content p' = 1"
+  obtains p' :: "'a::semiring_gcd poly"
+  where "p = smult (content p) p'" "content p' = 1"
 proof (cases "p = 0")
   case True
-  then show ?thesis by (intro that[of 1]) simp_all
+  then have "p = smult (content p) 1" "content 1 = 1"
+    by simp_all
+  then show ?thesis ..
 next
   case False
-  from content_dvd[of p] obtain r where r: "p = [:content p:] * r"
-    by (rule dvdE)
-  have "content p * 1 = content p * content r"
-    by (subst r) simp
-  with False have "content r = 1"
-    by (subst (asm) mult_left_cancel) simp_all
-  with r show ?thesis
-    by (intro that[of r]) simp_all
+  then have "p = smult (content p) (primitive_part p)" "content (primitive_part p) = 1"
+    by simp_all
+  then show ?thesis ..
 qed
-
+  
 lemma content_dvd_contentI [intro]: "p dvd q \<Longrightarrow> content p dvd content q"
   using const_poly_dvd_iff_dvd_content content_dvd dvd_trans by blast
 
@@ -4594,52 +4592,60 @@ proof -
   finally show ?thesis .
 qed
 
+context
+begin
+
+private
+
+lemma content_1_mult:
+  fixes f g :: "'a :: {semiring_gcd, factorial_semiring} poly"
+  assumes "content f = 1" "content g = 1"
+  shows   "content (f * g) = 1"
+proof (cases "f * g = 0")
+  case False
+  from assms have "f \<noteq> 0" "g \<noteq> 0" by auto
+
+  hence "f * g \<noteq> 0" by auto
+  {
+    assume "\<not>is_unit (content (f * g))"
+    with False have "\<exists>p. p dvd content (f * g) \<and> prime p"
+      by (intro prime_divisor_exists) simp_all
+    then obtain p where "p dvd content (f * g)" "prime p" by blast
+    from \<open>p dvd content (f * g)\<close> have "[:p:] dvd f * g"
+      by (simp add: const_poly_dvd_iff_dvd_content)
+    moreover from \<open>prime p\<close> have "prime_elem [:p:]" by (simp add: lift_prime_elem_poly)
+    ultimately have "[:p:] dvd f \<or> [:p:] dvd g"
+      by (simp add: prime_elem_dvd_mult_iff)
+    with assms have "is_unit p" by (simp add: const_poly_dvd_iff_dvd_content)
+    with \<open>prime p\<close> have False by simp
+  }
+  hence "is_unit (content (f * g))" by blast
+  hence "normalize (content (f * g)) = 1" by (simp add: is_unit_normalize del: normalize_content)
+  thus ?thesis by simp
+qed (insert assms, auto)
+
 lemma content_mult:
-  fixes p q :: "'a :: {factorial_semiring, semiring_Gcd} poly"
+  fixes p q :: "'a :: {factorial_semiring, semiring_gcd} poly"
   shows "content (p * q) = content p * content q"
-proof -
-  from content_decompose[of p] guess p' . note p = this
-  from content_decompose[of q] guess q' . note q = this
-  have "content (p * q) = content p * content q * content (p' * q')"
-    by (subst p, subst q) (simp add: mult_ac normalize_mult)
-  also have "content (p' * q') = 1"
-  proof (cases "p' * q' = 0")
-    case True
-    with \<open>content p' = 1\<close> \<open>content q' = 1\<close> show ?thesis
-      by auto
-  next  
-    case False
-    from \<open>content p' = 1\<close> \<open>content q' = 1\<close>
-    have "p' \<noteq> 0" "q' \<noteq> 0"
-      by auto
-    then have "p' * q' \<noteq> 0"
-      by auto
-    have "is_unit (content (p' * q'))"
-    proof (rule ccontr)      
-      assume "\<not> is_unit (content (p' * q'))"
-      with False have "\<exists>p. p dvd content (p' * q') \<and> prime p"
-        by (intro prime_divisor_exists) simp_all
-      then obtain p where "p dvd content (p' * q')" "prime p"
-        by blast
-      from \<open>p dvd content (p' * q')\<close> have "[:p:] dvd p' * q'"
-        by (simp add: const_poly_dvd_iff_dvd_content)
-      moreover from \<open>prime p\<close> have "prime_elem [:p:]"
-        by (simp add: lift_prime_elem_poly)
-      ultimately have "[:p:] dvd p' \<or> [:p:] dvd q'"
-        by (simp add: prime_elem_dvd_mult_iff)
-      with \<open>content p' = 1\<close> \<open>content q' = 1\<close> have "is_unit p"
-        by (simp add: const_poly_dvd_iff_dvd_content)
-      with \<open>prime p\<close> show False
-        by simp
-    qed    
-    then have "normalize (content (p' * q')) = 1"
-      by (simp add: is_unit_normalize del: normalize_content)
-    then show ?thesis
-      by simp
-  qed
-  finally show ?thesis
+proof (cases "p * q = 0")
+  case False
+  then have "p \<noteq> 0" and "q \<noteq> 0"
+    by simp_all
+  then have *: "content (primitive_part p * primitive_part q) = 1"
+    by (auto intro: content_1_mult)
+  have "p * q = smult (content p) (primitive_part p) * smult (content q) (primitive_part q)"
     by simp
+  also have "\<dots> = smult (content p * content q) (primitive_part p * primitive_part q)"
+    by (metis mult.commute mult_smult_right smult_smult)
+  with * show ?thesis
+  by (simp add: normalize_mult)
+next
+  case True
+  then show ?thesis
+    by auto
 qed
+
+end
 
 lemma primitive_part_mult:
   fixes p q :: "'a :: {factorial_semiring, semiring_Gcd, ring_gcd, idom_divide} poly"
