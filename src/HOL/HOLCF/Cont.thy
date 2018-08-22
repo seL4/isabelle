@@ -217,7 +217,7 @@ lemma cont_discrete_cpo [simp, cont2cont]: "cont f"
   for f :: "'a::discrete_cpo \<Rightarrow> 'b::cpo"
   apply (rule contI)
   apply (drule discrete_chain_const, clarify)
-  apply (simp add: is_lub_const)
+  apply simp
   done
 
 end

@@ -115,11 +115,7 @@ where
     (if P (node i a S) then node i a S else ubasis_until P a)"
    apply clarify
    apply (rule_tac x=b in node_cases)
-    apply simp
-   apply simp
-   apply fast
-  apply simp
- apply simp
+    apply simp_all
 done
 
 termination ubasis_until

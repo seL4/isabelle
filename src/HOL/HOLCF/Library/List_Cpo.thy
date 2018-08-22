@@ -139,11 +139,18 @@ by (clarsimp, case_tac u, simp_all)
 instance list :: (cpo) cpo
 proof
   fix S :: "nat \<Rightarrow> 'a list"
-  assume "chain S" thus "\<exists>x. range S <<| x"
+  assume "chain S"
+  then show "\<exists>x. range S <<| x"
   proof (induct rule: list_chain_induct)
-    case Nil thus ?case by (auto intro: is_lub_const)
+    case Nil
+    have "{[]} <<| []"
+      by simp
+    then obtain x :: "'a list" where "{[]} <<| x" ..
+    then show ?case
+      by auto
   next
-    case (Cons A B) thus ?case by (auto intro: is_lub_Cons cpo_lubI)
+    case (Cons A B) then show ?case
+      by (auto intro: is_lub_Cons cpo_lubI)
   qed
 qed
 

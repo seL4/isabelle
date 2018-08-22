@@ -981,6 +981,9 @@ lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
 lemma range_composition: "range (\<lambda>x. f (g x)) = f ` range g"
   by auto
 
+lemma range_constant [simp]: "range (\<lambda>_. x) = {x}"
+  by (simp add: image_constant)
+
 lemma range_eq_singletonD: "range f = {a} \<Longrightarrow> f x = a"
   by auto
 

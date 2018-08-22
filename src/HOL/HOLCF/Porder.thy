@@ -157,7 +157,7 @@ lemma is_lub_lub: "M <<| x \<Longrightarrow> M <<| lub M"
 lemma lub_eqI: "M <<| l \<Longrightarrow> lub M = l"
   by (rule is_lub_unique [OF is_lub_lub])
 
-lemma is_lub_singleton: "{x} <<| x"
+lemma is_lub_singleton [simp]: "{x} <<| x"
   by (simp add: is_lub_def)
 
 lemma lub_singleton [simp]: "lub {x} = x"
