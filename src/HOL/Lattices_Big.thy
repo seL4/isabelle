@@ -798,41 +798,26 @@ end
 context linordered_ab_semigroup_add
 begin
 
-lemma add_Min_commute:
+lemma Min_add_commute:
   fixes k
   assumes "finite N" and "N \<noteq> {}"
-  shows "k + Min N = Min {k + m | m. m \<in> N}"
+  shows "Min ((+) k ` N) = k + Min N"
 proof -
-  have "\<And>x y. k + min x y = min (k + x) (k + y)"
-    by (simp add: min_def not_le)
-      (blast intro: antisym less_imp_le add_left_mono)
+  have "\<And>x y. k + min x y = min (k+x) (k+y)"
+    by(simp add: min_def antisym add_left_mono)
   with assms show ?thesis
-    using hom_Min_commute [of "plus k" N]
-    by simp (blast intro: arg_cong [where f = Min])
+    using hom_Min_commute [of "(+) k" N, symmetric] by simp
 qed
 
 lemma Max_add_commute:
   fixes k
   assumes "finite N" and "N \<noteq> {}"
-  shows "Max((\<lambda>x. x+k) ` N) = Max N + k"
+  shows "Max ((+) k ` N) = k + Max N"
 proof -
-  have "\<And>x y. max x y + k = max (x+k) (y+k)"
-    by(simp add: max_def antisym add_right_mono)
+  have "\<And>x y. k + max x y = max (k+x) (k+y)"
+    by(simp add: max_def antisym add_left_mono)
   with assms show ?thesis
-    using hom_Max_commute [of "\<lambda>x. x+k" N, symmetric] by simp
-qed
-
-lemma add_Max_commute:
-  fixes k
-  assumes "finite N" and "N \<noteq> {}"
-  shows "k + Max N = Max {k + m | m. m \<in> N}"
-proof -
-  have "\<And>x y. k + max x y = max (k + x) (k + y)"
-    by (simp add: max_def not_le)
-      (blast intro: antisym less_imp_le add_left_mono)
-  with assms show ?thesis
-    using hom_Max_commute [of "plus k" N]
-    by simp (blast intro: arg_cong [where f = Max])
+    using hom_Max_commute [of "(+) k" N, symmetric] by simp
 qed
 
 end
