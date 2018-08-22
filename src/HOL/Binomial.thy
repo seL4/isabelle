@@ -342,6 +342,12 @@ lemma gbinomial_0 [simp]:
 lemma gbinomial_Suc: "a gchoose (Suc k) = prod (\<lambda>i. a - of_nat i) {0..k} div fact (Suc k)"
   by (simp add: gbinomial_prod_rev atLeastLessThanSuc_atLeastAtMost)
 
+lemma gbinomial_1 [simp]: "a gchoose 1 = a"
+  by (simp add: gbinomial_prod_rev lessThan_Suc)
+
+lemma gbinomial_Suc0 [simp]: "a gchoose Suc 0 = a"
+  by (simp add: gbinomial_prod_rev lessThan_Suc)
+
 lemma gbinomial_mult_fact: "fact n * (a gchoose n) = (\<Prod>i = 0..<n. a - of_nat i)"
   for a :: "'a::field_char_0"
   by (simp_all add: gbinomial_prod_rev field_simps)
@@ -420,12 +426,6 @@ lemma binomial_gbinomial: "of_nat (n choose k) = (of_nat n gchoose k :: 'a::fiel
 
 setup
   \<open>Sign.add_const_constraint (@{const_name gbinomial}, SOME @{typ "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a"})\<close>
-
-lemma gbinomial_1[simp]: "a gchoose 1 = a"
-  by (simp add: gbinomial_prod_rev lessThan_Suc)
-
-lemma gbinomial_Suc0[simp]: "a gchoose (Suc 0) = a"
-  by (simp add: gbinomial_prod_rev lessThan_Suc)
 
 lemma gbinomial_mult_1:
   fixes a :: "'a::field_char_0"
