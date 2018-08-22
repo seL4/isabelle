@@ -499,8 +499,8 @@ translations
   "MAX x\<in>A. B"   \<rightleftharpoons> "CONST MAXIMUM A (\<lambda>x. B)"
 
 print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPREMUM} @{syntax_const "_SUP"}]
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax MINIMUM} @{syntax_const "_MIN"},
+    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax MAXIMUM} @{syntax_const "_MAX"}]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 text \<open>An aside: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin}\<close>
@@ -809,6 +809,17 @@ proof -
   with assms show ?thesis
     using hom_Min_commute [of "plus k" N]
     by simp (blast intro: arg_cong [where f = Min])
+qed
+
+lemma Max_add_commute:
+  fixes k
+  assumes "finite N" and "N \<noteq> {}"
+  shows "Max((\<lambda>x. x+k) ` N) = Max N + k"
+proof -
+  have "\<And>x y. max x y + k = max (x+k) (y+k)"
+    by(simp add: max_def antisym add_right_mono)
+  with assms show ?thesis
+    using hom_Max_commute [of "\<lambda>x. x+k" N, symmetric] by simp
 qed
 
 lemma add_Max_commute:
