@@ -174,10 +174,28 @@ proof -
     by (induct r rule: nat.induct) (auto simp add: fact_div_fact Suc_diff_Suc mult_le_mono)
 qed
 
+lemma prod_Suc_fact: "prod Suc {0..<n} = fact n"
+  by (simp add: fact_prod_Suc)
+
+lemma prod_Suc_Suc_fact: "prod Suc {Suc 0..<n} = fact n"
+proof (cases "n = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  have "prod Suc {Suc 0..<n} = Suc 0 * prod Suc {Suc 0..<n}"
+    by simp
+  also have "\<dots> = prod Suc (insert 0 {Suc 0..<n})"
+    by simp
+  also have "insert 0 {Suc 0..<n} = {0..<n}"
+    using False by auto
+  finally show ?thesis
+    by (simp add: fact_prod_Suc)
+qed
+
 lemma fact_numeral: "fact (numeral k) = numeral k * fact (pred_numeral k)"
   \<comment> \<open>Evaluation for specific numerals\<close>
   by (metis fact_Suc numeral_eq_Suc of_nat_numeral)
-
 
 
 subsection \<open>Pochhammer's symbol: generalized rising factorial\<close>
