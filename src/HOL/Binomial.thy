@@ -50,7 +50,7 @@ qed
 
 text \<open>Recursive characterization\<close>
 
-lemma binomial_n_0 [simp, code]: "n choose 0 = 1"
+lemma binomial_n_0 [simp]: "n choose 0 = 1"
 proof -
   have "{K \<in> Pow {0..<n}. card K = 0} = {{}}"
     by (auto dest: finite_subset)
@@ -58,10 +58,10 @@ proof -
     by (simp add: binomial_def)
 qed
 
-lemma binomial_0_Suc [simp, code]: "0 choose Suc k = 0"
+lemma binomial_0_Suc [simp]: "0 choose Suc k = 0"
   by (simp add: binomial_def)
 
-lemma binomial_Suc_Suc [simp, code]: "Suc n choose Suc k = (n choose k) + (n choose Suc k)"
+lemma binomial_Suc_Suc [simp]: "Suc n choose Suc k = (n choose k) + (n choose Suc k)"
 proof -
   let ?P = "\<lambda>n k. {K. K \<subseteq> {0..<n} \<and> card K = k}"
   let ?Q = "?P (Suc n) (Suc k)"
@@ -1285,7 +1285,7 @@ proof -
 qed
 
 
-subsection \<open>Misc\<close>
+subsection \<open>Executable code\<close>
 
 lemma gbinomial_code [code]:
   "a gchoose n =
@@ -1295,13 +1295,11 @@ lemma gbinomial_code [code]:
     (simp_all add: gbinomial_prod_rev prod_atLeastAtMost_code [symmetric]
       atLeastLessThanSuc_atLeastAtMost)
 
-declare [[code drop: binomial]]
-    
 lemma binomial_code [code]:
-  "(n choose k) =
+  "n choose k =
       (if k > n then 0
-       else if 2 * k > n then (n choose (n - k))
-       else (fold_atLeastAtMost_nat (( * ) ) (n-k+1) n 1 div fact k))"
+       else if 2 * k > n then n choose (n - k)
+       else (fold_atLeastAtMost_nat ( * ) (n - k + 1) n 1 div fact k))"
 proof -
   {
     assume "k \<le> n"
