@@ -572,7 +572,7 @@ proof (induct n arbitrary: r)
   have "(\<Sum>k\<le>r. (m choose k) * (0 choose (r - k))) = (\<Sum>k\<le>r. if k = r then (m choose k) else 0)"
     by (intro sum.cong) simp_all
   also have "\<dots> = m choose r"
-    by (simp add: sum.delta)
+    by simp
   finally show ?case
     by simp
 next
@@ -636,7 +636,7 @@ proof -
   have x: "0 \<le> x"
     using assms of_nat_0_le_iff order_trans by blast
   have "(x / of_nat k :: 'a) ^ k = (\<Prod>i = 0..<k. x / of_nat k :: 'a)"
-    by (simp add: prod_constant)
+    by simp
   also have "\<dots> \<le> x gchoose k" (* FIXME *)
     unfolding gbinomial_altdef_of_nat
     apply (safe intro!: prod_mono)
