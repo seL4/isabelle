@@ -332,11 +332,11 @@ qed
 subsection \<open>Generalized binomial coefficients\<close>
 
 definition gbinomial :: "'a::{semidom_divide,semiring_char_0} \<Rightarrow> nat \<Rightarrow> 'a"  (infixl "gchoose" 65)
-  where gbinomial_prod_rev: "a gchoose n = prod (\<lambda>i. a - of_nat i) {0..<n} div fact n"
+  where gbinomial_prod_rev: "a gchoose k = prod (\<lambda>i. a - of_nat i) {0..<k} div fact k"
 
 lemma gbinomial_0 [simp]:
   "a gchoose 0 = 1"
-  "0 gchoose (Suc n) = 0"
+  "0 gchoose (Suc k) = 0"
   by (simp_all add: gbinomial_prod_rev prod.atLeast0_lessThan_Suc_shift)
 
 lemma gbinomial_Suc: "a gchoose (Suc k) = prod (\<lambda>i. a - of_nat i) {0..k} div fact (Suc k)"
@@ -348,28 +348,28 @@ lemma gbinomial_1 [simp]: "a gchoose 1 = a"
 lemma gbinomial_Suc0 [simp]: "a gchoose Suc 0 = a"
   by (simp add: gbinomial_prod_rev lessThan_Suc)
 
-lemma gbinomial_mult_fact: "fact n * (a gchoose n) = (\<Prod>i = 0..<n. a - of_nat i)"
+lemma gbinomial_mult_fact: "fact k * (a gchoose k) = (\<Prod>i = 0..<k. a - of_nat i)"
   for a :: "'a::field_char_0"
   by (simp_all add: gbinomial_prod_rev field_simps)
 
-lemma gbinomial_mult_fact': "(a gchoose n) * fact n = (\<Prod>i = 0..<n. a - of_nat i)"
+lemma gbinomial_mult_fact': "(a gchoose k) * fact k = (\<Prod>i = 0..<k. a - of_nat i)"
   for a :: "'a::field_char_0"
-  using gbinomial_mult_fact [of n a] by (simp add: ac_simps)
+  using gbinomial_mult_fact [of k a] by (simp add: ac_simps)
 
-lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / fact n"
+lemma gbinomial_pochhammer: "a gchoose k = (- 1) ^ k * pochhammer (- a) k / fact k"
   for a :: "'a::field_char_0"
-  by (cases n)
+  by (cases k)
     (simp_all add: pochhammer_minus,
      simp_all add: gbinomial_prod_rev pochhammer_prod_rev
        power_mult_distrib [symmetric] atLeastLessThanSuc_atLeastAtMost
        prod.atLeast_Suc_atMost_Suc_shift of_nat_diff)
 
-lemma gbinomial_pochhammer': "s gchoose n = pochhammer (s - of_nat n + 1) n / fact n"
-  for s :: "'a::field_char_0"
+lemma gbinomial_pochhammer': "a gchoose k = pochhammer (a - of_nat k + 1) k / fact k"
+  for a :: "'a::field_char_0"
 proof -
-  have "s gchoose n = ((-1)^n * (-1)^n) * pochhammer (s - of_nat n + 1) n / fact n"
+  have "a gchoose k = ((-1)^k * (-1)^k) * pochhammer (a - of_nat k + 1) k / fact k"
     by (simp add: gbinomial_pochhammer pochhammer_minus mult_ac)
-  also have "(-1 :: 'a)^n * (-1)^n = 1"
+  also have "(-1 :: 'a)^k * (-1)^k = 1"
     by (subst power_add [symmetric]) simp
   finally show ?thesis
     by simp
@@ -429,10 +429,10 @@ setup
 
 lemma gbinomial_mult_1:
   fixes a :: "'a::field_char_0"
-  shows "a * (a gchoose n) = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
+  shows "a * (a gchoose k) = of_nat k * (a gchoose k) + of_nat (Suc k) * (a gchoose (Suc k))"
   (is "?l = ?r")
 proof -
-  have "?r = ((- 1) ^n * pochhammer (- a) n / (fact n)) * (of_nat n - (- a + of_nat n))"
+  have "?r = ((- 1) ^k * pochhammer (- a) k / fact k) * (of_nat k - (- a + of_nat k))"
     apply (simp only: gbinomial_pochhammer pochhammer_Suc right_diff_distrib power_Suc)
     apply (simp del: of_nat_Suc fact_Suc)
     apply (auto simp add: field_simps simp del: of_nat_Suc)
@@ -443,7 +443,7 @@ proof -
 qed
 
 lemma gbinomial_mult_1':
-  "(a gchoose n) * a = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
+  "(a gchoose k) * a = of_nat k * (a gchoose k) + of_nat (Suc k) * (a gchoose (Suc k))"
   for a :: "'a::field_char_0"
   by (simp add: mult.commute gbinomial_mult_1)
 
@@ -623,34 +623,34 @@ qed
 
 text \<open>Contributed by Manuel Eberl, generalised by LCP.
   Alternative definition of the binomial coefficient as @{term "\<Prod>i<k. (n - i) / (k - i)"}.\<close>
-lemma gbinomial_altdef_of_nat: "x gchoose k = (\<Prod>i = 0..<k. (x - of_nat i) / of_nat (k - i) :: 'a)"
-  for k :: nat and x :: "'a::field_char_0"
+lemma gbinomial_altdef_of_nat: "a gchoose k = (\<Prod>i = 0..<k. (a - of_nat i) / of_nat (k - i) :: 'a)"
+  for k :: nat and a :: "'a::field_char_0"
   by (simp add: prod_dividef gbinomial_prod_rev fact_prod_rev)
 
 lemma gbinomial_ge_n_over_k_pow_k:
   fixes k :: nat
-    and x :: "'a::linordered_field"
-  assumes "of_nat k \<le> x"
-  shows "(x / of_nat k :: 'a) ^ k \<le> x gchoose k"
+    and a :: "'a::linordered_field"
+  assumes "of_nat k \<le> a"
+  shows "(a / of_nat k :: 'a) ^ k \<le> a gchoose k"
 proof -
-  have x: "0 \<le> x"
+  have x: "0 \<le> a"
     using assms of_nat_0_le_iff order_trans by blast
-  have "(x / of_nat k :: 'a) ^ k = (\<Prod>i = 0..<k. x / of_nat k :: 'a)"
+  have "(a / of_nat k :: 'a) ^ k = (\<Prod>i = 0..<k. a / of_nat k :: 'a)"
     by simp
-  also have "\<dots> \<le> x gchoose k" (* FIXME *)
+  also have "\<dots> \<le> a gchoose k" (* FIXME *)
     unfolding gbinomial_altdef_of_nat
     apply (safe intro!: prod_mono)
     apply simp_all
     prefer 2
     subgoal premises for i
     proof -
-      from assms have "x * of_nat i \<ge> of_nat (i * k)"
+      from assms have "a * of_nat i \<ge> of_nat (i * k)"
         by (metis mult.commute mult_le_cancel_right of_nat_less_0_iff of_nat_mult)
-      then have "x * of_nat k - x * of_nat i \<le> x * of_nat k - of_nat (i * k)"
+      then have "a * of_nat k - a * of_nat i \<le> a * of_nat k - of_nat (i * k)"
         by arith
-      then have "x * of_nat (k - i) \<le> (x - of_nat i) * of_nat k"
+      then have "a * of_nat (k - i) \<le> (a - of_nat i) * of_nat k"
         using \<open>i < k\<close> by (simp add: algebra_simps zero_less_mult_iff of_nat_diff)
-      then have "x * of_nat (k - i) \<le> (x - of_nat i) * (of_nat k :: 'a)"
+      then have "a * of_nat (k - i) \<le> (a - of_nat i) * (of_nat k :: 'a)"
         by (simp only: of_nat_mult[symmetric] of_nat_le_iff)
       with assms show ?thesis
         using \<open>i < k\<close> by (simp add: field_simps)
@@ -660,14 +660,14 @@ proof -
   finally show ?thesis .
 qed
 
-lemma gbinomial_negated_upper: "(a gchoose b) = (-1) ^ b * ((of_nat b - a - 1) gchoose b)"
+lemma gbinomial_negated_upper: "(a gchoose k) = (-1) ^ k * ((of_nat k - a - 1) gchoose k)"
   by (simp add: gbinomial_pochhammer pochhammer_minus algebra_simps)
 
-lemma gbinomial_minus: "((-a) gchoose b) = (-1) ^ b * ((a + of_nat b - 1) gchoose b)"
+lemma gbinomial_minus: "((-a) gchoose k) = (-1) ^ k * ((a + of_nat k - 1) gchoose k)"
   by (subst gbinomial_negated_upper) (simp add: add_ac)
 
-lemma Suc_times_gbinomial: "of_nat (Suc b) * ((a + 1) gchoose (Suc b)) = (a + 1) * (a gchoose b)"
-proof (cases b)
+lemma Suc_times_gbinomial: "of_nat (Suc k) * ((a + 1) gchoose (Suc k)) = (a + 1) * (a gchoose k)"
+proof (cases k)
   case 0
   then show ?thesis by simp
 next
@@ -681,8 +681,8 @@ next
   finally show ?thesis by (simp add: Suc field_simps del: of_nat_Suc)
 qed
 
-lemma gbinomial_factors: "((a + 1) gchoose (Suc b)) = (a + 1) / of_nat (Suc b) * (a gchoose b)"
-proof (cases b)
+lemma gbinomial_factors: "((a + 1) gchoose (Suc k)) = (a + 1) / of_nat (Suc k) * (a gchoose k)"
+proof (cases k)
   case 0
   then show ?thesis by simp
 next
@@ -697,8 +697,8 @@ next
     by (simp add: Suc)
 qed
 
-lemma gbinomial_rec: "((r + 1) gchoose (Suc k)) = (r gchoose k) * ((r + 1) / of_nat (Suc k))"
-  using gbinomial_mult_1[of r k]
+lemma gbinomial_rec: "((a + 1) gchoose (Suc k)) = (a gchoose k) * ((a + 1) / of_nat (Suc k))"
+  using gbinomial_mult_1[of a k]
   by (subst gbinomial_Suc_Suc) (simp add: field_simps del: of_nat_Suc, simp add: algebra_simps)
 
 lemma gbinomial_of_nat_symmetric: "k \<le> n \<Longrightarrow> (of_nat n) gchoose k = (of_nat n) gchoose (n - k)"
@@ -709,8 +709,8 @@ text \<open>The absorption identity (equation 5.5 @{cite \<open>p.~157\<close> G
 \[
 {r \choose k} = \frac{r}{k}{r - 1 \choose k - 1},\quad \textnormal{integer } k \neq 0.
 \]\<close>
-lemma gbinomial_absorption': "k > 0 \<Longrightarrow> r gchoose k = (r / of_nat k) * (r - 1 gchoose (k - 1))"
-  using gbinomial_rec[of "r - 1" "k - 1"]
+lemma gbinomial_absorption': "k > 0 \<Longrightarrow> a gchoose k = (a / of_nat k) * (a - 1 gchoose (k - 1))"
+  using gbinomial_rec[of "a - 1" "k - 1"]
   by (simp_all add: gbinomial_rec field_simps del: of_nat_Suc)
 
 text \<open>The absorption identity is written in the following form to avoid
@@ -719,8 +719,8 @@ restriction @{cite \<open>p.~157\<close> GKP_CM}:
 \[
 k{r \choose k} = r{r - 1 \choose k - 1}, \quad \textnormal{integer } k.
 \]\<close>
-lemma gbinomial_absorption: "of_nat (Suc k) * (r gchoose Suc k) = r * ((r - 1) gchoose k)"
-  using gbinomial_absorption'[of "Suc k" r] by (simp add: field_simps del: of_nat_Suc)
+lemma gbinomial_absorption: "of_nat (Suc k) * (a gchoose Suc k) = a * ((a - 1) gchoose k)"
+  using gbinomial_absorption'[of "Suc k" a] by (simp add: field_simps del: of_nat_Suc)
 
 text \<open>The absorption identity for natural number binomial coefficients:\<close>
 lemma binomial_absorption: "Suc k * (n choose Suc k) = n * ((n - 1) choose k)"
@@ -746,12 +746,12 @@ next
 qed
 
 text \<open>The generalised absorption companion identity:\<close>
-lemma gbinomial_absorb_comp: "(r - of_nat k) * (r gchoose k) = r * ((r - 1) gchoose k)"
-  using pochhammer_absorb_comp[of r k] by (simp add: gbinomial_pochhammer)
+lemma gbinomial_absorb_comp: "(a - of_nat k) * (a gchoose k) = a * ((a - 1) gchoose k)"
+  using pochhammer_absorb_comp[of a k] by (simp add: gbinomial_pochhammer)
 
 lemma gbinomial_addition_formula:
-  "r gchoose (Suc k) = ((r - 1) gchoose (Suc k)) + ((r - 1) gchoose k)"
-  using gbinomial_Suc_Suc[of "r - 1" k] by (simp add: algebra_simps)
+  "a gchoose (Suc k) = ((a - 1) gchoose (Suc k)) + ((a - 1) gchoose k)"
+  using gbinomial_Suc_Suc[of "a - 1" k] by (simp add: algebra_simps)
 
 lemma binomial_addition_formula:
   "0 < n \<Longrightarrow> n choose (Suc k) = ((n - 1) choose (Suc k)) + ((n - 1) choose k)"
@@ -765,14 +765,14 @@ text \<open>
    \quad \textnormal{integer } n.
   \]
 \<close>
-lemma gbinomial_parallel_sum: "(\<Sum>k\<le>n. (r + of_nat k) gchoose k) = (r + of_nat n + 1) gchoose n"
+lemma gbinomial_parallel_sum: "(\<Sum>k\<le>n. (a + of_nat k) gchoose k) = (a + of_nat n + 1) gchoose n"
 proof (induct n)
   case 0
   then show ?case by simp
 next
   case (Suc m)
   then show ?case
-    using gbinomial_Suc_Suc[of "(r + of_nat m + 1)" m]
+    using gbinomial_Suc_Suc[of "(a + of_nat m + 1)" m]
     by (simp add: add_ac)
 qed
 
@@ -785,38 +785,38 @@ text \<open>
   {n + 1 \choose m + 1}, \quad \textnormal{integers } m, n \geq 0.\]
 \<close>
 lemma gbinomial_sum_up_index:
-  "(\<Sum>k = 0..n. (of_nat k gchoose m) :: 'a::field_char_0) = (of_nat n + 1) gchoose (m + 1)"
+  "(\<Sum>j = 0..n. (of_nat j gchoose k) :: 'a::field_char_0) = (of_nat n + 1) gchoose (k + 1)"
 proof (induct n)
   case 0
   show ?case
-    using gbinomial_Suc_Suc[of 0 m]
-    by (cases m) auto
+    using gbinomial_Suc_Suc[of 0 k]
+    by (cases k) auto
 next
   case (Suc n)
   then show ?case
-    using gbinomial_Suc_Suc[of "of_nat (Suc n) :: 'a" m]
+    using gbinomial_Suc_Suc[of "of_nat (Suc n) :: 'a" k]
     by (simp add: add_ac)
 qed
 
 lemma gbinomial_index_swap:
-  "((-1) ^ m) * ((- (of_nat n) - 1) gchoose m) = ((-1) ^ n) * ((- (of_nat m) - 1) gchoose n)"
+  "((-1) ^ k) * ((- (of_nat n) - 1) gchoose k) = ((-1) ^ n) * ((- (of_nat k) - 1) gchoose n)"
   (is "?lhs = ?rhs")
 proof -
-  have "?lhs = (of_nat (m + n) gchoose m)"
+  have "?lhs = (of_nat (k + n) gchoose k)"
     by (subst gbinomial_negated_upper) (simp add: power_mult_distrib [symmetric])
-  also have "\<dots> = (of_nat (m + n) gchoose n)"
+  also have "\<dots> = (of_nat (k + n) gchoose n)"
     by (subst gbinomial_of_nat_symmetric) simp_all
   also have "\<dots> = ?rhs"
     by (subst gbinomial_negated_upper) simp
   finally show ?thesis .
 qed
 
-lemma gbinomial_sum_lower_neg: "(\<Sum>k\<le>m. (r gchoose k) * (- 1) ^ k) = (- 1) ^ m * (r - 1 gchoose m)"
+lemma gbinomial_sum_lower_neg: "(\<Sum>k\<le>m. (a gchoose k) * (- 1) ^ k) = (- 1) ^ m * (a - 1 gchoose m)"
   (is "?lhs = ?rhs")
 proof -
-  have "?lhs = (\<Sum>k\<le>m. -(r + 1) + of_nat k gchoose k)"
+  have "?lhs = (\<Sum>k\<le>m. -(a + 1) + of_nat k gchoose k)"
     by (intro sum.cong[OF refl]) (subst gbinomial_negated_upper, simp add: power_mult_distrib)
-  also have "\<dots>  = - r + of_nat m gchoose m"
+  also have "\<dots>  = - a + of_nat m gchoose m"
     by (subst gbinomial_parallel_sum) simp
   also have "\<dots> = ?rhs"
     by (subst gbinomial_negated_upper) (simp add: power_mult_distrib)
@@ -824,18 +824,18 @@ proof -
 qed
 
 lemma gbinomial_partial_row_sum:
-  "(\<Sum>k\<le>m. (r gchoose k) * ((r / 2) - of_nat k)) = ((of_nat m + 1)/2) * (r gchoose (m + 1))"
+  "(\<Sum>k\<le>m. (a gchoose k) * ((a / 2) - of_nat k)) = ((of_nat m + 1)/2) * (a gchoose (m + 1))"
 proof (induct m)
   case 0
   then show ?case by simp
 next
   case (Suc mm)
-  then have "(\<Sum>k\<le>Suc mm. (r gchoose k) * (r / 2 - of_nat k)) =
-      (r - of_nat (Suc mm)) * (r gchoose Suc mm) / 2"
+  then have "(\<Sum>k\<le>Suc mm. (a gchoose k) * (a / 2 - of_nat k)) =
+      (a - of_nat (Suc mm)) * (a gchoose Suc mm) / 2"
     by (simp add: field_simps)
-  also have "\<dots> = r * (r - 1 gchoose Suc mm) / 2"
+  also have "\<dots> = a * (a - 1 gchoose Suc mm) / 2"
     by (subst gbinomial_absorb_comp) (rule refl)
-  also have "\<dots> = (of_nat (Suc mm) + 1) / 2 * (r gchoose (Suc mm + 1))"
+  also have "\<dots> = (of_nat (Suc mm) + 1) / 2 * (a gchoose (Suc mm + 1))"
     by (subst gbinomial_absorption [symmetric]) simp
   finally show ?case .
 qed
@@ -844,15 +844,15 @@ lemma sum_bounds_lt_plus1: "(\<Sum>k<mm. f (Suc k)) = (\<Sum>k=1..mm. f k)"
   by (induct mm) simp_all
 
 lemma gbinomial_partial_sum_poly:
-  "(\<Sum>k\<le>m. (of_nat m + r gchoose k) * x^k * y^(m-k)) =
-    (\<Sum>k\<le>m. (-r gchoose k) * (-x)^k * (x + y)^(m-k))"
+  "(\<Sum>k\<le>m. (of_nat m + a gchoose k) * x^k * y^(m-k)) =
+    (\<Sum>k\<le>m. (-a gchoose k) * (-x)^k * (x + y)^(m-k))"
   (is "?lhs m = ?rhs m")
 proof (induction m)
   case 0
   then show ?case by simp
 next
   case (Suc mm)
-  define G where "G i k = (of_nat i + r gchoose k) * x^k * y^(i - k)" for i k
+  define G where "G i k = (of_nat i + a gchoose k) * x^k * y^(i - k)" for i k
   define S where "S = ?lhs"
   have SG_def: "S = (\<lambda>i. (\<Sum>k\<le>i. (G i k)))"
     unfolding S_def G_def ..
@@ -861,61 +861,61 @@ next
     using SG_def by (simp add: sum_head_Suc atLeast0AtMost [symmetric])
   also have "(\<Sum>k=Suc 0..Suc mm. G (Suc mm) k) = (\<Sum>k=0..mm. G (Suc mm) (Suc k))"
     by (subst sum_shift_bounds_cl_Suc_ivl) simp
-  also have "\<dots> = (\<Sum>k=0..mm. ((of_nat mm + r gchoose (Suc k)) +
-      (of_nat mm + r gchoose k)) * x^(Suc k) * y^(mm - k))"
+  also have "\<dots> = (\<Sum>k=0..mm. ((of_nat mm + a gchoose (Suc k)) +
+      (of_nat mm + a gchoose k)) * x^(Suc k) * y^(mm - k))"
     unfolding G_def by (subst gbinomial_addition_formula) simp
-  also have "\<dots> = (\<Sum>k=0..mm. (of_nat mm + r gchoose (Suc k)) * x^(Suc k) * y^(mm - k)) +
-      (\<Sum>k=0..mm. (of_nat mm + r gchoose k) * x^(Suc k) * y^(mm - k))"
+  also have "\<dots> = (\<Sum>k=0..mm. (of_nat mm + a gchoose (Suc k)) * x^(Suc k) * y^(mm - k)) +
+      (\<Sum>k=0..mm. (of_nat mm + a gchoose k) * x^(Suc k) * y^(mm - k))"
     by (subst sum.distrib [symmetric]) (simp add: algebra_simps)
-  also have "(\<Sum>k=0..mm. (of_nat mm + r gchoose (Suc k)) * x^(Suc k) * y^(mm - k)) =
-      (\<Sum>k<Suc mm. (of_nat mm + r gchoose (Suc k)) * x^(Suc k) * y^(mm - k))"
+  also have "(\<Sum>k=0..mm. (of_nat mm + a gchoose (Suc k)) * x^(Suc k) * y^(mm - k)) =
+      (\<Sum>k<Suc mm. (of_nat mm + a gchoose (Suc k)) * x^(Suc k) * y^(mm - k))"
     by (simp only: atLeast0AtMost lessThan_Suc_atMost)
-  also have "\<dots> = (\<Sum>k<mm. (of_nat mm + r gchoose Suc k) * x^(Suc k) * y^(mm-k)) +
-      (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm)"
+  also have "\<dots> = (\<Sum>k<mm. (of_nat mm + a gchoose Suc k) * x^(Suc k) * y^(mm-k)) +
+      (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm)"
     (is "_ = ?A + ?B")
     by (subst sum_lessThan_Suc) simp
-  also have "?A = (\<Sum>k=1..mm. (of_nat mm + r gchoose k) * x^k * y^(mm - k + 1))"
+  also have "?A = (\<Sum>k=1..mm. (of_nat mm + a gchoose k) * x^k * y^(mm - k + 1))"
   proof (subst sum_bounds_lt_plus1 [symmetric], intro sum.cong[OF refl], clarify)
     fix k
     assume "k < mm"
     then have "mm - k = mm - Suc k + 1"
       by linarith
-    then show "(of_nat mm + r gchoose Suc k) * x ^ Suc k * y ^ (mm - k) =
-        (of_nat mm + r gchoose Suc k) * x ^ Suc k * y ^ (mm - Suc k + 1)"
+    then show "(of_nat mm + a gchoose Suc k) * x ^ Suc k * y ^ (mm - k) =
+        (of_nat mm + a gchoose Suc k) * x ^ Suc k * y ^ (mm - Suc k + 1)"
       by (simp only:)
   qed
-  also have "\<dots> + ?B = y * (\<Sum>k=1..mm. (G mm k)) + (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm)"
+  also have "\<dots> + ?B = y * (\<Sum>k=1..mm. (G mm k)) + (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm)"
     unfolding G_def by (subst sum_distrib_left) (simp add: algebra_simps)
-  also have "(\<Sum>k=0..mm. (of_nat mm + r gchoose k) * x^(Suc k) * y^(mm - k)) = x * (S mm)"
+  also have "(\<Sum>k=0..mm. (of_nat mm + a gchoose k) * x^(Suc k) * y^(mm - k)) = x * (S mm)"
     unfolding S_def by (subst sum_distrib_left) (simp add: atLeast0AtMost algebra_simps)
   also have "(G (Suc mm) 0) = y * (G mm 0)"
     by (simp add: G_def)
   finally have "S (Suc mm) =
-      y * (G mm 0 + (\<Sum>k=1..mm. (G mm k))) + (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm) + x * (S mm)"
+      y * (G mm 0 + (\<Sum>k=1..mm. (G mm k))) + (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm) + x * (S mm)"
     by (simp add: ring_distribs)
   also have "G mm 0 + (\<Sum>k=1..mm. (G mm k)) = S mm"
     by (simp add: sum_head_Suc[symmetric] SG_def atLeast0AtMost)
-  finally have "S (Suc mm) = (x + y) * (S mm) + (of_nat mm + r gchoose (Suc mm)) * x^(Suc mm)"
+  finally have "S (Suc mm) = (x + y) * (S mm) + (of_nat mm + a gchoose (Suc mm)) * x^(Suc mm)"
     by (simp add: algebra_simps)
-  also have "(of_nat mm + r gchoose (Suc mm)) = (-1) ^ (Suc mm) * (- r gchoose (Suc mm))"
+  also have "(of_nat mm + a gchoose (Suc mm)) = (-1) ^ (Suc mm) * (- a gchoose (Suc mm))"
     by (subst gbinomial_negated_upper) simp
-  also have "(-1) ^ Suc mm * (- r gchoose Suc mm) * x ^ Suc mm =
-      (- r gchoose (Suc mm)) * (-x) ^ Suc mm"
+  also have "(-1) ^ Suc mm * (- a gchoose Suc mm) * x ^ Suc mm =
+      (- a gchoose (Suc mm)) * (-x) ^ Suc mm"
     by (simp add: power_minus[of x])
-  also have "(x + y) * S mm + \<dots> = (x + y) * ?rhs mm + (- r gchoose (Suc mm)) * (- x)^Suc mm"
+  also have "(x + y) * S mm + \<dots> = (x + y) * ?rhs mm + (- a gchoose (Suc mm)) * (- x)^Suc mm"
     unfolding S_def by (subst Suc.IH) simp
-  also have "(x + y) * ?rhs mm = (\<Sum>n\<le>mm. ((- r gchoose n) * (- x) ^ n * (x + y) ^ (Suc mm - n)))"
+  also have "(x + y) * ?rhs mm = (\<Sum>n\<le>mm. ((- a gchoose n) * (- x) ^ n * (x + y) ^ (Suc mm - n)))"
     by (subst sum_distrib_left, rule sum.cong) (simp_all add: Suc_diff_le)
-  also have "\<dots> + (-r gchoose (Suc mm)) * (-x)^Suc mm =
-      (\<Sum>n\<le>Suc mm. (- r gchoose n) * (- x) ^ n * (x + y) ^ (Suc mm - n))"
+  also have "\<dots> + (-a gchoose (Suc mm)) * (-x)^Suc mm =
+      (\<Sum>n\<le>Suc mm. (- a gchoose n) * (- x) ^ n * (x + y) ^ (Suc mm - n))"
     by simp
   finally show ?case
     by (simp only: S_def)
 qed
 
 lemma gbinomial_partial_sum_poly_xpos:
-    "(\<Sum>k\<le>m. (of_nat m + r gchoose k) * x^k * y^(m-k)) =
-     (\<Sum>k\<le>m. (of_nat k + r - 1 gchoose k) * x^k * (x + y)^(m-k))"
+    "(\<Sum>k\<le>m. (of_nat m + a gchoose k) * x^k * y^(m-k)) =
+     (\<Sum>k\<le>m. (of_nat k + a - 1 gchoose k) * x^k * (x + y)^(m-k))"
   apply (subst gbinomial_partial_sum_poly)
   apply (subst gbinomial_negated_upper)
   apply (intro sum.cong, rule refl)
@@ -964,7 +964,7 @@ proof -
   also have "\<dots> = (\<Sum>k\<le>m. (2 * (of_nat m) + 1 gchoose k))"
     using gbinomial_r_part_sum ..
   also have "\<dots> = (\<Sum>k\<le>m. (of_nat (m + k) gchoose k) * 2 ^ (m - k))"
-    using gbinomial_partial_sum_poly_xpos[where x="1" and y="1" and r="of_nat m + 1" and m="m"]
+    using gbinomial_partial_sum_poly_xpos[where x="1" and y="1" and a="of_nat m + 1" and m="m"]
     by (simp add: add_ac)
   also have "\<dots> = 2 ^ m * (\<Sum>k\<le>m. (of_nat (m + k) gchoose k) / 2 ^ k)"
     by (subst sum_distrib_left) (simp add: algebra_simps power_diff)
@@ -974,11 +974,11 @@ qed
 
 lemma gbinomial_trinomial_revision:
   assumes "k \<le> m"
-  shows "(r gchoose m) * (of_nat m gchoose k) = (r gchoose k) * (r - of_nat k gchoose (m - k))"
+  shows "(a gchoose m) * (of_nat m gchoose k) = (a gchoose k) * (a - of_nat k gchoose (m - k))"
 proof -
-  have "(r gchoose m) * (of_nat m gchoose k) = (r gchoose m) * fact m / (fact k * fact (m - k))"
+  have "(a gchoose m) * (of_nat m gchoose k) = (a gchoose m) * fact m / (fact k * fact (m - k))"
     using assms by (simp add: binomial_gbinomial [symmetric] binomial_fact)
-  also have "\<dots> = (r gchoose k) * (r - of_nat k gchoose (m - k))"
+  also have "\<dots> = (a gchoose k) * (a - of_nat k gchoose (m - k))"
     using assms by (simp add: gbinomial_pochhammer power_diff pochhammer_product)
   finally show ?thesis .
 qed
@@ -1288,10 +1288,10 @@ qed
 subsection \<open>Executable code\<close>
 
 lemma gbinomial_code [code]:
-  "a gchoose n =
-    (if n = 0 then 1
-     else fold_atLeastAtMost_nat (\<lambda>n acc. (a - of_nat n) * acc) 0 (n - 1) 1 / fact n)"
-  by (cases n)
+  "a gchoose k =
+    (if k = 0 then 1
+     else fold_atLeastAtMost_nat (\<lambda>k acc. (a - of_nat k) * acc) 0 (k - 1) 1 / fact k)"
+  by (cases k)
     (simp_all add: gbinomial_prod_rev prod_atLeastAtMost_code [symmetric]
       atLeastLessThanSuc_atLeastAtMost)
 
