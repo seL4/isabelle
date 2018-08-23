@@ -18,7 +18,7 @@ class Inf =
   fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter>_" [900] 900)
 begin
 
-abbreviation INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+abbreviation (input) INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" \<comment> \<open>legacy\<close>
   where "INFIMUM A f \<equiv> \<Sqinter>(f ` A)"
 
 lemma INF_image [simp]: "INFIMUM (f ` A) g = INFIMUM A (g \<circ> f)"
@@ -43,7 +43,7 @@ class Sup =
   fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion>_" [900] 900)
 begin
 
-abbreviation SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+abbreviation (input) SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" \<comment> \<open>legacy\<close>
   where "SUPREMUM A f \<equiv> \<Squnion>(f ` A)"
 
 lemma SUP_image [simp]: "SUPREMUM (f ` A) g = SUPREMUM A (g \<circ> f)"
@@ -64,12 +64,6 @@ lemma strong_SUP_cong [cong]:
 
 end
 
-text \<open>
-  Note: must use names @{const INFIMUM} and @{const SUPREMUM} here instead of
-  \<open>INF\<close> and \<open>SUP\<close> to allow the following syntax coexist
-  with the plain constant names.
-\<close>
-
 syntax (ASCII)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
@@ -89,17 +83,12 @@ syntax
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "\<Sqinter>x y. B"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. B"
-  "\<Sqinter>x. B"     \<rightleftharpoons> "\<Sqinter>x \<in> CONST UNIV. B"
-  "\<Sqinter>x\<in>A. B"   \<rightleftharpoons> "CONST INFIMUM A (\<lambda>x. B)"
-  "\<Squnion>x y. B"   \<rightleftharpoons> "\<Squnion>x. \<Squnion>y. B"
-  "\<Squnion>x. B"     \<rightleftharpoons> "\<Squnion>x \<in> CONST UNIV. B"
-  "\<Squnion>x\<in>A. B"   \<rightleftharpoons> "CONST SUPREMUM A (\<lambda>x. B)"
-
-print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPREMUM} @{syntax_const "_SUP"}]
-\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+  "\<Sqinter>x y. f"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. f"
+  "\<Sqinter>x. f"     \<rightleftharpoons> "\<Sqinter>CONST range (\<lambda>x. f)"
+  "\<Sqinter>x\<in>A. f"   \<rightleftharpoons> "CONST Inf ((\<lambda>x. f) ` A)"
+  "\<Squnion>x y. f"   \<rightleftharpoons> "\<Squnion>x. \<Squnion>y. f"
+  "\<Squnion>x. f"     \<rightleftharpoons> "\<Squnion>CONST range (\<lambda>x. f)"
+  "\<Squnion>x\<in>A. f"   \<rightleftharpoons> "CONST Sup ((\<lambda>x. f) `  A)"
 
 
 subsection \<open>Abstract complete lattices\<close>
@@ -852,13 +841,8 @@ lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> 
 
 subsubsection \<open>Intersections of families\<close>
 
-abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+abbreviation (input) INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" \<comment> \<open>legacy\<close>
   where "INTER \<equiv> INFIMUM"
-
-text \<open>
-  Note: must use name @{const INTER} here instead of \<open>INT\<close>
-  to allow the following syntax coexist with the plain constant name.
-\<close>
 
 syntax (ASCII)
   "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3INT _./ _)" [0, 10] 10)
@@ -873,13 +857,9 @@ syntax
   "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "\<Inter>x y. B"  \<rightleftharpoons> "\<Inter>x. \<Inter>y. B"
-  "\<Inter>x. B"    \<rightleftharpoons> "\<Inter>x \<in> CONST UNIV. B"
-  "\<Inter>x\<in>A. B"  \<rightleftharpoons> "CONST INTER A (\<lambda>x. B)"
-
-print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
-\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+  "\<Inter>x y. f"  \<rightleftharpoons> "\<Inter>x. \<Inter>y. f"
+  "\<Inter>x. f"    \<rightleftharpoons> "\<Inter>CONST range (\<lambda>x. f)"
+  "\<Inter>x\<in>A. f"  \<rightleftharpoons> "CONST Inter ((\<lambda>x. f) ` A)"
 
 lemma INTER_eq: "(\<Inter>x\<in>A. B x) = {y. \<forall>x\<in>A. y \<in> B x}"
   by (auto intro!: INF_eqI)
@@ -1021,13 +1001,8 @@ lemma disjnt_inj_on_iff:
 
 subsubsection \<open>Unions of families\<close>
 
-abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+abbreviation (input) UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" \<comment> \<open>legacy\<close>
   where "UNION \<equiv> SUPREMUM"
-
-text \<open>
-  Note: must use name @{const UNION} here instead of \<open>UN\<close>
-  to allow the following syntax coexist with the plain constant name.
-\<close>
 
 syntax (ASCII)
   "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
@@ -1042,19 +1017,15 @@ syntax
   "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "\<Union>x y. B"   \<rightleftharpoons> "\<Union>x. \<Union>y. B"
-  "\<Union>x. B"     \<rightleftharpoons> "\<Union>x \<in> CONST UNIV. B"
-  "\<Union>x\<in>A. B"   \<rightleftharpoons> "CONST UNION A (\<lambda>x. B)"
+  "\<Union>x y. f"   \<rightleftharpoons> "\<Union>x. \<Union>y. f"
+  "\<Union>x. f"     \<rightleftharpoons> "\<Union>CONST range (\<lambda>x. f)"
+  "\<Union>x\<in>A. f"   \<rightleftharpoons> "CONST Union ((\<lambda>x. f) ` A)"
 
 text \<open>
   Note the difference between ordinary syntax of indexed
   unions and intersections (e.g.\ \<open>\<Union>a\<^sub>1\<in>A\<^sub>1. B\<close>)
   and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}.
 \<close>
-
-print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
-\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 lemma disjoint_UN_iff: "disjnt A (\<Union>i\<in>I. B i) \<longleftrightarrow> (\<forall>i\<in>I. disjnt A (B i))"
   by (auto simp: disjnt_def)

@@ -462,13 +462,7 @@ sublocale Min: semilattice_order_set min less_eq less
 defines
   Min = Min.F and Max = Max.F ..
 
-abbreviation MINIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "MINIMUM A f \<equiv> Min(f ` A)"
-abbreviation MAXIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "MAXIMUM A f \<equiv> Max(f ` A)"
-
 end
-
 
 syntax (ASCII)
   "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MIN _./ _)" [0, 10] 10)
@@ -489,17 +483,12 @@ syntax
   "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MAX _\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "MIN x y. B"   \<rightleftharpoons> "MIN x. MIN y. B"
-  "MIN x. B"     \<rightleftharpoons> "MIN x \<in> CONST UNIV. B"
-  "MIN x\<in>A. B"   \<rightleftharpoons> "CONST MINIMUM A (\<lambda>x. B)"
-  "MAX x y. B"   \<rightleftharpoons> "MAX x. MAX y. B"
-  "MAX x. B"     \<rightleftharpoons> "MAX x \<in> CONST UNIV. B"
-  "MAX x\<in>A. B"   \<rightleftharpoons> "CONST MAXIMUM A (\<lambda>x. B)"
-
-print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax MINIMUM} @{syntax_const "_MIN"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax MAXIMUM} @{syntax_const "_MAX"}]
-\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+  "MIN x y. f"   \<rightleftharpoons> "MIN x. MIN y. f"
+  "MIN x. f"     \<rightleftharpoons> "CONST Min (CONST range (\<lambda>x. f))"
+  "MIN x\<in>A. f"   \<rightleftharpoons> "CONST Min ((\<lambda>x. f) ` A)"
+  "MAX x y. f"   \<rightleftharpoons> "MAX x. MAX y. f"
+  "MAX x. f"     \<rightleftharpoons> "CONST Max (CONST range (\<lambda>x. f))"
+  "MAX x\<in>A. f"   \<rightleftharpoons> "CONST Max ((\<lambda>x. f) ` A)"
 
 text \<open>An aside: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin}\<close>
 

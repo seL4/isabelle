@@ -14,6 +14,15 @@ for continuous output of node status information. The time interval is
 specified in seconds; a negative value means it is disabled (default).
 
 
+*** HOL ***
+
+* Simplified syntax setup for big operators under image. In rare
+situations, type conversions are not inserted implicitly any longer
+and need to be given explicitly. Auxiliary abbreviations INFIMUM,
+SUPREMUM, UNION, INTER should now rarely occur in output and are just
+retained as migration auxiliary. INCOMPATIBILITY.
+
+
 New in Isabelle2018 (August 2018)
 ---------------------------------
 

@@ -146,15 +146,6 @@ class gcd = zero + one + dvd +
 class Gcd = gcd +
   fixes Gcd :: "'a set \<Rightarrow> 'a"
     and Lcm :: "'a set \<Rightarrow> 'a"
-begin
-
-abbreviation GREATEST_COMMON_DIVISOR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "GREATEST_COMMON_DIVISOR A f \<equiv> Gcd (f ` A)"
-
-abbreviation LEAST_COMMON_MULTIPLE :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "LEAST_COMMON_MULTIPLE A f \<equiv> Lcm (f ` A)"
-
-end
 
 syntax
   "_GCD1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3GCD _./ _)" [0, 10] 10)
@@ -163,17 +154,12 @@ syntax
   "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3LCM _\<in>_./ _)" [0, 0, 10] 10)
 
 translations
-  "GCD x y. B"   \<rightleftharpoons> "GCD x. GCD y. B"
-  "GCD x. B"     \<rightleftharpoons> "GCD x \<in> CONST UNIV. B"
-  "GCD x\<in>A. B"   \<rightleftharpoons> "CONST GREATEST_COMMON_DIVISOR A (\<lambda>x. B)"
-  "LCM x y. B"   \<rightleftharpoons> "LCM x. LCM y. B"
-  "LCM x. B"     \<rightleftharpoons> "LCM x \<in> CONST UNIV. B"
-  "LCM x\<in>A. B"   \<rightleftharpoons> "CONST LEAST_COMMON_MULTIPLE A (\<lambda>x. B)"
-
-print_translation \<open>
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax GREATEST_COMMON_DIVISOR} @{syntax_const "_GCD"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax LEAST_COMMON_MULTIPLE} @{syntax_const "_LCM"}]
-\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
+  "GCD x y. f"   \<rightleftharpoons> "GCD x. GCD y. f"
+  "GCD x. f"     \<rightleftharpoons> "CONST Gcd (CONST range (\<lambda>x. f))"
+  "GCD x\<in>A. f"   \<rightleftharpoons> "CONST Gcd ((\<lambda>x. f) ` A)"
+  "LCM x y. f"   \<rightleftharpoons> "LCM x. LCM y. f"
+  "LCM x. f"     \<rightleftharpoons> "CONST Lcm (CONST range (\<lambda>x. f))"
+  "LCM x\<in>A. f"   \<rightleftharpoons> "CONST Lcm ((\<lambda>x. f) ` A)"
 
 class semiring_gcd = normalization_semidom + gcd +
   assumes gcd_dvd1 [iff]: "gcd a b dvd a"

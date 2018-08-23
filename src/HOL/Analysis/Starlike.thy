@@ -1355,7 +1355,7 @@ next
     proof safe
       fix i :: 'a
       assume i: "i \<in> Basis"
-      have "norm (x - y) < MINIMUM Basis ((\<bullet>) x)"
+      have "norm (x - y) < Min (((\<bullet>) x) ` Basis)"
         using y by (auto simp: dist_norm less_eq_real_def)
       also have "... \<le> x\<bullet>i"
         using i by auto
