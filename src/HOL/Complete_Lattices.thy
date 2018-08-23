@@ -21,22 +21,6 @@ begin
 abbreviation (input) INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" \<comment> \<open>legacy\<close>
   where "INFIMUM A f \<equiv> \<Sqinter>(f ` A)"
 
-lemma INF_image [simp]: "INFIMUM (f ` A) g = INFIMUM A (g \<circ> f)"
-  by (simp add: image_comp)
-
-lemma INF_identity_eq [simp]: "INFIMUM A (\<lambda>x. x) = \<Sqinter>A"
-  by simp
-
-lemma INF_id_eq [simp]: "INFIMUM A id = \<Sqinter>A"
-  by simp
-
-lemma INF_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
-  by (simp add: image_def)
-
-lemma strong_INF_cong [cong]:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
-  unfolding simp_implies_def by (fact INF_cong)
-
 end
 
 class Sup =
@@ -45,22 +29,6 @@ begin
 
 abbreviation (input) SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" \<comment> \<open>legacy\<close>
   where "SUPREMUM A f \<equiv> \<Squnion>(f ` A)"
-
-lemma SUP_image [simp]: "SUPREMUM (f ` A) g = SUPREMUM A (g \<circ> f)"
-  by (simp add: image_comp)
-
-lemma SUP_identity_eq [simp]: "SUPREMUM A (\<lambda>x. x) = \<Squnion>A"
-  by simp
-
-lemma SUP_id_eq [simp]: "SUPREMUM A id = \<Squnion>A"
-  by (simp add: id_def)
-
-lemma SUP_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
-  by (simp add: image_def)
-
-lemma strong_SUP_cong [cong]:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
-  unfolding simp_implies_def by (fact SUP_cong)
 
 end
 
@@ -89,6 +57,48 @@ translations
   "\<Squnion>x y. f"   \<rightleftharpoons> "\<Squnion>x. \<Squnion>y. f"
   "\<Squnion>x. f"     \<rightleftharpoons> "\<Squnion>CONST range (\<lambda>x. f)"
   "\<Squnion>x\<in>A. f"   \<rightleftharpoons> "CONST Sup ((\<lambda>x. f) `  A)"
+
+context Inf
+begin
+
+lemma INF_image [simp]: " \<Sqinter>(g ` f ` A) = \<Sqinter>((g \<circ> f) ` A)"
+  by (simp add: image_comp)
+
+lemma INF_identity_eq [simp]: "(\<Sqinter>x\<in>A. x) = \<Sqinter>A"
+  by simp
+
+lemma INF_id_eq [simp]: "\<Sqinter>(id ` A) = \<Sqinter>A"
+  by simp
+
+lemma INF_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> \<Sqinter>(C ` A) = \<Sqinter>(D ` B)"
+  by (simp add: image_def)
+
+lemma strong_INF_cong [cong]:
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> \<Sqinter>(C ` A) = \<Sqinter>(D ` B)"
+  unfolding simp_implies_def by (fact INF_cong)
+
+end
+
+context Sup
+begin
+
+lemma SUP_image [simp]: "\<Squnion>(g ` f ` A) = \<Squnion>((g \<circ> f) ` A)"
+  by (simp add: image_comp)
+
+lemma SUP_identity_eq [simp]: "(\<Squnion>x\<in>A. x) = \<Squnion>A"
+  by simp
+
+lemma SUP_id_eq [simp]: "\<Squnion>(id ` A) = \<Squnion>A"
+  by (simp add: id_def)
+
+lemma SUP_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> \<Squnion>(C ` A) = \<Squnion>(D ` B)"
+  by (simp add: image_def)
+
+lemma strong_SUP_cong [cong]:
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> \<Squnion>(C ` A) = \<Squnion>(D ` B)"
+  unfolding simp_implies_def by (fact SUP_cong)
+
+end
 
 
 subsection \<open>Abstract complete lattices\<close>
@@ -180,13 +190,13 @@ lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<le> u \<longleftrightarrow> (\<for
 lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
-lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> INFIMUM A f"
+lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> \<Sqinter>(f ` A)"
   by (simp cong del: strong_INF_cong)
 
 lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
-lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPREMUM A f"
+lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> \<Squnion>(f ` A)"
   by (simp cong del: strong_SUP_cong)
 
 lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
@@ -269,13 +279,13 @@ qed
 lemma INF_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<ge> g j"
     and "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<ge> f i"
-  shows "INFIMUM A f = INFIMUM B g"
+  shows "\<Sqinter>(f ` A) = \<Sqinter>(g ` B)"
   by (intro antisym INF_greatest) (blast intro: INF_lower2 dest: assms)+
 
 lemma SUP_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<le> g j"
     and "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<le> f i"
-  shows "SUPREMUM A f = SUPREMUM B g"
+  shows "\<Squnion>(f ` A) = \<Squnion>(g ` B)"
   by (intro antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
 
 lemma less_eq_Inf_inter: "\<Sqinter>A \<squnion> \<Sqinter>B \<le> \<Sqinter>(A \<inter> B)"
@@ -422,20 +432,20 @@ lemma SUP_UNIV_bool_expand: "(\<Squnion>b. A b) = A True \<squnion> A False"
 lemma Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
   by (blast intro: Sup_upper2 Inf_lower ex_in_conv)
 
-lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFIMUM A f \<le> SUPREMUM A f"
+lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> \<Sqinter>(f ` A) \<le> \<Squnion>(f ` A)"
   using Inf_le_Sup [of "f ` A"] by simp
 
-lemma INF_eq_const: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> INFIMUM I f = x"
+lemma INF_eq_const: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> \<Sqinter>(f ` I) = x"
   by (auto intro: INF_eqI)
 
-lemma SUP_eq_const: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> SUPREMUM I f = x"
+lemma SUP_eq_const: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> \<Squnion>(f ` I) = x"
   by (auto intro: SUP_eqI)
 
-lemma INF_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> INFIMUM I f = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+lemma INF_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> \<Sqinter>(f ` I) = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
   using INF_eq_const [of I f c] INF_lower [of _ I f]
   by (auto intro: antisym cong del: strong_INF_cong)
 
-lemma SUP_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> SUPREMUM I f = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+lemma SUP_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> \<Squnion>(f ` I) = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
   using SUP_eq_const [of I f c] SUP_upper [of _ I f]
   by (auto intro: antisym cong del: strong_SUP_cong)
 
@@ -467,7 +477,8 @@ proof
       by (rule le_infI1, simp)
     have [simp]: "b \<sqinter> a \<le> a \<squnion> b \<sqinter> c"
       by (rule le_infI2, simp)
-    have " INFIMUM {{a, b}, {a, c}} Sup = SUPREMUM {f ` {{a, b}, {a, c}} |f. \<forall>Y\<in>{{a, b}, {a, c}}. f Y \<in> Y} Inf"
+    have "\<Sqinter>(Sup ` {{a, b}, {a, c}}) =
+      \<Squnion>(Inf ` {f ` {{a, b}, {a, c}} | f. \<forall>Y\<in>{{a, b}, {a, c}}. f Y \<in> Y})"
       by (rule Inf_Sup)
     from this show "(a \<squnion> b) \<sqinter> (a \<squnion> c) \<le> a \<squnion> b \<sqinter> c"
       apply simp
