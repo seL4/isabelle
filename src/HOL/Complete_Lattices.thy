@@ -90,11 +90,9 @@ syntax
 
 translations
   "\<Sqinter>x y. B"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. B"
-  "\<Sqinter>x. B"     \<rightleftharpoons> "CONST INFIMUM CONST UNIV (\<lambda>x. B)"
   "\<Sqinter>x. B"     \<rightleftharpoons> "\<Sqinter>x \<in> CONST UNIV. B"
   "\<Sqinter>x\<in>A. B"   \<rightleftharpoons> "CONST INFIMUM A (\<lambda>x. B)"
   "\<Squnion>x y. B"   \<rightleftharpoons> "\<Squnion>x. \<Squnion>y. B"
-  "\<Squnion>x. B"     \<rightleftharpoons> "CONST SUPREMUM CONST UNIV (\<lambda>x. B)"
   "\<Squnion>x. B"     \<rightleftharpoons> "\<Squnion>x \<in> CONST UNIV. B"
   "\<Squnion>x\<in>A. B"   \<rightleftharpoons> "CONST SUPREMUM A (\<lambda>x. B)"
 
@@ -876,7 +874,6 @@ syntax
 
 translations
   "\<Inter>x y. B"  \<rightleftharpoons> "\<Inter>x. \<Inter>y. B"
-  "\<Inter>x. B"    \<rightleftharpoons> "CONST INTER CONST UNIV (\<lambda>x. B)"
   "\<Inter>x. B"    \<rightleftharpoons> "\<Inter>x \<in> CONST UNIV. B"
   "\<Inter>x\<in>A. B"  \<rightleftharpoons> "CONST INTER A (\<lambda>x. B)"
 
@@ -1046,7 +1043,6 @@ syntax
 
 translations
   "\<Union>x y. B"   \<rightleftharpoons> "\<Union>x. \<Union>y. B"
-  "\<Union>x. B"     \<rightleftharpoons> "CONST UNION CONST UNIV (\<lambda>x. B)"
   "\<Union>x. B"     \<rightleftharpoons> "\<Union>x \<in> CONST UNIV. B"
   "\<Union>x\<in>A. B"   \<rightleftharpoons> "CONST UNION A (\<lambda>x. B)"
 

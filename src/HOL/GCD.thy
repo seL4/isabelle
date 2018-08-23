@@ -161,13 +161,12 @@ syntax
   "_GCD"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3GCD _\<in>_./ _)" [0, 0, 10] 10)
   "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3LCM _./ _)" [0, 10] 10)
   "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3LCM _\<in>_./ _)" [0, 0, 10] 10)
+
 translations
   "GCD x y. B"   \<rightleftharpoons> "GCD x. GCD y. B"
-  "GCD x. B"     \<rightleftharpoons> "CONST GREATEST_COMMON_DIVISOR CONST UNIV (\<lambda>x. B)"
   "GCD x. B"     \<rightleftharpoons> "GCD x \<in> CONST UNIV. B"
   "GCD x\<in>A. B"   \<rightleftharpoons> "CONST GREATEST_COMMON_DIVISOR A (\<lambda>x. B)"
   "LCM x y. B"   \<rightleftharpoons> "LCM x. LCM y. B"
-  "LCM x. B"     \<rightleftharpoons> "CONST LEAST_COMMON_MULTIPLE CONST UNIV (\<lambda>x. B)"
   "LCM x. B"     \<rightleftharpoons> "LCM x \<in> CONST UNIV. B"
   "LCM x\<in>A. B"   \<rightleftharpoons> "CONST LEAST_COMMON_MULTIPLE A (\<lambda>x. B)"
 

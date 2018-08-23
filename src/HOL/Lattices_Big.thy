@@ -490,11 +490,9 @@ syntax
 
 translations
   "MIN x y. B"   \<rightleftharpoons> "MIN x. MIN y. B"
-  "MIN x. B"     \<rightleftharpoons> "CONST MINIMUM CONST UNIV (\<lambda>x. B)"
   "MIN x. B"     \<rightleftharpoons> "MIN x \<in> CONST UNIV. B"
   "MIN x\<in>A. B"   \<rightleftharpoons> "CONST MINIMUM A (\<lambda>x. B)"
   "MAX x y. B"   \<rightleftharpoons> "MAX x. MAX y. B"
-  "MAX x. B"     \<rightleftharpoons> "CONST MAXIMUM CONST UNIV (\<lambda>x. B)"
   "MAX x. B"     \<rightleftharpoons> "MAX x \<in> CONST UNIV. B"
   "MAX x\<in>A. B"   \<rightleftharpoons> "CONST MAXIMUM A (\<lambda>x. B)"
 
