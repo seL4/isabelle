@@ -800,24 +800,28 @@ begin
 
 lemma Min_add_commute:
   fixes k
-  assumes "finite N" and "N \<noteq> {}"
-  shows "Min ((+) k ` N) = k + Min N"
+  assumes "finite S" and "S \<noteq> {}"
+  shows "Min ((\<lambda>x. f x + k) ` S) = Min(f ` S) + k"
 proof -
-  have "\<And>x y. k + min x y = min (k+x) (k+y)"
-    by(simp add: min_def antisym add_left_mono)
-  with assms show ?thesis
-    using hom_Min_commute [of "(+) k" N, symmetric] by simp
+  have m: "\<And>x y. min x y + k = min (x+k) (y+k)"
+    by(simp add: min_def antisym add_right_mono)
+  have "(\<lambda>x. f x + k) ` S = (\<lambda>y. y + k) ` (f ` S)" by auto
+  also have "Min \<dots> = Min (f ` S) + k"
+    using assms hom_Min_commute [of "\<lambda>y. y+k" "f ` S", OF m, symmetric] by simp
+  finally show ?thesis by simp
 qed
 
 lemma Max_add_commute:
   fixes k
-  assumes "finite N" and "N \<noteq> {}"
-  shows "Max ((+) k ` N) = k + Max N"
+  assumes "finite S" and "S \<noteq> {}"
+  shows "Max ((\<lambda>x. f x + k) ` S) = Max(f ` S) + k"
 proof -
-  have "\<And>x y. k + max x y = max (k+x) (k+y)"
-    by(simp add: max_def antisym add_left_mono)
-  with assms show ?thesis
-    using hom_Max_commute [of "(+) k" N, symmetric] by simp
+  have m: "\<And>x y. max x y + k = max (x+k) (y+k)"
+    by(simp add: max_def antisym add_right_mono)
+  have "(\<lambda>x. f x + k) ` S = (\<lambda>y. y + k) ` (f ` S)" by auto
+  also have "Max \<dots> = Max (f ` S) + k"
+    using assms hom_Max_commute [of "\<lambda>y. y+k" "f ` S", OF m, symmetric] by simp
+  finally show ?thesis by simp
 qed
 
 end
