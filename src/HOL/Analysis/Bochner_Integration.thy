@@ -2026,6 +2026,14 @@ proof -
   ultimately show "integrable M (\<lambda>x. Min {f i x |i. i = j \<or> i \<in> F})" by simp
 qed
 
+lemma integrable_MIN:
+  fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
+  assumes "finite I" "I \<noteq> {}"
+          "\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)"
+  shows "integrable M (\<lambda>x. MIN i\<in>I. f i x)"
+using integrable_Min[of I M f, OF assms]
+by(simp add: Setcompr_eq_image)
+
 lemma integrable_Max:
   fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
   assumes "finite I" "I \<noteq> {}"
@@ -2042,6 +2050,14 @@ proof -
     by (rule integrable_max, auto simp add: H)
   ultimately show "integrable M (\<lambda>x. Max {f i x |i. i = j \<or> i \<in> F})" by simp
 qed
+
+lemma integrable_MAX:
+  fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
+  assumes "finite I" "I \<noteq> {}"
+          "\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)"
+  shows "integrable M (\<lambda>x. MAX i\<in>I. f i x)"
+using integrable_Max[of I M f, OF assms]
+by(simp add: Setcompr_eq_image)
 
 lemma integral_Markov_inequality:
   assumes [measurable]: "integrable M u" and "AE x in M. 0 \<le> u x" "0 < (c::real)"
