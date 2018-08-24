@@ -123,7 +123,7 @@ The ASCII forms of @{text"\<Union>"} are \texttt{\char`\\\char`\<Union>} and \te
 those of @{text"\<Inter>"} are \texttt{\char`\\\char`\<Inter>} and \texttt{Inter}.
 There are also indexed unions and intersections:
 \begin{center}
-@{thm UNION_eq} \\ @{thm INTER_eq}
+@{thm[eta_contract=false] UNION_eq} \\ @{thm[eta_contract=false] INTER_eq}
 \end{center}
 The ASCII forms are \ \texttt{UN x:A.~B} \ and \ \texttt{INT x:A. B} \
 where \texttt{x} may occur in \texttt{B}.
