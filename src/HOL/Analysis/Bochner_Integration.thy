@@ -2009,55 +2009,17 @@ next
     using \<open>0 \<le> r\<close> by (simp add: not_integrable_integral_eq)
 qed
 
-lemma integrable_Min:
-  fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
-  assumes "finite I" "I \<noteq> {}"
-          "\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)"
-  shows "integrable M (\<lambda>x. Min {f i x|i. i \<in> I})"
-using assms apply (induct rule: finite_ne_induct) apply simp+
-proof -
-  fix j F assume H: "finite F" "F \<noteq> {}" "integrable M (\<lambda>x. Min {f i x |i. i \<in> F})"
-                    "(\<And>i. i = j \<or> i \<in> F \<Longrightarrow> integrable M (f i))"
-  have "{f i x |i. i = j \<or> i \<in> F} = insert (f j x) {f i x |i. i \<in> F}" for x by blast
-  then have "Min {f i x |i. i = j \<or> i \<in> F} = min (f j x) (Min {f i x |i. i \<in> F})" for x
-    using H(1) H(2) Min_insert by simp
-  moreover have "integrable M (\<lambda>x. min (f j x) (Min {f i x |i. i \<in> F}))"
-    by (rule integrable_min, auto simp add: H)
-  ultimately show "integrable M (\<lambda>x. Min {f i x |i. i = j \<or> i \<in> F})" by simp
-qed
-
 lemma integrable_MIN:
   fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
-  assumes "finite I" "I \<noteq> {}"
-          "\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)"
-  shows "integrable M (\<lambda>x. MIN i\<in>I. f i x)"
-using integrable_Min[of I M f, OF assms]
-by(simp add: Setcompr_eq_image)
-
-lemma integrable_Max:
-  fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
-  assumes "finite I" "I \<noteq> {}"
-          "\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)"
-  shows "integrable M (\<lambda>x. Max {f i x|i. i \<in> I})"
-using assms apply (induct rule: finite_ne_induct) apply simp+
-proof -
-  fix j F assume H: "finite F" "F \<noteq> {}" "integrable M (\<lambda>x. Max {f i x |i. i \<in> F})"
-                    "(\<And>i. i = j \<or> i \<in> F \<Longrightarrow> integrable M (f i))"
-  have "{f i x |i. i = j \<or> i \<in> F} = insert (f j x) {f i x |i. i \<in> F}" for x by blast
-  then have "Max {f i x |i. i = j \<or> i \<in> F} = max (f j x) (Max {f i x |i. i \<in> F})" for x
-    using H(1) H(2) Max_insert by simp
-  moreover have "integrable M (\<lambda>x. max (f j x) (Max {f i x |i. i \<in> F}))"
-    by (rule integrable_max, auto simp add: H)
-  ultimately show "integrable M (\<lambda>x. Max {f i x |i. i = j \<or> i \<in> F})" by simp
-qed
+  shows "\<lbrakk> finite I;  I \<noteq> {}; \<And>i. i \<in> I \<Longrightarrow> integrable M (f i) \<rbrakk>
+   \<Longrightarrow> integrable M (\<lambda>x. MIN i\<in>I. f i x)"
+by (induct rule: finite_ne_induct) simp+
 
 lemma integrable_MAX:
   fixes f:: "_ \<Rightarrow> _ \<Rightarrow> real"
-  assumes "finite I" "I \<noteq> {}"
-          "\<And>i. i \<in> I \<Longrightarrow> integrable M (f i)"
-  shows "integrable M (\<lambda>x. MAX i\<in>I. f i x)"
-using integrable_Max[of I M f, OF assms]
-by(simp add: Setcompr_eq_image)
+  shows "\<lbrakk> finite I;  I \<noteq> {};  \<And>i. i \<in> I \<Longrightarrow> integrable M (f i) \<rbrakk>
+  \<Longrightarrow> integrable M (\<lambda>x. MAX i\<in>I. f i x)"
+by (induct rule: finite_ne_induct) simp+
 
 lemma integral_Markov_inequality:
   assumes [measurable]: "integrable M u" and "AE x in M. 0 \<le> u x" "0 < (c::real)"
