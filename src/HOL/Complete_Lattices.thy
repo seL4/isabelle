@@ -604,7 +604,7 @@ proof safe
     unfolding Inf_less_iff .
 qed (auto elim!: allE[of _ "\<Sqinter>A"] simp add: not_le[symmetric] Inf_lower)
 
-lemma INF_le_iff: "INFIMUM A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
+lemma INF_le_iff: "\<Sqinter>(f ` A) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
   using Inf_le_iff [of "f ` A"] by simp
 
 lemma le_Sup_iff: "x \<le> \<Squnion>A \<longleftrightarrow> (\<forall>y<x. \<exists>a\<in>A. y < a)"
@@ -616,7 +616,7 @@ proof safe
     unfolding less_Sup_iff .
 qed (auto elim!: allE[of _ "\<Squnion>A"] simp add: not_le[symmetric] Sup_upper)
 
-lemma le_SUP_iff: "x \<le> SUPREMUM A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
+lemma le_SUP_iff: "x \<le> \<Squnion>(f ` A) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
   using le_Sup_iff [of _ "f ` A"] by simp
 
 end
@@ -641,10 +641,10 @@ lemma not_False_in_image_Ball [simp]: "False \<notin> P ` A \<longleftrightarrow
 lemma True_in_image_Bex [simp]: "True \<in> P ` A \<longleftrightarrow> Bex A P"
   by auto
 
-lemma INF_bool_eq [simp]: "INFIMUM = Ball"
+lemma INF_bool_eq [simp]: "(\<lambda>A f. \<Sqinter>(f ` A)) = Ball"
   by (simp add: fun_eq_iff)
 
-lemma SUP_bool_eq [simp]: "SUPREMUM = Bex"
+lemma SUP_bool_eq [simp]: "(\<lambda>A f. \<Squnion>(f ` A)) = Bex"
   by (simp add: fun_eq_iff)
 
 instance bool :: complete_boolean_algebra

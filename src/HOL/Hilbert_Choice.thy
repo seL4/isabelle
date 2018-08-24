@@ -943,21 +943,21 @@ lemma dual_complete_distrib_lattice:
    apply (fact dual_complete_lattice)
   by (simp add: class.complete_distrib_lattice_axioms_def Sup_Inf)
 
-lemma sup_Inf: "a \<squnion> Inf B = (INF b:B. a \<squnion> b)"
+lemma sup_Inf: "a \<squnion> \<Sqinter>B = \<Sqinter>((\<squnion>) a ` B)"
 proof (rule antisym)
-  show "a \<squnion> Inf B \<le> (INF b:B. a \<squnion> b)"
+  show "a \<squnion> \<Sqinter>B \<le> \<Sqinter>((\<squnion>) a ` B)"
     apply (rule INF_greatest)
     using Inf_lower sup.mono by fastforce
 next
-  have "(INF b:B. a \<squnion> b) \<le> INFIMUM {{f {a}, f B} |f. f {a} = a \<and> f B \<in> B} Sup"
+  have "\<Sqinter>((\<squnion>) a ` B) \<le> \<Sqinter>(Sup ` {{f {a}, f B} |f. f {a} = a \<and> f B \<in> B})"
     by (rule INF_greatest, auto simp add: INF_lower)
   also have "... = SUPREMUM {{a}, B} Inf"
     by (unfold Sup_Inf, simp)
-  finally show "(INF b:B. a \<squnion> b) \<le> a \<squnion> Inf B"
+  finally show "\<Sqinter>((\<squnion>) a ` B) \<le> a \<squnion> \<Sqinter>B"
     by simp
 qed
 
-lemma inf_Sup: "a \<sqinter> Sup B = (SUP b:B. a \<sqinter> b)"
+lemma inf_Sup: "a \<sqinter> \<Squnion>B = \<Squnion>((\<sqinter>) a ` B)"
   using dual_complete_distrib_lattice
   by (rule complete_distrib_lattice.sup_Inf)
 
@@ -981,27 +981,29 @@ next
     fix f
     assume A: "\<forall>Y. (\<exists>y. Y = {uu. \<exists>x. uu = P x y}) \<longrightarrow> f Y \<in> Y"
       
-    have "(INF x:{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le>  (INF y. P ((\<lambda> y. SOME x . f ({P x y | x. True}) = P x y) y) y)"
+    have " \<Sqinter>(f ` {uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}) \<le>
+      (\<Sqinter>y. P (SOME x. f {P x y |x. True} = P x y) y)"
     proof (rule INF_greatest, clarsimp)
       fix y
-        have "(INF x:{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> f {uu. \<exists>x. uu = P x y}"
+        have "(INF x\<in>{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> f {uu. \<exists>x. uu = P x y}"
           by (rule INF_lower, blast)
         also have "... \<le> P (SOME x. f {uu . \<exists>x. uu = P x y} = P x y) y"
           apply (rule someI2_ex)
           using A by auto
-        finally show "(INF x:{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> P (SOME x. f {uu . \<exists>x. uu = P x y} = P x y) y"
+        finally show "\<Sqinter>(f ` {uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}) \<le>
+          P (SOME x. f {uu. \<exists>x. uu = P x y} = P x y) y"
           by simp
       qed
       also have "... \<le> (SUP x. INF y. P (x y) y)"
         by (rule SUP_upper, simp)
-      finally show "(INF x:{uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}. f x) \<le> (SUP x. INF y. P (x y) y)"
+      finally show "\<Sqinter>(f ` {uu. \<exists>y. uu = {uu. \<exists>x. uu = P x y}}) \<le> (\<Squnion>x. \<Sqinter>y. P (x y) y)"
         by simp
     qed
   finally show "(INF y. SUP x. P x y) \<le> (SUP x. INF y. P (x y) y)"
     by simp
 qed
 
-lemma INF_SUP_set: "(INF x:A. SUP a:x. (g a)) = (SUP x:{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. INF a:x. g a)"
+lemma INF_SUP_set: "(\<Sqinter>x\<in>A. \<Squnion>(g ` x)) = (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>(g ` x))"
 proof (rule antisym)
   have [simp]: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> g (f xa)"
     by (rule INF_lower2, blast+)
@@ -1063,7 +1065,7 @@ lemma SUP_INF: "(SUP y. INF x. ((P x y)::'a)) = (INF x. SUP y. P (x y) y)"
   using dual_complete_distrib_lattice
   by (rule complete_distrib_lattice.INF_SUP)
 
-lemma SUP_INF_set: "(SUP x:A. INF a:x. (g a)) = (INF x:{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. SUP a:x. g a)"
+lemma SUP_INF_set: "(\<Squnion>x\<in>A. \<Sqinter>(g ` x)) = (\<Sqinter>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Squnion>(g ` x))"
   using dual_complete_distrib_lattice
   by (rule complete_distrib_lattice.INF_SUP_set)
 
@@ -1118,7 +1120,7 @@ end
 
 
 
-instantiation "set" :: (type) complete_distrib_lattice
+instantiation set :: (type) complete_distrib_lattice
 begin
 instance proof (standard, clarsimp)
   fix A :: "(('a set) set) set"
@@ -1143,7 +1145,7 @@ instance proof (standard, clarsimp)
 qed
 end
 
-instance "set" :: (type) complete_boolean_algebra ..
+instance set :: (type) complete_boolean_algebra ..
 
 instantiation "fun" :: (type, complete_distrib_lattice) complete_distrib_lattice
 begin

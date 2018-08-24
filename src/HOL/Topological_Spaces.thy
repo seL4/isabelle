@@ -456,7 +456,7 @@ qed
 subsubsection \<open>Topological filters\<close>
 
 definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
-  where "nhds a = (INF S:{S. open S \<and> a \<in> S}. principal S)"
+  where "nhds a = (INF S\<in>{S. open S \<and> a \<in> S}. principal S)"
 
 definition (in topological_space) at_within :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a filter"
     ("at (_)/ within (_)" [1000, 60] 60)
@@ -472,12 +472,12 @@ abbreviation (in order_topology) at_left :: "'a \<Rightarrow> 'a filter"
   where "at_left x \<equiv> at x within {..< x}"
 
 lemma (in topological_space) nhds_generated_topology:
-  "open = generate_topology T \<Longrightarrow> nhds x = (INF S:{S\<in>T. x \<in> S}. principal S)"
+  "open = generate_topology T \<Longrightarrow> nhds x = (INF S\<in>{S\<in>T. x \<in> S}. principal S)"
   unfolding nhds_def
 proof (safe intro!: antisym INF_greatest)
   fix S
   assume "generate_topology T S" "x \<in> S"
-  then show "(INF S:{S \<in> T. x \<in> S}. principal S) \<le> principal S"
+  then show "(INF S\<in>{S \<in> T. x \<in> S}. principal S) \<le> principal S"
     by induct
       (auto intro: INF_lower order_trans simp: inf_principal[symmetric] simp del: inf_principal)
 qed (auto intro!: INF_lower intro: generate_topology.intros)
