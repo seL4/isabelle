@@ -464,18 +464,6 @@ defines
 
 end
 
-syntax (ASCII)
-  "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MIN _./ _)" [0, 10] 10)
-  "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MIN _:_./ _)" [0, 0, 10] 10)
-  "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MAX _./ _)" [0, 10] 10)
-  "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MAX _:_./ _)" [0, 0, 10] 10)
-
-syntax (output)
-  "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MIN _./ _)" [0, 10] 10)
-  "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MIN _:_./ _)" [0, 0, 10] 10)
-  "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MAX _./ _)" [0, 10] 10)
-  "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MAX _:_./ _)" [0, 0, 10] 10)
-
 syntax
   "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MIN _./ _)" [0, 10] 10)
   "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MIN _\<in>_./ _)" [0, 0, 10] 10)
