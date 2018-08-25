@@ -345,8 +345,8 @@ class Prover(
 
   def protocol_command_bytes(name: String, args: Bytes*): Unit =
     command_input match {
-      case Some(thread) => thread.send(Bytes(name) :: args.toList)
-      case None => error("Uninitialized command input thread")
+      case Some(thread) if thread.is_active => thread.send(Bytes(name) :: args.toList)
+      case _ => error("Inactive prover input thread for command " + quote(name))
     }
 
   def protocol_command(name: String, args: String*)
