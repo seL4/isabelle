@@ -134,6 +134,15 @@ proof
   thus "x = y" ..
 qed
 
+lemma dom_comp: "dom (m \<circ>\<^sub>m n) \<subseteq> dom n"
+unfolding map_comp_def dom_def
+by (auto split: option.splits)
+
+lemma dom_comp_finite: "finite (dom n) \<Longrightarrow> finite (dom (map_comp m n))"
+by (metis finite_subset dom_comp)
+
+parametric_constant map_comp_transfer[transfer_rule]: map_comp_def
+
 end
 
 
@@ -651,6 +660,82 @@ using assms
 unfolding fmrel_on_fset_alt_def
 by auto
 
+lift_definition fmimage :: "('a, 'b) fmap \<Rightarrow> 'a fset \<Rightarrow> 'b fset" is "\<lambda>m S. {b|a b. m a = Some b \<and> a \<in> S}"
+subgoal for m S
+  apply (rule finite_subset[where B = "ran m"])
+  apply (auto simp: ran_def)[]
+  by (rule finite_ran)
+done
+
+lemma fmimage_alt_def: "fmimage m S = fmran (fmrestrict_fset S m)"
+by transfer' (auto simp: ran_def map_restrict_set_def map_filter_def)
+
+lemma fmimage_empty[simp]: "fmimage m fempty = fempty"
+by transfer' auto
+
+lemma fmimage_subset_ran[simp]: "fmimage m S |\<subseteq>| fmran m"
+by transfer' (auto simp: ran_def)
+
+lemma fmimage_dom[simp]: "fmimage m (fmdom m) = fmran m"
+by transfer' (auto simp: ran_def)
+
+lemma fmimage_inter: "fmimage m (A |\<inter>| B) |\<subseteq>| fmimage m A |\<inter>| fmimage m B"
+by transfer' auto
+
+lemma fimage_inter_dom[simp]:
+  "fmimage m (fmdom m |\<inter>| A) = fmimage m A"
+  "fmimage m (A |\<inter>| fmdom m) = fmimage m A"
+by (transfer'; auto)+
+
+lemma fmimage_union[simp]: "fmimage m (A |\<union>| B) = fmimage m A |\<union>| fmimage m B"
+by transfer' auto
+
+lemma fmimage_Union[simp]: "fmimage m (ffUnion A) = ffUnion (fmimage m |`| A)"
+by transfer' auto
+
+lemma fmimage_filter[simp]: "fmimage (fmfilter P m) A = fmimage m (ffilter P A)"
+by transfer' (auto simp: map_filter_def)
+
+lemma fmimage_drop[simp]: "fmimage (fmdrop a m) A = fmimage m (A - {|a|})"
+by transfer' (auto simp: map_filter_def map_drop_def)
+
+lemma fmimage_drop_fset[simp]: "fmimage (fmdrop_fset B m) A = fmimage m (A - B)"
+by transfer' (auto simp: map_filter_def map_drop_set_def)
+
+lemma fmimage_restrict_fset[simp]: "fmimage (fmrestrict_fset B m) A = fmimage m (A |\<inter>| B)"
+by transfer' (auto simp: map_filter_def map_restrict_set_def)
+
+lemma fmfilter_ran[simp]: "fmran (fmfilter P m) = fmimage m (ffilter P (fmdom m))"
+by transfer' (auto simp: ran_def map_filter_def)
+
+lemma fmran_drop[simp]: "fmran (fmdrop a m) = fmimage m (fmdom m - {|a|})"
+by transfer' (auto simp: ran_def map_drop_def map_filter_def)
+
+lemma fmran_drop_fset[simp]: "fmran (fmdrop_fset A m) = fmimage m (fmdom m - A)"
+by transfer' (auto simp: ran_def map_drop_set_def map_filter_def)
+
+lemma fmran_restrict_fset: "fmran (fmrestrict_fset A m) = fmimage m (fmdom m |\<inter>| A)"
+by transfer' (auto simp: ran_def map_restrict_set_def map_filter_def)
+
+lemma fmlookup_image_iff: "y |\<in>| fmimage m A \<longleftrightarrow> (\<exists>x. fmlookup m x = Some y \<and> x |\<in>| A)"
+by transfer' (auto simp: ran_def)
+
+lemma fmimageI: "fmlookup m x = Some y \<Longrightarrow> x |\<in>| A \<Longrightarrow> y |\<in>| fmimage m A"
+by (auto simp: fmlookup_image_iff)
+
+lemma fmimageE[elim]:
+  assumes "y |\<in>| fmimage m A"
+  obtains x where "fmlookup m x = Some y" "x |\<in>| A"
+using assms by (auto simp: fmlookup_image_iff)
+
+lift_definition fmcomp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap" (infixl "\<circ>\<^sub>f" 55)
+  is map_comp
+  parametric map_comp_transfer
+by (rule dom_comp_finite)
+
+lemma fmlookup_comp[simp]: "fmlookup (m \<circ>\<^sub>f n) x = Option.bind (fmlookup n x) (fmlookup m)"
+by transfer' (auto simp: map_comp_def split: option.splits)
+
 end
 
 
@@ -963,12 +1048,12 @@ definition sorted_list_of_fmap :: "('a::linorder, 'b) fmap \<Rightarrow> ('a \<t
 lemma list_all_sorted_list[simp]: "list_all P (sorted_list_of_fmap m) = fmpred (curry P) m"
 unfolding sorted_list_of_fmap_def curry_def list.pred_map
 apply (auto simp: list_all_iff)
-including fmap.lifting fset.lifting
+including fset.lifting
 by (transfer; auto simp: dom_def map_pred_def split: option.splits)+
 
 lemma map_of_sorted_list[simp]: "map_of (sorted_list_of_fmap m) = fmlookup m"
 unfolding sorted_list_of_fmap_def
-including fmap.lifting fset.lifting
+including fset.lifting
 by transfer (simp add: map_of_map_keys)
 
 
@@ -999,11 +1084,10 @@ by (transfer'; auto simp: map_upd_def fun_eq_iff)+
 
 lifting_update fmap.lifting
 
-lemma fmap_exhaust[case_names fmempty fmupd, cases type: fmap]:
-  assumes fmempty: "m = fmempty \<Longrightarrow> P"
-  assumes fmupd: "\<And>x y m'. m = fmupd x y m' \<Longrightarrow> x |\<notin>| fmdom m' \<Longrightarrow> P"
-  shows "P"
-using assms including fmap.lifting fset.lifting
+lemma fmap_exhaust[cases type: fmap]:
+  obtains (fmempty) "m = fmempty"
+        | (fmupd) x y m' where "m = fmupd x y m'" "x |\<notin>| fmdom m'"
+using that including fmap.lifting fset.lifting
 proof transfer
   fix m P
   assume "finite (dom m)"
@@ -1139,10 +1223,27 @@ apply (subst map_of_map[symmetric])
 apply (auto simp: apsnd_def map_prod_def)
 done
 
-lemma fmmap_keys_of_list[code]: "fmmap_keys f (fmap_of_list m) = fmap_of_list (map (\<lambda>(a, b). (a, f a b)) m)"
+lemma fmmap_keys_of_list[code]:
+  "fmmap_keys f (fmap_of_list m) = fmap_of_list (map (\<lambda>(a, b). (a, f a b)) m)"
 apply transfer
 subgoal for f m by (induction m) (auto simp: apsnd_def map_prod_def fun_eq_iff)
 done
+
+lemma fmimage_of_list[code]:
+  "fmimage (fmap_of_list m) A = fset_of_list (map snd (filter (\<lambda>(k, _). k |\<in>| A) (AList.clearjunk m)))"
+apply (subst fmimage_alt_def)
+apply (subst fmfilter_alt_defs)
+apply (subst fmfilter_of_list)
+apply (subst fmran_of_list)
+apply transfer'
+apply (subst AList.restrict_eq[symmetric])
+apply (subst clearjunk_restrict)
+apply (subst AList.restrict_eq)
+by auto
+
+lemma fmcomp_list[code]:
+  "fmap_of_list m \<circ>\<^sub>f fmap_of_list n = fmap_of_list (AList.compose n m)"
+by (rule fmap_ext) (simp add: fmlookup_of_list compose_conv map_comp_def split: option.splits)
 
 end
 
