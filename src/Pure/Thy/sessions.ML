@@ -37,7 +37,7 @@ val document_files =
 
 val export_files =
   Parse.$$$ "export_files" |--
-    Parse.!!! (Scan.optional in_path ("export", Position.none) -- Scan.repeat1 Parse.name);
+    Parse.!!! (Scan.optional in_path ("export", Position.none) -- Scan.repeat1 Parse.embedded);
 
 in
 
