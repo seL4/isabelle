@@ -20,8 +20,10 @@ fun make () =
     fun next () =
       Synchronized.change_result counter
         (fn i =>
-          let val j = i + (if Thread_Data.is_virtual then 3 else 2)
-          in (j, j) end);
+          let
+            val k = i + 1;
+            val n = if Thread_Data.is_virtual then 2 * k + 1 else 2 * k;
+          in (n, k) end);
   in next end;
 
 end;
