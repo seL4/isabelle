@@ -307,18 +307,25 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
     private val delay =
       Standard_Thread.delay_first(consolidate_delay) { manager.send(Consolidate_Execution) }
 
-    private val changed_nodes = Synchronized(Set.empty[Document.Node.Name])
+    private val init_state: Option[Set[Document.Node.Name]] = Some(Set.empty)
+    private val state = Synchronized(init_state)
+
+    def exit()
+    {
+      delay.revoke()
+      state.change(_ => None)
+    }
 
     def update(new_nodes: Set[Document.Node.Name] = Set.empty)
     {
-      changed_nodes.change(nodes => if (nodes.isEmpty) new_nodes else nodes ++ new_nodes)
-      delay.invoke()
+      val active =
+        state.change_result(st =>
+          (st.isDefined, st.map(nodes => if (nodes.isEmpty) new_nodes else nodes ++ new_nodes)))
+      if (active) delay.invoke()
     }
 
     def flush(): Set[Document.Node.Name] =
-      changed_nodes.change_result(nodes => (nodes, Set.empty))
-
-    def revoke() { delay.revoke() }
+      state.change_result(st => if (st.isDefined) (st.get, init_state) else (Set.empty, None))
   }
 
 
@@ -549,7 +556,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
             prover.set(start_prover(manager.send(_)))
 
           case Stop =>
-            consolidation.revoke()
+            consolidation.exit()
             delay_prune.revoke()
             if (prover.defined) {
               protocol_handlers.exit()

@@ -94,6 +94,7 @@ text \<open>
     @{antiquotation_def typ} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def type} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def class} & : & \<open>antiquotation\<close> \\
+    @{antiquotation_def locale} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "text"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def goals} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def subgoals} & : & \<open>antiquotation\<close> \\
@@ -180,6 +181,7 @@ text \<open>
       @@{antiquotation typ} options @{syntax type} |
       @@{antiquotation type} options @{syntax embedded} |
       @@{antiquotation class} options @{syntax embedded} |
+      @@{antiquotation locale} options @{syntax embedded} |
       (@@{antiquotation command} | @@{antiquotation method} | @@{antiquotation attribute})
         options @{syntax name}
     ;
@@ -251,6 +253,8 @@ text \<open>
   \<^descr> \<open>@{type \<kappa>}\<close> prints a (logical or syntactic) type constructor \<open>\<kappa>\<close>.
 
   \<^descr> \<open>@{class c}\<close> prints a class \<open>c\<close>.
+
+  \<^descr> \<open>@{locale c}\<close> prints a locale \<open>c\<close>.
 
   \<^descr> \<open>@{command name}\<close>, \<open>@{method name}\<close>, \<open>@{attribute name}\<close> print checked
   entities of the Isar language.

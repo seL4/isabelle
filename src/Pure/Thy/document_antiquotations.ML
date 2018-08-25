@@ -80,7 +80,7 @@ val _ = Theory.setup
   basic_entity \<^binding>\<open>const\<close> (Args.const {proper = true, strict = false}) pretty_const #>
   basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
   basic_entity \<^binding>\<open>typ\<close> Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.name)) pretty_locale #>
+  basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.embedded)) pretty_locale #>
   basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
   basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded) pretty_type #>
   basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.embedded)) pretty_theory #>

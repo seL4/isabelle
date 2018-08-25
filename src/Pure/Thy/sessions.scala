@@ -815,7 +815,7 @@ object Sessions
           ((in_path | success("document")) ~ rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
 
       val export_files =
-        $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ rep1(name)) ^^
+        $$$(EXPORT_FILES) ~! ((in_path | success("export")) ~ rep1(embedded)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
       command(SESSION) ~!

@@ -58,7 +58,7 @@ text \<open>
     ;
     groups: '(' (@{syntax name} +) ')'
     ;
-    dir: @'in' @{syntax name}
+    dir: @'in' @{syntax embedded}
     ;
     description: @'description' @{syntax text}
     ;
@@ -74,9 +74,9 @@ text \<open>
     ;
     theory_entry: @{syntax system_name} ('(' @'global' ')')?
     ;
-    document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
+    document_files: @'document_files' ('(' dir ')')? (@{syntax embedded}+)
     ;
-    export_files: @'export_files' ('(' dir ')')? (@{syntax name}+)
+    export_files: @'export_files' ('(' dir ')')? (@{syntax embedded}+)
   \<close>}
 
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
