@@ -30,7 +30,11 @@ ML \<open>
   Context.setmp_generic_context NONE
     ML \<open>
       List.app ML_Name_Space.forget_structure ML_Name_Space.hidden_structures;
-      structure PolyML = struct structure IntInf = PolyML.IntInf end;
+      structure PolyML =
+      struct
+        val pointerEq = pointer_eq;
+        structure IntInf = PolyML.IntInf;
+      end;
     \<close>
 \<close>
 

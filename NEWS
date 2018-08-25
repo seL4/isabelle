@@ -23,6 +23,13 @@ SUPREMUM, UNION, INTER should now rarely occur in output and are just
 retained as migration auxiliary. INCOMPATIBILITY.
 
 
+*** ML ***
+
+* Original PolyML.pointerEq is retained as a convenience for tools that
+don't use Isabelle/ML (where this is called "pointer_eq").
+
+
+
 New in Isabelle2018 (August 2018)
 ---------------------------------
 
