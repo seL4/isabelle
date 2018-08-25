@@ -138,4 +138,10 @@ object Exn
 
   def message(exn: Throwable): String =
     user_message(exn) getOrElse (if (is_interrupt(exn)) "Interrupt" else exn.toString)
+
+
+  /* trace */
+
+  def trace(exn: Throwable): String =
+    exn.getStackTrace.mkString("\n")
 }

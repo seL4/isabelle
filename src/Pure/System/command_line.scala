@@ -29,8 +29,7 @@ object Command_Line
       try { body }
       catch {
         case exn: Throwable =>
-          if (debug) exn.printStackTrace
-          Output.error_message(Exn.message(exn))
+          Output.error_message(Exn.message(exn) + (if (debug) "\n" + Exn.trace(exn) else ""))
           Exn.return_code(exn, 2)
       }
     sys.exit(rc)
