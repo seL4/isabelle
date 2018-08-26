@@ -25,7 +25,7 @@ end
 structure ML_Env: ML_ENV =
 struct
 
-(* context data *)
+(* name space tables *)
 
 type tables =
   PolyML.NameSpace.Values.value Symtab.table *
@@ -34,6 +34,9 @@ type tables =
   PolyML.NameSpace.Structures.structureVal Symtab.table *
   PolyML.NameSpace.Signatures.signatureVal Symtab.table *
   PolyML.NameSpace.Functors.functorVal Symtab.table;
+
+val empty_tables: tables =
+  (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
 
 fun merge_tables
   ((val1, type1, fixity1, structure1, signature1, functor1),
@@ -44,6 +47,33 @@ fun merge_tables
    Symtab.merge (K true) (structure1, structure2),
    Symtab.merge (K true) (signature1, signature2),
    Symtab.merge (K true) (functor1, functor2));
+
+val sml_tables: tables =
+  (Symtab.make ML_Name_Space.sml_val,
+   Symtab.make ML_Name_Space.sml_type,
+   Symtab.make ML_Name_Space.sml_fixity,
+   Symtab.make ML_Name_Space.sml_structure,
+   Symtab.make ML_Name_Space.sml_signature,
+   Symtab.make ML_Name_Space.sml_functor);
+
+fun bootstrap_tables ((val1, type1, fixity1, structure1, signature1, functor1): tables) : tables =
+  let
+    val val2 =
+      fold (fn (x, y) =>
+        member (op =) ML_Name_Space.bootstrap_values x ? Symtab.update (x, y))
+      (#allVal ML_Name_Space.global ()) val1;
+    val structure2 =
+      fold (fn (x, y) =>
+        member (op =) ML_Name_Space.bootstrap_structures x ? Symtab.update (x, y))
+      (#allStruct ML_Name_Space.global ()) structure1;
+    val signature2 =
+      fold (fn (x, y) =>
+        member (op =) ML_Name_Space.bootstrap_signatures x ? Symtab.update (x, y))
+      (#allSig ML_Name_Space.global ()) signature1;
+  in (val2, type1, fixity1, structure2, signature2, functor1) end;
+
+
+(* context data *)
 
 type data =
  {global: bool,
@@ -57,16 +87,7 @@ fun make_data (global, tables, sml_tables, breakpoints) : data =
 structure Env = Generic_Data
 (
   type T = data
-  val empty =
-    make_data (true,
-      (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty),
-      (Symtab.make ML_Name_Space.sml_val,
-       Symtab.make ML_Name_Space.sml_type,
-       Symtab.make ML_Name_Space.sml_fixity,
-       Symtab.make ML_Name_Space.sml_structure,
-       Symtab.make ML_Name_Space.sml_signature,
-       Symtab.make ML_Name_Space.sml_functor),
-      Inttab.empty);
+  val empty = make_data (true, empty_tables, sml_tables, Inttab.empty);
   fun extend (data : T) = make_data (false, #tables data, #sml_tables data, #breakpoints data);
   fun merge (data : T * T) =
     make_data (false,
@@ -113,24 +134,7 @@ fun sml_env SML =
 
 val init_bootstrap =
   Env.map (fn {global, tables, sml_tables, breakpoints} =>
-    let
-      val sml_tables' =
-        sml_tables |> (fn (val1, type1, fixity1, structure1, signature1, functor1) =>
-            let
-              val val2 =
-                fold (fn (x, y) =>
-                  member (op =) ML_Name_Space.bootstrap_values x ? Symtab.update (x, y))
-                (#allVal ML_Name_Space.global ()) val1;
-              val structure2 =
-                fold (fn (x, y) =>
-                  member (op =) ML_Name_Space.bootstrap_structures x ? Symtab.update (x, y))
-                (#allStruct ML_Name_Space.global ()) structure1;
-              val signature2 =
-                fold (fn (x, y) =>
-                  member (op =) ML_Name_Space.bootstrap_signatures x ? Symtab.update (x, y))
-                (#allSig ML_Name_Space.global ()) signature1;
-            in (val2, type1, fixity1, structure2, signature2, functor1) end);
-    in make_data (global, tables, sml_tables', breakpoints) end);
+    make_data (global, tables, bootstrap_tables sml_tables, breakpoints));
 
 fun set_global global =
   Env.map (fn {tables, sml_tables, breakpoints, ...} =>
