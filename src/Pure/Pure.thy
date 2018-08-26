@@ -196,10 +196,10 @@ val _ =
     (Parse.ML_source >> (fn source =>
       Toplevel.generic_theory (fn context =>
         context
-        |> ML_Env.set_bootstrap true
+        |> ML_Env.set_global true
         |> ML_Context.exec (fn () =>
             ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source)
-        |> ML_Env.restore_bootstrap context
+        |> ML_Env.restore_global context
         |> Local_Theory.propagate_ml_env)));
 
 val _ =

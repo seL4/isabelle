@@ -13,8 +13,8 @@ sig
   val add_breakpoints: (serial * (bool Unsynchronized.ref * Thread_Position.T)) list -> unit
   val init_bootstrap: Context.generic -> Context.generic
   val SML_environment: bool Config.T
-  val set_bootstrap: bool -> Context.generic -> Context.generic
-  val restore_bootstrap: Context.generic -> Context.generic -> Context.generic
+  val set_global: bool -> Context.generic -> Context.generic
+  val restore_global: Context.generic -> Context.generic -> Context.generic
   val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
   val make_name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
   val context: ML_Compiler0.context
@@ -46,13 +46,13 @@ fun merge_tables
    Symtab.merge (K true) (functor1, functor2));
 
 type data =
- {bootstrap: bool,
+ {global: bool,
   tables: tables,
   sml_tables: tables,
   breakpoints: (bool Unsynchronized.ref * Position.T) Inttab.table};
 
-fun make_data (bootstrap, tables, sml_tables, breakpoints) : data =
-  {bootstrap = bootstrap, tables = tables, sml_tables = sml_tables, breakpoints = breakpoints};
+fun make_data (global, tables, sml_tables, breakpoints) : data =
+  {global = global, tables = tables, sml_tables = sml_tables, breakpoints = breakpoints};
 
 structure Env = Generic_Data
 (
@@ -78,22 +78,22 @@ structure Env = Generic_Data
 val inherit = Env.put o Env.get;
 
 fun forget_structure name =
-  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+  Env.map (fn {global, tables, sml_tables, breakpoints} =>
     let
-      val _ = if bootstrap then ML_Name_Space.forget_structure name else ();
+      val _ = if global then ML_Name_Space.forget_structure name else ();
       val tables' =
         (#1 tables, #2 tables, #3 tables, Symtab.delete_safe name (#4 tables), #5 tables, #6 tables);
-    in make_data (bootstrap, tables', sml_tables, breakpoints) end);
+    in make_data (global, tables', sml_tables, breakpoints) end);
 
 val get_breakpoint = Inttab.lookup o #breakpoints o Env.get;
 
 fun add_breakpoints more_breakpoints =
   if is_some (Context.get_generic_context ()) then
     Context.>>
-      (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+      (Env.map (fn {global, tables, sml_tables, breakpoints} =>
         let val breakpoints' =
           fold (Inttab.update_new o (apsnd o apsnd) Position.make) more_breakpoints breakpoints;
-        in make_data (bootstrap, tables, sml_tables, breakpoints') end))
+        in make_data (global, tables, sml_tables, breakpoints') end))
   else ();
 
 
@@ -112,7 +112,7 @@ fun sml_env SML =
 (* name space *)
 
 val init_bootstrap =
-  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+  Env.map (fn {global, tables, sml_tables, breakpoints} =>
     let
       val sml_tables' =
         sml_tables |> (fn (val1, type1, fixity1, structure1, signature1, functor1) =>
@@ -130,16 +130,16 @@ val init_bootstrap =
                   member (op =) ML_Name_Space.bootstrap_signatures x ? Symtab.update (x, y))
                 (#allSig ML_Name_Space.global ()) signature1;
             in (val2, type1, fixity1, structure2, signature2, functor1) end);
-    in make_data (bootstrap, tables, sml_tables', breakpoints) end);
+    in make_data (global, tables, sml_tables', breakpoints) end);
 
-fun set_bootstrap bootstrap =
+fun set_global global =
   Env.map (fn {tables, sml_tables, breakpoints, ...} =>
-    make_data (bootstrap, tables, sml_tables, breakpoints));
+    make_data (global, tables, sml_tables, breakpoints));
 
-val restore_bootstrap = set_bootstrap o #bootstrap o Env.get;
+val restore_global = set_global o #global o Env.get;
 
 fun add_name_space {SML} (space: ML_Name_Space.T) =
-  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+  Env.map (fn {global, tables, sml_tables, breakpoints} =>
     let
       val (tables', sml_tables') =
         (tables, sml_tables) |> (if sml_env SML then apsnd else apfst)
@@ -152,7 +152,7 @@ fun add_name_space {SML} (space: ML_Name_Space.T) =
               val signature2 = fold Symtab.update (#allSig space ()) signature1;
               val functor2 = fold Symtab.update (#allFunct space ()) functor1;
             in (val2, type2, fixity2, structure2, signature2, functor2) end);
-    in make_data (bootstrap, tables', sml_tables', breakpoints) end);
+    in make_data (global, tables', sml_tables', breakpoints) end);
 
 fun make_name_space {SML, exchange} : ML_Name_Space.T =
   let
@@ -177,15 +177,15 @@ fun make_name_space {SML, exchange} : ML_Name_Space.T =
 
     fun enter ap1 sel2 entry =
       if sml_env SML <> exchange then
-        Context.>> (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+        Context.>> (Env.map (fn {global, tables, sml_tables, breakpoints} =>
           let val sml_tables' = ap1 (Symtab.update entry) sml_tables
-          in make_data (bootstrap, tables, sml_tables', breakpoints) end))
+          in make_data (global, tables, sml_tables', breakpoints) end))
       else if is_some (Context.get_generic_context ()) then
-        Context.>> (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+        Context.>> (Env.map (fn {global, tables, sml_tables, breakpoints} =>
           let
-            val _ = if bootstrap then sel2 ML_Name_Space.global entry else ();
+            val _ = if global then sel2 ML_Name_Space.global entry else ();
             val tables' = ap1 (Symtab.update entry) tables;
-          in make_data (bootstrap, tables', sml_tables, breakpoints) end))
+          in make_data (global, tables', sml_tables, breakpoints) end))
       else sel2 ML_Name_Space.global entry;
   in
    {lookupVal    = lookup #1 #lookupVal,
