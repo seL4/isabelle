@@ -26,16 +26,13 @@ subsection \<open>Final setup of global ML environment\<close>
 
 ML \<open>Proofterm.proofs := 0\<close>
 
-ML \<open>
-  Context.setmp_generic_context NONE
-    ML \<open>
-      List.app ML_Name_Space.forget_structure ML_Name_Space.hidden_structures;
-      structure PolyML =
-      struct
-        val pointerEq = pointer_eq;
-        structure IntInf = PolyML.IntInf;
-      end;
-    \<close>
+ML_export \<open>
+  List.app ML_Name_Space.forget_structure ML_Name_Space.hidden_structures;
+  structure PolyML =
+  struct
+    val pointerEq = pointer_eq;
+    structure IntInf = PolyML.IntInf;
+  end;
 \<close>
 
 ML \<open>\<^assert> (not (can ML \<open>open RunCall\<close>))\<close>
