@@ -21,8 +21,6 @@ sig
   val setup: string -> theory -> theory
   val context_env: Context.generic -> string option -> string
   val default_env: string option -> string
-  val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
-  val add_breakpoints: (serial * (bool Unsynchronized.ref * Thread_Position.T)) list -> unit
   val forget_structure: string -> Context.generic -> Context.generic
   val bootstrap_name_space: Context.generic -> Context.generic
   val add_name_space: string -> ML_Name_Space.T -> Context.generic -> Context.generic
@@ -30,6 +28,8 @@ sig
   val context: ML_Compiler0.context
   val name_space: ML_Name_Space.T
   val check_functor: string -> unit
+  val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
+  val add_breakpoints: (serial * (bool Unsynchronized.ref * Thread_Position.T)) list -> unit
 end
 
 structure ML_Env: ML_ENV =
@@ -93,40 +93,30 @@ val sml_tables: tables =
 
 (* context data *)
 
-type data =
- {envs: tables Name_Space.table,
-  breakpoints: (bool Unsynchronized.ref * Position.T) Inttab.table};
-
-fun make_data (envs, breakpoints) : data = {envs = envs, breakpoints = breakpoints};
-
 structure Data = Generic_Data
 (
-  type T = data
-  val empty = make_data (Name_Space.empty_table "ML_environment", Inttab.empty);
-  fun extend (data : T) = make_data (#envs data, #breakpoints data);
-  fun merge (data : T * T) =
-    make_data ((apply2 #envs data) |> Name_Space.join_tables (K merge_tables),
-      Inttab.merge (K true) (apply2 #breakpoints data));
+  type T = tables Name_Space.table * (bool Unsynchronized.ref * Position.T) Inttab.table;
+  val empty: T = (Name_Space.empty_table "ML_environment", Inttab.empty);
+  val extend = I;
+  fun merge ((envs1, breakpoints1), (envs2, breakpoints2)) : T =
+    (Name_Space.join_tables (K merge_tables) (envs1, envs2),
+      Inttab.merge (K true) (breakpoints1, breakpoints2));
 );
 
 val inherit = Data.put o Data.get;
 
 fun setup env_name thy =
-  thy |> (Context.theory_map o Data.map) (fn {envs, breakpoints} =>
+  thy |> (Context.theory_map o Data.map o apfst) (fn envs =>
     let
       val thy' = Sign.map_naming (K Name_Space.global_naming) thy;
       val tables = if env_name = Isabelle then empty_tables else sml_tables;
-      val (_, envs') = envs
-        |> Name_Space.define (Context.Theory thy') true (Binding.name env_name, tables);
-    in make_data (envs', breakpoints) end);
+    in #2 (Name_Space.define (Context.Theory thy') true (Binding.name env_name, tables) envs) end);
 
-val get_env = Name_Space.get o #envs o Data.get;
+val get_env = Name_Space.get o #1 o Data.get;
 
-fun update_env env_name f context = context |> Data.map (fn {envs, breakpoints} =>
-  let
-    val _ = Name_Space.get envs env_name;
-    val envs' = Name_Space.map_table_entry env_name f envs;
-  in make_data (envs', breakpoints) end);
+fun update_env env_name f context = context |> Data.map (apfst (fn envs =>
+  let val _ = Name_Space.get envs env_name;
+  in Name_Space.map_table_entry env_name f envs end));
 
 fun forget_structure name context =
   (if write_global context then ML_Name_Space.forget_structure name else ();
@@ -264,15 +254,13 @@ fun check_functor name =
 
 (* breakpoints *)
 
-val get_breakpoint = Inttab.lookup o #breakpoints o Data.get;
+val get_breakpoint = Inttab.lookup o #2 o Data.get;
 
 fun add_breakpoints more_breakpoints =
   if is_some (Context.get_generic_context ()) then
     Context.>>
-      (Data.map (fn {envs, breakpoints} =>
-        let val breakpoints' =
-          fold (Inttab.update_new o (apsnd o apsnd) Position.make) more_breakpoints breakpoints;
-        in make_data (envs, breakpoints') end))
+      ((Data.map o apsnd)
+        (fold (Inttab.update_new o (apsnd o apsnd) Position.make) more_breakpoints))
   else ();
 
 end;
