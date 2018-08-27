@@ -28,6 +28,25 @@ retained as migration auxiliary. INCOMPATIBILITY.
 * Original PolyML.pointerEq is retained as a convenience for tools that
 don't use Isabelle/ML (where this is called "pointer_eq").
 
+* ML evaluation (notably via commands 'ML' and 'ML_file') is subject to
+option ML_environment to select a named environment, such as "Isabelle"
+for Isabelle/ML, or "SML" for official Standard ML. It is also possible
+to move toplevel bindings between environments, using a notation with
+">" as separator. For example:
+
+  declare [[ML_environment = "Isabelle>SML"]]
+  ML \<open>val println = writeln\<close>
+
+  declare [[ML_environment = "SML"]]
+  ML \<open>println "test"\<close>
+
+  declare [[ML_environment = "Isabelle"]]
+  ML \<open>println\<close>  \<comment> \<open>not present\<close>
+
+The Isabelle/ML function ML_Env.setup defines new ML environments. This
+is useful to incorporate big SML projects in an isolated name space, and
+potentially with variations on ML syntax (existing ML_Env.SML_operations
+observes the official standard).
 
 
 New in Isabelle2018 (August 2018)
