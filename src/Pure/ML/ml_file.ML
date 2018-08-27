@@ -6,6 +6,8 @@ Commands to load ML files.
 
 signature ML_FILE =
 sig
+  val command: string option -> bool option -> (theory -> Token.file list) ->
+    Toplevel.transition -> Toplevel.transition
   val ML: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
   val SML: bool option -> (theory -> Token.file list) -> Toplevel.transition -> Toplevel.transition
 end;
@@ -13,7 +15,7 @@ end;
 structure ML_File: ML_FILE =
 struct
 
-fun command SML debug files = Toplevel.generic_theory (fn gthy =>
+fun command env debug files = Toplevel.generic_theory (fn gthy =>
   let
     val [{src_path, lines, digest, pos}: Token.file] = files (Context.theory_of gthy);
     val provide = Resources.provide (src_path, digest);
@@ -21,8 +23,8 @@ fun command SML debug files = Toplevel.generic_theory (fn gthy =>
 
     val _ = Thy_Output.check_comments (Context.proof_of gthy) (Input.source_explode source);
 
-    val flags =
-      {SML = SML, exchange = false, redirect = true, verbose = true,
+    val flags: ML_Compiler.flags =
+      {read = env, write = env, redirect = true, verbose = true,
         debug = debug, writeln = writeln, warning = warning};
   in
     gthy
@@ -31,7 +33,7 @@ fun command SML debug files = Toplevel.generic_theory (fn gthy =>
     |> Context.mapping provide (Local_Theory.background_theory provide)
   end);
 
-val ML = command false;
-val SML = command true;
+val ML = command NONE;
+val SML = command (SOME ML_Env.SML);
 
 end;

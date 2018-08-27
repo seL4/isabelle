@@ -587,6 +587,9 @@ val _ = Theory.setup
   register_config Name_Space.names_short_raw #>
   register_config Name_Space.names_unique_raw #>
   register_config ML_Print_Depth.print_depth_raw #>
+  register_config ML_Env.ML_environment_raw #>
+  register_config ML_Env.ML_read_global_raw #>
+  register_config ML_Env.ML_write_global_raw #>
   register_config ML_Options.source_trace_raw #>
   register_config ML_Options.exception_trace_raw #>
   register_config ML_Options.exception_debugger_raw #>

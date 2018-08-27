@@ -170,7 +170,7 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = true, exchange = true, redirect = false, verbose = true,
+          {read = SOME ML_Env.SML, write = NONE, redirect = false, verbose = true,
             debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.theory
@@ -182,7 +182,7 @@ val _ =
     (Parse.ML_source >> (fn source =>
       let
         val flags: ML_Compiler.flags =
-          {SML = false, exchange = true, redirect = false, verbose = true,
+          {read = NONE, write = SOME ML_Env.SML, redirect = false, verbose = true,
             debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.generic_theory
@@ -196,10 +196,11 @@ val _ =
     (Parse.ML_source >> (fn source =>
       Toplevel.generic_theory (fn context =>
         context
-        |> ML_Env.set_global true
+        |> Config.put_generic ML_Env.ML_write_global true
         |> ML_Context.exec (fn () =>
             ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source)
-        |> ML_Env.restore_global context
+        |> Config.put_generic ML_Env.ML_write_global
+            (Config.get_generic context ML_Env.ML_write_global)
         |> Local_Theory.propagate_ml_env)));
 
 val _ =
@@ -1439,5 +1440,7 @@ next
     from conj show "PROP B" by (rule conjunctionD2)
   qed
 qed
+
+declare [[ML_write_global = false]]
 
 end

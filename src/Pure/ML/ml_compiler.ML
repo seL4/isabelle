@@ -7,7 +7,7 @@ Runtime compilation and evaluation.
 signature ML_COMPILER =
 sig
   type flags =
-    {SML: bool, exchange: bool, redirect: bool, verbose: bool,
+    {read: string option, write: string option, redirect: bool, verbose: bool,
       debug: bool option, writeln: string -> unit, warning: string -> unit}
   val debug_flags: bool option -> flags
   val flags: flags
@@ -21,17 +21,17 @@ struct
 (* flags *)
 
 type flags =
-  {SML: bool, exchange: bool, redirect: bool, verbose: bool,
+  {read: string option, write: string option, redirect: bool, verbose: bool,
     debug: bool option, writeln: string -> unit, warning: string -> unit};
 
 fun debug_flags opt_debug : flags =
-  {SML = false, exchange = false, redirect = false, verbose = false,
+  {read = NONE, write = NONE, redirect = false, verbose = false,
     debug = opt_debug, writeln = writeln, warning = warning};
 
 val flags = debug_flags NONE;
 
 fun verbose b (flags: flags) =
-  {SML = #SML flags, exchange = #exchange flags, redirect = #redirect flags, verbose = b,
+  {read = #read flags, write = #write flags, redirect = #redirect flags, verbose = b,
     debug = #debug flags, writeln = #writeln flags, warning = #warning flags};
 
 
@@ -154,14 +154,14 @@ fun eval (flags: flags) pos toks =
     val opt_context = Context.get_generic_context ();
 
     val env as {debug, name_space, add_breakpoints} =
-      (case (ML_Recursive.get (), #SML flags orelse #exchange flags) of
+      (case (ML_Recursive.get (), is_some (#read flags) orelse is_some (#write flags)) of
         (SOME env, false) => env
       | _ =>
        {debug =
           (case #debug flags of
             SOME debug => debug
           | NONE => ML_Options.debugger_enabled opt_context),
-        name_space = ML_Env.make_name_space {SML = #SML flags, exchange = #exchange flags},
+        name_space = ML_Env.make_name_space {read = #read flags, write = #write flags},
         add_breakpoints = ML_Env.add_breakpoints});
 
 
@@ -170,7 +170,7 @@ fun eval (flags: flags) pos toks =
     val location_props = op ^ (YXML.output_markup (":", #props (Position.dest pos)));
 
     val input_explode =
-      if #SML flags then String.explode
+      if ML_Env.is_standard (ML_Env.default_env (#read flags)) then String.explode
       else maps (String.explode o Symbol.esc) o Symbol.explode;
 
     fun token_content tok =

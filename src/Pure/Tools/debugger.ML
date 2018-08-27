@@ -132,15 +132,17 @@ val context_attempts =
     "Context.put_generic_context (SOME ML_context)"];
 
 fun evaluate {SML, verbose} =
-  ML_Context.eval
-    {SML = SML, exchange = false, redirect = false, verbose = verbose,
-      debug = SOME false, writeln = writeln_message, warning = warning_message}
-    Position.none;
+  let val env = ML_Env.make_standard SML in
+    ML_Context.eval
+      {read = SOME env, write = SOME env, redirect = false, verbose = verbose,
+        debug = SOME false, writeln = writeln_message, warning = warning_message}
+      Position.none
+  end;
 
 fun eval_setup thread_name index SML context =
   context
   |> Context_Position.set_visible_generic false
-  |> ML_Env.add_name_space {SML = SML}
+  |> ML_Env.add_name_space (ML_Env.make_standard SML)
       (PolyML.DebuggerInterface.debugNameSpace (the_debug_state thread_name index));
 
 fun eval_context thread_name index SML toks =

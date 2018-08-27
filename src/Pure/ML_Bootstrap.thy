@@ -11,35 +11,37 @@ begin
 external_file "$POLYML_EXE"
 
 
-subsection \<open>Standard ML environment for virtual bootstrap\<close>
+subsection \<open>ML environment for virtual bootstrap\<close>
 
-setup \<open>Context.theory_map ML_Env.init_bootstrap\<close>
-
-SML_import \<open>
+ML \<open>
+  #allStruct ML_Name_Space.global () |> List.app (fn (name, _) =>
+    if member (op =) ML_Name_Space.hidden_structures name then
+      ML (Input.string ("structure " ^ name ^ " = " ^ name))
+    else ());
   structure Output_Primitives = Output_Primitives_Virtual;
   structure Thread_Data = Thread_Data_Virtual;
+  structure PolyML = PolyML;
   fun ML_system_pp (_: FixedInt.int -> 'a -> 'b -> PolyML_Pretty.pretty) = ();
 \<close>
 
 
-subsection \<open>Final setup of global ML environment\<close>
+subsection \<open>Global ML environment for Isabelle/Pure\<close>
 
 ML \<open>Proofterm.proofs := 0\<close>
 
-ML_export \<open>
-  List.app ML_Name_Space.forget_structure ML_Name_Space.hidden_structures;
-  structure PolyML =
-  struct
-    val pointerEq = pointer_eq;
-    structure IntInf = PolyML.IntInf;
-  end;
+ML \<open>
+  Context.setmp_generic_context NONE
+    ML \<open>
+      List.app ML_Name_Space.forget_structure ML_Name_Space.hidden_structures;
+      structure PolyML =
+      struct
+        val pointerEq = pointer_eq;
+        structure IntInf = PolyML.IntInf;
+      end;
+    \<close>
 \<close>
 
-ML \<open>\<^assert> (not (can ML \<open>open RunCall\<close>))\<close>
-
-
-subsection \<open>Switch to bootstrap environment\<close>
-
-setup \<open>Config.put_global ML_Env.SML_environment true\<close>
+setup \<open>Context.theory_map ML_Env.bootstrap_name_space\<close>
+declare [[ML_read_global = false]]
 
 end
