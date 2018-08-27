@@ -22,6 +22,7 @@ sig
   val kind_of: token -> token_kind
   val content_of: token -> string
   val check_content_of: token -> string
+  val explode_content_of: bool -> token -> char list
   val flatten: token list -> string
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
@@ -126,6 +127,10 @@ fun check_content_of tok =
   (case kind_of tok of
     Error msg => error msg
   | _ => content_of tok);
+
+fun explode_content_of SML =
+  check_content_of #>
+  (if SML then String.explode else Symbol.explode #> maps (Symbol.esc #> String.explode));
 
 
 (* flatten *)

@@ -9,8 +9,6 @@ signature ML_ENV =
 sig
   val Isabelle: string
   val SML: string
-  val is_standard: string -> bool
-  val make_standard: bool -> string
   val ML_environment_raw: Config.raw
   val ML_environment: string Config.T
   val ML_read_global_raw: Config.raw
@@ -18,12 +16,18 @@ sig
   val ML_write_global_raw: Config.raw
   val ML_write_global: bool Config.T
   val inherit: Context.generic -> Context.generic -> Context.generic
-  val setup: string -> theory -> theory
+  type operations =
+   {read_source: Input.source -> ML_Lex.token Antiquote.antiquote list,
+    explode_token: ML_Lex.token -> char list}
   type environment = {read: string, write: string}
   val parse_environment: Context.generic option -> string -> environment
   val print_environment: environment -> string
   val SML_export: string
   val SML_import: string
+  val setup: string -> operations -> theory -> theory
+  val Isabelle_operations: operations
+  val SML_operations: operations
+  val operations: Context.generic option -> string -> operations
   val forget_structure: string -> Context.generic -> Context.generic
   val bootstrap_name_space: Context.generic -> Context.generic
   val add_name_space: string -> ML_Name_Space.T -> Context.generic -> Context.generic
@@ -42,9 +46,6 @@ struct
 
 val Isabelle = "Isabelle";
 val SML = "SML";
-
-fun is_standard env = env <> Isabelle;
-fun make_standard sml = if sml then SML else Isabelle;
 
 val ML_environment_raw = Config.declare ("ML_environment", \<^here>) (fn _ => Config.String Isabelle);
 val ML_environment = Config.string ML_environment_raw;
@@ -96,34 +97,35 @@ val sml_tables: tables =
 
 (* context data *)
 
+type operations =
+ {read_source: Input.source -> ML_Lex.token Antiquote.antiquote list,
+  explode_token: ML_Lex.token -> char list};
+
+type env = tables * operations;
+
 structure Data = Generic_Data
 (
-  type T = tables Name_Space.table * (bool Unsynchronized.ref * Position.T) Inttab.table;
+  type T = env Name_Space.table * (bool Unsynchronized.ref * Position.T) Inttab.table;
   val empty: T = (Name_Space.empty_table "ML_environment", Inttab.empty);
   val extend = I;
   fun merge ((envs1, breakpoints1), (envs2, breakpoints2)) : T =
-    (Name_Space.join_tables (K merge_tables) (envs1, envs2),
-      Inttab.merge (K true) (breakpoints1, breakpoints2));
+    ((envs1, envs2) |> Name_Space.join_tables
+      (K (fn ((tables1, ops), (tables2, _)) => (merge_tables (tables1, tables2), ops))),
+     Inttab.merge (K true) (breakpoints1, breakpoints2));
 );
 
 val inherit = Data.put o Data.get;
 
-fun setup env_name thy =
-  thy |> (Context.theory_map o Data.map o apfst) (fn envs =>
-    let
-      val thy' = Sign.map_naming (K Name_Space.global_naming) thy;
-      val tables = if env_name = Isabelle then empty_tables else sml_tables;
-    in #2 (Name_Space.define (Context.Theory thy') true (Binding.name env_name, tables) envs) end);
-
 val get_env = Name_Space.get o #1 o Data.get;
+val get_tables = #1 oo get_env;
 
-fun update_env env_name f context = context |> Data.map (apfst (fn envs =>
+fun update_tables env_name f context = context |> (Data.map o apfst) (fn envs =>
   let val _ = Name_Space.get envs env_name;
-  in Name_Space.map_table_entry env_name f envs end));
+  in Name_Space.map_table_entry env_name (apfst f) envs end);
 
 fun forget_structure name context =
   (if write_global context then ML_Name_Space.forget_structure name else ();
-    context |> update_env Isabelle (fn tables =>
+    context |> update_tables Isabelle (fn tables =>
       (#1 tables, #2 tables, #3 tables, Symtab.delete_safe name (#4 tables), #5 tables, #6 tables)));
 
 
@@ -161,10 +163,38 @@ val SML_export = print_environment {read = SML, write = Isabelle};
 val SML_import = print_environment {read = Isabelle, write = SML};
 
 
+(* setup operations *)
+
+fun setup env_name ops thy =
+  thy |> (Context.theory_map o Data.map o apfst) (fn envs =>
+    let
+      val thy' = Sign.map_naming (K Name_Space.global_naming) thy;
+      val tables = if env_name = Isabelle then empty_tables else sml_tables;
+      val (_, envs') =
+        Name_Space.define (Context.Theory thy') true (Binding.name env_name, (tables, ops)) envs;
+    in envs' end);
+
+fun make_operations SML: operations =
+ {read_source = ML_Lex.read_source SML,
+  explode_token = ML_Lex.explode_content_of SML};
+
+val Isabelle_operations = make_operations false;
+val SML_operations = make_operations true;
+
+val _ = Theory.setup (setup Isabelle Isabelle_operations #> setup SML SML_operations);
+
+fun operations opt_context environment =
+  let val env = #read (parse_environment opt_context environment) in
+    (case opt_context of
+      NONE => Isabelle_operations
+    | SOME context => #2 (get_env context env))
+  end;
+
+
 (* name space *)
 
 val bootstrap_name_space =
-  update_env Isabelle (fn (tables: tables) =>
+  update_tables Isabelle (fn (tables: tables) =>
     let
       fun update entries (x, y) = member (op =) entries x ? Symtab.update (x, y);
       val bootstrap_val = update ML_Name_Space.bootstrap_values;
@@ -184,7 +214,7 @@ val bootstrap_name_space =
     in (val2, type1, fixity1, structure2, signature2, functor1) end);
 
 fun add_name_space env (space: ML_Name_Space.T) =
-  update_env env (fn (val1, type1, fixity1, structure1, signature1, functor1) =>
+  update_tables env (fn (val1, type1, fixity1, structure1, signature1, functor1) =>
     let
       val val2 = fold Symtab.update (#allVal space ()) val1;
       val type2 = fold Symtab.update (#allType space ()) type1;
@@ -198,9 +228,9 @@ fun make_name_space environment : ML_Name_Space.T =
   let
     val {read, write} = parse_environment (Context.get_generic_context ()) environment;
 
-    fun lookup_env sel1 context name = Symtab.lookup (sel1 (get_env context read)) name;
-    fun dest_env sel1 context = Symtab.dest (sel1 (get_env context read));
-    fun enter_env ap1 entry = update_env write (ap1 (Symtab.update entry));
+    fun lookup_env sel1 context name = Symtab.lookup (sel1 (get_tables context read)) name;
+    fun dest_env sel1 context = Symtab.dest (sel1 (get_tables context read));
+    fun enter_env ap1 entry = update_tables write (ap1 (Symtab.update entry));
 
     fun lookup sel1 sel2 name =
       if read = Isabelle then
@@ -279,5 +309,3 @@ fun add_breakpoints more_breakpoints =
   else ();
 
 end;
-
-Theory.setup (ML_Env.setup ML_Env.Isabelle #> ML_Env.setup ML_Env.SML);

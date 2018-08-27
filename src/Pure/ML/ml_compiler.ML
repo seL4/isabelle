@@ -169,14 +169,8 @@ fun eval (flags: flags) pos toks =
 
     val location_props = op ^ (YXML.output_markup (":", #props (Position.dest pos)));
 
-    val input_explode =
-      if ML_Env.is_standard (#read (ML_Env.parse_environment opt_context (#environment flags)))
-      then String.explode
-      else maps (String.explode o Symbol.esc) o Symbol.explode;
-
-    fun token_content tok =
-      if ML_Lex.is_comment tok then NONE
-      else SOME (input_explode (ML_Lex.check_content_of tok), tok);
+    val {explode_token, ...} = ML_Env.operations opt_context (#environment flags);
+    fun token_content tok = if ML_Lex.is_comment tok then NONE else SOME (`explode_token tok);
 
     val input_buffer =
       Unsynchronized.ref (map_filter token_content toks);

@@ -197,8 +197,8 @@ fun eval_file flags path =
 fun eval_source flags source =
   let
     val opt_context = Context.get_generic_context ();
-    val SML = ML_Env.is_standard (#read (ML_Env.parse_environment opt_context (#environment flags)));
-  in eval flags (Input.pos_of source) (ML_Lex.read_source SML source) end;
+    val {read_source, ...} = ML_Env.operations opt_context (#environment flags);
+  in eval flags (Input.pos_of source) (read_source source) end;
 
 fun eval_in ctxt flags pos ants =
   Context.setmp_generic_context (Option.map Context.Proof ctxt)
