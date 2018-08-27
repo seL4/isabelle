@@ -17,10 +17,10 @@ sig
   val ML_read_global: bool Config.T
   val ML_write_global_raw: Config.raw
   val ML_write_global: bool Config.T
-  val context_env: Context.generic -> string option -> string
-  val default_env: string option -> string
   val inherit: Context.generic -> Context.generic -> Context.generic
   val setup: string -> theory -> theory
+  val context_env: Context.generic -> string option -> string
+  val default_env: string option -> string
   val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
   val add_breakpoints: (serial * (bool Unsynchronized.ref * Thread_Position.T)) list -> unit
   val forget_structure: string -> Context.generic -> Context.generic
@@ -45,15 +45,6 @@ fun make_standard sml = if sml then SML else Isabelle;
 
 val ML_environment_raw = Config.declare ("ML_environment", \<^here>) (fn _ => Config.String Isabelle);
 val ML_environment = Config.string ML_environment_raw;
-
-fun context_env _ (SOME name) = name
-  | context_env context NONE = Config.get_generic context ML_environment;
-
-fun default_env (SOME name) = name
-  | default_env NONE =
-      (case Context.get_generic_context () of
-        NONE => Isabelle
-      | SOME context => context_env context NONE);
 
 
 (* global read/write *)
@@ -141,6 +132,27 @@ fun forget_structure name context =
   (if write_global context then ML_Name_Space.forget_structure name else ();
     context |> update_env Isabelle (fn tables =>
       (#1 tables, #2 tables, #3 tables, Symtab.delete_safe name (#4 tables), #5 tables, #6 tables)));
+
+
+(* environment name *)
+
+fun check_env opt_context name =
+  (case opt_context of
+    NONE =>
+      if name = Isabelle then name
+      else error ("Bad ML environment name " ^ quote name ^ " -- no context")
+  | SOME context => if name = Isabelle then name else (get_env context name; name));
+
+fun context_env context opt_name =
+  check_env (SOME context) (the_default (Config.get_generic context ML_environment) opt_name);
+
+fun default_env opt_name =
+  let val opt_context = Context.get_generic_context () in
+    check_env opt_context
+      (case opt_name of
+        SOME name => name
+      | NONE => (case opt_context of NONE => Isabelle | SOME context => context_env context NONE))
+  end;
 
 
 (* name space *)
