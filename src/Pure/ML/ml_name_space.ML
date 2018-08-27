@@ -12,8 +12,8 @@ sig
   val forget_val: string -> unit
   val forget_type: string -> unit
   val forget_structure: string -> unit
-  val bootstrap_values: string list
   val hidden_structures: string list
+  val bootstrap_values: string list
   val bootstrap_structures: string list
   val bootstrap_signatures: string list
   val sml_val: (string * PolyML.NameSpace.Values.value) list
@@ -64,13 +64,14 @@ val forget_val = PolyML.Compiler.forgetValue;
 val forget_type = PolyML.Compiler.forgetType;
 val forget_structure = PolyML.Compiler.forgetStructure;
 
+val hidden_structures = ["CInterface", "Foreign", "RunCall", "Signal"];
+
 
 (* bootstrap environment *)
 
 val bootstrap_values =
   ["use", "exit", "ML_file", "ML_system_pretty", "ML_system_pp", "ML_system_overload",
     "chapter", "section", "subsection", "subsubsection", "paragraph", "subparagraph"];
-val hidden_structures = ["CInterface", "Foreign", "RunCall", "RuntimeCalls", "Signal"];
 val bootstrap_structures =
   ["Exn", "Output_Primitives", "Basic_Exn", "Thread_Data", "Thread_Position", "ML_Recursive",
     "Private_Output", "PolyML"] @ hidden_structures;
