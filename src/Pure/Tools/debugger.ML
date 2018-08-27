@@ -132,12 +132,10 @@ val context_attempts =
     "Context.put_generic_context (SOME ML_context)"];
 
 fun evaluate {SML, verbose} =
-  let val env = ML_Env.make_standard SML in
-    ML_Context.eval
-      {read = SOME env, write = SOME env, redirect = false, verbose = verbose,
-        debug = SOME false, writeln = writeln_message, warning = warning_message}
-      Position.none
-  end;
+  ML_Context.eval
+    {environment = ML_Env.make_standard SML, redirect = false, verbose = verbose,
+      debug = SOME false, writeln = writeln_message, warning = warning_message}
+    Position.none;
 
 fun eval_setup thread_name index SML context =
   context

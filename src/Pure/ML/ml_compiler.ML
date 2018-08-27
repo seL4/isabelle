@@ -7,7 +7,7 @@ Runtime compilation and evaluation.
 signature ML_COMPILER =
 sig
   type flags =
-    {read: string option, write: string option, redirect: bool, verbose: bool,
+    {environment: string, redirect: bool, verbose: bool,
       debug: bool option, writeln: string -> unit, warning: string -> unit}
   val debug_flags: bool option -> flags
   val flags: flags
@@ -21,17 +21,17 @@ struct
 (* flags *)
 
 type flags =
-  {read: string option, write: string option, redirect: bool, verbose: bool,
+  {environment: string, redirect: bool, verbose: bool,
     debug: bool option, writeln: string -> unit, warning: string -> unit};
 
 fun debug_flags opt_debug : flags =
-  {read = NONE, write = NONE, redirect = false, verbose = false,
+  {environment = "", redirect = false, verbose = false,
     debug = opt_debug, writeln = writeln, warning = warning};
 
 val flags = debug_flags NONE;
 
 fun verbose b (flags: flags) =
-  {read = #read flags, write = #write flags, redirect = #redirect flags, verbose = b,
+  {environment = #environment flags, redirect = #redirect flags, verbose = b,
     debug = #debug flags, writeln = #writeln flags, warning = #warning flags};
 
 
@@ -154,15 +154,15 @@ fun eval (flags: flags) pos toks =
     val opt_context = Context.get_generic_context ();
 
     val env as {debug, name_space, add_breakpoints} =
-      (case (ML_Recursive.get (), is_some (#read flags) orelse is_some (#write flags)) of
+      (case (ML_Recursive.get (), #environment flags <> "") of
         (SOME env, false) => env
       | _ =>
-       {debug =
-          (case #debug flags of
-            SOME debug => debug
-          | NONE => ML_Options.debugger_enabled opt_context),
-        name_space = ML_Env.make_name_space {read = #read flags, write = #write flags},
-        add_breakpoints = ML_Env.add_breakpoints});
+         {debug =
+            (case #debug flags of
+              SOME debug => debug
+            | NONE => ML_Options.debugger_enabled opt_context),
+          name_space = ML_Env.make_name_space (#environment flags),
+          add_breakpoints = ML_Env.add_breakpoints});
 
 
     (* input *)
@@ -170,7 +170,8 @@ fun eval (flags: flags) pos toks =
     val location_props = op ^ (YXML.output_markup (":", #props (Position.dest pos)));
 
     val input_explode =
-      if ML_Env.is_standard (ML_Env.default_env (#read flags)) then String.explode
+      if ML_Env.is_standard (#read (ML_Env.parse_environment opt_context (#environment flags)))
+      then String.explode
       else maps (String.explode o Symbol.esc) o Symbol.explode;
 
     fun token_content tok =

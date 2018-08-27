@@ -19,12 +19,15 @@ sig
   val ML_write_global: bool Config.T
   val inherit: Context.generic -> Context.generic -> Context.generic
   val setup: string -> theory -> theory
-  val context_env: Context.generic -> string option -> string
-  val default_env: string option -> string
+  type environment = {read: string, write: string}
+  val parse_environment: Context.generic option -> string -> environment
+  val print_environment: environment -> string
+  val SML_export: string
+  val SML_import: string
   val forget_structure: string -> Context.generic -> Context.generic
   val bootstrap_name_space: Context.generic -> Context.generic
   val add_name_space: string -> ML_Name_Space.T -> Context.generic -> Context.generic
-  val make_name_space: {read: string option, write: string option} -> ML_Name_Space.T
+  val make_name_space: string -> ML_Name_Space.T
   val context: ML_Compiler0.context
   val name_space: ML_Name_Space.T
   val check_functor: string -> unit
@@ -126,23 +129,36 @@ fun forget_structure name context =
 
 (* environment name *)
 
-fun check_env opt_context name =
-  (case opt_context of
-    NONE =>
-      if name = Isabelle then name
-      else error ("Bad ML environment name " ^ quote name ^ " -- no context")
-  | SOME context => if name = Isabelle then name else (get_env context name; name));
+type environment = {read: string, write: string};
 
-fun context_env context opt_name =
-  check_env (SOME context) (the_default (Config.get_generic context ML_environment) opt_name);
+val separator = ">";
 
-fun default_env opt_name =
-  let val opt_context = Context.get_generic_context () in
-    check_env opt_context
-      (case opt_name of
-        SOME name => name
-      | NONE => (case opt_context of NONE => Isabelle | SOME context => context_env context NONE))
-  end;
+fun parse_environment opt_context environment =
+  let
+    fun check name =
+      (case opt_context of
+        NONE =>
+          if name = Isabelle then name
+          else error ("Bad ML environment name " ^ quote name ^ " -- no context")
+      | SOME context => if name = Isabelle then name else (get_env context name; name));
+
+    val spec =
+      if environment = "" then
+        (case opt_context of
+          NONE => Isabelle
+        | SOME context => Config.get_generic context ML_environment)
+      else environment;
+    val (read, write) =
+      (case space_explode separator spec of
+        [a] => (a, a)
+      | [a, b] => (a, b)
+      | _ => error ("Malformed ML environment specification: " ^ quote spec));
+  in {read = check read, write = check write} end;
+
+fun print_environment {read, write} = read ^ separator ^ write;
+
+val SML_export = print_environment {read = SML, write = Isabelle};
+val SML_import = print_environment {read = Isabelle, write = SML};
 
 
 (* name space *)
@@ -178,17 +194,16 @@ fun add_name_space env (space: ML_Name_Space.T) =
       val functor2 = fold Symtab.update (#allFunct space ()) functor1;
     in (val2, type2, fixity2, structure2, signature2, functor2) end);
 
-fun make_name_space {read, write} : ML_Name_Space.T =
+fun make_name_space environment : ML_Name_Space.T =
   let
-    val read_env = default_env read;
-    val write_env = default_env write;
+    val {read, write} = parse_environment (Context.get_generic_context ()) environment;
 
-    fun lookup_env sel1 context name = Symtab.lookup (sel1 (get_env context read_env)) name;
-    fun dest_env sel1 context = Symtab.dest (sel1 (get_env context read_env));
-    fun enter_env ap1 entry = update_env write_env (ap1 (Symtab.update entry));
+    fun lookup_env sel1 context name = Symtab.lookup (sel1 (get_env context read)) name;
+    fun dest_env sel1 context = Symtab.dest (sel1 (get_env context read));
+    fun enter_env ap1 entry = update_env write (ap1 (Symtab.update entry));
 
     fun lookup sel1 sel2 name =
-      if read_env = Isabelle then
+      if read = Isabelle then
         (case Context.get_generic_context () of
           NONE => sel2 ML_Name_Space.global name
         | SOME context =>
@@ -199,7 +214,7 @@ fun make_name_space {read, write} : ML_Name_Space.T =
 
     fun all sel1 sel2 () =
       sort_distinct (string_ord o apply2 #1)
-        (if read_env = Isabelle then
+        (if read = Isabelle then
           (case Context.get_generic_context () of
             NONE => sel2 ML_Name_Space.global ()
           | SOME context =>
@@ -208,7 +223,7 @@ fun make_name_space {read, write} : ML_Name_Space.T =
          else dest_env sel1 (Context.the_generic_context ()));
 
     fun enter ap1 sel2 entry =
-      if write_env = Isabelle then
+      if write = Isabelle then
         (case Context.get_generic_context () of
           NONE => sel2 ML_Name_Space.global entry
         | SOME context =>
@@ -237,7 +252,7 @@ fun make_name_space {read, write} : ML_Name_Space.T =
   end;
 
 val context: ML_Compiler0.context =
- {name_space = make_name_space {read = NONE, write = NONE},
+ {name_space = make_name_space "",
   print_depth = NONE,
   here = Position.here oo Position.line_file,
   print = writeln,
