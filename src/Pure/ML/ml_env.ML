@@ -174,12 +174,13 @@ fun setup env_name ops thy =
         Name_Space.define (Context.Theory thy') true (Binding.name env_name, (tables, ops)) envs;
     in envs' end);
 
-fun make_operations SML: operations =
- {read_source = ML_Lex.read_source SML,
-  explode_token = ML_Lex.explode_content_of SML};
+val Isabelle_operations: operations =
+ {read_source = ML_Lex.read_source,
+  explode_token = ML_Lex.check_content_of #> Symbol.explode #> maps (Symbol.esc #> String.explode)};
 
-val Isabelle_operations = make_operations false;
-val SML_operations = make_operations true;
+val SML_operations: operations =
+ {read_source = ML_Lex.read_source_sml,
+  explode_token = ML_Lex.check_content_of #> String.explode};
 
 val _ = Theory.setup (setup Isabelle Isabelle_operations #> setup SML SML_operations);
 

@@ -373,7 +373,7 @@ val parse_tactic =
             "tactic" "Morphism.morphism -> thm list -> tactic"
             "Method.set_tactic tactic"
             (ML_Lex.read "fn morphism: Morphism.morphism => fn facts: thm list =>" @
-             ML_Lex.read_source false source);
+             ML_Lex.read_source source);
         val tac = the_tactic context';
       in
         fn phi => set_tactic (fn _ => Context.setmp_generic_context (SOME context) (tac phi))
@@ -476,7 +476,7 @@ fun setup binding scan comment = define_global binding (method_syntax scan) comm
 fun local_setup binding scan comment = define binding (method_syntax scan) comment #> snd;
 
 fun method_setup name source comment =
-  ML_Lex.read_source false source
+  ML_Lex.read_source source
   |> ML_Context.expression (Input.range_of source) "parser"
     "(Proof.context -> Proof.method) context_parser"
     ("Context.map_proof (Method.local_setup " ^ ML_Syntax.atomic (ML_Syntax.make_binding name) ^

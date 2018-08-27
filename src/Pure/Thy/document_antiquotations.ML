@@ -264,7 +264,7 @@ fun ml_text name ml =
       in Input.source_content text end);
 
 fun ml_enclose bg en source =
-  ML_Lex.read bg @ ML_Lex.read_source false source @ ML_Lex.read en;
+  ML_Lex.read bg @ ML_Lex.read_source source @ ML_Lex.read en;
 
 in
 

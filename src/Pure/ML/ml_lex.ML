@@ -22,16 +22,18 @@ sig
   val kind_of: token -> token_kind
   val content_of: token -> string
   val check_content_of: token -> string
-  val explode_content_of: bool -> token -> char list
   val flatten: token list -> string
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
   val tokenize: string -> token list
-  val read_pos: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
+  val read_text: Symbol_Pos.text * Position.T -> token Antiquote.antiquote list
   val read: Symbol_Pos.text -> token Antiquote.antiquote list
   val read_set_range: Position.range -> Symbol_Pos.text -> token Antiquote.antiquote list
-  val read_source: bool -> Input.source -> token Antiquote.antiquote list
+  val read_source': {language: bool -> Markup.T, opaque_warning: bool, symbols: bool} ->
+    token Antiquote.antiquote Symbol_Pos.scanner -> Input.source -> token Antiquote.antiquote list
+  val read_source: Input.source -> token Antiquote.antiquote list
+  val read_source_sml: Input.source -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -115,7 +117,7 @@ fun is_improper (Token (_, (Space, _))) = true
 fun is_comment (Token (_, (Comment _, _))) = true
   | is_comment _ = false;
 
-fun warn tok =
+fun warning_opaque tok =
   (case tok of
     Token (_, (Keyword, ":>")) =>
       warning ("Opaque signature matching (:>) fails to work with ML pretty printing --\n\
@@ -127,10 +129,6 @@ fun check_content_of tok =
   (case kind_of tok of
     Error msg => error msg
   | _ => content_of tok);
-
-fun explode_content_of SML =
-  check_content_of #>
-  (if SML then String.explode else Symbol.explode #> maps (Symbol.esc #> String.explode));
 
 
 (* flatten *)
@@ -310,12 +308,14 @@ val scan_sml =
     scan_ident >> token Ident ||
     scan_type_var >> token Type_Var);
 
+val scan_sml_antiq = scan_sml >> Antiquote.Text;
+
 val scan_ml_antiq =
   Comment.scan >> (fn (kind, ss) => Antiquote.Text (token (Comment (SOME kind)) ss)) ||
   Antiquote.scan_control >> Antiquote.Control ||
   Antiquote.scan_antiq >> Antiquote.Antiq ||
   scan_rat_antiq >> Antiquote.Antiq ||
-  scan_sml >> Antiquote.Text;
+  scan_sml_antiq;
 
 fun recover msg =
  (recover_char ||
@@ -325,12 +325,8 @@ fun recover msg =
   Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> single)
   >> (single o token (Error msg));
 
-fun gen_read SML pos text =
+fun reader {opaque_warning} scan syms =
   let
-    val syms =
-      Symbol_Pos.explode (text, pos)
-      |> SML ? maps (fn (s, p) => raw_explode s |> map (rpair p));
-
     val termination =
       if null syms then []
       else
@@ -339,8 +335,8 @@ fun gen_read SML pos text =
           val pos2 = Position.advance Symbol.space pos1;
         in [Antiquote.Text (Token (Position.range (pos1, pos2), (Space, Symbol.space)))] end;
 
-    val scan = if SML then scan_sml >> Antiquote.Text else scan_ml_antiq;
-    fun check (Antiquote.Text tok) = (check_content_of tok; if SML then () else warn tok)
+    fun check (Antiquote.Text tok) =
+          (check_content_of tok; if opaque_warning then warning_opaque tok else ())
       | check _ = ();
     val input =
       Source.of_list syms
@@ -361,22 +357,31 @@ fun source src =
 
 val tokenize = Symbol.explode #> Source.of_list #> source #> Source.exhaust;
 
-val read_pos = gen_read false;
-
-val read = read_pos Position.none;
+val read_text = reader {opaque_warning = true} scan_ml_antiq o Symbol_Pos.explode;
+fun read text = read_text (text, Position.none);
 
 fun read_set_range range =
   read #> map (fn Antiquote.Text tok => Antiquote.Text (set_range range tok) | antiq => antiq);
 
-fun read_source SML source =
+fun read_source' {language, symbols, opaque_warning} scan source =
   let
     val pos = Input.pos_of source;
-    val language = if SML then Markup.language_SML else Markup.language_ML;
     val _ =
       if Position.is_reported_range pos
       then Position.report pos (language (Input.is_delimited source))
       else ();
-  in gen_read SML pos (Input.text_of source) end;
+    val syms =
+      Symbol_Pos.explode (Input.text_of source, pos)
+      |> not symbols ? maps (fn (s, p) => raw_explode s |> map (rpair p));
+  in reader {opaque_warning = opaque_warning} scan syms end;
+
+val read_source =
+  read_source' {language = Markup.language_ML, symbols = true, opaque_warning = true}
+    scan_ml_antiq;
+
+val read_source_sml =
+  read_source' {language = Markup.language_SML, symbols = false, opaque_warning = false}
+    scan_sml_antiq;
 
 end;
 
