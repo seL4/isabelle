@@ -148,23 +148,23 @@ val flatten = implode o flatten_content;
 
 local
 
-fun token_kind_markup SML =
+val token_kind_markup =
  fn Type_Var => (Markup.ML_tvar, "")
   | Word => (Markup.ML_numeral, "")
   | Int => (Markup.ML_numeral, "")
   | Real => (Markup.ML_numeral, "")
   | Char => (Markup.ML_char, "")
-  | String => (if SML then Markup.SML_string else Markup.ML_string, "")
-  | Comment _ => (if SML then Markup.SML_comment else Markup.ML_comment, "")
+  | String => (Markup.ML_string, "")
+  | Comment _ => (Markup.ML_comment, "")
   | Error msg => (Markup.bad (), msg)
   | _ => (Markup.empty, "");
 
 in
 
-fun token_report SML (tok as Token ((pos, _), (kind, x))) =
+fun token_report (tok as Token ((pos, _), (kind, x))) =
   let
     val (markup, txt) =
-      if not (is_keyword tok) then token_kind_markup SML kind
+      if not (is_keyword tok) then token_kind_markup kind
       else if is_delimiter tok then (Markup.ML_delimiter, "")
       else if member (op =) keywords2 x then (Markup.ML_keyword2 |> Markup.keyword_properties, "")
       else if member (op =) keywords3 x then (Markup.ML_keyword3 |> Markup.keyword_properties, "")
@@ -349,8 +349,7 @@ fun gen_read SML pos text =
           (fn msg => recover msg >> map Antiquote.Text))
       |> Source.exhaust;
     val _ = Position.reports (Antiquote.antiq_reports input);
-    val _ =
-      Position.reports_text (maps (fn Antiquote.Text t => [token_report SML t] | _ => []) input);
+    val _ = Position.reports_text (maps (fn Antiquote.Text t => [token_report t] | _ => []) input);
     val _ = List.app check input;
   in input @ termination end;
 

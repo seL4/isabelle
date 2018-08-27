@@ -136,9 +136,7 @@ object Rendering
     Markup.ML_NUMERAL -> Color.inner_numeral,
     Markup.ML_CHAR -> Color.inner_quoted,
     Markup.ML_STRING -> Color.inner_quoted,
-    Markup.ML_COMMENT -> Color.inner_comment,
-    Markup.SML_STRING -> Color.inner_quoted,
-    Markup.SML_COMMENT -> Color.inner_comment)
+    Markup.ML_COMMENT -> Color.inner_comment)
 
   val foreground =
     Map(
