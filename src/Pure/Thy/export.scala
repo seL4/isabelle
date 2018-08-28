@@ -150,6 +150,16 @@ object Export
     })
   }
 
+  def read_entry(dir: Path, session_name: String, theory_name: String, name: String): Option[Entry] =
+  {
+    val path = dir + Path.basic(theory_name) + Path.explode(name)
+    if (path.is_file) {
+      val uncompressed = Bytes.read(path)
+      Some(Entry(session_name, theory_name, name, Future.value((false, uncompressed))))
+    }
+    else None
+  }
+
 
   /* database consumer thread */
 
@@ -199,6 +209,12 @@ object Export
       new Provider {
         def apply(export_name: String): Option[Entry] =
           snapshot.exports_map.get(export_name)
+      }
+
+    def directory(dir: Path, session_name: String, theory_name: String): Provider =
+      new Provider {
+        def apply(export_name: String): Option[Entry] =
+          read_entry(dir, session_name, theory_name, export_name)
       }
   }
 
