@@ -156,7 +156,8 @@ object Export_Theory
     val CLASS = Value("class")
   }
 
-  sealed case class Entity(kind: Kind.Value, name: String, pos: Position.T, id: Long, serial: Long)
+  sealed case class Entity(
+    kind: Kind.Value, name: String, pos: Position.T, id: Option[Long], serial: Long)
   {
     override def toString: String = kind.toString + " " + quote(name)
 
@@ -172,7 +173,7 @@ object Export_Theory
       case XML.Elem(Markup(Markup.ENTITY, props), body) =>
         val name = Markup.Name.unapply(props) getOrElse err()
         val pos = props.filter({ case (a, _) => Markup.POSITION_PROPERTIES(a) && a != Markup.ID })
-        val id = Position.Id.unapply(props) getOrElse err()
+        val id = Position.Id.unapply(props)
         val serial = Markup.Serial.unapply(props) getOrElse err()
         (Entity(kind, name, pos, id, serial), body)
       case _ => err()
