@@ -114,6 +114,14 @@ if [ -f "$ISABELLE_STACK_ROOT/ISABELLE_GHC_EXE-$ISABELLE_PLATFORM_FAMILY" ]; the
   fi
 fi
 
+# Isabelle2017 compatibility
+if [ -n "$ISABELLE_OUTPUT" ]; then
+  ISABELLE_OUTPUT=$ISABELLE_OUTPUT/$ML_SYSTEM
+  if [ -n "$ML_PLATFORM" ]; then
+    ISABELLE_OUTPUT=${ISABELLE_OUTPUT}_${ML_PLATFORM}
+  fi
+fi
+
 #enforce JAVA_HOME
 if [ -d "$ISABELLE_JDK_HOME/jre" ]
 then
