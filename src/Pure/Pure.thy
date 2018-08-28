@@ -196,11 +196,14 @@ val _ =
     (Parse.ML_source >> (fn source =>
       Toplevel.generic_theory (fn context =>
         context
+        |> Config.put_generic ML_Env.ML_environment ML_Env.Isabelle
         |> Config.put_generic ML_Env.ML_write_global true
         |> ML_Context.exec (fn () =>
             ML_Context.eval_source (ML_Compiler.verbose true ML_Compiler.flags) source)
         |> Config.put_generic ML_Env.ML_write_global
             (Config.get_generic context ML_Env.ML_write_global)
+        |> Config.put_generic ML_Env.ML_environment
+            (Config.get_generic context ML_Env.ML_environment)
         |> Local_Theory.propagate_ml_env)));
 
 val _ =
