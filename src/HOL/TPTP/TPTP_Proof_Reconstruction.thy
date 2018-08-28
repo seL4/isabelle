@@ -1490,7 +1490,7 @@ fun cleanup_skolem_defs ctxt feats =
 ML \<open>
 fun remove_duplicates_tac feats =
   (if can_feature (CleanUp [RemoveDuplicates]) feats then
-     ALLGOALS distinct_subgoal_tac
+     distinct_subgoals_tac
    else all_tac)
 \<close>
 

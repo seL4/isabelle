@@ -29,6 +29,7 @@ sig
   val id_only: string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
+  val id_properties_of: T -> Properties.T
   val parse_id: T -> int option
   val adjust_offsets: (int -> int option) -> T -> T
   val of_properties: Properties.T -> T
@@ -144,6 +145,10 @@ fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Mar
 
 fun parse_id pos = Option.map Value.parse_int (get_id pos);
 
+fun id_properties_of pos =
+  (case get_id pos of
+    SOME id => [(Markup.idN, id)]
+  | NONE => []);
 
 fun adjust_offsets adjust (pos as Pos (_, props)) =
   (case parse_id pos of

@@ -21,10 +21,7 @@ struct
 
 (* active markup *)
 
-fun explicit_id () =
-  (case Position.get_id (Position.thread_data ()) of
-    SOME id => [(Markup.idN, id)]
-  | NONE => []);
+fun explicit_id () = Position.id_properties_of (Position.thread_data ());
 
 fun make_markup name {implicit, properties} =
   (name, [])
