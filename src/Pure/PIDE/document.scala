@@ -560,6 +560,8 @@ object Document
 
     def command_results(range: Text.Range): Command.Results
     def command_results(command: Command): Command.Results
+
+    def command_id_map: Map[Document_ID.Generic, Command]
   }
 
 
@@ -860,6 +862,17 @@ object Document
         removing_versions = false)
     }
 
+    def command_id_map(version: Version, commands: Iterable[Command])
+      : Map[Document_ID.Generic, Command] =
+    {
+      require(is_assigned(version))
+      val assignment = the_assignment(version).check_finished
+      (for {
+        command <- commands.iterator
+        id <- (command.id :: assignment.command_execs.getOrElse(command.id, Nil)).iterator
+      } yield (id -> command)).toMap
+    }
+
     def command_state_eval(version: Version, command: Command): Option[Command.State] =
     {
       require(is_assigned(version))
@@ -1146,6 +1159,12 @@ object Document
 
         def command_results(command: Command): Command.Results =
           state.command_results(version, command)
+
+
+        /* command ids: static and dynamic */
+
+        def command_id_map: Map[Document_ID.Generic, Command] =
+          state.command_id_map(version, version.nodes(node_name).commands)
 
 
         /* output */
