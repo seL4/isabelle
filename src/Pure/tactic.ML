@@ -28,7 +28,6 @@ sig
   val ematch_tac: Proof.context -> thm list -> int -> tactic
   val dmatch_tac: Proof.context -> thm list -> int -> tactic
   val flexflex_tac: Proof.context -> tactic
-  val distinct_subgoal_tac: int -> tactic
   val distinct_subgoals_tac: tactic
   val cut_tac: thm -> int -> tactic
   val cut_rules_tac: thm list -> int -> tactic
