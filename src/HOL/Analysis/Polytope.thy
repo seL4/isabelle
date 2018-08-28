@@ -6,18 +6,18 @@ theory Polytope
 imports Cartesian_Euclidean_Space
 begin
 
-subsection \<open>Faces of a (usually convex) set\<close>
+subsection%important \<open>Faces of a (usually convex) set\<close>
 
-definition face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr "(face'_of)" 50)
+definition%important face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr "(face'_of)" 50)
   where
   "T face_of S \<longleftrightarrow>
         T \<subseteq> S \<and> convex T \<and>
         (\<forall>a \<in> S. \<forall>b \<in> S. \<forall>x \<in> T. x \<in> open_segment a b \<longrightarrow> a \<in> T \<and> b \<in> T)"
 
-lemma face_ofD: "\<lbrakk>T face_of S; x \<in> open_segment a b; a \<in> S; b \<in> S; x \<in> T\<rbrakk> \<Longrightarrow> a \<in> T \<and> b \<in> T"
+lemma%unimportant face_ofD: "\<lbrakk>T face_of S; x \<in> open_segment a b; a \<in> S; b \<in> S; x \<in> T\<rbrakk> \<Longrightarrow> a \<in> T \<and> b \<in> T"
   unfolding face_of_def by blast
 
-lemma face_of_translation_eq [simp]:
+lemma%unimportant face_of_translation_eq [simp]:
     "((+) a ` T face_of (+) a ` S) \<longleftrightarrow> T face_of S"
 proof -
   have *: "\<And>a T S. T face_of S \<Longrightarrow> ((+) a ` T face_of (+) a ` S)"
@@ -32,52 +32,52 @@ proof -
     done
 qed
 
-lemma face_of_linear_image:
+lemma%unimportant face_of_linear_image:
   assumes "linear f" "inj f"
     shows "(f ` c face_of f ` S) \<longleftrightarrow> c face_of S"
 by (simp add: face_of_def inj_image_subset_iff inj_image_mem_iff open_segment_linear_image assms)
 
-lemma face_of_refl: "convex S \<Longrightarrow> S face_of S"
+lemma%unimportant face_of_refl: "convex S \<Longrightarrow> S face_of S"
   by (auto simp: face_of_def)
 
-lemma face_of_refl_eq: "S face_of S \<longleftrightarrow> convex S"
+lemma%unimportant face_of_refl_eq: "S face_of S \<longleftrightarrow> convex S"
   by (auto simp: face_of_def)
 
-lemma empty_face_of [iff]: "{} face_of S"
+lemma%unimportant empty_face_of [iff]: "{} face_of S"
   by (simp add: face_of_def)
 
-lemma face_of_empty [simp]: "S face_of {} \<longleftrightarrow> S = {}"
+lemma%unimportant face_of_empty [simp]: "S face_of {} \<longleftrightarrow> S = {}"
   by (meson empty_face_of face_of_def subset_empty)
 
-lemma face_of_trans [trans]: "\<lbrakk>S face_of T; T face_of u\<rbrakk> \<Longrightarrow> S face_of u"
+lemma%unimportant face_of_trans [trans]: "\<lbrakk>S face_of T; T face_of u\<rbrakk> \<Longrightarrow> S face_of u"
   unfolding face_of_def by (safe; blast)
 
-lemma face_of_face: "T face_of S \<Longrightarrow> (f face_of T \<longleftrightarrow> f face_of S \<and> f \<subseteq> T)"
+lemma%unimportant face_of_face: "T face_of S \<Longrightarrow> (f face_of T \<longleftrightarrow> f face_of S \<and> f \<subseteq> T)"
   unfolding face_of_def by (safe; blast)
 
-lemma face_of_subset: "\<lbrakk>F face_of S; F \<subseteq> T; T \<subseteq> S\<rbrakk> \<Longrightarrow> F face_of T"
+lemma%unimportant face_of_subset: "\<lbrakk>F face_of S; F \<subseteq> T; T \<subseteq> S\<rbrakk> \<Longrightarrow> F face_of T"
   unfolding face_of_def by (safe; blast)
 
-lemma face_of_slice: "\<lbrakk>F face_of S; convex T\<rbrakk> \<Longrightarrow> (F \<inter> T) face_of (S \<inter> T)"
+lemma%unimportant face_of_slice: "\<lbrakk>F face_of S; convex T\<rbrakk> \<Longrightarrow> (F \<inter> T) face_of (S \<inter> T)"
   unfolding face_of_def by (blast intro: convex_Int)
 
-lemma face_of_Int: "\<lbrakk>t1 face_of S; t2 face_of S\<rbrakk> \<Longrightarrow> (t1 \<inter> t2) face_of S"
+lemma%unimportant face_of_Int: "\<lbrakk>t1 face_of S; t2 face_of S\<rbrakk> \<Longrightarrow> (t1 \<inter> t2) face_of S"
   unfolding face_of_def by (blast intro: convex_Int)
 
-lemma face_of_Inter: "\<lbrakk>A \<noteq> {}; \<And>T. T \<in> A \<Longrightarrow> T face_of S\<rbrakk> \<Longrightarrow> (\<Inter> A) face_of S"
+lemma%unimportant face_of_Inter: "\<lbrakk>A \<noteq> {}; \<And>T. T \<in> A \<Longrightarrow> T face_of S\<rbrakk> \<Longrightarrow> (\<Inter> A) face_of S"
   unfolding face_of_def by (blast intro: convex_Inter)
 
-lemma face_of_Int_Int: "\<lbrakk>F face_of T; F' face_of t'\<rbrakk> \<Longrightarrow> (F \<inter> F') face_of (T \<inter> t')"
+lemma%unimportant face_of_Int_Int: "\<lbrakk>F face_of T; F' face_of t'\<rbrakk> \<Longrightarrow> (F \<inter> F') face_of (T \<inter> t')"
   unfolding face_of_def by (blast intro: convex_Int)
 
-lemma face_of_imp_subset: "T face_of S \<Longrightarrow> T \<subseteq> S"
+lemma%unimportant face_of_imp_subset: "T face_of S \<Longrightarrow> T \<subseteq> S"
   unfolding face_of_def by blast
 
-lemma face_of_imp_eq_affine_Int:
+lemma%important face_of_imp_eq_affine_Int:
   fixes S :: "'a::euclidean_space set"
   assumes S: "convex S"  and T: "T face_of S"
   shows "T = (affine hull T) \<inter> S"
-proof -
+proof%unimportant -
   have "convex T" using T by (simp add: face_of_def)
   have *: False if x: "x \<in> affine hull T" and "x \<in> S" "x \<notin> T" and y: "y \<in> rel_interior T" for x y
   proof -
@@ -114,15 +114,15 @@ proof -
     done
 qed
 
-lemma face_of_imp_closed:
+lemma%unimportant face_of_imp_closed:
      fixes S :: "'a::euclidean_space set"
      assumes "convex S" "closed S" "T face_of S" shows "closed T"
   by (metis affine_affine_hull affine_closed closed_Int face_of_imp_eq_affine_Int assms)
 
-lemma face_of_Int_supporting_hyperplane_le_strong:
+lemma%important face_of_Int_supporting_hyperplane_le_strong:
     assumes "convex(S \<inter> {x. a \<bullet> x = b})" and aleb: "\<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b"
       shows "(S \<inter> {x. a \<bullet> x = b}) face_of S"
-proof -
+proof%unimportant -
   have *: "a \<bullet> u = a \<bullet> x" if "x \<in> open_segment u v" "u \<in> S" "v \<in> S" and b: "b = a \<bullet> x"
           for u v x
   proof (rule antisym)
@@ -145,33 +145,33 @@ proof -
     using "*" open_segment_commute by blast
 qed
 
-lemma face_of_Int_supporting_hyperplane_ge_strong:
+lemma%unimportant face_of_Int_supporting_hyperplane_ge_strong:
    "\<lbrakk>convex(S \<inter> {x. a \<bullet> x = b}); \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk>
     \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) face_of S"
   using face_of_Int_supporting_hyperplane_le_strong [of S "-a" "-b"] by simp
 
-lemma face_of_Int_supporting_hyperplane_le:
+lemma%unimportant face_of_Int_supporting_hyperplane_le:
     "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) face_of S"
   by (simp add: convex_Int convex_hyperplane face_of_Int_supporting_hyperplane_le_strong)
 
-lemma face_of_Int_supporting_hyperplane_ge:
+lemma%unimportant face_of_Int_supporting_hyperplane_ge:
     "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) face_of S"
   by (simp add: convex_Int convex_hyperplane face_of_Int_supporting_hyperplane_ge_strong)
 
-lemma face_of_imp_convex: "T face_of S \<Longrightarrow> convex T"
+lemma%unimportant face_of_imp_convex: "T face_of S \<Longrightarrow> convex T"
   using face_of_def by blast
 
-lemma face_of_imp_compact:
+lemma%unimportant face_of_imp_compact:
     fixes S :: "'a::euclidean_space set"
     shows "\<lbrakk>convex S; compact S; T face_of S\<rbrakk> \<Longrightarrow> compact T"
   by (meson bounded_subset compact_eq_bounded_closed face_of_imp_closed face_of_imp_subset)
 
-lemma face_of_Int_subface:
+lemma%unimportant face_of_Int_subface:
      "\<lbrakk>A \<inter> B face_of A; A \<inter> B face_of B; C face_of A; D face_of B\<rbrakk>
       \<Longrightarrow> (C \<inter> D) face_of C \<and> (C \<inter> D) face_of D"
   by (meson face_of_Int_Int face_of_face inf_le1 inf_le2)
 
-lemma subset_of_face_of:
+lemma%unimportant subset_of_face_of:
     fixes S :: "'a::real_normed_vector set"
     assumes "T face_of S" "u \<subseteq> S" "T \<inter> (rel_interior u) \<noteq> {}"
       shows "u \<subseteq> T"
@@ -213,7 +213,7 @@ proof
   qed
 qed
 
-lemma face_of_eq:
+lemma%unimportant face_of_eq:
     fixes S :: "'a::real_normed_vector set"
     assumes "T face_of S" "u face_of S" "(rel_interior T) \<inter> (rel_interior u) \<noteq> {}"
       shows "T = u"
@@ -221,13 +221,13 @@ lemma face_of_eq:
   apply (metis assms disjoint_iff_not_equal face_of_imp_subset rel_interior_subset subsetCE subset_of_face_of)
   by (metis assms disjoint_iff_not_equal face_of_imp_subset rel_interior_subset subset_iff subset_of_face_of)
 
-lemma face_of_disjoint_rel_interior:
+lemma%unimportant face_of_disjoint_rel_interior:
       fixes S :: "'a::real_normed_vector set"
       assumes "T face_of S" "T \<noteq> S"
         shows "T \<inter> rel_interior S = {}"
   by (meson assms subset_of_face_of face_of_imp_subset order_refl subset_antisym)
 
-lemma face_of_disjoint_interior:
+lemma%unimportant face_of_disjoint_interior:
       fixes S :: "'a::real_normed_vector set"
       assumes "T face_of S" "T \<noteq> S"
         shows "T \<inter> interior S = {}"
@@ -238,19 +238,19 @@ proof -
     by (metis (no_types) Int_greatest assms face_of_disjoint_rel_interior inf_sup_ord(1) subset_empty)
 qed
 
-lemma face_of_subset_rel_boundary:
+lemma%unimportant face_of_subset_rel_boundary:
   fixes S :: "'a::real_normed_vector set"
   assumes "T face_of S" "T \<noteq> S"
     shows "T \<subseteq> (S - rel_interior S)"
 by (meson DiffI assms disjoint_iff_not_equal face_of_disjoint_rel_interior face_of_imp_subset rev_subsetD subsetI)
 
-lemma face_of_subset_rel_frontier:
+lemma%unimportant face_of_subset_rel_frontier:
     fixes S :: "'a::real_normed_vector set"
     assumes "T face_of S" "T \<noteq> S"
       shows "T \<subseteq> rel_frontier S"
   using assms closure_subset face_of_disjoint_rel_interior face_of_imp_subset rel_frontier_def by fastforce
 
-lemma face_of_aff_dim_lt:
+lemma%unimportant face_of_aff_dim_lt:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "T face_of S" "T \<noteq> S"
     shows "aff_dim T < aff_dim S"
@@ -268,7 +268,7 @@ proof -
     by simp
 qed
 
-lemma subset_of_face_of_affine_hull:
+lemma%unimportant subset_of_face_of_affine_hull:
     fixes S :: "'a::euclidean_space set"
   assumes T: "T face_of S" and "convex S" "U \<subseteq> S" and dis: "~disjnt (affine hull T) (rel_interior U)"
   shows "U \<subseteq> T"
@@ -277,13 +277,13 @@ lemma subset_of_face_of_affine_hull:
   using rel_interior_subset [of U] dis
   using \<open>U \<subseteq> S\<close> disjnt_def by fastforce
 
-lemma affine_hull_face_of_disjoint_rel_interior:
+lemma%unimportant affine_hull_face_of_disjoint_rel_interior:
     fixes S :: "'a::euclidean_space set"
   assumes "convex S" "F face_of S" "F \<noteq> S"
   shows "affine hull F \<inter> rel_interior S = {}"
   by (metis assms disjnt_def face_of_imp_subset order_refl subset_antisym subset_of_face_of_affine_hull)
 
-lemma affine_diff_divide:
+lemma%unimportant affine_diff_divide:
     assumes "affine S" "k \<noteq> 0" "k \<noteq> 1" and xy: "x \<in> S" "y /\<^sub>R (1 - k) \<in> S"
       shows "(x - y) /\<^sub>R k \<in> S"
 proof -
@@ -294,10 +294,10 @@ proof -
     using \<open>affine S\<close> xy by (auto simp: affine_alt)
 qed
 
-lemma face_of_convex_hulls:
+lemma%important face_of_convex_hulls:
       assumes S: "finite S" "T \<subseteq> S" and disj: "affine hull T \<inter> convex hull (S - T) = {}"
       shows  "(convex hull T) face_of (convex hull S)"
-proof -
+proof%unimportant -
   have fin: "finite T" "finite (S - T)" using assms
     by (auto simp: finite_subset)
   have *: "x \<in> convex hull T"
@@ -391,16 +391,16 @@ proof -
     using open_segment_commute by (auto simp: face_of_def intro: *)
 qed
 
-proposition face_of_convex_hull_insert:
+proposition%important face_of_convex_hull_insert:
    "\<lbrakk>finite S; a \<notin> affine hull S; T face_of convex hull S\<rbrakk> \<Longrightarrow> T face_of convex hull insert a S"
   apply (rule face_of_trans, blast)
   apply (rule face_of_convex_hulls; force simp: insert_Diff_if)
   done
 
-proposition face_of_affine_trivial:
+proposition%important face_of_affine_trivial:
     assumes "affine S" "T face_of S"
     shows "T = {} \<or> T = S"
-proof (rule ccontr, clarsimp)
+proof%unimportant (rule ccontr, clarsimp)
   assume "T \<noteq> {}" "T \<noteq> S"
   then obtain a where "a \<in> T" by auto
   then have "a \<in> S"
@@ -430,16 +430,16 @@ proof (rule ccontr, clarsimp)
 qed
 
 
-lemma face_of_affine_eq:
+lemma%unimportant face_of_affine_eq:
    "affine S \<Longrightarrow> (T face_of S \<longleftrightarrow> T = {} \<or> T = S)"
 using affine_imp_convex face_of_affine_trivial face_of_refl by auto
 
 
-lemma Inter_faces_finite_altbound:
+lemma%important Inter_faces_finite_altbound:
     fixes T :: "'a::euclidean_space set set"
     assumes cfaI: "\<And>c. c \<in> T \<Longrightarrow> c face_of S"
     shows "\<exists>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le> DIM('a) + 2 \<and> \<Inter>F' = \<Inter>T"
-proof (cases "\<forall>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le> DIM('a) + 2 \<longrightarrow> (\<exists>c. c \<in> T \<and> c \<inter> (\<Inter>F') \<subset> (\<Inter>F'))")
+proof%unimportant (cases "\<forall>F'. finite F' \<and> F' \<subseteq> T \<and> card F' \<le> DIM('a) + 2 \<longrightarrow> (\<exists>c. c \<in> T \<and> c \<inter> (\<Inter>F') \<subset> (\<Inter>F'))")
   case True
   then obtain c where c:
        "\<And>F'. \<lbrakk>finite F'; F' \<subseteq> T; card F' \<le> DIM('a) + 2\<rbrakk> \<Longrightarrow> c F' \<in> T \<and> c F' \<inter> (\<Inter>F') \<subset> (\<Inter>F')"
@@ -499,17 +499,17 @@ next
     by blast
 qed
 
-lemma faces_of_translation:
+lemma%unimportant faces_of_translation:
    "{F. F face_of image (\<lambda>x. a + x) S} = image (image (\<lambda>x. a + x)) {F. F face_of S}"
 apply (rule subset_antisym, clarify)
 apply (auto simp: image_iff)
 apply (metis face_of_imp_subset face_of_translation_eq subset_imageE)
 done
 
-proposition face_of_Times:
+proposition%important face_of_Times:
   assumes "F face_of S" and "F' face_of S'"
     shows "(F \<times> F') face_of (S \<times> S')"
-proof -
+proof%unimportant -
   have "F \<times> F' \<subseteq> S \<times> S'"
     using assms [unfolded face_of_def] by blast
   moreover
@@ -531,11 +531,11 @@ proof -
     unfolding face_of_def by blast
 qed
 
-corollary face_of_Times_decomp:
+corollary%important face_of_Times_decomp:
     fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
     shows "c face_of (S \<times> S') \<longleftrightarrow> (\<exists>F F'. F face_of S \<and> F' face_of S' \<and> c = F \<times> F')"
      (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume c: ?lhs
   show ?rhs
   proof (cases "c = {}")
@@ -582,13 +582,13 @@ next
   assume ?rhs with face_of_Times show ?lhs by auto
 qed
 
-lemma face_of_Times_eq:
+lemma%unimportant face_of_Times_eq:
     fixes S :: "'a::euclidean_space set" and S' :: "'b::euclidean_space set"
     shows "(F \<times> F') face_of (S \<times> S') \<longleftrightarrow>
            F = {} \<or> F' = {} \<or> F face_of S \<and> F' face_of S'"
 by (auto simp: face_of_Times_decomp times_eq_iff)
 
-lemma hyperplane_face_of_halfspace_le: "{x. a \<bullet> x = b} face_of {x. a \<bullet> x \<le> b}"
+lemma%unimportant hyperplane_face_of_halfspace_le: "{x. a \<bullet> x = b} face_of {x. a \<bullet> x \<le> b}"
 proof -
   have "{x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x = b} = {x. a \<bullet> x = b}"
     by auto
@@ -596,7 +596,7 @@ proof -
   show ?thesis by auto
 qed
 
-lemma hyperplane_face_of_halfspace_ge: "{x. a \<bullet> x = b} face_of {x. a \<bullet> x \<ge> b}"
+lemma%unimportant hyperplane_face_of_halfspace_ge: "{x. a \<bullet> x = b} face_of {x. a \<bullet> x \<ge> b}"
 proof -
   have "{x. a \<bullet> x \<ge> b} \<inter> {x. a \<bullet> x = b} = {x. a \<bullet> x = b}"
     by auto
@@ -604,12 +604,12 @@ proof -
   show ?thesis by auto
 qed
 
-lemma face_of_halfspace_le:
+lemma%important face_of_halfspace_le:
   fixes a :: "'n::euclidean_space"
   shows "F face_of {x. a \<bullet> x \<le> b} \<longleftrightarrow>
          F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<le> b}"
      (is "?lhs = ?rhs")
-proof (cases "a = 0")
+proof%unimportant (cases "a = 0")
   case True then show ?thesis
     using face_of_affine_eq affine_UNIV by auto
 next
@@ -635,37 +635,37 @@ next
   qed
 qed
 
-lemma face_of_halfspace_ge:
+lemma%unimportant face_of_halfspace_ge:
   fixes a :: "'n::euclidean_space"
   shows "F face_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow>
          F = {} \<or> F = {x. a \<bullet> x = b} \<or> F = {x. a \<bullet> x \<ge> b}"
 using face_of_halfspace_le [of F "-a" "-b"] by simp
 
-subsection\<open>Exposed faces\<close>
+subsection%important\<open>Exposed faces\<close>
 
 text\<open>That is, faces that are intersection with supporting hyperplane\<close>
 
-definition exposed_face_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
+definition%important exposed_face_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
                                (infixr "(exposed'_face'_of)" 50)
   where "T exposed_face_of S \<longleftrightarrow>
          T face_of S \<and> (\<exists>a b. S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b})"
 
-lemma empty_exposed_face_of [iff]: "{} exposed_face_of S"
+lemma%unimportant empty_exposed_face_of [iff]: "{} exposed_face_of S"
   apply (simp add: exposed_face_of_def)
   apply (rule_tac x=0 in exI)
   apply (rule_tac x=1 in exI, force)
   done
 
-lemma exposed_face_of_refl_eq [simp]: "S exposed_face_of S \<longleftrightarrow> convex S"
+lemma%unimportant exposed_face_of_refl_eq [simp]: "S exposed_face_of S \<longleftrightarrow> convex S"
   apply (simp add: exposed_face_of_def face_of_refl_eq, auto)
   apply (rule_tac x=0 in exI)+
   apply force
   done
 
-lemma exposed_face_of_refl: "convex S \<Longrightarrow> S exposed_face_of S"
+lemma%unimportant exposed_face_of_refl: "convex S \<Longrightarrow> S exposed_face_of S"
   by simp
 
-lemma exposed_face_of:
+lemma%unimportant exposed_face_of:
     "T exposed_face_of S \<longleftrightarrow>
      T face_of S \<and>
      (T = {} \<or> T = S \<or>
@@ -688,19 +688,19 @@ next
   qed
 qed
 
-lemma exposed_face_of_Int_supporting_hyperplane_le:
+lemma%unimportant exposed_face_of_Int_supporting_hyperplane_le:
    "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
 by (force simp: exposed_face_of_def face_of_Int_supporting_hyperplane_le)
 
-lemma exposed_face_of_Int_supporting_hyperplane_ge:
+lemma%unimportant exposed_face_of_Int_supporting_hyperplane_ge:
    "\<lbrakk>convex S; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk> \<Longrightarrow> (S \<inter> {x. a \<bullet> x = b}) exposed_face_of S"
 using exposed_face_of_Int_supporting_hyperplane_le [of S "-a" "-b"] by simp
 
-proposition exposed_face_of_Int:
+proposition%important exposed_face_of_Int:
   assumes "T exposed_face_of S"
       and "u exposed_face_of S"
     shows "(T \<inter> u) exposed_face_of S"
-proof -
+proof%unimportant -
   obtain a b where T: "S \<inter> {x. a \<bullet> x = b} face_of S"
                and S: "S \<subseteq> {x. a \<bullet> x \<le> b}"
                and teq: "T = S \<inter> {x. a \<bullet> x = b}"
@@ -722,12 +722,12 @@ proof -
     done
 qed
 
-proposition exposed_face_of_Inter:
+proposition%important exposed_face_of_Inter:
     fixes P :: "'a::euclidean_space set set"
   assumes "P \<noteq> {}"
       and "\<And>T. T \<in> P \<Longrightarrow> T exposed_face_of S"
     shows "\<Inter>P exposed_face_of S"
-proof -
+proof%unimportant -
   obtain Q where "finite Q" and QsubP: "Q \<subseteq> P" "card Q \<le> DIM('a) + 2" and IntQ: "\<Inter>Q = \<Inter>P"
     using Inter_faces_finite_altbound [of P S] assms [unfolded exposed_face_of]
     by force
@@ -749,14 +749,14 @@ proof -
   qed
 qed
 
-proposition exposed_face_of_sums:
+proposition%important exposed_face_of_sums:
   assumes "convex S" and "convex T"
       and "F exposed_face_of {x + y | x y. x \<in> S \<and> y \<in> T}"
           (is "F exposed_face_of ?ST")
   obtains k l
     where "k exposed_face_of S" "l exposed_face_of T"
           "F = {x + y | x y. x \<in> k \<and> y \<in> l}"
-proof (cases "F = {}")
+proof%unimportant (cases "F = {}")
   case True then show ?thesis
     using that by blast
 next
@@ -805,14 +805,14 @@ next
   qed
 qed
 
-lemma exposed_face_of_parallel:
+lemma%important exposed_face_of_parallel:
    "T exposed_face_of S \<longleftrightarrow>
          T face_of S \<and>
          (\<exists>a b. S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b} \<and>
                 (T \<noteq> {} \<longrightarrow> T \<noteq> S \<longrightarrow> a \<noteq> 0) \<and>
                 (T \<noteq> S \<longrightarrow> (\<forall>w \<in> affine hull S. (w + a) \<in> affine hull S)))"
   (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs then show ?rhs
   proof (clarsimp simp: exposed_face_of_def)
     fix a b
@@ -874,40 +874,40 @@ next
     unfolding exposed_face_of_def by blast
 qed
 
-subsection\<open>Extreme points of a set: its singleton faces\<close>
+subsection%important\<open>Extreme points of a set: its singleton faces\<close>
 
-definition extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
+definition%important extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
                                (infixr "(extreme'_point'_of)" 50)
   where "x extreme_point_of S \<longleftrightarrow>
          x \<in> S \<and> (\<forall>a \<in> S. \<forall>b \<in> S. x \<notin> open_segment a b)"
 
-lemma extreme_point_of_stillconvex:
+lemma%unimportant extreme_point_of_stillconvex:
    "convex S \<Longrightarrow> (x extreme_point_of S \<longleftrightarrow> x \<in> S \<and> convex(S - {x}))"
   by (fastforce simp add: convex_contains_segment extreme_point_of_def open_segment_def)
 
-lemma face_of_singleton:
+lemma%unimportant face_of_singleton:
    "{x} face_of S \<longleftrightarrow> x extreme_point_of S"
 by (fastforce simp add: extreme_point_of_def face_of_def)
 
-lemma extreme_point_not_in_REL_INTERIOR:
+lemma%unimportant extreme_point_not_in_REL_INTERIOR:
     fixes S :: "'a::real_normed_vector set"
     shows "\<lbrakk>x extreme_point_of S; S \<noteq> {x}\<rbrakk> \<Longrightarrow> x \<notin> rel_interior S"
 apply (simp add: face_of_singleton [symmetric])
 apply (blast dest: face_of_disjoint_rel_interior)
 done
 
-lemma extreme_point_not_in_interior:
+lemma%important extreme_point_not_in_interior:
     fixes S :: "'a::{real_normed_vector, perfect_space} set"
     shows "x extreme_point_of S \<Longrightarrow> x \<notin> interior S"
 apply (case_tac "S = {x}")
 apply (simp add: empty_interior_finite)
 by (meson contra_subsetD extreme_point_not_in_REL_INTERIOR interior_subset_rel_interior)
 
-lemma extreme_point_of_face:
+lemma%unimportant extreme_point_of_face:
      "F face_of S \<Longrightarrow> v extreme_point_of F \<longleftrightarrow> v extreme_point_of S \<and> v \<in> F"
   by (meson empty_subsetI face_of_face face_of_singleton insert_subset)
 
-lemma extreme_point_of_convex_hull:
+lemma%unimportant extreme_point_of_convex_hull:
    "x extreme_point_of (convex hull S) \<Longrightarrow> x \<in> S"
 apply (simp add: extreme_point_of_stillconvex)
 using hull_minimal [of S "(convex hull S) - {x}" convex]
@@ -915,52 +915,52 @@ using hull_subset [of S convex]
 apply blast
 done
 
-lemma extreme_points_of_convex_hull:
+lemma%important extreme_points_of_convex_hull:
    "{x. x extreme_point_of (convex hull S)} \<subseteq> S"
-using extreme_point_of_convex_hull by auto
+using%unimportant extreme_point_of_convex_hull by auto
 
-lemma extreme_point_of_empty [simp]: "~ (x extreme_point_of {})"
+lemma%unimportant extreme_point_of_empty [simp]: "~ (x extreme_point_of {})"
   by (simp add: extreme_point_of_def)
 
-lemma extreme_point_of_singleton [iff]: "x extreme_point_of {a} \<longleftrightarrow> x = a"
+lemma%unimportant extreme_point_of_singleton [iff]: "x extreme_point_of {a} \<longleftrightarrow> x = a"
   using extreme_point_of_stillconvex by auto
 
-lemma extreme_point_of_translation_eq:
+lemma%unimportant extreme_point_of_translation_eq:
    "(a + x) extreme_point_of (image (\<lambda>x. a + x) S) \<longleftrightarrow> x extreme_point_of S"
 by (auto simp: extreme_point_of_def)
 
-lemma extreme_points_of_translation:
+lemma%important extreme_points_of_translation:
    "{x. x extreme_point_of (image (\<lambda>x. a + x) S)} =
     (\<lambda>x. a + x) ` {x. x extreme_point_of S}"
-using extreme_point_of_translation_eq
-by auto (metis (no_types, lifting) image_iff mem_Collect_eq minus_add_cancel)
+using%unimportant extreme_point_of_translation_eq
+by%unimportant auto (metis (no_types, lifting) image_iff mem_Collect_eq minus_add_cancel)
 
-lemma extreme_point_of_Int:
+lemma%unimportant extreme_point_of_Int:
    "\<lbrakk>x extreme_point_of S; x extreme_point_of T\<rbrakk> \<Longrightarrow> x extreme_point_of (S \<inter> T)"
 by (simp add: extreme_point_of_def)
 
-lemma extreme_point_of_Int_supporting_hyperplane_le:
+lemma%important extreme_point_of_Int_supporting_hyperplane_le:
    "\<lbrakk>S \<inter> {x. a \<bullet> x = b} = {c}; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> c extreme_point_of S"
 apply (simp add: face_of_singleton [symmetric])
 by (metis face_of_Int_supporting_hyperplane_le_strong convex_singleton)
 
-lemma extreme_point_of_Int_supporting_hyperplane_ge:
+lemma%unimportant extreme_point_of_Int_supporting_hyperplane_ge:
    "\<lbrakk>S \<inter> {x. a \<bullet> x = b} = {c}; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk> \<Longrightarrow> c extreme_point_of S"
 apply (simp add: face_of_singleton [symmetric])
 by (metis face_of_Int_supporting_hyperplane_ge_strong convex_singleton)
 
-lemma exposed_point_of_Int_supporting_hyperplane_le:
+lemma%unimportant exposed_point_of_Int_supporting_hyperplane_le:
    "\<lbrakk>S \<inter> {x. a \<bullet> x = b} = {c}; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<le> b\<rbrakk> \<Longrightarrow> {c} exposed_face_of S"
 apply (simp add: exposed_face_of_def face_of_singleton)
 apply (force simp: extreme_point_of_Int_supporting_hyperplane_le)
 done
 
-lemma exposed_point_of_Int_supporting_hyperplane_ge:
+lemma%unimportant exposed_point_of_Int_supporting_hyperplane_ge:
     "\<lbrakk>S \<inter> {x. a \<bullet> x = b} = {c}; \<And>x. x \<in> S \<Longrightarrow> a \<bullet> x \<ge> b\<rbrakk> \<Longrightarrow> {c} exposed_face_of S"
 using exposed_point_of_Int_supporting_hyperplane_le [of S "-a" "-b" c]
 by simp
 
-lemma extreme_point_of_convex_hull_insert:
+lemma%unimportant extreme_point_of_convex_hull_insert:
    "\<lbrakk>finite S; a \<notin> convex hull S\<rbrakk> \<Longrightarrow> a extreme_point_of (convex hull (insert a S))"
 apply (case_tac "a \<in> S")
 apply (simp add: hull_inc)
@@ -968,40 +968,40 @@ using face_of_convex_hulls [of "insert a S" "{a}"]
 apply (auto simp: face_of_singleton hull_same)
 done
 
-subsection\<open>Facets\<close>
+subsection%important\<open>Facets\<close>
 
-definition facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
+definition%important facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
                     (infixr "(facet'_of)" 50)
   where "F facet_of S \<longleftrightarrow> F face_of S \<and> F \<noteq> {} \<and> aff_dim F = aff_dim S - 1"
 
-lemma facet_of_empty [simp]: "~ S facet_of {}"
+lemma%unimportant facet_of_empty [simp]: "~ S facet_of {}"
   by (simp add: facet_of_def)
 
-lemma facet_of_irrefl [simp]: "~ S facet_of S "
+lemma%unimportant facet_of_irrefl [simp]: "~ S facet_of S "
   by (simp add: facet_of_def)
 
-lemma facet_of_imp_face_of: "F facet_of S \<Longrightarrow> F face_of S"
+lemma%unimportant facet_of_imp_face_of: "F facet_of S \<Longrightarrow> F face_of S"
   by (simp add: facet_of_def)
 
-lemma facet_of_imp_subset: "F facet_of S \<Longrightarrow> F \<subseteq> S"
+lemma%unimportant facet_of_imp_subset: "F facet_of S \<Longrightarrow> F \<subseteq> S"
   by (simp add: face_of_imp_subset facet_of_def)
 
-lemma hyperplane_facet_of_halfspace_le:
+lemma%unimportant hyperplane_facet_of_halfspace_le:
    "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<le> b}"
 unfolding facet_of_def hyperplane_eq_empty
 by (auto simp: hyperplane_face_of_halfspace_ge hyperplane_face_of_halfspace_le
            DIM_positive Suc_leI of_nat_diff aff_dim_halfspace_le)
 
-lemma hyperplane_facet_of_halfspace_ge:
+lemma%unimportant hyperplane_facet_of_halfspace_ge:
     "a \<noteq> 0 \<Longrightarrow> {x. a \<bullet> x = b} facet_of {x. a \<bullet> x \<ge> b}"
 unfolding facet_of_def hyperplane_eq_empty
 by (auto simp: hyperplane_face_of_halfspace_le hyperplane_face_of_halfspace_ge
            DIM_positive Suc_leI of_nat_diff aff_dim_halfspace_ge)
 
-lemma facet_of_halfspace_le:
+lemma%important facet_of_halfspace_le:
     "F facet_of {x. a \<bullet> x \<le> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
     (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume c: ?lhs
   with c facet_of_irrefl show ?rhs
     by (force simp: aff_dim_halfspace_le facet_of_def face_of_halfspace_le cong: conj_cong split: if_split_asm)
@@ -1010,26 +1010,26 @@ next
     by (simp add: hyperplane_facet_of_halfspace_le)
 qed
 
-lemma facet_of_halfspace_ge:
+lemma%unimportant facet_of_halfspace_ge:
     "F facet_of {x. a \<bullet> x \<ge> b} \<longleftrightarrow> a \<noteq> 0 \<and> F = {x. a \<bullet> x = b}"
 using facet_of_halfspace_le [of F "-a" "-b"] by simp
 
-subsection \<open>Edges: faces of affine dimension 1\<close>
+subsection%important \<open>Edges: faces of affine dimension 1\<close>
 
-definition edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr "(edge'_of)" 50)
+definition%important edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr "(edge'_of)" 50)
   where "e edge_of S \<longleftrightarrow> e face_of S \<and> aff_dim e = 1"
 
-lemma edge_of_imp_subset:
+lemma%unimportant edge_of_imp_subset:
    "S edge_of T \<Longrightarrow> S \<subseteq> T"
 by (simp add: edge_of_def face_of_imp_subset)
 
-subsection\<open>Existence of extreme points\<close>
+subsection%important\<open>Existence of extreme points\<close>
 
-lemma different_norm_3_collinear_points:
+lemma%important different_norm_3_collinear_points:
   fixes a :: "'a::euclidean_space"
   assumes "x \<in> open_segment a b" "norm(a) = norm(b)" "norm(x) = norm(b)"
   shows False
-proof -
+proof%unimportant -
   obtain u where "norm ((1 - u) *\<^sub>R a + u *\<^sub>R b) = norm b"
              and "a \<noteq> b"
              and u01: "0 < u" "u < 1"
@@ -1050,11 +1050,11 @@ proof -
     using \<open>a \<noteq> b\<close> by force
 qed
 
-proposition extreme_point_exists_convex:
+proposition%important extreme_point_exists_convex:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" "convex S" "S \<noteq> {}"
   obtains x where "x extreme_point_of S"
-proof -
+proof%unimportant -
   obtain x where "x \<in> S" and xsup: "\<And>y. y \<in> S \<Longrightarrow> norm y \<le> norm x"
     using distance_attains_sup [of S 0] assms by auto
   have False if "a \<in> S" "b \<in> S" and x: "x \<in> open_segment a b" for a b
@@ -1099,13 +1099,13 @@ proof -
     done
 qed
 
-subsection\<open>Krein-Milman, the weaker form\<close>
+subsection%important\<open>Krein-Milman, the weaker form\<close>
 
-proposition Krein_Milman:
+proposition%important Krein_Milman:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" "convex S"
     shows "S = closure(convex hull {x. x extreme_point_of S})"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True then show ?thesis   by simp
 next
   case False
@@ -1155,12 +1155,12 @@ qed
 
 text\<open>Now the sharper form.\<close>
 
-lemma Krein_Milman_Minkowski_aux:
+lemma%important Krein_Milman_Minkowski_aux:
   fixes S :: "'a::euclidean_space set"
   assumes n: "dim S = n" and S: "compact S" "convex S" "0 \<in> S"
     shows "0 \<in> convex hull {x. x extreme_point_of S}"
 using n S
-proof (induction n arbitrary: S rule: less_induct)
+proof%unimportant (induction n arbitrary: S rule: less_induct)
   case (less n S) show ?case
   proof (cases "0 \<in> rel_interior S")
     case True with Krein_Milman show ?thesis
@@ -1197,11 +1197,11 @@ proof (induction n arbitrary: S rule: less_induct)
 qed
 
 
-theorem Krein_Milman_Minkowski:
+theorem%important Krein_Milman_Minkowski:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" "convex S"
     shows "S = convex hull {x. x extreme_point_of S}"
-proof
+proof%unimportant
   show "S \<subseteq> convex hull {x. x extreme_point_of S}"
   proof
     fix a assume [simp]: "a \<in> S"
@@ -1225,17 +1225,17 @@ next
 qed
 
 
-subsection\<open>Applying it to convex hulls of explicitly indicated finite sets\<close>
+subsection%important\<open>Applying it to convex hulls of explicitly indicated finite sets\<close>
 
-lemma Krein_Milman_polytope:
+lemma%important Krein_Milman_polytope:
   fixes S :: "'a::euclidean_space set"
   shows
    "finite S
        \<Longrightarrow> convex hull S =
            convex hull {x. x extreme_point_of (convex hull S)}"
-by (simp add: Krein_Milman_Minkowski finite_imp_compact_convex_hull)
+by%unimportant (simp add: Krein_Milman_Minkowski finite_imp_compact_convex_hull)
 
-lemma extreme_points_of_convex_hull_eq:
+lemma%unimportant extreme_points_of_convex_hull_eq:
   fixes S :: "'a::euclidean_space set"
   shows
    "\<lbrakk>compact S; \<And>T. T \<subset> S \<Longrightarrow> convex hull T \<noteq> convex hull S\<rbrakk>
@@ -1243,18 +1243,18 @@ lemma extreme_points_of_convex_hull_eq:
 by (metis (full_types) Krein_Milman_Minkowski compact_convex_hull convex_convex_hull extreme_points_of_convex_hull psubsetI)
 
 
-lemma extreme_point_of_convex_hull_eq:
+lemma%unimportant extreme_point_of_convex_hull_eq:
   fixes S :: "'a::euclidean_space set"
   shows
    "\<lbrakk>compact S; \<And>T. T \<subset> S \<Longrightarrow> convex hull T \<noteq> convex hull S\<rbrakk>
     \<Longrightarrow> (x extreme_point_of (convex hull S) \<longleftrightarrow> x \<in> S)"
 using extreme_points_of_convex_hull_eq by auto
 
-lemma extreme_point_of_convex_hull_convex_independent:
+lemma%important extreme_point_of_convex_hull_convex_independent:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and S: "\<And>a. a \<in> S \<Longrightarrow> a \<notin> convex hull (S - {a})"
   shows "(x extreme_point_of (convex hull S) \<longleftrightarrow> x \<in> S)"
-proof -
+proof%unimportant -
   have "convex hull T \<noteq> convex hull S" if "T \<subset> S" for T
   proof -
     obtain a where  "T \<subseteq> S" "a \<in> S" "a \<notin> T" using \<open>T \<subset> S\<close> by blast
@@ -1265,7 +1265,7 @@ proof -
     by (rule extreme_point_of_convex_hull_eq [OF \<open>compact S\<close>])
 qed
 
-lemma extreme_point_of_convex_hull_affine_independent:
+lemma%unimportant extreme_point_of_convex_hull_affine_independent:
   fixes S :: "'a::euclidean_space set"
   shows
    "~ affine_dependent S
@@ -1273,7 +1273,7 @@ lemma extreme_point_of_convex_hull_affine_independent:
 by (metis aff_independent_finite affine_dependent_def affine_hull_convex_hull extreme_point_of_convex_hull_convex_independent finite_imp_compact hull_inc)
 
 text\<open>Elementary proofs exist, not requiring Euclidean spaces and all this development\<close>
-lemma extreme_point_of_convex_hull_2:
+lemma%unimportant extreme_point_of_convex_hull_2:
   fixes x :: "'a::euclidean_space"
   shows "x extreme_point_of (convex hull {a,b}) \<longleftrightarrow> x = a \<or> x = b"
 proof -
@@ -1283,13 +1283,13 @@ proof -
     by simp
 qed
 
-lemma extreme_point_of_segment:
+lemma%unimportant extreme_point_of_segment:
   fixes x :: "'a::euclidean_space"
   shows
    "x extreme_point_of closed_segment a b \<longleftrightarrow> x = a \<or> x = b"
 by (simp add: extreme_point_of_convex_hull_2 segment_convex_hull)
 
-lemma face_of_convex_hull_subset:
+lemma%unimportant face_of_convex_hull_subset:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and T: "T face_of (convex hull S)"
   obtains s' where "s' \<subseteq> S" "T = convex hull s'"
@@ -1298,11 +1298,11 @@ using T extreme_point_of_convex_hull extreme_point_of_face apply blast
 by (metis (no_types) Krein_Milman_Minkowski assms compact_convex_hull convex_convex_hull face_of_imp_compact face_of_imp_convex)
 
 
-lemma face_of_convex_hull_aux:
+lemma%important face_of_convex_hull_aux:
   assumes eq: "x *\<^sub>R p = u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c"
     and x: "u + v + w = x" "x \<noteq> 0" and S: "affine S" "a \<in> S" "b \<in> S" "c \<in> S"
   shows "p \<in> S"
-proof -
+proof%unimportant -
   have "p = (u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c) /\<^sub>R x"
     by (metis \<open>x \<noteq> 0\<close> eq mult.commute right_inverse scaleR_one scaleR_scaleR)
   moreover have "affine hull {a,b,c} \<subseteq> S"
@@ -1317,14 +1317,14 @@ proof -
   ultimately show ?thesis by force
 qed
 
-proposition face_of_convex_hull_insert_eq:
+proposition%important face_of_convex_hull_insert_eq:
   fixes a :: "'a :: euclidean_space"
   assumes "finite S" and a: "a \<notin> affine hull S"
   shows "(F face_of (convex hull (insert a S)) \<longleftrightarrow>
           F face_of (convex hull S) \<or>
           (\<exists>F'. F' face_of (convex hull S) \<and> F = convex hull (insert a F')))"
          (is "F face_of ?CAS \<longleftrightarrow> _")
-proof safe
+proof%unimportant safe
   assume F: "F face_of ?CAS"
     and *: "\<nexists>F'. F' face_of convex hull S \<and> F = convex hull insert a F'"
   obtain T where T: "T \<subseteq> insert a S" and FeqT: "F = convex hull T"
@@ -1465,18 +1465,18 @@ next
   qed
 qed
 
-lemma face_of_convex_hull_insert2:
+lemma%unimportant face_of_convex_hull_insert2:
   fixes a :: "'a :: euclidean_space"
   assumes S: "finite S" and a: "a \<notin> affine hull S" and F: "F face_of convex hull S"
   shows "convex hull (insert a F) face_of convex hull (insert a S)"
   by (metis F face_of_convex_hull_insert_eq [OF S a])
 
-proposition face_of_convex_hull_affine_independent:
+proposition%important face_of_convex_hull_affine_independent:
   fixes S :: "'a::euclidean_space set"
   assumes "~ affine_dependent S"
     shows "(T face_of (convex hull S) \<longleftrightarrow> (\<exists>c. c \<subseteq> S \<and> T = convex hull c))"
           (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     by (meson \<open>T face_of convex hull S\<close> aff_independent_finite assms face_of_convex_hull_subset finite_imp_compact)
@@ -1493,7 +1493,7 @@ next
     by (metis face_of_convex_hulls \<open>c \<subseteq> S\<close> aff_independent_finite assms T)
 qed
 
-lemma facet_of_convex_hull_affine_independent:
+lemma%unimportant facet_of_convex_hull_affine_independent:
   fixes S :: "'a::euclidean_space set"
   assumes "~ affine_dependent S"
     shows "T facet_of (convex hull S) \<longleftrightarrow>
@@ -1540,7 +1540,7 @@ next
     done
 qed
 
-lemma facet_of_convex_hull_affine_independent_alt:
+lemma%unimportant facet_of_convex_hull_affine_independent_alt:
   fixes S :: "'a::euclidean_space set"
   shows
    "~affine_dependent S
@@ -1551,7 +1551,7 @@ apply (auto simp: Set.subset_singleton_iff)
 apply (metis Diff_cancel Int_empty_right Int_insert_right_if1  aff_independent_finite card_eq_0_iff card_insert_if card_mono card_subset_eq convex_hull_eq_empty eq_iff equals0D finite_insert finite_subset inf.absorb_iff2 insert_absorb insert_not_empty  not_less_eq_eq numeral_2_eq_2)
 done
 
-lemma segment_face_of:
+lemma%unimportant segment_face_of:
   assumes "(closed_segment a b) face_of S"
   shows "a extreme_point_of S" "b extreme_point_of S"
 proof -
@@ -1571,12 +1571,12 @@ proof -
 qed
 
 
-lemma Krein_Milman_frontier:
+lemma%important Krein_Milman_frontier:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "compact S"
     shows "S = convex hull (frontier S)"
           (is "?lhs = ?rhs")
-proof
+proof%unimportant
   have "?lhs \<subseteq> convex hull {x. x extreme_point_of S}"
     using Krein_Milman_Minkowski assms by blast
   also have "... \<subseteq> ?rhs"
@@ -1593,36 +1593,36 @@ next
   finally show "?rhs \<subseteq> ?lhs" .
 qed
 
-subsection\<open>Polytopes\<close>
+subsection%important\<open>Polytopes\<close>
 
-definition polytope where
+definition%important polytope where
  "polytope S \<equiv> \<exists>v. finite v \<and> S = convex hull v"
 
-lemma polytope_translation_eq: "polytope (image (\<lambda>x. a + x) S) \<longleftrightarrow> polytope S"
+lemma%unimportant polytope_translation_eq: "polytope (image (\<lambda>x. a + x) S) \<longleftrightarrow> polytope S"
 apply (simp add: polytope_def, safe)
 apply (metis convex_hull_translation finite_imageI translation_galois)
 by (metis convex_hull_translation finite_imageI)
 
-lemma polytope_linear_image: "\<lbrakk>linear f; polytope p\<rbrakk> \<Longrightarrow> polytope(image f p)"
+lemma%unimportant polytope_linear_image: "\<lbrakk>linear f; polytope p\<rbrakk> \<Longrightarrow> polytope(image f p)"
   unfolding polytope_def using convex_hull_linear_image by blast
 
-lemma polytope_empty: "polytope {}"
+lemma%unimportant polytope_empty: "polytope {}"
   using convex_hull_empty polytope_def by blast
 
-lemma polytope_convex_hull: "finite S \<Longrightarrow> polytope(convex hull S)"
+lemma%unimportant polytope_convex_hull: "finite S \<Longrightarrow> polytope(convex hull S)"
   using polytope_def by auto
 
-lemma polytope_Times: "\<lbrakk>polytope S; polytope T\<rbrakk> \<Longrightarrow> polytope(S \<times> T)"
+lemma%unimportant polytope_Times: "\<lbrakk>polytope S; polytope T\<rbrakk> \<Longrightarrow> polytope(S \<times> T)"
   unfolding polytope_def
   by (metis finite_cartesian_product convex_hull_Times)
 
-lemma face_of_polytope_polytope:
+lemma%unimportant face_of_polytope_polytope:
   fixes S :: "'a::euclidean_space set"
   shows "\<lbrakk>polytope S; F face_of S\<rbrakk> \<Longrightarrow> polytope F"
 unfolding polytope_def
 by (meson face_of_convex_hull_subset finite_imp_compact finite_subset)
 
-lemma finite_polytope_faces:
+lemma%unimportant finite_polytope_faces:
   fixes S :: "'a::euclidean_space set"
   assumes "polytope S"
   shows "finite {F. F face_of S}"
@@ -1637,48 +1637,48 @@ proof -
     by (blast intro: finite_subset)
 qed
 
-lemma finite_polytope_facets:
+lemma%unimportant finite_polytope_facets:
   assumes "polytope S"
   shows "finite {T. T facet_of S}"
 by (simp add: assms facet_of_def finite_polytope_faces)
 
-lemma polytope_scaling:
+lemma%unimportant polytope_scaling:
   assumes "polytope S"  shows "polytope (image (\<lambda>x. c *\<^sub>R x) S)"
 by (simp add: assms polytope_linear_image)
 
-lemma polytope_imp_compact:
+lemma%unimportant polytope_imp_compact:
   fixes S :: "'a::real_normed_vector set"
   shows "polytope S \<Longrightarrow> compact S"
 by (metis finite_imp_compact_convex_hull polytope_def)
 
-lemma polytope_imp_convex: "polytope S \<Longrightarrow> convex S"
+lemma%unimportant polytope_imp_convex: "polytope S \<Longrightarrow> convex S"
   by (metis convex_convex_hull polytope_def)
 
-lemma polytope_imp_closed:
+lemma%unimportant polytope_imp_closed:
   fixes S :: "'a::real_normed_vector set"
   shows "polytope S \<Longrightarrow> closed S"
 by (simp add: compact_imp_closed polytope_imp_compact)
 
-lemma polytope_imp_bounded:
+lemma%unimportant polytope_imp_bounded:
   fixes S :: "'a::real_normed_vector set"
   shows "polytope S \<Longrightarrow> bounded S"
 by (simp add: compact_imp_bounded polytope_imp_compact)
 
-lemma polytope_interval: "polytope(cbox a b)"
+lemma%unimportant polytope_interval: "polytope(cbox a b)"
   unfolding polytope_def by (meson closed_interval_as_convex_hull)
 
-lemma polytope_sing: "polytope {a}"
+lemma%unimportant polytope_sing: "polytope {a}"
   using polytope_def by force
 
-lemma face_of_polytope_insert:
+lemma%unimportant face_of_polytope_insert:
      "\<lbrakk>polytope S; a \<notin> affine hull S; F face_of S\<rbrakk> \<Longrightarrow> F face_of convex hull (insert a S)"
   by (metis (no_types, lifting) affine_hull_convex_hull face_of_convex_hull_insert hull_insert polytope_def)
 
-lemma face_of_polytope_insert2:
+lemma%important face_of_polytope_insert2:
   fixes a :: "'a :: euclidean_space"
   assumes "polytope S" "a \<notin> affine hull S" "F face_of S"
   shows "convex hull (insert a F) face_of convex hull (insert a S)"
-proof -
+proof%unimportant -
   obtain V where "finite V" "S = convex hull V"
     using assms by (auto simp: polytope_def)
   then have "convex hull (insert a F) face_of convex hull (insert a V)"
@@ -1688,31 +1688,31 @@ proof -
 qed
 
 
-subsection\<open>Polyhedra\<close>
+subsection%important\<open>Polyhedra\<close>
 
-definition polyhedron where
+definition%important polyhedron where
  "polyhedron S \<equiv>
         \<exists>F. finite F \<and>
             S = \<Inter> F \<and>
             (\<forall>h \<in> F. \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b})"
 
-lemma polyhedron_Int [intro,simp]:
+lemma%unimportant polyhedron_Int [intro,simp]:
    "\<lbrakk>polyhedron S; polyhedron T\<rbrakk> \<Longrightarrow> polyhedron (S \<inter> T)"
   apply (simp add: polyhedron_def, clarify)
   apply (rename_tac F G)
   apply (rule_tac x="F \<union> G" in exI, auto)
   done
 
-lemma polyhedron_UNIV [iff]: "polyhedron UNIV"
+lemma%unimportant polyhedron_UNIV [iff]: "polyhedron UNIV"
   unfolding polyhedron_def
   by (rule_tac x="{}" in exI) auto
 
-lemma polyhedron_Inter [intro,simp]:
+lemma%unimportant polyhedron_Inter [intro,simp]:
    "\<lbrakk>finite F; \<And>S. S \<in> F \<Longrightarrow> polyhedron S\<rbrakk> \<Longrightarrow> polyhedron(\<Inter>F)"
 by (induction F rule: finite_induct) auto
 
 
-lemma polyhedron_empty [iff]: "polyhedron ({} :: 'a :: euclidean_space set)"
+lemma%unimportant polyhedron_empty [iff]: "polyhedron ({} :: 'a :: euclidean_space set)"
 proof -
   have "\<exists>a. a \<noteq> 0 \<and>
              (\<exists>b. {x. (SOME i. i \<in> Basis) \<bullet> x \<le> - 1} = {x. a \<bullet> x \<le> b})"
@@ -1731,7 +1731,7 @@ proof -
     done
 qed
 
-lemma polyhedron_halfspace_le:
+lemma%unimportant polyhedron_halfspace_le:
   fixes a :: "'a :: euclidean_space"
   shows "polyhedron {x. a \<bullet> x \<le> b}"
 proof (cases "a = 0")
@@ -1743,53 +1743,53 @@ next
     by (rule_tac x="{{x. a \<bullet> x \<le> b}}" in exI) auto
 qed
 
-lemma polyhedron_halfspace_ge:
+lemma%unimportant polyhedron_halfspace_ge:
   fixes a :: "'a :: euclidean_space"
   shows "polyhedron {x. a \<bullet> x \<ge> b}"
 using polyhedron_halfspace_le [of "-a" "-b"] by simp
 
-lemma polyhedron_hyperplane:
+lemma%important polyhedron_hyperplane:
   fixes a :: "'a :: euclidean_space"
   shows "polyhedron {x. a \<bullet> x = b}"
-proof -
+proof%unimportant -
   have "{x. a \<bullet> x = b} = {x. a \<bullet> x \<le> b} \<inter> {x. a \<bullet> x \<ge> b}"
     by force
   then show ?thesis
     by (simp add: polyhedron_halfspace_ge polyhedron_halfspace_le)
 qed
 
-lemma affine_imp_polyhedron:
+lemma%unimportant affine_imp_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   shows "affine S \<Longrightarrow> polyhedron S"
 by (metis affine_hull_eq polyhedron_Inter polyhedron_hyperplane affine_hull_finite_intersection_hyperplanes [of S])
 
-lemma polyhedron_imp_closed:
+lemma%unimportant polyhedron_imp_closed:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<Longrightarrow> closed S"
 apply (simp add: polyhedron_def)
 using closed_halfspace_le by fastforce
 
-lemma polyhedron_imp_convex:
+lemma%unimportant polyhedron_imp_convex:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<Longrightarrow> convex S"
 apply (simp add: polyhedron_def)
 using convex_Inter convex_halfspace_le by fastforce
 
-lemma polyhedron_affine_hull:
+lemma%unimportant polyhedron_affine_hull:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron(affine hull S)"
 by (simp add: affine_imp_polyhedron)
 
 
-subsection\<open>Canonical polyhedron representation making facial structure explicit\<close>
+subsection%important\<open>Canonical polyhedron representation making facial structure explicit\<close>
 
-lemma polyhedron_Int_affine:
+lemma%important polyhedron_Int_affine:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<longleftrightarrow>
            (\<exists>F. finite F \<and> S = (affine hull S) \<inter> \<Inter>F \<and>
                 (\<forall>h \<in> F. \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}))"
         (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs then show ?rhs
     apply (simp add: polyhedron_def)
     apply (erule ex_forward)
@@ -1803,13 +1803,13 @@ next
     done
 qed
 
-proposition rel_interior_polyhedron_explicit:
+proposition%important rel_interior_polyhedron_explicit:
   assumes "finite F"
       and seq: "S = affine hull S \<inter> \<Inter>F"
       and faceq: "\<And>h. h \<in> F \<Longrightarrow> a h \<noteq> 0 \<and> h = {x. a h \<bullet> x \<le> b h}"
       and psub: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> affine hull S \<inter> \<Inter>F'"
     shows "rel_interior S = {x \<in> S. \<forall>h \<in> F. a h \<bullet> x < b h}"
-proof -
+proof%unimportant -
   have rels: "\<And>x. x \<in> rel_interior S \<Longrightarrow> x \<in> S"
     by (meson IntE mem_rel_interior)
   moreover have "a i \<bullet> x < b i" if x: "x \<in> rel_interior S" and "i \<in> F" for x i
@@ -1877,7 +1877,7 @@ proof -
 qed
 
 
-lemma polyhedron_Int_affine_parallel:
+lemma%important polyhedron_Int_affine_parallel:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<longleftrightarrow>
          (\<exists>F. finite F \<and>
@@ -1885,7 +1885,7 @@ lemma polyhedron_Int_affine_parallel:
               (\<forall>h \<in> F. \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b} \<and>
                              (\<forall>x \<in> affine hull S. (x + a) \<in> affine hull S)))"
     (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then obtain F where "finite F" and seq: "S = (affine hull S) \<inter> \<Inter>F"
                   and faces: "\<And>h. h \<in> F \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}"
@@ -1931,7 +1931,7 @@ next
 qed
 
 
-proposition polyhedron_Int_affine_parallel_minimal:
+proposition%important polyhedron_Int_affine_parallel_minimal:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<longleftrightarrow>
          (\<exists>F. finite F \<and>
@@ -1940,7 +1940,7 @@ proposition polyhedron_Int_affine_parallel_minimal:
                              (\<forall>x \<in> affine hull S. (x + a) \<in> affine hull S)) \<and>
               (\<forall>F'. F' \<subset> F \<longrightarrow> S \<subset> (affine hull S) \<inter> (\<Inter>F')))"
     (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then obtain f0
            where f0: "finite f0"
@@ -1976,7 +1976,7 @@ next
 qed
 
 
-lemma polyhedron_Int_affine_minimal:
+lemma%unimportant polyhedron_Int_affine_minimal:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<longleftrightarrow>
          (\<exists>F. finite F \<and> S = (affine hull S) \<inter> \<Inter>F \<and>
@@ -1987,13 +1987,13 @@ apply (rule iffI)
 apply (auto simp: polyhedron_Int_affine elim!: ex_forward)
 done
 
-proposition facet_of_polyhedron_explicit:
+proposition%important facet_of_polyhedron_explicit:
   assumes "finite F"
       and seq: "S = affine hull S \<inter> \<Inter>F"
       and faceq: "\<And>h. h \<in> F \<Longrightarrow> a h \<noteq> 0 \<and> h = {x. a h \<bullet> x \<le> b h}"
       and psub: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> affine hull S \<inter> \<Inter>F'"
     shows "c facet_of S \<longleftrightarrow> (\<exists>h. h \<in> F \<and> c = S \<inter> {x. a h \<bullet> x = b h})"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True with psub show ?thesis by force
 next
   case False
@@ -2198,7 +2198,7 @@ next
 qed
 
 
-lemma face_of_polyhedron_subset_explicit:
+lemma%important face_of_polyhedron_subset_explicit:
   fixes S :: "'a :: euclidean_space set"
   assumes "finite F"
       and seq: "S = affine hull S \<inter> \<Inter>F"
@@ -2206,7 +2206,7 @@ lemma face_of_polyhedron_subset_explicit:
       and psub: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> affine hull S \<inter> \<Inter>F'"
       and c: "c face_of S" and "c \<noteq> {}" "c \<noteq> S"
    obtains h where "h \<in> F" "c \<subseteq> S \<inter> {x. a h \<bullet> x = b h}"
-proof -
+proof%unimportant -
   have "c \<subseteq> S" using \<open>c face_of S\<close>
     by (simp add: face_of_imp_subset)
   have "polyhedron S"
@@ -2245,7 +2245,7 @@ proof -
 qed
 
 text\<open>Initial part of proof duplicates that above\<close>
-proposition face_of_polyhedron_explicit:
+proposition%important face_of_polyhedron_explicit:
   fixes S :: "'a :: euclidean_space set"
   assumes "finite F"
       and seq: "S = affine hull S \<inter> \<Inter>F"
@@ -2253,7 +2253,7 @@ proposition face_of_polyhedron_explicit:
       and psub: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> affine hull S \<inter> \<Inter>F'"
       and c: "c face_of S" and "c \<noteq> {}" "c \<noteq> S"
     shows "c = \<Inter>{S \<inter> {x. a h \<bullet> x = b h} | h. h \<in> F \<and> c \<subseteq> S \<inter> {x. a h \<bullet> x = b h}}"
-proof -
+proof%unimportant -
   let ?ab = "\<lambda>h. {x. a h \<bullet> x = b h}"
   have "c \<subseteq> S" using \<open>c face_of S\<close>
     by (simp add: face_of_imp_subset)
@@ -2359,10 +2359,10 @@ qed
 
 subsection\<open>More general corollaries from the explicit representation\<close>
 
-corollary facet_of_polyhedron:
+corollary%important facet_of_polyhedron:
   assumes "polyhedron S" and "c facet_of S"
   obtains a b where "a \<noteq> 0" "S \<subseteq> {x. a \<bullet> x \<le> b}" "c = S \<inter> {x. a \<bullet> x = b}"
-proof -
+proof%unimportant -
   obtain F where "finite F" and seq: "S = affine hull S \<inter> \<Inter>F"
              and faces: "\<And>h. h \<in> F \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}"
              and min: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> (affine hull S) \<inter> \<Inter>F'"
@@ -2379,10 +2379,10 @@ proof -
     by (rule_tac a = "a i" and b = "b i" in that) (simp_all add: ab)
 qed
 
-corollary face_of_polyhedron:
+corollary%important face_of_polyhedron:
   assumes "polyhedron S" and "c face_of S" and "c \<noteq> {}" and "c \<noteq> S"
     shows "c = \<Inter>{F. F facet_of S \<and> c \<subseteq> F}"
-proof -
+proof%unimportant -
   obtain F where "finite F" and seq: "S = affine hull S \<inter> \<Inter>F"
              and faces: "\<And>h. h \<in> F \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}"
              and min: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> (affine hull S) \<inter> \<Inter>F'"
@@ -2395,14 +2395,14 @@ proof -
     done
 qed
 
-lemma face_of_polyhedron_subset_facet:
+lemma%unimportant face_of_polyhedron_subset_facet:
   assumes "polyhedron S" and "c face_of S" and "c \<noteq> {}" and "c \<noteq> S"
   obtains F where "F facet_of S" "c \<subseteq> F"
 using face_of_polyhedron assms
 by (metis (no_types, lifting) Inf_greatest antisym_conv face_of_imp_subset mem_Collect_eq)
 
 
-lemma exposed_face_of_polyhedron:
+lemma%unimportant exposed_face_of_polyhedron:
   assumes "polyhedron S"
     shows "F exposed_face_of S \<longleftrightarrow> F face_of S"
 proof
@@ -2430,12 +2430,12 @@ next
   qed
 qed
 
-lemma face_of_polyhedron_polyhedron:
+lemma%unimportant face_of_polyhedron_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S" "c face_of S" shows "polyhedron c"
 by (metis assms face_of_imp_eq_affine_Int polyhedron_Int polyhedron_affine_hull polyhedron_imp_convex)
 
-lemma finite_polyhedron_faces:
+lemma%unimportant finite_polyhedron_faces:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S"
     shows "finite {F. F face_of S}"
@@ -2459,29 +2459,29 @@ proof -
     by (meson finite.emptyI finite.insertI finite_Diff2 finite_subset)
 qed
 
-lemma finite_polyhedron_exposed_faces:
+lemma%unimportant finite_polyhedron_exposed_faces:
    "polyhedron S \<Longrightarrow> finite {F. F exposed_face_of S}"
 using exposed_face_of_polyhedron finite_polyhedron_faces by fastforce
 
-lemma finite_polyhedron_extreme_points:
+lemma%unimportant finite_polyhedron_extreme_points:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<Longrightarrow> finite {v. v extreme_point_of S}"
 apply (simp add: face_of_singleton [symmetric])
 apply (rule finite_subset [OF _ finite_vimageI [OF finite_polyhedron_faces]], auto)
 done
 
-lemma finite_polyhedron_facets:
+lemma%unimportant finite_polyhedron_facets:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<Longrightarrow> finite {F. F facet_of S}"
 unfolding facet_of_def
 by (blast intro: finite_subset [OF _ finite_polyhedron_faces])
 
 
-proposition rel_interior_of_polyhedron:
+proposition%important rel_interior_of_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S"
     shows "rel_interior S = S - \<Union>{F. F facet_of S}"
-proof -
+proof%unimportant -
   obtain F where "finite F" and seq: "S = affine hull S \<inter> \<Inter>F"
              and faces: "\<And>h. h \<in> F \<Longrightarrow> \<exists>a b. a \<noteq> 0 \<and> h = {x. a \<bullet> x \<le> b}"
              and min: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subset> (affine hull S) \<inter> \<Inter>F'"
@@ -2521,19 +2521,19 @@ proof -
     by (force simp: rel)
 qed
 
-lemma rel_boundary_of_polyhedron:
+lemma%unimportant rel_boundary_of_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S"
     shows "S - rel_interior S = \<Union> {F. F facet_of S}"
 using facet_of_imp_subset by (fastforce simp add: rel_interior_of_polyhedron assms)
 
-lemma rel_frontier_of_polyhedron:
+lemma%unimportant rel_frontier_of_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S"
     shows "rel_frontier S = \<Union> {F. F facet_of S}"
 by (simp add: assms rel_frontier_def polyhedron_imp_closed rel_boundary_of_polyhedron)
 
-lemma rel_frontier_of_polyhedron_alt:
+lemma%unimportant rel_frontier_of_polyhedron_alt:
   fixes S :: "'a :: euclidean_space set"
   assumes "polyhedron S"
     shows "rel_frontier S = \<Union> {F. F face_of S \<and> (F \<noteq> S)}"
@@ -2544,11 +2544,11 @@ using face_of_subset_rel_frontier by fastforce
 
 text\<open>A characterization of polyhedra as having finitely many faces\<close>
 
-proposition polyhedron_eq_finite_exposed_faces:
+proposition%important polyhedron_eq_finite_exposed_faces:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<longleftrightarrow> closed S \<and> convex S \<and> finite {F. F exposed_face_of S}"
          (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     by (auto simp: polyhedron_imp_closed polyhedron_imp_convex finite_polyhedron_exposed_faces)
@@ -2635,11 +2635,11 @@ next
   qed
 qed
 
-corollary polyhedron_eq_finite_faces:
+corollary%important polyhedron_eq_finite_faces:
   fixes S :: "'a :: euclidean_space set"
   shows "polyhedron S \<longleftrightarrow> closed S \<and> convex S \<and> finite {F. F face_of S}"
          (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     by (simp add: finite_polyhedron_faces polyhedron_imp_closed polyhedron_imp_convex)
@@ -2649,7 +2649,7 @@ next
     by (force simp: polyhedron_eq_finite_exposed_faces exposed_face_of intro: finite_subset)
 qed
 
-lemma polyhedron_linear_image_eq:
+lemma%unimportant polyhedron_linear_image_eq:
   fixes h :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
   assumes "linear h" "bij h"
     shows "polyhedron (h ` S) \<longleftrightarrow> polyhedron S"
@@ -2669,19 +2669,19 @@ proof -
     done
 qed
 
-lemma polyhedron_negations:
+lemma%unimportant polyhedron_negations:
   fixes S :: "'a :: euclidean_space set"
   shows   "polyhedron S \<Longrightarrow> polyhedron(image uminus S)"
   by (subst polyhedron_linear_image_eq)
     (auto simp: bij_uminus intro!: linear_uminus)
 
-subsection\<open>Relation between polytopes and polyhedra\<close>
+subsection%important\<open>Relation between polytopes and polyhedra\<close>
 
-lemma polytope_eq_bounded_polyhedron:
+lemma%important polytope_eq_bounded_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   shows "polytope S \<longleftrightarrow> polyhedron S \<and> bounded S"
          (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then show ?rhs
     by (simp add: finite_polytope_faces polyhedron_eq_finite_faces
@@ -2694,28 +2694,28 @@ next
     done
 qed
 
-lemma polytope_Int:
+lemma%unimportant polytope_Int:
   fixes S :: "'a :: euclidean_space set"
   shows "\<lbrakk>polytope S; polytope T\<rbrakk> \<Longrightarrow> polytope(S \<inter> T)"
 by (simp add: polytope_eq_bounded_polyhedron bounded_Int)
 
 
-lemma polytope_Int_polyhedron:
+lemma%important polytope_Int_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   shows "\<lbrakk>polytope S; polyhedron T\<rbrakk> \<Longrightarrow> polytope(S \<inter> T)"
-by (simp add: bounded_Int polytope_eq_bounded_polyhedron)
+by%unimportant (simp add: bounded_Int polytope_eq_bounded_polyhedron)
 
-lemma polyhedron_Int_polytope:
+lemma%important polyhedron_Int_polytope:
   fixes S :: "'a :: euclidean_space set"
   shows "\<lbrakk>polyhedron S; polytope T\<rbrakk> \<Longrightarrow> polytope(S \<inter> T)"
-by (simp add: bounded_Int polytope_eq_bounded_polyhedron)
+by%unimportant (simp add: bounded_Int polytope_eq_bounded_polyhedron)
 
-lemma polytope_imp_polyhedron:
+lemma%important polytope_imp_polyhedron:
   fixes S :: "'a :: euclidean_space set"
   shows "polytope S \<Longrightarrow> polyhedron S"
-by (simp add: polytope_eq_bounded_polyhedron)
+by%unimportant (simp add: polytope_eq_bounded_polyhedron)
 
-lemma polytope_facet_exists:
+lemma%unimportant polytope_facet_exists:
   fixes p :: "'a :: euclidean_space set"
   assumes "polytope p" "0 < aff_dim p"
   obtains F where "F facet_of p"
@@ -2732,16 +2732,16 @@ next
        all_not_in_conv assms face_of_singleton less_irrefl singletonI that)
 qed
 
-lemma polyhedron_interval [iff]: "polyhedron(cbox a b)"
+lemma%unimportant polyhedron_interval [iff]: "polyhedron(cbox a b)"
 by (metis polytope_imp_polyhedron polytope_interval)
 
-lemma polyhedron_convex_hull:
+lemma%unimportant polyhedron_convex_hull:
   fixes S :: "'a :: euclidean_space set"
   shows "finite S \<Longrightarrow> polyhedron(convex hull S)"
 by (simp add: polytope_convex_hull polytope_imp_polyhedron)
 
 
-subsection\<open>Relative and absolute frontier of a polytope\<close>
+subsection%important\<open>Relative and absolute frontier of a polytope\<close>
 
 lemma rel_boundary_of_convex_hull:
     fixes S :: "'a::euclidean_space set"
@@ -3194,9 +3194,9 @@ proof -
   qed (use C in auto)
 qed
 
-subsection\<open>Simplicial complexes and triangulations\<close>
+subsection%important \<open>Simplicial complexes and triangulations\<close>
 
-definition simplicial_complex where
+definition%important simplicial_complex where
  "simplicial_complex \<C> \<equiv>
         finite \<C> \<and>
         (\<forall>S \<in> \<C>. \<exists>n. n simplex S) \<and>
@@ -3204,7 +3204,7 @@ definition simplicial_complex where
         (\<forall>S S'. S \<in> \<C> \<and> S' \<in> \<C>
                 \<longrightarrow> (S \<inter> S') face_of S \<and> (S \<inter> S') face_of S')"
 
-definition triangulation where
+definition%important triangulation where
  "triangulation \<T> \<equiv>
         finite \<T> \<and>
         (\<forall>T \<in> \<T>. \<exists>n. n simplex T) \<and>
@@ -3212,9 +3212,9 @@ definition triangulation where
                 \<longrightarrow> (T \<inter> T') face_of T \<and> (T \<inter> T') face_of T')"
 
 
-subsection\<open>Refining a cell complex to a simplicial complex\<close>
+subsection%important\<open>Refining a cell complex to a simplicial complex\<close>
 
-lemma convex_hull_insert_Int_eq:
+lemma%important convex_hull_insert_Int_eq:
   fixes z :: "'a :: euclidean_space"
   assumes z: "z \<in> rel_interior S"
       and T: "T \<subseteq> rel_frontier S"
@@ -3222,7 +3222,7 @@ lemma convex_hull_insert_Int_eq:
       and "convex S" "convex T" "convex U"
   shows "convex hull (insert z T) \<inter> convex hull (insert z U) = convex hull (insert z (T \<inter> U))"
     (is "?lhs = ?rhs")
-proof
+proof%unimportant
   show "?lhs \<subseteq> ?rhs"
   proof (cases "T={} \<or> U={}")
     case True then show ?thesis by auto
@@ -3294,7 +3294,7 @@ proof
     by (metis inf_greatest hull_mono inf.cobounded1 inf.cobounded2 insert_mono)
 qed
 
-lemma simplicial_subdivision_aux:
+lemma%important simplicial_subdivision_aux:
   assumes "finite \<M>"
       and "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C \<le> of_nat n"
@@ -3306,7 +3306,7 @@ lemma simplicial_subdivision_aux:
                 (\<forall>C \<in> \<M>. \<exists>F. finite F \<and> F \<subseteq> \<T> \<and> C = \<Union>F) \<and>
                 (\<forall>K \<in> \<T>. \<exists>C. C \<in> \<M> \<and> K \<subseteq> C)"
   using assms
-proof (induction n arbitrary: \<M> rule: less_induct)
+proof%unimportant (induction n arbitrary: \<M> rule: less_induct)
   case (less n)
   then have poly\<M>: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and aff\<M>:    "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C \<le> of_nat n"
@@ -3756,7 +3756,7 @@ proof (induction n arbitrary: \<M> rule: less_induct)
 qed
 
 
-lemma simplicial_subdivision_of_cell_complex_lowdim:
+lemma%important simplicial_subdivision_of_cell_complex_lowdim:
   assumes "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
@@ -3765,7 +3765,7 @@ lemma simplicial_subdivision_of_cell_complex_lowdim:
                   "\<Union>\<T> = \<Union>\<M>"
                   "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<T> \<and> C = \<Union>F"
                   "\<And>K. K \<in> \<T> \<Longrightarrow> \<exists>C. C \<in> \<M> \<and> K \<subseteq> C"
-proof (cases "d \<ge> 0")
+proof%unimportant (cases "d \<ge> 0")
   case True
   then obtain n where n: "d = of_nat n"
     using zero_le_imp_eq_int by blast
@@ -3822,7 +3822,7 @@ next
   qed auto
 qed
 
-proposition simplicial_subdivision_of_cell_complex:
+proposition%important simplicial_subdivision_of_cell_complex:
   assumes "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
@@ -3830,9 +3830,9 @@ proposition simplicial_subdivision_of_cell_complex:
                   "\<Union>\<T> = \<Union>\<M>"
                   "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<T> \<and> C = \<Union>F"
                   "\<And>K. K \<in> \<T> \<Longrightarrow> \<exists>C. C \<in> \<M> \<and> K \<subseteq> C"
-  by (blast intro: simplicial_subdivision_of_cell_complex_lowdim [OF assms aff_dim_le_DIM])
+  by%unimportant (blast intro: simplicial_subdivision_of_cell_complex_lowdim [OF assms aff_dim_le_DIM])
 
-corollary fine_simplicial_subdivision_of_cell_complex:
+corollary%important fine_simplicial_subdivision_of_cell_complex:
   assumes "0 < e" "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and face: "\<And>C1 C2. \<lbrakk>C1 \<in> \<M>; C2 \<in> \<M>\<rbrakk> \<Longrightarrow> C1 \<inter> C2 face_of C1 \<and> C1 \<inter> C2 face_of C2"
@@ -3841,7 +3841,7 @@ corollary fine_simplicial_subdivision_of_cell_complex:
                   "\<Union>\<T> = \<Union>\<M>"
                   "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>F. finite F \<and> F \<subseteq> \<T> \<and> C = \<Union>F"
                   "\<And>K. K \<in> \<T> \<Longrightarrow> \<exists>C. C \<in> \<M> \<and> K \<subseteq> C"
-proof -
+proof%unimportant -
   obtain \<N> where \<N>: "finite \<N>" "\<Union>\<N> = \<Union>\<M>" 
               and diapoly: "\<And>X. X \<in> \<N> \<Longrightarrow> diameter X < e" "\<And>X. X \<in> \<N> \<Longrightarrow> polytope X"
                and      "\<And>X Y. \<lbrakk>X \<in> \<N>; Y \<in> \<N>\<rbrakk> \<Longrightarrow> X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
@@ -3880,13 +3880,13 @@ proof -
   qed
 qed
 
-subsection\<open>Some results on cell division with full-dimensional cells only\<close>
+subsection%important\<open>Some results on cell division with full-dimensional cells only\<close>
 
-lemma convex_Union_fulldim_cells:
+lemma%important convex_Union_fulldim_cells:
   assumes "finite \<S>" and clo: "\<And>C. C \<in> \<S> \<Longrightarrow> closed C" and con: "\<And>C. C \<in> \<S> \<Longrightarrow> convex C"
       and eq: "\<Union>\<S> = U"and  "convex U"
  shows "\<Union>{C \<in> \<S>. aff_dim C = aff_dim U} = U"  (is "?lhs = U")
-proof -
+proof%unimportant -
   have "closed U"
     using \<open>finite \<S>\<close> clo eq by blast
   have "?lhs \<subseteq> U"
@@ -3935,7 +3935,7 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-proposition fine_triangular_subdivision_of_cell_complex:
+proposition%important fine_triangular_subdivision_of_cell_complex:
   assumes "0 < e" "finite \<M>"
       and poly: "\<And>C. C \<in> \<M> \<Longrightarrow> polytope C"
       and aff: "\<And>C. C \<in> \<M> \<Longrightarrow> aff_dim C = d"
@@ -3944,7 +3944,7 @@ proposition fine_triangular_subdivision_of_cell_complex:
                  "\<And>k. k \<in> \<T> \<Longrightarrow> aff_dim k = d" "\<Union>\<T> = \<Union>\<M>"
                  "\<And>C. C \<in> \<M> \<Longrightarrow> \<exists>f. finite f \<and> f \<subseteq> \<T> \<and> C = \<Union>f"
                  "\<And>k. k \<in> \<T> \<Longrightarrow> \<exists>C. C \<in> \<M> \<and> k \<subseteq> C"
-proof -
+proof%unimportant -
   obtain \<T> where "simplicial_complex \<T>"
              and dia\<T>: "\<And>K. K \<in> \<T> \<Longrightarrow> diameter K < e"
              and "\<Union>\<T> = \<Union>\<M>"

@@ -2,19 +2,19 @@
     Ported from "hol_light/Multivariate/complexes.ml" by L C Paulson
 *)
 
-section \<open>polynomial functions: extremal behaviour and root counts\<close>
+section%important \<open>polynomial functions: extremal behaviour and root counts\<close>
 
 theory Poly_Roots
 imports Complex_Main
 begin
 
-subsection\<open>Basics about polynomial functions: extremal behaviour and root counts\<close>
+subsection%important\<open>Basics about polynomial functions: extremal behaviour and root counts\<close>
 
-lemma sub_polyfun:
+lemma%important sub_polyfun:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
            (x - y) * (\<Sum>j<n. \<Sum>k= Suc j..n. a k * y^(k - Suc j) * x^j)"
-proof -
+proof%unimportant -
   have "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
         (\<Sum>i\<le>n. a i * (x^i - y^i))"
     by (simp add: algebra_simps sum_subtractf [symmetric])
@@ -27,7 +27,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma sub_polyfun_alt:
+lemma%unimportant sub_polyfun_alt:
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
            (x - y) * (\<Sum>j<n. \<Sum>k<n-j. a (j+k+1) * y^k * x^j)"
@@ -40,7 +40,7 @@ proof -
     by (simp add: sub_polyfun)
 qed
 
-lemma polyfun_linear_factor:
+lemma%unimportant polyfun_linear_factor:
   fixes a :: "'a::{comm_ring,monoid_mult}"
   shows  "\<exists>b. \<forall>z. (\<Sum>i\<le>n. c i * z^i) =
                   (z-a) * (\<Sum>i<n. b i * z^i) + (\<Sum>i\<le>n. c i * a^i)"
@@ -57,21 +57,21 @@ proof -
     by (intro exI allI)
 qed
 
-lemma polyfun_linear_factor_root:
+lemma%important polyfun_linear_factor_root:
   fixes a :: "'a::{comm_ring,monoid_mult}"
   assumes "(\<Sum>i\<le>n. c i * a^i) = 0"
   shows  "\<exists>b. \<forall>z. (\<Sum>i\<le>n. c i * z^i) = (z-a) * (\<Sum>i<n. b i * z^i)"
-  using polyfun_linear_factor [of c n a] assms
-  by simp
+  using%unimportant polyfun_linear_factor [of c n a] assms
+  by%unimportant simp
 
-lemma adhoc_norm_triangle: "a + norm(y) \<le> b ==> norm(x) \<le> a ==> norm(x + y) \<le> b"
+lemma%unimportant adhoc_norm_triangle: "a + norm(y) \<le> b ==> norm(x) \<le> a ==> norm(x + y) \<le> b"
   by (metis norm_triangle_mono order.trans order_refl)
 
-lemma polyfun_extremal_lemma:
+lemma%important polyfun_extremal_lemma:
   fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
   assumes "e > 0"
     shows "\<exists>M. \<forall>z. M \<le> norm z \<longrightarrow> norm(\<Sum>i\<le>n. c i * z^i) \<le> e * norm(z) ^ Suc n"
-proof (induction n)
+proof%unimportant (induction n)
   case 0
   show ?case
     by (rule exI [where x="norm (c 0) / e"]) (auto simp: mult.commute pos_divide_le_eq assms)
@@ -102,7 +102,7 @@ next
     qed
 qed
 
-lemma norm_lemma_xy: assumes "\<bar>b\<bar> + 1 \<le> norm(y) - a" "norm(x) \<le> a" shows "b \<le> norm(x + y)"
+lemma%unimportant norm_lemma_xy: assumes "\<bar>b\<bar> + 1 \<le> norm(y) - a" "norm(x) \<le> a" shows "b \<le> norm(x + y)"
 proof -
   have "b \<le> norm y - norm x"
     using assms by linarith
@@ -110,12 +110,12 @@ proof -
     by (metis (no_types) add.commute norm_diff_ineq order_trans)
 qed
 
-lemma polyfun_extremal:
+lemma%important polyfun_extremal:
   fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
   assumes "\<exists>k. k \<noteq> 0 \<and> k \<le> n \<and> c k \<noteq> 0"
     shows "eventually (\<lambda>z. norm(\<Sum>i\<le>n. c i * z^i) \<ge> B) at_infinity"
 using assms
-proof (induction n)
+proof%unimportant (induction n)
   case 0 then show ?case
     by simp
 next
@@ -149,12 +149,12 @@ next
   qed
 qed
 
-lemma polyfun_rootbound:
+lemma%important polyfun_rootbound:
  fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
  assumes "\<exists>k. k \<le> n \<and> c k \<noteq> 0"
    shows "finite {z. (\<Sum>i\<le>n. c i * z^i) = 0} \<and> card {z. (\<Sum>i\<le>n. c i * z^i) = 0} \<le> n"
 using assms
-proof (induction n arbitrary: c)
+proof%unimportant (induction n arbitrary: c)
  case (Suc n) show ?case
  proof (cases "{z. (\<Sum>i\<le>Suc n. c i * z^i) = 0} = {}")
    case False
@@ -182,17 +182,17 @@ proof (induction n arbitrary: c)
    qed simp
 qed simp
 
-corollary
+corollary%important (*FIX ME needs name *)
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
   assumes "\<exists>k. k \<le> n \<and> c k \<noteq> 0"
     shows polyfun_rootbound_finite: "finite {z. (\<Sum>i\<le>n. c i * z^i) = 0}"
       and polyfun_rootbound_card:   "card {z. (\<Sum>i\<le>n. c i * z^i) = 0} \<le> n"
 using polyfun_rootbound [OF assms] by auto
 
-lemma polyfun_finite_roots:
+lemma%important polyfun_finite_roots:
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
     shows  "finite {z. (\<Sum>i\<le>n. c i * z^i) = 0} \<longleftrightarrow> (\<exists>k. k \<le> n \<and> c k \<noteq> 0)"
-proof (cases " \<exists>k\<le>n. c k \<noteq> 0")
+proof%unimportant (cases " \<exists>k\<le>n. c k \<noteq> 0")
   case True then show ?thesis
     by (blast intro: polyfun_rootbound_finite)
 next
@@ -200,7 +200,7 @@ next
     by (auto simp: infinite_UNIV_char_0)
 qed
 
-lemma polyfun_eq_0:
+lemma%unimportant polyfun_eq_0:
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
     shows  "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = 0) \<longleftrightarrow> (\<forall>k. k \<le> n \<longrightarrow> c k = 0)"
 proof (cases "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = 0)")
@@ -215,10 +215,10 @@ next
     by auto
 qed
 
-lemma polyfun_eq_const:
+lemma%important polyfun_eq_const:
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
     shows  "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = k) \<longleftrightarrow> c 0 = k \<and> (\<forall>k. k \<noteq> 0 \<and> k \<le> n \<longrightarrow> c k = 0)"
-proof -
+proof%unimportant -
   {fix z
     have "(\<Sum>i\<le>n. c i * z^i) = (\<Sum>i\<le>n. (if i = 0 then c 0 - k else c i) * z^i) + k"
       by (induct n) auto

@@ -10,40 +10,40 @@ imports
   "HOL-Library.Permutations"
 begin
 
-subsection \<open>Trace\<close>
+subsection%important  \<open>Trace\<close>
 
-definition trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
+definition%important  trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
   where "trace A = sum (\<lambda>i. ((A$i)$i)) (UNIV::'n set)"
 
-lemma trace_0: "trace (mat 0) = 0"
+lemma%unimportant  trace_0: "trace (mat 0) = 0"
   by (simp add: trace_def mat_def)
 
-lemma trace_I: "trace (mat 1 :: 'a::semiring_1^'n^'n) = of_nat(CARD('n))"
+lemma%unimportant  trace_I: "trace (mat 1 :: 'a::semiring_1^'n^'n) = of_nat(CARD('n))"
   by (simp add: trace_def mat_def)
 
-lemma trace_add: "trace ((A::'a::comm_semiring_1^'n^'n) + B) = trace A + trace B"
+lemma%unimportant  trace_add: "trace ((A::'a::comm_semiring_1^'n^'n) + B) = trace A + trace B"
   by (simp add: trace_def sum.distrib)
 
-lemma trace_sub: "trace ((A::'a::comm_ring_1^'n^'n) - B) = trace A - trace B"
+lemma%unimportant  trace_sub: "trace ((A::'a::comm_ring_1^'n^'n) - B) = trace A - trace B"
   by (simp add: trace_def sum_subtractf)
 
-lemma trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A)"
+lemma%important  trace_mul_sym: "trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A)"
   apply (simp add: trace_def matrix_matrix_mult_def)
   apply (subst sum.swap)
   apply (simp add: mult.commute)
   done
 
-subsubsection \<open>Definition of determinant\<close>
+subsubsection%important  \<open>Definition of determinant\<close>
 
-definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
+definition%important  det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
   "det A =
     sum (\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set))
       {p. p permutes (UNIV :: 'n set)}"
 
 text \<open>Basic determinant properties\<close>
 
-lemma det_transpose [simp]: "det (transpose A) = det (A::'a::comm_ring_1 ^'n^'n)"
-proof -
+lemma%important  det_transpose [simp]: "det (transpose A) = det (A::'a::comm_ring_1 ^'n^'n)"
+proof%unimportant -
   let ?di = "\<lambda>A i j. A$i$j"
   let ?U = "(UNIV :: 'n set)"
   have fU: "finite ?U" by simp
@@ -80,7 +80,7 @@ proof -
     by (subst sum_permutations_inverse) (blast intro: sum.cong)
 qed
 
-lemma det_lowerdiagonal:
+lemma%unimportant  det_lowerdiagonal:
   fixes A :: "'a::comm_ring_1^('n::{finite,wellorder})^('n::{finite,wellorder})"
   assumes ld: "\<And>i j. i < j \<Longrightarrow> A$i$j = 0"
   shows "det A = prod (\<lambda>i. A$i$i) (UNIV:: 'n set)"
@@ -107,11 +107,11 @@ proof -
     unfolding det_def by (simp add: sign_id)
 qed
 
-lemma det_upperdiagonal:
+lemma%important  det_upperdiagonal:
   fixes A :: "'a::comm_ring_1^'n::{finite,wellorder}^'n::{finite,wellorder}"
   assumes ld: "\<And>i j. i > j \<Longrightarrow> A$i$j = 0"
   shows "det A = prod (\<lambda>i. A$i$i) (UNIV:: 'n set)"
-proof -
+proof%unimportant -
   let ?U = "UNIV:: 'n set"
   let ?PU = "{p. p permutes ?U}"
   let ?pp = "(\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set))"
@@ -134,11 +134,11 @@ proof -
     unfolding det_def by (simp add: sign_id)
 qed
 
-lemma det_diagonal:
+lemma%important  det_diagonal:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes ld: "\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0"
   shows "det A = prod (\<lambda>i. A$i$i) (UNIV::'n set)"
-proof -
+proof%unimportant -
   let ?U = "UNIV:: 'n set"
   let ?PU = "{p. p permutes ?U}"
   let ?pp = "\<lambda>p. of_int (sign p) * prod (\<lambda>i. A$i$p i) (UNIV :: 'n set)"
@@ -161,13 +161,13 @@ proof -
     unfolding det_def by (simp add: sign_id)
 qed
 
-lemma det_I [simp]: "det (mat 1 :: 'a::comm_ring_1^'n^'n) = 1"
+lemma%unimportant  det_I [simp]: "det (mat 1 :: 'a::comm_ring_1^'n^'n) = 1"
   by (simp add: det_diagonal mat_def)
 
-lemma det_0 [simp]: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
+lemma%unimportant  det_0 [simp]: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
   by (simp add: det_def prod_zero power_0_left)
 
-lemma det_permute_rows:
+lemma%unimportant  det_permute_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes p: "p permutes (UNIV :: 'n::finite set)"
   shows "det (\<chi> i. A$p i :: 'a^'n^'n) = of_int (sign p) * det A"
@@ -204,11 +204,11 @@ proof -
     done
 qed
 
-lemma det_permute_columns:
+lemma%important  det_permute_columns:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes p: "p permutes (UNIV :: 'n set)"
   shows "det(\<chi> i j. A$i$ p j :: 'a^'n^'n) = of_int (sign p) * det A"
-proof -
+proof%unimportant -
   let ?Ap = "\<chi> i j. A$i$ p j :: 'a^'n^'n"
   let ?At = "transpose A"
   have "of_int (sign p) * det A = det (transpose (\<chi> i. transpose A $ p i))"
@@ -220,7 +220,7 @@ proof -
     by simp
 qed
 
-lemma det_identical_columns:
+lemma%unimportant  det_identical_columns:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes jk: "j \<noteq> k"
     and r: "column j A = column k A"
@@ -300,24 +300,24 @@ proof -
   finally show "det A = 0" by simp
 qed
 
-lemma det_identical_rows:
+lemma%unimportant  det_identical_rows:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes ij: "i \<noteq> j" and r: "row i A = row j A"
   shows "det A = 0"
   by (metis column_transpose det_identical_columns det_transpose ij r)
 
-lemma det_zero_row:
+lemma%unimportant  det_zero_row:
   fixes A :: "'a::{idom, ring_char_0}^'n^'n" and F :: "'b::{field}^'m^'m"
   shows "row i A = 0 \<Longrightarrow> det A = 0" and "row j F = 0 \<Longrightarrow> det F = 0"
   by (force simp: row_def det_def vec_eq_iff sign_nz intro!: sum.neutral)+
 
-lemma det_zero_column:
+lemma%unimportant  det_zero_column:
   fixes A :: "'a::{idom, ring_char_0}^'n^'n" and F :: "'b::{field}^'m^'m"
   shows "column i A = 0 \<Longrightarrow> det A = 0" and "column j F = 0 \<Longrightarrow> det F = 0"
   unfolding atomize_conj atomize_imp
   by (metis det_transpose det_zero_row row_transpose)
 
-lemma det_row_add:
+lemma%unimportant  det_row_add:
   fixes a b c :: "'n::finite \<Rightarrow> _ ^ 'n"
   shows "det((\<chi> i. if i = k then a i + b i else c i)::'a::comm_ring_1^'n^'n) =
     det((\<chi> i. if i = k then a i else c i)::'a::comm_ring_1^'n^'n) +
@@ -358,7 +358,7 @@ proof (rule sum.cong)
     by (simp add: field_simps)
 qed auto
 
-lemma det_row_mul:
+lemma%unimportant  det_row_mul:
   fixes a b :: "'n::finite \<Rightarrow> _ ^ 'n"
   shows "det((\<chi> i. if i = k then c *s a i else b i)::'a::comm_ring_1^'n^'n) =
     c * det((\<chi> i. if i = k then a i else b i)::'a::comm_ring_1^'n^'n)"
@@ -395,7 +395,7 @@ proof (rule sum.cong)
     by (simp add: field_simps)
 qed auto
 
-lemma det_row_0:
+lemma%unimportant  det_row_0:
   fixes b :: "'n::finite \<Rightarrow> _ ^ 'n"
   shows "det((\<chi> i. if i = k then 0 else b i)::'a::comm_ring_1^'n^'n) = 0"
   using det_row_mul[of k 0 "\<lambda>i. 1" b]
@@ -403,11 +403,11 @@ lemma det_row_0:
   apply (simp only: vector_smult_lzero)
   done
 
-lemma det_row_operation:
+lemma%important  det_row_operation:
   fixes A :: "'a::{comm_ring_1}^'n^'n"
   assumes ij: "i \<noteq> j"
   shows "det (\<chi> k. if k = i then row i A + c *s row j A else row k A) = det A"
-proof -
+proof%unimportant -
   let ?Z = "(\<chi> k. if k = i then row j A else row k A) :: 'a ^'n^'n"
   have th: "row i ?Z = row j ?Z" by (vector row_def)
   have th2: "((\<chi> k. if k = i then row i A else row k A) :: 'a^'n^'n) = A"
@@ -417,7 +417,7 @@ proof -
     by simp
 qed
 
-lemma det_row_span:
+lemma%unimportant  det_row_span:
   fixes A :: "'a::{field}^'n^'n"
   assumes x: "x \<in> vec.span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
@@ -449,10 +449,10 @@ next
     unfolding scalar_mult_eq_scaleR .
 qed
 
-lemma matrix_id [simp]: "det (matrix id) = 1"
+lemma%unimportant  matrix_id [simp]: "det (matrix id) = 1"
   by (simp add: matrix_id_mat_1)
 
-lemma det_matrix_scaleR [simp]: "det (matrix ((( *\<^sub>R) r)) :: real^'n^'n) = r ^ CARD('n::finite)"
+lemma%important  det_matrix_scaleR [simp]: "det (matrix ((( *\<^sub>R) r)) :: real^'n^'n) = r ^ CARD('n::finite)"
   apply (subst det_diagonal)
    apply (auto simp: matrix_def mat_def)
   apply (simp add: cart_eq_inner_axis inner_axis_axis)
@@ -463,7 +463,7 @@ text \<open>
   exact duplicates by considering the rows/columns as a set.
 \<close>
 
-lemma det_dependent_rows:
+lemma%unimportant  det_dependent_rows:
   fixes A:: "'a::{field}^'n^'n"
   assumes d: "vec.dependent (rows A)"
   shows "det A = 0"
@@ -491,23 +491,23 @@ proof -
   qed
 qed
 
-lemma det_dependent_columns:
+lemma%unimportant  det_dependent_columns:
   assumes d: "vec.dependent (columns (A::real^'n^'n))"
   shows "det A = 0"
   by (metis d det_dependent_rows rows_transpose det_transpose)
 
 text \<open>Multilinearity and the multiplication formula\<close>
 
-lemma Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (vec_lambda f::'a^'n) = (vec_lambda g :: 'a^'n)"
+lemma%unimportant  Cart_lambda_cong: "(\<And>x. f x = g x) \<Longrightarrow> (vec_lambda f::'a^'n) = (vec_lambda g :: 'a^'n)"
   by auto
 
-lemma det_linear_row_sum:
+lemma%unimportant  det_linear_row_sum:
   assumes fS: "finite S"
   shows "det ((\<chi> i. if i = k then sum (a i) S else c i)::'a::comm_ring_1^'n^'n) =
     sum (\<lambda>j. det ((\<chi> i. if i = k then a  i j else c i)::'a^'n^'n)) S"
   using fS  by (induct rule: finite_induct; simp add: det_row_0 det_row_add cong: if_cong)
 
-lemma finite_bounded_functions:
+lemma%unimportant  finite_bounded_functions:
   assumes fS: "finite S"
   shows "finite {f. (\<forall>i \<in> {1.. (k::nat)}. f i \<in> S) \<and> (\<forall>i. i \<notin> {1 .. k} \<longrightarrow> f i = i)}"
 proof (induct k)
@@ -532,14 +532,14 @@ next
 qed
 
 
-lemma det_linear_rows_sum_lemma:
+lemma%important  det_linear_rows_sum_lemma:
   assumes fS: "finite S"
     and fT: "finite T"
   shows "det ((\<chi> i. if i \<in> T then sum (a i) S else c i):: 'a::comm_ring_1^'n^'n) =
     sum (\<lambda>f. det((\<chi> i. if i \<in> T then a i (f i) else c i)::'a^'n^'n))
       {f. (\<forall>i \<in> T. f i \<in> S) \<and> (\<forall>i. i \<notin> T \<longrightarrow> f i = i)}"
   using fT
-proof (induct T arbitrary: a c set: finite)
+proof%unimportant (induct T arbitrary: a c set: finite)
   case empty
   have th0: "\<And>x y. (\<chi> i. if i \<in> {} then x i else y i) = (\<chi> i. y i)"
     by vector
@@ -577,7 +577,7 @@ next
        (auto intro!: cong[OF refl[of det]] simp: vec_eq_iff)
 qed
 
-lemma det_linear_rows_sum:
+lemma%unimportant  det_linear_rows_sum:
   fixes S :: "'n::finite set"
   assumes fS: "finite S"
   shows "det (\<chi> i. sum (a i) S) =
@@ -589,12 +589,12 @@ proof -
   show ?thesis by simp
 qed
 
-lemma matrix_mul_sum_alt:
+lemma%unimportant  matrix_mul_sum_alt:
   fixes A B :: "'a::comm_ring_1^'n^'n"
   shows "A ** B = (\<chi> i. sum (\<lambda>k. A$i$k *s B $ k) (UNIV :: 'n set))"
   by (vector matrix_matrix_mult_def sum_component)
 
-lemma det_rows_mul:
+lemma%unimportant  det_rows_mul:
   "det((\<chi> i. c i *s a i)::'a::comm_ring_1^'n^'n) =
     prod (\<lambda>i. c i) (UNIV:: 'n set) * det((\<chi> i. a i)::'a^'n^'n)"
 proof (simp add: det_def sum_distrib_left cong add: prod.cong, rule sum.cong)
@@ -612,10 +612,10 @@ proof (simp add: det_def sum_distrib_left cong add: prod.cong, rule sum.cong)
     by (simp add: field_simps)
 qed rule
 
-lemma det_mul:
+lemma%important  det_mul:
   fixes A B :: "'a::comm_ring_1^'n^'n"
   shows "det (A ** B) = det A * det B"
-proof -
+proof%unimportant -
   let ?U = "UNIV :: 'n set"
   let ?F = "{f. (\<forall>i \<in> ?U. f i \<in> ?U) \<and> (\<forall>i. i \<notin> ?U \<longrightarrow> f i = i)}"
   let ?PU = "{p. p permutes ?U}"
@@ -712,12 +712,12 @@ proof -
 qed
 
 
-subsection \<open>Relation to invertibility\<close>
+subsection%important \<open>Relation to invertibility\<close>
 
-lemma invertible_det_nz:
+lemma%important  invertible_det_nz:
   fixes A::"'a::{field}^'n^'n"
   shows "invertible A \<longleftrightarrow> det A \<noteq> 0"
-proof (cases "invertible A")
+proof%unimportant (cases "invertible A")
   case True
   then obtain B :: "'a^'n^'n" where B: "A ** B = mat 1"
     unfolding invertible_right_inverse by blast
@@ -748,7 +748,7 @@ next
 qed
 
 
-lemma det_nz_iff_inj_gen:
+lemma%unimportant  det_nz_iff_inj_gen:
   fixes f :: "'a::field^'n \<Rightarrow> 'a::field^'n"
   assumes "Vector_Spaces.linear ( *s) ( *s) f"
   shows "det (matrix f) \<noteq> 0 \<longleftrightarrow> inj f"
@@ -763,26 +763,26 @@ next
     by (metis assms invertible_det_nz invertible_left_inverse matrix_compose_gen matrix_id_mat_1)
 qed
 
-lemma det_nz_iff_inj:
+lemma%unimportant  det_nz_iff_inj:
   fixes f :: "real^'n \<Rightarrow> real^'n"
   assumes "linear f"
   shows "det (matrix f) \<noteq> 0 \<longleftrightarrow> inj f"
   using det_nz_iff_inj_gen[of f] assms
   unfolding linear_matrix_vector_mul_eq .
 
-lemma det_eq_0_rank:
+lemma%unimportant  det_eq_0_rank:
   fixes A :: "real^'n^'n"
   shows "det A = 0 \<longleftrightarrow> rank A < CARD('n)"
   using invertible_det_nz [of A]
   by (auto simp: matrix_left_invertible_injective invertible_left_inverse less_rank_noninjective)
 
-subsubsection\<open>Invertibility of matrices and corresponding linear functions\<close>
+subsubsection%important  \<open>Invertibility of matrices and corresponding linear functions\<close>
 
-lemma matrix_left_invertible_gen:
+lemma%important  matrix_left_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a::field^'n"
   assumes "Vector_Spaces.linear ( *s) ( *s) f"
   shows "((\<exists>B. B ** matrix f = mat 1) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> g \<circ> f = id))"
-proof safe
+proof%unimportant safe
   fix B
   assume 1: "B ** matrix f = mat 1"
   show "\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> g \<circ> f = id"
@@ -801,12 +801,12 @@ next
   then show "\<exists>B. B ** matrix f = mat 1" ..
 qed
 
-lemma matrix_left_invertible:
+lemma%unimportant  matrix_left_invertible:
   "linear f \<Longrightarrow> ((\<exists>B. B ** matrix f = mat 1) \<longleftrightarrow> (\<exists>g. linear g \<and> g \<circ> f = id))" for f::"real^'m \<Rightarrow> real^'n"
   using matrix_left_invertible_gen[of f]
   by (auto simp: linear_matrix_vector_mul_eq)
 
-lemma matrix_right_invertible_gen:
+lemma%unimportant  matrix_right_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a^'n"
   assumes "Vector_Spaces.linear ( *s) ( *s) f"
   shows "((\<exists>B. matrix f ** B = mat 1) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> f \<circ> g = id))"
@@ -829,12 +829,12 @@ next
   then show "\<exists>B. matrix f ** B = mat 1" ..
 qed
 
-lemma matrix_right_invertible:
+lemma%unimportant  matrix_right_invertible:
   "linear f \<Longrightarrow> ((\<exists>B. matrix f ** B = mat 1) \<longleftrightarrow> (\<exists>g. linear g \<and> f \<circ> g = id))" for f::"real^'m \<Rightarrow> real^'n"
   using matrix_right_invertible_gen[of f]
   by (auto simp: linear_matrix_vector_mul_eq)
 
-lemma matrix_invertible_gen:
+lemma%unimportant  matrix_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a::field^'n"
   assumes "Vector_Spaces.linear ( *s) ( *s) f"
   shows  "invertible (matrix f) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> f \<circ> g = id \<and> g \<circ> f = id)"
@@ -847,13 +847,13 @@ next
     by (metis assms invertible_def matrix_compose_gen matrix_id_mat_1)
 qed
 
-lemma matrix_invertible:
+lemma%unimportant  matrix_invertible:
   "linear f \<Longrightarrow> invertible (matrix f) \<longleftrightarrow> (\<exists>g. linear g \<and> f \<circ> g = id \<and> g \<circ> f = id)"
   for f::"real^'m \<Rightarrow> real^'n"
   using matrix_invertible_gen[of f]
   by (auto simp: linear_matrix_vector_mul_eq)
 
-lemma invertible_eq_bij:
+lemma%unimportant  invertible_eq_bij:
   fixes m :: "'a::field^'m^'n"
   shows "invertible m \<longleftrightarrow> bij (( *v) m)"
   using matrix_invertible_gen[OF matrix_vector_mul_linear_gen, of m, simplified matrix_of_matrix_vector_mul]
@@ -861,15 +861,15 @@ lemma invertible_eq_bij:
       vec.linear_injective_left_inverse vec.linear_surjective_right_inverse)
 
 
-subsection \<open>Cramer's rule\<close>
+subsection%important \<open>Cramer's rule\<close>
 
-lemma cramer_lemma_transpose:
+lemma%important  cramer_lemma_transpose:
   fixes A:: "'a::{field}^'n^'n"
     and x :: "'a::{field}^'n"
   shows "det ((\<chi> i. if i = k then sum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
                              else row i A)::'a::{field}^'n^'n) = x$k * det A"
   (is "?lhs = ?rhs")
-proof -
+proof%unimportant -
   let ?U = "UNIV :: 'n set"
   let ?Uk = "?U - {k}"
   have U: "?U = insert k ?Uk"
@@ -899,10 +899,10 @@ proof -
     done
 qed
 
-lemma cramer_lemma:
+lemma%important  cramer_lemma:
   fixes A :: "'a::{field}^'n^'n"
   shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: 'a::{field}^'n^'n) = x$k * det A"
-proof -
+proof%unimportant -
   let ?U = "UNIV :: 'n set"
   have *: "\<And>c. sum (\<lambda>i. c i *s row i (transpose A)) ?U = sum (\<lambda>i. c i *s column i A) ?U"
     by (auto intro: sum.cong)
@@ -916,11 +916,11 @@ proof -
     done
 qed
 
-lemma cramer:
+lemma%important  cramer:
   fixes A ::"'a::{field}^'n^'n"
   assumes d0: "det A \<noteq> 0"
   shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
-proof -
+proof%unimportant -
   from d0 obtain B where B: "A ** B = mat 1" "B ** A = mat 1"
     unfolding invertible_det_nz[symmetric] invertible_def
     by blast
@@ -941,14 +941,14 @@ proof -
     by auto
 qed
 
-subsection \<open>Orthogonality of a transformation and matrix\<close>
+subsection%important  \<open>Orthogonality of a transformation and matrix\<close>
 
-definition "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
+definition%important  "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v w. f v \<bullet> f w = v \<bullet> w)"
 
-definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
+definition%important  "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow>
   transpose Q ** Q = mat 1 \<and> Q ** transpose Q = mat 1"
 
-lemma orthogonal_transformation:
+lemma%unimportant  orthogonal_transformation:
   "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>v. norm (f v) = norm v)"
   unfolding orthogonal_transformation_def
   apply auto
@@ -957,70 +957,70 @@ lemma orthogonal_transformation:
   apply (simp add: dot_norm linear_add[symmetric])
   done
 
-lemma orthogonal_transformation_id [simp]: "orthogonal_transformation (\<lambda>x. x)"
+lemma%unimportant  orthogonal_transformation_id [simp]: "orthogonal_transformation (\<lambda>x. x)"
   by (simp add: linear_iff orthogonal_transformation_def)
 
-lemma orthogonal_orthogonal_transformation:
+lemma%unimportant  orthogonal_orthogonal_transformation:
     "orthogonal_transformation f \<Longrightarrow> orthogonal (f x) (f y) \<longleftrightarrow> orthogonal x y"
   by (simp add: orthogonal_def orthogonal_transformation_def)
 
-lemma orthogonal_transformation_compose:
+lemma%unimportant  orthogonal_transformation_compose:
    "\<lbrakk>orthogonal_transformation f; orthogonal_transformation g\<rbrakk> \<Longrightarrow> orthogonal_transformation(f \<circ> g)"
   by (auto simp: orthogonal_transformation_def linear_compose)
 
-lemma orthogonal_transformation_neg:
+lemma%unimportant  orthogonal_transformation_neg:
   "orthogonal_transformation(\<lambda>x. -(f x)) \<longleftrightarrow> orthogonal_transformation f"
   by (auto simp: orthogonal_transformation_def dest: linear_compose_neg)
 
-lemma orthogonal_transformation_scaleR: "orthogonal_transformation f \<Longrightarrow> f (c *\<^sub>R v) = c *\<^sub>R f v"
+lemma%unimportant  orthogonal_transformation_scaleR: "orthogonal_transformation f \<Longrightarrow> f (c *\<^sub>R v) = c *\<^sub>R f v"
   by (simp add: linear_iff orthogonal_transformation_def)
 
-lemma orthogonal_transformation_linear:
+lemma%unimportant  orthogonal_transformation_linear:
    "orthogonal_transformation f \<Longrightarrow> linear f"
   by (simp add: orthogonal_transformation_def)
 
-lemma orthogonal_transformation_inj:
+lemma%unimportant  orthogonal_transformation_inj:
   "orthogonal_transformation f \<Longrightarrow> inj f"
   unfolding orthogonal_transformation_def inj_on_def
   by (metis vector_eq)
 
-lemma orthogonal_transformation_surj:
+lemma%unimportant  orthogonal_transformation_surj:
   "orthogonal_transformation f \<Longrightarrow> surj f"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (simp add: linear_injective_imp_surjective orthogonal_transformation_inj orthogonal_transformation_linear)
 
-lemma orthogonal_transformation_bij:
+lemma%unimportant  orthogonal_transformation_bij:
   "orthogonal_transformation f \<Longrightarrow> bij f"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (simp add: bij_def orthogonal_transformation_inj orthogonal_transformation_surj)
 
-lemma orthogonal_transformation_inv:
+lemma%unimportant  orthogonal_transformation_inv:
   "orthogonal_transformation f \<Longrightarrow> orthogonal_transformation (inv f)"
   for f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   by (metis (no_types, hide_lams) bijection.inv_right bijection_def inj_linear_imp_inv_linear orthogonal_transformation orthogonal_transformation_bij orthogonal_transformation_inj)
 
-lemma orthogonal_transformation_norm:
+lemma%unimportant  orthogonal_transformation_norm:
   "orthogonal_transformation f \<Longrightarrow> norm (f x) = norm x"
   by (metis orthogonal_transformation)
 
-lemma orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n) \<longleftrightarrow> transpose Q ** Q = mat 1"
+lemma%unimportant  orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n) \<longleftrightarrow> transpose Q ** Q = mat 1"
   by (metis matrix_left_right_inverse orthogonal_matrix_def)
 
-lemma orthogonal_matrix_id: "orthogonal_matrix (mat 1 :: _^'n^'n)"
+lemma%unimportant  orthogonal_matrix_id: "orthogonal_matrix (mat 1 :: _^'n^'n)"
   by (simp add: orthogonal_matrix_def)
 
-lemma orthogonal_matrix_mul:
+lemma%unimportant  orthogonal_matrix_mul:
   fixes A :: "real ^'n^'n"
   assumes  "orthogonal_matrix A" "orthogonal_matrix B"
   shows "orthogonal_matrix(A ** B)"
   using assms
   by (simp add: orthogonal_matrix matrix_transpose_mul matrix_left_right_inverse matrix_mul_assoc)
 
-lemma orthogonal_transformation_matrix:
+lemma%important  orthogonal_transformation_matrix:
   fixes f:: "real^'n \<Rightarrow> real^'n"
   shows "orthogonal_transformation f \<longleftrightarrow> linear f \<and> orthogonal_matrix(matrix f)"
   (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
+proof%unimportant -
   let ?mf = "matrix f"
   let ?ot = "orthogonal_transformation f"
   let ?U = "UNIV :: 'n set"
@@ -1063,11 +1063,11 @@ proof -
     by (auto simp: linear_def scalar_mult_eq_scaleR)
 qed
 
-lemma det_orthogonal_matrix:
+lemma%important  det_orthogonal_matrix:
   fixes Q:: "'a::linordered_idom^'n^'n"
   assumes oQ: "orthogonal_matrix Q"
   shows "det Q = 1 \<or> det Q = - 1"
-proof -
+proof%unimportant -
   have "Q ** transpose Q = mat 1"
     by (metis oQ orthogonal_matrix_def)
   then have "det (Q ** transpose Q) = det (mat 1:: 'a^'n^'n)"
@@ -1078,20 +1078,20 @@ proof -
     by (simp add: square_eq_1_iff)
 qed
 
-lemma orthogonal_transformation_det [simp]:
+lemma%important  orthogonal_transformation_det [simp]:
   fixes f :: "real^'n \<Rightarrow> real^'n"
   shows "orthogonal_transformation f \<Longrightarrow> \<bar>det (matrix f)\<bar> = 1"
-  using det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
+  using%unimportant det_orthogonal_matrix orthogonal_transformation_matrix by fastforce
 
 
-subsection \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
+subsection%important  \<open>Linearity of scaling, and hence isometry, that preserves origin\<close>
 
-lemma scaling_linear:
+lemma%important  scaling_linear:
   fixes f :: "'a::real_inner \<Rightarrow> 'a::real_inner"
   assumes f0: "f 0 = 0"
     and fd: "\<forall>x y. dist (f x) (f y) = c * dist x y"
   shows "linear f"
-proof -
+proof%unimportant -
   {
     fix v w
     have "norm (f x) = c * norm x" for x
@@ -1105,13 +1105,13 @@ proof -
     by (simp add: inner_add field_simps)
 qed
 
-lemma isometry_linear:
+lemma%unimportant  isometry_linear:
   "f (0::'a::real_inner) = (0::'a) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y \<Longrightarrow> linear f"
   by (rule scaling_linear[where c=1]) simp_all
 
 text \<open>Hence another formulation of orthogonal transformation\<close>
 
-lemma orthogonal_transformation_isometry:
+lemma%important  orthogonal_transformation_isometry:
   "orthogonal_transformation f \<longleftrightarrow> f(0::'a::real_inner) = (0::'a) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
   unfolding orthogonal_transformation
   apply (auto simp: linear_0 isometry_linear)
@@ -1119,7 +1119,7 @@ lemma orthogonal_transformation_isometry:
   by (metis dist_0_norm)
 
 
-lemma image_orthogonal_transformation_ball:
+lemma%unimportant  image_orthogonal_transformation_ball:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
   assumes "orthogonal_transformation f"
   shows "f ` ball x r = ball (f x) r"
@@ -1135,7 +1135,7 @@ next
     by (auto simp: orthogonal_transformation_isometry)
 qed
 
-lemma image_orthogonal_transformation_cball:
+lemma%unimportant  image_orthogonal_transformation_cball:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
   assumes "orthogonal_transformation f"
   shows "f ` cball x r = cball (f x) r"
@@ -1151,31 +1151,31 @@ next
     by (auto simp: orthogonal_transformation_isometry)
 qed
 
-subsection\<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
+subsection%important \<open> We can find an orthogonal matrix taking any unit vector to any other\<close>
 
-lemma orthogonal_matrix_transpose [simp]:
+lemma%unimportant  orthogonal_matrix_transpose [simp]:
      "orthogonal_matrix(transpose A) \<longleftrightarrow> orthogonal_matrix A"
   by (auto simp: orthogonal_matrix_def)
 
-lemma orthogonal_matrix_orthonormal_columns:
+lemma%unimportant  orthogonal_matrix_orthonormal_columns:
   fixes A :: "real^'n^'n"
   shows "orthogonal_matrix A \<longleftrightarrow>
           (\<forall>i. norm(column i A) = 1) \<and>
           (\<forall>i j. i \<noteq> j \<longrightarrow> orthogonal (column i A) (column j A))"
   by (auto simp: orthogonal_matrix matrix_mult_transpose_dot_column vec_eq_iff mat_def norm_eq_1 orthogonal_def)
 
-lemma orthogonal_matrix_orthonormal_rows:
+lemma%unimportant  orthogonal_matrix_orthonormal_rows:
   fixes A :: "real^'n^'n"
   shows "orthogonal_matrix A \<longleftrightarrow>
           (\<forall>i. norm(row i A) = 1) \<and>
           (\<forall>i j. i \<noteq> j \<longrightarrow> orthogonal (row i A) (row j A))"
   using orthogonal_matrix_orthonormal_columns [of "transpose A"] by simp
 
-lemma orthogonal_matrix_exists_basis:
+lemma%important  orthogonal_matrix_exists_basis:
   fixes a :: "real^'n"
   assumes "norm a = 1"
   obtains A where "orthogonal_matrix A" "A *v (axis k 1) = a"
-proof -
+proof%unimportant -
   obtain S where "a \<in> S" "pairwise orthogonal S" and noS: "\<And>x. x \<in> S \<Longrightarrow> norm x = 1"
    and "independent S" "card S = CARD('n)" "span S = UNIV"
     using vector_in_orthonormal_basis assms by force
@@ -1198,11 +1198,11 @@ proof -
   qed
 qed
 
-lemma orthogonal_transformation_exists_1:
+lemma%unimportant  orthogonal_transformation_exists_1:
   fixes a b :: "real^'n"
   assumes "norm a = 1" "norm b = 1"
   obtains f where "orthogonal_transformation f" "f a = b"
-proof -
+proof%unimportant -
   obtain k::'n where True
     by simp
   obtain A B where AB: "orthogonal_matrix A" "orthogonal_matrix B" and eq: "A *v (axis k 1) = a" "B *v (axis k 1) = b"
@@ -1220,11 +1220,11 @@ proof -
   qed
 qed
 
-lemma orthogonal_transformation_exists:
+lemma%important  orthogonal_transformation_exists:
   fixes a b :: "real^'n"
   assumes "norm a = norm b"
   obtains f where "orthogonal_transformation f" "f a = b"
-proof (cases "a = 0 \<or> b = 0")
+proof%unimportant (cases "a = 0 \<or> b = 0")
   case True
   with assms show ?thesis
     using that by force
@@ -1246,14 +1246,14 @@ next
 qed
 
 
-subsection \<open>Can extend an isometry from unit sphere\<close>
+subsection%important  \<open>Can extend an isometry from unit sphere\<close>
 
-lemma isometry_sphere_extend:
+lemma%important  isometry_sphere_extend:
   fixes f:: "'a::real_inner \<Rightarrow> 'a"
   assumes f1: "\<And>x. norm x = 1 \<Longrightarrow> norm (f x) = 1"
     and fd1: "\<And>x y. \<lbrakk>norm x = 1; norm y = 1\<rbrakk> \<Longrightarrow> dist (f x) (f y) = dist x y"
   shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
-proof -
+proof%unimportant -
   {
     fix x y x' y' u v u' v' :: "'a"
     assume H: "x = norm x *\<^sub>R u" "y = norm y *\<^sub>R v"
@@ -1286,31 +1286,31 @@ proof -
     by (rule exI[where x= ?g]) (metis thfg thd)
 qed
 
-subsection \<open>Rotation, reflection, rotoinversion\<close>
+subsection%important  \<open>Rotation, reflection, rotoinversion\<close>
 
-definition "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
-definition "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
+definition%important  "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
+definition%important  "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
 
-lemma orthogonal_rotation_or_rotoinversion:
+lemma%important  orthogonal_rotation_or_rotoinversion:
   fixes Q :: "'a::linordered_idom^'n^'n"
   shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
-  by (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
+  by%unimportant (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
 
 text \<open>Explicit formulas for low dimensions\<close>
 
-lemma prod_neutral_const: "prod f {(1::nat)..1} = f 1"
+lemma%unimportant  prod_neutral_const: "prod f {(1::nat)..1} = f 1"
   by simp
 
-lemma prod_2: "prod f {(1::nat)..2} = f 1 * f 2"
+lemma%unimportant  prod_2: "prod f {(1::nat)..2} = f 1 * f 2"
   by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
-lemma prod_3: "prod f {(1::nat)..3} = f 1 * f 2 * f 3"
+lemma%unimportant  prod_3: "prod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
-lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
+lemma%unimportant  det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
   by (simp add: det_def sign_id)
 
-lemma det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
+lemma%unimportant  det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
 proof -
   have f12: "finite {2::2}" "1 \<notin> {2::2}" by auto
   show ?thesis
@@ -1320,7 +1320,7 @@ proof -
     by (simp add: sign_swap_id sign_id swap_id_eq)
 qed
 
-lemma det_3:
+lemma%unimportant  det_3:
   "det (A::'a::comm_ring_1^3^3) =
     A$1$1 * A$2$2 * A$3$3 +
     A$1$2 * A$2$3 * A$3$1 +
@@ -1344,7 +1344,7 @@ qed
 
 text\<open> Slightly stronger results giving rotation, but only in two or more dimensions\<close>
 
-lemma rotation_matrix_exists_basis:
+lemma%unimportant  rotation_matrix_exists_basis:
   fixes a :: "real^'n"
   assumes 2: "2 \<le> CARD('n)" and "norm a = 1"
   obtains A where "rotation_matrix A" "A *v (axis k 1) = a"
@@ -1383,7 +1383,7 @@ proof -
   qed
 qed
 
-lemma rotation_exists_1:
+lemma%unimportant  rotation_exists_1:
   fixes a :: "real^'n"
   assumes "2 \<le> CARD('n)" "norm a = 1" "norm b = 1"
   obtains f where "orthogonal_transformation f" "det(matrix f) = 1" "f a = b"
@@ -1406,7 +1406,7 @@ proof -
   qed
 qed
 
-lemma rotation_exists:
+lemma%unimportant  rotation_exists:
   fixes a :: "real^'n"
   assumes 2: "2 \<le> CARD('n)" and eq: "norm a = norm b"
   obtains f where "orthogonal_transformation f" "det(matrix f) = 1" "f a = b"
@@ -1428,7 +1428,7 @@ next
   with f show thesis ..
 qed
 
-lemma rotation_rightward_line:
+lemma%unimportant  rotation_rightward_line:
   fixes a :: "real^'n"
   obtains f where "orthogonal_transformation f" "2 \<le> CARD('n) \<Longrightarrow> det(matrix f) = 1"
                   "f(norm a *\<^sub>R axis k 1) = a"

@@ -2,29 +2,29 @@
     Authors:    LC Paulson, based on material from HOL Light
 *)
 
-section\<open>Vitali Covering Theorem and an Application to Negligibility\<close>
+section%important  \<open>Vitali Covering Theorem and an Application to Negligibility\<close>
 
 theory Vitali_Covering_Theorem
   imports Ball_Volume "HOL-Library.Permutations"
 
 begin
 
-lemma stretch_Galois:
+lemma%important stretch_Galois:
   fixes x :: "real^'n"
   shows "(\<And>k. m k \<noteq> 0) \<Longrightarrow> ((y = (\<chi> k. m k * x$k)) \<longleftrightarrow> (\<chi> k. y$k / m k) = x)"
-  by auto
+  by%unimportant auto
 
-lemma lambda_swap_Galois:
+lemma%important lambda_swap_Galois:
    "(x = (\<chi> i. y $ Fun.swap m n id i) \<longleftrightarrow> (\<chi> i. x $ Fun.swap m n id i) = y)"
-  by (auto; simp add: pointfree_idE vec_eq_iff)
+  by%unimportant (auto; simp add: pointfree_idE vec_eq_iff)
 
-lemma lambda_add_Galois:
+lemma%important lambda_add_Galois:
   fixes x :: "real^'n"
   shows "m \<noteq> n \<Longrightarrow> (x = (\<chi> i. if i = m then y$m + y$n else y$i) \<longleftrightarrow> (\<chi> i. if i = m then x$m - x$n else x$i) = y)"
-  by (safe; simp add: vec_eq_iff)
+  by%unimportant (safe; simp add: vec_eq_iff)
 
 
-lemma Vitali_covering_lemma_cballs_balls:
+lemma%important Vitali_covering_lemma_cballs_balls:
   fixes a :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes "\<And>i. i \<in> K \<Longrightarrow> 0 < r i \<and> r i \<le> B"
   obtains C where "countable C" "C \<subseteq> K"
@@ -32,7 +32,7 @@ lemma Vitali_covering_lemma_cballs_balls:
      "\<And>i. i \<in> K \<Longrightarrow> \<exists>j. j \<in> C \<and>
                         \<not> disjnt (cball (a i) (r i)) (cball (a j) (r j)) \<and>
                         cball (a i) (r i) \<subseteq> ball (a j) (5 * r j)"
-proof (cases "K = {}")
+proof%unimportant (cases "K = {}")
   case True
   with that show ?thesis
     by auto
@@ -234,16 +234,16 @@ next
   qed
 qed
 
-subsection\<open>Vitali covering theorem\<close>
+subsection%important\<open>Vitali covering theorem\<close>
 
-lemma Vitali_covering_lemma_cballs:
+lemma%unimportant Vitali_covering_lemma_cballs:
   fixes a :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes S: "S \<subseteq> (\<Union>i\<in>K. cball (a i) (r i))"
       and r: "\<And>i. i \<in> K \<Longrightarrow> 0 < r i \<and> r i \<le> B"
   obtains C where "countable C" "C \<subseteq> K"
      "pairwise (\<lambda>i j. disjnt (cball (a i) (r i)) (cball (a j) (r j))) C"
      "S \<subseteq> (\<Union>i\<in>C. cball (a i) (5 * r i))"
-proof -
+proof%unimportant -
   obtain C where C: "countable C" "C \<subseteq> K"
                     "pairwise (\<lambda>i j. disjnt (cball (a i) (r i)) (cball (a j) (r j))) C"
            and cov: "\<And>i. i \<in> K \<Longrightarrow> \<exists>j. j \<in> C \<and> \<not> disjnt (cball (a i) (r i)) (cball (a j) (r j)) \<and>
@@ -258,14 +258,14 @@ proof -
   qed (use C in auto)
 qed
 
-lemma Vitali_covering_lemma_balls:
+lemma%important Vitali_covering_lemma_balls:
   fixes a :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes S: "S \<subseteq> (\<Union>i\<in>K. ball (a i) (r i))"
       and r: "\<And>i. i \<in> K \<Longrightarrow> 0 < r i \<and> r i \<le> B"
   obtains C where "countable C" "C \<subseteq> K"
      "pairwise (\<lambda>i j. disjnt (ball (a i) (r i)) (ball (a j) (r j))) C"
      "S \<subseteq> (\<Union>i\<in>C. ball (a i) (5 * r i))"
-proof -
+proof%unimportant -
   obtain C where C: "countable C" "C \<subseteq> K"
            and pw:  "pairwise (\<lambda>i j. disjnt (cball (a i) (r i)) (cball (a j) (r j))) C"
            and cov: "\<And>i. i \<in> K \<Longrightarrow> \<exists>j. j \<in> C \<and> \<not> disjnt (cball (a i) (r i)) (cball (a j) (r j)) \<and>
@@ -285,7 +285,7 @@ proof -
 qed
 
 
-proposition Vitali_covering_theorem_cballs:
+proposition%important Vitali_covering_theorem_cballs:
   fixes a :: "'a \<Rightarrow> 'n::euclidean_space"
   assumes r: "\<And>i. i \<in> K \<Longrightarrow> 0 < r i"
       and S: "\<And>x d. \<lbrakk>x \<in> S; 0 < d\<rbrakk>
@@ -293,7 +293,7 @@ proposition Vitali_covering_theorem_cballs:
   obtains C where "countable C" "C \<subseteq> K"
      "pairwise (\<lambda>i j. disjnt (cball (a i) (r i)) (cball (a j) (r j))) C"
      "negligible(S - (\<Union>i \<in> C. cball (a i) (r i)))"
-proof -
+proof%unimportant -
   let ?\<mu> = "measure lebesgue"
   have *: "\<exists>C. countable C \<and> C \<subseteq> K \<and>
             pairwise (\<lambda>i j. disjnt (cball (a i) (r i)) (cball (a j) (r j))) C \<and>
@@ -493,13 +493,13 @@ proof -
 qed
 
 
-proposition Vitali_covering_theorem_balls:
+proposition%important Vitali_covering_theorem_balls:
   fixes a :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes S: "\<And>x d. \<lbrakk>x \<in> S; 0 < d\<rbrakk> \<Longrightarrow> \<exists>i. i \<in> K \<and> x \<in> ball (a i) (r i) \<and> r i < d"
   obtains C where "countable C" "C \<subseteq> K"
      "pairwise (\<lambda>i j. disjnt (ball (a i) (r i)) (ball (a j) (r j))) C"
      "negligible(S - (\<Union>i \<in> C. ball (a i) (r i)))"
-proof -
+proof%unimportant -
   have 1: "\<exists>i. i \<in> {i \<in> K. 0 < r i} \<and> x \<in> cball (a i) (r i) \<and> r i < d"
          if xd: "x \<in> S" "d > 0" for x d
     by (metis (mono_tags, lifting) assms ball_eq_empty less_eq_real_def mem_Collect_eq mem_ball mem_cball not_le xd(1) xd(2))
@@ -523,7 +523,7 @@ proof -
 qed
 
 
-lemma negligible_eq_zero_density_alt:
+lemma%unimportant negligible_eq_zero_density_alt:
      "negligible S \<longleftrightarrow>
       (\<forall>x \<in> S. \<forall>e > 0.
         \<exists>d U. 0 < d \<and> d \<le> e \<and> S \<inter> ball x d \<subseteq> U \<and>
@@ -635,11 +635,11 @@ next
     by metis
 qed
 
-proposition negligible_eq_zero_density:
+proposition%important negligible_eq_zero_density:
    "negligible S \<longleftrightarrow>
     (\<forall>x\<in>S. \<forall>r>0. \<forall>e>0. \<exists>d. 0 < d \<and> d \<le> r \<and>
                    (\<exists>U. S \<inter> ball x d \<subseteq> U \<and> U \<in> lmeasurable \<and> measure lebesgue U < e * measure lebesgue (ball x d)))"
-proof -
+proof%unimportant -
   let ?Q = "\<lambda>x d e. \<exists>U. S \<inter> ball x d \<subseteq> U \<and> U \<in> lmeasurable \<and> measure lebesgue U < e * content (ball x d)"
   have "(\<forall>e>0. \<exists>d>0. d \<le> e \<and> ?Q x d e) = (\<forall>r>0. \<forall>e>0. \<exists>d>0. d \<le> r \<and> ?Q x d e)"
     if "x \<in> S" for x

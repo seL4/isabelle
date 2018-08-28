@@ -11,19 +11,19 @@ theory Cartesian_Space
     Finite_Cartesian_Product Linear_Algebra
 begin
 
-definition "cart_basis = {axis i 1 | i. i\<in>UNIV}"
+definition%unimportant "cart_basis = {axis i 1 | i. i\<in>UNIV}"
 
-lemma finite_cart_basis: "finite (cart_basis)" unfolding cart_basis_def
+lemma%unimportant finite_cart_basis: "finite (cart_basis)" unfolding cart_basis_def
   using finite_Atleast_Atmost_nat by fastforce
 
-lemma card_cart_basis: "card (cart_basis::('a::zero_neq_one^'i) set) = CARD('i)"
+lemma%unimportant card_cart_basis: "card (cart_basis::('a::zero_neq_one^'i) set) = CARD('i)"
   unfolding cart_basis_def Setcompr_eq_image
   by (rule card_image) (auto simp: inj_on_def axis_eq_axis)
 
 interpretation vec: vector_space "( *s) "
   by unfold_locales (vector algebra_simps)+
 
-lemma independent_cart_basis:
+lemma%unimportant independent_cart_basis:
   "vec.independent (cart_basis)"
 proof (rule vec.independent_if_scalars_zero)
   show "finite (cart_basis)" using finite_cart_basis .
@@ -48,7 +48,7 @@ proof (rule vec.independent_if_scalars_zero)
   finally show "f x = 0" ..
 qed
 
-lemma span_cart_basis:
+lemma%unimportant span_cart_basis:
   "vec.span (cart_basis) = UNIV"
 proof (auto)
   fix x::"('a, 'b) vec"
@@ -93,12 +93,12 @@ qed
 interpretation vec: finite_dimensional_vector_space "( *s)" "cart_basis"
   by (unfold_locales, auto simp add: finite_cart_basis independent_cart_basis span_cart_basis)
 
-lemma matrix_vector_mul_linear_gen[intro, simp]:
+lemma%unimportant matrix_vector_mul_linear_gen[intro, simp]:
   "Vector_Spaces.linear ( *s) ( *s) (( *v) A)"
   by unfold_locales
     (vector matrix_vector_mult_def sum.distrib algebra_simps)+
 
-lemma span_vec_eq: "vec.span X = span X"
+lemma%important span_vec_eq: "vec.span X = span X"
   and dim_vec_eq: "vec.dim X = dim X"
   and dependent_vec_eq: "vec.dependent X = dependent X"
   and subspace_vec_eq: "vec.subspace X = subspace X"
@@ -106,11 +106,11 @@ lemma span_vec_eq: "vec.span X = span X"
   unfolding span_raw_def dim_raw_def dependent_raw_def subspace_raw_def
   by (auto simp: scalar_mult_eq_scaleR)
 
-lemma linear_componentwise:
+lemma%important linear_componentwise:
   fixes f:: "'a::field ^'m \<Rightarrow> 'a ^ 'n"
   assumes lf: "Vector_Spaces.linear ( *s) ( *s) f"
   shows "(f x)$j = sum (\<lambda>i. (x$i) * (f (axis i 1)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
-proof -
+proof%unimportant -
   interpret lf: Vector_Spaces.linear "( *s)" "( *s)" f
     using lf .
   let ?M = "(UNIV :: 'm set)"
@@ -128,7 +128,7 @@ interpretation vec: Vector_Spaces.linear "( *s)" "( *s)" "( *v) A"
 
 interpretation vec: finite_dimensional_vector_space_pair "( *s)" cart_basis "( *s)" cart_basis ..
 
-lemma matrix_works:
+lemma%unimportant matrix_works:
   assumes lf: "Vector_Spaces.linear ( *s) ( *s) f"
   shows "matrix f *v x = f (x::'a::field ^ 'n)"
   apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult.commute)
@@ -136,45 +136,45 @@ lemma matrix_works:
   apply (rule linear_componentwise[OF lf, symmetric])
   done
 
-lemma matrix_of_matrix_vector_mul[simp]: "matrix(\<lambda>x. A *v (x :: 'a::field ^ 'n)) = A"
+lemma%unimportant matrix_of_matrix_vector_mul[simp]: "matrix(\<lambda>x. A *v (x :: 'a::field ^ 'n)) = A"
   by (simp add: matrix_eq matrix_works)
 
-lemma matrix_compose_gen:
+lemma%unimportant matrix_compose_gen:
   assumes lf: "Vector_Spaces.linear ( *s) ( *s) (f::'a::{field}^'n \<Rightarrow> 'a^'m)"
     and lg: "Vector_Spaces.linear ( *s) ( *s) (g::'a^'m \<Rightarrow> 'a^_)"
   shows "matrix (g o f) = matrix g ** matrix f"
   using lf lg Vector_Spaces.linear_compose[OF lf lg] matrix_works[OF Vector_Spaces.linear_compose[OF lf lg]]
   by (simp add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
 
-lemma matrix_compose:
+lemma%unimportant matrix_compose:
   assumes "linear (f::real^'n \<Rightarrow> real^'m)" "linear (g::real^'m \<Rightarrow> real^_)"
   shows "matrix (g o f) = matrix g ** matrix f"
   using matrix_compose_gen[of f g] assms
   by (simp add: linear_def scalar_mult_eq_scaleR)
 
-lemma left_invertible_transpose:
+lemma%unimportant left_invertible_transpose:
   "(\<exists>(B). B ** transpose (A) = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). A ** B = mat 1)"
   by (metis matrix_transpose_mul transpose_mat transpose_transpose)
 
-lemma right_invertible_transpose:
+lemma%unimportant right_invertible_transpose:
   "(\<exists>(B). transpose (A) ** B = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). B ** A = mat 1)"
   by (metis matrix_transpose_mul transpose_mat transpose_transpose)
 
-lemma linear_matrix_vector_mul_eq:
+lemma%unimportant linear_matrix_vector_mul_eq:
   "Vector_Spaces.linear ( *s) ( *s) f \<longleftrightarrow> linear (f :: real^'n \<Rightarrow> real ^'m)"
   by (simp add: scalar_mult_eq_scaleR linear_def)
 
-lemma matrix_vector_mul[simp]:
+lemma%unimportant matrix_vector_mul[simp]:
   "Vector_Spaces.linear ( *s) ( *s) g \<Longrightarrow> (\<lambda>y. matrix g *v y) = g"
   "linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
   "bounded_linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
   for f :: "real^'n \<Rightarrow> real ^'m"
   by (simp_all add: ext matrix_works linear_matrix_vector_mul_eq linear_linear)
 
-lemma matrix_left_invertible_injective:
+lemma%important matrix_left_invertible_injective:
   fixes A :: "'a::field^'n^'m"
   shows "(\<exists>B. B ** A = mat 1) \<longleftrightarrow> inj (( *v) A)"
-proof safe
+proof%unimportant safe
   fix B
   assume B: "B ** A = mat 1"
   show "inj (( *v) A)"
@@ -192,15 +192,15 @@ next
     by metis
 qed
 
-lemma matrix_left_invertible_ker:
+lemma%unimportant matrix_left_invertible_ker:
   "(\<exists>B. (B::'a::{field} ^'m^'n) ** (A::'a::{field}^'n^'m) = mat 1) \<longleftrightarrow> (\<forall>x. A *v x = 0 \<longrightarrow> x = 0)"
   unfolding matrix_left_invertible_injective
   using vec.inj_on_iff_eq_0[OF vec.subspace_UNIV, of A]
   by (simp add: inj_on_def)
 
-lemma matrix_right_invertible_surjective:
+lemma%important matrix_right_invertible_surjective:
   "(\<exists>B. (A::'a::field^'n^'m) ** (B::'a::field^'m^'n) = mat 1) \<longleftrightarrow> surj (\<lambda>x. A *v x)"
-proof -
+proof%unimportant -
   { fix B :: "'a ^'m^'n"
     assume AB: "A ** B = mat 1"
     { fix x :: "'a ^ 'm"
@@ -223,12 +223,12 @@ proof -
   ultimately show ?thesis unfolding surj_def by blast
 qed
 
-lemma matrix_left_invertible_independent_columns:
+lemma%important matrix_left_invertible_independent_columns:
   fixes A :: "'a::{field}^'n^'m"
   shows "(\<exists>(B::'a ^'m^'n). B ** A = mat 1) \<longleftrightarrow>
       (\<forall>c. sum (\<lambda>i. c i *s column i A) (UNIV :: 'n set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
     (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
+proof%unimportant -
   let ?U = "UNIV :: 'n set"
   { assume k: "\<forall>x. A *v x = 0 \<longrightarrow> x = 0"
     { fix c i
@@ -250,7 +250,7 @@ proof -
   ultimately show ?thesis unfolding matrix_left_invertible_ker by auto
 qed
 
-lemma matrix_right_invertible_independent_rows:
+lemma%unimportant matrix_right_invertible_independent_rows:
   fixes A :: "'a::{field}^'n^'m"
   shows "(\<exists>(B::'a^'m^'n). A ** B = mat 1) \<longleftrightarrow>
     (\<forall>c. sum (\<lambda>i. c i *s row i A) (UNIV :: 'm set) = 0 \<longrightarrow> (\<forall>i. c i = 0))"
@@ -258,10 +258,10 @@ lemma matrix_right_invertible_independent_rows:
     matrix_left_invertible_independent_columns
   by (simp add:)
 
-lemma matrix_right_invertible_span_columns:
+lemma%important matrix_right_invertible_span_columns:
   "(\<exists>(B::'a::field ^'n^'m). (A::'a ^'m^'n) ** B = mat 1) \<longleftrightarrow>
     vec.span (columns A) = UNIV" (is "?lhs = ?rhs")
-proof -
+proof%unimportant -
   let ?U = "UNIV :: 'm set"
   have fU: "finite ?U" by simp
   have lhseq: "?lhs \<longleftrightarrow> (\<forall>y. \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y)"
@@ -322,21 +322,21 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-lemma matrix_left_invertible_span_rows_gen:
+lemma%unimportant matrix_left_invertible_span_rows_gen:
   "(\<exists>(B::'a^'m^'n). B ** (A::'a::field^'n^'m) = mat 1) \<longleftrightarrow> vec.span (rows A) = UNIV"
   unfolding right_invertible_transpose[symmetric]
   unfolding columns_transpose[symmetric]
   unfolding matrix_right_invertible_span_columns
   ..
 
-lemma matrix_left_invertible_span_rows:
+lemma%unimportant matrix_left_invertible_span_rows:
   "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
   using matrix_left_invertible_span_rows_gen[of A] by (simp add: span_vec_eq)
 
-lemma matrix_left_right_inverse:
+lemma%important matrix_left_right_inverse:
   fixes A A' :: "'a::{field}^'n^'n"
   shows "A ** A' = mat 1 \<longleftrightarrow> A' ** A = mat 1"
-proof -
+proof%unimportant -
   { fix A A' :: "'a ^'n^'n"
     assume AA': "A ** A' = mat 1"
     have sA: "surj (( *v) A)"
@@ -356,21 +356,21 @@ proof -
   then show ?thesis by blast
 qed
 
-lemma invertible_left_inverse:
+lemma%unimportant invertible_left_inverse:
   fixes A :: "'a::{field}^'n^'n"
   shows "invertible A \<longleftrightarrow> (\<exists>(B::'a^'n^'n). B ** A = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
 
-lemma invertible_right_inverse:
+lemma%unimportant invertible_right_inverse:
   fixes A :: "'a::{field}^'n^'n"
   shows "invertible A \<longleftrightarrow> (\<exists>(B::'a^'n^'n). A** B = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
 
-lemma invertible_mult:
+lemma%important invertible_mult:
   assumes inv_A: "invertible A"
   and inv_B: "invertible B"
   shows "invertible (A**B)"
-proof -
+proof%unimportant -
   obtain A' where AA': "A ** A' = mat 1" and A'A: "A' ** A = mat 1" 
     using inv_A unfolding invertible_def by blast
   obtain B' where BB': "B ** B' = mat 1" and B'B: "B' ** B = mat 1" 
@@ -393,28 +393,28 @@ proof -
   qed
 qed
 
-lemma transpose_invertible:
+lemma%unimportant transpose_invertible:
   fixes A :: "real^'n^'n"
   assumes "invertible A"
   shows "invertible (transpose A)"
   by (meson assms invertible_def matrix_left_right_inverse right_invertible_transpose)
 
-lemma vector_matrix_mul_assoc:
+lemma%important vector_matrix_mul_assoc:
   fixes v :: "('a::comm_semiring_1)^'n"
   shows "(v v* M) v* N = v v* (M ** N)"
-proof -
+proof%unimportant -
   from matrix_vector_mul_assoc
   have "transpose N *v (transpose M *v v) = (transpose N ** transpose M) *v v" by fast
   thus "(v v* M) v* N = v v* (M ** N)"
     by (simp add: matrix_transpose_mul [symmetric])
 qed
 
-lemma matrix_scaleR_vector_ac:
+lemma%unimportant matrix_scaleR_vector_ac:
   fixes A :: "real^('m::finite)^'n"
   shows "A *v (k *\<^sub>R v) = k *\<^sub>R A *v v"
   by (metis matrix_vector_mult_scaleR transpose_scalar vector_scaleR_matrix_ac vector_transpose_matrix)
 
-lemma scaleR_matrix_vector_assoc:
+lemma%unimportant scaleR_matrix_vector_assoc:
   fixes A :: "real^('m::finite)^'n"
   shows "k *\<^sub>R (A *v v) = k *\<^sub>R A *v v"
   by (metis matrix_scaleR_vector_ac matrix_vector_mult_scaleR)
@@ -430,8 +430,8 @@ locale linear_first_finite_dimensional_vector_space =
   and BasisB :: "('b set)"
   and f :: "('b=>'c)"
 
-lemma vec_dim_card: "vec.dim (UNIV::('a::{field}^'n) set) = CARD ('n)"
-proof -
+lemma%important vec_dim_card: "vec.dim (UNIV::('a::{field}^'n) set) = CARD ('n)"
+proof%unimportant -
   let ?f="\<lambda>i::'n. axis i (1::'a)"
   have "vec.dim (UNIV::('a::{field}^'n) set) = card (cart_basis::('a^'n) set)"
     unfolding vec.dim_UNIV ..

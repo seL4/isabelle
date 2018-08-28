@@ -6,29 +6,29 @@ theory Weierstrass_Theorems
 imports Uniform_Limit Path_Connected Derivative
 begin
 
-subsection \<open>Bernstein polynomials\<close>
+subsection%important \<open>Bernstein polynomials\<close>
 
-definition Bernstein :: "[nat,nat,real] \<Rightarrow> real" where
+definition%important Bernstein :: "[nat,nat,real] \<Rightarrow> real" where
   "Bernstein n k x \<equiv> of_nat (n choose k) * x ^ k * (1 - x) ^ (n - k)"
 
-lemma Bernstein_nonneg: "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> Bernstein n k x"
+lemma%unimportant Bernstein_nonneg: "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> Bernstein n k x"
   by (simp add: Bernstein_def)
 
-lemma Bernstein_pos: "\<lbrakk>0 < x; x < 1; k \<le> n\<rbrakk> \<Longrightarrow> 0 < Bernstein n k x"
+lemma%unimportant Bernstein_pos: "\<lbrakk>0 < x; x < 1; k \<le> n\<rbrakk> \<Longrightarrow> 0 < Bernstein n k x"
   by (simp add: Bernstein_def)
 
-lemma sum_Bernstein [simp]: "(\<Sum>k\<le>n. Bernstein n k x) = 1"
+lemma%unimportant sum_Bernstein [simp]: "(\<Sum>k\<le>n. Bernstein n k x) = 1"
   using binomial_ring [of x "1-x" n]
   by (simp add: Bernstein_def)
 
-lemma binomial_deriv1:
+lemma%unimportant binomial_deriv1:
     "(\<Sum>k\<le>n. (of_nat k * of_nat (n choose k)) * a^(k-1) * b^(n-k)) = real_of_nat n * (a+b) ^ (n-1)"
   apply (rule DERIV_unique [where f = "\<lambda>a. (a+b)^n" and x=a])
   apply (subst binomial_ring)
   apply (rule derivative_eq_intros sum.cong | simp add: atMost_atLeast0)+
   done
 
-lemma binomial_deriv2:
+lemma%unimportant binomial_deriv2:
     "(\<Sum>k\<le>n. (of_nat k * of_nat (k-1) * of_nat (n choose k)) * a^(k-2) * b^(n-k)) =
      of_nat n * of_nat (n-1) * (a+b::real) ^ (n-2)"
   apply (rule DERIV_unique [where f = "\<lambda>a. of_nat n * (a+b::real) ^ (n-1)" and x=a])
@@ -36,14 +36,14 @@ lemma binomial_deriv2:
   apply (rule derivative_eq_intros sum.cong | simp add: Num.numeral_2_eq_2)+
   done
 
-lemma sum_k_Bernstein [simp]: "(\<Sum>k\<le>n. real k * Bernstein n k x) = of_nat n * x"
+lemma%important sum_k_Bernstein [simp]: "(\<Sum>k\<le>n. real k * Bernstein n k x) = of_nat n * x"
   apply (subst binomial_deriv1 [of n x "1-x", simplified, symmetric])
   apply (simp add: sum_distrib_right)
   apply (auto simp: Bernstein_def algebra_simps power_eq_if intro!: sum.cong)
   done
 
-lemma sum_kk_Bernstein [simp]: "(\<Sum>k\<le>n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
-proof -
+lemma%important sum_kk_Bernstein [simp]: "(\<Sum>k\<le>n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
+proof%unimportant -
   have "(\<Sum>k\<le>n. real k * (real k - 1) * Bernstein n k x) =
         (\<Sum>k\<le>n. real k * real (k - Suc 0) * real (n choose k) * x ^ (k - 2) * (1 - x) ^ (n - k) * x\<^sup>2)"
   proof (rule sum.cong [OF refl], simp)
@@ -65,14 +65,14 @@ proof -
     by auto
 qed
 
-subsection \<open>Explicit Bernstein version of the 1D Weierstrass approximation theorem\<close>
+subsection%important \<open>Explicit Bernstein version of the 1D Weierstrass approximation theorem\<close>
 
-lemma Bernstein_Weierstrass:
+lemma%important Bernstein_Weierstrass:
   fixes f :: "real \<Rightarrow> real"
   assumes contf: "continuous_on {0..1} f" and e: "0 < e"
     shows "\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> {0..1}
                     \<longrightarrow> \<bar>f x - (\<Sum>k\<le>n. f(k/n) * Bernstein n k x)\<bar> < e"
-proof -
+proof%unimportant -
   have "bounded (f ` {0..1})"
     using compact_continuous_image compact_imp_bounded contf by blast
   then obtain M where M: "\<And>x. 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> \<bar>f x\<bar> \<le> M"
@@ -167,7 +167,7 @@ proof -
 qed
 
 
-subsection \<open>General Stone-Weierstrass theorem\<close>
+subsection%important \<open>General Stone-Weierstrass theorem\<close>
 
 text\<open>Source:
 Bruno Brosowski and Frank Deutsch.
@@ -176,7 +176,7 @@ Proceedings of the American Mathematical Society
 Volume 81, Number 1, January 1981.
 DOI: 10.2307/2043993  https://www.jstor.org/stable/2043993\<close>
 
-locale function_ring_on =
+locale%important function_ring_on =
   fixes R :: "('a::t2_space \<Rightarrow> real) set" and S :: "'a set"
   assumes compact: "compact S"
   assumes continuous: "f \<in> R \<Longrightarrow> continuous_on S f"
@@ -186,39 +186,39 @@ locale function_ring_on =
   assumes separable: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> \<exists>f\<in>R. f x \<noteq> f y"
 
 begin
-  lemma minus: "f \<in> R \<Longrightarrow> (\<lambda>x. - f x) \<in> R"
+  lemma%unimportant minus: "f \<in> R \<Longrightarrow> (\<lambda>x. - f x) \<in> R"
     by (frule mult [OF const [of "-1"]]) simp
 
-  lemma diff: "f \<in> R \<Longrightarrow> g \<in> R \<Longrightarrow> (\<lambda>x. f x - g x) \<in> R"
+  lemma%unimportant diff: "f \<in> R \<Longrightarrow> g \<in> R \<Longrightarrow> (\<lambda>x. f x - g x) \<in> R"
     unfolding diff_conv_add_uminus by (metis add minus)
 
-  lemma power: "f \<in> R \<Longrightarrow> (\<lambda>x. f x ^ n) \<in> R"
+  lemma%unimportant power: "f \<in> R \<Longrightarrow> (\<lambda>x. f x ^ n) \<in> R"
     by (induct n) (auto simp: const mult)
 
-  lemma sum: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>i \<in> I. f i x) \<in> R"
+  lemma%unimportant sum: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Sum>i \<in> I. f i x) \<in> R"
     by (induct I rule: finite_induct; simp add: const add)
 
-  lemma prod: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Prod>i \<in> I. f i x) \<in> R"
+  lemma%unimportant prod: "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i \<in> R\<rbrakk> \<Longrightarrow> (\<lambda>x. \<Prod>i \<in> I. f i x) \<in> R"
     by (induct I rule: finite_induct; simp add: const mult)
 
-  definition normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
+  definition%important normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
     where "normf f \<equiv> SUP x:S. \<bar>f x\<bar>"
 
-  lemma normf_upper: "\<lbrakk>continuous_on S f; x \<in> S\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
+  lemma%unimportant normf_upper: "\<lbrakk>continuous_on S f; x \<in> S\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
     apply (simp add: normf_def)
     apply (rule cSUP_upper, assumption)
     by (simp add: bounded_imp_bdd_above compact compact_continuous_image compact_imp_bounded continuous_on_rabs)
 
-  lemma normf_least: "S \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
+  lemma%unimportant normf_least: "S \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
     by (simp add: normf_def cSUP_least)
 
 end
 
-lemma (in function_ring_on) one:
+lemma%important (in function_ring_on) one:
   assumes U: "open U" and t0: "t0 \<in> S" "t0 \<in> U" and t1: "t1 \<in> S-U"
     shows "\<exists>V. open V \<and> t0 \<in> V \<and> S \<inter> V \<subseteq> U \<and>
                (\<forall>e>0. \<exists>f \<in> R. f ` S \<subseteq> {0..1} \<and> (\<forall>t \<in> S \<inter> V. f t < e) \<and> (\<forall>t \<in> S - U. f t > 1 - e))"
-proof -
+proof%unimportant -
   have "\<exists>pt \<in> R. pt t0 = 0 \<and> pt t > 0 \<and> pt ` S \<subseteq> {0..1}" if t: "t \<in> S - U" for t
   proof -
     have "t \<noteq> t0" using t t0 by auto
@@ -437,7 +437,7 @@ proof -
 qed
 
 text\<open>Non-trivial case, with @{term A} and @{term B} both non-empty\<close>
-lemma (in function_ring_on) two_special:
+lemma%unimportant (in function_ring_on) two_special:
   assumes A: "closed A" "A \<subseteq> S" "a \<in> A"
       and B: "closed B" "B \<subseteq> S" "b \<in> B"
       and disj: "A \<inter> B = {}"
@@ -542,7 +542,7 @@ proof -
   show ?thesis by blast
 qed
 
-lemma (in function_ring_on) two:
+lemma%unimportant (in function_ring_on) two:
   assumes A: "closed A" "A \<subseteq> S"
       and B: "closed B" "B \<subseteq> S"
       and disj: "A \<inter> B = {}"
@@ -566,11 +566,11 @@ next
 qed
 
 text\<open>The special case where @{term f} is non-negative and @{term"e<1/3"}\<close>
-lemma (in function_ring_on) Stone_Weierstrass_special:
+lemma%important (in function_ring_on) Stone_Weierstrass_special:
   assumes f: "continuous_on S f" and fpos: "\<And>x. x \<in> S \<Longrightarrow> f x \<ge> 0"
       and e: "0 < e" "e < 1/3"
   shows "\<exists>g \<in> R. \<forall>x\<in>S. \<bar>f x - g x\<bar> < 2*e"
-proof -
+proof%unimportant -
   define n where "n = 1 + nat \<lceil>normf f / e\<rceil>"
   define A where "A j = {x \<in> S. f x \<le> (j - 1/3)*e}" for j :: nat
   define B where "B j = {x \<in> S. f x \<ge> (j + 1/3)*e}" for j :: nat
@@ -711,10 +711,10 @@ proof -
 qed
 
 text\<open>The ``unpretentious'' formulation\<close>
-lemma (in function_ring_on) Stone_Weierstrass_basic:
+lemma%important (in function_ring_on) Stone_Weierstrass_basic:
   assumes f: "continuous_on S f" and e: "e > 0"
   shows "\<exists>g \<in> R. \<forall>x\<in>S. \<bar>f x - g x\<bar> < e"
-proof -
+proof%unimportant -
   have "\<exists>g \<in> R. \<forall>x\<in>S. \<bar>(f x + normf f) - g x\<bar> < 2 * min (e/2) (1/4)"
     apply (rule Stone_Weierstrass_special)
     apply (rule Limits.continuous_on_add [OF f Topological_Spaces.continuous_on_const])
@@ -730,10 +730,10 @@ proof -
 qed
 
 
-theorem (in function_ring_on) Stone_Weierstrass:
+theorem%important (in function_ring_on) Stone_Weierstrass:
   assumes f: "continuous_on S f"
   shows "\<exists>F\<in>UNIV \<rightarrow> R. LIM n sequentially. F n :> uniformly_on S f"
-proof -
+proof%unimportant -
   { fix e::real
     assume e: "0 < e"
     then obtain N::nat where N: "0 < N" "0 < inverse N" "inverse N < e"
@@ -762,7 +762,7 @@ proof -
 qed
 
 text\<open>A HOL Light formulation\<close>
-corollary Stone_Weierstrass_HOL:
+corollary%important Stone_Weierstrass_HOL:
   fixes R :: "('a::t2_space \<Rightarrow> real) set" and S :: "'a set"
   assumes "compact S"  "\<And>c. P(\<lambda>x. c::real)"
           "\<And>f. P f \<Longrightarrow> continuous_on S f"
@@ -771,7 +771,7 @@ corollary Stone_Weierstrass_HOL:
           "continuous_on S f"
        "0 < e"
     shows "\<exists>g. P(g) \<and> (\<forall>x \<in> S. \<bar>f x - g x\<bar> < e)"
-proof -
+proof%unimportant -
   interpret PR: function_ring_on "Collect P"
     apply unfold_locales
     using assms
@@ -782,7 +782,7 @@ proof -
 qed
 
 
-subsection \<open>Polynomial functions\<close>
+subsection%important \<open>Polynomial functions\<close>
 
 inductive real_polynomial_function :: "('a::real_normed_vector \<Rightarrow> real) \<Rightarrow> bool" where
     linear: "bounded_linear f \<Longrightarrow> real_polynomial_function f"
@@ -792,11 +792,11 @@ inductive real_polynomial_function :: "('a::real_normed_vector \<Rightarrow> rea
 
 declare real_polynomial_function.intros [intro]
 
-definition polynomial_function :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> bool"
+definition%important polynomial_function :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> bool"
   where
    "polynomial_function p \<equiv> (\<forall>f. bounded_linear f \<longrightarrow> real_polynomial_function (f o p))"
 
-lemma real_polynomial_function_eq: "real_polynomial_function p = polynomial_function p"
+lemma%unimportant real_polynomial_function_eq: "real_polynomial_function p = polynomial_function p"
 unfolding polynomial_function_def
 proof
   assume "real_polynomial_function p"
@@ -820,21 +820,21 @@ next
     by (simp add: o_def)
 qed
 
-lemma polynomial_function_const [iff]: "polynomial_function (\<lambda>x. c)"
+lemma%unimportant polynomial_function_const [iff]: "polynomial_function (\<lambda>x. c)"
   by (simp add: polynomial_function_def o_def const)
 
-lemma polynomial_function_bounded_linear:
+lemma%unimportant polynomial_function_bounded_linear:
   "bounded_linear f \<Longrightarrow> polynomial_function f"
   by (simp add: polynomial_function_def o_def bounded_linear_compose real_polynomial_function.linear)
 
-lemma polynomial_function_id [iff]: "polynomial_function(\<lambda>x. x)"
+lemma%unimportant polynomial_function_id [iff]: "polynomial_function(\<lambda>x. x)"
   by (simp add: polynomial_function_bounded_linear)
 
-lemma polynomial_function_add [intro]:
+lemma%unimportant polynomial_function_add [intro]:
     "\<lbrakk>polynomial_function f; polynomial_function g\<rbrakk> \<Longrightarrow> polynomial_function (\<lambda>x. f x + g x)"
   by (auto simp: polynomial_function_def bounded_linear_def linear_add real_polynomial_function.add o_def)
 
-lemma polynomial_function_mult [intro]:
+lemma%unimportant polynomial_function_mult [intro]:
   assumes f: "polynomial_function f" and g: "polynomial_function g"
     shows "polynomial_function (\<lambda>x. f x *\<^sub>R g x)"
   using g
@@ -844,45 +844,45 @@ lemma polynomial_function_mult [intro]:
   apply (auto simp: real_polynomial_function_eq)
   done
 
-lemma polynomial_function_cmul [intro]:
+lemma%unimportant polynomial_function_cmul [intro]:
   assumes f: "polynomial_function f"
     shows "polynomial_function (\<lambda>x. c *\<^sub>R f x)"
   by (rule polynomial_function_mult [OF polynomial_function_const f])
 
-lemma polynomial_function_minus [intro]:
+lemma%unimportant polynomial_function_minus [intro]:
   assumes f: "polynomial_function f"
     shows "polynomial_function (\<lambda>x. - f x)"
   using polynomial_function_cmul [OF f, of "-1"] by simp
 
-lemma polynomial_function_diff [intro]:
+lemma%unimportant polynomial_function_diff [intro]:
     "\<lbrakk>polynomial_function f; polynomial_function g\<rbrakk> \<Longrightarrow> polynomial_function (\<lambda>x. f x - g x)"
   unfolding add_uminus_conv_diff [symmetric]
   by (metis polynomial_function_add polynomial_function_minus)
 
-lemma polynomial_function_sum [intro]:
+lemma%unimportant polynomial_function_sum [intro]:
     "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> polynomial_function (\<lambda>x. sum (f x) I)"
 by (induct I rule: finite_induct) auto
 
-lemma real_polynomial_function_minus [intro]:
+lemma%unimportant real_polynomial_function_minus [intro]:
     "real_polynomial_function f \<Longrightarrow> real_polynomial_function (\<lambda>x. - f x)"
   using polynomial_function_minus [of f]
   by (simp add: real_polynomial_function_eq)
 
-lemma real_polynomial_function_diff [intro]:
+lemma%unimportant real_polynomial_function_diff [intro]:
     "\<lbrakk>real_polynomial_function f; real_polynomial_function g\<rbrakk> \<Longrightarrow> real_polynomial_function (\<lambda>x. f x - g x)"
   using polynomial_function_diff [of f]
   by (simp add: real_polynomial_function_eq)
 
-lemma real_polynomial_function_sum [intro]:
+lemma%unimportant real_polynomial_function_sum [intro]:
     "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> real_polynomial_function (\<lambda>x. f x i)\<rbrakk> \<Longrightarrow> real_polynomial_function (\<lambda>x. sum (f x) I)"
   using polynomial_function_sum [of I f]
   by (simp add: real_polynomial_function_eq)
 
-lemma real_polynomial_function_power [intro]:
+lemma%unimportant real_polynomial_function_power [intro]:
     "real_polynomial_function f \<Longrightarrow> real_polynomial_function (\<lambda>x. f x ^ n)"
   by (induct n) (simp_all add: const mult)
 
-lemma real_polynomial_function_compose [intro]:
+lemma%unimportant real_polynomial_function_compose [intro]:
   assumes f: "polynomial_function f" and g: "real_polynomial_function g"
     shows "real_polynomial_function (g o f)"
   using g
@@ -891,13 +891,13 @@ lemma real_polynomial_function_compose [intro]:
   apply (simp_all add: polynomial_function_def o_def const add mult)
   done
 
-lemma polynomial_function_compose [intro]:
+lemma%unimportant polynomial_function_compose [intro]:
   assumes f: "polynomial_function f" and g: "polynomial_function g"
     shows "polynomial_function (g o f)"
   using g real_polynomial_function_compose [OF f]
   by (auto simp: polynomial_function_def o_def)
 
-lemma sum_max_0:
+lemma%unimportant sum_max_0:
   fixes x::real (*in fact "'a::comm_ring_1"*)
   shows "(\<Sum>i\<le>max m n. x^i * (if i \<le> m then a i else 0)) = (\<Sum>i\<le>m. x^i * a i)"
 proof -
@@ -910,7 +910,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma real_polynomial_function_imp_sum:
+lemma%unimportant real_polynomial_function_imp_sum:
   assumes "real_polynomial_function f"
     shows "\<exists>a n::nat. f = (\<lambda>x. \<Sum>i\<le>n. a i * x ^ i)"
 using assms
@@ -955,19 +955,19 @@ next
     done
 qed
 
-lemma real_polynomial_function_iff_sum:
+lemma%unimportant real_polynomial_function_iff_sum:
      "real_polynomial_function f \<longleftrightarrow> (\<exists>a n::nat. f = (\<lambda>x. \<Sum>i\<le>n. a i * x ^ i))"
   apply (rule iffI)
   apply (erule real_polynomial_function_imp_sum)
   apply (auto simp: linear mult const real_polynomial_function_power real_polynomial_function_sum)
   done
 
-lemma polynomial_function_iff_Basis_inner:
+lemma%important polynomial_function_iff_Basis_inner:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
   shows "polynomial_function f \<longleftrightarrow> (\<forall>b\<in>Basis. real_polynomial_function (\<lambda>x. inner (f x) b))"
         (is "?lhs = ?rhs")
 unfolding polynomial_function_def
-proof (intro iffI allI impI)
+proof%unimportant (intro iffI allI impI)
   assume "\<forall>h. bounded_linear h \<longrightarrow> real_polynomial_function (h \<circ> f)"
   then show ?rhs
     by (force simp add: bounded_linear_inner_left o_def)
@@ -983,17 +983,17 @@ next
     by (simp add: euclidean_representation_sum_fun)
 qed
 
-subsection \<open>Stone-Weierstrass theorem for polynomial functions\<close>
+subsection%important \<open>Stone-Weierstrass theorem for polynomial functions\<close>
 
 text\<open>First, we need to show that they are continous, differentiable and separable.\<close>
 
-lemma continuous_real_polymonial_function:
+lemma%unimportant continuous_real_polymonial_function:
   assumes "real_polynomial_function f"
     shows "continuous (at x) f"
 using assms
 by (induct f) (auto simp: linear_continuous_at)
 
-lemma continuous_polymonial_function:
+lemma%unimportant continuous_polymonial_function:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
   assumes "polynomial_function f"
     shows "continuous (at x) f"
@@ -1002,14 +1002,14 @@ lemma continuous_polymonial_function:
   apply (force dest: continuous_real_polymonial_function intro: isCont_scaleR)
   done
 
-lemma continuous_on_polymonial_function:
+lemma%unimportant continuous_on_polymonial_function:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
   assumes "polynomial_function f"
     shows "continuous_on S f"
   using continuous_polymonial_function [OF assms] continuous_at_imp_continuous_on
   by blast
 
-lemma has_real_derivative_polynomial_function:
+lemma%unimportant has_real_derivative_polynomial_function:
   assumes "real_polynomial_function p"
     shows "\<exists>p'. real_polynomial_function p' \<and>
                  (\<forall>x. (p has_real_derivative (p' x)) (at x))"
@@ -1043,7 +1043,7 @@ next
     done
 qed
 
-lemma has_vector_derivative_polynomial_function:
+lemma%unimportant has_vector_derivative_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "polynomial_function p"
   obtains p' where "polynomial_function p'" "\<And>x. (p has_vector_derivative (p' x)) (at x)"
@@ -1074,7 +1074,7 @@ proof -
     done
 qed
 
-lemma real_polynomial_function_separable:
+lemma%unimportant real_polynomial_function_separable:
   fixes x :: "'a::euclidean_space"
   assumes "x \<noteq> y" shows "\<exists>f. real_polynomial_function f \<and> f x \<noteq> f y"
 proof -
@@ -1090,11 +1090,11 @@ proof -
     done
 qed
 
-lemma Stone_Weierstrass_real_polynomial_function:
+lemma%important Stone_Weierstrass_real_polynomial_function:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "compact S" "continuous_on S f" "0 < e"
   obtains g where "real_polynomial_function g" "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x - g x\<bar> < e"
-proof -
+proof%unimportant -
   interpret PR: function_ring_on "Collect real_polynomial_function"
     apply unfold_locales
     using assms continuous_on_polymonial_function real_polynomial_function_eq
@@ -1105,13 +1105,13 @@ proof -
     by blast
 qed
 
-lemma Stone_Weierstrass_polynomial_function:
+lemma%important Stone_Weierstrass_polynomial_function:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes S: "compact S"
       and f: "continuous_on S f"
       and e: "0 < e"
     shows "\<exists>g. polynomial_function g \<and> (\<forall>x \<in> S. norm(f x - g x) < e)"
-proof -
+proof%unimportant -
   { fix b :: 'b
     assume "b \<in> Basis"
     have "\<exists>p. real_polynomial_function p \<and> (\<forall>x \<in> S. \<bar>f x \<bullet> b - p x\<bar> < e / DIM('b))"
@@ -1151,12 +1151,12 @@ proof -
     done
 qed
 
-lemma Stone_Weierstrass_uniform_limit:
+lemma%important Stone_Weierstrass_uniform_limit:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes S: "compact S"
     and f: "continuous_on S f"
   obtains g where "uniform_limit S g f sequentially" "\<And>n. polynomial_function (g n)"
-proof -
+proof%unimportant -
   have pos: "inverse (Suc n) > 0" for n by auto
   obtain g where g: "\<And>n. polynomial_function (g n)" "\<And>x n. x \<in> S \<Longrightarrow> norm(f x - g n x) < inverse (Suc n)"
     using Stone_Weierstrass_polynomial_function[OF S f pos]
@@ -1175,17 +1175,17 @@ proof -
 qed
 
 
-subsection\<open>Polynomial functions as paths\<close>
+subsection%important\<open>Polynomial functions as paths\<close>
 
 text\<open>One application is to pick a smooth approximation to a path,
 or just pick a smooth path anyway in an open connected set\<close>
 
-lemma path_polynomial_function:
+lemma%unimportant path_polynomial_function:
     fixes g  :: "real \<Rightarrow> 'b::euclidean_space"
     shows "polynomial_function g \<Longrightarrow> path g"
   by (simp add: path_def continuous_on_polymonial_function)
 
-lemma path_approx_polynomial_function:
+lemma%unimportant path_approx_polynomial_function:
     fixes g :: "real \<Rightarrow> 'b::euclidean_space"
     assumes "path g" "0 < e"
     shows "\<exists>p. polynomial_function p \<and>
@@ -1211,13 +1211,13 @@ proof -
     done
 qed
 
-lemma connected_open_polynomial_connected:
+lemma%important connected_open_polynomial_connected:
   fixes S :: "'a::euclidean_space set"
   assumes S: "open S" "connected S"
       and "x \<in> S" "y \<in> S"
     shows "\<exists>g. polynomial_function g \<and> path_image g \<subseteq> S \<and>
                pathstart g = x \<and> pathfinish g = y"
-proof -
+proof%unimportant -
   have "path_connected S" using assms
     by (simp add: connected_open_path_connected)
   with \<open>x \<in> S\<close> \<open>y \<in> S\<close> obtain p where p: "path p" "path_image p \<subseteq> S" "pathstart p = x" "pathfinish p = y"
@@ -1247,7 +1247,7 @@ proof -
     done
 qed
 
-lemma has_derivative_componentwise_within:
+lemma%unimportant has_derivative_componentwise_within:
    "(f has_derivative f') (at a within S) \<longleftrightarrow>
     (\<forall>i \<in> Basis. ((\<lambda>x. f x \<bullet> i) has_derivative (\<lambda>x. f' x \<bullet> i)) (at a within S))"
   apply (simp add: has_derivative_within)
@@ -1256,7 +1256,7 @@ lemma has_derivative_componentwise_within:
   apply (simp add: algebra_simps)
   done
 
-lemma differentiable_componentwise_within:
+lemma%unimportant differentiable_componentwise_within:
    "f differentiable (at a within S) \<longleftrightarrow>
     (\<forall>i \<in> Basis. (\<lambda>x. f x \<bullet> i) differentiable at a within S)"
 proof -
@@ -1277,7 +1277,7 @@ proof -
     by blast
 qed
 
-lemma polynomial_function_inner [intro]:
+lemma%unimportant polynomial_function_inner [intro]:
   fixes i :: "'a::euclidean_space"
   shows "polynomial_function g \<Longrightarrow> polynomial_function (\<lambda>x. g x \<bullet> i)"
   apply (subst euclidean_representation [where x=i, symmetric])
@@ -1286,26 +1286,26 @@ lemma polynomial_function_inner [intro]:
 
 text\<open> Differentiability of real and vector polynomial functions.\<close>
 
-lemma differentiable_at_real_polynomial_function:
+lemma%unimportant differentiable_at_real_polynomial_function:
    "real_polynomial_function f \<Longrightarrow> f differentiable (at a within S)"
   by (induction f rule: real_polynomial_function.induct)
      (simp_all add: bounded_linear_imp_differentiable)
 
-lemma differentiable_on_real_polynomial_function:
+lemma%unimportant differentiable_on_real_polynomial_function:
    "real_polynomial_function p \<Longrightarrow> p differentiable_on S"
 by (simp add: differentiable_at_imp_differentiable_on differentiable_at_real_polynomial_function)
 
-lemma differentiable_at_polynomial_function:
+lemma%unimportant differentiable_at_polynomial_function:
   fixes f :: "_ \<Rightarrow> 'a::euclidean_space"
   shows "polynomial_function f \<Longrightarrow> f differentiable (at a within S)"
   by (metis differentiable_at_real_polynomial_function polynomial_function_iff_Basis_inner differentiable_componentwise_within)
 
-lemma differentiable_on_polynomial_function:
+lemma%unimportant differentiable_on_polynomial_function:
   fixes f :: "_ \<Rightarrow> 'a::euclidean_space"
   shows "polynomial_function f \<Longrightarrow> f differentiable_on S"
 by (simp add: differentiable_at_polynomial_function differentiable_on_def)
 
-lemma vector_eq_dot_span:
+lemma%unimportant vector_eq_dot_span:
   assumes "x \<in> span B" "y \<in> span B" and i: "\<And>i. i \<in> B \<Longrightarrow> i \<bullet> x = i \<bullet> y"
   shows "x = y"
 proof -
@@ -1318,7 +1318,7 @@ proof -
     then show ?thesis by simp
 qed
 
-lemma orthonormal_basis_expand:
+lemma%unimportant orthonormal_basis_expand:
   assumes B: "pairwise orthogonal B"
       and 1: "\<And>i. i \<in> B \<Longrightarrow> norm i = 1"
       and "x \<in> span B"
@@ -1343,7 +1343,7 @@ proof (rule vector_eq_dot_span [OF _ \<open>x \<in> span B\<close>])
 qed
 
 
-lemma Stone_Weierstrass_polynomial_function_subspace:
+lemma%important Stone_Weierstrass_polynomial_function_subspace:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact S"
       and contf: "continuous_on S f"
@@ -1351,7 +1351,7 @@ lemma Stone_Weierstrass_polynomial_function_subspace:
       and "subspace T" "f ` S \<subseteq> T"
     obtains g where "polynomial_function g" "g ` S \<subseteq> T"
                     "\<And>x. x \<in> S \<Longrightarrow> norm(f x - g x) < e"
-proof -
+proof%unimportant -
   obtain B where "B \<subseteq> T" and orthB: "pairwise orthogonal B"
              and B1: "\<And>x. x \<in> B \<Longrightarrow> norm x = 1"
              and "independent B" and cardB: "card B = dim T"

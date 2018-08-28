@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, University of Cambridge
 *)
 
-section \<open>Definition of finite Cartesian product types\<close>
+section%important \<open>Definition of finite Cartesian product types\<close>
 
 theory Finite_Cartesian_Product
 imports
@@ -13,7 +13,7 @@ imports
   "HOL-Library.FuncSet"
 begin
 
-subsection \<open>Finite Cartesian products, with indexing and lambdas\<close>
+subsection%unimportant \<open>Finite Cartesian products, with indexing and lambdas\<close>
 
 typedef ('a, 'b) vec = "UNIV :: ('b::finite \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..
@@ -68,7 +68,7 @@ lemma vec_lambda_unique: "(\<forall>i. f$i = g i) \<longleftrightarrow> vec_lamb
 lemma vec_lambda_eta [simp]: "(\<chi> i. (g$i)) = g"
   by (simp add: vec_eq_iff)
 
-subsection \<open>Cardinality of vectors\<close>
+subsection%important \<open>Cardinality of vectors\<close>
 
 instance vec :: (finite, finite) finite
 proof
@@ -104,10 +104,10 @@ proof
     by (auto elim!: countableE)
 qed
 
-lemma infinite_UNIV_vec:
+lemma%important infinite_UNIV_vec:
   assumes "infinite (UNIV :: 'a set)"
   shows   "infinite (UNIV :: ('a^'b) set)"
-proof (subst bij_betw_finite)
+proof%unimportant (subst bij_betw_finite)
   show "bij_betw vec_nth UNIV (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))"
     by (intro bij_betwI[of _ _ _ vec_lambda]) (auto simp: vec_eq_iff)
   have "infinite (PiE (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))" (is "infinite ?A")
@@ -125,9 +125,9 @@ proof (subst bij_betw_finite)
   finally show "infinite (Pi (UNIV :: 'b set) (\<lambda>_. UNIV :: 'a set))" .
 qed
 
-lemma CARD_vec [simp]:
+lemma%important CARD_vec [simp]:
   "CARD('a^'b) = CARD('a) ^ CARD('b)"
-proof (cases "finite (UNIV :: 'a set)")
+proof%unimportant (cases "finite (UNIV :: 'a set)")
   case True
   show ?thesis
   proof (subst bij_betw_same_card)
@@ -143,7 +143,7 @@ proof (cases "finite (UNIV :: 'a set)")
   qed
 qed (simp_all add: infinite_UNIV_vec)
 
-lemma countable_vector:
+lemma%unimportant countable_vector:
   fixes B:: "'n::finite \<Rightarrow> 'a set"
   assumes "\<And>i. countable (B i)"
   shows "countable {V. \<forall>i::'n::finite. V $ i \<in> B i}"
@@ -165,7 +165,7 @@ proof -
     by (simp add: image_comp o_def vec_nth_inverse)
 qed
 
-subsection \<open>Group operations and class instances\<close>
+subsection%unimportant \<open>Group operations and class instances\<close>
 
 instantiation vec :: (zero, finite) zero
 begin
@@ -230,7 +230,7 @@ instance vec :: (ab_group_add, finite) ab_group_add
   by standard (simp_all add: vec_eq_iff)
 
 
-subsection\<open>Basic componentwise operations on vectors\<close>
+subsection%unimportant\<open>Basic componentwise operations on vectors\<close>
 
 instantiation vec :: (times, finite) times
 begin
@@ -304,33 +304,33 @@ definition scalar_product :: "'a :: semiring_1 ^ 'n \<Rightarrow> 'a ^ 'n \<Righ
   "scalar_product v w = (\<Sum> i \<in> UNIV. v $ i * w $ i)"
 
 
-subsection \<open>Real vector space\<close>
+subsection%important \<open>Real vector space\<close>
 
-instantiation vec :: (real_vector, finite) real_vector
+instantiation%unimportant vec :: (real_vector, finite) real_vector
 begin
 
-definition "scaleR \<equiv> (\<lambda> r x. (\<chi> i. scaleR r (x$i)))"
+definition%important "scaleR \<equiv> (\<lambda> r x. (\<chi> i. scaleR r (x$i)))"
 
-lemma vector_scaleR_component [simp]: "(scaleR r x)$i = scaleR r (x$i)"
+lemma%important vector_scaleR_component [simp]: "(scaleR r x)$i = scaleR r (x$i)"
   unfolding scaleR_vec_def by simp
 
-instance
+instance%unimportant
   by standard (simp_all add: vec_eq_iff scaleR_left_distrib scaleR_right_distrib)
 
 end
 
 
-subsection \<open>Topological space\<close>
+subsection%important \<open>Topological space\<close>
 
-instantiation vec :: (topological_space, finite) topological_space
+instantiation%unimportant vec :: (topological_space, finite) topological_space
 begin
 
-definition [code del]:
+definition%important [code del]:
   "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A. (\<forall>i. open (A i) \<and> x$i \<in> A i) \<and>
       (\<forall>y. (\<forall>i. y$i \<in> A i) \<longrightarrow> y \<in> S))"
 
-instance proof
+instance proof%unimportant
   show "open (UNIV :: ('a ^ 'b) set)"
     unfolding open_vec_def by auto
 next
@@ -358,30 +358,30 @@ qed
 
 end
 
-lemma open_vector_box: "\<forall>i. open (S i) \<Longrightarrow> open {x. \<forall>i. x $ i \<in> S i}"
+lemma%unimportant open_vector_box: "\<forall>i. open (S i) \<Longrightarrow> open {x. \<forall>i. x $ i \<in> S i}"
   unfolding open_vec_def by auto
 
-lemma open_vimage_vec_nth: "open S \<Longrightarrow> open ((\<lambda>x. x $ i) -` S)"
+lemma%unimportant open_vimage_vec_nth: "open S \<Longrightarrow> open ((\<lambda>x. x $ i) -` S)"
   unfolding open_vec_def
   apply clarify
   apply (rule_tac x="\<lambda>k. if k = i then S else UNIV" in exI, simp)
   done
 
-lemma closed_vimage_vec_nth: "closed S \<Longrightarrow> closed ((\<lambda>x. x $ i) -` S)"
+lemma%unimportant closed_vimage_vec_nth: "closed S \<Longrightarrow> closed ((\<lambda>x. x $ i) -` S)"
   unfolding closed_open vimage_Compl [symmetric]
   by (rule open_vimage_vec_nth)
 
-lemma closed_vector_box: "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
+lemma%unimportant closed_vector_box: "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
 proof -
   have "{x. \<forall>i. x $ i \<in> S i} = (\<Inter>i. (\<lambda>x. x $ i) -` S i)" by auto
   thus "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
     by (simp add: closed_INT closed_vimage_vec_nth)
 qed
 
-lemma tendsto_vec_nth [tendsto_intros]:
+lemma%important tendsto_vec_nth [tendsto_intros]:
   assumes "((\<lambda>x. f x) \<longlongrightarrow> a) net"
   shows "((\<lambda>x. f x $ i) \<longlongrightarrow> a $ i) net"
-proof (rule topological_tendstoI)
+proof%unimportant (rule topological_tendstoI)
   fix S assume "open S" "a $ i \<in> S"
   then have "open ((\<lambda>y. y $ i) -` S)" "a \<in> ((\<lambda>y. y $ i) -` S)"
     by (simp_all add: open_vimage_vec_nth)
@@ -391,13 +391,13 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
-lemma isCont_vec_nth [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x $ i) a"
+lemma%unimportant isCont_vec_nth [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x $ i) a"
   unfolding isCont_def by (rule tendsto_vec_nth)
 
-lemma vec_tendstoI:
+lemma%important vec_tendstoI:
   assumes "\<And>i. ((\<lambda>x. f x $ i) \<longlongrightarrow> a $ i) net"
   shows "((\<lambda>x. f x) \<longlongrightarrow> a) net"
-proof (rule topological_tendstoI)
+proof%unimportant (rule topological_tendstoI)
   fix S assume "open S" and "a \<in> S"
   then obtain A where A: "\<And>i. open (A i)" "\<And>i. a $ i \<in> A i"
     and S: "\<And>y. \<forall>i. y $ i \<in> A i \<Longrightarrow> y \<in> S"
@@ -410,13 +410,13 @@ proof (rule topological_tendstoI)
     by (rule eventually_mono, simp add: S)
 qed
 
-lemma tendsto_vec_lambda [tendsto_intros]:
+lemma%unimportant tendsto_vec_lambda [tendsto_intros]:
   assumes "\<And>i. ((\<lambda>x. f x i) \<longlongrightarrow> a i) net"
   shows "((\<lambda>x. \<chi> i. f x i) \<longlongrightarrow> (\<chi> i. a i)) net"
   using assms by (simp add: vec_tendstoI)
 
-lemma open_image_vec_nth: assumes "open S" shows "open ((\<lambda>x. x $ i) ` S)"
-proof (rule openI)
+lemma%important open_image_vec_nth: assumes "open S" shows "open ((\<lambda>x. x $ i) ` S)"
+proof%unimportant (rule openI)
   fix a assume "a \<in> (\<lambda>x. x $ i) ` S"
   then obtain z where "a = z $ i" and "z \<in> S" ..
   then obtain A where A: "\<forall>i. open (A i) \<and> z $ i \<in> A i"
@@ -442,38 +442,38 @@ proof
 qed
 
 
-subsection \<open>Metric space\<close>
+subsection%important \<open>Metric space\<close>
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation vec :: (metric_space, finite) dist
+instantiation%unimportant vec :: (metric_space, finite) dist
 begin
 
-definition
+definition%important
   "dist x y = L2_set (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
 instance ..
 end
 
-instantiation vec :: (metric_space, finite) uniformity_dist
+instantiation%unimportant vec :: (metric_space, finite) uniformity_dist
 begin
 
-definition [code del]:
+definition%important [code del]:
   "(uniformity :: (('a^'b::_) \<times> ('a^'b::_)) filter) =
     (INF e:{0 <..}. principal {(x, y). dist x y < e})"
 
-instance
+instance%unimportant
   by standard (rule uniformity_vec_def)
 end
 
 declare uniformity_Abort[where 'a="'a :: metric_space ^ 'b :: finite", code]
 
-instantiation vec :: (metric_space, finite) metric_space
+instantiation%unimportant vec :: (metric_space, finite) metric_space
 begin
 
-lemma dist_vec_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
+lemma%important dist_vec_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
   unfolding dist_vec_def by (rule member_le_L2_set) simp_all
 
-instance proof
+instance proof%unimportant
   fix x y :: "'a ^ 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
     unfolding dist_vec_def
@@ -532,15 +532,15 @@ qed
 
 end
 
-lemma Cauchy_vec_nth:
+lemma%important Cauchy_vec_nth:
   "Cauchy (\<lambda>n. X n) \<Longrightarrow> Cauchy (\<lambda>n. X n $ i)"
   unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_vec_nth_le])
 
-lemma vec_CauchyI:
+lemma%important vec_CauchyI:
   fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
   assumes X: "\<And>i. Cauchy (\<lambda>n. X n $ i)"
   shows "Cauchy (\<lambda>n. X n)"
-proof (rule metric_CauchyI)
+proof%unimportant (rule metric_CauchyI)
   fix r :: real assume "0 < r"
   hence "0 < r / of_nat CARD('n)" (is "0 < ?s") by simp
   define N where "N i = (LEAST N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s)" for i
@@ -582,16 +582,16 @@ proof
 qed
 
 
-subsection \<open>Normed vector space\<close>
+subsection%important \<open>Normed vector space\<close>
 
-instantiation vec :: (real_normed_vector, finite) real_normed_vector
+instantiation%unimportant vec :: (real_normed_vector, finite) real_normed_vector
 begin
 
-definition "norm x = L2_set (\<lambda>i. norm (x$i)) UNIV"
+definition%important "norm x = L2_set (\<lambda>i. norm (x$i)) UNIV"
 
-definition "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
+definition%important "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
 
-instance proof
+instance proof%unimportant
   fix a :: real and x y :: "'a ^ 'b"
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_vec_def
@@ -613,32 +613,32 @@ qed
 
 end
 
-lemma norm_nth_le: "norm (x $ i) \<le> norm x"
+lemma%unimportant norm_nth_le: "norm (x $ i) \<le> norm x"
 unfolding norm_vec_def
 by (rule member_le_L2_set) simp_all
 
-lemma norm_le_componentwise_cart:
+lemma%important norm_le_componentwise_cart:
   fixes x :: "'a::real_normed_vector^'n"
   assumes "\<And>i. norm(x$i) \<le> norm(y$i)"
   shows "norm x \<le> norm y"
-  unfolding norm_vec_def
-  by (rule L2_set_mono) (auto simp: assms)
+  unfolding%unimportant norm_vec_def
+  by%unimportant (rule L2_set_mono) (auto simp: assms)
 
-lemma component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
+lemma%unimportant component_le_norm_cart: "\<bar>x$i\<bar> \<le> norm x"
   apply (simp add: norm_vec_def)
   apply (rule member_le_L2_set, simp_all)
   done
 
-lemma norm_bound_component_le_cart: "norm x \<le> e ==> \<bar>x$i\<bar> \<le> e"
+lemma%unimportant norm_bound_component_le_cart: "norm x \<le> e ==> \<bar>x$i\<bar> \<le> e"
   by (metis component_le_norm_cart order_trans)
 
-lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
+lemma%unimportant norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
   by (metis component_le_norm_cart le_less_trans)
 
-lemma norm_le_l1_cart: "norm x \<le> sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
+lemma%unimportant norm_le_l1_cart: "norm x \<le> sum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def L2_set_le_sum)
 
-lemma bounded_linear_vec_nth: "bounded_linear (\<lambda>x. x $ i)"
+lemma%unimportant bounded_linear_vec_nth: "bounded_linear (\<lambda>x. x $ i)"
 apply standard
 apply (rule vector_add_component)
 apply (rule vector_scaleR_component)
@@ -648,14 +648,14 @@ done
 instance vec :: (banach, finite) banach ..
 
 
-subsection \<open>Inner product space\<close>
+subsection%important \<open>Inner product space\<close>
 
-instantiation vec :: (real_inner, finite) real_inner
+instantiation%unimportant vec :: (real_inner, finite) real_inner
 begin
 
-definition "inner x y = sum (\<lambda>i. inner (x$i) (y$i)) UNIV"
+definition%important "inner x y = sum (\<lambda>i. inner (x$i) (y$i)) UNIV"
 
-instance proof
+instance proof%unimportant
   fix r :: real and x y z :: "'a ^ 'b"
   show "inner x y = inner y x"
     unfolding inner_vec_def
@@ -680,19 +680,19 @@ qed
 end
 
 
-subsection \<open>Euclidean space\<close>
+subsection%important \<open>Euclidean space\<close>
 
 text \<open>Vectors pointing along a single axis.\<close>
 
-definition "axis k x = (\<chi> i. if i = k then x else 0)"
+definition%important "axis k x = (\<chi> i. if i = k then x else 0)"
 
-lemma axis_nth [simp]: "axis i x $ i = x"
+lemma%unimportant axis_nth [simp]: "axis i x $ i = x"
   unfolding axis_def by simp
 
-lemma axis_eq_axis: "axis i x = axis j y \<longleftrightarrow> x = y \<and> i = j \<or> x = 0 \<and> y = 0"
+lemma%unimportant axis_eq_axis: "axis i x = axis j y \<longleftrightarrow> x = y \<and> i = j \<or> x = 0 \<and> y = 0"
   unfolding axis_def vec_eq_iff by auto
 
-lemma inner_axis_axis:
+lemma%unimportant inner_axis_axis:
   "inner (axis i x) (axis j y) = (if i = j then inner x y else 0)"
   unfolding inner_vec_def
   apply (cases "i = j")
@@ -702,18 +702,18 @@ lemma inner_axis_axis:
   apply (rule sum.neutral, simp add: axis_def)
   done
 
-lemma inner_axis: "inner x (axis i y) = inner (x $ i) y"
+lemma%unimportant inner_axis: "inner x (axis i y) = inner (x $ i) y"
   by (simp add: inner_vec_def axis_def sum.remove [where x=i])
 
-lemma inner_axis': "inner(axis i y) x = inner y (x $ i)"
+lemma%unimportant inner_axis': "inner(axis i y) x = inner y (x $ i)"
   by (simp add: inner_axis inner_commute)
 
-instantiation vec :: (euclidean_space, finite) euclidean_space
+instantiation%unimportant vec :: (euclidean_space, finite) euclidean_space
 begin
 
-definition "Basis = (\<Union>i. \<Union>u\<in>Basis. {axis i u})"
+definition%important "Basis = (\<Union>i. \<Union>u\<in>Basis. {axis i u})"
 
-instance proof
+instance proof%unimportant
   show "(Basis :: ('a ^ 'b) set) \<noteq> {}"
     unfolding Basis_vec_def by simp
 next
@@ -732,8 +732,8 @@ next
     by (simp add: inner_axis euclidean_all_zero_iff vec_eq_iff)
 qed
 
-lemma DIM_cart [simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
-proof -
+lemma%important DIM_cart [simp]: "DIM('a^'b) = CARD('b) * DIM('a)"
+proof%unimportant -
   have "card (\<Union>i::'b. \<Union>u::'a\<in>Basis. {axis i u}) = (\<Sum>i::'b\<in>UNIV. card (\<Union>u::'a\<in>Basis. {axis i u}))"
     by (rule card_UN_disjoint) (auto simp: axis_eq_axis) 
   also have "... = CARD('b) * DIM('a)"
@@ -744,30 +744,30 @@ qed
 
 end
 
-lemma norm_axis_1 [simp]: "norm (axis m (1::real)) = 1"
+lemma%unimportant norm_axis_1 [simp]: "norm (axis m (1::real)) = 1"
   by (simp add: inner_axis' norm_eq_1)
 
-lemma sum_norm_allsubsets_bound_cart:
+lemma%important sum_norm_allsubsets_bound_cart:
   fixes f:: "'a \<Rightarrow> real ^'n"
   assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (sum f Q) \<le> e"
   shows "sum (\<lambda>x. norm (f x)) P \<le> 2 * real CARD('n) *  e"
-  using sum_norm_allsubsets_bound[OF assms]
-  by simp
+  using%unimportant sum_norm_allsubsets_bound[OF assms]
+  by%unimportant simp
 
-lemma cart_eq_inner_axis: "a $ i = inner a (axis i 1)"
+lemma%unimportant cart_eq_inner_axis: "a $ i = inner a (axis i 1)"
   by (simp add: inner_axis)
 
-lemma axis_eq_0_iff [simp]:
+lemma%unimportant axis_eq_0_iff [simp]:
   shows "axis m x = 0 \<longleftrightarrow> x = 0"
   by (simp add: axis_def vec_eq_iff)
 
-lemma axis_in_Basis_iff [simp]: "axis i a \<in> Basis \<longleftrightarrow> a \<in> Basis"
+lemma%unimportant axis_in_Basis_iff [simp]: "axis i a \<in> Basis \<longleftrightarrow> a \<in> Basis"
   by (auto simp: Basis_vec_def axis_eq_axis)
 
 text\<open>Mapping each basis element to the corresponding finite index\<close>
 definition axis_index :: "('a::comm_ring_1)^'n \<Rightarrow> 'n" where "axis_index v \<equiv> SOME i. v = axis i 1"
 
-lemma axis_inverse:
+lemma%unimportant axis_inverse:
   fixes v :: "real^'n"
   assumes "v \<in> Basis"
   shows "\<exists>i. v = axis i 1"
@@ -778,20 +778,20 @@ proof -
     by (force simp add: vec_eq_iff)
 qed
 
-lemma axis_index:
+lemma%unimportant axis_index:
   fixes v :: "real^'n"
   assumes "v \<in> Basis"
   shows "v = axis (axis_index v) 1"
   by (metis (mono_tags) assms axis_inverse axis_index_def someI_ex)
 
-lemma axis_index_axis [simp]:
+lemma%unimportant axis_index_axis [simp]:
   fixes UU :: "real^'n"
   shows "(axis_index (axis u 1 :: real^'n)) = (u::'n)"
   by (simp add: axis_eq_axis axis_index_def)
 
-subsection \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space\<close>
+subsection%unimportant \<open>A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space\<close>
 
-lemma sum_cong_aux:
+lemma%unimportant sum_cong_aux:
   "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> sum f A = sum g A"
   by (auto intro: sum.cong)
 
@@ -823,22 +823,22 @@ in
 end
 \<close> "lift trivial vector statements to real arith statements"
 
-lemma vec_0[simp]: "vec 0 = 0" by vector
-lemma vec_1[simp]: "vec 1 = 1" by vector
+lemma%unimportant vec_0[simp]: "vec 0 = 0" by vector
+lemma%unimportant vec_1[simp]: "vec 1 = 1" by vector
 
-lemma vec_inj[simp]: "vec x = vec y \<longleftrightarrow> x = y" by vector
+lemma%unimportant vec_inj[simp]: "vec x = vec y \<longleftrightarrow> x = y" by vector
 
-lemma vec_in_image_vec: "vec x \<in> (vec ` S) \<longleftrightarrow> x \<in> S" by auto
+lemma%unimportant vec_in_image_vec: "vec x \<in> (vec ` S) \<longleftrightarrow> x \<in> S" by auto
 
-lemma vec_add: "vec(x + y) = vec x + vec y"  by vector
-lemma vec_sub: "vec(x - y) = vec x - vec y" by vector
-lemma vec_cmul: "vec(c * x) = c *s vec x " by vector
-lemma vec_neg: "vec(- x) = - vec x " by vector
+lemma%unimportant vec_add: "vec(x + y) = vec x + vec y"  by vector
+lemma%unimportant vec_sub: "vec(x - y) = vec x - vec y" by vector
+lemma%unimportant vec_cmul: "vec(c * x) = c *s vec x " by vector
+lemma%unimportant vec_neg: "vec(- x) = - vec x " by vector
 
-lemma vec_scaleR: "vec(c * x) = c *\<^sub>R vec x"
+lemma%unimportant vec_scaleR: "vec(c * x) = c *\<^sub>R vec x"
   by vector
 
-lemma vec_sum:
+lemma%unimportant vec_sum:
   assumes "finite S"
   shows "vec(sum f S) = sum (vec \<circ> f) S"
   using assms
@@ -852,24 +852,24 @@ qed
 
 text\<open>Obvious "component-pushing".\<close>
 
-lemma vec_component [simp]: "vec x $ i = x"
+lemma%unimportant vec_component [simp]: "vec x $ i = x"
   by vector
 
-lemma vector_mult_component [simp]: "(x * y)$i = x$i * y$i"
+lemma%unimportant vector_mult_component [simp]: "(x * y)$i = x$i * y$i"
   by vector
 
-lemma vector_smult_component [simp]: "(c *s y)$i = c * (y$i)"
+lemma%unimportant vector_smult_component [simp]: "(c *s y)$i = c * (y$i)"
   by vector
 
-lemma cond_component: "(if b then x else y)$i = (if b then x$i else y$i)" by vector
+lemma%unimportant cond_component: "(if b then x else y)$i = (if b then x$i else y$i)" by vector
 
-lemmas vector_component =
+lemmas%unimportant vector_component =
   vec_component vector_add_component vector_mult_component
   vector_smult_component vector_minus_component vector_uminus_component
   vector_scaleR_component cond_component
 
 
-subsection \<open>Some frequently useful arithmetic lemmas over vectors\<close>
+subsection%unimportant \<open>Some frequently useful arithmetic lemmas over vectors\<close>
 
 instance vec :: (semigroup_mult, finite) semigroup_mult
   by standard (vector mult.assoc)
@@ -1004,47 +1004,47 @@ lemma linear_vec [simp]: "linear vec"
   apply (auto )
   by unfold_locales (vector algebra_simps)+
 
-subsection \<open>Matrix operations\<close>
+subsection%important \<open>Matrix operations\<close>
 
 text\<open>Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"}\<close>
 
-definition map_matrix::"('a \<Rightarrow> 'b) \<Rightarrow> (('a, 'i::finite)vec, 'j::finite) vec \<Rightarrow> (('b, 'i)vec, 'j) vec" where
+definition%important map_matrix::"('a \<Rightarrow> 'b) \<Rightarrow> (('a, 'i::finite)vec, 'j::finite) vec \<Rightarrow> (('b, 'i)vec, 'j) vec" where
   "map_matrix f x = (\<chi> i j. f (x $ i $ j))"
 
-lemma nth_map_matrix[simp]: "map_matrix f x $ i $ j = f (x $ i $ j)"
+lemma%unimportant nth_map_matrix[simp]: "map_matrix f x $ i $ j = f (x $ i $ j)"
   by (simp add: map_matrix_def)
 
-definition matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
+definition%important matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
     (infixl "**" 70)
   where "m ** m' == (\<chi> i j. sum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
 
-definition matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"
+definition%important matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"
     (infixl "*v" 70)
   where "m *v x \<equiv> (\<chi> i. sum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
 
-definition vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
+definition%important vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
     (infixl "v*" 70)
   where "v v* m == (\<chi> j. sum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
-definition "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
-definition transpose where
+definition%unimportant "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
+definition%unimportant transpose where
   "(transpose::'a^'n^'m \<Rightarrow> 'a^'m^'n) A = (\<chi> i j. ((A$j)$i))"
-definition "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
-definition "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
-definition "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
-definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
+definition%unimportant "(row::'m => 'a ^'n^'m \<Rightarrow> 'a ^'n) i A = (\<chi> j. ((A$i)$j))"
+definition%unimportant "(column::'n =>'a^'n^'m =>'a^'m) j A = (\<chi> i. ((A$i)$j))"
+definition%unimportant "rows(A::'a^'n^'m) = { row i A | i. i \<in> (UNIV :: 'm set)}"
+definition%unimportant "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
-lemma times0_left [simp]: "(0::'a::semiring_1^'n^'m) ** (A::'a ^'p^'n) = 0" 
+lemma%unimportant times0_left [simp]: "(0::'a::semiring_1^'n^'m) ** (A::'a ^'p^'n) = 0" 
   by (simp add: matrix_matrix_mult_def zero_vec_def)
 
-lemma times0_right [simp]: "(A::'a::semiring_1^'n^'m) ** (0::'a ^'p^'n) = 0" 
+lemma%unimportant times0_right [simp]: "(A::'a::semiring_1^'n^'m) ** (0::'a ^'p^'n) = 0" 
   by (simp add: matrix_matrix_mult_def zero_vec_def)
 
-lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
-lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
+lemma%unimportant mat_0[simp]: "mat 0 = 0" by (vector mat_def)
+lemma%unimportant matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
   by (vector matrix_matrix_mult_def sum.distrib[symmetric] field_simps)
 
-lemma matrix_mul_lid [simp]:
+lemma%unimportant matrix_mul_lid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "mat 1 ** A = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
@@ -1053,7 +1053,7 @@ lemma matrix_mul_lid [simp]:
     mult_1_left mult_zero_left if_True UNIV_I)
   done
 
-lemma matrix_mul_rid [simp]:
+lemma%unimportant matrix_mul_rid [simp]:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
   shows "A ** mat 1 = A"
   apply (simp add: matrix_matrix_mult_def mat_def)
@@ -1062,39 +1062,39 @@ lemma matrix_mul_rid [simp]:
     mult_1_right mult_zero_right if_True UNIV_I cong: if_cong)
   done
 
-lemma matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
+lemma%unimportant matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
   apply (vector matrix_matrix_mult_def sum_distrib_left sum_distrib_right mult.assoc)
   apply (subst sum.swap)
   apply simp
   done
 
-lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
+lemma%unimportant matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (vector matrix_matrix_mult_def matrix_vector_mult_def
     sum_distrib_left sum_distrib_right mult.assoc)
   apply (subst sum.swap)
   apply simp
   done
 
-lemma scalar_matrix_assoc:
+lemma%unimportant scalar_matrix_assoc:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "k *\<^sub>R (A ** B) = (k *\<^sub>R A) ** B"
   by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff scaleR_sum_right)
 
-lemma matrix_scalar_ac:
+lemma%unimportant matrix_scalar_ac:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "A ** (k *\<^sub>R B) = k *\<^sub>R A ** B"
   by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
 
-lemma matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
+lemma%unimportant matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
   apply (simp add: if_distrib if_distribR sum.delta' cong del: if_weak_cong)
   done
 
-lemma matrix_transpose_mul:
+lemma%unimportant matrix_transpose_mul:
     "transpose(A ** B) = transpose B ** transpose (A::'a::comm_semiring_1^_^_)"
   by (simp add: matrix_matrix_mult_def transpose_def vec_eq_iff mult.commute)
 
-lemma matrix_eq:
+lemma%unimportant matrix_eq:
   fixes A B :: "'a::semiring_1 ^ 'n ^ 'm"
   shows "A = B \<longleftrightarrow>  (\<forall>x. A *v x = B *v x)" (is "?lhs \<longleftrightarrow> ?rhs")
   apply auto
@@ -1107,125 +1107,125 @@ lemma matrix_eq:
     sum.delta[OF finite] cong del: if_weak_cong)
   done
 
-lemma matrix_vector_mul_component: "(A *v x)$k = inner (A$k) x"
+lemma%unimportant matrix_vector_mul_component: "(A *v x)$k = inner (A$k) x"
   by (simp add: matrix_vector_mult_def inner_vec_def)
 
-lemma dot_lmul_matrix: "inner ((x::real ^_) v* A) y = inner x (A *v y)"
+lemma%unimportant dot_lmul_matrix: "inner ((x::real ^_) v* A) y = inner x (A *v y)"
   apply (simp add: inner_vec_def matrix_vector_mult_def vector_matrix_mult_def sum_distrib_right sum_distrib_left ac_simps)
   apply (subst sum.swap)
   apply simp
   done
 
-lemma transpose_mat [simp]: "transpose (mat n) = mat n"
+lemma%unimportant transpose_mat [simp]: "transpose (mat n) = mat n"
   by (vector transpose_def mat_def)
 
-lemma transpose_transpose [simp]: "transpose(transpose A) = A"
+lemma%unimportant transpose_transpose [simp]: "transpose(transpose A) = A"
   by (vector transpose_def)
 
-lemma row_transpose [simp]: "row i (transpose A) = column i A"
+lemma%unimportant row_transpose [simp]: "row i (transpose A) = column i A"
   by (simp add: row_def column_def transpose_def vec_eq_iff)
 
-lemma column_transpose [simp]: "column i (transpose A) = row i A"
+lemma%unimportant column_transpose [simp]: "column i (transpose A) = row i A"
   by (simp add: row_def column_def transpose_def vec_eq_iff)
 
-lemma rows_transpose [simp]: "rows(transpose A) = columns A"
+lemma%unimportant rows_transpose [simp]: "rows(transpose A) = columns A"
   by (auto simp add: rows_def columns_def intro: set_eqI)
 
-lemma columns_transpose [simp]: "columns(transpose A) = rows A"
+lemma%unimportant columns_transpose [simp]: "columns(transpose A) = rows A"
   by (metis transpose_transpose rows_transpose)
 
-lemma transpose_scalar: "transpose (k *\<^sub>R A) = k *\<^sub>R transpose A"
+lemma%unimportant transpose_scalar: "transpose (k *\<^sub>R A) = k *\<^sub>R transpose A"
   unfolding transpose_def
   by (simp add: vec_eq_iff)
 
-lemma transpose_iff [iff]: "transpose A = transpose B \<longleftrightarrow> A = B"
+lemma%unimportant transpose_iff [iff]: "transpose A = transpose B \<longleftrightarrow> A = B"
   by (metis transpose_transpose)
 
-lemma matrix_mult_sum:
+lemma%unimportant matrix_mult_sum:
   "(A::'a::comm_semiring_1^'n^'m) *v x = sum (\<lambda>i. (x$i) *s column i A) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def vec_eq_iff column_def mult.commute)
 
-lemma vector_componentwise:
+lemma%unimportant vector_componentwise:
   "(x::'a::ring_1^'n) = (\<chi> j. \<Sum>i\<in>UNIV. (x$i) * (axis i 1 :: 'a^'n) $ j)"
   by (simp add: axis_def if_distrib sum.If_cases vec_eq_iff)
 
-lemma basis_expansion: "sum (\<lambda>i. (x$i) *s axis i 1) UNIV = (x::('a::ring_1) ^'n)"
+lemma%unimportant basis_expansion: "sum (\<lambda>i. (x$i) *s axis i 1) UNIV = (x::('a::ring_1) ^'n)"
   by (auto simp add: axis_def vec_eq_iff if_distrib sum.If_cases cong del: if_weak_cong)
 
 
 text\<open>Correspondence between matrices and linear operators.\<close>
 
-definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
+definition%important matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
   where "matrix f = (\<chi> i j. (f(axis j 1))$i)"
 
-lemma matrix_id_mat_1: "matrix id = mat 1"
+lemma%unimportant matrix_id_mat_1: "matrix id = mat 1"
   by (simp add: mat_def matrix_def axis_def)
 
-lemma matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
+lemma%unimportant matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
   by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
-lemma matrix_vector_mul_linear[intro, simp]: "linear (\<lambda>x. A *v (x::'a::real_algebra_1 ^ _))"
+lemma%unimportant matrix_vector_mul_linear[intro, simp]: "linear (\<lambda>x. A *v (x::'a::real_algebra_1 ^ _))"
   by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff field_simps sum_distrib_left
       sum.distrib scaleR_right.sum)
 
-lemma vector_matrix_left_distrib [algebra_simps]:
+lemma%unimportant vector_matrix_left_distrib [algebra_simps]:
   shows "(x + y) v* A = x v* A + y v* A"
   unfolding vector_matrix_mult_def
   by (simp add: algebra_simps sum.distrib vec_eq_iff)
 
-lemma matrix_vector_right_distrib [algebra_simps]:
+lemma%unimportant matrix_vector_right_distrib [algebra_simps]:
   "A *v (x + y) = A *v x + A *v y"
   by (vector matrix_vector_mult_def sum.distrib distrib_left)
 
-lemma matrix_vector_mult_diff_distrib [algebra_simps]:
+lemma%unimportant matrix_vector_mult_diff_distrib [algebra_simps]:
   fixes A :: "'a::ring_1^'n^'m"
   shows "A *v (x - y) = A *v x - A *v y"
   by (vector matrix_vector_mult_def sum_subtractf right_diff_distrib)
 
-lemma matrix_vector_mult_scaleR[algebra_simps]:
+lemma%unimportant matrix_vector_mult_scaleR[algebra_simps]:
   fixes A :: "real^'n^'m"
   shows "A *v (c *\<^sub>R x) = c *\<^sub>R (A *v x)"
   using linear_iff matrix_vector_mul_linear by blast
 
-lemma matrix_vector_mult_0_right [simp]: "A *v 0 = 0"
+lemma%unimportant matrix_vector_mult_0_right [simp]: "A *v 0 = 0"
   by (simp add: matrix_vector_mult_def vec_eq_iff)
 
-lemma matrix_vector_mult_0 [simp]: "0 *v w = 0"
+lemma%unimportant matrix_vector_mult_0 [simp]: "0 *v w = 0"
   by (simp add: matrix_vector_mult_def vec_eq_iff)
 
-lemma matrix_vector_mult_add_rdistrib [algebra_simps]:
+lemma%unimportant matrix_vector_mult_add_rdistrib [algebra_simps]:
   "(A + B) *v x = (A *v x) + (B *v x)"
   by (vector matrix_vector_mult_def sum.distrib distrib_right)
 
-lemma matrix_vector_mult_diff_rdistrib [algebra_simps]:
+lemma%unimportant matrix_vector_mult_diff_rdistrib [algebra_simps]:
   fixes A :: "'a :: ring_1^'n^'m"
   shows "(A - B) *v x = (A *v x) - (B *v x)"
   by (vector matrix_vector_mult_def sum_subtractf left_diff_distrib)
 
-lemma matrix_vector_column:
+lemma%unimportant matrix_vector_column:
   "(A::'a::comm_semiring_1^'n^_) *v x = sum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
   by (simp add: matrix_vector_mult_def transpose_def vec_eq_iff mult.commute)
 
-subsection\<open>Inverse matrices  (not necessarily square)\<close>
+subsection%important\<open>Inverse matrices  (not necessarily square)\<close>
 
-definition
+definition%important
   "invertible(A::'a::semiring_1^'n^'m) \<longleftrightarrow> (\<exists>A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 
-definition
+definition%important
   "matrix_inv(A:: 'a::semiring_1^'n^'m) =
     (SOME A'::'a^'m^'n. A ** A' = mat 1 \<and> A' ** A = mat 1)"
 
-lemma inj_matrix_vector_mult:
+lemma%unimportant inj_matrix_vector_mult:
   fixes A::"'a::field^'n^'m"
   assumes "invertible A"
   shows "inj (( *v) A)"
   by (metis assms inj_on_inverseI invertible_def matrix_vector_mul_assoc matrix_vector_mul_lid)
 
-lemma scalar_invertible:
+lemma%important scalar_invertible:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   assumes "k \<noteq> 0" and "invertible A"
   shows "invertible (k *\<^sub>R A)"
-proof -
+proof%unimportant -
   obtain A' where "A ** A' = mat 1" and "A' ** A = mat 1"
     using assms unfolding invertible_def by auto
   with `k \<noteq> 0`
@@ -1235,50 +1235,50 @@ proof -
     unfolding invertible_def by auto
 qed
 
-lemma scalar_invertible_iff:
+lemma%unimportant scalar_invertible_iff:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   assumes "k \<noteq> 0" and "invertible A"
   shows "invertible (k *\<^sub>R A) \<longleftrightarrow> k \<noteq> 0 \<and> invertible A"
   by (simp add: assms scalar_invertible)
 
-lemma vector_transpose_matrix [simp]: "x v* transpose A = A *v x"
+lemma%unimportant vector_transpose_matrix [simp]: "x v* transpose A = A *v x"
   unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
   by simp
 
-lemma transpose_matrix_vector [simp]: "transpose A *v x = x v* A"
+lemma%unimportant transpose_matrix_vector [simp]: "transpose A *v x = x v* A"
   unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
   by simp
 
-lemma vector_scalar_commute:
+lemma%unimportant vector_scalar_commute:
   fixes A :: "'a::{field}^'m^'n"
   shows "A *v (c *s x) = c *s (A *v x)"
   by (simp add: vector_scalar_mult_def matrix_vector_mult_def mult_ac sum_distrib_left)
 
-lemma scalar_vector_matrix_assoc:
+lemma%unimportant scalar_vector_matrix_assoc:
   fixes k :: "'a::{field}" and x :: "'a::{field}^'n" and A :: "'a^'m^'n"
   shows "(k *s x) v* A = k *s (x v* A)"
   by (metis transpose_matrix_vector vector_scalar_commute)
  
-lemma vector_matrix_mult_0 [simp]: "0 v* A = 0"
+lemma%unimportant vector_matrix_mult_0 [simp]: "0 v* A = 0"
   unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
 
-lemma vector_matrix_mult_0_right [simp]: "x v* 0 = 0"
+lemma%unimportant vector_matrix_mult_0_right [simp]: "x v* 0 = 0"
   unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
 
-lemma vector_matrix_mul_rid [simp]:
+lemma%unimportant vector_matrix_mul_rid [simp]:
   fixes v :: "('a::semiring_1)^'n"
   shows "v v* mat 1 = v"
   by (metis matrix_vector_mul_lid transpose_mat vector_transpose_matrix)
 
-lemma scaleR_vector_matrix_assoc:
+lemma%unimportant scaleR_vector_matrix_assoc:
   fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
   shows "(k *\<^sub>R x) v* A = k *\<^sub>R (x v* A)"
   by (metis matrix_vector_mult_scaleR transpose_matrix_vector)
 
-lemma vector_scaleR_matrix_ac:
+lemma%important vector_scaleR_matrix_ac:
   fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
   shows "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
-proof -
+proof%unimportant -
   have "x v* (k *\<^sub>R A) = (k *\<^sub>R x) v* A"
     unfolding vector_matrix_mult_def
     by (simp add: algebra_simps)

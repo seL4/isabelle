@@ -1,4 +1,4 @@
-section \<open>Extending Continous Maps, Invariance of Domain, etc\<close>
+section%important \<open>Extending Continous Maps, Invariance of Domain, etc\<close>
 
 text\<open>Ported from HOL Light (moretop.ml) by L C Paulson\<close>
 
@@ -6,15 +6,15 @@ theory Further_Topology
   imports Equivalence_Lebesgue_Henstock_Integration Weierstrass_Theorems Polytope Complex_Transcendental
 begin
 
-subsection\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
+subsection%important\<open>A map from a sphere to a higher dimensional sphere is nullhomotopic\<close>
 
-lemma spheremap_lemma1:
+lemma%important spheremap_lemma1:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes "subspace S" "subspace T" and dimST: "dim S < dim T"
       and "S \<subseteq> T"
       and diff_f: "f differentiable_on sphere 0 1 \<inter> S"
     shows "f ` (sphere 0 1 \<inter> S) \<noteq> sphere 0 1 \<inter> T"
-proof
+proof%unimportant
   assume fim: "f ` (sphere 0 1 \<inter> S) = sphere 0 1 \<inter> T"
   have inS: "\<And>x. \<lbrakk>x \<in> S; x \<noteq> 0\<rbrakk> \<Longrightarrow> (x /\<^sub>R norm x) \<in> S"
     using subspace_mul \<open>subspace S\<close> by blast
@@ -158,14 +158,14 @@ proof
 qed
 
 
-lemma spheremap_lemma2:
+lemma%important spheremap_lemma2:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes ST: "subspace S" "subspace T" "dim S < dim T"
       and "S \<subseteq> T"
       and contf: "continuous_on (sphere 0 1 \<inter> S) f"
       and fim: "f ` (sphere 0 1 \<inter> S) \<subseteq> sphere 0 1 \<inter> T"
     shows "\<exists>c. homotopic_with (\<lambda>x. True) (sphere 0 1 \<inter> S) (sphere 0 1 \<inter> T) f (\<lambda>x. c)"
-proof -
+proof%unimportant -
   have [simp]: "\<And>x. \<lbrakk>norm x = 1; x \<in> S\<rbrakk> \<Longrightarrow> norm (f x) = 1"
     using fim by (simp add: image_subset_iff)
   have "compact (sphere 0 1 \<inter> S)"
@@ -252,11 +252,11 @@ proof -
 qed
 
 
-lemma spheremap_lemma3:
+lemma%important spheremap_lemma3:
   assumes "bounded S" "convex S" "subspace U" and affSU: "aff_dim S \<le> dim U"
   obtains T where "subspace T" "T \<subseteq> U" "S \<noteq> {} \<Longrightarrow> aff_dim T = aff_dim S"
                   "(rel_frontier S) homeomorphic (sphere 0 1 \<inter> T)"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   with \<open>subspace U\<close> subspace_0 show ?thesis
     by (rule_tac T = "{0}" in that) auto
@@ -300,14 +300,14 @@ next
 qed
 
 
-proposition inessential_spheremap_lowdim_gen:
+proposition%important inessential_spheremap_lowdim_gen:
   fixes f :: "'M::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes "convex S" "bounded S" "convex T" "bounded T"
       and affST: "aff_dim S < aff_dim T"
       and contf: "continuous_on (rel_frontier S) f"
       and fim: "f ` (rel_frontier S) \<subseteq> rel_frontier T"
   obtains c where "homotopic_with (\<lambda>z. True) (rel_frontier S) (rel_frontier T) f (\<lambda>x. c)"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   then show ?thesis
     by (simp add: that)
@@ -350,7 +350,7 @@ next
   qed
 qed
 
-lemma inessential_spheremap_lowdim:
+lemma%unimportant inessential_spheremap_lowdim:
   fixes f :: "'M::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes
    "DIM('M) < DIM('a)" and f: "continuous_on (sphere a r) f" "f ` (sphere a r) \<subseteq> (sphere b s)"
@@ -377,9 +377,9 @@ qed
 
 
 
-subsection\<open> Some technical lemmas about extending maps from cell complexes\<close>
+subsection%important\<open> Some technical lemmas about extending maps from cell complexes\<close>
 
-lemma extending_maps_Union_aux:
+lemma%unimportant extending_maps_Union_aux:
   assumes fin: "finite \<F>"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
       and "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>; S \<noteq> T\<rbrakk> \<Longrightarrow> S \<inter> T \<subseteq> K"
@@ -410,7 +410,7 @@ next
     done
 qed
 
-lemma extending_maps_Union:
+lemma%unimportant extending_maps_Union:
   assumes fin: "finite \<F>"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>g. continuous_on S g \<and> g ` S \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
@@ -422,14 +422,14 @@ apply (simp_all add: Union_maximal_sets [OF fin] assms)
 by (metis K psubsetI)
 
 
-lemma extend_map_lemma:
+lemma%important extend_map_lemma:
   assumes "finite \<F>" "\<G> \<subseteq> \<F>" "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> - \<G> \<Longrightarrow> aff_dim X < aff_dim T"
       and face: "\<And>S T. \<lbrakk>S \<in> \<F>; T \<in> \<F>\<rbrakk> \<Longrightarrow> (S \<inter> T) face_of S \<and> (S \<inter> T) face_of T"
       and contf: "continuous_on (\<Union>\<G>) f" and fim: "f ` (\<Union>\<G>) \<subseteq> rel_frontier T"
   obtains g where "continuous_on (\<Union>\<F>) g" "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
-proof (cases "\<F> - \<G> = {}")
+proof%unimportant (cases "\<F> - \<G> = {}")
   case True
   then have "\<Union>\<F> \<subseteq> \<Union>\<G>"
     by (simp add: Union_mono)
@@ -608,7 +608,7 @@ next
     using extendf [of i] unfolding eq by (metis that)
 qed
 
-lemma extend_map_lemma_cofinite0:
+lemma%unimportant extend_map_lemma_cofinite0:
   assumes "finite \<F>"
       and "pairwise (\<lambda>S T. S \<inter> T \<subseteq> K) \<F>"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (S - {a}) g \<and> g ` (S - {a}) \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
@@ -665,7 +665,7 @@ next
 qed
 
 
-lemma extend_map_lemma_cofinite1:
+lemma%unimportant extend_map_lemma_cofinite1:
 assumes "finite \<F>"
     and \<F>: "\<And>X. X \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (X - {a}) g \<and> g ` (X - {a}) \<subseteq> T \<and> (\<forall>x \<in> X \<inter> K. g x = h x)"
     and clo: "\<And>X. X \<in> \<F> \<Longrightarrow> closed X"
@@ -695,7 +695,7 @@ proof -
 qed
 
 
-lemma extend_map_lemma_cofinite:
+lemma%important extend_map_lemma_cofinite:
   assumes "finite \<F>" "\<G> \<subseteq> \<F>" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and contf: "continuous_on (\<Union>\<G>) f" and fim: "f ` (\<Union>\<G>) \<subseteq> rel_frontier T"
@@ -704,7 +704,7 @@ lemma extend_map_lemma_cofinite:
   obtains C g where
      "finite C" "disjnt C (\<Union>\<G>)" "card C \<le> card \<F>" "continuous_on (\<Union>\<F> - C) g"
      "g ` (\<Union> \<F> - C) \<subseteq> rel_frontier T" "\<And>x. x \<in> \<Union>\<G> \<Longrightarrow> g x = f x"
-proof -
+proof%unimportant -
   define \<H> where "\<H> \<equiv> \<G> \<union> {D. \<exists>C \<in> \<F> - \<G>. D face_of C \<and> aff_dim D < aff_dim T}"
   have "finite \<G>"
     using assms finite_subset by blast
@@ -869,7 +869,7 @@ proof -
 qed
 
 text\<open>The next two proofs are similar\<close>
-theorem extend_map_cell_complex_to_sphere:
+theorem%important extend_map_cell_complex_to_sphere:
   assumes "finite \<F>" and S: "S \<subseteq> \<Union>\<F>" "closed S" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X < aff_dim T"
@@ -877,7 +877,7 @@ theorem extend_map_cell_complex_to_sphere:
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> rel_frontier T"
   obtains g where "continuous_on (\<Union>\<F>) g"
      "g ` (\<Union>\<F>) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof -
+proof%unimportant -
   obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g ` V \<subseteq> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     using neighbourhood_extension_into_ANR [OF contf fim _ \<open>closed S\<close>] ANR_rel_frontier_convex T by blast
   have "compact S"
@@ -924,7 +924,7 @@ proof -
 qed
 
 
-theorem extend_map_cell_complex_to_sphere_cofinite:
+theorem%important extend_map_cell_complex_to_sphere_cofinite:
   assumes "finite \<F>" and S: "S \<subseteq> \<Union>\<F>" "closed S" and T: "convex T" "bounded T"
       and poly: "\<And>X. X \<in> \<F> \<Longrightarrow> polytope X"
       and aff: "\<And>X. X \<in> \<F> \<Longrightarrow> aff_dim X \<le> aff_dim T"
@@ -932,7 +932,7 @@ theorem extend_map_cell_complex_to_sphere_cofinite:
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> rel_frontier T"
   obtains C g where "finite C" "disjnt C S" "continuous_on (\<Union>\<F> - C) g"
      "g ` (\<Union>\<F> - C) \<subseteq> rel_frontier T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof -
+proof%unimportant -
   obtain V g where "S \<subseteq> V" "open V" "continuous_on V g" and gim: "g ` V \<subseteq> rel_frontier T" and gf: "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
     using neighbourhood_extension_into_ANR [OF contf fim _ \<open>closed S\<close>] ANR_rel_frontier_convex T by blast
   have "compact S"
@@ -991,12 +991,12 @@ qed
 
 
 
-subsection\<open> Special cases and corollaries involving spheres\<close>
+subsection%important\<open> Special cases and corollaries involving spheres\<close>
 
-lemma disjnt_Diff1: "X \<subseteq> Y' \<Longrightarrow> disjnt (X - Y) (X' - Y')"
+lemma%unimportant disjnt_Diff1: "X \<subseteq> Y' \<Longrightarrow> disjnt (X - Y) (X' - Y')"
   by (auto simp: disjnt_def)
 
-proposition extend_map_affine_to_sphere_cofinite_simple:
+proposition%important extend_map_affine_to_sphere_cofinite_simple:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact S" "convex U" "bounded U"
       and aff: "aff_dim T \<le> aff_dim U"
@@ -1005,7 +1005,7 @@ proposition extend_map_affine_to_sphere_cofinite_simple:
  obtains K g where "finite K" "K \<subseteq> T" "disjnt K S" "continuous_on (T - K) g"
                    "g ` (T - K) \<subseteq> rel_frontier U"
                    "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof -
+proof%unimportant -
   have "\<exists>K g. finite K \<and> disjnt K S \<and> continuous_on (T - K) g \<and>
               g ` (T - K) \<subseteq> rel_frontier U \<and> (\<forall>x \<in> S. g x = f x)"
        if "affine T" "S \<subseteq> T" and aff: "aff_dim T \<le> aff_dim U"  for T
@@ -1140,18 +1140,18 @@ proof -
     by (rule_tac K="K \<inter> T" and g=g in that) (auto simp: disjnt_iff Diff_Int contg)
 qed
 
-subsection\<open>Extending maps to spheres\<close>
+subsection%important\<open>Extending maps to spheres\<close>
 
 (*Up to extend_map_affine_to_sphere_cofinite_gen*)
 
-lemma extend_map_affine_to_sphere1:
+lemma%important extend_map_affine_to_sphere1:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::topological_space"
   assumes "finite K" "affine U" and contf: "continuous_on (U - K) f"
       and fim: "f ` (U - K) \<subseteq> T"
       and comps: "\<And>C. \<lbrakk>C \<in> components(U - S); C \<inter> K \<noteq> {}\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
       and clo: "closedin (subtopology euclidean U) S" and K: "disjnt K S" "K \<subseteq> U"
   obtains g where "continuous_on (U - L) g" "g ` (U - L) \<subseteq> T" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof (cases "K = {}")
+proof%unimportant (cases "K = {}")
   case True
   then show ?thesis
     by (metis Diff_empty Diff_subset contf fim continuous_on_subset image_subsetI rev_image_eqI subset_iff that)
@@ -1436,7 +1436,7 @@ next
 qed
 
 
-lemma extend_map_affine_to_sphere2:
+lemma%important extend_map_affine_to_sphere2:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact S" "convex U" "bounded U" "affine T" "S \<subseteq> T"
       and affTU: "aff_dim T \<le> aff_dim U"
@@ -1446,7 +1446,7 @@ lemma extend_map_affine_to_sphere2:
     obtains K g where "finite K" "K \<subseteq> L" "K \<subseteq> T" "disjnt K S"
                       "continuous_on (T - K) g" "g ` (T - K) \<subseteq> rel_frontier U"
                       "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof -
+proof%unimportant -
   obtain K g where K: "finite K" "K \<subseteq> T" "disjnt K S"
                and contg: "continuous_on (T - K) g"
                and gim: "g ` (T - K) \<subseteq> rel_frontier U"
@@ -1490,7 +1490,7 @@ proof -
 qed
 
 
-proposition extend_map_affine_to_sphere_cofinite_gen:
+proposition%important extend_map_affine_to_sphere_cofinite_gen:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes SUT: "compact S" "convex U" "bounded U" "affine T" "S \<subseteq> T"
       and aff: "aff_dim T \<le> aff_dim U"
@@ -1500,7 +1500,7 @@ proposition extend_map_affine_to_sphere_cofinite_gen:
  obtains K g where "finite K" "K \<subseteq> L" "K \<subseteq> T" "disjnt K S" "continuous_on (T - K) g"
                    "g ` (T - K) \<subseteq> rel_frontier U"
                    "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   show ?thesis
   proof (cases "rel_frontier U = {}")
@@ -1645,7 +1645,7 @@ next
 qed
 
 
-corollary extend_map_affine_to_sphere_cofinite:
+corollary%important extend_map_affine_to_sphere_cofinite:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes SUT: "compact S" "affine T" "S \<subseteq> T"
       and aff: "aff_dim T \<le> DIM('b)" and "0 \<le> r"
@@ -1654,7 +1654,7 @@ corollary extend_map_affine_to_sphere_cofinite:
       and dis: "\<And>C. \<lbrakk>C \<in> components(T - S); bounded C\<rbrakk> \<Longrightarrow> C \<inter> L \<noteq> {}"
   obtains K g where "finite K" "K \<subseteq> L" "K \<subseteq> T" "disjnt K S" "continuous_on (T - K) g"
                     "g ` (T - K) \<subseteq> sphere a r" "\<And>x. x \<in> S \<Longrightarrow> g x = f x"
-proof (cases "r = 0")
+proof%unimportant (cases "r = 0")
   case True
   with fim show ?thesis
     by (rule_tac K="{}" and g = "\<lambda>x. a" in that) (auto simp: continuous_on_const)
@@ -1670,7 +1670,7 @@ next
     done
 qed
 
-corollary extend_map_UNIV_to_sphere_cofinite:
+corollary%important extend_map_UNIV_to_sphere_cofinite:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes aff: "DIM('a) \<le> DIM('b)" and "0 \<le> r"
       and SUT: "compact S"
@@ -1684,7 +1684,7 @@ apply (rule extend_map_affine_to_sphere_cofinite
  apply (auto simp: assms that Compl_eq_Diff_UNIV [symmetric])
 done
 
-corollary extend_map_UNIV_to_sphere_no_bounded_component:
+corollary%important extend_map_UNIV_to_sphere_no_bounded_component:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes aff: "DIM('a) \<le> DIM('b)" and "0 \<le> r"
       and SUT: "compact S"
@@ -1696,14 +1696,14 @@ apply (rule extend_map_UNIV_to_sphere_cofinite [OF aff \<open>0 \<le> r\<close> 
    apply (auto simp: that dest: dis)
 done
 
-theorem Borsuk_separation_theorem_gen:
+theorem%important Borsuk_separation_theorem_gen:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S"
     shows "(\<forall>c \<in> components(- S). ~bounded c) \<longleftrightarrow>
            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
                 \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume L [rule_format]: ?lhs
   show ?rhs
   proof clarify
@@ -1734,14 +1734,14 @@ next
 qed
 
 
-corollary Borsuk_separation_theorem:
+corollary%important Borsuk_separation_theorem:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S" and 2: "2 \<le> DIM('a)"
     shows "connected(- S) \<longleftrightarrow>
            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
                 \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume L: ?lhs
   show ?rhs
   proof (cases "S = {}")
@@ -1764,7 +1764,7 @@ next
 qed
 
 
-lemma homotopy_eqv_separation:
+lemma%unimportant homotopy_eqv_separation:
   fixes S :: "'a::euclidean_space set" and T :: "'a set"
   assumes "S homotopy_eqv T" and "compact S" and "compact T"
   shows "connected(- S) \<longleftrightarrow> connected(- T)"
@@ -1783,11 +1783,11 @@ proof -
   qed
 qed
 
-lemma Jordan_Brouwer_separation:
+lemma%important Jordan_Brouwer_separation:
   fixes S :: "'a::euclidean_space set" and a::'a
   assumes hom: "S homeomorphic sphere a r" and "0 < r"
     shows "\<not> connected(- S)"
-proof -
+proof%unimportant -
   have "- sphere a r \<inter> ball a r \<noteq> {}"
     using \<open>0 < r\<close> by (simp add: Int_absorb1 subset_eq)
   moreover
@@ -1817,11 +1817,11 @@ proof -
 qed
 
 
-lemma Jordan_Brouwer_frontier:
+lemma%important Jordan_Brouwer_frontier:
   fixes S :: "'a::euclidean_space set" and a::'a
   assumes S: "S homeomorphic sphere a r" and T: "T \<in> components(- S)" and 2: "2 \<le> DIM('a)"
     shows "frontier T = S"
-proof (cases r rule: linorder_cases)
+proof%unimportant (cases r rule: linorder_cases)
   assume "r < 0"
   with S T show ?thesis by auto
 next
@@ -1866,11 +1866,11 @@ next
   qed (rule T)
 qed
 
-lemma Jordan_Brouwer_nonseparation:
+lemma%important Jordan_Brouwer_nonseparation:
   fixes S :: "'a::euclidean_space set" and a::'a
   assumes S: "S homeomorphic sphere a r" and "T \<subset> S" and 2: "2 \<le> DIM('a)"
     shows "connected(- T)"
-proof -
+proof%unimportant -
   have *: "connected(C \<union> (S - T))" if "C \<in> components(- S)" for C
   proof (rule connected_intermediate_closure)
     show "connected C"
@@ -1892,9 +1892,9 @@ proof -
     done
 qed
 
-subsection\<open> Invariance of domain and corollaries\<close>
+subsection%important\<open> Invariance of domain and corollaries\<close>
 
-lemma invariance_of_domain_ball:
+lemma%unimportant invariance_of_domain_ball:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
   assumes contf: "continuous_on (cball a r) f" and "0 < r"
      and inj: "inj_on f (cball a r)"
@@ -1982,12 +1982,12 @@ qed
 
 
 text\<open>Proved by L. E. J. Brouwer (1912)\<close>
-theorem invariance_of_domain:
+theorem%important invariance_of_domain:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
   assumes "continuous_on S f" "open S" "inj_on f S"
     shows "open(f ` S)"
   unfolding open_subopen [of "f`S"]
-proof clarify
+proof%unimportant clarify
   fix a
   assume "a \<in> S"
   obtain \<delta> where "\<delta> > 0" and \<delta>: "cball a \<delta> \<subseteq> S"
@@ -2003,7 +2003,7 @@ proof clarify
   qed
 qed
 
-lemma inv_of_domain_ss0:
+lemma%unimportant inv_of_domain_ss0:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
   assumes contf: "continuous_on U f" and injf: "inj_on f U" and fim: "f ` U \<subseteq> S"
       and "subspace S" and dimS: "dim S = DIM('b::euclidean_space)"
@@ -2049,7 +2049,7 @@ proof -
     by (metis (no_types, hide_lams) homeomorphism_imp_open_map homhk image_comp open_openin subtopology_UNIV)
 qed
 
-lemma inv_of_domain_ss1:
+lemma%unimportant inv_of_domain_ss1:
   fixes f :: "'a \<Rightarrow> 'a::euclidean_space"
   assumes contf: "continuous_on U f" and injf: "inj_on f U" and fim: "f ` U \<subseteq> S"
       and "subspace S"
@@ -2090,14 +2090,14 @@ proof -
 qed
 
 
-corollary invariance_of_domain_subspaces:
+corollary%important invariance_of_domain_subspaces:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (subtopology euclidean U) S"
       and "subspace U" "subspace V" and VU: "dim V \<le> dim U"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
       and injf: "inj_on f S"
     shows "openin (subtopology euclidean V) (f ` S)"
-proof -
+proof%unimportant -
   obtain V' where "subspace V'" "V' \<subseteq> U" "dim V' = dim V"
     using choose_subspace_of_subspace [OF VU]
     by (metis span_eq_iff \<open>subspace U\<close>)
@@ -2134,14 +2134,14 @@ proof -
   qed
 qed
 
-corollary invariance_of_dimension_subspaces:
+corollary%important invariance_of_dimension_subspaces:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (subtopology euclidean U) S"
       and "subspace U" "subspace V"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "dim U \<le> dim V"
-proof -
+proof%unimportant -
   have "False" if "dim V < dim U"
   proof -
     obtain T where "subspace T" "T \<subseteq> U" "dim T = dim V"
@@ -2169,14 +2169,14 @@ proof -
     using not_less by blast
 qed
 
-corollary invariance_of_domain_affine_sets:
+corollary%important invariance_of_domain_affine_sets:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (subtopology euclidean U) S"
       and aff: "affine U" "affine V" "aff_dim V \<le> aff_dim U"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
       and injf: "inj_on f S"
     shows "openin (subtopology euclidean V) (f ` S)"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   then show ?thesis by auto
 next
@@ -2204,14 +2204,14 @@ next
     by (metis (no_types, lifting) homeomorphism_imp_open_map homeomorphism_translation image_comp translation_galois)
 qed
 
-corollary invariance_of_dimension_affine_sets:
+corollary%important invariance_of_dimension_affine_sets:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (subtopology euclidean U) S"
       and aff: "affine U" "affine V"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "aff_dim U \<le> aff_dim V"
-proof -
+proof%unimportant -
   obtain a b where "a \<in> S" "a \<in> U" "b \<in> V"
     using \<open>S \<noteq> {}\<close> fim ope openin_contains_cball by fastforce
   have "dim ((+) (- a) ` U) \<le> dim ((+) (- b) ` V)"
@@ -2233,25 +2233,25 @@ proof -
     by (metis \<open>a \<in> U\<close> \<open>b \<in> V\<close> aff_dim_eq_dim affine_hull_eq aff of_nat_le_iff)
 qed
 
-corollary invariance_of_dimension:
+corollary%important invariance_of_dimension:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and "open S"
       and injf: "inj_on f S" and "S \<noteq> {}"
     shows "DIM('a) \<le> DIM('b)"
-  using invariance_of_dimension_subspaces [of UNIV S UNIV f] assms
+  using%unimportant invariance_of_dimension_subspaces [of UNIV S UNIV f] assms
   by auto
 
 
-corollary continuous_injective_image_subspace_dim_le:
+corollary%important continuous_injective_image_subspace_dim_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "subspace S" "subspace T"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> T"
       and injf: "inj_on f S"
     shows "dim S \<le> dim T"
   apply (rule invariance_of_dimension_subspaces [of S S _ f])
-  using assms by (auto simp: subspace_affine)
+  using%unimportant assms by (auto simp: subspace_affine)
 
-lemma invariance_of_dimension_convex_domain:
+lemma%unimportant invariance_of_dimension_convex_domain:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "convex S"
       and contf: "continuous_on S f" and fim: "f ` S \<subseteq> affine hull T"
@@ -2280,7 +2280,7 @@ next
 qed
 
 
-lemma homeomorphic_convex_sets_le:
+lemma%unimportant homeomorphic_convex_sets_le:
   assumes "convex S" "S homeomorphic T"
   shows "aff_dim S \<le> aff_dim T"
 proof -
@@ -2297,23 +2297,23 @@ proof -
   qed
 qed
 
-lemma homeomorphic_convex_sets:
+lemma%unimportant homeomorphic_convex_sets:
   assumes "convex S" "convex T" "S homeomorphic T"
   shows "aff_dim S = aff_dim T"
   by (meson assms dual_order.antisym homeomorphic_convex_sets_le homeomorphic_sym)
 
-lemma homeomorphic_convex_compact_sets_eq:
+lemma%unimportant homeomorphic_convex_compact_sets_eq:
   assumes "convex S" "compact S" "convex T" "compact T"
   shows "S homeomorphic T \<longleftrightarrow> aff_dim S = aff_dim T"
   by (meson assms homeomorphic_convex_compact_sets homeomorphic_convex_sets)
 
-lemma invariance_of_domain_gen:
+lemma%unimportant invariance_of_domain_gen:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open S" "continuous_on S f" "inj_on f S" "DIM('b) \<le> DIM('a)"
     shows "open(f ` S)"
   using invariance_of_domain_subspaces [of UNIV S UNIV f] assms by auto
 
-lemma injective_into_1d_imp_open_map_UNIV:
+lemma%unimportant injective_into_1d_imp_open_map_UNIV:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "open T" "continuous_on S f" "inj_on f S" "T \<subseteq> S"
     shows "open (f ` T)"
@@ -2321,7 +2321,7 @@ lemma injective_into_1d_imp_open_map_UNIV:
   using assms apply (auto simp: elim: continuous_on_subset subset_inj_on)
   done
 
-lemma continuous_on_inverse_open:
+lemma%unimportant continuous_on_inverse_open:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" and gf: "\<And>x. x \<in> S \<Longrightarrow> g(f x) = x"
     shows "continuous_on (f ` S) g"
@@ -2340,7 +2340,7 @@ proof (clarsimp simp add: continuous_openin_preimage_eq)
     by (metis \<open>open T\<close> continuous_on_subset inj_onI inj_on_subset invariance_of_domain_gen openin_open openin_open_eq)
 qed
 
-lemma invariance_of_domain_homeomorphism:
+lemma%unimportant invariance_of_domain_homeomorphism:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" "inj_on f S"
   obtains g where "homeomorphism S (f ` S) f g"
@@ -2349,14 +2349,14 @@ proof
     by (simp add: assms continuous_on_inverse_open homeomorphism_def)
 qed
 
-corollary invariance_of_domain_homeomorphic:
+corollary%important invariance_of_domain_homeomorphic:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open S" "continuous_on S f" "DIM('b) \<le> DIM('a)" "inj_on f S"
   shows "S homeomorphic (f ` S)"
-  using invariance_of_domain_homeomorphism [OF assms]
-  by (meson homeomorphic_def)
+  using%unimportant invariance_of_domain_homeomorphism [OF assms]
+  by%unimportant (meson homeomorphic_def)
 
-lemma continuous_image_subset_interior:
+lemma%unimportant continuous_image_subset_interior:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f" "inj_on f S" "DIM('b) \<le> DIM('a)"
   shows "f ` (interior S) \<subseteq> interior(f ` S)"
@@ -2367,13 +2367,13 @@ lemma continuous_image_subset_interior:
      apply (auto simp: subset_inj_on interior_subset continuous_on_subset)
   done
 
-lemma homeomorphic_interiors_same_dimension:
+lemma%important homeomorphic_interiors_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" and dimeq: "DIM('a) = DIM('b)"
   shows "(interior S) homeomorphic (interior T)"
   using assms [unfolded homeomorphic_minimal]
   unfolding homeomorphic_def
-proof (clarify elim!: ex_forward)
+proof%unimportant (clarify elim!: ex_forward)
   fix f g
   assume S: "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" and T: "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
      and contf: "continuous_on S f" and contg: "continuous_on T g"
@@ -2417,7 +2417,7 @@ proof (clarify elim!: ex_forward)
   qed
 qed
 
-lemma homeomorphic_open_imp_same_dimension:
+lemma%unimportant homeomorphic_open_imp_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "open S" "S \<noteq> {}" "open T" "T \<noteq> {}"
   shows "DIM('a) = DIM('b)"
@@ -2426,7 +2426,7 @@ lemma homeomorphic_open_imp_same_dimension:
     apply (rule order_antisym; metis inj_onI invariance_of_dimension)
     done
 
-lemma homeomorphic_interiors:
+lemma%unimportant homeomorphic_interiors:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "interior S = {} \<longleftrightarrow> interior T = {}"
     shows "(interior S) homeomorphic (interior T)"
@@ -2444,7 +2444,7 @@ next
     by (rule homeomorphic_interiors_same_dimension [OF \<open>S homeomorphic T\<close>])
 qed
 
-lemma homeomorphic_frontiers_same_dimension:
+lemma%unimportant homeomorphic_frontiers_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "closed S" "closed T" and dimeq: "DIM('a) = DIM('b)"
   shows "(frontier S) homeomorphic (frontier T)"
@@ -2500,7 +2500,7 @@ proof (clarify elim!: ex_forward)
   qed
 qed
 
-lemma homeomorphic_frontiers:
+lemma%unimportant homeomorphic_frontiers:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "closed S" "closed T"
           "interior S = {} \<longleftrightarrow> interior T = {}"
@@ -2517,7 +2517,7 @@ next
     using False assms homeomorphic_interiors homeomorphic_open_imp_same_dimension by blast
 qed
 
-lemma continuous_image_subset_rel_interior:
+lemma%unimportant continuous_image_subset_rel_interior:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
       and TS: "aff_dim T \<le> aff_dim S"
@@ -2540,7 +2540,7 @@ proof (rule rel_interior_maximal)
   qed auto
 qed
 
-lemma homeomorphic_rel_interiors_same_dimension:
+lemma%unimportant homeomorphic_rel_interiors_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" and aff: "aff_dim S = aff_dim T"
   shows "(rel_interior S) homeomorphic (rel_interior T)"
@@ -2592,11 +2592,11 @@ proof (clarify elim!: ex_forward)
   qed
 qed
 
-lemma homeomorphic_rel_interiors:
+lemma%important homeomorphic_rel_interiors:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "rel_interior S = {} \<longleftrightarrow> rel_interior T = {}"
     shows "(rel_interior S) homeomorphic (rel_interior T)"
-proof (cases "rel_interior T = {}")
+proof%unimportant (cases "rel_interior T = {}")
   case True
   with assms show ?thesis by auto
 next
@@ -2625,7 +2625,7 @@ next
 qed
 
 
-lemma homeomorphic_rel_boundaries_same_dimension:
+lemma%unimportant homeomorphic_rel_boundaries_same_dimension:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" and aff: "aff_dim S = aff_dim T"
   shows "(S - rel_interior S) homeomorphic (T - rel_interior T)"
@@ -2659,7 +2659,7 @@ proof (clarify elim!: ex_forward)
   qed
 qed
 
-lemma homeomorphic_rel_boundaries:
+lemma%unimportant homeomorphic_rel_boundaries:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "S homeomorphic T" "rel_interior S = {} \<longleftrightarrow> rel_interior T = {}"
     shows "(S - rel_interior S) homeomorphic (T - rel_interior T)"
@@ -2691,11 +2691,11 @@ next
     by (rule homeomorphic_rel_boundaries_same_dimension [OF \<open>S homeomorphic T\<close>])
 qed
 
-proposition uniformly_continuous_homeomorphism_UNIV_trivial:
+proposition%important uniformly_continuous_homeomorphism_UNIV_trivial:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
   assumes contf: "uniformly_continuous_on S f" and hom: "homeomorphism S UNIV f g"
   shows "S = UNIV"
-proof (cases "S = {}")
+proof%unimportant (cases "S = {}")
   case True
   then show ?thesis
     by (metis UNIV_I hom empty_iff homeomorphism_def image_eqI)
@@ -2737,9 +2737,9 @@ next
     using clopen [of S] False  by simp
 qed
 
-subsection\<open>Dimension-based conditions for various homeomorphisms\<close>
+subsection%important\<open>Dimension-based conditions for various homeomorphisms\<close>
 
-lemma homeomorphic_subspaces_eq:
+lemma%unimportant homeomorphic_subspaces_eq:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "subspace S" "subspace T"
   shows "S homeomorphic T \<longleftrightarrow> dim S = dim T"
@@ -2760,7 +2760,7 @@ next
     by (simp add: assms homeomorphic_subspaces)
 qed
 
-lemma homeomorphic_affine_sets_eq:
+lemma%unimportant homeomorphic_affine_sets_eq:
   fixes S :: "'a::euclidean_space set" and T :: "'b::euclidean_space set"
   assumes "affine S" "affine T"
   shows "S homeomorphic T \<longleftrightarrow> aff_dim S = aff_dim T"
@@ -2778,19 +2778,19 @@ next
     by (metis affine_imp_convex assms homeomorphic_affine_sets homeomorphic_convex_sets)
 qed
 
-lemma homeomorphic_hyperplanes_eq:
+lemma%unimportant homeomorphic_hyperplanes_eq:
   fixes a :: "'a::euclidean_space" and c :: "'b::euclidean_space"
   assumes "a \<noteq> 0" "c \<noteq> 0"
   shows "({x. a \<bullet> x = b} homeomorphic {x. c \<bullet> x = d} \<longleftrightarrow> DIM('a) = DIM('b))"
   apply (auto simp: homeomorphic_affine_sets_eq affine_hyperplane assms)
   by (metis DIM_positive Suc_pred)
 
-lemma homeomorphic_UNIV_UNIV:
+lemma%unimportant homeomorphic_UNIV_UNIV:
   shows "(UNIV::'a set) homeomorphic (UNIV::'b set) \<longleftrightarrow>
     DIM('a::euclidean_space) = DIM('b::euclidean_space)"
   by (simp add: homeomorphic_subspaces_eq)
 
-lemma simply_connected_sphere_gen:
+lemma%unimportant simply_connected_sphere_gen:
    assumes "convex S" "bounded S" and 3: "3 \<le> aff_dim S"
    shows "simply_connected(rel_frontier S)"
 proof -
@@ -2814,16 +2814,16 @@ proof -
   qed
 qed
 
-subsection\<open>more invariance of domain\<close>
+subsection%important\<open>more invariance of domain\<close>
 
-proposition invariance_of_domain_sphere_affine_set_gen:
+proposition%important invariance_of_domain_sphere_affine_set_gen:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
       and U: "bounded U" "convex U"
       and "affine T" and affTU: "aff_dim T < aff_dim U"
       and ope: "openin (subtopology euclidean (rel_frontier U)) S"
    shows "openin (subtopology euclidean T) (f ` S)"
-proof (cases "rel_frontier U = {}")
+proof%unimportant (cases "rel_frontier U = {}")
   case True
   then show ?thesis
     using ope openin_subset by force
@@ -2922,7 +2922,7 @@ next
 qed
 
 
-lemma invariance_of_domain_sphere_affine_set:
+lemma%unimportant invariance_of_domain_sphere_affine_set:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on S f" and injf: "inj_on f S" and fim: "f ` S \<subseteq> T"
       and "r \<noteq> 0" "affine T" and affTU: "aff_dim T < DIM('a)"
@@ -2943,7 +2943,7 @@ next
   qed
 qed
 
-lemma no_embedding_sphere_lowdim:
+lemma%unimportant no_embedding_sphere_lowdim:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes contf: "continuous_on (sphere a r) f" and injf: "inj_on f (sphere a r)" and "r > 0"
    shows "DIM('a) \<le> DIM('b)"
@@ -2964,7 +2964,7 @@ proof -
     using not_less by blast
 qed
 
-lemma simply_connected_sphere:
+lemma%unimportant simply_connected_sphere:
   fixes a :: "'a::euclidean_space"
   assumes "3 \<le> DIM('a)"
     shows "simply_connected(sphere a r)"
@@ -2981,7 +2981,7 @@ next
     by (simp add: aff_dim_cball)
 qed
 
-lemma simply_connected_sphere_eq:
+lemma%unimportant simply_connected_sphere_eq:
   fixes a :: "'a::euclidean_space"
   shows "simply_connected(sphere a r) \<longleftrightarrow> 3 \<le> DIM('a) \<or> r \<le> 0"  (is "?lhs = ?rhs")
 proof (cases "r \<le> 0")
@@ -3024,7 +3024,7 @@ next
 qed
 
 
-lemma simply_connected_punctured_universe_eq:
+lemma%unimportant simply_connected_punctured_universe_eq:
   fixes a :: "'a::euclidean_space"
   shows "simply_connected(- {a}) \<longleftrightarrow> 3 \<le> DIM('a)"
 proof -
@@ -3042,17 +3042,17 @@ proof -
   finally show ?thesis .
 qed
 
-lemma not_simply_connected_circle:
+lemma%unimportant not_simply_connected_circle:
   fixes a :: complex
   shows "0 < r \<Longrightarrow> \<not> simply_connected(sphere a r)"
 by (simp add: simply_connected_sphere_eq)
 
 
-proposition simply_connected_punctured_convex:
+proposition%important simply_connected_punctured_convex:
   fixes a :: "'a::euclidean_space"
   assumes "convex S" and 3: "3 \<le> aff_dim S"
     shows "simply_connected(S - {a})"
-proof (cases "a \<in> rel_interior S")
+proof%unimportant (cases "a \<in> rel_interior S")
   case True
   then obtain e where "a \<in> S" "0 < e" and e: "cball a e \<inter> affine hull S \<subseteq> S"
     by (auto simp: rel_interior_cball)
@@ -3091,11 +3091,11 @@ next
     by (meson Diff_subset closure_subset subset_trans)
 qed
 
-corollary simply_connected_punctured_universe:
+corollary%important simply_connected_punctured_universe:
   fixes a :: "'a::euclidean_space"
   assumes "3 \<le> DIM('a)"
   shows "simply_connected(- {a})"
-proof -
+proof%unimportant -
   have [simp]: "affine hull cball a 1 = UNIV"
     apply auto
     by (metis UNIV_I aff_dim_cball aff_dim_lt_full zero_less_one not_less_iff_gr_or_eq)
@@ -3109,12 +3109,12 @@ proof -
 qed
 
 
-subsection\<open>The power, squaring and exponential functions as covering maps\<close>
+subsection%important\<open>The power, squaring and exponential functions as covering maps\<close>
 
-proposition covering_space_power_punctured_plane:
+proposition%important covering_space_power_punctured_plane:
   assumes "0 < n"
     shows "covering_space (- {0}) (\<lambda>z::complex. z^n) (- {0})"
-proof -
+proof%unimportant -
   consider "n = 1" | "2 \<le> n" using assms by linarith
   then obtain e where "0 < e"
                 and e: "\<And>w z. cmod(w - z) < e * cmod z \<Longrightarrow> (w^n = z^n \<longleftrightarrow> w = z)"
@@ -3362,14 +3362,14 @@ proof -
     done
 qed
 
-corollary covering_space_square_punctured_plane:
+corollary%important covering_space_square_punctured_plane:
   "covering_space (- {0}) (\<lambda>z::complex. z^2) (- {0})"
-  by (simp add: covering_space_power_punctured_plane)
+  by%unimportant (simp add: covering_space_power_punctured_plane)
 
 
-proposition covering_space_exp_punctured_plane:
+proposition%important covering_space_exp_punctured_plane:
   "covering_space UNIV (\<lambda>z::complex. exp z) (- {0})"
-proof (simp add: covering_space_def, intro conjI ballI)
+proof%unimportant (simp add: covering_space_def, intro conjI ballI)
   show "continuous_on UNIV (\<lambda>z::complex. exp z)"
     by (rule continuous_on_exp [OF continuous_on_id])
   show "range exp = - {0::complex}"
@@ -3483,9 +3483,9 @@ proof (simp add: covering_space_def, intro conjI ballI)
 qed
 
 
-subsection\<open>Hence the Borsukian results about mappings into circles\<close>
+subsection%important\<open>Hence the Borsukian results about mappings into circles\<close>
 
-lemma inessential_eq_continuous_logarithm:
+lemma%unimportant inessential_eq_continuous_logarithm:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
          (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x)))"
@@ -3509,7 +3509,7 @@ next
     by (simp add: f homotopic_with_eq)
 qed
 
-corollary inessential_imp_continuous_logarithm_circle:
+corollary%important inessential_imp_continuous_logarithm_circle:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes "homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)"
   obtains g where "continuous_on S g" and "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
@@ -3521,7 +3521,7 @@ proof -
 qed
 
 
-lemma inessential_eq_continuous_logarithm_circle:
+lemma%unimportant inessential_eq_continuous_logarithm_circle:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (sphere 0 1) f (\<lambda>t. a)) \<longleftrightarrow>
          (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(\<i> * of_real(g x))))"
@@ -3561,12 +3561,12 @@ next
     by (simp add: homotopic_with_eq)
 qed
 
-lemma homotopic_with_sphere_times:
+lemma%important homotopic_with_sphere_times:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes hom: "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g" and conth: "continuous_on S h"
       and hin: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> sphere 0 1"
     shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x * h x) (\<lambda>x. g x * h x)"
-proof -
+proof%unimportant -
   obtain k where contk: "continuous_on ({0..1::real} \<times> S) k"
              and kim: "k ` ({0..1} \<times> S) \<subseteq> sphere 0 1"
              and k0:  "\<And>x. k(0, x) = f x"
@@ -3582,13 +3582,13 @@ proof -
 qed
 
 
-lemma homotopic_circlemaps_divide:
+lemma%important homotopic_circlemaps_divide:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
     shows "homotopic_with (\<lambda>x. True) S (sphere 0 1) f g \<longleftrightarrow>
            continuous_on S f \<and> f ` S \<subseteq> sphere 0 1 \<and>
            continuous_on S g \<and> g ` S \<subseteq> sphere 0 1 \<and>
            (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c))"
-proof -
+proof%unimportant -
   have "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. 1)"
        if "homotopic_with (\<lambda>x. True) S (sphere 0 1) (\<lambda>x. f x / g x) (\<lambda>x. c)" for c
   proof -
@@ -3634,7 +3634,7 @@ proof -
     by (simp add: *)
 qed
 
-subsection\<open>Upper and lower hemicontinuous functions\<close>
+subsection%important\<open>Upper and lower hemicontinuous functions\<close>
 
 text\<open>And relation in the case of preimage map to open and closed maps, and fact that upper and lower
 hemicontinuity together imply continuity in the sense of the Hausdorff metric (at points where the
@@ -3642,7 +3642,7 @@ function gives a bounded and nonempty set).\<close>
 
 
 text\<open>Many similar proofs below.\<close>
-lemma upper_hemicontinuous:
+lemma%unimportant upper_hemicontinuous:
   assumes "\<And>x. x \<in> S \<Longrightarrow> f x \<subseteq> T"
     shows "((\<forall>U. openin (subtopology euclidean T) U
                  \<longrightarrow> openin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}) \<longleftrightarrow>
@@ -3673,7 +3673,7 @@ next
     by (simp add: openin_closedin_eq)
 qed
 
-lemma lower_hemicontinuous:
+lemma%unimportant lower_hemicontinuous:
   assumes "\<And>x. x \<in> S \<Longrightarrow> f x \<subseteq> T"
     shows "((\<forall>U. closedin (subtopology euclidean T) U
                  \<longrightarrow> closedin (subtopology euclidean S) {x \<in> S. f x \<subseteq> U}) \<longleftrightarrow>
@@ -3704,7 +3704,7 @@ next
     by (simp add: openin_closedin_eq)
 qed
 
-lemma open_map_iff_lower_hemicontinuous_preimage:
+lemma%unimportant open_map_iff_lower_hemicontinuous_preimage:
   assumes "f ` S \<subseteq> T"
     shows "((\<forall>U. openin (subtopology euclidean S) U
                  \<longrightarrow> openin (subtopology euclidean T) (f ` U)) \<longleftrightarrow>
@@ -3735,7 +3735,7 @@ next
     using assms openin_imp_subset [OF opeSU] by (force simp: openin_closedin_eq)
 qed
 
-lemma closed_map_iff_upper_hemicontinuous_preimage:
+lemma%unimportant closed_map_iff_upper_hemicontinuous_preimage:
   assumes "f ` S \<subseteq> T"
     shows "((\<forall>U. closedin (subtopology euclidean S) U
                  \<longrightarrow> closedin (subtopology euclidean T) (f ` U)) \<longleftrightarrow>
@@ -3766,7 +3766,7 @@ next
     by (simp add: openin_closedin_eq)
 qed
 
-proposition upper_lower_hemicontinuous_explicit:
+proposition%important upper_lower_hemicontinuous_explicit:
   fixes T :: "('b::{real_normed_vector,heine_borel}) set"
   assumes fST: "\<And>x. x \<in> S \<Longrightarrow> f x \<subseteq> T"
       and ope: "\<And>U. openin (subtopology euclidean T) U
@@ -3778,7 +3778,7 @@ proposition upper_lower_hemicontinuous_explicit:
              "\<And>x'. \<lbrakk>x' \<in> S; dist x x' < d\<rbrakk>
                            \<Longrightarrow> (\<forall>y \<in> f x. \<exists>y'. y' \<in> f x' \<and> dist y y' < e) \<and>
                                (\<forall>y' \<in> f x'. \<exists>y. y \<in> f x \<and> dist y' y < e)"
-proof -
+proof%unimportant -
   have "openin (subtopology euclidean T) (T \<inter> (\<Union>a\<in>f x. \<Union>b\<in>ball 0 e. {a + b}))"
     by (auto simp: open_sums openin_open_Int)
   with ope have "openin (subtopology euclidean S)
@@ -3837,13 +3837,13 @@ proof -
 qed
 
 
-subsection\<open>Complex logs exist on various "well-behaved" sets\<close>
+subsection%important\<open>Complex logs exist on various "well-behaved" sets\<close>
 
-lemma continuous_logarithm_on_contractible:
+lemma%important continuous_logarithm_on_contractible:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes "continuous_on S f" "contractible S" "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
   obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
-proof -
+proof%unimportant -
   obtain c where hom: "homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>x. c)"
     using nullhomotopic_from_contractible assms
     by (metis imageE subset_Compl_singleton)
@@ -3851,27 +3851,27 @@ proof -
     by (metis inessential_eq_continuous_logarithm that)
 qed
 
-lemma continuous_logarithm_on_simply_connected:
+lemma%important continuous_logarithm_on_simply_connected:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes contf: "continuous_on S f" and S: "simply_connected S" "locally path_connected S"
       and f: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
   obtains g where "continuous_on S g" "\<And>x. x \<in> S \<Longrightarrow> f x = exp(g x)"
-  using covering_space_lift [OF covering_space_exp_punctured_plane S contf]
-  by (metis (full_types) f imageE subset_Compl_singleton)
+  using%unimportant covering_space_lift [OF covering_space_exp_punctured_plane S contf]
+  by%unimportant (metis (full_types) f imageE subset_Compl_singleton)
 
-lemma continuous_logarithm_on_cball:
+lemma%unimportant continuous_logarithm_on_cball:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes "continuous_on (cball a r) f" and "\<And>z. z \<in> cball a r \<Longrightarrow> f z \<noteq> 0"
     obtains h where "continuous_on (cball a r) h" "\<And>z. z \<in> cball a r \<Longrightarrow> f z = exp(h z)"
   using assms continuous_logarithm_on_contractible convex_imp_contractible by blast
 
-lemma continuous_logarithm_on_ball:
+lemma%unimportant continuous_logarithm_on_ball:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes "continuous_on (ball a r) f" and "\<And>z. z \<in> ball a r \<Longrightarrow> f z \<noteq> 0"
   obtains h where "continuous_on (ball a r) h" "\<And>z. z \<in> ball a r \<Longrightarrow> f z = exp(h z)"
   using assms continuous_logarithm_on_contractible convex_imp_contractible by blast
 
-lemma continuous_sqrt_on_contractible:
+lemma%unimportant continuous_sqrt_on_contractible:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes "continuous_on S f" "contractible S"
       and "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
@@ -3888,7 +3888,7 @@ proof -
   qed
 qed
 
-lemma continuous_sqrt_on_simply_connected:
+lemma%unimportant continuous_sqrt_on_simply_connected:
   fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
   assumes contf: "continuous_on S f" and S: "simply_connected S" "locally path_connected S"
       and f: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
@@ -3906,14 +3906,14 @@ proof -
 qed
 
 
-subsection\<open>Another simple case where sphere maps are nullhomotopic\<close>
+subsection%important\<open>Another simple case where sphere maps are nullhomotopic\<close>
 
-lemma inessential_spheremap_2_aux:
+lemma%important inessential_spheremap_2_aux:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
   assumes 2: "2 < DIM('a)" and contf: "continuous_on (sphere a r) f" 
       and fim: "f `(sphere a r) \<subseteq> (sphere 0 1)" 
   obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere 0 1) f (\<lambda>x. c)"
-proof -
+proof%unimportant -
   obtain g where contg: "continuous_on (sphere a r) g" 
              and feq: "\<And>x. x \<in> sphere a r \<Longrightarrow> f x = exp(g x)"
   proof (rule continuous_logarithm_on_simply_connected [OF contf])
@@ -3935,12 +3935,12 @@ proof -
     by metis
 qed
 
-lemma inessential_spheremap_2:
+lemma%important inessential_spheremap_2:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes a2: "2 < DIM('a)" and b2: "DIM('b) = 2" 
       and contf: "continuous_on (sphere a r) f" and fim: "f `(sphere a r) \<subseteq> (sphere b s)"
   obtains c where "homotopic_with (\<lambda>z. True) (sphere a r) (sphere b s) f (\<lambda>x. c)"
-proof (cases "s \<le> 0")
+proof%unimportant (cases "s \<le> 0")
   case True
   then show ?thesis
     using contf contractible_sphere fim nullhomotopic_into_contractible that by blast
@@ -3972,14 +3972,14 @@ next
 qed
 
 
-subsection\<open>Holomorphic logarithms and square roots\<close>
+subsection%important\<open>Holomorphic logarithms and square roots\<close>
 
-lemma contractible_imp_holomorphic_log:
+lemma%important contractible_imp_holomorphic_log:
   assumes holf: "f holomorphic_on S"
       and S: "contractible S"
       and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
   obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = exp(g z)"
-proof -
+proof%unimportant -
   have contf: "continuous_on S f"
     by (simp add: holf holomorphic_on_imp_continuous_on)
   obtain g where contg: "continuous_on S g" and feq: "\<And>x. x \<in> S \<Longrightarrow> f x = exp (g x)"
@@ -4022,12 +4022,12 @@ proof -
 qed
 
 (*Identical proofs*)
-lemma simply_connected_imp_holomorphic_log:
+lemma%important simply_connected_imp_holomorphic_log:
   assumes holf: "f holomorphic_on S"
       and S: "simply_connected S" "locally path_connected S"
       and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
   obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = exp(g z)"
-proof -
+proof%unimportant -
   have contf: "continuous_on S f"
     by (simp add: holf holomorphic_on_imp_continuous_on)
   obtain g where contg: "continuous_on S g" and feq: "\<And>x. x \<in> S \<Longrightarrow> f x = exp (g x)"
@@ -4070,7 +4070,7 @@ proof -
 qed
 
 
-lemma contractible_imp_holomorphic_sqrt:
+lemma%unimportant contractible_imp_holomorphic_sqrt:
   assumes holf: "f holomorphic_on S"
       and S: "contractible S"
       and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
@@ -4088,7 +4088,7 @@ proof -
   qed
 qed
 
-lemma simply_connected_imp_holomorphic_sqrt:
+lemma%unimportant simply_connected_imp_holomorphic_sqrt:
   assumes holf: "f holomorphic_on S"
       and S: "simply_connected S" "locally path_connected S"
       and fnz: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 0"
@@ -4108,11 +4108,11 @@ qed
 
 text\<open> Related theorems about holomorphic inverse cosines.\<close>
 
-lemma contractible_imp_holomorphic_arccos:
+lemma%important contractible_imp_holomorphic_arccos:
   assumes holf: "f holomorphic_on S" and S: "contractible S"
       and non1: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 1 \<and> f z \<noteq> -1"
   obtains g where "g holomorphic_on S" "\<And>z. z \<in> S \<Longrightarrow> f z = cos(g z)"
-proof -
+proof%unimportant -
   have hol1f: "(\<lambda>z. 1 - f z ^ 2) holomorphic_on S"
     by (intro holomorphic_intros holf)
   obtain g where holg: "g holomorphic_on S" and eq: "\<And>z. z \<in> S \<Longrightarrow> 1 - (f z)\<^sup>2 = (g z)\<^sup>2"
@@ -4146,11 +4146,11 @@ proof -
 qed
 
 
-lemma contractible_imp_holomorphic_arccos_bounded:
+lemma%important contractible_imp_holomorphic_arccos_bounded:
   assumes holf: "f holomorphic_on S" and S: "contractible S" and "a \<in> S"
       and non1: "\<And>z. z \<in> S \<Longrightarrow> f z \<noteq> 1 \<and> f z \<noteq> -1"
   obtains g where "g holomorphic_on S" "norm(g a) \<le> pi + norm(f a)" "\<And>z. z \<in> S \<Longrightarrow> f z = cos(g z)"
-proof -
+proof%unimportant -
   obtain g where holg: "g holomorphic_on S" and feq: "\<And>z. z \<in> S \<Longrightarrow> f z = cos (g z)"
     using contractible_imp_holomorphic_arccos [OF holf S non1] by blast
   obtain b where "cos b = f a" "norm b \<le> pi + norm (f a)"
@@ -4186,21 +4186,21 @@ proof -
 qed
 
 
-subsection\<open>The "Borsukian" property of sets\<close>
+subsection%important\<open>The "Borsukian" property of sets\<close>
 
 text\<open>This doesn't have a standard name. Kuratowski uses ``contractible with respect to $[S^1]$''
  while Whyburn uses ``property b''. It's closely related to unicoherence.\<close>
 
-definition Borsukian where
+definition%important Borsukian where
     "Borsukian S \<equiv>
         \<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
             \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) S (- {0}) f (\<lambda>x. a))"
 
-lemma Borsukian_retraction_gen:
+lemma%important Borsukian_retraction_gen:
   assumes "Borsukian S" "continuous_on S h" "h ` S = T"
           "continuous_on T k"  "k ` T \<subseteq> S"  "\<And>y. y \<in> T \<Longrightarrow> h(k y) = y"
     shows "Borsukian T"
-proof -
+proof%unimportant -
   interpret R: Retracts S h T k
     using assms by (simp add: Retracts.intro)
   show ?thesis
@@ -4210,42 +4210,42 @@ proof -
     done
 qed
 
-lemma retract_of_Borsukian: "\<lbrakk>Borsukian T; S retract_of T\<rbrakk> \<Longrightarrow> Borsukian S"
+lemma%unimportant retract_of_Borsukian: "\<lbrakk>Borsukian T; S retract_of T\<rbrakk> \<Longrightarrow> Borsukian S"
   apply (auto simp: retract_of_def retraction_def)
   apply (erule (1) Borsukian_retraction_gen)
   apply (meson retraction retraction_def)
     apply (auto simp: continuous_on_id)
     done
 
-lemma homeomorphic_Borsukian: "\<lbrakk>Borsukian S; S homeomorphic T\<rbrakk> \<Longrightarrow> Borsukian T"
+lemma%unimportant homeomorphic_Borsukian: "\<lbrakk>Borsukian S; S homeomorphic T\<rbrakk> \<Longrightarrow> Borsukian T"
   using Borsukian_retraction_gen order_refl
   by (fastforce simp add: homeomorphism_def homeomorphic_def)
 
-lemma homeomorphic_Borsukian_eq:
+lemma%unimportant homeomorphic_Borsukian_eq:
    "S homeomorphic T \<Longrightarrow> Borsukian S \<longleftrightarrow> Borsukian T"
   by (meson homeomorphic_Borsukian homeomorphic_sym)
 
-lemma Borsukian_translation:
+lemma%unimportant Borsukian_translation:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian (image (\<lambda>x. a + x) S) \<longleftrightarrow> Borsukian S"
   apply (rule homeomorphic_Borsukian_eq)
     using homeomorphic_translation homeomorphic_sym by blast
 
-lemma Borsukian_injective_linear_image:
+lemma%unimportant Borsukian_injective_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
     shows "Borsukian(f ` S) \<longleftrightarrow> Borsukian S"
   apply (rule homeomorphic_Borsukian_eq)
   using assms homeomorphic_sym linear_homeomorphic_image by blast
 
-lemma homotopy_eqv_Borsukianness:
+lemma%unimportant homotopy_eqv_Borsukianness:
   fixes S :: "'a::real_normed_vector set"
     and T :: "'b::real_normed_vector set"
    assumes "S homotopy_eqv T"
      shows "(Borsukian S \<longleftrightarrow> Borsukian T)"
   by (meson Borsukian_def assms homotopy_eqv_cohomotopic_triviality_null)
 
-lemma Borsukian_alt:
+lemma%unimportant Borsukian_alt:
   fixes S :: "'a::real_normed_vector set"
   shows
    "Borsukian S \<longleftrightarrow>
@@ -4255,20 +4255,20 @@ lemma Borsukian_alt:
   unfolding Borsukian_def homotopic_triviality
   by (simp add: path_connected_punctured_universe)
 
-lemma Borsukian_continuous_logarithm:
+lemma%unimportant Borsukian_continuous_logarithm:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
             (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> (- {0::complex})
                  \<longrightarrow> (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))))"
   by (simp add: Borsukian_def inessential_eq_continuous_logarithm)
 
-lemma Borsukian_continuous_logarithm_circle:
+lemma%important Borsukian_continuous_logarithm_circle:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
              (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
                   \<longrightarrow> (\<exists>g. continuous_on S g \<and> (\<forall>x \<in> S. f x = exp(g x))))"
    (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs then show ?rhs
     by (force simp: Borsukian_continuous_logarithm)
 next
@@ -4298,13 +4298,13 @@ next
 qed
 
 
-lemma Borsukian_continuous_logarithm_circle_real:
+lemma%important Borsukian_continuous_logarithm_circle_real:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
          (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
               \<longrightarrow> (\<exists>g. continuous_on S (complex_of_real \<circ> g) \<and> (\<forall>x \<in> S. f x = exp(\<i> * of_real(g x)))))"
    (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume LHS: ?lhs
   show ?rhs
   proof (clarify)
@@ -4331,52 +4331,52 @@ next
   qed
 qed
 
-lemma Borsukian_circle:
+lemma%unimportant Borsukian_circle:
   fixes S :: "'a::real_normed_vector set"
   shows "Borsukian S \<longleftrightarrow>
          (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::complex) 1
               \<longrightarrow> (\<exists>a. homotopic_with (\<lambda>h. True) S (sphere (0::complex) 1) f (\<lambda>x. a)))"
 by (simp add: inessential_eq_continuous_logarithm_circle Borsukian_continuous_logarithm_circle_real)
 
-lemma contractible_imp_Borsukian: "contractible S \<Longrightarrow> Borsukian S"
+lemma%unimportant contractible_imp_Borsukian: "contractible S \<Longrightarrow> Borsukian S"
   by (meson Borsukian_def nullhomotopic_from_contractible)
 
-lemma simply_connected_imp_Borsukian:
+lemma%unimportant simply_connected_imp_Borsukian:
   fixes S :: "'a::real_normed_vector set"
   shows  "\<lbrakk>simply_connected S; locally path_connected S\<rbrakk> \<Longrightarrow> Borsukian S"
   apply (simp add: Borsukian_continuous_logarithm)
   by (metis (no_types, lifting) continuous_logarithm_on_simply_connected image_iff)
 
-lemma starlike_imp_Borsukian:
+lemma%unimportant starlike_imp_Borsukian:
   fixes S :: "'a::real_normed_vector set"
   shows "starlike S \<Longrightarrow> Borsukian S"
   by (simp add: contractible_imp_Borsukian starlike_imp_contractible)
 
-lemma Borsukian_empty: "Borsukian {}"
+lemma%unimportant Borsukian_empty: "Borsukian {}"
   by (auto simp: contractible_imp_Borsukian)
 
-lemma Borsukian_UNIV: "Borsukian (UNIV :: 'a::real_normed_vector set)"
+lemma%unimportant Borsukian_UNIV: "Borsukian (UNIV :: 'a::real_normed_vector set)"
   by (auto simp: contractible_imp_Borsukian)
 
-lemma convex_imp_Borsukian:
+lemma%unimportant convex_imp_Borsukian:
   fixes S :: "'a::real_normed_vector set"
   shows "convex S \<Longrightarrow> Borsukian S"
   by (meson Borsukian_def convex_imp_contractible nullhomotopic_from_contractible)
 
-lemma Borsukian_sphere:
+lemma%unimportant Borsukian_sphere:
   fixes a :: "'a::euclidean_space"
   shows "3 \<le> DIM('a) \<Longrightarrow> Borsukian (sphere a r)"
   apply (rule simply_connected_imp_Borsukian)
   using simply_connected_sphere apply blast
   using ENR_imp_locally_path_connected ENR_sphere by blast
 
-lemma Borsukian_open_Un:
+lemma%important Borsukian_open_Un:
   fixes S :: "'a::real_normed_vector set"
   assumes opeS: "openin (subtopology euclidean (S \<union> T)) S"
       and opeT: "openin (subtopology euclidean (S \<union> T)) T"
       and BS: "Borsukian S" and BT: "Borsukian T" and ST: "connected(S \<inter> T)"
     shows "Borsukian(S \<union> T)"
-proof (clarsimp simp add: Borsukian_continuous_logarithm)
+proof%unimportant (clarsimp simp add: Borsukian_continuous_logarithm)
   fix f :: "'a \<Rightarrow> complex"
   assume contf: "continuous_on (S \<union> T) f" and 0: "0 \<notin> f ` (S \<union> T)"
   then have contfS: "continuous_on S f" and contfT: "continuous_on T f"
@@ -4440,13 +4440,13 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
 qed
 
 text\<open>The proof is a duplicate of that of \<open>Borsukian_open_Un\<close>.\<close>
-lemma Borsukian_closed_Un:
+lemma%important Borsukian_closed_Un:
   fixes S :: "'a::real_normed_vector set"
   assumes cloS: "closedin (subtopology euclidean (S \<union> T)) S"
       and cloT: "closedin (subtopology euclidean (S \<union> T)) T"
       and BS: "Borsukian S" and BT: "Borsukian T" and ST: "connected(S \<inter> T)"
     shows "Borsukian(S \<union> T)"
-proof (clarsimp simp add: Borsukian_continuous_logarithm)
+proof%unimportant (clarsimp simp add: Borsukian_continuous_logarithm)
   fix f :: "'a \<Rightarrow> complex"
   assume contf: "continuous_on (S \<union> T) f" and 0: "0 \<notin> f ` (S \<union> T)"
   then have contfS: "continuous_on S f" and contfT: "continuous_on T f"
@@ -4509,18 +4509,18 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
   qed
 qed
 
-lemma Borsukian_separation_compact:
+lemma%unimportant Borsukian_separation_compact:
   fixes S :: "complex set"
   assumes "compact S"
     shows "Borsukian S \<longleftrightarrow> connected(- S)"
   by (simp add: Borsuk_separation_theorem Borsukian_circle assms)
 
-lemma Borsukian_monotone_image_compact:
+lemma%important Borsukian_monotone_image_compact:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "Borsukian S" and contf: "continuous_on S f" and fim: "f ` S = T"
       and "compact S" and conn: "\<And>y. y \<in> T \<Longrightarrow> connected {x. x \<in> S \<and> f x = y}"
     shows "Borsukian T"
-proof (clarsimp simp add: Borsukian_continuous_logarithm)
+proof%unimportant (clarsimp simp add: Borsukian_continuous_logarithm)
   fix g :: "'b \<Rightarrow> complex"
   assume contg: "continuous_on T g" and 0: "0 \<notin> g ` T"
   have "continuous_on S (g \<circ> f)"
@@ -4580,13 +4580,13 @@ proof (clarsimp simp add: Borsukian_continuous_logarithm)
 qed
 
 
-lemma Borsukian_open_map_image_compact:
+lemma%important Borsukian_open_map_image_compact:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "Borsukian S" and contf: "continuous_on S f" and fim: "f ` S = T" and "compact S"
       and ope: "\<And>U. openin (subtopology euclidean S) U
                      \<Longrightarrow> openin (subtopology euclidean T) (f ` U)"
     shows "Borsukian T"
-proof (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
+proof%unimportant (clarsimp simp add: Borsukian_continuous_logarithm_circle_real)
   fix g :: "'b \<Rightarrow> complex"
   assume contg: "continuous_on T g" and gim: "g ` T \<subseteq> sphere 0 1"
   have "continuous_on S (g \<circ> f)"
@@ -4667,12 +4667,12 @@ qed
 
 
 text\<open>If two points are separated by a closed set, there's a minimal one.\<close>
-proposition closed_irreducible_separator:
+proposition%important closed_irreducible_separator:
   fixes a :: "'a::real_normed_vector"
   assumes "closed S" and ab: "\<not> connected_component (- S) a b"
   obtains T where "T \<subseteq> S" "closed T" "T \<noteq> {}" "\<not> connected_component (- T) a b"
                   "\<And>U. U \<subset> T \<Longrightarrow> connected_component (- U) a b"
-proof (cases "a \<in> S \<or> b \<in> S")
+proof%unimportant (cases "a \<in> S \<or> b \<in> S")
   case True
   then show ?thesis
   proof
@@ -4775,7 +4775,7 @@ next
   qed
 qed
 
-lemma frontier_minimal_separating_closed_pointwise:
+lemma%unimportant frontier_minimal_separating_closed_pointwise:
   fixes S :: "'a::real_normed_vector set"
   assumes S: "closed S" "a \<notin> S" and nconn: "\<not> connected_component (- S) a b"
       and conn: "\<And>T. \<lbrakk>closed T; T \<subset> S\<rbrakk> \<Longrightarrow> connected_component (- T) a b"
@@ -4804,29 +4804,29 @@ proof -
 qed
 
 
-subsection\<open>Unicoherence (closed)\<close>
+subsection%important\<open>Unicoherence (closed)\<close>
 
-definition unicoherent where
+definition%important unicoherent where
   "unicoherent U \<equiv>
   \<forall>S T. connected S \<and> connected T \<and> S \<union> T = U \<and>
         closedin (subtopology euclidean U) S \<and> closedin (subtopology euclidean U) T
         \<longrightarrow> connected (S \<inter> T)"
 
-lemma unicoherentI [intro?]:
+lemma%unimportant unicoherentI [intro?]:
   assumes "\<And>S T. \<lbrakk>connected S; connected T; U = S \<union> T; closedin (subtopology euclidean U) S; closedin (subtopology euclidean U) T\<rbrakk>
           \<Longrightarrow> connected (S \<inter> T)"
   shows "unicoherent U"
   using assms unfolding unicoherent_def by blast
 
-lemma unicoherentD:
+lemma%unimportant unicoherentD:
   assumes "unicoherent U" "connected S" "connected T" "U = S \<union> T" "closedin (subtopology euclidean U) S" "closedin (subtopology euclidean U) T"
   shows "connected (S \<inter> T)"
   using assms unfolding unicoherent_def by blast
 
-lemma homeomorphic_unicoherent:
+lemma%important homeomorphic_unicoherent:
   assumes ST: "S homeomorphic T" and S: "unicoherent S"
   shows "unicoherent T"
-proof -
+proof%unimportant -
   obtain f g where gf: "\<And>x. x \<in> S \<Longrightarrow> g (f x) = x" and fim: "T = f ` S" and gfim: "g ` f ` S = S"
     and contf: "continuous_on S f" and contg: "continuous_on (f ` S) g"
     using ST by (auto simp: homeomorphic_def homeomorphism_def)
@@ -4867,24 +4867,24 @@ proof -
 qed
 
 
-lemma homeomorphic_unicoherent_eq:
+lemma%unimportant homeomorphic_unicoherent_eq:
    "S homeomorphic T \<Longrightarrow> (unicoherent S \<longleftrightarrow> unicoherent T)"
   by (meson homeomorphic_sym homeomorphic_unicoherent)
 
-lemma unicoherent_translation:
+lemma%unimportant unicoherent_translation:
   fixes S :: "'a::real_normed_vector set"
   shows
    "unicoherent (image (\<lambda>x. a + x) S) \<longleftrightarrow> unicoherent S"
   using homeomorphic_translation homeomorphic_unicoherent_eq by blast
 
-lemma unicoherent_injective_linear_image:
+lemma%unimportant unicoherent_injective_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
   shows "(unicoherent(f ` S) \<longleftrightarrow> unicoherent S)"
   using assms homeomorphic_unicoherent_eq linear_homeomorphic_image by blast
 
 
-lemma Borsukian_imp_unicoherent:
+lemma%unimportant Borsukian_imp_unicoherent:
   fixes U :: "'a::euclidean_space set"
   assumes "Borsukian U"  shows "unicoherent U"
   unfolding unicoherent_def
@@ -4994,27 +4994,27 @@ proof clarify
 qed
 
 
-corollary contractible_imp_unicoherent:
+corollary%important contractible_imp_unicoherent:
   fixes U :: "'a::euclidean_space set"
   assumes "contractible U"  shows "unicoherent U"
-  by (simp add: Borsukian_imp_unicoherent assms contractible_imp_Borsukian)
+  by%unimportant (simp add: Borsukian_imp_unicoherent assms contractible_imp_Borsukian)
 
-corollary convex_imp_unicoherent:
+corollary%important convex_imp_unicoherent:
   fixes U :: "'a::euclidean_space set"
   assumes "convex U"  shows "unicoherent U"
-  by (simp add: Borsukian_imp_unicoherent assms convex_imp_Borsukian)
+  by%unimportant (simp add: Borsukian_imp_unicoherent assms convex_imp_Borsukian)
 
 text\<open>If the type class constraint can be relaxed, I don't know how!\<close>
-corollary unicoherent_UNIV: "unicoherent (UNIV :: 'a :: euclidean_space set)"
-  by (simp add: convex_imp_unicoherent)
+corollary%important unicoherent_UNIV: "unicoherent (UNIV :: 'a :: euclidean_space set)"
+  by%unimportant (simp add: convex_imp_unicoherent)
 
 
-lemma unicoherent_monotone_image_compact:
+lemma%important unicoherent_monotone_image_compact:
   fixes T :: "'b :: t2_space set"
   assumes S: "unicoherent S" "compact S" and contf: "continuous_on S f" and fim: "f ` S = T"
   and conn: "\<And>y. y \<in> T \<Longrightarrow> connected (S \<inter> f -` {y})"
   shows "unicoherent T"
-proof
+proof%unimportant
   fix U V
   assume UV: "connected U" "connected V" "T = U \<union> V"
      and cloU: "closedin (subtopology euclidean T) U"
@@ -5048,9 +5048,9 @@ proof
 qed
 
 
-subsection\<open>Several common variants of unicoherence\<close>
+subsection%important\<open>Several common variants of unicoherence\<close>
 
-lemma connected_frontier_simple:
+lemma%unimportant connected_frontier_simple:
   fixes S :: "'a :: euclidean_space set"
   assumes "connected S" "connected(- S)" shows "connected(frontier S)"
   unfolding frontier_closures
@@ -5058,18 +5058,18 @@ lemma connected_frontier_simple:
       apply (simp_all add: assms connected_imp_connected_closure)
   by (simp add: closure_def)
 
-lemma connected_frontier_component_complement:
+lemma%unimportant connected_frontier_component_complement:
   fixes S :: "'a :: euclidean_space set"
   assumes "connected S" and C: "C \<in> components(- S)" shows "connected(frontier C)"
   apply (rule connected_frontier_simple)
   using C in_components_connected apply blast
   by (metis Compl_eq_Diff_UNIV connected_UNIV assms top_greatest component_complement_connected)
 
-lemma connected_frontier_disjoint:
+lemma%important connected_frontier_disjoint:
   fixes S :: "'a :: euclidean_space set"
   assumes "connected S" "connected T" "disjnt S T" and ST: "frontier S \<subseteq> frontier T"
   shows "connected(frontier S)"
-proof (cases "S = UNIV")
+proof%unimportant (cases "S = UNIV")
   case True then show ?thesis
     by simp
 next
@@ -5101,13 +5101,13 @@ next
 qed
 
 
-subsection\<open>Some separation results\<close>
+subsection%important\<open>Some separation results\<close>
 
-lemma separation_by_component_closed_pointwise:
+lemma%important separation_by_component_closed_pointwise:
   fixes S :: "'a :: euclidean_space set"
   assumes "closed S" "\<not> connected_component (- S) a b"
   obtains C where "C \<in> components S" "\<not> connected_component(- C) a b"
-proof (cases "a \<in> S \<or> b \<in> S")
+proof%unimportant (cases "a \<in> S \<or> b \<in> S")
   case True
   then show ?thesis
     using connected_component_in componentsI that by fastforce
@@ -5140,11 +5140,11 @@ next
 qed
 
 
-lemma separation_by_component_closed:
+lemma%important separation_by_component_closed:
   fixes S :: "'a :: euclidean_space set"
   assumes "closed S" "\<not> connected(- S)"
   obtains C where "C \<in> components S" "\<not> connected(- C)"
-proof -
+proof%unimportant -
   obtain x y where "closed S" "x \<notin> S" "y \<notin> S" and "\<not> connected_component (- S) x y"
     using assms by (auto simp: connected_iff_connected_component)
   then obtain C where "C \<in> components S" "\<not> connected_component(- C) x y"
@@ -5154,12 +5154,12 @@ proof -
     by (metis Compl_iff \<open>C \<in> components S\<close> \<open>x \<notin> S\<close> \<open>y \<notin> S\<close> connected_component_eq connected_component_eq_eq connected_iff_connected_component that)
 qed
 
-lemma separation_by_Un_closed_pointwise:
+lemma%important separation_by_Un_closed_pointwise:
   fixes S :: "'a :: euclidean_space set"
   assumes ST: "closed S" "closed T" "S \<inter> T = {}"
       and conS: "connected_component (- S) a b" and conT: "connected_component (- T) a b"
     shows "connected_component (- (S \<union> T)) a b"
-proof (rule ccontr)
+proof%unimportant (rule ccontr)
   have "a \<notin> S" "b \<notin> S" "a \<notin> T" "b \<notin> T"
     using conS conT connected_component_in by auto
   assume "\<not> connected_component (- (S \<union> T)) a b"
@@ -5178,14 +5178,14 @@ proof (rule ccontr)
     by (meson Compl_anti_mono C conS conT connected_component_of_subset)
 qed
 
-lemma separation_by_Un_closed:
+lemma%unimportant separation_by_Un_closed:
   fixes S :: "'a :: euclidean_space set"
   assumes ST: "closed S" "closed T" "S \<inter> T = {}" and conS: "connected(- S)" and conT: "connected(- T)"
   shows "connected(- (S \<union> T))"
   using assms separation_by_Un_closed_pointwise
   by (fastforce simp add: connected_iff_connected_component)
 
-lemma open_unicoherent_UNIV:
+lemma%unimportant open_unicoherent_UNIV:
   fixes S :: "'a :: euclidean_space set"
   assumes "open S" "open T" "connected S" "connected T" "S \<union> T = UNIV"
   shows "connected(S \<inter> T)"
@@ -5196,7 +5196,7 @@ proof -
     by simp
 qed
 
-lemma separation_by_component_open_aux:
+lemma%unimportant separation_by_component_open_aux:
   fixes S :: "'a :: euclidean_space set"
   assumes ST: "closed S" "closed T" "S \<inter> T = {}"
       and "S \<noteq> {}" "T \<noteq> {}"
@@ -5276,11 +5276,11 @@ proof (rule ccontr)
 qed
 
 
-lemma separation_by_component_open:
+lemma%important separation_by_component_open:
   fixes S :: "'a :: euclidean_space set"
   assumes "open S" and non: "\<not> connected(- S)"
   obtains C where "C \<in> components S" "\<not> connected(- C)"
-proof -
+proof%unimportant -
   obtain T U
     where "closed T" "closed U" and TU: "T \<union> U = - S" "T \<inter> U = {}" "T \<noteq> {}" "U \<noteq> {}"
     using assms by (auto simp: connected_closed_set closed_def)
@@ -5303,18 +5303,18 @@ proof -
   qed
 qed
 
-lemma separation_by_Un_open:
+lemma%unimportant separation_by_Un_open:
   fixes S :: "'a :: euclidean_space set"
   assumes "open S" "open T" "S \<inter> T = {}" and cS: "connected(-S)" and cT: "connected(-T)"
     shows "connected(- (S \<union> T))"
   using assms unicoherent_UNIV unfolding unicoherent_def by force
 
 
-lemma nonseparation_by_component_eq:
+lemma%important nonseparation_by_component_eq:
   fixes S :: "'a :: euclidean_space set"
   assumes "open S \<or> closed S"
   shows "((\<forall>C \<in> components S. connected(-C)) \<longleftrightarrow> connected(- S))" (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs with assms show ?rhs
     by (meson separation_by_component_closed separation_by_component_open)
 next
@@ -5324,13 +5324,13 @@ qed
 
 
 text\<open>Another interesting equivalent of an inessential mapping into C-{0}\<close>
-proposition inessential_eq_extensible:
+proposition%important inessential_eq_extensible:
   fixes f :: "'a::euclidean_space \<Rightarrow> complex"
   assumes "closed S"
   shows "(\<exists>a. homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)) \<longleftrightarrow>
          (\<exists>g. continuous_on UNIV g \<and> (\<forall>x \<in> S. g x = f x) \<and> (\<forall>x. g x \<noteq> 0))"
      (is "?lhs = ?rhs")
-proof
+proof%unimportant
   assume ?lhs
   then obtain a where a: "homotopic_with (\<lambda>h. True) S (-{0}) f (\<lambda>t. a)" ..
   show ?rhs
@@ -5390,14 +5390,14 @@ next
     by (simp add: inessential_eq_continuous_logarithm)
 qed
 
-lemma inessential_on_clopen_Union:
+lemma%important inessential_on_clopen_Union:
   fixes \<F> :: "'a::euclidean_space set set"
   assumes T: "path_connected T"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closedin (subtopology euclidean (\<Union>\<F>)) S"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> openin (subtopology euclidean (\<Union>\<F>)) S"
       and hom: "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>a. homotopic_with (\<lambda>x. True) S T f (\<lambda>x. a)"
   obtains a where "homotopic_with (\<lambda>x. True) (\<Union>\<F>) T f (\<lambda>x. a)"
-proof (cases "\<Union>\<F> = {}")
+proof%unimportant (cases "\<Union>\<F> = {}")
   case True
   with that show ?thesis
     by force
@@ -5438,12 +5438,12 @@ next
   then show ?thesis ..
 qed
 
-lemma Janiszewski_dual:
+lemma%important Janiszewski_dual:
   fixes S :: "complex set"
   assumes
    "compact S" "compact T" "connected S" "connected T" "connected(- (S \<union> T))"
  shows "connected(S \<inter> T)"
-proof -
+proof%unimportant -
   have ST: "compact (S \<union> T)"
     by (simp add: assms compact_Un)
   with Borsukian_imp_unicoherent [of "S \<union> T"] ST assms
