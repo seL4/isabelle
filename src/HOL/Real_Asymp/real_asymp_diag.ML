@@ -187,7 +187,7 @@ fun gen_expansion prep_term prep_flt prep_facts res ctxt facts (n, strict) t flt
   end
 
 fun print_basis_elem ctxt t =
-  Syntax.pretty_term (Config.put Syntax_Trans.eta_contract_raw (Config.Bool false) ctxt)
+  Syntax.pretty_term (Config.put Syntax_Trans.eta_contract false ctxt)
     (Envir.eta_long [] t)
 
 val expansion_cmd =
