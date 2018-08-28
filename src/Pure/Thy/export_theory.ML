@@ -66,8 +66,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val {serial, pos, ...} = Name_Space.the_entry space name;
         val props =
-          Markup.serial_properties serial @
-          Position.offset_properties_of (adjust_pos pos);
+          Position.offset_properties_of (adjust_pos pos) @
+          Position.id_properties_of pos @
+          Markup.serial_properties serial;
       in (Markup.entityN, (Markup.nameN, name) :: props) end;
 
     fun export_entities export_name export get_space decls =

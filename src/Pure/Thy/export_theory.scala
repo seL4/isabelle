@@ -156,12 +156,12 @@ object Export_Theory
     val CLASS = Value("class")
   }
 
-  sealed case class Entity(kind: Kind.Value, name: String, serial: Long, pos: Position.T)
+  sealed case class Entity(kind: Kind.Value, name: String, pos: Position.T, id: Long, serial: Long)
   {
     override def toString: String = kind.toString + " " + quote(name)
 
     def cache(cache: Term.Cache): Entity =
-      Entity(kind, cache.string(name), serial, cache.position(pos))
+      Entity(kind, cache.string(name), cache.position(pos), id, serial)
   }
 
   def decode_entity(kind: Kind.Value, tree: XML.Tree): (Entity, XML.Body) =
@@ -171,9 +171,10 @@ object Export_Theory
     tree match {
       case XML.Elem(Markup(Markup.ENTITY, props), body) =>
         val name = Markup.Name.unapply(props) getOrElse err()
+        val pos = props.filter({ case (a, _) => Markup.POSITION_PROPERTIES(a) && a != Markup.ID })
+        val id = Position.Id.unapply(props) getOrElse err()
         val serial = Markup.Serial.unapply(props) getOrElse err()
-        val pos = props.filter({ case (a, _) => Markup.POSITION_PROPERTIES(a) })
-        (Entity(kind, name, serial, pos), body)
+        (Entity(kind, name, pos, id, serial), body)
       case _ => err()
     }
   }
