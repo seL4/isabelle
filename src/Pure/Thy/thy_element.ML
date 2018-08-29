@@ -60,13 +60,14 @@ fun parse_element keywords =
           | _ => other);
 
     fun theory_element x =
-      (category Keyword.is_theory_goal false -- proof_rest >> element) x
+      (category Keyword.is_theory_goal false -- proof >> element) x
     and proof_element x =
-      (category Keyword.is_proof_goal false -- proof_rest >> element ||
+      (category Keyword.is_proof_goal false -- proof >> element ||
         category Keyword.is_proof_body true >> atom) x
-    and proof_rest x = (Scan.repeat proof_element -- category Keyword.is_qed false) x;
+    and proof x = (Scan.repeat proof_element -- category Keyword.is_qed false) x;
 
-  in theory_element || Scan.one not_eof >> atom end;
+    val default_element = Scan.one not_eof >> atom;
+  in theory_element || default_element end;
 
 in
 
