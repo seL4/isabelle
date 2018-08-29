@@ -220,8 +220,9 @@ locale AC16 =
     and mpos[iff]:      "0<m"
     and Infinite[iff]:  "~ Finite(y)"
     and noLepoll:  "~ y \<lesssim> {v \<in> Pow(x). v \<approx> m}"
+begin
 
-lemma (in AC16) knat [iff]: "k \<in> nat"
+lemma knat [iff]: "k \<in> nat"
 by (simp add: k_def)
 
 
@@ -230,7 +231,7 @@ by (simp add: k_def)
 (*      where a is certain k-2 element subset of y                        *)
 (* ********************************************************************** *)
 
-lemma (in AC16) Diff_Finite_eqpoll: "[| l \<approx> a; a \<subseteq> y |] ==> y - a \<approx> y"
+lemma Diff_Finite_eqpoll: "[| l \<approx> a; a \<subseteq> y |] ==> y - a \<approx> y"
 apply (insert WO_R Infinite lnat)
 apply (rule eqpoll_trans) 
 apply (rule Diff_lesspoll_eqpoll_Card) 
@@ -247,10 +248,10 @@ apply (blast intro: lesspoll_trans1
 done
 
 
-lemma (in AC16) s_subset: "s(u) \<subseteq> t_n"
+lemma s_subset: "s(u) \<subseteq> t_n"
 by (unfold s_def, blast)
 
-lemma (in AC16) sI: 
+lemma sI: 
       "[| w \<in> t_n; cons(b,cons(u,a)) \<subseteq> w; a \<subseteq> y; b \<in> y-a; l \<approx> a |] 
        ==> w \<in> s(u)"
 apply (unfold s_def succ_def k_def)
@@ -258,11 +259,11 @@ apply (blast intro!: eqpoll_imp_lepoll [THEN cons_lepoll_cong]
              intro: subset_imp_lepoll lepoll_trans)
 done
 
-lemma (in AC16) in_s_imp_u_in: "v \<in> s(u) ==> u \<in> v"
+lemma in_s_imp_u_in: "v \<in> s(u) ==> u \<in> v"
 by (unfold s_def, blast)
 
 
-lemma (in AC16) ex1_superset_a:
+lemma ex1_superset_a:
      "[| l \<approx> a;  a \<subseteq> y;  b \<in> y - a;  u \<in> x |]   
       ==> \<exists>! c. c \<in> s(u) & a \<subseteq> c & b \<in> c"
 apply (rule all_ex [simplified k_def, THEN ballE])
@@ -273,7 +274,7 @@ apply (blast del: PowI
              intro!: cons_cons_subset eqpoll_sym [THEN cons_cons_eqpoll])
 done
 
-lemma (in AC16) the_eq_cons:
+lemma the_eq_cons:
      "[| \<forall>v \<in> s(u). succ(l) \<approx> v \<inter> y;   
          l \<approx> a;  a \<subseteq> y;  b \<in> y - a;  u \<in> x |]    
       ==> (THE c. c \<in> s(u) & a \<subseteq> c & b \<in> c) \<inter> y = cons(b, a)"
@@ -282,7 +283,7 @@ apply (rule set_eq_cons)
 apply (fast+)
 done
 
-lemma (in AC16) y_lepoll_subset_s:
+lemma y_lepoll_subset_s:
      "[| \<forall>v \<in> s(u). succ(l) \<approx> v \<inter> y;   
          l \<approx> a;  a \<subseteq> y;  u \<in> x |]   
       ==> y \<lesssim> {v \<in> s(u). a \<subseteq> v}"
@@ -306,14 +307,14 @@ done
 
 
 (*relies on the disjointness of x, y*)
-lemma (in AC16) x_imp_not_y [dest]: "a \<in> x ==> a \<notin> y"
+lemma x_imp_not_y [dest]: "a \<in> x ==> a \<notin> y"
 by (blast dest:  disjoint [THEN equalityD1, THEN subsetD, OF IntI])
 
-lemma (in AC16) w_Int_eq_w_Diff:
+lemma w_Int_eq_w_Diff:
      "w \<subseteq> x \<union> y ==> w \<inter> (x - {u}) = w - cons(u, w \<inter> y)" 
 by blast
 
-lemma (in AC16) w_Int_eqpoll_m:
+lemma w_Int_eqpoll_m:
      "[| w \<in> {v \<in> s(u). a \<subseteq> v};   
          l \<approx> a;  u \<in> x;   
          \<forall>v \<in> s(u). succ(l) \<approx> v \<inter> y |] 
@@ -335,12 +336,12 @@ done
 (*      to {v \<in> Pow(x). v \<approx> n-k}                                       *)
 (* ********************************************************************** *)
 
-lemma (in AC16) eqpoll_m_not_empty: "a \<approx> m ==> a \<noteq> 0"
+lemma eqpoll_m_not_empty: "a \<approx> m ==> a \<noteq> 0"
 apply (insert mpos)
 apply (fast elim!: zero_lt_natE dest!: eqpoll_succ_imp_not_empty)
 done
 
-lemma (in AC16) cons_cons_in:
+lemma cons_cons_in:
      "[| z \<in> xa \<inter> (x - {u}); l \<approx> a; a \<subseteq> y; u \<in> x |]   
       ==> \<exists>! w. w \<in> t_n & cons(z, cons(u, a)) \<subseteq> w"
 apply (rule all_ex [THEN bspec])
@@ -348,7 +349,7 @@ apply (unfold k_def)
 apply (fast intro!: cons_eqpoll_succ elim: eqpoll_sym)
 done
 
-lemma (in AC16) subset_s_lepoll_w:
+lemma subset_s_lepoll_w:
      "[| \<forall>v \<in> s(u). succ(l) \<approx> v \<inter> y; a \<subseteq> y; l \<approx> a; u \<in> x |]   
       ==> {v \<in> s(u). a \<subseteq> v} \<lesssim> {v \<in> Pow(x). v \<approx> m}"
 apply (rule_tac f3 = "\<lambda>w \<in> {v \<in> s (u) . a \<subseteq> v}. w \<inter> (x - {u})" 
@@ -371,14 +372,14 @@ done
 (* well_ord_subsets_lepoll_n                                              *)
 (* ********************************************************************** *)
 
-lemma (in AC16) well_ord_subsets_eqpoll_n:
+lemma well_ord_subsets_eqpoll_n:
      "n \<in> nat ==> \<exists>S. well_ord({z \<in> Pow(y) . z \<approx> succ(n)}, S)"
 apply (rule WO_R [THEN well_ord_infinite_subsets_eqpoll_X,
                   THEN eqpoll_def [THEN def_imp_iff, THEN iffD1], THEN exE])
 apply (fast intro: bij_is_inj [THEN well_ord_rvimage])+
 done
 
-lemma (in AC16) well_ord_subsets_lepoll_n:
+lemma well_ord_subsets_lepoll_n:
      "n \<in> nat ==> \<exists>R. well_ord({z \<in> Pow(y). z \<lesssim> n}, R)"
 apply (induct_tac "n")
 apply (force intro!: well_ord_unit simp add: subsets_lepoll_0_eq_unit)
@@ -392,13 +393,13 @@ apply (fast elim!: bij_is_inj [THEN well_ord_rvimage])
 done
 
 
-lemma (in AC16) LL_subset: "LL \<subseteq> {z \<in> Pow(y). z \<lesssim> succ(k #+ m)}"
+lemma LL_subset: "LL \<subseteq> {z \<in> Pow(y). z \<lesssim> succ(k #+ m)}"
 apply (unfold LL_def MM_def)
 apply (insert "includes")
 apply (blast intro: subset_imp_lepoll eqpoll_imp_lepoll lepoll_trans)
 done
 
-lemma (in AC16) well_ord_LL: "\<exists>S. well_ord(LL,S)"
+lemma well_ord_LL: "\<exists>S. well_ord(LL,S)"
 apply (rule well_ord_subsets_lepoll_n [THEN exE, of "succ(k#+m)"])
 apply simp 
 apply (blast intro: well_ord_subset [OF _ LL_subset])
@@ -408,7 +409,7 @@ done
 (* every element of LL is a contained in exactly one element of MM        *)
 (* ********************************************************************** *)
 
-lemma (in AC16) unique_superset_in_MM:
+lemma unique_superset_in_MM:
      "v \<in> LL ==> \<exists>! w. w \<in> MM & v \<subseteq> w"
 apply (unfold MM_def LL_def, safe, fast)
 apply (rule lepoll_imp_eqpoll_subset [THEN exE], assumption)
@@ -425,34 +426,34 @@ done
 (* The union of appropriate values is the whole x                         *)
 (* ********************************************************************** *)
 
-lemma (in AC16) Int_in_LL: "w \<in> MM ==> w \<inter> y \<in> LL"
+lemma Int_in_LL: "w \<in> MM ==> w \<inter> y \<in> LL"
 by (unfold LL_def, fast)
 
-lemma (in AC16) in_LL_eq_Int: 
+lemma in_LL_eq_Int: 
      "v \<in> LL ==> v = (THE x. x \<in> MM & v \<subseteq> x) \<inter> y"
 apply (unfold LL_def, clarify)
 apply (subst unique_superset_in_MM [THEN the_equality2])
 apply (auto simp add: Int_in_LL)
 done
 
-lemma (in AC16) unique_superset1: "a \<in> LL \<Longrightarrow> (THE x. x \<in> MM \<and> a \<subseteq> x) \<in> MM"
+lemma unique_superset1: "a \<in> LL \<Longrightarrow> (THE x. x \<in> MM \<and> a \<subseteq> x) \<in> MM"
 by (erule unique_superset_in_MM [THEN theI, THEN conjunct1]) 
 
-lemma (in AC16) the_in_MM_subset:
+lemma the_in_MM_subset:
      "v \<in> LL ==> (THE x. x \<in> MM & v \<subseteq> x) \<subseteq> x \<union> y"
 apply (drule unique_superset1)
 apply (unfold MM_def)
 apply (fast dest!: unique_superset1 "includes" [THEN subsetD])
 done
 
-lemma (in AC16) GG_subset: "v \<in> LL ==> GG ` v \<subseteq> x"
+lemma GG_subset: "v \<in> LL ==> GG ` v \<subseteq> x"
 apply (unfold GG_def)
 apply (frule the_in_MM_subset)
 apply (frule in_LL_eq_Int)
 apply (force elim: equalityE)
 done
 
-lemma (in AC16) nat_lepoll_ordertype: "nat \<lesssim> ordertype(y, R)"
+lemma nat_lepoll_ordertype: "nat \<lesssim> ordertype(y, R)"
 apply (rule nat_le_infinite_Ord [THEN le_imp_lepoll]) 
  apply (rule Ord_ordertype [OF WO_R]) 
 apply (rule ordertype_eqpoll [THEN eqpoll_imp_lepoll, THEN lepoll_infinite]) 
@@ -460,7 +461,7 @@ apply (rule ordertype_eqpoll [THEN eqpoll_imp_lepoll, THEN lepoll_infinite])
 apply (rule Infinite) 
 done
 
-lemma (in AC16) ex_subset_eqpoll_n: "n \<in> nat ==> \<exists>z. z \<subseteq> y & n \<approx> z"
+lemma ex_subset_eqpoll_n: "n \<in> nat ==> \<exists>z. z \<subseteq> y & n \<approx> z"
 apply (erule nat_lepoll_imp_ex_eqpoll_n)
 apply (rule lepoll_trans [OF nat_lepoll_ordertype]) 
 apply (rule ordertype_eqpoll [THEN eqpoll_sym, THEN eqpoll_imp_lepoll]) 
@@ -468,7 +469,7 @@ apply (rule WO_R)
 done
 
 
-lemma (in AC16) exists_proper_in_s: "u \<in> x ==> \<exists>v \<in> s(u). succ(k) \<lesssim> v \<inter> y"
+lemma exists_proper_in_s: "u \<in> x ==> \<exists>v \<in> s(u). succ(k) \<lesssim> v \<inter> y"
 apply (rule ccontr)
 apply (subgoal_tac "\<forall>v \<in> s (u) . k \<approx> v \<inter> y")
 prefer 2 apply (simp add: s_def, blast intro: succ_not_lepoll_imp_eqpoll)
@@ -479,12 +480,12 @@ apply (rule noLepoll [THEN notE])
 apply (blast intro: lepoll_trans [OF y_lepoll_subset_s subset_s_lepoll_w])
 done
 
-lemma (in AC16) exists_in_MM: "u \<in> x ==> \<exists>w \<in> MM. u \<in> w"
+lemma exists_in_MM: "u \<in> x ==> \<exists>w \<in> MM. u \<in> w"
 apply (erule exists_proper_in_s [THEN bexE])
 apply (unfold MM_def s_def, fast)
 done
 
-lemma (in AC16) exists_in_LL: "u \<in> x ==> \<exists>w \<in> LL. u \<in> GG`w"
+lemma exists_in_LL: "u \<in> x ==> \<exists>w \<in> LL. u \<in> GG`w"
 apply (rule exists_in_MM [THEN bexE], assumption)
 apply (rule bexI)
 apply (erule_tac [2] Int_in_LL)
@@ -494,7 +495,7 @@ apply (subst unique_superset_in_MM [THEN the_equality2])
 apply (fast elim!: Int_in_LL)+
 done
 
-lemma (in AC16) OUN_eq_x: "well_ord(LL,S) ==>       
+lemma OUN_eq_x: "well_ord(LL,S) ==>       
       (\<Union>b<ordertype(LL,S). GG ` (converse(ordermap(LL,S)) ` b)) = x"
 apply (rule equalityI)
 apply (rule subsetI)
@@ -514,18 +515,18 @@ done
 (* Every element of the family is less than or equipollent to n-k (m)     *)
 (* ********************************************************************** *)
 
-lemma (in AC16) in_MM_eqpoll_n: "w \<in> MM ==> w \<approx> succ(k #+ m)"
+lemma in_MM_eqpoll_n: "w \<in> MM ==> w \<approx> succ(k #+ m)"
 apply (unfold MM_def)
 apply (fast dest: "includes" [THEN subsetD])
 done
 
-lemma (in AC16) in_LL_eqpoll_n: "w \<in> LL ==> succ(k) \<lesssim> w"
+lemma in_LL_eqpoll_n: "w \<in> LL ==> succ(k) \<lesssim> w"
 by (unfold LL_def MM_def, fast)
 
-lemma (in AC16) in_LL: "w \<in> LL ==> w \<subseteq> (THE x. x \<in> MM \<and> w \<subseteq> x)"
+lemma in_LL: "w \<in> LL ==> w \<subseteq> (THE x. x \<in> MM \<and> w \<subseteq> x)"
 by (erule subset_trans [OF in_LL_eq_Int [THEN equalityD1] Int_lower1])
 
-lemma (in AC16) all_in_lepoll_m: 
+lemma all_in_lepoll_m: 
       "well_ord(LL,S) ==>       
        \<forall>b<ordertype(LL,S). GG ` (converse(ordermap(LL,S)) ` b) \<lesssim> m"
 apply (unfold GG_def)
@@ -541,7 +542,7 @@ apply (blast del: subsetI
                                   THEN apply_type])+
 done
 
-lemma (in AC16) "conclusion":
+lemma "conclusion":
      "\<exists>a f. Ord(a) & domain(f) = a & (\<Union>b<a. f ` b) = x & (\<forall>b<a. f ` b \<lesssim> m)"
 apply (rule well_ord_LL [THEN exE])
 apply (rename_tac S)
@@ -553,12 +554,12 @@ apply (blast intro: lam_funtype [THEN domain_of_fun]
                     Ord_ordertype  OUN_eq_x  all_in_lepoll_m [THEN ospec])
 done
 
+end
+
 
 (* ********************************************************************** *)
 (* The main theorem AC16(n, k) ==> WO4(n-k)                               *)
 (* ********************************************************************** *)
-
-term AC16
 
 theorem AC16_WO4: 
      "[| AC_Equiv.AC16(k #+ m, k); 0 < k; 0 < m; k \<in> nat; m \<in> nat |] ==> WO4(m)"

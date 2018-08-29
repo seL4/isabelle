@@ -104,7 +104,7 @@ locale DC0_imp =
   defines XX_def: "XX == (\<Union>n \<in> nat. {f \<in> n->X. \<forall>k \<in> n. <f``k, f`k> \<in> R})"
      and RR_def:  "RR == {<z1,z2>:XX*XX. domain(z2)=succ(domain(z1))  
                                        & restrict(z2, domain(z1)) = z1}"
-
+begin
 
 (* ********************************************************************** *)
 (* DC ==> DC(omega)                                                       *)
@@ -132,10 +132,10 @@ locale DC0_imp =
 (*                                                                        *)
 (* ********************************************************************** *)
 
-lemma (in DC0_imp) lemma1_1: "RR \<subseteq> XX*XX"
+lemma lemma1_1: "RR \<subseteq> XX*XX"
 by (unfold RR_def, fast)
 
-lemma (in DC0_imp) lemma1_2: "RR \<noteq> 0"
+lemma lemma1_2: "RR \<noteq> 0"
 apply (unfold RR_def XX_def)
 apply (rule all_ex [THEN ballE])
 apply (erule_tac [2] notE [OF _ empty_subsetI [THEN PowI]])
@@ -152,7 +152,7 @@ apply (force intro!: singleton_fun [THEN Pi_type]
 apply (simp add: singleton_0)
 done
 
-lemma (in DC0_imp) lemma1_3: "range(RR) \<subseteq> domain(RR)"
+lemma lemma1_3: "range(RR) \<subseteq> domain(RR)"
 apply (unfold RR_def XX_def)
 apply (rule range_subset_domain, blast, clarify)
 apply (frule fun_is_rel [THEN image_subset, THEN PowI, 
@@ -168,7 +168,7 @@ apply (force elim!: cons_fun_type2
 apply (simp add: domain_of_fun succ_def restrict_cons_eq)
 done
 
-lemma (in DC0_imp) lemma2:
+lemma lemma2:
      "[| \<forall>n \<in> nat. <f`n, f`succ(n)> \<in> RR;  f \<in> nat -> XX;  n \<in> nat |]   
       ==> \<exists>k \<in> nat. f`succ(n) \<in> k -> X & n \<in> k   
                   & <f`succ(n)``n, f`succ(n)`n> \<in> R"
@@ -197,7 +197,7 @@ apply (simp add: XX_def RR_def, clarify)
 apply (blast dest: domain_of_fun [symmetric, THEN trans] )
 done
 
-lemma (in DC0_imp) lemma3_1:
+lemma lemma3_1:
      "[| \<forall>n \<in> nat. <f`n, f`succ(n)> \<in> RR;  f \<in> nat -> XX;  m \<in> nat |]   
       ==>  {f`succ(x)`x. x \<in> m} = {f`succ(m)`x. x \<in> m}"
 apply (subgoal_tac "\<forall>x \<in> m. f`succ (m) `x = f`succ (x) `x")
@@ -220,7 +220,7 @@ apply (blast dest!: domain_of_fun
              intro: nat_into_Ord OrdmemD [THEN subsetD])
 done
 
-lemma (in DC0_imp) lemma3:
+lemma lemma3:
      "[| \<forall>n \<in> nat. <f`n, f`succ(n)> \<in> RR;  f \<in> nat -> XX;  m \<in> nat |]  
       ==> (\<lambda>x \<in> nat. f`succ(x)`x) `` m = f`succ(m)``m"
 apply (erule natE, simp)
@@ -232,6 +232,7 @@ apply (fast dest!: lemma2
             elim!: image_fun [symmetric, OF _ OrdmemD [OF _ nat_into_Ord]])
 done
 
+end
 
 theorem DC0_imp_DC_nat: "DC0 ==> DC(nat)"
 apply (unfold DC_def DC0_def, clarify)
@@ -310,8 +311,9 @@ locale imp_DC0 =
                     {<z1,z2>\<in>Fin(XX)*XX. (domain(z2)=succ(\<Union>f \<in> z1. domain(f))
                                     & (\<Union>f \<in> z1. domain(f)) = b  
                                     & (\<forall>f \<in> z1. restrict(z2,domain(f)) = f))}"
+begin
 
-lemma (in imp_DC0) lemma4:
+lemma lemma4:
      "[| range(R) \<subseteq> domain(R);  x \<in> domain(R) |]   
       ==> RR \<subseteq> Pow(XX)*XX &   
              (\<forall>Y \<in> Pow(XX). Y \<prec> nat \<longrightarrow> (\<exists>x \<in> XX. <Y,x>:RR))"
@@ -329,25 +331,25 @@ apply (rule rev_bexI, erule singleton_in_funs)
 apply (simp add: nat_0I [THEN rev_bexI] cons_fun_type2)
 done
 
-lemma (in imp_DC0) UN_image_succ_eq:
+lemma UN_image_succ_eq:
      "[| f \<in> nat->X; n \<in> nat |] 
       ==> (\<Union>x \<in> f``succ(n). P(x)) =  P(f`n) \<union> (\<Union>x \<in> f``n. P(x))"
 by (simp add: image_fun OrdmemD) 
 
-lemma (in imp_DC0) UN_image_succ_eq_succ:
+lemma UN_image_succ_eq_succ:
      "[| (\<Union>x \<in> f``n. P(x)) = y; P(f`n) = succ(y);   
          f \<in> nat -> X; n \<in> nat |] ==> (\<Union>x \<in> f``succ(n). P(x)) = succ(y)"
 by (simp add: UN_image_succ_eq, blast)
 
-lemma (in imp_DC0) apply_domain_type:
+lemma apply_domain_type:
      "[| h \<in> succ(n) -> D;  n \<in> nat; domain(h)=succ(y) |] ==> h`y \<in> D"
 by (fast elim: apply_type dest!: trans [OF sym domain_of_fun])
 
-lemma (in imp_DC0) image_fun_succ:
+lemma image_fun_succ:
      "[| h \<in> nat -> X; n \<in> nat |] ==> h``succ(n) = cons(h`n, h``n)"
 by (simp add: image_fun OrdmemD) 
 
-lemma (in imp_DC0) f_n_type:
+lemma f_n_type:
      "[| domain(f`n) = succ(k); f \<in> nat -> XX;  n \<in> nat |]    
       ==> f`n \<in> succ(k) -> domain(R)"
 apply (unfold XX_def)
@@ -355,7 +357,7 @@ apply (drule apply_type, assumption)
 apply (fast elim: domain_eq_imp_fun_type)
 done
 
-lemma (in imp_DC0) f_n_pairs_in_R [rule_format]: 
+lemma f_n_pairs_in_R [rule_format]: 
      "[| h \<in> nat -> XX;  domain(h`n) = succ(k);  n \<in> nat |]   
       ==> \<forall>i \<in> k. <h`n`i, h`n`succ(i)> \<in> R"
 apply (unfold XX_def)
@@ -364,7 +366,7 @@ apply (elim UN_E CollectE)
 apply (drule domain_of_fun [symmetric, THEN trans], assumption, simp)
 done
 
-lemma (in imp_DC0) restrict_cons_eq_restrict: 
+lemma restrict_cons_eq_restrict: 
      "[| restrict(h, domain(u))=u;  h \<in> n->X;  domain(u) \<subseteq> n |]   
       ==> restrict(cons(<n, y>, h), domain(u)) = u"
 apply (unfold restrict_def)
@@ -373,7 +375,7 @@ apply (erule sym [THEN trans, symmetric])
 apply (blast elim: mem_irrefl)  
 done
 
-lemma (in imp_DC0) all_in_image_restrict_eq:
+lemma all_in_image_restrict_eq:
      "[| \<forall>x \<in> f``n. restrict(f`n, domain(x))=x;   
          f \<in> nat -> XX;   
          n \<in> nat;  domain(f`n) = succ(n);   
@@ -387,7 +389,7 @@ apply (erule disjE)
 apply (blast intro!: restrict_cons_eq_restrict)
 done
 
-lemma (in imp_DC0) simplify_recursion: 
+lemma simplify_recursion: 
      "[| \<forall>b<nat. <f``b, f`b> \<in> RR;   
          f \<in> nat -> XX; range(R) \<subseteq> domain(R); x \<in> domain(R)|]    
       ==> allRR"
@@ -432,7 +434,7 @@ apply (simp add: nat_into_Ord [THEN succ_in_succ] succI2 cons_val_k)
 done
 
 
-lemma (in imp_DC0) lemma2: 
+lemma lemma2: 
      "[| allRR; f \<in> nat->XX; range(R) \<subseteq> domain(R); x \<in> domain(R); n \<in> nat |]
       ==> f`n \<in> succ(n) -> domain(R) & (\<forall>i \<in> n. <f`n`i, f`n`succ(i)>:R)"
 apply (unfold allRR_def)
@@ -445,7 +447,7 @@ apply (unfold XX_def)
 apply (fast elim!: trans [THEN domain_eq_imp_fun_type] subst_context)
 done
 
-lemma (in imp_DC0) lemma3:
+lemma lemma3:
      "[| allRR; f \<in> nat->XX; n\<in>nat; range(R) \<subseteq> domain(R);  x \<in> domain(R) |]
       ==> f`n`n = f`succ(n)`n"
 apply (frule lemma2 [THEN conjunct1, THEN domain_of_fun], assumption+)
@@ -456,6 +458,8 @@ apply (elim conjE ballE)
 apply (erule restrict_eq_imp_val_eq [symmetric], force) 
 apply (simp add: image_fun OrdmemD) 
 done
+
+end
 
 
 theorem DC_nat_imp_DC0: "DC(nat) ==> DC0"
