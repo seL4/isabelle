@@ -781,7 +781,7 @@ object Sessions
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
   }
 
-  private object Parser extends Parse.Parser with Options.Parser
+  private object Parser extends Options.Parser
   {
     private val chapter: Parser[Chapter] =
     {

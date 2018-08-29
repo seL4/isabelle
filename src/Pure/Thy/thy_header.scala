@@ -13,7 +13,7 @@ import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
 
-object Thy_Header extends Parse.Parser
+object Thy_Header
 {
   /* bootstrap keywords */
 
@@ -116,62 +116,65 @@ object Thy_Header extends Parse.Parser
     bootstrap_thys.collectFirst({ case (a, b) if a == theory => b }).getOrElse(theory)
 
 
-  /* header */
+  /* parser */
 
-  val header: Parser[Thy_Header] =
+  trait Parser extends Parse.Parser
   {
-    val opt_files =
-      $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
-      success(Nil)
+    val header: Parser[Thy_Header] =
+    {
+      val opt_files =
+        $$$("(") ~! (rep1sep(name, $$$(",")) <~ $$$(")")) ^^ { case _ ~ x => x } |
+        success(Nil)
 
-    val keyword_spec =
-      atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
-      { case x ~ y ~ z => Keyword.Spec(x, y, z) }
+      val keyword_spec =
+        atom("outer syntax keyword specification", _.is_name) ~ opt_files ~ tags ^^
+        { case x ~ y ~ z => Keyword.Spec(x, y, z) }
 
-    val keyword_decl =
-      rep1(string) ~
-      opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ^^
-      { case xs ~ y => xs.map((_, y.getOrElse(Keyword.Spec.none))) }
+      val keyword_decl =
+        rep1(string) ~
+        opt($$$("::") ~! keyword_spec ^^ { case _ ~ x => x }) ^^
+        { case xs ~ y => xs.map((_, y.getOrElse(Keyword.Spec.none))) }
 
-    val keyword_decls =
-      keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
-      { case xs ~ yss => (xs :: yss).flatten }
+      val keyword_decls =
+        keyword_decl ~ rep($$$(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
+        { case xs ~ yss => (xs :: yss).flatten }
 
-    val abbrevs =
-      rep1sep(rep1(text) ~ ($$$("=") ~! rep1(text)), $$$("and")) ^^
-        { case res => for ((as ~ (_ ~ bs)) <- res; a <- as; b <- bs) yield (a, b) }
+      val abbrevs =
+        rep1sep(rep1(text) ~ ($$$("=") ~! rep1(text)), $$$("and")) ^^
+          { case res => for ((as ~ (_ ~ bs)) <- res; a <- as; b <- bs) yield (a, b) }
 
-    val args =
-      position(theory_name) ~
-      (opt($$$(IMPORTS) ~! rep1(position(theory_name))) ^^
-        { case None => Nil case Some(_ ~ xs) => xs }) ~
-      (opt($$$(KEYWORDS) ~! keyword_decls) ^^
-        { case None => Nil case Some(_ ~ xs) => xs }) ~
-      (opt($$$(ABBREVS) ~! abbrevs) ^^
-        { case None => Nil case Some(_ ~ xs) => xs }) ~
-      $$$(BEGIN) ^^
-      { case (name, pos) ~ imports ~ keywords ~ abbrevs ~ _ =>
-          val f = Symbol.decode _
-          Thy_Header((f(name), pos),
-            imports.map({ case (a, b) => (f(a), b) }),
-            keywords.map({ case (a, Keyword.Spec(b, c, d)) =>
-              (f(a), Keyword.Spec(f(b), c.map(f), d.map(f))) }),
-            abbrevs.map({ case (a, b) => (f(a), f(b)) }))
-      }
+      val args =
+        position(theory_name) ~
+        (opt($$$(IMPORTS) ~! rep1(position(theory_name))) ^^
+          { case None => Nil case Some(_ ~ xs) => xs }) ~
+        (opt($$$(KEYWORDS) ~! keyword_decls) ^^
+          { case None => Nil case Some(_ ~ xs) => xs }) ~
+        (opt($$$(ABBREVS) ~! abbrevs) ^^
+          { case None => Nil case Some(_ ~ xs) => xs }) ~
+        $$$(BEGIN) ^^
+        { case (name, pos) ~ imports ~ keywords ~ abbrevs ~ _ =>
+            val f = Symbol.decode _
+            Thy_Header((f(name), pos),
+              imports.map({ case (a, b) => (f(a), b) }),
+              keywords.map({ case (a, Keyword.Spec(b, c, d)) =>
+                (f(a), Keyword.Spec(f(b), c.map(f), d.map(f))) }),
+              abbrevs.map({ case (a, b) => (f(a), f(b)) }))
+        }
 
-    val heading =
-      (command(CHAPTER) |
-        command(SECTION) |
-        command(SUBSECTION) |
-        command(SUBSUBSECTION) |
-        command(PARAGRAPH) |
-        command(SUBPARAGRAPH) |
-        command(TEXT) |
-        command(TXT) |
-        command(TEXT_RAW)) ~
-      tags ~! document_source
+      val heading =
+        (command(CHAPTER) |
+          command(SECTION) |
+          command(SUBSECTION) |
+          command(SUBSUBSECTION) |
+          command(PARAGRAPH) |
+          command(SUBPARAGRAPH) |
+          command(TEXT) |
+          command(TXT) |
+          command(TEXT_RAW)) ~
+        tags ~! document_source
 
-    (rep(heading) ~ command(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
+      (rep(heading) ~ command(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
+    }
   }
 
 
@@ -198,6 +201,15 @@ object Thy_Header extends Parse.Parser
     (drop_tokens, tokens1 ::: tokens2)
   }
 
+  private object Parser extends Parser
+  {
+    def parse_header(tokens: List[Token], pos: Token.Pos): Thy_Header =
+      parse(commit(header), Token.reader(tokens, pos)) match {
+        case Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+  }
+
   def read(reader: Reader[Char], start: Token.Pos, strict: Boolean = true): Thy_Header =
   {
     val (_, tokens0) = read_tokens(reader, true)
@@ -206,10 +218,7 @@ object Thy_Header extends Parse.Parser
     val (drop_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val pos = (start /: drop_tokens)(_.advance(_))
 
-    parse(commit(header), Token.reader(tokens, pos)) match {
-      case Success(result, _) => result
-      case bad => error(bad.toString)
-    }
+    Parser.parse_header(tokens, pos)
   }
 }
 

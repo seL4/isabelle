@@ -88,7 +88,7 @@ object Options
       atom("option value", tok => tok.is_name || tok.is_float)
   }
 
-  object Parser extends Parse.Parser with Parser
+  private object Parser extends Parser
   {
     def comment_marker: Parser[String] =
       $$$("--") | $$$(Symbol.comment) | $$$(Symbol.comment_decoded)
