@@ -222,7 +222,7 @@ ML_file "Isar/local_defs.ML";
 ML_file "Isar/local_theory.ML";
 ML_file "Isar/entity.ML";
 ML_file "PIDE/command_span.ML";
-ML_file "Thy/thy_syntax.ML";
+ML_file "Thy/thy_element.ML";
 ML_file "Thy/markdown.ML";
 ML_file "Thy/html.ML";
 ML_file "Thy/latex.ML";

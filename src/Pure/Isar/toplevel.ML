@@ -86,7 +86,7 @@ sig
   val reset_proof: state -> state option
   type result
   val join_results: result -> (transition * state) list
-  val element_result: Keyword.keywords -> transition Thy_Syntax.element -> state -> result * state
+  val element_result: Keyword.keywords -> transition Thy_Element.element -> state -> result * state
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -669,7 +669,7 @@ val get_result = Result.get o Proof.context_of;
 val put_result = Proof.map_context o Result.put;
 
 fun timing_estimate elem =
-  let val trs = tl (Thy_Syntax.flat_element elem)
+  let val trs = tl (Thy_Element.flat_element elem)
   in fold (fn tr => fn t => get_timing tr + t) trs Time.zeroTime end;
 
 fun future_proofs_enabled estimate st =
@@ -693,8 +693,8 @@ fun atom_result keywords tr st =
 
 in
 
-fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result keywords tr st
-  | element_result keywords (elem as Thy_Syntax.Element (head_tr, SOME element_rest)) st =
+fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result keywords tr st
+  | element_result keywords (elem as Thy_Element.Element (head_tr, SOME element_rest)) st =
       let
         val (head_result, st') = atom_result keywords head_tr st;
         val (body_elems, end_tr) = element_rest;
@@ -703,7 +703,7 @@ fun element_result keywords (Thy_Syntax.Element (tr, NONE)) st = atom_result key
         if not (future_proofs_enabled estimate st')
         then
           let
-            val proof_trs = maps Thy_Syntax.flat_element body_elems @ [end_tr];
+            val proof_trs = maps Thy_Element.flat_element body_elems @ [end_tr];
             val (proof_results, st'') = fold_map (atom_result keywords) proof_trs st';
           in (Result_List (head_result :: proof_results), st'') end
         else

@@ -1,10 +1,10 @@
-(*  Title:      Pure/Thy/thy_syntax.ML
+(*  Title:      Pure/Thy/thy_element.ML
     Author:     Makarius
 
-Theory syntax elements.
+Theory elements: statements with optional proof.
 *)
 
-signature THY_SYNTAX =
+signature THY_ELEMENT =
 sig
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val atom: 'a -> 'a element
@@ -14,7 +14,7 @@ sig
   val parse_elements: Keyword.keywords -> Command_Span.span list -> Command_Span.span element list
 end;
 
-structure Thy_Syntax: THY_SYNTAX =
+structure Thy_Element: THY_ELEMENT =
 struct
 
 (* datatype element: command with optional proof *)

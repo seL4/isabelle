@@ -289,9 +289,9 @@ fun excursion keywords master_dir last_timing init elements =
 
     fun element_result span_elem (st, _) =
       let
-        val elem = Thy_Syntax.map_element (prepare_span st) span_elem;
+        val elem = Thy_Element.map_element (prepare_span st) span_elem;
         val (results, st') = Toplevel.element_result keywords elem st;
-        val pos' = Toplevel.pos_of (Thy_Syntax.last_element elem);
+        val pos' = Toplevel.pos_of (Thy_Element.last_element elem);
       in (results, (st', pos')) end;
 
     val (results, (end_state, end_pos)) =
@@ -309,7 +309,7 @@ fun eval_thy (context: context) update_time master_dir header text_pos text pare
         (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
 
     val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
-    val elements = Thy_Syntax.parse_elements keywords spans;
+    val elements = Thy_Element.parse_elements keywords spans;
 
     fun init () =
       Resources.begin_theory master_dir header parents
