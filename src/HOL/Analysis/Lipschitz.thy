@@ -7,11 +7,11 @@ theory Lipschitz
   imports Borel_Space
 begin
 
-definition lipschitz_on
+definition%important lipschitz_on
   where "lipschitz_on C U f \<longleftrightarrow> (0 \<le> C \<and> (\<forall>x \<in> U. \<forall>y\<in>U. dist (f x) (f y) \<le> C * dist x y))"
 
 bundle lipschitz_syntax begin
-notation lipschitz_on ("_-lipschitz'_on" [1000])
+notation%important lipschitz_on ("_-lipschitz'_on" [1000])
 end
 bundle no_lipschitz_syntax begin
 no_notation lipschitz_on ("_-lipschitz'_on" [1000])
@@ -103,7 +103,7 @@ proof (rule lipschitz_on_leI)
   qed
 qed (rule lipschitz_on_nonneg[OF f])
 
-proposition lipschitz_on_concat_max:
+lemma lipschitz_on_concat_max:
   fixes a b c::real
   assumes f: "L-lipschitz_on {a .. b} f"
   assumes g: "M-lipschitz_on {b .. c} g"
@@ -118,7 +118,7 @@ qed
 
 subsubsection \<open>Continuity\<close>
 
-lemma lipschitz_on_uniformly_continuous:
+proposition lipschitz_on_uniformly_continuous:
   assumes "L-lipschitz_on X f"
   shows "uniformly_continuous_on X f"
   unfolding uniformly_continuous_on_def
@@ -132,7 +132,7 @@ proof safe
     by (force intro!: exI[where x="e/(L + 1)"] simp: field_simps)
 qed
 
-lemma lipschitz_on_continuous_on:
+proposition lipschitz_on_continuous_on:
   "continuous_on X f" if "L-lipschitz_on X f"
   by (rule uniformly_continuous_imp_continuous[OF lipschitz_on_uniformly_continuous[OF that]])
 
@@ -143,7 +143,7 @@ lemma lipschitz_on_continuous_within:
 
 subsubsection \<open>Differentiable functions\<close>
 
-lemma bounded_derivative_imp_lipschitz:
+proposition bounded_derivative_imp_lipschitz:
   assumes "\<And>x. x \<in> X \<Longrightarrow> (f has_derivative f' x) (at x within X)"
   assumes convex: "convex X"
   assumes "\<And>x. x \<in> X \<Longrightarrow> onorm (f' x) \<le> C" "0 \<le> C"
@@ -154,7 +154,7 @@ proof (rule lipschitz_onI)
 qed fact
 
 
-subsubsection \<open>Structural introduction rules\<close>
+subsubsection%unimportant \<open>Structural introduction rules\<close>
 
 named_theorems lipschitz_intros "structural introduction rules for Lipschitz controls"
 
@@ -480,7 +480,7 @@ qed
 
 subsection \<open>Local Lipschitz continuity (uniform for a family of functions)\<close>
 
-definition local_lipschitz::
+definition%important local_lipschitz::
   "'a::metric_space set \<Rightarrow> 'b::metric_space set \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c::metric_space) \<Rightarrow> bool"
   where
   "local_lipschitz T X f \<equiv> \<forall>x \<in> X. \<forall>t \<in> T.
@@ -785,7 +785,7 @@ proof (rule local_lipschitzI, goal_cases)
     by (auto intro: exI[where x=1])
 qed
 
-lemma c1_implies_local_lipschitz:
+proposition c1_implies_local_lipschitz:
   fixes T::"real set" and X::"'a::{banach,heine_borel} set"
     and f::"real \<Rightarrow> 'a \<Rightarrow> 'a"
   assumes f': "\<And>t x. t \<in> T \<Longrightarrow> x \<in> X \<Longrightarrow> (f t has_derivative blinfun_apply (f' (t, x))) (at x)"

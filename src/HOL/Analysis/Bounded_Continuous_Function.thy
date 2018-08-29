@@ -7,7 +7,7 @@ begin
 
 subsection \<open>Definition\<close>
 
-definition "bcontfun = {f. continuous_on UNIV f \<and> bounded (range f)}"
+definition%important "bcontfun = {f. continuous_on UNIV f \<and> bounded (range f)}"
 
 typedef (overloaded) ('a, 'b) bcontfun ("(_ \<Rightarrow>\<^sub>C /_)" [22, 21] 21) =
   "bcontfun::('a::topological_space \<Rightarrow> 'b::metric_space) set"
@@ -41,7 +41,7 @@ lift_definition const_bcontfun::"'b::metric_space \<Rightarrow> ('a::topological
 instantiation bcontfun :: (topological_space, metric_space) metric_space
 begin
 
-lift_definition dist_bcontfun :: "'a \<Rightarrow>\<^sub>C 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>C 'b \<Rightarrow> real"
+lift_definition%important dist_bcontfun :: "'a \<Rightarrow>\<^sub>C 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>C 'b \<Rightarrow> real"
   is "\<lambda>f g. (SUP x. dist (f x) (g x))" .
 
 definition uniformity_bcontfun :: "('a \<Rightarrow>\<^sub>C 'b \<times> 'a \<Rightarrow>\<^sub>C 'b) filter"
@@ -175,8 +175,8 @@ qed
 
 subsection \<open>Complete Space\<close>
 
-instance bcontfun :: (metric_space, complete_space) complete_space
-proof
+instance%important bcontfun :: (metric_space, complete_space) complete_space
+proof%unimportant
   fix f :: "nat \<Rightarrow> ('a, 'b) bcontfun"
   assume "Cauchy f"  \<comment> \<open>Cauchy equals uniform convergence\<close>
   then obtain g where "uniform_limit UNIV f g sequentially"
@@ -191,9 +191,9 @@ proof
 qed
 
 
-subsection \<open>Supremum norm for a normed vector space\<close>
+subsection%unimportant \<open>Supremum norm for a normed vector space\<close>
 
-instantiation bcontfun :: (topological_space, real_normed_vector) real_vector
+instantiation%unimportant bcontfun :: (topological_space, real_normed_vector) real_vector
 begin
 
 lemma uminus_cont: "f \<in> bcontfun \<Longrightarrow> (\<lambda>x. - f x) \<in> bcontfun" for f::"'a \<Rightarrow> 'b"
@@ -247,7 +247,7 @@ lemma bounded_norm_le_SUP_norm:
   "bounded (range f) \<Longrightarrow> norm (f x) \<le> (SUP x. norm (f x))"
   by (auto intro!: cSUP_upper bounded_imp_bdd_above simp: bounded_norm_comp)
 
-instantiation bcontfun :: (topological_space, real_normed_vector) real_normed_vector
+instantiation%unimportant bcontfun :: (topological_space, real_normed_vector) real_normed_vector
 begin
 
 definition norm_bcontfun :: "('a, 'b) bcontfun \<Rightarrow> real"
@@ -290,7 +290,7 @@ lemma norm_bound:
   using dist_bound[of f 0 b] assms
   by (simp add: dist_norm)
 
-subsection \<open>(bounded) continuous extenstion\<close>
+subsection%unimportant \<open>(bounded) continuous extenstion\<close>
 
 lemma integral_clamp:
   "integral {t0::real..clamp t0 t1 x} f =

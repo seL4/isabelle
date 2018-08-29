@@ -3,7 +3,7 @@
     Author:     Robert Himmelmann, TU Muenchen (translation from HOL Light); tidied by LCP
 *)
 
-section \<open>Multivariate calculus in Euclidean space\<close>
+section \<open>Derivative\<close>
 
 theory Derivative
 imports Brouwer_Fixpoint Operator_Norm Uniform_Limit Bounded_Linear_Function
@@ -20,11 +20,11 @@ lemma has_derivative_add_const:
   by (intro derivative_eq_intros) auto
 
 
-subsection \<open>Derivative with composed bilinear function\<close>
+subsection%unimportant \<open>Derivative with composed bilinear function\<close>
 
 text \<open>More explicit epsilon-delta forms.\<close>
 
-lemma has_derivative_within':
+proposition has_derivative_within':
   "(f has_derivative f')(at x within s) \<longleftrightarrow>
     bounded_linear f' \<and>
     (\<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. 0 < norm (x' - x) \<and> norm (x' - x) < d \<longrightarrow>
@@ -92,7 +92,7 @@ qed
 
 subsection \<open>Differentiability\<close>
 
-definition
+definition%important
   differentiable_on :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool"
     (infix "differentiable'_on" 50)
   where "f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable (at x within s))"
@@ -113,7 +113,7 @@ lemma differentiable_at_imp_differentiable_on:
   "(\<And>x. x \<in> s \<Longrightarrow> f differentiable at x) \<Longrightarrow> f differentiable_on s"
   by (metis differentiable_at_withinI differentiable_on_def)
 
-corollary differentiable_iff_scaleR:
+corollary%unimportant differentiable_iff_scaleR:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   shows "f differentiable F \<longleftrightarrow> (\<exists>d. (f has_derivative (\<lambda>x. x *\<^sub>R d)) F)"
   by (auto simp: differentiable_def dest: has_derivative_linear linear_imp_scaleR)
@@ -211,7 +211,7 @@ subsection \<open>Frechet derivative and Jacobian matrix\<close>
 
 definition "frechet_derivative f net = (SOME f'. (f has_derivative f') net)"
 
-lemma frechet_derivative_works:
+proposition frechet_derivative_works:
   "f differentiable net \<longleftrightarrow> (f has_derivative (frechet_derivative f net)) net"
   unfolding frechet_derivative_def differentiable_def
   unfolding some_eq_ex[of "\<lambda> f' . (f has_derivative f') net"] ..
@@ -223,7 +223,7 @@ lemma linear_frechet_derivative: "f differentiable net \<Longrightarrow> linear 
 
 subsection \<open>Differentiability implies continuity\<close>
 
-lemma differentiable_imp_continuous_within:
+proposition differentiable_imp_continuous_within:
   "f differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
   by (auto simp: differentiable_def intro: has_derivative_continuous)
 
@@ -288,7 +288,7 @@ lemma has_derivative_at_alt:
 
 subsection \<open>The chain rule\<close>
 
-lemma diff_chain_within[derivative_intros]:
+proposition diff_chain_within[derivative_intros]:
   assumes "(f has_derivative f') (at x within s)"
     and "(g has_derivative g') (at (f x) within (f ` s))"
   shows "((g \<circ> f) has_derivative (g' \<circ> f'))(at x within s)"
@@ -324,7 +324,7 @@ using diff_chain_within[OF Df[unfolded has_vector_derivative_def] Dg]
   by (auto simp: o_def mult.commute has_vector_derivative_def)
 
 
-subsection \<open>Composition rules stated just for differentiability\<close>
+subsection%unimportant \<open>Composition rules stated just for differentiability\<close>
 
 lemma differentiable_chain_at:
   "f differentiable (at x) \<Longrightarrow>
@@ -342,12 +342,12 @@ lemma differentiable_chain_within:
 subsection \<open>Uniqueness of derivative\<close>
 
 
-text \<open>
+text%important \<open>
  The general result is a bit messy because we need approachability of the
  limit point from any direction. But OK for nontrivial intervals etc.
 \<close>
 
-lemma frechet_derivative_unique_within:
+proposition frechet_derivative_unique_within:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes 1: "(f has_derivative f') (at x within S)"
     and 2: "(f has_derivative f'') (at x within S)"
@@ -414,7 +414,7 @@ proof -
   qed
 qed
 
-lemma frechet_derivative_unique_within_closed_interval:
+proposition frechet_derivative_unique_within_closed_interval:
   fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes ab: "\<And>i. i\<in>Basis \<Longrightarrow> a\<bullet>i < b\<bullet>i"
     and x: "x \<in> cbox a b"
@@ -611,7 +611,7 @@ qed
 
 subsection \<open>One-dimensional mean value theorem\<close>
 
-lemma mvt:
+theorem mvt:
   fixes f :: "real \<Rightarrow> real"
   assumes "a < b"
     and contf: "continuous_on {a..b} f"
@@ -1242,7 +1242,7 @@ lemma has_derivative_inverse_dieudonne:
 
 text \<open>Here's the simplest way of not assuming much about g.\<close>
 
-lemma has_derivative_inverse:
+proposition has_derivative_inverse:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "compact S"
     and "x \<in> S"
@@ -1265,7 +1265,9 @@ proof -
 qed
 
 
-subsection \<open>Proving surjectivity via Brouwer fixpoint theorem\<close>
+subsection \<open>Inverse function theorem\<close>
+
+text \<open>Proving surjectivity via Brouwer fixpoint theorem\<close>
 
 lemma brouwer_surjective:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
@@ -1493,7 +1495,7 @@ lemma has_derivative_inverse_strong_x:
 
 text \<open>On a region.\<close>
 
-lemma has_derivative_inverse_on:
+theorem has_derivative_inverse_on:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "open S"
     and derf: "\<And>x. x \<in> S \<Longrightarrow> (f has_derivative f'(x)) (at x)"
@@ -1650,7 +1652,7 @@ proof -
     done
 qed
 
-lemma has_derivative_sequence:
+proposition has_derivative_sequence:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
   assumes "convex S"
     and derf: "\<And>n x. x \<in> S \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within S)"
@@ -1896,7 +1898,7 @@ qed
 
 subsection \<open>Differentiation of a series\<close>
 
-lemma has_derivative_series:
+proposition has_derivative_series:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::banach"
   assumes "convex S"
     and "\<And>n x. x \<in> S \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within S)"
@@ -1999,6 +2001,8 @@ lemma differentiable_series':
   shows   "(\<lambda>x. \<Sum>n. f n x) differentiable (at x0)"
   using differentiable_series[OF assms, of x0] \<open>x0 \<in> S\<close> by blast+
 
+subsection \<open>Derivative as a vector\<close>
+
 text \<open>Considering derivative @{typ "real \<Rightarrow> 'b::real_normed_vector"} as a vector.\<close>
 
 definition "vector_derivative f net = (SOME f'. (f has_vector_derivative f') net)"
@@ -2032,7 +2036,7 @@ lemma vector_derivative_unique_at:
 lemma differentiableI_vector: "(f has_vector_derivative y) F \<Longrightarrow> f differentiable F"
   by (auto simp: differentiable_def has_vector_derivative_def)
 
-lemma vector_derivative_works:
+proposition vector_derivative_works:
   "f differentiable net \<longleftrightarrow> (f has_vector_derivative (vector_derivative f net)) net"
     (is "?l = ?r")
 proof
@@ -2085,55 +2089,6 @@ lemma has_vector_derivative_cong_ev:
   apply (intro refl conj_cong filterlim_cong)
   apply (auto simp: netlimit_within eventually_at_filter elim: eventually_mono)
   done
-
-definition deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "deriv f x \<equiv> SOME D. DERIV f x :> D"
-
-lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
-  unfolding deriv_def by (metis some_equality DERIV_unique)
-
-lemma DERIV_deriv_iff_has_field_derivative:
-  "DERIV f x :> deriv f x \<longleftrightarrow> (\<exists>f'. (f has_field_derivative f') (at x))"
-  by (auto simp: has_field_derivative_def DERIV_imp_deriv)
-
-lemma DERIV_deriv_iff_real_differentiable:
-  fixes x :: real
-  shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"
-  unfolding differentiable_def by (metis DERIV_imp_deriv has_real_derivative_iff)
-
-lemma deriv_cong_ev:
-  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
-  shows   "deriv f x = deriv g y"
-proof -
-  have "(\<lambda>D. (f has_field_derivative D) (at x)) = (\<lambda>D. (g has_field_derivative D) (at y))"
-    by (intro ext DERIV_cong_ev refl assms)
-  thus ?thesis by (simp add: deriv_def assms)
-qed
-
-lemma higher_deriv_cong_ev:
-  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
-  shows   "(deriv ^^ n) f x = (deriv ^^ n) g y"
-proof -
-  from assms(1) have "eventually (\<lambda>x. (deriv ^^ n) f x = (deriv ^^ n) g x) (nhds x)"
-  proof (induction n arbitrary: f g)
-    case (Suc n)
-    from Suc.prems have "eventually (\<lambda>y. eventually (\<lambda>z. f z = g z) (nhds y)) (nhds x)"
-      by (simp add: eventually_eventually)
-    hence "eventually (\<lambda>x. deriv f x = deriv g x) (nhds x)"
-      by eventually_elim (rule deriv_cong_ev, simp_all)
-    thus ?case by (auto intro!: deriv_cong_ev Suc simp: funpow_Suc_right simp del: funpow.simps)
-  qed auto
-  from eventually_nhds_x_imp_x[OF this] assms(2) show ?thesis by simp
-qed
-
-lemma real_derivative_chain:
-  fixes x :: real
-  shows "f differentiable at x \<Longrightarrow> g differentiable at (f x)
-    \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
-  by (metis DERIV_deriv_iff_real_differentiable DERIV_chain DERIV_imp_deriv)
-lemma field_derivative_eq_vector_derivative:
-   "(deriv f x) = vector_derivative f (at x)"
-by (simp add: mult.commute deriv_def vector_derivative_def has_vector_derivative_def has_field_derivative_def)
 
 lemma islimpt_closure_open:
   fixes s :: "'a::perfect_space set"
@@ -2312,7 +2267,7 @@ lemma vector_derivative_chain_within:
 
 subsection\<open>The notion of being field differentiable\<close>
 
-definition field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
+definition%important field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
            (infixr "(field'_differentiable)" 50)
   where "f field_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
 
@@ -2320,10 +2275,6 @@ lemma field_differentiable_imp_differentiable:
   "f field_differentiable F \<Longrightarrow> f differentiable F"
   unfolding field_differentiable_def differentiable_def 
   using has_field_derivative_imp_has_derivative by auto
-
-lemma field_differentiable_derivI:
-    "f field_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
-by (simp add: field_differentiable_def DERIV_deriv_iff_has_field_derivative)
 
 lemma field_differentiable_imp_continuous_at:
     "f field_differentiable (at x within S) \<Longrightarrow> continuous (at x within S) f"
@@ -2434,12 +2385,6 @@ lemma field_differentiable_within_open:
   unfolding field_differentiable_def
   by (metis at_within_open)
 
-lemma vector_derivative_chain_at_general: 
-  assumes "f differentiable at x" "g field_differentiable at (f x)"
-  shows "vector_derivative (g \<circ> f) (at x) = vector_derivative f (at x) * deriv g (f x)"
-  apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
-  using assms vector_derivative_works by (auto simp: field_differentiable_derivI)
-
 lemma exp_scaleR_has_vector_derivative_right:
   "((\<lambda>t. exp (t *\<^sub>R A)) has_vector_derivative exp (t *\<^sub>R A) * A) (at t within T)"
   unfolding has_vector_derivative_def
@@ -2515,11 +2460,72 @@ lemma exp_scaleR_has_vector_derivative_left: "((\<lambda>t. exp (t *\<^sub>R A))
   using exp_scaleR_has_vector_derivative_right[of A t]
   by (simp add: exp_times_scaleR_commute)
 
+subsection \<open>Field derivative\<close>
+
+definition%important deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "deriv f x \<equiv> SOME D. DERIV f x :> D"
+
+lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
+  unfolding deriv_def by (metis some_equality DERIV_unique)
+
+lemma DERIV_deriv_iff_has_field_derivative:
+  "DERIV f x :> deriv f x \<longleftrightarrow> (\<exists>f'. (f has_field_derivative f') (at x))"
+  by (auto simp: has_field_derivative_def DERIV_imp_deriv)
+
+lemma DERIV_deriv_iff_real_differentiable:
+  fixes x :: real
+  shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"
+  unfolding differentiable_def by (metis DERIV_imp_deriv has_real_derivative_iff)
+
+lemma deriv_cong_ev:
+  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
+  shows   "deriv f x = deriv g y"
+proof -
+  have "(\<lambda>D. (f has_field_derivative D) (at x)) = (\<lambda>D. (g has_field_derivative D) (at y))"
+    by (intro ext DERIV_cong_ev refl assms)
+  thus ?thesis by (simp add: deriv_def assms)
+qed
+
+lemma higher_deriv_cong_ev:
+  assumes "eventually (\<lambda>x. f x = g x) (nhds x)" "x = y"
+  shows   "(deriv ^^ n) f x = (deriv ^^ n) g y"
+proof -
+  from assms(1) have "eventually (\<lambda>x. (deriv ^^ n) f x = (deriv ^^ n) g x) (nhds x)"
+  proof (induction n arbitrary: f g)
+    case (Suc n)
+    from Suc.prems have "eventually (\<lambda>y. eventually (\<lambda>z. f z = g z) (nhds y)) (nhds x)"
+      by (simp add: eventually_eventually)
+    hence "eventually (\<lambda>x. deriv f x = deriv g x) (nhds x)"
+      by eventually_elim (rule deriv_cong_ev, simp_all)
+    thus ?case by (auto intro!: deriv_cong_ev Suc simp: funpow_Suc_right simp del: funpow.simps)
+  qed auto
+  from eventually_nhds_x_imp_x[OF this] assms(2) show ?thesis by simp
+qed
+
+lemma real_derivative_chain:
+  fixes x :: real
+  shows "f differentiable at x \<Longrightarrow> g differentiable at (f x)
+    \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
+  by (metis DERIV_deriv_iff_real_differentiable DERIV_chain DERIV_imp_deriv)
+lemma field_derivative_eq_vector_derivative:
+   "(deriv f x) = vector_derivative f (at x)"
+by (simp add: mult.commute deriv_def vector_derivative_def has_vector_derivative_def has_field_derivative_def)
+
+proposition field_differentiable_derivI:
+    "f field_differentiable (at x) \<Longrightarrow> (f has_field_derivative deriv f x) (at x)"
+by (simp add: field_differentiable_def DERIV_deriv_iff_has_field_derivative)
+
+lemma vector_derivative_chain_at_general:
+  assumes "f differentiable at x" "g field_differentiable at (f x)"
+  shows "vector_derivative (g \<circ> f) (at x) = vector_derivative f (at x) * deriv g (f x)"
+  apply (rule vector_derivative_at [OF field_vector_diff_chain_at])
+  using assms vector_derivative_works by (auto simp: field_differentiable_derivI)
+
 
 subsection \<open>Relation between convexity and derivative\<close>
 
 (* TODO: Generalise to real vector spaces? *)
-lemma convex_on_imp_above_tangent:
+proposition convex_on_imp_above_tangent:
   assumes convex: "convex_on A f" and connected: "connected A"
   assumes c: "c \<in> interior A" and x : "x \<in> A"
   assumes deriv: "(f has_field_derivative f') (at c within A)"
@@ -2602,7 +2608,7 @@ proof -
     by (auto intro!: exI[where x="UNIV \<times> S"] S open_Times)
 qed
 
-lemma has_derivative_partialsI:
+proposition has_derivative_partialsI:
   fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector \<Rightarrow> 'c::real_normed_vector"
   assumes fx: "((\<lambda>x. f x y) has_derivative fx) (at x within X)"
   assumes fy: "\<And>x y. x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> ((\<lambda>y. f x y) has_derivative blinfun_apply (fy x y)) (at y within Y)"
@@ -2767,7 +2773,7 @@ next
 qed
 
 
-subsection \<open>Differentiable case distinction\<close>
+subsection%unimportant \<open>Differentiable case distinction\<close>
 
 lemma has_derivative_within_If_eq:
   "((\<lambda>x. if P x then f x else g x) has_derivative f') (at x within S) =

@@ -9,10 +9,13 @@ theory Uniform_Limit
 imports Connected Summation_Tests
 begin
 
-definition uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"
+
+subsection \<open>Definition\<close>
+
+definition%important uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"
   where "uniformly_on S l = (INF e:{0 <..}. principal {f. \<forall>x\<in>S. dist (f x) (l x) < e})"
 
-abbreviation
+abbreviation%important
   "uniform_limit S f l \<equiv> filterlim f (uniformly_on S l)"
 
 definition uniformly_convergent_on where
@@ -21,7 +24,7 @@ definition uniformly_convergent_on where
 definition uniformly_Cauchy_on where
   "uniformly_Cauchy_on X f \<longleftrightarrow> (\<forall>e>0. \<exists>M. \<forall>x\<in>X. \<forall>(m::nat)\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e)"
 
-lemma uniform_limit_iff:
+proposition uniform_limit_iff:
   "uniform_limit S f l F \<longleftrightarrow> (\<forall>e>0. \<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < e)"
   unfolding filterlim_iff uniformly_on_def
   by (subst eventually_INF_base)
@@ -64,7 +67,10 @@ proof (rule uniform_limitI)
     by eventually_elim force
 qed
 
-lemma swap_uniform_limit:
+
+subsection \<open>Exchange limits\<close>
+
+proposition swap_uniform_limit:
   assumes f: "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> g n) (at x within S)"
   assumes g: "(g \<longlongrightarrow> l) F"
   assumes uc: "uniform_limit S f h F"
@@ -108,6 +114,9 @@ proof (rule tendstoI)
     using eventually_happens by (metis \<open>\<not>trivial_limit F\<close>)
 qed
 
+
+subsection \<open>Uniform limit theorem\<close>
+
 lemma tendsto_uniform_limitI:
   assumes "uniform_limit S f l F"
   assumes "x \<in> S"
@@ -115,7 +124,7 @@ lemma tendsto_uniform_limitI:
   using assms
   by (auto intro!: tendstoI simp: eventually_mono dest!: uniform_limitD)
 
-lemma uniform_limit_theorem:
+theorem uniform_limit_theorem:
   assumes c: "\<forall>\<^sub>F n in F. continuous_on A (f n)"
   assumes ul: "uniform_limit A f l F"
   assumes "\<not> trivial_limit F"
@@ -307,7 +316,10 @@ lemma uniformly_convergent_imp_convergent:
   unfolding uniformly_convergent_on_def convergent_def
   by (auto dest: tendsto_uniform_limitI)
 
-lemma weierstrass_m_test_ev:
+
+subsection \<open>Weierstrass M-Test\<close>
+
+proposition weierstrass_m_test_ev:
 fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
 assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially"
 assumes "summable M"
@@ -354,7 +366,7 @@ proof (rule uniform_limitI)
 qed
 
 text\<open>Alternative version, formulated as in HOL Light\<close>
-corollary series_comparison_uniform:
+corollary%unimportant series_comparison_uniform:
   fixes f :: "_ \<Rightarrow> nat \<Rightarrow> _ :: banach"
   assumes g: "summable g" and le: "\<And>n x. N \<le> n \<and> x \<in> A \<Longrightarrow> norm(f x n) \<le> g n"
     shows "\<exists>l. \<forall>e. 0 < e \<longrightarrow> (\<exists>N. \<forall>n x. N \<le> n \<and> x \<in> A \<longrightarrow> dist(sum (f x) {..<n}) (l x) < e)"
@@ -367,20 +379,20 @@ proof -
     done
 qed
 
-corollary weierstrass_m_test:
+corollary%unimportant weierstrass_m_test:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
   assumes "summable M"
   shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
   using assms by (intro weierstrass_m_test_ev always_eventually) auto
 
-corollary weierstrass_m_test'_ev:
+corollary%unimportant weierstrass_m_test'_ev:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially" "summable M"
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
   unfolding uniformly_convergent_on_def by (rule exI, rule weierstrass_m_test_ev[OF assms])
 
-corollary weierstrass_m_test':
+corollary%unimportant weierstrass_m_test':
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n" "summable M"
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
@@ -388,6 +400,9 @@ corollary weierstrass_m_test':
 
 lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Longrightarrow> uniform_limit X f m F"
   by simp
+
+
+subsection%unimportant \<open>Structural introduction rules\<close>
 
 named_theorems uniform_limit_intros "introduction rules for uniform_limit"
 setup \<open>
