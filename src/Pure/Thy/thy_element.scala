@@ -24,6 +24,12 @@ object Thy_Element
           b <- (for (elem <- prf.iterator; a <- elem.iterator) yield a) ++ Iterator(qed)
         } yield b)
 
+    def outline_iterator: Iterator[A] =
+      proof match {
+        case None => Iterator(head)
+        case Some((_, qed)) => Iterator(head, qed)
+      }
+
     def last: A =
       proof match {
         case None => head
@@ -37,7 +43,9 @@ object Thy_Element
 
   /* parse elements */
 
-  def parse_elements(keywords: Keyword.Keywords, commands: List[Command]): List[Element[Command]] =
+  type Element_Command = Element[Command]
+
+  def parse_elements(keywords: Keyword.Keywords, commands: List[Command]): List[Element_Command] =
   {
     case class Reader(in: List[Command]) extends input.Reader[Command]
     {
@@ -67,17 +75,17 @@ object Thy_Element
       def category(pred: String => Boolean, other: Boolean): Parser[Command] =
         command(_.span.is_kind(keywords, pred, other))
 
-      def theory_element: Parser[Element[Command]] =
+      def theory_element: Parser[Element_Command] =
         category(Keyword.theory_goal, false) ~ proof ^^ { case a ~ b => element(a, b) }
-      def proof_element: Parser[Element[Command]] =
+      def proof_element: Parser[Element_Command] =
         category(Keyword.proof_goal, false) ~ proof ^^ { case a ~ b => element(a, b) } |
         category(Keyword.proof_body, true) ^^ { case a => atom(a) }
       def proof: Parser[Proof[Command]] =
         rep(proof_element) ~ category(Keyword.qed, false) ^^ { case a ~ b => (a, b) }
 
-      val default_element: Parser[Element[Command]] = command(_ => true) ^^ { case a => atom(a) }
+      val default_element: Parser[Element_Command] = command(_ => true) ^^ { case a => atom(a) }
 
-      def apply: List[Element[Command]] =
+      def apply: List[Element_Command] =
         rep(theory_element | default_element)(Reader(commands)) match {
           case Success(result, rest) if rest.atEnd => result
           case bad => error(bad.toString)
