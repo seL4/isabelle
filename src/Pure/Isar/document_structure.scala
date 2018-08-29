@@ -20,11 +20,8 @@ object Document_Structure
   { val length: Int = (0 /: body)(_ + _.length) }
   case class Atom(length: Int) extends Document
 
-  private def is_theory_command(keywords: Keyword.Keywords, name: String): Boolean =
-    keywords.kinds.get(name) match {
-      case Some(kind) => Keyword.theory(kind) && !Keyword.theory_end(kind)
-      case None => false
-    }
+  private def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =
+    command.span.is_kind(keywords, kind => Keyword.theory(kind) && !Keyword.theory_end(kind))
 
 
 
@@ -36,7 +33,7 @@ object Document_Structure
     text: CharSequence): List[Document] =
   {
     def is_plain_theory(command: Command): Boolean =
-      is_theory_command(syntax.keywords, command.span.name) &&
+      is_theory_command(syntax.keywords, command) &&
       !command.span.is_begin && !command.span.is_end
 
 
@@ -148,7 +145,7 @@ object Document_Structure
         case Thy_Header.SUBSUBSECTION => Some(3)
         case Thy_Header.PARAGRAPH => Some(4)
         case Thy_Header.SUBPARAGRAPH => Some(5)
-        case _ if is_theory_command(keywords, name) => Some(6)
+        case _ if is_theory_command(keywords, command) => Some(6)
         case _ => None
       }
     }
