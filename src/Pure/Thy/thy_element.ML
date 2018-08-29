@@ -51,23 +51,20 @@ val stopper = Scan.stopper (K eof) is_eof;
 
 local
 
-fun command_with pred =
-  Scan.one
-    (fn (Command_Span.Span (Command_Span.Command_Span (name, _), _)) => pred name | _ => false);
-
 fun parse_element keywords =
   let
-    val proof_atom =
+    fun category pred other =
       Scan.one
         (fn (Command_Span.Span (Command_Span.Command_Span (name, _), _)) =>
-              Keyword.is_proof_body keywords name
-          | _ => true) >> atom;
+            pred keywords name
+          | _ => other);
+
     fun proof_element x =
-      (command_with (Keyword.is_proof_goal keywords) -- proof_rest >> element || proof_atom) x
-    and proof_rest x =
-      (Scan.repeat proof_element -- command_with (Keyword.is_qed keywords)) x;
+      (category Keyword.is_proof_goal false -- proof_rest >> element ||
+        category Keyword.is_proof_body true >> atom) x
+    and proof_rest x = (Scan.repeat proof_element -- category Keyword.is_qed false) x;
   in
-    command_with (Keyword.is_theory_goal keywords) -- proof_rest >> element ||
+    category Keyword.is_theory_goal false -- proof_rest >> element ||
     Scan.one not_eof >> atom
   end;
 
