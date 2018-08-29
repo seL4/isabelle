@@ -59,14 +59,14 @@ fun parse_element keywords =
             pred keywords name
           | _ => other);
 
-    fun proof_element x =
+    fun theory_element x =
+      (category Keyword.is_theory_goal false -- proof_rest >> element) x
+    and proof_element x =
       (category Keyword.is_proof_goal false -- proof_rest >> element ||
         category Keyword.is_proof_body true >> atom) x
     and proof_rest x = (Scan.repeat proof_element -- category Keyword.is_qed false) x;
-  in
-    category Keyword.is_theory_goal false -- proof_rest >> element ||
-    Scan.one not_eof >> atom
-  end;
+
+  in theory_element || Scan.one not_eof >> atom end;
 
 in
 
