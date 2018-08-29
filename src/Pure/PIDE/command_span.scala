@@ -39,10 +39,10 @@ object Command_Span
         case _ => start
       }
 
-    def is_kind(keywords: Keyword.Keywords, pred: String => Boolean): Boolean =
+    def is_kind(keywords: Keyword.Keywords, pred: String => Boolean, other: Boolean): Boolean =
       keywords.kinds.get(name) match {
         case Some(k) => pred(k)
-        case None => false
+        case None => other
       }
 
     def is_begin: Boolean = content.exists(_.is_begin)

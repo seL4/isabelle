@@ -21,7 +21,8 @@ object Document_Structure
   case class Atom(length: Int) extends Document
 
   private def is_theory_command(keywords: Keyword.Keywords, command: Command): Boolean =
-    command.span.is_kind(keywords, kind => Keyword.theory(kind) && !Keyword.theory_end(kind))
+    command.span.is_kind(keywords,
+      kind => Keyword.theory(kind) && !Keyword.theory_end(kind), false)
 
 
 
