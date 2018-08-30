@@ -97,30 +97,30 @@ end;
 
 local
 
-fun meta_rewrite eqns ctxt =
+fun abs_def_rule eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register pos note activate deps eqnss witss def_eqns thms export export' ctxt =
+fun note_eqns_register note add_registration
+    deps eqnss witss def_eqns thms export export' ctxt =
   let
-    val thmss = unflat ((map o map) fst eqnss) thms;
-    val factss =
-      map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) fst eqnss) thmss;
-    val (eqnss', ctxt') = fold_map (fn facts => note Thm.theoremK facts #-> meta_rewrite) factss ctxt;
+    val factss = thms
+      |> unflat ((map o map) #1 eqnss)
+      |> map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) #1 eqnss);
+    val (eqnss', ctxt') =
+      fold_map (fn facts => note Thm.theoremK facts #-> abs_def_rule) factss ctxt;
     val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);
-    val (eqns', ctxt'') = ctxt'
-      |> note Thm.theoremK [defs]
-      |-> meta_rewrite;
-    val dep_morphs =
-      map2 (fn (dep, morph) => fn wits =>
-        let val morph' = morph
-          $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
-          $> Morphism.binding_morphism "position" (Binding.set_pos pos)
-        in (dep, morph') end) deps witss;
-    fun activate' (dep_morph, eqns) ctxt =
-      activate dep_morph
-        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')))
-        export ctxt;
-  in ctxt'' |> fold activate' (dep_morphs ~~ eqnss') end;
+    val (eqns', ctxt'') = ctxt' |> note Thm.theoremK [defs] |-> abs_def_rule;
+    val deps' =
+      (deps ~~ witss) |> map (fn ((dep, morph), wits) =>
+        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)));
+    fun register (dep, eqns) ctxt =
+      ctxt |> add_registration
+        {dep = dep,
+          mixin =
+            Option.map (rpair true)
+              (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')),
+          export = export};
+  in ctxt'' |> fold register (deps' ~~ eqnss') end;
 
 in
 
@@ -129,9 +129,8 @@ fun generic_interpretation prep_interpretation setup_proof note add_registration
   let
     val (((propss, eq_propss, deps, eqnss, export, export'), def_eqns), goal_ctxt) =
       prep_interpretation expression raw_defs initial_ctxt;
-    val pos = Position.thread_data ();
     fun after_qed witss eqns =
-      note_eqns_register pos note add_registration deps eqnss witss def_eqns eqns export export';
+      note_eqns_register note add_registration deps eqnss witss def_eqns eqns export export';
   in setup_proof after_qed propss (flat eq_propss) goal_ctxt end;
 
 end;
@@ -143,23 +142,16 @@ end;
 
 local
 
+fun setup_proof state after_qed propss eqns goal_ctxt =
+  Element.witness_local_proof_eqs
+    (fn witss => fn eqns => Proof.map_context (after_qed witss eqns) #> Proof.reset_facts)
+    "interpret" propss eqns goal_ctxt state;
+
 fun gen_interpret prep_interpretation expression state =
-  let
-    val _ = Proof.assert_forward_or_chain state;
-    fun lift_after_qed after_qed witss eqns =
-      Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
-    fun setup_proof after_qed propss eqns goal_ctxt =
-      Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
-        propss eqns goal_ctxt state;
-    fun add_registration reg mixin export ctxt = ctxt
-      |> Proof_Context.set_stmt false
-      |> Context.proof_map (Locale.add_registration reg mixin export)
-      |> Proof_Context.restore_stmt ctxt;
-  in
-    Proof.context_of state
-    |> generic_interpretation prep_interpretation setup_proof
-      Attrib.local_notes add_registration expression []
-  end;
+  Proof.assert_forward_or_chain state
+  |> Proof.context_of
+  |> generic_interpretation prep_interpretation (setup_proof state)
+    Attrib.local_notes Locale.add_registration_proof expression [];
 
 in
 

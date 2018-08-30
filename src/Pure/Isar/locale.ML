@@ -73,17 +73,15 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations and dependencies *)
-  val add_registration: string * morphism -> (morphism * bool) option ->
-    morphism -> Context.generic -> Context.generic
-  val activate_fragment: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
-  val activate_fragment_nonbrittle: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
-  val amend_registration: string * morphism -> morphism * bool ->
-    morphism -> Context.generic -> Context.generic
+  type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism}
+  val amend_registration: registration -> Context.generic -> Context.generic
+  val add_registration: registration -> Context.generic -> Context.generic
+  val add_registration_theory: registration -> theory -> theory
+  val add_registration_proof: registration -> Proof.context -> Proof.context
+  val add_registration_local_theory: registration -> local_theory -> local_theory
+  val activate_fragment: registration -> local_theory -> local_theory
   val registrations_of: Context.generic -> string -> (string * morphism) list
-  val add_dependency: string -> string * morphism -> (morphism * bool) option ->
-    morphism -> theory -> theory
+  val add_dependency: string -> registration -> theory -> theory
 
   (* Diagnostic *)
   val hyp_spec_of: theory -> string -> Element.context_i list
@@ -516,60 +514,68 @@ fun init name thy =
 
 (*** Add and extend registrations ***)
 
-fun amend_registration (name, morph) mixin export context =
-  let
-    val thy = Context.theory_of context;
-    val ctxt = Context.proof_of context;
+type registration = Locale.registration;
 
-    val regs = Registrations.get context |> fst;
-    val base = instance_of thy name (morph $> export);
-    val serial' =
-      (case Idtab.lookup regs (name, base) of
-        NONE =>
-          error ("No interpretation of locale " ^ quote (markup_name ctxt name) ^
-            " with\nparameter instantiation " ^
-            space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
-            " available")
-      | SOME (_, serial') => serial');
-  in
-    add_mixin serial' mixin context
-  end;
+fun amend_registration {mixin = NONE, ...} context = context
+  | amend_registration {dep = (name, morph), mixin = SOME mixin, export} context =
+      let
+        val thy = Context.theory_of context;
+        val ctxt = Context.proof_of context;
+
+        val regs = Registrations.get context |> fst;
+        val base = instance_of thy name (morph $> export);
+        val serial' =
+          (case Idtab.lookup regs (name, base) of
+            NONE =>
+              error ("No interpretation of locale " ^ quote (markup_name ctxt name) ^
+                " with\nparameter instantiation " ^
+                space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
+                " available")
+          | SOME (_, serial') => serial');
+      in
+        add_mixin serial' mixin context
+      end;
 
 (* Note that a registration that would be subsumed by an existing one will not be
    generated, and it will not be possible to amend it. *)
 
-fun add_registration (name, base_morph) mixin export context =
+fun add_registration {dep = (name, base_morph), mixin, export} context =
   let
     val thy = Context.theory_of context;
-    val mix = (case mixin of NONE => Morphism.identity | SOME (mix, _) => mix);
-    val morph = base_morph $> mix;
-    val inst = instance_of thy name morph;
+    val pos_morph = Morphism.binding_morphism "position" (Binding.set_pos (Position.thread_data ()));
+    val mix_morph = (case mixin of NONE => base_morph | SOME (mix, _) => base_morph $> mix);
+    val inst = instance_of thy name mix_morph;
     val idents = Idents.get context;
   in
-    if redundant_ident thy idents (name, inst)
-    then context  (* FIXME amend mixins? *)
+    if redundant_ident thy idents (name, inst) then context  (* FIXME amend mixins? *)
     else
       (idents, context)
       (* add new registrations with inherited mixins *)
-      |> roundup thy (add_reg thy export) export (name, morph)
-      |> snd
+      |> roundup thy (add_reg thy export) export (name, mix_morph) |> #2
       (* add mixin *)
-      |> (case mixin of NONE => I | SOME mixin => amend_registration (name, morph) mixin export)
+      |> amend_registration {dep = (name, mix_morph), mixin = mixin, export = export}
       (* activate import hierarchy as far as not already active *)
-      |> activate_facts (SOME export) (name, morph)
+      |> activate_facts (SOME export) (name, mix_morph $> pos_morph)
+  end;
+
+val add_registration_theory = Context.theory_map o add_registration;
+
+fun add_registration_proof registration ctxt = ctxt
+  |> Proof_Context.set_stmt false
+  |> Context.proof_map (add_registration registration)
+  |> Proof_Context.restore_stmt ctxt;
+
+fun add_registration_local_theory registration lthy =
+  let val n = Local_Theory.level lthy in
+    lthy |> Local_Theory.map_contexts (fn level =>
+      level = n - 1 ? Context.proof_map (add_registration registration))
   end;
 
 
 (* locale fragments within local theory *)
 
-fun activate_fragment_nonbrittle dep_morph mixin export lthy =
-  let val n = Local_Theory.level lthy in
-    lthy |> Local_Theory.map_contexts (fn level =>
-      level = n - 1 ? Context.proof_map (add_registration dep_morph mixin export))
-  end;
-
-fun activate_fragment dep_morph mixin export =
-  Local_Theory.mark_brittle #> activate_fragment_nonbrittle dep_morph mixin export;
+fun activate_fragment registration =
+  Local_Theory.mark_brittle #> add_registration_local_theory registration;
 
 
 
@@ -590,7 +596,7 @@ fun amend_dependency loc (name, morph) mixin export thy =
   end;
 *)
 
-fun add_dependency loc (name, morph) mixin export thy =
+fun add_dependency loc {dep = (name, morph), mixin, export} thy =
   let
     val serial' = serial ();
     val thy' = thy |>
@@ -603,7 +609,7 @@ fun add_dependency loc (name, morph) mixin export thy =
         (registrations_of context' loc) (Idents.get context', []);
   in
     thy'
-    |> fold_rev (fn dep => Context.theory_map (add_registration dep NONE export)) regs
+    |> fold_rev (fn dep => add_registration_theory {dep = dep, mixin = NONE, export = export}) regs
   end;
 
 

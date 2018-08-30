@@ -70,7 +70,8 @@ fun read_file_node file_node master_dir pos src_path =
     val text = File.read full_path;
     val lines = split_lines text;
     val digest = SHA1.digest text;
-  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end
+    val file_pos = Position.copy_id pos (Path.position full_path);
+  in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
   handle ERROR msg => error (msg ^ Position.here pos);
 
 val read_file = read_file_node "";

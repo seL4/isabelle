@@ -229,9 +229,13 @@ fun register class sups params base_sort base_morph export_morph
 
 fun activate_defs class thms thy =
   (case Element.eq_morphism thy thms of
-    SOME eq_morph => fold (fn cls => fn thy =>
-      Context.theory_map (Locale.amend_registration (cls, base_morphism thy cls)
-        (eq_morph, true) (export_morphism thy cls)) thy) (heritage thy [class]) thy
+    SOME eq_morph =>
+      fold (fn cls => fn thy =>
+        Context.theory_map
+          (Locale.amend_registration
+            {dep = (cls, base_morphism thy cls),
+              mixin = SOME (eq_morph, true),
+              export = export_morphism thy cls}) thy) (heritage thy [class]) thy
   | NONE => thy);
 
 fun register_operation class (c, t) input_only thy =
@@ -484,10 +488,13 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);
-    fun add_dependency some_wit = case some_dep_morph of
-        SOME dep_morph => Generic_Target.locale_dependency sub
-          (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)) NONE export
-      | NONE => I;
+    fun add_dependency some_wit (* FIXME unused!? *) =
+      (case some_dep_morph of
+        SOME dep_morph =>
+          Generic_Target.locale_dependency sub
+            {dep = (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)),
+              mixin = NONE, export = export}
+      | NONE => I);
   in
     lthy
     |> Local_Theory.raw_theory
