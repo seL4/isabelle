@@ -543,22 +543,19 @@ fun add_registration {dep = (name, base_morph), mixin, export} context =
   let
     val thy = Context.theory_of context;
     val pos_morph = Morphism.binding_morphism "position" (Binding.set_pos (Position.thread_data ()));
-    val mix = (case mixin of NONE => Morphism.identity | SOME (mix, _) => mix);
-    val morph = base_morph $> mix;
-    val inst = instance_of thy name morph;
+    val mix_morph = (case mixin of NONE => base_morph | SOME (mix, _) => base_morph $> mix);
+    val inst = instance_of thy name mix_morph;
     val idents = Idents.get context;
   in
-    if redundant_ident thy idents (name, inst)
-    then context  (* FIXME amend mixins? *)
+    if redundant_ident thy idents (name, inst) then context  (* FIXME amend mixins? *)
     else
       (idents, context)
       (* add new registrations with inherited mixins *)
-      |> roundup thy (add_reg thy export) export (name, morph)
-      |> snd
+      |> roundup thy (add_reg thy export) export (name, mix_morph) |> #2
       (* add mixin *)
-      |> amend_registration {dep = (name, morph), mixin = mixin, export = export}
+      |> amend_registration {dep = (name, mix_morph), mixin = mixin, export = export}
       (* activate import hierarchy as far as not already active *)
-      |> activate_facts (SOME export) (name, morph $> pos_morph)
+      |> activate_facts (SOME export) (name, mix_morph $> pos_morph)
   end;
 
 val add_registration_theory = Context.theory_map o add_registration;
