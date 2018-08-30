@@ -29,6 +29,7 @@ sig
   val id_only: string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
+  val copy_id: T -> T -> T
   val id_properties_of: T -> Properties.T
   val parse_id: T -> int option
   val adjust_offsets: (int -> int option) -> T -> T
@@ -142,6 +143,7 @@ fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
 
 fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, norm_props (Properties.put (Markup.idN, id) props));
+fun copy_id pos = (case get_id pos of NONE => I | SOME id => put_id id);
 
 fun parse_id pos = Option.map Value.parse_int (get_id pos);
 
@@ -151,14 +153,16 @@ fun id_properties_of pos =
   | NONE => []);
 
 fun adjust_offsets adjust (pos as Pos (_, props)) =
-  (case parse_id pos of
-    SOME id =>
-      (case adjust id of
-        SOME offset =>
-          let val Pos (count, _) = advance_offsets offset pos
-          in Pos (count, Properties.remove Markup.idN props) end
-      | NONE => pos)
-  | NONE => pos);
+  if is_none (file_of pos) then
+    (case parse_id pos of
+      SOME id =>
+        (case adjust id of
+          SOME offset =>
+            let val Pos (count, _) = advance_offsets offset pos
+            in Pos (count, Properties.remove Markup.idN props) end
+        | NONE => pos)
+    | NONE => pos)
+  else pos;
 
 
 (* markup properties *)
