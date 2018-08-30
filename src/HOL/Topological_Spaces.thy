@@ -512,6 +512,10 @@ lemma (in discrete_topology) nhds_discrete: "nhds x = principal {x}"
 lemma (in discrete_topology) at_discrete: "at x within S = bot"
   unfolding at_within_def nhds_discrete by simp
 
+lemma (in discrete_topology) tendsto_discrete:
+  "filterlim (f :: 'b \<Rightarrow> 'a) (nhds y) F \<longleftrightarrow> eventually (\<lambda>x. f x = y) F"
+  by (auto simp: nhds_discrete filterlim_principal)
+
 lemma (in topological_space) at_within_eq:
   "at x within s = (INF S:{S. open S \<and> x \<in> S}. principal (S \<inter> s - {x}))"
   unfolding nhds_def at_within_def
@@ -880,6 +884,36 @@ lemma (in t2_space) tendsto_const_iff:
   assumes "\<not> trivial_limit F"
   shows "((\<lambda>x. a) \<longlongrightarrow> b) F \<longleftrightarrow> a = b"
   by (auto intro!: tendsto_unique [OF assms tendsto_const])
+
+lemma Lim_in_closed_set:
+  assumes "closed S" "eventually (\<lambda>x. f(x) \<in> S) F" "F \<noteq> bot" "(f \<longlongrightarrow> l) F"
+  shows "l \<in> S"
+proof (rule ccontr)
+  assume "l \<notin> S"
+  with \<open>closed S\<close> have "open (- S)" "l \<in> - S"
+    by (simp_all add: open_Compl)
+  with assms(4) have "eventually (\<lambda>x. f x \<in> - S) F"
+    by (rule topological_tendstoD)
+  with assms(2) have "eventually (\<lambda>x. False) F"
+    by (rule eventually_elim2) simp
+  with assms(3) show "False"
+    by (simp add: eventually_False)
+qed
+
+lemma (in t3_space) nhds_closed:
+  assumes "x \<in> A" and "open A"
+  shows   "\<exists>A'. x \<in> A' \<and> closed A' \<and> A' \<subseteq> A \<and> eventually (\<lambda>y. y \<in> A') (nhds x)"
+proof -
+  from assms have "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> - A \<subseteq> V \<and> U \<inter> V = {}"
+    by (intro t3_space) auto
+  then obtain U V where UV: "open U" "open V" "x \<in> U" "-A \<subseteq> V" "U \<inter> V = {}"
+    by auto
+  have "eventually (\<lambda>y. y \<in> U) (nhds x)"
+    using \<open>open U\<close> and \<open>x \<in> U\<close> by (intro eventually_nhds_in_open)
+  hence "eventually (\<lambda>y. y \<in> -V) (nhds x)"
+    by eventually_elim (use UV in auto)
+  with UV show ?thesis by (intro exI[of _ "-V"]) auto
+qed
 
 lemma (in order_topology) increasing_tendsto:
   assumes bdd: "eventually (\<lambda>n. f n \<le> l) F"
@@ -2082,6 +2116,9 @@ lemma
   by (auto simp: at_within_Icc_at_right at_within_Icc_at_left continuous_on_def
       dest: bspec[where x=a] bspec[where x=b])
 
+lemma continuous_on_discrete [simp, continuous_intros]:
+  "continuous_on A (f :: 'a :: discrete_topology \<Rightarrow> _)"
+  by (auto simp: continuous_on_def at_discrete)
 
 subsubsection \<open>Continuity at a point\<close>
 
@@ -2124,6 +2161,10 @@ lemma continuous_const[continuous_intros, simp]: "continuous F (\<lambda>x. c)"
 lemma continuous_on_eq_continuous_within:
   "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. continuous (at x within s) f)"
   unfolding continuous_on_def continuous_within ..
+
+lemma continuous_discrete [simp, continuous_intros]:
+  "continuous (at x within A) (f :: 'a :: discrete_topology \<Rightarrow> _)"
+  by (auto simp: continuous_def at_discrete)
 
 abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> bool"
   where "isCont f a \<equiv> continuous (at a) f"

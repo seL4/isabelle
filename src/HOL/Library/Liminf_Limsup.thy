@@ -71,6 +71,11 @@ lemma INF_pair:
   shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
+lemma INF_Sigma:
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
+  shows "(INF i : A. INF j : B i. f i j) = (INF p : Sigma A B. f (fst p) (snd p))"
+  by (rule antisym) (auto intro!: INF_greatest INF_lower2)
+
 subsubsection \<open>\<open>Liminf\<close> and \<open>Limsup\<close>\<close>
 
 definition Liminf :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
@@ -202,7 +207,7 @@ lemma Limsup_bounded:
 lemma le_Limsup:
   assumes F: "F \<noteq> bot" and x: "\<forall>\<^sub>F x in F. l \<le> f x"
   shows "l \<le> Limsup F f"
-  using F Liminf_bounded Liminf_le_Limsup order.trans x by blast
+  using F Liminf_bounded[of l f F] Liminf_le_Limsup[of F f] order.trans x by blast
 
 lemma Liminf_le:
   assumes F: "F \<noteq> bot" and x: "\<forall>\<^sub>F x in F. f x \<le> l"
