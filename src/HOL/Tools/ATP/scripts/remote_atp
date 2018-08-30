@@ -12,7 +12,7 @@ use HTTP::Request::Common;
 use LWP;
 
 my $SystemOnTPTPFormReplyURL =
-  "http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTPFormReply";
+  "http://www.tptp.org/cgi-bin/SystemOnTPTPFormReply";
 
 # default parameters
 my %URLParameters = (

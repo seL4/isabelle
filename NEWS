@@ -22,6 +22,9 @@ and need to be given explicitly. Auxiliary abbreviations INFIMUM,
 SUPREMUM, UNION, INTER should now rarely occur in output and are just
 retained as migration auxiliary. INCOMPATIBILITY.
 
+* Sledgehammer: The URL for SystemOnTPTP, which is used by remote
+provers, has been updated.
+
 
 *** ML ***
 
