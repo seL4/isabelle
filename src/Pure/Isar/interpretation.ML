@@ -119,9 +119,12 @@ fun note_eqns_register pos note add_registration
           $> Morphism.binding_morphism "position" (Binding.set_pos pos)
         in (dep, morph') end) deps witss;
     fun register (dep_morph, eqns) ctxt =
-      add_registration dep_morph
-        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')))
-        export ctxt;
+      ctxt |> add_registration
+        {dep = dep_morph,
+          mixin =
+            Option.map (rpair true)
+              (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')),
+          export = export};
   in ctxt'' |> fold register (dep_morphs ~~ eqnss') end;
 
 in
@@ -150,9 +153,9 @@ fun setup_proof state after_qed propss eqns goal_ctxt =
     (fn witss => fn eqns => Proof.map_context (after_qed witss eqns) #> Proof.reset_facts)
     "interpret" propss eqns goal_ctxt state;
 
-fun add_registration reg mixin export ctxt = ctxt
+fun add_registration registration ctxt = ctxt
   |> Proof_Context.set_stmt false
-  |> Context.proof_map (Locale.add_registration reg mixin export)
+  |> Context.proof_map (Locale.add_registration registration)
   |> Proof_Context.restore_stmt ctxt;
 
 fun gen_interpret prep_interpretation expression state =

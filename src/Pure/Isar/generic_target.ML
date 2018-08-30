@@ -52,8 +52,7 @@ sig
   val theory_abbrev: Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> (term * term) * local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
-  val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
+  val theory_registration: Locale.registration -> local_theory -> local_theory
 
   (*locale target primitives*)
   val locale_target_notes: string -> string -> Attrib.fact list -> Attrib.fact list ->
@@ -71,8 +70,7 @@ sig
     local_theory -> local_theory
   val locale_const: string -> Syntax.mode -> (binding * mixfix) * term ->
     local_theory -> local_theory
-  val locale_dependency: string -> string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
+  val locale_dependency: string -> Locale.registration -> local_theory -> local_theory
 
   (*initialisation*)
   val init: {background_naming: Name_Space.naming, setup: theory -> Proof.context,
@@ -372,7 +370,7 @@ fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
 
 val theory_registration =
-  Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
+  Local_Theory.raw_theory o Context.theory_map o Locale.add_registration;
 
 
 
@@ -406,9 +404,9 @@ fun locale_const locale prmode ((b, mx), rhs) =
   locale_target_const locale (K true) prmode ((b, mx), rhs)
   #> standard_const (fn (this, other) => other <> 0 andalso this <> other) prmode ((b, mx), rhs);
 
-fun locale_dependency locale dep_morph mixin export =
-  (Local_Theory.raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
-  #> Locale.activate_fragment_nonbrittle dep_morph mixin export;
+fun locale_dependency locale registration =
+  Local_Theory.raw_theory (Locale.add_dependency locale registration)
+  #> Locale.activate_fragment_nonbrittle registration;
 
 
 (** locale abbreviations **)
