@@ -97,7 +97,7 @@ end;
 
 local
 
-fun meta_rewrite eqns ctxt =
+fun abs_def_rule eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
 fun note_eqns_register pos note add_registration
@@ -107,25 +107,23 @@ fun note_eqns_register pos note add_registration
       |> unflat ((map o map) #1 eqnss)
       |> map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) #1 eqnss);
     val (eqnss', ctxt') =
-      fold_map (fn facts => note Thm.theoremK facts #-> meta_rewrite) factss ctxt;
+      fold_map (fn facts => note Thm.theoremK facts #-> abs_def_rule) factss ctxt;
     val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);
-    val (eqns', ctxt'') = ctxt'
-      |> note Thm.theoremK [defs]
-      |-> meta_rewrite;
-    val dep_morphs =
-      map2 (fn (dep, morph) => fn wits =>
+    val (eqns', ctxt'') = ctxt' |> note Thm.theoremK [defs] |-> abs_def_rule;
+    val deps' =
+      (deps ~~ witss) |> map (fn ((dep, morph), wits) =>
         let val morph' = morph
           $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
           $> Morphism.binding_morphism "position" (Binding.set_pos pos)
-        in (dep, morph') end) deps witss;
-    fun register (dep_morph, eqns) ctxt =
+        in (dep, morph') end);
+    fun register (dep, eqns) ctxt =
       ctxt |> add_registration
-        {dep = dep_morph,
+        {dep = dep,
           mixin =
             Option.map (rpair true)
               (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')),
           export = export};
-  in ctxt'' |> fold register (dep_morphs ~~ eqnss') end;
+  in ctxt'' |> fold register (deps' ~~ eqnss') end;
 
 in
 
