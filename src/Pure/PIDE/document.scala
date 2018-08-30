@@ -706,14 +706,16 @@ object Document
     def the_dynamic_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
+    def lookup_id(id: Document_ID.Generic): Option[Command.State] =
+      commands.get(id) orElse execs.get(id)
+
     private def self_id(st: Command.State)(id: Document_ID.Generic): Boolean =
       id == st.command.id ||
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
     private def other_id(id: Document_ID.Generic)
       : Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)] =
-      (execs.get(id) orElse commands.get(id)).map(st =>
-        ((Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)))
+      lookup_id(id).map(st => ((Symbol.Text_Chunk.Id(st.command.id), st.command.chunk)))
 
     private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
       (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
@@ -1077,7 +1079,7 @@ object Document
         /* find command */
 
         def find_command(id: Document_ID.Generic): Option[(Node, Command)] =
-          state.commands.get(id) orElse state.execs.get(id) match {
+          state.lookup_id(id) match {
             case None => None
             case Some(st) =>
               val command = st.command
