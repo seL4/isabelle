@@ -76,8 +76,9 @@ sig
   type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism}
   val amend_registration: registration -> Context.generic -> Context.generic
   val add_registration: registration -> Context.generic -> Context.generic
+  val add_registration_proof: registration -> Proof.context -> Proof.context
+  val add_registration_local_theory: registration -> local_theory -> local_theory
   val activate_fragment: registration -> local_theory -> local_theory
-  val activate_fragment_nonbrittle: registration -> local_theory -> local_theory
   val registrations_of: Context.generic -> string -> (string * morphism) list
   val add_dependency: string -> registration -> theory -> theory
 
@@ -558,17 +559,23 @@ fun add_registration {dep = (name, base_morph), mixin, export} context =
       |> activate_facts (SOME export) (name, morph)
   end;
 
+fun add_registration_proof registration ctxt = ctxt
+  |> Proof_Context.set_stmt false
+  |> Context.proof_map (add_registration registration)
+  |> Proof_Context.restore_stmt ctxt;
 
-(* locale fragments within local theory *)
 
-fun activate_fragment_nonbrittle registration lthy =
+fun add_registration_local_theory registration lthy =
   let val n = Local_Theory.level lthy in
     lthy |> Local_Theory.map_contexts (fn level =>
       level = n - 1 ? Context.proof_map (add_registration registration))
   end;
 
+
+(* locale fragments within local theory *)
+
 fun activate_fragment registration =
-  Local_Theory.mark_brittle #> activate_fragment_nonbrittle registration;
+  Local_Theory.mark_brittle #> add_registration_local_theory registration;
 
 
 

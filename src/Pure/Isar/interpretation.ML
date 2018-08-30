@@ -153,16 +153,11 @@ fun setup_proof state after_qed propss eqns goal_ctxt =
     (fn witss => fn eqns => Proof.map_context (after_qed witss eqns) #> Proof.reset_facts)
     "interpret" propss eqns goal_ctxt state;
 
-fun add_registration registration ctxt = ctxt
-  |> Proof_Context.set_stmt false
-  |> Context.proof_map (Locale.add_registration registration)
-  |> Proof_Context.restore_stmt ctxt;
-
 fun gen_interpret prep_interpretation expression state =
   Proof.assert_forward_or_chain state
   |> Proof.context_of
   |> generic_interpretation prep_interpretation (setup_proof state)
-    Attrib.local_notes add_registration expression [];
+    Attrib.local_notes Locale.add_registration_proof expression [];
 
 in
 

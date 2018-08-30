@@ -406,7 +406,7 @@ fun locale_const locale prmode ((b, mx), rhs) =
 
 fun locale_dependency locale registration =
   Local_Theory.raw_theory (Locale.add_dependency locale registration)
-  #> Locale.activate_fragment_nonbrittle registration;
+  #> Locale.add_registration_local_theory registration;
 
 
 (** locale abbreviations **)
