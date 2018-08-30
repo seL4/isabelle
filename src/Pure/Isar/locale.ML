@@ -542,6 +542,7 @@ fun amend_registration {mixin = NONE, ...} context = context
 fun add_registration {dep = (name, base_morph), mixin, export} context =
   let
     val thy = Context.theory_of context;
+    val pos_morph = Morphism.binding_morphism "position" (Binding.set_pos (Position.thread_data ()));
     val mix = (case mixin of NONE => Morphism.identity | SOME (mix, _) => mix);
     val morph = base_morph $> mix;
     val inst = instance_of thy name morph;
@@ -557,7 +558,7 @@ fun add_registration {dep = (name, base_morph), mixin, export} context =
       (* add mixin *)
       |> amend_registration {dep = (name, morph), mixin = mixin, export = export}
       (* activate import hierarchy as far as not already active *)
-      |> activate_facts (SOME export) (name, morph)
+      |> activate_facts (SOME export) (name, morph $> pos_morph)
   end;
 
 val add_registration_theory = Context.theory_map o add_registration;

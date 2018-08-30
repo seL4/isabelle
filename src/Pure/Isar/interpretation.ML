@@ -100,7 +100,7 @@ local
 fun abs_def_rule eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register pos note add_registration
+fun note_eqns_register note add_registration
     deps eqnss witss def_eqns thms export export' ctxt =
   let
     val factss = thms
@@ -112,10 +112,7 @@ fun note_eqns_register pos note add_registration
     val (eqns', ctxt'') = ctxt' |> note Thm.theoremK [defs] |-> abs_def_rule;
     val deps' =
       (deps ~~ witss) |> map (fn ((dep, morph), wits) =>
-        let val morph' = morph
-          $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
-          $> Morphism.binding_morphism "position" (Binding.set_pos pos)
-        in (dep, morph') end);
+        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)));
     fun register (dep, eqns) ctxt =
       ctxt |> add_registration
         {dep = dep,
@@ -132,9 +129,8 @@ fun generic_interpretation prep_interpretation setup_proof note add_registration
   let
     val (((propss, eq_propss, deps, eqnss, export, export'), def_eqns), goal_ctxt) =
       prep_interpretation expression raw_defs initial_ctxt;
-    val pos = Position.thread_data ();
     fun after_qed witss eqns =
-      note_eqns_register pos note add_registration deps eqnss witss def_eqns eqns export export';
+      note_eqns_register note add_registration deps eqnss witss def_eqns eqns export export';
   in setup_proof after_qed propss (flat eq_propss) goal_ctxt end;
 
 end;
