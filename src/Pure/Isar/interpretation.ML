@@ -100,12 +100,14 @@ local
 fun meta_rewrite eqns ctxt =
   (map (Local_Defs.abs_def_rule ctxt) (maps snd eqns), ctxt);
 
-fun note_eqns_register pos note activate deps eqnss witss def_eqns thms export export' ctxt =
+fun note_eqns_register pos note add_registration
+    deps eqnss witss def_eqns thms export export' ctxt =
   let
-    val thmss = unflat ((map o map) fst eqnss) thms;
-    val factss =
-      map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) fst eqnss) thmss;
-    val (eqnss', ctxt') = fold_map (fn facts => note Thm.theoremK facts #-> meta_rewrite) factss ctxt;
+    val factss = thms
+      |> unflat ((map o map) #1 eqnss)
+      |> map2 (map2 (fn b => fn eq => (b, [([Morphism.thm export eq], [])]))) ((map o map) #1 eqnss);
+    val (eqnss', ctxt') =
+      fold_map (fn facts => note Thm.theoremK facts #-> meta_rewrite) factss ctxt;
     val defs = (Binding.empty_atts, [(map (Morphism.thm (export' $> export)) def_eqns, [])]);
     val (eqns', ctxt'') = ctxt'
       |> note Thm.theoremK [defs]
@@ -116,11 +118,11 @@ fun note_eqns_register pos note activate deps eqnss witss def_eqns thms export e
           $> Element.satisfy_morphism (map (Element.transform_witness export') wits)
           $> Morphism.binding_morphism "position" (Binding.set_pos pos)
         in (dep, morph') end) deps witss;
-    fun activate' (dep_morph, eqns) ctxt =
-      activate dep_morph
+    fun register (dep_morph, eqns) ctxt =
+      add_registration dep_morph
         (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')))
         export ctxt;
-  in ctxt'' |> fold activate' (dep_morphs ~~ eqnss') end;
+  in ctxt'' |> fold register (dep_morphs ~~ eqnss') end;
 
 in
 
