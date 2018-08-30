@@ -145,23 +145,21 @@ end;
 
 local
 
+fun setup_proof state after_qed propss eqns goal_ctxt =
+  Element.witness_local_proof_eqs
+    (fn witss => fn eqns => Proof.map_context (after_qed witss eqns) #> Proof.reset_facts)
+    "interpret" propss eqns goal_ctxt state;
+
+fun add_registration reg mixin export ctxt = ctxt
+  |> Proof_Context.set_stmt false
+  |> Context.proof_map (Locale.add_registration reg mixin export)
+  |> Proof_Context.restore_stmt ctxt;
+
 fun gen_interpret prep_interpretation expression state =
-  let
-    val _ = Proof.assert_forward_or_chain state;
-    fun lift_after_qed after_qed witss eqns =
-      Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
-    fun setup_proof after_qed propss eqns goal_ctxt =
-      Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
-        propss eqns goal_ctxt state;
-    fun add_registration reg mixin export ctxt = ctxt
-      |> Proof_Context.set_stmt false
-      |> Context.proof_map (Locale.add_registration reg mixin export)
-      |> Proof_Context.restore_stmt ctxt;
-  in
-    Proof.context_of state
-    |> generic_interpretation prep_interpretation setup_proof
-      Attrib.local_notes add_registration expression []
-  end;
+  Proof.assert_forward_or_chain state
+  |> Proof.context_of
+  |> generic_interpretation prep_interpretation (setup_proof state)
+    Attrib.local_notes add_registration expression [];
 
 in
 
