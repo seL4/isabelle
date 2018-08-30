@@ -370,7 +370,7 @@ fun theory_declaration decl =
   background_declaration decl #> standard_declaration (K true) decl;
 
 val theory_registration =
-  Local_Theory.raw_theory o Context.theory_map o Locale.add_registration;
+  Local_Theory.raw_theory o Locale.add_registration_theory;
 
 
 

@@ -76,6 +76,7 @@ sig
   type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism}
   val amend_registration: registration -> Context.generic -> Context.generic
   val add_registration: registration -> Context.generic -> Context.generic
+  val add_registration_theory: registration -> theory -> theory
   val add_registration_proof: registration -> Proof.context -> Proof.context
   val add_registration_local_theory: registration -> local_theory -> local_theory
   val activate_fragment: registration -> local_theory -> local_theory
@@ -559,11 +560,12 @@ fun add_registration {dep = (name, base_morph), mixin, export} context =
       |> activate_facts (SOME export) (name, morph)
   end;
 
+val add_registration_theory = Context.theory_map o add_registration;
+
 fun add_registration_proof registration ctxt = ctxt
   |> Proof_Context.set_stmt false
   |> Context.proof_map (add_registration registration)
   |> Proof_Context.restore_stmt ctxt;
-
 
 fun add_registration_local_theory registration lthy =
   let val n = Local_Theory.level lthy in
@@ -607,8 +609,10 @@ fun add_dependency loc {dep = (name, morph), mixin, export} thy =
     val (_, regs) =
       fold_rev (roundup thy' cons export)
         (registrations_of context' loc) (Idents.get context', []);
-    fun add_dep dep = add_registration {dep = dep, mixin = NONE, export = export};
-  in thy' |> fold_rev (Context.theory_map o add_dep) regs end;
+  in
+    thy'
+    |> fold_rev (fn dep => add_registration_theory {dep = dep, mixin = NONE, export = export}) regs
+  end;
 
 
 (*** Storing results ***)
