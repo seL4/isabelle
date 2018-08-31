@@ -251,7 +251,7 @@ fun target f lthy =
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 
 fun propagate_ml_env (context as Context.Proof lthy) =
-      let val inherit = ML_Env.inherit context in
+      let val inherit = ML_Env.inherit [context] in
         lthy
         |> background_theory (Context.theory_map inherit)
         |> map_contexts (K (Context.proof_map inherit))

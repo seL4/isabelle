@@ -237,7 +237,7 @@ fun map_context_result f state =
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 fun propagate_ml_env state = map_contexts
-  (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
+  (Context.proof_map (ML_Env.inherit [Context.Proof (context_of state)])) state;
 
 
 (* facts *)

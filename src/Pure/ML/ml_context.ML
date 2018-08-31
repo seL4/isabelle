@@ -168,7 +168,7 @@ fun eval flags pos ants =
         (Option.map (Context.Proof o Context_Position.set_visible false) env_ctxt)
         (fn () =>
           (ML_Compiler.eval non_verbose Position.none env; Context.get_generic_context ())) ()
-      |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit context'));
+      |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit [context']));
 
     (*eval body*)
     val _ = ML_Compiler.eval flags pos body;
