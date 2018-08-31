@@ -53,6 +53,7 @@ sig
   val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> morphism -> term list
   val specification_of: theory -> string -> term option * term list
+  val hyp_spec_of: theory -> string -> Element.context_i list
 
   (* Storing results *)
   val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
@@ -84,7 +85,6 @@ sig
   val add_dependency: string -> registration -> theory -> theory
 
   (* Diagnostic *)
-  val hyp_spec_of: theory -> string -> Element.context_i list
   val print_locales: bool -> theory -> unit
   val print_locale: theory -> bool -> xstring * Position.T -> unit
   val print_registrations: Proof.context -> xstring * Position.T -> unit
@@ -220,8 +220,9 @@ fun instance_of thy name morph = params_of thy name |>
 
 fun specification_of thy = #spec o the_locale thy;
 
-fun dependencies_of thy name = the_locale thy name |>
-  #dependencies;
+fun hyp_spec_of thy = #hyp_spec o the_locale thy;
+
+fun dependencies_of thy = #dependencies o the_locale thy;
 
 fun mixins_of thy name serial = the_locale thy name |>
   #mixins |> lookup_mixins serial;
@@ -692,8 +693,6 @@ val _ = Theory.setup
 
 
 (*** diagnostic commands and interfaces ***)
-
-fun hyp_spec_of thy = #hyp_spec o the_locale thy;
 
 fun print_locales verbose thy =
   Pretty.block
