@@ -42,6 +42,7 @@ sig
     declaration list ->
     (string * Attrib.fact list) list ->
     (string * morphism) list -> theory -> theory
+  val locale_space: theory -> Name_Space.T
   val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
   val extern: theory -> string -> xstring
@@ -54,6 +55,13 @@ sig
   val instance_of: theory -> string -> morphism -> term list
   val specification_of: theory -> string -> term option * term list
   val hyp_spec_of: theory -> string -> Element.context_i list
+
+  type content =
+   {type_params: (string * sort) list,
+    params: ((string * typ) * mixfix) list,
+    asm: term option,
+    defs: term list}
+  val dest_locales: theory -> (string * content) list
 
   (* Storing results *)
   val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
@@ -205,6 +213,20 @@ fun register_locale binding parameters spec intros axioms hyp_spec syntax_decls 
 
 fun change_locale name =
   Locales.map o Name_Space.map_table_entry name o map_locale o apsnd;
+
+
+(* content *)
+
+type content =
+ {type_params: (string * sort) list,
+  params: ((string * typ) * mixfix) list,
+  asm: term option,
+  defs: term list};
+
+fun dest_locales thy =
+  (Locales.get thy, []) |-> Name_Space.fold_table
+    (fn (name, Loc {parameters = (type_params, params), spec = (asm, defs), ...}) =>
+      cons (name, {type_params = type_params, params = params, asm = asm, defs = defs}));
 
 
 (** Primitive operations **)
