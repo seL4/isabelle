@@ -198,13 +198,17 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* locales *)
 
-    fun encode_locale {type_params, params, asm, defs} =
-      (type_params, (map #1 params, (asm, defs))) |>
-        let open XML.Encode Term_XML.Encode in
-          pair (list (pair string sort))
-            (pair (list (pair string typ))
-              (pair (option term) (list term)))
-        end;
+    fun encode_locale ({type_params, params, asm, defs}: Locale.content) =
+      let
+        val args = map #1 params;
+        val typargs = type_params @ rev (fold Term.add_tfrees (map Free args @ the_list asm) []);
+        val encode =
+          let open XML.Encode Term_XML.Encode in
+            pair (list (pair string sort))
+              (pair (list (pair string typ))
+                (pair (option term) (list term)))
+          end;
+      in encode (typargs, (args, (asm, defs))) end;
 
     val _ =
       export_entities "locales" (fn _ => SOME o encode_locale) Locale.locale_space
