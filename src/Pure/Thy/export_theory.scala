@@ -30,9 +30,10 @@ object Export_Theory
     axioms: Boolean = true,
     facts: Boolean = true,
     classes: Boolean = true,
-    typedefs: Boolean = true,
+    locales: Boolean = true,
     classrel: Boolean = true,
     arities: Boolean = true,
+    typedefs: Boolean = true,
     cache: Term.Cache = Term.make_cache()): Session =
   {
     val thys =
@@ -42,7 +43,8 @@ object Export_Theory
           Export.read_theory_names(db, session_name).map((theory_name: String) =>
             read_theory(Export.Provider.database(db, session_name, theory_name),
               session_name, theory_name, types = types, consts = consts,
-              axioms = axioms, facts = facts, classes = classes, typedefs = typedefs,
+              axioms = axioms, facts = facts, classes = classes, locales = locales,
+              classrel = classrel, arities = arities, typedefs = typedefs,
               cache = Some(cache)))
         }
       })
@@ -69,9 +71,10 @@ object Export_Theory
     axioms: List[Fact_Single],
     facts: List[Fact_Multi],
     classes: List[Class],
-    typedefs: List[Typedef],
+    locales: List[Locale],
     classrel: List[Classrel],
-    arities: List[Arity])
+    arities: List[Arity],
+    typedefs: List[Typedef])
   {
     override def toString: String = name
 
@@ -81,7 +84,8 @@ object Export_Theory
         consts.iterator.map(_.entity.serial) ++
         axioms.iterator.map(_.entity.serial) ++
         facts.iterator.map(_.entity.serial) ++
-        classes.iterator.map(_.entity.serial)
+        classes.iterator.map(_.entity.serial) ++
+        locales.iterator.map(_.entity.serial)
 
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
@@ -91,13 +95,14 @@ object Export_Theory
         axioms.map(_.cache(cache)),
         facts.map(_.cache(cache)),
         classes.map(_.cache(cache)),
-        typedefs.map(_.cache(cache)),
+        locales.map(_.cache(cache)),
         classrel.map(_.cache(cache)),
-        arities.map(_.cache(cache)))
+        arities.map(_.cache(cache)),
+        typedefs.map(_.cache(cache)))
   }
 
   def empty_theory(name: String): Theory =
-    Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
+    Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
     types: Boolean = true,
@@ -105,9 +110,10 @@ object Export_Theory
     axioms: Boolean = true,
     facts: Boolean = true,
     classes: Boolean = true,
-    typedefs: Boolean = true,
+    locales: Boolean = true,
     classrel: Boolean = true,
     arities: Boolean = true,
+    typedefs: Boolean = true,
     cache: Option[Term.Cache] = None): Theory =
   {
     val parents =
@@ -124,9 +130,10 @@ object Export_Theory
         if (axioms) read_axioms(provider) else Nil,
         if (facts) read_facts(provider) else Nil,
         if (classes) read_classes(provider) else Nil,
-        if (typedefs) read_typedefs(provider) else Nil,
+        if (locales) read_locales(provider) else Nil,
         if (classrel) read_classrel(provider) else Nil,
-        if (arities) read_arities(provider) else Nil)
+        if (arities) read_arities(provider) else Nil,
+        if (typedefs) read_typedefs(provider) else Nil)
     if (cache.isDefined) theory.cache(cache.get) else theory
   }
 
@@ -154,6 +161,7 @@ object Export_Theory
     val AXIOM = Value("axiom")
     val FACT = Value("fact")
     val CLASS = Value("class")
+    val LOCALE = Value("locale")
   }
 
   sealed case class Entity(
@@ -313,6 +321,36 @@ object Export_Theory
           pair(list(pair(string, typ)), list(term))(body)
         }
         Class(entity, params, axioms)
+      })
+
+
+  /* locales */
+
+  sealed case class Locale(
+    entity: Entity, type_params: List[(String, Term.Sort)], params: List[(String, Term.Typ)],
+      asm: Option[Term.Term], defs: List[Term.Term])
+  {
+    def cache(cache: Term.Cache): Locale =
+      Locale(entity.cache(cache),
+        type_params.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
+        params.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
+        asm.map(cache.term(_)),
+        defs.map(cache.term(_)))
+  }
+
+  def read_locales(provider: Export.Provider): List[Locale] =
+    provider.uncompressed_yxml(export_prefix + "locales").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(Kind.LOCALE, tree)
+        val (type_params, (params, (asm, defs))) =
+        {
+          import XML.Decode._
+          import Term_XML.Decode._
+          pair(list(pair(string, sort)),
+            pair(list(pair(string, typ)),
+              pair(option(term), list(term))))(body)
+        }
+        Locale(entity, type_params, params, asm, defs)
       })
 
 
