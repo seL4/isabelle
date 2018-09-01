@@ -443,7 +443,7 @@ local
 fun run_process execution_id exec_id process =
   let val group = Future.worker_subgroup () in
     if Execution.running execution_id exec_id [group] then
-      ignore (task_context group Lazy.force_result process)
+      ignore (task_context group Lazy.force_result {strict = true} process)
     else ()
   end;
 
