@@ -170,8 +170,7 @@ fun is_end_theory (State (NONE, SOME (Theory (Context.Theory _, _)))) = true
   | is_end_theory _ = false;
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
-  | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.here pos)
-  | end_theory pos (State (SOME _, _)) = error ("Unfinished theory" ^ Position.here pos);
+  | end_theory pos _ = error ("Malformed theory" ^ Position.here pos);
 
 
 (* presentation context *)
