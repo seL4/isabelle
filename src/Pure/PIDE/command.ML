@@ -180,7 +180,7 @@ val eval_running = Execution.is_running_exec o eval_exec_id;
 fun eval_finished (Eval {eval_process, ...}) = Lazy.is_finished eval_process;
 
 fun eval_result (Eval {eval_process, ...}) =
-  task_context (Future.worker_subgroup ()) Lazy.force eval_process;
+  Exn.release (Lazy.finished_result eval_process);
 
 val eval_result_command = #command o eval_result;
 val eval_result_state = #state o eval_result;

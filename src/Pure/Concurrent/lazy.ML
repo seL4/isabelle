@@ -15,6 +15,7 @@ sig
   val peek: 'a lazy -> 'a Exn.result option
   val is_running: 'a lazy -> bool
   val is_finished: 'a lazy -> bool
+  val finished_result: 'a lazy -> 'a Exn.result
   val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val force_value: 'a lazy -> 'a lazy
@@ -59,12 +60,22 @@ fun is_running (Value _) = false
         Expr _ => false
       | Result res => not (Future.is_finished res));
 
+fun is_finished_future res =
+  Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res));
+
 fun is_finished (Value _) = true
   | is_finished (Lazy var) =
       (case Synchronized.value var of
         Expr _ => false
-      | Result res =>
-          Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res)));
+      | Result res => is_finished_future res);
+
+fun finished_result (Value a) = Exn.Res a
+  | finished_result (Lazy var) =
+      let fun fail () = Exn.Exn (Fail "Unfinished lazy") in
+        (case Synchronized.value var of
+          Expr _ => fail ()
+        | Result res => if is_finished_future res then Future.join_result res else fail ())
+      end;
 
 
 (* force result *)
