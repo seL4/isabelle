@@ -260,7 +260,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
         let
           val _ = status tr Markup.failed;
           val _ = status tr Markup.finished;
-          val _ = if null errs then (report tr (Markup.bad ()); Exn.interrupt ()) else ();
+          val _ = if null errs then (status tr Markup.canceled; Exn.interrupt ()) else ();
         in {failed = true, command = tr, state = st} end
     | SOME st' =>
         let

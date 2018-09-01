@@ -15,7 +15,7 @@ object Document_Status
   {
     val proper_elements: Markup.Elements =
       Markup.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
-        Markup.FINISHED, Markup.FAILED)
+        Markup.FINISHED, Markup.FAILED, Markup.CANCELED)
 
     val liberal_elements: Markup.Elements =
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
@@ -26,6 +26,7 @@ object Document_Status
       var accepted = false
       var warned = false
       var failed = false
+      var canceled = false
       var forks = 0
       var runs = 0
       for (markup <- markup_iterator) {
@@ -37,10 +38,11 @@ object Document_Status
           case Markup.FINISHED => runs -= 1
           case Markup.WARNING | Markup.LEGACY => warned = true
           case Markup.FAILED | Markup.ERROR => failed = true
+          case Markup.CANCELED => canceled = true
           case _ =>
         }
       }
-      Command_Status(touched, accepted, warned, failed, forks, runs)
+      Command_Status(touched, accepted, warned, failed, canceled, forks, runs)
     }
 
     val empty = make(Iterator.empty)
@@ -58,6 +60,7 @@ object Document_Status
     private val accepted: Boolean,
     private val warned: Boolean,
     private val failed: Boolean,
+    private val canceled: Boolean,
     forks: Int,
     runs: Int)
   {
@@ -67,6 +70,7 @@ object Document_Status
         accepted || that.accepted,
         warned || that.warned,
         failed || that.failed,
+        canceled || that.canceled,
         forks + that.forks,
         runs + that.runs)
 
@@ -75,6 +79,7 @@ object Document_Status
     def is_warned: Boolean = warned
     def is_failed: Boolean = failed
     def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
+    def is_canceled: Boolean = canceled
   }
 
 
@@ -94,6 +99,7 @@ object Document_Status
       var warned = 0
       var failed = 0
       var finished = 0
+      var canceled = false
       for (command <- node.commands.iterator) {
         val states = state.command_states(version, command)
         val status = Command_Status.merge(states.iterator.map(_.document_status))
@@ -103,17 +109,20 @@ object Document_Status
         else if (status.is_warned) warned += 1
         else if (status.is_finished) finished += 1
         else unprocessed += 1
+
+        if (status.is_canceled) canceled = true
       }
       val initialized = state.node_initialized(version, name)
       val consolidated = state.node_consolidated(version, name)
 
-      Node_Status(unprocessed, running, warned, failed, finished, initialized, consolidated)
+      Node_Status(
+        unprocessed, running, warned, failed, finished, canceled, initialized, consolidated)
     }
   }
 
   sealed case class Node_Status(
     unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int,
-    initialized: Boolean, consolidated: Boolean)
+    canceled: Boolean, initialized: Boolean, consolidated: Boolean)
   {
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
@@ -121,7 +130,7 @@ object Document_Status
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
-        "initialized" -> initialized, "consolidated" -> consolidated)
+        "canceled" -> canceled, "initialized" -> initialized, "consolidated" -> consolidated)
   }
 
 

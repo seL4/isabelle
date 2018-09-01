@@ -13,6 +13,7 @@ import * as library from './library'
 const background_colors = [
   "unprocessed1",
   "running1",
+  "canceled",
   "bad",
   "intensify",
   "quoted",

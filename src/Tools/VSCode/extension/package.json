@@ -250,6 +250,14 @@
                     "type": "string",
                     "default": "rgba(255, 160, 160, 0.40)"
                 },
+                "isabelle.canceled_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
+                "isabelle.canceled_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
                 "isabelle.bad_light_color": {
                     "type": "string",
                     "default": "rgba(255, 106, 106, 0.40)"
