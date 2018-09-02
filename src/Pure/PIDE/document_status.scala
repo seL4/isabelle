@@ -192,6 +192,12 @@ object Document_Status
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
+    def is_terminated(name: Document.Node.Name): Boolean =
+      rep.get(name) match {
+        case Some(st) => st.terminated
+        case None => false
+      }
+
     def overall_node_status(name: Document.Node.Name): Overall_Node_Status.Value =
       rep.get(name) match {
         case Some(st) if st.consolidated =>

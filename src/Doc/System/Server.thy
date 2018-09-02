@@ -929,10 +929,9 @@ text \<open>
   \<^medskip>
   The \<^verbatim>\<open>use_theories\<close> command updates the identified session by adding the
   current version of theory files to it, while dependencies are resolved
-  implicitly. The command succeeds eventually, when all theories have been
-  \<^emph>\<open>consolidated\<close> in the sense the formal \<open>node_status\<close>
-  (\secref{sec:json-types}): the outermost command structure has finished (or
-  failed) and the final \<^theory_text>\<open>end\<close> command of each theory has been checked.
+  implicitly. The command succeeds eventually, when all theories have status
+  \<^emph>\<open>terminated\<close> or \<^emph>\<open>consolidated\<close> in the sense of \<open>node_status\<close>
+  (\secref{sec:json-types}).
 
   Already used theories persist in the session until purged explicitly
   (\secref{sec:command-purge-theories}). This also means that repeated
@@ -948,14 +947,10 @@ text \<open>
   represented as plain text in UTF-8 encoding, which means the string needs to
   be decoded as in \<^verbatim>\<open>java.util.Base64.getDecoder.decode(String)\<close>.
 
-  \<^medskip> Due to asynchronous nature of PIDE document processing, structurally
-  broken theories never reach the \<open>consolidated\<close> state: consequently
-  \<^verbatim>\<open>use_theories\<close> will wait forever. The status is checked every \<open>check_delay\<close>
-  seconds, and bounded by \<open>check_limit\<close> attempts (default: 0, i.e.\
-  unbounded). A \<open>check_limit > 0\<close> effectively specifies a timeout of
-  \<open>check_delay \<times> check_limit\<close> seconds; it needs to be greater than the system
-  option @{system_option editor_consolidate_delay} to give PIDE processing a
-  chance to consolidate document nodes in the first place.
+  \<^medskip> The status of PIDE processing is checked every \<open>check_delay\<close> seconds, and
+  bounded by \<open>check_limit\<close> attempts (default: 0, i.e.\ unbounded). A
+  \<open>check_limit > 0\<close> effectively specifies a timeout of \<open>check_delay \<times>
+  check_limit\<close> seconds.
 
   \<^medskip> A non-negative \<open>nodes_status_delay\<close> enables continuous notifications of
   kind \<open>nodes_status\<close>, with a field of name and type \<open>nodes_status\<close>. The time

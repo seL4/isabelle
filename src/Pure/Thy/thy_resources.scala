@@ -111,6 +111,8 @@ object Thy_Resources
           master_dir = proper_string(master_dir) getOrElse tmp_dir_name, progress = progress)
       val dep_theories_set = dep_theories.toSet
 
+      val nodes_status_update = Synchronized(Document_Status.Nodes_Status.empty_update)
+
       val result = Future.promise[Theories_Result]
 
       def check_state(beyond_limit: Boolean = false)
@@ -118,7 +120,11 @@ object Thy_Resources
         val state = session.current_state()
         state.stable_tip_version match {
           case Some(version) =>
-            if (beyond_limit || dep_theories.forall(state.node_consolidated(version, _))) {
+            if (beyond_limit ||
+                dep_theories.forall(name =>
+                  state.node_consolidated(version, name) ||
+                  nodes_status_update.value._1.is_terminated(name)))
+            {
               val nodes =
                 for (name <- dep_theories)
                 yield (name -> Document_Status.Node_Status.make(state, version, name))
@@ -144,8 +150,6 @@ object Thy_Resources
 
       val theories_progress = Synchronized(Set.empty[Document.Node.Name])
 
-      val nodes_status_update = Synchronized(Document_Status.Nodes_Status.empty_update)
-
       val delay_nodes_status =
         Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
           val (nodes_status, names) = nodes_status_update.value
@@ -160,19 +164,19 @@ object Thy_Resources
               val state = snapshot.state
               val version = snapshot.version
 
-              if (nodes_status_delay >= Time.zero) {
-                nodes_status_update.change(
-                  { case upd @ (nodes_status, _) =>
-                      val domain =
-                        if (nodes_status.is_empty) dep_theories_set
-                        else changed.nodes.iterator.filter(dep_theories_set).toSet
-                      val upd1 =
-                        nodes_status.update(resources.session_base, state, version,
-                          domain = Some(domain), trim = changed.assignment).getOrElse(upd)
-                      if (upd == upd1) upd
-                      else { delay_nodes_status.invoke; upd1 }
-                  })
-              }
+              nodes_status_update.change(
+                { case upd @ (nodes_status, _) =>
+                    val domain =
+                      if (nodes_status.is_empty) dep_theories_set
+                      else changed.nodes.iterator.filter(dep_theories_set).toSet
+                    val upd1 =
+                      nodes_status.update(resources.session_base, state, version,
+                        domain = Some(domain), trim = changed.assignment).getOrElse(upd)
+                    if (nodes_status_delay >= Time.zero && upd != upd1)
+                      delay_nodes_status.invoke
+
+                    upd1
+                })
 
               val check_theories =
                 (for {

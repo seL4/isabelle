@@ -58,6 +58,14 @@ potentially with variations on ML syntax (existing ML_Env.SML_operations
 observes the official standard).
 
 
+*** System ***
+
+* Isabelle Server message "use_theories" terminates more robustly in the
+presence of structurally broken sources: full consolidation of theories
+is no longer required.
+
+
+
 New in Isabelle2018 (August 2018)
 ---------------------------------
 
