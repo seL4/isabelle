@@ -649,7 +649,7 @@ val reset_notepad =
       (case try proof_of st of
         SOME state => not (Proof.is_notepad state) orelse can Proof.end_notepad state
       | NONE => true))
-    (proof (Proof.begin_notepad o Proof.context_of));
+    (proof Proof.reset_notepad);
 
 end;
 

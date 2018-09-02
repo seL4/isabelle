@@ -95,6 +95,7 @@ sig
   val begin_notepad: context -> state
   val end_notepad: state -> context
   val is_notepad: state -> bool
+  val reset_notepad: state -> state
   val proof: Method.text_range option -> state -> state Seq.result Seq.seq
   val defer: int -> state -> state
   val prefer: int -> state -> state
@@ -893,13 +894,19 @@ val end_notepad =
   #> close_block
   #> context_of;
 
-fun is_notepad (State stack) =
+fun get_notepad_context (State stack) =
   let
-    fun bottom_goal [Node {goal = SOME _, ...}, Node {goal = NONE, ...}] = true
-      | bottom_goal [Node {goal = SOME _, ...}] = true
-      | bottom_goal [] = false
-      | bottom_goal (_ :: rest) = bottom_goal rest;
-  in not (bottom_goal (op :: (Stack.dest stack))) end;
+    fun escape [Node {goal = SOME _, ...}, Node {goal = NONE, ...}] = NONE
+      | escape [Node {goal = SOME _, ...}] = NONE
+      | escape [Node {goal = NONE, context = ctxt, ...}] = SOME ctxt
+      | escape [] = NONE
+      | escape (_ :: rest) = escape rest;
+  in escape (op :: (Stack.dest stack)) end;
+
+val is_notepad = is_some o get_notepad_context;
+
+fun reset_notepad state =
+  begin_notepad (the_default (context_of state) (get_notepad_context state));
 
 
 (* sub-proofs *)
