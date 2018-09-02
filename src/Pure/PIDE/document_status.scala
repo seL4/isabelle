@@ -44,7 +44,15 @@ object Document_Status
           case _ =>
         }
       }
-      Command_Status(touched, accepted, warned, failed, canceled, finalized, forks, runs)
+      Command_Status(
+        touched = touched,
+        accepted = accepted,
+        warned = warned,
+        failed = failed,
+        canceled = canceled,
+        finalized = finalized,
+        forks = forks,
+        runs = runs)
     }
 
     val empty = make(Iterator.empty)
@@ -69,14 +77,14 @@ object Document_Status
   {
     def + (that: Command_Status): Command_Status =
       Command_Status(
-        touched || that.touched,
-        accepted || that.accepted,
-        warned || that.warned,
-        failed || that.failed,
-        canceled || that.canceled,
-        finalized || that.finalized,
-        forks + that.forks,
-        runs + that.runs)
+        touched = touched || that.touched,
+        accepted = accepted || that.accepted,
+        warned = warned || that.warned,
+        failed = failed || that.failed,
+        canceled = canceled || that.canceled,
+        finalized = finalized || that.finalized,
+        forks = forks + that.forks,
+        runs = runs + that.runs)
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
@@ -125,14 +133,30 @@ object Document_Status
       val initialized = state.node_initialized(version, name)
       val consolidated = state.node_consolidated(version, name)
 
-      Node_Status(unprocessed, running, warned, failed, finished, canceled, terminated,
-        finalized, initialized, consolidated)
+      Node_Status(
+        unprocessed = unprocessed,
+        running = running,
+        warned = warned,
+        failed = failed,
+        finished = finished,
+        canceled = canceled,
+        terminated = terminated,
+        finalized = finalized,
+        initialized = initialized,
+        consolidated = consolidated)
     }
   }
 
   sealed case class Node_Status(
-    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int,
-    canceled: Boolean, terminated: Boolean, finalized: Boolean, initialized: Boolean,
+    unprocessed: Int,
+    running: Int,
+    warned: Int,
+    failed: Int,
+    finished: Int,
+    canceled: Boolean,
+    terminated: Boolean,
+    finalized: Boolean,
+    initialized: Boolean,
     consolidated: Boolean)
   {
     def ok: Boolean = failed == 0
