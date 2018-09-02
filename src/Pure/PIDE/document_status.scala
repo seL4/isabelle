@@ -141,8 +141,7 @@ object Document_Status
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
-        "canceled" -> canceled, "terminated" -> terminated, "finalized" -> finalized,
-        "initialized" -> initialized, "consolidated" -> consolidated)
+        "canceled" -> canceled, "consolidated" -> consolidated)
   }
 
 
