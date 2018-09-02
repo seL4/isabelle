@@ -193,6 +193,10 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
     val res =
       if Keyword.is_theory_body keywords name then Toplevel.reset_theory st0
       else if Keyword.is_proof keywords name then Toplevel.reset_proof st0
+      else if Keyword.is_theory_end keywords name then
+        (case Toplevel.reset_notepad st0 of
+          NONE => Toplevel.reset_theory st0
+        | some => some)
       else NONE;
   in
     (case res of

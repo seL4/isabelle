@@ -84,6 +84,7 @@ sig
   val command_exception: bool -> transition -> state -> state
   val reset_theory: state -> state option
   val reset_proof: state -> state option
+  val reset_notepad: state -> state option
   type result
   val join_results: result -> (transition * state) list
   val element_result: Keyword.keywords -> transition Thy_Element.element -> state -> result * state
@@ -641,6 +642,14 @@ val reset_proof =
     (transaction (fn _ =>
       (fn Theory (gthy, _) => Skipped_Proof (0, (gthy, gthy))
         | _ => raise UNDEF)));
+
+val reset_notepad =
+  reset_state
+    (fn st =>
+      (case try proof_of st of
+        SOME state => not (Proof.is_notepad state) orelse can Proof.end_notepad state
+      | NONE => true))
+    (proof (Proof.begin_notepad o Proof.context_of));
 
 end;
 
