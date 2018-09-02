@@ -168,18 +168,19 @@ fun fork ({name, pos, pri}: params) e =
                 Exn.capture (Future.interruptible_task e) ()
                 |> Future.identify_result pos
                 |> Exn.map_exn Runtime.thread_context;
+              val errors =
+                Exn.capture (fn () =>
+                  (case result of
+                    Exn.Exn exn =>
+                     (status task [Markup.failed];
+                      status task [Markup.finished];
+                      Output.report [Markup.markup_only (Markup.bad ())];
+                      if exec_id = 0 then ()
+                      else List.app (Future.error_message pos) (Runtime.exn_messages exn))
+                  | Exn.Res _ =>
+                      status task [Markup.finished])) ();
               val _ = status task [Markup.joined];
-              val _ =
-                (case result of
-                  Exn.Exn exn =>
-                   (status task [Markup.failed];
-                    status task [Markup.finished];
-                    Output.report [Markup.markup_only (Markup.bad ())];
-                    if exec_id = 0 then ()
-                    else List.app (Future.error_message pos) (Runtime.exn_messages exn))
-                | Exn.Res _ =>
-                    status task [Markup.finished])
-            in Exn.release result end);
+            in Exn.release errors; Exn.release result end);
 
       val _ = status (Future.task_of future) [Markup.forked];
     in future end)) ();
