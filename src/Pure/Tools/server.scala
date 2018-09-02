@@ -274,11 +274,9 @@ object Server
         (List("session" -> session, "theory" -> theory) ::: more.toList):_*)
 
     override def nodes_status(
-      nodes_status: List[(Document.Node.Name, Document_Status.Node_Status)])
+      nodes_status: Document_Status.Nodes_Status, names: List[Document.Node.Name])
     {
-      val json =
-        for ((name, status) <- nodes_status)
-        yield name.json + ("status" -> status.json)
+      val json = names.map(name => name.json + ("status" -> nodes_status(name).json))
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 

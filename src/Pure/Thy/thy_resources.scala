@@ -153,7 +153,7 @@ object Thy_Resources
       val delay_nodes_status =
         Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
           val (nodes_status, names) = nodes_status_update.value
-          progress.nodes_status(names.map(name => (name -> nodes_status(name))))
+          progress.nodes_status(nodes_status, names)
         }
 
       val consumer =
