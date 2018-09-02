@@ -283,7 +283,8 @@ fun eval keywords master_dir init blobs_info command_id span eval0 =
               read keywords thy master_dir init blobs_info span |> Toplevel.exec_id exec_id) ();
       in eval_state keywords span tr eval_state0 end;
   in
-    Eval {command_id = command_id, exec_id = exec_id, eval_process = Lazy.lazy_name "Command.eval" process}
+    Eval {command_id = command_id, exec_id = exec_id,
+      eval_process = Lazy.lazy_name "Command.eval" process}
   end;
 
 end;
