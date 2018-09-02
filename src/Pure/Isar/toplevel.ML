@@ -65,7 +65,7 @@ sig
     (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
-  val forget_proof: bool -> transition -> transition
+  val forget_proof: transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
@@ -517,10 +517,10 @@ fun theory_to_proof f = begin_proof
 
 end;
 
-fun forget_proof strict = transaction (fn _ =>
+val forget_proof = transaction (fn _ =>
   (fn Proof (prf, (_, orig_gthy)) =>
-        if strict andalso Proof.is_notepad (Proof_Node.current prf)
-        then raise UNDEF else Theory (orig_gthy, NONE)
+        if Proof.is_notepad (Proof_Node.current prf) then raise UNDEF
+        else Theory (orig_gthy, NONE)
     | Skipped_Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
@@ -634,7 +634,7 @@ fun reset_state check trans st =
 
 in
 
-val reset_theory = reset_state is_theory (forget_proof false);
+val reset_theory = reset_state is_theory forget_proof;
 
 val reset_proof =
   reset_state is_proof
