@@ -141,8 +141,8 @@ object Document_Status
         finished = finished,
         canceled = canceled,
         terminated = terminated,
-        finalized = finalized,
         initialized = initialized,
+        finalized = finalized,
         consolidated = consolidated)
     }
   }
@@ -155,8 +155,8 @@ object Document_Status
     finished: Int,
     canceled: Boolean,
     terminated: Boolean,
-    finalized: Boolean,
     initialized: Boolean,
+    finalized: Boolean,
     consolidated: Boolean)
   {
     def ok: Boolean = failed == 0
