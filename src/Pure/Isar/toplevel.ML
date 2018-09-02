@@ -519,7 +519,7 @@ end;
 
 fun forget_proof strict = transaction (fn _ =>
   (fn Proof (prf, (_, orig_gthy)) =>
-        if strict andalso not (Proof.has_bottom_goal (Proof_Node.current prf))
+        if strict andalso Proof.is_notepad (Proof_Node.current prf)
         then raise UNDEF else Theory (orig_gthy, NONE)
     | Skipped_Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));

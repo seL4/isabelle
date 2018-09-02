@@ -33,7 +33,6 @@ sig
   val enter_forward: state -> state
   val enter_chain: state -> state
   val enter_backward: state -> state
-  val has_bottom_goal: state -> bool
   val using_facts: thm list -> state -> state
   val pretty_state: state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.result Seq.seq
@@ -95,6 +94,7 @@ sig
   val end_block: state -> state
   val begin_notepad: context -> state
   val end_notepad: state -> context
+  val is_notepad: state -> bool
   val proof: Method.text_range option -> state -> state Seq.result Seq.seq
   val defer: int -> state -> state
   val prefer: int -> state -> state
@@ -324,17 +324,6 @@ val set_goal = put_goal o SOME;
 val reset_goal = put_goal NONE;
 
 val before_qed = #before_qed o #2 o current_goal;
-
-
-(* bottom goal *)
-
-fun has_bottom_goal (State stack) =
-  let
-    fun bottom [Node {goal = SOME _, ...}, Node {goal = NONE, ...}] = true
-      | bottom [Node {goal, ...}] = is_some goal
-      | bottom [] = false
-      | bottom (_ :: rest) = bottom rest;
-  in bottom (op :: (Stack.dest stack)) end;
 
 
 (* nested goal *)
@@ -903,6 +892,14 @@ val end_notepad =
   #> assert_current_goal false
   #> close_block
   #> context_of;
+
+fun is_notepad (State stack) =
+  let
+    fun bottom_goal [Node {goal = SOME _, ...}, Node {goal = NONE, ...}] = true
+      | bottom_goal [Node {goal = SOME _, ...}] = true
+      | bottom_goal [] = false
+      | bottom_goal (_ :: rest) = bottom_goal rest;
+  in not (bottom_goal (op :: (Stack.dest stack))) end;
 
 
 (* sub-proofs *)
