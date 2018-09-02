@@ -14,6 +14,12 @@ for continuous output of node status information. The time interval is
 specified in seconds; a negative value means it is disabled (default).
 
 
+*** Isar ***
+
+* More robust treatment of structural errors: begin/end blocks take
+precedence over goal/proof.
+
+
 *** HOL ***
 
 * Simplified syntax setup for big operators under image. In rare
