@@ -80,6 +80,7 @@ object Document_Status
     def is_failed: Boolean = failed
     def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
     def is_canceled: Boolean = canceled
+    def is_terminated: Boolean = canceled || touched && forks == 0 && runs == 0
   }
 
 
@@ -100,6 +101,7 @@ object Document_Status
       var failed = 0
       var finished = 0
       var canceled = false
+      var terminated = false
       for (command <- node.commands.iterator) {
         val states = state.command_states(version, command)
         val status = Command_Status.merge(states.iterator.map(_.document_status))
@@ -111,18 +113,19 @@ object Document_Status
         else unprocessed += 1
 
         if (status.is_canceled) canceled = true
+        if (status.is_terminated) terminated = true
       }
       val initialized = state.node_initialized(version, name)
       val consolidated = state.node_consolidated(version, name)
 
-      Node_Status(
-        unprocessed, running, warned, failed, finished, canceled, initialized, consolidated)
+      Node_Status(unprocessed, running, warned, failed, finished, canceled, terminated,
+        initialized, consolidated)
     }
   }
 
   sealed case class Node_Status(
     unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int,
-    canceled: Boolean, initialized: Boolean, consolidated: Boolean)
+    canceled: Boolean, terminated: Boolean, initialized: Boolean, consolidated: Boolean)
   {
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
@@ -130,7 +133,8 @@ object Document_Status
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
-        "canceled" -> canceled, "initialized" -> initialized, "consolidated" -> consolidated)
+        "canceled" -> canceled, "terminated" -> terminated, "initialized" -> initialized,
+        "consolidated" -> consolidated)
   }
 
 

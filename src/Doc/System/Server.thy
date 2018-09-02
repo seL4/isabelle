@@ -522,7 +522,8 @@ text \<open>
   \<open>failed\<close>, \<open>finished\<close> account for individual commands within a theory node;
   \<open>ok\<close> is an abstraction for \<open>failed = 0\<close>. The \<open>canceled\<close> flag tells if some
   command in the theory has been spontaneously canceled (by an Interrupt
-  exception that could also indicate resource problems). The \<open>initialized\<close>
+  exception that could also indicate resource problems). The \<open>terminated\<close> flag
+  indicates that all evaluations in the node has finished. The \<open>initialized\<close>
   flag indicates that the initial \<^theory_text>\<open>theory\<close> command has been processed. The
   \<open>consolidated\<close> flag indicates whether the outermost theory command structure
   has finished (or failed) and the final \<^theory_text>\<open>end\<close> command has been checked.
