@@ -123,7 +123,7 @@ object Thy_Resources
             if (beyond_limit ||
                 dep_theories.forall(name =>
                   state.node_consolidated(version, name) ||
-                  nodes_status_update.value._1.is_terminated(name)))
+                  nodes_status_update.value._1.quasi_consolidated(name)))
             {
               val nodes =
                 for (name <- dep_theories)

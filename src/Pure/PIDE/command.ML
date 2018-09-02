@@ -269,6 +269,10 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
     | SOME st' =>
         let
           val _ = status tr Markup.finished;
+          val _ =
+            if Keyword.is_theory_end keywords (Toplevel.name_of tr) andalso
+              can (Toplevel.end_theory Position.none) st'
+            then status tr Markup.finalized else ();
         in {failed = false, command = tr, state = st'} end)
   end;
 
