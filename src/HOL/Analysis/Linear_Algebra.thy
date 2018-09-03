@@ -31,7 +31,7 @@ lemma finite_Atleast_Atmost_nat[simp]: "finite {f x |x. x \<in> (UNIV::'a::finit
   using finite finite_image_set by blast
 
 
-subsection%unimportant \<open>More interesting properties of the norm.\<close>
+subsection%unimportant \<open>More interesting properties of the norm\<close>
 
 notation inner (infix "\<bullet>" 70)
 
@@ -131,7 +131,7 @@ proof
 qed simp
 
 
-subsection \<open>Orthogonality.\<close>
+subsection \<open>Orthogonality\<close>
 
 definition%important (in real_inner) "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
 
@@ -200,7 +200,7 @@ next
 qed
 
 
-subsection \<open>Bilinear functions.\<close>
+subsection \<open>Bilinear functions\<close>
 
 definition%important "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
 
@@ -256,7 +256,7 @@ proof -
 qed
 
 
-subsection \<open>Adjoints.\<close>
+subsection \<open>Adjoints\<close>
 
 definition%important "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
@@ -658,7 +658,7 @@ lemma linear_imp_differentiable:
   by (metis linear_imp_has_derivative differentiable_def)
 
 
-subsection%unimportant \<open>We continue.\<close>
+subsection%unimportant \<open>We continue\<close>
 
 lemma independent_bound:
   fixes S :: "'a::euclidean_space set"
