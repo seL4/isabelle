@@ -114,7 +114,7 @@ object Document_Status
       var failed = 0
       var finished = 0
       var canceled = false
-      var terminated = false
+      var terminated = true
       var finalized = false
       for (command <- node.commands.iterator) {
         val states = state.command_states(version, command)
@@ -127,7 +127,7 @@ object Document_Status
         else unprocessed += 1
 
         if (status.is_canceled) canceled = true
-        if (status.is_terminated) terminated = true
+        if (!status.is_terminated) terminated = false
         if (status.is_finalized) finalized = true
       }
       val initialized = state.node_initialized(version, name)
