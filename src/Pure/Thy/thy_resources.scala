@@ -107,8 +107,12 @@ object Thy_Resources
       progress: Progress = No_Progress): Theories_Result =
     {
       val dep_theories =
-        resources.load_theories(session, id, theories, qualifier = qualifier,
-          master_dir = proper_string(master_dir) getOrElse tmp_dir_name, progress = progress)
+      {
+        val master = proper_string(master_dir) getOrElse tmp_dir_name
+        val import_names =
+          theories.map(thy => resources.import_name(qualifier, master, thy) -> Position.none)
+        resources.dependencies(import_names, progress = progress).check_errors.theories
+      }
       val dep_theories_set = dep_theories.toSet
 
       val nodes_status_update = Synchronized(Document_Status.Nodes_Status.empty_update)
@@ -202,6 +206,7 @@ object Thy_Resources
 
       try {
         session.commands_changed += consumer
+        resources.load_theories(session, id, dep_theories, progress)
         result.join_result
         check_progress.cancel
         session.commands_changed -= consumer
@@ -306,14 +311,9 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
   def load_theories(
     session: Session,
     id: UUID,
-    theories: List[String],
-    qualifier: String,
-    master_dir: String,
-    progress: Progress): List[Document.Node.Name] =
+    dep_theories: List[Document.Node.Name],
+    progress: Progress)
   {
-    val import_names = theories.map(thy => import_name(qualifier, master_dir, thy) -> Position.none)
-    val dependencies = resources.dependencies(import_names, progress = progress).check_errors
-    val dep_theories = dependencies.theories
 
     val loaded_theories =
       for (node_name <- dep_theories)
@@ -341,8 +341,6 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
         session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
         st1.update_theories(theory_edits.map(_._2))
       })
-
-    dep_theories
   }
 
   def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name])
