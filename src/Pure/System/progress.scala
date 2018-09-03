@@ -21,6 +21,7 @@ class Progress
   def echo(msg: String) {}
   def echo_if(cond: Boolean, msg: String) { if (cond) echo(msg) }
   def theory(session: String, theory: String) {}
+  def theory_percentage(session: String, theory: String, percentage: Int) {}
   def nodes_status(nodes_status: Document_Status.Nodes_Status, names: List[Document.Node.Name]) {}
 
   def echo_warning(msg: String) { echo(Output.warning_text(msg)) }

@@ -206,6 +206,12 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
       val sessions = getopts(args)
 
       val progress = new Console_Progress(verbose = verbose)
+      {
+        override def theory_percentage(session: String, theory: String, percentage: Int)
+        {
+          if (verbose) echo(Progress.theory_message(session, theory) + ": " + percentage + "%")
+        }
+      }
 
       val result =
         progress.interrupt_handler {

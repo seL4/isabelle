@@ -173,11 +173,21 @@ object Thy_Resources
                     val domain =
                       if (nodes_status.is_empty) dep_theories_set
                       else changed.nodes.iterator.filter(dep_theories_set).toSet
-                    val upd1 =
+
+                    val upd1 @ (nodes_status1, names1) =
                       nodes_status.update(resources.session_base, state, version,
                         domain = Some(domain), trim = changed.assignment).getOrElse(upd)
-                    if (nodes_status_delay >= Time.zero && upd != upd1)
+
+                    for {
+                      name <- names1.iterator if changed.nodes.contains(name)
+                      p = nodes_status.get(name).map(_.percentage)
+                      p1 = nodes_status1.get(name).map(_.percentage)
+                      if p != p1 && p1.isDefined && p1.get > 0
+                    } progress.theory_percentage("", name.theory, p1.get)
+
+                    if (nodes_status_delay >= Time.zero && upd != upd1) {
                       delay_nodes_status.invoke
+                    }
 
                     upd1
                 })
