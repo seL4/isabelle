@@ -517,8 +517,8 @@ text \<open>
 
   \<^item> \<^bold>\<open>type\<close> \<open>node_status = {ok: bool, total: int, unprocessed: int, running:
   int, warned: int, failed: int, finished: int, canceled: bool, consolidated:
-  bool}\<close> represents a formal theory node status of the PIDE document model as
-  follows.
+  bool, percentage: int}\<close> represents a formal theory node status of the PIDE
+  document model as follows.
 
     \<^item> Fields \<open>total\<close>, \<open>unprocessed\<close>, \<open>running\<close>, \<open>warned\<close>, \<open>failed\<close>, \<open>finished\<close>
       account for individual commands within a theory node; \<open>ok\<close> is an
@@ -531,7 +531,12 @@ text \<open>
     \<^item> The \<open>consolidated\<close> flag indicates whether the outermost theory command
     structure has finished (or failed) and the final \<^theory_text>\<open>end\<close> command has been
     checked.
+
+    \<^item> The \<open>percentage\<close> field tells how far the node has been processed. It
+    ranges between 0 and 99 in normal operation, and reaches 100 when the node
+    has been formally consolidated as described above.
 \<close>
+
 
 
 section \<open>Server commands and results\<close>

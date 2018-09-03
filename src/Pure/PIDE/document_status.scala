@@ -164,10 +164,16 @@ object Document_Status
 
     def quasi_consolidated: Boolean = !finalized && terminated
 
+    def percentage: Int =
+      if (consolidated) 100
+      else if (total == 0) 0
+      else (((total - unprocessed).toDouble / total) * 100).toInt min 99
+
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
-        "canceled" -> canceled, "consolidated" -> consolidated)
+        "canceled" -> canceled, "consolidated" -> consolidated,
+        "percentage" -> percentage)
   }
 
 
