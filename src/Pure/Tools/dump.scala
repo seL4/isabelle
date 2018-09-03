@@ -79,8 +79,10 @@ object Dump
   val default_output_dir = Path.explode("dump")
 
   def make_options(options: Options, aspects: List[Aspect]): Options =
-    (options.int.update("completion_limit", 0).bool.update("ML_statistics", false) /: aspects)(
-      { case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+  {
+    val options1 = options + "completion_limit=0" + "ML_statistics=false"
+    (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+  }
 
   def dump(options: Options, logic: String,
     aspects: List[Aspect] = Nil,
