@@ -162,6 +162,8 @@ object Document_Status
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
 
+    def quasi_consolidated: Boolean = !finalized && terminated
+
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,
@@ -225,7 +227,7 @@ object Document_Status
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
       rep.get(name) match {
-        case Some(st) => !st.finalized && st.terminated
+        case Some(st) => st.quasi_consolidated
         case None => false
       }
 
