@@ -14,6 +14,11 @@ struct
   type fact = binding * thms;
 end;
 
+structure Locale =
+struct
+  type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism};
+end;
+
 signature LOCAL_THEORY =
 sig
   type operations
@@ -54,10 +59,8 @@ sig
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory
-  val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
-  val locale_dependency: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
+  val theory_registration: Locale.registration -> local_theory -> local_theory
+  val locale_dependency: Locale.registration -> local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> local_theory -> local_theory
   val set_defsort: sort -> local_theory -> local_theory
@@ -91,10 +94,8 @@ type operations =
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory,
-  theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
-     local_theory -> local_theory,
-  locale_dependency: string * morphism -> (morphism * bool) option -> morphism ->
-     local_theory -> local_theory,
+  theory_registration: Locale.registration -> local_theory -> local_theory,
+  locale_dependency: Locale.registration -> local_theory -> local_theory,
   pretty: local_theory -> Pretty.T list};
 
 type lthy =
@@ -250,7 +251,7 @@ fun target f lthy =
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 
 fun propagate_ml_env (context as Context.Proof lthy) =
-      let val inherit = ML_Env.inherit context in
+      let val inherit = ML_Env.inherit [context] in
         lthy
         |> background_theory (Context.theory_map inherit)
         |> map_contexts (K (Context.proof_map inherit))
@@ -276,10 +277,10 @@ val define = operation2 #define false;
 val define_internal = operation2 #define true;
 val notes_kind = operation2 #notes;
 val declaration = operation2 #declaration;
-fun theory_registration dep_morph mixin export =
-  assert_bottom #> operation (fn ops => #theory_registration ops dep_morph mixin export);
-fun locale_dependency dep_morph mixin export =
-  assert_bottom #> operation (fn ops => #locale_dependency ops dep_morph mixin export);
+fun theory_registration registration =
+  assert_bottom #> operation (fn ops => #theory_registration ops registration);
+fun locale_dependency registration =
+  assert_bottom #> operation (fn ops => #locale_dependency ops registration);
 
 
 (* theorems *)

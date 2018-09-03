@@ -335,6 +335,18 @@ lemma summable_sum: "(\<And>i. i \<in> I \<Longrightarrow> summable (f i)) \<Lon
 
 end
 
+lemma sums_If_finite_set':
+  fixes f g :: "nat \<Rightarrow> 'a::{t2_space,topological_ab_group_add}"
+  assumes "g sums S" and "finite A" and "S' = S + (\<Sum>n\<in>A. f n - g n)"
+  shows   "(\<lambda>n. if n \<in> A then f n else g n) sums S'"
+proof -
+  have "(\<lambda>n. g n + (if n \<in> A then f n - g n else 0)) sums (S + (\<Sum>n\<in>A. f n - g n))"
+    by (intro sums_add assms sums_If_finite_set)
+  also have "(\<lambda>n. g n + (if n \<in> A then f n - g n else 0)) = (\<lambda>n. if n \<in> A then f n else g n)"
+    by (simp add: fun_eq_iff)
+  finally show ?thesis using assms by simp
+qed
+
 subsection \<open>Infinite summability on real normed vector spaces\<close>
 
 context

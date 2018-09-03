@@ -1,6 +1,6 @@
 {
-    "name": "Isabelle2018",
-    "displayName": "Isabelle2018",
+    "name": "isabelle",
+    "displayName": "Isabelle",
     "description": "Isabelle Prover IDE",
     "keywords": [
         "theorem prover",
@@ -10,7 +10,7 @@
         "document preparation"
     ],
     "icon": "isabelle.png",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "publisher": "makarius",
     "license": "MIT",
     "repository": {
@@ -249,6 +249,14 @@
                 "isabelle.running1_dark_color": {
                     "type": "string",
                     "default": "rgba(255, 160, 160, 0.40)"
+                },
+                "isabelle.canceled_light_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
+                },
+                "isabelle.canceled_dark_color": {
+                    "type": "string",
+                    "default": "rgba(255, 106, 106, 0.40)"
                 },
                 "isabelle.bad_light_color": {
                     "type": "string",

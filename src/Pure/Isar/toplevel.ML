@@ -65,7 +65,7 @@ sig
     (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
-  val forget_proof: bool -> transition -> transition
+  val forget_proof: transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
@@ -84,6 +84,7 @@ sig
   val command_exception: bool -> transition -> state -> state
   val reset_theory: state -> state option
   val reset_proof: state -> state option
+  val reset_notepad: state -> state option
   type result
   val join_results: result -> (transition * state) list
   val element_result: Keyword.keywords -> transition Thy_Element.element -> state -> result * state
@@ -170,8 +171,7 @@ fun is_end_theory (State (NONE, SOME (Theory (Context.Theory _, _)))) = true
   | is_end_theory _ = false;
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
-  | end_theory pos (State (NONE, _)) = error ("Bad theory" ^ Position.here pos)
-  | end_theory pos (State (SOME _, _)) = error ("Unfinished theory" ^ Position.here pos);
+  | end_theory pos _ = error ("Malformed theory" ^ Position.here pos);
 
 
 (* presentation context *)
@@ -518,10 +518,10 @@ fun theory_to_proof f = begin_proof
 
 end;
 
-fun forget_proof strict = transaction (fn _ =>
+val forget_proof = transaction (fn _ =>
   (fn Proof (prf, (_, orig_gthy)) =>
-        if strict andalso not (Proof.has_bottom_goal (Proof_Node.current prf))
-        then raise UNDEF else Theory (orig_gthy, NONE)
+        if Proof.is_notepad (Proof_Node.current prf) then raise UNDEF
+        else Theory (orig_gthy, NONE)
     | Skipped_Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
@@ -635,13 +635,21 @@ fun reset_state check trans st =
 
 in
 
-val reset_theory = reset_state is_theory (forget_proof false);
+val reset_theory = reset_state is_theory forget_proof;
 
 val reset_proof =
   reset_state is_proof
     (transaction (fn _ =>
       (fn Theory (gthy, _) => Skipped_Proof (0, (gthy, gthy))
         | _ => raise UNDEF)));
+
+val reset_notepad =
+  reset_state
+    (fn st =>
+      (case try proof_of st of
+        SOME state => not (Proof.is_notepad state) orelse can Proof.end_notepad state
+      | NONE => true))
+    (proof Proof.reset_notepad);
 
 end;
 

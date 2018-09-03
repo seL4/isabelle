@@ -514,28 +514,28 @@ fun start_execution state = state |> map_state (fn (versions, blobs, commands, e
           (fn deps => fn (name, node) =>
             if Symtab.defined required name orelse visible_node node orelse pending_result node then
               let
-                fun body () =
-                 (Execution.worker_task_active true name;
-                  if forall finished_import deps then
-                    iterate_entries (fn (_, opt_exec) => fn () =>
-                      (case opt_exec of
-                        SOME exec =>
-                          if Execution.is_running execution_id
-                          then SOME (Command.exec execution_id exec)
-                          else NONE
-                      | NONE => NONE)) node ()
-                  else ();
-                  Execution.worker_task_active false name)
-                  handle exn =>
-                   (Output.system_message (Runtime.exn_message exn);
-                    Execution.worker_task_active false name;
-                    Exn.reraise exn);
                 val future =
                   (singleton o Future.forks)
                    {name = "theory:" ^ name,
                     group = SOME (Future.new_group NONE),
                     deps = delay :: Execution.active_tasks name @ maps (the_list o #2 o #2) deps,
-                    pri = 0, interrupts = false} body;
+                    pri = 0, interrupts = false}
+                  (fn () =>
+                   (Execution.worker_task_active true name;
+                    if forall finished_import deps then
+                      iterate_entries (fn (_, opt_exec) => fn () =>
+                        (case opt_exec of
+                          SOME exec =>
+                            if Execution.is_running execution_id
+                            then SOME (Command.exec execution_id exec)
+                            else NONE
+                        | NONE => NONE)) node ()
+                    else ();
+                    Execution.worker_task_active false name)
+                      handle exn =>
+                       (Output.system_message (Runtime.exn_message exn);
+                        Execution.worker_task_active false name;
+                        Exn.reraise exn));
               in (node, SOME (Future.task_of future)) end
             else (node, NONE));
       val execution' =
@@ -574,9 +574,12 @@ fun init_theory deps node span =
     val header = read_header node span;
     val imports = #imports header;
 
-    fun maybe_end_theory pos st =
-      SOME (Toplevel.end_theory pos st)
-        handle ERROR msg => (Output.error_message msg; NONE);
+    fun maybe_eval_result eval = Command.eval_result_state eval
+      handle Fail _ => Toplevel.toplevel;
+
+    fun maybe_end_theory pos st = SOME (Toplevel.end_theory pos st)
+      handle ERROR msg => (Output.error_message msg; NONE);
+
     val parents_reports =
       imports |> map_filter (fn (import, pos) =>
         (case Thy_Info.lookup_theory import of
@@ -584,7 +587,7 @@ fun init_theory deps node span =
             maybe_end_theory pos
               (case get_result (snd (the (AList.lookup (op =) deps import))) of
                 NONE => Toplevel.toplevel
-              | SOME (_, eval) => Command.eval_result_state eval)
+              | SOME (_, eval) => maybe_eval_result eval)
         | some => some)
         |> Option.map (fn thy => (thy, (pos, Theory.get_markup thy))));
 

@@ -522,6 +522,33 @@ lemma eventually_INF_base:
 lemma eventually_INF1: "i \<in> I \<Longrightarrow> eventually P (F i) \<Longrightarrow> eventually P (\<Sqinter>i\<in>I. F i)"
   using filter_leD[OF INF_lower] .
 
+lemma eventually_INF_finite:
+  assumes "finite A"
+  shows   "eventually P (INF x:A. F x) \<longleftrightarrow>
+             (\<exists>Q. (\<forall>x\<in>A. eventually (Q x) (F x)) \<and> (\<forall>y. (\<forall>x\<in>A. Q x y) \<longrightarrow> P y))" 
+  using assms
+proof (induction arbitrary: P rule: finite_induct)
+  case (insert a A P)
+  from insert.hyps have [simp]: "x \<noteq> a" if "x \<in> A" for x
+    using that by auto
+  have "eventually P (INF x:insert a A. F x) \<longleftrightarrow>
+          (\<exists>Q R S. eventually Q (F a) \<and> (( (\<forall>x\<in>A. eventually (S x) (F x)) \<and>
+            (\<forall>y. (\<forall>x\<in>A. S x y) \<longrightarrow> R y)) \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x)))"
+    unfolding ex_simps by (simp add: eventually_inf insert.IH)
+  also have "\<dots> \<longleftrightarrow> (\<exists>Q. (\<forall>x\<in>insert a A. eventually (Q x) (F x)) \<and>
+                           (\<forall>y. (\<forall>x\<in>insert a A. Q x y) \<longrightarrow> P y))"
+  proof (safe, goal_cases)
+    case (1 Q R S)
+    thus ?case using 1 by (intro exI[of _ "S(a := Q)"]) auto
+  next
+    case (2 Q)
+    show ?case
+      by (rule exI[of _ "Q a"], rule exI[of _ "\<lambda>y. \<forall>x\<in>A. Q x y"],
+          rule exI[of _ "Q(a := (\<lambda>_. True))"]) (use 2 in auto)
+  qed
+  finally show ?case .
+qed auto
+
 subsubsection \<open>Map function for filters\<close>
 
 definition filtermap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> 'b filter"
@@ -652,6 +679,33 @@ qed
 lemma filtercomap_SUP:
   "filtercomap f (\<Squnion>b\<in>B. F b) \<ge> (\<Squnion>b\<in>B. filtercomap f (F b))"
   by (intro SUP_least filtercomap_mono SUP_upper)
+
+lemma filtermap_le_iff_le_filtercomap: "filtermap f F \<le> G \<longleftrightarrow> F \<le> filtercomap f G"
+  unfolding le_filter_def eventually_filtermap eventually_filtercomap
+  using eventually_mono by auto
+
+lemma filtercomap_neq_bot:
+  assumes "\<And>P. eventually P F \<Longrightarrow> \<exists>x. P (f x)"
+  shows   "filtercomap f F \<noteq> bot"
+  using assms by (auto simp: trivial_limit_def eventually_filtercomap)
+
+lemma filtercomap_neq_bot_surj:
+  assumes "F \<noteq> bot" and "surj f"
+  shows   "filtercomap f F \<noteq> bot"
+proof (rule filtercomap_neq_bot)
+  fix P assume *: "eventually P F"
+  show "\<exists>x. P (f x)"
+  proof (rule ccontr)
+    assume **: "\<not>(\<exists>x. P (f x))"
+    from * have "eventually (\<lambda>_. False) F"
+    proof eventually_elim
+      case (elim x)
+      from \<open>surj f\<close> obtain y where "x = f y" by auto
+      with elim and ** show False by auto
+    qed
+    with assms show False by (simp add: trivial_limit_def)
+  qed
+qed
 
 lemma eventually_filtercomapI [intro]:
   assumes "eventually P F"
@@ -857,6 +911,74 @@ lemma eventually_sequentially_seg [simp]: "eventually (\<lambda>n. P (n + k)) se
 
 lemma filtermap_sequentually_ne_bot: "filtermap f sequentially \<noteq> bot"
   by (simp add: filtermap_bot_iff)
+
+subsection \<open>Increasing finite subsets\<close>
+
+definition finite_subsets_at_top where
+  "finite_subsets_at_top A = (INF X:{X. finite X \<and> X \<subseteq> A}. principal {Y. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A})"
+
+lemma eventually_finite_subsets_at_top:
+  "eventually P (finite_subsets_at_top A) \<longleftrightarrow>
+     (\<exists>X. finite X \<and> X \<subseteq> A \<and> (\<forall>Y. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A \<longrightarrow> P Y))"
+  unfolding finite_subsets_at_top_def
+proof (subst eventually_INF_base, goal_cases)
+  show "{X. finite X \<and> X \<subseteq> A} \<noteq> {}" by auto
+next
+  case (2 B C)
+  thus ?case by (intro bexI[of _ "B \<union> C"]) auto
+qed (simp_all add: eventually_principal)
+
+lemma eventually_finite_subsets_at_top_weakI [intro]:
+  assumes "\<And>X. finite X \<Longrightarrow> X \<subseteq> A \<Longrightarrow> P X"
+  shows   "eventually P (finite_subsets_at_top A)"
+proof -
+  have "eventually (\<lambda>X. finite X \<and> X \<subseteq> A) (finite_subsets_at_top A)"
+    by (auto simp: eventually_finite_subsets_at_top)
+  thus ?thesis by eventually_elim (use assms in auto)
+qed
+
+lemma finite_subsets_at_top_neq_bot [simp]: "finite_subsets_at_top A \<noteq> bot"
+proof -
+  have "\<not>eventually (\<lambda>x. False) (finite_subsets_at_top A)"
+    by (auto simp: eventually_finite_subsets_at_top)
+  thus ?thesis by auto
+qed
+
+lemma filtermap_image_finite_subsets_at_top:
+  assumes "inj_on f A"
+  shows   "filtermap ((`) f) (finite_subsets_at_top A) = finite_subsets_at_top (f ` A)"
+  unfolding filter_eq_iff eventually_filtermap
+proof (safe, goal_cases)
+  case (1 P)
+  then obtain X where X: "finite X" "X \<subseteq> A" "\<And>Y. finite Y \<Longrightarrow> X \<subseteq> Y \<Longrightarrow> Y \<subseteq> A \<Longrightarrow> P (f ` Y)"
+    unfolding eventually_finite_subsets_at_top by force
+  show ?case unfolding eventually_finite_subsets_at_top eventually_filtermap
+  proof (rule exI[of _ "f ` X"], intro conjI allI impI, goal_cases)
+    case (3 Y)
+    with assms and X(1,2) have "P (f ` (f -` Y \<inter> A))" using X(1,2)
+      by (intro X(3) finite_vimage_IntI) auto
+    also have "f ` (f -` Y \<inter> A) = Y" using assms 3 by blast
+    finally show ?case .
+  qed (insert assms X(1,2), auto intro!: finite_vimage_IntI)
+next
+  case (2 P)
+  then obtain X where X: "finite X" "X \<subseteq> f ` A" "\<And>Y. finite Y \<Longrightarrow> X \<subseteq> Y \<Longrightarrow> Y \<subseteq> f ` A \<Longrightarrow> P Y"
+    unfolding eventually_finite_subsets_at_top by force
+  show ?case unfolding eventually_finite_subsets_at_top eventually_filtermap
+  proof (rule exI[of _ "f -` X \<inter> A"], intro conjI allI impI, goal_cases)
+    case (3 Y)
+    with X(1,2) and assms show ?case by (intro X(3)) force+
+  qed (insert assms X(1), auto intro!: finite_vimage_IntI)
+qed
+
+lemma eventually_finite_subsets_at_top_finite:
+  assumes "finite A"
+  shows   "eventually P (finite_subsets_at_top A) \<longleftrightarrow> P A"
+  unfolding eventually_finite_subsets_at_top using assms by force
+
+lemma finite_subsets_at_top_finite: "finite A \<Longrightarrow> finite_subsets_at_top A = principal {A}"
+  by (auto simp: filter_eq_iff eventually_finite_subsets_at_top_finite eventually_principal)
+
 
 subsection \<open>The cofinite filter\<close>
 
@@ -1208,6 +1330,9 @@ lemma filterlim_principal:
   "(LIM x F. f x :> principal S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F)"
   unfolding filterlim_def eventually_filtermap le_principal ..
 
+lemma filterlim_filtercomap [intro]: "filterlim f F (filtercomap f F)"
+  unfolding filterlim_def by (rule filtermap_filtercomap)
+
 lemma filterlim_inf:
   "(LIM x F1. f x :> inf F2 F3) \<longleftrightarrow> ((LIM x F1. f x :> F2) \<and> (LIM x F1. f x :> F3))"
   unfolding filterlim_def by simp
@@ -1219,6 +1344,15 @@ lemma filterlim_INF:
 lemma filterlim_INF_INF:
   "(\<And>m. m \<in> J \<Longrightarrow> \<exists>i\<in>I. filtermap f (F i) \<le> G m) \<Longrightarrow> LIM x (\<Sqinter>i\<in>I. F i). f x :> (\<Sqinter>j\<in>J. G j)"
   unfolding filterlim_def by (rule order_trans[OF filtermap_INF INF_mono])
+
+lemma filterlim_INF': "x \<in> A \<Longrightarrow> filterlim f F (G x) \<Longrightarrow> filterlim f F (INF x:A. G x)"
+  unfolding filterlim_def by (rule order.trans[OF filtermap_mono[OF INF_lower]])
+
+lemma filterlim_filtercomap_iff: "filterlim f (filtercomap g G) F \<longleftrightarrow> filterlim (g \<circ> f) G F"
+  by (simp add: filterlim_def filtermap_le_iff_le_filtercomap filtercomap_filtercomap o_def)
+
+lemma filterlim_iff_le_filtercomap: "filterlim f F G \<longleftrightarrow> G \<le> filtercomap f F"
+  by (simp add: filterlim_def filtermap_le_iff_le_filtercomap)
 
 lemma filterlim_base:
   "(\<And>m x. m \<in> J \<Longrightarrow> i m \<in> I) \<Longrightarrow> (\<And>m x. m \<in> J \<Longrightarrow> x \<in> F (i m) \<Longrightarrow> f x \<in> G m) \<Longrightarrow>
@@ -1347,9 +1481,51 @@ lemma filterlim_at_bot_lt:
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z<c. eventually (\<lambda>x. Z \<ge> f x) F)"
   by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
     
-lemma filterlim_filtercomap [intro]: "filterlim f F (filtercomap f F)"
-  unfolding filterlim_def by (rule filtermap_filtercomap)
+lemma filterlim_finite_subsets_at_top:
+  "filterlim f (finite_subsets_at_top A) F \<longleftrightarrow>
+     (\<forall>X. finite X \<and> X \<subseteq> A \<longrightarrow> eventually (\<lambda>y. finite (f y) \<and> X \<subseteq> f y \<and> f y \<subseteq> A) F)"
+  (is "?lhs = ?rhs")
+proof 
+  assume ?lhs
+  thus ?rhs
+  proof (safe, goal_cases)
+    case (1 X)
+    hence *: "(\<forall>\<^sub>F x in F. P (f x))" if "eventually P (finite_subsets_at_top A)" for P
+      using that by (auto simp: filterlim_def le_filter_def eventually_filtermap)
+    have "\<forall>\<^sub>F Y in finite_subsets_at_top A. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A"
+      using 1 unfolding eventually_finite_subsets_at_top by force
+    thus ?case by (intro *) auto
+  qed
+next
+  assume rhs: ?rhs
+  show ?lhs unfolding filterlim_def le_filter_def eventually_finite_subsets_at_top
+  proof (safe, goal_cases)
+    case (1 P X)
+    with rhs have "\<forall>\<^sub>F y in F. finite (f y) \<and> X \<subseteq> f y \<and> f y \<subseteq> A" by auto
+    thus "eventually P (filtermap f F)" unfolding eventually_filtermap
+      by eventually_elim (insert 1, auto)
+  qed
+qed
 
+lemma filterlim_atMost_at_top:
+  "filterlim (\<lambda>n. {..n}) (finite_subsets_at_top (UNIV :: nat set)) at_top"
+  unfolding filterlim_finite_subsets_at_top
+proof (safe, goal_cases)
+  case (1 X)
+  then obtain n where n: "X \<subseteq> {..n}" by (auto simp: finite_nat_set_iff_bounded_le)
+  show ?case using eventually_ge_at_top[of n]
+    by eventually_elim (insert n, auto)
+qed
+
+lemma filterlim_lessThan_at_top:
+  "filterlim (\<lambda>n. {..<n}) (finite_subsets_at_top (UNIV :: nat set)) at_top"
+  unfolding filterlim_finite_subsets_at_top
+proof (safe, goal_cases)
+  case (1 X)
+  then obtain n where n: "X \<subseteq> {..<n}" by (auto simp: finite_nat_set_iff_bounded)
+  show ?case using eventually_ge_at_top[of n]
+    by eventually_elim (insert n, auto)
+qed
 
 subsection \<open>Setup @{typ "'a filter"} for lifting and transfer\<close>
 

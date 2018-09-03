@@ -87,7 +87,6 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
                     XML.Elem (entity_markup space name, body))))
           |> sort (int_ord o apply2 #1) |> map #2
         end;
-
       in if null elems then () else export_body thy export_name elems end;
 
 
@@ -195,6 +194,25 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val _ = if null classrel then () else export_body thy "classrel" (encode_classrel classrel);
     val _ = if null arities then () else export_body thy "arities" (encode_arities arities);
+
+
+    (* locales *)
+
+    fun encode_locale ({type_params, params, asm, defs}: Locale.content) =
+      let
+        val args = map #1 params;
+        val typargs = type_params @ rev (fold Term.add_tfrees (map Free args @ the_list asm) []);
+        val encode =
+          let open XML.Encode Term_XML.Encode in
+            pair (list (pair string sort))
+              (pair (list (pair string typ))
+                (pair (option term) (list term)))
+          end;
+      in encode (typargs, (args, (asm, defs))) end;
+
+    val _ =
+      export_entities "locales" (fn _ => SOME o encode_locale) Locale.locale_space
+        (Locale.dest_locales thy);
 
   in () end);
 

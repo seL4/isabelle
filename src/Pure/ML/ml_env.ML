@@ -15,7 +15,7 @@ sig
   val ML_read_global: bool Config.T
   val ML_write_global_raw: Config.raw
   val ML_write_global: bool Config.T
-  val inherit: Context.generic -> Context.generic -> Context.generic
+  val inherit: Context.generic list -> Context.generic -> Context.generic
   type operations =
    {read_source: Input.source -> ML_Lex.token Antiquote.antiquote list,
     explode_token: ML_Lex.token -> char list}
@@ -101,20 +101,31 @@ type operations =
  {read_source: Input.source -> ML_Lex.token Antiquote.antiquote list,
   explode_token: ML_Lex.token -> char list};
 
+local
+
 type env = tables * operations;
+type data = env Name_Space.table * (bool Unsynchronized.ref * Position.T) Inttab.table;
+
+val empty_data: data = (Name_Space.empty_table "ML_environment", Inttab.empty);
+
+fun merge_data ((envs1, breakpoints1), (envs2, breakpoints2)) : data =
+  ((envs1, envs2) |> Name_Space.join_tables
+    (K (fn ((tables1, ops), (tables2, _)) => (merge_tables (tables1, tables2), ops))),
+   Inttab.merge (K true) (breakpoints1, breakpoints2));
+
+in
 
 structure Data = Generic_Data
 (
-  type T = env Name_Space.table * (bool Unsynchronized.ref * Position.T) Inttab.table;
-  val empty: T = (Name_Space.empty_table "ML_environment", Inttab.empty);
+  type T = data;
+  val empty = empty_data;
   val extend = I;
-  fun merge ((envs1, breakpoints1), (envs2, breakpoints2)) : T =
-    ((envs1, envs2) |> Name_Space.join_tables
-      (K (fn ((tables1, ops), (tables2, _)) => (merge_tables (tables1, tables2), ops))),
-     Inttab.merge (K true) (breakpoints1, breakpoints2));
+  val merge = merge_data;
 );
 
-val inherit = Data.put o Data.get;
+fun inherit contexts = Data.put (Library.foldl1 merge_data (map Data.get contexts));
+
+end;
 
 val get_env = Name_Space.get o #1 o Data.get;
 val get_tables = #1 oo get_env;

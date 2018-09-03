@@ -236,6 +236,9 @@ qed
 lemma INF_mono: "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> (\<Sqinter>n\<in>A. f n) \<le> (\<Sqinter>n\<in>B. g n)"
   using Inf_mono [of "g ` B" "f ` A"] by auto
 
+lemma INF_mono': "(\<And>x. f x \<le> g x) \<Longrightarrow> (INF x:A. f x) \<le> (INF x:A. g x)"
+  by (rule INF_mono) auto
+
 lemma Sup_mono:
   assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<le> b"
   shows "\<Squnion>A \<le> \<Squnion>B"
@@ -248,6 +251,9 @@ qed
 
 lemma SUP_mono: "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<le> g m) \<Longrightarrow> (\<Squnion>n\<in>A. f n) \<le> (\<Squnion>n\<in>B. g n)"
   using Sup_mono [of "f ` A" "g ` B"] by auto
+
+lemma SUP_mono': "(\<And>x. f x \<le> g x) \<Longrightarrow> (SUP x:A. f x) \<le> (SUP x:A. g x)"
+  by (rule SUP_mono) auto
 
 lemma INF_superset_mono: "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<le> (\<Sqinter>x\<in>B. g x)"
   \<comment> \<open>The last inclusion is POSITIVE!\<close>

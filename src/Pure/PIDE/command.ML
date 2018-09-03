@@ -70,7 +70,8 @@ fun read_file_node file_node master_dir pos src_path =
     val text = File.read full_path;
     val lines = split_lines text;
     val digest = SHA1.digest text;
-  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end
+    val file_pos = Position.copy_id pos (Path.position full_path);
+  in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
   handle ERROR msg => error (msg ^ Position.here pos);
 
 val read_file = read_file_node "";
@@ -179,7 +180,7 @@ val eval_running = Execution.is_running_exec o eval_exec_id;
 fun eval_finished (Eval {eval_process, ...}) = Lazy.is_finished eval_process;
 
 fun eval_result (Eval {eval_process, ...}) =
-  task_context (Future.worker_subgroup ()) Lazy.force eval_process;
+  Exn.release (Lazy.finished_result eval_process);
 
 val eval_result_command = #command o eval_result;
 val eval_result_state = #state o eval_result;
@@ -192,6 +193,10 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
     val res =
       if Keyword.is_theory_body keywords name then Toplevel.reset_theory st0
       else if Keyword.is_proof keywords name then Toplevel.reset_proof st0
+      else if Keyword.is_theory_end keywords name then
+        (case Toplevel.reset_notepad st0 of
+          NONE => Toplevel.reset_theory st0
+        | some => some)
       else NONE;
   in
     (case res of
@@ -259,10 +264,14 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
         let
           val _ = status tr Markup.failed;
           val _ = status tr Markup.finished;
-          val _ = if null errs then (report tr (Markup.bad ()); Exn.interrupt ()) else ();
+          val _ = if null errs then (status tr Markup.canceled; Exn.interrupt ()) else ();
         in {failed = true, command = tr, state = st} end
     | SOME st' =>
         let
+          val _ =
+            if Keyword.is_theory_end keywords (Toplevel.name_of tr) andalso
+              can (Toplevel.end_theory Position.none) st'
+            then status tr Markup.finalized else ();
           val _ = status tr Markup.finished;
         in {failed = false, command = tr, state = st'} end)
   end;
@@ -282,7 +291,8 @@ fun eval keywords master_dir init blobs_info command_id span eval0 =
               read keywords thy master_dir init blobs_info span |> Toplevel.exec_id exec_id) ();
       in eval_state keywords span tr eval_state0 end;
   in
-    Eval {command_id = command_id, exec_id = exec_id, eval_process = Lazy.lazy_name "Command.eval" process}
+    Eval {command_id = command_id, exec_id = exec_id,
+      eval_process = Lazy.lazy_name "Command.eval" process}
   end;
 
 end;
@@ -442,7 +452,7 @@ local
 fun run_process execution_id exec_id process =
   let val group = Future.worker_subgroup () in
     if Execution.running execution_id exec_id [group] then
-      ignore (task_context group Lazy.force_result process)
+      ignore (task_context group Lazy.force_result {strict = true} process)
     else ()
   end;
 

@@ -15,7 +15,8 @@ sig
   val peek: 'a lazy -> 'a Exn.result option
   val is_running: 'a lazy -> bool
   val is_finished: 'a lazy -> bool
-  val force_result: 'a lazy -> 'a Exn.result
+  val finished_result: 'a lazy -> 'a Exn.result
+  val force_result: {strict: bool} -> 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val force_value: 'a lazy -> 'a lazy
   val map: ('a -> 'b) -> 'a lazy -> 'b lazy
@@ -59,18 +60,28 @@ fun is_running (Value _) = false
         Expr _ => false
       | Result res => not (Future.is_finished res));
 
+fun is_finished_future res =
+  Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res));
+
 fun is_finished (Value _) = true
   | is_finished (Lazy var) =
       (case Synchronized.value var of
         Expr _ => false
-      | Result res =>
-          Future.is_finished res andalso not (Exn.is_interrupt_exn (Future.join_result res)));
+      | Result res => is_finished_future res);
+
+fun finished_result (Value a) = Exn.Res a
+  | finished_result (Lazy var) =
+      let fun fail () = Exn.Exn (Fail "Unfinished lazy") in
+        (case Synchronized.value var of
+          Expr _ => fail ()
+        | Result res => if is_finished_future res then Future.join_result res else fail ())
+      end;
 
 
 (* force result *)
 
-fun force_result (Value a) = Exn.Res a
-  | force_result (Lazy var) =
+fun force_result _ (Value a) = Exn.Res a
+  | force_result {strict} (Lazy var) =
       (case peek (Lazy var) of
         SOME res => res
       | NONE =>
@@ -93,19 +104,22 @@ fun force_result (Value a) = Exn.Res a
                     val res0 = Exn.capture (restore_attributes e) ();
                     val _ = Exn.capture (fn () => Future.fulfill_result x res0) ();
                     val res = Future.join_result x;
-                    (*semantic race: some other threads might see the same
-                      interrupt, until there is a fresh start*)
                     val _ =
-                      if Exn.is_interrupt_exn res
-                      then Synchronized.change var (fn _ => Expr (name, e))
-                      else Synchronized.assign var (Result (Future.value_result res));
+                      if not (Exn.is_interrupt_exn res) then
+                        Synchronized.assign var (Result (Future.value_result res))
+                      else if strict then
+                        Synchronized.assign var
+                          (Result (Future.value_result (Exn.Exn (Fail "Interrupt"))))
+                      (*semantic race: some other threads might see the same
+                        interrupt, until there is a fresh start*)
+                      else Synchronized.change var (fn _ => Expr (name, e));
                   in res end
               | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
             end) ());
 
 end;
 
-fun force x = Exn.release (force_result x);
+fun force x = Exn.release (force_result {strict = false} x);
 
 fun force_value x = if is_value x then x else value (force x);
 
@@ -122,7 +136,8 @@ fun map_finished f x = if is_finished x then value (f (force x)) else map f x;
 fun consolidate xs =
   let
     val unfinished =
-      xs |> map_filter (fn x => if is_finished x then NONE else SOME (fn () => force_result x));
+      xs |> map_filter (fn x =>
+        if is_finished x then NONE else SOME (fn () => force_result {strict = false} x));
     val _ =
       if Future.relevant unfinished then
         ignore (Future.forked_results {name = "Lazy.consolidate", deps = []} unfinished)
@@ -133,7 +148,7 @@ fun consolidate xs =
 (* future evaluation *)
 
 fun future params x =
-  if is_finished x then Future.value_result (force_result x)
+  if is_finished x then Future.value_result (force_result {strict = false} x)
   else (singleton o Future.forks) params (fn () => force x);
 
 

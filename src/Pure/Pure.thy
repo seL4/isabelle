@@ -916,7 +916,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>oops\<close> "forget proof"
-    (Scan.succeed (Toplevel.forget_proof true));
+    (Scan.succeed Toplevel.forget_proof);
 
 in end\<close>
 

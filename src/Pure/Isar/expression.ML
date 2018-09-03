@@ -531,12 +531,8 @@ end;
 local
 
 fun props_of thy (name, morph) =
-  let
-    val (asm, defs) = Locale.specification_of thy name;
-  in
-    (case asm of NONE => defs | SOME asm => asm :: defs)
-    |> map (Morphism.term morph)
-  end;
+  let val (asm, defs) = Locale.specification_of thy name
+  in map (Morphism.term morph) (the_list asm @ defs) end;
 
 fun prep_goal_expression prep expression ctxt =
   let

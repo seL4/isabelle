@@ -69,6 +69,11 @@ proof -
   then show thesis ..
 qed
 
+lemma countable_infiniteE':
+  assumes "countable A" "infinite A"
+  obtains g where "bij_betw g (UNIV :: nat set) A"
+  using bij_betw_inv[OF countableE_infinite[OF assms]] that by blast
+
 lemma countable_enum_cases:
   assumes "countable S"
   obtains (finite) f :: "'a \<Rightarrow> nat" where "finite S" "bij_betw f S {..<card S}"

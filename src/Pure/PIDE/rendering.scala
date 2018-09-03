@@ -19,7 +19,7 @@ object Rendering
   object Color extends Enumeration
   {
     // background
-    val unprocessed1, running1, bad, intensify, entity, active, active_result,
+    val unprocessed1, running1, canceled, bad, intensify, entity, active, active_result,
       markdown_bullet1, markdown_bullet2, markdown_bullet3, markdown_bullet4 = Value
     val background_colors = values
 
@@ -432,6 +432,7 @@ abstract class Rendering(
             val status = Document_Status.Command_Status.make(markups.iterator)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
             else if (status.is_running) Some(Rendering.Color.running1)
+            else if (status.is_canceled) Some(Rendering.Color.canceled)
             else opt_color
           case (_, opt_color) => opt_color
         })

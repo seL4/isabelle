@@ -876,6 +876,91 @@ lemma tendsto_add_const_iff:
     and tendsto_add[OF tendsto_const[of "-c"], of "\<lambda>x. c + f x" "c + d"] by auto
 
 
+class topological_monoid_mult = topological_semigroup_mult + monoid_mult
+class topological_comm_monoid_mult = topological_monoid_mult + comm_monoid_mult
+
+lemma tendsto_power_strong [tendsto_intros]:
+  fixes f :: "_ \<Rightarrow> 'b :: topological_monoid_mult"
+  assumes "(f \<longlongrightarrow> a) F" "(g \<longlongrightarrow> b) F"
+  shows   "((\<lambda>x. f x ^ g x) \<longlongrightarrow> a ^ b) F"
+proof -
+  have "((\<lambda>x. f x ^ b) \<longlongrightarrow> a ^ b) F"
+    by (induction b) (auto intro: tendsto_intros assms)
+  also from assms(2) have "eventually (\<lambda>x. g x = b) F"
+    by (simp add: nhds_discrete filterlim_principal)
+  hence "eventually (\<lambda>x. f x ^ b = f x ^ g x) F"
+    by eventually_elim simp
+  hence "((\<lambda>x. f x ^ b) \<longlongrightarrow> a ^ b) F \<longleftrightarrow> ((\<lambda>x. f x ^ g x) \<longlongrightarrow> a ^ b) F"
+    by (intro filterlim_cong refl)
+  finally show ?thesis .
+qed
+
+lemma continuous_mult' [continuous_intros]:
+  fixes f g :: "_ \<Rightarrow> 'b::topological_semigroup_mult"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x * g x)"
+  unfolding continuous_def by (rule tendsto_mult)
+
+lemma continuous_power' [continuous_intros]:
+  fixes f :: "_ \<Rightarrow> 'b::topological_monoid_mult"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x ^ g x)"
+  unfolding continuous_def by (rule tendsto_power_strong) auto
+
+lemma continuous_on_mult' [continuous_intros]:
+  fixes f g :: "_ \<Rightarrow> 'b::topological_semigroup_mult"
+  shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. f x * g x)"
+  unfolding continuous_on_def by (auto intro: tendsto_mult)
+
+lemma continuous_on_power' [continuous_intros]:
+  fixes f :: "_ \<Rightarrow> 'b::topological_monoid_mult"
+  shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. f x ^ g x)"
+  unfolding continuous_on_def by (auto intro: tendsto_power_strong)
+
+lemma tendsto_mult_one:
+  fixes f g :: "_ \<Rightarrow> 'b::topological_monoid_mult"
+  shows "(f \<longlongrightarrow> 1) F \<Longrightarrow> (g \<longlongrightarrow> 1) F \<Longrightarrow> ((\<lambda>x. f x * g x) \<longlongrightarrow> 1) F"
+  by (drule (1) tendsto_mult) simp
+
+lemma tendsto_prod' [tendsto_intros]:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_mult"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> (f i \<longlongrightarrow> a i) F) \<Longrightarrow> ((\<lambda>x. \<Prod>i\<in>I. f i x) \<longlongrightarrow> (\<Prod>i\<in>I. a i)) F"
+  by (induct I rule: infinite_finite_induct) (simp_all add: tendsto_mult)
+
+lemma tendsto_one_prod':
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::topological_comm_monoid_mult"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> ((\<lambda>x. f x i) \<longlongrightarrow> 1) F"
+  shows "((\<lambda>i. prod (f i) I) \<longlongrightarrow> 1) F"
+  using tendsto_prod' [of I "\<lambda>x y. f y x" "\<lambda>x. 1"] assms by simp
+
+lemma continuous_prod' [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::topological_comm_monoid_mult"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Prod>i\<in>I. f i x)"
+  unfolding continuous_def by (rule tendsto_prod')
+
+lemma continuous_on_prod' [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::topological_space \<Rightarrow> 'c::topological_comm_monoid_mult"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> continuous_on S (f i)) \<Longrightarrow> continuous_on S (\<lambda>x. \<Prod>i\<in>I. f i x)"
+  unfolding continuous_on_def by (auto intro: tendsto_prod')
+
+instance nat :: topological_comm_monoid_mult
+  by standard
+    (simp add: nhds_discrete principal_prod_principal filterlim_principal eventually_principal)
+
+instance int :: topological_comm_monoid_mult
+  by standard
+    (simp add: nhds_discrete principal_prod_principal filterlim_principal eventually_principal)
+
+class comm_real_normed_algebra_1 = real_normed_algebra_1 + comm_monoid_mult
+
+context real_normed_field
+begin
+
+subclass comm_real_normed_algebra_1
+proof
+  from norm_mult[of "1 :: 'a" 1] show "norm 1 = 1" by simp 
+qed (simp_all add: norm_mult)
+
+end
+
 subsubsection \<open>Inverse and division\<close>
 
 lemma (in bounded_bilinear) Zfun_prod_Bfun:
