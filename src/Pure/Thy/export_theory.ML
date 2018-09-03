@@ -49,15 +49,8 @@ fun export_body thy name body =
 
 val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
   let
-    val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
-
-
-    (* parents *)
-
     val parents = Theory.parents_of thy;
-    val _ =
-      export_body thy "parents"
-        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
+    val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
 
 
     (* entities *)
@@ -213,6 +206,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val _ =
       export_entities "locales" (fn _ => SOME o encode_locale) Locale.locale_space
         (Locale.dest_locales thy);
+
+
+    (* parents *)
+
+    val _ =
+      export_body thy "parents"
+        (XML.Encode.string (cat_lines (map Context.theory_long_name parents)));
 
   in () end);
 
