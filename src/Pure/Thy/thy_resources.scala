@@ -225,9 +225,9 @@ object Thy_Resources
         resources.load_theories(session, id, dep_theories, progress)
         result.join_result
         check_progress.cancel
-        session.commands_changed -= consumer
       }
       finally {
+        session.commands_changed -= consumer
         resources.unload_theories(session, id, dep_theories)
       }
 
