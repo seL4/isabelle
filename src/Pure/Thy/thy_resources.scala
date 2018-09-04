@@ -152,14 +152,15 @@ object Thy_Resources
           }
       }
 
-      val theories_progress = Synchronized(Set.empty[Document.Node.Name])
-
-      val delay_nodes_status =
-        Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
-          progress.nodes_status(current_nodes_status.value)
-        }
-
       val consumer =
+      {
+        val theories_progress = Synchronized(Set.empty[Document.Node.Name])
+
+        val delay_nodes_status =
+          Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
+            progress.nodes_status(current_nodes_status.value)
+          }
+
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
           case changed =>
             if (changed.nodes.exists(dep_theories_set)) {
@@ -217,6 +218,7 @@ object Thy_Resources
               check_state()
             }
         }
+      }
 
       try {
         session.commands_changed += consumer
