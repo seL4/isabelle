@@ -115,7 +115,7 @@ object Thy_Resources
       }
       val dep_theories_set = dep_theories.toSet
 
-      val nodes_status_update = Synchronized(Document_Status.Nodes_Status.empty_update)
+      val current_nodes_status = Synchronized(Document_Status.Nodes_Status.empty)
 
       val result = Future.promise[Theories_Result]
 
@@ -127,7 +127,7 @@ object Thy_Resources
             if (beyond_limit ||
                 dep_theories.forall(name =>
                   state.node_consolidated(version, name) ||
-                  nodes_status_update.value._1.quasi_consolidated(name)))
+                  current_nodes_status.value.quasi_consolidated(name)))
             {
               val nodes =
                 for (name <- dep_theories)
@@ -156,8 +156,7 @@ object Thy_Resources
 
       val delay_nodes_status =
         Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
-          val (nodes_status, names) = nodes_status_update.value
-          progress.nodes_status(nodes_status, names)
+          progress.nodes_status(current_nodes_status.value)
         }
 
       val consumer =
@@ -168,29 +167,31 @@ object Thy_Resources
               val state = snapshot.state
               val version = snapshot.version
 
-              nodes_status_update.change(
-                { case upd @ (nodes_status, _) =>
+              val theory_percentages =
+                current_nodes_status.change_result(nodes_status =>
+                  {
                     val domain =
                       if (nodes_status.is_empty) dep_theories_set
                       else changed.nodes.iterator.filter(dep_theories_set).toSet
 
-                    val upd1 @ (nodes_status1, names1) =
+                    val (nodes_status_changed, nodes_status1) =
                       nodes_status.update(resources.session_base, state, version,
-                        domain = Some(domain), trim = changed.assignment).getOrElse(upd)
+                        domain = Some(domain), trim = changed.assignment)
 
-                    for {
-                      name <- names1.iterator if changed.nodes.contains(name)
-                      p = nodes_status.get(name).map(_.percentage)
-                      p1 = nodes_status1.get(name).map(_.percentage)
-                      if p != p1 && p1.isDefined && p1.get > 0
-                    } progress.theory_percentage("", name.theory, p1.get)
-
-                    if (nodes_status_delay >= Time.zero && upd != upd1) {
+                    if (nodes_status_delay >= Time.zero && nodes_status_changed) {
                       delay_nodes_status.invoke
                     }
 
-                    upd1
-                })
+                    val progress_percentage =
+                      for {
+                        (name, node_status) <- nodes_status1.dest.iterator
+                        if changed.nodes.contains(name)
+                        p1 = node_status.percentage
+                        if p1 > 0 && Some(p1) != nodes_status.get(name).map(_.percentage)
+                      } yield (name.theory, p1)
+
+                    (progress_percentage, nodes_status1)
+                  })
 
               val check_theories =
                 (for {
@@ -209,6 +210,9 @@ object Thy_Resources
                   })
                 initialized.map(_.theory).sorted.foreach(progress.theory("", _))
               }
+
+              for ((theory, percentage) <- theory_percentages)
+                progress.theory_percentage("", theory, percentage)
 
               check_state()
             }

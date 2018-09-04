@@ -219,17 +219,20 @@ object Document_Status
 
   object Nodes_Status
   {
-    val empty: Nodes_Status = new Nodes_Status(Map.empty)
-
-    type Update = (Nodes_Status, List[Document.Node.Name])
-    val empty_update: Update = (empty, Nil)
+    val empty: Nodes_Status = new Nodes_Status(Map.empty, Document.Nodes.empty)
   }
 
-  final class Nodes_Status private(private val rep: Map[Document.Node.Name, Node_Status])
+  final class Nodes_Status private(
+    private val rep: Map[Document.Node.Name, Node_Status],
+    nodes: Document.Nodes)
   {
     def is_empty: Boolean = rep.isEmpty
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
+
+    def dest: List[(Document.Node.Name, Node_Status)] =
+      for { name <- nodes.topological_order; node_status <- get(name) }
+        yield (name, node_status)
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
       rep.get(name) match {
@@ -249,24 +252,23 @@ object Document_Status
       state: Document.State,
       version: Document.Version,
       domain: Option[Set[Document.Node.Name]] = None,
-      trim: Boolean = false): Option[Nodes_Status.Update] =
+      trim: Boolean = false): (Boolean, Nodes_Status) =
     {
-      val nodes = version.nodes
+      val nodes1 = version.nodes
       val update_iterator =
         for {
-          name <- domain.getOrElse(nodes.domain).iterator
+          name <- domain.getOrElse(nodes1.domain).iterator
           if !Sessions.is_hidden(name) &&
               !session_base.loaded_theory(name) &&
-              !nodes.is_suppressed(name) &&
-              !nodes(name).is_empty
+              !nodes1.is_suppressed(name) &&
+              !nodes1(name).is_empty
           st = Document_Status.Node_Status.make(state, version, name)
           if !rep.isDefinedAt(name) || rep(name) != st
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
-      val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes.domain) else rep1
+      val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1
 
-      if (rep == rep2) None
-      else Some(new Nodes_Status(rep2), version.nodes.topological_order.filter(rep2.keySet))
+      (rep != rep2, new Nodes_Status(rep2, nodes1))
     }
 
     override def hashCode: Int = rep.hashCode
