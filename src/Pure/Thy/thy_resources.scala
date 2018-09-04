@@ -102,6 +102,7 @@ object Thy_Resources
       master_dir: String = "",
       check_delay: Time = Time.seconds(default_check_delay),
       check_limit: Int = 0,
+      watchdog_timeout: Time = Time.zero,
       nodes_status_delay: Time = Time.seconds(default_nodes_status_delay),
       id: UUID = UUID(),
       progress: Progress = No_Progress): Theories_Result =
@@ -119,12 +120,16 @@ object Thy_Resources
 
       val result = Future.promise[Theories_Result]
 
+      var watchdog_time = Synchronized(Time.now())
+      def watchdog: Boolean =
+        watchdog_timeout > Time.zero && Time.now() - watchdog_time.value > watchdog_timeout
+
       def check_state(beyond_limit: Boolean = false)
       {
         val state = session.current_state()
         state.stable_tip_version match {
           case Some(version) =>
-            if (beyond_limit ||
+            if (beyond_limit || watchdog ||
                 dep_theories.forall(name =>
                   state.node_consolidated(version, name) ||
                   current_nodes_status.value.quasi_consolidated(name)))
@@ -167,6 +172,8 @@ object Thy_Resources
               val snapshot = session.snapshot()
               val state = snapshot.state
               val version = snapshot.version
+
+              watchdog_time.change(_ => Time.now())
 
               val theory_percentages =
                 current_nodes_status.change_result(nodes_status =>

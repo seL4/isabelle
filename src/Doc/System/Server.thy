@@ -909,6 +909,7 @@ text \<open>
   \quad~~\<open>export_pattern?: string,\<close> \\
   \quad~~\<open>check_delay?: double,\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>0.5\<close> \\
   \quad~~\<open>check_limit?: int,\<close> \\
+  \quad~~\<open>watchdog_timeout?: double,\<close> \\
   \quad~~\<open>nodes_status_delay?: double}\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>-1.0\<close> \\
   \end{tabular}
 
@@ -948,8 +949,12 @@ text \<open>
 
   \<^medskip> The status of PIDE processing is checked every \<open>check_delay\<close> seconds, and
   bounded by \<open>check_limit\<close> attempts (default: 0, i.e.\ unbounded). A
-  \<open>check_limit > 0\<close> effectively specifies a timeout of \<open>check_delay \<times>
+  \<open>check_limit > 0\<close> effectively specifies a global timeout of \<open>check_delay \<times>
   check_limit\<close> seconds.
+
+  \<^medskip> If \<open>watchdog_timeout\<close> is greater than 0, it specifies the timespan (in
+  seconds) after the last command status change of Isabelle/PIDE, before
+  finishing with a potentially non-terminating or deadlocked execution.
 
   \<^medskip> A non-negative \<open>nodes_status_delay\<close> enables continuous notifications of
   kind \<open>nodes_status\<close>, with a field of name and type \<open>nodes_status\<close>. The time
