@@ -276,7 +276,7 @@ object Server
     override def nodes_status(nodes_status: Document_Status.Nodes_Status)
     {
       val json =
-        for ((name, node_status) <- nodes_status.dest)
+        for ((name, node_status) <- nodes_status.present)
           yield name.json + ("status" -> nodes_status(name).json)
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }

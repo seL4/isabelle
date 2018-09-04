@@ -230,7 +230,7 @@ object Document_Status
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
-    def dest: List[(Document.Node.Name, Node_Status)] =
+    def present: List[(Document.Node.Name, Node_Status)] =
       for { name <- nodes.topological_order; node_status <- get(name) }
         yield (name, node_status)
 

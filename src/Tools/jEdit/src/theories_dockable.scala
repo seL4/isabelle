@@ -222,7 +222,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         session_base, snapshot.state, snapshot.version, domain = domain, trim = trim)
 
     nodes_status = nodes_status1
-    if (nodes_status_changed) status.listData = nodes_status1.dest.map(_._1)
+    if (nodes_status_changed) status.listData = nodes_status1.present.map(_._1)
   }
 
 

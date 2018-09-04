@@ -184,7 +184,7 @@ object Thy_Resources
 
                     val progress_percentage =
                       for {
-                        (name, node_status) <- nodes_status1.dest.iterator
+                        (name, node_status) <- nodes_status1.present.iterator
                         if changed.nodes.contains(name)
                         p1 = node_status.percentage
                         if p1 > 0 && Some(p1) != nodes_status.get(name).map(_.percentage)
