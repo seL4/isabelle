@@ -58,7 +58,7 @@ fun mk_update_defs typ_name lthy =
     fun mk_name sel =
       Binding.name ("update_" ^ Long_Name.base_name (fst (dest_Const sel)))
 
-    val thms_binding = (@{binding record_simps}, @{attributes [simp]})
+    val thms_binding = (Binding.name "record_simps", @{attributes [simp]})
 
     fun mk_t idx =
       let
