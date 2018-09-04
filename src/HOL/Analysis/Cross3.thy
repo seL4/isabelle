@@ -4,7 +4,7 @@
 Ported from HOL Light
 *)
 
-section\<open>Vector Cross Products in 3 Dimensions.\<close>
+section\<open>Vector Cross Products in 3 Dimensions\<close>
 
 theory "Cross3"
   imports Determinants
@@ -33,48 +33,48 @@ end
 
 unbundle cross3_syntax
 
-subsection%important\<open> Basic lemmas.\<close>
+subsection%important\<open> Basic lemmas\<close>
 
 lemmas cross3_simps = cross3_def inner_vec_def sum_3 det_3 vec_eq_iff vector_def algebra_simps
 
-lemma%unimportant dot_cross_self: "x \<bullet> (x \<times> y) = 0" "x \<bullet> (y \<times> x) = 0" "(x \<times> y) \<bullet> y = 0" "(y \<times> x) \<bullet> y = 0"
+lemma dot_cross_self: "x \<bullet> (x \<times> y) = 0" "x \<bullet> (y \<times> x) = 0" "(x \<times> y) \<bullet> y = 0" "(y \<times> x) \<bullet> y = 0"
   by (simp_all add: orthogonal_def cross3_simps)
 
-lemma%unimportant  orthogonal_cross: "orthogonal (x \<times> y) x" "orthogonal (x \<times> y) y"  
+lemma  orthogonal_cross: "orthogonal (x \<times> y) x" "orthogonal (x \<times> y) y"  
                         "orthogonal y (x \<times> y)" "orthogonal (x \<times> y) x"
   by (simp_all add: orthogonal_def dot_cross_self)
 
-lemma%unimportant  cross_zero_left [simp]: "0 \<times> x = 0" and cross_zero_right [simp]: "x \<times> 0 = 0" for x::"real^3"
+lemma  cross_zero_left [simp]: "0 \<times> x = 0" and cross_zero_right [simp]: "x \<times> 0 = 0" for x::"real^3"
   by (simp_all add: cross3_simps)
 
-lemma%unimportant  cross_skew: "(x \<times> y) = -(y \<times> x)" for x::"real^3"
+lemma  cross_skew: "(x \<times> y) = -(y \<times> x)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_refl [simp]: "x \<times> x = 0" for x::"real^3"
+lemma  cross_refl [simp]: "x \<times> x = 0" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_add_left: "(x + y) \<times> z = (x \<times> z) + (y \<times> z)" for x::"real^3"
+lemma  cross_add_left: "(x + y) \<times> z = (x \<times> z) + (y \<times> z)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_add_right: "x \<times> (y + z) = (x \<times> y) + (x \<times> z)" for x::"real^3"
+lemma  cross_add_right: "x \<times> (y + z) = (x \<times> y) + (x \<times> z)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_mult_left: "(c *\<^sub>R x) \<times> y = c *\<^sub>R (x \<times> y)" for x::"real^3"
+lemma  cross_mult_left: "(c *\<^sub>R x) \<times> y = c *\<^sub>R (x \<times> y)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_mult_right: "x \<times> (c *\<^sub>R y) = c *\<^sub>R (x \<times> y)" for x::"real^3"
+lemma  cross_mult_right: "x \<times> (c *\<^sub>R y) = c *\<^sub>R (x \<times> y)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_minus_left [simp]: "(-x) \<times> y = - (x \<times> y)" for x::"real^3"
+lemma  cross_minus_left [simp]: "(-x) \<times> y = - (x \<times> y)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  cross_minus_right [simp]: "x \<times> -y = - (x \<times> y)" for x::"real^3"
+lemma  cross_minus_right [simp]: "x \<times> -y = - (x \<times> y)" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  left_diff_distrib: "(x - y) \<times> z = x \<times> z - y \<times> z" for x::"real^3"
+lemma  left_diff_distrib: "(x - y) \<times> z = x \<times> z - y \<times> z" for x::"real^3"
   by (simp add: cross3_simps)
 
-lemma%unimportant  right_diff_distrib: "x \<times> (y - z) = x \<times> y - x \<times> z" for x::"real^3"
+lemma  right_diff_distrib: "x \<times> (y - z) = x \<times> y - x \<times> z" for x::"real^3"
   by (simp add: cross3_simps)
 
 hide_fact (open) left_diff_distrib right_diff_distrib
@@ -85,24 +85,24 @@ lemma%important  Jacobi: "x \<times> (y \<times> z) + y \<times> (z \<times> x) 
 lemma%important  Lagrange: "x \<times> (y \<times> z) = (x \<bullet> z) *\<^sub>R y - (x \<bullet> y) *\<^sub>R z"
   by%unimportant (simp add: cross3_simps) (metis (full_types) exhaust_3)
 
-lemma%unimportant  cross_triple: "(x \<times> y) \<bullet> z = (y \<times> z) \<bullet> x"
+lemma  cross_triple: "(x \<times> y) \<bullet> z = (y \<times> z) \<bullet> x"
   by (simp add: cross3_def inner_vec_def sum_3 vec_eq_iff algebra_simps)
 
-lemma%unimportant  cross_components:
+lemma  cross_components:
    "(x \<times> y)$1 = x$2 * y$3 - y$2 * x$3" "(x \<times> y)$2 = x$3 * y$1 - y$3 * x$1" "(x \<times> y)$3 = x$1 * y$2 - y$1 * x$2"
   by (simp_all add: cross3_def inner_vec_def sum_3 vec_eq_iff algebra_simps)
 
-lemma%unimportant  cross_basis: "(axis 1 1) \<times> (axis 2 1) = axis 3 1" "(axis 2 1) \<times> (axis 1 1) = -(axis 3 1)" 
+lemma  cross_basis: "(axis 1 1) \<times> (axis 2 1) = axis 3 1" "(axis 2 1) \<times> (axis 1 1) = -(axis 3 1)" 
                    "(axis 2 1) \<times> (axis 3 1) = axis 1 1" "(axis 3 1) \<times> (axis 2 1) = -(axis 1 1)" 
                    "(axis 3 1) \<times> (axis 1 1) = axis 2 1" "(axis 1 1) \<times> (axis 3 1) = -(axis 2 1)"
   using exhaust_3
   by (force simp add: axis_def cross3_simps)+
 
-lemma%unimportant  cross_basis_nonzero:
+lemma  cross_basis_nonzero:
   "u \<noteq> 0 \<Longrightarrow> ~(u \<times> axis 1 1 = 0) \<or> ~(u \<times> axis 2 1 = 0) \<or> ~(u \<times> axis 3 1 = 0)"
   by (clarsimp simp add: axis_def cross3_simps) (metis vector_3 exhaust_3)
 
-lemma%unimportant  cross_dot_cancel:
+lemma  cross_dot_cancel:
   fixes x::"real^3"
   assumes deq: "x \<bullet> y = x \<bullet> z" and veq: "x \<times> y = x \<times> z" and x: "x \<noteq> 0"
   shows "y = z" 
@@ -116,20 +116,20 @@ proof -
     using eq_iff_diff_eq_0 by blast
 qed
 
-lemma%unimportant  norm_cross_dot: "(norm (x \<times> y))\<^sup>2 + (x \<bullet> y)\<^sup>2 = (norm x * norm y)\<^sup>2"
+lemma  norm_cross_dot: "(norm (x \<times> y))\<^sup>2 + (x \<bullet> y)\<^sup>2 = (norm x * norm y)\<^sup>2"
   unfolding power2_norm_eq_inner power_mult_distrib
   by (simp add: cross3_simps power2_eq_square)
 
-lemma%unimportant  dot_cross_det: "x \<bullet> (y \<times> z) = det(vector[x,y,z])"
+lemma  dot_cross_det: "x \<bullet> (y \<times> z) = det(vector[x,y,z])"
   by (simp add: cross3_simps) 
 
-lemma%unimportant  cross_cross_det: "(w \<times> x) \<times> (y \<times> z) = det(vector[w,x,z]) *\<^sub>R y - det(vector[w,x,y]) *\<^sub>R z"
+lemma  cross_cross_det: "(w \<times> x) \<times> (y \<times> z) = det(vector[w,x,z]) *\<^sub>R y - det(vector[w,x,y]) *\<^sub>R z"
   using exhaust_3 by (force simp add: cross3_simps) 
 
 lemma%important  dot_cross: "(w \<times> x) \<bullet> (y \<times> z) = (w \<bullet> y) * (x \<bullet> z) - (w \<bullet> z) * (x \<bullet> y)"
   by%unimportant (force simp add: cross3_simps) 
 
-lemma%unimportant  norm_cross: "(norm (x \<times> y))\<^sup>2 = (norm x)\<^sup>2 * (norm y)\<^sup>2 - (x \<bullet> y)\<^sup>2"
+lemma  norm_cross: "(norm (x \<times> y))\<^sup>2 = (norm x)\<^sup>2 * (norm y)\<^sup>2 - (x \<bullet> y)\<^sup>2"
   unfolding power2_norm_eq_inner power_mult_distrib
   by (simp add: cross3_simps power2_eq_square)
 
@@ -147,11 +147,11 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-lemma%unimportant  cross_eq_self: "x \<times> y = x \<longleftrightarrow> x = 0" "x \<times> y = y \<longleftrightarrow> y = 0"
+lemma  cross_eq_self: "x \<times> y = x \<longleftrightarrow> x = 0" "x \<times> y = y \<longleftrightarrow> y = 0"
   apply (metis cross_zero_left dot_cross_self(1) inner_eq_zero_iff)
   by (metis cross_zero_right dot_cross_self(2) inner_eq_zero_iff)
 
-lemma%unimportant  norm_and_cross_eq_0:
+lemma  norm_and_cross_eq_0:
    "x \<bullet> y = 0 \<and> x \<times> y = 0 \<longleftrightarrow> x = 0 \<or> y = 0" (is "?lhs = ?rhs")
 proof 
   assume ?lhs
@@ -159,7 +159,7 @@ proof
     by (metis cross_dot_cancel cross_zero_right inner_zero_right)
 qed auto
 
-lemma%unimportant  bilinear_cross: "bilinear(\<times>)"
+lemma  bilinear_cross: "bilinear(\<times>)"
   apply (auto simp add: bilinear_def linear_def)
   apply unfold_locales
   apply (simp add: cross_add_right)
@@ -168,9 +168,9 @@ lemma%unimportant  bilinear_cross: "bilinear(\<times>)"
   apply (simp add: cross_mult_left)
   done
 
-subsection%important   \<open>Preservation by rotation, or other orthogonal transformation up to sign.\<close>
+subsection%important   \<open>Preservation by rotation, or other orthogonal transformation up to sign\<close>
 
-lemma%unimportant  cross_matrix_mult: "transpose A *v ((A *v x) \<times> (A *v y)) = det A *\<^sub>R (x \<times> y)"
+lemma  cross_matrix_mult: "transpose A *v ((A *v x) \<times> (A *v y)) = det A *\<^sub>R (x \<times> y)"
   apply (simp add: vec_eq_iff   )
   apply (simp add: vector_matrix_mult_def matrix_vector_mult_def forall_3 cross3_simps)
   done
@@ -185,10 +185,10 @@ proof%unimportant -
     by (metis (no_types) vector_matrix_mul_rid vector_transpose_matrix cross_matrix_mult matrix_vector_mul_assoc matrix_vector_mult_scaleR)
 qed
 
-lemma%unimportant  cross_rotation_matrix: "rotation_matrix A \<Longrightarrow> (A *v x) \<times> (A *v y) =  A *v (x \<times> y)"
+lemma  cross_rotation_matrix: "rotation_matrix A \<Longrightarrow> (A *v x) \<times> (A *v y) =  A *v (x \<times> y)"
   by (simp add: rotation_matrix_def cross_orthogonal_matrix)
 
-lemma%unimportant  cross_rotoinversion_matrix: "rotoinversion_matrix A \<Longrightarrow> (A *v x) \<times> (A *v y) = - A *v (x \<times> y)"
+lemma  cross_rotoinversion_matrix: "rotoinversion_matrix A \<Longrightarrow> (A *v x) \<times> (A *v y) = - A *v (x \<times> y)"
   by (simp add: rotoinversion_matrix_def cross_orthogonal_matrix scaleR_matrix_vector_assoc)
 
 lemma%important  cross_orthogonal_transformation:
@@ -203,20 +203,20 @@ proof%unimportant -
     by simp
 qed
 
-lemma%unimportant  cross_linear_image:
+lemma  cross_linear_image:
    "\<lbrakk>linear f; \<And>x. norm(f x) = norm x; det(matrix f) = 1\<rbrakk>
            \<Longrightarrow> (f x) \<times> (f y) = f(x \<times> y)"
   by (simp add: cross_orthogonal_transformation orthogonal_transformation)
 
 subsection%unimportant \<open>Continuity\<close>
 
-lemma%unimportant  continuous_cross: "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. (f x) \<times> (g x))"
+lemma  continuous_cross: "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. (f x) \<times> (g x))"
   apply (subst continuous_componentwise)
   apply (clarsimp simp add: cross3_simps)
   apply (intro continuous_intros; simp)
   done
 
-lemma%unimportant  continuous_on_cross:
+lemma  continuous_on_cross:
   fixes f :: "'a::t2_space \<Rightarrow> real^3"
   shows "\<lbrakk>continuous_on S f; continuous_on S g\<rbrakk> \<Longrightarrow> continuous_on S (\<lambda>x. (f x) \<times> (g x))"
   by (simp add: continuous_on_eq_continuous_within continuous_cross)
