@@ -96,6 +96,32 @@ object Thy_Resources
 
     /* theories */
 
+    private sealed case class Use_Theories_State(
+      last_update: Time = Time.now(),
+      nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
+      already_initialized: Set[Document.Node.Name] = Set.empty)
+    {
+      def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
+        copy(last_update = Time.now(), nodes_status = new_nodes_status)
+
+      def watchdog(watchdog_timeout: Time): Boolean =
+        watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
+
+      def initialized_theories(
+        state: Document.State,
+        version: Document.Version,
+        new_theories: List[Document.Node.Name]): (List[Document.Node.Name], Use_Theories_State) =
+      {
+        val initialized =
+          for {
+            name <- new_theories
+            if !already_initialized(name) &&
+              Document_Status.Node_Status.make(state, version, name).initialized
+          } yield name
+        (initialized, copy(already_initialized = already_initialized ++ initialized))
+      }
+    }
+
     def use_theories(
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
@@ -116,23 +142,19 @@ object Thy_Resources
       }
       val dep_theories_set = dep_theories.toSet
 
-      val current_nodes_status = Synchronized(Document_Status.Nodes_Status.empty)
-
+      val use_theories_state = Synchronized(Use_Theories_State())
       val result = Future.promise[Theories_Result]
-
-      var watchdog_time = Synchronized(Time.now())
-      def watchdog: Boolean =
-        watchdog_timeout > Time.zero && Time.now() - watchdog_time.value > watchdog_timeout
 
       def check_state(beyond_limit: Boolean = false)
       {
         val state = session.current_state()
         state.stable_tip_version match {
           case Some(version) =>
-            if (beyond_limit || watchdog ||
+            val st = use_theories_state.value
+            if (beyond_limit || st.watchdog(watchdog_timeout) ||
                 dep_theories.forall(name =>
                   state.node_consolidated(version, name) ||
-                  current_nodes_status.value.quasi_consolidated(name)))
+                  st.nodes_status.quasi_consolidated(name)))
             {
               val nodes =
                 for (name <- dep_theories)
@@ -159,11 +181,9 @@ object Thy_Resources
 
       val consumer =
       {
-        val theories_progress = Synchronized(Set.empty[Document.Node.Name])
-
         val delay_nodes_status =
           Standard_Thread.delay_first(nodes_status_delay max Time.zero) {
-            progress.nodes_status(current_nodes_status.value)
+            progress.nodes_status(use_theories_state.value.nodes_status)
           }
 
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
@@ -173,17 +193,15 @@ object Thy_Resources
               val state = snapshot.state
               val version = snapshot.version
 
-              watchdog_time.change(_ => Time.now())
-
               val theory_percentages =
-                current_nodes_status.change_result(nodes_status =>
+                use_theories_state.change_result(st =>
                   {
                     val domain =
-                      if (nodes_status.is_empty) dep_theories_set
+                      if (st.nodes_status.is_empty) dep_theories_set
                       else changed.nodes.iterator.filter(dep_theories_set).toSet
 
                     val (nodes_status_changed, nodes_status1) =
-                      nodes_status.update(resources.session_base, state, version,
+                      st.nodes_status.update(resources.session_base, state, version,
                         domain = Some(domain), trim = changed.assignment)
 
                     if (nodes_status_delay >= Time.zero && nodes_status_changed) {
@@ -195,27 +213,22 @@ object Thy_Resources
                         (name, node_status) <- nodes_status1.present.iterator
                         if changed.nodes.contains(name)
                         p1 = node_status.percentage
-                        if p1 > 0 && Some(p1) != nodes_status.get(name).map(_.percentage)
+                        if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
                       } yield (name.theory, p1)).toList
 
-                    (progress_percentage, nodes_status1)
+                    (progress_percentage, st.update(nodes_status1))
                   })
 
               val check_theories =
                 (for {
                   command <- changed.commands.iterator
                   if dep_theories_set(command.node_name) && command.potentially_initialized
-                } yield command.node_name).toSet
+                } yield command.node_name).toList
 
               if (check_theories.nonEmpty) {
                 val initialized =
-                  theories_progress.change_result(theories =>
-                  {
-                    val initialized =
-                      (check_theories -- theories).toList.filter(name =>
-                        Document_Status.Node_Status.make(state, version, name).initialized)
-                    (initialized, theories ++ initialized)
-                  })
+                  use_theories_state.change_result(
+                    _.initialized_theories(state, version, check_theories))
                 initialized.map(_.theory).sorted.foreach(progress.theory("", _))
               }
 
