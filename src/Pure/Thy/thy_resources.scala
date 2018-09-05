@@ -255,12 +255,15 @@ object Thy_Resources
     }
 
     def purge_theories(
-        theories: List[String],
-        qualifier: String = Sessions.DRAFT,
-        master_dir: String = "",
-        all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
-      resources.purge_theories(session, theories = theories, qualifier = qualifier,
-        master_dir = proper_string(master_dir) getOrElse tmp_dir_name, all = all)
+      theories: List[String],
+      qualifier: String = Sessions.DRAFT,
+      master_dir: String = "",
+      all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
+    {
+      val master = proper_string(master_dir) getOrElse tmp_dir_name
+      val nodes = if (all) None else Some(theories.map(resources.import_name(qualifier, master, _)))
+      resources.purge_theories(session, nodes)
+    }
   }
 
 
@@ -399,21 +402,16 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
       })
   }
 
-  def purge_theories(session: Session,
-    theories: List[String],
-    qualifier: String,
-    master_dir: String,
-    all: Boolean): (List[Document.Node.Name], List[Document.Node.Name]) =
+  def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
+    : (List[Document.Node.Name], List[Document.Node.Name]) =
   {
-    val nodes = theories.map(import_name(qualifier, master_dir, _))
-
     state.change_result(st =>
       {
         val graph = st.theories_graph
         val all_nodes = graph.topological_order
 
         val purge =
-          (if (all) all_nodes else nodes.filter(graph.defined(_))).
+          (if (nodes.isEmpty) all_nodes else nodes.get.filter(graph.defined(_))).
             filterNot(st.is_required(_)).toSet
 
         val retain = graph.all_preds(all_nodes.filterNot(purge)).toSet
