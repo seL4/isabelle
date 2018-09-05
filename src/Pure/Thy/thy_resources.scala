@@ -55,6 +55,14 @@ object Thy_Resources
     }
   }
 
+  private def stable_snapshot(
+    state: Document.State, version: Document.Version, name: Document.Node.Name): Document.Snapshot =
+  {
+    val snapshot = state.snapshot(name)
+    assert(version.id == snapshot.version.id)
+    snapshot
+  }
+
   class Theories_Result private[Thy_Resources](
     val state: Document.State,
     val version: Document.Version,
@@ -62,13 +70,7 @@ object Thy_Resources
   {
     def node_names: List[Document.Node.Name] = nodes.map(_._1)
     def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
-
-    def snapshot(node_name: Document.Node.Name): Document.Snapshot =
-    {
-      val snapshot = state.snapshot(node_name)
-      assert(version.id == snapshot.version.id)
-      snapshot
-    }
+    def snapshot(name: Document.Node.Name): Document.Snapshot = stable_snapshot(state, version, name)
   }
 
   val default_check_delay: Double = 0.5
@@ -99,7 +101,9 @@ object Thy_Resources
     private sealed case class Use_Theories_State(
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
-      already_initialized: Set[Document.Node.Name] = Set.empty)
+      already_initialized: Set[Document.Node.Name] = Set.empty,
+      already_committed: Set[Document.Node.Name] = Set.empty,
+      result: Promise[Theories_Result] = Future.promise[Theories_Result])
     {
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
         copy(last_update = Time.now(), nodes_status = new_nodes_status)
@@ -110,15 +114,60 @@ object Thy_Resources
       def initialized_theories(
         state: Document.State,
         version: Document.Version,
-        new_theories: List[Document.Node.Name]): (List[Document.Node.Name], Use_Theories_State) =
+        theories: List[Document.Node.Name]): (List[Document.Node.Name], Use_Theories_State) =
       {
         val initialized =
           for {
-            name <- new_theories
+            name <- theories
             if !already_initialized(name) &&
               Document_Status.Node_Status.make(state, version, name).initialized
           } yield name
         (initialized, copy(already_initialized = already_initialized ++ initialized))
+      }
+
+      def cancel_result { result.cancel }
+      def await_result { result.join_result }
+      def join_result: Theories_Result = result.join
+      def check_result(
+          state: Document.State,
+          version: Document.Version,
+          theories: List[Document.Node.Name],
+          beyond_limit: Boolean,
+          watchdog_timeout: Time,
+          commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit])
+        : Use_Theories_State =
+      {
+        val st1 =
+          if (commit.isDefined) {
+            val committed =
+              for {
+                name <- theories
+                if !already_committed(name) && state.node_consolidated(version, name)
+              }
+              yield {
+                val snapshot = stable_snapshot(state, version, name)
+                val status = Document_Status.Node_Status.make(state, version, name)
+                commit.get.apply(snapshot, status)
+                name
+              }
+            copy(already_committed = already_committed ++ committed)
+          }
+          else this
+
+        if (beyond_limit || watchdog(watchdog_timeout) ||
+          theories.forall(name =>
+            already_committed(name) ||
+            state.node_consolidated(version, name) ||
+            nodes_status.quasi_consolidated(name)))
+        {
+          val nodes =
+            for (name <- theories)
+            yield { (name -> Document_Status.Node_Status.make(state, version, name)) }
+          try { result.fulfill(new Theories_Result(state, version, nodes)) }
+          catch { case _: IllegalStateException => }
+        }
+
+        st1
       }
     }
 
@@ -131,6 +180,8 @@ object Thy_Resources
       watchdog_timeout: Time = Time.zero,
       nodes_status_delay: Time = Time.seconds(default_nodes_status_delay),
       id: UUID = UUID(),
+      // commit: must not block, must not fail
+      commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       progress: Progress = No_Progress): Theories_Result =
     {
       val dep_theories =
@@ -143,25 +194,14 @@ object Thy_Resources
       val dep_theories_set = dep_theories.toSet
 
       val use_theories_state = Synchronized(Use_Theories_State())
-      val result = Future.promise[Theories_Result]
 
-      def check_state(beyond_limit: Boolean = false)
+      def check_result(beyond_limit: Boolean = false)
       {
         val state = session.current_state()
         state.stable_tip_version match {
           case Some(version) =>
-            val st = use_theories_state.value
-            if (beyond_limit || st.watchdog(watchdog_timeout) ||
-                dep_theories.forall(name =>
-                  state.node_consolidated(version, name) ||
-                  st.nodes_status.quasi_consolidated(name)))
-            {
-              val nodes =
-                for (name <- dep_theories)
-                yield (name -> Document_Status.Node_Status.make(state, version, name))
-              try { result.fulfill(new Theories_Result(state, version, nodes)) }
-              catch { case _: IllegalStateException => }
-            }
+            use_theories_state.change(
+              _.check_result(state, version, dep_theories, beyond_limit, watchdog_timeout, commit))
           case None =>
         }
       }
@@ -171,10 +211,10 @@ object Thy_Resources
         var check_count = 0
         Event_Timer.request(Time.now(), repeat = Some(check_delay))
           {
-            if (progress.stopped) result.cancel
+            if (progress.stopped) use_theories_state.value.cancel_result
             else {
               check_count += 1
-              check_state(check_limit > 0 && check_count > check_limit)
+              check_result(check_limit > 0 && check_count > check_limit)
             }
           }
       }
@@ -235,7 +275,7 @@ object Thy_Resources
               for ((theory, percentage) <- theory_percentages)
                 progress.theory_percentage("", theory, percentage)
 
-              check_state()
+              check_result()
             }
         }
       }
@@ -243,7 +283,7 @@ object Thy_Resources
       try {
         session.commands_changed += consumer
         resources.load_theories(session, id, dep_theories, progress)
-        result.join_result
+        use_theories_state.value.await_result
         check_progress.cancel
       }
       finally {
@@ -251,7 +291,7 @@ object Thy_Resources
         resources.unload_theories(session, id, dep_theories)
       }
 
-      result.join
+      use_theories_state.value.join_result
     }
 
     def purge_theories(
