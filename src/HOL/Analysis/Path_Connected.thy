@@ -1412,7 +1412,9 @@ proof -
 qed
 
 
-section \<open>Path component, considered as a "joinability" relation (from Tom Hales)\<close>
+section \<open>Path component, considered as a "joinability" relation\<close>
+
+text \<open>(by Tom Hales)\<close>
 
 definition%important "path_component s x y \<longleftrightarrow>
   (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
