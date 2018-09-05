@@ -65,6 +65,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     "HOL-Library"
     "HOL-Computational_Algebra"
   theories
+    L2_Norm
     Analysis
   document_files
     "root.tex"
