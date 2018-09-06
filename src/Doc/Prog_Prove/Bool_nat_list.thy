@@ -1,6 +1,6 @@
 (*<*)
 theory Bool_nat_list
-imports Main
+imports Complex_Main
 begin
 (*>*)
 
@@ -423,6 +423,48 @@ but underdefined.
 
 From now on lists are always the predefined lists.
 
+\ifsem\else
+\subsection{Types @{typ int} and @{typ real}}
+
+In addition to @{typ nat} there are also the types @{typ int} and @{typ real}, the mathematical integers
+and real numbers. As mentioned above, numerals and most of the standard arithmetic operations are overloaded.
+In particular they are defined on @{typ int} and @{typ real}.
+
+\begin{warn}
+There are two infix exponentiation operators:
+@{term "(^)"} for @{typ nat} and @{typ int} (with exponent of type @{typ nat} in both cases)
+and @{term "(powr)"} for @{typ real}.
+\end{warn}
+\begin{warn}
+Type  @{typ int} is already part of theory @{theory Main}, but in order to use @{typ real} as well, you have to import
+theory @{theory Complex_Main} instead of @{theory Main}.
+\end{warn}
+
+There are three conversion functions, meaning inclusions:
+\begin{quote}
+\begin{tabular}{rcl}
+@{const int} &\<open>::\<close>& @{typ "nat \<Rightarrow> int"}\\
+@{const real} &\<open>::\<close>& @{typ "nat \<Rightarrow> real"}\\
+@{const real_of_int} &\<open>::\<close>& @{typ "int \<Rightarrow> real"}\\
+\end{tabular}
+\end{quote}
+
+Isabelle inserts these conversion functions automatically once you import \<open>Complex_Main\<close>.
+If there are multiple type-correct completions, Isabelle chooses an arbitrary one.
+For example, the input \noquotes{@{term[source] "(i::int) + (n::nat)"}} has the unique
+type-correct completion @{term"(i::int) + int(n::nat)"}. In contrast,
+\noquotes{@{term[source] "((n::nat) + n) :: real"}} has two type-correct completions,
+\noquotes{@{term[source]"real(n+n)"}} and \noquotes{@{term[source]"real n + real n"}}.
+
+There are also the coercion functions in the other direction:
+\begin{quote}
+\begin{tabular}{rcl}
+@{const nat} &\<open>::\<close>& @{typ "int \<Rightarrow> nat"}\\
+@{const floor} &\<open>::\<close>& @{typ "real \<Rightarrow> int"}\\
+@{const ceiling} &\<open>::\<close>& @{typ "real \<Rightarrow> int"}\\
+\end{tabular}
+\end{quote}
+\fi
 
 \subsection*{Exercises}
 
