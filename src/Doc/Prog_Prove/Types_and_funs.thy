@@ -538,6 +538,14 @@ The modifier \indexed{@{text "split:"}}{split} can be followed by multiple names
 Splitting if or case-expressions in the assumptions requires 
 @{text "split: if_splits"} or @{text "split: t.splits"}.
 
+\ifsem\else
+\subsection{Converting Numerals to @{const Suc} Terms}
+
+Recursive functions on type @{typ nat} are often defined by pattern matching over @{text 0} and @{const Suc},
+e.g. @{text "f 0 = ..."} and  @{text "f (Suc n) = ..."}. In order to simplify \<open>f 2\<close>, the \<open>2\<close>
+needs to be converted to @{term "Suc(Suc 0)"} first. The simplification rule @{thm[source] numeral_eq_Suc}
+converts all numerals to @{const Suc} terms.
+\fi
 
 \subsection*{Exercises}
 
