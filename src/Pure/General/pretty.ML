@@ -76,8 +76,8 @@ sig
   val writeln_chunks2: T list -> unit
   val to_ML: FixedInt.int -> T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
-  val to_polyml: T -> PolyML_Pretty.pretty
-  val from_polyml: PolyML_Pretty.pretty -> T
+  val to_polyml: T -> PolyML.pretty
+  val from_polyml: PolyML.pretty -> T
 end;
 
 structure Pretty: PRETTY =

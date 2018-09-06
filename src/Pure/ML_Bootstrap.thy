@@ -18,7 +18,7 @@ ML \<open>
   structure Output_Primitives = Output_Primitives_Virtual;
   structure Thread_Data = Thread_Data_Virtual;
   structure PolyML = PolyML;
-  fun ML_system_pp (_: FixedInt.int -> 'a -> 'b -> PolyML_Pretty.pretty) = ();
+  fun ML_system_pp (_: FixedInt.int -> 'a -> 'b -> PolyML.pretty) = ();
 
   Proofterm.proofs := 0;
 
@@ -29,6 +29,8 @@ ML \<open>
       struct
         val pointerEq = pointer_eq;
         structure IntInf = PolyML.IntInf;
+        datatype context = datatype PolyML.context;
+        datatype pretty = datatype PolyML.pretty;
       end;
     \<close>
 \<close>
