@@ -18,7 +18,8 @@ sig
   val inherit: Context.generic list -> Context.generic -> Context.generic
   type operations =
    {read_source: Input.source -> ML_Lex.token Antiquote.antiquote list,
-    explode_token: ML_Lex.token -> char list}
+    explode_token: ML_Lex.token -> char list,
+    ML_system: bool}
   type environment = {read: string, write: string}
   val parse_environment: Context.generic option -> string -> environment
   val print_environment: environment -> string
@@ -86,6 +87,9 @@ fun merge_tables
    Symtab.merge (K true) (signature1, signature2),
    Symtab.merge (K true) (functor1, functor2));
 
+fun update_tables_values vals (val1, type1, fixity1, structure1, signature1, functor1) : tables =
+  (fold Symtab.update vals val1, type1, fixity1, structure1, signature1, functor1);
+
 val sml_tables: tables =
   (Symtab.make ML_Name_Space.sml_val,
    Symtab.make ML_Name_Space.sml_type,
@@ -99,7 +103,8 @@ val sml_tables: tables =
 
 type operations =
  {read_source: Input.source -> ML_Lex.token Antiquote.antiquote list,
-  explode_token: ML_Lex.token -> char list};
+  explode_token: ML_Lex.token -> char list,
+  ML_system: bool};
 
 local
 
@@ -176,22 +181,30 @@ val SML_import = print_environment {read = Isabelle, write = SML};
 
 (* setup operations *)
 
+val ML_system_values =
+  #allVal (ML_Name_Space.global) ()
+  |> filter (member (op =) ["ML_system_pretty", "ML_system_pp", "ML_system_overload"] o #1);
+
 fun setup env_name ops thy =
   thy |> (Context.theory_map o Data.map o apfst) (fn envs =>
     let
       val thy' = Sign.map_naming (K Name_Space.global_naming) thy;
-      val tables = if env_name = Isabelle then empty_tables else sml_tables;
+      val tables =
+        (if env_name = Isabelle then empty_tables else sml_tables)
+        |> #ML_system ops ? update_tables_values ML_system_values;
       val (_, envs') =
         Name_Space.define (Context.Theory thy') true (Binding.name env_name, (tables, ops)) envs;
     in envs' end);
 
 val Isabelle_operations: operations =
  {read_source = ML_Lex.read_source,
-  explode_token = ML_Lex.check_content_of #> Symbol.explode #> maps (Symbol.esc #> String.explode)};
+  explode_token = ML_Lex.check_content_of #> Symbol.explode #> maps (Symbol.esc #> String.explode),
+  ML_system = false};
 
 val SML_operations: operations =
  {read_source = ML_Lex.read_source_sml,
-  explode_token = ML_Lex.check_content_of #> String.explode};
+  explode_token = ML_Lex.check_content_of #> String.explode,
+  ML_system = false};
 
 val _ = Theory.setup (setup Isabelle Isabelle_operations #> setup SML SML_operations);
 
