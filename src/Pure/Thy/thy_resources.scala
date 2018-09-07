@@ -90,6 +90,9 @@ object Thy_Resources
     val tmp_dir: JFile = Isabelle_System.tmp_dir("server_session")
     val tmp_dir_name: String = File.path(tmp_dir).implode
 
+    def master_directory(master_dir: String): String =
+      proper_string(master_dir) getOrElse tmp_dir_name
+
     override def toString: String = session_name
 
     override def stop(): Process_Result =
@@ -189,9 +192,9 @@ object Thy_Resources
     {
       val dep_theories =
       {
-        val master = proper_string(master_dir) getOrElse tmp_dir_name
         val import_names =
-          theories.map(thy => resources.import_name(qualifier, master, thy) -> Position.none)
+          theories.map(thy =>
+            resources.import_name(qualifier, master_directory(master_dir), thy) -> Position.none)
         resources.dependencies(import_names, progress = progress).check_errors.theories
       }
       val dep_theories_set = dep_theories.toSet
@@ -303,8 +306,9 @@ object Thy_Resources
       master_dir: String = "",
       all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
     {
-      val master = proper_string(master_dir) getOrElse tmp_dir_name
-      val nodes = if (all) None else Some(theories.map(resources.import_name(qualifier, master, _)))
+      val nodes =
+        if (all) None
+        else Some(theories.map(resources.import_name(qualifier, master_directory(master_dir), _)))
       resources.purge_theories(session, nodes)
     }
   }
