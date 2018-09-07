@@ -386,7 +386,7 @@ object Thy_Resources
       copy(theories = theories -- remove)
     }
 
-    lazy val theories_graph: Graph[Document.Node.Name, Unit] =
+    lazy val theory_graph: Graph[Document.Node.Name, Unit] =
     {
       val entries =
         for ((name, theory) <- theories.toList)
@@ -463,7 +463,7 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
   {
     state.change_result(st =>
       {
-        val graph = st.theories_graph
+        val graph = st.theory_graph
         val all_nodes = graph.topological_order
 
         val purge =
