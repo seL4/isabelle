@@ -76,6 +76,7 @@ object Dump
   /* dump */
 
   val default_output_dir = Path.explode("dump")
+  val default_commit_clean_delay = Time.seconds(-1.0)
 
   def make_options(options: Options, aspects: List[Aspect]): Options =
   {
@@ -91,6 +92,7 @@ object Dump
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
     verbose: Boolean = false,
+    commit_clean_delay: Time = default_commit_clean_delay,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
   {
@@ -158,7 +160,10 @@ object Dump
         include_sessions = include_sessions, progress = progress, log = log)
 
     val theories_result =
-      session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
+      session.use_theories(use_theories,
+        progress = progress,
+        commit = Some(Consumer.apply _),
+        commit_clean_delay = commit_clean_delay)
 
     val session_result = session.stop()
 
@@ -176,6 +181,7 @@ object Dump
     {
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
+      var commit_clean_delay = default_commit_clean_delay
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
       var requirements = false
@@ -195,6 +201,8 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Options are:
     -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
+    -C SECONDS   delay for cleaning of already dumped theories (disabled for < 0, default: """ +
+      default_commit_clean_delay.seconds.toInt + """)
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
@@ -213,6 +221,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
+      "C:" -> (arg => commit_clean_delay = Time.seconds(Value.Double.parse(arg))),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
@@ -241,9 +250,11 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
           dump(options, logic,
             aspects = aspects,
             progress = progress,
+            log = new File_Logger(Path.explode("$ISABELLE_HOME_USER/dump.log")),
             dirs = dirs,
             select_dirs = select_dirs,
             output_dir = output_dir,
+            commit_clean_delay = commit_clean_delay,
             verbose = verbose,
             selection = Sessions.Selection(
               requirements = requirements,
