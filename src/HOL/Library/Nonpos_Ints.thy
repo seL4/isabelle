@@ -1,4 +1,4 @@
-  (*  Title:    HOL/Library/Nonpos_Ints.thy
+(*  Title:    HOL/Library/Nonpos_Ints.thy
     Author:   Manuel Eberl, TU München
 *)
 
