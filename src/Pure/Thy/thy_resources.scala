@@ -84,6 +84,9 @@ object Thy_Resources
   {
     session =>
 
+
+    /* temporary directory */
+
     val tmp_dir: JFile = Isabelle_System.tmp_dir("server_session")
     val tmp_dir_name: String = File.path(tmp_dir).implode
 
@@ -309,6 +312,40 @@ object Thy_Resources
 
   /* internal state */
 
+  final class Theory private[Thy_Resources](
+    val node_name: Document.Node.Name,
+    val node_header: Document.Node.Header,
+    val text: String,
+    val node_required: Boolean)
+  {
+    override def toString: String = node_name.toString
+
+    def node_perspective: Document.Node.Perspective_Text =
+      Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
+
+    def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
+      List(node_name -> Document.Node.Deps(node_header),
+        node_name -> Document.Node.Edits(text_edits),
+        node_name -> node_perspective)
+
+    def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
+    {
+      val (text_edits, old_required) =
+        if (old.isEmpty) (Text.Edit.inserts(0, text), false)
+        else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
+
+      if (text_edits.isEmpty && node_required == old_required) Nil
+      else make_edits(text_edits)
+    }
+
+    def purge_edits: List[Document.Edit_Text] =
+      make_edits(Text.Edit.removes(0, text))
+
+    def required(required: Boolean): Theory =
+      if (required == node_required) this
+      else new Theory(node_name, node_header, text, required)
+  }
+
   sealed case class State(
     required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty,
     theories: Map[Document.Node.Name, Theory] = Map.empty)
@@ -343,40 +380,6 @@ object Thy_Resources
         yield ((name, ()), theory.node_header.imports.map(_._1).filter(theories.isDefinedAt(_)))
       Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
     }
-  }
-
-  final class Theory private[Thy_Resources](
-    val node_name: Document.Node.Name,
-    val node_header: Document.Node.Header,
-    val text: String,
-    val node_required: Boolean)
-  {
-    override def toString: String = node_name.toString
-
-    def node_perspective: Document.Node.Perspective_Text =
-      Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
-
-    def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
-      List(node_name -> Document.Node.Deps(node_header),
-        node_name -> Document.Node.Edits(text_edits),
-        node_name -> node_perspective)
-
-    def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
-    {
-      val (text_edits, old_required) =
-        if (old.isEmpty) (Text.Edit.inserts(0, text), false)
-        else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
-
-      if (text_edits.isEmpty && node_required == old_required) Nil
-      else make_edits(text_edits)
-    }
-
-    def purge_edits: List[Document.Edit_Text] =
-      make_edits(Text.Edit.removes(0, text))
-
-    def required(required: Boolean): Theory =
-      if (required == node_required) this
-      else new Theory(node_name, node_header, text, required)
   }
 }
 
