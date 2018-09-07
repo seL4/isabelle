@@ -539,12 +539,16 @@ Splitting if or case-expressions in the assumptions requires
 @{text "split: if_splits"} or @{text "split: t.splits"}.
 
 \ifsem\else
-\subsection{Converting Numerals to @{const Suc} Terms}
+\subsection{Rewriting \<open>let\<close> and Numerals}
 
-Recursive functions on type @{typ nat} are often defined by pattern matching over @{text 0} and @{const Suc},
-e.g. @{text "f 0 = ..."} and  @{text "f (Suc n) = ..."}. In order to simplify \<open>f 2\<close>, the \<open>2\<close>
-needs to be converted to @{term "Suc(Suc 0)"} first. The simplification rule @{thm[source] numeral_eq_Suc}
-converts all numerals to @{const Suc} terms.
+Let-expressions (@{term "let x = s in t"}) can be expanded explicitly with the simplification rule
+@{thm[source] Let_def}. The simplifier will not expand \<open>let\<close>s automatically in many cases.
+
+Numerals of type @{typ nat} can be converted to @{const Suc} terms with the simplification rule
+@{thm[source] numeral_eq_Suc}. This is required, for example, when a function that is defined
+by pattern matching with @{const Suc} is applied to a numeral: if \<open>f\<close> is defined by
+@{text "f 0 = ..."} and  @{text "f (Suc n) = ..."}, the simplifier cannot simplify \<open>f 2\<close> unless
+\<open>2\<close> is converted to @{term "Suc(Suc 0)"} (via @{thm[source] numeral_eq_Suc}).
 \fi
 
 \subsection*{Exercises}
