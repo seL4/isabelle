@@ -163,8 +163,7 @@ object Dump
 
     Consumer.shutdown().foreach(progress.echo_error_message(_))
 
-    if (theories_result.ok) session_result
-    else session_result.copy(rc = session_result.rc max 1)
+    if (theories_result.ok) session_result else session_result.error_rc
   }
 
 
