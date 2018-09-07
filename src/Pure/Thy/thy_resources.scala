@@ -66,11 +66,14 @@ object Thy_Resources
   class Theories_Result private[Thy_Resources](
     val state: Document.State,
     val version: Document.Version,
-    val nodes: List[(Document.Node.Name, Document_Status.Node_Status)])
+    val nodes: List[(Document.Node.Name, Document_Status.Node_Status)],
+    val nodes_committed: List[(Document.Node.Name, Document_Status.Node_Status)])
   {
-    def node_names: List[Document.Node.Name] = nodes.map(_._1)
-    def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
-    def snapshot(name: Document.Node.Name): Document.Snapshot = stable_snapshot(state, version, name)
+    def snapshot(name: Document.Node.Name): Document.Snapshot =
+      stable_snapshot(state, version, name)
+
+    def ok: Boolean =
+      (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
   val default_check_delay: Double = 0.5
@@ -108,7 +111,7 @@ object Thy_Resources
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_initialized: Set[Document.Node.Name] = Set.empty,
-      already_committed: Set[Document.Node.Name] = Set.empty,
+      already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Promise[Theories_Result] = Future.promise[Theories_Result])
     {
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
@@ -137,7 +140,7 @@ object Thy_Resources
       def check_result(
           state: Document.State,
           version: Document.Version,
-          theories: List[Document.Node.Name],
+          dep_theories: List[Document.Node.Name],
           beyond_limit: Boolean,
           watchdog_timeout: Time,
           commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit])
@@ -147,29 +150,35 @@ object Thy_Resources
           if (commit.isDefined) {
             val committed =
               for {
-                name <- theories
-                if !already_committed(name) && state.node_consolidated(version, name)
+                name <- dep_theories
+                if !already_committed.isDefinedAt(name) && state.node_consolidated(version, name)
               }
               yield {
                 val snapshot = stable_snapshot(state, version, name)
                 val status = Document_Status.Node_Status.make(state, version, name)
                 commit.get.apply(snapshot, status)
-                name
+                (name -> status)
               }
             copy(already_committed = already_committed ++ committed)
           }
           else this
 
         if (beyond_limit || watchdog(watchdog_timeout) ||
-          theories.forall(name =>
-            already_committed(name) ||
+          dep_theories.forall(name =>
+            already_committed.isDefinedAt(name) ||
             state.node_consolidated(version, name) ||
             nodes_status.quasi_consolidated(name)))
         {
           val nodes =
-            for (name <- theories)
+            for (name <- dep_theories)
             yield { (name -> Document_Status.Node_Status.make(state, version, name)) }
-          try { result.fulfill(new Theories_Result(state, version, nodes)) }
+          val nodes_committed =
+            for {
+              name <- dep_theories
+              status <- already_committed.get(name)
+            } yield (name -> status)
+
+          try { result.fulfill(new Theories_Result(state, version, nodes, nodes_committed)) }
           catch { case _: IllegalStateException => }
         }
 
