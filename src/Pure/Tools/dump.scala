@@ -16,13 +16,12 @@ object Dump
     progress: Progress,
     deps: Sessions.Deps,
     output_dir: Path,
-    node_name: Document.Node.Name,
-    node_status: Document_Status.Node_Status,
-    snapshot: Document.Snapshot)
+    snapshot: Document.Snapshot,
+    node_status: Document_Status.Node_Status)
   {
     def write(file_name: Path, bytes: Bytes)
     {
-      val path = output_dir + Path.basic(node_name.theory) + file_name
+      val path = output_dir + Path.basic(snapshot.node_name.theory) + file_name
       Isabelle_System.mkdirs(path.dir)
       Bytes.write(path, bytes)
     }
@@ -128,8 +127,7 @@ object Dump
               val (snapshot, node_status) = args
               if (node_status.ok) {
                 val aspect_args =
-                  Aspect_Args(dump_options, progress, deps, output_dir,
-                    snapshot.node_name, node_status, snapshot)
+                  Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
                 aspects.foreach(_.operation(aspect_args))
               }
               for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
