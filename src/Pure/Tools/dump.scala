@@ -16,13 +16,12 @@ object Dump
     progress: Progress,
     deps: Sessions.Deps,
     output_dir: Path,
-    node_name: Document.Node.Name,
-    node_status: Document_Status.Node_Status,
-    snapshot: Document.Snapshot)
+    snapshot: Document.Snapshot,
+    node_status: Document_Status.Node_Status)
   {
     def write(file_name: Path, bytes: Bytes)
     {
-      val path = output_dir + Path.basic(node_name.theory) + file_name
+      val path = output_dir + Path.basic(snapshot.node_name.theory) + file_name
       Isabelle_System.mkdirs(path.dir)
       Bytes.write(path, bytes)
     }
@@ -115,34 +114,58 @@ object Dump
         flatMap(session_name => deps.session_bases(session_name).used_theories.map(_.theory))
 
 
+    /* dump aspects asynchronously */
+
+    object Consumer
+    {
+      private val consumer_ok = Synchronized(true)
+
+      private val consumer =
+        Consumer_Thread.fork(name = "dump")(
+          consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
+            {
+              val (snapshot, node_status) = args
+              if (node_status.ok) {
+                val aspect_args =
+                  Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
+                aspects.foreach(_.operation(aspect_args))
+              }
+              else {
+                consumer_ok.change(_ => false)
+                for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
+                  val msg = XML.content(Pretty.formatted(List(tree)))
+                  progress.echo_error_message("Error" + Position.here(pos) + ":\n" + msg)
+                }
+              }
+              true
+            })
+
+      def apply(snapshot: Document.Snapshot, node_status: Document_Status.Node_Status): Unit =
+        consumer.send((snapshot, node_status))
+
+      def shutdown(): Boolean =
+      {
+        consumer.shutdown()
+        consumer_ok.value
+      }
+    }
+
+
     /* session */
 
     val session =
       Thy_Resources.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
         include_sessions = include_sessions, progress = progress, log = log)
 
-    val theories_result = session.use_theories(use_theories, progress = progress)
+    val theories_result =
+      session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
+
     val session_result = session.stop()
 
+    val consumer_ok = Consumer.shutdown()
 
-    /* dump aspects */
-
-    for ((node_name, node_status) <- theories_result.nodes) {
-      val snapshot = theories_result.snapshot(node_name)
-      val aspect_args =
-        Aspect_Args(dump_options, progress, deps, output_dir, node_name, node_status, snapshot)
-      aspects.foreach(_.operation(aspect_args))
-    }
-
-    if (theories_result.ok) session_result
-    else {
-      for {
-        (name, status) <- theories_result.nodes if !status.ok
-        (tree, _) <- theories_result.snapshot(name).messages if Protocol.is_error(tree)
-      } progress.echo_error_message(XML.content(Pretty.formatted(List(tree))))
-
-      session_result.copy(rc = session_result.rc max 1)
-    }
+    if (theories_result.ok && consumer_ok) session_result
+    else session_result.error_rc
   }
 
 

@@ -167,7 +167,7 @@ object Export
 
   class Consumer private[Export](db: SQL.Database, cache: XZ.Cache)
   {
-    private val export_errors = Synchronized[List[String]](Nil)
+    private val errors = Synchronized[List[String]](Nil)
 
     private val consumer =
       Consumer_Thread.fork(name = "export")(consume = (entry: Entry) =>
@@ -175,8 +175,8 @@ object Export
           entry.body.join
           db.transaction {
             if (read_name(db, entry.session_name, entry.theory_name, entry.name)) {
-              val err = message("Duplicate export", entry.theory_name, entry.name)
-              export_errors.change(errs => err :: errs)
+              val msg = message("Duplicate export", entry.theory_name, entry.name)
+              errors.change(msg :: _)
             }
             else entry.write(db)
           }
@@ -190,7 +190,7 @@ object Export
     {
       consumer.shutdown()
       if (close) db.close()
-      export_errors.value.reverse
+      errors.value.reverse
     }
   }
 

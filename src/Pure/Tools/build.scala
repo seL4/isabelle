@@ -332,8 +332,7 @@ object Build
       val result1 =
         export_consumer.shutdown(close = true).map(Output.error_message_text(_)) match {
           case Nil => result0
-          case errs if result0.ok => result0.copy(rc = 1).errors(errs)
-          case errs => result0.errors(errs)
+          case errs => result0.errors(errs).error_rc
         }
 
       Isabelle_System.rm_tree(export_tmp_dir)

@@ -66,11 +66,14 @@ object Thy_Resources
   class Theories_Result private[Thy_Resources](
     val state: Document.State,
     val version: Document.Version,
-    val nodes: List[(Document.Node.Name, Document_Status.Node_Status)])
+    val nodes: List[(Document.Node.Name, Document_Status.Node_Status)],
+    val nodes_committed: List[(Document.Node.Name, Document_Status.Node_Status)])
   {
-    def node_names: List[Document.Node.Name] = nodes.map(_._1)
-    def ok: Boolean = nodes.forall({ case (_, st) => st.ok })
-    def snapshot(name: Document.Node.Name): Document.Snapshot = stable_snapshot(state, version, name)
+    def snapshot(name: Document.Node.Name): Document.Snapshot =
+      stable_snapshot(state, version, name)
+
+    def ok: Boolean =
+      (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
   val default_check_delay: Double = 0.5
@@ -84,8 +87,14 @@ object Thy_Resources
   {
     session =>
 
+
+    /* temporary directory */
+
     val tmp_dir: JFile = Isabelle_System.tmp_dir("server_session")
     val tmp_dir_name: String = File.path(tmp_dir).implode
+
+    def master_directory(master_dir: String): String =
+      proper_string(master_dir) getOrElse tmp_dir_name
 
     override def toString: String = session_name
 
@@ -102,7 +111,7 @@ object Thy_Resources
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_initialized: Set[Document.Node.Name] = Set.empty,
-      already_committed: Set[Document.Node.Name] = Set.empty,
+      already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Promise[Theories_Result] = Future.promise[Theories_Result])
     {
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
@@ -131,7 +140,7 @@ object Thy_Resources
       def check_result(
           state: Document.State,
           version: Document.Version,
-          theories: List[Document.Node.Name],
+          dep_theories: List[Document.Node.Name],
           beyond_limit: Boolean,
           watchdog_timeout: Time,
           commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit])
@@ -141,29 +150,35 @@ object Thy_Resources
           if (commit.isDefined) {
             val committed =
               for {
-                name <- theories
-                if !already_committed(name) && state.node_consolidated(version, name)
+                name <- dep_theories
+                if !already_committed.isDefinedAt(name) && state.node_consolidated(version, name)
               }
               yield {
                 val snapshot = stable_snapshot(state, version, name)
                 val status = Document_Status.Node_Status.make(state, version, name)
                 commit.get.apply(snapshot, status)
-                name
+                (name -> status)
               }
             copy(already_committed = already_committed ++ committed)
           }
           else this
 
         if (beyond_limit || watchdog(watchdog_timeout) ||
-          theories.forall(name =>
-            already_committed(name) ||
+          dep_theories.forall(name =>
+            already_committed.isDefinedAt(name) ||
             state.node_consolidated(version, name) ||
             nodes_status.quasi_consolidated(name)))
         {
           val nodes =
-            for (name <- theories)
+            for (name <- dep_theories)
             yield { (name -> Document_Status.Node_Status.make(state, version, name)) }
-          try { result.fulfill(new Theories_Result(state, version, nodes)) }
+          val nodes_committed =
+            for {
+              name <- dep_theories
+              status <- already_committed.get(name)
+            } yield (name -> status)
+
+          try { result.fulfill(new Theories_Result(state, version, nodes, nodes_committed)) }
           catch { case _: IllegalStateException => }
         }
 
@@ -186,9 +201,9 @@ object Thy_Resources
     {
       val dep_theories =
       {
-        val master = proper_string(master_dir) getOrElse tmp_dir_name
         val import_names =
-          theories.map(thy => resources.import_name(qualifier, master, thy) -> Position.none)
+          theories.map(thy =>
+            resources.import_name(qualifier, master_directory(master_dir), thy) -> Position.none)
         resources.dependencies(import_names, progress = progress).check_errors.theories
       }
       val dep_theories_set = dep_theories.toSet
@@ -300,14 +315,49 @@ object Thy_Resources
       master_dir: String = "",
       all: Boolean = false): (List[Document.Node.Name], List[Document.Node.Name]) =
     {
-      val master = proper_string(master_dir) getOrElse tmp_dir_name
-      val nodes = if (all) None else Some(theories.map(resources.import_name(qualifier, master, _)))
+      val nodes =
+        if (all) None
+        else Some(theories.map(resources.import_name(qualifier, master_directory(master_dir), _)))
       resources.purge_theories(session, nodes)
     }
   }
 
 
   /* internal state */
+
+  final class Theory private[Thy_Resources](
+    val node_name: Document.Node.Name,
+    val node_header: Document.Node.Header,
+    val text: String,
+    val node_required: Boolean)
+  {
+    override def toString: String = node_name.toString
+
+    def node_perspective: Document.Node.Perspective_Text =
+      Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
+
+    def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
+      List(node_name -> Document.Node.Deps(node_header),
+        node_name -> Document.Node.Edits(text_edits),
+        node_name -> node_perspective)
+
+    def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
+    {
+      val (text_edits, old_required) =
+        if (old.isEmpty) (Text.Edit.inserts(0, text), false)
+        else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
+
+      if (text_edits.isEmpty && node_required == old_required) Nil
+      else make_edits(text_edits)
+    }
+
+    def purge_edits: List[Document.Edit_Text] =
+      make_edits(Text.Edit.removes(0, text))
+
+    def required(required: Boolean): Theory =
+      if (required == node_required) this
+      else new Theory(node_name, node_header, text, required)
+  }
 
   sealed case class State(
     required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty,
@@ -343,40 +393,6 @@ object Thy_Resources
         yield ((name, ()), theory.node_header.imports.map(_._1).filter(theories.isDefinedAt(_)))
       Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
     }
-  }
-
-  final class Theory private[Thy_Resources](
-    val node_name: Document.Node.Name,
-    val node_header: Document.Node.Header,
-    val text: String,
-    val node_required: Boolean)
-  {
-    override def toString: String = node_name.toString
-
-    def node_perspective: Document.Node.Perspective_Text =
-      Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
-
-    def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
-      List(node_name -> Document.Node.Deps(node_header),
-        node_name -> Document.Node.Edits(text_edits),
-        node_name -> node_perspective)
-
-    def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
-    {
-      val (text_edits, old_required) =
-        if (old.isEmpty) (Text.Edit.inserts(0, text), false)
-        else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
-
-      if (text_edits.isEmpty && node_required == old_required) Nil
-      else make_edits(text_edits)
-    }
-
-    def purge_edits: List[Document.Edit_Text] =
-      make_edits(Text.Edit.removes(0, text))
-
-    def required(required: Boolean): Theory =
-      if (required == node_required) this
-      else new Theory(node_name, node_header, text, required)
   }
 }
 
