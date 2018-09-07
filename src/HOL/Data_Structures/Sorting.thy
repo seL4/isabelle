@@ -44,7 +44,7 @@ apply(induction xs)
 apply(auto simp add: set_insort)
 done
 
-lemma "sorted (isort xs)"
+lemma sorted_isort: "sorted (isort xs)"
 apply(induction xs)
 apply(auto simp: sorted_insort)
 done
