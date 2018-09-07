@@ -118,7 +118,7 @@ object Dump
 
     object Consumer
     {
-      private val errors = Synchronized[List[String]](Nil)
+      private val consumer_ok = Synchronized(true)
 
       private val consumer =
         Consumer_Thread.fork(name = "dump")(
@@ -130,9 +130,12 @@ object Dump
                   Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
                 aspects.foreach(_.operation(aspect_args))
               }
-              for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
-                val msg = XML.content(Pretty.formatted(List(tree)))
-                errors.change(("Error" + Position.here(pos) + ":\n" + msg) :: _)
+              else {
+                consumer_ok.change(_ => false)
+                for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
+                  val msg = XML.content(Pretty.formatted(List(tree)))
+                  progress.echo_error_message("Error" + Position.here(pos) + ":\n" + msg)
+                }
               }
               true
             })
@@ -140,10 +143,10 @@ object Dump
       def apply(snapshot: Document.Snapshot, node_status: Document_Status.Node_Status): Unit =
         consumer.send((snapshot, node_status))
 
-      def shutdown(): List[String] =
+      def shutdown(): Boolean =
       {
         consumer.shutdown()
-        errors.value.reverse
+        consumer_ok.value
       }
     }
 
@@ -159,9 +162,10 @@ object Dump
 
     val session_result = session.stop()
 
-    Consumer.shutdown().foreach(progress.echo_error_message(_))
+    val consumer_ok = Consumer.shutdown()
 
-    if (theories_result.ok) session_result else session_result.error_rc
+    if (theories_result.ok && consumer_ok) session_result
+    else session_result.error_rc
   }
 
 
