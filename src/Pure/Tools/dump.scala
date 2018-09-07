@@ -115,34 +115,56 @@ object Dump
         flatMap(session_name => deps.session_bases(session_name).used_theories.map(_.theory))
 
 
+    /* dump aspects asynchronously */
+
+    object Consumer
+    {
+      private val errors = Synchronized[List[String]](Nil)
+
+      private val consumer =
+        Consumer_Thread.fork(name = "dump")(
+          consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
+            {
+              val (snapshot, node_status) = args
+              if (node_status.ok) {
+                val aspect_args =
+                  Aspect_Args(dump_options, progress, deps, output_dir,
+                    snapshot.node_name, node_status, snapshot)
+                aspects.foreach(_.operation(aspect_args))
+              }
+              for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
+                val msg = XML.content(Pretty.formatted(List(tree)))
+                errors.change(("Error" + Position.here(pos) + ":\n" + msg) :: _)
+              }
+              true
+            })
+
+      def apply(snapshot: Document.Snapshot, node_status: Document_Status.Node_Status): Unit =
+        consumer.send((snapshot, node_status))
+
+      def shutdown(): List[String] =
+      {
+        consumer.shutdown()
+        errors.value.reverse
+      }
+    }
+
+
     /* session */
 
     val session =
       Thy_Resources.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
         include_sessions = include_sessions, progress = progress, log = log)
 
-    val theories_result = session.use_theories(use_theories, progress = progress)
+    val theories_result =
+      session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
+
     val session_result = session.stop()
 
-
-    /* dump aspects */
-
-    for ((node_name, node_status) <- theories_result.nodes) {
-      val snapshot = theories_result.snapshot(node_name)
-      val aspect_args =
-        Aspect_Args(dump_options, progress, deps, output_dir, node_name, node_status, snapshot)
-      aspects.foreach(_.operation(aspect_args))
-    }
+    Consumer.shutdown().foreach(progress.echo_error_message(_))
 
     if (theories_result.ok) session_result
-    else {
-      for {
-        (name, status) <- theories_result.nodes if !status.ok
-        (tree, _) <- theories_result.snapshot(name).messages if Protocol.is_error(tree)
-      } progress.echo_error_message(XML.content(Pretty.formatted(List(tree))))
-
-      session_result.copy(rc = session_result.rc max 1)
-    }
+    else session_result.copy(rc = session_result.rc max 1)
   }
 
 
