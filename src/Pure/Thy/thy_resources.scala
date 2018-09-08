@@ -78,9 +78,9 @@ object Thy_Resources
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  val default_check_delay: Double = 0.5
-  val default_nodes_status_delay: Double = -1.0
-  val default_commit_clean_delay: Double = 60.0
+  val default_check_delay = Time.seconds(0.5)
+  val default_nodes_status_delay = Time.seconds(-1.0)
+  val default_commit_clean_delay = Time.seconds(60.0)
 
 
   class Session private[Thy_Resources](
@@ -194,14 +194,14 @@ object Thy_Resources
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
-      check_delay: Time = Time.seconds(default_check_delay),
+      check_delay: Time = default_check_delay,
       check_limit: Int = 0,
       watchdog_timeout: Time = Time.zero,
-      nodes_status_delay: Time = Time.seconds(default_nodes_status_delay),
+      nodes_status_delay: Time = default_nodes_status_delay,
       id: UUID = UUID(),
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
-      commit_clean_delay: Time = Time.seconds(default_commit_clean_delay),
+      commit_clean_delay: Time = default_commit_clean_delay,
       progress: Progress = No_Progress): Theories_Result =
     {
       val dep_theories =
