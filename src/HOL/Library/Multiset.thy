@@ -2251,7 +2251,7 @@ private lemma F_image_mset_product:
     F (image_mset (g x) B) \<^bold>* F {#F {#g i j. i \<in># A#}. j \<in># B#}"
   by (induction B) (simp_all add: left_commute semigroup.assoc semigroup_axioms)
 
-lemma commute:
+lemma swap:
   "F (image_mset (\<lambda>i. F (image_mset (g i) B)) A) =
     F (image_mset (\<lambda>j. F (image_mset (\<lambda>i. g i j) A)) B)"
   apply (induction A, simp)
@@ -2348,7 +2348,7 @@ end
 lemma sum_mset_product:
   fixes f :: "'a::{comm_monoid_add,times} \<Rightarrow> 'b::semiring_0"
   shows "(\<Sum>i \<in># A. f i) * (\<Sum>i \<in># B. g i) = (\<Sum>i\<in>#A. \<Sum>j\<in>#B. f i * g j)"
-  by (subst sum_mset.commute) (simp add: sum_mset_distrib_left sum_mset_distrib_right)
+  by (subst sum_mset.swap) (simp add: sum_mset_distrib_left sum_mset_distrib_right)
 
 context semiring_1
 begin
