@@ -206,12 +206,12 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
     -C SECONDS   delay for cleaning of already dumped theories (disabled for < 0, default: """ +
-      default_commit_clean_delay.seconds.toInt + """)
+      Value.Seconds(default_commit_clean_delay) + """)
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
-    -W SECONDS   delay for cleaning of already dumped theories (disabled for < 0, default: """ +
-      default_commit_clean_delay.seconds.toInt + """)
+    -W SECONDS   delay for cleaning of already dumped theories (unlimited for 0, default: """ +
+      Value.Seconds(default_watchdog_timeout) + """)
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
