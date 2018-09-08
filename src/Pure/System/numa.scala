@@ -39,6 +39,12 @@ object NUMA
   def policy(node: Int): String =
     if (numactl_available) "numactl -m" + node + " -N" + node else ""
 
+  def policy_options(options: Options, numa_node: Option[Int]): Options =
+    numa_node match {
+      case None => options
+      case Some(n) => options.string("ML_process_policy") = policy(n)
+    }
+
 
   /* shuffling of CPU nodes */
 

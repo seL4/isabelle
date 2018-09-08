@@ -195,11 +195,7 @@ object Build
     val numa_node: Option[Int],
     command_timings: List[Properties.T])
   {
-    val options =
-      numa_node match {
-        case None => info.options
-        case Some(n) => info.options.string("ML_process_policy") = NUMA.policy(n)
-      }
+    val options = NUMA.policy_options(info.options, numa_node)
 
     private val graph_file = Isabelle_System.tmp_file("session_graph", "pdf")
     isabelle.graphview.Graph_File.write(options, graph_file, deps(name).session_graph_display)
