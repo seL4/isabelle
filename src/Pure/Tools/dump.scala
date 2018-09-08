@@ -208,7 +208,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
-    -W SECONDS   delay for cleaning of already dumped theories (0 = disabled, default: """ +
+    -W SECONDS   watchdog timeout for PIDE processing (0 = disabled, default: """ +
       Value.Seconds(Thy_Resources.default_watchdog_timeout) + """)
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
