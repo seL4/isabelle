@@ -36,7 +36,7 @@ fun ascii_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
 fun literal_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       c $ literal_tr [t] $ u
   | literal_tr [Free (str, _)] =
-      (mk_literal_syntax o map ord o String_Syntax.plain_strings_of) str
+      (mk_literal_syntax o map String_Syntax.ascii_ord_of o String_Syntax.plain_strings_of) str
   | literal_tr ts = raise TERM ("literal_tr", ts);
 
 fun ascii k = Syntax.const @{syntax_const "_Ascii"}
