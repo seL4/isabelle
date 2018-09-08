@@ -14,6 +14,9 @@ object Progress
 {
   def theory_message(session: String, theory: String): String =
     if (session == "") "theory " + theory else session + ": theory " + theory
+
+  def theory_percentage_message(session: String, theory: String, percentage: Int): String =
+    theory_message(session, theory) + ": " + percentage + "%"
 }
 
 class Progress
@@ -53,13 +56,14 @@ object No_Progress extends Progress
 
 class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extends Progress
 {
-  override def echo(msg: String)
-  {
+  override def echo(msg: String): Unit =
     Output.writeln(msg, stdout = !stderr)
-  }
 
   override def theory(session: String, theory: String): Unit =
     if (verbose) echo(Progress.theory_message(session, theory))
+
+  override def theory_percentage(session: String, theory: String, percentage: Int): Unit =
+    if (verbose) echo(Progress.theory_percentage_message(session, theory, percentage))
 
   @volatile private var is_stopped = false
   override def interrupt_handler[A](e: => A): A =
@@ -78,6 +82,9 @@ class File_Progress(path: Path, verbose: Boolean = false) extends Progress
 
   override def theory(session: String, theory: String): Unit =
     if (verbose) echo(Progress.theory_message(session, theory))
+
+  override def theory_percentage(session: String, theory: String, percentage: Int): Unit =
+    if (verbose) echo(Progress.theory_percentage_message(session, theory, percentage))
 
   override def toString: String = path.toString
 }

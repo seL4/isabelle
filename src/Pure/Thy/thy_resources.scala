@@ -114,7 +114,6 @@ object Thy_Resources
     private sealed case class Use_Theories_State(
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
-      already_initialized: Set[Document.Node.Name] = Set.empty,
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       result: Promise[Theories_Result] = Future.promise[Theories_Result])
     {
@@ -123,20 +122,6 @@ object Thy_Resources
 
       def watchdog(watchdog_timeout: Time): Boolean =
         watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
-
-      def initialized_theories(
-        state: Document.State,
-        version: Document.Version,
-        theories: List[Document.Node.Name]): (List[Document.Node.Name], Use_Theories_State) =
-      {
-        val initialized =
-          for {
-            name <- theories
-            if !already_initialized(name) &&
-              Document_Status.Node_Status.make(state, version, name).initialized
-          } yield name
-        (initialized, copy(already_initialized = already_initialized ++ initialized))
-      }
 
       def cancel_result { result.cancel }
       def finished_result: Boolean = result.is_finished
@@ -285,24 +270,11 @@ object Thy_Resources
                         (name, node_status) <- nodes_status1.present.iterator
                         if changed.nodes.contains(name)
                         p1 = node_status.percentage
-                        if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
+                        if Some(p1) != st.nodes_status.get(name).map(_.percentage)
                       } yield (name.theory, p1)).toList
 
                     (progress_percentage, st.update(nodes_status1))
                   })
-
-              val check_theories =
-                (for {
-                  command <- changed.commands.iterator
-                  if dep_theories_set(command.node_name) && command.potentially_initialized
-                } yield command.node_name).toList
-
-              if (check_theories.nonEmpty) {
-                val initialized =
-                  use_theories_state.change_result(
-                    _.initialized_theories(state, version, check_theories))
-                initialized.map(_.theory).sorted.foreach(progress.theory("", _))
-              }
 
               for ((theory, percentage) <- theory_percentages)
                 progress.theory_percentage("", theory, percentage)
