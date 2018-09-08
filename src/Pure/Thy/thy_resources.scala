@@ -153,18 +153,23 @@ object Thy_Resources
       {
         val st1 =
           if (commit.isDefined) {
-            val committed =
-              for {
-                name <- dep_theories
-                if !already_committed.isDefinedAt(name) && state.node_consolidated(version, name)
-              }
-              yield {
-                val snapshot = stable_snapshot(state, version, name)
-                val status = Document_Status.Node_Status.make(state, version, name)
-                commit.get.apply(snapshot, status)
-                (name -> status)
-              }
-            copy(already_committed = already_committed ++ committed)
+            val already_committed1 =
+              (already_committed /: dep_theories)({ case (committed, name) =>
+                def parents_committed: Boolean =
+                  version.nodes(name).header.imports.forall({ case (parent, _) =>
+                    Sessions.is_pure(parent.theory) || committed.isDefinedAt(parent)
+                  })
+                if (!committed.isDefinedAt(name) && parents_committed &&
+                    state.node_consolidated(version, name))
+                {
+                  val snapshot = stable_snapshot(state, version, name)
+                  val status = Document_Status.Node_Status.make(state, version, name)
+                  commit.get.apply(snapshot, status)
+                  committed + (name -> status)
+                }
+                else committed
+              })
+            copy(already_committed = already_committed1)
           }
           else this
 
