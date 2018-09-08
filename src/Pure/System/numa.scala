@@ -56,7 +56,7 @@ object NUMA
   {
     def warning =
       if (nodes().length < 2) Some("no NUMA nodes available")
-      else if (!numactl_available) Some("missing numactl tool")
+      else if (!numactl_available) Some("bad numactl tool")
       else None
 
     enabled &&
