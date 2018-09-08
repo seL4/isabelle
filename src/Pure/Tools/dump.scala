@@ -75,8 +75,9 @@ object Dump
 
   /* dump */
 
-  val default_output_dir = Path.explode("dump")
-  val default_commit_clean_delay = Time.seconds(-1.0)
+  val default_output_dir: Path = Path.explode("dump")
+  val default_commit_clean_delay: Time = Time.seconds(-1.0)
+  val default_watchdog_timeout: Time = Time.seconds(600.0)
 
   def make_options(options: Options, aspects: List[Aspect]): Options =
   {
@@ -93,6 +94,7 @@ object Dump
     output_dir: Path = default_output_dir,
     verbose: Boolean = false,
     commit_clean_delay: Time = default_commit_clean_delay,
+    watchdog_timeout: Time = default_watchdog_timeout,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
   {
@@ -163,7 +165,8 @@ object Dump
       session.use_theories(use_theories,
         progress = progress,
         commit = Some(Consumer.apply _),
-        commit_clean_delay = commit_clean_delay)
+        commit_clean_delay = commit_clean_delay,
+        watchdog_timeout = watchdog_timeout)
 
     val session_result = session.stop()
 
@@ -185,6 +188,7 @@ object Dump
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
       var requirements = false
+      var watchdog_timeout = default_watchdog_timeout
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
       var dirs: List[Path] = Nil
@@ -206,6 +210,8 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
+    -W SECONDS   delay for cleaning of already dumped theories (disabled for < 0, default: """ +
+      default_commit_clean_delay.seconds.toInt + """)
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
@@ -225,6 +231,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
+      "W:" -> (arg => watchdog_timeout = Value.Seconds.parse(arg)),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
@@ -254,6 +261,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
             select_dirs = select_dirs,
             output_dir = output_dir,
             commit_clean_delay = commit_clean_delay,
+            watchdog_timeout = watchdog_timeout,
             verbose = verbose,
             selection = Sessions.Selection(
               requirements = requirements,
