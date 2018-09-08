@@ -221,7 +221,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "C:" -> (arg => commit_clean_delay = Time.seconds(Value.Double.parse(arg))),
+      "C:" -> (arg => commit_clean_delay = Value.Seconds.parse(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
