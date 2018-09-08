@@ -79,7 +79,8 @@ object Dump
 
   def make_options(options: Options, aspects: List[Aspect]): Options =
   {
-    val options1 = options + "completion_limit=0" + "ML_statistics=false" + "parallel_proofs=0"
+    val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
+    val options1 = options0 + "completion_limit=0" + "ML_statistics=false" + "parallel_proofs=0"
     (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
   }
 
