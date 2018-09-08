@@ -309,6 +309,11 @@ object JSON
           case _ => None
         }
     }
+
+    object Seconds {
+      def unapply(json: T): Option[Time] =
+        Double.unapply(json).map(Time.seconds(_))
+    }
   }
 
 
@@ -381,4 +386,9 @@ object JSON
     list(obj, name, JSON.Value.String.unapply _)
   def strings_default(obj: T, name: String, default: => List[String] = Nil): Option[List[String]] =
     list_default(obj, name, JSON.Value.String.unapply _, default)
+
+  def seconds(obj: T, name: String): Option[Time] =
+    value(obj, name, Value.Seconds.unapply)
+  def seconds_default(obj: T, name: String, default: => Time = Time.zero): Option[Time] =
+    value_default(obj, name, Value.Seconds.unapply, default)
 }

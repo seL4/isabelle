@@ -51,4 +51,16 @@ object Value
     def parse(s: java.lang.String): scala.Double =
       unapply(s) getOrElse error("Bad real: " + quote(s))
   }
+
+  object Seconds
+  {
+    def apply(t: Time): java.lang.String =
+    {
+      val s = t.seconds
+      if (s.toInt.toDouble == s) s.toInt.toString else t.toString
+    }
+    def unapply(s: java.lang.String): Option[Time] = Double.unapply(s).map(Time.seconds(_))
+    def parse(s: java.lang.String): Time =
+      unapply(s) getOrElse error("Bad real (for seconds): " + quote(s))
+  }
 }

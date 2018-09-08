@@ -78,9 +78,10 @@ object Thy_Resources
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  val default_check_delay: Double = 0.5
-  val default_nodes_status_delay: Double = -1.0
-  val default_commit_clean_delay: Double = 60.0
+  val default_check_delay = Time.seconds(0.5)
+  val default_nodes_status_delay = Time.seconds(-1.0)
+  val default_commit_clean_delay = Time.seconds(60.0)
+  val default_watchdog_timeout = Time.seconds(600.0)
 
 
   class Session private[Thy_Resources](
@@ -152,18 +153,23 @@ object Thy_Resources
       {
         val st1 =
           if (commit.isDefined) {
-            val committed =
-              for {
-                name <- dep_theories
-                if !already_committed.isDefinedAt(name) && state.node_consolidated(version, name)
-              }
-              yield {
-                val snapshot = stable_snapshot(state, version, name)
-                val status = Document_Status.Node_Status.make(state, version, name)
-                commit.get.apply(snapshot, status)
-                (name -> status)
-              }
-            copy(already_committed = already_committed ++ committed)
+            val already_committed1 =
+              (already_committed /: dep_theories)({ case (committed, name) =>
+                def parents_committed: Boolean =
+                  version.nodes(name).header.imports.forall({ case (parent, _) =>
+                    Sessions.is_pure(parent.theory) || committed.isDefinedAt(parent)
+                  })
+                if (!committed.isDefinedAt(name) && parents_committed &&
+                    state.node_consolidated(version, name))
+                {
+                  val snapshot = stable_snapshot(state, version, name)
+                  val status = Document_Status.Node_Status.make(state, version, name)
+                  commit.get.apply(snapshot, status)
+                  committed + (name -> status)
+                }
+                else committed
+              })
+            copy(already_committed = already_committed1)
           }
           else this
 
@@ -194,14 +200,14 @@ object Thy_Resources
       theories: List[String],
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
-      check_delay: Time = Time.seconds(default_check_delay),
+      check_delay: Time = default_check_delay,
       check_limit: Int = 0,
-      watchdog_timeout: Time = Time.zero,
-      nodes_status_delay: Time = Time.seconds(default_nodes_status_delay),
+      watchdog_timeout: Time = default_watchdog_timeout,
+      nodes_status_delay: Time = default_nodes_status_delay,
       id: UUID = UUID(),
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
-      commit_clean_delay: Time = Time.seconds(default_commit_clean_delay),
+      commit_clean_delay: Time = default_commit_clean_delay,
       progress: Progress = No_Progress): Theories_Result =
     {
       val dep_theories =
@@ -303,7 +309,7 @@ object Thy_Resources
 
               check_result()
 
-              if (commit.isDefined && commit_clean_delay >= Time.zero) {
+              if (commit.isDefined && commit_clean_delay > Time.zero) {
                 if (use_theories_state.value.finished_result)
                   delay_commit_clean.revoke
                 else delay_commit_clean.invoke

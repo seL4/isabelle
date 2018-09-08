@@ -909,7 +909,7 @@ text \<open>
   \quad~~\<open>export_pattern?: string,\<close> \\
   \quad~~\<open>check_delay?: double,\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>0.5\<close> \\
   \quad~~\<open>check_limit?: int,\<close> \\
-  \quad~~\<open>watchdog_timeout?: double,\<close> \\
+  \quad~~\<open>watchdog_timeout?: double,\<close> & \<^bold>\<open>default:\<close> \<^verbatim>\<open>600.0\<close> \\
   \quad~~\<open>nodes_status_delay?: double}\<close>  & \<^bold>\<open>default:\<close> \<^verbatim>\<open>-1.0\<close> \\
   \end{tabular}
 
