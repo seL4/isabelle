@@ -250,7 +250,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
           dump(options, logic,
             aspects = aspects,
             progress = progress,
-            log = new File_Logger(Path.explode("$ISABELLE_HOME_USER/dump.log")),
             dirs = dirs,
             select_dirs = select_dirs,
             output_dir = output_dir,
