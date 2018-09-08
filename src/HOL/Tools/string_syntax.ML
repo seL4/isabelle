@@ -8,6 +8,7 @@ signature STRING_SYNTAX = sig
   val hex: int -> string
   val mk_bits_syntax: int -> int -> term list
   val dest_bits_syntax: term list -> int
+  val ascii_ord_of: string -> int
   val plain_strings_of: string -> string list
   datatype character = Char of string | Ord of int
   val classify_character: int -> character
@@ -47,13 +48,13 @@ val dest_bits_syntax = Integer.eval_radix 2 o map dest_bit_syntax;
 
 (* char *)
 
+fun ascii_ord_of c =
+  if Symbol.is_ascii c then ord c
+  else if c = "\<newline>" then 10
+  else error ("Bad character: " ^ quote c);
+
 fun mk_char_syntax i =
   list_comb (Syntax.const @{const_syntax Char}, mk_bits_syntax 8 i);
-
-fun mk_char_syntax' c =
-  if Symbol.is_ascii c then mk_char_syntax (ord c)
-  else if c = "\<newline>" then mk_char_syntax 10
-  else error ("Bad character: " ^ quote c);
 
 fun plain_strings_of str =
   map fst (Lexicon.explode_str (str, Position.none));
@@ -84,7 +85,7 @@ fun char_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       c $ char_tr [t] $ u
   | char_tr [Free (str, _)] =
       (case plain_strings_of str of
-        [c] => mk_char_syntax' c
+        [c] => mk_char_syntax (ascii_ord_of c)
       | _ => error ("Single character expected: " ^ str))
   | char_tr ts = raise TERM ("char_tr", ts);
 
@@ -107,7 +108,8 @@ fun char_tr' [b1, b2, b3, b4, b5, b6, b7, b8] =
 
 fun mk_string_syntax [] = Syntax.const @{const_syntax Nil}
   | mk_string_syntax (c :: cs) =
-      Syntax.const @{const_syntax Cons} $ mk_char_syntax' c $ mk_string_syntax cs;
+      Syntax.const @{const_syntax Cons} $ mk_char_syntax (ascii_ord_of c)
+        $ mk_string_syntax cs;
 
 fun mk_string_ast ss =
   Ast.Appl [Ast.Constant @{syntax_const "_inner_string"},
