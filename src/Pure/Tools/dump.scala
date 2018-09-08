@@ -237,7 +237,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
       val sessions = getopts(args)
 
-      val progress = new Console_Progress(verbose = verbose)
+      val progress = new Console_Progress()
       {
         override def theory_percentage(session: String, theory: String, percentage: Int)
         {
