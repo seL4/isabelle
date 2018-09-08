@@ -34,7 +34,7 @@ object NUMA
 
   /* CPU policy via numactl tool */
 
-  lazy val numactl_available: Boolean = Isabelle_System.bash("numactl --hardware").ok
+  lazy val numactl_available: Boolean = Isabelle_System.bash("numactl -m0 -N0 true").ok
 
   def policy(node: Int): String =
     if (numactl_available) "numactl -m" + node + " -N" + node else ""
