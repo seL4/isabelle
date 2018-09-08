@@ -81,6 +81,7 @@ object Thy_Resources
   val default_check_delay = Time.seconds(0.5)
   val default_nodes_status_delay = Time.seconds(-1.0)
   val default_commit_clean_delay = Time.seconds(60.0)
+  val default_watchdog_timeout = Time.seconds(600.0)
 
 
   class Session private[Thy_Resources](
@@ -196,7 +197,7 @@ object Thy_Resources
       master_dir: String = "",
       check_delay: Time = default_check_delay,
       check_limit: Int = 0,
-      watchdog_timeout: Time = Time.zero,
+      watchdog_timeout: Time = default_watchdog_timeout,
       nodes_status_delay: Time = default_nodes_status_delay,
       id: UUID = UUID(),
       // commit: must not block, must not fail
@@ -303,7 +304,7 @@ object Thy_Resources
 
               check_result()
 
-              if (commit.isDefined && commit_clean_delay >= Time.zero) {
+              if (commit.isDefined && commit_clean_delay > Time.zero) {
                 if (use_theories_state.value.finished_result)
                   delay_commit_clean.revoke
                 else delay_commit_clean.invoke

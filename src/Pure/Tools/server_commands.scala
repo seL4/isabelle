@@ -160,7 +160,7 @@ object Server_Commands
       export_pattern: String = "",
       check_delay: Time = Thy_Resources.default_check_delay,
       check_limit: Int = 0,
-      watchdog_timeout: Time = Time.zero,
+      watchdog_timeout: Time = Thy_Resources.default_watchdog_timeout,
       nodes_status_delay: Time = Thy_Resources.default_nodes_status_delay)
 
     def unapply(json: JSON.T): Option[Args] =
@@ -173,7 +173,8 @@ object Server_Commands
         export_pattern <- JSON.string_default(json, "export_pattern")
         check_delay <- JSON.seconds_default(json, "check_delay", Thy_Resources.default_check_delay)
         check_limit <- JSON.int_default(json, "check_limit")
-        watchdog_timeout <- JSON.seconds_default(json, "watchdog_timeout")
+        watchdog_timeout <-
+          JSON.seconds_default(json, "watchdog_timeout", Thy_Resources.default_watchdog_timeout)
         nodes_status_delay <-
           JSON.seconds_default(json, "nodes_status_delay", Thy_Resources.default_nodes_status_delay)
       }

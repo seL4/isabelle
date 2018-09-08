@@ -76,8 +76,6 @@ object Dump
   /* dump */
 
   val default_output_dir: Path = Path.explode("dump")
-  val default_commit_clean_delay: Time = Time.seconds(-1.0)
-  val default_watchdog_timeout: Time = Time.seconds(600.0)
 
   def make_options(options: Options, aspects: List[Aspect]): Options =
   {
@@ -93,8 +91,8 @@ object Dump
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
     verbose: Boolean = false,
-    commit_clean_delay: Time = default_commit_clean_delay,
-    watchdog_timeout: Time = default_watchdog_timeout,
+    commit_clean_delay: Time = Thy_Resources.default_commit_clean_delay,
+    watchdog_timeout: Time = Thy_Resources.default_watchdog_timeout,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
   {
@@ -184,11 +182,11 @@ object Dump
     {
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
-      var commit_clean_delay = default_commit_clean_delay
+      var commit_clean_delay = Thy_Resources.default_commit_clean_delay
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
       var requirements = false
-      var watchdog_timeout = default_watchdog_timeout
+      var watchdog_timeout = Thy_Resources.default_watchdog_timeout
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
       var dirs: List[Path] = Nil
@@ -205,13 +203,13 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Options are:
     -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
-    -C SECONDS   delay for cleaning of already dumped theories (disabled for < 0, default: """ +
-      Value.Seconds(default_commit_clean_delay) + """)
+    -C SECONDS   delay for cleaning of already dumped theories (0 = disabled, default: """ +
+      Value.Seconds(Thy_Resources.default_commit_clean_delay) + """)
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
-    -W SECONDS   delay for cleaning of already dumped theories (unlimited for 0, default: """ +
-      Value.Seconds(default_watchdog_timeout) + """)
+    -W SECONDS   delay for cleaning of already dumped theories (0 = disabled, default: """ +
+      Value.Seconds(Thy_Resources.default_watchdog_timeout) + """)
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
