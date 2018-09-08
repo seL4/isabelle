@@ -202,7 +202,6 @@ object Thy_Resources
             resources.import_name(qualifier, master_directory(master_dir), thy) -> Position.none)
         resources.dependencies(import_names, progress = progress).check_errors.theories
       }
-      val dep_theories_set = dep_theories.toSet
 
       val use_theories_state = Synchronized(Use_Theories_State())
 
@@ -242,6 +241,8 @@ object Thy_Resources
             val clean = use_theories_state.value.already_committed.keySet
             resources.clean_theories(session, id, clean)
           }
+
+        val dep_theories_set = dep_theories.toSet
 
         Session.Consumer[Session.Commands_Changed](getClass.getName) {
           case changed =>
