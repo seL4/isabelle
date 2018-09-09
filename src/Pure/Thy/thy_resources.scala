@@ -269,7 +269,7 @@ object Thy_Resources
                     val theory_progress =
                       (for {
                         (name, node_status) <- nodes_status1.present.iterator
-                        if changed.nodes.contains(name) && !version.nodes(name).is_empty
+                        if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
                         percentage = Some(node_status.percentage)
                         if percentage != st.nodes_status.get(name).map(_.percentage)
                       } yield Progress.Theory(name.theory, percentage = percentage)).toList
