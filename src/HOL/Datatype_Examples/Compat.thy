@@ -177,9 +177,9 @@ val l_specs =
    [(@{binding N}, [], NoSyn),
     (@{binding C}, [@{typ 'a}, Type (Sign.full_name @{theory} @{binding l}, [@{typ 'a}])],
      NoSyn)])];
-\<close>
 
-setup \<open>snd o BNF_LFP_Compat.add_datatype [] l_specs\<close>
+Theory.setup (snd o BNF_LFP_Compat.add_datatype [] l_specs);
+\<close>
 
 ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name l}\<close>
 
@@ -191,9 +191,9 @@ val t_specs =
    [(@{binding T}, [@{typ 'b},
        Type (@{type_name l}, [Type (Sign.full_name @{theory} @{binding t}, [@{typ 'b}])])],
      NoSyn)])];
-\<close>
 
-setup \<open>snd o BNF_LFP_Compat.add_datatype [] t_specs\<close>
+Theory.setup (snd o BNF_LFP_Compat.add_datatype [] t_specs);
+\<close>
 
 ML \<open>get_descrs @{theory} (2, 2, 1) @{type_name t}\<close>
 
@@ -206,9 +206,9 @@ val ft_specs =
    [(@{binding FT0}, [], NoSyn),
     (@{binding FT}, [@{typ 'a} --> Type (Sign.full_name @{theory} @{binding ft}, [@{typ 'a}])],
      NoSyn)])];
-\<close>
 
-setup \<open>snd o BNF_LFP_Compat.add_datatype [] ft_specs\<close>
+Theory.setup (snd o BNF_LFP_Compat.add_datatype [] ft_specs);
+\<close>
 
 ML \<open>get_descrs @{theory} (1, 1, 1) @{type_name ft}\<close>
 
