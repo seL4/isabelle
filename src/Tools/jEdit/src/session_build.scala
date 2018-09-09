@@ -67,8 +67,7 @@ object Session_Build
           vertical.setValue(vertical.getMaximum)
         }
 
-      override def theory(session: String, theory: String): Unit =
-        echo(Progress.theory_message(session, theory))
+      override def theory(theory: Progress.Theory): Unit = echo(theory.message)
 
       override def stopped: Boolean = is_stopped
     }

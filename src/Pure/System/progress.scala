@@ -12,19 +12,19 @@ import java.io.{File => JFile}
 
 object Progress
 {
-  def theory_message(session: String, theory: String): String =
-    if (session == "") "theory " + theory else session + ": theory " + theory
-
-  def theory_percentage_message(session: String, theory: String, percentage: Int): String =
-    theory_message(session, theory) + ": " + percentage + "%"
+  sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None)
+  {
+    def message: String =
+      (if (session == "") "theory " + theory else session + ": theory " + theory) +
+      (percentage match { case None => "" case Some(p) => " " + p + "%" })
+  }
 }
 
 class Progress
 {
   def echo(msg: String) {}
   def echo_if(cond: Boolean, msg: String) { if (cond) echo(msg) }
-  def theory(session: String, theory: String) {}
-  def theory_percentage(session: String, theory: String, percentage: Int) {}
+  def theory(theory: Progress.Theory) {}
   def nodes_status(nodes_status: Document_Status.Nodes_Status) {}
 
   def echo_warning(msg: String) { echo(Output.warning_text(msg)) }
@@ -59,11 +59,8 @@ class Console_Progress(verbose: Boolean = false, stderr: Boolean = false) extend
   override def echo(msg: String): Unit =
     Output.writeln(msg, stdout = !stderr)
 
-  override def theory(session: String, theory: String): Unit =
-    if (verbose) echo(Progress.theory_message(session, theory))
-
-  override def theory_percentage(session: String, theory: String, percentage: Int): Unit =
-    if (verbose) echo(Progress.theory_percentage_message(session, theory, percentage))
+  override def theory(theory: Progress.Theory): Unit =
+    if (verbose) echo(theory.message)
 
   @volatile private var is_stopped = false
   override def interrupt_handler[A](e: => A): A =
@@ -80,11 +77,8 @@ class File_Progress(path: Path, verbose: Boolean = false) extends Progress
   override def echo(msg: String): Unit =
     File.append(path, msg + "\n")
 
-  override def theory(session: String, theory: String): Unit =
-    if (verbose) echo(Progress.theory_message(session, theory))
-
-  override def theory_percentage(session: String, theory: String, percentage: Int): Unit =
-    if (verbose) echo(Progress.theory_percentage_message(session, theory, percentage))
+  override def theory(theory: Progress.Theory): Unit =
+    if (verbose) echo(theory.message)
 
   override def toString: String = path.toString
 }

@@ -251,7 +251,7 @@ object Thy_Resources
               val state = snapshot.state
               val version = snapshot.version
 
-              val theory_percentages =
+              val theory_progress =
                 use_theories_state.change_result(st =>
                   {
                     val domain =
@@ -266,19 +266,18 @@ object Thy_Resources
                       delay_nodes_status.invoke
                     }
 
-                    val progress_percentage =
+                    val theory_progress =
                       (for {
                         (name, node_status) <- nodes_status1.present.iterator
-                        if changed.nodes.contains(name)
-                        p1 = node_status.percentage
-                        if Some(p1) != st.nodes_status.get(name).map(_.percentage)
-                      } yield (name.theory, p1)).toList
+                        if changed.nodes.contains(name) && !version.nodes(name).is_empty
+                        percentage = Some(node_status.percentage)
+                        if percentage != st.nodes_status.get(name).map(_.percentage)
+                      } yield Progress.Theory(name.theory, percentage = percentage)).toList
 
-                    (progress_percentage, st.update(nodes_status1))
+                    (theory_progress, st.update(nodes_status1))
                   })
 
-              for ((theory, percentage) <- theory_percentages)
-                progress.theory_percentage("", theory, percentage)
+              theory_progress.foreach(progress.theory(_))
 
               check_result()
 

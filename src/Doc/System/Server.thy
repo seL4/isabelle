@@ -477,11 +477,12 @@ text \<open>
   omitted in the command specifications below).
 
   \<^item> \<^bold>\<open>type\<close>~\<open>theory_progress = {kind:\<close>~\<^verbatim>\<open>"writeln"\<close>\<open>, message: string, theory:
-  string, session: string}\<close> reports formal progress in loading theories (e.g.\
-  when building a session image). Apart from a regular output message, it also
-  reveals the formal theory name (e.g.\ \<^verbatim>\<open>"HOL.Nat"\<close>) and session name (e.g.\
-  \<^verbatim>\<open>"HOL"\<close>). Note that some rare theory names lack a proper session prefix,
-  e.g.\ theory \<^verbatim>\<open>"Main"\<close> in session \<^verbatim>\<open>"HOL"\<close>.
+  string, session: string, percentage?: int}\<close> reports formal progress in
+  loading theories (e.g.\ when building a session image). Apart from a regular
+  output message, it also reveals the formal theory name (e.g.\ \<^verbatim>\<open>"HOL.Nat"\<close>)
+  and session name (e.g.\ \<^verbatim>\<open>"HOL"\<close>). Note that some rare theory names lack a
+  proper session prefix, e.g.\ theory \<^verbatim>\<open>"Main"\<close> in session \<^verbatim>\<open>"HOL"\<close>. The
+  optional percentage has the same meaning as in \<^bold>\<open>type\<close>~\<open>node_status\<close> below.
 
   \<^item> \<^bold>\<open>type\<close>~\<open>timing = {elapsed: double, cpu: double, gc: double}\<close> refers to
   common Isabelle timing information in seconds, usually with a precision of

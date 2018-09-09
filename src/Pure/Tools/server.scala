@@ -269,9 +269,13 @@ object Server
     override def echo_warning(msg: String): Unit = context.warning(msg, more:_*)
     override def echo_error_message(msg: String): Unit = context.error_message(msg, more:_*)
 
-    override def theory(session: String, theory: String): Unit =
-      context.writeln(Progress.theory_message(session, theory),
-        (List("session" -> session, "theory" -> theory) ::: more.toList):_*)
+    override def theory(theory: Progress.Theory)
+    {
+      val entries: List[JSON.Object.Entry] =
+        List("theory" -> theory.theory, "session" -> theory.session) :::
+          (theory.percentage match { case None => Nil case Some(p) => List("percentage" -> p) })
+      context.writeln(theory.message, entries ::: more.toList:_*)
+    }
 
     override def nodes_status(nodes_status: Document_Status.Nodes_Status)
     {

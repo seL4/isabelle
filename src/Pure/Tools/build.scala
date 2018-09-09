@@ -170,7 +170,7 @@ object Build
     private def loading_theory(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Loading_Theory(name) =>
-          progress.theory(session_name, name)
+          progress.theory(Progress.Theory(name, session = session_name))
           true
         case _ => false
       }
@@ -291,7 +291,8 @@ object Build
           process.result(
             progress_stdout = (line: String) =>
               Library.try_unprefix("\floading_theory = ", line) match {
-                case Some(theory) => progress.theory(name, theory)
+                case Some(theory) =>
+                  progress.theory(Progress.Theory(theory, session = name))
                 case None =>
                   for {
                     text <- Library.try_unprefix("\fexport = ", line)
