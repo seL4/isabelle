@@ -452,7 +452,6 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
     dep_theories: List[Document.Node.Name],
     progress: Progress)
   {
-
     val loaded_theories =
       for (node_name <- dep_theories)
       yield {
@@ -464,6 +463,9 @@ class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
         val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
         new Thy_Resources.Theory(node_name, node_header, text, true)
       }
+
+    val loaded = loaded_theories.length
+    if (loaded > 1) progress.echo("Loading " + loaded + " theories ...")
 
     state.change(st =>
       {
