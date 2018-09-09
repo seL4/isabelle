@@ -124,7 +124,7 @@ subsubsection "Functional Correctness"
 lemma mset_merge: "mset(merge xs ys) = mset xs + mset ys"
 by(induction xs ys rule: merge.induct) auto
 
-lemma "mset (msort xs) = mset xs"
+lemma mset_msort: "mset (msort xs) = mset xs"
 proof(induction xs rule: msort.induct)
   case (1 xs)
   let ?n = "length xs"
@@ -146,7 +146,12 @@ proof(induction xs rule: msort.induct)
   qed
 qed
 
+text \<open>Via the previous lemma or directtly:\<close>
+
 lemma set_merge: "set(merge xs ys) = set xs \<union> set ys"
+by (metis mset_merge set_mset_mset set_mset_union)
+
+lemma "set(merge xs ys) = set xs \<union> set ys"
 by(induction xs ys rule: merge.induct) (auto)
 
 lemma sorted_merge: "sorted (merge xs ys) \<longleftrightarrow> (sorted xs \<and> sorted ys)"
@@ -236,7 +241,7 @@ next
 qed
 
 (* Beware of conversions: *)
-lemma "length xs = 2^k \<Longrightarrow> c_msort xs \<le> length xs * log 2 (length xs)"
+lemma c_msort_log: "length xs = 2^k \<Longrightarrow> c_msort xs \<le> length xs * log 2 (length xs)"
 using c_msort_le[of xs k] apply (simp add: log_nat_power algebra_simps)
 by (metis (mono_tags) numeral_power_eq_of_nat_cancel_iff of_nat_le_iff of_nat_mult)
 
@@ -284,7 +289,7 @@ using [[simp_depth_limit=3]] by (auto simp add: sorted_merge_adj)
 lemma sorted_msort_bu: "sorted (msort_bu xs)"
 by(simp add: msort_bu_def sorted_merge_all)
 
-lemma mset_msort: "mset (msort_bu xs) = mset xs"
+lemma mset_msort_bu: "mset (msort_bu xs) = mset xs"
 by(simp add: msort_bu_def msec_merge_all comp_def)
 
 
