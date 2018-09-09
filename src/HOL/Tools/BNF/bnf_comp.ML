@@ -615,7 +615,7 @@ fun lift_bnf qualify n bnf (accum as ((cache, unfold_set), lthy)) =
 fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
   if src = dest then (bnf, accum) else
   let
-    val b = Binding.suffix_name (mk_permuteN src dest) (name_of_bnf bnf);
+    val b = Binding.suffix_name (mk_permuteN src dest) (name_of_bnf bnf) |> Binding.reset_pos;
     val live = live_of_bnf bnf;
     val deads = deads_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
