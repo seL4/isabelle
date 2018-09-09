@@ -270,9 +270,9 @@ object Thy_Resources
                       (for {
                         (name, node_status) <- nodes_status1.present.iterator
                         if changed.nodes.contains(name) && !st.already_committed.isDefinedAt(name)
-                        percentage = Some(node_status.percentage)
-                        if percentage != st.nodes_status.get(name).map(_.percentage)
-                      } yield Progress.Theory(name.theory, percentage = percentage)).toList
+                        p1 = node_status.percentage
+                        if p1 > 0 && Some(p1) != st.nodes_status.get(name).map(_.percentage)
+                      } yield Progress.Theory(name.theory, percentage = Some(p1))).toList
 
                     (theory_progress, st.update(nodes_status1))
                   })
