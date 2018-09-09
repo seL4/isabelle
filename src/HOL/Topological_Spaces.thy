@@ -2116,7 +2116,7 @@ lemma
   by (auto simp: at_within_Icc_at_right at_within_Icc_at_left continuous_on_def
       dest: bspec[where x=a] bspec[where x=b])
 
-lemma continuous_on_discrete [simp, continuous_intros]:
+lemma continuous_on_discrete [simp]:
   "continuous_on A (f :: 'a :: discrete_topology \<Rightarrow> _)"
   by (auto simp: continuous_on_def at_discrete)
 
@@ -2162,7 +2162,7 @@ lemma continuous_on_eq_continuous_within:
   "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. continuous (at x within s) f)"
   unfolding continuous_on_def continuous_within ..
 
-lemma continuous_discrete [simp, continuous_intros]:
+lemma continuous_discrete [simp]:
   "continuous (at x within A) (f :: 'a :: discrete_topology \<Rightarrow> _)"
   by (auto simp: continuous_def at_discrete)
 
