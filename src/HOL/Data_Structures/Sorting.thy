@@ -128,25 +128,25 @@ lemma mset_msort: "mset (msort xs) = mset xs"
 proof(induction xs rule: msort.induct)
   case (1 xs)
   let ?n = "length xs"
-  let ?xs1 = "take (?n div 2) xs"
-  let ?xs2 = "drop (?n div 2) xs"
+  let ?ys = "take (?n div 2) xs"
+  let ?zs = "drop (?n div 2) xs"
   show ?case
   proof cases
     assume "?n \<le> 1"
     thus ?thesis by(simp add: msort.simps[of xs])
   next
     assume "\<not> ?n \<le> 1"
-    hence "mset (msort xs) = mset (msort ?xs1) + mset (msort ?xs2)"
+    hence "mset (msort xs) = mset (msort ?ys) + mset (msort ?zs)"
       by(simp add: msort.simps[of xs] mset_merge)
-    also have "\<dots> = mset ?xs1 + mset ?xs2"
+    also have "\<dots> = mset ?ys + mset ?zs"
       using \<open>\<not> ?n \<le> 1\<close> by(simp add: "1.IH")
-    also have "\<dots> = mset (?xs1 @ ?xs2)" by (simp del: append_take_drop_id)
+    also have "\<dots> = mset (?ys @ ?zs)" by (simp del: append_take_drop_id)
     also have "\<dots> = mset xs" by simp
     finally show ?thesis .
   qed
 qed
 
-text \<open>Via the previous lemma or directtly:\<close>
+text \<open>Via the previous lemma or directly:\<close>
 
 lemma set_merge: "set(merge xs ys) = set xs \<union> set ys"
 by (metis mset_merge set_mset_mset set_mset_union)
@@ -157,7 +157,7 @@ by(induction xs ys rule: merge.induct) (auto)
 lemma sorted_merge: "sorted (merge xs ys) \<longleftrightarrow> (sorted xs \<and> sorted ys)"
 by(induction xs ys rule: merge.induct) (auto simp: set_merge)
 
-lemma "sorted (msort xs)"
+lemma sorted_msort: "sorted (msort xs)"
 proof(induction xs rule: msort.induct)
   case (1 xs)
   let ?n = "length xs"
@@ -168,7 +168,7 @@ proof(induction xs rule: msort.induct)
   next
     assume "\<not> ?n \<le> 1"
     thus ?thesis using "1.IH"
-      by(simp add: sorted_merge  msort.simps[of xs] mset_merge)
+      by(simp add: sorted_merge msort.simps[of xs])
   qed
 qed
 
