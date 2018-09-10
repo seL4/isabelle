@@ -273,7 +273,7 @@ lemma mset_merge_adj:
   "\<Union># image_mset mset (mset (merge_adj xss)) = \<Union># image_mset mset (mset xss)"
 by(induction xss rule: merge_adj.induct) (auto simp: mset_merge)
 
-lemma msec_merge_all:
+lemma mset_merge_all:
   "xss \<noteq> [] \<Longrightarrow> mset (merge_all xss) = (\<Union># (mset (map mset xss)))"
 by(induction xss rule: merge_all.induct) (auto simp: mset_merge mset_merge_adj)
 
@@ -290,7 +290,7 @@ lemma sorted_msort_bu: "sorted (msort_bu xs)"
 by(simp add: msort_bu_def sorted_merge_all)
 
 lemma mset_msort_bu: "mset (msort_bu xs) = mset xs"
-by(simp add: msort_bu_def msec_merge_all comp_def)
+by(simp add: msort_bu_def mset_merge_all comp_def)
 
 
 subsubsection "Time Complexity"
