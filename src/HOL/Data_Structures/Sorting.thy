@@ -264,7 +264,7 @@ fun merge_all :: "('a::linorder) list list \<Rightarrow> 'a list" where
 "merge_all xss = merge_all (merge_adj xss)"
 
 definition msort_bu :: "('a::linorder) list \<Rightarrow> 'a list" where
-"msort_bu xs = (if xs = [] then [] else merge_all (map (\<lambda>x. [x]) xs))"
+"msort_bu xs = merge_all (map (\<lambda>x. [x]) xs)"
 
 
 subsubsection "Functional Correctness"
@@ -274,7 +274,7 @@ lemma mset_merge_adj:
 by(induction xss rule: merge_adj.induct) (auto simp: mset_merge)
 
 lemma mset_merge_all:
-  "xss \<noteq> [] \<Longrightarrow> mset (merge_all xss) = (\<Union># (mset (map mset xss)))"
+  "mset (merge_all xss) = (\<Union># (mset (map mset xss)))"
 by(induction xss rule: merge_all.induct) (auto simp: mset_merge mset_merge_adj)
 
 lemma mset_msort_bu: "mset (msort_bu xs) = mset xs"
@@ -285,7 +285,7 @@ lemma sorted_merge_adj:
 by(induction xss rule: merge_adj.induct) (auto simp: sorted_merge)
 
 lemma sorted_merge_all:
-  "\<forall>xs \<in> set xss. sorted xs \<Longrightarrow> xss \<noteq> [] \<Longrightarrow> sorted (merge_all xss)"
+  "\<forall>xs \<in> set xss. sorted xs \<Longrightarrow> sorted (merge_all xss)"
 apply(induction xss rule: merge_all.induct)
 using [[simp_depth_limit=3]] by (auto simp add: sorted_merge_adj)
 
@@ -301,12 +301,12 @@ fun c_merge_adj :: "('a::linorder) list list \<Rightarrow> nat" where
 "c_merge_adj (xs # ys # zss) = c_merge xs ys + c_merge_adj zss"
 
 fun c_merge_all :: "('a::linorder) list list \<Rightarrow> nat" where
-"c_merge_all [] = undefined" |
+"c_merge_all [] = 0" |
 "c_merge_all [xs] = 0" |
 "c_merge_all xss = c_merge_adj xss + c_merge_all (merge_adj xss)"
 
 definition c_msort_bu :: "('a::linorder) list \<Rightarrow> nat" where
-"c_msort_bu xs = (if xs = [] then 0 else c_merge_all (map (\<lambda>x. [x]) xs))"
+"c_msort_bu xs = c_merge_all (map (\<lambda>x. [x]) xs)"
 
 lemma length_merge_adj:
   "\<lbrakk> even(length xss); \<forall>x \<in> set xss. length x = m \<rbrakk> \<Longrightarrow> \<forall>xs \<in> set (merge_adj xss). length xs = 2*m"
