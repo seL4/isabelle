@@ -415,8 +415,9 @@ proof -
     using g2 r2 by blast
 
   have "R1 \<inter> R2 \<noteq> {}" using inR1 inR2 r1 r2 by blast
-  thus ?thesis using stabilizer_subgroup group.rcos_disjoint[of G "stabilizer G \<phi> x" R1 R2]
-                     assms group_hom group_hom.axioms(1) by blast
+  thus ?thesis
+    using stabilizer_subgroup group.rcos_disjoint[of G "stabilizer G \<phi> x"] assms group_hom group_hom.axioms(1) 
+    unfolding disjnt_def pairwise_def  by blast
 qed
 
 lemma (in group_action) orbit_stab_fun_is_surj:

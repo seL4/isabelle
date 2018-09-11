@@ -162,7 +162,7 @@ lemma finite_Collect_le_nat [iff]: "finite {n::nat. n \<le> k}"
   by (simp add: le_eq_less_or_eq Collect_disj_eq)
 
 
-subsubsection \<open>Finiteness and common set operations\<close>
+subsection \<open>Finiteness and common set operations\<close>
 
 lemma rev_finite_subset: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> finite A"
 proof (induct arbitrary: A rule: finite_induct)
@@ -319,15 +319,36 @@ proof induct
 next
   case insert
   then show ?case
-    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast  (* slow *)
+    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast  
 qed
 
+lemma all_subset_image: "(\<forall>B. B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. B \<subseteq> A \<longrightarrow> P(f ` B))"
+  by (safe elim!: subset_imageE) (use image_mono in \<open>blast+\<close>) (* slow *)
+
+lemma all_finite_subset_image:
+  "(\<forall>B. finite B \<and> B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. finite B \<and> B \<subseteq> A \<longrightarrow> P (f ` B))"
+proof safe
+  fix B :: "'a set"
+  assume B: "finite B" "B \<subseteq> f ` A" and P: "\<forall>B. finite B \<and> B \<subseteq> A \<longrightarrow> P (f ` B)"
+  show "P B"
+    using finite_subset_image [OF B] P by blast
+qed blast
+
+lemma exists_finite_subset_image:
+  "(\<exists>B. finite B \<and> B \<subseteq> f ` A \<and> P B) \<longleftrightarrow> (\<exists>B. finite B \<and> B \<subseteq> A \<and> P (f ` B))"
+proof safe
+  fix B :: "'a set"
+  assume B: "finite B" "B \<subseteq> f ` A" and "P B"
+  show "\<exists>B. finite B \<and> B \<subseteq> A \<and> P (f ` B)"
+    using finite_subset_image [OF B] \<open>P B\<close> by blast
+qed blast
+
 lemma finite_vimage_IntI: "finite F \<Longrightarrow> inj_on h A \<Longrightarrow> finite (h -` F \<inter> A)"
-  apply (induct rule: finite_induct)
-   apply simp_all
-  apply (subst vimage_insert)
-  apply (simp add: finite_subset [OF inj_on_vimage_singleton] Int_Un_distrib2)
-  done
+proof (induct rule: finite_induct)
+  case (insert x F)
+  then show ?case
+    by (simp add: vimage_insert [of h x F] finite_subset [OF inj_on_vimage_singleton] Int_Un_distrib2)
+qed simp
 
 lemma finite_finite_vimage_IntI:
   assumes "finite F"
@@ -518,7 +539,7 @@ proof (rule classical)
 qed
 
 
-subsubsection \<open>Further induction rules on finite sets\<close>
+subsection \<open>Further induction rules on finite sets\<close>
 
 lemma finite_ne_induct [case_names singleton insert, consumes 2]:
   assumes "finite F" and "F \<noteq> {}"

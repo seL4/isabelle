@@ -403,8 +403,7 @@ lemma (in abelian_subgroup) a_rcos_equation:
 by (rule group.rcos_equation [OF a_group a_subgroup,
     folded a_r_congruent_def a_l_coset_def, simplified monoid_record_simps])
 
-lemma (in abelian_subgroup) a_rcos_disjoint:
-  shows "\<lbrakk>a \<in> a_rcosets H; b \<in> a_rcosets H; a\<noteq>b\<rbrakk> \<Longrightarrow> a \<inter> b = {}"
+lemma (in abelian_subgroup) a_rcos_disjoint: "pairwise disjnt (a_rcosets H)"
 by (rule group.rcos_disjoint [OF a_group a_subgroup,
     folded A_RCOSETS_def, simplified monoid_record_simps])
 

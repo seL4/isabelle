@@ -1058,7 +1058,6 @@ apply clarify
 apply(rule nth_equalityI)
  apply simp_all
  apply(case_tac x,simp+)
-apply clarify
 apply(case_tac i,simp+)
 apply(case_tac x,simp+)
 done
