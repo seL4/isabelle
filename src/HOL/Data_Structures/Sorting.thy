@@ -259,7 +259,7 @@ lemma length_merge_adjacent[simp]: "length (merge_adj xs) = (length xs + 1) div 
 by (induction xs rule: merge_adj.induct) auto
 
 fun merge_all :: "('a::linorder) list list \<Rightarrow> 'a list" where
-"merge_all [] = undefined" |
+"merge_all [] = []" |
 "merge_all [xs] = xs" |
 "merge_all xss = merge_all (merge_adj xss)"
 
