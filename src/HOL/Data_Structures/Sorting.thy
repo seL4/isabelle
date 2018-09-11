@@ -333,9 +333,9 @@ next
   let ?xss2 = "merge_adj ?xss"
   obtain k' where k': "k = Suc k'" using "3.prems"(2)
     by (metis length_Cons nat.inject nat_power_eq_Suc_0_iff nat.exhaust)
-  have "even (length xss)" using "3.prems"(2) even_Suc_Suc_iff by fastforce
-  from "3.prems"(1) length_merge_adj[OF this]
-  have *: "\<forall>x \<in> set(merge_adj ?xss). length x = 2*m" by(auto simp: length_merge)
+  have "even (length ?xss)" using "3.prems"(2) k' by auto
+  from length_merge_adj[OF this "3.prems"(1)]
+  have *: "\<forall>x \<in> set(merge_adj ?xss). length x = 2*m" .
   have **: "length ?xss2 = 2 ^ k'" using "3.prems"(2) k' by auto
   have "c_merge_all ?xss = c_merge_adj ?xss + c_merge_all ?xss2" by simp
   also have "\<dots> \<le> m * 2^k + c_merge_all ?xss2"
