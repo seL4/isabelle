@@ -339,7 +339,7 @@ lemma stupid_lemma:
 proof (intro nth_equalityI)
   show "length cs = length [(cs ! 0), (cs ! 1), (cs ! 2)]"
     using assms by simp
-  show "\<forall> ia < length cs. cs ! ia = [(cs ! 0), (cs ! 1), (cs ! 2)] ! ia"
+  show "\<And>i. i < length cs \<Longrightarrow> cs ! i = [(cs ! 0), (cs ! 1), (cs ! 2)] ! i"
     by (metis Suc_1 Suc_eq_plus1 add.left_neutral assms less_antisym
         less_one nth_Cons' nth_Cons_Suc numeral_3_eq_3)
 qed

@@ -214,24 +214,6 @@ lemma length_stirling_row [simp]: "length (stirling_row n) = Suc n"
 lemma stirling_row_nonempty [simp]: "stirling_row n \<noteq> []"
   using length_stirling_row[of n] by (auto simp del: length_stirling_row)
 
-(* TODO Move *)
-lemma list_ext:
-  assumes "length xs = length ys"
-  assumes "\<And>i. i < length xs \<Longrightarrow> xs ! i = ys ! i"
-  shows "xs = ys"
-  using assms
-proof (induction rule: list_induct2)
-  case Nil
-  then show ?case by simp
-next
-  case (Cons x xs y ys)
-  from Cons.prems[of 0] have "x = y"
-    by simp
-  moreover from Cons.prems[of "Suc i" for i] have "xs = ys"
-    by (intro Cons.IH) simp
-  ultimately show ?case by simp
-qed
-
 
 subsubsection \<open>Efficient code\<close>
 
@@ -287,7 +269,7 @@ next
   case 2
   have "stirling_row (Suc n) =
     0 # [stirling_row n ! i + stirling_row n ! (i+1) * n. i \<leftarrow> [0..<n]] @ [1]"
-  proof (rule list_ext, goal_cases length nth)
+  proof (rule nth_equalityI, goal_cases length nth)
     case (nth i)
     from nth have "i \<le> Suc n"
       by simp

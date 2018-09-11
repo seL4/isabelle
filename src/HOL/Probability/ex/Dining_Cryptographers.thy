@@ -138,7 +138,7 @@ proof -
         using inv unfolding inversion_def map_eq_conv payer_def coin_def
         by fastforce
       show "x = y"
-      proof (rule nth_equalityI, simp, rule allI, rule impI)
+      proof (rule nth_equalityI, simp)
         fix j assume "j < length x" hence "j < n" using \<open>length xs = n\<close> by simp
         thus "x ! j = y ! j"
         proof (induct j)

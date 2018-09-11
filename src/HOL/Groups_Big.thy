@@ -1006,9 +1006,18 @@ proof -
 qed
 
 lemma card_Union_disjoint:
-  "finite C \<Longrightarrow> \<forall>A\<in>C. finite A \<Longrightarrow> \<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A \<inter> B = {} \<Longrightarrow>
-    card (\<Union>C) = sum card C"
-  by (frule card_UN_disjoint [of C id]) simp_all
+  assumes "pairwise disjnt C" and fin: "\<And>A. A \<in> C \<Longrightarrow> finite A"
+  shows "card (\<Union>C) = sum card C"
+proof (cases "finite C")
+  case True
+  then show ?thesis
+    using card_UN_disjoint [OF True, of "\<lambda>x. x"] assms
+    by (simp add: disjnt_def fin pairwise_def)
+next
+  case False
+  then show ?thesis
+    using assms card_eq_0_iff finite_UnionD by fastforce
+qed
 
 lemma sum_multicount_gen:
   assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
@@ -1035,41 +1044,41 @@ qed
 
 lemma sum_card_image:
   assumes "finite A"
-  assumes "\<forall>s\<in>A. \<forall>t\<in>A. s \<noteq> t \<longrightarrow> (f s) \<inter> (f t) = {}"
+  assumes "pairwise (\<lambda>s t. disjnt (f s) (f t)) A"
   shows "sum card (f ` A) = sum (\<lambda>a. card (f a)) A"
 using assms
 proof (induct A)
-  case empty
-  from this show ?case by simp
-next
   case (insert a A)
   show ?case
   proof cases
     assume "f a = {}"
-    from this insert show ?case
-      by (subst sum.mono_neutral_right[where S="f ` A"]) auto
+    with insert show ?case
+      by (subst sum.mono_neutral_right[where S="f ` A"]) (auto simp: pairwise_insert)
   next
     assume "f a \<noteq> {}"
-    from this have "sum card (insert (f a) (f ` A)) = card (f a) + sum card (f ` A)"
-      using insert by (subst sum.insert) auto
-    from this insert show ?case by simp
+    then have "sum card (insert (f a) (f ` A)) = card (f a) + sum card (f ` A)"
+      using insert
+      by (subst sum.insert) (auto simp: pairwise_insert)
+    with insert show ?case by (simp add: pairwise_insert)
   qed
-qed
+qed simp
 
 lemma card_Union_image:
   assumes "finite S"
-  assumes "\<forall>s\<in>f ` S. finite s"
-  assumes "\<forall>s\<in>S. \<forall>t\<in>S. s \<noteq> t \<longrightarrow> (f s) \<inter> (f t) = {}"
+  assumes "\<And>s. s \<in> S \<Longrightarrow> finite (f s)"
+  assumes "pairwise (\<lambda>s t. disjnt (f s) (f t)) S"
   shows "card (\<Union>(f ` S)) = sum (\<lambda>x. card (f x)) S"
 proof -
-  have "\<forall>A\<in>f ` S. \<forall>B\<in>f ` S. A \<noteq> B \<longrightarrow> A \<inter> B = {}"
-    using assms(3) by (metis image_iff)
-  from this have "card (\<Union>(f ` S)) = sum card (f ` S)"
-    using assms(1, 2) by (subst card_Union_disjoint) auto
+  have "pairwise disjnt (f ` S)"
+    using assms(3)
+    by (metis pairwiseD pairwise_imageI) 
+  then have "card (\<Union>(f ` S)) = sum card (f ` S)"
+    by (subst card_Union_disjoint) (use assms in auto)
   also have "... = sum (\<lambda>x. card (f x)) S"
-    using assms(1, 3) by (auto simp add: sum_card_image)
+    by (metis (mono_tags, lifting) assms(1) assms(3) sum_card_image)
   finally show ?thesis .
 qed
+
 
 subsubsection \<open>Cardinality of products\<close>
 
@@ -1152,7 +1161,7 @@ subsubsection \<open>Properties in more restricted classes of structures\<close>
 
 context linordered_nonzero_semiring
 begin
-  
+
 lemma prod_ge_1: "(\<And>x. x \<in> A \<Longrightarrow> 1 \<le> f x) \<Longrightarrow> 1 \<le> prod f A"
 proof (induct A rule: infinite_finite_induct)
   case infinite
@@ -1434,5 +1443,5 @@ next
     using insert by auto
   finally show ?case .
 qed
- 
+
 end

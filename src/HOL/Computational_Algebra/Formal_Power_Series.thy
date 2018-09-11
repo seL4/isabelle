@@ -2259,15 +2259,20 @@ proof
     from i have i': "i < length (replicate (k+1) 0)"   "i < k+1"
       unfolding length_replicate by presburger+
     have "xs = replicate (k+1) 0 [i := n]"
-      apply (rule nth_equalityI)
-      unfolding xsl length_list_update length_replicate
-      apply simp
-      apply clarify
-      unfolding nth_list_update[OF i'(1)]
-      using i zxs
-      apply (case_tac "ia = i")
-      apply (auto simp del: replicate.simps)
-      done
+    proof (rule nth_equalityI)
+      show "length xs = length (replicate (k + 1) 0[i := n])"
+        by (metis length_list_update length_replicate xsl)
+      show "xs ! j = replicate (k + 1) 0[i := n] ! j" if "j < length xs" for j
+      proof (cases "j = i")
+        case True
+        then show ?thesis
+          by (metis i'(1) i(2) nth_list_update)
+      next
+        case False
+        with that show ?thesis
+          by (simp add: xsl zxs del: replicate.simps split: nat.split)
+      qed
+    qed
     then show "xs \<in> ?B" using i by blast
   qed
   show "?B \<subseteq> ?A"

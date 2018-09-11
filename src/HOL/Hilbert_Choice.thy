@@ -124,6 +124,21 @@ proof (intro exI allI conjI)
     by (induct n) auto
 qed
 
+lemma finite_subset_Union:
+  assumes "finite A" "A \<subseteq> \<Union>\<B>"
+  obtains \<F> where "finite \<F>" "\<F> \<subseteq> \<B>" "A \<subseteq> \<Union>\<F>"
+proof -
+  have "\<forall>x\<in>A. \<exists>B\<in>\<B>. x\<in>B"
+    using assms by blast
+  then obtain f where f: "\<And>x. x \<in> A \<Longrightarrow> f x \<in> \<B> \<and> x \<in> f x"
+    by (auto simp add: bchoice_iff Bex_def)
+  show thesis
+  proof
+    show "finite (f ` A)"
+      using assms by auto
+  qed (use f in auto)
+qed
+
 
 subsection \<open>Function Inverse\<close>
 

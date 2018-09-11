@@ -3139,7 +3139,7 @@ proof (induct k arbitrary: xs ys)
 qed simp
 
 lemma nth_equalityI:
-  "[| length xs = length ys; \<forall>i < length xs. xs!i = ys!i |] ==> xs = ys"
+  "\<lbrakk>length xs = length ys; \<And>i. i < length xs \<Longrightarrow> xs!i = ys!i\<rbrakk> \<Longrightarrow> xs = ys"
   by (frule nth_take_lemma [OF le_refl eq_imp_le]) simp_all
 
 lemma map_nth:
@@ -4775,7 +4775,7 @@ qed simp_all
 
 lemma transpose_map_map:
   "transpose (map (map f) xs) = map (map f) (transpose xs)"
-proof (rule nth_equalityI, safe)
+proof (rule nth_equalityI)
   have [simp]: "length (transpose (map (map f) xs)) = length (transpose xs)"
     by (simp add: length_transpose foldr_map comp_def)
   show "length (transpose (map (map f) xs)) = length (map (map f) (transpose xs))" by simp
@@ -5487,7 +5487,7 @@ lemma transpose_column:
   assumes sorted: "sorted (rev (map length xs))" and "i < length xs"
   shows "map (\<lambda>ys. ys ! i) (filter (\<lambda>ys. i < length ys) (transpose xs))
     = xs ! i" (is "?R = _")
-proof (rule nth_equalityI, safe)
+proof (rule nth_equalityI)
   show length: "length ?R = length (xs ! i)"
     using transpose_column_length[OF assms] by simp
 
@@ -5544,7 +5544,7 @@ proof (rule nth_equalityI)
   moreover
   { fix i assume "i < n" hence "filter (\<lambda>ys. i < length ys) xs = xs"
       using rect by (auto simp: in_set_conv_nth intro!: filter_True) }
-  ultimately show "\<forall>i < length ?trans. ?trans ! i = ?map ! i"
+  ultimately show "\<And>i. i < length (transpose xs) \<Longrightarrow> ?trans ! i = ?map ! i"
     by (auto simp: nth_transpose intro: nth_equalityI)
 qed
 
