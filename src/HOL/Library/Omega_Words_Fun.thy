@@ -219,7 +219,7 @@ qed
 lemma prefix_conc_snd[simp]:
   assumes "n \<ge> length u"
   shows "prefix n (u \<frown> v) = u @ prefix (n - length u) v"
-proof (intro nth_equalityI allI impI)
+proof (intro nth_equalityI)
   show "length (prefix n (u \<frown> v)) = length (u @ prefix (n - length u) v)"
     using assms by simp
   fix i
@@ -258,7 +258,7 @@ proof
   assume ?lhs
   then have 1: "(v\<^sub>1 \<frown> u\<^sub>1) i = (v\<^sub>2 \<frown> u\<^sub>2) i" for i by auto
   show ?rhs
-  proof (intro conjI ext nth_equalityI allI impI)
+  proof (intro conjI ext nth_equalityI)
     show "length v\<^sub>1 = length v\<^sub>2" by (rule assms(1))
   next
     fix i
