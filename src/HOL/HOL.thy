@@ -81,9 +81,16 @@ typedecl bool
 judgment Trueprop :: "bool \<Rightarrow> prop"  ("(_)" 5)
 
 axiomatization implies :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longrightarrow>" 25)
-  and eq :: "['a, 'a] \<Rightarrow> bool"  (infixl "=" 50)
+  and eq :: "['a, 'a] \<Rightarrow> bool"
   and The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
+notation (input)
+  eq  (infixl "=" 50)
+notation (output)
+  eq  (infix "=" 50)
+
+text \<open>The input syntax for \<open>eq\<close> is more permissive than the output syntax
+because of the large amount of material that relies on infixl.\<close>
 
 subsubsection \<open>Defined connectives and quantifiers\<close>
 
@@ -134,22 +141,15 @@ translations
   "\<nexists>!x. P" \<rightleftharpoons> "\<not> (\<exists>!x. P)"
 
 
-abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infixl "\<noteq>" 50)
+abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infix "\<noteq>" 50)
   where "x \<noteq> y \<equiv> \<not> (x = y)"
-
-notation (output)
-  eq  (infix "=" 50) and
-  not_equal  (infix "\<noteq>" 50)
-
-notation (ASCII output)
-  not_equal  (infix "~=" 50)
 
 notation (ASCII)
   Not  ("~ _" [40] 40) and
   conj  (infixr "&" 35) and
   disj  (infixr "|" 30) and
   implies  (infixr "-->" 25) and
-  not_equal  (infixl "~=" 50)
+  not_equal  (infix "~=" 50)
 
 abbreviation (iff)
   iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longleftrightarrow>" 25)
