@@ -652,12 +652,11 @@ qed
 
 lemma (in group) rcos_disjoint:
   assumes "subgroup H G"
-  assumes p: "a \<in> rcosets H" "b \<in> rcosets H" "a\<noteq>b"
-  shows "a \<inter> b = {}"
+  shows "pairwise disjnt (rcosets H)"
 proof -
   interpret subgroup H G by fact
-  from p show ?thesis
-    unfolding RCOSETS_def r_coset_def
+  show ?thesis
+    unfolding RCOSETS_def r_coset_def pairwise_def disjnt_def
     by (blast intro: rcos_equation assms sym)
 qed
 
@@ -823,7 +822,7 @@ proof -
   have "card H * card (rcosets H) = card (\<Union>(rcosets H))"
   proof (rule card_partition)
     show "\<And>c1 c2. \<lbrakk>c1 \<in> rcosets H; c2 \<in> rcosets H; c1 \<noteq> c2\<rbrakk> \<Longrightarrow> c1 \<inter> c2 = {}"
-      using HG rcos_disjoint by auto
+      using HG rcos_disjoint by (auto simp: pairwise_def disjnt_def)
   qed (auto simp: assms finite_UnionD rcosets_part_G card_rcosets_equal subgroup.subset)
   then show ?thesis
     by (simp add: HG mult.commute order_def rcosets_part_G)
