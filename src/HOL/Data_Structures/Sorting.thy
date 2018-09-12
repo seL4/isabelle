@@ -309,7 +309,8 @@ definition c_msort_bu :: "('a::linorder) list \<Rightarrow> nat" where
 "c_msort_bu xs = c_merge_all (map (\<lambda>x. [x]) xs)"
 
 lemma length_merge_adj:
-  "\<lbrakk> even(length xss); \<forall>x \<in> set xss. length x = m \<rbrakk> \<Longrightarrow> \<forall>xs \<in> set (merge_adj xss). length xs = 2*m"
+  "\<lbrakk> even(length xss); \<forall>xs \<in> set xss. length xs = m \<rbrakk>
+  \<Longrightarrow> \<forall>xs \<in> set (merge_adj xss). length xs = 2*m"
 by(induction xss rule: merge_adj.induct) (auto simp: length_merge)
 
 lemma c_merge_adj: "\<forall>xs \<in> set xss. length xs = m \<Longrightarrow> c_merge_adj xss \<le> m * length xss"
