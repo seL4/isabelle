@@ -80,7 +80,7 @@ object Thy_Resources
 
   val default_check_delay = Time.seconds(0.5)
   val default_nodes_status_delay = Time.seconds(-1.0)
-  val default_commit_clean_delay = Time.seconds(60.0)
+  val default_commit_cleanup_delay = Time.seconds(60.0)
   val default_watchdog_timeout = Time.seconds(600.0)
 
 
@@ -192,7 +192,7 @@ object Thy_Resources
       id: UUID = UUID(),
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
-      commit_clean_delay: Time = default_commit_clean_delay,
+      commit_cleanup_delay: Time = default_commit_cleanup_delay,
       progress: Progress = No_Progress): Theories_Result =
     {
       val dep_theories =
@@ -237,7 +237,7 @@ object Thy_Resources
           }
 
         val delay_commit_clean =
-          Standard_Thread.delay_first(commit_clean_delay max Time.zero) {
+          Standard_Thread.delay_first(commit_cleanup_delay max Time.zero) {
             val clean = use_theories_state.value.already_committed.keySet
             resources.clean_theories(session, id, clean)
           }
@@ -281,7 +281,7 @@ object Thy_Resources
 
               check_result()
 
-              if (commit.isDefined && commit_clean_delay > Time.zero) {
+              if (commit.isDefined && commit_cleanup_delay > Time.zero) {
                 if (use_theories_state.value.finished_result)
                   delay_commit_clean.revoke
                 else delay_commit_clean.invoke

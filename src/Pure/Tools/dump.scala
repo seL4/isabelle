@@ -92,7 +92,7 @@ object Dump
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
     verbose: Boolean = false,
-    commit_clean_delay: Time = Thy_Resources.default_commit_clean_delay,
+    commit_cleanup_delay: Time = Thy_Resources.default_commit_cleanup_delay,
     watchdog_timeout: Time = Thy_Resources.default_watchdog_timeout,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Process_Result =
@@ -164,7 +164,7 @@ object Dump
       session.use_theories(use_theories,
         progress = progress,
         commit = Some(Consumer.apply _),
-        commit_clean_delay = commit_clean_delay,
+        commit_cleanup_delay = commit_cleanup_delay,
         watchdog_timeout = watchdog_timeout)
 
     val session_result = session.stop()
@@ -183,7 +183,7 @@ object Dump
     {
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
-      var commit_clean_delay = Thy_Resources.default_commit_clean_delay
+      var commit_cleanup_delay = Thy_Resources.default_commit_cleanup_delay
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
       var requirements = false
@@ -205,7 +205,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
     -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
     -C SECONDS   delay for cleaning of already dumped theories (0 = disabled, default: """ +
-      Value.Seconds(Thy_Resources.default_commit_clean_delay) + """)
+      Value.Seconds(Thy_Resources.default_commit_cleanup_delay) + """)
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
@@ -226,7 +226,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "C:" -> (arg => commit_clean_delay = Value.Seconds.parse(arg)),
+      "C:" -> (arg => commit_cleanup_delay = Value.Seconds.parse(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
@@ -253,7 +253,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
             dirs = dirs,
             select_dirs = select_dirs,
             output_dir = output_dir,
-            commit_clean_delay = commit_clean_delay,
+            commit_cleanup_delay = commit_cleanup_delay,
             watchdog_timeout = watchdog_timeout,
             verbose = verbose,
             selection = Sessions.Selection(
