@@ -389,15 +389,14 @@ next
   moreover have "(r1 \<otimes>\<^bsub>(DirProd_list (R # Rs))\<^esub> r2) ! 0 = (r1 ! 0) \<otimes>\<^bsub>R\<^esub> (r2 ! 0)"
     using "2.prems"(2) "2.prems"(3) by auto
   ultimately show ?case
-    by (metis "2.prems"(1) atLeastLessThan_iff le_0_eq lessThan_iff not_less_eq_eq nth_Cons')  
+    by (metis "2.prems"(1) atLeastLessThan_iff le_0_eq not_less_eq_eq nth_Cons')  
 qed
 
 lemma DirProd_list_m_comm:
   assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
     and "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
-  shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2 = r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1"
-  apply (rule nth_equalityI) apply auto
-proof -
+  shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2 = r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1" 
+proof (rule nth_equalityI)
   show "length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) = length (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1)"
     by (metis DirProd_list_carrier_elts DirProd_list_m_closed Group.comm_monoid.axioms(1) assms)
 
@@ -407,7 +406,7 @@ proof -
   have "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
     using i DirProd_list_m_output[OF assms(1-2)] by simp
   also have " ... = (r2 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r1 ! i)"
-    by (metis DirProd_list_carrier_elts DirProd_list_in_carrierE assms comm_monoid.m_comm i lessThan_iff)
+    by (metis DirProd_list_carrier_elts DirProd_list_in_carrierE assms comm_monoid.m_comm i)
   also have " ... = (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i"
     using i DirProd_list_m_output[OF assms(2) assms(1)] by simp
   finally show "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) ! i = (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i" .
@@ -420,8 +419,7 @@ lemma DirProd_list_m_assoc:
       and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "(r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2) \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r3 =
           r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> (r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r3)"
-  apply (rule nth_equalityI) apply auto
-proof -
+proof (rule nth_equalityI)
   show "length ((r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3) =
          length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3))"
     by (metis DirProd_list_carrier_elts DirProd_list_m_closed assms)
@@ -431,11 +429,11 @@ proof -
     by (metis DirProd_list_carrier_elts DirProd_list_m_closed assms)
   have "((r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3) ! i =
         ((r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r3 ! i)"
-    by (metis DirProd_list_m_closed DirProd_list_m_output i assms lessThan_iff)
+    by (metis DirProd_list_m_closed DirProd_list_m_output i assms)
   also have " ... = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> ((r2 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r3 ! i))"
-    by (metis DirProd_list_carrier_elts DirProd_list_in_carrierE assms i lessThan_iff monoid.m_assoc)
+    by (metis DirProd_list_carrier_elts DirProd_list_in_carrierE assms i monoid.m_assoc)
   also have " ... = (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3)) ! i"
-    by (metis DirProd_list_m_closed DirProd_list_m_output i assms lessThan_iff)
+    by (metis DirProd_list_m_closed DirProd_list_m_output i assms)
   finally show "((r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3) ! i =
                  (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3))! i" .
 qed
@@ -458,12 +456,11 @@ lemma DirProd_list_l_one:
   assumes "r1 \<in> carrier (DirProd_list Rs)"
     and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "\<one>\<^bsub>(DirProd_list Rs)\<^esub> \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1 = r1"
-  apply (rule nth_equalityI) apply auto
-proof -
+proof (rule nth_equalityI)
   show eq_len: "length (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) = length r1"
     using DirProd_list_carrier_elts[of "\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1" Rs]
-          DirProd_list_carrier_elts[OF assms(1)]
-          DirProd_list_m_closed[OF DirProd_list_one_closed[OF assms(2)] assms(1)]
+      DirProd_list_carrier_elts[OF assms(1)]
+      DirProd_list_m_closed[OF DirProd_list_one_closed[OF assms(2)] assms(1)]
     by (simp add: assms)
   fix i assume "i < length (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1)"
   hence i: "i < length Rs" using DirProd_list_carrier_elts[OF assms(1)] eq_len by simp
@@ -484,8 +481,7 @@ lemma DirProd_list_r_one:
 proof -
   have "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> \<one>\<^bsub>(DirProd_list Rs)\<^esub> =
            \<one>\<^bsub>(DirProd_list Rs)\<^esub> \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1"
-    apply (rule nth_equalityI) apply auto
-  proof -
+  proof (rule nth_equalityI)
     show " length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>) =
            length (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1)"
       by (metis DirProd_list_carrier_elts DirProd_list_m_closed DirProd_list_one_closed assms)
@@ -494,11 +490,11 @@ proof -
     hence i: "i < length Rs"
       by (metis DirProd_list_carrier_elts DirProd_list_m_closed DirProd_list_one_closed assms)
     hence "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> \<one>\<^bsub>(Rs ! i)\<^esub>"
-      by (metis DirProd_list_m_output DirProd_list_one DirProd_list_one_closed assms lessThan_iff)
+      by (metis DirProd_list_m_output DirProd_list_one DirProd_list_one_closed assms)
     also have " ... =  \<one>\<^bsub>(Rs ! i)\<^esub> \<otimes>\<^bsub>(Rs ! i)\<^esub> (r1 ! i)"
       using DirProd_list_carrier_elts DirProd_list_in_carrierE assms i by fastforce
     also have " ... = (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i"
-      by (metis DirProd_list_m_output DirProd_list_one DirProd_list_one_closed assms i lessThan_iff)
+      by (metis DirProd_list_m_output DirProd_list_one DirProd_list_one_closed assms i)
     finally show "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>) ! i =
                   (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i" .
   qed
@@ -508,8 +504,8 @@ qed
 lemma DirProd_list_monoid:
   assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
   shows "monoid (DirProd_list Rs)"
-  unfolding monoid_def apply auto
-proof -
+  unfolding monoid_def 
+proof (intro conjI allI impI)
   show "\<one>\<^bsub>DirProd_list Rs\<^esub> \<in> carrier (DirProd_list Rs)"
     using DirProd_list_one_closed[of Rs] assms by simp
 
@@ -1029,7 +1025,7 @@ proof (rule ring_hom_memI)
                     ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y)) ! j" .
     qed
     ultimately show "?\<phi> (x \<oplus> y) = ?\<phi> x \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> ?\<phi> y"
-      by (simp add: nth_equalityI) 
+      by (simp add: list_eq_iff_nth_eq)
   qed
 next
   show "(?\<phi> \<one>) = \<one>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub>"
@@ -1071,7 +1067,7 @@ proof -
         by (subst length_RDirProd_list_0) (simp_all add: length_RDirProd_list_0 assms(1) ideal.quotient_is_cring is_cring)
       moreover have "length (?\<phi> s) = Suc n" by simp
       ultimately have "?\<phi> s = \<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>"
-        by (simp add: nth_equalityI)
+        by (simp add: list_eq_iff_nth_eq)
       moreover have "s \<in> carrier R"
         using additive_subgroup.a_Hcarr assms(1) ideal.axioms(1) s by fastforce
       ultimately show "s \<in> a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi>"

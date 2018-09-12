@@ -376,6 +376,12 @@ proof (rule ccontr)
   ultimately show False using * by blast
 qed
 
+lemma subset_chain_def: "\<And>\<A>. subset.chain \<A> \<C> = (\<C> \<subseteq> \<A> \<and> (\<forall>X\<in>\<C>. \<forall>Y\<in>\<C>. X \<subseteq> Y \<or> Y \<subseteq> X))"
+  by (auto simp: subset.chain_def)
+
+lemma subset_chain_insert:
+  "subset.chain \<A> (insert B \<B>) \<longleftrightarrow> B \<in> \<A> \<and> (\<forall>X\<in>\<B>. X \<subseteq> B \<or> B \<subseteq> X) \<and> subset.chain \<A> \<B>"
+  by (fastforce simp add: subset_chain_def)
 
 subsubsection \<open>Zorn's lemma\<close>
 
