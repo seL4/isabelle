@@ -15,7 +15,7 @@ begin
 subsection \<open>Syntactic infimum and supremum operations\<close>
 
 class Inf =
-  fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter>_" [900] 900)
+  fixes Inf :: "'a set \<Rightarrow> 'a"  ("\<Sqinter> _" [900] 900)
 begin
 
 abbreviation (input) INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" \<comment> \<open>legacy\<close>
@@ -24,7 +24,7 @@ abbreviation (input) INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Ri
 end
 
 class Sup =
-  fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion>_" [900] 900)
+  fixes Sup :: "'a set \<Rightarrow> 'a"  ("\<Squnion> _" [900] 900)
 begin
 
 abbreviation (input) SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" \<comment> \<open>legacy\<close>
@@ -791,7 +791,7 @@ end
 
 subsubsection \<open>Inter\<close>
 
-abbreviation Inter :: "'a set set \<Rightarrow> 'a set"  ("\<Inter>_" [900] 900)
+abbreviation Inter :: "'a set set \<Rightarrow> 'a set"  ("\<Inter> _" [900] 900)
   where "\<Inter>S \<equiv> \<Sqinter>S"
 
 lemma Inter_eq: "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
@@ -948,7 +948,7 @@ lemma vimage_INT: "f -` (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. f -` B x)"
 
 subsubsection \<open>Union\<close>
 
-abbreviation Union :: "'a set set \<Rightarrow> 'a set"  ("\<Union>_" [900] 900)
+abbreviation Union :: "'a set set \<Rightarrow> 'a set"  ("\<Union> _" [900] 900)
   where "\<Union>S \<equiv> \<Squnion>S"
 
 lemma Union_eq: "\<Union>A = {x. \<exists>B \<in> A. x \<in> B}"

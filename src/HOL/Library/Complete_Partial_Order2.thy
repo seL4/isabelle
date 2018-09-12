@@ -12,7 +12,7 @@ lemma chain_transfer [transfer_rule]:
   includes lifting_syntax
   shows "((A ===> A ===> (=)) ===> rel_set A ===> (=)) Complete_Partial_Order.chain Complete_Partial_Order.chain"
 unfolding chain_def[abs_def] by transfer_prover
-
+                             
 lemma linorder_chain [simp, intro!]:
   fixes Y :: "_ :: linorder set"
   shows "Complete_Partial_Order.chain (\<le>) Y"
@@ -161,7 +161,7 @@ qed
 end
 
 lemma Sup_image_mono_le:
-  fixes le_b (infix "\<sqsubseteq>" 60) and Sup_b ("\<Or>_" [900] 900)
+  fixes le_b (infix "\<sqsubseteq>" 60) and Sup_b ("\<Or> _" [900] 900)
   assumes ccpo: "class.ccpo Sup_b (\<sqsubseteq>) lt_b"
   assumes chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
   and mono: "\<And>x y. \<lbrakk> x \<sqsubseteq> y; x \<in> Y \<rbrakk> \<Longrightarrow> f x \<le> f y"
@@ -556,7 +556,7 @@ by(rule mcont2mcont'[OF _ mcont_const])
 
 context
   fixes ord :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix "\<sqsubseteq>" 60) 
-  and lub :: "'b set \<Rightarrow> 'b" ("\<Or>_" [900] 900)
+  and lub :: "'b set \<Rightarrow> 'b" ("\<Or> _" [900] 900)
 begin
 
 lemma cont_fun_lub_Sup:
@@ -677,7 +677,7 @@ lemma (in preorder) monotone_if_bot:
 by(rule monotoneI)(auto intro: bot intro: mono order_trans)
 
 lemma (in ccpo) mcont_if_bot:
-  fixes bot and lub ("\<Or>_" [900] 900) and ord (infix "\<sqsubseteq>" 60)
+  fixes bot and lub ("\<Or> _" [900] 900) and ord (infix "\<sqsubseteq>" 60)
   assumes ccpo: "class.ccpo lub (\<sqsubseteq>) lt"
   and mono: "\<And>x y. \<lbrakk> x \<le> y; \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
   and cont: "\<And>Y. \<lbrakk> Complete_Partial_Order.chain (\<le>) Y; Y \<noteq> {}; \<And>x. x \<in> Y \<Longrightarrow> \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f (\<Squnion>Y) = \<Or>(f ` Y)"
@@ -877,7 +877,7 @@ qed
 end
 
 lemma admissible_leI:
-  fixes ord (infix "\<sqsubseteq>" 60) and lub ("\<Or>_" [900] 900)
+  fixes ord (infix "\<sqsubseteq>" 60) and lub ("\<Or> _" [900] 900)
   assumes "class.ccpo lub (\<sqsubseteq>) (mk_less (\<sqsubseteq>))"
   and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. f x)"
   and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. g x)"

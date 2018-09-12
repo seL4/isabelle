@@ -22,8 +22,8 @@ no_notation
   top ("\<top>") and
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and
-  Inf ("\<Sqinter>_" [900] 900) and
-  Sup ("\<Squnion>_" [900] 900) and
+  Inf ("\<Sqinter> _" [900] 900) and
+  Sup ("\<Squnion> _" [900] 900) and
   ordLeq2 (infix "<=o" 50) and
   ordLeq3 (infix "\<le>o" 50) and
   ordLess2 (infix "<o" 50) and

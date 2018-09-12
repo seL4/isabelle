@@ -309,7 +309,7 @@ begin
 
 sublocale Inf_fin: semilattice_order_set inf less_eq less
 defines
-  Inf_fin ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n_" [900] 900) = Inf_fin.F ..
+  Inf_fin ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = Inf_fin.F ..
 
 end
 
@@ -318,7 +318,7 @@ begin
 
 sublocale Sup_fin: semilattice_order_set sup greater_eq greater
 defines
-  Sup_fin ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n_" [900] 900) = Sup_fin.F ..
+  Sup_fin ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = Sup_fin.F ..
 
 end
 
