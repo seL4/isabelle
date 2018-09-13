@@ -2652,7 +2652,7 @@ lemma sort_by_quicksort:
     @ sort [x\<leftarrow>xs. x > xs ! (length xs div 2)]" (is "sort ?lhs = ?rhs")
   using sort_key_by_quicksort [of "\<lambda>x. x", symmetric] by simp
 
-text \<open>A stable parametrized quicksort\<close>
+text \<open>A stable parameterized quicksort\<close>
 
 definition part :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b list \<Rightarrow> 'b list \<times> 'b list \<times> 'b list" where
   "part f pivot xs = ([x \<leftarrow> xs. f x < pivot], [x \<leftarrow> xs. f x = pivot], [x \<leftarrow> xs. pivot < f x])"
