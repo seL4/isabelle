@@ -1830,7 +1830,7 @@ lemma size_mset [simp]: "size (mset xs) = length xs"
 lemma mset_append [simp]: "mset (xs @ ys) = mset xs + mset ys"
   by (induct xs arbitrary: ys) auto
 
-lemma mset_filter: "mset (filter P xs) = {#x \<in># mset xs. P x #}"
+lemma mset_filter[simp]: "mset (filter P xs) = {#x \<in># mset xs. P x #}"
   by (induct xs) simp_all
 
 lemma mset_rev [simp]:
@@ -1886,6 +1886,9 @@ apply (drule distinct_remdups [THEN distinct_remdups
       [THEN set_eq_iff_mset_eq_distinct [THEN iffD2]]])
 apply simp
 done
+
+lemma union_mset_compl[simp]: "\<forall>x. P x = (\<not> Q x) \<Longrightarrow> filter_mset P M + filter_mset Q M = M"
+by (induction M) simp_all
 
 lemma mset_compl_union: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
   by (induct xs) auto
