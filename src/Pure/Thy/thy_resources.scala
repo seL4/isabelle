@@ -47,7 +47,7 @@ object Thy_Resources
       }
     session.phase_changed += session_phase
 
-    progress.echo("Starting " + session_name + " ...")
+    progress.echo("Starting session " + session_name + " ...")
     Isabelle_Process.start(session, options,
       logic = session_name, dirs = session_dirs, modes = print_mode)
 
