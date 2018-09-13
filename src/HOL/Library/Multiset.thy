@@ -1890,9 +1890,6 @@ done
 lemma union_mset_compl[simp]: "\<forall>x. P x = (\<not> Q x) \<Longrightarrow> filter_mset P M + filter_mset Q M = M"
 by (induction M) simp_all
 
-lemma mset_compl_union: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
-  by (induct xs) auto
-
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
 proof (induct ls arbitrary: i)
   case Nil
