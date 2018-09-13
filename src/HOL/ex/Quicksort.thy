@@ -22,7 +22,7 @@ lemma [code]:
 
 lemma quicksort_permutes [simp]:
   "mset (quicksort xs) = mset xs"
-  by (induct xs rule: quicksort.induct) (simp_all add: ac_simps)
+  by (induct xs rule: quicksort.induct) (simp_all add: mset_compl_union ac_simps)
 
 lemma set_quicksort [simp]: "set (quicksort xs) = set xs"
 proof -

@@ -1887,7 +1887,7 @@ apply (drule distinct_remdups [THEN distinct_remdups
 apply simp
 done
 
-lemma mset_compl_union [simp]: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
+lemma mset_compl_union: "mset [x\<leftarrow>xs. P x] + mset [x\<leftarrow>xs. \<not>P x] = mset xs"
   by (induct xs) auto
 
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
