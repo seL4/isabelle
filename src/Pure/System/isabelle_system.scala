@@ -197,14 +197,16 @@ object Isabelle_System
         new SimpleFileVisitor[JPath] {
           override def visitFile(file: JPath, attrs: BasicFileAttributes): FileVisitResult =
           {
-            Files.deleteIfExists(file)
+            try { Files.deleteIfExists(file) }
+            catch { case _: IOException => }
             FileVisitResult.CONTINUE
           }
 
           override def postVisitDirectory(dir: JPath, e: IOException): FileVisitResult =
           {
             if (e == null) {
-              Files.deleteIfExists(dir)
+              try { Files.deleteIfExists(dir) }
+              catch { case _: IOException => }
               FileVisitResult.CONTINUE
             }
             else throw e
