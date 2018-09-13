@@ -14,9 +14,12 @@ object Progress
 {
   sealed case class Theory(theory: String, session: String = "", percentage: Option[Int] = None)
   {
-    def message: String =
-      (if (session == "") "theory " + theory else session + ": theory " + theory) +
-      (percentage match { case None => "" case Some(p) => " " + p + "%" })
+    def message: String = print_session + print_theory + print_percentage
+
+    def print_session: String = if (session == "") "" else session + ": "
+    def print_theory: String = "theory " + theory
+    def print_percentage: String =
+      percentage match { case None => "" case Some(p) => " " + p + "%" }
   }
 }
 
