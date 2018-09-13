@@ -50,6 +50,6 @@ Usage: isabelle update_then [FILES|DIRS...]
       for {
         spec <- specs
         file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_then(Path.explode(File.standard_path(file)))
+      } update_then(File.path(file))
     })
 }
