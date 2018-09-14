@@ -63,6 +63,6 @@ Usage: isabelle update_comments [FILES|DIRS...]
       for {
         spec <- specs
         file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
-      } update_comments(Path.explode(File.standard_path(file)))
+      } update_comments(File.path(file))
     })
 }
