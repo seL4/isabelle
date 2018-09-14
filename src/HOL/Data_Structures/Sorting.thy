@@ -351,4 +351,24 @@ qed
 corollary c_msort_bu: "length xs = 2 ^ k \<Longrightarrow> c_msort_bu xs \<le> k * 2 ^ k"
 using c_merge_all[of "map (\<lambda>x. [x]) xs" 1] by (simp add: c_msort_bu_def)
 
+
+subsection "Quicksort"
+
+fun quicksort :: "('a::linorder) list \<Rightarrow> 'a list" where
+"quicksort []     = []" |
+"quicksort (x#xs) = quicksort (filter (\<lambda>y. y < x) xs) @ [x] @ quicksort (filter (\<lambda>y. x \<le> y) xs)"
+
+lemma mset_quicksort: "mset (quicksort xs) = mset xs"
+apply (induction xs rule: quicksort.induct)
+apply (auto simp: not_le)
+done
+
+lemma set_quicksort: "set (quicksort xs) = set xs"
+by(rule mset_eq_setD[OF mset_quicksort])
+
+lemma sorted_quicksort: "sorted (quicksort xs)"
+apply (induction xs rule: quicksort.induct)
+apply (auto simp add: sorted_append set_quicksort)
+done
+
 end
