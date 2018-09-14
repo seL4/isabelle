@@ -1520,8 +1520,12 @@ lemma multiset_cases [cases type]:
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
 
+lemma union_filter_mset_complement[simp]:
+  "\<forall>x. P x = (\<not> Q x) \<Longrightarrow> filter_mset P M + filter_mset Q M = M"
+by (subst multiset_eq_iff) auto
+
 lemma multiset_partition: "M = {#x \<in># M. P x#} + {#x \<in># M. \<not> P x#}"
-  by (subst multiset_eq_iff) auto
+by simp
 
 lemma mset_subset_size: "A \<subset># B \<Longrightarrow> size A < size B"
 proof (induct A arbitrary: B)
@@ -1886,9 +1890,6 @@ apply (drule distinct_remdups [THEN distinct_remdups
       [THEN set_eq_iff_mset_eq_distinct [THEN iffD2]]])
 apply simp
 done
-
-lemma union_mset_compl[simp]: "\<forall>x. P x = (\<not> Q x) \<Longrightarrow> filter_mset P M + filter_mset Q M = M"
-by (induction M) simp_all
 
 lemma nth_mem_mset: "i < length ls \<Longrightarrow> (ls ! i) \<in># mset ls"
 proof (induct ls arbitrary: i)
@@ -2924,7 +2925,7 @@ next
   next
     case [simp]: False
     have K: "K = {#x \<in># K. (x, a) \<in> r#} + {#x \<in># K. (x, a) \<notin> r#}"
-      by (rule multiset_partition)
+      by simp
     have "(I + K, (I + {# x \<in># K. (x, a) \<in> r #}) + J') \<in> mult r"
       using IH[of J' "{# x \<in># K. (x, a) \<notin> r#}" "I + {# x \<in># K. (x, a) \<in> r#}"]
         J Suc.prems K size_J by (auto simp: ac_simps)
