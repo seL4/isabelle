@@ -21,7 +21,7 @@ Administrative Isabelle cronjob
 Build Log Database Server
 =========================
 
-- Ubuntu 16.04 LTS Linux Server standard installation
+- Ubuntu 18.04 LTS Linux Server standard installation
   https://help.ubuntu.com/lts/serverguide
 
 - apt install unattended-upgrades
@@ -41,7 +41,7 @@ Build Log Database Server
   $ sudo -u postgres psql template1
   ALTER USER postgres with encrypted password '***';
 
-  $ edit /etc/postgresql/9.5/main/pg_hba.conf
+  $ edit /etc/postgresql/10/main/pg_hba.conf
   local all postgres md5
   local all all md5
 
