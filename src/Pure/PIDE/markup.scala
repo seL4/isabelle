@@ -40,6 +40,9 @@ object Markup
   val NAME = "name"
   val Name = new Properties.String(NAME)
 
+  val XNAME = "xname"
+  val XName = new Properties.String(XNAME)
+
   val KIND = "kind"
   val Kind = new Properties.String(KIND)
 

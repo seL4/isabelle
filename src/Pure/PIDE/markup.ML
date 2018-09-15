@@ -10,8 +10,8 @@ sig
   val empty: T
   val is_empty: T -> bool
   val properties: Properties.T -> T -> T
-  val nameN: string
-  val name: string -> T -> T
+  val nameN: string val name: string -> T -> T
+  val xnameN: string val xname: string -> T -> T
   val kindN: string
   val serialN: string
   val serial_properties: int -> Properties.T
@@ -259,6 +259,9 @@ fun markup_int name prop = (name, fn i => (name, [(prop, Value.print_int i)]): T
 
 val nameN = "name";
 fun name a = properties [(nameN, a)];
+
+val xnameN = "xname";
+fun xname a = properties [(xnameN, a)];
 
 val kindN = "kind";
 

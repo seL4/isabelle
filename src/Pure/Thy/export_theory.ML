@@ -52,17 +52,20 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val parents = Theory.parents_of thy;
     val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
 
+    val ctxt = Proof_Context.init_global thy;
+
 
     (* entities *)
 
     fun entity_markup space name =
       let
+        val xname = Name_Space.extern_shortest ctxt space name;
         val {serial, pos, ...} = Name_Space.the_entry space name;
         val props =
           Position.offset_properties_of (adjust_pos pos) @
           Position.id_properties_of pos @
           Markup.serial_properties serial;
-      in (Markup.entityN, (Markup.nameN, name) :: props) end;
+      in (Markup.entityN, (Markup.nameN, name) :: (Markup.xnameN, xname) :: props) end;
 
     fun export_entities export_name export get_space decls =
       let val elems =
