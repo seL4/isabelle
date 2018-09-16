@@ -499,6 +499,41 @@ lemma extensional_funcset_fun_upd_extends_rangeI:
   shows "f(x := a) \<in> insert x S \<rightarrow>\<^sub>E  T"
   using assms unfolding extensional_funcset_def extensional_def by auto
 
+lemma subset_PiE:
+   "PiE I S \<subseteq> PiE I T \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. S i \<subseteq> T i)" (is "?lhs \<longleftrightarrow> _ \<or> ?rhs")
+proof (cases "PiE I S = {}")
+  case False
+  moreover have "?lhs = ?rhs"
+  proof
+    assume L: ?lhs
+    have "\<And>i. i\<in>I \<Longrightarrow> S i \<noteq> {}"
+      using False PiE_eq_empty_iff by blast
+    with L show ?rhs
+      by (simp add: PiE_Int PiE_eq_iff inf.absorb_iff2)
+  qed auto
+  ultimately show ?thesis
+    by simp
+qed simp
+
+lemma PiE_eq:
+   "PiE I S = PiE I T \<longleftrightarrow> PiE I S = {} \<and> PiE I T = {} \<or> (\<forall>i \<in> I. S i = T i)"
+  by (auto simp: PiE_eq_iff PiE_eq_empty_iff)
+
+lemma PiE_UNIV [simp]: "PiE UNIV (\<lambda>i. UNIV) = UNIV"
+  by blast
+
+lemma image_projection_PiE:
+  "(\<lambda>f. f i) ` (PiE I S) = (if PiE I S = {} then {} else if i \<in> I then S i else {undefined})"
+proof -
+  have "(\<lambda>f. f i) ` Pi\<^sub>E I S = S i" if "i \<in> I" "f \<in> PiE I S" for f
+    using that apply auto
+    by (rule_tac x="(\<lambda>k. if k=i then x else f k)" in image_eqI) auto
+  moreover have "(\<lambda>f. f i) ` Pi\<^sub>E I S = {undefined}" if "f \<in> PiE I S" "i \<notin> I" for f
+    using that by (blast intro: PiE_arb [OF that, symmetric])
+  ultimately show ?thesis
+    by auto
+qed
+
 
 subsubsection \<open>Injective Extensional Function Spaces\<close>
 

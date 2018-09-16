@@ -700,6 +700,10 @@ lemma openin_Inter [intro]:
   assumes "finite \<F>" "\<F> \<noteq> {}" "\<And>X. X \<in> \<F> \<Longrightarrow> openin T X" shows "openin T (\<Inter>\<F>)"
   by (metis (full_types) assms openin_INT2 image_ident)
 
+lemma openin_Int_Inter:
+  assumes "finite \<F>" "openin T U" "\<And>X. X \<in> \<F> \<Longrightarrow> openin T X" shows "openin T (U \<inter> \<Inter>\<F>)"
+  using openin_Inter [of "insert U \<F>"] assms by auto
+
 
 subsubsection \<open>Closed sets\<close>
 
@@ -824,6 +828,26 @@ lemma openin_subtopology_refl: "openin (subtopology U V) V \<longleftrightarrow>
   unfolding openin_subtopology
   by auto (metis IntD1 in_mono openin_subset)
 
+lemma subtopology_subtopology:
+   "subtopology (subtopology X S) T = subtopology X (S \<inter> T)"
+proof -
+  have eq: "\<And>T'. (\<exists>S'. T' = S' \<inter> T \<and> (\<exists>T. openin X T \<and> S' = T \<inter> S)) = (\<exists>Sa. T' = Sa \<inter> (S \<inter> T) \<and> openin X Sa)"
+    by (metis inf_assoc)
+  have "subtopology (subtopology X S) T = topology (\<lambda>Ta. \<exists>Sa. Ta = Sa \<inter> T \<and> openin (subtopology X S) Sa)"
+    by (simp add: subtopology_def)
+  also have "\<dots> = subtopology X (S \<inter> T)"
+    by (simp add: openin_subtopology eq) (simp add: subtopology_def)
+  finally show ?thesis .
+qed
+
+lemma openin_subtopology_alt:
+     "openin (subtopology X U) S \<longleftrightarrow> S \<in> (\<lambda>T. U \<inter> T) ` Collect (openin X)"
+  by (simp add: image_iff inf_commute openin_subtopology)
+
+lemma closedin_subtopology_alt:
+     "closedin (subtopology X U) S \<longleftrightarrow> S \<in> (\<lambda>T. U \<inter> T) ` Collect (closedin X)"
+  by (simp add: image_iff inf_commute closedin_subtopology)
+
 lemma subtopology_superset:
   assumes UV: "topspace U \<subseteq> V"
   shows "subtopology U V = U"
@@ -869,6 +893,9 @@ lemma closedin_subtopology_refl [simp]:
    "closedin (subtopology U X) X \<longleftrightarrow> X \<subseteq> topspace U"
 by (metis closedin_def closedin_topspace inf.absorb_iff2 le_inf_iff topspace_subtopology)
 
+lemma closedin_topspace_empty: "topspace T = {} \<Longrightarrow> (closedin T S \<longleftrightarrow> S = {})"
+  by (simp add: closedin_def)
+
 lemma openin_imp_subset:
    "openin (subtopology U S) T \<Longrightarrow> T \<subseteq> S"
 by (metis Int_iff openin_subtopology subsetI)
@@ -876,6 +903,14 @@ by (metis Int_iff openin_subtopology subsetI)
 lemma closedin_imp_subset:
    "closedin (subtopology U S) T \<Longrightarrow> T \<subseteq> S"
 by (simp add: closedin_def topspace_subtopology)
+
+lemma openin_open_subtopology:
+     "openin X S \<Longrightarrow> openin (subtopology X S) T \<longleftrightarrow> openin X T \<and> T \<subseteq> S"
+  by (metis inf.orderE openin_Int openin_imp_subset openin_subtopology)
+
+lemma closedin_closed_subtopology:
+     "closedin X S \<Longrightarrow> (closedin (subtopology X S) T \<longleftrightarrow> closedin X T \<and> T \<subseteq> S)"
+  by (metis closedin_Int closedin_imp_subset closedin_subtopology inf.orderE)
 
 lemma openin_subtopology_Un:
     "\<lbrakk>openin (subtopology X T) S; openin (subtopology X U) S\<rbrakk>
