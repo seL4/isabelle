@@ -12,10 +12,11 @@ datatype 'a tree =
   Node "'a tree" (root_val: 'a) "'a tree" ("(1\<langle>_,/ _,/ _\<rangle>)")
 datatype_compat tree
 
-text\<open>Can be seen as counting the number of leaves rather than nodes:\<close>
+text\<open>Counting the number of leaves rather than nodes:\<close>
 
-definition size1 :: "'a tree \<Rightarrow> nat" where
-"size1 t = size t + 1"
+fun size1 :: "'a tree \<Rightarrow> nat" where
+"size1 \<langle>\<rangle> = 1" |
+"size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
 
 fun subtrees :: "'a tree \<Rightarrow> 'a tree set" where
 "subtrees \<langle>\<rangle> = {\<langle>\<rangle>}" |
@@ -102,13 +103,11 @@ by (cases t) auto
 
 subsection \<open>@{const size}\<close>
 
-lemma size1_simps[simp]:
-  "size1 \<langle>\<rangle> = 1"
-  "size1 \<langle>l, x, r\<rangle> = size1 l + size1 r"
-by (simp_all add: size1_def)
+lemma size1_size: "size1 t = size t + 1"
+by (induction t) simp_all
 
 lemma size1_ge0[simp]: "0 < size1 t"
-by (simp add: size1_def)
+by (simp add: size1_size)
 
 lemma eq_size_0[simp]: "size t = 0 \<longleftrightarrow> t = Leaf"
 by(cases t) auto
@@ -123,7 +122,7 @@ lemma size_map_tree[simp]: "size (map_tree f t) = size t"
 by (induction t) auto
 
 lemma size1_map_tree[simp]: "size1 (map_tree f t) = size1 t"
-by (simp add: size1_def)
+by (simp add: size1_size)
 
 
 subsection \<open>@{const set_tree}\<close>
@@ -192,7 +191,7 @@ proof(induction t)
 qed simp
 
 corollary size_height: "size t \<le> 2 ^ height (t::'a tree) - 1"
-using size1_height[of t, unfolded size1_def] by(arith)
+using size1_height[of t, unfolded size1_size] by(arith)
 
 lemma height_subtrees: "s \<in> subtrees t \<Longrightarrow> height s \<le> height t"
 by (induction t) auto
@@ -226,7 +225,7 @@ lemma size1_if_complete: "complete t \<Longrightarrow> size1 t = 2 ^ height t"
 by (induction t) auto
 
 lemma size_if_complete: "complete t \<Longrightarrow> size t = 2 ^ height t - 1"
-using size1_if_complete[simplified size1_def] by fastforce
+using size1_if_complete[simplified size1_size] by fastforce
 
 lemma complete_if_size1_height: "size1 t = 2 ^ height t \<Longrightarrow> complete t"
 proof (induct "height t" arbitrary: t)
@@ -275,7 +274,7 @@ are used.\<close>
 
 lemma complete_if_size1_min_height: "size1 t = 2 ^ min_height t \<Longrightarrow> complete t"
 proof (induct "min_height t" arbitrary: t)
-  case 0 thus ?case by (simp add: size1_def)
+  case 0 thus ?case by (simp add: size1_size)
 next
   case (Suc h)
   hence "t \<noteq> Leaf" by auto
@@ -353,7 +352,7 @@ proof (cases "complete t")
   proof -
     have "2 ^ height t = size1 t"
       using True by (simp add: complete_iff_height size1_if_complete)
-    also have "\<dots> \<le> size1 t'" using assms(2) by(simp add: size1_def)
+    also have "\<dots> \<le> size1 t'" using assms(2) by(simp add: size1_size)
     also have "\<dots> \<le> 2 ^ height t'" by (rule size1_height)
     finally show ?thesis .
   qed
@@ -364,7 +363,7 @@ next
   proof -
     have "(2::nat) ^ min_height t < size1 t"
       by(rule min_height_size1_if_incomplete[OF False])
-    also have "\<dots> \<le> size1 t'" using assms(2) by (simp add: size1_def)
+    also have "\<dots> \<le> size1 t'" using assms(2) by (simp add: size1_size)
     also have "\<dots> \<le> 2 ^ height t'"  by(rule size1_height)
     finally have "(2::nat) ^ min_height t < (2::nat) ^ height t'" .
     thus ?thesis .
@@ -470,7 +469,7 @@ lemma size_mirror[simp]: "size(mirror t) = size t"
 by (induction t) simp_all
 
 lemma size1_mirror[simp]: "size1(mirror t) = size1 t"
-by (simp add: size1_def)
+by (simp add: size1_size)
 
 lemma height_mirror[simp]: "height(mirror t) = height t"
 by (induction t) simp_all

@@ -67,7 +67,7 @@ lemma balanced_Node_if_wbal1:
 assumes "balanced l" "balanced r" "size l = size r + 1"
 shows "balanced \<langle>l, x, r\<rangle>"
 proof -
-  from assms(3) have [simp]: "size1 l = size1 r + 1" by(simp add: size1_def)
+  from assms(3) have [simp]: "size1 l = size1 r + 1" by(simp add: size1_size)
   have "nat \<lceil>log 2 (1 + size1 r)\<rceil> \<ge> nat \<lceil>log 2 (size1 r)\<rceil>"
     by(rule nat_mono[OF ceiling_mono]) simp
   hence 1: "height(Node l x r) = nat \<lceil>log 2 (1 + size1 r)\<rceil> + 1"
@@ -78,7 +78,7 @@ proof -
   hence 2: "min_height(Node l x r) = nat \<lfloor>log 2 (size1 r)\<rfloor> + 1"
     using min_height_balanced[OF assms(1)] min_height_balanced[OF assms(2)]
     by (simp)
-  have "size1 r \<ge> 1" by(simp add: size1_def)
+  have "size1 r \<ge> 1" by(simp add: size1_size)
   then obtain i where i: "2 ^ i \<le> size1 r" "size1 r < 2 ^ (i + 1)"
     using ex_power_ivl1[of 2 "size1 r"] by auto
   hence i1: "2 ^ i < size1 r + 1" "size1 r + 1 \<le> 2 ^ (i + 1)" by auto
