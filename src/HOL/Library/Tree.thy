@@ -33,7 +33,7 @@ begin
 
 fun height_tree :: "'a tree => nat" where
 "height Leaf = 0" |
-"height (Node t1 a t2) = max (height t1) (height t2) + 1"
+"height (Node l a r) = max (height l) (height r) + 1"
 
 instance ..
 
