@@ -231,6 +231,16 @@ lemma%unimportant [simp]:
     and is_interval_cc: "is_interval {b..a}"
   by (force simp: is_interval_def eucl_le[where 'a='a])+
 
+lemma connected_interval [simp]:
+  fixes a b::"'a::ordered_euclidean_space"
+  shows "connected {a..b}"
+  using is_interval_cc is_interval_connected by blast
+
+lemma path_connected_interval [simp]:
+  fixes a b::"'a::ordered_euclidean_space"
+  shows "path_connected {a..b}"
+  using is_interval_cc is_interval_path_connected by blast
+
 lemma%unimportant is_interval_real_ereal_oo: "is_interval (real_of_ereal ` {N<..<M::ereal})"
   by (auto simp: real_atLeastGreaterThan_eq)
 

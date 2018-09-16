@@ -386,7 +386,7 @@ lemma subset_chain_insert:
 subsubsection \<open>Zorn's lemma\<close>
 
 text \<open>If every chain has an upper bound, then there is a maximal set.\<close>
-lemma subset_Zorn:
+theorem subset_Zorn:
   assumes "\<And>C. subset.chain A C \<Longrightarrow> \<exists>U\<in>A. \<forall>X\<in>C. X \<subseteq> U"
   shows "\<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
 proof -
@@ -487,7 +487,7 @@ lemma Zorn_Lemma: "\<forall>C\<in>chains A. \<Union>C \<in> A \<Longrightarrow> 
 lemma Zorn_Lemma2: "\<forall>C\<in>chains A. \<exists>U\<in>A. \<forall>X\<in>C. X \<subseteq> U \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
   using subset_Zorn [of A] by (auto simp: chains_alt_def)
 
-text \<open>Various other lemmas\<close>
+subsection \<open>Other variants of Zorn's Lemma\<close>
 
 lemma chainsD: "c \<in> chains S \<Longrightarrow> x \<in> c \<Longrightarrow> y \<in> c \<Longrightarrow> x \<subseteq> y \<or> y \<subseteq> x"
   unfolding chains_def chain_subset_def by blast
@@ -562,6 +562,67 @@ proof -
     by (auto simp: relation_of_def)
 qed
 
+lemma Union_in_chain: "\<lbrakk>finite \<B>; \<B> \<noteq> {}; subset.chain \<A> \<B>\<rbrakk> \<Longrightarrow> \<Union>\<B> \<in> \<B>"
+proof (induction \<B> rule: finite_induct)
+  case (insert B \<B>)
+  show ?case
+  proof (cases "\<B> = {}")
+    case False
+    then show ?thesis
+      using insert sup.absorb2 by (auto simp: subset_chain_insert dest!: bspec [where x="\<Union>\<B>"])
+  qed auto
+qed simp
+
+lemma Inter_in_chain: "\<lbrakk>finite \<B>; \<B> \<noteq> {}; subset.chain \<A> \<B>\<rbrakk> \<Longrightarrow> \<Inter>\<B> \<in> \<B>"
+proof (induction \<B> rule: finite_induct)
+  case (insert B \<B>)
+  show ?case
+  proof (cases "\<B> = {}")
+    case False
+    then show ?thesis
+      using insert inf.absorb2 by (auto simp: subset_chain_insert dest!: bspec [where x="\<Inter>\<B>"])
+  qed auto
+qed simp
+
+lemma finite_subset_Union_chain:
+  assumes "finite A" "A \<subseteq> \<Union>\<B>" "\<B> \<noteq> {}" and sub: "subset.chain \<A> \<B>"
+  obtains B where "B \<in> \<B>" "A \<subseteq> B"
+proof -
+  obtain \<F> where \<F>: "finite \<F>" "\<F> \<subseteq> \<B>" "A \<subseteq> \<Union>\<F>"
+    using assms by (auto intro: finite_subset_Union)
+  show thesis
+  proof (cases "\<F> = {}")
+    case True
+    then show ?thesis
+      using \<open>A \<subseteq> \<Union>\<F>\<close> \<open>\<B> \<noteq> {}\<close> that by fastforce
+  next
+    case False
+    show ?thesis
+    proof
+      show "\<Union>\<F> \<in> \<B>"
+        using sub \<open>\<F> \<subseteq> \<B>\<close> \<open>finite \<F>\<close>
+        by (simp add: Union_in_chain False subset.chain_def subset_iff)
+      show "A \<subseteq> \<Union>\<F>"
+        using \<open>A \<subseteq> \<Union>\<F>\<close> by blast
+    qed
+  qed
+qed
+
+lemma subset_Zorn_nonempty:
+  assumes "\<A> \<noteq> {}" and ch: "\<And>\<C>. \<lbrakk>\<C>\<noteq>{}; subset.chain \<A> \<C>\<rbrakk> \<Longrightarrow> \<Union>\<C> \<in> \<A>"
+  shows "\<exists>M\<in>\<A>. \<forall>X\<in>\<A>. M \<subseteq> X \<longrightarrow> X = M"
+proof (rule subset_Zorn)
+  show "\<exists>U\<in>\<A>. \<forall>X\<in>\<C>. X \<subseteq> U" if "subset.chain \<A> \<C>" for \<C>
+  proof (cases "\<C> = {}")
+    case True
+    then show ?thesis
+      using \<open>\<A> \<noteq> {}\<close> by blast
+  next
+    case False
+    show ?thesis
+      by (blast intro!: ch False that Union_upper)
+  qed
+qed
 
 subsection \<open>The Well Ordering Theorem\<close>
 
