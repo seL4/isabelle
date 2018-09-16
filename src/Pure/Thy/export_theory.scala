@@ -190,12 +190,31 @@ object Export_Theory
   }
 
 
+  /* infix syntax */
+
+  object Assoc extends Enumeration
+  {
+    val NO_ASSOC, LEFT_ASSOC, RIGHT_ASSOC = Value
+  }
+
+  sealed case class Infix(assoc: Assoc.Value, delim: String, pri: Int)
+
+  def decode_infix(body: XML.Body): Infix =
+  {
+    import XML.Decode._
+    val (ass, delim, pri) = triple(int, string, int)(body)
+    Infix(Assoc(ass), delim, pri)
+  }
+
+
   /* types */
 
-  sealed case class Type(entity: Entity, args: List[String], abbrev: Option[Term.Typ])
+  sealed case class Type(
+    entity: Entity, syntax: Option[Infix], args: List[String], abbrev: Option[Term.Typ])
   {
     def cache(cache: Term.Cache): Type =
       Type(entity.cache(cache),
+        syntax,
         args.map(cache.string(_)),
         abbrev.map(cache.typ(_)))
   }
@@ -204,22 +223,27 @@ object Export_Theory
     provider.uncompressed_yxml(export_prefix + "types").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.TYPE, tree)
-        val (args, abbrev) =
+        val (syntax, args, abbrev) =
         {
           import XML.Decode._
-          pair(list(string), option(Term_XML.Decode.typ))(body)
+          triple(option(decode_infix), list(string), option(Term_XML.Decode.typ))(body)
         }
-        Type(entity, args, abbrev)
+        Type(entity, syntax, args, abbrev)
       })
 
 
   /* consts */
 
   sealed case class Const(
-    entity: Entity, typargs: List[String], typ: Term.Typ, abbrev: Option[Term.Term])
+    entity: Entity,
+    syntax: Option[Infix],
+    typargs: List[String],
+    typ: Term.Typ,
+    abbrev: Option[Term.Term])
   {
     def cache(cache: Term.Cache): Const =
       Const(entity.cache(cache),
+        syntax,
         typargs.map(cache.string(_)),
         cache.typ(typ),
         abbrev.map(cache.term(_)))
@@ -229,12 +253,13 @@ object Export_Theory
     provider.uncompressed_yxml(export_prefix + "consts").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.CONST, tree)
-        val (args, typ, abbrev) =
+        val (syntax, (args, (typ, abbrev))) =
         {
           import XML.Decode._
-          triple(list(string), Term_XML.Decode.typ, option(Term_XML.Decode.term))(body)
+          pair(option(decode_infix), pair(list(string),
+            pair(Term_XML.Decode.typ, option(Term_XML.Decode.term))))(body)
         }
-        Const(entity, args, typ, abbrev)
+        Const(entity, syntax, args, typ, abbrev)
       })
 
 

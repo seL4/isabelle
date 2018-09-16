@@ -52,14 +52,14 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     val parents = Theory.parents_of thy;
     val rep_tsig = Type.rep_tsig (Sign.tsig_of thy);
 
-    val ctxt = Proof_Context.init_global thy;
+    val thy_ctxt = Proof_Context.init_global thy;
 
 
     (* entities *)
 
     fun entity_markup space name =
       let
-        val xname = Name_Space.extern_shortest ctxt space name;
+        val xname = Name_Space.extern_shortest thy_ctxt space name;
         val {serial, pos, ...} = Name_Space.the_entry space name;
         val props =
           Position.offset_properties_of (adjust_pos pos) @
@@ -86,35 +86,53 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       in if null elems then () else export_body thy export_name elems end;
 
 
+    (* infix syntax *)
+
+    fun get_infix_const ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_const;
+    fun get_infix_type ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_type;
+
+    fun encode_infix {assoc, delim, pri} =
+      let
+        val ass =
+          (case assoc of
+            Syntax_Ext.No_Assoc => 0
+          | Syntax_Ext.Left_Assoc => 1
+          | Syntax_Ext.Right_Assoc => 2);
+        open XML.Encode Term_XML.Encode;
+      in triple int string int (ass, delim, pri) end;
+
+
     (* types *)
 
     val encode_type =
       let open XML.Encode Term_XML.Encode
-      in pair (list string) (option typ) end;
+      in triple (option encode_infix) (list string) (option typ) end;
 
-    fun export_type (Type.LogicalType n) =
-          SOME (encode_type (Name.invent Name.context Name.aT n, NONE))
-      | export_type (Type.Abbreviation (args, U, false)) =
-          SOME (encode_type (args, SOME U))
-      | export_type _ = NONE;
+    fun export_type c (Type.LogicalType n) =
+          SOME (encode_type (get_infix_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
+      | export_type c (Type.Abbreviation (args, U, false)) =
+          SOME (encode_type (get_infix_type thy_ctxt c, args, SOME U))
+      | export_type _ _ = NONE;
 
     val _ =
-      export_entities "types" (K export_type) Sign.type_space
+      export_entities "types" export_type Sign.type_space
         (Name_Space.dest_table (#types rep_tsig));
 
 
     (* consts *)
 
     val encode_const =
-      let open XML.Encode Term_XML.Encode
-      in triple (list string) typ (option (term o named_bounds)) end;
+      let open XML.Encode Term_XML.Encode in
+        pair (option encode_infix) (pair (list string) (pair typ (option (term o named_bounds))))
+      end;
 
     fun export_const c (T, abbrev) =
       let
+        val syntax = get_infix_const thy_ctxt c;
         val T' = T |> Logic.unvarifyT_global |> Type.strip_sorts;
         val abbrev' = abbrev |> Option.map (Logic.unvarify_global #> map_types Type.strip_sorts);
         val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, T'));
-      in SOME (encode_const (args, T', abbrev')) end;
+      in SOME (encode_const (syntax, (args, (T', abbrev')))) end;
 
     val _ =
       export_entities "consts" export_const Sign.const_space

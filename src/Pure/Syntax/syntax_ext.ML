@@ -20,6 +20,8 @@ sig
   datatype xprod = XProd of string * xsymb list * string * int
   val chain_pri: int
   val delims_of: xprod list -> string list list
+  datatype assoc = No_Assoc | Left_Assoc | Right_Assoc
+  val get_infix: xprod list -> string -> {assoc: assoc, delim: string, pri: int} option
   datatype syn_ext =
     Syn_Ext of {
       xprods: xprod list,
@@ -109,6 +111,23 @@ fun delims_of xprods =
   fold (fn XProd (_, xsymbs, _, _) =>
     fold (fn Delim s => insert (op =) s | _ => I) xsymbs) xprods []
   |> map Symbol.explode;
+
+
+(* plain infix syntax *)
+
+datatype assoc = No_Assoc | Left_Assoc | Right_Assoc;
+
+fun get_infix xprods c =
+  xprods |> get_first (fn XProd (_, xsymbs, const, p) =>
+    if c = const then
+      (case xsymbs of
+        [Bg _, Argument (_, p1), Space _, Delim s, Brk _, Argument (_, p2), En] =>
+          if p1 = p + 1 andalso p2 = p + 1 then SOME {assoc = No_Assoc, delim = s, pri = p}
+          else if p1 = p andalso p2 = p + 1 then SOME {assoc = Left_Assoc, delim = s, pri = p}
+          else if p1 = p + 1 andalso p2 = p then SOME {assoc = Right_Assoc, delim = s, pri = p}
+          else NONE
+      | _ => NONE)
+    else NONE);
 
 
 
