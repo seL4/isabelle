@@ -18,7 +18,6 @@ sig
   exception PARSETREE of parsetree
   val pretty_parsetree: parsetree -> Pretty.T
   val parse: gram -> string -> Lexicon.token list -> parsetree list
-  val guess_infix_lr: gram -> string -> (string * bool * bool * int) option
   val branching_level: int Config.T
 end;
 
@@ -717,21 +716,5 @@ fun parse gram start toks =
         [] => raise Fail "Inner syntax: no parse trees"
       | pts => pts);
   in r end;
-
-
-fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
-  let
-    fun freeze a = map_range (curry Vector.sub a) (Vector.length a);
-    val prods = maps (prods_content o #2) (freeze (#prods gram));
-    fun guess (SOME ([Nonterminal (_, k), Terminal tok, Nonterminal (_, l)], _, j)) =
-          if Lexicon.is_literal tok then
-            if k = j andalso l = j + 1 then SOME (Lexicon.str_of_token tok, true, false, j)
-            else if k = j + 1 then if l = j then SOME (Lexicon.str_of_token tok, false, true, j)
-              else if l = j + 1 then SOME (Lexicon.str_of_token tok, false, false, j)
-              else NONE
-            else NONE
-          else NONE
-      | guess _ = NONE;
-  in guess (find_first (fn (_, s, _) => s = c) prods) end;
 
 end;

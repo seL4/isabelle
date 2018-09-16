@@ -96,7 +96,6 @@ sig
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
-  val guess_infix: syntax -> string -> mixfix option
   datatype 'a trrule =
     Parse_Rule of 'a * 'a |
     Print_Rule of 'a * 'a |
@@ -606,17 +605,6 @@ fun print_trans syn = Pretty.writeln_chunks (pretty_trans syn);
 fun print_syntax syn = Pretty.writeln_chunks (pretty_gram syn @ pretty_trans syn);
 
 end;
-
-
-(* reconstructing infixes -- educated guessing *)
-
-fun guess_infix (Syntax ({gram, ...}, _)) c =
-  (case Parser.guess_infix_lr (Lazy.force gram) c of
-    SOME (s, l, r, j) => SOME
-     (if l then Infixl (Input.string s, j, Position.no_range)
-      else if r then Infixr (Input.string s, j, Position.no_range)
-      else Infix (Input.string s, j, Position.no_range))
-  | NONE => NONE);
 
 
 
