@@ -221,27 +221,95 @@ class Resources(
 
   /* theory and file dependencies */
 
-  object Dependencies
+  def dependencies(
+      thys: List[(Document.Node.Name, Position.T)],
+      progress: Progress = No_Progress): Dependencies[Unit] =
+    Dependencies.empty[Unit].require_thys((), thys, progress = progress)
+
+  def session_dependencies(info: Sessions.Info, progress: Progress = No_Progress)
+    : Dependencies[Options] =
   {
-    val empty = new Dependencies(Nil, Set.empty)
+    val qualifier = info.name
+    val dir = info.dir.implode
+
+    (Dependencies.empty[Options] /: info.theories)({ case (dependencies, (options, thys)) =>
+      dependencies.require_thys(options,
+        for { (thy, pos) <- thys } yield (import_name(qualifier, dir, thy), pos),
+        progress = progress)
+    })
   }
 
-  final class Dependencies private(
-    rev_entries: List[Document.Node.Entry],
-    val seen: Set[Document.Node.Name])
+  object Dependencies
   {
-    def :: (entry: Document.Node.Entry): Dependencies =
-      new Dependencies(entry :: rev_entries, seen)
+    def empty[A]: Dependencies[A] = new Dependencies[A](Nil, Map.empty)
 
-    def + (name: Document.Node.Name): Dependencies =
-      new Dependencies(rev_entries, seen + name)
+    private def show_path(names: List[Document.Node.Name]): String =
+      names.map(name => quote(name.theory)).mkString(" via ")
+
+    private def cycle_msg(names: List[Document.Node.Name]): String =
+      "Cyclic dependency of " + show_path(names)
+
+    private def required_by(initiators: List[Document.Node.Name]): String =
+      if (initiators.isEmpty) ""
+      else "\n(required by " + show_path(initiators.reverse) + ")"
+  }
+
+  final class Dependencies[A] private(
+    rev_entries: List[Document.Node.Entry],
+    seen: Map[Document.Node.Name, A])
+  {
+    private def cons(entry: Document.Node.Entry): Dependencies[A] =
+      new Dependencies[A](entry :: rev_entries, seen)
+
+    def require_thy(adjunct: A,
+      thy: (Document.Node.Name, Position.T),
+      initiators: List[Document.Node.Name] = Nil,
+      progress: Progress = No_Progress): Dependencies[A] =
+    {
+      val (name, pos) = thy
+
+      def message: String =
+        "The error(s) above occurred for theory " + quote(name.theory) +
+          Dependencies.required_by(initiators) + Position.here(pos)
+
+      if (seen.isDefinedAt(name)) this
+      else {
+        val dependencies1 = new Dependencies[A](rev_entries, seen + (name -> adjunct))
+        if (session_base.loaded_theory(name)) dependencies1
+        else {
+          try {
+            if (initiators.contains(name)) error(Dependencies.cycle_msg(initiators))
+
+            progress.expose_interrupt()
+            val header =
+              try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
+              catch { case ERROR(msg) => cat_error(msg, message) }
+            val entry = Document.Node.Entry(name, header)
+            dependencies1.require_thys(adjunct, header.imports,
+              initiators = name :: initiators, progress = progress).cons(entry)
+          }
+          catch {
+            case e: Throwable =>
+              dependencies1.cons(Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))))
+          }
+        }
+      }
+    }
+
+    def require_thys(adjunct: A,
+        thys: List[(Document.Node.Name, Position.T)],
+        progress: Progress = No_Progress,
+        initiators: List[Document.Node.Name] = Nil): Dependencies[A] =
+      (this /: thys)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
+
     def theories: List[Document.Node.Name] = entries.map(_.name)
+    def adjunct_theories: List[(A, Document.Node.Name)] = theories.map(name => (seen(name), name))
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 
-    def check_errors: Dependencies =
+    def check_errors: Dependencies[A] =
       errors match {
         case Nil => this
         case errs => error(cat_lines(errs))
@@ -284,61 +352,4 @@ class Resources(
 
     override def toString: String = entries.toString
   }
-
-  private def show_path(names: List[Document.Node.Name]): String =
-    names.map(name => quote(name.theory)).mkString(" via ")
-
-  private def cycle_msg(names: List[Document.Node.Name]): String =
-    "Cyclic dependency of " + show_path(names)
-
-  private def required_by(initiators: List[Document.Node.Name]): String =
-    if (initiators.isEmpty) ""
-    else "\n(required by " + show_path(initiators.reverse) + ")"
-
-  private def require_thy(
-    progress: Progress,
-    initiators: List[Document.Node.Name],
-    dependencies: Dependencies,
-    thy: (Document.Node.Name, Position.T)): Dependencies =
-  {
-    val (name, pos) = thy
-
-    def message: String =
-      "The error(s) above occurred for theory " + quote(name.theory) +
-        required_by(initiators) + Position.here(pos)
-
-    if (dependencies.seen(name)) dependencies
-    else {
-      val dependencies1 = dependencies + name
-      if (session_base.loaded_theory(name)) dependencies1
-      else {
-        try {
-          if (initiators.contains(name)) error(cycle_msg(initiators))
-
-          progress.expose_interrupt()
-          val header =
-            try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
-            catch { case ERROR(msg) => cat_error(msg, message) }
-          Document.Node.Entry(name, header) ::
-            require_thys(progress, name :: initiators, dependencies1, header.imports)
-        }
-        catch {
-          case e: Throwable =>
-            Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: dependencies1
-        }
-      }
-    }
-  }
-
-  private def require_thys(
-      progress: Progress,
-      initiators: List[Document.Node.Name],
-      dependencies: Dependencies,
-      thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    (dependencies /: thys)(require_thy(progress, initiators, _, _))
-
-  def dependencies(
-      thys: List[(Document.Node.Name, Position.T)],
-      progress: Progress = No_Progress): Dependencies =
-    require_thys(progress, Nil, Dependencies.empty, thys)
 }
