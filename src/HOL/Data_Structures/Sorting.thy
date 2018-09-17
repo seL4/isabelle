@@ -371,4 +371,67 @@ apply (induction xs rule: quicksort.induct)
 apply (auto simp add: sorted_append set_quicksort)
 done
 
+
+subsection "Insertion Sort w.r.t. Keys and Stability"
+
+text \<open>Note that @{const insort_key} is already defined in theory @{theory HOL.List}.
+Thus some of the lemmas are already present as well.\<close>
+
+fun isort_key :: "('a \<Rightarrow> 'k::linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"isort_key f [] = []" |
+"isort_key f (x # xs) = insort_key f x (isort_key f xs)"
+
+
+subsubsection "Standard functional correctness"
+
+lemma mset_insort_key: "mset (insort_key f x xs) = add_mset x (mset xs)"
+by(induction xs) simp_all
+
+lemma mset_isort_key: "mset (isort_key f xs) = mset xs"
+by(induction xs) (simp_all add: mset_insort_key)
+
+lemma set_isort_key: "set (isort_key f xs) = set xs"
+by (rule mset_eq_setD[OF mset_isort_key])
+
+lemma sorted_insort_key: "sorted (map f (insort_key f a xs)) = sorted (map f xs)"
+by(induction xs)(auto simp: set_insort_key)
+
+lemma sorted_isort_key: "sorted (map f (isort_key f xs))"
+by(induction xs)(simp_all add: sorted_insort_key)
+
+
+subsubsection "Stability"
+
+lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
+by (cases xs) auto
+
+lemma filter_insort_key_neg:
+  "\<not> P x \<Longrightarrow> filter P (insort_key f x xs) = filter P xs"
+by (induction xs) simp_all
+
+lemma filter_insort_key_pos:
+  "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort_key f x xs) = insort_key f x (filter P xs)"
+by (induction xs) (auto, subst insort_is_Cons, auto)
+
+lemma sort_key_stable: "filter (\<lambda>y. f y = k) (isort_key f xs) = filter (\<lambda>y. f y = k) xs"
+proof (induction xs)
+  case Nil thus ?case by simp
+next
+  case (Cons a xs)
+  thus ?case
+  proof (cases "f a = k")
+    case False thus ?thesis  by (simp add: Cons.IH filter_insort_key_neg)
+  next
+    case True
+    have "filter (\<lambda>y. f y = k) (isort_key f (a # xs))
+      = filter (\<lambda>y. f y = k) (insort_key f a (isort_key f xs))"  by simp
+    also have "\<dots> = insort_key f a (filter (\<lambda>y. f y = k) (isort_key f xs))"
+      by (simp add: True filter_insort_key_pos sorted_isort_key)
+    also have "\<dots> = insort_key f a (filter (\<lambda>y. f y = k) xs)"  by (simp add: Cons.IH)
+    also have "\<dots> = a # (filter (\<lambda>y. f y = k) xs)"  by(simp add: True insort_is_Cons)
+    also have "\<dots> = filter (\<lambda>y. f y = k) (a # xs)" by (simp add: True)
+    finally show ?thesis .
+  qed
+qed
+
 end
