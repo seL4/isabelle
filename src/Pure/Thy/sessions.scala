@@ -149,7 +149,7 @@ object Sessions
     doc_names: List[String] = Nil,
     global_theories: Map[String, String] = Map.empty,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,
-    used_theories: List[Document.Node.Name] = Nil,
+    used_theories: List[(Options, Document.Node.Name)] = Nil,
     known: Known = Known.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
     imported_sources: List[(Path, SHA1.Digest)] = Nil,
@@ -195,6 +195,23 @@ object Sessions
 
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
+
+    def used_theories_conditions(progress: Progress = No_Progress): List[String] =
+      for {
+        session_name <- sessions_structure.build_topological_order
+        (options, name) <- session_bases(session_name).used_theories
+        if {
+          val conditions =
+            space_explode(',', options.string("condition")).
+              filter(cond => Isabelle_System.getenv(cond) == "")
+          if (conditions.isEmpty) true
+          else {
+            progress.echo(
+              "Skipping theory " + name + "  (condition " + conditions.mkString(" ") + ")")
+            false
+          }
+        }
+      } yield name.theory
 
     def sources(name: String): List[SHA1.Digest] =
       session_bases(name).sources.map(_._2)
@@ -268,10 +285,7 @@ object Sessions
               progress.echo("Session " + info.chapter + "/" + info.name + groups)
             }
 
-            val dependencies =
-              resources.dependencies(
-                for { (_, thys) <- info.theories; (thy, pos) <- thys }
-                yield (resources.import_name(info.name, info.dir.implode, thy), pos))
+            val dependencies = resources.session_dependencies(info)
 
             val overall_syntax = dependencies.overall_syntax
 
@@ -353,7 +367,7 @@ object Sessions
                 doc_names = doc_names,
                 global_theories = global_theories,
                 loaded_theories = dependencies.loaded_theories,
-                used_theories = dependencies.theories,
+                used_theories = dependencies.adjunct_theories,
                 known = known,
                 overall_syntax = overall_syntax,
                 imported_sources = check_sources(imported_files),

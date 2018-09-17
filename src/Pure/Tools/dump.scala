@@ -112,9 +112,7 @@ object Dump
     val include_sessions =
       deps.sessions_structure.imports_topological_order
 
-    val use_theories =
-      deps.sessions_structure.build_topological_order.
-        flatMap(session_name => deps.session_bases(session_name).used_theories.map(_.theory))
+    val use_theories = deps.used_theories_conditions(progress)
 
 
     /* dump aspects asynchronously */

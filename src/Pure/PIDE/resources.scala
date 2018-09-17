@@ -223,12 +223,25 @@ class Resources(
 
   def dependencies(
       thys: List[(Document.Node.Name, Position.T)],
-      progress: Progress = No_Progress): Dependencies =
-    Dependencies.empty.require_thys(thys, progress = progress)
+      progress: Progress = No_Progress): Dependencies[Unit] =
+    Dependencies.empty[Unit].require_thys((), thys, progress = progress)
+
+  def session_dependencies(info: Sessions.Info, progress: Progress = No_Progress)
+    : Dependencies[Options] =
+  {
+    val qualifier = info.name
+    val dir = info.dir.implode
+
+    (Dependencies.empty[Options] /: info.theories)({ case (dependencies, (options, thys)) =>
+      dependencies.require_thys(options,
+        for { (thy, pos) <- thys } yield (import_name(qualifier, dir, thy), pos),
+        progress = progress)
+    })
+  }
 
   object Dependencies
   {
-    val empty: Dependencies = new Dependencies(Nil, Set.empty)
+    def empty[A]: Dependencies[A] = new Dependencies[A](Nil, Map.empty)
 
     private def show_path(names: List[Document.Node.Name]): String =
       names.map(name => quote(name.theory)).mkString(" via ")
@@ -241,17 +254,17 @@ class Resources(
       else "\n(required by " + show_path(initiators.reverse) + ")"
   }
 
-  final class Dependencies private(
+  final class Dependencies[A] private(
     rev_entries: List[Document.Node.Entry],
-    seen: Set[Document.Node.Name])
+    seen: Map[Document.Node.Name, A])
   {
-    private def cons(entry: Document.Node.Entry): Dependencies =
-      new Dependencies(entry :: rev_entries, seen)
+    private def cons(entry: Document.Node.Entry): Dependencies[A] =
+      new Dependencies[A](entry :: rev_entries, seen)
 
-    def require_thy(
+    def require_thy(adjunct: A,
       thy: (Document.Node.Name, Position.T),
       initiators: List[Document.Node.Name] = Nil,
-      progress: Progress = No_Progress): Dependencies =
+      progress: Progress = No_Progress): Dependencies[A] =
     {
       val (name, pos) = thy
 
@@ -259,9 +272,9 @@ class Resources(
         "The error(s) above occurred for theory " + quote(name.theory) +
           Dependencies.required_by(initiators) + Position.here(pos)
 
-      if (seen(name)) this
+      if (seen.isDefinedAt(name)) this
       else {
-        val dependencies1 = new Dependencies(rev_entries, seen + name)
+        val dependencies1 = new Dependencies[A](rev_entries, seen + (name -> adjunct))
         if (session_base.loaded_theory(name)) dependencies1
         else {
           try {
@@ -272,8 +285,8 @@ class Resources(
               try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
               catch { case ERROR(msg) => cat_error(msg, message) }
             val entry = Document.Node.Entry(name, header)
-            dependencies1.require_thys(
-              header.imports, initiators = name :: initiators, progress = progress).cons(entry)
+            dependencies1.require_thys(adjunct, header.imports,
+              initiators = name :: initiators, progress = progress).cons(entry)
           }
           catch {
             case e: Throwable =>
@@ -283,18 +296,20 @@ class Resources(
       }
     }
 
-    def require_thys(
+    def require_thys(adjunct: A,
         thys: List[(Document.Node.Name, Position.T)],
         progress: Progress = No_Progress,
-        initiators: List[Document.Node.Name] = Nil): Dependencies =
-      (this /: thys)(_.require_thy(_, progress = progress, initiators = initiators))
+        initiators: List[Document.Node.Name] = Nil): Dependencies[A] =
+      (this /: thys)(_.require_thy(adjunct, _, progress = progress, initiators = initiators))
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
+
     def theories: List[Document.Node.Name] = entries.map(_.name)
+    def adjunct_theories: List[(A, Document.Node.Name)] = theories.map(name => (seen(name), name))
 
     def errors: List[String] = entries.flatMap(_.header.errors)
 
-    def check_errors: Dependencies =
+    def check_errors: Dependencies[A] =
       errors match {
         case Nil => this
         case errs => error(cat_lines(errs))
