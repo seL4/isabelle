@@ -221,20 +221,73 @@ class Resources(
 
   /* theory and file dependencies */
 
+  def dependencies(
+      thys: List[(Document.Node.Name, Position.T)],
+      progress: Progress = No_Progress): Dependencies =
+    Dependencies.empty.require_thys(thys, progress = progress)
+
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Set.empty)
+    val empty: Dependencies = new Dependencies(Nil, Set.empty)
+
+    private def show_path(names: List[Document.Node.Name]): String =
+      names.map(name => quote(name.theory)).mkString(" via ")
+
+    private def cycle_msg(names: List[Document.Node.Name]): String =
+      "Cyclic dependency of " + show_path(names)
+
+    private def required_by(initiators: List[Document.Node.Name]): String =
+      if (initiators.isEmpty) ""
+      else "\n(required by " + show_path(initiators.reverse) + ")"
   }
 
   final class Dependencies private(
     rev_entries: List[Document.Node.Entry],
-    val seen: Set[Document.Node.Name])
+    seen: Set[Document.Node.Name])
   {
-    def :: (entry: Document.Node.Entry): Dependencies =
+    private def cons(entry: Document.Node.Entry): Dependencies =
       new Dependencies(entry :: rev_entries, seen)
 
-    def + (name: Document.Node.Name): Dependencies =
-      new Dependencies(rev_entries, seen + name)
+    def require_thy(
+      thy: (Document.Node.Name, Position.T),
+      initiators: List[Document.Node.Name] = Nil,
+      progress: Progress = No_Progress): Dependencies =
+    {
+      val (name, pos) = thy
+
+      def message: String =
+        "The error(s) above occurred for theory " + quote(name.theory) +
+          Dependencies.required_by(initiators) + Position.here(pos)
+
+      if (seen(name)) this
+      else {
+        val dependencies1 = new Dependencies(rev_entries, seen + name)
+        if (session_base.loaded_theory(name)) dependencies1
+        else {
+          try {
+            if (initiators.contains(name)) error(Dependencies.cycle_msg(initiators))
+
+            progress.expose_interrupt()
+            val header =
+              try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
+              catch { case ERROR(msg) => cat_error(msg, message) }
+            val entry = Document.Node.Entry(name, header)
+            dependencies1.require_thys(
+              header.imports, initiators = name :: initiators, progress = progress).cons(entry)
+          }
+          catch {
+            case e: Throwable =>
+              dependencies1.cons(Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))))
+          }
+        }
+      }
+    }
+
+    def require_thys(
+        thys: List[(Document.Node.Name, Position.T)],
+        progress: Progress = No_Progress,
+        initiators: List[Document.Node.Name] = Nil): Dependencies =
+      (this /: thys)(_.require_thy(_, progress = progress, initiators = initiators))
 
     def entries: List[Document.Node.Entry] = rev_entries.reverse
     def theories: List[Document.Node.Name] = entries.map(_.name)
@@ -284,61 +337,4 @@ class Resources(
 
     override def toString: String = entries.toString
   }
-
-  private def show_path(names: List[Document.Node.Name]): String =
-    names.map(name => quote(name.theory)).mkString(" via ")
-
-  private def cycle_msg(names: List[Document.Node.Name]): String =
-    "Cyclic dependency of " + show_path(names)
-
-  private def required_by(initiators: List[Document.Node.Name]): String =
-    if (initiators.isEmpty) ""
-    else "\n(required by " + show_path(initiators.reverse) + ")"
-
-  private def require_thy(
-    progress: Progress,
-    initiators: List[Document.Node.Name],
-    dependencies: Dependencies,
-    thy: (Document.Node.Name, Position.T)): Dependencies =
-  {
-    val (name, pos) = thy
-
-    def message: String =
-      "The error(s) above occurred for theory " + quote(name.theory) +
-        required_by(initiators) + Position.here(pos)
-
-    if (dependencies.seen(name)) dependencies
-    else {
-      val dependencies1 = dependencies + name
-      if (session_base.loaded_theory(name)) dependencies1
-      else {
-        try {
-          if (initiators.contains(name)) error(cycle_msg(initiators))
-
-          progress.expose_interrupt()
-          val header =
-            try { check_thy(name, Token.Pos.file(name.node)).cat_errors(message) }
-            catch { case ERROR(msg) => cat_error(msg, message) }
-          Document.Node.Entry(name, header) ::
-            require_thys(progress, name :: initiators, dependencies1, header.imports)
-        }
-        catch {
-          case e: Throwable =>
-            Document.Node.Entry(name, Document.Node.bad_header(Exn.message(e))) :: dependencies1
-        }
-      }
-    }
-  }
-
-  private def require_thys(
-      progress: Progress,
-      initiators: List[Document.Node.Name],
-      dependencies: Dependencies,
-      thys: List[(Document.Node.Name, Position.T)]): Dependencies =
-    (dependencies /: thys)(require_thy(progress, initiators, _, _))
-
-  def dependencies(
-      thys: List[(Document.Node.Name, Position.T)],
-      progress: Progress = No_Progress): Dependencies =
-    require_thys(progress, Nil, Dependencies.empty, thys)
 }
