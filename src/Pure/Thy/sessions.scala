@@ -206,7 +206,7 @@ object Sessions
               filter(cond => Isabelle_System.getenv(cond) == "")
           if (conditions.isEmpty) true
           else {
-            progress.echo(
+            progress.warning(
               "Skipping theory " + name + "  (condition " + conditions.mkString(" ") + ")")
             false
           }
