@@ -196,7 +196,7 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def used_theories_conditions(progress: Progress = No_Progress): List[String] =
+    def used_theories_conditions(warning: String => Unit = _ => ()): List[String] =
       for {
         session_name <- sessions_structure.build_topological_order
         (options, name) <- session_bases(session_name).used_theories
@@ -206,8 +206,7 @@ object Sessions
               filter(cond => Isabelle_System.getenv(cond) == "")
           if (conditions.isEmpty) true
           else {
-            progress.warning(
-              "Skipping theory " + name + "  (condition " + conditions.mkString(" ") + ")")
+            warning("Skipping theory " + name + "  (condition " + conditions.mkString(" ") + ")")
             false
           }
         }
