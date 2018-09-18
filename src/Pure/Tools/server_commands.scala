@@ -188,7 +188,7 @@ object Server_Commands
     def command(args: Args,
       session: Headless.Session,
       id: UUID = UUID(),
-      progress: Progress = No_Progress): (JSON.Object.T, Headless.Theories_Result) =
+      progress: Progress = No_Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
     {
       val result =
         session.use_theories(args.theories, master_dir = args.master_dir,

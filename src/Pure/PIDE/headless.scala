@@ -65,7 +65,7 @@ object Headless
     snapshot
   }
 
-  class Theories_Result private[Headless](
+  class Use_Theories_Result private[Headless](
     val state: Document.State,
     val version: Document.Version,
     val nodes: List[(Document.Node.Name, Document_Status.Node_Status)],
@@ -115,7 +115,7 @@ object Headless
       last_update: Time = Time.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
-      result: Promise[Theories_Result] = Future.promise[Theories_Result])
+      result: Promise[Use_Theories_Result] = Future.promise[Use_Theories_Result])
     {
       def update(new_nodes_status: Document_Status.Nodes_Status): Use_Theories_State =
         copy(last_update = Time.now(), nodes_status = new_nodes_status)
@@ -126,7 +126,7 @@ object Headless
       def cancel_result { result.cancel }
       def finished_result: Boolean = result.is_finished
       def await_result { result.join_result }
-      def join_result: Theories_Result = result.join
+      def join_result: Use_Theories_Result = result.join
       def check_result(
           state: Document.State,
           version: Document.Version,
@@ -173,7 +173,7 @@ object Headless
               status <- already_committed.get(name)
             } yield (name -> status)
 
-          try { result.fulfill(new Theories_Result(state, version, nodes, nodes_committed)) }
+          try { result.fulfill(new Use_Theories_Result(state, version, nodes, nodes_committed)) }
           catch { case _: IllegalStateException => }
         }
 
@@ -193,7 +193,7 @@ object Headless
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
-      progress: Progress = No_Progress): Theories_Result =
+      progress: Progress = No_Progress): Use_Theories_Result =
     {
       val dep_theories =
       {

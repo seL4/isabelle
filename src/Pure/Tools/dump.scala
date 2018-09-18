@@ -158,7 +158,7 @@ object Dump
       Headless.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
         include_sessions = include_sessions, progress = progress, log = log)
 
-    val theories_result =
+    val use_theories_result =
       session.use_theories(use_theories,
         progress = progress,
         commit = Some(Consumer.apply _),
@@ -169,7 +169,7 @@ object Dump
 
     val consumer_ok = Consumer.shutdown()
 
-    if (theories_result.ok && consumer_ok) session_result
+    if (use_theories_result.ok && consumer_ok) session_result
     else session_result.error_rc
   }
 
