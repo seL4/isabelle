@@ -506,12 +506,11 @@ class Server private(_port: Int, val log: Logger)
 
   private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
 
-  private val _sessions = Synchronized(Map.empty[UUID, Thy_Resources.Session])
+  private val _sessions = Synchronized(Map.empty[UUID, Headless.Session])
   def err_session(id: UUID): Nothing = error("No session " + Library.single_quote(id.toString))
-  def the_session(id: UUID): Thy_Resources.Session =
-    _sessions.value.get(id) getOrElse err_session(id)
-  def add_session(entry: (UUID, Thy_Resources.Session)) { _sessions.change(_ + entry) }
-  def remove_session(id: UUID): Thy_Resources.Session =
+  def the_session(id: UUID): Headless.Session = _sessions.value.get(id) getOrElse err_session(id)
+  def add_session(entry: (UUID, Headless.Session)) { _sessions.change(_ + entry) }
+  def remove_session(id: UUID): Headless.Session =
   {
     _sessions.change_result(sessions =>
       sessions.get(id) match {

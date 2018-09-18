@@ -1,7 +1,7 @@
-/*  Title:      Pure/Thy/thy_resources.scala
+/*  Title:      Pure/PIDE/headless.scala
     Author:     Makarius
 
-PIDE resources for theory files: load/unload theories via PIDE document updates.
+Headless PIDE session and resources from file-system.
 */
 
 package isabelle
@@ -12,9 +12,9 @@ import java.io.{File => JFile}
 import scala.annotation.tailrec
 
 
-object Thy_Resources
+object Headless
 {
-  /* PIDE session */
+  /** session **/
 
   def start_session(
     options: Options,
@@ -30,7 +30,7 @@ object Thy_Resources
       session_base getOrElse
         Sessions.base_info(options, session_name, include_sessions = include_sessions,
           progress = progress, dirs = session_dirs).check_base
-    val resources = new Thy_Resources(base, log = log)
+    val resources = new Resources(base, log = log)
     val session = new Session(session_name, options, resources)
 
     val session_error = Future.promise[String]
@@ -65,7 +65,7 @@ object Thy_Resources
     snapshot
   }
 
-  class Theories_Result private[Thy_Resources](
+  class Theories_Result private[Headless](
     val state: Document.State,
     val version: Document.Version,
     val nodes: List[(Document.Node.Name, Document_Status.Node_Status)],
@@ -84,10 +84,10 @@ object Thy_Resources
   val default_watchdog_timeout = Time.seconds(600.0)
 
 
-  class Session private[Thy_Resources](
+  class Session private[Headless](
     session_name: String,
     session_options: Options,
-    override val resources: Thy_Resources) extends isabelle.Session(session_options, resources)
+    override val resources: Resources) extends isabelle.Session(session_options, resources)
   {
     session =>
 
@@ -318,194 +318,197 @@ object Thy_Resources
   }
 
 
-  /* internal state */
 
-  final class Theory private[Thy_Resources](
-    val node_name: Document.Node.Name,
-    val node_header: Document.Node.Header,
-    val text: String,
-    val node_required: Boolean)
+  /** resources **/
+
+  object Resources
   {
-    override def toString: String = node_name.toString
-
-    def node_perspective: Document.Node.Perspective_Text =
-      Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
-
-    def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
-      List(node_name -> Document.Node.Deps(node_header),
-        node_name -> Document.Node.Edits(text_edits),
-        node_name -> node_perspective)
-
-    def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
+    final class Theory private[Headless](
+      val node_name: Document.Node.Name,
+      val node_header: Document.Node.Header,
+      val text: String,
+      val node_required: Boolean)
     {
-      val (text_edits, old_required) =
-        if (old.isEmpty) (Text.Edit.inserts(0, text), false)
-        else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
+      override def toString: String = node_name.toString
 
-      if (text_edits.isEmpty && node_required == old_required) Nil
-      else make_edits(text_edits)
-    }
+      def node_perspective: Document.Node.Perspective_Text =
+        Document.Node.Perspective(node_required, Text.Perspective.empty, Document.Node.Overlays.empty)
 
-    def purge_edits: List[Document.Edit_Text] =
-      make_edits(Text.Edit.removes(0, text))
+      def make_edits(text_edits: List[Text.Edit]): List[Document.Edit_Text] =
+        List(node_name -> Document.Node.Deps(node_header),
+          node_name -> Document.Node.Edits(text_edits),
+          node_name -> node_perspective)
 
-    def required(required: Boolean): Theory =
-      if (required == node_required) this
-      else new Theory(node_name, node_header, text, required)
-  }
-
-  sealed case class State(
-    required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty,
-    theories: Map[Document.Node.Name, Theory] = Map.empty)
-  {
-    lazy val theory_graph: Graph[Document.Node.Name, Unit] =
-    {
-      val entries =
-        for ((name, theory) <- theories.toList)
-        yield ((name, ()), theory.node_header.imports.map(_._1).filter(theories.isDefinedAt(_)))
-      Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
-    }
-
-    def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
-
-    def insert_required(id: UUID, names: List[Document.Node.Name]): State =
-      copy(required = (required /: names)(_.insert(_, id)))
-
-    def remove_required(id: UUID, names: List[Document.Node.Name]): State =
-      copy(required = (required /: names)(_.remove(_, id)))
-
-    def update_theories(update: List[(Document.Node.Name, Theory)]): State =
-      copy(theories =
-        (theories /: update)({ case (thys, (name, thy)) =>
-          thys.get(name) match {
-            case Some(thy1) if thy1 == thy => thys
-            case _ => thys + (name -> thy)
-          }
-        }))
-
-    def remove_theories(remove: List[Document.Node.Name]): State =
-    {
-      require(remove.forall(name => !is_required(name)))
-      copy(theories = theories -- remove)
-    }
-
-    def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name]): State =
-    {
-      val st1 = remove_required(id, dep_theories)
-      val theory_edits =
-        for {
-          node_name <- dep_theories
-          theory <- st1.theories.get(node_name)
-        }
-        yield {
-          val theory1 = theory.required(st1.is_required(node_name))
-          val edits = theory1.node_edits(Some(theory))
-          (edits, (node_name, theory1))
-        }
-      session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
-      st1.update_theories(theory_edits.map(_._2))
-    }
-
-    def purge_theories(session: Session, nodes: List[Document.Node.Name])
-      : ((List[Document.Node.Name], List[Document.Node.Name]), State) =
-    {
-      val all_nodes = theory_graph.topological_order
-      val purge = nodes.filterNot(is_required(_)).toSet
-
-      val retain = theory_graph.all_preds(all_nodes.filterNot(purge)).toSet
-      val (retained, purged) = all_nodes.partition(retain)
-
-      val purge_edits = purged.flatMap(name => theories(name).purge_edits)
-      session.update(Document.Blobs.empty, purge_edits)
-
-      ((purged, retained), remove_theories(purged))
-    }
-
-    def frontier_theories(clean: Set[Document.Node.Name]): Set[Document.Node.Name] =
-    {
-      @tailrec def frontier(base: List[Document.Node.Name], front: Set[Document.Node.Name])
-        : Set[Document.Node.Name] =
+      def node_edits(old: Option[Theory]): List[Document.Edit_Text] =
       {
-        val add = base.filter(b => theory_graph.imm_succs(b).forall(front))
-        if (add.isEmpty) front
-        else {
-          val pre_add = add.map(theory_graph.imm_preds)
-          val base1 = (pre_add.head /: pre_add.tail)(_ ++ _).toList.filter(clean)
-          frontier(base1, front ++ add)
-        }
-      }
-      frontier(theory_graph.maximals.filter(clean), Set.empty)
-    }
-  }
-}
+        val (text_edits, old_required) =
+          if (old.isEmpty) (Text.Edit.inserts(0, text), false)
+          else (Text.Edit.replace(0, old.get.text, text), old.get.node_required)
 
-class Thy_Resources(session_base: Sessions.Base, log: Logger = No_Logger)
-  extends Resources(session_base, log = log)
-{
-  resources =>
-
-  private val state = Synchronized(Thy_Resources.State())
-
-  def load_theories(
-    session: Session,
-    id: UUID,
-    dep_theories: List[Document.Node.Name],
-    progress: Progress)
-  {
-    val loaded_theories =
-      for (node_name <- dep_theories)
-      yield {
-        val path = node_name.path
-        if (!node_name.is_theory) error("Not a theory file: " + path)
-
-        progress.expose_interrupt()
-        val text = File.read(path)
-        val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
-        new Thy_Resources.Theory(node_name, node_header, text, true)
+        if (text_edits.isEmpty && node_required == old_required) Nil
+        else make_edits(text_edits)
       }
 
-    val loaded = loaded_theories.length
-    if (loaded > 1) progress.echo("Loading " + loaded + " theories ...")
+      def purge_edits: List[Document.Edit_Text] =
+        make_edits(Text.Edit.removes(0, text))
 
-    state.change(st =>
+      def required(required: Boolean): Theory =
+        if (required == node_required) this
+        else new Theory(node_name, node_header, text, required)
+    }
+
+    sealed case class State(
+      required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty,
+      theories: Map[Document.Node.Name, Theory] = Map.empty)
+    {
+      lazy val theory_graph: Graph[Document.Node.Name, Unit] =
       {
-        val st1 = st.insert_required(id, dep_theories)
+        val entries =
+          for ((name, theory) <- theories.toList)
+          yield ((name, ()), theory.node_header.imports.map(_._1).filter(theories.isDefinedAt(_)))
+        Graph.make(entries, symmetric = true)(Document.Node.Name.Ordering)
+      }
+
+      def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
+
+      def insert_required(id: UUID, names: List[Document.Node.Name]): State =
+        copy(required = (required /: names)(_.insert(_, id)))
+
+      def remove_required(id: UUID, names: List[Document.Node.Name]): State =
+        copy(required = (required /: names)(_.remove(_, id)))
+
+      def update_theories(update: List[(Document.Node.Name, Theory)]): State =
+        copy(theories =
+          (theories /: update)({ case (thys, (name, thy)) =>
+            thys.get(name) match {
+              case Some(thy1) if thy1 == thy => thys
+              case _ => thys + (name -> thy)
+            }
+          }))
+
+      def remove_theories(remove: List[Document.Node.Name]): State =
+      {
+        require(remove.forall(name => !is_required(name)))
+        copy(theories = theories -- remove)
+      }
+
+      def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name]): State =
+      {
+        val st1 = remove_required(id, dep_theories)
         val theory_edits =
-          for (theory <- loaded_theories)
+          for {
+            node_name <- dep_theories
+            theory <- st1.theories.get(node_name)
+          }
           yield {
-            val node_name = theory.node_name
             val theory1 = theory.required(st1.is_required(node_name))
-            val edits = theory1.node_edits(st1.theories.get(node_name))
+            val edits = theory1.node_edits(Some(theory))
             (edits, (node_name, theory1))
           }
         session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
         st1.update_theories(theory_edits.map(_._2))
-      })
-  }
+      }
 
-  def unload_theories(
-    session: Thy_Resources.Session, id: UUID, dep_theories: List[Document.Node.Name])
-  {
-    state.change(_.unload_theories(session, id, dep_theories))
-  }
-
-  def clean_theories(session: Thy_Resources.Session, id: UUID, clean: Set[Document.Node.Name])
-  {
-    state.change(st =>
+      def purge_theories(session: Session, nodes: List[Document.Node.Name])
+        : ((List[Document.Node.Name], List[Document.Node.Name]), State) =
       {
-        val frontier = st.frontier_theories(clean).toList
-        if (frontier.isEmpty) st
-        else {
-          val st1 = st.unload_theories(session, id, frontier)
-          val (_, st2) = st1.purge_theories(session, frontier)
-          st2
+        val all_nodes = theory_graph.topological_order
+        val purge = nodes.filterNot(is_required(_)).toSet
+
+        val retain = theory_graph.all_preds(all_nodes.filterNot(purge)).toSet
+        val (retained, purged) = all_nodes.partition(retain)
+
+        val purge_edits = purged.flatMap(name => theories(name).purge_edits)
+        session.update(Document.Blobs.empty, purge_edits)
+
+        ((purged, retained), remove_theories(purged))
+      }
+
+      def frontier_theories(clean: Set[Document.Node.Name]): Set[Document.Node.Name] =
+      {
+        @tailrec def frontier(base: List[Document.Node.Name], front: Set[Document.Node.Name])
+          : Set[Document.Node.Name] =
+        {
+          val add = base.filter(b => theory_graph.imm_succs(b).forall(front))
+          if (add.isEmpty) front
+          else {
+            val pre_add = add.map(theory_graph.imm_preds)
+            val base1 = (pre_add.head /: pre_add.tail)(_ ++ _).toList.filter(clean)
+            frontier(base1, front ++ add)
+          }
         }
-      })
+        frontier(theory_graph.maximals.filter(clean), Set.empty)
+      }
+    }
   }
 
-  def purge_theories(session: Thy_Resources.Session, nodes: Option[List[Document.Node.Name]])
-    : (List[Document.Node.Name], List[Document.Node.Name]) =
+  class Resources(session_base: Sessions.Base, log: Logger = No_Logger)
+    extends isabelle.Resources(session_base, log = log)
   {
-    state.change_result(st => st.purge_theories(session, nodes getOrElse st.theory_graph.keys))
+    resources =>
+
+    private val state = Synchronized(Resources.State())
+
+    def load_theories(
+      session: Session,
+      id: UUID,
+      dep_theories: List[Document.Node.Name],
+      progress: Progress)
+    {
+      val loaded_theories =
+        for (node_name <- dep_theories)
+        yield {
+          val path = node_name.path
+          if (!node_name.is_theory) error("Not a theory file: " + path)
+
+          progress.expose_interrupt()
+          val text = File.read(path)
+          val node_header = resources.check_thy_reader(node_name, Scan.char_reader(text))
+          new Resources.Theory(node_name, node_header, text, true)
+        }
+
+      val loaded = loaded_theories.length
+      if (loaded > 1) progress.echo("Loading " + loaded + " theories ...")
+
+      state.change(st =>
+        {
+          val st1 = st.insert_required(id, dep_theories)
+          val theory_edits =
+            for (theory <- loaded_theories)
+            yield {
+              val node_name = theory.node_name
+              val theory1 = theory.required(st1.is_required(node_name))
+              val edits = theory1.node_edits(st1.theories.get(node_name))
+              (edits, (node_name, theory1))
+            }
+          session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
+          st1.update_theories(theory_edits.map(_._2))
+        })
+    }
+
+    def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name])
+    {
+      state.change(_.unload_theories(session, id, dep_theories))
+    }
+
+    def clean_theories(session: Session, id: UUID, clean: Set[Document.Node.Name])
+    {
+      state.change(st =>
+        {
+          val frontier = st.frontier_theories(clean).toList
+          if (frontier.isEmpty) st
+          else {
+            val st1 = st.unload_theories(session, id, frontier)
+            val (_, st2) = st1.purge_theories(session, frontier)
+            st2
+          }
+        })
+    }
+
+    def purge_theories(session: Session, nodes: Option[List[Document.Node.Name]])
+      : (List[Document.Node.Name], List[Document.Node.Name]) =
+    {
+      state.change_result(st => st.purge_theories(session, nodes getOrElse st.theory_graph.keys))
+    }
   }
 }

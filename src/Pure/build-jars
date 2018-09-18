@@ -95,6 +95,7 @@ declare -a SOURCES=(
   PIDE/document_id.scala
   PIDE/document_status.scala
   PIDE/editor.scala
+  PIDE/headless.scala
   PIDE/line.scala
   PIDE/markup.scala
   PIDE/markup_tree.scala
@@ -137,7 +138,6 @@ declare -a SOURCES=(
   Thy/sessions.scala
   Thy/thy_element.scala
   Thy/thy_header.scala
-  Thy/thy_resources.scala
   Thy/thy_syntax.scala
   Tools/dump.scala
   Tools/build.scala

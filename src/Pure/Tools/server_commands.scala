@@ -107,14 +107,14 @@ object Server_Commands
       yield Args(build = build, print_mode = print_mode)
 
     def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
-      : (JSON.Object.T, (UUID, Thy_Resources.Session)) =
+      : (JSON.Object.T, (UUID, Headless.Session)) =
     {
       val base_info =
         try { Session_Build.command(args.build, progress = progress)._3 }
         catch { case exn: Server.Error => error(exn.message) }
 
       val session =
-        Thy_Resources.start_session(
+        Headless.start_session(
           base_info.options,
           base_info.session,
           session_dirs = base_info.dirs,
@@ -139,7 +139,7 @@ object Server_Commands
     def unapply(json: JSON.T): Option[UUID] =
       JSON.uuid(json, "session_id")
 
-    def command(session: Thy_Resources.Session): (JSON.Object.T, Process_Result) =
+    def command(session: Headless.Session): (JSON.Object.T, Process_Result) =
     {
       val result = session.stop()
       val result_json = JSON.Object("ok" -> result.ok, "return_code" -> result.rc)
@@ -158,10 +158,10 @@ object Server_Commands
       pretty_margin: Double = Pretty.default_margin,
       unicode_symbols: Boolean = false,
       export_pattern: String = "",
-      check_delay: Time = Thy_Resources.default_check_delay,
+      check_delay: Time = Headless.default_check_delay,
       check_limit: Int = 0,
-      watchdog_timeout: Time = Thy_Resources.default_watchdog_timeout,
-      nodes_status_delay: Time = Thy_Resources.default_nodes_status_delay)
+      watchdog_timeout: Time = Headless.default_watchdog_timeout,
+      nodes_status_delay: Time = Headless.default_nodes_status_delay)
 
     def unapply(json: JSON.T): Option[Args] =
       for {
@@ -171,12 +171,12 @@ object Server_Commands
         pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
         unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
         export_pattern <- JSON.string_default(json, "export_pattern")
-        check_delay <- JSON.seconds_default(json, "check_delay", Thy_Resources.default_check_delay)
+        check_delay <- JSON.seconds_default(json, "check_delay", Headless.default_check_delay)
         check_limit <- JSON.int_default(json, "check_limit")
         watchdog_timeout <-
-          JSON.seconds_default(json, "watchdog_timeout", Thy_Resources.default_watchdog_timeout)
+          JSON.seconds_default(json, "watchdog_timeout", Headless.default_watchdog_timeout)
         nodes_status_delay <-
-          JSON.seconds_default(json, "nodes_status_delay", Thy_Resources.default_nodes_status_delay)
+          JSON.seconds_default(json, "nodes_status_delay", Headless.default_nodes_status_delay)
       }
       yield {
         Args(session_id, theories, master_dir = master_dir, pretty_margin = pretty_margin,
@@ -186,9 +186,9 @@ object Server_Commands
       }
 
     def command(args: Args,
-      session: Thy_Resources.Session,
+      session: Headless.Session,
       id: UUID = UUID(),
-      progress: Progress = No_Progress): (JSON.Object.T, Thy_Resources.Theories_Result) =
+      progress: Progress = No_Progress): (JSON.Object.T, Headless.Theories_Result) =
     {
       val result =
         session.use_theories(args.theories, master_dir = args.master_dir,
@@ -263,7 +263,7 @@ object Server_Commands
       }
       yield { Args(session_id, theories = theories, master_dir = master_dir, all = all) }
 
-    def command(args: Args, session: Thy_Resources.Session)
+    def command(args: Args, session: Headless.Session)
       : (JSON.Object.T, (List[Document.Node.Name], List[Document.Node.Name])) =
     {
       val (purged, retained) =
