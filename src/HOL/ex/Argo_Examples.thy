@@ -619,7 +619,7 @@ end
 
 subsection \<open>Larger examples\<close>
 
-declare[[argo_trace = basic, argo_timeout = 60]]
+declare[[argo_trace = basic, argo_timeout = 120]]
 
 
 text \<open>Translated from TPTP problem library: PUZ015-2.006.dimacs\<close>
