@@ -353,30 +353,29 @@ object Export_Theory
   /* locales */
 
   sealed case class Locale(
-    entity: Entity, typargs: List[(String, Term.Sort)], args: List[(String, Term.Typ)],
-      asm: Option[Term.Term], defs: List[Term.Term])
+    entity: Entity,
+    typargs: List[(String, Term.Sort)],
+    args: List[(String, Term.Typ)],
+    axioms: List[Term.Term])
   {
     def cache(cache: Term.Cache): Locale =
       Locale(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
-        asm.map(cache.term(_)),
-        defs.map(cache.term(_)))
+        axioms.map(cache.term(_)))
   }
 
   def read_locales(provider: Export.Provider): List[Locale] =
     provider.uncompressed_yxml(export_prefix + "locales").map((tree: XML.Tree) =>
       {
         val (entity, body) = decode_entity(Kind.LOCALE, tree)
-        val (typargs, (args, (asm, defs))) =
+        val (typargs, args, axioms) =
         {
           import XML.Decode._
           import Term_XML.Decode._
-          pair(list(pair(string, sort)),
-            pair(list(pair(string, typ)),
-              pair(option(term), list(term))))(body)
+          triple(list(pair(string, sort)), list(pair(string, typ)), list(term))(body)
         }
-        Locale(entity, typargs, args, asm, defs)
+        Locale(entity, typargs, args, axioms)
       })
 
 

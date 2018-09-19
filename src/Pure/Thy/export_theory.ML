@@ -35,6 +35,25 @@ in
 end;
 
 
+(* locale support *)
+
+fun locale_axioms thy loc =
+  let
+    val (intro1, intro2) = Locale.intros_of thy loc;
+    fun intros_tac ctxt = Method.try_intros_tac ctxt (the_list intro1 @ the_list intro2);
+    val res =
+      Proof_Context.init_global thy
+      |> Interpretation.interpretation ([(loc, (("", false), (Expression.Named [], [])))], [])
+      |> Proof.refine (Method.Basic (METHOD o intros_tac))
+      |> Seq.filter_results
+      |> try Seq.hd;
+  in
+    (case res of
+      SOME st => Thm.prems_of (#goal (Proof.goal st))
+    | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
+  end;
+
+
 (* general setup *)
 
 fun setup_presentation f =
@@ -212,20 +231,18 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* locales *)
 
-    fun encode_locale ({type_params, params, asm, defs}: Locale.content) =
+    fun encode_locale loc ({type_params, params, ...}: Locale.content) =
       let
+        val axioms = locale_axioms thy loc;
         val args = map #1 params;
-        val typargs = type_params @ rev (fold Term.add_tfrees (map Free args @ the_list asm) []);
+        val typargs = type_params @ rev (fold Term.add_tfrees (map Free args @ axioms) []);
         val encode =
-          let open XML.Encode Term_XML.Encode in
-            pair (list (pair string sort))
-              (pair (list (pair string typ))
-                (pair (option term) (list term)))
-          end;
-      in encode (typargs, (args, (asm, defs))) end;
+          let open XML.Encode Term_XML.Encode
+          in triple (list (pair string sort)) (list (pair string typ)) (list term) end;
+      in encode (typargs, args, axioms) end;
 
     val _ =
-      export_entities "locales" (fn _ => SOME o encode_locale) Locale.locale_space
+      export_entities "locales" (SOME oo encode_locale) Locale.locale_space
         (Locale.dest_locales thy);
 
 
