@@ -79,8 +79,7 @@ sig
   val witness_add: attribute
   val intro_add: attribute
   val unfold_add: attribute
-  val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
-  val try_intro_locales_tac: bool -> Proof.context -> thm list -> tactic
+  val intro_locales_tac: {strict: bool, eager: bool} -> Proof.context -> thm list -> tactic
 
   (* Registrations and dependencies *)
   type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism}
@@ -701,17 +700,16 @@ val unfold_add =
 
 (* Tactics *)
 
-fun gen_intro_locales_tac intros_tac eager ctxt =
-  intros_tac ctxt
+fun intro_locales_tac {strict, eager} ctxt =
+  (if strict then Method.intros_tac else Method.try_intros_tac) ctxt
     (get_witnesses ctxt @ get_intros ctxt @ (if eager then get_unfolds ctxt else []));
 
-val intro_locales_tac = gen_intro_locales_tac Method.intros_tac;
-val try_intro_locales_tac = gen_intro_locales_tac Method.try_intros_tac;
-
 val _ = Theory.setup
- (Method.setup \<^binding>\<open>intro_locales\<close> (Scan.succeed (METHOD o try_intro_locales_tac false))
+ (Method.setup \<^binding>\<open>intro_locales\<close>
+    (Scan.succeed (METHOD o intro_locales_tac {strict = false, eager = false}))
     "back-chain introduction rules of locales without unfolding predicates" #>
-  Method.setup \<^binding>\<open>unfold_locales\<close> (Scan.succeed (METHOD o try_intro_locales_tac true))
+  Method.setup \<^binding>\<open>unfold_locales\<close>
+    (Scan.succeed (METHOD o intro_locales_tac {strict = false, eager = true}))
     "back-chain all introduction rules of locales");
 
 

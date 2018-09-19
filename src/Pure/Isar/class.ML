@@ -782,7 +782,8 @@ fun intro_classes_tac ctxt facts st =
 
 fun standard_intro_classes_tac ctxt facts st =
   if null facts andalso not (Thm.no_prems st) then
-    (intro_classes_tac ctxt [] ORELSE Locale.intro_locales_tac true ctxt []) st
+    (intro_classes_tac ctxt [] ORELSE
+      Locale.intro_locales_tac {strict = true, eager = true} ctxt []) st
   else no_tac st;
 
 fun standard_tac ctxt facts =

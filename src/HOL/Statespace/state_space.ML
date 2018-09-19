@@ -229,7 +229,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
       in resolve_tac ctxt [rule] i end);
 
     fun tac ctxt =
-      Locale.intro_locales_tac true ctxt [] THEN ALLGOALS (solve_tac ctxt);
+      Locale.intro_locales_tac {strict = true, eager = true} ctxt [] THEN ALLGOALS (solve_tac ctxt);
 
   in
     thy |> prove_interpretation_in tac (name, parent_expr)
@@ -366,7 +366,7 @@ fun statespace_definition state_type args name parents parent_comps components t
       let
         val expr = ([(pname, (prefix, (Expression.Positional rs,[])))],[])
       in prove_interpretation_in
-           (fn ctxt => Locale.intro_locales_tac false ctxt [])
+           (fn ctxt => Locale.intro_locales_tac {strict = true, eager = false} ctxt [])
            (full_name, expr) end;
 
     fun declare_declinfo updates lthy phi ctxt =
