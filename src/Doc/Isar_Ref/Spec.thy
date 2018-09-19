@@ -609,7 +609,7 @@ text \<open>
   naming policy. Specifications in its body are inaccessible from outside.
   This is useful to perform experiments, without polluting the name space.
 
-  \<^descr> \<^theory_text>\<open>print_locale locale\<close> prints the contents of the named locale. The
+  \<^descr> \<^theory_text>\<open>print_locale "locale"\<close> prints the contents of the named locale. The
   command omits @{element "notes"} elements by default. Use \<^theory_text>\<open>print_locale!\<close>
   to have them included.
 
