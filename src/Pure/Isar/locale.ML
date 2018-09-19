@@ -80,6 +80,7 @@ sig
   val intro_add: attribute
   val unfold_add: attribute
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
+  val try_intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations and dependencies *)
   type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism}
@@ -705,7 +706,7 @@ fun gen_intro_locales_tac intros_tac eager ctxt =
     (get_witnesses ctxt @ get_intros ctxt @ (if eager then get_unfolds ctxt else []));
 
 val intro_locales_tac = gen_intro_locales_tac Method.intros_tac;
-val try_intro_locales_tac= gen_intro_locales_tac Method.try_intros_tac;
+val try_intro_locales_tac = gen_intro_locales_tac Method.try_intros_tac;
 
 val _ = Theory.setup
  (Method.setup \<^binding>\<open>intro_locales\<close> (Scan.succeed (METHOD o try_intro_locales_tac false))
