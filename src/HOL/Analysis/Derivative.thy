@@ -482,9 +482,7 @@ lemma frechet_derivative_within_cbox:
   by (metis Derivative.differentiableI frechet_derivative_unique_within_closed_interval frechet_derivative_works)
 
 
-subsection \<open>The traditional Rolle theorem in one dimension\<close>
-
-text \<open>Derivatives of local minima and maxima are zero.\<close>
+subsection \<open>Derivatives of local minima and maxima are zero.\<close>
 
 lemma has_derivative_local_min:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
@@ -544,7 +542,7 @@ next
     by (rule has_derivative_local_min)
 qed
 
-lemma differential_zero_maxmin_component: (* TODO: delete? *)
+lemma differential_zero_maxmin_component:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes k: "k \<in> Basis"
     and ball: "0 < e" "(\<forall>y \<in> ball x e. (f y)\<bullet>k \<le> (f x)\<bullet>k) \<or> (\<forall>y\<in>ball x e. (f x)\<bullet>k \<le> (f y)\<bullet>k)"
@@ -563,77 +561,7 @@ proof -
     unfolding fun_eq_iff by simp
 qed
 
-theorem Rolle:
-  fixes f :: "real \<Rightarrow> real"
-  assumes "a < b"
-    and fab: "f a = f b"
-    and contf: "continuous_on {a..b} f"
-    and derf: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
-  shows "\<exists>x\<in>{a <..< b}. f' x = (\<lambda>v. 0)"
-proof -
-  have "\<exists>x\<in>box a b. (\<forall>y\<in>box a b. f x \<le> f y) \<or> (\<forall>y\<in>box a b. f y \<le> f x)"
-  proof -
-    have "(a + b) / 2 \<in> {a..b}"
-      using assms(1) by auto
-    then have *: "{a..b} \<noteq> {}"
-      by auto
-    obtain d where d: "d \<in>cbox a b" "\<forall>y\<in>cbox a b. f y \<le> f d"
-      using continuous_attains_sup[OF compact_Icc * contf] by auto
-    obtain c where c: "c \<in> cbox a b" "\<forall>y\<in>cbox a b. f c \<le> f y"
-      using continuous_attains_inf[OF compact_Icc * contf] by auto
-    show ?thesis
-    proof (cases "d \<in> box a b \<or> c \<in> box a b")
-      case True
-      then show ?thesis
-        by (metis c(2) d(2) box_subset_cbox subset_iff)
-    next
-      define e where "e = (a + b) /2"
-      case False
-      then have "f d = f c"
-        using d c fab by auto
-      with c d have "\<And>x. x \<in> {a..b} \<Longrightarrow> f x = f d"
-        by force
-      then show ?thesis
-        by (rule_tac x=e in bexI) (auto simp: e_def \<open>a < b\<close>)
-    qed
-  qed
-  then obtain x where x: "x \<in> {a <..< b}" "(\<forall>y\<in>{a <..< b}. f x \<le> f y) \<or> (\<forall>y\<in>{a <..< b}. f y \<le> f x)"
-    by auto
-  then have "f' x = (\<lambda>v. 0)"
-    apply (rule_tac differential_zero_maxmin[of x "box a b" f "f' x"])
-    using assms
-    apply auto
-    done
-  then show ?thesis
-    by (metis x(1))
-qed
-
-
 subsection \<open>One-dimensional mean value theorem\<close>
-
-theorem mvt:
-  fixes f :: "real \<Rightarrow> real"
-  assumes "a < b"
-    and contf: "continuous_on {a..b} f"
-    and derf: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
-  shows "\<exists>x\<in>{a<..<b}. f b - f a = (f' x) (b - a)"
-proof -
-  have "\<exists>x\<in>{a <..< b}. (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)"
-  proof (intro Rolle[OF \<open>a < b\<close>, of "\<lambda>x. f x - (f b - f a) / (b - a) * x"] ballI)
-    fix x
-    assume x: "a < x" "x < b"
-    show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) has_derivative
-        (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
-      by (intro derivative_intros derf[OF x])
-  qed (use assms in \<open>auto intro!: continuous_intros simp: field_simps\<close>)
-  then obtain x where
-    "x \<in> {a <..< b}"
-    "(\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)" ..
-  then show ?thesis
-    by (metis (hide_lams) assms(1) diff_gt_0_iff_gt eq_iff_diff_eq_0
-      zero_less_mult_iff nonzero_mult_div_cancel_right not_real_square_gt_zero
-      times_divide_eq_left)
-qed
 
 lemma mvt_simple:
   fixes f :: "real \<Rightarrow> real"
@@ -647,7 +575,7 @@ proof (rule mvt)
     by (rule differentiable_imp_continuous_on)
   show "(f has_derivative f' x) (at x)" if "a < x" "x < b" for x
     by (metis at_within_Icc_at derf leI order.asym that)
-qed (rule assms)
+qed (use assms in auto)
 
 lemma mvt_very_simple:
   fixes f :: "real \<Rightarrow> real"
@@ -677,9 +605,9 @@ lemma mvt_general:
   shows "\<exists>x\<in>{a<..<b}. norm (f b - f a) \<le> norm (f' x (b - a))"
 proof -
   have "\<exists>x\<in>{a<..<b}. (f b - f a) \<bullet> f b - (f b - f a) \<bullet> f a = (f b - f a) \<bullet> f' x (b - a)"
-    apply (rule mvt [OF \<open>a < b\<close>])
+    apply (rule mvt [OF \<open>a < b\<close>, where f = "\<lambda>x. (f b - f a) \<bullet> f x"])
     apply (intro continuous_intros contf)
-    using derf apply (blast intro: has_derivative_inner_right)
+    using derf apply (auto intro: has_derivative_inner_right)
     done
   then obtain x where x: "x \<in> {a<..<b}"
     "(f b - f a) \<bullet> f b - (f b - f a) \<bullet> f a = (f b - f a) \<bullet> f' x (b - a)" ..
