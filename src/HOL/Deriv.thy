@@ -686,14 +686,6 @@ lemma real_differentiableE [elim?]:
   obtains df where "(f has_real_derivative df) (at x within s)"
   using assms by (auto simp: real_differentiable_def)
 
-lemma differentiableD:
-  "f differentiable (at x within s) \<Longrightarrow> \<exists>D. (f has_real_derivative D) (at x within s)"
-  by (auto elim: real_differentiableE)
-
-lemma differentiableI:
-  "(f has_real_derivative D) (at x within s) \<Longrightarrow> f differentiable (at x within s)"
-  by (force simp add: real_differentiable_def)
-
 lemma has_field_derivative_iff:
   "(f has_field_derivative D) (at x within S) \<longleftrightarrow>
     ((\<lambda>y. (f y - f x) / (y - x)) \<longlongrightarrow> D) (at x within S)"
@@ -1374,7 +1366,7 @@ qed
 corollary Rolle:
   fixes a b :: real
   assumes ab: "a < b" "f a = f b" "continuous_on {a..b} f"
-    and dif [rule_format]: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable (at x)"
+    and dif [rule_format]: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> f differentiable (at x)"
   shows "\<exists>z. a < z \<and> z < b \<and> DERIV f z :> 0"
 proof -
   obtain f' where f': "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
@@ -1523,12 +1515,12 @@ proof (cases a b rule: linorder_cases)
   case less
   show ?thesis
     using MVT [OF less] df
-    by (metis DERIV_continuous DERIV_unique continuous_at_imp_continuous_on differentiableI)
+    by (metis DERIV_continuous DERIV_unique continuous_at_imp_continuous_on real_differentiable_def)
 next
   case greater
   have  "f a - f b = (a - b) * k"
     using MVT [OF greater] df
-    by (metis DERIV_continuous DERIV_unique continuous_at_imp_continuous_on differentiableI)
+    by (metis DERIV_continuous DERIV_unique continuous_at_imp_continuous_on real_differentiable_def)
   then show ?thesis
     by (simp add: algebra_simps)
 qed auto
@@ -1592,7 +1584,7 @@ lemma DERIV_pos_imp_increasing_open:
 proof (rule ccontr)
   assume f: "\<not> ?thesis"
   have "\<exists>l z. a < z \<and> z < b \<and> DERIV f z :> l \<and> f b - f a = (b - a) * l"
-    by (rule MVT) (use assms Deriv.differentiableI in \<open>force+\<close>)
+    by (rule MVT) (use assms real_differentiable_def in \<open>force+\<close>)
   then obtain l z where z: "a < z" "z < b" "DERIV f z :> l" and "f b - f a = (b - a) * l"
     by auto
   with assms f have "\<not> l > 0"
@@ -1625,7 +1617,7 @@ next
   moreover have "continuous_on {a..b} f"
     by (meson DERIV_isCont assms(2) atLeastAtMost_iff continuous_at_imp_continuous_on)
   ultimately have "\<exists>l z. a < z \<and> z < b \<and> DERIV f z :> l \<and> f b - f a = (b - a) * l"
-    using assms MVT [OF \<open>a < b\<close>, of f] differentiableI less_eq_real_def by blast
+    using assms MVT [OF \<open>a < b\<close>, of f] real_differentiable_def less_eq_real_def by blast
   then obtain l z where lz: "a < z" "z < b" "DERIV f z :> l" and **: "f b - f a = (b - a) * l"
     by auto
   with * have "a < b" "f b < f a" by auto
@@ -1772,14 +1764,11 @@ proof -
   then obtain c where c: "a < c \<and> c < b \<and> DERIV ?h c :> l \<and> ?h b - ?h a = (b - a) * l" ..
 
   from c have cint: "a < c \<and> c < b" by auto
-  with gd have "g differentiable (at c)" by simp
-  then have "\<exists>D. DERIV g c :> D" by (rule differentiableD)
-  then obtain g'c where g'c: "DERIV g c :> g'c" ..
-
+  then obtain g'c where g'c: "DERIV g c :> g'c"
+    using gd real_differentiable_def by blast 
   from c have "a < c \<and> c < b" by auto
-  with fd have "f differentiable (at c)" by simp
-  then have "\<exists>D. DERIV f c :> D" by (rule differentiableD)
-  then obtain f'c where f'c: "DERIV f c :> f'c" ..
+  then obtain f'c where f'c: "DERIV f c :> f'c"
+    using fd real_differentiable_def by blast 
 
   from c have "DERIV ?h c :> l" by auto
   moreover have "DERIV ?h c :>  g'c * (f b - f a) - f'c * (g b - g a)"

@@ -4649,7 +4649,7 @@ proof -
     then have "continuous_on {u..v} tan"
       by (simp add: continuous_at_imp_continuous_on)
     moreover have "\<And>x. u < x \<and> x < v \<Longrightarrow> tan differentiable (at x)"
-      by (metis DERIV_tan cos_gt_zero_pi differentiableI less_numeral_extra(3) order.strict_trans u(1) v(2))
+      by (metis DERIV_tan cos_gt_zero_pi real_differentiable_def less_numeral_extra(3) order.strict_trans u(1) v(2))
     ultimately obtain z where "u < z" "z < v" "DERIV tan z :> 0"
       by (metis less Rolle eq)
     moreover have "cos z \<noteq> 0"
@@ -4663,7 +4663,7 @@ proof -
     then have "continuous_on {v..u} tan"
       by (simp add: continuous_at_imp_continuous_on)
     moreover have "\<And>x. v < x \<and> x < u \<Longrightarrow> tan differentiable (at x)"
-      by (metis DERIV_tan cos_gt_zero_pi differentiableI less_numeral_extra(3) order.strict_trans u(2) v(1))
+      by (metis DERIV_tan cos_gt_zero_pi real_differentiable_def less_numeral_extra(3) order.strict_trans u(2) v(1))
     ultimately obtain z where "v < z" "z < u" "DERIV tan z :> 0"
       by (metis greater Rolle eq)
     moreover have "cos z \<noteq> 0"

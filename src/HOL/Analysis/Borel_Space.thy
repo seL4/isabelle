@@ -219,10 +219,7 @@ lemma%important has_real_derivative_imp_continuous_on:
   assumes "\<And>x. x \<in> A \<Longrightarrow> (f has_real_derivative f' x) (at x)"
   shows "continuous_on A f"
   apply (intro differentiable_imp_continuous_on, unfold differentiable_on_def)
-  apply (intro ballI Deriv.differentiableI)
-  apply (rule has_field_derivative_subset[OF assms])
-  apply simp_all
-  done
+  using assms differentiable_at_withinI real_differentiable_def by blast
 
 lemma%important closure_contains_Sup:
   fixes S :: "real set"

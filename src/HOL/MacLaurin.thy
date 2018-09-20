@@ -95,7 +95,7 @@ proof -
   have isCont_difg: "\<And>m x. m < n \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> h \<Longrightarrow> isCont (difg m) x"
     by (rule DERIV_isCont [OF difg_Suc [rule_format]]) simp
   have differentiable_difg: "\<And>m x. m < n \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<le> h \<Longrightarrow> difg m differentiable (at x)"
-    by (rule differentiableI [OF difg_Suc [rule_format]]) simp
+    using difg_Suc real_differentiable_def by auto
   have difg_Suc_eq_0:
     "\<And>m t. m < n \<Longrightarrow> 0 \<le> t \<Longrightarrow> t \<le> h \<Longrightarrow> DERIV (difg m) t :> 0 \<Longrightarrow> difg (Suc m) t = 0"
     by (rule DERIV_unique [OF difg_Suc [rule_format]]) simp
@@ -111,9 +111,7 @@ proof -
         by (simp add: difg_0 g2)
       show "continuous_on {0..h} (difg 0)"
         by (simp add: continuous_at_imp_continuous_on isCont_difg n)
-      show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0::nat) differentiable (at x)"
-        by (simp add: differentiable_difg n)
-    qed
+    qed (simp add: differentiable_difg n)
   next
     case (Suc m')
     then have "\<exists>t. 0 < t \<and> t < h \<and> DERIV (difg m') t :> 0"
@@ -129,9 +127,7 @@ proof -
         using \<open>t < h\<close> \<open>Suc m' < n\<close> by (simp add: isCont_difg)
       then show "continuous_on {0..t} (difg (Suc m'))"
         by (simp add: continuous_at_imp_continuous_on)
-      show "\<forall>x. 0 < x \<and> x < t \<longrightarrow> difg (Suc m') differentiable (at x)"
-        using \<open>t < h\<close> \<open>Suc m' < n\<close> by (simp add: differentiable_difg)
-    qed
+    qed (use \<open>t < h\<close> \<open>Suc m' < n\<close> in \<open>simp add: differentiable_difg\<close>)
     with \<open>t < h\<close> show ?case
       by auto
   qed

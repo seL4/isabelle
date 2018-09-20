@@ -2622,10 +2622,8 @@ lemma poly_IVT: "a < b \<Longrightarrow> poly p a * poly p b < 0 \<Longrightarro
 lemma poly_MVT: "a < b \<Longrightarrow> \<exists>x. a < x \<and> x < b \<and> poly p b - poly p a = (b - a) * poly (pderiv p) x"
   for a b :: real
   using MVT [of a b "poly p"]
-  apply auto
-  apply (rule_tac x = z in exI)
-  apply (auto simp add: mult_left_cancel poly_DERIV [THEN DERIV_unique])
-  done
+  apply simp
+  by (metis (full_types) DERIV_continuous_on DERIV_unique has_field_derivative_at_within poly_DERIV)
 
 lemma poly_MVT':
   fixes a b :: real
