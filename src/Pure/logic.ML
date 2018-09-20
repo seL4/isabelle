@@ -80,6 +80,8 @@ sig
   val list_rename_params: string list -> term -> term
   val assum_pairs: int * term -> (term * term) list
   val assum_problems: int * term -> (term -> term) * term list * term
+  val bad_schematic: indexname -> string
+  val bad_fixed: string -> string
   val varifyT_global: typ -> typ
   val unvarifyT_global: typ -> typ
   val varify_types_global: term -> term

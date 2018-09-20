@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/export_theory.ML
     Author:     Makarius
 
-Export foundational theory content.
+Export foundational theory content and locale/class structure.
 *)
 
 signature EXPORT_THEORY =
@@ -13,26 +13,61 @@ end;
 structure Export_Theory: EXPORT_THEORY =
 struct
 
-(* names for bound variables *)
+(* standardization of variables: only frees and named bounds *)
 
 local
-  fun declare_names (Abs (_, _, b)) = declare_names b
-    | declare_names (t $ u) = declare_names t #> declare_names u
-    | declare_names (Const (c, _)) = Name.declare (Long_Name.base_name c)
-    | declare_names (Free (x, _)) = Name.declare x
-    | declare_names _ = I;
 
-  fun variant_abs bs (Abs (x, T, t)) =
-        let
-          val names = fold Name.declare bs (declare_names t Name.context);
-          val x' = #1 (Name.variant x names);
-          val t' = variant_abs (x' :: bs) t;
-        in Abs (x', T, t') end
-    | variant_abs bs (t $ u) = variant_abs bs t $ variant_abs bs u
-    | variant_abs _ t = t;
+fun declare_names (Abs (_, _, b)) = declare_names b
+  | declare_names (t $ u) = declare_names t #> declare_names u
+  | declare_names (Const (c, _)) = Name.declare (Long_Name.base_name c)
+  | declare_names (Free (x, _)) = Name.declare x
+  | declare_names _ = I;
+
+fun variant_abs bs (Abs (x, T, t)) =
+      let
+        val names = fold Name.declare bs (declare_names t Name.context);
+        val x' = #1 (Name.variant x names);
+        val t' = variant_abs (x' :: bs) t;
+      in Abs (x', T, t') end
+  | variant_abs bs (t $ u) = variant_abs bs t $ variant_abs bs u
+  | variant_abs _ t = t;
+
 in
-  val named_bounds = variant_abs [];
+
+fun standard_vars used =
+  let
+    fun zero_var_indexes tm =
+      Term_Subst.instantiate (Term_Subst.zero_var_indexes_inst used [tm]) tm;
+
+    fun unvarifyT ty = ty |> Term.map_atyps
+      (fn TVar ((a, _), S) => TFree (a, S)
+        | T as TFree (a, _) =>
+            if Name.is_declared used a then T
+            else raise TYPE (Logic.bad_fixed a, [ty], []));
+
+    fun unvarify tm = tm |> Term.map_aterms
+      (fn Var ((x, _), T) => Free (x, T)
+        | t as Free (x, _) =>
+            if Name.is_declared used x then t
+            else raise TERM (Logic.bad_fixed x, [tm])
+        | t => t);
+
+  in zero_var_indexes #> map_types unvarifyT #> unvarify #> variant_abs [] end;
+
+val standard_vars_global = standard_vars Name.context;
+
 end;
+
+
+(* free variables: not declared in the context *)
+
+val is_free = not oo Name.is_declared;
+
+fun add_frees used =
+  fold_aterms (fn Free (x, T) => is_free used x ? insert (op =) (x, T) | _ => I);
+
+fun add_tfrees used =
+  (fold_types o fold_atyps) (fn TFree (a, S) => is_free used a ? insert (op =) (a, S) | _ => I);
 
 
 (* locale support *)
@@ -141,55 +176,58 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     (* consts *)
 
     val encode_const =
-      let open XML.Encode Term_XML.Encode in
-        pair (option encode_infix) (pair (list string) (pair typ (option (term o named_bounds))))
-      end;
+      let open XML.Encode Term_XML.Encode
+      in pair (option encode_infix) (pair (list string) (pair typ (option term))) end;
 
     fun export_const c (T, abbrev) =
       let
         val syntax = get_infix_const thy_ctxt c;
         val T' = T |> Logic.unvarifyT_global |> Type.strip_sorts;
-        val abbrev' = abbrev |> Option.map (Logic.unvarify_global #> map_types Type.strip_sorts);
+        val abbrev' = abbrev |> Option.map (standard_vars_global #> map_types Type.strip_sorts);
         val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, T'));
-      in SOME (encode_const (syntax, (args, (T', abbrev')))) end;
+      in encode_const (syntax, (args, (T', abbrev'))) end;
 
     val _ =
-      export_entities "consts" export_const Sign.const_space
+      export_entities "consts" (SOME oo export_const) Sign.const_space
         (#constants (Consts.dest (Sign.consts_of thy)));
 
 
     (* axioms and facts *)
 
-    fun standard_prop_of raw_thm =
+    fun prop_of raw_thm =
       let
         val thm = raw_thm
           |> Thm.transfer thy
           |> Thm.check_hyps (Context.Theory thy)
           |> Thm.strip_shyps;
         val prop = thm
-          |> Thm.full_prop_of
-          |> Term_Subst.zero_var_indexes;
+          |> Thm.full_prop_of;
       in (Thm.extra_shyps thm, prop) end;
 
-    fun encode_prop (Ss, prop) =
+    fun encode_prop used (Ss, raw_prop) =
       let
-        val prop' = Logic.unvarify_global (named_bounds prop);
-        val typargs = rev (Term.add_tfrees prop' []);
-        val sorts = Name.invent (Name.make_context (map #1 typargs)) Name.aT (length Ss) ~~ Ss;
-        val args = rev (Term.add_frees prop' []);
+        val prop = standard_vars used raw_prop;
+        val args = rev (add_frees used prop []);
+        val typargs = rev (add_tfrees used prop []);
+        val used' = fold (Name.declare o #1) typargs used;
+        val sorts = Name.invent used' Name.aT (length Ss) ~~ Ss;
       in
-        (sorts @ typargs, args, prop') |>
+        (sorts @ typargs, args, prop) |>
           let open XML.Encode Term_XML.Encode
           in triple (list (pair string sort)) (list (pair string typ)) term end
       end;
 
-    val encode_fact = XML.Encode.list encode_prop o map standard_prop_of;
+    fun encode_axiom used t = encode_prop used ([], t);
+
+    val encode_fact_single = encode_prop Name.context o prop_of;
+    val encode_fact_multi = XML.Encode.list (encode_prop Name.context) o map prop_of;
 
     val _ =
-      export_entities "axioms" (fn _ => fn t => SOME (encode_prop ([], t))) Theory.axiom_space
-        (Theory.axioms_of thy);
+      export_entities "axioms" (fn _ => fn t => SOME (encode_axiom Name.context t))
+        Theory.axiom_space (Theory.axioms_of thy);
     val _ =
-      export_entities "facts" (K (SOME o encode_fact)) (Facts.space_of o Global_Theory.facts_of)
+      export_entities "facts" (K (SOME o encode_fact_multi))
+        (Facts.space_of o Global_Theory.facts_of)
         (Facts.dest_static true [] (Global_Theory.facts_of thy));
 
 
@@ -197,13 +235,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_class =
       let open XML.Encode Term_XML.Encode
-      in pair (list (pair string typ)) (list (term o named_bounds)) end;
+      in pair (list (pair string typ)) (list encode_fact_single) end;
 
     fun export_class name =
       (case try (Axclass.get_info thy) name of
         NONE => ([], [])
-      | SOME {params, axioms, ...} =>
-          (params, map (Logic.unvarify_global o Thm.full_prop_of) axioms))
+      | SOME {params, axioms, ...} => (params, axioms))
       |> encode_class |> SOME;
 
     val _ =
@@ -231,18 +268,20 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     (* locales *)
 
-    fun encode_locale loc ({type_params, params, ...}: Locale.content) =
+    fun encode_locale used =
+      let open XML.Encode Term_XML.Encode
+      in triple (list (pair string sort)) (list (pair string typ)) (list (encode_axiom used)) end;
+
+    fun export_locale loc ({type_params, params, ...}: Locale.content) =
       let
         val axioms = locale_axioms thy loc;
         val args = map #1 params;
-        val typargs = type_params @ rev (fold Term.add_tfrees (map Free args @ axioms) []);
-        val encode =
-          let open XML.Encode Term_XML.Encode
-          in triple (list (pair string sort)) (list (pair string typ)) (list term) end;
-      in encode (typargs, args, axioms) end;
+        val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) (rev type_params));
+        val used = fold Name.declare (map #1 typargs @ map #1 args) Name.context;
+      in encode_locale used (typargs, args, axioms) end;
 
     val _ =
-      export_entities "locales" (SOME oo encode_locale) Locale.locale_space
+      export_entities "locales" (SOME oo export_locale) Locale.locale_space
         (Locale.dest_locales thy);
 
 

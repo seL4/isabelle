@@ -220,7 +220,8 @@ fun implies_elim_list impth ths = fold Thm.elim_implies ths impth;
 fun zero_var_indexes_list [] = []
   | zero_var_indexes_list ths =
       let
-        val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
+        val (instT, inst) =
+          Term_Subst.zero_var_indexes_inst Name.context (map Thm.full_prop_of ths);
 
         val tvars = fold Thm.add_tvars ths [];
         fun the_tvar v = the (find_first (fn cT => v = dest_TVar (Thm.typ_of cT)) tvars);

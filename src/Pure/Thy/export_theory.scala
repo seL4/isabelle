@@ -328,12 +328,12 @@ object Export_Theory
   /* type classes */
 
   sealed case class Class(
-    entity: Entity, params: List[(String, Term.Typ)], axioms: List[Term.Term])
+    entity: Entity, params: List[(String, Term.Typ)], axioms: List[Prop])
   {
     def cache(cache: Term.Cache): Class =
       Class(entity.cache(cache),
         params.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
-        axioms.map(cache.term(_)))
+        axioms.map(_.cache(cache)))
   }
 
   def read_classes(provider: Export.Provider): List[Class] =
@@ -344,7 +344,7 @@ object Export_Theory
         {
           import XML.Decode._
           import Term_XML.Decode._
-          pair(list(pair(string, typ)), list(term))(body)
+          pair(list(pair(string, typ)), list(decode_prop))(body)
         }
         Class(entity, params, axioms)
       })
@@ -356,13 +356,13 @@ object Export_Theory
     entity: Entity,
     typargs: List[(String, Term.Sort)],
     args: List[(String, Term.Typ)],
-    axioms: List[Term.Term])
+    axioms: List[Prop])
   {
     def cache(cache: Term.Cache): Locale =
       Locale(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
         args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
-        axioms.map(cache.term(_)))
+        axioms.map(_.cache(cache)))
   }
 
   def read_locales(provider: Export.Provider): List[Locale] =
@@ -373,7 +373,7 @@ object Export_Theory
         {
           import XML.Decode._
           import Term_XML.Decode._
-          triple(list(pair(string, sort)), list(pair(string, typ)), list(term))(body)
+          triple(list(pair(string, sort)), list(pair(string, typ)), list(decode_prop))(body)
         }
         Locale(entity, typargs, args, axioms)
       })
