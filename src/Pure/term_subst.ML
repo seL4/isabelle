@@ -29,7 +29,7 @@ sig
   val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
     term -> term
-  val zero_var_indexes_inst: term list ->
+  val zero_var_indexes_inst: Name.context -> term list ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
   val zero_var_indexes: term -> term
   val zero_var_indexes_list: term list -> term list
@@ -211,21 +211,21 @@ fun zero_var_inst mk (v as ((x, i), X)) (inst, used) =
     val (x', used') = Name.variant (if Name.is_bound x then "u" else x) used;
   in if x = x' andalso i = 0 then (inst, used') else ((v, mk ((x', 0), X)) :: inst, used') end;
 
-fun zero_var_indexes_inst ts =
+fun zero_var_indexes_inst used ts =
   let
     val (instT, _) =
       TVars.fold (zero_var_inst TVar o #1)
         ((fold o fold_types o fold_atyps) (fn TVar v =>
           TVars.insert (K true) (v, ()) | _ => I) ts TVars.empty)
-        ([], Name.context);
+        ([], used);
     val (inst, _) =
       Vars.fold (zero_var_inst Var o #1)
         ((fold o fold_aterms) (fn Var (xi, T) =>
           Vars.insert (K true) ((xi, instantiateT instT T), ()) | _ => I) ts Vars.empty)
-        ([], Name.context);
+        ([], used);
   in (instT, inst) end;
 
-fun zero_var_indexes_list ts = map (instantiate (zero_var_indexes_inst ts)) ts;
+fun zero_var_indexes_list ts = map (instantiate (zero_var_indexes_inst Name.context ts)) ts;
 val zero_var_indexes = singleton zero_var_indexes_list;
 
 end;
