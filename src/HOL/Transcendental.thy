@@ -2222,7 +2222,7 @@ proof -
     assume "x < 1"
     from dense[OF \<open>x < 1\<close>] obtain a where "x < a" "a < 1" by blast
     from \<open>x < a\<close> have "?l x < ?l a"
-    proof (rule DERIV_pos_imp_increasing, safe)
+    proof (rule DERIV_pos_imp_increasing)
       fix y
       assume "x \<le> y" "y \<le> a"
       with \<open>0 < x\<close> \<open>a < 1\<close> have "0 < 1 / y - 1" "0 < y"
@@ -3293,9 +3293,15 @@ lemma isCont_sin: "isCont sin x"
   for x :: "'a::{real_normed_field,banach}"
   by (rule DERIV_sin [THEN DERIV_isCont])
 
+lemma continuous_on_sin_real: "continuous_on {a..b} sin" for a::real
+  using continuous_at_imp_continuous_on isCont_sin by blast
+
 lemma isCont_cos: "isCont cos x"
   for x :: "'a::{real_normed_field,banach}"
   by (rule DERIV_cos [THEN DERIV_isCont])
+
+lemma continuous_on_cos_real: "continuous_on {a..b} cos" for a::real
+  using continuous_at_imp_continuous_on isCont_cos by blast
 
 lemma isCont_sin' [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. sin (f x)) a"
   for f :: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
@@ -3323,7 +3329,7 @@ lemma continuous_on_sin [continuous_intros]: "continuous_on s f \<Longrightarrow
   for f :: "_ \<Rightarrow> 'a::{real_normed_field,banach}"
   unfolding continuous_on_def by (auto intro: tendsto_sin)
 
-lemma continuous_within_sin: "continuous (at z within s) sin"
+lemma continuous_within_sin: "continuous (at z within s) sin"     
   for z :: "'a::{real_normed_field,banach}"
   by (simp add: continuous_within tendsto_sin)
 
@@ -3710,7 +3716,7 @@ next
   proof (cases a b rule: linorder_cases)
     case less
     then obtain z where "a < z" "z < b" "(cos has_real_derivative 0) (at z)"
-      using Rolle by (metis cosd isCont_cos ab)
+      using Rolle by (metis cosd continuous_on_cos_real ab)
     then have "sin z = 0"
       using DERIV_cos DERIV_unique neg_equal_0_iff_equal by blast
     then show ?thesis
@@ -3718,7 +3724,7 @@ next
   next
     case greater
     then obtain z where "b < z" "z < a" "(cos has_real_derivative 0) (at z)"
-      using Rolle by (metis cosd isCont_cos ab)
+      using Rolle by (metis cosd continuous_on_cos_real ab)
     then have "sin z = 0"
       using DERIV_cos DERIV_unique neg_equal_0_iff_equal by blast
     then show ?thesis
@@ -4019,7 +4025,7 @@ next
   proof (cases a b rule: linorder_cases)
     case less
     then obtain z where "a < z" "z < b" "(cos has_real_derivative 0) (at z)"
-      using Rolle by (metis cosd isCont_cos ab)
+      using Rolle by (metis cosd continuous_on_cos_real ab)
     then have "sin z = 0"
       using DERIV_cos DERIV_unique neg_equal_0_iff_equal by blast
     then show ?thesis
@@ -4027,7 +4033,7 @@ next
   next
     case greater
     then obtain z where "b < z" "z < a" "(cos has_real_derivative 0) (at z)"
-      using Rolle by (metis cosd isCont_cos ab)
+      using Rolle by (metis cosd continuous_on_cos_real ab)
     then have "sin z = 0"
       using DERIV_cos DERIV_unique neg_equal_0_iff_equal by blast
     then show ?thesis
@@ -4639,7 +4645,9 @@ proof -
   proof (cases u v rule: linorder_cases)
     case less
     have "\<And>x. u \<le> x \<and> x \<le> v \<longrightarrow> isCont tan x"
-      by (metis cos_gt_zero_pi isCont_tan less_numeral_extra(3) less_trans order.not_eq_order_implies_strict u v)
+      by (metis cos_gt_zero_pi isCont_tan le_less_trans less_irrefl less_le_trans u(1) v(2))
+    then have "continuous_on {u..v} tan"
+      by (simp add: continuous_at_imp_continuous_on)
     moreover have "\<And>x. u < x \<and> x < v \<Longrightarrow> tan differentiable (at x)"
       by (metis DERIV_tan cos_gt_zero_pi differentiableI less_numeral_extra(3) order.strict_trans u(1) v(2))
     ultimately obtain z where "u < z" "z < v" "DERIV tan z :> 0"
@@ -4651,13 +4659,15 @@ proof -
   next
     case greater
     have "\<And>x. v \<le> x \<and> x \<le> u \<Longrightarrow> isCont tan x"
-      by (metis cos_gt_zero_pi isCont_tan less_numeral_extra(3) less_trans order.not_eq_order_implies_strict u v)
+      by (metis cos_gt_zero_pi isCont_tan le_less_trans less_irrefl less_le_trans u(2) v(1))
+    then have "continuous_on {v..u} tan"
+      by (simp add: continuous_at_imp_continuous_on)
     moreover have "\<And>x. v < x \<and> x < u \<Longrightarrow> tan differentiable (at x)"
       by (metis DERIV_tan cos_gt_zero_pi differentiableI less_numeral_extra(3) order.strict_trans u(2) v(1))
     ultimately obtain z where "v < z" "z < u" "DERIV tan z :> 0"
       by (metis greater Rolle eq)
     moreover have "cos z \<noteq> 0"
-      by (metis  \<open>v < z\<close> \<open>z < u\<close> cos_gt_zero_pi less_le_trans linorder_not_less not_less_iff_gr_or_eq u(2) v(1))
+      by (metis \<open>v < z\<close> \<open>z < u\<close> cos_gt_zero_pi less_eq_real_def less_le_trans order_less_irrefl u(2) v(1))
     ultimately show ?thesis
       using DERIV_unique [OF _ DERIV_tan] by fastforce
   qed auto
@@ -5756,8 +5766,8 @@ proof -
           using \<open>-r < a\<close> \<open>b < r\<close> by auto
         then show "\<And>y. \<lbrakk>a < y; y < b\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. suminf (?c x) - arctan x) y :> 0"
           using \<open>\<bar>x\<bar> < r\<close> by auto
-        show "\<And>y. \<lbrakk>a \<le> y; y \<le> b\<rbrakk> \<Longrightarrow>  isCont (\<lambda>x. suminf (?c x) - arctan x) y"
-          using DERIV_in_rball DERIV_isCont by auto
+        show "continuous_on {a..b} (\<lambda>x. suminf (?c x) - arctan x)"
+          using DERIV_in_rball DERIV_atLeastAtMost_imp_continuous_on by blast
       qed
     qed
 

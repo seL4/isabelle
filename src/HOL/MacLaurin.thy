@@ -109,8 +109,8 @@ proof -
       show "0 < h" by fact
       show "difg 0 0 = difg 0 h"
         by (simp add: difg_0 g2)
-      show "\<forall>x. 0 \<le> x \<and> x \<le> h \<longrightarrow> isCont (difg (0::nat)) x"
-        by (simp add: isCont_difg n)
+      show "continuous_on {0..h} (difg 0)"
+        by (simp add: continuous_at_imp_continuous_on isCont_difg n)
       show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0::nat) differentiable (at x)"
         by (simp add: differentiable_difg n)
     qed
@@ -125,8 +125,10 @@ proof -
       show "0 < t" by fact
       show "difg (Suc m') 0 = difg (Suc m') t"
         using t \<open>Suc m' < n\<close> by (simp add: difg_Suc_eq_0 difg_eq_0)
-      show "\<forall>x. 0 \<le> x \<and> x \<le> t \<longrightarrow> isCont (difg (Suc m')) x"
+      have "\<And>x. 0 \<le> x \<and> x \<le> t \<Longrightarrow> isCont (difg (Suc m')) x"
         using \<open>t < h\<close> \<open>Suc m' < n\<close> by (simp add: isCont_difg)
+      then show "continuous_on {0..t} (difg (Suc m'))"
+        by (simp add: continuous_at_imp_continuous_on)
       show "\<forall>x. 0 < x \<and> x < t \<longrightarrow> difg (Suc m') differentiable (at x)"
         using \<open>t < h\<close> \<open>Suc m' < n\<close> by (simp add: differentiable_difg)
     qed

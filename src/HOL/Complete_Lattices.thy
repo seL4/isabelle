@@ -1180,6 +1180,10 @@ lemma UN_Un_distrib: "(\<Union>i\<in>I. A i \<union> B i) = (\<Union>i\<in>I. A 
 lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)"  (* FIXME drop *)
   by (simp add: INT_Int_distrib)
 
+lemma Int_Inter_eq: "A \<inter> \<Inter>\<B> = (if \<B>={} then A else (\<Inter>B\<in>\<B>. A \<inter> B))"
+                    "\<Inter>\<B> \<inter> A = (if \<B>={} then A else (\<Inter>B\<in>\<B>. B \<inter> A))"
+  by auto
+
 lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<union> \<Union>(B ` C)"  (* FIXME drop *)
   \<comment> \<open>Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5:\<close>
   \<comment> \<open>Union of a family of unions\<close>
