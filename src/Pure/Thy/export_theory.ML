@@ -277,8 +277,17 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         val axioms = locale_axioms thy loc;
         val args = map #1 params;
         val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) (rev type_params));
+        val _ =
+          (case duplicates (eq_fst op =) typargs of
+            [] => ()
+          | dups =>
+              let val print = Syntax.string_of_typ (Config.put show_sorts true thy_ctxt) o TFree
+              in error ("Duplicate type parameters " ^ commas (map print dups)) end);
         val used = fold Name.declare (map #1 typargs @ map #1 args) Name.context;
-      in encode_locale used (typargs, args, axioms) end;
+      in encode_locale used (typargs, args, axioms) end
+      handle ERROR msg =>
+        cat_error msg ("The error(s) above occurred in locale " ^
+          quote (Locale.markup_name thy_ctxt loc));
 
     val _ =
       export_entities "locales" (SOME oo export_locale) Locale.locale_space
