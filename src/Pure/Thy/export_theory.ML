@@ -70,23 +70,39 @@ fun add_tfrees used =
   (fold_types o fold_atyps) (fn TFree (a, S) => is_free used a ? insert (op =) (a, S) | _ => I);
 
 
-(* locale support *)
+(* locale content *)
 
-fun locale_axioms thy loc =
+fun locale_content ctxt loc =
   let
-    val (intro1, intro2) = Locale.intros_of thy loc;
-    fun intros_tac ctxt = Method.try_intros_tac ctxt (the_list intro1 @ the_list intro2);
-    val res =
-      Proof_Context.init_global thy
-      |> Interpretation.interpretation ([(loc, (("", false), (Expression.Named [], [])))], [])
-      |> Proof.refine (Method.Basic (METHOD o intros_tac))
-      |> Seq.filter_results
-      |> try Seq.hd;
-  in
-    (case res of
-      SOME st => Thm.prems_of (#goal (Proof.goal st))
-    | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
-  end;
+    val thy = Proof_Context.theory_of ctxt;
+
+    val args = map #1 (Locale.params_of thy loc);
+    val axioms =
+      let
+        val (intro1, intro2) = Locale.intros_of thy loc;
+        fun intros_tac ctxt = Method.try_intros_tac ctxt (the_list intro1 @ the_list intro2);
+        val inst = Expression.Named (args |> map (fn (x, T) => (x, Free (x, T))));
+        val res =
+          Proof_Context.init_global thy
+          |> Interpretation.interpretation ([(loc, (("", false), (inst, [])))], [])
+          |> Proof.refine (Method.Basic (METHOD o intros_tac))
+          |> Seq.filter_results
+          |> try Seq.hd;
+      in
+        (case res of
+          SOME st => Thm.prems_of (#goal (Proof.goal st))
+        | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
+      end;
+
+    val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) []);
+    val typargs_dups =
+      AList.group (op =) typargs |> filter (fn (_, [_]) => false | _ => true)
+        |> maps (fn (x, ys) => map (pair x) ys);
+    val typargs_print = Syntax.string_of_typ (Config.put show_sorts true ctxt) o TFree;
+    val _ =
+      if null typargs_dups then ()
+      else error ("Duplicate type parameters " ^ commas (map typargs_print typargs_dups));
+  in {typargs = typargs, args = args, axioms = axioms} end;
 
 
 (* general setup *)
@@ -272,20 +288,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let open XML.Encode Term_XML.Encode
       in triple (list (pair string sort)) (list (pair string typ)) (list (encode_axiom used)) end;
 
-    fun export_locale loc ({type_params, params, ...}: Locale.content) =
+    fun export_locale loc =
       let
-        val axioms = locale_axioms thy loc;
-        val args = map #1 params;
-
-        val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) (rev type_params));
-        val typargs_dups =
-          AList.group (op =) typargs |> filter (fn (_, [_]) => false | _ => true)
-            |> maps (fn (x, ys) => map (pair x) ys);
-        val typargs_print = Syntax.string_of_typ (Config.put show_sorts true thy_ctxt) o TFree;
-        val _ =
-          if null typargs_dups then ()
-          else error ("Duplicate type parameters " ^ commas (map typargs_print typargs_dups));
-
+        val {typargs, args, axioms} = locale_content thy_ctxt loc;
         val used = fold Name.declare (map #1 typargs @ map #1 args) Name.context;
       in encode_locale used (typargs, args, axioms) end
       handle ERROR msg =>
@@ -293,8 +298,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           quote (Locale.markup_name thy_ctxt loc));
 
     val _ =
-      export_entities "locales" (SOME oo export_locale) Locale.locale_space
-        (Locale.dest_locales thy);
+      export_entities "locales" (fn loc => fn () => SOME (export_locale loc))
+        Locale.locale_space
+        (map (rpair ()) (Locale.get_locales thy));
 
 
     (* parents *)

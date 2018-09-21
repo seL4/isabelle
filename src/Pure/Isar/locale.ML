@@ -56,13 +56,6 @@ sig
   val specification_of: theory -> string -> term option * term list
   val hyp_spec_of: theory -> string -> Element.context_i list
 
-  type content =
-   {type_params: (string * sort) list,
-    params: ((string * typ) * mixfix) list,
-    asm: term option,
-    defs: term list}
-  val dest_locales: theory -> (string * content) list
-
   (* Storing results *)
   val add_facts: string -> string -> Attrib.fact list -> Proof.context -> Proof.context
   val add_declaration: string -> bool -> declaration -> Proof.context -> Proof.context
@@ -93,6 +86,7 @@ sig
   val add_dependency: string -> registration -> theory -> theory
 
   (* Diagnostic *)
+  val get_locales: theory -> string list
   val print_locales: bool -> theory -> unit
   val print_locale: theory -> bool -> xstring * Position.T -> unit
   val print_registrations: Proof.context -> xstring * Position.T -> unit
@@ -214,19 +208,6 @@ fun register_locale binding parameters spec intros axioms hyp_spec syntax_decls 
 fun change_locale name =
   Locales.map o Name_Space.map_table_entry name o map_locale o apsnd;
 
-
-(* content *)
-
-type content =
- {type_params: (string * sort) list,
-  params: ((string * typ) * mixfix) list,
-  asm: term option,
-  defs: term list};
-
-fun dest_locales thy =
-  (Locales.get thy, []) |-> Name_Space.fold_table
-    (fn (name, Loc {parameters = (type_params, params), spec = (asm, defs), ...}) =>
-      cons (name, {type_params = type_params, params = params, asm = asm, defs = defs}));
 
 
 (** Primitive operations **)
@@ -714,6 +695,8 @@ val _ = Theory.setup
 
 
 (*** diagnostic commands and interfaces ***)
+
+fun get_locales thy = map #1 (Name_Space.dest_table (Locales.get thy));
 
 fun print_locales verbose thy =
   Pretty.block
