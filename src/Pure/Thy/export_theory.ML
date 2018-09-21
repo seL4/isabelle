@@ -276,13 +276,16 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val axioms = locale_axioms thy loc;
         val args = map #1 params;
+
         val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) (rev type_params));
+        val typargs_dups =
+          AList.group (op =) typargs |> filter (fn (_, [_]) => false | _ => true)
+            |> maps (fn (x, ys) => map (pair x) ys);
+        val typargs_print = Syntax.string_of_typ (Config.put show_sorts true thy_ctxt) o TFree;
         val _ =
-          (case duplicates (eq_fst op =) typargs of
-            [] => ()
-          | dups =>
-              let val print = Syntax.string_of_typ (Config.put show_sorts true thy_ctxt) o TFree
-              in error ("Duplicate type parameters " ^ commas (map print dups)) end);
+          if null typargs_dups then ()
+          else error ("Duplicate type parameters " ^ commas (map typargs_print typargs_dups));
+
         val used = fold Name.declare (map #1 typargs @ map #1 args) Name.context;
       in encode_locale used (typargs, args, axioms) end
       handle ERROR msg =>
