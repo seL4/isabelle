@@ -113,7 +113,7 @@ object Dump
       deps.sessions_structure.imports_topological_order
 
     val use_theories =
-      for { (_, name) <- deps.used_theories_condition(progress.echo_warning) }
+      for { (_, name) <- deps.used_theories_condition(dump_options, progress.echo_warning) }
       yield name.theory
 
 
