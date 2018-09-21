@@ -196,7 +196,9 @@ object Sessions
     def imported_sources(name: String): List[SHA1.Digest] =
       session_bases(name).imported_sources.map(_._2)
 
-    def used_theories_condition(warning: String => Unit = _ => ()): List[Document.Node.Name] =
+    def used_theories_condition(warning: String => Unit = _ => ())
+      : List[(Options, Document.Node.Name)] =
+    {
       for {
         session_name <- sessions_structure.build_topological_order
         (options, name) <- session_bases(session_name).used_theories
@@ -210,7 +212,8 @@ object Sessions
             false
           }
         }
-      } yield name
+      } yield (options, name)
+    }
 
     def sources(name: String): List[SHA1.Digest] =
       session_bases(name).sources.map(_._2)

@@ -112,7 +112,9 @@ object Dump
     val include_sessions =
       deps.sessions_structure.imports_topological_order
 
-    val use_theories = deps.used_theories_condition(progress.echo_warning).map(_.theory)
+    val use_theories =
+      for { (_, name) <- deps.used_theories_condition(progress.echo_warning) }
+      yield name.theory
 
 
     /* dump aspects asynchronously */
