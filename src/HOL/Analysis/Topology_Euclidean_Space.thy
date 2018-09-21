@@ -11,6 +11,7 @@ imports
   "HOL-Library.Indicator_Function"
   "HOL-Library.Countable_Set"
   "HOL-Library.FuncSet"
+  "HOL-Library.Set_Idioms"
   Linear_Algebra
   Norm_Arith
 begin
@@ -816,6 +817,9 @@ qed
 lemma openin_subtopology: "openin (subtopology U V) S \<longleftrightarrow> (\<exists>T. openin U T \<and> S = T \<inter> V)"
   unfolding subtopology_def topology_inverse'[OF istopology_subtopology]
   by auto
+
+lemma openin_relative_to: "(openin X relative_to S) = openin (subtopology X S)"
+  by (force simp: relative_to_def openin_subtopology)
 
 lemma topspace_subtopology: "topspace (subtopology U V) = topspace U \<inter> V"
   by (auto simp: topspace_def openin_subtopology)
