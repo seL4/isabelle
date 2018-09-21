@@ -1,9 +1,9 @@
-(*  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
+(*  Author:  Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr with additions from LCP
     License: BSD
 *)
 
 theory Function_Topology
-imports Topology_Euclidean_Space Bounded_Linear_Function Finite_Product_Measure
+imports Topology_Euclidean_Space Bounded_Linear_Function Finite_Product_Measure 
 begin
 
 
@@ -94,13 +94,12 @@ lemma%unimportant generate_topology_on_coarsest:
 using assms(3) apply (induct rule: generate_topology_on.induct)
 using assms(1) assms(2) unfolding istopology_def by auto
 
-definition%unimportant topology_generated_by::"('a set set) \<Rightarrow> ('a topology)"
-  where "topology_generated_by S = topology (generate_topology_on S)"
+abbreviation%unimportant topology_generated_by::"('a set set) \<Rightarrow> ('a topology)"
+  where "topology_generated_by S \<equiv> topology (generate_topology_on S)"
 
 lemma%unimportant openin_topology_generated_by_iff:
   "openin (topology_generated_by S) s \<longleftrightarrow> generate_topology_on S s"
-using topology_inverse'[OF istopology_generate_topology_on[of S]]
-unfolding topology_generated_by_def by simp
+  using topology_inverse'[OF istopology_generate_topology_on[of S]] by simp
 
 lemma%unimportant openin_topology_generated_by:
   "openin (topology_generated_by S) s \<Longrightarrow> generate_topology_on S s"
@@ -126,6 +125,138 @@ qed
 lemma%important topology_generated_by_Basis:
   "s \<in> S \<Longrightarrow> openin (topology_generated_by S) s"
 by%unimportant (simp only: openin_topology_generated_by_iff, auto simp: generate_topology_on.Basis)
+
+lemma generate_topology_on_Inter:
+  "\<lbrakk>finite \<F>; \<And>K. K \<in> \<F> \<Longrightarrow> generate_topology_on \<S> K; \<F> \<noteq> {}\<rbrakk> \<Longrightarrow> generate_topology_on \<S> (\<Inter>\<F>)"
+  by (induction \<F> rule: finite_induct; force intro: generate_topology_on.intros)
+
+subsection\<open>Topology bases and sub-bases\<close>
+
+lemma istopology_base_alt:
+   "istopology (arbitrary union_of P) \<longleftrightarrow>
+    (\<forall>S T. (arbitrary union_of P) S \<and> (arbitrary union_of P) T
+           \<longrightarrow> (arbitrary union_of P) (S \<inter> T))"
+  by (simp add: istopology_def) (blast intro: arbitrary_union_of_Union)
+
+lemma istopology_base_eq:
+   "istopology (arbitrary union_of P) \<longleftrightarrow>
+    (\<forall>S T. P S \<and> P T \<longrightarrow> (arbitrary union_of P) (S \<inter> T))"
+  by (simp add: istopology_base_alt arbitrary_union_of_Int_eq)
+
+lemma istopology_base:
+   "(\<And>S T. \<lbrakk>P S; P T\<rbrakk> \<Longrightarrow> P(S \<inter> T)) \<Longrightarrow> istopology (arbitrary union_of P)"
+  by (simp add: arbitrary_def istopology_base_eq union_of_inc)
+
+lemma openin_topology_base_unique:
+   "openin X = arbitrary union_of P \<longleftrightarrow>
+        (\<forall>V. P V \<longrightarrow> openin X V) \<and> (\<forall>U x. openin X U \<and> x \<in> U \<longrightarrow> (\<exists>V. P V \<and> x \<in> V \<and> V \<subseteq> U))"
+   (is "?lhs = ?rhs")
+proof
+  assume ?lhs
+  then show ?rhs
+    by (auto simp: union_of_def arbitrary_def)
+next
+  assume R: ?rhs
+  then have *: "\<exists>\<U>\<subseteq>Collect P. \<Union>\<U> = S" if "openin X S" for S
+    using that by (rule_tac x="{V. P V \<and> V \<subseteq> S}" in exI) fastforce
+  from R show ?lhs
+    by (fastforce simp add: union_of_def arbitrary_def intro: *)
+qed
+
+lemma topology_base_unique:
+   "\<lbrakk>\<And>S. P S \<Longrightarrow> openin X S;
+     \<And>U x. \<lbrakk>openin X U; x \<in> U\<rbrakk> \<Longrightarrow> \<exists>B. P B \<and> x \<in> B \<and> B \<subseteq> U\<rbrakk>
+    \<Longrightarrow> topology(arbitrary union_of P) = X"
+  by (metis openin_topology_base_unique openin_inverse [of X])
+
+lemma topology_bases_eq_aux:
+   "\<lbrakk>(arbitrary union_of P) S;
+     \<And>U x. \<lbrakk>P U; x \<in> U\<rbrakk> \<Longrightarrow> \<exists>V. Q V \<and> x \<in> V \<and> V \<subseteq> U\<rbrakk>
+        \<Longrightarrow> (arbitrary union_of Q) S"
+  by (metis arbitrary_union_of_alt arbitrary_union_of_idempot)
+
+lemma topology_bases_eq:
+   "\<lbrakk>\<And>U x. \<lbrakk>P U; x \<in> U\<rbrakk> \<Longrightarrow> \<exists>V. Q V \<and> x \<in> V \<and> V \<subseteq> U;
+    \<And>V x. \<lbrakk>Q V; x \<in> V\<rbrakk> \<Longrightarrow> \<exists>U. P U \<and> x \<in> U \<and> U \<subseteq> V\<rbrakk>
+        \<Longrightarrow> topology (arbitrary union_of P) =
+            topology (arbitrary union_of Q)"
+  by (fastforce intro:  arg_cong [where f=topology]  elim: topology_bases_eq_aux)
+
+lemma istopology_subbase:
+   "istopology (arbitrary union_of (finite intersection_of P relative_to S))"
+  by (simp add: finite_intersection_of_Int istopology_base relative_to_Int)
+
+lemma openin_subbase:
+  "openin (topology (arbitrary union_of (finite intersection_of B relative_to U))) S
+   \<longleftrightarrow> (arbitrary union_of (finite intersection_of B relative_to U)) S"
+  by (simp add: istopology_subbase topology_inverse')
+
+lemma topspace_subbase [simp]:
+   "topspace(topology (arbitrary union_of (finite intersection_of B relative_to U))) = U" (is "?lhs = _")
+proof
+  show "?lhs \<subseteq> U"
+    by (metis arbitrary_union_of_relative_to openin_subbase openin_topspace relative_to_imp_subset)
+  show "U \<subseteq> ?lhs"
+    by (metis arbitrary_union_of_inc finite_intersection_of_empty inf.orderE istopology_subbase 
+              openin_subset relative_to_inc subset_UNIV topology_inverse')
+qed
+
+lemma minimal_topology_subbase:
+   "\<lbrakk>\<And>S. P S \<Longrightarrow> openin X S; openin X U;
+     openin(topology(arbitrary union_of (finite intersection_of P relative_to U))) S\<rbrakk>
+    \<Longrightarrow> openin X S"
+  apply (simp add: istopology_subbase topology_inverse)
+  apply (simp add: union_of_def intersection_of_def relative_to_def)
+  apply (blast intro: openin_Int_Inter)
+  done
+
+lemma istopology_subbase_UNIV:
+   "istopology (arbitrary union_of (finite intersection_of P))"
+  by (simp add: istopology_base finite_intersection_of_Int)
+
+
+lemma generate_topology_on_eq:
+  "generate_topology_on S = arbitrary union_of finite' intersection_of (\<lambda>x. x \<in> S)" (is "?lhs = ?rhs")
+proof (intro ext iffI)
+  fix A
+  assume "?lhs A"
+  then show "?rhs A"
+  proof induction
+    case (Int a b)
+    then show ?case
+      by (metis (mono_tags, lifting) istopology_base_alt finite'_intersection_of_Int istopology_base)
+  next
+    case (UN K)
+    then show ?case
+      by (simp add: arbitrary_union_of_Union)
+  next
+    case (Basis s)
+    then show ?case
+      by (simp add: Sup_upper arbitrary_union_of_inc finite'_intersection_of_inc relative_to_subset)
+  qed auto
+next
+  fix A
+  assume "?rhs A"
+  then obtain \<U> where \<U>: "\<And>T. T \<in> \<U> \<Longrightarrow> \<exists>\<F>. finite' \<F> \<and> \<F> \<subseteq> S \<and> \<Inter>\<F> = T" and eq: "A = \<Union>\<U>"
+    unfolding union_of_def intersection_of_def by auto
+  show "?lhs A"
+    unfolding eq
+  proof (rule generate_topology_on.UN)
+    fix T
+    assume "T \<in> \<U>"
+    with \<U> obtain \<F> where "finite' \<F>" "\<F> \<subseteq> S" "\<Inter>\<F> = T"
+      by blast
+    have "generate_topology_on S (\<Inter>\<F>)"
+    proof (rule generate_topology_on_Inter)
+      show "finite \<F>" "\<F> \<noteq> {}"
+        by (auto simp: \<open>finite' \<F>\<close>)
+      show "\<And>K. K \<in> \<F> \<Longrightarrow> generate_topology_on S K"
+        by (metis \<open>\<F> \<subseteq> S\<close> generate_topology_on.simps subset_iff)
+    qed
+    then show "generate_topology_on S T"
+      using \<open>\<Inter>\<F> = T\<close> by blast
+  qed
+qed
 
 subsubsection%important \<open>Continuity\<close>
 
@@ -315,11 +446,113 @@ definition%important product_topology::"('i \<Rightarrow> ('a topology)) \<Right
 text \<open>The total set of the product topology is the product of the total sets
 along each coordinate.\<close>
 
-lemma%important product_topology_topspace:
+proposition product_topology:
+  "product_topology X I =
+   topology
+    (arbitrary union_of
+       ((finite intersection_of
+        (\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U))
+        relative_to (\<Pi>\<^sub>E i\<in>I. topspace (X i))))"
+  (is "_ = topology (_ union_of ((_ intersection_of ?\<Psi>) relative_to ?TOP))")
+proof -
+  let ?\<Omega> = "(\<lambda>F. \<exists>Y. F = Pi\<^sub>E I Y \<and> (\<forall>i. openin (X i) (Y i)) \<and> finite {i. Y i \<noteq> topspace (X i)})"
+  have *: "(finite' intersection_of ?\<Omega>) A = (finite intersection_of ?\<Psi> relative_to ?TOP) A" for A
+  proof -
+    have 1: "\<exists>U. (\<exists>\<U>. finite \<U> \<and> \<U> \<subseteq> Collect ?\<Psi> \<and> \<Inter>\<U> = U) \<and> ?TOP \<inter> U = \<Inter>\<U>"
+      if \<U>: "\<U> \<subseteq> Collect ?\<Omega>" and "finite' \<U>" "A = \<Inter>\<U>" "\<U> \<noteq> {}" for \<U>
+    proof -
+      have "\<forall>U \<in> \<U>. \<exists>Y. U = Pi\<^sub>E I Y \<and> (\<forall>i. openin (X i) (Y i)) \<and> finite {i. Y i \<noteq> topspace (X i)}"
+        using \<U> by auto
+      then obtain Y where Y: "\<And>U. U \<in> \<U> \<Longrightarrow> U = Pi\<^sub>E I (Y U) \<and> (\<forall>i. openin (X i) (Y U i)) \<and> finite {i. (Y U) i \<noteq> topspace (X i)}"
+        by metis
+      obtain U where "U \<in> \<U>"
+        using \<open>\<U> \<noteq> {}\<close> by blast
+      let ?F = "\<lambda>U. (\<lambda>i. {f. f i \<in> Y U i}) ` {i \<in> I. Y U i \<noteq> topspace (X i)}"
+      show ?thesis
+      proof (intro conjI exI)
+        show "finite (\<Union>U\<in>\<U>. ?F U)"
+          using Y \<open>finite' \<U>\<close> by auto
+        show "?TOP \<inter> \<Inter>(\<Union>U\<in>\<U>. ?F U) = \<Inter>\<U>"
+        proof
+          have *: "f \<in> U"
+            if "U \<in> \<U>" and "\<forall>V\<in>\<U>. \<forall>i. i \<in> I \<and> Y V i \<noteq> topspace (X i) \<longrightarrow> f i \<in> Y V i"
+              and "\<forall>i\<in>I. f i \<in> topspace (X i)" and "f \<in> extensional I" for f U
+          proof -
+            have "Pi\<^sub>E I (Y U) = U"
+              using Y \<open>U \<in> \<U>\<close> by blast
+            then show "f \<in> U"
+              using that unfolding PiE_def Pi_def by blast
+          qed
+          show "?TOP \<inter> \<Inter>(\<Union>U\<in>\<U>. ?F U) \<subseteq> \<Inter>\<U>"
+            by (auto simp: PiE_iff *)
+          show "\<Inter>\<U> \<subseteq> ?TOP \<inter> \<Inter>(\<Union>U\<in>\<U>. ?F U)"
+            using Y openin_subset \<open>finite' \<U>\<close> by fastforce
+        qed
+      qed (use Y openin_subset in \<open>blast+\<close>)
+    qed
+    have 2: "\<exists>\<U>'. finite' \<U>' \<and> \<U>' \<subseteq> Collect ?\<Omega> \<and> \<Inter>\<U>' = ?TOP \<inter> \<Inter>\<U>"
+      if \<U>: "\<U> \<subseteq> Collect ?\<Psi>" and "finite \<U>" for \<U>
+    proof (cases "\<U>={}")
+      case True
+      then show ?thesis
+        apply (rule_tac x="{?TOP}" in exI, simp)
+        apply (rule_tac x="\<lambda>i. topspace (X i)" in exI)
+        apply force
+        done
+    next
+      case False
+      then obtain U where "U \<in> \<U>"
+        by blast
+      have "\<forall>U \<in> \<U>. \<exists>i Y. U = {f. f i \<in> Y} \<and> i \<in> I \<and> openin (X i) Y"
+        using \<U> by auto
+      then obtain J Y where
+        Y: "\<And>U. U \<in> \<U> \<Longrightarrow> U = {f. f (J U) \<in> Y U} \<and> J U \<in> I \<and> openin (X (J U)) (Y U)"
+        by metis
+      let ?G = "\<lambda>U. \<Pi>\<^sub>E i\<in>I. if i = J U then Y U else topspace (X i)"
+      show ?thesis
+      proof (intro conjI exI)
+        show "finite (?G ` \<U>)" "?G ` \<U> \<noteq> {}"
+          using \<open>finite \<U>\<close> \<open>U \<in> \<U>\<close> by blast+
+        have *: "\<And>U. U \<in> \<U> \<Longrightarrow> openin (X (J U)) (Y U)"
+          using Y by force
+        show "?G ` \<U> \<subseteq> {Pi\<^sub>E I Y |Y. (\<forall>i. openin (X i) (Y i)) \<and> finite {i. Y i \<noteq> topspace (X i)}}"
+          apply clarsimp
+          apply (rule_tac x=" (\<lambda>i. if i = J U then Y U else topspace (X i))" in exI)
+          apply (auto simp: *)
+          done
+      next
+        show "(\<Inter>U\<in>\<U>. ?G U) = ?TOP \<inter> \<Inter>\<U>"
+        proof
+          have "(\<Pi>\<^sub>E i\<in>I. if i = J U then Y U else topspace (X i)) \<subseteq> (\<Pi>\<^sub>E i\<in>I. topspace (X i))"
+            apply (clarsimp simp: PiE_iff Ball_def all_conj_distrib split: if_split_asm)
+            using Y \<open>U \<in> \<U>\<close> openin_subset by blast+
+          then have "(\<Inter>U\<in>\<U>. ?G U) \<subseteq> ?TOP"
+            using \<open>U \<in> \<U>\<close>
+            by fastforce
+          moreover have "(\<Inter>U\<in>\<U>. ?G U) \<subseteq> \<Inter>\<U>"
+            using PiE_mem Y by fastforce
+          ultimately show "(\<Inter>U\<in>\<U>. ?G U) \<subseteq> ?TOP \<inter> \<Inter>\<U>"
+            by auto
+        qed (use Y in fastforce)
+      qed
+    qed
+    show ?thesis
+      unfolding relative_to_def intersection_of_def
+      by (safe; blast dest!: 1 2)
+  qed
+  show ?thesis
+    unfolding product_topology_def generate_topology_on_eq
+    apply (rule arg_cong [where f = topology])
+    apply (rule arg_cong [where f = "(union_of)arbitrary"])
+    apply (force simp: *)
+    done
+qed
+
+lemma%important topspace_product_topology:
   "topspace (product_topology T I) = (\<Pi>\<^sub>E i\<in>I. topspace(T i))"
 proof%unimportant
   show "topspace (product_topology T I) \<subseteq> (\<Pi>\<^sub>E i\<in>I. topspace (T i))"
-    unfolding product_topology_def apply (simp only: topology_generated_by_topspace)
+    unfolding product_topology_def topology_generated_by_topspace
     unfolding topspace_def by auto
   have "(\<Pi>\<^sub>E i\<in>I. topspace (T i)) \<in> {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
     using openin_topspace not_finite_existsD by auto
@@ -330,11 +563,11 @@ qed
 lemma%unimportant product_topology_basis:
   assumes "\<And>i. openin (T i) (X i)" "finite {i. X i \<noteq> topspace (T i)}"
   shows "openin (product_topology T I) (\<Pi>\<^sub>E i\<in>I. X i)"
-unfolding product_topology_def apply (rule topology_generated_by_Basis) using assms by auto
+  unfolding product_topology_def
+  by (rule topology_generated_by_Basis) (use assms in auto)
 
 lemma%important product_topology_open_contains_basis:
-  assumes "openin (product_topology T I) U"
-          "x \<in> U"
+  assumes "openin (product_topology T I) U" "x \<in> U"
   shows "\<exists>X. x \<in> (\<Pi>\<^sub>E i\<in>I. X i) \<and> (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)} \<and> (\<Pi>\<^sub>E i\<in>I. X i) \<subseteq> U"
 proof%unimportant -
   have "generate_topology_on {(\<Pi>\<^sub>E i\<in>I. X i) |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}} U"
@@ -375,6 +608,114 @@ proof%unimportant -
 qed
 
 
+lemma openin_product_topology:
+   "openin (product_topology X I) =
+    arbitrary union_of
+          ((finite intersection_of (\<lambda>F. (\<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U)))
+           relative_to topspace (product_topology X I))"
+  apply (subst product_topology)
+  apply (simp add: topspace_product_topology topology_inverse' [OF istopology_subbase])
+  done
+
+lemma subtopology_PiE:
+  "subtopology (product_topology X I) (\<Pi>\<^sub>E i\<in>I. (S i)) = product_topology (\<lambda>i. subtopology (X i) (S i)) I"
+proof -
+  let ?P = "\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U"
+  let ?X = "\<Pi>\<^sub>E i\<in>I. topspace (X i)"
+  have "finite intersection_of ?P relative_to ?X \<inter> Pi\<^sub>E I S =
+        finite intersection_of (?P relative_to ?X \<inter> Pi\<^sub>E I S) relative_to ?X \<inter> Pi\<^sub>E I S"
+    by (rule finite_intersection_of_relative_to)
+  also have "\<dots> = finite intersection_of
+                      ((\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> (openin (X i) relative_to S i) U)
+                       relative_to ?X \<inter> Pi\<^sub>E I S)
+                   relative_to ?X \<inter> Pi\<^sub>E I S"
+    apply (rule arg_cong2 [where f = "(relative_to)"])
+     apply (rule arg_cong [where f = "(intersection_of)finite"])
+     apply (rule ext)
+     apply (auto simp: relative_to_def intersection_of_def)
+    done
+  finally
+  have "finite intersection_of ?P relative_to ?X \<inter> Pi\<^sub>E I S =
+        finite intersection_of
+          (\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> (openin (X i) relative_to S i) U)
+          relative_to ?X \<inter> Pi\<^sub>E I S"
+    by (metis finite_intersection_of_relative_to)
+  then show ?thesis
+  unfolding topology_eq
+  apply clarify
+  apply (simp add: openin_product_topology flip: openin_relative_to)
+  apply (simp add: arbitrary_union_of_relative_to topspace_product_topology topspace_subtopology flip: PiE_Int)
+  done
+qed
+
+
+lemma product_topology_base_alt:
+   "finite intersection_of (\<lambda>F. (\<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U))
+    relative_to topspace(product_topology X I) =
+    (\<lambda>F. (\<exists>U. F =  Pi\<^sub>E I U \<and> finite {i \<in> I. U i \<noteq> topspace(X i)} \<and> (\<forall>i \<in> I. openin (X i) (U i))))"
+   (is "?lhs = ?rhs")
+proof -
+  have "(\<forall>F. ?lhs F \<longrightarrow> ?rhs F)"
+    unfolding all_relative_to all_intersection_of topspace_product_topology
+  proof clarify
+    fix \<F>
+    assume "finite \<F>" and "\<F> \<subseteq> {{f. f i \<in> U} |i U. i \<in> I \<and> openin (X i) U}"
+    then show "\<exists>U. (\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> \<Inter>\<F> = Pi\<^sub>E I U \<and>
+          finite {i \<in> I. U i \<noteq> topspace (X i)} \<and> (\<forall>i\<in>I. openin (X i) (U i))"
+    proof (induction)
+      case (insert F \<F>)
+      then obtain U where eq: "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> \<Inter>\<F> = Pi\<^sub>E I U"
+        and fin: "finite {i \<in> I. U i \<noteq> topspace (X i)}"
+        and ope: "\<And>i. i \<in> I \<Longrightarrow> openin (X i) (U i)"
+        by auto
+      obtain i V where "F = {f. f i \<in> V}" "i \<in> I" "openin (X i) V"
+        using insert by auto
+      let ?U = "\<lambda>j. U j \<inter> (if j = i then V else topspace(X j))"
+      show ?case
+      proof (intro exI conjI)
+        show "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> \<Inter>insert F \<F> = Pi\<^sub>E I ?U"
+        using eq  PiE_mem \<open>i \<in> I\<close>  by (auto simp: \<open>F = {f. f i \<in> V}\<close>) fastforce
+      next
+        show "finite {i \<in> I. ?U i \<noteq> topspace (X i)}"
+          by (rule rev_finite_subset [OF finite.insertI [OF fin]]) auto
+      next
+        show "\<forall>i\<in>I. openin (X i) (?U i)"
+          by (simp add: \<open>openin (X i) V\<close> ope openin_Int)
+      qed
+    qed (auto intro: dest: not_finite_existsD)
+  qed
+  moreover have "(\<forall>F. ?rhs F \<longrightarrow> ?lhs F)"
+  proof clarify
+    fix U :: "'a \<Rightarrow> 'b set"
+    assume fin: "finite {i \<in> I. U i \<noteq> topspace (X i)}" and ope: "\<forall>i\<in>I. openin (X i) (U i)"
+    let ?U = "\<Inter>i\<in>{i \<in> I. U i \<noteq> topspace (X i)}. {x. x i \<in> U i}"
+    show "?lhs (Pi\<^sub>E I U)"
+      unfolding relative_to_def topspace_product_topology
+    proof (intro exI conjI)
+      show "(finite intersection_of (\<lambda>F. \<exists>i U. F = {f. f i \<in> U} \<and> i \<in> I \<and> openin (X i) U)) ?U"
+        using fin ope by (intro finite_intersection_of_Inter finite_intersection_of_inc) auto
+      show "(\<Pi>\<^sub>E i\<in>I. topspace (X i)) \<inter> ?U = Pi\<^sub>E I U"
+        using ope openin_subset by fastforce
+    qed
+  qed
+  ultimately show ?thesis
+    by meson
+qed
+
+
+lemma topspace_product_topology_alt:
+   "topspace (product_topology Y I) = {f \<in> extensional I. \<forall>k \<in> I. f k \<in> topspace(Y k)}"
+  by (force simp: product_topology PiE_def)
+
+lemma openin_product_topology_alt:
+  "openin (product_topology X I) S \<longleftrightarrow>
+    (\<forall>x \<in> S. \<exists>U. finite {i \<in> I. U i \<noteq> topspace(X i)} \<and>
+                 (\<forall>i \<in> I. openin (X i) (U i)) \<and> x \<in> Pi\<^sub>E I U \<and> Pi\<^sub>E I U \<subseteq> S)"
+  apply (simp add: openin_product_topology arbitrary_union_of_alt product_topology_base_alt, auto)
+  apply (drule bspec; blast)
+  done
+
+
 text \<open>The basic property of the product topology is the continuity of projections:\<close>
 
 lemma%unimportant continuous_on_topo_product_coordinates [simp]:
@@ -396,7 +737,7 @@ proof -
       using ** by auto
   }
   then show ?thesis unfolding continuous_on_topo_def
-    by (auto simp add: assms product_topology_topspace PiE_iff)
+    by (auto simp add: assms topspace_product_topology PiE_iff)
 qed
 
 lemma%important continuous_on_topo_coordinatewise_then_product [intro]:
@@ -427,7 +768,7 @@ next
   show "f `topspace T1 \<subseteq> \<Union>{Pi\<^sub>E I X |X. (\<forall>i. openin (T i) (X i)) \<and> finite {i. X i \<noteq> topspace (T i)}}"
     apply (subst topology_generated_by_topspace[symmetric])
     apply (subst product_topology_def[symmetric])
-    apply (simp only: product_topology_topspace)
+    apply (simp only: topspace_product_topology)
     apply (auto simp add: PiE_iff)
     using assms unfolding continuous_on_topo_def by auto
 qed
@@ -449,7 +790,7 @@ next
   have "f x \<in> topspace (product_topology T I)"
     using assms \<open>x \<in> topspace T1\<close> unfolding continuous_on_topo_def by auto
   then have "f x \<in> (\<Pi>\<^sub>E i\<in>I. topspace (T i))"
-    using product_topology_topspace by metis
+    using topspace_product_topology by metis
   then show "f x i = undefined"
     using \<open>i \<notin> I\<close> by (auto simp add: PiE_iff extensional_def)
 qed
@@ -479,7 +820,7 @@ definition%important open_fun_def:
 
 instance proof%unimportant
   have "topspace (product_topology (\<lambda>(i::'a). euclidean::('b topology)) UNIV) = UNIV"
-    unfolding product_topology_topspace topspace_euclidean by auto
+    unfolding topspace_product_topology topspace_euclidean by auto
   then show "open (UNIV::('a \<Rightarrow> 'b) set)"
     unfolding open_fun_def by (metis openin_topspace)
 qed (auto simp add: open_fun_def)
@@ -1231,6 +1572,8 @@ qed
 
 instance "fun" :: (countable, polish_space) polish_space
 by standard
+
+
 
 
 subsection%important \<open>Measurability\<close> (*FIX ME mv *)
