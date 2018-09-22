@@ -142,31 +142,29 @@ object Headless
           commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit])
         : Use_Theories_State =
       {
-        val st1 =
+        val already_committed1 =
           if (commit.isDefined) {
-            val already_committed1 =
-              (already_committed /: dep_theories)({ case (committed, name) =>
-                def parents_committed: Boolean =
-                  version.nodes(name).header.imports.forall({ case (parent, _) =>
-                    Sessions.is_pure(parent.theory) || committed.isDefinedAt(parent)
-                  })
-                if (!committed.isDefinedAt(name) && parents_committed &&
-                    state.node_consolidated(version, name))
-                {
-                  val snapshot = stable_snapshot(state, version, name)
-                  val status = Document_Status.Node_Status.make(state, version, name)
-                  commit.get.apply(snapshot, status)
-                  committed + (name -> status)
-                }
-                else committed
-              })
-            copy(already_committed = already_committed1)
+            (already_committed /: dep_theories)({ case (committed, name) =>
+              def parents_committed: Boolean =
+                version.nodes(name).header.imports.forall({ case (parent, _) =>
+                  Sessions.is_pure(parent.theory) || committed.isDefinedAt(parent)
+                })
+              if (!committed.isDefinedAt(name) && parents_committed &&
+                  state.node_consolidated(version, name))
+              {
+                val snapshot = stable_snapshot(state, version, name)
+                val status = Document_Status.Node_Status.make(state, version, name)
+                commit.get.apply(snapshot, status)
+                committed + (name -> status)
+              }
+              else committed
+            })
           }
-          else this
+          else already_committed
 
         if (beyond_limit || watchdog(watchdog_timeout) ||
           dep_theories.forall(name =>
-            already_committed.isDefinedAt(name) ||
+            already_committed1.isDefinedAt(name) ||
             state.node_consolidated(version, name) ||
             nodes_status.quasi_consolidated(name)))
         {
@@ -176,14 +174,14 @@ object Headless
           val nodes_committed =
             for {
               name <- dep_theories
-              status <- already_committed.get(name)
+              status <- already_committed1.get(name)
             } yield (name -> status)
 
           try { result.fulfill(new Use_Theories_Result(state, version, nodes, nodes_committed)) }
           catch { case _: IllegalStateException => }
         }
 
-        st1
+        copy(already_committed = already_committed1)
       }
     }
 
