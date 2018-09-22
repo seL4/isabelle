@@ -72,10 +72,8 @@ fun add_tfrees used =
 
 (* locale content *)
 
-fun locale_content ctxt loc =
+fun locale_content thy loc =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     val args = map #1 (Locale.params_of thy loc);
     val axioms =
       let
@@ -93,15 +91,7 @@ fun locale_content ctxt loc =
           SOME st => Thm.prems_of (#goal (Proof.goal st))
         | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
       end;
-
     val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) []);
-    val typargs_dups =
-      AList.group (op =) typargs |> filter (fn (_, [_]) => false | _ => true)
-        |> maps (fn (x, ys) => map (pair x) ys);
-    val typargs_print = Syntax.string_of_typ (Config.put show_sorts true ctxt) o TFree;
-    val _ =
-      if null typargs_dups then ()
-      else error ("Duplicate type parameters " ^ commas (map typargs_print typargs_dups));
   in {typargs = typargs, args = args, axioms = axioms} end;
 
 
@@ -290,7 +280,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     fun export_locale loc =
       let
-        val {typargs, args, axioms} = locale_content thy_ctxt loc;
+        val {typargs, args, axioms} = locale_content thy loc;
         val used = fold Name.declare (map #1 typargs @ map #1 args) Name.context;
       in encode_locale used (typargs, args, axioms) end
       handle ERROR msg =>
