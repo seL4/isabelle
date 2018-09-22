@@ -71,6 +71,12 @@ object Headless
     val nodes: List[(Document.Node.Name, Document_Status.Node_Status)],
     val nodes_committed: List[(Document.Node.Name, Document_Status.Node_Status)])
   {
+    def nodes_pending: List[(Document.Node.Name, Document_Status.Node_Status)] =
+    {
+      val committed = nodes_committed.iterator.map(_._1).toSet
+      nodes.filter(p => !committed(p._1))
+    }
+
     def snapshot(name: Document.Node.Name): Document.Snapshot =
       stable_snapshot(state, version, name)
 
