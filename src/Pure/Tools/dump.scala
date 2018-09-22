@@ -270,6 +270,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
               sessions = sessions))
         }
 
-      if (!ok) sys.exit(1)
+      if (!ok) sys.exit(2)
     })
 }

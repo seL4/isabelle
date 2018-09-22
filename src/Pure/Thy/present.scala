@@ -319,6 +319,6 @@ Usage: isabelle document [OPTIONS]
       build_document(document_dir = document_dir, document_name = document_name,
         document_format = document_format, tags = tags)
     }
-    catch { case ERROR(msg) => Output.writeln(msg); sys.exit(1) }
+    catch { case ERROR(msg) => Output.writeln(msg); sys.exit(2) }
   })
 }

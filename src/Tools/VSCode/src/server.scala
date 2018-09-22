@@ -361,7 +361,7 @@ class Server(
 
   def exit() {
     log("\n")
-    sys.exit(if (session_.value.isDefined) 1 else 0)
+    sys.exit(if (session_.value.isDefined) 2 else 0)
   }
 
 
