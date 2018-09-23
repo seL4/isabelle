@@ -13,13 +13,6 @@ New in this Isabelle version
 longer supported (legacy feature in Isabelle2018).
 
 
-*** System ***
-
-* Isabelle server command "use_theories" supports "nodes_status_delay"
-for continuous output of node status information. The time interval is
-specified in seconds; a negative value means it is disabled (default).
-
-
 *** Isar ***
 
 * More robust treatment of structural errors: begin/end blocks take
@@ -73,7 +66,11 @@ observes the official standard).
 
 *** System ***
 
-* Isabelle Server message "use_theories" terminates more robustly in the
+* Isabelle server command "use_theories" supports "nodes_status_delay"
+for continuous output of node status information. The time interval is
+specified in seconds; a negative value means it is disabled (default).
+
+* Isabelle Server command "use_theories" terminates more robustly in the
 presence of structurally broken sources: full consolidation of theories
 is no longer required.
 
