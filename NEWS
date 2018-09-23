@@ -18,6 +18,10 @@ longer supported (legacy feature in Isabelle2018).
 * More robust treatment of structural errors: begin/end blocks take
 precedence over goal/proof.
 
+* Implicit cases goal1, goal2, goal3, etc. have been discontinued
+(legacy feature since Isabelle2016).
+
+
 
 *** HOL ***
 

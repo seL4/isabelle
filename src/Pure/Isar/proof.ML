@@ -415,24 +415,11 @@ end;
 
 local
 
-fun goalN i = "goal" ^ string_of_int i;
-fun goals st = map goalN (1 upto Thm.nprems_of st);
-
-fun no_goal_cases st = map (rpair NONE) (goals st);
-
-fun goal_cases ctxt st =
-  Rule_Cases.make_common ctxt (Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
-
 fun apply_method text ctxt state =
   find_goal state |> (fn (goal_ctxt, {statement, using, goal, before_qed, after_qed}) =>
     Method.evaluate text ctxt using (goal_ctxt, goal)
     |> Seq.map_result (fn (goal_ctxt', goal') =>
-      let
-        val goal_ctxt'' = goal_ctxt'
-          |> Proof_Context.update_cases_legacy (no_goal_cases goal @ goal_cases ctxt goal');
-        val state' = state
-          |> map_goal (K (goal_ctxt'', statement, using, goal', before_qed, after_qed));
-      in state' end));
+        state |> map_goal (K (goal_ctxt', statement, using, goal', before_qed, after_qed))));
 
 in
 

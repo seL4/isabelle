@@ -151,9 +151,8 @@ sig
   val add_assms_cmd: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val dest_cases: Proof.context option -> Proof.context -> (string * (Rule_Cases.T * {legacy: bool})) list
+  val dest_cases: Proof.context option -> Proof.context -> (string * Rule_Cases.T) list
   val update_cases: (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
-  val update_cases_legacy: (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
   val check_case: Proof.context -> bool ->
     string * Position.T -> binding option list -> Rule_Cases.T
@@ -228,7 +227,7 @@ val mode_abbrev    = make_mode (false, false, true);
 
 (** Isar proof context information **)
 
-type cases = (Rule_Cases.T * {legacy: bool}) Name_Space.table;
+type cases = Rule_Cases.T Name_Space.table;
 val empty_cases: cases = Name_Space.empty_table Markup.caseN;
 
 datatype data =
@@ -238,7 +237,7 @@ datatype data =
     tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
     consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
     facts: Facts.T,              (*local facts, based on initial global facts*)
-    cases: cases};               (*named case contexts: case, legacy, running index*)
+    cases: cases};               (*named case contexts*)
 
 fun make_data (mode, syntax, tsig, consts, facts, cases) =
   Data {mode = mode, syntax = syntax, tsig = tsig, consts = consts, facts = facts, cases = cases};
@@ -1319,17 +1318,10 @@ local
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-fun update_case _ _ ("", _) cases = cases
-  | update_case _ _ (name, NONE) cases = Name_Space.del_table name cases
-  | update_case context legacy (name, SOME c) cases =
-      let
-        val binding = Binding.name name |> legacy ? Binding.concealed;
-        val (_, cases') = Name_Space.define context false (binding, (c, {legacy = legacy})) cases;
-      in cases' end;
-
-fun update_cases' legacy args ctxt =
-  let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
-  in map_cases (fold (update_case context legacy) args) ctxt end;
+fun update_case _ ("", _) cases = cases
+  | update_case _ (name, NONE) cases = Name_Space.del_table name cases
+  | update_case context (name, SOME c) cases =
+      #2 (Name_Space.define context false (Binding.name name, c) cases);
 
 fun fix (b, T) ctxt =
   let val ([x], ctxt') = add_fixes [(b, SOME T, NoSyn)] ctxt
@@ -1337,8 +1329,9 @@ fun fix (b, T) ctxt =
 
 in
 
-val update_cases = update_cases' false;
-val update_cases_legacy = update_cases' true;
+fun update_cases args ctxt =
+  let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.global_naming);
+  in map_cases (fold (update_case context) args) ctxt end;
 
 fun case_result c ctxt =
   let
@@ -1356,13 +1349,8 @@ val apply_case = apfst fst oo case_result;
 
 fun check_case ctxt internal (name, pos) param_specs =
   let
-    val (_, (Rule_Cases.Case {fixes, assumes, binds, cases}, {legacy})) =
+    val (_, Rule_Cases.Case {fixes, assumes, binds, cases}) =
       Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
-    val _ =
-      if legacy then
-        legacy_feature ("Bad case " ^ quote name ^ Position.here pos ^
-          " -- use proof method \"goal_cases\" instead")
-      else ();
 
     val _ = List.app (fn NONE => () | SOME b => ignore (check_var internal b)) param_specs;
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
@@ -1537,10 +1525,9 @@ in
 
 fun pretty_cases ctxt =
   let
-    fun mk_case (_, (_, {legacy = true})) = NONE
-      | mk_case (name, (c as Rule_Cases.Case {fixes, ...}, {legacy = false})) =
-          SOME (name, (fixes, case_result c ctxt));
-    val cases = dest_cases NONE ctxt |> map_filter mk_case;
+    val cases =
+      dest_cases NONE ctxt |> map (fn (name, c as Rule_Cases.Case {fixes, ...}) =>
+        (name, (fixes, case_result c ctxt)));
   in
     if null cases then []
     else [Pretty.big_list "cases:" (map pretty_case cases)]
@@ -1563,20 +1550,18 @@ fun print_cases_proof ctxt0 ctxt =
     fun is_case x t =
       x = Rule_Cases.case_conclN andalso not (Term.exists_subterm Term.is_Var t);
 
-    fun print_proof (name, (Rule_Cases.Case {fixes, binds, ...}, {legacy})) =
-      if legacy then NONE
-      else
-        let
-          val concl =
-            if exists (fn ((x, _), SOME t) => is_case x t | _ => false) binds
-            then Rule_Cases.case_conclN else Auto_Bind.thesisN;
-        in
-          SOME (cat_lines
-            ["  case " ^ print_case name (map (Binding.name_of o #1) fixes),
-             "  then show ?" ^ concl ^ " sorry"])
-        end;
+    fun print_proof (name, Rule_Cases.Case {fixes, binds, ...}) =
+      let
+        val concl =
+          if exists (fn ((x, _), SOME t) => is_case x t | _ => false) binds
+          then Rule_Cases.case_conclN else Auto_Bind.thesisN;
+      in
+        cat_lines
+          ["  case " ^ print_case name (map (Binding.name_of o #1) fixes),
+           "  then show ?" ^ concl ^ " sorry"]
+      end;
   in
-    (case map_filter print_proof (dest_cases (SOME ctxt0) ctxt) of
+    (case map print_proof (dest_cases (SOME ctxt0) ctxt) of
       [] => ""
     | proofs =>
         "Proof outline with cases:\n" ^
