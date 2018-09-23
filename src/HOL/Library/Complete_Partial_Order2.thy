@@ -556,7 +556,7 @@ by(rule mcont2mcont'[OF _ mcont_const])
 
 context
   fixes ord :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix "\<sqsubseteq>" 60) 
-  and lub :: "'b set \<Rightarrow> 'b" ("\<Or> _" [900] 900)
+  and lub :: "'b set \<Rightarrow> 'b" ("\<Or>")
 begin
 
 lemma cont_fun_lub_Sup:
@@ -677,7 +677,7 @@ lemma (in preorder) monotone_if_bot:
 by(rule monotoneI)(auto intro: bot intro: mono order_trans)
 
 lemma (in ccpo) mcont_if_bot:
-  fixes bot and lub ("\<Or> _" [900] 900) and ord (infix "\<sqsubseteq>" 60)
+  fixes bot and lub ("\<Or>") and ord (infix "\<sqsubseteq>" 60)
   assumes ccpo: "class.ccpo lub (\<sqsubseteq>) lt"
   and mono: "\<And>x y. \<lbrakk> x \<le> y; \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
   and cont: "\<And>Y. \<lbrakk> Complete_Partial_Order.chain (\<le>) Y; Y \<noteq> {}; \<And>x. x \<in> Y \<Longrightarrow> \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f (\<Squnion>Y) = \<Or>(f ` Y)"
@@ -877,7 +877,7 @@ qed
 end
 
 lemma admissible_leI:
-  fixes ord (infix "\<sqsubseteq>" 60) and lub ("\<Or> _" [900] 900)
+  fixes ord (infix "\<sqsubseteq>" 60) and lub ("\<Or>")
   assumes "class.ccpo lub (\<sqsubseteq>) (mk_less (\<sqsubseteq>))"
   and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. f x)"
   and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. g x)"
