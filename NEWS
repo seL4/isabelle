@@ -35,6 +35,9 @@ provers, has been updated.
 and prod_mset.swap, similarly to sum.swap and prod.swap.
 INCOMPATIBILITY.
 
+* Theory "HOL-Library.Multiset": the <Union># operator now has the same
+precedence as any other prefix function symbol.
+
 
 *** ML ***
 
