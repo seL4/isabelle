@@ -150,11 +150,10 @@ text \<open>
   blocks of ``@{verbatim "\<open>"}~\<open>\<dots>\<close>~@{verbatim "\<close>"}''. Note that the rendering
   of cartouche delimiters is usually like this: ``\<open>\<open> \<dots> \<close>\<close>''.
 
-  Source comments take the form \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> and may be nested, although
-  the user-interface might prevent this. Note that this form indicates source
-  comments only, which are stripped after lexical analysis of the input. The
-  Isar syntax also provides proper \<^emph>\<open>document comments\<close> that are considered as
-  part of the text (see \secref{sec:comments}).
+  Source comments take the form \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> and may be nested: the text is
+  removed after lexical analysis of the input and thus not suitable for
+  documentation. The Isar syntax also provides proper \<^emph>\<open>document comments\<close>
+  that are considered as part of the text (see \secref{sec:comments}).
 
   Common mathematical symbols such as \<open>\<forall>\<close> are represented in Isabelle as \<^verbatim>\<open>\<forall>\<close>.
   There are infinitely many Isabelle symbols like this, although proper
