@@ -66,7 +66,7 @@ fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree234 \<Righta
    GT \<Rightarrow> (case cmp x (fst ab3) of
             LT \<Rightarrow> (case upd x y t3 of
                     T\<^sub>i t3' \<Rightarrow> T\<^sub>i (Node4 t1 ab1 t2 ab2 t3' ab3 t4)
-                  | Up\<^sub>i t31 q t32 => Up\<^sub>i (Node2 t1 ab1 t2) ab2(*q*) (Node3 t31 q t32 ab3 t4)) |
+                  | Up\<^sub>i t31 q t32 => Up\<^sub>i (Node2 t1 ab1 t2) ab2\<^cancel>\<open>q\<close> (Node3 t31 q t32 ab3 t4)) |
             EQ \<Rightarrow> T\<^sub>i (Node4 t1 ab1 t2 ab2 t3 (x,y) t4) |
             GT \<Rightarrow> (case upd x y t4 of
                     T\<^sub>i t4' => T\<^sub>i (Node4 t1 ab1 t2 ab2 t3 ab3 t4')
