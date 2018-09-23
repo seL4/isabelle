@@ -341,12 +341,6 @@ fun parse_asts ctxt raw root (syms, pos) =
 
     val toks = Syntax.tokenize syn raw syms;
     val _ = Context_Position.reports ctxt (map Lexicon.report_of_token toks);
-    val _ = toks |> List.app (fn tok =>
-      (case Lexicon.kind_of_token tok of
-        Lexicon.Comment NONE =>
-          legacy_feature ("Old-style inner comment: use \"\<comment> \<open>...\<close>\" or \"\<^cancel>\<open>...\<close>\" instead" ^
-            Position.here (Lexicon.pos_of_token tok))
-      | _ => ()));
 
     val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>

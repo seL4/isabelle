@@ -22,7 +22,7 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
-    String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF
+    String | Cartouche | Space | Comment of Comment.kind | Dummy | EOF
   eqtype token
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
@@ -120,13 +120,13 @@ fun is_tid s =
 
 datatype token_kind =
   Literal | Ident | Long_Ident | Var | Type_Ident | Type_Var | Num | Float | Str |
-  String | Cartouche | Space | Comment of Comment.kind option | Dummy | EOF;
+  String | Cartouche | Space | Comment of Comment.kind | Dummy | EOF;
 
 val token_kinds =
   Vector.fromList
    [Literal, Ident, Long_Ident, Var, Type_Ident, Type_Var, Num, Float, Str,
-    String, Cartouche, Space, Comment NONE, Comment (SOME Comment.Comment),
-    Comment (SOME Comment.Cancel), Comment (SOME Comment.Latex), Dummy, EOF];
+    String, Cartouche, Space, Comment Comment.Comment, Comment Comment.Cancel,
+    Comment Comment.Latex, Dummy, EOF];
 
 fun token_kind i = Vector.sub (token_kinds, i);
 fun token_kind_index k = #1 (the (Vector.findi (fn (_, k') => k = k') token_kinds));
@@ -301,8 +301,7 @@ fun tokenize lex xids syms =
 
     val scan =
       Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
-      Symbol_Pos.scan_comment err_prefix >> token (Comment NONE) ||
-      Comment.scan >> (fn (kind, ss) => token (Comment (SOME kind)) ss) ||
+      Comment.scan >> (fn (kind, ss) => token (Comment kind) ss) ||
       Scan.max token_leq scan_lit scan_val ||
       scan_string >> token String ||
       scan_str >> token Str ||

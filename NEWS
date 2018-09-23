@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Old-style inner comments (* ... *) within the term language are no
+longer supported (legacy feature in Isabelle2018).
+
+
 *** System ***
 
 * Isabelle server command "use_theories" supports "nodes_status_delay"
