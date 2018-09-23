@@ -1092,14 +1092,14 @@ begin
 
 sublocale Gcd_fin: bounded_quasi_semilattice_set gcd 0 1 normalize
 defines
-  Gcd_fin ("Gcd\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = "Gcd_fin.F :: 'a set \<Rightarrow> 'a" ..
+  Gcd_fin ("Gcd\<^sub>f\<^sub>i\<^sub>n") = "Gcd_fin.F :: 'a set \<Rightarrow> 'a" ..
 
 abbreviation gcd_list :: "'a list \<Rightarrow> 'a"
   where "gcd_list xs \<equiv> Gcd\<^sub>f\<^sub>i\<^sub>n (set xs)"
 
 sublocale Lcm_fin: bounded_quasi_semilattice_set lcm 1 0 normalize
 defines
-  Lcm_fin ("Lcm\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = Lcm_fin.F ..
+  Lcm_fin ("Lcm\<^sub>f\<^sub>i\<^sub>n") = Lcm_fin.F ..
 
 abbreviation lcm_list :: "'a list \<Rightarrow> 'a"
   where "lcm_list xs \<equiv> Lcm\<^sub>f\<^sub>i\<^sub>n (set xs)"

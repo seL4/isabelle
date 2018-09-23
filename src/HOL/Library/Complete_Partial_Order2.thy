@@ -161,7 +161,7 @@ qed
 end
 
 lemma Sup_image_mono_le:
-  fixes le_b (infix "\<sqsubseteq>" 60) and Sup_b ("\<Or> _" [900] 900)
+  fixes le_b (infix "\<sqsubseteq>" 60) and Sup_b ("\<Or>")
   assumes ccpo: "class.ccpo Sup_b (\<sqsubseteq>) lt_b"
   assumes chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
   and mono: "\<And>x y. \<lbrakk> x \<sqsubseteq> y; x \<in> Y \<rbrakk> \<Longrightarrow> f x \<le> f y"
