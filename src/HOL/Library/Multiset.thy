@@ -2385,7 +2385,7 @@ lemma sum_mset_constant [simp]:
   shows \<open>(\<Sum>x\<in>#A. y) = of_nat (size A) * y\<close>
   by (induction A) (auto simp: algebra_simps)
 
-abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union># _" [900] 900)
+abbreviation Union_mset :: "'a multiset multiset \<Rightarrow> 'a multiset"  ("\<Union>#")
   where "\<Union># MM \<equiv> sum_mset MM" \<comment> \<open>FIXME ambiguous notation --
     could likewise refer to \<open>\<Squnion>#\<close>\<close>
 

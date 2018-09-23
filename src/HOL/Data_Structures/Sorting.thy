@@ -270,7 +270,7 @@ definition msort_bu :: "('a::linorder) list \<Rightarrow> 'a list" where
 subsubsection "Functional Correctness"
 
 lemma mset_merge_adj:
-  "\<Union># image_mset mset (mset (merge_adj xss)) = \<Union># image_mset mset (mset xss)"
+  "\<Union># (image_mset mset (mset (merge_adj xss))) = \<Union># (image_mset mset (mset xss))"
 by(induction xss rule: merge_adj.induct) (auto simp: mset_merge)
 
 lemma mset_merge_all:
