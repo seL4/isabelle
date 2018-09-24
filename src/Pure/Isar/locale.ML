@@ -230,10 +230,6 @@ fun dependencies_of thy = #dependencies o the_locale thy;
 
 fun mixins_of thy name serial = lookup_mixins (#mixins (the_locale thy name)) serial;
 
-(* FIXME unused!? *)
-fun identity_on thy name morph =
-  let val mk_instance = instance_of thy name
-  in ListPair.all Term.aconv_untyped (mk_instance Morphism.identity, mk_instance morph) end;
 
 (* Print instance and qualifiers *)
 
@@ -586,21 +582,6 @@ fun activate_fragment registration =
 
 
 (*** Dependencies ***)
-
-(* FIXME dead code!?
-fun amend_dependency loc (name, morph) mixin export thy =
-  let
-    val deps = dependencies_of thy loc;
-  in
-    case AList.lookup (fn ((name, morph), ((name', (morph', _)), _)) =>
-      total_ident_ord ((name, instance_of thy name morph), (name', instance_of thy name' morph')) = EQUAL) deps (name, morph) of
-        NONE => error ("Locale " ^
-          quote (extern thy name) ^ " with\parameter instantiation " ^
-          space_implode " " (map (quote o Syntax.string_of_term_global thy) morph) ^
-          " not a sublocale of " ^ quote (extern thy loc))
-      | SOME (_, serial') => change_locale ...
-  end;
-*)
 
 fun add_dependency loc {dep = (name, morph), mixin, export} thy =
   let
