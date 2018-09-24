@@ -488,7 +488,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);
-    fun add_dependency some_wit (* FIXME unused!? *) =
+    val add_dependency =
       (case some_dep_morph of
         SOME dep_morph =>
           Generic_Target.locale_dependency sub
@@ -501,7 +501,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
       (Axclass.add_classrel classrel
       #> Class_Data.map (Graph.add_edge (sub, sup))
       #> activate_defs sub (these_defs thy diff_sort))
-    |> add_dependency some_witn
+    |> add_dependency
     |> synchronize_class_syntax_target sub
   end;
 
