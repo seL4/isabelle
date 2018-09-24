@@ -91,6 +91,10 @@ sig
   val pretty_registrations: Proof.context -> string -> Pretty.T
   val pretty_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> Pretty.T
   val pretty_locale_deps: theory -> {name: string, parents: string list, body: Pretty.T} list
+  type locale_dependency =
+    {source: string, target: string, prefix: (string * bool) list, morphism: morphism,
+      pos: Position.T, serial: serial}
+  val dest_dependencies: theory list -> theory -> locale_dependency list
 end;
 
 structure Locale: LOCALE =
@@ -101,10 +105,11 @@ datatype ctxt = datatype Element.ctxt;
 
 (*** Locales ***)
 
-type dep = {name: string, morphisms: morphism * morphism, serial: serial};
+type dep = {name: string, morphisms: morphism * morphism, pos: Position.T, serial: serial};
+fun eq_dep (dep1: dep, dep2: dep) = #serial dep1 = #serial dep2;
 
 fun make_dep (name, morphisms) : dep =
-  {name = name, morphisms = morphisms, serial = serial ()};
+  {name = name, morphisms = morphisms, pos = Position.thread_data (), serial = serial ()};
 
 (*table of mixin lists, per list mixins in reverse order of declaration;
   lists indexed by registration/dependency serial,
@@ -168,7 +173,7 @@ fun merge_locale
       ((parameters, spec, intros, axioms, hyp_spec),
         ((merge (eq_snd op =) (syntax_decls, syntax_decls'),
           merge (eq_snd op =) (notes, notes')),
-            (merge (op = o apply2 #serial) (dependencies, dependencies'),
+            (merge eq_dep (dependencies, dependencies'),
               (merge_mixins (mixins, mixins')))));
 
 structure Locales = Theory_Data
@@ -752,5 +757,33 @@ fun pretty_locale_deps thy =
       body = pretty_locale thy false name};
     val names = sort_strings (Name_Space.fold_table (cons o #1) (Locales.get thy) []);
   in map make_node names end;
+
+type locale_dependency =
+  {source: string, target: string, prefix: (string * bool) list, morphism: morphism,
+    pos: Position.T, serial: serial};
+
+fun dest_dependencies prev_thys thy =
+  let
+    fun remove_prev loc prev_thy deps =
+      (case get_locale prev_thy loc of
+        NONE => deps
+      | SOME (Loc {dependencies = prev_deps, ...}) =>
+          if eq_list eq_dep (prev_deps, deps) then []
+          else subtract eq_dep prev_deps deps);
+    fun result loc (dep: dep) =
+      let val morphism = op $> (#morphisms dep) in
+       {source = #name dep,
+        target = loc,
+        prefix = Morphism.binding_prefix morphism,
+        morphism = morphism,
+        pos = #pos dep,
+        serial = #serial dep}
+      end;
+    fun add (loc, Loc {dependencies = deps, ...}) =
+      fold (cons o result loc) (fold (remove_prev loc) prev_thys deps);
+  in
+    Name_Space.fold_table add (Locales.get thy) []
+    |> sort (int_ord o apply2 #serial)
+  end;
 
 end;
