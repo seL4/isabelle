@@ -81,7 +81,6 @@ sig
   val add_registration_theory: registration -> theory -> theory
   val add_registration_proof: registration -> Proof.context -> Proof.context
   val add_registration_local_theory: registration -> local_theory -> local_theory
-  val activate_fragment: registration -> local_theory -> local_theory
   val registrations_of: Context.generic -> string -> (string * morphism) list
   val add_dependency: string -> registration -> theory -> theory
 
@@ -572,12 +571,6 @@ fun add_registration_local_theory registration lthy =
     lthy |> Local_Theory.map_contexts (fn level =>
       level = n - 1 ? Context.proof_map (add_registration registration))
   end;
-
-
-(* locale fragments within local theory *)
-
-fun activate_fragment registration =
-  Local_Theory.mark_brittle #> add_registration_local_theory registration;
 
 
 
