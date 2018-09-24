@@ -443,9 +443,7 @@ text \<open>
 
   The alternative notation \<^verbatim>\<open>(\<close>\<open>sy\<close>\<^verbatim>\<open>)\<close> is introduced in addition. Thus any
   infix operator may be written in prefix form (as in Haskell), independently of
-  the number of arguments in the term. To avoid conflict with the comment brackets
-  \<^verbatim>\<open>(*\<close> and \<^verbatim>\<open>*)\<close>, infix operators that begin or end with a \<^verbatim>\<open>*\<close> require
-  extra spaces, e.g. \<^verbatim>\<open>( * )\<close>.
+  the number of arguments.
 \<close>
 
 

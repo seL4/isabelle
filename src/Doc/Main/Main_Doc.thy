@@ -339,7 +339,7 @@ overloaded operators:
 \begin{tabular}{@ {} lllllll @ {}}
 @{term "(+) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "(-) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
-@{term "( * ) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
+@{term "(*) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "(^) :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "(div) :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
 @{term "(mod) :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
@@ -367,7 +367,7 @@ Type @{typ int}
 @{term "(+) :: int \<Rightarrow> int \<Rightarrow> int"} &
 @{term "(-) :: int \<Rightarrow> int \<Rightarrow> int"} &
 @{term "uminus :: int \<Rightarrow> int"} &
-@{term "( * ) :: int \<Rightarrow> int \<Rightarrow> int"} &
+@{term "(*) :: int \<Rightarrow> int \<Rightarrow> int"} &
 @{term "(^) :: int \<Rightarrow> nat \<Rightarrow> int"} &
 @{term "(div) :: int \<Rightarrow> int \<Rightarrow> int"}&
 @{term "(mod) :: int \<Rightarrow> int \<Rightarrow> int"}&
