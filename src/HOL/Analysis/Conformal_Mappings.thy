@@ -1133,10 +1133,10 @@ proof -
       done
     with \<open>e>0\<close> show ?thesis by force
   qed
-  have "inj (( * ) (deriv f \<xi>))"
+  have "inj ((*) (deriv f \<xi>))"
     using dnz by simp
-  then obtain g' where g': "linear g'" "g' \<circ> ( * ) (deriv f \<xi>) = id"
-    using linear_injective_left_inverse [of "( * ) (deriv f \<xi>)"]
+  then obtain g' where g': "linear g'" "g' \<circ> (*) (deriv f \<xi>) = id"
+    using linear_injective_left_inverse [of "(*) (deriv f \<xi>)"]
     by (auto simp: linear_times)
   show ?thesis
     apply (rule has_derivative_locally_injective [OF S, where f=f and f' = "\<lambda>z h. deriv f z * h" and g' = g'])
@@ -2083,10 +2083,10 @@ next
     apply (simp add: C_def False fo)
     apply (simp add: derivative_intros dfa complex_derivative_chain)
     done
-  have sb1: "( * ) (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1
+  have sb1: "(*) (C * r) ` (\<lambda>z. f (a + of_real r * z) / (C * r)) ` ball 0 1
              \<subseteq> f ` ball a r"
     using \<open>0 < r\<close> by (auto simp: dist_norm norm_mult C_def False)
-  have sb2: "ball (C * r * b) r' \<subseteq> ( * ) (C * r) ` ball b t"
+  have sb2: "ball (C * r * b) r' \<subseteq> (*) (C * r) ` ball b t"
              if "1 / 12 < t" for b t
   proof -
     have *: "r * cmod (deriv f a) / 12 \<le> r * (t * cmod (deriv f a))"

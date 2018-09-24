@@ -16,7 +16,7 @@ lemma nonneg_Reals_cmod_eq_Re: "z \<in> \<real>\<^sub>\<ge>\<^sub>0 \<Longrighta
 
 lemma has_derivative_mult_right:
   fixes c:: "'a :: real_normed_algebra"
-  shows "((( * ) c) has_derivative (( * ) c)) F"
+  shows "(((*) c) has_derivative ((*) c)) F"
 by (rule has_derivative_mult_right [OF has_derivative_ident])
 
 lemma has_derivative_of_real[derivative_intros, simp]:
@@ -25,7 +25,7 @@ lemma has_derivative_of_real[derivative_intros, simp]:
 
 lemma has_vector_derivative_real_field:
   "DERIV f (of_real a) :> f' \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a within s)"
-  using has_derivative_compose[of of_real of_real a _ f "( * ) f'"]
+  using has_derivative_compose[of of_real of_real a _ f "(*) f'"]
   by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def)
 lemmas has_vector_derivative_real_complex = has_vector_derivative_real_field
 
@@ -59,10 +59,10 @@ lemma vector_derivative_cnj:
   shows   "vector_derivative (\<lambda>z. cnj (f z)) (at x) = cnj (vector_derivative f (at x))"
   using assms by (intro vector_derivative_cnj_within) auto
 
-lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = ( * ) 0"
+lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = (*) 0"
   by auto
 
-lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = ( * ) 1"
+lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = (*) 1"
   by auto
 
 lemma uniformly_continuous_on_cmul_right [continuous_intros]:
@@ -283,7 +283,7 @@ lemma holomorphic_transform: "\<lbrakk>f holomorphic_on s; \<And>x. x \<in> s \<
 lemma holomorphic_cong: "s = t ==> (\<And>x. x \<in> s \<Longrightarrow> f x = g x) \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> g holomorphic_on t"
   by (metis holomorphic_transform)
 
-lemma holomorphic_on_linear [simp, holomorphic_intros]: "(( * ) c) holomorphic_on s"
+lemma holomorphic_on_linear [simp, holomorphic_intros]: "((*) c) holomorphic_on s"
   unfolding holomorphic_on_def by (metis field_differentiable_linear)
 
 lemma holomorphic_on_const [simp, holomorphic_intros]: "(\<lambda>z. c) holomorphic_on s"
@@ -572,7 +572,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma analytic_on_linear [analytic_intros,simp]: "(( * ) c) analytic_on S"
+lemma analytic_on_linear [analytic_intros,simp]: "((*) c) analytic_on S"
   by (auto simp add: analytic_on_holomorphic)
 
 lemma analytic_on_const [analytic_intros,simp]: "(\<lambda>z. c) analytic_on S"
@@ -905,9 +905,9 @@ proof -
     by (intro has_field_derivative_series[of S f f' g' x0] assms A has_field_derivative_at_within)
   then obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
     "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
-  from g(2)[OF x] have g': "(g has_derivative ( * ) (g' x)) (at x)"
+  from g(2)[OF x] have g': "(g has_derivative (*) (g' x)) (at x)"
     by (simp add: has_field_derivative_def S)
-  have "((\<lambda>x. \<Sum>n. f n x) has_derivative ( * ) (g' x)) (at x)"
+  have "((\<lambda>x. \<Sum>n. f n x) has_derivative (*) (g' x)) (at x)"
     by (rule has_derivative_transform_within_open[OF g' \<open>open S\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) field_differentiable (at x)" unfolding differentiable_def

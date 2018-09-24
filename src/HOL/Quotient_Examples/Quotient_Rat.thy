@@ -41,7 +41,7 @@ fun times_rat_raw where
   "times_rat_raw (a :: int, b :: int) (c, d) = (a * c, b * d)"
 
 quotient_definition
-  "(( * )) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult.assoc mult.left_commute)
+  "((*)) :: (rat \<Rightarrow> rat \<Rightarrow> rat)" is times_rat_raw by (auto simp add: mult.assoc mult.left_commute)
 
 fun plus_rat_raw where
   "plus_rat_raw (a :: int, b :: int) (c, d) = (a * d + c * b, b * d)"

@@ -203,7 +203,7 @@ lemma%unimportant adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (
 lemma%important matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   shows "matrix(adjoint f) = transpose(matrix f)"
 proof%unimportant -
-  have "matrix(adjoint f) = matrix(adjoint (( *v) (matrix f)))"
+  have "matrix(adjoint f) = matrix(adjoint ((*v) (matrix f)))"
     by (simp add: lf)
   also have "\<dots> = transpose(matrix f)"
     unfolding adjoint_matrix matrix_of_matrix_vector_mul
@@ -212,14 +212,14 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-lemma%unimportant matrix_vector_mul_bounded_linear[intro, simp]: "bounded_linear (( *v) A)" for A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
+lemma%unimportant matrix_vector_mul_bounded_linear[intro, simp]: "bounded_linear ((*v) A)" for A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
   using matrix_vector_mul_linear[of A]
   by (simp add: linear_conv_bounded_linear linear_matrix_vector_mul_eq)
 
 lemma%unimportant (* FIX ME needs name*)
   fixes A :: "'a::{euclidean_space,real_algebra_1}^'n^'m"
-  shows matrix_vector_mult_linear_continuous_at [continuous_intros]: "isCont (( *v) A) z"
-    and matrix_vector_mult_linear_continuous_on [continuous_intros]: "continuous_on S (( *v) A)"
+  shows matrix_vector_mult_linear_continuous_at [continuous_intros]: "isCont ((*v) A) z"
+    and matrix_vector_mult_linear_continuous_on [continuous_intros]: "continuous_on S ((*v) A)"
   by (simp_all add: linear_continuous_at linear_continuous_on)
 
 lemma%unimportant scalar_invertible:
@@ -293,24 +293,24 @@ subsection%important\<open>Some bounds on components etc. relative to operator n
 
 lemma%important norm_column_le_onorm:
   fixes A :: "real^'n^'m"
-  shows "norm(column i A) \<le> onorm(( *v) A)"
+  shows "norm(column i A) \<le> onorm((*v) A)"
 proof%unimportant -
   have "norm (\<chi> j. A $ j $ i) \<le> norm (A *v axis i 1)"
     by (simp add: matrix_mult_dot cart_eq_inner_axis)
-  also have "\<dots> \<le> onorm (( *v) A)"
+  also have "\<dots> \<le> onorm ((*v) A)"
     using onorm [OF matrix_vector_mul_bounded_linear, of A "axis i 1"] by auto
-  finally have "norm (\<chi> j. A $ j $ i) \<le> onorm (( *v) A)" .
+  finally have "norm (\<chi> j. A $ j $ i) \<le> onorm ((*v) A)" .
   then show ?thesis
     unfolding column_def .
 qed
 
 lemma%important matrix_component_le_onorm:
   fixes A :: "real^'n^'m"
-  shows "\<bar>A $ i $ j\<bar> \<le> onorm(( *v) A)"
+  shows "\<bar>A $ i $ j\<bar> \<le> onorm((*v) A)"
 proof%unimportant -
   have "\<bar>A $ i $ j\<bar> \<le> norm (\<chi> n. (A $ n $ j))"
     by (metis (full_types, lifting) component_le_norm_cart vec_lambda_beta)
-  also have "\<dots> \<le> onorm (( *v) A)"
+  also have "\<dots> \<le> onorm ((*v) A)"
     by (metis (no_types) column_def norm_column_le_onorm)
   finally show ?thesis .
 qed
@@ -322,7 +322,7 @@ lemma%unimportant component_le_onorm:
 
 lemma%important onorm_le_matrix_component_sum:
   fixes A :: "real^'n^'m"
-  shows "onorm(( *v) A) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar>)"
+  shows "onorm((*v) A) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>A $ i $ j\<bar>)"
 proof%unimportant (rule onorm_le)
   fix x
   have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
@@ -345,7 +345,7 @@ qed
 lemma%important onorm_le_matrix_component:
   fixes A :: "real^'n^'m"
   assumes "\<And>i j. abs(A$i$j) \<le> B"
-  shows "onorm(( *v) A) \<le> real (CARD('m)) * real (CARD('n)) * B"
+  shows "onorm((*v) A) \<le> real (CARD('m)) * real (CARD('n)) * B"
 proof%unimportant (rule onorm_le)
   fix x :: "real^'n::_"
   have "norm (A *v x) \<le> (\<Sum>i\<in>UNIV. \<bar>(A *v x) $ i\<bar>)"
@@ -403,13 +403,13 @@ proof%unimportant -
     by (auto simp: lambda_skolem Bex_def)
   show ?thesis
   proof
-    have "onorm (( *v) (A - B)) \<le> real CARD('m) * real CARD('n) *
+    have "onorm ((*v) (A - B)) \<le> real CARD('m) * real CARD('n) *
     (e / (2 * real CARD('m) * real CARD('n)))"
       apply (rule onorm_le_matrix_component)
       using Bclo by (simp add: abs_minus_commute less_imp_le)
     also have "\<dots> < e"
       using \<open>0 < e\<close> by (simp add: divide_simps)
-    finally show "onorm (( *v) (A - B)) < e" .
+    finally show "onorm ((*v) (A - B)) < e" .
   qed (use B in auto)
 qed
 
@@ -778,7 +778,7 @@ lemma%important cube_convex_hull_cart:
     where "finite s" "cbox (x - (\<chi> i. d)) (x + (\<chi> i. d)) = convex hull s"
 proof%unimportant -
   from assms obtain s where "finite s"
-    and "cbox (x - sum (( *\<^sub>R) d) Basis) (x + sum (( *\<^sub>R) d) Basis) = convex hull s"
+    and "cbox (x - sum ((*\<^sub>R) d) Basis) (x + sum ((*\<^sub>R) d) Basis) = convex hull s"
     by (rule cube_convex_hull)
   with that[of s] show thesis
     by (simp add: const_vector_cart)
@@ -982,11 +982,11 @@ proof%unimportant -
       using basis_exists [of "span(rows A)"] by metis
     with span_subspace have eq: "span B = span(rows A)"
       by auto
-    then have inj: "inj_on (( *v) A) (span B)"
+    then have inj: "inj_on ((*v) A) (span B)"
       by (simp add: inj_on_def matrix_vector_mul_injective_on_rowspace)
-    then have ind: "independent (( *v) A ` B)"
+    then have ind: "independent ((*v) A ` B)"
       by (rule linear_independent_injective_image [OF Finite_Cartesian_Product.matrix_vector_mul_linear \<open>independent B\<close>])
-    have "dim (span (rows A)) \<le> card (( *v) A ` B)"
+    have "dim (span (rows A)) \<le> card ((*v) A ` B)"
       unfolding B(2)[symmetric]
       using inj
       by (auto simp: card_image inj_on_subset span_superset)
@@ -1017,7 +1017,7 @@ lemma%unimportant matrix_vector_mult_basis:
 
 lemma%unimportant columns_image_basis:
   fixes A :: "real^'n^'m"
-  shows "columns A = ( *v) A ` (range (\<lambda>i. axis i 1))"
+  shows "columns A = (*v) A ` (range (\<lambda>i. axis i 1))"
   by (force simp: columns_def matrix_vector_mult_basis [symmetric])
 
 lemma%important rank_dim_range:
@@ -1025,7 +1025,7 @@ lemma%important rank_dim_range:
   shows "rank A = dim(range (\<lambda>x. A *v x))"
   unfolding column_rank_def
 proof%unimportant (rule span_eq_dim)
-  have "span (columns A) \<subseteq> span (range (( *v) A))" (is "?l \<subseteq> ?r")
+  have "span (columns A) \<subseteq> span (range ((*v) A))" (is "?l \<subseteq> ?r")
     by (simp add: columns_image_basis image_subsetI span_mono)
   then show "?l = ?r"
     by (metis (no_types, lifting) image_subset_iff matrix_vector_mult_in_columnspace
@@ -1040,13 +1040,13 @@ lemma%unimportant rank_bound:
 
 lemma%unimportant full_rank_injective:
   fixes A :: "real^'n^'m"
-  shows "rank A = CARD('n) \<longleftrightarrow> inj (( *v) A)"
+  shows "rank A = CARD('n) \<longleftrightarrow> inj ((*v) A)"
   by (simp add: matrix_left_invertible_injective [symmetric] matrix_left_invertible_span_rows row_rank_def
       dim_eq_full [symmetric] card_cart_basis vec.dimension_def)
 
 lemma%unimportant full_rank_surjective:
   fixes A :: "real^'n^'m"
-  shows "rank A = CARD('m) \<longleftrightarrow> surj (( *v) A)"
+  shows "rank A = CARD('m) \<longleftrightarrow> surj ((*v) A)"
   by (simp add: matrix_right_invertible_surjective [symmetric] left_invertible_transpose [symmetric]
                 matrix_left_invertible_injective full_rank_injective [symmetric] rank_transpose)
 
@@ -1055,7 +1055,7 @@ lemma%unimportant rank_I: "rank(mat 1::real^'n^'n) = CARD('n)"
 
 lemma%unimportant less_rank_noninjective:
   fixes A :: "real^'n^'m"
-  shows "rank A < CARD('n) \<longleftrightarrow> \<not> inj (( *v) A)"
+  shows "rank A < CARD('n) \<longleftrightarrow> \<not> inj ((*v) A)"
 using less_le rank_bound by (auto simp: full_rank_injective [symmetric])
 
 lemma%unimportant matrix_nonfull_linear_equations_eq:
@@ -1071,7 +1071,7 @@ lemma%important rank_mul_le_right:
   fixes A :: "real^'n^'m" and B :: "real^'p^'n"
   shows "rank(A ** B) \<le> rank B"
 proof%unimportant -
-  have "rank(A ** B) \<le> dim (( *v) A ` range (( *v) B))"
+  have "rank(A ** B) \<le> dim ((*v) A ` range ((*v) B))"
     by (auto simp: rank_dim_range image_comp o_def matrix_vector_mul_assoc)
   also have "\<dots> \<le> rank B"
     by (simp add: rank_dim_range dim_image_le)
@@ -1137,7 +1137,7 @@ qed
 
 lemma has_derivative_vector_1:
   assumes der_g: "(g has_derivative (\<lambda>x. x * g' a)) (at a within S)"
-  shows "((\<lambda>x. vec (g (x $ 1))) has_derivative ( *\<^sub>R) (g' a))
+  shows "((\<lambda>x. vec (g (x $ 1))) has_derivative (*\<^sub>R) (g' a))
          (at ((vec a)::real^1) within vec ` S)"
     using der_g
     apply (auto simp: Deriv.has_derivative_within bounded_linear_scaleR_right norm_vector_1)

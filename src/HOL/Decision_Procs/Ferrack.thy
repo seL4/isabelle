@@ -2476,7 +2476,7 @@ fun num_of_term vs (Free vT) = mk_Bound (find_index (fn vT' => vT = vT') vs)
      @{code Add} (num_of_term vs t1, num_of_term vs t2)
   | num_of_term vs (@{term "(-) :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
      @{code Sub} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "( * ) :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case num_of_term vs t1
+  | num_of_term vs (@{term "(*) :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case num_of_term vs t1
      of @{code C} i => @{code Mul} (i, num_of_term vs t2)
       | _ => error "num_of_term: unsupported multiplication")
   | num_of_term vs (@{term "real_of_int :: int \<Rightarrow> real"} $ t') =
@@ -2514,7 +2514,7 @@ fun term_of_num vs (@{code C} i) = @{term "real_of_int :: int \<Rightarrow> real
       term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (@{code Sub} (t1, t2)) = @{term "(-) :: real \<Rightarrow> real \<Rightarrow> real"} $
       term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Mul} (i, t2)) = @{term "( * ) :: real \<Rightarrow> real \<Rightarrow> real"} $
+  | term_of_num vs (@{code Mul} (i, t2)) = @{term "(*) :: real \<Rightarrow> real \<Rightarrow> real"} $
       term_of_num vs (@{code C} i) $ term_of_num vs t2
   | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));
 

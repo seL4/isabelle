@@ -1299,7 +1299,7 @@ lemma binomial_code [code]:
   "n choose k =
       (if k > n then 0
        else if 2 * k > n then n choose (n - k)
-       else (fold_atLeastAtMost_nat ( * ) (n - k + 1) n 1 div fact k))"
+       else (fold_atLeastAtMost_nat (*) (n - k + 1) n 1 div fact k))"
 proof -
   {
     assume "k \<le> n"

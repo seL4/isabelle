@@ -26,7 +26,7 @@ struct
  fun find_normedterms t acc = case Thm.term_of t of
     @{term "(+) :: real => _"}$_$_ =>
             find_normedterms (Thm.dest_arg1 t) (find_normedterms (Thm.dest_arg t) acc)
-      | @{term "( * ) :: real => _"}$_$_ =>
+      | @{term "(*) :: real => _"}$_$_ =>
             if not (is_ratconst (Thm.dest_arg1 t)) then acc else
             augment_norm (dest_ratconst (Thm.dest_arg1 t) >= @0)
                       (Thm.dest_arg t) acc
@@ -83,7 +83,7 @@ fun vector_lincomb t = case Thm.term_of t of
 
 fun replacenegnorms cv t = case Thm.term_of t of
   @{term "(+) :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
-| @{term "( * ) :: real => _"}$_$_ =>
+| @{term "(*) :: real => _"}$_$_ =>
     if dest_ratconst (Thm.dest_arg1 t) < @0 then arg_conv cv t else Thm.reflexive t
 | _ => Thm.reflexive t
 (*

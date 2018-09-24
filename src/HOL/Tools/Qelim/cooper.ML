@@ -23,7 +23,7 @@ type entry = simpset * term list;
 val allowed_consts =
   [@{term "(+) :: int => _"}, @{term "(+) :: nat => _"},
    @{term "(-) :: int => _"}, @{term "(-) :: nat => _"},
-   @{term "( * ) :: int => _"}, @{term "( * ) :: nat => _"},
+   @{term "(*) :: int => _"}, @{term "(*) :: nat => _"},
    @{term "(div) :: int => _"}, @{term "(div) :: nat => _"},
    @{term "(mod) :: int => _"}, @{term "(mod) :: nat => _"},
    @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies},
@@ -171,7 +171,7 @@ val infDTrue = Thm.instantiate' [] [SOME true_tm] infDP;
 val infDFalse = Thm.instantiate' [] [SOME false_tm] infDP;
 
 val cadd =  @{cterm "(+) :: int => _"}
-val cmulC =  @{cterm "( * ) :: int => _"}
+val cmulC =  @{cterm "(*) :: int => _"}
 val cminus =  @{cterm "(-) :: int => _"}
 val cone =  @{cterm "1 :: int"}
 val [addC, mulC, subC] = map Thm.term_of [cadd, cmulC, cminus]
@@ -662,7 +662,7 @@ fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT (Proc.integer_of_
   | term_of_num vs (Proc.Sub (t1, t2)) =
       @{term "(-) :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Mul (i, t2)) =
-      @{term "( * ) :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
+      @{term "(*) :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
   | term_of_num vs (Proc.CN (n, i, t')) =
       term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
@@ -765,7 +765,7 @@ local
   if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of_cterm t))
   then false
   else case Thm.term_of t of
-    c$l$r => if member (op =) [@{term"( * )::int => _"}, @{term"( * )::nat => _"}] c
+    c$l$r => if member (op =) [@{term"(*)::int => _"}, @{term"(*)::nat => _"}] c
              then not (isnum l orelse isnum r)
              else not (member (op aconv) cts c)
   | c$_ => not (member (op aconv) cts c)

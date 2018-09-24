@@ -2262,7 +2262,7 @@ fun extract_terms (n, strict) ectxt basis t =
       else if b aconv @{term "\<lambda>_::real. -1 :: real"} then
         Term.betapply (@{term "\<lambda>(f::real\<Rightarrow>real) x. -f x"}, a)
       else
-        Abs ("x", @{typ real}, @{term "( *) :: real => _"} $
+        Abs ("x", @{typ real}, @{term "(*) :: real => _"} $
           (Term.betapply (a, Bound 0)) $ (Term.betapply (b, Bound 0)))
 
     fun mk_powr b e =

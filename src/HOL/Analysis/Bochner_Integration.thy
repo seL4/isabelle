@@ -1856,7 +1856,7 @@ proof%unimportant -
 
   have sf[measurable]: "\<And>i. simple_function M (s' i)"
     unfolding s'_def using s(1)
-    by (intro simple_function_compose2[where h="( *\<^sub>R)"] simple_function_indicator) auto
+    by (intro simple_function_compose2[where h="(*\<^sub>R)"] simple_function_indicator) auto
 
   { fix i
     have "\<And>z. {y. s' i z = y \<and> y \<in> s' i ` space M \<and> y \<noteq> 0 \<and> z \<in> space M} =

@@ -32,7 +32,7 @@ lemma inj_add_left [simp]: "inj ((+) x)"
   for x :: "'a::cancel_semigroup_add"
   by (meson add_left_imp_eq injI)
 
-lemma inj_mult_left [simp]: "inj (( * ) x) \<longleftrightarrow> x \<noteq> 0"
+lemma inj_mult_left [simp]: "inj ((*) x) \<longleftrightarrow> x \<noteq> 0"
   for x :: "'a::idom"
   by (metis injI mult_cancel_left the_inv_f_f zero_neq_one)
 

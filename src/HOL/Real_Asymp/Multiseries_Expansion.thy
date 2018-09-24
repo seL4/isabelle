@@ -603,7 +603,7 @@ proof -
     hence "(\<lambda>n. (-(x^2))^n) sums (1 / (1 - (-(x^2))))" by (intro geometric_sums) simp_all
     also have "1 - (-(x^2)) = 1 + x^2" by simp
     also have "(\<lambda>n. (-(x^2))^n) = (\<lambda>n. ?f (2*n))" by (auto simp: fun_eq_iff power_minus' power_mult)
-    also have "range (( *) (2::nat)) = {n. even n}"
+    also have "range ((*) (2::nat)) = {n. even n}"
       by (auto elim!: evenE)
     hence "(\<lambda>n. ?f (2*n)) sums (1 / (1 + x^2)) \<longleftrightarrow> ?f sums (1 / (1 + x^2))"
       by (intro sums_mono_reindex) (simp_all add: strict_mono_Suc_iff)
@@ -1225,11 +1225,11 @@ corec (friend) times_ms_aux
       | (xs, MSLNil) \<Rightarrow> MSLNil
       | (MSLCons x xs, MSLCons y ys) \<Rightarrow>
            MSLCons (fst x * fst y, snd x + snd y) 
-             (plus_ms_aux (mslmap (map_prod (( *) (fst x)) ((+) (snd x))) ys)
+             (plus_ms_aux (mslmap (map_prod ((*) (fst x)) ((+) (snd x))) ys)
                (times_ms_aux xs (MSLCons y ys))))"
 
 definition scale_shift_ms_aux :: "('a :: times \<times> real) \<Rightarrow> ('a \<times> real) msllist \<Rightarrow> ('a \<times> real) msllist" where
-  "scale_shift_ms_aux = (\<lambda>(a,b) xs. mslmap (map_prod (( *) a) ((+) b)) xs)"
+  "scale_shift_ms_aux = (\<lambda>(a,b) xs. mslmap (map_prod ((*) a) ((+) b)) xs)"
 
 lemma times_ms_aux_altdef:
   "times_ms_aux xs ys = 
@@ -1282,7 +1282,7 @@ proof (coinduction arbitrary: F f g rule: is_expansion_aux_coinduct)
 qed
 
 lemma scale_shift_ms_aux_conv_mslmap: 
-  "scale_shift_ms_aux x = mslmap (map_prod (( *) (fst x)) ((+) (snd x)))"
+  "scale_shift_ms_aux x = mslmap (map_prod ((*) (fst x)) ((+) (snd x)))"
   by (rule ext) (simp add: scale_shift_ms_aux_def map_prod_def case_prod_unfold)
 
 fun inverse_ms_aux :: "('a :: multiseries \<times> real) msllist \<Rightarrow> ('a \<times> real) msllist" where
@@ -2525,7 +2525,7 @@ next
   have "times_ms_aux (MSLCons (const_expansion 1, 0) MSLNil) xs = xs" for xs :: "('a \<times> real) msllist"
   proof (coinduction arbitrary: xs rule: msllist.coinduct_upto)
     case Eq_real_prod_msllist
-    have "map_prod (( *) (const_expansion 1 :: 'a)) ((+) (0::real)) = (\<lambda>x. x)"
+    have "map_prod ((*) (const_expansion 1 :: 'a)) ((+) (0::real)) = (\<lambda>x. x)"
       by (rule ext) (simp add: map_prod_def times_const_expansion_1 case_prod_unfold)
     moreover have "mslmap \<dots> = (\<lambda>x. x)" by (rule ext) (simp add: msllist.map_ident)
     ultimately have "scale_shift_ms_aux (const_expansion 1 :: 'a, 0) = (\<lambda>x. x)"

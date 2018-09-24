@@ -835,9 +835,9 @@ proof%unimportant -
   have "((sphere a r \<inter> T) - {b}) homeomorphic
         (+) (-a) ` ((sphere a r \<inter> T) - {b})"
     by (rule homeomorphic_translation)
-  also have "... homeomorphic ( *\<^sub>R) (inverse r) ` (+) (- a) ` (sphere a r \<inter> T - {b})"
+  also have "... homeomorphic (*\<^sub>R) (inverse r) ` (+) (- a) ` (sphere a r \<inter> T - {b})"
     by (metis \<open>0 < r\<close> homeomorphic_scaling inverse_inverse_eq inverse_zero less_irrefl)
-  also have "... = sphere 0 1 \<inter> (( *\<^sub>R) (inverse r) ` (+) (- a) ` T) - {(b - a) /\<^sub>R r}"
+  also have "... = sphere 0 1 \<inter> ((*\<^sub>R) (inverse r) ` (+) (- a) ` T) - {(b - a) /\<^sub>R r}"
     using assms by (auto simp: dist_norm norm_minus_commute divide_simps)
   also have "... homeomorphic p"
     apply (rule homeomorphic_punctured_affine_sphere_affine_01)
@@ -2210,26 +2210,26 @@ proof%unimportant -
                 and pq'_eq: "\<And>t. t \<in> {0..1} \<Longrightarrow> p (q' t) = (f \<circ> g +++ reversepath g') t"
         using covering_space_lift_homotopic_path [OF cov homotopic_paths_sym [OF homS] \<open>path q\<close> piq refl refl]
         by auto
-      have "q' t = (h \<circ> ( *\<^sub>R) 2) t" if "0 \<le> t" "t \<le> 1/2" for t
-      proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> ( *\<^sub>R) 2" "{0..1/2}" "f \<circ> g \<circ> ( *\<^sub>R) 2" t])
-        show "q' 0 = (h \<circ> ( *\<^sub>R) 2) 0"
+      have "q' t = (h \<circ> (*\<^sub>R) 2) t" if "0 \<le> t" "t \<le> 1/2" for t
+      proof (rule covering_space_lift_unique [OF cov, of q' 0 "h \<circ> (*\<^sub>R) 2" "{0..1/2}" "f \<circ> g \<circ> (*\<^sub>R) 2" t])
+        show "q' 0 = (h \<circ> (*\<^sub>R) 2) 0"
           by (metis \<open>pathstart q' = pathstart q\<close> comp_def g h pastq pathstart_def pth_4(2))
-        show "continuous_on {0..1/2} (f \<circ> g \<circ> ( *\<^sub>R) 2)"
+        show "continuous_on {0..1/2} (f \<circ> g \<circ> (*\<^sub>R) 2)"
           apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path g\<close>] continuous_on_subset [OF contf])
           using g(2) path_image_def by fastforce+
-        show "(f \<circ> g \<circ> ( *\<^sub>R) 2) ` {0..1/2} \<subseteq> S"
+        show "(f \<circ> g \<circ> (*\<^sub>R) 2) ` {0..1/2} \<subseteq> S"
           using g(2) path_image_def fim by fastforce
-        show "(h \<circ> ( *\<^sub>R) 2) ` {0..1/2} \<subseteq> C"
+        show "(h \<circ> (*\<^sub>R) 2) ` {0..1/2} \<subseteq> C"
           using h path_image_def by fastforce
         show "q' ` {0..1/2} \<subseteq> C"
           using \<open>path_image q' \<subseteq> C\<close> path_image_def by fastforce
-        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> ( *\<^sub>R) 2) x = p (q' x)"
+        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> (*\<^sub>R) 2) x = p (q' x)"
           by (auto simp: joinpaths_def pq'_eq)
-        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> ( *\<^sub>R) 2) x = p ((h \<circ> ( *\<^sub>R) 2) x)"
+        show "\<And>x. x \<in> {0..1/2} \<Longrightarrow> (f \<circ> g \<circ> (*\<^sub>R) 2) x = p ((h \<circ> (*\<^sub>R) 2) x)"
           by (simp add: phg)
         show "continuous_on {0..1/2} q'"
           by (simp add: continuous_on_path \<open>path q'\<close>)
-        show "continuous_on {0..1/2} (h \<circ> ( *\<^sub>R) 2)"
+        show "continuous_on {0..1/2} (h \<circ> (*\<^sub>R) 2)"
           apply (intro continuous_intros continuous_on_compose continuous_on_path [OF \<open>path h\<close>], force)
           done
       qed (use that in auto)

@@ -20,7 +20,7 @@ lemma dvds_eq_abseq:
 subsection \<open>\<open>\<Z>\<close>: The Set of Integers as Algebraic Structure\<close>
 
 abbreviation int_ring :: "int ring" ("\<Z>")
-  where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = ( * ), one = 1, zero = 0, add = (+)\<rparr>"
+  where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = (*), one = 1, zero = 0, add = (+)\<rparr>"
 
 lemma int_Zcarr [intro!, simp]: "k \<in> carrier \<Z>"
   by simp

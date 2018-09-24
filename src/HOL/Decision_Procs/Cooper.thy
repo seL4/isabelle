@@ -2402,7 +2402,7 @@ fun num_of_term vs (t as Free (xn, xT)) =
       @{code Add} (num_of_term vs t1, num_of_term vs t2)
   | num_of_term vs (@{term "(-) :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       @{code Sub} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "( * ) :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+  | num_of_term vs (@{term "(*) :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       (case try HOLogic.dest_number t1 of
         SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t2)
       | NONE =>
@@ -2455,7 +2455,7 @@ fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code intege
       term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (@{code Sub} (t1, t2)) = @{term "(-) :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs t1 $ term_of_num vs t2
-  | term_of_num vs (@{code Mul} (i, t2)) = @{term "( * ) :: int \<Rightarrow> int \<Rightarrow> int"} $
+  | term_of_num vs (@{code Mul} (i, t2)) = @{term "(*) :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs (@{code C} i) $ term_of_num vs t2
   | term_of_num vs (@{code CN} (n, i, t)) =
       term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));

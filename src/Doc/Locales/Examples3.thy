@@ -416,7 +416,7 @@ text \<open>It is again convenient to make the interpretation in an
     using non_neg by unfold_locales (rule mult_left_mono)
 
 text \<open>While the proof of the previous interpretation
-  is straightforward from monotonicity lemmas for~@{term "( * )"}, the
+  is straightforward from monotonicity lemmas for~@{term "(*)"}, the
   second proof follows a useful pattern.\<close>
 
   sublocale %visible non_negative \<subseteq> lattice_end "(\<le>)" "\<lambda>i. n * i"

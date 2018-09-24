@@ -12,6 +12,9 @@ New in this Isabelle version
 * Old-style inner comments (* ... *) within the term language are no
 longer supported (legacy feature in Isabelle2018).
 
+* Infix operators that begin or end with a "*" can now be paranthesized
+without additional spaces, eg "(*)" instead of "( * )".
+
 
 *** Isar ***
 

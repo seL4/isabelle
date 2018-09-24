@@ -5044,8 +5044,8 @@ next
       using real_arch_simple by blast
     have "ball 0 B \<subseteq> ?cube n" if n: "n \<ge> N" for n
     proof -
-      have "sum (( *\<^sub>R) (- real n)) Basis \<bullet> i \<le> x \<bullet> i \<and>
-            x \<bullet> i \<le> sum (( *\<^sub>R) (real n)) Basis \<bullet> i"
+      have "sum ((*\<^sub>R) (- real n)) Basis \<bullet> i \<le> x \<bullet> i \<and>
+            x \<bullet> i \<le> sum ((*\<^sub>R) (real n)) Basis \<bullet> i"
         if "norm x < B" "i \<in> Basis" for x i::'n
           using Basis_le_norm[of i x] n N that by (auto simp add: field_simps sum_negf)
       then show ?thesis
@@ -5080,7 +5080,7 @@ next
         fix x :: 'n
         assume x: "x \<in> ball 0 B"
         have "\<lbrakk>norm (0 - x) < B; i \<in> Basis\<rbrakk>
-              \<Longrightarrow> sum (( *\<^sub>R) (-n)) Basis \<bullet> i\<le> x \<bullet> i \<and> x \<bullet> i \<le> sum (( *\<^sub>R) n) Basis \<bullet> i" for i
+              \<Longrightarrow> sum ((*\<^sub>R) (-n)) Basis \<bullet> i\<le> x \<bullet> i \<and> x \<bullet> i \<le> sum ((*\<^sub>R) n) Basis \<bullet> i" for i
           using Basis_le_norm[of i x] n by (auto simp add: field_simps sum_negf)
         then show "x \<in> ?cube n"
           using x by (auto simp: mem_box dist_norm)
@@ -6180,7 +6180,7 @@ lemma monotone_convergence_decreasing:
     and bou: "bounded (range(\<lambda>k. integral S (f k)))"
   shows "g integrable_on S \<and> (\<lambda>k. integral S (f k)) \<longlonglongrightarrow> integral S g"
 proof -
-  have *: "range(\<lambda>k. integral S (\<lambda>x. - f k x)) = ( *\<^sub>R) (- 1) ` (range(\<lambda>k. integral S (f k)))"
+  have *: "range(\<lambda>k. integral S (\<lambda>x. - f k x)) = (*\<^sub>R) (- 1) ` (range(\<lambda>k. integral S (f k)))"
     by force
   have "(\<lambda>x. - g x) integrable_on S \<and> (\<lambda>k. integral S (\<lambda>x. - f k x)) \<longlonglongrightarrow> integral S (\<lambda>x. - g x)"
   proof (rule monotone_convergence_increasing)

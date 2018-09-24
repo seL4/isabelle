@@ -225,7 +225,7 @@ proof -
     by (intro summable_Leibniz(1) decseq_imp_monoseq decseq_SucI) simp_all
   hence A: "(\<lambda>n. \<Sum>k<n. (-1)^k / real_of_nat (Suc k)) \<longlonglongrightarrow> (\<Sum>k. (-1)^k / real_of_nat (Suc k))"
     by (simp add: summable_sums_iff divide_inverse sums_def)
-  from filterlim_compose[OF this filterlim_subseq[of "( * ) (2::nat)"]]
+  from filterlim_compose[OF this filterlim_subseq[of "(*) (2::nat)"]]
     have "(\<lambda>n. \<Sum>k<2*n. (-1)^k / real_of_nat (Suc k)) \<longlonglongrightarrow> (\<Sum>k. (-1)^k / real_of_nat (Suc k))"
     by (simp add: strict_mono_def)
   ultimately have "(\<Sum>k. (- 1) ^ k / real_of_nat (Suc k)) = ln 2" by (intro LIMSEQ_unique)

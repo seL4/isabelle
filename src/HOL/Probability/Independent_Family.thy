@@ -1165,7 +1165,7 @@ proof-
   also have "...=  prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
     by (auto intro!: indep_varD[where Ma=N and Mb=N])
   also have "... = \<P>(x in M. X x \<in> A) * \<P>(x in M. Y x \<in> B)"
-    by (auto intro!: arg_cong2[where f= "( * )"] arg_cong[where f= prob])
+    by (auto intro!: arg_cong2[where f= "(*)"] arg_cong[where f= prob])
   finally show ?thesis .
 qed
 

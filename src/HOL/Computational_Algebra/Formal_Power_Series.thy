@@ -78,7 +78,7 @@ lemma fps_neg_nth [simp]: "(- f) $ n = - (f $ n)"
 
 instantiation fps :: ("{comm_monoid_add, times}") times
 begin
-  definition fps_times_def: "( * ) = (\<lambda>f g. Abs_fps (\<lambda>n. \<Sum>i=0..n. f $ i * g $ (n - i)))"
+  definition fps_times_def: "(*) = (\<lambda>f g. Abs_fps (\<lambda>n. \<Sum>i=0..n. f $ i * g $ (n - i)))"
   instance ..
 end
 
@@ -2037,7 +2037,7 @@ subsubsection \<open>Rule 2\<close>
   (* If f reprents {a_n} and P is a polynomial, then
         P(xD) f represents {P(n) a_n}*)
 
-definition "fps_XD = ( * ) fps_X \<circ> fps_deriv"
+definition "fps_XD = (*) fps_X \<circ> fps_deriv"
 
 lemma fps_XD_add[simp]:"fps_XD (a + b) = fps_XD a + fps_XD (b :: 'a::comm_ring_1 fps)"
   by (simp add: fps_XD_def field_simps)

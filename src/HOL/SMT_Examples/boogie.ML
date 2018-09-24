@@ -139,7 +139,7 @@ fun parse_expr _ (["true"] :: ls) = (@{term True}, ls)
       parse_bin_expr cx (mk_binary @{term "(<=) :: int => _"} o swap) ls
   | parse_expr cx (["+"] :: ls) = parse_bin_expr cx (mk_binary @{term "(+) :: int => _"}) ls
   | parse_expr cx (["-"] :: ls) = parse_bin_expr cx (mk_binary @{term "(-) :: int => _"}) ls
-  | parse_expr cx (["*"] :: ls) = parse_bin_expr cx (mk_binary @{term "( * ) :: int => _"}) ls
+  | parse_expr cx (["*"] :: ls) = parse_bin_expr cx (mk_binary @{term "(*) :: int => _"}) ls
   | parse_expr cx (["/"] :: ls) = parse_bin_expr cx (mk_binary @{term boogie_div}) ls
   | parse_expr cx (["%"] :: ls) = parse_bin_expr cx (mk_binary @{term boogie_mod}) ls
   | parse_expr cx (["select", n] :: ls) =

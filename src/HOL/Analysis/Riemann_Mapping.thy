@@ -138,17 +138,17 @@ proof -
     proof (intro bdd_aboveI exI ballI, clarify)
       show "norm (deriv f 0) \<le> 1 / r" if "f \<in> F" for f
       proof -
-        have r01: "( * ) (complex_of_real r) ` ball 0 1 \<subseteq> S"
+        have r01: "(*) (complex_of_real r) ` ball 0 1 \<subseteq> S"
           using that \<open>r > 0\<close> by (auto simp: norm_mult r [THEN subsetD])
-        then have "f holomorphic_on ( * ) (complex_of_real r) ` ball 0 1"
+        then have "f holomorphic_on (*) (complex_of_real r) ` ball 0 1"
           using holomorphic_on_subset [OF holF] by (simp add: that)
         then have holf: "f \<circ> (\<lambda>z. (r * z)) holomorphic_on (ball 0 1)"
           by (intro holomorphic_intros holomorphic_on_compose)
-        have f0: "(f \<circ> ( * ) (complex_of_real r)) 0 = 0"
+        have f0: "(f \<circ> (*) (complex_of_real r)) 0 = 0"
           using F_def that by auto
         have "f ` S \<subseteq> ball 0 1"
           using F_def that by blast
-        with r01 have fr1: "\<And>z. norm z < 1 \<Longrightarrow> norm ((f \<circ> ( * )(of_real r))z) < 1"
+        with r01 have fr1: "\<And>z. norm z < 1 \<Longrightarrow> norm ((f \<circ> (*)(of_real r))z) < 1"
           by force
         have *: "((\<lambda>w. f (r * w)) has_field_derivative deriv f (r * z) * r) (at z)"
           if "z \<in> ball 0 1" for z::complex
@@ -162,7 +162,7 @@ proof -
           using * [of 0] by simp
         have deq: "deriv (\<lambda>x. f (complex_of_real r * x)) 0 = deriv f 0 * complex_of_real r"
           using DERIV_imp_deriv df0 by blast
-        have "norm (deriv (f \<circ> ( * ) (complex_of_real r)) 0) \<le> 1"
+        have "norm (deriv (f \<circ> (*) (complex_of_real r)) 0) \<le> 1"
           by (auto intro: Schwarz_Lemma [OF holf f0 fr1, of 0])
         with \<open>r > 0\<close> show ?thesis
           by (simp add: deq norm_mult divide_simps o_def)

@@ -3549,12 +3549,12 @@ next
       by (intro conjI contg continuous_intros)
     show "(complex_of_real \<circ> g) ` S \<subseteq> \<real>"
       by auto
-    show "continuous_on \<real> (exp \<circ> ( * )\<i>)"
+    show "continuous_on \<real> (exp \<circ> (*)\<i>)"
       by (intro continuous_intros)
-    show "(exp \<circ> ( * )\<i>) ` \<real> \<subseteq> sphere 0 1"
+    show "(exp \<circ> (*)\<i>) ` \<real> \<subseteq> sphere 0 1"
       by (auto simp: complex_is_Real_iff)
   qed (auto simp: convex_Reals convex_imp_contractible)
-  moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> ( * )\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
+  moreover have "\<And>x. x \<in> S \<Longrightarrow> (exp \<circ> (*)\<i> \<circ> (complex_of_real \<circ> g)) x = f x"
     by (simp add: g)
   ultimately show ?lhs
     apply (rule_tac x=a in exI)

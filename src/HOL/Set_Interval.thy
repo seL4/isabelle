@@ -1015,12 +1015,12 @@ lemma image_minus_const_atLeastAtMost' [simp]:
 context linordered_field begin
 
 lemma image_mult_atLeastAtMost [simp]:
-  "(( * ) d ` {a..b}) = {d*a..d*b}" if "d>0"
+  "((*) d ` {a..b}) = {d*a..d*b}" if "d>0"
   using that
   by (auto simp: field_simps mult_le_cancel_right intro: rev_image_eqI [where x="x/d" for x])
 
 lemma image_mult_atLeastAtMost_if:
-  "( * ) c ` {x .. y} =
+  "(*) c ` {x .. y} =
     (if c > 0 then {c * x .. c * y} else if x \<le> y then {c * y .. c * x} else {})"
 proof -
   consider "c < 0" "x \<le> y" | "c = 0" "x \<le> y" | "c > 0" "x \<le> y" | "x > y"
@@ -1028,7 +1028,7 @@ proof -
   then show ?thesis
   proof cases
     case 1
-    have "( * ) c ` {x .. y} = uminus ` ( * ) (- c) ` {x .. y}"
+    have "(*) c ` {x .. y} = uminus ` (*) (- c) ` {x .. y}"
       by (simp add: image_image)
     also have "\<dots> = {c * y .. c * x}"
       using \<open>c < 0\<close>
@@ -1049,7 +1049,7 @@ lemma image_affinity_atLeastAtMost:
             else if 0 \<le> m then {m*a + c .. m *b + c}
             else {m*b + c .. m*a + c})"
 proof -
-  have "(\<lambda>x. m*x + c) = ((\<lambda>x. x + c) o ( * ) m)"
+  have "(\<lambda>x. m*x + c) = ((\<lambda>x. x + c) o (*) m)"
     unfolding image_comp[symmetric]
     by (simp add: o_def)
   then show ?thesis
@@ -2474,7 +2474,7 @@ qed
 lemma prod_atLeastAtMost_code:
   "prod f {a..b} = fold_atLeastAtMost_nat (\<lambda>a acc. f a * acc) a b 1"
 proof -
-  have "comp_fun_commute (\<lambda>a. ( * ) (f a))"
+  have "comp_fun_commute (\<lambda>a. (*) (f a))"
     by unfold_locales (auto simp: o_def mult_ac)
   thus ?thesis
     by (simp add: prod.eq_fold fold_atLeastAtMost_nat o_def)

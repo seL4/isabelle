@@ -2257,14 +2257,14 @@ proof -
         unfolding dist_norm
         using norm_scaleR[of c "(1 / c) *\<^sub>R y - x", unfolded scaleR_right_diff_distrib, unfolded scaleR_scaleR] assms(1)
           assms(1)[unfolded zero_less_abs_iff[symmetric]] by (simp del:zero_less_abs_iff)
-      then have "y \<in> ( *\<^sub>R) c ` s"
-        using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "( *\<^sub>R) c"]
+      then have "y \<in> (*\<^sub>R) c ` s"
+        using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "(*\<^sub>R) c"]
         using e[THEN spec[where x="(1 / c) *\<^sub>R y"]]
         using assms(1)
         unfolding dist_norm scaleR_scaleR
         by auto
     }
-    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> ( *\<^sub>R) c ` s"
+    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> (*\<^sub>R) c ` s"
       apply (rule_tac x="e * \<bar>c\<bar>" in exI, auto)
       done
   }
@@ -2311,10 +2311,10 @@ lemma open_affinity:
 proof -
   have *: "(\<lambda>x. a + c *\<^sub>R x) = (\<lambda>x. a + x) \<circ> (\<lambda>x. c *\<^sub>R x)"
     unfolding o_def ..
-  have "(+) a ` ( *\<^sub>R) c ` S = ((+) a \<circ> ( *\<^sub>R) c) ` S"
+  have "(+) a ` (*\<^sub>R) c ` S = ((+) a \<circ> (*\<^sub>R) c) ` S"
     by auto
   then show ?thesis
-    using assms open_translation[of "( *\<^sub>R) c ` S" a]
+    using assms open_translation[of "(*\<^sub>R) c ` S" a]
     unfolding *
     by auto
 qed
@@ -2637,7 +2637,7 @@ lemma compact_affinity:
   assumes "compact s"
   shows "compact ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof -
-  have "(+) a ` ( *\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s"
+  have "(+) a ` (*\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s"
     by auto
   then show ?thesis
     using compact_translation[OF compact_scaling[OF assms], of a c] by auto
@@ -3719,7 +3719,7 @@ lemma homeomorphic_affinity:
   assumes "c \<noteq> 0"
   shows "s homeomorphic ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof -
-  have *: "(+) a ` ( *\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
+  have *: "(+) a ` (*\<^sub>R) c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
   show ?thesis
     using homeomorphic_trans
     using homeomorphic_scaling[OF assms, of s]

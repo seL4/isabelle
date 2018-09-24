@@ -134,7 +134,7 @@ lemma nat_leq_as_int: "(\<le>) = (\<lambda>a b. int a \<le> int b)" by simp
 lemma Suc_as_int: "Suc = (\<lambda>a. nat (int a + 1))" by (rule ext) simp
 lemma nat_plus_as_int: "(+) = (\<lambda>a b. nat (int a + int b))" by (rule ext)+ simp
 lemma nat_minus_as_int: "(-) = (\<lambda>a b. nat (int a - int b))" by (rule ext)+ simp
-lemma nat_times_as_int: "( * ) = (\<lambda>a b. nat (int a * int b))" by (simp add: nat_mult_distrib)
+lemma nat_times_as_int: "(*) = (\<lambda>a b. nat (int a * int b))" by (simp add: nat_mult_distrib)
 lemma nat_div_as_int: "(div) = (\<lambda>a b. nat (int a div int b))" by (simp add: nat_div_distrib)
 lemma nat_mod_as_int: "(mod) = (\<lambda>a b. nat (int a mod int b))" by (simp add: nat_mod_distrib)
 

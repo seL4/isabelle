@@ -38,7 +38,7 @@ lemma ZN_1 [transfer_rule]: "ZN 1 1"
 lemma ZN_add [transfer_rule]: "(ZN ===> ZN ===> ZN) (+) (+)"
   unfolding rel_fun_def ZN_def by simp
 
-lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) (( * )) (( * ))"
+lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) ((*)) ((*))"
   unfolding rel_fun_def ZN_def by simp
 
 definition tsub :: "int \<Rightarrow> int \<Rightarrow> int"

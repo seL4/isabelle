@@ -2049,7 +2049,7 @@ proof -
 
     moreover from z double_in_nonpos_Ints_imp[of z] have "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
     hence "?g \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
-      using LIMSEQ_subseq_LIMSEQ[OF Gamma_series'_LIMSEQ, of "( * )2" "2*z"]
+      using LIMSEQ_subseq_LIMSEQ[OF Gamma_series'_LIMSEQ, of "(*)2" "2*z"]
       by (intro tendsto_intros Gamma_series'_LIMSEQ)
          (simp_all add: o_def strict_mono_def Gamma_eq_zero_iff)
     ultimately have "?h \<longlonglongrightarrow> ?powr 2 (2*z) * Gamma z * Gamma (z+1/2) / Gamma (2*z)"
@@ -3131,10 +3131,10 @@ proof -
       case True
       have "(\<integral>\<^sup>+t. ennreal (indicator {0..u} t * t powr (a - 1) * (u - t) powr (b - 1)) \<partial>lborel) = 
               (\<integral>\<^sup>+t. ennreal (indicator {0..1} t * (u * t) powr (a - 1) * (u - u * t) powr (b - 1)) 
-                \<partial>distr lborel borel (( * ) (1 / u)))" (is "_ = nn_integral _ ?f")
+                \<partial>distr lborel borel ((*) (1 / u)))" (is "_ = nn_integral _ ?f")
         using True
         by (subst nn_integral_distr) (auto simp: indicator_def field_simps intro!: nn_integral_cong)
-      also have "distr lborel borel (( * ) (1 / u)) = density lborel (\<lambda>_. u)"
+      also have "distr lborel borel ((*) (1 / u)) = density lborel (\<lambda>_. u)"
         using \<open>u > 0\<close> by (subst lborel_distr_mult) auto
       also have "nn_integral \<dots> ?f = (\<integral>\<^sup>+x. ennreal (indicator {0..1} x * (u * (u * x) powr (a - 1) *
                                               (u * (1 - x)) powr (b - 1))) \<partial>lborel)" using \<open>u > 0\<close>

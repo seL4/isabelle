@@ -88,21 +88,21 @@ qed
 
 end
 
-lemma module_prod_scale_eq_scaleR: "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = scaleR"
+lemma module_prod_scale_eq_scaleR: "module_prod.scale (*\<^sub>R) (*\<^sub>R) = scaleR"
   apply (rule ext) apply (rule ext)
   apply (subst module_prod.scale_def)
   subgoal by unfold_locales
   by (simp add: scaleR_prod_def)
 
 interpretation real_vector?: vector_space_prod "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
-  rewrites "scale = (( *\<^sub>R)::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
-    and "module.dependent ( *\<^sub>R) = dependent"
-    and "module.representation ( *\<^sub>R) = representation"
-    and "module.subspace ( *\<^sub>R) = subspace"
-    and "module.span ( *\<^sub>R) = span"
-    and "vector_space.extend_basis ( *\<^sub>R) = extend_basis"
-    and "vector_space.dim ( *\<^sub>R) = dim"
-    and "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
+  rewrites "scale = ((*\<^sub>R)::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
+    and "module.dependent (*\<^sub>R) = dependent"
+    and "module.representation (*\<^sub>R) = representation"
+    and "module.subspace (*\<^sub>R) = subspace"
+    and "module.span (*\<^sub>R) = span"
+    and "vector_space.extend_basis (*\<^sub>R) = extend_basis"
+    and "vector_space.dim (*\<^sub>R) = dim"
+    and "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear"
   subgoal by unfold_locales
   subgoal by (fact module_prod_scale_eq_scaleR)
   unfolding dependent_raw_def representation_raw_def subspace_raw_def span_raw_def
@@ -539,11 +539,11 @@ lemma dim_Times:
 proof -
   interpret p1: Vector_Spaces.linear s1 scale "(\<lambda>x. (x, 0))"
     by unfold_locales (auto simp: scale_def)
-  interpret pair1: finite_dimensional_vector_space_pair "( *a)" B1 scale Basis_pair
+  interpret pair1: finite_dimensional_vector_space_pair "(*a)" B1 scale Basis_pair
     by unfold_locales
   interpret p2: Vector_Spaces.linear s2 scale "(\<lambda>x. (0, x))"
     by unfold_locales (auto simp: scale_def)
-  interpret pair2: finite_dimensional_vector_space_pair "( *b)" B2 scale Basis_pair
+  interpret pair2: finite_dimensional_vector_space_pair "(*b)" B2 scale Basis_pair
     by unfold_locales
   have ss: "p.subspace ((\<lambda>x. (x, 0)) ` S)" "p.subspace (Pair 0 ` T)"
     by (rule p1.subspace_image p2.subspace_image assms)+

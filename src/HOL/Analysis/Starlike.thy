@@ -2902,22 +2902,22 @@ qed
 lemma rel_interior_scaleR:
   fixes S :: "'n::euclidean_space set"
   assumes "c \<noteq> 0"
-  shows "(( *\<^sub>R) c) ` (rel_interior S) = rel_interior ((( *\<^sub>R) c) ` S)"
-  using rel_interior_injective_linear_image[of "(( *\<^sub>R) c)" S]
-    linear_conv_bounded_linear[of "( *\<^sub>R) c"] linear_scaleR injective_scaleR[of c] assms
+  shows "((*\<^sub>R) c) ` (rel_interior S) = rel_interior (((*\<^sub>R) c) ` S)"
+  using rel_interior_injective_linear_image[of "((*\<^sub>R) c)" S]
+    linear_conv_bounded_linear[of "(*\<^sub>R) c"] linear_scaleR injective_scaleR[of c] assms
   by auto
 
 lemma rel_interior_convex_scaleR:
   fixes S :: "'n::euclidean_space set"
   assumes "convex S"
-  shows "(( *\<^sub>R) c) ` (rel_interior S) = rel_interior ((( *\<^sub>R) c) ` S)"
+  shows "((*\<^sub>R) c) ` (rel_interior S) = rel_interior (((*\<^sub>R) c) ` S)"
   by (metis assms linear_scaleR rel_interior_convex_linear_image)
 
 lemma convex_rel_open_scaleR:
   fixes S :: "'n::euclidean_space set"
   assumes "convex S"
     and "rel_open S"
-  shows "convex ((( *\<^sub>R) c) ` S) \<and> rel_open ((( *\<^sub>R) c) ` S)"
+  shows "convex (((*\<^sub>R) c) ` S) \<and> rel_open (((*\<^sub>R) c) ` S)"
   by (metis assms convex_scaling rel_interior_convex_scaleR rel_open_def)
 
 lemma convex_rel_open_finite_inter:
@@ -3086,10 +3086,10 @@ proof (cases "S = {}")
     by (simp add: rel_interior_empty cone_0)
 next
   case False
-  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` S = S)"
+  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` S = S)"
     using cone_iff[of S] assms by auto
   then have *: "0 \<in> ({0} \<union> rel_interior S)"
-    and "\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` ({0} \<union> rel_interior S) = ({0} \<union> rel_interior S)"
+    and "\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` ({0} \<union> rel_interior S) = ({0} \<union> rel_interior S)"
     by (auto simp add: rel_interior_scaleR)
   then show ?thesis
     using cone_iff[of "{0} \<union> rel_interior S"] by auto
@@ -3099,7 +3099,7 @@ lemma rel_interior_convex_cone_aux:
   fixes S :: "'m::euclidean_space set"
   assumes "convex S"
   shows "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} \<times> S)) \<longleftrightarrow>
-    c > 0 \<and> x \<in> ((( *\<^sub>R) c) ` (rel_interior S))"
+    c > 0 \<and> x \<in> (((*\<^sub>R) c) ` (rel_interior S))"
 proof (cases "S = {}")
   case True
   then show ?thesis
@@ -3132,9 +3132,9 @@ next
   {
     fix c :: real
     assume "c > 0"
-    then have "f c = (( *\<^sub>R) c ` S)"
+    then have "f c = ((*\<^sub>R) c ` S)"
       using f_def cone_hull_expl[of "{1 :: real} \<times> S"] by auto
-    then have "rel_interior (f c) = ( *\<^sub>R) c ` rel_interior S"
+    then have "rel_interior (f c) = (*\<^sub>R) c ` rel_interior S"
       using rel_interior_convex_scaleR[of S c] assms by auto
   }
   then show ?thesis using * ** by auto
@@ -8025,7 +8025,7 @@ proof -
         by auto
       have "b \<bullet> (v - ?u) = 0" if "b \<in> B" for b
         using that \<open>finite B\<close>
-        by (simp add: * algebra_simps inner_sum_right if_distrib [of "( *)v" for v] inner_commute cong: if_cong)
+        by (simp add: * algebra_simps inner_sum_right if_distrib [of "(*)v" for v] inner_commute cong: if_cong)
       then show "y \<bullet> (v - ?u) = 0"
         by (simp add: u inner_sum_left)
     qed

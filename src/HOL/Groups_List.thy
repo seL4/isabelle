@@ -124,7 +124,7 @@ lemma (in monoid_add) length_concat:
   by (induct xss) simp_all
 
 lemma (in monoid_add) length_product_lists:
-  "length (product_lists xss) = foldr ( * ) (map length xss) 1"
+  "length (product_lists xss) = foldr (*) (map length xss) 1"
 proof (induct xss)
   case (Cons xs xss) then show ?case by (induct xs) (auto simp: length_concat o_def)
 qed simp

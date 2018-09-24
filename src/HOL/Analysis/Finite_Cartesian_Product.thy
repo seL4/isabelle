@@ -235,7 +235,7 @@ subsection%unimportant\<open>Basic componentwise operations on vectors\<close>
 instantiation vec :: (times, finite) times
 begin
 
-definition "( * ) \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
+definition "(*) \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
 instance ..
 
 end
@@ -961,7 +961,7 @@ lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
 lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
   by (simp add: vec_eq_iff)
 
-lemma Vector_Spaces_linear_vec [simp]: "Vector_Spaces.linear ( * ) vector_scalar_mult vec"
+lemma Vector_Spaces_linear_vec [simp]: "Vector_Spaces.linear (*) vector_scalar_mult vec"
   by unfold_locales (vector algebra_simps)+
 
 lemma vector_mul_eq_0[simp]: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
@@ -1161,7 +1161,7 @@ definition%important matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a
 lemma%unimportant matrix_id_mat_1: "matrix id = mat 1"
   by (simp add: mat_def matrix_def axis_def)
 
-lemma%unimportant matrix_scaleR: "(matrix (( *\<^sub>R) r)) = mat r"
+lemma%unimportant matrix_scaleR: "(matrix ((*\<^sub>R) r)) = mat r"
   by (simp add: mat_def matrix_def axis_def if_distrib cong: if_cong)
 
 lemma%unimportant matrix_vector_mul_linear[intro, simp]: "linear (\<lambda>x. A *v (x::'a::real_algebra_1 ^ _))"
@@ -1218,7 +1218,7 @@ definition%important
 lemma%unimportant inj_matrix_vector_mult:
   fixes A::"'a::field^'n^'m"
   assumes "invertible A"
-  shows "inj (( *v) A)"
+  shows "inj ((*v) A)"
   by (metis assms inj_on_inverseI invertible_def matrix_vector_mul_assoc matrix_vector_mul_lid)
 
 lemma%important scalar_invertible:

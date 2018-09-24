@@ -234,7 +234,7 @@ lemma (in cring) of_int_power [simp]: "\<guillemotleft>i ^ n\<guillemotright> = 
   by (induct n) (simp_all add: m_ac)
 
 definition cring_class_ops :: "'a::comm_ring_1 ring"
-  where "cring_class_ops \<equiv> \<lparr>carrier = UNIV, mult = ( * ), one = 1, zero = 0, add = (+)\<rparr>"
+  where "cring_class_ops \<equiv> \<lparr>carrier = UNIV, mult = (*), one = 1, zero = 0, add = (+)\<rparr>"
 
 lemma cring_class: "cring cring_class_ops"
   apply unfold_locales

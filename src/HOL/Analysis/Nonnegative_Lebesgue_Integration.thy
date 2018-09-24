@@ -279,7 +279,7 @@ qed
 lemmas simple_function_add[intro, simp] = simple_function_compose2[where h="(+)"]
   and simple_function_diff[intro, simp] = simple_function_compose2[where h="(-)"]
   and simple_function_uminus[intro, simp] = simple_function_compose[where g="uminus"]
-  and simple_function_mult[intro, simp] = simple_function_compose2[where h="( * )"]
+  and simple_function_mult[intro, simp] = simple_function_compose2[where h="(*)"]
   and simple_function_div[intro, simp] = simple_function_compose2[where h="(/)"]
   and simple_function_inverse[intro, simp] = simple_function_compose[where g="inverse"]
   and simple_function_max[intro, simp] = simple_function_compose2[where h=max]
@@ -760,7 +760,7 @@ proof -
     using assms by (intro simple_function_partition) auto
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, indicator A x::ennreal))`space M.
     if snd y = 1 then fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A) else 0)"
-    by (auto simp: indicator_def split: if_split_asm intro!: arg_cong2[where f="( * )"] arg_cong2[where f=emeasure] sum.cong)
+    by (auto simp: indicator_def split: if_split_asm intro!: arg_cong2[where f="(*)"] arg_cong2[where f=emeasure] sum.cong)
   also have "\<dots> = (\<Sum>y\<in>(\<lambda>x. (f x, 1::ennreal))`A. fst y * emeasure M (f -` {fst y} \<inter> space M \<inter> A))"
     using assms by (subst sum.If_cases) (auto intro!: simple_functionD(1) simp: eq)
   also have "\<dots> = (\<Sum>y\<in>fst`(\<lambda>x. (f x, 1::ennreal))`A. y * emeasure M (f -` {y} \<inter> space M \<inter> A))"

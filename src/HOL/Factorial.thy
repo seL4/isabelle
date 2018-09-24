@@ -403,13 +403,13 @@ qed
 subsection \<open>Misc\<close>
 
 lemma fact_code [code]:
-  "fact n = (of_nat (fold_atLeastAtMost_nat (( * )) 2 n 1) :: 'a::semiring_char_0)"
+  "fact n = (of_nat (fold_atLeastAtMost_nat ((*)) 2 n 1) :: 'a::semiring_char_0)"
 proof -
   have "fact n = (of_nat (\<Prod>{1..n}) :: 'a)"
     by (simp add: fact_prod)
   also have "\<Prod>{1..n} = \<Prod>{2..n}"
     by (intro prod.mono_neutral_right) auto
-  also have "\<dots> = fold_atLeastAtMost_nat (( * )) 2 n 1"
+  also have "\<dots> = fold_atLeastAtMost_nat ((*)) 2 n 1"
     by (simp add: prod_atLeastAtMost_code)
   finally show ?thesis .
 qed

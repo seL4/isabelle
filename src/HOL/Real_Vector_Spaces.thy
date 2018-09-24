@@ -53,8 +53,8 @@ lemmas scaleR = scale
 end
 
 global_interpretation real_vector?: vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
-  rewrites "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
-    and "Vector_Spaces.linear ( *) ( *\<^sub>R) = linear"
+  rewrites "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear"
+    and "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
   defines dependent_raw_def: dependent = real_vector.dependent
     and representation_raw_def: representation = real_vector.representation
     and subspace_raw_def: subspace = real_vector.subspace
@@ -82,8 +82,8 @@ hide_const (open)\<comment> \<open>locale constants\<close>
 abbreviation "independent x \<equiv> \<not> dependent x"
 
 global_interpretation real_vector?: vector_space_pair "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
-  rewrites  "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
-    and "Vector_Spaces.linear ( *) ( *\<^sub>R) = linear"
+  rewrites  "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear"
+    and "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
   defines construct_raw_def: construct = real_vector.construct
   apply unfold_locales
   unfolding linear_def real_scaleR_def
@@ -1316,7 +1316,7 @@ lemmas linear_imp_scaleR = linear_imp_scale
 
 corollary real_linearD:
   fixes f :: "real \<Rightarrow> real"
-  assumes "linear f" obtains c where "f = ( *) c"
+  assumes "linear f" obtains c where "f = (*) c"
   by (rule linear_imp_scaleR [OF assms]) (force simp: scaleR_conv_of_real)
 
 lemma linear_times_of_real: "linear (\<lambda>x. a * of_real x)"
@@ -1439,7 +1439,7 @@ lemma flip: "bounded_bilinear (\<lambda>x y. y ** x)"
 
 lemma comp1:
   assumes "bounded_linear g"
-  shows "bounded_bilinear (\<lambda>x. ( **) (g x))"
+  shows "bounded_bilinear (\<lambda>x. (**) (g x))"
 proof unfold_locales
   interpret g: bounded_linear g by fact
   show "\<And>a a' b. g (a + a') ** b = g a ** b + g a' ** b"
@@ -1537,7 +1537,7 @@ proof -
   qed
 qed
 
-lemma bounded_bilinear_mult: "bounded_bilinear (( *) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
+lemma bounded_bilinear_mult: "bounded_bilinear ((*) :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
   apply (rule bounded_bilinear.intro)
       apply (auto simp: algebra_simps)
   apply (rule_tac x=1 in exI)
