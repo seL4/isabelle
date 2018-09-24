@@ -16,7 +16,7 @@ end;
 
 structure Locale =
 struct
-  type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism};
+  type registration = {inst: string * morphism, mixin: (morphism * bool) option, export: morphism};
 end;
 
 signature LOCAL_THEORY =

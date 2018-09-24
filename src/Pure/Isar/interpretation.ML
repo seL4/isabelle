@@ -115,7 +115,7 @@ fun note_eqns_register note add_registration
         (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)));
     fun register (dep, eqns) ctxt =
       ctxt |> add_registration
-        {dep = dep,
+        {inst = dep,
           mixin =
             Option.map (rpair true)
               (Element.eq_morphism (Proof_Context.theory_of ctxt) (eqns @ eqns')),

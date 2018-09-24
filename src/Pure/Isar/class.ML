@@ -233,7 +233,7 @@ fun activate_defs class thms thy =
       fold (fn cls => fn thy =>
         Context.theory_map
           (Locale.amend_registration
-            {dep = (cls, base_morphism thy cls),
+            {inst = (cls, base_morphism thy cls),
               mixin = SOME (eq_morph, true),
               export = export_morphism thy cls}) thy) (heritage thy [class]) thy
   | NONE => thy);
@@ -492,7 +492,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
       (case some_dep_morph of
         SOME dep_morph =>
           Generic_Target.locale_dependency sub
-            {dep = (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)),
+            {inst = (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)),
               mixin = NONE, export = export}
       | NONE => I);
   in

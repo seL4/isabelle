@@ -75,7 +75,7 @@ sig
   val intro_locales_tac: {strict: bool, eager: bool} -> Proof.context -> thm list -> tactic
 
   (* Registrations and dependencies *)
-  type registration = {dep: string * morphism, mixin: (morphism * bool) option, export: morphism}
+  type registration = {inst: string * morphism, mixin: (morphism * bool) option, export: morphism}
   val amend_registration: registration -> Context.generic -> Context.generic
   val add_registration: registration -> Context.generic -> Context.generic
   val add_registration_theory: registration -> theory -> theory
@@ -539,7 +539,7 @@ fun init name thy =
 type registration = Locale.registration;
 
 fun amend_registration {mixin = NONE, ...} context = context
-  | amend_registration {dep = (name, morph), mixin = SOME mixin, export} context =
+  | amend_registration {inst = (name, morph), mixin = SOME mixin, export} context =
       let
         val thy = Context.theory_of context;
         val ctxt = Context.proof_of context;
@@ -561,7 +561,7 @@ fun amend_registration {mixin = NONE, ...} context = context
 (* Note that a registration that would be subsumed by an existing one will not be
    generated, and it will not be possible to amend it. *)
 
-fun add_registration {dep = (name, base_morph), mixin, export} context =
+fun add_registration {inst = (name, base_morph), mixin, export} context =
   let
     val thy = Context.theory_of context;
     val pos_morph = Morphism.binding_morphism "position" (Binding.set_pos (Position.thread_data ()));
@@ -575,7 +575,7 @@ fun add_registration {dep = (name, base_morph), mixin, export} context =
       (* add new registrations with inherited mixins *)
       |> roundup thy (add_reg thy export) export (name, mix_morph) |> #2
       (* add mixin *)
-      |> amend_registration {dep = (name, mix_morph), mixin = mixin, export = export}
+      |> amend_registration {inst = (name, mix_morph), mixin = mixin, export = export}
       (* activate import hierarchy as far as not already active *)
       |> activate_facts (SOME export) (name, mix_morph $> pos_morph)
   end;
@@ -604,7 +604,7 @@ fun registrations_of context loc =
   |> map (fn (name, (base, export)) =>
       (name, base $> (collect_mixins context (name, base $> export)) $> export));
 
-fun add_dependency loc {dep = (name, morph), mixin, export} thy =
+fun add_dependency loc {inst = (name, morph), mixin, export} thy =
   let
     val serial' = serial ();
     val thy' = thy |>
@@ -617,7 +617,7 @@ fun add_dependency loc {dep = (name, morph), mixin, export} thy =
         (registrations_of context' loc) (Idents.get context', []);
   in
     thy'
-    |> fold_rev (fn dep => add_registration_theory {dep = dep, mixin = NONE, export = export}) regs
+    |> fold_rev (fn dep => add_registration_theory {inst = dep, mixin = NONE, export = export}) regs
   end;
 
 
