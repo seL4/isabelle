@@ -86,9 +86,9 @@ sig
 
   (* Diagnostic *)
   val get_locales: theory -> string list
-  val print_locales: bool -> theory -> unit
+  val pretty_locales: theory -> bool -> Pretty.T
   val pretty_locale: theory -> bool -> string -> Pretty.T
-  val print_registrations: Proof.context -> xstring * Position.T -> unit
+  val pretty_registrations: Proof.context -> string -> Pretty.T
   val pretty_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> Pretty.T
   val pretty_locale_deps: theory -> {name: string, parents: string list, body: Pretty.T} list
 end;
@@ -702,13 +702,12 @@ val _ = Theory.setup
 
 fun get_locales thy = map #1 (Name_Space.dest_table (Locales.get thy));
 
-fun print_locales verbose thy =
+fun pretty_locales thy verbose =
   Pretty.block
     (Pretty.breaks
       (Pretty.str "locales:" ::
         map (Pretty.mark_str o #1)
-          (Name_Space.markup_table verbose (Proof_Context.init_global thy) (Locales.get thy))))
-  |> Pretty.writeln;
+          (Name_Space.markup_table verbose (Proof_Context.init_global thy) (Locales.get thy))));
 
 fun pretty_locale thy show_facts name =
   let
@@ -726,15 +725,10 @@ fun pretty_locale thy show_facts name =
       maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems)
   end;
 
-fun print_registrations ctxt raw_name =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val name = check thy raw_name;
-  in
-    (case registrations_of (Context.Proof ctxt) name of
-      [] => Pretty.str "no interpretations"
-    | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt Morphism.identity) (rev regs)))
-  end |> Pretty.writeln;
+fun pretty_registrations ctxt name =
+  (case registrations_of (Context.Proof ctxt) name of
+    [] => Pretty.str "no interpretations"
+  | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt Morphism.identity) (rev regs)));
 
 fun pretty_dependencies ctxt clean export insts =
   let

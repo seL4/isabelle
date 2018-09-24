@@ -1097,8 +1097,10 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_locales\<close>
     "print locales of this theory"
-    (Parse.opt_bang >> (fn b =>
-      Toplevel.keep (Locale.print_locales b o Toplevel.theory_of)));
+    (Parse.opt_bang >> (fn verbose =>
+      Toplevel.keep (fn state =>
+        let val thy = Toplevel.theory_of state
+        in Pretty.writeln (Locale.pretty_locales thy verbose) end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_classes\<close>
@@ -1118,8 +1120,13 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_interps\<close>
     "print interpretations of locale for this theory or proof context"
-    (Parse.position Parse.name >> (fn name =>
-      Toplevel.keep (fn state => Locale.print_registrations (Toplevel.context_of state) name)));
+    (Parse.position Parse.name >> (fn raw_name =>
+      Toplevel.keep (fn state =>
+        let
+          val ctxt = Toplevel.context_of state;
+          val thy = Toplevel.theory_of state;
+          val name = Locale.check thy raw_name;
+        in Pretty.writeln (Locale.pretty_registrations ctxt name) end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_dependencies\<close>
