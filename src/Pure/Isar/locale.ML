@@ -420,13 +420,6 @@ fun collect_mixins context (name, morph) =
     |> compose_mixins
   end;
 
-fun registrations_of context loc =
-  Idtab.fold_rev (fn ((name, _), {morphisms, ...}) =>
-    name = loc ? cons (name, morphisms)) (get_regs context) []
-  (* with inherited mixins *)
-  |> map (fn (name, (base, export)) =>
-      (name, base $> (collect_mixins context (name, base $> export)) $> export));
-
 
 (*** Activate context elements of locale ***)
 
@@ -604,6 +597,13 @@ fun add_registration_local_theory registration lthy =
 
 
 (*** Dependencies ***)
+
+fun registrations_of context loc =
+  Idtab.fold_rev (fn ((name, _), {morphisms, ...}) =>
+    name = loc ? cons (name, morphisms)) (get_regs context) []
+  (*with inherited mixins*)
+  |> map (fn (name, (base, export)) =>
+      (name, base $> (collect_mixins context (name, base $> export)) $> export));
 
 fun add_dependency loc {dep = (name, morph), mixin, export} thy =
   let
