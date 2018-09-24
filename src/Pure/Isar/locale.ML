@@ -232,10 +232,8 @@ fun mixins_of thy name serial = lookup_mixins (#mixins (the_locale thy name)) se
 
 (* Print instance and qualifiers *)
 
-fun pretty_reg ctxt export (name, morph) =
+fun pretty_reg_inst ctxt qs (name, ts) =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val morph' = morph $> export;
     fun print_qual (qual, mandatory) = qual ^ (if mandatory then "" else "?");
     fun prt_quals qs = Pretty.str (space_implode "." (map print_qual qs));
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
@@ -246,14 +244,19 @@ fun pretty_reg ctxt export (name, morph) =
       else prt_term t;
     fun prt_inst ts =
       Pretty.block (Pretty.breaks (pretty_name ctxt name :: map prt_term' ts));
-
-    val qs = Binding.name "x" |> Morphism.binding morph' |> Binding.prefix_of;
-    val ts = instance_of thy name morph';
   in
     (case qs of
       [] => prt_inst ts
     | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":", Pretty.brk 1, prt_inst ts])
   end;
+
+fun pretty_reg ctxt export (name, morph) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val morph' = morph $> export;
+    val qs = Binding.name "x" |> Morphism.binding morph' |> Binding.prefix_of;
+    val ts = instance_of thy name morph';
+  in pretty_reg_inst ctxt qs (name, ts) end;
 
 
 (*** Identifiers: activated locales in theory or proof context ***)
@@ -338,28 +341,45 @@ val join_regs : regs * regs -> regs =
   Idtab.join (fn id => fn (reg1, reg2) =>
     if #serial reg1 = #serial reg2 then raise Idtab.SAME else raise Idtab.DUP id);
 
-structure Registrations = Generic_Data
+(* FIXME consolidate with locale dependencies, consider one data slot only *)
+structure Global_Registrations = Theory_Data'
 (
   (*registrations, indexed by locale name and instance;
     unique registration serial points to mixin list*)
   type T = regs * mixins;
-  val empty = (Idtab.empty, Inttab.empty);
+  val empty: T = (Idtab.empty, Inttab.empty);
   val extend = I;
-  fun merge ((regs1, mixins1), (regs2, mixins2)) : T =
-    (join_regs (regs1, regs2), merge_mixins (mixins1, mixins2))
-    handle Idtab.DUP id =>
-      (* distinct interpretations with same base: merge their mixins *)
-      let
-        val {serial = serial1, ...} = Idtab.lookup regs1 id |> the;
-        val {morphisms = morphisms2, serial = serial2} = Idtab.lookup regs2 id |> the;
-        val regs2' = Idtab.update (id, {morphisms = morphisms2, serial = serial1}) regs2;
-        val mixins2' = rename_mixin (serial2, serial1) mixins2;
-        val _ = warning "Removed duplicate interpretation after retrieving its mixins.";
-        (* FIXME print interpretations,
-           which is not straightforward without theory context *)
-      in merge ((regs1, mixins1), (regs2', mixins2')) end;
-    (* FIXME consolidate with dependencies, consider one data slot only *)
+  fun merge old_thys =
+    let
+      fun recursive_merge ((regs1, mixins1), (regs2, mixins2)) : T =
+        (join_regs (regs1, regs2), merge_mixins (mixins1, mixins2))
+        handle Idtab.DUP id =>
+          (*distinct interpretations with same base: merge their mixins*)
+          let
+            val ctxt1 = Syntax.init_pretty_global (#1 old_thys);
+            val serial1 = #serial (Idtab.lookup regs1 id |> the);
+
+            val reg2 = Idtab.lookup regs2 id |> the;
+            val regs2' = Idtab.update (id, {morphisms = #morphisms reg2, serial = serial1}) regs2;
+            val mixins2' = rename_mixin (#serial reg2, serial1) mixins2;
+            val _ =
+              (warning o Pretty.string_of o Pretty.block)
+                [Pretty.str "Removed duplicate interpretation (after retrieving its mixins):",
+                  Pretty.brk 1, pretty_reg_inst ctxt1 [] id];
+          in recursive_merge ((regs1, mixins1), (regs2', mixins2')) end;
+    in recursive_merge end;
 );
+
+structure Local_Registrations = Proof_Data
+(
+  type T = Global_Registrations.T;
+  val init = Global_Registrations.get;
+);
+
+val get_registrations = Context.cases Global_Registrations.get Local_Registrations.get;
+
+fun map_registrations f (Context.Theory thy) = Context.Theory (Global_Registrations.map f thy)
+  | map_registrations f (Context.Proof ctxt) = Context.Proof (Local_Registrations.map f ctxt);
 
 
 (* Primitive operations *)
@@ -368,18 +388,18 @@ fun add_reg thy export (name, morph) =
   let
     val reg = {morphisms = (morph, export), serial = serial ()};
     val id = (name, instance_of thy name (morph $> export));
-  in (Registrations.map o apfst) (Idtab.insert (K false) (id, reg)) end;
+  in (map_registrations o apfst) (Idtab.insert (K false) (id, reg)) end;
 
 fun add_mixin serial' mixin =
   (* registration to be amended identified by its serial id *)
-  (Registrations.map o apsnd) (insert_mixin serial' mixin);
+  (map_registrations o apsnd) (insert_mixin serial' mixin);
 
-val get_regs = #1 o Registrations.get;
+val get_regs = #1 o get_registrations;
 
 fun get_mixins context (name, morph) =
   let
     val thy = Context.theory_of context;
-    val (regs, mixins) = Registrations.get context;
+    val (regs, mixins) = get_registrations context;
   in
     (case Idtab.lookup regs (name, instance_of thy name morph) of
       NONE => []
