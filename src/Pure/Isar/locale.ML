@@ -109,7 +109,7 @@ datatype ctxt = datatype Element.ctxt;
 type mixin = (morphism * bool) * serial;
 type mixins = mixin list Inttab.table;
 
-fun lookup_mixins serial' (mixins: mixins) = Inttab.lookup_list mixins serial';
+fun lookup_mixins (mixins: mixins) serial' = Inttab.lookup_list mixins serial';
 
 val merge_mixins: mixins * mixins -> mixins = Inttab.merge_list (eq_snd op =);
 
@@ -228,8 +228,7 @@ fun hyp_spec_of thy = #hyp_spec o the_locale thy;
 
 fun dependencies_of thy = #dependencies o the_locale thy;
 
-fun mixins_of thy name serial = the_locale thy name |>
-  #mixins |> lookup_mixins serial;
+fun mixins_of thy name serial = lookup_mixins (#mixins (the_locale thy name)) serial;
 
 (* FIXME unused!? *)
 fun identity_on thy name morph =
@@ -383,7 +382,7 @@ fun get_mixins context (name, morph) =
   in
     (case Idtab.lookup regs (name, instance_of thy name morph) of
       NONE => []
-    | SOME (_, serial) => lookup_mixins serial mixins)
+    | SOME (_, serial) => lookup_mixins mixins serial)
   end;
 
 fun collect_mixins context (name, morph) =
