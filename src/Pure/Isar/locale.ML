@@ -101,6 +101,11 @@ datatype ctxt = datatype Element.ctxt;
 
 (*** Locales ***)
 
+type dep = {name: string, morphisms: morphism * morphism, serial: serial};
+
+fun make_dep (name, morphisms) : dep =
+  {name = name, morphisms = morphisms, serial = serial ()};
+
 (*table of mixin lists, per list mixins in reverse order of declaration;
   lists indexed by registration/dependency serial,
   entries for empty lists may be omitted*)
@@ -140,7 +145,7 @@ datatype locale = Loc of {
   (*theorem declarations*)
   notes: ((string * Attrib.fact list) * serial) list,
   (*locale dependencies (sublocale relation) in reverse order*)
-  dependencies: ((string * (morphism * morphism)) * serial) list,
+  dependencies: dep list,
   (*mixin part of dependencies*)
   mixins: mixins
 };
@@ -163,7 +168,7 @@ fun merge_locale
       ((parameters, spec, intros, axioms, hyp_spec),
         ((merge (eq_snd op =) (syntax_decls, syntax_decls'),
           merge (eq_snd op =) (notes, notes')),
-            (merge (eq_snd op =) (dependencies, dependencies'),
+            (merge (op = o apply2 #serial) (dependencies, dependencies'),
               (merge_mixins (mixins, mixins')))));
 
 structure Locales = Theory_Data
@@ -194,13 +199,14 @@ fun the_locale thy name =
     SOME (Loc loc) => loc
   | NONE => error ("Unknown locale " ^ quote name));
 
-fun register_locale binding parameters spec intros axioms hyp_spec syntax_decls notes dependencies thy =
+fun register_locale
+    binding parameters spec intros axioms hyp_spec syntax_decls notes dependencies thy =
   thy |> Locales.map (Name_Space.define (Context.Theory thy) true
     (binding,
       mk_locale ((parameters, spec, (apply2 o Option.map) Thm.trim_context intros,
           map Thm.trim_context axioms, hyp_spec),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
-          (map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies,
+          (map (fn (name, morph) => make_dep (name, (morph, Morphism.identity))) dependencies,
             Inttab.empty)))) #> snd);
           (* FIXME Morphism.identity *)
 
@@ -294,17 +300,15 @@ fun add thy depth stem export (name, morph) (deps, marked) =
       if redundant_ident thy marked (name, instance) then (deps, marked)
       else
         let
-          (* no inheritance of mixins, regardless of requests by clients *)
-          val dependencies = dependencies_of thy name |>
-            map (fn ((name', (morph', export')), serial') =>
-              (name', morph' $> export' $> compose_mixins (mixins_of thy name serial')));
+          (*no inheritance of mixins, regardless of requests by clients*)
+          val dependencies =
+            dependencies_of thy name |> map (fn dep as {morphisms = (morph', export'), ...} =>
+              (#name dep, morph' $> export' $> compose_mixins (mixins_of thy name (#serial dep))));
           val marked' = insert_idents (name, instance) marked;
           val (deps', marked'') =
             fold_rev (add thy (depth + 1) (morph $> stem) export) dependencies
               ([], marked');
-        in
-          ((name, morph $> stem) :: deps' @ deps, marked'')
-        end
+        in ((name, morph $> stem) :: deps' @ deps, marked'') end
     end;
 
 in
@@ -606,10 +610,10 @@ fun registrations_of context loc =
 
 fun add_dependency loc {inst = (name, morph), mixin, export} thy =
   let
-    val serial' = serial ();
+    val dep = make_dep (name, (morph, export));
     val add_dep =
-      apfst (cons ((name, (morph, export)), serial')) #>
-      apsnd (case mixin of NONE => I | SOME mixin => insert_mixin serial' mixin);
+      apfst (cons dep) #>
+      apsnd (case mixin of NONE => I | SOME mixin => insert_mixin (#serial dep) mixin);
     val thy' = change_locale loc (apsnd add_dep) thy;
     val context' = Context.Theory thy';
     val (_, regs) =
@@ -744,7 +748,7 @@ fun pretty_locale_deps thy =
   let
     fun make_node name =
      {name = name,
-      parents = map (fst o fst) (dependencies_of thy name),
+      parents = map #name (dependencies_of thy name),
       body = pretty_locale thy false name};
     val names = sort_strings (Name_Space.fold_table (cons o #1) (Locales.get thy) []);
   in map make_node names end;
