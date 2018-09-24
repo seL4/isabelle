@@ -1737,7 +1737,7 @@ proof -
   show ?thesis
     unfolding path_component_def 
   proof (intro exI conjI)
-    have "continuous_on {0..1} (p \<circ> (( *) y))"
+    have "continuous_on {0..1} (p \<circ> ((*) y))"
       apply (rule continuous_intros)+
       using p [unfolded path_def] y
       apply (auto simp: mult_le_one intro: continuous_on_subset [of _ p])

@@ -231,7 +231,7 @@ private lemma lookup_default_0_map_values:
 qualified lemma mapping_of_bind_pmf:
   assumes "finite (set_pmf p)"
   shows   "mapping_of_pmf (bind_pmf p f) = 
-             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. ( * ) (pmf p x)) 
+             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. (*) (pmf p x)) 
                (mapping_of_pmf (f x))) (set_pmf p)"
   using assms
   by (intro mapping_of_pmfI')
@@ -268,7 +268,7 @@ lemma bind_pmf_aux_correct:
 lemma bind_pmf_aux_code_aux:
   assumes "finite A"
   shows   "bind_pmf_aux p f A = 
-             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. ( * ) (pmf p x))
+             fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. (*) (pmf p x))
                (mapping_of_pmf (f x))) A" (is "?lhs = ?rhs")
 proof (intro mapping_eqI'[where d = 0])
   fix x assume "x \<in> Mapping.keys ?lhs"
@@ -287,7 +287,7 @@ qed (insert assms, simp_all add: keys_fold_combine_plus)
 
 lemma bind_pmf_aux_code [code]:
   "bind_pmf_aux p f (set xs) = 
-     fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. ( * ) (pmf p x))
+     fold_combine_plus (\<lambda>x. Mapping.map_values (\<lambda>_. (*) (pmf p x))
                (mapping_of_pmf (f x))) (set xs)"
   by (rule bind_pmf_aux_code_aux) simp_all
 

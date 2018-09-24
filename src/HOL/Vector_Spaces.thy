@@ -77,10 +77,10 @@ lemmas\<comment> \<open>from \<open>module\<close>\<close>
 
 lemma linear_imp_scale:
   fixes D::"'a \<Rightarrow> 'b"
-  assumes "linear ( *) scale D"
+  assumes "linear (*) scale D"
   obtains d where "D = (\<lambda>x. scale x d)"
 proof -
-  interpret linear "( *)" scale D by fact
+  interpret linear "(*)" scale D by fact
   show ?thesis
     by (metis mult.commute mult.left_neutral scale that)
 qed
@@ -806,7 +806,7 @@ qed
 lemma in_span_in_range_construct:
   "x \<in> range (construct B f)" if i: "vs1.independent B" and x: "x \<in> vs2.span (f ` B)"
 proof -
-  interpret linear "( *a)" "( *b)" "construct B f"
+  interpret linear "(*a)" "(*b)" "construct B f"
     using i by (rule linear_construct)
   obtain bb :: "('b \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'b set \<Rightarrow> 'b" where
     "\<forall>x0 x1 x2. (\<exists>v4. v4 \<in> x2 \<and> x1 v4 \<noteq> x0 v4) = (bb x0 x1 x2 \<in> x2 \<and> x1 (bb x0 x1 x2) \<noteq> x0 (bb x0 x1 x2))"
@@ -853,7 +853,7 @@ proof -
     have fB: "vs2.independent (f ` B)"
       using independent_injective_image[OF B f] .
     let ?g = "p.construct (f ` B) (the_inv_into B f)"
-    show "linear ( *b) ( *a) ?g"
+    show "linear (*b) (*a) ?g"
       by (rule p.linear_construct[OF fB])
     have "?g b \<in> vs1.span (the_inv_into B f ` f ` B)" for b
       by (intro p.construct_in_span fB)
@@ -864,13 +864,13 @@ proof -
       by (auto simp: V_eq)
     have "(?g \<circ> f) v = id v" if "v \<in> vs1.span B" for v
     proof (rule vector_space_pair.linear_eq_on[where x=v])
-      show "vector_space_pair ( *a) ( *a)" by unfold_locales
-      show "linear ( *a) ( *a) (?g \<circ> f)"
-      proof (rule Vector_Spaces.linear_compose[of _ "( *b)"])
-        show "linear ( *a) ( *b) f"
+      show "vector_space_pair (*a) (*a)" by unfold_locales
+      show "linear (*a) (*a) (?g \<circ> f)"
+      proof (rule Vector_Spaces.linear_compose[of _ "(*b)"])
+        show "linear (*a) (*b) f"
           by unfold_locales
       qed fact
-      show "linear ( *a) ( *a) id" by (rule vs1.linear_id)
+      show "linear (*a) (*a) id" by (rule vs1.linear_id)
       show "v \<in> vs1.span B" by fact
       show "b \<in> B \<Longrightarrow> (p.construct (f ` B) (the_inv_into B f) \<circ> f) b = id b" for b
         by (simp add: p.construct_basis fB the_inv_into_f_f inj_on_subset[OF f vs1.span_superset])
@@ -895,7 +895,7 @@ proof -
   proof (intro exI ballI conjI)
     interpret p: vector_space_pair s2 s1 by unfold_locales
     let ?g = "p.construct C g"
-    show "linear ( *b) ( *a) ?g"
+    show "linear (*b) (*a) ?g"
       by (rule p.linear_construct[OF C])
     have "?g v \<in> vs1.span (g ` C)" for v
       by (rule p.construct_in_span[OF C])
@@ -903,10 +903,10 @@ proof -
     finally show "?g ` UNIV \<subseteq> V" by auto
     have "(f \<circ> ?g) v = id v" if v: "v \<in> f ` V" for v
     proof (rule vector_space_pair.linear_eq_on[where x=v])
-      show "vector_space_pair ( *b) ( *b)" by unfold_locales
-      show "linear ( *b) ( *b) (f \<circ> ?g)"
-        by (rule Vector_Spaces.linear_compose[of _ "( *a)"]) fact+
-      show "linear ( *b) ( *b) id" by (rule vs2.linear_id)
+      show "vector_space_pair (*b) (*b)" by unfold_locales
+      show "linear (*b) (*b) (f \<circ> ?g)"
+        by (rule Vector_Spaces.linear_compose[of _ "(*a)"]) fact+
+      show "linear (*b) (*b) id" by (rule vs2.linear_id)
       have "vs2.span (f ` B) = vs2.span C"
         using fB_C vs2.span_mono[of C "f ` B"] vs2.span_minimal[of "f`B" "vs2.span C"]
         by auto

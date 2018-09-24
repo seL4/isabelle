@@ -767,10 +767,10 @@ proof -
   finally show "lebesgue = density (distr lebesgue lebesgue T) (\<lambda>_. (\<Prod>j\<in>Basis. \<bar>c j\<bar>))" .
 qed
 
-lemma lebesgue_measurable_scaling[measurable]: "( *\<^sub>R) x \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
+lemma lebesgue_measurable_scaling[measurable]: "(*\<^sub>R) x \<in> lebesgue \<rightarrow>\<^sub>M lebesgue"
 proof cases
   assume "x = 0"
-  then have "( *\<^sub>R) x = (\<lambda>x. 0::'a)"
+  then have "(*\<^sub>R) x = (\<lambda>x. 0::'a)"
     by (auto simp: fun_eq_iff)
   then show ?thesis by auto
 next
@@ -860,9 +860,9 @@ lemma lborel_distr_uminus: "distr lborel borel uminus = (lborel :: real measure)
 
 lemma lborel_distr_mult:
   assumes "(c::real) \<noteq> 0"
-  shows "distr lborel borel (( * ) c) = density lborel (\<lambda>_. inverse \<bar>c\<bar>)"
+  shows "distr lborel borel ((*) c) = density lborel (\<lambda>_. inverse \<bar>c\<bar>)"
 proof-
-  have "distr lborel borel (( * ) c) = distr lborel lborel (( * ) c)" by (simp cong: distr_cong)
+  have "distr lborel borel ((*) c) = distr lborel lborel ((*) c)" by (simp cong: distr_cong)
   also from assms have "... = density lborel (\<lambda>_. inverse \<bar>c\<bar>)"
     by (subst lborel_real_affine[of "inverse c" 0]) (auto simp: o_def distr_density_distr)
   finally show ?thesis .
@@ -870,13 +870,13 @@ qed
 
 lemma lborel_distr_mult':
   assumes "(c::real) \<noteq> 0"
-  shows "lborel = density (distr lborel borel (( * ) c)) (\<lambda>_. \<bar>c\<bar>)"
+  shows "lborel = density (distr lborel borel ((*) c)) (\<lambda>_. \<bar>c\<bar>)"
 proof-
   have "lborel = density lborel (\<lambda>_. 1)" by (rule density_1[symmetric])
   also from assms have "(\<lambda>_. 1 :: ennreal) = (\<lambda>_. inverse \<bar>c\<bar> * \<bar>c\<bar>)" by (intro ext) simp
   also have "density lborel ... = density (density lborel (\<lambda>_. inverse \<bar>c\<bar>)) (\<lambda>_. \<bar>c\<bar>)"
     by (subst density_density_eq) (auto simp: ennreal_mult)
-  also from assms have "density lborel (\<lambda>_. inverse \<bar>c\<bar>) = distr lborel borel (( * ) c)"
+  also from assms have "density lborel (\<lambda>_. inverse \<bar>c\<bar>) = distr lborel borel ((*) c)"
     by (rule lborel_distr_mult[symmetric])
   finally show ?thesis .
 qed
@@ -1119,7 +1119,7 @@ proof -
 
   let ?f = "\<lambda>n. root DIM('a) (Suc n)"
 
-  have vimage_eq_image: "( *\<^sub>R) (?f n) -` S = ( *\<^sub>R) (1 / ?f n) ` S" for n
+  have vimage_eq_image: "(*\<^sub>R) (?f n) -` S = (*\<^sub>R) (1 / ?f n) ` S" for n
     apply safe
     subgoal for x by (rule image_eqI[of _ _ "?f n *\<^sub>R x"]) auto
     subgoal by auto
@@ -1141,20 +1141,20 @@ proof -
     by (intro summable_iff_suminf_neq_top) (auto simp add: inverse_eq_divide)
   then have "top * emeasure lebesgue S = (\<Sum>n. (1 / ?f n)^DIM('a) * emeasure lebesgue S)"
     unfolding ennreal_suminf_multc eq by simp
-  also have "\<dots> = (\<Sum>n. emeasure lebesgue (( *\<^sub>R) (?f n) -` S))"
+  also have "\<dots> = (\<Sum>n. emeasure lebesgue ((*\<^sub>R) (?f n) -` S))"
     unfolding vimage_eq_image using emeasure_lebesgue_affine[of "1 / ?f n" 0 S for n] by simp
-  also have "\<dots> = emeasure lebesgue (\<Union>n. ( *\<^sub>R) (?f n) -` S)"
+  also have "\<dots> = emeasure lebesgue (\<Union>n. (*\<^sub>R) (?f n) -` S)"
   proof (intro suminf_emeasure)
-    show "disjoint_family (\<lambda>n. ( *\<^sub>R) (?f n) -` S)"
+    show "disjoint_family (\<lambda>n. (*\<^sub>R) (?f n) -` S)"
       unfolding disjoint_family_on_def
     proof safe
       fix m n :: nat and x assume "m \<noteq> n" "?f m *\<^sub>R x \<in> S" "?f n *\<^sub>R x \<in> S"
       with eq1[of "?f m / ?f n" "?f n *\<^sub>R x"] show "x \<in> {}"
         by auto
     qed
-    have "( *\<^sub>R) (?f i) -` S \<in> sets lebesgue" for i
+    have "(*\<^sub>R) (?f i) -` S \<in> sets lebesgue" for i
       using measurable_sets[OF lebesgue_measurable_scaling[of "?f i"] S] by auto
-    then show "range (\<lambda>i. ( *\<^sub>R) (?f i) -` S) \<subseteq> sets lebesgue"
+    then show "range (\<lambda>i. (*\<^sub>R) (?f i) -` S) \<subseteq> sets lebesgue"
       by auto
   qed
   also have "\<dots> \<le> emeasure lebesgue (ball 0 M :: 'a set)"

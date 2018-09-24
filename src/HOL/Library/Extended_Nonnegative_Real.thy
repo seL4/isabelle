@@ -262,7 +262,7 @@ begin
 lift_definition one_ennreal :: ennreal is 1 by simp
 lift_definition zero_ennreal :: ennreal is 0 by simp
 lift_definition plus_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "(+)" by simp
-lift_definition times_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "( * )" by simp
+lift_definition times_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> ennreal" is "(*)" by simp
 
 instance
   by standard (transfer; auto simp: field_simps ereal_right_distrib)+

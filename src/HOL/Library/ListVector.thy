@@ -13,7 +13,7 @@ Is only a vector space if restricted to lists of the same length.\<close>
 text\<open>Multiplication with a scalar:\<close>
 
 abbreviation scale :: "('a::times) \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "*\<^sub>s" 70)
-where "x *\<^sub>s xs \<equiv> map (( * ) x) xs"
+where "x *\<^sub>s xs \<equiv> map ((*) x) xs"
 
 lemma scale1[simp]: "(1::'a::monoid_mult) *\<^sub>s xs = xs"
 by (induct xs) simp_all

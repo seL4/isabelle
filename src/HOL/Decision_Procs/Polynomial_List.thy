@@ -186,7 +186,7 @@ next
     by (cases "x = zero") (auto simp add: distrib_left ac_simps)
 qed
 
-lemma (in comm_semiring_0) poly_cmult_map: "poly (map (( * ) c) p) x = c * poly p x"
+lemma (in comm_semiring_0) poly_cmult_map: "poly (map ((*) c) p) x = c * poly p x"
   by (induct p) (auto simp add: distrib_left ac_simps)
 
 lemma (in comm_ring_1) poly_minus: "poly (-- p) x = - (poly p x)"

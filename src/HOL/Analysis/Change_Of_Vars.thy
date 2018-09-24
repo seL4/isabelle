@@ -186,7 +186,7 @@ proof -
 qed
 
 lemma%unimportant matrix_vector_mult_matrix_matrix_mult_compose:
-  "( *v) (A ** B) = ( *v) A \<circ> ( *v) B"
+  "(*v) (A ** B) = (*v) A \<circ> (*v) B"
   by (auto simp: matrix_vector_mul_assoc)
 
 lemma%unimportant induct_linear_elementary:
@@ -199,17 +199,17 @@ lemma%unimportant induct_linear_elementary:
     and idplus: "\<And>m n::'n. m \<noteq> n \<Longrightarrow> P(\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i)"
   shows "P f"
 proof -
-  have "P (( *v) A)" for A
+  have "P ((*v) A)" for A
   proof (rule induct_matrix_elementary_alt)
     fix A B
-    assume "P (( *v) A)" and "P (( *v) B)"
-    then show "P (( *v) (A ** B))"
+    assume "P ((*v) A)" and "P ((*v) B)"
+    then show "P ((*v) (A ** B))"
       by (auto simp add: matrix_vector_mult_matrix_matrix_mult_compose matrix_vector_mul_linear
           intro!: comp)
   next
     fix A :: "real^'n^'n" and i
     assume "row i A = 0"
-    show "P (( *v) A)"
+    show "P ((*v) A)"
       using matrix_vector_mul_linear
       by (rule zeroes[where i=i])
         (metis \<open>row i A = 0\<close> inner_zero_left matrix_vector_mul_component row_def vec_lambda_eta)
@@ -218,9 +218,9 @@ proof -
     assume 0: "\<And>i j. i \<noteq> j \<Longrightarrow> A $ i $ j = 0"
     have "A $ i $ i * x $ i = (\<Sum>j\<in>UNIV. A $ i $ j * x $ j)" for x and i :: "'n"
       by (simp add: 0 comm_monoid_add_class.sum.remove [where x=i])
-    then have "(\<lambda>x. \<chi> i. A $ i $ i * x $ i) = (( *v) A)"
+    then have "(\<lambda>x. \<chi> i. A $ i $ i * x $ i) = ((*v) A)"
       by (auto simp: 0 matrix_vector_mult_def)
-    then show "P (( *v) A)"
+    then show "P ((*v) A)"
       using const [of "\<lambda>i. A $ i $ i"] by simp
   next
     fix m n :: "'n"
@@ -229,9 +229,9 @@ proof -
               (\<Sum>j\<in>UNIV. if j = Fun.swap m n id i then x $ j else 0)"
       for i and x :: "real^'n"
       unfolding swap_def by (rule sum.cong) auto
-    have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = (( *v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
+    have "(\<lambda>x::real^'n. \<chi> i. x $ Fun.swap m n id i) = ((*v) (\<chi> i j. if i = Fun.swap m n id j then 1 else 0))"
       by (auto simp: mat_def matrix_vector_mult_def eq if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    with swap [OF \<open>m \<noteq> n\<close>] show "P (( *v) (\<chi> i j. mat 1 $ i $ Fun.swap m n id j))"
+    with swap [OF \<open>m \<noteq> n\<close>] show "P ((*v) (\<chi> i j. mat 1 $ i $ Fun.swap m n id j))"
       by (simp add: mat_def matrix_vector_mult_def)
   next
     fix m n :: "'n"
@@ -239,10 +239,10 @@ proof -
     then have "x $ m + x $ n = (\<Sum>j\<in>UNIV. of_bool (j = n \<or> m = j) * x $ j)" for x :: "real^'n"
       by (auto simp: of_bool_def if_distrib [of "\<lambda>x. x * y" for y] sum.remove cong: if_cong)
     then have "(\<lambda>x::real^'n. \<chi> i. if i = m then x $ m + x $ n else x $ i) =
-               (( *v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
+               ((*v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
       unfolding matrix_vector_mult_def of_bool_def
       by (auto simp: vec_eq_iff if_distrib [of "\<lambda>x. x * y" for y] cong: if_cong)
-    then show "P (( *v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
+    then show "P ((*v) (\<chi> i j. of_bool (i = m \<and> j = n \<or> i = j)))"
       using idplus [OF \<open>m \<noteq> n\<close>] by simp
   qed
   then show ?thesis
@@ -1496,21 +1496,21 @@ proof
                 \<le> sum ?h {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}"
             by (rule sum_mono) (simp add: indicator_def divide_simps)
         next
-          have \<alpha>: "?a = (\<Sum>k \<in> ( *)2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}.
+          have \<alpha>: "?a = (\<Sum>k \<in> (*)2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}.
                          k/2 ^ Suc n * indicator {y. k/2 ^ Suc n \<le> f y \<and> f y < (k+1)/2 ^ Suc n} x)"
             by (auto simp: inj_on_def field_simps comm_monoid_add_class.sum.reindex)
           have \<beta>: "sum ?h {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}
                    = (\<Sum>k \<in> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}.
                       k/2 ^ Suc n * indicator {y. k/2 ^ Suc n \<le> f y \<and> f y < (k+1)/2 ^ Suc n} x)"
             by (auto simp: inj_on_def field_simps comm_monoid_add_class.sum.reindex)
-          have 0: "( *) 2 ` {k \<in> \<int>. P k} \<inter> (\<lambda>x. 2 * x + 1) ` {k \<in> \<int>. P k} = {}" for P :: "real \<Rightarrow> bool"
+          have 0: "(*) 2 ` {k \<in> \<int>. P k} \<inter> (\<lambda>x. 2 * x + 1) ` {k \<in> \<int>. P k} = {}" for P :: "real \<Rightarrow> bool"
           proof -
             have "2 * i \<noteq> 2 * j + 1" for i j :: int by arith
             thus ?thesis
               unfolding Ints_def by auto (use of_int_eq_iff in fastforce)
           qed
           have "?a + sum ?h {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}
-                = (\<Sum>k \<in> ( *)2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}.
+                = (\<Sum>k \<in> (*)2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)}.
                   k/2 ^ Suc n * indicator {y. k/2 ^ Suc n \<le> f y \<and> f y < (k+1)/2 ^ Suc n} x)"
             unfolding \<alpha> \<beta>
             using finite_abs_int_segment [of "2 ^ (2*n)"]
@@ -1519,7 +1519,7 @@ proof
           proof (rule sum_mono2)
             show "finite {k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)}"
               by (rule finite_abs_int_segment)
-            show "( *) 2 ` {k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2^(2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2^(2*n)} \<subseteq> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)}"
+            show "(*) 2 ` {k::real. k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2^(2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2^(2*n)} \<subseteq> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)}"
               apply auto
               using one_le_power [of "2::real" "2*n"]  by linarith
             have *: "\<lbrakk>x \<in> (S \<union> T) - U; \<And>x. x \<in> S \<Longrightarrow> x \<in> U; \<And>x. x \<in> T \<Longrightarrow> x \<in> U\<rbrakk> \<Longrightarrow> P x" for S T U P
@@ -1535,7 +1535,7 @@ proof
             qed
             then show "0 \<le> b/2 ^ Suc n * indicator {y. b/2 ^ Suc n \<le> f y \<and> f y < (b + 1)/2 ^ Suc n} x"
                   if "b \<in> {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2 * Suc n)} -
-                          (( *) 2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)})" for b
+                          ((*) 2 ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} \<union> (\<lambda>x. 2*x + 1) ` {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)})" for b
               using that by (simp add: indicator_def divide_simps)
           qed
           finally show "?a + sum ?h {k \<in> \<int>. \<bar>k\<bar> \<le> 2 ^ (2*n)} \<le> ?b" .
@@ -2121,8 +2121,8 @@ proof%unimportant -
           moreover
           interpret linear "f' x" by fact
           have "(matrix (f' x) - B) *v w = 0" for w
-          proof (rule lemma_partial_derivatives [of "( *v) (matrix (f' x) - B)"])
-            show "linear (( *v) (matrix (f' x) - B))"
+          proof (rule lemma_partial_derivatives [of "(*v) (matrix (f' x) - B)"])
+            show "linear ((*v) (matrix (f' x) - B))"
               by (rule matrix_vector_mul_linear)
             have "((\<lambda>y. ((f x + f' x (y - x)) - f y) /\<^sub>R norm (y - x)) \<longlongrightarrow> 0) (at x within S)"
               using tendsto_minus [OF lim_df] by (simp add: algebra_simps divide_simps)
@@ -2141,19 +2141,19 @@ proof%unimportant -
                   proof (rule eventually_sequentiallyI)
                     fix k :: "nat"
                     assume "0 \<le> k"
-                    have "0 \<le> onorm (( *v) (A k - B))"
+                    have "0 \<le> onorm ((*v) (A k - B))"
                       using matrix_vector_mul_bounded_linear
                       by (rule onorm_pos_le)
-                    then show "norm (onorm (( *v) (A k - B))) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>(A k - B) $ i $ j\<bar>)"
+                    then show "norm (onorm ((*v) (A k - B))) \<le> (\<Sum>i\<in>UNIV. \<Sum>j\<in>UNIV. \<bar>(A k - B) $ i $ j\<bar>)"
                       by (simp add: onorm_le_matrix_component_sum del: vector_minus_component)
                   qed
                 next
                   show "?g \<longlonglongrightarrow> 0"
                     using B Lim_null tendsto_rabs_zero_iff by (fastforce intro!: tendsto_null_sum)
                 qed
-                with \<open>e > 0\<close> obtain p where "\<And>n. n \<ge> p \<Longrightarrow> \<bar>onorm (( *v) (A n - B))\<bar> < e/2"
+                with \<open>e > 0\<close> obtain p where "\<And>n. n \<ge> p \<Longrightarrow> \<bar>onorm ((*v) (A n - B))\<bar> < e/2"
                   unfolding lim_sequentially by (metis diff_zero dist_real_def divide_pos_pos zero_less_numeral)
-                then have pqe2: "\<bar>onorm (( *v) (A (p + q) - B))\<bar> < e/2" (*17 [`abs (onorm (\y. A (p + q) ** y - B ** y)) < e / &2`]*)
+                then have pqe2: "\<bar>onorm ((*v) (A (p + q) - B))\<bar> < e/2" (*17 [`abs (onorm (\y. A (p + q) ** y - B ** y)) < e / &2`]*)
                   using le_add1 by blast
                 show "\<exists>d>0. \<forall>y\<in>S. y \<noteq> x \<and> norm (y - x) < d \<longrightarrow>
                            inverse (norm (y - x)) * norm (f y + B *v x - (f x + B *v y)) < e"
@@ -2196,12 +2196,12 @@ proof%unimportant -
                 by (simp add: algebra_simps diff lin_df matrix_vector_mul_linear scalar_mult_eq_scaleR)
             qed
           qed (use x in \<open>simp; auto simp: not_less\<close>)
-          ultimately have "f' x = ( *v) B"
+          ultimately have "f' x = (*v) B"
             by (force simp: algebra_simps scalar_mult_eq_scaleR)
           show "matrix (f' x) $ m $ n \<le> b"
           proof (rule tendsto_upperbound [of "\<lambda>i. (A i $ m $ n)" _ sequentially])
             show "(\<lambda>i. A i $ m $ n) \<longlonglongrightarrow> matrix (f' x) $ m $ n"
-              by (simp add: B \<open>f' x = ( *v) B\<close>)
+              by (simp add: B \<open>f' x = (*v) B\<close>)
             show "\<forall>\<^sub>F i in sequentially. A i $ m $ n \<le> b"
               by (simp add: Ab less_eq_real_def)
           qed auto
@@ -2214,7 +2214,7 @@ proof%unimportant -
             using f [OF \<open>x \<in> S\<close>] unfolding Deriv.has_derivative_at_within Lim_within
             by (auto simp: field_simps dest: spec [of _ "e/2"])
           let ?A = "matrix(f' x) - (\<chi> i j. if i = m \<and> j = n then e / 4 else 0)"
-          obtain B where BRats: "\<And>i j. B$i$j \<in> \<rat>" and Bo_e6: "onorm(( *v) (?A - B)) < e/6"
+          obtain B where BRats: "\<And>i j. B$i$j \<in> \<rat>" and Bo_e6: "onorm((*v) (?A - B)) < e/6"
             using matrix_rational_approximation \<open>e > 0\<close>
             by (metis zero_less_divide_iff zero_less_numeral)
           show "\<exists>d>0. \<exists>A. A $ m $ n < b \<and> (\<forall>i j. A $ i $ j \<in> \<rat>) \<and>
@@ -2224,7 +2224,7 @@ proof%unimportant -
               by (rule \<open>d>0\<close>)
             show "B $ m $ n < b"
             proof -
-              have "\<bar>matrix (( *v) (?A - B)) $ m $ n\<bar> \<le> onorm (( *v) (?A - B))"
+              have "\<bar>matrix ((*v) (?A - B)) $ m $ n\<bar> \<le> onorm ((*v) (?A - B))"
                 using component_le_onorm [OF matrix_vector_mul_linear, of _ m n] by metis
               then show ?thesis
                 using b Bo_e6 by simp
@@ -3805,12 +3805,12 @@ proof -
   let ?drop = "(\<lambda>x::real^1. x $ 1)"
   have S': "?lift ` S \<in> sets lebesgue"
     by (auto intro: differentiable_image_in_sets_lebesgue [OF S] differentiable_vec)
-  have "((\<lambda>x. vec (g (x $ 1))) has_derivative ( *\<^sub>R) (g' z)) (at (vec z) within ?lift ` S)"
+  have "((\<lambda>x. vec (g (x $ 1))) has_derivative (*\<^sub>R) (g' z)) (at (vec z) within ?lift ` S)"
     if "z \<in> S" for z
     using der_g [OF that]
     by (simp add: has_vector_derivative_def has_derivative_vector_1)
   then have der': "\<And>x. x \<in> ?lift ` S \<Longrightarrow>
-        (?lift \<circ> g \<circ> ?drop has_derivative ( *\<^sub>R) (g' (?drop x))) (at x within ?lift ` S)"
+        (?lift \<circ> g \<circ> ?drop has_derivative (*\<^sub>R) (g' (?drop x))) (at x within ?lift ` S)"
     by (auto simp: o_def)
   have inj': "inj_on (vec \<circ> g \<circ> ?drop) (vec ` S)"
     using inj by (simp add: inj_on_def)

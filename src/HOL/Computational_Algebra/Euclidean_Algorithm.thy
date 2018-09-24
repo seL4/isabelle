@@ -421,7 +421,7 @@ proof
     Euclidean_Algorithm.gcd Euclidean_Algorithm.lcm
     Euclidean_Algorithm.Gcd Euclidean_Algorithm.Lcm
     divide plus minus unit_factor normalize
-    rewrites "dvd.dvd ( * ) = Rings.dvd"
+    rewrites "dvd.dvd (*) = Rings.dvd"
     by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
   show [simp]: "Euclidean_Algorithm.gcd = (gcd :: 'a \<Rightarrow> _)"
   proof (rule ext)+
@@ -575,7 +575,7 @@ proof
     "Euclidean_Algorithm.gcd" "Euclidean_Algorithm.lcm"
     "Euclidean_Algorithm.Gcd" "Euclidean_Algorithm.Lcm"
     divide plus minus unit_factor normalize
-    rewrites "dvd.dvd ( * ) = Rings.dvd"
+    rewrites "dvd.dvd (*) = Rings.dvd"
     by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
   show [simp]: "(Euclidean_Algorithm.gcd :: nat \<Rightarrow> _) = gcd"
   proof (rule ext)+
@@ -612,7 +612,7 @@ proof
     "Euclidean_Algorithm.gcd" "Euclidean_Algorithm.lcm"
     "Euclidean_Algorithm.Gcd" "Euclidean_Algorithm.Lcm"
     divide plus minus unit_factor normalize
-    rewrites "dvd.dvd ( * ) = Rings.dvd"
+    rewrites "dvd.dvd (*) = Rings.dvd"
     by (fact semiring_Gcd) (simp add: dvd.dvd_def dvd_def fun_eq_iff)
   show [simp]: "(Euclidean_Algorithm.gcd :: int \<Rightarrow> _) = gcd"
   proof (rule ext)+

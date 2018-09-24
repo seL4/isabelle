@@ -38,7 +38,7 @@ lemma has_derivative_eq_rhs: "(f has_derivative f') F \<Longrightarrow> f' = g' 
 
 definition has_field_derivative :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a filter \<Rightarrow> bool"
     (infix "(has'_field'_derivative)" 50)
-  where "(f has_field_derivative D) F \<longleftrightarrow> (f has_derivative ( * ) D) F"
+  where "(f has_field_derivative D) F \<longleftrightarrow> (f has_derivative (*) D) F"
 
 lemma DERIV_cong: "(f has_field_derivative X) F \<Longrightarrow> X = Y \<Longrightarrow> (f has_field_derivative Y) F"
   by simp
@@ -153,7 +153,7 @@ lemma has_derivative_at:
 
 lemma field_has_derivative_at:
   fixes x :: "'a::real_normed_field"
-  shows "(f has_derivative ( * ) D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D" (is "?lhs = ?rhs")
+  shows "(f has_derivative (*) D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D" (is "?lhs = ?rhs")
 proof -
   have "?lhs = (\<lambda>h. norm (f (x + h) - f x - D * h) / norm h) \<midarrow>0 \<rightarrow> 0"
     by (simp add: bounded_linear_mult_right has_derivative_at)
@@ -648,7 +648,7 @@ lemma has_derivative_imp_has_field_derivative:
   by (rule has_derivative_eq_rhs[of f D]) (simp_all add: fun_eq_iff mult.commute)
 
 lemma has_field_derivative_imp_has_derivative:
-  "(f has_field_derivative D) F \<Longrightarrow> (f has_derivative ( * ) D) F"
+  "(f has_field_derivative D) F \<Longrightarrow> (f has_derivative (*) D) F"
   by (simp add: has_field_derivative_def)
 
 lemma DERIV_subset:
@@ -675,7 +675,7 @@ proof safe
   assume "f differentiable at x within s"
   then obtain f' where *: "(f has_derivative f') (at x within s)"
     unfolding differentiable_def by auto
-  then obtain c where "f' = (( * ) c)"
+  then obtain c where "f' = ((*) c)"
     by (metis real_bounded_linear has_derivative_bounded_linear mult.commute fun_eq_iff)
   with * show "\<exists>D. (f has_real_derivative D) (at x within s)"
     unfolding has_field_derivative_def by auto
@@ -702,7 +702,7 @@ qed
 lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"
   unfolding field_has_derivative_at has_field_derivative_def has_field_derivative_iff ..
 
-lemma mult_commute_abs: "(\<lambda>x. x * c) = ( * ) c"
+lemma mult_commute_abs: "(\<lambda>x. x * c) = (*) c"
   for c :: "'a::ab_semigroup_mult"
   by (simp add: fun_eq_iff mult.commute)
 
@@ -711,7 +711,7 @@ lemma DERIV_compose_FDERIV:
   assumes "DERIV f (g x) :> f'"
   assumes "(g has_derivative g') (at x within s)"
   shows "((\<lambda>x. f (g x)) has_derivative (\<lambda>x. g' x * f')) (at x within s)"
-  using assms has_derivative_compose[of g g' x s f "( * ) f'"]
+  using assms has_derivative_compose[of g g' x s f "(*) f'"]
   by (auto simp: has_field_derivative_def ac_simps)
 
 
@@ -896,7 +896,7 @@ lemma DERIV_cmult_right:
     ((\<lambda>x. f x * c) has_field_derivative D * c) (at x within s)"
   using DERIV_cmult by (auto simp add: ac_simps)
 
-lemma DERIV_cmult_Id [simp]: "(( * ) c has_field_derivative c) (at x within s)"
+lemma DERIV_cmult_Id [simp]: "((*) c has_field_derivative c) (at x within s)"
   using DERIV_ident [THEN DERIV_cmult, where c = c and x = x] by simp
 
 lemma DERIV_cdivide:
@@ -919,7 +919,7 @@ lemma DERIV_inverse'[derivative_intros]:
   shows "((\<lambda>x. inverse (f x)) has_field_derivative - (inverse (f x) * D * inverse (f x)))
     (at x within s)"
 proof -
-  have "(f has_derivative (\<lambda>x. x * D)) = (f has_derivative ( * ) D)"
+  have "(f has_derivative (\<lambda>x. x * D)) = (f has_derivative (*) D)"
     by (rule arg_cong [of "\<lambda>x. x * D"]) (simp add: fun_eq_iff)
   with assms have "(f has_derivative (\<lambda>x. x * D)) (at x within s)"
     by (auto dest!: has_field_derivative_imp_has_derivative)
@@ -972,7 +972,7 @@ lemma DERIV_pow: "((\<lambda>x. x ^ n) has_field_derivative real n * (x ^ (n - S
 
 lemma DERIV_chain': "(f has_field_derivative D) (at x within s) \<Longrightarrow> DERIV g (f x) :> E \<Longrightarrow>
   ((\<lambda>x. g (f x)) has_field_derivative E * D) (at x within s)"
-  using has_derivative_compose[of f "( * ) D" x s g "( * ) E"]
+  using has_derivative_compose[of f "(*) D" x s g "(*) E"]
   by (simp only: has_field_derivative_def mult_commute_abs ac_simps)
 
 corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow>
@@ -990,7 +990,7 @@ lemma DERIV_image_chain:
   "(f has_field_derivative Da) (at (g x) within (g ` s)) \<Longrightarrow>
     (g has_field_derivative Db) (at x within s) \<Longrightarrow>
     (f \<circ> g has_field_derivative Da * Db) (at x within s)"
-  using has_derivative_in_compose [of g "( * ) Db" x s f "( * ) Da "]
+  using has_derivative_in_compose [of g "(*) Db" x s f "(*) Da "]
   by (simp add: has_field_derivative_def o_def mult_commute_abs ac_simps)
 
 (*These two are from HOL Light: HAS_COMPLEX_DERIVATIVE_CHAIN*)

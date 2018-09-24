@@ -1487,7 +1487,7 @@ instantiation matrix :: ("{plus, times, zero}") times
 begin
 
 definition
-  times_matrix_def: "A * B = mult_matrix (( * )) (+) A B"
+  times_matrix_def: "A * B = mult_matrix ((*)) (+) A B"
 
 instance ..
 
@@ -1795,7 +1795,7 @@ lemma move_matrix_mult: "move_matrix ((A::('a::semiring_0) matrix)*B) j i = (mov
 by (simp add: move_matrix_ortho[of "A*B"] move_matrix_col_mult move_matrix_row_mult)
 
 definition scalar_mult :: "('a::ring) \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix" where
-  "scalar_mult a m == apply_matrix (( * ) a) m"
+  "scalar_mult a m == apply_matrix ((*) a) m"
 
 lemma scalar_mult_zero[simp]: "scalar_mult y 0 = 0" 
 by (simp add: scalar_mult_def)

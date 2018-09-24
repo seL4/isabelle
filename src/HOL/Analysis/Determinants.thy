@@ -452,7 +452,7 @@ qed
 lemma%unimportant  matrix_id [simp]: "det (matrix id) = 1"
   by (simp add: matrix_id_mat_1)
 
-lemma%important  det_matrix_scaleR [simp]: "det (matrix ((( *\<^sub>R) r)) :: real^'n^'n) = r ^ CARD('n::finite)"
+lemma%important  det_matrix_scaleR [simp]: "det (matrix (((*\<^sub>R) r)) :: real^'n^'n) = r ^ CARD('n::finite)"
   apply (subst det_diagonal)
    apply (auto simp: matrix_def mat_def)
   apply (simp add: cart_eq_inner_axis inner_axis_axis)
@@ -750,7 +750,7 @@ qed
 
 lemma%unimportant  det_nz_iff_inj_gen:
   fixes f :: "'a::field^'n \<Rightarrow> 'a::field^'n"
-  assumes "Vector_Spaces.linear ( *s) ( *s) f"
+  assumes "Vector_Spaces.linear (*s) (*s) f"
   shows "det (matrix f) \<noteq> 0 \<longleftrightarrow> inj f"
 proof
   assume "det (matrix f) \<noteq> 0"
@@ -780,22 +780,22 @@ subsubsection%important  \<open>Invertibility of matrices and corresponding line
 
 lemma%important  matrix_left_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a::field^'n"
-  assumes "Vector_Spaces.linear ( *s) ( *s) f"
-  shows "((\<exists>B. B ** matrix f = mat 1) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> g \<circ> f = id))"
+  assumes "Vector_Spaces.linear (*s) (*s) f"
+  shows "((\<exists>B. B ** matrix f = mat 1) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear (*s) (*s) g \<and> g \<circ> f = id))"
 proof%unimportant safe
   fix B
   assume 1: "B ** matrix f = mat 1"
-  show "\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> g \<circ> f = id"
+  show "\<exists>g. Vector_Spaces.linear (*s) (*s) g \<and> g \<circ> f = id"
   proof (intro exI conjI)
-    show "Vector_Spaces.linear ( *s) ( *s) (\<lambda>y. B *v y)"
+    show "Vector_Spaces.linear (*s) (*s) (\<lambda>y. B *v y)"
       by simp
-    show "(( *v) B) \<circ> f = id"
+    show "((*v) B) \<circ> f = id"
       unfolding o_def
       by (metis assms 1 eq_id_iff matrix_vector_mul(1) matrix_vector_mul_assoc matrix_vector_mul_lid)
   qed
 next
   fix g
-  assume "Vector_Spaces.linear ( *s) ( *s) g" "g \<circ> f = id"
+  assume "Vector_Spaces.linear (*s) (*s) g" "g \<circ> f = id"
   then have "matrix g ** matrix f = mat 1"
     by (metis assms matrix_compose_gen matrix_id_mat_1)
   then show "\<exists>B. B ** matrix f = mat 1" ..
@@ -808,22 +808,22 @@ lemma%unimportant  matrix_left_invertible:
 
 lemma%unimportant  matrix_right_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a^'n"
-  assumes "Vector_Spaces.linear ( *s) ( *s) f"
-  shows "((\<exists>B. matrix f ** B = mat 1) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> f \<circ> g = id))"
+  assumes "Vector_Spaces.linear (*s) (*s) f"
+  shows "((\<exists>B. matrix f ** B = mat 1) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear (*s) (*s) g \<and> f \<circ> g = id))"
 proof safe
   fix B
   assume 1: "matrix f ** B = mat 1"
-  show "\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> f \<circ> g = id"
+  show "\<exists>g. Vector_Spaces.linear (*s) (*s) g \<and> f \<circ> g = id"
   proof (intro exI conjI)
-    show "Vector_Spaces.linear ( *s) ( *s) (( *v) B)"
+    show "Vector_Spaces.linear (*s) (*s) ((*v) B)"
       by simp
-    show "f \<circ> ( *v) B = id"
+    show "f \<circ> (*v) B = id"
       using 1 assms comp_apply eq_id_iff vec.linear_id matrix_id_mat_1 matrix_vector_mul_assoc matrix_works
       by (metis (no_types, hide_lams))
   qed
 next
   fix g
-  assume "Vector_Spaces.linear ( *s) ( *s) g" and "f \<circ> g = id"
+  assume "Vector_Spaces.linear (*s) (*s) g" and "f \<circ> g = id"
   then have "matrix f ** matrix g = mat 1"
     by (metis assms matrix_compose_gen matrix_id_mat_1)
   then show "\<exists>B. matrix f ** B = mat 1" ..
@@ -836,8 +836,8 @@ lemma%unimportant  matrix_right_invertible:
 
 lemma%unimportant  matrix_invertible_gen:
   fixes f :: "'a::field^'m \<Rightarrow> 'a::field^'n"
-  assumes "Vector_Spaces.linear ( *s) ( *s) f"
-  shows  "invertible (matrix f) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear ( *s) ( *s) g \<and> f \<circ> g = id \<and> g \<circ> f = id)"
+  assumes "Vector_Spaces.linear (*s) (*s) f"
+  shows  "invertible (matrix f) \<longleftrightarrow> (\<exists>g. Vector_Spaces.linear (*s) (*s) g \<and> f \<circ> g = id \<and> g \<circ> f = id)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs then show ?rhs
@@ -855,7 +855,7 @@ lemma%unimportant  matrix_invertible:
 
 lemma%unimportant  invertible_eq_bij:
   fixes m :: "'a::field^'m^'n"
-  shows "invertible m \<longleftrightarrow> bij (( *v) m)"
+  shows "invertible m \<longleftrightarrow> bij ((*v) m)"
   using matrix_invertible_gen[OF matrix_vector_mul_linear_gen, of m, simplified matrix_of_matrix_vector_mul]
   by (metis bij_betw_def left_right_inverse_eq matrix_vector_mul_linear_gen o_bij
       vec.linear_injective_left_inverse vec.linear_surjective_right_inverse)
@@ -1028,7 +1028,7 @@ proof%unimportant -
   let ?m1 = "mat 1 :: real ^'n^'n"
   {
     assume ot: ?ot
-    from ot have lf: "Vector_Spaces.linear ( *s) ( *s) f" and fd: "\<And>v w. f v \<bullet> f w = v \<bullet> w"
+    from ot have lf: "Vector_Spaces.linear (*s) (*s) f" and fd: "\<And>v w. f v \<bullet> f w = v \<bullet> w"
       unfolding orthogonal_transformation_def orthogonal_matrix linear_def scalar_mult_eq_scaleR
       by blast+
     {
@@ -1052,7 +1052,7 @@ proof%unimportant -
   }
   moreover
   {
-    assume lf: "Vector_Spaces.linear ( *s) ( *s) f" and om: "orthogonal_matrix ?mf"
+    assume lf: "Vector_Spaces.linear (*s) (*s) f" and om: "orthogonal_matrix ?mf"
     from lf om have ?lhs
       unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
       apply (simp only: matrix_works[OF lf, symmetric] dot_matrix_vector_mul)

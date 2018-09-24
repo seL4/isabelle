@@ -61,13 +61,13 @@ definition span :: "'b set \<Rightarrow> 'b set"
 definition dependent :: "'b set \<Rightarrow> bool"
   where dependent_on_def: "dependent s \<longleftrightarrow> (\<exists>t u. finite t \<and> t \<subseteq> s \<and> (sum (\<lambda>v. u v *s v) t = 0 \<and> (\<exists>v\<in>t. u v \<noteq> 0)))"
 
-lemma implicit_subspace_with[implicit_ab_group_add]: "subspace_with (+) 0 ( *s) = subspace"
+lemma implicit_subspace_with[implicit_ab_group_add]: "subspace_with (+) 0 (*s) = subspace"
   unfolding subspace_on_def subspace_with_def ..
 
-lemma implicit_dependent_with[implicit_ab_group_add]: "dependent_with (+) 0 ( *s) = dependent"
+lemma implicit_dependent_with[implicit_ab_group_add]: "dependent_with (+) 0 (*s) = dependent"
   unfolding dependent_on_def dependent_with_def sum_with ..
 
-lemma implicit_span_with[implicit_ab_group_add]: "span_with (+) 0 ( *s) = span"
+lemma implicit_span_with[implicit_ab_group_add]: "span_with (+) 0 (*s) = span"
   unfolding span_on_def span_with_def sum_with ..
 
 end
@@ -109,7 +109,7 @@ definition dim :: "'b set \<Rightarrow> nat"
     then card (SOME b. b \<subseteq> S \<and> \<not> dependent b \<and> span b = span V)
     else 0)"
 
-lemma implicit_dim_with[implicit_ab_group_add]: "dim_on_with S (+) 0 ( *s) = dim"
+lemma implicit_dim_with[implicit_ab_group_add]: "dim_on_with S (+) 0 (*s) = dim"
   unfolding dim_on_with_def dim_def implicit_ab_group_add ..
 
 end

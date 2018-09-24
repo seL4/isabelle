@@ -273,7 +273,7 @@ lift_definition minus_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a wo
 lift_definition uminus_word :: "'a word \<Rightarrow> 'a word" is uminus
   by (auto simp add: bintrunc_mod2p intro: mod_minus_cong)
 
-lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "( * )"
+lift_definition times_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> 'a word" is "(*)"
   by (auto simp add: bintrunc_mod2p intro: mod_mult_cong)
 
 definition word_div_def: "a div b = word_of_int (uint a div uint b)"

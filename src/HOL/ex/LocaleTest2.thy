@@ -738,7 +738,7 @@ end
 
 
 locale Dgrp = Dmonoid +
-  assumes unit [intro, simp]: "Dmonoid.unit (( ** )) one x"
+  assumes unit [intro, simp]: "Dmonoid.unit ((**)) one x"
 
 begin
 

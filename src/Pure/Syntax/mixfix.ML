@@ -172,12 +172,8 @@ val binder_stamp = stamp ();
 val binder_name = suffix "_binder";
 
 fun mk_prefix sy =
-  let
-    fun star1 sys = (fst(hd sys) = "*");
-    val sy' = Input.source_explode (Input.reset_pos sy); 
-    val lpar = Symbol_Pos.explode0 ("'(" ^ (if star1 sy' then " " else ""));
-    val rpar = Symbol_Pos.explode0 ((if star1(rev sy') then " " else "") ^ "')")
- in lpar @ sy' @ rpar end
+  let val sy' = Input.source_explode (Input.reset_pos sy); 
+  in Symbol_Pos.explode0 "'(" @ sy' @ Symbol_Pos.explode0 "')" end
 
 fun syn_ext_consts logical_types const_decls =
   let

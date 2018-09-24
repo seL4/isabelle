@@ -257,7 +257,7 @@ fun expr_to_term e =
       | expr_to_term' (Add (a, b)) = 
           @{term "(+) :: real => _"} $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Mult (a, b)) = 
-          @{term "( *) :: real => _"} $ expr_to_term' a $ expr_to_term' b
+          @{term "(*) :: real => _"} $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Minus (a, b)) = 
           @{term "(-) :: real => _"} $ expr_to_term' a $ expr_to_term' b
       | expr_to_term' (Div (a, b)) = 
@@ -354,7 +354,7 @@ fun reify_aux ctxt t' t =
           Add (reify' s, reify' t)
       | reify'' (@{term "(-) :: real => _"} $ s $ t) =
           Minus (reify' s, reify' t)
-      | reify'' (@{term "( *) :: real => _"} $ s $ t) =
+      | reify'' (@{term "(*) :: real => _"} $ s $ t) =
           Mult (reify' s, reify' t)
       | reify'' (@{term "(/) :: real => _"} $ s $ t) =
           Div (reify' s, reify' t)
@@ -435,7 +435,7 @@ fun reify_simple_aux ctxt t' t =
           Add (reify'' s, reify'' t)
       | reify'' (@{term "(-) :: real => _"} $ s $ t) =
           Minus (reify'' s, reify'' t)
-      | reify'' (@{term "( *) :: real => _"} $ s $ t) =
+      | reify'' (@{term "(*) :: real => _"} $ s $ t) =
           Mult (reify'' s, reify'' t)
       | reify'' (@{term "(/) :: real => _"} $ s $ t) =
           Div (reify'' s, reify'' t)
@@ -509,7 +509,7 @@ fun simple_print_const (Free (x, _)) = x
       "(" ^ simple_print_const a ^ "+" ^ simple_print_const b ^ ")"
   | simple_print_const (@{term "(-) :: real => _"} $ a $ b) =
       "(" ^ simple_print_const a ^ "-" ^ simple_print_const b ^ ")"
-  | simple_print_const (@{term "( * ) :: real => _"} $ a $ b) =
+  | simple_print_const (@{term "(*) :: real => _"} $ a $ b) =
       "(" ^ simple_print_const a ^ "*" ^ simple_print_const b ^ ")"
   | simple_print_const (@{term "inverse :: real => _"} $ a) =
       "(1 / " ^ simple_print_const a ^ ")"

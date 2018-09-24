@@ -39,7 +39,7 @@ fun clamp n = if n < 0 then 0 else n
 
 fun eval_nat (@{term "(+) :: nat => _"} $ a $ b) = bin (op +) (a, b)
   | eval_nat (@{term "(-) :: nat => _"} $ a $ b) = bin (clamp o op -) (a, b)
-  | eval_nat (@{term "( * ) :: nat => _"} $ a $ b) = bin (op *) (a, b)
+  | eval_nat (@{term "(*) :: nat => _"} $ a $ b) = bin (op *) (a, b)
   | eval_nat (@{term "(div) :: nat => _"} $ a $ b) = bin Int.div (a, b)
   | eval_nat (@{term "(^) :: nat => _"} $ a $ b) = bin (fn (a,b) => Integer.pow a b) (a, b)
   | eval_nat (t as (@{term "numeral :: _ => nat"} $ _)) = snd (HOLogic.dest_number t)
@@ -65,7 +65,7 @@ fun sgn n =
 
 fun eval (@{term "(+) :: real => _"} $ a $ b) = eval a + eval b
   | eval (@{term "(-) :: real => _"} $ a $ b) = eval a - eval b
-  | eval (@{term "( * ) :: real => _"} $ a $ b) = eval a * eval b
+  | eval (@{term "(*) :: real => _"} $ a $ b) = eval a * eval b
   | eval (@{term "(/) :: real => _"} $ a $ b) =
       let val a = eval a; val b = eval b in
         if Real.==(b, Real.fromInt 0) then nan else a / b

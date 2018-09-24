@@ -878,9 +878,9 @@ lemma module_hom_scale: "module_hom s1 s2 f \<Longrightarrow> module_hom s1 s2 (
 
 lemma module_hom_compose_scale:
   "module_hom s1 s2 (\<lambda>x. s2 (f x) (c))"
-  if "module_hom s1 ( *) f"
+  if "module_hom s1 (*) f"
 proof -
-  interpret mh: module_hom s1 "( *)" f by fact
+  interpret mh: module_hom s1 "(*)" f by fact
   show ?thesis
     by unfold_locales (simp_all add: mh.add mh.scale m2.scale_left_distrib)
 qed
@@ -913,7 +913,7 @@ lemma module_hom_scale_self[simp]:
   using module_axioms module_hom_iff scale_left_commute scale_right_distrib by blast
 
 lemma module_hom_scale_left[simp]:
-  "module_hom ( *) scale (\<lambda>r. scale r x)"
+  "module_hom (*) scale (\<lambda>r. scale r x)"
   by unfold_locales (auto simp: algebra_simps)
 
 lemma module_hom_id: "module_hom scale scale id"

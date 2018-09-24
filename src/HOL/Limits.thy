@@ -826,7 +826,7 @@ by (rule continuous_on_mult [OF _ continuous_on_const])
 
 lemma continuous_on_mult_const [simp]:
   fixes c::"'a::real_normed_algebra"
-  shows "continuous_on s (( *) c)"
+  shows "continuous_on s ((*) c)"
   by (intro continuous_on_mult_left continuous_on_id)
 
 lemma tendsto_divide_zero:

@@ -413,7 +413,7 @@ end
 
 instantiation star :: (times) times
 begin
-  definition star_mult_def: "(( * )) \<equiv> *f2* (( * ))"
+  definition star_mult_def: "((*)) \<equiv> *f2* ((*))"
   instance ..
 end
 

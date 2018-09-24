@@ -697,7 +697,7 @@ lemma bounded_linear_blinfun_inner_left[bounded_linear]: "bounded_linear blinfun
   by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_inner])
 
 
-lift_definition blinfun_scaleR_right::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_vector" is "( *\<^sub>R)"
+lift_definition blinfun_scaleR_right::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_vector" is "(*\<^sub>R)"
   by (rule bounded_linear_scaleR_right)
 declare blinfun_scaleR_right.rep_eq[simp]
 
@@ -713,7 +713,7 @@ lemma bounded_linear_blinfun_scaleR_left[bounded_linear]: "bounded_linear blinfu
   by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_scaleR])
 
 
-lift_definition blinfun_mult_right::"'a \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_algebra" is "( * )"
+lift_definition blinfun_mult_right::"'a \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_algebra" is "(*)"
   by (rule bounded_linear_mult_right)
 declare blinfun_mult_right.rep_eq[simp]
 

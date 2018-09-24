@@ -328,13 +328,13 @@ fun cterm_of_monomial m =
     let
       val m' = FuncUtil.dest_monomial m
       val vps = fold_rev (fn (x,k) => cons (cterm_of_varpow x k)) m' []
-    in foldr1 (fn (s, t) => Thm.apply (Thm.apply \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close> s) t) vps
+    in foldr1 (fn (s, t) => Thm.apply (Thm.apply \<^cterm>\<open>(*) :: real \<Rightarrow> _\<close> s) t) vps
     end
 
 fun cterm_of_cmonomial (m,c) =
   if FuncUtil.Ctermfunc.is_empty m then cterm_of_rat c
   else if c = @1 then cterm_of_monomial m
-  else Thm.apply (Thm.apply \<^cterm>\<open>( * )::real \<Rightarrow> _\<close> (cterm_of_rat c)) (cterm_of_monomial m);
+  else Thm.apply (Thm.apply \<^cterm>\<open>(*)::real \<Rightarrow> _\<close> (cterm_of_rat c)) (cterm_of_monomial m);
 
 fun cterm_of_poly p =
   if FuncUtil.Monomialfunc.is_empty p then \<^cterm>\<open>0::real\<close>
@@ -680,7 +680,7 @@ local
           in
             if opr aconvc \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close>
             then linear_add (lin_of_hol l) (lin_of_hol r)
-            else if opr aconvc \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close>
+            else if opr aconvc \<^cterm>\<open>(*) :: real \<Rightarrow> _\<close>
                     andalso is_ratconst l then FuncUtil.Ctermfunc.onefunc (r, dest_ratconst l)
             else FuncUtil.Ctermfunc.onefunc (ct, @1)
           end

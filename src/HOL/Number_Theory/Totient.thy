@@ -239,11 +239,11 @@ lemma totient_prime_power_Suc:
   assumes "prime p"
   shows   "totient (p ^ Suc n) = p ^ n * (p - 1)"
 proof -
-  from assms have "totient (p ^ Suc n) = card ({0<..p ^ Suc n} - ( * ) p ` {0<..p ^ n})"
+  from assms have "totient (p ^ Suc n) = card ({0<..p ^ Suc n} - (*) p ` {0<..p ^ n})"
     unfolding totient_def by (subst totatives_prime_power_Suc) simp_all
-  also from assms have "\<dots> = p ^ Suc n - card (( * ) p ` {0<..p^n})"
+  also from assms have "\<dots> = p ^ Suc n - card ((*) p ` {0<..p^n})"
     by (subst card_Diff_subset) (auto intro: prime_gt_0_nat)
-  also from assms have "card (( * ) p ` {0<..p^n}) = p ^ n"
+  also from assms have "card ((*) p ` {0<..p^n}) = p ^ n"
     by (subst card_image) (auto simp: inj_on_def)
   also have "p ^ Suc n - p ^ n = p ^ n * (p - 1)" by (simp add: algebra_simps)
   finally show ?thesis .

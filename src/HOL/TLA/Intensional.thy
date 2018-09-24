@@ -119,7 +119,7 @@ translations
   "_liftIf"       == "_lift3 (CONST If)"
   "_liftPlus"     == "_lift2 (+)"
   "_liftMinus"    == "_lift2 (-)"
-  "_liftTimes"    == "_lift2 (( * ))"
+  "_liftTimes"    == "_lift2 ((*))"
   "_liftDiv"      == "_lift2 (div)"
   "_liftMod"      == "_lift2 (mod)"
   "_liftLess"     == "_lift2 (<)"

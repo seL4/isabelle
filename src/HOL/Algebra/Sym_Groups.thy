@@ -13,7 +13,7 @@ definition sym_group :: "nat \<Rightarrow> (nat \<Rightarrow> nat) monoid"
   where "sym_group n = \<lparr> carrier = { p. p permutes {1..n} }, mult = (\<circ>), one = id \<rparr>"
 
 definition sign_img :: "int monoid"
-  where "sign_img = \<lparr> carrier = { -1, 1 }, mult = ( * ), one = 1 \<rparr>"
+  where "sign_img = \<lparr> carrier = { -1, 1 }, mult = (*), one = 1 \<rparr>"
 
 
 lemma sym_group_is_group: "group (sym_group n)"

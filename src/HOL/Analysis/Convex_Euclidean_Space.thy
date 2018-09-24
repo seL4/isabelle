@@ -664,7 +664,7 @@ lemma convex_affinity:
   assumes "convex S"
   shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` S)"
 proof -
-  have "(\<lambda>x. a + c *\<^sub>R x) ` S = (+) a ` ( *\<^sub>R) c ` S"
+  have "(\<lambda>x. a + c *\<^sub>R x) ` S = (+) a ` (*\<^sub>R) c ` S"
     by auto
   then show ?thesis
     using convex_translation[OF convex_scaling[OF assms], of a c] by auto
@@ -1229,12 +1229,12 @@ lemma closure_bounded_linear_image:
 
 lemma closure_scaleR:
   fixes S :: "'a::real_normed_vector set"
-  shows "(( *\<^sub>R) c) ` (closure S) = closure ((( *\<^sub>R) c) ` S)"
+  shows "((*\<^sub>R) c) ` (closure S) = closure (((*\<^sub>R) c) ` S)"
 proof
-  show "(( *\<^sub>R) c) ` (closure S) \<subseteq> closure ((( *\<^sub>R) c) ` S)"
+  show "((*\<^sub>R) c) ` (closure S) \<subseteq> closure (((*\<^sub>R) c) ` S)"
     using bounded_linear_scaleR_right
     by (rule closure_bounded_linear_image_subset)
-  show "closure ((( *\<^sub>R) c) ` S) \<subseteq> (( *\<^sub>R) c) ` (closure S)"
+  show "closure (((*\<^sub>R) c) ` S) \<subseteq> ((*\<^sub>R) c) ` (closure S)"
     by (intro closure_minimal image_mono closure_subset closed_scaling closed_closure)
 qed
 
@@ -1945,7 +1945,7 @@ lemma cone_Union[intro]: "(\<forall>s\<in>f. cone s) \<longrightarrow> cone (\<U
 
 lemma cone_iff:
   assumes "S \<noteq> {}"
-  shows "cone S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (( *\<^sub>R) c) ` S = S)"
+  shows "cone S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ((*\<^sub>R) c) ` S = S)"
 proof -
   {
     assume "cone S"
@@ -1955,7 +1955,7 @@ proof -
       {
         fix x
         assume "x \<in> S"
-        then have "x \<in> (( *\<^sub>R) c) ` S"
+        then have "x \<in> ((*\<^sub>R) c) ` S"
           unfolding image_def
           using \<open>cone S\<close> \<open>c>0\<close> mem_cone[of S x "1/c"]
             exI[of "(\<lambda>t. t \<in> S \<and> x = c *\<^sub>R t)" "(1 / c) *\<^sub>R x"]
@@ -1964,19 +1964,19 @@ proof -
       moreover
       {
         fix x
-        assume "x \<in> (( *\<^sub>R) c) ` S"
+        assume "x \<in> ((*\<^sub>R) c) ` S"
         then have "x \<in> S"
           using \<open>cone S\<close> \<open>c > 0\<close>
           unfolding cone_def image_def \<open>c > 0\<close> by auto
       }
-      ultimately have "(( *\<^sub>R) c) ` S = S" by auto
+      ultimately have "((*\<^sub>R) c) ` S = S" by auto
     }
-    then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (( *\<^sub>R) c) ` S = S)"
+    then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ((*\<^sub>R) c) ` S = S)"
       using \<open>cone S\<close> cone_contains_0[of S] assms by auto
   }
   moreover
   {
-    assume a: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (( *\<^sub>R) c) ` S = S)"
+    assume a: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ((*\<^sub>R) c) ` S = S)"
     {
       fix x
       assume "x \<in> S"
@@ -2061,9 +2061,9 @@ proof (cases "S = {}")
   then show ?thesis by auto
 next
   case False
-  then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` S = S)"
+  then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` S = S)"
     using cone_iff[of S] assms by auto
-  then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` closure S = closure S)"
+  then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` closure S = closure S)"
     using closure_subset by (auto simp: closure_scaleR)
   then show ?thesis
     using False cone_iff[of "closure S"] by auto
@@ -5705,19 +5705,19 @@ proof (cases "S = {}")
   then show ?thesis by auto
 next
   case False
-  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> ( *\<^sub>R) c ` S = S)"
+  then have *: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (*\<^sub>R) c ` S = S)"
     using cone_iff[of S] assms by auto
   {
     fix c :: real
     assume "c > 0"
-    then have "( *\<^sub>R) c ` (convex hull S) = convex hull (( *\<^sub>R) c ` S)"
+    then have "(*\<^sub>R) c ` (convex hull S) = convex hull ((*\<^sub>R) c ` S)"
       using convex_hull_scaling[of _ S] by auto
     also have "\<dots> = convex hull S"
       using * \<open>c > 0\<close> by auto
-    finally have "( *\<^sub>R) c ` (convex hull S) = convex hull S"
+    finally have "(*\<^sub>R) c ` (convex hull S) = convex hull S"
       by auto
   }
-  then have "0 \<in> convex hull S" "\<And>c. c > 0 \<Longrightarrow> (( *\<^sub>R) c ` (convex hull S)) = (convex hull S)"
+  then have "0 \<in> convex hull S" "\<And>c. c > 0 \<Longrightarrow> ((*\<^sub>R) c ` (convex hull S)) = (convex hull S)"
     using * hull_subset[of S convex] by auto
   then show ?thesis
     using \<open>S \<noteq> {}\<close> cone_iff[of "convex hull S"] by auto
@@ -6403,7 +6403,7 @@ proof -
     assume "y \<in> cbox (x - ?d) (x + ?d)"
     then have "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> cbox 0 (\<Sum>Basis)"
       using assms by (simp add: mem_box field_simps inner_simps)
-    with \<open>0 < d\<close> show "y \<in> (\<lambda>y. x - sum (( *\<^sub>R) d) Basis + (2 * d) *\<^sub>R y) ` cbox 0 One"
+    with \<open>0 < d\<close> show "y \<in> (\<lambda>y. x - sum ((*\<^sub>R) d) Basis + (2 * d) *\<^sub>R y) ` cbox 0 One"
       by (auto intro: image_eqI[where x= "inverse (2 * d) *\<^sub>R (y - (x - ?d))"])
   next
     fix y

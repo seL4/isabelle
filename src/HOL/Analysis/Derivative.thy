@@ -52,7 +52,7 @@ lemma has_derivative_within_open:
 lemma has_derivative_right:
   fixes f :: "real \<Rightarrow> real"
     and y :: "real"
-  shows "(f has_derivative (( * ) y)) (at x within ({x <..} \<inter> I)) \<longleftrightarrow>
+  shows "(f has_derivative ((*) y)) (at x within ({x <..} \<inter> I)) \<longleftrightarrow>
          ((\<lambda>t. (f x - f t) / (x - t)) \<longlongrightarrow> y) (at x within ({x <..} \<inter> I))"
 proof -
   have "((\<lambda>t. (f t - (f x + y * (t - x))) / \<bar>t - x\<bar>) \<longlongrightarrow> 0) (at x within ({x<..} \<inter> I)) \<longleftrightarrow>
@@ -983,7 +983,7 @@ lemma has_field_derivative_zero_constant:
   assumes "convex s" "\<And>x. x \<in> s \<Longrightarrow> (f has_field_derivative 0) (at x within s)"
   shows   "\<exists>c. \<forall>x\<in>s. f (x) = (c :: 'a :: real_normed_field)"
 proof (rule has_derivative_zero_constant)
-  have A: "( * ) 0 = (\<lambda>_. 0 :: 'a)" by (intro ext) simp
+  have A: "(*) 0 = (\<lambda>_. 0 :: 'a)" by (intro ext) simp
   fix x assume "x \<in> s" thus "(f has_derivative (\<lambda>h. 0)) (at x within s)"
     using assms(2)[of x] by (simp add: has_field_derivative_def A)
 qed fact
@@ -1911,9 +1911,9 @@ proof -
   then obtain g where g: "\<And>x. x \<in> S \<Longrightarrow> (\<lambda>n. f n x) sums g x"
     "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)" by blast
   from g[OF x] show "summable (\<lambda>n. f n x)" by (auto simp: summable_def)
-  from g(2)[OF x] have g': "(g has_derivative ( * ) (g' x)) (at x)"
+  from g(2)[OF x] have g': "(g has_derivative (*) (g' x)) (at x)"
     by (simp add: has_field_derivative_def S)
-  have "((\<lambda>x. \<Sum>n. f n x) has_derivative ( * ) (g' x)) (at x)"
+  have "((\<lambda>x. \<Sum>n. f n x) has_derivative (*) (g' x)) (at x)"
     by (rule has_derivative_transform_within_open[OF g' \<open>open S\<close> x])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)" unfolding differentiable_def
@@ -2218,7 +2218,7 @@ lemma field_differentiable_at_within:
   unfolding field_differentiable_def
   by (metis DERIV_subset top_greatest)
 
-lemma field_differentiable_linear [simp,derivative_intros]: "(( * ) c) field_differentiable F"
+lemma field_differentiable_linear [simp,derivative_intros]: "((*) c) field_differentiable F"
   unfolding field_differentiable_def has_field_derivative_def mult_commute_abs
   by (force intro: has_derivative_mult_right)
 

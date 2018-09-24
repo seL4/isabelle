@@ -221,7 +221,7 @@ local
   val neg_tm = \<^cterm>\<open>uminus :: real \<Rightarrow> _\<close>
   val add_tm = \<^cterm>\<open>(+) :: real \<Rightarrow> _\<close>
   val sub_tm = \<^cterm>\<open>(-) :: real \<Rightarrow> _\<close>
-  val mul_tm = \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close>
+  val mul_tm = \<^cterm>\<open>(*) :: real \<Rightarrow> _\<close>
   val inv_tm = \<^cterm>\<open>inverse :: real \<Rightarrow> _\<close>
   val div_tm = \<^cterm>\<open>(/) :: real \<Rightarrow> _\<close>
   val pow_tm = \<^cterm>\<open>(^) :: real \<Rightarrow> _\<close>
@@ -862,7 +862,7 @@ local
       Free (_, \<^typ>\<open>real\<close>) =>
         if not (member (op aconvc) fvs tm) then (@1, tm)
         else raise Failure "substitutable_monomial"
-    | \<^term>\<open>( * ) :: real \<Rightarrow> _\<close> $ _ $ (Free _) =>
+    | \<^term>\<open>(*) :: real \<Rightarrow> _\<close> $ _ $ (Free _) =>
         if RealArith.is_ratconst (Thm.dest_arg1 tm) andalso
           not (member (op aconvc) fvs (Thm.dest_arg tm))
         then (RealArith.dest_ratconst (Thm.dest_arg1 tm), Thm.dest_arg tm)
@@ -899,7 +899,7 @@ fun real_nonlinear_subst_prover prover ctxt =
         val (c,v) = substitutable_monomial [] (Thm.dest_arg1(concl th))
         val th1 =
           Drule.arg_cong_rule
-            (Thm.apply \<^cterm>\<open>( * ) :: real \<Rightarrow> _\<close> (RealArith.cterm_of_rat (Rat.inv c)))
+            (Thm.apply \<^cterm>\<open>(*) :: real \<Rightarrow> _\<close> (RealArith.cterm_of_rat (Rat.inv c)))
             (mk_meta_eq th)
         val th2 = fconv_rule (binop_conv (real_poly_mul_conv ctxt)) th1
       in fconv_rule (arg_conv (real_poly_conv ctxt)) (isolate_variable v th2) end
@@ -943,7 +943,7 @@ val known_sos_constants =
    \<^term>\<open>(=) :: real \<Rightarrow> _\<close>, \<^term>\<open>(<) :: real \<Rightarrow> _\<close>,
    \<^term>\<open>(\<le>) :: real \<Rightarrow> _\<close>,
    \<^term>\<open>(+) :: real \<Rightarrow> _\<close>, \<^term>\<open>(-) :: real \<Rightarrow> _\<close>,
-   \<^term>\<open>( * ) :: real \<Rightarrow> _\<close>, \<^term>\<open>uminus :: real \<Rightarrow> _\<close>,
+   \<^term>\<open>(*) :: real \<Rightarrow> _\<close>, \<^term>\<open>uminus :: real \<Rightarrow> _\<close>,
    \<^term>\<open>(/) :: real \<Rightarrow> _\<close>, \<^term>\<open>inverse :: real \<Rightarrow> _\<close>,
    \<^term>\<open>(^) :: real \<Rightarrow> _\<close>, \<^term>\<open>abs :: real \<Rightarrow> _\<close>,
    \<^term>\<open>min :: real \<Rightarrow> _\<close>, \<^term>\<open>max :: real \<Rightarrow> _\<close>,

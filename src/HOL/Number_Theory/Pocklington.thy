@@ -731,7 +731,7 @@ subsection \<open>Prime factorizations\<close>
 
 (* FIXME some overlap with material in UniqueFactorization, class unique_factorization *)
 
-definition "primefact ps n \<longleftrightarrow> foldr ( * ) ps 1 = n \<and> (\<forall>p\<in> set ps. prime p)"
+definition "primefact ps n \<longleftrightarrow> foldr (*) ps 1 = n \<and> (\<forall>p\<in> set ps. prime p)"
 
 lemma primefact:
   fixes n :: nat
@@ -743,8 +743,8 @@ proof -
   from assms have "n = prod_mset (prime_factorization n)"
     by (simp add: prod_mset_prime_factorization)
   also have "\<dots> = prod_mset (mset xs)" by (simp add: xs)
-  also have "\<dots> = foldr ( * ) xs 1" by (induct xs) simp_all
-  finally have "foldr ( * ) xs 1 = n" ..
+  also have "\<dots> = foldr (*) xs 1" by (induct xs) simp_all
+  finally have "foldr (*) xs 1 = n" ..
   moreover from xs have "\<forall>p\<in>#mset xs. prime p" by auto
   ultimately have "primefact xs n" by (auto simp: primefact_def)
   then show ?thesis ..
@@ -763,10 +763,10 @@ proof (induct ps arbitrary: p n)
 next
   case (Cons q qs)
   from Cons.prems[unfolded primefact_def]
-  have q: "prime q" "q * foldr ( * ) qs 1 = n" "\<forall>p \<in>set qs. prime p"
-    and p: "prime p" "p dvd q * foldr ( * ) qs 1"
+  have q: "prime q" "q * foldr (*) qs 1 = n" "\<forall>p \<in>set qs. prime p"
+    and p: "prime p" "p dvd q * foldr (*) qs 1"
     by simp_all
-  consider "p dvd q" | "p dvd foldr ( * ) qs 1"
+  consider "p dvd q" | "p dvd foldr (*) qs 1"
     by (metis p prime_dvd_mult_eq_nat)
   then show ?case
   proof cases
@@ -776,19 +776,19 @@ next
     then show ?thesis by simp
   next
     case prem: 2
-    from q(3) have pqs: "primefact qs (foldr ( * ) qs 1)"
+    from q(3) have pqs: "primefact qs (foldr (*) qs 1)"
       by (simp add: primefact_def)
     from Cons.hyps[OF pqs p(1) prem] show ?thesis by simp
   qed
 qed
 
-lemma primefact_variant: "primefact ps n \<longleftrightarrow> foldr ( * ) ps 1 = n \<and> list_all prime ps"
+lemma primefact_variant: "primefact ps n \<longleftrightarrow> foldr (*) ps 1 = n \<and> list_all prime ps"
   by (auto simp add: primefact_def list_all_iff)
 
 text \<open>Variant of Lucas theorem.\<close>
 lemma lucas_primefact:
   assumes n: "n \<ge> 2" and an: "[a^(n - 1) = 1] (mod n)"
-    and psn: "foldr ( * ) ps 1 = n - 1"
+    and psn: "foldr (*) ps 1 = n - 1"
     and psp: "list_all (\<lambda>p. prime p \<and> \<not> [a^((n - 1) div p) = 1] (mod n)) ps"
   shows "prime n"
 proof -
@@ -806,7 +806,7 @@ qed
 text \<open>Variant of Pocklington theorem.\<close>
 lemma pocklington_primefact:
   assumes n: "n \<ge> 2" and qrn: "q*r = n - 1" and nq2: "n \<le> q\<^sup>2"
-    and arnb: "(a^r) mod n = b" and psq: "foldr ( * ) ps 1 = q"
+    and arnb: "(a^r) mod n = b" and psq: "foldr (*) ps 1 = q"
     and bqn: "(b^q) mod n = 1"
     and psp: "list_all (\<lambda>p. prime p \<and> coprime ((b^(q div p)) mod n - 1) n) ps"
   shows "prime n"

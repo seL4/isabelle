@@ -60,7 +60,7 @@ code_printing
     and (OCaml) "Pervasives.( +. )"
 
 code_printing
-  constant "( * ) :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
+  constant "(*) :: real \<Rightarrow> real \<Rightarrow> real" \<rightharpoonup>
     (SML) "Real.* ((_), (_))"
     and (OCaml) "Pervasives.( *. )"
 

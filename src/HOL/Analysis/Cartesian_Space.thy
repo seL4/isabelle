@@ -20,7 +20,7 @@ lemma%unimportant card_cart_basis: "card (cart_basis::('a::zero_neq_one^'i) set)
   unfolding cart_basis_def Setcompr_eq_image
   by (rule card_image) (auto simp: inj_on_def axis_eq_axis)
 
-interpretation vec: vector_space "( *s) "
+interpretation vec: vector_space "(*s) "
   by unfold_locales (vector algebra_simps)+
 
 lemma%unimportant independent_cart_basis:
@@ -90,11 +90,11 @@ proof (auto)
 qed
 
 (*Some interpretations:*)
-interpretation vec: finite_dimensional_vector_space "( *s)" "cart_basis"
+interpretation vec: finite_dimensional_vector_space "(*s)" "cart_basis"
   by (unfold_locales, auto simp add: finite_cart_basis independent_cart_basis span_cart_basis)
 
 lemma%unimportant matrix_vector_mul_linear_gen[intro, simp]:
-  "Vector_Spaces.linear ( *s) ( *s) (( *v) A)"
+  "Vector_Spaces.linear (*s) (*s) ((*v) A)"
   by unfold_locales
     (vector matrix_vector_mult_def sum.distrib algebra_simps)+
 
@@ -108,10 +108,10 @@ lemma%important span_vec_eq: "vec.span X = span X"
 
 lemma%important linear_componentwise:
   fixes f:: "'a::field ^'m \<Rightarrow> 'a ^ 'n"
-  assumes lf: "Vector_Spaces.linear ( *s) ( *s) f"
+  assumes lf: "Vector_Spaces.linear (*s) (*s) f"
   shows "(f x)$j = sum (\<lambda>i. (x$i) * (f (axis i 1)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
 proof%unimportant -
-  interpret lf: Vector_Spaces.linear "( *s)" "( *s)" f
+  interpret lf: Vector_Spaces.linear "(*s)" "(*s)" f
     using lf .
   let ?M = "(UNIV :: 'm set)"
   let ?N = "(UNIV :: 'n set)"
@@ -123,13 +123,13 @@ proof%unimportant -
     unfolding basis_expansion by auto
 qed
 
-interpretation vec: Vector_Spaces.linear "( *s)" "( *s)" "( *v) A"
+interpretation vec: Vector_Spaces.linear "(*s)" "(*s)" "(*v) A"
   using matrix_vector_mul_linear_gen.
 
-interpretation vec: finite_dimensional_vector_space_pair "( *s)" cart_basis "( *s)" cart_basis ..
+interpretation vec: finite_dimensional_vector_space_pair "(*s)" cart_basis "(*s)" cart_basis ..
 
 lemma%unimportant matrix_works:
-  assumes lf: "Vector_Spaces.linear ( *s) ( *s) f"
+  assumes lf: "Vector_Spaces.linear (*s) (*s) f"
   shows "matrix f *v x = f (x::'a::field ^ 'n)"
   apply (simp add: matrix_def matrix_vector_mult_def vec_eq_iff mult.commute)
   apply clarify
@@ -140,8 +140,8 @@ lemma%unimportant matrix_of_matrix_vector_mul[simp]: "matrix(\<lambda>x. A *v (x
   by (simp add: matrix_eq matrix_works)
 
 lemma%unimportant matrix_compose_gen:
-  assumes lf: "Vector_Spaces.linear ( *s) ( *s) (f::'a::{field}^'n \<Rightarrow> 'a^'m)"
-    and lg: "Vector_Spaces.linear ( *s) ( *s) (g::'a^'m \<Rightarrow> 'a^_)"
+  assumes lf: "Vector_Spaces.linear (*s) (*s) (f::'a::{field}^'n \<Rightarrow> 'a^'m)"
+    and lg: "Vector_Spaces.linear (*s) (*s) (g::'a^'m \<Rightarrow> 'a^_)"
   shows "matrix (g o f) = matrix g ** matrix f"
   using lf lg Vector_Spaces.linear_compose[OF lf lg] matrix_works[OF Vector_Spaces.linear_compose[OF lf lg]]
   by (simp add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
@@ -161,11 +161,11 @@ lemma%unimportant right_invertible_transpose:
   by (metis matrix_transpose_mul transpose_mat transpose_transpose)
 
 lemma%unimportant linear_matrix_vector_mul_eq:
-  "Vector_Spaces.linear ( *s) ( *s) f \<longleftrightarrow> linear (f :: real^'n \<Rightarrow> real ^'m)"
+  "Vector_Spaces.linear (*s) (*s) f \<longleftrightarrow> linear (f :: real^'n \<Rightarrow> real ^'m)"
   by (simp add: scalar_mult_eq_scaleR linear_def)
 
 lemma%unimportant matrix_vector_mul[simp]:
-  "Vector_Spaces.linear ( *s) ( *s) g \<Longrightarrow> (\<lambda>y. matrix g *v y) = g"
+  "Vector_Spaces.linear (*s) (*s) g \<Longrightarrow> (\<lambda>y. matrix g *v y) = g"
   "linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
   "bounded_linear f \<Longrightarrow> (\<lambda>x. matrix f *v x) = f"
   for f :: "real^'n \<Rightarrow> real ^'m"
@@ -173,20 +173,20 @@ lemma%unimportant matrix_vector_mul[simp]:
 
 lemma%important matrix_left_invertible_injective:
   fixes A :: "'a::field^'n^'m"
-  shows "(\<exists>B. B ** A = mat 1) \<longleftrightarrow> inj (( *v) A)"
+  shows "(\<exists>B. B ** A = mat 1) \<longleftrightarrow> inj ((*v) A)"
 proof%unimportant safe
   fix B
   assume B: "B ** A = mat 1"
-  show "inj (( *v) A)"
+  show "inj ((*v) A)"
     unfolding inj_on_def
       by (metis B matrix_vector_mul_assoc matrix_vector_mul_lid)
 next
-  assume "inj (( *v) A)"
+  assume "inj ((*v) A)"
   from vec.linear_injective_left_inverse[OF matrix_vector_mul_linear_gen this]
-  obtain g where "Vector_Spaces.linear ( *s) ( *s) g" and g: "g \<circ> ( *v) A = id"
+  obtain g where "Vector_Spaces.linear (*s) (*s) g" and g: "g \<circ> (*v) A = id"
     by blast
   have "matrix g ** A = mat 1"
-    by (metis matrix_vector_mul_linear_gen \<open>Vector_Spaces.linear ( *s) ( *s) g\<close> g matrix_compose_gen
+    by (metis matrix_vector_mul_linear_gen \<open>Vector_Spaces.linear (*s) (*s) g\<close> g matrix_compose_gen
         matrix_eq matrix_id_mat_1 matrix_vector_mul(1))
   then show "\<exists>B. B ** A = mat 1"
     by metis
@@ -206,11 +206,11 @@ proof%unimportant -
     { fix x :: "'a ^ 'm"
       have "A *v (B *v x) = x"
         by (simp add: matrix_vector_mul_assoc AB) }
-    hence "surj (( *v) A)" unfolding surj_def by metis }
+    hence "surj ((*v) A)" unfolding surj_def by metis }
   moreover
-  { assume sf: "surj (( *v) A)"
+  { assume sf: "surj ((*v) A)"
     from vec.linear_surjective_right_inverse[OF _ this]
-    obtain g:: "'a ^'m \<Rightarrow> 'a ^'n" where g: "Vector_Spaces.linear ( *s) ( *s) g" "( *v) A \<circ> g = id"
+    obtain g:: "'a ^'m \<Rightarrow> 'a ^'n" where g: "Vector_Spaces.linear (*s) (*s) g" "(*v) A \<circ> g = id"
       by blast
 
     have "A ** (matrix g) = mat 1"
@@ -339,11 +339,11 @@ lemma%important matrix_left_right_inverse:
 proof%unimportant -
   { fix A A' :: "'a ^'n^'n"
     assume AA': "A ** A' = mat 1"
-    have sA: "surj (( *v) A)"
+    have sA: "surj ((*v) A)"
       using AA' matrix_right_invertible_surjective by auto
     from vec.linear_surjective_isomorphism[OF matrix_vector_mul_linear_gen sA]
     obtain f' :: "'a ^'n \<Rightarrow> 'a ^'n"
-      where f': "Vector_Spaces.linear ( *s) ( *s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x" by blast
+      where f': "Vector_Spaces.linear (*s) (*s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x" by blast
     have th: "matrix f' ** A = mat 1"
       by (simp add: matrix_eq matrix_works[OF f'(1)]
           matrix_vector_mul_assoc[symmetric] f'(2)[rule_format])
@@ -448,13 +448,13 @@ proof%unimportant -
   finally show ?thesis .
 qed
 
-interpretation vector_space_over_itself: vector_space "( *) :: 'a::field => 'a => 'a"
+interpretation vector_space_over_itself: vector_space "(*) :: 'a::field => 'a => 'a"
   by unfold_locales (simp_all add: algebra_simps)
 
 lemmas [simp del] = vector_space_over_itself.scale_scale
 
 interpretation vector_space_over_itself: finite_dimensional_vector_space
-  "( *) :: 'a::field => 'a => 'a" "{1}"
+  "(*) :: 'a::field => 'a => 'a" "{1}"
   by unfold_locales (auto simp: vector_space_over_itself.span_singleton)
 
 lemma dimension_eq_1[code_unfold]: "vector_space_over_itself.dimension TYPE('a::field)= 1"

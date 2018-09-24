@@ -307,7 +307,7 @@ end
 subsection \<open>Locale instances\<close>
 
 lemma finite_dimensional_vector_space_euclidean:
-  "finite_dimensional_vector_space ( *\<^sub>R) Basis"
+  "finite_dimensional_vector_space (*\<^sub>R) Basis"
 proof unfold_locales
   show "finite (Basis::'a set)" by (metis finite_Basis)
   show "real_vector.independent (Basis::'a set)"
@@ -318,20 +318,20 @@ proof unfold_locales
     apply (drule_tac f="inner a" in arg_cong)
     apply (simp add: inner_Basis inner_sum_right eq_commute)
     done
-  show "module.span ( *\<^sub>R) Basis = UNIV"
+  show "module.span (*\<^sub>R) Basis = UNIV"
     unfolding span_finite [OF finite_Basis] span_raw_def[symmetric]
     by (auto intro!: euclidean_representation[symmetric])
 qed
 
 interpretation eucl?: finite_dimensional_vector_space "scaleR :: real => 'a => 'a::euclidean_space" "Basis"
-  rewrites "module.dependent ( *\<^sub>R) = dependent"
-    and "module.representation ( *\<^sub>R) = representation"
-    and "module.subspace ( *\<^sub>R) = subspace"
-    and "module.span ( *\<^sub>R) = span"
-    and "vector_space.extend_basis ( *\<^sub>R) = extend_basis"
-    and "vector_space.dim ( *\<^sub>R) = dim"
-    and "Vector_Spaces.linear ( *\<^sub>R) ( *\<^sub>R) = linear"
-    and "Vector_Spaces.linear ( * ) ( *\<^sub>R) = linear"
+  rewrites "module.dependent (*\<^sub>R) = dependent"
+    and "module.representation (*\<^sub>R) = representation"
+    and "module.subspace (*\<^sub>R) = subspace"
+    and "module.span (*\<^sub>R) = span"
+    and "vector_space.extend_basis (*\<^sub>R) = extend_basis"
+    and "vector_space.dim (*\<^sub>R) = dim"
+    and "Vector_Spaces.linear (*\<^sub>R) (*\<^sub>R) = linear"
+    and "Vector_Spaces.linear (*) (*\<^sub>R) = linear"
     and "finite_dimensional_vector_space.dimension Basis = DIM('a)"
     and "dimension = DIM('a)"
   by (auto simp add: dependent_raw_def representation_raw_def
@@ -348,15 +348,15 @@ interpretation eucl?: finite_dimensional_vector_space_pair_1
 
 interpretation eucl?: finite_dimensional_vector_space_prod scaleR scaleR Basis Basis
   rewrites "Basis_pair = Basis"
-    and "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = (scaleR::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
+    and "module_prod.scale (*\<^sub>R) (*\<^sub>R) = (scaleR::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
 proof -
-  show "finite_dimensional_vector_space_prod ( *\<^sub>R) ( *\<^sub>R) Basis Basis"
+  show "finite_dimensional_vector_space_prod (*\<^sub>R) (*\<^sub>R) Basis Basis"
     by unfold_locales
-  interpret finite_dimensional_vector_space_prod "( *\<^sub>R)" "( *\<^sub>R)" "Basis::'a set" "Basis::'b set"
+  interpret finite_dimensional_vector_space_prod "(*\<^sub>R)" "(*\<^sub>R)" "Basis::'a set" "Basis::'b set"
     by fact
   show "Basis_pair = Basis"
     unfolding Basis_pair_def Basis_prod_def by auto
-  show "module_prod.scale ( *\<^sub>R) ( *\<^sub>R) = scaleR"
+  show "module_prod.scale (*\<^sub>R) (*\<^sub>R) = scaleR"
     by (fact module_prod_scale_eq_scaleR)
 qed
 

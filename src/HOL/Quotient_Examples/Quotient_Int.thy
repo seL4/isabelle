@@ -78,7 +78,7 @@ lemma times_int_raw_snd:
 done
 
 quotient_definition
-  "(( * )) :: (int \<Rightarrow> int \<Rightarrow> int)" is "times_int_raw"
+  "((*)) :: (int \<Rightarrow> int \<Rightarrow> int)" is "times_int_raw"
   apply(rule equivp_transp[OF int_equivp])
   apply(rule times_int_raw_fst)
   apply(assumption)

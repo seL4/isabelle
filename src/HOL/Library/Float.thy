@@ -202,7 +202,7 @@ declare one_float.rep_eq[simp]
 lift_definition plus_float :: "float \<Rightarrow> float \<Rightarrow> float" is "(+)" by simp
 declare plus_float.rep_eq[simp]
 
-lift_definition times_float :: "float \<Rightarrow> float \<Rightarrow> float" is "( * )" by simp
+lift_definition times_float :: "float \<Rightarrow> float \<Rightarrow> float" is "(*)" by simp
 declare times_float.rep_eq[simp]
 
 lift_definition minus_float :: "float \<Rightarrow> float \<Rightarrow> float" is "(-)" by simp
