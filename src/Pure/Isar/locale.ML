@@ -87,10 +87,9 @@ sig
   (* Diagnostic *)
   val get_locales: theory -> string list
   val print_locales: bool -> theory -> unit
-  val print_locale: theory -> bool -> xstring * Position.T -> unit
+  val pretty_locale: theory -> bool -> string -> Pretty.T
   val print_registrations: Proof.context -> xstring * Position.T -> unit
-  val print_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> unit
-  val pretty_locale: theory -> bool -> string -> Pretty.T list
+  val pretty_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> Pretty.T
   val pretty_locale_deps: theory -> {name: string, parents: string list, body: Pretty.T} list
 end;
 
@@ -723,12 +722,9 @@ fun pretty_locale thy show_facts name =
       |> tap consolidate_notes
       |> map force_notes;
   in
-    Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
-      maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems
+    Pretty.block (Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
+      maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems)
   end;
-
-fun print_locale thy show_facts raw_name =
-  Pretty.writeln (Pretty.block (pretty_locale thy show_facts (check thy raw_name)));
 
 fun print_registrations ctxt raw_name =
   let
@@ -740,7 +736,7 @@ fun print_registrations ctxt raw_name =
     | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt Morphism.identity) (rev regs)))
   end |> Pretty.writeln;
 
-fun print_dependencies ctxt clean export insts =
+fun pretty_dependencies ctxt clean export insts =
   let
     val thy = Proof_Context.theory_of ctxt;
     val idents = if clean then empty_idents else Idents.get (Context.Proof ctxt);
@@ -748,14 +744,14 @@ fun print_dependencies ctxt clean export insts =
     (case fold (roundup thy cons export) insts (idents, []) |> snd of
       [] => Pretty.str "no dependencies"
     | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt export) (rev deps)))
-  end |> Pretty.writeln;
+  end;
 
 fun pretty_locale_deps thy =
   let
     fun make_node name =
      {name = name,
       parents = map (fst o fst) (dependencies_of thy name),
-      body = Pretty.block (pretty_locale thy false name)};
+      body = pretty_locale thy false name};
     val names = sort_strings (Name_Space.fold_table (cons o #1) (Locales.get thy) []);
   in map make_node names end;
 

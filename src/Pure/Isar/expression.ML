@@ -44,7 +44,7 @@ sig
     (term list list * term list list * (string * morphism) list * (Attrib.binding * term) list list * morphism) * Proof.context
 
   (* Diagnostic *)
-  val print_dependencies: Proof.context -> bool -> expression -> unit
+  val pretty_dependencies: Proof.context -> bool -> expression -> Pretty.T
 end;
 
 structure Expression : EXPRESSION =
@@ -875,12 +875,10 @@ end;
   of the expression in the current context (clean = false) or in an
   empty context (clean = true). **)
 
-fun print_dependencies ctxt clean expression =
+fun pretty_dependencies ctxt clean expression =
   let
     val ((_, _, deps, _, export), expr_ctxt) = read_goal_expression expression ctxt;
     val export' = if clean then Morphism.identity else export;
-  in
-    Locale.print_dependencies expr_ctxt clean export' deps
-  end;
+  in Locale.pretty_dependencies expr_ctxt clean export' deps end;
 
 end;
