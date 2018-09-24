@@ -607,17 +607,17 @@ fun registrations_of context loc =
 fun add_dependency loc {inst = (name, morph), mixin, export} thy =
   let
     val serial' = serial ();
-    val thy' = thy |>
-      (change_locale loc o apsnd)
-        (apfst (cons ((name, (morph, export)), serial')) #>
-          apsnd (case mixin of NONE => I | SOME mixin => insert_mixin serial' mixin));
+    val add_dep =
+      apfst (cons ((name, (morph, export)), serial')) #>
+      apsnd (case mixin of NONE => I | SOME mixin => insert_mixin serial' mixin);
+    val thy' = change_locale loc (apsnd add_dep) thy;
     val context' = Context.Theory thy';
     val (_, regs) =
       fold_rev (roundup thy' cons export)
         (registrations_of context' loc) (Idents.get context', []);
   in
-    thy'
-    |> fold_rev (fn dep => add_registration_theory {inst = dep, mixin = NONE, export = export}) regs
+    fold_rev (fn inst => add_registration_theory {inst = inst, mixin = NONE, export = export})
+      regs thy'
   end;
 
 
