@@ -334,7 +334,7 @@ end;
 val total_ident_ord = prod_ord fast_string_ord (list_ord Term_Ord.fast_term_ord);
 structure Idtab = Table(type key = string * term list val ord = total_ident_ord);
 
-type reg = {morphisms: morphism * morphism, serial: serial};
+type reg = {morphisms: morphism * morphism, pos: Position.T, serial: serial};
 type regs = reg Idtab.table;
 
 val join_regs : regs * regs -> regs =
@@ -356,16 +356,18 @@ structure Global_Registrations = Theory_Data'
         handle Idtab.DUP id =>
           (*distinct interpretations with same base: merge their mixins*)
           let
-            val ctxt1 = Syntax.init_pretty_global (#1 old_thys);
-            val serial1 = #serial (Idtab.lookup regs1 id |> the);
-
+            val reg1 = Idtab.lookup regs1 id |> the;
             val reg2 = Idtab.lookup regs2 id |> the;
-            val regs2' = Idtab.update (id, {morphisms = #morphisms reg2, serial = serial1}) regs2;
-            val mixins2' = rename_mixin (#serial reg2, serial1) mixins2;
+            val reg2' =
+             {morphisms = #morphisms reg2,
+              pos = Position.thread_data (),
+              serial = #serial reg1};
+            val regs2' = Idtab.update (id, reg2') regs2;
+            val mixins2' = rename_mixin (#serial reg2, #serial reg1) mixins2;
             val _ =
-              (warning o Pretty.string_of o Pretty.block)
-                [Pretty.str "Removed duplicate interpretation (after retrieving its mixins):",
-                  Pretty.brk 1, pretty_reg_inst ctxt1 [] id];
+              warning ("Removed duplicate interpretation after retrieving its mixins" ^
+                Position.here_list [#pos reg1, #pos reg2] ^ ":\n  " ^
+                Pretty.string_of (pretty_reg_inst (Syntax.init_pretty_global (#1 old_thys)) [] id));
           in recursive_merge ((regs1, mixins1), (regs2', mixins2')) end;
     in recursive_merge end;
 );
@@ -386,7 +388,7 @@ fun map_registrations f (Context.Theory thy) = Context.Theory (Global_Registrati
 
 fun add_reg thy export (name, morph) =
   let
-    val reg = {morphisms = (morph, export), serial = serial ()};
+    val reg = {morphisms = (morph, export), pos = Position.thread_data (), serial = serial ()};
     val id = (name, instance_of thy name (morph $> export));
   in (map_registrations o apfst) (Idtab.insert (K false) (id, reg)) end;
 
