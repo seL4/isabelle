@@ -427,7 +427,10 @@ sublocale trivial < x: trivial x _
 
 print_locale! trivial
 
-context trivial begin thm x.Q [where ?x = True] end
+context trivial
+begin
+thm x.Q [where ?x = True]
+end
 
 sublocale trivial < y: trivial Q Q
   by unfold_locales
@@ -752,7 +755,8 @@ qed
 
 print_locale! lgrp
 
-context lgrp begin
+context lgrp
+begin
 
 text \<open>Equations stored in target\<close>
 
@@ -788,7 +792,8 @@ interpretation "private": roundup True by unfold_locales rule
 lemmas true_copy = private.true
 end
 
-context container begin
+context container
+begin
 ML \<open>(Context.>> (fn generic => let val context = Context.proof_of generic
   val _ = Proof_Context.get_thms context "private.true" in generic end);
   raise Fail "thm private.true was persisted")
@@ -799,8 +804,8 @@ end
 
 section \<open>Interpretation in proofs\<close>
 
-lemma True
-proof
+notepad
+begin
   interpret "local": lgrp "(+)" "0" "minus"
     by unfold_locales  (* subsumed *)
   {
@@ -815,10 +820,10 @@ proof
   then interpret local_free: lgrp "(+)" zero "minus" for zero
     by unfold_locales
   thm local_free.lone [where ?zero = 0]
-qed
+end
 
-lemma True
-proof
+notepad
+begin
   {
     fix pand and pnot and por
     assume passoc: "\<And>x y z. pand(pand(x, y), z) \<longleftrightarrow> pand(x, pand(y, z))"
@@ -835,6 +840,6 @@ proof
     print_interps logic_o
     have "\<And>x y. por(x, y) \<longleftrightarrow> pnot(pand(pnot(x), pnot(y)))" by (rule loc.lor_o_def)
   }
-qed
+end
 
 end
