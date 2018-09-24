@@ -259,7 +259,7 @@ fun pretty_reg ctxt export (name, morph) =
   let
     val thy = Proof_Context.theory_of ctxt;
     val morph' = morph $> export;
-    val qs = Binding.name "x" |> Morphism.binding morph' |> Binding.prefix_of;
+    val qs = Morphism.binding_prefix morph';
     val ts = instance_of thy name morph';
   in pretty_reg_inst ctxt qs (name, ts) end;
 

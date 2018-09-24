@@ -24,6 +24,7 @@ sig
     fact: (thm list -> thm list) list} -> morphism
   val pretty: morphism -> Pretty.T
   val binding: morphism -> binding -> binding
+  val binding_prefix: morphism -> (string * bool) list
   val typ: morphism -> typ -> typ
   val term: morphism -> term -> term
   val fact: morphism -> thm list -> thm list
@@ -88,6 +89,7 @@ fun pretty (Morphism {names, ...}) = Pretty.enum ";" "{" "}" (map Pretty.str (re
 val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
 
 fun binding (Morphism {binding, ...}) = apply binding;
+fun binding_prefix morph = Binding.name "x" |> binding morph |> Binding.prefix_of;
 fun typ (Morphism {typ, ...}) = apply typ;
 fun term (Morphism {term, ...}) = apply term;
 fun fact (Morphism {fact, ...}) = apply fact;
