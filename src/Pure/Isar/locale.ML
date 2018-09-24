@@ -735,7 +735,7 @@ fun print_registrations ctxt raw_name =
     val thy = Proof_Context.theory_of ctxt;
     val name = check thy raw_name;
   in
-    (case registrations_of (Context.Proof ctxt) (* FIXME *) name of
+    (case registrations_of (Context.Proof ctxt) name of
       [] => Pretty.str "no interpretations"
     | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt Morphism.identity) (rev regs)))
   end |> Pretty.writeln;
