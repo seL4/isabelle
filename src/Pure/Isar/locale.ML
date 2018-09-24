@@ -103,23 +103,24 @@ datatype ctxt = datatype Element.ctxt;
 
 (*** Locales ***)
 
-type mixins = (((morphism * bool) * serial) list) Inttab.table;
-  (* table of mixin lists, per list mixins in reverse order of declaration;
-     lists indexed by registration/dependency serial,
-     entries for empty lists may be omitted *)
+(*table of mixin lists, per list mixins in reverse order of declaration;
+  lists indexed by registration/dependency serial,
+  entries for empty lists may be omitted*)
+type mixin = (morphism * bool) * serial;
+type mixins = mixin list Inttab.table;
 
-fun lookup_mixins serial' mixins = Inttab.lookup_list mixins serial';
+fun lookup_mixins serial' (mixins: mixins) = Inttab.lookup_list mixins serial';
 
-fun merge_mixins mixs : mixins = Inttab.merge_list (eq_snd op =) mixs;
+val merge_mixins: mixins * mixins -> mixins = Inttab.merge_list (eq_snd op =);
 
-fun insert_mixin serial' mixin = Inttab.cons_list (serial', (mixin, serial ()));
+fun insert_mixin serial' mixin : mixins -> mixins = Inttab.cons_list (serial', (mixin, serial ()));
 
-fun rename_mixin (old, new) mix =
-  (case Inttab.lookup mix old of
-    NONE => mix
-  | SOME mxs => Inttab.delete old mix |> Inttab.update_new (new, mxs));
+fun rename_mixin (old, new) (mixins: mixins) =
+  (case Inttab.lookup mixins old of
+    NONE => mixins
+  | SOME mixin => Inttab.delete old mixins |> Inttab.update_new (new, mixin));
 
-fun compose_mixins mixins =
+fun compose_mixins (mixins: mixin list) =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
 
 datatype locale = Loc of {
@@ -339,15 +340,15 @@ structure Idtab = Table(type key = string * term list val ord = total_ident_ord)
 
 structure Registrations = Generic_Data
 (
+  (*registrations, indexed by locale name and instance;
+    unique registration serial points to mixin list*)
   type T = ((morphism * morphism) * serial) Idtab.table * mixins;
-    (* registrations, indexed by locale name and instance;
-       unique registration serial points to mixin list *)
   val empty = (Idtab.empty, Inttab.empty);
   val extend = I;
-  fun merge ((reg1, mix1), (reg2, mix2)) : T =
+  fun merge ((reg1, mixins1), (reg2, mixins2)) : T =
     (Idtab.join (fn id => fn ((_, s1), (_, s2)) =>
         if s1 = s2 then raise Idtab.SAME else raise Idtab.DUP id) (reg1, reg2),
-      merge_mixins (mix1, mix2))
+      merge_mixins (mixins1, mixins2))
     handle Idtab.DUP id =>
       (* distinct interpretations with same base: merge their mixins *)
       let
@@ -357,7 +358,7 @@ structure Registrations = Generic_Data
         val _ = warning "Removed duplicate interpretation after retrieving its mixins.";
         (* FIXME print interpretations,
            which is not straightforward without theory context *)
-      in merge ((reg1, mix1), (reg2', rename_mixin (s2, s1) mix2)) end;
+      in merge ((reg1, mixins1), (reg2', rename_mixin (s2, s1) mixins2)) end;
     (* FIXME consolidate with dependencies, consider one data slot only *)
 );
 
@@ -365,12 +366,15 @@ structure Registrations = Generic_Data
 (* Primitive operations *)
 
 fun add_reg thy export (name, morph) =
-  Registrations.map (apfst (Idtab.insert (K false)
-    ((name, instance_of thy name (morph $> export)), ((morph, export), serial ()))));
+  (Registrations.map o apfst)
+    (Idtab.insert (K false)
+      ((name, instance_of thy name (morph $> export)), ((morph, export), serial ())));
 
 fun add_mixin serial' mixin =
   (* registration to be amended identified by its serial id *)
-  Registrations.map (apsnd (insert_mixin serial' mixin));
+  (Registrations.map o apsnd) (insert_mixin serial' mixin);
+
+val get_regs = #1 o Registrations.get;
 
 fun get_mixins context (name, morph) =
   let
@@ -395,8 +399,7 @@ fun collect_mixins context (name, morph) =
   end;
 
 fun registrations_of context loc =
-  Idtab.fold_rev (fn ((name, _), (reg, _)) => name = loc ? cons (name, reg))
-    (#1 (Registrations.get context)) []
+  Idtab.fold_rev (fn ((name, _), (reg, _)) => name = loc ? cons (name, reg)) (get_regs context) []
   (* with inherited mixins *)
   |> map (fn (name, (base, export)) =>
       (name, base $> (collect_mixins context (name, base $> export)) $> export));
@@ -526,7 +529,7 @@ fun amend_registration {mixin = NONE, ...} context = context
         val thy = Context.theory_of context;
         val ctxt = Context.proof_of context;
 
-        val regs = Registrations.get context |> fst;
+        val regs = get_regs context;
         val base = instance_of thy name (morph $> export);
         val serial' =
           (case Idtab.lookup regs (name, base) of
