@@ -49,6 +49,7 @@ sig
   val markup_name: Proof.context -> string -> string
   val pretty_name: Proof.context -> string -> Pretty.T
   val defined: theory -> string -> bool
+  val parameters_of: theory -> string -> (string * sort) list * ((string * typ) * mixfix) list
   val params_of: theory -> string -> ((string * typ) * mixfix) list
   val intros_of: theory -> string -> thm option * thm option
   val axioms_of: theory -> string -> thm list
@@ -222,7 +223,8 @@ fun change_locale name =
 
 (** Primitive operations **)
 
-fun params_of thy = snd o #parameters o the_locale thy;
+fun parameters_of thy = #parameters o the_locale thy;
+val params_of = #2 oo parameters_of;
 
 fun intros_of thy = (apply2 o Option.map) (Thm.transfer thy) o #intros o the_locale thy;
 
