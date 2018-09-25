@@ -31,6 +31,7 @@ object Export_Theory
     facts: Boolean = true,
     classes: Boolean = true,
     locales: Boolean = true,
+    locale_dependencies: Boolean = true,
     classrel: Boolean = true,
     arities: Boolean = true,
     typedefs: Boolean = true,
@@ -44,8 +45,8 @@ object Export_Theory
             read_theory(Export.Provider.database(db, session_name, theory_name),
               session_name, theory_name, types = types, consts = consts,
               axioms = axioms, facts = facts, classes = classes, locales = locales,
-              classrel = classrel, arities = arities, typedefs = typedefs,
-              cache = Some(cache)))
+              locale_dependencies = locale_dependencies, classrel = classrel, arities = arities,
+              typedefs = typedefs, cache = Some(cache)))
         }
       })
 
@@ -72,6 +73,7 @@ object Export_Theory
     facts: List[Fact_Multi],
     classes: List[Class],
     locales: List[Locale],
+    locale_dependencies: List[Locale_Dependency],
     classrel: List[Classrel],
     arities: List[Arity],
     typedefs: List[Typedef])
@@ -85,7 +87,8 @@ object Export_Theory
         axioms.iterator.map(_.entity.serial) ++
         facts.iterator.map(_.entity.serial) ++
         classes.iterator.map(_.entity.serial) ++
-        locales.iterator.map(_.entity.serial)
+        locales.iterator.map(_.entity.serial) ++
+        locale_dependencies.iterator.map(_.entity.serial)
 
     def cache(cache: Term.Cache): Theory =
       Theory(cache.string(name),
@@ -96,13 +99,14 @@ object Export_Theory
         facts.map(_.cache(cache)),
         classes.map(_.cache(cache)),
         locales.map(_.cache(cache)),
+        locale_dependencies.map(_.cache(cache)),
         classrel.map(_.cache(cache)),
         arities.map(_.cache(cache)),
         typedefs.map(_.cache(cache)))
   }
 
   def empty_theory(name: String): Theory =
-    Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
+    Theory(name, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil)
 
   def read_theory(provider: Export.Provider, session_name: String, theory_name: String,
     types: Boolean = true,
@@ -111,6 +115,7 @@ object Export_Theory
     facts: Boolean = true,
     classes: Boolean = true,
     locales: Boolean = true,
+    locale_dependencies: Boolean = true,
     classrel: Boolean = true,
     arities: Boolean = true,
     typedefs: Boolean = true,
@@ -131,6 +136,7 @@ object Export_Theory
         if (facts) read_facts(provider) else Nil,
         if (classes) read_classes(provider) else Nil,
         if (locales) read_locales(provider) else Nil,
+        if (locale_dependencies) read_locale_dependencies(provider) else Nil,
         if (classrel) read_classrel(provider) else Nil,
         if (arities) read_arities(provider) else Nil,
         if (typedefs) read_typedefs(provider) else Nil)
@@ -162,6 +168,7 @@ object Export_Theory
     val FACT = Value("fact")
     val CLASS = Value("class")
     val LOCALE = Value("locale")
+    val LOCALE_DEPENDENCY = Value("locale_dependency")
   }
 
   sealed case class Entity(
@@ -376,6 +383,43 @@ object Export_Theory
           triple(list(pair(string, sort)), list(pair(string, typ)), list(decode_prop))(body)
         }
         Locale(entity, typargs, args, axioms)
+      })
+
+
+  /* locale dependencies */
+
+  sealed case class Locale_Dependency(
+    entity: Entity,
+    source: String,
+    target: String,
+    prefix: List[(String, Boolean)],
+    subst_types: List[((String, Term.Sort), Term.Typ)],
+    subst_terms: List[((String, Term.Typ), Term.Term)])
+  {
+    def cache(cache: Term.Cache): Locale_Dependency =
+      Locale_Dependency(entity.cache(cache),
+        cache.string(source),
+        cache.string(target),
+        prefix.map({ case (name, mandatory) => (cache.string(name), mandatory) }),
+        subst_types.map({ case ((a, s), ty) => ((cache.string(a), cache.sort(s)), cache.typ(ty)) }),
+        subst_terms.map({ case ((x, ty), t) => ((cache.string(x), cache.typ(ty)), cache.term(t)) }))
+
+    def is_inclusion: Boolean =
+      subst_types.isEmpty && subst_terms.isEmpty
+  }
+
+  def read_locale_dependencies(provider: Export.Provider): List[Locale_Dependency] =
+    provider.uncompressed_yxml(export_prefix + "locale_dependencies").map((tree: XML.Tree) =>
+      {
+        val (entity, body) = decode_entity(Kind.LOCALE_DEPENDENCY, tree)
+        val (source, (target, (prefix, (subst_types, subst_terms)))) =
+        {
+          import XML.Decode._
+          import Term_XML.Decode._
+          pair(string, pair(string, pair(list(pair(string, bool)),
+            pair(list(pair(pair(string, sort), typ)), list(pair(pair(string, typ), term))))))(body)
+        }
+        Locale_Dependency(entity, source, target, prefix, subst_types, subst_terms)
       })
 
 
