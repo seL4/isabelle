@@ -3,7 +3,7 @@
 *)
 
 theory Ring_Divisibility
-imports Ideal Divisibility QuotRing Multiplicative_Group HOL.Zorn
+imports Ideal Divisibility QuotRing Multiplicative_Group
 
 begin
 
@@ -24,7 +24,7 @@ locale noetherian_domain = noetherian_ring + domain
 locale principal_domain = domain +
   assumes exists_gen: "ideal I R \<Longrightarrow> \<exists>a \<in> carrier R. I = PIdl a"
 
-locale euclidean_domain = 
+locale euclidean_domain =
   domain R for R (structure) + fixes \<phi> :: "'a \<Rightarrow> nat"
   assumes euclidean_function:
   " \<lbrakk> a \<in> carrier R - { \<zero> }; b \<in> carrier R - { \<zero> } \<rbrakk> \<Longrightarrow>
@@ -70,7 +70,7 @@ lemma (in domain) divides_imp_divides_mult [simp]:
 lemma (in cring) divides_one:
   assumes "a \<in> carrier R"
   shows "a divides \<one> \<longleftrightarrow> a \<in> Units R"
-  using assms m_comm unfolding factor_def Units_def by force 
+  using assms m_comm unfolding factor_def Units_def by force
 
 lemma (in ring) one_divides:
   assumes "a \<in> carrier R" shows "\<one> divides a"
@@ -91,7 +91,7 @@ lemma (in domain) divides_mult_zero:
 lemma (in ring) divides_mult:
   assumes "a \<in> carrier R" "c \<in> carrier R"
   shows "a divides b \<Longrightarrow> (c \<otimes> a) divides (c \<otimes> b)"
-  using m_assoc[OF assms(2,1)] unfolding factor_def by auto 
+  using m_assoc[OF assms(2,1)] unfolding factor_def by auto
 
 lemma (in domain) mult_divides:
   assumes "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier R - { \<zero> }"
@@ -178,7 +178,7 @@ proof -
     using c A integral_iff by auto
   thus "properfactor R b a"
     using A divides_imp_divides_mult[of a b] unfolding properfactor_def
-    by (meson DiffI divides_mult_imp_divides empty_iff insert_iff) 
+    by (meson DiffI divides_mult_imp_divides empty_iff insert_iff)
 qed
 
 lemma (in domain) properfactor_imp_properfactor_mult:
@@ -321,7 +321,7 @@ next
       hence "p divides\<^bsub>(mult_of R)\<^esub> (a \<otimes> b)"
         using divides_imp_divides_mult[OF assms _ dvd] m_closed[OF a b] by simp
       moreover have "a \<noteq> \<zero>" "b \<noteq> \<zero>" "c \<noteq> \<zero>"
-        using False a b c p l_null integral_iff by (auto, simp add: assms) 
+        using False a b c p l_null integral_iff by (auto, simp add: assms)
       ultimately show ?thesis
         using a b p unfolding prime_def
         by (auto, metis Diff_iff divides_mult_imp_divides singletonD)
@@ -341,7 +341,7 @@ lemma (in ring) ring_primeI: (* in ring only to avoid instantiating R *)
 lemma (in domain) ring_primeI':
   assumes "p \<in> carrier R - { \<zero> }" "prime (mult_of R) p"
   shows "ring_prime p"
-  using assms prime_eq_prime_mult unfolding ring_prime_def by auto 
+  using assms prime_eq_prime_mult unfolding ring_prime_def by auto
 
 
 subsection \<open>Basic Properties\<close>
@@ -349,14 +349,14 @@ subsection \<open>Basic Properties\<close>
 lemma (in cring) to_contain_is_to_divide:
   assumes "a \<in> carrier R" "b \<in> carrier R"
   shows "PIdl b \<subseteq> PIdl a \<longleftrightarrow> a divides b"
-proof 
+proof
   show "PIdl b \<subseteq> PIdl a \<Longrightarrow> a divides b"
   proof -
     assume "PIdl b \<subseteq> PIdl a"
     hence "b \<in> PIdl a"
       by (meson assms(2) local.ring_axioms ring.cgenideal_self subsetCE)
     thus ?thesis
-      unfolding factor_def cgenideal_def using m_comm assms(1) by blast  
+      unfolding factor_def cgenideal_def using m_comm assms(1) by blast
   qed
   show "a divides b \<Longrightarrow> PIdl b \<subseteq> PIdl a"
   proof -
@@ -406,13 +406,13 @@ next
       unfolding cgenideal_def by force
   qed
   thus "carrier R = PIdl a"
-    using assms by (simp add: cgenideal_eq_rcos r_coset_subset_G subset_antisym) 
+    using assms by (simp add: cgenideal_eq_rcos r_coset_subset_G subset_antisym)
 qed
 
 lemma (in domain) primeideal_iff_prime:
   assumes "p \<in> carrier R - { \<zero> }"
   shows "primeideal (PIdl p) R \<longleftrightarrow> ring_prime p"
-proof 
+proof
   assume PIdl: "primeideal (PIdl p) R" show "ring_prime p"
   proof (rule ring_primeI)
     show "p \<noteq> \<zero>" using assms by simp
@@ -455,7 +455,7 @@ lemma (in ring) chain_Union_is_ideal:
   assumes "subset.chain { I. ideal I R } C"
   shows "ideal (if C = {} then { \<zero> } else (\<Union>C)) R"
 proof (cases "C = {}")
-  case True thus ?thesis by (simp add: zeroideal) 
+  case True thus ?thesis by (simp add: zeroideal)
 next
   case False have "ideal (\<Union>C) R"
   proof (rule idealI[OF ring_axioms])
@@ -472,11 +472,11 @@ next
     next
       fix x y assume "x \<in> \<Union>C" "y \<in> \<Union>C"
       then obtain I where I: "I \<in> C" "x \<in> I" "y \<in> I"
-        using assms unfolding pred_on.chain_def by blast 
+        using assms unfolding pred_on.chain_def by blast
       hence ideal: "ideal I R"
         using assms unfolding pred_on.chain_def by auto
       thus "x \<otimes>\<^bsub>add_monoid R\<^esub> y \<in> \<Union>C"
-        using UnionI I additive_subgroup.a_closed unfolding ideal_def by fastforce 
+        using UnionI I additive_subgroup.a_closed unfolding ideal_def by fastforce
 
       show "inv\<^bsub>add_monoid R\<^esub> x \<in> \<Union>C"
         using UnionI I additive_subgroup.a_inv_closed ideal unfolding ideal_def a_inv_def by metis
@@ -532,7 +532,7 @@ lemma (in ring) trivial_ideal_chain_imp_noetherian:
 proof (auto simp add: noetherian_ring_def noetherian_ring_axioms_def ring_axioms)
   fix I assume I: "ideal I R"
   have in_carrier: "I \<subseteq> carrier R" and add_subgroup: "additive_subgroup I R"
-    using ideal.axioms(1)[OF I] additive_subgroup.a_subset by auto 
+    using ideal.axioms(1)[OF I] additive_subgroup.a_subset by auto
 
   define S where "S = { Idl S' | S'. S' \<subseteq> I \<and> finite S' }"
   have "\<exists>M \<in> S. \<forall>S' \<in> S. M \<subseteq> S' \<longrightarrow> S' = M"
@@ -572,7 +572,7 @@ proof (auto simp add: noetherian_ring_def noetherian_ring_axioms_def ring_axioms
       by auto
     have "M \<subseteq> Idl (insert a S')"
       using S' a(1) genideal_minimal[of "Idl (insert a S')" S']
-            in_carrier genideal_ideal genideal_self 
+            in_carrier genideal_ideal genideal_self
       by (meson insert_subset subset_trans)
     moreover have "Idl (insert a S') \<in> S"
       using a(1) S' by (auto simp add: S_def)
@@ -610,7 +610,7 @@ proof (rule ccontr)
   ultimately have "\<Union>C \<in> C"
     using ideal_chain_is_trivial by simp
   hence "\<Union>C \<in> S"
-    using chain unfolding pred_on.chain_def by auto 
+    using chain unfolding pred_on.chain_def by auto
   then obtain r where r: "\<Union>C = PIdl r" "r \<in> carrier R - { \<zero> }" "r \<notin> Units R" "\<not> ?factorizable r"
     by (auto simp add: S_def)
   have "\<exists>p. p \<in> carrier R - { \<zero> } \<and> p \<notin> Units R \<and> \<not> ?factorizable p \<and> p divides r \<and> \<not> r divides p"
@@ -712,7 +712,7 @@ corollary (in principal_domain) primeness_condition:
 proof
   show "ring_irreducible p \<Longrightarrow> ring_prime p"
     using maximalideal_prime[OF irreducible_imp_maximalideal] ring_irreducibleE(1)
-          primeideal_iff_prime assms by auto 
+          primeideal_iff_prime assms by auto
 next
   show "ring_prime p \<Longrightarrow> ring_irreducible p"
     using mult_of.prime_irreducible ring_primeI[of p] ring_irreducibleI' assms
@@ -757,7 +757,7 @@ sublocale principal_domain < mult_of: factorial_monoid "mult_of R"
   by (auto intro!: mult_of.factorial_monoidI)
 
 sublocale principal_domain \<subseteq> factorial_domain
-  unfolding factorial_domain_def using domain_axioms mult_of.factorial_monoid_axioms by simp 
+  unfolding factorial_domain_def using domain_axioms mult_of.factorial_monoid_axioms by simp
 
 lemma (in principal_domain) ideal_sum_iff_gcd:
   assumes "a \<in> carrier R" "b \<in> carrier R" "d \<in> carrier R"
@@ -826,12 +826,12 @@ proof (auto)
 next
   fix I assume I: "ideal I R" have "principalideal I R"
   proof (cases "I = { \<zero> }")
-    case True thus ?thesis by (simp add: zeropideal) 
+    case True thus ?thesis by (simp add: zeropideal)
   next
     case False hence A: "I - { \<zero> } \<noteq> {}"
-      using I additive_subgroup.zero_closed ideal.axioms(1) by auto 
+      using I additive_subgroup.zero_closed ideal.axioms(1) by auto
     define phi_img :: "nat set" where "phi_img = (\<phi> ` (I - { \<zero> }))"
-    hence "phi_img \<noteq> {}" using A by simp 
+    hence "phi_img \<noteq> {}" using A by simp
     then obtain m where "m \<in> phi_img" "\<And>k. k \<in> phi_img \<Longrightarrow> m \<le> k"
       using exists_least_iff[of "\<lambda>n. n \<in> phi_img"] not_less by force
     then obtain a where a: "a \<in> I - { \<zero> }" "\<And>b. b \<in> I - { \<zero> } \<Longrightarrow> \<phi> a \<le> \<phi> b"
@@ -850,7 +850,7 @@ next
         unfolding cgenideal_def using m_comm[of a] ideal.Icarr[OF I] a(1) by auto
       hence 1: "\<phi> r < \<phi> a \<and> r \<noteq> \<zero>"
         using eucl_div(4) b(2) by auto
- 
+
       have "r = (\<ominus> (a \<otimes> q)) \<oplus> b"
         using eucl_div(1-3) a(1) b(1) ideal.Icarr[OF I] r_neg1 by auto
       moreover have "\<ominus> (a \<otimes> q) \<in> I"
