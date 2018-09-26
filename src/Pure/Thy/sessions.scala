@@ -1108,7 +1108,7 @@ object Sessions
             host = options.string("build_database_host"),
             port = options.int("build_database_port"),
             ssh =
-              proper_string(options.string("build_database_ssh_host")).map(ssh_host =>
+              options.proper_string("build_database_ssh_host").map(ssh_host =>
                 SSH.open_session(options,
                   host = ssh_host,
                   user = options.string("build_database_ssh_user"),
