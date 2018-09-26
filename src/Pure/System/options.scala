@@ -280,11 +280,7 @@ final class Options private(
   }
   val string = new String_Access
 
-  class Seconds_Access
-  {
-    def apply(name: String): Time = Time.seconds(real(name))
-  }
-  val seconds = new Seconds_Access
+  def seconds(name: String): Time = Time.seconds(real(name))
 
 
   /* external updates */
@@ -447,9 +443,5 @@ class Options_Variable(init_options: Options)
   }
   val string = new String_Access
 
-  class Seconds_Access
-  {
-    def apply(name: String): Time = value.seconds(name)
-  }
-  val seconds = new Seconds_Access
+  def seconds(name: String): Time = value.seconds(name)
 }
