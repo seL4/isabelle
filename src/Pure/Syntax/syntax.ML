@@ -75,7 +75,7 @@ sig
   type syntax
   val eq_syntax: syntax * syntax -> bool
   val force_syntax: syntax -> unit
-  val get_infix: syntax -> string -> {assoc: Syntax_Ext.assoc, delim: string, pri: int} option
+  val get_infix: syntax -> string -> {assoc: Printer.assoc, delim: string, pri: int} option
   val lookup_const: syntax -> string -> string option
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
@@ -419,7 +419,7 @@ fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
 fun force_syntax (Syntax ({gram, ...}, _)) = ignore (Lazy.force gram);
 
-fun get_infix (Syntax ({input, ...}, _)) c = Syntax_Ext.get_infix input c;
+fun get_infix (Syntax ({prtabs, ...}, _)) c = Printer.get_infix prtabs c;
 
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;

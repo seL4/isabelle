@@ -28,6 +28,8 @@ sig
   val show_type_emphasis: bool Config.T
   val type_emphasis: Proof.context -> typ -> bool
   type prtabs
+  datatype assoc = No_Assoc | Left_Assoc | Right_Assoc
+  val get_infix: prtabs -> string -> {assoc: assoc, delim: string, pri: int} option
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
@@ -90,8 +92,30 @@ datatype symb =
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
-fun mode_tab prtabs mode = the_default Symtab.empty (AList.lookup (op =) prtabs mode);
-fun mode_tabs prtabs modes = map_filter (AList.lookup (op =) prtabs) (modes @ [""]);
+fun mode_tab (prtabs: prtabs) mode = the_default Symtab.empty (AList.lookup (op =) prtabs mode);
+fun mode_tabs (prtabs: prtabs) modes = map_filter (AList.lookup (op =) prtabs) (modes @ [""]);
+
+
+(* plain infix syntax *)
+
+datatype assoc = No_Assoc | Left_Assoc | Right_Assoc;
+
+fun is_space str = forall_string (fn s => s = " ") str;
+
+fun get_infix prtabs c =
+  Symtab.lookup_list (mode_tab prtabs "") c
+  |> map_filter (fn (symbs, _, p) =>
+      (case symbs of
+        [Block (_, [Arg p1, String (_, s), String (_, d), Break _, Arg p2])] =>
+          if is_space s andalso not (is_space d) then SOME (p1, p2, d, p) else NONE
+      | [Block (_, [TypArg p1, String (_, s), String (_, d), Break _, TypArg p2])] =>
+          if is_space s andalso not (is_space d) then SOME (p1, p2, d, p) else NONE
+      | _ => NONE))
+  |> get_first (fn (p1, p2, d, p) =>
+      if p1 = p + 1 andalso p2 = p + 1 then SOME {assoc = No_Assoc, delim = d, pri = p}
+      else if p1 = p andalso p2 = p + 1 then SOME {assoc = Left_Assoc, delim = d, pri = p}
+      else if p1 = p + 1 andalso p2 = p then SOME {assoc = Right_Assoc, delim = d, pri = p}
+      else NONE);
 
 
 (* xprod_to_fmt *)

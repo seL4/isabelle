@@ -178,9 +178,9 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
       let
         val ass =
           (case assoc of
-            Syntax_Ext.No_Assoc => 0
-          | Syntax_Ext.Left_Assoc => 1
-          | Syntax_Ext.Right_Assoc => 2);
+            Printer.No_Assoc => 0
+          | Printer.Left_Assoc => 1
+          | Printer.Right_Assoc => 2);
         open XML.Encode Term_XML.Encode;
       in triple int string int (ass, delim, pri) end;
 
