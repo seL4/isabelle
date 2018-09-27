@@ -258,10 +258,13 @@ primrec n_lists :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list list" where
 
 hide_const (open) n_lists
 
-fun splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+function splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "splice [] ys = ys" |
-"splice xs [] = xs" |
-"splice (x#xs) (y#ys) = x # y # splice xs ys"
+"splice (x#xs) ys = x # splice ys xs"
+by pat_completeness auto
+
+termination
+by(relation "measure(\<lambda>(xs,ys). size xs + size ys)") auto
 
 function shuffle where
   "shuffle [] ys = {ys}"
@@ -4522,17 +4525,17 @@ qed simp
 
 subsubsection \<open>@{const splice}\<close>
 
-lemma splice_Nil2 [simp, code]: "splice xs [] = xs"
+lemma splice_Nil2 [simp]: "splice xs [] = xs"
 by (cases xs) simp_all
-
-declare splice.simps(1,3)[code]
-declare splice.simps(2)[simp del]
 
 lemma length_splice[simp]: "length(splice xs ys) = length xs + length ys"
   by (induct xs ys rule: splice.induct) auto
 
 
 subsubsection \<open>@{const shuffle}\<close>
+
+lemma shuffle_commutes: "shuffle xs ys = shuffle ys xs"
+by (induction xs ys rule: shuffle.induct) (simp_all add: Un_commute)
 
 lemma Nil_in_shuffle[simp]: "[] \<in> shuffle xs ys \<longleftrightarrow> xs = [] \<and> ys = []"
   by (induct xs ys rule: shuffle.induct) auto
@@ -4552,7 +4555,7 @@ lemma Cons_in_shuffle_iff:
   by (induct xs ys rule: shuffle.induct) auto
 
 lemma splice_in_shuffle [simp, intro]: "splice xs ys \<in> shuffle xs ys"
-  by (induction xs ys rule: splice.induct) (simp_all add: Cons_in_shuffle_iff)
+by (induction xs ys rule: splice.induct) (simp_all add: Cons_in_shuffle_iff shuffle_commutes)
 
 lemma Nil_in_shuffleI: "xs = [] \<Longrightarrow> ys = [] \<Longrightarrow> [] \<in> shuffle xs ys"
   by simp
@@ -4584,9 +4587,6 @@ proof (induction xs ys arbitrary: zs rule: shuffle.induct)
     with "3.prems" and "3.IH"[of zs'] show ?thesis by (force dest: set_shuffle)
   qed simp_all
 qed simp_all
-
-lemma shuffle_commutes: "shuffle xs ys = shuffle ys xs"
-  by (induction xs ys rule: shuffle.induct) (simp_all add: Un_commute)
 
 lemma Cons_shuffle_subset1: "(#) x ` shuffle xs ys \<subseteq> shuffle (x # xs) ys"
   by (cases ys) auto
