@@ -13,6 +13,32 @@ end;
 structure Export_Theory: EXPORT_THEORY =
 struct
 
+(* infix syntax *)
+
+fun get_infix_type ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_type;
+fun get_infix_const ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_const;
+fun get_infix_fixed ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_fixed;
+
+fun get_infix_param ctxt loc x =
+  let val thy = Proof_Context.theory_of ctxt in
+    if Class.is_class thy loc then
+      (case AList.lookup (op =) (Class.these_params thy [loc]) x of
+        NONE => NONE
+      | SOME (_, (c, _)) => get_infix_const ctxt c)
+    else get_infix_fixed ctxt x
+  end;
+
+fun encode_infix {assoc, delim, pri} =
+  let
+    val ass =
+      (case assoc of
+        Printer.No_Assoc => 0
+      | Printer.Left_Assoc => 1
+      | Printer.Right_Assoc => 2);
+    open XML.Encode Term_XML.Encode;
+  in triple int string int (ass, delim, pri) end;
+
+
 (* standardization of variables: only frees and named bounds *)
 
 local
@@ -74,12 +100,14 @@ fun add_tfrees used =
 
 fun locale_content thy loc =
   let
-    val args = map #1 (Locale.params_of thy loc);
+    val loc_ctxt = Locale.init loc thy;
+    val args = Locale.params_of thy loc
+      |> map (fn ((x, T), _) => ((x, T), get_infix_param loc_ctxt loc x));
     val axioms =
       let
         val (intro1, intro2) = Locale.intros_of thy loc;
         fun intros_tac ctxt = Method.try_intros_tac ctxt (the_list intro1 @ the_list intro2);
-        val inst = Expression.Named (args |> map (fn (x, T) => (x, Free (x, T))));
+        val inst = Expression.Named (args |> map (fn ((x, T), _) => (x, Free (x, T))));
         val res =
           Proof_Context.init_global thy
           |> Interpretation.interpretation ([(loc, (("", false), (inst, [])))], [])
@@ -91,7 +119,7 @@ fun locale_content thy loc =
           SOME st => Thm.prems_of (#goal (Proof.goal st))
         | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
       end;
-    val typargs = rev (fold Term.add_tfrees (map Free args @ axioms) []);
+    val typargs = rev (fold Term.add_tfrees (map (Free o #1) args @ axioms) []);
   in {typargs = typargs, args = args, axioms = axioms} end;
 
 fun locale_dependency_subst thy (dep: Locale.locale_dependency) =
@@ -167,22 +195,6 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
           |> sort (int_ord o apply2 #1) |> map #2
         end;
       in if null elems then () else export_body thy export_name elems end;
-
-
-    (* infix syntax *)
-
-    fun get_infix_const ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_const;
-    fun get_infix_type ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_type;
-
-    fun encode_infix {assoc, delim, pri} =
-      let
-        val ass =
-          (case assoc of
-            Printer.No_Assoc => 0
-          | Printer.Left_Assoc => 1
-          | Printer.Right_Assoc => 2);
-        open XML.Encode Term_XML.Encode;
-      in triple int string int (ass, delim, pri) end;
 
 
     (* types *)
@@ -298,13 +310,15 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
     (* locales *)
 
     fun encode_locale used =
-      let open XML.Encode Term_XML.Encode
-      in triple (list (pair string sort)) (list (pair string typ)) (list (encode_axiom used)) end;
+      let open XML.Encode Term_XML.Encode in
+        triple (list (pair string sort)) (list (pair (pair string typ) (option encode_infix)))
+          (list (encode_axiom used))
+      end;
 
     fun export_locale loc =
       let
         val {typargs, args, axioms} = locale_content thy loc;
-        val used = fold Name.declare (map #1 typargs @ map #1 args) Name.context;
+        val used = fold Name.declare (map #1 typargs @ map (#1 o #1) args) Name.context;
       in encode_locale used (typargs, args, axioms) end
       handle ERROR msg =>
         cat_error msg ("The error(s) above occurred in locale " ^

@@ -362,13 +362,13 @@ object Export_Theory
   sealed case class Locale(
     entity: Entity,
     typargs: List[(String, Term.Sort)],
-    args: List[(String, Term.Typ)],
+    args: List[((String, Term.Typ), Option[Infix])],
     axioms: List[Prop])
   {
     def cache(cache: Term.Cache): Locale =
       Locale(entity.cache(cache),
         typargs.map({ case (name, sort) => (cache.string(name), cache.sort(sort)) }),
-        args.map({ case (name, typ) => (cache.string(name), cache.typ(typ)) }),
+        args.map({ case ((name, typ), syntax) => ((cache.string(name), cache.typ(typ)), syntax) }),
         axioms.map(_.cache(cache)))
   }
 
@@ -380,7 +380,8 @@ object Export_Theory
         {
           import XML.Decode._
           import Term_XML.Decode._
-          triple(list(pair(string, sort)), list(pair(string, typ)), list(decode_prop))(body)
+          triple(list(pair(string, sort)), list(pair(pair(string, typ), option(decode_infix))),
+            list(decode_prop))(body)
         }
         Locale(entity, typargs, args, axioms)
       })
