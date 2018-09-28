@@ -30,6 +30,7 @@ sig
   type prtabs
   datatype assoc = No_Assoc | Left_Assoc | Right_Assoc
   val get_infix: prtabs -> string -> {assoc: assoc, delim: string, pri: int} option
+  val get_prefix: prtabs -> Symtab.key -> string option
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
@@ -96,26 +97,50 @@ fun mode_tab (prtabs: prtabs) mode = the_default Symtab.empty (AList.lookup (op 
 fun mode_tabs (prtabs: prtabs) modes = map_filter (AList.lookup (op =) prtabs) (modes @ [""]);
 
 
-(* plain infix syntax *)
+(* approximative syntax *)
 
 datatype assoc = No_Assoc | Left_Assoc | Right_Assoc;
 
+local
+
+fun is_arg (Arg _) = true
+  | is_arg (TypArg _) = true
+  | is_arg _ = false;
+
 fun is_space str = forall_string (fn s => s = " ") str;
+val is_delim = not o is_space;
+
+fun is_delimiter (String (_, d)) = is_delim d
+  | is_delimiter _ = false;
+
+fun flatten (Block (_, symbs)) = maps flatten symbs
+  | flatten symb = [symb];
+
+in
 
 fun get_infix prtabs c =
   Symtab.lookup_list (mode_tab prtabs "") c
   |> map_filter (fn (symbs, _, p) =>
       (case symbs of
         [Block (_, [Arg p1, String (_, s), String (_, d), Break _, Arg p2])] =>
-          if is_space s andalso not (is_space d) then SOME (p1, p2, d, p) else NONE
+          if is_space s andalso is_delim d then SOME (p1, p2, d, p) else NONE
       | [Block (_, [TypArg p1, String (_, s), String (_, d), Break _, TypArg p2])] =>
-          if is_space s andalso not (is_space d) then SOME (p1, p2, d, p) else NONE
+          if is_space s andalso is_delim d then SOME (p1, p2, d, p) else NONE
       | _ => NONE))
   |> get_first (fn (p1, p2, d, p) =>
       if p1 = p + 1 andalso p2 = p + 1 then SOME {assoc = No_Assoc, delim = d, pri = p}
       else if p1 = p andalso p2 = p + 1 then SOME {assoc = Left_Assoc, delim = d, pri = p}
       else if p1 = p + 1 andalso p2 = p then SOME {assoc = Right_Assoc, delim = d, pri = p}
       else NONE);
+
+fun get_prefix prtabs c =
+  Symtab.lookup_list (mode_tab prtabs "") c
+  |> get_first (fn (symbs, _, _) =>
+      (case filter (is_arg orf is_delimiter) (maps flatten symbs) of
+        String (_, d) :: _ => SOME d
+      | _ => NONE));
+
+end;
 
 
 (* xprod_to_fmt *)

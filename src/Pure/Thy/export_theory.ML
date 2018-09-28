@@ -13,30 +13,35 @@ end;
 structure Export_Theory: EXPORT_THEORY =
 struct
 
-(* infix syntax *)
+(* approximative syntax *)
 
-fun get_infix_type ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_type;
-fun get_infix_const ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_const;
-fun get_infix_fixed ctxt = Syntax.get_infix (Proof_Context.syn_of ctxt) o Lexicon.mark_fixed;
+val get_syntax = Syntax.get_approx o Proof_Context.syn_of;
+fun get_syntax_type ctxt = get_syntax ctxt o Lexicon.mark_type;
+fun get_syntax_const ctxt = get_syntax ctxt o Lexicon.mark_const;
+fun get_syntax_fixed ctxt = get_syntax ctxt o Lexicon.mark_fixed;
 
-fun get_infix_param ctxt loc x =
+fun get_syntax_param ctxt loc x =
   let val thy = Proof_Context.theory_of ctxt in
     if Class.is_class thy loc then
       (case AList.lookup (op =) (Class.these_params thy [loc]) x of
         NONE => NONE
-      | SOME (_, (c, _)) => get_infix_const ctxt c)
-    else get_infix_fixed ctxt x
+      | SOME (_, (c, _)) => get_syntax_const ctxt c)
+    else get_syntax_fixed ctxt x
   end;
 
-fun encode_infix {assoc, delim, pri} =
-  let
-    val ass =
-      (case assoc of
-        Printer.No_Assoc => 0
-      | Printer.Left_Assoc => 1
-      | Printer.Right_Assoc => 2);
-    open XML.Encode Term_XML.Encode;
-  in triple int string int (ass, delim, pri) end;
+val encode_syntax =
+  XML.Encode.variant
+   [fn NONE => ([], []),
+    fn SOME (Syntax.Prefix delim) => ([delim], []),
+    fn SOME (Syntax.Infix {assoc, delim, pri}) =>
+      let
+        val ass =
+          (case assoc of
+            Printer.No_Assoc => 0
+          | Printer.Left_Assoc => 1
+          | Printer.Right_Assoc => 2);
+        open XML.Encode Term_XML.Encode;
+      in ([], triple int string int (ass, delim, pri)) end];
 
 
 (* standardization of variables: only frees and named bounds *)
@@ -102,7 +107,7 @@ fun locale_content thy loc =
   let
     val loc_ctxt = Locale.init loc thy;
     val args = Locale.params_of thy loc
-      |> map (fn ((x, T), _) => ((x, T), get_infix_param loc_ctxt loc x));
+      |> map (fn ((x, T), _) => ((x, T), get_syntax_param loc_ctxt loc x));
     val axioms =
       let
         val (intro1, intro2) = Locale.intros_of thy loc;
@@ -201,12 +206,12 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_type =
       let open XML.Encode Term_XML.Encode
-      in triple (option encode_infix) (list string) (option typ) end;
+      in triple encode_syntax (list string) (option typ) end;
 
     fun export_type c (Type.LogicalType n) =
-          SOME (encode_type (get_infix_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
+          SOME (encode_type (get_syntax_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
       | export_type c (Type.Abbreviation (args, U, false)) =
-          SOME (encode_type (get_infix_type thy_ctxt c, args, SOME U))
+          SOME (encode_type (get_syntax_type thy_ctxt c, args, SOME U))
       | export_type _ _ = NONE;
 
     val _ =
@@ -218,11 +223,11 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val encode_const =
       let open XML.Encode Term_XML.Encode
-      in pair (option encode_infix) (pair (list string) (pair typ (option term))) end;
+      in pair encode_syntax (pair (list string) (pair typ (option term))) end;
 
     fun export_const c (T, abbrev) =
       let
-        val syntax = get_infix_const thy_ctxt c;
+        val syntax = get_syntax_const thy_ctxt c;
         val T' = T |> Logic.unvarifyT_global |> Type.strip_sorts;
         val abbrev' = abbrev |> Option.map (standard_vars_global #> map_types Type.strip_sorts);
         val args = map (#1 o dest_TFree) (Consts.typargs (Sign.consts_of thy) (c, T'));
@@ -311,7 +316,7 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     fun encode_locale used =
       let open XML.Encode Term_XML.Encode in
-        triple (list (pair string sort)) (list (pair (pair string typ) (option encode_infix)))
+        triple (list (pair string sort)) (list (pair (pair string typ) encode_syntax))
           (list (encode_axiom used))
       end;
 

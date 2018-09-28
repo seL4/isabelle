@@ -197,27 +197,32 @@ object Export_Theory
   }
 
 
-  /* infix syntax */
+  /* approximative syntax */
 
   object Assoc extends Enumeration
   {
     val NO_ASSOC, LEFT_ASSOC, RIGHT_ASSOC = Value
   }
 
-  sealed case class Infix(assoc: Assoc.Value, delim: String, pri: Int)
+  sealed abstract class Syntax
+  case object No_Syntax extends Syntax
+  case class Prefix(delim: String) extends Syntax
+  case class Infix(assoc: Assoc.Value, delim: String, pri: Int) extends Syntax
 
-  def decode_infix(body: XML.Body): Infix =
-  {
-    import XML.Decode._
-    val (ass, delim, pri) = triple(int, string, int)(body)
-    Infix(Assoc(ass), delim, pri)
-  }
+  def decode_syntax: XML.Decode.T[Syntax] =
+    XML.Decode.variant(List(
+      { case (Nil, Nil) => No_Syntax },
+      { case (List(delim), Nil) => Prefix(delim) },
+      { case (Nil, body) =>
+          import XML.Decode._
+          val (ass, delim, pri) = triple(int, string, int)(body)
+          Infix(Assoc(ass), delim, pri) }))
 
 
   /* types */
 
   sealed case class Type(
-    entity: Entity, syntax: Option[Infix], args: List[String], abbrev: Option[Term.Typ])
+    entity: Entity, syntax: Syntax, args: List[String], abbrev: Option[Term.Typ])
   {
     def cache(cache: Term.Cache): Type =
       Type(entity.cache(cache),
@@ -233,7 +238,7 @@ object Export_Theory
         val (syntax, args, abbrev) =
         {
           import XML.Decode._
-          triple(option(decode_infix), list(string), option(Term_XML.Decode.typ))(body)
+          triple(decode_syntax, list(string), option(Term_XML.Decode.typ))(body)
         }
         Type(entity, syntax, args, abbrev)
       })
@@ -243,7 +248,7 @@ object Export_Theory
 
   sealed case class Const(
     entity: Entity,
-    syntax: Option[Infix],
+    syntax: Syntax,
     typargs: List[String],
     typ: Term.Typ,
     abbrev: Option[Term.Term])
@@ -263,7 +268,7 @@ object Export_Theory
         val (syntax, (args, (typ, abbrev))) =
         {
           import XML.Decode._
-          pair(option(decode_infix), pair(list(string),
+          pair(decode_syntax, pair(list(string),
             pair(Term_XML.Decode.typ, option(Term_XML.Decode.term))))(body)
         }
         Const(entity, syntax, args, typ, abbrev)
@@ -362,7 +367,7 @@ object Export_Theory
   sealed case class Locale(
     entity: Entity,
     typargs: List[(String, Term.Sort)],
-    args: List[((String, Term.Typ), Option[Infix])],
+    args: List[((String, Term.Typ), Syntax)],
     axioms: List[Prop])
   {
     def cache(cache: Term.Cache): Locale =
@@ -380,7 +385,7 @@ object Export_Theory
         {
           import XML.Decode._
           import Term_XML.Decode._
-          triple(list(pair(string, sort)), list(pair(pair(string, typ), option(decode_infix))),
+          triple(list(pair(string, sort)), list(pair(pair(string, typ), decode_syntax)),
             list(decode_prop))(body)
         }
         Locale(entity, typargs, args, axioms)
