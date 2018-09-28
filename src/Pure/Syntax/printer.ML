@@ -29,8 +29,9 @@ sig
   val type_emphasis: Proof.context -> typ -> bool
   type prtabs
   datatype assoc = No_Assoc | Left_Assoc | Right_Assoc
-  val get_infix: prtabs -> string -> {assoc: assoc, delim: string, pri: int} option
   val get_prefix: prtabs -> Symtab.key -> string option
+  val get_binder: prtabs -> Symtab.key -> string option
+  val get_infix: prtabs -> string -> {assoc: assoc, delim: string, pri: int} option
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
@@ -96,6 +97,8 @@ type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 fun mode_tab (prtabs: prtabs) mode = the_default Symtab.empty (AList.lookup (op =) prtabs mode);
 fun mode_tabs (prtabs: prtabs) modes = map_filter (AList.lookup (op =) prtabs) (modes @ [""]);
 
+fun lookup_default prtabs = Symtab.lookup_list (mode_tab prtabs "");
+
 
 (* approximative syntax *)
 
@@ -118,8 +121,22 @@ fun flatten (Block (_, symbs)) = maps flatten symbs
 
 in
 
+fun get_prefix prtabs c =
+  lookup_default prtabs c
+  |> get_first (fn (symbs, _, _) =>
+      (case filter (is_arg orf is_delimiter) (maps flatten symbs) of
+        String (_, d) :: rest => if forall is_arg rest then SOME d else NONE
+      | _ => NONE));
+
+fun get_binder prtabs c =
+  lookup_default prtabs (Mixfix.binder_name c)
+  |> get_first (fn (symbs, _, _) =>
+      (case maps flatten symbs of
+        String (_, d) :: _ => if is_delim d then SOME d else NONE
+      | _ => NONE));
+
 fun get_infix prtabs c =
-  Symtab.lookup_list (mode_tab prtabs "") c
+  lookup_default prtabs c
   |> map_filter (fn (symbs, _, p) =>
       (case symbs of
         [Block (_, [Arg p1, String (_, s), String (_, d), Break _, Arg p2])] =>
@@ -132,13 +149,6 @@ fun get_infix prtabs c =
       else if p1 = p andalso p2 = p + 1 then SOME {assoc = Left_Assoc, delim = d, pri = p}
       else if p1 = p + 1 andalso p2 = p then SOME {assoc = Right_Assoc, delim = d, pri = p}
       else NONE);
-
-fun get_prefix prtabs c =
-  Symtab.lookup_list (mode_tab prtabs "") c
-  |> get_first (fn (symbs, _, _) =>
-      (case filter (is_arg orf is_delimiter) (maps flatten symbs) of
-        String (_, d) :: _ => SOME d
-      | _ => NONE));
 
 end;
 

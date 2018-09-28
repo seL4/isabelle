@@ -427,7 +427,7 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
   | NONE =>
       (case Printer.get_prefix prtabs c of
         SOME prfx => SOME prfx
-      | NONE => Printer.get_prefix prtabs (Mixfix.binder_name c))
+      | NONE => Printer.get_binder prtabs c)
       |> Option.map Prefix);
 
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
