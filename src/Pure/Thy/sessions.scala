@@ -210,7 +210,7 @@ object Sessions
             space_explode(',', options.string("condition")).
               filter(cond => Isabelle_System.getenv(cond) == "")
           if (conditions.nonEmpty) {
-            warn("condition " + conditions.mkString(" "))
+            warn("undefined " + conditions.mkString(", "))
             false
           }
           else if (default_skip_proofs && !options.bool("skip_proofs")) {
