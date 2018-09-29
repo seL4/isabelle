@@ -545,8 +545,9 @@ interpretation local_typedef_module_on S scale "TYPE('s)" by unfold_locales fact
 text\<open>Get theorem names:\<close>
 print_locale! module
 text\<open>Then replace:
-notes[^"]*"([^"]*).*
-with $1 = module.$1
+\<^verbatim>\<open>notes[^"]*"([^"]*).*\<close>
+with
+\<^verbatim>\<open>$1 = module.$1\<close>
 \<close>
 text \<open>TODO: automate systematic naming!\<close>
 lemmas_with [var_simplified explicit_ab_group_add,
