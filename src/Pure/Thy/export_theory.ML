@@ -105,23 +105,23 @@ fun add_tfrees used =
 
 fun locale_content thy loc =
   let
-    val loc_ctxt = Locale.init loc thy;
-    val args = Locale.params_of thy loc
-      |> map (fn ((x, T), _) => ((x, T), get_syntax_param loc_ctxt loc x));
+    val ctxt = Locale.init loc thy;
+    val args =
+      Locale.params_of thy loc
+      |> map (fn ((x, T), _) => ((x, T), get_syntax_param ctxt loc x));
     val axioms =
       let
+        val (asm, defs) = Locale.specification_of thy loc;
+        val cprops = map (Thm.cterm_of ctxt) (the_list asm @ defs);
         val (intro1, intro2) = Locale.intros_of thy loc;
-        fun intros_tac ctxt = Method.try_intros_tac ctxt (the_list intro1 @ the_list intro2);
-        val inst = Expression.Named (args |> map (fn ((x, T), _) => (x, Free (x, T))));
+        val intros_tac = Method.try_intros_tac ctxt (the_list intro1 @ the_list intro2) [];
         val res =
-          Proof_Context.init_global thy
-          |> Interpretation.interpretation ([(loc, (("", false), (inst, [])))], [])
-          |> Proof.refine (Method.Basic (METHOD o intros_tac))
-          |> Seq.filter_results
+          Goal.init (Conjunction.mk_conjunction_balanced cprops)
+          |> (ALLGOALS Goal.conjunction_tac THEN intros_tac)
           |> try Seq.hd;
       in
         (case res of
-          SOME st => Thm.prems_of (#goal (Proof.goal st))
+          SOME goal => Thm.prems_of goal
         | NONE => raise Fail ("Cannot unfold locale " ^ quote loc))
       end;
     val typargs = rev (fold Term.add_tfrees (map (Free o #1) args @ axioms) []);
