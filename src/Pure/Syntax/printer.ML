@@ -111,38 +111,34 @@ fun is_arg (Arg _) = true
   | is_arg _ = false;
 
 fun is_space str = forall_string (fn s => s = " ") str;
-val is_delim = not o is_space;
 
-fun is_delimiter (String (_, d)) = is_delim d
-  | is_delimiter _ = false;
-
-fun flatten (Block (_, symbs)) = maps flatten symbs
-  | flatten symb = [symb];
+fun clean symbs = symbs |> maps
+  (fn Block (_, body) => clean body
+    | symb as String (_, s) => if is_space s then [] else [symb]
+    | symb => if is_arg symb then [symb] else []);
 
 in
 
 fun get_prefix prtabs c =
   lookup_default prtabs c
   |> get_first (fn (symbs, _, _) =>
-      (case filter (is_arg orf is_delimiter) (maps flatten symbs) of
+      (case clean symbs of
         String (_, d) :: rest => if forall is_arg rest then SOME d else NONE
       | _ => NONE));
 
 fun get_binder prtabs c =
   lookup_default prtabs (Mixfix.binder_name c)
   |> get_first (fn (symbs, _, _) =>
-      (case maps flatten symbs of
-        String (_, d) :: _ => if is_delim d then SOME d else NONE
+      (case clean symbs of
+        String (_, d) :: _ => SOME d
       | _ => NONE));
 
 fun get_infix prtabs c =
   lookup_default prtabs c
   |> map_filter (fn (symbs, _, p) =>
-      (case symbs of
-        [Block (_, [Arg p1, String (_, s), String (_, d), Break _, Arg p2])] =>
-          if is_space s andalso is_delim d then SOME (p1, p2, d, p) else NONE
-      | [Block (_, [TypArg p1, String (_, s), String (_, d), Break _, TypArg p2])] =>
-          if is_space s andalso is_delim d then SOME (p1, p2, d, p) else NONE
+      (case clean symbs of
+        [Arg p1, String (_, d), Arg p2] => SOME (p1, p2, d, p)
+      | [TypArg p1, String (_, d), TypArg p2] => SOME (p1, p2, d, p)
       | _ => NONE))
   |> get_first (fn (p1, p2, d, p) =>
       if p1 = p + 1 andalso p2 = p + 1 then SOME {assoc = No_Assoc, delim = d, pri = p}
