@@ -130,7 +130,6 @@ fun locale_content thy loc =
 fun locale_dependency_subst thy (dep: Locale.locale_dependency) =
   let
     val (type_params, params) = Locale.parameters_of thy (#source dep);
-    (* FIXME proper type_params wrt. locale_content (!?!) *)
     val typargs = fold (Term.add_tfreesT o #2 o #1) params type_params;
     val substT =
       typargs |> map_filter (fn v =>
