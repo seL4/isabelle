@@ -385,7 +385,7 @@ fun add_mono_rule mono_rule ctxt =
     val mono_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o
       dest_Const o head_of o HOLogic.dest_Trueprop o Thm.concl_of) pol_mono_rule
     val _ = if Symtab.defined (get_relator_distr_data' ctxt) mono_ruleT_name
-      then error ("Monotocity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
+      then error ("Monotonicity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
       else ()
     val neg_mono_rule = negate_mono_rule pol_mono_rule
     val relator_distr_data = {pos_mono_rule = pol_mono_rule, neg_mono_rule = neg_mono_rule,
@@ -405,12 +405,12 @@ local
       if Symtab.defined (get_relator_distr_data' ctxt) distr_ruleT_name then
         Data.map (map_relator_distr_data (Symtab.map_entry distr_ruleT_name (update_entry distr_rule)))
           ctxt
-      else error "The monoticity rule is not defined."
+      else error "The monotonicity rule is not defined."
     end
 
-    fun rewrite_concl_conv thm ctm =
-      Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric thm))) ctm
-      handle CTERM _ => error "The rule has a wrong format."
+  fun rewrite_concl_conv thm ctm =
+    Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric thm))) ctm
+    handle CTERM _ => error "The rule has a wrong format."
 
 in
   fun add_pos_distr_rule distr_rule ctxt =
@@ -513,7 +513,7 @@ val lookup_relator_distr_data = Symtab.lookup o get_relator_distr_data
 val _ =
   Theory.setup
     (Attrib.setup @{binding relator_mono} (Scan.succeed (Thm.declaration_attribute add_mono_rule))
-      "declaration of relator's monoticity"
+      "declaration of relator's monotonicity"
     #> Attrib.setup @{binding relator_distr} (Scan.succeed (Thm.declaration_attribute add_distr_rule))
       "declaration of relator's distributivity over OO"
     #> Global_Theory.add_thms_dynamic
