@@ -63,14 +63,9 @@ fun pcr_eq ({pcrel_def = pcrel_def1, pcr_cr_eq = pcr_cr_eq1},
            {pcrel_def = pcrel_def2, pcr_cr_eq = pcr_cr_eq2}) = 
            Thm.eq_thm (pcrel_def1, pcrel_def2) andalso Thm.eq_thm (pcr_cr_eq1, pcr_cr_eq2)
 
-fun option_eq _ (NONE,NONE) = true
-  | option_eq _ (NONE,_) = false
-  | option_eq _ (_,NONE) = false
-  | option_eq cmp (SOME x, SOME y) = cmp (x,y);
-
 fun quotient_eq ({quot_thm = quot_thm1, pcr_info = pcr_info1},
                 {quot_thm = quot_thm2, pcr_info = pcr_info2}) =
-                Thm.eq_thm (quot_thm1, quot_thm2) andalso option_eq pcr_eq (pcr_info1, pcr_info2)
+                Thm.eq_thm (quot_thm1, quot_thm2) andalso eq_option pcr_eq (pcr_info1, pcr_info2)
 
 fun join_restore_data key (rd1:restore_data, rd2) =
   if pointer_eq (rd1, rd2) then raise Symtab.SAME else
