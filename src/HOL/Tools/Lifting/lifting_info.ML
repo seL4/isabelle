@@ -384,16 +384,22 @@ fun add_mono_rule mono_rule ctxt =
     val pol_mono_rule = introduce_polarities mono_rule
     val mono_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o
       dest_Const o head_of o HOLogic.dest_Trueprop o Thm.concl_of) pol_mono_rule
-    val _ = if Symtab.defined (get_relator_distr_data' ctxt) mono_ruleT_name
-      then error ("Monotonicity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
-      else ()
-    val neg_mono_rule = negate_mono_rule pol_mono_rule
-    val relator_distr_data = {pos_mono_rule = pol_mono_rule, neg_mono_rule = neg_mono_rule,
-      pos_distr_rules = [], neg_distr_rules = []}
   in
-    ctxt
-    |> Data.map (map_relator_distr_data (Symtab.update (mono_ruleT_name, relator_distr_data)))
-    |> add_reflexivity_rules mono_rule
+    if Symtab.defined (get_relator_distr_data' ctxt) mono_ruleT_name
+    then
+      (if Context_Position.is_visible_generic ctxt then
+        warning ("Monotonicity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
+       else (); ctxt)
+    else
+      let
+        val neg_mono_rule = negate_mono_rule pol_mono_rule
+        val relator_distr_data = {pos_mono_rule = pol_mono_rule, neg_mono_rule = neg_mono_rule,
+          pos_distr_rules = [], neg_distr_rules = []}
+      in
+        ctxt
+        |> Data.map (map_relator_distr_data (Symtab.update (mono_ruleT_name, relator_distr_data)))
+        |> add_reflexivity_rules mono_rule
+      end
   end;
 
 local
