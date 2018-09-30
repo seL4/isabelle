@@ -174,7 +174,7 @@ lemma sup_loc_update_index: "
   \<lbrakk> G \<turnstile> T \<preceq> T'; is_type G T'; length pns = length pTs; distinct pns; unique lvars;
   snd (local_env G C (mn, pTs) pns lvars) vname = Some T' \<rbrakk>
   \<Longrightarrow> 
-  comp G \<turnstile> inited_LT C pTs lvars [index (pns, lvars, blk, res) vname := OK T] <=l 
+  comp G \<turnstile> (inited_LT C pTs lvars) [index (pns, lvars, blk, res) vname := OK T] <=l 
            inited_LT C pTs lvars"
   apply (subgoal_tac " index (pns, lvars, blk, res) vname < length (inited_LT C pTs lvars)")
    apply (frule_tac blk=blk and res=res in local_env_inited_LT, assumption+)

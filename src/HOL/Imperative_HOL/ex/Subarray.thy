@@ -23,7 +23,7 @@ apply fastforce
 apply simp
 done
 
-lemma subarray_upd3: "\<lbrakk> n \<le> i; i < m\<rbrakk> \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h[i - n := v]"
+lemma subarray_upd3: "\<lbrakk> n \<le> i; i < m\<rbrakk> \<Longrightarrow> subarray n m a (Array.update a i v h) = (subarray n m a h)[i - n := v]"
 unfolding subarray_def Array.update_def
 by (simp add: nths'_update3)
 

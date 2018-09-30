@@ -130,7 +130,7 @@ lemma array_ran_upd_array_Some:
   assumes "cl \<in> array_ran a (Array.update a i (Some b) h)"
   shows "cl \<in> array_ran a h \<or> cl = b"
 proof -
-  have "set (Array.get h a[i := Some b]) \<subseteq> insert (Some b) (set (Array.get h a))" by (rule set_update_subset_insert)
+  have "set ((Array.get h a)[i := Some b]) \<subseteq> insert (Some b) (set (Array.get h a))" by (rule set_update_subset_insert)
   with assms show ?thesis 
     unfolding array_ran_def Array.update_def by fastforce
 qed
@@ -139,7 +139,7 @@ lemma array_ran_upd_array_None:
   assumes "cl \<in> array_ran a (Array.update a i None h)"
   shows "cl \<in> array_ran a h"
 proof -
-  have "set (Array.get h a[i := None]) \<subseteq> insert None (set (Array.get h a))" by (rule set_update_subset_insert)
+  have "set ((Array.get h a)[i := None]) \<subseteq> insert None (set (Array.get h a))" by (rule set_update_subset_insert)
   with assms show ?thesis
     unfolding array_ran_def Array.update_def by auto
 qed
