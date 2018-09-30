@@ -2258,11 +2258,11 @@ proof
       by (simp add: natpermute_def)
     from i have i': "i < length (replicate (k+1) 0)"   "i < k+1"
       unfolding length_replicate by presburger+
-    have "xs = replicate (k+1) 0 [i := n]"
+    have "xs = (replicate (k+1) 0) [i := n]"
     proof (rule nth_equalityI)
-      show "length xs = length (replicate (k + 1) 0[i := n])"
+      show "length xs = length ((replicate (k + 1) 0)[i := n])"
         by (metis length_list_update length_replicate xsl)
-      show "xs ! j = replicate (k + 1) 0[i := n] ! j" if "j < length xs" for j
+      show "xs ! j = (replicate (k + 1) 0)[i := n] ! j" if "j < length xs" for j
       proof (cases "j = i")
         case True
         then show ?thesis
@@ -2279,7 +2279,7 @@ proof
   proof
     fix xs
     assume "xs \<in> ?B"
-    then obtain i where i: "i \<in> {0..k}" and xs: "xs = replicate (k + 1) 0 [i:=n]"
+    then obtain i where i: "i \<in> {0..k}" and xs: "xs = (replicate (k + 1) 0) [i:=n]"
       by auto
     have nxs: "n \<in> set xs"
       unfolding xs
@@ -2292,7 +2292,7 @@ proof
       unfolding sum_list_sum_nth xsl ..
     also have "\<dots> = sum (\<lambda>j. if j = i then n else 0) {0..< k+1}"
       by (rule sum.cong) (simp_all add: xs del: replicate.simps)
-    also have "\<dots> = n" using i by (simp add: sum.delta)
+    also have "\<dots> = n" using i by (simp)
     finally have "xs \<in> natpermute n (k + 1)"
       using xsl unfolding natpermute_def mem_Collect_eq by blast
     then show "xs \<in> ?A"
@@ -2395,32 +2395,32 @@ lemma natpermute_max_card:
   shows "card {xs \<in> natpermute n (k + 1). n \<in> set xs} = k + 1"
   unfolding natpermute_contain_maximal
 proof -
-  let ?A = "\<lambda>i. {replicate (k + 1) 0[i := n]}"
+  let ?A = "\<lambda>i. {(replicate (k + 1) 0)[i := n]}"
   let ?K = "{0 ..k}"
   have fK: "finite ?K"
     by simp
   have fAK: "\<forall>i\<in>?K. finite (?A i)"
     by auto
   have d: "\<forall>i\<in> ?K. \<forall>j\<in> ?K. i \<noteq> j \<longrightarrow>
-    {replicate (k + 1) 0[i := n]} \<inter> {replicate (k + 1) 0[j := n]} = {}"
+    {(replicate (k + 1) 0)[i := n]} \<inter> {(replicate (k + 1) 0)[j := n]} = {}"
   proof clarify
     fix i j
     assume i: "i \<in> ?K" and j: "j \<in> ?K" and ij: "i \<noteq> j"
-    have False if eq: "replicate (k+1) 0 [i:=n] = replicate (k+1) 0 [j:= n]"
+    have False if eq: "(replicate (k+1) 0)[i:=n] = (replicate (k+1) 0)[j:= n]"
     proof -
-      have "(replicate (k+1) 0 [i:=n] ! i) = n"
+      have "(replicate (k+1) 0) [i:=n] ! i = n"
         using i by (simp del: replicate.simps)
       moreover
-      have "(replicate (k+1) 0 [j:=n] ! i) = 0"
+      have "(replicate (k+1) 0) [j:=n] ! i = 0"
         using i ij by (simp del: replicate.simps)
       ultimately show ?thesis
         using eq n0 by (simp del: replicate.simps)
     qed
-    then show "{replicate (k + 1) 0[i := n]} \<inter> {replicate (k + 1) 0[j := n]} = {}"
+    then show "{(replicate (k + 1) 0)[i := n]} \<inter> {(replicate (k + 1) 0)[j := n]} = {}"
       by auto
   qed
   from card_UN_disjoint[OF fK fAK d]
-  show "card (\<Union>i\<in>{0..k}. {replicate (k + 1) 0[i := n]}) = k + 1"
+  show "card (\<Union>i\<in>{0..k}. {(replicate (k + 1) 0)[i := n]}) = k + 1"
     by simp
 qed
 
@@ -2712,7 +2712,7 @@ proof
           fix v assume v: "v \<in> {xs \<in> natpermute n (k + 1). n \<in> set xs}"
           let ?ths = "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
             fps_radical r (Suc k) a $ n * r (Suc k) (a $ 0) ^ k"
-          from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
+          from v obtain i where i: "i \<in> {0..k}" "v = (replicate (k+1) 0) [i:= n]"
             unfolding natpermute_contain_maximal by auto
           have "(\<Prod>j\<in>{0..k}. fps_radical r (Suc k) a $ v ! j) =
               (\<Prod>j\<in>{0..k}. if j = i then fps_radical r (Suc k) a $ n else r (Suc k) (a$0))"
@@ -2847,7 +2847,7 @@ proof
           fix v
           assume v: "v \<in> {xs \<in> natpermute n (Suc k). n \<in> set xs}"
           let ?ths = "(\<Prod>j\<in>{0..k}. a $ v ! j) = a $ n * (?r$0)^k"
-          from v obtain i where i: "i \<in> {0..k}" "v = replicate (k+1) 0 [i:= n]"
+          from v obtain i where i: "i \<in> {0..k}" "v = (replicate (k+1) 0) [i:= n]"
             unfolding Suc_eq_plus1 natpermute_contain_maximal
             by (auto simp del: replicate.simps)
           have "(\<Prod>j\<in>{0..k}. a $ v ! j) = (\<Prod>j\<in>{0..k}. if j = i then a $ n else r (Suc k) (b$0))"

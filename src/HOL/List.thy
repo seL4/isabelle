@@ -130,7 +130,7 @@ syntax
   "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
   "" :: "lupdbind => lupdbinds"    ("_")
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
-  "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [900,0] 900)
+  "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [1000,0] 900)
 
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"

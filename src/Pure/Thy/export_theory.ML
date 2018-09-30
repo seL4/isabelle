@@ -101,7 +101,7 @@ fun add_tfrees used =
   (fold_types o fold_atyps) (fn TFree (a, S) => is_free used a ? insert (op =) (a, S) | _ => I);
 
 
-(* locale content *)
+(* locales content *)
 
 fun locale_content thy loc =
   let
@@ -127,24 +127,31 @@ fun locale_content thy loc =
     val typargs = rev (fold Term.add_tfrees (map (Free o #1) args @ axioms) []);
   in {typargs = typargs, args = args, axioms = axioms} end;
 
-fun locale_dependency_subst thy (dep: Locale.locale_dependency) =
-  let
-    val (type_params, params) = Locale.parameters_of thy (#source dep);
-    (* FIXME proper type_params wrt. locale_content (!?!) *)
-    val typargs = fold (Term.add_tfreesT o #2 o #1) params type_params;
-    val substT =
-      typargs |> map_filter (fn v =>
-        let
-          val T = TFree v;
-          val T' = Morphism.typ (#morphism dep) T;
-        in if T = T' then NONE else SOME (v, T') end);
-    val subst =
-      params |> map_filter (fn (v, _) =>
-        let
-          val t = Free v;
-          val t' = Morphism.term (#morphism dep) t;
-        in if t aconv t' then NONE else SOME (v, t') end);
-  in (substT, subst) end;
+fun get_locales thy =
+  Locale.get_locales thy |> map_filter (fn loc =>
+    if Experiment.is_experiment thy loc then NONE else SOME (loc, ()));
+
+fun get_dependencies prev_thys thy =
+  Locale.dest_dependencies prev_thys thy |> map_filter (fn dep =>
+    if Experiment.is_experiment thy (#source dep) orelse
+      Experiment.is_experiment thy (#target dep) then NONE
+    else
+      let
+        val (type_params, params) = Locale.parameters_of thy (#source dep);
+        val typargs = fold (Term.add_tfreesT o #2 o #1) params type_params;
+        val substT =
+          typargs |> map_filter (fn v =>
+            let
+              val T = TFree v;
+              val T' = Morphism.typ (#morphism dep) T;
+            in if T = T' then NONE else SOME (v, T') end);
+        val subst =
+          params |> map_filter (fn (v, _) =>
+            let
+              val t = Free v;
+              val t' = Morphism.term (#morphism dep) t;
+            in if t aconv t' then NONE else SOME (v, t') end);
+      in SOME (dep, (substT, subst)) end);
 
 
 (* general setup *)
@@ -331,14 +338,13 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
 
     val _ =
       export_entities "locales" (fn loc => fn () => SOME (export_locale loc))
-        Locale.locale_space
-        (map (rpair ()) (Locale.get_locales thy));
+        Locale.locale_space (get_locales thy);
 
 
     (* locale dependencies *)
 
-    fun encode_locale_dependency (dep: Locale.locale_dependency) =
-      (#source dep, (#target dep, (#prefix dep, locale_dependency_subst thy dep))) |>
+    fun encode_locale_dependency (dep: Locale.locale_dependency, subst) =
+      (#source dep, (#target dep, (#prefix dep, subst))) |>
         let
           open XML.Encode Term_XML.Encode;
           val encode_subst =
@@ -346,15 +352,16 @@ val _ = setup_presentation (fn {adjust_pos, ...} => fn thy =>
         in pair string (pair string (pair (list (pair string bool)) encode_subst)) end;
 
     val _ =
-      (case Locale.dest_dependencies parents thy of
+      (case get_dependencies parents thy of
         [] => ()
       | deps =>
           deps |> map_index (fn (i, dep) =>
             let
               val xname = string_of_int (i + 1);
               val name = Long_Name.implode [Context.theory_name thy, xname];
+              val markup = make_entity_markup name xname (#pos (#1 dep)) (#serial (#1 dep));
               val body = encode_locale_dependency dep;
-            in XML.Elem (make_entity_markup name xname (#pos dep) (#serial dep), body) end)
+            in XML.Elem (markup, body) end)
           |> export_body thy "locale_dependencies");
 
 

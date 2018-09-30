@@ -34,15 +34,18 @@ and need to be given explicitly. Auxiliary abbreviations INFIMUM,
 SUPREMUM, UNION, INTER should now rarely occur in output and are just
 retained as migration auxiliary. INCOMPATIBILITY.
 
-* Sledgehammer: The URL for SystemOnTPTP, which is used by remote
-provers, has been updated.
+* Theory List: the precedence of the list_update operator has changed:
+"f a [n := x]" now needs to be written "(f a)[n := x]".
+
+* Theory "HOL-Library.Multiset": the <Union># operator now has the same
+precedence as any other prefix function symbol.
 
 * Facts sum_mset.commute and prod_mset.commute renamed to sum_mset.swap
 and prod_mset.swap, similarly to sum.swap and prod.swap.
 INCOMPATIBILITY.
 
-* Theory "HOL-Library.Multiset": the <Union># operator now has the same
-precedence as any other prefix function symbol.
+* Sledgehammer: The URL for SystemOnTPTP, which is used by remote
+provers, has been updated.
 
 
 *** ML ***

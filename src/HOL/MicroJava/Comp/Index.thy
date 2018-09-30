@@ -70,7 +70,7 @@ lemma lift_if: "(f (if b then t else e)) = (if b then (f t) else (f e))"
 lemma update_at_index: "
   \<lbrakk> distinct (gjmb_plns (gmb G C S));
   x \<in> set (gjmb_plns (gmb G C S)); x \<noteq> This \<rbrakk> \<Longrightarrow>
-  locvars_xstate G C S (Norm (h, l))[index (gmb G C S) x := val] =
+  (locvars_xstate G C S (Norm (h, l)))[index (gmb G C S) x := val] =
   locvars_xstate G C S (Norm (h, l(x\<mapsto>val)))"
   apply (simp only: locvars_xstate_def locvars_locals_def index_def)
   apply (case_tac "gmb G C S" rule: prod.exhaust, simp)
