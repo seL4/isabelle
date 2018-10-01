@@ -158,6 +158,10 @@ object Sessions
     errors: List[String] = Nil,
     imports: Option[Base] = None)
   {
+    override def toString: String =
+      "Sessions.Base(loaded_theories = " + loaded_theories.size +
+        ", used_theories = " + used_theories.length + ")"
+
     def platform_path: Base = copy(known = known.platform_path)
     def standard_path: Base = copy(known = known.standard_path)
 
@@ -189,6 +193,8 @@ object Sessions
   sealed case class Deps(
     sessions_structure: Structure, session_bases: Map[String, Base], all_known: Known)
   {
+    override def toString: String = "Sessions.Deps(" + sessions_structure + ")"
+
     def is_empty: Boolean = session_bases.isEmpty
     def apply(name: String): Base = session_bases(name)
     def get(name: String): Option[Base] = session_bases.get(name)
