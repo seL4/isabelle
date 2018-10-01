@@ -141,7 +141,7 @@ fun mk_implies (A, B) = Thm.apply (Thm.apply implies A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to \<lbrakk>A1;...;An\<rbrakk>\<Longrightarrow>B *)
 fun list_implies([], B) = B
-  | list_implies(A::AS, B) = mk_implies (A, list_implies(AS,B));
+  | list_implies(A::As, B) = mk_implies (A, list_implies(As,B));
 
 (*cterm version of list_comb: maps  (f, [t1,...,tn])  to  f(t1,...,tn) *)
 fun list_comb (f, []) = f
