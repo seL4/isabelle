@@ -71,6 +71,8 @@ sig
   val major_prem_of: thm -> term
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
+  val cconcl_of: thm -> cterm
+  val cprems_of: thm -> cterm list
   val chyps_of: thm -> cterm list
   exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option
   val theory_of_cterm: cterm -> theory
@@ -396,6 +398,13 @@ fun cprop_of (Thm (_, {cert, maxidx, shyps, prop, ...})) =
 fun cprem_of (th as Thm (_, {cert, maxidx, shyps, prop, ...})) i =
   Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps,
     t = Logic.nth_prem (i, prop) handle TERM _ => raise THM ("cprem_of", i, [th])};
+
+fun cconcl_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
+  Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps, t = concl_of th};
+
+fun cprems_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
+  map (fn t => Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps, t = t})
+    (prems_of th);
 
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;

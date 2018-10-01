@@ -144,26 +144,37 @@ fun dmatch_tac ctxt rls = ematch_tac ctxt (map make_elim rls);
 fun flexflex_tac ctxt = PRIMSEQ (Thm.flexflex_rule (SOME ctxt));
 
 (*Remove duplicate subgoals.*)
-val permute_tac = PRIMITIVE oo Thm.permute_prems;
-fun distinct_tac (i, k) =
-  permute_tac 0 (i - 1) THEN
-  permute_tac 1 (k - 1) THEN
-  PRIMITIVE (fn st => Drule.comp_no_flatten (st, 0) 1 Drule.distinct_prems_rl) THEN
-  permute_tac 1 (1 - k) THEN
-  permute_tac 0 (1 - i);
-
-fun distinct_subgoal_tac i st =
-  (case drop (i - 1) (Thm.prems_of st) of
-    [] => no_tac st
-  | A :: Bs =>
-      st |> EVERY (fold (fn (B, k) =>
-        if A aconv B then cons (distinct_tac (i, k)) else I) (Bs ~~ (1 upto length Bs)) []));
-
-fun distinct_subgoals_tac state =
+fun distinct_subgoals_tac st =
   let
-    val goals = Thm.prems_of state;
-    val dups = distinct (eq_fst (op aconv)) (goals ~~ (1 upto length goals));
-  in EVERY (rev (map (distinct_subgoal_tac o snd) dups)) state end;
+    val subgoals = Thm.cprems_of st;
+    val (tab, n) =
+      (subgoals, (Ctermtab.empty, 0)) |-> fold (fn ct => fn (tab, i) =>
+        if Ctermtab.defined tab ct then (tab, i)
+        else (Ctermtab.update (ct, i) tab, i + 1));
+    val st' =
+      if n = length subgoals then st
+      else
+        let
+          val thy = Thm.theory_of_thm st;
+          fun cert_prop i = Thm.global_cterm_of thy (Free (Name.bound i, propT));
+
+          val As = map (cert_prop o the o Ctermtab.lookup tab) subgoals;
+          val As' = map cert_prop (0 upto (n - 1));
+          val C = cert_prop n;
+
+          val template = Drule.list_implies (As, C);
+          val inst =
+            (dest_Free (Thm.term_of C), Thm.cconcl_of st) ::
+              Ctermtab.fold (fn (ct, i) => cons ((Name.bound i, propT), ct)) tab [];
+        in
+          Thm.assume template
+          |> fold (Thm.elim_implies o Thm.assume) As
+          |> fold_rev Thm.implies_intr As'
+          |> Thm.implies_intr template
+          |> Thm.instantiate_frees ([], inst)
+          |> Thm.elim_implies st
+        end;
+  in Seq.single st' end;
 
 
 (*** Applications of cut_rl ***)
