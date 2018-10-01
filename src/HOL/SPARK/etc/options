@@ -1,6 +1,0 @@
-(* :mode=isabelle-options: *)
-
-section "HOL-SPARK"
-
-option spark_prv : bool = true
-  -- "produce proof review file after 'spark_end'"

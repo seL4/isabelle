@@ -973,11 +973,9 @@ fun close incomplete thy =
              \because their proofs contain oracles:" proved'));
           val prv_path = Path.ext "prv" path;
           val _ =
-            if File.exists prv_path orelse Options.default_bool \<^system_option>\<open>spark_prv\<close> then
-              File.write prv_path
-               (implode (map (fn (s, _) => snd (strip_number s) ^
-                  " -- proved by " ^ Distribution.version ^ "\n") proved''))
-            else ();
+            Export.export thy (Path.implode prv_path)
+              [implode (map (fn (s, _) => snd (strip_number s) ^
+                " -- proved by " ^ Distribution.version ^ "\n") proved'')];
         in {pfuns = pfuns, type_map = type_map, env = NONE} end))
   |> Sign.parent_path;
 

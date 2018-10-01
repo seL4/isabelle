@@ -13,13 +13,13 @@ fun spark_open header (files, prfx) thy =
     val ([{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
       {lines = fdl_lines, pos = fdl_pos, ...},
       {lines = rls_lines, pos = rls_pos, ...}], thy') = files thy;
-    val base = fst (Path.split_ext (File.full_path (Resources.master_directory thy') src_path));
+    val path = fst (Path.split_ext src_path);
   in
     SPARK_VCs.set_vcs
       (snd (Fdl_Parser.parse_declarations fdl_pos (cat_lines fdl_lines)))
       (Fdl_Parser.parse_rules rls_pos (cat_lines rls_lines))
       (snd (Fdl_Parser.parse_vcs header vc_pos (cat_lines vc_lines)))
-      base prfx thy'
+      path prfx thy'
   end;
 
 fun add_proof_fun_cmd pf thy =
