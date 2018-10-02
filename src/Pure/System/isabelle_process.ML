@@ -71,7 +71,8 @@ fun update_tracing () =
           Synchronized.change_result tracing_messages (fn tab =>
             let
               val n = the_default 0 (Inttab.lookup tab exec_id) + 1;
-              val ok = n <= Options.default_int "editor_tracing_messages";
+              val limit = Options.default_int "editor_tracing_messages";
+              val ok = limit <= 0 orelse n <= limit;
             in (ok, Inttab.update (exec_id, n) tab) end);
       in
         if ok then ()

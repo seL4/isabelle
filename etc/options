@@ -174,7 +174,7 @@ public option editor_reparse_limit : int = 10000
   -- "maximum amount of reparsed text outside perspective"
 
 public option editor_tracing_messages : int = 1000
-  -- "initial number of tracing messages for each command transaction"
+  -- "initial number of tracing messages for each command transaction (0: unbounded)"
 
 public option editor_chart_delay : real = 3.0
   -- "delay for chart repainting"
