@@ -16,7 +16,7 @@ session Classes (doc) in "Classes" = HOL +
     "root.tex"
     "style.sty"
 
-session Codegen_Basics in "Codegen" = "HOL-Library" +
+session Codegen_Basics (no_doc) in "Codegen" = "HOL-Library" +
   theories
     Setup
 
@@ -116,7 +116,7 @@ session Functions (doc) in "Functions" = HOL +
     "root.tex"
     "style.sty"
 
-session How_to_Prove_it (* FIXME (doc) *) in "How_to_Prove_it" = HOL +
+session How_to_Prove_it (no_doc) in "How_to_Prove_it" = HOL +
   options [document_variants = "how_to_prove_it", show_question_marks = false]
   theories
     How_to_Prove_it
@@ -502,6 +502,6 @@ session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = "Typeclass_Hierarch
     "root.tex"
     "style.sty"
 
-session Typeclass_Hierarchy_Basics in "Typeclass_Hierarchy" = "HOL-Library" +
+session Typeclass_Hierarchy_Basics (no_doc) in "Typeclass_Hierarchy" = "HOL-Library" +
   theories
     Setup
