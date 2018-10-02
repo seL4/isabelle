@@ -248,8 +248,8 @@ lemma "\<turnstile> (\<forall>x y. f(x) = g(y)) \<longrightarrow> (\<forall>x y.
 text "Problem 59"
 (*Unification works poorly here -- the abstraction %sobj prevents efficient
   operation of the occurs check*)
-
 lemma "\<turnstile> (\<forall>x. P(x) \<longleftrightarrow> \<not> P(f(x))) \<longrightarrow> (\<exists>x. P(x) \<and> \<not> P(f(x)))"
+  using [[unify_trace_bound = 50]]
   by best_dup
 
 text "Problem 60"
