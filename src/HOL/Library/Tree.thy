@@ -351,7 +351,7 @@ proof (cases "complete t")
   have "(2::nat) ^ height t \<le> 2 ^ height t'"
   proof -
     have "2 ^ height t = size1 t"
-      using True by (simp add: complete_iff_height size1_if_complete)
+      using True by (simp add: size1_if_complete)
     also have "\<dots> \<le> size1 t'" using assms(2) by(simp add: size1_size)
     also have "\<dots> \<le> 2 ^ height t'" by (rule size1_height)
     finally show ?thesis .
