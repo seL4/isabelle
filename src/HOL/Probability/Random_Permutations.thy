@@ -204,13 +204,13 @@ proof (rule pmf_eqI, clarify, goal_cases)
     have "pmf ?lhs (xs, ys) = 
             real (card (permutations_of_set A \<inter> partition P -` {(xs, ys)})) / fact (card A)"
       using assms by (auto simp: pmf_map measure_pmf_of_set)
-    also have "partition P -` {(xs, ys)} = shuffle xs ys" 
+    also have "partition P -` {(xs, ys)} = shuffles xs ys" 
       using True by (intro inv_image_partition) (auto simp: permutations_of_set_def)
-    also have "permutations_of_set A \<inter> shuffle xs ys = shuffle xs ys"
-      using True distinct_disjoint_shuffle[of xs ys] 
-      by (auto simp: permutations_of_set_def dest: set_shuffle)
-    also have "card (shuffle xs ys) = length xs + length ys choose length xs"
-      using True by (intro card_disjoint_shuffle) (auto simp: permutations_of_set_def)
+    also have "permutations_of_set A \<inter> shuffles xs ys = shuffles xs ys"
+      using True distinct_disjoint_shuffles[of xs ys] 
+      by (auto simp: permutations_of_set_def dest: set_shuffles)
+    also have "card (shuffles xs ys) = length xs + length ys choose length xs"
+      using True by (intro card_disjoint_shuffles) (auto simp: permutations_of_set_def)
     also have "length xs + length ys = card A" by (simp add: card_eq)
     also have "real (card A choose length xs) = fact (card A) / (fact ?n1 * fact (card A - ?n1))"
       by (subst binomial_fact) (auto intro!: card_mono assms)

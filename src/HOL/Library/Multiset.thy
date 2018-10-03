@@ -1936,8 +1936,8 @@ next
   ultimately show ?case by simp
 qed
 
-lemma mset_shuffle: "zs \<in> shuffle xs ys \<Longrightarrow> mset zs = mset xs + mset ys"
-  by (induction xs ys arbitrary: zs rule: shuffle.induct) auto
+lemma mset_shuffles: "zs \<in> shuffles xs ys \<Longrightarrow> mset zs = mset xs + mset ys"
+  by (induction xs ys arbitrary: zs rule: shuffles.induct) auto
 
 lemma mset_insort [simp]: "mset (insort x xs) = add_mset x (mset xs)"
   by (induct xs) simp_all

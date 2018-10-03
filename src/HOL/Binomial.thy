@@ -1243,21 +1243,21 @@ next
   qed
 qed
 
-lemma card_disjoint_shuffle:
+lemma card_disjoint_shuffles:
   assumes "set xs \<inter> set ys = {}"
-  shows   "card (shuffle xs ys) = (length xs + length ys) choose length xs"
+  shows   "card (shuffles xs ys) = (length xs + length ys) choose length xs"
 using assms
-proof (induction xs ys rule: shuffle.induct)
+proof (induction xs ys rule: shuffles.induct)
   case (3 x xs y ys)
-  have "shuffle (x # xs) (y # ys) = (#) x ` shuffle xs (y # ys) \<union> (#) y ` shuffle (x # xs) ys"
-    by (rule shuffle.simps)
-  also have "card \<dots> = card ((#) x ` shuffle xs (y # ys)) + card ((#) y ` shuffle (x # xs) ys)"
+  have "shuffles (x # xs) (y # ys) = (#) x ` shuffles xs (y # ys) \<union> (#) y ` shuffles (x # xs) ys"
+    by (rule shuffles.simps)
+  also have "card \<dots> = card ((#) x ` shuffles xs (y # ys)) + card ((#) y ` shuffles (x # xs) ys)"
     by (rule card_Un_disjoint) (insert "3.prems", auto)
-  also have "card ((#) x ` shuffle xs (y # ys)) = card (shuffle xs (y # ys))"
+  also have "card ((#) x ` shuffles xs (y # ys)) = card (shuffles xs (y # ys))"
     by (rule card_image) auto
   also have "\<dots> = (length xs + length (y # ys)) choose length xs"
     using "3.prems" by (intro "3.IH") auto
-  also have "card ((#) y ` shuffle (x # xs) ys) = card (shuffle (x # xs) ys)"
+  also have "card ((#) y ` shuffles (x # xs) ys) = card (shuffles (x # xs) ys)"
     by (rule card_image) auto
   also have "\<dots> = (length (x # xs) + length ys) choose length (x # xs)"
     using "3.prems" by (intro "3.IH") auto
