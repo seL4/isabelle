@@ -1384,19 +1384,19 @@ theorem mvt:
   assumes "a < b"
     and contf: "continuous_on {a..b} f"
     and derf: "\<And>x. \<lbrakk>a < x; x < b\<rbrakk> \<Longrightarrow> (f has_derivative f' x) (at x)"
-  obtains z where "a < z" "z < b" "f b - f a = (f' z) (b - a)"
+  obtains \<xi> where "a < \<xi>" "\<xi> < b" "f b - f a = (f' \<xi>) (b - a)"
 proof -
   have "\<exists>x. a < x \<and> x < b \<and> (\<lambda>y. f' x y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)"
   proof (intro Rolle_deriv[OF \<open>a < b\<close>])
     fix x
     assume x: "a < x" "x < b"
-    show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) has_derivative
-        (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
+    show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) 
+          has_derivative (\<lambda>y. f' x y - (f b - f a) / (b - a) * y)) (at x)"
       by (intro derivative_intros derf[OF x])
   qed (use assms in \<open>auto intro!: continuous_intros simp: field_simps\<close>)
-  then obtain x where
-    "a < x" "x < b"
-    "(\<lambda>y. f' x y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)" by metis
+  then obtain \<xi> where
+    "a < \<xi>" "\<xi> < b" "(\<lambda>y. f' \<xi> y - (f b - f a) / (b - a) * y) = (\<lambda>v. 0)" 
+    by metis
   then show ?thesis
     by (metis (no_types, hide_lams) that add.right_neutral add_diff_cancel_left' add_diff_eq \<open>a < b\<close>
                  less_irrefl nonzero_eq_divide_eq)
