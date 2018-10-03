@@ -1,35 +1,29 @@
 /*  Title:      Pure/System/platform.scala
     Author:     Makarius
 
-Raw platform identification.
+System platform identification.
 */
 
 package isabelle
 
 
-import scala.util.matching.Regex
-
-
 object Platform
 {
-  /* main OS variants */
+  /* platform family */
 
   val is_linux = System.getProperty("os.name", "") == "Linux"
   val is_macos = System.getProperty("os.name", "") == "Mac OS X"
   val is_windows = System.getProperty("os.name", "").startsWith("Windows")
 
 
-  /* Platform identifiers */
+  /* platform identifiers */
 
-  private val Solaris = new Regex("SunOS|Solaris")
-  private val Linux = new Regex("Linux")
-  private val Darwin = new Regex("Mac OS X")
-  private val Windows = new Regex("Windows.*")
+  private val Linux = """Linux""".r
+  private val Darwin = """Mac OS X""".r
+  private val Windows = """Windows.*""".r
 
-  private val X86 = new Regex("i.86|x86")
-  private val X86_64 = new Regex("amd64|x86_64")
-  private val Sparc = new Regex("sparc")
-  private val PPC = new Regex("PowerPC|ppc")
+  private val X86 = """i.86|x86""".r
+  private val X86_64 = """amd64|x86_64""".r
 
   lazy val jvm_platform: String =
   {
@@ -37,13 +31,10 @@ object Platform
       System.getProperty("os.arch", "") match {
         case X86() => "x86"
         case X86_64() => "x86_64"
-        case Sparc() => "sparc"
-        case PPC() => "ppc"
         case _ => error("Failed to determine CPU architecture")
       }
     val os =
       System.getProperty("os.name", "") match {
-        case Solaris() => "solaris"
         case Linux() => "linux"
         case Darwin() => "darwin"
         case Windows() => "windows"
@@ -55,7 +46,7 @@ object Platform
 
   /* JVM version */
 
-  private val Version = new Regex("""1\.(\d+)\.0_(\d+)""")
+  private val Version = """1\.(\d+)\.0_(\d+)""".r
   lazy val jvm_version =
     System.getProperty("java.version") match {
       case Version(a, b) => a + "u" + b
