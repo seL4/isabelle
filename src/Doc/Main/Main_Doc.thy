@@ -552,7 +552,7 @@ Type @{typ int}
 @{const List.rotate} & @{typeof List.rotate}\\
 @{const List.rotate1} & @{typeof List.rotate1}\\
 @{const List.set} & @{term_type_only List.set "'a list \<Rightarrow> 'a set"}\\
-@{const List.shuffle} & @{typeof List.shuffle}\\
+@{const List.shuffles} & @{typeof List.shuffles}\\
 @{const List.sort} & @{typeof List.sort}\\
 @{const List.sorted} & @{typeof List.sorted}\\
 @{const List.sorted_wrt} & @{typeof List.sorted_wrt}\\
