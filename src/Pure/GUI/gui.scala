@@ -58,26 +58,6 @@ object GUI
   }
 
 
-  /* X11 window manager */
-
-  def window_manager(): Option[String] =
-  {
-    if (Platform.is_windows || Platform.is_macos) None
-    else
-      try {
-        val wm =
-          Untyped.method(Class.forName("sun.awt.X11.XWM", true, ClassLoader.getSystemClassLoader),
-            "getWM").invoke(null)
-        if (wm == null) None
-        else Some(wm.toString)
-      }
-      catch {
-        case _: ClassNotFoundException => None
-        case _: NoSuchMethodException => None
-      }
-  }
-
-
   /* simple dialogs */
 
   def scrollable_text(raw_txt: String, width: Int = 60, height: Int = 20, editable: Boolean = false)
