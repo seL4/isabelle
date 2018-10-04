@@ -440,6 +440,13 @@ corollary (in group) normal_invI:
   shows "N \<lhd> G"
   using assms normal_inv_iff by blast
 
+corollary (in group) normal_invE:
+  assumes "N \<lhd> G"
+  shows "subgroup N G" and "\<And>x h. \<lbrakk> x \<in> carrier G; h \<in> N \<rbrakk> \<Longrightarrow> x \<otimes> h \<otimes> inv x \<in> N"
+  using assms normal_inv_iff apply blast
+  by (simp add: assms normal.inv_op_closed2)
+
+
 lemma (in group) one_is_normal: "{\<one>} \<lhd> G"
 proof(intro normal_invI)
   show "subgroup {\<one>} G"
@@ -1076,7 +1083,7 @@ corollary (in group_hom) FactGroup_iso :
 (* Next two lemmas contributed by Paulo Emílio de Vilhena. *)
 
 lemma (in group_hom) trivial_hom_iff:
-  "(h ` (carrier G) = { \<one>\<^bsub>H\<^esub> }) = (kernel G H h = carrier G)"
+  "h ` (carrier G) = { \<one>\<^bsub>H\<^esub> } \<longleftrightarrow> kernel G H h = carrier G"
   unfolding kernel_def using one_closed by force
 
 lemma (in group_hom) trivial_ker_imp_inj:
@@ -1089,6 +1096,90 @@ proof (rule inj_onI)
     using A assms unfolding kernel_def by blast
   thus "g1 = g2"
     using A G.inv_equality G.inv_inv by blast
+qed
+
+(* NEW ========================================================================== *)
+lemma (in group_hom) inj_iff_trivial_ker:
+  shows "inj_on h (carrier G) \<longleftrightarrow> kernel G H h = { \<one> }"
+proof
+  assume inj: "inj_on h (carrier G)" show "kernel G H h = { \<one> }"
+    unfolding kernel_def
+  proof (auto)
+    fix a assume "a \<in> carrier G" "h a = \<one>\<^bsub>H\<^esub>" thus "a = \<one>"
+      using inj hom_one unfolding inj_on_def by force
+  qed
+next
+  show "kernel G H h = { \<one> } \<Longrightarrow> inj_on h (carrier G)"
+    using trivial_ker_imp_inj by simp
+qed
+
+(* NEW ========================================================================== *)
+lemma (in group_hom) induced_group_hom':
+  assumes "subgroup I G" shows "group_hom (G \<lparr> carrier := I \<rparr>) H h"
+proof -
+  have "h \<in> hom (G \<lparr> carrier := I \<rparr>) H"
+    using homh subgroup.subset[OF assms] unfolding hom_def by (auto, meson hom_mult subsetCE)
+  thus ?thesis
+    using subgroup.subgroup_is_group[OF assms G.group_axioms] group_axioms
+    unfolding group_hom_def group_hom_axioms_def by auto
+qed
+
+(* NEW ========================================================================== *)
+lemma (in group_hom) inj_on_subgroup_iff_trivial_ker:
+  assumes "subgroup I G"
+  shows "inj_on h I \<longleftrightarrow> kernel (G \<lparr> carrier := I \<rparr>) H h = { \<one> }"
+  using group_hom.inj_iff_trivial_ker[OF induced_group_hom'[OF assms]] by simp
+
+(* NEW ========================================================================== *)
+lemma set_mult_hom:
+  assumes "h \<in> hom G H" "I \<subseteq> carrier G" and "J \<subseteq> carrier G"
+  shows "h ` (I <#>\<^bsub>G\<^esub> J) = (h ` I) <#>\<^bsub>H\<^esub> (h ` J)"
+proof
+  show "h ` (I <#>\<^bsub>G\<^esub> J) \<subseteq> (h ` I) <#>\<^bsub>H\<^esub> (h ` J)"
+  proof
+    fix a assume "a \<in> h ` (I <#>\<^bsub>G\<^esub> J)"
+    then obtain i j where i: "i \<in> I" and j: "j \<in> J" and "a = h (i \<otimes>\<^bsub>G\<^esub> j)"
+      unfolding set_mult_def by auto
+    hence "a = (h i) \<otimes>\<^bsub>H\<^esub> (h j)"
+      using assms unfolding hom_def by blast
+    thus "a \<in> (h ` I) <#>\<^bsub>H\<^esub> (h ` J)"
+      using i and j unfolding set_mult_def by auto
+  qed
+next
+  show "(h ` I) <#>\<^bsub>H\<^esub> (h ` J) \<subseteq> h ` (I <#>\<^bsub>G\<^esub> J)"
+  proof
+    fix a assume "a \<in> (h ` I) <#>\<^bsub>H\<^esub> (h ` J)"
+    then obtain i j where i: "i \<in> I" and j: "j \<in> J" and "a = (h i) \<otimes>\<^bsub>H\<^esub> (h j)"
+      unfolding set_mult_def by auto
+    hence "a = h (i \<otimes>\<^bsub>G\<^esub> j)"
+      using assms unfolding hom_def by fastforce
+    thus "a \<in> h ` (I <#>\<^bsub>G\<^esub> J)"
+      using i and j unfolding set_mult_def by auto
+  qed
+qed
+
+(* NEW ========================================================================== *)
+corollary coset_hom:
+  assumes "h \<in> hom G H" "I \<subseteq> carrier G" "a \<in> carrier G"
+  shows "h ` (a <#\<^bsub>G\<^esub> I) = h a <#\<^bsub>H\<^esub> (h ` I)" and "h ` (I #>\<^bsub>G\<^esub> a) = (h ` I) #>\<^bsub>H\<^esub> h a"
+  unfolding l_coset_eq_set_mult r_coset_eq_set_mult using assms set_mult_hom[OF assms(1)] by auto
+
+(* NEW ========================================================================== *)
+corollary (in group_hom) set_mult_ker_hom:
+  assumes "I \<subseteq> carrier G"
+  shows "h ` (I <#> (kernel G H h)) = h ` I" and "h ` ((kernel G H h) <#> I) = h ` I"
+proof -
+  have ker_in_carrier: "kernel G H h \<subseteq> carrier G"
+    unfolding kernel_def by auto
+
+  have "h ` (kernel G H h) = { \<one>\<^bsub>H\<^esub> }"
+    unfolding kernel_def by force
+  moreover have "h ` I \<subseteq> carrier H"
+    using assms by auto
+  hence "(h ` I) <#>\<^bsub>H\<^esub> { \<one>\<^bsub>H\<^esub> } = h ` I" and "{ \<one>\<^bsub>H\<^esub> } <#>\<^bsub>H\<^esub> (h ` I) = h ` I"
+    unfolding set_mult_def by force+
+  ultimately show "h ` (I <#> (kernel G H h)) = h ` I" and "h ` ((kernel G H h) <#> I) = h ` I"
+    using set_mult_hom[OF homh assms ker_in_carrier] set_mult_hom[OF homh ker_in_carrier assms] by simp+
 qed
 
 

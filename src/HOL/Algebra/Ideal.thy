@@ -39,7 +39,7 @@ lemma idealI:
 proof -
   interpret ring R by fact
   show ?thesis  
-    by (auto simp: ideal.intro ideal_axioms.intro additive_subgroupI a_subgroup is_ring I_l_closed I_r_closed)
+    by (auto simp: ideal.intro ideal_axioms.intro additive_subgroupI a_subgroup ring_axioms I_l_closed I_r_closed)
 qed
 
 
@@ -67,6 +67,46 @@ proof -
     by (intro principalideal.intro principalideal_axioms.intro)
       (rule is_ideal, rule generate)
 qed
+
+(* NEW ====== *)
+lemma (in ideal) rcos_const_imp_mem:
+  assumes "i \<in> carrier R" and "I +> i = I" shows "i \<in> I"
+  using additive_subgroup.zero_closed[OF ideal.axioms(1)[OF ideal_axioms]] assms
+  by (force simp add: a_r_coset_def')
+(* ========== *)
+
+(* NEW ====== *)
+lemma (in ring) a_rcos_zero:
+  assumes "ideal I R" "i \<in> I" shows "I +> i = I"
+  using abelian_subgroupI3[OF ideal.axioms(1) is_abelian_group]
+  by (simp add: abelian_subgroup.a_rcos_const assms)
+(* ========== *)
+
+(* NEW ====== *)
+lemma (in ring) ideal_is_normal:
+  assumes "ideal I R" shows "I \<lhd> (add_monoid R)"
+  using abelian_subgroup.a_normal[OF abelian_subgroupI3[OF ideal.axioms(1)]]
+        abelian_group_axioms assms
+  by auto 
+(* ========== *)
+
+(* NEW ====== *)
+lemma (in ideal) a_rcos_sum:
+  assumes "a \<in> carrier R" and "b \<in> carrier R" shows "(I +> a) <+> (I +> b) = I +> (a \<oplus> b)"
+  using normal.rcos_sum[OF ideal_is_normal[OF ideal_axioms]] assms
+  unfolding set_add_def a_r_coset_def by simp
+(* ========== *)
+
+(* NEW ====== *)
+lemma (in ring) set_add_comm:
+  assumes "I \<subseteq> carrier R" "J \<subseteq> carrier R" shows "I <+> J = J <+> I"
+proof -
+  { fix I J assume "I \<subseteq> carrier R" "J \<subseteq> carrier R" hence "I <+> J \<subseteq> J <+> I"
+      using a_comm unfolding set_add_def' by (auto, blast) }
+  thus ?thesis
+    using assms by auto
+qed
+(* ========== *)
 
 
 subsubsection \<open>Maximal Ideals\<close>
@@ -128,9 +168,10 @@ lemma primeidealI2:
 proof -
   interpret additive_subgroup I R by fact
   interpret cring R by fact
-  show ?thesis
-    apply intro_locales
-    apply (simp add: I_l_closed I_r_closed ideal_axioms_def)
+  show ?thesis apply intro_locales
+    apply (intro ideal_axioms.intro)
+    apply (erule (1) I_l_closed)
+    apply (erule (1) I_r_closed)
     by (simp add: I_notcarr I_prime primeideal_axioms.intro)
 qed
 
@@ -138,10 +179,10 @@ qed
 subsection \<open>Special Ideals\<close>
 
 lemma (in ring) zeroideal: "ideal {\<zero>} R"
-  by (intro idealI subgroup.intro) (simp_all add: is_ring)
+  by (intro idealI subgroup.intro) (simp_all add: ring_axioms)
 
 lemma (in ring) oneideal: "ideal (carrier R) R"
-  by (rule idealI) (auto intro: is_ring add.subgroupI)
+  by (rule idealI) (auto intro: ring_axioms add.subgroupI)
 
 lemma (in "domain") zeroprimeideal: "primeideal {\<zero>} R"
 proof -
@@ -186,7 +227,7 @@ proof -
     by (force simp: a_subset)
   show ?thesis
     apply (intro idealI subgroup.intro)
-    apply (simp_all add: IJ is_ring I_l_closed assms ideal.I_l_closed ideal.I_r_closed flip: a_inv_def)
+    apply (simp_all add: IJ ring_axioms I_l_closed assms ideal.I_l_closed ideal.I_r_closed flip: a_inv_def)
     done
 qed
 
@@ -239,7 +280,7 @@ proof (rule ideal.intro)
   show "additive_subgroup (I <+> J) R"
     by (intro ideal.axioms[OF idealI] ideal.axioms[OF idealJ] add_additive_subgroups)
   show "ring R"
-    by (rule is_ring)
+    by (rule ring_axioms)
   show "ideal_axioms (I <+> J) R"
   proof -
     { fix x i j
@@ -347,17 +388,14 @@ qed
 text \<open>Generation of Principal Ideals in Commutative Rings\<close>
 
 definition cgenideal :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set"  ("PIdl\<index> _" [80] 79)
-  where "cgenideal R a \<equiv> {x \<otimes>\<^bsub>R\<^esub> a | x. x \<in> carrier R}"
-
-lemma cginideal_def': "cgenideal R a = (\<lambda>x. x \<otimes>\<^bsub>R\<^esub> a) ` carrier R"
-  by (auto simp add: cgenideal_def)
+  where "cgenideal R a = {x \<otimes>\<^bsub>R\<^esub> a | x. x \<in> carrier R}"
 
 text \<open>genhideal (?) really generates an ideal\<close>
 lemma (in cring) cgenideal_ideal:
   assumes acarr: "a \<in> carrier R"
   shows "ideal (PIdl a) R"
   unfolding cgenideal_def
-proof (intro subgroup.intro idealI[OF is_ring], simp_all)
+proof (intro subgroup.intro idealI[OF ring_axioms], simp_all)
   show "{x \<otimes> a |x. x \<in> carrier R} \<subseteq> carrier R"
     by (blast intro: acarr)
   show "\<And>x y. \<lbrakk>\<exists>u. x = u \<otimes> a \<and> u \<in> carrier R; \<exists>x. y = x \<otimes> a \<and> x \<in> carrier R\<rbrakk>
@@ -431,7 +469,7 @@ lemma (in ring) union_genideal:
   shows "Idl (I \<union> J) = I <+> J"
 proof
   show "Idl (I \<union> J) \<subseteq> I <+> J"
-  proof (rule ring.genideal_minimal [OF is_ring])
+  proof (rule ring.genideal_minimal [OF ring_axioms])
     show "ideal (I <+> J) R"
       by (rule add_ideals[OF idealI idealJ])
     have "\<And>x. x \<in> I \<Longrightarrow> \<exists>xa\<in>I. \<exists>xb\<in>J. x = xa \<oplus> xb"

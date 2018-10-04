@@ -8,8 +8,10 @@ begin
 
 section \<open>Cycles\<close>
 
-abbreviation cycle :: "'a list \<Rightarrow> bool" where
-  "cycle cs \<equiv> distinct cs"
+subsection \<open>Definitions\<close>
+
+abbreviation cycle :: "'a list \<Rightarrow> bool"
+  where "cycle cs \<equiv> distinct cs"
 
 fun cycle_of_list :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a"
   where
@@ -17,41 +19,26 @@ fun cycle_of_list :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a"
   | "cycle_of_list cs = id"
 
 
-subsection\<open>Cycles as Rotations\<close>
+subsection \<open>Basic Properties\<close>
 
-text\<open>We start proving that the function derived from a cycle rotates its support list.\<close>
+text \<open>We start proving that the function derived from a cycle rotates its support list.\<close>
 
 lemma id_outside_supp:
-  assumes "cycle cs" and "x \<notin> set cs"
-  shows "(cycle_of_list cs) x = x" using assms
-proof (induction cs rule: cycle_of_list.induct)
-  case (1 i j cs)
-  have "cycle_of_list (i # j # cs) x = (Fun.swap i j id) (cycle_of_list (j # cs) x)" by simp
-  also have " ... = (Fun.swap i j id) x"
-    using "1.IH" "1.prems"(1) "1.prems"(2) by auto
-  also have " ... = x" using 1(3) by simp
-  finally show ?case .
-next
-  case "2_1" thus ?case by simp
-next
-  case "2_2" thus ?case by simp
-qed
+  assumes "x \<notin> set cs" shows "(cycle_of_list cs) x = x"
+  using assms by (induct cs rule: cycle_of_list.induct) (simp_all)
 
-lemma cycle_permutes:
-  assumes "cycle cs"
-  shows "permutation (cycle_of_list cs)"
-proof (induction rule: cycle_of_list.induct)
-  case (1 i j cs) thus ?case
-    by (metis cycle_of_list.simps(1) permutation_compose permutation_swap_id)
-next
-  case "2_1" thus ?case by simp
-next
-  case "2_2" thus ?case by simp
-qed
+lemma permutation_of_cycle: "permutation (cycle_of_list cs)"
+proof (induct cs rule: cycle_of_list.induct)
+  case 1 thus ?case
+    using permutation_compose[OF permutation_swap_id] unfolding comp_apply by simp
+qed simp_all
+
+lemma cycle_permutes: "(cycle_of_list cs) permutes (set cs)"
+  using permutation_bijective[OF permutation_of_cycle] id_outside_supp[of _ cs]
+  by (simp add: bij_iff permutes_def)
 
 theorem cyclic_rotation:
-  assumes "cycle cs"
-  shows "map ((cycle_of_list cs) ^^ n) cs = rotate n cs"
+  assumes "cycle cs" shows "map ((cycle_of_list cs) ^^ n) cs = rotate n cs"
 proof -
   { have "map (cycle_of_list cs) cs = rotate1 cs" using assms(1)
     proof (induction cs rule: cycle_of_list.induct)
@@ -72,92 +59,52 @@ proof -
         also have " ... = rotate1 (i # j # cs)" by simp
         finally show ?thesis .
       qed
-    next
-      case "2_1" thus ?case by simp
-    next
-      case "2_2" thus ?case by simp
-    qed }
+    qed simp_all }
   note cyclic_rotation' = this
 
-  from assms show ?thesis
-  proof (induction n)
-    case 0 thus ?case by simp
-  next
-    case (Suc n)
-    have "map ((cycle_of_list cs) ^^ (Suc n)) cs =
-          map (cycle_of_list cs) (map ((cycle_of_list cs) ^^ n) cs)" by simp
-    also have " ... = map (cycle_of_list cs) (rotate n cs)"
-      by (simp add: Suc.IH assms)
-    also have " ... = rotate (Suc n) cs"
-      using cyclic_rotation'
-      by (metis rotate1_rotate_swap rotate_Suc rotate_map)
-    finally show ?case .
-  qed
+  show ?thesis
+    using cyclic_rotation' by (induct n) (auto, metis map_map rotate1_rotate_swap rotate_map)
 qed
 
 corollary cycle_is_surj:
-  assumes "cycle cs"
-  shows "(cycle_of_list cs) ` (set cs) = (set cs)"
-  using cyclic_rotation[OF assms, of 1] by (simp add: image_set)
+  assumes "cycle cs" shows "(cycle_of_list cs) ` (set cs) = (set cs)"
+  using cyclic_rotation[OF assms, of "Suc 0"] by (simp add: image_set)
 
 corollary cycle_is_id_root:
-  assumes "cycle cs"
-  shows "(cycle_of_list cs) ^^ (length cs) = id"
+  assumes "cycle cs" shows "(cycle_of_list cs) ^^ (length cs) = id"
 proof -
   have "map ((cycle_of_list cs) ^^ (length cs)) cs = cs"
-    by (simp add: assms cyclic_rotation)
-  hence "\<And>x. x \<in> (set cs) \<Longrightarrow> ((cycle_of_list cs) ^^ (length cs)) x = x"
-    using map_eq_conv by fastforce
-  moreover have "\<And>n x. x \<notin> (set cs) \<Longrightarrow> ((cycle_of_list cs) ^^ n) x = x"
-  proof -
-    fix n show "\<And>x. x \<notin> (set cs) \<Longrightarrow> ((cycle_of_list cs) ^^ n) x = x"
-    proof (induction n)
-      case 0 thus ?case by simp
-    next
-      case (Suc n) thus ?case using id_outside_supp[OF assms] by simp
-    qed
-  qed
-  hence "\<And>x. x \<notin> (set cs) \<Longrightarrow> ((cycle_of_list cs) ^^ (length cs)) x = x" by simp
+    unfolding cyclic_rotation[OF assms] by simp
+  hence "((cycle_of_list cs) ^^ (length cs)) i = i" if "i \<in> set cs" for i
+    using that map_eq_conv by fastforce
+  moreover have "((cycle_of_list cs) ^^ n) i = i" if "i \<notin> set cs" for i n
+    using id_outside_supp[OF that] by (induct n) (simp_all)
   ultimately show ?thesis
-    by (meson eq_id_iff)
+    by fastforce
 qed
 
-corollary
-  assumes "cycle cs"
-  shows "(cycle_of_list cs) = (cycle_of_list (rotate n cs))"
+corollary cycle_of_list_rotate_independent:
+  assumes "cycle cs" shows "(cycle_of_list cs) = (cycle_of_list (rotate n cs))"
 proof -
-  { fix cs :: "'a list" assume A: "cycle cs"
+  { fix cs :: "'a list" assume cs: "cycle cs"
     have "(cycle_of_list cs) = (cycle_of_list (rotate1 cs))"
-    proof
-      have "\<And>x. x \<in> set cs \<Longrightarrow> (cycle_of_list cs) x = (cycle_of_list (rotate1 cs)) x"
-      proof -
-        have "cycle (rotate1 cs)" using A by simp
-        hence "map (cycle_of_list (rotate1 cs)) (rotate1 cs) = (rotate 2 cs)"
-          using cyclic_rotation by (metis Suc_eq_plus1 add.left_neutral
-          funpow.simps(2) funpow_simps_right(1) o_id one_add_one rotate_Suc rotate_def)
-        also have " ... = map (cycle_of_list cs) (rotate1 cs)"
-          using cyclic_rotation[OF A]
-          by (metis One_nat_def Suc_1 funpow.simps(2) id_apply map_map rotate0 rotate_Suc)
-        finally have "map (cycle_of_list (rotate1 cs)) (rotate1 cs) = 
-                    map (cycle_of_list cs) (rotate1 cs)" .
-        moreover fix x assume "x \<in> set cs"
-        ultimately show "(cycle_of_list cs) x = (cycle_of_list (rotate1 cs)) x" by auto
-      qed
-      moreover have "\<And>x. x \<notin> set cs \<Longrightarrow> (cycle_of_list cs) x = (cycle_of_list (rotate1 cs)) x"
-        using A by (simp add: id_outside_supp)
-      ultimately show "\<And>x. (cycle_of_list cs) x = (cycle_of_list (rotate1 cs)) x" by blast
-    qed }
-  note rotate1_lemma = this
+    proof -
+      from cs have rotate1_cs: "cycle (rotate1 cs)" by simp
+      hence "map (cycle_of_list (rotate1 cs)) (rotate1 cs) = (rotate 2 cs)"
+        using cyclic_rotation[OF rotate1_cs, of 1] by (simp add: numeral_2_eq_2)
+      moreover have "map (cycle_of_list cs) (rotate1 cs) = (rotate 2 cs)"
+        using cyclic_rotation[OF cs]
+        by (metis One_nat_def Suc_1 funpow.simps(2) id_apply map_map rotate0 rotate_Suc)
+      ultimately have "(cycle_of_list cs) i = (cycle_of_list (rotate1 cs)) i" if "i \<in> set cs" for i
+        using that map_eq_conv unfolding sym[OF set_rotate1[of cs]] by fastforce  
+      moreover have "(cycle_of_list cs) i = (cycle_of_list (rotate1 cs)) i" if "i \<notin> set cs" for i
+        using that by (simp add: id_outside_supp)
+      ultimately show "(cycle_of_list cs) = (cycle_of_list (rotate1 cs))"
+        by blast
+    qed } note rotate1_lemma = this
 
-  show "cycle_of_list cs = cycle_of_list (rotate n cs)"
-  proof (induction n)
-    case 0 thus ?case by simp
-  next
-    case (Suc n)
-    have "cycle (rotate n cs)" by (simp add: assms)
-    thus ?case using rotate1_lemma[of "rotate n cs"]
-      by (simp add: Suc.IH)
-  qed
+  show ?thesis
+    using rotate1_lemma[of "rotate n cs"] by (induct n) (auto, metis assms distinct_rotate rotate1_lemma)
 qed
 
 
@@ -190,563 +137,421 @@ qed
 subsection\<open>When Cycles Commute\<close>
 
 lemma cycles_commute:
-  assumes "cycle \<sigma>1" "cycle \<sigma>2" and "set \<sigma>1 \<inter> set \<sigma>2 = {}"
-  shows "(cycle_of_list \<sigma>1) \<circ> (cycle_of_list \<sigma>2) = (cycle_of_list \<sigma>2) \<circ> (cycle_of_list \<sigma>1)"
-proof -
-  { fix \<pi>1 :: "'a list" and \<pi>2 :: "'a list" and x :: "'a"
-    assume A: "cycle \<pi>1" "cycle \<pi>2" "set \<pi>1 \<inter> set \<pi>2 = {}" "x \<in> set \<pi>1" "x \<notin> set \<pi>2"
-    have "((cycle_of_list \<pi>1) \<circ> (cycle_of_list \<pi>2)) x =
-          ((cycle_of_list \<pi>2) \<circ> (cycle_of_list \<pi>1)) x"
+  assumes "cycle p" "cycle q" and "set p \<inter> set q = {}"
+  shows "(cycle_of_list p) \<circ> (cycle_of_list q) = (cycle_of_list q) \<circ> (cycle_of_list p)"
+proof
+  { fix p :: "'a list" and q :: "'a list" and i :: "'a"
+    assume A: "cycle p" "cycle q" "set p \<inter> set q = {}" "i \<in> set p" "i \<notin> set q"
+    have "((cycle_of_list p) \<circ> (cycle_of_list q)) i =
+          ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
     proof -
-      have "((cycle_of_list \<pi>1) \<circ> (cycle_of_list \<pi>2)) x = (cycle_of_list \<pi>1) x"
-        using id_outside_supp[OF A(2) A(5)] by simp
-      also have " ... = ((cycle_of_list \<pi>2) \<circ> (cycle_of_list \<pi>1)) x"
-        using id_outside_supp[OF A(2), of "(cycle_of_list \<pi>1) x"]
-              cycle_is_surj[OF A(1)] A(3) A(4) by fastforce
+      have "((cycle_of_list p) \<circ> (cycle_of_list q)) i = (cycle_of_list p) i"
+        using id_outside_supp[OF A(5)] by simp
+      also have " ... = ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
+        using id_outside_supp[of "(cycle_of_list p) i"] cycle_is_surj[OF A(1)] A(3,4) by fastforce
       finally show ?thesis .
-    qed }
-  note aux_lemma = this
+    qed } note aui_lemma = this
 
-  let ?\<sigma>12 = "\<lambda>x. ((cycle_of_list \<sigma>1) \<circ> (cycle_of_list \<sigma>2)) x"
-  let ?\<sigma>21 = "\<lambda>x. ((cycle_of_list \<sigma>2) \<circ> (cycle_of_list \<sigma>1)) x"
-
-  show ?thesis
-  proof
-    fix x have "x \<in> set \<sigma>1 \<union> set \<sigma>2 \<or> x \<notin> set \<sigma>1 \<union> set \<sigma>2" by blast
-    from this show "?\<sigma>12 x = ?\<sigma>21 x"
-    proof 
-      assume "x \<in> set \<sigma>1 \<union> set \<sigma>2"
-      hence "(x \<in> set \<sigma>1 \<and> x \<notin> set \<sigma>2) \<or> (x \<notin> set \<sigma>1 \<and> x \<in> set \<sigma>2)" using assms(3) by blast
-      from this show "?\<sigma>12 x = ?\<sigma>21 x"
-      proof
-        assume "x \<in> set \<sigma>1 \<and> x \<notin> set \<sigma>2" thus ?thesis
-          using aux_lemma[OF assms(1-3)] by simp
-      next
-        assume "x \<notin> set \<sigma>1 \<and> x \<in> set \<sigma>2" thus ?thesis
-          using assms aux_lemma inf_commute by metis
-      qed
-    next
-      assume "x \<notin> set \<sigma>1 \<union> set \<sigma>2" thus ?thesis using id_outside_supp assms(1-2)
-        by (metis UnCI comp_apply)
-    qed
+  fix i consider "i \<in> set p" "i \<notin> set q" | "i \<notin> set p" "i \<in> set q" | "i \<notin> set p" "i \<notin> set q"
+    using \<open>set p \<inter> set q = {}\<close> by blast
+  thus "((cycle_of_list p) \<circ> (cycle_of_list q)) i = ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
+  proof cases
+    case 1 thus ?thesis
+      using aui_lemma[OF assms] by simp
+  next
+    case 2 thus ?thesis
+      using aui_lemma[OF assms(2,1)] assms(3) by (simp add: ac_simps(8))
+  next
+    case 3 thus ?thesis
+      by (simp add: id_outside_supp)
   qed
 qed
 
 
-subsection\<open>Cycles from Permutations\<close>
+subsection \<open>Cycles from Permutations\<close>
 
-subsubsection\<open>Exponentiation of permutations\<close>
+subsubsection \<open>Exponentiation of permutations\<close>
 
-text\<open>Some important properties of permutations before defining how to extract its cycles\<close>
+text \<open>Some important properties of permutations before defining how to extract its cycles.\<close>
 
-lemma exp_of_permutation1:
-  assumes "p permutes S"
-  shows "(p ^^ n) permutes S" using assms
-proof (induction n)
-  case 0 thus ?case by (simp add: permutes_def) 
-next
-  case (Suc n) thus ?case by (metis funpow_Suc_right permutes_compose) 
-qed
+lemma permutation_funpow:
+  assumes "permutation p" shows "permutation (p ^^ n)"
+  using assms by (induct n) (simp_all add: permutation_compose)
 
-lemma exp_of_permutation2:
-  assumes "p permutes S"
-    and "i < j" "(p ^^ j) = (p ^^ i)"
-  shows "(p ^^ (j - i)) = id" using assms
+lemma permutes_funpow:
+  assumes "p permutes S" shows "(p ^^ n) permutes S"
+  using assms by (induct n) (simp add: permutes_def, metis funpow_Suc_right permutes_compose)
+
+lemma funpow_diff:
+  assumes "inj p" and "i \<le> j" "(p ^^ i) a = (p ^^ j) a" shows "(p ^^ (j - i)) a = a"
 proof -
-  have "(p ^^ i) \<circ> (p ^^ (j - i)) = (p ^^ j)"
-    by (metis add_diff_inverse_nat assms(2) funpow_add le_eq_less_or_eq not_le)
-  also have " ... = (p ^^ i)" using assms(3) by simp
-  finally have "(p ^^ i) \<circ> (p ^^ (j - i)) = (p ^^ i)" .
-  moreover have "bij (p ^^ i)" using exp_of_permutation1[OF assms(1)]
-    using permutes_bij by auto
-  ultimately show ?thesis
-    by (metis (no_types, lifting) bij_is_inj comp_assoc fun.map_id inv_o_cancel)
+  have "(p ^^ i) ((p ^^ (j - i)) a) = (p ^^ i) a"
+    using assms(2-3) by (metis (no_types) add_diff_inverse_nat funpow_add not_le o_def)
+  thus ?thesis
+    unfolding inj_eq[OF inj_fn[OF assms(1)], of i] .
 qed
 
-lemma exp_of_permutation3:
-  assumes "p permutes S" "finite S"
-  shows "\<exists>n. (p ^^ n) = id \<and> n > 0"
-proof (rule ccontr)
-  assume "\<nexists>n. (p ^^ n) = id \<and> 0 < n"
-  hence S: "\<And>n. n > 0 \<Longrightarrow> (p ^^ n) \<noteq> id" by auto
-  hence "\<And>i j. \<lbrakk> i \<ge> 0; j \<ge> 0 \<rbrakk> \<Longrightarrow> i \<noteq> j \<Longrightarrow> (p ^^ i) \<noteq> (p ^^ j)"
-  proof -
-    fix i :: "nat" and j :: "nat" assume "i \<ge> 0" "j \<ge> 0" and Ineq: "i \<noteq> j"
-    show "(p ^^ i) \<noteq> (p ^^ j)"
-    proof (rule ccontr)
-      assume "\<not> (p ^^ i) \<noteq> (p ^^ j)" hence Eq: "(p ^^ i) = (p ^^ j)" by simp
-      have "(p ^^ (j - i)) = id" if "j > i"
-        using Eq exp_of_permutation2[OF assms(1) that] by simp
-      moreover have "(p ^^ (i - j)) = id" if "i > j"
-        using Eq exp_of_permutation2[OF assms(1) that] by simp
-      ultimately show False using Ineq S
-        by (meson le_eq_less_or_eq not_le zero_less_diff)
-    qed
+lemma permutation_is_nilpotent:
+  assumes "permutation p" obtains n where "(p ^^ n) = id" and "n > 0"
+proof -
+  obtain S where "finite S" and "p permutes S"
+    using assms unfolding permutation_permutes by blast
+  hence "\<exists>n. (p ^^ n) = id \<and> n > 0"
+  proof (induct S arbitrary: p)
+    case empty thus ?case
+      using id_funpow[of 1] unfolding permutes_empty by blast
+  next
+    case (insert s S)
+    have "(\<lambda>n. (p ^^ n) s) ` UNIV \<subseteq> (insert s S)"
+      using permutes_in_image[OF permutes_funpow[OF insert(4)], of _ s] by auto
+    hence "\<not> inj_on (\<lambda>n. (p ^^ n) s)  UNIV"
+      using insert(1) infinite_iff_countable_subset unfolding sym[OF finite_insert, of S s] by metis
+    then obtain i j where ij: "i < j" "(p ^^ i) s = (p ^^ j) s"
+      unfolding inj_on_def by (metis nat_neq_iff) 
+    hence "(p ^^ (j - i)) s = s"
+      using funpow_diff[OF permutes_inj[OF insert(4)]] le_eq_less_or_eq by blast
+    hence "p ^^ (j - i) permutes S"
+      using permutes_superset[OF permutes_funpow[OF insert(4), of "j - i"], of S] by auto
+    then obtain n where n: "((p ^^ (j - i)) ^^ n) = id" "n > 0"
+      using insert(3) by blast
+    thus ?case
+      using ij(1) nat_0_less_mult_iff zero_less_diff unfolding funpow_mult by metis 
   qed
-  hence "bij_betw (\<lambda>i. (p ^^ i)) {i :: nat . i \<ge> 0} {(p ^^ i) | i :: nat . i \<ge> 0}"
-    unfolding bij_betw_def inj_on_def by blast
-  hence "infinite {(p ^^ i) | i :: nat . i \<ge> 0}"
-    using bij_betw_finite by auto
-  moreover have "{(p ^^ i) | i :: nat . i \<ge> 0} \<subseteq> {\<pi>. \<pi> permutes S}"
-    using exp_of_permutation1[OF assms(1)] by blast
-  hence "finite {(p ^^ i) | i :: nat . i \<ge> 0}"
-    by (simp add: assms(2) finite_permutations finite_subset)
-  ultimately show False ..
+  thus thesis
+    using that by blast
 qed
 
-lemma power_prop:
-  assumes "(p ^^ k) x = x" 
-  shows "(p ^^ (k * l)) x = x"
-proof (induction l)
-  case 0 thus ?case by simp
-next
-  case (Suc l)
-  hence "(p ^^ (k * (Suc l))) x = ((p ^^ (k * l)) \<circ> (p ^^ k)) x"
-    by (metis funpow_Suc_right funpow_mult)
-  also have " ... = (p ^^ (k * l)) x"
-    by (simp add: assms)
-  also have " ... = x"
-    using Suc.IH Suc.prems assms by blast
-  finally show ?case . 
-qed
-
-lemma exp_of_permutation4:
-  assumes "p permutes S" "finite S"
-  shows "\<exists>n. (p ^^ n) = id \<and> n > m"
+lemma permutation_is_nilpotent':
+  assumes "permutation p" obtains n where "(p ^^ n) = id" and "n > m"
 proof -
-  obtain k where "k > 0" "(p ^^ k) = id"
-    using exp_of_permutation3[OF assms] by blast
-  moreover obtain n where "n * k > m"
-    by (metis calculation(1) dividend_less_times_div mult.commute mult_Suc_right)
-  ultimately show ?thesis
-      by (metis (full_types) funpow_mult id_funpow mult.commute)
+  obtain n where "(p ^^ n) = id" and "n > 0"
+    using permutation_is_nilpotent[OF assms] by blast
+  then obtain k where "n * k > m"
+    by (metis dividend_less_times_div mult_Suc_right)
+  from \<open>(p ^^ n) = id\<close> have "p ^^ (n * k) = id"
+    by (induct k) (simp, metis funpow_mult id_funpow)
+  with \<open>n * k > m\<close> show thesis
+    using that by blast
 qed
 
 
-subsubsection\<open>Extraction of cycles from permutations\<close>
+subsubsection \<open>Extraction of cycles from permutations\<close>
 
-definition
-  least_power :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> nat"
+definition least_power :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> nat"
   where "least_power f x = (LEAST n. (f ^^ n) x = x \<and> n > 0)"
 
-abbreviation
-  support :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
+abbreviation support :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
   where "support p x \<equiv> map (\<lambda>i. (p ^^ i) x) [0..< (least_power p x)]"
 
-lemma least_power_wellfounded:
-  assumes "permutation p"
-  shows "(p ^^ (least_power p x)) x = x"
-proof -
-  obtain S where "p permutes S" "finite S"
-    using assms permutation_permutes by blast
-  hence "\<exists>n. (p ^^ n) x = x \<and> n > 0"
-    using eq_id_iff exp_of_permutation3 by metis
-  thus ?thesis unfolding least_power_def
-    by (metis (mono_tags, lifting) LeastI_ex)
-qed
 
-lemma least_power_gt_zero:
-  assumes "permutation p"
-  shows "least_power p x > 0"
-proof (rule ccontr)
-  obtain S where "p permutes S" "finite S"
-    using assms permutation_permutes by blast
-  hence Ex: "\<exists>n. (p ^^ n) x = x \<and> n > 0"
-    using eq_id_iff exp_of_permutation3 by metis
-  assume "\<not> 0 < least_power p x" hence "least_power p x = 0"
-    using Ex unfolding least_power_def by (metis (mono_tags, lifting) LeastI)
-  thus False unfolding least_power_def
-    by (metis (mono_tags, lifting) Ex LeastI_ex less_irrefl) 
-qed
+lemma least_powerI:
+  assumes "(f ^^ n) x = x" and "n > 0"
+  shows "(f ^^ (least_power f x)) x = x" and "least_power f x > 0"
+  using assms unfolding least_power_def by (metis (mono_tags, lifting) LeastI)+
+
+lemma least_power_le:
+  assumes "(f ^^ n) x = x" and "n > 0" shows "least_power f x \<le> n"
+  using assms unfolding least_power_def by (simp add: Least_le)
+
+lemma least_power_of_permutation:
+  assumes "permutation p" shows "(p ^^ (least_power p a)) a = a" and "least_power p a > 0"
+  using permutation_is_nilpotent[OF assms] least_powerI by (metis id_apply)+
 
 lemma least_power_gt_one:
-  assumes "permutation p" "p x \<noteq> x"
-  shows "least_power p x > Suc 0"
-proof (rule ccontr)
-  obtain S where "p permutes S" "finite S"
-    using assms permutation_permutes by blast
-  hence Ex: "\<exists>n. (p ^^ n) x = x \<and> n > 0"
-    using eq_id_iff exp_of_permutation3 by metis
-  assume "\<not> Suc 0 < least_power p x" hence "least_power p x = (Suc 0)"
-    using Ex unfolding least_power_def by (metis (mono_tags, lifting) LeastI Suc_lessI)
-  hence "p x = x" using least_power_wellfounded[OF assms(1), of x] by simp
-  from \<open>p x = x\<close> and \<open>p x \<noteq> x\<close> show False by simp
+  assumes "permutation p" and "p a \<noteq> a" shows "least_power p a > Suc 0"
+  using least_power_of_permutation[OF assms(1)] assms(2)
+  by (metis Suc_lessI funpow.simps(2) funpow_simps_right(1) o_id) 
+
+lemma least_power_minimal:
+  assumes "(p ^^ n) a = a" shows "(least_power p a) dvd n"
+proof (cases "n = 0", simp)
+  let ?lpow = "least_power p"
+
+  assume "n \<noteq> 0" then have "n > 0" by simp
+  hence "(p ^^ (?lpow a)) a = a" and "least_power p a > 0"
+    using assms unfolding least_power_def by (metis (mono_tags, lifting) LeastI)+
+  hence aux_lemma: "(p ^^ ((?lpow a) * k)) a = a" for k :: nat
+    by (induct k) (simp_all add: funpow_add)
+
+  have "(p ^^ (n mod ?lpow a)) ((p ^^ (n - (n mod ?lpow a))) a) = (p ^^ n) a"
+    by (metis add_diff_inverse_nat funpow_add mod_less_eq_dividend not_less o_apply)
+  with \<open>(p ^^ n) a = a\<close> have "(p ^^ (n mod ?lpow a)) a = a"
+    using aux_lemma by (simp add: minus_mod_eq_mult_div) 
+  hence "?lpow a \<le> n mod ?lpow a" if "n mod ?lpow a > 0"
+    using least_power_le[OF _ that, of p a] by simp
+  with \<open>least_power p a > 0\<close> show "(least_power p a) dvd n"
+    using mod_less_divisor not_le by blast
 qed
 
-lemma least_power_bound:
-  assumes "permutation p" shows "\<exists>m > 0. (least_power p x) \<le> m"
-proof -
-  obtain S where "p permutes S" "finite S"
-    using assms permutation_permutes by blast
-  hence "\<exists>n. (p ^^ n) x = x \<and> n > 0"
-    using eq_id_iff exp_of_permutation3 by metis
-  then obtain m :: "nat"  where "m > 0" "m = (least_power p x)"
-    unfolding least_power_def by (metis (mono_tags, lifting) LeastI_ex)
-  thus ?thesis by blast
-qed
-
-lemma lt_least_power:
-  assumes "Suc n = least_power p x"
-    and "0 < i" "i \<le> n"
-  shows "(p ^^ i) x \<noteq> x"
-proof (rule ccontr)
-  assume "\<not> (p ^^ i) x \<noteq> x" hence "(p ^^ i) x = x" by simp
-  hence "i \<in> {n. (p ^^ n) x = x \<and> n > 0}"
-    using assms(2-3) by blast
-  moreover have "i < least_power p x"
-    using assms(3) assms(1) by linarith
-  ultimately show False unfolding least_power_def
-    using not_less_Least by auto
-qed
-
-lemma least_power_welldefined:
-  assumes "permutation p" and "y \<in> {(p ^^ k) x | k. k \<ge> 0}"
-  shows "least_power p x = least_power p y"
-proof -
-  have aux_lemma: "\<And>z. least_power p z = least_power p (p z)"
-  proof -
-    fix z
-    have "(p ^^ (least_power p z)) z = z"
-      by (metis assms(1) least_power_wellfounded)
-    hence "(p ^^ (least_power p z)) (p z) = (p z)"
-      by (metis funpow_swap1)
-    hence "least_power p z \<ge> least_power p (p z)"
-      by (metis assms(1) inc_induct le_SucE least_power_gt_zero lt_least_power nat_le_linear)
-
-    moreover have "(p ^^ (least_power p (p z))) (p z) = (p z)"
-      by (simp add: assms(1) least_power_wellfounded)
-    hence "(p ^^ (least_power p (p z))) z = z"
-      by (metis assms(1) funpow_swap1 permutation_permutes permutes_def)
-    hence "least_power p z \<le> least_power p (p z)"
-      by (metis assms(1) least_power_gt_zero less_imp_Suc_add lt_least_power not_less_eq_eq)
-
-    ultimately show "least_power p z = least_power p (p z)" by simp 
-  qed
-
-  obtain k where "k \<ge> 0" "y = (p ^^ k) x"
-    using assms(2) by blast
-  thus ?thesis
-  proof (induction k arbitrary: x y)
-    case 0 thus ?case by simp
-  next
-    case (Suc k)
-    have "least_power p ((p ^^ k) x) = least_power p x"
-      using Suc.IH by fastforce
-    thus ?case using aux_lemma
-      using Suc.prems(2) by auto
-  qed
+lemma least_power_dvd:
+  assumes "permutation p" shows "(least_power p a) dvd n \<longleftrightarrow> (p ^^ n) a = a"
+proof
+  show "(p ^^ n) a = a \<Longrightarrow> (least_power p a) dvd n"
+    using least_power_minimal[of _ p] by simp
+next
+  have "(p ^^ ((least_power p a) * k)) a = a" for k :: nat
+    using least_power_of_permutation(1)[OF assms(1)] by (induct k) (simp_all add: funpow_add)
+  thus "(least_power p a) dvd n \<Longrightarrow> (p ^^ n) a = a" by blast
 qed
 
 theorem cycle_of_permutation:
-  assumes "permutation p"
-  shows "cycle (support p x)"
-proof (rule ccontr)
-  assume "\<not> cycle (support p x)"
-  hence "\<exists> i j. i \<in> {0..<least_power p x} \<and> j \<in> {0..<least_power p x} \<and> i \<noteq> j \<and> (p ^^ i) x = (p ^^ j) x"
-    using atLeast_upt by (simp add: distinct_conv_nth) 
-  then obtain i j where ij: "0 \<le> i" "i < j" "j < least_power p x"
-                    and "(p ^^ i) x = (p ^^ j) x"
-    by (metis atLeast_upt le0 le_eq_less_or_eq lessThan_iff not_less set_upt)
-  hence "(p ^^ i) x = (p ^^ i) ((p ^^ (j - i)) x)"
-    by (metis add_diff_inverse_nat funpow_add not_less_iff_gr_or_eq o_apply)
-  hence "(p ^^ (j - i)) x = x"
-    using exp_of_permutation1 assms by (metis bij_pointE permutation_permutes permutes_bij)
-  moreover have "0 \<le> j - i \<and> j - i < least_power p x"
-    by (simp add: ij(3) less_imp_diff_less)
-  hence "(p ^^ (j - i)) x \<noteq> x" using lt_least_power ij
-    by (metis diff_le_self lessE less_imp_diff_less less_imp_le zero_less_diff)
-  ultimately show False by simp
+  assumes "permutation p" shows "cycle (support p a)"
+proof -
+  have "(least_power p a) dvd (j - i)" if "i \<le> j" "j < least_power p a" and "(p ^^ i) a = (p ^^ j) a" for i j
+    using funpow_diff[OF bij_is_inj that(1,3)] assms by (simp add: permutation least_power_dvd)
+  moreover have "i = j" if "i \<le> j" "j < least_power p a" and "(least_power p a) dvd (j - i)" for i j
+    using that le_eq_less_or_eq nat_dvd_not_less by auto
+  ultimately have "inj_on (\<lambda>i. (p ^^ i) a) {..< (least_power p a)}"
+    unfolding inj_on_def by (metis le_cases lessThan_iff)
+  thus ?thesis
+    by (simp add: atLeast_upt distinct_map)
 qed
 
 
-subsection\<open>Decomposition on Cycles\<close>
+subsection \<open>Decomposition on Cycles\<close>
 
-text\<open>We show that a permutation can be decomposed on cycles\<close>
+text \<open>We show that a permutation can be decomposed on cycles\<close>
 
-subsubsection\<open>Preliminaries\<close>
+subsubsection \<open>Preliminaries\<close>
 
 lemma support_set:
-  assumes "permutation p"
-  shows "set (support p x) = {(p ^^ k) x | k. k \<ge> 0}"
-proof -
-  have "{(p ^^ k) x | k. k \<ge> 0} = {(p ^^ k) x | k. 0 \<le> k \<and> k < (least_power p x)}" (is "?A = ?B")
-  proof
-    show "?B \<subseteq> ?A" by blast
-  next
-    show "?A \<subseteq> ?B"
-    proof
-      fix y assume "y \<in> ?A"
-      then obtain k :: "nat" where k: "k \<ge> 0" "(p ^^ k) x = y" by blast
-      hence "k = (least_power p x) * (k div (least_power p x)) + (k mod (least_power p x))" by simp
-      hence "y = (p ^^ ((least_power p x) * (k div (least_power p x)) + (k mod (least_power p x)))) x"
-        using k by auto
-      hence " y = (p ^^ (k mod (least_power p x))) x"
-        using power_prop[OF least_power_wellfounded[OF assms, of x], of "k div (least_power p x)"]
-        by (metis add.commute funpow_add o_apply)
-      moreover have "k mod (least_power p x) < least_power p x"
-        using k mod_less_divisor[of "least_power p x" k, OF least_power_gt_zero[OF assms]] by simp
-      ultimately show "y \<in> ?B"
-        by blast
-    qed
+  assumes "permutation p" shows "set (support p a) = range (\<lambda>i. (p ^^ i) a)"
+proof
+  show "set (support p a) \<subseteq> range (\<lambda>i. (p ^^ i) a)"
+    by auto
+next
+  show "range (\<lambda>i. (p ^^ i) a) \<subseteq> set (support p a)"
+  proof (auto)
+    fix i
+    have "(p ^^ i) a = (p ^^ (i mod (least_power p a))) ((p ^^ (i - (i mod (least_power p a)))) a)"
+      by (metis add_diff_inverse_nat funpow_add mod_less_eq_dividend not_le o_apply)
+    also have " ... = (p ^^ (i mod (least_power p a))) a"
+      using least_power_dvd[OF assms] by (metis dvd_minus_mod)
+    also have " ... \<in> (\<lambda>i. (p ^^ i) a) ` {0..< (least_power p a)}"
+      using least_power_of_permutation(2)[OF assms] by fastforce
+    finally show "(p ^^ i) a \<in> (\<lambda>i. (p ^^ i) a) ` {0..< (least_power p a)}" .
   qed
-
-  moreover have "{(p ^^ k) x | k. 0 \<le> k \<and> k < (least_power p x)} = set (support p x)" (is "?B = ?C")
-  proof
-    show "?B \<subseteq> ?C"
-    proof
-      fix y assume "y \<in> {(p ^^ k) x | k. 0 \<le> k \<and> k < (least_power p x)}"
-      then obtain k where "k \<ge> 0" "k < (least_power p x)" "y = (p ^^ k) x" by blast
-      thus "y \<in> ?C" by auto
-    qed
-  next
-    show "?C \<subseteq> ?B"
-    proof
-      fix y assume "y \<in> ?C"
-      then obtain k where "k \<ge> 0" "k < (least_power p x)" "(support p x) ! k = y" by auto
-      thus "y \<in> ?B" by auto
-    qed
-  qed
-
-  ultimately show ?thesis by simp
 qed
 
 lemma disjoint_support:
-  assumes "p permutes S" "finite S"
-  shows "disjoint {{(p ^^ k) x | k. k \<ge> 0} | x. x \<in> S}" (is "disjoint ?A")
+  assumes "permutation p" shows "disjoint (range (\<lambda>a. set (support p a)))" (is "disjoint ?A")
 proof (rule disjointI)
-  { fix a b assume "a \<in> ?A" "b \<in> ?A" "a \<inter> b \<noteq> {}"
-    then obtain x y where x: "x \<in> S" "a = {(p ^^ k) x | k. k \<ge> 0}"
-                      and y: "y \<in> S" "b = {(p ^^ k) y | k. k \<ge> 0}" by blast 
-    assume "a \<inter> b \<noteq> {}"
-    then obtain z kx ky where z: "kx \<ge> 0" "ky \<ge> 0" "z = (p ^^ kx) x" "z = (p ^^ ky) y"
-      using x(2) y(2) by blast
-    have "a \<subseteq> b"
-    proof
-      fix w assume "w \<in> a"
-      then obtain k where k: "k \<ge> 0" "w = (p ^^ k) x" using x by blast
-      define l where "l = (kx div (least_power p w)) + 1"
-      hence l: "l * (least_power p w) > kx"
-        using least_power_gt_zero assms One_nat_def add.right_neutral add_Suc_right
-            mult.commute permutation_permutes
-        by (metis dividend_less_times_div mult_Suc_right) 
+  { fix i j a b
+    assume "set (support p a) \<inter> set (support p b) \<noteq> {}" have "set (support p a) \<subseteq> set (support p b)"
+      unfolding support_set[OF assms]
+    proof (auto)
+      from \<open>set (support p a) \<inter> set (support p b) \<noteq> {}\<close>
+      obtain i j where ij: "(p ^^ i) a = (p ^^ j) b"
+        by auto
 
-      have "w = (p ^^ (l * (least_power p w))) w"
-        by (metis assms least_power_wellfounded mult.commute permutation_permutes power_prop)
-      also have "... = (p ^^ (l * (least_power p w) + k)) x"
-        using k by (simp add: funpow_add) 
-      also have " ... = (p ^^ (l * (least_power p w) + k - kx + kx)) x"
-        using l by auto
-      also have " ... = (p ^^ (l * (least_power p w) + k - kx)) ((p ^^ kx) x)"
-        by (simp add: funpow_add)
-      also have " ... = (p ^^ (l * (least_power p w) + k - kx)) ((p ^^ ky) y)" using z
-        by simp
-      finally have "w = (p ^^ (l * (least_power p w) + k - kx + ky)) y"
-        by (simp add: funpow_add)
-      thus "w \<in> b" using y by blast
+      fix k
+      have "(p ^^ k) a = (p ^^ (k + (least_power p a) * l)) a" for l
+        using least_power_dvd[OF assms] by (induct l) (simp, metis dvd_triv_left funpow_add o_def)
+      then obtain m where "m \<ge> i" and "(p ^^ m) a = (p ^^ k) a"
+        using least_power_of_permutation(2)[OF assms]
+        by (metis dividend_less_times_div le_eq_less_or_eq mult_Suc_right trans_less_add2)
+      hence "(p ^^ m) a = (p ^^ (m - i)) ((p ^^ i) a)"
+        by (metis Nat.le_imp_diff_is_add funpow_add o_apply)
+      with \<open>(p ^^ m) a = (p ^^ k) a\<close> have "(p ^^ k) a = (p ^^ ((m - i) + j)) b"
+        unfolding ij by (simp add: funpow_add)
+      thus "(p ^^ k) a \<in> range (\<lambda>i. (p ^^ i) b)"
+        by blast
     qed } note aux_lemma = this
 
-  fix a b assume ab: "a \<in> ?A" "b \<in> ?A" "a \<noteq> b"
-  show "a \<inter> b = {}"
-  proof (rule ccontr)
-    assume "a \<inter> b \<noteq> {}" thus False using aux_lemma ab
-      by (metis (no_types, lifting) inf.absorb2 inf.orderE)
+  fix supp_a supp_b
+  assume "supp_a \<in> ?A" and "supp_b \<in> ?A"
+  then obtain a b where a: "supp_a = set (support p a)" and b: "supp_b = set (support p b)"
+    by auto
+  assume "supp_a \<noteq> supp_b" thus "supp_a \<inter> supp_b = {}"
+    using aux_lemma unfolding a b by blast  
+qed
+
+lemma disjoint_support':
+  assumes "permutation p"
+  shows "set (support p a) \<inter> set (support p b) = {} \<longleftrightarrow> a \<notin> set (support p b)"
+proof -
+  have "a \<in> set (support p a)"
+    using least_power_of_permutation(2)[OF assms] by force
+  show ?thesis
+  proof
+    assume "set (support p a) \<inter> set (support p b) = {}"
+    with \<open>a \<in> set (support p a)\<close> show "a \<notin> set (support p b)"
+      by blast
+  next
+    assume "a \<notin> set (support p b)" show "set (support p a) \<inter> set (support p b) = {}"
+    proof (rule ccontr)
+      assume "set (support p a) \<inter> set (support p b) \<noteq> {}"
+      hence "set (support p a) = set (support p b)"
+        using disjoint_support[OF assms] by (meson UNIV_I disjoint_def image_iff)
+      with \<open>a \<in> set (support p a)\<close> and \<open>a \<notin> set (support p b)\<close> show False
+        by simp
+    qed
   qed
 qed
 
 lemma support_coverture:
-  assumes "p permutes S" "finite S"
-  shows "\<Union>{{(p ^^ k) x | k. k \<ge> 0} | x. x \<in> S} = S"
+  assumes "permutation p" shows "\<Union> { set (support p a) | a. p a \<noteq> a } = { a. p a \<noteq> a }"
 proof
-  show "\<Union>{{(p ^^ k) x |k. 0 \<le> k} |x. x \<in> S} \<subseteq> S"
+  show "{ a. p a \<noteq> a } \<subseteq> \<Union> { set (support p a) | a. p a \<noteq> a }"
   proof
-    fix y assume "y \<in> \<Union>{{(p ^^ k) x |k. 0 \<le> k} |x. x \<in> S}"
-    then obtain x k where x: "x \<in> S" and k: "k \<ge> 0" and y: "y = (p ^^ k) x" by blast
-    have "(p ^^ k) x \<in> S"
-    proof (induction k)
-      case 0 thus ?case using x by simp
-    next
-      case (Suc k) thus ?case using assms
-        by (simp add: permutes_in_image) 
-    qed
-    thus "y \<in> S" using y by simp
+    fix a assume "a \<in> { a. p a \<noteq> a }"
+    have "a \<in> set (support p a)"
+      using least_power_of_permutation(2)[OF assms, of a] by force
+    with \<open>a \<in> { a. p a \<noteq> a }\<close> show "a \<in> \<Union> { set (support p a) | a. p a \<noteq> a }"
+      by blast
   qed
 next
-  show "S \<subseteq> \<Union>{{(p ^^ k) x |k. 0 \<le> k} |x. x \<in> S}"
+  show "\<Union> { set (support p a) | a. p a \<noteq> a } \<subseteq> { a. p a \<noteq> a }"
   proof
-    fix x assume x: "x \<in> S"
-    hence "x \<in> {(p ^^ k) x |k. 0 \<le> k}"
-      by (metis (mono_tags, lifting) CollectI funpow_0 le_numeral_extra(3))
-    thus "x \<in> \<Union>{{(p ^^ k) x |k. 0 \<le> k} |x. x \<in> S}" using x by blast
+    fix b assume "b \<in> \<Union> { set (support p a) | a. p a \<noteq> a }"
+    then obtain a i where "p a \<noteq> a" and "(p ^^ i) a = b"
+      by auto
+    have "p a = a" if "(p ^^ i) a = (p ^^ Suc i) a"
+      using funpow_diff[OF bij_is_inj _ that] assms unfolding permutation by simp
+    with \<open>p a \<noteq> a\<close> and \<open>(p ^^ i) a = b\<close> show "b \<in> { a. p a \<noteq> a }"
+      by auto
   qed
 qed
 
 theorem cycle_restrict:
-  assumes "permutation p" "y \<in> set (support p x)"
-  shows "p y = (cycle_of_list (support p x)) y"
+  assumes "permutation p" and "b \<in> set (support p a)" shows "p b = (cycle_of_list (support p a)) b"
 proof -
-  have "\<And> i. \<lbrakk> 0 \<le> i; i < length (support p x) - 1 \<rbrakk> \<Longrightarrow>
-         p ((support p x) ! i) = (support p x) ! (i + 1)"
-  proof -
-    fix i assume i: "0 \<le> i" "i < length (support p x) - 1"
-    hence "p ((support p x) ! i) = p ((p ^^ i) x)" by simp
-    also have " ... = (p ^^ (i + 1)) x" by simp
-    also have " ... = (support p x) ! (i + 1)"
-      using i by simp
-    finally show "p ((support p x) ! i) = (support p x) ! (i + 1)" .
+  note least_power_props [simp] = least_power_of_permutation[OF assms(1)]
+
+  have "map (cycle_of_list (support p a)) (support p a) = rotate1 (support p a)"
+    using cyclic_rotation[OF cycle_of_permutation[OF assms(1)], of 1 a] by simp
+  hence "map (cycle_of_list (support p a)) (support p a) = tl (support p a) @ [ a ]"
+    by (simp add: hd_map rotate1_hd_tl)
+  also have " ... = map p (support p a)"
+  proof (rule nth_equalityI, auto)
+    fix i assume "i < least_power p a" show "(tl (support p a) @ [a]) ! i = p ((p ^^ i) a)"
+    proof (cases)
+      assume i: "i = least_power p a - 1"
+      hence "(tl (support p a) @ [ a ]) ! i = a"
+        by (metis (no_types, lifting) diff_zero length_map length_tl length_upt nth_append_length)
+      also have " ... = p ((p ^^ i) a)"
+        by (metis (mono_tags, hide_lams) least_power_props i Suc_diff_1 funpow_simps_right(2) funpow_swap1 o_apply)
+      finally show ?thesis .
+    next
+      assume "i \<noteq> least_power p a - 1"
+      with \<open>i < least_power p a\<close> have "i < least_power p a - 1"
+        by simp
+      hence "(tl (support p a) @ [ a ]) ! i = (p ^^ (Suc i)) a"
+        by (metis One_nat_def Suc_eq_plus1 add.commute length_map length_upt map_tl nth_append nth_map_upt tl_upt)
+      thus ?thesis
+        by simp
+    qed
   qed
-  hence 1: "map p (butlast (support p x)) = tl (support p x)"
-    using nth_butlast [where 'a='a] nth_tl [where 'a='a]
-      nth_equalityI[of "map p (butlast (support p x))" "tl (support p x)"] by force
-  have "p ((support p x) ! (length (support p x) - 1)) = p ((p ^^ (length (support p x) - 1)) x)"
+  finally have "map (cycle_of_list (support p a)) (support p a) = map p (support p a)" .
+  thus ?thesis
     using assms(2) by auto
-  also have " ... = (p ^^ (length (support p x))) x"
-    by (metis (mono_tags, lifting) Suc_pred' assms(2) funpow_Suc_right
-        funpow_swap1 length_pos_if_in_set o_apply)
-  also have " ... = x"
-    by (simp add: assms(1) least_power_wellfounded)
-  also have " ... = (support p x) ! 0"
-    by (simp add: assms(1) least_power_gt_zero)
-  finally have "p ((support p x) ! (length (support p x) - 1)) = (support p x) ! 0" .
-  hence 2: "p (last (support p x)) = hd (support p x)"
-    by (metis assms(2) hd_conv_nth last_conv_nth length_greater_0_conv length_pos_if_in_set)
-
-  have "map p (support p x) = (tl (support p x)) @ [hd (support p x)]" using 1 2
-    by (metis (no_types, lifting) assms(2) last_map length_greater_0_conv
-        length_pos_if_in_set list.map_disc_iff map_butlast snoc_eq_iff_butlast) 
-  hence "map p (support p x) = rotate1 (support p x)"
-    by (metis assms(2) length_greater_0_conv length_pos_if_in_set rotate1_hd_tl)
-
-  moreover have "map (cycle_of_list (support p x)) (support p x) = rotate1 (support p x)"
-    using cyclic_rotation[OF cycle_of_permutation[OF assms(1)], of 1 x] by simp
-
-  ultimately show ?thesis using assms(2)
-    using map_eq_conv by fastforce
 qed
 
 
 subsubsection\<open>Decomposition\<close>
 
-inductive cycle_decomp :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
-empty:  "cycle_decomp {} id" |
-comp: "\<lbrakk> cycle_decomp I p; cycle cs; set cs \<inter> I = {} \<rbrakk> \<Longrightarrow>
-         cycle_decomp (set cs \<union> I) ((cycle_of_list cs) \<circ> p)"
+inductive cycle_decomp :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+  where
+    empty:  "cycle_decomp {} id"
+  | comp: "\<lbrakk> cycle_decomp I p; cycle cs; set cs \<inter> I = {} \<rbrakk> \<Longrightarrow>
+             cycle_decomp (set cs \<union> I) ((cycle_of_list cs) \<circ> p)"
 
 
 lemma semidecomposition:
-  assumes "p permutes S" "finite S"
-  shows "(\<lambda>y. if y \<in> (S - set (support p x)) then p y else y) permutes (S - set (support p x))"
-    (is "?q permutes ?S'")
-proof -
-  have "\<And>y. y \<notin> S \<Longrightarrow> p y = y"
-    by (meson assms permutes_not_in)
+  assumes "p permutes S" and "finite S"
+  shows "(\<lambda>y. if y \<in> (S - set (support p a)) then p y else y) permutes (S - set (support p a))"
+proof (rule bij_imp_permutes)
+  show "(if b \<in> (S - set (support p a)) then p b else b) = b" if "b \<notin> S - set (support p a)" for b
+    using that by auto
+next
+  have is_permutation: "permutation p"
+    using assms unfolding permutation_permutes by blast
 
-  moreover have cycle_surj: "(cycle_of_list (support p x)) ` set (support p x) = set (support p x)"
-    using cycle_is_surj cycle_of_permutation assms permutation_permutes by metis
-  hence "\<And>y. y \<in> set (support p x) \<Longrightarrow> p y \<in> set (support p x)"
-    using cycle_restrict assms permutation_permutes by (metis imageI)
-
-  ultimately
-  have 1: "\<And>y. y \<notin> ?S' \<Longrightarrow> p y \<notin> ?S'" by auto
-  have 2: "\<And>y. y \<in> ?S' \<Longrightarrow> p y \<in> ?S'"
-  proof -
-    fix y assume y: "y \<in> ?S'" show "p y \<in> ?S'"
-    proof (rule ccontr)
-      assume "p y \<notin> ?S'" hence "p y \<in> set (support p x)"
-        using assms(1) permutes_in_image y by fastforce
-      then obtain y' where y': "y' \<in> set (support p x)" "(cycle_of_list (support p x)) y' = p y"
-        using cycle_surj by (metis (mono_tags, lifting) imageE)
-      hence "p y' = p y"
-        using cycle_restrict assms permutation_permutes by metis
-      hence "y = y'" by (metis assms(1) permutes_def)
-      thus False using y y' by blast
-    qed
-  qed
-  
-  have "p ` ?S' = ?S'"
-  proof -
-    have "\<And> y. y \<in> ?S' \<Longrightarrow> \<exists>!x. p x = y"
-      by (metis assms(1) permutes_def)
-    hence "\<And> y. y \<in> ?S' \<Longrightarrow> \<exists>x \<in> ?S'. p x = y" using 1 by metis
-    thus ?thesis using 2 by blast
-  qed
-  hence "bij_betw p ?S' ?S'"
-    by (metis DiffD1 assms(1) bij_betw_subset permutes_imp_bij subsetI)
-  hence "bij_betw ?q ?S' ?S'"
-    by (rule rev_iffD1 [OF _ bij_betw_cong]) auto
-  moreover have "\<And>y. y \<notin> ?S' \<Longrightarrow> ?q y = y" by auto
-  ultimately show ?thesis
-    using bij_imp_permutes by blast 
-qed
-
-
-lemma cycle_decomposition_aux:
-  assumes "p permutes S" "finite S" "card S = k"
-  shows "cycle_decomp S p" using assms
-proof(induct arbitrary: S p rule: less_induct)
-  case (less x) thus ?case
-  proof (cases "S = {}")
-    case True thus ?thesis
-      by (metis empty less.prems(1) permutes_empty) 
+  let ?q = "\<lambda>y. if y \<in> (S - set (support p a)) then p y else y"
+  show "bij_betw ?q (S - set (support p a)) (S - set (support p a))"
+  proof (rule bij_betw_imageI)
+    show "inj_on ?q (S - set (support p a))"
+      using permutes_inj[OF assms(1)] unfolding inj_on_def by auto
   next
-    case False
-    then obtain x where x: "x \<in> S" by blast
-    define S' :: "'a set"   where S': "S' = S - set (support p x)"
-    define q  :: "'a \<Rightarrow> 'a" where  q: "q  = (\<lambda>x. if x \<in> S' then p x else x)"
-    hence q_permutes: "q permutes S'"
-      using semidecomposition[OF less.prems(1-2), of x] S' q by blast
-    moreover have "x \<in> set (support p x)"
-      by (metis (no_types, lifting) add.left_neutral diff_zero funpow_0 in_set_conv_nth least_power_gt_zero
-          length_map length_upt less.prems(1) less.prems(2) nth_map_upt permutation_permutes)
-    hence "card S' < card S"
-      by (metis Diff_iff S' \<open>x \<in> S\<close> card_seteq leI less.prems(2) subsetI)
-    ultimately have "cycle_decomp S' q"
-      using S' less.hyps less.prems(2) less.prems(3) by blast
-
-    moreover have "p = (cycle_of_list (support p x)) \<circ> q"
-    proof
-      fix y show "p y = ((cycle_of_list (support p x)) \<circ> q) y"
-      proof (cases)
-        assume y: "y \<in> set (support p x)" hence "y \<notin> S'" using S' by simp
-        hence "q y = y" using q by simp
-        thus ?thesis
-          using comp_apply cycle_restrict less.prems permutation_permutes y by fastforce
-      next
-        assume y: "y \<notin> set (support p x)" thus ?thesis
-        proof (cases)
-          assume "y \<in> S'"
-          hence "q y \<in> S'" using q_permutes
-            by (simp add: permutes_in_image)
-          hence "q y \<notin> set (support p x)"
-            using S' by blast
-          hence "(cycle_of_list (support p x)) (q y) = (q y)"
-            by (metis cycle_of_permutation id_outside_supp less.prems(1-2) permutation_permutes)
-          thus ?thesis by (simp add: \<open>y \<in> S'\<close> q)
-        next
-          assume "y \<notin> S'" hence "y \<notin> S" using y S' by blast
-          hence "(cycle_of_list (support p x) \<circ> q) y = (cycle_of_list (support p x)) y"
-            by (simp add: \<open>y \<notin> S'\<close> q)
-          also have " ... = y"
-            by (metis cycle_of_permutation id_outside_supp less.prems(1-2) permutation_permutes y)
-          also have " ... = p y"
-            by (metis \<open>y \<notin> S\<close> less.prems(1) permutes_def)
-          finally show ?thesis by simp
-        qed
-      qed
+    have aux_lemma: "set (support p s) \<subseteq> (S - set (support p a))" if "s \<in> S - set (support p a)" for s
+    proof -
+      have "(p ^^ i) s \<in> S" for i
+        using that unfolding permutes_in_image[OF permutes_funpow[OF assms(1)]] by simp
+      thus ?thesis
+        using that disjoint_support'[OF is_permutation, of s a] by auto
     qed
-    moreover have "cycle (support p x)"
-      using cycle_of_permutation less.prems permutation_permutes by fastforce
-    moreover have "set (support p x) \<inter> S' = {}" using S' by simp
-    moreover have "set (support p x) \<subseteq> S"
-      using support_coverture[OF less.prems(1-2)] support_set[of p x] x
-            permutation_permutes[of p] less.prems(1-2) by blast
-    hence "S = set (support p x) \<union> S'" using S' by blast 
-    ultimately show ?thesis using comp[of S' q "support p x"] by auto
+    have "(p ^^ 1) s \<in> set (support p s)" for s
+      unfolding support_set[OF is_permutation] by blast
+    hence "p s \<in> set (support p s)" for s
+      by simp
+    hence "p ` (S - set (support p a)) \<subseteq> S - set (support p a)"
+      using aux_lemma by blast
+    moreover have "(p ^^ ((least_power p s) - 1)) s \<in> set (support p s)" for s
+      unfolding support_set[OF is_permutation] by blast
+    hence "\<exists>s' \<in> set (support p s). p s' = s" for s
+      using least_power_of_permutation[OF is_permutation] by (metis Suc_diff_1 funpow.simps(2) o_apply)
+    hence "S - set (support p a) \<subseteq> p ` (S - set (support p a))"
+      using aux_lemma
+      by (clarsimp simp add: image_iff) (metis image_subset_iff)
+    ultimately show "?q ` (S - set (support p a)) = (S - set (support p a))"
+      by auto
   qed
 qed
 
 theorem cycle_decomposition:
-  assumes "p permutes S" "finite S"
-  shows "cycle_decomp S p"
-  using assms cycle_decomposition_aux by blast
+  assumes "p permutes S" and "finite S" shows "cycle_decomp S p"
+  using assms
+proof(induct "card S" arbitrary: S p rule: less_induct)
+  case less show ?case
+  proof (cases)
+    assume "S = {}" thus ?thesis
+      using empty less(2) by auto
+  next
+    have is_permutation: "permutation p"
+      using less(2-3) unfolding permutation_permutes by blast
+
+    assume "S \<noteq> {}" then obtain s where "s \<in> S"
+      by blast
+    define q where "q = (\<lambda>y. if y \<in> (S - set (support p s)) then p y else y)"
+    have "(cycle_of_list (support p s) \<circ> q) = p"
+    proof
+      fix a
+      consider "a \<in> S - set (support p s)" | "a \<in> set (support p s)" | "a \<notin> S" "a \<notin> set (support p s)"
+        by blast
+      thus "((cycle_of_list (support p s) \<circ> q)) a = p a"
+      proof cases
+        case 1
+        have "(p ^^ 1) a \<in> set (support p a)"
+          unfolding support_set[OF is_permutation] by blast
+        with \<open>a \<in> S - set (support p s)\<close> have "p a \<notin> set (support p s)"
+          using disjoint_support'[OF is_permutation, of a s] by auto
+        with \<open>a \<in> S - set (support p s)\<close> show ?thesis
+          using id_outside_supp[of _ "support p s"] unfolding q_def by simp
+      next
+        case 2 thus ?thesis
+          using cycle_restrict[OF is_permutation] unfolding q_def by simp
+      next
+        case 3 thus ?thesis
+          using id_outside_supp[OF 3(2)] less(2) permutes_not_in unfolding q_def by fastforce
+      qed
+    qed
+
+    moreover from \<open>s \<in> S\<close> have "(p ^^ i) s \<in> S" for i
+      unfolding permutes_in_image[OF permutes_funpow[OF less(2)]] .
+    hence "set (support p s) \<union> (S - set (support p s)) = S"
+      by auto
+
+    moreover have "s \<in> set (support p s)"
+      using least_power_of_permutation[OF is_permutation] by force
+    with \<open>s \<in> S\<close> have "card (S - set (support p s)) < card S"
+      using less(3) by (metis DiffE card_seteq linorder_not_le subsetI)
+    hence "cycle_decomp (S - set (support p s)) q"
+      using less(1)[OF _ semidecomposition[OF less(2-3)], of s] less(3) unfolding q_def by blast
+
+    moreover show ?thesis
+      using comp[OF calculation(3) cycle_of_permutation[OF is_permutation], of s]
+      unfolding calculation(1-2) by blast  
+  qed
+qed
 
 end
