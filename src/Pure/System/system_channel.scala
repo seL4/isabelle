@@ -26,7 +26,6 @@ class System_Channel private
   def rendezvous(): (OutputStream, InputStream) =
   {
     val socket = server.accept
-    socket.setTcpNoDelay(true)
     (socket.getOutputStream, socket.getInputStream)
   }
 
