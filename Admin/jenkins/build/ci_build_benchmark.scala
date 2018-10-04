@@ -4,8 +4,8 @@ object profile extends isabelle.CI_Profile
   import isabelle._
 
   override def documents = false
-  def threads = 6
-  def jobs = 1
+  override def threads = 6
+  override def jobs = 1
   def include = Nil
   def select = List(Path.explode("$ISABELLE_HOME/src/Benchmarks"))
 
