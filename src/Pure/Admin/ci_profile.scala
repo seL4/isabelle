@@ -139,13 +139,13 @@ abstract class CI_Profile extends Isabelle_Tool.Body
 
   def threads: Int = Isabelle_System.hostname() match {
     case "hpcisabelle" => 8
-    case "lxcisa0" => 4
+    case "lxcisa1" => 4
     case _ => 2
   }
 
   def jobs: Int = Isabelle_System.hostname() match {
     case "hpcisabelle" => 8
-    case "lxcisa0" => 10
+    case "lxcisa1" => 10
     case _ => 2
   }
 
