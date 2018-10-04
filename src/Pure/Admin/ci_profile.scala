@@ -96,6 +96,8 @@ abstract class CI_Profile extends Isabelle_Tool.Body
         .int.update("parallel_proofs", 1)
         .int.update("threads", threads)
 
+    println(s"jobs = $jobs, threads = $threads, numa = $numa")
+
     print_section("BUILD")
     println(s"Build started at $start_time")
     println(s"Isabelle id $isabelle_id")
@@ -133,15 +135,25 @@ abstract class CI_Profile extends Isabelle_Tool.Body
     System.exit(results.rc)
   }
 
-
   /* profile */
+
+  def threads: Int = Isabelle_System.hostname() match {
+    case "hpcisabelle" => 8
+    case "lxcisa0" => 4
+    case _ => 2
+  }
+
+  def jobs: Int = Isabelle_System.hostname() match {
+    case "hpcisabelle" => 8
+    case "lxcisa0" => 10
+    case _ => 2
+  }
+
+  def numa: Boolean = Isabelle_System.hostname() == "hpcisabelle"
 
   def documents: Boolean = true
   def clean: Boolean = true
-  def numa: Boolean = false
 
-  def threads: Int
-  def jobs: Int
   def include: List[Path]
   def select: List[Path]
 
