@@ -3,1140 +3,507 @@
 *)
 
 theory Chinese_Remainder
-  imports QuotRing Ideal_Product
+  imports Weak_Morphisms Ideal_Product
+    
 begin
 
-section \<open>Chinese Remainder Theorem\<close>
 
-subsection \<open>Direct Product of Rings\<close>
+section \<open>Direct Product of Rings\<close>
 
-definition
-  RDirProd :: "[ ('a, 'n) ring_scheme, ('b, 'm) ring_scheme ]  \<Rightarrow> ('a \<times> 'b) ring"
-  where "RDirProd R S =
-           \<lparr> carrier = carrier R \<times> carrier S,
-                mult = (\<lambda>(r, s). \<lambda>(r', s'). (r \<otimes>\<^bsub>R\<^esub> r', s \<otimes>\<^bsub>S\<^esub> s')),
-                 one = (\<one>\<^bsub>R\<^esub>, \<one>\<^bsub>S\<^esub>),
-                zero = (\<zero>\<^bsub>R\<^esub>, \<zero>\<^bsub>S\<^esub>),
-                 add = (\<lambda>(r, s). \<lambda>(r', s'). (r \<oplus>\<^bsub>R\<^esub> r', s \<oplus>\<^bsub>S\<^esub> s')) \<rparr>"
+subsection \<open>Definitions\<close>
 
-lemma RDirProd_monoid:
-  assumes "ring R" and "ring S"
-  shows "monoid (RDirProd R S)"
-  by (rule monoidI) (auto simp add: RDirProd_def assms ring.ring_simprules ring.is_monoid)
+definition RDirProd :: "('a, 'n) ring_scheme \<Rightarrow> ('b, 'm) ring_scheme \<Rightarrow> ('a \<times> 'b) ring"
+  where "RDirProd R S = monoid.extend (R \<times>\<times> S)
+           \<lparr> zero = one ((add_monoid R) \<times>\<times> (add_monoid S)),
+              add = mult ((add_monoid R) \<times>\<times> (add_monoid S)) \<rparr> "
 
-lemma RDirProd_abelian_group:
-  assumes "ring R" and "ring S"
-  shows "abelian_group (RDirProd R S)"
-  by (auto intro!: abelian_groupI
-         simp add: RDirProd_def assms ring.ring_simprules)
-     (meson assms ring.ring_simprules(3,16))+
+abbreviation nil_ring :: "('a list) ring"
+  where "nil_ring \<equiv> monoid.extend nil_monoid \<lparr> zero = [], add = (\<lambda>a b. []) \<rparr>"
 
-lemma RDirProd_group:
-  assumes "ring R" and "ring S"
-  shows "ring (RDirProd R S)"
+definition RDirProd_list :: "(('a, 'n) ring_scheme) list \<Rightarrow> ('a list) ring"
+  where "RDirProd_list Rs = foldr (\<lambda>R S. image_ring (\<lambda>(a, as). a # as) (RDirProd R S)) Rs nil_ring"
+
+
+subsection \<open>Basic Properties\<close>
+
+lemma RDirProd_carrier: "carrier (RDirProd R S) = carrier R \<times> carrier S"
+  unfolding RDirProd_def DirProd_def by (simp add: monoid.defs)
+
+lemma RDirProd_add_monoid [simp]: "add_monoid (RDirProd R S) = (add_monoid R) \<times>\<times> (add_monoid S)"
+  by (simp add: RDirProd_def monoid.defs)
+
+lemma RDirProd_ring:
+  assumes "ring R" and "ring S" shows "ring (RDirProd R S)"
 proof -
+  have "monoid (RDirProd R S)"
+    using DirProd_monoid[OF assms[THEN ring.axioms(2)]] unfolding monoid_def
+    by (auto simp add: DirProd_def RDirProd_def monoid.defs)
+  then interpret Prod: group "add_monoid (RDirProd R S)" + monoid "RDirProd R S"
+    using DirProd_group[OF assms[THEN abelian_group.a_group[OF ring.is_abelian_group]]]
+    unfolding RDirProd_add_monoid by auto
   show ?thesis
-    apply (rule ringI)
-    apply (simp_all add: assms RDirProd_abelian_group RDirProd_monoid)
-    by (auto simp add: RDirProd_def assms ring.ring_simprules)
+    by (unfold_locales, auto simp add: RDirProd_def DirProd_def monoid.defs assms ring.ring_simprules)
 qed
 
-lemma RDirProd_isomorphism1:
+lemma RDirProd_iso1:
   "(\<lambda>(x, y). (y, x)) \<in> ring_iso (RDirProd R S) (RDirProd S R)"
-  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def by auto
+  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def
+  by (auto simp add: RDirProd_def DirProd_def monoid.defs)
 
-lemma RDirProd_isomorphism2:
+lemma RDirProd_iso2:
   "(\<lambda>(x, (y, z)). ((x, y), z)) \<in> ring_iso (RDirProd R (RDirProd S T)) (RDirProd (RDirProd R S) T)"
-  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-  by (auto simp add: image_iff)
+  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def
+  by (auto simp add: image_iff RDirProd_def DirProd_def monoid.defs)
 
-lemma RDirProd_isomorphism3:
+lemma RDirProd_iso3:
   "(\<lambda>((x, y), z). (x, (y, z))) \<in> ring_iso (RDirProd (RDirProd R S) T) (RDirProd R (RDirProd S T))"
-  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-  by (auto simp add: image_iff)
+  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def
+  by (auto simp add: image_iff RDirProd_def DirProd_def monoid.defs)
 
-lemma RDirProd_isomorphism4:
-  assumes "f \<in> ring_iso R S"
-  shows "(\<lambda>(r, t). (f r, t)) \<in> ring_iso (RDirProd R T) (RDirProd S T)"
-  using assms unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-  by (auto simp add: image_iff)+
+lemma RDirProd_iso4:
+  assumes "f \<in> ring_iso R S" shows "(\<lambda>(r, t). (f r, t)) \<in> ring_iso (RDirProd R T) (RDirProd S T)"
+  using assms unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def
+  by (auto simp add: image_iff RDirProd_def DirProd_def monoid.defs)+
 
-lemma RDirProd_isomorphism5:
-  assumes "f \<in> ring_iso S T"
-  shows "(\<lambda>(r, s). (r, f s)) \<in> ring_iso (RDirProd R S) (RDirProd R T)"
-  using ring_iso_set_trans[OF ring_iso_set_trans[OF RDirProd_isomorphism1[of R S]
-                                                    RDirProd_isomorphism4[OF assms, of R]]
-                              RDirProd_isomorphism1[of T R]]
+lemma RDirProd_iso5:
+  assumes "f \<in> ring_iso S T" shows "(\<lambda>(r, s). (r, f s)) \<in> ring_iso (RDirProd R S) (RDirProd R T)"
+  using ring_iso_set_trans[OF ring_iso_set_trans[OF RDirProd_iso1 RDirProd_iso4[OF assms]] RDirProd_iso1]
   by (simp add: case_prod_unfold comp_def)
 
-lemma RDirProd_isomorphism6:
+lemma RDirProd_iso6:
   assumes "f \<in> ring_iso R R'" and "g \<in> ring_iso S S'"
   shows "(\<lambda>(r, s). (f r, g s)) \<in> ring_iso (RDirProd R S) (RDirProd R' S')"
-  using ring_iso_set_trans[OF RDirProd_isomorphism4[OF assms(1)] RDirProd_isomorphism5[OF assms(2)]]
+  using ring_iso_set_trans[OF RDirProd_iso4[OF assms(1)] RDirProd_iso5[OF assms(2)]]
+  by (simp add: case_prod_beta' comp_def)
+
+lemma RDirProd_iso7:
+  shows "(\<lambda>a. (a, [])) \<in> ring_iso R (RDirProd R nil_ring)"
+  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def
+  by (auto simp add: RDirProd_def DirProd_def monoid.defs)
+
+lemma RDirProd_hom1:
+  shows "(\<lambda>a. (a, a)) \<in> ring_hom R (RDirProd R R)"
+  by (auto simp add: ring_hom_def RDirProd_def DirProd_def monoid.defs)
+
+lemma RDirProd_hom2:
+  assumes "f \<in> ring_hom S T"
+  shows "(\<lambda>(x, y). (x, f y)) \<in> ring_hom (RDirProd R S) (RDirProd R T)"
+    and "(\<lambda>(x, y). (f x, y)) \<in> ring_hom (RDirProd S R) (RDirProd T R)"
+  using assms by (auto simp add: ring_hom_def RDirProd_def DirProd_def monoid.defs)
+
+lemma RDirProd_hom3:
+  assumes "f \<in> ring_hom R R'" and "g \<in> ring_hom S S'"
+  shows "(\<lambda>(r, s). (f r, g s)) \<in> ring_hom (RDirProd R S) (RDirProd R' S')"
+  using ring_hom_trans[OF RDirProd_hom2(2)[OF assms(1)] RDirProd_hom2(1)[OF assms(2)]]
   by (simp add: case_prod_beta' comp_def)
 
 
-subsection \<open>Simple Version of The Theorem\<close>
+subsection \<open>Direct Product of a List of Rings\<close>
 
-text \<open>We start by proving a simpler version of the theorem. The rest of the theory is
-      dedicated to its generalization\<close>
+lemma RDirProd_list_nil [simp]: "RDirProd_list [] = nil_ring"
+  unfolding RDirProd_list_def by simp
 
-lemma (in ideal) set_add_zero:
-  assumes "i \<in> I"
-  shows "I +> i = I"
-  by (simp add: a_rcos_const assms)
+lemma nil_ring_simprules [simp]:
+  "carrier nil_ring = { [] }" and "one nil_ring = []" and "zero nil_ring = []"
+  by (auto simp add: monoid.defs)
 
-lemma (in ideal) set_add_zero_imp_mem:
-  assumes "i \<in> carrier R" "I +> i = I"
-  shows "i \<in> I"
-  using a_rcos_self assms(1-2) by auto
+lemma RDirProd_list_truncate:
+  shows "monoid.truncate (RDirProd_list Rs) = DirProd_list Rs"
+proof (induct Rs, simp add: RDirProd_list_def DirProd_list_def monoid.defs)
+  case (Cons R Rs)
+  have "monoid.truncate (RDirProd_list (R # Rs)) =
+        monoid.truncate (image_ring (\<lambda>(a, as). a # as) (RDirProd R (RDirProd_list Rs)))"
+    unfolding RDirProd_list_def by simp
+  also have " ... = image_group (\<lambda>(a, as). a # as) (monoid.truncate (RDirProd R (RDirProd_list Rs)))"
+  by (simp add: image_ring_def image_group_def monoid.defs)
+  also have " ... = image_group (\<lambda>(a, as). a # as) (R \<times>\<times> (monoid.truncate (RDirProd_list Rs)))"
+    by (simp add: RDirProd_def DirProd_def monoid.defs)
+  also have " ... = DirProd_list (R # Rs)"
+    unfolding Cons DirProd_list_def by simp
+  finally show ?case .
+qed
+
+lemma RDirProd_list_carrier_def':
+  shows "carrier (RDirProd_list Rs) = carrier (DirProd_list Rs)"
+proof -
+  have "carrier (RDirProd_list Rs) = carrier (monoid.truncate (RDirProd_list Rs))"
+    by (simp add: monoid.defs)
+  thus ?thesis
+    unfolding RDirProd_list_truncate .
+qed
+
+lemma RDirProd_list_carrier:
+  shows "carrier (RDirProd_list (G # Gs)) = (\<lambda>(x, xs). x # xs) ` (carrier G \<times> carrier (RDirProd_list Gs))"
+  unfolding RDirProd_list_carrier_def' using DirProd_list_carrier .
+
+lemma RDirProd_list_one:
+  shows "one (RDirProd_list Rs) = foldr (\<lambda>R tl. (one R) # tl) Rs []"
+  unfolding RDirProd_list_def RDirProd_def image_ring_def image_group_def
+  by (induct Rs) (auto simp add: monoid.defs)
+
+lemma RDirProd_list_zero:
+  shows "zero (RDirProd_list Rs) = foldr (\<lambda>R tl. (zero R) # tl) Rs []"
+  unfolding RDirProd_list_def RDirProd_def image_ring_def
+  by (induct Rs) (auto simp add: monoid.defs)
+
+lemma RDirProd_list_zero':
+  shows "zero (RDirProd_list (R # Rs)) = (zero R) # (zero (RDirProd_list Rs))"
+  unfolding RDirProd_list_zero by simp
+
+lemma RDirProd_list_carrier_mem:
+  assumes "as \<in> carrier (RDirProd_list Rs)"
+  shows "length as = length Rs" and "\<And>i. i < length Rs \<Longrightarrow> (as ! i) \<in> carrier (Rs ! i)"
+  using assms DirProd_list_carrier_mem unfolding RDirProd_list_carrier_def' by auto
+
+lemma RDirProd_list_carrier_memI:
+  assumes "length as = length Rs" and "\<And>i. i < length Rs \<Longrightarrow> (as ! i) \<in> carrier (Rs ! i)"
+  shows "as \<in> carrier (RDirProd_list Rs)"
+  using assms DirProd_list_carrier_memI unfolding RDirProd_list_carrier_def' by auto
+
+lemma inj_on_RDirProd_carrier:
+  shows "inj_on (\<lambda>(a, as). a # as) (carrier (RDirProd R (RDirProd_list Rs)))"
+  unfolding RDirProd_def DirProd_def inj_on_def by auto
+
+lemma RDirProd_list_is_ring:
+  assumes "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)" shows "ring (RDirProd_list Rs)"
+  using assms
+proof (induct Rs)
+  case Nil thus ?case
+    unfolding RDirProd_list_def by (unfold_locales, auto simp add: monoid.defs Units_def)
+next
+  case (Cons R Rs)
+  hence is_ring: "ring (RDirProd R (RDirProd_list Rs))"
+    using RDirProd_ring[of R "RDirProd_list Rs"] by force
+  show ?case
+    using ring.inj_imp_image_ring_is_ring[OF is_ring inj_on_RDirProd_carrier]
+    unfolding RDirProd_list_def by auto 
+qed
+
+lemma RDirProd_list_iso1:
+  "(\<lambda>(a, as). a # as) \<in> ring_iso (RDirProd R (RDirProd_list Rs)) (RDirProd_list (R # Rs))"
+  using inj_imp_image_ring_iso[OF inj_on_RDirProd_carrier] unfolding RDirProd_list_def by auto
+
+lemma RDirProd_list_iso2:
+  "Hilbert_Choice.inv (\<lambda>(a, as). a # as) \<in> ring_iso (RDirProd_list (R # Rs)) (RDirProd R (RDirProd_list Rs))"
+  unfolding RDirProd_list_def by (auto intro: inj_imp_image_ring_inv_iso simp add: inj_def)
+
+lemma RDirProd_list_iso3:
+  "(\<lambda>a. [ a ]) \<in> ring_iso R (RDirProd_list [ R ])"
+proof -
+  have [simp]: "(\<lambda>a. [ a ]) = (\<lambda>(a, as). a # as) \<circ> (\<lambda>a. (a, []))" by auto
+  show ?thesis
+    using ring_iso_set_trans[OF RDirProd_iso7] RDirProd_list_iso1[of R "[]"]
+    unfolding RDirProd_list_def by simp
+qed
+
+lemma RDirProd_list_hom1:
+  "(\<lambda>(a, as). a # as) \<in> ring_hom (RDirProd R (RDirProd_list Rs)) (RDirProd_list (R # Rs))"
+  using RDirProd_list_iso1 unfolding ring_iso_def by auto
+
+lemma RDirProd_list_hom2:
+  assumes "f \<in> ring_hom R S" shows "(\<lambda>a. [ f a ]) \<in> ring_hom R (RDirProd_list [ S ])"
+proof -
+  have hom1: "(\<lambda>a. (a, [])) \<in> ring_hom R (RDirProd R nil_ring)"
+    using RDirProd_iso7 unfolding ring_iso_def by auto
+  have hom2: "(\<lambda>(a, as). a # as) \<in> ring_hom (RDirProd S nil_ring) (RDirProd_list [ S ])"
+    using RDirProd_list_hom1[of _ "[]"] unfolding RDirProd_list_def by auto
+  have [simp]: "(\<lambda>(a, as). a # as) \<circ> ((\<lambda>(x, y). (f x, y)) \<circ> (\<lambda>a. (a, []))) = (\<lambda>a. [ f a ])" by auto
+  show ?thesis
+    using ring_hom_trans[OF ring_hom_trans[OF hom1 RDirProd_hom2(2)[OF assms]] hom2] by simp
+qed
+
+
+section \<open>Chinese Remainder Theorem\<close>
+
+subsection \<open>Definitions\<close>
+
+abbreviation (in ring) canonical_proj :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a set \<times> 'a set"
+  where "canonical_proj I J \<equiv> (\<lambda>a. (I +> a, J +> a))"
+
+definition (in ring) canonical_proj_ext :: "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> ('a set) list"
+  where "canonical_proj_ext I n = (\<lambda>a. map (\<lambda>i. (I i) +> a) [0..< Suc n])"
+
+
+subsection \<open>Chinese Remainder Simple\<close>
 
 lemma (in ring) canonical_proj_is_surj:
-  assumes "ideal I R" "ideal J R" "I <+> J = carrier R"
-  shows "\<And>x y. \<lbrakk> x \<in> carrier R; y \<in> carrier R \<rbrakk> \<Longrightarrow>
-                 \<exists>a \<in> carrier R. I +> a = I +> x \<and> J +> a = J +> y"
-proof -
-  { fix I J i j assume A: "ideal I R" "ideal J R" "i \<in> I" "j \<in> J" "\<one> = i \<oplus> j"
-    have "I +> \<one> = I +> j"
-    proof -
-      have "I +> \<one> = I +> (i \<oplus> j)" using A(5) by simp
-      also have " ... = (I +> i) <+> (I +> j)"
-        by (metis abelian_subgroup.a_rcos_sum abelian_subgroupI3 A(1-4)
-            ideal.Icarr ideal.axioms(1) is_abelian_group)
-      also have " ... = (I +> \<zero>) <+> (I +> j)"
-        using ideal.set_add_zero[OF A(1) A(3)]
-        by (simp add: A(1) additive_subgroup.a_subset ideal.axioms(1)) 
-      also have " ... = I +> (\<zero> \<oplus> j)"
-        by (meson A abelian_subgroup.a_rcos_sum abelian_subgroupI3
-            additive_subgroup.a_Hcarr ideal.axioms(1) is_abelian_group zero_closed)
-      finally show "I +> \<one> = I +> j"
-        using A(2) A(4) ideal.Icarr by fastforce
-    qed } note aux_lemma = this
-  
-  fix x y assume x: "x \<in> carrier R" and y: "y \<in> carrier R"
-  
-  have "\<one> \<in> I <+> J" using assms by simp
-  then obtain i j where i: "i \<in> I" and j: "j \<in> J" and ij: "\<one> = i \<oplus> j"
-    using set_add_def'[of R I J] by auto
-  have mod_I: "I +> j = I +> \<one>" and mod_J: "J +> i = J +> \<one>"
-    using aux_lemma[OF assms(1-2) i j ij] apply simp
-    using aux_lemma[OF assms(2) assms(1) j i] ij
-    by (metis add.m_comm assms(1) assms(2) i ideal.Icarr j)
+  assumes "ideal I R" "ideal J R" and "I <+> J = carrier R"
+  shows "(canonical_proj I J) ` carrier R = carrier (RDirProd (R Quot I) (R Quot J))"
+  unfolding RDirProd_def DirProd_def FactRing_def A_RCOSETS_def'
+proof (auto simp add: monoid.defs)
+  { fix I i assume "ideal I R" "i \<in> I" hence "I +> i = \<zero>\<^bsub>R Quot I\<^esub>"
+      using a_rcos_zero by (simp add: FactRing_def)
+  } note aux_lemma1 = this
 
-  have "I +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = (I +> (j \<otimes> x)) <+> (I +> (i \<otimes> y))"
-    by (metis abelian_subgroup.a_rcos_sum abelian_subgroupI3 assms i ideal.Icarr
-        ideal.axioms(1) is_abelian_group j m_closed x y)
-  also have " ... = (I +> (j \<otimes> x)) <+> (I +> \<zero>)"
-    using ideal.set_add_zero[OF assms(1), of "i \<otimes> y"] i assms(1)
-    by (simp add: additive_subgroup.a_subset ideal.I_r_closed ideal.axioms(1) y)
-  also have " ... = I +> (j \<otimes> x)"
-    by (metis abelian_subgroup.a_rcos_sum abelian_subgroupI3 additive_subgroup.a_Hcarr assms(1-2)
-        ideal.axioms(1) is_abelian_group j m_closed r_zero x zero_closed)
-  finally have Ix: "I +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = I +> x" using mod_I
-    by (metis (full_types) assms ideal.Icarr ideal.rcoset_mult_add is_monoid j monoid.l_one one_closed x)
-  have "J +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = (J +> (j \<otimes> x)) <+> (J +> (i \<otimes> y))"
-    by (metis abelian_subgroup.a_rcos_sum abelian_subgroupI3 assms i ideal.Icarr
-        ideal.axioms(1) is_abelian_group j m_closed x y)
-  also have " ... = (J +> \<zero>) <+> (J +> (i \<otimes> y))"
-    using ideal.set_add_zero[OF assms(2), of "j \<otimes> x"] j assms(2)
-    by (simp add: additive_subgroup.a_subset ideal.I_r_closed ideal.axioms(1) x)
-  also have " ... = J +> (i \<otimes> y)"
-    by (metis a_coset_add_zero a_rcosetsI abelian_subgroup.rcosets_add_eq abelian_subgroupI3
-        additive_subgroup.a_Hcarr additive_subgroup.a_subset assms i ideal.axioms(1)
-        is_abelian_group m_closed y)
-  finally have Jy: "J +> ((j \<otimes> x) \<oplus> (i \<otimes> y)) = J +> y" using mod_J
-    by (metis (full_types) assms i ideal.Icarr ideal.rcoset_mult_add local.semiring_axioms one_closed semiring.semiring_simprules(9) y)  
-  have "(j \<otimes> x) \<oplus> (i \<otimes> y) \<in> carrier R"
-    by (meson x y i j assms add.m_closed additive_subgroup.a_Hcarr ideal.axioms(1) m_closed)
-  thus "\<exists>a \<in> carrier R. I +> a = I +> x \<and> J +> a = J +> y" using Ix Jy by blast
+  { fix I i j assume A: "ideal I R" "i \<in> I" "j \<in> carrier R" "i \<oplus> j = \<one>"
+    have "(I +> i) \<oplus>\<^bsub>R Quot I\<^esub> (I +> j) = I +> \<one>"
+      using ring_hom_memE(3)[OF ideal.rcos_ring_hom ideal.Icarr[OF _ A(2)] A(3)] A(1,4) by simp
+    moreover have "I +> i = I"
+      using abelian_subgroupI3[OF ideal.axioms(1) is_abelian_group]
+      by (simp add: A(1-2) abelian_subgroup.a_rcos_const)
+    moreover have "I +> j \<in> carrier (R Quot I)" and "I = \<zero>\<^bsub>R Quot I\<^esub>" and "I +> \<one> = \<one>\<^bsub>R Quot I\<^esub>"
+      by (auto simp add: FactRing_def A_RCOSETS_def' A(3))
+    ultimately have "I +> j = \<one>\<^bsub>R Quot I\<^esub>"
+      using ring.ring_simprules(8)[OF ideal.quotient_is_ring[OF A(1)]] by simp
+  } note aux_lemma2 = this
+
+  interpret I: ring "R Quot I" + J: ring "R Quot J"
+    using assms(1-2)[THEN ideal.quotient_is_ring] by auto
+
+  fix a b assume a: "a \<in> carrier R" and b: "b \<in> carrier R"
+  have "\<one> \<in> I <+> J"
+    using assms(3) by blast
+  then obtain i j where i: "i \<in> carrier R" "i \<in> I" and j: "j \<in> carrier R" "j \<in> J" and ij: "i \<oplus> j = \<one>"
+    using assms(1-2)[THEN ideal.Icarr] unfolding set_add_def' by auto
+  hence rcos_j: "I +> j = \<one>\<^bsub>R Quot I\<^esub>" and rcos_i: "J +> i = \<one>\<^bsub>R Quot J\<^esub>"
+    using assms(1-2)[THEN aux_lemma2] a_comm by simp+
+
+  define s where "s = (a \<otimes> j) \<oplus> (b \<otimes> i)"
+  hence "s \<in> carrier R"
+    using a b i j by simp
+
+  have "I +> s = ((I +> a) \<otimes>\<^bsub>R Quot I\<^esub> (I +> j)) \<oplus>\<^bsub>R Quot I\<^esub> (I +> (b \<otimes> i))"
+    using ring_hom_memE(2-3)[OF ideal.rcos_ring_hom[OF assms(1)]]
+    by (simp add: a b i(1) j(1) s_def)
+  moreover have "I +> a \<in> carrier (R Quot I)"
+    by (auto simp add: FactRing_def A_RCOSETS_def' a)
+  ultimately have "I +> s = I +> a"
+    unfolding rcos_j aux_lemma1[OF assms(1) ideal.I_l_closed[OF assms(1) i(2) b]] by simp
+
+  have "J +> s = (J +> (a \<otimes> j)) \<oplus>\<^bsub>R Quot J\<^esub> ((J +> b) \<otimes>\<^bsub>R Quot J\<^esub> (J +> i))"
+    using ring_hom_memE(2-3)[OF ideal.rcos_ring_hom[OF assms(2)]]
+    by (simp add: a b i(1) j(1) s_def)
+  moreover have "J +> b \<in> carrier (R Quot J)"
+    by (auto simp add: FactRing_def A_RCOSETS_def' b)
+  ultimately have "J +> s = J +> b"
+    unfolding rcos_i aux_lemma1[OF assms(2) ideal.I_l_closed[OF assms(2) j(2) a]] by simp
+
+  from \<open>I +> s = I +> a\<close> and \<open>J +> s = J +> b\<close> and \<open>s \<in> carrier R\<close>
+  show "(I +> a, J +> b) \<in> (canonical_proj I J) ` carrier R" by blast
+qed
+
+lemma (in ring) canonical_proj_ker:
+  assumes "ideal I R" and "ideal J R"
+  shows "a_kernel R (RDirProd (R Quot I) (R Quot J)) (canonical_proj I J) = I \<inter> J"
+proof
+  show "a_kernel R (RDirProd (R Quot I) (R Quot J)) (canonical_proj I J) \<subseteq> I \<inter> J"
+    unfolding FactRing_def RDirProd_def DirProd_def a_kernel_def'
+    by (auto simp add: assms[THEN ideal.rcos_const_imp_mem] monoid.defs)
+next
+  show "I \<inter> J \<subseteq> a_kernel R (RDirProd (R Quot I) (R Quot J)) (canonical_proj I J)"
+  proof
+    fix s assume s: "s \<in> I \<inter> J" then have "I +> s = I" and "J +> s = J"
+      using abelian_subgroupI3[OF ideal.axioms(1) is_abelian_group]
+      by (simp add: abelian_subgroup.a_rcos_const assms)+
+    thus "s \<in> a_kernel R (RDirProd (R Quot I) (R Quot J)) (canonical_proj I J)"
+      unfolding FactRing_def RDirProd_def DirProd_def a_kernel_def'
+      using ideal.Icarr[OF assms(1)] s by (simp add: monoid.defs)
+  qed
 qed
 
 lemma (in ring) canonical_proj_is_hom:
-  assumes "ideal I R" "ideal J R" "I <+> J = carrier R"
-  shows "(\<lambda>a. (I +> a, J +> a)) \<in> ring_hom R (RDirProd (R Quot I) (R Quot J))"
-proof (rule ring_hom_memI)
-  fix x y assume x: "x \<in> carrier R" and y: "y \<in> carrier R"
-  show "(I +> x, J +> x) \<in> carrier (RDirProd (R Quot I) (R Quot J))"
-    using A_RCOSETS_def'[of R I] A_RCOSETS_def'[of R J] x
-    unfolding RDirProd_def FactRing_def by auto
-  show "(I +> x \<otimes> y, J +> x \<otimes> y) =
-        (I +> x, J +> x) \<otimes>\<^bsub>RDirProd (R Quot I) (R Quot J)\<^esub> (I +> y, J +> y)"
-    unfolding RDirProd_def FactRing_def by (simp add: assms ideal.rcoset_mult_add x y)
-  show "(I +> x \<oplus> y, J +> x \<oplus> y) =
-        (I +> x, J +> x) \<oplus>\<^bsub>RDirProd (R Quot I) (R Quot J)\<^esub> (I +> y, J +> y)"
-    unfolding RDirProd_def FactRing_def
-    by (simp add: abelian_subgroup.a_rcos_sum abelian_subgroupI3 assms ideal.axioms(1) is_abelian_group x y)
-next
-  show "(I +> \<one>, J +> \<one>) = \<one>\<^bsub>RDirProd (R Quot I) (R Quot J)\<^esub>"
-    unfolding RDirProd_def FactRing_def by simp
-qed
+  assumes "ideal I R" and "ideal J R"
+  shows "(canonical_proj I J) \<in> ring_hom R (RDirProd (R Quot I) (R Quot J))"
+  unfolding RDirProd_def DirProd_def FactRing_def A_RCOSETS_def'
+  by (auto intro!: ring_hom_memI
+         simp add: assms[THEN ideal.rcoset_mult_add]
+                   assms[THEN ideal.a_rcos_sum] monoid.defs)
+
+lemma (in ring) canonical_proj_ring_hom:
+  assumes "ideal I R" and "ideal J R"
+  shows "ring_hom_ring R (RDirProd (R Quot I) (R Quot J)) (canonical_proj I J)"
+  using ring_hom_ring.intro[OF ring_axioms RDirProd_ring[OF assms[THEN ideal.quotient_is_ring]]]
+  by (simp add: ring_hom_ring_axioms_def canonical_proj_is_hom[OF assms])
 
 theorem (in ring) chinese_remainder_simple:
-  assumes "ideal I R" "ideal J R" "I <+> J = carrier R"
-  shows "(R Quot (I \<inter> J)) \<simeq> (RDirProd (R Quot I) (R Quot J))"
-proof -
-  let ?\<phi> = "\<lambda>a. (I +> a, J +> a)"
+  assumes "ideal I R" "ideal J R" and "I <+> J = carrier R"
+  shows "R Quot (I \<inter> J) \<simeq> RDirProd (R Quot I) (R Quot J)"
+  using ring_hom_ring.FactRing_iso[OF canonical_proj_ring_hom canonical_proj_is_surj]
+  by (simp add: canonical_proj_ker assms)
 
-  have phi_hom: "?\<phi> \<in> ring_hom R (RDirProd (R Quot I) (R Quot J))"
-    using canonical_proj_is_hom[OF assms] .
 
-  moreover have "?\<phi> ` (carrier R) = carrier (RDirProd (R Quot I) (R Quot J))"
-  proof
-    show "carrier (RDirProd (R Quot I) (R Quot J)) \<subseteq> ?\<phi> ` (carrier R)"
-    proof
-      fix t assume "t \<in> carrier (RDirProd (R Quot I) (R Quot J))"
-      then obtain x y where x: "x \<in> carrier R" and y: "y \<in> carrier R"
-                        and t: "t = (I +> x, J +> y)"
-        using A_RCOSETS_def'[of R I] A_RCOSETS_def'[of R J]
-        unfolding RDirProd_def FactRing_def by auto
-      then obtain a where "a \<in> carrier R" "I +> a = I +> x" "J +> a = J +> y"
-        using canonical_proj_is_surj[OF assms x y] by blast
-      hence "?\<phi> a = t" using t by simp
-      thus "t \<in> (?\<phi> ` carrier R)" using \<open>a \<in> carrier R\<close> by blast
-    qed
-  next
-    show "?\<phi> ` carrier R \<subseteq> carrier (RDirProd (R Quot I) (R Quot J))"
-      using phi_hom unfolding ring_hom_def by blast
-  qed
+subsection \<open>Chinese Remainder Generalized\<close>
 
-  moreover have "a_kernel R (RDirProd (R Quot I) (R Quot J)) ?\<phi> = I \<inter> J"
-  proof
-    show "I \<inter> J \<subseteq> a_kernel R (RDirProd (R Quot I) (R Quot J)) ?\<phi>"
-    proof
-      fix s assume s: "s \<in> I \<inter> J" hence "I +> s = I \<and> J +> s = J"
-        by (simp add: additive_subgroup.zero_closed assms ideal.axioms(1) ideal.set_add_zero)
-      thus "s \<in> a_kernel R (RDirProd (R Quot I) (R Quot J)) ?\<phi>"
-        unfolding FactRing_def RDirProd_def a_kernel_def kernel_def
-        using s additive_subgroup.a_Hcarr assms(1) ideal.axioms(1) by fastforce
-    qed
-  next
-    show "a_kernel R (RDirProd (R Quot I) (R Quot J)) ?\<phi> \<subseteq> I \<inter> J"
-    unfolding FactRing_def RDirProd_def a_kernel_def kernel_def apply simp
-    using ideal.set_add_zero_imp_mem assms(1-2) by fastforce
-  qed
+lemma (in ring) canonical_proj_ext_zero [simp]: "(canonical_proj_ext I 0) = (\<lambda>a. [ (I 0) +> a ])"
+  unfolding canonical_proj_ext_def by simp
 
-  moreover have "ring (RDirProd (R Quot I) (R Quot J))"
-    by (simp add: RDirProd_group assms(1) assms(2) ideal.quotient_is_ring) 
+lemma (in ring) canonical_proj_ext_tl:
+  "(\<lambda>a. canonical_proj_ext I (Suc n) a) = (\<lambda>a. ((I 0) +> a) # (canonical_proj_ext (\<lambda>i. I (Suc i)) n a))"
+  unfolding canonical_proj_ext_def by (induct n) (auto, metis (lifting) append.assoc append_Cons append_Nil)
 
-  ultimately show ?thesis
-    using ring_hom_ring.FactRing_iso[of R "RDirProd (R Quot I) (R Quot J)" ?\<phi>] is_ring
-    by (simp add: ring_hom_ringI2)
+lemma (in ring) canonical_proj_ext_is_hom:
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
+  shows "(canonical_proj_ext I n) \<in> ring_hom R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
+  using assms
+proof (induct n arbitrary: I)
+  case 0 thus ?case
+    using RDirProd_list_hom2[OF ideal.rcos_ring_hom[of _ R]] by (simp add: canonical_proj_ext_def)
+next
+  let ?DirProd = "\<lambda>I n. RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..<Suc n])"
+  let ?proj = "\<lambda>I n. canonical_proj_ext I n"
+
+  case (Suc n)
+  hence I: "ideal (I 0) R" by simp
+  have hom: "(?proj (\<lambda>i. I (Suc i)) n) \<in> ring_hom R (?DirProd (\<lambda>i. I (Suc i)) n)"
+    using Suc(1)[of "\<lambda>i. I (Suc i)"] Suc(2) by simp
+  have [simp]:
+    "(\<lambda>(a, as). a # as) \<circ> ((\<lambda>(r, s). (I 0 +> r, ?proj (\<lambda>i. I (Suc i)) n s)) \<circ> (\<lambda>a. (a, a))) = ?proj I (Suc n)"
+    unfolding canonical_proj_ext_tl by auto
+  moreover have
+    "(R Quot I 0) # (map (\<lambda>i. R Quot I (Suc i)) [0..< Suc n]) = map (\<lambda>i. R Quot (I i)) [0..< Suc (Suc n)]"
+    by (induct n) (auto)
+  moreover show ?case
+    using ring_hom_trans[OF ring_hom_trans[OF RDirProd_hom1
+          RDirProd_hom3[OF ideal.rcos_ring_hom[OF I] hom]] RDirProd_list_hom1]
+    unfolding calculation(2) by simp
 qed
 
+lemma (in ring) RDirProd_Quot_list_is_ring:
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R" shows "ring (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
+proof -
+  have ring_list: "\<And>i. i < Suc n \<Longrightarrow> ring ((map (\<lambda>i. R Quot I i) [0..< Suc n]) ! i)"
+    using ideal.quotient_is_ring[OF assms]
+    by (metis add.left_neutral diff_zero le_simps(2) nth_map_upt)
+  show ?thesis
+    using RDirProd_list_is_ring[OF ring_list] by simp
+qed
 
-subsection \<open>First Generalization - The Extended Canonical Projection is Surjective\<close>
+lemma (in ring) canonical_proj_ext_ring_hom:
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
+  shows "ring_hom_ring R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) (canonical_proj_ext I n)"
+proof -
+  have ring: "ring (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
+    using RDirProd_Quot_list_is_ring[OF assms] by simp  
+  show ?thesis
+    using canonical_proj_ext_is_hom assms ring_hom_ring.intro[OF ring_axioms ring]
+    unfolding ring_hom_ring_axioms_def by blast
+qed
+
+lemma (in ring) canonical_proj_ext_ker:
+  assumes "\<And>i. i \<le> (n :: nat) \<Longrightarrow> ideal (I i) R"
+  shows "a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) (canonical_proj_ext I n) = (\<Inter>i \<le> n. I i)"
+proof -
+  let ?map_Quot = "\<lambda>I n. map (\<lambda>i. R Quot (I i)) [0..< Suc n]"
+  let ?ker = "\<lambda>I n. a_kernel R (RDirProd_list (?map_Quot I n)) (canonical_proj_ext I n)"
+
+  from assms show ?thesis
+  proof (induct n arbitrary: I)
+    case 0 then have I: "ideal (I 0) R" by simp
+    show ?case
+      unfolding a_kernel_def' RDirProd_list_zero canonical_proj_ext_def FactRing_def
+      using ideal.rcos_const_imp_mem a_rcos_zero ideal.Icarr I by auto 
+  next
+    case (Suc n)
+    hence I: "ideal (I 0) R" by simp
+    have map_simp: "?map_Quot I (Suc n) = (R Quot I 0) # (?map_Quot (\<lambda>i. I (Suc i)) n)"
+      by (induct n) (auto)
+    have ker_I0: "I 0 = a_kernel R (R Quot (I 0)) (\<lambda>a. (I 0) +> a)"
+      using ideal.rcos_const_imp_mem[OF I] a_rcos_zero[OF I] ideal.Icarr[OF I]
+      unfolding a_kernel_def' FactRing_def by auto
+    hence "?ker I (Suc n) = (?ker (\<lambda>i. I (Suc i)) n) \<inter> (I 0)"
+      unfolding a_kernel_def' map_simp RDirProd_list_zero' canonical_proj_ext_tl by auto
+    moreover have "?ker (\<lambda>i. I (Suc i)) n = (\<Inter>i \<le> n. I (Suc i))"
+      using Suc(1)[of "\<lambda>i. I (Suc i)"] Suc(2) by auto
+    ultimately show ?case
+      by (auto simp add: INT_extend_simps(10) atMost_atLeast0)
+         (metis atLeastAtMost_iff le_zero_eq not_less_eq_eq)
+  qed
+qed
 
 lemma (in cring) canonical_proj_ext_is_surj:
-  fixes n::nat
-  assumes "\<And>i. i \<le> n \<Longrightarrow> x i \<in> carrier R"
-      and "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-    shows "\<exists> a \<in> carrier R. \<forall> i \<le> n. (I i) +> a = (I i) +> (x i)" using assms
-proof (induct n)
-  case 0 thus ?case by blast 
-next
-  case (Suc n)
-  then obtain a where a: "a \<in> carrier R" "\<And>i. i \<le> n \<Longrightarrow> (I i) +> a = (I i) +> (x i)"
-    by force
-  
-  have inter_is_ideal: "ideal (\<Inter> i \<le> n. I i) R"
-    by (metis (mono_tags, lifting) Suc.prems(2) atMost_iff i_Intersect imageE image_is_empty le_SucI not_empty_eq_Iic_eq_empty)
-  have "(\<Inter> i \<le> n. I i) <+> I (Suc n) = carrier R"
-    using inter_plus_ideal_eq_carrier Suc by simp
-  then obtain b where b: "b \<in> carrier R"
-                  and "(\<Inter> i \<le> n. I i) +> b = (\<Inter> i \<le> n. I i) +> \<zero>"
-                  and S: "I (Suc n) +> b = I (Suc n) +> (x (Suc n) \<ominus> a)"
-    using canonical_proj_is_surj[OF inter_is_ideal, of "I (Suc n)" \<zero> "x (Suc n) \<ominus> a"] Suc a by auto
-  hence b_inter: "b \<in> (\<Inter> i \<le> n. I i)"
-    using ideal.set_add_zero_imp_mem[OF inter_is_ideal b]
-    by (metis additive_subgroup.zero_closed ideal.axioms(1) ideal.set_add_zero inter_is_ideal)
-  hence eq_zero: "\<And>i. i \<le> n \<Longrightarrow> (I i) +> b = (I i) +> \<zero>"
-  proof -
-    fix i assume i: "i \<le> n"
-    hence "b \<in> I i" using  b_inter by blast
-    moreover have "ideal (I i) R" using Suc i by simp 
-    ultimately show "(I i) +> b = (I i) +> \<zero>"
-      by (metis b ideal.I_r_closed ideal.set_add_zero r_null zero_closed)
-  qed
-  
-  have "(I i) +> (a \<oplus> b) = (I i) +> (x i)" if "i \<le> Suc n" for i
-  proof -
-    show "(I i) +> (a \<oplus> b) = (I i) +> (x i)"
-      using that
-    proof (cases)
-      assume 1: "i \<le> n"
-      hence "(I i) +> (a \<oplus> b) = ((I i) +> (x i)) <+> ((I i) +> b)"
-        by (metis Suc.prems(2) a abelian_subgroup.a_rcos_sum abelian_subgroupI3 b ideal_def le_SucI ring_def)
-      also have " ... = ((I i) +> (x i)) <+> ((I i) +> \<zero>)"
-        using eq_zero[OF 1] by simp
-      also have " ... = I i +> ((x i) \<oplus> \<zero>)"
-        by (meson Suc.prems abelian_subgroup.a_rcos_sum abelian_subgroupI3 atMost_iff that ideal_def ring_def zero_closed)
-      finally show "(I i) +> (a \<oplus> b) = (I i) +> (x i)"
-        using Suc.prems(1) that by auto
-    next
-      assume "\<not> i \<le> n" hence 2: "i = Suc n" using that by simp
-      hence "I i +> (a \<oplus> b) = I (Suc n) +> (a \<oplus> b)" by simp
-      also have " ... = (I (Suc n) +> a) <+> (I (Suc n) +> (x (Suc n) \<ominus> a))"
-        by (metis le_Suc_eq S a b Suc.prems(2)[of "Suc n"] 2 abelian_subgroup.a_rcos_sum
-              abelian_subgroupI3 ideal.axioms(1) is_abelian_group)
-      also have " ... = I (Suc n) +> (a \<oplus> (x (Suc n) \<ominus> a))"
-        by (simp add: Suc.prems(1-2) a(1) abelian_subgroup.a_rcos_sum
-                      abelian_subgroupI3 ideal.axioms(1) is_abelian_group)
-      also have " ... = I (Suc n) +> (x (Suc n))"
-        using a(1) Suc.prems(1)[of "Suc n"] abelian_group.minus_eq
-              abelian_group.r_neg add.m_lcomm is_abelian_group by fastforce
-      finally show "I i +> (a \<oplus> b) = (I i) +> (x i)" using 2 by simp
-    qed
-  qed
-  thus ?case using a b by auto
-qed
-
-
-subsection \<open>Direct Product of a List of Monoid Structures\<close>
-
-fun DirProd_list :: "(('a, 'b) monoid_scheme) list \<Rightarrow> (('a list), 'b) monoid_scheme"
-  where
-    "DirProd_list [] = \<lparr> carrier = {[]}, mult = (\<lambda>a b. []), one = [], \<dots> = (undefined :: 'b) \<rparr>"
-  | "DirProd_list (Cons R Rs) =
-      \<lparr> carrier = { r # rs | r rs. r \<in> carrier R \<and> rs \<in> carrier (DirProd_list Rs) },
-           mult = (\<lambda>r1 r2. ((hd r1) \<otimes>\<^bsub>R\<^esub> (hd r2)) # ((tl r1) \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> (tl r2))),
-            one = (\<one>\<^bsub>R\<^esub>) # (\<one>\<^bsub>(DirProd_list Rs)\<^esub>), \<dots> = (undefined :: 'b) \<rparr>"
-
-
-lemma DirProd_list_carrier_elts:
-  assumes "rs \<in> carrier (DirProd_list Rs)"
-    shows "length rs = length Rs" using assms
-proof (induct Rs arbitrary: rs rule: DirProd_list.induct)
-  case 1 thus ?case by simp
-next
-  case (2 R Rs)
-  then obtain r' rs' where "r' \<in> carrier R" "rs' \<in> carrier (DirProd_list Rs)"
-                       and "rs = r' # rs'" by auto
-  thus ?case by (simp add: "2.hyps"(1))
-qed
-
-lemma DirProd_list_in_carrierI:
-  assumes "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
-    and "length rs = length Rs"
-  shows "rs \<in> carrier (DirProd_list Rs)" using assms
-proof (induct Rs arbitrary: rs rule: DirProd_list.induct)
-  case 1 thus ?case by simp
-next
-  case (2 R Rs)
-  then obtain r' rs' where rs: "r' \<in> carrier R" "rs = r' # rs'"
-    by (metis Suc_length_conv lessThan_iff nth_Cons_0 zero_less_Suc)
-  hence "rs' \<in> carrier (DirProd_list Rs)"
-    using "2.hyps"(1) "2.prems"(1) "2.prems"(2) by force
-  thus ?case by (simp add: rs)
-qed
-
-lemma DirProd_list_in_carrierE:
-  assumes "rs \<in> carrier (DirProd_list Rs)"
-  shows "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)" using assms
-proof (induct Rs arbitrary: rs rule: DirProd_list.induct)
-  case 1 thus ?case by simp 
-next
-  case (2 R Rs)
-  then obtain r' rs' where  r': " r' \<in> carrier R"
-                       and rs': "rs' \<in> carrier (DirProd_list Rs)"
-                       and  rs: "rs = r' # rs'" by auto
-  hence "\<And>i. i \<in> {..<(length rs')} \<Longrightarrow> rs' ! i \<in> carrier (Rs ! i)"
-    using "2.hyps"(1) by blast
-  hence "\<And>i. i \<in> {(Suc 0 :: nat)..<(length rs)} \<Longrightarrow> rs ! i \<in> carrier ((R # Rs) ! i)"
-    by (simp add: less_eq_Suc_le rs)
-  moreover have "i = 0 \<Longrightarrow> rs ! i \<in> carrier ((R # Rs) ! i)"
-    using r' rs r' by simp
-  ultimately show ?case
-    using "2.prems"(1) by fastforce   
-qed
-
-lemma DirProd_list_m_closed:
-  assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2 \<in> carrier (DirProd_list Rs)" using assms
-proof (induct Rs arbitrary: r1 r2 rule: DirProd_list.induct)
-  case 1 thus ?case by simp 
-next
-  case (2 R Rs)
-  then obtain r1' rs1' r2' rs2'
-    where r12': "r1' \<in> carrier R" "r2' \<in> carrier R"
-      and "rs1' \<in> carrier (DirProd_list Rs)"
-      and "rs2' \<in> carrier (DirProd_list Rs)"
-      and r1: "r1 = r1' # rs1'"
-      and r2: "r2 = r2' # rs2'" by auto
-  moreover have "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-    using "2.prems"(3) by force
-  ultimately have "rs1' \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> rs2' \<in> carrier (DirProd_list Rs)"
-    using "2.hyps"(1) by blast
-  moreover have "monoid R"
-    using "2.prems"(3) by force
-  hence "r1' \<otimes>\<^bsub>R\<^esub> r2' \<in> carrier R"
-    by (simp add: r12' monoid.m_closed)
-  ultimately show ?case by (simp add: r1 r2)
-qed
-
-lemma DirProd_list_m_output:
-  assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
-  shows "\<And>i. i < length Rs \<Longrightarrow>
-             (r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)" using assms
-proof (induct Rs arbitrary: r1 r2 rule: DirProd_list.induct)
-  case 1 thus ?case by simp 
-next
-  case (2 R Rs)
-  hence "\<And>i. i \<in> {(Suc 0)..<(length (R # Rs))} \<Longrightarrow>
-             (r1 \<otimes>\<^bsub>(DirProd_list (R # Rs))\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>((R # Rs) ! i)\<^esub> (r2 ! i)"
-    using "2"(5) "2"(6) by auto
-  moreover have "(r1 \<otimes>\<^bsub>(DirProd_list (R # Rs))\<^esub> r2) ! 0 = (r1 ! 0) \<otimes>\<^bsub>R\<^esub> (r2 ! 0)"
-    using "2.prems"(2) "2.prems"(3) by auto
-  ultimately show ?case
-    by (metis "2.prems"(1) atLeastLessThan_iff le_0_eq not_less_eq_eq nth_Cons')  
-qed
-
-lemma DirProd_list_m_comm:
-  assumes "r1 \<in> carrier (DirProd_list Rs)" "r2 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
-  shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2 = r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1" 
-proof (rule nth_equalityI)
-  show "length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) = length (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1)"
-    by (metis DirProd_list_carrier_elts DirProd_list_m_closed Group.comm_monoid.axioms(1) assms)
-
-  fix i assume "i < length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2)"
-  hence i: "i < length Rs"
-    by (metis DirProd_list_carrier_elts DirProd_list_m_closed Group.comm_monoid.axioms(1) assms)
-  have "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
-    using i DirProd_list_m_output[OF assms(1-2)] by simp
-  also have " ... = (r2 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r1 ! i)"
-    by (metis DirProd_list_carrier_elts DirProd_list_in_carrierE assms comm_monoid.m_comm i)
-  also have " ... = (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i"
-    using i DirProd_list_m_output[OF assms(2) assms(1)] by simp
-  finally show "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) ! i = (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i" .
-qed
-
-lemma DirProd_list_m_assoc:
-  assumes "r1 \<in> carrier (DirProd_list Rs)"
-      and "r2 \<in> carrier (DirProd_list Rs)"
-      and "r3 \<in> carrier (DirProd_list Rs)"
-      and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "(r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r2) \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r3 =
-          r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> (r2 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r3)"
-proof (rule nth_equalityI)
-  show "length ((r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3) =
-         length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3))"
-    by (metis DirProd_list_carrier_elts DirProd_list_m_closed assms)
-
-  fix i assume "i < length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3)"
-  hence i: "i < length Rs"
-    by (metis DirProd_list_carrier_elts DirProd_list_m_closed assms)
-  have "((r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3) ! i =
-        ((r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r3 ! i)"
-    by (metis DirProd_list_m_closed DirProd_list_m_output i assms)
-  also have " ... = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> ((r2 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r3 ! i))"
-    by (metis DirProd_list_carrier_elts DirProd_list_in_carrierE assms i monoid.m_assoc)
-  also have " ... = (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3)) ! i"
-    by (metis DirProd_list_m_closed DirProd_list_m_output i assms)
-  finally show "((r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r2) \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3) ! i =
-                 (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> (r2 \<otimes>\<^bsub>DirProd_list Rs\<^esub> r3))! i" .
-qed
-
-lemma DirProd_list_one:
-  "\<And>i. i < length Rs \<Longrightarrow> (\<one>\<^bsub>(DirProd_list Rs)\<^esub>) ! i =  \<one>\<^bsub>(Rs ! i)\<^esub>"
-  by (induct Rs rule: DirProd_list.induct) (simp_all add: nth_Cons')
-
-lemma DirProd_list_one_closed:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "\<one>\<^bsub>(DirProd_list Rs)\<^esub> \<in> carrier (DirProd_list Rs)"
-proof (rule DirProd_list_in_carrierI)
-  show eq_len: "length \<one>\<^bsub>DirProd_list Rs\<^esub> = length Rs"
-    by (induct Rs rule: DirProd_list.induct) (simp_all)
-  show "\<And>i. i < length \<one>\<^bsub>DirProd_list Rs\<^esub> \<Longrightarrow> \<one>\<^bsub>DirProd_list Rs\<^esub> ! i \<in> carrier (Rs ! i)"
-    using eq_len DirProd_list_one[where ?Rs = Rs] monoid.one_closed by (simp add: assms)
-qed
-
-lemma DirProd_list_l_one:
-  assumes "r1 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "\<one>\<^bsub>(DirProd_list Rs)\<^esub> \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1 = r1"
-proof (rule nth_equalityI)
-  show eq_len: "length (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) = length r1"
-    using DirProd_list_carrier_elts[of "\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1" Rs]
-      DirProd_list_carrier_elts[OF assms(1)]
-      DirProd_list_m_closed[OF DirProd_list_one_closed[OF assms(2)] assms(1)]
-    by (simp add: assms)
-  fix i assume "i < length (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1)"
-  hence i: "i < length Rs" using DirProd_list_carrier_elts[OF assms(1)] eq_len by simp
-  hence "(\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i =
-         (\<one>\<^bsub>DirProd_list Rs\<^esub> ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r1 ! i)"
-    using DirProd_list_m_output DirProd_list_one_closed assms by blast
-  also have " ... = \<one>\<^bsub>(Rs ! i)\<^esub> \<otimes>\<^bsub>(Rs ! i)\<^esub> (r1 ! i)"
-    by (simp add: DirProd_list_one i)
-  also have " ... = (r1 ! i)"
-    using DirProd_list_carrier_elts DirProd_list_in_carrierE i assms by fastforce
-  finally show "(\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i = (r1 ! i)" .
-qed
-
-lemma DirProd_list_r_one:
-  assumes "r1 \<in> carrier (DirProd_list Rs)"
-    and "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> \<one>\<^bsub>(DirProd_list Rs)\<^esub> = r1"
-proof -
-  have "r1 \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> \<one>\<^bsub>(DirProd_list Rs)\<^esub> =
-           \<one>\<^bsub>(DirProd_list Rs)\<^esub> \<otimes>\<^bsub>(DirProd_list Rs)\<^esub> r1"
-  proof (rule nth_equalityI)
-    show " length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>) =
-           length (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1)"
-      by (metis DirProd_list_carrier_elts DirProd_list_m_closed DirProd_list_one_closed assms)
-
-    fix i assume "i < length (r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>)"
-    hence i: "i < length Rs"
-      by (metis DirProd_list_carrier_elts DirProd_list_m_closed DirProd_list_one_closed assms)
-    hence "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> \<one>\<^bsub>(Rs ! i)\<^esub>"
-      by (metis DirProd_list_m_output DirProd_list_one DirProd_list_one_closed assms)
-    also have " ... =  \<one>\<^bsub>(Rs ! i)\<^esub> \<otimes>\<^bsub>(Rs ! i)\<^esub> (r1 ! i)"
-      using DirProd_list_carrier_elts DirProd_list_in_carrierE assms i by fastforce
-    also have " ... = (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i"
-      by (metis DirProd_list_m_output DirProd_list_one DirProd_list_one_closed assms i)
-    finally show "(r1 \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub>) ! i =
-                  (\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> r1) ! i" .
-  qed
-  thus ?thesis using DirProd_list_l_one assms by auto
-qed
-
-lemma DirProd_list_monoid:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "monoid (DirProd_list Rs)"
-  unfolding monoid_def 
-proof (intro conjI allI impI)
-  show "\<one>\<^bsub>DirProd_list Rs\<^esub> \<in> carrier (DirProd_list Rs)"
-    using DirProd_list_one_closed[of Rs] assms by simp
-
-  fix x y z
-  assume x: "x \<in> carrier (DirProd_list Rs)"
-     and y: "y \<in> carrier (DirProd_list Rs)"
-     and z: "z \<in> carrier (DirProd_list Rs)"
-  show "x \<otimes>\<^bsub>DirProd_list Rs\<^esub> y \<in> carrier (DirProd_list Rs)"
-    using DirProd_list_m_closed[OF x y] assms by simp
-  show "x \<otimes>\<^bsub>DirProd_list Rs\<^esub>  y \<otimes>\<^bsub>DirProd_list Rs\<^esub> z =
-        x \<otimes>\<^bsub>DirProd_list Rs\<^esub> (y \<otimes>\<^bsub>DirProd_list Rs\<^esub> z)"
-    using DirProd_list_m_assoc[OF x y z] assms by simp
-  show "\<one>\<^bsub>DirProd_list Rs\<^esub> \<otimes>\<^bsub>DirProd_list Rs\<^esub> x = x"
-    using DirProd_list_l_one[OF x] assms by simp
-  show "x \<otimes>\<^bsub>DirProd_list Rs\<^esub> \<one>\<^bsub>DirProd_list Rs\<^esub> = x"
-    using DirProd_list_r_one[OF x] assms by simp
-qed
-
-lemma DirProd_list_comm_monoid:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
-  shows "comm_monoid (DirProd_list Rs)"
-  unfolding comm_monoid_def comm_monoid_axioms_def apply auto
-  using DirProd_list_monoid Group.comm_monoid.axioms(1) assms apply blast
-  using DirProd_list_m_comm assms by blast
-
-lemma DirProd_list_isomorphism1:
-  "(\<lambda>(hd, tl). hd # tl) \<in> iso (R \<times>\<times> (DirProd_list Rs)) (DirProd_list (R # Rs))"
-  unfolding iso_def hom_def bij_betw_def inj_on_def by auto
-
-lemma DirProd_list_isomorphism2:
-  "(\<lambda>r. (hd r, tl r)) \<in> iso (DirProd_list (R # Rs)) (R \<times>\<times> (DirProd_list Rs))" (is "?\<phi> \<in> ?A")
-  unfolding iso_def hom_def bij_betw_def inj_on_def apply auto
-proof -
-  fix a b assume "a \<in> carrier R" "b \<in> carrier (DirProd_list Rs)"
-  hence "a # b \<in> {r # rs |r rs. r \<in> carrier R \<and> rs \<in> carrier (DirProd_list Rs)} \<and> ?\<phi> (a # b) = (a, b)"
-    by simp
-  thus "(a, b) \<in> ?\<phi> ` {r # rs |r rs. r \<in> carrier R \<and> rs \<in> carrier (DirProd_list Rs)}"
-    by (metis (no_types, lifting) image_iff)
-qed
-
-lemma DirProd_list_group:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> group (Rs ! i)"
-  shows "group (DirProd_list Rs)" using assms
-proof (induction Rs rule: DirProd_list.induct)
-  case 1 thus ?case
-  unfolding group_def group_axioms_def Units_def monoid_def by auto
-next
-  case (2 R Rs)
-  hence "group (DirProd_list Rs)" by force
-  moreover have "group R"
-    using "2.prems" by fastforce
-  moreover have "monoid (DirProd_list (R # Rs))"
-    using DirProd_list_monoid 2 group.is_monoid by blast
-  moreover have "R \<times>\<times> DirProd_list Rs \<cong> DirProd_list (R # Rs)"
-    unfolding is_iso_def using DirProd_list_isomorphism1 by auto
-  ultimately show ?case
-    using group.iso_imp_group[of "R \<times>\<times> (DirProd_list Rs)" "DirProd_list (R # Rs)"]
-          DirProd_group[of R "DirProd_list Rs"] by simp
-qed
-
-lemma DirProd_list_comm_group:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> comm_group (Rs ! i)"
-  shows "comm_group (DirProd_list Rs)"
-  using assms unfolding comm_group_def
-  using DirProd_list_group DirProd_list_comm_monoid by auto
-
-lemma DirProd_list_group_hom:
-  assumes "\<And>i. i \<in> {..<(length (R # Rs))} \<Longrightarrow> group ((R # Rs) ! i)"
-  shows "group_hom (R \<times>\<times> DirProd_list Rs) (DirProd_list (R # Rs)) (\<lambda>(hd, tl). hd # tl)"
-proof -
-  have "group R"
-    using assms by force
-  moreover have "group (DirProd_list Rs)"
-    using DirProd_list_group assms by fastforce
-  ultimately
-
-  have "group (R \<times>\<times> DirProd_list Rs)"
-    using DirProd_group[of R "DirProd_list Rs"] by simp
-  moreover have "group (DirProd_list (R # Rs))"
-    using DirProd_list_group assms by blast
-  moreover have "(\<lambda>(x, y). x # y) \<in> hom (R \<times>\<times> DirProd_list Rs) (DirProd_list (R # Rs))"
-    using DirProd_list_isomorphism1[of R Rs] unfolding iso_def by simp
-  ultimately show ?thesis
-    unfolding group_hom_def group_hom_axioms_def by simp
-qed
-
-lemma DirProd_list_m_inv:
-  assumes "r \<in> carrier (DirProd_list Rs)"
-      and "\<And>i. i < length Rs \<Longrightarrow> group (Rs ! i)"
-    shows "\<And>i. i < length Rs \<Longrightarrow> (inv\<^bsub>(DirProd_list Rs)\<^esub> r) ! i = inv\<^bsub>(Rs ! i)\<^esub> (r ! i)"
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R" and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n \<rbrakk> \<Longrightarrow> i \<noteq> j \<Longrightarrow> I i <+> I j = carrier R"
+  shows "(canonical_proj_ext I n) ` carrier R = carrier (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))"
   using assms
-proof (induct Rs arbitrary: r rule: DirProd_list.induct)
-  case 1
-  have "group (DirProd_list [])"
-    unfolding group_def group_axioms_def Units_def monoid_def by auto
-  thus ?case  using "1.prems"(1) group.inv_equality by fastforce    
+proof (induct n arbitrary: I)
+  case 0 show ?case
+    by (auto simp add: RDirProd_list_carrier FactRing_def A_RCOSETS_def')
 next
-  case (2 R Rs)
-  then obtain r' rs' where r': "r' \<in> carrier R" and rs': "rs' \<in> carrier (DirProd_list Rs)"
-                       and r: "r = r' # rs'" by auto
-  hence "(r', rs') \<in> carrier (R \<times>\<times> DirProd_list Rs)" by simp
-  moreover have "group_hom (R \<times>\<times> DirProd_list Rs) (DirProd_list (R # Rs)) (\<lambda>(hd, tl). hd # tl)"
-    using DirProd_list_group_hom[of R Rs] 2 by auto
-  moreover have "inv\<^bsub>(R \<times>\<times> DirProd_list Rs)\<^esub> (r', rs') = (inv\<^bsub>R\<^esub> r', inv\<^bsub>(DirProd_list Rs)\<^esub> rs')"
-    using inv_DirProd[of R "DirProd_list Rs" r' rs'] "2.prems"(3) DirProd_list_group r' rs' by force
-  ultimately have "inv\<^bsub>(DirProd_list (R # Rs))\<^esub> r = (inv\<^bsub>R\<^esub> r') # (inv\<^bsub>(DirProd_list Rs)\<^esub> rs')"
-    using group_hom.hom_inv[of "R \<times>\<times> DirProd_list Rs" "DirProd_list (R # Rs)"
-                               "\<lambda>(hd, tl). hd # tl" "(r', rs')"] r by simp
-  thus ?case
-    using 2 by simp (metis (no_types, lifting) less_Suc_eq_0_disj list.sel(3) nth_Cons_0 nth_Cons_Suc r)
-qed
-
-
-subsection \<open>Direct Product for of a List of Rings\<close>
-
-text \<open>In order to state a more general version of the Chinese Remainder Theorem, we need a new
-      structure: the direct product of a variable number of rings. The construction of this
-      structure as well as its algebraic properties are the subject of this subsection and follow
-      the similar study that has already been done for monoids in the previous subsection.\<close>
-
-fun RDirProd_list :: "('a ring) list \<Rightarrow> ('a list) ring"
-  where "RDirProd_list Rs =
-           monoid.extend (monoid.truncate (DirProd_list Rs))
-                         \<lparr> zero = one (DirProd_list (map add_monoid Rs)),
-                           add = mult (DirProd_list (map add_monoid Rs)) \<rparr>"
-
-lemma RDirProd_list_add_monoid:
-  "add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)"
-proof -
-  have "carrier (RDirProd_list Rs) = carrier (DirProd_list (map add_monoid Rs))"
-    by (induct Rs rule: DirProd_list.induct) (simp_all add: monoid.defs)
-  thus ?thesis by (simp add: monoid.defs)
-qed
-
-lemma RDirProd_list_mult_monoid:
-  "monoid.truncate (RDirProd_list Rs) = monoid.truncate (DirProd_list Rs)"
-  by (simp add: monoid.defs)
-
-lemma RDirProd_list_monoid:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> monoid (Rs ! i)"
-  shows "monoid (RDirProd_list Rs)"
-proof -
-  have "monoid (DirProd_list Rs)"
-    using DirProd_list_monoid assms by blast
-  hence "monoid (monoid.truncate (DirProd_list Rs))"
-    unfolding monoid_def by (auto intro: monoid.intro simp add: monoid.defs)
-  hence "monoid (monoid.truncate (RDirProd_list Rs))"
-    by (simp add: monoid.defs)
-  thus ?thesis
-    unfolding monoid_def by (auto intro: monoid.intro simp add: monoid.defs)
-qed
-
-lemma RDirProd_list_comm_monoid:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> comm_monoid (Rs ! i)"
-  shows "comm_monoid (RDirProd_list Rs)"
-proof -
-  have "comm_monoid (DirProd_list Rs)"
-    using DirProd_list_comm_monoid assms by blast
-  hence "comm_monoid (monoid.truncate (DirProd_list Rs))"
-    unfolding comm_monoid_def monoid_def comm_monoid_axioms_def
-    by (auto simp add: monoid.defs)
-  hence "comm_monoid (monoid.truncate (RDirProd_list Rs))"
-    by (simp add: monoid.defs)
-  thus ?thesis
-    unfolding comm_monoid_def monoid_def comm_monoid_axioms_def
-    by (auto simp add: monoid.defs)
-qed
-
-lemma RDirProd_list_abelian_monoid:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> abelian_monoid (Rs ! i)"
-  shows "abelian_monoid (RDirProd_list Rs)"
-proof -
-  have "\<And>i. i < length Rs \<Longrightarrow> comm_monoid ((map add_monoid Rs) ! i)"
-    using assms unfolding abelian_monoid_def by simp
-  hence "comm_monoid (DirProd_list (map add_monoid Rs))"
-    by (metis (no_types, lifting) DirProd_list_comm_monoid length_map)
-  thus ?thesis
-    unfolding abelian_monoid_def by (metis RDirProd_list_add_monoid) 
-qed
-
-lemma RDirProd_list_abelian_group:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> abelian_group (Rs ! i)"
-  shows "abelian_group (RDirProd_list Rs)"
-proof -
-  have "\<And>i. i < length Rs \<Longrightarrow> comm_group ((map add_monoid Rs) ! i)"
-    using assms unfolding abelian_group_def abelian_group_axioms_def by simp
-  hence "comm_group (DirProd_list (map add_monoid Rs))"
-    by (metis (no_types, lifting) DirProd_list_comm_group length_map)
-  thus ?thesis
-    unfolding abelian_group_def abelian_group_axioms_def
-    by (metis RDirProd_list_abelian_monoid RDirProd_list_add_monoid abelian_group_def assms)
-qed
-
-lemma RDirProd_list_carrier_elts:
-  assumes "rs \<in> carrier (RDirProd_list Rs)"
-  shows "length rs = length Rs"
-  using assms by (simp add: DirProd_list_carrier_elts monoid.defs)
-
-lemma RDirProd_list_in_carrierE:
-  assumes "rs \<in> carrier (RDirProd_list Rs)"
-  shows "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
-  using assms by (simp add: DirProd_list_in_carrierE monoid.defs)
-
-lemma RDirProd_list_in_carrierI:
-  assumes "\<And>i. i < length rs \<Longrightarrow> rs ! i \<in> carrier (Rs ! i)"
-      and "length rs = length Rs"
-    shows "rs \<in> carrier (RDirProd_list Rs)"
-  using DirProd_list_in_carrierI assms by (simp add: monoid.defs, blast)
-
-lemma RDirProd_list_one:
-  "\<And>i. i < length Rs \<Longrightarrow> (\<one>\<^bsub>(RDirProd_list Rs)\<^esub>) ! i =  \<one>\<^bsub>(Rs ! i)\<^esub>"
-  by (simp add: DirProd_list_one monoid.defs)
-
-lemma RDirProd_list_zero:
-  "\<And>i. i < length Rs \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list Rs)\<^esub>) ! i =  \<zero>\<^bsub>(Rs ! i)\<^esub>"
-  by (induct Rs rule: DirProd_list.induct) (simp_all add: monoid.defs nth_Cons')
-
-lemma RDirProd_list_m_output:
-  assumes "r1 \<in> carrier (RDirProd_list Rs)" "r2 \<in> carrier (RDirProd_list Rs)"
-  shows "\<And>i. i < length Rs \<Longrightarrow>
-             (r1 \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
-  using assms by (simp add: DirProd_list_m_output monoid.defs)
-
-lemma RDirProd_list_a_output:
-  fixes i
-  assumes "r1 \<in> carrier (RDirProd_list Rs)" "r2 \<in> carrier (RDirProd_list Rs)" "i < length Rs"
-  shows "(r1 \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> r2) ! i = (r1 ! i) \<oplus>\<^bsub>(Rs ! i)\<^esub> (r2 ! i)"
-  using RDirProd_list_add_monoid[of Rs] monoid.defs(3)
-proof -
-  have "(\<otimes>\<^bsub>DirProd_list (map add_monoid Rs)\<^esub>) = (\<oplus>\<^bsub>RDirProd_list Rs\<^esub>)"
-    by (metis \<open>add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)\<close> monoid.select_convs(1))
-  moreover have "r1 \<in> carrier (DirProd_list (map add_monoid Rs))"
-    by (metis \<open>add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)\<close> assms(1) partial_object.select_convs(1))
-  moreover have "r2 \<in> carrier (DirProd_list (map add_monoid Rs))"
-    by (metis \<open>add_monoid (RDirProd_list Rs) = DirProd_list (map add_monoid Rs)\<close> assms(2) partial_object.select_convs(1))
-  ultimately show ?thesis
-    by (simp add: DirProd_list_m_output assms(3))
-qed
-
-lemma RDirProd_list_a_inv:
-  fixes i
-  assumes "r \<in> carrier (RDirProd_list Rs)"
-    and "\<And>i. i < length Rs \<Longrightarrow> abelian_group (Rs ! i)"
-    and i: "i < length Rs"
-  shows "(\<ominus>\<^bsub>(RDirProd_list Rs)\<^esub> r) ! i = \<ominus>\<^bsub>(Rs ! i)\<^esub> (r ! i)"
-proof -
-  have "m_inv (DirProd_list (map add_monoid Rs)) = a_inv (RDirProd_list Rs)"
-    by (metis RDirProd_list_add_monoid a_inv_def)
-  moreover have "r \<in> carrier (DirProd_list (map add_monoid Rs))"
-    by (metis RDirProd_list_add_monoid assms(1) partial_object.select_convs(1))
-  moreover have "a_inv (Rs ! i) = m_inv (map add_monoid Rs ! i)"
-    by (simp add: a_inv_def i)
-  ultimately show ?thesis
-    by (metis (no_types, lifting) DirProd_list_carrier_elts DirProd_list_m_inv RDirProd_list_carrier_elts
-        abelian_group.a_group assms list_update_same_conv map_update)  
-qed
-
-lemma RDirProd_list_l_distr:
-  assumes "x \<in> carrier (RDirProd_list Rs)"
-      and "y \<in> carrier (RDirProd_list Rs)"
-      and "z \<in> carrier (RDirProd_list Rs)"
-      and "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)"
-    shows "(x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z =
-           (x \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (y \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z)"
-proof -
-  have "length ((x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) =
-        length ((x \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (y \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z))"
-    by (metis RDirProd_list_abelian_group RDirProd_list_carrier_elts RDirProd_list_monoid
-        abelian_groupE(1) assms monoid.m_closed ring.is_abelian_group ring.is_monoid)
-
-  moreover
-  have "\<And>i. i < length Rs \<Longrightarrow>
-            ((x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) ! i =
-            ((x \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (y \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z)) ! i"
-  proof -
-    fix i assume i: "i < length Rs"
-    hence "((x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) ! i =
-           ((x ! i) \<oplus>\<^bsub>(Rs ! i)\<^esub> (y ! i)) \<otimes>\<^bsub>(Rs ! i)\<^esub> (z ! i)"
-      using RDirProd_list_m_output RDirProd_list_a_output assms
-      by (metis RDirProd_list_abelian_group abelian_groupE(1) lessThan_iff ring.is_abelian_group)
-    also have " ... = ((x ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (z ! i)) \<oplus>\<^bsub>(Rs ! i)\<^esub> ((y ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (z ! i))"
-      by (metis RDirProd_list_carrier_elts RDirProd_list_in_carrierE
-          i assms lessThan_iff ring.ring_simprules(13))
-    also
-    have " ... = ((x \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (y \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z)) ! i"
-      using RDirProd_list_m_output RDirProd_list_a_output assms
-      by (metis RDirProd_list_monoid i lessThan_iff monoid.m_closed ring.is_monoid)
-    finally
-    show "((x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) ! i =
-          ((x \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (y \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z)) ! i" .
-  qed
-
-  moreover have "length ((x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> z) = length Rs"
-    by (meson RDirProd_list_abelian_group RDirProd_list_carrier_elts RDirProd_list_monoid
-        abelian_groupE(1) assms monoid.m_closed ring.is_abelian_group ring.is_monoid)
-
-  ultimately show ?thesis by (simp add: nth_equalityI) 
-qed
-
-lemma RDirProd_list_r_distr:
-  assumes "x \<in> carrier (RDirProd_list Rs)"
-      and "y \<in> carrier (RDirProd_list Rs)"
-      and "z \<in> carrier (RDirProd_list Rs)"
-      and "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)"
-    shows "z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y) =
-          (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> x) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> y)"
-proof -
-  have "length (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y)) =
-        length ((z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> x) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> y))"
-    by (metis RDirProd_list_abelian_group RDirProd_list_carrier_elts RDirProd_list_monoid
-        abelian_groupE(1) assms monoid.m_closed ring.is_abelian_group ring.is_monoid)
-
-  moreover
-  have "\<And>i. i < length Rs \<Longrightarrow>
-            (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y)) ! i =
-           ((z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> x) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> y)) ! i"
-  proof -
-    fix i assume i: "i < length Rs"
-    hence "(z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y)) ! i =
-           (z ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> ((x ! i) \<oplus>\<^bsub>(Rs ! i)\<^esub> (y ! i))"
-      using RDirProd_list_m_output RDirProd_list_a_output assms
-      by (metis RDirProd_list_abelian_group abelian_groupE(1) lessThan_iff ring.is_abelian_group)
-    also have " ... = ((z ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (x ! i)) \<oplus>\<^bsub>(Rs ! i)\<^esub> ((z ! i) \<otimes>\<^bsub>(Rs ! i)\<^esub> (y ! i))"
-      by (metis RDirProd_list_carrier_elts RDirProd_list_in_carrierE
-          assms i lessThan_iff ring.ring_simprules(23))
-    also
-    have " ... = ((z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> x) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> y)) ! i"
-      using RDirProd_list_m_output RDirProd_list_a_output assms
-      by (metis RDirProd_list_monoid i lessThan_iff monoid.m_closed ring.is_monoid)
-    finally
-    show "(z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y)) ! i =
-         ((z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> x) \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> y)) ! i" .
-  qed
-
-  moreover have "length (z \<otimes>\<^bsub>(RDirProd_list Rs)\<^esub> (x \<oplus>\<^bsub>(RDirProd_list Rs)\<^esub> y)) = length Rs"
-    by (meson RDirProd_list_abelian_group RDirProd_list_carrier_elts RDirProd_list_monoid
-        abelian_groupE(1) assms monoid.m_closed ring.is_abelian_group ring.is_monoid)
-
-  ultimately show ?thesis by (simp add: nth_equalityI)
-qed
-
-theorem RDirProd_list_ring:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> ring (Rs ! i)"
-  shows "ring (RDirProd_list Rs)"
-  using assms unfolding ring_def ring_axioms_def using assms 
-  by (meson RDirProd_list_abelian_group RDirProd_list_l_distr
-            RDirProd_list_monoid RDirProd_list_r_distr)
-
-theorem RDirProd_list_cring:
-  assumes "\<And>i. i < length Rs \<Longrightarrow> cring (Rs ! i)"
-  shows "cring (RDirProd_list Rs)"
-  by (meson RDirProd_list_comm_monoid RDirProd_list_ring assms cring_def)
-
-corollary (in cring) RDirProd_list_of_quot_is_cring:
-  assumes "\<And>i. i < n \<Longrightarrow> ideal (I i) R"
-    shows "cring (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< n]))"
-      (is "cring (RDirProd_list ?Rs)")
-proof -
-  have "\<And>i. i \<in> {..<(length ?Rs)} \<Longrightarrow> cring (?Rs ! i)"
-    by (simp add: assms ideal.quotient_is_cring is_cring)
-  thus ?thesis
-    using RDirProd_list_cring by blast
-qed
-
-lemma length_RDirProd_list_0: 
-  assumes "\<And>i. i < n \<Longrightarrow> cring (F i)" 
-  shows "length (\<zero>\<^bsub>(RDirProd_list (map F [0..< n]))\<^esub>) = n"
-  by (metis (no_types, lifting) add_cancel_right_left RDirProd_list_carrier_elts RDirProd_list_cring cring.cring_simprules(2) diff_zero length_map length_upt nth_map_upt assms)
-
-lemma RDirProd_list_isomorphism1:
-  "(\<lambda>(hd, tl). hd # tl) \<in> ring_iso (RDirProd R (RDirProd_list Rs)) (RDirProd_list (R # Rs))"
-  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-  by (auto simp add: monoid.defs)
-
-lemma RDirProd_list_isomorphism1':
-  "(RDirProd R (RDirProd_list Rs)) \<simeq> (RDirProd_list (R # Rs))"
-  unfolding is_ring_iso_def using RDirProd_list_isomorphism1 by blast 
-
-lemma RDirProd_list_isomorphism2:
-  "(\<lambda>r. (hd r, tl r)) \<in> ring_iso (RDirProd_list (R # Rs)) (RDirProd R (RDirProd_list Rs))"
-  unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-proof (auto simp add: monoid.defs)
-  let ?\<phi> = "\<lambda>r. (hd r, tl r)"
-  fix a b assume "a \<in> carrier R" "b \<in> carrier (DirProd_list Rs)"
-  hence "a # b \<in> {r # rs |r rs. r \<in> carrier R \<and> rs \<in> carrier (DirProd_list Rs)} \<and> ?\<phi> (a # b) = (a, b)"
-    by simp
-  thus "(a, b) \<in> ?\<phi> ` {r # rs |r rs. r \<in> carrier R \<and> rs \<in> carrier (DirProd_list Rs)}"
-    by (metis (no_types, lifting) image_iff)
-qed
-
-lemma RDirProd_list_isomorphism3:
-  "(\<lambda>(r, l). r @ [l]) \<in> ring_iso (RDirProd (RDirProd_list Rs) S) (RDirProd_list (Rs @ [S]))"
-proof (induction Rs rule: DirProd_list.induct)
-  case 1 thus ?case
-    unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-    by (auto simp add: monoid.defs image_iff)
-next
-  case (2 R Rs)
-
-  { fix r1 r2 assume A0: "r1 \<in> carrier (RDirProd_list (R # Rs))"
-                 and A1: "r2 \<in> carrier (RDirProd_list (R # Rs))"
-    have "length r1 \<ge> 1"
-     and "length r2 \<ge> 1"
-     and "length (r1 \<otimes>\<^bsub>(RDirProd_list (R # Rs))\<^esub> r2) \<ge> 1"
-     and "length (r1 \<oplus>\<^bsub>(RDirProd_list (R # Rs))\<^esub> r2) \<ge> 1"
-     and "length (\<one>\<^bsub>(RDirProd_list (R # Rs))\<^esub>) \<ge> 1"
-    proof -
-      show len_r1: "length r1 \<ge> 1"
-       and len_r2: "length r2 \<ge> 1"
-        by (metis RDirProd_list_carrier_elts A0 A1 length_Cons less_one nat.simps(3) not_less)+
-      show "length (r1 \<otimes>\<^bsub>(RDirProd_list (R # Rs))\<^esub> r2) \<ge> 1"
-       and "length (r1 \<oplus>\<^bsub>(RDirProd_list (R # Rs))\<^esub> r2) \<ge> 1"
-       and "length (\<one>\<^bsub>(RDirProd_list (R # Rs))\<^esub>) \<ge> 1"
-        using len_r1 len_r2 by (simp_all add: monoid.defs)
+  { fix S :: "'c ring" and T :: "'d ring" and f g
+    assume A: "ring T" "f \<in> ring_hom R S" "g \<in> ring_hom R T" "f ` carrier R \<subseteq> f ` (a_kernel R T g)"
+    have "(\<lambda>a. (f a, g a)) ` carrier R = (f ` carrier R) \<times> (g ` carrier R)"
+    proof
+      show "(\<lambda>a. (f a, g a)) ` carrier R \<subseteq> (f ` carrier R) \<times> (g ` carrier R)"
+        by blast
+    next
+      show "(f ` carrier R) \<times> (g ` carrier R) \<subseteq> (\<lambda>a. (f a, g a)) ` carrier R"
+      proof
+        fix t assume "t \<in> (f ` carrier R) \<times> (g ` carrier R)"
+        then obtain a b where a: "a \<in> carrier R" "f a = fst t" and b: "b \<in> carrier R" "g b = snd t"
+          by auto
+        obtain c where c: "c \<in> a_kernel R T g" "f c = f (a \<ominus> b)"
+          using A(4) minus_closed[OF a(1) b (1)] by auto
+        have "f (c \<oplus> b) = f (a \<ominus> b) \<oplus>\<^bsub>S\<^esub>  f b"
+          using ring_hom_memE(3)[OF A(2)] b c unfolding a_kernel_def' by auto
+        hence "f (c \<oplus> b) = f a"
+          using ring_hom_memE(3)[OF A(2) minus_closed[of a b], of b] a b by algebra
+        moreover have "g (c \<oplus> b) = g b"
+          using ring_hom_memE(1,3)[OF A(3)] b(1) c ring.ring_simprules(8)[OF A(1)]
+          unfolding a_kernel_def' by auto
+        ultimately have "(\<lambda>a. (f a, g a)) (c \<oplus> b) = t" and "c \<oplus> b \<in> carrier R"
+          using a b c unfolding a_kernel_def' by auto
+        thus "t \<in> (\<lambda>a. (f a, g a)) ` carrier R"
+          by blast
+      qed
     qed } note aux_lemma = this
 
-  moreover
-  have "(\<lambda>(r, s). (hd r, (tl r, s))) \<in>
-          ring_iso (RDirProd (RDirProd_list (R # Rs)) S)
-                   (RDirProd R (RDirProd (RDirProd_list Rs) S))"
-    using ring_iso_set_trans[OF RDirProd_isomorphism4[OF RDirProd_list_isomorphism2[of R Rs],of S]
-                                RDirProd_isomorphism3[of R "RDirProd_list Rs" S]]
-    by (simp add: case_prod_beta' comp_def)
+  let ?map_Quot = "\<lambda>I n. map (\<lambda>i. R Quot (I i)) [0..< Suc n]"
+  let ?DirProd = "\<lambda>I n. RDirProd_list (?map_Quot I n)"
+  let ?proj = "\<lambda>I n. canonical_proj_ext I n"
 
-  moreover
-  have "(\<lambda>(hd, (tl, s)). hd # (tl @ [s])) \<in>
-          ring_iso (RDirProd R (RDirProd (RDirProd_list Rs) S))
-                   (RDirProd_list (R # (Rs @ [S])))"
-    using ring_iso_set_trans[OF RDirProd_isomorphism5[OF 2(1), of R]
-                                RDirProd_list_isomorphism1[of R "Rs @ [S]"]]
-    by (simp add: case_prod_beta' comp_def)
+  case (Suc n)
+  interpret I: ideal "I 0" R + Inter: ideal "\<Inter>i \<le> n. I (Suc i)" R
+    using i_Intersect[of "(\<lambda>i. I (Suc i)) ` {..n}"] Suc(2) by auto
 
-  moreover
-  have "(\<lambda>(r, s). (hd r) # ((tl r) @ [s])) \<in>
-          ring_iso (RDirProd (RDirProd_list (R # Rs)) S) (RDirProd_list (R # (Rs @ [S])))"
-    using ring_iso_set_trans[OF calculation(6-7)] by (simp add: case_prod_beta' comp_def)
-  hence iso: "(\<lambda>(r, s). (hd r # tl r) @ [s]) \<in>
-           ring_iso (RDirProd (RDirProd_list (R # Rs)) S) (RDirProd_list ((R # Rs) @ [S]))" by simp
-  
-  show ?case
-  proof (rule ring_iso_morphic_prop[OF iso, of "\<lambda>r. length (fst r) \<ge> 1" "\<lambda>(r, s). r @ [s]"])
-    show "\<And>r. 1 \<le> length (fst r) \<Longrightarrow>
-              (case r of (r, s) \<Rightarrow> (hd r # tl r) @ [s]) = (case r of (r, s) \<Rightarrow> r @ [s])"
-      by (simp add: Suc_le_eq case_prod_beta')
-    show "morphic_prop (RDirProd (RDirProd_list (R # Rs)) S) (\<lambda>r. 1 \<le> length (fst r))"
-      unfolding RDirProd_def by (rule morphic_propI) (auto simp add: monoid.defs aux_lemma)
-  qed
-qed
+  have map_simp: "?map_Quot I (Suc n) = (R Quot I 0) # (?map_Quot (\<lambda>i. I (Suc i)) n)"
+    by (induct n) (auto)
 
+  have IH: "(?proj (\<lambda>i. I (Suc i)) n) ` carrier R = carrier (?DirProd (\<lambda>i. I (Suc i)) n)"
+   and ring: "ring (?DirProd (\<lambda>i. I (Suc i)) n)"
+   and hom: "?proj (\<lambda>i. I (Suc i)) n \<in> ring_hom R (?DirProd (\<lambda>i. I (Suc i)) n)"
+    using RDirProd_Quot_list_is_ring[of n "\<lambda>i. I (Suc i)"] Suc(1)[of "\<lambda>i. I (Suc i)"]
+           canonical_proj_ext_is_hom[of n "\<lambda>i. I (Suc i)"] Suc(2-3) by auto
 
-subsection \<open>Second Generalization - The Extended Canonical Projection is a Homomorphism and
-                                    Description of its Kernel\<close>
-
-theorem (in cring) canonical_proj_ext_is_hom:
-  fixes n::nat
-  assumes "\<And>i. i < n \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i < n; j < n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-    shows "(\<lambda>a. (map (\<lambda>i. (I i) +> a) [0..< n])) \<in>
-            ring_hom R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< n]))" (is "?\<phi> \<in> ?ring_hom")
-proof (rule ring_hom_memI)
-  { fix x assume x: "x \<in> carrier R"
-    have "?\<phi> x \<in> carrier (RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
-    apply (rule RDirProd_list_in_carrierI)
-    by (simp_all add: FactRing_def a_rcosetsI additive_subgroup.a_subset assms(1) ideal.axioms(1) x) }
-  note aux_lemma = this
-
-  fix x y assume x: "x \<in> carrier R" and y: "y \<in> carrier R"
-  show x': "?\<phi> x \<in> carrier (RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
-    using aux_lemma[OF x] .
-  hence x'': "?\<phi> x \<in> carrier (DirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
-    by (simp add: monoid.defs)
-
-  have y': "?\<phi> y \<in> carrier (RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
-    using aux_lemma[OF y] .
-  hence y'': "map (\<lambda>i. I i +> y) [0..<n] \<in> carrier (DirProd_list (map (\<lambda>i. R Quot I i) [0..<n]))"
-    by (simp add: monoid.defs)
-
-  show "?\<phi> (x \<otimes> y) = ?\<phi> x \<otimes>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> ?\<phi> y"
-    apply (rule nth_equalityI) 
-    apply (metis RDirProd_list_carrier_elts RDirProd_list_of_quot_is_cring assms(1)
-                 cring.cring_simprules(5) length_map x' y')
-    apply (simp add: monoid.defs)
-    using DirProd_list_m_output [of "?\<phi> x" "(map (\<lambda>i. R Quot I i) [0..<n])" "?\<phi> y"] x'' y''
-    by (simp add: x'' y'' FactRing_def  assms(1) ideal.rcoset_mult_add x y)
-
-  show "?\<phi> (x \<oplus> y) = ?\<phi> x \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> ?\<phi> y"
-  proof -
-    have "length (?\<phi> (x \<oplus> y)) =
-          length ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y))"
-      by (metis RDirProd_list_carrier_elts RDirProd_list_of_quot_is_cring assms(1)
-          cring.cring_simprules(1) length_map x' y')
-
-    moreover
-    have "\<And>j. j < n \<Longrightarrow>
-              (?\<phi> (x \<oplus> y)) ! j = ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y)) ! j"
-    proof -
-      fix j assume j: "j < n"
-      have "(?\<phi> (x \<oplus> y)) ! j = I j +> x \<oplus> y" using j by simp
-      also have " ... = (I j +> x) \<oplus>\<^bsub>(R Quot I j)\<^esub> (I j +> y)"
-        by (simp add: FactRing_def abelian_subgroup.a_rcos_sum abelian_subgroupI3
-            assms(1) ideal.axioms(1) is_abelian_group j x y)
-      also have " ... = ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y)) ! j"
-      proof -
-        have "R Quot I j = map (\<lambda>n. R Quot I n) [0..<n] ! j"
-             "I j +> x = I ([0..<n] ! j) +> x" 
-             "I j +> y = I ([0..<n] ! j) +> y"
-          by (simp_all add: j)
-        moreover have "\<And>n ns f. n < length ns \<Longrightarrow> map f ns ! n = (f (ns ! n::nat)::'a set)"
-          by simp
-        moreover have "\<And>B ps C n. \<lbrakk>B \<in> carrier (RDirProd_list ps); C \<in> carrier (RDirProd_list ps); n < length ps\<rbrakk> 
-                     \<Longrightarrow> (B \<oplus>\<^bsub>RDirProd_list ps\<^esub> C) ! n = (B ! n::'a set) \<oplus>\<^bsub>ps ! n\<^esub> C ! n"
-          by (meson RDirProd_list_a_output)
-        ultimately show ?thesis
-          by (metis (mono_tags, lifting) diff_zero j length_map length_upt x' y') 
-      qed
-      finally show "(?\<phi> (x \<oplus> y)) ! j =
-                    ((?\<phi> x) \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> (?\<phi> y)) ! j" .
-    qed
-    ultimately show "?\<phi> (x \<oplus> y) = ?\<phi> x \<oplus>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub> ?\<phi> y"
-      by (simp add: list_eq_iff_nth_eq)
-  qed
-next
-  show "(?\<phi> \<one>) = \<one>\<^bsub>RDirProd_list (map (\<lambda>i. R Quot I i) [0..<n])\<^esub>"
-    apply (rule nth_equalityI)
-    apply (metis RDirProd_list_carrier_elts cring.cring_simprules(6)
-                 RDirProd_list_of_quot_is_cring assms(1) length_map)
-    using DirProd_list_one[where ?Rs = "map (\<lambda>i. R Quot I i) [0..<n]"]
-    by (simp add: FactRing_def monoid.defs)
-qed
-
-theorem (in cring) canonical_proj_ext_kernel:
-  fixes n::nat
-  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-    shows "(\<Inter>i \<le> n. I i) = a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))
-                           (\<lambda>a. (map (\<lambda>i. (I i) +> a) [0..< Suc n]))"
-proof -
-  let ?\<phi> = "\<lambda>a. (map (\<lambda>i. (I i) +> a) [0..< Suc n])"
-  show ?thesis
+  have ker: "a_kernel R (?DirProd (\<lambda>i. I (Suc i)) n) (?proj (\<lambda>i. I (Suc i)) n) = (\<Inter>i \<le> n. I (Suc i))"
+    using canonical_proj_ext_ker[of n "\<lambda>i. I (Suc i)"] Suc(2) by auto
+  have carrier_Quot: "carrier (R Quot (I 0)) = (\<lambda>a. (I 0) +> a) ` carrier R"
+    by (auto simp add: RDirProd_list_carrier FactRing_def A_RCOSETS_def')
+  have ring: "ring (?DirProd (\<lambda>i. I (Suc i)) n)"
+   and hom: "?proj (\<lambda>i. I (Suc i)) n \<in> ring_hom R (?DirProd (\<lambda>i. I (Suc i)) n)"
+    using RDirProd_Quot_list_is_ring[of n "\<lambda>i. I (Suc i)"]
+          canonical_proj_ext_is_hom[of n "\<lambda>i. I (Suc i)"] Suc(2) by auto
+  have "carrier (R Quot (I 0)) \<subseteq> (\<lambda>a. (I 0) +> a) ` (\<Inter>i \<le> n. I (Suc i))"
   proof
-    show "(\<Inter>i \<le> n. I i) \<subseteq> a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi>"
-    proof
-      fix s assume s: "s \<in> (\<Inter>i \<le> n. I i)"
-      hence "\<And>i. i \<le> n \<Longrightarrow> (I i) +> s = I i"
-        by (simp add: additive_subgroup.zero_closed assms ideal.axioms(1) ideal.set_add_zero)
-      hence "\<And>i. i \<le> n \<Longrightarrow> (?\<phi> s) ! i = I i"
-        by (metis add.left_neutral diff_zero le_imp_less_Suc nth_map_upt)
-      moreover have
-        "\<And>i. i \<le> n \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>) ! i =
-                         \<zero>\<^bsub>(R Quot (I i))\<^esub>"
-        using RDirProd_list_zero[where ?Rs = "map (\<lambda>i. R Quot I i) [0..<Suc n]"]
-        by (metis (no_types, lifting) add.left_neutral le_imp_less_Suc
-            length_map length_upt nth_map_upt diff_zero)
-      hence 
-        "\<And>i. i \<le> n \<Longrightarrow> (\<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>) ! i = I i"
-        unfolding FactRing_def by simp
-      moreover
-      have "length (\<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>) = Suc n"
-        by (subst length_RDirProd_list_0) (simp_all add: length_RDirProd_list_0 assms(1) ideal.quotient_is_cring is_cring)
-      moreover have "length (?\<phi> s) = Suc n" by simp
-      ultimately have "?\<phi> s = \<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>"
-        by (simp add: list_eq_iff_nth_eq)
-      moreover have "s \<in> carrier R"
-        using additive_subgroup.a_Hcarr assms(1) ideal.axioms(1) s by fastforce
-      ultimately show "s \<in> a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi>"
-        using a_kernel_def'[of R "RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"] by simp
-    qed
-  next
-    show "a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi> \<subseteq> (\<Inter>i \<le> n. I i)"
-    proof
-      fix s assume s: "s \<in> a_kernel R (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) ?\<phi>"
-      hence "?\<phi> s = \<zero>\<^bsub>(RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n]))\<^esub>"
-        unfolding a_kernel_def kernel_def by (simp add: monoid.defs)
-      hence "(I i) +> s = \<zero>\<^bsub>(R Quot (I i))\<^esub>" if "i \<le> n" for i
-        using RDirProd_list_zero[where ?Rs = "map (\<lambda>i. R Quot I i) [0..<Suc n]"]
-          by (metis (no_types) that add.left_neutral diff_zero le_imp_less_Suc length_map length_upt nth_map_upt)
-      hence "\<And>i. i \<le> n \<Longrightarrow> (I i) +> s = I i"
-        unfolding FactRing_def by simp
-      moreover have "s \<in> carrier R"
-        using s unfolding a_kernel_def kernel_def by simp
-      ultimately show "s \<in> (\<Inter>i \<le> n. I i)"
-        using ideal.set_add_zero_imp_mem[where ?i = s and ?R = R] by (simp add: assms(1))
-    qed
+    have "(\<Inter>i \<in> {Suc 0.. Suc n}. I i) <+> (I 0) = carrier R"
+      using inter_plus_ideal_eq_carrier_arbitrary[of n I 0]
+      by (simp add: Suc(2-3) atLeast1_atMost_eq_remove0)
+    hence eq_carrier: "(I 0) <+> (\<Inter>i \<le> n. I (Suc i)) = carrier R"
+      using set_add_comm[OF I.a_subset Inter.a_subset]
+      by (metis INT_extend_simps(10) atMost_atLeast0 image_Suc_atLeastAtMost)
+
+    fix b assume "b \<in> carrier (R Quot (I 0))"
+    hence "(b, (\<Inter>i \<le> n. I (Suc i))) \<in> carrier (R Quot I 0) \<times> carrier (R Quot (\<Inter>i\<le>n. I (Suc i)))"
+      using ring.ring_simprules(2)[OF Inter.quotient_is_ring] by (simp add: FactRing_def)
+    then obtain s
+      where "s \<in> carrier R" "(canonical_proj (I 0) (\<Inter>i \<le> n. I (Suc i))) s = (b, (\<Inter>i \<le> n. I (Suc i)))"
+      using canonical_proj_is_surj[OF I.is_ideal Inter.is_ideal eq_carrier]
+      unfolding RDirProd_carrier by (metis (no_types, lifting) imageE)
+    hence "s \<in> (\<Inter>i \<le> n. I (Suc i))" and "(\<lambda>a. (I 0) +> a) s = b"
+      using Inter.rcos_const_imp_mem by auto
+    thus "b \<in> (\<lambda>a. (I 0) +> a) ` (\<Inter>i \<le> n. I (Suc i))"
+      by auto
   qed
+  hence "(\<lambda>a. ((I 0) +> a, ?proj (\<lambda>i. I (Suc i)) n a)) ` carrier R =
+         carrier (R Quot (I 0)) \<times> carrier (?DirProd (\<lambda>i. I (Suc i)) n)"
+    using aux_lemma[OF ring I.rcos_ring_hom hom] unfolding carrier_Quot ker IH by simp
+  moreover show ?case
+    unfolding map_simp RDirProd_list_carrier sym[OF calculation(1)] canonical_proj_ext_tl by auto 
 qed
-
-
-subsection \<open>Final Generalization\<close>
 
 theorem (in cring) chinese_remainder:
-  fixes n::nat
-  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R"
-      and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n; i \<noteq> j \<rbrakk> \<Longrightarrow> I i <+> I j = carrier R"
-    shows "R Quot (\<Inter>i \<le> n. I i) \<simeq>  RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"
-  using assms
-proof (induct n)
-  case 0
-  have "(\<lambda>r. (r, [])) \<in> ring_iso (R Quot (I 0)) (RDirProd (R Quot (I 0)) (RDirProd_list []))"
-    unfolding ring_iso_def ring_hom_def bij_betw_def inj_on_def RDirProd_def
-    by (auto simp add: monoid.defs)
-  hence "(R Quot (I 0)) \<simeq> (RDirProd (R Quot (I 0)) (RDirProd_list []))"
-    unfolding is_ring_iso_def by blast
-  moreover
-  have "RDirProd ((R Quot (I 0)) :: 'a set ring)
-                 (RDirProd_list ([] :: (('a set) ring) list)) \<simeq> (RDirProd_list  [ (R Quot (I 0)) ])"
-    using RDirProd_list_isomorphism1'[of "(R Quot (I 0)) :: 'a set ring" "[] :: (('a set) ring) list"] . 
-  ultimately show ?case
-    using ring_iso_trans by simp
-next
-  case (Suc n)
-  have inter_ideal: "ideal (\<Inter> i \<le> n. I i) R"
-    using Suc.prems(1) i_Intersect[of "I ` {..n}"] atMost_Suc atLeast1_atMost_eq_remove0 by auto
-  hence "R Quot (\<Inter> i \<le> Suc n. I i) \<simeq> RDirProd (R Quot (\<Inter> i \<le> n. I i)) (R Quot (I (Suc n)))"
-    using chinese_remainder_simple[of "\<Inter> i \<le> n. I i" "I (Suc n)"] inter_plus_ideal_eq_carrier[of n I]
-    by (simp add: Int_commute Suc.prems(1-2) atMost_Suc)
-  moreover have "R Quot (\<Inter> i \<le> n. I i) \<simeq> RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"
-    using Suc.hyps Suc.prems(1-2) by auto
-  hence "RDirProd (R Quot (\<Inter> i \<le> n. I i)) (R Quot (I (Suc n))) \<simeq>
-         RDirProd (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) (R Quot (I (Suc n)))"
-    unfolding is_ring_iso_def using RDirProd_isomorphism4 by blast
-  ultimately
-  have "R Quot (\<Inter> i \<le> Suc n. I i) \<simeq>
-        RDirProd (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) (R Quot (I (Suc n)))"
-    using ring_iso_trans by simp
-  moreover
-  have "RDirProd (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) (R Quot (I (Suc n))) \<simeq>
-        RDirProd_list ((map (\<lambda>i. R Quot (I i)) [0..< Suc n]) @ [ R Quot (I (Suc n)) ])"
-    using RDirProd_list_isomorphism3 unfolding is_ring_iso_def by blast
-  hence "RDirProd (RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])) (R Quot (I (Suc n))) \<simeq>
-         RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc (Suc n)])" by simp
-  ultimately show ?case using ring_iso_trans by simp
-qed
+  assumes "\<And>i. i \<le> n \<Longrightarrow> ideal (I i) R" and "\<And>i j. \<lbrakk> i \<le> n; j \<le> n \<rbrakk> \<Longrightarrow> i \<noteq> j \<Longrightarrow> I i <+> I j = carrier R"
+  shows "R Quot (\<Inter>i \<le> n. I i) \<simeq> RDirProd_list (map (\<lambda>i. R Quot (I i)) [0..< Suc n])"
+  using ring_hom_ring.FactRing_iso[OF canonical_proj_ext_ring_hom, of n I]
+        canonical_proj_ext_is_surj[of n I] canonical_proj_ext_ker[of n I] assms
+  by auto
 
 end

@@ -412,9 +412,6 @@ qed
 lemma Span_eq_generate:
   assumes "set Us \<subseteq> carrier R" shows "Span K Us = generate (add_monoid R) (K <#> (set Us))"
 proof (rule add.generateI)
-  show "K <#> set Us \<subseteq> carrier R"
-    using subring_props(1) assms unfolding set_mult_def by blast
-next
   show "subgroup (Span K Us) (add_monoid R)"
     using Span_is_add_subgroup[OF assms] .
 next
@@ -474,8 +471,7 @@ qed
 corollary mono_Span_sublist:
   assumes "set Us \<subseteq> set Vs" "set Vs \<subseteq> carrier R"
   shows "Span K Us \<subseteq> Span K Vs"
-  using add.mono_generate[OF mono_set_mult[OF _ assms(1), of K K R]
-        set_mult_closed[OF subring_props(1) assms(2)]]
+  using add.mono_generate[OF mono_set_mult[OF _ assms(1), of K K R]]
         Span_eq_generate[OF assms(2)] Span_eq_generate[of Us] assms by auto
 
 corollary mono_Span_append:

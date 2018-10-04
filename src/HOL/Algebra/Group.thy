@@ -781,6 +781,19 @@ definition
     {h. h \<in> carrier G \<rightarrow> carrier H \<and>
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
+
+(* NEW ========================================================================== *)
+lemma hom_trans:
+  "\<lbrakk> f \<in> hom G H; g \<in> hom H I \<rbrakk> \<Longrightarrow> g \<circ> f \<in> hom G I"
+  unfolding hom_def by (auto simp add: Pi_iff)
+(* ============================================================================== *)
+
+(* NEW ============================================================================ *)
+lemma (in group) hom_restrict:
+  assumes "h \<in> hom G H" and "\<And>g. g \<in> carrier G \<Longrightarrow> h g = t g" shows "t \<in> hom G H"
+  using assms unfolding hom_def by (auto simp add: Pi_iff)
+(* ============================================================================== *)
+
 lemma (in group) hom_compose:
   "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
 by (fastforce simp add: hom_def compose_def)
@@ -837,6 +850,12 @@ lemma (in group) iso_set_trans:
 
 corollary (in group) iso_trans: "\<lbrakk>G \<cong> H ; H \<cong> I\<rbrakk> \<Longrightarrow> G \<cong> I"
   using iso_set_trans unfolding is_iso_def by blast
+
+(* NEW ====================================================================== *)
+lemma iso_same_card: "G \<cong> H \<Longrightarrow> card (carrier G) = card (carrier H)"
+  using bij_betw_same_card  unfolding is_iso_def iso_def by auto
+(* ========================================================================== *)
+
 
 (* Next four lemmas contributed by Paulo. *)
 

@@ -377,6 +377,8 @@ lemma (in ring) hom_imp_img_subring:
   assumes "h \<in> ring_hom R S" and "subring K R"
   shows "ring (S \<lparr> carrier := h ` K, one := h \<one>, zero := h \<zero> \<rparr>)"
 proof -
+  have [simp]: "h \<one> = \<one>\<^bsub>S\<^esub>"
+    using assms ring_hom_one by blast
   have "ring (R \<lparr> carrier := K \<rparr>)"
     by (simp add: assms(2) subring_is_ring)
   moreover have "h \<in> ring_hom (R \<lparr> carrier := K \<rparr>) S"

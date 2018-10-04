@@ -4,12 +4,12 @@
 
 theory Generated_Groups
   imports Group Coset
+  
 begin
 
-section\<open>Generated Groups\<close>
+section \<open>Generated Groups\<close>
 
-inductive_set
-  generate :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set"
+inductive_set generate :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set"
   for G and H where
     one:  "\<one>\<^bsub>G\<^esub> \<in> generate G H"
   | incl: "h \<in> H \<Longrightarrow> h \<in> generate G H"
@@ -17,624 +17,423 @@ inductive_set
   | eng:  "h1 \<in> generate G H \<Longrightarrow> h2 \<in> generate G H \<Longrightarrow> h1 \<otimes>\<^bsub>G\<^esub> h2 \<in> generate G H"
 
 
-subsection\<open>Basic Properties of Generated Groups - First Part\<close>
+subsection \<open>Basic Properties\<close>
+
+lemma (in group) generate_consistent:
+  assumes "K \<subseteq> H" "subgroup H G" shows "generate (G \<lparr> carrier := H \<rparr>) K = generate G K"
+proof
+  show "generate (G \<lparr> carrier := H \<rparr>) K \<subseteq> generate G K"
+  proof
+    fix h assume "h \<in> generate (G \<lparr> carrier := H \<rparr>) K" thus "h \<in> generate G K"
+    proof (induction, simp add: one, simp_all add: incl[of _ K G] eng)
+      case inv thus ?case
+        using m_inv_consistent assms generate.inv[of _ K G] by auto
+    qed
+  qed
+next
+  show "generate G K \<subseteq> generate (G \<lparr> carrier := H \<rparr>) K"
+  proof
+    note gen_simps = one incl eng
+    fix h assume "h \<in> generate G K" thus "h \<in> generate (G \<lparr> carrier := H \<rparr>) K"
+      using gen_simps[where ?G = "G \<lparr> carrier := H \<rparr>"]
+    proof (induction, auto)
+      fix h assume "h \<in> K" thus "inv h \<in> generate (G \<lparr> carrier := H \<rparr>) K"
+        using m_inv_consistent assms generate.inv[of h K "G \<lparr> carrier := H \<rparr>"] by auto
+    qed
+  qed
+qed
 
 lemma (in group) generate_in_carrier:
-  assumes "H \<subseteq> carrier G"
-  shows "h \<in> generate G H \<Longrightarrow> h \<in> carrier G"
-  apply (induction rule: generate.induct) using assms by blast+
+  assumes "H \<subseteq> carrier G" and "h \<in> generate G H" shows "h \<in> carrier G"
+  using assms(2,1) by (induct h rule: generate.induct) (auto)
+
+lemma (in group) generate_incl:
+  assumes "H \<subseteq> carrier G" shows "generate G H \<subseteq> carrier G"
+  using generate_in_carrier[OF assms(1)] by auto
 
 lemma (in group) generate_m_inv_closed:
-  assumes "H \<subseteq> carrier G"
-  shows "h \<in> generate G H \<Longrightarrow> (inv h) \<in> generate G H"
-proof (induction rule: generate.induct)
-  case one thus ?case by (simp add: generate.one)
-next
-  case (incl h) thus ?case using generate.inv[OF incl(1), of G] by simp
-next
-  case (inv h) thus ?case using assms generate.incl by fastforce
-next
-  case (eng h1 h2)
+  assumes "H \<subseteq> carrier G" and "h \<in> generate G H" shows "(inv h) \<in> generate G H"
+  using assms(2,1)
+proof (induction rule: generate.induct, auto simp add: one inv incl)
+  fix h1 h2
+  assume h1: "h1 \<in> generate G H" "inv h1 \<in> generate G H"
+     and h2: "h2 \<in> generate G H" "inv h2 \<in> generate G H"
   hence "inv (h1 \<otimes> h2) = (inv h2) \<otimes> (inv h1)"
     by (meson assms generate_in_carrier group.inv_mult_group is_group)
-  thus ?case using generate.eng[OF eng(4) eng(3)] by simp
+  thus "inv (h1 \<otimes> h2) \<in> generate G H"
+    using generate.eng[OF h2(2) h1(2)] by simp
 qed
 
 lemma (in group) generate_is_subgroup:
-  assumes "H \<subseteq> carrier G"
-  shows "subgroup (generate G H) G"
-proof (intro subgroupI)
-  show "generate G H \<subseteq> carrier G" using generate_in_carrier[OF assms] by blast
-  show "generate G H \<noteq> {}"        using generate.one by auto
-  show "\<And>h. h \<in> generate G H \<Longrightarrow> inv h \<in> generate G H"
-    using generate_m_inv_closed[OF assms] by blast
-  show "\<And>h1 h2. \<lbrakk> h1 \<in> generate G H; h2 \<in> generate G H \<rbrakk> \<Longrightarrow> h1 \<otimes> h2 \<in> generate G H"
-    by (simp add: generate.eng)
-qed
+  assumes "H \<subseteq> carrier G" shows "subgroup (generate G H) G"
+  using subgroup.intro[OF generate_incl eng one generate_m_inv_closed] assms by auto
 
-
-subsection\<open>Characterisations of Generated Groups\<close>
-
-lemma (in group) generate_min_subgroup1:
-  assumes "H \<subseteq> carrier G"
-    and "subgroup E G" "H \<subseteq> E"
-  shows "generate G H \<subseteq> E"
+lemma (in group) mono_generate:
+  assumes "K \<subseteq> H" shows "generate G K \<subseteq> generate G H"
 proof
-  fix h show "h \<in> generate G H \<Longrightarrow> h \<in> E"
-  proof (induct rule: generate.induct)
-    case one  thus ?case using subgroup.one_closed[OF assms(2)] by simp
-    case incl thus ?case using assms(3) by blast
-    case inv  thus ?case using subgroup.m_inv_closed[OF assms(2)] assms(3) by blast
-  next
-    case eng thus ?case using subgroup.m_closed[OF assms(2)] by simp
-  qed
+  fix h assume "h \<in> generate G K" thus "h \<in> generate G H"
+    using assms by (induction) (auto simp add: one incl inv eng)
 qed
+
+lemma (in group) generate_subgroup_incl:
+  assumes "K \<subseteq> H" "subgroup H G" shows "generate G K \<subseteq> H"
+  using group.generate_incl[OF subgroup_imp_group[OF assms(2)], of K] assms(1)
+  by (simp add: generate_consistent[OF assms])
+
+lemma (in group) generate_minimal:
+  assumes "H \<subseteq> carrier G" shows "generate G H = \<Inter> { H'. subgroup H' G \<and> H \<subseteq> H' }"
+  using generate_subgroup_incl generate_is_subgroup[OF assms] incl[of _ H] by blast
 
 lemma (in group) generateI:
-  assumes "H \<subseteq> carrier G"
-    and "subgroup E G" "H \<subseteq> E"
-    and "\<And>K. \<lbrakk> subgroup K G; H \<subseteq> K \<rbrakk> \<Longrightarrow> E \<subseteq> K"
+  assumes "subgroup E G" "H \<subseteq> E" and "\<And>K. \<lbrakk> subgroup K G; H \<subseteq> K \<rbrakk> \<Longrightarrow> E \<subseteq> K"
   shows "E = generate G H"
-proof
-  show "E \<subseteq> generate G H"
-    using assms generate_is_subgroup generate.incl by (metis subset_iff)
-  show "generate G H \<subseteq> E"
-    using generate_min_subgroup1[OF assms(1-3)] by simp
-qed
-
-lemma (in group) generateE:
-  assumes "H \<subseteq> carrier G" and "E = generate G H"
-  shows "subgroup E G" and "H \<subseteq> E" and "\<And>K. \<lbrakk> subgroup K G; H \<subseteq> K \<rbrakk> \<Longrightarrow> E \<subseteq> K"
 proof -
-  show "subgroup E G" using assms generate_is_subgroup by simp
-  show "H \<subseteq> E" using assms(2) by (simp add: generate.incl subsetI)
-  show "\<And>K. subgroup K G \<Longrightarrow> H \<subseteq> K \<Longrightarrow> E \<subseteq> K"
-    using assms generate_min_subgroup1 by auto
-qed
-
-lemma (in group) generate_min_subgroup2:
-  assumes "H \<subseteq> carrier G"
-  shows "generate G H = \<Inter>{K. subgroup K G \<and> H \<subseteq> K}"
-proof
-  have "subgroup (generate G H) G \<and> H \<subseteq> generate G H"
-    by (simp add: assms generateE(2) generate_is_subgroup)
-  thus "\<Inter>{K. subgroup K G \<and> H \<subseteq> K} \<subseteq> generate G H" by blast
-next
-  have "\<And>K. subgroup K G \<and> H \<subseteq> K \<Longrightarrow> generate G H \<subseteq> K"
-    by (simp add: assms generate_min_subgroup1)
-  thus "generate G H \<subseteq> \<Inter>{K. subgroup K G \<and> H \<subseteq> K}" by blast
-qed
-
-
-subsection\<open>Representation of Elements from a Generated Group\<close>
-
-text\<open>We define a sort of syntax tree to allow induction arguments with elements of a generated group\<close>
-
-datatype 'a repr =
-  One | Inv "'a" | Leaf "'a" | Mult "'a repr" "'a repr"
-
-fun norm :: "('a, 'b) monoid_scheme \<Rightarrow> 'a repr \<Rightarrow> 'a"
-  where
-    "norm G (One) = \<one>\<^bsub>G\<^esub>"
-  | "norm G (Inv h) = (inv\<^bsub>G\<^esub> h)"
-  | "norm G (Leaf h) = h"
-  | "norm G (Mult h1 h2) = (norm G h1) \<otimes>\<^bsub>G\<^esub> (norm G h2)"
-
-fun elts :: "'a repr \<Rightarrow> 'a set"
-  where
-    "elts (One) = {}"
-  | "elts (Inv h) = { h }"
-  | "elts (Leaf h) = { h }"
-  | "elts (Mult h1 h2) = (elts h1) \<union> (elts h2)"
-
-lemma (in group) generate_repr_iff:
-  assumes "H \<subseteq> carrier G"
-  shows "(h \<in> generate G H) \<longleftrightarrow> (\<exists>r. (elts r) \<subseteq> H \<and> norm G r = h)"
-proof
-  show "h \<in> generate G H \<Longrightarrow> \<exists>r. (elts r) \<subseteq> H \<and> norm G r = h"
-  proof (induction rule: generate.induct)
-    case one thus ?case
-      using elts.simps(1) norm.simps(1)[of G] by fastforce
-  next
-    case (incl h)
-    hence "elts (Leaf h) \<subseteq> H \<and> norm G (Leaf h) = h" by simp
-    thus ?case by blast
-  next
-    case (inv h)
-    hence "elts (Inv h) \<subseteq> H \<and> norm G (Inv h) = inv h" by auto
-    thus ?case by blast
-  next
-    case (eng h1 h2)
-    then obtain r1 r2 where r1: "elts r1 \<subseteq> H" "norm G r1 = h1"
-                        and r2: "elts r2 \<subseteq> H" "norm G r2 = h2" by blast
-    hence "elts (Mult r1 r2) \<subseteq> H \<and> norm G (Mult r1 r2) = h1 \<otimes> h2" by simp
-    thus ?case by blast
-  qed
-
-  show "\<exists>r. elts r \<subseteq> H \<and> norm G r = h \<Longrightarrow> h \<in> generate G H"
-  proof -
-    assume "\<exists>r. elts r \<subseteq> H \<and> norm G r = h"
-    then obtain r where "elts r \<subseteq> H" "norm G r = h" by blast
-    thus "h \<in> generate G H"
-    proof (induction arbitrary: h rule: repr.induct)
-      case One thus ?case using generate.one by auto
-    next
-      case Inv thus ?case using generate.simps by force
-    next
-      case Leaf thus ?case using generate.simps by force
-    next
-      case Mult thus ?case using generate.eng by fastforce
-    qed
-  qed
-qed
-
-corollary (in group) generate_repr_set:
-  assumes "H \<subseteq> carrier G"
-  shows "generate G H = {norm G r | r. (elts r) \<subseteq> H}" (is "?A = ?B")
-proof
-  show "?A \<subseteq> ?B"
-  proof
-    fix h assume "h \<in> generate G H" thus "h \<in> {norm G r |r. elts r \<subseteq> H}"
-      using generate_repr_iff[OF assms] by auto
-  qed
-next
-  show "?B \<subseteq> ?A"
-  proof
-    fix h assume "h \<in> {norm G r |r. elts r \<subseteq> H}" thus "h \<in> generate G H"
-      using generate_repr_iff[OF assms] by auto
-  qed
-qed
-
-corollary (in group) mono_generate:
-  assumes "I \<subseteq> J" and "J \<subseteq> carrier G"
-  shows "generate G I \<subseteq> generate G J"
-  using assms generate_repr_iff by fastforce
-
-lemma (in group) subgroup_gen_equality:
-  assumes "subgroup H G" "K \<subseteq> H"
-  shows "generate G K = generate (G \<lparr> carrier := H \<rparr>) K"
-proof -
-  have "generate G K \<subseteq> H"
-    by (meson assms generate_min_subgroup1 order.trans subgroup.subset)
-  have mult_eq: "\<And>k1 k2. \<lbrakk> k1 \<in> generate G K; k2 \<in> generate G K \<rbrakk> \<Longrightarrow>
-                           k1 \<otimes>\<^bsub>G \<lparr> carrier := H \<rparr>\<^esub> k2 = k1 \<otimes> k2"
-    using \<open>generate G K \<subseteq> H\<close> subgroup_mult_equality by simp
-
-  { fix r assume A: "elts r \<subseteq> K"
-    hence "norm G r = norm (G \<lparr> carrier := H \<rparr>) r"
-    proof (induction r rule: repr.induct)
-      case One thus ?case by simp
-    next
-      case (Inv k) hence "k \<in> K" using A by simp
-      thus ?case using m_inv_consistent[OF assms(1)] assms(2) by auto
-    next
-      case (Leaf k) hence "k \<in> K" using A by simp
-      thus ?case using m_inv_consistent[OF assms(1)] assms(2) by auto
-    next
-      case (Mult k1 k2) thus ?case using mult_eq by auto
-    qed } note aux_lemma = this
-
+  have subset: "H \<subseteq> carrier G"
+    using subgroup.subset assms by auto
   show ?thesis
-  proof
-    show "generate G K \<subseteq> generate (G\<lparr>carrier := H\<rparr>) K"
-    proof
-      fix h assume "h \<in> generate G K" then obtain r where r: "elts r \<subseteq> K" "h = norm G r"
-        using generate_repr_iff assms by (metis order.trans subgroup.subset)
-      hence "h = norm (G \<lparr> carrier := H \<rparr>) r" using aux_lemma by simp
-      thus "h \<in> generate (G\<lparr>carrier := H\<rparr>) K"
-        using r assms group.generate_repr_iff [of "G \<lparr> carrier := H \<rparr>" K]
-              subgroup.subgroup_is_group[OF assms(1) is_group] by auto
-    qed
-    show "generate (G\<lparr>carrier := H\<rparr>) K \<subseteq> generate G K"
-    proof
-      fix h assume "h \<in> generate (G\<lparr>carrier := H\<rparr>) K"
-      then obtain r where r: "elts r \<subseteq> K" "h = norm (G\<lparr>carrier := H\<rparr>) r"
-        using group.generate_repr_iff [of "G \<lparr> carrier := H \<rparr>" K]
-              subgroup.subgroup_is_group[OF assms(1) is_group] assms by auto
-      hence "h = norm G r" using aux_lemma by simp
-      thus "h \<in> generate G K"
-        by (meson assms generate_repr_iff order.trans r(1) subgroup.subset)
-    qed
-  qed
+    using assms unfolding generate_minimal[OF subset] by blast
 qed
-
-corollary (in group) gen_equality_betw_subgroups:
-  assumes "subgroup I G" "subgroup J G" "K \<subseteq> (I \<inter> J)"
-  shows "generate (G \<lparr> carrier := I \<rparr>) K = generate (G \<lparr> carrier := J \<rparr>) K"
-  by (metis Int_subset_iff assms subgroup_gen_equality)
 
 lemma (in group) normal_generateI:
-  assumes "H \<subseteq> carrier G"
-    and "\<And>h g. \<lbrakk> h \<in> H; g \<in> carrier G \<rbrakk> \<Longrightarrow> g \<otimes> h \<otimes> (inv g) \<in> H"
+  assumes "H \<subseteq> carrier G" and "\<And>h g. \<lbrakk> h \<in> H; g \<in> carrier G \<rbrakk> \<Longrightarrow> g \<otimes> h \<otimes> (inv g) \<in> H"
   shows "generate G H \<lhd> G"
-proof (rule normal_invI)
-  show "subgroup (generate G H) G"
-    by (simp add: assms(1) generate_is_subgroup)
-next
-  have "\<And>r g. \<lbrakk> elts r \<subseteq> H; g \<in> carrier G \<rbrakk> \<Longrightarrow> (g \<otimes> (norm G r) \<otimes> (inv g)) \<in> (generate G H)"
-  proof -
-    fix r g assume "elts r \<subseteq> H" "g \<in> carrier G"
-    thus "(g \<otimes> (norm G r) \<otimes> (inv g)) \<in> (generate G H)"
-    proof (induction r rule: repr.induct)
-      case One thus ?case
-        by (simp add: generate.one)
-    next
-      case (Inv h)
-      hence "g \<otimes> h \<otimes> (inv g) \<in> H" using assms(2) by simp
-      moreover have "norm G (Inv (g \<otimes> h \<otimes> (inv g))) = g \<otimes> (inv h) \<otimes> (inv g)"
-        using Inv.prems(1) Inv.prems(2) assms(1) inv_mult_group m_assoc by auto
-      ultimately have "\<exists>r. elts r \<subseteq> H \<and> norm G r = g \<otimes> (inv h) \<otimes> (inv g)"
-        by (metis elts.simps(2) empty_subsetI insert_subset)
-      thus ?case by (simp add: assms(1) generate_repr_iff)
-    next
-      case (Leaf h)
-      thus ?case using assms(2)[of h g] generate.incl[of "g \<otimes> h \<otimes> inv g" H] by simp
-    next
-      case (Mult h1 h2)
-      hence "elts h1 \<subseteq> H \<and> elts h2 \<subseteq> H" using Mult(3) by simp
-      hence in_gen: "norm G h1 \<in> generate G H \<and> norm G h2 \<in> generate G H"
-        using assms(1) generate_repr_iff by auto
-
-      have "g \<otimes> norm G (Mult h1 h2) \<otimes> inv g = g \<otimes> (norm G h1 \<otimes> norm G h2) \<otimes> inv g" by simp
-      also have " ... = g \<otimes> (norm G h1 \<otimes> (inv g \<otimes> g) \<otimes> norm G h2) \<otimes> inv g"
-        using Mult(4) in_gen assms(1) generate_in_carrier by auto
-      also have " ... = (g \<otimes> norm G h1 \<otimes> inv g) \<otimes> (g \<otimes> norm G h2 \<otimes> inv g)"
-        using Mult.prems(2) assms(1) generate_in_carrier in_gen inv_closed m_assoc m_closed by presburger
-      finally have "g \<otimes> norm G (Mult h1 h2) \<otimes> inv g =
-                   (g \<otimes> norm G h1 \<otimes> inv g) \<otimes> (g \<otimes> norm G h2 \<otimes> inv g)" .
-
-      thus ?case
-        using generate.eng[of "g \<otimes> norm G h1 \<otimes> inv g" G H "g \<otimes> norm G h2 \<otimes> inv g"]
-        by (simp add: Mult.IH Mult.prems(2) \<open>elts h1 \<subseteq> H \<and> elts h2 \<subseteq> H\<close>)
-    qed
+proof (rule normal_invI[OF generate_is_subgroup[OF assms(1)]])
+  fix g h assume g: "g \<in> carrier G" show "h \<in> generate G H \<Longrightarrow> g \<otimes> h \<otimes> (inv g) \<in> generate G H"
+  proof (induct h rule: generate.induct)
+    case one thus ?case
+      using g generate.one by auto
+  next
+    case incl show ?case
+      using generate.incl[OF assms(2)[OF incl g]] .
+  next
+    case (inv h)
+    hence h: "h \<in> carrier G"
+      using assms(1) by auto
+    hence "inv (g \<otimes> h \<otimes> (inv g)) = g \<otimes> (inv h) \<otimes> (inv g)"
+      using g by (simp add: inv_mult_group m_assoc)
+    thus ?case
+      using generate_m_inv_closed[OF assms(1) generate.incl[OF assms(2)[OF inv g]]] by simp
+  next
+    case (eng h1 h2)
+    note in_carrier = eng(1,3)[THEN generate_in_carrier[OF assms(1)]]
+    have "g \<otimes> (h1 \<otimes> h2) \<otimes> inv g = (g \<otimes> h1 \<otimes> inv g) \<otimes> (g \<otimes> h2 \<otimes> inv g)"
+      using in_carrier g by (simp add: inv_solve_left m_assoc)
+    thus ?case
+      using generate.eng[OF eng(2,4)] by simp
   qed
-  thus "\<And>x h. x \<in> carrier G \<Longrightarrow> h \<in> generate G H \<Longrightarrow> x \<otimes> h \<otimes> inv x \<in> generate G H"
-    using assms(1) generate_repr_iff by auto
 qed
 
-
-subsection\<open>Basic Properties of Generated Groups - Second Part\<close>
+lemma (in group) subgroup_int_pow_closed:
+  assumes "subgroup H G" "h \<in> H" shows "h [^] (k :: int) \<in> H"
+  using group.int_pow_closed[OF subgroup_imp_group[OF assms(1)]] assms(2)
+  unfolding int_pow_consistent[OF assms] by simp
 
 lemma (in group) generate_pow:
-  assumes "a \<in> carrier G"
-  shows "generate G { a } = range (\<lambda>k::int. a [^] k)" (is "?lhs = ?rhs")
+  assumes "a \<in> carrier G" shows "generate G { a } = { a [^] (k :: int) | k. k \<in> UNIV }"
 proof
-  show "?lhs \<subseteq> ?rhs"
+  show "{ a [^] (k :: int) | k. k \<in> UNIV } \<subseteq> generate G { a }"
+    using subgroup_int_pow_closed[OF generate_is_subgroup[of "{ a }"] incl[of a]] assms by auto
+next
+  show "generate G { a } \<subseteq> { a [^] (k :: int) | k. k \<in> UNIV }"
   proof
-    fix h  show "h \<in> generate G { a } \<Longrightarrow> h \<in> range (\<lambda>k::int. a [^] k)"
-    proof (induction rule: generate.induct)
-      case one thus ?case
-        by (metis (full_types) int_pow_0 rangeI) 
+    fix h assume "h \<in> generate G { a }" hence "\<exists>k :: int. h = a [^] k"
+    proof (induction, metis int_pow_0[of a], metis singletonD int_pow_1[OF assms])
+      case (inv h)
+      hence "inv h = a [^] ((- 1) :: int)"
+        using assms unfolding int_pow_def2 by simp
+      thus ?case
+        by blast 
     next
-      case (incl h) hence "h = a" by auto thus ?case
-        by (metis \<open>h = a\<close> assms group.int_pow_1 is_group rangeI)
-    next
-      case (inv h) hence "h = a" by auto thus ?case
-        by (metis (mono_tags) rangeI assms group.int_pow_1 int_pow_neg is_group)
-    next
-      case (eng h1 h2) thus ?case
-        using assms is_group   by (auto simp: image_iff simp flip: int_pow_mult)
+      case eng thus ?case
+        using assms by (metis int_pow_mult)
     qed
-  qed
-
-  show "?rhs \<subseteq> ?lhs"
-  proof
-    { fix k :: "nat" have "a [^] k \<in> generate G { a }"
-      proof (induction k)
-        case 0 thus ?case by (simp add: generate.one)
-      next
-        case (Suc k) thus ?case by (simp add: generate.eng generate.incl)
-      qed } note aux_lemma = this
-
-    fix h assume "h \<in> ?rhs"
-    then obtain k :: "nat" where "h = a [^] k \<or> h = inv (a [^] k)"
-      by (auto simp: int_pow_def2)
-    thus "h \<in> generate G { a }" using aux_lemma
-      using assms generate_m_inv_closed by auto
+    thus "h \<in> { a [^] (k :: int) | k. k \<in> UNIV }"
+      by blast
   qed
 qed
 
-(*  { a [^] k | k. k \<in> (UNIV :: int set) } *)
-
 corollary (in group) generate_one: "generate G { \<one> } = { \<one> }"
-  using generate_pow[of "\<one>", OF one_closed] by auto
+  using generate_pow[of "\<one>", OF one_closed] by simp
 
 corollary (in group) generate_empty: "generate G {} = { \<one> }"
-  using mono_generate[of "{}" "{ \<one> }"] generate_one generate.one one_closed by blast
+  using mono_generate[of "{}" "{ \<one> }"] generate.one unfolding generate_one by auto
 
-corollary (in group)
-  assumes "H \<subseteq> carrier G" "h \<in> H"
-  shows "h [^] (k :: int) \<in> generate G H"
-  using mono_generate[of "{ h }" H] generate_pow[of h] assms by auto
+lemma (in group_hom)
+  "subgroup K G \<Longrightarrow> subgroup (h ` K) H"
+  using subgroup_img_is_subgroup by auto
+
+lemma (in group_hom) generate_img:
+  assumes "K \<subseteq> carrier G" shows "generate H (h ` K) = h ` (generate G K)"
+proof
+  have "h ` K \<subseteq> h ` (generate G K)"
+    using incl[of _ K G] by auto
+  thus "generate H (h ` K) \<subseteq> h ` (generate G K)"
+    using generate_subgroup_incl subgroup_img_is_subgroup[OF G.generate_is_subgroup[OF assms]] by auto
+next
+  show "h ` (generate G K) \<subseteq> generate H (h ` K)"
+  proof
+    fix a assume "a \<in> h ` (generate G K)"
+    then obtain k where "k \<in> generate G K" "a = h k"
+      by blast
+    show "a \<in> generate H (h ` K)"
+      using \<open>k \<in> generate G K\<close> unfolding \<open>a = h k\<close>
+    proof (induct k, auto simp add: generate.one[of H] generate.incl[of _ "h ` K" H])
+      case (inv k) show ?case
+        using assms generate.inv[of "h k" "h ` K" H] inv by auto  
+    next
+      case eng show ?case
+        using generate.eng[OF eng(2,4)] eng(1,3)[THEN G.generate_in_carrier[OF assms]] by auto
+    qed
+  qed
+qed
 
 
-subsection\<open>Derived Subgroup\<close>
+section \<open>Derived Subgroup\<close>
 
-abbreviation derived_set :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "derived_set G H \<equiv>
-     \<Union>h1 \<in> H. (\<Union>h2 \<in> H. { h1 \<otimes>\<^bsub>G\<^esub> h2 \<otimes>\<^bsub>G\<^esub> (inv\<^bsub>G\<^esub> h1) \<otimes>\<^bsub>G\<^esub> (inv\<^bsub>G\<^esub> h2) })"
+subsection \<open>Definitions\<close>
+
+abbreviation derived_set :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  where "derived_set G H \<equiv>
+           \<Union>h1 \<in> H. (\<Union>h2 \<in> H. { h1 \<otimes>\<^bsub>G\<^esub> h2 \<otimes>\<^bsub>G\<^esub> (inv\<^bsub>G\<^esub> h1) \<otimes>\<^bsub>G\<^esub> (inv\<^bsub>G\<^esub> h2) })"
 
 definition derived :: "('a, 'b) monoid_scheme \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "derived G H = generate G (derived_set G H)"
 
+
+subsection \<open>Basic Properties\<close>
+
 lemma (in group) derived_set_incl:
-  assumes "subgroup H G"
-  shows "derived_set G H \<subseteq> H"
-  by (auto simp add: m_inv_consistent[OF assms] subgroupE[OF assms])
+  assumes "K \<subseteq> H" "subgroup H G" shows "derived_set G K \<subseteq> H"
+  using assms(1) subgroupE(3-4)[OF assms(2)] by (auto simp add: subset_iff)
 
 lemma (in group) derived_incl:
-  assumes "subgroup H G"
-  shows "derived G H \<subseteq> H"
-  unfolding derived_def using derived_set_incl[OF assms] assms
-  by (meson generate_min_subgroup1 order.trans subgroup.subset)
-
-lemma (in group) subgroup_derived_equality:
-  assumes "subgroup H G" "K \<subseteq> H"
-  shows "derived (G \<lparr> carrier := H \<rparr>) K = derived G K"
-proof -
-  have "derived_set G K \<subseteq> H"
-  proof
-    fix x assume "x \<in> derived_set G K"
-    then obtain k1 k2
-      where k12: "k1 \<in> K" "k2 \<in> K"
-        and  "x = k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2" by blast
-    thus "x \<in> H" using k12 assms by (meson subgroup_def subsetCE)
-  qed
-
-  moreover have "derived_set (G \<lparr> carrier := H \<rparr>) K = derived_set G K"
-  proof
-    show "derived_set G K \<subseteq> derived_set (G\<lparr>carrier := H\<rparr>) K"
-    proof
-      fix x assume "x \<in> derived_set G K"
-      then obtain k1 k2 where k12: "k1 \<in> K" "k2 \<in> K"
-                          and "x = k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2" by blast
-      hence "x = k1 \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k2 \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k1 \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k2"
-        using subgroup_mult_equality[OF assms(1)] m_inv_consistent[OF assms(1)] assms(2) k12
-        by (simp add: subset_iff)
-      thus "x \<in> derived_set (G\<lparr>carrier := H\<rparr>) K" using k12 by blast
-    qed
-  next
-    show "derived_set (G \<lparr> carrier := H \<rparr>) K \<subseteq> derived_set G K"
-    proof
-      fix x assume "x \<in> derived_set (G \<lparr> carrier := H \<rparr>) K"
-      then obtain k1 k2
-        where k12: "k1 \<in> K" "k2 \<in> K"
-          and "x = k1 \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k2 \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k1 \<otimes>\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> inv\<^bsub>G\<lparr>carrier := H\<rparr>\<^esub> k2"
-        by blast
-      hence "x = k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2"
-        using subgroup_mult_equality[OF assms(1)] m_inv_consistent[OF assms(1)] assms(2) k12
-        by (simp add: subset_iff)
-      thus "x \<in> derived_set G K" using k12 assms by blast
-    qed
-  qed
-
-  ultimately show ?thesis unfolding derived_def
-    using subgroup_gen_equality[OF assms(1), of "derived_set (G\<lparr>carrier := H\<rparr>) K"] by simp
-qed
-
-lemma (in comm_group) derived_set:
-  assumes "H \<subseteq> carrier G"
-  shows "derived G H = { \<one> }"
-proof -
-  have "derived_set G H = {} \<or> derived_set G H = { \<one> }"
-  proof (cases)
-    assume "H = {}" thus ?thesis by simp
-  next
-    assume "H \<noteq> {}" then obtain h' where h': "h' \<in> H" by blast
-    have "derived_set G H = { \<one> }"
-    proof -
-      { fix h assume A: "h \<in> derived_set G H"
-        have "h = \<one>"
-        proof -
-          obtain h1 h2 where h1: "h1 \<in> H" and h2: "h2 \<in> H" and h: "h = h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2"
-            using A by blast
-          then have "h1 \<in> carrier G" "h2 \<in> carrier G"
-            using assms by auto
-          then have "\<one> = h"
-            by (metis \<open>h1 \<in> carrier G\<close> \<open>h2 \<in> carrier G\<close> h inv_closed inv_mult m_assoc m_closed r_inv)
-          then show ?thesis
-            using \<open>h1 \<in> carrier G\<close> \<open>h2 \<in> carrier G\<close> by force
-        qed } note aux_lemma = this
-      show ?thesis
-      proof
-        show "derived_set G H \<subseteq> { \<one> }" using aux_lemma by blast
-      next
-        show "{ \<one> } \<subseteq> derived_set G H"
-        proof -
-          have "h' \<otimes> h' \<otimes> inv h' \<otimes> inv h' \<in> derived_set G H" using h' by blast
-          thus ?thesis using aux_lemma by auto
-        qed
-      qed
-    qed
-    thus ?thesis by simp
-  qed
-  thus ?thesis unfolding derived_def using generate_empty generate_one by presburger
-qed
+  assumes "K \<subseteq> H" "subgroup H G" shows "derived G K \<subseteq> H"
+  using generate_subgroup_incl[OF derived_set_incl] assms unfolding derived_def by auto
 
 lemma (in group) derived_set_in_carrier:
-  assumes "H \<subseteq> carrier G"
-  shows "derived_set G H \<subseteq> carrier G"
-proof
-  fix h assume "h \<in> derived_set G H"
-  then obtain h1 h2 where "h1 \<in> H" "h2 \<in> H" "h = h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2"
-    by blast
-  thus "h \<in> carrier G" using assms by blast
+  assumes "H \<subseteq> carrier G" shows "derived_set G H \<subseteq> carrier G"
+  using derived_set_incl[OF assms subgroup_self] .
+
+lemma (in group) derived_in_carrier:
+  assumes "H \<subseteq> carrier G" shows "derived G H \<subseteq> carrier G"
+  using derived_incl[OF assms subgroup_self] .
+
+lemma (in group) exp_of_derived_in_carrier:
+  assumes "H \<subseteq> carrier G" shows "(derived G ^^ n) H \<subseteq> carrier G"
+  using assms derived_in_carrier by (induct n) (auto)
+
+lemma (in group) derived_is_subgroup:
+  assumes "H \<subseteq> carrier G" shows "subgroup (derived G H) G"
+  unfolding derived_def using generate_is_subgroup[OF derived_set_in_carrier[OF assms]] .
+
+lemma (in group) exp_of_derived_is_subgroup:
+  assumes "subgroup H G" shows "subgroup ((derived G ^^ n) H) G"
+  using assms derived_is_subgroup subgroup.subset by (induct n) (auto)
+
+lemma (in group) exp_of_derived_is_subgroup':
+  assumes "H \<subseteq> carrier G" shows "subgroup ((derived G ^^ (Suc n)) H) G"
+  using assms derived_is_subgroup[OF subgroup.subset] derived_is_subgroup by (induct n) (auto)
+
+lemma (in group) mono_derived_set:
+  assumes "K \<subseteq> H" shows "derived_set G K \<subseteq> derived_set G H"
+  using assms by auto
+
+lemma (in group) mono_derived:
+  assumes "K \<subseteq> H" shows "derived G K \<subseteq> derived G H"
+  unfolding derived_def using mono_generate[OF mono_derived_set[OF assms]] .
+
+lemma (in group) mono_exp_of_derived:
+  assumes "K \<subseteq> H" shows "(derived G ^^ n) K \<subseteq> (derived G ^^ n) H"
+  using assms mono_derived by (induct n) (auto)
+
+lemma (in group) derived_set_consistent:
+  assumes "K \<subseteq> H" "subgroup H G" shows "derived_set (G \<lparr> carrier := H \<rparr>) K = derived_set G K"
+  using m_inv_consistent[OF assms(2)] assms(1) by (auto simp add: subset_iff)
+
+lemma (in group) derived_consistent:
+  assumes "K \<subseteq> H" "subgroup H G" shows "derived (G \<lparr> carrier := H \<rparr>) K = derived G K"
+  using generate_consistent[OF derived_set_incl] derived_set_consistent assms by (simp add: derived_def)
+
+lemma (in comm_group) derived_eq_singleton:
+  assumes "H \<subseteq> carrier G" shows "derived G H = { \<one> }"
+proof (cases "derived_set G H = {}")
+  case True show ?thesis
+    using generate_empty unfolding derived_def True by simp
+next
+  case False
+  have aux_lemma: "h \<in> derived_set G H \<Longrightarrow> h = \<one>" for h
+    using assms by (auto simp add: subset_iff)
+       (metis (no_types, lifting) m_comm m_closed inv_closed inv_solve_right l_inv l_inv_ex)
+  have "derived_set G H = { \<one> }"
+  proof
+    show "derived_set G H \<subseteq> { \<one> }"
+      using aux_lemma by auto
+  next
+    obtain h where h: "h \<in> derived_set G H"
+      using False by blast
+    thus "{ \<one> } \<subseteq> derived_set G H"
+      using aux_lemma[OF h] by auto
+  qed
+  thus ?thesis
+    using generate_one unfolding derived_def by auto
 qed
 
 lemma (in group) derived_is_normal:
-  assumes "H \<lhd> G"
-  shows "derived G H \<lhd> G" unfolding derived_def
-proof (rule normal_generateI)
-  show "(\<Union>h1 \<in> H. \<Union>h2 \<in> H. { h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2 }) \<subseteq> carrier G"
-    using subgroup.subset assms normal_imp_subgroup by blast
-next
-  show "\<And>h g. \<lbrakk> h \<in> derived_set G H; g \<in> carrier G \<rbrakk> \<Longrightarrow> g \<otimes> h \<otimes> inv g \<in> derived_set G H"
-  proof -
-    fix h g assume "h \<in> derived_set G H" and g: "g \<in> carrier G"
-    then obtain h1 h2 where h1: "h1 \<in> H" "h1 \<in> carrier G"
-                        and h2: "h2 \<in> H" "h2 \<in> carrier G"
-                        and h:  "h = h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2"
-      using subgroup.subset assms normal_imp_subgroup by blast
-    hence "g \<otimes> h \<otimes> inv g =
-           g \<otimes> h1 \<otimes> (inv g \<otimes> g) \<otimes> h2 \<otimes> (inv g \<otimes> g) \<otimes> inv h1 \<otimes> (inv g \<otimes> g) \<otimes> inv h2 \<otimes> inv g"
-      by (simp add: g m_assoc)
-    also
-    have " ... =
-          (g \<otimes> h1 \<otimes> inv g) \<otimes> (g \<otimes> h2 \<otimes> inv g) \<otimes> (g \<otimes> inv h1 \<otimes> inv g) \<otimes> (g \<otimes> inv h2 \<otimes> inv g)"
-      using g h1 h2 m_assoc inv_closed m_closed by presburger
-    finally
-    have "g \<otimes> h \<otimes> inv g =
-         (g \<otimes> h1 \<otimes> inv g) \<otimes> (g \<otimes> h2 \<otimes> inv g) \<otimes> inv (g \<otimes> h1 \<otimes> inv g) \<otimes> inv (g \<otimes> h2 \<otimes> inv g)"
-      by (simp add: g h1 h2 inv_mult_group m_assoc)
-    moreover have "g \<otimes> h1 \<otimes> inv g \<in> H" by (simp add: assms normal.inv_op_closed2 g h1)
-    moreover have "g \<otimes> h2 \<otimes> inv g \<in> H" by (simp add: assms normal.inv_op_closed2 g h2)
-    ultimately show "g \<otimes> h \<otimes> inv g \<in> derived_set G H" by blast
-  qed
-qed
-
-corollary (in group) derived_self_is_normal: "derived G (carrier G) \<lhd> G"
-  by (simp add: group.derived_is_normal group.normal_invI is_group subgroup_self)
-
-corollary (in group) derived_subgroup_is_normal:
-  assumes "subgroup H G"
-  shows "derived G H \<lhd> G \<lparr> carrier := H \<rparr>"
+  assumes "H \<lhd> G" shows "derived G H \<lhd> G"
 proof -
-  have "H \<lhd> G \<lparr> carrier := H \<rparr>"
-    by (metis assms group.coset_join3 group.normalI group.subgroup_self
-        partial_object.cases_scheme partial_object.select_convs(1) partial_object.update_convs(1)
-        subgroup.rcos_const subgroup_imp_group)
-  hence "derived (G \<lparr> carrier := H \<rparr>) H \<lhd> G \<lparr> carrier :=  H \<rparr>"
-    using group.derived_is_normal[of "G \<lparr> carrier := H \<rparr>" H] normal_def by blast
-  thus ?thesis using subgroup_derived_equality[OF assms] by simp
-qed
-
-corollary (in group) derived_quot_is_group: "group (G Mod (derived G (carrier G)))"
-  using derived_self_is_normal normal.factorgroup_is_group by auto
-
-lemma (in group) derived_quot_is_comm:
-  assumes "H \<in> carrier (G Mod (derived G (carrier G)))"
-    and "K \<in> carrier (G Mod (derived G (carrier G)))"
-  shows "H <#> K = K <#> H"
-proof -
-  { fix H K assume A1: "H \<in> carrier (G Mod (derived G (carrier G)))"
-               and A2: "K \<in> carrier (G Mod (derived G (carrier G)))"
-    have "H <#> K \<subseteq> K <#> H"
-    proof -
-      obtain h k where hk: "h \<in> carrier G" "k \<in> carrier G"
-                   and  H: "H = (derived G (carrier G)) #> h"
-                   and  K: "K = (derived G (carrier G)) #> k"
-        using A1 A2 unfolding FactGroup_def RCOSETS_def by auto
-      have "H <#> K = (h \<otimes> k) <# (derived G (carrier G))"
-        using hk H K derived_self_is_normal m_closed normal.coset_eq normal.rcos_sum
-        by (metis (no_types, lifting))
-      moreover have "K <#> H = (k \<otimes> h) <# (derived G (carrier G))"
-        using hk H K derived_self_is_normal m_closed normal.coset_eq normal.rcos_sum
-        by (metis (no_types, lifting))
-      moreover have "(h \<otimes> k) <# (derived G (carrier G)) \<subseteq> (k \<otimes> h) <# (derived G (carrier G))"
-      proof
-        fix x assume "x \<in> h \<otimes> k <# derived G (carrier G)"
-        then obtain d where d: "d \<in> derived G (carrier G)" "d \<in> carrier G" "x = h \<otimes> k \<otimes> d"
-          using generate_is_subgroup[of "derived_set G (carrier G)"]
-                subgroup.subset[of "derived G (carrier G)" G]
-                derived_set_in_carrier[of "carrier G"]
-          unfolding l_coset_def derived_def by auto
-        hence "x = (k \<otimes> (h \<otimes> inv h) \<otimes> inv k) \<otimes> h \<otimes> k \<otimes> d"
-          using hk by simp
-        also have " ... = (k \<otimes> h) \<otimes> (inv h \<otimes> inv k) \<otimes> h \<otimes> k \<otimes> d"
-          using d(2) hk m_assoc by (metis subgroup_def subgroup_self)
-        also have " ... = (k \<otimes> h) \<otimes> ((inv h \<otimes> inv k \<otimes> h \<otimes> k) \<otimes> d)"
-          using d(2) hk m_assoc by simp
-        finally have "x = (k \<otimes> h) \<otimes> ((inv h \<otimes> inv k \<otimes> h \<otimes> k) \<otimes> d)" .
-
-        moreover have "inv h \<otimes> inv k \<otimes> inv (inv h) \<otimes> inv (inv k) \<in> derived_set G (carrier G)"
-          using inv_closed[OF hk(1)] inv_closed[OF hk(2)] by blast
-        hence "inv h \<otimes> inv k \<otimes> h \<otimes> k \<in> derived_set G (carrier G)"
-          by (simp add: hk(1) hk(2))
-        hence "(inv h \<otimes> inv k \<otimes> h \<otimes> k) \<otimes> d \<in> derived G (carrier G)"
-          using d(1) unfolding derived_def by (simp add: generate.eng generate.incl)
-
-        ultimately show "x \<in> (k \<otimes> h) <# (derived G (carrier G))"
-          unfolding l_coset_def by blast
-      qed
-      ultimately show ?thesis by simp
-    qed }
-  thus ?thesis using assms by auto
-qed
-
-theorem (in group) derived_quot_is_comm_group:
-  "comm_group (G Mod (derived G (carrier G)))"
-  apply (intro group.group_comm_groupI[OF derived_quot_is_group])
-  using derived_quot_is_comm by simp
-
-corollary (in group) derived_quot_of_subgroup_is_comm_group:
-  assumes "subgroup H G"
-  shows "comm_group ((G \<lparr> carrier := H \<rparr>) Mod (derived G H))"
-proof -
-  have "group (G \<lparr> carrier := H \<rparr>)"
-    using assms subgroup_imp_group by auto
-  thus ?thesis
-    using group.derived_quot_is_comm_group subgroup_derived_equality[OF assms] by fastforce
-qed
-
-lemma (in group) mono_derived:
-  assumes "J \<subseteq> carrier G" "I \<subseteq> J"
-  shows "(derived G ^^ n) I \<subseteq> (derived G ^^ n) J"
-proof -
-  { fix I J assume A: "J \<subseteq> carrier G" "I \<subseteq> J" have "derived G I \<subseteq> derived G J"
-    proof -
-      have "derived_set G I \<subseteq> derived_set G J" using A by blast
-      thus ?thesis unfolding derived_def using mono_generate A by (simp add: derived_set_in_carrier)
-    qed } note aux_lemma1 = this
-
-  { fix n I assume A: "I \<subseteq> carrier G" have "(derived G ^^ n) I \<subseteq> carrier G"
-    proof (induction n)
-      case 0 thus ?case using A by simp
-    next
-      case (Suc n)
-      with aux_lemma1 have "(derived G ^^ Suc n) I \<subseteq> derived G (carrier G)"
-        by auto
-      also have "... \<subseteq> carrier G"
-        by (simp add: derived_incl subgroup_self)
-      finally show ?case .
-    qed } note aux_lemma2 = this
+  interpret H: normal H G
+    using assms .
 
   show ?thesis
-  proof (induction n)
-    case 0 thus ?case using assms by simp
-  next
-    case (Suc n) thus ?case using aux_lemma1 aux_lemma2 assms(1) by auto
+    unfolding derived_def
+  proof (rule normal_generateI[OF derived_set_in_carrier[OF H.subset]])
+    fix h g assume "h \<in> derived_set G H" and g: "g \<in> carrier G"
+    then obtain h1 h2 where h: "h1 \<in> H" "h2 \<in> H" "h = h1 \<otimes> h2 \<otimes> inv h1 \<otimes> inv h2"
+      by auto
+    hence in_carrier: "h1 \<in> carrier G" "h2 \<in> carrier G" "g \<in> carrier G"
+      using H.subset g by auto
+    have "g \<otimes> h \<otimes> inv g =
+           g \<otimes> h1 \<otimes> (inv g \<otimes> g) \<otimes> h2 \<otimes> (inv g \<otimes> g) \<otimes> inv h1 \<otimes> (inv g \<otimes> g) \<otimes> inv h2 \<otimes> inv g"
+      unfolding h(3) by (simp add: in_carrier m_assoc)
+    also have " ... =
+          (g \<otimes> h1 \<otimes> inv g) \<otimes> (g \<otimes> h2 \<otimes> inv g) \<otimes> (g \<otimes> inv h1 \<otimes> inv g) \<otimes> (g \<otimes> inv h2 \<otimes> inv g)"
+      using in_carrier m_assoc inv_closed m_closed by presburger
+    finally have "g \<otimes> h \<otimes> inv g =
+          (g \<otimes> h1 \<otimes> inv g) \<otimes> (g \<otimes> h2 \<otimes> inv g) \<otimes> inv (g \<otimes> h1 \<otimes> inv g) \<otimes> inv (g \<otimes> h2 \<otimes> inv g)"
+      by (simp add: in_carrier inv_mult_group m_assoc)
+    thus "g \<otimes> h \<otimes> inv g \<in> derived_set G H"
+      using h(1-2)[THEN H.inv_op_closed2[OF g]] by auto
   qed
 qed
 
-lemma (in group) exp_of_derived_in_carrier:
-  assumes "H \<subseteq> carrier G"
-  shows "(derived G ^^ n) H \<subseteq> carrier G" using assms
-proof (induction n)
-  case 0 thus ?case by simp
-next
-  case (Suc n)
-  have "(derived G ^^ Suc n) H = (derived G) ((derived G ^^ n) H)" by simp
-  also have " ... \<subseteq> (derived G) (carrier G)"
-    using mono_derived[of "carrier G" "(derived G ^^ n) H" 1] Suc by simp
-  also have " ... \<subseteq> carrier G" unfolding derived_def
-    by (simp add: derived_set_incl generate_min_subgroup1 subgroup_self)
-  finally show ?case .
+lemma (in group) normal_self: "carrier G \<lhd> G"
+  by (rule normal_invI[OF subgroup_self], simp)
+
+corollary (in group) derived_self_is_normal: "derived G (carrier G) \<lhd> G"
+  using derived_is_normal[OF normal_self] .
+
+corollary (in group) derived_subgroup_is_normal:
+  assumes "subgroup H G" shows "derived G H \<lhd> G \<lparr> carrier := H \<rparr>"
+  using group.derived_self_is_normal[OF subgroup_imp_group[OF assms]]
+        derived_consistent[OF _ assms]
+  by simp
+
+corollary (in group) derived_quot_is_group: "group (G Mod (derived G (carrier G)))"
+  using normal.factorgroup_is_group[OF derived_self_is_normal] by auto
+
+lemma (in group) derived_quot_is_comm_group: "comm_group (G Mod (derived G (carrier G)))"
+proof (rule group.group_comm_groupI[OF derived_quot_is_group], simp add: FactGroup_def)
+  interpret DG: normal "derived G (carrier G)" G
+    using derived_self_is_normal .
+
+  fix H K assume "H \<in> rcosets derived G (carrier G)" and "K \<in> rcosets derived G (carrier G)"
+  then obtain g1 g2
+    where g1: "g1 \<in> carrier G" "H = derived G (carrier G) #> g1"
+      and g2: "g2 \<in> carrier G" "K = derived G (carrier G) #> g2"
+    unfolding RCOSETS_def by auto
+  hence "H <#> K = derived G (carrier G) #> (g1 \<otimes> g2)"
+    by (simp add: DG.rcos_sum)
+  also have " ... = derived G (carrier G) #> (g2 \<otimes> g1)"
+  proof -
+    { fix g1 g2 assume g1: "g1 \<in> carrier G" and g2: "g2 \<in> carrier G"
+      have "derived G (carrier G) #> (g1 \<otimes> g2) \<subseteq> derived G (carrier G) #> (g2 \<otimes> g1)"
+      proof
+        fix h assume "h \<in> derived G (carrier G) #> (g1 \<otimes> g2)"
+        then obtain g' where h: "g' \<in> carrier G" "g' \<in> derived G (carrier G)" "h = g' \<otimes> (g1 \<otimes> g2)"
+          using DG.subset unfolding r_coset_def by auto
+        hence "h = g' \<otimes> (g1 \<otimes> g2) \<otimes> (inv g1 \<otimes> inv g2 \<otimes> g2 \<otimes> g1)"
+          using g1 g2 by (simp add: m_assoc)
+        hence "h = (g' \<otimes> (g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2)) \<otimes> (g2 \<otimes> g1)"
+          using h(1) g1 g2 inv_closed m_assoc m_closed by presburger
+        moreover have "g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2 \<in> derived G (carrier G)"
+          using incl[of _ "derived_set G (carrier G)"] g1 g2 unfolding derived_def by blast
+        hence "g' \<otimes> (g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2) \<in> derived G (carrier G)"
+          using DG.m_closed[OF h(2)] by simp
+        ultimately show "h \<in> derived G (carrier G) #> (g2 \<otimes> g1)"
+          unfolding r_coset_def by blast
+      qed }
+    thus ?thesis
+      using g1(1) g2(1) by auto
+  qed
+  also have " ... = K <#> H"
+    by (simp add: g1 g2 DG.rcos_sum)
+  finally show "H <#> K = K <#> H" .
 qed
 
-lemma (in group) exp_of_derived_is_subgroup:
-  assumes "subgroup H G"
-  shows "subgroup ((derived G ^^ n) H) G" using assms
-proof (induction n)
-  case 0 thus ?case by simp
-next
-  case (Suc n)
-  have "(derived G ^^ n) H \<subseteq> carrier G"
-    by (simp add: Suc.IH assms subgroup.subset)
-  hence "subgroup ((derived G) ((derived G ^^ n) H)) G"
-    unfolding derived_def using derived_set_in_carrier generate_is_subgroup by auto
-  thus ?case by simp
+corollary (in group) derived_quot_of_subgroup_is_comm_group:
+  assumes "subgroup H G" shows "comm_group ((G \<lparr> carrier := H \<rparr>) Mod (derived G H))"
+  using group.derived_quot_is_comm_group[OF subgroup_imp_group[OF assms]]
+        derived_consistent[OF _ assms]
+  by simp
+
+proposition (in group) derived_minimal:
+  assumes "H \<lhd> G" and "comm_group (G Mod H)" shows "derived G (carrier G) \<subseteq> H"
+proof -
+  interpret H: normal H G
+    using assms(1) .
+
+  show ?thesis
+    unfolding derived_def
+  proof (rule generate_subgroup_incl[OF _ H.subgroup_axioms])
+    show "derived_set G (carrier G) \<subseteq> H"
+    proof
+      fix h assume "h \<in> derived_set G (carrier G)"
+      then obtain g1 g2 where h: "g1 \<in> carrier G" "g2 \<in> carrier G" "h = g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2"
+        by auto
+      have "H #> (g1 \<otimes> g2) = (H #> g1) <#> (H #> g2)"
+        by (simp add: h(1-2) H.rcos_sum)
+      also have " ... = (H #> g2) <#> (H #> g1)"
+        using comm_groupE(4)[OF assms(2)] h(1-2) unfolding FactGroup_def RCOSETS_def by auto
+      also have " ... = H #> (g2 \<otimes> g1)"
+        by (simp add: h(1-2) H.rcos_sum)
+      finally have "H #> (g1 \<otimes> g2) = H #> (g2 \<otimes> g1)" .
+      then obtain h' where "h' \<in> H" "\<one> \<otimes> (g1 \<otimes> g2) = h' \<otimes> (g2 \<otimes> g1)"
+        using H.one_closed unfolding r_coset_def by blast
+      thus "h \<in> H"
+        using h m_assoc by auto
+    qed
+  qed
 qed
 
-hide_const (open) norm
+proposition (in group) derived_of_subgroup_minimal:
+  assumes "K \<lhd> G \<lparr> carrier := H \<rparr>" "subgroup H G" and "comm_group ((G \<lparr> carrier := H \<rparr>) Mod K)"
+  shows "derived G H \<subseteq> K"
+  using group.derived_minimal[OF subgroup_imp_group[OF assms(2)] assms(1,3)]
+        derived_consistent[OF _ assms(2)]
+  by simp
+
+lemma (in group_hom) derived_img:
+  assumes "K \<subseteq> carrier G" shows "derived H (h ` K) = h ` (derived G K)"
+proof -
+  have "derived_set H (h ` K) = h ` (derived_set G K)"
+  proof
+    show "derived_set H (h ` K) \<subseteq> h ` derived_set G K"
+    proof
+      fix a assume "a \<in> derived_set H (h ` K)"
+      then obtain k1 k2
+        where "k1 \<in> K" "k2 \<in> K" "a = (h k1) \<otimes>\<^bsub>H\<^esub> (h k2) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k1) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k2)"
+        by auto
+      hence "a = h (k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2)"
+        using assms by (simp add: subset_iff)
+      from this \<open>k1 \<in> K\<close> and \<open>k2 \<in> K\<close> show "a \<in> h ` derived_set G K" by auto
+    qed
+  next
+    show "h ` (derived_set G K) \<subseteq> derived_set H (h ` K)"
+    proof
+      fix a assume "a \<in> h ` (derived_set G K)"
+      then obtain k1 k2 where "k1 \<in> K" "k2 \<in> K" "a = h (k1 \<otimes> k2 \<otimes> inv k1 \<otimes> inv k2)"
+        by auto
+      hence "a = (h k1) \<otimes>\<^bsub>H\<^esub> (h k2) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k1) \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h k2)"
+        using assms by (simp add: subset_iff)
+      from this \<open>k1 \<in> K\<close> and \<open>k2 \<in> K\<close> show "a \<in> derived_set H (h ` K)" by auto
+    qed
+  qed
+  thus ?thesis
+    unfolding derived_def using generate_img[OF G.derived_set_in_carrier[OF assms]] by simp
+qed
+
+lemma (in group_hom) exp_of_derived_img:
+  assumes "K \<subseteq> carrier G" shows "(derived H ^^ n) (h ` K) = h ` ((derived G ^^ n) K)"
+  using derived_img[OF G.exp_of_derived_in_carrier[OF assms]] by (induct n) (auto)
 
 end
