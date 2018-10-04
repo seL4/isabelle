@@ -227,105 +227,56 @@ by (induction t) auto
 lemma size_if_complete: "complete t \<Longrightarrow> size t = 2 ^ height t - 1"
 using size1_if_complete[simplified size1_size] by fastforce
 
-lemma complete_if_size1_height: "size1 t = 2 ^ height t \<Longrightarrow> complete t"
-proof (induct "height t" arbitrary: t)
-  case 0 thus ?case by (simp)
-next
-  case (Suc h)
-  hence "t \<noteq> Leaf" by auto
-  then obtain l a r where [simp]: "t = Node l a r"
-    by (auto simp: neq_Leaf_iff)
-  have 1: "height l \<le> h" and 2: "height r \<le> h" using Suc(2) by(auto)
-  have 3: "\<not> height l < h"
-  proof
-    assume 0: "height l < h"
-    have "size1 t = size1 l + size1 r" by simp
-    also have "\<dots> \<le> 2 ^ height l + 2 ^ height r"
-      using size1_height[of l] size1_height[of r] by arith
-    also have " \<dots> < 2 ^ h + 2 ^ height r" using 0 by (simp)
-    also have " \<dots> \<le> 2 ^ h + 2 ^ h" using 2 by (simp)
-    also have "\<dots> = 2 ^ (Suc h)" by (simp)
-    also have "\<dots> = size1 t" using Suc(2,3) by simp
-    finally have "size1 t < size1 t" .
-    thus False by (simp)
-  qed
-  have 4: "\<not> height r < h"
-  proof
-    assume 0: "height r < h"
-    have "size1 t = size1 l + size1 r" by simp
-    also have "\<dots> \<le> 2 ^ height l + 2 ^ height r"
-      using size1_height[of l] size1_height[of r] by arith
-    also have " \<dots> < 2 ^ height l + 2 ^ h" using 0 by (simp)
-    also have " \<dots> \<le> 2 ^ h + 2 ^ h" using 1 by (simp)
-    also have "\<dots> = 2 ^ (Suc h)" by (simp)
-    also have "\<dots> = size1 t" using Suc(2,3) by simp
-    finally have "size1 t < size1 t" .
-    thus False by (simp)
-  qed
-  from 1 2 3 4 have *: "height l = h" "height r = h" by linarith+
-  hence "size1 l = 2 ^ height l" "size1 r = 2 ^ height r"
-    using Suc(3) size1_height[of l] size1_height[of r] by (auto)
-  with * Suc(1) show ?case by simp
-qed
-
-text\<open>The following proof involves \<open>\<ge>\<close>/\<open>>\<close> chains rather than the standard
-\<open>\<le>\<close>/\<open><\<close> chains. To chain the elements together the transitivity rules \<open>xtrans\<close>
-are used.\<close>
-
-lemma complete_if_size1_min_height: "size1 t = 2 ^ min_height t \<Longrightarrow> complete t"
-proof (induct "min_height t" arbitrary: t)
-  case 0 thus ?case by (simp add: size1_size)
-next
-  case (Suc h)
-  hence "t \<noteq> Leaf" by auto
-  then obtain l a r where [simp]: "t = Node l a r"
-    by (auto simp: neq_Leaf_iff)
-  have 1: "h \<le> min_height l" and 2: "h \<le> min_height r" using Suc(2) by(auto)
-  have 3: "\<not> h < min_height l"
-  proof
-    assume 0: "h < min_height l"
-    have "size1 t = size1 l + size1 r" by simp
-    also note min_height_size1[of l]
-    also(xtrans) note min_height_size1[of r]
-    also(xtrans) have "(2::nat) ^ min_height l > 2 ^ h"
-        using 0 by (simp add: diff_less_mono)
-    also(xtrans) have "(2::nat) ^ min_height r \<ge> 2 ^ h" using 2 by simp
-    also(xtrans) have "(2::nat) ^ h + 2 ^ h = 2 ^ (Suc h)" by (simp)
-    also have "\<dots> = size1 t" using Suc(2,3) by simp
-    finally show False by (simp add: diff_le_mono)
-  qed
-  have 4: "\<not> h < min_height r"
-  proof
-    assume 0: "h < min_height r"
-    have "size1 t = size1 l + size1 r" by simp
-    also note min_height_size1[of l]
-    also(xtrans) note min_height_size1[of r]
-    also(xtrans) have "(2::nat) ^ min_height r > 2 ^ h"
-        using 0 by (simp add: diff_less_mono)
-    also(xtrans) have "(2::nat) ^ min_height l \<ge> 2 ^ h" using 1 by simp
-    also(xtrans) have "(2::nat) ^ h + 2 ^ h = 2 ^ (Suc h)" by (simp)
-    also have "\<dots> = size1 t" using Suc(2,3) by simp
-    finally show False by (simp add: diff_le_mono)
-  qed
-  from 1 2 3 4 have *: "min_height l = h" "min_height r = h" by linarith+
-  hence "size1 l = 2 ^ min_height l" "size1 r = 2 ^ min_height r"
-    using Suc(3) min_height_size1[of l] min_height_size1[of r] by (auto)
-  with * Suc(1) show ?case
-    by (simp add: complete_iff_height)
-qed
-
-lemma complete_iff_size1: "complete t \<longleftrightarrow> size1 t = 2 ^ height t"
-using complete_if_size1_height size1_if_complete by blast
-
-text\<open>Better bounds for incomplete trees:\<close>
-
 lemma size1_height_if_incomplete:
   "\<not> complete t \<Longrightarrow> size1 t < 2 ^ height t"
-by (meson antisym_conv complete_iff_size1 not_le size1_height)
+proof(induction t)
+  case Leaf thus ?case by simp
+next
+  case (Node l x r)
+  have 1: ?case if h: "height l < height r"
+    using h size1_height[of l] size1_height[of r] power_strict_increasing[OF h, of "2::nat"]
+    by(auto simp: max_def simp del: power_strict_increasing_iff)
+  have 2: ?case if h: "height l > height r"
+    using h size1_height[of l] size1_height[of r] power_strict_increasing[OF h, of "2::nat"]
+    by(auto simp: max_def simp del: power_strict_increasing_iff)
+  have 3: ?case if h: "height l = height r" and c: "\<not> complete l"
+    using h size1_height[of r] Node.IH(1)[OF c] by(simp)
+  have 4: ?case if h: "height l = height r" and c: "\<not> complete r"
+    using h size1_height[of l] Node.IH(2)[OF c] by(simp)
+  from 1 2 3 4 Node.prems show ?case apply (simp add: max_def) by linarith
+qed
+
+lemma complete_iff_min_height: "complete t \<longleftrightarrow> (height t = min_height t)"
+by(auto simp add: complete_iff_height)
 
 lemma min_height_size1_if_incomplete:
   "\<not> complete t \<Longrightarrow> 2 ^ min_height t < size1 t"
-by (metis complete_if_size1_min_height le_less min_height_size1)
+proof(induction t)
+  case Leaf thus ?case by simp
+next
+  case (Node l x r)
+  have 1: ?case if h: "min_height l < min_height r"
+    using h min_height_size1[of l] min_height_size1[of r] power_strict_increasing[OF h, of "2::nat"]
+    by(auto simp: max_def simp del: power_strict_increasing_iff)
+  have 2: ?case if h: "min_height l > min_height r"
+    using h min_height_size1[of l] min_height_size1[of r] power_strict_increasing[OF h, of "2::nat"]
+    by(auto simp: max_def simp del: power_strict_increasing_iff)
+  have 3: ?case if h: "min_height l = min_height r" and c: "\<not> complete l"
+    using h min_height_size1[of r] Node.IH(1)[OF c] by(simp add: complete_iff_min_height)
+  have 4: ?case if h: "min_height l = min_height r" and c: "\<not> complete r"
+    using h min_height_size1[of l] Node.IH(2)[OF c] by(simp add: complete_iff_min_height)
+  from 1 2 3 4 Node.prems show ?case
+    by (fastforce simp: complete_iff_min_height[THEN iffD1])
+qed
+
+lemma complete_if_size1_height: "size1 t = 2 ^ height t \<Longrightarrow> complete t"
+using  size1_height_if_incomplete by fastforce
+
+lemma complete_if_size1_min_height: "size1 t = 2 ^ min_height t \<Longrightarrow> complete t"
+using min_height_size1_if_incomplete by fastforce
+
+lemma complete_iff_size1: "complete t \<longleftrightarrow> size1 t = 2 ^ height t"
+using complete_if_size1_height size1_if_complete by blast
 
 
 subsection \<open>@{const balanced}\<close>
