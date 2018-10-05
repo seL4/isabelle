@@ -7,5 +7,4 @@
 isabelle_admin_build jars || exit $?
 
 isabelle_scala scalac -Dfile.encoding=UTF-8 \
-  "-Djava.ext.dirs=$(platform_path "$ISABELLE_JDK_HOME/jre/lib/ext")" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"

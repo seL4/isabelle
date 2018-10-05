@@ -1,5 +1,4 @@
 <string>-Disabelle.root=$APP_ROOT/Contents/Resources/{ISABELLE_NAME}</string>
-<string>-Djava.ext.dirs=$APP_ROOT/Contents/Resources/{ISABELLE_NAME}/contrib/jdk/x86_64-darwin/Contents/Home/jre/lib/ext</string>
 <string>-Disabelle.app=true</string>
 </array>
 <key>JVMArguments</key>

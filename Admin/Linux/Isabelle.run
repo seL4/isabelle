@@ -30,7 +30,6 @@ unset XMODIFIERS
 
 exec "$ISABELLE_HOME/contrib/jdk/x86_64-linux/jre/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
-  "-Djava.ext.dirs=$ISABELLE_HOME/contrib/jdk/x86_64-linux/jre/lib/ext" \
   -classpath "{CLASSPATH}" \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
   isabelle.Main "$@"
