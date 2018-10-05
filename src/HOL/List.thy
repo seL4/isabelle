@@ -3232,7 +3232,7 @@ proof(induct i j rule:upto.induct)
     unfolding upto.simps[of i j] by auto
 qed
 
-lemma nth_upto: "i + int k \<le> j \<Longrightarrow> [i..j] ! k = i + int k"
+lemma nth_upto[simp]: "i + int k \<le> j \<Longrightarrow> [i..j] ! k = i + int k"
   apply(induction i j arbitrary: k rule: upto.induct)
 apply(subst upto_rec1)
 apply(auto simp add: nth_Cons')
