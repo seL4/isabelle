@@ -23,7 +23,7 @@
     <windowTitle>{ISABELLE_NAME}</windowTitle>
   </singleInstance>
   <jre>
-    <path>%EXEDIR%\contrib\jdk\x86_64-windows\jre</path>
+    <path>%EXEDIR%\contrib\jdk\x86_64-windows</path>
     <bundledJre64Bit>true</bundledJre64Bit>
     <bundledJreAsFallback>false</bundledJreAsFallback>
     <minVersion></minVersion>
