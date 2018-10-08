@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke OCaml within the Isabelle environment
+
+isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- ocaml "$@"

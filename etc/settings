@@ -138,6 +138,8 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 
 ISABELLE_OPAM_ROOT="$ISABELLE_HOME_USER/opam"
 
+ISABELLE_OCAML_VERSION="4.05.0"
+
 
 ###
 ### Misc settings
@@ -147,7 +149,5 @@ ISABELLE_GNUPLOT="gnuplot"
 
 #ISABELLE_GHC="/usr/bin/ghc"
 #ISABELLE_MLTON="/usr/bin/mlton"
-#ISABELLE_OCAML="/usr/bin/ocaml"
-#ISABELLE_OCAMLC="/usr/bin/ocamlc"
 #ISABELLE_SMLNJ="/usr/bin/sml"
 #ISABELLE_SWIPL="/usr/bin/swipl"

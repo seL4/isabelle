@@ -99,6 +99,14 @@ else
   ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
 fi
 
+#OCaml
+if [ -z "$ISABELLE_OCAML" -a -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocaml" ]; then
+  ISABELLE_OCAML="$ISABELLE_HOME/lib/Tools/ocaml"
+fi
+if [ -z "$ISABELLE_OCAMLC" -a -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocamlc" ]; then
+  ISABELLE_OCAMLC="$ISABELLE_HOME/lib/Tools/ocamlc"
+fi
+
 #enforce JAVA_HOME
 if [ -d "$ISABELLE_JDK_HOME/jre" ]
 then

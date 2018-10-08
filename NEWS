@@ -25,7 +25,6 @@ precedence over goal/proof.
 (legacy feature since Isabelle2016).
 
 
-
 *** HOL ***
 
 * Simplified syntax setup for big operators under image. In rare
@@ -89,6 +88,12 @@ specified in seconds; a negative value means it is disabled (default).
 * Isabelle Server command "use_theories" terminates more robustly in the
 presence of structurally broken sources: full consolidation of theories
 is no longer required.
+
+* Support for OCaml via command-line tools "isabelle ocaml_setup",
+"isabelle ocaml", "isabelle ocamlc", "isabelle ocaml_opam". Existing
+settings variables ISABELLE_OCAML and ISABELLE_OCAMLC are maintained
+dynamically according the state of ISABELLE_OPAM_ROOT concerning
+ISABELLE_OCAML_VERSION.
 
 
 

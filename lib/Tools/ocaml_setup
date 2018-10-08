@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: OCaml setup via OPAM
+
+isabelle_opam init --no-setup --compiler="$ISABELLE_OCAML_VERSION" "$@"
