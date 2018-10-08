@@ -10,4 +10,5 @@ shift
 
 bin/isabelle components -a
 bin/isabelle jedit -bf
+bin/isabelle ocaml_setup
 bin/isabelle "ci_build_$PROFILE" "$@"

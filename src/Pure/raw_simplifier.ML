@@ -569,7 +569,7 @@ fun extract_rews ctxt sym thms =
     val Simpset (_, {mk_rews = {mk, ...}, ...}) = simpset_of ctxt;
     val mk =
       if sym then fn ctxt => fn th => (mk ctxt th) RL [Drule.symmetric_thm]
-      else mk  
+      else mk
   in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk ctxt thm)) thms
   end;
 

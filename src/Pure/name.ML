@@ -151,9 +151,9 @@ fun variant_list used names = #1 (make_context used |> fold_map variant names);
 
 (* names conforming to typical requirements of identifiers in the world outside *)
 
-fun enforce_case' false cs = 
+fun enforce_case' false cs =
       (if forall Symbol.is_ascii_upper cs then map else nth_map 0) Symbol.to_ascii_lower cs
-  | enforce_case' true cs = 
+  | enforce_case' true cs =
       nth_map 0 Symbol.to_ascii_upper cs;
 
 fun enforce_case upper = implode o enforce_case' upper o raw_explode;
