@@ -133,6 +133,13 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 
 
 ###
+### OCaml
+###
+
+ISABELLE_OPAM_ROOT="$ISABELLE_HOME_USER/opam"
+
+
+###
 ### Misc settings
 ###
 
