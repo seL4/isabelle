@@ -4,4 +4,9 @@
 #
 # DESCRIPTION: OCaml setup via OPAM
 
-isabelle_opam init --no-setup --compiler="$ISABELLE_OCAML_VERSION" "$@"
+if [ -d "$ISABELLE_OPAM_ROOT" ]
+then
+  isabelle_opam switch "$ISABELLE_OCAML_VERSION"
+else
+  isabelle_opam init --no-setup --compiler="$ISABELLE_OCAML_VERSION"
+fi
