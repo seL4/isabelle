@@ -4529,7 +4529,10 @@ lemma splice_Nil2 [simp]: "splice xs [] = xs"
 by (cases xs) simp_all
 
 lemma length_splice[simp]: "length(splice xs ys) = length xs + length ys"
-  by (induct xs ys rule: splice.induct) auto
+by (induct xs ys rule: splice.induct) auto
+
+lemma split_Nil_iff[simp]: "splice xs ys = [] \<longleftrightarrow> xs = [] \<and> ys = []"
+by (induct xs ys rule: splice.induct) auto
 
 
 subsubsection \<open>@{const shuffles}\<close>
