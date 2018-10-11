@@ -4534,6 +4534,10 @@ by (induct xs ys rule: splice.induct) auto
 lemma split_Nil_iff[simp]: "splice xs ys = [] \<longleftrightarrow> xs = [] \<and> ys = []"
 by (induct xs ys rule: splice.induct) auto
 
+lemma splice_replicate[simp]: "splice (replicate m x) (replicate n x) = replicate (m+n) x"
+apply(induction "replicate m x" "replicate n x" arbitrary: m n rule: splice.induct)
+apply (auto simp add: Cons_replicate_eq dest: gr0_implies_Suc)
+done
 
 subsubsection \<open>@{const shuffles}\<close>
 
