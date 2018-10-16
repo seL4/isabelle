@@ -157,7 +157,7 @@ qed
 
 setup_lifting type_definition_fmap
 
-lemma fmlookup_finite[intro, simp]: "finite (dom (fmlookup m))"
+lemma dom_fmlookup_finite[intro, simp]: "finite (dom (fmlookup m))"
 using fmap.fmlookup by auto
 
 lemma fmap_ext:
@@ -224,6 +224,12 @@ using assms by (auto simp: fmlookup_dom'_iff)
 
 lemma fmdom'_alt_def: "fmdom' m = fset (fmdom m)"
 by transfer' force
+
+lemma finite_fmdom'[simp]: "finite (fmdom' m)"
+unfolding fmdom'_alt_def by simp
+
+lemma dom_fmlookup[simp]: "dom (fmlookup m) = fmdom' m"
+by transfer' simp
 
 lift_definition fmempty :: "('a, 'b) fmap"
   is Map.empty
@@ -351,6 +357,12 @@ lemma fmdom_drop_fset[simp]: "fmdom (fmdrop_fset A m) = fmdom m - A" unfolding f
 lemma fmdom'_restrict_set: "fmdom' (fmrestrict_set A m) \<subseteq> A" unfolding fmfilter_alt_defs by auto
 lemma fmdom_restrict_fset: "fmdom (fmrestrict_fset A m) |\<subseteq>| A" unfolding fmfilter_alt_defs by auto
 
+lemma fmdom'_restrict_set_precise: "fmdom' (fmrestrict_set A m) = fmdom' m \<inter> A"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmdom'_restrict_fset_precise: "fmdom (fmrestrict_fset A m) = fmdom m |\<inter>| A"
+unfolding fmfilter_alt_defs by auto
+
 lemma fmdom'_drop_fset[simp]: "fmdom' (fmdrop_fset A m) = fmdom' m - fset A"
 unfolding fmfilter_alt_defs by transfer' (auto simp: map_filter_def split: if_splits)
 
@@ -423,6 +435,39 @@ lemma fmdrop_set_insert[simp]: "fmdrop_set (insert x S) m = fmdrop x (fmdrop_set
 by (rule fmap_ext) auto
 
 lemma fmdrop_fset_insert[simp]: "fmdrop_fset (finsert x S) m = fmdrop x (fmdrop_fset S m)"
+by (rule fmap_ext) auto
+
+lemma fmrestrict_set_twice[simp]: "fmrestrict_set S (fmrestrict_set T m) = fmrestrict_set (S \<inter> T) m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmrestrict_fset_twice[simp]: "fmrestrict_fset S (fmrestrict_fset T m) = fmrestrict_fset (S |\<inter>| T) m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmrestrict_set_drop[simp]: "fmrestrict_set S (fmdrop b m) = fmrestrict_set (S - {b}) m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmrestrict_fset_drop[simp]: "fmrestrict_fset S (fmdrop b m) = fmrestrict_fset (S - {| b |}) m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmdrop_fmrestrict_set[simp]: "fmdrop b (fmrestrict_set S m) = fmrestrict_set (S - {b}) m"
+by (rule fmap_ext) auto
+
+lemma fmdrop_fmrestrict_fset[simp]: "fmdrop b (fmrestrict_fset S m) = fmrestrict_fset (S - {| b |}) m"
+by (rule fmap_ext) auto
+
+lemma fmdrop_idem[simp]: "fmdrop a (fmdrop a m) = fmdrop a m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmdrop_set_twice[simp]: "fmdrop_set S (fmdrop_set T m) = fmdrop_set (S \<union> T) m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmdrop_fset_twice[simp]: "fmdrop_fset S (fmdrop_fset T m) = fmdrop_fset (S |\<union>| T) m"
+unfolding fmfilter_alt_defs by auto
+
+lemma fmdrop_set_fmdrop[simp]: "fmdrop_set S (fmdrop b m) = fmdrop_set (insert b S) m"
+by (rule fmap_ext) auto
+
+lemma fmdrop_fset_fmdrop[simp]: "fmdrop_fset S (fmdrop b m) = fmdrop_fset (finsert b S) m"
 by (rule fmap_ext) auto
 
 lift_definition fmadd :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" (infixl "++\<^sub>f" 100)
@@ -575,6 +620,24 @@ unfolding fmfilter_alt_defs by (rule fmsubset_filter_mono)
 
 lemma fmsubset_restrict_fset_mono: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmrestrict_fset A m \<subseteq>\<^sub>f fmrestrict_fset A n"
 unfolding fmfilter_alt_defs by (rule fmsubset_filter_mono)
+
+lemma fmfilter_subset[simp]: "fmfilter P m \<subseteq>\<^sub>f m"
+unfolding fmsubset_alt_def fmpred_iff by auto
+
+lemma fmsubset_drop[simp]: "fmdrop a m \<subseteq>\<^sub>f m"
+unfolding fmfilter_alt_defs by (rule fmfilter_subset)
+
+lemma fmsubset_drop_set[simp]: "fmdrop_set S m \<subseteq>\<^sub>f m"
+unfolding fmfilter_alt_defs by (rule fmfilter_subset)
+
+lemma fmsubset_drop_fset[simp]: "fmdrop_fset S m \<subseteq>\<^sub>f m"
+unfolding fmfilter_alt_defs by (rule fmfilter_subset)
+
+lemma fmsubset_restrict_set[simp]: "fmrestrict_set S m \<subseteq>\<^sub>f m"
+unfolding fmfilter_alt_defs by (rule fmfilter_subset)
+
+lemma fmsubset_restrict_fset[simp]: "fmrestrict_fset S m \<subseteq>\<^sub>f m"
+unfolding fmfilter_alt_defs by (rule fmfilter_subset)
 
 lift_definition fset_of_fmap :: "('a, 'b) fmap \<Rightarrow> ('a \<times> 'b) fset" is set_of_map
 by (rule set_of_map_finite)
