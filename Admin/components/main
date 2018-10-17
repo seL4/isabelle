@@ -16,9 +16,9 @@ polyml-5.7.1-8
 postgresql-42.2.5
 scala-2.12.7
 smbc-0.4.1
-ssh-java-20161009
 spass-3.8ds-1
 sqlite-jdbc-3.23.1
+ssh-java-20161009
 vampire-4.2.2
 xz-java-1.8
 z3-4.4.0pre-2
