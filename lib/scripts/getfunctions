@@ -13,10 +13,12 @@ else
 
 if [ "$OSTYPE" = cygwin ]; then
   function platform_path() { cygpath -i -C UTF8 -w -p "$@"; }
+  function standard_path() { cygpath -i -u -p "$@" | tr -d '\r'; }
 else
   function platform_path() { echo "$@"; }
+  function standard_path() { echo "$@"; }
 fi
-export -f platform_path
+export -f platform_path standard_path
 
 #GNU tar (notably on Mac OS X)
 if type -p gnutar >/dev/null

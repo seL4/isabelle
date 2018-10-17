@@ -111,7 +111,7 @@ fi
 
 #enforce ISABELLE_GHC
 if [ -d "$ISABELLE_STACK_ROOT" ]; then
-  if [ -f "$(isabelle_stack path --programs)/$ISABELLE_GHC_VERSION/bin/ghc" ]; then
+  if [ -f "$(standard_path "$(isabelle_stack path --programs)")/$ISABELLE_GHC_VERSION/bin/ghc" ]; then
     ISABELLE_GHC="$ISABELLE_HOME/lib/Tools/ghc"
   fi
 fi
