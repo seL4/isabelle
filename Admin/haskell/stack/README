@@ -1,0 +1,12 @@
+This is stack 1.9.1 -- the Haskell Tool Stack.
+
+See also https://www.haskellstack.org and executables from
+https://github.com/commercialhaskell/stack/releases as follows:
+
+  * x86_64-linux: stack-1.9.1-linux-x86_64-static.tar.gz
+  * x86_64-darwin: stack-1.9.1-osx-x86_64.tar.gz
+  * x86_64-windows: stack-1.9.1-windows-x86_64.tar.gz
+
+
+    Makarius
+    17-Oct-2018

@@ -142,6 +142,13 @@ ISABELLE_OCAML_VERSION="4.05.0"
 
 
 ###
+### Haskell
+###
+
+ISABELLE_STACK_ROOT="$ISABELLE_HOME_USER/stack"
+
+
+###
 ### Misc settings
 ###
 
