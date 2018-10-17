@@ -37,11 +37,11 @@ function isabelle_opam()
 }
 export -f isabelle_opam
 
-#Haskell management via Stack
+#GHC management via Stack
 function isabelle_stack()
 {
   if [ -z "$ISABELLE_STACK" ]; then
-    echo "Unknown ISABELLE_STACK -- Haskell management tools unavailable" >&2
+    echo "Unknown ISABELLE_STACK -- GHC management tools unavailable" >&2
     return 127
   else
     env STACK_ROOT="$(platform_path "$ISABELLE_STACK_ROOT")" "$ISABELLE_STACK" "$@"
