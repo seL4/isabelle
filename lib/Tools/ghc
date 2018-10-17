@@ -4,4 +4,9 @@
 #
 # DESCRIPTION: invoke Glasgow Haskell Compiler within the Isabelle environment
 
-isabelle_stack ghc -- "$@"
+if [ -d "$ISABELLE_STACK_ROOT" ]; then
+  isabelle_stack ghc -- "$@"
+else
+  exit 127
+fi
+

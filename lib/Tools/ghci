@@ -4,4 +4,8 @@
 #
 # DESCRIPTION: invoke GHC interaction within the Isabelle environment
 
-isabelle_stack ghci "$@"
+if [ -d "$ISABELLE_STACK_ROOT" ]; then
+  isabelle_stack ghci "$@"
+else
+  exit 127
+fi
