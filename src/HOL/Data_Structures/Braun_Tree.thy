@@ -11,7 +11,11 @@ and later Hoogerwoord~\cite{Hoogerwoord} who gave them their name.\<close>
 
 fun braun :: "'a tree \<Rightarrow> bool" where
 "braun Leaf = True" |
-"braun (Node l x r) = (size r \<le> size l \<and> size l \<le> size r + 1 \<and> braun l \<and> braun r)"
+"braun (Node l x r) = ((size l = size r \<or> size l = size r + 1) \<and> braun l \<and> braun r)"
+
+lemma braun_Node':
+  "braun (Node l x r) = (size r \<le> size l \<and> size l \<le> size r + 1 \<and> braun l \<and> braun r)"
+by auto
 
 text \<open>The shape of a Braun-tree is uniquely determined by its size:\<close>
 
@@ -22,7 +26,7 @@ next
   case (Node l1 _ r1)
   from Node.prems(3) have "t2 \<noteq> Leaf" by auto
   then obtain l2 x2 r2 where [simp]: "t2 = Node l2 x2 r2" by (meson neq_Leaf_iff)
-  with Node.prems have "size l1 = size l2 \<and> size r1 = size r2" by simp
+  with Node.prems have "size l1 = size l2 \<and> size r1 = size r2" by auto
   thus ?case using Node.prems(1,2) Node.IH by auto
 qed
 
@@ -34,7 +38,7 @@ proof(induction t)
 next
   case (Node l x r)
   have "size l = size r \<or> size l = size r + 1" (is "?A \<or> ?B")
-    using Node.prems by auto
+    using Node.prems by simp
   thus ?case
   proof
     assume "?A"
