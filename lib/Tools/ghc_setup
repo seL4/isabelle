@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: setup Glasgow Haskell Compiler setup via Stack
+
+isabelle_stack setup --resolver "$ISABELLE_STACK_RESOLVER" &&
+  isabelle_stack ghci --ghci-options --version

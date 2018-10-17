@@ -95,6 +95,11 @@ settings variables ISABELLE_OCAML and ISABELLE_OCAMLC are maintained
 dynamically according the state of ISABELLE_OPAM_ROOT concerning
 ISABELLE_OCAML_VERSION.
 
+* Support for Glasgow Haskell Compiler via command-line tools "isabelle
+ghc_setup", "isabelle ghci", "isabelle ghc", "isabelle ghc_stack".
+Existing settings variable ISABELLE_GHC is maintained dynamically
+according the state of ISABELLE_STACK_ROOT and ISABELLE_STACK_RESOLVER.
+
 
 
 New in Isabelle2018 (August 2018)

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke Haskell Tool Stack within the Isabelle environment
+
+isabelle_stack "$@"

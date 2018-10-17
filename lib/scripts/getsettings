@@ -107,6 +107,11 @@ if [ -z "$ISABELLE_OCAMLC" -a -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bi
   ISABELLE_OCAMLC="$ISABELLE_HOME/lib/Tools/ocamlc"
 fi
 
+#GHC
+if [ -z "$ISABELLE_GHC" -a -d "$ISABELLE_STACK_ROOT" -a -f "$(isabelle_stack path --programs)/$ISABELLE_GHC_VERSION/ghc" ]; then
+  ISABELLE_GHC="$ISABELLE_HOME/lib/Tools/ghc"
+fi
+
 #enforce JAVA_HOME
 if [ -d "$ISABELLE_JDK_HOME/jre" ]
 then
