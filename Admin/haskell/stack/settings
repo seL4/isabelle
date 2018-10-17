@@ -1,0 +1,3 @@
+# -*- shell-script -*- :mode=shellscript:
+
+ISABELLE_STACK="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/stack"

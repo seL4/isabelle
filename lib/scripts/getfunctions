@@ -37,6 +37,18 @@ function isabelle_opam()
 }
 export -f isabelle_opam
 
+#GHC management via Stack
+function isabelle_stack()
+{
+  if [ -z "$ISABELLE_STACK" ]; then
+    echo "Unknown ISABELLE_STACK -- GHC management tools unavailable" >&2
+    return 127
+  else
+    env STACK_ROOT="$(platform_path "$ISABELLE_STACK_ROOT")" "$ISABELLE_STACK" "$@"
+  fi
+}
+export -f isabelle_stack
+
 #robust invocation via ISABELLE_JDK_HOME
 function isabelle_jdk ()
 {

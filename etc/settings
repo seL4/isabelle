@@ -142,12 +142,22 @@ ISABELLE_OCAML_VERSION="4.05.0"
 
 
 ###
+### Haskell
+###
+
+ISABELLE_STACK_ROOT="$ISABELLE_HOME_USER/stack"
+
+ISABELLE_STACK_RESOLVER="lts-12.13"
+
+ISABELLE_GHC_VERSION="ghc-8.4.3"
+
+
+###
 ### Misc settings
 ###
 
 ISABELLE_GNUPLOT="gnuplot"
 
-#ISABELLE_GHC="/usr/bin/ghc"
 #ISABELLE_MLTON="/usr/bin/mlton"
 #ISABELLE_SMLNJ="/usr/bin/sml"
 #ISABELLE_SWIPL="/usr/bin/swipl"

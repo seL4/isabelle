@@ -99,12 +99,21 @@ else
   ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
 fi
 
-#OCaml
-if [ -z "$ISABELLE_OCAML" -a -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocaml" ]; then
+#enforce ISABELLE_OCAML
+if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocaml" ]; then
   ISABELLE_OCAML="$ISABELLE_HOME/lib/Tools/ocaml"
 fi
-if [ -z "$ISABELLE_OCAMLC" -a -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocamlc" ]; then
+
+#enforce ISABELLE_OCAMLC
+if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocamlc" ]; then
   ISABELLE_OCAMLC="$ISABELLE_HOME/lib/Tools/ocamlc"
+fi
+
+#enforce ISABELLE_GHC
+if [ -d "$ISABELLE_STACK_ROOT" ]; then
+  if [ -f "$(isabelle_stack path --programs)/$ISABELLE_GHC_VERSION/ghc" ]; then
+    ISABELLE_GHC="$ISABELLE_HOME/lib/Tools/ghc"
+  fi
 fi
 
 #enforce JAVA_HOME
