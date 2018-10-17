@@ -106,6 +106,9 @@ by blast
 lemma imp_forward: "\<lbrakk>P' \<longrightarrow> Q';  P \<Longrightarrow> P';  Q' \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> P \<longrightarrow> Q"
 by blast
 
+lemma imp_forward2: "\<lbrakk>P' \<longrightarrow> Q';  P \<Longrightarrow> P';  P' \<Longrightarrow> Q' \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> P \<longrightarrow> Q"
+  by blast
+
 (*Version of @{text disj_forward} for removal of duplicate literals*)
 lemma disj_forward2: "\<lbrakk> P'\<or>Q';  P' \<Longrightarrow> P;  \<lbrakk>Q'; P\<Longrightarrow>False\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> P\<or>Q"
 apply blast 

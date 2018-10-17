@@ -635,8 +635,8 @@ next
   then show "T1 = T2" unfolding openin_inverse .
 qed
 
-text\<open>Infer the "universe" from union of all sets in the topology.\<close>
 
+text\<open>The "universe": the union of all sets in the topology.\<close>
 definition "topspace T = \<Union>{S. openin T S}"
 
 subsubsection \<open>Main properties of open sets\<close>
@@ -778,7 +778,52 @@ proof -
 qed
 
 
-subsubsection \<open>Subspace topology\<close>
+subsection\<open>The discrete topology\<close>
+
+definition discrete_topology where "discrete_topology U \<equiv> topology (\<lambda>S. S \<subseteq> U)"
+
+lemma openin_discrete_topology [simp]: "openin (discrete_topology U) S \<longleftrightarrow> S \<subseteq> U"
+proof -
+  have "istopology (\<lambda>S. S \<subseteq> U)"
+    by (auto simp: istopology_def)
+  then show ?thesis
+    by (simp add: discrete_topology_def topology_inverse')
+qed
+
+lemma topspace_discrete_topology [simp]: "topspace(discrete_topology U) = U"
+  by (meson openin_discrete_topology openin_subset openin_topspace order_refl subset_antisym)
+
+lemma closedin_discrete_topology [simp]: "closedin (discrete_topology U) S \<longleftrightarrow> S \<subseteq> U"
+  by (simp add: Diff_subset closedin_def)
+
+lemma discrete_topology_unique:
+   "discrete_topology U = X \<longleftrightarrow> topspace X = U \<and> (\<forall>x \<in> U. openin X {x})" (is "?lhs = ?rhs")
+proof
+  assume R: ?rhs
+  then have "openin X S" if "S \<subseteq> U" for S
+    using openin_subopen subsetD that by fastforce
+  moreover have "x \<in> topspace X" if "openin X S" and "x \<in> S" for x S
+    using openin_subset that by blast
+  ultimately
+  show ?lhs
+    using R by (auto simp: topology_eq)
+qed auto
+
+lemma discrete_topology_unique_alt:
+  "discrete_topology U = X \<longleftrightarrow> topspace X \<subseteq> U \<and> (\<forall>x \<in> U. openin X {x})"
+  using openin_subset
+  by (auto simp: discrete_topology_unique)
+
+lemma subtopology_eq_discrete_topology_empty:
+   "X = discrete_topology {} \<longleftrightarrow> topspace X = {}"
+  using discrete_topology_unique [of "{}" X] by auto
+
+lemma subtopology_eq_discrete_topology_sing:
+   "X = discrete_topology {a} \<longleftrightarrow> topspace X = {a}"
+  by (metis discrete_topology_unique openin_topspace singletonD)
+
+
+subsection \<open>Subspace topology\<close>
 
 definition%important "subtopology U V = topology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
 
@@ -817,6 +862,19 @@ qed
 lemma openin_subtopology: "openin (subtopology U V) S \<longleftrightarrow> (\<exists>T. openin U T \<and> S = T \<inter> V)"
   unfolding subtopology_def topology_inverse'[OF istopology_subtopology]
   by auto
+
+lemma openin_subtopology_Int:
+   "openin X S \<Longrightarrow> openin (subtopology X T) (S \<inter> T)"
+  using openin_subtopology by auto
+
+lemma openin_subtopology_Int2:
+   "openin X T \<Longrightarrow> openin (subtopology X S) (S \<inter> T)"
+  using openin_subtopology by auto
+
+lemma openin_subtopology_diff_closed:
+   "\<lbrakk>S \<subseteq> topspace X; closedin X T\<rbrakk> \<Longrightarrow> openin (subtopology X S) (S - T)"
+  unfolding closedin_def openin_subtopology
+  by (rule_tac x="topspace X - T" in exI) auto
 
 lemma openin_relative_to: "(openin X relative_to S) = openin (subtopology X S)"
   by (force simp: relative_to_def openin_subtopology)
@@ -927,7 +985,7 @@ lemma closedin_subtopology_Un:
 by (simp add: closedin_subtopology) blast
 
 
-subsubsection \<open>The standard Euclidean topology\<close>
+subsection \<open>The standard Euclidean topology\<close>
 
 definition%important euclidean :: "'a::topological_space topology"
   where "euclidean = topology open"
@@ -958,7 +1016,25 @@ lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T.
 lemma openin_subtopology_self [simp]: "openin (subtopology euclidean S) S"
   by (metis openin_topspace topspace_euclidean_subtopology)
 
-text \<open>Basic "localization" results are handy for connectedness.\<close>
+subsubsection\<open>The most basic facts about the usual topology and metric on R\<close>
+
+abbreviation euclideanreal :: "real topology"
+  where "euclideanreal \<equiv> topology open"
+
+lemma real_openin [simp]: "openin euclideanreal S = open S"
+  by (simp add: euclidean_def open_openin)
+
+lemma topspace_euclideanreal [simp]: "topspace euclideanreal = UNIV"
+  using openin_subset open_UNIV real_openin by blast
+
+lemma topspace_euclideanreal_subtopology [simp]:
+   "topspace (subtopology euclideanreal S) = S"
+  by (simp add: topspace_subtopology)
+
+lemma real_closedin [simp]: "closedin euclideanreal S = closed S"
+  by (simp add: closed_closedin euclidean_def)
+
+subsection \<open>Basic "localization" results are handy for connectedness.\<close>
 
 lemma openin_open: "openin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. open T \<and> (S = U \<inter> T))"
   by (auto simp: openin_subtopology)

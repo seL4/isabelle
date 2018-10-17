@@ -1100,6 +1100,9 @@ lemma Times_Diff_distrib1: "(A - B) \<times> C = A \<times> C - B \<times> C "
 lemma Times_empty [simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
   by auto
 
+lemma times_subset_iff: "A \<times> C \<subseteq> B \<times> D \<longleftrightarrow> A={} \<or> C={} \<or> A \<subseteq> B \<and> C \<subseteq> D"
+  by blast
+
 lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> (A = {} \<or> B = {}) \<and> (C = {} \<or> D = {})"
   by auto
 

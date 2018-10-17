@@ -2853,8 +2853,6 @@ proof%unimportant -
     by (simp cong: measurable_cong)
 qed
 
-lemma%unimportant Collect_subset [simp]: "{x\<in>A. P x} \<subseteq> A" by auto
-
 lemma%unimportant (in sigma_finite_measure) measurable_measure[measurable (raw)]:
   "(\<And>x. x \<in> space N \<Longrightarrow> A x \<subseteq> space M) \<Longrightarrow>
     {x \<in> space (N \<Otimes>\<^sub>M M). snd x \<in> A (fst x)} \<in> sets (N \<Otimes>\<^sub>M M) \<Longrightarrow>

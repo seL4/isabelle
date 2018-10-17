@@ -1263,6 +1263,10 @@ proof (clarsimp simp: inj_on_def linepath_def)
     using assms by auto
 qed
 
+lemma linepath_le_1:
+  fixes a::"'a::linordered_idom" shows "\<lbrakk>a \<le> 1; b \<le> 1; 0 \<le> u; u \<le> 1\<rbrakk> \<Longrightarrow> (1 - u) * a + u * b \<le> 1"
+  using mult_left_le [of a "1-u"] mult_left_le [of b u] by auto
+
 
 subsection%unimportant\<open>Segments via convex hulls\<close>
 

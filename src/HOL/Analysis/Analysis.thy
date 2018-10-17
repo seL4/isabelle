@@ -10,6 +10,7 @@ imports
   Cross3
   Homeomorphism
   Bounded_Continuous_Function
+  Abstract_Topology
   Function_Topology
   Infinite_Products
   Infinite_Set_Sum

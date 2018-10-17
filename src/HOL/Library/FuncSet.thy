@@ -570,6 +570,40 @@ lemma extensional_funcset_extend_domain_inj_onI:
   done
 
 
+subsubsection \<open>Misc properties of functions, composition and restriction from HOL Light\<close>
+
+lemma function_factors_left_gen:
+  "(\<forall>x y. P x \<and> P y \<and> g x = g y \<longrightarrow> f x = f y) \<longleftrightarrow> (\<exists>h. \<forall>x. P x \<longrightarrow> f x = h(g x))"
+  (is "?lhs = ?rhs")
+proof
+  assume L: ?lhs
+  then show ?rhs
+    apply (rule_tac x="f \<circ> inv_into (Collect P) g" in exI)
+    unfolding o_def
+    by (metis (mono_tags, hide_lams) f_inv_into_f imageI inv_into_into mem_Collect_eq)
+qed auto
+
+lemma function_factors_left:
+  "(\<forall>x y. (g x = g y) \<longrightarrow> (f x = f y)) \<longleftrightarrow> (\<exists>h. f = h \<circ> g)"
+  using function_factors_left_gen [of "\<lambda>x. True" g f] unfolding o_def by blast
+
+lemma function_factors_right_gen:
+  "(\<forall>x. P x \<longrightarrow> (\<exists>y. g y = f x)) \<longleftrightarrow> (\<exists>h. \<forall>x. P x \<longrightarrow> f x = g(h x))"
+  by metis
+
+lemma function_factors_right:
+  "(\<forall>x. \<exists>y. g y = f x) \<longleftrightarrow> (\<exists>h. f = g \<circ> h)"
+  unfolding o_def by metis
+
+lemma restrict_compose_right:
+   "restrict (g \<circ> restrict f S) S = restrict (g \<circ> f) S"
+  by auto
+
+lemma restrict_compose_left:
+   "f ` S \<subseteq> T \<Longrightarrow> restrict (restrict g T \<circ> f) S = restrict (g \<circ> f) S"
+  by fastforce
+
+
 subsubsection \<open>Cardinality\<close>
 
 lemma finite_PiE: "finite S \<Longrightarrow> (\<And>i. i \<in> S \<Longrightarrow> finite (T i)) \<Longrightarrow> finite (\<Pi>\<^sub>E i \<in> S. T i)"

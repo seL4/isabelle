@@ -1140,6 +1140,8 @@ lemma subset_empty [simp]: "A \<subseteq> {} \<longleftrightarrow> A = {}"
 lemma not_psubset_empty [iff]: "\<not> (A < {})"
   by (fact not_less_bot) (* FIXME: already simp *)
 
+lemma Collect_subset [simp]: "{x\<in>A. P x} \<subseteq> A" by auto
+
 lemma Collect_empty_eq [simp]: "Collect P = {} \<longleftrightarrow> (\<forall>x. \<not> P x)"
   by blast
 

@@ -974,6 +974,12 @@ next
   then show ?thesis by simp
 qed
 
+lemma sum_bounded_above_divide:
+  fixes K :: "'a::linordered_field"
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> K / of_nat (card A)" and fin: "finite A" "A \<noteq> {}"
+  shows "sum f A \<le> K"
+  using sum_bounded_above [of A f "K / of_nat (card A)", OF le] fin by simp
+
 lemma sum_bounded_above_strict:
   fixes K :: "'a::{ordered_cancel_comm_monoid_add,semiring_1}"
   assumes "\<And>i. i\<in>A \<Longrightarrow> f i < K" "card A > 0"
@@ -992,6 +998,27 @@ proof (cases "finite A")
 next
   case False
   then show ?thesis by simp
+qed
+
+lemma convex_sum_bound_le:
+  fixes x :: "'a \<Rightarrow> 'b::linordered_idom"
+  assumes 0: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> x i" and 1: "sum x I = 1"
+      and \<delta>: "\<And>i. i \<in> I \<Longrightarrow> \<bar>a i - b\<bar> \<le> \<delta>"
+    shows "\<bar>(\<Sum>i\<in>I. a i * x i) - b\<bar> \<le> \<delta>"
+proof -
+  have [simp]: "(\<Sum>i\<in>I. c * x i) = c" for c
+    by (simp flip: sum_distrib_left 1)
+  then have "\<bar>(\<Sum>i\<in>I. a i * x i) - b\<bar> = \<bar>\<Sum>i\<in>I. (a i - b) * x i\<bar>"
+    by (simp add: sum_subtractf left_diff_distrib)
+  also have "\<dots> \<le> (\<Sum>i\<in>I. \<bar>(a i - b) * x i\<bar>)"
+    using abs_abs abs_of_nonneg by blast
+  also have "\<dots> \<le> (\<Sum>i\<in>I. \<bar>(a i - b)\<bar> * x i)"
+    by (simp add: abs_mult 0)
+  also have "\<dots> \<le> (\<Sum>i\<in>I. \<delta> * x i)"
+    by (rule sum_mono) (use \<delta> "0" mult_right_mono in blast)
+  also have "\<dots> = \<delta>"
+    by simp
+  finally show ?thesis .
 qed
 
 lemma card_UN_disjoint:

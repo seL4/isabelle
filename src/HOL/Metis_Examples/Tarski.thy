@@ -436,7 +436,7 @@ declare (in CLF) CLF_set_def[simp del] CL_dualCL[simp del] monotone_dual[simp de
 subsection \<open>fixed points\<close>
 
 lemma fix_subset: "fix f A \<subseteq> A"
-by (simp add: fix_def, fast)
+by (auto simp add: fix_def)
 
 lemma fix_imp_eq: "x \<in> fix f A ==> f x = x"
 by (simp add: fix_def)

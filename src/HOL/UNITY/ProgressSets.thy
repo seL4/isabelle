@@ -62,10 +62,7 @@ by (simp add: lattice_def stable_def constrains_def, blast)
 text\<open>The next three results state that @{term "cl L r"} is the minimal
  element of @{term L} that includes @{term r}.\<close>
 lemma cl_in_lattice: "lattice L ==> cl L r \<in> L"
-apply (simp add: lattice_def cl_def)
-apply (erule conjE)  
-apply (drule spec, erule mp, blast) 
-done
+  by (simp add: lattice_def cl_def)
 
 lemma cl_least: "[|c\<in>L; r\<subseteq>c|] ==> cl L r \<subseteq> c" 
 by (force simp add: cl_def)
