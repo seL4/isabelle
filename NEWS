@@ -92,7 +92,7 @@ is no longer required.
 * Support for OCaml via command-line tools "isabelle ocaml_setup",
 "isabelle ocaml", "isabelle ocamlc", "isabelle ocaml_opam". Existing
 settings variables ISABELLE_OCAML and ISABELLE_OCAMLC are maintained
-dynamically according the state of ISABELLE_OPAM_ROOT concerning
+dynamically according the state of ISABELLE_OPAM_ROOT and
 ISABELLE_OCAML_VERSION.
 
 * Support for Glasgow Haskell Compiler via command-line tools "isabelle
