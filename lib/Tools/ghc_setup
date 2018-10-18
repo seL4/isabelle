@@ -4,5 +4,5 @@
 #
 # DESCRIPTION: setup Glasgow Haskell Compiler setup via Stack
 
-isabelle_stack setup --resolver "$ISABELLE_STACK_RESOLVER" &&
+isabelle_stack setup --resolver "$ISABELLE_STACK_RESOLVER" "$ISABELLE_GHC_VERSION" &&
   isabelle_stack ghci --ghci-options --version
