@@ -1,0 +1,150 @@
+Only in MacOSX-trunk: build
+diff -ru MacOSX-trunk-r24891/build.properties MacOSX-trunk/build.properties
+--- MacOSX-trunk-r24891/build.properties	2018-10-20 11:45:32.632681780 +0200
++++ MacOSX-trunk/build.properties	2018-10-20 13:11:21.039870008 +0200
+@@ -1,3 +1,6 @@
+ build.support=../build-support-trunk
+ jedit.install.dir=../jedit-trunk/build
+ install.dir=${jedit.install.dir}/jars
++compiler.target=1.9
++compiler.source=1.9
++compiler.extdirs=
+diff -ru MacOSX-trunk-r24891/CHANGES.txt MacOSX-trunk/CHANGES.txt
+--- MacOSX-trunk-r24891/CHANGES.txt	2013-09-24 01:12:13.000000000 +0200
++++ MacOSX-trunk/CHANGES.txt	2018-10-20 15:28:20.068978715 +0200
+@@ -1,3 +1,6 @@
++Mac OS X Plugin 1.4 [Makarius]
++- Updates for Java 9: use java.awt.Desktop instead of old com.apple.eawt.Application / OSXAdapter.
++
+ Mac OS X Plugin 1.3 [Alan Ezust]
+ - Updates for Java 7 and jEdit 5.2
+ - Got rid of alternative dispatcher stuff which was workaround for Java 5 bugs.
+diff -ru MacOSX-trunk-r24891/docs/MacOSX.html MacOSX-trunk/docs/MacOSX.html
+--- MacOSX-trunk-r24891/docs/MacOSX.html	2013-09-19 19:42:51.000000000 +0200
++++ MacOSX-trunk/docs/MacOSX.html	2018-10-20 15:09:33.726059959 +0200
+@@ -16,8 +16,8 @@
+     <td valign="TOP"><strong><font size="+2">jEdit Mac OS X Plugin</font></strong></td>
+     <td valign="TOP" align="RIGHT">
+     	<font size="-1"> 
+-	    <strong>Version 1.3 </strong>
+-	    <br/> By Seph M. Soliman and Alan Ezust
++	    <strong>Version 1.4 </strong>
++	    <br/> By Seph M. Soliman, Alan Ezust, Makarius
+ 	    <br/> $Date: 2013-09-19 17:42:51 +0000 (Thu, 19 Sep 2013) $  	    
+ 	</font>
+     </td>
+diff -ru MacOSX-trunk-r24891/macosx/MacOSXPlugin.java MacOSX-trunk/macosx/MacOSXPlugin.java
+--- MacOSX-trunk-r24891/macosx/MacOSXPlugin.java	2013-09-20 02:51:27.000000000 +0200
++++ MacOSX-trunk/macosx/MacOSXPlugin.java	2018-10-20 13:33:25.272004064 +0200
+@@ -25,6 +25,7 @@
+ //{{{ Imports
+ import java.awt.event.InputEvent;
+ 
++import java.awt.Desktop;
+ import javax.swing.*;
+ import java.util.regex.Pattern;
+ import java.io.File;
+@@ -59,17 +60,13 @@
+ 				{
+ 					try
+ 					{
+-						MacOSXPlugin listener = MacOSXPlugin.this;
+-						Class theClass = listener.getClass();
+-						
+-						// Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
+-						// use as delegates for various com.apple.eawt.ApplicationListener methods
+-						OSXAdapter.setQuitHandler(listener, theClass.getDeclaredMethod("handleQuit", (Class[])null));
+-						OSXAdapter.setAboutHandler(listener, theClass.getDeclaredMethod("handleAbout", (Class[])null));
+-						OSXAdapter.setPreferencesHandler(listener, theClass.getDeclaredMethod("handlePreferences", (Class[])null));
+-						OSXAdapter.setFileHandler(listener, theClass.getDeclaredMethod("handleOpenFile", new Class[] { String.class }));
+-						OSXAdapter.setReOpenApplicationHandler(listener, theClass.getDeclaredMethod("handleReOpenApplication", (Class[])null));
+-						
++						Desktop desktop = Desktop.getDesktop();
++
++						desktop.setQuitHandler((e, r) -> { handleQuit(); r.cancelQuit(); });
++						desktop.setAboutHandler((e) -> handleAbout());
++						desktop.setPreferencesHandler((e) -> handlePreferences());
++						desktop.setOpenFileHandler((e) -> { for (File f : e.getFiles()) handleOpenFile(f); });
++
+ 						String lf = jEdit.getProperty("lookAndFeel");
+ 						if(lf != null && lf.length() != 0)
+ 						{
+@@ -86,7 +83,7 @@
+ 					}
+ 					catch (Exception e)
+ 					{
+-						Log.log(Log.ERROR, this, "Error while loading the OSXAdapter:", e);
++						Log.log(Log.ERROR, this, "Error while configuring MacOSX support:", e);
+ 					}
+ 				}
+ 			};
+@@ -109,7 +106,7 @@
+ 		//JOptionPane.showMessageDialog(null, jEdit.getProperty("MacOSXPlugin.dialog.unload.message"), jEdit.getProperty("MacOSXPlugin.dialog.unload.title"), 1);
+ 	}
+ 	
+-	// General quit handler; fed to the OSXAdapter as the method to call when a system quit event occurs
++	// General quit handler; the method to call when a system quit event occurs
+ 	// A quit event is triggered by Cmd-Q, selecting Quit from the application or Dock menu, or logging out
+ 	public boolean handleQuit()
+ 	{
+@@ -122,16 +119,14 @@
+ 		new CombinedOptions(jEdit.getActiveView());
+ 	}
+ 	
+-	// General info dialog; fed to the OSXAdapter as the method to call when 
+-	// "About OSXAdapter" is selected from the application menu
++	// General info dialog; the method to call when "About" is selected from the application menu
+ 	public void handleAbout()
+ 	{
+ 		new AboutDialog(jEdit.getActiveView());
+ 	}
+ 	
+-	public void handleOpenFile(String filepath)
++	public void handleOpenFile(File file)
+ 	{
+-		File file = new File(filepath);
+ 		if(file.exists())
+ 		{
+ 			if(file.isDirectory())
+@@ -152,7 +147,7 @@
+ 				}
+ 				
+ 				if (jEdit.openFile(view, file.getPath()) == null)
+-					Log.log(Log.ERROR, this, "Unable to open file: " + filepath);
++					Log.log(Log.ERROR, this, "Unable to open file: " + file.getPath());
+ 			}
+ 			else
+ 			{
+@@ -161,7 +156,7 @@
+ 		}
+ 		else
+ 		{
+-			Log.log(Log.ERROR, this, "Cannot open non-existing file: " + filepath);
++			Log.log(Log.ERROR, this, "Cannot open non-existing file: " + file.getPath());
+ 		}
+ 		
+ 	}
+Only in MacOSX-trunk-r24891/macosx: OSXAdapter.java
+diff -ru MacOSX-trunk-r24891/MacOSX.props MacOSX-trunk/MacOSX.props
+--- MacOSX-trunk-r24891/MacOSX.props	2013-09-24 01:12:13.000000000 +0200
++++ MacOSX-trunk/MacOSX.props	2018-10-20 15:20:44.362204710 +0200
+@@ -5,8 +5,8 @@
+ # Plugin info
+ #
+ plugin.macosx.MacOSXPlugin.name=Mac OS X Support
+-plugin.macosx.MacOSXPlugin.author=Seph Soliman, Alan Ezust
+-plugin.macosx.MacOSXPlugin.version=1.3
++plugin.macosx.MacOSXPlugin.author=Seph Soliman, Alan Ezust, Makarius
++plugin.macosx.MacOSXPlugin.version=1.4
+ plugin.macosx.MacOSXPlugin.docs=docs/MacOSX.html
+ plugin.macosx.MacOSXPlugin.description=Provides better MacOS X integration through features such as better CMD-key mapping, drag-and-drop from Finder and more.
+ plugin.macosx.MacOSXPlugin.longdescription=description.html
+@@ -15,7 +15,7 @@
+ # Dependencies
+ #
+ plugin.macosx.MacOSXPlugin.depend.0=jedit 05.01.99.00
+-plugin.macosx.MacOSXPlugin.depend.1=jdk 1.6
++plugin.macosx.MacOSXPlugin.depend.1=jdk 1.9
+ 
+ MacOSXPlugin.depend.os.name=Mac OS X
+ MacOSXPlugin.depend.mrj.version=99
