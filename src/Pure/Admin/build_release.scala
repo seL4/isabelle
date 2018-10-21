@@ -145,6 +145,10 @@ directory individually.
   private def execute_tar(dir: Path, args: String): Unit =
     Isabelle_System.gnutar(args, cwd = dir.file).check
 
+  private def tar_options: String =
+    if (Platform.is_macos) "--owner=root --group=staff" else "--owner=root --group=root"
+
+
   private val default_platform_families = List("linux", "windows", "macos")
 
   def build_release(base_dir: Path,
@@ -275,7 +279,7 @@ chmod -R g=o "$DIST_NAME"
 find "$DIST_NAME" -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w
 """)
 
-          execute_tar(release.dist_dir, "--owner=root --group=root -czf " +
+          execute_tar(release.dist_dir, tar_options + " -czf " +
             File.bash_path(release.isabelle_archive) + " " + Bash.string(release.dist_name))
 
           release.execute_dist_name(release.dist_dir, """
@@ -384,8 +388,8 @@ rm -rf "${DIST_NAME}-old"
 
             execute(tmp_dir, "chmod -R a+r " + Bash.string(name))
             execute(tmp_dir, "chmod -R g=o " + Bash.string(name))
-            execute_tar(tmp_dir, "--owner=root --group=root -czf " +
-              File.bash_path(release.isabelle_library_archive) +
+            execute_tar(tmp_dir,
+              tar_options + " -czf " + File.bash_path(release.isabelle_library_archive) +
               " " + Bash.string(name + "/browser_info"))
           })
       }
