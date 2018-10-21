@@ -349,13 +349,13 @@ object Isabelle_System
 
   /* fonts */
 
-  def fonts(html: Boolean = false): List[Path] =
+  def fonts(html: Boolean = false, get: String => String = getenv_strict(_)): List[Path] =
   {
     val variables =
       if (html) List("ISABELLE_FONTS", "ISABELLE_FONTS_HTML") else List("ISABELLE_FONTS")
     for {
       variable <- variables
-      path <- Path.split(Isabelle_System.getenv_strict(variable))
+      path <- Path.split(get(variable))
     } yield path
   }
 
