@@ -6088,7 +6088,7 @@ proof -
   also have "\<dots> = (\<Sum>(i,j) \<in> (SIGMA i : atMost n. lessThan i). a i * (x - y) * (y^(i - Suc j) * x^j))"
     by (simp add: sum.Sigma)
   also have "\<dots> = (\<Sum>(j,i) \<in> (SIGMA j : lessThan n. {Suc j..n}). a i * (x - y) * (y^(i - Suc j) * x^j))"
-    by (auto simp: sum.reindex_bij_betw [OF h, symmetric] intro: sum.strong_cong)
+    by (auto simp: sum.reindex_bij_betw [OF h, symmetric] intro: sum.cong_strong)
   also have "\<dots> = (\<Sum>j<n. \<Sum>i=Suc j..n. a i * (x - y) * (y^(i - Suc j) * x^j))"
     by (simp add: sum.Sigma)
   also have "\<dots> = (x - y) * (\<Sum>j<n. (\<Sum>i=Suc j..n. a i * y^(i - j - 1)) * x^j)"
@@ -6110,7 +6110,7 @@ proof -
       apply (rule_tac x="x + Suc j" in image_eqI, auto)
       done
     then show ?thesis
-      by (auto simp: sum.reindex_bij_betw [OF h, symmetric] intro: sum.strong_cong)
+      by (auto simp: sum.reindex_bij_betw [OF h, symmetric] intro: sum.cong_strong)
   qed
   then show ?thesis
     by (simp add: polyfun_diff [OF assms] sum_distrib_right)

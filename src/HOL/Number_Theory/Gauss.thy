@@ -339,7 +339,7 @@ lemma aux: "prod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = prod id A
 theorem pre_gauss_lemma: "[a ^ nat((int p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
   have "[prod id A = prod id F * prod id D](mod p)"
-    by (auto simp: prod_D_F_eq_prod_A mult.commute cong del: prod.strong_cong)
+    by (auto simp: prod_D_F_eq_prod_A mult.commute cong del: prod.cong_strong)
   then have "[prod id A = ((-1)^(card E) * prod id E) * prod id D] (mod p)"
     by (rule cong_trans) (metis cong_scalar_right prod_F_zcong)
   then have "[prod id A = ((-1)^(card E) * prod id C)] (mod p)"
@@ -364,7 +364,7 @@ proof -
       (-1)^(card E) * a^(card A) * (-1)^(card E)](mod p)"
     by (rule cong_trans) (simp add: a ac_simps)
   then have "[prod id A * (-1)^(card E) = prod id A * a^(card A)](mod p)"
-    by (rule cong_trans) (simp add: aux cong del: prod.strong_cong)
+    by (rule cong_trans) (simp add: aux cong del: prod.cong_strong)
   with A_prod_relprime have "[(- 1) ^ card E = a ^ card A](mod p)"
     by (metis cong_mult_lcancel)
   then show ?thesis

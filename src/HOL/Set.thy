@@ -422,24 +422,24 @@ lemma bex_disj_distrib: "(\<exists>x\<in>A. P x \<or> Q x) \<longleftrightarrow>
 text \<open>Congruence rules\<close>
 
 lemma ball_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> P x \<longleftrightarrow> Q x) \<Longrightarrow>
+  "\<lbrakk> A = B;  \<And>x. x \<in> B \<Longrightarrow> P x \<longleftrightarrow> Q x \<rbrakk> \<Longrightarrow>
     (\<forall>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>B. Q x)"
-  by (simp add: Ball_def)
+by (simp add: Ball_def)
 
-lemma strong_ball_cong [cong]:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> P x \<longleftrightarrow> Q x) \<Longrightarrow>
+lemma ball_cong_strong [cong]:
+  "\<lbrakk> A = B;  \<And>x. x \<in> B =simp=> P x \<longleftrightarrow> Q x \<rbrakk> \<Longrightarrow>
     (\<forall>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>B. Q x)"
-  by (simp add: simp_implies_def Ball_def)
+by (simp add: simp_implies_def Ball_def)
 
 lemma bex_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> P x \<longleftrightarrow> Q x) \<Longrightarrow>
+  "\<lbrakk> A = B;  \<And>x. x \<in> B \<Longrightarrow> P x \<longleftrightarrow> Q x \<rbrakk> \<Longrightarrow>
     (\<exists>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>B. Q x)"
-  by (simp add: Bex_def cong: conj_cong)
+by (simp add: Bex_def cong: conj_cong)
 
-lemma strong_bex_cong [cong]:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> P x \<longleftrightarrow> Q x) \<Longrightarrow>
+lemma bex_cong_strong [cong]:
+  "\<lbrakk> A = B;  \<And>x. x \<in> B =simp=> P x \<longleftrightarrow> Q x \<rbrakk> \<Longrightarrow>
     (\<exists>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>B. Q x)"
-  by (simp add: simp_implies_def Bex_def cong: conj_cong)
+by (simp add: simp_implies_def Bex_def cong: conj_cong)
 
 lemma bex1_def: "(\<exists>!x\<in>X. P x) \<longleftrightarrow> (\<exists>x\<in>X. P x) \<and> (\<forall>x\<in>X. \<forall>y\<in>X. P x \<longrightarrow> P y \<longrightarrow> x = y)"
   by auto

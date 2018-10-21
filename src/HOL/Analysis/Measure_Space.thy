@@ -2589,7 +2589,7 @@ proof (rule measure_eqI)
       using E \<Omega> by (subst (1 2) emeasure_restrict_space) (auto simp: sets_eq sets_eq[THEN sets_eq_imp_space_eq])
   next
     show "range (from_nat_into A) \<subseteq> E" "(\<Union>i. from_nat_into A i) = \<Omega>"
-      using A by (auto cong del: strong_SUP_cong)
+      using A by (auto cong del: SUP_cong_strong)
   next
     fix i
     have "emeasure (restrict_space M \<Omega>) (from_nat_into A i) = emeasure M (from_nat_into A i)"

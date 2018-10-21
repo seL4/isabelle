@@ -1913,7 +1913,7 @@ proof -
   also have "\<dots> = entropy b (count_space (Y ` space M) \<Otimes>\<^sub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))"
     by (subst entropy_distr[OF simple_distributed_joint[OF YX]])
        (auto simp: pair_measure_count_space sigma_finite_measure_count_space_finite lebesgue_integral_count_space_finite
-             cong del: sum.strong_cong  intro!: sum.mono_neutral_left measure_nonneg)
+             cong del: sum.cong_strong intro!: sum.mono_neutral_left measure_nonneg)
   finally have "\<H>(\<lambda>x. (X x, Y x)) = entropy b (count_space (Y ` space M) \<Otimes>\<^sub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))" .
   then show ?thesis
     unfolding conditional_entropy_eq_entropy_simple[OF Y X] by simp

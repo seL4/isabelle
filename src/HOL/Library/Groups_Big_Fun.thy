@@ -62,15 +62,10 @@ lemma infinite [simp]:
   "\<not> finite {a. g a \<noteq> \<^bold>1} \<Longrightarrow> G g = \<^bold>1"
   by (simp add: expand_set)
 
-lemma cong:
+lemma cong [cong]:
   assumes "\<And>a. g a = h a"
   shows "G g = G h"
   using assms by (simp add: expand_set)
-
-lemma strong_cong [cong]:
-  assumes "\<And>a. g a = h a"
-  shows "G (\<lambda>a. g a) = G (\<lambda>a. h a)"
-  using assms by (fact cong)
 
 lemma not_neutral_obtains_not_neutral:
   assumes "G g \<noteq> \<^bold>1"
@@ -202,7 +197,7 @@ proof -
   have "(\<lambda>b. if a = b then g b else \<^bold>1) = (\<lambda>b. if b = a then g b else \<^bold>1)"
     by (simp add: fun_eq_iff)
   then have "G (\<lambda>b. if a = b then g b else \<^bold>1) = G (\<lambda>b. if b = a then g b else \<^bold>1)"
-    by (simp cong del: strong_cong)
+    by (simp cong del: cong)
   then show ?thesis by simp
 qed
 

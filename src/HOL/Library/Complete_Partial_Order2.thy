@@ -188,7 +188,7 @@ lemma swap_Sup:
 proof(cases "Y = {}")
   case True
   then show ?thesis
-    by (simp add: image_constant_conv cong del: strong_SUP_cong)
+    by (simp add: image_constant_conv cong del: SUP_cong_strong)
 next
   case False
   have chain1: "\<And>f. f \<in> Z \<Longrightarrow> Complete_Partial_Order.chain (\<le>) (f ` Y)"
@@ -518,7 +518,7 @@ by(auto simp add: monotone_fun_ord_apply cont_fun_lub_apply mcont_def)
 context ccpo begin
 
 lemma cont_const [simp, cont_intro]: "cont luba orda Sup (\<le>) (\<lambda>x. c)"
-by (rule contI) (simp add: image_constant_conv cong del: strong_SUP_cong)
+by (rule contI) (simp add: image_constant_conv cong del: SUP_cong_strong)
 
 lemma mcont_const [cont_intro, simp]:
   "mcont luba orda Sup (\<le>) (\<lambda>x. c)"
@@ -695,7 +695,7 @@ proof(intro mcontI contI)
     hence "\<Squnion>Y \<le> bound" using chain by(auto intro: ccpo_Sup_least)
     moreover have "Y \<inter> {x. \<not> x \<le> bound} = {}" using True by auto
     ultimately show ?thesis using True Y
-      by (auto simp add: image_constant_conv cong del: c.strong_SUP_cong)
+      by (auto simp add: image_constant_conv cong del: c.SUP_cong_strong)
   next
     case False
     let ?Y = "Y \<inter> {x. \<not> x \<le> bound}"

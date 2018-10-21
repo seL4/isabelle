@@ -755,10 +755,9 @@ lift_definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b fset \<Rightarrow> 
 
 lemmas cong[fundef_cong] = set.cong[Transfer.transferred]
 
-lemma strong_cong[cong]:
-  assumes "A = B" "\<And>x. x |\<in>| B =simp=> g x = h x"
-  shows "F g A = F h B"
-using assms unfolding simp_implies_def by (auto cong: cong)
+lemma cong_strong[cong]:
+  "\<lbrakk> A = B;  \<And>x. x |\<in>| B =simp=> g x = h x \<rbrakk> \<Longrightarrow> F g A = F h B"
+unfolding simp_implies_def by (auto cong: cong)
 
 end
 

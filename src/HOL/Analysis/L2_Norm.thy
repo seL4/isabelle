@@ -14,7 +14,7 @@ lemma L2_set_cong:
   "\<lbrakk>A = B; \<And>x. x \<in> B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> L2_set f A = L2_set g B"
   unfolding L2_set_def by simp
 
-lemma strong_L2_set_cong:
+lemma L2_set_cong_strong:
   "\<lbrakk>A = B; \<And>x. x \<in> B =simp=> f x = g x\<rbrakk> \<Longrightarrow> L2_set f A = L2_set g B"
   unfolding L2_set_def simp_implies_def by simp
 

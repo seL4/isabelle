@@ -147,10 +147,9 @@ lemma cong [fundef_cong]:
   using g_h unfolding \<open>A = B\<close>
   by (induct B rule: infinite_finite_induct) auto
 
-lemma strong_cong [cong]:
-  assumes "A = B" "\<And>x. x \<in> B =simp=> g x = h x"
-  shows "F (\<lambda>x. g x) A = F (\<lambda>x. h x) B"
-  by (rule cong) (use assms in \<open>simp_all add: simp_implies_def\<close>)
+lemma cong_strong [cong]:
+  "\<lbrakk> A = B;  \<And>x. x \<in> B =simp=> g x = h x \<rbrakk> \<Longrightarrow> F (\<lambda>x. g x) A = F (\<lambda>x. h x) B"
+by (rule cong) (simp_all add: simp_implies_def)
 
 lemma reindex_cong:
   assumes "inj_on l B"
