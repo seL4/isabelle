@@ -227,10 +227,7 @@ directory individually.
 
           make_contrib(release.isabelle_dir)
 
-          execute(release.isabelle_dir,
-            """find . "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f -x""")
-          execute(release.isabelle_dir,
-            """find . -print | xargs chmod -f u+rw""")
+          execute(release.isabelle_dir, """find . -print | xargs chmod -f u+rw""")
 
 
           /* build tools and documentation */
