@@ -52,8 +52,10 @@ class Other_Isabelle(
   def resolve_components(echo: Boolean): Unit =
     other_isabelle("components -a", redirect = true, echo = echo).check
 
-  val isabelle_home_user: Path =
-    Path.explode(other_isabelle("getenv -b ISABELLE_HOME_USER").check.out)
+  def getenv(name: String): String =
+    other_isabelle("getenv -b " + Bash.string(name)).check.out
+
+  val isabelle_home_user: Path = Path.explode(getenv("ISABELLE_HOME_USER"))
 
   val etc: Path = isabelle_home_user + Path.explode("etc")
   val etc_settings: Path = etc + Path.explode("settings")

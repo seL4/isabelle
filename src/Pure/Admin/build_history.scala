@@ -35,12 +35,12 @@ object Build_History
     {
       val windows_32 = "x86-windows"
       val windows_64 = "x86_64-windows"
-      val platform_32 = other_isabelle("getenv -b ISABELLE_PLATFORM32").check.out
-      val platform_64 = other_isabelle("getenv -b ISABELLE_PLATFORM64").check.out
-      val platform_family = other_isabelle("getenv -b ISABELLE_PLATFORM_FAMILY").check.out
+      val platform_32 = other_isabelle.getenv("ISABELLE_PLATFORM32")
+      val platform_64 = other_isabelle.getenv("ISABELLE_PLATFORM64")
+      val platform_family = other_isabelle.getenv("ISABELLE_PLATFORM_FAMILY")
 
       val polyml_home =
-        try { Path.explode(other_isabelle("getenv -b ML_HOME").check.out).dir }
+        try { Path.explode(other_isabelle.getenv("ML_HOME")).dir }
         catch { case ERROR(msg) => error("Bad ML_HOME: " + msg) }
 
       def ml_home(platform: String): Path = polyml_home + Path.explode(platform)
@@ -192,7 +192,7 @@ object Build_History
 
       val isabelle_output =
         other_isabelle.isabelle_home_user + Path.explode("heaps") +
-          Path.explode(other_isabelle("getenv -b ML_IDENTIFIER").check.out)
+          Path.explode(other_isabelle.getenv("ML_IDENTIFIER"))
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 
