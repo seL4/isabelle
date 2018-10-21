@@ -18,7 +18,7 @@ object Build_Release
     def names: List[String] = main :: fallback.toList
   }
 
-  sealed case class Release_Info(
+  sealed case class Release(
     date: Date,
     name: String,
     dist_dir: Path,
@@ -49,23 +49,23 @@ object Build_Release
     website: Option[Path] = None,
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
-    remote_mac: String = ""): Release_Info =
+    remote_mac: String = ""): Release =
   {
     /* release info */
 
     Isabelle_System.mkdirs(base_dir)
 
-    val release_info =
+    val release =
     {
       val date = Date.now()
       val name = proper_string(release_name) getOrElse ("Isabelle_" + Date.Format.date(date))
       val dist_dir = base_dir + Path.explode("dist-" + name)
       val dist_archive = dist_dir + Path.explode(name + ".tar.gz")
       val dist_library_archive = dist_dir + Path.explode(name + "_library.tar.gz")
-      Release_Info(date, name, dist_dir, dist_archive, dist_library_archive, "")
+      Release(date, name, dist_dir, dist_archive, dist_library_archive, "")
     }
 
-    val bundle_infos = platform_families.map(release_info.bundle_info(_))
+    val bundle_infos = platform_families.map(release.bundle_info(_))
 
 
     /* make distribution */
@@ -77,14 +77,14 @@ object Build_Release
       val isabelle_ident_file = base_dir + Path.explode("ISABELLE_IDENT")
       val isabelle_dist_file = base_dir + Path.explode("ISABELLE_DIST")
 
-      if (release_info.dist_archive.is_file &&
+      if (release.dist_archive.is_file &&
           isabelle_ident_file.is_file && isabelle_dist_file.is_file &&
           File.eq(Path.explode(Library.trim_line(File.read(isabelle_dist_file))),
-            release_info.dist_archive)) {
-        progress.echo("### Release archive already exists: " + release_info.dist_archive.implode)
+            release.dist_archive)) {
+        progress.echo("### Release archive already exists: " + release.dist_archive.implode)
       }
       else {
-        progress.echo("Producing release archive " + release_info.dist_archive.implode + " ...")
+        progress.echo("Producing release archive " + release.dist_archive.implode + " ...")
         progress.bash(
           "isabelle makedist -d " + File.bash_path(base_dir) + jobs_option +
             (if (official_release) " -O" else "") +
@@ -101,14 +101,14 @@ object Build_Release
     for (bundle_info <- bundle_infos) {
       val bundle =
         (if (remote_mac.isEmpty) bundle_info.fallback else None) getOrElse bundle_info.main
-      val bundle_archive = release_info.dist_dir + Path.explode(bundle)
+      val bundle_archive = release.dist_dir + Path.explode(bundle)
       if (bundle_archive.is_file)
         progress.echo("### Application bundle already exists: " + bundle_archive.implode)
       else {
         progress.echo(
           "\nApplication bundle for " + bundle_info.platform_family + ": " + bundle_archive.implode)
         progress.bash(
-          "isabelle makedist_bundle " + File.bash_path(release_info.dist_archive) +
+          "isabelle makedist_bundle " + File.bash_path(release.dist_archive) +
             " " + Bash.string(bundle_info.platform_family) +
             (if (remote_mac == "") "" else " " + Bash.string(remote_mac)),
           echo = true).check
@@ -123,32 +123,32 @@ object Build_Release
         for {
           bundle_info <- bundle_infos
           bundle <-
-            bundle_info.names.find(name => (release_info.dist_dir + Path.explode(name)).is_file)
+            bundle_info.names.find(name => (release.dist_dir + Path.explode(name)).is_file)
         } yield (bundle, bundle_info)
 
       val afp_link =
         HTML.link(AFP.repos_source + "/commits/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
       HTML.write_document(dir, "index.html",
-        List(HTML.title(release_info.name)),
+        List(HTML.title(release.name)),
         List(
-          HTML.chapter(release_info.name + " (" + release_id + ")"),
+          HTML.chapter(release.name + " (" + release_id + ")"),
           HTML.itemize(
             website_platform_bundles.map({ case (bundle, bundle_info) =>
               List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) }))) :::
         (if (afp_rev == "") Nil else List(HTML.par(HTML.text("See also ") ::: List(afp_link)))))
 
       for ((bundle, _) <- website_platform_bundles)
-        File.copy(release_info.dist_dir + Path.explode(bundle), dir)
+        File.copy(release.dist_dir + Path.explode(bundle), dir)
     }
 
 
     /* HTML library */
 
     if (build_library) {
-      if (release_info.dist_library_archive.is_file)
+      if (release.dist_library_archive.is_file)
         progress.echo("### Library archive already exists: " +
-          release_info.dist_library_archive.implode)
+          release.dist_library_archive.implode)
       else {
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
@@ -157,9 +157,9 @@ object Build_Release
             def execute_tar(args: String): Unit =
               Isabelle_System.gnutar(args, cwd = tmp_dir.file).check
 
-            val name = release_info.name
+            val name = release.name
             val platform = Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY")
-            val bundle = release_info.dist_dir + Path.explode(name + "_" + platform + ".tar.gz")
+            val bundle = release.dist_dir + Path.explode(name + "_" + platform + ".tar.gz")
             execute_tar("xzf " + File.bash_path(bundle))
 
             val other_isabelle =
@@ -177,14 +177,14 @@ object Build_Release
             execute("chmod -R a+r " + Bash.string(name))
             execute("chmod -R g=o " + Bash.string(name))
             execute_tar("--owner=root --group=root -czf " +
-              File.bash_path(release_info.dist_library_archive) +
+              File.bash_path(release.dist_library_archive) +
               " " + Bash.string(name + "/browser_info"))
           })
       }
     }
 
 
-    release_info.copy(id = release_id)
+    release.copy(id = release_id)
   }
 
 
