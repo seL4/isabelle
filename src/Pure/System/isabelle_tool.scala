@@ -114,7 +114,6 @@ object Isabelle_Tool
       Imports.isabelle_tool,
       Mkroot.isabelle_tool,
       ML_Process.isabelle_tool,
-      NEWS.isabelle_tool,
       Options.isabelle_tool,
       Present.isabelle_tool,
       Profiling_Report.isabelle_tool,

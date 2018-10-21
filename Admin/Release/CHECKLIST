@@ -20,6 +20,10 @@ Checklist for official releases
 - test Windows 10 subsystem for Linux:
   https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
+- check (non-)executable files:
+    $ find . "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" -o -name ROOT ")" -executable
+    $ find -type f -executable
+
 - check sources:
     isabelle check_sources '~~' '$AFP_BASE'
     isabelle imports -M -a -d '~~/src/Benchmarks'
