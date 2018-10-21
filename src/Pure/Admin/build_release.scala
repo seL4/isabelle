@@ -19,6 +19,10 @@ object Build_Release
     File.write(file, f(File.read(file)))
   }
 
+  private val getsettings_file: String = "lib/scripts/getsettings"
+
+  private val ISABELLE_ID = """ISABELLE_ID="(.+)"""".r
+
   def patch_release(
     dir: Path, ident: String, is_official: Boolean, dist_name: String, dist_version: String)
   {
@@ -30,7 +34,7 @@ object Build_Release
            .replaceAll("val is_official = false", "val is_official = " + is_official))
     }
 
-    change_file(dir, "lib/scripts/getsettings",
+    change_file(dir, getsettings_file,
       s =>
         s.replaceAll("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(ident))
          .replaceAll("ISABELLE_IDENTIFIER=\"\"", "ISABELLE_IDENTIFIER=" + quote(dist_name)))
@@ -113,11 +117,7 @@ directory individually.
     def names: List[String] = main :: fallback.toList
   }
 
-  sealed case class Release(
-    date: Date,
-    dist_name: String,
-    dist_dir: Path,
-    ident: String)
+  class Release private[Build_Release](val date: Date, val dist_name: String, val dist_dir: Path)
   {
     val isabelle_dir: Path = dist_dir + Path.explode(dist_name)
     val isabelle_archive: Path = dist_dir + Path.explode(dist_name + ".tar.gz")
@@ -133,6 +133,17 @@ directory individually.
     def bundle_info(platform_family: String): Bundle_Info =
       bundle_infos.find(bundle_info => bundle_info.platform_family == platform_family) getOrElse
         error("Unknown platform family " + quote(platform_family))
+
+    def read_ident(): String =
+      Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
+        {
+          val getsettings = Path.explode(dist_name + "/" + getsettings_file)
+          execute_tar(tmp_dir,
+            "-xzf " + File.bash_path(isabelle_archive) + " " + File.bash_path(getsettings))
+          split_lines(File.read(tmp_dir + getsettings))
+            .collectFirst({ case ISABELLE_ID(ident) => ident })
+            .getOrElse(error("Failed to read ISABELLE_ID from " + isabelle_archive))
+        })
 
     def execute_dist_name(dir: Path, script: String): Unit =
       Isabelle_System.bash(script, cwd = dir.file,
@@ -163,114 +174,102 @@ directory individually.
     parallel_jobs: Int = 1,
     remote_mac: String = ""): Release =
   {
-    /* make distribution */
-
     val release =
     {
-      val release =
-      {
-        val date = Date.now()
-        val dist_name = proper_release_name getOrElse ("Isabelle_" + Date.Format.date(date))
-        val dist_dir = (base_dir + Path.explode("dist-" + dist_name)).absolute
-        Release(date, dist_name, dist_dir, "")
+      val date = Date.now()
+      val dist_name = proper_release_name getOrElse ("Isabelle_" + Date.Format.date(date))
+      val dist_dir = (base_dir + Path.explode("dist-" + dist_name)).absolute
+      new Release(date, dist_name, dist_dir)
+    }
+
+
+    /* make distribution */
+
+    if (release.isabelle_archive.is_file) {
+      progress.echo("### Release archive already exists: " + release.isabelle_archive.implode)
+    }
+    else {
+      progress.echo("### Producing release archive " + release.isabelle_archive.implode + " ...")
+
+      Isabelle_System.mkdirs(release.dist_dir)
+
+      val hg = Mercurial.repository(Path.explode("$ISABELLE_HOME"))
+      val version = proper_release_name orElse proper_string(rev) getOrElse "tip"
+      val ident =
+        try { hg.id(version) }
+        catch { case ERROR(_) => error("Bad repository version: " + quote(version)) }
+
+      val dist_version =
+        if (proper_release_name.isDefined) {
+          proper_release_name.get + ": " + Date.Format("LLLL uuuu")(release.date)
+        }
+        else "Isabelle repository snapshot " + ident + " " + Date.Format.date(release.date)
+
+      if (release.isabelle_dir.is_dir)
+        error("Directory " + release.isabelle_dir + " already exists")
+
+
+      progress.echo("### Retrieving Mercurial repository version " + quote(version))
+
+      try {
+        hg.archive(release.isabelle_dir.expand.implode, rev = ident, options = "--type files")
+      }
+      catch { case ERROR(_) => error("Failed to retrieve " + version + "(" + ident + ")") }
+
+      for (name <- List(".hg_archival.txt", ".hgtags", ".hgignore", "README_REPOSITORY")) {
+        (release.isabelle_dir + Path.explode(name)).file.delete
       }
 
-      val isabelle_ident_file = base_dir + Path.explode("ISABELLE_IDENT")
-      val isabelle_dist_file = base_dir + Path.explode("ISABELLE_DIST")
 
-      val release_ident =
-        if (release.isabelle_archive.is_file &&
-            isabelle_ident_file.is_file && isabelle_dist_file.is_file &&
-            File.eq(Path.explode(Library.trim_line(File.read(isabelle_dist_file))),
-              release.isabelle_archive)) {
-          progress.echo("### Release archive already exists: " + release.isabelle_archive.implode)
-          File.read(isabelle_ident_file)
-        }
-        else {
-          progress.echo("Producing release archive " + release.isabelle_archive.implode + " ...")
+      progress.echo("### Preparing distribution " + quote(release.dist_name))
 
-          Isabelle_System.mkdirs(release.dist_dir)
+      patch_release(release.isabelle_dir, ident,
+        proper_release_name.isDefined && official_release, release.dist_name, dist_version)
 
-          val hg = Mercurial.repository(Path.explode("$ISABELLE_HOME"))
-          val version = proper_release_name orElse proper_string(rev) getOrElse "tip"
-          val ident =
-            try { hg.id(version) }
-            catch { case ERROR(_) => error("Bad repository version: " + quote(version)) }
+      if (proper_release_name.isEmpty) make_announce(release.isabelle_dir, ident)
 
-          val dist_version =
-            if (proper_release_name.isDefined) {
-              proper_release_name.get + ": " + Date.Format("LLLL uuuu")(release.date)
-            }
-            else "Isabelle repository snapshot " + ident + " " + Date.Format.date(release.date)
+      make_contrib(release.isabelle_dir)
 
-          if (release.isabelle_dir.is_dir)
-            error("Directory " + release.isabelle_dir + " already exists")
-
-          isabelle_ident_file.file.delete
-          isabelle_dist_file.file.delete
+      execute(release.isabelle_dir, """find . -print | xargs chmod -f u+rw""")
 
 
-          progress.echo("### Retrieving Mercurial repository version " + quote(version))
+      /* build tools and documentation */
 
-          try {
-            hg.archive(release.isabelle_dir.expand.implode, rev = ident, options = "--type files")
-          }
-          catch { case ERROR(_) => error("Failed to retrieve " + version + "(" + ident + ")") }
+      val other_isabelle =
+        Other_Isabelle(release.isabelle_dir,
+          isabelle_identifier = release.other_isabelle_identifier,
+          progress = progress)
 
-          for (name <- List(".hg_archival.txt", ".hgtags", ".hgignore", "README_REPOSITORY")) {
-            (release.isabelle_dir + Path.explode(name)).file.delete
-          }
+      other_isabelle.init_settings(
+        (base_dir.absolute + Path.explode("contrib")).implode, nonfree = false, Nil)
+      other_isabelle.resolve_components(echo = true)
 
+      try {
+        val export_classpath =
+          "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n"
+        other_isabelle.bash(export_classpath + "./Admin/build all", echo = true).check
+        other_isabelle.bash(export_classpath + "./bin/isabelle jedit -b", echo = true).check
+      }
+      catch { case ERROR(_) => error("Failed to build tools") }
 
-          progress.echo("### Preparing distribution " + quote(release.dist_name))
+      try {
+        other_isabelle.bash(
+          "./bin/isabelle build_doc -a -s -j " + parallel_jobs, echo = true).check
+      }
+      catch { case ERROR(_) => error("Failed to build documentation") }
 
-          patch_release(release.isabelle_dir, ident,
-            proper_release_name.isDefined && official_release, release.dist_name, dist_version)
+      make_news(other_isabelle, dist_version)
 
-          if (proper_release_name.isEmpty) make_announce(release.isabelle_dir, ident)
+      for (name <- List("Admin", "browser_info", "heaps")) {
+        Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode(name))
+      }
 
-          make_contrib(release.isabelle_dir)
-
-          execute(release.isabelle_dir, """find . -print | xargs chmod -f u+rw""")
-
-
-          /* build tools and documentation */
-
-          val other_isabelle =
-            Other_Isabelle(release.isabelle_dir,
-              isabelle_identifier = release.other_isabelle_identifier,
-              progress = progress)
-
-          other_isabelle.init_settings(
-            (base_dir.absolute + Path.explode("contrib")).implode, nonfree = false, Nil)
-          other_isabelle.resolve_components(echo = true)
-
-          try {
-            val export_classpath =
-              "export CLASSPATH=" + Bash.string(other_isabelle.getenv("ISABELLE_CLASSPATH")) + "\n"
-            other_isabelle.bash(export_classpath + "./Admin/build all", echo = true).check
-            other_isabelle.bash(export_classpath + "./bin/isabelle jedit -b", echo = true).check
-          }
-          catch { case ERROR(_) => error("Failed to build tools") }
-
-          try {
-            other_isabelle.bash(
-              "./bin/isabelle build_doc -a -s -j " + parallel_jobs, echo = true).check
-          }
-          catch { case ERROR(_) => error("Failed to build documentation") }
-
-          make_news(other_isabelle, dist_version)
-
-          for (name <- List("Admin", "browser_info", "heaps")) {
-            Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode(name))
-          }
-
-          other_isabelle.cleanup()
+      other_isabelle.cleanup()
 
 
-          progress.echo("### Creating distribution archive " + release.isabelle_archive)
+      progress.echo("### Creating distribution archive " + release.isabelle_archive)
 
-          release.execute_dist_name(release.dist_dir, """
+      release.execute_dist_name(release.dist_dir, """
 set -e
 
 chmod -R a+r "$DIST_NAME"
@@ -279,10 +278,10 @@ chmod -R g=o "$DIST_NAME"
 find "$DIST_NAME" -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w
 """)
 
-          execute_tar(release.dist_dir, tar_options + " -czf " +
-            File.bash_path(release.isabelle_archive) + " " + Bash.string(release.dist_name))
+      execute_tar(release.dist_dir, tar_options + " -czf " +
+        File.bash_path(release.isabelle_archive) + " " + Bash.string(release.dist_name))
 
-          release.execute_dist_name(release.dist_dir, """
+      release.execute_dist_name(release.dist_dir, """
 set -e
 
 mv "$DIST_NAME" "${DIST_NAME}-old"
@@ -301,13 +300,6 @@ rm -f Isabelle && ln -sf "$DIST_NAME" Isabelle
 
 rm -rf "${DIST_NAME}-old"
 """)
-
-          File.write(isabelle_dist_file, release.isabelle_archive.implode)
-          File.write(isabelle_ident_file, ident)
-          ident
-        }
-
-      release.copy(ident = release_ident)
     }
 
 
@@ -345,10 +337,12 @@ rm -rf "${DIST_NAME}-old"
       val afp_link =
         HTML.link(AFP.repos_source + "/commits/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
+      val ident = release.read_ident()
+
       HTML.write_document(dir, "index.html",
         List(HTML.title(release.dist_name)),
         List(
-          HTML.chapter(release.dist_name + " (" + release.ident + ")"),
+          HTML.chapter(release.dist_name + " (" + ident + ")"),
           HTML.itemize(
             website_platform_bundles.map({ case (bundle, bundle_info) =>
               List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) }))) :::
