@@ -37,17 +37,6 @@ object Build_Release
       List(Bundle_Info("linux", "Linux", dist_name + "_app.tar.gz", None),
         Bundle_Info("windows", "Windows", dist_name + ".exe", None),
         Bundle_Info("macos", "Mac OS X", dist_name + ".dmg", Some(dist_name + "_dmg.tar.gz")))
-
-    def read_ident(): String =
-      Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
-        {
-          val getsettings = Path.explode(dist_name + "/" + getsettings_file)
-          execute_tar(tmp_dir,
-            "-xzf " + File.bash_path(isabelle_archive) + " " + File.bash_path(getsettings))
-          split_lines(File.read(tmp_dir + getsettings))
-            .collectFirst({ case ISABELLE_ID(ident) => ident })
-            .getOrElse(error("Failed to read ISABELLE_ID from " + isabelle_archive))
-        })
   }
 
 
@@ -202,6 +191,22 @@ directory individually.
 
     if (release.isabelle_archive.is_file) {
       progress.echo("### Release archive already exists: " + release.isabelle_archive.implode)
+
+      val archive_ident =
+        Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
+          {
+            val getsettings = Path.explode(release.dist_name + "/" + getsettings_file)
+            execute_tar(tmp_dir, "-xzf " +
+              File.bash_path(release.isabelle_archive) + " " + File.bash_path(getsettings))
+            split_lines(File.read(tmp_dir + getsettings))
+              .collectFirst({ case ISABELLE_ID(ident) => ident })
+              .getOrElse(error("Failed to read ISABELLE_ID from " + release.isabelle_archive))
+          })
+
+      if (release.ident != archive_ident) {
+        error("Mismatch of release identification " + release.ident +
+          " vs. archive " + archive_ident)
+      }
     }
     else {
       progress.echo("### Producing release archive " + release.isabelle_archive.implode + " ...")
@@ -343,12 +348,10 @@ rm -rf "${DIST_NAME}-old"
       val afp_link =
         HTML.link(AFP.repos_source + "/commits/" + afp_rev, HTML.text("AFP/" + afp_rev))
 
-      val ident = release.read_ident()
-
       HTML.write_document(dir, "index.html",
         List(HTML.title(release.dist_name)),
         List(
-          HTML.chapter(release.dist_name + " (" + ident + ")"),
+          HTML.chapter(release.dist_name + " (" + release.ident + ")"),
           HTML.itemize(
             website_platform_bundles.map({ case (bundle, bundle_info) =>
               List(HTML.link(bundle, HTML.text(bundle_info.platform_description))) }))) :::
