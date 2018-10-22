@@ -1,3 +1,5 @@
+chapter Tools
+
 session Spec_Check in Spec_Check = Pure +
   theories
     Spec_Check
