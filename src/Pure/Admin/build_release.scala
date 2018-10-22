@@ -175,7 +175,7 @@ directory individually.
       val version = proper_release_name orElse proper_string(rev) getOrElse "tip"
       val ident =
         try { hg.id(version) }
-        catch { case ERROR(_) => error("Bad repository version: " + quote(version)) }
+        catch { case ERROR(_) => error("Bad repository version: " + version) }
 
       val dist_version =
         proper_release_name match {
@@ -217,7 +217,7 @@ directory individually.
         error("Directory " + release.isabelle_dir + " already exists")
 
 
-      progress.echo("### Retrieving Mercurial repository version " + quote(release.ident))
+      progress.echo("### Retrieving Mercurial repository version " + release.ident)
 
       hg.archive(release.isabelle_dir.expand.implode, rev = release.ident, options = "--type files")
 
