@@ -33,10 +33,14 @@ object Build_Release
 
     val other_isabelle_identifier: String = dist_name + "-build"
 
-    val bundle_infos: List[Bundle_Info] =
-      List(Bundle_Info("linux", "Linux", dist_name + "_app.tar.gz", None),
-        Bundle_Info("windows", "Windows", dist_name + ".exe", None),
-        Bundle_Info("macos", "Mac OS X", dist_name + ".dmg", Some(dist_name + "_dmg.tar.gz")))
+    def bundle_info(platform_family: String): Bundle_Info =
+      platform_family match {
+        case "linux" => Bundle_Info("linux", "Linux", dist_name + "_app.tar.gz", None)
+        case "windows" => Bundle_Info("windows", "Windows", dist_name + ".exe", None)
+        case "macos" =>
+          Bundle_Info("macos", "Mac OS X", dist_name + ".dmg", Some(dist_name + "_dmg.tar.gz"))
+        case _ => error("Unknown platform family " + quote(platform_family))
+      }
   }
 
 
@@ -313,10 +317,7 @@ rm -rf "${DIST_NAME}-old"
 
     /* make application bundles */
 
-    val bundle_infos =
-      platform_families.map(family =>
-        release.bundle_infos.find(info => info.platform_family == family) getOrElse
-          error("Unknown platform family " + quote(family)))
+    val bundle_infos = platform_families.map(release.bundle_info)
 
     for (bundle_info <- bundle_infos) {
       val bundle =
