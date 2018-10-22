@@ -194,7 +194,7 @@ directory individually.
     /* make distribution */
 
     if (release.isabelle_archive.is_file) {
-      progress.echo("### Release archive already exists: " + release.isabelle_archive.implode)
+      progress.echo("### Release archive already exists: " + release.isabelle_archive)
 
       val archive_ident =
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
@@ -213,7 +213,7 @@ directory individually.
       }
     }
     else {
-      progress.echo("### Producing release archive " + release.isabelle_archive.implode + " ...")
+      progress.echo("### Producing release archive " + release.isabelle_archive + " ...")
 
       Isabelle_System.mkdirs(release.dist_dir)
 
@@ -324,10 +324,10 @@ rm -rf "${DIST_NAME}-old"
         (if (remote_mac.isEmpty) bundle_info.fallback else None) getOrElse bundle_info.main
       val bundle_archive = release.dist_dir + Path.explode(bundle)
       if (bundle_archive.is_file)
-        progress.echo("### Application bundle already exists: " + bundle_archive.implode)
+        progress.echo("### Application bundle already exists: " + bundle_archive)
       else {
         progress.echo(
-          "\nApplication bundle for " + bundle_info.platform_family + ": " + bundle_archive.implode)
+          "\nApplication bundle for " + bundle_info.platform_family + ": " + bundle_archive)
         progress.bash(
           "isabelle makedist_bundle " + File.bash_path(release.isabelle_archive) +
             " " + Bash.string(bundle_info.platform_family) +
@@ -367,8 +367,7 @@ rm -rf "${DIST_NAME}-old"
 
     if (build_library) {
       if (release.isabelle_library_archive.is_file) {
-        progress.echo(
-          "### Library archive already exists: " + release.isabelle_library_archive.implode)
+        progress.echo("### Library archive already exists: " + release.isabelle_library_archive)
       }
       else {
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
