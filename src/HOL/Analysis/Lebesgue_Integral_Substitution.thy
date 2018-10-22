@@ -6,7 +6,7 @@
     This could probably be weakened somehow.
 *)
 
-section \<open>Integration by Substition\<close>
+section \<open>Integration by Substition for the Lebesgue integral\<close>
 
 theory Lebesgue_Integral_Substitution
 imports Interval_Integral
@@ -278,7 +278,7 @@ next
   qed
 qed
 
-lemma nn_integral_substitution:
+theorem nn_integral_substitution:
   fixes f :: "real \<Rightarrow> real"
   assumes Mf[measurable]: "set_borel_measurable borel {g a..g b} f"
   assumes derivg: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
@@ -317,7 +317,7 @@ proof (cases "a = b")
   finally show ?thesis .
 qed auto
 
-lemma integral_substitution:
+theorem integral_substitution:
   assumes integrable: "set_integrable lborel {g a..g b} f"
   assumes derivg: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
   assumes contg': "continuous_on {a..b} g'"
@@ -384,7 +384,7 @@ proof-
                      (LBINT x. f (g x) * g' x * indicator {a..b} x)" .
 qed
 
-lemma interval_integral_substitution:
+theorem interval_integral_substitution:
   assumes integrable: "set_integrable lborel {g a..g b} f"
   assumes derivg: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
   assumes contg': "continuous_on {a..b} g'"
