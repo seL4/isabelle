@@ -90,13 +90,30 @@ object Main
         }
 
 
-        /* main startup */
+        /* environment */
 
-        update_environment()
+        def putenv(name: String, value: String)
+        {
+          val misc =
+            Class.forName("org.gjt.sp.jedit.MiscUtilities", true, ClassLoader.getSystemClassLoader)
+          val putenv = misc.getMethod("putenv", classOf[String], classOf[String])
+          putenv.invoke(null, name, value)
+        }
+
+        for (name <- List("ISABELLE_HOME", "ISABELLE_HOME_USER", "JEDIT_HOME", "JEDIT_SETTINGS")) {
+          putenv(name, File.platform_path(Isabelle_System.getenv(name)))
+        }
+        putenv("ISABELLE_ROOT", null)
+
+
+        /* properties */
 
         System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME/dist")))
         System.setProperty("scala.home", File.platform_path(Path.explode("$SCALA_HOME")))
         System.setProperty("scala.color", "false")
+
+
+        /* main startup */
 
         val jedit =
           Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
@@ -113,47 +130,5 @@ object Main
       }
     }
     start()
-  }
-
-
-  /* adhoc update of JVM environment variables */
-
-  def update_environment()
-  {
-    val update =
-    {
-      val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
-      val isabelle_home_user = Isabelle_System.getenv("ISABELLE_HOME_USER")
-      val jedit_home = Isabelle_System.getenv("JEDIT_HOME")
-      val jedit_settings = Isabelle_System.getenv("JEDIT_SETTINGS")
-
-      (env0: Any) => {
-        val env = env0.asInstanceOf[java.util.Map[String, String]]
-        env.put("ISABELLE_HOME", File.platform_path(isabelle_home))
-        env.put("ISABELLE_HOME_USER", File.platform_path(isabelle_home_user))
-        env.put("JEDIT_HOME", File.platform_path(jedit_home))
-        env.put("JEDIT_SETTINGS", File.platform_path(jedit_settings))
-        env.remove("ISABELLE_ROOT")
-      }
-    }
-
-    classOf[java.util.Collections].getDeclaredClasses
-      .find(c => c.getName == "java.util.Collections$UnmodifiableMap") match
-    {
-      case Some(c) =>
-        val m = c.getDeclaredField("m")
-        m.setAccessible(true)
-        update(m.get(System.getenv()))
-
-        if (Platform.is_windows) {
-          val ProcessEnvironment = Class.forName("java.lang.ProcessEnvironment")
-          val field = ProcessEnvironment.getDeclaredField("theCaseInsensitiveEnvironment")
-          field.setAccessible(true)
-          update(field.get(null))
-        }
-
-      case None =>
-        error("Failed to update JVM environment -- platform incompatibility")
-    }
   }
 }
