@@ -16,6 +16,12 @@ longer supported (legacy feature in Isabelle2018).
 without additional spaces, eg "(*)" instead of "( * )".
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* Improved sub-pixel font rendering (especially on Linux), thanks to
+OpenJDK 11.
+
+
 *** Isar ***
 
 * More robust treatment of structural errors: begin/end blocks take
@@ -101,7 +107,10 @@ ISABELLE_OCAML_VERSION.
 * Support for Glasgow Haskell Compiler via command-line tools "isabelle
 ghc_setup", "isabelle ghci", "isabelle ghc", "isabelle ghc_stack".
 Existing settings variable ISABELLE_GHC is maintained dynamically
-according to the state of ISABELLE_STACK_ROOT and ISABELLE_STACK_RESOLVER.
+according to the state of ISABELLE_STACK_ROOT and
+ISABELLE_STACK_RESOLVER.
+
+* Update to Java 11: the latest long-term support version of OpenJDK.
 
 
 
