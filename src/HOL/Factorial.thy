@@ -242,11 +242,21 @@ lemma pochhammer_pos:
   shows "x > 0 \<Longrightarrow> pochhammer x n > 0"
   by (induction n) (auto simp: pochhammer_Suc intro!: mult_pos_pos add_pos_nonneg)
 
+context comm_semiring_1
+begin
+
 lemma pochhammer_of_nat: "pochhammer (of_nat x) n = of_nat (pochhammer x n)"
-  by (simp add: pochhammer_prod)
+  by (simp add: pochhammer_prod Factorial.pochhammer_prod)
+
+end
+
+context comm_ring_1
+begin
 
 lemma pochhammer_of_int: "pochhammer (of_int x) n = of_int (pochhammer x n)"
-  by (simp add: pochhammer_prod)
+  by (simp add: pochhammer_prod Factorial.pochhammer_prod)
+
+end
 
 lemma pochhammer_rec: "pochhammer a (Suc n) = a * pochhammer (a + 1) n"
   by (simp add: pochhammer_prod prod.atLeast0_lessThan_Suc_shift ac_simps)

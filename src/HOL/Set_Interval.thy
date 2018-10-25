@@ -2271,42 +2271,28 @@ next
 qed
 
 lemma Sum_Icc_nat:
-  "\<Sum>{m..n} = (n * (n + 1) - m * (m - 1)) div 2"
-  if "m \<le> n" for m n :: nat
-proof -
-  have *: "m * (m - 1) \<le> n * (n + 1)"
-    using that by (meson diff_le_self order_trans le_add1 mult_le_mono)
+  "\<Sum>{m..n} = (n * (n + 1) - m * (m - 1)) div 2" for m n :: nat
+proof (cases "m \<le> n")
+  case True
+  then have *: "m * (m - 1) \<le> n * (n + 1)"
+    by (meson diff_le_self order_trans le_add1 mult_le_mono)
   have "int (\<Sum>{m..n}) = (\<Sum>{int m..int n})"
     by (simp add: sum.atLeast_int_atMost_int_shift)
   also have "\<dots> = (int n * (int n + 1) - int m * (int m - 1)) div 2"
-    using that by (simp add: Sum_Icc_int)
+    using \<open>m \<le> n\<close> by (simp add: Sum_Icc_int)
   also have "\<dots> = int ((n * (n + 1) - m * (m - 1)) div 2)"
     using le_square * by (simp add: algebra_simps of_nat_div of_nat_diff)
   finally show ?thesis
     by (simp only: of_nat_eq_iff)
+next
+  case False
+  then show ?thesis
+    by (auto dest: less_imp_Suc_add simp add: not_le algebra_simps)
 qed
 
 lemma Sum_Ico_nat: 
-  "\<Sum>{m..<n} = (n * (n - 1) - m * (m - 1)) div 2"
-  if "m \<le> n" for m n :: nat
-proof -
-  from that consider "m < n" | "m = n"
-    by (auto simp add: less_le)
-  then show ?thesis proof cases
-    case 1
-    then have "{m..<n} = {m..n - 1}"
-      by auto
-    then have "\<Sum>{m..<n} = \<Sum>{m..n - 1}"
-      by simp
-    also have "\<dots> = (n * (n - 1) - m * (m - 1)) div 2"
-      using \<open>m < n\<close> by (simp add: Sum_Icc_nat mult.commute)
-    finally show ?thesis .
-  next
-    case 2
-    then show ?thesis
-      by simp
-  qed
-qed
+  "\<Sum>{m..<n} = (n * (n - 1) - m * (m - 1)) div 2" for m n :: nat
+  by (cases n) (simp_all add: atLeastLessThanSuc_atLeastAtMost Sum_Icc_nat)
 
 
 subsubsection \<open>Division remainder\<close>

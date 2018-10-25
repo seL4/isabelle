@@ -1039,17 +1039,41 @@ qed
 
 subsection \<open>@{term sum} and @{term prod}\<close>
 
-lemma of_nat_sum [simp]: "of_nat (sum f A) = (\<Sum>x\<in>A. of_nat(f x))"
-  by (induct A rule: infinite_finite_induct) auto
+context semiring_1
+begin
 
-lemma of_int_sum [simp]: "of_int (sum f A) = (\<Sum>x\<in>A. of_int(f x))"
-  by (induct A rule: infinite_finite_induct) auto
+lemma of_nat_sum [simp]:
+  "of_nat (sum f A) = (\<Sum>x\<in>A. of_nat (f x))"
+  by (induction A rule: infinite_finite_induct) auto
 
-lemma of_nat_prod [simp]: "of_nat (prod f A) = (\<Prod>x\<in>A. of_nat(f x))"
-  by (induct A rule: infinite_finite_induct) auto
+end
 
-lemma of_int_prod [simp]: "of_int (prod f A) = (\<Prod>x\<in>A. of_int(f x))"
-  by (induct A rule: infinite_finite_induct) auto
+context ring_1
+begin
+
+lemma of_int_sum [simp]:
+  "of_int (sum f A) = (\<Sum>x\<in>A. of_int (f x))"
+  by (induction A rule: infinite_finite_induct) auto
+
+end
+
+context comm_semiring_1
+begin
+
+lemma of_nat_prod [simp]:
+  "of_nat (prod f A) = (\<Prod>x\<in>A. of_nat (f x))"
+  by (induction A rule: infinite_finite_induct) auto
+
+end
+
+context comm_ring_1
+begin
+
+lemma of_int_prod [simp]:
+  "of_int (prod f A) = (\<Prod>x\<in>A. of_int (f x))"
+  by (induction A rule: infinite_finite_induct) auto
+
+end
 
 
 subsection \<open>Setting up simplification procedures\<close>
