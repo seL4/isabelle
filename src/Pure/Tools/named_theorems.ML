@@ -38,6 +38,8 @@ fun new_entry name =
 
 fun undeclared name = "Undeclared named theorems " ^ quote name;
 
+val defined_entry = Symtab.defined o Data.get;
+
 fun the_entry context name =
   (case Symtab.lookup (Data.get context) name of
     NONE => error (undeclared name)
@@ -71,10 +73,17 @@ fun check ctxt (xname, pos) =
   let
     val context = Context.Proof ctxt;
     val fact_ref = Facts.Named ((xname, Position.none), NONE);
-    fun err () = error (undeclared xname ^ Position.here pos);
+    fun err () =
+      let
+        val space = Facts.space_of (Proof_Context.facts_of ctxt);
+        val completion = Name_Space.completion context space (defined_entry context) (xname, pos);
+      in
+        error (undeclared xname ^ Position.here pos ^
+          Markup.markup_report (Completion.reported_text completion))
+      end;
   in
     (case try (Proof_Context.get_fact_generic context) fact_ref of
-      SOME (SOME name, _) => if can (the_entry context) name then name else err ()
+      SOME (SOME name, _) => if defined_entry context name then name else err ()
     | _ => err ())
   end;
 

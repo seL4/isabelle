@@ -30,7 +30,7 @@ sig
   val extern_shortest: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val pretty: Proof.context -> T -> string -> Pretty.T
-  val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
+  val completion: Context.generic -> T -> (string -> bool) -> xstring * Position.T -> Completion.T
   val merge: T * T -> T
   type naming
   val get_scopes: naming -> Binding.scope list
@@ -257,7 +257,7 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 
 (* completion *)
 
-fun completion context space (xname, pos) =
+fun completion context space pred (xname, pos) =
   Completion.make (xname, pos) (fn completed =>
     let
       fun result_ord ((pri1, (xname1, (_, name1))), (pri2, (xname2, (_, name2)))) =
@@ -276,7 +276,7 @@ fun completion context space (xname, pos) =
 
       fun complete xname' name =
         if (completed xname' orelse exists completed (Long_Name.explode xname')) andalso
-          not (is_concealed space name)
+          not (is_concealed space name) andalso pred name
         then
           let
             val xname'' = ext name;
@@ -565,7 +565,7 @@ fun check_reports context (Table (space, tab)) (xname, ps) =
         in ((name, reports), x) end
     | NONE =>
         let
-          val completions = map (fn pos => completion context space (xname, pos)) ps;
+          val completions = map (fn pos => completion context space (K true) (xname, pos)) ps;
         in
           error (undefined space name ^ Position.here_list ps ^
             Markup.markup_report (implode (map Completion.reported_text completions)))
