@@ -13,6 +13,7 @@ imports
   Code_Lazy
   Code_Test
   Combine_PER
+  Comparator
   Complete_Partial_Order2
   Conditional_Parametricity
   Countable
