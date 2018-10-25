@@ -214,10 +214,11 @@ fun attribute_syntax scan src (context, th) =
 fun setup binding scan comment = define_global binding (attribute_syntax scan) comment #> snd;
 fun local_setup binding scan comment = define binding (attribute_syntax scan) comment #> snd;
 
-fun attribute_setup name source comment =
+fun attribute_setup (name, pos) source comment =
   ML_Lex.read_source source
-  |> ML_Context.expression (Input.range_of source) "parser" "Thm.attribute context_parser"
-    ("Context.map_proof (Attrib.local_setup " ^ ML_Syntax.atomic (ML_Syntax.make_binding name) ^
+  |> ML_Context.expression ("parser", pos) "Thm.attribute context_parser"
+    ("Context.map_proof (Attrib.local_setup " ^
+      ML_Syntax.atomic (ML_Syntax.make_binding (name, pos)) ^
       " parser " ^ ML_Syntax.print_string comment ^ ")")
   |> Context.proof_map;
 

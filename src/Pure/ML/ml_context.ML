@@ -21,7 +21,7 @@ sig
     ML_Lex.token Antiquote.antiquote list -> unit
   val eval_source_in: Proof.context option -> ML_Compiler.flags -> Input.source -> unit
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val expression: Position.range -> string -> string -> string ->
+  val expression: string * Position.T -> string -> string ->
     ML_Lex.token Antiquote.antiquote list -> Context.generic -> Context.generic
 end
 
@@ -214,10 +214,11 @@ fun exec (e: unit -> unit) context =
     SOME context' => context'
   | NONE => error "Missing context after execution");
 
-fun expression range name constraint body ants =
+fun expression (name, pos) constraint body ants =
   exec (fn () =>
-    eval ML_Compiler.flags (#1 range)
-     (ML_Lex.read "Context.put_generic_context (SOME (let val " @ ML_Lex.read_set_range range name @
+    eval ML_Compiler.flags pos
+     (ML_Lex.read "Context.put_generic_context (SOME (let val " @
+       ML_Lex.read_set_range (Position.range_of_properties (Position.properties_of pos)) name @
       ML_Lex.read (": " ^ constraint ^ " =") @ ants @
       ML_Lex.read ("in " ^ body ^ " end (Context.the_generic_context ())));")));
 

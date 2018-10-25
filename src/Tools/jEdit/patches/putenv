@@ -1,0 +1,51 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2018-04-09 01:57:06.000000000 +0200
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2018-10-25 22:06:22.258705636 +0200
+@@ -126,6 +126,20 @@
+ 	static final Pattern winPattern = Pattern.compile(winPatternString);
+ 
+ 
++	private static Map<String,String> environ =
++		Collections.synchronizedMap(new HashMap(System.getenv()));
++
++	public static String getenv(String varName)
++	{
++		return environ.get(varName);
++	}
++
++	public static void putenv(String varName, String value)
++	{
++		environ.put(varName, value);
++	}
++	
++
+ 	/** A helper function for expandVariables when handling Windows paths on non-windows systems.
+ 	*/
+ 	private static String win2unix(String winPath)
+@@ -135,7 +149,7 @@
+ 		if (m.find())
+ 		{
+ 			String varName = m.group(2);
+-			String expansion = System.getenv(varName);
++			String expansion = getenv(varName);
+ 			if (expansion != null)
+ 				return m.replaceFirst(expansion);
+ 		}
+@@ -174,7 +188,7 @@
+ 				return arg;
+ 		}
+ 		String varName = m.group(2);
+-		String expansion = System.getenv(varName);
++		String expansion = getenv(varName);
+ 		if (expansion == null) {
+ 			if (varName.equalsIgnoreCase("jedit_settings") && jEdit.getSettingsDirectory() != null) {
+ 				expansion = jEdit.getSettingsDirectory();
+@@ -184,7 +198,7 @@
+ 				varName = varName.toUpperCase();
+ 				String uparg = arg.toUpperCase();
+ 				m = p.matcher(uparg);
+-				expansion = System.getenv(varName);
++				expansion = getenv(varName);
+ 			}
+ 		}
+ 		if (expansion != null) {

@@ -451,7 +451,7 @@ fun check_class ctxt (xname, pos) =
       handle TYPE (msg, _, _) =>
         error (msg ^ Position.here pos ^
           Markup.markup_report (Completion.reported_text
-            (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
+            (Name_Space.completion (Context.Proof ctxt) class_space (K true) (xname, pos))));
     val reports =
       if Context_Position.is_reported ctxt pos
       then [(pos, Name_Space.markup class_space name)] else [];
@@ -535,7 +535,7 @@ fun read_type_name ctxt flags text =
 
 fun consts_completion_message ctxt (c, ps) =
   ps |> map (fn pos =>
-    Name_Space.completion (Context.Proof ctxt) (Consts.space_of (consts_of ctxt)) (c, pos)
+    Name_Space.completion (Context.Proof ctxt) (Consts.space_of (consts_of ctxt)) (K true) (c, pos)
     |> Completion.reported_text)
   |> implode
   |> Markup.markup_report;
