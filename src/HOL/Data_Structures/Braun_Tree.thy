@@ -7,7 +7,7 @@ imports "HOL-Library.Tree_Real"
 begin
 
 text \<open>Braun Trees were studied by Braun and Rem~\cite{BraunRem}
-and later Hoogerwoord~\cite{Hoogerwoord} who gave them their name.\<close>
+and later Hoogerwoord~\cite{Hoogerwoord}.\<close>
 
 fun braun :: "'a tree \<Rightarrow> bool" where
 "braun Leaf = True" |
@@ -50,5 +50,200 @@ next
     thus ?thesis using Node by(intro balanced_Node_if_wbal1) auto
   qed
 qed
+
+subsection \<open>Numbering Nodes\<close>
+
+text \<open>We show that a tree is a Braun tree iff a parity-based
+numbering (\<open>braun_indices\<close>) of nodes yields an interval of numbers.\<close>
+
+abbreviation double :: "nat \<Rightarrow> nat" where
+"double \<equiv> (*) 2"
+
+abbreviation double1 :: "nat \<Rightarrow> nat" where
+"double1 \<equiv> \<lambda>n. Suc(2*n)"
+
+fun braun_indices :: "'a tree \<Rightarrow> nat set" where
+"braun_indices Leaf = {}" |
+"braun_indices (Node l _ r) = {1} \<union> double ` braun_indices l \<union> double1 ` braun_indices r"
+
+lemma braun_indices_if_braun: "braun t \<Longrightarrow> braun_indices t = {1..size t}"
+proof(induction t)
+  case Leaf thus ?case by simp
+next
+  have *: "double ` {a..b} \<union> double1 ` {a..b} = {2*a..2*b+1}" (is "?l = ?r") for a b
+  proof
+    show "?l \<subseteq> ?r" by auto
+  next
+    have "\<exists>x2\<in>{a..b}. x \<in> {Suc (2*x2), 2*x2}" if *: "x \<in> {2*a .. 2*b+1}" for x
+    proof -
+      have "x div 2 \<in> {a..b}" using * by auto
+      moreover have "x \<in> {2 * (x div 2), Suc(2 * (x div 2))}" by auto
+      ultimately show ?thesis by blast
+    qed
+    thus "?r \<subseteq> ?l" by fastforce
+  qed
+  case (Node l x r)
+  hence "size l = size r \<or> size l = size r + 1" (is "?A \<or> ?B") by auto
+  thus ?case
+  proof
+    assume ?A
+    with Node show ?thesis by (auto simp: *)
+  next
+    assume ?B
+    with Node show ?thesis by (auto simp: * atLeastAtMostSuc_conv)
+  qed
+qed
+
+text \<open>How many even/odd natural numbers are there between m and n?\<close>
+
+lemma card_atLeastAtMost_even:
+  "card {i \<in> {m..n::nat}. even i} = (n+1-m + (m+1) mod 2) div 2" (is "?l m n = ?r m n")
+proof(induction "n+1 - m" arbitrary: n m)
+   case 0 thus ?case by simp
+next
+  case Suc
+  have "m \<le> n" using Suc(2) by arith
+  hence "{m..n} = insert m {m+1..n}" by auto
+  hence "?l m n = card {i \<in> insert m {m+1..n}. even i}" by simp
+  also have "\<dots> = ?r m n" (is "?l = ?r")
+  proof (cases)
+    assume "even m"
+    hence "{i \<in> insert m {m+1..n}. even i} = insert m {i \<in> {m+1..n}. even i}" by auto
+    hence "?l = card {i \<in> {m+1..n}. even i} + 1" by simp
+    also have "\<dots> = (n-m + (m+2) mod 2) div 2 + 1" using Suc(1)[of n "m+1"] Suc(2) by simp
+    also have "\<dots> = ?r" using \<open>even m\<close> \<open>m \<le> n\<close> by auto
+    finally show ?thesis .
+  next
+    assume "odd m"
+    hence "{i \<in> insert m {m+1..n}. even i} = {i \<in> {m+1..n}. even i}" by auto
+    hence "?l = card ..." by simp
+    also have "\<dots> = (n-m + (m+2) mod 2) div 2" using Suc(1)[of n "m+1"] Suc(2) by simp
+    also have "\<dots> = ?r" using \<open>odd m\<close> \<open>m \<le> n\<close> even_iff_mod_2_eq_zero[of m] by simp
+    finally show ?thesis .
+  qed
+  finally show ?case .
+qed
+
+lemma card_atLeastAtMost_odd: "card {i \<in> {m..n::nat}. odd i} = (n+1-m + m mod 2) div 2"
+proof -
+  let ?A = "{i \<in> {m..n}. odd i}"
+  let ?B = "{i \<in> {m+1..n+1}. even i}"
+  have "card ?A = card (Suc ` ?A)" by (simp add: card_image)
+  also have "Suc ` ?A = ?B" using Suc_le_D by(force simp: image_iff)
+  also have "card ?B = (n+1-m + (m) mod 2) div 2"
+    using card_atLeastAtMost_even[of "m+1" "n+1"] by simp
+  finally show ?thesis .
+qed
+
+lemma mod2_iff: "x mod 2 = (if even x then 0 else 1)"
+by (simp add: odd_iff_mod_2_eq_one)
+
+lemma compact_ivl_even: assumes "A = {i \<in> {m..n}. even i}"
+shows "A = (\<lambda>j. 2*(j-1) + m + m mod 2) ` {1..card A}" (is "_ = ?A")
+proof
+  let ?a = "(n+1-m + (m+1) mod 2) div 2"
+  have "\<exists>j \<in> {1..?a}. i = 2*(j-1) + m + m mod 2" if *: "i \<in> {m..n}" "even i" for i
+  proof -
+    let ?j = "(i - (m + m mod 2)) div 2 + 1"
+    have "?j \<in> {1..?a} \<and> i = 2*(?j-1) + m + m mod 2" using * by(auto simp: mod2_iff) presburger+
+    thus ?thesis by blast
+  qed
+  thus "A \<subseteq> ?A" using assms
+    by(auto simp: image_iff card_atLeastAtMost_even simp del: atLeastAtMost_iff)
+next
+  let ?a = "(n+1-m + (m+1) mod 2) div 2"
+  have 1: "2 * (j - 1) + m + m mod 2 \<in> {m..n}" if *: "j \<in> {1..?a}" for j
+    using * by(auto simp: mod2_iff)
+  have 2: "even (2 * (j - 1) + m + m mod 2)" for j by presburger
+  show "?A \<subseteq> A"
+    apply(simp add: assms card_atLeastAtMost_even del: atLeastAtMost_iff One_nat_def)
+    using 1 2 by blast
+qed
+
+lemma compact_ivl_odd:
+  assumes "B = {i \<in> {m..n}. odd i}" shows "B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..card B}"
+proof -
+  define A :: " nat set" where "A = Suc ` B"
+  have "A = {i \<in> {m+1..n+1}. even i}"
+    using Suc_le_D by(force simp add: A_def assms image_iff)
+  from compact_ivl_even[OF this]
+  have "A = Suc ` (\<lambda>i. 2 * (i - 1) + m + (m + 1) mod 2) ` {1..card A}"
+    by (simp add: image_comp o_def)
+  hence B: "B = (\<lambda>i. 2 * (i - 1) + m + (m + 1) mod 2) ` {1..card A}"
+    using A_def by (simp add: inj_image_eq_iff)
+  have "card A = card B" by (metis A_def bij_betw_Suc bij_betw_same_card) 
+  with B show ?thesis by simp
+qed
+
+lemma even_odd_decomp: assumes "\<forall>x \<in> A. even x" "\<forall>x \<in> B. odd x"  "A \<union> B = {m..n}"
+shows "(let a = card A; b = card B in
+   a + b = n+1-m \<and>
+   A = (\<lambda>i. 2*(i-1) + m + m mod 2) ` {1..a} \<and>
+   B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..b} \<and>
+   (a = b \<or> a = b+1 \<and> even m \<or> a+1 = b \<and> odd m))"
+proof -
+  let ?a = "card A" let ?b = "card B"
+  have "finite A \<and> finite B"
+    by (metis \<open>A \<union> B = {m..n}\<close> finite_Un finite_atLeastAtMost)
+  hence ab: "?a + ?b = Suc n - m"
+    by (metis Int_emptyI assms card_Un_disjoint card_atLeastAtMost)
+  have A: "A = {i \<in> {m..n}. even i}" using assms by auto
+  hence A': "A = (\<lambda>i. 2*(i-1) + m + m mod 2) ` {1..?a}" by(rule compact_ivl_even)
+  have B: "B = {i \<in> {m..n}. odd i}" using assms by auto
+  hence B': "B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..?b}" by(rule compact_ivl_odd)
+  have "?a = ?b \<or> ?a = ?b+1 \<and> even m \<or> ?a+1 = ?b \<and> odd m"
+    apply(simp add: Let_def mod2_iff
+      card_atLeastAtMost_even[of m n, simplified A[symmetric]]
+      card_atLeastAtMost_odd[of m n, simplified B[symmetric]] split!: if_splits)
+    by linarith
+  with ab A' B' show ?thesis by simp
+qed
+
+lemma braun_indices1: "i \<in> braun_indices t \<Longrightarrow> i \<ge> 1"
+by (induction t arbitrary: i) auto
+
+lemma finite_braun_indices: "finite(braun_indices t)"
+by (induction t) auto
+
+lemma evens_odds_disj: "double  ` braun_indices A \<inter> double1 ` B = {}"
+using double_not_eq_Suc_double by auto
+
+lemma card_braun_indices: "card (braun_indices t) = size t"
+proof (induction t)
+  case Leaf thus ?case by simp
+next
+  case Node
+  thus ?case
+    by(auto simp: UNION_singleton_eq_range finite_braun_indices card_Un_disjoint
+                  card_insert_if evens_odds_disj card_image inj_on_def dest: braun_indices1)
+qed
+
+lemma eq: "insert (Suc 0) M = {Suc 0..n} \<Longrightarrow> Suc 0 \<notin> M \<Longrightarrow> M = {2..n}"
+by (metis Suc_n_not_le_n atLeastAtMost_iff atLeastAtMost_insertL insertI1 insert_ident numeral_2_eq_2)
+
+lemma inj_on_Suc: "inj_on f N \<Longrightarrow> inj_on (\<lambda>n. Suc(f n)) N"
+by (simp add: inj_on_def)
+
+lemma braun_if_braun_indices: "braun_indices t = {1..size t} \<Longrightarrow> braun t"
+proof(induction t)
+case Leaf
+  then show ?case by simp
+next
+  case (Node t1 x2 t2)
+  have 1: "i > 0 \<Longrightarrow> Suc(Suc(2 * (i - Suc 0))) = 2*i" for i::nat by(simp add: algebra_simps)
+  have 2: "i > 0 \<Longrightarrow> 2 * (i - Suc 0) + 3 = 2*i + 1" for i::nat by(simp add: algebra_simps)
+  have 3: "double ` braun_indices t1 \<union> double1 ` braun_indices t2 =
+     {2..size t1 + size t2 + 1}" using Node.prems braun_indices1[of 0 t2]
+    apply simp
+    apply(drule eq)
+     apply auto
+    done
+  thus ?case using Node.IH even_odd_decomp[OF _ _ 3]
+    by(simp add: card_image inj_on_def card_braun_indices Let_def 1 2 inj_image_eq_iff
+           cong: image_cong_strong)
+qed
+
+lemma braun_iff_braun_indices: "braun t \<longleftrightarrow> braun_indices t = {1..size t}"
+using braun_if_braun_indices braun_indices_if_braun by blast
 
 end
