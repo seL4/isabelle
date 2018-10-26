@@ -6,6 +6,12 @@ theory Braun_Tree
 imports "HOL-Library.Tree_Real"
 begin
 
+(* FIXME mv *)
+lemma mod2_iff: "x mod 2 = (if even x then 0 else 1)"
+by (simp add: odd_iff_mod_2_eq_one)
+lemma Icc_eq_insert_lb_nat: "m \<le> n \<Longrightarrow> {m..n} = insert m {Suc m..n}"
+by auto
+
 text \<open>Braun Trees were studied by Braun and Rem~\cite{BraunRem}
 and later Hoogerwoord~\cite{Hoogerwoord}.\<close>
 
@@ -60,6 +66,12 @@ fun braun_indices :: "'a tree \<Rightarrow> nat set" where
 "braun_indices Leaf = {}" |
 "braun_indices (Node l _ r) = {1} \<union> (*) 2 ` braun_indices l \<union> Suc ` (*) 2 ` braun_indices r"
 
+lemma braun_indices1: "0 \<notin> braun_indices t"
+by (induction t) auto
+
+lemma finite_braun_indices: "finite(braun_indices t)"
+by (induction t) auto
+
 lemma braun_indices_if_braun: "braun t \<Longrightarrow> braun_indices t = {1..size t}"
 proof(induction t)
   case Leaf thus ?case by simp
@@ -86,6 +98,30 @@ next
     assume ?B
     with Node show ?thesis by (auto simp: * atLeastAtMostSuc_conv)
   qed
+qed
+
+lemma disj_evens_odds: "(*) 2 ` A \<inter> Suc ` (*) 2 ` B = {}"
+using double_not_eq_Suc_double by auto
+
+lemma Suc0_notin_double: "Suc 0 \<notin> (*) 2 ` A"
+by(auto)
+
+lemma zero_in_double_iff: "(0::nat) \<in> (*) 2 ` A \<longleftrightarrow> 0 \<in> A"
+by(auto)
+
+lemma Suc_in_Suc_image_iff: "Suc n \<in> Suc ` A \<longleftrightarrow> n \<in> A"
+by(auto)
+
+lemmas nat_in_image = Suc0_notin_double zero_in_double_iff Suc_in_Suc_image_iff
+
+lemma card_braun_indices: "card (braun_indices t) = size t"
+proof (induction t)
+  case Leaf thus ?case by simp
+next
+  case Node
+  thus ?case
+    by(auto simp: UNION_singleton_eq_range finite_braun_indices card_Un_disjoint
+                  card_insert_if disj_evens_odds card_image inj_on_def braun_indices1)
 qed
 
 text \<open>How many even/odd natural numbers are there between m and n?\<close>
@@ -128,9 +164,6 @@ proof -
     using card_atLeastAtMost_even[of "m+1" "n+1"] by simp
   finally show ?thesis .
 qed
-
-lemma mod2_iff: "x mod 2 = (if even x then 0 else 1)"
-by (simp add: odd_iff_mod_2_eq_one)
 
 lemma compact_ivl_even: assumes "A = {i \<in> {m..n}. even i}"
 shows "A = (\<lambda>j. 2*(j-1) + m + m mod 2) ` {1..card A}" (is "_ = ?A")
@@ -193,31 +226,6 @@ proof -
   with ab A' B' show ?thesis by simp
 qed
 
-lemma braun_indices1: "i \<in> braun_indices t \<Longrightarrow> i \<ge> 1"
-by (induction t arbitrary: i) auto
-
-lemma finite_braun_indices: "finite(braun_indices t)"
-by (induction t) auto
-
-lemma evens_odds_disj: "(*) 2 ` braun_indices A \<inter> Suc ` (*) 2 ` B = {}"
-using double_not_eq_Suc_double by auto
-
-lemma card_braun_indices: "card (braun_indices t) = size t"
-proof (induction t)
-  case Leaf thus ?case by simp
-next
-  case Node
-  thus ?case
-    by(auto simp: UNION_singleton_eq_range finite_braun_indices card_Un_disjoint
-                  card_insert_if evens_odds_disj card_image inj_on_def dest: braun_indices1)
-qed
-
-lemma eq: "insert (Suc 0) M = {Suc 0..n} \<Longrightarrow> Suc 0 \<notin> M \<Longrightarrow> M = {2..n}"
-by (metis Suc_n_not_le_n atLeastAtMost_iff atLeastAtMost_insertL insertI1 insert_ident numeral_2_eq_2)
-
-lemma inj_on_Suc: "inj_on f N \<Longrightarrow> inj_on (\<lambda>n. Suc(f n)) N"
-by (simp add: inj_on_def)
-
 lemma braun_if_braun_indices: "braun_indices t = {1..size t} \<Longrightarrow> braun t"
 proof(induction t)
 case Leaf
@@ -227,11 +235,8 @@ next
   have 1: "i > 0 \<Longrightarrow> Suc(Suc(2 * (i - Suc 0))) = 2*i" for i::nat by(simp add: algebra_simps)
   have 2: "i > 0 \<Longrightarrow> 2 * (i - Suc 0) + 3 = 2*i + 1" for i::nat by(simp add: algebra_simps)
   have 3: "(*) 2 ` braun_indices t1 \<union> Suc ` (*) 2 ` braun_indices t2 =
-     {2..size t1 + size t2 + 1}" using Node.prems braun_indices1[of 0 t2]
-    apply simp
-    apply(drule eq)
-     apply auto
-    done
+     {2..size t1 + size t2 + 1}" using Node.prems
+    by (simp add: insert_ident Icc_eq_insert_lb_nat nat_in_image braun_indices1)
   thus ?case using Node.IH even_odd_decomp[OF _ _ 3]
     by(simp add: card_image inj_on_def card_braun_indices Let_def 1 2 inj_image_eq_iff image_comp
            cong: image_cong_strong)
