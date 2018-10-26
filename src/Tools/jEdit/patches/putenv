@@ -1,7 +1,7 @@
 diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java
 --- 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2018-04-09 01:57:06.000000000 +0200
-+++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2018-10-25 22:06:22.258705636 +0200
-@@ -126,6 +126,20 @@
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/MiscUtilities.java	2018-10-26 12:29:44.315185808 +0200
+@@ -126,6 +126,21 @@
  	static final Pattern winPattern = Pattern.compile(winPatternString);
  
  
@@ -15,14 +15,15 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
 +
 +	public static void putenv(String varName, String value)
 +	{
-+		environ.put(varName, value);
++		if (value == null) environ.remove(varName);
++		else environ.put(varName, value);
 +	}
 +	
 +
  	/** A helper function for expandVariables when handling Windows paths on non-windows systems.
  	*/
  	private static String win2unix(String winPath)
-@@ -135,7 +149,7 @@
+@@ -135,7 +150,7 @@
  		if (m.find())
  		{
  			String varName = m.group(2);
@@ -31,7 +32,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  			if (expansion != null)
  				return m.replaceFirst(expansion);
  		}
-@@ -174,7 +188,7 @@
+@@ -174,7 +189,7 @@
  				return arg;
  		}
  		String varName = m.group(2);
@@ -40,7 +41,7 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  		if (expansion == null) {
  			if (varName.equalsIgnoreCase("jedit_settings") && jEdit.getSettingsDirectory() != null) {
  				expansion = jEdit.getSettingsDirectory();
-@@ -184,7 +198,7 @@
+@@ -184,7 +199,7 @@
  				varName = varName.toUpperCase();
  				String uparg = arg.toUpperCase();
  				m = p.matcher(uparg);
@@ -49,3 +50,18 @@ diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java 5.5.0/jEdit-patched/org
  			}
  		}
  		if (expansion != null) {
+@@ -1637,13 +1652,11 @@
+ 		//{{{ VarCompressor constructor
+ 		VarCompressor()
+ 		{
+-			ProcessBuilder pb = new ProcessBuilder();
+-			Map<String, String> env = pb.environment();
+ 			if (OperatingSystem.isUnix())
+ 				prefixMap.put(System.getProperty("user.home"), "~");
+ 			if (jEdit.getSettingsDirectory() != null)
+ 				prefixMap.put(jEdit.getSettingsDirectory(), "JEDIT_SETTINGS");
+-			for (Map.Entry<String, String> entry: env.entrySet())
++			for (Map.Entry<String, String> entry: environ.entrySet())
+ 			{
+ 				String k = entry.getKey();
+ 				if (k.equalsIgnoreCase("pwd") || k.equalsIgnoreCase("oldpwd")) continue;
