@@ -124,6 +124,25 @@ next
                   card_insert_if disj_evens_odds card_image inj_on_def braun_indices1)
 qed
 
+lemma disj_union_eq_iff:
+  "\<lbrakk> L1 \<inter> R2 = {}; L2 \<inter> R1 = {} \<rbrakk> \<Longrightarrow> L1 \<union> R1 = L2 \<union> R2 \<longleftrightarrow> L1 = L2 \<and> R1 = R2"
+by blast
+
+lemma inj_braun_indices: "braun_indices t1 = braun_indices t2 \<Longrightarrow> t1 = (t2::unit tree)"
+proof(induction t1 arbitrary: t2)
+  case Leaf thus ?case using braun_indices.elims by blast
+next
+  case (Node l1 x1 r1)
+  have "t2 \<noteq> Leaf"
+  proof
+    assume "t2 = Leaf"
+    with Node.prems show False by simp
+  qed
+  thus ?case using Node
+    by (auto simp: neq_Leaf_iff insert_ident nat_in_image braun_indices1
+                  disj_union_eq_iff disj_evens_odds inj_image_eq_iff inj_def)
+qed
+
 text \<open>How many even/odd natural numbers are there between m and n?\<close>
 
 lemma card_atLeastAtMost_even:
