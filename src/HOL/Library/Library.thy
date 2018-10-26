@@ -13,7 +13,6 @@ imports
   Code_Lazy
   Code_Test
   Combine_PER
-  Comparator
   Complete_Partial_Order2
   Conditional_Parametricity
   Countable
@@ -82,6 +81,7 @@ imports
   State_Monad
   Stirling
   Stream
+  Sorting_Algorithms
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table

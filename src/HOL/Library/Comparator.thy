@@ -184,6 +184,8 @@ instance ..
 
 end
 
+text \<open>Fundamental comparator combinators\<close>
+
 lift_definition reversed :: "'a comparator \<Rightarrow> 'a comparator"
   is "\<lambda>cmp a b. cmp b a"
 proof -
