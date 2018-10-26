@@ -56,21 +56,15 @@ subsection \<open>Numbering Nodes\<close>
 text \<open>We show that a tree is a Braun tree iff a parity-based
 numbering (\<open>braun_indices\<close>) of nodes yields an interval of numbers.\<close>
 
-abbreviation double :: "nat \<Rightarrow> nat" where
-"double \<equiv> (*) 2"
-
-abbreviation double1 :: "nat \<Rightarrow> nat" where
-"double1 \<equiv> \<lambda>n. Suc(2*n)"
-
 fun braun_indices :: "'a tree \<Rightarrow> nat set" where
 "braun_indices Leaf = {}" |
-"braun_indices (Node l _ r) = {1} \<union> double ` braun_indices l \<union> double1 ` braun_indices r"
+"braun_indices (Node l _ r) = {1} \<union> (*) 2 ` braun_indices l \<union> Suc ` (*) 2 ` braun_indices r"
 
 lemma braun_indices_if_braun: "braun t \<Longrightarrow> braun_indices t = {1..size t}"
 proof(induction t)
   case Leaf thus ?case by simp
 next
-  have *: "double ` {a..b} \<union> double1 ` {a..b} = {2*a..2*b+1}" (is "?l = ?r") for a b
+  have *: "(*) 2 ` {a..b} \<union> Suc ` (*) 2 ` {a..b} = {2*a..2*b+1}" (is "?l = ?r") for a b
   proof
     show "?l \<subseteq> ?r" by auto
   next
@@ -205,7 +199,7 @@ by (induction t arbitrary: i) auto
 lemma finite_braun_indices: "finite(braun_indices t)"
 by (induction t) auto
 
-lemma evens_odds_disj: "double  ` braun_indices A \<inter> double1 ` B = {}"
+lemma evens_odds_disj: "(*) 2 ` braun_indices A \<inter> Suc ` (*) 2 ` B = {}"
 using double_not_eq_Suc_double by auto
 
 lemma card_braun_indices: "card (braun_indices t) = size t"
@@ -232,14 +226,14 @@ next
   case (Node t1 x2 t2)
   have 1: "i > 0 \<Longrightarrow> Suc(Suc(2 * (i - Suc 0))) = 2*i" for i::nat by(simp add: algebra_simps)
   have 2: "i > 0 \<Longrightarrow> 2 * (i - Suc 0) + 3 = 2*i + 1" for i::nat by(simp add: algebra_simps)
-  have 3: "double ` braun_indices t1 \<union> double1 ` braun_indices t2 =
+  have 3: "(*) 2 ` braun_indices t1 \<union> Suc ` (*) 2 ` braun_indices t2 =
      {2..size t1 + size t2 + 1}" using Node.prems braun_indices1[of 0 t2]
     apply simp
     apply(drule eq)
      apply auto
     done
   thus ?case using Node.IH even_odd_decomp[OF _ _ 3]
-    by(simp add: card_image inj_on_def card_braun_indices Let_def 1 2 inj_image_eq_iff
+    by(simp add: card_image inj_on_def card_braun_indices Let_def 1 2 inj_image_eq_iff image_comp
            cong: image_cong_strong)
 qed
 
