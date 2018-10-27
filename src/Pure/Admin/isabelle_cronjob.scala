@@ -55,7 +55,7 @@ object Isabelle_Cronjob
 
         Isabelle_System.bash(
           """rsync -a --include="*/" --include="plain_identify*" --exclude="*" """ +
-            Bash.string(backup + "/log") + " " + File.bash_path(main_dir)).check
+            Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
 
         if (!Isabelle_Devel.cronjob_log.is_file)
           Files.createSymbolicLink(Isabelle_Devel.cronjob_log.file.toPath, current_log.file.toPath)
@@ -65,7 +65,7 @@ object Isabelle_Cronjob
     Logger_Task("exit", logger =>
       {
         Isabelle_System.bash(
-          "rsync -a " + File.bash_path(main_dir + Path.explode("log")) + " " + Bash.string(backup))
+          "rsync -a " + File.bash_path(main_dir) + "/log/." + " " + Bash.string(backup) + "/log/.")
             .check
       })
 
