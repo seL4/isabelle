@@ -154,6 +154,9 @@ next
     by (auto intro: division_segment_eq_iff simp add: division_segment_mod)
 qed
 
+lemma mod2_eq_if: "x mod 2 = (if even x then 0 else 1)"
+by (simp add: odd_iff_mod_2_eq_one)
+
 lemma parity_cases [case_names even odd]:
   assumes "even a \<Longrightarrow> a mod 2 = 0 \<Longrightarrow> P"
   assumes "odd a \<Longrightarrow> a mod 2 = 1 \<Longrightarrow> P"

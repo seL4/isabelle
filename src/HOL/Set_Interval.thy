@@ -770,6 +770,9 @@ lemma atLeast0_lessThan_Suc_eq_insert_0: "{0..<Suc n} = insert 0 (Suc ` {0..<n})
 
 subsubsection \<open>The Constant @{term atLeastAtMost}\<close>
 
+lemma Icc_eq_insert_lb_nat: "m \<le> n \<Longrightarrow> {m..n} = insert m {Suc m..n}"
+by auto
+
 lemma atLeast0_atMost_Suc:
   "{0..Suc n} = insert (Suc n) {0..n}"
   by (simp add: atLeast0AtMost atMost_Suc)

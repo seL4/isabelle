@@ -6,12 +6,6 @@ theory Braun_Tree
 imports "HOL-Library.Tree_Real"
 begin
 
-(* FIXME mv *)
-lemma mod2_iff: "x mod 2 = (if even x then 0 else 1)"
-by (simp add: odd_iff_mod_2_eq_one)
-lemma Icc_eq_insert_lb_nat: "m \<le> n \<Longrightarrow> {m..n} = insert m {Suc m..n}"
-by auto
-
 text \<open>Braun Trees were studied by Braun and Rem~\cite{BraunRem}
 and later Hoogerwoord~\cite{Hoogerwoord}.\<close>
 
@@ -191,7 +185,7 @@ proof
   have "\<exists>j \<in> {1..?a}. i = 2*(j-1) + m + m mod 2" if *: "i \<in> {m..n}" "even i" for i
   proof -
     let ?j = "(i - (m + m mod 2)) div 2 + 1"
-    have "?j \<in> {1..?a} \<and> i = 2*(?j-1) + m + m mod 2" using * by(auto simp: mod2_iff) presburger+
+    have "?j \<in> {1..?a} \<and> i = 2*(?j-1) + m + m mod 2" using * by(auto simp: mod2_eq_if) presburger+
     thus ?thesis by blast
   qed
   thus "A \<subseteq> ?A" using assms
@@ -199,7 +193,7 @@ proof
 next
   let ?a = "(n+1-m + (m+1) mod 2) div 2"
   have 1: "2 * (j - 1) + m + m mod 2 \<in> {m..n}" if *: "j \<in> {1..?a}" for j
-    using * by(auto simp: mod2_iff)
+    using * by(auto simp: mod2_eq_if)
   have 2: "even (2 * (j - 1) + m + m mod 2)" for j by presburger
   show "?A \<subseteq> A"
     apply(simp add: assms card_atLeastAtMost_even del: atLeastAtMost_iff One_nat_def)
@@ -238,7 +232,7 @@ proof -
   have B: "B = {i \<in> {m..n}. odd i}" using assms by auto
   hence B': "B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..?b}" by(rule compact_ivl_odd)
   have "?a = ?b \<or> ?a = ?b+1 \<and> even m \<or> ?a+1 = ?b \<and> odd m"
-    apply(simp add: Let_def mod2_iff
+    apply(simp add: Let_def mod2_eq_if
       card_atLeastAtMost_even[of m n, simplified A[symmetric]]
       card_atLeastAtMost_odd[of m n, simplified B[symmetric]] split!: if_splits)
     by linarith
