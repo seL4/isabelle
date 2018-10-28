@@ -373,7 +373,7 @@ then
   cp -p -R -f src/modes/. dist/modes/.
 
   perl -i -e 'while (<>) {
-    if (m/FILE="ml.xml"/ or m/FILE_NAME_GLOB="...sml,ml."/) { }
+    if (m/FILE="ml.xml"/ or m/FILE_NAME_GLOB="...sml,ml."/ or m/FILE_NAME_GLOB="..ftl"/) { }
     elsif (m/NAME="javacc"/) {
       print qq!<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="{*.thy,ROOT0.ML,ROOT.ML}"/>\n\n!;
       print qq!<MODE NAME="isabelle-ml" FILE="isabelle-ml.xml" FILE_NAME_GLOB="*.ML"/>\n\n!;
