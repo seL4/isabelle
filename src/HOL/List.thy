@@ -4384,6 +4384,13 @@ by (auto simp add: nths_def)
 lemma nths_nil [simp]: "nths [] A = []"
 by (auto simp add: nths_def)
 
+lemma nths_all: "\<forall>i < length xs. i \<in> I \<Longrightarrow> nths xs I = xs"
+apply (simp add: nths_def)
+apply (subst filter_True)
+ apply (clarsimp simp: in_set_zip subset_iff)
+apply simp
+done
+
 lemma length_nths:
   "length (nths xs I) = card{i. i < length xs \<and> i \<in> I}"
 by(simp add: nths_def length_filter_conv_card cong:conj_cong)
@@ -4423,7 +4430,7 @@ lemma nths_map: "nths (map f xs) I = map f (nths xs I)"
 by(induction xs arbitrary: I) (simp_all add: nths_Cons)
 
 lemma set_nths: "set(nths xs I) = {xs!i|i. i<size xs \<and> i \<in> I}"
-  by (induct xs arbitrary: I) (auto simp: nths_Cons nth_Cons split:nat.split dest!: gr0_implies_Suc)
+by (induct xs arbitrary: I) (auto simp: nths_Cons nth_Cons split:nat.split dest!: gr0_implies_Suc)
 
 lemma set_nths_subset: "set(nths xs I) \<subseteq> set xs"
 by(auto simp add:set_nths)
@@ -4443,6 +4450,20 @@ by (induct xs arbitrary: I) (auto simp: nths_Cons)
 lemma nths_upt_eq_take [simp]: "nths l {..<n} = take n l"
 by (induct l rule: rev_induct)
    (simp_all split: nat_diff_split add: nths_append)
+
+lemma nths_nths: "nths (nths xs A) B = nths xs {i \<in> A. \<exists>j \<in> B. card {i' \<in> A. i' < i} = j}"
+apply(induction xs arbitrary: A B)
+apply(auto simp add: nths_Cons card_less_Suc card_less_Suc2)
+done
+
+lemma drop_eq_nths: "drop n xs = nths xs {i. i \<ge> n}"
+apply(induction xs arbitrary: n)
+apply (auto simp add: nths_Cons nths_all drop_Cons' intro: arg_cong2[where f=nths, OF refl])
+done
+
+lemma nths_drop: "nths (drop n xs) I = nths xs ((+) n ` I)"
+by(force simp: drop_eq_nths nths_nths simp flip: atLeastLessThan_iff
+         intro: arg_cong2[where f=nths, OF refl])
 
 lemma filter_eq_nths: "filter P xs = nths xs {i. i<length xs \<and> P(xs!i)}"
 by(induction xs) (auto simp: nths_Cons)
