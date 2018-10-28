@@ -139,7 +139,7 @@ qed
 
 text \<open>How many even/odd natural numbers are there between m and n?\<close>
 
-lemma card_atLeastAtMost_even:
+lemma card_Icc_even_nat:
   "card {i \<in> {m..n::nat}. even i} = (n+1-m + (m+1) mod 2) div 2" (is "?l m n = ?r m n")
 proof(induction "n+1 - m" arbitrary: n m)
    case 0 thus ?case by simp
@@ -167,18 +167,18 @@ next
   finally show ?case .
 qed
 
-lemma card_atLeastAtMost_odd: "card {i \<in> {m..n::nat}. odd i} = (n+1-m + m mod 2) div 2"
+lemma card_Icc_odd_nat: "card {i \<in> {m..n::nat}. odd i} = (n+1-m + m mod 2) div 2"
 proof -
   let ?A = "{i \<in> {m..n}. odd i}"
   let ?B = "{i \<in> {m+1..n+1}. even i}"
   have "card ?A = card (Suc ` ?A)" by (simp add: card_image)
   also have "Suc ` ?A = ?B" using Suc_le_D by(force simp: image_iff)
   also have "card ?B = (n+1-m + (m) mod 2) div 2"
-    using card_atLeastAtMost_even[of "m+1" "n+1"] by simp
+    using card_Icc_even_nat[of "m+1" "n+1"] by simp
   finally show ?thesis .
 qed
 
-lemma compact_ivl_even: assumes "A = {i \<in> {m..n}. even i}"
+lemma compact_Icc_even: assumes "A = {i \<in> {m..n}. even i}"
 shows "A = (\<lambda>j. 2*(j-1) + m + m mod 2) ` {1..card A}" (is "_ = ?A")
 proof
   let ?a = "(n+1-m + (m+1) mod 2) div 2"
@@ -189,24 +189,24 @@ proof
     thus ?thesis by blast
   qed
   thus "A \<subseteq> ?A" using assms
-    by(auto simp: image_iff card_atLeastAtMost_even simp del: atLeastAtMost_iff)
+    by(auto simp: image_iff card_Icc_even_nat simp del: atLeastAtMost_iff)
 next
   let ?a = "(n+1-m + (m+1) mod 2) div 2"
   have 1: "2 * (j - 1) + m + m mod 2 \<in> {m..n}" if *: "j \<in> {1..?a}" for j
     using * by(auto simp: mod2_eq_if)
   have 2: "even (2 * (j - 1) + m + m mod 2)" for j by presburger
   show "?A \<subseteq> A"
-    apply(simp add: assms card_atLeastAtMost_even del: atLeastAtMost_iff One_nat_def)
+    apply(simp add: assms card_Icc_even_nat del: atLeastAtMost_iff One_nat_def)
     using 1 2 by blast
 qed
 
-lemma compact_ivl_odd:
+lemma compact_Icc_odd:
   assumes "B = {i \<in> {m..n}. odd i}" shows "B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..card B}"
 proof -
   define A :: " nat set" where "A = Suc ` B"
   have "A = {i \<in> {m+1..n+1}. even i}"
     using Suc_le_D by(force simp add: A_def assms image_iff)
-  from compact_ivl_even[OF this]
+  from compact_Icc_even[OF this]
   have "A = Suc ` (\<lambda>i. 2 * (i - 1) + m + (m + 1) mod 2) ` {1..card A}"
     by (simp add: image_comp o_def)
   hence B: "B = (\<lambda>i. 2 * (i - 1) + m + (m + 1) mod 2) ` {1..card A}"
@@ -228,13 +228,13 @@ proof -
   hence ab: "?a + ?b = Suc n - m"
     by (metis Int_emptyI assms card_Un_disjoint card_atLeastAtMost)
   have A: "A = {i \<in> {m..n}. even i}" using assms by auto
-  hence A': "A = (\<lambda>i. 2*(i-1) + m + m mod 2) ` {1..?a}" by(rule compact_ivl_even)
+  hence A': "A = (\<lambda>i. 2*(i-1) + m + m mod 2) ` {1..?a}" by(rule compact_Icc_even)
   have B: "B = {i \<in> {m..n}. odd i}" using assms by auto
-  hence B': "B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..?b}" by(rule compact_ivl_odd)
+  hence B': "B = (\<lambda>i. 2*(i-1) + m + (m+1) mod 2) ` {1..?b}" by(rule compact_Icc_odd)
   have "?a = ?b \<or> ?a = ?b+1 \<and> even m \<or> ?a+1 = ?b \<and> odd m"
     apply(simp add: Let_def mod2_eq_if
-      card_atLeastAtMost_even[of m n, simplified A[symmetric]]
-      card_atLeastAtMost_odd[of m n, simplified B[symmetric]] split!: if_splits)
+      card_Icc_even_nat[of m n, simplified A[symmetric]]
+      card_Icc_odd_nat[of m n, simplified B[symmetric]] split!: if_splits)
     by linarith
   with ab A' B' show ?thesis by simp
 qed
