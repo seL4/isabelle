@@ -55,7 +55,7 @@ fun print_sml_char c =
   if c = "\\"
   then "\\092" (*produce strings suitable for both SML as well as Isabelle/ML*)
   else if Symbol.is_ascii c
-  then ML_Syntax.print_char c
+  then ML_Syntax.print_symbol_char c
   else error "non-ASCII byte in SML string literal";
 
 val print_sml_string = quote o translate_string print_sml_char;

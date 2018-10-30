@@ -41,7 +41,7 @@ val print_haskell_string =
       let
         val _ = if Symbol.is_ascii c then ()
           else error "non-ASCII byte in Haskell string literal";
-        val s = ML_Syntax.print_char c;
+        val s = ML_Syntax.print_symbol_char c;
       in if s = "'" then "\\'" else s end;
   in quote o translate_string char end;
 
