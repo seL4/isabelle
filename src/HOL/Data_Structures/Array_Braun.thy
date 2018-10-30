@@ -266,11 +266,11 @@ qed
 
 subsection "Faster"
 
-fun braun_of_rec :: "'a \<Rightarrow> nat \<Rightarrow> 'a tree" where
-"braun_of_rec x n = (if n=0 then Leaf
+fun braun_of_naive :: "'a \<Rightarrow> nat \<Rightarrow> 'a tree" where
+"braun_of_naive x n = (if n=0 then Leaf
   else let m = (n-1) div 2
-       in if odd n then Node (braun_of_rec x m) x (braun_of_rec x m)
-       else Node (braun_of_rec x (m + 1)) x (braun_of_rec x m))"
+       in if odd n then Node (braun_of_naive x m) x (braun_of_naive x m)
+       else Node (braun_of_naive x (m + 1)) x (braun_of_naive x m))"
 
 fun braun2_of :: "'a \<Rightarrow> nat \<Rightarrow> 'a tree * 'a tree" where
 "braun2_of x n = (if n = 0 then (Leaf, Node Leaf x Leaf)
