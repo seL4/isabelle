@@ -87,6 +87,22 @@ is useful to incorporate big SML projects in an isolated name space, and
 potentially with variations on ML syntax (existing ML_Env.SML_operations
 observes the official standard).
 
+* GHC.read_source reads Haskell source text with antiquotations (only
+the control-cartouche form). The default "cartouche" antiquotation
+evaluates an ML expression of type string and inlines the result as
+Haskell string literal. This allows to refer to Isabelle items robustly,
+e.g. via Isabelle/ML antiquotations or library operations. For example:
+
+ML \<open>
+  GHC.read_source \<^context> \<open>
+    allConst, impConst, eqConst :: String
+    allConst = \<open>\<^const_name>\<open>Pure.all\<close>\<close>
+    impConst = \<open>\<^const_name>\<open>Pure.imp\<close>\<close>
+    eqConst = \<open>\<^const_name>\<open>Pure.eq\<close>\<close>
+  \<close>
+  |> File.write \<^path>\<open>consts.hs\<close>
+\<close>
+
 
 *** System ***
 
