@@ -84,7 +84,7 @@ fun check_blanks source =
   (case bad_blanks source of
     [] => ()
   | (c, pos) :: _ =>
-      error ("Bad blank character " ^ quote (ML_Syntax.print_char c) ^ Position.here pos));
+      error ("Bad blank character " ^ quote (ML_Syntax.print_symbol c) ^ Position.here pos));
 
 val is_space = Symbol.is_space o Symbol_Pos.symbol;
 val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);

@@ -15,7 +15,8 @@ sig
   val print_pair: ('a -> string) -> ('b -> string) -> 'a * 'b -> string
   val print_list: ('a -> string) -> 'a list -> string
   val print_option: ('a -> string) -> 'a option -> string
-  val print_char: string -> string
+  val print_symbol_char: Symbol.symbol -> string
+  val print_symbol: Symbol.symbol -> string
   val print_string: string -> string
   val print_strings: string list -> string
   val print_properties: Properties.T -> string
@@ -59,7 +60,7 @@ fun print_list f = enclose "[" "]" o commas o map f;
 fun print_option f NONE = "NONE"
   | print_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
-fun print_chr s =
+fun print_symbol_char s =
   if Symbol.is_char s then
     (case ord s of
       34 => "\\\""
@@ -77,12 +78,12 @@ fun print_chr s =
         else "\\" ^ string_of_int c)
   else error ("Bad character: " ^ quote s);
 
-fun print_char s =
-  if Symbol.is_char s then print_chr s
-  else if Symbol.is_utf8 s then translate_string print_chr s
+fun print_symbol s =
+  if Symbol.is_char s then print_symbol_char s
+  else if Symbol.is_utf8 s then translate_string print_symbol_char s
   else s;
 
-val print_string = quote o implode o map print_char o Symbol.explode;
+val print_string = quote o implode o map print_symbol o Symbol.explode;
 val print_strings = print_list print_string;
 
 val print_properties = print_list (print_pair print_string print_string);
@@ -124,7 +125,7 @@ fun pretty_string max_len str =
     val body' =
       if length body <= max_len then body
       else take (Int.max (max_len, 0)) body @ ["..."];
-  in Pretty.str (quote (implode (map print_char body'))) end;
+  in Pretty.str (quote (implode (map print_symbol body'))) end;
 
 val _ =
   ML_system_pp (fn depth => fn _ => fn str =>
