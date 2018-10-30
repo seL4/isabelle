@@ -36,14 +36,9 @@ infixr 5 @|;
 (** Haskell serializer **)
 
 val print_haskell_string =
-  let
-    fun char c =
-      let
-        val _ = if Symbol.is_ascii c then ()
-          else error "non-ASCII byte in Haskell string literal";
-        val s = ML_Syntax.print_symbol_char c;
-      in if s = "'" then "\\'" else s end;
-  in quote o translate_string char end;
+  quote o translate_string (fn c =>
+    if Symbol.is_ascii c then GHC.print_codepoint (ord c)
+    else error "non-ASCII byte in Haskell string literal");
 
 fun print_haskell_stmt class_syntax tyco_syntax const_syntax
     reserved deresolve deriving_show =
