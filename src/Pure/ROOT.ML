@@ -48,6 +48,7 @@ ML_file "General/value.ML";
 ML_file "General/properties.ML";
 ML_file "General/output.ML";
 ML_file "PIDE/markup.ML";
+ML_file "General/utf8.ML";
 ML_file "General/scan.ML";
 ML_file "General/source.ML";
 ML_file "General/symbol.ML";
