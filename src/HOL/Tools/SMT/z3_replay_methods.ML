@@ -7,16 +7,6 @@ Proof methods for replaying Z3 proofs.
 
 signature Z3_REPLAY_METHODS =
 sig
-  (*abstraction*)
-  type abs_context = int * term Termtab.table
-  type 'a abstracter = term -> abs_context -> 'a * abs_context
-  val add_arith_abstracter: (term abstracter -> term option abstracter) ->
-    Context.generic -> Context.generic
-
-  (*theory lemma methods*)
-  type th_lemma_method = Proof.context -> thm list -> term -> thm
-  val add_th_lemma_method: string * th_lemma_method -> Context.generic ->
-    Context.generic
 
   (*methods for Z3 proof rules*)
   type z3_method = Proof.context -> thm list -> term -> thm
@@ -48,6 +38,7 @@ sig
   val nnf_pos: z3_method
   val nnf_neg: z3_method
   val mp_oeq: z3_method
+  val arith_th_lemma: z3_method
   val th_lemma: string -> z3_method
   val method_for: Z3_Proof.z3_rule -> z3_method
 end;
@@ -60,25 +51,14 @@ type z3_method = Proof.context -> thm list -> term -> thm
 
 (* utility functions *)
 
-fun trace ctxt f = SMT_Config.trace_msg ctxt f ()
+fun replay_error ctxt msg rule thms t =
+  SMT_Replay_Methods.replay_error ctxt msg (Z3_Proof.string_of_rule rule) thms t
 
-fun pretty_thm ctxt thm = Syntax.pretty_term ctxt (Thm.concl_of thm)
-
-fun pretty_goal ctxt msg rule thms t =
-  let
-    val full_msg = msg ^ ": " ^ quote (Z3_Proof.string_of_rule rule)
-    val assms =
-      if null thms then []
-      else [Pretty.big_list "assumptions:" (map (pretty_thm ctxt) thms)]
-    val concl = Pretty.big_list "proposition:" [Syntax.pretty_term ctxt t]
-  in Pretty.big_list full_msg (assms @ [concl]) end
-
-fun replay_error ctxt msg rule thms t = error (Pretty.string_of (pretty_goal ctxt msg rule thms t))
-
-fun replay_rule_error ctxt = replay_error ctxt "Failed to replay Z3 proof step"
+fun replay_rule_error ctxt rule thms t =
+  SMT_Replay_Methods.replay_rule_error ctxt (Z3_Proof.string_of_rule rule) thms t
 
 fun trace_goal ctxt rule thms t =
-  trace ctxt (fn () => Pretty.string_of (pretty_goal ctxt "Goal" rule thms t))
+  SMT_Replay_Methods.trace_goal ctxt (Z3_Proof.string_of_rule rule) thms t
 
 fun as_prop (t as Const (@{const_name Trueprop}, _) $ _) = t
   | as_prop t = HOLogic.mk_Trueprop t
@@ -87,50 +67,6 @@ fun dest_prop (Const (@{const_name Trueprop}, _) $ t) = t
   | dest_prop t = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
-
-fun certify_prop ctxt t = Thm.cterm_of ctxt (as_prop t)
-
-fun try_provers ctxt rule [] thms t = replay_rule_error ctxt rule thms t
-  | try_provers ctxt rule ((name, prover) :: named_provers) thms t =
-      (case (trace ctxt (K ("Trying prover " ^ quote name)); try prover t) of
-        SOME thm => thm
-      | NONE => try_provers ctxt rule named_provers thms t)
-
-fun match ctxt pat t =
-  (Vartab.empty, Vartab.empty)
-  |> Pattern.first_order_match (Proof_Context.theory_of ctxt) (pat, t)
-
-fun gen_certify_inst sel cert ctxt thm t =
-  let
-    val inst = match ctxt (dest_thm thm) (dest_prop t)
-    fun cert_inst (ix, (a, b)) = ((ix, a), cert b)
-  in Vartab.fold (cons o cert_inst) (sel inst) [] end
-
-fun match_instantiateT ctxt t thm =
-  if Term.exists_type (Term.exists_subtype Term.is_TVar) (dest_thm thm) then
-    Thm.instantiate (gen_certify_inst fst (Thm.ctyp_of ctxt) ctxt thm t, []) thm
-  else thm
-
-fun match_instantiate ctxt t thm =
-  let val thm' = match_instantiateT ctxt t thm in
-    Thm.instantiate ([], gen_certify_inst snd (Thm.cterm_of ctxt) ctxt thm' t) thm'
-  end
-
-fun apply_rule ctxt t =
-  (case Z3_Replay_Rules.apply ctxt (certify_prop ctxt t) of
-    SOME thm => thm
-  | NONE => raise Fail "apply_rule")
-
-fun discharge _ [] thm = thm
-  | discharge i (rule :: rules) thm = discharge (i + Thm.nprems_of rule) rules (rule RSN (i, thm))
-
-fun by_tac ctxt thms ns ts t tac =
-  Goal.prove ctxt [] (map as_prop ts) (as_prop t)
-    (fn {context, prems} => HEADGOAL (tac context prems))
-  |> Drule.generalize ([], ns)
-  |> discharge 1 thms
-
-fun prove ctxt t tac = by_tac ctxt [] [] [] t (K o tac)
 
 fun prop_tac ctxt prems =
   Method.insert_tac ctxt prems
@@ -141,137 +77,31 @@ fun prop_tac ctxt prems =
 fun quant_tac ctxt = Blast.blast_tac ctxt
 
 
-(* plug-ins *)
-
-type abs_context = int * term Termtab.table
-
-type 'a abstracter = term -> abs_context -> 'a * abs_context
-
-type th_lemma_method = Proof.context -> thm list -> term -> thm
-
-fun id_ord ((id1, _), (id2, _)) = int_ord (id1, id2)
-
-structure Plugins = Generic_Data
-(
-  type T =
-    (int * (term abstracter -> term option abstracter)) list *
-    th_lemma_method Symtab.table
-  val empty = ([], Symtab.empty)
-  val extend = I
-  fun merge ((abss1, ths1), (abss2, ths2)) = (
-    Ord_List.merge id_ord (abss1, abss2),
-    Symtab.merge (K true) (ths1, ths2))
-)
-
-fun add_arith_abstracter abs = Plugins.map (apfst (Ord_List.insert id_ord (serial (), abs)))
-fun get_arith_abstracters ctxt = map snd (fst (Plugins.get (Context.Proof ctxt)))
-
-fun add_th_lemma_method method = Plugins.map (apsnd (Symtab.update_new method))
-fun get_th_lemma_method ctxt = snd (Plugins.get (Context.Proof ctxt))
+fun apply_rule ctxt t =
+  (case Z3_Replay_Rules.apply ctxt (SMT_Replay_Methods.certify_prop ctxt t) of
+    SOME thm => thm
+  | NONE => raise Fail "apply_rule")
 
 
-(* abstraction *)
+(*theory-lemma*)
 
-fun prove_abstract ctxt thms t tac f =
-  let
-    val ((prems, concl), (_, ts)) = f (1, Termtab.empty)
-    val ns = Termtab.fold (fn (_, v) => cons (fst (Term.dest_Free v))) ts []
-  in
-    by_tac ctxt [] ns prems concl tac
-    |> match_instantiate ctxt t
-    |> discharge 1 thms
-  end
+fun arith_th_lemma_tac ctxt prems =
+  Method.insert_tac ctxt prems
+  THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def})
+  THEN' Arith_Data.arith_tac ctxt
 
-fun prove_abstract' ctxt t tac f =
-  prove_abstract ctxt [] t tac (f #>> pair [])
+fun arith_th_lemma ctxt thms t =
+  SMT_Replay_Methods.prove_abstract ctxt thms t arith_th_lemma_tac (
+    fold_map (SMT_Replay_Methods.abstract_arith ctxt o dest_thm) thms ##>>
+    SMT_Replay_Methods.abstract_arith ctxt (dest_prop t))
 
-fun lookup_term (_, terms) t = Termtab.lookup terms t
+val _ = Theory.setup (Context.theory_map (
+  SMT_Replay_Methods.add_th_lemma_method ("arith", arith_th_lemma)))
 
-fun abstract_sub t f cx =
-  (case lookup_term cx t of
-    SOME v => (v, cx)
-  | NONE => f cx)
-
-fun mk_fresh_free t (i, terms) =
-  let val v = Free ("t" ^ string_of_int i, fastype_of t)
-  in (v, (i + 1, Termtab.update (t, v) terms)) end
-
-fun apply_abstracters _ [] _ cx = (NONE, cx)
-  | apply_abstracters abs (abstracter :: abstracters) t cx =
-      (case abstracter abs t cx of
-        (NONE, _) => apply_abstracters abs abstracters t cx
-      | x as (SOME _, _) => x)
-
-fun abstract_term (t as _ $ _) = abstract_sub t (mk_fresh_free t)
-  | abstract_term (t as Abs _) = abstract_sub t (mk_fresh_free t)
-  | abstract_term t = pair t
-
-fun abstract_bin abs f t t1 t2 = abstract_sub t (abs t1 ##>> abs t2 #>> f)
-
-fun abstract_ter abs f t t1 t2 t3 =
-  abstract_sub t (abs t1 ##>> abs t2 ##>> abs t3 #>> (Scan.triple1 #> f))
-
-fun abstract_lit (@{const HOL.Not} $ t) = abstract_term t #>> HOLogic.mk_not
-  | abstract_lit t = abstract_term t
-
-fun abstract_not abs (t as @{const HOL.Not} $ t1) =
-      abstract_sub t (abs t1 #>> HOLogic.mk_not)
-  | abstract_not _ t = abstract_lit t
-
-fun abstract_conj (t as @{const HOL.conj} $ t1 $ t2) =
-      abstract_bin abstract_conj HOLogic.mk_conj t t1 t2
-  | abstract_conj t = abstract_lit t
-
-fun abstract_disj (t as @{const HOL.disj} $ t1 $ t2) =
-      abstract_bin abstract_disj HOLogic.mk_disj t t1 t2
-  | abstract_disj t = abstract_lit t
-
-fun abstract_prop (t as (c as @{const If (bool)}) $ t1 $ t2 $ t3) =
-      abstract_ter abstract_prop (fn (t1, t2, t3) => c $ t1 $ t2 $ t3) t t1 t2 t3
-  | abstract_prop (t as @{const HOL.disj} $ t1 $ t2) =
-      abstract_bin abstract_prop HOLogic.mk_disj t t1 t2
-  | abstract_prop (t as @{const HOL.conj} $ t1 $ t2) =
-      abstract_bin abstract_prop HOLogic.mk_conj t t1 t2
-  | abstract_prop (t as @{const HOL.implies} $ t1 $ t2) =
-      abstract_bin abstract_prop HOLogic.mk_imp t t1 t2
-  | abstract_prop (t as @{term "HOL.eq :: bool => _"} $ t1 $ t2) =
-      abstract_bin abstract_prop HOLogic.mk_eq t t1 t2
-  | abstract_prop t = abstract_not abstract_prop t
-
-fun abstract_arith ctxt u =
-  let
-    fun abs (t as (c as Const _) $ Abs (s, T, t')) =
-          abstract_sub t (abs t' #>> (fn u' => c $ Abs (s, T, u')))
-      | abs (t as (c as Const (@{const_name If}, _)) $ t1 $ t2 $ t3) =
-          abstract_ter abs (fn (t1, t2, t3) => c $ t1 $ t2 $ t3) t t1 t2 t3
-      | abs (t as @{const HOL.Not} $ t1) = abstract_sub t (abs t1 #>> HOLogic.mk_not)
-      | abs (t as @{const HOL.disj} $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> HOLogic.mk_disj)
-      | abs (t as (c as Const (@{const_name uminus_class.uminus}, _)) $ t1) =
-          abstract_sub t (abs t1 #>> (fn u => c $ u))
-      | abs (t as (c as Const (@{const_name plus_class.plus}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name minus_class.minus}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name times_class.times}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name z3div}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name z3mod}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name ord_class.less}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name ord_class.less_eq}, _)) $ t1 $ t2) =
-          abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs t = abstract_sub t (fn cx =>
-          if can HOLogic.dest_number t then (t, cx)
-          else
-            (case apply_abstracters abs (get_arith_abstracters ctxt) t cx of
-              (SOME u, cx') => (u, cx')
-            | (NONE, _) => abstract_term t cx))
-  in abs u end
+fun th_lemma name ctxt thms =
+  (case Symtab.lookup (SMT_Replay_Methods.get_th_lemma_method ctxt) name of
+    SOME method => method ctxt thms
+  | NONE => replay_error ctxt "Bad theory" (Z3_Proof.Th_Lemma name) thms)
 
 
 (* truth axiom *)
@@ -281,7 +111,7 @@ fun true_axiom _ _ _ = @{thm TrueI}
 
 (* modus ponens *)
 
-fun mp _ [p, p_eq_q] _ = discharge 1 [p_eq_q, p] iffD1
+fun mp _ [p, p_eq_q] _ = SMT_Replay_Methods.discharge 1 [p_eq_q, p] iffD1
   | mp ctxt thms t = replay_rule_error ctxt Z3_Proof.Modus_Ponens thms t
 
 val mp_oeq = mp
@@ -289,7 +119,7 @@ val mp_oeq = mp
 
 (* reflexivity *)
 
-fun refl ctxt _ t = match_instantiate ctxt t @{thm refl}
+fun refl ctxt _ t = SMT_Replay_Methods.match_instantiate ctxt t @{thm refl}
 
 
 (* symmetry *)
@@ -306,37 +136,10 @@ fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
 
 (* congruence *)
 
-fun ctac ctxt prems i st = st |> (
-  resolve_tac ctxt (@{thm refl} :: prems) i
-  ORELSE (cong_tac ctxt i THEN ctac ctxt prems (i + 1) THEN ctac ctxt prems i))
-
-fun cong_basic ctxt thms t =
-  let val st = Thm.trivial (certify_prop ctxt t)
-  in
-    (case Seq.pull (ctac ctxt thms 1 st) of
-      SOME (thm, _) => thm
-    | NONE => raise THM ("cong", 0, thms @ [st]))
-  end
-
-val cong_dest_rules = @{lemma
-  "(\<not> P \<or> Q) \<and> (P \<or> \<not> Q) \<Longrightarrow> P = Q"
-  "(P \<or> \<not> Q) \<and> (\<not> P \<or> Q) \<Longrightarrow> P = Q"
-  by fast+}
-
-fun cong_full_core_tac ctxt =
-  eresolve_tac ctxt @{thms subst}
-  THEN' resolve_tac ctxt @{thms refl}
-  ORELSE' Classical.fast_tac ctxt
-
-fun cong_full ctxt thms t = prove ctxt t (fn ctxt' =>
-  Method.insert_tac ctxt thms
-  THEN' (cong_full_core_tac ctxt'
-    ORELSE' dresolve_tac ctxt cong_dest_rules
-    THEN' cong_full_core_tac ctxt'))
-
-fun cong ctxt thms = try_provers ctxt Z3_Proof.Monotonicity [
-  ("basic", cong_basic ctxt thms),
-  ("full", cong_full ctxt thms)] thms
+fun cong ctxt thms = SMT_Replay_Methods.try_provers ctxt
+    (Z3_Proof.string_of_rule Z3_Proof.Monotonicity) [
+  ("basic", SMT_Replay_Methods.cong_basic ctxt thms),
+  ("full", SMT_Replay_Methods.cong_full ctxt thms)] thms
 
 
 (* quantifier introduction *)
@@ -349,7 +152,7 @@ val quant_intro_rules = @{lemma
   by fast+}
 
 fun quant_intro ctxt [thm] t =
-    prove ctxt t (K (REPEAT_ALL_NEW (resolve_tac ctxt (thm :: quant_intro_rules))))
+    SMT_Replay_Methods.prove ctxt t (K (REPEAT_ALL_NEW (resolve_tac ctxt (thm :: quant_intro_rules))))
   | quant_intro ctxt thms t = replay_rule_error ctxt Z3_Proof.Quant_Intro thms t
 
 
@@ -357,15 +160,16 @@ fun quant_intro ctxt [thm] t =
 
 (* TODO: there are no tests with this proof rule *)
 fun distrib ctxt _ t =
-  prove_abstract' ctxt t prop_tac (abstract_prop (dest_prop t))
+  SMT_Replay_Methods.prove_abstract' ctxt t prop_tac
+    (SMT_Replay_Methods.abstract_prop (dest_prop t))
 
 
 (* elimination of conjunctions *)
 
 fun and_elim ctxt [thm] t =
-      prove_abstract ctxt [thm] t prop_tac (
-        abstract_lit (dest_prop t) ##>>
-        abstract_conj (dest_thm thm) #>>
+      SMT_Replay_Methods.prove_abstract ctxt [thm] t prop_tac (
+        SMT_Replay_Methods.abstract_lit (dest_prop t) ##>>
+        SMT_Replay_Methods.abstract_conj (dest_thm thm) #>>
         apfst single o swap)
   | and_elim ctxt thms t = replay_rule_error ctxt Z3_Proof.And_Elim thms t
 
@@ -373,9 +177,9 @@ fun and_elim ctxt [thm] t =
 (* elimination of negated disjunctions *)
 
 fun not_or_elim ctxt [thm] t =
-      prove_abstract ctxt [thm] t prop_tac (
-        abstract_lit (dest_prop t) ##>>
-        abstract_not abstract_disj (dest_thm thm) #>>
+      SMT_Replay_Methods.prove_abstract ctxt [thm] t prop_tac (
+        SMT_Replay_Methods.abstract_lit (dest_prop t) ##>>
+        SMT_Replay_Methods.abstract_not SMT_Replay_Methods.abstract_disj (dest_thm thm) #>>
         apfst single o swap)
   | not_or_elim ctxt thms t =
       replay_rule_error ctxt Z3_Proof.Not_Or_Elim thms t
@@ -419,11 +223,11 @@ end
 
 fun abstract_eq f (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
       f t1 ##>> f t2 #>> HOLogic.mk_eq
-  | abstract_eq _ t = abstract_term t
+  | abstract_eq _ t = SMT_Replay_Methods.abstract_term t
 
 fun prove_prop_rewrite ctxt t =
-  prove_abstract' ctxt t prop_tac (
-    abstract_eq abstract_prop (dest_prop t))
+  SMT_Replay_Methods.prove_abstract' ctxt t prop_tac (
+    abstract_eq SMT_Replay_Methods.abstract_prop (dest_prop t))
 
 fun arith_rewrite_tac ctxt _ =
   let val backup_tac = Arith_Data.arith_tac ctxt ORELSE' Clasimp.force_tac ctxt in
@@ -432,8 +236,8 @@ fun arith_rewrite_tac ctxt _ =
   end
 
 fun prove_arith_rewrite ctxt t =
-  prove_abstract' ctxt t arith_rewrite_tac (
-    abstract_eq (abstract_arith ctxt) (dest_prop t))
+  SMT_Replay_Methods.prove_abstract' ctxt t arith_rewrite_tac (
+    abstract_eq (SMT_Replay_Methods.abstract_arith ctxt) (dest_prop t))
 
 val lift_ite_thm = @{thm HOL.if_distrib} RS @{thm eq_reflection}
 
@@ -448,13 +252,14 @@ fun if_context_conv ctxt ct =
   | _ => Conv.sub_conv (Conv.top_sweep_conv if_context_conv) ctxt) ct
 
 fun lift_ite_rewrite ctxt t =
-  prove ctxt t (fn ctxt => 
+  SMT_Replay_Methods.prove ctxt t (fn ctxt => 
     CONVERSION (HOLogic.Trueprop_conv (Conv.binop_conv (if_context_conv ctxt)))
     THEN' resolve_tac ctxt @{thms refl})
 
-fun prove_conj_disj_perm ctxt t = prove ctxt t Conj_Disj_Perm.conj_disj_perm_tac
+fun prove_conj_disj_perm ctxt t = SMT_Replay_Methods.prove ctxt t Conj_Disj_Perm.conj_disj_perm_tac
 
-fun rewrite ctxt _ = try_provers ctxt Z3_Proof.Rewrite [
+fun rewrite ctxt _ = SMT_Replay_Methods.try_provers ctxt
+    (Z3_Proof.string_of_rule Z3_Proof.Rewrite) [
   ("rules", apply_rule ctxt),
   ("conj_disj_perm", prove_conj_disj_perm ctxt),
   ("prop_rewrite", prove_prop_rewrite ctxt),
@@ -466,7 +271,7 @@ fun rewrite_star ctxt = rewrite ctxt
 
 (* pulling quantifiers *)
 
-fun pull_quant ctxt _ t = prove ctxt t quant_tac
+fun pull_quant ctxt _ t = SMT_Replay_Methods.prove ctxt t quant_tac
 
 
 (* pushing quantifiers *)
@@ -486,7 +291,7 @@ fun elim_unused_tac ctxt i st = (
     match_tac ctxt [@{thm iff_allI}, @{thm iff_exI}]
     THEN' elim_unused_tac ctxt)) i st
 
-fun elim_unused ctxt _ t = prove ctxt t elim_unused_tac
+fun elim_unused ctxt _ t = SMT_Replay_Methods.prove ctxt t elim_unused_tac
 
 
 (* destructive equality resolution *)
@@ -498,7 +303,7 @@ fun dest_eq_res _ _ _ = raise Fail "dest_eq_res" (* FIXME *)
 
 val quant_inst_rule = @{lemma "\<not>P x \<or> Q ==> \<not>(\<forall>x. P x) \<or> Q" by fast}
 
-fun quant_inst ctxt _ t = prove ctxt t (fn _ =>
+fun quant_inst ctxt _ t = SMT_Replay_Methods.prove ctxt t (fn _ =>
   REPEAT_ALL_NEW (resolve_tac ctxt [quant_inst_rule])
   THEN' resolve_tac ctxt @{thms excluded_middle})
 
@@ -532,10 +337,10 @@ fun lemma ctxt (thms as [thm]) t =
        val tab = Termtab.make (map (`Thm.term_of) (Thm.chyps_of thm))
        val (thm', terms) = intro_hyps tab (dest_prop t) (thm, [])
      in
-       prove_abstract ctxt [thm'] t prop_tac (
-         fold (snd oo abstract_lit) terms #>
-         abstract_disj (dest_thm thm') #>> single ##>>
-         abstract_disj (dest_prop t))
+       SMT_Replay_Methods.prove_abstract ctxt [thm'] t prop_tac (
+         fold (snd oo SMT_Replay_Methods.abstract_lit) terms #>
+         SMT_Replay_Methods.abstract_disj (dest_thm thm') #>> single ##>>
+         SMT_Replay_Methods.abstract_disj (dest_prop t))
      end
      handle LEMMA () => replay_error ctxt "Bad proof state" Z3_Proof.Lemma thms t)
   | lemma ctxt thms t = replay_rule_error ctxt Z3_Proof.Lemma thms t
@@ -543,18 +348,10 @@ fun lemma ctxt (thms as [thm]) t =
 
 (* unit resolution *)
 
-fun abstract_unit (t as (@{const HOL.Not} $ (@{const HOL.disj} $ t1 $ t2))) =
-      abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
-        HOLogic.mk_not o HOLogic.mk_disj)
-  | abstract_unit (t as (@{const HOL.disj} $ t1 $ t2)) =
-      abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
-        HOLogic.mk_disj)
-  | abstract_unit t = abstract_lit t
-
 fun unit_res ctxt thms t =
-  prove_abstract ctxt thms t prop_tac (
-    fold_map (abstract_unit o dest_thm) thms ##>>
-    abstract_unit (dest_prop t) #>>
+  SMT_Replay_Methods.prove_abstract ctxt thms t prop_tac (
+    fold_map (SMT_Replay_Methods.abstract_unit o dest_thm) thms ##>>
+    SMT_Replay_Methods.abstract_unit (dest_prop t) #>>
     (fn (prems, concl) => (prems, concl)))
 
 
@@ -576,7 +373,7 @@ fun iff_false _ [thm] _ = thm RS iff_false_rule
 
 (* commutativity *)
 
-fun comm ctxt _ t = match_instantiate ctxt t @{thm eq_commute}
+fun comm ctxt _ t = SMT_Replay_Methods.match_instantiate ctxt t @{thm eq_commute}
 
 
 (* definitional axioms *)
@@ -584,11 +381,13 @@ fun comm ctxt _ t = match_instantiate ctxt t @{thm eq_commute}
 fun def_axiom_disj ctxt t =
   (case dest_prop t of
     @{const HOL.disj} $ u1 $ u2 =>
-      prove_abstract' ctxt t prop_tac (
-        abstract_prop u2 ##>> abstract_prop u1 #>> HOLogic.mk_disj o swap)
-  | u => prove_abstract' ctxt t prop_tac (abstract_prop u))
+      SMT_Replay_Methods.prove_abstract' ctxt t prop_tac (
+         SMT_Replay_Methods.abstract_prop u2 ##>>  SMT_Replay_Methods.abstract_prop u1 #>>
+         HOLogic.mk_disj o swap)
+  | u => SMT_Replay_Methods.prove_abstract' ctxt t prop_tac (SMT_Replay_Methods.abstract_prop u))
 
-fun def_axiom ctxt _ = try_provers ctxt Z3_Proof.Def_Axiom [
+fun def_axiom ctxt _ = SMT_Replay_Methods.try_provers ctxt
+    (Z3_Proof.string_of_rule Z3_Proof.Def_Axiom) [
   ("rules", apply_rule ctxt),
   ("disj", def_axiom_disj ctxt)] []
 
@@ -607,36 +406,16 @@ fun iff_oeq _ _ _ = raise Fail "iff_oeq" (* FIXME *)
 (* negation normal form *)
 
 fun nnf_prop ctxt thms t =
-  prove_abstract ctxt thms t prop_tac (
-    fold_map (abstract_prop o dest_thm) thms ##>>
-    abstract_prop (dest_prop t))
+  SMT_Replay_Methods.prove_abstract ctxt thms t prop_tac (
+    fold_map (SMT_Replay_Methods.abstract_prop o dest_thm) thms ##>>
+    SMT_Replay_Methods.abstract_prop (dest_prop t))
 
-fun nnf ctxt rule thms = try_provers ctxt rule [
+fun nnf ctxt rule thms = SMT_Replay_Methods.try_provers ctxt (Z3_Proof.string_of_rule rule) [
   ("prop", nnf_prop ctxt thms),
   ("quant", quant_intro ctxt [hd thms])] thms
 
 fun nnf_pos ctxt = nnf ctxt Z3_Proof.Nnf_Pos
 fun nnf_neg ctxt = nnf ctxt Z3_Proof.Nnf_Neg
-
-
-(* theory lemmas *)
-
-fun arith_th_lemma_tac ctxt prems =
-  Method.insert_tac ctxt prems
-  THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def})
-  THEN' Arith_Data.arith_tac ctxt
-
-fun arith_th_lemma ctxt thms t =
-  prove_abstract ctxt thms t arith_th_lemma_tac (
-    fold_map (abstract_arith ctxt o dest_thm) thms ##>>
-    abstract_arith ctxt (dest_prop t))
-
-val _ = Theory.setup (Context.theory_map (add_th_lemma_method ("arith", arith_th_lemma)))
-
-fun th_lemma name ctxt thms =
-  (case Symtab.lookup (get_th_lemma_method ctxt) name of
-    SOME method => method ctxt thms
-  | NONE => replay_error ctxt "Bad theory" (Z3_Proof.Th_Lemma name) thms)
 
 
 (* mapping of rules to methods *)

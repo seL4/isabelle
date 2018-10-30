@@ -27,6 +27,6 @@ fun abstract abs t =
 val _ = Theory.setup (Context.theory_map (
   SMTLIB_Proof.add_type_parser real_type_parser #>
   SMTLIB_Proof.add_term_parser real_term_parser #>
-  Z3_Replay_Methods.add_arith_abstracter abstract))
+  SMT_Replay_Methods.add_arith_abstracter abstract))
 
 end;

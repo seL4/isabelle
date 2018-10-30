@@ -1,10 +1,12 @@
-(*  Title:      HOL/Tools/SMT/z3_replay_util.ML
+(*  Title:      HOL/Tools/SMT/smt_replay.ML
     Author:     Sascha Boehme, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Mathias Fleury, MPII
 
-Helper functions required for Z3 proof replay.
+Shared library for parsing and replay.
 *)
 
-signature Z3_REPLAY_UTIL =
+signature SMT_REPLAY =
 sig
   (*theorem nets*)
   val thm_net_of: ('a -> thm) -> 'a list -> 'a Net.net
@@ -23,9 +25,23 @@ sig
   (*simpset*)
   val add_simproc: Simplifier.simproc -> Context.generic -> Context.generic
   val make_simpset: Proof.context -> thm list -> simpset
+
+  (*assertion*)
+  val add_asserted:  ('a * ('b * thm) -> 'c -> 'c) ->
+    'c -> ('d -> 'a * 'e * term * 'b) -> ('e -> bool) -> Proof.context -> thm list ->
+    (int * thm) list -> 'd list -> Proof.context ->
+    ((int * ('a * thm)) list * thm list) * (Proof.context * 'c)
+  
+  (*statistics*)
+  val pretty_statistics: string -> int -> int list Symtab.table -> Pretty.T
+  val intermediate_statistics: Proof.context -> Timing.start -> int -> int -> unit
+
+  (*theorem transformation*)
+  val varify: Proof.context -> thm -> thm
+  val params_of: term -> (string * typ) list
 end;
 
-structure Z3_Replay_Util: Z3_REPLAY_UTIL =
+structure SMT_Replay : SMT_REPLAY =
 struct
 
 (* theorem nets *)
@@ -151,5 +167,103 @@ fun make_simpset ctxt rules =
   simpset_of (put_simpset (Simpset.get (Context.Proof ctxt)) ctxt addsimps rules)
 
 end
+
+local
+  val remove_trigger = mk_meta_eq @{thm trigger_def}
+  val remove_fun_app = mk_meta_eq @{thm fun_app_def}
+
+  fun rewrite_conv _ [] = Conv.all_conv
+    | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
+
+  val rewrite_true_rule = @{lemma "True \<equiv> \<not> False" by simp}
+  val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app, rewrite_true_rule]
+
+  fun rewrite _ [] = I
+    | rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
+
+  fun lookup_assm assms_net ct =
+    net_instances assms_net ct
+    |> map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))
+in
+
+fun add_asserted tab_update tab_empty p_extract cond outer_ctxt rewrite_rules assms steps ctxt =
+  let
+    val eqs = map (rewrite ctxt [rewrite_true_rule]) rewrite_rules
+    val eqs' = union Thm.eq_thm eqs prep_rules
+
+    val assms_net =
+      assms
+      |> map (apsnd (rewrite ctxt eqs'))
+      |> map (apsnd (Conv.fconv_rule Thm.eta_conversion))
+      |> thm_net_of snd
+
+    fun revert_conv ctxt = rewrite_conv ctxt eqs' then_conv Thm.eta_conversion
+
+    fun assume thm ctxt =
+      let
+        val ct = Thm.cprem_of thm 1
+        val (thm', ctxt') = yield_singleton Assumption.add_assumes ct ctxt
+      in (thm' RS thm, ctxt') end
+
+    fun add1 id fixes thm1 ((i, th), exact) ((iidths, thms), (ctxt, ptab)) =
+      let
+        val (thm, ctxt') = if exact then (Thm.implies_elim thm1 th, ctxt) else assume thm1 ctxt
+        val thms' = if exact then thms else th :: thms
+      in (((i, (id, th)) :: iidths, thms'), (ctxt', tab_update (id, (fixes, thm)) ptab)) end
+
+    fun add step
+        (cx as ((iidths, thms), (ctxt, ptab))) =
+      let val (id, rule, concl, fixes) = p_extract step in
+        if (*Z3_Proof.is_assumption rule andalso rule <> Z3_Proof.Hypothesis*) cond rule then
+          let
+            val ct = Thm.cterm_of ctxt concl
+            val thm1 = Thm.trivial ct |> Conv.fconv_rule (Conv.arg1_conv (revert_conv outer_ctxt))
+            val thm2 = singleton (Variable.export ctxt outer_ctxt) thm1
+          in
+            (case lookup_assm assms_net (Thm.cprem_of thm2 1) of
+              [] =>
+                let val (thm, ctxt') = assume thm1 ctxt
+                in ((iidths, thms), (ctxt', tab_update (id, (fixes, thm)) ptab)) end
+            | ithms => fold (add1 id fixes thm1) ithms cx)
+          end
+        else
+          cx
+      end
+  in fold add steps (([], []), (ctxt, tab_empty)) end
+
+end
+
+fun params_of t = Term.strip_qnt_vars @{const_name Pure.all} t
+
+fun varify ctxt thm =
+  let
+    val maxidx = Thm.maxidx_of thm + 1
+    val vs = params_of (Thm.prop_of thm)
+    val vars = map_index (fn (i, (n, T)) => Var ((n, i + maxidx), T)) vs
+  in Drule.forall_elim_list (map (Thm.cterm_of ctxt) vars) thm end
+
+fun intermediate_statistics ctxt start total =
+  SMT_Config.statistics_msg ctxt (fn current =>
+    "Reconstructed " ^ string_of_int current ^ " of " ^ string_of_int total ^ " steps in " ^
+    string_of_int (Time.toMilliseconds (#elapsed (Timing.result start))) ^ " ms")
+
+fun pretty_statistics solver total stats =
+  let
+    fun mean_of is =
+      let
+        val len = length is
+        val mid = len div 2
+      in if len mod 2 = 0 then (nth is (mid - 1) + nth is mid) div 2 else nth is mid end
+    fun pretty_item name p = Pretty.item (Pretty.separate ":" [Pretty.str name, p])
+    fun pretty (name, milliseconds) = pretty_item name (Pretty.block (Pretty.separate "," [
+      Pretty.str (string_of_int (length milliseconds) ^ " occurrences") ,
+      Pretty.str (string_of_int (mean_of milliseconds) ^ " ms mean time"),
+      Pretty.str (string_of_int (fold Integer.max milliseconds 0) ^ " ms maximum time"),
+      Pretty.str (string_of_int (fold Integer.add milliseconds 0) ^ " ms total time")]))
+  in
+    Pretty.big_list (solver ^ " proof reconstruction statistics:") (
+      pretty_item "total time" (Pretty.str (string_of_int total ^ " ms")) ::
+      map pretty (Symtab.dest stats))
+  end
 
 end;
