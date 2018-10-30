@@ -190,6 +190,100 @@ lemma mod_as_z3mod:
   by (simp add: z3mod_def)
 
 
+subsection \<open>Extra theorems for veriT reconstruction\<close>
+
+lemma verit_sko_forall: \<open>(\<forall>x. P x) \<longleftrightarrow> P (SOME x. \<not>P x)\<close>
+  using someI[of \<open>\<lambda>x. \<not>P x\<close>]
+  by auto
+
+lemma verit_sko_forall': \<open>P (SOME x. \<not>P x) = A \<Longrightarrow> (\<forall>x. P x) = A\<close>
+  by (subst verit_sko_forall)
+
+lemma verit_sko_forall_indirect: \<open>x = (SOME x. \<not>P x) \<Longrightarrow> (\<forall>x. P x) \<longleftrightarrow> P x\<close>
+  using someI[of \<open>\<lambda>x. \<not>P x\<close>]
+  by auto
+
+lemma verit_sko_ex: \<open>(\<exists>x. P x) \<longleftrightarrow> P (SOME x. P x)\<close>
+  using someI[of \<open>\<lambda>x. P x\<close>]
+  by auto
+
+lemma verit_sko_ex': \<open>P (SOME x. P x) = A \<Longrightarrow> (\<exists>x. P x) = A\<close>
+  by (subst verit_sko_ex)
+
+lemma verit_sko_ex_indirect: \<open>x = (SOME x. P x) \<Longrightarrow> (\<exists>x. P x) \<longleftrightarrow> P x\<close>
+  using someI[of \<open>\<lambda>x. P x\<close>]
+  by auto
+
+lemma verit_Pure_trans:
+  \<open>P \<equiv> Q \<Longrightarrow> Q \<Longrightarrow> P\<close>
+  by auto
+
+lemma verit_if_cong:
+  assumes \<open>b \<equiv> c\<close>
+    and \<open>c \<Longrightarrow> x \<equiv> u\<close>
+    and \<open>\<not> c \<Longrightarrow> y \<equiv> v\<close>
+  shows \<open>(if b then x else y) \<equiv> (if c then u else v)\<close>
+  using assms if_cong[of b c x u] by auto
+
+lemma verit_if_weak_cong':
+  \<open>b \<equiv> c \<Longrightarrow> (if b then x else y) \<equiv> (if c then x else y)\<close>
+  by auto
+
+lemma verit_ite_intro_simp:
+  \<open>(if c then (a :: 'a) = (if c then P else Q') else Q) = (if c then a = P else Q)\<close>
+  \<open>(if c then R else b = (if c then R' else Q')) =
+    (if c then R else b = Q')\<close>
+  \<open>(if c then a' = a' else b' = b')\<close>
+  by (auto split: if_splits)
+
+lemma verit_or_neg:
+   \<open>(A \<Longrightarrow> B) \<Longrightarrow> B \<or> \<not>A\<close>
+   \<open>(\<not>A \<Longrightarrow> B) \<Longrightarrow> B \<or> A\<close>
+  by auto
+
+lemma verit_subst_bool: \<open>P \<Longrightarrow> f True \<Longrightarrow> f P\<close>
+  by auto
+
+lemma verit_and_pos:
+  \<open>(a \<Longrightarrow> \<not>b \<or> A) \<Longrightarrow> \<not>(a \<and> b) \<or> A\<close>
+  \<open>(a \<Longrightarrow> A) \<Longrightarrow> \<not>a \<or> A\<close>
+  \<open>(\<not>a \<Longrightarrow> A) \<Longrightarrow> a \<or> A\<close>
+  by blast+
+
+lemma verit_la_generic:
+  \<open>(a::int) \<le> x \<or> a = x \<or> a \<ge> x\<close>
+  by linarith
+
+lemma verit_tmp_bfun_elim:
+  \<open>(if b then P True else P False) = P b\<close>
+  by (cases b) auto
+
+lemma verit_eq_true_simplify:
+  \<open>(P = True) \<equiv> P\<close>
+  by auto
+
+lemma verit_and_neg:
+  \<open>B \<or> B' \<Longrightarrow> (A \<and> B) \<or> \<not>A \<or> B'\<close>
+  \<open>B \<or> B' \<Longrightarrow> (\<not>A \<and> B) \<or> A \<or> B'\<close>
+  by auto
+
+lemma verit_forall_inst:
+  \<open>A \<longleftrightarrow> B \<Longrightarrow> \<not>A \<or> B\<close>
+  \<open>\<not>A \<longleftrightarrow> B \<Longrightarrow> A \<or> B\<close>
+  \<open>A \<longleftrightarrow> B \<Longrightarrow> \<not>B \<or> A\<close>
+  \<open>A \<longleftrightarrow> \<not>B \<Longrightarrow> B \<or> A\<close>
+  \<open>A \<longrightarrow> B \<Longrightarrow> \<not>A \<or> B\<close>
+  \<open>\<not>A \<longrightarrow> B \<Longrightarrow> A \<or> B\<close>
+  by blast+
+
+lemma verit_eq_transitive:
+  \<open>A = B \<Longrightarrow> B = C \<Longrightarrow> A = C\<close>
+  \<open>A = B \<Longrightarrow> C = B \<Longrightarrow> A = C\<close>
+  \<open>B = A \<Longrightarrow> B = C \<Longrightarrow> A = C\<close>
+  \<open>B = A \<Longrightarrow> C = B \<Longrightarrow> A = C\<close>
+  by auto
+
+
 subsection \<open>Setup\<close>
 
 ML_file "Tools/SMT/smt_util.ML"
@@ -218,6 +312,8 @@ ML_file "Tools/SMT/z3_interface.ML"
 ML_file "Tools/SMT/z3_replay_rules.ML"
 ML_file "Tools/SMT/z3_replay_methods.ML"
 ML_file "Tools/SMT/z3_replay.ML"
+ML_file "Tools/SMT/verit_replay_methods.ML"
+ML_file "Tools/SMT/verit_replay.ML"
 ML_file "Tools/SMT/smt_systems.ML"
 
 method_setup smt = \<open>
@@ -276,7 +372,7 @@ options.
 
 declare [[cvc3_options = ""]]
 declare [[cvc4_options = "--full-saturate-quant --inst-when=full-last-call --inst-no-entail --term-db-mode=relevant --multi-trigger-linear"]]
-declare [[verit_options = "--index-sorts --index-fresh-sorts"]]
+declare [[verit_options = "--index-fresh-sorts"]]
 declare [[z3_options = ""]]
 
 text \<open>

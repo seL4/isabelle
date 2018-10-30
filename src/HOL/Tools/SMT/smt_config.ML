@@ -47,6 +47,7 @@ sig
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val verbose_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val statistics_msg: Proof.context -> ('a -> string) -> 'a -> unit
+  val veriT_msg: Proof.context -> (unit -> 'a) -> unit
 
   (*certificates*)
   val select_certificates: string -> Context.generic -> Context.generic
@@ -179,6 +180,7 @@ val random_seed = Attrib.setup_config_int \<^binding>\<open>smt_random_seed\<clo
 val read_only_certificates = Attrib.setup_config_bool \<^binding>\<open>smt_read_only_certificates\<close> (K false)
 val verbose = Attrib.setup_config_bool \<^binding>\<open>smt_verbose\<close> (K true)
 val trace = Attrib.setup_config_bool \<^binding>\<open>smt_trace\<close> (K false)
+val trace_veriT = Attrib.setup_config_bool \<^binding>\<open>smt_debug_verit\<close> (K false)
 val statistics = Attrib.setup_config_bool \<^binding>\<open>smt_statistics\<close> (K false)
 val monomorph_limit = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_limit\<close> (K 10)
 val monomorph_instances = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_instances\<close> (K 500)
@@ -197,6 +199,8 @@ fun cond_trace flag f x = if flag then tracing ("SMT: " ^ f x) else ()
 fun verbose_msg ctxt = cond_trace (Config.get ctxt verbose)
 fun trace_msg ctxt = cond_trace (Config.get ctxt trace)
 fun statistics_msg ctxt = cond_trace (Config.get ctxt statistics)
+
+fun veriT_msg ctxt (x : unit -> 'a) = if (Config.get ctxt trace_veriT) then ignore(x ()) else ()
 
 
 (* tools *)

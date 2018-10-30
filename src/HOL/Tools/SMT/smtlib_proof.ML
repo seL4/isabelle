@@ -265,10 +265,13 @@ fun dest_body (SMTLIB.S (SMTLIB.Sym "!" :: body :: _)) = dest_body body
 fun dest_binding (SMTLIB.S [SMTLIB.Sym name, t]) = (name, Tree t)
   | dest_binding b = raise SMTLIB_PARSE ("bad SMT let binding format", b)
 
+fun mk_choice (x, T, P) =  HOLogic.choice_const T $ absfree (x, T) P
+
 fun term_of t cx =
   (case t of
     SMTLIB.S [SMTLIB.Sym "forall", SMTLIB.S vars, body] => quant HOLogic.mk_all vars body cx
   | SMTLIB.S [SMTLIB.Sym "exists", SMTLIB.S vars, body] => quant HOLogic.mk_exists vars body cx
+  | SMTLIB.S [SMTLIB.Sym "choice", SMTLIB.S vars, body] => quant mk_choice vars body cx
   | SMTLIB.S [SMTLIB.Sym "let", SMTLIB.S bindings, body] =>
       with_bindings (map dest_binding bindings) (term_of body) cx
   | SMTLIB.S (SMTLIB.Sym "!" :: t :: _) => term_of t cx

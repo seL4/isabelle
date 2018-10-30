@@ -124,4 +124,4 @@ fun conj_disj_perm_tac ctxt = CSUBGOAL (fn (ct, i) =>
       resolve_tac ctxt [prove_conj_disj_perm ct (Thm.dest_binop (Thm.dest_arg ct))] i
   | _ => no_tac))
 
-end
+end;

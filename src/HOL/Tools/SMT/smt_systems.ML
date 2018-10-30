@@ -119,7 +119,7 @@ val veriT: SMT_Solver.solver_config = {
   avail = make_avail "VERIT",
   command = make_command "VERIT",
   options = (fn ctxt => [
-    "--proof-version=1",
+    "--proof-version=2",
     "--proof-prune",
     "--proof-merge",
     "--disable-print-success",
@@ -129,7 +129,7 @@ val veriT: SMT_Solver.solver_config = {
   default_max_relevant = 200 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown"),
   parse_proof = SOME (K VeriT_Proof_Parse.parse_proof),
-  replay = NONE }
+  replay = SOME Verit_Replay.replay }
 
 end
 

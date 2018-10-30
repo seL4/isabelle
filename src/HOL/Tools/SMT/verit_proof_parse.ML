@@ -37,7 +37,7 @@ fun parse_proof
 
     fun step_of_assume j (_, th) =
       VeriT_Proof.VeriT_Step {id = SMTLIB_Interface.assert_name_of_index (id_of_index j),
-        rule = veriT_input_rule, prems = [], concl = Thm.prop_of th, fixes = []}
+        rule = veriT_input_rule, prems = [], proof_ctxt = [], concl = Thm.prop_of th, fixes = []}
 
     val (actual_steps, _) = VeriT_Proof.parse typs terms output ctxt
     val used_assert_ids = fold add_used_asserts_in_step actual_steps []
