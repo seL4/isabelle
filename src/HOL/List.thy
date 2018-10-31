@@ -919,11 +919,11 @@ fun list_neq ctxt ct =
           (K (simp_tac (put_simpset ss ctxt) 1));
       in SOME (thm RS @{thm neq_if_length_neq}) end
   in
-    if m < n andalso submultiset (aconv) (ls,rs) orelse
-       n < m andalso submultiset (aconv) (rs,ls)
+    if m < n andalso submultiset (op aconv) (ls,rs) orelse
+       n < m andalso submultiset (op aconv) (rs,ls)
     then prove_neq() else NONE
   end;
-in K list_neq end;
+in K list_neq end
 \<close>
 
 
@@ -1074,7 +1074,7 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
         else if lastl aconv lastr then rearr @{thm append_same_eq}
         else NONE
       end;
-  in fn _ => fn ctxt => fn ct => list_eq ctxt (Thm.term_of ct) end;
+  in fn _ => fn ctxt => fn ct => list_eq ctxt (Thm.term_of ct) end
 \<close>
 
 
