@@ -2507,12 +2507,12 @@ fun term_bools acc t =
     (case t of
       (l as f $ a) $ b =>
         if is_ty t orelse is_op t then term_bools (term_bools acc l) b
-        else insert (aconv) t acc
+        else insert (op aconv) t acc
     | f $ a =>
         if is_ty t orelse is_op t then term_bools (term_bools acc f) a
-        else insert (aconv) t acc
+        else insert (op aconv) t acc
     | Abs p => term_bools acc (snd (Syntax_Trans.variant_abs p))  (* FIXME !? *)
-    | _ => if is_ty t orelse is_op t then acc else insert (aconv) t acc)
+    | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc)
   end;
 
 in
