@@ -122,7 +122,7 @@ print_translation \<open>
     (@{const_syntax AnnAwait}, K (annbexp_tr' @{syntax_const "_AnnAwait"})),
     (@{const_syntax AnnCond1}, K (annbexp_tr' @{syntax_const "_AnnCond1"})),
     (@{const_syntax AnnCond2}, K (annbexp_tr' @{syntax_const "_AnnCond2"}))]
-  end;
+  end
 \<close>
 
 end

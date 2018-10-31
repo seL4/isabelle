@@ -1231,7 +1231,7 @@ simproc_setup neq ("x = y") = \<open>fn _ =>
             SOME thm => SOME (thm RS neq_to_EQ_False)
           | NONE => NONE)
        | _ => NONE);
-  in proc end;
+  in proc end
 \<close>
 
 simproc_setup let_simp ("Let x f") = \<open>

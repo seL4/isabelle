@@ -51,53 +51,46 @@ struct
 (* generic setup *)
 
 fun setup source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("setup", Position.thread_data ()) "theory -> theory"
-    "Context.map_theory setup"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.setup (" @ ML_Lex.read_source source @ ML_Lex.read ")")
   |> Context.theory_map;
 
 fun local_setup source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("local_setup", Position.thread_data ()) "local_theory -> local_theory"
-    "Context.map_proof local_setup"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.local_setup (" @ ML_Lex.read_source source @ ML_Lex.read ")")
   |> Context.proof_map;
 
 
 (* translation functions *)
 
 fun parse_ast_translation source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("parse_ast_translation", Position.thread_data ())
-    "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
-    "Context.map_theory (Sign.parse_ast_translation parse_ast_translation)"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.setup (Sign.parse_ast_translation (" @
+      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.theory_map;
 
 fun parse_translation source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("parse_translation", Position.thread_data ())
-    "(string * (Proof.context -> term list -> term)) list"
-    "Context.map_theory (Sign.parse_translation parse_translation)"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.setup (Sign.parse_translation (" @
+      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.theory_map;
 
 fun print_translation source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("print_translation", Position.thread_data ())
-    "(string * (Proof.context -> term list -> term)) list"
-    "Context.map_theory (Sign.print_translation print_translation)"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.setup (Sign.print_translation (" @
+      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.theory_map;
 
 fun typed_print_translation source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("typed_print_translation", Position.thread_data ())
-    "(string * (Proof.context -> typ -> term list -> term)) list"
-    "Context.map_theory (Sign.typed_print_translation typed_print_translation)"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.setup (Sign.typed_print_translation (" @
+      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.theory_map;
 
 fun print_ast_translation source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("print_ast_translation", Position.thread_data ())
-    "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
-    "Context.map_theory (Sign.print_ast_translation print_ast_translation)"
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "Theory.setup (Sign.print_ast_translation (" @
+      ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.theory_map;
 
 
@@ -142,22 +135,22 @@ fun oracle (name, range) source =
 (* declarations *)
 
 fun declaration {syntax, pervasive} source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("declaration", Position.thread_data ()) "Morphism.declaration"
-    ("Context.map_proof (Local_Theory.declaration {syntax = " ^ Bool.toString syntax ^ ", \
-      \pervasive = " ^ Bool.toString pervasive ^ "} declaration)")
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read
+      ("Theory.local_setup (Local_Theory.declaration {syntax = " ^
+        Bool.toString syntax ^ ", pervasive = " ^ Bool.toString pervasive ^ "} (") @
+     ML_Lex.read_source source @ ML_Lex.read "))")
   |> Context.proof_map;
 
 
 (* simprocs *)
 
 fun simproc_setup name lhss source =
-  ML_Lex.read_source source
-  |> ML_Context.expression ("proc", Position.thread_data ())
-    "Morphism.morphism -> Proof.context -> cterm -> thm option"
-    ("Context.map_proof (Simplifier.define_simproc_cmd " ^
-      ML_Syntax.atomic (ML_Syntax.make_binding name) ^
-      "{lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc})")
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read
+      ("Theory.local_setup (Simplifier.define_simproc_cmd (" ^
+        ML_Syntax.make_binding name ^ ") {lhss = " ^ ML_Syntax.print_strings lhss ^
+        ", proc = (") @ ML_Lex.read_source source @ ML_Lex.read ")})")
   |> Context.proof_map;
 
 

@@ -491,7 +491,7 @@ parse_translation \<open>
     fun numeral_tr [Free (str, _)] = mk_bintype (the (Int.fromString str))
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
 
-  in [(@{syntax_const "_NumeralType"}, K numeral_tr)] end;
+  in [(@{syntax_const "_NumeralType"}, K numeral_tr)] end
 \<close>
 
 print_translation \<open>
@@ -517,7 +517,7 @@ print_translation \<open>
   in
    [(@{type_syntax bit0}, K (bit_tr' 0)),
     (@{type_syntax bit1}, K (bit_tr' 1))]
-  end;
+  end
 \<close>
 
 subsection \<open>Examples\<close>

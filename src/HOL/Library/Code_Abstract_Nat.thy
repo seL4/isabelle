@@ -110,7 +110,7 @@ in
 
   Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc)
 
-end;
+end
 \<close>
 
 end

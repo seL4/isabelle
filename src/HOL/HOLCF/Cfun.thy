@@ -35,7 +35,7 @@ syntax "_cabs" :: "[logic, logic] \<Rightarrow> logic"
 
 parse_translation \<open>
 (* rewrite (_cabs x t) => (Abs_cfun (%x. t)) *)
-  [Syntax_Trans.mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})];
+  [Syntax_Trans.mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})]
 \<close>
 
 print_translation \<open>
@@ -60,7 +60,7 @@ parse_ast_translation \<open>
           Ast.fold_ast_p @{syntax_const "_cabs"}
             (Ast.unfold_ast @{syntax_const "_cargs"} (Ast.strip_positions pats), body)
       | Lambda_ast_tr asts = raise Ast.AST ("Lambda_ast_tr", asts);
-  in [(@{syntax_const "_Lambda"}, K Lambda_ast_tr)] end;
+  in [(@{syntax_const "_Lambda"}, K Lambda_ast_tr)] end
 \<close>
 
 print_ast_translation \<open>

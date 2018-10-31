@@ -530,7 +530,7 @@ method_setup test_method' = \<open>
   Args.term -- Args.term --
   (Scan.lift (Args.$$$ "rule" -- Args.colon) |-- Attrib.thms) >>
     (fn ((x, y), r) => fn ctxt =>
-      Method_Closure.apply_method ctxt @{method test_method} [x, y] [r] [] ctxt);
+      Method_Closure.apply_method ctxt @{method test_method} [x, y] [r] [] ctxt)
 \<close>
 
 lemma

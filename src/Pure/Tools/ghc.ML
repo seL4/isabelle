@@ -119,9 +119,9 @@ val _ =
     (antiquotation \<^binding>\<open>cartouche\<close> (Scan.lift Args.cartouche_input)
       (fn {context = ctxt, argument, ...} =>
         ctxt |> Context.proof_map
-          (ML_Context.expression ("result", Position.thread_data ())
-            "string" "Context.map_proof (GHC.set_result result)"
-            (ML_Lex.read_source argument))
+          (ML_Context.expression (Input.pos_of argument)
+            (ML_Lex.read "Theory.local_setup (GHC.set_result (" @
+             ML_Lex.read_source argument @ ML_Lex.read "))"))
         |> the_result |> print_string));
 
 end;

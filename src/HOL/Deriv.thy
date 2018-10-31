@@ -62,7 +62,7 @@ setup \<open>
         fn context =>
           Named_Theorems.get (Context.proof_of context) @{named_theorems derivative_intros}
           |> map_filter eq_rule)
-  end;
+  end
 \<close>
 
 text \<open>

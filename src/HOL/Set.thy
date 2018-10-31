@@ -287,7 +287,7 @@ parse_translation \<open>
         val exP = ex_tr ctxt [idts, P];
       in Syntax.const @{const_syntax Collect} $ absdummy dummyT exP end;
 
-  in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end;
+  in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end
 \<close>
 
 print_translation \<open>
@@ -326,7 +326,7 @@ let
           | _ => M
         end
     end;
-  in [(@{const_syntax Collect}, setcompr_tr')] end;
+  in [(@{const_syntax Collect}, setcompr_tr')] end
 \<close>
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P x \<and> Q x") = \<open>

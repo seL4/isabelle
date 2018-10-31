@@ -182,7 +182,7 @@ typed_print_translation \<open>
         Syntax.const @{syntax_const "_constrain"} $ Syntax.const c $
           Syntax_Phases.term_of_typ ctxt T
       else raise Match);
-  in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
+  in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end
 \<close> \<comment> \<open>show types that are presumably too general\<close>
 
 class plus =

@@ -1278,7 +1278,7 @@ simproc_setup numeral_divmod
       fun prepare_simpset ctxt = HOL_ss |> Simplifier.simpset_map ctxt
         (Simplifier.add_cong if_cong #> fold Simplifier.add_simp simps)
     in fn ctxt => successful_rewrite (Simplifier.put_simpset (prepare_simpset ctxt) ctxt) end
-  end;
+  end
 \<close>
 
 

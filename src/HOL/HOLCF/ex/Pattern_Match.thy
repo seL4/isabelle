@@ -132,7 +132,7 @@ parse_translation \<open>
 (* rewrite (_pat x) => (succeed) *)
 (* rewrite (_variable x t) => (Abs_cfun (%x. t)) *)
  [(@{syntax_const "_pat"}, fn _ => fn _ => Syntax.const @{const_syntax Fixrec.succeed}),
-  Syntax_Trans.mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})];
+  Syntax_Trans.mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})]
 \<close>
 
 text \<open>Printing Case expressions\<close>
@@ -164,7 +164,7 @@ print_translation \<open>
               (Syntax.const @{syntax_const "_match"} $ p $ v) $ t
           end;
 
-  in [(@{const_syntax Rep_cfun}, K Case1_tr')] end;
+  in [(@{const_syntax Rep_cfun}, K Case1_tr')] end
 \<close>
 
 translations

@@ -245,7 +245,7 @@ subsection \<open>Implementation\<close>
 ML_file "code_lazy.ML"
 
 setup \<open>
-  Code_Preproc.add_functrans ("lazy_datatype", Code_Lazy.transform_code_eqs);
+  Code_Preproc.add_functrans ("lazy_datatype", Code_Lazy.transform_code_eqs)
 \<close>
 
 end
