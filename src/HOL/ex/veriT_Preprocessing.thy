@@ -475,7 +475,7 @@ val proof25 =
      [N (Let [@{term "vr1 :: nat"}], [N (Refl, []), N (Refl, [])]),
       N (Let [@{term "vr2 :: nat"}], [N (Refl, []), N (Refl, [])])]));
 
-reconstruct_proof @{context} proof18
+reconstruct_proof @{context} proof25
 \<close>
 
 end
