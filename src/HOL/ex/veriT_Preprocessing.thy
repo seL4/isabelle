@@ -467,4 +467,15 @@ val proof24 =
 reconstruct_proof @{context} proof24
 \<close>
 
+ML \<open>
+val proof25 =
+  ((@{term "let vr0 = vr1 in let vr1 = vr2 in vr0 + vr1 + vr2 :: nat"},
+    @{term "vr1 + vr2 + vr2 :: nat"}),
+   N (Trans @{term "let vr1a = vr2 in vr1 + vr1a + vr2 :: nat"},
+     [N (Let [@{term "vr1 :: nat"}], [N (Refl, []), N (Refl, [])]),
+      N (Let [@{term "vr2 :: nat"}], [N (Refl, []), N (Refl, [])])]));
+
+reconstruct_proof @{context} proof18
+\<close>
+
 end
