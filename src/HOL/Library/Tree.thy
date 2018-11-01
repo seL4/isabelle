@@ -9,8 +9,16 @@ begin
 
 datatype 'a tree =
   Leaf ("\<langle>\<rangle>") |
-  Node "'a tree" (root_val: 'a) "'a tree" ("(1\<langle>_,/ _,/ _\<rangle>)")
+  Node "'a tree" (root: 'a) "'a tree" ("(1\<langle>_,/ _,/ _\<rangle>)")
 datatype_compat tree
+
+primrec left :: "'a tree \<Rightarrow> 'a tree" where
+"left (Node l v r) = l" |
+"left Leaf = Leaf"
+
+primrec right :: "'a tree \<Rightarrow> 'a tree" where
+"right (Node l v r) = r" |
+"right Leaf = Leaf"
 
 text\<open>Counting the number of leaves rather than nodes:\<close>
 

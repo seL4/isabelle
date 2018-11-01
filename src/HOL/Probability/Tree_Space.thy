@@ -22,16 +22,6 @@ proof -
   thus ?thesis using cont by(simp add: sup_continuous_lfp)
 qed
 
-primrec left :: "'a tree \<Rightarrow> 'a tree"
-where
-  "left (Node l v r) = l"
-| "left Leaf = Leaf"
-
-primrec right :: "'a tree \<Rightarrow> 'a tree"
-where
-  "right (Node l v r) = r"
-| "right Leaf = Leaf"
-
 inductive_set trees :: "'a set \<Rightarrow> 'a tree set" for S :: "'a set" where
   [intro!]: "Leaf \<in> trees S"
 | "l \<in> trees S \<Longrightarrow> r \<in> trees S \<Longrightarrow> v \<in> S \<Longrightarrow> Node l v r \<in> trees S"
@@ -241,18 +231,18 @@ proof (rule measurableI)
     unfolding * using A by (intro sets.Un Node_in_tree_sigma pair_measureI) auto
 qed
 
-lemma measurable_root_val': "root_val \<in> restrict_space (tree_sigma M) (-{Leaf}) \<rightarrow>\<^sub>M M"
+lemma measurable_root': "root \<in> restrict_space (tree_sigma M) (-{Leaf}) \<rightarrow>\<^sub>M M"
 proof (rule measurableI)
-  show "t \<in> space (restrict_space (tree_sigma M) (- {Leaf})) \<Longrightarrow> root_val t \<in> space M" for t
+  show "t \<in> space (restrict_space (tree_sigma M) (- {Leaf})) \<Longrightarrow> root t \<in> space M" for t
     by (cases t) (auto simp: space_restrict_space space_tree_sigma)
   fix A assume A: "A \<in> sets M"
   from sets.sets_into_space[OF this]
-  have "root_val -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) =
+  have "root -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) =
     {Node l a r | l a r. (a, l, r) \<in> A \<times> space (tree_sigma M) \<times> space (tree_sigma M)}"
     by (auto simp: space_tree_sigma space_restrict_space elim: trees.cases)
   also have "\<dots> \<in> sets (tree_sigma M)"
     using A by (intro sets.Un Node_in_tree_sigma pair_measureI) auto
-  finally show "root_val -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) \<in>
+  finally show "root -` A \<inter> space (restrict_space (tree_sigma M) (- {Leaf})) \<in>
       sets (restrict_space (tree_sigma M) (- {Leaf}))"
     by (auto simp: sets_restrict_space_iff space_restrict_space)
 qed
@@ -264,14 +254,14 @@ by (rule measurable_compose[OF measurable_restrict_space3 f])
    (insert \<open>B \<subseteq> A\<close>, auto)
 
 
-lemma measurable_root_val[measurable (raw)]:
+lemma measurable_root[measurable (raw)]:
   assumes "f \<in> X \<rightarrow>\<^sub>M tree_sigma M"
     and "\<And>x. x \<in> space X \<Longrightarrow> f x \<noteq> Leaf"
-  shows "(\<lambda>\<omega>. root_val (f \<omega>)) \<in> X \<rightarrow>\<^sub>M M"
+  shows "(\<lambda>\<omega>. root (f \<omega>)) \<in> X \<rightarrow>\<^sub>M M"
 proof -
   from assms have "f \<in> X \<rightarrow>\<^sub>M restrict_space (tree_sigma M) (- {Leaf})"
     by (intro measurable_restrict_space2) auto
-  from this and measurable_root_val' show ?thesis by (rule measurable_compose)
+  from this and measurable_root' show ?thesis by (rule measurable_compose)
 qed
 
 
@@ -354,7 +344,7 @@ proof (rule measurable_piecewise_restrict)
     qed
   next
     case (Node ls u rs)
-    let ?F = "\<lambda>\<omega>. ?N (\<omega>, left (t \<omega>), root_val (t \<omega>), right (t \<omega>),
+    let ?F = "\<lambda>\<omega>. ?N (\<omega>, left (t \<omega>), root (t \<omega>), right (t \<omega>),
         rec_tree (l \<omega>) (n \<omega>) (left (t \<omega>)), rec_tree (l \<omega>) (n \<omega>) (right (t \<omega>)))"
     show ?case
     proof (rule measurable_cong[THEN iffD2])
@@ -376,7 +366,7 @@ proof (rule measurable_piecewise_restrict)
           by (rule measurable_restrict_space1)
              (rule measurable_compose[OF Node(3) measurable_right])
         subgoal
-          apply (rule measurable_compose[OF _ measurable_root_val'])
+          apply (rule measurable_compose[OF _ measurable_root'])
           apply (rule measurable_restrict_space3[OF Node(3)])
           by auto
         subgoal
