@@ -27,8 +27,8 @@ ML \<open>
 
 section \<open>Source modules\<close>
 
-generate_haskell_file Library.hs =
-\<open>{-  Title:      Tools/Haskell/Library.hs
+generate_haskell_file Library.hs = \<open>
+{-  Title:      Tools/Haskell/Library.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -81,8 +81,8 @@ trim_line line =
     _ -> line
 \<close>
 
-generate_haskell_file Buffer.hs =
-\<open>{-  Title:      Tools/Haskell/Buffer.hs
+generate_haskell_file Buffer.hs = \<open>
+{-  Title:      Tools/Haskell/Buffer.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -105,8 +105,8 @@ content :: T -> String
 content (Buffer xs) = concat (reverse xs)
 \<close>
 
-generate_haskell_file Properties.hs =
-\<open>{-  Title:      Tools/Haskell/Properties.hs
+generate_haskell_file Properties.hs = \<open>
+{-  Title:      Tools/Haskell/Properties.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -137,8 +137,8 @@ remove name props =
   else props
 \<close>
 
-generate_haskell_file Markup.hs =
-\<open>{-  Title:      Haskell/Tools/Markup.hs
+generate_haskell_file Markup.hs = \<open>
+{-  Title:      Haskell/Tools/Markup.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -167,8 +167,8 @@ no_output :: Output
 no_output = ("", "")
 \<close>
 
-generate_haskell_file XML.hs =
-\<open>{-  Title:      Tools/Haskell/XML.hs
+generate_haskell_file XML.hs = \<open>
+{-  Title:      Tools/Haskell/XML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -248,8 +248,8 @@ instance Show Tree where
       show_text = concatMap encode
 \<close>
 
-generate_haskell_file YXML.hs =
-\<open>{-  Title:      Tools/Haskell/YXML.hs
+generate_haskell_file YXML.hs = \<open>
+{-  Title:      Tools/Haskell/YXML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
