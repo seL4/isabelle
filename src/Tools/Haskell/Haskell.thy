@@ -257,7 +257,6 @@ Efficient text representation of XML trees.  Suitable for direct
 inlining into plain text.
 -}
 
-
 module Isabelle.YXML (charX, charY, strX, strY, detect,
   buffer_body, buffer, string_of_body, string_of, parse_body, parse)
 where
