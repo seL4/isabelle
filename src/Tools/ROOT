@@ -8,3 +8,9 @@ session Spec_Check in Spec_Check = Pure +
 session SML in SML = Pure +
   theories
     Examples
+
+session Haskell in Haskell = Pure +
+  theories
+    Haskell
+  theories [condition = ISABELLE_GHC]
+    Build

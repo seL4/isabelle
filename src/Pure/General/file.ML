@@ -9,6 +9,7 @@ sig
   val standard_path: Path.T -> string
   val platform_path: Path.T -> string
   val bash_path: Path.T -> string
+  val bash_paths: Path.T list -> string
   val full_path: Path.T -> Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
   val exists: Path.T -> bool
@@ -29,6 +30,7 @@ sig
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
+  val generate: Path.T -> string -> unit
   val output: BinIO.outstream -> string -> unit
   val write_list: Path.T -> string list -> unit
   val append_list: Path.T -> string list -> unit
@@ -45,7 +47,7 @@ val standard_path = Path.implode o Path.expand;
 val platform_path = ML_System.platform_path o standard_path;
 
 val bash_path = Bash_Syntax.string o standard_path;
-
+val bash_paths = Bash_Syntax.strings o map standard_path;
 
 (* full_path *)
 
@@ -154,6 +156,7 @@ fun append_list path txts = open_append (output_list txts) path;
 
 fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
+fun generate path txt = if try read path = SOME txt then () else write path txt;
 
 fun write_buffer path buf = open_output (Buffer.output buf) path;
 

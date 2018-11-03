@@ -93,7 +93,7 @@ fun unwrap_elem (Elem ((name, (n, a) :: atts), Elem ((name', atts'), body1) :: b
   | unwrap_elem _ = NONE;
 
 
-(* text context *)
+(* text content *)
 
 fun add_content tree =
   (case unwrap_elem tree of
