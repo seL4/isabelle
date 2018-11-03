@@ -112,6 +112,10 @@ ML_command \<open>
 
 *** System ***
 
+* Session directory $ISABELLE_HOME/src/Tools/Haskell provides some
+source modules for Isabelle tools implemented in Haskell, notably for
+Isabelle/PIDE.
+
 * Isabelle server command "use_theories" supports "nodes_status_delay"
 for continuous output of node status information. The time interval is
 specified in seconds; a negative value means it is disabled (default).
