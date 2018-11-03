@@ -12,3 +12,5 @@ session SML in SML = Pure +
 session Haskell in Haskell = Pure +
   theories
     Haskell
+  theories [condition = ISABELLE_GHC]
+    Build
