@@ -76,6 +76,24 @@ lemma asymp_greater:
   "asymp (\<lambda>a b. cmp a b = Greater)"
   using irreflp_greater by (auto intro!: asympI dest: asym_greater)
 
+lemma trans_equiv_less:
+  "cmp a c = Less" if "cmp a b = Equiv" and "cmp b c = Less"
+  using that
+  by (metis (full_types) comp.exhaust greater_iff_sym_less trans_equiv trans_less)
+
+lemma trans_less_equiv:
+  "cmp a c = Less" if "cmp a b = Less" and "cmp b c = Equiv"
+  using that
+  by (metis (full_types) comp.exhaust greater_iff_sym_less trans_equiv trans_less)
+
+lemma trans_equiv_greater:
+  "cmp a c = Greater" if "cmp a b = Equiv" and "cmp b c = Greater"
+  using that by (simp add: sym [of a b] greater_iff_sym_less trans_less_equiv)
+
+lemma trans_greater_equiv:
+  "cmp a c = Greater" if "cmp a b = Greater" and "cmp b c = Equiv"
+  using that by (simp add: sym [of b c] greater_iff_sym_less trans_equiv_less)
+
 lemma transp_less:
   "transp (\<lambda>a b. cmp a b = Less)"
   by (rule transpI) (fact trans_less)
@@ -117,6 +135,26 @@ lemma transp_not_less:
 lemma transp_not_greater:
   "transp (\<lambda>a b. cmp a b \<noteq> Greater)"
   by (rule transpI) (fact trans_not_greater)
+
+text \<open>Substitution under equivalences\<close>
+
+lemma equiv_subst_left:
+  "cmp z y = comp \<longleftrightarrow> cmp x y = comp" if "cmp z x = Equiv" for comp
+proof -
+  from that have "cmp x z = Equiv"
+    by (simp add: sym)
+  with that show ?thesis
+    by (cases comp) (auto intro: trans_equiv trans_equiv_less trans_equiv_greater)
+qed
+
+lemma equiv_subst_right:
+  "cmp x z = comp \<longleftrightarrow> cmp x y = comp" if "cmp z y = Equiv" for comp
+proof -
+  from that have "cmp y z = Equiv"
+    by (simp add: sym)
+  with that show ?thesis
+    by (cases comp) (auto intro: trans_equiv trans_less_equiv trans_greater_equiv)
+qed
 
 end
 
