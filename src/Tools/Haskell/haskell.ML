@@ -47,6 +47,7 @@ fun export_file_cmd (name, source) =
 
 val source_modules =
  [\<^file>\<open>~~/src/Tools/Haskell/Library.hs\<close>,
+  \<^file>\<open>~~/src/Tools/Haskell/Value.hs\<close>,
   \<^file>\<open>~~/src/Tools/Haskell/Buffer.hs\<close>,
   \<^file>\<open>~~/src/Tools/Haskell/Properties.hs\<close>,
   \<^file>\<open>~~/src/Tools/Haskell/Markup.hs\<close>,

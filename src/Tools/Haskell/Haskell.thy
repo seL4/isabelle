@@ -81,6 +81,57 @@ trim_line line =
     _ -> line
 \<close>
 
+generate_haskell_file Value.hs = \<open>
+{-  Title:      Haskell/Tools/Value.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Plain values, represented as string.
+-}
+
+module Isabelle.Value
+  (print_bool, parse_bool, print_int, parse_int, print_real, parse_real)
+where
+
+import Data.Maybe
+import qualified Data.List as List
+import qualified Text.Read as Read
+
+
+{- bool -}
+
+print_bool :: Bool -> String
+print_bool True = "true"
+print_bool False = "false"
+
+parse_bool :: String -> Maybe Bool
+parse_bool "true" = Just True
+parse_bool "false" = Just False
+parse_bool _ = Nothing
+
+
+{- int -}
+
+print_int :: Int -> String
+print_int = show
+
+parse_int :: String -> Maybe Int
+parse_int = Read.readMaybe
+
+
+{- real -}
+
+print_real :: Double -> String
+print_real x =
+  let s = show x in
+    case span (/= '.') s of
+      (a, '.' : b) | List.all (== '0') b -> a
+      _ -> s
+
+parse_real :: String -> Maybe Double
+parse_real = Read.readMaybe
+\<close>
+
 generate_haskell_file Buffer.hs = \<open>
 {-  Title:      Tools/Haskell/Buffer.hs
     Author:     Makarius
