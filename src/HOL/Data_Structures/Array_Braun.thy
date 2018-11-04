@@ -1,3 +1,5 @@
+(* Author: Tobias Nipkow, with contributions by Thomas Sewell *)
+
 section "Arrays via Braun Trees"
 
 theory Array_Braun
@@ -49,7 +51,7 @@ by auto arith
 declare upt_Suc[simp del]
 
 
-text \<open>@{const lookup1}\<close>
+paragraph \<open>@{const lookup1}\<close>
 
 lemma nth_list_lookup1: "\<lbrakk>braun t; i < size t\<rbrakk> \<Longrightarrow> list t ! i = lookup1 t (i+1)"
 proof(induction t arbitrary: i)
@@ -64,7 +66,7 @@ lemma list_eq_map_lookup1: "braun t \<Longrightarrow> list t = map (lookup1 t) [
 by(auto simp add: list_eq_iff_nth_eq size_list nth_list_lookup1)
 
 
-text \<open>@{const update1}\<close>
+paragraph \<open>@{const update1}\<close>
 
 lemma size_update1: "\<lbrakk> braun t;  n \<in> {1.. size t} \<rbrakk> \<Longrightarrow> size(update1 n x t) = size t"
 proof(induction t arbitrary: n)
@@ -116,7 +118,7 @@ next
 qed
 
 
-text \<open>@{const adds}\<close>
+paragraph \<open>@{const adds}\<close>
 
 lemma splice_last: shows
   "size ys \<le> size xs \<Longrightarrow> splice (xs @ [x]) ys = splice xs ys @ [x]"
@@ -190,7 +192,7 @@ fun del_hi :: "nat \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 subsubsection "Functional Correctness"
 
 
-text \<open>@{const add_lo}\<close>
+paragraph \<open>@{const add_lo}\<close>
 
 lemma list_add_lo: "braun t \<Longrightarrow> list (add_lo a t) = a # list t"
 by(induction t arbitrary: a) auto
@@ -199,7 +201,7 @@ lemma braun_add_lo: "braun t \<Longrightarrow> braun(add_lo x t)"
 by(induction t arbitrary: x) (auto simp add: list_add_lo simp flip: size_list)
 
 
-text \<open>@{const del_lo}\<close>
+paragraph \<open>@{const del_lo}\<close>
 
 lemma list_merge: "braun (Node l x r) \<Longrightarrow> list(merge l r) = splice (list l) (list r)"
 by (induction l r rule: merge.induct) auto
@@ -214,7 +216,7 @@ lemma braun_del_lo: "braun t \<Longrightarrow> braun(del_lo t)"
 by (cases t) (simp_all add: braun_merge)
 
 
-text \<open>@{const del_hi}\<close>
+paragraph \<open>@{const del_hi}\<close>
 
 lemma list_Nil_iff: "list t = [] \<longleftrightarrow> t = Leaf"
 by(cases t) simp_all
@@ -266,6 +268,9 @@ qed
 
 subsection "Faster"
 
+
+subsubsection \<open>Initialization with 1 element\<close>
+
 fun braun_of_naive :: "'a \<Rightarrow> nat \<Rightarrow> 'a tree" where
 "braun_of_naive x n = (if n=0 then Leaf
   else let m = (n-1) div 2
@@ -305,5 +310,328 @@ unfolding braun_of_def by (metis eq_fst_iff braun2_of_size_braun)
 
 corollary list_braun_of: "list(braun_of x n) = replicate n x"
 unfolding braun_of_def by (metis eq_fst_iff braun2_of_replicate)
+
+
+subsubsection "Proof Infrastructure"
+
+text \<open>Originally due to Thomas Sewell.\<close>
+
+paragraph \<open>\<open>take_nths\<close>\<close>
+
+fun take_nths :: "nat \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"take_nths i k [] = []" |
+"take_nths i k (x # xs) = (if i = 0 then x # take_nths (2^k - 1) k xs
+  else take_nths (i - 1) k xs)"
+
+lemma take_nths_drop:
+  "take_nths i k (drop j xs) = take_nths (i + j) k xs"
+by (induct xs arbitrary: i j; simp add: drop_Cons split: nat.split)
+
+lemma take_nths_00:
+  "take_nths 0 0 xs = xs"
+by (induct xs; simp)
+
+lemma splice_take_nths:
+  "splice (take_nths 0 (Suc 0) xs) (take_nths (Suc 0) (Suc 0) xs) = xs"
+by (induct xs; simp)
+
+lemma take_nths_take_nths:
+  "take_nths i m (take_nths j n xs) = take_nths ((i * 2^n) + j) (m + n) xs"
+by (induct xs arbitrary: i j; simp add: algebra_simps power_add)
+
+lemma take_nths_empty:
+  "(take_nths i k xs = []) = (length xs \<le> i)"
+by (induction xs arbitrary: i k) auto
+
+lemma hd_take_nths:
+  "i < length xs \<Longrightarrow> hd(take_nths i k xs) = xs ! i"
+by (induction xs arbitrary: i k) auto
+
+lemma take_nths_01_splice:
+  "\<lbrakk> length xs = length ys \<or> length xs = length ys + 1 \<rbrakk> \<Longrightarrow>
+   take_nths 0 (Suc 0) (splice xs ys) = xs \<and>
+   take_nths (Suc 0) (Suc 0) (splice xs ys) = ys"
+by (induct xs arbitrary: ys; case_tac ys; simp)
+
+lemma length_take_nths_00:
+  "length (take_nths 0 (Suc 0) xs) = length (take_nths (Suc 0) (Suc 0) xs) \<or>
+   length (take_nths 0 (Suc 0) xs) = length (take_nths (Suc 0) (Suc 0) xs) + 1"
+by (induct xs) auto
+
+
+paragraph \<open>\<open>braun_list\<close>\<close>
+
+fun braun_list :: "'a tree \<Rightarrow> 'a list \<Rightarrow> bool" where
+"braun_list Leaf xs = (xs = [])" |
+"braun_list (Node l x r) xs = (xs \<noteq> [] \<and> x = hd xs \<and>
+    braun_list l (take_nths 1 1 xs) \<and>
+    braun_list r (take_nths 2 1 xs))"
+
+lemma braun_list_eq:
+  "braun_list t xs = (braun t \<and> xs = list t)"
+proof (induct t arbitrary: xs)
+  case Leaf
+  show ?case by simp
+next
+  case Node
+  show ?case
+    using length_take_nths_00[of xs] splice_take_nths[of xs]
+    by (auto simp: neq_Nil_conv Node.hyps size_list[symmetric] take_nths_01_splice)
+qed
+
+
+subsubsection \<open>Converting a list of elements into a Braun tree\<close>
+
+fun nodes :: "'a tree list \<Rightarrow> 'a list \<Rightarrow> 'a tree list \<Rightarrow> 'a tree list" where
+"nodes (l#ls) (x#xs) (r#rs) = Node l x r # nodes ls xs rs" |
+"nodes (l#ls) (x#xs) [] = Node l x Leaf # nodes ls xs []" |
+"nodes [] (x#xs) (r#rs) = Node Leaf x r # nodes [] xs rs" |
+"nodes [] (x#xs) [] = Node Leaf x Leaf # nodes [] xs []" |
+"nodes ls [] rs = []"
+
+fun brauns :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a tree list" where
+"brauns k xs = (if xs = [] then [] else
+   let ys = take (2^k) xs;
+       zs = drop (2^k) xs;
+       ts = brauns (k+1) zs
+   in nodes ts ys (drop (2^k) ts))"
+
+declare brauns.simps[simp del]
+
+definition brauns1 :: "'a list \<Rightarrow> 'a tree" where
+"brauns1 xs = (if xs = [] then Leaf else brauns 0 xs ! 0)"
+
+fun t_brauns :: "nat \<Rightarrow> 'a list \<Rightarrow> nat" where
+"t_brauns k xs = (if xs = [] then 0 else
+   let ys = take (2^k) xs;
+       zs = drop (2^k) xs;
+       ts = brauns (k+1) zs
+   in 4 * min (2^k) (length xs) + t_brauns (k+1) zs)"
+
+
+paragraph "Functional correctness"
+
+text \<open>The proof is originally due to Thomas Sewell.\<close>
+
+lemma length_nodes:
+  "length (nodes ls xs rs) = length xs"
+by (induct ls xs rs rule: nodes.induct; simp)
+
+lemma nth_nodes:
+  "i < length xs \<Longrightarrow> nodes ls xs rs ! i =
+  Node (if i < length ls then ls ! i else Leaf) (xs ! i)
+    (if i < length rs then rs ! i else Leaf)"
+by (induct ls xs rs arbitrary: i rule: nodes.induct;
+    simp add: nth_Cons split: nat.split)
+
+theorem length_brauns:
+  "length (brauns k xs) = min (length xs) (2 ^ k)"
+proof (induct xs arbitrary: k rule: measure_induct_rule[where f=length])
+  case (less xs) thus ?case by (simp add: brauns.simps[of k xs] Let_def length_nodes)
+qed
+
+theorem brauns_correct:
+  "i < min (length xs) (2 ^ k) \<Longrightarrow> braun_list (brauns k xs ! i) (take_nths i k xs)"
+proof (induct xs arbitrary: i k rule: measure_induct_rule[where f=length])
+  case (less xs)
+  have "xs \<noteq> []" using less.prems by auto
+  let ?zs = "drop (2^k) xs"
+  let ?ts = "brauns (Suc k) ?zs"
+  from less.hyps[of ?zs _ "Suc k"]
+  have IH: "\<lbrakk> j = i + 2 ^ k;  i < min (length ?zs) (2 ^ (k+1)) \<rbrakk> \<Longrightarrow>
+    braun_list (?ts ! i) (take_nths j (Suc k) xs)" for i j
+    using \<open>xs \<noteq> []\<close> by (simp add: take_nths_drop)
+  let ?xs' = "take_nths i k xs"
+  let ?ts' = "drop (2^k) ?ts"
+  show ?case
+  proof (cases "i < length ?ts \<and> \<not> i < length ?ts'")
+    case True
+    have "braun_list (brauns k xs ! i) ?xs' \<longleftrightarrow>
+          braun_list (nodes ?ts (take (2^k) xs) ?ts' ! i) ?xs'"
+      using \<open>xs \<noteq> []\<close> by (simp add: brauns.simps[of k xs] Let_def)
+    also have "\<dots> \<longleftrightarrow> braun_list (?ts ! i) (take_nths (2^k + i) (k+1) xs)
+                    \<and> braun_list Leaf (take_nths (2^(k+1) + i) (k+1) xs)"
+      using less.prems True
+      by (clarsimp simp: nth_nodes take_nths_take_nths take_nths_empty hd_take_nths)
+    also have "\<dots>" using less.prems True by (auto simp: IH take_nths_empty length_brauns)
+    finally show ?thesis .
+  next
+    case False
+    thus ?thesis using less.prems
+    by (auto simp: brauns.simps[of k xs] Let_def nth_nodes take_nths_take_nths
+                   IH take_nths_empty hd_take_nths length_brauns)
+  qed
+qed
+
+corollary brauns1_correct:
+  "braun (brauns1 xs) \<and> list (brauns1 xs) = xs"
+using brauns_correct[of 0 xs 0]
+by (simp add: brauns1_def braun_list_eq take_nths_00)
+
+
+paragraph "Running Time Analysis"
+
+theorem t_brauns:
+  "t_brauns k xs = 4 * length xs"
+proof (induction xs arbitrary: k rule: measure_induct_rule[where f = length])
+  case (less xs)
+  show ?case
+  proof cases
+    assume "xs = []"
+    thus ?thesis by(simp add: Let_def)
+  next
+    assume "xs \<noteq> []"
+    let ?zs = "drop (2^k) xs"
+    have "t_brauns k xs = t_brauns (k+1) ?zs + 4 * min (2^k) (length xs)"
+     using \<open>xs \<noteq> []\<close> by(simp add: Let_def)
+    also have "\<dots> = 4 * length ?zs + 4 * min (2^k) (length xs)"
+      using less[of ?zs "k+1"] \<open>xs \<noteq> []\<close>
+      by (simp)
+    also have "\<dots> = 4 * length xs"
+      by(simp)
+    finally show ?case .
+  qed
+qed
+
+
+subsubsection \<open>Converting a Braun Tree into a List of Elements\<close>
+
+text \<open>The code and the proof are originally due to Thomas Sewell (except running time).\<close>
+
+function list_fast_rec :: "'a tree list \<Rightarrow> 'a list" where
+"list_fast_rec ts = (if ts = [] then [] else
+  let us = filter (\<lambda>t. t \<noteq> Leaf) ts
+  in map root_val us @ list_fast_rec (map left us @ map right us))"
+by (pat_completeness, auto)
+
+lemma list_fast_rec_term: "\<lbrakk> ts \<noteq> []; us = filter (\<lambda>t. t \<noteq> \<langle>\<rangle>) ts \<rbrakk> \<Longrightarrow>
+  (map left us @ map right us, ts) \<in> measure (sum_list \<circ> map (\<lambda>t. 2 * size t + 1))"
+apply (clarsimp simp: sum_list_addf[symmetric] sum_list_map_filter')
+apply (rule sum_list_strict_mono; simp)
+apply (case_tac x; simp)
+done
+
+termination
+apply (relation "measure (sum_list o map (\<lambda>t. 2 * size t + 1))")
+ apply simp
+using list_fast_rec_term by auto
+
+declare list_fast_rec.simps[simp del]
+
+definition list_fast :: "'a tree \<Rightarrow> 'a list" where
+"list_fast t = list_fast_rec [t]"
+
+function t_list_fast_rec :: "'a tree list \<Rightarrow> nat" where
+"t_list_fast_rec ts = (if ts = [] then 0 else
+  let us = filter (\<lambda>t. t \<noteq> Leaf) ts
+  in length ts + 5 * length us + t_list_fast_rec (map left us @ map right us))"
+by (pat_completeness, auto)
+
+termination
+apply (relation "measure (sum_list o map (\<lambda>t. 2 * size t + 1))")
+ apply simp
+using list_fast_rec_term by auto
+
+declare t_list_fast_rec.simps[simp del]
+
+
+paragraph "Functional Correctness"
+
+lemma list_fast_rec_all_Leaf:
+  "\<forall>t \<in> set ts. t = Leaf \<Longrightarrow> list_fast_rec ts = []"
+by (simp add: filter_empty_conv list_fast_rec.simps)
+
+lemma take_nths_eq_single:
+  "length xs - i < 2^n \<Longrightarrow> take_nths i n xs = take 1 (drop i xs)"
+by (induction xs arbitrary: i n; simp add: drop_Cons')
+
+lemma braun_list_Nil:
+  "braun_list t [] = (t = Leaf)"
+by (cases t; simp)
+
+lemma braun_list_not_Nil: "xs \<noteq> [] \<Longrightarrow>
+  braun_list t xs =
+ (\<exists>l x r. t = Node l x r \<and> x = hd xs \<and>
+    braun_list l (take_nths 1 1 xs) \<and>
+    braun_list r (take_nths 2 1 xs))"
+by(cases t; simp)
+
+theorem list_fast_rec_correct:
+  "\<lbrakk> length ts = 2 ^ k; \<forall>i < 2 ^ k. braun_list (ts ! i) (take_nths i k xs) \<rbrakk>
+    \<Longrightarrow> list_fast_rec ts = xs"
+proof (induct xs arbitrary: k ts rule: measure_induct_rule[where f=length])
+  case (less xs)
+  show ?case
+  proof (cases "length xs < 2 ^ k")
+    case True
+    from less.prems True have filter:
+      "\<exists>n. ts = map (\<lambda>x. Node Leaf x Leaf) xs @ replicate n Leaf"
+      apply (rule_tac x="length ts - length xs" in exI)
+      apply (clarsimp simp: list_eq_iff_nth_eq)
+      apply(auto simp: nth_append braun_list_not_Nil take_nths_eq_single braun_list_Nil hd_drop_conv_nth)
+      done
+    thus ?thesis
+      by (clarsimp simp: list_fast_rec.simps[of ts] o_def list_fast_rec_all_Leaf)
+  next
+    case False
+    with less.prems(2) have *:
+      "\<forall>i < 2 ^ k. ts ! i \<noteq> Leaf
+         \<and> root_val (ts ! i) = xs ! i
+         \<and> braun_list (left (ts ! i)) (take_nths (i + 2 ^ k) (Suc k) xs)
+         \<and> (\<forall>ys. ys = take_nths (i + 2 * 2 ^ k) (Suc k) xs
+                 \<longrightarrow> braun_list (right (ts ! i)) ys)"
+      by (auto simp: take_nths_empty hd_take_nths braun_list_not_Nil take_nths_take_nths
+                     algebra_simps)
+    have 1: "map root_val ts = take (2 ^ k) xs"
+      using less.prems(1) False by (simp add: list_eq_iff_nth_eq *)
+    have 2: "list_fast_rec (map left ts @ map right ts) = drop (2 ^ k) xs"
+      using less.prems(1) False
+      by (auto intro!: Nat.diff_less less.hyps[where k= "Suc k"]
+               simp: nth_append * take_nths_drop algebra_simps)
+    from less.prems(1) False show ?thesis
+      by (auto simp: list_fast_rec.simps[of ts] 1 2 Let_def * all_set_conv_all_nth)
+  qed
+qed
+
+corollary list_fast_correct:
+  "braun t \<Longrightarrow> list_fast t = list t"
+by (simp add: list_fast_def take_nths_00 braun_list_eq list_fast_rec_correct[where k=0])
+
+
+paragraph "Running Time Analysis"
+
+lemma sum_tree_list_children: "\<forall>t \<in> set ts. t \<noteq> Leaf \<Longrightarrow>
+  (\<Sum>t\<leftarrow>ts. k * size t) = (\<Sum>t \<leftarrow> map left ts @ map right ts. k * size t) + k * length ts"
+by(induction ts)(auto simp add: neq_Leaf_iff algebra_simps)
+
+theorem t_list_fast_rec_ub:
+  "t_list_fast_rec ts \<le> sum_list (map (\<lambda>t. 7*size t + 1) ts)"
+proof (induction ts rule: measure_induct_rule[where f="sum_list o map (\<lambda>t. 2*size t + 1)"])
+  case (less ts)
+  show ?case
+  proof cases
+    assume "ts = []"
+    thus ?thesis using t_list_fast_rec.simps[of ts] by(simp add: Let_def)
+  next
+    assume "ts \<noteq> []"
+    let ?us = "filter (\<lambda>t. t \<noteq> Leaf) ts"
+    let ?children = "map left ?us @ map right ?us"
+    have "t_list_fast_rec ts = t_list_fast_rec ?children + 5 * length ?us + length ts"
+     using \<open>ts \<noteq> []\<close> t_list_fast_rec.simps[of ts] by(simp add: Let_def)
+    also have "\<dots> \<le> (\<Sum>t\<leftarrow>?children. 7 * size t + 1) + 5 * length ?us + length ts"
+      using less[of "map left ?us @ map right ?us"]
+        list_fast_rec_term[of ts, OF \<open>ts \<noteq> []\<close>]
+      by (simp)
+    also have "\<dots> = (\<Sum>t\<leftarrow>?children. 7*size t) + 7 * length ?us + length ts"
+      by(simp add: sum_list_Suc o_def)
+    also have "\<dots> = (\<Sum>t\<leftarrow>?us. 7*size t) + length ts"
+      by(simp add: sum_tree_list_children)
+    also have "\<dots> \<le> (\<Sum>t\<leftarrow>ts. 7*size t) + length ts"
+      by(simp add: sum_list_filter_le_nat)
+    also have "\<dots> = (\<Sum>t\<leftarrow>ts. 7 * size t + 1)"
+      by(simp add: sum_list_Suc)
+    finally show ?case .
+  qed
+qed
 
 end
