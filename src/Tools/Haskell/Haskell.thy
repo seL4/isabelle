@@ -36,8 +36,11 @@ Basic library of Isabelle idioms.
 -}
 
 module Isabelle.Library
-  ((|>), (|->), (#>), (#->), fold, fold_rev, single, quote, trim_line)
+  ((|>), (|->), (#>), (#->), the_default, fold, fold_rev, single, quote, trim_line)
 where
+
+import Data.Maybe
+
 
 {- functions -}
 
@@ -52,6 +55,13 @@ x |> f = f x
 
 (#->) :: (a -> (c, b)) -> (c -> b -> d) -> a -> d
 (f #-> g) x  = x |> f |-> g
+
+
+{- options -}
+
+the_default :: a -> Maybe a -> a
+the_default x Nothing = x
+the_default _ (Just y) = y
 
 
 {- lists -}
@@ -196,11 +206,43 @@ generate_haskell_file Markup.hs = \<open>
 Quasi-abstract markup elements.
 -}
 
-module Isabelle.Markup (T, empty, is_empty, Output, no_output)
+module Isabelle.Markup (
+  T, empty, is_empty, properties,
+
+  nameN, name, xnameN, xname, kindN,
+
+  lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
+
+  wordsN, words, no_wordsN, no_words,
+
+  tfreeN, tfree, tvarN, tvar, freeN, free, skolemN, skolem, boundN, bound, varN, var,
+  numeralN, numeral, literalN, literal, delimiterN, delimiter, inner_stringN, inner_string,
+  inner_cartoucheN, inner_cartouche, inner_commentN, inner_comment,
+  token_rangeN, token_range,
+  sortingN, sorting, typingN, typing, class_parameterN, class_parameter,
+
+  antiquotedN, antiquoted, antiquoteN, antiquote,
+
+  paragraphN, paragraph, text_foldN, text_fold,
+
+  keyword1N, keyword1, keyword2N, keyword2, keyword3N, keyword3, quasi_keywordN, quasi_keyword,
+  improperN, improper, operatorN, operator, stringN, string, alt_stringN, alt_string,
+  verbatimN, verbatim, cartoucheN, cartouche, commentN, comment,
+
+  writelnN, writeln, stateN, state, informationN, information, tracingN, tracing,
+  warningN, warning, legacyN, legacy, errorN, error, reportN, report, no_reportN, no_report,
+
+  intensifyN, intensify,
+  Output, no_output)
 where
 
+import Prelude hiding (words, error)
+
+import Isabelle.Library
 import qualified Isabelle.Properties as Properties
 
+
+{- basic markup -}
 
 type T = (String, Properties.T)
 
@@ -211,6 +253,199 @@ is_empty :: T -> Bool
 is_empty ("", _) = True
 is_empty _ = False
 
+properties :: Properties.T -> T -> T
+properties more_props (elem, props) =
+  (elem, fold_rev Properties.put more_props props)
+
+markup_elem name = (name, (name, []) :: T)
+
+
+{- misc properties -}
+
+nameN :: String
+nameN = \<open>Markup.nameN\<close>
+
+name :: String -> T -> T
+name a = properties [(nameN, a)]
+
+xnameN :: String
+xnameN = \<open>Markup.xnameN\<close>
+
+xname :: String -> T -> T
+xname a = properties [(xnameN, a)]
+
+kindN :: String
+kindN = \<open>Markup.kindN\<close>
+
+
+{- position -}
+
+lineN, end_lineN :: String
+lineN = \<open>Markup.lineN\<close>
+end_lineN = \<open>Markup.end_lineN\<close>
+
+offsetN, end_offsetN :: String
+offsetN = \<open>Markup.offsetN\<close>
+end_offsetN = \<open>Markup.end_offsetN\<close>
+
+fileN, idN :: String
+fileN = \<open>Markup.fileN\<close>
+idN = \<open>Markup.idN\<close>
+
+positionN :: String; position :: T
+(positionN, position) = markup_elem \<open>Markup.positionN\<close>
+
+
+{- text properties -}
+
+wordsN :: String; words :: T
+(wordsN, words) = markup_elem \<open>Markup.wordsN\<close>
+
+no_wordsN :: String; no_words :: T
+(no_wordsN, no_words) = markup_elem \<open>Markup.no_wordsN\<close>
+
+
+{- inner syntax -}
+
+tfreeN :: String; tfree :: T
+(tfreeN, tfree) = markup_elem \<open>Markup.tfreeN\<close>
+
+tvarN :: String; tvar :: T
+(tvarN, tvar) = markup_elem \<open>Markup.tvarN\<close>
+
+freeN :: String; free :: T
+(freeN, free) = markup_elem \<open>Markup.freeN\<close>
+
+skolemN :: String; skolem :: T
+(skolemN, skolem) = markup_elem \<open>Markup.skolemN\<close>
+
+boundN :: String; bound :: T
+(boundN, bound) = markup_elem \<open>Markup.boundN\<close>
+
+varN :: String; var :: T
+(varN, var) = markup_elem \<open>Markup.varN\<close>
+
+numeralN :: String; numeral :: T
+(numeralN, numeral) = markup_elem \<open>Markup.numeralN\<close>
+
+literalN :: String; literal :: T
+(literalN, literal) = markup_elem \<open>Markup.literalN\<close>
+
+delimiterN :: String; delimiter :: T
+(delimiterN, delimiter) = markup_elem \<open>Markup.delimiterN\<close>
+
+inner_stringN :: String; inner_string :: T
+(inner_stringN, inner_string) = markup_elem \<open>Markup.inner_stringN\<close>
+
+inner_cartoucheN :: String; inner_cartouche :: T
+(inner_cartoucheN, inner_cartouche) = markup_elem \<open>Markup.inner_cartoucheN\<close>
+
+inner_commentN :: String; inner_comment :: T
+(inner_commentN, inner_comment) = markup_elem \<open>Markup.inner_commentN\<close>
+
+
+token_rangeN :: String; token_range :: T
+(token_rangeN, token_range) = markup_elem \<open>Markup.token_rangeN\<close>
+
+
+sortingN :: String; sorting :: T
+(sortingN, sorting) = markup_elem \<open>Markup.sortingN\<close>
+
+typingN :: String; typing :: T
+(typingN, typing) = markup_elem \<open>Markup.typingN\<close>
+
+class_parameterN :: String; class_parameter :: T
+(class_parameterN, class_parameter) = markup_elem \<open>Markup.class_parameterN\<close>
+
+
+{- antiquotations -}
+
+antiquotedN :: String; antiquoted :: T
+(antiquotedN, antiquoted) = markup_elem \<open>Markup.antiquotedN\<close>
+
+antiquoteN :: String; antiquote :: T
+(antiquoteN, antiquote) = markup_elem \<open>Markup.antiquoteN\<close>
+
+
+{- text structure -}
+
+paragraphN :: String; paragraph :: T
+(paragraphN, paragraph) = markup_elem \<open>Markup.paragraphN\<close>
+
+text_foldN :: String; text_fold :: T
+(text_foldN, text_fold) = markup_elem \<open>Markup.text_foldN\<close>
+
+
+{- outer syntax -}
+
+keyword1N :: String; keyword1 :: T
+(keyword1N, keyword1) = markup_elem \<open>Markup.keyword1N\<close>
+
+keyword2N :: String; keyword2 :: T
+(keyword2N, keyword2) = markup_elem \<open>Markup.keyword2N\<close>
+
+keyword3N :: String; keyword3 :: T
+(keyword3N, keyword3) = markup_elem \<open>Markup.keyword3N\<close>
+
+quasi_keywordN :: String; quasi_keyword :: T
+(quasi_keywordN, quasi_keyword) = markup_elem \<open>Markup.quasi_keywordN\<close>
+
+improperN :: String; improper :: T
+(improperN, improper) = markup_elem \<open>Markup.improperN\<close>
+
+operatorN :: String; operator :: T
+(operatorN, operator) = markup_elem \<open>Markup.operatorN\<close>
+
+stringN :: String; string :: T
+(stringN, string) = markup_elem \<open>Markup.stringN\<close>
+
+alt_stringN :: String; alt_string :: T
+(alt_stringN, alt_string) = markup_elem \<open>Markup.alt_stringN\<close>
+
+verbatimN :: String; verbatim :: T
+(verbatimN, verbatim) = markup_elem \<open>Markup.verbatimN\<close>
+
+cartoucheN :: String; cartouche :: T
+(cartoucheN, cartouche) = markup_elem \<open>Markup.cartoucheN\<close>
+
+commentN :: String; comment :: T
+(commentN, comment) = markup_elem \<open>Markup.commentN\<close>
+
+
+{- messages -}
+
+writelnN :: String; writeln :: T
+(writelnN, writeln) = markup_elem \<open>Markup.writelnN\<close>
+
+stateN :: String; state :: T
+(stateN, state) = markup_elem \<open>Markup.stateN\<close>
+
+informationN :: String; information :: T
+(informationN, information) = markup_elem \<open>Markup.informationN\<close>
+
+tracingN :: String; tracing :: T
+(tracingN, tracing) = markup_elem \<open>Markup.tracingN\<close>
+
+warningN :: String; warning :: T
+(warningN, warning) = markup_elem \<open>Markup.warningN\<close>
+
+legacyN :: String; legacy :: T
+(legacyN, legacy) = markup_elem \<open>Markup.legacyN\<close>
+
+errorN :: String; error :: T
+(errorN, error) = markup_elem \<open>Markup.errorN\<close>
+
+reportN :: String; report :: T
+(reportN, report) = markup_elem \<open>Markup.reportN\<close>
+
+no_reportN :: String; no_report :: T
+(no_reportN, no_report) = markup_elem \<open>Markup.no_reportN\<close>
+
+intensifyN :: String; intensify :: T
+(intensifyN, intensify) = markup_elem \<open>Markup.intensifyN\<close>
+
+
+{- output -}
 
 type Output = (String, String)
 
@@ -246,9 +481,9 @@ data Tree = Elem Markup.T Body | Text String
 
 {- wrapped elements -}
 
-xml_elemN = "xml_elem";
-xml_nameN = "xml_name";
-xml_bodyN = "xml_body";
+xml_elemN = \<open>XML.xml_elemN\<close>
+xml_nameN = \<open>XML.xml_nameN\<close>
+xml_bodyN = \<open>XML.xml_bodyN\<close>
 
 wrap_elem (((a, atts), body1), body2) =
   Elem (xml_elemN, (xml_nameN, a) : atts) (Elem (xml_bodyN, []) body1 : body2)

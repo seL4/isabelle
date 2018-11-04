@@ -8,8 +8,11 @@ Basic library of Isabelle idioms.
 -}
 
 module Isabelle.Library
-  ((|>), (|->), (#>), (#->), fold, fold_rev, single, quote, trim_line)
+  ((|>), (|->), (#>), (#->), the_default, fold, fold_rev, single, quote, trim_line)
 where
+
+import Data.Maybe
+
 
 {- functions -}
 
@@ -24,6 +27,13 @@ x |> f = f x
 
 (#->) :: (a -> (c, b)) -> (c -> b -> d) -> a -> d
 (f #-> g) x  = x |> f |-> g
+
+
+{- options -}
+
+the_default :: a -> Maybe a -> a
+the_default x Nothing = x
+the_default _ (Just y) = y
 
 
 {- lists -}

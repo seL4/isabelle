@@ -27,9 +27,9 @@ data Tree = Elem Markup.T Body | Text String
 
 {- wrapped elements -}
 
-xml_elemN = "xml_elem";
-xml_nameN = "xml_name";
-xml_bodyN = "xml_body";
+xml_elemN = "xml_elem"
+xml_nameN = "xml_name"
+xml_bodyN = "xml_body"
 
 wrap_elem (((a, atts), body1), body2) =
   Elem (xml_elemN, (xml_nameN, a) : atts) (Elem (xml_bodyN, []) body1 : body2)
