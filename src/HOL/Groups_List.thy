@@ -134,6 +134,11 @@ lemma (in monoid_add) sum_list_map_filter:
   shows "sum_list (map f (filter P xs)) = sum_list (map f xs)"
   using assms by (induct xs) auto
 
+lemma sum_list_filter_le_nat:
+  fixes f :: "'a \<Rightarrow> nat"
+  shows "sum_list (map f (filter P xs)) \<le> sum_list (map f xs)"
+by(induction xs; simp)
+
 lemma (in comm_monoid_add) distinct_sum_list_conv_Sum:
   "distinct xs \<Longrightarrow> sum_list xs = Sum (set xs)"
   by (induct xs) simp_all
@@ -217,7 +222,23 @@ lemma (in ordered_ab_group_add_abs) sum_list_abs:
 lemma sum_list_mono:
   fixes f g :: "'a \<Rightarrow> 'b::{monoid_add, ordered_ab_semigroup_add}"
   shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
-  by (induct xs) (simp, simp add: add_mono)
+by (induct xs) (simp, simp add: add_mono)
+
+lemma sum_list_strict_mono:
+  fixes f g :: "'a \<Rightarrow> 'b::{monoid_add, strict_ordered_ab_semigroup_add}"
+  shows "\<lbrakk> xs \<noteq> [];  \<And>x. x \<in> set xs \<Longrightarrow> f x < g x \<rbrakk>
+    \<Longrightarrow> sum_list (map f xs) < sum_list (map g xs)"
+proof (induction xs)
+  case Nil thus ?case by simp
+next
+  case C: (Cons _ xs)
+  show ?case
+  proof (cases xs)
+    case Nil thus ?thesis using C.prems by simp
+  next
+    case Cons thus ?thesis using C by(simp add: add_strict_mono)
+  qed
+qed
 
 lemma (in monoid_add) sum_list_distinct_conv_sum_set:
   "distinct xs \<Longrightarrow> sum_list (map f xs) = sum f (set xs)"
@@ -271,6 +292,10 @@ qed
 lemma sum_list_nonneg:
     "(\<And>x. x \<in> set xs \<Longrightarrow> (x :: 'a :: ordered_comm_monoid_add) \<ge> 0) \<Longrightarrow> sum_list xs \<ge> 0"
   by (induction xs) simp_all
+
+lemma sum_list_Suc:
+  "sum_list (map (\<lambda>x. Suc(f x)) xs) = sum_list (map f xs) + length xs"
+by(induction xs; simp)
 
 lemma (in monoid_add) sum_list_map_filter':
   "sum_list (map f (filter P xs)) = sum_list (map (\<lambda>x. if P x then f x else 0) xs)"
