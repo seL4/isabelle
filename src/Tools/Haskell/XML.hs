@@ -27,16 +27,12 @@ data Tree = Elem Markup.T Body | Text String
 
 {- wrapped elements -}
 
-xml_elemN = "xml_elem"
-xml_nameN = "xml_name"
-xml_bodyN = "xml_body"
-
 wrap_elem (((a, atts), body1), body2) =
-  Elem (xml_elemN, (xml_nameN, a) : atts) (Elem (xml_bodyN, []) body1 : body2)
+  Elem ("xml_elem", ("xml_name", a) : atts) (Elem ("xml_body", []) body1 : body2)
 
-unwrap_elem (Elem (name, (n, a) : atts) (Elem (name', atts') body1 : body2)) =
-  if name == xml_elemN && n == xml_nameN && name' == xml_bodyN && null atts'
-  then Just (((a, atts), body1), body2) else Nothing
+unwrap_elem
+  (Elem ("xml_elem", ("xml_name", a) : atts) (Elem ("xml_body", []) body1 : body2)) =
+  Just (((a, atts), body1), body2)
 unwrap_elem _ = Nothing
 
 
