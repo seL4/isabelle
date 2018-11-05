@@ -448,12 +448,12 @@ fun get_first _ [] = NONE
 
 fun get_index f =
   let
-    fun get (_: int) [] = NONE
-      | get i (x :: xs) =
+    fun get_aux (_: int) [] = NONE
+      | get_aux i (x :: xs) =
           (case f x of
-            NONE => get (i + 1) xs
+            NONE => get_aux (i + 1) xs
           | SOME y => SOME (i, y))
-  in get 0 end;
+  in get_aux 0 end;
 
 val flat = List.concat;
 
