@@ -1345,25 +1345,6 @@ proof
   thus "(\<exists>f. bij_betw f A B)" by blast
 qed (auto simp: bij_betw_same_card)
 
-lemma inj_on_iff_card_le:
-  assumes FIN: "finite A" and FIN': "finite B"
-  shows "(\<exists>f. inj_on f A \<and> f ` A \<le> B) = (card A \<le> card B)"
-proof (safe intro!: card_inj_on_le)
-  assume *: "card A \<le> card B"
-  obtain f where 1: "inj_on f A" and 2: "f ` A = {0 ..< card A}"
-  using FIN ex_bij_betw_finite_nat unfolding bij_betw_def by force
-  moreover obtain g where "inj_on g {0 ..< card B}" and 3: "g ` {0 ..< card B} = B"
-  using FIN' ex_bij_betw_nat_finite unfolding bij_betw_def by force
-  ultimately have "inj_on g (f ` A)" using subset_inj_on[of g _ "f ` A"] * by force
-  hence "inj_on (g \<circ> f) A" using 1 comp_inj_on by blast
-  moreover
-  {have "{0 ..< card A} \<le> {0 ..< card B}" using * by force
-   with 2 have "f ` A  \<le> {0 ..< card B}" by blast
-   hence "(g \<circ> f) ` A \<le> B" unfolding comp_def using 3 by force
-  }
-  ultimately show "(\<exists>f. inj_on f A \<and> f ` A \<le> B)" by blast
-qed (insert assms, auto)
-
 lemma subset_eq_atLeast0_lessThan_card:
   fixes n :: nat
   assumes "N \<subseteq> {0..<n}"
@@ -1372,6 +1353,27 @@ proof -
   from assms finite_lessThan have "card N \<le> card {0..<n}"
     using card_mono by blast
   then show ?thesis by simp
+qed
+
+text \<open>Relational version of @{thm [source] card_inj_on_le}:\<close>
+lemma card_le_if_inj_on_rel:
+assumes "finite B"
+  "\<And>a. a \<in> A \<Longrightarrow> \<exists>b. b\<in>B \<and> r a b"
+  "\<And>a1 a2 b. \<lbrakk> a1 \<in> A;  a2 \<in> A;  b \<in> B;  r a1 b;  r a2 b \<rbrakk> \<Longrightarrow> a1 = a2"
+shows "card A \<le> card B"
+proof -
+  let ?P = "\<lambda>a b. b \<in> B \<and> r a b"
+  let ?f = "\<lambda>a. SOME b. ?P a b"
+  have 1: "?f ` A \<subseteq> B"  by (auto intro: someI2_ex[OF assms(2)])
+  have "inj_on ?f A"
+  proof (auto simp: inj_on_def)
+    fix a1 a2 assume asms: "a1 \<in> A" "a2 \<in> A" "?f a1 = ?f a2"
+    have 0: "?f a1 \<in> B" using "1" \<open>a1 \<in> A\<close> by blast
+    have 1: "r a1 (?f a1)" using someI_ex[OF assms(2)[OF \<open>a1 \<in> A\<close>]] by blast
+    have 2: "r a2 (?f a1)" using someI_ex[OF assms(2)[OF \<open>a2 \<in> A\<close>]] asms(3) by auto
+    show "a1 = a2" using assms(3)[OF asms(1,2) 0 1 2] .
+  qed
+  with 1 show ?thesis using card_inj_on_le[of ?f A B] assms(1) by simp
 qed
 
 

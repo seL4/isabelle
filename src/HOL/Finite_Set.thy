@@ -1872,6 +1872,10 @@ proof -
     using assms by (force intro: card_mono simp: card_image [symmetric])
 qed
 
+lemma inj_on_iff_card_le:
+  "\<lbrakk> finite A; finite B \<rbrakk> \<Longrightarrow> (\<exists>f. inj_on f A \<and> f ` A \<le> B) = (card A \<le> card B)"
+using card_inj_on_le[of _ A B] card_le_inj[of A B] by blast
+
 lemma surj_card_le: "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> card B \<le> card A"
   by (blast intro: card_image_le card_mono le_trans)
 
