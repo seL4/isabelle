@@ -10,7 +10,8 @@ sig
     Toplevel.transition -> Toplevel.transition
   val export_file_cmd: string * Input.source ->
     Toplevel.transition -> Toplevel.transition
-  val source_modules: Path.T list
+  val sources: Path.T list
+  val install_sources: Path.T -> unit
 end;
 
 structure Haskell: HASKELL =
@@ -43,15 +44,20 @@ fun export_file_cmd (name, source) =
     in () end);
 
 
-(* source modules *)
+(* sources *)
 
-val source_modules =
- [\<^file>\<open>~~/src/Tools/Haskell/Library.hs\<close>,
-  \<^file>\<open>~~/src/Tools/Haskell/Value.hs\<close>,
-  \<^file>\<open>~~/src/Tools/Haskell/Buffer.hs\<close>,
-  \<^file>\<open>~~/src/Tools/Haskell/Properties.hs\<close>,
-  \<^file>\<open>~~/src/Tools/Haskell/Markup.hs\<close>,
-  \<^file>\<open>~~/src/Tools/Haskell/XML.hs\<close>,
-  \<^file>\<open>~~/src/Tools/Haskell/YXML.hs\<close>];
+val sources =
+ [\<^path>\<open>Library.hs\<close>,
+  \<^path>\<open>Value.hs\<close>,
+  \<^path>\<open>Buffer.hs\<close>,
+  \<^path>\<open>Properties.hs\<close>,
+  \<^path>\<open>Markup.hs\<close>,
+  \<^path>\<open>XML.hs\<close>,
+  \<^path>\<open>YXML.hs\<close>];
+
+val master_dir = Resources.master_directory \<^theory>;
+
+fun install_sources dir =
+  sources |> List.app (fn path => Isabelle_System.copy_file_base (master_dir, path) dir);
 
 end;
