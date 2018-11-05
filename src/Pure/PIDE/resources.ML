@@ -138,7 +138,7 @@ val imports_of = #imports o Files.get;
 
 fun begin_theory master_dir {name, imports, keywords} parents =
   Theory.begin_theory name parents
-  |> map_files (fn _ => (master_dir, imports, []))
+  |> map_files (fn _ => (Path.explode (Path.smart_implode master_dir), imports, []))
   |> Thy_Header.add_keywords keywords;
 
 
