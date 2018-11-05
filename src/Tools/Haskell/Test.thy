@@ -1,10 +1,10 @@
-(*  Title:      Tools/Haskell/Build.thy
+(*  Title:      Tools/Haskell/Test.thy
     Author:     Makarius
 *)
 
-section \<open>Build Isabelle/Haskell modules\<close>
+section \<open>Test build of Isabelle/Haskell modules\<close>
 
-theory Build imports Haskell
+theory Test imports Haskell
 begin
 
 ML \<open>

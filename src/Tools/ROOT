@@ -13,4 +13,4 @@ session Haskell in Haskell = Pure +
   theories
     Haskell
   theories [condition = ISABELLE_GHC]
-    Build
+    Test
