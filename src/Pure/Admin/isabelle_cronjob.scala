@@ -159,6 +159,8 @@ object Isabelle_Cronjob
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
+    ghc_setup: Boolean = false,
+    ocaml_setup: Boolean = false,
     options: String = "",
     args: String = "",
     afp: Boolean = false,
@@ -345,6 +347,8 @@ object Isabelle_Cronjob
                 self_update = r.self_update,
                 rev = rev,
                 afp_rev = afp_rev,
+                ghc_setup = r.ghc_setup,
+                ocaml_setup = r.ocaml_setup,
                 options =
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                   " -f " + r.options,

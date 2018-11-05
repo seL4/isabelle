@@ -513,6 +513,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     progress: Progress = No_Progress,
     rev: String = "",
     afp_rev: Option[String] = None,
+    ghc_setup: Boolean = false,
+    ocaml_setup: Boolean = false,
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
@@ -537,6 +539,10 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
       execute("bin/isabelle", "components -I")
       execute("bin/isabelle", "components -a", echo = true)
       execute("Admin/build", "jars_fresh")
+      for {
+        (setup, tool) <- List((ghc_setup, "ghc_setup"), (ocaml_setup, "ocaml_setup"))
+        if setup && ssh.is_file(Path.explode("lib/Tools/" + tool))
+      } execute("bin/isabelle", tool, echo = true)
     }
 
     val rev_id = self_hg.id(rev)
