@@ -110,8 +110,8 @@ if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocamlc" ]; then
 fi
 
 #enforce ISABELLE_GHC
-if [ -d "$ISABELLE_STACK_ROOT" ]; then
-  if [ -f "$(standard_path "$(isabelle_stack path --programs)")/$ISABELLE_GHC_VERSION/bin/ghc" ]; then
+if [ -d "$ISABELLE_STACK_ROOT" -a -f "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS" ]; then
+  if [ -f "$(cat "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS")/$ISABELLE_GHC_VERSION/bin/ghc" ]; then
     ISABELLE_GHC="$ISABELLE_HOME/lib/Tools/ghc"
   fi
 fi
