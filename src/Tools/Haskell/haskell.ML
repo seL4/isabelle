@@ -53,7 +53,12 @@ val sources =
   \<^path>\<open>Properties.hs\<close>,
   \<^path>\<open>Markup.hs\<close>,
   \<^path>\<open>XML.hs\<close>,
-  \<^path>\<open>YXML.hs\<close>];
+  \<^path>\<open>XML/Encode.hs\<close>,
+  \<^path>\<open>XML/Decode.hs\<close>,
+  \<^path>\<open>YXML.hs\<close>,
+  \<^path>\<open>Term.hs\<close>,
+  \<^path>\<open>Term_XML/Encode.hs\<close>,
+  \<^path>\<open>Term_XML/Decode.hs\<close>];
 
 val master_dir = Resources.master_directory \<^theory>;
 

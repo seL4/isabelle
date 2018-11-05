@@ -27,7 +27,7 @@ ML \<open>
 
 section \<open>Source modules\<close>
 
-generate_haskell_file Library.hs = \<open>
+generate_haskell_file "Library.hs" = \<open>
 {-  Title:      Tools/Haskell/Library.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -35,8 +35,14 @@ generate_haskell_file Library.hs = \<open>
 Basic library of Isabelle idioms.
 -}
 
-module Isabelle.Library
-  ((|>), (|->), (#>), (#->), the_default, fold, fold_rev, single, quote, trim_line)
+module Isabelle.Library (
+  (|>), (|->), (#>), (#->),
+
+  the, the_default,
+
+  fold, fold_rev, single, map_index, get_index,
+
+  quote, trim_line)
 where
 
 import Data.Maybe
@@ -59,6 +65,10 @@ x |> f = f x
 
 {- options -}
 
+the :: Maybe a -> a
+the (Just x) = x
+the Nothing = error "the Nothing"
+
 the_default :: a -> Maybe a -> a
 the_default x Nothing = x
 the_default _ (Just y) = y
@@ -77,6 +87,21 @@ fold_rev f (x : xs) y = f x (fold_rev f xs y)
 single :: a -> [a]
 single x = [x]
 
+map_index :: ((Int, a) -> b) -> [a] -> [b]
+map_index f = map_aux 0
+  where
+    map_aux _ [] = []
+    map_aux i (x : xs) = f (i, x) : map_aux (i + 1) xs
+
+get_index :: (a -> Maybe b) -> [a] -> Maybe (Int, b)
+get_index f = get_aux 0
+  where
+    get_aux _ [] = Nothing
+    get_aux i (x : xs) =
+      case f x of
+        Nothing -> get_aux (i + 1) xs
+        Just y -> Just (i, y)
+
 
 {- strings -}
 
@@ -91,7 +116,7 @@ trim_line line =
     _ -> line
 \<close>
 
-generate_haskell_file Value.hs = \<open>
+generate_haskell_file "Value.hs" = \<open>
 {-  Title:      Haskell/Tools/Value.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -142,7 +167,7 @@ parse_real :: String -> Maybe Double
 parse_real = Read.readMaybe
 \<close>
 
-generate_haskell_file Buffer.hs = \<open>
+generate_haskell_file "Buffer.hs" = \<open>
 {-  Title:      Tools/Haskell/Buffer.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -166,7 +191,7 @@ content :: T -> String
 content (Buffer xs) = concat (reverse xs)
 \<close>
 
-generate_haskell_file Properties.hs = \<open>
+generate_haskell_file "Properties.hs" = \<open>
 {-  Title:      Tools/Haskell/Properties.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -198,7 +223,7 @@ remove name props =
   else props
 \<close>
 
-generate_haskell_file Markup.hs = \<open>
+generate_haskell_file "Markup.hs" = \<open>
 {-  Title:      Haskell/Tools/Markup.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -453,7 +478,7 @@ no_output :: Output
 no_output = ("", "")
 \<close>
 
-generate_haskell_file XML.hs = \<open>
+generate_haskell_file "XML.hs" = \<open>
 {-  Title:      Tools/Haskell/XML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -530,7 +555,200 @@ instance Show Tree where
       show_text = concatMap encode
 \<close>
 
-generate_haskell_file YXML.hs = \<open>
+generate_haskell_file "XML/Encode.hs" = \<open>
+{-  Title:      Tools/Haskell/XML/Encode.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+XML as data representation language.
+-}
+
+module Isabelle.XML.Encode (
+  A, T, V,
+
+  int_atom, bool_atom, unit_atom,
+
+  tree, properties, string, init, bool, unit, pair, triple, list, variant
+)
+where
+
+import Isabelle.Library
+import qualified Isabelle.Value as Value
+import qualified Isabelle.Properties as Properties
+import qualified Isabelle.XML as XML
+
+
+type A a = a -> String
+type T a = a -> XML.Body
+type V a = a -> Maybe ([String], XML.Body)
+
+
+-- atomic values
+
+int_atom :: A Int
+int_atom = Value.print_int
+
+bool_atom :: A Bool
+bool_atom False = "0"
+bool_atom True = "1"
+
+unit_atom :: A ()
+unit_atom () = ""
+
+
+-- structural nodes
+
+node = XML.Elem (":", [])
+
+vector = map_index (\(i, x) -> (int_atom i, x))
+
+tagged (tag, (xs, ts)) = XML.Elem (int_atom tag, vector xs) ts
+
+
+-- representation of standard types
+
+tree :: T XML.Tree
+tree t = [t]
+
+properties :: T Properties.T
+properties props = [XML.Elem (":", props) []]
+
+string :: T String
+string "" = []
+string s = [XML.Text s]
+
+int :: T Int
+int = string . int_atom
+
+bool :: T Bool
+bool = string . bool_atom
+
+unit :: T ()
+unit = string . unit_atom
+
+pair :: T a -> T b -> T (a, b)
+pair f g (x, y) = [node (f x), node (g y)]
+
+triple :: T a -> T b -> T c -> T (a, b, c)
+triple f g h (x, y, z) = [node (f x), node (g y), node (h z)]
+
+list :: T a -> T [a]
+list f xs = map (node . f) xs
+
+variant :: [V a] -> T a
+variant fs x = [tagged (the (get_index (\f -> f x) fs))]
+\<close>
+
+generate_haskell_file "XML/Decode.hs" = \<open>
+{-  Title:      Tools/Haskell/XML/Decode.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+XML as data representation language.
+-}
+
+module Isabelle.XML.Decode (
+  A, T, V,
+
+  int_atom, bool_atom, unit_atom,
+
+  tree, properties, string, init, bool, unit, pair, triple, list, variant
+)
+where
+
+import Data.List ((!!))
+
+import Isabelle.Library
+import qualified Isabelle.Value as Value
+import qualified Isabelle.Properties as Properties
+import qualified Isabelle.XML as XML
+
+
+type A a = String -> a
+type T a = XML.Body -> a
+type V a = ([String], XML.Body) -> a
+
+err_atom = error "Malformed XML atom"
+err_body = error "Malformed XML body"
+
+
+{- atomic values -}
+
+int_atom :: A Int
+int_atom s =
+  case Value.parse_int s of
+    Just i -> i
+    Nothing -> err_atom
+
+bool_atom :: A Bool
+bool_atom "0" = False
+bool_atom "1" = True
+bool_atom _ = err_atom
+
+unit_atom :: A ()
+unit_atom "" = ()
+unit_atom _ = err_atom
+
+
+{- structural nodes -}
+
+node (XML.Elem (":", []) ts) = ts
+node _ = err_body
+
+vector atts =
+  map_index (\(i, (a, x)) -> if int_atom a == i then x else err_atom) atts
+
+tagged (XML.Elem (name, atts) ts) = (int_atom name, (vector atts, ts))
+tagged _ = err_body
+
+
+{- representation of standard types -}
+
+tree :: T XML.Tree
+tree [t] = t
+tree _ = err_body
+
+properties :: T Properties.T
+properties [XML.Elem (":", props) []] = props
+properties _ = err_body
+
+string :: T String
+string [] = ""
+string [XML.Text s] = s
+string _ = err_body
+
+int :: T Int
+int = int_atom . string
+
+bool :: T Bool
+bool = bool_atom . string
+
+unit :: T ()
+unit = unit_atom . string
+
+pair :: T a -> T b -> T (a, b)
+pair f g [t1, t2] = (f (node t1), g (node t2))
+pair _ _ _ = err_body
+
+triple :: T a -> T b -> T c -> T (a, b, c)
+triple f g h [t1, t2, t3] = (f (node t1), g (node t2), h (node t3))
+triple _ _ _ _ = err_body
+
+list :: T a -> T [a]
+list f ts = map (f . node) ts
+
+option :: T a -> T (Maybe a)
+option _ [] = Nothing
+option f [t] = Just (f (node t))
+option _ _ = err_body
+
+variant :: [V a] -> T a
+variant fs [t] = (fs !! tag) (xs, ts)
+  where (tag, (xs, ts)) = tagged t
+variant _ _ = err_body
+\<close>
+
+generate_haskell_file "YXML.hs" = \<open>
 {-  Title:      Tools/Haskell/YXML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -649,6 +867,129 @@ parse source =
     [result] -> result
     [] -> XML.Text ""
     _ -> err "multiple results"
+\<close>
+
+generate_haskell_file "Term.hs" = \<open>
+{-  Title:      Tools/Haskell/Term.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Lambda terms, types, sorts.
+-}
+
+module Isabelle.Term (
+  Indexname,
+
+  Sort, dummyS,
+
+  Typ(..), dummyT, Term(..))
+where
+
+type Indexname = (String, Int)
+
+
+type Sort = [String]
+
+dummyS :: Sort
+dummyS = [""]
+
+
+data Typ =
+    Type (String, [Typ])
+  | TFree (String, Sort)
+  | TVar (Indexname, Sort)
+  deriving Show
+
+dummyT :: Typ
+dummyT = Type (\<open>\<^type_name>\<open>dummy\<close>\<close>, [])
+
+
+data Term =
+    Const (String, Typ)
+  | Free (String, Typ)
+  | Var (Indexname, Typ)
+  | Bound Int
+  | Abs (String, Typ, Term)
+  | App (Term, Term)
+  deriving Show
+\<close>
+
+generate_haskell_file "Term_XML/Encode.hs" = \<open>
+{-  Title:      Tools/Haskell/Term_XML/Encode.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+XML data representation of lambda terms.
+-}
+
+{-# LANGUAGE LambdaCase #-}
+
+module Isabelle.Term_XML.Encode (sort, typ, term)
+where
+
+import Isabelle.Library
+import qualified Isabelle.XML as XML
+import Isabelle.XML.Encode
+import Isabelle.Term
+
+
+sort :: T Sort
+sort = list string
+
+typ :: T Typ
+typ ty =
+  ty |> variant
+   [\case { Type (a, b) -> Just ([a], list typ b); _ -> Nothing },
+    \case { TFree (a, b) -> Just ([a], sort b); _ -> Nothing },
+    \case { TVar ((a, b), c) -> Just ([a, int_atom b], sort c); _ -> Nothing }]
+
+term :: T Term
+term t =
+  t |> variant
+   [\case { Const (a, b) -> Just ([a], typ b); _ -> Nothing },
+    \case { Free (a, b) -> Just ([a], typ b); _ -> Nothing },
+    \case { Var ((a, b), c) -> Just ([a, int_atom b], typ c); _ -> Nothing },
+    \case { Bound a -> Just ([int_atom a], []); _ -> Nothing },
+    \case { Abs (a, b, c) -> Just ([a], pair typ term (b, c)); _ -> Nothing },
+    \case { App a -> Just ([], pair term term a); _ -> Nothing }]
+\<close>
+
+generate_haskell_file "Term_XML/Decode.hs" = \<open>
+{-  Title:      Tools/Haskell/Term_XML/Decode.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+XML data representation of lambda terms.
+-}
+
+module Isabelle.Term_XML.Decode (sort, typ, term)
+where
+
+import Isabelle.Library
+import qualified Isabelle.XML as XML
+import Isabelle.XML.Decode
+import Isabelle.Term
+
+
+sort :: T Sort
+sort = list string
+
+typ :: T Typ
+typ ty =
+  ty |> variant
+  [\([a], b) -> Type (a, list typ b),
+   \([a], b) -> TFree (a, sort b),
+   \([a, b], c) -> TVar ((a, int_atom b), sort c)]
+
+term :: T Term
+term t =
+  t |> variant
+   [\([a], b) -> Const (a, typ b),
+    \([a], b) -> Free (a, typ b),
+    \([a, b], c) -> Var ((a, int_atom b), typ c),
+    \([a], []) -> Bound (int_atom a),
+    \([a], b) -> let (c, d) = pair typ term b in Abs (a, c, d),
+    \([], a) -> App (pair term term a)]
 \<close>
 
 end

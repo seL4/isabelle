@@ -7,8 +7,14 @@
 Basic library of Isabelle idioms.
 -}
 
-module Isabelle.Library
-  ((|>), (|->), (#>), (#->), the_default, fold, fold_rev, single, quote, trim_line)
+module Isabelle.Library (
+  (|>), (|->), (#>), (#->),
+
+  the, the_default,
+
+  fold, fold_rev, single, map_index, get_index,
+
+  quote, trim_line)
 where
 
 import Data.Maybe
@@ -31,6 +37,10 @@ x |> f = f x
 
 {- options -}
 
+the :: Maybe a -> a
+the (Just x) = x
+the Nothing = error "the Nothing"
+
 the_default :: a -> Maybe a -> a
 the_default x Nothing = x
 the_default _ (Just y) = y
@@ -48,6 +58,21 @@ fold_rev f (x : xs) y = f x (fold_rev f xs y)
 
 single :: a -> [a]
 single x = [x]
+
+map_index :: ((Int, a) -> b) -> [a] -> [b]
+map_index f = map_aux 0
+  where
+    map_aux _ [] = []
+    map_aux i (x : xs) = f (i, x) : map_aux (i + 1) xs
+
+get_index :: (a -> Maybe b) -> [a] -> Maybe (Int, b)
+get_index f = get_aux 0
+  where
+    get_aux _ [] = Nothing
+    get_aux i (x : xs) =
+      case f x of
+        Nothing -> get_aux (i + 1) xs
+        Just y -> Just (i, y)
 
 
 {- strings -}
