@@ -14,6 +14,9 @@ module Isabelle.Markup (
 
   lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
 
+  markupN, consistentN, unbreakableN, indentN, widthN,
+  blockN, block, breakN, break, fbreakN, fbreak, itemN, item,
+
   wordsN, words, no_wordsN, no_words,
 
   tfreeN, tfree, tvarN, tvar, freeN, free, skolemN, skolem, boundN, bound, varN, var,
@@ -37,10 +40,11 @@ module Isabelle.Markup (
   Output, no_output)
 where
 
-import Prelude hiding (words, error)
+import Prelude hiding (words, error, break)
 
 import Isabelle.Library
 import qualified Isabelle.Properties as Properties
+import qualified Isabelle.Value as Value
 
 
 {- basic markup -}
@@ -95,6 +99,40 @@ idN = "id"
 
 positionN :: String; position :: T
 (positionN, position) = markup_elem "position"
+
+
+{- pretty printing -}
+
+markupN, consistentN, unbreakableN, indentN :: String
+markupN = "markup";
+consistentN = "consistent";
+unbreakableN = "unbreakable";
+indentN = "indent";
+
+widthN :: String
+widthN = "width"
+
+blockN :: String
+blockN = "block"
+block :: Bool -> Int -> T
+block c i =
+  (blockN,
+    (if c then [(consistentN, Value.print_bool c)] else []) ++
+    (if i /= 0 then [(indentN, Value.print_int i)] else []))
+
+breakN :: String
+breakN = "break"
+break :: Int -> Int -> T
+break w i =
+  (breakN,
+    (if w /= 0 then [(widthN, Value.print_int w)] else []) ++
+    (if i /= 0 then [(indentN, Value.print_int i)] else []))
+
+fbreakN :: String; fbreak :: T
+(fbreakN, fbreak) = markup_elem "fbreak"
+
+itemN :: String; item :: T
+(itemN, item) = markup_elem "item"
 
 
 {- text properties -}

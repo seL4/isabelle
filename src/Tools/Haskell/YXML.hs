@@ -8,7 +8,7 @@ Efficient text representation of XML trees.  Suitable for direct
 inlining into plain text.
 -}
 
-module Isabelle.YXML (charX, charY, strX, strY, detect,
+module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,
   buffer_body, buffer, string_of_body, string_of, parse_body, parse)
 where
 
@@ -38,6 +38,11 @@ detect = any (\c -> c == charX || c == charY)
 
 
 {- output -}
+
+output_markup :: Markup.T -> Markup.Output
+output_markup markup@(name, atts) =
+  if Markup.is_empty markup then Markup.no_output
+  else (strXY ++ name ++ concatMap (\(a, x) -> strY ++ a ++ "=" ++ x) atts ++ strX, strXYX)
 
 buffer_attrib (a, x) =
   Buffer.add strY #> Buffer.add a #> Buffer.add "=" #> Buffer.add x
