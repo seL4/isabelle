@@ -326,10 +326,10 @@ fun symbolic prt =
 (*unformatted output*)
 fun unformatted prt =
   let
-    fun fmt (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
-      | fmt (Break (_, wd, _)) = Buffer.add (output_spaces wd)
-      | fmt (Str (s, _)) = Buffer.add s;
-  in fmt prt Buffer.empty end;
+    fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
+      | out (Break (_, wd, _)) = Buffer.add (output_spaces wd)
+      | out (Str (s, _)) = Buffer.add s;
+  in out prt Buffer.empty end;
 
 
 (* output interfaces *)
