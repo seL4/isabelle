@@ -56,6 +56,7 @@ val sources =
   \<^path>\<open>XML/Encode.hs\<close>,
   \<^path>\<open>XML/Decode.hs\<close>,
   \<^path>\<open>YXML.hs\<close>,
+  \<^path>\<open>Pretty.hs\<close>,
   \<^path>\<open>Term.hs\<close>,
   \<^path>\<open>Term_XML/Encode.hs\<close>,
   \<^path>\<open>Term_XML/Decode.hs\<close>];
