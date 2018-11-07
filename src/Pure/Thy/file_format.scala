@@ -44,13 +44,35 @@ trait File_Format
   def format_name: String
   override def toString = format_name
 
-  def detect(name: String): Boolean
+  def file_ext: String
+  def detect(name: String): Boolean = name.endsWith("." + file_ext)
 
-  def make_theory_name(
-    resources: Resources, name: Document.Node.Name): Option[Document.Node.Name] = None
 
-  def make_theory_content(
-    resources: Resources, thy_name: Document.Node.Name): Option[String] = None
+  /* implicit theory context: name and content */
+
+  def theory_suffix: String = ""
+  def theory_content(ext_name: String): String = ""
+
+  def make_theory_name(resources: Resources, name: Document.Node.Name): Option[Document.Node.Name] =
+  {
+    for {
+      (_, ext_name) <- Thy_Header.split_file_name(name.node)
+      if detect(ext_name) && theory_suffix.nonEmpty
+    }
+    yield {
+      val thy_node = resources.append(name.node, Path.explode(theory_suffix))
+      Document.Node.Name(thy_node, name.master_dir, ext_name)
+    }
+  }
+
+  def make_theory_content(resources: Resources, thy_name: Document.Node.Name): Option[String] =
+  {
+    for {
+      (prefix, suffix) <- Thy_Header.split_file_name(thy_name.node) if suffix == theory_suffix
+      (_, ext_name) <- Thy_Header.split_file_name(prefix) if detect(ext_name)
+      s <- proper_string(theory_content(ext_name))
+    } yield s
+  }
 
   def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] = None
 }
