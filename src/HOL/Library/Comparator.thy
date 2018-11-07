@@ -8,6 +8,8 @@ begin
 
 section \<open>Comparators on linear quasi-orders\<close>
 
+subsection \<open>Basic properties\<close>
+
 datatype comp = Less | Equiv | Greater
 
 locale comparator =
@@ -222,7 +224,8 @@ instance ..
 
 end
 
-text \<open>Fundamental comparator combinators\<close>
+
+subsection \<open>Fundamental comparator combinators\<close>
 
 lift_definition reversed :: "'a comparator \<Rightarrow> 'a comparator"
   is "\<lambda>cmp a b. cmp b a"
@@ -242,6 +245,50 @@ proof -
   then interpret comparator cmp .
   show "comparator (\<lambda>a b. cmp (f a) (f b))"
     by standard (auto intro: trans_equiv trans_less simp: greater_iff_sym_less)
+qed
+
+
+subsection \<open>Direct implementations for linear orders on selected types\<close>
+
+definition comparator_bool :: "bool comparator"
+  where [simp, code_abbrev]: "comparator_bool = default"
+
+lemma compare_comparator_bool [code abstract]:
+  "compare comparator_bool = (\<lambda>p q.
+    if p then if q then Equiv else Greater
+    else if q then Less else Equiv)"
+  by (auto simp add: fun_eq_iff) (transfer; simp)+
+
+definition raw_comparator_nat :: "nat \<Rightarrow> nat \<Rightarrow> comp"
+  where [simp]: "raw_comparator_nat = compare default"
+
+lemma default_comparator_nat [simp, code]:
+  "raw_comparator_nat (0::nat) 0 = Equiv"
+  "raw_comparator_nat (Suc m) 0 = Greater"
+  "raw_comparator_nat 0 (Suc n) = Less"
+  "raw_comparator_nat (Suc m) (Suc n) = raw_comparator_nat m n"
+  by (transfer; simp)+
+
+definition comparator_nat :: "nat comparator"
+  where [simp, code_abbrev]: "comparator_nat = default"
+
+lemma compare_comparator_nat [code abstract]:
+  "compare comparator_nat = raw_comparator_nat"
+  by simp
+
+definition comparator_linordered_group :: "'a::linordered_ab_group_add comparator"
+  where [simp, code_abbrev]: "comparator_linordered_group = default"
+
+lemma comparator_linordered_group [code abstract]:
+  "compare comparator_linordered_group = (\<lambda>a b.
+    let c = a - b in if c < 0 then Less
+    else if c = 0 then Equiv else Greater)"
+proof (rule ext)+
+  fix a b :: 'a
+  show "compare comparator_linordered_group a b =
+    (let c = a - b in if c < 0 then Less
+       else if c = 0 then Equiv else Greater)"
+    by (simp add: Let_def not_less) (transfer; auto)
 qed
 
 end
