@@ -121,16 +121,18 @@ class VSCode_Resources(
 
   /* file content */
 
-  def read_file_content(file: JFile): Option[String] =
+  def read_file_content(name: Document.Node.Name): Option[String] =
   {
-    try { Some(Line.normalize(File.read(file))) }
-    catch { case ERROR(_) => None }
+    make_theory_content(name) orElse {
+      try { Some(Line.normalize(File.read(node_file(name)))) }
+      catch { case ERROR(_) => None }
+    }
   }
 
-  def get_file_content(file: JFile): Option[String] =
-    get_model(file) match {
+  def get_file_content(name: Document.Node.Name): Option[String] =
+    get_model(name) match {
       case Some(model) => Some(model.content.text)
-      case None => read_file_content(file)
+      case None => read_file_content(name)
     }
 
   override def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
@@ -186,7 +188,7 @@ class VSCode_Resources(
           (for {
             (file, model) <- st.models.iterator
             if changed_files(file) && model.external_file
-            text <- read_file_content(file)
+            text <- read_file_content(model.node_name)
             model1 <- model.change_text(text)
           } yield (file, model1)).toList
         st.update_models(changed_models)
@@ -250,7 +252,7 @@ class VSCode_Resources(
             node_name <- thy_files1.iterator ++ thy_files2.iterator ++ aux_files.iterator
             file = node_file(node_name)
             if !st.models.isDefinedAt(file)
-            text <- { file_watcher.register_parent(file); read_file_content(file) }
+            text <- { file_watcher.register_parent(file); read_file_content(node_name) }
           }
           yield {
             val model = Document_Model.init(session, editor, node_name)

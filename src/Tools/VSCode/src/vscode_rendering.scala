@@ -264,7 +264,7 @@ class VSCode_Rendering(snapshot: Document.Snapshot, _model: Document_Model)
     yield {
       Line.Node_Range(file.getPath,
         if (range.start > 0) {
-          resources.get_file_content(file) match {
+          resources.get_file_content(resources.node_name(file)) match {
             case Some(text) =>
               val chunk = Symbol.Text_Chunk(text)
               val doc = Line.Document(text)
