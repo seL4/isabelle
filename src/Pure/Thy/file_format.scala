@@ -51,7 +51,7 @@ trait File_Format
   /* implicit theory context: name and content */
 
   def theory_suffix: String = ""
-  def theory_content(ext_name: String): String = ""
+  def theory_content(name: String): String = ""
 
   def make_theory_name(resources: Resources, name: Document.Node.Name): Option[Document.Node.Name] =
   {

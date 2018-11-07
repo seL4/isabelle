@@ -26,8 +26,8 @@ object Bibtex
     val file_ext: String = "bib"
 
     override def theory_suffix: String = "bibtex_file"
-    override def theory_content(ext_name: String): String =
-      """theory "bib" imports Pure begin bibtex_file """ + quote(ext_name) + """ end"""
+    override def theory_content(name: String): String =
+      """theory "bib" imports Pure begin bibtex_file """ + quote(name) + """ end"""
 
     override def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] =
     {
