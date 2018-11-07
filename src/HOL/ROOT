@@ -613,6 +613,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Set_Theory
     Simproc_Tests
     Simps_Case_Conv_Examples
+    Sorting_Algorithms_Examples
     Sqrt
     Sqrt_Script
     Sudoku

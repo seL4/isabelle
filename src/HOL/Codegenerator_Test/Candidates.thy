@@ -7,6 +7,7 @@ theory Candidates
 imports
   Complex_Main
   "HOL-Library.Library"
+  "HOL-Library.Sorting_Algorithms"
   "HOL-Library.Subseq_Order"
   "HOL-Library.RBT"
   "HOL-Data_Structures.Tree_Map"
