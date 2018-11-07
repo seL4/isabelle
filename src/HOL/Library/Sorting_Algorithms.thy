@@ -392,9 +392,9 @@ lemma sort_by_quicksort:
 lemma sort_by_quicksort_rec:
   "sort cmp xs = sort cmp [x\<leftarrow>xs. compare cmp x (xs ! (length xs div 2)) = Less]
     @ stable_segment cmp (xs ! (length xs div 2)) xs
-    @ sort cmp [x\<leftarrow>xs. compare cmp x (xs ! (length xs div 2)) = Greater]" (is "sort cmp ?lhs = ?rhs")
+    @ sort cmp [x\<leftarrow>xs. compare cmp x (xs ! (length xs div 2)) = Greater]" (is "_ = ?rhs")
 proof (rule sort_eqI)
-  show "mset ?lhs = mset ?rhs"
+  show "mset xs = mset ?rhs"
     by (rule multiset_eqI) (auto simp add: compare.sym intro: comp.exhaust)
 next
   show "sorted cmp ?rhs"
@@ -402,7 +402,6 @@ next
 next
   let ?pivot = "xs ! (length xs div 2)"
   fix l
-  assume "l \<in> set xs"
   have "compare cmp x ?pivot = comp \<and> compare cmp l x = Equiv
     \<longleftrightarrow> compare cmp l ?pivot = comp \<and> compare cmp l x = Equiv" for x comp
   proof -
@@ -411,7 +410,7 @@ next
       using that by (simp add: compare.equiv_subst_left compare.sym)
     then show ?thesis by blast
   qed
-  then show "stable_segment cmp l ?lhs = stable_segment cmp l ?rhs"
+  then show "stable_segment cmp l xs = stable_segment cmp l ?rhs"
     by (simp add: stable_sort compare.sym [of _ ?pivot])
       (cases "compare cmp l ?pivot", simp_all)
 qed
@@ -444,10 +443,8 @@ lemma quicksort_code [code]:
         in quicksort cmp lts @ eqs @ quicksort cmp gts)"
 proof (cases "length xs \<ge> 3")
   case False
-  then have "length xs \<le> 2"
-    by simp
-  then have "length xs = 0 \<or> length xs = 1 \<or> length xs = 2"
-    using le_neq_trans less_2_cases by auto
+  then have "length xs \<in> {0, 1, 2}"
+    by (auto simp add: not_le le_less less_antisym)
   then consider "xs = []" | x where "xs = [x]" | x y where "xs = [x, y]"
     by (auto simp add: length_Suc_conv numeral_2_eq_2)
   then show ?thesis
@@ -466,9 +463,208 @@ qed
 
 end
 
-text \<open>Evaluation example\<close>
 
-value "let cmp = key abs (reversed default)
-  in quicksort cmp [65, 1705, -2322, 734, 4, (-17::int)]"
+subsection \<open>Mergesort\<close>
+
+definition mergesort :: "'a comparator \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  where mergesort_is_sort [simp]: "mergesort = sort"
+
+lemma sort_by_mergesort:
+  "sort = mergesort"
+  by simp
+
+context
+  fixes cmp :: "'a comparator"
+begin
+
+qualified function merge :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  where "merge [] ys = ys"
+  | "merge xs [] = xs"
+  | "merge (x # xs) (y # ys) = (if compare cmp x y = Greater
+      then y # merge (x # xs) ys else x # merge xs (y # ys))"
+  by pat_completeness auto
+
+qualified termination by lexicographic_order
+
+lemma mset_merge:
+  "mset (merge xs ys) = mset xs + mset ys"
+  by (induction xs ys rule: merge.induct) simp_all
+
+lemma merge_eq_Cons_imp:
+  "xs \<noteq> [] \<and> z = hd xs \<or> ys \<noteq> [] \<and> z = hd ys"
+    if "merge xs ys = z # zs"
+  using that by (induction xs ys rule: merge.induct) (auto split: if_splits)
+
+lemma filter_merge:
+  "filter P (merge xs ys) = merge (filter P xs) (filter P ys)"
+    if "sorted cmp xs" and "sorted cmp ys"
+using that proof (induction xs ys rule: merge.induct)
+  case (1 ys)
+  then show ?case
+    by simp
+next
+  case (2 xs)
+  then show ?case
+    by simp
+next
+  case (3 x xs y ys)
+  show ?case
+  proof (cases "compare cmp x y = Greater")
+    case True
+    with 3 have hyp: "filter P (merge (x # xs) ys) =
+      merge (filter P (x # xs)) (filter P ys)"
+      by (simp add: sorted_Cons_imp_sorted)
+    show ?thesis
+    proof (cases "\<not> P x \<and> P y")
+      case False
+      with \<open>compare cmp x y = Greater\<close> show ?thesis
+        by (auto simp add: hyp)
+    next
+      case True
+      from \<open>compare cmp x y = Greater\<close> "3.prems"
+      have *: "compare cmp z y = Greater" if "z \<in> set (filter P xs)" for z
+        using that by (auto dest: compare.trans_not_greater sorted_Cons_imp_not_less)
+      from \<open>compare cmp x y = Greater\<close> show ?thesis
+        by (cases "filter P xs") (simp_all add: hyp *)
+    qed
+  next
+    case False
+    with 3 have hyp: "filter P (merge xs (y # ys)) =
+      merge (filter P xs) (filter P (y # ys))"
+      by (simp add: sorted_Cons_imp_sorted)
+    show ?thesis
+    proof (cases "P x \<and> \<not> P y")
+      case False
+      with \<open>compare cmp x y \<noteq> Greater\<close> show ?thesis
+        by (auto simp add: hyp)
+    next
+      case True
+      from \<open>compare cmp x y \<noteq> Greater\<close> "3.prems"
+      have *: "compare cmp x z \<noteq> Greater" if "z \<in> set (filter P ys)" for z
+        using that by (auto dest: compare.trans_not_greater sorted_Cons_imp_not_less)
+      from \<open>compare cmp x y \<noteq> Greater\<close> show ?thesis
+        by (cases "filter P ys") (simp_all add: hyp *)
+    qed
+  qed
+qed
+
+lemma sorted_merge:
+  "sorted cmp (merge xs ys)" if "sorted cmp xs" and "sorted cmp ys"
+using that proof (induction xs ys rule: merge.induct)
+  case (1 ys)
+  then show ?case
+    by simp
+next
+  case (2 xs)
+  then show ?case
+    by simp
+next
+  case (3 x xs y ys)
+  show ?case
+  proof (cases "compare cmp x y = Greater")
+    case True
+    with 3 have "sorted cmp (merge (x # xs) ys)"
+      by (simp add: sorted_Cons_imp_sorted)
+    then have "sorted cmp (y # merge (x # xs) ys)"
+    proof (rule sorted_ConsI)
+      fix z zs
+      assume "merge (x # xs) ys = z # zs"
+      with 3(4) True show "compare cmp y z \<noteq> Greater"
+        by (clarsimp simp add: sorted_Cons_imp_sorted dest!: merge_eq_Cons_imp)
+          (auto simp add: compare.asym_greater sorted_Cons_imp_not_less)
+    qed
+    with True show ?thesis
+      by simp
+  next
+    case False
+    with 3 have "sorted cmp (merge xs (y # ys))"
+      by (simp add: sorted_Cons_imp_sorted)
+    then have "sorted cmp (x # merge xs (y # ys))"
+    proof (rule sorted_ConsI)
+      fix z zs
+      assume "merge xs (y # ys) = z # zs"
+      with 3(3) False show "compare cmp x z \<noteq> Greater"
+        by (clarsimp simp add: sorted_Cons_imp_sorted dest!: merge_eq_Cons_imp)
+          (auto simp add: compare.asym_greater sorted_Cons_imp_not_less)
+    qed
+    with False show ?thesis
+      by simp
+  qed
+qed
+
+lemma merge_eq_appendI:
+  "merge xs ys = xs @ ys"
+    if "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set ys \<Longrightarrow> compare cmp x y \<noteq> Greater"
+  using that by (induction xs ys rule: merge.induct) simp_all
+
+lemma merge_stable_segments:
+  "merge (stable_segment cmp l xs) (stable_segment cmp l ys) =
+     stable_segment cmp l xs @ stable_segment cmp l ys"
+  by (rule merge_eq_appendI) (auto dest: compare.trans_equiv_greater)
+
+lemma sort_by_mergesort_rec:
+  "sort cmp xs =
+    merge (sort cmp (take (length xs div 2) xs))
+      (sort cmp (drop (length xs div 2) xs))" (is "_ = ?rhs")
+proof (rule sort_eqI)
+  have "mset (take (length xs div 2) xs) + mset (drop (length xs div 2) xs) =
+    mset (take (length xs div 2) xs @ drop (length xs div 2) xs)"
+    by (simp only: mset_append)
+  then show "mset xs = mset ?rhs"
+    by (simp add: mset_merge)
+next
+  show "sorted cmp ?rhs"
+    by (simp add: sorted_merge)
+next
+  fix l
+  have "stable_segment cmp l (take (length xs div 2) xs) @ stable_segment cmp l (drop (length xs div 2) xs)
+    = stable_segment cmp l xs"
+    by (simp only: filter_append [symmetric] append_take_drop_id)
+  have "merge (stable_segment cmp l (take (length xs div 2) xs))
+    (stable_segment cmp l (drop (length xs div 2) xs)) =
+    stable_segment cmp l (take (length xs div 2) xs) @ stable_segment cmp l (drop (length xs div 2) xs)"
+    by (rule merge_eq_appendI) (auto simp add: compare.trans_equiv_greater)
+  also have "\<dots> = stable_segment cmp l xs"
+    by (simp only: filter_append [symmetric] append_take_drop_id)
+  finally show "stable_segment cmp l xs = stable_segment cmp l ?rhs"
+    by (simp add: stable_sort filter_merge)
+qed
+
+lemma mergesort_code [code]:
+  "mergesort cmp xs =
+    (case xs of
+      [] \<Rightarrow> []
+    | [x] \<Rightarrow> xs
+    | [x, y] \<Rightarrow> (if compare cmp x y \<noteq> Greater then xs else [y, x])
+    | _ \<Rightarrow>
+        let
+          half = length xs div 2;
+          ys = take half xs;
+          zs = drop half xs
+        in merge (mergesort cmp ys) (mergesort cmp zs))"
+proof (cases "length xs \<ge> 3")
+  case False
+  then have "length xs \<in> {0, 1, 2}"
+    by (auto simp add: not_le le_less less_antisym)
+  then consider "xs = []" | x where "xs = [x]" | x y where "xs = [x, y]"
+    by (auto simp add: length_Suc_conv numeral_2_eq_2)
+  then show ?thesis
+    by cases simp_all
+next
+  case True
+  then obtain x y z zs where "xs = x # y # z # zs"
+    by (metis le_0_eq length_0_conv length_Cons list.exhaust not_less_eq_eq numeral_3_eq_3)
+  moreover have "mergesort cmp xs =
+    (let
+       half = length xs div 2;
+       ys = take half xs;
+       zs = drop half xs
+     in merge (mergesort cmp ys) (mergesort cmp zs))"
+    using sort_by_mergesort_rec [of xs] by (simp add: Let_def)
+  ultimately show ?thesis
+    by simp
+qed
+
+end
 
 end
