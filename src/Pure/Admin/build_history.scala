@@ -205,6 +205,12 @@ object Build_History
           "env PATH=\"" + File.bash_path(Path.explode("~~/lib/dummy_stty").expand) + ":$PATH\" " +
             "bin/isabelle jedit -b", redirect = true, echo = verbose).check
 
+        for {
+          tool <- List("ghc_setup", "ocaml_setup")
+          if other_isabelle.getenv("ISABELLE_" + Word.uppercase(tool)) == "true" &&
+            (other_isabelle.isabelle_home + Path.explode("lib/Tools/" + tool)).is_file
+        } other_isabelle(tool, echo = verbose)
+
         Isabelle_System.rm_tree(isabelle_base_log)
       }
 
@@ -513,8 +519,6 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     progress: Progress = No_Progress,
     rev: String = "",
     afp_rev: Option[String] = None,
-    ghc_setup: Boolean = false,
-    ocaml_setup: Boolean = false,
     options: String = "",
     args: String = ""): List[(String, Bytes)] =
   {
@@ -539,10 +543,6 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
       execute("bin/isabelle", "components -I")
       execute("bin/isabelle", "components -a", echo = true)
       execute("Admin/build", "jars_fresh")
-      for {
-        (setup, tool) <- List((ghc_setup, "ghc_setup"), (ocaml_setup, "ocaml_setup"))
-        if setup && ssh.is_file(Path.explode("lib/Tools/" + tool))
-      } execute("bin/isabelle", tool, echo = true)
     }
 
     val rev_id = self_hg.id(rev)

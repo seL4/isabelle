@@ -159,8 +159,6 @@ object Isabelle_Cronjob
     historic: Boolean = false,
     history: Int = 0,
     history_base: String = "build_history_base",
-    ghc_setup: Boolean = false,
-    ocaml_setup: Boolean = false,
     options: String = "",
     args: String = "",
     afp: Boolean = false,
@@ -288,8 +286,8 @@ object Isabelle_Cronjob
           detect = Build_Log.Prop.build_start + " > date '2017-03-03'")),
       List(Remote_Build("Mac OS X 10.10 Yosemite", "macbroy31", options = "-m32 -M2", args = "-a")),
       List(Remote_Build("Mac OS X 10.14 Mojave", "lapnipkow3", self_update = true,
-        ghc_setup = true, ocaml_setup = true,
-        options = "-m32 -M1,2", args = "-a -d '~~/src/Benchmarks'")),
+        options = "-m32 -M1,2 -e ISABELLE_GHC_SETUP=true -e ISABELLE_OCAML_SETUP=true",
+        args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("Windows", "vmnipkow9", historic = true, history = 90, self_update = true,
           options = "-m32 -M4" +
@@ -350,8 +348,6 @@ object Isabelle_Cronjob
                 self_update = r.self_update,
                 rev = rev,
                 afp_rev = afp_rev,
-                ghc_setup = r.ghc_setup,
-                ocaml_setup = r.ocaml_setup,
                 options =
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
                   " -f " + r.options,
