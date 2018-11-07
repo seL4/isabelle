@@ -286,7 +286,6 @@ then
   SCALAC_OPTIONS="$ISABELLE_SCALAC_OPTIONS -d classes"
 
   (
-    classpath "$JAVA_HOME/lib/jfxrt.jar"
     classpath classes
     export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
 
