@@ -248,7 +248,7 @@ object Document_Status
       }
 
     def update(
-      session_base: Sessions.Base,
+      resources: Resources,
       state: Document.State,
       version: Document.Version,
       domain: Option[Set[Document.Node.Name]] = None,
@@ -258,8 +258,8 @@ object Document_Status
       val update_iterator =
         for {
           name <- domain.getOrElse(nodes1.domain).iterator
-          if !Sessions.is_hidden(name) &&
-              !session_base.loaded_theory(name) &&
+          if !resources.is_hidden(name) &&
+              !resources.session_base.loaded_theory(name) &&
               !nodes1.is_suppressed(name) &&
               !nodes1(name).is_empty
           st = Document_Status.Node_Status.make(state, version, name)

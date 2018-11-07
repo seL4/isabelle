@@ -80,14 +80,15 @@ object Thy_Header
     (Sessions.root_name :: (ml_roots ::: bootstrap_thys).map(_._2)).map(_ -> PURE)
 
   private val Thy_File_Name = new Regex(""".*?([^/\\:]+)\.thy""")
+  private val Split_File_Name = new Regex("""(.*?)[/\\]*([^/\\:]+)""")
   private val File_Name = new Regex(""".*?([^/\\:]+)""")
 
   def is_base_name(s: String): Boolean =
     s != "" && !s.exists("/\\:".contains(_))
 
-  def file_name(s: String): Option[String] =
+  def split_file_name(s: String): Option[(String, String)] =
     s match {
-      case File_Name(s) => Some(s)
+      case Split_File_Name(s1, s2) => Some((s1, s2))
       case _ => None
     }
 

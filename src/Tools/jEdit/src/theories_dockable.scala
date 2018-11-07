@@ -214,12 +214,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   {
     GUI_Thread.require {}
 
-    val session_base = PIDE.resources.session_base
     val snapshot = PIDE.session.snapshot()
 
     val (nodes_status_changed, nodes_status1) =
       nodes_status.update(
-        session_base, snapshot.state, snapshot.version, domain = domain, trim = trim)
+        PIDE.resources, snapshot.state, snapshot.version, domain = domain, trim = trim)
 
     nodes_status = nodes_status1
     if (nodes_status_changed) status.listData = nodes_status1.present.map(_._1)

@@ -119,9 +119,6 @@ object Document
 
       def path: Path = Path.explode(File.standard_path(node))
 
-      def is_bibtex: Boolean = Bibtex.is_bibtex(node)
-      def is_bibtex_theory: Boolean = Bibtex.is_bibtex(theory)
-
       def is_theory: Boolean = theory.nonEmpty
 
       def theory_base_name: String = Long_Name.base_name(theory)
@@ -586,8 +583,6 @@ object Document
 
     def node_required: Boolean
     def get_blob: Option[Blob]
-    def is_bibtex: Boolean = node_name.is_bibtex
-    def is_bibtex_theory: Boolean = node_name.is_bibtex_theory
     def bibtex_entries: List[Text.Info[String]]
 
     def node_edits(

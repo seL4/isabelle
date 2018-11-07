@@ -131,6 +131,7 @@ declare -a SOURCES=(
   Thy/bibtex.scala
   Thy/export.scala
   Thy/export_theory.scala
+  Thy/file_format.scala
   Thy/html.scala
   Thy/latex.scala
   Thy/present.scala

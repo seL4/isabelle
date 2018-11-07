@@ -20,6 +20,8 @@ ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx2560m -Xss16m"
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
+isabelle_file_format 'isabelle.Bibtex$File_Format'
+
 #paranoia settings -- avoid intrusion of alien options
 unset "_JAVA_OPTIONS"
 unset "JAVA_TOOL_OPTIONS"

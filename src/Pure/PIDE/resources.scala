@@ -19,6 +19,23 @@ class Resources(
 {
   resources =>
 
+
+  /* file formats */
+
+  val file_formats: File_Format.Environment = File_Format.environment()
+
+  def make_theory_name(name: Document.Node.Name): Option[Document.Node.Name] =
+    file_formats.get(name).flatMap(_.make_theory_name(resources, name))
+
+  def make_theory_content(thy_name: Document.Node.Name): Option[String] =
+    file_formats.get_theory(thy_name).flatMap(_.make_theory_content(resources, thy_name))
+
+  def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] =
+    file_formats.get(snapshot.node_name).flatMap(_.make_preview(snapshot))
+
+  def is_hidden(name: Document.Node.Name): Boolean =
+    !name.is_theory || name.theory == Sessions.root_name || file_formats.is_theory(name)
+
   def thy_path(path: Path): Path = path.ext("thy")
 
 

@@ -131,8 +131,8 @@ class Plugin extends EBPlugin
 
           val thy_files2 =
             (for {
-              (name, _) <- models.iterator if name.is_bibtex
-              thy_name <- Bibtex.make_theory_name(resources, name)
+              (name, _) <- models.iterator
+              thy_name <- resources.make_theory_name(name)
             } yield thy_name).toList
 
           val aux_files =

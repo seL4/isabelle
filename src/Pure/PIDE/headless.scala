@@ -263,7 +263,7 @@ object Headless
                       else changed.nodes.iterator.filter(dep_theories_set).toSet
 
                     val (nodes_status_changed, nodes_status1) =
-                      st.nodes_status.update(resources.session_base, state, version,
+                      st.nodes_status.update(resources, state, version,
                         domain = Some(domain), trim = changed.assignment)
 
                     if (nodes_status_delay >= Time.zero && nodes_status_changed) {

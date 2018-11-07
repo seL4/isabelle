@@ -105,7 +105,9 @@ object Present
 
   sealed case class Preview(title: String, content: String)
 
-  def preview(snapshot: Document.Snapshot,
+  def preview(
+    resources: Resources,
+    snapshot: Document.Snapshot,
     plain_text: Boolean = false,
     fonts_url: String => String = HTML.fonts_url()): Preview =
   {
@@ -119,26 +121,22 @@ object Present
         List(HTML.source(body)), css = "", structural = false)
 
     val name = snapshot.node_name
+
     if (plain_text) {
       val title = "File " + quote(name.path.base_name)
       val content = output_document(title, HTML.text(snapshot.node.source))
       Preview(title, content)
     }
-    else if (name.is_bibtex) {
-      val title = "Bibliography " + quote(name.path.base_name)
-      val content =
-        Isabelle_System.with_tmp_file("bib", "bib") { bib =>
-          File.write(bib, snapshot.node.source)
-          Bibtex.html_output(List(bib), style = "unsort", title = title)
-        }
-      Preview(title, content)
-    }
     else {
-      val title =
-        if (name.is_theory) "Theory " + quote(name.theory_base_name)
-        else "File " + quote(name.path.base_name)
-      val content = output_document(title, pide_document(snapshot))
-      Preview(title, content)
+      resources.make_preview(snapshot) match {
+        case Some(preview) => preview
+        case None =>
+          val title =
+            if (name.is_theory) "Theory " + quote(name.theory_base_name)
+            else "File " + quote(name.path.base_name)
+          val content = output_document(title, pide_document(snapshot))
+          Preview(title, content)
+      }
     }
   }
 

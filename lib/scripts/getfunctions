@@ -109,6 +109,22 @@ function classpath ()
 }
 export -f classpath
 
+#file formats
+function isabelle_file_format ()
+{
+  local X=""
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_CLASSES_FILE_FORMAT" ]; then
+      ISABELLE_CLASSES_FILE_FORMAT="$X"
+    else
+      ISABELLE_CLASSES_FILE_FORMAT="$ISABELLE_CLASSES_FILE_FORMAT:$X"
+    fi
+  done
+  export ISABELLE_CLASSES_FILE_FORMAT
+}
+export -f isabelle_file_format
+
 #administrative build
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
   function isabelle_admin_build ()

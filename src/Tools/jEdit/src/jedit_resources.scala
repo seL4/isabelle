@@ -80,7 +80,7 @@ class JEdit_Resources private(val session_base_info: Sessions.Base_Info)
 
   def read_file_content(node_name: Document.Node.Name): Option[String] =
   {
-    Bibtex.make_theory_content(node_name.theory) orElse {
+    make_theory_content(node_name) orElse {
       val name = node_name.node
       try {
         val text =

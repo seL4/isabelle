@@ -123,10 +123,8 @@ class VSCode_Resources(
 
   def read_file_content(file: JFile): Option[String] =
   {
-    Bibtex.make_theory_content(file) orElse {
-      try { Some(Line.normalize(File.read(file))) }
-      catch { case ERROR(_) => None }
-    }
+    try { Some(Line.normalize(File.read(file))) }
+    catch { case ERROR(_) => None }
   }
 
   def get_file_content(file: JFile): Option[String] =
@@ -226,8 +224,8 @@ class VSCode_Resources(
 
         val thy_files2 =
           (for {
-            (_, model) <- st.models.iterator if model.node_name.is_bibtex
-            thy_name <- Bibtex.make_theory_name(resources, model.node_name)
+            (_, model) <- st.models.iterator
+            thy_name <- resources.make_theory_name(model.node_name)
           } yield thy_name).toList
 
 

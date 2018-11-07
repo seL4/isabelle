@@ -320,7 +320,7 @@ object Document_Model
         yield {
           val snapshot = model.await_stable_snapshot()
           val preview =
-            Present.preview(snapshot, fonts_url = HTML.fonts_dir(fonts_root),
+            Present.preview(PIDE.resources, snapshot, fonts_url = HTML.fonts_dir(fonts_root),
               plain_text = query.startsWith(plain_text_prefix))
           HTTP.Response.html(preview.content)
         })
@@ -389,7 +389,7 @@ object File_Model
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val content = Document_Model.File_Content(text)
-    val node_required1 = node_required || node_name.is_bibtex_theory
+    val node_required1 = node_required || session.resources.file_formats.is_theory(node_name)
     File_Model(session, node_name, file, content, node_required1, last_perspective, pending_edits)
   }
 }
@@ -427,7 +427,7 @@ case class File_Model(
     else Some(Document.Blob(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
 
   def bibtex_entries: List[Text.Info[String]] =
-    if (is_bibtex) content.bibtex_entries else Nil
+    if (Bibtex.is_bibtex(node_name.node)) content.bibtex_entries else Nil
 
 
   /* edits */
@@ -454,7 +454,7 @@ case class File_Model(
 
   def purge_edits(doc_blobs: Document.Blobs): Option[List[Document.Edit_Text]] =
     if (pending_edits.nonEmpty ||
-        !is_bibtex_theory &&
+        !session.resources.file_formats.is_theory(node_name) &&
           (node_required || !Document.Node.is_no_perspective_text(last_perspective))) None
     else {
       val text_edits = List(Text.Edit.remove(0, content.text))
@@ -551,7 +551,7 @@ case class Buffer_Model(session: Session, node_name: Document.Node.Name, buffer:
 
   def bibtex_entries: List[Text.Info[String]] =
     GUI_Thread.require {
-      if (is_bibtex) {
+      if (Bibtex.is_bibtex(node_name.node)) {
         _bibtex_entries match {
           case Some(entries) => entries
           case None =>
