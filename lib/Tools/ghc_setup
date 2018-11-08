@@ -6,6 +6,6 @@
 
 set -e
 
-isabelle_stack setup --resolver "$ISABELLE_STACK_RESOLVER" "$ISABELLE_GHC_VERSION"
-isabelle_stack ghci --ghci-options --version
+isabelle_stack setup
+isabelle_stack ghc -- --version
 echo -n "$(standard_path "$(isabelle_stack path --programs)")" > "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS"

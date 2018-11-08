@@ -46,7 +46,7 @@ function isabelle_stack()
     echo "Unknown ISABELLE_STACK -- GHC management tools unavailable" >&2
     return 127
   else
-    env STACK_ROOT="$(platform_path "$ISABELLE_STACK_ROOT")" "$ISABELLE_STACK" "$@"
+    env STACK_ROOT="$(platform_path "$ISABELLE_STACK_ROOT")" "$ISABELLE_STACK" --resolver "$ISABELLE_STACK_RESOLVER" --compiler "$ISABELLE_GHC_VERSION" "$@"
   fi
 }
 export -f isabelle_stack

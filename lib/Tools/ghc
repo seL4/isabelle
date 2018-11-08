@@ -5,7 +5,7 @@
 # DESCRIPTION: invoke Glasgow Haskell Compiler within the Isabelle environment
 
 if [ -d "$ISABELLE_STACK_ROOT" -a -n "$ISABELLE_GHC" ]; then
-  isabelle_stack ghc --resolver "$ISABELLE_STACK_RESOLVER" --compiler "$ISABELLE_GHC_VERSION" -- "$@"
+  isabelle_stack ghc -- "$@"
 else
   echo "Cannot execute ghc: missing Isabelle GHC setup" >&2
   exit 127
