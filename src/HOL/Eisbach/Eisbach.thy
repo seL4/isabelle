@@ -90,9 +90,9 @@ method_setup changed =
 \<close>
 
 
-text \<open>The following @{text fails} and @{text succeeds} methods protect the goal from the effect
+text \<open>The following \<open>fails\<close> and \<open>succeeds\<close> methods protect the goal from the effect
       of a method, instead simply determining whether or not it can be applied to the current goal.
-      The @{text fails} method inverts success, only succeeding if the given method would fail.\<close>
+      The \<open>fails\<close> method inverts success, only succeeding if the given method would fail.\<close>
 
 method_setup fails =
  \<open>Method.text_closure >> (fn m => fn ctxt => fn facts =>

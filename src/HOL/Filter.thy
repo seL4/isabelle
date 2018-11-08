@@ -1208,7 +1208,7 @@ proof (rule antisym)
 
   show "(\<Sqinter>i\<in>I. \<Sqinter>j\<in>J. A i \<times>\<^sub>F B j) \<le> (\<Sqinter>i\<in>I. A i) \<times>\<^sub>F (\<Sqinter>j\<in>J. B j)"
     by (fast intro: le_prod_filterI INF_greatest INF_lower2
-      order_trans[OF filtermap_INF] `i \<in> I` `j \<in> J`
+      order_trans[OF filtermap_INF] \<open>i \<in> I\<close> \<open>j \<in> J\<close>
       filtermap_fst_prod_filter filtermap_snd_prod_filter)
   show "(\<Sqinter>i\<in>I. A i) \<times>\<^sub>F (\<Sqinter>j\<in>J. B j) \<le> (\<Sqinter>i\<in>I. \<Sqinter>j\<in>J. A i \<times>\<^sub>F B j)"
     by (intro INF_greatest prod_filter_mono INF_lower)

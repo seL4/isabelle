@@ -173,7 +173,7 @@ proof -
     unfolding Bfun_def by fast
   with assms(1) have "eventually (\<lambda>n. norm (f n) \<le> K) sequentially"
     by (fast elim: eventually_elim2 order_trans)
-  with `0 < K` show "Bseq f"
+  with \<open>0 < K\<close> show "Bseq f"
     unfolding Bfun_def by fast
 qed
 

@@ -1,7 +1,7 @@
 chapter LCF
 
 session LCF = Pure +
-  description {*
+  description \<open>
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 
@@ -9,7 +9,7 @@ session LCF = Pure +
 
     Useful references on LCF: Lawrence C. Paulson,
     Logic and Computation: Interactive proof with Cambridge LCF (CUP, 1987)
-  *}
+\<close>
   sessions
     FOL
   theories

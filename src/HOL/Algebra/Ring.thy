@@ -807,7 +807,7 @@ lemma ring_hom_trans:
   "\<lbrakk> f \<in> ring_hom R S; g \<in> ring_hom S T \<rbrakk> \<Longrightarrow> g \<circ> f \<in> ring_hom R T"
   by (rule ring_hom_memI) (auto simp add: ring_hom_closed ring_hom_mult ring_hom_add ring_hom_one)
 
-subsection\<open>Jeremy Avigad's @{text"More_Finite_Product"} material\<close>
+subsection\<open>Jeremy Avigad's \<open>More_Finite_Product\<close> material\<close>
 
 (* need better simplification rules for rings *)
 (* the next one holds more generally for abelian groups *)
@@ -857,7 +857,7 @@ lemma (in cring) units_power_order_eq_one:
   "finite (Units R) \<Longrightarrow> a \<in> Units R \<Longrightarrow> a [^] card(Units R) = \<one>"
   by (metis comm_group.power_order_eq_one units_comm_group units_of_carrier units_of_one units_of_pow)
 
-subsection\<open>Jeremy Avigad's @{text"More_Ring"} material\<close>
+subsection\<open>Jeremy Avigad's \<open>More_Ring\<close> material\<close>
 
 lemma (in cring) field_intro2: 
   assumes "\<zero>\<^bsub>R\<^esub> \<noteq> \<one>\<^bsub>R\<^esub>" and un: "\<And>x. x \<in> carrier R - {\<zero>\<^bsub>R\<^esub>} \<Longrightarrow> x \<in> Units R"

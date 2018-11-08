@@ -7957,7 +7957,7 @@ next
 qed
 
 
-subsection{*Orthogonal complement*}
+subsection\<open>Orthogonal complement\<close>
 
 definition orthogonal_comp ("_\<^sup>\<bottom>" [80] 80)
   where "orthogonal_comp W \<equiv> {x. \<forall>y \<in> W. orthogonal y x}"

@@ -1,9 +1,9 @@
 chapter HOL
 
 session HOL (main) = Pure +
-  description {*
+  description \<open>
     Classical Higher-order Logic.
-  *}
+\<close>
   options [strict_facts]
   theories
     Main (global)
@@ -13,9 +13,9 @@ session HOL (main) = Pure +
     "root.tex"
 
 session "HOL-Proofs" (timing) = Pure +
-  description {*
+  description \<open>
     HOL-Main with explicit proof terms.
-  *}
+\<close>
   options [quick_and_dirty = false, record_proofs = 2, parallel_proofs = 0, parallel_limit = 500]
   sessions
     "HOL-Library"
@@ -23,9 +23,9 @@ session "HOL-Proofs" (timing) = Pure +
     "HOL-Library.Realizers"
 
 session "HOL-Library" (main timing) in Library = HOL +
-  description {*
+  description \<open>
     Classical Higher-order Logic -- batteries included.
-  *}
+\<close>
   theories
     Library
     (*conflicting type class instantiations and dependent applications*)
@@ -100,7 +100,7 @@ session "HOL-Real_Asymp-Manual" in "Real_Asymp/Manual" = "HOL-Real_Asymp" +
     "style.sty"
 
 session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
-  description {*
+  description \<open>
     Author:     Gertrud Bauer, TU Munich
 
     The Hahn-Banach theorem for real vector spaces.
@@ -116,7 +116,7 @@ session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
     The theorem says, that every continous linearform, defined on arbitrary
     subspaces (not only one-dimensional subspaces), can be extended to a
     continous linearform on the whole vectorspace.
-  *}
+\<close>
   sessions
     "HOL-Analysis"
   theories
@@ -124,7 +124,7 @@ session "HOL-Hahn_Banach" in Hahn_Banach = "HOL-Library" +
   document_files "root.bib" "root.tex"
 
 session "HOL-Induct" in Induct = "HOL-Library" +
-  description {*
+  description \<open>
     Examples of (Co)Inductive Definitions.
 
     Comb proves the Church-Rosser theorem for combinators (see
@@ -139,7 +139,7 @@ session "HOL-Induct" in Induct = "HOL-Library" +
 
     Exp demonstrates the use of iterated inductive definitions to reason about
     mutually recursive relations.
-  *}
+\<close>
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -193,7 +193,7 @@ session "HOL-IMP" (timing) in IMP = "HOL-Library" +
   document_files "root.bib" "root.tex"
 
 session "HOL-IMPP" in IMPP = HOL +
-  description {*
+  description \<open>
     Author:     David von Oheimb
     Copyright   1999 TUM
 
@@ -202,7 +202,7 @@ session "HOL-IMPP" in IMPP = HOL +
     This is an extension of IMP with local variables and mutually recursive
     procedures. For documentation see "Hoare Logic for Mutual Recursion and
     Local Variables" (https://isabelle.in.tum.de/Bali/papers/FSTTCS99.html).
-  *}
+\<close>
   theories EvenOdd
 
 session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
@@ -233,10 +233,10 @@ session "HOL-Import" in Import = HOL +
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
 session "HOL-Number_Theory" (main timing) in Number_Theory = "HOL-Computational_Algebra" +
-  description {*
+  description \<open>
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
-  *}
+\<close>
   sessions
     "HOL-Algebra"
   theories
@@ -245,18 +245,18 @@ session "HOL-Number_Theory" (main timing) in Number_Theory = "HOL-Computational_
     "root.tex"
 
 session "HOL-Hoare" in Hoare = HOL +
-  description {*
+  description \<open>
     Verification of imperative programs (verification conditions are generated
     automatically from pre/post conditions and loop invariants).
-  *}
+\<close>
   theories Hoare
   document_files "root.bib" "root.tex"
 
 session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
-  description {*
+  description \<open>
     Verification of shared-variable imperative programs a la Owicki-Gries.
     (verification conditions are generated automatically).
-  *}
+\<close>
   theories Hoare_Parallel
   document_files "root.bib" "root.tex"
 
@@ -282,12 +282,12 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Number_Theory" +
     Code_Test_SMLNJ
 
 session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
-  description {*
+  description \<open>
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
     Testing Metis and Sledgehammer.
-  *}
+\<close>
   sessions
     "HOL-Decision_Procs"
   theories
@@ -302,18 +302,18 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
     Sets
 
 session "HOL-Nitpick_Examples" in Nitpick_Examples = "HOL-Library" +
-  description {*
+  description \<open>
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
-  *}
+\<close>
   theories [quick_and_dirty] Nitpick_Examples
 
 session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
-  description {*
+  description \<open>
     Author: Clemens Ballarin, started 24 September 1999, and many others
 
     The Isabelle Algebraic Library.
-  *}
+\<close>
   theories
     (* Orders and Lattices *)
     Galois_Connection    (* Knaster-Tarski theorem and Galois connections *)
@@ -332,9 +332,9 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   document_files "root.bib" "root.tex"
 
 session "HOL-Auth" (timing) in Auth = "HOL-Library" +
-  description {*
+  description \<open>
     A new approach to verifying authentication protocols.
-  *}
+\<close>
   theories
     Auth_Shared
     Auth_Public
@@ -344,12 +344,12 @@ session "HOL-Auth" (timing) in Auth = "HOL-Library" +
   document_files "root.tex"
 
 session "HOL-UNITY" (timing) in UNITY = "HOL-Auth" +
-  description {*
+  description \<open>
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
     Verifying security protocols using Chandy and Misra's UNITY formalism.
-  *}
+\<close>
   theories
     (*Basic meta-theory*)
     UNITY_Main
@@ -404,9 +404,9 @@ session "HOL-Imperative_HOL" (timing) in Imperative_HOL = "HOL-Library" +
   document_files "root.bib" "root.tex"
 
 session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +
-  description {*
+  description \<open>
     Various decision procedures, typically involving reflection.
-  *}
+\<close>
   theories
     Decision_Procs
 
@@ -419,9 +419,9 @@ session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
     XML_Data
 
 session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
-  description {*
+  description \<open>
     Examples for program extraction in Higher-Order Logic.
-  *}
+\<close>
   options [parallel_proofs = 0, quick_and_dirty = false]
   sessions
     "HOL-Computational_Algebra"
@@ -434,7 +434,7 @@ session "HOL-Proofs-Extraction" (timing) in "Proofs/Extraction" = "HOL-Proofs" +
   document_files "root.bib" "root.tex"
 
 session "HOL-Proofs-Lambda" (timing) in "Proofs/Lambda" = "HOL-Proofs" +
-  description {*
+  description \<open>
     Lambda Calculus in de Bruijn's Notation.
 
     This session defines lambda-calculus terms with de Bruijn indixes and
@@ -442,7 +442,7 @@ session "HOL-Proofs-Lambda" (timing) in "Proofs/Lambda" = "HOL-Proofs" +
 
     The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
     theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
-  *}
+\<close>
   options [print_mode = "no_brackets",
     parallel_proofs = 0, quick_and_dirty = false]
   sessions
@@ -455,7 +455,7 @@ session "HOL-Proofs-Lambda" (timing) in "Proofs/Lambda" = "HOL-Proofs" +
   document_files "root.bib" "root.tex"
 
 session "HOL-Prolog" in Prolog = HOL +
-  description {*
+  description \<open>
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 
     A bare-bones implementation of Lambda-Prolog.
@@ -463,15 +463,15 @@ session "HOL-Prolog" in Prolog = HOL +
     This is a simple exploratory implementation of Lambda-Prolog in HOL,
     including some minimal examples (in Test.thy) and a more typical example of
     a little functional language and its type system.
-  *}
+\<close>
   theories Test Type
 
 session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
-  description {*
+  description \<open>
     Formalization of a fragment of Java, together with a corresponding virtual
     machine and a specification of its bytecode verifier and a lightweight
     bytecode verifier, including proofs of type-safety.
-  *}
+\<close>
   sessions
     "HOL-Eisbach"
   theories
@@ -482,9 +482,9 @@ session "HOL-MicroJava" (timing) in MicroJava = "HOL-Library" +
     "root.tex"
 
 session "HOL-NanoJava" in NanoJava = HOL +
-  description {*
+  description \<open>
     Hoare Logic for a tiny fragment of Java.
-  *}
+\<close>
   theories Example
   document_files "root.bib" "root.tex"
 
@@ -498,7 +498,7 @@ session "HOL-Bali" (timing) in Bali = "HOL-Library" +
   document_files "root.tex"
 
 session "HOL-IOA" in IOA = HOL +
-  description {*
+  description \<open>
     Author:     Tobias Nipkow and Konrad Slind and Olaf Müller
     Copyright   1994--1996  TU Muenchen
 
@@ -524,22 +524,22 @@ session "HOL-IOA" in IOA = HOL +
     organization={Aarhus University, BRICS report},
     year=1995}
     ftp://ftp.informatik.tu-muenchen.de/local/lehrstuhl/nipkow/tacas.dvi.gz
-  *}
+\<close>
   theories Solve
 
 session "HOL-Lattice" in Lattice = HOL +
-  description {*
+  description \<open>
     Author:     Markus Wenzel, TU Muenchen
 
     Basic theory of lattices and orders.
-  *}
+\<close>
   theories CompleteLattice
   document_files "root.tex"
 
 session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
-  description {*
+  description \<open>
     Miscellaneous examples for Higher-Order Logic.
-  *}
+\<close>
   theories
     Adhoc_Overloading_Examples
     Antiquote
@@ -634,9 +634,9 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Meson_Test
 
 session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
-  description {*
+  description \<open>
     Miscellaneous Isabelle/Isar examples.
-  *}
+\<close>
   options [quick_and_dirty]
   theories
     Knaster_Tarski
@@ -661,9 +661,9 @@ session "HOL-Isar_Examples" in Isar_Examples = "HOL-Computational_Algebra" +
     "root.tex"
 
 session "HOL-Eisbach" in Eisbach = HOL +
-  description {*
+  description \<open>
     The Eisbach proof method language and "match" method.
-  *}
+\<close>
   sessions
     FOL
   theories
@@ -673,24 +673,24 @@ session "HOL-Eisbach" in Eisbach = HOL +
     Examples_FOL
 
 session "HOL-SET_Protocol" (timing) in SET_Protocol = "HOL-Library" +
-  description {*
+  description \<open>
     Verification of the SET Protocol.
-  *}
+\<close>
   theories
     SET_Protocol
   document_files "root.tex"
 
 session "HOL-Matrix_LP" in Matrix_LP = "HOL-Library" +
-  description {*
+  description \<open>
     Two-dimensional matrices and linear programming.
-  *}
+\<close>
   theories Cplex
   document_files "root.tex"
 
 session "HOL-TLA" in TLA = HOL +
-  description {*
+  description \<open>
     Lamport's Temporal Logic of Actions.
-  *}
+\<close>
   theories TLA
 
 session "HOL-TLA-Inc" in "TLA/Inc" = "HOL-TLA" +
@@ -703,13 +703,13 @@ session "HOL-TLA-Memory" in "TLA/Memory" = "HOL-TLA" +
   theories MemoryImplementation
 
 session "HOL-TPTP" in TPTP = "HOL-Library" +
-  description {*
+  description \<open>
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Nik Sultana, University of Cambridge
     Copyright   2011
 
     TPTP-related extensions.
-  *}
+\<close>
   theories
     ATP_Theory_Export
     MaSh_Eval
@@ -760,9 +760,9 @@ session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
     VC_Condition
 
 session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
-  description {*
+  description \<open>
     Ordinals and Cardinals, Full Theories.
-  *}
+\<close>
   theories
     Cardinals
     Bounded_Set
@@ -772,9 +772,9 @@ session "HOL-Cardinals" (timing) in Cardinals = "HOL-Library" +
     "root.bib"
 
 session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
-  description {*
+  description \<open>
     (Co)datatype Examples.
-  *}
+\<close>
   theories
     Compat
     Lambda_Term
@@ -792,9 +792,9 @@ session "HOL-Datatype_Examples" (timing) in Datatype_Examples = "HOL-Library" +
     Misc_Primrec
 
 session "HOL-Corec_Examples" (timing) in Corec_Examples = "HOL-Library" +
-  description {*
+  description \<open>
     Corecursion Examples.
-  *}
+\<close>
   theories
     LFilter
     Paper_Examples
@@ -828,9 +828,9 @@ session "HOL-Statespace" in Statespace = HOL +
   document_files "root.tex"
 
 session "HOL-Nonstandard_Analysis" (timing) in Nonstandard_Analysis = "HOL-Computational_Algebra" +
-  description {*
+  description \<open>
     Nonstandard analysis.
-  *}
+\<close>
   theories
     Nonstandard_Analysis
   document_files "root.tex"
@@ -911,9 +911,9 @@ session "HOL-Quickcheck_Examples" (timing) in Quickcheck_Examples = "HOL-Library
     Quickcheck_Narrowing_Examples
 
 session "HOL-Quotient_Examples" (timing) in Quotient_Examples = "HOL-Algebra" +
-  description {*
+  description \<open>
     Author:     Cezary Kaliszyk and Christian Urban
-  *}
+\<close>
   theories
     DList
     Quotient_FSet
@@ -949,9 +949,9 @@ session "HOL-Predicate_Compile_Examples" (timing) in Predicate_Compile_Examples 
     Reg_Exp_Example
 
 session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
-  description {*
+  description \<open>
     Experimental extension of Higher-Order Logic to allow translation of types to sets.
-  *}
+\<close>
   theories
     Types_To_Sets
     "Examples/Prerequisites"
@@ -960,12 +960,12 @@ session "HOL-Types_To_Sets" in Types_To_Sets = HOL +
     "Examples/Linear_Algebra_On"
 
 session HOLCF (main timing) in HOLCF = HOL +
-  description {*
+  description \<open>
     Author:     Franz Regensburger
     Author:     Brian Huffman
 
     HOLCF -- a semantic extension of HOL by the LCF logic.
-  *}
+\<close>
   sessions
     "HOL-Library"
   theories
@@ -985,11 +985,11 @@ session "HOLCF-Library" in "HOLCF/Library" = HOLCF +
     HOL_Cpo
 
 session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
-  description {*
+  description \<open>
     IMP -- A WHILE-language and its Semantics.
 
     This is the HOLCF-based denotational semantics of a simple WHILE-language.
-  *}
+\<close>
   sessions
     "HOL-IMP"
   theories
@@ -1000,9 +1000,9 @@ session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
     "root.bib"
 
 session "HOLCF-ex" in "HOLCF/ex" = "HOLCF-Library" +
-  description {*
+  description \<open>
     Miscellaneous examples for HOLCF.
-  *}
+\<close>
   theories
     Dnat
     Dagstuhl
@@ -1017,7 +1017,7 @@ session "HOLCF-ex" in "HOLCF/ex" = "HOLCF-Library" +
     Pattern_Match
 
 session "HOLCF-FOCUS" in "HOLCF/FOCUS" = "HOLCF-Library" +
-  description {*
+  description \<open>
     FOCUS: a theory of stream-processing functions Isabelle/HOLCF.
 
     For introductions to FOCUS, see
@@ -1030,14 +1030,14 @@ session "HOLCF-FOCUS" in "HOLCF/FOCUS" = "HOLCF-Library" +
 
     "Specification and Development of Interactive Systems: Focus on Streams,
     Interfaces, and Refinement" http://www4.in.tum.de/publ/html.php?e=321
-  *}
+\<close>
   theories
     Fstreams
     FOCUS
     Buffer_adm
 
 session IOA (timing) in "HOLCF/IOA" = HOLCF +
-  description {*
+  description \<open>
     Author:     Olaf Mueller
     Copyright   1997 TU München
 
@@ -1046,40 +1046,40 @@ session IOA (timing) in "HOLCF/IOA" = HOLCF +
     The distribution contains simulation relations, temporal logic, and an
     abstraction theory. Everything is based upon a domain-theoretic model of
     finite and infinite sequences.
-  *}
+\<close>
   theories Abstraction
 
 session "IOA-ABP" in "HOLCF/IOA/ABP" = IOA +
-  description {*
+  description \<open>
     Author:     Olaf Mueller
 
     The Alternating Bit Protocol performed in I/O-Automata.
-  *}
+\<close>
   theories
     Correctness
     Spec
 
 session "IOA-NTP" in "HOLCF/IOA/NTP" = IOA +
-  description {*
+  description \<open>
     Author:     Tobias Nipkow & Konrad Slind
 
     A network transmission protocol, performed in the
     I/O automata formalization by Olaf Mueller.
-  *}
+\<close>
   theories Correctness
 
 session "IOA-Storage" in "HOLCF/IOA/Storage" = IOA +
-  description {*
+  description \<open>
     Author:     Olaf Mueller
 
     Memory storage case study.
-  *}
+\<close>
   theories Correctness
 
 session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
-  description {*
+  description \<open>
     Author:     Olaf Mueller
-  *}
+\<close>
   theories
     TrivEx
     TrivEx2

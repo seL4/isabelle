@@ -188,9 +188,9 @@ code_printing
 
 subsection \<open>Code Generation for Haskell\<close>
 
-text \<open>We map @{typ "'a iarray"}s in Isabelle/HOL to @{text Data.Array.IArray.array}
-  in Haskell.  Performance mapping to @{text Data.Array.Unboxed.Array} and
-  @{text Data.Array.Array} is similar.\<close>
+text \<open>We map @{typ "'a iarray"}s in Isabelle/HOL to \<open>Data.Array.IArray.array\<close>
+  in Haskell.  Performance mapping to \<open>Data.Array.Unboxed.Array\<close> and
+  \<open>Data.Array.Array\<close> is similar.\<close>
 
 code_printing
   code_module "IArray" \<rightharpoonup> (Haskell) \<open>

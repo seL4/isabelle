@@ -39,7 +39,7 @@ lemma missing_pattern_match_code [code_unfold]:
 
 ML_file "case_converter.ML"
 
-subsection \<open>The type @{text lazy}\<close>
+subsection \<open>The type \<open>lazy\<close>\<close>
 
 typedef 'a lazy = "UNIV :: 'a set" ..
 setup_lifting type_definition_lazy

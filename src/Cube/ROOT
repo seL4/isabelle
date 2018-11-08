@@ -1,7 +1,7 @@
 chapter Cube
 
 session Cube = Pure +
-  description {*
+  description \<open>
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 
@@ -12,5 +12,5 @@ session Cube = Pure +
 
     For more information about the Lambda-Cube, see H. Barendregt, Introduction
     to Generalised Type Systems, J. Functional Programming.
-  *}
+\<close>
   theories Example

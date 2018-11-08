@@ -625,7 +625,7 @@ proof -
     by (simp add: measure_linear_image \<open>linear f\<close> S f)
 qed
 
-subsection%important\<open>@{text F_sigma} and @{text G_delta} sets.\<close>(*FIX ME mv *)
+subsection%important\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> sets.\<close>(*FIX ME mv *)
 
 (*https://en.wikipedia.org/wiki/F\<sigma>_set*)
 inductive%important fsigma :: "'a::topological_space set \<Rightarrow> bool" where
@@ -689,7 +689,7 @@ qed
 lemma%unimportant gdelta_complement: "gdelta(- S) \<longleftrightarrow> fsigma S"
   using fsigma_imp_gdelta gdelta_imp_fsigma by force
 
-text\<open>A Lebesgue set is almost an @{text F_sigma} or @{text G_delta}.\<close>
+text\<open>A Lebesgue set is almost an \<open>F_sigma\<close> or \<open>G_delta\<close>.\<close>
 lemma%unimportant lebesgue_set_almost_fsigma:
   assumes "S \<in> sets lebesgue"
   obtains C T where "fsigma C" "negligible T" "C \<union> T = S" "disjnt C T"

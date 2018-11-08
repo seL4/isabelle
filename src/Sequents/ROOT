@@ -1,7 +1,7 @@
 chapter Sequents
 
 session Sequents = Pure +
-  description {*
+  description \<open>
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
@@ -36,7 +36,7 @@ session Sequents = Pure +
 
     S. Kalvala and V. de Paiva, Linear Logic in Isabelle (in TR 379, University
     of Cambridge Computer Lab, 1995, ed L. Paulson)
-  *}
+\<close>
   theories
     LK
     ILL

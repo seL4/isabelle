@@ -1228,7 +1228,7 @@ lemma%important scalar_invertible:
 proof%unimportant -
   obtain A' where "A ** A' = mat 1" and "A' ** A = mat 1"
     using assms unfolding invertible_def by auto
-  with `k \<noteq> 0`
+  with \<open>k \<noteq> 0\<close>
   have "(k *\<^sub>R A) ** ((1/k) *\<^sub>R A') = mat 1" "((1/k) *\<^sub>R A') ** (k *\<^sub>R A) = mat 1"
     by (simp_all add: assms matrix_scalar_ac)
   thus "invertible (k *\<^sub>R A)"

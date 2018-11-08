@@ -1394,7 +1394,7 @@ next
   then show "\<exists>I. greatest ?L I (Lower ?L A)" ..
 qed
 
-subsection\<open>Jeremy Avigad's @{text"More_Group"} material\<close>
+subsection\<open>Jeremy Avigad's \<open>More_Group\<close> material\<close>
 
 text \<open>
   Show that the units in any monoid give rise to a group.

@@ -4009,7 +4009,7 @@ lemma sin_pi_divide_n_gt_0:
   shows "0 < sin (pi / real n)"
   by (rule sin_gt_zero) (use assms in \<open>simp_all add: divide_simps\<close>)
 
-text\<open>Proof resembles that of @{text cos_is_zero} but with @{term pi} for the upper bound\<close>
+text\<open>Proof resembles that of \<open>cos_is_zero\<close> but with @{term pi} for the upper bound\<close>
 lemma cos_total:
   assumes y: "-1 \<le> y" "y \<le> 1"
   shows "\<exists>!x. 0 \<le> x \<and> x \<le> pi \<and> cos x = y"

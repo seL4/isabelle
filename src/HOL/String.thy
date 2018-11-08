@@ -398,16 +398,16 @@ subsubsection \<open>Syntactic representation\<close>
 text \<open>
   Logical ground representations for literals are:
 
-  \<^enum> @{text 0} for the empty literal;
+  \<^enum> \<open>0\<close> for the empty literal;
 
-  \<^enum> @{text "Literal b0 \<dots> b6 s"} for a literal starting with one
+  \<^enum> \<open>Literal b0 \<dots> b6 s\<close> for a literal starting with one
     character and continued by another literal.
 
   Syntactic representations for literals are:
 
-  \<^enum> Printable text as string prefixed with @{text STR};
+  \<^enum> Printable text as string prefixed with \<open>STR\<close>;
 
-  \<^enum> A single ascii value as numerical hexadecimal value prefixed with @{text STR}.
+  \<^enum> A single ascii value as numerical hexadecimal value prefixed with \<open>STR\<close>.
 \<close>
 
 instantiation String.literal :: zero

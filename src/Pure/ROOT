@@ -1,9 +1,9 @@
 chapter Pure
 
 session Pure =
-  description {*
+  description \<open>
     The Pure logical framework
-  *}
+\<close>
   options [threads = 1, export_theory]
   theories
     Pure (global)

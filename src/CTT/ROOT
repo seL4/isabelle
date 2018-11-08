@@ -1,7 +1,7 @@
 chapter CTT
 
 session CTT = Pure +
-  description {*
+  description \<open>
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
@@ -15,7 +15,7 @@ session CTT = Pure +
 
     Simon Thompson, Type Theory and Functional Programming (Addison-Wesley,
     1991)
-  *}
+\<close>
   options [thy_output_source]
   theories
     CTT

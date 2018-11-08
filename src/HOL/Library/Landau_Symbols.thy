@@ -4,7 +4,7 @@
 
   Landau symbols for reasoning about the asymptotic growth of functions. 
 *)
-section {* Definition of Landau symbols *}
+section \<open>Definition of Landau symbols\<close>
 
 theory Landau_Symbols
 imports 
@@ -16,14 +16,14 @@ lemma eventually_subst':
   by (rule eventually_subst, erule eventually_rev_mp) simp
 
 
-subsection {* Definition of Landau symbols *}
+subsection \<open>Definition of Landau symbols\<close>
 
-text {*
+text \<open>
   Our Landau symbols are sign-oblivious, i.e. any function always has the same growth 
   as its absolute. This has the advantage of making some cancelling rules for sums nicer, but 
   introduces some problems in other places. Nevertheless, we found this definition more convenient
   to work with.
-*}
+\<close>
 
 definition bigo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set" 
     ("(1O[_]'(_'))")
@@ -61,7 +61,7 @@ abbreviation bigtheta_at_top ("(2\<Theta>'(_'))") where
   "\<Theta>(g) \<equiv> bigtheta at_top g"
     
 
-text {* The following is a set of properties that all Landau symbols satisfy. *}
+text \<open>The following is a set of properties that all Landau symbols satisfy.\<close>
 
 named_theorems landau_divide_simps
 
@@ -290,11 +290,11 @@ lemmas [landau_divide_simps] =
 end
 
 
-text {* 
+text \<open>
   The symbols $O$ and $o$ and $\Omega$ and $\omega$ are dual, so for many rules, replacing $O$ with 
   $\Omega$, $o$ with $\omega$, and $\leq$ with $\geq$ in a theorem yields another valid theorem.
   The following locale captures this fact.
-*}
+\<close>
 
 locale landau_pair = 
   fixes L l :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
@@ -606,12 +606,12 @@ proof
   } note A = this
   {
     fix c :: 'b and F and f :: "'a \<Rightarrow> 'b" assume "c \<noteq> 0"
-    from `c \<noteq> 0` and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"] 
+    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"] 
       show "L F (\<lambda>x. c * f x) = L F f" by (intro equalityI big_subsetI) (simp_all add: field_simps)
   }
   {
     fix c :: 'b and F and f g :: "'a \<Rightarrow> 'b" assume "c \<noteq> 0"
-    from `c \<noteq> 0` and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
+    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
       have "(\<lambda>x. c * f x) \<in> L F f" "f \<in> L F (\<lambda>x. c * f x)" by (simp_all add: field_simps)
     thus "((\<lambda>x. c * f x) \<in> L F g) = (f \<in> L F g)" by (intro iffI) (erule (1) big_trans)+
   }
@@ -689,13 +689,13 @@ proof
   } note A = this
   {
     fix c :: 'b and f :: "'a \<Rightarrow> 'b" and F assume "c \<noteq> 0"
-    from `c \<noteq> 0` and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"] 
+    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"] 
       show "l F (\<lambda>x. c * f x) = l F f" 
         by (intro equalityI small_subsetI) (simp_all add: field_simps)
   }
   {
     fix c :: 'b and f g :: "'a \<Rightarrow> 'b" and F assume "c \<noteq> 0"
-    from `c \<noteq> 0` and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
+    from \<open>c \<noteq> 0\<close> and A[of c f] and A[of "inverse c" "\<lambda>x. c * f x"]
       have "(\<lambda>x. c * f x) \<in> L F f" "f \<in> L F (\<lambda>x. c * f x)" by (simp_all add: field_simps)
     thus "((\<lambda>x. c * f x) \<in> l F g) = (f \<in> l F g)" by (intro iffI) (erule (1) big_small_trans)+
   }
@@ -763,7 +763,7 @@ proof
 qed (auto simp: l_def lr_def eventually_filtermap l'_def eventually_sup intro: filter_leD)
 
 
-text {* These rules allow chaining of Landau symbol propositions in Isar with "also".*}
+text \<open>These rules allow chaining of Landau symbol propositions in Isar with "also".\<close>
 
 lemma big_mult_1:    "f \<in> L F (g) \<Longrightarrow> (\<lambda>_. 1) \<in> L F (h) \<Longrightarrow> f \<in> L F (\<lambda>x. g x * h x)"
   and big_mult_1':   "(\<lambda>_. 1) \<in> L F (g) \<Longrightarrow> f \<in> L F (h) \<Longrightarrow> f \<in> L F (\<lambda>x. g x * h x)"
@@ -1028,7 +1028,7 @@ proof-
 qed
 
 
-subsection {* Landau symbols and limits *}
+subsection \<open>Landau symbols and limits\<close>
 
 lemma bigoI_tendsto_norm:
   fixes f g
@@ -1073,7 +1073,7 @@ proof (cases "F = bot")
     with c_not_0 show "c/2 > 0" by simp
     from lim have ev: "\<And>\<epsilon>. \<epsilon> > 0 \<Longrightarrow> eventually (\<lambda>x. norm (norm (f x / g x) - c) < \<epsilon>) F"
       by (subst (asm) tendsto_iff) (simp add: dist_real_def)
-    from ev[OF `c/2 > 0`] show "eventually (\<lambda>x. (norm (f x)) \<ge> c/2 * (norm (g x))) F"
+    from ev[OF \<open>c/2 > 0\<close>] show "eventually (\<lambda>x. (norm (f x)) \<ge> c/2 * (norm (g x))) F"
     proof (eventually_elim)
       fix x assume B: "norm (norm (f x / g x) - c) < c / 2"
       from B have g: "g x \<noteq> 0" by auto
@@ -1523,16 +1523,16 @@ proof-
     assume "p < q"
     hence "(\<lambda>x. g x powr p) \<in> o[F](\<lambda>x. g x powr q)" using assms A
       by (auto intro!: smalloI_tendsto tendsto_neg_powr simp flip: powr_diff)
-    with `p < q` show ?thesis by auto
+    with \<open>p < q\<close> show ?thesis by auto
   next
     assume "p = q"
     hence "(\<lambda>x. g x powr q) \<in> O[F](\<lambda>x. g x powr p)" by (auto intro!: bigthetaD1)
-    with B `p = q` show ?thesis by auto
+    with B \<open>p = q\<close> show ?thesis by auto
   next
     assume "p > q"
     hence "(\<lambda>x. g x powr q) \<in> O[F](\<lambda>x. g x powr p)" using assms A
       by (auto intro!: smalloI_tendsto tendsto_neg_powr landau_o.small_imp_big simp flip: powr_diff)
-    with B `p > q` show ?thesis by auto
+    with B \<open>p > q\<close> show ?thesis by auto
   qed
 qed
 
@@ -1554,16 +1554,16 @@ proof-
     assume "p < q"
     hence "(\<lambda>x. g x powr p) \<in> o[F](\<lambda>x. g x powr q)" using assms A
       by (auto intro!: smalloI_tendsto tendsto_neg_powr simp flip: powr_diff)
-    with `p < q` show ?thesis by (auto intro: landau_o.small_imp_big)
+    with \<open>p < q\<close> show ?thesis by (auto intro: landau_o.small_imp_big)
   next
     assume "p = q"
     hence "(\<lambda>x. g x powr q) \<in> O[F](\<lambda>x. g x powr p)" by (auto intro!: bigthetaD1)
-    with B `p = q` show ?thesis by auto
+    with B \<open>p = q\<close> show ?thesis by auto
   next
     assume "p > q"
     hence "(\<lambda>x. g x powr q) \<in> o[F](\<lambda>x. g x powr p)" using assms A
       by (auto intro!: smalloI_tendsto tendsto_neg_powr simp flip: powr_diff)
-    with B `p > q` show ?thesis by (auto intro: landau_o.small_imp_big)
+    with B \<open>p > q\<close> show ?thesis by (auto intro: landau_o.small_imp_big)
   qed
 qed
 
