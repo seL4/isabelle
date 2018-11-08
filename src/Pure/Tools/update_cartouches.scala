@@ -91,8 +91,8 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
   Options are:
     -t           replace @{text} antiquotations within text tokens
 
-  Recursively find .thy files and update theory syntax to use cartouches
-  instead of old-style {* verbatim *} or `alt_string` tokens.
+  Recursively find .thy or ROOT files and update theory syntax to use
+  cartouches instead of old-style {* verbatim *} or `alt_string` tokens.
 
   Old versions of files are preserved by appending "~~".
 """,
@@ -103,7 +103,8 @@ Usage: isabelle update_cartouches [FILES|DIRS...]
 
       for {
         spec <- specs
-        file <- File.find_files(Path.explode(spec).file, file => file.getName.endsWith(".thy"))
+        file <- File.find_files(Path.explode(spec).file,
+          file => file.getName.endsWith(".thy") || file.getName == "ROOT")
       } update_cartouches(replace_text, File.path(file))
     })
 }
