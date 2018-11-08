@@ -113,23 +113,15 @@ fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 (* oracles *)
 
 fun oracle (name, range) source =
-  let
-    val body_range = Input.range_of source;
-    val body = ML_Lex.read_source source;
-
-    val ants =
-      ML_Lex.read
-       ("local\n\
-        \  val binding = " ^ ML_Syntax.make_binding (name, #1 range) ^ ";\n\
-        \  val") @ ML_Lex.read_set_range body_range "oracle" @ ML_Lex.read "=" @ body @
-        ML_Lex.read (";\nin\n\
-        \  val") @ ML_Lex.read_set_range range name @ ML_Lex.read "=\
-        \ snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, oracle))));\n\
-        \end;\n";
-  in
-    Context.theory_map
-      (ML_Context.exec (fn () => ML_Context.eval ML_Compiler.flags (#1 body_range) ants))
-  end;
+  ML_Context.expression (Input.pos_of source)
+    (ML_Lex.read "val " @
+     ML_Lex.read_set_range range name @
+     ML_Lex.read
+      (" = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (" ^
+        ML_Syntax.make_binding (name, #1 range) ^ ", ") @
+     ML_Lex.read_source source @
+     ML_Lex.read "))))")
+  |> Context.theory_map;
 
 
 (* declarations *)
