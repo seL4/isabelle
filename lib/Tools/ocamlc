@@ -4,4 +4,10 @@
 #
 # DESCRIPTION: invoke OCaml compiler within the Isabelle environment
 
-isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- ocamlc "$@"
+if [ -d "$ISABELLE_OPAM_ROOT" -a -n "$ISABELLE_OCAMLC" ]
+then
+  isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- ocamlc "$@"
+else
+  echo "Cannot execute ocamlc: missing Isabelle OCaml setup" >&2
+  exit 127
+fi
