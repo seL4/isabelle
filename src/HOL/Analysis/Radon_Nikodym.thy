@@ -254,7 +254,7 @@ proof%unimportant -
         using f \<open>A \<in> sets M\<close> by (auto intro!: SUP_least simp: G_D)
     qed }
   note SUP_in_G = this
-  let ?y = "SUP g : G. integral\<^sup>N M g"
+  let ?y = "SUP g \<in> G. integral\<^sup>N M g"
   have y_le: "?y \<le> N (space M)" unfolding G_def
   proof (safe intro!: SUP_least)
     fix g assume "\<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A"
@@ -390,7 +390,7 @@ lemma%important (in finite_measure) split_space_into_finite_sets_and_rest:
     (\<forall>A\<in>sets M. A \<inter> (\<Union>i. B i) = {} \<longrightarrow> (emeasure M A = 0 \<and> N A = 0) \<or> (emeasure M A > 0 \<and> N A = \<infinity>))"
 proof%unimportant -
   let ?Q = "{Q\<in>sets M. N Q \<noteq> \<infinity>}"
-  let ?a = "SUP Q:?Q. emeasure M Q"
+  let ?a = "SUP Q\<in>?Q. emeasure M Q"
   have "{} \<in> ?Q" by auto
   then have Q_not_empty: "?Q \<noteq> {}" by blast
   have "?a \<le> emeasure M (space M)" using sets.sets_into_space
@@ -404,7 +404,7 @@ proof%unimportant -
   then have "\<forall>i. \<exists>Q'. Q'' i = emeasure M Q' \<and> Q' \<in> ?Q" by auto
   from choice[OF this] obtain Q' where Q': "\<And>i. Q'' i = emeasure M (Q' i)" "\<And>i. Q' i \<in> ?Q"
     by auto
-  then have a_Lim: "?a = (SUP i::nat. emeasure M (Q' i))" using a by simp
+  then have a_Lim: "?a = (SUP i. emeasure M (Q' i))" using a by simp
   let ?O = "\<lambda>n. \<Union>i\<le>n. Q' i"
   have Union: "(SUP i. emeasure M (?O i)) = emeasure M (\<Union>i. ?O i)"
   proof (rule SUP_emeasure_incseq[of ?O])

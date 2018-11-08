@@ -11,8 +11,8 @@ class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_sp
   assumes eucl_less_le_not_le: "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
   assumes eucl_inf: "inf x y = (\<Sum>i\<in>Basis. inf (x \<bullet> i) (y \<bullet> i) *\<^sub>R i)"
   assumes eucl_sup: "sup x y = (\<Sum>i\<in>Basis. sup (x \<bullet> i) (y \<bullet> i) *\<^sub>R i)"
-  assumes eucl_Inf: "Inf X = (\<Sum>i\<in>Basis. (INF x:X. x \<bullet> i) *\<^sub>R i)"
-  assumes eucl_Sup: "Sup X = (\<Sum>i\<in>Basis. (SUP x:X. x \<bullet> i) *\<^sub>R i)"
+  assumes eucl_Inf: "Inf X = (\<Sum>i\<in>Basis. (INF x\<in>X. x \<bullet> i) *\<^sub>R i)"
+  assumes eucl_Sup: "Sup X = (\<Sum>i\<in>Basis. (SUP x\<in>X. x \<bullet> i) *\<^sub>R i)"
   assumes eucl_abs: "\<bar>x\<bar> = (\<Sum>i\<in>Basis. \<bar>x \<bullet> i\<bar> *\<^sub>R i)"
 begin
 
@@ -49,8 +49,8 @@ lemma%unimportant inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y
   by (simp_all add: eucl_inf eucl_sup inner_sum_left inner_Basis if_distrib comm_monoid_add_class.sum.delta
       cong: if_cong)
 
-lemma%unimportant inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x:X. f x) \<bullet> i = (INF x:X. f x \<bullet> i)"
-  and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x:X. f x) \<bullet> i = (SUP x:X. f x \<bullet> i)"
+lemma%unimportant inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x\<in>X. f x) \<bullet> i = (INF x\<in>X. f x \<bullet> i)"
+  and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x\<in>X. f x) \<bullet> i = (SUP x\<in>X. f x \<bullet> i)"
   using eucl_Sup [of "f ` X"] eucl_Inf [of "f ` X"] by (simp_all add: comp_def)
 
 lemma%unimportant abs_inner: "i \<in> Basis \<Longrightarrow> \<bar>x\<bar> \<bullet> i = \<bar>x \<bullet> i\<bar>"
@@ -284,8 +284,8 @@ begin
 
 definition%important "inf x y = (\<chi> i. inf (x $ i) (y $ i))"
 definition%important "sup x y = (\<chi> i. sup (x $ i) (y $ i))"
-definition%important "Inf X = (\<chi> i. (INF x:X. x $ i))"
-definition%important "Sup X = (\<chi> i. (SUP x:X. x $ i))"
+definition%important "Inf X = (\<chi> i. (INF x\<in>X. x $ i))"
+definition%important "Sup X = (\<chi> i. (SUP x\<in>X. x $ i))"
 definition%important "\<bar>x\<bar> = (\<chi> i. \<bar>x $ i\<bar>)"
 
 instance

@@ -2150,7 +2150,7 @@ proof -
   have D_2: "bdd_above (?f`?D)"
     by (metis * mem_Collect_eq bdd_aboveI2)
   note D = D_1 D_2
-  let ?S = "SUP x:?D. ?f x"
+  let ?S = "SUP x\<in>?D. ?f x"
   have *: "\<exists>\<gamma>. gauge \<gamma> \<and>
              (\<forall>p. p tagged_division_of cbox a b \<and>
                   \<gamma> fine p \<longrightarrow>
@@ -2533,7 +2533,7 @@ proof (rule absolutely_integrable_onI, fact)
   have D_2: "bdd_above (?f`?D)"
     by (intro bdd_aboveI2[where M=B] assms(2)[rule_format]) simp
   note D = D_1 D_2
-  let ?S = "SUP d:?D. ?f d"
+  let ?S = "SUP d\<in>?D. ?f d"
   have "\<And>a b. f integrable_on cbox a b"
     using assms(1) integrable_on_subcbox by blast
   then have f_int: "\<And>a b. f absolutely_integrable_on cbox a b"
@@ -3807,7 +3807,7 @@ proof -
     by (intro tendsto_lowerbound[OF lim])
        (auto simp: eventually_at_top_linorder)
 
-  have "(SUP i::nat. ?f i x) = ?fR x" for x
+  have "(SUP i. ?f i x) = ?fR x" for x
   proof (rule LIMSEQ_unique[OF LIMSEQ_SUP])
     obtain n where "x - a < real n"
       using reals_Archimedean2[of "x - a"] ..
@@ -3816,16 +3816,16 @@ proof -
     then show "(\<lambda>n. ?f n x) \<longlonglongrightarrow> ?fR x"
       by (rule Lim_eventually)
   qed (auto simp: nonneg incseq_def le_fun_def split: split_indicator)
-  then have "integral\<^sup>N lborel ?fR = (\<integral>\<^sup>+ x. (SUP i::nat. ?f i x) \<partial>lborel)"
+  then have "integral\<^sup>N lborel ?fR = (\<integral>\<^sup>+ x. (SUP i. ?f i x) \<partial>lborel)"
     by simp
-  also have "\<dots> = (SUP i::nat. (\<integral>\<^sup>+ x. ?f i x \<partial>lborel))"
+  also have "\<dots> = (SUP i. (\<integral>\<^sup>+ x. ?f i x \<partial>lborel))"
   proof (rule nn_integral_monotone_convergence_SUP)
     show "incseq ?f"
       using nonneg by (auto simp: incseq_def le_fun_def split: split_indicator)
     show "\<And>i. (?f i) \<in> borel_measurable lborel"
       using f_borel by auto
   qed
-  also have "\<dots> = (SUP i::nat. ennreal (F (a + real i) - F a))"
+  also have "\<dots> = (SUP i. ennreal (F (a + real i) - F a))"
     by (subst nn_integral_FTC_Icc[OF f_borel f nonneg]) auto
   also have "\<dots> = T - F a"
   proof (rule LIMSEQ_unique[OF LIMSEQ_SUP])

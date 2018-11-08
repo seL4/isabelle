@@ -32,12 +32,6 @@ abbreviation (input) SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<R
 
 end
 
-syntax (input)
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
-
 syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _\<in>_./ _)" [0, 0, 10] 10)
@@ -49,6 +43,12 @@ syntax
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax (input) \<comment> \<open>legacy input syntax\<close>
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
 
 translations
   "\<Sqinter>x y. f"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. f"
@@ -236,7 +236,7 @@ qed
 lemma INF_mono: "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> (\<Sqinter>n\<in>A. f n) \<le> (\<Sqinter>n\<in>B. g n)"
   using Inf_mono [of "g ` B" "f ` A"] by auto
 
-lemma INF_mono': "(\<And>x. f x \<le> g x) \<Longrightarrow> (INF x:A. f x) \<le> (INF x:A. g x)"
+lemma INF_mono': "(\<And>x. f x \<le> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<le> (\<Sqinter>x\<in>A. g x)"
   by (rule INF_mono) auto
 
 lemma Sup_mono:
@@ -252,7 +252,7 @@ qed
 lemma SUP_mono: "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<le> g m) \<Longrightarrow> (\<Squnion>n\<in>A. f n) \<le> (\<Squnion>n\<in>B. g n)"
   using Sup_mono [of "f ` A" "g ` B"] by auto
 
-lemma SUP_mono': "(\<And>x. f x \<le> g x) \<Longrightarrow> (SUP x:A. f x) \<le> (SUP x:A. g x)"
+lemma SUP_mono': "(\<And>x. f x \<le> g x) \<Longrightarrow> (\<Squnion>x\<in>A. f x) \<le> (\<Squnion>x\<in>A. g x)"
   by (rule SUP_mono) auto
 
 lemma INF_superset_mono: "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<le> (\<Sqinter>x\<in>B. g x)"

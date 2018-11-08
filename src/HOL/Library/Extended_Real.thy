@@ -2149,23 +2149,23 @@ lemma continuous_at_ereal[continuous_intros]: "continuous F f \<Longrightarrow> 
   unfolding continuous_def by auto
 
 lemma ereal_Sup:
-  assumes *: "\<bar>SUP a:A. ereal a\<bar> \<noteq> \<infinity>"
-  shows "ereal (Sup A) = (SUP a:A. ereal a)"
+  assumes *: "\<bar>SUP a\<in>A. ereal a\<bar> \<noteq> \<infinity>"
+  shows "ereal (Sup A) = (SUP a\<in>A. ereal a)"
 proof (rule continuous_at_Sup_mono)
-  obtain r where r: "ereal r = (SUP a:A. ereal a)" "A \<noteq> {}"
+  obtain r where r: "ereal r = (SUP a\<in>A. ereal a)" "A \<noteq> {}"
     using * by (force simp: bot_ereal_def)
   then show "bdd_above A" "A \<noteq> {}"
     by (auto intro!: SUP_upper bdd_aboveI[of _ r] simp flip: ereal_less_eq)
 qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
-lemma ereal_SUP: "\<bar>SUP a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (SUP a:A. f a) = (SUP a:A. ereal (f a))"
+lemma ereal_SUP: "\<bar>SUP a\<in>A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (SUP a\<in>A. f a) = (SUP a\<in>A. ereal (f a))"
   using ereal_Sup[of "f`A"] by auto
 
 lemma ereal_Inf:
-  assumes *: "\<bar>INF a:A. ereal a\<bar> \<noteq> \<infinity>"
-  shows "ereal (Inf A) = (INF a:A. ereal a)"
+  assumes *: "\<bar>INF a\<in>A. ereal a\<bar> \<noteq> \<infinity>"
+  shows "ereal (Inf A) = (INF a\<in>A. ereal a)"
 proof (rule continuous_at_Inf_mono)
-  obtain r where r: "ereal r = (INF a:A. ereal a)" "A \<noteq> {}"
+  obtain r where r: "ereal r = (INF a\<in>A. ereal a)" "A \<noteq> {}"
     using * by (force simp: top_ereal_def)
   then show "bdd_below A" "A \<noteq> {}"
     by (auto intro!: INF_lower bdd_belowI[of _ r] simp flip: ereal_less_eq)
@@ -2173,17 +2173,17 @@ qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_er
 
 lemma ereal_Inf':
   assumes *: "bdd_below A" "A \<noteq> {}"
-  shows "ereal (Inf A) = (INF a:A. ereal a)"
+  shows "ereal (Inf A) = (INF a\<in>A. ereal a)"
 proof (rule ereal_Inf)
   from * obtain l u where "x \<in> A \<Longrightarrow> l \<le> x" "u \<in> A" for x
     by (auto simp: bdd_below_def)
-  then have "l \<le> (INF x:A. ereal x)" "(INF x:A. ereal x) \<le> u"
+  then have "l \<le> (INF x\<in>A. ereal x)" "(INF x\<in>A. ereal x) \<le> u"
     by (auto intro!: INF_greatest INF_lower)
-  then show "\<bar>INF a:A. ereal a\<bar> \<noteq> \<infinity>"
+  then show "\<bar>INF a\<in>A. ereal a\<bar> \<noteq> \<infinity>"
     by auto
 qed
 
-lemma ereal_INF: "\<bar>INF a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (INF a:A. f a) = (INF a:A. ereal (f a))"
+lemma ereal_INF: "\<bar>INF a\<in>A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (INF a\<in>A. f a) = (INF a\<in>A. ereal (f a))"
   using ereal_Inf[of "f`A"] by auto
 
 lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
@@ -2193,7 +2193,7 @@ lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
 
 lemma ereal_SUP_uminus_eq:
   fixes f :: "'a \<Rightarrow> ereal"
-  shows "(SUP x:S. uminus (f x)) = - (INF x:S. f x)"
+  shows "(SUP x\<in>S. uminus (f x)) = - (INF x\<in>S. f x)"
   using ereal_Sup_uminus_image_eq [of "f ` S"] by (simp add: comp_def)
 
 lemma ereal_inj_on_uminus[intro, simp]: "inj_on uminus (A :: ereal set)"
@@ -2204,12 +2204,12 @@ lemma ereal_Inf_uminus_image_eq: "Inf (uminus ` S::ereal set) = - Sup S"
 
 lemma ereal_INF_uminus_eq:
   fixes f :: "'a \<Rightarrow> ereal"
-  shows "(INF x:S. - f x) = - (SUP x:S. f x)"
+  shows "(INF x\<in>S. - f x) = - (SUP x\<in>S. f x)"
   using ereal_Inf_uminus_image_eq [of "f ` S"] by (simp add: comp_def)
 
 lemma ereal_SUP_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
-  shows "(SUP i : R. - f i) = - (INF i : R. f i)"
+  shows "(SUP i \<in> R. - f i) = - (INF i \<in> R. f i)"
   using ereal_Sup_uminus_image_eq[of "f`R"]
   by (simp add: image_image)
 
@@ -2278,17 +2278,17 @@ proof (rule Inf_less_iff[THEN iffD1])
 qed
 
 lemma SUP_PInfty:
-  "(\<And>n::nat. \<exists>i\<in>A. ereal (real n) \<le> f i) \<Longrightarrow> (SUP i:A. f i :: ereal) = \<infinity>"
+  "(\<And>n::nat. \<exists>i\<in>A. ereal (real n) \<le> f i) \<Longrightarrow> (SUP i\<in>A. f i :: ereal) = \<infinity>"
   unfolding top_ereal_def[symmetric] SUP_eq_top_iff
   by (metis MInfty_neq_PInfty(2) PInfty_neq_ereal(2) less_PInf_Ex_of_nat less_ereal.elims(2) less_le_trans)
 
-lemma SUP_nat_Infty: "(SUP i::nat. ereal (real i)) = \<infinity>"
+lemma SUP_nat_Infty: "(SUP i. ereal (real i)) = \<infinity>"
   by (rule SUP_PInfty) auto
 
 lemma SUP_ereal_add_left:
   assumes "I \<noteq> {}" "c \<noteq> -\<infinity>"
-  shows "(SUP i:I. f i + c :: ereal) = (SUP i:I. f i) + c"
-proof (cases "(SUP i:I. f i) = - \<infinity>")
+  shows "(SUP i\<in>I. f i + c :: ereal) = (SUP i\<in>I. f i) + c"
+proof (cases "(SUP i\<in>I. f i) = - \<infinity>")
   case True
   then have "\<And>i. i \<in> I \<Longrightarrow> f i = -\<infinity>"
     unfolding Sup_eq_MInfty by auto
@@ -2303,23 +2303,23 @@ qed
 
 lemma SUP_ereal_add_right:
   fixes c :: ereal
-  shows "I \<noteq> {} \<Longrightarrow> c \<noteq> -\<infinity> \<Longrightarrow> (SUP i:I. c + f i) = c + (SUP i:I. f i)"
+  shows "I \<noteq> {} \<Longrightarrow> c \<noteq> -\<infinity> \<Longrightarrow> (SUP i\<in>I. c + f i) = c + (SUP i\<in>I. f i)"
   using SUP_ereal_add_left[of I c f] by (simp add: add.commute)
 
 lemma SUP_ereal_minus_right:
   assumes "I \<noteq> {}" "c \<noteq> -\<infinity>"
-  shows "(SUP i:I. c - f i :: ereal) = c - (INF i:I. f i)"
+  shows "(SUP i\<in>I. c - f i :: ereal) = c - (INF i\<in>I. f i)"
   using SUP_ereal_add_right[OF assms, of "\<lambda>i. - f i"]
   by (simp add: ereal_SUP_uminus minus_ereal_def)
 
 lemma SUP_ereal_minus_left:
   assumes "I \<noteq> {}" "c \<noteq> \<infinity>"
-  shows "(SUP i:I. f i - c:: ereal) = (SUP i:I. f i) - c"
+  shows "(SUP i\<in>I. f i - c:: ereal) = (SUP i\<in>I. f i) - c"
   using SUP_ereal_add_left[OF \<open>I \<noteq> {}\<close>, of "-c" f] by (simp add: \<open>c \<noteq> \<infinity>\<close> minus_ereal_def)
 
 lemma INF_ereal_minus_right:
   assumes "I \<noteq> {}" and "\<bar>c\<bar> \<noteq> \<infinity>"
-  shows "(INF i:I. c - f i) = c - (SUP i:I. f i::ereal)"
+  shows "(INF i\<in>I. c - f i) = c - (SUP i\<in>I. f i::ereal)"
 proof -
   { fix b have "(-c) + b = - (c - b)"
       using \<open>\<bar>c\<bar> \<noteq> \<infinity>\<close> by (cases c b rule: ereal2_cases) auto }
@@ -2339,7 +2339,7 @@ lemma SUP_ereal_le_addI:
 lemma SUP_combine:
   fixes f :: "'a::semilattice_sup \<Rightarrow> 'a::semilattice_sup \<Rightarrow> 'b::complete_lattice"
   assumes mono: "\<And>a b c d. a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> f a c \<le> f b d"
-  shows "(SUP i:UNIV. SUP j:UNIV. f i j) = (SUP i. f i i)"
+  shows "(SUP i\<in>UNIV. SUP j\<in>UNIV. f i j) = (SUP i. f i i)"
 proof (rule antisym)
   show "(SUP i j. f i j) \<le> (SUP i. f i i)"
     by (rule SUP_least SUP_upper2[where i="sup i j" for i j] UNIV_I mono sup_ge1 sup_ge2)+
@@ -2360,14 +2360,14 @@ lemma SUP_ereal_add:
   apply (rule SUP_combine[symmetric] add_mono inc[THEN monoD] | assumption)+
   done
 
-lemma INF_eq_minf: "(INF i:I. f i::ereal) \<noteq> -\<infinity> \<longleftrightarrow> (\<exists>b>-\<infinity>. \<forall>i\<in>I. b \<le> f i)"
+lemma INF_eq_minf: "(INF i\<in>I. f i::ereal) \<noteq> -\<infinity> \<longleftrightarrow> (\<exists>b>-\<infinity>. \<forall>i\<in>I. b \<le> f i)"
   unfolding bot_ereal_def[symmetric] INF_eq_bot_iff by (auto simp: not_less)
 
 lemma INF_ereal_add_left:
   assumes "I \<noteq> {}" "c \<noteq> -\<infinity>" "\<And>x. x \<in> I \<Longrightarrow> 0 \<le> f x"
-  shows "(INF i:I. f i + c :: ereal) = (INF i:I. f i) + c"
+  shows "(INF i\<in>I. f i + c :: ereal) = (INF i\<in>I. f i) + c"
 proof -
-  have "(INF i:I. f i) \<noteq> -\<infinity>"
+  have "(INF i\<in>I. f i) \<noteq> -\<infinity>"
     unfolding INF_eq_minf using assms by (intro exI[of _ 0]) auto
   then show ?thesis
     by (subst continuous_at_Inf_mono[where f="\<lambda>x. x + c"])
@@ -2376,14 +2376,14 @@ qed
 
 lemma INF_ereal_add_right:
   assumes "I \<noteq> {}" "c \<noteq> -\<infinity>" "\<And>x. x \<in> I \<Longrightarrow> 0 \<le> f x"
-  shows "(INF i:I. c + f i :: ereal) = c + (INF i:I. f i)"
+  shows "(INF i\<in>I. c + f i :: ereal) = c + (INF i\<in>I. f i)"
   using INF_ereal_add_left[OF assms] by (simp add: ac_simps)
 
 lemma INF_ereal_add_directed:
   fixes f g :: "'a \<Rightarrow> ereal"
   assumes nonneg: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g i"
   assumes directed: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. f i + g j \<ge> f k + g k"
-  shows "(INF i:I. f i + g i) = (INF i:I. f i) + (INF i:I. g i)"
+  shows "(INF i\<in>I. f i + g i) = (INF i\<in>I. f i) + (INF i\<in>I. g i)"
 proof cases
   assume "I = {}" then show ?thesis
     by (simp add: top_ereal_def)
@@ -2391,16 +2391,16 @@ next
   assume "I \<noteq> {}"
   show ?thesis
   proof (rule antisym)
-    show "(INF i:I. f i) + (INF i:I. g i) \<le> (INF i:I. f i + g i)"
+    show "(INF i\<in>I. f i) + (INF i\<in>I. g i) \<le> (INF i\<in>I. f i + g i)"
       by (rule INF_greatest; intro add_mono INF_lower)
   next
-    have "(INF i:I. f i + g i) \<le> (INF i:I. (INF j:I. f i + g j))"
+    have "(INF i\<in>I. f i + g i) \<le> (INF i\<in>I. (INF j\<in>I. f i + g j))"
       using directed by (intro INF_greatest) (blast intro: INF_lower2)
-    also have "\<dots> = (INF i:I. f i + (INF i:I. g i))"
+    also have "\<dots> = (INF i\<in>I. f i + (INF i\<in>I. g i))"
       using nonneg by (intro INF_cong refl INF_ereal_add_right \<open>I \<noteq> {}\<close>) (auto simp: INF_eq_minf intro!: exI[of _ 0])
-    also have "\<dots> = (INF i:I. f i) + (INF i:I. g i)"
+    also have "\<dots> = (INF i\<in>I. f i) + (INF i\<in>I. g i)"
       using nonneg by (intro INF_ereal_add_left \<open>I \<noteq> {}\<close>) (auto simp: INF_eq_minf intro!: exI[of _ 0])
-    finally show "(INF i:I. f i + g i) \<le> (INF i:I. f i) + (INF i:I. g i)" .
+    finally show "(INF i\<in>I. f i + g i) \<le> (INF i\<in>I. f i) + (INF i\<in>I. g i)" .
   qed
 qed
 
@@ -2454,8 +2454,8 @@ lemma SUP_ereal_mult_left:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "I \<noteq> {}"
   assumes f: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" and c: "0 \<le> c"
-  shows "(SUP i:I. c * f i) = c * (SUP i:I. f i)"
-proof (cases "(SUP i: I. f i) = 0")
+  shows "(SUP i\<in>I. c * f i) = c * (SUP i\<in>I. f i)"
+proof (cases "(SUP i \<in> I. f i) = 0")
   case True
   then have "\<And>i. i \<in> I \<Longrightarrow> f i = 0"
     by (metis SUP_upper f antisym)
@@ -2595,9 +2595,9 @@ lemma ereal_of_enat_nonneg: "ereal_of_enat n \<ge> 0"
 by(cases n) simp_all
 
 lemma ereal_of_enat_Sup:
-  assumes "A \<noteq> {}" shows "ereal_of_enat (Sup A) = (SUP a : A. ereal_of_enat a)"
+  assumes "A \<noteq> {}" shows "ereal_of_enat (Sup A) = (SUP a \<in> A. ereal_of_enat a)"
 proof (intro antisym mono_Sup)
-  show "ereal_of_enat (Sup A) \<le> (SUP a : A. ereal_of_enat a)"
+  show "ereal_of_enat (Sup A) \<le> (SUP a \<in> A. ereal_of_enat a)"
   proof cases
     assume "finite A"
     with \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" "ereal_of_enat (Sup A) = ereal_of_enat a"
@@ -2606,7 +2606,7 @@ proof (intro antisym mono_Sup)
       by (auto intro: SUP_upper)
   next
     assume "\<not> finite A"
-    have [simp]: "(SUP a : A. ereal_of_enat a) = top"
+    have [simp]: "(SUP a \<in> A. ereal_of_enat a) = top"
       unfolding SUP_eq_top_iff
     proof safe
       fix x :: ereal assume "x < top"
@@ -2626,7 +2626,7 @@ proof (intro antisym mono_Sup)
 qed (simp add: mono_def)
 
 lemma ereal_of_enat_SUP:
-  "A \<noteq> {} \<Longrightarrow> ereal_of_enat (SUP a:A. f a) = (SUP a : A. ereal_of_enat (f a))"
+  "A \<noteq> {} \<Longrightarrow> ereal_of_enat (SUP a\<in>A. f a) = (SUP a \<in> A. ereal_of_enat (f a))"
   using ereal_of_enat_Sup[of "f`A"] by auto
 
 subsection "Limits on @{typ ereal}"
@@ -3225,43 +3225,43 @@ proof (subst SUP_ereal_add_left[symmetric])
   let ?INF = "\<lambda>P g. INFIMUM (Collect P) g"
   show "?F \<noteq> {}"
     by (auto intro: eventually_True)
-  show "(SUP P:?F. ?INF P g) \<noteq> - \<infinity>"
+  show "(SUP P\<in>?F. ?INF P g) \<noteq> - \<infinity>"
     unfolding bot_ereal_def[symmetric] SUP_bot_conv INF_eq_bot_iff
     by (auto intro!: exI[of _ 0] ev simp: bot_ereal_def)
-  have "(SUP P:?F. ?INF P f + (SUP P:?F. ?INF P g)) \<le> (SUP P:?F. (SUP P':?F. ?INF P f + ?INF P' g))"
+  have "(SUP P\<in>?F. ?INF P f + (SUP P\<in>?F. ?INF P g)) \<le> (SUP P\<in>?F. (SUP P'\<in>?F. ?INF P f + ?INF P' g))"
   proof (safe intro!: SUP_mono bexI[of _ "\<lambda>x. P x \<and> 0 \<le> f x" for P])
     fix P let ?P' = "\<lambda>x. P x \<and> 0 \<le> f x"
     assume "eventually P F"
     with ev show "eventually ?P' F"
       by eventually_elim auto
-    have "?INF P f + (SUP P:?F. ?INF P g) \<le> ?INF ?P' f + (SUP P:?F. ?INF P g)"
+    have "?INF P f + (SUP P\<in>?F. ?INF P g) \<le> ?INF ?P' f + (SUP P\<in>?F. ?INF P g)"
       by (intro add_mono INF_mono) auto
-    also have "\<dots> = (SUP P':?F. ?INF ?P' f + ?INF P' g)"
+    also have "\<dots> = (SUP P'\<in>?F. ?INF ?P' f + ?INF P' g)"
     proof (rule SUP_ereal_add_right[symmetric])
       show "INFIMUM {x. P x \<and> 0 \<le> f x} f \<noteq> - \<infinity>"
         unfolding bot_ereal_def[symmetric] INF_eq_bot_iff
         by (auto intro!: exI[of _ 0] ev simp: bot_ereal_def)
     qed fact
-    finally show "?INF P f + (SUP P:?F. ?INF P g) \<le> (SUP P':?F. ?INF ?P' f + ?INF P' g)" .
+    finally show "?INF P f + (SUP P\<in>?F. ?INF P g) \<le> (SUP P'\<in>?F. ?INF ?P' f + ?INF P' g)" .
   qed
-  also have "\<dots> \<le> (SUP P:?F. INF x:Collect P. f x + g x)"
+  also have "\<dots> \<le> (SUP P\<in>?F. INF x\<in>Collect P. f x + g x)"
   proof (safe intro!: SUP_least)
     fix P Q assume *: "eventually P F" "eventually Q F"
-    show "?INF P f + ?INF Q g \<le> (SUP P:?F. INF x:Collect P. f x + g x)"
+    show "?INF P f + ?INF Q g \<le> (SUP P\<in>?F. INF x\<in>Collect P. f x + g x)"
     proof (rule SUP_upper2)
       show "(\<lambda>x. P x \<and> Q x) \<in> ?F"
         using * by (auto simp: eventually_conj)
-      show "?INF P f + ?INF Q g \<le> (INF x:{x. P x \<and> Q x}. f x + g x)"
+      show "?INF P f + ?INF Q g \<le> (INF x\<in>{x. P x \<and> Q x}. f x + g x)"
         by (intro INF_greatest add_mono) (auto intro: INF_lower)
     qed
   qed
-  finally show "(SUP P:?F. ?INF P f + (SUP P:?F. ?INF P g)) \<le> (SUP P:?F. INF x:Collect P. f x + g x)" .
+  finally show "(SUP P\<in>?F. ?INF P f + (SUP P\<in>?F. ?INF P g)) \<le> (SUP P\<in>?F. INF x\<in>Collect P. f x + g x)" .
 qed
 
 lemma Sup_ereal_mult_right':
   assumes nonempty: "Y \<noteq> {}"
   and x: "x \<ge> 0"
-  shows "(SUP i:Y. f i) * ereal x = (SUP i:Y. f i * ereal x)" (is "?lhs = ?rhs")
+  shows "(SUP i\<in>Y. f i) * ereal x = (SUP i\<in>Y. f i * ereal x)" (is "?lhs = ?rhs")
 proof(cases "x = 0")
   case True thus ?thesis by(auto simp add: nonempty zero_ereal_def[symmetric])
 next
@@ -3271,8 +3271,8 @@ next
     show "?rhs \<le> ?lhs"
       by(rule SUP_least)(simp add: ereal_mult_right_mono SUP_upper x)
   next
-    have "?lhs / ereal x = (SUP i:Y. f i) * (ereal x / ereal x)" by(simp only: ereal_times_divide_eq)
-    also have "\<dots> = (SUP i:Y. f i)" using False by simp
+    have "?lhs / ereal x = (SUP i\<in>Y. f i) * (ereal x / ereal x)" by(simp only: ereal_times_divide_eq)
+    also have "\<dots> = (SUP i\<in>Y. f i)" using False by simp
     also have "\<dots> \<le> ?rhs / x"
     proof(rule SUP_least)
       fix i
@@ -3292,7 +3292,7 @@ next
 qed
 
 lemma Sup_ereal_mult_left':
-  "\<lbrakk> Y \<noteq> {}; x \<ge> 0 \<rbrakk> \<Longrightarrow> ereal x * (SUP i:Y. f i) = (SUP i:Y. ereal x * f i)"
+  "\<lbrakk> Y \<noteq> {}; x \<ge> 0 \<rbrakk> \<Longrightarrow> ereal x * (SUP i\<in>Y. f i) = (SUP i\<in>Y. ereal x * f i)"
 by(subst (1 2) mult.commute)(rule Sup_ereal_mult_right')
 
 lemma sup_continuous_add[order_continuous_intros]:
@@ -3676,7 +3676,7 @@ lemma SUP_ereal_add_directed:
   fixes f g :: "'a \<Rightarrow> ereal"
   assumes nonneg: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g i"
   assumes directed: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. f i + g j \<le> f k + g k"
-  shows "(SUP i:I. f i + g i) = (SUP i:I. f i) + (SUP i:I. g i)"
+  shows "(SUP i\<in>I. f i + g i) = (SUP i\<in>I. f i) + (SUP i\<in>I. g i)"
 proof cases
   assume "I = {}" then show ?thesis
     by (simp add: bot_ereal_def)
@@ -3684,18 +3684,18 @@ next
   assume "I \<noteq> {}"
   show ?thesis
   proof (rule antisym)
-    show "(SUP i:I. f i + g i) \<le> (SUP i:I. f i) + (SUP i:I. g i)"
+    show "(SUP i\<in>I. f i + g i) \<le> (SUP i\<in>I. f i) + (SUP i\<in>I. g i)"
       by (rule SUP_least; intro add_mono SUP_upper)
   next
-    have "bot < (SUP i:I. g i)"
+    have "bot < (SUP i\<in>I. g i)"
       using \<open>I \<noteq> {}\<close> nonneg(2) by (auto simp: bot_ereal_def less_SUP_iff)
-    then have "(SUP i:I. f i) + (SUP i:I. g i) = (SUP i:I. f i + (SUP i:I. g i))"
+    then have "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) = (SUP i\<in>I. f i + (SUP i\<in>I. g i))"
       by (intro SUP_ereal_add_left[symmetric] \<open>I \<noteq> {}\<close>) auto
-    also have "\<dots> = (SUP i:I. (SUP j:I. f i + g j))"
+    also have "\<dots> = (SUP i\<in>I. (SUP j\<in>I. f i + g j))"
       using nonneg(1) by (intro SUP_cong refl SUP_ereal_add_right[symmetric] \<open>I \<noteq> {}\<close>) auto
-    also have "\<dots> \<le> (SUP i:I. f i + g i)"
+    also have "\<dots> \<le> (SUP i\<in>I. f i + g i)"
       using directed by (intro SUP_least) (blast intro: SUP_upper2)
-    finally show "(SUP i:I. f i) + (SUP i:I. g i) \<le> (SUP i:I. f i + g i)" .
+    finally show "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) \<le> (SUP i\<in>I. f i + g i)" .
   qed
 qed
 
@@ -3704,12 +3704,12 @@ lemma SUP_ereal_sum_directed:
   assumes "I \<noteq> {}"
   assumes directed: "\<And>N i j. N \<subseteq> A \<Longrightarrow> i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. \<forall>n\<in>N. f n i \<le> f n k \<and> f n j \<le> f n k"
   assumes nonneg: "\<And>n i. i \<in> I \<Longrightarrow> n \<in> A \<Longrightarrow> 0 \<le> f n i"
-  shows "(SUP i:I. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. SUP i:I. f n i)"
+  shows "(SUP i\<in>I. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. SUP i\<in>I. f n i)"
 proof -
-  have "N \<subseteq> A \<Longrightarrow> (SUP i:I. \<Sum>n\<in>N. f n i) = (\<Sum>n\<in>N. SUP i:I. f n i)" for N
+  have "N \<subseteq> A \<Longrightarrow> (SUP i\<in>I. \<Sum>n\<in>N. f n i) = (\<Sum>n\<in>N. SUP i\<in>I. f n i)" for N
   proof (induction N rule: infinite_finite_induct)
     case (insert n N)
-    moreover have "(SUP i:I. f n i + (\<Sum>l\<in>N. f l i)) = (SUP i:I. f n i) + (SUP i:I. \<Sum>l\<in>N. f l i)"
+    moreover have "(SUP i\<in>I. f n i + (\<Sum>l\<in>N. f l i)) = (SUP i\<in>I. f n i) + (SUP i\<in>I. \<Sum>l\<in>N. f l i)"
     proof (rule SUP_ereal_add_directed)
       fix i assume "i \<in> I" then show "0 \<le> f n i" "0 \<le> (\<Sum>l\<in>N. f l i)"
         using insert by (auto intro!: sum_nonneg nonneg)
@@ -3730,11 +3730,11 @@ lemma suminf_SUP_eq_directed:
   assumes "I \<noteq> {}"
   assumes directed: "\<And>N i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> finite N \<Longrightarrow> \<exists>k\<in>I. \<forall>n\<in>N. f i n \<le> f k n \<and> f j n \<le> f k n"
   assumes nonneg: "\<And>n i. 0 \<le> f n i"
-  shows "(\<Sum>i. SUP n:I. f n i) = (SUP n:I. \<Sum>i. f n i)"
+  shows "(\<Sum>i. SUP n\<in>I. f n i) = (SUP n\<in>I. \<Sum>i. f n i)"
 proof (subst (1 2) suminf_ereal_eq_SUP)
-  show "\<And>n i. 0 \<le> f n i" "\<And>i. 0 \<le> (SUP n:I. f n i)"
+  show "\<And>n i. 0 \<le> f n i" "\<And>i. 0 \<le> (SUP n\<in>I. f n i)"
     using \<open>I \<noteq> {}\<close> nonneg by (auto intro: SUP_upper2)
-  show "(SUP n. \<Sum>i<n. SUP n:I. f n i) = (SUP n:I. SUP j. \<Sum>i<j. f n i)"
+  show "(SUP n. \<Sum>i<n. SUP n\<in>I. f n i) = (SUP n\<in>I. SUP j. \<Sum>i<j. f n i)"
     apply (subst SUP_commute)
     apply (subst SUP_ereal_sum_directed)
     apply (auto intro!: assms simp: finite_subset)
@@ -4223,11 +4223,11 @@ lemma SUP_ereal_eq_0_iff_nonneg:
   fixes f :: "_ \<Rightarrow> ereal" and A
   assumes nonneg: "\<forall>x\<in>A. f x \<ge> 0"
   and A:"A \<noteq> {}"
-  shows "(SUP x:A. f x) = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)" (is "?lhs \<longleftrightarrow> ?rhs")
+  shows "(SUP x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof(intro iffI ballI)
   fix x
   assume "?lhs" "x \<in> A"
-  from \<open>x \<in> A\<close> have "f x \<le> (SUP x:A. f x)" by(rule SUP_upper)
+  from \<open>x \<in> A\<close> have "f x \<le> (SUP x\<in>A. f x)" by(rule SUP_upper)
   with \<open>?lhs\<close> show "f x = 0" using nonneg \<open>x \<in> A\<close> by auto
 qed(simp cong: SUP_cong add: A)
 

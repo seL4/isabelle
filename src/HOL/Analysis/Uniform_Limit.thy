@@ -13,7 +13,7 @@ begin
 subsection \<open>Definition\<close>
 
 definition%important uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> ('a \<Rightarrow> 'b) filter"
-  where "uniformly_on S l = (INF e:{0 <..}. principal {f. \<forall>x\<in>S. dist (f x) (l x) < e})"
+  where "uniformly_on S l = (INF e\<in>{0 <..}. principal {f. \<forall>x\<in>S. dist (f x) (l x) < e})"
 
 abbreviation%important
   "uniform_limit S f l \<equiv> filterlim f (uniformly_on S l)"

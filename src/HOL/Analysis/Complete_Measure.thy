@@ -452,7 +452,7 @@ locale locally_determined_measure = semifinite_measure +
 locale cld_measure = complete_measure M + locally_determined_measure M for M :: "'a measure"
 
 definition outer_measure_of :: "'a measure \<Rightarrow> 'a set \<Rightarrow> ennreal"
-  where "outer_measure_of M A = (INF B : {B\<in>sets M. A \<subseteq> B}. emeasure M B)"
+  where "outer_measure_of M A = (INF B \<in> {B\<in>sets M. A \<subseteq> B}. emeasure M B)"
 
 lemma outer_measure_of_eq[simp]: "A \<in> sets M \<Longrightarrow> outer_measure_of M A = emeasure M A"
   by (auto simp: outer_measure_of_def intro!: INF_eqI emeasure_mono)

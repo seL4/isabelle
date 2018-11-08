@@ -1189,7 +1189,7 @@ proof -
       using emeasure_bounded_finite[of "?B n"] by (auto simp: emeasure_A)
     interpret A: finite_measure ?A
       by rule fact
-    have "emeasure ?A B + ?e n > (INF U:{U. B \<subseteq> U \<and> open U}. emeasure ?A U)"
+    have "emeasure ?A B + ?e n > (INF U\<in>{U. B \<subseteq> U \<and> open U}. emeasure ?A U)"
       using \<open>0<e\<close> by (auto simp: outer_regular[OF _ finite_A B, symmetric])
     then obtain U where U: "B \<subseteq> U" "open U" and muU: "?\<mu> (?B n \<inter> B) + ?e n > ?\<mu> (?B n \<inter> U)"
       unfolding INF_less_iff by (auto simp: emeasure_A)

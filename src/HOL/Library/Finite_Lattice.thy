@@ -159,12 +159,12 @@ class finite_distrib_lattice_complete =
   distrib_lattice + finite_lattice_complete
 
 lemma finite_distrib_lattice_complete_sup_Inf:
-  "sup (x::'a::finite_distrib_lattice_complete) (Inf A) = (INF y:A. sup x y)"
+  "sup (x::'a::finite_distrib_lattice_complete) (Inf A) = (INF y\<in>A. sup x y)"
   using finite
   by (induct A rule: finite_induct) (simp_all add: sup_inf_distrib1)
 
 lemma finite_distrib_lattice_complete_inf_Sup:
-  "inf (x::'a::finite_distrib_lattice_complete) (Sup A) = (SUP y:A. inf x y)"
+  "inf (x::'a::finite_distrib_lattice_complete) (Sup A) = (SUP y\<in>A. inf x y)"
   using finite [of A] by induct (simp_all add: inf_sup_distrib1)
 
 context finite_distrib_lattice_complete

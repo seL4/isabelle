@@ -308,7 +308,7 @@ definition complex_sgn_def: "sgn x = x /\<^sub>R cmod x"
 definition dist_complex_def: "dist x y = cmod (x - y)"
 
 definition uniformity_complex_def [code del]:
-  "(uniformity :: (complex \<times> complex) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  "(uniformity :: (complex \<times> complex) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_complex_def [code del]:
   "open (U :: complex set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"

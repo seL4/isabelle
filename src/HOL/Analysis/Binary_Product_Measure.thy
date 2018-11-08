@@ -613,7 +613,7 @@ proof%unimportant (rule measure_eqI)
   have [simp]: "snd \<in> X \<times> Y \<rightarrow> Y" "fst \<in> X \<times> Y \<rightarrow> X"
     by auto
   let ?XY = "{{fst -` a \<inter> X \<times> Y | a. a \<in> A}, {snd -` b \<inter> X \<times> Y | b. b \<in> B}}"
-  have "sets ?P = sets (SUP xy:?XY. sigma (X \<times> Y) xy)"
+  have "sets ?P = sets (SUP xy\<in>?XY. sigma (X \<times> Y) xy)"
     by (simp add: vimage_algebra_sigma sets_pair_eq_sets_fst_snd A B)
   also have "\<dots> = sets (sigma (X \<times> Y) (\<Union>?XY))"
     by (intro Sup_sigma arg_cong[where f=sets]) auto
@@ -713,7 +713,7 @@ proof%unimportant
   also have "{sigma ?\<Omega> {fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, sigma ?\<Omega> {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}} =
     sigma ?\<Omega> ` {{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}"
     by auto
-  also have "sets (SUP S:{{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}. sigma ?\<Omega> S) =
+  also have "sets (SUP S\<in>{{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}. sigma ?\<Omega> S) =
     sets (sigma ?\<Omega> (\<Union>{{fst -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Ea}, {snd -` Aa \<inter> ?\<Omega> |Aa. Aa \<in> Eb}}))"
     using Ea(1) Eb(1) by (intro sets_Sup_sigma) auto
   also have "\<dots> \<subseteq> sets (sigma ?\<Omega> ?E)"

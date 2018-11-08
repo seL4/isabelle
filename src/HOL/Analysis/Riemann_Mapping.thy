@@ -168,7 +168,7 @@ proof -
           by (simp add: deq norm_mult divide_simps o_def)
       qed
     qed
-    define l where "l \<equiv> SUP h:F. norm (deriv h 0)"
+    define l where "l \<equiv> SUP h\<in>F. norm (deriv h 0)"
     have eql: "norm (deriv f 0) = l" if le: "l \<le> norm (deriv f 0)" and "f \<in> F" for f
       apply (rule order_antisym [OF _ le])
       using \<open>f \<in> F\<close> bdd cSUP_upper by (fastforce simp: l_def)

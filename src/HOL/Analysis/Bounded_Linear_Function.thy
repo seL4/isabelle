@@ -150,7 +150,7 @@ definition dist_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Right
   where "dist_blinfun a b = norm (a - b)"
 
 definition [code del]:
-  "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_blinfun :: "('a \<Rightarrow>\<^sub>L 'b) set \<Rightarrow> bool"
   where [code del]: "open_blinfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"

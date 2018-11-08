@@ -30,13 +30,13 @@ proof (intro antisym INF_greatest Inf_greatest; clarsimp)
   fix y assume "AE x in M. f x \<le> y"
   then have "(\<lambda>x. f x \<le> y) \<in> {P. AE x in M. P x}"
     by simp
-  then show "(INF P:{P. AE x in M. P x}. SUP x:Collect P. f x) \<le> y"
+  then show "(INF P\<in>{P. AE x in M. P x}. SUP x\<in>Collect P. f x) \<le> y"
     by (rule INF_lower2) (auto intro: SUP_least)
 next
   fix P assume P: "AE x in M. P x"
-  show "Inf {z. AE x in M. f x \<le> z} \<le> (SUP x:Collect P. f x)"
+  show "Inf {z. AE x in M. f x \<le> z} \<le> (SUP x\<in>Collect P. f x)"
   proof (rule Inf_lower; clarsimp)
-    show "AE x in M. f x \<le> (SUP x:Collect P. f x)"
+    show "AE x in M. f x \<le> (SUP x\<in>Collect P. f x)"
       using P by (auto elim: eventually_mono simp: SUP_upper)
   qed
 qed

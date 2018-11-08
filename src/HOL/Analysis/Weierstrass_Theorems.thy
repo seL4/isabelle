@@ -202,7 +202,7 @@ begin
     by (induct I rule: finite_induct; simp add: const mult)
 
   definition%important normf :: "('a::t2_space \<Rightarrow> real) \<Rightarrow> real"
-    where "normf f \<equiv> SUP x:S. \<bar>f x\<bar>"
+    where "normf f \<equiv> SUP x\<in>S. \<bar>f x\<bar>"
 
   lemma%unimportant normf_upper: "\<lbrakk>continuous_on S f; x \<in> S\<rbrakk> \<Longrightarrow> \<bar>f x\<bar> \<le> normf f"
     apply (simp add: normf_def)

@@ -22,7 +22,7 @@ proof -
     using assms by (simp add: fun_eq_iff)
   have reindex: "\<And>B. (\<Sum>x\<in>B. f (prod_decode x)) = sum f (prod_decode ` B)"
     by (simp add: sum.reindex[OF inj_prod_decode] comp_def)
-  have "(SUP n. \<Sum>i<n. f (prod_decode i)) = (SUP p : UNIV \<times> UNIV. \<Sum>i<fst p. \<Sum>n<snd p. f (i, n))"
+  have "(SUP n. \<Sum>i<n. f (prod_decode i)) = (SUP p \<in> UNIV \<times> UNIV. \<Sum>i<fst p. \<Sum>n<snd p. f (i, n))"
   proof (intro SUP_eq; clarsimp simp: sum.cartesian_product reindex)
     fix n
     let ?M = "\<lambda>f. Suc (Max (f ` prod_decode ` {..<n}))"
@@ -299,7 +299,7 @@ qed
 
 definition%important outer_measure :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ennreal) \<Rightarrow> 'a set \<Rightarrow> ennreal" where
    "outer_measure M f X =
-     (INF A:{A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i)}. \<Sum>i. f (A i))"
+     (INF A\<in>{A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i)}. \<Sum>i. f (A i))"
 
 lemma%unimportant (in ring_of_sets) outer_measure_agrees:
   assumes posf: "positive M f" and ca: "countably_additive M f" and s: "s \<in> M"
@@ -321,7 +321,7 @@ proof (safe intro!: antisym INF_greatest)
 next
   have "(\<Sum>i. f (if i = 0 then s else {})) \<le> f s"
     using positiveD1[OF posf] by (subst suminf_finite[of "{0}"]) auto
-  with s show "(INF A:{A. range A \<subseteq> M \<and> disjoint_family A \<and> s \<subseteq> UNION UNIV A}. \<Sum>i. f (A i)) \<le> f s"
+  with s show "(INF A\<in>{A. range A \<subseteq> M \<and> disjoint_family A \<and> s \<subseteq> UNION UNIV A}. \<Sum>i. f (A i)) \<le> f s"
     by (intro INF_lower2[of "\<lambda>i. if i = 0 then s else {}"])
        (auto simp: disjoint_family_on_def)
 qed

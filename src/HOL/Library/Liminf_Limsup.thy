@@ -25,13 +25,13 @@ lemma (in conditionally_complete_linorder) le_cSUP_iff:
 
 lemma le_cSup_iff_less:
   fixes x :: "'a :: {conditionally_complete_linorder, dense_linorder}"
-  shows "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> x \<le> (SUP i:A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)"
+  shows "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> x \<le> (SUP i\<in>A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)"
   by (simp add: le_cSUP_iff)
      (blast intro: less_imp_le less_trans less_le_trans dest: dense)
 
 lemma le_Sup_iff_less:
   fixes x :: "'a :: {complete_linorder, dense_linorder}"
-  shows "x \<le> (SUP i:A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)" (is "?lhs = ?rhs")
+  shows "x \<le> (SUP i\<in>A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)" (is "?lhs = ?rhs")
   unfolding le_SUP_iff
   by (blast intro: less_imp_le less_trans less_le_trans dest: dense)
 
@@ -51,38 +51,38 @@ lemma (in conditionally_complete_linorder) cINF_le_iff:
 
 lemma cInf_le_iff_less:
   fixes x :: "'a :: {conditionally_complete_linorder, dense_linorder}"
-  shows "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (INF i:A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
+  shows "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (INF i\<in>A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
   by (simp add: cINF_le_iff)
      (blast intro: less_imp_le less_trans le_less_trans dest: dense)
 
 lemma Inf_le_iff_less:
   fixes x :: "'a :: {complete_linorder, dense_linorder}"
-  shows "(INF i:A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
+  shows "(INF i\<in>A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
   unfolding INF_le_iff
   by (blast intro: less_imp_le less_trans le_less_trans dest: dense)
 
 lemma SUP_pair:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
-  shows "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
+  shows "(SUP i \<in> A. SUP j \<in> B. f i j) = (SUP p \<in> A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: SUP_least SUP_upper2)
 
 lemma INF_pair:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
-  shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
+  shows "(INF i \<in> A. INF j \<in> B. f i j) = (INF p \<in> A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
 lemma INF_Sigma:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
-  shows "(INF i : A. INF j : B i. f i j) = (INF p : Sigma A B. f (fst p) (snd p))"
+  shows "(INF i \<in> A. INF j \<in> B i. f i j) = (INF p \<in> Sigma A B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
 subsubsection \<open>\<open>Liminf\<close> and \<open>Limsup\<close>\<close>
 
 definition Liminf :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
-  "Liminf F f = (SUP P:{P. eventually P F}. INF x:{x. P x}. f x)"
+  "Liminf F f = (SUP P\<in>{P. eventually P F}. INF x\<in>{x. P x}. f x)"
 
 definition Limsup :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
-  "Limsup F f = (INF P:{P. eventually P F}. SUP x:{x. P x}. f x)"
+  "Limsup F f = (INF P\<in>{P. eventually P F}. SUP x\<in>{x. P x}. f x)"
 
 abbreviation "liminf \<equiv> Liminf sequentially"
 
@@ -98,11 +98,11 @@ lemma Limsup_eqI:
     (\<And>y. (\<And>P. eventually P F \<Longrightarrow> y \<le> SUPREMUM (Collect P) f) \<Longrightarrow> y \<le> x) \<Longrightarrow> Limsup F f = x"
   unfolding Limsup_def by (auto intro!: INF_eqI)
 
-lemma liminf_SUP_INF: "liminf f = (SUP n. INF m:{n..}. f m)"
+lemma liminf_SUP_INF: "liminf f = (SUP n. INF m\<in>{n..}. f m)"
   unfolding Liminf_def eventually_sequentially
   by (rule SUP_eq) (auto simp: atLeast_def intro!: INF_mono)
 
-lemma limsup_INF_SUP: "limsup f = (INF n. SUP m:{n..}. f m)"
+lemma limsup_INF_SUP: "limsup f = (INF n. SUP m\<in>{n..}. f m)"
   unfolding Limsup_def eventually_sequentially
   by (rule INF_eq) (auto simp: atLeast_def intro!: SUP_mono)
 
@@ -111,7 +111,7 @@ lemma Limsup_const:
   shows "Limsup F (\<lambda>x. c) = c"
 proof -
   have *: "\<And>P. Ex P \<longleftrightarrow> P \<noteq> (\<lambda>x. False)" by auto
-  have "\<And>P. eventually P F \<Longrightarrow> (SUP x : {x. P x}. c) = c"
+  have "\<And>P. eventually P F \<Longrightarrow> (SUP x \<in> {x. P x}. c) = c"
     using ntriv by (intro SUP_const) (auto simp: eventually_False *)
   then show ?thesis
     unfolding Limsup_def using eventually_True
@@ -124,7 +124,7 @@ lemma Liminf_const:
   shows "Liminf F (\<lambda>x. c) = c"
 proof -
   have *: "\<And>P. Ex P \<longleftrightarrow> P \<noteq> (\<lambda>x. False)" by auto
-  have "\<And>P. eventually P F \<Longrightarrow> (INF x : {x. P x}. c) = c"
+  have "\<And>P. eventually P F \<Longrightarrow> (INF x \<in> {x. P x}. c) = c"
     using ntriv by (intro INF_const) (auto simp: eventually_False *)
   then show ?thesis
     unfolding Liminf_def using eventually_True
@@ -387,7 +387,7 @@ lemma liminf_subseq_mono:
   assumes "strict_mono r"
   shows "liminf X \<le> liminf (X \<circ> r) "
 proof-
-  have "\<And>n. (INF m:{n..}. X m) \<le> (INF m:{n..}. (X \<circ> r) m)"
+  have "\<And>n. (INF m\<in>{n..}. X m) \<le> (INF m\<in>{n..}. (X \<circ> r) m)"
   proof (safe intro!: INF_mono)
     fix n m :: nat assume "n \<le> m" then show "\<exists>ma\<in>{n..}. X ma \<le> (X \<circ> r) m"
       using seq_suble[OF \<open>strict_mono r\<close>, of m] by (intro bexI[of _ "r m"]) auto
@@ -400,7 +400,7 @@ lemma limsup_subseq_mono:
   assumes "strict_mono r"
   shows "limsup (X \<circ> r) \<le> limsup X"
 proof-
-  have "(SUP m:{n..}. (X \<circ> r) m) \<le> (SUP m:{n..}. X m)" for n
+  have "(SUP m\<in>{n..}. (X \<circ> r) m) \<le> (SUP m\<in>{n..}. X m)" for n
   proof (safe intro!: SUP_mono)
     fix m :: nat
     assume "n \<le> m"
@@ -431,11 +431,11 @@ proof -
     qed }
   note * = this
 
-  have "f (Liminf F g) = (SUP P : {P. eventually P F}. f (Inf (g ` Collect P)))"
+  have "f (Liminf F g) = (SUP P \<in> {P. eventually P F}. f (Inf (g ` Collect P)))"
     unfolding Liminf_def
     by (subst continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
-  also have "\<dots> = (SUP P : {P. eventually P F}. INFIMUM (g ` Collect P) f)"
+  also have "\<dots> = (SUP P \<in> {P. eventually P F}. INFIMUM (g ` Collect P) f)"
     by (intro SUP_cong refl continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto dest!: eventually_happens simp: F)
   finally show ?thesis by (auto simp: Liminf_def)
@@ -456,11 +456,11 @@ proof -
     qed }
   note * = this
 
-  have "f (Limsup F g) = (INF P : {P. eventually P F}. f (Sup (g ` Collect P)))"
+  have "f (Limsup F g) = (INF P \<in> {P. eventually P F}. f (Sup (g ` Collect P)))"
     unfolding Limsup_def
     by (subst continuous_at_Inf_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
-  also have "\<dots> = (INF P : {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
+  also have "\<dots> = (INF P \<in> {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
     by (intro INF_cong refl continuous_at_Sup_mono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto dest!: eventually_happens simp: F)
   finally show ?thesis by (auto simp: Limsup_def)
@@ -480,11 +480,11 @@ proof -
     with \<open>eventually P F\<close> F show False
       by auto
   qed
-  have "f (Limsup F g) = (SUP P : {P. eventually P F}. f (Sup (g ` Collect P)))"
+  have "f (Limsup F g) = (SUP P \<in> {P. eventually P F}. f (Sup (g ` Collect P)))"
     unfolding Limsup_def
     by (subst continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
-  also have "\<dots> = (SUP P : {P. eventually P F}. INFIMUM (g ` Collect P) f)"
+  also have "\<dots> = (SUP P \<in> {P. eventually P F}. INFIMUM (g ` Collect P) f)"
     by (intro SUP_cong refl continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto dest!: eventually_happens simp: F)
   finally show ?thesis
@@ -506,11 +506,11 @@ proof -
     qed }
   note * = this
 
-  have "f (Liminf F g) = (INF P : {P. eventually P F}. f (Inf (g ` Collect P)))"
+  have "f (Liminf F g) = (INF P \<in> {P. eventually P F}. f (Inf (g ` Collect P)))"
     unfolding Liminf_def
     by (subst continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto intro: eventually_True)
-  also have "\<dots> = (INF P : {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
+  also have "\<dots> = (INF P \<in> {P. eventually P F}. SUPREMUM (g ` Collect P) f)"
     by (intro INF_cong refl continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
        (auto dest!: eventually_happens simp: F)
   finally show ?thesis
@@ -527,10 +527,10 @@ lemma Limsup_filtermap_ge: "Limsup (filtermap f F) g \<ge> Limsup F (\<lambda>x.
   by (subst Limsup_def)
     (auto simp add: SUP_upper Limsup_bounded eventually_filtermap eventually_mono intro!: INF_greatest)
 
-lemma Liminf_least: "(\<And>P. eventually P F \<Longrightarrow> (INF x:Collect P. f x) \<le> x) \<Longrightarrow> Liminf F f \<le> x"
+lemma Liminf_least: "(\<And>P. eventually P F \<Longrightarrow> (INF x\<in>Collect P. f x) \<le> x) \<Longrightarrow> Liminf F f \<le> x"
   by (auto intro!: SUP_least simp: Liminf_def)
 
-lemma Limsup_greatest: "(\<And>P. eventually P F \<Longrightarrow> x \<le> (SUP x:Collect P. f x)) \<Longrightarrow> Limsup F f \<ge> x"
+lemma Limsup_greatest: "(\<And>P. eventually P F \<Longrightarrow> x \<le> (SUP x\<in>Collect P. f x)) \<Longrightarrow> Limsup F f \<ge> x"
   by (auto intro!: INF_greatest simp: Limsup_def)
 
 lemma Liminf_filtermap_ge: "inj f \<Longrightarrow> Liminf (filtermap f F) g \<ge> Liminf F (\<lambda>x. g (f x))"

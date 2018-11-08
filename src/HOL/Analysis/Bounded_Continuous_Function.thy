@@ -45,7 +45,7 @@ lift_definition%important dist_bcontfun :: "'a \<Rightarrow>\<^sub>C 'b \<Righta
   is "\<lambda>f g. (SUP x. dist (f x) (g x))" .
 
 definition uniformity_bcontfun :: "('a \<Rightarrow>\<^sub>C 'b \<times> 'a \<Rightarrow>\<^sub>C 'b) filter"
-  where "uniformity_bcontfun = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  where "uniformity_bcontfun = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_bcontfun :: "('a \<Rightarrow>\<^sub>C 'b) set \<Rightarrow> bool"
   where "open_bcontfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"

@@ -14,9 +14,9 @@ lemma%important (*FIX needs name *)
   assumes "emeasure M (space M) \<noteq> \<infinity>"
   assumes "B \<in> sets borel"
   shows inner_regular: "emeasure M B =
-    (SUP K : {K. K \<subseteq> B \<and> compact K}. emeasure M K)" (is "?inner B")
+    (SUP K \<in> {K. K \<subseteq> B \<and> compact K}. emeasure M K)" (is "?inner B")
   and outer_regular: "emeasure M B =
-    (INF U : {U. B \<subseteq> U \<and> open U}. emeasure M U)" (is "?outer B")
+    (INF U \<in> {U. B \<subseteq> U \<and> open U}. emeasure M U)" (is "?outer B")
 proof%unimportant -
   have Us: "UNIV = space M" by (metis assms(1) sets_eq_imp_space_eq space_borel)
   hence sU: "space M = UNIV" by simp
@@ -183,7 +183,7 @@ proof%unimportant -
       finally
       have "emeasure M A = (INF n. emeasure M {x. infdist x A < 1 / real (Suc n)})" .
       moreover
-      have "\<dots> \<ge> (INF U:{U. A \<subseteq> U \<and> open U}. emeasure M U)"
+      have "\<dots> \<ge> (INF U\<in>{U. A \<subseteq> U \<and> open U}. emeasure M U)"
       proof (intro INF_mono)
         fix m
         have "?G (1 / real (Suc m)) \<in> {U. A \<subseteq> U \<and> open U}" using open_G by auto
@@ -193,7 +193,7 @@ proof%unimportant -
           by blast
       qed
       moreover
-      have "emeasure M A \<le> (INF U:{U. A \<subseteq> U \<and> open U}. emeasure M U)"
+      have "emeasure M A \<le> (INF U\<in>{U. A \<subseteq> U \<and> open U}. emeasure M U)"
         by (rule INF_greatest) (auto intro!: emeasure_mono simp: sb)
       ultimately show ?thesis by simp
     qed (auto intro!: INF_eqI)
@@ -217,38 +217,38 @@ proof%unimportant -
     from compl have [simp]: "B \<in> sets M" by (auto simp: sb borel_eq_closed)
     case 2
     have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
-    also have "\<dots> = (INF K:{K. K \<subseteq> B \<and> compact K}. M (space M) -  M K)"
+    also have "\<dots> = (INF K\<in>{K. K \<subseteq> B \<and> compact K}. M (space M) -  M K)"
       by (subst ennreal_SUP_const_minus) (auto simp: less_top[symmetric] inner)
-    also have "\<dots> = (INF U:{U. U \<subseteq> B \<and> compact U}. M (space M - U))"
+    also have "\<dots> = (INF U\<in>{U. U \<subseteq> B \<and> compact U}. M (space M - U))"
       by (rule INF_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
-    also have "\<dots> \<ge> (INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U))"
+    also have "\<dots> \<ge> (INF U\<in>{U. U \<subseteq> B \<and> closed U}. M (space M - U))"
       by (rule INF_superset_mono) (auto simp add: compact_imp_closed)
-    also have "(INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U)) =
-        (INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
+    also have "(INF U\<in>{U. U \<subseteq> B \<and> closed U}. M (space M - U)) =
+        (INF U\<in>{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
       unfolding INF_image [of _ "\<lambda>u. space M - u" _, symmetric, unfolded comp_def]
         by (rule INF_cong) (auto simp add: sU Compl_eq_Diff_UNIV [symmetric, simp])
     finally have
-      "(INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<le> emeasure M (space M - B)" .
+      "(INF U\<in>{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<le> emeasure M (space M - B)" .
     moreover have
-      "(INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<ge> emeasure M (space M - B)"
+      "(INF U\<in>{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<ge> emeasure M (space M - B)"
       by (auto simp: sb sU intro!: INF_greatest emeasure_mono)
     ultimately show ?case by (auto intro!: antisym simp: sets_eq_imp_space_eq[OF sb])
 
     case 1
     have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
-    also have "\<dots> = (SUP U: {U. B \<subseteq> U \<and> open U}. M (space M) -  M U)"
+    also have "\<dots> = (SUP U\<in> {U. B \<subseteq> U \<and> open U}. M (space M) -  M U)"
       unfolding outer by (subst ennreal_INF_const_minus) auto
-    also have "\<dots> = (SUP U:{U. B \<subseteq> U \<and> open U}. M (space M - U))"
+    also have "\<dots> = (SUP U\<in>{U. B \<subseteq> U \<and> open U}. M (space M - U))"
       by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
-    also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
+    also have "\<dots> = (SUP K\<in>{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
       unfolding SUP_image [of _ "\<lambda>u. space M - u" _, symmetric, unfolded comp_def]
         by (rule SUP_cong) (auto simp add: sU)
-    also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
+    also have "\<dots> = (SUP K\<in>{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
     proof (safe intro!: antisym SUP_least)
       fix K assume "closed K" "K \<subseteq> space M - B"
       from closed_in_D[OF \<open>closed K\<close>]
-      have K_inner: "emeasure M K = (SUP K:{Ka. Ka \<subseteq> K \<and> compact Ka}. emeasure M K)" by simp
-      show "emeasure M K \<le> (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
+      have K_inner: "emeasure M K = (SUP K\<in>{Ka. Ka \<subseteq> K \<and> compact Ka}. emeasure M K)" by simp
+      show "emeasure M K \<le> (SUP K\<in>{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
         unfolding K_inner using \<open>K \<subseteq> space M - B\<close>
         by (auto intro!: SUP_upper SUP_least)
     qed (fastforce intro!: SUP_least SUP_upper simp: compact_imp_closed)
@@ -284,7 +284,7 @@ proof%unimportant -
       proof
         fix i
         from \<open>0 < e\<close> have "0 < e/(2*Suc n0)" by simp
-        have "emeasure M (D i) = (SUP K:{K. K \<subseteq> (D i) \<and> compact K}. emeasure M K)"
+        have "emeasure M (D i) = (SUP K\<in>{K. K \<subseteq> (D i) \<and> compact K}. emeasure M K)"
           using union by blast
         from SUP_approx_ennreal[OF \<open>0 < e/(2*Suc n0)\<close> _ this]
         show "\<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
@@ -327,7 +327,7 @@ proof%unimportant -
       proof
         fix i::nat
         from \<open>0 < e\<close> have "0 < e/(2 powr Suc i)" by simp
-        have "emeasure M (D i) = (INF U:{U. (D i) \<subseteq> U \<and> open U}. emeasure M U)"
+        have "emeasure M (D i) = (INF U\<in>{U. (D i) \<subseteq> U \<and> open U}. emeasure M U)"
           using union by blast
         from INF_approx_ennreal[OF \<open>0 < e/(2 powr Suc i)\<close> this]
         show "\<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"

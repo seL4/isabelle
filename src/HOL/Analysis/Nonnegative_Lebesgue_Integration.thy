@@ -811,7 +811,7 @@ qed
 subsection \<open>Integral on nonnegative functions\<close>
 
 definition nn_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>N") where
-  "integral\<^sup>N M f = (SUP g : {g. simple_function M g \<and> g \<le> f}. integral\<^sup>S M g)"
+  "integral\<^sup>N M f = (SUP g \<in> {g. simple_function M g \<and> g \<le> f}. integral\<^sup>S M g)"
 
 syntax
   "_nn_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" ("\<integral>\<^sup>+((2 _./ _)/ \<partial>_)" [60,61] 110)
@@ -820,7 +820,7 @@ translations
   "\<integral>\<^sup>+x. f \<partial>M" == "CONST nn_integral M (\<lambda>x. f)"
 
 lemma nn_integral_def_finite:
-  "integral\<^sup>N M f = (SUP g : {g. simple_function M g \<and> g \<le> f \<and> (\<forall>x. g x < top)}. integral\<^sup>S M g)"
+  "integral\<^sup>N M f = (SUP g \<in> {g. simple_function M g \<and> g \<le> f \<and> (\<forall>x. g x < top)}. integral\<^sup>S M g)"
     (is "_ = SUPREMUM ?A ?f")
   unfolding nn_integral_def
 proof (safe intro!: antisym SUP_least)
@@ -1342,7 +1342,7 @@ lemma nn_integral_liminf:
   assumes u: "\<And>i. u i \<in> borel_measurable M"
   shows "(\<integral>\<^sup>+ x. liminf (\<lambda>n. u n x) \<partial>M) \<le> liminf (\<lambda>n. integral\<^sup>N M (u n))"
 proof -
-  have "(\<integral>\<^sup>+ x. liminf (\<lambda>n. u n x) \<partial>M) = (SUP n. \<integral>\<^sup>+ x. (INF i:{n..}. u i x) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. liminf (\<lambda>n. u n x) \<partial>M) = (SUP n. \<integral>\<^sup>+ x. (INF i\<in>{n..}. u i x) \<partial>M)"
     unfolding liminf_SUP_INF using u
     by (intro nn_integral_monotone_convergence_SUP_AE)
        (auto intro!: AE_I2 intro: INF_greatest INF_superset_mono)
@@ -1361,7 +1361,7 @@ proof -
     using bounds by (auto simp: AE_all_countable)
   then have "(\<integral>\<^sup>+ x. (SUP n. u n x) \<partial>M) \<le> (\<integral>\<^sup>+ x. w x \<partial>M)"
     by (auto intro!: nn_integral_mono_AE elim: eventually_mono intro: SUP_least)
-  then have "(\<integral>\<^sup>+ x. limsup (\<lambda>n. u n x) \<partial>M) = (INF n. \<integral>\<^sup>+ x. (SUP i:{n..}. u i x) \<partial>M)"
+  then have "(\<integral>\<^sup>+ x. limsup (\<lambda>n. u n x) \<partial>M) = (INF n. \<integral>\<^sup>+ x. (SUP i\<in>{n..}. u i x) \<partial>M)"
     unfolding limsup_INF_SUP using bnd w
     by (intro nn_integral_monotone_convergence_INF_AE')
        (auto intro!: AE_I2 intro: SUP_least SUP_subset_mono)
@@ -1875,24 +1875,24 @@ lemma nn_integral_monotone_convergence_SUP_nat:
   fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ennreal"
   assumes chain: "Complete_Partial_Order.chain (\<le>) (f ` Y)"
   and nonempty: "Y \<noteq> {}"
-  shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space UNIV) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space UNIV))"
+  shows "(\<integral>\<^sup>+ x. (SUP i\<in>Y. f i x) \<partial>count_space UNIV) = (SUP i\<in>Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space UNIV))"
   (is "?lhs = ?rhs" is "integral\<^sup>N ?M _ = _")
 proof (rule order_class.order.antisym)
   show "?rhs \<le> ?lhs"
     by (auto intro!: SUP_least SUP_upper nn_integral_mono)
 next
-  have "\<exists>g. incseq g \<and> range g \<subseteq> (\<lambda>i. f i x) ` Y \<and> (SUP i:Y. f i x) = (SUP i. g i)" for x
+  have "\<exists>g. incseq g \<and> range g \<subseteq> (\<lambda>i. f i x) ` Y \<and> (SUP i\<in>Y. f i x) = (SUP i. g i)" for x
     by (rule ennreal_Sup_countable_SUP) (simp add: nonempty)
   then obtain g where incseq: "\<And>x. incseq (g x)"
     and range: "\<And>x. range (g x) \<subseteq> (\<lambda>i. f i x) ` Y"
-    and sup: "\<And>x. (SUP i:Y. f i x) = (SUP i. g x i)" by moura
+    and sup: "\<And>x. (SUP i\<in>Y. f i x) = (SUP i. g x i)" by moura
   from incseq have incseq': "incseq (\<lambda>i x. g x i)"
     by(blast intro: incseq_SucI le_funI dest: incseq_SucD)
 
   have "?lhs = \<integral>\<^sup>+ x. (SUP i. g x i) \<partial>?M" by(simp add: sup)
   also have "\<dots> = (SUP i. \<integral>\<^sup>+ x. g x i \<partial>?M)" using incseq'
     by(rule nn_integral_monotone_convergence_SUP) simp
-  also have "\<dots> \<le> (SUP i:Y. \<integral>\<^sup>+ x. f i x \<partial>?M)"
+  also have "\<dots> \<le> (SUP i\<in>Y. \<integral>\<^sup>+ x. f i x \<partial>?M)"
   proof(rule SUP_least)
     fix n
     have "\<And>x. \<exists>i. g x n = f i x \<and> i \<in> Y" using range by blast
@@ -1902,7 +1902,7 @@ next
       by(rule nn_integral_count_space_nat)
     also have "\<dots> = (SUP m. \<Sum>x<m. g x n)"
       by(rule suminf_eq_SUP)
-    also have "\<dots> \<le> (SUP i:Y. \<integral>\<^sup>+ x. f i x \<partial>?M)"
+    also have "\<dots> \<le> (SUP i\<in>Y. \<integral>\<^sup>+ x. f i x \<partial>?M)"
     proof(rule SUP_mono)
       fix m
       show "\<exists>m'\<in>Y. (\<Sum>x<m. g x n) \<le> (\<integral>\<^sup>+ x. f m' x \<partial>?M)"
@@ -1916,7 +1916,7 @@ next
         with chain have chain': "Complete_Partial_Order.chain (\<le>) (f ` ?Y)" by(rule chain_subset)
         hence "Sup (f ` ?Y) \<in> f ` ?Y"
           by(rule ccpo_class.in_chain_finite)(auto simp add: True lessThan_empty_iff)
-        then obtain m' where "m' < m" and m': "(SUP i:?Y. f i) = f (I m')" by auto
+        then obtain m' where "m' < m" and m': "(SUP i\<in>?Y. f i) = f (I m')" by auto
         have "I m' \<in> Y" using I by blast
         have "(\<Sum>x<m. g x n) \<le> (\<Sum>x<m. f (I m') x)"
         proof(rule sum_mono)
@@ -1924,7 +1924,7 @@ next
           assume "x \<in> {..<m}"
           hence "x < m" by simp
           have "g x n = f (I x) x" by(simp add: I)
-          also have "\<dots> \<le> (SUP i:?Y. f i) x" unfolding Sup_fun_def image_image
+          also have "\<dots> \<le> (SUP i\<in>?Y. f i) x" unfolding Sup_fun_def image_image
             using \<open>x \<in> {..<m}\<close> by (rule Sup_upper [OF imageI])
           also have "\<dots> = f (I m') x" unfolding m' by simp
           finally show "g x n \<le> f (I m') x" .

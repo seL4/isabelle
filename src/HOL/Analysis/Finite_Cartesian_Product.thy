@@ -459,7 +459,7 @@ begin
 
 definition%important [code del]:
   "(uniformity :: (('a^'b::_) \<times> ('a^'b::_)) filter) =
-    (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+    (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 instance%unimportant
   by standard (rule uniformity_vec_def)

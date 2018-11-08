@@ -1057,14 +1057,14 @@ next
   proof
     assume L: ?lhs
     then have "is_interval S" "compact S" by auto
-    define a where "a \<equiv> \<Sum>i\<in>Basis. (INF x:S. x \<bullet> i) *\<^sub>R i"
-    define b where "b \<equiv> \<Sum>i\<in>Basis. (SUP x:S. x \<bullet> i) *\<^sub>R i"
-    have 1: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> (INF x:S. x \<bullet> i) \<le> x \<bullet> i"
+    define a where "a \<equiv> \<Sum>i\<in>Basis. (INF x\<in>S. x \<bullet> i) *\<^sub>R i"
+    define b where "b \<equiv> \<Sum>i\<in>Basis. (SUP x\<in>S. x \<bullet> i) *\<^sub>R i"
+    have 1: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> (INF x\<in>S. x \<bullet> i) \<le> x \<bullet> i"
       by (simp add: cInf_lower bounded_inner_imp_bdd_below compact_imp_bounded L)
-    have 2: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> x \<bullet> i \<le> (SUP x:S. x \<bullet> i)"
+    have 2: "\<And>x i. \<lbrakk>x \<in> S; i \<in> Basis\<rbrakk> \<Longrightarrow> x \<bullet> i \<le> (SUP x\<in>S. x \<bullet> i)"
       by (simp add: cSup_upper bounded_inner_imp_bdd_above compact_imp_bounded L)
-    have 3: "x \<in> S" if inf: "\<And>i. i \<in> Basis \<Longrightarrow> (INF x:S. x \<bullet> i) \<le> x \<bullet> i"
-                   and sup: "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i \<le> (SUP x:S. x \<bullet> i)" for x
+    have 3: "x \<in> S" if inf: "\<And>i. i \<in> Basis \<Longrightarrow> (INF x\<in>S. x \<bullet> i) \<le> x \<bullet> i"
+                   and sup: "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i \<le> (SUP x\<in>S. x \<bullet> i)" for x
     proof (rule mem_box_componentwiseI [OF \<open>is_interval S\<close>])
       fix i::'a
       assume i: "i \<in> Basis"
@@ -1074,14 +1074,14 @@ next
         using continuous_attains_inf [OF \<open>compact S\<close> False cont] by blast
       obtain b where "b \<in> S" and b: "\<And>y. y\<in>S \<Longrightarrow> y \<bullet> i \<le> b \<bullet> i"
         using continuous_attains_sup [OF \<open>compact S\<close> False cont] by blast
-      have "a \<bullet> i \<le> (INF x:S. x \<bullet> i)"
+      have "a \<bullet> i \<le> (INF x\<in>S. x \<bullet> i)"
         by (simp add: False a cINF_greatest)
       also have "\<dots> \<le> x \<bullet> i"
         by (simp add: i inf)
       finally have ai: "a \<bullet> i \<le> x \<bullet> i" .
-      have "x \<bullet> i \<le> (SUP x:S. x \<bullet> i)"
+      have "x \<bullet> i \<le> (SUP x\<in>S. x \<bullet> i)"
         by (simp add: i sup)
-      also have "(SUP x:S. x \<bullet> i) \<le> b \<bullet> i"
+      also have "(SUP x\<in>S. x \<bullet> i) \<le> b \<bullet> i"
         by (simp add: False b cSUP_least)
       finally have bi: "x \<bullet> i \<le> b \<bullet> i" .
       show "x \<bullet> i \<in> (\<lambda>x. x \<bullet> i) ` S"
@@ -1282,12 +1282,12 @@ qed
 
 subsection \<open>Infimum Distance\<close>
 
-definition%important "infdist x A = (if A = {} then 0 else INF a:A. dist x a)"
+definition%important "infdist x A = (if A = {} then 0 else INF a\<in>A. dist x a)"
 
 lemma bdd_below_image_dist[intro, simp]: "bdd_below (dist x ` A)"
   by (auto intro!: zero_le_dist)
 
-lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = (INF a:A. dist x a)"
+lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = (INF a\<in>A. dist x a)"
   by (simp add: infdist_def)
 
 lemma infdist_nonneg: "0 \<le> infdist x A"
@@ -2665,7 +2665,7 @@ qed
 subsection \<open>The diameter of a set\<close>
 
 definition%important diameter :: "'a::metric_space set \<Rightarrow> real" where
-  "diameter S = (if S = {} then 0 else SUP (x,y):S\<times>S. dist x y)"
+  "diameter S = (if S = {} then 0 else SUP (x,y)\<in>S\<times>S. dist x y)"
 
 lemma diameter_empty [simp]: "diameter{} = 0"
   by (auto simp: diameter_def)
@@ -2696,7 +2696,7 @@ proof -
       by (simp add: dist_commute)
   qed
   moreover have "(x,y) \<in> s\<times>s" using s by auto
-  ultimately have "dist x y \<le> (SUP (x,y):s\<times>s. dist x y)"
+  ultimately have "dist x y \<le> (SUP (x,y)\<in>s\<times>s. dist x y)"
     by (rule cSUP_upper2) simp
   with \<open>x \<in> s\<close> show ?thesis
     by (auto simp: diameter_def)

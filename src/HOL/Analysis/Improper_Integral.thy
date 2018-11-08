@@ -674,9 +674,9 @@ next
     qed
   qed
   define \<gamma> where "\<gamma> \<equiv> \<lambda>x. \<gamma>0 x \<inter>
-                          ball x ((\<epsilon>/8 / (norm(f x) + 1)) * (INF m:Basis. b \<bullet> m - a \<bullet> m) / content(cbox a b))"
+                          ball x ((\<epsilon>/8 / (norm(f x) + 1)) * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / content(cbox a b))"
   have "gauge (\<lambda>x. ball x
-                    (\<epsilon> * (INF m:Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b))))"
+                    (\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b))))"
     using \<open>0 < content (cbox a b)\<close> \<open>0 < \<epsilon>\<close> a_less_b
     apply (auto simp: gauge_def divide_simps mult_less_0_iff zero_less_mult_iff add_nonneg_eq_0_iff finite_less_Inf_iff)
     apply (meson add_nonneg_nonneg mult_nonneg_nonneg norm_ge_zero not_less zero_le_numeral)
@@ -693,7 +693,7 @@ next
     have "finite S"
       using S by blast
     have "\<gamma>0 fine S" and fineS:
-         "(\<lambda>x. ball x (\<epsilon> * (INF m:Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b)))) fine S"
+         "(\<lambda>x. ball x (\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / ((8 * norm (f x) + 8) * content (cbox a b)))) fine S"
       using \<open>\<gamma> fine S\<close> by (auto simp: \<gamma>_def fine_Int)
     then have "(\<Sum>(x,K) \<in> S. norm (content K *\<^sub>R h x - integral K h)) < \<epsilon>/2"
       by (intro \<gamma>0 that fineS)
@@ -735,11 +735,11 @@ next
             using that by auto
           ultimately have "norm (h x) \<le> (\<epsilon> * (b \<bullet> i - a \<bullet> i)) / (4 * content (cbox a b) * ?\<Delta>)"
           proof -
-            have "dist x u < \<epsilon> * (INF m:Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
-                 "dist x v < \<epsilon> * (INF m:Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
+            have "dist x u < \<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
+                 "dist x v < \<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
               using fineS u_less_v uv xK
               by (force simp: fine_def mem_box field_simps dest!: bspec)+
-            moreover have "\<epsilon> * (INF m:Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2
+            moreover have "\<epsilon> * (INF m\<in>Basis. b \<bullet> m - a \<bullet> m) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2
                   \<le> \<epsilon> * (b \<bullet> i - a \<bullet> i) / (4 * (norm (f x) + 1) * content (cbox a b)) / 2"
               apply (intro mult_left_mono divide_right_mono)
               using \<open>i \<in> Basis\<close> \<open>0 < \<epsilon>\<close> apply (auto simp: intro!: cInf_le_finite)

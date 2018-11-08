@@ -53,7 +53,7 @@ proof
     by (auto intro!: cInf_lower bdd)
 
   { assume *: "I \<omega> \<le> x"
-    have "\<omega> \<le> (INF s:{x. \<omega> \<le> f x}. f s)"
+    have "\<omega> \<le> (INF s\<in>{x. \<omega> \<le> f x}. f s)"
       by (rule cINF_greatest[OF ne]) auto
     also have "\<dots> = f (I \<omega>)"
       using continuous_at_Inf_mono[OF mono cont ne bdd] ..

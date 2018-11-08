@@ -1220,7 +1220,7 @@ definition%important dist_fun_def:
   "dist x y = (\<Sum>n. (1/2)^n * min (dist (x (from_nat n)) (y (from_nat n))) 1)"
 
 definition%important uniformity_fun_def:
-  "(uniformity::(('a \<Rightarrow> 'b) \<times> ('a \<Rightarrow> 'b)) filter) = (INF e:{0<..}. principal {(x, y). dist (x::('a\<Rightarrow>'b)) y < e})"
+  "(uniformity::(('a \<Rightarrow> 'b) \<times> ('a \<Rightarrow> 'b)) filter) = (INF e\<in>{0<..}. principal {(x, y). dist (x::('a\<Rightarrow>'b)) y < e})"
 
 text \<open>Except for the first one, the auxiliary lemmas below are only useful when proving the
 instance: once it is proved, they become trivial consequences of the general theory of metric

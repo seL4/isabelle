@@ -381,24 +381,24 @@ lemma nn_integral_monotone_convergence_SUP_countable:
   assumes nonempty: "Y \<noteq> {}"
   and chain: "Complete_Partial_Order.chain (\<le>) (f ` Y)"
   and countable: "countable B"
-  shows "(\<integral>\<^sup>+ x. (SUP i:Y. f i x) \<partial>count_space B) = (SUP i:Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space B))"
+  shows "(\<integral>\<^sup>+ x. (SUP i\<in>Y. f i x) \<partial>count_space B) = (SUP i\<in>Y. (\<integral>\<^sup>+ x. f i x \<partial>count_space B))"
   (is "?lhs = ?rhs")
 proof -
   let ?f = "(\<lambda>i x. f i (from_nat_into B x) * indicator (to_nat_on B ` B) x)"
-  have "?lhs = \<integral>\<^sup>+ x. (SUP i:Y. f i (from_nat_into B (to_nat_on B x))) \<partial>count_space B"
+  have "?lhs = \<integral>\<^sup>+ x. (SUP i\<in>Y. f i (from_nat_into B (to_nat_on B x))) \<partial>count_space B"
     by(rule nn_integral_cong)(simp add: countable)
-  also have "\<dots> = \<integral>\<^sup>+ x. (SUP i:Y. f i (from_nat_into B x)) \<partial>count_space (to_nat_on B ` B)"
+  also have "\<dots> = \<integral>\<^sup>+ x. (SUP i\<in>Y. f i (from_nat_into B x)) \<partial>count_space (to_nat_on B ` B)"
     by(simp add: embed_measure_count_space'[symmetric] inj_on_to_nat_on countable nn_integral_embed_measure' measurable_embed_measure1)
-  also have "\<dots> = \<integral>\<^sup>+ x. (SUP i:Y. ?f i x) \<partial>count_space UNIV"
+  also have "\<dots> = \<integral>\<^sup>+ x. (SUP i\<in>Y. ?f i x) \<partial>count_space UNIV"
     by(simp add: nn_integral_count_space_indicator ennreal_indicator[symmetric] SUP_mult_right_ennreal nonempty)
-  also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. ?f i x \<partial>count_space UNIV)"
+  also have "\<dots> = (SUP i\<in>Y. \<integral>\<^sup>+ x. ?f i x \<partial>count_space UNIV)"
   proof(rule nn_integral_monotone_convergence_SUP_nat)
     show "Complete_Partial_Order.chain (\<le>) (?f ` Y)"
       by(rule chain_imageI[OF chain, unfolded image_image])(auto intro!: le_funI split: split_indicator dest: le_funD)
   qed fact
-  also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. f i (from_nat_into B x) \<partial>count_space (to_nat_on B ` B))"
+  also have "\<dots> = (SUP i\<in>Y. \<integral>\<^sup>+ x. f i (from_nat_into B x) \<partial>count_space (to_nat_on B ` B))"
     by(simp add: nn_integral_count_space_indicator)
-  also have "\<dots> = (SUP i:Y. \<integral>\<^sup>+ x. f i (from_nat_into B (to_nat_on B x)) \<partial>count_space B)"
+  also have "\<dots> = (SUP i\<in>Y. \<integral>\<^sup>+ x. f i (from_nat_into B (to_nat_on B x)) \<partial>count_space B)"
     by(simp add: embed_measure_count_space'[symmetric] inj_on_to_nat_on countable nn_integral_embed_measure' measurable_embed_measure1)
   also have "\<dots> = ?rhs"
     by(intro arg_cong2[where f="SUPREMUM"] ext nn_integral_cong_AE)(simp_all add: AE_count_space countable)

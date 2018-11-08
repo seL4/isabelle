@@ -5474,7 +5474,7 @@ next
     apply (erule_tac x="x - y" in ballE)
     apply (auto simp: inner_diff)
     done
-  define k where "k = (SUP x:T. a \<bullet> x)"
+  define k where "k = (SUP x\<in>T. a \<bullet> x)"
   show ?thesis
     apply (rule_tac x="-a" in exI)
     apply (rule_tac x="-(k + b / 2)" in exI)
@@ -5580,7 +5580,7 @@ proof -
     using \<open>T \<noteq> {}\<close> by (auto intro: bdd_aboveI2[OF *])
   show ?thesis
     using \<open>a\<noteq>0\<close>
-    by (intro exI[of _ a] exI[of _ "SUP x:S. a \<bullet> x"])
+    by (intro exI[of _ a] exI[of _ "SUP x\<in>S. a \<bullet> x"])
        (auto intro!: cSUP_upper bdd cSUP_least \<open>a \<noteq> 0\<close> \<open>S \<noteq> {}\<close> *)
 qed
 

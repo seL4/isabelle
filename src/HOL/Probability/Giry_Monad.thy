@@ -165,7 +165,7 @@ qed
 
 definition subprob_algebra :: "'a measure \<Rightarrow> 'a measure measure" where
   "subprob_algebra K =
-    (SUP A : sets K. vimage_algebra {M. subprob_space M \<and> sets M = sets K} (\<lambda>M. emeasure M A) borel)"
+    (SUP A \<in> sets K. vimage_algebra {M. subprob_space M \<and> sets M = sets K} (\<lambda>M. emeasure M A) borel)"
 
 lemma space_subprob_algebra: "space (subprob_algebra A) = {M. subprob_space M \<and> sets M = sets A}"
   by (auto simp add: subprob_algebra_def space_Sup_eq_UN)

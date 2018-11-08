@@ -821,7 +821,7 @@ instantiation fps :: (comm_ring_1) metric_space
 begin
 
 definition uniformity_fps_def [code del]:
-  "(uniformity :: ('a fps \<times> 'a fps) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  "(uniformity :: ('a fps \<times> 'a fps) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_fps_def' [code del]:
   "open (U :: 'a fps set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
@@ -1470,40 +1470,40 @@ lemma fps_lcm_altdef: "lcm (f :: 'a :: field fps) g =
 
 lemma fps_Gcd:
   assumes "A - {0} \<noteq> {}"
-  shows   "Gcd A = fps_X ^ (INF f:A-{0}. subdegree f)"
+  shows   "Gcd A = fps_X ^ (INF f\<in>A-{0}. subdegree f)"
 proof (rule sym, rule GcdI)
   fix f assume "f \<in> A"
-  thus "fps_X ^ (INF f:A - {0}. subdegree f) dvd f"
+  thus "fps_X ^ (INF f\<in>A - {0}. subdegree f) dvd f"
     by (cases "f = 0") (auto simp: fps_dvd_iff intro!: cINF_lower)
 next
   fix d assume d: "\<And>f. f \<in> A \<Longrightarrow> d dvd f"
   from assms obtain f where "f \<in> A - {0}" by auto
   with d[of f] have [simp]: "d \<noteq> 0" by auto
-  from d assms have "subdegree d \<le> (INF f:A-{0}. subdegree f)"
+  from d assms have "subdegree d \<le> (INF f\<in>A-{0}. subdegree f)"
     by (intro cINF_greatest) (auto simp: fps_dvd_iff[symmetric])
-  with d assms show "d dvd fps_X ^ (INF f:A-{0}. subdegree f)" by (simp add: fps_dvd_iff)
+  with d assms show "d dvd fps_X ^ (INF f\<in>A-{0}. subdegree f)" by (simp add: fps_dvd_iff)
 qed simp_all
 
 lemma fps_Gcd_altdef: "Gcd (A :: 'a :: field fps set) =
-  (if A \<subseteq> {0} then 0 else fps_X ^ (INF f:A-{0}. subdegree f))"
+  (if A \<subseteq> {0} then 0 else fps_X ^ (INF f\<in>A-{0}. subdegree f))"
   using fps_Gcd by auto
 
 lemma fps_Lcm:
   assumes "A \<noteq> {}" "0 \<notin> A" "bdd_above (subdegree`A)"
-  shows   "Lcm A = fps_X ^ (SUP f:A. subdegree f)"
+  shows   "Lcm A = fps_X ^ (SUP f\<in>A. subdegree f)"
 proof (rule sym, rule LcmI)
   fix f assume "f \<in> A"
   moreover from assms(3) have "bdd_above (subdegree ` A)" by auto
-  ultimately show "f dvd fps_X ^ (SUP f:A. subdegree f)" using assms(2)
+  ultimately show "f dvd fps_X ^ (SUP f\<in>A. subdegree f)" using assms(2)
     by (cases "f = 0") (auto simp: fps_dvd_iff intro!: cSUP_upper)
 next
   fix d assume d: "\<And>f. f \<in> A \<Longrightarrow> f dvd d"
   from assms obtain f where f: "f \<in> A" "f \<noteq> 0" by auto
-  show "fps_X ^ (SUP f:A. subdegree f) dvd d"
+  show "fps_X ^ (SUP f\<in>A. subdegree f) dvd d"
   proof (cases "d = 0")
     assume "d \<noteq> 0"
     moreover from d have "\<And>f. f \<in> A \<Longrightarrow> f \<noteq> 0 \<Longrightarrow> f dvd d" by blast
-    ultimately have "subdegree d \<ge> (SUP f:A. subdegree f)" using assms
+    ultimately have "subdegree d \<ge> (SUP f\<in>A. subdegree f)" using assms
       by (intro cSUP_least) (auto simp: fps_dvd_iff)
     with \<open>d \<noteq> 0\<close> show ?thesis by (simp add: fps_dvd_iff)
   qed simp_all
@@ -1512,7 +1512,7 @@ qed simp_all
 lemma fps_Lcm_altdef:
   "Lcm (A :: 'a :: field fps set) =
      (if 0 \<in> A \<or> \<not>bdd_above (subdegree`A) then 0 else
-      if A = {} then 1 else fps_X ^ (SUP f:A. subdegree f))"
+      if A = {} then 1 else fps_X ^ (SUP f\<in>A. subdegree f))"
 proof (cases "bdd_above (subdegree`A)")
   assume unbounded: "\<not>bdd_above (subdegree`A)"
   have "Lcm A = 0"

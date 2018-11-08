@@ -4189,7 +4189,7 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
 next
   fix A
   assume A: "\<forall>a\<in>A. closed a" "\<forall>B\<subseteq>A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}" "U \<inter> \<Inter>A = {}"
-  define F where "F = (INF a:insert U A. principal a)"
+  define F where "F = (INF a\<in>insert U A. principal a)"
   have "F \<noteq> bot"
     unfolding F_def
   proof (rule INF_filter_not_bot)
@@ -4197,7 +4197,7 @@ next
     assume X: "X \<subseteq> insert U A" "finite X"
     with A(2)[THEN spec, of "X - {U}"] have "U \<inter> \<Inter>(X - {U}) \<noteq> {}"
       by auto
-    with X show "(INF a:X. principal a) \<noteq> bot"
+    with X show "(INF a\<in>X. principal a) \<noteq> bot"
       by (auto simp: INF_principal_finite principal_eq_bot_iff)
   qed
   moreover

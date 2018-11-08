@@ -2080,7 +2080,7 @@ next
           case False
           then obtain h' where h': "h' \<in> F - {h}" by auto
           define inff where "inff =
-            (INF j:F - {h}.
+            (INF j\<in>F - {h}.
               if 0 < a j \<bullet> y - a j \<bullet> w
               then (b j - a j \<bullet> w) / (a j \<bullet> y - a j \<bullet> w)
               else 1)"

@@ -133,10 +133,10 @@ lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \
 subsection%important \<open>Bounds on intervals where they exist\<close>
 
 definition%important interval_upperbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
-  where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x:s. x\<bullet>i) *\<^sub>R i)"
+  where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x\<in>s. x\<bullet>i) *\<^sub>R i)"
 
 definition%important interval_lowerbound :: "('a::euclidean_space) set \<Rightarrow> 'a"
-  where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x:s. x\<bullet>i) *\<^sub>R i)"
+  where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x\<in>s. x\<bullet>i) *\<^sub>R i)"
 
 lemma interval_upperbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
@@ -169,10 +169,10 @@ lemma%important interval_upperbound_Times:
   shows "interval_upperbound (A \<times> B) = (interval_upperbound A, interval_upperbound B)"
 proof%unimportant-
   from assms have fst_image_times': "A = fst ` (A \<times> B)" by simp
-  have "(\<Sum>i\<in>Basis. (SUP x:A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x:A. x \<bullet> i) *\<^sub>R i)"
+  have "(\<Sum>i\<in>Basis. (SUP x\<in>A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x\<in>A. x \<bullet> i) *\<^sub>R i)"
       by (subst (2) fst_image_times') (simp del: fst_image_times add: o_def inner_Pair_0)
   moreover from assms have snd_image_times': "B = snd ` (A \<times> B)" by simp
-  have "(\<Sum>i\<in>Basis. (SUP x:A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x:B. x \<bullet> i) *\<^sub>R i)"
+  have "(\<Sum>i\<in>Basis. (SUP x\<in>A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (SUP x\<in>B. x \<bullet> i) *\<^sub>R i)"
       by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
   ultimately show ?thesis unfolding interval_upperbound_def
       by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
@@ -183,10 +183,10 @@ lemma%important interval_lowerbound_Times:
   shows "interval_lowerbound (A \<times> B) = (interval_lowerbound A, interval_lowerbound B)"
 proof%unimportant-
   from assms have fst_image_times': "A = fst ` (A \<times> B)" by simp
-  have "(\<Sum>i\<in>Basis. (INF x:A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x:A. x \<bullet> i) *\<^sub>R i)"
+  have "(\<Sum>i\<in>Basis. (INF x\<in>A \<times> B. x \<bullet> (i, 0)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x\<in>A. x \<bullet> i) *\<^sub>R i)"
       by (subst (2) fst_image_times') (simp del: fst_image_times add: o_def inner_Pair_0)
   moreover from assms have snd_image_times': "B = snd ` (A \<times> B)" by simp
-  have "(\<Sum>i\<in>Basis. (INF x:A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x:B. x \<bullet> i) *\<^sub>R i)"
+  have "(\<Sum>i\<in>Basis. (INF x\<in>A \<times> B. x \<bullet> (0, i)) *\<^sub>R i) = (\<Sum>i\<in>Basis. (INF x\<in>B. x \<bullet> i) *\<^sub>R i)"
       by (subst (2) snd_image_times') (simp del: snd_image_times add: o_def inner_Pair_0)
   ultimately show ?thesis unfolding interval_lowerbound_def
       by (subst sum_Basis_prod_eq) (auto simp add: sum_prod)
@@ -2576,7 +2576,7 @@ subsection%important \<open>Division filter\<close>
 text \<open>Divisions over all gauges towards finer divisions.\<close>
 
 definition%important division_filter :: "'a::euclidean_space set \<Rightarrow> ('a \<times> 'a set) set filter"
-  where "division_filter s = (INF g:{g. gauge g}. principal {p. p tagged_division_of s \<and> g fine p})"
+  where "division_filter s = (INF g\<in>{g. gauge g}. principal {p. p tagged_division_of s \<and> g fine p})"
 
 lemma%important eventually_division_filter:
   "(\<forall>\<^sub>F p in division_filter s. P p) \<longleftrightarrow>

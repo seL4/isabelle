@@ -161,7 +161,7 @@ subsection \<open>Complete lattice operations\<close>
 instantiation prod :: (Inf, Inf) Inf
 begin
 
-definition "Inf A = (INF x:A. fst x, INF x:A. snd x)"
+definition "Inf A = (INF x\<in>A. fst x, INF x\<in>A. snd x)"
 
 instance ..
 
@@ -170,7 +170,7 @@ end
 instantiation prod :: (Sup, Sup) Sup
 begin
 
-definition "Sup A = (SUP x:A. fst x, SUP x:A. snd x)"
+definition "Sup A = (SUP x\<in>A. fst x, SUP x\<in>A. snd x)"
 
 instance ..
 
@@ -185,34 +185,34 @@ instance prod :: (complete_lattice, complete_lattice) complete_lattice
   by standard (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
     INF_lower SUP_upper le_INF_iff SUP_le_iff bot_prod_def top_prod_def)
 
-lemma fst_Sup: "fst (Sup A) = (SUP x:A. fst x)"
+lemma fst_Sup: "fst (Sup A) = (SUP x\<in>A. fst x)"
   unfolding Sup_prod_def by simp
 
-lemma snd_Sup: "snd (Sup A) = (SUP x:A. snd x)"
+lemma snd_Sup: "snd (Sup A) = (SUP x\<in>A. snd x)"
   unfolding Sup_prod_def by simp
 
-lemma fst_Inf: "fst (Inf A) = (INF x:A. fst x)"
+lemma fst_Inf: "fst (Inf A) = (INF x\<in>A. fst x)"
   unfolding Inf_prod_def by simp
 
-lemma snd_Inf: "snd (Inf A) = (INF x:A. snd x)"
+lemma snd_Inf: "snd (Inf A) = (INF x\<in>A. snd x)"
   unfolding Inf_prod_def by simp
 
-lemma fst_SUP: "fst (SUP x:A. f x) = (SUP x:A. fst (f x))"
+lemma fst_SUP: "fst (SUP x\<in>A. f x) = (SUP x\<in>A. fst (f x))"
   using fst_Sup [of "f ` A", symmetric] by (simp add: comp_def)
 
-lemma snd_SUP: "snd (SUP x:A. f x) = (SUP x:A. snd (f x))"
+lemma snd_SUP: "snd (SUP x\<in>A. f x) = (SUP x\<in>A. snd (f x))"
   using snd_Sup [of "f ` A", symmetric] by (simp add: comp_def)
 
-lemma fst_INF: "fst (INF x:A. f x) = (INF x:A. fst (f x))"
+lemma fst_INF: "fst (INF x\<in>A. f x) = (INF x\<in>A. fst (f x))"
   using fst_Inf [of "f ` A", symmetric] by (simp add: comp_def)
 
-lemma snd_INF: "snd (INF x:A. f x) = (INF x:A. snd (f x))"
+lemma snd_INF: "snd (INF x\<in>A. f x) = (INF x\<in>A. snd (f x))"
   using snd_Inf [of "f ` A", symmetric] by (simp add: comp_def)
 
-lemma SUP_Pair: "(SUP x:A. (f x, g x)) = (SUP x:A. f x, SUP x:A. g x)"
+lemma SUP_Pair: "(SUP x\<in>A. (f x, g x)) = (SUP x\<in>A. f x, SUP x\<in>A. g x)"
   unfolding Sup_prod_def by (simp add: comp_def)
 
-lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
+lemma INF_Pair: "(INF x\<in>A. (f x, g x)) = (INF x\<in>A. f x, INF x\<in>A. g x)"
   unfolding Inf_prod_def by (simp add: comp_def)
 
 

@@ -108,12 +108,12 @@ lemma sup_continuous_applyD: "sup_continuous f \<Longrightarrow> sup_continuous 
 lemma sup_continuous_SUP[order_continuous_intros]:
   fixes M :: "_ \<Rightarrow> _ \<Rightarrow> 'a::complete_lattice"
   assumes M: "\<And>i. i \<in> I \<Longrightarrow> sup_continuous (M i)"
-  shows  "sup_continuous (SUP i:I. M i)"
+  shows  "sup_continuous (SUP i\<in>I. M i)"
   unfolding sup_continuous_def by (auto simp add: sup_continuousD[OF M] intro: SUP_commute)
 
 lemma sup_continuous_apply_SUP[order_continuous_intros]:
   fixes M :: "_ \<Rightarrow> _ \<Rightarrow> 'a::complete_lattice"
-  shows "(\<And>i. i \<in> I \<Longrightarrow> sup_continuous (M i)) \<Longrightarrow> sup_continuous (\<lambda>x. SUP i:I. M i x)"
+  shows "(\<And>i. i \<in> I \<Longrightarrow> sup_continuous (M i)) \<Longrightarrow> sup_continuous (\<lambda>x. SUP i\<in>I. M i x)"
   unfolding SUP_apply[symmetric] by (rule sup_continuous_SUP)
 
 lemma sup_continuous_lfp'[order_continuous_intros]:
@@ -145,7 +145,7 @@ proof -
 qed
 
 lemma mono_INF_fun:
-    "(\<And>x y. mono (F x y)) \<Longrightarrow> mono (\<lambda>z x. INF y : X x. F x y z :: 'a :: complete_lattice)"
+    "(\<And>x y. mono (F x y)) \<Longrightarrow> mono (\<lambda>z x. INF y \<in> X x. F x y z :: 'a :: complete_lattice)"
   by (auto intro!: INF_mono[OF bexI] simp: le_fun_def mono_def)
 
 lemma continuous_on_max:
@@ -160,22 +160,22 @@ lemma continuous_on_cmult_ereal:
 
 lemma real_of_nat_Sup:
   assumes "A \<noteq> {}" "bdd_above A"
-  shows "of_nat (Sup A) = (SUP a:A. of_nat a :: real)"
+  shows "of_nat (Sup A) = (SUP a\<in>A. of_nat a :: real)"
 proof (intro antisym)
-  show "(SUP a:A. of_nat a::real) \<le> of_nat (Sup A)"
+  show "(SUP a\<in>A. of_nat a::real) \<le> of_nat (Sup A)"
     using assms by (intro cSUP_least of_nat_mono) (auto intro: cSup_upper)
   have "Sup A \<in> A"
     unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
-  then show "of_nat (Sup A) \<le> (SUP a:A. of_nat a::real)"
+  then show "of_nat (Sup A) \<le> (SUP a\<in>A. of_nat a::real)"
     by (intro cSUP_upper bdd_above_image_mono assms) (auto simp: mono_def)
 qed
 
 lemma (in complete_lattice) SUP_sup_const1:
-  "I \<noteq> {} \<Longrightarrow> (SUP i:I. sup c (f i)) = sup c (SUP i:I. f i)"
+  "I \<noteq> {} \<Longrightarrow> (SUP i\<in>I. sup c (f i)) = sup c (SUP i\<in>I. f i)"
   using SUP_sup_distrib[of "\<lambda>_. c" I f] by simp
 
 lemma (in complete_lattice) SUP_sup_const2:
-  "I \<noteq> {} \<Longrightarrow> (SUP i:I. sup (f i) c) = sup (SUP i:I. f i) c"
+  "I \<noteq> {} \<Longrightarrow> (SUP i\<in>I. sup (f i) c) = sup (SUP i\<in>I. f i) c"
   using SUP_sup_distrib[of f I "\<lambda>_. c"] by simp
 
 lemma one_less_of_natD:
@@ -350,7 +350,7 @@ qed
 
 lemma rel_fun_limsup[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal limsup limsup"
 proof -
-  have "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal (\<lambda>x. INF n. sup 0 (SUP i:{n..}. x i)) limsup"
+  have "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal (\<lambda>x. INF n. sup 0 (SUP i\<in>{n..}. x i)) limsup"
     unfolding limsup_INF_SUP[abs_def] by (transfer_prover_start, transfer_step+; simp)
   then show ?thesis
     unfolding limsup_INF_SUP[abs_def]
@@ -1140,13 +1140,13 @@ lemma ennreal_of_enat_le_iff[simp]: "ennreal_of_enat m \<le> ennreal_of_enat n \
 lemma of_nat_less_ennreal_of_nat[simp]: "of_nat n \<le> ennreal_of_enat x \<longleftrightarrow> of_nat n \<le> x"
   by (cases x) (auto simp: of_nat_eq_enat)
 
-lemma ennreal_of_enat_Sup: "ennreal_of_enat (Sup X) = (SUP x:X. ennreal_of_enat x)"
+lemma ennreal_of_enat_Sup: "ennreal_of_enat (Sup X) = (SUP x\<in>X. ennreal_of_enat x)"
 proof -
-  have "ennreal_of_enat (Sup X) \<le> (SUP x : X. ennreal_of_enat x)"
+  have "ennreal_of_enat (Sup X) \<le> (SUP x \<in> X. ennreal_of_enat x)"
     unfolding Sup_enat_def
   proof (clarsimp, intro conjI impI)
     fix x assume "finite X" "X \<noteq> {}"
-    then show "ennreal_of_enat (Max X) \<le> (SUP x : X. ennreal_of_enat x)"
+    then show "ennreal_of_enat (Max X) \<le> (SUP x \<in> X. ennreal_of_enat x)"
       by (intro SUP_upper Max_in)
   next
     assume "infinite X" "X \<noteq> {}"
@@ -1162,9 +1162,9 @@ proof -
       with x show ?thesis
         by (auto intro!: bexI[of _ x] less_le_trans[OF n])
     qed
-    then have "(SUP x : X. ennreal_of_enat x) = top"
+    then have "(SUP x \<in> X. ennreal_of_enat x) = top"
       by simp
-    then show "top \<le> (SUP x : X. ennreal_of_enat x)"
+    then show "top \<le> (SUP x \<in> X. ennreal_of_enat x)"
       unfolding top_unique by simp
   qed
   then show ?thesis
@@ -1395,7 +1395,7 @@ lemma ennreal_suminf_bound_add:
 lemma ennreal_suminf_SUP_eq_directed:
   fixes f :: "'a \<Rightarrow> nat \<Rightarrow> ennreal"
   assumes *: "\<And>N i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> finite N \<Longrightarrow> \<exists>k\<in>I. \<forall>n\<in>N. f i n \<le> f k n \<and> f j n \<le> f k n"
-  shows "(\<Sum>n. SUP i:I. f i n) = (SUP i:I. \<Sum>n. f i n)"
+  shows "(\<Sum>n. SUP i\<in>I. f i n) = (SUP i\<in>I. \<Sum>n. f i n)"
 proof cases
   assume "I \<noteq> {}"
   then obtain i where "i \<in> I" by auto
@@ -1417,16 +1417,16 @@ lemma INF_ennreal_const_add:
   shows "(INF i. c + f i) = c + (INF i. f i)"
   using INF_ennreal_add_const[of f c] by (simp add: ac_simps)
 
-lemma SUP_mult_left_ennreal: "c * (SUP i:I. f i) = (SUP i:I. c * f i ::ennreal)"
+lemma SUP_mult_left_ennreal: "c * (SUP i\<in>I. f i) = (SUP i\<in>I. c * f i ::ennreal)"
 proof cases
   assume "I \<noteq> {}" then show ?thesis
     by transfer (auto simp add: SUP_ereal_mult_left max_absorb2 SUP_upper2)
 qed (simp add: bot_ennreal)
 
-lemma SUP_mult_right_ennreal: "(SUP i:I. f i) * c = (SUP i:I. f i * c ::ennreal)"
+lemma SUP_mult_right_ennreal: "(SUP i\<in>I. f i) * c = (SUP i\<in>I. f i * c ::ennreal)"
   using SUP_mult_left_ennreal by (simp add: mult.commute)
 
-lemma SUP_divide_ennreal: "(SUP i:I. f i) / c = (SUP i:I. f i / c ::ennreal)"
+lemma SUP_divide_ennreal: "(SUP i\<in>I. f i) / c = (SUP i\<in>I. f i / c ::ennreal)"
   using SUP_mult_right_ennreal by (simp add: divide_ennreal_def)
 
 lemma ennreal_SUP_of_nat_eq_top: "(SUP x. of_nat x :: ennreal) = top"
@@ -1442,9 +1442,9 @@ qed
 lemma ennreal_SUP_eq_top:
   fixes f :: "'a \<Rightarrow> ennreal"
   assumes "\<And>n. \<exists>i\<in>I. of_nat n \<le> f i"
-  shows "(SUP i : I. f i) = top"
+  shows "(SUP i \<in> I. f i) = top"
 proof -
-  have "(SUP x. of_nat x :: ennreal) \<le> (SUP i : I. f i)"
+  have "(SUP x. of_nat x :: ennreal) \<le> (SUP i \<in> I. f i)"
     using assms by (auto intro!: SUP_least intro: SUP_upper2)
   then show ?thesis
     by (auto simp: ennreal_SUP_of_nat_eq_top top_unique)
@@ -1452,19 +1452,19 @@ qed
 
 lemma ennreal_INF_const_minus:
   fixes f :: "'a \<Rightarrow> ennreal"
-  shows "I \<noteq> {} \<Longrightarrow> (SUP x:I. c - f x) = c - (INF x:I. f x)"
+  shows "I \<noteq> {} \<Longrightarrow> (SUP x\<in>I. c - f x) = c - (INF x\<in>I. f x)"
   by (transfer fixing: I)
      (simp add: sup_max[symmetric] SUP_sup_const1 SUP_ereal_minus_right del: sup_ereal_def)
 
 lemma of_nat_Sup_ennreal:
   assumes "A \<noteq> {}" "bdd_above A"
-  shows "of_nat (Sup A) = (SUP a:A. of_nat a :: ennreal)"
+  shows "of_nat (Sup A) = (SUP a\<in>A. of_nat a :: ennreal)"
 proof (intro antisym)
-  show "(SUP a:A. of_nat a::ennreal) \<le> of_nat (Sup A)"
+  show "(SUP a\<in>A. of_nat a::ennreal) \<le> of_nat (Sup A)"
     by (intro SUP_least of_nat_mono) (auto intro: cSup_upper assms)
   have "Sup A \<in> A"
     unfolding Sup_nat_def using assms by (intro Max_in) (auto simp: bdd_above_nat)
-  then show "of_nat (Sup A) \<le> (SUP a:A. of_nat a::ennreal)"
+  then show "of_nat (Sup A) \<le> (SUP a\<in>A. of_nat a::ennreal)"
     by (intro SUP_upper)
 qed
 
@@ -1601,18 +1601,18 @@ lemma of_nat_tendsto_top_ennreal: "(\<lambda>n::nat. of_nat n :: ennreal) \<long
 lemma SUP_sup_continuous_ennreal:
   fixes f :: "ennreal \<Rightarrow> 'a::complete_lattice"
   assumes f: "sup_continuous f" and "I \<noteq> {}"
-  shows "(SUP i:I. f (g i)) = f (SUP i:I. g i)"
+  shows "(SUP i\<in>I. f (g i)) = f (SUP i\<in>I. g i)"
 proof (rule antisym)
-  show "(SUP i:I. f (g i)) \<le> f (SUP i:I. g i)"
+  show "(SUP i\<in>I. f (g i)) \<le> f (SUP i\<in>I. g i)"
     by (rule mono_SUP[OF sup_continuous_mono[OF f]])
   from ennreal_Sup_countable_SUP[of "g`I"] \<open>I \<noteq> {}\<close>
-  obtain M :: "nat \<Rightarrow> ennreal" where "incseq M" and M: "range M \<subseteq> g ` I" and eq: "(SUP i : I. g i) = (SUP i. M i)"
+  obtain M :: "nat \<Rightarrow> ennreal" where "incseq M" and M: "range M \<subseteq> g ` I" and eq: "(SUP i \<in> I. g i) = (SUP i. M i)"
     by auto
-  have "f (SUP i : I. g i) = (SUP i : range M. f i)"
+  have "f (SUP i \<in> I. g i) = (SUP i \<in> range M. f i)"
     unfolding eq sup_continuousD[OF f \<open>mono M\<close>] by simp
-  also have "\<dots> \<le> (SUP i : I. f (g i))"
+  also have "\<dots> \<le> (SUP i \<in> I. f (g i))"
     by (insert M, drule SUP_subset_mono) auto
-  finally show "f (SUP i : I. g i) \<le> (SUP i : I. f (g i))" .
+  finally show "f (SUP i \<in> I. g i) \<le> (SUP i \<in> I. f (g i))" .
 qed
 
 lemma ennreal_suminf_SUP_eq:
@@ -1625,7 +1625,7 @@ lemma ennreal_suminf_SUP_eq:
 
 lemma ennreal_SUP_add_left:
   fixes c :: ennreal
-  shows "I \<noteq> {} \<Longrightarrow> (SUP i:I. f i + c) = (SUP i:I. f i) + c"
+  shows "I \<noteq> {} \<Longrightarrow> (SUP i\<in>I. f i + c) = (SUP i\<in>I. f i) + c"
   apply transfer
   apply (simp add: SUP_ereal_add_left)
   apply (subst (1 2) max.absorb2)
@@ -1634,7 +1634,7 @@ lemma ennreal_SUP_add_left:
 
 lemma ennreal_SUP_const_minus: (* TODO: rename: ennreal_SUP_const_minus *)
   fixes f :: "'a \<Rightarrow> ennreal"
-  shows "I \<noteq> {} \<Longrightarrow> c < top \<Longrightarrow> (INF x:I. c - f x) = c - (SUP x:I. f x)"
+  shows "I \<noteq> {} \<Longrightarrow> c < top \<Longrightarrow> (INF x\<in>I. c - f x) = c - (SUP x\<in>I. f x)"
   apply (transfer fixing: I)
   unfolding ex_in_conv[symmetric]
   apply (auto simp add: sup_max[symmetric] SUP_upper2 sup_absorb2
@@ -1648,11 +1648,11 @@ subsection \<open>Approximation lemmas\<close>
 lemma INF_approx_ennreal:
   fixes x::ennreal and e::real
   assumes "e > 0"
-  assumes INF: "x = (INF i : A. f i)"
+  assumes INF: "x = (INF i \<in> A. f i)"
   assumes "x \<noteq> \<infinity>"
   shows "\<exists>i \<in> A. f i < x + e"
 proof -
-  have "(INF i : A. f i) < x + e"
+  have "(INF i \<in> A. f i) < x + e"
     unfolding INF[symmetric] using \<open>0<e\<close> \<open>x \<noteq> \<infinity>\<close> by (cases x) auto
   then show ?thesis
     unfolding INF_less_iff .
@@ -1661,13 +1661,13 @@ qed
 lemma SUP_approx_ennreal:
   fixes x::ennreal and e::real
   assumes "e > 0" "A \<noteq> {}"
-  assumes SUP: "x = (SUP i : A. f i)"
+  assumes SUP: "x = (SUP i \<in> A. f i)"
   assumes "x \<noteq> \<infinity>"
   shows "\<exists>i \<in> A. x < f i + e"
 proof -
   have "x < x + e"
     using \<open>0<e\<close> \<open>x \<noteq> \<infinity>\<close> by (cases x) auto
-  also have "x + e = (SUP i : A. f i + e)"
+  also have "x + e = (SUP i \<in> A. f i + e)"
     unfolding SUP ennreal_SUP_add_left[OF \<open>A \<noteq> {}\<close>] ..
   finally show ?thesis
     unfolding less_SUP_iff .
@@ -1677,17 +1677,17 @@ lemma ennreal_approx_SUP:
   fixes x::ennreal
   assumes f_bound: "\<And>i. i \<in> A \<Longrightarrow> f i \<le> x"
   assumes approx: "\<And>e. (e::real) > 0 \<Longrightarrow> \<exists>i \<in> A. x \<le> f i + e"
-  shows "x = (SUP i : A. f i)"
+  shows "x = (SUP i \<in> A. f i)"
 proof (rule antisym)
-  show "x \<le> (SUP i:A. f i)"
+  show "x \<le> (SUP i\<in>A. f i)"
   proof (rule ennreal_le_epsilon)
     fix e :: real assume "0 < e"
     from approx[OF this] guess i ..
     then have "x \<le> f i + e"
       by simp
-    also have "\<dots> \<le> (SUP i:A. f i) + e"
+    also have "\<dots> \<le> (SUP i\<in>A. f i) + e"
       by (intro add_mono \<open>i \<in> A\<close> SUP_upper order_refl)
-    finally show "x \<le> (SUP i:A. f i) + e" .
+    finally show "x \<le> (SUP i\<in>A. f i) + e" .
   qed
 qed (intro SUP_least f_bound)
 
@@ -1695,17 +1695,17 @@ lemma ennreal_approx_INF:
   fixes x::ennreal
   assumes f_bound: "\<And>i. i \<in> A \<Longrightarrow> x \<le> f i"
   assumes approx: "\<And>e. (e::real) > 0 \<Longrightarrow> \<exists>i \<in> A. f i \<le> x + e"
-  shows "x = (INF i : A. f i)"
+  shows "x = (INF i \<in> A. f i)"
 proof (rule antisym)
-  show "(INF i:A. f i) \<le> x"
+  show "(INF i\<in>A. f i) \<le> x"
   proof (rule ennreal_le_epsilon)
     fix e :: real assume "0 < e"
     from approx[OF this] guess i .. note i = this
-    then have "(INF i:A. f i) \<le> f i"
+    then have "(INF i\<in>A. f i) \<le> f i"
       by (intro INF_lower)
     also have "\<dots> \<le> x + e"
       by fact
-    finally show "(INF i:A. f i) \<le> x + e" .
+    finally show "(INF i\<in>A. f i) \<le> x + e" .
   qed
 qed (intro INF_greatest f_bound)
 
@@ -1786,7 +1786,7 @@ lemma ennreal_less_one_iff[simp]: "ennreal x < 1 \<longleftrightarrow> x < 1"
   by (cases "0 \<le> x") (auto simp: ennreal_neg ennreal_less_iff simp flip: ennreal_1)
 
 lemma SUP_const_minus_ennreal:
-  fixes f :: "'a \<Rightarrow> ennreal" shows "I \<noteq> {} \<Longrightarrow> (SUP x:I. c - f x) = c - (INF x:I. f x)"
+  fixes f :: "'a \<Rightarrow> ennreal" shows "I \<noteq> {} \<Longrightarrow> (SUP x\<in>I. c - f x) = c - (INF x\<in>I. f x)"
   including ennreal.lifting
   by (transfer fixing: I)
      (simp add: SUP_sup_distrib[symmetric] SUP_ereal_minus_right
@@ -1929,18 +1929,18 @@ lemma ennreal_right_diff_distrib:
   done
 
 lemma SUP_diff_ennreal:
-  "c < top \<Longrightarrow> (SUP i:I. f i - c :: ennreal) = (SUP i:I. f i) - c"
+  "c < top \<Longrightarrow> (SUP i\<in>I. f i - c :: ennreal) = (SUP i\<in>I. f i) - c"
   by (auto intro!: SUP_eqI ennreal_minus_mono SUP_least intro: SUP_upper
            simp: ennreal_minus_cancel_iff ennreal_minus_le_iff less_top[symmetric])
 
 lemma ennreal_SUP_add_right:
-  fixes c :: ennreal shows "I \<noteq> {} \<Longrightarrow> c + (SUP i:I. f i) = (SUP i:I. c + f i)"
+  fixes c :: ennreal shows "I \<noteq> {} \<Longrightarrow> c + (SUP i\<in>I. f i) = (SUP i\<in>I. c + f i)"
   using ennreal_SUP_add_left[of I f c] by (simp add: add.commute)
 
 lemma SUP_add_directed_ennreal:
   fixes f g :: "_ \<Rightarrow> ennreal"
   assumes directed: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. f i + g j \<le> f k + g k"
-  shows "(SUP i:I. f i + g i) = (SUP i:I. f i) + (SUP i:I. g i)"
+  shows "(SUP i\<in>I. f i + g i) = (SUP i\<in>I. f i) + (SUP i\<in>I. g i)"
 proof cases
   assume "I = {}" then show ?thesis
     by (simp add: bot_ereal_def)
@@ -1948,16 +1948,16 @@ next
   assume "I \<noteq> {}"
   show ?thesis
   proof (rule antisym)
-    show "(SUP i:I. f i + g i) \<le> (SUP i:I. f i) + (SUP i:I. g i)"
+    show "(SUP i\<in>I. f i + g i) \<le> (SUP i\<in>I. f i) + (SUP i\<in>I. g i)"
       by (rule SUP_least; intro add_mono SUP_upper)
   next
-    have "(SUP i:I. f i) + (SUP i:I. g i) = (SUP i:I. f i + (SUP i:I. g i))"
+    have "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) = (SUP i\<in>I. f i + (SUP i\<in>I. g i))"
       by (intro ennreal_SUP_add_left[symmetric] \<open>I \<noteq> {}\<close>)
-    also have "\<dots> = (SUP i:I. (SUP j:I. f i + g j))"
+    also have "\<dots> = (SUP i\<in>I. (SUP j\<in>I. f i + g j))"
       by (intro SUP_cong refl ennreal_SUP_add_right \<open>I \<noteq> {}\<close>)
-    also have "\<dots> \<le> (SUP i:I. f i + g i)"
+    also have "\<dots> \<le> (SUP i\<in>I. f i + g i)"
       using directed by (intro SUP_least) (blast intro: SUP_upper2)
-    finally show "(SUP i:I. f i) + (SUP i:I. g i) \<le> (SUP i:I. f i + g i)" .
+    finally show "(SUP i\<in>I. f i) + (SUP i\<in>I. g i) \<le> (SUP i\<in>I. f i + g i)" .
   qed
 qed
 

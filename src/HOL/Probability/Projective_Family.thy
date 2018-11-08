@@ -470,7 +470,7 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
     next
       assume *: "{i. J i \<subseteq> {0..< n}} \<noteq> {}"
       have "(INF i. CI (J i) (X' i)) \<le>
-          (INF i:{i. J i \<subseteq> {0..<n}}. C 0 n (\<lambda>_. undefined) (PF.emb {0..<n} (J i) (X' i)))"
+          (INF i\<in>{i. J i \<subseteq> {0..<n}}. C 0 n (\<lambda>_. undefined) (PF.emb {0..<n} (J i) (X' i)))"
         by (intro INF_superset_mono) (auto simp: emeasure_CI)
       also have "\<dots> = C 0 n (\<lambda>_. undefined) (\<Inter>i\<in>{i. J i \<subseteq> {0..<n}}. (PF.emb {0..<n} (J i) (X' i)))"
         using * by (intro emeasure_INT_decseq_subset[symmetric]) (auto intro!: dec_X' del: subsetI simp: sets_C)

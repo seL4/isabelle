@@ -220,13 +220,13 @@ lemma
     and finite_borel_measure_interval_measure: "finite_borel_measure (interval_measure F)"
 proof -
   let ?F = "interval_measure F"
-  { have "ennreal (m - 0) = (SUP i::nat. ennreal (F (real i) - F (- real i)))"
+  { have "ennreal (m - 0) = (SUP i. ennreal (F (real i) - F (- real i)))"
       by (intro LIMSEQ_unique[OF _ LIMSEQ_SUP] tendsto_ennrealI tendsto_intros
                 lim_F_at_bot[THEN filterlim_compose] lim_F_at_top[THEN filterlim_compose]
                 lim_F_at_bot[THEN filterlim_compose] filterlim_real_sequentially
                 filterlim_uminus_at_top[THEN iffD1])
          (auto simp: incseq_def nondecF intro!: diff_mono)
-    also have "\<dots> = (SUP i::nat. emeasure ?F {- real i<..real i})"
+    also have "\<dots> = (SUP i. emeasure ?F {- real i<..real i})"
       by (subst emeasure_interval_measure_Ioc) (simp_all add: nondecF right_cont_F)
     also have "\<dots> = emeasure ?F (\<Union>i::nat. {- real i<..real i})"
       by (rule SUP_emeasure_incseq) (auto simp: incseq_def)

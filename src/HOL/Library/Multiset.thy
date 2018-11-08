@@ -1035,7 +1035,7 @@ proof -
     ultimately have "finite {i. Inf ((\<lambda>f. f i) ` A) > 0}" by (rule finite_subset)
     with False show ?thesis by simp
   qed simp_all
-  thus "(\<lambda>i. if A = {} then 0 else INF f:A. f i) \<in> multiset" by (simp add: multiset_def)
+  thus "(\<lambda>i. if A = {} then 0 else INF f\<in>A. f i) \<in> multiset" by (simp add: multiset_def)
 qed
 
 instance ..
@@ -1094,17 +1094,17 @@ qed
 
 lemma Sup_multiset_in_multiset:
   assumes "A \<noteq> {}" "subset_mset.bdd_above A"
-  shows   "(\<lambda>i. SUP X:A. count X i) \<in> multiset"
+  shows   "(\<lambda>i. SUP X\<in>A. count X i) \<in> multiset"
   unfolding multiset_def
 proof
   have "{i. Sup ((\<lambda>X. count X i) ` A) > 0} \<subseteq> (\<Union>X\<in>A. {i. 0 < count X i})"
   proof safe
-    fix i assume pos: "(SUP X:A. count X i) > 0"
+    fix i assume pos: "(SUP X\<in>A. count X i) > 0"
     show "i \<in> (\<Union>X\<in>A. {i. 0 < count X i})"
     proof (rule ccontr)
       assume "i \<notin> (\<Union>X\<in>A. {i. 0 < count X i})"
       hence "\<forall>X\<in>A. count X i \<le> 0" by (auto simp: count_eq_zero_iff)
-      with assms have "(SUP X:A. count X i) \<le> 0"
+      with assms have "(SUP X\<in>A. count X i) \<le> 0"
         by (intro cSup_least bdd_above_multiset_imp_bdd_above_count) auto
       with pos show False by simp
     qed
@@ -1115,7 +1115,7 @@ qed
 
 lemma count_Sup_multiset_nonempty:
   assumes "A \<noteq> {}" "subset_mset.bdd_above A"
-  shows   "count (Sup A) x = (SUP X:A. count X x)"
+  shows   "count (Sup A) x = (SUP X\<in>A. count X x)"
   using assms by (simp add: Sup_multiset_def Abs_multiset_inverse Sup_multiset_in_multiset)
 
 
@@ -1127,7 +1127,7 @@ proof
   proof (rule mset_subset_eqI)
     fix x
     from \<open>X \<in> A\<close> have "A \<noteq> {}" by auto
-    hence "count (Inf A) x = (INF X:A. count X x)"
+    hence "count (Inf A) x = (INF X\<in>A. count X x)"
       by (simp add: count_Inf_multiset_nonempty)
     also from \<open>X \<in> A\<close> have "\<dots> \<le> count X x"
       by (intro cInf_lower) simp_all
@@ -1139,7 +1139,7 @@ next
   show "X \<subseteq># Inf A"
   proof (rule mset_subset_eqI)
     fix x
-    from nonempty have "count X x \<le> (INF X:A. count X x)"
+    from nonempty have "count X x \<le> (INF X\<in>A. count X x)"
       by (intro cInf_greatest) (auto intro: mset_subset_eq_count le)
     also from nonempty have "\<dots> = count (Inf A) x" by (simp add: count_Inf_multiset_nonempty)
     finally show "count X x \<le> count (Inf A) x" .
@@ -1151,10 +1151,10 @@ next
   proof (rule mset_subset_eqI)
     fix x
     from X have "A \<noteq> {}" by auto
-    have "count X x \<le> (SUP X:A. count X x)"
+    have "count X x \<le> (SUP X\<in>A. count X x)"
       by (intro cSUP_upper X bdd_above_multiset_imp_bdd_above_count bdd)
     also from count_Sup_multiset_nonempty[OF \<open>A \<noteq> {}\<close> bdd]
-      have "(SUP X:A. count X x) = count (Sup A) x" by simp
+      have "(SUP X\<in>A. count X x) = count (Sup A) x" by simp
     finally show "count X x \<le> count (Sup A) x" .
   qed
 next
@@ -1165,7 +1165,7 @@ next
   proof (rule mset_subset_eqI)
     fix x
     from count_Sup_multiset_nonempty[OF \<open>A \<noteq> {}\<close> bdd]
-      have "count (Sup A) x = (SUP X:A. count X x)" .
+      have "count (Sup A) x = (SUP X\<in>A. count X x)" .
     also from nonempty have "\<dots> \<le> count X x"
       by (intro cSup_least) (auto intro: mset_subset_eq_count ge)
     finally show "count (Sup A) x \<le> count X x" .

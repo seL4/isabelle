@@ -279,7 +279,7 @@ lemma sets_stream_space_in_sets:
            simp add: sets_PiM_eq_proj snth_in space sets cong: measurable_cong_sets)
 
 lemma sets_stream_space_eq: "sets (stream_space M) =
-    sets (SUP i:UNIV. vimage_algebra (streams (space M)) (\<lambda>s. s !! i) M)"
+    sets (SUP i\<in>UNIV. vimage_algebra (streams (space M)) (\<lambda>s. s !! i) M)"
   by (auto intro!: sets_stream_space_in_sets sets_Sup_in_sets sets_image_in_sets
                    measurable_Sup1 snth_in measurable_vimage_algebra1 del: subsetI
            simp: space_Sup_eq_UN space_stream_space)

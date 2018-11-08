@@ -141,7 +141,7 @@ proof (rule emeasure_lim)
     unfolding P'_def mapmeasure_def using J
     by (auto intro!: prob_space_distr fm_measurable simp: measurable_cong_sets[OF sets_P])
 
-  let ?SUP = "\<lambda>n. SUP K : {K. K \<subseteq> fm n ` (B n) \<and> compact K}. emeasure (P' n) K"
+  let ?SUP = "\<lambda>n. SUP K \<in> {K. K \<subseteq> fm n ` (B n) \<and> compact K}. emeasure (P' n) K"
   { fix n
     have "emeasure (P (J n)) (B n) = emeasure (P' n) (fm n ` (B n))"
       using J by (auto simp: P'_def mapmeasure_PiM space_P sets_P)
@@ -169,7 +169,7 @@ proof (rule emeasure_lim)
       have "?SUP n + 0 < ?SUP n + 2 powr (-n) * ?a"
         using R[of n] unfolding ennreal_add_left_cancel_less ennreal_zero_less_mult_iff
         by (auto intro: \<open>0 < ?a\<close>)
-      also have "\<dots> = (SUP K:{K. K \<subseteq> fm n ` B n \<and> compact K}. emeasure (P' n) K + 2 powr (-n) * ?a)"
+      also have "\<dots> = (SUP K\<in>{K. K \<subseteq> fm n ` B n \<and> compact K}. emeasure (P' n) K + 2 powr (-n) * ?a)"
         by (rule ennreal_SUP_add_left[symmetric]) auto
       also have "\<dots> \<le> ?SUP n"
       proof (intro SUP_least)

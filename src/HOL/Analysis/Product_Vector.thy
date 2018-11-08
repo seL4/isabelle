@@ -127,7 +127,7 @@ begin
 
 definition [code del]:
   "(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) =
-    (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+    (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 instance
   by standard (rule uniformity_prod_def)

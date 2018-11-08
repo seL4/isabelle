@@ -258,7 +258,7 @@ begin
 
 definition [code del]:
   "(uniformity :: (('a, 'b) fmap \<times> ('a \<Rightarrow>\<^sub>F 'b)) filter) =
-    (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+    (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 instance
   by standard (rule uniformity_fmap_def)

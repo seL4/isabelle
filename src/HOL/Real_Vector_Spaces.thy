@@ -597,7 +597,7 @@ class dist_norm = dist + norm + minus +
   assumes dist_norm: "dist x y = norm (x - y)"
 
 class uniformity_dist = dist + uniformity +
-  assumes uniformity_dist: "uniformity = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  assumes uniformity_dist: "uniformity = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 begin
 
 lemma eventually_uniformity_metric:
@@ -1133,7 +1133,7 @@ begin
 definition dist_real_def: "dist x y = \<bar>x - y\<bar>"
 
 definition uniformity_real_def [code del]:
-  "(uniformity :: (real \<times> real) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  "(uniformity :: (real \<times> real) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_real_def [code del]:
   "open (U :: real set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
@@ -1611,7 +1611,7 @@ qed
 
 subsection \<open>Filters and Limits on Metric Space\<close>
 
-lemma (in metric_space) nhds_metric: "nhds x = (INF e:{0 <..}. principal {y. dist y x < e})"
+lemma (in metric_space) nhds_metric: "nhds x = (INF e\<in>{0 <..}. principal {y. dist y x < e})"
   unfolding nhds_def
 proof (safe intro!: INF_eq)
   fix S

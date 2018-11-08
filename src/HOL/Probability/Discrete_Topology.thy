@@ -19,7 +19,7 @@ definition dist_discrete :: "'a discrete \<Rightarrow> 'a discrete \<Rightarrow>
   where "dist_discrete n m = (if n = m then 0 else 1)"
 
 definition uniformity_discrete :: "('a discrete \<times> 'a discrete) filter" where
-  "(uniformity::('a discrete \<times> 'a discrete) filter) = (INF e:{0 <..}. principal {(x, y). dist x y < e})"
+  "(uniformity::('a discrete \<times> 'a discrete) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition "open_discrete" :: "'a discrete set \<Rightarrow> bool" where
   "(open::'a discrete set \<Rightarrow> bool) U \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"

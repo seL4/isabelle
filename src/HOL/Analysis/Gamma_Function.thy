@@ -372,7 +372,7 @@ lemma ln_Gamma_series_complex_converges:
   shows "uniformly_convergent_on (ball z d) (\<lambda>n z. ln_Gamma_series z n :: complex)"
 proof (intro Cauchy_uniformly_convergent uniformly_Cauchy_onI')
   fix e :: real assume e: "e > 0"
-  define e'' where "e'' = (SUP t:ball z d. norm t + norm t^2)"
+  define e'' where "e'' = (SUP t\<in>ball z d. norm t + norm t^2)"
   define e' where "e' = e / (2*e'')"
   have "bounded ((\<lambda>t. norm t + norm t^2) ` cball z d)"
     by (intro compact_imp_bounded compact_continuous_image) (auto intro!: continuous_intros)
@@ -2270,7 +2270,7 @@ proof -
     qed
     ultimately have compact: "compact B" by (subst compact_eq_bounded_closed) blast
 
-    define M where "M = (SUP z:B. norm (h' z))"
+    define M where "M = (SUP z\<in>B. norm (h' z))"
     have "compact (h' ` B)"
       by (intro compact_continuous_image continuous_on_subset[OF h'_cont] compact) blast+
     hence bdd: "bdd_above ((\<lambda>z. norm (h' z)) ` B)"

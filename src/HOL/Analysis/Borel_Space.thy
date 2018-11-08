@@ -811,14 +811,14 @@ lemma%important borel_measurable_SUP[measurable (raw)]:
   fixes F :: "_ \<Rightarrow> _ \<Rightarrow> _::{complete_linorder, linorder_topology, second_countable_topology}"
   assumes [simp]: "countable I"
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
-  shows "(\<lambda>x. SUP i:I. F i x) \<in> borel_measurable M"
+  shows "(\<lambda>x. SUP i\<in>I. F i x) \<in> borel_measurable M"
   by%unimportant (rule borel_measurableI_greater) (simp add: less_SUP_iff)
 
 lemma%unimportant borel_measurable_INF[measurable (raw)]:
   fixes F :: "_ \<Rightarrow> _ \<Rightarrow> _::{complete_linorder, linorder_topology, second_countable_topology}"
   assumes [simp]: "countable I"
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
-  shows "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable M"
+  shows "(\<lambda>x. INF i\<in>I. F i x) \<in> borel_measurable M"
   by (rule borel_measurableI_less) (simp add: INF_less_iff)
 
 lemma%unimportant borel_measurable_cSUP[measurable (raw)]:
@@ -826,7 +826,7 @@ lemma%unimportant borel_measurable_cSUP[measurable (raw)]:
   assumes [simp]: "countable I"
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
   assumes bdd: "\<And>x. x \<in> space M \<Longrightarrow> bdd_above ((\<lambda>i. F i x) ` I)"
-  shows "(\<lambda>x. SUP i:I. F i x) \<in> borel_measurable M"
+  shows "(\<lambda>x. SUP i\<in>I. F i x) \<in> borel_measurable M"
 proof cases
   assume "I = {}" then show ?thesis
     unfolding \<open>I = {}\<close> image_empty by simp
@@ -837,9 +837,9 @@ next
     fix y
     have "{x \<in> space M. \<forall>i\<in>I. F i x \<le> y} \<in> sets M"
       by measurable
-    also have "{x \<in> space M. \<forall>i\<in>I. F i x \<le> y} = {x \<in> space M. (SUP i:I. F i x) \<le> y}"
+    also have "{x \<in> space M. \<forall>i\<in>I. F i x \<le> y} = {x \<in> space M. (SUP i\<in>I. F i x) \<le> y}"
       by (simp add: cSUP_le_iff \<open>I \<noteq> {}\<close> bdd cong: conj_cong)
-    finally show "{x \<in> space M. (SUP i:I. F i x) \<le>  y} \<in> sets M"  .
+    finally show "{x \<in> space M. (SUP i\<in>I. F i x) \<le>  y} \<in> sets M"  .
   qed
 qed
 
@@ -848,7 +848,7 @@ lemma%important borel_measurable_cINF[measurable (raw)]:
   assumes [simp]: "countable I"
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
   assumes bdd: "\<And>x. x \<in> space M \<Longrightarrow> bdd_below ((\<lambda>i. F i x) ` I)"
-  shows "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable M"
+  shows "(\<lambda>x. INF i\<in>I. F i x) \<in> borel_measurable M"
 proof%unimportant cases
   assume "I = {}" then show ?thesis
     unfolding \<open>I = {}\<close> image_empty by simp
@@ -859,9 +859,9 @@ next
     fix y
     have "{x \<in> space M. \<forall>i\<in>I. y \<le> F i x} \<in> sets M"
       by measurable
-    also have "{x \<in> space M. \<forall>i\<in>I. y \<le> F i x} = {x \<in> space M. y \<le> (INF i:I. F i x)}"
+    also have "{x \<in> space M. \<forall>i\<in>I. y \<le> F i x} = {x \<in> space M. y \<le> (INF i\<in>I. F i x)}"
       by (simp add: le_cINF_iff \<open>I \<noteq> {}\<close> bdd cong: conj_cong)
-    finally show "{x \<in> space M. y \<le> (INF i:I. F i x)} \<in> sets M"  .
+    finally show "{x \<in> space M. y \<le> (INF i\<in>I. F i x)} \<in> sets M"  .
   qed
 qed
 
@@ -1958,22 +1958,22 @@ lemma%important borel_measurable_cINF_real[measurable (raw)]:
   fixes F :: "_ \<Rightarrow> _ \<Rightarrow> real"
   assumes [simp]: "countable I"
   assumes F[measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> borel_measurable M"
-  shows "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable M"
+  shows "(\<lambda>x. INF i\<in>I. F i x) \<in> borel_measurable M"
 proof%unimportant (rule measurable_piecewise_restrict)
   let ?\<Omega> = "{x\<in>space M. bdd_below ((\<lambda>i. F i x)`I)}"
   show "countable {?\<Omega>, - ?\<Omega>}" "space M \<subseteq> \<Union>{?\<Omega>, - ?\<Omega>}" "\<And>X. X \<in> {?\<Omega>, - ?\<Omega>} \<Longrightarrow> X \<inter> space M \<in> sets M"
     by auto
-  fix X assume "X \<in> {?\<Omega>, - ?\<Omega>}" then show "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable (restrict_space M X)"
+  fix X assume "X \<in> {?\<Omega>, - ?\<Omega>}" then show "(\<lambda>x. INF i\<in>I. F i x) \<in> borel_measurable (restrict_space M X)"
   proof safe
-    show "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable (restrict_space M ?\<Omega>)"
+    show "(\<lambda>x. INF i\<in>I. F i x) \<in> borel_measurable (restrict_space M ?\<Omega>)"
       by (intro borel_measurable_cINF measurable_restrict_space1 F)
          (auto simp: space_restrict_space)
-    show "(\<lambda>x. INF i:I. F i x) \<in> borel_measurable (restrict_space M (-?\<Omega>))"
+    show "(\<lambda>x. INF i\<in>I. F i x) \<in> borel_measurable (restrict_space M (-?\<Omega>))"
     proof (subst measurable_cong)
       fix x assume "x \<in> space (restrict_space M (-?\<Omega>))"
       then have "\<not> (\<forall>i\<in>I. - F i x \<le> y)" for y
         by (auto simp: space_restrict_space bdd_above_def bdd_above_uminus[symmetric])
-      then show "(INF i:I. F i x) = - (THE x. False)"
+      then show "(INF i\<in>I. F i x) = - (THE x. False)"
         by (auto simp: space_restrict_space Inf_real_def Sup_real_def Least_def simp del: Set.ball_simps(10))
     qed simp
   qed

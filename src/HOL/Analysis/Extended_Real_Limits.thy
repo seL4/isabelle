@@ -298,7 +298,7 @@ qed
 
 lemma%important Liminf_within:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
-  shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S \<inter> ball x e - {x}). f y)"
+  shows "Liminf (at x within S) f = (SUP e\<in>{0<..}. INF y\<in>(S \<inter> ball x e - {x}). f y)"
   unfolding Liminf_def eventually_at
 proof%unimportant (rule SUP_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d
@@ -318,7 +318,7 @@ qed
 
 lemma%important Limsup_within:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
-  shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S \<inter> ball x e - {x}). f y)"
+  shows "Limsup (at x within S) f = (INF e\<in>{0<..}. SUP y\<in>(S \<inter> ball x e - {x}). f y)"
   unfolding Limsup_def eventually_at
 proof%unimportant (rule INF_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d
@@ -338,17 +338,17 @@ qed
 
 lemma Liminf_at:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
-  shows "Liminf (at x) f = (SUP e:{0<..}. INF y:(ball x e - {x}). f y)"
+  shows "Liminf (at x) f = (SUP e\<in>{0<..}. INF y\<in>(ball x e - {x}). f y)"
   using Liminf_within[of x UNIV f] by simp
 
 lemma Limsup_at:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
-  shows "Limsup (at x) f = (INF e:{0<..}. SUP y:(ball x e - {x}). f y)"
+  shows "Limsup (at x) f = (INF e\<in>{0<..}. SUP y\<in>(ball x e - {x}). f y)"
   using Limsup_within[of x UNIV f] by simp
 
 lemma min_Liminf_at:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_linorder"
-  shows "min (f x) (Liminf (at x) f) = (SUP e:{0<..}. INF y:ball x e. f y)"
+  shows "min (f x) (Liminf (at x) f) = (SUP e\<in>{0<..}. INF y\<in>ball x e. f y)"
   unfolding inf_min[symmetric] Liminf_at
   apply (subst inf_commute)
   apply (subst SUP_inf)
@@ -1231,16 +1231,16 @@ by (metis assms gt_ex less_le_trans liminf_bounded_iff not_less)
 lemma limsup_shift:
   "limsup (\<lambda>n. u (n+1)) = limsup u"
 proof -
-  have "(SUP m:{n+1..}. u m) = (SUP m:{n..}. u (m + 1))" for n
+  have "(SUP m\<in>{n+1..}. u m) = (SUP m\<in>{n..}. u (m + 1))" for n
     apply (rule SUP_eq) using Suc_le_D by auto
-  then have a: "(INF n. SUP m:{n..}. u (m + 1)) = (INF n. (SUP m:{n+1..}. u m))" by auto
-  have b: "(INF n. (SUP m:{n+1..}. u m)) = (INF n:{1..}. (SUP m:{n..}. u m))"
+  then have a: "(INF n. SUP m\<in>{n..}. u (m + 1)) = (INF n. (SUP m\<in>{n+1..}. u m))" by auto
+  have b: "(INF n. (SUP m\<in>{n+1..}. u m)) = (INF n\<in>{1..}. (SUP m\<in>{n..}. u m))"
     apply (rule INF_eq) using Suc_le_D by auto
-  have "(INF n:{1..}. v n) = (INF n. v n)" if "decseq v" for v::"nat \<Rightarrow> 'a"
+  have "(INF n\<in>{1..}. v n) = (INF n. v n)" if "decseq v" for v::"nat \<Rightarrow> 'a"
     apply (rule INF_eq) using \<open>decseq v\<close> decseq_Suc_iff by auto
-  moreover have "decseq (\<lambda>n. (SUP m:{n..}. u m))" by (simp add: SUP_subset_mono decseq_def)
-  ultimately have c: "(INF n:{1..}. (SUP m:{n..}. u m)) = (INF n. (SUP m:{n..}. u m))" by simp
-  have "(INF n. SUPREMUM {n..} u) = (INF n. SUP m:{n..}. u (m + 1))" using a b c by simp
+  moreover have "decseq (\<lambda>n. (SUP m\<in>{n..}. u m))" by (simp add: SUP_subset_mono decseq_def)
+  ultimately have c: "(INF n\<in>{1..}. (SUP m\<in>{n..}. u m)) = (INF n. (SUP m\<in>{n..}. u m))" by simp
+  have "(INF n. SUPREMUM {n..} u) = (INF n. SUP m\<in>{n..}. u (m + 1))" using a b c by simp
   then show ?thesis by (auto cong: limsup_INF_SUP)
 qed
 
@@ -1255,16 +1255,16 @@ qed (auto)
 lemma liminf_shift:
   "liminf (\<lambda>n. u (n+1)) = liminf u"
 proof -
-  have "(INF m:{n+1..}. u m) = (INF m:{n..}. u (m + 1))" for n
+  have "(INF m\<in>{n+1..}. u m) = (INF m\<in>{n..}. u (m + 1))" for n
     apply (rule INF_eq) using Suc_le_D by (auto)
-  then have a: "(SUP n. INF m:{n..}. u (m + 1)) = (SUP n. (INF m:{n+1..}. u m))" by auto
-  have b: "(SUP n. (INF m:{n+1..}. u m)) = (SUP n:{1..}. (INF m:{n..}. u m))"
+  then have a: "(SUP n. INF m\<in>{n..}. u (m + 1)) = (SUP n. (INF m\<in>{n+1..}. u m))" by auto
+  have b: "(SUP n. (INF m\<in>{n+1..}. u m)) = (SUP n\<in>{1..}. (INF m\<in>{n..}. u m))"
     apply (rule SUP_eq) using Suc_le_D by (auto)
-  have "(SUP n:{1..}. v n) = (SUP n. v n)" if "incseq v" for v::"nat \<Rightarrow> 'a"
+  have "(SUP n\<in>{1..}. v n) = (SUP n. v n)" if "incseq v" for v::"nat \<Rightarrow> 'a"
     apply (rule SUP_eq) using \<open>incseq v\<close> incseq_Suc_iff by auto
-  moreover have "incseq (\<lambda>n. (INF m:{n..}. u m))" by (simp add: INF_superset_mono mono_def)
-  ultimately have c: "(SUP n:{1..}. (INF m:{n..}. u m)) = (SUP n. (INF m:{n..}. u m))" by simp
-  have "(SUP n. INFIMUM {n..} u) = (SUP n. INF m:{n..}. u (m + 1))" using a b c by simp
+  moreover have "incseq (\<lambda>n. (INF m\<in>{n..}. u m))" by (simp add: INF_superset_mono mono_def)
+  ultimately have c: "(SUP n\<in>{1..}. (INF m\<in>{n..}. u m)) = (SUP n. (INF m\<in>{n..}. u m))" by simp
+  have "(SUP n. INFIMUM {n..} u) = (SUP n. INF m\<in>{n..}. u (m + 1))" using a b c by simp
   then show ?thesis by (auto cong: liminf_SUP_INF)
 qed
 
@@ -1281,7 +1281,7 @@ lemma%important Limsup_obtain:
   assumes "Limsup F u > c"
   shows "\<exists>i. u i > c"
 proof%unimportant -
-  have "(INF P:{P. eventually P F}. SUP x:{x. P x}. u x) > c" using assms by (simp add: Limsup_def)
+  have "(INF P\<in>{P. eventually P F}. SUP x\<in>{x. P x}. u x) > c" using assms by (simp add: Limsup_def)
   then show ?thesis by (metis eventually_True mem_Collect_eq less_INF_D less_SUP_iff)
 qed
 
@@ -1297,7 +1297,7 @@ proof%unimportant (cases)
     by (intro dependent_nat_choice) (auto simp: conj_commute)
   then obtain r :: "nat \<Rightarrow> nat" where "strict_mono r" and mono: "\<And>n m. r n \<le> m \<Longrightarrow> u m \<le> u (r n)"
     by (auto simp: strict_mono_Suc_iff)
-  define umax where "umax = (\<lambda>n. (SUP m:{n..}. u m))"
+  define umax where "umax = (\<lambda>n. (SUP m\<in>{n..}. u m))"
   have "decseq umax" unfolding umax_def by (simp add: SUP_subset_mono antimono_def)
   then have "umax \<longlonglongrightarrow> limsup u" unfolding umax_def by (metis LIMSEQ_INF limsup_INF_SUP)
   then have *: "(umax o r) \<longlonglongrightarrow> limsup u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>strict_mono r\<close>)
@@ -1373,7 +1373,7 @@ next
     then have "u i \<le> u (r(Suc n))" using r by simp
     then have "u i \<le> (SUP n. (u o r) n)" unfolding o_def by (meson SUP_upper2 UNIV_I)
   }
-  then have "(SUP i:{N<..}. u i) \<le> (SUP n. (u o r) n)" using SUP_least by blast
+  then have "(SUP i\<in>{N<..}. u i) \<le> (SUP n. (u o r) n)" using SUP_least by blast
   then have "limsup u \<le> (SUP n. (u o r) n)" unfolding Limsup_def
     by (metis (mono_tags, lifting) INF_lower2 atLeast_Suc_greaterThan atLeast_def eventually_ge_at_top mem_Collect_eq)
   then have "limsup u = (SUP n. (u o r) n)" using \<open>(SUP n. (u o r) n) \<le> limsup u\<close> by simp
@@ -1390,7 +1390,7 @@ proof%unimportant (cases)
     by (intro dependent_nat_choice) (auto simp: conj_commute)
   then obtain r :: "nat \<Rightarrow> nat" where "strict_mono r" and mono: "\<And>n m. r n \<le> m \<Longrightarrow> u m \<ge> u (r n)"
     by (auto simp: strict_mono_Suc_iff)
-  define umin where "umin = (\<lambda>n. (INF m:{n..}. u m))"
+  define umin where "umin = (\<lambda>n. (INF m\<in>{n..}. u m))"
   have "incseq umin" unfolding umin_def by (simp add: INF_superset_mono incseq_def)
   then have "umin \<longlonglongrightarrow> liminf u" unfolding umin_def by (metis LIMSEQ_SUP liminf_SUP_INF)
   then have *: "(umin o r) \<longlonglongrightarrow> liminf u" by (simp add: LIMSEQ_subseq_LIMSEQ \<open>strict_mono r\<close>)
@@ -1467,7 +1467,7 @@ next
     then have "u i \<ge> u (r(Suc n))" using r by simp
     then have "u i \<ge> (INF n. (u o r) n)" unfolding o_def by (meson INF_lower2 UNIV_I)
   }
-  then have "(INF i:{N<..}. u i) \<ge> (INF n. (u o r) n)" using INF_greatest by blast
+  then have "(INF i\<in>{N<..}. u i) \<ge> (INF n. (u o r) n)" using INF_greatest by blast
   then have "liminf u \<ge> (INF n. (u o r) n)" unfolding Liminf_def
     by (metis (mono_tags, lifting) SUP_upper2 atLeast_Suc_greaterThan atLeast_def eventually_ge_at_top mem_Collect_eq)
   then have "liminf u = (INF n. (u o r) n)" using \<open>(INF n. (u o r) n) \<ge> liminf u\<close> by simp
@@ -1757,7 +1757,7 @@ proof%unimportant (transfer, clarsimp)
     using * by (intro SUP_upper2[of x]) auto
   moreover have "0 \<le> (SUPREMUM {x..} u)" for x
     using * by (intro SUP_upper2[of x]) auto
-  ultimately show "(SUP n. INF n:{n..}. max 0 (u n - v n))
+  ultimately show "(SUP n. INF n\<in>{n..}. max 0 (u n - v n))
             \<le> max 0 ((INF x. max 0 (SUPREMUM {x..} u)) - (INF x. max 0 (SUPREMUM {x..} v)))"
     by (auto simp: * ereal_diff_positive max.absorb2 liminf_SUP_INF[symmetric] limsup_INF_SUP[symmetric] ereal_liminf_limsup_minus)
 qed

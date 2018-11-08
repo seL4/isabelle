@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Auxiliary material\<close>
 
-lemma cSUP_singleton [simp]: "(SUP x:{x}. f x :: _ :: conditionally_complete_lattice) = f x"
+lemma cSUP_singleton [simp]: "(SUP x\<in>{x}. f x :: _ :: conditionally_complete_lattice) = f x"
 by (metis cSup_singleton image_empty image_insert)
 
 subsubsection \<open>More about extended reals\<close>
@@ -33,18 +33,18 @@ lemma continuous_at_ennreal[continuous_intros]: "continuous F f \<Longrightarrow
   unfolding continuous_def by auto
 
 lemma ennreal_Sup:
-  assumes *: "(SUP a:A. ennreal a) \<noteq> \<top>"
+  assumes *: "(SUP a\<in>A. ennreal a) \<noteq> \<top>"
   and "A \<noteq> {}"
-  shows "ennreal (Sup A) = (SUP a:A. ennreal a)"
+  shows "ennreal (Sup A) = (SUP a\<in>A. ennreal a)"
 proof (rule continuous_at_Sup_mono)
-  obtain r where r: "ennreal r = (SUP a:A. ennreal a)" "r \<ge> 0"
-    using * by(cases "(SUP a:A. ennreal a)") simp_all
+  obtain r where r: "ennreal r = (SUP a\<in>A. ennreal a)" "r \<ge> 0"
+    using * by(cases "(SUP a\<in>A. ennreal a)") simp_all
   then show "bdd_above A"
     by(auto intro!: SUP_upper bdd_aboveI[of _ r] simp add: ennreal_le_iff[symmetric])
 qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ennreal ennreal_leI assms)
 
 lemma ennreal_SUP:
-  "\<lbrakk> (SUP a:A. ennreal (f a)) \<noteq> \<top>; A \<noteq> {} \<rbrakk> \<Longrightarrow> ennreal (SUP a:A. f a) = (SUP a:A. ennreal (f a))"
+  "\<lbrakk> (SUP a\<in>A. ennreal (f a)) \<noteq> \<top>; A \<noteq> {} \<rbrakk> \<Longrightarrow> ennreal (SUP a\<in>A. f a) = (SUP a\<in>A. ennreal (f a))"
 using ennreal_Sup[of "f ` A"] by auto
 
 lemma ennreal_lt_0: "x < 0 \<Longrightarrow> ennreal x = 0"
@@ -333,9 +333,9 @@ by(simp add: space_subprob_algebra)
 lemma nn_integral_spmf_neq_top: "(\<integral>\<^sup>+ x. spmf p x \<partial>count_space UNIV) \<noteq> \<top>"
 using nn_integral_measure_spmf[where f="\<lambda>_. 1", of p, symmetric] by simp
 
-lemma SUP_spmf_neq_top': "(SUP p:Y. ennreal (spmf p x)) \<noteq> \<top>"
+lemma SUP_spmf_neq_top': "(SUP p\<in>Y. ennreal (spmf p x)) \<noteq> \<top>"
 proof(rule neq_top_trans)
-  show "(SUP p:Y. ennreal (spmf p x)) \<le> 1" by(rule SUP_least)(simp add: pmf_le_1)
+  show "(SUP p\<in>Y. ennreal (spmf p x)) \<le> 1" by(rule SUP_least)(simp add: pmf_le_1)
 qed simp
 
 lemma SUP_spmf_neq_top: "(SUP i. ennreal (spmf (Y i) x)) \<noteq> \<top>"
@@ -343,9 +343,9 @@ proof(rule neq_top_trans)
   show "(SUP i. ennreal (spmf (Y i) x)) \<le> 1" by(rule SUP_least)(simp add: pmf_le_1)
 qed simp
 
-lemma SUP_emeasure_spmf_neq_top: "(SUP p:Y. emeasure (measure_spmf p) A) \<noteq> \<top>"
+lemma SUP_emeasure_spmf_neq_top: "(SUP p\<in>Y. emeasure (measure_spmf p) A) \<noteq> \<top>"
 proof(rule neq_top_trans)
-  show "(SUP p:Y. emeasure (measure_spmf p) A) \<le> 1"
+  show "(SUP p\<in>Y. emeasure (measure_spmf p) A) \<le> 1"
     by(rule SUP_least)(simp add: measure_spmf.subprob_emeasure_le_1)
 qed simp
 
@@ -1228,7 +1228,7 @@ subsection \<open>CCPO structure for the flat ccpo @{term "ord_option (=)"}\<clo
 context fixes Y :: "'a spmf set" begin
 
 definition lub_spmf :: "'a spmf"
-where "lub_spmf = embed_spmf (\<lambda>x. enn2real (SUP p : Y. ennreal (spmf p x)))"
+where "lub_spmf = embed_spmf (\<lambda>x. enn2real (SUP p \<in> Y. ennreal (spmf p x)))"
   \<comment> \<open>We go through @{typ ennreal} to have a sensible definition even if @{term Y} is empty.\<close>
 
 lemma lub_spmf_empty [simp]: "SPMF.lub_spmf {} = return_pmf None"
@@ -1339,7 +1339,7 @@ proof(cases "Y = {}")
   qed
 qed simp
 
-lemma lub_spmf_subprob: "(\<integral>\<^sup>+ x. (SUP p : Y. ennreal (spmf p x)) \<partial>count_space UNIV) \<le> 1"
+lemma lub_spmf_subprob: "(\<integral>\<^sup>+ x. (SUP p \<in> Y. ennreal (spmf p x)) \<partial>count_space UNIV) \<le> 1"
 proof(cases "Y = {}")
   case True
   thus ?thesis by(simp add: bot_ennreal)
@@ -1348,13 +1348,13 @@ next
   let ?B = "\<Union>p\<in>Y. set_spmf p"
   have countable: "countable ?B" by(rule spmf_chain_countable)
 
-  have "(\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x)) \<partial>count_space UNIV) =
-        (\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x) * indicator ?B x) \<partial>count_space UNIV)"
+  have "(\<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x)) \<partial>count_space UNIV) =
+        (\<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x) * indicator ?B x) \<partial>count_space UNIV)"
     by(intro nn_integral_cong SUP_cong)(auto split: split_indicator simp add: spmf_eq_0_set_spmf)
-  also have "\<dots> = (\<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x)) \<partial>count_space ?B)"
+  also have "\<dots> = (\<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x)) \<partial>count_space ?B)"
     unfolding ennreal_indicator[symmetric] using False
     by(subst SUP_mult_right_ennreal[symmetric])(simp add: ennreal_indicator nn_integral_count_space_indicator)
-  also have "\<dots> = (SUP p:Y. \<integral>\<^sup>+ x. spmf p x \<partial>count_space ?B)" using False _ countable
+  also have "\<dots> = (SUP p\<in>Y. \<integral>\<^sup>+ x. spmf p x \<partial>count_space ?B)" using False _ countable
     by(rule nn_integral_monotone_convergence_SUP_countable)(rule chain_ord_spmf_eqD)
   also have "\<dots> \<le> 1"
   proof(rule SUP_least)
@@ -1373,23 +1373,23 @@ qed
 
 lemma spmf_lub_spmf:
   assumes "Y \<noteq> {}"
-  shows "spmf lub_spmf x = (SUP p : Y. spmf p x)"
+  shows "spmf lub_spmf x = (SUP p \<in> Y. spmf p x)"
 proof -
   from assms obtain p where "p \<in> Y" by auto
-  have "spmf lub_spmf x = max 0 (enn2real (SUP p:Y. ennreal (spmf p x)))" unfolding lub_spmf_def
+  have "spmf lub_spmf x = max 0 (enn2real (SUP p\<in>Y. ennreal (spmf p x)))" unfolding lub_spmf_def
     by(rule spmf_embed_spmf)(simp del: SUP_eq_top_iff Sup_eq_top_iff add: ennreal_enn2real_if SUP_spmf_neq_top' lub_spmf_subprob)
-  also have "\<dots> = enn2real (SUP p:Y. ennreal (spmf p x))"
+  also have "\<dots> = enn2real (SUP p\<in>Y. ennreal (spmf p x))"
     by(rule max_absorb2)(simp)
-  also have "\<dots> = enn2real (ennreal (SUP p : Y. spmf p x))" using assms
+  also have "\<dots> = enn2real (ennreal (SUP p \<in> Y. spmf p x))" using assms
     by(subst ennreal_SUP[symmetric])(simp_all add: SUP_spmf_neq_top' del: SUP_eq_top_iff Sup_eq_top_iff)
   also have "0 \<le> (\<Squnion>p\<in>Y. spmf p x)" using assms
     by(auto intro!: cSUP_upper2 bdd_aboveI[where M=1] simp add: pmf_le_1)
-  then have "enn2real (ennreal (SUP p : Y. spmf p x)) = (SUP p : Y. spmf p x)"
+  then have "enn2real (ennreal (SUP p \<in> Y. spmf p x)) = (SUP p \<in> Y. spmf p x)"
     by(rule enn2real_ennreal)
   finally show ?thesis .
 qed
 
-lemma ennreal_spmf_lub_spmf: "Y \<noteq> {} \<Longrightarrow> ennreal (spmf lub_spmf x) = (SUP p:Y. ennreal (spmf p x))"
+lemma ennreal_spmf_lub_spmf: "Y \<noteq> {} \<Longrightarrow> ennreal (spmf lub_spmf x) = (SUP p\<in>Y. ennreal (spmf p x))"
 unfolding spmf_lub_spmf by(subst ennreal_SUP)(simp_all add: SUP_spmf_neq_top' del: SUP_eq_top_iff Sup_eq_top_iff)
 
 lemma lub_spmf_upper:
@@ -1398,7 +1398,7 @@ lemma lub_spmf_upper:
 proof(rule ord_pmf_increaseI)
   fix x
   from p have [simp]: "Y \<noteq> {}" by auto
-  from p have "ennreal (spmf p x) \<le> (SUP p:Y. ennreal (spmf p x))" by(rule SUP_upper)
+  from p have "ennreal (spmf p x) \<le> (SUP p\<in>Y. ennreal (spmf p x))" by(rule SUP_upper)
   also have "\<dots> = ennreal (spmf lub_spmf x)" using p
     by(subst spmf_lub_spmf)(auto simp add: ennreal_SUP SUP_spmf_neq_top' simp del: SUP_eq_top_iff Sup_eq_top_iff)
   finally show "spmf p x \<le> spmf lub_spmf x" by simp
@@ -1413,7 +1413,7 @@ proof(cases "Y = {}")
   proof(rule ord_pmf_increaseI)
     fix x
     from nonempty obtain p where p: "p \<in> Y" by auto
-    have "ennreal (spmf lub_spmf x) = (SUP p:Y. ennreal (spmf p x))"
+    have "ennreal (spmf lub_spmf x) = (SUP p\<in>Y. ennreal (spmf p x))"
       by(subst spmf_lub_spmf)(auto simp add: ennreal_SUP SUP_spmf_neq_top' nonempty simp del: SUP_eq_top_iff Sup_eq_top_iff)
     also have "\<dots> \<le> ennreal (spmf z x)" by(rule SUP_least)(simp add: ord_spmf_eq_leD z)
     finally show "spmf lub_spmf x \<le> spmf z x" by simp
@@ -1438,16 +1438,16 @@ qed simp
 
 lemma emeasure_lub_spmf:
   assumes Y: "Y \<noteq> {}"
-  shows "emeasure (measure_spmf lub_spmf) A = (SUP y:Y. emeasure (measure_spmf y) A)"
+  shows "emeasure (measure_spmf lub_spmf) A = (SUP y\<in>Y. emeasure (measure_spmf y) A)"
   (is "?lhs = ?rhs")
 proof -
   let ?M = "count_space (set_spmf lub_spmf)"
   have "?lhs = \<integral>\<^sup>+ x. ennreal (spmf lub_spmf x) * indicator A x \<partial>?M"
     by(auto simp add: nn_integral_indicator[symmetric] nn_integral_measure_spmf')
-  also have "\<dots> = \<integral>\<^sup>+ x. (SUP y:Y. ennreal (spmf y x) * indicator A x) \<partial>?M"
+  also have "\<dots> = \<integral>\<^sup>+ x. (SUP y\<in>Y. ennreal (spmf y x) * indicator A x) \<partial>?M"
     unfolding ennreal_indicator[symmetric]
     by(simp add: spmf_lub_spmf assms ennreal_SUP[OF SUP_spmf_neq_top'] SUP_mult_right_ennreal)
-  also from assms have "\<dots> = (SUP y:Y. \<integral>\<^sup>+ x. ennreal (spmf y x) * indicator A x \<partial>?M)"
+  also from assms have "\<dots> = (SUP y\<in>Y. \<integral>\<^sup>+ x. ennreal (spmf y x) * indicator A x \<partial>?M)"
   proof(rule nn_integral_monotone_convergence_SUP_countable)
     have "(\<lambda>i x. ennreal (spmf i x) * indicator A x) ` Y = (\<lambda>f x. f x * indicator A x) ` (\<lambda>p x. ennreal (spmf p x)) ` Y"
       by(simp add: image_image)
@@ -1455,7 +1455,7 @@ proof -
       by(rule chain_imageI)(auto simp add: le_fun_def split: split_indicator)
     finally show "Complete_Partial_Order.chain (\<le>) ((\<lambda>i x. ennreal (spmf i x) * indicator A x) ` Y)" .
   qed simp
-  also have "\<dots> = (SUP y:Y. \<integral>\<^sup>+ x. ennreal (spmf y x) * indicator A x \<partial>count_space UNIV)"
+  also have "\<dots> = (SUP y\<in>Y. \<integral>\<^sup>+ x. ennreal (spmf y x) * indicator A x \<partial>count_space UNIV)"
     by(auto simp add: nn_integral_count_space_indicator set_lub_spmf spmf_eq_0_set_spmf split: split_indicator intro!: SUP_cong nn_integral_cong)
   also have "\<dots> = ?rhs"
     by(auto simp add: nn_integral_indicator[symmetric] nn_integral_measure_spmf)
@@ -1464,7 +1464,7 @@ qed
 
 lemma measure_lub_spmf:
   assumes Y: "Y \<noteq> {}"
-  shows "measure (measure_spmf lub_spmf) A = (SUP y:Y. measure (measure_spmf y) A)" (is "?lhs = ?rhs")
+  shows "measure (measure_spmf lub_spmf) A = (SUP y\<in>Y. measure (measure_spmf y) A)" (is "?lhs = ?rhs")
 proof -
   have "ennreal ?lhs = ennreal ?rhs"
     using emeasure_lub_spmf[OF assms] SUP_emeasure_spmf_neq_top[of A Y] Y
@@ -1476,12 +1476,12 @@ qed
 
 lemma weight_lub_spmf:
   assumes Y: "Y \<noteq> {}"
-  shows "weight_spmf lub_spmf = (SUP y:Y. weight_spmf y)"
+  shows "weight_spmf lub_spmf = (SUP y\<in>Y. weight_spmf y)"
 unfolding weight_spmf_def by(rule measure_lub_spmf) fact
 
 lemma measure_spmf_lub_spmf:
   assumes Y: "Y \<noteq> {}"
-  shows "measure_spmf lub_spmf = (SUP p:Y. measure_spmf p)" (is "?lhs = ?rhs")
+  shows "measure_spmf lub_spmf = (SUP p\<in>Y. measure_spmf p)" (is "?lhs = ?rhs")
 proof(rule measure_eqI)
   from assms obtain p where p: "p \<in> Y" by auto
   from chain have chain': "Complete_Partial_Order.chain (\<le>) (measure_spmf ` Y)"
@@ -1583,11 +1583,11 @@ proof(cases "Y = {}")
     let ?M = "count_space (set_spmf (lub_spmf Y))"
     have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ x. ennreal (spmf (lub_spmf Y) x) * ennreal (spmf (f x) i) \<partial>?M"
       by(auto simp add: ennreal_spmf_lub_spmf ennreal_spmf_bind nn_integral_measure_spmf')
-    also have "\<dots> = \<integral>\<^sup>+ x. (SUP p:Y. ennreal (spmf p x * spmf (f x) i)) \<partial>?M"
+    also have "\<dots> = \<integral>\<^sup>+ x. (SUP p\<in>Y. ennreal (spmf p x * spmf (f x) i)) \<partial>?M"
       by(subst ennreal_spmf_lub_spmf[OF chain Y])(subst SUP_mult_right_ennreal, simp_all add: ennreal_mult Y)
-    also have "\<dots> = (SUP p:Y. \<integral>\<^sup>+ x. ennreal (spmf p x * spmf (f x) i) \<partial>?M)"
+    also have "\<dots> = (SUP p\<in>Y. \<integral>\<^sup>+ x. ennreal (spmf p x * spmf (f x) i) \<partial>?M)"
       using Y chain' by(rule nn_integral_monotone_convergence_SUP_countable) simp
-    also have "\<dots> = (SUP p:Y. ennreal (spmf (bind_spmf p f) i))"
+    also have "\<dots> = (SUP p\<in>Y. ennreal (spmf (bind_spmf p f) i))"
       by(auto simp add: ennreal_spmf_bind nn_integral_measure_spmf nn_integral_count_space_indicator set_lub_spmf[OF chain] in_set_spmf_iff_spmf ennreal_mult intro!: SUP_cong nn_integral_cong split: split_indicator)
     also have "\<dots> = ennreal (spmf ?rhs i)" using chain'' by(simp add: ennreal_spmf_lub_spmf Y)
     finally show "spmf ?lhs i = spmf ?rhs i" by simp
@@ -1619,12 +1619,12 @@ proof(cases "Y = {}")
     have chain''': "Complete_Partial_Order.chain (ord_spmf (=)) ((\<lambda>p. bind_spmf x (\<lambda>y. g y p)) ` Y)"
       using chain by(rule chain_imageI)(rule monotone_bind_spmf2[OF g, THEN monotoneD])
 
-    have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ y. (SUP p:Y. ennreal (spmf x y * spmf (g y p) i)) \<partial>count_space (set_spmf x)"
+    have "ennreal (spmf ?lhs i) = \<integral>\<^sup>+ y. (SUP p\<in>Y. ennreal (spmf x y * spmf (g y p) i)) \<partial>count_space (set_spmf x)"
       by(simp add: ennreal_spmf_bind ennreal_spmf_lub_spmf[OF chain'] Y nn_integral_measure_spmf' SUP_mult_left_ennreal ennreal_mult)
-    also have "\<dots> = (SUP p:Y. \<integral>\<^sup>+ y. ennreal (spmf x y * spmf (g y p) i) \<partial>count_space (set_spmf x))"
+    also have "\<dots> = (SUP p\<in>Y. \<integral>\<^sup>+ y. ennreal (spmf x y * spmf (g y p) i) \<partial>count_space (set_spmf x))"
       unfolding nn_integral_measure_spmf' using Y chain''
       by(rule nn_integral_monotone_convergence_SUP_countable) simp
-    also have "\<dots> = (SUP p:Y. ennreal (spmf (bind_spmf x (\<lambda>y. g y p)) i))"
+    also have "\<dots> = (SUP p\<in>Y. ennreal (spmf (bind_spmf x (\<lambda>y. g y p)) i))"
       by(simp add: ennreal_spmf_bind nn_integral_measure_spmf' ennreal_mult)
     also have "\<dots> = ennreal (spmf ?rhs i)" using chain'''
       by(auto simp add: ennreal_spmf_lub_spmf Y)
@@ -1775,9 +1775,9 @@ proof(rule ccpo.admissibleI)
       by(auto simp add: weight_lub_spmf chain1 chain2 Y rel_spmf_weightD[OF R, symmetric] intro!: cSUP_least intro: cSUP_upper2[OF bdd_aboveI2[OF weight_spmf_le_1]])
 
     fix A
-    have "measure (measure_spmf (lub_spmf (fst ` Y))) A = (SUP y:fst ` Y. measure (measure_spmf y) A)"
+    have "measure (measure_spmf (lub_spmf (fst ` Y))) A = (SUP y\<in>fst ` Y. measure (measure_spmf y) A)"
       using chain1 Y1 by(rule measure_lub_spmf)
-    also have "\<dots> \<le> (SUP y:snd ` Y. measure (measure_spmf y) {y. \<exists>x\<in>A. R x y})" using Y1
+    also have "\<dots> \<le> (SUP y\<in>snd ` Y. measure (measure_spmf y) {y. \<exists>x\<in>A. R x y})" using Y1
       by(rule cSUP_least)(auto intro!: cSUP_upper2[OF bdd_aboveI2[OF measure_spmf.subprob_measure_le_1]] rel_spmf_measureD R)
     also have "\<dots> = measure (measure_spmf (lub_spmf (snd ` Y))) {y. \<exists>x\<in>A. R x y}"
       using chain2 Y2 by(rule measure_lub_spmf[symmetric])

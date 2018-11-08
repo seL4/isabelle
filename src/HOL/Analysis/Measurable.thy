@@ -392,32 +392,32 @@ lemma measurable_SUP[measurable]:
   fixes F :: "'i \<Rightarrow> 'a \<Rightarrow> 'b::{complete_lattice, countable}"
   assumes [simp]: "countable I"
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> measurable M (count_space UNIV)"
-  shows "(\<lambda>x. SUP i:I. F i x) \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. SUP i\<in>I. F i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_count_space_eq2_countable
 proof (safe intro!: UNIV_I)
   fix a
-  have "(\<lambda>x. SUP i:I. F i x) -` {a} \<inter> space M =
+  have "(\<lambda>x. SUP i\<in>I. F i x) -` {a} \<inter> space M =
     {x\<in>space M. (\<forall>i\<in>I. F i x \<le> a) \<and> (\<forall>b. (\<forall>i\<in>I. F i x \<le> b) \<longrightarrow> a \<le> b)}"
     unfolding SUP_le_iff[symmetric] by auto
   also have "\<dots> \<in> sets M"
     by measurable
-  finally show "(\<lambda>x. SUP i:I. F i x) -` {a} \<inter> space M \<in> sets M" .
+  finally show "(\<lambda>x. SUP i\<in>I. F i x) -` {a} \<inter> space M \<in> sets M" .
 qed
 
 lemma measurable_INF[measurable]:
   fixes F :: "'i \<Rightarrow> 'a \<Rightarrow> 'b::{complete_lattice, countable}"
   assumes [simp]: "countable I"
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> measurable M (count_space UNIV)"
-  shows "(\<lambda>x. INF i:I. F i x) \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. INF i\<in>I. F i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_count_space_eq2_countable
 proof (safe intro!: UNIV_I)
   fix a
-  have "(\<lambda>x. INF i:I. F i x) -` {a} \<inter> space M =
+  have "(\<lambda>x. INF i\<in>I. F i x) -` {a} \<inter> space M =
     {x\<in>space M. (\<forall>i\<in>I. a \<le> F i x) \<and> (\<forall>b. (\<forall>i\<in>I. b \<le> F i x) \<longrightarrow> b \<le> a)}"
     unfolding le_INF_iff[symmetric] by auto
   also have "\<dots> \<in> sets M"
     by measurable
-  finally show "(\<lambda>x. INF i:I. F i x) -` {a} \<inter> space M \<in> sets M" .
+  finally show "(\<lambda>x. INF i\<in>I. F i x) -` {a} \<inter> space M \<in> sets M" .
 qed
 
 lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:

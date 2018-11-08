@@ -524,14 +524,14 @@ lemma eventually_INF1: "i \<in> I \<Longrightarrow> eventually P (F i) \<Longrig
 
 lemma eventually_INF_finite:
   assumes "finite A"
-  shows   "eventually P (INF x:A. F x) \<longleftrightarrow>
+  shows   "eventually P (\<Sqinter> x\<in>A. F x) \<longleftrightarrow>
              (\<exists>Q. (\<forall>x\<in>A. eventually (Q x) (F x)) \<and> (\<forall>y. (\<forall>x\<in>A. Q x y) \<longrightarrow> P y))" 
   using assms
 proof (induction arbitrary: P rule: finite_induct)
   case (insert a A P)
   from insert.hyps have [simp]: "x \<noteq> a" if "x \<in> A" for x
     using that by auto
-  have "eventually P (INF x:insert a A. F x) \<longleftrightarrow>
+  have "eventually P (\<Sqinter> x\<in>insert a A. F x) \<longleftrightarrow>
           (\<exists>Q R S. eventually Q (F a) \<and> (( (\<forall>x\<in>A. eventually (S x) (F x)) \<and>
             (\<forall>y. (\<forall>x\<in>A. S x y) \<longrightarrow> R y)) \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x)))"
     unfolding ex_simps by (simp add: eventually_inf insert.IH)
@@ -915,7 +915,7 @@ lemma filtermap_sequentually_ne_bot: "filtermap f sequentially \<noteq> bot"
 subsection \<open>Increasing finite subsets\<close>
 
 definition finite_subsets_at_top where
-  "finite_subsets_at_top A = (INF X:{X. finite X \<and> X \<subseteq> A}. principal {Y. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A})"
+  "finite_subsets_at_top A = (\<Sqinter> X\<in>{X. finite X \<and> X \<subseteq> A}. principal {Y. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A})"
 
 lemma eventually_finite_subsets_at_top:
   "eventually P (finite_subsets_at_top A) \<longleftrightarrow>
@@ -1345,7 +1345,7 @@ lemma filterlim_INF_INF:
   "(\<And>m. m \<in> J \<Longrightarrow> \<exists>i\<in>I. filtermap f (F i) \<le> G m) \<Longrightarrow> LIM x (\<Sqinter>i\<in>I. F i). f x :> (\<Sqinter>j\<in>J. G j)"
   unfolding filterlim_def by (rule order_trans[OF filtermap_INF INF_mono])
 
-lemma filterlim_INF': "x \<in> A \<Longrightarrow> filterlim f F (G x) \<Longrightarrow> filterlim f F (INF x:A. G x)"
+lemma filterlim_INF': "x \<in> A \<Longrightarrow> filterlim f F (G x) \<Longrightarrow> filterlim f F (\<Sqinter> x\<in>A. G x)"
   unfolding filterlim_def by (rule order.trans[OF filtermap_mono[OF INF_lower]])
 
 lemma filterlim_filtercomap_iff: "filterlim f (filtercomap g G) F \<longleftrightarrow> filterlim (g \<circ> f) G F"
@@ -1859,7 +1859,7 @@ proof(rule rel_funI)
     if "(F, G) \<in> SS'" for P Q F G by simp_all
   show "rel_filter A (Sup S) (Sup S')"
   proof
-    let ?Z = "SUP (F, G):SS'. Z F G"
+    let ?Z = "\<Squnion>(F, G)\<in>SS'. Z F G"
     show *: "\<forall>\<^sub>F (x, y) in ?Z. A x y" using Z by(auto simp add: eventually_Sup)
     show "map_filter_on {(x, y). A x y} fst ?Z = Sup S" "map_filter_on {(x, y). A x y} snd ?Z = Sup S'"
       unfolding filter_eq_iff

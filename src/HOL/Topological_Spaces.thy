@@ -517,7 +517,7 @@ lemma (in discrete_topology) tendsto_discrete:
   by (auto simp: nhds_discrete filterlim_principal)
 
 lemma (in topological_space) at_within_eq:
-  "at x within s = (INF S:{S. open S \<and> x \<in> S}. principal (S \<inter> s - {x}))"
+  "at x within s = (INF S\<in>{S. open S \<and> x \<in> S}. principal (S \<inter> s - {x}))"
   unfolding nhds_def at_within_def
   by (subst INF_inf_const2[symmetric]) (auto simp: Diff_Int_distrib)
 
@@ -575,7 +575,7 @@ lemma (in perfect_space) at_neq_bot [simp]: "at a \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)
 
 lemma (in order_topology) nhds_order:
-  "nhds x = inf (INF a:{x <..}. principal {..< a}) (INF a:{..< x}. principal {a <..})"
+  "nhds x = inf (INF a\<in>{x <..}. principal {..< a}) (INF a\<in>{..< x}. principal {a <..})"
 proof -
   have 1: "{S \<in> range lessThan \<union> range greaterThan. x \<in> S} =
       (\<lambda>a. {..< a}) ` {x <..} \<union> (\<lambda>a. {a <..}) ` {..< x}"
@@ -616,8 +616,8 @@ lemma (in topological_space) filterlim_at_If:
 lemma (in linorder_topology) at_within_order:
   assumes "UNIV \<noteq> {x}"
   shows "at x within s =
-    inf (INF a:{x <..}. principal ({..< a} \<inter> s - {x}))
-        (INF a:{..< x}. principal ({a <..} \<inter> s - {x}))"
+    inf (INF a\<in>{x <..}. principal ({..< a} \<inter> s - {x}))
+        (INF a\<in>{..< x}. principal ({a <..} \<inter> s - {x}))"
 proof (cases "{x <..} = {}" "{..< x} = {}" rule: case_split [case_product case_split])
   case True_True
   have "UNIV = {..< x} \<union> {x} \<union> {x <..}"
@@ -628,7 +628,7 @@ qed (auto simp del: inf_principal simp: at_within_def nhds_order Int_Diff
       inf_principal[symmetric] INF_inf_const2 inf_sup_aci[where 'a="'a filter"])
 
 lemma (in linorder_topology) at_left_eq:
-  "y < x \<Longrightarrow> at_left x = (INF a:{..< x}. principal {a <..< x})"
+  "y < x \<Longrightarrow> at_left x = (INF a\<in>{..< x}. principal {a <..< x})"
   by (subst at_within_order)
      (auto simp: greaterThan_Int_greaterThan greaterThanLessThan_eq[symmetric] min.absorb2 INF_constant
            intro!: INF_lower2 inf_absorb2)
@@ -639,7 +639,7 @@ lemma (in linorder_topology) eventually_at_left:
   by (subst eventually_INF_base) (auto simp: eventually_principal Ball_def)
 
 lemma (in linorder_topology) at_right_eq:
-  "x < y \<Longrightarrow> at_right x = (INF a:{x <..}. principal {x <..< a})"
+  "x < y \<Longrightarrow> at_right x = (INF a\<in>{x <..}. principal {x <..< a})"
   by (subst at_within_order)
      (auto simp: lessThan_Int_lessThan greaterThanLessThan_eq[symmetric] max.absorb2 INF_constant Int_commute
            intro!: INF_lower2 inf_absorb1)
@@ -3039,11 +3039,11 @@ lemma continuous_at_Sup_mono:
   assumes "mono f"
     and cont: "continuous (at_left (Sup S)) f"
     and S: "S \<noteq> {}" "bdd_above S"
-  shows "f (Sup S) = (SUP s:S. f s)"
+  shows "f (Sup S) = (SUP s\<in>S. f s)"
 proof (rule antisym)
   have f: "(f \<longlongrightarrow> f (Sup S)) (at_left (Sup S))"
     using cont unfolding continuous_within .
-  show "f (Sup S) \<le> (SUP s:S. f s)"
+  show "f (Sup S) \<le> (SUP s\<in>S. f s)"
   proof cases
     assume "Sup S \<in> S"
     then show ?thesis
@@ -3057,8 +3057,8 @@ proof (rule antisym)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
-      with order_tendstoD(1)[OF f, of "SUP s:S. f s"] obtain b where "b < Sup S"
-        and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> (SUP s:S. f s) < f y"
+      with order_tendstoD(1)[OF f, of "SUP s\<in>S. f s"] obtain b where "b < Sup S"
+        and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> (SUP s\<in>S. f s) < f y"
         by (auto simp: not_le eventually_at_left[OF \<open>s < Sup S\<close>])
       with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "b < c"
         using less_cSupD[of S b] by auto
@@ -3077,11 +3077,11 @@ lemma continuous_at_Sup_antimono:
   assumes "antimono f"
     and cont: "continuous (at_left (Sup S)) f"
     and S: "S \<noteq> {}" "bdd_above S"
-  shows "f (Sup S) = (INF s:S. f s)"
+  shows "f (Sup S) = (INF s\<in>S. f s)"
 proof (rule antisym)
   have f: "(f \<longlongrightarrow> f (Sup S)) (at_left (Sup S))"
     using cont unfolding continuous_within .
-  show "(INF s:S. f s) \<le> f (Sup S)"
+  show "(INF s\<in>S. f s) \<le> f (Sup S)"
   proof cases
     assume "Sup S \<in> S"
     then show ?thesis
@@ -3095,8 +3095,8 @@ proof (rule antisym)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
-      with order_tendstoD(2)[OF f, of "INF s:S. f s"] obtain b where "b < Sup S"
-        and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> f y < (INF s:S. f s)"
+      with order_tendstoD(2)[OF f, of "INF s\<in>S. f s"] obtain b where "b < Sup S"
+        and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> f y < (INF s\<in>S. f s)"
         by (auto simp: not_le eventually_at_left[OF \<open>s < Sup S\<close>])
       with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "b < c"
         using less_cSupD[of S b] by auto
@@ -3115,11 +3115,11 @@ lemma continuous_at_Inf_mono:
   assumes "mono f"
     and cont: "continuous (at_right (Inf S)) f"
     and S: "S \<noteq> {}" "bdd_below S"
-  shows "f (Inf S) = (INF s:S. f s)"
+  shows "f (Inf S) = (INF s\<in>S. f s)"
 proof (rule antisym)
   have f: "(f \<longlongrightarrow> f (Inf S)) (at_right (Inf S))"
     using cont unfolding continuous_within .
-  show "(INF s:S. f s) \<le> f (Inf S)"
+  show "(INF s\<in>S. f s) \<le> f (Inf S)"
   proof cases
     assume "Inf S \<in> S"
     then show ?thesis
@@ -3133,8 +3133,8 @@ proof (rule antisym)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
-      with order_tendstoD(2)[OF f, of "INF s:S. f s"] obtain b where "Inf S < b"
-        and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> f y < (INF s:S. f s)"
+      with order_tendstoD(2)[OF f, of "INF s\<in>S. f s"] obtain b where "Inf S < b"
+        and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> f y < (INF s\<in>S. f s)"
         by (auto simp: not_le eventually_at_right[OF \<open>Inf S < s\<close>])
       with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "c < b"
         using cInf_lessD[of S b] by auto
@@ -3153,11 +3153,11 @@ lemma continuous_at_Inf_antimono:
   assumes "antimono f"
     and cont: "continuous (at_right (Inf S)) f"
     and S: "S \<noteq> {}" "bdd_below S"
-  shows "f (Inf S) = (SUP s:S. f s)"
+  shows "f (Inf S) = (SUP s\<in>S. f s)"
 proof (rule antisym)
   have f: "(f \<longlongrightarrow> f (Inf S)) (at_right (Inf S))"
     using cont unfolding continuous_within .
-  show "f (Inf S) \<le> (SUP s:S. f s)"
+  show "f (Inf S) \<le> (SUP s\<in>S. f s)"
   proof cases
     assume "Inf S \<in> S"
     then show ?thesis
@@ -3171,8 +3171,8 @@ proof (rule antisym)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
-      with order_tendstoD(1)[OF f, of "SUP s:S. f s"] obtain b where "Inf S < b"
-        and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> (SUP s:S. f s) < f y"
+      with order_tendstoD(1)[OF f, of "SUP s\<in>S. f s"] obtain b where "Inf S < b"
+        and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> (SUP s\<in>S. f s) < f y"
         by (auto simp: not_le eventually_at_right[OF \<open>Inf S < s\<close>])
       with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "c < b"
         using cInf_lessD[of S b] by auto
@@ -3529,14 +3529,14 @@ lemma nhds_prod: "nhds (a, b) = nhds a \<times>\<^sub>F nhds b"
 proof (subst prod_filter_INF, auto intro!: antisym INF_greatest simp: principal_prod_principal)
   fix S T
   assume "open S" "a \<in> S" "open T" "b \<in> T"
-  then show "(INF x : {S. open S \<and> (a, b) \<in> S}. principal x) \<le> principal (S \<times> T)"
+  then show "(INF x \<in> {S. open S \<and> (a, b) \<in> S}. principal x) \<le> principal (S \<times> T)"
     by (intro INF_lower) (auto intro!: open_Times)
 next
   fix S'
   assume "open S'" "(a, b) \<in> S'"
   then obtain S T where "open S" "a \<in> S" "open T" "b \<in> T" "S \<times> T \<subseteq> S'"
     by (auto elim: open_prod_elim)
-  then show "(INF x : {S. open S \<and> a \<in> S}. INF y : {S. open S \<and> b \<in> S}.
+  then show "(INF x \<in> {S. open S \<and> a \<in> S}. INF y \<in> {S. open S \<and> b \<in> S}.
       principal (x \<times> y)) \<le> principal S'"
     by (auto intro!: INF_lower2)
 qed
