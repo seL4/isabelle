@@ -1,7 +1,9 @@
-The Isabelle font has been assembled with FontForge
-(http://fontforge.sourceforge.net), composing glyphs from existing
-(free) fonts: Bluesky TeX fonts (scaled 222%) and Bitstream Vera Mono,
-with some additions from DejaVu Sans Mono and DejaVu Sans.
+The Isabelle fonts are subject to the same BSD-3-clause license as Isabelle.
+
+The fonts have been assembled with FontForge
+(http://fontforge.sourceforge.net), by composing glyphs from existing (free)
+fonts: Bluesky TeX fonts (scaled 222%) and Bitstream Vera Mono, with some
+additions from DejaVu Sans Mono and DejaVu Sans.
 
 Some additional symbols are from Symbola. See http://greekfonts.teilar.gr
 "In lieu of a licence; fonts and documents in this site are free for any use;
