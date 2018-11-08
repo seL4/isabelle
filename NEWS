@@ -146,10 +146,10 @@ The global installation state is determined by the following settings
 After setup, the following Isabelle settings are automatically
 redirected (overriding existing user settings):
 
- ISABELLE_GHC
+  ISABELLE_GHC
 
- ISABELLE_OCAML
- ISABELLE_OCAMLC
+  ISABELLE_OCAML
+  ISABELLE_OCAMLC
 
 The old meaning of these settings as locally installed executables may
 be recovered by purging the directories ISABELLE_STACK_ROOT /
