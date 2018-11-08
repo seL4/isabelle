@@ -2524,7 +2524,7 @@ in
       val ps = map_index swap bs;
       val t' = term_of_fm ps vs (@{code pa} (fm_of_term ps vs t));
     in Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
-end;
+end
 \<close>
 
 ML_file "cooper_tac.ML"

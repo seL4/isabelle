@@ -5682,7 +5682,7 @@ in
     val qe = if Config.get ctxt quick_and_dirty then @{code mircfrqe} else @{code mirlfrqe};
     val t' = term_of_fm vs (qe (fm_of_term vs t));
   in Thm.cterm_of ctxt (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
-end;
+end
 \<close>
 
 lemmas iff_real_of_int = of_int_eq_iff [where 'a = real, symmetric]
