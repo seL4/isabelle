@@ -107,26 +107,16 @@ ML \<open>
 local
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>external_file\<close> "formal dependency on external file"
-      (Parse.position Parse.path >> (fn path => Toplevel.keep (fn st =>
-        let
-          val ctxt = Toplevel.context_of st;
-          val thy = Toplevel.theory_of st;
-          val _ = Resources.check_path ctxt (Resources.master_directory thy) path;
-        in () end)));
+      (Resources.provide_parse_files "external_file" >> (fn files => Toplevel.theory (#2 o files)));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>bibtex_file\<close> "check bibtex database file in Prover IDE"
-      (Scan.ahead Parse.not_eof -- Parse.position Parse.path >> (fn (tok, path) =>
-        Toplevel.keep (fn st =>
+      (Resources.provide_parse_files "bibtex_file" >> (fn files =>
+        Toplevel.theory (fn thy =>
           let
-            val ctxt = Toplevel.context_of st;
-            val thy = Toplevel.theory_of st;
-            val _ = Resources.check_path ctxt (Resources.master_directory thy) path;
-            val _ =
-              (case Token.get_files tok of
-                [Exn.Res {lines, pos, ...}] => Bibtex.check_database_output pos (cat_lines lines)
-              | _ => ());
-          in () end)));
+            val ([{lines, pos, ...}], thy') = files thy;
+            val _ = Bibtex.check_database_output pos (cat_lines lines);
+          in thy' end)));
 in end\<close>
 
 
