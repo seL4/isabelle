@@ -124,17 +124,36 @@ specified in seconds; a negative value means it is disabled (default).
 presence of structurally broken sources: full consolidation of theories
 is no longer required.
 
-* Support for OCaml via command-line tools "isabelle ocaml_setup",
-"isabelle ocaml", "isabelle ocamlc", "isabelle ocaml_opam". Existing
-settings variables ISABELLE_OCAML and ISABELLE_OCAMLC are maintained
-dynamically according the state of ISABELLE_OPAM_ROOT and
-ISABELLE_OCAML_VERSION.
+* Support for managed installations of Glasgow Haskell Compiler and
+OCaml via the following command-line tools:
 
-* Support for Glasgow Haskell Compiler via command-line tools "isabelle
-ghc_setup", "isabelle ghci", "isabelle ghc", "isabelle ghc_stack".
-Existing settings variable ISABELLE_GHC is maintained dynamically
-according to the state of ISABELLE_STACK_ROOT and
-ISABELLE_STACK_RESOLVER.
+  isabelle ghc_setup
+  isabelle ghc_stack
+
+  isabelle ocaml_setup
+  isabelle ocaml_opam
+
+The global installation state is determined by the following settings
+(and corresponding directory contents):
+
+  ISABELLE_STACK_ROOT
+  ISABELLE_STACK_RESOLVER
+  ISABELLE_GHC_VERSION
+
+  ISABELLE_OPAM_ROOT
+  ISABELLE_OCAML_VERSION
+
+After setup, the following Isabelle settings are automatically
+redirected (overriding existing user settings):
+
+ ISABELLE_GHC
+
+ ISABELLE_OCAML
+ ISABELLE_OCAMLC
+
+The old meaning of these settings as locally installed executables may
+be recovered by purging the directories ISABELLE_STACK_ROOT /
+ISABELLE_OPAM_ROOT.
 
 * Update to Java 11: the latest long-term support version of OpenJDK.
 

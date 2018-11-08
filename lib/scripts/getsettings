@@ -101,18 +101,18 @@ fi
 
 #enforce ISABELLE_OCAML
 if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocaml" ]; then
-  ISABELLE_OCAML="$ISABELLE_HOME/lib/Tools/ocaml"
+  ISABELLE_OCAML="$ISABELLE_HOME/lib/scripts/ocaml"
 fi
 
 #enforce ISABELLE_OCAMLC
 if [ -f "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin/ocamlc" ]; then
-  ISABELLE_OCAMLC="$ISABELLE_HOME/lib/Tools/ocamlc"
+  ISABELLE_OCAMLC="$ISABELLE_HOME/lib/scripts/ocamlc"
 fi
 
 #enforce ISABELLE_GHC
 if [ -d "$ISABELLE_STACK_ROOT" -a -f "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS" ]; then
   if [ -f "$(cat "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS")/$ISABELLE_GHC_VERSION/bin/ghc" ]; then
-    ISABELLE_GHC="$ISABELLE_HOME/lib/Tools/ghc"
+    ISABELLE_GHC="$ISABELLE_HOME/lib/scripts/ghc"
   fi
 fi
 

@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# DESCRIPTION: invoke GHC interaction within the Isabelle environment
-
-isabelle ghc --interactive "$@"

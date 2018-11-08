@@ -2,9 +2,9 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: invoke OCaml compiler within the Isabelle environment
+# Invoke ocamlc via "opam".
 
-if [ -d "$ISABELLE_OPAM_ROOT" -a -n "$ISABELLE_OCAMLC" ]
+if [ -d "$ISABELLE_OPAM_ROOT" ]
 then
   isabelle_opam config exec --switch "$ISABELLE_OCAML_VERSION" -- ocamlc "$@"
 else
