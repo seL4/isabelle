@@ -25,6 +25,11 @@ INCOMPATIBILITY.
 * Improved sub-pixel font rendering (especially on Linux), thanks to
 OpenJDK 11.
 
+* Support for user-defined file-formats via class isabelle.File_Format
+in Isabelle/Scala (e.g. see isabelle.Bibtex.File_Format). It is
+configured via the shell function "isabelle_file_format" in
+etc/settings, e.g. of an Isabelle component.
+
 
 *** Isar ***
 
