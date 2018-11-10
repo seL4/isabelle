@@ -114,6 +114,9 @@ ML_command \<open>
   |> writeln
 \<close>
 
+* ML antiquotation @{master_dir} refers to the master directory of the
+underlying theory, i.e. the directory of the theory file.
+
 
 *** System ***
 

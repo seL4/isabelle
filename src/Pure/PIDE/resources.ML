@@ -286,7 +286,9 @@ val _ = Theory.setup
   Thy_Output.antiquotation_raw \<^binding>\<open>dir\<close> (document_antiq check_dir) (K I) #>
   ML_Antiquotation.value \<^binding>\<open>path\<close> (ML_antiq check_path) #>
   ML_Antiquotation.value \<^binding>\<open>file\<close> (ML_antiq check_file) #>
-  ML_Antiquotation.value \<^binding>\<open>dir\<close> (ML_antiq check_dir));
+  ML_Antiquotation.value \<^binding>\<open>dir\<close> (ML_antiq check_dir) #>
+  ML_Antiquotation.value \<^binding>\<open>master_dir\<close>
+    (Args.theory >> (ML_Syntax.print_path o master_directory)));
 
 end;
 

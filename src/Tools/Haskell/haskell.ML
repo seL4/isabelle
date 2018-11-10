@@ -61,9 +61,7 @@ val sources =
   \<^path>\<open>Term_XML/Encode.hs\<close>,
   \<^path>\<open>Term_XML/Decode.hs\<close>];
 
-val master_dir = Resources.master_directory \<^theory>;
-
 fun install_sources dir =
-  sources |> List.app (fn path => Isabelle_System.copy_file_base (master_dir, path) dir);
+  sources |> List.app (fn path => Isabelle_System.copy_file_base (\<^master_dir>, path) dir);
 
 end;
