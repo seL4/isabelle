@@ -114,6 +114,10 @@ fun the_result ctxt =
     SOME s => s
   | NONE => raise Fail "No result");
 
+fun path_antiq check =
+  Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
+    (check ctxt Path.current (name, pos) |> Path.implode |> print_string));
+
 val _ =
   Theory.setup
     (antiquotation \<^binding>\<open>cartouche\<close> (Scan.lift Args.cartouche_input)
@@ -122,6 +126,9 @@ val _ =
           (ML_Context.expression (Input.pos_of argument)
             (ML_Lex.read "Theory.local_setup (GHC.set_result (" @
              ML_Lex.read_source argument @ ML_Lex.read "))"))
-        |> the_result |> print_string));
+        |> the_result |> print_string) #>
+    antiquotation \<^binding>\<open>path\<close> (path_antiq Resources.check_path) #argument #>
+    antiquotation \<^binding>\<open>file\<close> (path_antiq Resources.check_file) #argument #>
+    antiquotation \<^binding>\<open>dir\<close> (path_antiq Resources.check_dir) #argument);
 
 end;
