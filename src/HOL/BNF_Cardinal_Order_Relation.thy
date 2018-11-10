@@ -1519,7 +1519,7 @@ definition relChain where
 lemma regularCard_UNION:
 assumes r: "Card_order r"   "regularCard r"
 and As: "relChain r As"
-and Bsub: "B \<le> (UN i : Field r. As i)"
+and Bsub: "B \<le> (\<Union>i \<in> Field r. As i)"
 and cardB: "|B| <o r"
 shows "\<exists>i \<in> Field r. B \<le> As i"
 proof-
@@ -1568,7 +1568,7 @@ proof-
     using r' by (simp add: card_of_Field_ordIso[of ?r'])
     finally have "|K| \<le>o ?r'" .
     moreover
-    {let ?L = "UN j : K. underS ?r' j"
+    {let ?L = "\<Union> j \<in> K. underS ?r' j"
      let ?J = "Field r"
      have rJ: "r =o |?J|"
      using r_card card_of_Field_ordIso ordIso_symmetric by blast
@@ -1606,7 +1606,7 @@ qed
 lemma cardSuc_UNION:
 assumes r: "Card_order r" and "\<not>finite (Field r)"
 and As: "relChain (cardSuc r) As"
-and Bsub: "B \<le> (UN i : Field (cardSuc r). As i)"
+and Bsub: "B \<le> (\<Union> i \<in> Field (cardSuc r). As i)"
 and cardB: "|B| <=o r"
 shows "\<exists>i \<in> Field (cardSuc r). B \<le> As i"
 proof-

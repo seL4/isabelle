@@ -370,7 +370,7 @@ next
     by (rule finite_surj [where f = "sup x", OF B(1)], auto)
   have finAB: "finite {sup a b |a b. a \<in> A \<and> b \<in> B}"
   proof -
-    have "{sup a b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {sup a b})"
+    have "{sup a b |a b. a \<in> A \<and> b \<in> B} = (\<Union>a\<in>A. \<Union>b\<in>B. {sup a b})"
       by blast
     thus ?thesis by(simp add: insert(1) B(1))
   qed
@@ -407,7 +407,7 @@ next
     by(rule finite_surj[where f = "%b. inf x b", OF B(1)], auto)
   have finAB: "finite {inf a b |a b. a \<in> A \<and> b \<in> B}"
   proof -
-    have "{inf a b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {inf a b})"
+    have "{inf a b |a b. a \<in> A \<and> b \<in> B} = (\<Union>a\<in>A. \<Union>b\<in>B. {inf a b})"
       by blast
     thus ?thesis by(simp add: insert(1) B(1))
   qed

@@ -696,7 +696,7 @@ by (simp add: lessThan_def atMost_def less_Suc_eq_le)
 lemma atMost_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
   unfolding lessThan_Suc_atMost[symmetric] lessThan_Suc_eq_insert_0[of "Suc n"] ..
 
-lemma UN_lessThan_UNIV: "(UN m::nat. lessThan m) = UNIV"
+lemma UN_lessThan_UNIV: "(\<Union>m::nat. lessThan m) = UNIV"
 by blast
 
 subsubsection \<open>The Constant @{term greaterThan}\<close>
@@ -709,7 +709,7 @@ lemma greaterThan_Suc: "greaterThan (Suc k) = greaterThan k - {Suc k}"
   unfolding greaterThan_def
   by (auto elim: linorder_neqE)
 
-lemma INT_greaterThan_UNIV: "(INT m::nat. greaterThan m) = {}"
+lemma INT_greaterThan_UNIV: "(\<Inter>m::nat. greaterThan m) = {}"
   by blast
 
 subsubsection \<open>The Constant @{term atLeast}\<close>
@@ -723,7 +723,7 @@ lemma atLeast_Suc: "atLeast (Suc k) = atLeast k - {k}"
 lemma atLeast_Suc_greaterThan: "atLeast (Suc k) = greaterThan k"
   by (auto simp add: greaterThan_def atLeast_def less_Suc_eq_le)
 
-lemma UN_atLeast_UNIV: "(UN m::nat. atLeast m) = UNIV"
+lemma UN_atLeast_UNIV: "(\<Union>m::nat. atLeast m) = UNIV"
   by blast
 
 subsubsection \<open>The Constant @{term atMost}\<close>
@@ -734,7 +734,7 @@ lemma atMost_0 [simp]: "atMost (0::nat) = {0}"
 lemma atMost_Suc: "atMost (Suc k) = insert (Suc k) (atMost k)"
   unfolding atMost_def by (auto simp add: less_Suc_eq order_le_less)
 
-lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
+lemma UN_atMost_UNIV: "(\<Union>m::nat. atMost m) = UNIV"
   by blast
 
 subsubsection \<open>The Constant @{term atLeastLessThan}\<close>

@@ -1064,7 +1064,7 @@ qed
 lemma relpow_finite_bounded:
   fixes R :: "('a \<times> 'a) set"
   assumes "finite R"
-  shows "R^^k \<subseteq> (UN n:{n. n \<le> card R}. R^^n)"
+  shows "R^^k \<subseteq> (\<Union>n\<in>{n. n \<le> card R}. R^^n)"
   apply (cases k, force)
   apply (use relpow_finite_bounded1[OF assms, of k] in auto)
   done

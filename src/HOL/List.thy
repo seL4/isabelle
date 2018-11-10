@@ -1633,7 +1633,7 @@ lemma concat_eq_Nil_conv [simp]: "(concat xss = []) = (\<forall>xs \<in> set xss
 lemma Nil_eq_concat_conv [simp]: "([] = concat xss) = (\<forall>xs \<in> set xss. xs = [])"
   by (induct xss) auto
 
-lemma set_concat [simp]: "set (concat xs) = (UN x:set xs. set x)"
+lemma set_concat [simp]: "set (concat xs) = (\<Union>x\<in>set xs. set x)"
   by (induct xs) auto
 
 lemma concat_map_singleton[simp]: "concat(map (%x. [f x]) xs) = map f xs"
