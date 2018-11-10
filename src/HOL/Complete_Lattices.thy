@@ -32,6 +32,12 @@ abbreviation (input) SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<R
 
 end
 
+syntax (ASCII)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
+
 syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _\<in>_./ _)" [0, 0, 10] 10)
@@ -43,12 +49,6 @@ syntax
   "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
-
-syntax (input) \<comment> \<open>legacy input syntax\<close>
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
 
 translations
   "\<Sqinter>x y. f"   \<rightleftharpoons> "\<Sqinter>x. \<Sqinter>y. f"
@@ -865,13 +865,13 @@ syntax (ASCII)
   "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3INT _./ _)" [0, 10] 10)
   "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3INT _:_./ _)" [0, 0, 10] 10)
 
-syntax (latex output)
-  "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3\<Inter>(\<open>unbreakable\<close>\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>(\<open>unbreakable\<close>\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
-
 syntax
   "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
   "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax (latex output)
+  "_INTER1"     :: "pttrns \<Rightarrow> 'b set \<Rightarrow> 'b set"           ("(3\<Inter>(\<open>unbreakable\<close>\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "_INTER"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> 'b set"  ("(3\<Inter>(\<open>unbreakable\<close>\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
 
 translations
   "\<Inter>x y. f"  \<rightleftharpoons> "\<Inter>x. \<Inter>y. f"
@@ -1025,13 +1025,13 @@ syntax (ASCII)
   "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
   "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" [0, 0, 10] 10)
 
-syntax (latex output)
-  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(\<open>unbreakable\<close>\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(\<open>unbreakable\<close>\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
-
 syntax
   "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
   "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax (latex output)
+  "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(\<open>unbreakable\<close>\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "_UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(\<open>unbreakable\<close>\<^bsub>_\<in>_\<^esub>)/ _)" [0, 0, 10] 10)
 
 translations
   "\<Union>x y. f"   \<rightleftharpoons> "\<Union>x. \<Union>y. f"
