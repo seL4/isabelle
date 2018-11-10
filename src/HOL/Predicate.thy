@@ -58,17 +58,17 @@ lemma eval_sup [simp]:
   by (simp add: sup_pred_def)
 
 definition
-  "\<Sqinter>A = Pred (INFIMUM A eval)"
+  "\<Sqinter>A = Pred (\<Sqinter>(eval ` A))"
 
 lemma eval_Inf [simp]:
-  "eval (\<Sqinter>A) = INFIMUM A eval"
+  "eval (\<Sqinter>A) = \<Sqinter>(eval ` A)"
   by (simp add: Inf_pred_def)
 
 definition
-  "\<Squnion>A = Pred (SUPREMUM A eval)"
+  "\<Squnion>A = Pred (\<Squnion>(eval ` A))"
 
 lemma eval_Sup [simp]:
-  "eval (\<Squnion>A) = SUPREMUM A eval"
+  "eval (\<Squnion>A) = \<Squnion>(eval ` A)"
   by (simp add: Sup_pred_def)
 
 instance proof
@@ -77,12 +77,12 @@ qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def le_fun_def l
 end
 
 lemma eval_INF [simp]:
-  "eval (INFIMUM A f) = INFIMUM A (eval \<circ> f)"
-  using eval_Inf [of "f ` A"] by simp
+  "eval (\<Sqinter>(f ` A)) = \<Sqinter>((eval \<circ> f) ` A)"
+  by simp
 
 lemma eval_SUP [simp]:
-  "eval (SUPREMUM A f) = SUPREMUM A (eval \<circ> f)"
-  using eval_Sup [of "f ` A"] by simp
+  "eval (\<Squnion>(f ` A)) = \<Squnion>((eval \<circ> f) ` A)"
+  by simp
 
 instantiation pred :: (type) complete_boolean_algebra
 begin
@@ -103,7 +103,7 @@ lemma eval_minus [simp]:
 
 instance proof
   fix A::"'a pred set set"
-  show "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+  show "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
   proof (simp add: less_eq_pred_def Sup_fun_def Inf_fun_def, safe)
     fix w
     assume A: "\<forall>x\<in>A. \<exists>f\<in>x. eval f w"
@@ -127,10 +127,10 @@ lemma eval_single [simp]:
   by (simp add: single_def)
 
 definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<bind>" 70) where
-  "P \<bind> f = (SUPREMUM {x. eval P x} f)"
+  "P \<bind> f = (\<Squnion>(f ` {x. eval P x}))"
 
 lemma eval_bind [simp]:
-  "eval (P \<bind> f) = eval (SUPREMUM {x. eval P x} f)"
+  "eval (P \<bind> f) = eval (\<Squnion>(f ` {x. eval P x}))"
   by (simp add: bind_def)
 
 lemma bind_bind:

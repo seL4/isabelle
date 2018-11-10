@@ -669,9 +669,9 @@ proof -
       by (subst eventually_INF) blast
     also have "\<dots> \<longleftrightarrow> (\<exists>X. (X \<subseteq> B \<and> finite X) \<and> eventually P (filtercomap f (\<Sqinter>b\<in>X. F b)))"
       by (rule ex_cong) (simp add: *)
-    also have "\<dots> \<longleftrightarrow> eventually P (filtercomap f (INFIMUM B F))"
+    also have "\<dots> \<longleftrightarrow> eventually P (filtercomap f (\<Sqinter>(F ` B)))"
       unfolding eventually_filtercomap by (subst eventually_INF) blast
-    finally show "eventually P (filtercomap f (INFIMUM B F)) = 
+    finally show "eventually P (filtercomap f (\<Sqinter>(F ` B))) = 
                     eventually P (\<Sqinter>b\<in>B. filtercomap f (F b))" ..
   qed
 qed

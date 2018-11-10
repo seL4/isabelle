@@ -120,25 +120,25 @@ lemma SUP_UN_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> r i))
 lemma SUP_UN_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (\<Union>i\<in>S. r i))"
   by (simp add: fun_eq_iff)
 
-lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Collect)"
+lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> (\<Inter>(Collect ` S)))"
   by (simp add: fun_eq_iff)
 
 lemma INF_Int_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Inter>S)"
   by (simp add: fun_eq_iff)
 
-lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> INTER (case_prod ` S) Collect)"
+lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> (\<Inter>(Collect ` case_prod ` S)))"
   by (simp add: fun_eq_iff)
 
 lemma INF_Int_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Inter>S)"
   by (simp add: fun_eq_iff)
 
-lemma Sup_SUP_eq [pred_set_conv]: "\<Squnion>S = (\<lambda>x. x \<in> UNION S Collect)"
+lemma Sup_SUP_eq [pred_set_conv]: "\<Squnion>S = (\<lambda>x. x \<in> \<Union>(Collect ` S))"
   by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Union>S)"
   by (simp add: fun_eq_iff)
 
-lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UNION (case_prod ` S) Collect)"
+lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> (\<Union>(Collect ` case_prod ` S)))"
   by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
@@ -198,10 +198,10 @@ lemma refl_on_Un: "refl_on A r \<Longrightarrow> refl_on B s \<Longrightarrow> r
 lemma reflp_sup: "reflp r \<Longrightarrow> reflp s \<Longrightarrow> reflp (r \<squnion> s)"
   by (auto intro: reflpI elim: reflpE)
 
-lemma refl_on_INTER: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (INTER S A) (INTER S r)"
+lemma refl_on_INTER: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (\<Inter>(A ` S)) (\<Inter>(r ` S))"
   unfolding refl_on_def by fast
 
-lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (UNION S A) (UNION S r)"
+lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> refl_on (\<Union>(A ` S)) (\<Union>(r ` S))"
   unfolding refl_on_def by blast
 
 lemma refl_on_empty [simp]: "refl_on {} {}"
@@ -303,16 +303,16 @@ lemma sym_Un: "sym r \<Longrightarrow> sym s \<Longrightarrow> sym (r \<union> s
 lemma symp_sup: "symp r \<Longrightarrow> symp s \<Longrightarrow> symp (r \<squnion> s)"
   by (fact sym_Un [to_pred])
 
-lemma sym_INTER: "\<forall>x\<in>S. sym (r x) \<Longrightarrow> sym (INTER S r)"
+lemma sym_INTER: "\<forall>x\<in>S. sym (r x) \<Longrightarrow> sym (\<Inter>(r ` S))"
   by (fast intro: symI elim: symE)
 
-lemma symp_INF: "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (INFIMUM S r)"
+lemma symp_INF: "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (\<Sqinter>(r ` S))"
   by (fact sym_INTER [to_pred])
 
-lemma sym_UNION: "\<forall>x\<in>S. sym (r x) \<Longrightarrow> sym (UNION S r)"
+lemma sym_UNION: "\<forall>x\<in>S. sym (r x) \<Longrightarrow> sym (\<Union>(r ` S))"
   by (fast intro: symI elim: symE)
 
-lemma symp_SUP: "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (SUPREMUM S r)"
+lemma symp_SUP: "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (\<Squnion>(r ` S))"
   by (fact sym_UNION [to_pred])
 
 
@@ -411,10 +411,10 @@ lemma trans_Int: "trans r \<Longrightarrow> trans s \<Longrightarrow> trans (r \
 lemma transp_inf: "transp r \<Longrightarrow> transp s \<Longrightarrow> transp (r \<sqinter> s)"
   by (fact trans_Int [to_pred])
 
-lemma trans_INTER: "\<forall>x\<in>S. trans (r x) \<Longrightarrow> trans (INTER S r)"
+lemma trans_INTER: "\<forall>x\<in>S. trans (r x) \<Longrightarrow> trans (\<Inter>(r ` S))"
   by (fast intro: transI elim: transD)
 
-lemma transp_INF: "\<forall>x\<in>S. transp (r x) \<Longrightarrow> transp (INFIMUM S r)"
+lemma transp_INF: "\<forall>x\<in>S. transp (r x) \<Longrightarrow> transp (\<Sqinter>(r ` S))"
   by (fact trans_INTER [to_pred])
     
 lemma trans_join [code]: "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<forall>(y2, z) \<in> r. y1 = y2 \<longrightarrow> (x, z) \<in> r)"
@@ -683,16 +683,16 @@ lemma relcomp_distrib2 [simp]: "(S \<union> T) O R = (S O R) \<union> (T O R)"
 lemma relcompp_distrib2 [simp]: "(S \<squnion> T) OO R = S OO R \<squnion> T OO R"
   by (fact relcomp_distrib2 [to_pred])
 
-lemma relcomp_UNION_distrib: "s O UNION I r = (\<Union>i\<in>I. s O r i) "
+lemma relcomp_UNION_distrib: "s O \<Union>(r ` I) = (\<Union>i\<in>I. s O r i) "
   by auto
 
-lemma relcompp_SUP_distrib: "s OO SUPREMUM I r = (\<Squnion>i\<in>I. s OO r i)"
+lemma relcompp_SUP_distrib: "s OO \<Squnion>(r ` I) = (\<Squnion>i\<in>I. s OO r i)"
   by (fact relcomp_UNION_distrib [to_pred])
     
-lemma relcomp_UNION_distrib2: "UNION I r O s = (\<Union>i\<in>I. r i O s) "
+lemma relcomp_UNION_distrib2: "\<Union>(r ` I) O s = (\<Union>i\<in>I. r i O s) "
   by auto
 
-lemma relcompp_SUP_distrib2: "SUPREMUM I r OO s = (\<Squnion>i\<in>I. r i OO s)"
+lemma relcompp_SUP_distrib2: "\<Squnion>(r ` I) OO s = (\<Squnion>i\<in>I. r i OO s)"
   by (fact relcomp_UNION_distrib2 [to_pred])
     
 lemma single_valued_relcomp: "single_valued r \<Longrightarrow> single_valued s \<Longrightarrow> single_valued (r O s)"
@@ -781,10 +781,10 @@ lemma converse_Un: "(r \<union> s)\<inverse> = r\<inverse> \<union> s\<inverse>"
 lemma converse_join: "(r \<squnion> s)\<inverse>\<inverse> = r\<inverse>\<inverse> \<squnion> s\<inverse>\<inverse>"
   by (simp add: sup_fun_def) (iprover intro: conversepI ext dest: conversepD)
 
-lemma converse_INTER: "(INTER S r)\<inverse> = (INT x:S. (r x)\<inverse>)"
+lemma converse_INTER: "(\<Inter>(r ` S))\<inverse> = (\<Inter>x\<in>S. (r x)\<inverse>)"
   by fast
 
-lemma converse_UNION: "(UNION S r)\<inverse> = (UN x:S. (r x)\<inverse>)"
+lemma converse_UNION: "(\<Union>(r ` S))\<inverse> = (\<Union>x\<in>S. (r x)\<inverse>)"
   by blast
 
 lemma converse_mono[simp]: "r\<inverse> \<subseteq> s \<inverse> \<longleftrightarrow> r \<subseteq> s"
@@ -1078,17 +1078,17 @@ lemma Image_eq_UN: "r``B = (\<Union>y\<in> B. r``{y})"
 lemma Image_mono: "r' \<subseteq> r \<Longrightarrow> A' \<subseteq> A \<Longrightarrow> (r' `` A') \<subseteq> (r `` A)"
   by blast
 
-lemma Image_UN: "(r `` (UNION A B)) = (\<Union>x\<in>A. r `` (B x))"
+lemma Image_UN: "r `` (\<Union>(B ` A)) = (\<Union>x\<in>A. r `` (B x))"
   by blast
 
 lemma UN_Image: "(\<Union>i\<in>I. X i) `` S = (\<Union>i\<in>I. X i `` S)"
   by auto
 
-lemma Image_INT_subset: "(r `` INTER A B) \<subseteq> (\<Inter>x\<in>A. r `` (B x))"
+lemma Image_INT_subset: "(r `` (\<Inter>(B ` A))) \<subseteq> (\<Inter>x\<in>A. r `` (B x))"
   by blast
 
 text \<open>Converse inclusion requires some assumptions\<close>
-lemma Image_INT_eq: "single_valued (r\<inverse>) \<Longrightarrow> A \<noteq> {} \<Longrightarrow> r `` INTER A B = (\<Inter>x\<in>A. r `` B x)"
+lemma Image_INT_eq: "single_valued (r\<inverse>) \<Longrightarrow> A \<noteq> {} \<Longrightarrow> r `` (\<Inter>(B ` A)) = (\<Inter>x\<in>A. r `` B x)"
   apply (rule equalityI)
    apply (rule Image_INT_subset)
   apply (auto simp add: single_valued_def)

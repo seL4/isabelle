@@ -256,7 +256,7 @@ lemma finite_UN_I [intro]:
   "finite A \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> finite (B a)) \<Longrightarrow> finite (\<Union>a\<in>A. B a)"
   by (induct rule: finite_induct) simp_all
 
-lemma finite_UN [simp]: "finite A \<Longrightarrow> finite (UNION A B) \<longleftrightarrow> (\<forall>x\<in>A. finite (B x))"
+lemma finite_UN [simp]: "finite A \<Longrightarrow> finite (\<Union>(B ` A)) \<longleftrightarrow> (\<forall>x\<in>A. finite (B x))"
   by (blast intro: finite_subset)
 
 lemma finite_Inter [intro]: "\<exists>A\<in>M. finite A \<Longrightarrow> finite (\<Inter>M)"
@@ -1254,7 +1254,7 @@ lemma Sup_fold_sup: "finite A \<Longrightarrow> Sup A = fold sup bot A"
 
 lemma inf_INF_fold_inf:
   assumes "finite A"
-  shows "inf B (INFIMUM A f) = fold (inf \<circ> f) B A" (is "?inf = ?fold")
+  shows "inf B (\<Sqinter>(f ` A)) = fold (inf \<circ> f) B A" (is "?inf = ?fold")
 proof -
   interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
   interpret comp_fun_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
@@ -1265,7 +1265,7 @@ qed
 
 lemma sup_SUP_fold_sup:
   assumes "finite A"
-  shows "sup B (SUPREMUM A f) = fold (sup \<circ> f) B A" (is "?sup = ?fold")
+  shows "sup B (\<Squnion>(f ` A)) = fold (sup \<circ> f) B A" (is "?sup = ?fold")
 proof -
   interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
   interpret comp_fun_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
@@ -1274,10 +1274,10 @@ proof -
   then show ?thesis ..
 qed
 
-lemma INF_fold_inf: "finite A \<Longrightarrow> INFIMUM A f = fold (inf \<circ> f) top A"
+lemma INF_fold_inf: "finite A \<Longrightarrow> \<Sqinter>(f ` A) = fold (inf \<circ> f) top A"
   using inf_INF_fold_inf [of A top] by simp
 
-lemma SUP_fold_sup: "finite A \<Longrightarrow> SUPREMUM A f = fold (sup \<circ> f) bot A"
+lemma SUP_fold_sup: "finite A \<Longrightarrow> \<Squnion>(f ` A) = fold (sup \<circ> f) bot A"
   using sup_SUP_fold_sup [of A bot] by simp
 
 end

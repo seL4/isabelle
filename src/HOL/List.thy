@@ -2985,11 +2985,11 @@ qed
 declare Sup_set_fold [where 'a = "'a set", code]
 
 lemma (in complete_lattice) INF_set_fold:
-  "INFIMUM (set xs) f = fold (inf \<circ> f) xs top"
+  "\<Sqinter>(f ` set xs) = fold (inf \<circ> f) xs top"
   using Inf_set_fold [of "map f xs"] by (simp add: fold_map)
 
 lemma (in complete_lattice) SUP_set_fold:
-  "SUPREMUM (set xs) f = fold (sup \<circ> f) xs bot"
+  "\<Squnion>(f ` set xs) = fold (sup \<circ> f) xs bot"
   using Sup_set_fold [of "map f xs"] by (simp add: fold_map)
 
 

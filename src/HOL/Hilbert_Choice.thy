@@ -911,39 +911,39 @@ context complete_distrib_lattice
 begin
 lemma Sup_Inf: "Sup (Inf ` A) = Inf (Sup ` {f ` A | f . (\<forall> Y \<in> A . f Y \<in> Y)})"
 proof (rule antisym)
-  show "SUPREMUM A Inf \<le> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Sup"
+  show "\<Squnion>(Inf ` A) \<le> \<Sqinter>(Sup ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
     apply (rule Sup_least, rule INF_greatest)
     using Inf_lower2 Sup_upper by auto
 next
-  show "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Sup \<le> SUPREMUM A Inf"
+  show "\<Sqinter>(Sup ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> \<Squnion>(Inf ` A)"
   proof (simp add:  Inf_Sup, rule SUP_least, simp, safe)
     fix f
     assume "\<forall>Y. (\<exists>f. Y = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<longrightarrow> f Y \<in> Y"
     from this have B: "\<And> F . (\<forall> Y \<in> A . F Y \<in> Y) \<Longrightarrow> \<exists> Z \<in> A . f (F ` A) = F Z"
       by auto
-    show "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> SUPREMUM A Inf"
-    proof (cases "\<exists> Z \<in> A . INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> Inf Z")
+    show "\<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> \<Squnion>(Inf ` A)"
+    proof (cases "\<exists> Z \<in> A . \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> Inf Z")
       case True
-      from this obtain Z where [simp]: "Z \<in> A" and A: "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> Inf Z"
+      from this obtain Z where [simp]: "Z \<in> A" and A: "\<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> Inf Z"
         by blast
-      have B: "... \<le> SUPREMUM A Inf"
+      have B: "... \<le> \<Squnion>(Inf ` A)"
         by (simp add: SUP_upper)
       from A and B show ?thesis
         by simp
     next
       case False
-      from this have X: "\<And> Z . Z \<in> A \<Longrightarrow> \<exists> x . x \<in> Z \<and> \<not> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> x"
+      from this have X: "\<And> Z . Z \<in> A \<Longrightarrow> \<exists> x . x \<in> Z \<and> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> x"
         using Inf_greatest by blast
-      define F where "F = (\<lambda> Z . SOME x . x \<in> Z \<and> \<not> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> x)"
+      define F where "F = (\<lambda> Z . SOME x . x \<in> Z \<and> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> x)"
       have C: "\<And> Y . Y \<in> A \<Longrightarrow> F Y \<in> Y"
         using X by (simp add: F_def, rule someI2_ex, auto)
-      have E: "\<And> Y . Y \<in> A \<Longrightarrow> \<not> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> F Y"
+      have E: "\<And> Y . Y \<in> A \<Longrightarrow> \<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> F Y"
         using X by (simp add: F_def, rule someI2_ex, auto)
       from C and B obtain  Z where D: "Z \<in> A " and Y: "f (F ` A) = F Z"
         by blast
-      from E and D have W: "\<not> INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> F Z"
+      from E and D have W: "\<not> \<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> F Z"
         by simp
-      have "INFIMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} f \<le> f (F ` A)"
+      have "\<Sqinter>(f ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> f (F ` A)"
         apply (rule INF_lower)
         using C by blast
       from this and W and Y show ?thesis
@@ -966,7 +966,7 @@ proof (rule antisym)
 next
   have "\<Sqinter>((\<squnion>) a ` B) \<le> \<Sqinter>(Sup ` {{f {a}, f B} |f. f {a} = a \<and> f B \<in> B})"
     by (rule INF_greatest, auto simp add: INF_lower)
-  also have "... = SUPREMUM {{a}, B} Inf"
+  also have "... = \<Squnion>(Inf ` {{a}, B})"
     by (unfold Sup_Inf, simp)
   finally show "\<Sqinter>((\<squnion>) a ` B) \<le> a \<squnion> \<Sqinter>B"
     by simp
@@ -1024,7 +1024,7 @@ proof (rule antisym)
     by (rule INF_lower2, blast+)
   have B: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> f xa \<in> xa"
     by blast
-  have A: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> SUPREMUM xa g"
+  have A: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> \<Squnion>(g ` xa)"
     by (rule SUP_upper2, rule B, simp_all, simp)
   show "(\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
     apply (rule SUP_least, simp, safe, rule INF_greatest, simp)
@@ -1175,13 +1175,13 @@ begin
 subclass complete_distrib_lattice
 proof (standard, rule ccontr)
   fix A
-  assume "\<not> INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
-  from this have C: "INFIMUM A Sup > SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
-    using local.not_le by blast
-  show "False"
-    proof (cases "\<exists> z . INFIMUM A Sup > z \<and> z > SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf")
+  assume "\<not> \<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+  then have C: "\<Sqinter>(Sup ` A) > \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+    by (simp add: not_le)
+  show False
+    proof (cases "\<exists> z . \<Sqinter>(Sup ` A) > z \<and> z > \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})")
       case True
-      from this obtain z where A: "z < INFIMUM A Sup" and X: "SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < z"
+      from this obtain z where A: "z < \<Sqinter>(Sup ` A)" and X: "z > \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         by blast
           
       from A have "\<And> Y . Y \<in> A \<Longrightarrow> z < Sup Y"
@@ -1204,28 +1204,28 @@ proof (standard, rule ccontr)
       have "z \<le> Inf (F ` A)"
         by (simp add: D local.INF_greatest local.order.strict_implies_order)
     
-      also have "... \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+      also have "... \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         apply (rule SUP_upper, safe)
         using E by blast
-      finally have "z \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+      finally have "z \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         by simp
           
       from X and this show ?thesis
         using local.not_less by blast
     next
       case False
-      from this have A: "\<And> z . INFIMUM A Sup \<le> z \<or> z \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+      from this have A: "\<And> z . \<Sqinter>(Sup ` A) \<le> z \<or> z \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         using local.le_less_linear by blast
-          
-      from C have "\<And> Y . Y \<in> A \<Longrightarrow> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < Sup Y"
+
+      from C have "\<And> Y . Y \<in> A \<Longrightarrow> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < Sup Y"
         by (simp add: less_INF_D)
-    
-      from this have B: "\<And> Y . Y \<in> A \<Longrightarrow> \<exists> k \<in>Y . SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < k"
+
+      from this have B: "\<And> Y . Y \<in> A \<Longrightarrow> \<exists> k \<in>Y . \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < k"
         using local.less_Sup_iff by blast
           
-      define F where "F = (\<lambda> Y . SOME k . k \<in> Y \<and> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < k)"
-        
-      have D: "\<And> Y . Y \<in> A \<Longrightarrow> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf < F Y"
+      define F where "F = (\<lambda> Y . SOME k . k \<in> Y \<and> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < k)"
+
+      have D: "\<And> Y . Y \<in> A \<Longrightarrow> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) < F Y"
         using B apply (simp add: F_def)
         by (rule someI2_ex, auto)
     
@@ -1233,17 +1233,17 @@ proof (standard, rule ccontr)
         using B apply (simp add: F_def)
         by (rule someI2_ex, auto)
           
-      have "\<And> Y . Y \<in> A \<Longrightarrow> INFIMUM A Sup \<le> F Y"
+      have "\<And> Y . Y \<in> A \<Longrightarrow> \<Sqinter>(Sup ` A) \<le> F Y"
         using D False local.leI by blast
          
-      from this have "INFIMUM A Sup \<le> Inf (F ` A)"
+      from this have "\<Sqinter>(Sup ` A) \<le> Inf (F ` A)"
         by (simp add: local.INF_greatest)
           
-      also have "Inf (F ` A) \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+      also have "Inf (F ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         apply (rule SUP_upper, safe)
         using E by blast
-          
-      finally have "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+
+      finally have "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
         by simp
         
       from C and this show ?thesis

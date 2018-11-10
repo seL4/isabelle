@@ -161,14 +161,14 @@ lemma reindex_cong:
 lemma UNION_disjoint:
   assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
     and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
-  shows "F g (UNION I A) = F (\<lambda>x. F g (A x)) I"
+  shows "F g (\<Union>(A ` I)) = F (\<lambda>x. F g (A x)) I"
   apply (insert assms)
   apply (induct rule: finite_induct)
    apply simp
   apply atomize
   apply (subgoal_tac "\<forall>i\<in>Fa. x \<noteq> i")
    prefer 2 apply blast
-  apply (subgoal_tac "A x \<inter> UNION Fa A = {}")
+  apply (subgoal_tac "A x \<inter> \<Union>(A ` Fa) = {}")
    prefer 2 apply blast
   apply (simp add: union_disjoint)
   done
@@ -1023,7 +1023,7 @@ qed
 lemma card_UN_disjoint:
   assumes "finite I" and "\<forall>i\<in>I. finite (A i)"
     and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
-  shows "card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
+  shows "card (\<Union>(A ` I)) = (\<Sum>i\<in>I. card(A i))"
 proof -
   have "(\<Sum>i\<in>I. card (A i)) = (\<Sum>i\<in>I. \<Sum>x\<in>A i. 1)"
     by simp

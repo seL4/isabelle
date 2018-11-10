@@ -325,7 +325,7 @@ lemma wf_UN:
 proof clarify
   fix A and a :: "'b"
   assume "a \<in> A"
-  show "\<exists>z\<in>A. \<forall>y. (y, z) \<in> UNION I r \<longrightarrow> y \<notin> A"
+  show "\<exists>z\<in>A. \<forall>y. (y, z) \<in> \<Union>(r ` I) \<longrightarrow> y \<notin> A"
   proof (cases "\<exists>i\<in>I. \<exists>a\<in>A. \<exists>b\<in>A. (b, a) \<in> r i")
     case True
     then obtain i b c where ibc: "i \<in> I" "b \<in> A" "c \<in> A" "(c,b) \<in> r i"
@@ -344,7 +344,7 @@ qed
 
 lemma wfP_SUP:
   "\<forall>i. wfP (r i) \<Longrightarrow> \<forall>i j. r i \<noteq> r j \<longrightarrow> inf (Domainp (r i)) (Rangep (r j)) = bot \<Longrightarrow>
-    wfP (SUPREMUM UNIV r)"
+    wfP (\<Squnion>(range r))"
   by (rule wf_UN[to_pred]) simp_all
 
 lemma wf_Union:

@@ -134,8 +134,8 @@ lemma image_transfer [transfer_rule]:
   "((A ===> B) ===> rel_set A ===> rel_set B) image image"
   unfolding rel_fun_def rel_set_def by simp fast
 
-lemma UNION_transfer [transfer_rule]:
-  "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) UNION UNION"
+lemma UNION_transfer [transfer_rule]: \<comment> \<open>TODO deletion candidate\<close>
+  "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) (\<lambda>A f. \<Union>(f ` A)) (\<lambda>A f. \<Union>(f ` A))"
   by transfer_prover
 
 lemma Ball_transfer [transfer_rule]:
@@ -172,12 +172,12 @@ lemma bind_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) Set.bind Set.bind"
   unfolding bind_UNION [abs_def] by transfer_prover
 
-lemma INF_parametric [transfer_rule]:
-  "(rel_set A ===> (A ===> HOL.eq) ===> HOL.eq) INFIMUM INFIMUM"
+lemma INF_parametric [transfer_rule]: \<comment> \<open>TODO deletion candidate\<close>
+  "(rel_set A ===> (A ===> HOL.eq) ===> HOL.eq) (\<lambda>A f. Inf (f ` A)) (\<lambda>A f. Inf (f ` A))"
   by transfer_prover
 
-lemma SUP_parametric [transfer_rule]:
-  "(rel_set R ===> (R ===> HOL.eq) ===> HOL.eq) SUPREMUM SUPREMUM"
+lemma SUP_parametric [transfer_rule]: \<comment> \<open>TODO deletion candidate\<close>
+  "(rel_set R ===> (R ===> HOL.eq) ===> HOL.eq) (\<lambda>A f. Sup (f ` A)) (\<lambda>A f. Sup (f ` A))"
   by transfer_prover
 
 
@@ -316,7 +316,7 @@ lemmas prod_parametric = prod.F_parametric
 
 lemma rel_set_UNION:
   assumes [transfer_rule]: "rel_set Q A B" "rel_fun Q (rel_set R) f g"
-  shows "rel_set R (UNION A f) (UNION B g)"
+  shows "rel_set R (\<Union>(f ` A)) (\<Union>(g ` B))"
   by transfer_prover
 
 end

@@ -1049,7 +1049,7 @@ lemma Collect_split_mono_strong:
     \<Longrightarrow> A \<subseteq> Collect (case_prod P) \<Longrightarrow> A \<subseteq> Collect (case_prod Q)"
   by fastforce
 
-lemma UN_Times_distrib: "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = UNION A E \<times> UNION B F"
+lemma UN_Times_distrib: "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = \<Union>(E ` A) \<times> \<Union>(F ` B)"
   \<comment> \<open>Suggested by Pierre Chartier\<close>
   by blast
 

@@ -846,8 +846,8 @@ proof (rule finite_induct [of A "\<lambda> A . a \<sqinter> (Sup A) = Sup {a \<s
     by simp
 qed
 
-lemma finite_Inf_Sup: "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
-proof (rule  finite_induct [of A "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"], simp_all add: finite_UnionD)
+lemma finite_Inf_Sup: "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+proof (rule finite_induct [of A "\<lambda>A. \<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"], simp_all add: finite_UnionD)
   fix x::"'a set"
   fix F
   assume "x \<notin> F"
@@ -858,13 +858,13 @@ proof (rule  finite_induct [of A "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f `
     by (auto simp add: fa_def)
   from this have B: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> fa b f ` ({x} \<union> F) \<in> {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)}"
     by blast
-  have [simp]: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> b \<sqinter> (\<Sqinter>x\<in>F. f x)  \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+  have [simp]: "\<And>f b. \<forall>Y\<in>F. f Y \<in> Y \<Longrightarrow> b \<in> x \<Longrightarrow> b \<sqinter> (\<Sqinter>x\<in>F. f x)  \<le> \<Squnion>(Inf ` {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)})"
     using B apply (rule SUP_upper2, simp_all)
     by (simp_all add: INF_greatest Inf_lower inf.coboundedI2 fa_def)
 
-  assume "INFIMUM F Sup \<le> SUPREMUM {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} Inf"
+  assume "\<Sqinter>(Sup ` F) \<le> \<Squnion>(Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y})"
 
-  from this have "\<Squnion>x \<sqinter> INFIMUM F Sup \<le> \<Squnion>x \<sqinter> SUPREMUM {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y} Inf"
+  from this have "\<Squnion>x \<sqinter> \<Sqinter>(Sup ` F) \<le> \<Squnion>x \<sqinter> \<Squnion>(Inf ` {f ` F |f. \<forall>Y\<in>F. f Y \<in> Y})"
     apply simp
     using inf.coboundedI2 by blast
   also have "... = Sup {\<Squnion>x \<sqinter> (Inf (f ` F)) |f  .  (\<forall>Y\<in>F. f Y \<in> Y)}"
@@ -874,11 +874,11 @@ proof (rule  finite_induct [of A "\<lambda> A .INFIMUM A Sup \<le> SUPREMUM {f `
     apply (subst inf_commute)
     by (simp add: finite_inf_Sup)
 
-  also have "... \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+  also have "... \<le> \<Squnion>(Inf ` {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)})"
     apply (rule Sup_least, clarsimp)+
     by (subst inf_commute, simp)
 
-  finally show "\<Squnion>x \<sqinter> INFIMUM F Sup \<le> SUPREMUM {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)} Inf"
+  finally show "\<Squnion>x \<sqinter> \<Sqinter>(Sup ` F) \<le> \<Squnion>(Inf ` {insert (f x) (f ` F) |f. f x \<in> x \<and> (\<forall>Y\<in>F. f Y \<in> Y)})"
     by simp
 qed
 

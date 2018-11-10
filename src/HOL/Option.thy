@@ -260,7 +260,7 @@ lemma bind_option_cong_code: "x = y \<Longrightarrow> bind x f = bind y f"
 lemma bind_map_option: "bind (map_option f x) g = bind x (g \<circ> f)"
 by(cases x) simp_all
 
-lemma set_bind_option [simp]: "set_option (bind x f) = UNION (set_option x) (set_option \<circ> f)"
+lemma set_bind_option [simp]: "set_option (bind x f) = (\<Union>((set_option \<circ> f) ` set_option x))"
 by(cases x) auto
 
 lemma map_conv_bind_option: "map_option f x = Option.bind x (Some \<circ> f)"
