@@ -105,5 +105,5 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
           build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
         }
       sys.exit(rc)
-    }, admin = true)
+    })
 }

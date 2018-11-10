@@ -237,5 +237,5 @@ Usage: isabelle build_jdk [OPTIONS] ARCHIVES...
       val progress = new Console_Progress()
 
       build_jdk(archives = archives, progress = progress, target_dir = target_dir)
-    }, admin = true)
+    })
 }

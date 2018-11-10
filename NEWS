@@ -26,9 +26,9 @@ INCOMPATIBILITY.
 OpenJDK 11.
 
 * Support for user-defined file-formats via class isabelle.File_Format
-in Isabelle/Scala (e.g. see isabelle.Bibtex.File_Format). It is
-configured via the shell function "isabelle_file_format" in
-etc/settings, e.g. of an Isabelle component.
+in Isabelle/Scala (e.g. see isabelle.Bibtex.File_Format), configured via
+the shell function "isabelle_file_format" in etc/settings (e.g. of an
+Isabelle component).
 
 
 *** Isar ***
@@ -116,6 +116,11 @@ ML_command \<open>
 
 
 *** System ***
+
+* Support for Isabelle command-line tools defined in Isabelle/Scala.
+Instances of class Isabelle_Scala_Tools may be configured via the shell
+function "isabelle_scala_tools" in etc/settings (e.g. of an Isabelle
+component).
 
 * Session directory $ISABELLE_HOME/src/Tools/Haskell provides some
 source modules for Isabelle tools implemented in Haskell, notably for

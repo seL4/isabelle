@@ -87,5 +87,5 @@ Usage: isabelle build_cygwin [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
       build_cygwin(new Console_Progress(), mirror = mirror, more_packages = more_packages)
-    }, admin = true)
+    })
 }

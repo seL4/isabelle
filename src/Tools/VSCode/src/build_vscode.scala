@@ -70,5 +70,5 @@ https://code.visualstudio.com/docs/tools/vscecli
 
       build_grammar(options, progress)
       build_extension(progress, publish = publish)
-    }, admin = true)
+    })
 }

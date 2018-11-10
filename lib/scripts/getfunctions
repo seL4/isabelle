@@ -109,19 +109,35 @@ function classpath ()
 }
 export -f classpath
 
+#Isabelle/Scala tools
+function isabelle_scala_tools ()
+{
+  local X=""
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_SCALA_TOOLS" ]; then
+      ISABELLE_SCALA_TOOLS="$X"
+    else
+      ISABELLE_SCALA_TOOLS="$ISABELLE_SCALA_TOOLS:$X"
+    fi
+  done
+  export ISABELLE_SCALA_TOOLS
+}
+export -f isabelle_scala_tools
+
 #file formats
 function isabelle_file_format ()
 {
   local X=""
   for X in "$@"
   do
-    if [ -z "$ISABELLE_CLASSES_FILE_FORMAT" ]; then
-      ISABELLE_CLASSES_FILE_FORMAT="$X"
+    if [ -z "$ISABELLE_FILE_FORMATS" ]; then
+      ISABELLE_FILE_FORMATS="$X"
     else
-      ISABELLE_CLASSES_FILE_FORMAT="$ISABELLE_CLASSES_FILE_FORMAT:$X"
+      ISABELLE_FILE_FORMATS="$ISABELLE_FILE_FORMATS:$X"
     fi
   done
-  export ISABELLE_CLASSES_FILE_FORMAT
+  export ISABELLE_FILE_FORMATS
 }
 export -f isabelle_file_format
 

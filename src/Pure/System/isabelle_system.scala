@@ -347,6 +347,24 @@ object Isabelle_System
     Path.split(getenv_strict("ISABELLE_COMPONENTS"))
 
 
+  /* classes */
+
+  def init_classes[A](variable: String): List[A] =
+  {
+    for (name <- space_explode(':', Isabelle_System.getenv_strict(variable)))
+    yield {
+      def err(msg: String): Nothing =
+        error("Bad entry " + quote(name) + " in " + variable + "\n" + msg)
+
+      try { Class.forName(name).asInstanceOf[Class[A]].newInstance() }
+      catch {
+        case _: ClassNotFoundException => err("Class not found")
+        case exn: Throwable => err(Exn.message(exn))
+      }
+    }
+  }
+
+
   /* fonts */
 
   def fonts(html: Boolean = false, get: String => String = getenv_strict(_)): List[Path] =

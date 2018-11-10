@@ -10,21 +10,7 @@ package isabelle
 object File_Format
 {
   def environment(): Environment =
-  {
-    val file_formats =
-      for (name <- space_explode(':', Isabelle_System.getenv_strict("ISABELLE_CLASSES_FILE_FORMAT")))
-      yield {
-        def err(msg: String): Nothing =
-          error("Bad entry " + quote(name) + " in ISABELLE_CLASSES_FILE_FORMAT\n" + msg)
-
-        try { Class.forName(name).asInstanceOf[Class[File_Format]].newInstance() }
-        catch {
-          case _: ClassNotFoundException => err("Class not found")
-          case exn: Throwable => err(Exn.message(exn))
-        }
-      }
-    new Environment(file_formats)
-  }
+    new Environment(Isabelle_System.init_classes[File_Format]("ISABELLE_FILE_FORMATS"))
 
   final class Environment private [File_Format](file_formats: List[File_Format])
   {

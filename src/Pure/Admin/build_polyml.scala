@@ -272,7 +272,7 @@ Usage: isabelle build_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         build_polyml(root, sha1_root = sha1_root, progress = new Console_Progress,
           arch_64 = arch_64, options = options, msys_root = msys_root)
       }
-    }, admin = true)
+    })
 
   val isabelle_tool2 =
     Isabelle_Tool("build_polyml_component", "make skeleton for Poly/ML component", args =>
@@ -298,5 +298,5 @@ Usage: isabelle build_polyml_component [OPTIONS] TARGET
           }
         build_polyml_component(component, sha1_root = sha1_root)
       }
-    }, admin = true)
+    })
 }

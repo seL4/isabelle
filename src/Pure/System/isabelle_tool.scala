@@ -97,44 +97,17 @@ object Isabelle_Tool
 
   /* internal tools */
 
-  private val internal_tools: List[Isabelle_Tool] =
-    List(
-      Build.isabelle_tool,
-      Build_Cygwin.isabelle_tool,
-      Build_Doc.isabelle_tool,
-      Build_Docker.isabelle_tool,
-      Build_JDK.isabelle_tool,
-      Build_PolyML.isabelle_tool1,
-      Build_PolyML.isabelle_tool2,
-      Build_Status.isabelle_tool,
-      Check_Sources.isabelle_tool,
-      Doc.isabelle_tool,
-      Dump.isabelle_tool,
-      Export.isabelle_tool,
-      Imports.isabelle_tool,
-      Mkroot.isabelle_tool,
-      ML_Process.isabelle_tool,
-      Options.isabelle_tool,
-      Present.isabelle_tool,
-      Profiling_Report.isabelle_tool,
-      Remote_DMG.isabelle_tool,
-      Server.isabelle_tool,
-      Update_Cartouches.isabelle_tool,
-      Update_Comments.isabelle_tool,
-      Update_Header.isabelle_tool,
-      Update_Then.isabelle_tool,
-      Update_Theorems.isabelle_tool,
-      isabelle.vscode.Build_VSCode.isabelle_tool,
-      isabelle.vscode.Grammar.isabelle_tool,
-      isabelle.vscode.Server.isabelle_tool)
+  private lazy val internal_tools: List[Isabelle_Tool] =
+    Isabelle_System.init_classes[Isabelle_Scala_Tools]("ISABELLE_SCALA_TOOLS")
+      .flatMap(_.tools.toList)
 
   private def list_internal(): List[(String, String)] =
-    for (tool <- internal_tools.toList if tool.accessible)
+    for (tool <- internal_tools.toList)
       yield (tool.name, tool.description)
 
   private def find_internal(name: String): Option[List[String] => Unit] =
     internal_tools.collectFirst({
-      case tool if tool.name == name && tool.accessible =>
+      case tool if tool.name == name =>
         args => Command_Line.tool0 { tool.body(args) }
       })
 
@@ -165,8 +138,38 @@ Available tools:""" + tool_descriptions.mkString("\n  ", "\n  ", "\n")).usage
   }
 }
 
-sealed case class Isabelle_Tool(
-  name: String, description: String, body: List[String] => Unit, admin: Boolean = false)
-{
-  def accessible: Boolean = !admin || Isabelle_System.admin()
-}
+sealed case class Isabelle_Tool(name: String, description: String, body: List[String] => Unit)
+
+class Isabelle_Scala_Tools(val tools: Isabelle_Tool*)
+
+class Regular_Tools extends Isabelle_Scala_Tools(
+  Build.isabelle_tool,
+  Build_Docker.isabelle_tool,
+  Doc.isabelle_tool,
+  Dump.isabelle_tool,
+  Export.isabelle_tool,
+  Imports.isabelle_tool,
+  ML_Process.isabelle_tool,
+  Mkroot.isabelle_tool,
+  Options.isabelle_tool,
+  Present.isabelle_tool,
+  Profiling_Report.isabelle_tool,
+  Server.isabelle_tool,
+  Update_Cartouches.isabelle_tool,
+  Update_Comments.isabelle_tool,
+  Update_Header.isabelle_tool,
+  Update_Then.isabelle_tool,
+  Update_Theorems.isabelle_tool,
+  isabelle.vscode.Grammar.isabelle_tool,
+  isabelle.vscode.Server.isabelle_tool)
+
+class Admin_Tools extends Isabelle_Scala_Tools(
+  Build_Cygwin.isabelle_tool,
+  Build_Doc.isabelle_tool,
+  Build_JDK.isabelle_tool,
+  Build_PolyML.isabelle_tool1,
+  Build_PolyML.isabelle_tool2,
+  Build_Status.isabelle_tool,
+  Check_Sources.isabelle_tool,
+  Remote_DMG.isabelle_tool,
+  isabelle.vscode.Build_VSCode.isabelle_tool)

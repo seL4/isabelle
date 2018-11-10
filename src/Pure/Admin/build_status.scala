@@ -591,6 +591,5 @@ Usage: isabelle build_status [OPTIONS]
 
       build_status(options, progress = progress, only_sessions = only_sessions, verbose = verbose,
         target_dir = target_dir, ml_statistics = ml_statistics, image_size = image_size)
-
-  }, admin = true)
+    })
 }
