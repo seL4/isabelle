@@ -19,6 +19,7 @@ sig
   val print_symbol: Symbol.symbol -> string
   val print_string: string -> string
   val print_strings: string list -> string
+  val print_path: Path.T -> string
   val print_properties: Properties.T -> string
   val print_position: Position.T -> string
   val print_range: Position.range -> string
@@ -85,6 +86,9 @@ fun print_symbol s =
 
 val print_string = quote o implode o map print_symbol o Symbol.explode;
 val print_strings = print_list print_string;
+
+fun print_path path =
+  "Path.explode " ^ print_string (Path.implode path);
 
 val print_properties = print_list (print_pair print_string print_string);
 

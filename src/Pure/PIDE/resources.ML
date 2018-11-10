@@ -259,19 +259,20 @@ val check_dir = formal_check File.check_dir;
 
 local
 
-fun document_antiq check ctxt (name, pos) =
-  let
-    val dir = master_directory (Proof_Context.theory_of ctxt);
-    val _ = check ctxt dir (name, pos);
-    val latex =
-      space_explode "/" name
-      |> map Latex.output_ascii
-      |> space_implode (Latex.output_ascii "/" ^ "\\discretionary{}{}{}");
-  in Latex.enclose_block "\\isatt{" "}" [Latex.string latex] end;
+fun document_antiq check =
+  Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
+    let
+      val dir = master_directory (Proof_Context.theory_of ctxt);
+      val _: Path.T = check ctxt dir (name, pos);
+      val latex =
+        space_explode "/" name
+        |> map Latex.output_ascii
+        |> space_implode (Latex.output_ascii "/" ^ "\\discretionary{}{}{}");
+    in Latex.enclose_block "\\isatt{" "}" [Latex.string latex] end);
 
-fun ML_antiq check ctxt (name, pos) =
-  let val path = check ctxt Path.current (name, pos);
-  in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end;
+fun ML_antiq check =
+  Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, (name, pos)) =>
+    check ctxt Path.current (name, pos) |> ML_Syntax.print_path);
 
 in
 
@@ -280,18 +281,12 @@ val _ = Theory.setup
     (Scan.lift (Parse.position Parse.embedded)) check_session #>
   Thy_Output.antiquotation_verbatim \<^binding>\<open>doc\<close>
     (Scan.lift (Parse.position Parse.embedded)) check_doc #>
-  Thy_Output.antiquotation_raw \<^binding>\<open>path\<close>
-    (Scan.lift (Parse.position Parse.path)) (document_antiq check_path) #>
-  Thy_Output.antiquotation_raw \<^binding>\<open>file\<close>
-    (Scan.lift (Parse.position Parse.path)) (document_antiq check_file) #>
-  Thy_Output.antiquotation_raw \<^binding>\<open>dir\<close>
-    (Scan.lift (Parse.position Parse.path)) (document_antiq check_dir) #>
-  ML_Antiquotation.value \<^binding>\<open>path\<close>
-    (Args.context -- Scan.lift (Parse.position Parse.path) >> uncurry (ML_antiq check_path)) #>
-  ML_Antiquotation.value \<^binding>\<open>file\<close>
-    (Args.context -- Scan.lift (Parse.position Parse.path) >> uncurry (ML_antiq check_file)) #>
-  ML_Antiquotation.value \<^binding>\<open>dir\<close>
-    (Args.context -- Scan.lift (Parse.position Parse.path) >> uncurry (ML_antiq check_dir)));
+  Thy_Output.antiquotation_raw \<^binding>\<open>path\<close> (document_antiq check_path) (K I) #>
+  Thy_Output.antiquotation_raw \<^binding>\<open>file\<close> (document_antiq check_file) (K I) #>
+  Thy_Output.antiquotation_raw \<^binding>\<open>dir\<close> (document_antiq check_dir) (K I) #>
+  ML_Antiquotation.value \<^binding>\<open>path\<close> (ML_antiq check_path) #>
+  ML_Antiquotation.value \<^binding>\<open>file\<close> (ML_antiq check_file) #>
+  ML_Antiquotation.value \<^binding>\<open>dir\<close> (ML_antiq check_dir));
 
 end;
 
