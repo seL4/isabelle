@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Plain values, represented as string.
+
+See also "$ISABELLE_HOME/src/Pure/General/value.ML".
 -}
 
 module Isabelle.Value

@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Quasi-abstract markup elements.
+
+See also "$ISABELLE_HOME/src/Pure/PIDE/markup.ML".
 -}
 
 module Isabelle.Markup (

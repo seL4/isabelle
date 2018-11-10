@@ -33,6 +33,8 @@ generate_haskell_file "Library.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Basic library of Isabelle idioms.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/basics.ML\<close>, \<^file>\<open>$ISABELLE_HOME/src/Pure/library.ML\<close>.
 -}
 
 module Isabelle.Library (
@@ -122,6 +124,8 @@ generate_haskell_file "Value.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Plain values, represented as string.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/value.ML\<close>.
 -}
 
 module Isabelle.Value
@@ -173,6 +177,8 @@ generate_haskell_file "Buffer.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Efficient text buffers.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
 -}
 
 module Isabelle.Buffer (T, empty, add, content)
@@ -197,6 +203,8 @@ generate_haskell_file "Properties.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Property lists.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/properties.ML\<close>.
 -}
 
 module Isabelle.Properties (Entry, T, defined, get, put, remove)
@@ -229,6 +237,8 @@ generate_haskell_file "Markup.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Quasi-abstract markup elements.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/markup.ML\<close>.
 -}
 
 module Isabelle.Markup (
@@ -521,7 +531,9 @@ generate_haskell_file "File.hs" = \<open>
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
-File-system operations
+File-system operations.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/file.ML\<close>.
 -}
 
 module Isabelle.File (setup, read, write, append) where
@@ -555,6 +567,8 @@ generate_haskell_file "XML.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Untyped XML trees and representation of ML values.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 module Isabelle.XML (Attributes, Body, Tree(..), wrap_elem, unwrap_elem, content_of)
@@ -632,6 +646,8 @@ generate_haskell_file "XML/Encode.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 XML as data representation language.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 module Isabelle.XML.Encode (
@@ -716,6 +732,8 @@ generate_haskell_file "XML/Decode.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 XML as data representation language.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/xml.ML\<close>.
 -}
 
 module Isabelle.XML.Decode (
@@ -825,6 +843,8 @@ generate_haskell_file "Pretty.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Generic pretty printing module.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/pretty.ML\<close>.
 -}
 
 module Isabelle.Pretty (
@@ -978,6 +998,8 @@ generate_haskell_file "YXML.hs" = \<open>
 
 Efficient text representation of XML trees.  Suitable for direct
 inlining into plain text.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
 -}
 
 module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,
@@ -1103,6 +1125,8 @@ generate_haskell_file "Term.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 Lambda terms, types, sorts.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term.scala\<close>.
 -}
 
 module Isabelle.Term (
@@ -1148,6 +1172,8 @@ generate_haskell_file "Term_XML/Encode.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 XML data representation of lambda terms.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 -}
 
 {-# LANGUAGE LambdaCase #-}
@@ -1188,6 +1214,8 @@ generate_haskell_file "Term_XML/Decode.hs" = \<open>
     LICENSE:    BSD 3-clause (Isabelle)
 
 XML data representation of lambda terms.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/term_xml.ML\<close>.
 -}
 
 module Isabelle.Term_XML.Decode (sort, typ, term)

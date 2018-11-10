@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Basic library of Isabelle idioms.
+
+See also "$ISABELLE_HOME/src/Pure/General/basics.ML", "$ISABELLE_HOME/src/Pure/library.ML".
 -}
 
 module Isabelle.Library (

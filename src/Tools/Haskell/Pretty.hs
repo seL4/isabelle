@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Generic pretty printing module.
+
+See also "$ISABELLE_HOME/src/Pure/General/pretty.ML".
 -}
 
 module Isabelle.Pretty (

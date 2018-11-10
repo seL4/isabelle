@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 XML as data representation language.
+
+See also "$ISABELLE_HOME/src/Pure/PIDE/xml.ML".
 -}
 
 module Isabelle.XML.Encode (

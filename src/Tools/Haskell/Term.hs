@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Lambda terms, types, sorts.
+
+See also "$ISABELLE_HOME/src/Pure/term.scala".
 -}
 
 module Isabelle.Term (

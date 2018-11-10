@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Efficient text buffers.
+
+See also "$ISABELLE_HOME/src/Pure/General/buffer.ML".
 -}
 
 module Isabelle.Buffer (T, empty, add, content)

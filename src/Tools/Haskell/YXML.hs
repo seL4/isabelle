@@ -6,6 +6,8 @@
 
 Efficient text representation of XML trees.  Suitable for direct
 inlining into plain text.
+
+See also "$ISABELLE_HOME/src/Pure/PIDE/yxml.ML".
 -}
 
 module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,

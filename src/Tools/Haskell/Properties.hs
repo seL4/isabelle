@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Property lists.
+
+See also "$ISABELLE_HOME/src/Pure/General/properties.ML".
 -}
 
 module Isabelle.Properties (Entry, T, defined, get, put, remove)

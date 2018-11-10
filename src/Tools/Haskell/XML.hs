@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 Untyped XML trees and representation of ML values.
+
+See also "$ISABELLE_HOME/src/Pure/PIDE/xml.ML".
 -}
 
 module Isabelle.XML (Attributes, Body, Tree(..), wrap_elem, unwrap_elem, content_of)

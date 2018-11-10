@@ -5,6 +5,8 @@
     LICENSE:    BSD 3-clause (Isabelle)
 
 XML data representation of lambda terms.
+
+See also "$ISABELLE_HOME/src/Pure/term_xml.ML".
 -}
 
 {-# LANGUAGE LambdaCase #-}

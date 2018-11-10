@@ -4,7 +4,9 @@
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
-File-system operations
+File-system operations.
+
+See also "$ISABELLE_HOME/src/Pure/General/file.ML".
 -}
 
 module Isabelle.File (setup, read, write, append) where
