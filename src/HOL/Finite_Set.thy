@@ -291,7 +291,7 @@ next
   from B_A \<open>x \<notin> B\<close> have "B = f ` A - {x}"
     by blast
   with B_A \<open>x \<notin> B\<close> \<open>x = f y\<close> \<open>inj_on f A\<close> \<open>y \<in> A\<close> have "B = f ` (A - {y})"
-    by (simp add: inj_on_image_set_diff Set.Diff_subset)
+    by (simp add: inj_on_image_set_diff)
   moreover from \<open>inj_on f A\<close> have "inj_on f (A - {y})"
     by (rule inj_on_diff)
   ultimately have "finite (A - {y})"

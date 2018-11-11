@@ -36,7 +36,7 @@ next
     have sd_pos: "0 < setdist {x} (S - V)" if "V \<in> \<C>" "x \<in> S" "x \<in> V" for V x
     proof -
       have "closedin (subtopology euclidean S) (S - V)"
-        by (simp add: Diff_Diff_Int Diff_subset closedin_def opC openin_open_Int \<open>V \<in> \<C>\<close>)
+        by (simp add: Diff_Diff_Int closedin_def opC openin_open_Int \<open>V \<in> \<C>\<close>)
       with that False setdist_eq_0_closedin [of S "S-V" x] setdist_pos_le [of "{x}" "S - V"]
         show ?thesis
           by (simp add: order_class.order.order_iff_strict)

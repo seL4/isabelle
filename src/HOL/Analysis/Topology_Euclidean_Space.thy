@@ -794,7 +794,7 @@ lemma topspace_discrete_topology [simp]: "topspace(discrete_topology U) = U"
   by (meson openin_discrete_topology openin_subset openin_topspace order_refl subset_antisym)
 
 lemma closedin_discrete_topology [simp]: "closedin (discrete_topology U) S \<longleftrightarrow> S \<subseteq> U"
-  by (simp add: Diff_subset closedin_def)
+  by (simp add: closedin_def)
 
 lemma discrete_topology_unique:
    "discrete_topology U = X \<longleftrightarrow> topspace X = U \<and> (\<forall>x \<in> U. openin X {x})" (is "?lhs = ?rhs")

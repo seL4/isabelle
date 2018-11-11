@@ -1246,7 +1246,7 @@ proof -
       case 1
       show ?thesis
         by (rule negligible_subset [of "closure S"])
-           (simp_all add: Diff_subset frontier_def negligible_lowdim 1)
+           (simp_all add: frontier_def negligible_lowdim 1)
     next
       case 2
       obtain a where a: "a \<in> interior S"

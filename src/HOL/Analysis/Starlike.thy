@@ -5726,7 +5726,7 @@ lemma dim_special_hyperplane:
   shows "k \<in> Basis \<Longrightarrow> dim {x. k \<bullet> x = 0} = DIM('n) - 1"
 apply (simp add: special_hyperplane_span)
 apply (rule dim_unique [OF subset_refl])
-apply (auto simp: Diff_subset independent_substdbasis)
+apply (auto simp: independent_substdbasis)
 apply (metis member_remove remove_def span_base)
 done
 
@@ -6823,7 +6823,7 @@ proof -
     using assms orthogonal_spanningset_subspace by blast
   then show ?thesis
     apply (rule_tac B = "B - {0}" in that)
-    apply (auto simp: indep_card_eq_dim_span pairwise_subset Diff_subset pairwise_orthogonal_independent elim: pairwise_subset)
+    apply (auto simp: indep_card_eq_dim_span pairwise_subset pairwise_orthogonal_independent elim: pairwise_subset)
     done
 qed
 
@@ -7178,7 +7178,7 @@ proof -
       have "closed S"
         by (simp add: \<open>subspace S\<close> closed_subspace)
       then show "closure (S - U) \<subseteq> S"
-        by (simp add: Diff_subset closure_minimal)
+        by (simp add: closure_minimal)
       show "S \<subseteq> closure (S - U)"
       proof (clarsimp simp: closure_approachable)
         fix x and e::real
@@ -7258,7 +7258,7 @@ corollary dense_complement_convex:
     shows "closure(S - T) = closure S"
 proof
   show "closure (S - T) \<subseteq> closure S"
-    by (simp add: Diff_subset closure_mono)
+    by (simp add: closure_mono)
   have "closure (rel_interior S - T) = closure (rel_interior S)"
     apply (rule dense_complement_openin_affine_hull)
     apply (simp add: assms rel_interior_aff_dim)

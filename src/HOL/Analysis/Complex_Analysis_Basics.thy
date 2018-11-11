@@ -761,7 +761,7 @@ proof
   show ?rhs
     apply (rule_tac x="s \<inter> t" in exI)
     using st
-    apply (auto simp: Diff_subset holomorphic_on_subset)
+    apply (auto simp: holomorphic_on_subset)
     done
 next
   assume ?rhs

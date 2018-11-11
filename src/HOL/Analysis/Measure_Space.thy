@@ -1528,7 +1528,7 @@ proof (rule ring_of_setsI)
 
   show "a \<in> {A \<in> sets M. emeasure M A \<noteq> top} \<Longrightarrow> b \<in> {A \<in> sets M. emeasure M A \<noteq> top} \<Longrightarrow>
     a - b \<in> {A \<in> sets M. emeasure M A \<noteq> top}" for a b
-    using emeasure_mono[of "a - b" a M] by (auto simp: Diff_subset top_unique)
+    using emeasure_mono[of "a - b" a M] by (auto simp: top_unique)
 qed (auto dest: sets.sets_into_space)
 
 lemma measure_nonneg[simp]: "0 \<le> measure M A"
@@ -1746,7 +1746,7 @@ proof (rule ring_of_setsI)
   finally show  "a \<union> b \<in> fmeasurable M"
     using * by (auto intro: fmeasurableI)
   show "a - b \<in> fmeasurable M"
-    using emeasure_mono[of "a - b" a M] * by (auto simp: fmeasurable_def Diff_subset)
+    using emeasure_mono[of "a - b" a M] * by (auto simp: fmeasurable_def)
 qed
 
 subsection\<open>Measurable sets formed by unions and intersections\<close>

@@ -1190,13 +1190,13 @@ proof -
     assume *[rule_format]: "\<forall>U\<subseteq>topspace X'. openin X {x \<in> topspace X. f x \<in> U} = openin X' U"
       and U': "U' \<subseteq> topspace X'"
     show "closedin X {x \<in> topspace X. f x \<in> U'} = closedin X' U'"
-      using U'  by (auto simp add: closedin_def Diff_subset simp flip: * [of "topspace X' - U'"] eq [OF that])
+      using U'  by (auto simp add: closedin_def simp flip: * [of "topspace X' - U'"] eq [OF that])
   next
     fix U' :: "'b set"
     assume *[rule_format]: "\<forall>U\<subseteq>topspace X'. closedin X {x \<in> topspace X. f x \<in> U} = closedin X' U"
       and U': "U' \<subseteq> topspace X'"
     show "openin X {x \<in> topspace X. f x \<in> U'} = openin X' U'"
-      using U'  by (auto simp add: openin_closedin_eq Diff_subset simp flip: * [of "topspace X' - U'"] eq [OF that])
+      using U'  by (auto simp add: openin_closedin_eq simp flip: * [of "topspace X' - U'"] eq [OF that])
   qed
   then show ?thesis
     unfolding quotient_map_def by force
@@ -1491,7 +1491,7 @@ lemma separatedin_openin_diff:
 
 lemma separatedin_closedin_diff:
      "\<lbrakk>closedin X S; closedin X T\<rbrakk> \<Longrightarrow> separatedin X (S - T) (T - S)"
-  apply (simp add: separatedin_def Diff_Int_distrib2 Diff_subset closure_of_minimal inf_absorb2)
+  apply (simp add: separatedin_def Diff_Int_distrib2 closure_of_minimal inf_absorb2)
   apply (meson Diff_subset closedin_subset subset_trans)
   done
 
