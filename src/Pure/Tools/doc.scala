@@ -33,10 +33,18 @@ object Doc
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
-  def text_file(name: Path): Option[Text_File] =
+  private val Variable_Path = new Regex("""^\$[^/]+/+(.+)$""")
+
+  def text_file(path: Path): Option[Text_File] =
   {
-    val path = Path.variable("ISABELLE_HOME") + name
-    if (path.is_file) Some(Text_File(name.implode, path))
+    if (path.is_file) {
+      val name =
+        path.implode match {
+          case Variable_Path(name) => name
+          case name => name
+        }
+      Some(Text_File(name, path))
+    }
     else None
   }
 
