@@ -1333,7 +1333,7 @@ next
   fix A assume "A \<subseteq> \<Omega> \<and> A \<inter> D \<in> M"
   moreover have "(\<Omega> - A) \<inter> D = (\<Omega> - (A \<inter> D)) - (\<Omega> - D)"
     by auto
-  ultimately show "\<Omega> - A \<subseteq> \<Omega> \<and> (\<Omega> - A) \<inter> D \<in> M"
+  ultimately show "(\<Omega> - A) \<inter> D \<in> M"
     using  \<open>D \<in> M\<close> by (auto intro: diff)
 next
   fix A :: "nat \<Rightarrow> 'a set"
