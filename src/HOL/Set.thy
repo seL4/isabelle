@@ -1122,7 +1122,7 @@ lemma Int_greatest: "C \<subseteq> A \<Longrightarrow> C \<subseteq> B \<Longrig
 
 text \<open>\<^medskip> Set difference.\<close>
 
-lemma Diff_subset: "A - B \<subseteq> A"
+lemma Diff_subset[simp]: "A - B \<subseteq> A"
   by blast
 
 lemma Diff_subset_conv: "A - B \<subseteq> C \<longleftrightarrow> A \<subseteq> B \<union> C"
