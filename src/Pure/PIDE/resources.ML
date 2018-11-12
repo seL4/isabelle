@@ -90,15 +90,15 @@ fun check_name which kind markup ctxt (name, pos) =
       SOME entry => (Context_Position.report ctxt pos (markup name entry); name)
     | NONE =>
         let
-          val completion =
-            Completion.make (name, pos) (fn completed =>
+          val completion_report =
+            Completion.make_report (name, pos)
+              (fn completed =>
                 entries
                 |> map #1
                 |> filter completed
                 |> sort_strings
                 |> map (fn a => (a, (kind, a))));
-          val report = Markup.markup_report (Completion.reported_text completion);
-        in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ report) end)
+        in error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos ^ completion_report) end)
   end;
 
 fun markup_session name {pos, serial} =

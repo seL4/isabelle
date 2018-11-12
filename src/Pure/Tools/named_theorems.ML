@@ -77,10 +77,7 @@ fun check ctxt (xname, pos) =
       let
         val space = Facts.space_of (Proof_Context.facts_of ctxt);
         val completion = Name_Space.completion context space (defined_entry context) (xname, pos);
-      in
-        error (undeclared xname ^ Position.here pos ^
-          Markup.markup_report (Completion.reported_text completion))
-      end;
+      in error (undeclared xname ^ Position.here pos ^ Completion.markup_report [completion]) end;
   in
     (case try (Proof_Context.get_fact_generic context) fact_ref of
       SOME (SOME name, _) => if defined_entry context name then name else err ()

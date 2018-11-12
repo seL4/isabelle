@@ -564,12 +564,9 @@ fun check_reports context (Table (space, tab)) (xname, ps) =
             |> map (fn pos => (pos, markup space name));
         in ((name, reports), x) end
     | NONE =>
-        let
-          val completions = map (fn pos => completion context space (K true) (xname, pos)) ps;
-        in
-          error (undefined space name ^ Position.here_list ps ^
-            Markup.markup_report (implode (map Completion.reported_text completions)))
-        end)
+        error (undefined space name ^ Position.here_list ps ^
+          Completion.markup_report
+            (map (fn pos => completion context space (K true) (xname, pos)) ps)))
   end;
 
 fun check context table (xname, pos) =

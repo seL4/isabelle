@@ -63,15 +63,14 @@ fun check_action (name, pos) =
     in writeln (msg ^ Position.here pos); name end
   else
     let
-      val completion =
-        Completion.make (name, pos)
+      val completion_report =
+        Completion.make_report (name, pos)
           (fn completed =>
             Lazy.force all_actions
             |> filter completed
             |> sort_strings
             |> map (fn a => (a, ("action", a))));
-      val report = Markup.markup_report (Completion.reported_text completion);
-    in error ("Bad jEdit action " ^ quote name ^ Position.here pos ^ report) end
+    in error ("Bad jEdit action " ^ quote name ^ Position.here pos ^ completion_report) end
 
 val _ =
   Theory.setup

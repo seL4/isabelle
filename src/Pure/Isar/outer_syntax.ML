@@ -293,15 +293,14 @@ fun check_command ctxt (name, pos) =
       in name end
     else
       let
-        val completion =
-          Completion.make (name, pos)
+        val completion_report =
+          Completion.make_report (name, pos)
             (fn completed =>
               Keyword.dest_commands keywords
               |> filter completed
               |> sort_strings
               |> map (fn a => (a, (Markup.commandN, a))));
-        val report = Markup.markup_report (Completion.reported_text completion);
-      in error ("Bad command " ^ quote name ^ Position.here pos ^ report) end
+      in error ("Bad command " ^ quote name ^ Position.here pos ^ completion_report) end
   end;
 
 

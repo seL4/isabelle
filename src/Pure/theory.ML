@@ -139,15 +139,14 @@ fun check long ctxt (name, pos) =
       Context.get_theory long thy name
         handle ERROR msg =>
           let
-            val completion =
-              Completion.make (name, pos)
+            val completion_report =
+              Completion.make_report (name, pos)
                 (fn completed =>
                   map (Context.theory_name' long) (ancestors_of thy)
                   |> filter (completed o Long_Name.base_name)
                   |> sort_strings
                   |> map (fn a => (a, (Markup.theoryN, a))));
-            val report = Markup.markup_report (Completion.reported_text completion);
-          in error (msg ^ Position.here pos ^ report) end;
+          in error (msg ^ Position.here pos ^ completion_report) end;
     val _ = Context_Position.report ctxt pos (get_markup thy');
   in thy' end;
 

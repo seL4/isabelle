@@ -550,8 +550,9 @@ Completion of names.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
 -}
 
-module Isabelle.Completion (Name, T, names, none, make, encode, reported_text)
-where
+module Isabelle.Completion (
+    Name, T, names, none, make, markup_element, markup_report, make_report
+  ) where
 
 import qualified Data.List as List
 
@@ -578,18 +579,29 @@ make limit (name, props) make_names =
   then names limit props (make_names $ List.isPrefixOf $ clean_name name)
   else none
 
-encode :: T -> XML.Body
-encode (Completion _ total names) =
-  Encode.pair Encode.int
-    (Encode.list (Encode.pair Encode.string (Encode.pair Encode.string Encode.string)))
-    (total, names)
-
-reported_text :: T -> String
-reported_text completion@(Completion props total names) =
+markup_element :: T -> (Markup.T, XML.Body)
+markup_element (Completion props total names) =
   if not (null names) then
-    let markup = Markup.properties props Markup.completion
-    in YXML.string_of $ XML.Elem markup (encode completion)
-  else ""
+    let
+      markup = Markup.properties props Markup.completion
+      body =
+        Encode.pair Encode.int
+          (Encode.list (Encode.pair Encode.string (Encode.pair Encode.string Encode.string)))
+          (total, names)
+    in (markup, body)
+  else (Markup.empty, [])
+
+markup_report :: [T] -> String
+markup_report [] = ""
+markup_report elems =
+  elems
+  |> map (markup_element #> uncurry XML.Elem)
+  |> XML.Elem Markup.report
+  |> YXML.string_of
+
+make_report :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> String
+make_report limit name_props make_names =
+  markup_report [make limit name_props make_names]
 \<close>
 
 generate_haskell_file "File.hs" = \<open>

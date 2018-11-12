@@ -6,12 +6,15 @@ Semantic completion within the formal context.
 
 signature COMPLETION =
 sig
+  type name = string * (string * string)
   type T
-  val names: Position.T -> (string * (string * string)) list -> T
+  val names: Position.T -> name list -> T
   val none: T
-  val make: string * Position.T -> ((string -> bool) -> (string * (string * string)) list) -> T
+  val make: string * Position.T -> ((string -> bool) -> name list) -> T
   val encode: T -> XML.body
-  val reported_text: T -> string
+  val markup_element: T -> Markup.T * XML.body
+  val markup_report: T list -> string
+  val make_report: string * Position.T -> ((string -> bool) -> name list) -> string
   val suppress_abbrevs: string -> Markup.T list
   val check_option: Options.T -> Proof.context -> string * Position.T -> string
   val check_option_value:
@@ -23,8 +26,9 @@ struct
 
 (* completion of names *)
 
-abstype T =
-  Completion of {pos: Position.T, total: int, names: (string * (string * string)) list}
+type name = string * (string * string);  (*external name, kind, internal name*)
+
+abstype T = Completion of {pos: Position.T, total: int, names: name list}
 with
 
 fun dest (Completion args) = args;
@@ -50,14 +54,17 @@ fun encode completion =
     open XML.Encode;
   in pair int (list (pair string (pair string string))) (total, names) end;
 
-fun reported_text completion =
+fun markup_element completion =
   let val {pos, names, ...} = dest completion in
     if Position.is_reported pos andalso not (null names) then
-      let
-        val markup = Position.markup pos Markup.completion;
-      in YXML.string_of (XML.Elem (markup, encode completion)) end
-    else ""
+      (Position.markup pos Markup.completion, encode completion)
+    else (Markup.empty, [])
   end;
+
+val markup_report =
+  map (markup_element #> XML.Elem) #> YXML.string_of_body #> Markup.markup_report;
+
+val make_report = markup_report oo (single oo make);
 
 
 (* suppress short abbreviations *)
@@ -75,13 +82,12 @@ fun check_option options ctxt (name, pos) =
     val markup =
       Options.markup options (name, pos) handle ERROR msg =>
         let
-          val completion =
-            make (name, pos) (fn completed =>
+          val completion_report =
+            make_report (name, pos) (fn completed =>
                 Options.names options
                 |> filter completed
                 |> map (fn a => (a, ("system_option", a))));
-          val report = Markup.markup_report (reported_text completion);
-        in error (msg ^ report) end;
+        in error (msg ^ completion_report) end;
     val _ = Context_Position.report ctxt pos markup;
   in name end;
 
