@@ -44,7 +44,7 @@ module Isabelle.Library (
 
   fold, fold_rev, single, map_index, get_index,
 
-  quote, trim_line)
+  quote, trim_line, clean_name)
 where
 
 import Data.Maybe
@@ -116,6 +116,9 @@ trim_line line =
     '\n' : '\r' : rest -> reverse rest
     '\n' : rest -> reverse rest
     _ -> line
+
+clean_name :: String -> String
+clean_name = reverse #> dropWhile (== '_') #> reverse
 \<close>
 
 generate_haskell_file "Value.hs" = \<open>
@@ -246,6 +249,8 @@ module Isabelle.Markup (
 
   nameN, name, xnameN, xname, kindN,
 
+  completionN, completion, no_completionN, no_completion,
+
   lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
 
   markupN, consistentN, unbreakableN, indentN, widthN,
@@ -315,6 +320,15 @@ xname a = properties [(xnameN, a)]
 
 kindN :: String
 kindN = \<open>Markup.kindN\<close>
+
+
+{- completion -}
+
+completionN :: String; completion :: T
+(completionN, completion) = markup_elem \<open>Markup.completionN\<close>
+
+no_completionN :: String; no_completion :: T
+(no_completionN, no_completion) = markup_elem \<open>Markup.no_completionN\<close>
 
 
 {- position -}
@@ -524,6 +538,58 @@ type Output = (String, String)
 
 no_output :: Output
 no_output = ("", "")
+\<close>
+
+generate_haskell_file "Completion.hs" = \<open>
+{-  Title:      Tools/Haskell/Completion.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Completion of names.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/completion.ML\<close>.
+-}
+
+module Isabelle.Completion (Name, T, names, none, make, encode, reported_text)
+where
+
+import qualified Data.List as List
+
+import Isabelle.Library
+import qualified Isabelle.Properties as Properties
+import qualified Isabelle.Markup as Markup
+import qualified Isabelle.XML.Encode as Encode
+import qualified Isabelle.XML as XML
+import qualified Isabelle.YXML as YXML
+
+
+type Name = (String, (String, String))  -- external name, kind, internal name
+data T = Completion Properties.T Int [Name]  -- position, total length, names
+
+names :: Int -> Properties.T -> [Name] -> T
+names limit props names = Completion props (length names) (take limit names)
+
+none :: T
+none = names 0 [] []
+
+make :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> T
+make limit (name, props) make_names =
+  if name /= "" && name /= "_"
+  then names limit props (make_names $ List.isPrefixOf $ clean_name name)
+  else none
+
+encode :: T -> XML.Body
+encode (Completion _ total names) =
+  Encode.pair Encode.int
+    (Encode.list (Encode.pair Encode.string (Encode.pair Encode.string Encode.string)))
+    (total, names)
+
+reported_text :: T -> String
+reported_text completion@(Completion props total names) =
+  if not (null names) then
+    let markup = Markup.properties props Markup.completion
+    in YXML.string_of $ XML.Elem markup (encode completion)
+  else ""
 \<close>
 
 generate_haskell_file "File.hs" = \<open>
@@ -837,6 +903,134 @@ variant fs [t] = (fs !! tag) (xs, ts)
 variant _ _ = err_body
 \<close>
 
+generate_haskell_file "YXML.hs" = \<open>
+{-  Title:      Tools/Haskell/YXML.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Efficient text representation of XML trees.  Suitable for direct
+inlining into plain text.
+
+See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
+-}
+
+module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,
+  buffer_body, buffer, string_of_body, string_of, parse_body, parse)
+where
+
+import qualified Data.Char as Char
+import qualified Data.List as List
+
+import Isabelle.Library
+import qualified Isabelle.Markup as Markup
+import qualified Isabelle.XML as XML
+import qualified Isabelle.Buffer as Buffer
+
+
+{- markers -}
+
+charX, charY :: Char
+charX = Char.chr 5
+charY = Char.chr 6
+
+strX, strY, strXY, strXYX :: String
+strX = [charX]
+strY = [charY]
+strXY = strX ++ strY
+strXYX = strXY ++ strX
+
+detect :: String -> Bool
+detect = any (\c -> c == charX || c == charY)
+
+
+{- output -}
+
+output_markup :: Markup.T -> Markup.Output
+output_markup markup@(name, atts) =
+  if Markup.is_empty markup then Markup.no_output
+  else (strXY ++ name ++ concatMap (\(a, x) -> strY ++ a ++ "=" ++ x) atts ++ strX, strXYX)
+
+buffer_attrib (a, x) =
+  Buffer.add strY #> Buffer.add a #> Buffer.add "=" #> Buffer.add x
+
+buffer_body :: XML.Body -> Buffer.T -> Buffer.T
+buffer_body = fold buffer
+
+buffer :: XML.Tree -> Buffer.T -> Buffer.T
+buffer (XML.Elem (name, atts) ts) =
+  Buffer.add strXY #> Buffer.add name #> fold buffer_attrib atts #> Buffer.add strX #>
+  buffer_body ts #>
+  Buffer.add strXYX
+buffer (XML.Text s) = Buffer.add s
+
+string_of_body :: XML.Body -> String
+string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content
+
+string_of :: XML.Tree -> String
+string_of = string_of_body . single
+
+
+{- parse -}
+
+-- split: fields or non-empty tokens
+
+split :: Bool -> Char -> String -> [String]
+split _ _ [] = []
+split fields sep str = splitting str
+  where
+    splitting rest =
+      case span (/= sep) rest of
+        (_, []) -> cons rest []
+        (prfx, _ : rest') -> cons prfx (splitting rest')
+    cons item = if fields || not (null item) then (:) item else id
+
+
+-- structural errors
+
+err msg = error ("Malformed YXML: " ++ msg)
+err_attribute = err "bad attribute"
+err_element = err "bad element"
+err_unbalanced "" = err "unbalanced element"
+err_unbalanced name = err ("unbalanced element " ++ quote name)
+
+
+-- stack operations
+
+add x ((elem, body) : pending) = (elem, x : body) : pending
+
+push "" _ _ = err_element
+push name atts pending = ((name, atts), []) : pending
+
+pop ((("", _), _) : _) = err_unbalanced ""
+pop ((markup, body) : pending) = add (XML.Elem markup (reverse body)) pending
+
+
+-- parsing
+
+parse_attrib s =
+  case List.elemIndex '=' s of
+    Just i | i > 0 -> (take i s, drop (i + 1) s)
+    _ -> err_attribute
+
+parse_chunk ["", ""] = pop
+parse_chunk ("" : name : atts) = push name (map parse_attrib atts)
+parse_chunk txts = fold (add . XML.Text) txts
+
+parse_body :: String -> XML.Body
+parse_body source =
+  case fold parse_chunk chunks [(("", []), [])] of
+    [(("", _), result)] -> reverse result
+    ((name, _), _) : _ -> err_unbalanced name
+  where chunks = split False charX source |> map (split True charY)
+
+parse :: String -> XML.Tree
+parse source =
+  case parse_body source of
+    [result] -> result
+    [] -> XML.Text ""
+    _ -> err "multiple results"
+\<close>
+
 generate_haskell_file "Pretty.hs" = \<open>
 {-  Title:      Tools/Haskell/Pretty.hs
     Author:     Makarius
@@ -989,134 +1183,6 @@ str_list lpar rpar = list lpar rpar . map str
 
 big_list :: String -> [T] -> T
 big_list name prts = block (fbreaks (str name : prts))
-\<close>
-
-generate_haskell_file "YXML.hs" = \<open>
-{-  Title:      Tools/Haskell/YXML.hs
-    Author:     Makarius
-    LICENSE:    BSD 3-clause (Isabelle)
-
-Efficient text representation of XML trees.  Suitable for direct
-inlining into plain text.
-
-See also \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/yxml.ML\<close>.
--}
-
-module Isabelle.YXML (charX, charY, strX, strY, detect, output_markup,
-  buffer_body, buffer, string_of_body, string_of, parse_body, parse)
-where
-
-import qualified Data.Char as Char
-import qualified Data.List as List
-
-import Isabelle.Library
-import qualified Isabelle.Markup as Markup
-import qualified Isabelle.XML as XML
-import qualified Isabelle.Buffer as Buffer
-
-
-{- markers -}
-
-charX, charY :: Char
-charX = Char.chr 5
-charY = Char.chr 6
-
-strX, strY, strXY, strXYX :: String
-strX = [charX]
-strY = [charY]
-strXY = strX ++ strY
-strXYX = strXY ++ strX
-
-detect :: String -> Bool
-detect = any (\c -> c == charX || c == charY)
-
-
-{- output -}
-
-output_markup :: Markup.T -> Markup.Output
-output_markup markup@(name, atts) =
-  if Markup.is_empty markup then Markup.no_output
-  else (strXY ++ name ++ concatMap (\(a, x) -> strY ++ a ++ "=" ++ x) atts ++ strX, strXYX)
-
-buffer_attrib (a, x) =
-  Buffer.add strY #> Buffer.add a #> Buffer.add "=" #> Buffer.add x
-
-buffer_body :: XML.Body -> Buffer.T -> Buffer.T
-buffer_body = fold buffer
-
-buffer :: XML.Tree -> Buffer.T -> Buffer.T
-buffer (XML.Elem (name, atts) ts) =
-  Buffer.add strXY #> Buffer.add name #> fold buffer_attrib atts #> Buffer.add strX #>
-  buffer_body ts #>
-  Buffer.add strXYX
-buffer (XML.Text s) = Buffer.add s
-
-string_of_body :: XML.Body -> String
-string_of_body body = Buffer.empty |> buffer_body body |> Buffer.content
-
-string_of :: XML.Tree -> String
-string_of = string_of_body . single
-
-
-{- parse -}
-
--- split: fields or non-empty tokens
-
-split :: Bool -> Char -> String -> [String]
-split _ _ [] = []
-split fields sep str = splitting str
-  where
-    splitting rest =
-      case span (/= sep) rest of
-        (_, []) -> cons rest []
-        (prfx, _ : rest') -> cons prfx (splitting rest')
-    cons item = if fields || not (null item) then (:) item else id
-
-
--- structural errors
-
-err msg = error ("Malformed YXML: " ++ msg)
-err_attribute = err "bad attribute"
-err_element = err "bad element"
-err_unbalanced "" = err "unbalanced element"
-err_unbalanced name = err ("unbalanced element " ++ quote name)
-
-
--- stack operations
-
-add x ((elem, body) : pending) = (elem, x : body) : pending
-
-push "" _ _ = err_element
-push name atts pending = ((name, atts), []) : pending
-
-pop ((("", _), _) : _) = err_unbalanced ""
-pop ((markup, body) : pending) = add (XML.Elem markup (reverse body)) pending
-
-
--- parsing
-
-parse_attrib s =
-  case List.elemIndex '=' s of
-    Just i | i > 0 -> (take i s, drop (i + 1) s)
-    _ -> err_attribute
-
-parse_chunk ["", ""] = pop
-parse_chunk ("" : name : atts) = push name (map parse_attrib atts)
-parse_chunk txts = fold (add . XML.Text) txts
-
-parse_body :: String -> XML.Body
-parse_body source =
-  case fold parse_chunk chunks [(("", []), [])] of
-    [(("", _), result)] -> reverse result
-    ((name, _), _) : _ -> err_unbalanced name
-  where chunks = split False charX source |> map (split True charY)
-
-parse :: String -> XML.Tree
-parse source =
-  case parse_body source of
-    [result] -> result
-    [] -> XML.Text ""
-    _ -> err "multiple results"
 \<close>
 
 generate_haskell_file "Term.hs" = \<open>

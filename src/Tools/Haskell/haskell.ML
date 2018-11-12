@@ -52,6 +52,8 @@ val sources =
   \<^path>\<open>Buffer.hs\<close>,
   \<^path>\<open>Properties.hs\<close>,
   \<^path>\<open>Markup.hs\<close>,
+  \<^path>\<open>Completion.hs\<close>,
+  \<^path>\<open>File.hs\<close>,
   \<^path>\<open>XML.hs\<close>,
   \<^path>\<open>XML/Encode.hs\<close>,
   \<^path>\<open>XML/Decode.hs\<close>,

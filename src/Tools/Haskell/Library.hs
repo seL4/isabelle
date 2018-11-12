@@ -16,7 +16,7 @@ module Isabelle.Library (
 
   fold, fold_rev, single, map_index, get_index,
 
-  quote, trim_line)
+  quote, trim_line, clean_name)
 where
 
 import Data.Maybe
@@ -88,3 +88,6 @@ trim_line line =
     '\n' : '\r' : rest -> reverse rest
     '\n' : rest -> reverse rest
     _ -> line
+
+clean_name :: String -> String
+clean_name = reverse #> dropWhile (== '_') #> reverse

@@ -14,6 +14,8 @@ module Isabelle.Markup (
 
   nameN, name, xnameN, xname, kindN,
 
+  completionN, completion, no_completionN, no_completion,
+
   lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
 
   markupN, consistentN, unbreakableN, indentN, widthN,
@@ -83,6 +85,15 @@ xname a = properties [(xnameN, a)]
 
 kindN :: String
 kindN = "kind"
+
+
+{- completion -}
+
+completionN :: String; completion :: T
+(completionN, completion) = markup_elem "completion"
+
+no_completionN :: String; no_completion :: T
+(no_completionN, no_completion) = markup_elem "no_completion"
 
 
 {- position -}
