@@ -14,7 +14,7 @@ module Isabelle.XML.Encode (
 
   int_atom, bool_atom, unit_atom,
 
-  tree, properties, string, init, bool, unit, pair, triple, list, variant
+  tree, properties, string, int, bool, unit, pair, triple, list, variant
 )
 where
 
