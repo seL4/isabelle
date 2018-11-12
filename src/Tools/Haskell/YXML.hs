@@ -53,7 +53,7 @@ buffer_body :: XML.Body -> Buffer.T -> Buffer.T
 buffer_body = fold buffer
 
 buffer :: XML.Tree -> Buffer.T -> Buffer.T
-buffer (XML.Elem (name, atts) ts) =
+buffer (XML.Elem ((name, atts), ts)) =
   Buffer.add strXY #> Buffer.add name #> fold buffer_attrib atts #> Buffer.add strX #>
   buffer_body ts #>
   Buffer.add strXYX
@@ -98,7 +98,7 @@ push "" _ _ = err_element
 push name atts pending = ((name, atts), []) : pending
 
 pop ((("", _), _) : _) = err_unbalanced ""
-pop ((markup, body) : pending) = add (XML.Elem markup (reverse body)) pending
+pop ((markup, body) : pending) = add (XML.Elem (markup, reverse body)) pending
 
 
 -- parsing

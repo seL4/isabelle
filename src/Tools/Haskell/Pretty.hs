@@ -40,7 +40,7 @@ symbolic_text s = [XML.Text s]
 
 symbolic_markup markup body =
   if Markup.is_empty markup then body
-  else [XML.Elem markup body]
+  else [XML.Elem (markup, body)]
 
 symbolic :: T -> XML.Body
 symbolic (Block markup consistent indent prts) =
@@ -48,7 +48,7 @@ symbolic (Block markup consistent indent prts) =
   |> symbolic_markup block_markup
   |> symbolic_markup markup
   where block_markup = if null prts then Markup.empty else Markup.block consistent indent
-symbolic (Break wd ind) = [XML.Elem (Markup.break wd ind) (symbolic_text (output_spaces wd))]
+symbolic (Break wd ind) = [XML.Elem (Markup.break wd ind, symbolic_text (output_spaces wd))]
 symbolic (Str s) = symbolic_text s
 
 formatted :: T -> String

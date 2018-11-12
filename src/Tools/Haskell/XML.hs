@@ -24,16 +24,16 @@ import qualified Isabelle.Buffer as Buffer
 
 type Attributes = Properties.T
 type Body = [Tree]
-data Tree = Elem Markup.T Body | Text String
+data Tree = Elem (Markup.T, Body) | Text String
 
 
 {- wrapped elements -}
 
 wrap_elem (((a, atts), body1), body2) =
-  Elem ("xml_elem", ("xml_name", a) : atts) (Elem ("xml_body", []) body1 : body2)
+  Elem (("xml_elem", ("xml_name", a) : atts), Elem (("xml_body", []), body1) : body2)
 
 unwrap_elem
-  (Elem ("xml_elem", ("xml_name", a) : atts) (Elem ("xml_body", []) body1 : body2)) =
+  (Elem (("xml_elem", ("xml_name", a) : atts), Elem (("xml_body", []), body1) : body2)) =
   Just (((a, atts), body1), body2)
 unwrap_elem _ = Nothing
 
@@ -45,7 +45,7 @@ add_content tree =
     Just (_, ts) -> fold add_content ts
     Nothing ->
       case tree of
-        Elem _ ts -> fold add_content ts
+        Elem (_, ts) -> fold add_content ts
         Text s -> Buffer.add s
 
 content_of body = Buffer.empty |> fold add_content body |> Buffer.content
@@ -64,9 +64,9 @@ instance Show Tree where
   show tree =
     Buffer.empty |> show_tree tree |> Buffer.content
     where
-      show_tree (Elem (name, atts) []) =
+      show_tree (Elem ((name, atts), [])) =
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add "/>"
-      show_tree (Elem (name, atts) ts) =
+      show_tree (Elem ((name, atts), ts)) =
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add ">" #>
         fold show_tree ts #>
         Buffer.add "</" #> Buffer.add name #> Buffer.add ">"

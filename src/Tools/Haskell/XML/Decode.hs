@@ -54,13 +54,13 @@ unit_atom _ = err_atom
 
 {- structural nodes -}
 
-node (XML.Elem (":", []) ts) = ts
+node (XML.Elem ((":", []), ts)) = ts
 node _ = err_body
 
 vector atts =
   map_index (\(i, (a, x)) -> if int_atom a == i then x else err_atom) atts
 
-tagged (XML.Elem (name, atts) ts) = (int_atom name, (vector atts, ts))
+tagged (XML.Elem ((name, atts), ts)) = (int_atom name, (vector atts, ts))
 tagged _ = err_body
 
 
@@ -71,7 +71,7 @@ tree [t] = t
 tree _ = err_body
 
 properties :: T Properties.T
-properties [XML.Elem (":", props) []] = props
+properties [XML.Elem ((":", props), [])] = props
 properties _ = err_body
 
 string :: T String

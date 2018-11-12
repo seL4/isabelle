@@ -53,10 +53,7 @@ markup_element (Completion props total names) =
 markup_report :: [T] -> String
 markup_report [] = ""
 markup_report elems =
-  elems
-  |> map (markup_element #> uncurry XML.Elem)
-  |> XML.Elem Markup.report
-  |> YXML.string_of
+  YXML.string_of $ XML.Elem (Markup.report, map (XML.Elem . markup_element) elems)
 
 make_report :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> String
 make_report limit name_props make_names =

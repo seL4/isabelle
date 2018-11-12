@@ -594,10 +594,7 @@ markup_element (Completion props total names) =
 markup_report :: [T] -> String
 markup_report [] = ""
 markup_report elems =
-  elems
-  |> map (markup_element #> uncurry XML.Elem)
-  |> XML.Elem Markup.report
-  |> YXML.string_of
+  YXML.string_of $ XML.Elem (Markup.report, map (XML.Elem . markup_element) elems)
 
 make_report :: Int -> (String, Properties.T) -> ((String -> Bool) -> [Name]) -> String
 make_report limit name_props make_names =
@@ -664,16 +661,16 @@ import qualified Isabelle.Buffer as Buffer
 
 type Attributes = Properties.T
 type Body = [Tree]
-data Tree = Elem Markup.T Body | Text String
+data Tree = Elem (Markup.T, Body) | Text String
 
 
 {- wrapped elements -}
 
 wrap_elem (((a, atts), body1), body2) =
-  Elem (\<open>XML.xml_elemN\<close>, (\<open>XML.xml_nameN\<close>, a) : atts) (Elem (\<open>XML.xml_bodyN\<close>, []) body1 : body2)
+  Elem ((\<open>XML.xml_elemN\<close>, (\<open>XML.xml_nameN\<close>, a) : atts), Elem ((\<open>XML.xml_bodyN\<close>, []), body1) : body2)
 
 unwrap_elem
-  (Elem (\<open>XML.xml_elemN\<close>, (\<open>XML.xml_nameN\<close>, a) : atts) (Elem (\<open>XML.xml_bodyN\<close>, []) body1 : body2)) =
+  (Elem ((\<open>XML.xml_elemN\<close>, (\<open>XML.xml_nameN\<close>, a) : atts), Elem ((\<open>XML.xml_bodyN\<close>, []), body1) : body2)) =
   Just (((a, atts), body1), body2)
 unwrap_elem _ = Nothing
 
@@ -685,7 +682,7 @@ add_content tree =
     Just (_, ts) -> fold add_content ts
     Nothing ->
       case tree of
-        Elem _ ts -> fold add_content ts
+        Elem (_, ts) -> fold add_content ts
         Text s -> Buffer.add s
 
 content_of body = Buffer.empty |> fold add_content body |> Buffer.content
@@ -704,9 +701,9 @@ instance Show Tree where
   show tree =
     Buffer.empty |> show_tree tree |> Buffer.content
     where
-      show_tree (Elem (name, atts) []) =
+      show_tree (Elem ((name, atts), [])) =
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add "/>"
-      show_tree (Elem (name, atts) ts) =
+      show_tree (Elem ((name, atts), ts)) =
         Buffer.add "<" #> Buffer.add (show_elem name atts) #> Buffer.add ">" #>
         fold show_tree ts #>
         Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
@@ -763,11 +760,11 @@ unit_atom () = ""
 
 -- structural nodes
 
-node = XML.Elem (":", [])
+node ts = XML.Elem ((":", []), ts)
 
 vector = map_index (\(i, x) -> (int_atom i, x))
 
-tagged (tag, (xs, ts)) = XML.Elem (int_atom tag, vector xs) ts
+tagged (tag, (xs, ts)) = XML.Elem ((int_atom tag, vector xs), ts)
 
 
 -- representation of standard types
@@ -776,7 +773,7 @@ tree :: T XML.Tree
 tree t = [t]
 
 properties :: T Properties.T
-properties props = [XML.Elem (":", props) []]
+properties props = [XML.Elem ((":", props), [])]
 
 string :: T String
 string "" = []
@@ -859,13 +856,13 @@ unit_atom _ = err_atom
 
 {- structural nodes -}
 
-node (XML.Elem (":", []) ts) = ts
+node (XML.Elem ((":", []), ts)) = ts
 node _ = err_body
 
 vector atts =
   map_index (\(i, (a, x)) -> if int_atom a == i then x else err_atom) atts
 
-tagged (XML.Elem (name, atts) ts) = (int_atom name, (vector atts, ts))
+tagged (XML.Elem ((name, atts), ts)) = (int_atom name, (vector atts, ts))
 tagged _ = err_body
 
 
@@ -876,7 +873,7 @@ tree [t] = t
 tree _ = err_body
 
 properties :: T Properties.T
-properties [XML.Elem (":", props) []] = props
+properties [XML.Elem ((":", props), [])] = props
 properties _ = err_body
 
 string :: T String
@@ -969,7 +966,7 @@ buffer_body :: XML.Body -> Buffer.T -> Buffer.T
 buffer_body = fold buffer
 
 buffer :: XML.Tree -> Buffer.T -> Buffer.T
-buffer (XML.Elem (name, atts) ts) =
+buffer (XML.Elem ((name, atts), ts)) =
   Buffer.add strXY #> Buffer.add name #> fold buffer_attrib atts #> Buffer.add strX #>
   buffer_body ts #>
   Buffer.add strXYX
@@ -1014,7 +1011,7 @@ push "" _ _ = err_element
 push name atts pending = ((name, atts), []) : pending
 
 pop ((("", _), _) : _) = err_unbalanced ""
-pop ((markup, body) : pending) = add (XML.Elem markup (reverse body)) pending
+pop ((markup, body) : pending) = add (XML.Elem (markup, reverse body)) pending
 
 
 -- parsing
@@ -1084,7 +1081,7 @@ symbolic_text s = [XML.Text s]
 
 symbolic_markup markup body =
   if Markup.is_empty markup then body
-  else [XML.Elem markup body]
+  else [XML.Elem (markup, body)]
 
 symbolic :: T -> XML.Body
 symbolic (Block markup consistent indent prts) =
@@ -1092,7 +1089,7 @@ symbolic (Block markup consistent indent prts) =
   |> symbolic_markup block_markup
   |> symbolic_markup markup
   where block_markup = if null prts then Markup.empty else Markup.block consistent indent
-symbolic (Break wd ind) = [XML.Elem (Markup.break wd ind) (symbolic_text (output_spaces wd))]
+symbolic (Break wd ind) = [XML.Elem (Markup.break wd ind, symbolic_text (output_spaces wd))]
 symbolic (Str s) = symbolic_text s
 
 formatted :: T -> String

@@ -44,11 +44,11 @@ unit_atom () = ""
 
 -- structural nodes
 
-node = XML.Elem (":", [])
+node ts = XML.Elem ((":", []), ts)
 
 vector = map_index (\(i, x) -> (int_atom i, x))
 
-tagged (tag, (xs, ts)) = XML.Elem (int_atom tag, vector xs) ts
+tagged (tag, (xs, ts)) = XML.Elem ((int_atom tag, vector xs), ts)
 
 
 -- representation of standard types
@@ -57,7 +57,7 @@ tree :: T XML.Tree
 tree t = [t]
 
 properties :: T Properties.T
-properties props = [XML.Elem (":", props) []]
+properties props = [XML.Elem ((":", props), [])]
 
 string :: T String
 string "" = []
