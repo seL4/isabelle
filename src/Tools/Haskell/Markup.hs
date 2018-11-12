@@ -18,6 +18,12 @@ module Isabelle.Markup (
 
   lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
 
+  expressionN, expression,
+
+  citationN, citation,
+
+  pathN, urlN, docN,
+
   markupN, consistentN, unbreakableN, indentN, widthN,
   blockN, block, breakN, break, fbreakN, fbreak, itemN, item,
 
@@ -67,6 +73,7 @@ properties more_props (elem, props) =
   (elem, fold_rev Properties.put more_props props)
 
 markup_elem name = (name, (name, []) :: T)
+markup_string name prop = (name, \s -> (name, [(prop, s)]) :: T)
 
 
 {- misc properties -}
@@ -112,6 +119,33 @@ idN = "id"
 
 positionN :: String; position :: T
 (positionN, position) = markup_elem "position"
+
+
+{- expression -}
+
+expressionN :: String
+expressionN = "expression"
+
+expression :: String -> T
+expression kind = (expressionN, if kind == "" then [] else [(kindN, kind)])
+
+
+{- citation -}
+
+citationN :: String; citation :: String -> T
+(citationN, citation) = markup_string "citation" nameN
+
+
+{- external resources -}
+
+pathN :: String; path :: String -> T
+(pathN, path) = markup_string "path" nameN
+
+urlN :: String; url :: String -> T
+(urlN, url) = markup_string "url" nameN
+
+docN :: String; doc :: String -> T
+(docN, doc) = markup_string "doc" nameN
 
 
 {- pretty printing -}
