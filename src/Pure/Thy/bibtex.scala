@@ -125,19 +125,22 @@ object Bibtex
       val lines = if (log_file.is_file) Line.logical_lines(File.read(log_file)) else Nil
 
       val (errors, warnings) =
-        lines.zip(lines.tail ::: List("")).flatMap(
-          {
-            case (Error(msg, Value.Int(l)), _) =>
-              Some((true, (msg, get_line_pos(l))))
-            case (Warning_in_Chunk(msg, name), _) if chunk_pos.isDefinedAt(name) =>
-              Some((false, (Word.capitalize(msg + " in entry " + quote(name)), chunk_pos(name))))
-            case (Warning(msg), Warning_Line(Value.Int(l))) =>
-              Some((false, (Word.capitalize(msg), get_line_pos(l))))
-            case (Warning(msg), _) =>
-              Some((false, (Word.capitalize(msg), Position.none)))
-            case _ => None
-          }
-        ).partition(_._1)
+        if (lines.isEmpty) (Nil, Nil)
+        else {
+          lines.zip(lines.tail ::: List("")).flatMap(
+            {
+              case (Error(msg, Value.Int(l)), _) =>
+                Some((true, (msg, get_line_pos(l))))
+              case (Warning_in_Chunk(msg, name), _) if chunk_pos.isDefinedAt(name) =>
+                Some((false, (Word.capitalize(msg + " in entry " + quote(name)), chunk_pos(name))))
+              case (Warning(msg), Warning_Line(Value.Int(l))) =>
+                Some((false, (Word.capitalize(msg), get_line_pos(l))))
+              case (Warning(msg), _) =>
+                Some((false, (Word.capitalize(msg), Position.none)))
+              case _ => None
+            }
+          ).partition(_._1)
+        }
       (errors.map(_._2), warnings.map(_._2))
     })
   }
