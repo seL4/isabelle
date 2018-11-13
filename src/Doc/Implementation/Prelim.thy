@@ -277,7 +277,7 @@ text \<open>declarations need to implement the following ML signature:
   \<^medskip>
 
   The \<open>empty\<close> value acts as initial default for \<^emph>\<open>any\<close> theory that does not
-  declare actual data content; \<open>extend\<close> is acts like a unitary version of
+  declare actual data content; \<open>extend\<close> acts like a unitary version of
   \<open>merge\<close>.
 
   Implementing \<open>merge\<close> can be tricky. The general idea is that \<open>merge (data\<^sub>1,
