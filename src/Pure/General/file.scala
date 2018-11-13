@@ -11,11 +11,12 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
 import java.nio.file.{StandardOpenOption, StandardCopyOption, Path => JPath,
-  Files, SimpleFileVisitor, FileVisitResult}
+  Files, SimpleFileVisitor, FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.regex.Pattern
+import java.util.EnumSet
 
 import org.tukaani.xz.{XZInputStream, XZOutputStream}
 
@@ -149,14 +150,18 @@ object File
   def find_files(
     start: JFile,
     pred: JFile => Boolean = _ => true,
-    include_dirs: Boolean = false): List[JFile] =
+    include_dirs: Boolean = false,
+    follow_links: Boolean = true): List[JFile] =
   {
     val result = new mutable.ListBuffer[JFile]
     def check(file: JFile) { if (pred(file)) result += file }
 
     if (start.isFile) check(start)
     else if (start.isDirectory) {
-      Files.walkFileTree(start.toPath,
+      val options =
+        if (follow_links) EnumSet.of(FileVisitOption.FOLLOW_LINKS)
+        else EnumSet.noneOf(classOf[FileVisitOption])
+      Files.walkFileTree(start.toPath, options, Integer.MAX_VALUE,
         new SimpleFileVisitor[JPath] {
           override def preVisitDirectory(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
           {
