@@ -15,6 +15,7 @@ sig
   val exists: Path.T -> bool
   val rm: Path.T -> unit
   val is_dir: Path.T -> bool
+  val is_file: Path.T -> bool
   val check_dir: Path.T -> Path.T
   val check_file: Path.T -> Path.T
   val open_dir: (OS.FileSys.dirstream -> 'a) -> Path.T -> 'a
@@ -74,15 +75,16 @@ val exists = can OS.FileSys.modTime o platform_path;
 
 val rm = OS.FileSys.remove o platform_path;
 
-fun is_dir path =
-  the_default false (try OS.FileSys.isDir (platform_path path));
+fun test_dir path = the_default false (try OS.FileSys.isDir (platform_path path));
+fun is_dir path = exists path andalso test_dir path;
+fun is_file path = exists path andalso not (test_dir path);
 
 fun check_dir path =
-  if exists path andalso is_dir path then path
+  if is_dir path then path
   else error ("No such directory: " ^ Path.print (Path.expand path));
 
 fun check_file path =
-  if exists path andalso not (is_dir path) then path
+  if is_file path then path
   else error ("No such file: " ^ Path.print (Path.expand path));
 
 
@@ -106,13 +108,14 @@ end;
 
 (* directory content *)
 
-fun fold_dir f path a = open_dir (fn stream =>
-  let
-    fun read x =
-      (case OS.FileSys.readDir stream of
-        NONE => x
-      | SOME entry => read (f entry x));
-  in read a end) path;
+fun fold_dir f path a =
+  check_dir path |> open_dir (fn stream =>
+    let
+      fun read x =
+        (case OS.FileSys.readDir stream of
+          NONE => x
+        | SOME entry => read (f entry x));
+    in read a end);
 
 fun read_dir path = rev (fold_dir cons path []);
 

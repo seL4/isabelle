@@ -141,7 +141,7 @@ object File
 
   def read_dir(dir: Path): List[String] =
   {
-    if (!dir.is_dir) error("Bad directory: " + dir.toString)
+    if (!dir.is_dir) error("No such directory: " + dir.toString)
     val files = dir.file.listFiles
     if (files == null) Nil
     else files.toList.map(_.getName)

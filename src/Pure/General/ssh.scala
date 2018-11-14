@@ -201,10 +201,9 @@ object SSH
 
   type Attrs = SftpATTRS
 
-  sealed case class Dir_Entry(name: Path, attrs: Attrs)
+  sealed case class Dir_Entry(name: Path, is_dir: Boolean)
   {
-    def is_file: Boolean = attrs.isReg
-    def is_dir: Boolean = attrs.isDir
+    def is_file: Boolean = !is_dir
   }
 
 
@@ -341,12 +340,24 @@ object SSH
     def mkdir(path: Path): Unit = sftp.mkdir(remote_path(path))
     def rmdir(path: Path): Unit = sftp.rmdir(remote_path(path))
 
-    def stat(path: Path): Option[Dir_Entry] =
-      try { Some(Dir_Entry(expand_path(path), sftp.stat(remote_path(path)))) }
+    private def try_stat(name: String): Option[Attrs] =
+      try { Some(sftp.stat(name)) }
       catch { case _: SftpException => None }
 
-    override def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
-    override def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
+    private def test_dir(name: String, attrs: Attrs): Boolean =
+      if (attrs.isLink) try_stat(name + "/.").isDefined else attrs.isDir
+
+    private def check_entry(path: Path, as_dir: Boolean): Boolean =
+    {
+      val name = remote_path(path)
+      try_stat(name) match {
+        case None => false
+        case Some(attrs) => if (as_dir) test_dir(name, attrs) else !test_dir(name, attrs)
+      }
+    }
+
+    override def is_dir(path: Path): Boolean = check_entry(path, true)
+    override def is_file(path: Path): Boolean = check_entry(path, false)
 
     override def mkdirs(path: Path): Unit =
       if (!is_dir(path)) {
@@ -357,14 +368,17 @@ object SSH
 
     def read_dir(path: Path): List[Dir_Entry] =
     {
-      val dir = sftp.ls(remote_path(path))
+      if (!is_dir(path)) error("No such directory: " + path.toString)
+
+      val dir_name = remote_path(path)
+      val dir = sftp.ls(dir_name)
       (for {
         i <- (0 until dir.size).iterator
         a = dir.get(i).asInstanceOf[AnyRef]
         name = Untyped.get[String](a, "filename")
         attrs = Untyped.get[Attrs](a, "attrs")
         if name != "." && name != ".."
-      } yield Dir_Entry(Path.basic(name), attrs)).toList
+      } yield Dir_Entry(Path.basic(name), test_dir(dir_name + "/" + name, attrs))).toList
     }
 
     def find_files(root: Path, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
@@ -440,8 +454,8 @@ object SSH
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)
-    def is_file(path: Path): Boolean = path.is_file
     def is_dir(path: Path): Boolean = path.is_dir
+    def is_file(path: Path): Boolean = path.is_file
     def mkdirs(path: Path): Unit = Isabelle_System.mkdirs(path)
 
     def execute(command: String,
