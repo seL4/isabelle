@@ -350,7 +350,7 @@ object Isabelle_Cronjob
                 afp_rev = afp_rev,
                 options =
                   " -N " + Bash.string(task_name) + (if (i < 0) "" else "_" + (i + 1).toString) +
-                  " -f " + r.options,
+                  " -f -h " + Bash.string(r.host) + " " + r.options,
                 args = "-o timeout=10800 " + r.args)
 
             for ((log_name, bytes) <- results) {

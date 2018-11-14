@@ -141,7 +141,7 @@ object File
 
   def read_dir(dir: Path): List[String] =
   {
-    if (!dir.is_dir) error("Bad directory: " + dir.toString)
+    if (!dir.is_dir) error("No such directory: " + dir.toString)
     val files = dir.file.listFiles
     if (files == null) Nil
     else files.toList.map(_.getName)
@@ -151,7 +151,7 @@ object File
     start: JFile,
     pred: JFile => Boolean = _ => true,
     include_dirs: Boolean = false,
-    follow_links: Boolean = true): List[JFile] =
+    follow_links: Boolean = false): List[JFile] =
   {
     val result = new mutable.ListBuffer[JFile]
     def check(file: JFile) { if (pred(file)) result += file }
@@ -170,7 +170,8 @@ object File
           }
           override def visitFile(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
           {
-            check(path.toFile)
+            val file = path.toFile
+            if (include_dirs || !file.isDirectory) check(file)
             FileVisitResult.CONTINUE
           }
         }

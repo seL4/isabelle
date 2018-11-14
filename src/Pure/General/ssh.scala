@@ -201,10 +201,9 @@ object SSH
 
   type Attrs = SftpATTRS
 
-  sealed case class Dir_Entry(name: Path, attrs: Attrs)
+  sealed case class Dir_Entry(name: String, is_dir: Boolean)
   {
-    def is_file: Boolean = attrs.isReg
-    def is_dir: Boolean = attrs.isDir
+    def is_file: Boolean = !is_dir
   }
 
 
@@ -341,12 +340,19 @@ object SSH
     def mkdir(path: Path): Unit = sftp.mkdir(remote_path(path))
     def rmdir(path: Path): Unit = sftp.rmdir(remote_path(path))
 
-    def stat(path: Path): Option[Dir_Entry] =
-      try { Some(Dir_Entry(expand_path(path), sftp.stat(remote_path(path)))) }
-      catch { case _: SftpException => None }
+    private def test_entry(path: Path, as_dir: Boolean): Boolean =
+      try {
+        val is_dir = sftp.stat(remote_path(path)).isDir
+        if (as_dir) is_dir else !is_dir
+      }
+      catch { case _: SftpException => false }
 
-    override def is_file(path: Path): Boolean = stat(path).map(_.is_file) getOrElse false
-    override def is_dir(path: Path): Boolean = stat(path).map(_.is_dir) getOrElse false
+    override def is_dir(path: Path): Boolean = test_entry(path, true)
+    override def is_file(path: Path): Boolean = test_entry(path, false)
+
+    def is_link(path: Path): Boolean =
+      try { sftp.lstat(remote_path(path)).isLink }
+      catch { case _: SftpException => false }
 
     override def mkdirs(path: Path): Unit =
       if (!is_dir(path)) {
@@ -357,27 +363,49 @@ object SSH
 
     def read_dir(path: Path): List[Dir_Entry] =
     {
-      val dir = sftp.ls(remote_path(path))
+      if (!is_dir(path)) error("No such directory: " + path.toString)
+
+      val dir_name = remote_path(path)
+      val dir = sftp.ls(dir_name)
       (for {
         i <- (0 until dir.size).iterator
         a = dir.get(i).asInstanceOf[AnyRef]
         name = Untyped.get[String](a, "filename")
         attrs = Untyped.get[Attrs](a, "attrs")
         if name != "." && name != ".."
-      } yield Dir_Entry(Path.basic(name), attrs)).toList
+      }
+      yield {
+        Dir_Entry(name,
+          if (attrs.isLink) {
+            try { sftp.stat(dir_name + "/" + name).isDir }
+            catch { case _: SftpException => false }
+          }
+          else attrs.isDir)
+      }).toList
     }
 
-    def find_files(root: Path, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
+    def find_files(
+      start: Path,
+      pred: Path => Boolean = _ => true,
+      include_dirs: Boolean = false,
+      follow_links: Boolean = false): List[Path] =
     {
-      def find(dir: Path): List[Dir_Entry] =
-        read_dir(dir).flatMap(entry =>
-          {
-            val file = dir + entry.name
-            if (entry.is_dir) find(file)
-            else if (pred(entry)) List(entry.copy(name = file))
-            else Nil
-          })
-      find(root)
+      val result = new mutable.ListBuffer[Path]
+      def check(path: Path) { if (pred(path)) result += path }
+
+      def find(dir: Path)
+      {
+        if (include_dirs) check(dir)
+        if (follow_links || !is_link(dir)) {
+          for (entry <- read_dir(dir)) {
+            val path = dir + Path.basic(entry.name)
+            if (entry.is_file) check(path) else find(path)
+          }
+        }
+      }
+      if (is_file(start)) check(start) else find(start)
+
+      result.toList
     }
 
     def open_input(path: Path): InputStream = sftp.get(remote_path(path))
@@ -440,8 +468,8 @@ object SSH
 
     def expand_path(path: Path): Path = path.expand
     def bash_path(path: Path): String = File.bash_path(path)
-    def is_file(path: Path): Boolean = path.is_file
     def is_dir(path: Path): Boolean = path.is_dir
+    def is_file(path: Path): Boolean = path.is_file
     def mkdirs(path: Path): Unit = Isabelle_System.mkdirs(path)
 
     def execute(command: String,
