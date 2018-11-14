@@ -151,7 +151,7 @@ object File
     start: JFile,
     pred: JFile => Boolean = _ => true,
     include_dirs: Boolean = false,
-    follow_links: Boolean = true): List[JFile] =
+    follow_links: Boolean = false): List[JFile] =
   {
     val result = new mutable.ListBuffer[JFile]
     def check(file: JFile) { if (pred(file)) result += file }

@@ -146,9 +146,6 @@ object Build_Log
       name != "main.log"
     }
 
-    def find_files(dirs: Iterable[Path]): List[JFile] =
-      dirs.iterator.flatMap(dir => File.find_files(dir.file, is_log(_))).toList
-
 
     /* date format */
 
@@ -904,7 +901,10 @@ object Build_Log
 
     def update_database(db: PostgreSQL.Database, dirs: List[Path], ml_statistics: Boolean = false)
     {
-      write_info(db, Log_File.find_files(dirs), ml_statistics = ml_statistics)
+      val log_files =
+        dirs.flatMap(dir =>
+          File.find_files(dir.file, pred = Log_File.is_log(_), follow_links = true))
+      write_info(db, log_files, ml_statistics = ml_statistics)
 
       db.create_view(Data.pull_date_table())
       db.create_view(Data.pull_date_table(afp = true))
