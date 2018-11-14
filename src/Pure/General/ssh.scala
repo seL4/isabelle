@@ -356,6 +356,10 @@ object SSH
       }
     }
 
+    def is_link(path: Path): Boolean =
+      try { sftp.lstat(remote_path(path)).isLink }
+      catch { case _: SftpException => false }
+
     override def is_dir(path: Path): Boolean = check_entry(path, true)
     override def is_file(path: Path): Boolean = check_entry(path, false)
 
@@ -381,17 +385,29 @@ object SSH
       } yield Dir_Entry(Path.basic(name), test_dir(dir_name + "/" + name, attrs))).toList
     }
 
-    def find_files(root: Path, pred: Dir_Entry => Boolean = _ => true): List[Dir_Entry] =
+    def find_files(
+      start: Path,
+      pred: Path => Boolean = _ => true,
+      include_dirs: Boolean = false,
+      follow_links: Boolean = false): List[Path] =
     {
-      def find(dir: Path): List[Dir_Entry] =
-        read_dir(dir).flatMap(entry =>
-          {
-            val file = dir + entry.name
-            if (entry.is_dir) find(file)
-            else if (pred(entry)) List(entry.copy(name = file))
-            else Nil
-          })
-      find(root)
+      val result = new mutable.ListBuffer[Path]
+      def check(path: Path) { if (pred(path)) result += path }
+
+      def find(dir: Path)
+      {
+        if (follow_links || !is_link(dir)) {
+          if (include_dirs) check(dir)
+          for (entry <- read_dir(dir)) {
+            val path = dir + entry.name
+            if (include_dirs || entry.is_file) check(path)
+            if (entry.is_dir) find(path)
+          }
+        }
+      }
+      if (is_file(start)) check(start) else find(start)
+
+      result.toList
     }
 
     def open_input(path: Path): InputStream = sftp.get(remote_path(path))

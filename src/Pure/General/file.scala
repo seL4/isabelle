@@ -170,7 +170,8 @@ object File
           }
           override def visitFile(path: JPath, attrs: BasicFileAttributes): FileVisitResult =
           {
-            check(path.toFile)
+            val file = path.toFile
+            if (include_dirs || !file.isDirectory) check(file)
             FileVisitResult.CONTINUE
           }
         }
