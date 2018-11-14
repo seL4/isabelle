@@ -395,8 +395,8 @@ object SSH
 
       def find(dir: Path)
       {
+        if (include_dirs) check(dir)
         if (follow_links || !is_link(dir)) {
-          if (include_dirs) check(dir)
           for (entry <- read_dir(dir)) {
             val path = dir + Path.basic(entry.name)
             if (entry.is_file) check(path) else find(path)
