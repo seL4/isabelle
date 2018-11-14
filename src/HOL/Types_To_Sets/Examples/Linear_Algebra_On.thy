@@ -3,8 +3,8 @@
 *)
 theory Linear_Algebra_On
   imports
-    "../Types_To_Sets"
     "Prerequisites"
+    "../Types_To_Sets"
     Linear_Algebra_On_With
   keywords "lemmas_with"::thy_decl
 begin
@@ -17,21 +17,21 @@ lemmas [implicit_ab_group_add] = sum_with[symmetric]
 
 lemma semigroup_add_on_with_eq[implicit_ab_group_add]:
   "semigroup_add_on_with S ((+)::_::semigroup_add \<Rightarrow> _) \<longleftrightarrow> (\<forall>a\<in>S. \<forall>b\<in>S. a + b \<in> S)"
-  by (simp add: semigroup_add_on_with_def ac_simps)
+  by (simp add: semigroup_add_on_with_Ball_def ac_simps)
 
 lemma ab_semigroup_add_on_with_eq[implicit_ab_group_add]:
   "ab_semigroup_add_on_with S ((+)::_::ab_semigroup_add \<Rightarrow> _) = semigroup_add_on_with S (+)"
-  unfolding ab_semigroup_add_on_with_def
+  unfolding ab_semigroup_add_on_with_Ball_def
   by (simp add: semigroup_add_on_with_eq ac_simps)
 
 lemma comm_monoid_add_on_with_eq[implicit_ab_group_add]:
   "comm_monoid_add_on_with S ((+)::_::comm_monoid_add \<Rightarrow> _) 0 \<longleftrightarrow> semigroup_add_on_with S (+) \<and> 0 \<in> S"
-  unfolding comm_monoid_add_on_with_def
+  unfolding comm_monoid_add_on_with_Ball_def
   by (simp add: ab_semigroup_add_on_with_eq ac_simps)
 
 lemma ab_group_add_on_with[implicit_ab_group_add]:
   "ab_group_add_on_with S ((+)::_::ab_group_add \<Rightarrow> _) 0 (-) uminus \<longleftrightarrow> comm_monoid_add_on_with S (+) 0"
-  unfolding ab_group_add_on_with_def
+  unfolding ab_group_add_on_with_Ball_def
   by simp
 
 subsection \<open>Definitions \<^emph>\<open>on\<close> carrier set\<close>
@@ -197,35 +197,6 @@ val _ = Outer_Syntax.local_theory' \<^command_keyword>\<open>lemmas_with\<close>
 
 subsection \<open>Local Typedef for Subspace\<close>
 
-lemmas [transfer_rule] = right_total_fun_eq_transfer
-  and [transfer_rule del] = vimage_parametric
-
-locale local_typedef = fixes S ::"'b set" and s::"'s itself"
-  assumes Ex_type_definition_S: "\<exists>(Rep::'s \<Rightarrow> 'b) (Abs::'b \<Rightarrow> 's). type_definition Rep Abs S"
-begin
-
-definition "rep = fst (SOME (Rep::'s \<Rightarrow> 'b, Abs). type_definition Rep Abs S)"
-definition "Abs = snd (SOME (Rep::'s \<Rightarrow> 'b, Abs). type_definition Rep Abs S)"
-
-lemma type_definition_S: "type_definition rep Abs S"
-  unfolding Abs_def rep_def split_beta'
-  by (rule someI_ex) (use Ex_type_definition_S in auto)
-
-lemma rep_in_S[simp]: "rep x \<in> S"
-  and rep_inverse[simp]: "Abs (rep x) = x"
-  and Abs_inverse[simp]: "y \<in> S \<Longrightarrow> rep (Abs y) = y"
-  using type_definition_S
-  unfolding type_definition_def by auto
-
-definition cr_S where "cr_S \<equiv> \<lambda>s b. s = rep b"
-lemmas Domainp_cr_S = type_definition_Domainp[OF type_definition_S cr_S_def, transfer_domain_rule]
-lemmas right_total_cr_S = typedef_right_total[OF type_definition_S cr_S_def, transfer_rule]
-  and bi_unique_cr_S = typedef_bi_unique[OF type_definition_S cr_S_def, transfer_rule]
-  and left_unique_cr_S = typedef_left_unique[OF type_definition_S cr_S_def, transfer_rule]
-  and right_unique_cr_S = typedef_right_unique[OF type_definition_S cr_S_def, transfer_rule]
-
-end
-
 locale local_typedef_ab_group_add = local_typedef S s for S ::"'b::ab_group_add set" and s::"'s itself" +
   assumes mem_zero_lt: "0 \<in> S"
   assumes mem_add_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x + y \<in> S"
@@ -350,8 +321,9 @@ lemma type_module_on_with: "module_on_with UNIV plus_S minus_S uminus_S (zero_S:
 proof -
   have "module_on_with {x. x \<in> S} (+) (-) uminus 0 scale"
     using module_on_axioms
-    by (auto simp: module_on_with_def module_on_def ab_group_add_on_with_def comm_monoid_add_on_with_def
-        ab_semigroup_add_on_with_def semigroup_add_on_with_def)
+    by (auto simp: module_on_with_def module_on_def ab_group_add_on_with_Ball_def
+        comm_monoid_add_on_with_Ball_def
+        ab_semigroup_add_on_with_Ball_def semigroup_add_on_with_def)
   then show ?thesis
     by transfer'
 qed
@@ -535,6 +507,11 @@ end
 
 
 subsection \<open>Transfer from type-based @{theory HOL.Modules} and @{theory HOL.Vector_Spaces}\<close>
+
+lemmas [transfer_rule] = right_total_fun_eq_transfer
+  and [transfer_rule del] = vimage_parametric
+
+subsubsection \<open>Modules\<close>
 
 context module_on begin
 
@@ -789,7 +766,8 @@ and lt_span_eq_dim = vector_space.span_eq_dim
 and lt_dim_le_card' = vector_space.dim_le_card'
 and lt_span_card_ge_dim = vector_space.span_card_ge_dim
 and lt_dim_with = vector_space.dim_with
-(* should work but don't:
+(* should work but don't:v
+
 and lt_bij_if_span_eq_span_bases = vector_space.bij_if_span_eq_span_bases
 *)
 (* not expected to work:
@@ -992,8 +970,6 @@ context includes lifting_syntax
 
 interpretation local_typedef_vector_space_pair S1 scale1 "TYPE('s)" S2 scale2 "TYPE('t)" by unfold_locales fact+
 
-
-
 lemmas_with [var_simplified explicit_ab_group_add,
     unoverload_type 'e 'b,
   OF lt2.type.ab_group_add_axioms lt1.type.ab_group_add_axioms type_vector_space_pair_on_with,
@@ -1053,7 +1029,6 @@ and lt_finite_basis_to_basis_subspace_isomorphism = vector_space_pair.finite_bas
   lt_in_span_in_range_construct = vector_space_pair.in_span_in_range_construct
   lt_range_construct_eq_span = vector_space_pair.range_construct_eq_span
 *)
-
 end
 
 lemmas_with [cancel_type_definition, OF m1.S_ne,

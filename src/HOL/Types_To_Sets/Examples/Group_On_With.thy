@@ -3,22 +3,26 @@
 *)
 theory Group_On_With
 imports
-  Main
+  Prerequisites
 begin
 
 subsection \<open>\<^emph>\<open>on\<close> carrier set \<^emph>\<open>with\<close> explicit group operations\<close>
 
-definition "semigroup_add_on_with S pls \<longleftrightarrow>
-  (\<forall>a\<in>S. \<forall>b\<in>S. \<forall>c\<in>S. pls (pls a b) c = pls a (pls b c)) \<and>
-  (\<forall>a\<in>S. \<forall>b\<in>S. pls a b \<in> S)"
+locale semigroup_add_on_with =
+  fixes S::"'a set" and pls::"'a\<Rightarrow>'a\<Rightarrow>'a"
+  assumes add_assoc: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> c \<in> S \<Longrightarrow> pls (pls a b) c = pls a (pls b c)"
+  assumes add_mem: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> pls a b \<in> S"
+
+lemma semigroup_add_on_with_Ball_def: "semigroup_add_on_with S pls \<longleftrightarrow>
+  (\<forall>a\<in>S. \<forall>b\<in>S. \<forall>c\<in>S. pls (pls a b) c = pls a (pls b c)) \<and> (\<forall>a\<in>S. \<forall>b\<in>S. pls a b \<in> S)"
+  by (auto simp: semigroup_add_on_with_def)
 
 lemma semigroup_add_on_with_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
   shows "(rel_set A ===> (A ===> A ===> A) ===> (=)) semigroup_add_on_with semigroup_add_on_with"
-  unfolding semigroup_add_on_with_def
+  unfolding semigroup_add_on_with_Ball_def
   by transfer_prover
-
 
 lemma semigroup_add_on_with[simp]: "semigroup_add_on_with (UNIV::'a::semigroup_add set) (+)"
   by (auto simp: semigroup_add_on_with_def ac_simps)
@@ -44,35 +48,46 @@ proof (intro rel_funI)
     by transfer (auto intro!: Domainp_apply2I[OF xy])
 qed
 
-definition "ab_semigroup_add_on_with S pls \<longleftrightarrow> semigroup_add_on_with S pls \<and> (\<forall>a\<in>S. \<forall>b\<in>S. pls a b = pls b a)"
+locale ab_semigroup_add_on_with = semigroup_add_on_with +
+  assumes add_commute: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> pls a b = pls b a"
+
+lemma ab_semigroup_add_on_with_Ball_def:
+  "ab_semigroup_add_on_with S pls \<longleftrightarrow> semigroup_add_on_with S pls \<and> (\<forall>a\<in>S. \<forall>b\<in>S. pls a b = pls b a)"
+  by (auto simp: ab_semigroup_add_on_with_def ab_semigroup_add_on_with_axioms_def)
 
 lemma ab_semigroup_add_on_with_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
   shows
     "(rel_set A ===> (A ===> A ===> A) ===> (=)) ab_semigroup_add_on_with ab_semigroup_add_on_with"
-  unfolding ab_semigroup_add_on_with_def by transfer_prover
+  unfolding ab_semigroup_add_on_with_Ball_def by transfer_prover
 
 lemma right_total_ab_semigroup_add_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total A" "bi_unique A"
   shows
     "((A ===> A ===> A) ===> (=)) (ab_semigroup_add_on_with (Collect (Domainp A))) class.ab_semigroup_add"
-  unfolding class.ab_semigroup_add_def class.ab_semigroup_add_axioms_def ab_semigroup_add_on_with_def
+  unfolding class.ab_semigroup_add_def class.ab_semigroup_add_axioms_def ab_semigroup_add_on_with_Ball_def
   by transfer_prover
 
 lemma ab_semigroup_add_on_with[simp]: "ab_semigroup_add_on_with (UNIV::'a::ab_semigroup_add set) (+)"
-  by (auto simp: ab_semigroup_add_on_with_def ac_simps)
+  by (auto simp: ab_semigroup_add_on_with_Ball_def ac_simps)
 
+locale comm_monoid_add_on_with = ab_semigroup_add_on_with +
+  fixes z
+  assumes add_zero: "a \<in> S \<Longrightarrow> pls z a = a"
+  assumes zero_mem: "z \<in> S"
 
-definition "comm_monoid_add_on_with S pls z \<longleftrightarrow> ab_semigroup_add_on_with S pls \<and> (\<forall>a\<in>S. pls z a = a) \<and> z \<in> S"
+lemma comm_monoid_add_on_with_Ball_def:
+  "comm_monoid_add_on_with S pls z \<longleftrightarrow> ab_semigroup_add_on_with S pls \<and> (\<forall>a\<in>S. pls z a = a) \<and> z \<in> S"
+  by (auto simp: comm_monoid_add_on_with_def comm_monoid_add_on_with_axioms_def)
 
 lemma comm_monoid_add_on_with_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "bi_unique A"
   shows
     "(rel_set A ===> (A ===> A ===> A) ===> A ===> (=)) comm_monoid_add_on_with comm_monoid_add_on_with"
-  unfolding comm_monoid_add_on_with_def
+  unfolding comm_monoid_add_on_with_Ball_def
   by transfer_prover
 
 lemma right_total_comm_monoid_add_transfer[transfer_rule]:
@@ -85,18 +100,25 @@ proof (intro rel_funI)
   fix p p' z z'
   assume [transfer_rule]: "(A ===> A ===> A) p p'" "A z z'"
   show "comm_monoid_add_on_with (Collect (Domainp A)) p z = class.comm_monoid_add p' z'"
-    unfolding class.comm_monoid_add_def class.comm_monoid_add_axioms_def comm_monoid_add_on_with_def
+    unfolding class.comm_monoid_add_def class.comm_monoid_add_axioms_def comm_monoid_add_on_with_Ball_def
     apply transfer
     using \<open>A z z'\<close>
     by auto
 qed
 
 lemma comm_monoid_add_on_with[simp]: "comm_monoid_add_on_with UNIV (+) (0::'a::comm_monoid_add)"
-  by (auto simp: comm_monoid_add_on_with_def ab_semigroup_add_on_with_def
-      semigroup_add_on_with_def ac_simps)
+  by (auto simp: comm_monoid_add_on_with_Ball_def ab_semigroup_add_on_with_Ball_def
+      semigroup_add_on_with_Ball_def ac_simps)
 
-definition "ab_group_add_on_with S pls z mns um \<longleftrightarrow> comm_monoid_add_on_with S pls z \<and>
-  (\<forall>a\<in>S. pls (um a) a = z) \<and> (\<forall>a\<in>S. \<forall>b\<in>S. mns a b = pls a (um b))"
+locale ab_group_add_on_with = comm_monoid_add_on_with +
+  fixes mns um
+  assumes ab_left_minus: "a \<in> S \<Longrightarrow> pls (um a) a = z"
+  assumes ab_diff_conv_add_uminus: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> mns a b = pls a (um b)"
+
+lemma ab_group_add_on_with_Ball_def:
+  "ab_group_add_on_with S pls z mns um \<longleftrightarrow> comm_monoid_add_on_with S pls z \<and>
+    (\<forall>a\<in>S. pls (um a) a = z) \<and> (\<forall>a\<in>S. \<forall>b\<in>S. mns a b = pls a (um b))"
+  by (auto simp: ab_group_add_on_with_def ab_group_add_on_with_axioms_def)
 
 lemma ab_group_add_transfer[transfer_rule]:
   includes lifting_syntax
@@ -104,7 +126,7 @@ lemma ab_group_add_transfer[transfer_rule]:
   shows
     "((A ===> A ===> A) ===> A  ===> (A ===> A ===> A) ===> (A ===> A)===> (=))
       (ab_group_add_on_with (Collect (Domainp A))) class.ab_group_add"
-  unfolding class.ab_group_add_def class.ab_group_add_axioms_def ab_group_add_on_with_def
+  unfolding class.ab_group_add_def class.ab_group_add_axioms_def ab_group_add_on_with_Ball_def
   by transfer_prover
 
 lemma ab_group_add_on_with_transfer[transfer_rule]:
@@ -113,11 +135,11 @@ lemma ab_group_add_on_with_transfer[transfer_rule]:
   shows
     "(rel_set A ===> (A ===> A ===> A) ===> A  ===> (A ===> A ===> A) ===> (A ===> A)===> (=))
       ab_group_add_on_with ab_group_add_on_with"
-  unfolding class.ab_group_add_def class.ab_group_add_axioms_def ab_group_add_on_with_def
+  unfolding class.ab_group_add_def class.ab_group_add_axioms_def ab_group_add_on_with_Ball_def
   by transfer_prover
 
 lemma ab_group_add_on_with[simp]: "ab_group_add_on_with (UNIV::'a::ab_group_add set) (+) 0 (-) uminus"
-  by (auto simp: ab_group_add_on_with_def)
+  by (auto simp: ab_group_add_on_with_Ball_def)
 
 definition "sum_with pls z f S =
   (if \<exists>C. f ` S \<subseteq> C \<and> comm_monoid_add_on_with C pls z then
@@ -140,7 +162,7 @@ context fixes C pls z assumes comm_monoid_add_on_with: "comm_monoid_add_on_with 
 
 lemmas comm_monoid_add_unfolded =
     comm_monoid_add_on_with[unfolded
-      comm_monoid_add_on_with_def ab_semigroup_add_on_with_def semigroup_add_on_with_def]
+      comm_monoid_add_on_with_Ball_def ab_semigroup_add_on_with_Ball_def semigroup_add_on_with_Ball_def]
 
 private abbreviation "pls' \<equiv> \<lambda>x y. pls (if x \<in> C then x else z) (if y \<in> C then y else z)"
 
@@ -223,7 +245,7 @@ proof -
   define C where "C = C0 \<inter> Collect (Domainp A)"
   have "comm_monoid_add_on_with C pls zero"
     using comm Domainp_apply2I[OF \<open>(A ===> A ===> A) pls pls'\<close>] \<open>A zero zero'\<close>
-    by (auto simp: comm_monoid_add_on_with_def ab_semigroup_add_on_with_def
+    by (auto simp: comm_monoid_add_on_with_Ball_def ab_semigroup_add_on_with_Ball_def
         semigroup_add_on_with_def C_def)
   moreover have "f ` S \<subseteq> C" using C0
     by (auto simp: C_def in_dom)
@@ -333,6 +355,5 @@ subsection \<open>Rewrite rules to make \<open>ab_group_add\<close> operations e
 named_theorems explicit_ab_group_add
 
 lemmas [explicit_ab_group_add] = sum_with
-
 
 end
