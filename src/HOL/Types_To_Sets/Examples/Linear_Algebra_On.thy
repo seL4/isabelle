@@ -6,7 +6,6 @@ theory Linear_Algebra_On
     "Prerequisites"
     "../Types_To_Sets"
     Linear_Algebra_On_With
-  keywords "lemmas_with"::thy_decl
 begin
 
 subsection \<open>Rewrite rules to make \<open>ab_group_add\<close> operations implicit.\<close>
@@ -30,7 +29,8 @@ lemma comm_monoid_add_on_with_eq[implicit_ab_group_add]:
   by (simp add: ab_semigroup_add_on_with_eq ac_simps)
 
 lemma ab_group_add_on_with[implicit_ab_group_add]:
-  "ab_group_add_on_with S ((+)::_::ab_group_add \<Rightarrow> _) 0 (-) uminus \<longleftrightarrow> comm_monoid_add_on_with S (+) 0"
+  "ab_group_add_on_with S ((+)::_::ab_group_add \<Rightarrow> _) 0 (-) uminus \<longleftrightarrow>
+    comm_monoid_add_on_with S (+) 0 \<and> (\<forall>a\<in>S. -a\<in>S)"
   unfolding ab_group_add_on_with_Ball_def
   by simp
 
@@ -51,6 +51,9 @@ lemma S_ne: "S \<noteq> {}" using mem_zero by auto
 
 lemma scale_minus_left_on: "scale (- a) x = - scale a x" if "x \<in> S"
   by (metis add_cancel_right_right scale_left_distrib_on neg_eq_iff_add_eq_0 that)
+
+lemma mem_uminus: "x \<in> S \<Longrightarrow> -x \<in> S"
+  by (metis mem_scale scale_minus_left_on scale_one_on)
 
 definition subspace :: "'b set \<Rightarrow> bool"
   where subspace_on_def: "subspace T \<longleftrightarrow> 0 \<in> T \<and> (\<forall>x\<in>T. \<forall>y\<in>T. x + y \<in> T) \<and> (\<forall>c. \<forall>x\<in>T. c *s x \<in> T)"
@@ -74,8 +77,13 @@ end
 
 lemma implicit_module_on_with[implicit_ab_group_add]:
   "module_on_with S (+) (-) uminus 0 = module_on S"
-  unfolding module_on_with_def module_on_def implicit_ab_group_add
-  by auto
+proof (intro ext iffI)
+  fix s::"'a\<Rightarrow>'b\<Rightarrow>'b" assume "module_on S s"
+  then interpret module_on S s .
+  show "module_on_with S (+) (-) uminus 0 s"
+    by (auto simp: module_on_with_def implicit_ab_group_add
+        mem_add mem_zero mem_uminus scale_right_distrib_on scale_left_distrib_on mem_scale)
+qed (auto simp: module_on_with_def module_on_def implicit_ab_group_add)
 
 locale module_pair_on = m1: module_on S1 scale1 +
                         m2: module_on S2 scale2
@@ -158,130 +166,100 @@ locale finite_dimensional_vector_space_pair_on =
     and scale2::"'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c"
     and Basis1 Basis2
 
-subsection \<open>Tool support\<close>
-
-lemmas subset_iff' = subset_iff[folded Ball_def]
-
-ML \<open>
-structure More_Simplifier =
-struct
-
-fun asm_full_var_simplify ctxt thm =
-  let
-    val ((_, [thm']), ctxt') = Variable.import false [thm] ctxt
-  in
-    Simplifier.asm_full_simplify ctxt' thm'
-    |> singleton (Variable.export ctxt' ctxt)
-    |> Drule.zero_var_indexes
-  end
-
-fun var_simplify_only ctxt ths thm =
-  asm_full_var_simplify (Raw_Simplifier.clear_simpset ctxt addsimps ths) thm
-
-val var_simplified = Attrib.thms >>
-  (fn ths => Thm.rule_attribute ths
-    (fn context => var_simplify_only (Context.proof_of context) ths))
-
-val _ = Theory.setup (Attrib.setup \<^binding>\<open>var_simplified\<close> var_simplified "simplified rule (with vars)")
-
-end
-\<close>
-
-ML \<open>
-val _ = Outer_Syntax.local_theory' \<^command_keyword>\<open>lemmas_with\<close> "note theorems with (the same) attributes"
-    (Parse.attribs --| @{keyword :} -- Parse_Spec.name_facts -- Parse.for_fixes
-     >> (fn (((attrs),facts), fixes) =>
-      #2 oo Specification.theorems_cmd Thm.theoremK
-        (map (apsnd (map (apsnd (fn xs => attrs@xs)))) facts) fixes))
-\<close>
 
 subsection \<open>Local Typedef for Subspace\<close>
 
-locale local_typedef_ab_group_add = local_typedef S s for S ::"'b::ab_group_add set" and s::"'s itself" +
-  assumes mem_zero_lt: "0 \<in> S"
-  assumes mem_add_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x + y \<in> S"
-  assumes mem_uminus_lt: "x \<in> S \<Longrightarrow> -x \<in> S"
+locale local_typedef_ab_group_add = local_typedef S s +
+  ab_group_add_on_with S
+  for S ::"'b set" and s::"'s itself"
 begin
 
-lemma mem_minus_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
-  using mem_add_lt[OF _ mem_uminus_lt] by auto
+lemma mem_minus_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> mns x y \<in> S"
+  using ab_diff_conv_add_uminus[of x y] add_mem[of x "um y"] uminus_mem[of y]
+  by auto
 
 context includes lifting_syntax begin
 
-definition plus_S::"'s \<Rightarrow> 's \<Rightarrow> 's" where "plus_S = (rep ---> rep ---> Abs) plus"
-definition minus_S::"'s \<Rightarrow> 's \<Rightarrow> 's" where "minus_S = (rep ---> rep ---> Abs) minus"
-definition uminus_S::"'s \<Rightarrow> 's" where "uminus_S = (rep ---> Abs) uminus"
-definition zero_S::"'s" where "zero_S = Abs 0"
+definition plus_S::"'s \<Rightarrow> 's \<Rightarrow> 's" where "plus_S = (rep ---> rep ---> Abs) pls"
+definition minus_S::"'s \<Rightarrow> 's \<Rightarrow> 's" where "minus_S = (rep ---> rep ---> Abs) mns"
+definition uminus_S::"'s \<Rightarrow> 's" where "uminus_S = (rep ---> Abs) um"
+definition zero_S::"'s" where "zero_S = Abs z"
 
-lemma plus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) plus plus_S"
+lemma plus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) pls plus_S"
   unfolding plus_S_def
-  by (auto simp: cr_S_def mem_add_lt intro!: rel_funI)
+  by (auto simp: cr_S_def add_mem intro!: rel_funI)
 
-lemma minus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) minus minus_S"
+lemma minus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) mns minus_S"
   unfolding minus_S_def
   by (auto simp: cr_S_def mem_minus_lt intro!: rel_funI)
 
-lemma uminus_S_transfer[transfer_rule]: "(cr_S ===> cr_S) uminus uminus_S"
+lemma uminus_S_transfer[transfer_rule]: "(cr_S ===> cr_S) um uminus_S"
   unfolding uminus_S_def
-  by (auto simp: cr_S_def mem_uminus_lt intro!: rel_funI)
+  by (auto simp: cr_S_def uminus_mem intro!: rel_funI)
 
-lemma zero_S_transfer[transfer_rule]: "cr_S 0 zero_S"
+lemma zero_S_transfer[transfer_rule]: "cr_S z zero_S"
   unfolding zero_S_def
-  by (auto simp: cr_S_def mem_zero_lt intro!: rel_funI)
+  by (auto simp: cr_S_def zero_mem intro!: rel_funI)
 
 end
 
 sublocale type: ab_group_add plus_S "zero_S::'s" minus_S uminus_S
   apply unfold_locales
-  subgoal by transfer simp
-  subgoal by transfer simp
-  subgoal by transfer simp
-  subgoal by transfer simp
-  subgoal by transfer simp
+  subgoal by transfer (rule add_assoc)
+  subgoal by transfer (rule add_commute)
+  subgoal by transfer (rule add_zero)
+  subgoal by transfer (rule ab_left_minus)
+  subgoal by transfer (rule ab_diff_conv_add_uminus)
   done
 
 context includes lifting_syntax begin
 
-lemma sum_transfer[transfer_rule]: "((A===>cr_S) ===> rel_set A ===> cr_S) sum type.sum"
+lemma sum_transfer[transfer_rule]:
+  "((A===>cr_S) ===> rel_set A ===> cr_S) (sum_with pls z) type.sum"
   if [transfer_rule]: "bi_unique A"
 proof (safe intro!: rel_funI)
-  fix f g S T
-  assume [transfer_rule]: "(A ===> cr_S) f g" and rel_set: "rel_set A S T"
-  show "cr_S (sum f S) (type.sum g T)"
+  fix f g I J
+  assume fg[transfer_rule]: "(A ===> cr_S) f g" and rel_set: "rel_set A I J"
+  show "cr_S (sum_with pls z f I) (type.sum g J)"
     using rel_set
-  proof (induction S arbitrary: T rule: infinite_finite_induct)
-    case (infinite S)
+  proof (induction I arbitrary: J rule: infinite_finite_induct)
+    case (infinite I)
     note [transfer_rule] = infinite.prems
-    from infinite.hyps have "infinite T" by transfer
-    then show ?case by (simp add: infinite.hyps zero_S_transfer)
+    from infinite.hyps have "infinite J" by transfer
+    with infinite.hyps show ?case
+      by (simp add: zero_S_transfer sum_with_infinite)
   next
     case [transfer_rule]: empty
-    have "T = {}" by transfer rule
+    have "J = {}" by transfer rule
     then show ?case by (simp add: zero_S_transfer)
   next
     case (insert x F)
     note [transfer_rule] = insert.prems
-    have [simp]: "finite T"
+    have [simp]: "finite J"
       by transfer (simp add: insert.hyps)
-    obtain y where [transfer_rule]: "A x y" and y: "y \<in> T"
+    obtain y where [transfer_rule]: "A x y" and y: "y \<in> J"
       by (meson insert.prems insertI1 rel_setD1)
-    define T' where "T' = T - {y}"
-    have T_def: "T = insert y T'"
-      by (auto simp: T'_def y)
-    define sF where "sF = sum f F"
-    define sT where "sT = type.sum g T'"
-    have [simp]: "y \<notin> T'" "finite T'"
-      by (auto simp: y T'_def)
-    have "rel_set A (insert x F - {x}) T'"
-      unfolding T'_def
+    define J' where "J' = J - {y}"
+    have T_def: "J = insert y J'"
+      by (auto simp: J'_def y)
+    define sF where "sF = sum_with pls z f F"
+    define sT where "sT = type.sum g J'"
+    have [simp]: "y \<notin> J'" "finite J'"
+      by (auto simp: y J'_def)
+    have "rel_set A (insert x F - {x}) J'"
+      unfolding J'_def
       by transfer_prover
-    then have "rel_set A F T'"
+    then have "rel_set A F J'"
       using insert.hyps
       by simp
     from insert.IH[OF this] have [transfer_rule]: "cr_S sF sT" by (auto simp: sF_def sT_def)
-    have "cr_S (sum f (insert x F)) (type.sum g (insert y T'))"
-      apply (simp add: insert.hyps type.sum.insert_remove sF_def[symmetric] sT_def[symmetric])
-      by transfer_prover
+    have f_S: "f x \<in> S" "f ` F \<subseteq> S"
+      using \<open>A x y\<close> fg insert.prems
+      by (auto simp: rel_fun_def cr_S_def rel_set_def)
+    have "cr_S (pls (f x) sF) (plus_S (g y) sT)" by transfer_prover
+    then have "cr_S (sum_with pls z f (insert x F)) (type.sum g (insert y J'))"
+      by (simp add: sum_with_insert insert.hyps type.sum.insert_remove sF_def[symmetric]
+          sT_def[symmetric] f_S)
     then show ?case
       by (simp add: T_def)
   qed
@@ -303,7 +281,7 @@ lemma mem_sum: "sum f X \<in> S" if "\<And>x. x \<in> X \<Longrightarrow> f x \<
 sublocale local_typedef S "TYPE('s)"
   using Ex_type_definition_S by unfold_locales
 
-sublocale local_typedef_ab_group_add S "TYPE('s)"
+sublocale local_typedef_ab_group_add "(+)::'b\<Rightarrow>'b\<Rightarrow>'b" "0::'b" "(-)" uminus S "TYPE('s)"
   using mem_zero mem_add mem_scale[of _ "-1"]
   by unfold_locales (auto simp: scale_minus_left_on)
 
@@ -322,7 +300,7 @@ proof -
   have "module_on_with {x. x \<in> S} (+) (-) uminus 0 scale"
     using module_on_axioms
     by (auto simp: module_on_with_def module_on_def ab_group_add_on_with_Ball_def
-        comm_monoid_add_on_with_Ball_def
+        comm_monoid_add_on_with_Ball_def mem_uminus
         ab_semigroup_add_on_with_Ball_def semigroup_add_on_with_def)
   then show ?thesis
     by transfer'

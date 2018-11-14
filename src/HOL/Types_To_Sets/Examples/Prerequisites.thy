@@ -4,6 +4,7 @@
 
 theory Prerequisites
   imports Main
+  keywords "lemmas_with"::thy_decl
 begin
 
 context
@@ -57,5 +58,44 @@ lemma cr_S_rep[intro, simp]: "cr_S (rep a) a" by (simp add: cr_S_def)
 lemma cr_S_Abs[intro, simp]: "a\<in>S \<Longrightarrow> cr_S a (Abs a)" by (simp add: cr_S_def)
 
 end
+
+subsection \<open>some \<close>
+
+subsection \<open>Tool support\<close>
+
+lemmas subset_iff' = subset_iff[folded Ball_def]
+
+ML \<open>
+structure More_Simplifier =
+struct
+
+fun asm_full_var_simplify ctxt thm =
+  let
+    val ((_, [thm']), ctxt') = Variable.import false [thm] ctxt
+  in
+    Simplifier.asm_full_simplify ctxt' thm'
+    |> singleton (Variable.export ctxt' ctxt)
+    |> Drule.zero_var_indexes
+  end
+
+fun var_simplify_only ctxt ths thm =
+  asm_full_var_simplify (Raw_Simplifier.clear_simpset ctxt addsimps ths) thm
+
+val var_simplified = Attrib.thms >>
+  (fn ths => Thm.rule_attribute ths
+    (fn context => var_simplify_only (Context.proof_of context) ths))
+
+val _ = Theory.setup (Attrib.setup \<^binding>\<open>var_simplified\<close> var_simplified "simplified rule (with vars)")
+
+end
+\<close>
+
+ML \<open>
+val _ = Outer_Syntax.local_theory' \<^command_keyword>\<open>lemmas_with\<close> "note theorems with (the same) attributes"
+    (Parse.attribs --| @{keyword :} -- Parse_Spec.name_facts -- Parse.for_fixes
+     >> (fn (((attrs),facts), fixes) =>
+      #2 oo Specification.theorems_cmd Thm.theoremK
+        (map (apsnd (map (apsnd (fn xs => attrs@xs)))) facts) fixes))
+\<close>
 
 end

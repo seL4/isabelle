@@ -30,7 +30,8 @@ proof (intro rel_funI)
     have "Domainp (rel_set A) t" using that by (auto simp: Domainp_set)
     from ex_comm_monoid_add_around_imageE[OF ex transfer_rules(1,2) this that(1)]
     obtain C where C: "comm_monoid_add_on_with C p z" "r ` t \<subseteq> C" "Domainp (rel_set A) C" by auto
-    from sum_with_mem[OF C(1,2)] C(3)
+    interpret comm_monoid_add_on_with C p z by fact
+    from sum_with_mem[OF C(2)] C(3)
     show ?thesis
       by auto (meson C(3) Domainp_set)
   qed (use \<open>A z _\<close> in \<open>auto simp: sum_with_def\<close>)
@@ -63,7 +64,7 @@ proof (intro rel_funI)
     (\<exists>t u. finite t \<and> t \<subseteq> X' \<and> sum_with p' z' (\<lambda>v. s' (u v) v) t = z' \<and> (\<exists>v\<in>t. u v \<noteq> 0))"
     apply (transfer_prover_start, transfer_step+)
     using *
-    by (auto simp: intro!: sum_with_mem)
+    by (auto simp: intro!: comm_monoid_add_on_with.sum_with_mem)
 qed
 
 definition subspace_with

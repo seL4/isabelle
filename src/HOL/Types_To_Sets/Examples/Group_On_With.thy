@@ -114,20 +114,27 @@ locale ab_group_add_on_with = comm_monoid_add_on_with +
   fixes mns um
   assumes ab_left_minus: "a \<in> S \<Longrightarrow> pls (um a) a = z"
   assumes ab_diff_conv_add_uminus: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> mns a b = pls a (um b)"
+  assumes uminus_mem: "a \<in> S \<Longrightarrow> um a \<in> S"
 
 lemma ab_group_add_on_with_Ball_def:
   "ab_group_add_on_with S pls z mns um \<longleftrightarrow> comm_monoid_add_on_with S pls z \<and>
-    (\<forall>a\<in>S. pls (um a) a = z) \<and> (\<forall>a\<in>S. \<forall>b\<in>S. mns a b = pls a (um b))"
+    (\<forall>a\<in>S. pls (um a) a = z) \<and> (\<forall>a\<in>S. \<forall>b\<in>S. mns a b = pls a (um b)) \<and> (\<forall>a\<in>S. um a \<in> S)"
   by (auto simp: ab_group_add_on_with_def ab_group_add_on_with_axioms_def)
 
 lemma ab_group_add_transfer[transfer_rule]:
   includes lifting_syntax
   assumes [transfer_rule]: "right_total A" "bi_unique A"
-  shows
-    "((A ===> A ===> A) ===> A  ===> (A ===> A ===> A) ===> (A ===> A)===> (=))
+  shows "((A ===> A ===> A) ===> A  ===> (A ===> A ===> A) ===> (A ===> A)===> (=))
       (ab_group_add_on_with (Collect (Domainp A))) class.ab_group_add"
-  unfolding class.ab_group_add_def class.ab_group_add_axioms_def ab_group_add_on_with_Ball_def
-  by transfer_prover
+proof (intro rel_funI)
+  fix p p' z z' m m' um um'
+  assume [transfer_rule]:
+    "(A ===> A ===> A) p p'" "A z z'" "(A ===> A ===> A) m m'"
+    and um[transfer_rule]: "(A ===> A) um um'"
+  show "ab_group_add_on_with (Collect (Domainp A)) p z m um = class.ab_group_add p' z' m' um'"
+    unfolding class.ab_group_add_def class.ab_group_add_axioms_def ab_group_add_on_with_Ball_def
+    by transfer (use um in \<open>auto simp: rel_fun_def\<close>)
+qed
 
 lemma ab_group_add_on_with_transfer[transfer_rule]:
   includes lifting_syntax
@@ -148,48 +155,63 @@ definition "sum_with pls z f S =
 lemma sum_with_empty[simp]: "sum_with pls z f {} = z"
   by (auto simp: sum_with_def)
 
-lemma sum_with: "sum = sum_with (+) 0"
-proof (intro ext)
-  fix f::"'a\<Rightarrow>'b" and X::"'a set"
-  have ex: "\<exists>C. f ` X \<subseteq> C \<and> comm_monoid_add_on_with C (+) 0"
-    by (auto intro!: exI[where x=UNIV] comm_monoid_add_on_with)
-  then show "sum f X = sum_with (+) 0 f X"
-    unfolding sum.eq_fold sum_with_def
+lemma sum_with_cases[case_names comm zero]:
+  "P (sum_with pls z f S)"
+  if "\<And>C. f ` S \<subseteq> C \<Longrightarrow> comm_monoid_add_on_with C pls z \<Longrightarrow> P (Finite_Set.fold (pls o f) z S)"
+    "(\<And>C. comm_monoid_add_on_with C pls z \<Longrightarrow> (\<exists>s\<in>S. f s \<notin> C)) \<Longrightarrow> P z"
+  using that
+  by (auto simp: sum_with_def)
+
+lemma sum_with: "sum f S = sum_with (+) 0 f S"
+proof (induction rule: sum_with_cases)
+  case (comm C)
+  then show ?case
+    unfolding sum.eq_fold
     by simp
+next
+  case zero
+  from zero[OF comm_monoid_add_on_with]
+  show ?case by simp
 qed
 
-context fixes C pls z assumes comm_monoid_add_on_with: "comm_monoid_add_on_with C pls z" begin
+context comm_monoid_add_on_with begin
+
+lemma sum_with_infinite: "infinite A \<Longrightarrow> sum_with pls z g A = z"
+  by (induction rule: sum_with_cases) auto
 
 lemmas comm_monoid_add_unfolded =
-    comm_monoid_add_on_with[unfolded
+    comm_monoid_add_on_with_axioms[unfolded
       comm_monoid_add_on_with_Ball_def ab_semigroup_add_on_with_Ball_def semigroup_add_on_with_Ball_def]
 
-private abbreviation "pls' \<equiv> \<lambda>x y. pls (if x \<in> C then x else z) (if y \<in> C then y else z)"
+context begin
 
-lemma fold_pls'_mem: "Finite_Set.fold (pls' \<circ> g) z A \<in> C"
-  if "g ` A \<subseteq> C"
+private abbreviation "pls' \<equiv> \<lambda>x y. pls (if x \<in> S then x else z) (if y \<in> S then y else z)"
+
+lemma fold_pls'_mem: "Finite_Set.fold (pls' \<circ> g) z A \<in> S"
+  if "g ` A \<subseteq> S"
 proof cases
   assume A: "finite A"
   interpret comp_fun_commute "pls' o g"
     using comm_monoid_add_unfolded that
     by unfold_locales auto
   from fold_graph_fold[OF A] have "fold_graph (pls' \<circ> g) z A (Finite_Set.fold (pls' \<circ> g) z A)" .
-  from fold_graph_closed_lemma[OF this, of C "pls' \<circ> g"] comm_monoid_add_unfolded
+  from fold_graph_closed_lemma[OF this, of S "pls' \<circ> g"] comm_monoid_add_unfolded
   show ?thesis
     by auto
 qed (use comm_monoid_add_unfolded in simp)
 
 lemma fold_pls'_eq: "Finite_Set.fold (pls' \<circ> g) z A = Finite_Set.fold (pls \<circ> g) z A"
-  if "g ` A \<subseteq> C"
+  if "g ` A \<subseteq> S"
   using comm_monoid_add_unfolded that
-  by (intro fold_closed_eq[where B=C]) auto
+  by (intro fold_closed_eq[where B=S]) auto
 
-lemma sum_with_mem: "sum_with pls z g A \<in> C" if "g ` A \<subseteq> C"
+lemma sum_with_mem: "sum_with pls z g A \<in> S" if "g ` A \<subseteq> S"
 proof -
   interpret comp_fun_commute "pls' o g"
     using comm_monoid_add_unfolded that
     by unfold_locales auto
-  have "\<exists>C. g ` A \<subseteq> C \<and> comm_monoid_add_on_with C pls z" using that comm_monoid_add_on_with by auto
+  have "\<exists>C. g ` A \<subseteq> C \<and> comm_monoid_add_on_with C pls z"
+    using that comm_monoid_add_on_with_axioms by auto
   then show ?thesis
     using fold_pls'_mem[OF that]
     by (simp add: sum_with_def fold_pls'_eq that)
@@ -197,7 +219,7 @@ qed
 
 lemma sum_with_insert:
   "sum_with pls z g (insert x A) = pls (g x) (sum_with pls z g A)"
-  if g_into: "g x \<in> C" "g ` A \<subseteq> C"
+  if g_into: "g x \<in> S" "g ` A \<subseteq> S"
     and A: "finite A" and x: "x \<notin> A"
 proof -
   interpret comp_fun_commute "pls' o g"
@@ -212,8 +234,8 @@ proof -
   also have "\<dots> = pls (g x) (Finite_Set.fold (pls' \<circ> g) z A)"
   proof -
     from fold_graph_fold[OF A] have "fold_graph (pls' \<circ> g) z A (Finite_Set.fold (pls' \<circ> g) z A)" .
-    from fold_graph_closed_lemma[OF this, of C "pls' \<circ> g"] comm_monoid_add_unfolded
-    have "Finite_Set.fold (pls' \<circ> g) z A \<in> C"
+    from fold_graph_closed_lemma[OF this, of S "pls' \<circ> g"] comm_monoid_add_unfolded
+    have "Finite_Set.fold (pls' \<circ> g) z A \<in> S"
       by auto
     then show ?thesis
       using g_into by auto
@@ -226,10 +248,12 @@ proof -
   moreover
   have "\<exists>C. g ` insert x A \<subseteq> C \<and> comm_monoid_add_on_with C pls z"
     "\<exists>C. g ` A \<subseteq> C \<and> comm_monoid_add_on_with C pls z"
-    using that (1,2) comm_monoid_add_on_with by auto
+    using that (1,2) comm_monoid_add_on_with_axioms by auto
   ultimately show ?thesis
     by (simp add: sum_with_def)
 qed
+
+end
 
 end
 
@@ -276,10 +300,12 @@ proof (safe intro!: rel_funI)
       and "Domainp (rel_set A) C"
       by auto
     then obtain C' where [transfer_rule]: "rel_set A C C'" by auto
+    interpret comm: comm_monoid_add_on_with C pls zero by fact
     have C': "g ` T \<subseteq> C'"
       by transfer (rule C)
     have comm': "comm_monoid_add_on_with C' pls' zero'"
       by transfer (rule comm)
+    then interpret comm': comm_monoid_add_on_with C' pls' zero' .
     from C' comm' have ex_comm': "\<exists>C. g ` T \<subseteq> C \<and> comm_monoid_add_on_with C pls' zero'" by auto
     show ?thesis
       using transfer_T C C'
@@ -316,7 +342,7 @@ proof (safe intro!: rel_funI)
         by (auto simp: T'_def)
       from insert.IH[OF transfer_T' this] have [transfer_rule]: "A sF sT" by (auto simp: sF_def sT_def o_def)
       have rew: "(sum_with pls zero f (insert x F)) = pls (f x) (sum_with pls zero f F)"
-        apply (subst sum_with_insert[OF comm])
+        apply (subst comm.sum_with_insert)
         subgoal using insert.prems by auto
         subgoal using insert.prems by auto
         subgoal by fact
@@ -324,7 +350,7 @@ proof (safe intro!: rel_funI)
         subgoal by auto
         done
       have rew': "(sum_with pls' zero' g (insert y T')) = pls' (g y) (sum_with pls' zero' g T')"
-        apply (subst sum_with_insert[OF comm'])
+        apply (subst comm'.sum_with_insert)
         subgoal
           apply transfer
           using insert.prems by auto
