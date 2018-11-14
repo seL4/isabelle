@@ -169,106 +169,6 @@ locale finite_dimensional_vector_space_pair_on =
 
 subsection \<open>Local Typedef for Subspace\<close>
 
-locale local_typedef_ab_group_add = local_typedef S s +
-  ab_group_add_on_with S
-  for S ::"'b set" and s::"'s itself"
-begin
-
-lemma mem_minus_lt: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> mns x y \<in> S"
-  using ab_diff_conv_add_uminus[of x y] add_mem[of x "um y"] uminus_mem[of y]
-  by auto
-
-context includes lifting_syntax begin
-
-definition plus_S::"'s \<Rightarrow> 's \<Rightarrow> 's" where "plus_S = (rep ---> rep ---> Abs) pls"
-definition minus_S::"'s \<Rightarrow> 's \<Rightarrow> 's" where "minus_S = (rep ---> rep ---> Abs) mns"
-definition uminus_S::"'s \<Rightarrow> 's" where "uminus_S = (rep ---> Abs) um"
-definition zero_S::"'s" where "zero_S = Abs z"
-
-lemma plus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) pls plus_S"
-  unfolding plus_S_def
-  by (auto simp: cr_S_def add_mem intro!: rel_funI)
-
-lemma minus_S_transfer[transfer_rule]: "(cr_S ===> cr_S ===> cr_S) mns minus_S"
-  unfolding minus_S_def
-  by (auto simp: cr_S_def mem_minus_lt intro!: rel_funI)
-
-lemma uminus_S_transfer[transfer_rule]: "(cr_S ===> cr_S) um uminus_S"
-  unfolding uminus_S_def
-  by (auto simp: cr_S_def uminus_mem intro!: rel_funI)
-
-lemma zero_S_transfer[transfer_rule]: "cr_S z zero_S"
-  unfolding zero_S_def
-  by (auto simp: cr_S_def zero_mem intro!: rel_funI)
-
-end
-
-sublocale type: ab_group_add plus_S "zero_S::'s" minus_S uminus_S
-  apply unfold_locales
-  subgoal by transfer (rule add_assoc)
-  subgoal by transfer (rule add_commute)
-  subgoal by transfer (rule add_zero)
-  subgoal by transfer (rule ab_left_minus)
-  subgoal by transfer (rule ab_diff_conv_add_uminus)
-  done
-
-context includes lifting_syntax begin
-
-lemma sum_transfer[transfer_rule]:
-  "((A===>cr_S) ===> rel_set A ===> cr_S) (sum_with pls z) type.sum"
-  if [transfer_rule]: "bi_unique A"
-proof (safe intro!: rel_funI)
-  fix f g I J
-  assume fg[transfer_rule]: "(A ===> cr_S) f g" and rel_set: "rel_set A I J"
-  show "cr_S (sum_with pls z f I) (type.sum g J)"
-    using rel_set
-  proof (induction I arbitrary: J rule: infinite_finite_induct)
-    case (infinite I)
-    note [transfer_rule] = infinite.prems
-    from infinite.hyps have "infinite J" by transfer
-    with infinite.hyps show ?case
-      by (simp add: zero_S_transfer sum_with_infinite)
-  next
-    case [transfer_rule]: empty
-    have "J = {}" by transfer rule
-    then show ?case by (simp add: zero_S_transfer)
-  next
-    case (insert x F)
-    note [transfer_rule] = insert.prems
-    have [simp]: "finite J"
-      by transfer (simp add: insert.hyps)
-    obtain y where [transfer_rule]: "A x y" and y: "y \<in> J"
-      by (meson insert.prems insertI1 rel_setD1)
-    define J' where "J' = J - {y}"
-    have T_def: "J = insert y J'"
-      by (auto simp: J'_def y)
-    define sF where "sF = sum_with pls z f F"
-    define sT where "sT = type.sum g J'"
-    have [simp]: "y \<notin> J'" "finite J'"
-      by (auto simp: y J'_def)
-    have "rel_set A (insert x F - {x}) J'"
-      unfolding J'_def
-      by transfer_prover
-    then have "rel_set A F J'"
-      using insert.hyps
-      by simp
-    from insert.IH[OF this] have [transfer_rule]: "cr_S sF sT" by (auto simp: sF_def sT_def)
-    have f_S: "f x \<in> S" "f ` F \<subseteq> S"
-      using \<open>A x y\<close> fg insert.prems
-      by (auto simp: rel_fun_def cr_S_def rel_set_def)
-    have "cr_S (pls (f x) sF) (plus_S (g y) sT)" by transfer_prover
-    then have "cr_S (sum_with pls z f (insert x F)) (type.sum g (insert y J'))"
-      by (simp add: sum_with_insert insert.hyps type.sum.insert_remove sF_def[symmetric]
-          sT_def[symmetric] f_S)
-    then show ?case
-      by (simp add: T_def)
-  qed
-qed
-
-end
-
-end
-
 locale local_typedef_module_on = module_on S scale
   for S and scale::"'a::comm_ring_1\<Rightarrow>'b\<Rightarrow>'b::ab_group_add" and s::"'s itself" +
   assumes Ex_type_definition_S: "\<exists>(Rep::'s \<Rightarrow> 'b) (Abs::'b \<Rightarrow> 's). type_definition Rep Abs S"
@@ -281,7 +181,7 @@ lemma mem_sum: "sum f X \<in> S" if "\<And>x. x \<in> X \<Longrightarrow> f x \<
 sublocale local_typedef S "TYPE('s)"
   using Ex_type_definition_S by unfold_locales
 
-sublocale local_typedef_ab_group_add "(+)::'b\<Rightarrow>'b\<Rightarrow>'b" "0::'b" "(-)" uminus S "TYPE('s)"
+sublocale local_typedef_ab_group_add_on_with "(+)::'b\<Rightarrow>'b\<Rightarrow>'b" "0::'b" "(-)" uminus S "TYPE('s)"
   using mem_zero mem_add mem_scale[of _ "-1"]
   by unfold_locales (auto simp: scale_minus_left_on)
 
