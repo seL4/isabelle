@@ -4,7 +4,7 @@
 theory Group_On_With
 imports
   Prerequisites
-  Types_To_Sets
+  "../Types_To_Sets"
 begin
 
 subsection \<open>\<^emph>\<open>on\<close> carrier set \<^emph>\<open>with\<close> explicit group operations\<close>
