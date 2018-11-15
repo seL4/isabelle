@@ -892,8 +892,8 @@ subsection \<open>Hereditary Harrop Formulae\<close>
 text \<open>
   The idea of object-level rules is to model Natural Deduction inferences in
   the style of Gentzen @{cite "Gentzen:1935"}, but we allow arbitrary nesting
-  similar to @{cite extensions91}. The most basic rule format is that of a
-  \<^emph>\<open>Horn Clause\<close>:
+  similar to @{cite "Schroeder-Heister:1984"}. The most basic rule format is
+  that of a \<^emph>\<open>Horn Clause\<close>:
   \[
   \infer{\<open>A\<close>}{\<open>A\<^sub>1\<close> & \<open>\<dots>\<close> & \<open>A\<^sub>n\<close>}
   \]
