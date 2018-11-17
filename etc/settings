@@ -14,7 +14,7 @@
 
 ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -nowarn -target:jvm-1.8 -Xmax-classfile-name 130 -J-Xms128m -J-Xmx1024m -J-Xss2m"
 
-ISABELLE_JAVA_SYSTEM_OPTIONS="-server -Dfile.encoding=UTF-8 -Disabelle.threads=0 -Djdk.gtk.version=2.2"
+ISABELLE_JAVA_SYSTEM_OPTIONS="-server -Dfile.encoding=UTF-8 -Disabelle.threads=0 -Djdk.gtk.version=2.2 --illegal-access=warn"
 
 ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx2560m -Xss16m"
 
