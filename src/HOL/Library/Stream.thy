@@ -510,10 +510,10 @@ next
         intro!: exI[of _ m, OF disjI1] bexI[of _ "ss !! n"] exI[of _ n, OF mp])
 qed
 
-lemma sset_smerge: "sset (smerge ss) = UNION (sset ss) sset"
+lemma sset_smerge: "sset (smerge ss) = \<Union>(sset ` (sset ss))"
 proof safe
   fix x assume "x \<in> sset (smerge ss)"
-  thus "x \<in> UNION (sset ss) sset"
+  thus "x \<in> \<Union>(sset ` (sset ss))"
     unfolding smerge_def by (subst (asm) sset_flat)
       (auto simp: stream.set_map in_set_conv_nth sset_range simp del: stake.simps, fast+)
 next

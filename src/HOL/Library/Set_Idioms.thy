@@ -468,13 +468,13 @@ proof -
       using R unfolding relative_to_def intersection_of_def  by auto
     then obtain f where f: "\<And>T. T \<in> \<U> \<Longrightarrow> P (f T)" "\<And>T. T \<in> \<U> \<Longrightarrow> U \<inter> (f T) = T"
       by metis
-    then have "\<exists>\<U>'\<subseteq>Collect P. \<Inter>\<U>' = INTER \<U> f"
-      by (metis image_subset_iff mem_Collect_eq)
-    moreover have eq: "U \<inter> INTER \<U> f = U \<inter> \<Inter>\<U>"
+    then have "f `  \<U> \<subseteq> Collect P"
+      by auto
+    moreover have eq: "U \<inter> \<Inter>(f ` \<U>) = U \<inter> \<Inter>\<U>"
       using f by auto
     ultimately show ?thesis
       unfolding relative_to_def intersection_of_def arbitrary_def \<open>S = U \<inter> \<Inter>\<U>\<close>
-      by metis
+      by auto
   qed
   ultimately show ?thesis
     by blast
@@ -502,13 +502,14 @@ proof -
       using R unfolding relative_to_def intersection_of_def  by auto
     then obtain f where f: "\<And>T. T \<in> \<U> \<Longrightarrow> P (f T)" "\<And>T. T \<in> \<U> \<Longrightarrow> U \<inter> (f T) = T"
       by metis
-    then have "\<exists>\<U>'\<subseteq>Collect P. \<Inter>\<U>' = INTER \<U> f"
-      by (metis image_subset_iff mem_Collect_eq)
-    moreover have eq: "U \<inter> INTER \<U> f = U \<inter> \<Inter>\<U>"
+    then have "f `  \<U> \<subseteq> Collect P"
+      by auto
+    moreover have eq: "U \<inter> \<Inter> (f ` \<U>) = U \<inter> \<Inter> \<U>"
       using f by auto
     ultimately show ?thesis
       unfolding relative_to_def intersection_of_def \<open>S = U \<inter> \<Inter>\<U>\<close>
-      by (metis (no_types, hide_lams) \<open>finite \<U>\<close> f(1) finite_imageI image_subset_iff mem_Collect_eq)
+      using \<open>finite \<U>\<close>
+      by auto
   qed
   ultimately show ?thesis
     by blast
@@ -536,13 +537,14 @@ proof -
       using R unfolding relative_to_def intersection_of_def  by auto
     then obtain f where f: "\<And>T. T \<in> \<U> \<Longrightarrow> P (f T)" "\<And>T. T \<in> \<U> \<Longrightarrow> U \<inter> (f T) = T"
       by metis
-    then have "\<exists>\<U>'\<subseteq>Collect P. \<Inter>\<U>' = INTER \<U> f"
-      by (metis image_subset_iff mem_Collect_eq)
-    moreover have eq: "U \<inter> INTER \<U> f = U \<inter> \<Inter>\<U>"
+    then have "f `  \<U> \<subseteq> Collect P"
+      by auto
+    moreover have eq: "U \<inter> \<Inter> (f ` \<U>) = U \<inter> \<Inter> \<U>"
       using f by auto
     ultimately show ?thesis
       unfolding relative_to_def intersection_of_def \<open>S = U \<inter> \<Inter>\<U>\<close>
-      by (metis (no_types, hide_lams) \<open>countable \<U>\<close> f(1) countable_image image_subset_iff mem_Collect_eq)
+      using \<open>countable \<U>\<close> countable_image
+      by auto
   qed
   ultimately show ?thesis
     by blast

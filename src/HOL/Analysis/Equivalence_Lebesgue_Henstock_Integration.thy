@@ -253,7 +253,7 @@ proof (rule cld_measure.borel_measurable_cld)
           using \<open>E \<subseteq> space ?L\<close> by (auto simp: space_restrict_space)
         then obtain z k where "(z, k) \<in> p" "v \<in> k"
           using tagged_division_ofD(6)[OF p(1), symmetric] by auto
-        with not show "v \<in> UNION (p - s) snd"
+        with not show "v \<in> \<Union>(snd ` (p - s))"
           by (auto intro!: bexI[of _ "(z, k)"] elim: ballE[of _ _ "(z, k)"])
       qed (auto intro!: sets.Int sets.finite_UN ennreal_mono_minus intro: p_in_L)
       also have "\<dots> = measure ?L (\<Union>x\<in>p \<inter> s. snd x)"
@@ -299,9 +299,9 @@ proof -
   define B :: "nat \<Rightarrow> 'a set" where "B n = cbox (- real n *\<^sub>R One) (real n *\<^sub>R One)" for n
   show "(\<lambda>x. f x * indicator \<Omega> x) \<in> lebesgue \<rightarrow>\<^sub>M borel"
   proof (rule measurable_piecewise_restrict)
-    have "(\<Union>n. box (- real n *\<^sub>R One) (real n *\<^sub>R One)) \<subseteq> UNION UNIV B"
+    have "(\<Union>n. box (- real n *\<^sub>R One) (real n *\<^sub>R One)) \<subseteq> \<Union>(B ` UNIV)"
       unfolding B_def by (intro UN_mono box_subset_cbox order_refl)
-    then show "countable (range B)" "space lebesgue \<subseteq> UNION UNIV B"
+    then show "countable (range B)" "space lebesgue \<subseteq> \<Union>(B ` UNIV)"
       by (auto simp: B_def UN_box_eq_UNIV)
   next
     fix \<Omega>' assume "\<Omega>' \<in> range B"
@@ -398,7 +398,7 @@ proof -
       case (union F)
       then have [measurable]: "\<And>i. F i \<in> sets borel"
         by (simp add: borel_eq_box subset_eq)
-      have "((\<lambda>x. if x \<in> UNION UNIV F \<inter> box a b then 1 else 0) has_integral ?M (\<Union>i. F i)) (box a b)"
+      have "((\<lambda>x. if x \<in> \<Union>(F ` UNIV) \<inter> box a b then 1 else 0) has_integral ?M (\<Union>i. F i)) (box a b)"
       proof (rule has_integral_monotone_convergence_increasing)
         let ?f = "\<lambda>k x. \<Sum>i<k. if x \<in> F i \<inter> box a b then 1 else 0 :: real"
         show "\<And>k. (?f k has_integral (\<Sum>i<k. ?M (F i))) (box a b)"
@@ -407,7 +407,7 @@ proof -
           by (intro sum_mono2) auto
         from union(1) have *: "\<And>x i j. x \<in> F i \<Longrightarrow> x \<in> F j \<longleftrightarrow> j = i"
           by (auto simp add: disjoint_family_on_def)
-        show "\<And>x. (\<lambda>k. ?f k x) \<longlonglongrightarrow> (if x \<in> UNION UNIV F \<inter> box a b then 1 else 0)"
+        show "\<And>x. (\<lambda>k. ?f k x) \<longlonglongrightarrow> (if x \<in> \<Union>(F ` UNIV) \<inter> box a b then 1 else 0)"
           apply (auto simp: * sum.If_cases Iio_Int_singleton)
           apply (rule_tac k="Suc xa" in LIMSEQ_offset)
           apply simp
@@ -1915,7 +1915,7 @@ proof -
     using S measurable_integrable by blast
   have 2: "\<And>n x::'a. indicat_real (S n) x \<le> (indicat_real (S (Suc n)) x)"
     by (simp add: indicator_leI nest rev_subsetD)
-  have 3: "\<And>x. (\<lambda>n. indicat_real (S n) x) \<longlonglongrightarrow> (indicat_real (UNION UNIV S) x)"
+  have 3: "\<And>x. (\<lambda>n. indicat_real (S n) x) \<longlonglongrightarrow> (indicat_real (\<Union>(S ` UNIV)) x)"
     apply (rule Lim_eventually)
     apply (simp add: indicator_def)
     by (metis eventually_sequentiallyI lift_Suc_mono_le nest subsetCE)
@@ -2046,13 +2046,13 @@ next
     and cov: "\<And>x. x \<in> S \<Longrightarrow> x \<in> U x"
     and neg: "\<And>x. x \<in> S \<Longrightarrow> negligible (U x)"
     by metis
-  obtain \<F> where "\<F> \<subseteq> U ` S" "countable \<F>" and eq: "\<Union>\<F> = UNION S U"
+  obtain \<F> where "\<F> \<subseteq> U ` S" "countable \<F>" and eq: "\<Union>\<F> = \<Union>(U ` S)"
     using ope by (force intro: Lindelof_openin [of "U ` S" S])
   then have "negligible (\<Union>\<F>)"
     by (metis imageE neg negligible_countable_Union subset_eq)
-  with eq have "negligible (UNION S U)"
+  with eq have "negligible (\<Union>(U ` S))"
     by metis
-  moreover have "S \<subseteq> UNION S U"
+  moreover have "S \<subseteq> \<Union>(U ` S)"
     using cov by blast
   ultimately show "negligible S"
     using negligible_subset by blast
@@ -2558,9 +2558,9 @@ proof (rule absolutely_integrable_onI, fact)
         using prems by auto
     qed
     then obtain d K where ddiv: "d division_of \<Union>d" and "K = (\<Sum>k\<in>d. norm (integral k f))"
-      "SUPREMUM {d. d division_of \<Union>d} (sum (\<lambda>k. norm (integral k f))) - e < K"
+      "Sup (sum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union> d}) - e < K"
       by (auto simp add: image_iff not_le)
-    then have d: "SUPREMUM {d. d division_of \<Union>d} (sum (\<lambda>k. norm (integral k f))) - e 
+    then have d: "Sup (sum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union> d}) - e 
                   < (\<Sum>k\<in>d. norm (integral k f))"
       by auto
     note d'=division_ofD[OF ddiv]
@@ -2917,11 +2917,11 @@ next
             by (metis bounded_linear_image linear_linear assms(1) image_Union range_composition)
           have "(\<lambda>n. ?\<mu> (X n)) sums ?\<mu> (\<Union>n. X n)"
             by (rule measure_countable_negligible_Union_bounded [OF 1 2 3])
-          have meq: "?\<mu> (\<Union>n. f ` X n) = m * ?\<mu> (UNION UNIV X)"
+          have meq: "?\<mu> (\<Union>n. f ` X n) = m * ?\<mu> (\<Union>(X ` UNIV))"
           proof (rule sums_unique2 [OF measure_countable_negligible_Union_bounded [OF f1 f2 f3]])
             have m: "\<And>n. ?\<mu> (f ` X n) = (m * ?\<mu> (X n))"
               using S unfolding bij_betw_def by (metis cbox im rangeI)
-            show "(\<lambda>n. ?\<mu> (f ` X n)) sums (m * ?\<mu> (UNION UNIV X))"
+            show "(\<lambda>n. ?\<mu> (f ` X n)) sums (m * ?\<mu> (\<Union>(X ` UNIV)))"
               unfolding m
               using measure_countable_negligible_Union_bounded [OF 1 2 3] sums_mult by blast
           qed
@@ -3679,24 +3679,24 @@ proposition integral_countable_UN:
   assumes f: "f absolutely_integrable_on (\<Union>(range s))"
     and s: "\<And>m. s m \<in> sets lebesgue"
   shows "\<And>n. f absolutely_integrable_on (\<Union>m\<le>n. s m)"
-    and "(\<lambda>n. integral (\<Union>m\<le>n. s m) f) \<longlonglongrightarrow> integral (UNION UNIV s) f" (is "?F \<longlonglongrightarrow> ?I")
+    and "(\<lambda>n. integral (\<Union>m\<le>n. s m) f) \<longlonglongrightarrow> integral (\<Union>(s ` UNIV)) f" (is "?F \<longlonglongrightarrow> ?I")
 proof -
   show fU: "f absolutely_integrable_on (\<Union>m\<le>n. s m)" for n
     using assms by (blast intro: set_integrable_subset [OF f])
   have fint: "f integrable_on (\<Union> (range s))"
     using absolutely_integrable_on_def f by blast
-  let ?h = "\<lambda>x. if x \<in> UNION UNIV s then norm(f x) else 0"
+  let ?h = "\<lambda>x. if x \<in> \<Union>(s ` UNIV) then norm(f x) else 0"
   have "(\<lambda>n. integral UNIV (\<lambda>x. if x \<in> (\<Union>m\<le>n. s m) then f x else 0))
-        \<longlonglongrightarrow> integral UNIV (\<lambda>x. if x \<in> UNION UNIV s then f x else 0)"
+        \<longlonglongrightarrow> integral UNIV (\<lambda>x. if x \<in> \<Union>(s ` UNIV) then f x else 0)"
   proof (rule dominated_convergence)
     show "(\<lambda>x. if x \<in> (\<Union>m\<le>n. s m) then f x else 0) integrable_on UNIV" for n
       unfolding integrable_restrict_UNIV
       using fU absolutely_integrable_on_def by blast
-    show "(\<lambda>x. if x \<in> UNION UNIV s then norm(f x) else 0) integrable_on UNIV"
+    show "(\<lambda>x. if x \<in> \<Union>(s ` UNIV) then norm(f x) else 0) integrable_on UNIV"
       by (metis (no_types) absolutely_integrable_on_def f integrable_restrict_UNIV)
     show "\<forall>x\<in>UNIV.
          (\<lambda>n. if x \<in> (\<Union>m\<le>n. s m) then f x else 0)
-         \<longlonglongrightarrow> (if x \<in> UNION UNIV s then f x else 0)"
+         \<longlonglongrightarrow> (if x \<in> \<Union>(s ` UNIV) then f x else 0)"
       by (force intro: Lim_eventually eventually_sequentiallyI)
   qed auto
   then show "?F \<longlonglongrightarrow> ?I"

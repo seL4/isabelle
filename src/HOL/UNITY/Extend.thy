@@ -249,7 +249,7 @@ lemma extend_set_Un_distrib: "extend_set h (A \<union> B) = extend_set h A \<uni
 lemma extend_set_Int_distrib: "extend_set h (A \<inter> B) = extend_set h A \<inter> extend_set h B"
   by auto
 
-lemma extend_set_INT_distrib: "extend_set h (INTER A B) = (\<Inter>x \<in> A. extend_set h (B x))"
+lemma extend_set_INT_distrib: "extend_set h (\<Inter>(B ` A)) = (\<Inter>x \<in> A. extend_set h (B x))"
   by auto
 
 lemma extend_set_Diff_distrib: "extend_set h (A - B) = extend_set h A - extend_set h B"

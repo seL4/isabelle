@@ -62,9 +62,9 @@ next
   from choice[OF this] guess S ..
   from choice[OF this] guess N ..
   from choice[OF this] guess N' ..
-  then show "UNION UNIV A \<in> ?A"
+  then show "\<Union>(A ` UNIV) \<in> ?A"
     using null_sets_UN[of N']
-    by (intro completionI[of _ "UNION UNIV S" "UNION UNIV N" "UNION UNIV N'"]) auto
+    by (intro completionI[of _ "\<Union>(S ` UNIV)" "\<Union>(N ` UNIV)" "\<Union>(N' ` UNIV)"]) auto
 qed
 
 lemma sets_completion:
@@ -199,7 +199,7 @@ proof (subst emeasure_measure_of[OF completion_def completion_into_space])
     qed
     then have "(\<Sum>n. emeasure M (main_part M (A n))) = emeasure M (\<Union>i. main_part M (A i))"
       using A by (auto intro!: suminf_emeasure)
-    then show "(\<Sum>n. ?\<mu> (A n)) = ?\<mu> (UNION UNIV A)"
+    then show "(\<Sum>n. ?\<mu> (A n)) = ?\<mu> (\<Union>(A ` UNIV))"
       by (simp add: completion_def emeasure_main_part_UN[OF A(1)])
   qed
 qed

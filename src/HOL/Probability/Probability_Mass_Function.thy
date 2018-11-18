@@ -1851,15 +1851,15 @@ text \<open>
   uniformly at random.
 \<close>
 lemma pmf_of_set_UN:
-  assumes "finite (UNION A f)" "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> {}"
+  assumes "finite (\<Union>(f ` A))" "A \<noteq> {}" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> {}"
           "\<And>x. x \<in> A \<Longrightarrow> card (f x) = n" "disjoint_family_on f A"
-  shows   "pmf_of_set (UNION A f) = do {x \<leftarrow> pmf_of_set A; pmf_of_set (f x)}"
+  shows   "pmf_of_set (\<Union>(f ` A)) = do {x \<leftarrow> pmf_of_set A; pmf_of_set (f x)}"
             (is "?lhs = ?rhs")
 proof (intro pmf_eqI)
   fix x
   from assms have [simp]: "finite A"
     using infinite_disjoint_family_imp_infinite_UNION[of A f] by blast
-  from assms have "ereal (pmf (pmf_of_set (UNION A f)) x) =
+  from assms have "ereal (pmf (pmf_of_set (\<Union>(f ` A))) x) =
     ereal (indicator (\<Union>x\<in>A. f x) x / real (card (\<Union>x\<in>A. f x)))"
     by (subst pmf_of_set) auto
   also from assms have "card (\<Union>x\<in>A. f x) = card A * n"

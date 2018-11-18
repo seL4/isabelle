@@ -7494,9 +7494,9 @@ next
                     and clos: "closure (G x) \<subseteq> F x" and Fin: "F x \<in> \<C>"
          if "x \<in> S" for x
     by metis
-  then obtain \<F> where "\<F> \<subseteq> G ` S" "countable \<F>" "\<Union>\<F> = UNION S G"
+  then obtain \<F> where "\<F> \<subseteq> G ` S" "countable \<F>" "\<Union>\<F> = \<Union>(G ` S)"
     using Lindelof [of "G ` S"] by (metis image_iff)
-  then obtain K where K: "K \<subseteq> S" "countable K" and eq: "UNION K G = UNION S G"
+  then obtain K where K: "K \<subseteq> S" "countable K" and eq: "\<Union>(G ` K) = \<Union>(G ` S)"
     by (metis countable_subset_image)
   with False Gin have "K \<noteq> {}" by force
   then obtain a :: "nat \<Rightarrow> 'a" where "range a = K"
@@ -7885,7 +7885,7 @@ next
     obtain I where "finite I" and I: "K \<subseteq> (\<Union>i\<in>I. interior (f i))"
     proof (rule compactE_image [OF \<open>compact K\<close>])
       show "K \<subseteq> (\<Union>n. interior (f n))"
-        using \<open>K \<subseteq> S\<close> \<open>UNION UNIV f = S\<close> * by blast
+        using \<open>K \<subseteq> S\<close> \<open>\<Union>(f ` UNIV) = S\<close> * by blast
     qed auto
     { fix n
       assume n: "Max I \<le> n"

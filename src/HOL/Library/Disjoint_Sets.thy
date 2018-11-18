@@ -158,9 +158,9 @@ lemma bij_betw_UNION_disjoint:
   shows   "bij_betw f (\<Union>i\<in>I. A i) (\<Union>i\<in>I. A' i)"
 unfolding bij_betw_def
 proof
-  from bij show eq: "f ` UNION I A = UNION I A'"
+  from bij show eq: "f ` \<Union>(A ` I) = \<Union>(A' ` I)"
     by (auto simp: bij_betw_def image_UN)
-  show "inj_on f (UNION I A)"
+  show "inj_on f (\<Union>(A ` I))"
   proof (rule inj_onI, clarify)
     fix i j x y assume A: "i \<in> I" "j \<in> I" "x \<in> A i" "y \<in> A j" and B: "f x = f y"
     from A bij[of i] bij[of j] have "f x \<in> A' i" "f y \<in> A' j"
@@ -179,7 +179,7 @@ text \<open>
 \<close>
 lemma infinite_disjoint_family_imp_infinite_UNION:
   assumes "\<not>finite A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> {}" "disjoint_family_on f A"
-  shows   "\<not>finite (UNION A f)"
+  shows   "\<not>finite (\<Union>(f ` A))"
 proof -
   define g where "g x = (SOME y. y \<in> f x)" for x
   have g: "g x \<in> f x" if "x \<in> A" for x
@@ -191,7 +191,7 @@ proof -
     with A \<open>x \<noteq> y\<close> assms show False
       by (auto simp: disjoint_family_on_def inj_on_def)
   qed
-  from g have "g ` A \<subseteq> UNION A f" by blast
+  from g have "g ` A \<subseteq> \<Union>(f ` A)" by blast
   moreover from inj_on_g \<open>\<not>finite A\<close> have "\<not>finite (g ` A)"
     using finite_imageD by blast
   ultimately show ?thesis using finite_subset by blast

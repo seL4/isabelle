@@ -2664,11 +2664,11 @@ proof (cases "S = {}")
           (\<forall>\<U>. \<U> \<subseteq> (\<lambda>T. S \<inter> T) ` {T. closedin X T} \<longrightarrow>
            (\<forall>\<F>. finite \<F> \<longrightarrow> \<F> \<subseteq> \<U> \<longrightarrow> \<Inter>\<F> \<noteq> {}) \<longrightarrow> \<Inter>\<U> \<noteq> {})"
       by (simp add: compact_space_fip compactin_subspace closedin_subtopology image_def subset_eq Int_commute imp_conjL)
-    also have "\<dots> = (\<forall>\<U>\<subseteq>Collect (closedin X). (\<forall>\<F>. finite \<F> \<longrightarrow> \<F> \<subseteq> (\<inter>) S ` \<U> \<longrightarrow> \<Inter>\<F> \<noteq> {}) \<longrightarrow> INTER \<U> ((\<inter>) S) \<noteq> {})"
+    also have "\<dots> = (\<forall>\<U>\<subseteq>Collect (closedin X). (\<forall>\<F>. finite \<F> \<longrightarrow> \<F> \<subseteq> (\<inter>) S ` \<U> \<longrightarrow> \<Inter>\<F> \<noteq> {}) \<longrightarrow> \<Inter> ((\<inter>) S ` \<U>) \<noteq> {})"
       by (simp add: all_subset_image)
     also have "\<dots> = (\<forall>\<U>. (\<forall>C\<in>\<U>. closedin X C) \<and> (\<forall>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<longrightarrow> S \<inter> \<Inter>\<F> \<noteq> {}) \<longrightarrow> S \<inter> \<Inter>\<U> \<noteq> {})"
     proof -
-      have eq: "((\<forall>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<longrightarrow> INTER \<F> ((\<inter>) S) \<noteq> {}) \<longrightarrow> INTER \<U> ((\<inter>) S) \<noteq> {}) =
+      have eq: "((\<forall>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<longrightarrow> \<Inter> ((\<inter>) S ` \<F>) \<noteq> {}) \<longrightarrow> \<Inter> ((\<inter>) S ` \<U>) \<noteq> {}) \<longleftrightarrow>
                 ((\<forall>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<longrightarrow> S \<inter> \<Inter>\<F> \<noteq> {}) \<longrightarrow> S \<inter> \<Inter>\<U> \<noteq> {})"  for \<U>
         by simp (use \<open>S \<noteq> {}\<close> in blast)
       show ?thesis

@@ -39,22 +39,22 @@ proof%unimportant -
   proof
     show "\<Inter>range A \<subseteq> S"
       using \<open>\<And>n. A n \<subseteq> S\<close> by blast
-    show "closed (INTER UNIV A)"
+    show "closed (\<Inter>(A ` UNIV))"
       using clo by blast
-    show "\<phi> (INTER UNIV A)"
+    show "\<phi> (\<Inter>(A ` UNIV))"
       by (simp add: clo \<phi> sub)
-    show "\<not> U \<subset> INTER UNIV A" if "U \<subseteq> S" "closed U" "\<phi> U" for U
+    show "\<not> U \<subset> \<Inter>(A ` UNIV)" if "U \<subseteq> S" "closed U" "\<phi> U" for U
     proof -
       have "\<exists>y. x \<notin> A y" if "x \<notin> U" and Usub: "U \<subseteq> (\<Inter>x. A x)" for x
       proof -
         obtain e where "e > 0" and e: "ball x e \<subseteq> -U"
           using \<open>closed U\<close> \<open>x \<notin> U\<close> openE [of "-U"] by blast
-        moreover obtain K where K: "ball x e = UNION K B"
+        moreover obtain K where K: "ball x e = \<Union>(B ` K)"
           using open_cov [of "ball x e"] by auto
-        ultimately have "UNION K B \<subseteq> -U"
+        ultimately have "\<Union>(B ` K) \<subseteq> -U"
           by blast
         have "K \<noteq> {}"
-          using \<open>0 < e\<close> \<open>ball x e = UNION K B\<close> by auto
+          using \<open>0 < e\<close> \<open>ball x e = \<Union>(B ` K)\<close> by auto
         then obtain n where "n \<in> K" "x \<in> B n"
           by (metis K UN_E \<open>0 < e\<close> centre_in_ball)
         then have "U \<inter> B n = {}"
@@ -89,16 +89,16 @@ proof%unimportant (rule Brouwer_reduction_theorem_gen [of S "\<lambda>T. T \<not
   fix F
   assume cloF: "\<And>n. closed (F n)"
      and F: "\<And>n. F n \<noteq> {} \<and> F n \<subseteq> S \<and> \<phi> (F n)" and Fsub: "\<And>n. F (Suc n) \<subseteq> F n"
-  show "INTER UNIV F \<noteq> {} \<and> INTER UNIV F \<subseteq> S \<and> \<phi> (INTER UNIV F)"
+  show "\<Inter>(F ` UNIV) \<noteq> {} \<and> \<Inter>(F ` UNIV) \<subseteq> S \<and> \<phi> (\<Inter>(F ` UNIV))"
   proof (intro conjI)
-    show "INTER UNIV F \<noteq> {}"
+    show "\<Inter>(F ` UNIV) \<noteq> {}"
       apply (rule compact_nest)
       apply (meson F cloF \<open>compact S\<close> seq_compact_closed_subset seq_compact_eq_compact)
        apply (simp add: F)
       by (meson Fsub lift_Suc_antimono_le)
-    show " INTER UNIV F \<subseteq> S"
+    show " \<Inter>(F ` UNIV) \<subseteq> S"
       using F by blast
-    show "\<phi> (INTER UNIV F)"
+    show "\<phi> (\<Inter>(F ` UNIV))"
       by (metis F Fsub \<phi> \<open>compact S\<close> cloF closed_Int_compact inf.orderE)
   qed
 next
@@ -1680,7 +1680,7 @@ proof%unimportant -
       using that by auto
     show "\<phi> {0..1}"
       by (auto simp: \<phi>_def open_segment_eq_real_ivl *)
-    show "\<phi> (INTER UNIV F)"
+    show "\<phi> (\<Inter>(F ` UNIV))"
       if "\<And>n. closed (F n)" and \<phi>: "\<And>n. \<phi> (F n)" and Fsub: "\<And>n. F (Suc n) \<subseteq> F n" for F
     proof -
       have F01: "\<And>n. F n \<subseteq> {0..1} \<and> 0 \<in> F n \<and> 1 \<in> F n"
@@ -1706,13 +1706,13 @@ proof%unimportant -
           using minxy \<open>0 < e\<close> less by simp_all
         have Fclo: "\<And>T. T \<in> range F \<Longrightarrow> closed T"
           by (metis \<open>\<And>n. closed (F n)\<close> image_iff)
-        have eq: "{w..z} \<inter> INTER UNIV F = {}"
+        have eq: "{w..z} \<inter> \<Inter>(F ` UNIV) = {}"
           using less w z apply (auto simp: open_segment_eq_real_ivl)
           by (metis (no_types, hide_lams) INT_I IntI empty_iff greaterThanLessThan_iff not_le order.trans)
         then obtain K where "finite K" and K: "{w..z} \<inter> (\<Inter> (F ` K)) = {}"
           by (metis finite_subset_image compact_imp_fip [OF compact_interval Fclo])
         then have "K \<noteq> {}"
-          using \<open>w < z\<close> \<open>{w..z} \<inter> INTER K F = {}\<close> by auto
+          using \<open>w < z\<close> \<open>{w..z} \<inter> \<Inter>(F ` K) = {}\<close> by auto
         define n where "n \<equiv> Max K"
         have "n \<in> K" unfolding n_def by (metis \<open>K \<noteq> {}\<close> \<open>finite K\<close> Max_in)
         have "F n \<subseteq> \<Inter> (F ` K)"

@@ -440,8 +440,8 @@ proof -
         show ?case by (intro exI[of _ "{{}}"]) simp
       next
         case (Int a b)
-        then obtain x y where x: "a = UNION x Inter" "\<And>i. i \<in> x \<Longrightarrow> finite i \<and> i \<subseteq> B"
-          and y: "b = UNION y Inter" "\<And>i. i \<in> y \<Longrightarrow> finite i \<and> i \<subseteq> B"
+        then obtain x y where x: "a = \<Union>(Inter ` x)" "\<And>i. i \<in> x \<Longrightarrow> finite i \<and> i \<subseteq> B"
+          and y: "b = \<Union>(Inter ` y)" "\<And>i. i \<in> y \<Longrightarrow> finite i \<and> i \<subseteq> B"
           by blast
         show ?case
           unfolding x y Int_UN_distrib2
@@ -450,10 +450,10 @@ proof -
         case (UN K)
         then have "\<forall>k\<in>K. \<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = k" by auto
         then obtain k where
-            "\<forall>ka\<in>K. k ka \<subseteq> {b. finite b \<and> b \<subseteq> B} \<and> UNION (k ka) Inter = ka"
+            "\<forall>ka\<in>K. k ka \<subseteq> {b. finite b \<and> b \<subseteq> B} \<and> \<Union>(Inter ` (k ka)) = ka"
           unfolding bchoice_iff ..
         then show "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = \<Union>K"
-          by (intro exI[of _ "UNION K k"]) auto
+          by (intro exI[of _ "\<Union>(k ` K)"]) auto
       next
         case (Basis S)
         then show ?case

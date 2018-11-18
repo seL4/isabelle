@@ -408,8 +408,8 @@ lemma set_times_Un_distrib:
   by (auto simp: set_times_def)
 
 lemma set_times_UNION_distrib:
-  "A * UNION I M = (\<Union>i\<in>I. A * M i)"
-  "UNION I M * A = (\<Union>i\<in>I. M i * A)"
+  "A * \<Union>(M ` I) = (\<Union>i\<in>I. A * M i)"
+  "\<Union>(M ` I) * A = (\<Union>i\<in>I. M i * A)"
   by (auto simp: set_times_def)
 
 end

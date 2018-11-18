@@ -1501,7 +1501,7 @@ qed
 
 lemma ennreal_SUP_add:
   fixes f g :: "nat \<Rightarrow> ennreal"
-  shows "incseq f \<Longrightarrow> incseq g \<Longrightarrow> (SUP i. f i + g i) = SUPREMUM UNIV f + SUPREMUM UNIV g"
+  shows "incseq f \<Longrightarrow> incseq g \<Longrightarrow> (SUP i. f i + g i) = Sup (f ` UNIV) + Sup (g ` UNIV)"
   unfolding incseq_def le_fun_def
   by transfer
      (simp add: SUP_ereal_add incseq_def le_fun_def max_absorb2 SUP_upper2)
@@ -1591,7 +1591,7 @@ lemma ennreal_Inf_countable_INF:
   done
 
 lemma ennreal_SUP_countable_SUP:
-  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ennreal. range f \<subseteq> g`A \<and> SUPREMUM A g = SUPREMUM UNIV f"
+  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ennreal. range f \<subseteq> g`A \<and> Sup (g ` A) = Sup (f ` UNIV)"
   using ennreal_Sup_countable_SUP [of "g`A"] by auto
 
 lemma of_nat_tendsto_top_ennreal: "(\<lambda>n::nat. of_nat n :: ennreal) \<longlonglongrightarrow> top"

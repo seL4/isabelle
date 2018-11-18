@@ -841,7 +841,7 @@ lemma (in semiring_of_sets) generated_ring_disjoint_Union:
   using assms by (induct A) (auto simp: disjoint_def intro!: generated_ring_disjoint_Un generated_ring_empty)
 
 lemma (in semiring_of_sets) generated_ring_disjoint_UNION:
-  "finite I \<Longrightarrow> disjoint (A ` I) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> UNION I A \<in> generated_ring"
+  "finite I \<Longrightarrow> disjoint (A ` I) \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> \<Union>(A ` I) \<in> generated_ring"
   by (intro generated_ring_disjoint_Union) auto
 
 lemma (in semiring_of_sets) generated_ring_Int:
@@ -879,7 +879,7 @@ lemma (in semiring_of_sets) generated_ring_Inter:
   using assms by (induct A rule: finite_ne_induct) (auto intro: generated_ring_Int)
 
 lemma (in semiring_of_sets) generated_ring_INTER:
-  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> INTER I A \<in> generated_ring"
+  "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> A i \<in> generated_ring) \<Longrightarrow> \<Inter>(A ` I) \<in> generated_ring"
   by (intro generated_ring_Inter) auto
 
 lemma (in semiring_of_sets) generating_ring:

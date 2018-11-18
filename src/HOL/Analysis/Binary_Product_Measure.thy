@@ -1118,7 +1118,7 @@ proof%unimportant -
         unfolding * by auto
     next
       case (Union A)
-      moreover have *: "(UNION UNIV A) \<times> UNIV = UNION UNIV (\<lambda>i. A i \<times> UNIV)"
+      moreover have *: "(\<Union>(A ` UNIV)) \<times> UNIV = \<Union>((\<lambda>i. A i \<times> UNIV) ` UNIV)"
         by auto
       ultimately show ?case
         unfolding * by auto
@@ -1137,7 +1137,7 @@ proof%unimportant -
         unfolding * by auto
     next
       case (Union B)
-      moreover have *: "UNIV \<times> (UNION UNIV B) = UNION UNIV (\<lambda>i. UNIV \<times> B i)"
+      moreover have *: "UNIV \<times> (\<Union>(B ` UNIV)) = \<Union>((\<lambda>i. UNIV \<times> B i) ` UNIV)"
         by auto
       ultimately show ?case
         unfolding * by auto

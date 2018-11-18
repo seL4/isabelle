@@ -1020,13 +1020,13 @@ proof%unimportant -
         tv: "\<And>x. x \<in> S
              \<Longrightarrow> v x \<subseteq> S \<and> open (t x) \<and> compact (v x) \<and> (\<exists>u. x \<in> u \<and> u \<subseteq> v x \<and> u = S \<inter> t x)"
     by metis
-  then have o: "open (UNION S t)"
+  then have o: "open (\<Union>(t ` S))"
     by blast
   have "S = \<Union> (v ` S)"
     using tv by blast
-  also have "... = UNION S t \<inter> closure S"
+  also have "... = \<Union>(t ` S) \<inter> closure S"
   proof
-    show "UNION S v \<subseteq> UNION S t \<inter> closure S"
+    show "\<Union>(v ` S) \<subseteq> \<Union>(t ` S) \<inter> closure S"
       apply safe
        apply (metis Int_iff subsetD UN_iff tv)
       apply (simp add: closure_def rev_subsetD tv)
@@ -1039,10 +1039,10 @@ proof%unimportant -
         by (metis Int_commute closure_minimal compact_imp_closed that tv)
       finally show ?thesis .
     qed
-    then show "UNION S t \<inter> closure S \<subseteq> UNION S v"
+    then show "\<Union>(t ` S) \<inter> closure S \<subseteq> \<Union>(v ` S)"
       by blast
   qed
-  finally have e: "S = UNION S t \<inter> closure S" .
+  finally have e: "S = \<Union>(t ` S) \<inter> closure S" .
   show ?thesis
     by (rule that [OF o e])
 qed
@@ -1624,7 +1624,7 @@ proof%unimportant -
       by (metis (no_types, lifting) finite_subset_image)
     then have "tk \<noteq> {}"
       by auto
-    define n where "n = INTER tk NN"
+    define n where "n = \<Inter>(NN ` tk)"
     have "y \<in> n" "open n"
       using inUS NN \<open>tk \<subseteq> {0..1}\<close> \<open>finite tk\<close>
       by (auto simp: n_def open_INT subset_iff)
@@ -1632,7 +1632,7 @@ proof%unimportant -
     proof (rule Lebesgue_number_lemma [of "{0..1}" "K ` tk"])
       show "K ` tk \<noteq> {}"
         using \<open>tk \<noteq> {}\<close> by auto
-      show "{0..1} \<subseteq> UNION tk K"
+      show "{0..1} \<subseteq> \<Union>(K ` tk)"
         using tk by auto
       show "\<And>B. B \<in> K ` tk \<Longrightarrow> open B"
         using \<open>tk \<subseteq> {0..1}\<close> K by auto

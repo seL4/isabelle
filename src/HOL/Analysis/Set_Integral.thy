@@ -368,7 +368,7 @@ lemma%important set_integral_finite_Union:
   using assms
 proof%unimportant induction
   case (insert x F)
-  then have "A x \<inter> UNION F A = {}"
+  then have "A x \<inter> \<Union>(A ` F) = {}"
     by (meson disjoint_family_on_insert)
   with insert show ?case
     by (simp add: set_integral_Un set_integrable_Un set_integrable_UN disjoint_family_on_insert)
@@ -453,7 +453,7 @@ proof%unimportant (subst integral_suminf[symmetric])
       set_lebesgue_integral M (\<Union>i. A i) (\<lambda>x. norm (f x))"
       by simp
   qed
-  show "LINT x|M. indicator (UNION UNIV A) x *\<^sub>R f x = LINT x|M. (\<Sum>i. indicator (A i) x *\<^sub>R f x)"
+  show "LINT x|M. indicator (\<Union>(A ` UNIV)) x *\<^sub>R f x = LINT x|M. (\<Sum>i. indicator (A i) x *\<^sub>R f x)"
     apply (rule Bochner_Integration.integral_cong[OF refl])
     apply (subst suminf_scaleR_left[OF sums_summable[OF indicator_sums, OF disj], symmetric])
     using sums_unique[OF indicator_sums[OF disj]]
@@ -472,7 +472,7 @@ proof (intro integral_dominated_convergence[where w="\<lambda>x. indicator (\<Un
     using intgbl by (rule set_integrable_subset) auto
   show "\<And>i. (\<lambda>x. indicator (A i) x *\<^sub>R f x) \<in> borel_measurable M"
     using int_A integrable_iff_bounded set_integrable_def by blast
-  show "(\<lambda>x. indicator (UNION UNIV A) x *\<^sub>R f x) \<in> borel_measurable M"
+  show "(\<lambda>x. indicator (\<Union>(A ` UNIV)) x *\<^sub>R f x) \<in> borel_measurable M"
     using integrable_iff_bounded intgbl set_integrable_def by blast
   show "integrable M (\<lambda>x. indicator (\<Union>i. A i) x *\<^sub>R norm (f x))"
     using int_A intgbl integrable_norm unfolding set_integrable_def 
@@ -501,7 +501,7 @@ proof (rule integral_dominated_convergence)
     by force
   have "set_integrable M (\<Inter>i. A i) f"
     using int0 by (rule set_integrable_subset) (insert A, auto simp: decseq_def)
-  with int_A show "(\<lambda>x. indicat_real (INTER UNIV A) x *\<^sub>R f x) \<in> borel_measurable M"
+  with int_A show "(\<lambda>x. indicat_real (\<Inter>(A ` UNIV)) x *\<^sub>R f x) \<in> borel_measurable M"
                   "\<And>i. (\<lambda>x. indicat_real (A i) x *\<^sub>R f x) \<in> borel_measurable M"
     by (auto simp: set_integrable_def)
   show "\<And>i. AE x in M. norm (indicator (A i) x *\<^sub>R f x) \<le> indicator (A 0) x *\<^sub>R norm (f x)"

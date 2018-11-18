@@ -3377,22 +3377,23 @@ proof(induct t rule: rsplit0.induct)
   proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
-    thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
+    thus "(\<Union>(a, b, c)\<in>M. set (f (a, b, c))) = (\<Union>(a, b, c)\<in>M. set (g a b c))"
       by (auto simp add: split_def)
   qed
   have U3': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0}. ?ff (p,n,s) = map (?f(p,n,s)) [n..0]"
     by auto
-  hence U3: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) =
-    (UNION {(p,n,s). (p,n,s)\<in> ?SS a\<and>n<0} (\<lambda>(p,n,s). set (map (?f(p,n,s)) [n..0])))"
-      proof-
+  hence U3: "(\<Union> ((\<lambda>(p,n,s). set (?ff (p,n,s))) ` {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0})) =
+    (\<Union> ((\<lambda>(p,n,s). set (map (?f(p,n,s)) [n..0])) ` {(p,n,s). (p,n,s)\<in> ?SS a\<and>n<0}))"
+  proof -
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
-    thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
+    thus "(\<Union>(a, b, c)\<in>M. set (f (a, b, c))) = (\<Union>(a, b, c)\<in>M. set (g a b c))"
       by (auto simp add: split_def)
   qed
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))"
+  have "?SS (Floor a) = \<Union> ((\<lambda>x. set (?ff x)) ` ?SS a)"
     by auto
-  also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
+  also have "\<dots> = \<Union> ((\<lambda> (p,n,s). set (?ff (p,n,s))) ` ?SS a)"
+    by blast
   also have "\<dots> =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
@@ -3535,7 +3536,7 @@ next
   proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
-    thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
+    thus "(\<Union>(a, b, c)\<in>M. set (f (a, b, c))) = (\<Union>(a, b, c)\<in>M. set (g a b c))"
       by (auto simp add: split_def)
   qed
   have U3': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0}. ?ff (p,n,s) = map (?f(p,n,s)) [n..0]"
@@ -3544,12 +3545,12 @@ next
   proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
-    thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
+    thus "(\<Union>(a, b, c)\<in>M. set (f (a, b, c))) = (\<Union>(a, b, c)\<in>M. set (g a b c))"
       by (auto simp add: split_def)
   qed
 
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by auto
-  also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
+  have "?SS (Floor a) = \<Union> ((\<lambda>x. set (?ff x)) ` ?SS a)" by auto
+  also have "\<dots> = \<Union> ((\<lambda> (p,n,s). set (?ff (p,n,s))) ` ?SS a)" by blast
   also have "\<dots> =
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un

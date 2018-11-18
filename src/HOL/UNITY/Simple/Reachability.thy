@@ -42,7 +42,7 @@ definition nmsg_lte  :: "nat => edge => state set" where
 
 definition final :: "state set" where
   "final == (\<Inter>v\<in>V. reachable v <==> {s. (root, v) \<in> REACHABLE}) \<inter> 
-            (INTER E (nmsg_eq 0))"
+            (\<Inter>((nmsg_eq 0) ` E))"
 
 axiomatization
 where

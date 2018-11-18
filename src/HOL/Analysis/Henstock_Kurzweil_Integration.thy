@@ -5635,15 +5635,15 @@ proof (rule field_le_epsilon)
         using qq by auto
       show "\<And>i1 i2. \<lbrakk>i1 \<in> r; i2 \<in> r; i1 \<noteq> i2\<rbrakk> \<Longrightarrow> interior i1 \<inter> interior i2 = {}"
         by (simp add: q'(5) r_def)
-      show "interior (UNION p snd) \<inter> interior (\<Union>r) = {}"
+      show "interior (\<Union>(snd ` p)) \<inter> interior (\<Union>r) = {}"
       proof (rule Int_interior_Union_intervals [OF \<open>finite r\<close>])
-        show "open (interior (UNION p snd))"
+        show "open (interior (\<Union>(snd ` p)))"
           by blast
         show "\<And>T. T \<in> r \<Longrightarrow> \<exists>a b. T = cbox a b"
           by (simp add: q'(4) r_def)
         have "finite (snd ` p)"
           by (simp add: p'(1))
-        then show "\<And>T. T \<in> r \<Longrightarrow> interior (UNION p snd) \<inter> interior T = {}"
+        then show "\<And>T. T \<in> r \<Longrightarrow> interior (\<Union>(snd ` p)) \<inter> interior T = {}"
           apply (subst Int_commute)
           apply (rule Int_interior_Union_intervals)
           using r_def q'(5) q(1) apply auto
@@ -5672,7 +5672,7 @@ proof (rule field_le_epsilon)
       then show "content L *\<^sub>R f x = 0"
         unfolding uv content_eq_0_interior[symmetric] by auto
     qed
-    show "finite (UNION r qq)"
+    show "finite (\<Union>(qq ` r))"
       by (meson finite_UN qq \<open>finite r\<close> tagged_division_of_finite)
   qed
   moreover have "content M *\<^sub>R f x = 0" 

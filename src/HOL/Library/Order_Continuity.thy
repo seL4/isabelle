@@ -76,7 +76,7 @@ proof safe
   assume M: "mono M"
   then have "mono (\<lambda>i. g (M i))"
     using sup_continuous_mono[OF g] by (auto simp: mono_def)
-  with M show "f (g (SUPREMUM UNIV M)) = (SUP i. f (g (M i)))"
+  with M show "f (g (Sup (M ` UNIV))) = (SUP i. f (g (M i)))"
     by (auto simp: sup_continuous_def g[THEN sup_continuousD] f[THEN sup_continuousD])
 qed
 
@@ -274,7 +274,7 @@ proof safe
   assume M: "antimono M"
   then have "antimono (\<lambda>i. g (M i))"
     using inf_continuous_mono[OF g] by (auto simp: mono_def antimono_def)
-  with M show "f (g (INFIMUM UNIV M)) = (INF i. f (g (M i)))"
+  with M show "f (g (Inf (M ` UNIV))) = (INF i. f (g (M i)))"
     by (auto simp: inf_continuous_def g[THEN inf_continuousD] f[THEN inf_continuousD])
 qed
 

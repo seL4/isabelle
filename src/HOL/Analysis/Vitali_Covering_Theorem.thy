@@ -617,13 +617,13 @@ next
               by (metis mult.commute mult.left_neutral real_mult_le_cancel_iff1 \<open>e > 0\<close> le1)
             finally show ?thesis .
           qed
-          have "UNION C U \<in> lmeasurable" "?\<mu> (\<Union>(U ` C)) \<le> e"
+          have "\<Union>(U ` C) \<in> lmeasurable" "?\<mu> (\<Union>(U ` C)) \<le> e"
             using \<open>e > 0\<close> Um lee
             by(auto intro!: fmeasurable_UN_bound [OF \<open>countable C\<close>] measure_UN_bound [OF \<open>countable C\<close>])
         }
-        moreover have "?\<mu> ?T = ?\<mu> (UNION C U)"
-        proof (rule measure_negligible_symdiff [OF \<open>UNION C U \<in> lmeasurable\<close>])
-          show "negligible((UNION C U - ?T) \<union> (?T - UNION C U))"
+        moreover have "?\<mu> ?T = ?\<mu> (\<Union>(U ` C))"
+        proof (rule measure_negligible_symdiff [OF \<open>\<Union>(U ` C) \<in> lmeasurable\<close>])
+          show "negligible((\<Union>(U ` C) - ?T) \<union> (?T - \<Union>(U ` C)))"
             by (force intro!: negligible_subset [OF negC])
         qed
         ultimately show "?T \<in> lmeasurable"  "?\<mu> ?T \<le> e"

@@ -3232,7 +3232,7 @@ proof%unimportant
     have TU: "convex (T \<inter> U)"
       by (simp add: \<open>convex T\<close> \<open>convex U\<close> convex_Int)
     have "(\<Union>x\<in>T. closed_segment z x) \<inter> (\<Union>x\<in>U. closed_segment z x)
-          \<subseteq> (if T \<inter> U = {} then {z} else UNION (T \<inter> U) (closed_segment z))" (is "_ \<subseteq> ?IF")
+          \<subseteq> (if T \<inter> U = {} then {z} else \<Union>((closed_segment z) ` (T \<inter> U)))" (is "_ \<subseteq> ?IF")
     proof clarify
       fix x t u
       assume xt: "x \<in> closed_segment z t"

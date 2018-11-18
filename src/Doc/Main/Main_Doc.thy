@@ -112,8 +112,6 @@ Available by loading theory \<open>Lattice_Syntax\<close> in directory \<open>Li
 @{const Set.member} & @{term_type_only Set.member "'a\<Rightarrow>'a set\<Rightarrow>bool"} & (\<^verbatim>\<open>:\<close>)\\
 @{const Set.union} & @{term_type_only Set.union "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\<^verbatim>\<open>Un\<close>)\\
 @{const Set.inter} & @{term_type_only Set.inter "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\<^verbatim>\<open>Int\<close>)\\
-@{const UNION} & @{term_type_only UNION "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
-@{const INTER} & @{term_type_only INTER "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const Union} & @{term_type_only Union "'a set set\<Rightarrow>'a set"}\\
 @{const Inter} & @{term_type_only Inter "'a set set\<Rightarrow>'a set"}\\
 @{const Pow} & @{term_type_only Pow "'a set \<Rightarrow>'a set set"}\\
@@ -134,10 +132,10 @@ Available by loading theory \<open>Lattice_Syntax\<close> in directory \<open>Li
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
 @{term "{x. P}"} & @{term[source]"Collect (\<lambda>x. P)"}\\
 \<open>{t | x\<^sub>1 \<dots> x\<^sub>n. P}\<close> & \<open>{v. \<exists>x\<^sub>1 \<dots> x\<^sub>n. v = t \<and> P}\<close>\\
-@{term[source]"\<Union>x\<in>I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
-@{term[source]"\<Union>x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
-@{term[source]"\<Inter>x\<in>I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
-@{term[source]"\<Inter>x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
+@{term[source]"\<Union>x\<in>I. A"} & @{term[source]"\<Union>((\<lambda>x. A) ` I)"} & (\texttt{UN})\\
+@{term[source]"\<Union>x. A"} & @{term[source]"\<Union>((\<lambda>x. A) ` UNIV)"}\\
+@{term[source]"\<Inter>x\<in>I. A"} & @{term[source]"\<Inter>((\<lambda>x. A) ` I)"} & (\texttt{INT})\\
+@{term[source]"\<Inter>x. A"} & @{term[source]"\<Inter>((\<lambda>x. A) ` UNIV)"}\\
 @{term "\<forall>x\<in>A. P"} & @{term[source]"Ball A (\<lambda>x. P)"}\\
 @{term "\<exists>x\<in>A. P"} & @{term[source]"Bex A (\<lambda>x. P)"}\\
 @{term "range f"} & @{term[source]"f ` UNIV"}\\

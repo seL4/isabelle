@@ -373,7 +373,7 @@ done
 lemma Always_Int_distrib: "Always (A \<inter> B) = Always A \<inter> Always B"
 by (auto simp add: Always_eq_includes_reachable)
 
-lemma Always_INT_distrib: "Always (INTER I A) = (\<Inter>i \<in> I. Always (A i))"
+lemma Always_INT_distrib: "Always (\<Inter>(A ` I)) = (\<Inter>i \<in> I. Always (A i))"
 by (auto simp add: Always_eq_includes_reachable)
 
 lemma Always_Int_I:

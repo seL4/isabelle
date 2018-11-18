@@ -87,9 +87,9 @@ next
   fix AA :: "nat \<Rightarrow> 'a set" and t assume "range AA \<subseteq> {A. \<forall>t. {\<omega> \<in> A. T \<omega> \<le> t} \<in> sets (F t)}"
   then have "(\<Union>i. {\<omega> \<in> AA i. T \<omega> \<le> t}) \<in> sets (F t)" for t
     by auto
-  also have "(\<Union>i. {\<omega> \<in> AA i. T \<omega> \<le> t}) = {\<omega> \<in> UNION UNIV AA. T \<omega> \<le> t}"
+  also have "(\<Union>i. {\<omega> \<in> AA i. T \<omega> \<le> t}) = {\<omega> \<in> \<Union>(AA ` UNIV). T \<omega> \<le> t}"
     by auto
-  finally show "{\<omega> \<in> UNION UNIV AA. T \<omega> \<le> t} \<in> sets (F t)" .
+  finally show "{\<omega> \<in> \<Union>(AA ` UNIV). T \<omega> \<le> t} \<in> sets (F t)" .
 qed auto
 
 lemma sets_pre_sigma: "stopping_time F T \<Longrightarrow> sets (pre_sigma T) = {A. \<forall>t. {\<omega>\<in>A. T \<omega> \<le> t} \<in> sets (F t)}"

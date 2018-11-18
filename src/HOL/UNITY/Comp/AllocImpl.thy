@@ -116,7 +116,7 @@ definition
 definition
   distr_allowed_acts :: "('a,'b) distr_d program set"
   where "distr_allowed_acts =
-       {D. AllowedActs D = insert Id (UNION (preserves distr.Out) Acts)}"
+       {D. AllowedActs D = insert Id (\<Union>(Acts ` (preserves distr.Out)))}"
 
 definition
   distr_spec :: "('a,'b) distr_d program set"
@@ -160,7 +160,7 @@ definition
   (*environmental constraints*)
   alloc_allowed_acts :: "'a allocState_d program set"
   where "alloc_allowed_acts =
-       {F. AllowedActs F = insert Id (UNION (preserves giv) Acts)}"
+       {F. AllowedActs F = insert Id (\<Union>(Acts ` (preserves giv)))}"
 
 definition
   alloc_spec :: "'a allocState_d program set"

@@ -109,7 +109,7 @@ next
     define G where "G j = (\<Union>i. if j \<in> J i then F i j else X i)" for j
     show "(\<Union>i. X i) \<in> sets M" "countable (\<Union>i. J i)" "G \<in> (\<Union>i. J i) \<rightarrow> sets M"
       using XFJ by (auto simp: G_def Pi_iff)
-    show "UNION UNIV A = (UNIV - (\<Union>i. J i)) \<times> (\<Union>i. X i) \<union> (SIGMA j:\<Union>i. J i. \<Union>i. if j \<in> J i then F i j else X i)"
+    show "\<Union>(A ` UNIV) = (UNIV - (\<Union>i. J i)) \<times> (\<Union>i. X i) \<union> (SIGMA j:\<Union>i. J i. \<Union>i. if j \<in> J i then F i j else X i)"
       unfolding A_eq by (auto split: if_split_asm)
   qed
 qed

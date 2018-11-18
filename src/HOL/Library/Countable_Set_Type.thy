@@ -117,13 +117,13 @@ lift_definition cUNION :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Ri
   is "UNION" parametric UNION_transfer by simp
 definition cUnion :: "'a cset cset \<Rightarrow> 'a cset" where "cUnion A = cUNION A id"
 
-lemma Union_conv_UNION: "\<Union>A = UNION A id"
+lemma Union_conv_UNION: "\<Union>A = \<Union>(id ` A)"
 by auto
 
 lemma cUnion_transfer [transfer_rule]:
   "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) Union cUnion"
 proof -
-  have "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) (\<lambda>A. UNION A id) (\<lambda>A. cUNION A id)"
+  have "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) (\<lambda>A. \<Union>(id ` A)) (\<lambda>A. cUNION A id)"
     by transfer_prover
   then show ?thesis by (simp flip: cUnion_def)
 qed

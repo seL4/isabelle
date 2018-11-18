@@ -807,7 +807,7 @@ proof (induct A)
   qed
 next
   case (Union a)
-  have "UNION UNIV a \<inter> {m. domain m \<in> J} = (\<Union>i. (a i \<inter> {m. domain m \<in> J}))"
+  have "\<Union>(a ` UNIV) \<inter> {m. domain m \<in> J} = (\<Union>i. (a i \<inter> {m. domain m \<in> J}))"
     by simp
   also have "\<dots> \<in> sets (PiF J M)" using Union by (intro sets.countable_nat_UN) auto
   finally show ?case .

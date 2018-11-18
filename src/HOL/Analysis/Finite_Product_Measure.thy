@@ -779,7 +779,7 @@ next
   show ?case
   proof (intro exI[of _ "\<Union>i. J i"] bexI[of _ "\<Union>i. prod_emb (\<Union>i. J i) M (J i) (X i)"] conjI)
     show "(\<Union>i. J i) \<subseteq> I" "countable (\<Union>i. J i)" using J by auto
-    with J show "UNION UNIV K = prod_emb I M (\<Union>i. J i) (\<Union>i. prod_emb (\<Union>i. J i) M (J i) (X i))"
+    with J show "\<Union>(K ` UNIV) = prod_emb I M (\<Union>i. J i) (\<Union>i. prod_emb (\<Union>i. J i) M (J i) (X i))"
       by (simp add: K[abs_def] SUP_upper)
   qed(auto intro: X)
 qed

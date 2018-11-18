@@ -321,7 +321,7 @@ proof (safe intro!: antisym INF_greatest)
 next
   have "(\<Sum>i. f (if i = 0 then s else {})) \<le> f s"
     using positiveD1[OF posf] by (subst suminf_finite[of "{0}"]) auto
-  with s show "(INF A\<in>{A. range A \<subseteq> M \<and> disjoint_family A \<and> s \<subseteq> UNION UNIV A}. \<Sum>i. f (A i)) \<le> f s"
+  with s show "(INF A\<in>{A. range A \<subseteq> M \<and> disjoint_family A \<and> s \<subseteq> \<Union>(A ` UNIV)}. \<Sum>i. f (A i)) \<le> f s"
     by (intro INF_lower2[of "\<lambda>i. if i = 0 then s else {}"])
        (auto simp: disjoint_family_on_def)
 qed
@@ -521,8 +521,8 @@ lemma%unimportant volume_empty:
 
 lemma%unimportant volume_finite_additive:
   assumes "volume M f"
-  assumes A: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M" "disjoint_family_on A I" "finite I" "UNION I A \<in> M"
-  shows "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
+  assumes A: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M" "disjoint_family_on A I" "finite I" "\<Union>(A ` I) \<in> M"
+  shows "f (\<Union>(A ` I)) = (\<Sum>i\<in>I. f (A i))"
 proof -
   have "A`I \<subseteq> M" "disjoint (A`I)" "finite (A`I)" "\<Union>(A`I) \<in> M"
     using A by (auto simp: disjoint_family_on_disjoint_image)
@@ -536,7 +536,7 @@ proof -
     then show "f (A i) = 0"
       using volume_empty[OF \<open>volume M f\<close>] by simp
   qed (auto intro: \<open>finite I\<close>)
-  finally show "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
+  finally show "f (\<Union>(A ` I)) = (\<Sum>i\<in>I. f (A i))"
     by simp
 qed
 

@@ -220,11 +220,11 @@ text \<open>Alternative formulations for set infima and suprema over the product
 of two complete lattices:\<close>
 
 lemma INF_prod_alt_def:
-  "INFIMUM A f = (INFIMUM A (fst \<circ> f), INFIMUM A (snd \<circ> f))"
+  "Inf (f ` A) = (Inf ((fst \<circ> f) ` A), Inf ((snd \<circ> f) ` A))"
   unfolding Inf_prod_def by simp
 
 lemma SUP_prod_alt_def:
-  "SUPREMUM A f = (SUPREMUM A (fst \<circ> f), SUPREMUM A (snd \<circ> f))"
+  "Sup (f ` A) = (Sup ((fst \<circ> f) ` A), Sup((snd \<circ> f) ` A))"
   unfolding Sup_prod_def by simp
 
 
@@ -235,7 +235,7 @@ subsection \<open>Complete distributive lattices\<close>
 instance prod :: (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
 proof
   fix A::"('a\<times>'b) set set"
-  show "INFIMUM A Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+  show "Inf (Sup ` A) \<le> Sup (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
     by (simp add: Sup_prod_def Inf_prod_def INF_SUP_set)
 qed
 

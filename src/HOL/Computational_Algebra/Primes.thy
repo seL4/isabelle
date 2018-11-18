@@ -756,7 +756,7 @@ lemma prime_factorization_prod_mset:
 
 lemma prime_factors_prod:
   assumes "finite A" and "0 \<notin> f ` A"
-  shows "prime_factors (prod f A) = UNION A (prime_factors \<circ> f)"
+  shows "prime_factors (prod f A) = \<Union>((prime_factors \<circ> f) ` A)"
   using assms by (simp add: prod_unfold_prod_mset prime_factorization_prod_mset)
 
 lemma prime_factors_fact:

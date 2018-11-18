@@ -5272,7 +5272,7 @@ proof
       by metis
     then obtain T where T: "T \<subseteq> k" "finite T" "k \<subseteq> \<Union>((\<lambda>x. k \<inter> u x) ` T)"
       by (metis finite_subset_image)
-    have Tuv: "UNION T u \<subseteq> UNION T v"
+    have Tuv: "\<Union>(u ` T) \<subseteq> \<Union>(v ` T)"
       using T that by (force simp: dest!: uv)
     show ?thesis
       apply (rule_tac x="\<Union>(u ` T)" in exI)

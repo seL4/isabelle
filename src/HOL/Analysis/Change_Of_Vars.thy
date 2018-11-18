@@ -629,26 +629,26 @@ subsection%important\<open>\<open>F_sigma\<close> and \<open>G_delta\<close> set
 
 (*https://en.wikipedia.org/wiki/F\<sigma>_set*)
 inductive%important fsigma :: "'a::topological_space set \<Rightarrow> bool" where
-  "(\<And>n::nat. closed (F n)) \<Longrightarrow> fsigma (UNION UNIV F)"
+  "(\<And>n::nat. closed (F n)) \<Longrightarrow> fsigma (\<Union>(F ` UNIV))"
 
 inductive%important gdelta :: "'a::topological_space set \<Rightarrow> bool" where
-  "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (INTER UNIV F)"
+  "(\<And>n::nat. open (F n)) \<Longrightarrow> gdelta (\<Inter>(F ` UNIV))"
 
 lemma%important fsigma_Union_compact:
   fixes S :: "'a::{real_normed_vector,heine_borel} set"
-  shows "fsigma S \<longleftrightarrow> (\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = UNION UNIV F)"
+  shows "fsigma S \<longleftrightarrow> (\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV))"
 proof%unimportant safe
   assume "fsigma S"
-  then obtain F :: "nat \<Rightarrow> 'a set" where F: "range F \<subseteq> Collect closed" "S = UNION UNIV F"
+  then obtain F :: "nat \<Rightarrow> 'a set" where F: "range F \<subseteq> Collect closed" "S = \<Union>(F ` UNIV)"
     by (meson fsigma.cases image_subsetI mem_Collect_eq)
-  then have "\<exists>D::nat \<Rightarrow> 'a set. range D \<subseteq> Collect compact \<and> UNION UNIV D = F i" for i
+  then have "\<exists>D::nat \<Rightarrow> 'a set. range D \<subseteq> Collect compact \<and> \<Union>(D ` UNIV) = F i" for i
     using closed_Union_compact_subsets [of "F i"]
     by (metis image_subsetI mem_Collect_eq range_subsetD)
   then obtain D :: "nat \<Rightarrow> nat \<Rightarrow> 'a set"
-    where D: "\<And>i. range (D i) \<subseteq> Collect compact \<and> UNION UNIV (D i) = F i"
+    where D: "\<And>i. range (D i) \<subseteq> Collect compact \<and> \<Union>((D i) ` UNIV) = F i"
     by metis
   let ?DD = "\<lambda>n. (\<lambda>(i,j). D i j) (prod_decode n)"
-  show "\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = UNION UNIV F"
+  show "\<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> Collect compact \<and> S = \<Union>(F ` UNIV)"
   proof (intro exI conjI)
     show "range ?DD \<subseteq> Collect compact"
       using D by clarsimp (metis mem_Collect_eq rangeI split_conv subsetCE surj_pair)
@@ -663,15 +663,15 @@ proof%unimportant safe
   qed
 next
   fix F :: "nat \<Rightarrow> 'a set"
-  assume "range F \<subseteq> Collect compact" and "S = UNION UNIV F"
-  then show "fsigma (UNION UNIV F)"
+  assume "range F \<subseteq> Collect compact" and "S = \<Union>(F ` UNIV)"
+  then show "fsigma (\<Union>(F ` UNIV))"
     by (simp add: compact_imp_closed fsigma.intros image_subset_iff)
 qed
 
 lemma%unimportant gdelta_imp_fsigma: "gdelta S \<Longrightarrow> fsigma (- S)"
 proof (induction rule: gdelta.induct)
   case (1 F)
-  have "- INTER UNIV F = (\<Union>i. -(F i))"
+  have "- \<Inter>(F ` UNIV) = (\<Union>i. -(F i))"
     by auto
   then show ?case
     by (simp add: fsigma.intros closed_Compl 1)
@@ -680,7 +680,7 @@ qed
 lemma%unimportant fsigma_imp_gdelta: "fsigma S \<Longrightarrow> gdelta (- S)"
 proof (induction rule: fsigma.induct)
   case (1 F)
-  have "- UNION UNIV F = (\<Inter>i. -(F i))"
+  have "- \<Union>(F ` UNIV) = (\<Inter>i. -(F i))"
     by auto
   then show ?case
     by (simp add: 1 gdelta.intros open_closed)
@@ -701,7 +701,7 @@ proof -
   }
   then obtain F where F: "\<And>n::nat. closed (F n) \<and> F n \<subseteq> S \<and> S - F n \<in> lmeasurable \<and> measure lebesgue (S - F n) < 1 / Suc n"
     by metis
-  let ?C = "UNION UNIV F"
+  let ?C = "\<Union>(F ` UNIV)"
   show thesis
   proof
     show "fsigma ?C"
@@ -3730,13 +3730,13 @@ proof%unimportant -
     unfolding Ceq
   proof (rule has_absolute_integral_change_of_variables_compact_family)
     fix n x
-    assume "x \<in> UNION UNIV F"
-    then show "(g has_derivative g' x) (at x within UNION UNIV F)"
+    assume "x \<in> \<Union>(F ` UNIV)"
+    then show "(g has_derivative g' x) (at x within \<Union>(F ` UNIV))"
       using Ceq \<open>C \<union> N = S\<close> der_g has_derivative_within_subset by blast
   next
-    have "UNION UNIV F \<subseteq> S"
+    have "\<Union>(F ` UNIV) \<subseteq> S"
       using Ceq \<open>C \<union> N = S\<close> by blast
-    then show "inj_on g (UNION UNIV F)"
+    then show "inj_on g (\<Union>(F ` UNIV))"
       using inj by (meson inj_on_subset)
   qed (use F in auto)
   moreover

@@ -654,7 +654,7 @@ lemma uniform_limit_on_empty [iff]:
 lemma uniform_limit_on_UNION:
   assumes "finite S"
   assumes "\<And>s. s \<in> S \<Longrightarrow> uniform_limit (h s) f g F"
-  shows "uniform_limit (UNION S h) f g F"
+  shows "uniform_limit (\<Union>(h ` S)) f g F"
   using assms
   by induct (auto intro: uniform_limit_on_empty uniform_limit_on_Un)
 

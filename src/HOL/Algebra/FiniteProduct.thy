@@ -576,7 +576,7 @@ lemma (in comm_monoid) finprod_UN_disjoint:
   assumes
     "finite I" "\<And>i. i \<in> I \<Longrightarrow> finite (A i)" "pairwise (\<lambda>i j. disjnt (A i) (A j)) I"
     "\<And>i x. i \<in> I \<Longrightarrow> x \<in> A i \<Longrightarrow> g x \<in> carrier G"
-shows "finprod G g (UNION I A) = finprod G (\<lambda>i. finprod G g (A i)) I"
+shows "finprod G g (\<Union>(A ` I)) = finprod G (\<lambda>i. finprod G g (A i)) I"
   using assms
 proof (induction set: finite)
   case empty

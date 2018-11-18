@@ -401,7 +401,7 @@ proof -
   also have "\<dots> = (SUP i\<in>Y. \<integral>\<^sup>+ x. f i (from_nat_into B (to_nat_on B x)) \<partial>count_space B)"
     by(simp add: embed_measure_count_space'[symmetric] inj_on_to_nat_on countable nn_integral_embed_measure' measurable_embed_measure1)
   also have "\<dots> = ?rhs"
-    by(intro arg_cong2[where f="SUPREMUM"] ext nn_integral_cong_AE)(simp_all add: AE_count_space countable)
+    by(intro arg_cong2[where f = "\<lambda>A f. Sup (f ` A)"] ext nn_integral_cong_AE)(simp_all add: AE_count_space countable)
   finally show ?thesis .
 qed
 

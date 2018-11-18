@@ -2215,15 +2215,15 @@ lemma ereal_SUP_uminus:
 
 lemma ereal_SUP_not_infty:
   fixes f :: "_ \<Rightarrow> ereal"
-  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>SUPREMUM A f\<bar> \<noteq> \<infinity>"
+  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>Sup (f ` A)\<bar> \<noteq> \<infinity>"
   using SUP_upper2[of _ A l f] SUP_least[of A f u]
-  by (cases "SUPREMUM A f") auto
+  by (cases "Sup (f ` A)") auto
 
 lemma ereal_INF_not_infty:
   fixes f :: "_ \<Rightarrow> ereal"
-  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>INFIMUM A f\<bar> \<noteq> \<infinity>"
+  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>Inf (f ` A)\<bar> \<noteq> \<infinity>"
   using INF_lower2[of _ A f u] INF_greatest[of A l f]
-  by (cases "INFIMUM A f") auto
+  by (cases "Inf (f ` A)") auto
 
 lemma ereal_image_uminus_shift:
   fixes X Y :: "ereal set"
@@ -2332,7 +2332,7 @@ qed
 lemma SUP_ereal_le_addI:
   fixes f :: "'i \<Rightarrow> ereal"
   assumes "\<And>i. f i + y \<le> z" and "y \<noteq> -\<infinity>"
-  shows "SUPREMUM UNIV f + y \<le> z"
+  shows "Sup (f ` UNIV) + y \<le> z"
   unfolding SUP_ereal_add_left[OF UNIV_not_empty \<open>y \<noteq> -\<infinity>\<close>, symmetric]
   by (rule SUP_least assms)+
 
@@ -2351,7 +2351,7 @@ lemma SUP_ereal_add:
   fixes f g :: "nat \<Rightarrow> ereal"
   assumes inc: "incseq f" "incseq g"
     and pos: "\<And>i. f i \<noteq> -\<infinity>" "\<And>i. g i \<noteq> -\<infinity>"
-  shows "(SUP i. f i + g i) = SUPREMUM UNIV f + SUPREMUM UNIV g"
+  shows "(SUP i. f i + g i) = Sup (f ` UNIV) + Sup (g ` UNIV)"
   apply (subst SUP_ereal_add_left[symmetric, OF UNIV_not_empty])
   apply (metis SUP_upper UNIV_I assms(4) ereal_infty_less_eq(2))
   apply (subst (2) add.commute)
@@ -2408,7 +2408,7 @@ lemma INF_ereal_add:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "decseq f" "decseq g"
     and fin: "\<And>i. f i \<noteq> \<infinity>" "\<And>i. g i \<noteq> \<infinity>"
-  shows "(INF i. f i + g i) = INFIMUM UNIV f + INFIMUM UNIV g"
+  shows "(INF i. f i + g i) = Inf (f ` UNIV) + Inf (g ` UNIV)"
 proof -
   have INF_less: "(INF i. f i) < \<infinity>" "(INF i. g i) < \<infinity>"
     using assms unfolding INF_less_iff by auto
@@ -2418,7 +2418,7 @@ proof -
   note * = this
   have "(INF i. f i + g i) = (INF i. - ((- f i) + (- g i)))"
     by (simp add: fin *)
-  also have "\<dots> = INFIMUM UNIV f + INFIMUM UNIV g"
+  also have "\<dots> = Inf (f ` UNIV) + Inf (g ` UNIV)"
     unfolding ereal_INF_uminus_eq
     using assms INF_less
     by (subst SUP_ereal_add) (auto simp: ereal_SUP_uminus fin *)
@@ -2429,7 +2429,7 @@ lemma SUP_ereal_add_pos:
   fixes f g :: "nat \<Rightarrow> ereal"
   assumes inc: "incseq f" "incseq g"
     and pos: "\<And>i. 0 \<le> f i" "\<And>i. 0 \<le> g i"
-  shows "(SUP i. f i + g i) = SUPREMUM UNIV f + SUPREMUM UNIV g"
+  shows "(SUP i. f i + g i) = Sup (f ` UNIV) + Sup (g ` UNIV)"
 proof (intro SUP_ereal_add inc)
   fix i
   show "f i \<noteq> -\<infinity>" "g i \<noteq> -\<infinity>"
@@ -2440,7 +2440,7 @@ lemma SUP_ereal_sum:
   fixes f g :: "'a \<Rightarrow> nat \<Rightarrow> ereal"
   assumes "\<And>n. n \<in> A \<Longrightarrow> incseq (f n)"
     and pos: "\<And>n i. n \<in> A \<Longrightarrow> 0 \<le> f n i"
-  shows "(SUP i. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. SUPREMUM UNIV (f n))"
+  shows "(SUP i. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. Sup ((f n) ` UNIV))"
 proof (cases "finite A")
   case True
   then show ?thesis using assms
@@ -2537,7 +2537,7 @@ proof -
 qed
 
 lemma SUP_countable_SUP:
-  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPREMUM A g = SUPREMUM UNIV f"
+  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> Sup (g ` A) = Sup (f ` UNIV)"
   using Sup_countable_SUP [of "g`A"] by auto
 
 subsection "Relation to @{typ enat}"
@@ -3222,7 +3222,7 @@ lemma Liminf_add_le:
   unfolding Liminf_def
 proof (subst SUP_ereal_add_left[symmetric])
   let ?F = "{P. eventually P F}"
-  let ?INF = "\<lambda>P g. INFIMUM (Collect P) g"
+  let ?INF = "\<lambda>P g. Inf (g ` (Collect P))"
   show "?F \<noteq> {}"
     by (auto intro: eventually_True)
   show "(SUP P\<in>?F. ?INF P g) \<noteq> - \<infinity>"
@@ -3238,7 +3238,7 @@ proof (subst SUP_ereal_add_left[symmetric])
       by (intro add_mono INF_mono) auto
     also have "\<dots> = (SUP P'\<in>?F. ?INF ?P' f + ?INF P' g)"
     proof (rule SUP_ereal_add_right[symmetric])
-      show "INFIMUM {x. P x \<and> 0 \<le> f x} f \<noteq> - \<infinity>"
+      show "Inf (f ` {x. P x \<and> 0 \<le> f x}) \<noteq> - \<infinity>"
         unfolding bot_ereal_def[symmetric] INF_eq_bot_iff
         by (auto intro!: exI[of _ 0] ev simp: bot_ereal_def)
     qed fact

@@ -818,7 +818,7 @@ lemma fmmap_transfer[transfer_rule]:
   by (rule rel_funI ext)+ (auto simp: fmap.Abs_fmap_inverse fmap.pcr_cr_eq cr_fmap_def)
 
 lemma fmran'_transfer[transfer_rule]:
-  "(pcr_fmap (=) (=) ===> (=)) (\<lambda>x. UNION (range x) set_option) fmran'"
+  "(pcr_fmap (=) (=) ===> (=)) (\<lambda>x. \<Union>(set_option ` (range x))) fmran'"
   unfolding fmran'_def fmap.pcr_cr_eq cr_fmap_def by fastforce
 
 lemma fmrel_transfer[transfer_rule]:

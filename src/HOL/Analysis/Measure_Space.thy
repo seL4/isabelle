@@ -317,7 +317,7 @@ lemma (in ring_of_sets) countably_additive_iff_continuous_from_below:
     (\<forall>A. range A \<subseteq> M \<longrightarrow> incseq A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (\<lambda>i. f (A i)) \<longlonglongrightarrow> f (\<Union>i. A i))"
   unfolding countably_additive_def
 proof safe
-  assume count_sum: "\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> UNION UNIV A \<in> M \<longrightarrow> (\<Sum>i. f (A i)) = f (UNION UNIV A)"
+  assume count_sum: "\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> \<Union>(A ` UNIV) \<in> M \<longrightarrow> (\<Sum>i. f (A i)) = f (\<Union>(A ` UNIV))"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "incseq A" "(\<Union>i. A i) \<in> M"
   then have dA: "range (disjointed A) \<subseteq> M" by (auto simp: range_disjointed_sets)
   with count_sum[THEN spec, of "disjointed A"] A(3)
@@ -1834,7 +1834,7 @@ lemma measure_UNION_AE:
   using I
 proof (induction I rule: finite_induct)
   case (insert x I)
-  have "measure M (F x \<union> UNION I F) = measure M (F x) + measure M (UNION I F)"
+  have "measure M (F x \<union> \<Union>(F ` I)) = measure M (F x) + measure M (\<Union>(F ` I))"
     by (rule measure_Un_AE) (use insert in \<open>auto simp: pairwise_insert\<close>)
     with insert show ?case
       by (simp add: pairwise_insert )
@@ -3132,7 +3132,7 @@ lemma le_measureD2: "A \<le> B \<Longrightarrow> space A = space B \<Longrightar
 lemma le_measureD3: "A \<le> B \<Longrightarrow> sets A = sets B \<Longrightarrow> emeasure A X \<le> emeasure B X"
   by (auto simp: le_measure_iff le_fun_def dest: sets_eq_imp_space_eq split: if_split_asm)
 
-lemma UN_space_closed: "UNION S sets \<subseteq> Pow (UNION S space)"
+lemma UN_space_closed: "\<Union>(sets ` S) \<subseteq> Pow (\<Union>(space ` S))"
   using sets.space_closed by auto
 
 definition Sup_lexord :: "('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a"
@@ -3245,10 +3245,10 @@ proof (rule emeasure_measure_of)
       with ij show "\<exists>k\<in>{P. finite P \<and> P \<subseteq> M}. \<forall>n\<in>N. ?\<mu> i (F n) \<le> ?\<mu> k (F n) \<and> ?\<mu> j (F n) \<le> ?\<mu> k (F n)"
         by (safe intro!: bexI[of _ "i \<union> j"]) auto
     next
-      show "(SUP P \<in> {P. finite P \<and> P \<subseteq> M}. \<Sum>n. ?\<mu> P (F n)) = (SUP P \<in> {P. finite P \<and> P \<subseteq> M}. ?\<mu> P (UNION UNIV F))"
+      show "(SUP P \<in> {P. finite P \<and> P \<subseteq> M}. \<Sum>n. ?\<mu> P (F n)) = (SUP P \<in> {P. finite P \<and> P \<subseteq> M}. ?\<mu> P (\<Union>(F ` UNIV)))"
       proof (intro SUP_cong refl)
         fix i assume i: "i \<in> {P. finite P \<and> P \<subseteq> M}"
-        show "(\<Sum>n. ?\<mu> i (F n)) = ?\<mu> i (UNION UNIV F)"
+        show "(\<Sum>n. ?\<mu> i (F n)) = ?\<mu> i (\<Union>(F ` UNIV))"
         proof cases
           assume "i \<noteq> {}" with i ** show ?thesis
             apply (intro suminf_emeasure \<open>disjoint_family F\<close>)
@@ -3294,9 +3294,9 @@ proof
   next
     fix a S assume "a \<in> A" and a: "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
       and neq: "\<And>aa. aa \<in> S \<Longrightarrow> sets aa \<noteq> (\<Union>a\<in>S. sets a)"
-    have sp_a: "space a = (UNION S space)"
+    have sp_a: "space a = (\<Union>(space ` S))"
       using \<open>a\<in>A\<close> by (auto simp: S)
-    show "x \<le> sigma (UNION S space) (UNION S sets)"
+    show "x \<le> sigma (\<Union>(space ` S)) (\<Union>(sets ` S))"
     proof cases
       assume [simp]: "space x = space a"
       have "sets x \<subset> (\<Union>a\<in>S. sets a)"
@@ -3363,19 +3363,19 @@ proof
     unfolding Sup_measure_def
   proof (intro Sup_lexord[where P="\<lambda>y. y \<le> x"])
     assume "\<And>a. a \<in> A \<Longrightarrow> space a \<noteq> (\<Union>a\<in>A. space a)"
-    show "sigma (UNION A space) {} \<le> x"
+    show "sigma (\<Union>(space ` A)) {} \<le> x"
       using x[THEN le_measureD1] by (subst sigma_le_iff) auto
   next
     fix a S assume "a \<in> A" "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
       "\<And>a. a \<in> S \<Longrightarrow> sets a \<noteq> (\<Union>a\<in>S. sets a)"
-    have "UNION S space \<subseteq> space x"
+    have "\<Union>(space ` S) \<subseteq> space x"
       using S le_measureD1[OF x] by auto
     moreover
-    have "UNION S space = space a"
+    have "\<Union>(space ` S) = space a"
       using \<open>a\<in>A\<close> S by auto
-    then have "space x = UNION S space \<Longrightarrow> UNION S sets \<subseteq> sets x"
+    then have "space x = \<Union>(space ` S) \<Longrightarrow> \<Union>(sets ` S) \<subseteq> sets x"
       using \<open>a \<in> A\<close> le_measureD2[OF x] by (auto simp: S)
-    ultimately show "sigma (UNION S space) (UNION S sets) \<le> x"
+    ultimately show "sigma (\<Union>(space ` S)) (\<Union>(sets ` S)) \<le> x"
       by (subst sigma_le_iff) simp_all
   next
     fix a b S S' assume "a \<in> A" and a: "space a = (\<Union>a\<in>A. space a)" and S: "S = {a' \<in> A. space a' = space a}"
@@ -3504,17 +3504,17 @@ lemma emeasure_SUP_chain:
   assumes ch: "Complete_Partial_Order.chain (\<le>) (M ` A)" and "A \<noteq> {}"
   shows "emeasure (SUP i\<in>A. M i) X = (SUP i\<in>A. emeasure (M i) X)"
 proof (subst emeasure_SUP[OF sets \<open>A \<noteq> {}\<close>])
-  show "(SUP J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (SUPREMUM J M) X) = (SUP i\<in>A. emeasure (M i) X)"
+  show "(SUP J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (Sup (M ` J)) X) = (SUP i\<in>A. emeasure (M i) X)"
   proof (rule SUP_eq)
     fix J assume "J \<in> {J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}"
     then have J: "Complete_Partial_Order.chain (\<le>) (M ` J)" "finite J" "J \<noteq> {}" and "J \<subseteq> A"
       using ch[THEN chain_subset, of "M`J"] by auto
     with in_chain_finite[OF J(1)] obtain j where "j \<in> J" "(SUP j\<in>J. M j) = M j"
       by auto
-    with \<open>J \<subseteq> A\<close> show "\<exists>j\<in>A. emeasure (SUPREMUM J M) X \<le> emeasure (M j) X"
+    with \<open>J \<subseteq> A\<close> show "\<exists>j\<in>A. emeasure (Sup (M ` J)) X \<le> emeasure (M j) X"
       by auto
   next
-    fix j assume "j\<in>A" then show "\<exists>i\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (M j) X \<le> emeasure (SUPREMUM i M) X"
+    fix j assume "j\<in>A" then show "\<exists>i\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> A}. emeasure (M j) X \<le> emeasure (Sup (M ` i)) X"
       by (intro bexI[of _ "{j}"]) auto
   qed
 qed
@@ -3584,7 +3584,7 @@ lemma sets_Sup_in_sets:
   assumes "\<And>m. m \<in> M \<Longrightarrow> sets m \<subseteq> sets N"
   shows "sets (Sup M) \<subseteq> sets N"
 proof -
-  have *: "UNION M space = space N"
+  have *: "\<Union>(space ` M) = space N"
     using assms by auto
   show ?thesis
     unfolding * using assms by (subst sets_Sup_eq[of M "space N"]) (auto intro!: sets.sigma_sets_subset)
@@ -3612,7 +3612,7 @@ proof -
     by (intro const_space \<open>m \<in> M\<close>)
   have "f \<in> measurable N (sigma (\<Union>m\<in>M. space m) (\<Union>m\<in>M. sets m))"
   proof (rule measurable_measure_of)
-    show "f \<in> space N \<rightarrow> UNION M space"
+    show "f \<in> space N \<rightarrow> \<Union>(space ` M)"
       using measurable_space[OF f] M by auto
   qed (auto intro: measurable_sets f dest: sets.sets_into_space)
   also have "measurable N (sigma (\<Union>m\<in>M. space m) (\<Union>m\<in>M. sets m)) = measurable N (Sup M)"

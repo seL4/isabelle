@@ -1134,7 +1134,7 @@ apply(rule conjI)
  apply(drule_tac c="s" in subsetD,simp)
  apply simp
 apply clarify
-apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> M \<union> UNION (S j) (T j) \<subseteq> (L j)" for H M S T L in allE)
+apply(erule_tac x=i and P="\<lambda>j. H j \<longrightarrow> M \<union> \<Union>((T j) ` (S j)) \<subseteq> (L j)" for H M S T L in allE)
 apply simp
 apply(erule subsetD)
 apply simp

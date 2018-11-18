@@ -641,7 +641,7 @@ proof (rule emeasure_lim[OF *], goal_cases)
       proof (subst distr_distr)
         have "(\<lambda>\<omega>. \<omega> (t x)) \<in> measurable (Pi\<^sub>M UNIV (\<lambda>x. M (f x))) (M x)" if x: "x \<in> J i" for x i
           using measurable_component_singleton[of "t x" "UNIV" "\<lambda>x. M (f x)"] unfolding ft[OF x] by simp
-        then show "(\<lambda>\<omega>. \<lambda>x\<in>\<Union>i. J i. \<omega> (t x)) \<in> measurable IT.PF.lim (Pi\<^sub>M (UNION UNIV J) M)"
+        then show "(\<lambda>\<omega>. \<lambda>x\<in>\<Union>i. J i. \<omega> (t x)) \<in> measurable IT.PF.lim (Pi\<^sub>M (\<Union>(J ` UNIV)) M)"
           by (auto intro!: measurable_restrict simp: measurable_cong_sets[OF IT.PF.sets_lim refl])
       qed (auto intro!: distr_cong measurable_restrict measurable_component_singleton)
       also have "\<dots> = distr (distr IT.PF.lim (PiM (t`J i) (\<lambda>x. M (f x))) (\<lambda>\<omega>. restrict \<omega> (t`J i))) (Pi\<^sub>M (J i) M) (\<lambda>\<omega>. \<lambda>n\<in>J i. \<omega> (t n))"

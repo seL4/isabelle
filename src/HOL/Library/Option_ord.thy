@@ -283,7 +283,8 @@ lemma Some_SUP:
   "A \<noteq> {} \<Longrightarrow> Some (\<Squnion>x\<in>A. f x) = (\<Squnion>x\<in>A. Some (f x))"
   using Some_Sup [of "f ` A"] by (simp add: comp_def)
 
-lemma option_Inf_Sup: "INFIMUM (A::('a::complete_distrib_lattice option) set set) Sup \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
+lemma option_Inf_Sup: "\<Sqinter>(Sup ` A) \<le> \<Squnion>(Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+  for A :: "('a::complete_distrib_lattice option) set set"
 proof (cases "{} \<in> A")
   case True
   then show ?thesis
@@ -438,8 +439,8 @@ next
     also have "... = Some (\<Squnion>x\<in>{f ` {the ` (y - {None}) |y. y \<in> A} |f. \<forall>Y. (\<exists>y. Y = the ` (y - {None}) \<and> y \<in> A) \<longrightarrow> f Y \<in> Y}. \<Sqinter>x) "
       by (simp add: Inf_Sup)
   
-    also have "... \<le> SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf"
-    proof (cases "SUPREMUM {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y} Inf")
+    also have "... \<le> \<Squnion> (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+    proof (cases "\<Squnion> (Inf ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})")
       case None
       then show ?thesis by (simp add: less_eq_option_def)
     next

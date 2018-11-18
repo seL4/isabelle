@@ -821,12 +821,12 @@ translations
 
 lemma nn_integral_def_finite:
   "integral\<^sup>N M f = (SUP g \<in> {g. simple_function M g \<and> g \<le> f \<and> (\<forall>x. g x < top)}. integral\<^sup>S M g)"
-    (is "_ = SUPREMUM ?A ?f")
+    (is "_ = Sup (?A ` ?f)")
   unfolding nn_integral_def
 proof (safe intro!: antisym SUP_least)
   fix g assume g[measurable]: "simple_function M g" "g \<le> f"
 
-  show "integral\<^sup>S M g \<le> SUPREMUM ?A ?f"
+  show "integral\<^sup>S M g \<le> Sup (?A ` ?f)"
   proof cases
     assume ae: "AE x in M. g x \<noteq> top"
     let ?G = "{x \<in> space M. g x \<noteq> top}"
@@ -835,7 +835,7 @@ proof (safe intro!: antisym SUP_least)
       show "AE x in M. g x = g x * indicator ?G x"
         using ae AE_space by eventually_elim auto
     qed (insert g, auto)
-    also have "\<dots> \<le> SUPREMUM ?A ?f"
+    also have "\<dots> \<le> Sup (?A ` ?f)"
       using g by (intro SUP_upper) (auto simp: le_fun_def less_top split: split_indicator)
     finally show ?thesis .
   next
@@ -844,7 +844,7 @@ proof (safe intro!: antisym SUP_least)
       by (subst (asm) AE_iff_measurable[OF _ refl]) auto
     then have "top = (SUP n. (\<integral>\<^sup>Sx. of_nat n * indicator ?G x \<partial>M))"
       by (simp add: ennreal_SUP_of_nat_eq_top ennreal_top_eq_mult_iff SUP_mult_right_ennreal[symmetric])
-    also have "\<dots> \<le> SUPREMUM ?A ?f"
+    also have "\<dots> \<le> Sup (?A ` ?f)"
       using g
       by (safe intro!: SUP_least SUP_upper)
          (auto simp: le_fun_def of_nat_less_top top_unique[symmetric] split: split_indicator
@@ -990,7 +990,7 @@ lemma sup_continuous_nn_integral[order_continuous_intros]:
   unfolding sup_continuous_def
 proof safe
   fix C :: "nat \<Rightarrow> 'b" assume C: "incseq C"
-  with sup_continuous_mono[OF f] show "(\<integral>\<^sup>+ y. f y (SUPREMUM UNIV C) \<partial>M) = (SUP i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
+  with sup_continuous_mono[OF f] show "(\<integral>\<^sup>+ y. f y (Sup (C ` UNIV)) \<partial>M) = (SUP i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
     unfolding sup_continuousD[OF f C]
     by (subst nn_integral_monotone_convergence_SUP) (auto simp: mono_def le_fun_def)
 qed
@@ -1013,7 +1013,7 @@ proof -
         using f N(3) by (intro measurable_If_set) auto }
   qed
   also have "\<dots> = (SUP i. (\<integral>\<^sup>+ x. f i x \<partial>M))"
-    using f_eq by (force intro!: arg_cong[where f="SUPREMUM UNIV"] nn_integral_cong_AE ext)
+    using f_eq by (force intro!: arg_cong[where f = "\<lambda>f. Sup (range f)"] nn_integral_cong_AE ext)
   finally show ?thesis .
 qed
 
@@ -1027,7 +1027,7 @@ lemma SUP_simple_integral_sequences:
   and g: "incseq g" "\<And>i. simple_function M (g i)"
   and eq: "AE x in M. (SUP i. f i x) = (SUP i. g i x)"
   shows "(SUP i. integral\<^sup>S M (f i)) = (SUP i. integral\<^sup>S M (g i))"
-    (is "SUPREMUM _ ?F = SUPREMUM _ ?G")
+    (is "Sup (?F ` _) = Sup (?G ` _)")
 proof -
   have "(SUP i. integral\<^sup>S M (f i)) = (\<integral>\<^sup>+x. (SUP i. f i x) \<partial>M)"
     using f by (rule nn_integral_monotone_convergence_simple)
@@ -1414,7 +1414,7 @@ lemma inf_continuous_nn_integral[order_continuous_intros]:
   unfolding inf_continuous_def
 proof safe
   fix C :: "nat \<Rightarrow> 'b" assume C: "decseq C"
-  then show "(\<integral>\<^sup>+ y. f y (INFIMUM UNIV C) \<partial>M) = (INF i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
+  then show "(\<integral>\<^sup>+ y. f y (Inf (C ` UNIV)) \<partial>M) = (INF i. \<integral>\<^sup>+ y. f y (C i) \<partial>M)"
     using inf_continuous_mono[OF f] bnd
     by (auto simp add: inf_continuousD[OF f C] fun_eq_iff antimono_def mono_def le_fun_def less_top
              intro!: nn_integral_monotone_convergence_INF_decseq)
@@ -1609,7 +1609,7 @@ next
              cong del: if_weak_cong intro!: monoD[OF inf_continuous_mono[OF g], THEN le_funD])
 next
   fix C assume "\<And>i::nat. C i \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (C i) < \<infinity>)" "decseq C"
-  with bound show "INFIMUM UNIV C \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (INFIMUM UNIV C) < \<infinity>)"
+  with bound show "Inf (C ` UNIV) \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (Inf (C ` UNIV)) < \<infinity>)"
     unfolding INF_apply[abs_def]
     by (subst nn_integral_monotone_convergence_INF_decseq)
        (auto simp: INF_less_iff cong: measurable_cong_sets intro!: borel_measurable_INF)
@@ -1801,11 +1801,11 @@ qed (auto cong: nn_integral_cong_simp)
 lemma emeasure_UN_countable:
   assumes sets[measurable]: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" and I[simp]: "countable I"
   assumes disj: "disjoint_family_on X I"
-  shows "emeasure M (UNION I X) = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
+  shows "emeasure M (\<Union>(X ` I)) = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
 proof -
-  have eq: "\<And>x. indicator (UNION I X) x = \<integral>\<^sup>+ i. indicator (X i) x \<partial>count_space I"
+  have eq: "\<And>x. indicator (\<Union>(X ` I)) x = \<integral>\<^sup>+ i. indicator (X i) x \<partial>count_space I"
   proof cases
-    fix x assume x: "x \<in> UNION I X"
+    fix x assume x: "x \<in> \<Union>(X ` I)"
     then obtain j where j: "x \<in> X j" "j \<in> I"
       by auto
     with disj have "\<And>i. i \<in> I \<Longrightarrow> indicator (X i) x = (indicator {j} i::ennreal)"
@@ -1815,7 +1815,7 @@ proof -
   qed (auto simp: nn_integral_0_iff_AE)
 
   note sets.countable_UN'[unfolded subset_eq, measurable]
-  have "emeasure M (UNION I X) = (\<integral>\<^sup>+x. indicator (UNION I X) x \<partial>M)"
+  have "emeasure M (\<Union>(X ` I)) = (\<integral>\<^sup>+x. indicator (\<Union>(X ` I)) x \<partial>M)"
     by simp
   also have "\<dots> = (\<integral>\<^sup>+i. \<integral>\<^sup>+x. indicator (X i) x \<partial>M \<partial>count_space I)"
     by (simp add: eq nn_integral_count_space_nn_integral)

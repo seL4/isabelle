@@ -305,13 +305,13 @@ proof%unimportant (rule SUP_eq, simp_all add: Ball_def Bex_def, safe)
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
-  then show "\<exists>r>0. INFIMUM (Collect P) f \<le> INFIMUM (S \<inter> ball x r - {x}) f"
+  then show "\<exists>r>0. Inf (f ` (Collect P)) \<le> Inf (f ` (S \<inter> ball x r - {x}))"
     by (intro exI[of _ d] INF_mono conjI \<open>0 < d\<close>) auto
 next
   fix d :: real
   assume "0 < d"
   then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> xa \<noteq> x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
-    INFIMUM (S \<inter> ball x d - {x}) f \<le> INFIMUM (Collect P) f"
+    Inf (f ` (S \<inter> ball x d - {x})) \<le> Inf (f ` (Collect P))"
     by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
        (auto intro!: INF_mono exI[of _ d] simp: dist_commute)
 qed
@@ -325,13 +325,13 @@ proof%unimportant (rule INF_eq, simp_all add: Ball_def Bex_def, safe)
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
-  then show "\<exists>r>0. SUPREMUM (S \<inter> ball x r - {x}) f \<le> SUPREMUM (Collect P) f"
+  then show "\<exists>r>0. Sup (f ` (S \<inter> ball x r - {x})) \<le> Sup (f ` (Collect P))"
     by (intro exI[of _ d] SUP_mono conjI \<open>0 < d\<close>) auto
 next
   fix d :: real
   assume "0 < d"
   then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> xa \<noteq> x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
-    SUPREMUM (Collect P) f \<le> SUPREMUM (S \<inter> ball x d - {x}) f"
+    Sup (f ` (Collect P)) \<le> Sup (f ` (S \<inter> ball x d - {x}))"
     by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
        (auto intro!: SUP_mono exI[of _ d] simp: dist_commute)
 qed
@@ -1055,11 +1055,11 @@ proof%unimportant (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper comp
   fix P
   assume P: "eventually P net"
   fix S
-  assume S: "mono_set S" "INFIMUM (Collect P) f \<in> S"
+  assume S: "mono_set S" "Inf (f ` (Collect P)) \<in> S"
   {
     fix x
     assume "P x"
-    then have "INFIMUM (Collect P) f \<le> f x"
+    then have "Inf (f ` (Collect P)) \<le> f x"
       by (intro complete_lattice_class.INF_lower) simp
     with S have "f x \<in> S"
       by (simp add: mono_set)
@@ -1069,16 +1069,16 @@ proof%unimportant (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper comp
 next
   fix y l
   assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
-  assume P: "\<forall>P. eventually P net \<longrightarrow> INFIMUM (Collect P) f \<le> y"
+  assume P: "\<forall>P. eventually P net \<longrightarrow> Inf (f ` (Collect P)) \<le> y"
   show "l \<le> y"
   proof (rule dense_le)
     fix B
     assume "B < l"
     then have "eventually (\<lambda>x. f x \<in> {B <..}) net"
       by (intro S[rule_format]) auto
-    then have "INFIMUM {x. B < f x} f \<le> y"
+    then have "Inf (f ` {x. B < f x}) \<le> y"
       using P by auto
-    moreover have "B \<le> INFIMUM {x. B < f x} f"
+    moreover have "B \<le> Inf (f ` {x. B < f x})"
       by (intro INF_greatest) auto
     ultimately show "B \<le> y"
       by simp
@@ -1094,13 +1094,13 @@ proof%unimportant (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower comp
   fix P
   assume P: "eventually P net"
   fix S
-  assume S: "mono_set (uminus`S)" "SUPREMUM (Collect P) f \<in> S"
+  assume S: "mono_set (uminus`S)" "Sup (f ` (Collect P)) \<in> S"
   {
     fix x
     assume "P x"
-    then have "f x \<le> SUPREMUM (Collect P) f"
+    then have "f x \<le> Sup (f ` (Collect P))"
       by (intro complete_lattice_class.SUP_upper) simp
-    with S(1)[unfolded mono_set, rule_format, of "- SUPREMUM (Collect P) f" "- f x"] S(2)
+    with S(1)[unfolded mono_set, rule_format, of "- Sup (f ` (Collect P))" "- f x"] S(2)
     have "f x \<in> S"
       by (simp add: inj_image_mem_iff) }
   with P show "eventually (\<lambda>x. f x \<in> S) net"
@@ -1108,16 +1108,16 @@ proof%unimportant (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower comp
 next
   fix y l
   assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
-  assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> SUPREMUM (Collect P) f"
+  assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> Sup (f ` (Collect P))"
   show "y \<le> l"
   proof (rule dense_ge)
     fix B
     assume "l < B"
     then have "eventually (\<lambda>x. f x \<in> {..< B}) net"
       by (intro S[rule_format]) auto
-    then have "y \<le> SUPREMUM {x. f x < B} f"
+    then have "y \<le> Sup (f ` {x. f x < B})"
       using P by auto
-    moreover have "SUPREMUM {x. f x < B} f \<le> B"
+    moreover have "Sup (f ` {x. f x < B}) \<le> B"
       by (intro SUP_least) auto
     ultimately show "y \<le> B"
       by simp
@@ -1240,7 +1240,7 @@ proof -
     apply (rule INF_eq) using \<open>decseq v\<close> decseq_Suc_iff by auto
   moreover have "decseq (\<lambda>n. (SUP m\<in>{n..}. u m))" by (simp add: SUP_subset_mono decseq_def)
   ultimately have c: "(INF n\<in>{1..}. (SUP m\<in>{n..}. u m)) = (INF n. (SUP m\<in>{n..}. u m))" by simp
-  have "(INF n. SUPREMUM {n..} u) = (INF n. SUP m\<in>{n..}. u (m + 1))" using a b c by simp
+  have "(INF n. Sup (u ` {n..})) = (INF n. SUP m\<in>{n..}. u (m + 1))" using a b c by simp
   then show ?thesis by (auto cong: limsup_INF_SUP)
 qed
 
@@ -1264,7 +1264,7 @@ proof -
     apply (rule SUP_eq) using \<open>incseq v\<close> incseq_Suc_iff by auto
   moreover have "incseq (\<lambda>n. (INF m\<in>{n..}. u m))" by (simp add: INF_superset_mono mono_def)
   ultimately have c: "(SUP n\<in>{1..}. (INF m\<in>{n..}. u m)) = (SUP n. (INF m\<in>{n..}. u m))" by simp
-  have "(SUP n. INFIMUM {n..} u) = (SUP n. INF m\<in>{n..}. u (m + 1))" using a b c by simp
+  have "(SUP n. Inf (u ` {n..})) = (SUP n. INF m\<in>{n..}. u (m + 1))" using a b c by simp
   then show ?thesis by (auto cong: liminf_SUP_INF)
 qed
 
@@ -1753,12 +1753,12 @@ proof%unimportant (transfer, clarsimp)
   fix v u :: "nat \<Rightarrow> ereal" assume *: "\<forall>x. 0 \<le> v x" "\<forall>x. 0 \<le> u x" "\<And>n. v n \<le> u n"
   moreover have "0 \<le> limsup u - limsup v"
     using * by (intro ereal_diff_positive Limsup_mono always_eventually) simp
-  moreover have "0 \<le> (SUPREMUM {x..} v)" for x
+  moreover have "0 \<le> Sup (u ` {x..})" for x
     using * by (intro SUP_upper2[of x]) auto
-  moreover have "0 \<le> (SUPREMUM {x..} u)" for x
+  moreover have "0 \<le> Sup (v ` {x..})" for x
     using * by (intro SUP_upper2[of x]) auto
   ultimately show "(SUP n. INF n\<in>{n..}. max 0 (u n - v n))
-            \<le> max 0 ((INF x. max 0 (SUPREMUM {x..} u)) - (INF x. max 0 (SUPREMUM {x..} v)))"
+            \<le> max 0 ((INF x. max 0 (Sup (u ` {x..}))) - (INF x. max 0 (Sup (v ` {x..}))))"
     by (auto simp: * ereal_diff_positive max.absorb2 liminf_SUP_INF[symmetric] limsup_INF_SUP[symmetric] ereal_liminf_limsup_minus)
 qed
 

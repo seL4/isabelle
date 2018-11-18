@@ -793,7 +793,7 @@ next
         proof (rule sum_content_area_over_thin_division)
           show "snd ` S division_of \<Union>(snd ` S)"
             by (auto intro: S tagged_partial_division_of_Union_self division_of_tagged_division)
-          show "UNION S snd \<subseteq> cbox a b"
+          show "\<Union>(snd ` S) \<subseteq> cbox a b"
             using S by force
           show "a \<bullet> i \<le> c \<bullet> i" "c \<bullet> i \<le> b \<bullet> i"
             using mem_box(2) that by blast+
@@ -987,7 +987,7 @@ next
                   proof -
                     obtain u v where uv: "L = cbox u v"
                       using T'_tagged \<open>(x, L) \<in> A\<close> \<open>A \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
-                    have "A tagged_division_of UNION A snd"
+                    have "A tagged_division_of \<Union>(snd ` A)"
                       using A_tagged tagged_partial_division_of_Union_self by auto
                     then have "interior (K \<inter> {x. x \<bullet> i \<le> c}) = {}"
                       apply (rule tagged_division_split_left_inj [OF _ \<open>(x,K) \<in> A\<close> \<open>(x,L) \<in> A\<close>])
@@ -1016,7 +1016,7 @@ next
                   proof -
                     obtain u v where uv: "L = cbox u v"
                       using T'_tagged \<open>(x, L) \<in> B\<close> \<open>B \<subseteq> T''\<close> \<open>T'' \<subseteq> T'\<close> by blast
-                    have "B tagged_division_of UNION B snd"
+                    have "B tagged_division_of \<Union>(snd ` B)"
                       using B_tagged tagged_partial_division_of_Union_self by auto
                     then have "interior (K \<inter> {x. c \<le> x \<bullet> i}) = {}"
                       apply (rule tagged_division_split_right_inj [OF _ \<open>(x,K) \<in> B\<close> \<open>(x,L) \<in> B\<close>])

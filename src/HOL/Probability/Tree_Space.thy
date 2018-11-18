@@ -197,7 +197,7 @@ proof -
     finally show ?case .
   next
     case (Union I)
-    have *: "{Node l v r |l v r. (v, l, r) \<in> UNION UNIV I} =
+    have *: "{Node l v r |l v r. (v, l, r) \<in> \<Union>(I ` UNIV)} =
       (\<Union>i. {Node l v r |l v r. (v, l, r) \<in> I i})" by auto
     show ?case unfolding * using Union(2) by (intro sets.countable_UN) auto
   qed

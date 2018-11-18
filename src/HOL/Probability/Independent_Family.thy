@@ -542,7 +542,7 @@ next
           by auto
         { interpret sigma_algebra "space M" "?UN j"
             by (rule sigma_algebra_sigma_sets) auto
-          have "\<And>A. (\<And>i. i \<in> J \<Longrightarrow> A i \<in> ?UN j) \<Longrightarrow> INTER J A \<in> ?UN j"
+          have "\<And>A. (\<And>i. i \<in> J \<Longrightarrow> A i \<in> ?UN j) \<Longrightarrow> \<Inter>(A ` J) \<in> ?UN j"
             using \<open>finite J\<close> \<open>J \<noteq> {}\<close> by (rule finite_INT) blast }
         note INT = this
 
@@ -620,7 +620,7 @@ proof
   fix X assume X: "X \<in> tail_events A"
   let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
   from X have "\<And>n::nat. X \<in> sigma_sets (space M) (UNION {n..} A)" by (auto simp: tail_events_def)
-  from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
+  from this[of 0] have "X \<in> sigma_sets (space M) (\<Union>(A ` UNIV))" by simp
   then show "X \<in> events"
     by induct (insert A, auto)
 qed
@@ -634,12 +634,12 @@ proof (simp add: sigma_algebra_iff2, safe)
   interpret A: sigma_algebra "space M" "A i" for i by fact
   { fix X x assume "X \<in> ?A" "x \<in> X"
     then have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by auto
-    from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
+    from this[of 0] have "X \<in> sigma_sets (space M) (\<Union>(A ` UNIV))" by simp
     then have "X \<subseteq> space M"
       by induct (insert A.sets_into_space, auto)
     with \<open>x \<in> X\<close> show "x \<in> space M" by auto }
   { fix F :: "nat \<Rightarrow> 'a set" and n assume "range F \<subseteq> ?A"
-    then show "(UNION UNIV F) \<in> sigma_sets (space M) (UNION {n..} A)"
+    then show "(\<Union>(F ` UNIV)) \<in> sigma_sets (space M) (UNION {n..} A)"
       by (intro sigma_sets.Union) auto }
 qed (auto intro!: sigma_sets.Compl sigma_sets.Empty)
 
@@ -906,7 +906,7 @@ proof -
       by (auto intro!: exI[of _ "space (M' i)"]) }
   note indep_sets_finite_X = indep_sets_finite[OF I this]
 
-  have "(\<forall>A\<in>\<Pi> i\<in>I. {X i -` A \<inter> space M |A. A \<in> E i}. prob (INTER I A) = (\<Prod>j\<in>I. prob (A j))) =
+  have "(\<forall>A\<in>\<Pi> i\<in>I. {X i -` A \<inter> space M |A. A \<in> E i}. prob (\<Inter>(A ` I)) = (\<Prod>j\<in>I. prob (A j))) =
     (\<forall>A\<in>\<Pi> i\<in>I. E i. prob ((\<Inter>j\<in>I. X j -` A j) \<inter> space M) = (\<Prod>x\<in>I. prob (X x -` A x \<inter> space M)))"
     (is "?L = ?R")
   proof safe
@@ -920,7 +920,7 @@ proof -
     from bchoice[OF this] obtain B where B: "\<forall>i\<in>I. A i = X i -` B i \<inter> space M"
       "B \<in> (\<Pi> i\<in>I. E i)" by auto
     from \<open>?R\<close>[THEN bspec, OF B(2)] B(1) \<open>I \<noteq> {}\<close>
-    show "prob (INTER I A) = (\<Prod>j\<in>I. prob (A j))"
+    show "prob (\<Inter>(A ` I)) = (\<Prod>j\<in>I. prob (A j))"
       by simp
   qed
   then show ?thesis using \<open>I \<noteq> {}\<close>

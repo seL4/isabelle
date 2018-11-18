@@ -66,13 +66,13 @@ lemma ccSUP_le_iff: "countable A \<Longrightarrow> (SUP i \<in> A. f i) \<le> u 
 lemma ccInf_insert [simp]: "countable A \<Longrightarrow> Inf (insert a A) = inf a (Inf A)"
   by (force intro: le_infI le_infI1 le_infI2 antisym ccInf_greatest ccInf_lower)
 
-lemma ccINF_insert [simp]: "countable A \<Longrightarrow> (INF x\<in>insert a A. f x) = inf (f a) (INFIMUM A f)"
+lemma ccINF_insert [simp]: "countable A \<Longrightarrow> (INF x\<in>insert a A. f x) = inf (f a) (Inf (f ` A))"
   unfolding image_insert by simp
 
 lemma ccSup_insert [simp]: "countable A \<Longrightarrow> Sup (insert a A) = sup a (Sup A)"
   by (force intro: le_supI le_supI1 le_supI2 antisym ccSup_least ccSup_upper)
 
-lemma ccSUP_insert [simp]: "countable A \<Longrightarrow> (SUP x\<in>insert a A. f x) = sup (f a) (SUPREMUM A f)"
+lemma ccSUP_insert [simp]: "countable A \<Longrightarrow> (SUP x\<in>insert a A. f x) = sup (f a) (Sup (f ` A))"
   unfolding image_insert by simp
 
 lemma ccINF_empty [simp]: "(INF x\<in>{}. f x) = top"

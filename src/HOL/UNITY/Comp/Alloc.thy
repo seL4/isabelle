@@ -163,7 +163,7 @@ definition
   alloc_allowed_acts :: "'a allocState_d program set"
   where "alloc_allowed_acts =
        {F. AllowedActs F =
-            insert Id (UNION (preserves allocGiv) Acts)}"
+            insert Id (\<Union>(Acts ` (preserves allocGiv)))}"
 
 definition
   alloc_spec :: "'a allocState_d program set"

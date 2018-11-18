@@ -87,14 +87,13 @@ lemma Ball_weaken: "\<lbrakk>Ball s P; \<And> x. P x\<longrightarrow>Q x\<rbrakk
   by auto
 
 lemma finite_SetCompr2:
-  "finite (Collect P) \<Longrightarrow> \<forall>y. P y \<longrightarrow> finite (range (f y)) \<Longrightarrow>
-    finite {f y x |x y. P y}"
-  apply (subgoal_tac "{f y x |x y. P y} = UNION (Collect P) (\<lambda>y. range (f y))")
-   prefer 2 apply fast
-  apply (erule ssubst)
-  apply (erule finite_UN_I)
-  apply fast
-  done
+  "finite {f y x |x y. P y}" if "finite (Collect P)"
+    "\<forall>y. P y \<longrightarrow> finite (range (f y))"
+proof -
+  have "{f y x |x y. P y} = (\<Union>y\<in>Collect P. range (f y))"
+    by auto
+  with that show ?thesis by simp
+qed
 
 lemma list_all2_trans: "\<forall>a b c. P1 a b \<longrightarrow> P2 b c \<longrightarrow> P3 a c \<Longrightarrow>
     \<forall>xs2 xs3. list_all2 P1 xs1 xs2 \<longrightarrow> list_all2 P2 xs2 xs3 \<longrightarrow> list_all2 P3 xs1 xs3"

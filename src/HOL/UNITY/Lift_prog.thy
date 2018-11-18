@@ -378,14 +378,14 @@ by (simp add: extend_act_def project_act_def, blast)
 subsection\<open>OK and "lift"\<close>
 
 lemma act_in_UNION_preserves_fst:
-     "act \<subseteq> {(x,x'). fst x = fst x'} ==> act \<in> UNION (preserves fst) Acts"
+     "act \<subseteq> {(x,x'). fst x = fst x'} ==> act \<in> \<Union>(Acts ` (preserves fst))"
 apply (rule_tac a = "mk_program (UNIV,{act},UNIV) " in UN_I)
 apply (auto simp add: preserves_def stable_def constrains_def)
 done
 
 lemma UNION_OK_lift_I:
      "[| \<forall>i \<in> I. F i \<in> preserves snd;   
-         \<forall>i \<in> I. UNION (preserves fst) Acts \<subseteq> AllowedActs (F i) |]  
+         \<forall>i \<in> I. \<Union>(Acts ` (preserves fst)) \<subseteq> AllowedActs (F i) |]  
       ==> OK I (%i. lift i (F i))"
 apply (auto simp add: OK_def lift_def rename_def Extend.Acts_extend)
 apply (simp add: Extend.AllowedActs_extend project_act_extend_act)

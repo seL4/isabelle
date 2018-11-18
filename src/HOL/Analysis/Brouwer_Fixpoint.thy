@@ -4779,11 +4779,11 @@ proof -
     by metis
   show ?thesis
   proof
-    show "openin (subtopology euclidean T') (UNION T F)"
+    show "openin (subtopology euclidean T') (\<Union>(F ` T))"
       using F by blast
-    show "T \<subseteq> UNION T F"
+    show "T \<subseteq> \<Union>(F ` T)"
       using F by blast
-    show "S \<times> UNION T F \<subseteq> U"
+    show "S \<times> \<Union>(F ` T) \<subseteq> U"
       using F by auto
   qed
 qed
@@ -4882,23 +4882,23 @@ proof -
       by (simp add: homotopic_with) metis
     have wop: "b \<in> V x \<Longrightarrow> \<exists>k. b \<in> V k \<and> (\<forall>j<k. b \<notin> V j)" for b x
         using nat_less_induct [where P = "\<lambda>i. b \<notin> V i"] by meson
-    obtain \<zeta> where cont: "continuous_on ({0..1} \<times> UNION UNIV V) \<zeta>"
-              and eq: "\<And>x i. \<lbrakk>x \<in> {0..1} \<times> UNION UNIV V \<inter>
+    obtain \<zeta> where cont: "continuous_on ({0..1} \<times> \<Union>(V ` UNIV)) \<zeta>"
+              and eq: "\<And>x i. \<lbrakk>x \<in> {0..1} \<times> \<Union>(V ` UNIV) \<inter>
                                    {0..1} \<times> (V i - (\<Union>m<i. V m))\<rbrakk> \<Longrightarrow> \<zeta> x = h i x"
     proof (rule pasting_lemma_exists)
-      show "{0..1} \<times> UNION UNIV V \<subseteq> (\<Union>i. {0..1::real} \<times> (V i - (\<Union>m<i. V m)))"
+      show "{0..1} \<times> \<Union>(V ` UNIV) \<subseteq> (\<Union>i. {0..1::real} \<times> (V i - (\<Union>m<i. V m)))"
         by (force simp: Ball_def dest: wop)
-      show "openin (subtopology euclidean ({0..1} \<times> UNION UNIV V)) 
+      show "openin (subtopology euclidean ({0..1} \<times> \<Union>(V ` UNIV))) 
                    ({0..1::real} \<times> (V i - (\<Union>m<i. V m)))" for i
       proof (intro openin_Times openin_subtopology_self openin_diff)
-        show "openin (subtopology euclidean (UNION UNIV V)) (V i)"
+        show "openin (subtopology euclidean (\<Union>(V ` UNIV))) (V i)"
           using ope V eqU by auto
-        show "closedin (subtopology euclidean (UNION UNIV V)) (\<Union>m<i. V m)"
+        show "closedin (subtopology euclidean (\<Union>(V ` UNIV))) (\<Union>m<i. V m)"
           using V clo eqU by (force intro: closedin_Union)
       qed
       show "continuous_on ({0..1} \<times> (V i - (\<Union>m<i. V m))) (h i)" for i
         by (rule continuous_on_subset [OF conth]) auto
-      show "\<And>i j x. x \<in> {0..1} \<times> UNION UNIV V \<inter>
+      show "\<And>i j x. x \<in> {0..1} \<times> \<Union>(V ` UNIV) \<inter>
                     {0..1} \<times> (V i - (\<Union>m<i. V m)) \<inter> {0..1} \<times> (V j - (\<Union>m<j. V m))
                     \<Longrightarrow> h i x = h j x"
         by clarsimp (metis lessThan_iff linorder_neqE_nat)

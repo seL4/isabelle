@@ -215,7 +215,7 @@ lemma guarantees_Int_right_I:
 by (simp add: guarantees_Int_right)
 
 lemma guarantees_INT_right_iff:
-     "(F \<in> X guarantees (INTER I Y)) = (\<forall>i\<in>I. F \<in> X guarantees (Y i))"
+     "(F \<in> X guarantees (\<Inter>(Y ` I))) = (\<forall>i\<in>I. F \<in> X guarantees (Y i))"
 by (simp add: guarantees_INT_right)
 
 lemma shunting: "(X guarantees Y) = (UNIV guarantees (-X \<union> Y))"
@@ -276,7 +276,7 @@ done
 
 lemma guarantees_JN_INT: 
      "[| \<forall>i\<in>I. F i \<in> X i guarantees Y i;  OK I F |]  
-      ==> (JOIN I F) \<in> (INTER I X) guarantees (INTER I Y)"
+      ==> (JOIN I F) \<in> (\<Inter>(X ` I)) guarantees (\<Inter>(Y ` I))"
 apply (unfold guar_def, auto)
 apply (drule bspec, assumption)
 apply (rename_tac "i")
@@ -287,7 +287,7 @@ done
 
 lemma guarantees_JN_UN: 
     "[| \<forall>i\<in>I. F i \<in> X i guarantees Y i;  OK I F |]  
-     ==> (JOIN I F) \<in> (UNION I X) guarantees (UNION I Y)"
+     ==> (JOIN I F) \<in> (\<Union>(X ` I)) guarantees (\<Union>(Y ` I))"
 apply (unfold guar_def, auto)
 apply (drule bspec, assumption)
 apply (rename_tac "i")
