@@ -839,6 +839,10 @@ lemma Suc_length_conv:
   "(Suc n = length xs) = (\<exists>y ys. xs = y # ys \<and> length ys = n)"
   by (induct xs; simp; blast)
 
+lemma Suc_le_length_iff:
+  "(Suc n \<le> length xs) = (\<exists>x ys. xs = x # ys \<and> n \<le> length ys)"
+by (metis Suc_le_D[of n] Suc_le_mono[of n] Suc_length_conv[of _ xs])
+
 lemma impossible_Cons: "length xs \<le> length ys ==> xs = x # ys = False"
 by (induct xs) auto
 

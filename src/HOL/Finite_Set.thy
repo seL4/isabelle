@@ -1535,6 +1535,26 @@ proof -
   finally show ?thesis .
 qed
 
+lemma card_le_sym_Diff:
+  assumes "finite A" "finite B" "card A \<le> card B"
+  shows "card(A - B) \<le> card(B - A)"
+proof -
+  have "card(A - B) = card A - card (A \<inter> B)" using assms(1,2) by(simp add: card_Diff_subset_Int)
+  also have "\<dots> \<le> card B - card (A \<inter> B)" using assms(3) by linarith
+  also have "\<dots> = card(B - A)" using assms(1,2) by(simp add: card_Diff_subset_Int Int_commute)
+  finally show ?thesis .
+qed
+
+lemma card_less_sym_Diff:
+  assumes "finite A" "finite B" "card A < card B"
+  shows "card(A - B) < card(B - A)"
+proof -
+  have "card(A - B) = card A - card (A \<inter> B)" using assms(1,2) by(simp add: card_Diff_subset_Int)
+  also have "\<dots> < card B - card (A \<inter> B)" using assms(1,3) by (simp add: card_mono diff_less_mono)
+  also have "\<dots> = card(B - A)" using assms(1,2) by(simp add: card_Diff_subset_Int Int_commute)
+  finally show ?thesis .
+qed
+
 lemma card_Diff1_less: "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> card (A - {x}) < card A"
   by (rule Suc_less_SucD) (simp add: card_Suc_Diff1 del: card_Diff_insert)
 
@@ -1770,10 +1790,29 @@ lemma is_singleton_altdef: "is_singleton A \<longleftrightarrow> card A = 1"
   unfolding is_singleton_def
   by (auto elim!: card_1_singletonE is_singletonE simp del: One_nat_def)
 
+lemma card_le_Suc0_iff_eq:
+  assumes "finite A"
+  shows "card A \<le> Suc 0 \<longleftrightarrow> (\<forall>a1 \<in> A. \<forall>a2 \<in> A. a1 = a2)" (is "?C = ?A")
+proof
+  assume ?C thus ?A using assms by (auto simp: le_Suc_eq dest: card_eq_SucD)
+next
+  assume ?A
+  show ?C
+  proof cases
+    assume "A = {}" thus ?C using \<open>?A\<close> by simp
+  next
+    assume "A \<noteq> {}"
+    then obtain a where "A = {a}" using \<open>?A\<close> by blast
+    thus ?C by simp
+  qed
+qed
+
 lemma card_le_Suc_iff:
-  "finite A \<Longrightarrow> Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
-  by (fastforce simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
+  "Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
+apply(cases "finite A")
+ apply (fastforce simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
     dest: subset_singletonD split: nat.splits if_splits)
+by auto
 
 lemma finite_fun_UNIVD2:
   assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
