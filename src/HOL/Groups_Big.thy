@@ -1089,22 +1089,6 @@ proof (induct A)
   qed
 qed simp
 
-lemma card_Union_image:
-  assumes "finite S"
-  assumes "\<And>s. s \<in> S \<Longrightarrow> finite (f s)"
-  assumes "pairwise (\<lambda>s t. disjnt (f s) (f t)) S"
-  shows "card (\<Union>(f ` S)) = sum (\<lambda>x. card (f x)) S"
-proof -
-  have "pairwise disjnt (f ` S)"
-    using assms(3)
-    by (metis pairwiseD pairwise_imageI) 
-  then have "card (\<Union>(f ` S)) = sum card (f ` S)"
-    by (subst card_Union_disjoint) (use assms in auto)
-  also have "... = sum (\<lambda>x. card (f x)) S"
-    by (metis (mono_tags, lifting) assms(1) assms(3) sum_card_image)
-  finally show ?thesis .
-qed
-
 
 subsubsection \<open>Cardinality of products\<close>
 
