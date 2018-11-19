@@ -42,7 +42,6 @@ sig
   val language_mixfix: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
-  val get_entity_kind: T -> string option
   val defN: string
   val refN: string
   val completionN: string val completion: T
@@ -325,10 +324,6 @@ val entityN = "entity";
 fun entity kind name =
   (entityN,
     (if name = "" then [] else [(nameN, name)]) @ (if kind = "" then [] else [(kindN, kind)]));
-
-fun get_entity_kind (name, props) =
-  if name = entityN then Properties.get props kindN
-  else NONE;
 
 val defN = "def";
 val refN = "ref";
