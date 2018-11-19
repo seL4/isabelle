@@ -54,6 +54,8 @@ retained as migration auxiliary. INCOMPATIBILITY.
 * Theory "HOL-Library.Multiset": the <Union># operator now has the same
 precedence as any other prefix function symbol.
 
+* Retired lemma card_Union_image; use the simpler card_UN_disjoint instead.
+
 * Facts sum_mset.commute and prod_mset.commute renamed to sum_mset.swap
 and prod_mset.swap, similarly to sum.swap and prod.swap.
 INCOMPATIBILITY.
