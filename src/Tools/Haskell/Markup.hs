@@ -14,6 +14,8 @@ module Isabelle.Markup (
 
   nameN, name, xnameN, xname, kindN,
 
+  bindingN, binding, entityN, entity, defN, refN,
+
   completionN, completion, no_completionN, no_completion,
 
   lineN, end_lineN, offsetN, end_offsetN, fileN, idN, positionN, position,
@@ -92,6 +94,24 @@ xname a = properties [(xnameN, a)]
 
 kindN :: String
 kindN = "kind"
+
+
+{- formal entities -}
+
+bindingN :: String; binding :: T
+(bindingN, binding) = markup_elem "binding"
+
+entityN :: String; entity :: String -> String -> T
+entityN = "entity"
+entity kind name =
+  (entityN,
+    (if null name then [] else [(nameN, name)]) ++ (if null kind then [] else [(kindN, kind)]))
+
+defN :: String
+defN = "def"
+
+refN :: String
+refN = "ref"
 
 
 {- completion -}
