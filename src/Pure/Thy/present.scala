@@ -55,9 +55,10 @@ object Present
           List(HTML.div("sessions",
             List(HTML.description(
               sessions.map({ case (name, description) =>
+                val descr = Symbol.trim_blank_lines(description)
                 (List(HTML.link(name + "/index.html", HTML.text(name))),
-                  if (description == "") Nil
-                  else HTML.break ::: List(HTML.pre(HTML.text(description)))) })))))))
+                  if (descr == "") Nil
+                  else HTML.break ::: List(HTML.pre(HTML.text(descr)))) })))))))
   }
 
   def make_global_index(browser_info: Path)

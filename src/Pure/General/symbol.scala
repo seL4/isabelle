@@ -135,6 +135,12 @@ object Symbol
   def trim_blanks(text: CharSequence): String =
     Library.trim(is_blank(_), explode(text)).mkString
 
+  def all_blank(str: String): Boolean =
+    iterator(str).forall(is_blank(_))
+
+  def trim_blank_lines(text: String): String =
+    cat_lines(split_lines(text).dropWhile(all_blank).reverse.dropWhile(all_blank).reverse)
+
 
   /* decoding offsets */
 
