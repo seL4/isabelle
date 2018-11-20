@@ -1,25 +1,25 @@
 chapter FOLP
 
 session FOLP = Pure +
-  description \<open>
+  description "
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
     Modifed version of FOL that contains proof terms.
 
     Presence of unknown proof term means that matching does not behave as expected.
-\<close>
+  "
   theories
     IFOLP (global)
     FOLP (global)
 
 session "FOLP-ex" in ex = FOLP +
-  description \<open>
+  description "
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
     Examples for First-Order Logic.
-\<close>
+  "
   theories
     Intro
     Nat

@@ -1,7 +1,7 @@
 chapter FOL
 
 session FOL = Pure +
-  description \<open>
+  description "
     First-Order Logic with Natural Deduction (constructive and classical
     versions). For a classical sequent calculus, see Isabelle/LK.
 
@@ -14,16 +14,16 @@ session FOL = Pure +
     Antony Galton, Logic for Information Technology (Wiley, 1990)
 
     Michael Dummett, Elements of Intuitionism (Oxford, 1977)
-\<close>
+  "
   theories
     IFOL (global)
     FOL (global)
   document_files "root.tex"
 
 session "FOL-ex" in ex = FOL +
-  description \<open>
+  description "
     Examples for First-Order Logic.
-\<close>
+  "
   theories
     Natural_Numbers
     Intro

@@ -1,9 +1,9 @@
 chapter HOL
 
 session "HOL-Datatype_Benchmark" in Datatype_Benchmark = "HOL-Library" +
-  description \<open>
+  description "
     Big (co)datatypes.
-\<close>
+  "
   theories
     Brackin
     IsaFoR
@@ -17,8 +17,8 @@ session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = "HOL-Library" +
     Needham_Schroeder_Unguided_Attacker_Example
 
 session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
-  description \<open>
+  description "
     Big records.
-\<close>
+  "
   theories
     Record_Benchmark

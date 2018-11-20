@@ -1,7 +1,7 @@
 chapter CCL
 
 session CCL = Pure +
-  description \<open>
+  description "
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -9,13 +9,12 @@ session CCL = Pure +
 
     A computational logic for an untyped functional language with
     evaluation to weak head-normal form.
-\<close>
+  "
   sessions
     FOL
   theories
     Wfd
     Fix
-
     (* Examples for Classical Computational Logic *)
     "ex/Nat"
     "ex/List"

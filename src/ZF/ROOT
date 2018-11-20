@@ -1,7 +1,7 @@
 chapter ZF
 
 session ZF (main timing) = Pure +
-  description \<open>
+  description "
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
@@ -41,7 +41,7 @@ session ZF (main timing) = Pure +
 
     Kenneth Kunen, Set Theory: An Introduction to Independence Proofs,
     (North-Holland, 1980)
-\<close>
+  "
   sessions
     FOL
   theories
@@ -63,7 +63,7 @@ session "ZF-AC" in AC = ZF +
     http://www.cl.cam.ac.uk/Research/Reports/TR377-lcp-mechanising-set-theory.ps.gz
     "Mechanizing Set Theory", by Paulson and Grabczewski, describes both this
     development and ZF's theories of cardinals.
-\<close>
+  \<close>
   theories
     WO6_WO1
     WO1_WO7
@@ -78,7 +78,7 @@ session "ZF-AC" in AC = ZF +
   document_files "root.tex" "root.bib"
 
 session "ZF-Coind" in Coind = ZF +
-  description \<open>
+  description "
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
@@ -99,11 +99,11 @@ session "ZF-Coind" in Coind = ZF +
         Jacob Frost, A Case Study of Co_induction in Isabelle
         Report, Computer Lab, University of Cambridge (1995).
         http://www.cl.cam.ac.uk/Research/Reports/TR359-jf10008-co-induction-in-isabelle.dvi.gz
-\<close>
+  "
   theories ECR
 
 session "ZF-Constructible" in Constructible = ZF +
-  description \<open>
+  description "
     Relative Consistency of the Axiom of Choice:
     Inner Models, Absoluteness and Consistency Proofs.
 
@@ -121,7 +121,7 @@ session "ZF-Constructible" in Constructible = ZF +
 
     A paper describing this development is
     http://www.cl.cam.ac.uk/TechReports/UCAM-CL-TR-551.pdf
-\<close>
+  "
   theories
     DPow_absolute
     AC_in_L
@@ -129,7 +129,7 @@ session "ZF-Constructible" in Constructible = ZF +
   document_files "root.tex" "root.bib"
 
 session "ZF-IMP" in IMP = ZF +
-  description \<open>
+  description "
     Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 
@@ -141,19 +141,19 @@ session "ZF-IMP" in IMP = ZF +
 
     Glynn Winskel. The Formal Semantics of Programming Languages.
     MIT Press, 1993.
-\<close>
+  "
   theories Equiv
   document_files
     "root.tex"
     "root.bib"
 
 session "ZF-Induct" in Induct = ZF +
-  description \<open>
+  description "
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 
     Inductive definitions.
-\<close>
+  "
   theories
     (** Datatypes **)
     Datatypes       (*sample datatypes*)
@@ -181,7 +181,7 @@ session "ZF-Induct" in Induct = ZF +
     "root.tex"
 
 session "ZF-Resid" in Resid = ZF +
-  description \<open>
+  description "
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
@@ -196,23 +196,21 @@ session "ZF-Resid" in Resid = ZF +
     See Rasmussen's report: The Church-Rosser Theorem in Isabelle: A Proof
     Porting Experiment.
     http://www.cl.cam.ac.uk/ftp/papers/reports/TR364-or200-church-rosser-isabelle.ps.gz
-\<close>
+  "
   theories Confluence
 
 session "ZF-UNITY" (timing) in UNITY = "ZF-Induct" +
-  description \<open>
+  description "
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
     ZF/UNITY proofs.
-\<close>
+  "
   theories
     (*Simple examples: no composition*)
     Mutex
-
     (*Basic meta-theory*)
     Guar
-
     (*Prefix relation; the Allocator example*)
     Distributor Merge ClientImpl AllocImpl
 
@@ -231,7 +229,7 @@ session "ZF-ex" in ex = ZF +
     describes the theoretical foundations of datatypes while
     href="http://www.cl.cam.ac.uk/Research/Reports/TR320-lcp-isabelle-ind-defs.dvi.gz
     describes the package that automates their declaration.
-\<close>
+  \<close>
   theories
     misc
     Ring             (*abstract algebra*)
