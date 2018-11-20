@@ -12,7 +12,7 @@ import isabelle._
 import org.gjt.sp.jedit.indent.{IndentRule, IndentAction}
 import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.Buffer
+import org.gjt.sp.jedit.{jEdit, Buffer}
 
 
 object Text_Structure
@@ -43,10 +43,30 @@ object Text_Structure
   {
     private val keyword_open = Keyword.theory_goal ++ Keyword.proof_open
     private val keyword_close = Keyword.proof_close
+    // Indent diff applied to the first line of the current command, to be applied to
+    // remaining lines
+    private var current_command_diff: Option[Int] = None
 
     def apply(buffer: JEditBuffer, current_line: Int, prev_line0: Int, prev_prev_line0: Int,
       actions: java.util.List[IndentAction])
     {
+      // Get the start and end line numbers of the currently selected region
+      val text_area = jEdit.getActiveView.getTextArea
+      val selections = text_area.getSelection
+
+      val (selection_start_line, selection_end_line) =
+        if (!selections.isEmpty) {
+          (selections(0).getStartLine, selections(0).getEndLine)
+        } else {
+          val caret_line = text_area.getCaretLine
+          (caret_line, caret_line)
+        }
+
+      // Clear cached diff on first line of selection to prevent usage of a stale value
+      if (current_line == selection_start_line) {
+        current_command_diff = None
+      }
+
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
           val keywords = syntax.keywords
@@ -140,11 +160,86 @@ object Text_Structure
             if (prev_span.exists(keywords.is_quasi_command)) indent_size
             else 0
 
+          // Hook to run after computing the indent for a proof command line (like "apply (...)")
+          def proof_command_post_hook(indent: Int, curr_line_head: Text.Info[Token]) = {
+            // Compute how much this line will move by, and store it so we can use it
+            // to indent subsequent lines
+            val diff = indent - line_indent(current_line)
+            current_command_diff = Some(diff)
+          }
+
+          val current_command_span: Option[Text.Info[Command_Span.Span]] = {
+            for {
+              line_info <- line_head(current_line)
+              line_offset = line_info.range.start
+              command_span <- Token_Markup.command_span(syntax, buffer, line_offset)
+            } yield command_span
+          }
+
+          // Return true if the current line is part of a command which is only partially covered
+          // by the current selection (in which case it should not be indented)
+          def is_partially_selected_command: Boolean = {
+            val res = for {
+              command_span <- current_command_span
+              start_line = buffer.getLineOfOffset(command_span.range.start)
+              end_line = buffer.getLineOfOffset(command_span.range.stop)
+            } yield (start_line < selection_start_line || end_line > selection_end_line)
+            res getOrElse false
+          }
+
+          // Indent a line in the middle of a non-apply-style command
+          def indent_middle_non_apply_line(curr_line_head: Text.Info[Token]): Int = {
+            val tok = curr_line_head.info
+            prev_line_command match {
+              case None =>
+                val extra =
+                  (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
+                    case (true, true) | (false, false) => 0
+                    case (true, false) => - indent_extra
+                    case (false, true) => indent_extra
+                  }
+                line_indent(prev_line) + indent_brackets + extra - indent_offset(tok)
+              case Some(prev_tok) =>
+                indent_structure + indent_brackets + indent_size - indent_offset(tok) -
+                indent_offset(prev_tok) - indent_indent(prev_tok)
+            }
+          }
+
+          // Return true if this is an apply-style command for which we should use a cached diff
+          def is_apply_style_command(command: Text.Info[Command_Span.Span]): Boolean =
+            command.info.content.headOption.map(
+              (head_tok) => keywords.is_command(head_tok, Keyword.prf_script union Keyword.qed)
+            ).getOrElse(false)
+
+          // Compute the indent for a line in the middle of another command
+          def indent_middle_line(curr_line_head: Text.Info[Token]): Int = {
+            (current_command_span, current_command_diff) match {
+              case (Some(command_span), Some(command_diff))
+                if is_apply_style_command(command_span) =>
+                  (line_indent(current_line) + command_diff) max indent_size
+              case _ => indent_middle_non_apply_line(curr_line_head)
+            }
+          }
+
+          // Compute the indent for a line of inner syntax, at present we only handle string quoted
+          // syntax
+          def indent_inner_syntax(curr_line_head: Option[Text.Info[Token]]): Int = {
+            val res = for {
+              command_diff <- current_command_diff
+              Text.Info(range, Token(Token.Kind.STRING, s)) <- curr_line_head
+              num_leading_spaces = s.indexWhere(!_.isWhitespace) max 0
+            } yield (num_leading_spaces + command_diff)
+            res getOrElse line_indent(current_line)
+          }
+
           val indent =
-            if (Token_Markup.Line_Context.before(buffer, current_line).get_context != Scan.Finished)
+            if (Token_Markup.Line_Context.before(buffer, current_line).get_context != Scan.Finished) {
+              indent_inner_syntax(line_head(current_line))
+            } else if (Token_Markup.Line_Context.after(buffer, current_line).structure.blank) {
+              0
+            } else if (is_partially_selected_command) {
               line_indent(current_line)
-            else if (Token_Markup.Line_Context.after(buffer, current_line).structure.blank) 0
-            else {
+            } else {
               line_head(current_line) match {
                 case Some(info) =>
                   val tok = info.info
@@ -153,23 +248,15 @@ object Text_Structure
                       keywords.is_command(tok, Keyword.theory)) 0
                   else if (keywords.is_command(tok, Keyword.proof_enclose))
                     indent_structure + script_indent(info) - indent_offset(tok)
-                  else if (keywords.is_command(tok, Keyword.proof))
-                    (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
-                  else if (tok.is_command) indent_structure - indent_offset(tok)
-                  else {
-                    prev_line_command match {
-                      case None =>
-                        val extra =
-                          (keywords.is_quasi_command(tok), head_is_quasi_command(prev_line)) match {
-                            case (true, true) | (false, false) => 0
-                            case (true, false) => - indent_extra
-                            case (false, true) => indent_extra
-                          }
-                        line_indent(prev_line) + indent_brackets + extra - indent_offset(tok)
-                      case Some(prev_tok) =>
-                        indent_structure + indent_brackets + indent_size - indent_offset(tok) -
-                        indent_offset(prev_tok) - indent_indent(prev_tok)
-                    }
+                  else if (keywords.is_command(tok, Keyword.proof)) {
+                    val indent =
+                      (indent_structure + script_indent(info) - indent_offset(tok)) max indent_size
+                    proof_command_post_hook(indent, info)
+                    indent
+                  } else if (tok.is_command) {
+                    indent_structure - indent_offset(tok)
+                  } else {
+                    indent_middle_line(info)
                   }
                 case None =>
                   prev_line_command match {
