@@ -41,7 +41,11 @@ export function activate(context: ExtensionContext)
         { command: isabelle_tool,
           args: ["vscode_server"].concat(standard_args, isabelle_args) };
     const language_client_options: LanguageClientOptions = {
-      documentSelector: ["isabelle", "isabelle-ml", "bibtex"]
+      documentSelector: [
+        { language: "isabelle", scheme: "file" },
+        { language: "isabelle-ml", scheme: "file" },
+        { language: "bibtex", scheme: "file" }
+      ]
     };
 
     const language_client =
