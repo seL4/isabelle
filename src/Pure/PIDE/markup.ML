@@ -96,7 +96,6 @@ sig
   val delimiterN: string val delimiter: T
   val inner_stringN: string val inner_string: T
   val inner_cartoucheN: string val inner_cartouche: T
-  val inner_commentN: string val inner_comment: T
   val token_rangeN: string val token_range: T
   val sortingN: string val sorting: T
   val typingN: string val typing: T
@@ -145,6 +144,9 @@ sig
   val quasi_keywordN: string val quasi_keyword: T
   val improperN: string val improper: T
   val operatorN: string val operator: T
+  val comment1N: string val comment1: T
+  val comment2N: string val comment2: T
+  val comment3N: string val comment3: T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -440,7 +442,6 @@ val (literalN, literal) = markup_elem "literal";
 val (delimiterN, delimiter) = markup_elem "delimiter";
 val (inner_stringN, inner_string) = markup_elem "inner_string";
 val (inner_cartoucheN, inner_cartouche) = markup_elem "inner_cartouche";
-val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
 val (token_rangeN, token_range) = markup_elem "token_range";
 
@@ -522,6 +523,13 @@ val (alt_stringN, alt_string) = markup_elem "alt_string";
 val (verbatimN, verbatim) = markup_elem "verbatim";
 val (cartoucheN, cartouche) = markup_elem "cartouche";
 val (commentN, comment) = markup_elem "comment";
+
+
+(* comments *)
+
+val (comment1N, comment1) = markup_elem "comment1";
+val (comment2N, comment2) = markup_elem "comment2";
+val (comment3N, comment3) = markup_elem "comment3";
 
 
 (* timing *)

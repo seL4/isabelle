@@ -210,7 +210,7 @@ val token_kind_markup =
   | Str => Markup.inner_string
   | String => Markup.inner_string
   | Cartouche => Markup.inner_cartouche
-  | Comment _ => Markup.inner_comment
+  | Comment _ => Markup.comment1
   | _ => Markup.empty;
 
 fun report_of_token tok =

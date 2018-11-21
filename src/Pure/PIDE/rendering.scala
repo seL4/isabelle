@@ -40,7 +40,7 @@ object Rendering
     // text
     val main, keyword1, keyword2, keyword3, quasi_keyword, improper, operator,
       tfree, tvar, free, skolem, bound, `var`, inner_numeral, inner_quoted,
-      inner_cartouche, inner_comment, dynamic, class_parameter, antiquote = Value
+      inner_cartouche, comment1, comment2, comment3, dynamic, class_parameter, antiquote = Value
     val text_colors =
       values -- background_colors -- foreground_colors -- message_underline_colors --
       message_background_colors
@@ -125,7 +125,6 @@ object Rendering
     Markup.VAR -> Color.`var`,
     Markup.INNER_STRING -> Color.inner_quoted,
     Markup.INNER_CARTOUCHE -> Color.inner_cartouche,
-    Markup.INNER_COMMENT -> Color.inner_comment,
     Markup.DYNAMIC_FACT -> Color.dynamic,
     Markup.CLASS_PARAMETER -> Color.class_parameter,
     Markup.ANTIQUOTE -> Color.antiquote,
@@ -136,7 +135,10 @@ object Rendering
     Markup.ML_NUMERAL -> Color.inner_numeral,
     Markup.ML_CHAR -> Color.inner_quoted,
     Markup.ML_STRING -> Color.inner_quoted,
-    Markup.ML_COMMENT -> Color.inner_comment)
+    Markup.ML_COMMENT -> Color.comment1,
+    Markup.COMMENT1 -> Color.comment1,
+    Markup.COMMENT2 -> Color.comment2,
+    Markup.COMMENT3 -> Color.comment3)
 
   val foreground =
     Map(

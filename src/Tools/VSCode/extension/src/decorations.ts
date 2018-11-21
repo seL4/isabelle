@@ -53,6 +53,9 @@ const text_colors = [
   "inner_quoted",
   "inner_cartouche",
   "inner_comment",
+  "comment1",
+  "comment2",
+  "comment3",
   "dynamic",
   "class_parameter",
   "antiquote"

@@ -33,7 +33,7 @@ module Isabelle.Markup (
 
   tfreeN, tfree, tvarN, tvar, freeN, free, skolemN, skolem, boundN, bound, varN, var,
   numeralN, numeral, literalN, literal, delimiterN, delimiter, inner_stringN, inner_string,
-  inner_cartoucheN, inner_cartouche, inner_commentN, inner_comment,
+  inner_cartoucheN, inner_cartouche,
   token_rangeN, token_range,
   sortingN, sorting, typingN, typing, class_parameterN, class_parameter,
 
@@ -43,7 +43,8 @@ module Isabelle.Markup (
 
   keyword1N, keyword1, keyword2N, keyword2, keyword3N, keyword3, quasi_keywordN, quasi_keyword,
   improperN, improper, operatorN, operator, stringN, string, alt_stringN, alt_string,
-  verbatimN, verbatim, cartoucheN, cartouche, commentN, comment,
+  verbatimN, verbatim, cartoucheN, cartouche, commentN, comment, comment1N, comment1,
+  comment2N, comment2, comment3N, comment3,
 
   writelnN, writeln, stateN, state, informationN, information, tracingN, tracing,
   warningN, warning, legacyN, legacy, errorN, error, reportN, report, no_reportN, no_report,
@@ -246,9 +247,6 @@ inner_stringN :: String; inner_string :: T
 inner_cartoucheN :: String; inner_cartouche :: T
 (inner_cartoucheN, inner_cartouche) = markup_elem "inner_cartouche"
 
-inner_commentN :: String; inner_comment :: T
-(inner_commentN, inner_comment) = markup_elem "inner_comment"
-
 
 token_rangeN :: String; token_range :: T
 (token_rangeN, token_range) = markup_elem "token_range"
@@ -316,6 +314,18 @@ cartoucheN :: String; cartouche :: T
 
 commentN :: String; comment :: T
 (commentN, comment) = markup_elem "comment"
+
+
+{- comments -}
+
+comment1N :: String; comment1 :: T
+(comment1N, comment1) = markup_elem "comment1"
+
+comment2N :: String; comment2 :: T
+(comment2N, comment2) = markup_elem "comment2"
+
+comment3N :: String; comment3 :: T
+(comment3N, comment3) = markup_elem "comment3"
 
 
 {- messages -}

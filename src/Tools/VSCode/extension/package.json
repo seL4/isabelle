@@ -498,6 +498,30 @@
                     "type": "string",
                     "default": "rgba(96, 139, 78, 1.00)"
                 },
+                "isabelle.comment1_light_color": {
+                    "type": "string",
+                    "default": "rgba(129, 31, 63, 1.00)"
+                },
+                "isabelle.comment1_dark_color": {
+                    "type": "string",
+                    "default": "rgba(100, 102, 149, 1.00)"
+                },
+                "isabelle.comment2_light_color": {
+                    "type": "string",
+                    "default": "rgba(209, 105, 105, 1.00)"
+                },
+                "isabelle.comment2_dark_color": {
+                    "type": "string",
+                    "default": "rgba(206, 155, 120, 1.00)"
+                },
+                "isabelle.comment3_light_color": {
+                    "type": "string",
+                    "default": "rgba(0, 128, 0, 1.00)"
+                },
+                "isabelle.comment3_dark_color": {
+                    "type": "string",
+                    "default": "rgba(96, 139, 78, 1.00)"
+                },
                 "isabelle.dynamic_light_color": {
                     "type": "string",
                     "default": "rgba(121, 94, 38, 1.00)"
