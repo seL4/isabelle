@@ -145,6 +145,7 @@ declare -a SOURCES=(
   Tools/debugger.scala
   Tools/doc.scala
   Tools/dump.scala
+  Tools/fontforge.scala
   Tools/imports.scala
   Tools/main.scala
   Tools/mkroot.scala

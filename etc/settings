@@ -162,6 +162,7 @@ ISABELLE_GHC_VERSION="ghc-8.4.3"
 ###
 
 ISABELLE_GNUPLOT="gnuplot"
+ISABELLE_FONTFORGE="fontforge"
 
 #ISABELLE_MLTON="/usr/bin/mlton"
 #ISABELLE_SMLNJ="/usr/bin/sml"
