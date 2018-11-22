@@ -23,22 +23,22 @@ object Fontforge
 
   def string(s: String): Script =
   {
-    val quote = if (s.contains('"')) '\'' else '"'
-
     def err(c: Char): Nothing =
-      error("Bad character in fontforge string: \\u" +
-        String.format(Locale.ROOT, "%04x", new Integer(c)))
+      error("Bad character \\u" + String.format(Locale.ROOT, "%04x", new Integer(c)) +
+        " in fontforge string " + quote(s))
+
+    val q = if (s.contains('"')) '\'' else '"'
 
     def escape(c: Char): String =
     {
-      if (c == '\u0000' || c == '\r' || c == quote) err(c)
+      if (c == '\u0000' || c == '\r' || c == q) err(c)
       else if (c == '\n') "\\n"
       else if (c == '\\') "\\\\"
       else c.toString
     }
 
     if (s.nonEmpty && s(0) == '\\') err('\\')
-    s.iterator.map(escape(_)).mkString(quote.toString, "", quote.toString)
+    s.iterator.map(escape(_)).mkString(q.toString, "", q.toString)
   }
 
 
