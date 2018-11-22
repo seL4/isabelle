@@ -36,7 +36,7 @@ object SQL
     }
 
   def string(s: String): Source =
-    "'" + s.map(escape_char(_)).mkString + "'"
+    s.iterator.map(escape_char(_)).mkString("'", "", "'")
 
   def ident(s: String): Source =
     Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
