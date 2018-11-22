@@ -147,6 +147,7 @@ declare -a SOURCES=(
   Tools/dump.scala
   Tools/fontforge.scala
   Tools/imports.scala
+  Tools/isabelle_fonts.scala
   Tools/main.scala
   Tools/mkroot.scala
   Tools/print_operation.scala
