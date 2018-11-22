@@ -113,20 +113,13 @@ lift_definition cimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cset \<Rightar
   by (rule countable_image)
 lift_definition cBall :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer .
 lift_definition cBex :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer .
-lift_definition cUNION :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset"
-  is "UNION" parametric UNION_transfer by simp
-definition cUnion :: "'a cset cset \<Rightarrow> 'a cset" where "cUnion A = cUNION A id"
+lift_definition cUnion :: "'a cset cset \<Rightarrow> 'a cset" is Union parametric Union_transfer
+  using countable_UN [of _ id] by auto
+abbreviation (input) cUNION :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset"
+  where "cUNION A f \<equiv> cUnion (cimage f A)"
 
 lemma Union_conv_UNION: "\<Union>A = \<Union>(id ` A)"
-by auto
-
-lemma cUnion_transfer [transfer_rule]:
-  "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) Union cUnion"
-proof -
-  have "rel_fun (pcr_cset (pcr_cset A)) (pcr_cset A) (\<lambda>A. \<Union>(id ` A)) (\<lambda>A. cUNION A id)"
-    by transfer_prover
-  then show ?thesis by (simp flip: cUnion_def)
-qed
+  by simp
 
 lemmas cset_eqI = set_eqI[Transfer.transferred]
 lemmas cset_eq_iff[no_atp] = set_eq_iff[Transfer.transferred]
@@ -423,7 +416,7 @@ by (transfer, simp)+
 subsubsection \<open>@{const cUnion}\<close>
 
 lemma cUNION_cimage: "cUNION (cimage f A) g = cUNION A (g \<circ> f)"
-including cset.lifting by transfer auto
+  by transfer simp
 
 
 subsection \<open>Setup for Lifting/Transfer\<close>
