@@ -139,12 +139,12 @@ declare -a SOURCES=(
   Thy/thy_element.scala
   Thy/thy_header.scala
   Thy/thy_syntax.scala
-  Tools/dump.scala
   Tools/build.scala
   Tools/build_docker.scala
   Tools/check_keywords.scala
   Tools/debugger.scala
   Tools/doc.scala
+  Tools/dump.scala
   Tools/imports.scala
   Tools/main.scala
   Tools/mkroot.scala
