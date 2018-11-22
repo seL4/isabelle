@@ -187,13 +187,13 @@ proof (induct n)
   case 0 show ?case using f by (simp add: positive_def)
 next
   case (Suc n)
-  have 2: "A n \<inter> UNION {0..<n} A = {}" using disj
+  have 2: "A n \<inter> \<Union> (A ` {0..<n}) = {}" using disj
     by (force simp add: disjoint_family_on_def neq_iff)
   have 3: "A n \<in> lambda_system \<Omega> M f" using A
     by blast
   interpret l: algebra \<Omega> "lambda_system \<Omega> M f"
     using f by (rule lambda_system_algebra)
-  have 4: "UNION {0..<n} A \<in> lambda_system \<Omega> M f"
+  have 4: "\<Union> (A ` {0..<n}) \<in> lambda_system \<Omega> M f"
     using A l.UNION_in_sets by simp
   from Suc.hyps show ?case
     by (simp add: atLeastLessThanSuc lambda_system_strong_additive [OF a 2 3 4])
@@ -250,7 +250,7 @@ proof%unimportant -
       fix n
       have UNION_in: "(\<Union>i\<in>{0..<n}. A i) \<in> M"
         by (metis A'' UNION_in_sets)
-      have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
+      have le_fa: "f (\<Union> (A ` {0..<n}) \<inter> a) \<le> f a" using A''
         by (blast intro: increasingD [OF inc] A'' UNION_in_sets)
       have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system \<Omega> M f"
         using ls.UNION_in_sets by (simp add: A)

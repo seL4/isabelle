@@ -92,7 +92,7 @@ definition
   merge_allowed_acts :: "('a,'b) merge_d program set"
   where "merge_allowed_acts =
        {F. AllowedActs F =
-            insert Id (UNION (preserves (funPair merge.Out merge.iOut)) Acts)}"
+            insert Id (\<Union> (Acts ` preserves (funPair merge.Out iOut)))}"
 
 definition
   merge_spec :: "('a,'b) merge_d program set"

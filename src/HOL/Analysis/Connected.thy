@@ -4762,7 +4762,7 @@ proof -
   moreover have "\<Union>\<D> \<subseteq> \<Union>\<F>"
     using \<D>_def by blast
   ultimately have eq1: "\<Union>\<F> = \<Union>\<D>" ..
-  have eq2: "\<Union>\<D> = UNION \<D> G"
+  have eq2: "\<Union>\<D> = \<Union> (G ` \<D>)"
     using G eq1 by auto
   show ?thesis
     apply (rule_tac \<F>' = "G ` \<D>" in that)
@@ -4781,7 +4781,7 @@ proof -
     by metis
   have [simp]: "\<And>\<F>'. \<F>' \<subseteq> \<F> \<Longrightarrow> \<Union>\<F>' = U \<inter> \<Union>(tf ` \<F>')"
     using tf by fastforce
-  obtain \<G> where "countable \<G> \<and> \<G> \<subseteq> tf ` \<F>" "\<Union>\<G> = UNION \<F> tf"
+  obtain \<G> where "countable \<G> \<and> \<G> \<subseteq> tf ` \<F>" "\<Union>\<G> = \<Union>(tf ` \<F>)"
     using tf by (force intro: Lindelof [of "tf ` \<F>"])
   then obtain \<F>' where \<F>': "\<F>' \<subseteq> \<F>" "countable \<F>'" "\<Union>\<F>' = \<Union>\<F>"
     by (clarsimp simp add: countable_subset_image)

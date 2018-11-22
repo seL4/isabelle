@@ -4991,11 +4991,11 @@ proof -
                   and ope\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> openin (subtopology euclidean S) (\<phi> C)"
                   and hom\<phi>: "\<And>C. C \<in> components S \<Longrightarrow> homotopic_with (\<lambda>x. True) (\<phi> C) T f g"
       by metis
-    have Seq: "S = UNION (components S) \<phi>"
+    have Seq: "S = \<Union> (\<phi> ` components S)"
     proof
-      show "S \<subseteq> UNION (components S) \<phi>"
+      show "S \<subseteq> \<Union> (\<phi> ` components S)"
         by (metis Sup_mono Union_components \<phi> imageI)
-      show "UNION (components S) \<phi> \<subseteq> S"
+      show "\<Union> (\<phi> ` components S) \<subseteq> S"
         using ope\<phi> openin_imp_subset by fastforce
     qed
     show ?lhs

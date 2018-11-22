@@ -99,7 +99,7 @@ definition
   client_allowed_acts :: "'a clientState_d program set"
   where "client_allowed_acts =
        {F. AllowedActs F =
-            insert Id (UNION (preserves (funPair rel ask)) Acts)}"
+            insert Id (\<Union> (Acts ` preserves (funPair rel ask)))}"
 
 definition
   client_spec :: "'a clientState_d program set"
@@ -208,11 +208,9 @@ definition
   \<comment> \<open>environmental constraints\<close>
   network_allowed_acts :: "'a systemState program set"
   where "network_allowed_acts =
-       {F. AllowedActs F =
-           insert Id
-            (UNION (preserves allocRel Int
-                    (INT i: lessThan Nclients. preserves(giv o sub i o client)))
-                  Acts)}"
+       {F. AllowedActs F = insert Id
+         (\<Union> (Acts ` (preserves allocRel \<inter> (\<Inter>i<Nclients.
+           preserves (giv \<circ> sub i \<circ> client)))))}"
 
 definition
   network_spec :: "'a systemState program set"

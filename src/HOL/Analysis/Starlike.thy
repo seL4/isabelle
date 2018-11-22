@@ -5128,7 +5128,7 @@ next
               by auto
           next
             assume "N - X \<subseteq> N - J"
-            with J have "N - X \<union> UNION \<H> ((-) N) \<subseteq> N - J"
+            with J have "N - X \<union> \<Union> ((-) N ` \<H>) \<subseteq> N - J"
               by auto
             with \<open>J \<in> \<H>\<close> show ?thesis
               by blast
@@ -7920,7 +7920,7 @@ next
       finally show "closure (\<Union>x\<in>- S. \<Union>y\<in>ball 0 (1 / (2 + real n)). {x + y})
                     \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})" .
     qed
-    have "S \<subseteq> UNION UNIV ?C"
+    have "S \<subseteq> \<Union> (range ?C)"
     proof
       fix x
       assume x: "x \<in> S"
@@ -7947,10 +7947,10 @@ next
         with that show ?thesis
           by auto
       qed
-      with N2 show "x \<in> UNION UNIV ?C"
+      with N2 show "x \<in> \<Union> (range ?C)"
         by (rule_tac a = "N1+N2" in UN_I) (auto simp: dist_norm norm_minus_commute)
     qed
-    then show "UNION UNIV ?C = S" by auto
+    then show "\<Union> (range ?C) = S" by auto
   qed
   ultimately show ?thesis
     using that by metis

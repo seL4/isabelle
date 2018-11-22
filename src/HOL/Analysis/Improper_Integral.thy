@@ -398,11 +398,11 @@ proof%unimportant -
   qed
   also have "... \<le> ?rhs"
   proof (rule subadditive_content_division)
-    show "extend ` \<D> division_of UNION \<D> extend"
+    show "extend ` \<D> division_of \<Union> (extend ` \<D>)"
       using int_extend_disjoint apply (auto simp: division_of_def \<open>finite \<D>\<close> extend)
       using extend_def apply blast
       done
-    show "UNION \<D> extend \<subseteq> cbox a b"
+    show "\<Union> (extend ` \<D>) \<subseteq> cbox a b"
       using extend by fastforce
   qed
   finally show ?thesis .

@@ -1937,25 +1937,25 @@ lemma
   shows measurable_countable_negligible_Union: "(\<Union>n. S n) \<in> lmeasurable"
   and   measure_countable_negligible_Union:    "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. S n)" (is ?Sums)
 proof -
-  have 1: "UNION {..n} S \<in> lmeasurable" for n
+  have 1: "\<Union> (S ` {..n}) \<in> lmeasurable" for n
     using S by blast
-  have 2: "measure lebesgue (UNION {..n} S) \<le> B" for n
+  have 2: "measure lebesgue (\<Union> (S ` {..n})) \<le> B" for n
   proof -
-    have "measure lebesgue (UNION {..n} S) \<le> (\<Sum>k\<le>n. measure lebesgue (S k))"
+    have "measure lebesgue (\<Union> (S ` {..n})) \<le> (\<Sum>k\<le>n. measure lebesgue (S k))"
       by (simp add: S fmeasurableD measure_UNION_le)
     with leB show ?thesis
       using order_trans by blast
   qed
-  have 3: "\<And>n. UNION {..n} S \<subseteq> UNION {..Suc n} S"
+  have 3: "\<And>n. \<Union> (S ` {..n}) \<subseteq> \<Union> (S ` {..Suc n})"
     by (simp add: SUP_subset_mono)
-  have eqS: "(\<Union>n. S n) = (\<Union>n. UNION {..n} S)"
+  have eqS: "(\<Union>n. S n) = (\<Union>n. \<Union> (S ` {..n}))"
     using atLeastAtMost_iff by blast
-  also have "(\<Union>n. UNION {..n} S) \<in> lmeasurable"
+  also have "(\<Union>n. \<Union> (S ` {..n})) \<in> lmeasurable"
     by (intro measurable_nested_Union [OF 1 2] 3)
   finally show "(\<Union>n. S n) \<in> lmeasurable" .
-  have eqm: "(\<Sum>i\<le>n. measure lebesgue (S i)) = measure lebesgue (UNION {..n} S)" for n
+  have eqm: "(\<Sum>i\<le>n. measure lebesgue (S i)) = measure lebesgue (\<Union> (S ` {..n}))" for n
     using assms by (simp add: measure_negligible_finite_Union_image pairwise_mono)
-  have "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. UNION {..n} S)"
+  have "(\<lambda>n. (measure lebesgue (S n))) sums measure lebesgue (\<Union>n. \<Union> (S ` {..n}))"
     by (simp add: sums_def' eqm atLeast0AtMost) (intro measure_nested_Union [OF 1 2] 3)
   then show ?Sums
     by (simp add: eqS)
@@ -1981,7 +1981,7 @@ proof -
     using bo bounded_subset_cbox_symmetric by metis
   then have B: "(\<Sum>k\<le>n. measure lebesgue (S k)) \<le> measure lebesgue (cbox a b)" for n
   proof -
-    have "(\<Sum>k\<le>n. measure lebesgue (S k)) = measure lebesgue (UNION {..n} S)"
+    have "(\<Sum>k\<le>n. measure lebesgue (S k)) = measure lebesgue (\<Union> (S ` {..n}))"
       using measure_negligible_finite_Union_image [OF _ _ pairwise_subset] djointish
       by (metis S finite_atMost subset_UNIV)
     also have "\<dots> \<le> measure lebesgue (cbox a b)"
@@ -2024,7 +2024,7 @@ next
     have eq: "(\<Union>n. \<Union>k\<le>n. from_nat_into \<D> k) = (\<Union>\<D>)"
       using \<open>countable \<D>\<close> False
       by (auto intro: from_nat_into dest: from_nat_into_surj [OF \<open>countable \<D>\<close>])
-    show "measure lebesgue (\<Union>\<D>) - e < measure lebesgue (UNION {..N} (from_nat_into \<D>))"
+    show "measure lebesgue (\<Union>\<D>) - e < measure lebesgue (\<Union> (from_nat_into \<D> ` {..N}))"
       using N [OF order_refl]
       by (auto simp: eq algebra_simps dist_norm)
   qed auto
@@ -2779,9 +2779,9 @@ next
         by (simp add: False \<D>(1) from_nat_into infinite_imp_nonempty negl_int)
       have TB: "(\<Sum>k\<le>n. ?\<mu> (?T k)) \<le> ?\<mu> S + e" for n
       proof -
-        have "(\<Sum>k\<le>n. ?\<mu> (?T k)) = ?\<mu> (UNION {..n} ?T)"
+        have "(\<Sum>k\<le>n. ?\<mu> (?T k)) = ?\<mu> (\<Union> (?T ` {..n}))"
           by (simp add: pairwise_def TM TN measure_negligible_finite_Union_image)
-        also have "?\<mu> (UNION {..n} ?T) \<le> ?\<mu> S + e"
+        also have "?\<mu> (\<Union> (?T ` {..n})) \<le> ?\<mu> S + e"
           using fincase [of "?T ` {..n}"] T by (auto simp: bij_betw_def)
         finally show ?thesis .
       qed

@@ -7,6 +7,12 @@ imports Complex_Main Dense_Linear_Order DP_Library
   "HOL-Library.Code_Target_Numeral" "HOL-Library.Old_Recdef"
 begin
 
+section \<open>Prelude\<close>
+
+abbreviation (input) UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"
+  where "UNION A f \<equiv> \<Union> (f ` A)" \<comment> \<open>legacy\<close>
+
+
 section \<open>Quantifier elimination for \<open>\<real> (0, 1, +, floor, <)\<close>\<close>
 
 declare of_int_floor_cancel [simp del]

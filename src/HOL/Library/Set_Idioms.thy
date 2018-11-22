@@ -375,9 +375,9 @@ proof -
       using R unfolding relative_to_def union_of_def by auto
     then obtain f where f: "\<And>T. T \<in> \<U> \<Longrightarrow> P (f T)" "\<And>T. T \<in> \<U> \<Longrightarrow> U \<inter> (f T) = T"
       by metis
-    then have "\<exists>\<U>'\<subseteq>Collect P. \<Union>\<U>' = UNION \<U> f"
+    then have "\<exists>\<U>'\<subseteq>Collect P. \<Union>\<U>' = \<Union> (f ` \<U>)"
       by (metis image_subset_iff mem_Collect_eq)
-    moreover have eq: "U \<inter> UNION \<U> f = \<Union>\<U>"
+    moreover have eq: "U \<inter> \<Union> (f ` \<U>) = \<Union>\<U>"
       using f by auto
     ultimately show ?thesis
       unfolding relative_to_def union_of_def arbitrary_def \<open>S = \<Union>\<U>\<close>
@@ -404,14 +404,14 @@ proof -
       using R unfolding relative_to_def union_of_def by auto
     then obtain f where f: "\<And>T. T \<in> \<U> \<Longrightarrow> P (f T)" "\<And>T. T \<in> \<U> \<Longrightarrow> U \<inter> (f T) = T"
       by metis
-    then have "\<exists>\<U>'\<subseteq>Collect P. \<Union>\<U>' = UNION \<U> f"
+    then have "\<exists>\<U>'\<subseteq>Collect P. \<Union>\<U>' = \<Union> (f ` \<U>)"
       by (metis image_subset_iff mem_Collect_eq)
-    moreover have eq: "U \<inter> UNION \<U> f = \<Union>\<U>"
+    moreover have eq: "U \<inter> \<Union> (f ` \<U>) = \<Union>\<U>"
       using f by auto
     ultimately show ?thesis
       using \<open>finite \<U>\<close> f
       unfolding relative_to_def union_of_def \<open>S = \<Union>\<U>\<close>
-      by (rule_tac x="UNION \<U> f" in exI) (metis finite_imageI image_subsetI mem_Collect_eq)
+      by (rule_tac x="\<Union> (f ` \<U>)" in exI) (metis finite_imageI image_subsetI mem_Collect_eq)
   qed
   ultimately show ?thesis
     by blast
@@ -434,14 +434,14 @@ proof -
       using R unfolding relative_to_def union_of_def by auto
     then obtain f where f: "\<And>T. T \<in> \<U> \<Longrightarrow> P (f T)" "\<And>T. T \<in> \<U> \<Longrightarrow> U \<inter> (f T) = T"
       by metis
-    then have "\<exists>\<U>'\<subseteq>Collect P. \<Union>\<U>' = UNION \<U> f"
+    then have "\<exists>\<U>'\<subseteq>Collect P. \<Union>\<U>' = \<Union> (f ` \<U>)"
       by (metis image_subset_iff mem_Collect_eq)
-    moreover have eq: "U \<inter> UNION \<U> f = \<Union>\<U>"
+    moreover have eq: "U \<inter> \<Union> (f ` \<U>) = \<Union>\<U>"
       using f by auto
     ultimately show ?thesis
       using \<open>countable \<U>\<close> f
       unfolding relative_to_def union_of_def \<open>S = \<Union>\<U>\<close>
-      by (rule_tac x="UNION \<U> f" in exI) (metis countable_image image_subsetI mem_Collect_eq)
+      by (rule_tac x="\<Union> (f ` \<U>)" in exI) (metis countable_image image_subsetI mem_Collect_eq)
   qed
   ultimately show ?thesis
     by blast

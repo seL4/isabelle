@@ -2792,7 +2792,7 @@ next
     show "U ` \<F> \<subseteq> \<U>"
       using \<open>\<F> \<subseteq> \<V>\<close> U by auto
   next
-    show "f ` S \<subseteq> UNION \<F> U"
+    show "f ` S \<subseteq> \<Union> (U ` \<F>)"
       using \<F>(2-3) U UnionE subset_eq U by fastforce
   qed
 qed

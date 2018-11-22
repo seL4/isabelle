@@ -3378,8 +3378,8 @@ lemma sum_pair_less_iff:
   (is "?l = ?r")
 proof -
   let ?KM = "{(k,m). k + m \<le> n}"
-  let ?f = "\<lambda>s. UNION {(0::nat)..s} (\<lambda>i. {(i,s - i)})"
-  have th0: "?KM = UNION {0..n} ?f"
+  let ?f = "\<lambda>s. \<Union>i\<in>{0..s}. {(i, s - i)}"
+  have th0: "?KM = \<Union> (?f ` {0..n})"
     by auto
   show "?l = ?r "
     unfolding th0

@@ -448,11 +448,11 @@ proof -
           by (intro exI[of _ "{i \<union> j| i j.  i \<in> x \<and> j \<in> y}"]) (auto dest: x(2) y(2))
       next
         case (UN K)
-        then have "\<forall>k\<in>K. \<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = k" by auto
+        then have "\<forall>k\<in>K. \<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. \<Union> (Inter ` B') = k" by auto
         then obtain k where
             "\<forall>ka\<in>K. k ka \<subseteq> {b. finite b \<and> b \<subseteq> B} \<and> \<Union>(Inter ` (k ka)) = ka"
           unfolding bchoice_iff ..
-        then show "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = \<Union>K"
+        then show "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. \<Union> (Inter ` B') = \<Union>K"
           by (intro exI[of _ "\<Union>(k ` K)"]) auto
       next
         case (Basis S)

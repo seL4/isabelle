@@ -652,12 +652,12 @@ proof%unimportant safe
   proof (intro exI conjI)
     show "range ?DD \<subseteq> Collect compact"
       using D by clarsimp (metis mem_Collect_eq rangeI split_conv subsetCE surj_pair)
-    show "S = UNION UNIV ?DD"
+    show "S = \<Union> (range ?DD)"
     proof
-      show "S \<subseteq> UNION UNIV ?DD"
+      show "S \<subseteq> \<Union> (range ?DD)"
         using D F
         by clarsimp (metis UN_iff old.prod.case prod_decode_inverse prod_encode_eq)
-      show "UNION UNIV ?DD \<subseteq> S"
+      show "\<Union> (range ?DD) \<subseteq> S"
         using D F  by fastforce
     qed
   qed
@@ -2713,11 +2713,11 @@ proof%unimportant -
     qed
     show "\<exists>T. f ` S \<subseteq> T \<and> T \<in> lmeasurable \<and> ?\<mu> T \<le> e"
     proof (intro exI conjI)
-      show "f ` S \<subseteq> UNION \<D> g"
+      show "f ` S \<subseteq> \<Union> (g ` \<D>)"
         using covers sub_g by force
-      show "UNION \<D> g \<in> lmeasurable"
+      show "\<Union> (g ` \<D>) \<in> lmeasurable"
         by (rule fmeasurable_UN_bound [OF \<open>countable \<D>\<close> meas_g le_e])
-      show "?\<mu> (UNION \<D> g) \<le> e"
+      show "?\<mu> (\<Union> (g ` \<D>)) \<le> e"
         by (rule measure_UN_bound [OF \<open>countable \<D>\<close> meas_g le_e])
     qed
   qed
@@ -3594,7 +3594,7 @@ proof -
           show "norm (integral (?U k) (norm \<circ> ?D)) \<le> integral (\<Union>n. F n) (norm \<circ> ?D)"
             unfolding integral_restrict_UNIV [of _ "norm \<circ> ?D", symmetric]
           proof (rule integral_norm_bound_integral)
-            show "(\<lambda>x. if x \<in> UNION {..k} F then (norm \<circ> ?D) x else 0) integrable_on UNIV"
+            show "(\<lambda>x. if x \<in> \<Union> (F ` {..k}) then (norm \<circ> ?D) x else 0) integrable_on UNIV"
               "(\<lambda>x. if x \<in> (\<Union>n. F n) then (norm \<circ> ?D) x else 0) integrable_on UNIV"
               using DU(1) DS
               unfolding absolutely_integrable_on_def o_def integrable_restrict_UNIV by auto

@@ -440,7 +440,7 @@ by transfer(auto simp add: rel_set_def)
 
 lemma rel_cset_cUNION:
   "\<lbrakk> rel_cset Q A B; rel_fun Q (rel_cset R) f g \<rbrakk>
-  \<Longrightarrow> rel_cset R (cUNION A f) (cUNION B g)"
+  \<Longrightarrow> rel_cset R (cUnion (cimage f A)) (cUnion (cimage g B))"
 unfolding rel_fun_def by transfer(erule rel_set_UNION, simp add: rel_fun_def)
 
 lemma rel_cset_csingle_iff [simp]: "rel_cset R (csingle x) (csingle y) \<longleftrightarrow> R x y"

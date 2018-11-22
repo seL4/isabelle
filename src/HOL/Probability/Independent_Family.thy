@@ -611,15 +611,15 @@ lemma (in prob_space) indep_vars_cong:
   unfolding indep_vars_def2 by (intro conj_cong indep_sets_cong) auto
 
 definition (in prob_space) tail_events where
-  "tail_events A = (\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
+  "tail_events A = (\<Inter>n. sigma_sets (space M) (\<Union> (A ` {n..})))"
 
 lemma (in prob_space) tail_events_sets:
   assumes A: "\<And>i::nat. A i \<subseteq> events"
   shows "tail_events A \<subseteq> events"
 proof
   fix X assume X: "X \<in> tail_events A"
-  let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
-  from X have "\<And>n::nat. X \<in> sigma_sets (space M) (UNION {n..} A)" by (auto simp: tail_events_def)
+  let ?A = "(\<Inter>n. sigma_sets (space M) (\<Union> (A ` {n..})))"
+  from X have "\<And>n::nat. X \<in> sigma_sets (space M) (\<Union> (A ` {n..}))" by (auto simp: tail_events_def)
   from this[of 0] have "X \<in> sigma_sets (space M) (\<Union>(A ` UNIV))" by simp
   then show "X \<in> events"
     by induct (insert A, auto)
@@ -630,16 +630,16 @@ lemma (in prob_space) sigma_algebra_tail_events:
   shows "sigma_algebra (space M) (tail_events A)"
   unfolding tail_events_def
 proof (simp add: sigma_algebra_iff2, safe)
-  let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
+  let ?A = "(\<Inter>n. sigma_sets (space M) (\<Union> (A ` {n..})))"
   interpret A: sigma_algebra "space M" "A i" for i by fact
   { fix X x assume "X \<in> ?A" "x \<in> X"
-    then have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by auto
+    then have "\<And>n. X \<in> sigma_sets (space M) (\<Union> (A ` {n..}))" by auto
     from this[of 0] have "X \<in> sigma_sets (space M) (\<Union>(A ` UNIV))" by simp
     then have "X \<subseteq> space M"
       by induct (insert A.sets_into_space, auto)
     with \<open>x \<in> X\<close> show "x \<in> space M" by auto }
   { fix F :: "nat \<Rightarrow> 'a set" and n assume "range F \<subseteq> ?A"
-    then show "(\<Union>(F ` UNIV)) \<in> sigma_sets (space M) (UNION {n..} A)"
+    then show "(\<Union>(F ` UNIV)) \<in> sigma_sets (space M) (\<Union> (A ` {n..}))"
       by (intro sigma_sets.Union) auto }
 qed (auto intro!: sigma_sets.Compl sigma_sets.Empty)
 
