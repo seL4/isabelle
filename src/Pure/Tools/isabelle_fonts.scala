@@ -111,29 +111,35 @@ object Isabelle_Fonts
 
   /* font families */
 
-  sealed case class Family(plain: String, bold: String, italic: String, bold_italic: String)
+  sealed case class Family(
+    plain: String = "",
+    bold: String = "",
+    italic: String = "",
+    bold_italic: String = "",
+    fallback: Option[Family] = None)
 
   object Family
   {
-    val deja_vu_sans_mono =
+    def deja_vu_sans_mono: Family =
       Family(
-        "DejaVuSansMono",
-        "DejaVuSansMono-Bold",
-        "DejaVuSansMono-Oblique",
-        "DejaVuSansMono-BoldOblique")
+        plain = "DejaVuSansMono.ttf",
+        bold = "DejaVuSansMono-Bold.ttf",
+        italic = "DejaVuSansMono-Oblique.ttf",
+        bold_italic = "DejaVuSansMono-BoldOblique.ttf",
+        fallback = Some(deja_vu_sans))
 
-    val deja_vu_sans =
+    def deja_vu_sans: Family =
       Family(
-        "DejaVuSans",
-        "DejaVuSans-Bold",
-        "DejaVuSans-Oblique",
-        "DejaVuSans-BoldOblique")
+        plain = "DejaVuSans.ttf",
+        bold = "DejaVuSans-Bold.ttf",
+        italic = "DejaVuSans-Oblique.ttf",
+        bold_italic = "DejaVuSans-BoldOblique.ttf")
 
-    val deja_vu_serif =
+    def deja_vu_serif: Family =
       Family(
-        "DejaVuSerif",
-        "DejaVuSerif-Bold",
-        "DejaVuSerif-Italic",
-        "DejaVuSerif-BoldItalic")
+        plain = "DejaVuSerif.ttf",
+        bold = "DejaVuSerif-Bold.ttf",
+        italic = "DejaVuSerif-Italic.ttf",
+        bold_italic = "DejaVuSerif-BoldItalic.ttf")
   }
 }
