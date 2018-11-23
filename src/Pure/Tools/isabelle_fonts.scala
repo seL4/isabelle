@@ -28,7 +28,7 @@ object Isabelle_Fonts
         0x201e,  // double quote
         0x2039,  // single guillemet
         0x203a,  // single guillemet
-        0x204b,  // reversed pilcrow
+        0x204b,  // FOOTNOTE
         0x20ac,  // Euro
         0xfb01,  // ligature fi
         0xfb02,  // ligature fl
@@ -78,7 +78,7 @@ object Isabelle_Fonts
       ) ++
       (0x25a0 to 0x25ff) ++  // Geometric Shapes
       Seq(
-        0x261b,  // black right pointing index
+        0x261b,  // ACTION
         0x2660,  // spade suit
         0x2661,  // heart suit
         0x2662,  // diamond suit
@@ -101,10 +101,10 @@ object Isabelle_Fonts
       Seq(0x2b1a) ++  // VERBATIM
       (0x1d400 to 0x1d7ff) ++  // Mathematical Alphanumeric Symbols
       Seq(
-        0x1f310,  // globe with meridians
-        0x1f4d3,  // notebook
-        0x1f5c0,  // folder
-        0x1f5cf,  // page
+        0x1f310,  // globe with meridians (Symbola font)
+        0x1f4d3,  // notebook (Symbola font)
+        0x1f5c0,  // folder (Symbola font)
+        0x1f5cf,  // page (Symbola font)
       )
   }
 
