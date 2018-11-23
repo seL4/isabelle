@@ -82,13 +82,13 @@ object Fontforge
         " -lang=ff -script " + File.bash_path(script_file) + " " + args)
     })
 
-  def font_domain(path: Path): List[Int] =
+  def font_domain(path: Path, strict: Boolean = false): List[Int] =
   {
     val script = """
 i = 0
 while (i < CharCnt())
-if (WorthOutputting(i)); Print(i); endif
-i = i + 1
+  if (""" + (if (strict) "DrawsSomething" else "WorthOutputting") + """(i)); Print(i); endif
+  i = i + 1
 endloop
 """
     Library.trim_split_lines(execute(open(path) + script).check.out).
