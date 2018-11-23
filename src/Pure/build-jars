@@ -22,6 +22,7 @@ declare -a SOURCES=(
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
   Admin/isabelle_devel.scala
+  Admin/isabelle_fonts.scala
   Admin/jenkins.scala
   Admin/other_isabelle.scala
   Admin/remote_dmg.scala
@@ -147,7 +148,6 @@ declare -a SOURCES=(
   Tools/dump.scala
   Tools/fontforge.scala
   Tools/imports.scala
-  Tools/isabelle_fonts.scala
   Tools/main.scala
   Tools/mkroot.scala
   Tools/print_operation.scala

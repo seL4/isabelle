@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/isabelle_fonts.scala
+/*  Title:      Pure/Admin/isabelle_fonts.scala
     Author:     Makarius
 
 Construction of Isabelle fonts.
