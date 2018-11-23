@@ -46,26 +46,21 @@ object Fontforge
 
   /* commands */
 
+  def command_list(cmds: List[String]): Script = cat_lines(cmds)
+  def commands(cmds: String*): Script = command_list(cmds.toList)
+
   // fonts
   def open(path: Path): Script = "Open(" + file_name(path) +")"
+  def close: Script = "Close()"
   def generate(path: Path): Script = "Generate(" + file_name(path) +")"
-  def set_font_names(
-    fontname: String = "",
-    family: String = "",
-    fullname: String = "",
-    weight: String = "",
-    copyright: String = "",
-    fontversion: String = ""): Script =
-  {
-    List(fontname, family, fullname, weight, copyright, fontversion).map(string(_)).
-      mkString("SetFontNames(", ",", ")")
-  }
 
   // selection
-  def select(args: Seq[Int]): Script = "SelectSingletons(" + args.mkString(",") + ")"
   def select_all: Script = "SelectAll()"
   def select_none: Script = "SelectNone()"
   def select_invert: Script = "SelectInvert()"
+  def select(args: Seq[Int]): Script =
+    command_list(select_none :: args.toList.map(code => "SelectMoreSingletons(" + code + ")"))
+
   def clear: Script = "Clear()"
   def copy: Script = "Copy()"
   def paste: Script = "Paste()"
@@ -84,14 +79,68 @@ object Fontforge
 
   def font_domain(path: Path, strict: Boolean = false): List[Int] =
   {
-    val script = """
-i = 0
-while (i < CharCnt())
-  if (""" + (if (strict) "DrawsSomething" else "WorthOutputting") + """(i)); Print(i); endif
-  i = i + 1
-endloop
-"""
-    Library.trim_split_lines(execute(open(path) + script).check.out).
-      map(Value.Int.parse)
+    val script =
+      commands(
+        open(path),
+        "i = 0",
+        "while (i < CharCnt())",
+        "  if (" + (if (strict) "DrawsSomething" else "WorthOutputting") + "(i)); Print(i); endif",
+        "  i = i + 1",
+        "endloop",
+        close)
+    Library.trim_split_lines(execute(script).check.out).map(Value.Int.parse)
+  }
+
+
+  /* font names */
+
+  sealed case class Font_Names(
+    fontname: String = "",
+    familyname: String = "",
+    fullname: String = "",
+    weight: String = "",
+    copyright: String = "",
+    fontversion: String = "")
+  {
+    override def toString: String = fontname
+
+    def ttf: Path = Path.explode(fontname).ext("ttf")
+
+    def update(prefix: String = "", version: String = ""): Font_Names =
+    {
+      val fontversion1 = proper_string(version) getOrElse fontversion
+      if (prefix == "") copy(fontversion = fontversion1)
+      else {
+        copy(fontname = prefix + fontname,
+          familyname = prefix + " " + familyname,
+          fullname = prefix + " " + fullname,
+          weight = weight,
+          copyright = copyright,
+          fontversion = fontversion1)
+      }
+    }
+
+    def set: Script =
+      List(fontname, familyname, fullname, weight, copyright, fontversion).map(string(_)).
+        mkString("SetFontNames(", ",", ")")
+  }
+
+  def font_names(path: Path): Font_Names =
+  {
+    val script =
+      commands(
+        open(path),
+        "Print($fontname)",
+        "Print($familyname)",
+        "Print($fullname)",
+        "Print($weight)",
+        "Print($fontversion)",
+        "Print($copyright)",
+        close)
+    Library.trim_split_lines(execute(script).check.out) match {
+      case fontname :: familyname :: fullname :: weight :: fontversion :: copyright =>
+        Font_Names(fontname, familyname, fullname, weight, cat_lines(copyright), fontversion)
+      case res => error(cat_lines("Bad font names: " :: res))
+    }
   }
 }
