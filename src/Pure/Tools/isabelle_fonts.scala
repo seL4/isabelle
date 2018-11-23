@@ -233,4 +233,33 @@ object Isabelle_Fonts
       ).check
     }
   }
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool =
+    Isabelle_Tool("build_fonts", "construct Isabelle fonts", args =>
+    {
+      var source_dirs: List[Path] = Nil
+      var target_dir = Path.current
+
+      val getopts = Getopts("""
+Usage: isabelle build_fonts [OPTIONS]
+
+  Options are:
+    -D DIR       target directory (default ".")
+    -d DIR       additional source directory
+
+  Construct Isabelle fonts from Deja Vu font families and Isabelle symbols.
+""",
+        "D:" -> (arg => target_dir = Path.explode(arg)),
+        "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
+
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
+
+      val progress = new Console_Progress
+
+      build_fonts(source_dirs = source_dirs, target_dir = target_dir, progress = progress)
+    })
 }
