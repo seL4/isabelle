@@ -13,11 +13,10 @@ object Isabelle_Fonts
 
   object Range
   {
-    def plain_text: Seq[Int] =
+    def base_font: Seq[Int] =
       (0x0020 to 0x007e) ++  // ASCII
       (0x00a0 to 0x024f) ++  // Latin Extended-A/B
       (0x0400 to 0x04ff) ++  // Cyrillic
-      (0x0590 to 0x05ff) ++  // Hebrew (non-mono)
       (0x0600 to 0x06ff) ++  // Arabic
       Seq(
         0x2018,  // single quote
@@ -35,7 +34,7 @@ object Isabelle_Fonts
         0xfffd,  // replacement character
       )
 
-    def symbols: Seq[Int] =
+    def isabelle_font: Seq[Int] =
       Seq(
         0x05,  // X
         0x06,  // Y
@@ -49,6 +48,7 @@ object Isabelle_Fonts
         0xf7,  // divide
       ) ++
       (0x0370 to 0x03ff) ++  // Greek (pseudo math)
+      (0x0590 to 0x05ff) ++  // Hebrew (non-mono)
       Seq(
         0x2010,  // hyphen
         0x2013,  // dash
@@ -115,18 +115,30 @@ object Isabelle_Fonts
     plain: String = "",
     bold: String = "",
     italic: String = "",
-    bold_italic: String = "",
-    fallback: Option[Family] = None)
+    bold_italic: String = "")
+  {
+    val fonts: List[String] =
+      proper_string(plain).toList :::
+      proper_string(bold).toList :::
+      proper_string(italic).toList :::
+      proper_string(bold_italic).toList
+
+    def get(index: Int): String = fonts(index % fonts.length)
+  }
 
   object Family
   {
+    def isabelle_text: Family =
+      Family(
+        plain = "IsabelleText.sfd",
+        bold = "IsabelleTextBold.sfd")
+
     def deja_vu_sans_mono: Family =
       Family(
         plain = "DejaVuSansMono.ttf",
         bold = "DejaVuSansMono-Bold.ttf",
         italic = "DejaVuSansMono-Oblique.ttf",
-        bold_italic = "DejaVuSansMono-BoldOblique.ttf",
-        fallback = Some(deja_vu_sans))
+        bold_italic = "DejaVuSansMono-BoldOblique.ttf")
 
     def deja_vu_sans: Family =
       Family(
@@ -141,5 +153,84 @@ object Isabelle_Fonts
         bold = "DejaVuSerif-Bold.ttf",
         italic = "DejaVuSerif-Italic.ttf",
         bold_italic = "DejaVuSerif-BoldItalic.ttf")
+  }
+
+
+  /* build fonts */
+
+  private def find_file(dirs: List[Path], name: String): Path =
+  {
+    val path = Path.explode(name)
+    dirs.collectFirst({ case dir if (dir + path).is_file => dir + path }) match {
+      case Some(file) => file
+      case None =>
+        error(cat_lines(
+          ("Failed to find font file " + path + " in directories:") ::
+            dirs.map(dir => "  " + dir.toString)))
+    }
+  }
+
+  val default_sources: List[Family] =
+    List(Family.deja_vu_sans_mono, Family.deja_vu_sans, Family.deja_vu_serif)
+
+  def build_fonts(
+    sources: List[Family] = default_sources,
+    source_dirs: List[Path] = Nil,
+    target_prefix: String = "Isabelle",
+    target_version: String = "",
+    target_dir: Path = Path.current,
+    progress: Progress = No_Progress)
+  {
+    Isabelle_System.mkdirs(target_dir)
+
+    val font_dirs = source_dirs ::: List(Path.explode("~~/lib/fonts"))
+
+    for (isabelle_font <- Family.isabelle_text.fonts) {
+      val isabelle_file = find_file(font_dirs, isabelle_font)
+      val isabelle_names = Fontforge.font_names(isabelle_file)
+
+      val target_names = isabelle_names.update(version = target_version)
+      val target_file = target_dir + target_names.ttf
+
+      progress.echo("Creating " + target_file.toString + " ...")
+      Fontforge.execute(
+        Fontforge.commands(
+          Fontforge.open(isabelle_file),
+          target_names.set,
+          Fontforge.generate(target_file),
+          Fontforge.close
+        )
+      ).check
+    }
+
+    for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex } {
+      val isabelle_file = find_file(font_dirs, Family.isabelle_text.get(index))
+
+      val source_file = find_file(font_dirs, source_font)
+      val source_names = Fontforge.font_names(source_file)
+
+      val target_names = source_names.update(prefix = target_prefix, version = target_version)
+      val target_file = target_dir + target_names.ttf
+
+      progress.echo("Creating " + target_file.toString + " ...")
+      Fontforge.execute(
+        Fontforge.commands(
+          Fontforge.open(isabelle_file),
+          Fontforge.select(Range.isabelle_font),
+          Fontforge.copy,
+          Fontforge.close,
+
+          Fontforge.open(source_file),
+          Fontforge.select(Range.base_font),
+          Fontforge.select_invert,
+          Fontforge.clear,
+          Fontforge.select(Range.isabelle_font),
+          Fontforge.paste,
+
+          target_names.set,
+          Fontforge.generate(target_file),
+          Fontforge.close)
+      ).check
+    }
   }
 }
