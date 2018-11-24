@@ -10,10 +10,11 @@ UnderlinePosition: -98
 UnderlineWidth: 246
 Ascent: 1556
 Descent: 492
+InvalidEm: 0
 sfntRevision: 0x00011999
 LayerCount: 2
-Layer: 0 1 "Back"  1
-Layer: 1 1 "Fore"  0
+Layer: 0 1 "Back" 1
+Layer: 1 1 "Fore" 0
 XUID: [1021 906 1711068302 16423187]
 FSType: 0
 OS2Version: 1
@@ -1670,7 +1671,7 @@ ShortTable: maxp 16
   3
   2
 EndShort
-LangName: 1033 "" "" "" "FontForge 2.0 : IsabelleTextBold : 7-10-2015" "" "Release 1.10" "" "Bitstream Vera is a trademark of Bitstream, Inc." "Bitstream Inc." "" "" "http://www.bitstream.com" "" "Copyright (c) 2003 by Bitstream, Inc.+AA0ACgAA-All Rights Reserved.+AA0ACgAA-Bitstream Vera is a trademark of Bitstream, Inc.+AA0ACgANAAoA-Permission is hereby granted, free of charge, to any person obtaining a copy of the fonts accompanying this license (+ACIA-Fonts+ACIA) and associated documentation files (the +ACIA-Font Software+ACIA), to reproduce and distribute the Font Software, including without limitation the rights to use, copy, merge, publish, distribute, and/or sell copies of the Font Software, and to permit persons to whom the Font Software is furnished to do so, subject to the following conditions:+AA0ACgANAAoA-The above copyright and trademark notices and this permission notice shall be included in all copies of one or more of the Font Software typefaces.+AA0ACgANAAoA-The Font Software may be modified, altered, or added to, and in particular the designs of glyphs or characters in the Fonts may be modified and additional glyphs or characters may be added to the Fonts, only if the fonts are renamed to names not containing either the words +ACIA-Bitstream+ACIA or the word +ACIA-Vera+ACIA.+AA0ACgANAAoA-This License becomes null and void to the extent applicable to Fonts or Font Software that has been modified and is distributed under the +ACIA-Bitstream Vera+ACIA names.+AA0ACgANAAoA-The Font Software may be sold as part of a larger software package but no copy of one or more of the Font Software typefaces may be sold by itself.+AA0ACgANAAoA-THE FONT SOFTWARE IS PROVIDED +ACIA-AS IS+ACIA, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.+AA0ACgANAAoA-Except as contained in this notice, the names of Gnome, the Gnome Foundation, and Bitstream Inc., shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Font Software without prior written authorization from the Gnome Foundation or Bitstream Inc., respectively. For further information, contact: fonts at gnome dot org." 
+LangName: 1033 "" "" "" "FontForge 2.0 : IsabelleTextBold : 7-10-2015" "" "Release 1.10" "" "Bitstream Vera is a trademark of Bitstream, Inc." "Bitstream Inc." "" "" "http://www.bitstream.com" "" "Copyright (c) 2003 by Bitstream, Inc.+AA0ACgAA-All Rights Reserved.+AA0ACgAA-Bitstream Vera is a trademark of Bitstream, Inc.+AA0ACgANAAoA-Permission is hereby granted, free of charge, to any person obtaining a copy of the fonts accompanying this license (+ACIA-Fonts+ACIA) and associated documentation files (the +ACIA-Font Software+ACIA), to reproduce and distribute the Font Software, including without limitation the rights to use, copy, merge, publish, distribute, and/or sell copies of the Font Software, and to permit persons to whom the Font Software is furnished to do so, subject to the following conditions:+AA0ACgANAAoA-The above copyright and trademark notices and this permission notice shall be included in all copies of one or more of the Font Software typefaces.+AA0ACgANAAoA-The Font Software may be modified, altered, or added to, and in particular the designs of glyphs or characters in the Fonts may be modified and additional glyphs or characters may be added to the Fonts, only if the fonts are renamed to names not containing either the words +ACIA-Bitstream+ACIA or the word +ACIA-Vera+ACIA.+AA0ACgANAAoA-This License becomes null and void to the extent applicable to Fonts or Font Software that has been modified and is distributed under the +ACIA-Bitstream Vera+ACIA names.+AA0ACgANAAoA-The Font Software may be sold as part of a larger software package but no copy of one or more of the Font Software typefaces may be sold by itself.+AA0ACgANAAoA-THE FONT SOFTWARE IS PROVIDED +ACIA-AS IS+ACIA, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.+AA0ACgANAAoA-Except as contained in this notice, the names of Gnome, the Gnome Foundation, and Bitstream Inc., shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Font Software without prior written authorization from the Gnome Foundation or Bitstream Inc., respectively. For further information, contact: fonts at gnome dot org."
 GaspTable: 2 8 2 65535 3 0
 Encoding: UnicodeFull
 UnicodeInterp: none
@@ -1678,7 +1679,7 @@ NameList: Adobe Glyph List
 DisplaySize: -96
 AntiAlias: 1
 FitToEm: 1
-WinInfo: 8841 21 15
+WinInfo: 0 32 8
 BeginPrivate: 0
 EndPrivate
 BeginChars: 1114115 1403
@@ -20568,7 +20569,7 @@ Flags: W
 LayerCount: 2
 Fore
 SplineSet
-616 510 m 0,0,-1
+616 510 m 1024,0,-1
 431 762 m 1,1,-1
  33 1493 l 1,2,-1
  354 1493 l 1,3,-1
@@ -29187,7 +29188,7 @@ SplineSet
  810 442 810 442 847 442 c 1,64,65
  880 441 880 441 901.5 421 c 128,-1,66
  923 401 923 401 923 368 c 0,0,1
-363 70 m 0,67,-1
+363 70 m 1024,67,-1
 EndSplineSet
 EndChar
 
@@ -35965,7 +35966,7 @@ SplineSet
  1057 -350 l 1,2,-1
  357 -350 l 1,3,-1
  357 -150 l 1,0,-1
-707 0 m 0,4,-1
+707 0 m 1024,4,-1
 EndSplineSet
 EndChar
 
@@ -35985,7 +35986,7 @@ SplineSet
  1032 -70 l 1,6,-1
  1032 -270 l 1,7,-1
  807 -270 l 1,0,-1
-707 0 m 0,8,-1
+707 0 m 1024,8,-1
 EndSplineSet
 EndChar
 
@@ -36001,7 +36002,7 @@ SplineSet
  150 1280 l 1,2,-1
  -50 1280 l 1,3,-1
  -50 1480 l 1,0,-1
-50 1120 m 0,4,-1
+50 1120 m 1024,4,-1
 EndSplineSet
 EndChar
 
@@ -36037,7 +36038,7 @@ SplineSet
  817 460 l 1,2,-1
  617 460 l 1,3,-1
  617 660 l 1,0,-1
-717 560 m 0,4,-1
+717 560 m 1024,4,-1
 EndSplineSet
 EndChar
 
@@ -36083,7 +36084,7 @@ SplineSet
  1032 1255 l 1,2,-1
  382 1255 l 1,3,-1
  382 1455 l 1,0,-1
-707 1120 m 0,4,-1
+707 1120 m 1024,4,-1
 EndSplineSet
 EndChar
 
@@ -36222,8 +36223,8 @@ SplineSet
  152 523 152 523 259 640 c 1,25,26
  340 724 340 724 439 746 c 1,27,-1
  152 1120 l 1,0,-1
-730 0 m 0,28,-1
-670 175 m 0,29,-1
+730 0 m 1024,28,-1
+670 175 m 1024,29,-1
 EndSplineSet
 EndChar
 
@@ -36251,7 +36252,7 @@ SplineSet
  72 256 l 1,17,-1
  754 256 l 1,18,-1
  754 520 l 2,0,1
-417 560 m 0,19,-1
+417 560 m 1024,19,-1
 EndSplineSet
 EndChar
 
@@ -36278,8 +36279,8 @@ SplineSet
  75 0 l 1,16,-1
  534 546 l 1,17,-1
  534 606 l 2,0,1
-560 0 m 0,18,-1
-272 560 m 0,19,-1
+560 0 m 1024,18,-1
+272 560 m 1024,19,-1
 EndSplineSet
 EndChar
 
@@ -36300,7 +36301,7 @@ SplineSet
  1268 1120 l 1,7,-1
  1268 864 l 1,8,-1
  1074 864 l 1,0,-1
-387 560 m 0,9,-1
+387 560 m 1024,9,-1
 EndSplineSet
 EndChar
 
@@ -36327,8 +36328,8 @@ SplineSet
  1094 1120 1094 1120 1196 998 c 128,-1,15
  1298 876 1298 876 1298 606 c 2,16,-1
  1298 0 l 1,4,-1
-735 560 m 0,17,-1
-735 0 m 0,18,-1
+735 560 m 1024,17,-1
+735 0 m 1024,18,-1
 EndSplineSet
 EndChar
 
@@ -36346,7 +36347,7 @@ SplineSet
  351 1120 l 1,4,-1
  530 1120 l 1,5,-1
  530 0 l 1,0,-1
-17 800 m 0,6,-1
+17 800 m 1024,6,-1
 EndSplineSet
 EndChar
 
@@ -36369,7 +36370,7 @@ SplineSet
  324 520 l 2,10,11
  324 789 324 789 413 864 c 1,12,-1
  72 864 l 1,0,-1
-154 560 m 0,13,-1
+154 560 m 1024,13,-1
 EndSplineSet
 EndChar
 
@@ -36393,7 +36394,7 @@ SplineSet
  1094 1120 1094 1120 1196 998 c 128,-1,13
  1298 876 1298 876 1298 606 c 2,14,-1
  1298 0 l 1,0,-1
-735 0 m 0,15,-1
+735 0 m 1024,15,-1
 EndSplineSet
 EndChar
 
@@ -36422,8 +36423,8 @@ SplineSet
  483 -39 483 -39 328 108 c 0,25,26
  172 257 172 257 172 561 c 2,27,-1
  172 1120 l 1,0,-1
-775 560 m 0,28,-1
-782 0 m 0,29,-1
+775 560 m 1024,28,-1
+782 0 m 1024,29,-1
 EndSplineSet
 EndChar
 
@@ -36439,8 +36440,8 @@ SplineSet
  172 1120 l 1,2,-1
  530 1120 l 1,3,-1
  530 470 l 1,0,-1
-17 800 m 0,4,-1
-338 0 m 0,5,-1
+17 800 m 1024,4,-1
+338 0 m 1024,5,-1
 EndSplineSet
 EndChar
 
@@ -36462,8 +36463,8 @@ SplineSet
  965 1120 965 1120 1067 998 c 128,-1,11
  1169 876 1169 876 1169 606 c 2,12,-1
  1169 -426 l 1,0,-1
-492 0 m 0,13,-1
-441 560 m 0,14,-1
+492 0 m 1024,13,-1
+441 560 m 1024,14,-1
 EndSplineSet
 EndChar
 
@@ -36491,7 +36492,7 @@ SplineSet
  995 0 995 0 753 0 c 2,22,-1
  668 0 l 1,23,-1
  152 0 l 1,0,-1
-532 560 m 0,24,-1
+532 560 m 1024,24,-1
 EndSplineSet
 EndChar
 
@@ -36518,7 +36519,7 @@ SplineSet
  710 0 l 1,17,-1
  530 0 l 1,18,-1
  530 270 l 2,0,1
-456 560 m 0,19,-1
+456 560 m 1024,19,-1
 EndSplineSet
 EndChar
 
@@ -36574,7 +36575,7 @@ SplineSet
  482 1120 l 1,21,-1
  533 1053 l 1,22,23
  668 1121 668 1121 852 1121 c 0,0,1
-830 560 m 0,24,-1
+830 560 m 1024,24,-1
 EndSplineSet
 EndChar
 
@@ -36590,7 +36591,7 @@ SplineSet
  172 1120 l 1,2,-1
  530 1120 l 1,3,-1
  530 -426 l 1,0,-1
-17 0 m 0,4,-1
+17 0 m 1024,4,-1
 EndSplineSet
 EndChar
 
@@ -36615,7 +36616,7 @@ SplineSet
  72 256 l 1,15,-1
  500 256 l 1,16,-1
  500 520 l 2,0,1
-305 560 m 0,17,-1
+305 560 m 1024,17,-1
 EndSplineSet
 EndChar
 
@@ -36647,8 +36648,8 @@ SplineSet
  1118 692 1118 692 1089 770 c 0,27,28
  1054 864 1054 864 944 864 c 2,29,-1
  632 864 l 1,16,-1
-877 560 m 0,30,-1
-884 0 m 0,31,-1
+877 560 m 1024,30,-1
+884 0 m 1024,31,-1
 EndSplineSet
 EndChar
 
@@ -36675,7 +36676,7 @@ SplineSet
  68 1120 l 1,21,-1
  426 1120 l 1,22,-1
  611 238 l 1,0,1
-692 0 m 0,23,-1
+692 0 m 1024,23,-1
 EndSplineSet
 EndChar
 
@@ -36704,8 +36705,8 @@ SplineSet
  1094 1120 1094 1120 1196 998 c 128,-1,22
  1298 876 1298 876 1298 606 c 2,23,-1
  1298 -426 l 1,0,-1
-642 305 m 0,24,-1
-632 0 m 0,25,-1
+642 305 m 1024,24,-1
+632 0 m 1024,25,-1
 EndSplineSet
 EndChar
 
@@ -36743,7 +36744,7 @@ SplineSet
  1049 0 1049 0 808 0 c 2,33,-1
  735 0 l 1,34,-1
  172 0 l 1,0,-1
-785 525 m 0,35,-1
+785 525 m 1024,35,-1
 EndSplineSet
 EndChar
 
@@ -36768,7 +36769,7 @@ SplineSet
  1147 942 l 2,13,14
  1147 675 1147 675 1040 560 c 0,15,16
  961 475 961 475 739 454 c 1,0,-1
-166 0 m 0,17,-1
+166 0 m 1024,17,-1
 EndSplineSet
 EndChar
 
@@ -36795,7 +36796,7 @@ SplineSet
  152 256 l 1,17,-1
  815 256 l 1,18,-1
  152 1120 l 1,0,-1
-365 560 m 0,19,-1
+365 560 m 1024,19,-1
 EndSplineSet
 EndChar
 
@@ -36829,7 +36830,7 @@ SplineSet
  172 -426 l 1,23,-1
  172 650 l 1,24,-1
  530 650 l 1,21,-1
-784 560 m 0,25,-1
+784 560 m 1024,25,-1
 EndSplineSet
 EndChar
 
@@ -36851,8 +36852,8 @@ SplineSet
  965 1120 965 1120 1067 998 c 128,-1,11
  1169 876 1169 876 1169 606 c 2,12,-1
  1169 0 l 1,0,-1
-441 560 m 0,13,-1
-492 0 m 0,14,-1
+441 560 m 1024,13,-1
+492 0 m 1024,14,-1
 EndSplineSet
 EndChar
 
@@ -36881,8 +36882,8 @@ SplineSet
  172 1120 l 1,24,-1
  530 1120 l 1,25,-1
  530 737 l 1,0,1
-1278 884 m 0,26,-1
-893 0 m 0,27,-1
+1278 884 m 1024,26,-1
+893 0 m 1024,27,-1
 EndSplineSet
 EndChar
 
@@ -36913,8 +36914,8 @@ SplineSet
  178 256 178 256 216 304 c 1,23,24
  254 354 254 354 254 506 c 2,25,-1
  254 864 l 1,0,-1
-700 0 m 0,26,-1
-787 560 m 0,27,-1
+700 0 m 1024,26,-1
+787 560 m 1024,27,-1
 EndSplineSet
 EndChar
 
@@ -63585,7 +63586,7 @@ SplineSet
  1008 673 1008 673 846 432 c 1,50,-1
  842 426 l 1,51,-1
  659 269 l 1,0,1
-222 768 m 0,52,-1
+222 768 m 1024,52,-1
 222 765 m 1,53,54
  218 773 218 773 205 792 c 0,55,56
  190 814 190 814 176 831 c 2,57,-1
@@ -64826,7 +64827,7 @@ SplineSet
  703 740 703 740 695 939 c 1,72,-1
  694 971 l 1,73,-1
  942 1100 l 1,0,-1
-1013 233 m 0,74,-1
+1013 233 m 1024,74,-1
 EndSplineSet
 EndChar
 
@@ -67199,8 +67200,8 @@ SplineSet
  1128 837 l 2,76,77
  1014 837 1014 837 968 727 c 2,78,-1
  578 -221 l 2,0,1
-426 827 m 0,79,-1
-426 827 m 0,80,-1
+426 827 m 1024,79,-1
+426 827 m 1024,80,-1
 426 827 m 1,81,-1
  426 826 l 1,82,-1
  426 827 l 1,81,-1
