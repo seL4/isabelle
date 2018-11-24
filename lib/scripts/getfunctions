@@ -125,6 +125,22 @@ function isabelle_scala_tools ()
 }
 export -f isabelle_scala_tools
 
+#Isabelle fonts
+function isabelle_fonts ()
+{
+  local X=""
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_FONTS" ]; then
+      ISABELLE_FONTS="$X"
+    else
+      ISABELLE_FONTS="$ISABELLE_FONTS:$X"
+    fi
+  done
+  export ISABELLE_FONTS
+}
+export -f isabelle_fonts
+
 #file formats
 function isabelle_file_format ()
 {
