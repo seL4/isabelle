@@ -40,6 +40,7 @@ object Build_Fonts
         0x06,  // Y
         0x07,  // EOF
         0x7f,  // DEL
+        0xaf,  // INVERSE
         0xac,  // logicalnot
         0xb0,  // degree
         0xb1,  // plusminus
