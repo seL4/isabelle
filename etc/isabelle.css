@@ -17,16 +17,16 @@ body {
   direction: ltr; unicode-bidi: bidi-override;
   background-color: #FFFFFF;
   padding: 10px;
-  font-family: IsabelleText;
+  font-family: "Isabelle DejaVu Sans Mono", monospace;
   line-height: 147%;
 }
 
 .theories { background-color: #FFFFFF; padding: 10px; }
 .sessions { background-color: #FFFFFF; padding: 10px; }
-.document { white-space: normal; font-family: sans-serif; }
+.document { white-space: normal; font-family: "Isabelle DejaVu Serif", serif; }
 
 .name     { font-style: italic; }
-.filename { font-family: fixed; }
+.filename { font-family: "Isabelle DejaVu Sans Mono", monospace; }
 
 
 /* basic syntax markup */

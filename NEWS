@@ -9,6 +9,18 @@ New in this Isabelle version
 
 *** General ***
 
+* The font family "Isabelle DejaVu" is systematically derived from the
+existing "DejaVu" collection, with variants "Sans Mono", "Sans", "Serif"
+and styles "Normal", "Bold", "Italic/Oblique", "Bold-Italic/Oblique".
+The DejaVu base fonts are retricted to well-defined Unicode ranges and
+augmented by special Isabelle symbols, taken from the former
+"IsabelleText" font (which is no longer provided separately). The line
+metrics and overall rendering quality is closer to original DejaVu.
+INCOMPATIBILITY with display configuration expecting the old
+"IsabelleText" font: use e.g. "Isabelle DejaVu Sans Mono" instead.
+
+* The Isabelle fonts render "\<inverse>" properly as superscript "-1".
+
 * Old-style inner comments (* ... *) within the term language are no
 longer supported (legacy feature in Isabelle2018).
 
@@ -21,6 +33,14 @@ INCOMPATIBILITY.
 
 
 *** Isabelle/jEdit Prover IDE ***
+
+* Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
+DejaVu" collection by default, which provides uniform rendering quality
+with the usual Isabelle symbols. For Java/Swing GUI elements this
+requires the Metal look-and-feel: it is the default on Linux, but not
+macOS nor Windows. Line spacing no longer needs to be adjusted:
+properties for the old IsabelleText font had "Global Options / Text Area
+/ Extra vertical line spacing (in pixels): -2", now it defaults to 0.
 
 * Improved sub-pixel font rendering (especially on Linux), thanks to
 OpenJDK 11.

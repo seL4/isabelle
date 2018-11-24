@@ -161,7 +161,7 @@ based on the usual `etc/symbols` specifications of the Isabelle installation.
 
 ## Known Limitations of Isabelle/VSCode
 
-  * Lack of specific support for the `IsabelleText` fonts: these need to be
+  * Lack of specific support for the Isabelle fonts: these need to be
   manually installed on the system and configured for VSCode (see also
   `$ISABELLE_FONTS` within the Isabelle environment).
 

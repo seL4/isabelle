@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_fonts.scala
     Author:     Makarius
 
-Build of Isabelle fonts: Deja Vu + special symbols.
+Build of Isabelle fonts: DejaVu + special symbols.
 */
 
 package isabelle
@@ -186,24 +186,6 @@ object Build_Fonts
 
     val font_dirs = source_dirs ::: List(Path.explode("~~/lib/fonts"))
 
-    for (isabelle_font <- Family.isabelle_text.fonts) {
-      val isabelle_file = find_file(font_dirs, isabelle_font)
-      val isabelle_names = Fontforge.font_names(isabelle_file)
-
-      val target_names = isabelle_names.update(version = target_version)
-      val target_file = target_dir + target_names.ttf
-
-      progress.echo("Creating " + target_file.toString + " ...")
-      Fontforge.execute(
-        Fontforge.commands(
-          Fontforge.open(isabelle_file),
-          target_names.set,
-          Fontforge.generate(target_file),
-          Fontforge.close
-        )
-      ).check
-    }
-
     for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex } {
       val isabelle_file = find_file(font_dirs, Family.isabelle_text.get(index))
 
@@ -251,7 +233,7 @@ Usage: isabelle build_fonts [OPTIONS]
     -D DIR       target directory (default ".")
     -d DIR       additional source directory
 
-  Construct Isabelle fonts from Deja Vu font families and Isabelle symbols.
+  Construct Isabelle fonts from DejaVu font families and Isabelle symbols.
 """,
         "D:" -> (arg => target_dir = Path.explode(arg)),
         "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))

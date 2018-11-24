@@ -358,19 +358,31 @@ object HTML
 
   def fonts_css(make_url: String => String = fonts_url()): String =
   {
-    def font_face(name: String, ttf_name: String, bold: Boolean = false): String =
+    def font_face(
+        name: String, ttf_name: String, bold: Boolean = false, italic: Boolean = false): String =
       cat_lines(
         List(
           "@font-face {",
           "  font-family: '" + name + "';",
           "  src: url('" + make_url(ttf_name) + "') format('truetype');") :::
         (if (bold) List("  font-weight: bold;") else Nil) :::
+        (if (italic) List("  font-style: italic;") else Nil) :::
         List("}"))
 
     List(
       "/* Isabelle fonts */",
-      font_face("IsabelleText", "IsabelleText.ttf"),
-      font_face("IsabelleText", "IsabelleTextBold.ttf", bold = true),
+      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono.ttf"),
+      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono-Bold.ttf", bold = true),
+      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono-Oblique.ttf", italic = true),
+      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono-BoldOblique.ttf", bold = true, italic = true),
+      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans.ttf"),
+      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-Bold.ttf", bold = true),
+      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-Oblique.ttf", italic = true),
+      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-BoldOblique.ttf", bold = true, italic = true),
+      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif.ttf"),
+      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Bold.ttf", bold = true),
+      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Oblique.ttf", italic = true),
+      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-BoldOblique.ttf", bold = true, italic = true),
       font_face("Vacuous", "Vacuous.ttf")).mkString("\n\n")
   }
 

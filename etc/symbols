@@ -358,36 +358,36 @@
 \<some>                 code: 0x0003f5
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
-\<comment>              code: 0x002015  group: document  argument: space_cartouche  font: IsabelleText
-\<^cancel>              code: 0x002326  group: document  argument: cartouche  font: IsabelleText
+\<comment>              code: 0x002015  group: document  argument: space_cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^cancel>              code: 0x002326  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
 \<^latex>                               group: document  argument: cartouche
-\<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
-\<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
-\<^here>                code: 0x002302  font: IsabelleText
-\<^undefined>           code: 0x002756  font: IsabelleText
-\<^noindent>            code: 0x0021e4  group: document  font: IsabelleText
-\<^smallskip>           code: 0x002508  group: document  font: IsabelleText
-\<^medskip>             code: 0x002509  group: document  font: IsabelleText
-\<^bigskip>             code: 0x002501  group: document  font: IsabelleText
-\<^item>                code: 0x0025aa  group: document  font: IsabelleText
-\<^enum>                code: 0x0025b8  group: document  font: IsabelleText
-\<^descr>               code: 0x0027a7  group: document  font: IsabelleText
-\<^footnote>            code: 0x00204b  group: document  argument: cartouche  font: IsabelleText
-\<^verbatim>            code: 0x0025a9  group: document  argument: cartouche  font: IsabelleText
-\<^theory_text>         code: 0x002b1a  group: document  argument: cartouche  font: IsabelleText
-\<^emph>                code: 0x002217  group: document  argument: cartouche  font: IsabelleText
-\<^bold>                code: 0x002759  group: control  argument: cartouche  group: document  font: IsabelleText
-\<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
-\<^sup>                 code: 0x0021e7  group: control  font: IsabelleText
-\<^bsub>                code: 0x0021d8  group: control_block  font: IsabelleText  abbrev: =_(
-\<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
-\<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
-\<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
-\<^file>                code: 0x01F5CF  group: icon  argument: cartouche  font: IsabelleText
-\<^dir>                 code: 0x01F5C0  group: icon  argument: cartouche  font: IsabelleText
-\<^url>                 code: 0x01F310  group: icon  argument: cartouche  font: IsabelleText
-\<^doc>                 code: 0x01F4D3  group: icon  argument: cartouche  font: IsabelleText
-\<^action>              code: 0x00261b  group: icon  argument: cartouche  font: IsabelleText
+\<open>                 code: 0x002039  group: punctuation  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: <<
+\<close>                code: 0x00203a  group: punctuation  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: >>
+\<^here>                code: 0x002302  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^undefined>           code: 0x002756  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^noindent>            code: 0x0021e4  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^smallskip>           code: 0x002508  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^medskip>             code: 0x002509  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^bigskip>             code: 0x002501  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^item>                code: 0x0025aa  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^enum>                code: 0x0025b8  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^descr>               code: 0x0027a7  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^footnote>            code: 0x00204b  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^verbatim>            code: 0x0025a9  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^theory_text>         code: 0x002b1a  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^emph>                code: 0x002217  group: document  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^bold>                code: 0x002759  group: control  argument: cartouche  group: document  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^sub>                 code: 0x0021e9  group: control  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^sup>                 code: 0x0021e7  group: control  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^bsub>                code: 0x0021d8  group: control_block  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: =_(
+\<^esub>                code: 0x0021d9  group: control_block  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: =_)
+\<^bsup>                code: 0x0021d7  group: control_block  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: =^(
+\<^esup>                code: 0x0021d6  group: control_block  font: Isabelle␣DejaVu␣Sans␣Mono  abbrev: =^)
+\<^file>                code: 0x01F5CF  group: icon  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^dir>                 code: 0x01F5C0  group: icon  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^url>                 code: 0x01F310  group: icon  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^doc>                 code: 0x01F4D3  group: icon  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
+\<^action>              code: 0x00261b  group: icon  argument: cartouche  font: Isabelle␣DejaVu␣Sans␣Mono
 \<^assert>
 \<^binding>             argument: cartouche
 \<^class>               argument: cartouche
