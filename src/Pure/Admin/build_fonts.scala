@@ -1,13 +1,13 @@
-/*  Title:      Pure/Admin/isabelle_fonts.scala
+/*  Title:      Pure/Admin/build_fonts.scala
     Author:     Makarius
 
-Construction of Isabelle fonts.
+Build of Isabelle fonts: Deja Vu + special symbols.
 */
 
 package isabelle
 
 
-object Isabelle_Fonts
+object Build_Fonts
 {
   /* relevant codepoint ranges */
 

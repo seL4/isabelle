@@ -166,11 +166,11 @@ class Regular_Tools extends Isabelle_Scala_Tools(
 class Admin_Tools extends Isabelle_Scala_Tools(
   Build_Cygwin.isabelle_tool,
   Build_Doc.isabelle_tool,
+  Build_Fonts.isabelle_tool,
   Build_JDK.isabelle_tool,
   Build_PolyML.isabelle_tool1,
   Build_PolyML.isabelle_tool2,
   Build_Status.isabelle_tool,
   Check_Sources.isabelle_tool,
-  Isabelle_Fonts.isabelle_tool,
   Remote_DMG.isabelle_tool,
   isabelle.vscode.Build_VSCode.isabelle_tool)

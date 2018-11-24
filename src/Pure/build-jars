@@ -12,6 +12,7 @@ declare -a SOURCES=(
   Admin/afp.scala
   Admin/build_cygwin.scala
   Admin/build_doc.scala
+  Admin/build_fonts.scala
   Admin/build_history.scala
   Admin/build_jdk.scala
   Admin/build_log.scala
@@ -22,7 +23,6 @@ declare -a SOURCES=(
   Admin/ci_profile.scala
   Admin/isabelle_cronjob.scala
   Admin/isabelle_devel.scala
-  Admin/isabelle_fonts.scala
   Admin/jenkins.scala
   Admin/other_isabelle.scala
   Admin/remote_dmg.scala
