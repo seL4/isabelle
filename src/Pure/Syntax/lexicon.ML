@@ -74,7 +74,7 @@ end;
 structure Lexicon: LEXICON =
 struct
 
-(** syntaxtic terms **)
+(** syntactic terms **)
 
 structure Syntax =
 struct
