@@ -29,6 +29,9 @@ sig
   val isabelle_body: string -> text list -> text list
   val theory_entry: string -> string
   val latexN: string
+  val latex_output: string -> string * int
+  val latex_markup: string * Properties.T -> Markup.output
+  val latex_indent: string -> int -> string
 end;
 
 structure Latex: LATEX =
@@ -241,7 +244,7 @@ fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, length_symbols syms) end;
 
-fun latex_markup (s, _) =
+fun latex_markup (s, _: Properties.T) =
   if s = Markup.commandN orelse s = Markup.keyword1N orelse s = Markup.keyword3N
   then ("\\isacommand{", "}")
   else if s = Markup.keyword2N
