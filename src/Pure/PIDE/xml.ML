@@ -44,7 +44,7 @@ sig
   val header: string
   val text: string -> string
   val element: string -> attributes -> string list -> string
-  val output_markup: Markup.T -> Output.output * Output.output
+  val output_markup: Markup.T -> Markup.output
   val string_of: tree -> string
   val pretty: int -> tree -> Pretty.T
   val output: tree -> BinIO.outstream -> unit

@@ -23,7 +23,7 @@ sig
   val default_indent: string -> int -> Output.output
   val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
-  val make_block: {markup: Output.output * Output.output, consistent: bool, indent: int} ->
+  val make_block: {markup: Markup.output, consistent: bool, indent: int} ->
     T list -> T
   val markup_block: {markup: Markup.T, consistent: bool, indent: int} -> T list -> T
   val str: string -> T
@@ -113,7 +113,7 @@ val add_indent = Buffer.add o output_spaces;
 val force_nat = Integer.max 0;
 
 abstype T =
-    Block of (Output.output * Output.output) * bool * int * T list * int
+    Block of Markup.output * bool * int * T list * int
       (*markup output, consistent, indentation, body, length*)
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
   | Str of Output.output * int  (*text, length*)

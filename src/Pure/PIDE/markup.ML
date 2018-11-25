@@ -225,9 +225,10 @@ sig
   val simp_trace_hintN: string
   val simp_trace_ignoreN: string
   val simp_trace_cancel: serial -> Properties.T
-  val no_output: Output.output * Output.output
-  val add_mode: string -> (T -> Output.output * Output.output) -> unit
-  val output: T -> Output.output * Output.output
+  type output = Output.output * Output.output
+  val no_output: output
+  val add_mode: string -> (T -> output) -> unit
+  val output: T -> output
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
   val markups: T list -> string -> string
@@ -696,6 +697,8 @@ fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, Value.pri
 
 
 (** print mode operations **)
+
+type output = Output.output * Output.output;
 
 val no_output = ("", "");
 
