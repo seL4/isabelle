@@ -46,7 +46,9 @@ body {
 .inner_numeral  { color: #FF0000; }
 .inner_quoted   { color: #FF00CC; }
 .inner_cartouche { color: #CC6600; }
-.inner_comment  { color: #CC0000; }
+.comment1       { color: #CC0000; }
+.comment2       { color: #FF8400; }
+.comment3       { color: #6600CC; }
 .dynamic        { color: #7BA428; }
 .class_parameter_color { color: #D2691E; }
 
