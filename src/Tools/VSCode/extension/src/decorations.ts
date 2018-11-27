@@ -52,7 +52,6 @@ const text_colors = [
   "inner_numeral",
   "inner_quoted",
   "inner_cartouche",
-  "inner_comment",
   "comment1",
   "comment2",
   "comment3",
