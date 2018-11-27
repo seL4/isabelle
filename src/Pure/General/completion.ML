@@ -12,7 +12,7 @@ sig
   val none: T
   val make: string * Position.T -> ((string -> bool) -> name list) -> T
   val encode: T -> XML.body
-  val markup_element: T -> Markup.T * XML.body
+  val markup_element: T -> (Markup.T * XML.body) option
   val markup_report: T list -> string
   val make_report: string * Position.T -> ((string -> bool) -> name list) -> string
   val suppress_abbrevs: string -> Markup.T list
@@ -57,12 +57,12 @@ fun encode completion =
 fun markup_element completion =
   let val {pos, names, ...} = dest completion in
     if Position.is_reported pos andalso not (null names) then
-      (Position.markup pos Markup.completion, encode completion)
-    else (Markup.empty, [])
+      SOME (Position.markup pos Markup.completion, encode completion)
+    else NONE
   end;
 
 val markup_report =
-  map (markup_element #> XML.Elem) #> YXML.string_of_body #> Markup.markup_report;
+  map_filter markup_element #> map XML.Elem #> YXML.string_of_body #> Markup.markup_report;
 
 val make_report = markup_report oo (single oo make);
 
