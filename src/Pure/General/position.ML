@@ -238,7 +238,7 @@ fun here pos =
       | (NONE, SOME name) => (" ", "(file " ^ quote name ^ ")")
       | _ => if is_reported pos then ("", "\092<^here>") else ("", ""));
   in
-    if null props then ""
+    if s2 = "" then ""
     else s1 ^ Markup.markup (Markup.properties props Markup.position) s2
   end;
 
