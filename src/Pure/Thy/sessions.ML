@@ -22,7 +22,7 @@ local
 val global =
   Parse.$$$ "(" -- Parse.!!! (Parse.$$$ "global" -- Parse.$$$ ")") >> K true || Scan.succeed false;
 
-val theory_entry = Parse.position Parse.theory_name --| global;
+val theory_entry = Parse.theory_name --| global;
 
 val theories =
   Parse.$$$ "theories" |-- Parse.!!! (Scan.optional Parse.options [] -- Scan.repeat1 theory_entry);
@@ -46,15 +46,15 @@ val command_parser =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.name --| Parse.$$$ ")")) [] --
   Scan.optional (Parse.$$$ "in" |-- Parse.!!! (Parse.position Parse.path)) (".", Position.none) --
   (Parse.$$$ "=" |--
-    Parse.!!! (Scan.option (Parse.position Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
+    Parse.!!! (Scan.option (Parse.session_name --| Parse.!!! (Parse.$$$ "+")) --
       Scan.optional (Parse.$$$ "description" |-- Parse.!!! (Parse.input Parse.text)) Input.empty --
       Scan.optional (Parse.$$$ "options" |-- Parse.!!! Parse.options) [] --
       Scan.optional (Parse.$$$ "sessions" |--
-        Parse.!!! (Scan.repeat1 (Parse.position Parse.session_name))) [] --
+        Parse.!!! (Scan.repeat1 Parse.session_name)) [] --
       Scan.repeat theories --
       Scan.repeat document_files --
       Scan.repeat export_files))
-  >> (fn (((session, _), dir),
+  >> (fn ((((session, _), _), dir),
           (((((((parent, descr), options), sessions), theories), document_files), export_files))) =>
     Toplevel.keep (fn state =>
       let

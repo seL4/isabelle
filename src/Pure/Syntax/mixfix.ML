@@ -87,7 +87,7 @@ fun reset_pos NoSyn = NoSyn
 
 local
 
-val quoted = Pretty.quote o Pretty.str o Input.source_content;
+val quoted = Pretty.quote o Pretty.str o #1 o Input.source_content;
 val keyword = Pretty.keyword2;
 val parens = Pretty.enclose "(" ")";
 val brackets = Pretty.enclose "[" "]";

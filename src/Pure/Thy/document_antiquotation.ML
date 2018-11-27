@@ -128,7 +128,7 @@ fun setup_option name opt thy = thy
 local
 
 val property =
-  Parse.position Parse.name -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.name) "";
+  Parse.name_position -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.name) "";
 
 val properties =
   Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.enum "," property --| Parse.$$$ "]")) [];

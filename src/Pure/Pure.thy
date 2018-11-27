@@ -225,13 +225,13 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>attribute_setup\<close> "define attribute in ML"
-    (Parse.position Parse.name --
+    (Parse.name_position --
         Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Attrib.attribute_setup name txt cmt));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>method_setup\<close> "define proof method in ML"
-    (Parse.position Parse.name --
+    (Parse.name_position --
         Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Method.method_setup name txt cmt));
 
@@ -247,7 +247,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>simproc_setup\<close> "define simproc in ML"
-    (Parse.position Parse.name --
+    (Parse.name_position --
       (\<^keyword>\<open>(\<close> |-- Parse.enum1 "|" Parse.term --| \<^keyword>\<open>)\<close> --| \<^keyword>\<open>=\<close>) --
       Parse.ML_source >> (fn ((a, b), c) => Isar_Cmd.simproc_setup a b c));
 
@@ -403,12 +403,12 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>alias\<close> "name-space alias for constant"
-    (Parse.binding -- (Parse.!!! \<^keyword>\<open>=\<close> |-- Parse.position Parse.name)
+    (Parse.binding -- (Parse.!!! \<^keyword>\<open>=\<close> |-- Parse.name_position)
       >> Specification.alias_cmd);
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>type_alias\<close> "name-space alias for type constructor"
-    (Parse.binding -- (Parse.!!! \<^keyword>\<open>=\<close> |-- Parse.position Parse.name)
+    (Parse.binding -- (Parse.!!! \<^keyword>\<open>=\<close> |-- Parse.name_position)
       >> Specification.type_alias_cmd);
 
 in end\<close>
@@ -529,7 +529,7 @@ val _ =
 
 val _ =
   hide_names \<^command_keyword>\<open>hide_fact\<close> "facts" Global_Theory.hide_fact
-    (Parse.position Parse.name) (Global_Theory.check_fact o Proof_Context.theory_of);
+    Parse.name_position (Global_Theory.check_fact o Proof_Context.theory_of);
 
 in end\<close>
 
@@ -549,17 +549,17 @@ val _ =
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>unbundle\<close>
     "activate declarations from bundle in local theory"
-    (Scan.repeat1 (Parse.position Parse.name) >> Bundle.unbundle_cmd);
+    (Scan.repeat1 Parse.name_position >> Bundle.unbundle_cmd);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>include\<close>
     "activate declarations from bundle in proof body"
-    (Scan.repeat1 (Parse.position Parse.name) >> (Toplevel.proof o Bundle.include_cmd));
+    (Scan.repeat1 Parse.name_position >> (Toplevel.proof o Bundle.include_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>including\<close>
     "activate declarations from bundle in goal refinement"
-    (Scan.repeat1 (Parse.position Parse.name) >> (Toplevel.proof o Bundle.including_cmd));
+    (Scan.repeat1 Parse.name_position >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_bundles\<close>
@@ -578,8 +578,7 @@ local
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>context\<close> "begin local theory context"
-    ((Parse.position Parse.name >> (fn name =>
-        Toplevel.begin_local_theory true (Named_Target.begin name)) ||
+    ((Parse.name_position >> (Toplevel.begin_local_theory true o Named_Target.begin) ||
       Scan.optional Parse_Spec.includes [] -- Scan.repeat Parse_Spec.context_element
         >> (fn (incls, elems) => Toplevel.open_target (#2 o Bundle.context_cmd incls elems)))
       --| Parse.begin);
@@ -637,7 +636,7 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>sublocale\<close>
     "prove sublocale relation between a locale and a locale expression"
-    ((Parse.position Parse.name --| (\<^keyword>\<open>\<subseteq>\<close> || \<^keyword>\<open><\<close>) --
+    ((Parse.name_position --| (\<^keyword>\<open>\<subseteq>\<close> || \<^keyword>\<open><\<close>) --
       interpretation_args_with_defs >> (fn (loc, (expr, defs)) =>
         Toplevel.theory_to_proof (Interpretation.global_sublocale_cmd loc expr defs)))
     || interpretation_args_with_defs >> (fn (expr, defs) =>
@@ -838,10 +837,9 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>case\<close> "invoke local context"
     (Parse_Spec.opt_thm_name ":" --
-      (\<^keyword>\<open>(\<close> |--
-        Parse.!!! (Parse.position Parse.name -- Scan.repeat (Parse.maybe Parse.binding)
+      (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.name_position -- Scan.repeat (Parse.maybe Parse.binding)
           --| \<^keyword>\<open>)\<close>) ||
-        Parse.position Parse.name >> rpair []) >> (Toplevel.proof o Proof.case_cmd));
+        Parse.name_position >> rpair []) >> (Toplevel.proof o Proof.case_cmd));
 
 in end\<close>
 
@@ -960,7 +958,7 @@ val for_params =
   Scan.optional
     (\<^keyword>\<open>for\<close> |--
       Parse.!!! ((Scan.option Parse.dots >> is_some) --
-        (Scan.repeat1 (Parse.position (Parse.maybe Parse.name)))))
+        (Scan.repeat1 (Parse.maybe_position Parse.name_position))))
     (false, []);
 
 val _ =
@@ -1100,7 +1098,7 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_locale\<close>
     "print locale of this theory"
-    (Parse.opt_bang -- Parse.position Parse.name >> (fn (show_facts, raw_name) =>
+    (Parse.opt_bang -- Parse.name_position >> (fn (show_facts, raw_name) =>
       Toplevel.keep (fn state =>
         let
           val thy = Toplevel.theory_of state;
@@ -1110,7 +1108,7 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_interps\<close>
     "print interpretations of locale for this theory or proof context"
-    (Parse.position Parse.name >> (fn raw_name =>
+    (Parse.name_position >> (fn raw_name =>
       Toplevel.keep (fn state =>
         let
           val ctxt = Toplevel.context_of state;
@@ -1235,8 +1233,8 @@ ML \<open>
 local
 
 val theory_bounds =
-  Parse.position Parse.theory_name >> single ||
-  (\<^keyword>\<open>(\<close> |-- Parse.enum "|" (Parse.position Parse.theory_name) --| \<^keyword>\<open>)\<close>);
+  Parse.theory_name >> single ||
+  (\<^keyword>\<open>(\<close> |-- Parse.enum "|" Parse.theory_name --| \<^keyword>\<open>)\<close>);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>thy_deps\<close> "visualize theory dependencies"
@@ -1262,8 +1260,7 @@ val _ =
           (Attrib.eval_thms (Toplevel.context_of st) args))));
 
 
-val thy_names =
-  Scan.repeat1 (Scan.unless Parse.minus (Parse.position Parse.theory_name));
+val thy_names = Scan.repeat1 (Scan.unless Parse.minus Parse.theory_name);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>unused_thms\<close> "find unused theorems"

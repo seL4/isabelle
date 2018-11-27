@@ -17,7 +17,8 @@ sig
   val cartouche_content: Symbol_Pos.T list -> source
   val reset_pos: source -> source
   val source_explode: source -> Symbol_Pos.T list
-  val source_content: source -> string
+  val source_content_range: source -> string * Position.range
+  val source_content: source -> string * Position.T
   val equal_content: source * source -> bool
 end;
 
@@ -56,9 +57,13 @@ fun reset_pos (Source {delimited, text, ...}) = source delimited text Position.n
 fun source_explode (Source {text, range = (pos, _), ...}) =
   Symbol_Pos.explode (text, pos);
 
-val source_content = source_explode #> Symbol_Pos.content;
+fun source_content_range source =
+  let val syms = source_explode source
+  in (Symbol_Pos.content syms, Symbol_Pos.range syms) end;
 
-val equal_content = (op =) o apply2 source_content;
+val source_content = source_content_range #> apsnd #1;
+
+val equal_content = (op =) o apply2 (source_explode #> Symbol_Pos.content);
 
 end;
 

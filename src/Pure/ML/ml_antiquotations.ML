@@ -41,18 +41,18 @@ val _ = Theory.setup
 
 val _ = Theory.setup
  (ML_Antiquotation.value \<^binding>\<open>system_option\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Completion.check_option (Options.default ()) ctxt (name, pos) |> ML_Syntax.print_string))) #>
 
   ML_Antiquotation.value \<^binding>\<open>theory\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Theory.check {long = false} ctxt (name, pos);
        "Context.get_theory {long = false} (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))
     || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
   ML_Antiquotation.value \<^binding>\<open>theory_context\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Theory.check {long = false} ctxt (name, pos);
        "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))) #>
@@ -74,7 +74,7 @@ val _ = Theory.setup
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   ML_Antiquotation.inline \<^binding>\<open>method\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
 
 
@@ -82,7 +82,7 @@ val _ = Theory.setup
 
 val _ = Theory.setup
  (ML_Antiquotation.inline \<^binding>\<open>locale\<close>
-   (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (name, pos)) =>
+   (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       Locale.check (Proof_Context.theory_of ctxt) (name, pos)
       |> ML_Syntax.print_string)));
 
@@ -105,9 +105,11 @@ val _ = Theory.setup
 
 (* type constructors *)
 
-fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax)
-  >> (fn (ctxt, (s, pos)) =>
+fun type_name kind check = Args.context -- Scan.lift Args.embedded_token
+  >> (fn (ctxt, tok) =>
     let
+      val s = Token.inner_syntax_of tok;
+      val (_, pos) = Input.source_content (Token.input_of tok);
       val Type (c, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s;
       val decl = Type.the_decl (Proof_Context.tsig_of ctxt) (c, pos);
       val res =
@@ -129,9 +131,11 @@ val _ = Theory.setup
 
 (* constants *)
 
-fun const_name check = Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax)
-  >> (fn (ctxt, (s, pos)) =>
+fun const_name check = Args.context -- Scan.lift Args.embedded_token
+  >> (fn (ctxt, tok) =>
     let
+      val s = Token.inner_syntax_of tok;
+      val (_, pos) = Input.source_content (Token.input_of tok);
       val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} ctxt s;
       val res = check (Proof_Context.consts_of ctxt, c)
         handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
@@ -146,7 +150,7 @@ val _ = Theory.setup
     (const_name (fn (_, c) => Lexicon.mark_const c)) #>
 
   ML_Antiquotation.inline \<^binding>\<open>syntax_const\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded) >> (fn (ctxt, (c, pos)) =>
+    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (c, pos)) =>
       if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
       then ML_Syntax.print_string c
       else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
@@ -249,14 +253,15 @@ end;
 
 val _ = Theory.setup
  (ML_Antiquotation.value \<^binding>\<open>keyword\<close>
-    (Args.context -- Scan.lift (Parse.position (Parse.embedded || Parse.keyword_with (K true)))
+    (Args.context --
+      Scan.lift (Parse.embedded_position || Parse.position (Parse.keyword_with (K true)))
       >> (fn (ctxt, (name, pos)) =>
         if Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name then
           (Context_Position.report ctxt pos (Token.keyword_markup (true, Markup.keyword2) name);
            "Parse.$$$ " ^ ML_Syntax.print_string name)
         else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
   ML_Antiquotation.value \<^binding>\<open>command_keyword\<close>
-    (Args.context -- Scan.lift (Parse.position Parse.embedded) >> (fn (ctxt, (name, pos)) =>
+    (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, (name, pos)) =>
       (case Keyword.command_markup (Thy_Header.get_keywords' ctxt) name of
         SOME markup =>
          (Context_Position.reports ctxt [(pos, markup), (pos, Markup.keyword1)];

@@ -104,7 +104,7 @@ fun declare binding descr lthy =
 
 val _ = Theory.setup
   (ML_Antiquotation.inline \<^binding>\<open>named_theorems\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded) >>
+    (Args.context -- Scan.lift Args.embedded_position >>
       (fn (ctxt, name) => ML_Syntax.print_string (check ctxt name))));
 
 end;

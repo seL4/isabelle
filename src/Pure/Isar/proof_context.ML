@@ -460,7 +460,7 @@ fun check_class ctxt (xname, pos) =
 fun read_class ctxt text =
   let
     val source = Syntax.read_input text;
-    val (c, reports) = check_class ctxt (Input.source_content source, Input.pos_of source);
+    val (c, reports) = check_class ctxt (Input.source_content source);
     val _ = Position.reports reports;
   in c end;
 
@@ -525,8 +525,7 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
 fun read_type_name ctxt flags text =
   let
     val source = Syntax.read_input text;
-    val (T, reports) =
-      check_type_name ctxt flags (Input.source_content source, Input.pos_of source);
+    val (T, reports) = check_type_name ctxt flags (Input.source_content source);
     val _ = Position.reports reports;
   in T end;
 
@@ -573,7 +572,8 @@ fun check_const {proper, strict} ctxt (c, ps) =
 fun read_const ctxt flags text =
   let
     val source = Syntax.read_input text;
-    val (t, reports) = check_const ctxt flags (Input.source_content source, [Input.pos_of source]);
+    val (c, pos) = Input.source_content source;
+    val (t, reports) = check_const ctxt flags (c, [pos]);
     val _ = Position.reports reports;
   in t end;
 

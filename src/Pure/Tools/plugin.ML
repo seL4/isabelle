@@ -41,8 +41,7 @@ fun check ctxt =
 
 val _ = Theory.setup
   (ML_Antiquotation.inline \<^binding>\<open>plugin\<close>
-    (Args.context -- Scan.lift (Parse.position Args.embedded)
-      >> (ML_Syntax.print_string o uncurry check)));
+    (Args.context -- Scan.lift Args.embedded_position >> (ML_Syntax.print_string o uncurry check)));
 
 
 (* indirections *)
@@ -79,7 +78,7 @@ fun make_filter (ctxt: Proof.context) f : filter = f ctxt;
 val parse_filter =
   Parse.position (Parse.reserved "plugins") --
     Parse.position (Parse.reserved "only" >> K I || Parse.reserved "del" >> K not) --
-    (Parse.$$$ ":" |-- Scan.repeat (Parse.position Parse.name)) >>
+    (Parse.$$$ ":" |-- Scan.repeat Parse.name_position) >>
       (fn (((_, pos1), (modif, pos2)), args) => fn ctxt =>
         let
           val thy = Proof_Context.theory_of ctxt;

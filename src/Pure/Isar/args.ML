@@ -24,6 +24,7 @@ sig
   val maybe: 'a parser -> 'a option parser
   val name_token: Token.T parser
   val name: string parser
+  val name_position: (string * Position.T) parser
   val cartouche_inner_syntax: string parser
   val cartouche_input: Input.source parser
   val text_token: Token.T parser
@@ -31,6 +32,7 @@ sig
   val embedded_inner_syntax: string parser
   val embedded_input: Input.source parser
   val embedded: string parser
+  val embedded_position: (string * Position.T) parser
   val text_input: Input.source parser
   val text: string parser
   val binding: binding parser
@@ -107,6 +109,7 @@ fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val name_token = ident || string;
 val name = name_token >> Token.content_of;
+val name_position = name_token >> (Input.source_content o Token.input_of);
 
 val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
@@ -116,12 +119,13 @@ val embedded_token = ident || string || cartouche;
 val embedded_inner_syntax = embedded_token >> Token.inner_syntax_of;
 val embedded_input = embedded_token >> Token.input_of;
 val embedded = embedded_token >> Token.content_of;
+val embedded_position = embedded_input >> Input.source_content;
 
 val text_token = embedded_token || Parse.token Parse.verbatim;
 val text_input = text_token >> Token.input_of;
 val text = text_token >> Token.content_of;
 
-val binding = Parse.position name >> Binding.make;
+val binding = Parse.input name >> (Binding.make o Input.source_content);
 val alt_name = alt_string >> Token.content_of;
 val liberal_name = (symbolic >> Token.content_of) || name;
 

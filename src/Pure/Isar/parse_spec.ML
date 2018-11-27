@@ -82,7 +82,7 @@ val constdecl =
 
 (* locale and context elements *)
 
-val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.name));
+val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 Parse.name_position);
 
 val locale_fixes =
   Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- Parse.mixfix
@@ -131,7 +131,7 @@ val class_expression = plus1_unless locale_keyword Parse.class;
 
 val locale_expression =
   let
-    val expr2 = Parse.position Parse.name;
+    val expr2 = Parse.name_position;
     val expr1 =
       locale_prefix -- expr2 --
       instance >> (fn ((p, l), i) => (l, (p, i)));

@@ -130,7 +130,7 @@ local
 
 fun imports name =
   if name = Context.PureN then Scan.succeed []
-  else Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 (Parse.position Parse.theory_name));
+  else Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 Parse.theory_name);
 
 val opt_files =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
@@ -140,7 +140,7 @@ val keyword_spec =
     (Parse.name -- opt_files -- Parse.tags);
 
 val keyword_decl =
-  Scan.repeat1 (Parse.position Parse.string) --
+  Scan.repeat1 Parse.string_position --
   Scan.optional (Parse.$$$ "::" |-- Parse.!!! keyword_spec) Keyword.no_spec
   >> (fn (names, spec) => map (rpair spec) names);
 
@@ -154,7 +154,7 @@ val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 in
 
 val args =
-  Parse.position Parse.theory_name :|-- (fn (name, pos) =>
+  Parse.theory_name :|-- (fn (name, pos) =>
     imports name --
     Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
     (Scan.optional (Parse.$$$ abbrevsN |-- Parse.!!! abbrevs) [] -- Parse.$$$ beginN)

@@ -1014,7 +1014,7 @@ fun lifting_forget_cmd bundle_name lthy =
 val _ =
   Outer_Syntax.local_theory @{command_keyword lifting_forget} 
     "unsetup Lifting and Transfer for the given lifting bundle"
-    (Parse.position Parse.name >> lifting_forget_cmd)
+    (Parse.name_position >> lifting_forget_cmd)
 
 (* lifting_update *)
 
@@ -1043,6 +1043,6 @@ fun lifting_update_cmd bundle_name lthy =
 val _ =
   Outer_Syntax.local_theory @{command_keyword lifting_update}
     "add newly introduced transfer rules to a bundle storing the state of Lifting and Transfer"
-    (Parse.position Parse.name >> lifting_update_cmd)
+    (Parse.name_position >> lifting_update_cmd)
 
 end

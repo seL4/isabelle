@@ -508,7 +508,7 @@ ML_val \<open>
     fun check s1 s2 =
       read s1 aconv read s2 orelse
         error ("Check failed: " ^
-          quote (Input.source_content s1) ^ Position.here_list [Input.pos_of s1, Input.pos_of s2]);
+          quote (#1 (Input.source_content s1)) ^ Position.here_list [Input.pos_of s1, Input.pos_of s2]);
   in
     check \<open>[(x,y,z). b]\<close> \<open>if b then [(x, y, z)] else []\<close>;
     check \<open>[(x,y,z). (x,_,y)\<leftarrow>xs]\<close> \<open>map (\<lambda>(x,_,y). (x, y, z)) xs\<close>;

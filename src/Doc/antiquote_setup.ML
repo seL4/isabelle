@@ -71,7 +71,7 @@ fun ml_name txt =
   | _ => error ("Single ML name expected in input: " ^ quote txt));
 
 fun prep_ml source =
-  (Input.source_content source, ML_Lex.read_source source);
+  (#1 (Input.source_content source), ML_Lex.read_source source);
 
 fun index_ml name kind ml = Thy_Output.antiquotation_raw name
   (Scan.lift (Args.text_input -- Scan.option (Args.colon |-- Args.text_input)))
@@ -153,7 +153,7 @@ fun entity check markup binding index =
   Thy_Output.antiquotation_raw
     (binding |> Binding.map_name (fn name => name ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref")))
-    (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Parse.position Args.name))
+    (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name_position))
     (fn ctxt => fn (logic, (name, pos)) =>
       let
         val kind = translate (fn "_" => " " | c => c) (Binding.name_of binding);

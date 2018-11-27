@@ -28,6 +28,7 @@ sig
   val number: string parser
   val float_number: string parser
   val string: string parser
+  val string_position: (string * Position.T) parser
   val alt_string: string parser
   val verbatim: string parser
   val cartouche: string parser
@@ -40,6 +41,7 @@ sig
   val reserved: string -> string parser
   val underscore: string parser
   val maybe: 'a parser -> 'a option parser
+  val maybe_position: ('a * Position.T) parser -> ('a option * Position.T) parser
   val tag_name: string parser
   val tags: string list parser
   val opt_keyword: string -> bool parser
@@ -63,12 +65,15 @@ sig
   val list1: 'a parser -> 'a list parser
   val properties: Properties.T parser
   val name: string parser
+  val name_range: (string * Position.range) parser
+  val name_position: (string * Position.T) parser
   val binding: binding parser
   val embedded: string parser
+  val embedded_position: (string * Position.T) parser
   val text: string parser
   val path: string parser
-  val session_name: string parser
-  val theory_name: string parser
+  val session_name: (string * Position.T) parser
+  val theory_name: (string * Position.T) parser
   val liberal_name: string parser
   val parname: string parser
   val parbinding: binding parser
@@ -110,8 +115,6 @@ sig
   val thm_sel: Facts.interval list parser
   val thm: (Facts.ref * Token.src list) parser
   val thms1: (Facts.ref * Token.src list) list parser
-  val option_name: string parser
-  val option_value: string parser
   val options: ((string * Position.T) * (string * Position.T)) list parser
 end;
 
@@ -218,6 +221,7 @@ val minus = sym_ident :-- (fn "-" => Scan.succeed () | _ => Scan.fail) >> #1;
 
 val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
 fun maybe scan = underscore >> K NONE || scan >> SOME;
+fun maybe_position scan = position (underscore >> K NONE) || scan >> apfst SOME;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
 val int = Scan.optional (minus >> K ~1) 1 -- nat >> op *;
@@ -265,19 +269,26 @@ val name =
   group (fn () => "name")
     (short_ident || long_ident || sym_ident || number || string);
 
-val binding = position name >> Binding.make;
+val name_range = input name >> Input.source_content_range;
+val name_position = input name >> Input.source_content;
+
+val string_position = input string >> Input.source_content;
+
+val binding = name_position >> Binding.make;
 
 val embedded =
   group (fn () => "embedded content")
     (cartouche || string || short_ident || long_ident || sym_ident ||
       term_var || type_ident || type_var || number);
 
+val embedded_position = input embedded >> Input.source_content;
+
 val text = group (fn () => "text") (embedded || verbatim);
 
 val path = group (fn () => "file name/path specification") embedded;
 
-val session_name = group (fn () => "session name") name;
-val theory_name = group (fn () => "theory name") name;
+val session_name = group (fn () => "session name") name_position;
+val theory_name = group (fn () => "theory name") name_position;
 
 val liberal_name = keyword_with Token.ident_or_symbolic || name;
 
@@ -413,7 +424,7 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 val private = position ($$$ "private") >> #2;
 val qualified = position ($$$ "qualified") >> #2;
 
-val target = ($$$ "(" -- $$$ "in") |-- !!! (position name --| $$$ ")");
+val target = ($$$ "(" -- $$$ "in") |-- !!! (name_position --| $$$ ")");
 val opt_target = Scan.option target;
 
 
@@ -467,18 +478,18 @@ val thm_sel = $$$ "(" |-- list1
 val thm =
   $$$ "[" |-- attribs --| $$$ "]" >> pair (Facts.named "") ||
   (literal_fact >> Facts.Fact ||
-    position name -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
+    name_position -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
 
 val thms1 = Scan.repeat1 thm;
 
 
 (* options *)
 
-val option_name = group (fn () => "option name") name;
+val option_name = group (fn () => "option name") name_position;
 val option_value = group (fn () => "option value") ((token real || token name) >> Token.content_of);
 
 val option =
-  position option_name :-- (fn (_, pos) =>
+  option_name :-- (fn (_, pos) =>
     Scan.optional ($$$ "=" |-- !!! (position option_value)) ("true", pos));
 
 val options = $$$ "[" |-- list1 option --| $$$ "]";

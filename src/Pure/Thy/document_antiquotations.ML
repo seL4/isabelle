@@ -47,12 +47,11 @@ fun pretty_abbrev ctxt s =
   in Proof_Context.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_locale ctxt (name, pos) =
-  let
-    val thy = Proof_Context.theory_of ctxt
-  in (Pretty.str o Locale.extern thy o Locale.check thy) (name, pos) end;
+  let val thy = Proof_Context.theory_of ctxt
+  in Pretty.str (Locale.extern thy (Locale.check thy (name, pos))) end;
 
-fun pretty_class ctxt =
-  Pretty.str o Proof_Context.extern_class ctxt o Proof_Context.read_class ctxt;
+fun pretty_class ctxt s =
+  Pretty.str (Proof_Context.extern_class ctxt (Proof_Context.read_class ctxt s));
 
 fun pretty_type ctxt s =
   let val Type (name, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s
@@ -80,10 +79,10 @@ val _ = Theory.setup
   basic_entity \<^binding>\<open>const\<close> (Args.const {proper = true, strict = false}) pretty_const #>
   basic_entity \<^binding>\<open>abbrev\<close> (Scan.lift Args.embedded_inner_syntax) pretty_abbrev #>
   basic_entity \<^binding>\<open>typ\<close> Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity \<^binding>\<open>locale\<close> (Scan.lift (Parse.position Args.embedded)) pretty_locale #>
+  basic_entity \<^binding>\<open>locale\<close> (Scan.lift Args.embedded_position) pretty_locale #>
   basic_entity \<^binding>\<open>class\<close> (Scan.lift Args.embedded_inner_syntax) pretty_class #>
-  basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded) pretty_type #>
-  basic_entity \<^binding>\<open>theory\<close> (Scan.lift (Parse.position Args.embedded)) pretty_theory #>
+  basic_entity \<^binding>\<open>type\<close> (Scan.lift Args.embedded_inner_syntax) pretty_type #>
+  basic_entity \<^binding>\<open>theory\<close> (Scan.lift Args.embedded_position) pretty_theory #>
   basic_entities \<^binding>\<open>prf\<close> Attrib.thms (pretty_prf false) #>
   basic_entities \<^binding>\<open>full_prf\<close> Attrib.thms (pretty_prf true) #>
   Document_Antiquotation.setup \<^binding>\<open>thm\<close> (Term_Style.parse -- Attrib.thms)
@@ -156,7 +155,7 @@ fun report_text ctxt text =
     (Markup.language_text (Input.is_delimited text));
 
 fun prepare_text ctxt =
-  Input.source_content #> Document_Antiquotation.prepare_lines ctxt;
+  Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
 
 fun text_antiquotation name =
   Thy_Output.antiquotation_raw name (Scan.lift Args.text_input)
@@ -250,7 +249,7 @@ val _ = Theory.setup
         val _ =
           Context_Position.report ctxt (Input.pos_of text)
             (Markup.language_verbatim (Input.is_delimited text));
-      in Input.source_content text end));
+      in #1 (Input.source_content text) end));
 
 
 (* ML text *)
@@ -261,7 +260,7 @@ fun ml_text name ml =
   Thy_Output.antiquotation_verbatim name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let val _ = ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of text) (ml text)
-      in Input.source_content text end);
+      in #1 (Input.source_content text) end);
 
 fun ml_enclose bg en source =
   ML_Lex.read bg @ ML_Lex.read_source source @ ML_Lex.read en;
@@ -278,7 +277,7 @@ val _ = Theory.setup
   ml_text \<^binding>\<open>ML_functor\<close>   (* FIXME formal treatment of functor name (!?) *)
     (fn source =>
       ML_Lex.read ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (Input.source_content source))) #>
+        ML_Syntax.print_string (#1 (Input.source_content source)))) #>
 
   ml_text \<^binding>\<open>ML_text\<close> (K []));
 
@@ -288,7 +287,7 @@ end;
 (* URLs *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw \<^binding>\<open>url\<close> (Scan.lift (Parse.position Parse.embedded))
+  (Thy_Output.antiquotation_raw \<^binding>\<open>url\<close> (Scan.lift Args.embedded_position)
     (fn ctxt => fn (url, pos) =>
       let val _ = Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url url)]
       in Latex.enclose_block "\\url{" "}" [Latex.string url] end));
@@ -299,7 +298,7 @@ val _ = Theory.setup
 local
 
 fun entity_antiquotation name check bg en =
-  Thy_Output.antiquotation_raw name (Scan.lift (Parse.position Args.name))
+  Thy_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
       in Latex.enclose_block bg en [Latex.string (Output.output name)] end);

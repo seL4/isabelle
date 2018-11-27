@@ -41,7 +41,7 @@ val _ = Theory.setup
   inline (Binding.make ("make_string", \<^here>)) (Args.context >> K ML_Pretty.make_string_fn) #>
 
   value (Binding.make ("binding", \<^here>))
-    (Scan.lift (Parse.position Args.embedded) >> ML_Syntax.make_binding) #>
+    (Scan.lift (Parse.input Args.embedded) >> (ML_Syntax.make_binding o Input.source_content)) #>
 
   value (Binding.make ("cartouche", \<^here>))
     (Scan.lift Args.cartouche_input >> (fn source =>

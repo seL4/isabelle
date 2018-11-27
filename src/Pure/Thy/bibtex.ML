@@ -43,8 +43,7 @@ val _ =
    (Document_Antiquotation.setup_option \<^binding>\<open>cite_macro\<close> (Config.put cite_macro) #>
     Thy_Output.antiquotation_raw \<^binding>\<open>cite\<close>
       (Scan.lift
-        (Scan.option (Parse.verbatim || Parse.cartouche) --
-         Parse.and_list1 (Parse.position Args.name)))
+        (Scan.option (Parse.verbatim || Parse.cartouche) -- Parse.and_list1 Args.name_position))
       (fn ctxt => fn (opt, citations) =>
         let
           val thy = Proof_Context.theory_of ctxt;

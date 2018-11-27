@@ -253,7 +253,8 @@ fun add_del add del = Scan.lift (Args.add >> K add || Args.del >> K del || Scan.
 
 local
 
-val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
+val fact_name =
+  Parse.position Args.internal_fact >> (fn (_, pos) => ("<fact>", pos)) || Args.name_position;
 
 fun gen_thm pick = Scan.depend (fn context =>
   let
@@ -271,7 +272,7 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
-     Scan.ahead (Parse.position fact_name -- Scan.option Parse.thm_sel) :|--
+     Scan.ahead (fact_name -- Scan.option Parse.thm_sel) :|--
       (fn ((name, pos), sel) =>
         Args.named_fact (get_named (is_some sel) pos) --| Scan.option Parse.thm_sel
           >> (fn fact => (name, Facts.Named ((name, pos), sel), fact))))
