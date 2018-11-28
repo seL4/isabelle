@@ -22,6 +22,18 @@ object Isabelle_Fonts
 
   /* environment entries */
 
+  object Entry
+  {
+    object Ordering extends scala.math.Ordering[Entry]
+    {
+      def compare(entry1: Entry, entry2: Entry): Int =
+        entry1.family compare entry2.family match {
+          case 0 => entry1.style compare entry2.style
+          case ord => ord
+        }
+    }
+  }
+
   sealed case class Entry(path: Path, html: Boolean = false)
   {
     def bytes: Bytes = Bytes.read(path)
@@ -29,13 +41,17 @@ object Isabelle_Fonts
     lazy val font: Font = Font.createFont(Font.TRUETYPE_FONT, path.file)
     def family: String = font.getFamily
     def name: String = font.getFontName
+    def style: Int =
+      (if (is_bold) Font.BOLD else 0) +
+      (if (is_italic) Font.ITALIC else 0)
 
-    // educated guessing
+    // educated guess for style: Font.createFont always produces Font.PLAIN
     private lazy val name_lowercase = Word.lowercase(name)
     def is_bold: Boolean =
       name_lowercase.containsSlice("bold")
     def is_italic: Boolean =
-      name_lowercase.containsSlice("italic") || name_lowercase.containsSlice("oblique")
+      name_lowercase.containsSlice("italic") ||
+      name_lowercase.containsSlice("oblique")
   }
 
   def make_entries(
@@ -46,7 +62,8 @@ object Isabelle_Fonts
     (if (html) Path.split(getenv("ISABELLE_FONTS_HTML")).map(Entry(_, html = true)) else Nil)
   }
 
-  private lazy val all_fonts: List[Entry] = make_entries(html = true)
+  private lazy val all_fonts: List[Entry] =
+    make_entries(html = true).sorted(Entry.Ordering)
 
   def fonts(html: Boolean = false): List[Entry] =
     if (html) all_fonts else all_fonts.filter(entry => !entry.html)
