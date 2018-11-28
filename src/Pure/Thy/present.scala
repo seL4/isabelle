@@ -117,7 +117,7 @@ object Present
     def output_document(title: String, body: XML.Body): String =
       HTML.output_document(
         List(
-          HTML.style(HTML.fonts_css(fonts_url) + File.read(HTML.isabelle_css)),
+          HTML.style(HTML.fonts_css(fonts_url) + "\n\n" + File.read(HTML.isabelle_css)),
           HTML.title(title)),
         List(HTML.source(body)), css = "", structural = false)
 

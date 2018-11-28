@@ -368,7 +368,8 @@ object HTML
         (if (entry.is_italic) List("  font-style: italic;") else Nil) :::
         List("}"))
 
-    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(html = true).map(font_face(_))).mkString("\n\n")
+    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(html = true).map(font_face(_)))
+      .mkString("", "\n\n", "\n")
   }
 
 
@@ -379,7 +380,7 @@ object HTML
   def write_isabelle_css(dir: Path, make_url: String => String = fonts_dir("fonts"))
   {
     File.write(dir + isabelle_css.base,
-      fonts_css(make_url) + "\n\n\n" + File.read(isabelle_css))
+      fonts_css(make_url) + "\n\n" + File.read(isabelle_css))
   }
 
   def init_dir(dir: Path)
