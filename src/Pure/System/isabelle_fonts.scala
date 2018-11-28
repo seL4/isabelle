@@ -36,9 +36,9 @@ object Isabelle_Fonts
 
   sealed case class Entry(path: Path, html: Boolean = false)
   {
-    def bytes: Bytes = Bytes.read(path)
-
+    lazy val bytes: Bytes = Bytes.read(path)
     lazy val font: Font = Font.createFont(Font.TRUETYPE_FONT, path.file)
+
     def family: String = font.getFamily
     def name: String = font.getFontName
     def style: Int =

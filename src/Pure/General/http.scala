@@ -154,14 +154,18 @@ object HTTP
 
   /* fonts */
 
-  private lazy val html_fonts: List[(String, Bytes)] =
-    Isabelle_Fonts.fonts(html = true).map(entry => (entry.name -> entry.bytes))
+  private lazy val html_fonts: List[Isabelle_Fonts.Entry] = Isabelle_Fonts.fonts(html = true)
 
   def fonts(root: String = "/fonts"): Handler =
     get(root, arg =>
       {
         val uri_name = arg.uri.toString
-        if (uri_name == root) Some(Response.text(cat_lines(html_fonts.map(_._1))))
-        else html_fonts.collectFirst({ case (a, b) if uri_name == root + "/" + a => Response(b) })
+        if (uri_name == root) {
+          Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.base_name))))
+        }
+        else {
+          html_fonts.collectFirst(
+            { case entry if uri_name == root + "/" + entry.path.base_name => Response(entry.bytes) })
+        }
       })
 }
