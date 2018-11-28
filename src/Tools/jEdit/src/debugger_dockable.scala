@@ -240,7 +240,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       }
       setColumns(20)
       setToolTipText(context_label.tooltip)
-      setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
+      setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
 
   private val expression_label = new Label("ML:") {
@@ -258,7 +258,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
       setColumns(40)
       setToolTipText(expression_label.tooltip)
-      setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
+      setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
 
   private val eval_button = new Button("<html><b>Eval</b></html>") {

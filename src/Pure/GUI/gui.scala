@@ -216,14 +216,18 @@ object GUI
   def line_metrics(font: Font): LineMetrics =
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
-  def imitate_font(font: Font, family: String, scale: Double = 1.0): Font =
+  def imitate_font(font: Font,
+    family: String = Isabelle_Fonts.sans,
+    scale: Double = 1.0): Font =
   {
     val font1 = new Font(family, font.getStyle, font.getSize)
     val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight
     new Font(family, font.getStyle, (scale * rel_size * font.getSize).toInt)
   }
 
-  def imitate_font_css(font: Font, family: String, scale: Double = 1.0): String =
+  def imitate_font_css(font: Font,
+    family: String = Isabelle_Fonts.sans,
+    scale: Double = 1.0): String =
   {
     val font1 = new Font(family, font.getStyle, font.getSize)
     val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight

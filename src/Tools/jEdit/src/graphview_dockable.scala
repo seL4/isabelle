@@ -81,8 +81,8 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
             if (editor_style) Font_Info.main(PIDE.options.real("graphview_font_scale")).font
             else
               GUI.imitate_font(Font_Info.main().font,
-                options.string("graphview_font_family"),
-                options.real("graphview_font_scale"))
+                family = options.string("graphview_font_family"),
+                scale = options.real("graphview_font_scale"))
 
           override def foreground_color =
             if (editor_style) view.getTextArea.getPainter.getForeground
