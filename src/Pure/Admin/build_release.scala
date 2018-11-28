@@ -116,9 +116,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
     val target = other_isabelle.isabelle_home + Path.explode("doc")
     val target_fonts = target + Path.explode("fonts")
     Isabelle_System.mkdirs(target_fonts)
-
-    for (font <- other_isabelle.fonts(html = true))
-      File.copy(font, target_fonts)
+    other_isabelle.copy_fonts(target_fonts)
 
     HTML.write_document(target, "NEWS.html",
       List(HTML.title("NEWS (" + dist_version + ")")),

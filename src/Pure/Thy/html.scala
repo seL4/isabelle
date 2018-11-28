@@ -350,40 +350,25 @@ object HTML
   /* fonts */
 
   def fonts_url(): String => String =
-    (for (path <- Isabelle_Fonts.files(html = true))
-     yield (path.base_name -> Url.print_file(path.file))).toMap
+    (for (entry <- Isabelle_Fonts.fonts(html = true))
+     yield (entry.name -> Url.print_file(entry.path.file))).toMap
 
   def fonts_dir(prefix: String)(ttf_name: String): String =
     prefix + "/" + ttf_name
 
   def fonts_css(make_url: String => String = fonts_url()): String =
   {
-    def font_face(
-        name: String, ttf_name: String, bold: Boolean = false, italic: Boolean = false): String =
+    def font_face(entry: Isabelle_Fonts.Entry): String =
       cat_lines(
         List(
           "@font-face {",
-          "  font-family: '" + name + "';",
-          "  src: url('" + make_url(ttf_name) + "') format('truetype');") :::
-        (if (bold) List("  font-weight: bold;") else Nil) :::
-        (if (italic) List("  font-style: italic;") else Nil) :::
+          "  font-family: '" + entry.family + "';",
+          "  src: url('" + make_url(entry.path.base_name) + "') format('truetype');") :::
+        (if (entry.is_bold) List("  font-weight: bold;") else Nil) :::
+        (if (entry.is_italic) List("  font-style: italic;") else Nil) :::
         List("}"))
 
-    List(
-      "/* Isabelle fonts */",
-      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono.ttf"),
-      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono-Bold.ttf", bold = true),
-      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono-Oblique.ttf", italic = true),
-      font_face("Isabelle DejaVu Sans Mono", "IsabelleDejaVuSansMono-BoldOblique.ttf", bold = true, italic = true),
-      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans.ttf"),
-      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-Bold.ttf", bold = true),
-      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-Oblique.ttf", italic = true),
-      font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-BoldOblique.ttf", bold = true, italic = true),
-      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif.ttf"),
-      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Bold.ttf", bold = true),
-      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Italic.ttf", italic = true),
-      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-BoldItalic.ttf", bold = true, italic = true),
-      font_face("Vacuous", "Vacuous.ttf")).mkString("\n\n")
+    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(html = true).map(font_face(_))).mkString("\n\n")
   }
 
 

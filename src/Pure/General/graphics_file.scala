@@ -44,13 +44,11 @@ object Graphics_File
   private def font_mapper(): FontMapper =
   {
     val mapper = new DefaultFontMapper
-    for {
-      font <- Isabelle_Fonts.files()
-      name <- Library.try_unsuffix(".ttf", font.base_name)
-    } {
-      val parameters = new DefaultFontMapper.BaseFontParameters(File.platform_path(font))
-      parameters.encoding = BaseFont.IDENTITY_H
-      mapper.putName(name, parameters)
+    for (entry <- Isabelle_Fonts.fonts()) {
+      val params = new DefaultFontMapper.BaseFontParameters(File.platform_path(entry.path))
+      params.encoding = BaseFont.IDENTITY_H
+      params.embedded = true
+      mapper.putName(entry.name, params)
     }
     mapper
   }

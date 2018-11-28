@@ -155,8 +155,7 @@ object HTTP
   /* fonts */
 
   private lazy val html_fonts: SortedMap[String, Bytes] =
-    SortedMap(
-      Isabelle_Fonts.files(html = true).map(path => (path.base_name -> Bytes.read(path))): _*)
+    SortedMap(Isabelle_Fonts.fonts(html = true).map(entry => (entry.name -> entry.bytes)): _*)
 
   def fonts(root: String = "/fonts"): Handler =
     get(root, arg =>
