@@ -7,8 +7,7 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
-import java.awt.{GraphicsEnvironment, Image, Component, Container, Toolkit, Window, Font,
-  KeyboardFocusManager}
+import java.awt.{Image, Component, Container, Toolkit, Window, Font, KeyboardFocusManager}
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JDialog,
@@ -242,11 +241,5 @@ object GUI
 
   def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
     new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
-
-  def install_fonts()
-  {
-    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    Isabelle_Fonts.fonts().foreach(entry => ge.registerFont(entry.font))
-  }
 }
 

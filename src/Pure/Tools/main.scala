@@ -20,7 +20,7 @@ object Main
     {
       try {
         Isabelle_System.init()
-        GUI.install_fonts()
+        Isabelle_Fonts.init()
 
 
         /* ROOTS template */

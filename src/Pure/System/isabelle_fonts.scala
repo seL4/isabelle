@@ -8,7 +8,7 @@ collection.
 package isabelle
 
 
-import java.awt.Font
+import java.awt.{Font, GraphicsEnvironment}
 
 
 object Isabelle_Fonts
@@ -67,4 +67,13 @@ object Isabelle_Fonts
 
   def fonts(html: Boolean = false): List[Entry] =
     if (html) all_fonts else all_fonts.filter(entry => !entry.html)
+
+
+  /* system init */
+
+  def init()
+  {
+    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+    for (entry <- fonts()) ge.registerFont(entry.font)
+  }
 }
