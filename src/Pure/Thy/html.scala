@@ -381,8 +381,8 @@ object HTML
       font_face("Isabelle DejaVu Sans", "IsabelleDejaVuSans-BoldOblique.ttf", bold = true, italic = true),
       font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif.ttf"),
       font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Bold.ttf", bold = true),
-      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Oblique.ttf", italic = true),
-      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-BoldOblique.ttf", bold = true, italic = true),
+      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-Italic.ttf", italic = true),
+      font_face("Isabelle DejaVu Serif", "IsabelleDejaVuSerif-BoldItalic.ttf", bold = true, italic = true),
       font_face("Vacuous", "Vacuous.ttf")).mkString("\n\n")
   }
 
