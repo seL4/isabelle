@@ -236,7 +236,7 @@ object GUI
     font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
   }
 
-  def font(family: String = "Isabelle DejaVu Sans", size: Int = 1, bold: Boolean = false): Font =
+  def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
     new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
 
   def install_fonts()

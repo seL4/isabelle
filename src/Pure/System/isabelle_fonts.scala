@@ -10,6 +10,13 @@ package isabelle
 
 object Isabelle_Fonts
 {
+  /* standard names */
+
+  val mono: String = "Isabelle DejaVu Sans Mono"
+  val sans: String = "Isabelle DejaVu Sans"
+  val serif: String = "Isabelle DejaVu Serif"
+
+
   /* Isabelle system environment */
 
   def variables(html: Boolean = false): List[String] =
