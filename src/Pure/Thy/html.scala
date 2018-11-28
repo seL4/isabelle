@@ -350,8 +350,8 @@ object HTML
   /* fonts */
 
   def fonts_url(): String => String =
-    (for (font <- Isabelle_System.fonts(html = true))
-     yield (font.base_name -> Url.print_file(font.file))).toMap
+    (for (path <- Isabelle_Fonts.files(html = true))
+     yield (path.base_name -> Url.print_file(path.file))).toMap
 
   def fonts_dir(prefix: String)(ttf_name: String): String =
     prefix + "/" + ttf_name

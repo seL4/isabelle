@@ -118,6 +118,7 @@ declare -a SOURCES=(
   System/getopts.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
+  System/isabelle_fonts.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
   System/isabelle_tool.scala

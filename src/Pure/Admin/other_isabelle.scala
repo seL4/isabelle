@@ -62,7 +62,7 @@ class Other_Isabelle(
   val etc_preferences: Path = etc + Path.explode("preferences")
 
   def fonts(html: Boolean = false): List[Path] =
-    Isabelle_System.fonts(html = html, get = getenv(_))
+    Isabelle_Fonts.files(html = html, getenv = getenv(_))
 
 
   /* settings */

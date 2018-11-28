@@ -242,8 +242,8 @@ object GUI
   def install_fonts()
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    for (font <- Isabelle_System.fonts())
-      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, font.file))
+    for (path <- Isabelle_Fonts.files())
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, path.file))
   }
 }
 
