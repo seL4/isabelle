@@ -1,7 +1,7 @@
 /*  Title:      Pure/Admin/build_fonts.scala
     Author:     Makarius
 
-Build of Isabelle fonts: DejaVu + special symbols.
+Build standard Isabelle fonts: DejaVu base + Isabelle symbols.
 */
 
 package isabelle
@@ -184,7 +184,8 @@ object Build_Fonts
   {
     Isabelle_System.mkdirs(target_dir)
 
-    val font_dirs = source_dirs ::: List(Path.explode("~~/lib/fonts"))
+    val font_dirs = source_dirs ::: List(Path.explode("~~/Admin/isabelle_fonts"))
+    for (dir <- font_dirs if !dir.is_dir) error("Bad source directory: " + dir)
 
     for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex } {
       val isabelle_file = find_file(font_dirs, Family.isabelle_text.get(index))
