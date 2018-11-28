@@ -2,7 +2,7 @@
 
 section "Graphview"
 
-option graphview_font_family : string = "Helvetica"
+option graphview_font_family : string = "Isabelle DejaVu Sans"
   -- "base font family (notably for PDF)"
 
 option graphview_font_size : int = 12

@@ -418,6 +418,8 @@ object Build
 
     val store = Sessions.store(build_options, system_mode)
 
+    Isabelle_Fonts.init()
+
 
     /* session selection and dependencies */
 
