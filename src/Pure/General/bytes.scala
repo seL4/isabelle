@@ -139,6 +139,13 @@ final class Bytes private(
 
   lazy val sha1_digest: SHA1.Digest = SHA1.digest(bytes)
 
+  def array: Array[Byte] =
+  {
+    val a = new Array[Byte](length)
+    System.arraycopy(bytes, offset, a, 0, length)
+    a
+  }
+
   def text: String =
     UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
 

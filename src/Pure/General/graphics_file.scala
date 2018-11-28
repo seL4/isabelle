@@ -48,6 +48,7 @@ object Graphics_File
       val params = new DefaultFontMapper.BaseFontParameters(File.platform_path(entry.path))
       params.encoding = BaseFont.IDENTITY_H
       params.embedded = true
+      params.ttfAfm = entry.bytes.array
       mapper.putName(entry.name, params)
     }
     mapper
