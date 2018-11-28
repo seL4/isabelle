@@ -306,7 +306,7 @@ abstract class Rendering(
         val path = Path.explode(text)
         val (dir, base_name) =
           if (text == "" || text.endsWith("/")) (path, "")
-          else (path.dir, path.base_name)
+          else (path.dir, path.file_name)
 
         val directory = new JFile(session.resources.append(snapshot.node_name, dir))
         val files = directory.listFiles

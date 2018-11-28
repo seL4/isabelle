@@ -1790,7 +1790,7 @@ fun import_thm cautious path_prefixes file_name
  (on_load : proof_annotation -> theory -> (proof_annotation * theory)) thy =
   let
     val prob_name =
-      Path.base_name file_name
+      Path.file_name file_name
       |> TPTP_Problem_Name.parse_problem_name
     val thy1 = TPTP_Interpret.import_file cautious path_prefixes file_name [] [] thy
     val fms = get_fmlas_of_prob thy1 prob_name

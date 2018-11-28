@@ -124,7 +124,7 @@ object Options
     }
 
     def parse_prefs(options: Options, content: String): Options =
-      parse_file(options, PREFS.base_name, content, syntax = prefs_syntax, parser = prefs_entry)
+      parse_file(options, PREFS.file_name, content, syntax = prefs_syntax, parser = prefs_entry)
   }
 
   def read_prefs(file: Path = PREFS): String =

@@ -47,7 +47,7 @@ end
 
 (*test against all TPTP problems*)
 fun problem_names () =
-    map (Path.base_name #>
+    map (Path.file_name #>
          TPTP_Problem_Name.parse_problem_name #>
          TPTP_Problem_Name.mangle_problem_name)
      (TPTP_Syntax.get_file_list tptp_probs_dir)

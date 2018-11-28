@@ -363,7 +363,7 @@ object HTML
         List(
           "@font-face {",
           "  font-family: '" + entry.family + "';",
-          "  src: url('" + make_url(entry.path.base_name) + "') format('truetype');") :::
+          "  src: url('" + make_url(entry.path.file_name) + "') format('truetype');") :::
         (if (entry.is_bold) List("  font-weight: bold;") else Nil) :::
         (if (entry.is_italic) List("  font-style: italic;") else Nil) :::
         List("}"))
@@ -390,7 +390,7 @@ object HTML
   }
 
   def write_document(dir: Path, name: String, head: XML.Body, body: XML.Body,
-    css: String = isabelle_css.base_name,
+    css: String = isabelle_css.file_name,
     hidden: Boolean = true,
     structural: Boolean = true)
   {

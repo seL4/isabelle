@@ -532,7 +532,7 @@ object Sessions
     def bibtex_entries: List[Text.Info[String]] =
       (for {
         (document_dir, file) <- document_files.iterator
-        if Bibtex.is_bibtex(file.base_name)
+        if Bibtex.is_bibtex(file.file_name)
         info <- Bibtex.entries(File.read(dir + document_dir + file)).iterator
       } yield info).toList
   }
@@ -560,7 +560,7 @@ object Sessions
       val global_theories =
         for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
         yield {
-          val thy_name = Path.explode(thy).expand.base_name
+          val thy_name = Path.explode(thy).file_name
           if (Long_Name.is_qualified(thy_name))
             error("Bad qualified name for global theory " +
               quote(thy_name) + Position.here(pos))

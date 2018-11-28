@@ -33,7 +33,7 @@ object Bibtex
     {
       val name = snapshot.node_name
       if (detect(name.node)) {
-        val title = "Bibliography " + quote(snapshot.node_name.path.base_name)
+        val title = "Bibliography " + quote(snapshot.node_name.path.file_name)
         val content =
           Isabelle_System.with_tmp_file("bib", "bib") { bib =>
             File.write(bib, snapshot.node.source)
@@ -637,7 +637,7 @@ object Bibtex
       val bib_files = bib.map(path => path.split_ext._1)
       val bib_names =
       {
-        val names0 = bib_files.map(_.base_name)
+        val names0 = bib_files.map(_.file_name)
         if (Library.duplicates(names0).isEmpty) names0
         else names0.zipWithIndex.map({ case (name, i) => (i + 1).toString + "-" + name })
       }

@@ -124,7 +124,7 @@ object Present
     val name = snapshot.node_name
 
     if (plain_text) {
-      val title = "File " + quote(name.path.base_name)
+      val title = "File " + quote(name.path.file_name)
       val content = output_document(title, HTML.text(snapshot.node.source))
       Preview(title, content)
     }
@@ -134,7 +134,7 @@ object Present
         case None =>
           val title =
             if (name.is_theory) "Theory " + quote(name.theory_base_name)
-            else "File " + quote(name.path.base_name)
+            else "File " + quote(name.path.file_name)
           val content = output_document(title, pide_document(snapshot))
           Preview(title, content)
       }

@@ -246,7 +246,7 @@ object Build_History
       val build_end = Date.now()
 
       val build_info: Build_Log.Build_Info =
-        Build_Log.Log_File(log_path.base_name, build_result.out_lines).
+        Build_Log.Log_File(log_path.file_name, build_result.out_lines).
           parse_build_info(ml_statistics = true)
 
 
@@ -587,7 +587,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         val log = Path.explode(line)
         val bytes = ssh.read_bytes(log)
         ssh.rm(log)
-        (log.base_name, bytes)
+        (log.file_name, bytes)
       }
     })
   }

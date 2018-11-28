@@ -161,11 +161,11 @@ object HTTP
       {
         val uri_name = arg.uri.toString
         if (uri_name == root) {
-          Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.base_name))))
+          Some(Response.text(cat_lines(html_fonts.map(entry => entry.path.file_name))))
         }
         else {
           html_fonts.collectFirst(
-            { case entry if uri_name == root + "/" + entry.path.base_name => Response(entry.bytes) })
+            { case entry if uri_name == root + "/" + entry.path.file_name => Response(entry.bytes) })
         }
       })
 }

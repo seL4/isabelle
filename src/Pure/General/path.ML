@@ -29,10 +29,10 @@ sig
   val print: T -> string
   val dir: T -> T
   val base: T -> T
-  val base_name: T -> string
   val ext: string -> T -> T
   val split_ext: T -> T * string
   val expand: T -> T
+  val file_name: T -> string
   val smart_implode: T -> string
   val position: T -> Position.T
 end;
@@ -184,7 +184,6 @@ fun split_path f (Path (Basic s :: xs)) = f (Path xs, s)
 
 val dir = split_path #1;
 val base = split_path (fn (_, s) => Path [Basic s]);
-val base_name = implode_path o base;
 
 fun ext "" = I
   | ext e = split_path (fn (prfx, s) => append prfx (basic (s ^ "." ^ e)));
@@ -206,6 +205,8 @@ fun eval (Variable s) =
   | eval x = [x];
 
 val expand = rep #> maps eval #> norm #> Path;
+
+val file_name = implode_path o base o expand;
 
 
 (* smart implode *)

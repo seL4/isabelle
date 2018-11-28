@@ -955,13 +955,13 @@ and interpret_file cautious path_prefixes file_name =
   let
     val config =
       {cautious = cautious,
-       problem_name = SOME (TPTP_Problem_Name.parse_problem_name (Path.base_name file_name))}
+       problem_name = SOME (TPTP_Problem_Name.parse_problem_name (Path.file_name file_name))}
   in interpret_file' config [] path_prefixes file_name end
 
 fun import_file cautious path_prefixes file_name type_map const_map thy =
   let
     val prob_name =
-      TPTP_Problem_Name.parse_problem_name (Path.base_name file_name)
+      TPTP_Problem_Name.parse_problem_name (Path.file_name file_name)
     val (result, thy') =
       interpret_file cautious path_prefixes file_name type_map const_map thy
   (*FIXME doesn't check if problem has already been interpreted*)

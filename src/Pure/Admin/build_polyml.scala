@@ -183,7 +183,7 @@ object Build_PolyML
       for (file <- ldd_files) {
         bash(target,
           """install_name_tool -change """ + Bash.string(file) + " " +
-            Bash.string("@executable_path/" + Path.explode(file).base_name) + " poly").check
+            Bash.string("@executable_path/" + Path.explode(file).file_name) + " poly").check
       }
     }
 

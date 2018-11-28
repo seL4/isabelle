@@ -121,7 +121,7 @@ fun is_base_name s =
 fun import_name s =
   if String.isSuffix ".thy" s then
     error ("Malformed theory import: " ^ quote s)
-  else Path.base_name (Path.explode s);
+  else Path.file_name (Path.explode s);
 
 
 (* header args *)
