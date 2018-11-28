@@ -180,6 +180,9 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
     }
   }
 
+  def drop_ext: Path = split_ext._1
+  def get_ext: String = split_ext._2
+
 
   /* expand */
 

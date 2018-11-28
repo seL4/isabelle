@@ -15,7 +15,7 @@ object Check_Sources
     val file_pos = path.position
     def line_pos(i: Int) = Position.Line_File(i + 1, file_name)
 
-    if (space_explode('/', Word.lowercase(path.expand.split_ext._1.implode)).contains("aux"))
+    if (space_explode('/', Word.lowercase(path.expand.drop_ext.implode)).contains("aux"))
       Output.warning("Illegal file-name on Windows" + Position.here(file_pos))
 
     val content = File.read(path)

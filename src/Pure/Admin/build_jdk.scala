@@ -97,7 +97,7 @@ esac
       val tmp_dir = dir + Path.explode("tmp")
       Isabelle_System.mkdirs(tmp_dir)
 
-      if (archive.split_ext._2 == "zip") {
+      if (archive.get_ext == "zip") {
         Isabelle_System.bash(
           "unzip -x " + File.bash_path(archive.absolute), cwd = tmp_dir.file).check
       }

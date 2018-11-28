@@ -634,7 +634,7 @@ object Bibtex
     {
       /* database files */
 
-      val bib_files = bib.map(path => path.split_ext._1)
+      val bib_files = bib.map(_.drop_ext)
       val bib_names =
       {
         val names0 = bib_files.map(_.file_name)
