@@ -107,6 +107,9 @@ object Build_Fonts
         0x1f5c0,  // folder (Symbola font)
         0x1f5cf,  // page (Symbola font)
       )
+
+      val vacuous_font: Seq[Int] =
+        Seq(0x3c)  // "<" as template
   }
 
 
@@ -154,6 +157,8 @@ object Build_Fonts
         bold = "DejaVuSerif-Bold.ttf",
         italic = "DejaVuSerif-Italic.ttf",
         bold_italic = "DejaVuSerif-BoldItalic.ttf")
+
+    def vacuous: Family = Family(plain = "Vacuous.sfd")
   }
 
 
@@ -187,31 +192,71 @@ object Build_Fonts
     val font_dirs = source_dirs ::: List(Path.explode("~~/Admin/isabelle_fonts"))
     for (dir <- font_dirs if !dir.is_dir) error("Bad source directory: " + dir)
 
-    for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex } {
-      val isabelle_file = find_file(font_dirs, Family.isabelle_text.get(index))
 
-      val source_file = find_file(font_dirs, source_font)
-      val source_names = Fontforge.font_names(source_file)
+    // Isabelle fonts
 
-      val target_names = source_names.update(prefix = target_prefix, version = target_version)
+    val targets =
+      for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex }
+      yield {
+        val isabelle_file = find_file(font_dirs, Family.isabelle_text.get(index))
+
+        val source_file = find_file(font_dirs, source_font)
+        val source_names = Fontforge.font_names(source_file)
+
+        val target_names = source_names.update(prefix = target_prefix, version = target_version)
+        val target_file = target_dir + target_names.ttf
+
+        progress.echo("Creating " + target_file.toString + " ...")
+        Fontforge.execute(
+          Fontforge.commands(
+            Fontforge.open(isabelle_file),
+            Fontforge.select(Range.isabelle_font),
+            Fontforge.copy,
+            Fontforge.close,
+
+            Fontforge.open(source_file),
+            Fontforge.select(Range.base_font),
+            Fontforge.select_invert,
+            Fontforge.clear,
+            Fontforge.select(Range.isabelle_font),
+            Fontforge.paste,
+
+            target_names.set,
+            Fontforge.generate(target_file),
+            Fontforge.close)
+        ).check
+
+        (target_file, index)
+      }
+
+
+    // Vacuous font
+
+    {
+      val vacuous_file = find_file(font_dirs, Family.vacuous.get(0))
+
+      val target_names = Fontforge.font_names(vacuous_file)
       val target_file = target_dir + target_names.ttf
 
       progress.echo("Creating " + target_file.toString + " ...")
+
+      val domain =
+        (for ((target_file, index) <- targets if index == 0)
+          yield Fontforge.font_domain(target_file)).flatten.toSet.toList.sorted
+
       Fontforge.execute(
         Fontforge.commands(
-          Fontforge.open(isabelle_file),
-          Fontforge.select(Range.isabelle_font),
-          Fontforge.copy,
-          Fontforge.close,
+          Fontforge.open(vacuous_file),
+          Fontforge.select(Range.vacuous_font),
+          Fontforge.copy) +
 
-          Fontforge.open(source_file),
-          Fontforge.select(Range.base_font),
-          Fontforge.select_invert,
-          Fontforge.clear,
-          Fontforge.select(Range.isabelle_font),
-          Fontforge.paste,
+        domain.map(code =>
+            Fontforge.commands(
+              Fontforge.select(Seq(code)),
+              Fontforge.paste))
+          .mkString("\n", "\n", "\n") +
 
-          target_names.set,
+        Fontforge.commands(
           Fontforge.generate(target_file),
           Fontforge.close)
       ).check
