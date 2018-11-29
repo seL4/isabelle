@@ -83,7 +83,7 @@ object Fontforge
       commands(
         open(path),
         "i = 0",
-        "while (i < CharCnt())",
+        "while (i < CharCnt() && i < 0x110000)",
         "  if (" + (if (strict) "DrawsSomething" else "WorthOutputting") + "(i)); Print(i); endif",
         "  i = i + 1",
         "endloop",
