@@ -179,14 +179,17 @@ object Build_Fonts
   val default_sources: List[Family] =
     List(Family.deja_vu_sans_mono, Family.deja_vu_sans, Family.deja_vu_serif)
 
+  val default_target_dir: Path = Path.explode("isabelle_fonts")
+
   def build_fonts(
     sources: List[Family] = default_sources,
     source_dirs: List[Path] = Nil,
     target_prefix: String = "Isabelle",
     target_version: String = "",
-    target_dir: Path = Path.current,
+    target_dir: Path = default_target_dir,
     progress: Progress = No_Progress)
   {
+    progress.echo("Directory " + target_dir)
     Isabelle_System.mkdirs(target_dir)
 
     val font_dirs = source_dirs ::: List(Path.explode("~~/Admin/isabelle_fonts"))
@@ -206,7 +209,7 @@ object Build_Fonts
         val target_names = source_names.update(prefix = target_prefix, version = target_version)
         val target_file = target_dir + target_names.ttf
 
-        progress.echo("Creating " + target_file.toString + " ...")
+        progress.echo("Font " + target_file.toString + " ...")
         Fontforge.execute(
           Fontforge.commands(
             Fontforge.open(isabelle_file),
@@ -238,7 +241,7 @@ object Build_Fonts
       val target_names = Fontforge.font_names(vacuous_file)
       val target_file = target_dir + target_names.ttf
 
-      progress.echo("Creating " + target_file.toString + " ...")
+      progress.echo("Font " + target_file.toString + " ...")
 
       val domain =
         (for ((target_file, index) <- targets if index == 0)
@@ -270,25 +273,26 @@ object Build_Fonts
     Isabelle_Tool("build_fonts", "construct Isabelle fonts", args =>
     {
       var source_dirs: List[Path] = Nil
-      var target_dir = Path.current
 
       val getopts = Getopts("""
 Usage: isabelle build_fonts [OPTIONS]
 
   Options are:
-    -D DIR       target directory (default ".")
     -d DIR       additional source directory
 
   Construct Isabelle fonts from DejaVu font families and Isabelle symbols.
 """,
-        "D:" -> (arg => target_dir = Path.explode(arg)),
         "d:" -> (arg => source_dirs = source_dirs ::: List(Path.explode(arg))))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
+      val target_version = Date.Format("uuuuMMdd")(Date.now())
+      val target_dir = Path.explode("isabelle_fonts-" + target_version)
+
       val progress = new Console_Progress
 
-      build_fonts(source_dirs = source_dirs, target_dir = target_dir, progress = progress)
+      build_fonts(source_dirs = source_dirs, target_dir = target_dir,
+        target_version = target_version, progress = progress)
     })
 }
