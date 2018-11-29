@@ -350,7 +350,7 @@ object HTML
   /* fonts */
 
   def fonts_url(): String => String =
-    (for (entry <- Isabelle_Fonts.fonts(html = true))
+    (for (entry <- Isabelle_Fonts.fonts(hidden = true))
      yield (entry.name -> Url.print_file(entry.path.file))).toMap
 
   def fonts_dir(prefix: String)(ttf_name: String): String =
@@ -368,7 +368,7 @@ object HTML
         (if (entry.is_italic) List("  font-style: italic;") else Nil) :::
         List("}"))
 
-    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(html = true).map(font_face(_)))
+    ("/* Isabelle fonts */" :: Isabelle_Fonts.fonts(hidden = true).map(font_face(_)))
       .mkString("", "\n\n", "\n")
   }
 

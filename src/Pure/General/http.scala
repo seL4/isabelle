@@ -154,7 +154,8 @@ object HTTP
 
   /* fonts */
 
-  private lazy val html_fonts: List[Isabelle_Fonts.Entry] = Isabelle_Fonts.fonts(html = true)
+  private lazy val html_fonts: List[Isabelle_Fonts.Entry] =
+    Isabelle_Fonts.fonts(hidden = true)
 
   def fonts(root: String = "/fonts"): Handler =
     get(root, arg =>

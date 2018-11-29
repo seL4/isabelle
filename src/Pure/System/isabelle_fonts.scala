@@ -34,7 +34,7 @@ object Isabelle_Fonts
     }
   }
 
-  sealed case class Entry(path: Path, html: Boolean = false)
+  sealed case class Entry(path: Path, hidden: Boolean = false)
   {
     lazy val bytes: Bytes = Bytes.read(path)
     lazy val font: Font = Font.createFont(Font.TRUETYPE_FONT, path.file)
@@ -56,17 +56,17 @@ object Isabelle_Fonts
 
   def make_entries(
     getenv: String => String = Isabelle_System.getenv_strict(_),
-    html: Boolean = false): List[Entry] =
+    hidden: Boolean = false): List[Entry] =
   {
     Path.split(getenv("ISABELLE_FONTS")).map(Entry(_)) :::
-    (if (html) Path.split(getenv("ISABELLE_FONTS_HTML")).map(Entry(_, html = true)) else Nil)
+    (if (hidden) Path.split(getenv("ISABELLE_FONTS_HIDDEN")).map(Entry(_, hidden = true)) else Nil)
   }
 
   private lazy val all_fonts: List[Entry] =
-    make_entries(html = true).sorted(Entry.Ordering)
+    make_entries(hidden = true).sorted(Entry.Ordering)
 
-  def fonts(html: Boolean = false): List[Entry] =
-    if (html) all_fonts else all_fonts.filter(entry => !entry.html)
+  def fonts(hidden: Boolean = false): List[Entry] =
+    if (hidden) all_fonts else all_fonts.filter(entry => !entry.hidden)
 
 
   /* system init */

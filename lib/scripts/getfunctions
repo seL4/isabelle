@@ -141,6 +141,21 @@ function isabelle_fonts ()
 }
 export -f isabelle_fonts
 
+function isabelle_fonts_hidden ()
+{
+  local X=""
+  for X in "$@"
+  do
+    if [ -z "$ISABELLE_FONTS_HIDDEN" ]; then
+      ISABELLE_FONTS_HIDDEN="$X"
+    else
+      ISABELLE_FONTS_HIDDEN="$ISABELLE_FONTS_HIDDEN:$X"
+    fi
+  done
+  export ISABELLE_FONTS_HIDDEN
+}
+export -f isabelle_fonts_hidden
+
 #file formats
 function isabelle_file_format ()
 {

@@ -276,12 +276,7 @@ object Build_Fonts
         yield """  "$COMPONENT/""" + path.file_name + "\"").mkString(" \\\n") +
       """
 
-if [ -z "$ISABELLE_FONTS_HTML" ]
-then
-  ISABELLE_FONTS_HTML="$COMPONENT/Vacuous.ttf"
-else
-  ISABELLE_FONTS_HTML="$ISABELLE_FONTS_HTML:$COMPONENT/Vacuous.ttf"
-fi
+isabelle_fonts_hidden "$COMPONENT/Vacuous.ttf"
 """)
 
 

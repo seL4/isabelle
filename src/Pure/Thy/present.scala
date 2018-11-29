@@ -96,7 +96,7 @@ object Present
 
       HTML.write_isabelle_css(session_prefix)
 
-      for (entry <- Isabelle_Fonts.fonts(html = true))
+      for (entry <- Isabelle_Fonts.fonts(hidden = true))
         File.copy(entry.path, session_fonts)
     }
   }

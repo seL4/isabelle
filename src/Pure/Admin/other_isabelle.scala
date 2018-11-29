@@ -62,7 +62,7 @@ class Other_Isabelle(
   val etc_preferences: Path = etc + Path.explode("preferences")
 
   def copy_fonts(target_dir: Path): Unit =
-    Isabelle_Fonts.make_entries(getenv = getenv(_), html = true).
+    Isabelle_Fonts.make_entries(getenv = getenv(_), hidden = true).
       foreach(entry => File.copy(entry.path, target_dir))
 
 
