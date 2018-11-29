@@ -264,6 +264,29 @@ object Build_Fonts
           Fontforge.close)
       ).check
     }
+
+
+    // etc/settings
+
+    val settings_path = target_dir + Path.explode("etc/settings")
+    Isabelle_System.mkdirs(settings_path.dir)
+    File.write(settings_path,
+      "# -*- shell-script -*- :mode=shellscript:\n\nisabelle_fonts \\\n" +
+      (for ((path, _) <- targets)
+        yield """  "$COMPONENT/""" + path.file_name + "\"").mkString(" \\\n") +
+      """
+
+if [ -z "$ISABELLE_FONTS_HTML" ]
+then
+  ISABELLE_FONTS_HTML="$COMPONENT/Vacuous.ttf"
+else
+  ISABELLE_FONTS_HTML="$ISABELLE_FONTS_HTML:$COMPONENT/Vacuous.ttf"
+fi
+""")
+
+
+    // README
+    File.copy(Path.explode("~~/Admin/isabelle_fonts/README"), target_dir)
   }
 
 
