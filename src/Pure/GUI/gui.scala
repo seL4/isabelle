@@ -251,7 +251,8 @@ object GUI
   {
     val default_font = label_font()
     val ui = UIManager.getDefaults
-    for (prop <- List("Label.font", "TextArea.font", "TextPane.font", "Tooltip.font", "Tree.font"))
+    for (prop <- List("Label.font", "Menu.font", "MenuItem.font", "PopupMenu.font",
+      "TextArea.font", "TextField.font", "TextPane.font", "Tooltip.font", "Tree.font"))
     {
       val font = ui.get(prop) match { case font: Font => font case _ => default_font }
       ui.put(prop, GUI.imitate_font(font))
