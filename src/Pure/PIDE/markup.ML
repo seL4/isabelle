@@ -31,7 +31,6 @@ sig
   val language_prop: bool -> T
   val language_ML: bool -> T
   val language_SML: bool -> T
-  val language_haskell: bool -> T
   val language_document: bool -> T
   val language_antiquotation: T
   val language_text: bool -> T
@@ -116,8 +115,9 @@ sig
   val ML_breakpointN: string val ML_breakpoint: int -> T
   val antiquotedN: string val antiquoted: T
   val antiquoteN: string val antiquote: T
+  val file_typeN: string
+  val antiquotationN: string
   val ML_antiquotationN: string
-  val haskell_antiquotationN: string
   val document_antiquotationN: string
   val document_antiquotation_optionN: string
   val paragraphN: string val paragraph: T
@@ -306,7 +306,6 @@ val language_term = language' {name = "term", symbols = true, antiquotes = false
 val language_prop = language' {name = "prop", symbols = true, antiquotes = false};
 val language_ML = language' {name = "ML", symbols = false, antiquotes = true};
 val language_SML = language' {name = "SML", symbols = false, antiquotes = false};
-val language_haskell = language' {name = "Haskell", symbols = false, antiquotes = true};
 val language_document = language' {name = "document", symbols = false, antiquotes = true};
 val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
@@ -476,8 +475,9 @@ val (ML_breakpointN, ML_breakpoint) = markup_int "ML_breakpoint" serialN;
 val (antiquotedN, antiquoted) = markup_elem "antiquoted";
 val (antiquoteN, antiquote) = markup_elem "antiquote";
 
+val file_typeN = "file_type";
+val antiquotationN = "antiquotation";
 val ML_antiquotationN = "ML_antiquotation";
-val haskell_antiquotationN = "Haskell_antiquotation";
 val document_antiquotationN = "document_antiquotation";
 val document_antiquotation_optionN = "document_antiquotation_option";
 

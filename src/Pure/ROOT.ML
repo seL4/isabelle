@@ -347,3 +347,4 @@ ML_file_no_debug "Tools/debugger.ML";
 ML_file "Tools/named_theorems.ML";
 ML_file "Tools/jedit.ML";
 ML_file "Tools/ghc.ML";
+ML_file "Tools/generate_file.ML"

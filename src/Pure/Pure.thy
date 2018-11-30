@@ -21,6 +21,7 @@ keywords
     "no_notation" "axiomatization" "alias" "type_alias" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
   and "external_file" "bibtex_file" :: thy_load
+  and "generate_file" :: thy_decl
   and "ML_file" "ML_file_debug" "ML_file_no_debug" :: thy_load % "ML"
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" "ML_export" :: thy_decl % "ML"
@@ -117,6 +118,13 @@ local
             val ([{lines, pos, ...}], thy') = files thy;
             val _ = Bibtex.check_database_output pos (cat_lines lines);
           in thy' end)));
+
+  val _ =
+    Outer_Syntax.local_theory \<^command_keyword>\<open>generate_file\<close>
+      "generate source file, with antiquotations"
+      (Parse.position Parse.path -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
+        >> Generate_File.generate_file_cmd);
+
 in end\<close>
 
 

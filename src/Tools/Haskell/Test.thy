@@ -10,13 +10,13 @@ begin
 ML \<open>
   Isabelle_System.with_tmp_dir "ghc" (fn dir =>
     let
-      val _ = Haskell.install_sources dir;
+      val files = Generate_File.generate \<^theory>\<open>Haskell\<close> dir;
       val (out, rc) =
         Isabelle_System.bash_output
          (cat_lines
            ["set -e",
             "cd " ^ File.bash_path dir,
-            "\"$ISABELLE_GHC\" " ^ File.bash_paths Haskell.sources]);
+            "\"$ISABELLE_GHC\" " ^ File.bash_paths files]);
     in if rc = 0 then writeln out else error out end)
 \<close>
 

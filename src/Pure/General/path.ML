@@ -15,6 +15,7 @@ sig
   val parent: T
   val basic: string -> T
   val variable: string -> T
+  val has_parent: T -> bool
   val is_absolute: T -> bool
   val is_basic: T -> bool
   val starts_basic: T -> bool
@@ -87,6 +88,8 @@ fun named_root s = Path [root_elem s];
 fun basic s = Path [basic_elem s];
 fun variable s = Path [variable_elem s];
 val parent = Path [Parent];
+
+fun has_parent (Path xs) = exists (fn Parent => true | _ => false) xs;
 
 fun is_absolute (Path xs) =
   (case try List.last xs of
