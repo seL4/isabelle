@@ -215,6 +215,18 @@ object GUI
   def line_metrics(font: Font): LineMetrics =
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
+  def transform_font(font: Font, transform: AffineTransform): Font =
+  {
+    import scala.collection.JavaConversions._
+    font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
+  }
+
+  def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
+    new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
+
+
+  /* Isabelle fonts */
+
   def imitate_font(font: Font,
     family: String = Isabelle_Fonts.sans,
     scale: Double = 1.0): Font =
@@ -232,14 +244,4 @@ object GUI
     val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight
     "font-family: " + family + "; font-size: " + (scale * rel_size * 100).toInt + "%;"
   }
-
-  def transform_font(font: Font, transform: AffineTransform): Font =
-  {
-    import scala.collection.JavaConversions._
-    font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
-  }
-
-  def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
-    new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
 }
-
