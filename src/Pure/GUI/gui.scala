@@ -11,7 +11,7 @@ import java.awt.{Image, Component, Container, Toolkit, Window, Font, KeyboardFoc
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow, JDialog,
-  JButton, JTextField}
+  JButton, JTextField, JLabel}
 
 import scala.swing.{ComboBox, TextArea, ScrollPane}
 import scala.swing.event.SelectionChanged
@@ -224,6 +224,8 @@ object GUI
   def font(family: String = Isabelle_Fonts.sans, size: Int = 1, bold: Boolean = false): Font =
     new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
 
+  def label_font(): Font = (new JLabel).getFont
+
 
   /* Isabelle fonts */
 
@@ -243,5 +245,16 @@ object GUI
     val font1 = new Font(family, font.getStyle, font.getSize)
     val rel_size = line_metrics(font).getHeight.toDouble / line_metrics(font1).getHeight
     "font-family: " + family + "; font-size: " + (scale * rel_size * 100).toInt + "%;"
+  }
+
+  def use_isabelle_fonts()
+  {
+    val default_font = label_font()
+    val ui = UIManager.getDefaults
+    for (prop <- List("Label.font", "TextArea.font", "TextPane.font", "Tooltip.font", "Tree.font"))
+    {
+      val font = ui.get(prop) match { case font: Font => font case _ => default_font }
+      ui.put(prop, GUI.imitate_font(font))
+    }
   }
 }

@@ -36,11 +36,10 @@ INCOMPATIBILITY.
 
 * Fonts for the text area, gutter, GUI elements etc. use the "Isabelle
 DejaVu" collection by default, which provides uniform rendering quality
-with the usual Isabelle symbols. For Java/Swing GUI elements this
-requires the Metal look-and-feel: it is the default on Linux, but not
-macOS nor Windows. Line spacing no longer needs to be adjusted:
-properties for the old IsabelleText font had "Global Options / Text Area
-/ Extra vertical line spacing (in pixels): -2", now it defaults to 0.
+with the usual Isabelle symbols. Line spacing no longer needs to be
+adjusted: properties for the old IsabelleText font had "Global Options /
+Text Area / Extra vertical line spacing (in pixels): -2", now it
+defaults to 0.
 
 * Improved sub-pixel font rendering (especially on Linux), thanks to
 OpenJDK 11.
