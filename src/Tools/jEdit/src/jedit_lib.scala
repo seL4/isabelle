@@ -21,7 +21,6 @@ import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.TokenMarker
 
 
 object JEdit_Lib
