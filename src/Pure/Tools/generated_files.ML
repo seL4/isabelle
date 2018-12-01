@@ -1,10 +1,10 @@
-(*  Title:      Pure/Tools/generate_file.ML
+(*  Title:      Pure/Tools/generated_files.ML
     Author:     Makarius
 
-Generate source files for other languages (with antiquotations, without Isabelle symbols).
+Generated source files for other languages: with antiquotations, without Isabelle symbols.
 *)
 
-signature GENERATE_FILE =
+signature GENERATED_FILES =
 sig
   type file_type =
     {name: string, ext: string, make_comment: string -> string, make_string: string -> string}
@@ -16,10 +16,11 @@ sig
     theory -> theory
   val set_string: string -> Proof.context -> Proof.context
   val generate_file_cmd: (string * Position.T) * Input.source -> local_theory -> local_theory
-  val generate: theory -> Path.T -> Path.T list
+  val write: theory -> Path.T -> Path.T list
+  val export: theory -> string -> Path.T list
 end;
 
-structure Generate_File: GENERATE_FILE =
+structure Generated_Files: GENERATED_FILES =
 struct
 
 (** context data **)
@@ -152,15 +153,22 @@ fun generate_file_cmd ((file, pos), source) lthy =
     val text = header ^ "\n" ^ read_source lthy file_type source;
   in lthy |> (Local_Theory.background_theory o add_files) (path, (pos, text)) end;
 
-fun generate thy dir =
-  thy |> get_files |> List.map (fn (path, (_, text)) =>
+fun write thy dir =
+  get_files thy |> map (fn (path, (_, text)) =>
     let
       val path' = Path.expand (Path.append dir path);
       val _ = Isabelle_System.mkdirs (Path.dir path');
       val _ = File.generate path' text;
     in path end);
 
+fun export thy prefix =
+  get_files thy |> map (fn (path, (_, text)) =>
+    let
+      val name = (if prefix = "" then "" else prefix ^ "/") ^ Path.implode path;
+      val _ = Export.export thy name [text];
+    in path end);
 
+ 
 
 (** concrete file types **)
 
@@ -196,7 +204,7 @@ val _ =
       (fn {context = ctxt, file_type, argument, ...} =>
         ctxt |> Context.proof_map
           (ML_Context.expression (Input.pos_of argument)
-            (ML_Lex.read "Theory.local_setup (Generate_File.set_string (" @
+            (ML_Lex.read "Theory.local_setup (Generated_Files.set_string (" @
              ML_Lex.read_source argument @ ML_Lex.read "))"))
         |> the_string |> #make_string file_type));
 

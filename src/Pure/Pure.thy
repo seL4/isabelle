@@ -123,7 +123,7 @@ local
     Outer_Syntax.local_theory \<^command_keyword>\<open>generate_file\<close>
       "generate source file, with antiquotations"
       (Parse.position Parse.path -- (\<^keyword>\<open>=\<close> |-- Parse.input Parse.embedded)
-        >> Generate_File.generate_file_cmd);
+        >> Generated_Files.generate_file_cmd);
 
 in end\<close>
 
