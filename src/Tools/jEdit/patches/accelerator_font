@@ -1,0 +1,12 @@
+diff -ru 5.5.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java 5.5.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java
+--- 5.5.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2018-12-01 15:51:30.320182833 +0100
++++ 5.5.0/jEdit-patched/org/gjt/sp/jedit/GUIUtilities.java	2018-12-01 15:51:49.028286932 +0100
+@@ -1172,7 +1172,7 @@
+ 				return new Font("Monospaced", Font.PLAIN, 12);
+ 			}
+ 			else {
+-				Font font2 = new Font("Lucida Sans Typewriter", Font.PLAIN, font1.getSize());
++				Font font2 = new Font("Isabelle DejaVu Sans Mono", Font.PLAIN, font1.getSize());
+ 				FontRenderContext frc = new FontRenderContext(null, true, false);
+ 				float scale =
+ 					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
