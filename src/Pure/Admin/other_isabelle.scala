@@ -75,7 +75,7 @@ class Other_Isabelle(
     }
     else false
 
-  def init_settings(components_base: String, nonfree: Boolean, more_settings: List[String])
+  def init_settings(components_base: String, more_settings: List[String])
   {
     if (!clean_settings())
       error("Cannot proceed with existing user settings file: " + etc_settings)
@@ -91,9 +91,7 @@ class Other_Isabelle(
         if (components_base == "") isabelle_home_user.dir + Path.explode("contrib")
         else Path.explode(components_base).expand
 
-      val catalogs =
-        if (nonfree) List("main", "optional", "nonfree") else List("main", "optional")
-
+      val catalogs = List("main", "optional")
       catalogs.map(catalog =>
         "init_components " + File.bash_path(components_base_path) +
           " \"$ISABELLE_HOME/Admin/components/" + catalog + "\"")

@@ -115,7 +115,6 @@ object Build_History
     components_base: String = "",
     fresh: Boolean = false,
     hostname: String = "",
-    nonfree: Boolean = false,
     multicore_base: Boolean = false,
     multicore_list: List[(Int, Int)] = List(default_multicore),
     arch_64: Boolean = false,
@@ -186,7 +185,7 @@ object Build_History
     {
       /* init settings */
 
-      other_isabelle.init_settings(components_base, nonfree, init_settings)
+      other_isabelle.init_settings(components_base, init_settings)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
@@ -406,7 +405,6 @@ object Build_History
       var hostname = ""
       var init_settings: List[String] = Nil
       var arch_64 = false
-      var nonfree = false
       var output_file = ""
       var rev = default_rev
       var ml_statistics_step = 1
@@ -433,7 +431,6 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
     -h NAME      override local hostname
     -i TEXT      initial text for generated etc/settings
     -m ARCH      processor architecture (32=x86, 64=x86_64, default: x86)
-    -n           include nonfree components
     -o FILE      output file for log names (default: stdout)
     -r REV       update to revision (default: """ + default_rev + """)
     -s NUMBER    step size for ML statistics (0=none, 1=all, n=step, default: 1)
@@ -466,7 +463,6 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
             case "64" | "x86_64" => arch_64 = true
             case bad => error("Bad processor architecture: " + quote(bad))
           },
-        "n" -> (_ => nonfree = true),
         "o:" -> (arg => output_file = arg),
         "r:" -> (arg => rev = arg),
         "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
@@ -488,7 +484,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
         build_history(Options.init(), root, user_home = user_home, progress = progress, rev = rev,
           afp_rev = afp_rev, afp_partition = afp_partition,
           isabelle_identifier = isabelle_identifier, ml_statistics_step = ml_statistics_step,
-          components_base = components_base, fresh = fresh, hostname = hostname, nonfree = nonfree,
+          components_base = components_base, fresh = fresh, hostname = hostname,
           multicore_base = multicore_base, multicore_list = multicore_list, arch_64 = arch_64,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
           max_heap = max_heap, init_settings = init_settings, more_settings = more_settings,
