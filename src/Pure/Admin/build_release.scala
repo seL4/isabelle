@@ -143,6 +143,28 @@ directory individually.
 
   /** build_release **/
 
+  def distribution_classpath(
+    components_base: Path,
+    isabelle_home: Path,
+    isabelle_classpath: String): List[Path] =
+  {
+    val base = isabelle_home.absolute
+    val contrib_base = components_base.absolute
+
+    Path.split(isabelle_classpath).map(path =>
+    {
+      val abs_path = path.absolute
+      File.relative_path(base, abs_path) match {
+        case Some(rel_path) => rel_path
+        case None =>
+          File.relative_path(contrib_base, abs_path) match {
+            case Some(rel_path) => Path.explode("contrib") + rel_path
+            case None => error("Bad ISABELLE_CLASSPATH element: " + path)
+          }
+      }
+    }) ::: List(Path.explode("src/Tools/jEdit/dist/jedit.jar"))
+  }
+
   private def execute(dir: Path, script: String): Unit =
     Isabelle_System.bash(script, cwd = dir.file).check
 
