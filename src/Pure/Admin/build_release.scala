@@ -246,7 +246,8 @@ directory individually.
           isabelle_identifier = release.other_isabelle_identifier,
           progress = progress)
 
-      other_isabelle.init_settings((base_dir.absolute + Path.explode("contrib")).implode, Nil)
+      other_isabelle.init_settings(
+        other_isabelle.init_components(base = base_dir.absolute + Path.explode("contrib")))
       other_isabelle.resolve_components(echo = true)
 
       try {

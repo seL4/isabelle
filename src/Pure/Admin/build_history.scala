@@ -112,7 +112,7 @@ object Build_History
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
-    components_base: String = "",
+    components_base: Option[Path] = None,
     fresh: Boolean = false,
     hostname: String = "",
     multicore_base: Boolean = false,
@@ -185,7 +185,11 @@ object Build_History
     {
       /* init settings */
 
-      other_isabelle.init_settings(components_base, init_settings)
+      val component_settings =
+        other_isabelle.init_components(
+          base = components_base getOrElse other_isabelle.default_components_base,
+          catalogs = List("main", "optional"))
+      other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
         augment_settings(other_isabelle, threads, arch_64, heap, max_heap, more_settings)
@@ -394,7 +398,7 @@ object Build_History
     Command_Line.tool0 {
       var afp_rev: Option[String] = None
       var multicore_base = false
-      var components_base = ""
+      var components_base: Option[Path] = None
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
@@ -447,7 +451,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 """,
         "A:" -> (arg => afp_rev = Some(arg)),
         "B" -> (_ => multicore_base = true),
-        "C:" -> (arg => components_base = arg),
+        "C:" -> (arg => components_base = Some(Path.explode(arg))),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
         "N:" -> (arg => isabelle_identifier = arg),
