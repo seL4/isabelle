@@ -127,7 +127,41 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
   }
 
 
-  /* contrib */
+  /* components */
+
+  def components_dir(dir: Path): Path = dir + Path.explode("Admin/components")
+  def components_file(dir: Path): Path = dir + Path.explode("etc/components")
+
+  def record_bundled_components(dir: Path)
+  {
+    val catalogs =
+      List("main", "bundled").map((_, "#bundled:")) :::
+      default_platform_families.flatMap(
+        platform => List(platform, "bundled-" + platform).map((_, "#bundled-" + platform + ":")))
+
+    File.append(components_file(dir),
+      terminate_lines("#bundled components" ::
+        (for {
+          (catalog, prefix) <- catalogs.iterator
+          val path = components_dir(dir) + Path.basic(catalog)
+          if path.is_file
+          line <- split_lines(File.read(path))
+          if line.nonEmpty && !line.startsWith("#") && !line.startsWith("jedit_build")
+        } yield prefix + line).toList))
+  }
+
+  def activate_bundled_components(dir: Path, platform: String)
+  {
+    val Bundled_Platform = ("""^#bundled(?:-\Q""" + platform + """\E)?:(.*)$""").r
+    val Bundled = ("""^#bundled.*:.*$""").r
+    File.write(components_file(dir),
+      cat_lines(split_lines(File.read(components_file(dir))).flatMap(line =>
+        line match {
+          case Bundled_Platform(arg) => Some("contrib/" + arg)
+          case Bundled() => None
+          case _ => Some(line)
+        })))
+  }
 
   def make_contrib(dir: Path)
   {
