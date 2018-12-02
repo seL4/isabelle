@@ -10,7 +10,7 @@ begin
 ML \<open>
   Isabelle_System.with_tmp_dir "ghc" (fn dir =>
     let
-      val files = Generated_Files.write \<^theory>\<open>Haskell\<close> dir;
+      val files = Generated_Files.write_files \<^theory>\<open>Haskell\<close> dir;
       val (out, rc) =
         Isabelle_System.bash_output
          (cat_lines

@@ -6,6 +6,9 @@ Generated source files for other languages: with antiquotations, without Isabell
 
 signature GENERATED_FILES =
 sig
+  val add_files: (Path.T * Position.T) * string -> theory -> theory
+  val get_files: theory -> (Path.T * string) list
+  val write_files: theory -> Path.T -> Path.T list
   type file_type =
     {name: string, ext: string, make_comment: string -> string, make_string: string -> string}
   val file_type:
@@ -16,8 +19,6 @@ sig
     theory -> theory
   val set_string: string -> Proof.context -> Proof.context
   val generate_file_cmd: (string * Position.T) * Input.source -> local_theory -> local_theory
-  val write: theory -> Path.T -> Path.T list
-  val export: theory -> string -> Path.T list
 end;
 
 structure Generated_Files: GENERATED_FILES =
@@ -33,28 +34,47 @@ type antiquotation = Token.src -> Proof.context -> file_type -> string;
 structure Data = Theory_Data
 (
   type T =
+    (Path.T * (Position.T * string)) list *  (*files for current theory*)
     file_type Name_Space.table *  (*file types*)
-    antiquotation Name_Space.table *  (*antiquotations*)
-    (Path.T * (Position.T * string)) list;  (*generated files for current theory*)
+    antiquotation Name_Space.table;  (*antiquotations*)
   val empty =
-    (Name_Space.empty_table Markup.file_typeN,
-     Name_Space.empty_table Markup.antiquotationN,
-     []);
-  val extend = @{apply 3(3)} (K []);
-  fun merge ((types1, antiqs1, _), (types2, antiqs2, _)) =
-    (Name_Space.merge_tables (types1, types2),
-     Name_Space.merge_tables (antiqs1, antiqs2),
-     []);
+    ([],
+     Name_Space.empty_table Markup.file_typeN,
+     Name_Space.empty_table Markup.antiquotationN);
+  val extend = @{apply 3(1)} (K []);
+  fun merge ((_, types1, antiqs1), (_, types2, antiqs2)) =
+    ([],
+     Name_Space.merge_tables (types1, types2),
+     Name_Space.merge_tables (antiqs1, antiqs2));
 );
 
-val get_files = rev o #3 o Data.get;
 
-fun add_files (path, (pos, text)) =
-  (Data.map o @{apply 3(3)}) (fn files =>
-    (case AList.lookup (op =) files path of
-      SOME (pos', _) =>
-        error ("Duplicate generated file " ^ Path.print path ^ Position.here_list [pos, pos'])
-    | NONE => (path, (pos, text)) :: files));
+(* files *)
+
+fun add_files ((path0, pos), text) =
+  let
+    val path = Path.expand path0;
+    fun err msg ps = error (msg ^ ": " ^ Path.print path ^ Position.here_list ps);
+    val _ =
+      if Path.is_absolute path then err "Illegal absolute path" [pos]
+      else if Path.has_parent path then err "Illegal parent path" [pos]
+      else ();
+  in
+    (Data.map o @{apply 3(1)}) (fn files =>
+      (case AList.lookup (op =) files path of
+        SOME (pos', _) => err "Duplicate generated file" [pos, pos']
+      | NONE => (path, (pos, text)) :: files))
+  end;
+
+val get_files = map (apsnd #2) o rev o #1 o Data.get;
+
+fun write_files thy dir =
+  get_files thy |> map (fn (path, text) =>
+    let
+      val path' = Path.expand (Path.append dir path);
+      val _ = Isabelle_System.mkdirs (Path.dir path');
+      val _ = File.generate path' text;
+    in path end);
 
 
 (* file types *)
@@ -62,7 +82,7 @@ fun add_files (path, (pos, text)) =
 fun the_file_type thy ext =
   if ext = "" then error "Bad file extension"
   else
-    (#1 (Data.get thy), NONE) |-> Name_Space.fold_table
+    (#2 (Data.get thy), NONE) |-> Name_Space.fold_table
       (fn (_, file_type) => fn res =>
         if #ext file_type = ext then SOME file_type else res)
     |> (fn SOME file_type => file_type
@@ -74,7 +94,7 @@ fun file_type binding {ext, make_comment, make_string} thy =
     val pos = Binding.pos_of binding;
     val file_type = {name = name, ext = ext, make_comment = make_comment, make_string = make_string};
 
-    val table = #1 (Data.get thy);
+    val table = #2 (Data.get thy);
     val space = Name_Space.space_of_table table;
     val context = Context.Theory thy |> Name_Space.map_naming (K Name_Space.global_naming);
     val (_, data') = table |> Name_Space.define context true (Binding.make (name, pos), file_type);
@@ -85,12 +105,12 @@ fun file_type binding {ext, make_comment, make_string} thy =
       | SOME name' =>
           error ("Extension " ^ quote ext ^ " already registered for file type " ^
             quote (Markup.markup (Name_Space.markup space name') name') ^ Position.here pos));
-  in thy |> (Data.map o @{apply 3(1)}) (K data') end;
+  in thy |> (Data.map o @{apply 3(2)}) (K data') end;
 
 
 (* antiquotations *)
 
-val get_antiquotations = #2 o Data.get o Proof_Context.theory_of;
+val get_antiquotations = #3 o Data.get o Proof_Context.theory_of;
 
 fun antiquotation name scan body thy =
   let
@@ -99,7 +119,7 @@ fun antiquotation name scan body thy =
       in body {context = ctxt', source = src, file_type = file_type, argument = x} end;
   in
     thy
-    |> (Data.map o @{apply 3(2)}) (Name_Space.define (Context.Theory thy) true (name, ant) #> #2)
+    |> (Data.map o @{apply 3(3)}) (Name_Space.define (Context.Theory thy) true (name, ant) #> #2)
   end;
 
 val scan_antiq =
@@ -138,35 +158,14 @@ fun generate_file_cmd ((file, pos), source) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val path = Path.expand (Path.explode file);
-    fun err_path msg = error (msg ^ ": " ^ Path.print path ^ Position.here pos);
-    val _ =
-      if Path.is_absolute path then err_path "Illegal absolute path"
-      else if Path.has_parent path then err_path "Illegal parent path"
-      else ();
-
+    val path = Path.explode file;
     val file_type =
       the_file_type thy (#2 (Path.split_ext path))
         handle ERROR msg => error (msg ^ Position.here pos);
 
     val header = #make_comment file_type " generated by Isabelle ";
     val text = header ^ "\n" ^ read_source lthy file_type source;
-  in lthy |> (Local_Theory.background_theory o add_files) (path, (pos, text)) end;
-
-fun write thy dir =
-  get_files thy |> map (fn (path, (_, text)) =>
-    let
-      val path' = Path.expand (Path.append dir path);
-      val _ = Isabelle_System.mkdirs (Path.dir path');
-      val _ = File.generate path' text;
-    in path end);
-
-fun export thy prefix =
-  get_files thy |> map (fn (path, (_, text)) =>
-    let
-      val name = (if prefix = "" then "" else prefix ^ "/") ^ Path.implode path;
-      val _ = Export.export thy name [text];
-    in path end);
+  in lthy |> (Local_Theory.background_theory o add_files) ((path, pos), text) end;
 
  
 
