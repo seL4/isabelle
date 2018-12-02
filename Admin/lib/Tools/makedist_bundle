@@ -58,7 +58,7 @@ tar -C "$TMP" -x -z -f "$ARCHIVE" || exit 2
 # distribution classpath (based on educated guesses)
 
 splitarray ":" "$ISABELLE_CLASSPATH"; CLASSPATH_ENTRIES=("${SPLITARRAY[@]}")
-declare -a DISTRIBITION_CLASSPATH=()
+declare -a DISTRIBUTION_CLASSPATH=()
 
 for ENTRY in "${CLASSPATH_ENTRIES[@]}"
 do
@@ -68,13 +68,13 @@ do
     elsif (m,/home/isabelle/contrib/(.*)\$,) { print qq{contrib/\$1}; }
     else { print; };
     print qq{\n};")
-  DISTRIBITION_CLASSPATH["${#DISTRIBITION_CLASSPATH[@]}"]="$ENTRY"
+  DISTRIBUTION_CLASSPATH["${#DISTRIBUTION_CLASSPATH[@]}"]="$ENTRY"
 done
 
-DISTRIBITION_CLASSPATH["${#DISTRIBITION_CLASSPATH[@]}"]="src/Tools/jEdit/dist/jedit.jar"
+DISTRIBUTION_CLASSPATH["${#DISTRIBUTION_CLASSPATH[@]}"]="src/Tools/jEdit/dist/jedit.jar"
 
 echo "classpath"
-for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+for ENTRY in "${DISTRIBUTION_CLASSPATH[@]}"
 do
   echo "  $ENTRY"
 done
@@ -177,7 +177,7 @@ case "$PLATFORM_FAMILY" in
     ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.options"
 
     LINUX_CLASSPATH=""
-    for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+    for ENTRY in "${DISTRIBUTION_CLASSPATH[@]}"
     do
       if [ -z "$LINUX_CLASSPATH" ]; then
         LINUX_CLASSPATH="\\\$ISABELLE_HOME/$ENTRY"
@@ -232,7 +232,7 @@ case "$PLATFORM_FAMILY" in
       APP_TEMPLATE="$ISABELLE_HOME/Admin/Windows/launch4j"
 
       (
-        for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+        for ENTRY in "${DISTRIBUTION_CLASSPATH[@]}"
         do
           ENTRY=$(echo "$ENTRY" | perl -p -e 's,/,\\\\,g;')
           echo "    <cp>%EXEDIR%\\\\$ENTRY</cp>"
@@ -339,7 +339,7 @@ case "$PLATFORM_FAMILY" in
         cat "$APP_TEMPLATE/Info.plist-part2"
       ) | perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
 
-      for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+      for ENTRY in "${DISTRIBUTION_CLASSPATH[@]}"
       do
         ln -sf "../Resources/${ISABELLE_NAME}/$ENTRY" "$APP/Contents/Java"
       done
