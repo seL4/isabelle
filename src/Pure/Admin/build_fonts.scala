@@ -268,7 +268,7 @@ object Build_Fonts
 
     // etc/settings
 
-    val settings_path = target_dir + Path.explode("etc/settings")
+    val settings_path = Components.settings(target_dir)
     Isabelle_System.mkdirs(settings_path.dir)
     File.write(settings_path,
       "# -*- shell-script -*- :mode=shellscript:\n\nisabelle_fonts \\\n" +

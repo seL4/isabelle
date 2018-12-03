@@ -163,7 +163,7 @@ esac
         val component_dir = dir + jdk_path
 
         Isabelle_System.mkdirs(component_dir + Path.explode("etc"))
-        File.write(component_dir + Path.explode("etc/settings"), settings)
+        File.write(Components.settings(component_dir), settings)
         File.write(component_dir + Path.explode("README"), readme(version))
 
         for ((_, platform) <- extracted)

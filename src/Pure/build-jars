@@ -113,6 +113,7 @@ declare -a SOURCES=(
   ROOT.scala
   System/bash.scala
   System/command_line.scala
+  System/components.scala
   System/cygwin.scala
   System/distribution.scala
   System/getopts.scala

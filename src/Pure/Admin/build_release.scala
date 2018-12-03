@@ -129,46 +129,69 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
   }
 
 
-  /* components */
+  /* bundled components */
 
-  def components_dir(dir: Path): Path = dir + Path.explode("Admin/components")
-  def components_file(dir: Path): Path = dir + Path.explode("etc/components")
+  class Bundled(platform: String = "")
+  {
+    def detect(s: String): Boolean =
+      s.startsWith("#bundled") && !s.startsWith("#bundled ")
+
+    def apply(name: String): String =
+      "#bundled" + (if (platform == "") "" else "-" + platform) + ":" + name
+
+    private val Pattern1 = ("""^#bundled:(.*)$""").r
+    private val Pattern2 = ("""^#bundled-(.*):(.*)$""").r
+
+    def unapply(s: String): Option[String] =
+      s match {
+        case Pattern1(name) => Some(name)
+        case Pattern2(platform1, name) if platform == platform1 => Some(name)
+        case _ => None
+      }
+  }
 
   def record_bundled_components(dir: Path)
   {
     val catalogs =
-      List("main", "bundled").map((_, "#bundled:")) :::
-      default_platform_families.flatMap(
-        platform => List(platform, "bundled-" + platform).map((_, "#bundled-" + platform + ":")))
+      List("main", "bundled").map((_, new Bundled())) :::
+      default_platform_families.flatMap(platform =>
+        List(platform, "bundled-" + platform).map((_, new Bundled(platform = platform))))
 
-    File.append(components_file(dir),
+    File.append(Components.components(dir),
       terminate_lines("#bundled components" ::
         (for {
-          (catalog, prefix) <- catalogs.iterator
-          val path = components_dir(dir) + Path.basic(catalog)
+          (catalog, bundled) <- catalogs.iterator
+          val path = Components.admin(dir) + Path.basic(catalog)
           if path.is_file
           line <- split_lines(File.read(path))
           if line.nonEmpty && !line.startsWith("#") && !line.startsWith("jedit_build")
-        } yield prefix + line).toList))
+        } yield bundled(line)).toList))
+  }
+
+  def get_bundled_components(dir: Path, platform: String): List[String] =
+  {
+    val Bundled = new Bundled(platform)
+    for (Bundled(name) <- Components.read_components(dir)) yield name
   }
 
   def activate_bundled_components(dir: Path, platform: String)
   {
-    val Bundled_Platform = ("""^#bundled(?:-\Q""" + platform + """\E)?:(.*)$""").r
-    val Bundled = ("""^#bundled.*:.*$""").r
-    File.write(components_file(dir),
-      cat_lines(split_lines(File.read(components_file(dir))).flatMap(line =>
+    val Bundled = new Bundled(platform)
+    Components.write_components(dir,
+      Components.read_components(dir).flatMap(line =>
         line match {
-          case Bundled_Platform(arg) => Some("contrib/" + arg)
-          case Bundled() => None
-          case _ => Some(line)
-        })))
+          case Bundled(name) =>
+            if (Components.check_dir(Components.contrib(dir, name)))
+              Some(Components.contrib(name = name).implode)
+            else None
+          case _ => if (Bundled.detect(line)) None else Some(line)
+        }))
   }
 
   def make_contrib(dir: Path)
   {
-    Isabelle_System.mkdirs(dir + Path.explode("contrib"))
-    File.write(dir + Path.explode("contrib/README"),
+    Isabelle_System.mkdirs(Components.contrib(dir))
+    File.write(Components.contrib(dir, "README"),
 """This directory contains add-on components that contribute to the main
 Isabelle distribution.  Separate licensing conditions apply, see each
 directory individually.
@@ -194,7 +217,7 @@ directory individually.
         case Some(rel_path) => rel_path
         case None =>
           File.relative_path(contrib_base, abs_path) match {
-            case Some(rel_path) => Path.explode("contrib") + rel_path
+            case Some(rel_path) => Components.contrib() + rel_path
             case None => error("Bad ISABELLE_CLASSPATH element: " + path)
           }
       }
@@ -305,7 +328,7 @@ directory individually.
           progress = progress)
 
       other_isabelle.init_settings(
-        other_isabelle.init_components(base = base_dir.absolute + Path.explode("contrib")))
+        other_isabelle.init_components(base = Components.contrib(base_dir.absolute)))
       other_isabelle.resolve_components(echo = true)
 
       try {

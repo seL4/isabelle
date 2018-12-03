@@ -68,8 +68,8 @@ class Other_Isabelle(
 
   /* components */
 
-  def default_components_base: Path = isabelle_home_user.absolute.dir + Path.explode("contrib")
-  def default_components_dir: Path = isabelle_home.absolute + Path.explode("Admin/components")
+  def default_components_base: Path = Components.contrib(isabelle_home_user.absolute.dir)
+  def default_components_dir: Path = Components.admin(isabelle_home.absolute)
   def default_catalogs: List[String] = List("main")
 
   def init_components(
