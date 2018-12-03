@@ -328,7 +328,9 @@ directory individually.
           progress = progress)
 
       other_isabelle.init_settings(
-        other_isabelle.init_components(base = Components.contrib(base_dir.absolute)))
+        other_isabelle.init_components(
+          base = Components.contrib(base_dir.absolute),
+          catalogs = List("main")))
       other_isabelle.resolve_components(echo = true)
 
       try {

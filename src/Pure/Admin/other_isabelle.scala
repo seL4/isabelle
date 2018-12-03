@@ -69,16 +69,17 @@ class Other_Isabelle(
   /* components */
 
   def default_components_base: Path = Components.contrib(isabelle_home_user.absolute.dir)
-  def default_components_dir: Path = Components.admin(isabelle_home.absolute)
-  def default_catalogs: List[String] = List("main")
 
   def init_components(
     base: Path = default_components_base,
-    dir: Path = default_components_dir,
-    catalogs: List[String] = default_catalogs): List[String] =
+    catalogs: List[String] = Nil,
+    components: List[String] = Nil): List[String] =
   {
-    catalogs.map(catalog =>
-      "init_components " + File.bash_path(base) + " " + File.bash_path(dir + Path.basic(catalog)))
+    val dir = Components.admin(isabelle_home.absolute)
+    catalogs.map(name =>
+      "init_components " + File.bash_path(base) + " " + File.bash_path(dir + Path.basic(name))) :::
+    components.map(name =>
+      "init_component " + File.bash_path(base + Path.basic(name)))
   }
 
 
