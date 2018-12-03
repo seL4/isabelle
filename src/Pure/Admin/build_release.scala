@@ -67,17 +67,18 @@ object Build_Release
     {
       change_file(dir, name,
         s =>
-          s.replaceAll("val is_identified = false", "val is_identified = true")
-           .replaceAll("val is_official = false", "val is_official = " + is_official))
+          s.replaceAllLiterally("val is_identified = false", "val is_identified = true")
+           .replaceAllLiterally("val is_official = false", "val is_official = " + is_official))
     }
 
     change_file(dir, getsettings_file,
       s =>
-        s.replaceAll("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
-         .replaceAll("ISABELLE_IDENTIFIER=\"\"", "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
+        s.replaceAllLiterally("ISABELLE_ID=\"\"", "ISABELLE_ID=" + quote(release.ident))
+         .replaceAllLiterally("ISABELLE_IDENTIFIER=\"\"",
+            "ISABELLE_IDENTIFIER=" + quote(release.dist_name)))
 
     change_file(dir, "lib/html/library_index_header.template",
-      s => s.replaceAll("""\{ISABELLE\}""", release.dist_name))
+      s => s.replaceAllLiterally("{ISABELLE}", release.dist_name))
 
     for {
       name <-
@@ -86,11 +87,12 @@ object Build_Release
           "src/Pure/System/distribution.scala",
           "lib/Tools/version") }
     {
-      change_file(dir, name, s => s.replaceAll("repository version", release.dist_version))
+      change_file(dir, name,
+        s => s.replaceAllLiterally("repository version", release.dist_version))
     }
 
     change_file(dir, "README",
-      s => s.replaceAll("some repository version of Isabelle", release.dist_version))
+      s => s.replaceAllLiterally("some repository version of Isabelle", release.dist_version))
   }
 
 
