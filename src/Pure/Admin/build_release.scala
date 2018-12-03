@@ -236,6 +236,7 @@ directory individually.
   private val default_platform_families = List("linux", "windows", "macos")
 
   def build_release(base_dir: Path,
+    components_base: Option[Path] = None,
     progress: Progress = No_Progress,
     rev: String = "",
     afp_rev: String = "",
@@ -328,9 +329,7 @@ directory individually.
           progress = progress)
 
       other_isabelle.init_settings(
-        other_isabelle.init_components(
-          base = Components.contrib(base_dir.absolute),
-          catalogs = List("main")))
+        other_isabelle.init_components(base = components_base, catalogs = List("main")))
       other_isabelle.resolve_components(echo = true)
 
       try {
@@ -490,6 +489,7 @@ rm -rf "${DIST_NAME}-old"
   {
     Command_Line.tool0 {
       var afp_rev = ""
+      var components_base: Option[Path] = None
       var remote_mac = ""
       var official_release = false
       var proper_release_name: Option[String] = None
@@ -504,6 +504,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 
   Options are:
     -A REV       corresponding AFP changeset id
+    -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
     -M USER@HOST remote Mac OS X for dmg build
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
@@ -516,6 +517,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
   Build Isabelle release in base directory, using the local repository clone.
 """,
         "A:" -> (arg => afp_rev = arg),
+        "C:" -> (arg => components_base = Some(Path.explode(arg))),
         "M:" -> (arg => remote_mac = arg),
         "O" -> (_ => official_release = true),
         "R:" -> (arg => proper_release_name = Some(arg)),
@@ -530,9 +532,9 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 
       val progress = new Console_Progress()
 
-      build_release(Path.explode(base_dir), progress = progress, rev = rev, afp_rev = afp_rev,
-        official_release = official_release, proper_release_name = proper_release_name,
-        website = website,
+      build_release(Path.explode(base_dir), components_base = components_base, progress = progress,
+        rev = rev, afp_rev = afp_rev, official_release = official_release,
+        proper_release_name = proper_release_name, website = website,
         platform_families =
           if (platform_families.isEmpty) default_platform_families
           else platform_families,

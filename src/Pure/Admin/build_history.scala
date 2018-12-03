@@ -186,9 +186,7 @@ object Build_History
       /* init settings */
 
       val component_settings =
-        other_isabelle.init_components(
-          base = components_base getOrElse other_isabelle.default_components_base,
-          catalogs = List("main", "optional"))
+        other_isabelle.init_components(base = components_base, catalogs = List("main", "optional"))
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
