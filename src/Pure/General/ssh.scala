@@ -184,7 +184,7 @@ object SSH
     val local_host: String,
     val local_port: Int,
     val remote_host: String,
-    val remote_port: Int)
+    val remote_port: Int) extends AutoCloseable
   {
     override def toString: String =
       local_host + ":" + local_port + ":" + remote_host + ":" + remote_port
@@ -211,7 +211,7 @@ object SSH
 
   private val exec_wait_delay = Time.seconds(0.3)
 
-  class Exec private[SSH](session: Session, channel: ChannelExec)
+  class Exec private[SSH](session: Session, channel: ChannelExec) extends AutoCloseable
   {
     override def toString: String = "exec " + session.toString
 
@@ -292,7 +292,7 @@ object SSH
   class Session private[SSH](
     val options: Options,
     val session: JSch_Session,
-    on_close: () => Unit) extends System
+    on_close: () => Unit) extends System with AutoCloseable
   {
     def update_options(new_options: Options): Session =
       new Session(new_options, session, on_close)

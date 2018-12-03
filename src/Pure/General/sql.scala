@@ -6,6 +6,7 @@ Support for SQL databases: SQLite and PostgreSQL.
 
 package isabelle
 
+
 import java.time.OffsetDateTime
 import java.sql.{DriverManager, Connection, PreparedStatement, ResultSet}
 
@@ -189,6 +190,7 @@ object SQL
   /* statements */
 
   class Statement private[SQL](val db: Database, val rep: PreparedStatement)
+    extends AutoCloseable
   {
     stmt =>
 
@@ -306,7 +308,7 @@ object SQL
 
   /* database */
 
-  trait Database
+  trait Database extends AutoCloseable
   {
     db =>
 

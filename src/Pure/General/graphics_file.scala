@@ -58,8 +58,8 @@ object Graphics_File
   {
     import com.lowagie.text.{Document, Rectangle}
 
-    val out = new BufferedOutputStream(new FileOutputStream(file))
-    try {
+    using(new BufferedOutputStream(new FileOutputStream(file)))(out =>
+    {
       val document = new Document()
       try {
         document.setPageSize(new Rectangle(width, height))
@@ -76,8 +76,7 @@ object Graphics_File
         cb.addTemplate(tp, 1, 0, 0, 1, 0, 0)
       }
       finally { document.close() }
-    }
-    finally { out.close }
+    })
   }
 
 

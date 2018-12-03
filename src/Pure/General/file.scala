@@ -229,8 +229,7 @@ object File
   def write_file(file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream)
   {
     val stream = make_stream(new FileOutputStream(file))
-    val writer = new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset))
-    try { writer.append(text) } finally { writer.close }
+    using(new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset)))(_.append(text))
   }
 
   def write(file: JFile, text: CharSequence): Unit = write_file(file, text, s => s)

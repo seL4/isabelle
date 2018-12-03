@@ -95,11 +95,8 @@ object Bytes
 
   /* write */
 
-  def write(file: JFile, bytes: Bytes)
-  {
-    val stream = new FileOutputStream(file)
-    try { bytes.write_stream(stream) } finally { stream.close }
-  }
+  def write(file: JFile, bytes: Bytes): Unit =
+    using(new FileOutputStream(file))(bytes.write_stream(_))
 
   def write(path: Path, bytes: Bytes): Unit = write(path.file, bytes)
 }

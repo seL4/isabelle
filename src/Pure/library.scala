@@ -16,12 +16,10 @@ object Library
 {
   /* resource management */
 
-  def using[A <: { def close() }, B](x: A)(f: A => B): B =
+  def using[A <: AutoCloseable, B](a: A)(f: A => B): B =
   {
-    import scala.language.reflectiveCalls
-
-    try { f(x) }
-    finally { if (x != null) x.close() }
+    try { f(a) }
+    finally { if (a != null) a.close() }
   }
 
 

@@ -974,8 +974,8 @@ object Sessions
   def read_heap_digest(heap: Path): Option[String] =
   {
     if (heap.is_file) {
-      val file = FileChannel.open(heap.file.toPath, StandardOpenOption.READ)
-      try {
+      using(FileChannel.open(heap.file.toPath, StandardOpenOption.READ))(file =>
+      {
         val len = file.size
         val n = sha1_prefix.length + SHA1.digest_length
         if (len >= n) {
@@ -998,8 +998,7 @@ object Sessions
           else None
         }
         else None
-      }
-      finally { file.close }
+      })
     }
     else None
   }

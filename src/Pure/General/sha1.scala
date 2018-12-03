@@ -39,18 +39,19 @@ object SHA1
 
   def digest(file: JFile): Digest =
   {
-    val stream = new FileInputStream(file)
     val digest = MessageDigest.getInstance("SHA")
 
-    val buf = new Array[Byte](65536)
-    var m = 0
-    try {
-      do {
-        m = stream.read(buf, 0, buf.length)
-        if (m != -1) digest.update(buf, 0, m)
-      } while (m != -1)
-    }
-    finally { stream.close }
+    using(new FileInputStream(file))(stream =>
+    {
+      val buf = new Array[Byte](65536)
+      var m = 0
+      try {
+        do {
+          m = stream.read(buf, 0, buf.length)
+          if (m != -1) digest.update(buf, 0, m)
+        } while (m != -1)
+      }
+    })
 
     make_result(digest)
   }

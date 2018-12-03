@@ -45,18 +45,13 @@ object HTTP
     def request_uri: URI = http_exchange.getRequestURI
 
     def read_request(): Bytes =
-    {
-      val stream = http_exchange.getRequestBody
-      try { Bytes.read_stream(stream) } finally { stream.close }
-    }
+      using(http_exchange.getRequestBody)(Bytes.read_stream(_))
 
     def write_response(code: Int, response: Response)
     {
       http_exchange.getResponseHeaders().set("Content-Type", response.content_type)
       http_exchange.sendResponseHeaders(code, response.bytes.length.toLong)
-
-      val stream = http_exchange.getResponseBody
-      try { response.bytes.write_stream(stream) } finally { stream.close }
+      using(http_exchange.getResponseBody)(response.bytes.write_stream(_))
     }
   }
 

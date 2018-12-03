@@ -156,10 +156,7 @@ class Resources(
   def with_thy_reader[A](name: Document.Node.Name, f: Reader[Char] => A): A =
   {
     val path = name.path
-    if (path.is_file) {
-      val reader = Scan.byte_reader(path.file)
-      try { f(reader) } finally { reader.close }
-    }
+    if (path.is_file) using(Scan.byte_reader(path.file))(f)
     else if (name.node == name.theory)
       error("Cannot load theory " + quote(name.theory))
     else error ("Cannot load theory file " + path)

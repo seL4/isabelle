@@ -46,9 +46,8 @@ object Cygwin
           case link :: content :: rest =>
             val path = (new JFile(isabelle_root, link)).toPath
 
-            val writer = Files.newBufferedWriter(path, UTF8.charset)
-            try { writer.write("!<symlink>" + content + "\u0000") }
-            finally { writer.close }
+            using(Files.newBufferedWriter(path, UTF8.charset))(
+              _.write("!<symlink>" + content + "\u0000"))
 
             Files.setAttribute(path, "dos:system", true)
 

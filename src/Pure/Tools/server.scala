@@ -161,7 +161,7 @@ object Server
       new Connection(socket)
   }
 
-  class Connection private(socket: Socket)
+  class Connection private(socket: Socket) extends AutoCloseable
   {
     override def toString: String = socket.toString
 
@@ -220,6 +220,7 @@ object Server
   /* context with output channels */
 
   class Context private[Server](val server: Server, connection: Connection)
+    extends AutoCloseable
   {
     context =>
 

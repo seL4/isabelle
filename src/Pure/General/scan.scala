@@ -451,7 +451,7 @@ object Scan
     }
   }
 
-  abstract class Byte_Reader extends Reader[Char] { def close: Unit }
+  abstract class Byte_Reader extends Reader[Char] with AutoCloseable
 
   private def make_byte_reader(stream: InputStream, stream_length: Int): Byte_Reader =
   {

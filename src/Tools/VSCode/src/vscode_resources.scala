@@ -140,11 +140,8 @@ class VSCode_Resources(
     val file = node_file(name)
     get_model(file) match {
       case Some(model) => f(Scan.char_reader(model.content.text))
-      case None if file.isFile =>
-        val reader = Scan.byte_reader(file)
-        try { f(reader) } finally { reader.close }
-      case None =>
-        error("No such file: " + quote(file.toString))
+      case None if file.isFile => using(Scan.byte_reader(file))(f)
+      case None => error("No such file: " + quote(file.toString))
     }
   }
 

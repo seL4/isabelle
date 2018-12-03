@@ -10,7 +10,7 @@ package object isabelle
   val error = Exn.error _
   def cat_error(msgs: String*): Nothing = Exn.cat_error(msgs:_*)
 
-  def using[A <: { def close() }, B](x: A)(f: A => B): B = Library.using(x)(f)
+  def using[A <: AutoCloseable, B](a: A)(f: A => B): B = Library.using(a)(f)
   val space_explode = Library.space_explode _
   val split_lines = Library.split_lines _
   val cat_lines = Library.cat_lines _
@@ -25,4 +25,3 @@ package object isabelle
   type UUID = java.util.UUID
   def UUID(): UUID = java.util.UUID.randomUUID()
 }
-
