@@ -16,6 +16,20 @@ object Components
   def contrib(dir: Path = Path.current, name: String = ""): Path =
     dir + Path.explode("contrib") + Path.explode(name)
 
+  def download(dir: Path, names: List[String], progress: Progress = No_Progress)
+  {
+    Isabelle_System.mkdirs(dir)
+    for (name <- names) {
+      val archive = name + ".tar.gz"
+      val target = dir + Path.explode(archive)
+      if (!target.is_file) {
+        val remote = Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY") + "/" + archive
+        progress.echo("Getting " + quote(remote))
+        Bytes.write(target, Url.read_bytes(Url(remote)))
+      }
+    }
+  }
+
 
   /* component directory content */
 
