@@ -274,7 +274,7 @@ directory individually.
     /* make distribution */
 
     if (release.isabelle_archive.is_file) {
-      progress.echo("### Release archive already exists: " + release.isabelle_archive)
+      progress.echo_warning("Release archive already exists: " + release.isabelle_archive)
 
       val archive_ident =
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
@@ -293,7 +293,7 @@ directory individually.
       }
     }
     else {
-      progress.echo("### Producing release archive " + release.isabelle_archive + " ...")
+      progress.echo_warning("Producing release archive " + release.isabelle_archive + " ...")
 
       Isabelle_System.mkdirs(release.dist_dir)
 
@@ -301,7 +301,7 @@ directory individually.
         error("Directory " + release.isabelle_dir + " already exists")
 
 
-      progress.echo("### Retrieving Mercurial repository version " + release.ident)
+      progress.echo_warning("Retrieving Mercurial repository version " + release.ident)
 
       hg.archive(release.isabelle_dir.expand.implode, rev = release.ident, options = "--type files")
 
@@ -310,7 +310,7 @@ directory individually.
       }
 
 
-      progress.echo("### Preparing distribution " + quote(release.dist_name))
+      progress.echo_warning("Preparing distribution " + quote(release.dist_name))
 
       patch_release(release, proper_release_name.isDefined && official_release)
 
@@ -355,7 +355,7 @@ directory individually.
       other_isabelle.cleanup()
 
 
-      progress.echo("### Creating distribution archive " + release.isabelle_archive)
+      progress.echo_warning("Creating distribution archive " + release.isabelle_archive)
 
       def execute_dist_name(script: String): Unit =
         Isabelle_System.bash(script, cwd = release.dist_dir.file,
@@ -404,7 +404,7 @@ rm -rf "${DIST_NAME}-old"
         (if (remote_mac.isEmpty) bundle_info.fallback else None) getOrElse bundle_info.main
       val bundle_archive = release.dist_dir + Path.explode(bundle)
       if (bundle_archive.is_file)
-        progress.echo("### Application bundle already exists: " + bundle_archive)
+        progress.echo_warning("Application bundle already exists: " + bundle_archive)
       else {
         progress.echo(
           "\nApplication bundle for " + bundle_info.platform_family + ": " + bundle_archive)
@@ -447,7 +447,7 @@ rm -rf "${DIST_NAME}-old"
 
     if (build_library) {
       if (release.isabelle_library_archive.is_file) {
-        progress.echo("### Library archive already exists: " + release.isabelle_library_archive)
+        progress.echo_warning("Library archive already exists: " + release.isabelle_library_archive)
       }
       else {
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
