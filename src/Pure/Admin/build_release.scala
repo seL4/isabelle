@@ -566,7 +566,7 @@ rm -rf "${DIST_NAME}-old"
 
           // platform-specific application (outside archive)
 
-          progress.echo("Application for " + platform)
+          progress.echo("Application for " + platform + " ...")
 
           if (platform == "linux") {
             File.link(
@@ -658,6 +658,7 @@ rm -rf "${DIST_NAME}-old"
             Isabelle_System.bash("chmod +x " + (release.dist_dir + isabelle_exe)).check
           }
         })
+        progress.echo("DONE")
       }
     }
 
