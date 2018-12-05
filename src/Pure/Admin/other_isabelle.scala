@@ -13,7 +13,7 @@ object Other_Isabelle
       isabelle_identifier: String = "",
       user_home: Path = Path.explode("$USER_HOME"),
       progress: Progress = No_Progress): Other_Isabelle =
-    new Other_Isabelle(isabelle_home.absolute, isabelle_identifier, user_home, progress)
+    new Other_Isabelle(isabelle_home.canonical, isabelle_identifier, user_home, progress)
 }
 
 class Other_Isabelle(
