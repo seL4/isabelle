@@ -13,7 +13,7 @@ object Other_Isabelle
       isabelle_identifier: String = "",
       user_home: Path = Path.explode("$USER_HOME"),
       progress: Progress = No_Progress): Other_Isabelle =
-    new Other_Isabelle(isabelle_home, isabelle_identifier, user_home, progress)
+    new Other_Isabelle(isabelle_home.absolute, isabelle_identifier, user_home, progress)
 }
 
 class Other_Isabelle(
@@ -24,7 +24,7 @@ class Other_Isabelle(
 {
   other_isabelle =>
 
-  override def toString: String = isabelle_home.absolute.toString
+  override def toString: String = isabelle_home.toString
 
   if (proper_string(System.getenv("ISABELLE_SETTINGS_PRESENT")).isDefined)
     error("Cannot initialize with enclosing ISABELLE_SETTINGS_PRESENT")
@@ -69,7 +69,7 @@ class Other_Isabelle(
   /* components */
 
   def components_base(base: Option[Path]): Path =
-    base getOrElse Components.contrib(isabelle_home_user.absolute.dir)
+    base getOrElse Components.contrib(isabelle_home_user.dir)
 
   def init_components(
     base: Option[Path] = None,
@@ -77,7 +77,7 @@ class Other_Isabelle(
     components: List[String] = Nil): List[String] =
   {
     val base_dir = components_base(base)
-    val dir = Components.admin(isabelle_home.absolute)
+    val dir = Components.admin(isabelle_home)
     catalogs.map(name =>
       "init_components " + File.bash_path(base_dir) + " " + File.bash_path(dir + Path.basic(name))) :::
     components.map(name =>
