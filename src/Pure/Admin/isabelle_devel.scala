@@ -51,6 +51,7 @@ object Isabelle_Devel
   /* release snapshot */
 
   def release_snapshot(
+    options: Options,
     rev: String = "",
     afp_rev: String = "",
     parallel_jobs: Int = 1,
@@ -60,7 +61,7 @@ object Isabelle_Devel
       {
         Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
           website_dir =>
-            Build_Release.build_release(base_dir, rev = rev, afp_rev = afp_rev,
+            Build_Release.build_release(base_dir, options, rev = rev, afp_rev = afp_rev,
               parallel_jobs = parallel_jobs, remote_mac = remote_mac, website = Some(website_dir)))
       })
   }

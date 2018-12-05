@@ -57,3 +57,13 @@
 </array>
 <key>JVMOptions</key>
 <array>
+{JAVA_OPTIONS}
+<string>-Dapple.awt.application.name={ISABELLE_NAME}</string>
+<string>-Disabelle.root=$APP_ROOT/Contents/Resources/{ISABELLE_NAME}</string>
+<string>-Disabelle.app=true</string>
+</array>
+<key>JVMArguments</key>
+<array>
+</array>
+</dict>
+</plist>

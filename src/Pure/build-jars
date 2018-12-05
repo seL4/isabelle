@@ -25,7 +25,6 @@ declare -a SOURCES=(
   Admin/isabelle_devel.scala
   Admin/jenkins.scala
   Admin/other_isabelle.scala
-  Admin/remote_dmg.scala
   Concurrent/consumer_thread.scala
   Concurrent/counter.scala
   Concurrent/event_timer.scala

@@ -7,6 +7,9 @@ Isabelle system components.
 package isabelle
 
 
+import java.io.{File => JFile}
+
+
 object Components
 {
   /* component collections */
@@ -16,18 +19,41 @@ object Components
   def contrib(dir: Path = Path.current, name: String = ""): Path =
     dir + Path.explode("contrib") + Path.explode(name)
 
-  def download(dir: Path, names: List[String], progress: Progress = No_Progress)
+  def resolve(base_dir: Path, names: List[String],
+    target_dir: Option[Path] = None,
+    progress: Progress = No_Progress)
   {
-    Isabelle_System.mkdirs(dir)
+    Isabelle_System.mkdirs(base_dir)
     for (name <- names) {
-      val archive = name + ".tar.gz"
-      val target = dir + Path.explode(archive)
-      if (!target.is_file) {
-        val remote = Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY") + "/" + archive
-        progress.echo("Getting " + quote(remote))
-        Bytes.write(target, Url.read_bytes(Url(remote)))
+      val archive_name = name + ".tar.gz"
+      val archive = base_dir + Path.explode(archive_name)
+      if (!archive.is_file) {
+        val remote = Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY") + "/" + archive_name
+        progress.echo("Getting " + remote)
+        Bytes.write(archive, Url.read_bytes(Url(remote)))
       }
+      progress.echo("Unpacking " + archive_name)
+      Isabelle_System.gnutar(
+        "-C " + File.bash_path(target_dir getOrElse base_dir) +
+        " -xzf " + File.bash_path(archive)).check
     }
+  }
+
+  def purge(dir: Path, platform: String)
+  {
+    def purge_platforms(platforms: String*): Set[String] =
+      platforms.flatMap(name => List("x86-" + name, "x86_64-" + name)).toSet + "ppc-darwin"
+    val purge_set =
+      platform match {
+        case "linux" => purge_platforms("darwin", "cygwin", "windows")
+        case "windows" => purge_platforms("linux", "darwin")
+        case "macos" => purge_platforms("linux", "cygwin", "windows")
+        case _ => error("Bad platform: " + quote(platform))
+      }
+
+    File.find_files(dir.file,
+      (file: JFile) => file.isDirectory && purge_set(file.getName),
+      include_dirs = true).foreach(Isabelle_System.rm_tree)
   }
 
 

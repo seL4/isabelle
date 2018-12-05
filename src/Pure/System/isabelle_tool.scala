@@ -172,5 +172,4 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Build_PolyML.isabelle_tool2,
   Build_Status.isabelle_tool,
   Check_Sources.isabelle_tool,
-  Remote_DMG.isabelle_tool,
   isabelle.vscode.Build_VSCode.isabelle_tool)
