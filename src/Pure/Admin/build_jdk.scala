@@ -120,8 +120,7 @@ esac
       val platform_dir = dir + Path.explode(platform.name)
       if (platform_dir.is_dir) error("Directory already exists: " + platform_dir)
 
-      val jre_path = jdk_dir + Path.explode(platform.home) + Path.explode("jre")
-      Isabelle_System.bash("ln -s . " + File.bash_path(jre_path)).check
+      File.link(Path.current, jdk_dir + Path.explode(platform.home) + Path.explode("jre"))
 
       File.move(jdk_dir, platform_dir)
 

@@ -569,9 +569,10 @@ rm -rf "${DIST_NAME}-old"
           progress.echo("Application for " + platform)
 
           if (platform == "linux") {
-            Isabelle_System.bash(
-              "ln -s " + Bash.string(isabelle_name + "_linux.tar.gz") + " " +
-              File.bash_path(release.dist_dir + Path.explode(isabelle_name + "_app.tar.gz"))).check
+            File.link(
+              Path.explode(isabelle_name + "_linux.tar.gz"),
+              release.dist_dir + Path.explode(isabelle_name + "_app.tar.gz"),
+              force = true)
           }
           else if (platform == "macos") {
             val dmg_dir = tmp_dir + Path.explode("macos_app/dmg")
@@ -589,21 +590,27 @@ rm -rf "${DIST_NAME}-old"
                   terminate_lines(java_options.map(opt => "<string>" + opt + "</string>"))))
 
             for (cp <- classpath) {
-              Isabelle_System.bash(
-                "ln -sf " +
-                Bash.string("../Resources/" + isabelle_name + "/") + File.bash_path(cp) + " " +
-                File.bash_path(app_contents + Path.explode("Java"))).check
+              File.link(
+                Path.explode("../Resources/" + isabelle_name + "/") + cp,
+                app_contents + Path.explode("Java"),
+                force = true)
             }
 
-            Isabelle_System.bash("ln -sf ../Resources/" + Bash.string(isabelle_name) +
-              "/contrib/" + Bash.string(jdk_component) + "/x86_64-darwin " +
-              File.bash_path(app_contents + Path.explode("PlugIns/bundled.jdk"))).check
+            File.link(
+              Path.explode("../Resources/" + isabelle_name + "/contrib/" +
+                jdk_component + "/x86_64-darwin"),
+              app_contents + Path.explode("PlugIns/bundled.jdk"),
+              force = true)
 
-            Isabelle_System.bash("ln -sf ../../Info.plist " +
-              File.bash_path(app_resources + Path.explode(isabelle_name) +
-                Path.explode(isabelle_name + ".plist"))).check
-            Isabelle_System.bash("ln -sf Contents/Resources/" + Bash.string(isabelle_name) + " " +
-              File.bash_path(app_dir) + "/Isabelle").check
+            File.link(
+              Path.explode("../../Info.plist"),
+              app_resources + Path.explode(isabelle_name + "/" + isabelle_name + ".plist"),
+              force = true)
+
+            File.link(
+              Path.explode("Contents/Resources/" + isabelle_name),
+              app_dir + Path.explode("Isabelle"),
+              force = true)
 
             val dmg = Path.explode(isabelle_name + ".dmg")
             (release.dist_dir + dmg).file.delete

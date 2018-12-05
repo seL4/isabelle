@@ -11,7 +11,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOu
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
 import java.nio.file.{StandardOpenOption, StandardCopyOption, Path => JPath,
-  Files, SimpleFileVisitor, FileVisitOption, FileVisitResult}
+  Files, SimpleFileVisitor, FileVisitOption, FileVisitResult, FileSystemException}
 import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
@@ -311,4 +311,24 @@ object File
   }
 
   def move(path1: Path, path2: Path): Unit = move(path1.file, path2.file)
+
+
+  /* symbolic link */
+
+  def link(src: Path, dst: Path, force: Boolean = false)
+  {
+    val src_file = src.file
+    val dst_file = dst.file
+    val target = if (dst_file.isDirectory) new JFile(dst_file, src_file.getName) else dst_file
+
+    if (force) target.delete
+
+    try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
+    catch {
+      case _: UnsupportedOperationException if Platform.is_windows =>
+        Cygwin.link(standard_path(src), target)
+      case _: FileSystemException if Platform.is_windows =>
+        Cygwin.link(standard_path(src), target)
+    }
+  }
 }

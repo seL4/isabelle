@@ -43,14 +43,8 @@ object Cygwin
       {
         list match {
           case Nil | List("") =>
-          case link :: content :: rest =>
-            val path = (new JFile(isabelle_root, link)).toPath
-
-            using(Files.newBufferedWriter(path, UTF8.charset))(
-              _.write("!<symlink>" + content + "\u0000"))
-
-            Files.setAttribute(path, "dos:system", true)
-
+          case target :: content :: rest =>
+            link(content, new JFile(isabelle_root, target))
             recover_symlinks(rest)
           case _ => error("Unbalanced symlinks list")
         }
@@ -60,5 +54,15 @@ object Cygwin
       exec(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
       exec(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
     }
+  }
+
+  def link(content: String, target: JFile)
+  {
+    val target_path = target.toPath
+
+    using(Files.newBufferedWriter(target_path, UTF8.charset))(
+      _.write("!<symlink>" + content + "\u0000"))
+
+    Files.setAttribute(target_path, "dos:system", true)
   }
 }
