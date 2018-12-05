@@ -25,6 +25,10 @@ if type -p gnutar >/dev/null
 then
   function tar() { gnutar "$@"; }
   export -f tar
+elif type -p gtar >/dev/null
+then
+  function tar() { gtar "$@"; }
+  export -f tar
 fi
 
 #OCaml management via OPAM
