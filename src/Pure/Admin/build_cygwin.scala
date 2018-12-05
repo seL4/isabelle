@@ -35,9 +35,8 @@ object Build_Cygwin
 
         File.write(cygwin_isabelle + Path.explode("cygwin_mirror"), mirror)
 
-        Isabelle_System.bash(
-          "chmod +x " + File.bash_path(cygwin_exe) + " && " +
-          File.bash_path(cygwin_exe) + " -h </dev/null >/dev/null").check
+        File.executable(cygwin_exe)
+        Isabelle_System.bash(File.bash_path(cygwin_exe) + " -h </dev/null >/dev/null").check
 
         val res =
           progress.bash(

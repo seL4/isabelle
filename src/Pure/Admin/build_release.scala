@@ -466,7 +466,7 @@ rm -rf "${DIST_NAME}-old"
                 .replaceAllLiterally("{CLASSPATH}",
                   classpath.map("$ISABELLE_HOME/" + _).mkString(":"))
                 .replaceAllLiterally("/jdk/", "/" + jdk_component + "/"))
-            Isabelle_System.bash("chmod +x " + File.bash_path(isabelle_run)).check
+            File.executable(isabelle_run)
 
             val linux_app = isabelle_target + Path.explode("contrib/linux_app")
             File.move(linux_app + Path.explode("Isabelle"),
@@ -530,8 +530,7 @@ rm -rf "${DIST_NAME}-old"
             File.write(isabelle_target + cygwin_bat,
               File.read(cygwin_template + cygwin_bat)
                 .replaceAllLiterally("{MIRROR}", cygwin_mirror))
-
-            Isabelle_System.bash("chmod +x " + File.bash_path(isabelle_target + cygwin_bat)).check
+            File.executable(isabelle_target + cygwin_bat)
 
             for (name <- List("isabelle/postinstall", "isabelle/rebaseall")) {
               val path = Path.explode(name)
@@ -654,8 +653,7 @@ rm -rf "${DIST_NAME}-old"
 
             Bytes.write(release.dist_dir + isabelle_exe,
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
-
-            Isabelle_System.bash("chmod +x " + (release.dist_dir + isabelle_exe)).check
+            File.executable(release.dist_dir + isabelle_exe)
           }
         })
         progress.echo("DONE")

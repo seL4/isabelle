@@ -331,4 +331,13 @@ object File
         Cygwin.link(standard_path(src), target)
     }
   }
+
+
+  /* permissions */
+
+  def executable(path: Path)
+  {
+    if (Platform.is_windows) Isabelle_System.bash("chmod a+x " + bash_path(path)).check
+    else path.file.setExecutable(true, false)
+  }
 }
