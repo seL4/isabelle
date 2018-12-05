@@ -513,9 +513,8 @@ rm -rf "${DIST_NAME}-old"
                     "    <cp>%EXEDIR%\\" + File.platform_path(cp).replace('/', '\\') + "</cp>")))
                 .replaceAllLiterally("\\jdk\\", "\\" + jdk_component + "\\"))
 
-            Isabelle_System.bash(
-              "\"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml",
-              cwd = tmp_dir.file).check
+            execute(tmp_dir,
+              "\"windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j\" isabelle.xml")
 
             File.copy(app_template + Path.explode("manifest.xml"),
               isabelle_target + isabelle_exe.ext("manifest"))
@@ -538,17 +537,16 @@ rm -rf "${DIST_NAME}-old"
                 isabelle_target + Path.explode("contrib/cygwin") + path)
             }
 
-            Isabelle_System.bash("""find . -type f -not -name "*.exe" -not -name "*.dll" """ +
+            execute(isabelle_target,
+              """find . -type f -not -name "*.exe" -not -name "*.dll" """ +
               (if (Platform.is_macos) "-perm +100" else "-executable") +
-              " -print0 > contrib/cygwin/isabelle/executables",
-              cwd = isabelle_target.file).check
+              " -print0 > contrib/cygwin/isabelle/executables")
 
-            Isabelle_System.bash("""find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" """ +
-              """> contrib/cygwin/isabelle/symlinks""",
-              cwd = isabelle_target.file).check
+            execute(isabelle_target,
+              """find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" """ +
+              """> contrib/cygwin/isabelle/symlinks""")
 
-            Isabelle_System.bash("""find . -type l -exec rm "{}" ";" """,
-              cwd = isabelle_target.file).check
+            execute(isabelle_target, """find . -type l -exec rm "{}" ";" """)
 
             File.write(isabelle_target + Path.explode("contrib/cygwin/isabelle/uninitialized"), "")
           }
@@ -641,8 +639,8 @@ rm -rf "${DIST_NAME}-old"
             val exe_archive = tmp_dir + Path.explode(isabelle_name + ".7z")
             exe_archive.file.delete
 
-            Isabelle_System.bash("7z -y -bd a " + File.bash_path(exe_archive) + " " +
-              Bash.string(isabelle_name), cwd = tmp_dir.file).check
+            execute(tmp_dir,
+              "7z -y -bd a " + File.bash_path(exe_archive) + " " + Bash.string(isabelle_name))
             if (!exe_archive.is_file) error("Failed to create archive: " + exe_archive)
 
             val isabelle_exe = Path.explode(isabelle_name + ".exe")
@@ -707,8 +705,8 @@ rm -rf "${DIST_NAME}-old"
             File.write(other_isabelle.etc_preferences, "ML_system_64 = true\n")
 
             other_isabelle.bash("bin/isabelle build -j " + parallel_jobs +
-                " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
-                " -s -c -a -d '~~/src/Benchmarks'", echo = true).check
+              " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
+              " -s -c -a -d '~~/src/Benchmarks'", echo = true).check
             other_isabelle.isabelle_home_user.file.delete
 
             execute(tmp_dir, "chmod -R a+r " + Bash.string(release.dist_name))
