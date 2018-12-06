@@ -1,4 +1,4 @@
-Tutorials!
+Isabelle Tutorials!
   prog-prove      Programming and Proving in Isabelle/HOL
   locales         Tutorial on Locales
   classes         Tutorial on Type Classes
@@ -11,14 +11,14 @@ Tutorials!
   eisbach         The Eisbach User Manual
   sugar           LaTeX Sugar for Isabelle documents
 
-Reference Manuals!
+Isabelle Reference Manuals!
   main            What's in Main
   isar-ref        The Isabelle/Isar Reference Manual
   implementation  The Isabelle/Isar Implementation Manual
   system          The Isabelle System Manual
   jedit           Isabelle/jEdit
 
-Old Manuals
+Old Isabelle Manuals
   tutorial        Tutorial on Isabelle/HOL
   intro           Old Introduction to Isabelle
   logics          Isabelle's Logics: HOL and misc logics

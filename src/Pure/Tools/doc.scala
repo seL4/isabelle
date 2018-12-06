@@ -52,7 +52,7 @@ object Doc
   private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
 
   private def release_notes(): List[Entry] =
-    Section("Release notes", true) ::
+    Section("Release Notes", true) ::
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file(_))
 
   private def examples(): List[Entry] =
