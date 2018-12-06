@@ -252,7 +252,7 @@ directory individually.
       val dist_name = proper_release_name getOrElse ("Isabelle_" + Date.Format.date(date))
       val dist_dir = (base_dir + Path.explode("dist-" + dist_name)).absolute
 
-      val version = proper_release_name orElse proper_string(rev) getOrElse "tip"
+      val version = proper_string(rev) orElse proper_release_name getOrElse "tip"
       val ident =
         try { hg.id(version) }
         catch { case ERROR(_) => error("Bad repository version: " + version) }
