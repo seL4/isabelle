@@ -226,7 +226,7 @@ directory individually.
   private def tar_options: String =
     if (Platform.is_macos) "--owner=root --group=staff" else "--owner=root --group=root"
 
-  private val default_platform_families =
+  private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
 
   def build_release(base_dir: Path,
@@ -791,6 +791,9 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
       val base_dir = more_args match { case List(base_dir) => base_dir case _ => getopts.usage() }
 
       val progress = new Console_Progress()
+
+      if (platform_families.contains(Platform.Family.windows) && !Isabelle_System.bash("7z i").ok)
+        error("Building for windows requires 7z")
 
       build_release(Path.explode(base_dir), options, components_base = components_base,
         progress = progress, rev = rev, afp_rev = afp_rev, official_release = official_release,
