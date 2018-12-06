@@ -12,6 +12,19 @@ import java.io.{File => JFile}
 
 object Components
 {
+  /* archive name */
+
+  object Archive
+  {
+    val suffix: String = ".tar.gz"
+    def apply(name: String): String = name + suffix
+    def unapply(archive: String): Option[String] = Library.try_unsuffix(suffix, archive)
+    def get_name(archive: String): String =
+      unapply(archive) getOrElse
+        error("Bad component archive name (expecting .tar.gz): " + quote(archive))
+  }
+
+
   /* component collections */
 
   def admin(dir: Path): Path = dir + Path.explode("Admin/components")
@@ -19,23 +32,28 @@ object Components
   def contrib(dir: Path = Path.current, name: String = ""): Path =
     dir + Path.explode("contrib") + Path.explode(name)
 
+  def unpack(dir: Path, archive: Path, progress: Progress = No_Progress): String =
+  {
+    val name = Archive.get_name(archive.file_name)
+    progress.echo("Unpacking " + name)
+    Isabelle_System.gnutar("-C " + File.bash_path(dir) + " -xzf " + File.bash_path(archive)).check
+    name
+  }
+
   def resolve(base_dir: Path, names: List[String],
     target_dir: Option[Path] = None,
     progress: Progress = No_Progress)
   {
     Isabelle_System.mkdirs(base_dir)
     for (name <- names) {
-      val archive_name = name + ".tar.gz"
+      val archive_name = Archive(name)
       val archive = base_dir + Path.explode(archive_name)
       if (!archive.is_file) {
         val remote = Isabelle_System.getenv("ISABELLE_COMPONENT_REPOSITORY") + "/" + archive_name
         progress.echo("Getting " + remote)
         Bytes.write(archive, Url.read_bytes(Url(remote)))
       }
-      progress.echo("Unpacking " + archive_name)
-      Isabelle_System.gnutar(
-        "-C " + File.bash_path(target_dir getOrElse base_dir) +
-        " -xzf " + File.bash_path(archive)).check
+      unpack(target_dir getOrElse base_dir, archive, progress = progress)
     }
   }
 

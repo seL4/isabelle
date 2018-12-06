@@ -187,18 +187,20 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
     (components, jdk_component)
   }
 
-  def activate_bundled_components(dir: Path, platform: Platform.Family.Value)
+  def activate_components(dir: Path, platform: Platform.Family.Value, more_names: List[String])
   {
+    def contrib_name(name: String): String =
+      Components.contrib(name = name).implode
+
     val Bundled = new Bundled(platform = Some(platform))
     Components.write_components(dir,
       Components.read_components(dir).flatMap(line =>
         line match {
           case Bundled(name) =>
-            if (Components.check_dir(Components.contrib(dir, name)))
-              Some(Components.contrib(name = name).implode)
+            if (Components.check_dir(Components.contrib(dir, name))) Some(contrib_name(name))
             else None
           case _ => if (Bundled.detect(line)) None else Some(line)
-        }))
+        }) ::: more_names.map(contrib_name(_)))
   }
 
   def make_contrib(dir: Path)
@@ -236,6 +238,7 @@ directory individually.
     official_release: Boolean = false,
     proper_release_name: Option[String] = None,
     platform_families: List[Platform.Family.Value] = default_platform_families,
+    more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
@@ -395,7 +398,7 @@ rm -rf "${DIST_NAME}-old"
       val bundle =
         (if (remote_mac.isEmpty) bundle_info.fallback else None) getOrElse bundle_info.main
       val bundle_archive = release.dist_dir + Path.explode(bundle)
-      if (bundle_archive.is_file)
+      if (bundle_archive.is_file && more_components.isEmpty)
         progress.echo_warning("Application bundle already exists: " + bundle_archive)
       else {
         val isabelle_name = release.dist_name
@@ -418,14 +421,18 @@ rm -rf "${DIST_NAME}-old"
 
           val contrib_dir = Components.contrib(isabelle_target)
 
-          val (components, jdk_component) = get_bundled_components(isabelle_target, platform)
+          val (bundled_components, jdk_component) =
+            get_bundled_components(isabelle_target, platform)
 
           Components.resolve(other_isabelle.components_base(components_base),
-            components, target_dir = Some(contrib_dir), progress = progress)
+            bundled_components, target_dir = Some(contrib_dir), progress = progress)
+
+          val more_components_names =
+            more_components.map(Components.unpack(contrib_dir, _, progress = progress))
 
           Components.purge(contrib_dir, platform)
 
-          activate_bundled_components(isabelle_target, platform)
+          activate_components(isabelle_target, platform, more_components_names)
 
 
           // Java parameters
@@ -736,6 +743,7 @@ rm -rf "${DIST_NAME}-old"
       var official_release = false
       var proper_release_name: Option[String] = None
       var website: Option[Path] = None
+      var more_components: List[Path] = Nil
       var parallel_jobs = 1
       var build_library = false
       var options = Options.init()
@@ -752,6 +760,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
     -W WEBSITE   produce minimal website in given directory
+    -c ARCHIVE   clean bundling with additional component .tar.gz archive
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -766,6 +775,12 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "O" -> (_ => official_release = true),
         "R:" -> (arg => proper_release_name = Some(arg)),
         "W:" -> (arg => website = Some(Path.explode(arg))),
+        "c:" -> (arg =>
+          {
+            val path = Path.explode(arg)
+            Components.Archive.get_name(path.file_name)
+            more_components = more_components ::: List(path)
+          }),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
         "l" -> (_ => build_library = true),
         "o:" -> (arg => options = options + arg),
@@ -783,7 +798,8 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         platform_families =
           if (platform_families.isEmpty) default_platform_families
           else platform_families,
-        build_library = build_library, parallel_jobs = parallel_jobs, remote_mac = remote_mac)
+        more_components = more_components, build_library = build_library,
+        parallel_jobs = parallel_jobs, remote_mac = remote_mac)
     }
   }
 }
