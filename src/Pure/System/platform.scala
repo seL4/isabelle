@@ -15,6 +15,24 @@ object Platform
   val is_macos = System.getProperty("os.name", "") == "Mac OS X"
   val is_windows = System.getProperty("os.name", "").startsWith("Windows")
 
+  def family: Family.Value =
+    if (is_linux) Family.linux
+    else if (is_macos) Family.macos
+    else if (is_windows) Family.windows
+    else error("Failed to determine current platform family")
+
+  object Family extends Enumeration
+  {
+    val linux, macos, windows = Value
+
+    def unapply(name: String): Option[Value] =
+      try { Some(withName(name)) }
+      catch { case _: NoSuchElementException => None }
+
+    def parse(name: String): Value =
+      unapply(name) getOrElse error("Bad platform family: " + quote(name))
+  }
+
 
   /* platform identifiers */
 

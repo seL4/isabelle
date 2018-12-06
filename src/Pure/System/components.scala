@@ -39,16 +39,15 @@ object Components
     }
   }
 
-  def purge(dir: Path, platform: String)
+  def purge(dir: Path, platform: Platform.Family.Value)
   {
     def purge_platforms(platforms: String*): Set[String] =
       platforms.flatMap(name => List("x86-" + name, "x86_64-" + name)).toSet + "ppc-darwin"
     val purge_set =
       platform match {
-        case "linux" => purge_platforms("darwin", "cygwin", "windows")
-        case "windows" => purge_platforms("linux", "darwin")
-        case "macos" => purge_platforms("linux", "cygwin", "windows")
-        case _ => error("Bad platform: " + quote(platform))
+        case Platform.Family.linux => purge_platforms("darwin", "cygwin", "windows")
+        case Platform.Family.macos => purge_platforms("linux", "cygwin", "windows")
+        case Platform.Family.windows => purge_platforms("linux", "darwin")
       }
 
     File.find_files(dir.file,

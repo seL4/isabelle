@@ -12,7 +12,7 @@ object Build_Release
   /** release info **/
 
   sealed case class Bundle_Info(
-    platform_family: String,
+    platform: Platform.Family.Value,
     platform_description: String,
     main: String,
     fallback: Option[String])
@@ -37,13 +37,14 @@ object Build_Release
         isabelle_identifier = dist_name + "-build",
         progress = progress)
 
-    def bundle_info(platform_family: String): Bundle_Info =
-      platform_family match {
-        case "linux" => Bundle_Info("linux", "Linux", dist_name + "_app.tar.gz", None)
-        case "windows" => Bundle_Info("windows", "Windows", dist_name + ".exe", None)
-        case "macos" =>
-          Bundle_Info("macos", "Mac OS X", dist_name + ".dmg", Some(dist_name + "_dmg.tar.gz"))
-        case _ => error("Unknown platform family " + quote(platform_family))
+    def bundle_info(platform: Platform.Family.Value): Bundle_Info =
+      platform match {
+        case Platform.Family.linux =>
+          Bundle_Info(platform, "Linux", dist_name + "_app.tar.gz", None)
+        case Platform.Family.macos =>
+          Bundle_Info(platform, "Mac OS X", dist_name + ".dmg", Some(dist_name + "_dmg.tar.gz"))
+        case Platform.Family.windows =>
+          Bundle_Info(platform, "Windows", dist_name + ".exe", None)
       }
   }
 
@@ -135,13 +136,13 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
 
   /* bundled components */
 
-  class Bundled(platform: String = "")
+  class Bundled(platform: Option[Platform.Family.Value] = None)
   {
     def detect(s: String): Boolean =
       s.startsWith("#bundled") && !s.startsWith("#bundled ")
 
     def apply(name: String): String =
-      "#bundled" + (if (platform == "") "" else "-" + platform) + ":" + name
+      "#bundled" + (platform match { case None => "" case Some(plat) => "-" + plat }) + ":" + name
 
     private val Pattern1 = ("""^#bundled:(.*)$""").r
     private val Pattern2 = ("""^#bundled-(.*):(.*)$""").r
@@ -149,7 +150,7 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
     def unapply(s: String): Option[String] =
       s match {
         case Pattern1(name) => Some(name)
-        case Pattern2(platform1, name) if platform == platform1 => Some(name)
+        case Pattern2(Platform.Family(plat), name) if platform == Some(plat) => Some(name)
         case _ => None
       }
   }
@@ -159,7 +160,8 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
     val catalogs =
       List("main", "bundled").map((_, new Bundled())) :::
       default_platform_families.flatMap(platform =>
-        List(platform, "bundled-" + platform).map((_, new Bundled(platform = platform))))
+        List(platform.toString, "bundled-" + platform.toString).
+          map((_, new Bundled(platform = Some(platform)))))
 
     File.append(Components.components(dir),
       terminate_lines("#bundled components" ::
@@ -172,9 +174,9 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
         } yield bundled(line)).toList))
   }
 
-  def get_bundled_components(dir: Path, platform: String): (List[String], String) =
+  def get_bundled_components(dir: Path, platform: Platform.Family.Value): (List[String], String) =
   {
-    val Bundled = new Bundled(platform)
+    val Bundled = new Bundled(platform = Some(platform))
     val components =
       for {
         Bundled(name) <- Components.read_components(dir)
@@ -185,9 +187,9 @@ This is a snapshot of Isabelle/""" + release.ident + """ from the repository.
     (components, jdk_component)
   }
 
-  def activate_bundled_components(dir: Path, platform: String)
+  def activate_bundled_components(dir: Path, platform: Platform.Family.Value)
   {
-    val Bundled = new Bundled(platform)
+    val Bundled = new Bundled(platform = Some(platform))
     Components.write_components(dir,
       Components.read_components(dir).flatMap(line =>
         line match {
@@ -222,7 +224,8 @@ directory individually.
   private def tar_options: String =
     if (Platform.is_macos) "--owner=root --group=staff" else "--owner=root --group=root"
 
-  private val default_platform_families = List("linux", "windows", "macos")
+  private val default_platform_families =
+    List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
 
   def build_release(base_dir: Path,
     options: Options,
@@ -232,7 +235,7 @@ directory individually.
     afp_rev: String = "",
     official_release: Boolean = false,
     proper_release_name: Option[String] = None,
-    platform_families: List[String] = default_platform_families,
+    platform_families: List[Platform.Family.Value] = default_platform_families,
     website: Option[Path] = None,
     build_library: Boolean = false,
     parallel_jobs: Int = 1,
@@ -396,7 +399,7 @@ rm -rf "${DIST_NAME}-old"
         progress.echo_warning("Application bundle already exists: " + bundle_archive)
       else {
         val isabelle_name = release.dist_name
-        val platform = bundle_info.platform_family
+        val platform = bundle_info.platform
 
         progress.echo("\nApplication bundle for " + platform + ": " + bundle_archive)
 
@@ -456,7 +459,7 @@ rm -rf "${DIST_NAME}-old"
 
           // platform-specific setup (inside archive)
 
-          if (platform == "linux") {
+          if (platform == Platform.Family.linux) {
             File.write(isabelle_target + Path.explode(isabelle_name + ".options"),
               terminate_lines(java_options_title :: java_options))
 
@@ -473,7 +476,7 @@ rm -rf "${DIST_NAME}-old"
               isabelle_target + Path.explode(isabelle_name))
             Isabelle_System.rm_tree(linux_app)
           }
-          else if (platform == "macos") {
+          else if (platform == Platform.Family.macos) {
             File.move(isabelle_target + Path.explode("contrib/macos_app"), tmp_dir)
             File.write(isabelle_target + jedit_props,
               File.read(isabelle_target + jedit_props)
@@ -482,7 +485,7 @@ rm -rf "${DIST_NAME}-old"
                 .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d")
                 .replaceAll("plugin-blacklist.MacOSX.jar=true", "plugin-blacklist.MacOSX.jar="))
           }
-          else if (platform == "windows") {
+          else if (platform == Platform.Family.windows) {
             val app_template = Path.explode("~~/Admin/Windows/launch4j")
             val cygwin_template = Path.explode("~~/Admin/Windows/Cygwin")
 
@@ -565,13 +568,13 @@ rm -rf "${DIST_NAME}-old"
 
           progress.echo("Application for " + platform + " ...")
 
-          if (platform == "linux") {
+          if (platform == Platform.Family.linux) {
             File.link(
               Path.explode(isabelle_name + "_linux.tar.gz"),
               release.dist_dir + Path.explode(isabelle_name + "_app.tar.gz"),
               force = true)
           }
-          else if (platform == "macos") {
+          else if (platform == Platform.Family.macos) {
             val dmg_dir = tmp_dir + Path.explode("macos_app/dmg")
             val app_dir = dmg_dir + Path.explode(isabelle_name + ".app")
             File.move(dmg_dir + Path.explode("Isabelle.app"), app_dir)
@@ -635,7 +638,7 @@ rm -rf "${DIST_NAME}-old"
               case _ =>
             }
           }
-          else if (platform == "windows") {
+          else if (platform == Platform.Family.windows) {
             val exe_archive = tmp_dir + Path.explode(isabelle_name + ".7z")
             exe_archive.file.delete
 
@@ -694,9 +697,8 @@ rm -rf "${DIST_NAME}-old"
       else {
         Isabelle_System.with_tmp_dir("build_release")(tmp_dir =>
           {
-            val platform = Isabelle_System.getenv_strict("ISABELLE_PLATFORM_FAMILY")
             val bundle =
-              release.dist_dir + Path.explode(release.dist_name + "_" + platform + ".tar.gz")
+              release.dist_dir + Path.explode(release.dist_name + "_" + Platform.family + ".tar.gz")
             execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle))
 
             val other_isabelle = release.other_isabelle(tmp_dir)
@@ -767,7 +769,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
         "l" -> (_ => build_library = true),
         "o:" -> (arg => options = options + arg),
-        "p:" -> (arg => platform_families = space_explode(',', arg)),
+        "p:" -> (arg => platform_families = space_explode(',', arg).map(Platform.Family.parse)),
         "r:" -> (arg => rev = arg))
 
       val more_args = getopts(args)
