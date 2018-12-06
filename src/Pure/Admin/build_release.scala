@@ -558,7 +558,7 @@ rm -rf "${DIST_NAME}-old"
           // archive
 
           val archive_name = isabelle_name + "_" + platform + ".tar.gz"
-          progress.echo("Packaging " + archive_name)
+          progress.echo("Packaging " + archive_name + " ...")
           execute_tar(tmp_dir,
             "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
             Bash.string(isabelle_name))
