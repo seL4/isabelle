@@ -1,5 +1,5 @@
 theory Inductive_Predicate
-imports Codegen_Basics.Setup
+imports Setup
 begin
 
 (*<*)

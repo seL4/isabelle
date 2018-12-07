@@ -1,5 +1,5 @@
 theory Adaptation
-imports Codegen_Basics.Setup
+imports Setup
 begin
 
 setup %invisible \<open>Code_Target.add_derived_target ("\<SML>", [("SML", I)])

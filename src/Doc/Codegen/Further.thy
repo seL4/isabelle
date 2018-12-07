@@ -1,5 +1,5 @@
 theory Further
-imports Codegen_Basics.Setup
+imports Setup
 begin
 
 section \<open>Further issues \label{sec:further}\<close>

@@ -1,5 +1,5 @@
 theory Refinement
-imports Codegen_Basics.Setup
+imports Setup
 begin
 
 section \<open>Program and datatype refinement \label{sec:refinement}\<close>

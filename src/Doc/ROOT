@@ -16,12 +16,12 @@ session Classes (doc) in "Classes" = HOL +
     "root.tex"
     "style.sty"
 
-session Codegen_Basics (no_doc) in "Codegen" = "HOL-Library" +
-  theories
-    Setup
-
-session Codegen (doc) in "Codegen" = "Codegen_Basics" +
+session Codegen (doc) in "Codegen" = HOL +
   options [document_variants = "codegen", print_mode = "no_brackets,iff"]
+  sessions
+    "HOL-Library"
+  theories [document = false]
+    Setup
   theories
     Introduction
     Foundations
@@ -43,11 +43,10 @@ session Codegen (doc) in "Codegen" = "Codegen_Basics" +
     "root.tex"
     "style.sty"
 
-session Corec (doc) in "Corec" = "HOL-Library" +
+session Corec (doc) in "Corec" = Datatypes +
   options [document_variants = "corec"]
-  sessions
-    Datatypes
-  theories Corec
+  theories
+    Corec
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -60,10 +59,14 @@ session Corec (doc) in "Corec" = "HOL-Library" +
     "root.tex"
     "style.sty"
 
-session Datatypes (doc) in "Datatypes" = "HOL-Library" +
+session Datatypes (doc) in "Datatypes" = HOL +
   options [document_variants = "datatypes"]
-  theories [document = false] Setup
-  theories Datatypes
+  sessions
+    "HOL-Library"
+  theories [document = false]
+    Setup
+  theories
+    Datatypes
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -76,9 +79,11 @@ session Datatypes (doc) in "Datatypes" = "HOL-Library" +
     "root.tex"
     "style.sty"
 
-session Eisbach (doc) in "Eisbach" = "HOL-Eisbach" +
+session Eisbach (doc) in "Eisbach" = HOL +
   options [document_variants = "eisbach", quick_and_dirty,
     print_mode = "no_brackets,iff", show_question_marks = false]
+  sessions
+    "HOL-Eisbach"
   theories [document = false]
     Base
   theories
@@ -141,7 +146,7 @@ session Intro (doc) in "Intro" = Pure +
     "getting.tex"
     "root.tex"
 
-session Implementation (doc) in "Implementation" = "HOL" +
+session Implementation (doc) in "Implementation" = HOL +
   options [document_variants = "implementation", quick_and_dirty]
   theories
     Eq
@@ -169,8 +174,10 @@ session Implementation (doc) in "Implementation" = "HOL" +
     "root.tex"
     "style.sty"
 
-session Isar_Ref (doc) in "Isar_Ref" = "HOL-Library" +
+session Isar_Ref (doc) in "Isar_Ref" = HOL +
   options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
+  sessions
+    "HOL-Library"
   theories
     Preface
     Synopsis
@@ -487,9 +494,14 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "typedef.pdf"
     "types0.tex"
 
-session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = "Typeclass_Hierarchy_Basics" +
+session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = HOL +
   options [document_variants = "typeclass_hierarchy"]
-  theories Typeclass_Hierarchy
+  sessions
+    "HOL-Library"
+  theories [document = false]
+    Setup
+  theories
+    Typeclass_Hierarchy
   document_files (in "..")
     "prepare_document"
     "pdfsetup.sty"
@@ -501,7 +513,3 @@ session Typeclass_Hierarchy (doc) in "Typeclass_Hierarchy" = "Typeclass_Hierarch
     "build"
     "root.tex"
     "style.sty"
-
-session Typeclass_Hierarchy_Basics (no_doc) in "Typeclass_Hierarchy" = "HOL-Library" +
-  theories
-    Setup
