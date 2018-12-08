@@ -230,13 +230,13 @@ public option spell_checker_exclude : string = "no_words,antiquoted"
 
 section "Secure Shell"
 
-option ssh_config_dir : string = "~/.ssh"
+option ssh_config_dir : string = "$HOME/.ssh"
   -- "SSH configuration directory"
 
-option ssh_config_file : string = "~/.ssh/config"
+option ssh_config_file : string = "$HOME/.ssh/config"
   -- "main SSH configuration file"
 
-option ssh_identity_files : string = "~/.ssh/id_dsa:~/.ssh/id_ecdsa:~/.ssh/id_rsa"
+option ssh_identity_files : string = "$HOME/.ssh/id_dsa:$HOME/.ssh/id_ecdsa:$HOME/.ssh/id_rsa"
   -- "possible SSH identity files (separated by colons)"
 
 option ssh_compression : bool = true
