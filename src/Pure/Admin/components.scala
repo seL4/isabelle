@@ -153,7 +153,7 @@ object Components
               }
 
               progress.echo("Packaging " + archive_name + " ...")
-              Isabelle_System.gnutar("-czf " + Bash.string(archive_name) + " " + Bash.string(name),
+              Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " " + Bash.string(name),
                 dir = archive_dir).check
 
               archive
