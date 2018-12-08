@@ -6,7 +6,7 @@ theory Cauchy_Integral_Theorem
 imports Complex_Transcendental Weierstrass_Theorems Ordered_Euclidean_Space
 begin
 
-subsection\<open>Homeomorphisms of arc images\<close>
+subsection%unimportant \<open>Homeomorphisms of arc images\<close>
 
 lemma homeomorphism_arc:
   fixes g :: "real \<Rightarrow> 'a::t2_space"
@@ -85,7 +85,7 @@ lemma inside_simple_curve_imp_closed:
   using arc_simple_path  inside_arc_empty by blast
 
 
-subsection \<open>Piecewise differentiable functions\<close>
+subsection%unimportant \<open>Piecewise differentiable functions\<close>
 
 definition piecewise_differentiable_on
            (infixr "piecewise'_differentiable'_on" 50)
@@ -300,7 +300,7 @@ proof -
 qed
 
 
-subsubsection\<open>The concept of continuously differentiable\<close>
+subsection\<open>The concept of continuously differentiable\<close>
 
 text \<open>
 John Harrison writes as follows:
@@ -320,7 +320,7 @@ And indeed he does not assume that his derivatives are continuous, but the penal
 difficult proofs concerning winding numbers. We need a self-contained and straightforward theorem
 asserting that all derivatives can be integrated before we can adopt Harrison's choice.\<close>
 
-definition C1_differentiable_on :: "(real \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> real set \<Rightarrow> bool"
+definition%important C1_differentiable_on :: "(real \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> real set \<Rightarrow> bool"
            (infix "C1'_differentiable'_on" 50)
   where
   "f C1_differentiable_on S \<longleftrightarrow>
@@ -399,7 +399,7 @@ lemma C1_differentiable_on_scaleR [simp, derivative_intros]:
   by (rule continuous_intros | simp add: continuous_at_imp_continuous_on differentiable_imp_continuous_within)+
 
 
-definition piecewise_C1_differentiable_on
+definition%important piecewise_C1_differentiable_on
            (infixr "piecewise'_C1'_differentiable'_on" 50)
   where "f piecewise_C1_differentiable_on i  \<equiv>
            continuous_on i f \<and>
@@ -703,16 +703,16 @@ qed
 
 subsection \<open>Valid paths, and their start and finish\<close>
 
-definition valid_path :: "(real \<Rightarrow> 'a :: real_normed_vector) \<Rightarrow> bool"
+definition%important valid_path :: "(real \<Rightarrow> 'a :: real_normed_vector) \<Rightarrow> bool"
   where "valid_path f \<equiv> f piecewise_C1_differentiable_on {0..1::real}"
 
 definition closed_path :: "(real \<Rightarrow> 'a :: real_normed_vector) \<Rightarrow> bool"
   where "closed_path g \<equiv> g 0 = g 1"
 
-subsubsection\<open>In particular, all results for paths apply\<close>
+text\<open>In particular, all results for paths apply\<close>
 
 lemma valid_path_imp_path: "valid_path g \<Longrightarrow> path g"
-by (simp add: path_def piecewise_C1_differentiable_on_def valid_path_def)
+  by (simp add: path_def piecewise_C1_differentiable_on_def valid_path_def)
 
 lemma connected_valid_path_image: "valid_path g \<Longrightarrow> connected(path_image g)"
   by (metis connected_path_image valid_path_imp_path)
@@ -726,7 +726,7 @@ lemma bounded_valid_path_image: "valid_path g \<Longrightarrow> bounded(path_ima
 lemma closed_valid_path_image: "valid_path g \<Longrightarrow> closed(path_image g)"
   by (metis closed_path_image valid_path_imp_path)
 
-proposition valid_path_compose:
+lemma valid_path_compose:
   assumes "valid_path g"
       and der: "\<And>x. x \<in> path_image g \<Longrightarrow> f field_differentiable (at x)"
       and con: "continuous_on (path_image g) (deriv f)"
@@ -802,17 +802,17 @@ text\<open>This definition is for complex numbers only, and does not generalise 
 
 text\<open>piecewise differentiable function on [0,1]\<close>
 
-definition has_contour_integral :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> (real \<Rightarrow> complex) \<Rightarrow> bool"
+definition%important has_contour_integral :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> (real \<Rightarrow> complex) \<Rightarrow> bool"
            (infixr "has'_contour'_integral" 50)
   where "(f has_contour_integral i) g \<equiv>
            ((\<lambda>x. f(g x) * vector_derivative g (at x within {0..1}))
             has_integral i) {0..1}"
 
-definition contour_integrable_on
+definition%important contour_integrable_on
            (infixr "contour'_integrable'_on" 50)
   where "f contour_integrable_on g \<equiv> \<exists>i. (f has_contour_integral i) g"
 
-definition contour_integral
+definition%important contour_integral
   where "contour_integral g f \<equiv> SOME i. (f has_contour_integral i) g \<or> \<not> f contour_integrable_on g \<and> i=0"
 
 lemma not_integrable_contour_integral: "\<not> f contour_integrable_on g \<Longrightarrow> contour_integral g f = 0"
@@ -822,7 +822,7 @@ lemma contour_integral_unique: "(f has_contour_integral i) g \<Longrightarrow> c
   apply (simp add: contour_integral_def has_contour_integral_def contour_integrable_on_def)
   using has_integral_unique by blast
 
-corollary has_contour_integral_eqpath:
+lemma has_contour_integral_eqpath:
      "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>;
        contour_integral p f = contour_integral \<gamma> f\<rbrakk>
       \<Longrightarrow> (f has_contour_integral y) \<gamma>"
@@ -840,7 +840,7 @@ lemma has_contour_integral_unique:
 lemma has_contour_integral_integrable: "(f has_contour_integral i) g \<Longrightarrow> f contour_integrable_on g"
   using contour_integrable_on_def by blast
 
-subsubsection\<open>Show that we can forget about the localized derivative.\<close>
+text\<open>Show that we can forget about the localized derivative.\<close>
 
 lemma has_integral_localized_vector_derivative:
     "((\<lambda>x. f (g x) * vector_derivative g (at x within {a..b})) has_integral i) {a..b} \<longleftrightarrow>
@@ -869,7 +869,7 @@ lemma contour_integrable_on:
       (\<lambda>t. f(g t) * vector_derivative g (at t)) integrable_on {0..1}"
   by (simp add: has_contour_integral integrable_on_def contour_integrable_on_def)
 
-subsection\<open>Reversing a path\<close>
+subsection%unimportant \<open>Reversing a path\<close>
 
 lemma valid_path_imp_reverse:
   assumes "valid_path g"
@@ -947,7 +947,7 @@ next
 qed
 
 
-subsection\<open>Joining two paths together\<close>
+subsection%unimportant \<open>Joining two paths together\<close>
 
 lemma valid_path_join:
   assumes "valid_path g1" "valid_path g2" "pathfinish g1 = pathstart g2"
@@ -1135,7 +1135,7 @@ lemma contour_integral_join [simp]:
   by (simp add: has_contour_integral_integral has_contour_integral_join contour_integral_unique)
 
 
-subsection\<open>Shifting the starting point of a (closed) path\<close>
+subsection%unimportant \<open>Shifting the starting point of a (closed) path\<close>
 
 lemma shiftpath_alt_def: "shiftpath a f = (\<lambda>x. if x \<le> 1-a then f (a + x) else f (a + x - 1))"
   by (auto simp: shiftpath_def)
@@ -1278,7 +1278,7 @@ lemma contour_integral_shiftpath:
    by (simp add: contour_integral_def contour_integrable_on_def has_contour_integral_shiftpath_eq)
 
 
-subsection\<open>More about straight-line paths\<close>
+subsection%unimportant \<open>More about straight-line paths\<close>
 
 lemma has_vector_derivative_linepath_within:
     "(linepath a b has_vector_derivative (b - a)) (at x within s)"
@@ -1362,8 +1362,6 @@ lemma cnj_linepath: "cnj (linepath a b x) = linepath (cnj a) (cnj b) x"
 
 lemma cnj_linepath': "cnj \<circ> linepath a b = linepath (cnj a) (cnj b)"
   by (simp add: linepath_def fun_eq_iff)
-
-
 
 subsection\<open>Relation to subpath construction\<close>
 
@@ -1637,7 +1635,6 @@ corollary Cauchy_theorem_primitive:
   using assms
   by (metis diff_self contour_integral_primitive)
 
-
 text\<open>Existence of path integral for continuous function\<close>
 lemma contour_integrable_continuous_linepath:
   assumes "continuous_on (closed_segment a b) f"
@@ -1671,8 +1668,7 @@ lemma contour_integrable_on_const [iff]: "(\<lambda>x. c) contour_integrable_on 
 lemma contour_integrable_on_id [iff]: "(\<lambda>x. x) contour_integrable_on (linepath a b)"
   by (simp add: continuous_on_id contour_integrable_continuous_linepath)
 
-
-subsection\<open>Arithmetical combining theorems\<close>
+subsection%unimportant \<open>Arithmetical combining theorems\<close>
 
 lemma has_contour_integral_neg:
     "(f has_contour_integral i) g \<Longrightarrow> ((\<lambda>x. -(f x)) has_contour_integral (-i)) g"
@@ -1756,8 +1752,7 @@ lemma has_contour_integral_sum:
      \<Longrightarrow> ((\<lambda>x. sum (\<lambda>a. f a x) s) has_contour_integral sum i s) p"
   by (induction s rule: finite_induct) (auto simp: has_contour_integral_0 has_contour_integral_add)
 
-
-subsection \<open>Operations on path integrals\<close>
+subsection%unimportant \<open>Operations on path integrals\<close>
 
 lemma contour_integral_const_linepath [simp]: "contour_integral (linepath a b) (\<lambda>x. c) = c*(b - a)"
   by (rule contour_integral_unique [OF has_contour_integral_const_linepath])
@@ -1824,7 +1819,7 @@ lemma contour_integrable_eq:
   by (metis has_contour_integral_eq)
 
 
-subsection \<open>Arithmetic theorems for path integrability\<close>
+subsection%unimportant \<open>Arithmetic theorems for path integrability\<close>
 
 lemma contour_integrable_neg:
     "f contour_integrable_on g \<Longrightarrow> (\<lambda>x. -(f x)) contour_integrable_on g"
@@ -1862,7 +1857,7 @@ lemma contour_integrable_sum:
    by (metis has_contour_integral_sum)
 
 
-subsection\<open>Reversing a path integral\<close>
+subsection%unimportant \<open>Reversing a path integral\<close>
 
 lemma has_contour_integral_reverse_linepath:
     "(f has_contour_integral i) (linepath a b)
@@ -2021,7 +2016,7 @@ lemma fst_im_cbox [simp]: "cbox c d \<noteq> {} \<Longrightarrow> (fst ` cbox (a
 lemma snd_im_cbox [simp]: "cbox a b \<noteq> {} \<Longrightarrow> (snd ` cbox (a,c) (b,d)) = cbox c d"
   by (auto simp: cbox_Pair_eq)
 
-lemma contour_integral_swap:
+proposition contour_integral_swap:
   assumes fcon:  "continuous_on (path_image g \<times> path_image h) (\<lambda>(y1,y2). f y1 y2)"
       and vp:    "valid_path g" "valid_path h"
       and gvcon: "continuous_on {0..1} (\<lambda>t. vector_derivative g (at t))"
@@ -2092,7 +2087,7 @@ proof -
 qed
 
 
-subsection\<open>The key quadrisection step\<close>
+subsection%unimportant \<open>The key quadrisection step\<close>
 
 lemma norm_sum_half:
   assumes "norm(a + b) \<ge> e"
@@ -2185,7 +2180,7 @@ proof -
   qed
 qed
 
-subsection\<open>Cauchy's theorem for triangles\<close>
+subsection%unimportant \<open>Cauchy's theorem for triangles\<close>
 
 lemma triangle_points_closer:
   fixes a::complex
@@ -2308,7 +2303,7 @@ proof -
   done
 qed
 
-proposition Cauchy_theorem_triangle:
+proposition%unimportant Cauchy_theorem_triangle:
   assumes "f holomorphic_on (convex hull {a,b,c})"
     shows "(f has_contour_integral 0) (linepath a b +++ linepath b c +++ linepath c a)"
 proof -
@@ -2414,8 +2409,7 @@ proof -
     using has_contour_integral_integral by fastforce
 qed
 
-
-subsection\<open>Version needing function holomorphic in interior only\<close>
+subsection%unimportant \<open>Version needing function holomorphic in interior only\<close>
 
 lemma Cauchy_theorem_flat_lemma:
   assumes f: "continuous_on (convex hull {a,b,c}) f"
@@ -2464,8 +2458,7 @@ next
     using add_eq_0_iff by force
 qed
 
-
-proposition Cauchy_theorem_triangle_interior:
+lemma Cauchy_theorem_triangle_interior:
   assumes contf: "continuous_on (convex hull {a,b,c}) f"
       and holf:  "f holomorphic_on interior (convex hull {a,b,c})"
      shows "(f has_contour_integral 0) (linepath a b +++ linepath b c +++ linepath c a)"
@@ -2661,10 +2654,9 @@ proof -
     using has_contour_integral_integral by fastforce
 qed
 
+subsection%unimportant \<open>Version allowing finite number of exceptional points\<close>
 
-subsection\<open>Version allowing finite number of exceptional points\<close>
-
-proposition Cauchy_theorem_triangle_cofinite:
+proposition%unimportant Cauchy_theorem_triangle_cofinite:
   assumes "continuous_on (convex hull {a,b,c}) f"
       and "finite S"
       and "(\<And>x. x \<in> interior(convex hull {a,b,c}) - S \<Longrightarrow> f field_differentiable (at x))"
@@ -2747,8 +2739,7 @@ proof (induction "card S" arbitrary: a b c S rule: less_induct)
   qed
 qed
 
-
-subsection\<open>Cauchy's theorem for an open starlike set\<close>
+subsection%unimportant \<open>Cauchy's theorem for an open starlike set\<close>
 
 lemma starlike_convex_subset:
   assumes S: "a \<in> S" "closed_segment b c \<subseteq> S" and subs: "\<And>x. x \<in> S \<Longrightarrow> closed_segment a x \<subseteq> S"
@@ -2827,7 +2818,6 @@ proof -
 qed
 
 (** Existence of a primitive.*)
-
 lemma holomorphic_starlike_primitive:
   fixes f :: "complex \<Rightarrow> complex"
   assumes contf: "continuous_on S f"
@@ -2855,21 +2845,20 @@ proof -
     done
 qed
 
-corollary Cauchy_theorem_starlike:
+lemma Cauchy_theorem_starlike:
  "\<lbrakk>open S; starlike S; finite k; continuous_on S f;
    \<And>x. x \<in> S - k \<Longrightarrow> f field_differentiable at x;
    valid_path g; path_image g \<subseteq> S; pathfinish g = pathstart g\<rbrakk>
    \<Longrightarrow> (f has_contour_integral 0)  g"
   by (metis holomorphic_starlike_primitive Cauchy_theorem_primitive at_within_open)
 
-corollary Cauchy_theorem_starlike_simple:
+lemma Cauchy_theorem_starlike_simple:
   "\<lbrakk>open S; starlike S; f holomorphic_on S; valid_path g; path_image g \<subseteq> S; pathfinish g = pathstart g\<rbrakk>
    \<Longrightarrow> (f has_contour_integral 0) g"
 apply (rule Cauchy_theorem_starlike [OF _ _ finite.emptyI])
 apply (simp_all add: holomorphic_on_imp_continuous_on)
 apply (metis at_within_open holomorphic_on_def)
 done
-
 
 subsection\<open>Cauchy's theorem for a convex set\<close>
 
@@ -2967,7 +2956,7 @@ proof (rule holomorphic_convex_primitive)
     by (auto intro!: holomorphic_on_imp_differentiable_at simp: interior_open)
 qed (use assms in \<open>auto intro: holomorphic_on_imp_continuous_on\<close>)
 
-corollary Cauchy_theorem_convex:
+corollary%unimportant Cauchy_theorem_convex:
     "\<lbrakk>continuous_on S f; convex S; finite K;
       \<And>x. x \<in> interior S - K \<Longrightarrow> f field_differentiable at x;
       valid_path g; path_image g \<subseteq> S; pathfinish g = pathstart g\<rbrakk>
@@ -2982,22 +2971,20 @@ corollary Cauchy_theorem_convex_simple:
   apply (simp_all add: holomorphic_on_imp_continuous_on)
   using at_within_interior holomorphic_on_def interior_subset by fastforce
 
-
 text\<open>In particular for a disc\<close>
-corollary Cauchy_theorem_disc:
+corollary%unimportant Cauchy_theorem_disc:
     "\<lbrakk>finite K; continuous_on (cball a e) f;
       \<And>x. x \<in> ball a e - K \<Longrightarrow> f field_differentiable at x;
      valid_path g; path_image g \<subseteq> cball a e;
      pathfinish g = pathstart g\<rbrakk> \<Longrightarrow> (f has_contour_integral 0) g"
   by (auto intro: Cauchy_theorem_convex)
 
-corollary Cauchy_theorem_disc_simple:
+corollary%unimportant Cauchy_theorem_disc_simple:
     "\<lbrakk>f holomorphic_on (ball a e); valid_path g; path_image g \<subseteq> ball a e;
      pathfinish g = pathstart g\<rbrakk> \<Longrightarrow> (f has_contour_integral 0) g"
 by (simp add: Cauchy_theorem_convex_simple)
 
-
-subsection\<open>Generalize integrability to local primitives\<close>
+subsection%unimportant \<open>Generalize integrability to local primitives\<close>
 
 lemma contour_integral_local_primitive_lemma:
   fixes f :: "complex\<Rightarrow>complex"
@@ -3105,7 +3092,7 @@ lemma continuous_on_inversediff:
   fixes z:: "'a::real_normed_field" shows "z \<notin> S \<Longrightarrow> continuous_on S (\<lambda>w. 1 / (w - z))"
   by (rule continuous_intros | force)+
 
-corollary contour_integrable_inversediff:
+lemma contour_integrable_inversediff:
     "\<lbrakk>valid_path g; z \<notin> path_image g\<rbrakk> \<Longrightarrow> (\<lambda>w. 1 / (w-z)) contour_integrable_on g"
 apply (rule contour_integrable_holomorphic_simple [of _ "UNIV-{z}"])
 apply (auto simp: holomorphic_on_open open_delete intro!: derivative_eq_intros)
@@ -3432,9 +3419,9 @@ qed
 
 text\<open>We can treat even non-rectifiable paths as having a "length" for bounds on analytic functions in open sets.\<close>
 
-subsection\<open>Winding Numbers\<close>
+subsection \<open>Winding Numbers\<close>
 
-definition winding_number_prop :: "[real \<Rightarrow> complex, complex, real, real \<Rightarrow> complex, complex] \<Rightarrow> bool" where
+definition%important winding_number_prop :: "[real \<Rightarrow> complex, complex, real, real \<Rightarrow> complex, complex] \<Rightarrow> bool" where
   "winding_number_prop \<gamma> z e p n \<equiv>
       valid_path p \<and> z \<notin> path_image p \<and>
       pathstart p = pathstart \<gamma> \<and>
@@ -3442,7 +3429,7 @@ definition winding_number_prop :: "[real \<Rightarrow> complex, complex, real, r
       (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
       contour_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * \<i> * n"
 
-definition winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow> complex" where
+definition%important winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow> complex" where
   "winding_number \<gamma> z \<equiv> SOME n. \<forall>e > 0. \<exists>p. winding_number_prop \<gamma> z e p n"
 
 
@@ -3556,13 +3543,13 @@ proof -
     by simp
 qed
 
-lemma winding_number_valid_path:
+proposition winding_number_valid_path:
   assumes "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
   shows "winding_number \<gamma> z = 1/(2*pi*\<i>) * contour_integral \<gamma> (\<lambda>w. 1/(w - z))"
   by (rule winding_number_unique)
   (use assms in \<open>auto simp: valid_path_imp_path winding_number_prop_def\<close>)
 
-lemma has_contour_integral_winding_number:
+proposition has_contour_integral_winding_number:
   assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
     shows "((\<lambda>w. 1/(w - z)) has_contour_integral (2*pi*\<i>*winding_number \<gamma> z)) \<gamma>"
 by (simp add: winding_number_valid_path has_contour_integral_integral contour_integrable_inversediff assms)
@@ -3686,7 +3673,7 @@ next
     done
 qed
 
-subsubsection\<open>Some lemmas about negating a path\<close>
+subsubsection%unimportant \<open>Some lemmas about negating a path\<close>
 
 lemma valid_path_negatepath: "valid_path \<gamma> \<Longrightarrow> valid_path (uminus \<circ> \<gamma>)"
    unfolding o_def using piecewise_C1_differentiable_neg valid_path_def by blast
@@ -3751,7 +3738,7 @@ lemma winding_number_join_pos_combined:
   by (simp add: valid_path_join path_image_join winding_number_join valid_path_imp_path)
 
 
-subsubsection\<open>Useful sufficient conditions for the winding number to be positive\<close>
+subsubsection%unimportant \<open>Useful sufficient conditions for the winding number to be positive\<close>
 
 lemma Re_winding_number:
     "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>\<rbrakk>
@@ -3954,14 +3941,11 @@ proof -
     by (simp add: divide_inverse_commute integral_def)
 qed
 
-corollary winding_number_exp_2pi:
+lemma winding_number_exp_2pi:
     "\<lbrakk>path p; z \<notin> path_image p\<rbrakk>
      \<Longrightarrow> pathfinish p - z = exp (2 * pi * \<i> * winding_number p z) * (pathstart p - z)"
 using winding_number [of p z 1] unfolding valid_path_def path_image_def pathstart_def pathfinish_def winding_number_prop_def
   by (force dest: winding_number_exp_integral(2) [of _ 0 1 z] simp: field_simps contour_integral_integral exp_minus)
-
-
-subsection\<open>The version with complex integers and equality\<close>
 
 lemma integer_winding_number_eq:
   assumes \<gamma>: "path \<gamma>" and z: "z \<notin> path_image \<gamma>"
@@ -4090,7 +4074,6 @@ proof -
   then show ?thesis
     using 0 2 by (auto simp: Ints_def)
 qed
-
 
 subsection\<open>Continuity of winding number and invariance on connected sets\<close>
 
@@ -4244,8 +4227,7 @@ corollary continuous_on_winding_number:
     "path \<gamma> \<Longrightarrow> continuous_on (- path_image \<gamma>) (\<lambda>w. winding_number \<gamma> w)"
   by (simp add: continuous_at_imp_continuous_on continuous_at_winding_number)
 
-
-subsection\<open>The winding number is constant on a connected region\<close>
+subsection%unimportant \<open>The winding number is constant on a connected region\<close>
 
 lemma winding_number_constant:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and cs: "connected S" and sg: "S \<inter> path_image \<gamma> = {}"
@@ -4346,11 +4328,11 @@ proof -
   finally show ?thesis .
 qed
 
-corollary winding_number_zero_const: "a \<noteq> z \<Longrightarrow> winding_number (\<lambda>t. a) z = 0"
+corollary%unimportant winding_number_zero_const: "a \<noteq> z \<Longrightarrow> winding_number (\<lambda>t. a) z = 0"
   by (rule winding_number_zero_in_outside)
      (auto simp: pathfinish_def pathstart_def path_polynomial_function)
 
-corollary winding_number_zero_outside:
+corollary%unimportant winding_number_zero_outside:
     "\<lbrakk>path \<gamma>; convex s; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> s; path_image \<gamma> \<subseteq> s\<rbrakk> \<Longrightarrow> winding_number \<gamma> z = 0"
   by (meson convex_in_outside outside_mono subsetCE winding_number_zero_in_outside)
 
@@ -4618,10 +4600,9 @@ theorem Cauchy_integral_formula_convex_simple:
   using holomorphic_on_imp_continuous_on
   by auto (metis at_within_interior holomorphic_on_def interiorE subsetCE)
 
-
 subsection\<open>Homotopy forms of Cauchy's theorem\<close>
 
-proposition Cauchy_theorem_homotopic:
+lemma Cauchy_theorem_homotopic:
     assumes hom: "if atends then homotopic_paths s g h else homotopic_loops s g h"
         and "open s" and f: "f holomorphic_on s"
         and vpg: "valid_path g" and vph: "valid_path h"
@@ -4809,9 +4790,7 @@ lemma Cauchy_theorem_null_homotopic:
     apply (blast dest: holomorphic_on_imp_continuous_on homotopic_loops_imp_subset)
   by (simp add: Cauchy_theorem_homotopic_loops)
 
-
-
-subsection\<open>More winding number properties\<close>
+subsection%unimportant \<open>More winding number properties\<close>
 
 text\<open>including the fact that it's +-1 inside a simple closed curve.\<close>
 
@@ -4917,7 +4896,7 @@ lemma winding_number_nearby_loops_eq:
   by (metis segment_bound(2) norm_minus_commute not_le winding_number_loops_linear_eq)
 
 
-proposition winding_number_subpath_combine:
+lemma winding_number_subpath_combine:
     "\<lbrakk>path g; z \<notin> path_image g;
       u \<in> {0..1}; v \<in> {0..1}; w \<in> {0..1}\<rbrakk>
       \<Longrightarrow> winding_number (subpath u v g) z + winding_number (subpath v w g) z =
@@ -4926,10 +4905,9 @@ apply (rule trans [OF winding_number_join [THEN sym]
                       winding_number_homotopic_paths [OF homotopic_join_subpaths]])
   using path_image_subpath_subset by auto
 
-
 subsection\<open>Partial circle path\<close>
 
-definition part_circlepath :: "[complex, real, real, real, real] \<Rightarrow> complex"
+definition%important part_circlepath :: "[complex, real, real, real, real] \<Rightarrow> complex"
   where "part_circlepath z r s t \<equiv> \<lambda>x. z + of_real r * exp (\<i> * of_real (linepath s t x))"
 
 lemma pathstart_part_circlepath [simp]:
@@ -4945,7 +4923,7 @@ lemma reversepath_part_circlepath[simp]:
   unfolding part_circlepath_def reversepath_def linepath_def 
   by (auto simp:algebra_simps)
     
-proposition has_vector_derivative_part_circlepath [derivative_intros]:
+lemma has_vector_derivative_part_circlepath [derivative_intros]:
     "((part_circlepath z r s t) has_vector_derivative
       (\<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)))
      (at x within X)"
@@ -4954,16 +4932,16 @@ proposition has_vector_derivative_part_circlepath [derivative_intros]:
   apply (rule derivative_eq_intros | simp)+
   done
 
-corollary differentiable_part_circlepath:
+lemma differentiable_part_circlepath:
   "part_circlepath c r a b differentiable at x within A"
   using has_vector_derivative_part_circlepath[of c r a b x A] differentiableI_vector by blast
 
-corollary vector_derivative_part_circlepath:
+lemma vector_derivative_part_circlepath:
     "vector_derivative (part_circlepath z r s t) (at x) =
        \<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)"
   using has_vector_derivative_part_circlepath vector_derivative_at by blast
 
-corollary vector_derivative_part_circlepath01:
+lemma vector_derivative_part_circlepath01:
     "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
      \<Longrightarrow> vector_derivative (part_circlepath z r s t) (at x within {0..1}) =
           \<i> * r * (of_real t - of_real s) * exp(\<i> * linepath s t x)"
@@ -5006,7 +4984,7 @@ proof -
     by (fastforce simp add: path_image_def part_circlepath_def)
 qed
 
-proposition path_image_part_circlepath':
+lemma path_image_part_circlepath':
   "path_image (part_circlepath z r s t) = (\<lambda>x. z + r * cis x) ` closed_segment s t"
 proof -
   have "path_image (part_circlepath z r s t) = 
@@ -5017,11 +4995,11 @@ proof -
   finally show ?thesis by (simp add: cis_conv_exp)
 qed
 
-corollary path_image_part_circlepath_subset:
+lemma path_image_part_circlepath_subset:
     "\<lbrakk>s \<le> t; 0 \<le> r\<rbrakk> \<Longrightarrow> path_image(part_circlepath z r s t) \<subseteq> sphere z r"
 by (auto simp: path_image_part_circlepath sphere_def dist_norm algebra_simps norm_mult)
 
-proposition in_path_image_part_circlepath:
+lemma in_path_image_part_circlepath:
   assumes "w \<in> path_image(part_circlepath z r s t)" "s \<le> t" "0 \<le> r"
     shows "norm(w - z) = r"
 proof -
@@ -5031,7 +5009,7 @@ proof -
     by (simp add: dist_norm norm_minus_commute)
 qed
 
-corollary path_image_part_circlepath_subset':
+lemma path_image_part_circlepath_subset':
   assumes "r \<ge> 0"
   shows   "path_image (part_circlepath z r s t) \<subseteq> sphere z r"
 proof (cases "s \<le> t")
@@ -5130,8 +5108,7 @@ lemma contour_integral_part_circlepath_reverse':
                -contour_integral (part_circlepath c r b a) f"
   by (rule contour_integral_part_circlepath_reverse)
 
-
-proposition finite_bounded_log: "finite {z::complex. norm z \<le> b \<and> exp z = w}"
+lemma finite_bounded_log: "finite {z::complex. norm z \<le> b \<and> exp z = w}"
 proof (cases "w = 0")
   case True then show ?thesis by auto
 next
@@ -5161,7 +5138,7 @@ proof -
     by (rule finite_subset [OF _ *]) (force simp: assms norm_mult)
 qed
 
-proposition has_contour_integral_bound_part_circlepath_strong:
+lemma has_contour_integral_bound_part_circlepath_strong:
   assumes fi: "(f has_contour_integral i) (part_circlepath z r s t)"
       and "finite k" and le: "0 \<le> B" "0 < r" "s \<le> t"
       and B: "\<And>x. x \<in> path_image(part_circlepath z r s t) - k \<Longrightarrow> norm(f x) \<le> B"
@@ -5208,14 +5185,14 @@ proof -
   qed
 qed
 
-corollary has_contour_integral_bound_part_circlepath:
+lemma has_contour_integral_bound_part_circlepath:
       "\<lbrakk>(f has_contour_integral i) (part_circlepath z r s t);
         0 \<le> B; 0 < r; s \<le> t;
         \<And>x. x \<in> path_image(part_circlepath z r s t) \<Longrightarrow> norm(f x) \<le> B\<rbrakk>
        \<Longrightarrow> norm i \<le> B*r*(t - s)"
   by (auto intro: has_contour_integral_bound_part_circlepath_strong)
 
-proposition contour_integrable_continuous_part_circlepath:
+lemma contour_integrable_continuous_part_circlepath:
      "continuous_on (path_image (part_circlepath z r s t)) f
       \<Longrightarrow> f contour_integrable_on (part_circlepath z r s t)"
   apply (simp add: contour_integrable_on has_contour_integral_def vector_derivative_part_circlepath path_image_def)
@@ -5242,7 +5219,7 @@ proof -
     using assms \<open>0 < r\<close> by auto
 qed
 
-proposition simple_path_part_circlepath:
+lemma simple_path_part_circlepath:
     "simple_path(part_circlepath z r s t) \<longleftrightarrow> (r \<noteq> 0 \<and> s \<noteq> t \<and> \<bar>s - t\<bar> \<le> 2*pi)"
 proof (cases "r = 0 \<or> s = t")
   case True
@@ -5287,7 +5264,7 @@ next
     done
 qed
 
-proposition arc_part_circlepath:
+lemma arc_part_circlepath:
   assumes "r \<noteq> 0" "s \<noteq> t" "\<bar>s - t\<bar> < 2*pi"
     shows "arc (part_circlepath z r s t)"
 proof -
@@ -5314,10 +5291,9 @@ proof -
     done
 qed
 
-
 subsection\<open>Special case of one complete circle\<close>
 
-definition circlepath :: "[complex, real, real] \<Rightarrow> complex"
+definition%important circlepath :: "[complex, real, real] \<Rightarrow> complex"
   where "circlepath z r \<equiv> part_circlepath z r 0 (2*pi)"
 
 lemma circlepath: "circlepath z r = (\<lambda>x. z + r * exp(2 * of_real pi * \<i> * of_real x))"
@@ -5358,7 +5334,7 @@ lemma path_image_circlepath_minus_subset:
 lemma path_image_circlepath_minus: "path_image (circlepath z (-r)) = path_image (circlepath z r)"
   using path_image_circlepath_minus_subset by fastforce
 
-proposition has_vector_derivative_circlepath [derivative_intros]:
+lemma has_vector_derivative_circlepath [derivative_intros]:
  "((circlepath z r) has_vector_derivative (2 * pi * \<i> * r * exp (2 * of_real pi * \<i> * of_real x)))
    (at x within X)"
   apply (simp add: circlepath_def scaleR_conv_of_real)
@@ -5366,12 +5342,12 @@ proposition has_vector_derivative_circlepath [derivative_intros]:
   apply (simp add: algebra_simps)
   done
 
-corollary vector_derivative_circlepath:
+lemma vector_derivative_circlepath:
    "vector_derivative (circlepath z r) (at x) =
     2 * pi * \<i> * r * exp(2 * of_real pi * \<i> * x)"
 using has_vector_derivative_circlepath vector_derivative_at by blast
 
-corollary vector_derivative_circlepath01:
+lemma vector_derivative_circlepath01:
     "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
      \<Longrightarrow> vector_derivative (circlepath z r) (at x within {0..1}) =
           2 * pi * \<i> * r * exp(2 * of_real pi * \<i> * x)"
@@ -5410,7 +5386,7 @@ proof -
     by (force simp: assms algebra_simps norm_mult norm_minus_commute intro: *)
 qed
 
-proposition path_image_circlepath [simp]:
+lemma path_image_circlepath [simp]:
     "path_image (circlepath z r) = sphere z \<bar>r\<bar>"
   using path_image_circlepath_minus
   by (force simp: path_image_circlepath_nonneg abs_if)
@@ -5423,13 +5399,13 @@ lemma has_contour_integral_bound_circlepath_strong:
   unfolding circlepath_def
   by (auto simp: algebra_simps in_path_image_part_circlepath dest!: has_contour_integral_bound_part_circlepath_strong)
 
-corollary has_contour_integral_bound_circlepath:
+lemma has_contour_integral_bound_circlepath:
       "\<lbrakk>(f has_contour_integral i) (circlepath z r);
         0 \<le> B; 0 < r; \<And>x. norm(x - z) = r \<Longrightarrow> norm(f x) \<le> B\<rbrakk>
         \<Longrightarrow> norm i \<le> B*(2*pi*r)"
   by (auto intro: has_contour_integral_bound_circlepath_strong)
 
-proposition contour_integrable_continuous_circlepath:
+lemma contour_integrable_continuous_circlepath:
     "continuous_on (path_image (circlepath z r)) f
      \<Longrightarrow> f contour_integrable_on (circlepath z r)"
   by (simp add: circlepath_def contour_integrable_continuous_part_circlepath)
@@ -5440,7 +5416,7 @@ lemma simple_path_circlepath: "simple_path(circlepath z r) \<longleftrightarrow>
 lemma notin_path_image_circlepath [simp]: "cmod (w - z) < r \<Longrightarrow> w \<notin> path_image (circlepath z r)"
   by (simp add: sphere_def dist_norm norm_minus_commute)
 
-proposition contour_integral_circlepath:
+lemma contour_integral_circlepath:
   assumes "r > 0"
   shows "contour_integral (circlepath z r) (\<lambda>w. 1 / (w - z)) = 2 * complex_of_real pi * \<i>"
 proof (rule contour_integral_unique)
@@ -5510,7 +5486,7 @@ proof -
     by (simp add: winding_number_circlepath assms)
 qed
 
-corollary Cauchy_integral_circlepath_simple:
+corollary%unimportant Cauchy_integral_circlepath_simple:
   assumes "f holomorphic_on cball z r" "norm(w - z) < r"
   shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * \<i> * f w))
          (circlepath z r)"
@@ -5607,7 +5583,7 @@ proof -
     by (rule tendstoI)
 qed
 
-corollary contour_integral_uniform_limit_circlepath:
+corollary%unimportant contour_integral_uniform_limit_circlepath:
   assumes "\<forall>\<^sub>F n::'a in F. (f n) contour_integrable_on (circlepath z r)"
       and "uniform_limit (sphere z r) f l F"
       and "~ (trivial_limit F)" "0 < r"
@@ -5616,9 +5592,9 @@ corollary contour_integral_uniform_limit_circlepath:
   using assms by (auto simp: vector_derivative_circlepath norm_mult intro!: contour_integral_uniform_limit)
 
 
-subsection\<open> General stepping result for derivative formulas\<close>
+subsection%unimportant \<open>General stepping result for derivative formulas\<close>
 
-proposition Cauchy_next_derivative:
+lemma Cauchy_next_derivative:
   assumes "continuous_on (path_image \<gamma>) f'"
       and leB: "\<And>t. t \<in> {0..1} \<Longrightarrow> norm (vector_derivative \<gamma> (at t)) \<le> B"
       and int: "\<And>w. w \<in> s - path_image \<gamma> \<Longrightarrow> ((\<lambda>u. f' u / (u - w)^k) has_contour_integral f w) \<gamma>"
@@ -5801,7 +5777,7 @@ proof -
     done
 qed
 
-corollary Cauchy_next_derivative_circlepath:
+lemma Cauchy_next_derivative_circlepath:
   assumes contf: "continuous_on (path_image (circlepath z r)) f"
       and int: "\<And>w. w \<in> ball z r \<Longrightarrow> ((\<lambda>u. f u / (u - w)^k) has_contour_integral g w) (circlepath z r)"
       and k: "k \<noteq> 0"
@@ -5823,7 +5799,7 @@ qed
 
 text\<open> In particular, the first derivative formula.\<close>
 
-proposition Cauchy_derivative_integral_circlepath:
+lemma Cauchy_derivative_integral_circlepath:
   assumes contf: "continuous_on (cball z r) f"
       and holf: "f holomorphic_on ball z r"
       and w: "w \<in> ball z r"
@@ -6022,8 +5998,6 @@ proposition Morera_triangle:
      \<Longrightarrow> f analytic_on S"
   using Morera_local_triangle by blast
 
-
-
 subsection\<open>Combining theorems for higher derivatives including Leibniz rule\<close>
 
 lemma higher_deriv_linear [simp]:
@@ -6039,7 +6013,7 @@ lemma higher_deriv_ident [simp]:
   apply (metis higher_deriv_linear lambda_one)
   done
 
-corollary higher_deriv_id [simp]:
+lemma higher_deriv_id [simp]:
      "(deriv ^^ n) id z = (if n = 0 then z else if n = 1 then 1 else 0)"
   by (simp add: id_def)
 
@@ -6049,7 +6023,7 @@ lemma has_complex_derivative_funpow_1:
   apply (metis DERIV_ident DERIV_transform_at id_apply zero_less_one)
   by (metis DERIV_chain comp_funpow comp_id funpow_swap1 mult.right_neutral)
 
-proposition higher_deriv_uminus:
+lemma higher_deriv_uminus:
   assumes "f holomorphic_on S" "open S" and z: "z \<in> S"
     shows "(deriv ^^ n) (\<lambda>w. -(f w)) z = - ((deriv ^^ n) f z)"
 using z
@@ -6068,7 +6042,7 @@ next
     by (simp add: DERIV_imp_deriv)
 qed
 
-proposition higher_deriv_add:
+lemma higher_deriv_add:
   fixes z::complex
   assumes "f holomorphic_on S" "g holomorphic_on S" "open S" and z: "z \<in> S"
     shows "(deriv ^^ n) (\<lambda>w. f w + g w) z = (deriv ^^ n) f z + (deriv ^^ n) g z"
@@ -6090,7 +6064,7 @@ next
     by (simp add: DERIV_imp_deriv)
 qed
 
-corollary higher_deriv_diff:
+lemma higher_deriv_diff:
   fixes z::complex
   assumes "f holomorphic_on S" "g holomorphic_on S" "open S" and z: "z \<in> S"
     shows "(deriv ^^ n) (\<lambda>w. f w - g w) z = (deriv ^^ n) f z - (deriv ^^ n) g z"
@@ -6099,11 +6073,10 @@ corollary higher_deriv_diff:
   using assms holomorphic_on_minus apply (auto simp: higher_deriv_uminus)
   done
 
-
 lemma bb: "Suc n choose k = (n choose k) + (if k = 0 then 0 else (n choose (k - 1)))"
   by (cases k) simp_all
 
-proposition higher_deriv_mult:
+lemma higher_deriv_mult:
   fixes z::complex
   assumes "f holomorphic_on S" "g holomorphic_on S" "open S" and z: "z \<in> S"
     shows "(deriv ^^ n) (\<lambda>w. f w * g w) z =
@@ -6138,8 +6111,7 @@ next
     by (simp add: DERIV_imp_deriv)
 qed
 
-
-proposition higher_deriv_transform_within_open:
+lemma higher_deriv_transform_within_open:
   fixes z::complex
   assumes "f holomorphic_on S" "g holomorphic_on S" "open S" and z: "z \<in> S"
       and fg: "\<And>w. w \<in> S \<Longrightarrow> f w = g w"
@@ -6148,7 +6120,7 @@ using z
 by (induction i arbitrary: z)
    (auto simp: fg intro: complex_derivative_transform_within_open holomorphic_higher_deriv assms)
 
-proposition higher_deriv_compose_linear:
+lemma higher_deriv_compose_linear:
   fixes z::complex
   assumes f: "f holomorphic_on T" and S: "open S" and T: "open T" and z: "z \<in> S"
       and fg: "\<And>w. w \<in> S \<Longrightarrow> u * w \<in> T"
@@ -6311,7 +6283,7 @@ qed
 
 text\<open> Formula for higher derivatives.\<close>
 
-proposition Cauchy_has_contour_integral_higher_derivative_circlepath:
+lemma Cauchy_has_contour_integral_higher_derivative_circlepath:
   assumes contf: "continuous_on (cball z r) f"
       and holf: "f holomorphic_on ball z r"
       and w: "w \<in> ball z r"
@@ -6350,7 +6322,7 @@ next
   using of_nat_eq_0_iff X by fastforce
 qed
 
-proposition Cauchy_higher_derivative_integral_circlepath:
+lemma Cauchy_higher_derivative_integral_circlepath:
   assumes contf: "continuous_on (cball z r) f"
       and holf: "f holomorphic_on ball z r"
       and w: "w \<in> ball z r"
@@ -6374,7 +6346,7 @@ corollary Cauchy_contour_integral_circlepath:
     shows "contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^(Suc k)) = (2 * pi * \<i>) * (deriv ^^ k) f w / (fact k)"
 by (simp add: Cauchy_higher_derivative_integral_circlepath [OF assms])
 
-corollary Cauchy_contour_integral_circlepath_2:
+lemma Cauchy_contour_integral_circlepath_2:
   assumes "continuous_on (cball z r) f" "f holomorphic_on ball z r" "w \<in> ball z r"
     shows "contour_integral(circlepath z r) (\<lambda>u. f u/(u - w)^2) = (2 * pi * \<i>) * deriv f w"
   using Cauchy_contour_integral_circlepath [OF assms, of 1]
@@ -6532,7 +6504,6 @@ proposition Liouville_weak:
   using Liouville_weak_0 [of "\<lambda>z. f z - l"]
   by (simp add: assms holomorphic_on_const holomorphic_on_diff LIM_zero)
 
-
 proposition Liouville_weak_inverse:
   assumes "f holomorphic_on UNIV" and unbounded: "\<And>B. eventually (\<lambda>x. norm (f x) \<ge> B) at_infinity"
     obtains z where "f z = 0"
@@ -6551,7 +6522,6 @@ proof -
   then show ?thesis
     using that by blast
 qed
-
 
 text\<open> In particular we get the Fundamental Theorem of Algebra.\<close>
 
@@ -6575,10 +6545,9 @@ next
   qed (use that in auto)
 qed
 
-
 subsection\<open>Weierstrass convergence theorem\<close>
 
-proposition holomorphic_uniform_limit:
+lemma holomorphic_uniform_limit:
   assumes cont: "eventually (\<lambda>n. continuous_on (cball z r) (f n) \<and> (f n) holomorphic_on ball z r) F"
       and ulim: "uniform_limit (cball z r) f g F"
       and F:  "~ trivial_limit F"
@@ -6726,7 +6695,7 @@ proof -
 qed
 
 
-subsection\<open>Some more simple/convenient versions for applications\<close>
+subsection%unimportant \<open>Some more simple/convenient versions for applications\<close>
 
 lemma holomorphic_uniform_sequence:
   assumes S: "open S"
@@ -6783,7 +6752,6 @@ proof -
   show ?thesis
     by (rule bchoice) (blast intro: y)
 qed
-
 
 subsection\<open>On analytic functions defined by a series\<close>
 
@@ -6927,7 +6895,7 @@ next
     using less_le_trans norm_not_less_zero by blast
 qed
 
-proposition power_series_and_derivative:
+proposition%unimportant power_series_and_derivative:
   fixes a :: "nat \<Rightarrow> complex" and r::real
   assumes "summable (\<lambda>n. a n * r^n)"
     obtains g g' where "\<forall>z \<in> ball w r.
@@ -6940,7 +6908,7 @@ proposition power_series_and_derivative:
   apply (auto simp: norm_minus_commute Ball_def dist_norm)
   done
 
-proposition power_series_holomorphic:
+proposition%unimportant power_series_holomorphic:
   assumes "\<And>w. w \<in> ball z r \<Longrightarrow> ((\<lambda>n. a n*(w - z)^n) sums f w)"
     shows "f holomorphic_on ball z r"
 proof -
@@ -6987,17 +6955,16 @@ corollary holomorphic_iff_power_series:
   apply (force intro: power_series_holomorphic [where a = "\<lambda>n. (deriv ^^ n) f z / (fact n)"])
   done
 
-corollary power_series_analytic:
+lemma power_series_analytic:
      "(\<And>w. w \<in> ball z r \<Longrightarrow> (\<lambda>n. a n*(w - z)^n) sums f w) \<Longrightarrow> f analytic_on ball z r"
   by (force simp: analytic_on_open intro!: power_series_holomorphic)
 
-corollary analytic_iff_power_series:
+lemma analytic_iff_power_series:
      "f analytic_on ball z r \<longleftrightarrow>
       (\<forall>w \<in> ball z r. (\<lambda>n. (deriv ^^ n) f z / (fact n) * (w - z)^n) sums f w)"
   by (simp add: analytic_on_open holomorphic_iff_power_series)
 
-
-subsection\<open>Equality between holomorphic functions, on open ball then connected set\<close>
+subsection%unimportant \<open>Equality between holomorphic functions, on open ball then connected set\<close>
 
 lemma holomorphic_fun_eq_on_ball:
    "\<lbrakk>f holomorphic_on ball z r; g holomorphic_on ball z r;
@@ -7080,7 +7047,7 @@ proof (rule holomorphic_fun_eq_0_on_connected [of "\<lambda>w. f w - f z" S z, s
     by (subst higher_deriv_diff) (use assms in \<open>auto intro: holomorphic_intros\<close>)
 qed (use assms in auto)
 
-subsection\<open>Some basic lemmas about poles/singularities\<close>
+subsection%unimportant \<open>Some basic lemmas about poles/singularities\<close>
 
 lemma pole_lemma:
   assumes holf: "f holomorphic_on S" and a: "a \<in> interior S"
@@ -7140,7 +7107,7 @@ proof -
   qed
 qed
 
-proposition pole_theorem:
+lemma pole_theorem:
   assumes holg: "g holomorphic_on S" and a: "a \<in> interior S"
       and eq: "\<And>z. z \<in> S - {a} \<Longrightarrow> g z = (z - a) * f z"
     shows "(\<lambda>z. if z = a then deriv g a
@@ -7162,7 +7129,7 @@ next
     done
 qed
 
-proposition pole_theorem_open:
+lemma pole_theorem_open:
   assumes holg: "g holomorphic_on S" and S: "open S"
       and eq: "\<And>z. z \<in> S - {a} \<Longrightarrow> g z = (z - a) * f z"
     shows "(\<lambda>z. if z = a then deriv g a
@@ -7170,7 +7137,7 @@ proposition pole_theorem_open:
   using pole_lemma_open [OF holg S]
   by (rule holomorphic_transform) (auto simp: eq divide_simps)
 
-proposition pole_theorem_0:
+lemma pole_theorem_0:
   assumes holg: "g holomorphic_on S" and a: "a \<in> interior S"
       and eq: "\<And>z. z \<in> S - {a} \<Longrightarrow> g z = (z - a) * f z"
       and [simp]: "f a = deriv g a" "g a = 0"
@@ -7178,7 +7145,7 @@ proposition pole_theorem_0:
   using pole_theorem [OF holg a eq]
   by (rule holomorphic_transform) (auto simp: eq divide_simps)
 
-proposition pole_theorem_open_0:
+lemma pole_theorem_open_0:
   assumes holg: "g holomorphic_on S" and S: "open S"
       and eq: "\<And>z. z \<in> S - {a} \<Longrightarrow> g z = (z - a) * f z"
       and [simp]: "f a = deriv g a" "g a = 0"
@@ -7709,7 +7676,6 @@ proof -
     using has_contour_integral_add [OF 1 2]  by (simp add: diff_divide_distrib)
 qed
 
-
 theorem Cauchy_integral_formula_global:
     assumes S: "open S" and holf: "f holomorphic_on S"
         and z: "z \<in> S" and vpg: "valid_path \<gamma>"
@@ -7782,7 +7748,6 @@ corollary Cauchy_theorem_global_outside:
       shows "(f has_contour_integral 0) \<gamma>"
 by (metis Cauchy_theorem_global assms winding_number_zero_in_outside valid_path_imp_path)
 
-
 lemma simply_connected_imp_winding_number_zero:
   assumes "simply_connected S" "path g"
            "path_image g \<subseteq> S" "pathfinish g = pathstart g" "z \<notin> S"
@@ -7809,7 +7774,7 @@ apply (auto intro!: Cauchy_theorem_null_homotopic [where a = "pathstart g"]
                          homotopic_paths_imp_homotopic_loops)
 using valid_path_imp_path by blast
 
-proposition holomorphic_logarithm_exists:
+proposition%unimportant holomorphic_logarithm_exists:
   assumes A: "convex A" "open A"
       and f: "f holomorphic_on A" "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
       and z0: "z0 \<in> A"

@@ -10,7 +10,7 @@ begin
 
 subsection\<open>Moebius functions are biholomorphisms of the unit disc\<close>
 
-definition Moebius_function :: "[real,complex,complex] \<Rightarrow> complex" where
+definition%important Moebius_function :: "[real,complex,complex] \<Rightarrow> complex" where
   "Moebius_function \<equiv> \<lambda>t w z. exp(\<i> * of_real t) * (z - w) / (1 - cnj w * z)"
 
 lemma Moebius_function_simple:
@@ -781,7 +781,6 @@ lemma homeomorphic_to_disc_imp_simply_connected:
 
 end
 
-
 proposition
   assumes "open S"
   shows simply_connected_eq_winding_number_zero:
@@ -844,14 +843,12 @@ qed
     by safe
 qed
 
-
 corollary contractible_eq_simply_connected_2d:
   fixes S :: "complex set"
   shows "open S \<Longrightarrow> (contractible S \<longleftrightarrow> simply_connected S)"
   apply safe
    apply (simp add: contractible_imp_simply_connected)
   using convex_imp_contractible homeomorphic_contractible_eq simply_connected_eq_homeomorphic_to_disc by auto
-
 
 subsection\<open>A further chain of equivalences about components of the complement of a simply connected set\<close>
 
@@ -1265,7 +1262,6 @@ qed
     by safe
 qed
 
-
 lemma simply_connected_iff_simple:
   fixes S :: "complex set"
   assumes "open S" "bounded S"
@@ -1332,7 +1328,6 @@ proof (intro exI ballI conjI)
       by (metis (no_types, lifting) divide_inverse exp_double geq mult.left_commute mult.right_neutral right_inverse zero_neq_numeral)
   qed
 qed
-
 
 lemma continuous_sqrt_imp_simply_connected:
   assumes "connected S"
@@ -1416,7 +1411,7 @@ qed
 qed
 
 
-subsection\<open>More Borsukian results\<close>
+subsection%unimportant \<open>More Borsukian results\<close>
 
 lemma Borsukian_componentwise_eq:
   fixes S :: "'a::euclidean_space set"

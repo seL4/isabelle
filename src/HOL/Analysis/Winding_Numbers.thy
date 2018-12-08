@@ -192,8 +192,6 @@ proof -
   qed
 qed
 
-
-
 lemma simple_closed_path_wn1:
   fixes a::complex and e::real
   assumes "0 < e"
@@ -352,8 +350,6 @@ proof -
     finally show "cmod (winding_number (p +++ linepath (a - e) (a + e)) z) = 1" .
   qed
 qed
-
-
 
 lemma simple_closed_path_wn2:
   fixes a::complex and d e::real
@@ -541,8 +537,7 @@ proof -
   qed
 qed
 
-
-proposition simple_closed_path_wn3:
+lemma simple_closed_path_wn3:
   fixes p :: "real \<Rightarrow> complex"
   assumes "simple_path p" and loop: "pathfinish p = pathstart p"
   obtains z where "z \<in> inside (path_image p)" "cmod (winding_number p z) = 1"
@@ -731,8 +726,7 @@ proof -
     qed
 qed
 
-
-theorem simple_closed_path_winding_number_inside:
+proposition simple_closed_path_winding_number_inside:
   assumes "simple_path \<gamma>"
   obtains "\<And>z. z \<in> inside(path_image \<gamma>) \<Longrightarrow> winding_number \<gamma> z = 1"
         | "\<And>z. z \<in> inside(path_image \<gamma>) \<Longrightarrow> winding_number \<gamma> z = -1"
@@ -760,12 +754,12 @@ next
     using inside_simple_curve_imp_closed assms that(2) by blast
 qed
 
-corollary simple_closed_path_abs_winding_number_inside:
+lemma simple_closed_path_abs_winding_number_inside:
   assumes "simple_path \<gamma>" "z \<in> inside(path_image \<gamma>)"
     shows "\<bar>Re (winding_number \<gamma> z)\<bar> = 1"
   by (metis assms norm_minus_cancel norm_one one_complex.simps(1) real_norm_def simple_closed_path_winding_number_inside uminus_complex.simps(1))
 
-corollary simple_closed_path_norm_winding_number_inside:
+lemma simple_closed_path_norm_winding_number_inside:
   assumes "simple_path \<gamma>" "z \<in> inside(path_image \<gamma>)"
   shows "norm (winding_number \<gamma> z) = 1"
 proof -
@@ -777,18 +771,17 @@ proof -
     by (metis assms norm_minus_cancel norm_one simple_closed_path_winding_number_inside)
 qed
 
-corollary simple_closed_path_winding_number_cases:
+lemma simple_closed_path_winding_number_cases:
    "\<lbrakk>simple_path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> path_image \<gamma>\<rbrakk> \<Longrightarrow> winding_number \<gamma> z \<in> {-1,0,1}"
 apply (simp add: inside_Un_outside [of "path_image \<gamma>", symmetric, unfolded set_eq_iff Set.Compl_iff] del: inside_Un_outside)
    apply (rule simple_closed_path_winding_number_inside)
   using simple_path_def winding_number_zero_in_outside by blast+
 
-corollary simple_closed_path_winding_number_pos:
+lemma simple_closed_path_winding_number_pos:
    "\<lbrakk>simple_path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> path_image \<gamma>; 0 < Re(winding_number \<gamma> z)\<rbrakk>
     \<Longrightarrow> winding_number \<gamma> z = 1"
 using simple_closed_path_winding_number_cases
   by fastforce
-
 
 subsection \<open>Winding number for rectangular paths\<close>
 
@@ -846,8 +839,7 @@ next
     by (intro closed_segmentI[of u]) (auto simp: u algebra_simps scaleR_conv_of_real complex_eq_iff)
 qed
 
-
-definition rectpath where
+definition%important rectpath where
   "rectpath a1 a3 = (let a2 = Complex (Re a3) (Im a1); a4 = Complex (Re a1) (Im a3)
                       in linepath a1 a2 +++ linepath a2 a3 +++ linepath a3 a4 +++ linepath a4 a1)"
 
@@ -903,7 +895,7 @@ lemma path_image_rectpath_cbox_minus_box:
   using assms by (auto simp: path_image_rectpath in_cbox_complex_iff
                              in_box_complex_iff)
 
-lemma winding_number_rectpath:
+proposition winding_number_rectpath:
   assumes "z \<in> box a1 a3"
   shows   "winding_number (rectpath a1 a3) z = 1"
 proof -
@@ -929,17 +921,15 @@ proof -
        (auto simp: path_image_rectpath_cbox_minus_box)
 qed
 
-lemma winding_number_rectpath_outside:
+proposition winding_number_rectpath_outside:
   assumes "Re a1 \<le> Re a3" "Im a1 \<le> Im a3"
   assumes "z \<notin> cbox a1 a3"
   shows   "winding_number (rectpath a1 a3) z = 0"
   using assms by (intro winding_number_zero_outside[OF _ _ _ assms(3)]
                      path_image_rectpath_subset_cbox) simp_all
 
-
 text\<open>A per-function version for continuous logs, a kind of monodromy\<close>
-
-proposition winding_number_compose_exp:
+proposition%unimportant winding_number_compose_exp:
   assumes "path p"
   shows "winding_number (exp \<circ> p) 0 = (pathfinish p - pathstart p) / (2 * of_real pi * \<i>)"
 proof -
@@ -1031,9 +1021,7 @@ proof -
   finally show ?thesis .
 qed
 
-
-
-subsection\<open>The winding number defines a continuous logarithm for the path itself\<close>
+subsection%unimportant \<open>The winding number defines a continuous logarithm for the path itself\<close>
 
 lemma winding_number_as_continuous_log:
   assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
@@ -1138,8 +1126,7 @@ proof -
   qed
 qed
 
-
-subsection\<open>Winding number equality is the same as path/loop homotopy in C - {0}\<close>
+subsection \<open>Winding number equality is the same as path/loop homotopy in C - {0}\<close>
 
 lemma winding_number_homotopic_loops_null_eq:
   assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
@@ -1182,7 +1169,6 @@ next
   ultimately show ?lhs by metis
 qed
 
-
 lemma winding_number_homotopic_paths_null_explicit_eq:
   assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
   shows "winding_number p \<zeta> = 0 \<longleftrightarrow> homotopic_paths (-{\<zeta>}) p (linepath (pathstart p) (pathstart p))"
@@ -1200,7 +1186,6 @@ next
     by (metis \<zeta> pathstart_in_path_image winding_number_homotopic_paths winding_number_trivial)
 qed
 
-
 lemma winding_number_homotopic_paths_null_eq:
   assumes "path p" and \<zeta>: "\<zeta> \<notin> path_image p"
   shows "winding_number p \<zeta> = 0 \<longleftrightarrow> (\<exists>a. homotopic_paths (-{\<zeta>}) p (\<lambda>t. a))"
@@ -1215,8 +1200,7 @@ next
     by (metis \<zeta> homotopic_paths_imp_pathfinish pathfinish_def pathfinish_in_path_image winding_number_homotopic_paths winding_number_zero_const)
 qed
 
-
-lemma winding_number_homotopic_paths_eq:
+proposition winding_number_homotopic_paths_eq:
   assumes "path p" and \<zeta>p: "\<zeta> \<notin> path_image p"
       and "path q" and \<zeta>q: "\<zeta> \<notin> path_image q"
       and qp: "pathstart q = pathstart p" "pathfinish q = pathfinish p"
@@ -1239,7 +1223,6 @@ next
   then show ?lhs
     by (simp add: winding_number_homotopic_paths)
 qed
-
 
 lemma winding_number_homotopic_loops_eq:
   assumes "path p" and \<zeta>p: "\<zeta> \<notin> path_image p"
