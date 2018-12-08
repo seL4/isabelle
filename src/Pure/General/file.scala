@@ -144,7 +144,7 @@ object File
     if (!dir.is_dir) error("No such directory: " + dir.toString)
     val files = dir.file.listFiles
     if (files == null) Nil
-    else files.toList.map(_.getName)
+    else files.toList.map(_.getName).sorted
   }
 
   def find_files(
