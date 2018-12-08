@@ -21,6 +21,7 @@ declare -a SOURCES=(
   Admin/build_status.scala
   Admin/check_sources.scala
   Admin/ci_profile.scala
+  Admin/components.scala
   Admin/isabelle_cronjob.scala
   Admin/isabelle_devel.scala
   Admin/jenkins.scala
@@ -112,7 +113,6 @@ declare -a SOURCES=(
   ROOT.scala
   System/bash.scala
   System/command_line.scala
-  System/components.scala
   System/cygwin.scala
   System/distribution.scala
   System/getopts.scala
