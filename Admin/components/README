@@ -1,15 +1,28 @@
-Some notes on maintaining the Isabelle component repository at TUM
-==================================================================
+Notes on maintaining the Isabelle component repository at TUM
+=============================================================
 
 Quick reference
 ---------------
 
-  $ install /home/isabelle/components/screwdriver-3.14.tar.gz
-  $ install /home/isabelle/contrib/screwdriver-3.14/
-  $ edit Admin/components/main: screwdriver-3.14
-  $ isabelle components_checksum -u
-  $ hg diff
-  $ hg commit
+  * ensure that Isabelle/Scala/SSH can connect to the host specified via
+    system option "isabelle_components_server"; this may require to install
+    an unencrypted ssh host key as follows:
+
+      $ ssh-keyscan -t rsa lxbroy10.informatik.tu-muenchen.de >> ~/.ssh/known_hosts
+
+  * local setup (and test) of component directory, e.g. in
+
+      screwdriver-3.14/
+
+  * packaging (with associated SHA1 digest), e.g.
+
+      $ isabelle build_components screwdriver-3.14
+
+  * publishing, e.g.
+
+      $ isabelle build_components -P screwdriver-3.14.tar.gz
+
+  * manual editing of Admin/components/main: screwdriver-3.14
 
 
 Unique names
@@ -46,17 +59,20 @@ regular components should be world-readable.
 
 The file Admin/components/components.sha1 contains SHA1 identifiers
 within the Isabelle repository, for integrity checking of the archives
-that are exposed to the public file-system.  The components_checksum
-tool helps to update these hash-keys wrt. the information within the
-Isabelle repository.
+that are exposed to the public file-system.  The command-line tool
+"isabelle build_components" maintains these hash-keys automatically.
 
 
 Unpacked copy
 -------------
 
-A second unpacked copy is provided in /home/isabelle/contrib/.  This
-allows users within the TUM network to activate arbitrary snapshots of
-the repository with all standard components being available, without
-extra copying or unpacking of the authentic archives.  Testing
-services like "isatest" and "mira" do this routinely, and will break
-accordingly if this is omitted.
+A second unpacked copy is provided in /home/isabelle/contrib/. This allows
+users and administrative services within the TUM network to activate arbitrary
+snapshots of the repository with all standard components being available,
+without extra copying or unpacking of the authentic archives. The
+isabelle_cronjob does this routinely: it will break if the unpacked version is
+omitted.
+
+The command-line tool "isabelle build_components -P" takes care of uploading
+the .tar.gz archive and unpacking it, unless it is a special component (e.g.
+for multiplatform application bundling).

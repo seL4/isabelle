@@ -102,8 +102,7 @@ esac
           "unzip -x " + File.bash_path(archive.absolute), cwd = tmp_dir.file).check
       }
       else {
-        Isabelle_System.gnutar(
-          "-C " + File.bash_path(tmp_dir) + " -xzf " + File.bash_path(archive)).check
+        Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = tmp_dir).check
       }
 
       val dir_entry =
@@ -204,8 +203,9 @@ esac
         }
 
         progress.echo("Archiving ...")
-        Isabelle_System.gnutar("--owner=root --group=root -C " + File.bash_path(dir) +
-          " -czf " + File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name).check
+        Isabelle_System.gnutar(
+          "-czf " + File.bash_path(target_dir + jdk_path.ext("tar.gz")) + " " + jdk_name,
+          dir = dir).check
       })
   }
 

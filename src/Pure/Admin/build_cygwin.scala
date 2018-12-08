@@ -54,8 +54,7 @@ object Build_Cygwin
         (cygwin + Path.explode("Cygwin.bat")).file.delete
 
         val archive = "cygwin-" + Date.Format("uuuuMMdd")(Date.now()) + ".tar.gz"
-        Isabelle_System.gnutar("-C " + File.bash_path(tmp_dir) +
-          " -czf " + Bash.string(archive) + " cygwin").check
+        Isabelle_System.gnutar("-czf " + Bash.string(archive) + " cygwin", dir = tmp_dir).check
       })
   }
 

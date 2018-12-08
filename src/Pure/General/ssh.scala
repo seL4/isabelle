@@ -381,7 +381,7 @@ object SSH
             catch { case _: SftpException => false }
           }
           else attrs.isDir)
-      }).toList
+      }).toList.sortBy(_.name)
     }
 
     def find_files(

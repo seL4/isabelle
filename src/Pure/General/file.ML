@@ -117,7 +117,7 @@ fun fold_dir f path a =
         | SOME entry => read (f entry x));
     in read a end);
 
-fun read_dir path = rev (fold_dir cons path []);
+fun read_dir path = sort_strings (fold_dir cons path []);
 
 
 (* input *)
