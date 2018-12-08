@@ -14,10 +14,9 @@ object Build_Release
   sealed case class Bundle_Info(
     platform: Platform.Family.Value,
     platform_description: String,
-    main: String,
-    fallback: Option[String])
+    name: String)
   {
-    def names: List[String] = main :: fallback.toList
+    def path: Path = Path.explode(name)
   }
 
   class Release private[Build_Release](
@@ -39,12 +38,9 @@ object Build_Release
 
     def bundle_info(platform: Platform.Family.Value): Bundle_Info =
       platform match {
-        case Platform.Family.linux =>
-          Bundle_Info(platform, "Linux", dist_name + "_linux.tar.gz", None)
-        case Platform.Family.macos =>
-          Bundle_Info(platform, "Mac OS X", dist_name + ".dmg", Some(dist_name + "_macos.tar.gz"))
-        case Platform.Family.windows =>
-          Bundle_Info(platform, "Windows", dist_name + ".exe", None)
+        case Platform.Family.linux => Bundle_Info(platform, "Linux", dist_name + "_linux.tar.gz")
+        case Platform.Family.macos => Bundle_Info(platform, "Mac OS X", dist_name + "_macos.tar.gz")
+        case Platform.Family.windows => Bundle_Info(platform, "Windows", dist_name + ".exe")
       }
   }
 
@@ -238,8 +234,7 @@ directory individually.
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_library: Boolean = false,
-    parallel_jobs: Int = 1,
-    remote_mac: String = ""): Release =
+    parallel_jobs: Int = 1): Release =
   {
     val hg = Mercurial.repository(Path.explode("$ISABELLE_HOME"))
 
@@ -392,9 +387,7 @@ rm -rf "${DIST_NAME}-old"
     val bundle_infos = platform_families.map(release.bundle_info)
 
     for (bundle_info <- bundle_infos) {
-      val bundle =
-        (if (remote_mac.isEmpty) bundle_info.fallback else None) getOrElse bundle_info.main
-      val bundle_archive = release.dist_dir + Path.explode(bundle)
+      val bundle_archive = release.dist_dir + bundle_info.path
       if (bundle_archive.is_file && more_components.isEmpty)
         progress.echo_warning("Application bundle already exists: " + bundle_archive)
       else {
@@ -487,6 +480,7 @@ rm -rf "${DIST_NAME}-old"
                 "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
                 Bash.string(isabelle_name))
 
+
             case Platform.Family.macos =>
               File.write(isabelle_target + jedit_props,
                 File.read(isabelle_target + jedit_props)
@@ -499,11 +493,10 @@ rm -rf "${DIST_NAME}-old"
               // MacOS application bundle
 
               File.move(isabelle_target + Path.explode("contrib/macos_app"), tmp_dir)
-              val dmg_dir = tmp_dir + Path.explode("macos_app/dmg")
 
               val isabelle_app = Path.explode(isabelle_name + ".app")
-              val app_dir = dmg_dir + isabelle_app
-              File.move(dmg_dir + Path.explode("Isabelle.app"), app_dir)
+              val app_dir = tmp_dir + isabelle_app
+              File.move(tmp_dir + Path.explode("macos_app/Isabelle.app"), app_dir)
 
               val app_contents = app_dir + Path.explode("Contents")
               val app_resources = app_contents + Path.explode("Resources")
@@ -539,38 +532,14 @@ rm -rf "${DIST_NAME}-old"
                 force = true)
 
 
-              // application archive: dmg or .tar.gz
+              // application archive
 
-              val isabelle_dmg = Path.explode(isabelle_name + ".dmg")
-              (release.dist_dir + isabelle_dmg).file.delete
+              val archive_name = isabelle_name + "_macos.tar.gz"
+              progress.echo("Packaging " + archive_name + " ...")
+              execute_tar(tmp_dir,
+                "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
+                File.bash_path(isabelle_app))
 
-              remote_mac match {
-                case SSH.Target(user, host) =>
-                  progress.echo("Packaging " + isabelle_dmg + " (via host " + quote(host) + ") ...")
-                  using(SSH.open_session(options, host = host, user = user))(ssh =>
-                  {
-                    val dmg_archive = Path.explode("dmg.tar")
-                    execute_tar(dmg_dir, "-cf " + File.bash_path(tmp_dir + dmg_archive) + " .")
-
-                    ssh.with_tmp_dir(remote_dir =>
-                    {
-                      val cd = "cd " + ssh.bash_path(remote_dir) + "; "
-                      ssh.write_file(remote_dir + dmg_archive, tmp_dir + dmg_archive)
-                      ssh.execute(
-                        cd + "mkdir dmg && tar -C dmg -xf " + ssh.bash_path(dmg_archive)).check
-                      ssh.execute(
-                        cd + "hdiutil create -srcfolder dmg -volname Isabelle " +
-                        ssh.bash_path(isabelle_dmg)).check
-                      ssh.read_file(remote_dir + isabelle_dmg, release.dist_dir + isabelle_dmg)
-                    })
-                  })
-                case _ =>
-                  val archive_name = isabelle_name + "_macos.tar.gz"
-                  progress.echo("Packaging " + archive_name + " ...")
-                  execute_tar(dmg_dir,
-                    "-czf " + File.bash_path(release.dist_dir + Path.explode(archive_name)) + " " +
-                    File.bash_path(isabelle_app))
-              }
 
             case Platform.Family.windows =>
               File.write(isabelle_target + jedit_props,
@@ -678,8 +647,8 @@ rm -rf "${DIST_NAME}-old"
       val website_platform_bundles =
         for {
           bundle_info <- bundle_infos
-          bundle <- bundle_info.names.find(name => (release.dist_dir + Path.explode(name)).is_file)
-        } yield (bundle, bundle_info)
+          if (release.dist_dir + bundle_info.path).is_file
+        } yield (bundle_info.name, bundle_info)
 
       val afp_link =
         HTML.link(AFP.repos_source + "/commits/" + afp_rev, HTML.text("AFP/" + afp_rev))
@@ -741,7 +710,6 @@ rm -rf "${DIST_NAME}-old"
     Command_Line.tool0 {
       var afp_rev = ""
       var components_base: Option[Path] = None
-      var remote_mac = ""
       var official_release = false
       var proper_release_name: Option[String] = None
       var website: Option[Path] = None
@@ -758,7 +726,6 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
   Options are:
     -A REV       corresponding AFP changeset id
     -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
-    -M USER@HOST remote Mac OS X for dmg build
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
     -W WEBSITE   produce minimal website in given directory
@@ -773,7 +740,6 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 """,
         "A:" -> (arg => afp_rev = arg),
         "C:" -> (arg => components_base = Some(Path.explode(arg))),
-        "M:" -> (arg => remote_mac = arg),
         "O" -> (_ => official_release = true),
         "R:" -> (arg => proper_release_name = Some(arg)),
         "W:" -> (arg => website = Some(Path.explode(arg))),
@@ -804,7 +770,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
           if (platform_families.isEmpty) default_platform_families
           else platform_families,
         more_components = more_components, build_library = build_library,
-        parallel_jobs = parallel_jobs, remote_mac = remote_mac)
+        parallel_jobs = parallel_jobs)
     }
   }
 }

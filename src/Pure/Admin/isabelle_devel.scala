@@ -54,15 +54,14 @@ object Isabelle_Devel
     options: Options,
     rev: String = "",
     afp_rev: String = "",
-    parallel_jobs: Int = 1,
-    remote_mac: String = "")
+    parallel_jobs: Int = 1)
   {
     Isabelle_System.with_tmp_dir("isadist")(base_dir =>
       {
         Isabelle_System.update_directory(root + Path.explode(RELEASE_SNAPSHOT),
           website_dir =>
             Build_Release.build_release(base_dir, options, rev = rev, afp_rev = afp_rev,
-              parallel_jobs = parallel_jobs, remote_mac = remote_mac, website = Some(website_dir)))
+              parallel_jobs = parallel_jobs, website = Some(website_dir)))
       })
   }
 
