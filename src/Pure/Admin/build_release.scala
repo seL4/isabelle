@@ -221,10 +221,7 @@ directory individually.
     Isabelle_System.bash(script, cwd = dir.file).check
 
   private def execute_tar(dir: Path, args: String): Unit =
-    Isabelle_System.gnutar(args, cwd = dir.file).check
-
-  private def tar_options: String =
-    if (Platform.is_macos) "--owner=root --group=staff" else "--owner=root --group=root"
+    Isabelle_System.gnutar(args, dir = dir).check
 
   private val default_platform_families: List[Platform.Family.Value] =
     List(Platform.Family.linux, Platform.Family.windows, Platform.Family.macos)
@@ -365,7 +362,7 @@ chmod -R g=o "$DIST_NAME"
 find "$DIST_NAME" -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w
 """)
 
-      execute_tar(release.dist_dir, tar_options + " -czf " +
+      execute_tar(release.dist_dir, "-czf " +
         File.bash_path(release.isabelle_archive) + " " + Bash.string(release.dist_name))
 
       execute_dist_name("""
@@ -726,8 +723,7 @@ rm -rf "${DIST_NAME}-old"
 
             execute(tmp_dir, "chmod -R a+r " + Bash.string(release.dist_name))
             execute(tmp_dir, "chmod -R g=o " + Bash.string(release.dist_name))
-            execute_tar(tmp_dir,
-              tar_options + " -czf " + File.bash_path(release.isabelle_library_archive) +
+            execute_tar(tmp_dir, "-czf " + File.bash_path(release.isabelle_library_archive) +
               " " + Bash.string(release.dist_name + "/browser_info"))
           })
       }

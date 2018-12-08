@@ -314,9 +314,17 @@ object Isabelle_System
     try { bash("tar --version").check.out.containsSlice("GNU tar") || error("") }
     catch { case ERROR(_) => false }
 
-  def gnutar(args: String, cwd: JFile = null, redirect: Boolean = false): Process_Result =
+  def gnutar(
+    args: String,
+    dir: Path = Path.current,
+    original_owner: Boolean = false,
+    redirect: Boolean = false): Process_Result =
   {
-    if (gnutar_check) bash("tar " + args, cwd = cwd, redirect = redirect)
+    val options =
+      (if (dir.is_current) "" else "-C " + File.bash_path(dir) + " ") +
+      (if (original_owner) "" else "--owner=root --group=staff ")
+
+    if (gnutar_check) bash("tar " + options + args, redirect = redirect)
     else error("Expected to find GNU tar executable")
   }
 

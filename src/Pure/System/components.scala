@@ -36,8 +36,7 @@ object Components
   {
     val name = Archive.get_name(archive.file_name)
     progress.echo("Unpacking " + name)
-    Isabelle_System.gnutar(
-      "-C " + File.bash_path(dir) + " -xzf " + File.bash_path(archive.absolute)).check
+    Isabelle_System.gnutar("-xzf " + File.bash_path(archive), dir = dir).check
     name
   }
 
