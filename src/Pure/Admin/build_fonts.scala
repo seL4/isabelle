@@ -132,10 +132,10 @@ object Build_Fonts
 
   object Family
   {
-    def isabelle_text: Family =
+    def isabelle_symbols: Family =
       Family(
-        plain = "IsabelleText.sfd",
-        bold = "IsabelleTextBold.sfd")
+        plain = "IsabelleSymbols.sfd",
+        bold = "IsabelleSymbolsBold.sfd")
 
     def deja_vu_sans_mono: Family =
       Family(
@@ -201,7 +201,7 @@ object Build_Fonts
     val targets =
       for { source <- sources; (source_font, index) <- source.fonts.zipWithIndex }
       yield {
-        val isabelle_file = find_file(font_dirs, Family.isabelle_text.get(index))
+        val isabelle_file = find_file(font_dirs, Family.isabelle_symbols.get(index))
 
         val source_file = find_file(font_dirs, source_font)
         val source_names = Fontforge.font_names(source_file)
