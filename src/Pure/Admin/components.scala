@@ -154,7 +154,7 @@ object Components
                 error("Component archive already exists: " + archive)
               }
 
-              progress.echo("Packaging " + archive_name + " ...")
+              progress.echo("Packaging " + archive_name)
               Isabelle_System.gnutar("-czf " + File.bash_path(archive) + " " + Bash.string(name),
                 dir = archive_dir).check
 
