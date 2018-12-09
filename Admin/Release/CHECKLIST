@@ -86,7 +86,7 @@ Packaging
 
 - fully-automated packaging (e.g. on lxbroy10):
 
-  hg up -r DISTNAME && Admin/build_release -O -l -R DISTNAME /home/isabelle/dist
+  hg up -r DISTNAME && Admin/build_release -O -l -R DISTNAME -C ~/tmp/isadist/contrib /home/isabelle/dist
 
 - Docker image:
 
