@@ -224,7 +224,7 @@ directory individually.
 
   def build_release(base_dir: Path,
     options: Options,
-    components_base: Option[Path] = None,
+    components_base: Path = Components.default_components_base,
     progress: Progress = No_Progress,
     rev: String = "",
     afp_rev: String = "",
@@ -316,7 +316,7 @@ directory individually.
       val other_isabelle = release.other_isabelle(release.dist_dir)
 
       other_isabelle.init_settings(
-        other_isabelle.init_components(base = components_base, catalogs = List("main")))
+        other_isabelle.init_components(components_base = components_base, catalogs = List("main")))
       other_isabelle.resolve_components(echo = true)
 
       try {
@@ -414,8 +414,8 @@ rm -rf "${DIST_NAME}-old"
           val (bundled_components, jdk_component) =
             get_bundled_components(isabelle_target, platform)
 
-          Components.resolve(other_isabelle.components_base(components_base),
-            bundled_components, target_dir = Some(contrib_dir), progress = progress)
+          Components.resolve(components_base, bundled_components,
+            target_dir = Some(contrib_dir), progress = progress)
 
           val more_components_names =
             more_components.map(Components.unpack(contrib_dir, _, progress = progress))
@@ -709,7 +709,7 @@ rm -rf "${DIST_NAME}-old"
   {
     Command_Line.tool0 {
       var afp_rev = ""
-      var components_base: Option[Path] = None
+      var components_base: Path = Components.default_components_base
       var official_release = false
       var proper_release_name: Option[String] = None
       var website: Option[Path] = None
@@ -725,7 +725,8 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
 
   Options are:
     -A REV       corresponding AFP changeset id
-    -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
+    -C DIR       base directory for Isabelle components (default: """ +
+        Components.default_components_base + """)
     -O           official release (not release-candidate)
     -R RELEASE   proper release with name
     -W WEBSITE   produce minimal website in given directory
@@ -739,7 +740,7 @@ Usage: Admin/build_release [OPTIONS] BASE_DIR
   Build Isabelle release in base directory, using the local repository clone.
 """,
         "A:" -> (arg => afp_rev = arg),
-        "C:" -> (arg => components_base = Some(Path.explode(arg))),
+        "C:" -> (arg => components_base = Path.explode(arg)),
         "O" -> (_ => official_release = true),
         "R:" -> (arg => proper_release_name = Some(arg)),
         "W:" -> (arg => website = Some(Path.explode(arg))),

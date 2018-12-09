@@ -38,6 +38,8 @@ object Components
 
   /* component collections */
 
+  val default_components_base = Path.explode("$ISABELLE_COMPONENTS_BASE")
+
   def admin(dir: Path): Path = dir + Path.explode("Admin/components")
 
   def contrib(dir: Path = Path.current, name: String = ""): Path =

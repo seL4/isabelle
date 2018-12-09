@@ -112,7 +112,7 @@ object Build_History
     afp_partition: Int = 0,
     isabelle_identifier: String = default_isabelle_identifier,
     ml_statistics_step: Int = 1,
-    components_base: Option[Path] = None,
+    components_base: Path = Components.default_components_base,
     fresh: Boolean = false,
     hostname: String = "",
     multicore_base: Boolean = false,
@@ -186,7 +186,8 @@ object Build_History
       /* init settings */
 
       val component_settings =
-        other_isabelle.init_components(base = components_base, catalogs = List("main", "optional"))
+        other_isabelle.init_components(
+          components_base = components_base, catalogs = List("main", "optional"))
       other_isabelle.init_settings(component_settings ::: init_settings)
       other_isabelle.resolve_components(verbose)
       val ml_platform =
@@ -396,7 +397,7 @@ object Build_History
     Command_Line.tool0 {
       var afp_rev: Option[String] = None
       var multicore_base = false
-      var components_base: Option[Path] = None
+      var components_base: Path = Components.default_components_base
       var heap: Option[Int] = None
       var max_heap: Option[Int] = None
       var multicore_list = List(default_multicore)
@@ -421,7 +422,8 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
   Options are:
     -A REV       include $ISABELLE_HOME/AFP repository at given revision
     -B           first multicore build serves as base for scheduling information
-    -C DIR       base directory for Isabelle components (default: $ISABELLE_HOME_USER/../contrib)
+    -C DIR       base directory for Isabelle components (default: """ +
+      Components.default_components_base + """)
     -H SIZE      minimal ML heap in MB (default: """ + default_heap + """ for x86, """ +
       default_heap * 2 + """ for x86_64)
     -M MULTICORE multicore configurations (see below)
@@ -449,7 +451,7 @@ Usage: Admin/build_history [OPTIONS] REPOSITORY [ARGS ...]
 """,
         "A:" -> (arg => afp_rev = Some(arg)),
         "B" -> (_ => multicore_base = true),
-        "C:" -> (arg => components_base = Some(Path.explode(arg))),
+        "C:" -> (arg => components_base = Path.explode(arg)),
         "H:" -> (arg => heap = Some(Value.Int.parse(arg))),
         "M:" -> (arg => multicore_list = space_explode(',', arg).map(Multicore.parse(_))),
         "N:" -> (arg => isabelle_identifier = arg),
