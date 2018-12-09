@@ -108,8 +108,18 @@ object Build_Fonts
         0x1f5cf,  // page (Symbola font)
       )
 
-      val vacuous_font: Seq[Int] =
-        Seq(0x3c)  // "<" as template
+    def isabelle_math_font: Seq[Int] =
+      (0x21 to 0x2f) ++  // bang .. slash
+      (0x3a to 0x40) ++  // colon .. atsign
+      (0x5b to 0x5f) ++  // leftbracket .. underscore
+      (0x7b to 0x7e) ++  // leftbrace .. tilde
+      Seq(
+        0xa9,  // copyright
+        0xae,  // registered
+      )
+
+    val vacuous_font: Seq[Int] =
+      Seq(0x3c)  // "<" as template
   }
 
 
