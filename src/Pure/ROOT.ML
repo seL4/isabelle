@@ -83,6 +83,7 @@ ML_file "System/bash_syntax.ML";
 ML_file "General/file.ML";
 ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
+ML_file "General/bytes.ML";
 ML_file "General/socket_io.ML";
 ML_file "General/seq.ML";
 ML_file "General/timing.ML";

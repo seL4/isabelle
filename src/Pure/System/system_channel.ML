@@ -19,26 +19,11 @@ struct
 
 datatype T = System_Channel of BinIO.instream * BinIO.outstream;
 
-fun input_line (System_Channel (in_stream, _)) =
-  let
-    val result = trim_line o String.implode o rev;
-    fun read cs =
-      (case BinIO.input1 in_stream of
-        NONE => if null cs then NONE else SOME (result cs)
-      | SOME b =>
-          (case Byte.byteToChar b of
-            #"\n" => SOME (result cs)
-          | c => read (c :: cs)));
-  in read [] end;
+fun input_line (System_Channel (stream, _)) = Bytes.read_line stream;
+fun inputN (System_Channel (stream, _)) n = Bytes.read_block stream n;
 
-fun inputN (System_Channel (in_stream, _)) n =
-  Byte.bytesToString (BinIO.inputN (in_stream, n));
-
-fun output (System_Channel (_, out_stream)) s =
-  File.output out_stream s;
-
-fun flush (System_Channel (_, out_stream)) =
-  BinIO.flushOut out_stream;
+fun output (System_Channel (_, stream)) s = File.output stream s;
+fun flush (System_Channel (_, stream)) = BinIO.flushOut stream;
 
 fun rendezvous name =
   let
