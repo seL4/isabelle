@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/bytes.ML
     Author:     Makarius
 
-Immutable byte vectors as ML strings.
+Byte-vector messages.
 *)
 
 signature BYTES =

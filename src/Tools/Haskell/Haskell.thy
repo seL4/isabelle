@@ -1368,4 +1368,86 @@ term t =
     \([], a) -> App (pair term term a)]
 \<close>
 
+generate_file "Isabelle/Bytes.hs" = \<open>
+{-  Title:      Isabelle/Bytes.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Byte-vector messages.
+-}
+
+module Isabelle.Bytes (read_line, read_block, read_message, write_message)
+where
+
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.UTF8 as UTF8
+import Data.Word (Word8)
+
+import Network.Socket (Socket)
+import qualified Network.Socket as Socket
+import qualified Network.Socket.ByteString as ByteString
+
+import qualified Isabelle.Value as Value
+
+
+-- see also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/bytes.ML\<close>
+
+read_line :: Socket -> IO (Maybe ByteString)
+read_line socket = read []
+  where
+    result :: [Word8] -> ByteString
+    result bs =
+      ByteString.pack $ reverse $
+        if not (null bs) && head bs == 13 then tail bs else bs
+
+    read :: [Word8] -> IO (Maybe ByteString)
+    read bs = do
+      s <- ByteString.recv socket 1
+      case ByteString.length s of
+        0 -> return (if null bs then Nothing else Just (result bs))
+        1 ->
+          case ByteString.head s of
+            10 -> return (Just (result bs))
+            b -> read (b : bs)
+
+read_block :: Socket -> Int -> IO ByteString
+read_block socket n = read 0 []
+  where
+    result :: [ByteString] -> ByteString
+    result = ByteString.concat . reverse
+
+    read :: Int -> [ByteString] -> IO ByteString
+    read len ss =
+      if len >= n then return (result ss)
+      else
+        (do
+          s <- ByteString.recv socket (min (n - len) 8192)
+          case ByteString.length s of
+            0 -> return (result ss)
+            m -> read (len + m) (s : ss))
+
+
+-- see also \<^file>\<open>$ISABELLE_HOME/src/Pure/Tools/server.scala\<close>
+
+read_message :: Socket -> IO (Maybe ByteString)
+read_message socket = do
+  opt_line <- read_line socket
+  case opt_line of
+    Nothing -> return Nothing
+    Just line ->
+      case Value.parse_int (UTF8.toString line) of
+        Nothing -> return $ Just line
+        Just n -> Just <$> read_block socket n
+
+write_message :: Socket -> ByteString -> IO ()
+write_message socket msg = do
+  let newline = ByteString.singleton 10
+  let n = ByteString.length msg
+  ByteString.sendMany socket
+    (if n > 100 || ByteString.any (== 10) msg then
+      [UTF8.fromString (Value.print_int (n + 1)), newline, msg, newline]
+     else [msg, newline])
+\<close>
+
 end
