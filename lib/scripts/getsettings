@@ -113,6 +113,7 @@ fi
 if [ -d "$ISABELLE_STACK_ROOT" -a -f "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS" ]; then
   if [ -f "$(cat "$ISABELLE_STACK_ROOT/ISABELLE_GHC_PROGRAMS")/$ISABELLE_GHC_VERSION/bin/ghc" ]; then
     ISABELLE_GHC="$ISABELLE_HOME/lib/scripts/ghc"
+    ISABELLE_GHC_STACK=true
   fi
 fi
 

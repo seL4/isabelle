@@ -8,15 +8,18 @@ theory Test imports Haskell
 begin
 
 ML \<open>
-  Isabelle_System.with_tmp_dir "ghc" (fn dir =>
+  Isabelle_System.with_tmp_dir "ghc" (fn tmp_dir =>
     let
-      val files = Generated_Files.write_files \<^theory>\<open>Haskell\<close> dir;
+      val src_dir = Path.append tmp_dir (Path.explode "src");
+      val files = Generated_Files.write_files \<^theory>\<open>Haskell\<close> src_dir;
+
+      val modules = files
+        |> map (Path.implode #> unsuffix ".hs" #> space_explode "/" #> space_implode ".");
+      val _ = GHC.new_project tmp_dir {name = "isabelle", depends = [], modules = modules};
+
       val (out, rc) =
         Isabelle_System.bash_output
-         (cat_lines
-           ["set -e",
-            "cd " ^ File.bash_path dir,
-            "\"$ISABELLE_GHC\" " ^ File.bash_paths files]);
+          (cat_lines ["set -e", "cd " ^ File.bash_path tmp_dir, "isabelle ghc_stack build 2>&1"]);
     in if rc = 0 then writeln out else error out end)
 \<close>
 

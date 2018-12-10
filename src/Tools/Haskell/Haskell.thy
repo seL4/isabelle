@@ -8,7 +8,7 @@ theory Haskell
   imports Pure
 begin
 
-generate_file "Library.hs" = \<open>
+generate_file "Isabelle/Library.hs" = \<open>
 {-  Title:      Tools/Haskell/Library.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -102,7 +102,7 @@ clean_name :: String -> String
 clean_name = reverse #> dropWhile (== '_') #> reverse
 \<close>
 
-generate_file "Value.hs" = \<open>
+generate_file "Isabelle/Value.hs" = \<open>
 {-  Title:      Haskell/Tools/Value.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -155,7 +155,7 @@ parse_real :: String -> Maybe Double
 parse_real = Read.readMaybe
 \<close>
 
-generate_file "Buffer.hs" = \<open>
+generate_file "Isabelle/Buffer.hs" = \<open>
 {-  Title:      Tools/Haskell/Buffer.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -181,7 +181,7 @@ content :: T -> String
 content (Buffer xs) = concat (reverse xs)
 \<close>
 
-generate_file "Properties.hs" = \<open>
+generate_file "Isabelle/Properties.hs" = \<open>
 {-  Title:      Tools/Haskell/Properties.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -215,7 +215,7 @@ remove name props =
   else props
 \<close>
 
-generate_file "Markup.hs" = \<open>
+generate_file "Isabelle/Markup.hs" = \<open>
 {-  Title:      Haskell/Tools/Markup.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -585,7 +585,7 @@ no_output :: Output
 no_output = ("", "")
 \<close>
 
-generate_file "Completion.hs" = \<open>
+generate_file "Isabelle/Completion.hs" = \<open>
 {-  Title:      Tools/Haskell/Completion.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -646,7 +646,7 @@ make_report limit name_props make_names =
   markup_report [make limit name_props make_names]
 \<close>
 
-generate_file "File.hs" = \<open>
+generate_file "Isabelle/File.hs" = \<open>
 {-  Title:      Tools/Haskell/File.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -681,7 +681,7 @@ append path s =
   IO.withFile path IO.AppendMode (\h -> do setup h; IO.hPutStr h s)
 \<close>
 
-generate_file "XML.hs" = \<open>
+generate_file "Isabelle/XML.hs" = \<open>
 {-  Title:      Tools/Haskell/XML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -760,7 +760,7 @@ instance Show Tree where
       show_text = concatMap encode
 \<close>
 
-generate_file "XML/Encode.hs" = \<open>
+generate_file "Isabelle/XML/Encode.hs" = \<open>
 {-  Title:      Tools/Haskell/XML/Encode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -846,7 +846,7 @@ variant :: [V a] -> T a
 variant fs x = [tagged (the (get_index (\f -> f x) fs))]
 \<close>
 
-generate_file "XML/Decode.hs" = \<open>
+generate_file "Isabelle/XML/Decode.hs" = \<open>
 {-  Title:      Tools/Haskell/XML/Decode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -957,7 +957,7 @@ variant fs [t] = (fs !! tag) (xs, ts)
 variant _ _ = err_body
 \<close>
 
-generate_file "YXML.hs" = \<open>
+generate_file "Isabelle/YXML.hs" = \<open>
 {-  Title:      Tools/Haskell/YXML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -1085,7 +1085,7 @@ parse source =
     _ -> err "multiple results"
 \<close>
 
-generate_file "Pretty.hs" = \<open>
+generate_file "Isabelle/Pretty.hs" = \<open>
 {-  Title:      Tools/Haskell/Pretty.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -1239,7 +1239,7 @@ big_list :: String -> [T] -> T
 big_list name prts = block (fbreaks (str name : prts))
 \<close>
 
-generate_file "Term.hs" = \<open>
+generate_file "Isabelle/Term.hs" = \<open>
 {-  Title:      Tools/Haskell/Term.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -1286,7 +1286,7 @@ data Term =
   deriving Show
 \<close>
 
-generate_file "Term_XML/Encode.hs" = \<open>
+generate_file "Isabelle/Term_XML/Encode.hs" = \<open>
 {-  Title:      Tools/Haskell/Term_XML/Encode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
@@ -1328,7 +1328,7 @@ term t =
     \case { App a -> Just ([], pair term term a); _ -> Nothing }]
 \<close>
 
-generate_file "Term_XML/Decode.hs" = \<open>
+generate_file "Isabelle/Term_XML/Decode.hs" = \<open>
 {-  Title:      Tools/Haskell/Term_XML/Decode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
