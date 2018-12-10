@@ -21,7 +21,7 @@ datatype T = System_Channel of BinIO.instream * BinIO.outstream;
 
 fun input_line (System_Channel (in_stream, _)) =
   let
-    fun result cs = String.implode (rev (#"\n" :: cs));
+    val result = trim_line o String.implode o rev;
     fun read cs =
       (case BinIO.input1 in_stream of
         NONE => if null cs then NONE else SOME (result cs)
