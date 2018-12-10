@@ -2615,7 +2615,7 @@ lemma sort_key_by_quicksort:
     @ sort_key f [x\<leftarrow>xs. f x > f (xs ! (length xs div 2))]" (is "sort_key f ?lhs = ?rhs")
 proof (rule properties_for_sort_key)
   show "mset ?rhs = mset ?lhs"
-    by (rule multiset_eqI) (auto simp add: mset_filter)
+    by (rule multiset_eqI) auto
   show "sorted (map f ?rhs)"
     by (auto simp add: sorted_append intro: sorted_map_same)
 next
@@ -3388,7 +3388,7 @@ lemma [code]: "image_mset f (mset xs) = mset (map f xs)"
   by simp
 
 lemma [code]: "filter_mset f (mset xs) = mset (filter f xs)"
-  by (simp add: mset_filter)
+  by simp
 
 lemma [code]: "mset xs - mset ys = mset (fold remove1 ys xs)"
   by (rule sym, induct ys arbitrary: xs) (simp_all add: diff_add diff_right_commute diff_diff_add)
