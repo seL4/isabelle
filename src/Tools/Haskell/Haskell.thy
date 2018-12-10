@@ -9,7 +9,7 @@ theory Haskell
 begin
 
 generate_file "Isabelle/Library.hs" = \<open>
-{-  Title:      Tools/Haskell/Library.hs
+{-  Title:      Isabelle/Library.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -156,7 +156,7 @@ parse_real = Read.readMaybe
 \<close>
 
 generate_file "Isabelle/Buffer.hs" = \<open>
-{-  Title:      Tools/Haskell/Buffer.hs
+{-  Title:      Isabelle/Buffer.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -182,7 +182,7 @@ content (Buffer xs) = concat (reverse xs)
 \<close>
 
 generate_file "Isabelle/Properties.hs" = \<open>
-{-  Title:      Tools/Haskell/Properties.hs
+{-  Title:      Isabelle/Properties.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -586,7 +586,7 @@ no_output = ("", "")
 \<close>
 
 generate_file "Isabelle/Completion.hs" = \<open>
-{-  Title:      Tools/Haskell/Completion.hs
+{-  Title:      Isabelle/Completion.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -647,7 +647,7 @@ make_report limit name_props make_names =
 \<close>
 
 generate_file "Isabelle/File.hs" = \<open>
-{-  Title:      Tools/Haskell/File.hs
+{-  Title:      Isabelle/File.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -682,7 +682,7 @@ append path s =
 \<close>
 
 generate_file "Isabelle/XML.hs" = \<open>
-{-  Title:      Tools/Haskell/XML.hs
+{-  Title:      Isabelle/XML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -761,7 +761,7 @@ instance Show Tree where
 \<close>
 
 generate_file "Isabelle/XML/Encode.hs" = \<open>
-{-  Title:      Tools/Haskell/XML/Encode.hs
+{-  Title:      Isabelle/XML/Encode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -847,7 +847,7 @@ variant fs x = [tagged (the (get_index (\f -> f x) fs))]
 \<close>
 
 generate_file "Isabelle/XML/Decode.hs" = \<open>
-{-  Title:      Tools/Haskell/XML/Decode.hs
+{-  Title:      Isabelle/XML/Decode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -958,7 +958,7 @@ variant _ _ = err_body
 \<close>
 
 generate_file "Isabelle/YXML.hs" = \<open>
-{-  Title:      Tools/Haskell/YXML.hs
+{-  Title:      Isabelle/YXML.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -1086,7 +1086,7 @@ parse source =
 \<close>
 
 generate_file "Isabelle/Pretty.hs" = \<open>
-{-  Title:      Tools/Haskell/Pretty.hs
+{-  Title:      Isabelle/Pretty.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -1240,7 +1240,7 @@ big_list name prts = block (fbreaks (str name : prts))
 \<close>
 
 generate_file "Isabelle/Term.hs" = \<open>
-{-  Title:      Tools/Haskell/Term.hs
+{-  Title:      Isabelle/Term.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -1287,7 +1287,7 @@ data Term =
 \<close>
 
 generate_file "Isabelle/Term_XML/Encode.hs" = \<open>
-{-  Title:      Tools/Haskell/Term_XML/Encode.hs
+{-  Title:      Isabelle/Term_XML/Encode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
@@ -1329,7 +1329,7 @@ term t =
 \<close>
 
 generate_file "Isabelle/Term_XML/Decode.hs" = \<open>
-{-  Title:      Tools/Haskell/Term_XML/Decode.hs
+{-  Title:      Isabelle/Term_XML/Decode.hs
     Author:     Makarius
     LICENSE:    BSD 3-clause (Isabelle)
 
