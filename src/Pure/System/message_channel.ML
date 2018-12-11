@@ -41,16 +41,15 @@ datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
 fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
-fun flush stream = ignore (try BinIO.flushOut stream);
 val flush_timeout = SOME (seconds 0.02);
 
 fun message_output mbox stream =
   let
     fun continue timeout =
       (case Mailbox.receive timeout mbox of
-        [] => (flush stream; continue NONE)
+        [] => (Byte_Message.flush stream; continue NONE)
       | msgs => received timeout msgs)
-    and received _ (NONE :: _) = flush stream
+    and received _ (NONE :: _) = Byte_Message.flush stream
       | received _ (SOME msg :: rest) = (output_message stream msg; received flush_timeout rest)
       | received timeout [] = continue timeout;
   in fn () => continue NONE end;

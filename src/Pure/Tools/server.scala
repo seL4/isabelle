@@ -181,7 +181,8 @@ object Server
         interrupt = interrupt)
 
     def read_message(): Option[String] =
-      Byte_Message.read_line_message(in).map(_.text)
+      try { Byte_Message.read_line_message(in).map(_.text) }
+      catch { case _: IOException => None }
 
     def write_message(msg: String): Unit =
       out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
