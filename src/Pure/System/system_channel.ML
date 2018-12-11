@@ -19,8 +19,8 @@ struct
 
 datatype T = System_Channel of BinIO.instream * BinIO.outstream;
 
-fun input_line (System_Channel (stream, _)) = Bytes.read_line stream;
-fun inputN (System_Channel (stream, _)) n = Bytes.read_block stream n;
+fun input_line (System_Channel (stream, _)) = Byte_Message.read_line stream;
+fun inputN (System_Channel (stream, _)) n = Byte_Message.read_block stream n;
 
 fun output (System_Channel (_, stream)) s = File.output stream s;
 fun flush (System_Channel (_, stream)) = BinIO.flushOut stream;

@@ -21,7 +21,7 @@ class Channel(in: InputStream, out: OutputStream, log: Logger = No_Logger, verbo
   private val Content_Length = """^\s*Content-Length:\s*(\d+)\s*$""".r
 
   private def read_line(): String =
-    Bytes.read_line(in) match {
+    Byte_Message.read_line(in) match {
       case Some(bytes) => bytes.text
       case None => ""
     }

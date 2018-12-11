@@ -48,6 +48,8 @@ object Symbol
 
   def is_ascii_blank(c: Char): Boolean = " \t\n\u000b\f\r".contains(c)
 
+  def is_ascii_line_terminator(c: Char): Boolean = "\r\n".contains(c)
+
   def is_ascii_letdig(c: Char): Boolean =
     is_ascii_letter(c) || is_ascii_digit(c) || is_ascii_quasi(c)
 

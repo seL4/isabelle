@@ -89,6 +89,7 @@ declare -a SOURCES=(
   ML/ml_process.scala
   ML/ml_statistics.scala
   ML/ml_syntax.scala
+  PIDE/byte_message.scala
   PIDE/command.scala
   PIDE/command_span.scala
   PIDE/document.scala

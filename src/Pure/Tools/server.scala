@@ -181,26 +181,10 @@ object Server
         interrupt = interrupt)
 
     def read_message(): Option[String] =
-      try {
-        Bytes.read_line(in).map(_.text) match {
-          case Some(Value.Int(n)) =>
-            Bytes.read_block(in, n).map(bytes => Library.trim_line(bytes.text))
-          case res => res
-        }
-      }
-      catch { case _: SocketException => None }
+      Byte_Message.read_line_message(in).map(_.text)
 
-    def write_message(msg: String): Unit = out_lock.synchronized
-    {
-      val b = UTF8.bytes(msg)
-      if (b.length > 100 || b.contains(10)) {
-        out.write(UTF8.bytes((b.length + 1).toString))
-        out.write(10)
-      }
-      out.write(b)
-      out.write(10)
-      try { out.flush() } catch { case _: SocketException => }
-    }
+    def write_message(msg: String): Unit =
+      out_lock.synchronized { Byte_Message.write_line_message(out, Bytes(UTF8.bytes(msg))) }
 
     def reply(r: Reply.Value, arg: Any)
     {

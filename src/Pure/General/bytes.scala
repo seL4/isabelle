@@ -64,27 +64,6 @@ object Bytes
       new Bytes(out.toByteArray, 0, out.size)
     }
 
-  def read_block(stream: InputStream, length: Int): Option[Bytes] =
-  {
-    val bytes = read_stream(stream, limit = length)
-    if (bytes.length == length) Some(bytes) else None
-  }
-
-  def read_line(stream: InputStream): Option[Bytes] =
-  {
-    val out = new ByteArrayOutputStream(100)
-    var c = 0
-    while ({ c = stream.read; c != -1 && c != 10 }) out.write(c)
-
-    if (c == -1 && out.size == 0) None
-    else {
-      val a = out.toByteArray
-      val n = a.length
-      val b = if (n > 0 && a(n - 1) == 13) a.take(n - 1) else a
-      Some(new Bytes(b, 0, b.length))
-    }
-  }
-
   def read(file: JFile): Bytes =
     using(new FileInputStream(file))(read_stream(_, file.length.toInt))
 
@@ -135,6 +114,12 @@ final class Bytes private(
   /* content */
 
   lazy val sha1_digest: SHA1.Digest = SHA1.digest(bytes)
+
+  def is_empty: Boolean = length == 0
+
+  def iterator: Iterator[Byte] =
+    for (i <- (offset until (offset + length)).iterator)
+      yield bytes(i)
 
   def array: Array[Byte] =
   {
@@ -189,6 +174,13 @@ final class Bytes private(
     if (0 <= i && i <= j && j <= length) new Bytes(bytes, offset + i, j - i)
     else throw new IndexOutOfBoundsException
   }
+
+  def trim_line: Bytes =
+    if (length >= 2 && charAt(length - 2) == 13 && charAt(length - 1) == 10)
+      subSequence(0, length - 2)
+    else if (length >= 1 && (charAt(length - 1) == 13 || charAt(length - 1) == 10))
+      subSequence(0, length - 1)
+    else this
 
 
   /* streams */
