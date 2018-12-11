@@ -11,6 +11,15 @@ import java.io.{ByteArrayOutputStream, OutputStream, InputStream, IOException}
 
 object Byte_Message
 {
+  def read(stream: InputStream, length: Int): Bytes =
+    Bytes.read_stream(stream, limit = length)
+
+  def read_block(stream: InputStream, length: Int): Option[Bytes] =
+  {
+    val msg = read(stream, length)
+    if (msg.length == length) Some(msg) else None
+  }
+
   def read_line(stream: InputStream): Option[Bytes] =
   {
     val line = new ByteArrayOutputStream(100)
@@ -26,14 +35,8 @@ object Byte_Message
     }
   }
 
-  def read_block(stream: InputStream, length: Int): Option[Bytes] =
-  {
-    val msg = Bytes.read_stream(stream, limit = length)
-    if (msg.length == length) Some(msg) else None
-  }
 
-
-  /* hybrid messages: line or length+block, with content restriction */
+  /* hybrid messages: line or length+block (with content restriction) */
 
   private def is_length(msg: Bytes): Boolean =
     !msg.is_empty && msg.iterator.forall(b => Symbol.is_ascii_digit(b.toChar))

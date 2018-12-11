@@ -11,7 +11,7 @@ sig
   type T
   val send: T -> message -> unit
   val shutdown: T -> unit
-  val make: System_Channel.T -> T
+  val make: BinIO.outstream -> T
 end;
 
 structure Message_Channel: MESSAGE_CHANNEL =
@@ -30,8 +30,8 @@ fun message name raw_props body =
     val header = YXML.string_of (XML.Elem ((name, robust_props), []));
   in Message (chunk [header] @ chunk body) end;
 
-fun output_message channel (Message ss) =
-  List.app (System_Channel.output channel) ss;
+fun output_message stream (Message ss) =
+  List.app (File.output stream) ss;
 
 
 (* channel *)
@@ -41,26 +41,26 @@ datatype T = Message_Channel of {send: message -> unit, shutdown: unit -> unit};
 fun send (Message_Channel {send, ...}) = send;
 fun shutdown (Message_Channel {shutdown, ...}) = shutdown ();
 
-fun flush channel = ignore (try System_Channel.flush channel);
+fun flush stream = ignore (try BinIO.flushOut stream);
 val flush_timeout = SOME (seconds 0.02);
 
-fun message_output mbox channel =
+fun message_output mbox stream =
   let
     fun continue timeout =
       (case Mailbox.receive timeout mbox of
-        [] => (flush channel; continue NONE)
+        [] => (flush stream; continue NONE)
       | msgs => received timeout msgs)
-    and received _ (NONE :: _) = flush channel
-      | received _ (SOME msg :: rest) = (output_message channel msg; received flush_timeout rest)
+    and received _ (NONE :: _) = flush stream
+      | received _ (SOME msg :: rest) = (output_message stream msg; received flush_timeout rest)
       | received timeout [] = continue timeout;
   in fn () => continue NONE end;
 
-fun make channel =
+fun make stream =
   let
     val mbox = Mailbox.create ();
     val thread =
       Standard_Thread.fork {name = "channel", stack_limit = NONE, interrupts = false}
-        (message_output mbox channel);
+        (message_output mbox stream);
     fun send msg = Mailbox.send mbox (SOME msg);
     fun shutdown () =
       (Mailbox.send mbox NONE; Mailbox.await_empty mbox; Standard_Thread.join thread);

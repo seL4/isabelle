@@ -95,12 +95,13 @@ fun update_tracing () =
 
 val serial_props = Markup.serial_properties o serial;
 
-fun init_channels channel =
+fun init_channels out_stream =
   let
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
+    val _ = BinIO.StreamIO.setBufferMode (BinIO.getOutstream out_stream, IO.BLOCK_BUF);
 
-    val msg_channel = Message_Channel.make channel;
+    val msg_channel = Message_Channel.make out_stream;
 
     fun message name props body =
       Message_Channel.send msg_channel (Message_Channel.message name props body);
@@ -149,37 +150,18 @@ fun recover crash =
     Output.physical_stderr
       "Recovered from Isabelle process crash -- see also Isabelle_Process.crashes\n");
 
-fun read_chunk channel len =
-  let
-    val n =
-      (case Int.fromString len of
-        SOME n => n
-      | NONE => error ("Isabelle process: malformed header " ^ quote len));
-    val chunk = System_Channel.inputN channel n;
-    val i = size chunk;
-  in
-    if i <> n then
-      error ("Isabelle process: bad chunk (unexpected EOF after " ^
-        string_of_int i ^ " of " ^ string_of_int n ^ " bytes)")
-    else chunk
-  end;
-
-fun read_command channel =
-  System_Channel.input_line channel
-  |> Option.map (fn line => map (read_chunk channel) (space_explode "," line));
-
 in
 
-fun loop channel =
+fun loop stream =
   let
     val continue =
-      (case read_command channel of
+      (case Byte_Message.read_message stream of
         NONE => false
       | SOME [] => (Output.system_message "Isabelle process: no input"; true)
       | SOME (name :: args) => (run_command name args; true))
       handle exn => (Runtime.exn_system_message exn handle crash => recover crash; true);
   in
-    if continue then loop channel
+    if continue then loop stream
     else (Future.shutdown (); Execution.reset (); ())
   end;
 
@@ -202,9 +184,9 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
       Unsynchronized.change print_mode
         (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);
 
-    val channel = System_Channel.rendezvous socket;
-    val msg_channel = init_channels channel;
-    val _ = loop channel;
+    val (in_stream, out_stream) = Socket_IO.open_streams socket;
+    val msg_channel = init_channels out_stream;
+    val _ = loop in_stream;
     val _ = Message_Channel.shutdown msg_channel;
     val _ = Private_Output.init_channels ();
 

@@ -318,7 +318,6 @@ ML_file "Isar/isar_cmd.ML";
 subsection "Isabelle/Isar system";
 
 ML_file "System/command_line.ML";
-ML_file "System/system_channel.ML";
 ML_file "System/message_channel.ML";
 ML_file "System/isabelle_process.ML";
 ML_file "System/invoke_scala.ML";

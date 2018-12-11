@@ -1379,9 +1379,12 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
-module Isabelle.Byte_Message (read_line, read_block, trim_line, read_line_message, write_line_message)
+module Isabelle.Byte_Message
+  (read, read_block, read_line, trim_line,
+   read_line_message, write_line_message)
 where
 
+import Prelude hiding (read)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.UTF8 as UTF8
@@ -1394,6 +1397,27 @@ import qualified Network.Socket.ByteString as ByteString
 
 import qualified Isabelle.Value as Value
 
+
+read :: Socket -> Int -> IO ByteString
+read socket n = read_bytes 0 []
+  where
+    result :: [ByteString] -> ByteString
+    result = ByteString.concat . reverse
+
+    read_bytes :: Int -> [ByteString] -> IO ByteString
+    read_bytes len ss =
+      if len >= n then return (result ss)
+      else
+        (do
+          s <- ByteString.recv socket (min (n - len) 8192)
+          case ByteString.length s of
+            0 -> return (result ss)
+            m -> read_bytes (len + m) (s : ss))
+
+read_block :: Socket -> Int -> IO (Maybe ByteString)
+read_block socket n = do
+  s <- read socket n
+  return (if ByteString.length s == n then Just s else Nothing)
 
 read_line :: Socket -> IO (Maybe ByteString)
 read_line socket = read []
@@ -1413,24 +1437,6 @@ read_line socket = read []
             10 -> return (Just (result bs))
             b -> read (b : bs)
 
-read_block :: Socket -> Int -> IO (Maybe ByteString)
-read_block socket n = read 0 []
-  where
-    result :: [ByteString] -> Maybe ByteString
-    result ss =
-      if ByteString.length s == n then Just s else Nothing
-      where s = ByteString.concat (reverse ss)
-
-    read :: Int -> [ByteString] -> IO (Maybe ByteString)
-    read len ss =
-      if len >= n then return (result ss)
-      else
-        (do
-          s <- ByteString.recv socket (min (n - len) 8192)
-          case ByteString.length s of
-            0 -> return (result ss)
-            m -> read (len + m) (s : ss))
-
 trim_line :: ByteString -> ByteString
 trim_line s =
     if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then ByteString.take (n - 2) s
@@ -1439,7 +1445,6 @@ trim_line s =
   where
     n = ByteString.length s
     at = ByteString.index s
-
 
 
 -- hybrid messages: line or length+block (with content restriction)
