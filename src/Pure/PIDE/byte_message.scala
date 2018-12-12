@@ -13,9 +13,8 @@ object Byte_Message
 {
   /* output operations */
 
-  def write(stream: OutputStream, bytes: Bytes) { bytes.write_stream(stream) }
-
-  def newline(stream: OutputStream) { stream.write(10) }
+  def write(stream: OutputStream, bytes: List[Bytes]): Unit =
+    bytes.foreach(_.write_stream(stream))
 
   def flush(stream: OutputStream): Unit =
     try { stream.flush() }
@@ -50,40 +49,20 @@ object Byte_Message
   }
 
 
-  /* header with chunk lengths */
-
-  def write_header(stream: OutputStream, ns: List[Int])
-  {
-    stream.write(UTF8.bytes(ns.mkString(",")))
-    newline(stream)
-  }
-
-  private def err_header(line: String): Nothing =
-    error("Malformed message header: " + quote(line))
-
-  private def parse_header(line: String): List[Int] =
-    try { space_explode(',', line).map(Value.Nat.parse) }
-    catch { case ERROR(_) => err_header(line) }
-
-  def read_header(stream: InputStream): Option[List[Int]] =
-    read_line(stream).map(_.text).map(parse_header(_))
-
-  def read_header1(stream: InputStream): Option[Int] =
-    read_line(stream).map(_.text).map(line =>
-      parse_header(line) match {
-        case List(n) => n
-        case _ => err_header(line)
-      })
-
-
   /* messages with multiple chunks (arbitrary content) */
+
+  private def make_header(ns: List[Int]): List[Bytes] =
+    List(Bytes(ns.mkString(",")), Bytes.newline)
 
   def write_message(stream: OutputStream, chunks: List[Bytes])
   {
-    write_header(stream, chunks.map(_.length))
-    chunks.foreach(write(stream, _))
+    write(stream, make_header(chunks.map(_.length)) ::: chunks)
     flush(stream)
   }
+
+  private def parse_header(line: String): List[Int] =
+    try { space_explode(',', line).map(Value.Nat.parse) }
+    catch { case ERROR(_) => error("Malformed message header: " + quote(line)) }
 
   private def read_chunk(stream: InputStream, n: Int): Bytes =
     read_block(stream, n) match {
@@ -93,7 +72,7 @@ object Byte_Message
     }
 
   def read_message(stream: InputStream): Option[List[Bytes]] =
-    read_header(stream).map(ns => ns.map(n => read_chunk(stream, n)))
+    read_line(stream).map(line => parse_header(line.text).map(read_chunk(stream, _)))
 
 
   /* hybrid messages: line or length+block (restricted content) */
@@ -113,10 +92,9 @@ object Byte_Message
       error ("Bad content for line message:\n" ++ msg.text.take(100))
 
     val n = msg.length
-    if (n > 100 || msg.iterator.contains(10)) write_header(stream, List(n + 1))
-
-    write(stream, msg)
-    newline(stream)
+    write(stream,
+      (if (n > 100 || msg.iterator.contains(10)) make_header(List(n + 1)) else Nil) :::
+        List(msg, Bytes.newline))
     flush(stream)
   }
 

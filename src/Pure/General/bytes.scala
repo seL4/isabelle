@@ -39,6 +39,7 @@ object Bytes
       new Bytes(b, 0, b.length)
     }
 
+  val newline: Bytes = apply("\n")
 
   def base64(s: String): Bytes =
   {

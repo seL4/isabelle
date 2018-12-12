@@ -1409,13 +1409,14 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
 module Isabelle.Byte_Message (
-    write, newline,
-    read, read_block, trim_line, read_line,
-    read_line_message, write_line_message
+    write, read, read_block, trim_line, read_line,
+    write_message, read_message,
+    write_line_message, read_line_message
   )
 where
 
 import Prelude hiding (read)
+import Data.Maybe
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.UTF8 as UTF8
@@ -1426,6 +1427,7 @@ import Network.Socket (Socket)
 import qualified Network.Socket as Socket
 import qualified Network.Socket.ByteString as ByteString
 
+import Isabelle.Library hiding (trim_line)
 import qualified Isabelle.Value as Value
 
 
@@ -1482,6 +1484,42 @@ read_line socket = read_body []
             b -> read_body (b : bs)
 
 
+{- messages with multiple chunks (arbitrary content) -}
+
+make_header :: [Int] -> [ByteString]
+make_header ns =
+  [UTF8.fromString (space_implode "," (map Value.print_int ns)), newline]
+
+write_message :: Socket -> [ByteString] -> IO ()
+write_message socket chunks =
+  write socket (make_header (map ByteString.length chunks) ++ chunks)
+
+parse_header :: ByteString -> [Int]
+parse_header line =
+  let
+    res = map Value.parse_nat (space_explode ',' (UTF8.toString line))
+  in
+    if all isJust res then map fromJust res
+    else error ("Malformed message header: " ++ quote (UTF8.toString line))
+
+read_chunk :: Socket -> Int -> IO ByteString
+read_chunk socket n = do
+  res <- read_block socket n
+  return $
+    case res of
+      (Just chunk, _) -> chunk
+      (Nothing, len) ->
+        error ("Malformed message chunk: unexpected EOF after " ++
+          show len ++ " of " ++ show n ++ " bytes")
+
+read_message :: Socket -> IO (Maybe [ByteString])
+read_message socket = do
+  res <- read_line socket
+  case res of
+    Just line -> Just <$> mapM (read_chunk socket) (parse_header line)
+    Nothing -> return Nothing
+
+
 -- hybrid messages: line or length+block (with content restriction)
 
 is_length :: ByteString -> Bool
@@ -1498,10 +1536,9 @@ write_line_message socket msg = do
     error ("Bad content for line message:\n" ++ take 100 (UTF8.toString msg))
 
   let n = ByteString.length msg
-  write socket
-    (if n > 100 || ByteString.any (== 10) msg then
-      [UTF8.fromString (Value.print_int (n + 1)), newline, msg, newline]
-     else [msg, newline])
+  write socket $
+    (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) ++
+    [msg, newline]
 
 read_line_message :: Socket -> IO (Maybe ByteString)
 read_line_message socket = do

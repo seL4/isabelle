@@ -6,20 +6,13 @@ Byte-oriented messages.
 
 signature BYTE_MESSAGE =
 sig
-  val write: BinIO.outstream -> string -> unit
+  val write: BinIO.outstream -> string list -> unit
   val flush: BinIO.outstream -> unit
-
   val read: BinIO.instream -> int -> string
   val read_block: BinIO.instream -> int -> string option * int
   val read_line: BinIO.instream -> string option
-
-  val write_header: BinIO.outstream -> int list -> unit
-  val read_header: BinIO.instream -> int list option
-  val read_header1: BinIO.instream -> int option
-
   val write_message: BinIO.outstream -> string list -> unit
   val read_message: BinIO.instream -> string list option
-
   val write_line_message: BinIO.outstream -> string -> unit
   val read_line_message: BinIO.instream -> string option
 end;
@@ -29,9 +22,7 @@ struct
 
 (* output operations *)
 
-fun write stream s = BinIO.output (stream, Byte.stringToBytes s);
-
-fun newline stream = write stream "\n";
+fun write stream = List.app (fn s => BinIO.output (stream, Byte.stringToBytes s));
 
 fun flush stream = ignore (try BinIO.flushOut stream);
 
@@ -59,35 +50,17 @@ fun read_line stream =
   in read_body [] end;
 
 
-(* header with chunk lengths *)
+(* messages with multiple chunks (arbitrary content) *)
 
-fun write_header stream ns =
- (write stream (space_implode "," (map string_of_int ns));
-  newline stream);
+fun make_header stream ns =
+  [space_implode "," (map Value.print_int ns), "\n"];
 
-fun err_header line =
-  error ("Malformed message header: " ^ quote line);
+fun write_message stream chunks =
+  (write stream (make_header stream (map size chunks) @ chunks); flush stream);
 
 fun parse_header line =
   map Value.parse_nat (space_explode "," line)
-    handle Fail _ => err_header line
-
-fun read_header stream =
-  read_line stream |> Option.map parse_header;
-
-fun read_header1 stream =
-  read_line stream |> Option.map (fn line =>
-    (case parse_header line of
-      [n] => n
-    | _ => err_header line));
-
-
-(* messages with multiple chunks (arbitrary content) *)
-
-fun write_message stream chunks =
- (write_header stream (map size chunks);
-  List.app (write stream) chunks;
-  flush stream);
+    handle Fail _ => error ("Malformed message header: " ^ quote line);
 
 fun read_chunk stream n =
   (case read_block stream n of
@@ -97,7 +70,7 @@ fun read_chunk stream n =
         string_of_int len ^ " of " ^ string_of_int n ^ " bytes"));
 
 fun read_message stream =
-  read_header stream |> (Option.map o map) (read_chunk stream);
+  read_line stream |> Option.map (parse_header #> map (read_chunk stream));
 
 
 (* hybrid messages: line or length+block (with content restriction) *)
@@ -114,10 +87,9 @@ fun write_line_message stream msg =
     error ("Bad content for line message:\n" ^ implode (take 100 (Symbol.explode msg)))
   else
     let val n = size msg in
-      if n > 100 orelse exists_string (fn s => s = "\n") msg then write_header stream [n + 1]
-      else ();
-      write stream msg;
-      newline stream;
+      write stream
+        ((if n > 100 orelse exists_string (fn s => s = "\n") msg
+          then make_header stream [n + 1] else []) @ [msg, "\n"]);
       flush stream
     end;
 
