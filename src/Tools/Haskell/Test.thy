@@ -17,7 +17,9 @@ ML \<open>
         |> map (Path.implode #> unsuffix ".hs" #> space_explode "/" #> space_implode ".");
       val _ =
         GHC.new_project tmp_dir
-          {name = "isabelle", depends = ["bytestring", "utf8-string", "network"], modules = modules};
+          {name = "isabelle",
+           depends = ["bytestring", "network", "split", "utf8-string"],
+           modules = modules};
 
       val (out, rc) =
         Isabelle_System.bash_output
