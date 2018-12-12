@@ -36,6 +36,7 @@ sig
   val is_ascii_hex: symbol -> bool
   val is_ascii_quasi: symbol -> bool
   val is_ascii_blank: symbol -> bool
+  val is_ascii_line_terminator: symbol -> bool
   val is_ascii_control: symbol -> bool
   val is_ascii_letdig: symbol -> bool
   val is_ascii_lower: symbol -> bool
@@ -177,6 +178,9 @@ fun is_ascii_quasi "_" = true
 val is_ascii_blank =
   fn " " => true | "\t" => true | "\n" => true | "\^K" => true | "\f" => true | "\^M" => true
     | _ => false;
+
+val is_ascii_line_terminator =
+  fn "\r" => true | "\n" => true | _ => false;
 
 fun is_ascii_control s = is_char s andalso ord s < 32 andalso not (is_ascii_blank s);
 

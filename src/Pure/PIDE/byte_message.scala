@@ -24,13 +24,14 @@ object Byte_Message
 
   /* input operations */
 
-  def read(stream: InputStream, length: Int): Bytes =
-    Bytes.read_stream(stream, limit = length)
+  def read(stream: InputStream, n: Int): Bytes =
+    Bytes.read_stream(stream, limit = n)
 
-  def read_block(stream: InputStream, length: Int): Option[Bytes] =
+  def read_block(stream: InputStream, n: Int): (Option[Bytes], Int) =
   {
-    val msg = read(stream, length)
-    if (msg.length == length) Some(msg) else None
+    val msg = read(stream, n)
+    val len = msg.length
+    (if (len == n) Some(msg) else None, len)
   }
 
   def read_line(stream: InputStream): Option[Bytes] =
@@ -51,11 +52,17 @@ object Byte_Message
 
   /* header with chunk lengths */
 
+  def write_header(stream: OutputStream, ns: List[Int])
+  {
+    stream.write(UTF8.bytes(ns.mkString(",")))
+    newline(stream)
+  }
+
   private def err_header(line: String): Nothing =
     error("Malformed message header: " + quote(line))
 
   private def parse_header(line: String): List[Int] =
-    try { space_explode(',', line).map(Value.Int.parse_nat) }
+    try { space_explode(',', line).map(Value.Nat.parse) }
     catch { case ERROR(_) => err_header(line) }
 
   def read_header(stream: InputStream): Option[List[Int]] =
@@ -68,12 +75,6 @@ object Byte_Message
         case _ => err_header(line)
       })
 
-  def write_header(stream: OutputStream, ns: List[Int])
-  {
-    stream.write(UTF8.bytes(ns.mkString(",")))
-    newline(stream)
-  }
-
 
   /* messages with multiple chunks (arbitrary content) */
 
@@ -85,12 +86,11 @@ object Byte_Message
   }
 
   private def read_chunk(stream: InputStream, n: Int): Bytes =
-  {
-    val chunk = read(stream, n)
-    val len = chunk.length
-    if (len == n) chunk
-    else error("Malformed message chunk: unexpected EOF after " + len + " of " + n + " bytes")
-  }
+    read_block(stream, n) match {
+      case (Some(chunk), _) => chunk
+      case (None, len) =>
+        error("Malformed message chunk: unexpected EOF after " + len + " of " + n + " bytes")
+    }
 
   def read_message(stream: InputStream): Option[List[Bytes]] =
     read_header(stream).map(ns => ns.map(n => read_chunk(stream, n)))
@@ -101,7 +101,7 @@ object Byte_Message
   private def is_length(msg: Bytes): Boolean =
     !msg.is_empty && msg.iterator.forall(b => Symbol.is_ascii_digit(b.toChar))
 
-  private def has_line_terminator(msg: Bytes): Boolean =
+  private def is_terminated(msg: Bytes): Boolean =
   {
     val len = msg.length
     len > 0 && Symbol.is_ascii_line_terminator(msg.charAt(len - 1))
@@ -109,12 +109,12 @@ object Byte_Message
 
   def write_line_message(stream: OutputStream, msg: Bytes)
   {
-    if (is_length(msg) || has_line_terminator(msg))
+    if (is_length(msg) || is_terminated(msg))
       error ("Bad content for line message:\n" ++ msg.text.take(100))
 
-    if (msg.length > 100 || msg.iterator.contains(10)) {
-      write_header(stream, List(msg.length + 1))
-    }
+    val n = msg.length
+    if (n > 100 || msg.iterator.contains(10)) write_header(stream, List(n + 1))
+
     write(stream, msg)
     newline(stream)
     flush(stream)
@@ -122,9 +122,11 @@ object Byte_Message
 
   def read_line_message(stream: InputStream): Option[Bytes] =
     read_line(stream) match {
-      case Some(line) =>
-        if (is_length(line)) read_block(stream, Value.Int.parse(line.text)).map(_.trim_line)
-        else Some(line)
       case None => None
+      case Some(line) =>
+        Value.Nat.unapply(line.text) match {
+          case None => Some(line)
+          case Some(n) => read_block(stream, n)._1.map(_.trim_line)
+        }
     }
 }

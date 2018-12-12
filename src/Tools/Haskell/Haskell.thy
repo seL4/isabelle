@@ -113,7 +113,7 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/value.ML\<close>.
 -}
 
 module Isabelle.Value
-  (print_bool, parse_bool, print_int, parse_int, print_real, parse_real)
+  (print_bool, parse_bool, parse_nat, print_int, parse_int, print_real, parse_real)
 where
 
 import Data.Maybe
@@ -131,6 +131,15 @@ parse_bool :: String -> Maybe Bool
 parse_bool "true" = Just True
 parse_bool "false" = Just False
 parse_bool _ = Nothing
+
+
+{- nat -}
+
+parse_nat :: String -> Maybe Int
+parse_nat s =
+  case Read.readMaybe s of
+    Just n | n >= 0 -> Just n
+    _ -> Nothing
 
 
 {- int -}
@@ -1379,9 +1388,11 @@ See \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.ML\<close>
 and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
-module Isabelle.Byte_Message
-  (read, read_block, read_line, trim_line,
-   read_line_message, write_line_message)
+module Isabelle.Byte_Message (
+    write, newline,
+    read, read_block, trim_line, read_line,
+    read_line_message, write_line_message
+  )
 where
 
 import Prelude hiding (read)
@@ -1398,73 +1409,76 @@ import qualified Network.Socket.ByteString as ByteString
 import qualified Isabelle.Value as Value
 
 
-read :: Socket -> Int -> IO ByteString
-read socket n = read_bytes 0 []
-  where
-    result :: [ByteString] -> ByteString
-    result = ByteString.concat . reverse
+{- output operations -}
 
-    read_bytes :: Int -> [ByteString] -> IO ByteString
-    read_bytes len ss =
+write :: Socket -> [ByteString] -> IO ()
+write = ByteString.sendMany
+
+newline :: ByteString
+newline = ByteString.singleton 10
+
+
+{- input operations -}
+
+read :: Socket -> Int -> IO ByteString
+read socket n = read_body 0 []
+  where
+    result = ByteString.concat . reverse
+    read_body len ss =
       if len >= n then return (result ss)
       else
         (do
           s <- ByteString.recv socket (min (n - len) 8192)
           case ByteString.length s of
             0 -> return (result ss)
-            m -> read_bytes (len + m) (s : ss))
+            m -> read_body (len + m) (s : ss))
 
-read_block :: Socket -> Int -> IO (Maybe ByteString)
+read_block :: Socket -> Int -> IO (Maybe ByteString, Int)
 read_block socket n = do
-  s <- read socket n
-  return (if ByteString.length s == n then Just s else Nothing)
+  msg <- read socket n
+  let len = ByteString.length msg
+  return (if len == n then Just msg else Nothing, len)
+
+trim_line :: ByteString -> ByteString
+trim_line s =
+  if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then ByteString.take (n - 2) s
+  else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then ByteString.take (n - 1) s
+  else s
+  where
+    n = ByteString.length s
+    at = ByteString.index s
 
 read_line :: Socket -> IO (Maybe ByteString)
-read_line socket = read []
+read_line socket = read_body []
   where
-    result :: [Word8] -> ByteString
-    result bs =
-      ByteString.pack $ reverse $
-        if not (null bs) && head bs == 13 then tail bs else bs
-
-    read :: [Word8] -> IO (Maybe ByteString)
-    read bs = do
+    result = trim_line . ByteString.pack . reverse
+    read_body bs = do
       s <- ByteString.recv socket 1
       case ByteString.length s of
         0 -> return (if null bs then Nothing else Just (result bs))
         1 ->
           case ByteString.head s of
             10 -> return (Just (result bs))
-            b -> read (b : bs)
-
-trim_line :: ByteString -> ByteString
-trim_line s =
-    if n >= 2 && at (n - 2) == 13 && at (n - 1) == 10 then ByteString.take (n - 2) s
-    else if n >= 1 && (at (n - 1) == 13 || at (n - 1) == 10) then ByteString.take (n - 1) s
-    else s
-  where
-    n = ByteString.length s
-    at = ByteString.index s
+            b -> read_body (b : bs)
 
 
 -- hybrid messages: line or length+block (with content restriction)
 
 is_length :: ByteString -> Bool
-is_length s =
-  not (ByteString.null s) && ByteString.all (\b -> 48 <= b && b <= 57) s
+is_length msg =
+  not (ByteString.null msg) && ByteString.all (\b -> 48 <= b && b <= 57) msg
 
-has_line_terminator :: ByteString -> Bool
-has_line_terminator s =
-  not (ByteString.null s) && (ByteString.last s == 13 || ByteString.last s == 10)
+is_terminated :: ByteString -> Bool
+is_terminated msg =
+  not (ByteString.null msg) && (ByteString.last msg == 13 || ByteString.last msg == 10)
 
 write_line_message :: Socket -> ByteString -> IO ()
 write_line_message socket msg = do
-  when (is_length msg || has_line_terminator msg) $
+  when (is_length msg || is_terminated msg) $
     error ("Bad content for line message:\n" ++ take 100 (UTF8.toString msg))
 
-  let newline = ByteString.singleton 10
   let n = ByteString.length msg
-  ByteString.sendMany socket
+  write socket
     (if n > 100 || ByteString.any (== 10) msg then
       [UTF8.fromString (Value.print_int (n + 1)), newline, msg, newline]
      else [msg, newline])
@@ -1475,9 +1489,9 @@ read_line_message socket = do
   case opt_line of
     Nothing -> return Nothing
     Just line ->
-      case Value.parse_int (UTF8.toString line) of
+      case Value.parse_nat (UTF8.toString line) of
         Nothing -> return $ Just line
-        Just n -> fmap trim_line <$> read_block socket n
+        Just n -> fmap trim_line . fst <$> read_block socket n
 \<close>
 
 end

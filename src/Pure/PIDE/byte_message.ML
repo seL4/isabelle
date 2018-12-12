@@ -7,10 +7,10 @@ Byte-oriented messages.
 signature BYTE_MESSAGE =
 sig
   val write: BinIO.outstream -> string -> unit
-  val newline: BinIO.outstream -> unit
   val flush: BinIO.outstream -> unit
+
   val read: BinIO.instream -> int -> string
-  val read_block: BinIO.instream -> int -> string option
+  val read_block: BinIO.instream -> int -> string option * int
   val read_line: BinIO.instream -> string option
 
   val write_header: BinIO.outstream -> int list -> unit
@@ -41,20 +41,22 @@ fun flush stream = ignore (try BinIO.flushOut stream);
 fun read stream n = Byte.bytesToString (BinIO.inputN (stream, n));
 
 fun read_block stream n =
-  let val msg = read stream n
-  in if size msg = n then SOME msg else NONE end;
+  let
+    val msg = read stream n;
+    val len = size msg;
+  in (if len = n then SOME msg else NONE, len) end;
 
 fun read_line stream =
   let
     val result = trim_line o String.implode o rev;
-    fun read cs =
+    fun read_body cs =
       (case BinIO.input1 stream of
         NONE => if null cs then NONE else SOME (result cs)
       | SOME b =>
           (case Byte.byteToChar b of
             #"\n" => SOME (result cs)
-          | c => read (c :: cs)));
-  in read [] end;
+          | c => read_body (c :: cs)));
+  in read_body [] end;
 
 
 (* header with chunk lengths *)
@@ -63,7 +65,8 @@ fun write_header stream ns =
  (write stream (space_implode "," (map string_of_int ns));
   newline stream);
 
-fun err_header line = error ("Malformed message header: " ^ quote line)
+fun err_header line =
+  error ("Malformed message header: " ^ quote line);
 
 fun parse_header line =
   map Value.parse_nat (space_explode "," line)
@@ -87,15 +90,11 @@ fun write_message stream chunks =
   flush stream);
 
 fun read_chunk stream n =
-  let
-    val chunk = read stream n;
-    val len = size chunk;
-  in
-    if len = n then chunk
-    else
+  (case read_block stream n of
+    (SOME chunk, _) => chunk
+  | (NONE, len) =>
       error ("Malformed message chunk: unexpected EOF after " ^
-        string_of_int len ^ " of " ^ string_of_int n ^ " bytes")
-  end;
+        string_of_int len ^ " of " ^ string_of_int n ^ " bytes"));
 
 fun read_message stream =
   read_header stream |> (Option.map o map) (read_chunk stream);
@@ -103,19 +102,19 @@ fun read_message stream =
 
 (* hybrid messages: line or length+block (with content restriction) *)
 
-fun is_length s =
-  s <> "" andalso forall_string Symbol.is_ascii_digit s;
+fun is_length msg =
+  msg <> "" andalso forall_string Symbol.is_ascii_digit msg;
 
-fun has_line_terminator s =
-  String.isSuffix "\r" s orelse String.isSuffix "\n" s;
+fun is_terminated msg =
+  let val len = size msg
+  in len > 0 andalso Symbol.is_ascii_line_terminator (str (String.sub (msg, len - 1))) end;
 
 fun write_line_message stream msg =
-  if is_length msg orelse has_line_terminator msg then
+  if is_length msg orelse is_terminated msg then
     error ("Bad content for line message:\n" ^ implode (take 100 (Symbol.explode msg)))
   else
     let val n = size msg in
-      if n > 100 orelse exists_string (fn s => s = "\n") msg then
-        write_header stream [n + 1]
+      if n > 100 orelse exists_string (fn s => s = "\n") msg then write_header stream [n + 1]
       else ();
       write stream msg;
       newline stream;
@@ -124,10 +123,10 @@ fun write_line_message stream msg =
 
 fun read_line_message stream =
   (case read_line stream of
-    SOME line =>
+    NONE => NONE
+  | SOME line =>
       (case try Value.parse_nat line of
         NONE => SOME line
-      | SOME n => Option.map trim_line (read_block stream n))
-  | NONE => NONE) handle IO.Io _ => NONE;
+      | SOME n => Option.map trim_line (#1 (read_block stream n))));
 
 end;

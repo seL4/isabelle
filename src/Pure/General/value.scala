@@ -22,6 +22,17 @@ object Value
       unapply(s) getOrElse error("Bad boolean: " + quote(s))
   }
 
+  object Nat
+  {
+    def unapply(s: java.lang.String): Option[scala.Int] =
+      s match {
+        case Int(n) if n >= 0 => Some(n)
+        case _ => None
+      }
+    def parse(s: java.lang.String): scala.Int =
+      unapply(s) getOrElse error("Bad natural number: " + quote(s))
+  }
+
   object Int
   {
     def apply(x: scala.Int): java.lang.String = Library.signed_string_of_int(x)
@@ -30,12 +41,6 @@ object Value
       catch { case _: NumberFormatException => None }
     def parse(s: java.lang.String): scala.Int =
       unapply(s) getOrElse error("Bad integer: " + quote(s))
-
-    def parse_nat(s: java.lang.String): scala.Int =
-      s match {
-        case Value.Int(n) if n >= 0 => n
-        case _ => error("Bad natural number: " + quote(s))
-      }
   }
 
   object Long
