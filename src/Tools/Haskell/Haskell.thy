@@ -1551,4 +1551,47 @@ read_line_message socket = do
         Just n -> fmap trim_line . fst <$> read_block socket n
 \<close>
 
+generate_file "Isabelle/Server.hs" = \<open>
+{-  Title:      Isabelle/Server.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+TCP server on localhost.
+-}
+
+module Isabelle.Server (server) where
+
+import Control.Monad (forever)
+import qualified Control.Exception as Exception
+import Network.Socket (Socket)
+import qualified Network.Socket as Socket
+import qualified Control.Concurrent as Concurrent
+
+
+localhost :: Socket.HostAddress
+localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
+
+localhost_name :: String
+localhost_name = "127.0.0.1"
+
+server :: (String -> IO ()) -> (Socket -> IO ()) -> IO ()
+server publish handle =
+  Socket.withSocketsDo $ Exception.bracket open Socket.close loop
+  where
+    open :: IO Socket
+    open = do
+      socket <- Socket.socket Socket.AF_INET Socket.Stream Socket.defaultProtocol
+      Socket.bind socket (Socket.SockAddrInet 0 localhost)
+      Socket.listen socket 50
+      port <- Socket.socketPort socket
+      publish (localhost_name ++ ":" ++ show port)
+      return socket
+
+    loop :: Socket -> IO ()
+    loop socket = forever $ do
+      (connection, peer) <- Socket.accept socket
+      Concurrent.forkFinally (handle connection) (\_ -> Socket.close connection)
+      return ()
+\<close>
+
 end
