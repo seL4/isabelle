@@ -307,8 +307,29 @@ object Server
 
   /* server info */
 
-  sealed case class Info(name: String, port: Int, password: String)
+  def print_socket(port: Int): String = "127.0.0.1:" + port
+
+  def print(port: Int, password: String): String =
+    print_socket(port) + " (password " + quote(password) + ")"
+
+  object Info
   {
+    private val Pattern = """server "([^"]*)" = 127\.0\.0\.1:(\d+) \(password "([^"]*)"\)""".r
+
+    def unapply(s: String): Option[Info] =
+      s match {
+        case Pattern(name, Value.Int(port), password) => Some(Info(name, port, password))
+        case _ => None
+      }
+
+    def apply(name: String, port: Int, password: String): Info =
+      new Info(name, port, password)
+  }
+
+  class Info private(val name: String, val port: Int, val password: String)
+  {
+    def socket_name: String = print_socket(port)
+
     override def toString: String =
       "server " + quote(name) + " = " + print(port, password)
 
@@ -341,9 +362,6 @@ object Server
   /* per-user servers */
 
   val default_name = "isabelle"
-
-  def print(port: Int, password: String): String =
-    "127.0.0.1:" + port + " (password " + quote(password) + ")"
 
   object Data
   {
