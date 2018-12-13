@@ -307,16 +307,20 @@ object Server
 
   /* server info */
 
-  def print_address(port: Int): String = "127.0.0.1:" + port
+  val localhost_name: String = "127.0.0.1"
+  def localhost: InetAddress = InetAddress.getByName(localhost_name)
+
+  def print_address(port: Int): String = localhost_name + ":" + port
 
   def print(port: Int, password: String): String =
     print_address(port) + " (password " + quote(password) + ")"
 
   object Info
   {
-    private val Pattern = """server "([^"]*)" = 127\.0\.0\.1:(\d+) \(password "([^"]*)"\)""".r
+    private val Pattern =
+      ("""server "([^"]*)" = \Q""" + localhost_name + """\E:(\d+) \(password "([^"]*)"\)""").r
 
-    def unapply(s: String): Option[Info] =
+    def parse(s: String): Option[Info] =
       s match {
         case Pattern(name, Value.Int(port), password) => Some(Info(name, port, password))
         case _ => None
@@ -335,7 +339,7 @@ object Server
 
     def connection(): Connection =
     {
-      val connection = Connection(new Socket(InetAddress.getByName("127.0.0.1"), port))
+      val connection = Connection(new Socket(localhost, port))
       connection.write_message(password)
       connection
     }
@@ -508,7 +512,7 @@ class Server private(_port: Int, val log: Logger)
 {
   server =>
 
-  private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
+  private val server_socket = new ServerSocket(_port, 50, Server.localhost)
 
   private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
   def err_session(id: UUID.T): Nothing = error("No session " + Library.single_quote(id.toString))

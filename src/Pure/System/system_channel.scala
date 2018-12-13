@@ -18,9 +18,9 @@ object System_Channel
 
 class System_Channel private
 {
-  private val server = new ServerSocket(0, 50, InetAddress.getByName("127.0.0.1"))
+  private val server = new ServerSocket(0, 50, Server.localhost)
 
-  val server_name: String = "127.0.0.1:" + server.getLocalPort
+  val server_name: String = Server.print_address(server.getLocalPort)
   override def toString: String = server_name
 
   def rendezvous(): (OutputStream, InputStream) =

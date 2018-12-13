@@ -119,8 +119,7 @@ object HTTP
 
   def server(handlers: List[Handler] = isabelle_resources): Server =
   {
-    val localhost = InetAddress.getByName("127.0.0.1")
-    val http_server = HttpServer.create(new InetSocketAddress(localhost, 0), 0)
+    val http_server = HttpServer.create(new InetSocketAddress(isabelle.Server.localhost, 0), 0)
     http_server.setExecutor(null)
 
     val server = new Server(http_server)

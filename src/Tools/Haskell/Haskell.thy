@@ -1589,7 +1589,7 @@ generate_file "Isabelle/Server.hs" = \<open>
 TCP server on localhost.
 -}
 
-module Isabelle.Server (publish_text, publish_stdout, server) where
+module Isabelle.Server (localhost_name, localhost, publish_text, publish_stdout, server) where
 
 import Control.Monad (forever)
 import qualified Control.Exception as Exception
@@ -1603,11 +1603,11 @@ import qualified Isabelle.UUID as UUID
 
 {- server address -}
 
-localhost :: Socket.HostAddress
-localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
-
 localhost_name :: String
 localhost_name = "127.0.0.1"
+
+localhost :: Socket.HostAddress
+localhost = Socket.tupleToHostAddress (127, 0, 0, 1)
 
 publish_text :: String -> String -> UUID.T -> String
 publish_text name address password =
