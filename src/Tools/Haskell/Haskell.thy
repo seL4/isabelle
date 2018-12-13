@@ -1407,9 +1407,16 @@ Universally unique identifiers.
 See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/uuid.scala\<close>.
 -}
 
-module Isabelle.UUID (T, random, random_string, parse)
+module Isabelle.UUID (
+    T,
+    parse_string, parse_bytes,
+    string, bytes,
+    random, random_string, random_bytes
+  )
 where
 
+import Data.ByteString (ByteString)
+import qualified Data.ByteString
 import Data.UUID (UUID)
 import qualified Data.UUID as UUID
 import Data.UUID.V4 (nextRandom)
@@ -1417,14 +1424,35 @@ import Data.UUID.V4 (nextRandom)
 
 type T = UUID
 
+
+{- parse -}
+
+parse_string :: String -> Maybe T
+parse_string = UUID.fromString
+
+parse_bytes :: ByteString -> Maybe T
+parse_bytes = UUID.fromASCIIBytes
+
+
+{- print -}
+
+string :: T -> String
+string = UUID.toString
+
+bytes :: T -> ByteString
+bytes = UUID.toASCIIBytes
+
+
+{- random id -}
+
 random :: IO T
 random = nextRandom
 
 random_string :: IO String
-random_string = UUID.toString <$> random
+random_string = string <$> random
 
-parse :: String -> Maybe T
-parse = UUID.fromString
+random_bytes :: IO ByteString
+random_bytes = bytes <$> random
 \<close>
 
 generate_file "Isabelle/Byte_Message.hs" = \<open>
@@ -1589,9 +1617,14 @@ generate_file "Isabelle/Server.hs" = \<open>
 TCP server on localhost.
 -}
 
-module Isabelle.Server (localhost_name, localhost, publish_text, publish_stdout, server) where
+module Isabelle.Server (
+  localhost_name, localhost, publish_text, publish_stdout,
+  server
+)
+where
 
-import Control.Monad (forever)
+import Data.ByteString (ByteString)
+import Control.Monad (forever, when)
 import qualified Control.Exception as Exception
 import Network.Socket (Socket)
 import qualified Network.Socket as Socket
@@ -1599,6 +1632,7 @@ import qualified Control.Concurrent as Concurrent
 
 import Isabelle.Library
 import qualified Isabelle.UUID as UUID
+import qualified Isabelle.Byte_Message as Byte_Message
 
 
 {- server address -}
@@ -1623,7 +1657,7 @@ server :: (String -> UUID.T -> IO ()) -> (Socket -> IO ()) -> IO ()
 server publish handle =
   Socket.withSocketsDo $ Exception.bracket open (Socket.close . fst) (uncurry loop)
   where
-    open :: IO (Socket, UUID.T)
+    open :: IO (Socket, ByteString)
     open = do
       socket <- Socket.socket Socket.AF_INET Socket.Stream Socket.defaultProtocol
       Socket.bind socket (Socket.SockAddrInet 0 localhost)
@@ -1634,13 +1668,15 @@ server publish handle =
       password <- UUID.random
       publish address password
 
-      return (socket, password)
+      return (socket, UUID.bytes password)
 
-    loop :: Socket -> UUID.T -> IO ()
+    loop :: Socket -> ByteString -> IO ()
     loop socket password = forever $ do
       (connection, peer) <- Socket.accept socket
       Concurrent.forkFinally
-        (handle connection)  -- FIXME check password
+        (do
+          line <- Byte_Message.read_line connection
+          when (line == Just password) $ handle connection)
         (\_ -> Socket.close connection)
       return ()
 \<close>
