@@ -180,6 +180,10 @@ object Server
         writer_lock = out_lock,
         interrupt = interrupt)
 
+    def read_password(password: String): Boolean =
+      try { Byte_Message.read_line(in).map(_.text) == Some(password) }
+      catch { case _: IOException => false }
+
     def read_message(): Option[String] =
       try { Byte_Message.read_line_message(in).map(_.text) }
       catch { case _: IOException => None }
@@ -550,50 +554,48 @@ class Server private(_port: Int, val log: Logger)
   {
     using(new Server.Context(server, connection))(context =>
     {
-      connection.read_message() match {
-        case Some(msg) if msg == password =>
-          connection.reply_ok(
-            JSON.Object(
-              "isabelle_id" -> Isabelle_System.isabelle_id(),
-              "isabelle_version" -> Distribution.version))
+      if (connection.read_password(password)) {
+        connection.reply_ok(
+          JSON.Object(
+            "isabelle_id" -> Isabelle_System.isabelle_id(),
+            "isabelle_version" -> Distribution.version))
 
-          var finished = false
-          while (!finished) {
-            connection.read_message() match {
-              case None => finished = true
-              case Some("") => context.notify("Command 'help' provides list of commands")
-              case Some(msg) =>
-                val (name, argument) = Server.Argument.split(msg)
-                name match {
-                  case Server.Command(cmd) =>
-                    argument match {
-                      case Server.Argument(arg) =>
-                        if (cmd.isDefinedAt((context, arg))) {
-                          Exn.capture { cmd((context, arg)) } match {
-                            case Exn.Res(task: Server.Task) =>
-                              connection.reply_ok(JSON.Object(task.ident))
-                              task.start
-                            case Exn.Res(res) => connection.reply_ok(res)
-                            case Exn.Exn(exn) =>
-                              val err = Server.json_error(exn)
-                              if (err.isEmpty) throw exn else connection.reply_error(err)
-                          }
+        var finished = false
+        while (!finished) {
+          connection.read_message() match {
+            case None => finished = true
+            case Some("") => context.notify("Command 'help' provides list of commands")
+            case Some(msg) =>
+              val (name, argument) = Server.Argument.split(msg)
+              name match {
+                case Server.Command(cmd) =>
+                  argument match {
+                    case Server.Argument(arg) =>
+                      if (cmd.isDefinedAt((context, arg))) {
+                        Exn.capture { cmd((context, arg)) } match {
+                          case Exn.Res(task: Server.Task) =>
+                            connection.reply_ok(JSON.Object(task.ident))
+                            task.start
+                          case Exn.Res(res) => connection.reply_ok(res)
+                          case Exn.Exn(exn) =>
+                            val err = Server.json_error(exn)
+                            if (err.isEmpty) throw exn else connection.reply_error(err)
                         }
-                        else {
-                          connection.reply_error_message(
-                            "Bad argument for command " + Library.single_quote(name),
-                            "argument" -> argument)
-                        }
-                      case _ =>
+                      }
+                      else {
                         connection.reply_error_message(
-                          "Malformed argument for command " + Library.single_quote(name),
+                          "Bad argument for command " + Library.single_quote(name),
                           "argument" -> argument)
-                    }
-                  case _ => connection.reply_error("Bad command " + Library.single_quote(name))
-                }
-            }
+                      }
+                    case _ =>
+                      connection.reply_error_message(
+                        "Malformed argument for command " + Library.single_quote(name),
+                        "argument" -> argument)
+                  }
+                case _ => connection.reply_error("Bad command " + Library.single_quote(name))
+              }
           }
-        case _ =>
+        }
       }
     })
   }

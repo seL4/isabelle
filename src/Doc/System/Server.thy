@@ -183,7 +183,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Byte messages\<close>
+subsection \<open>Byte messages \label{sec:byte-messages}\<close>
 
 text \<open>
   The client-server connection is a raw byte-channel for bidirectional
@@ -281,10 +281,13 @@ subsection \<open>Initial password exchange\<close>
 
 text \<open>
   Whenever a new client opens the server socket, the initial message needs to
-  be its unique password. The server replies either with \<^verbatim>\<open>OK\<close> (and some
-  information about the Isabelle version) or by silent disconnection of what
-  is considered an illegal connection attempt. Note that @{tool client}
-  already presents the correct password internally.
+  be its unique password as a single line, without length indication (i.e.\ a
+  ``short message'' in the sense of \secref{sec:byte-messages}).
+
+  The server replies either with \<^verbatim>\<open>OK\<close> (and some information about the
+  Isabelle version) or by silent disconnection of what is considered an
+  illegal connection attempt. Note that @{tool client} already presents the
+  correct password internally.
 
   Server passwords are created as Universally Unique Identifier (UUID) in
   Isabelle/Scala and stored in a per-user database, with restricted
