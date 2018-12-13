@@ -307,10 +307,10 @@ object Server
 
   /* server info */
 
-  def print_socket(port: Int): String = "127.0.0.1:" + port
+  def print_address(port: Int): String = "127.0.0.1:" + port
 
   def print(port: Int, password: String): String =
-    print_socket(port) + " (password " + quote(password) + ")"
+    print_address(port) + " (password " + quote(password) + ")"
 
   object Info
   {
@@ -328,7 +328,7 @@ object Server
 
   class Info private(val name: String, val port: Int, val password: String)
   {
-    def socket_name: String = print_socket(port)
+    def address: String = print_address(port)
 
     override def toString: String =
       "server " + quote(name) + " = " + print(port, password)
