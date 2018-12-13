@@ -20,6 +20,12 @@ object Byte_Message
     try { stream.flush() }
     catch { case _: IOException => }
 
+  def write_line(stream: OutputStream, bytes: Bytes): Unit =
+  {
+    write(stream, List(bytes, Bytes.newline))
+    flush(stream)
+  }
+
 
   /* input operations */
 

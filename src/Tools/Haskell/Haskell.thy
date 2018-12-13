@@ -1467,7 +1467,8 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 -}
 
 module Isabelle.Byte_Message (
-    write, read, read_block, trim_line, read_line,
+    write, write_line,
+    read, read_block, trim_line, read_line,
     write_message, read_message,
     write_line_message, read_line_message
   )
@@ -1496,6 +1497,9 @@ write = ByteString.sendMany
 
 newline :: ByteString
 newline = ByteString.singleton 10
+
+write_line :: Socket -> ByteString -> IO ()
+write_line socket s = write socket [s, newline]
 
 
 {- input operations -}

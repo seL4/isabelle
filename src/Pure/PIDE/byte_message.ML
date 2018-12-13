@@ -8,6 +8,7 @@ signature BYTE_MESSAGE =
 sig
   val write: BinIO.outstream -> string list -> unit
   val flush: BinIO.outstream -> unit
+  val write_line: BinIO.outstream -> string -> unit
   val read: BinIO.instream -> int -> string
   val read_block: BinIO.instream -> int -> string option * int
   val read_line: BinIO.instream -> string option
@@ -25,6 +26,8 @@ struct
 fun write stream = List.app (fn s => BinIO.output (stream, Byte.stringToBytes s));
 
 fun flush stream = ignore (try BinIO.flushOut stream);
+
+fun write_line stream s = (write stream [s, "\n"]; flush stream);
 
 
 (* input operations *)
