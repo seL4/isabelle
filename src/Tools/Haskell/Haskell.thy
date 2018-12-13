@@ -1397,6 +1397,34 @@ term t =
     \([], a) -> App (pair term term a)]
 \<close>
 
+generate_file "Isabelle/UUID.hs" = \<open>
+{-  Title:      Isabelle/UUID.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Universally unique identifiers.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/uuid.scala\<close>.
+-}
+
+module Isabelle.UUID (random, random_string, parse)
+where
+
+import Data.UUID (UUID)
+import qualified Data.UUID as UUID
+import Data.UUID.V4 (nextRandom)
+
+
+random :: IO UUID
+random = nextRandom
+
+random_string :: IO String
+random_string = UUID.toString <$> random
+
+parse :: String -> Maybe UUID
+parse = UUID.fromString
+\<close>
+
 generate_file "Isabelle/Byte_Message.hs" = \<open>
 {-  Title:      Isabelle/Byte_Message.hs
     Author:     Makarius
