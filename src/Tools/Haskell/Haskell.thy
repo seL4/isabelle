@@ -1659,20 +1659,20 @@ server publish handle =
   where
     open :: IO (Socket, ByteString)
     open = do
-      socket <- Socket.socket Socket.AF_INET Socket.Stream Socket.defaultProtocol
-      Socket.bind socket (Socket.SockAddrInet 0 localhost)
-      Socket.listen socket 50
+      server_socket <- Socket.socket Socket.AF_INET Socket.Stream Socket.defaultProtocol
+      Socket.bind server_socket (Socket.SockAddrInet 0 localhost)
+      Socket.listen server_socket 50
 
-      port <- Socket.socketPort socket
+      port <- Socket.socketPort server_socket
       let address = localhost_name ++ ":" ++ show port
       password <- UUID.random
       publish address password
 
-      return (socket, UUID.bytes password)
+      return (server_socket, UUID.bytes password)
 
     loop :: Socket -> ByteString -> IO ()
-    loop socket password = forever $ do
-      (connection, peer) <- Socket.accept socket
+    loop server_socket password = forever $ do
+      (connection, peer) <- Socket.accept server_socket
       Concurrent.forkFinally
         (do
           line <- Byte_Message.read_line connection
