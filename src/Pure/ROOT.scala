@@ -21,7 +21,4 @@ package object isabelle
   def proper[A](x: A): Option[A] = Library.proper(x)
   val proper_string = Library.proper_string _
   def proper_list[A](list: List[A]): Option[List[A]] = Library.proper_list(list)
-
-  type UUID = java.util.UUID
-  def UUID(): UUID = java.util.UUID.randomUUID()
 }

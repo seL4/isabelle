@@ -433,7 +433,7 @@ class Plugin extends EBPlugin
 
   /* HTTP server */
 
-  val http_root: String = "/" + UUID()
+  val http_root: String = "/" + UUID.random()
 
   val http_server: HTTP.Server = HTTP.server(Document_Model.http_handlers(http_root))
 

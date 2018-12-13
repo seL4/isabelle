@@ -244,11 +244,9 @@ object JSON
   {
     object UUID
     {
-      def unapply(json: T): Option[java.util.UUID] =
+      def unapply(json: T): Option[isabelle.UUID.T] =
         json match {
-          case x: java.lang.String =>
-            try { Some(java.util.UUID.fromString(x)) }
-            catch { case _: IllegalArgumentException => None }
+          case x: java.lang.String => isabelle.UUID.unapply(x)
           case _ => None
         }
     }
@@ -349,7 +347,7 @@ object JSON
       case Some(json) => unapply(json)
     }
 
-  def uuid(obj: T, name: String): Option[UUID] =
+  def uuid(obj: T, name: String): Option[UUID.T] =
     value(obj, name, Value.UUID.unapply)
 
   def string(obj: T, name: String): Option[String] =

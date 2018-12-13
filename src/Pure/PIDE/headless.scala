@@ -193,7 +193,7 @@ object Headless
       check_limit: Int = 0,
       watchdog_timeout: Time = default_watchdog_timeout,
       nodes_status_delay: Time = default_nodes_status_delay,
-      id: UUID = UUID(),
+      id: UUID.T = UUID.random(),
       // commit: must not block, must not fail
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit] = None,
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
@@ -362,7 +362,7 @@ object Headless
     }
 
     sealed case class State(
-      required: Multi_Map[Document.Node.Name, UUID] = Multi_Map.empty,
+      required: Multi_Map[Document.Node.Name, UUID.T] = Multi_Map.empty,
       theories: Map[Document.Node.Name, Theory] = Map.empty)
     {
       lazy val theory_graph: Graph[Document.Node.Name, Unit] =
@@ -375,10 +375,10 @@ object Headless
 
       def is_required(name: Document.Node.Name): Boolean = required.isDefinedAt(name)
 
-      def insert_required(id: UUID, names: List[Document.Node.Name]): State =
+      def insert_required(id: UUID.T, names: List[Document.Node.Name]): State =
         copy(required = (required /: names)(_.insert(_, id)))
 
-      def remove_required(id: UUID, names: List[Document.Node.Name]): State =
+      def remove_required(id: UUID.T, names: List[Document.Node.Name]): State =
         copy(required = (required /: names)(_.remove(_, id)))
 
       def update_theories(update: List[(Document.Node.Name, Theory)]): State =
@@ -396,7 +396,8 @@ object Headless
         copy(theories = theories -- remove)
       }
 
-      def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name]): State =
+      def unload_theories(session: Session, id: UUID.T, dep_theories: List[Document.Node.Name])
+        : State =
       {
         val st1 = remove_required(id, dep_theories)
         val theory_edits =
@@ -455,7 +456,7 @@ object Headless
 
     def load_theories(
       session: Session,
-      id: UUID,
+      id: UUID.T,
       dep_theories: List[Document.Node.Name],
       progress: Progress)
     {
@@ -490,12 +491,12 @@ object Headless
         })
     }
 
-    def unload_theories(session: Session, id: UUID, dep_theories: List[Document.Node.Name])
+    def unload_theories(session: Session, id: UUID.T, dep_theories: List[Document.Node.Name])
     {
       state.change(_.unload_theories(session, id, dep_theories))
     }
 
-    def clean_theories(session: Session, id: UUID, clean: Set[Document.Node.Name])
+    def clean_theories(session: Session, id: UUID.T, clean: Set[Document.Node.Name])
     {
       state.change(st =>
         {

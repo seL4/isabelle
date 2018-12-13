@@ -75,6 +75,7 @@ declare -a SOURCES=(
   General/untyped.scala
   General/url.scala
   General/utf8.scala
+  General/uuid.scala
   General/value.scala
   General/word.scala
   General/xz.scala

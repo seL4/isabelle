@@ -238,7 +238,7 @@ object Server
     def remove_task(task: Task): Unit =
       _tasks.change(_ - task)
 
-    def cancel_task(id: UUID): Unit =
+    def cancel_task(id: UUID.T): Unit =
       _tasks.change(tasks => { tasks.find(task => task.id == id).foreach(_.cancel); tasks })
 
     def close()
@@ -282,7 +282,7 @@ object Server
   {
     task =>
 
-    val id: UUID = UUID()
+    val id: UUID.T = UUID.random()
     val ident: JSON.Object.Entry = ("task" -> id.toString)
 
     val progress: Connection_Progress = context.progress(ident)
@@ -492,11 +492,11 @@ class Server private(_port: Int, val log: Logger)
 
   private val server_socket = new ServerSocket(_port, 50, InetAddress.getByName("127.0.0.1"))
 
-  private val _sessions = Synchronized(Map.empty[UUID, Headless.Session])
-  def err_session(id: UUID): Nothing = error("No session " + Library.single_quote(id.toString))
-  def the_session(id: UUID): Headless.Session = _sessions.value.get(id) getOrElse err_session(id)
-  def add_session(entry: (UUID, Headless.Session)) { _sessions.change(_ + entry) }
-  def remove_session(id: UUID): Headless.Session =
+  private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
+  def err_session(id: UUID.T): Nothing = error("No session " + Library.single_quote(id.toString))
+  def the_session(id: UUID.T): Headless.Session = _sessions.value.get(id) getOrElse err_session(id)
+  def add_session(entry: (UUID.T, Headless.Session)) { _sessions.change(_ + entry) }
+  def remove_session(id: UUID.T): Headless.Session =
   {
     _sessions.change_result(sessions =>
       sessions.get(id) match {
@@ -520,7 +520,7 @@ class Server private(_port: Int, val log: Logger)
   }
 
   def port: Int = server_socket.getLocalPort
-  val password: String = UUID().toString
+  val password: String = UUID.random_string()
 
   override def toString: String = Server.print(port, password)
 

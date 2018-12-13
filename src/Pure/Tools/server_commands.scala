@@ -13,7 +13,7 @@ object Server_Commands
 
   object Cancel
   {
-    sealed case class Args(task: UUID)
+    sealed case class Args(task: UUID.T)
 
     def unapply(json: JSON.T): Option[Args] =
       for { task <- JSON.uuid(json, "task") }
@@ -107,7 +107,7 @@ object Server_Commands
       yield Args(build = build, print_mode = print_mode)
 
     def command(args: Args, progress: Progress = No_Progress, log: Logger = No_Logger)
-      : (JSON.Object.T, (UUID, Headless.Session)) =
+      : (JSON.Object.T, (UUID.T, Headless.Session)) =
     {
       val base_info =
         try { Session_Build.command(args.build, progress = progress)._3 }
@@ -123,7 +123,7 @@ object Server_Commands
           progress = progress,
           log = log)
 
-      val id = UUID()
+      val id = UUID.random()
 
       val res =
         JSON.Object(
@@ -136,7 +136,7 @@ object Server_Commands
 
   object Session_Stop
   {
-    def unapply(json: JSON.T): Option[UUID] =
+    def unapply(json: JSON.T): Option[UUID.T] =
       JSON.uuid(json, "session_id")
 
     def command(session: Headless.Session): (JSON.Object.T, Process_Result) =
@@ -152,7 +152,7 @@ object Server_Commands
   object Use_Theories
   {
     sealed case class Args(
-      session_id: UUID,
+      session_id: UUID.T,
       theories: List[String],
       master_dir: String = "",
       pretty_margin: Double = Pretty.default_margin,
@@ -187,7 +187,7 @@ object Server_Commands
 
     def command(args: Args,
       session: Headless.Session,
-      id: UUID = UUID(),
+      id: UUID.T = UUID.random(),
       progress: Progress = No_Progress): (JSON.Object.T, Headless.Use_Theories_Result) =
     {
       val result =
@@ -249,7 +249,7 @@ object Server_Commands
   object Purge_Theories
   {
     sealed case class Args(
-      session_id: UUID,
+      session_id: UUID.T,
       theories: List[String] = Nil,
       master_dir: String = "",
       all: Boolean = false)
