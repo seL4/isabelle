@@ -48,7 +48,7 @@ val print_string = quote o implode o map print_symbol o Symbol.explode;
 (* project setup *)
 
 fun project_template {depends, modules} =
-  Input.source_content_string \<open>{-# START_FILE {{name}}.cabal #-}
+  \<^verbatim>\<open>{-# START_FILE {{name}}.cabal #-}
 name:                {{name}}
 version:             0.1.0.0
 homepage:            default
@@ -64,9 +64,9 @@ executable {{name}}
   main-is:             Main.hs
   default-language:    Haskell2010
   build-depends:       \<close> ^ commas ("base >= 4.7 && < 5" :: depends) ^
-  Input.source_content_string \<open>
+  \<^verbatim>\<open>
   other-modules:       \<close> ^ commas modules ^
-  Input.source_content_string \<open>
+  \<^verbatim>\<open>
 {-# START_FILE Setup.hs #-}
 import Distribution.Simple
 main = defaultMain

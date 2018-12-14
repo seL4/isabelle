@@ -122,6 +122,10 @@ observes the official standard).
 * ML antiquotation @{master_dir} refers to the master directory of the
 underlying theory, i.e. the directory of the theory file.
 
+* ML antiquotation @{verbatim} inlines its argument as string literal,
+preserving newlines literally. The short form \<^verbatim>\<open>abc\<close> is particularly
+useful.
+
 * Command 'generate_file' allows to produce sources for other languages,
 with antiquotations in the Isabelle context (only the control-cartouche
 form). The default "cartouche" antiquotation evaluates an ML expression

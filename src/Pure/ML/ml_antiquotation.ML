@@ -46,6 +46,9 @@ val _ = Theory.setup
   value (Binding.make ("cartouche", \<^here>))
     (Scan.lift Args.cartouche_input >> (fn source =>
       "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
-        ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))));
+        ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))) #>
+
+  inline (Binding.make ("verbatim", \<^here>))
+    (Scan.lift Args.embedded >> ML_Syntax.print_string));
 
 end;
