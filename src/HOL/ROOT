@@ -625,6 +625,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Transfer_Int_Nat
     Transitive_Closure_Table_Ex
     Tree23
+    Triangular_Numbers
     Unification
     While_Combinator_Example
     Word_Type
