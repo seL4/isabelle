@@ -599,6 +599,7 @@ fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
 
 
+
 (** integers **)
 
 (* lists of integers *)
@@ -792,6 +793,7 @@ fun match_string pat str =
               SOME s' => match ps s'
             | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
   in match (space_explode "*" pat) str end;
+
 
 
 (** reals **)
