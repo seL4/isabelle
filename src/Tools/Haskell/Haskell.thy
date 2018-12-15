@@ -1613,6 +1613,117 @@ read_line_message socket = do
         Just n -> fmap trim_line . fst <$> read_block socket n
 \<close>
 
+generate_file "Isabelle/Standard_Thread.hs" = \<open>
+{-  Title:      Isabelle/Standard_Thread.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Standard thread operations.
+
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/standard_thread.ML\<close>
+and \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/standard_thread.scala\<close>.
+-}
+
+{-# LANGUAGE NamedFieldPuns #-}
+
+module Isabelle.Standard_Thread (
+  ThreadId, Result,
+  properties, change_properties,
+  stop, is_stopped,
+  fork_finally, fork)
+where
+
+import Data.Maybe
+import Data.IORef
+import System.IO.Unsafe
+
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import Control.Exception.Base (SomeException)
+import Control.Exception as Exception
+import Control.Concurrent (ThreadId)
+import qualified Control.Concurrent as Concurrent
+import Control.Concurrent.Thread (Result)
+import qualified Control.Concurrent.Thread as Thread
+import qualified Isabelle.Properties as Properties
+
+
+{- thread info -}
+
+data Info = Info {props :: Properties.T, stopped :: Bool}
+type Infos = Map ThreadId Info
+
+lookup_info :: Infos -> ThreadId -> Maybe Info
+lookup_info state id = Map.lookup id state
+
+init_info :: ThreadId -> Infos -> (Infos, ())
+init_info id infos = (Map.insert id (Info [] False) infos, ())
+
+
+{- global state -}
+
+{-# NOINLINE global_state #-}
+global_state :: IORef Infos
+global_state = unsafePerformIO (newIORef Map.empty)
+
+get_info :: ThreadId -> IO (Maybe Info)
+get_info id = do
+  state <- readIORef global_state
+  return $ lookup_info state id
+
+map_info :: ThreadId -> (Info -> Info) -> IO ()
+map_info id f =
+  atomicModifyIORef' global_state
+    (\infos ->
+      case lookup_info infos id of
+        Nothing -> (infos, ())
+        Just info -> (Map.insert id (f info) infos, ()))
+
+
+{- thread properties -}
+
+my_info :: IO Info
+my_info = do
+  id <- Concurrent.myThreadId
+  info <- get_info id
+  return $ fromJust info
+
+properties :: IO Properties.T
+properties = props <$> my_info
+
+change_properties :: (Properties.T -> Properties.T) -> IO ()
+change_properties f = do
+  id <- Concurrent.myThreadId
+  map_info id (\info -> info {props = f (props info)})
+
+
+{- stop -}
+
+is_stopped :: IO Bool
+is_stopped = stopped <$> my_info
+
+stop :: ThreadId -> IO ()
+stop id = map_info id (\info -> info {stopped = True})
+
+
+{- fork -}
+
+fork_finally :: IO a -> (Either SomeException a -> IO b) -> IO (ThreadId, IO (Result b))
+fork_finally body finally = do
+  (id, result) <-
+    Exception.mask (\restore ->
+      Thread.forkIO
+        (Exception.try
+          (do
+            id <- Concurrent.myThreadId
+            atomicModifyIORef' global_state (init_info id)
+            restore body) >>= finally))
+  return (id, result)
+
+fork :: IO a -> IO (ThreadId, IO (Result a))
+fork body = fork_finally body Thread.result
+\<close>
+
 generate_file "Isabelle/Server.hs" = \<open>
 {-  Title:      Isabelle/Server.hs
     Author:     Makarius
@@ -1632,12 +1743,12 @@ import Control.Monad (forever, when)
 import qualified Control.Exception as Exception
 import Network.Socket (Socket)
 import qualified Network.Socket as Socket
-import qualified Control.Concurrent as Concurrent
 import qualified System.IO as IO
 
 import Isabelle.Library
 import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Byte_Message as Byte_Message
+import qualified Isabelle.Standard_Thread as Standard_Thread
 
 
 {- server address -}
@@ -1678,13 +1789,13 @@ server publish handle =
     loop :: Socket -> ByteString -> IO ()
     loop server_socket password = forever $ do
       (connection, peer) <- Socket.accept server_socket
-      Concurrent.forkFinally
+      Standard_Thread.fork_finally
         (do
           line <- Byte_Message.read_line connection
           when (line == Just password) $ handle connection)
-        (\final -> do
+        (\finally -> do
           Socket.close connection
-          case final of
+          case finally of
             Left exn -> IO.hPutStrLn IO.stderr $ Exception.displayException exn
             Right () -> return ())
       return ()

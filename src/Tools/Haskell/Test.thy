@@ -18,7 +18,8 @@ ML \<open>
       val _ =
         GHC.new_project tmp_dir
           {name = "isabelle",
-           depends = ["bytestring", "network", "split", "utf8-string", "uuid"],
+           depends =
+            ["bytestring", "containers", "network", "split", "threads", "utf8-string", "uuid"],
            modules = modules};
 
       val (out, rc) =
