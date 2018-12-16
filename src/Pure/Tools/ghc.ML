@@ -45,7 +45,8 @@ fun print_symbol sym =
 val print_string = quote o implode o map print_symbol o Symbol.explode;
 
 
-(* project setup *)
+
+(** project setup **)
 
 fun project_template {depends, modules} =
   \<^verbatim>\<open>{-# START_FILE {{name}}.cabal #-}
