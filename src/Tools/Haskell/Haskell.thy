@@ -1471,8 +1471,8 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/PIDE/byte_message.scala\<close>.
 module Isabelle.Byte_Message (
     write, write_line,
     read, read_block, trim_line, read_line,
-    write_message, read_message,
-    write_line_message, read_line_message
+    make_message, write_message, read_message,
+    make_line_message, write_line_message, read_line_message
   )
 where
 
@@ -1554,9 +1554,11 @@ make_header :: [Int] -> [ByteString]
 make_header ns =
   [UTF8.fromString (space_implode "," (map Value.print_int ns)), newline]
 
+make_message :: [ByteString] -> [ByteString]
+make_message chunks = make_header (map ByteString.length chunks) ++ chunks
+
 write_message :: Socket -> [ByteString] -> IO ()
-write_message socket chunks =
-  write socket (make_header (map ByteString.length chunks) ++ chunks)
+write_message socket = write socket . make_message
 
 parse_header :: ByteString -> [Int]
 parse_header line =
@@ -1594,15 +1596,17 @@ is_terminated :: ByteString -> Bool
 is_terminated msg =
   not (ByteString.null msg) && (ByteString.last msg == 13 || ByteString.last msg == 10)
 
-write_line_message :: Socket -> ByteString -> IO ()
-write_line_message socket msg = do
-  when (is_length msg || is_terminated msg) $
-    error ("Bad content for line message:\n" ++ take 100 (UTF8.toString msg))
+make_line_message :: ByteString -> [ByteString]
+make_line_message msg =
+  let n = ByteString.length msg in
+    if is_length msg || is_terminated msg then
+      error ("Bad content for line message:\n" ++ take 100 (UTF8.toString msg))
+    else
+      (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) ++
+      [msg, newline]
 
-  let n = ByteString.length msg
-  write socket $
-    (if n > 100 || ByteString.any (== 10) msg then make_header [n + 1] else []) ++
-    [msg, newline]
+write_line_message :: Socket -> ByteString -> IO ()
+write_line_message socket = write socket . make_line_message
 
 read_line_message :: Socket -> IO (Maybe ByteString)
 read_line_message socket = do
