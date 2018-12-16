@@ -197,17 +197,19 @@ See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/buffer.ML\<close>.
 module Isabelle.Buffer (T, empty, add, content)
 where
 
-newtype T = Buffer [String]
+import Isabelle.Library
+
+
+newtype T = Buffer [Char]
 
 empty :: T
 empty = Buffer []
 
 add :: String -> T -> T
-add "" buf = buf
-add x (Buffer xs) = Buffer (x : xs)
+add s (Buffer cs) = Buffer (fold (:) s cs)
 
 content :: T -> String
-content (Buffer xs) = concat (reverse xs)
+content (Buffer cs) = reverse cs
 \<close>
 
 generate_file "Isabelle/Properties.hs" = \<open>
