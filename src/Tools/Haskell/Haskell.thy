@@ -25,7 +25,7 @@ module Isabelle.Library (
 
   fold, fold_rev, single, map_index, get_index,
 
-  quote, space_implode, commas, commas_quote, cat_lines,
+  proper_string, quote, space_implode, commas, commas_quote, cat_lines,
   space_explode, split_lines, trim_line, clean_name)
 where
 
@@ -90,6 +90,9 @@ get_index f = get_aux 0
 
 
 {- strings -}
+
+proper_string :: String -> Maybe String
+proper_string s = if null s then Nothing else Just s
 
 quote :: String -> String
 quote s = "\"" ++ s ++ "\""
@@ -222,7 +225,7 @@ Property lists.
 See also \<^file>\<open>$ISABELLE_HOME/src/Pure/General/properties.ML\<close>.
 -}
 
-module Isabelle.Properties (Entry, T, defined, get, put, remove)
+module Isabelle.Properties (Entry, T, defined, get, get_value, put, remove)
 where
 
 import qualified Data.List as List
@@ -236,6 +239,12 @@ defined props name = any (\(a, _) -> a == name) props
 
 get :: T -> String -> Maybe String
 get props name = List.lookup name props
+
+get_value :: (String -> Maybe a) -> T -> String -> Maybe a
+get_value parse props name =
+  case get props name of
+    Nothing -> Nothing
+    Just s -> parse s
 
 put :: Entry -> T -> T
 put entry props = entry : remove (fst entry) props
