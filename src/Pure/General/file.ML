@@ -92,9 +92,12 @@ fun check_file path =
 
 local
 
-fun with_file open_file close_file f path =
-  let val file = open_file path
-  in Exn.release (Exn.capture f file before close_file file) end;
+fun with_file open_file close_file f =
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn path =>
+    let
+      val file = open_file path;
+      val result = Exn.capture (restore_attributes f) file;
+    in close_file file; Exn.release result end);
 
 in
 

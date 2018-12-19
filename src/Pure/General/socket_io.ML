@@ -10,6 +10,7 @@ signature SOCKET_IO =
 sig
   val make_streams: Socket.active INetSock.stream_sock -> BinIO.instream * BinIO.outstream
   val open_streams: string -> BinIO.instream * BinIO.outstream
+  val with_streams: (BinIO.instream * BinIO.outstream -> 'a) -> string -> 'a
 end;
 
 structure Socket_IO: SOCKET_IO =
@@ -81,5 +82,11 @@ fun open_streams socket_name =
     val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
   in make_streams socket end;
 
-end;
+fun with_streams f =
+  Thread_Attributes.uninterruptible (fn restore_attributes => fn socket_name =>
+    let
+      val streams = open_streams socket_name;
+      val result = Exn.capture (restore_attributes f) streams;
+    in BinIO.closeIn (#1 streams); BinIO.closeOut (#2 streams); Exn.release result end);
 
+end;
