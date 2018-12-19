@@ -1803,7 +1803,7 @@ server publish handle =
 
     loop :: Socket -> ByteString -> IO ()
     loop server_socket password = forever $ do
-      (connection, peer) <- Socket.accept server_socket
+      (connection, _) <- Socket.accept server_socket
       Standard_Thread.fork_finally
         (do
           line <- Byte_Message.read_line connection
