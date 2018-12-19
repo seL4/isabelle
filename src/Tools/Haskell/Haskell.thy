@@ -751,9 +751,11 @@ data Tree = Elem (Markup.T, Body) | Text String
 
 {- wrapped elements -}
 
+wrap_elem :: ((Markup.T, Body), [Tree]) -> Tree
 wrap_elem (((a, atts), body1), body2) =
   Elem ((\<open>XML.xml_elemN\<close>, (\<open>XML.xml_nameN\<close>, a) : atts), Elem ((\<open>XML.xml_bodyN\<close>, []), body1) : body2)
 
+unwrap_elem :: Tree -> Maybe ((Markup.T, Body), [Tree])
 unwrap_elem
   (Elem ((\<open>XML.xml_elemN\<close>, (\<open>XML.xml_nameN\<close>, a) : atts), Elem ((\<open>XML.xml_bodyN\<close>, []), body1) : body2)) =
   Just (((a, atts), body1), body2)
@@ -762,6 +764,7 @@ unwrap_elem _ = Nothing
 
 {- text content -}
 
+add_content :: Tree -> Buffer.T -> Buffer.T
 add_content tree =
   case unwrap_elem tree of
     Just (_, ts) -> fold add_content ts
@@ -770,6 +773,7 @@ add_content tree =
         Elem (_, ts) -> fold add_content ts
         Text s -> Buffer.add s
 
+content_of :: Body -> String
 content_of body = Buffer.empty |> fold add_content body |> Buffer.content
 
 
