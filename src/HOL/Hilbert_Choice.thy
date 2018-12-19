@@ -909,13 +909,14 @@ subsection \<open>Complete Distributive Lattices -- Properties depending on Hilb
 
 context complete_distrib_lattice
 begin
-lemma Sup_Inf: "Sup (Inf ` A) = Inf (Sup ` {f ` A | f . (\<forall> Y \<in> A . f Y \<in> Y)})"
+
+lemma Sup_Inf: "\<Squnion> (Inf ` A) = \<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B})"
 proof (rule antisym)
-  show "\<Squnion>(Inf ` A) \<le> \<Sqinter>(Sup ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y})"
+  show "\<Squnion> (Inf ` A) \<le> \<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B})"
     apply (rule Sup_least, rule INF_greatest)
     using Inf_lower2 Sup_upper by auto
 next
-  show "\<Sqinter>(Sup ` {f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}) \<le> \<Squnion>(Inf ` A)"
+  show "\<Sqinter> (Sup ` {f ` A |f. \<forall>B\<in>A. f B \<in> B}) \<le> \<Squnion> (Inf ` A)"
   proof (simp add:  Inf_Sup, rule SUP_least, simp, safe)
     fix f
     assume "\<forall>Y. (\<exists>f. Y = f ` A \<and> (\<forall>Y\<in>A. f Y \<in> Y)) \<longrightarrow> f Y \<in> Y"
@@ -976,7 +977,7 @@ lemma inf_Sup: "a \<sqinter> \<Squnion>B = \<Squnion>((\<sqinter>) a ` B)"
   using dual_complete_distrib_lattice
   by (rule complete_distrib_lattice.sup_Inf)
 
-lemma INF_SUP: "(INF y. SUP x. ((P x y)::'a)) = (SUP x. INF y. P (x y) y)"
+lemma INF_SUP: "(\<Sqinter>y. \<Squnion>x. P x y) = (\<Squnion>f. \<Sqinter>x. P (f x) x)"
 proof (rule antisym)
   show "(SUP x. INF y. P (x y) y) \<le> (INF y. SUP x. P x y)"
     by (rule SUP_least, rule INF_greatest, rule SUP_upper2, simp_all, rule INF_lower2, simp, blast)
@@ -1082,11 +1083,11 @@ next
   qed
 qed
 
-lemma SUP_INF: "(SUP y. INF x. ((P x y)::'a)) = (INF x. SUP y. P (x y) y)"
+lemma SUP_INF: "(\<Squnion>y. \<Sqinter>x. P x y) = (\<Sqinter>x. \<Squnion>y. P (x y) y)"
   using dual_complete_distrib_lattice
   by (rule complete_distrib_lattice.INF_SUP)
 
-lemma SUP_INF_set: "(\<Squnion>x\<in>A. \<Sqinter>(g ` x)) = (\<Sqinter>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Squnion>(g ` x))"
+lemma SUP_INF_set: "(\<Squnion>x\<in>A. \<Sqinter> (g ` x)) = (\<Sqinter>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Squnion> (g ` x))"
   using dual_complete_distrib_lattice
   by (rule complete_distrib_lattice.INF_SUP_set)
 
@@ -1101,7 +1102,6 @@ lemma sup_INF: "a \<squnion> (\<Sqinter>b\<in>B. f b) = (\<Sqinter>b\<in>B. a \<
 
 lemma inf_SUP: "a \<sqinter> (\<Squnion>b\<in>B. f b) = (\<Squnion>b\<in>B. a \<sqinter> f b)"
   by (simp add: inf_Sup)
-
 
 lemma Inf_sup: "\<Sqinter>B \<squnion> a = (\<Sqinter>b\<in>B. b \<squnion> a)"
   by (simp add: sup_Inf sup_commute)
