@@ -1018,30 +1018,33 @@ next
     by simp
 qed
 
-lemma INF_SUP_set: "(\<Sqinter>x\<in>A. \<Squnion>(g ` x)) = (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>(g ` x))"
+lemma INF_SUP_set: "(\<Sqinter>B\<in>A. \<Squnion>(g ` B)) = (\<Squnion>B\<in>{f ` A |f. \<forall>C\<in>A. f C \<in> C}. \<Sqinter>(g ` B))"
 proof (rule antisym)
-  have [simp]: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> g (f xa)"
-    by (rule INF_lower2, blast+)
-  have B: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> f xa \<in> xa"
-    by blast
-  have A: "\<And>f xa. \<forall>Y\<in>A. f Y \<in> Y \<Longrightarrow> xa \<in> A \<Longrightarrow> (\<Sqinter>x\<in>A. g (f x)) \<le> \<Squnion>(g ` xa)"
-    by (rule SUP_upper2, rule B, simp_all, simp)
-  show "(\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
-    apply (rule SUP_least, simp, safe, rule INF_greatest, simp)
-    by (rule A)
+  have "\<Sqinter> ((g \<circ> f) ` A) \<le> \<Squnion> (g ` B)" if "\<And>B. B \<in> A \<Longrightarrow> f B \<in> B" and "B \<in> A"
+    for f and B
+    using that by (auto intro: SUP_upper2 INF_lower2)
+  then show "(\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a) \<le> (\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a)"
+    by (auto intro!: SUP_least INF_greatest)
 next
   show "(\<Sqinter>x\<in>A. \<Squnion>a\<in>x. g a) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a)"
   proof (cases "{} \<in> A")
     case True
     then show ?thesis 
-      by (rule INF_lower2, simp_all)
+      by (rule INF_lower2) simp_all
   next
     case False
-    have [simp]: "\<And>x xa xb. xb \<in> A \<Longrightarrow> x xb \<in> xb \<Longrightarrow> (\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> g (x xb)"
+    have *: "\<And>f B. B \<in> A \<Longrightarrow> f B \<in> B \<Longrightarrow>
+      (\<Sqinter>B. if B \<in> A then if f B \<in> B then g (f B) else \<bottom> else \<top>) \<le> g (f B)"
       by (rule INF_lower2, auto)
-    have [simp]: " \<And>x xa y. y \<in> A \<Longrightarrow> x y \<notin> y \<Longrightarrow> (\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> g (SOME x. x \<in> y)"
+    have **: "\<And>f B. B \<in> A \<Longrightarrow> f B \<notin> B \<Longrightarrow>
+      (\<Sqinter>B. if B \<in> A then if f B \<in> B then g (f B) else \<bottom> else \<top>) \<le> g (SOME x. x \<in> B)"
       by (rule INF_lower2, auto)
-    have [simp]: "\<And>x. (\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
+    have ****: "\<And>f B. B \<in> A \<Longrightarrow>
+      (\<Sqinter>B. if B \<in> A then if f B \<in> B then g (f B) else \<bottom> else \<top>)
+        \<le> (if f B \<in> B then g (f B) else g (SOME x. x \<in> B))"
+      by (rule INF_lower2) auto
+    have ***: "\<And>x. (\<Sqinter>B. if B \<in> A then if x B \<in> B then g (x B) else \<bottom> else \<top>)
+        \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
     proof -
       fix x
       define F where "F = (\<lambda> (y::'b set) . if x y \<in> y then x y else (SOME x . x \<in>y))"
@@ -1051,7 +1054,10 @@ next
         using B by blast
       show "(\<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>) \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>x\<in>x. g x)"
         using A apply (rule SUP_upper2)
-        by (simp add: F_def, rule INF_greatest, auto)
+        apply (simp add: F_def)
+        apply (rule INF_greatest)
+        apply (auto simp add: * **)
+        done
     qed
 
     {fix x
@@ -1071,7 +1077,7 @@ next
     also have "... = (\<Squnion>x. \<Sqinter>xa. if xa \<in> A then if x xa \<in> xa then g (x xa) else \<bottom> else \<top>)"
       by (simp add: INF_SUP)
     also have "... \<le> (\<Squnion>x\<in>{f ` A |f. \<forall>Y\<in>A. f Y \<in> Y}. \<Sqinter>a\<in>x. g a)"
-      by (rule SUP_least, simp)
+      by (rule SUP_least, simp add: ***)
     finally show ?thesis by simp
   qed
 qed
