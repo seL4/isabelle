@@ -9,6 +9,11 @@ package isabelle
 
 object File_Format
 {
+  sealed case class Theory_Context(name: Document.Node.Name, content: String)
+
+
+  /* environment */
+
   def environment(): Environment =
     new Environment(Isabelle_System.init_classes[File_Format]("ISABELLE_FILE_FORMATS"))
 
@@ -20,9 +25,35 @@ object File_Format
     def get(name: Document.Node.Name): Option[File_Format] = get(name.node)
     def get_theory(name: Document.Node.Name): Option[File_Format] = get(name.theory)
     def is_theory(name: Document.Node.Name): Boolean = get_theory(name).isDefined
+
+    def start_session(session: isabelle.Session): Session =
+      new Session(file_formats.map(_.start(session)))
   }
 
-  sealed case class Theory_Context(name: Document.Node.Name, content: String)
+
+  /* session */
+
+  final class Session private[File_Format](agents: List[Agent])
+  {
+    override def toString: String =
+      agents.mkString("File_Format.Session(", ", ", ")")
+
+    def prover_options(options: Options): Options =
+      (options /: agents)({ case (opts, agent) => agent.prover_options(opts) })
+
+    def stop_session { agents.foreach(_.stop) }
+  }
+
+  trait Agent
+  {
+    def prover_options(options: Options): Options = options
+    def stop {}
+  }
+
+  object Agent extends Agent
+  {
+    override def toString: String = "-"
+  }
 }
 
 trait File_Format
@@ -61,4 +92,9 @@ trait File_Format
   }
 
   def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] = None
+
+
+  /* PIDE session */
+
+  def start(session: isabelle.Session): File_Format.Agent = File_Format.Agent
 }

@@ -343,6 +343,12 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
   }
 
 
+  /* file formats */
+
+  lazy val file_formats: File_Format.Session =
+    resources.file_formats.start_session(session)
+
+
   /* protocol handlers */
 
   private val protocol_handlers = Protocol_Handlers.init(session)
@@ -513,12 +519,13 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
               change_command(_.accumulate(state_id, output.message, xml_cache))
 
             case _ if output.is_init =>
-              prover.get.options(session_options)
+              prover.get.options(file_formats.prover_options(session_options))
               prover.get.session_base(resources)
               phase = Session.Ready
               debugger.ready()
 
             case Markup.Process_Result(result) if output.is_exit =>
+              file_formats.stop_session
               phase = Session.Terminated(result)
               prover.reset
 
@@ -587,7 +594,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
           case Update_Options(options) =>
             if (prover.defined && is_ready) {
-              prover.get.options(options)
+              prover.get.options(file_formats.prover_options(options))
               handle_raw_edits()
             }
             global_options.post(Session.Global_Options(options))
@@ -633,6 +640,7 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
   def start(start_prover: Prover.Receiver => Prover)
   {
+    file_formats
     _phase.change(
       {
         case Session.Inactive =>
