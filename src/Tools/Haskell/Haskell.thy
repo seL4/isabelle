@@ -116,10 +116,13 @@ split_lines = space_explode '\n'
 
 trim_line :: String -> String
 trim_line line =
-  case reverse line of
-    '\n' : '\r' : rest -> reverse rest
-    '\n' : rest -> reverse rest
-    _ -> line
+  if not (null line) && (last line == '\r' || last line == '\n') then
+    case reverse line of
+      '\n' : '\r' : rest -> reverse rest
+      '\r' : rest -> reverse rest
+      '\n' : rest -> reverse rest
+      _ -> line
+  else line
 
 clean_name :: String -> String
 clean_name = reverse #> dropWhile (== '_') #> reverse
