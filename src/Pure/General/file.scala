@@ -211,13 +211,21 @@ object File
 
   /* read lines */
 
+  def read_line(reader: BufferedReader): Option[String] =
+  {
+    val line =
+      try { reader.readLine}
+      catch { case _: IOException => null }
+    if (line == null) None else Some(line)
+  }
+
   def read_lines(reader: BufferedReader, progress: String => Unit): List[String] =
   {
     val result = new mutable.ListBuffer[String]
-    var line: String = null
-    while ({ line = try { reader.readLine} catch { case _: IOException => null }; line != null }) {
-      progress(line)
-      result += line
+    var line: Option[String] = None
+    while ({ line = read_line(reader); line.isDefined }) {
+      progress(line.get)
+      result += line.get
     }
     reader.close
     result.toList
