@@ -53,7 +53,7 @@ sig
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
     -> theory -> theory
-  val set_printings: (Code_Printer.raw_const_syntax, Code_Printer.tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
+  val set_printings: (Code_Printer.raw_const_syntax, Code_Printer.tyco_syntax, string, unit, unit, string * Code_Symbol.T list) symbol_attr_decl
     -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
 end;
@@ -110,10 +110,18 @@ fun read_inst ctxt (raw_tyco, raw_class) =
 val parse_inst_ident = Parse.name --| @{keyword "::"} -- Parse.class;
 
 fun cert_syms ctxt =
+  Code_Symbol.map_attr (cert_const ctxt) (cert_tyco ctxt)
+    (cert_class ctxt) (apply2 (cert_class ctxt)) (cert_inst ctxt) I;
+
+fun read_syms ctxt =
+  Code_Symbol.map_attr (read_const ctxt) (read_tyco ctxt)
+    (Proof_Context.read_class ctxt) (apply2 (Proof_Context.read_class ctxt)) (read_inst ctxt) I;
+
+fun cert_syms' ctxt =
   Code_Symbol.map_attr (apfst (cert_const ctxt)) (apfst (cert_tyco ctxt))
     (apfst (cert_class ctxt)) ((apfst o apply2) (cert_class ctxt)) (apfst (cert_inst ctxt)) I;
 
-fun read_syms ctxt =
+fun read_syms' ctxt =
   Code_Symbol.map_attr (apfst (read_const ctxt)) (apfst (read_tyco ctxt))
     (apfst (Proof_Context.read_class ctxt)) ((apfst o apply2) (Proof_Context.read_class ctxt)) (apfst (read_inst ctxt)) I;
 
@@ -315,8 +323,8 @@ fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
   let
     val syms_hidden = Code_Symbol.symbols_of printings;
     val (syms_all, program) = project_program ctxt syms_hidden syms proto_program;
-    fun select_include (name, (content, cs)) =
-      if null cs orelse exists (fn c => member (op =) syms_all (Constant c)) cs
+    fun select_include (name, (content, syms)) =
+      if null syms orelse exists (member (op =) syms_all) syms
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Code_Symbol.dest_module_data printings);
   in
@@ -563,9 +571,9 @@ fun arrange_name_decls x =
       (arrange false) (arrange false) (arrange true) x
   end;
 
-fun cert_name_decls ctxt = cert_syms ctxt #> arrange_name_decls;
+fun cert_name_decls ctxt = cert_syms' ctxt #> arrange_name_decls;
 
-fun read_name_decls ctxt = read_syms ctxt #> arrange_name_decls;
+fun read_name_decls ctxt = read_syms' ctxt #> arrange_name_decls;
 
 fun set_identifier (target_name, sym_name) = map_identifiers target_name (Code_Symbol.set_data sym_name);
 
@@ -578,7 +586,7 @@ val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
 (* custom printings *)
 
-fun arrange_printings prep_const ctxt =
+fun arrange_printings prep_syms ctxt =
   let
     fun arrange check (sym, target_syns) =
       map (fn (target_name, some_syn) =>
@@ -587,14 +595,14 @@ fun arrange_printings prep_const ctxt =
     Code_Symbol.maps_attr'
       (arrange check_const_syntax) (arrange check_tyco_syntax)
         (arrange ((K o K o K) I)) (arrange ((K o K o K) I)) (arrange ((K o K o K) I))
-        (arrange (fn ctxt => fn _ => fn _ => fn (raw_content, raw_cs) =>
+        (arrange (fn ctxt => fn _ => fn _ => fn (raw_content, raw_syms) =>
           (Pretty.blk (0, Pretty.fbreaks (map Code_Printer.str (split_lines raw_content))),
-            map (prep_const ctxt) raw_cs)))
+            map (prep_syms ctxt) raw_syms)))
   end;
 
-fun cert_printings ctxt = cert_syms ctxt #> arrange_printings cert_const ctxt;
+fun cert_printings ctxt = cert_syms' ctxt #> arrange_printings cert_syms ctxt;
 
-fun read_printings ctxt = read_syms ctxt #> arrange_printings read_const ctxt;
+fun read_printings ctxt = read_syms' ctxt #> arrange_printings read_syms ctxt;
 
 fun set_printing (target_name, sym_syn) = map_printings target_name (Code_Symbol.set_data sym_syn);
 
@@ -615,22 +623,45 @@ fun parse_args f args =
 
 (** Isar setup **)
 
+val (constantK, type_constructorK, type_classK, class_relationK, class_instanceK, code_moduleK) =
+  (@{keyword "constant"}, @{keyword "type_constructor"}, @{keyword "type_class"},
+    @{keyword "class_relation"}, @{keyword "class_instance"}, @{keyword "code_module"});
+
+local
+
+val parse_constants = constantK |-- Scan.repeat1 Parse.term >> map Constant;
+
+val parse_type_constructors = type_constructorK |-- Scan.repeat1 Parse.type_const >> map Type_Constructor;
+
+val parse_classes = type_classK |-- Scan.repeat1 Parse.class >> map Type_Class;
+
+val parse_class_relations = class_relationK |-- Scan.repeat1 parse_classrel_ident >> map Class_Relation;
+
+val parse_instances = class_instanceK |-- Scan.repeat1 parse_inst_ident >> map Class_Instance;
+
+in
+
+val parse_symbols = Scan.repeat1 (parse_constants || parse_type_constructors || parse_classes
+  || parse_class_relations || parse_instances) >> flat;
+
+end;
+
 fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
   parse_keyword |-- Parse.!!! (parse_isa --| (@{keyword "\<rightharpoonup>"} || @{keyword "=>"})
     -- Parse.and_list1 (@{keyword "("} |-- (Parse.name --| @{keyword ")"} -- Scan.option parse_target)));
 
 fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
-  parse_single_symbol_pragma @{keyword "constant"} Parse.term parse_const
+  parse_single_symbol_pragma constantK Parse.term parse_const
     >> Constant
-  || parse_single_symbol_pragma @{keyword "type_constructor"} Parse.type_const parse_tyco
+  || parse_single_symbol_pragma type_constructorK Parse.type_const parse_tyco
     >> Type_Constructor
-  || parse_single_symbol_pragma @{keyword "type_class"} Parse.class parse_class
+  || parse_single_symbol_pragma type_classK Parse.class parse_class
     >> Type_Class
-  || parse_single_symbol_pragma @{keyword "class_relation"} parse_classrel_ident parse_classrel
+  || parse_single_symbol_pragma class_relationK parse_classrel_ident parse_classrel
     >> Class_Relation
-  || parse_single_symbol_pragma @{keyword "class_instance"} parse_inst_ident parse_inst
+  || parse_single_symbol_pragma class_instanceK parse_inst_ident parse_inst
     >> Class_Instance
-  || parse_single_symbol_pragma @{keyword "code_module"} Parse.name parse_module
+  || parse_single_symbol_pragma code_moduleK Parse.name parse_module
     >> Code_Symbol.Module;
 
 fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
@@ -671,7 +702,7 @@ val _ =
   Outer_Syntax.command @{command_keyword code_printing} "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
       Parse.string (Parse.minus >> K ()) (Parse.minus >> K ())
-      (Parse.text -- Scan.optional (@{keyword for} |-- Scan.repeat1 Parse.term) [])
+      (Parse.text -- Scan.optional (@{keyword for} |-- parse_symbols) [])
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =

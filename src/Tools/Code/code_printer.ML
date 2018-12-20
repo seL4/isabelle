@@ -423,7 +423,7 @@ val parse_const_syntax =
 type identifiers = (string list * string, string list * string, string list * string, string list * string,
   string list * string, string list * string) Code_Symbol.data;
 type printings = (const_syntax, tyco_syntax, string, unit, unit,
-    (Pretty.T * string list)) Code_Symbol.data;
+    (Pretty.T * Code_Symbol.T list)) Code_Symbol.data;
 
 datatype data = Data of { reserved: string list, identifiers: identifiers,
   printings: printings };
