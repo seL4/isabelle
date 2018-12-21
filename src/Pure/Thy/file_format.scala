@@ -94,7 +94,7 @@ trait File_Format
   def make_preview(snapshot: Document.Snapshot): Option[Present.Preview] = None
 
 
-  /* PIDE session */
+  /* PIDE session agent */
 
   def start(session: isabelle.Session): File_Format.Agent = File_Format.Agent
 }
