@@ -1748,6 +1748,10 @@ map_info id f =
         Nothing -> (infos, ())
         Just info -> (Map.insert id (f info) infos, ()))
 
+delete_info :: ThreadId -> IO ()
+delete_info id =
+  atomicModifyIORef' global_state (\infos -> (Map.delete id infos, ()))
+
 
 {- thread properties -}
 
@@ -1789,7 +1793,8 @@ fork_finally body finally = do
           (do
             id <- Concurrent.myThreadId
             atomicModifyIORef' global_state (init_info id uuid)
-            restore body) >>= finally))
+            restore body)
+         >>= (\res -> do id <- Concurrent.myThreadId; delete_info id; finally res)))
   return (id, uuid, result)
 
 fork :: IO a -> IO (Fork a)
