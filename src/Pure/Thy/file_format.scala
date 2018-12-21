@@ -27,7 +27,7 @@ object File_Format
     def is_theory(name: Document.Node.Name): Boolean = get_theory(name).isDefined
 
     def start_session(session: isabelle.Session): Session =
-      new Session(file_formats.map(_.start(session)))
+      new Session(file_formats.map(_.start(session)).filterNot(_ == No_Agent))
   }
 
 
@@ -50,10 +50,7 @@ object File_Format
     def stop {}
   }
 
-  object Agent extends Agent
-  {
-    override def toString: String = "-"
-  }
+  object No_Agent extends Agent
 }
 
 trait File_Format
@@ -96,5 +93,5 @@ trait File_Format
 
   /* PIDE session agent */
 
-  def start(session: isabelle.Session): File_Format.Agent = File_Format.Agent
+  def start(session: isabelle.Session): File_Format.Agent = File_Format.No_Agent
 }
