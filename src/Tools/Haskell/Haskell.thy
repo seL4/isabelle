@@ -1757,14 +1757,13 @@ delete_info id =
 
 {- thread properties -}
 
-my_info :: IO Info
+my_info :: IO (Maybe Info)
 my_info = do
   id <- Concurrent.myThreadId
-  info <- get_info id
-  return $ fromJust info
+  get_info id
 
 properties :: IO Properties.T
-properties = props <$> my_info
+properties = maybe [] props <$> my_info
 
 change_properties :: (Properties.T -> Properties.T) -> IO ()
 change_properties f = do
@@ -1775,7 +1774,7 @@ change_properties f = do
 {- stop -}
 
 is_stopped :: IO Bool
-is_stopped = stopped <$> my_info
+is_stopped = maybe False stopped <$> my_info
 
 expose_stopped :: IO ()
 expose_stopped = do
@@ -1788,8 +1787,8 @@ stop id = map_info id (\info -> info {stopped = True})
 
 {- UUID -}
 
-my_uuid :: IO UUID.T
-my_uuid = uuid <$> my_info
+my_uuid :: IO (Maybe UUID.T)
+my_uuid = fmap uuid <$> my_info
 
 stop_uuid :: UUID.T -> IO ()
 stop_uuid uuid = do
