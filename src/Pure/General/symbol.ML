@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/symbol.ML
     Author:     Makarius
 
-Generalized characters with infinitely many named symbols.
+Isabelle text symbols.
 *)
 
 signature SYMBOL =

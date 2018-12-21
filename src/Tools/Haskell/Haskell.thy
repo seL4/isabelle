@@ -8,6 +8,44 @@ theory Haskell
   imports Pure
 begin
 
+generate_file "Isabelle/Symbol.hs" = \<open>
+{-  Title:      Isabelle/Symbols.hs
+    Author:     Makarius
+    LICENSE:    BSD 3-clause (Isabelle)
+
+Isabelle text symbols.
+-}
+
+module Isabelle.Symbol where
+
+{- ASCII characters -}
+
+is_ascii_letter :: Char -> Bool
+is_ascii_letter c = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
+
+is_ascii_digit :: Char -> Bool
+is_ascii_digit c = '0' <= c && c <= '9'
+
+is_ascii_hex :: Char -> Bool
+is_ascii_hex c = '0' <= c && c <= '9' || 'A' <= c && c <= 'F' || 'a' <= c && c <= 'f'
+
+is_ascii_quasi :: Char -> Bool
+is_ascii_quasi c = c == '_' || c == '\''
+
+is_ascii_blank :: Char -> Bool
+is_ascii_blank c = c `elem` " \t\n\11\f\r"
+
+is_ascii_line_terminator :: Char -> Bool
+is_ascii_line_terminator c = c == '\r' || c == '\n'
+
+is_ascii_letdig :: Char -> Bool
+is_ascii_letdig c = is_ascii_letter c || is_ascii_digit c || is_ascii_quasi c
+
+is_ascii_identifier :: String -> Bool
+is_ascii_identifier s =
+  not (null s) && is_ascii_letter (head s) && all is_ascii_letdig s
+\<close>
+
 generate_file "Isabelle/Library.hs" = \<open>
 {-  Title:      Isabelle/Library.hs
     Author:     Makarius

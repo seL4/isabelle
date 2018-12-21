@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/symbol.scala
     Author:     Makarius
 
-Detecting and recoding Isabelle symbols.
+Isabelle text symbols.
 */
 
 package isabelle
