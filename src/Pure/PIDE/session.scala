@@ -115,7 +115,7 @@ object Session
 }
 
 
-class Session(session_options: => Options, val resources: Resources) extends Document.Session
+class Session(_session_options: => Options, val resources: Resources) extends Document.Session
 {
   session =>
 
@@ -130,6 +130,8 @@ class Session(session_options: => Options, val resources: Resources) extends Doc
 
 
   /* dynamic session options */
+
+  def session_options: Options = _session_options
 
   def output_delay: Time = session_options.seconds("editor_output_delay")
   def consolidate_delay: Time = session_options.seconds("editor_consolidate_delay")
