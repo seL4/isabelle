@@ -1689,15 +1689,17 @@ and \<^file>\<open>$ISABELLE_HOME/src/Pure/Concurrent/standard_thread.scala\<clo
 
 module Isabelle.Standard_Thread (
   ThreadId, Result,
+  find_id,
   properties, change_properties,
   stop, is_stopped,
-  fork_finally, fork)
+  Fork, fork_finally, fork)
 where
 
 import Data.Maybe
 import Data.IORef
 import System.IO.Unsafe
 
+import qualified Data.List as List
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Control.Exception.Base (SomeException)
@@ -1706,19 +1708,20 @@ import Control.Concurrent (ThreadId)
 import qualified Control.Concurrent as Concurrent
 import Control.Concurrent.Thread (Result)
 import qualified Control.Concurrent.Thread as Thread
+import qualified Isabelle.UUID as UUID
 import qualified Isabelle.Properties as Properties
 
 
 {- thread info -}
 
-data Info = Info {props :: Properties.T, stopped :: Bool}
+data Info = Info {uuid :: UUID.T, props :: Properties.T, stopped :: Bool}
 type Infos = Map ThreadId Info
 
 lookup_info :: Infos -> ThreadId -> Maybe Info
-lookup_info state id = Map.lookup id state
+lookup_info infos id = Map.lookup id infos
 
-init_info :: ThreadId -> Infos -> (Infos, ())
-init_info id infos = (Map.insert id (Info [] False) infos, ())
+init_info :: ThreadId -> UUID.T -> Infos -> (Infos, ())
+init_info id uuid infos = (Map.insert id (Info uuid [] False) infos, ())
 
 
 {- global state -}
@@ -1726,6 +1729,11 @@ init_info id infos = (Map.insert id (Info [] False) infos, ())
 {-# NOINLINE global_state #-}
 global_state :: IORef Infos
 global_state = unsafePerformIO (newIORef Map.empty)
+
+find_id :: UUID.T -> IO (Maybe ThreadId)
+find_id uuid = do
+  state <- readIORef global_state
+  return $ fst <$> List.find (\(_, Info{uuid = uuid'}) -> uuid == uuid') (Map.assocs state)
 
 get_info :: ThreadId -> IO (Maybe Info)
 get_info id = do
@@ -1769,19 +1777,22 @@ stop id = map_info id (\info -> info {stopped = True})
 
 {- fork -}
 
-fork_finally :: IO a -> (Either SomeException a -> IO b) -> IO (ThreadId, IO (Result b))
+type Fork a = (ThreadId, UUID.T, IO (Result a))
+
+fork_finally :: IO a -> (Either SomeException a -> IO b) -> IO (Fork b)
 fork_finally body finally = do
+  uuid <- UUID.random
   (id, result) <-
     Exception.mask (\restore ->
       Thread.forkIO
         (Exception.try
           (do
             id <- Concurrent.myThreadId
-            atomicModifyIORef' global_state (init_info id)
+            atomicModifyIORef' global_state (init_info id uuid)
             restore body) >>= finally))
-  return (id, result)
+  return (id, uuid, result)
 
-fork :: IO a -> IO (ThreadId, IO (Result a))
+fork :: IO a -> IO (Fork a)
 fork body = fork_finally body Thread.result
 \<close>
 
