@@ -70,6 +70,7 @@ where
 import Data.Maybe
 import qualified Data.List as List
 import qualified Data.List.Split as Split
+import qualified Isabelle.Symbol as Symbol
 
 
 {- functions -}
@@ -154,7 +155,7 @@ split_lines = space_explode '\n'
 
 trim_line :: String -> String
 trim_line line =
-  if not (null line) && (last line == '\r' || last line == '\n') then
+  if not (null line) && Symbol.is_ascii_line_terminator (last line) then
     case reverse line of
       '\n' : '\r' : rest -> reverse rest
       '\r' : rest -> reverse rest
