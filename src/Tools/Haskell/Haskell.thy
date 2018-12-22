@@ -1691,11 +1691,13 @@ module Isabelle.Standard_Thread (
   ThreadId, Result,
   find_id,
   properties, change_properties,
+  add_resource, del_resource, bracket_resource,
   is_stopped, expose_stopped, stop,
   my_uuid, stop_uuid,
   Fork, fork_finally, fork)
 where
 
+import Data.Unique
 import Data.Maybe
 import Data.IORef
 import System.IO.Unsafe
@@ -1716,14 +1718,15 @@ import qualified Isabelle.Properties as Properties
 
 {- thread info -}
 
-data Info = Info {uuid :: UUID.T, props :: Properties.T, stopped :: Bool}
+type Resources = Map Unique (IO ())
+data Info = Info {uuid :: UUID.T, props :: Properties.T, stopped :: Bool, resources :: Resources}
 type Infos = Map ThreadId Info
 
 lookup_info :: Infos -> ThreadId -> Maybe Info
 lookup_info infos id = Map.lookup id infos
 
 init_info :: ThreadId -> UUID.T -> Infos -> (Infos, ())
-init_info id uuid infos = (Map.insert id (Info uuid [] False) infos, ())
+init_info id uuid infos = (Map.insert id (Info uuid [] False Map.empty) infos, ())
 
 
 {- global state -}
@@ -1742,13 +1745,15 @@ get_info id = do
   state <- readIORef global_state
   return $ lookup_info state id
 
-map_info :: ThreadId -> (Info -> Info) -> IO ()
+map_info :: ThreadId -> (Info -> Info) -> IO (Maybe Info)
 map_info id f =
   atomicModifyIORef' global_state
     (\infos ->
       case lookup_info infos id of
-        Nothing -> (infos, ())
-        Just info -> (Map.insert id (f info) infos, ()))
+        Nothing -> (infos, Nothing)
+        Just info ->
+          let info' = f info
+          in (Map.insert id info' infos, Just info'))
 
 delete_info :: ThreadId -> IO ()
 delete_info id =
@@ -1769,6 +1774,27 @@ change_properties :: (Properties.T -> Properties.T) -> IO ()
 change_properties f = do
   id <- Concurrent.myThreadId
   map_info id (\info -> info {props = f (props info)})
+  return ()
+
+
+{- managed resources -}
+
+add_resource :: IO () -> IO Unique
+add_resource resource = do
+  id <- Concurrent.myThreadId
+  u <- newUnique
+  map_info id (\info -> info {resources = Map.insert u resource (resources info)})
+  return u
+
+del_resource :: Unique -> IO ()
+del_resource u = do
+  id <- Concurrent.myThreadId
+  map_info id (\info -> info {resources = Map.delete u (resources info)})
+  return ()
+
+bracket_resource :: IO () -> IO a -> IO a
+bracket_resource resource body =
+  Exception.bracket (add_resource resource) del_resource (const body)
 
 
 {- stop -}
@@ -1782,7 +1808,10 @@ expose_stopped = do
   when stopped $ throw ThreadKilled
 
 stop :: ThreadId -> IO ()
-stop id = map_info id (\info -> info {stopped = True})
+stop id = do
+  info <- map_info id (\info -> info {stopped = True})
+  let ops = case info of Nothing -> []; Just Info{resources} -> map snd (Map.toDescList resources)
+  sequence_ ops
 
 
 {- UUID -}
