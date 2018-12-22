@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: setup OCaml setup via OPAM
+# DESCRIPTION: setup OCaml via OPAM
 
 if [ -d "$ISABELLE_OPAM_ROOT" ]
 then

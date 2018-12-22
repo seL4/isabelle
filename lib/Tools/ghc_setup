@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: setup Glasgow Haskell Compiler setup via Stack
+# DESCRIPTION: setup Glasgow Haskell Compiler via Stack
 
 set -e
 
