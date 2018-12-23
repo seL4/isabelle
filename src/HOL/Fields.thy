@@ -13,6 +13,32 @@ theory Fields
 imports Nat
 begin
 
+context idom
+begin
+
+lemma inj_mult_left [simp]: \<open>inj ((*) a) \<longleftrightarrow> a \<noteq> 0\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
+proof
+  assume ?P
+  show ?Q
+  proof
+    assume \<open>a = 0\<close>
+    with \<open>?P\<close> have "inj ((*) 0)"
+      by simp
+    moreover have "0 * 0 = 0 * 1"
+      by simp
+    ultimately have "0 = 1"
+      by (rule injD)
+    then show False
+      by simp
+  qed
+next
+  assume ?Q then show ?P
+    by (auto intro: injI)
+qed
+
+end
+
+
 subsection \<open>Division rings\<close>
 
 text \<open>
@@ -512,6 +538,21 @@ proof (cases "a = 0")
   with False show ?thesis
     by simp
 qed simp
+
+lemma inj_divide_right [simp]:
+  "inj (\<lambda>b. b / a) \<longleftrightarrow> a \<noteq> 0"
+proof -
+  have "(\<lambda>b. b / a) = (*) (inverse a)"
+    by (simp add: field_simps fun_eq_iff)
+  then have "inj (\<lambda>y. y / a) \<longleftrightarrow> inj ((*) (inverse a))"
+    by simp
+  also have "\<dots> \<longleftrightarrow> inverse a \<noteq> 0"
+    by simp
+  also have "\<dots> \<longleftrightarrow> a \<noteq> 0"
+    by simp
+  finally show ?thesis
+    by simp
+qed
 
 end
 

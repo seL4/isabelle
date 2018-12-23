@@ -1015,12 +1015,27 @@ lemma image_minus_const_atLeastAtMost' [simp]:
   "(\<lambda>t. t-d)`{a..b} = {a-d..b-d}" for d::"'a::linordered_idom"
   by (metis (no_types, lifting) diff_conv_add_uminus image_add_atLeastAtMost' image_cong)
 
-context linordered_field begin
+context linordered_field
+begin
 
 lemma image_mult_atLeastAtMost [simp]:
   "((*) d ` {a..b}) = {d*a..d*b}" if "d>0"
   using that
   by (auto simp: field_simps mult_le_cancel_right intro: rev_image_eqI [where x="x/d" for x])
+
+lemma image_divide_atLeastAtMost [simp]:
+  "((\<lambda>c. c / d) ` {a..b}) = {a/d..b/d}" if "d>0"
+proof -
+  from that have "inverse d > 0"
+    by simp
+  with image_mult_atLeastAtMost [of "inverse d" a b]
+  have "(*) (inverse d) ` {a..b} = {inverse d * a..inverse d * b}"
+    by blast
+  moreover have "(*) (inverse d) = (\<lambda>c. c / d)"
+    by (simp add: fun_eq_iff field_simps)
+  ultimately show ?thesis
+    by simp
+qed
 
 lemma image_mult_atLeastAtMost_if:
   "(*) c ` {x .. y} =

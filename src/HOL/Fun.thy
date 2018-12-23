@@ -594,6 +594,30 @@ next
     using * bij_betw_subset[of f "A \<union> {b}" _ A] by blast
 qed
 
+text \<open>Important examples\<close>
+
+context cancel_semigroup_add
+begin
+
+lemma inj_add_left [simp]: \<open>inj ((+) a)\<close>
+  by (rule injI) simp
+
+end
+
+context ab_group_add
+begin
+
+lemma inj_diff_right [simp]: \<open>inj (\<lambda>b. b - a)\<close>
+proof -
+  have \<open>inj ((+) (- a))\<close>
+    by (fact inj_add_left)
+  also have \<open>(+) (- a) = (\<lambda>b. b - a)\<close>
+    by (simp add: fun_eq_iff)
+  finally show ?thesis .
+qed
+
+end
+
 
 subsection \<open>Function Updating\<close>
 

@@ -549,6 +549,10 @@ lemma not_mod2_eq_Suc_0_eq_0 [simp]:
   "n mod 2 \<noteq> Suc 0 \<longleftrightarrow> n mod 2 = 0"
   using not_mod_2_eq_1_eq_0 [of n] by simp
 
+lemma odd_card_imp_not_empty:
+  \<open>A \<noteq> {}\<close> if \<open>odd (card A)\<close>
+  using that by auto
+
 
 subsection \<open>Parity and powers\<close>
 
