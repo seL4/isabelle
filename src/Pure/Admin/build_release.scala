@@ -619,9 +619,11 @@ rm -rf "${DIST_NAME}-old"
 
               // executable archive (self-extracting 7z)
 
-              val exe_archive = tmp_dir + Path.explode(isabelle_name + ".7z")
+              val archive_name = isabelle_name + ".7z"
+              val exe_archive = tmp_dir + Path.explode(archive_name)
               exe_archive.file.delete
 
+              progress.echo("Packaging " + archive_name + " ...")
               execute(tmp_dir,
                 "7z -y -bd a " + File.bash_path(exe_archive) + " " + Bash.string(isabelle_name))
               if (!exe_archive.is_file) error("Failed to create archive: " + exe_archive)
