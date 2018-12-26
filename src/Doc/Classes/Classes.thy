@@ -19,19 +19,19 @@ text \<open>
 
   \begin{quote}
 
-  \<^noindent>@{text "class eq where"} \\
+  \<^noindent> @{text "class eq where"} \\
   \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-  \<^medskip>\<^noindent>@{text "instance nat :: eq where"} \\
+  \<^medskip>\<^noindent> @{text "instance nat :: eq where"} \\
   \hspace*{2ex}@{text "eq 0 0 = True"} \\
   \hspace*{2ex}@{text "eq 0 _ = False"} \\
   \hspace*{2ex}@{text "eq _ 0 = False"} \\
   \hspace*{2ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
-  \<^medskip>\<^noindent>@{text "instance (\<alpha>::eq, \<beta>::eq) pair :: eq where"} \\
+  \<^medskip>\<^noindent> @{text "instance (\<alpha>::eq, \<beta>::eq) pair :: eq where"} \\
   \hspace*{2ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
 
-  \<^medskip>\<^noindent>@{text "class ord extends eq where"} \\
+  \<^medskip>\<^noindent> @{text "class ord extends eq where"} \\
   \hspace*{2ex}@{text "less_eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   \hspace*{2ex}@{text "less :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
@@ -56,7 +56,7 @@ text \<open>
 
   \begin{quote}
 
-  \<^noindent>@{text "class eq where"} \\
+  \<^noindent> @{text "class eq where"} \\
   \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   @{text "satisfying"} \\
   \hspace*{2ex}@{text "refl: eq x x"} \\
