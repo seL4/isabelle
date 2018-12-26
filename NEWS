@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** General ***
 
+* Old-style {* verbatim *} tokens are explicitly marked as legacy
+feature and will be removed soon. Use \<open>cartouche\<close> syntax instead, e.g.
+via "isabelle update_cartouches -t" (available since Isabelle2015).
+
 * The font family "Isabelle DejaVu" is systematically derived from the
 existing "DejaVu" collection, with variants "Sans Mono", "Sans", "Serif"
 and styles "Normal", "Bold", "Italic/Oblique", "Bold-Italic/Oblique".

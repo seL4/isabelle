@@ -145,6 +145,14 @@ fun read keywords thy master_dir init blobs_info span =
 
     val token_reports = map (reports_of_token keywords) span;
     val _ = Position.reports_text (maps #2 token_reports @ maps command_reports span);
+
+    val verbatim =
+      span |> map_filter (fn tok =>
+        if Token.kind_of tok = Token.Verbatim then SOME (Token.pos_of tok) else NONE);
+    val _ =
+      if null verbatim then ()
+      else legacy_feature ("Old-style {* verbatim *} token -- use \<open>cartouche\<close> instead" ^
+        Position.here_list verbatim);
   in
     if exists #1 token_reports then Toplevel.malformed pos "Malformed command syntax"
     else
