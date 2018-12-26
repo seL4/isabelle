@@ -32,7 +32,7 @@ subsection \<open>First Version: Replacement of Parameters Only
 text \<open>
   The command \isakeyword{interpretation} is for the interpretation of
   locale in theories.  In the following example, the parameter of locale
-  @{text partial_order} is replaced by @{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow>
+  \<open>partial_order\<close> is replaced by @{term "(\<le>) :: int \<Rightarrow> int \<Rightarrow>
   bool"} and the locale instance is interpreted in the current
   theory.\<close>
 
@@ -40,7 +40,7 @@ text \<open>
 txt \<open>\normalsize
   The argument of the command is a simple \emph{locale expression}
   consisting of the name of the interpreted locale, which is
-  preceded by the qualifier @{text "int:"} and succeeded by a
+  preceded by the qualifier \<open>int:\<close> and succeeded by a
   white-space-separated list of terms, which provide a full
   instantiation of the locale parameters.  The parameters are referred
   to by order of declaration, which is also the order in which
@@ -59,22 +59,21 @@ text \<open>The effect of the command is that instances of all
   int} is named @{thm [source] int.trans} and is the following
   theorem:
   @{thm [display, indent=2] int.trans}
-  It is not possible to reference this theorem simply as @{text
-  trans}.  This prevents unwanted hiding of existing theorems of the
+  It is not possible to reference this theorem simply as \<open>trans\<close>.  This prevents unwanted hiding of existing theorems of the
   theory by an interpretation.\<close>
 
 
 subsection \<open>Second Version: Replacement of Definitions\<close>
 
 text \<open>Not only does the above interpretation qualify theorem names.
-  The prefix @{text int} is applied to all names introduced in locale
+  The prefix \<open>int\<close> is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
-  qualified name @{text int.less} is short for
-  the interpretation of the definition, which is @{text "partial_order.less (\<le>)"}.
+  qualified name \<open>int.less\<close> is short for
+  the interpretation of the definition, which is \<open>partial_order.less (\<le>)\<close>.
   Qualified name and expanded form may be used almost
   interchangeably.%
-\footnote{Since @{term "(\<le>)"} is polymorphic, for @{text "partial_order.less (\<le>)"} a
-  more general type will be inferred than for @{text int.less} which
+\footnote{Since @{term "(\<le>)"} is polymorphic, for \<open>partial_order.less (\<le>)\<close> a
+  more general type will be inferred than for \<open>int.less\<close> which
   is over type @{typ int}.}
   The former is preferred on output, as for example in the theorem
   @{thm [source] int.less_le_trans}: @{thm [display, indent=2]

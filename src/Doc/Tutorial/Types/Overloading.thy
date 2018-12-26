@@ -7,7 +7,7 @@ have multiple definitions at non-overlapping types.\<close>
 
 subsubsection \<open>Overloading\<close>
 
-text \<open>We can introduce a binary infix addition operator @{text "\<oplus>"}
+text \<open>We can introduce a binary infix addition operator \<open>\<oplus>\<close>
 for arbitrary types by means of a type class:\<close>
 
 class plus =
@@ -34,9 +34,9 @@ primrec plus_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   | "Suc m \<oplus> n = Suc (m \<oplus> n)"
 
 text \<open>\noindent Note that the name @{const [source] plus} carries a
-suffix @{text "_nat"}; by default, the local name of a class operation
-@{text f} to be instantiated on type constructor @{text \<kappa>} is mangled
-as @{text f_\<kappa>}.  In case of uncertainty, these names may be inspected
+suffix \<open>_nat\<close>; by default, the local name of a class operation
+\<open>f\<close> to be instantiated on type constructor \<open>\<kappa>\<close> is mangled
+as \<open>f_\<kappa>\<close>.  In case of uncertainty, these names may be inspected
 using the @{command "print_context"} command.
 
 Although class @{class [source] plus} has no axioms, the instantiation must be

@@ -70,9 +70,9 @@ lemma correctness:
 
 txt\<open>\noindent
 These propositions are expressed with the help of the predefined @{term
-filter} function on lists, which has the convenient syntax @{text"[x\<leftarrow>xs. P
-x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
-holds. Remember that on lists @{text size} and @{text length} are synonymous.
+filter} function on lists, which has the convenient syntax \<open>[x\<leftarrow>xs. P
+x]\<close>, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
+holds. Remember that on lists \<open>size\<close> and \<open>length\<close> are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:
 \<close>
@@ -99,7 +99,7 @@ right increases or decreases the difference by 1, we must have passed through
 intermediate value theorem @{thm[source]nat0_intermed_int_val}
 @{thm[display,margin=60]nat0_intermed_int_val[no_vars]}
 where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the integers,
-@{text"\<bar>.\<bar>"} is the absolute value function\footnote{See
+\<open>\<bar>.\<bar>\<close> is the absolute value function\footnote{See
 Table~\ref{tab:ascii} in the Appendix for the correct \textsc{ascii}
 syntax.}, and @{term"1::int"} is the integer 1 (see \S\ref{sec:numbers}).
 
@@ -117,7 +117,7 @@ lemma step1: "\<forall>i < size w.
 
 txt\<open>\noindent
 The lemma is a bit hard to read because of the coercion function
-@{text"int :: nat \<Rightarrow> int"}. It is required because @{term size} returns
+\<open>int :: nat \<Rightarrow> int\<close>. It is required because @{term size} returns
 a natural number, but subtraction on type~@{typ nat} will do the wrong thing.
 Function @{term take} is predefined and @{term"take i xs"} is the prefix of
 length @{term i} of @{term xs}; below we also need @{term"drop i xs"}, which
@@ -141,7 +141,7 @@ lemma part1:
   \<exists>i\<le>size w. size[x\<leftarrow>take i w. P x] = size[x\<leftarrow>take i w. \<not>P x]+1"
 
 txt\<open>\noindent
-This is proved by @{text force} with the help of the intermediate value theorem,
+This is proved by \<open>force\<close> with the help of the intermediate value theorem,
 instantiated appropriately and with its first premise disposed of by lemma
 @{thm[source]step1}:
 \<close>
@@ -202,11 +202,11 @@ apply(induct_tac w rule: length_induct)
 apply(rename_tac w)
 
 txt\<open>\noindent
-The @{text rule} parameter tells @{text induct_tac} explicitly which induction
+The \<open>rule\<close> parameter tells \<open>induct_tac\<close> explicitly which induction
 rule to use. For details see \S\ref{sec:complete-ind} below.
 In this case the result is that we may assume the lemma already
 holds for all words shorter than @{term w}. Because the induction step renames
-the induction variable we rename it back to @{text w}.
+the induction variable we rename it back to \<open>w\<close>.
 
 The proof continues with a case distinction on @{term w},
 on whether @{term w} is empty or not.
@@ -292,8 +292,8 @@ More importantly, the proof itself is different: rather than
 separating the two directions, they perform one induction on the
 length of a word. This deprives them of the beauty of rule induction,
 and in the easy direction (correctness) their reasoning is more
-detailed than our @{text auto}. For the hard part (completeness), they
-consider just one of the cases that our @{text simp_all} disposes of
+detailed than our \<open>auto\<close>. For the hard part (completeness), they
+consider just one of the cases that our \<open>simp_all\<close> disposes of
 automatically. Then they conclude the proof by saying about the
 remaining cases: ``We do this in a manner similar to our method of
 proof for part (1); this part is left to the reader''. But this is

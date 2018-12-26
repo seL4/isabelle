@@ -10,7 +10,7 @@ our function. Since the function is recursive, the natural proof principle is
 again induction. But this time the structural form of induction that comes
 with datatypes is unlikely to work well --- otherwise we could have defined the
 function by \isacommand{primrec}. Therefore \isacommand{recdef} automatically
-proves a suitable induction rule $f$@{text".induct"} that follows the
+proves a suitable induction rule $f$\<open>.induct\<close> that follows the
 recursion pattern of the particular function $f$. We call this
 \textbf{recursion induction}. Roughly speaking, it
 requires you to prove for each \isacommand{recdef} equation that the property
@@ -47,7 +47,7 @@ definition of @{term"sep"}.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
-\isacommand{apply}@{text"(induct_tac"} $x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
+\isacommand{apply}\<open>(induct_tac\<close> $x@1 \dots x@n$ \<open>rule:\<close> $f$\<open>.induct)\<close>
 \end{quote}\index{*induct_tac (method)}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will

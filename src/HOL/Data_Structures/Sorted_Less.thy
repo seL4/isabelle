@@ -8,7 +8,7 @@ begin
 
 hide_const sorted
 
-text \<open>Is a list sorted without duplicates, i.e., wrt @{text"<"}?.\<close>
+text \<open>Is a list sorted without duplicates, i.e., wrt \<open><\<close>?.\<close>
 
 abbreviation sorted :: "'a::linorder list \<Rightarrow> bool" where
 "sorted \<equiv> sorted_wrt (<)"

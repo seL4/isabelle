@@ -23,7 +23,7 @@ operators. For example, @{prop"xs = [] --> xs@xs = xs"} simplifies to @{term
 True} because we may use @{prop"xs = []"} when simplifying @{prop"xs@xs =
 xs"}. The generation of contextual information during simplification is
 controlled by so-called \bfindex{congruence rules}. This is the one for
-@{text"\<longrightarrow>"}:
+\<open>\<longrightarrow>\<close>:
 @{thm[display]imp_cong[no_vars]}
 It should be read as follows:
 In order to simplify @{prop"P-->Q"} to @{prop"P'-->Q'"},
@@ -34,7 +34,7 @@ Here are some more examples.  The congruence rules for bounded
 quantifiers supply contextual information about the bound variable:
 @{thm[display,eta_contract=false,margin=60]ball_cong[no_vars]}
 One congruence rule for conditional expressions supplies contextual
-information for simplifying the @{text then} and @{text else} cases:
+information for simplifying the \<open>then\<close> and \<open>else\<close> cases:
 @{thm[display]if_cong[no_vars]}
 An alternative congruence rule for conditional expressions
 actually \emph{prevents} simplification of some arguments:
@@ -42,19 +42,19 @@ actually \emph{prevents} simplification of some arguments:
 Only the first argument is simplified; the others remain unchanged.
 This makes simplification much faster and is faithful to the evaluation
 strategy in programming languages, which is why this is the default
-congruence rule for @{text "if"}. Analogous rules control the evaluation of
-@{text case} expressions.
+congruence rule for \<open>if\<close>. Analogous rules control the evaluation of
+\<open>case\<close> expressions.
 
 You can declare your own congruence rules with the attribute \attrdx{cong},
 either globally, in the usual manner,
 \begin{quote}
-\isacommand{declare} \textit{theorem-name} @{text"[cong]"}
+\isacommand{declare} \textit{theorem-name} \<open>[cong]\<close>
 \end{quote}
-or locally in a @{text"simp"} call by adding the modifier
+or locally in a \<open>simp\<close> call by adding the modifier
 \begin{quote}
-@{text"cong:"} \textit{list of theorem names}
+\<open>cong:\<close> \textit{list of theorem names}
 \end{quote}
-The effect is reversed by @{text"cong del"} instead of @{text cong}.
+The effect is reversed by \<open>cong del\<close> instead of \<open>cong\<close>.
 
 \begin{warn}
 The congruence rule @{thm[source]conj_cong}
@@ -80,7 +80,7 @@ rule is only applied if the term becomes smaller with respect to a fixed
 lexicographic ordering on terms. For example, commutativity rewrites
 @{term"b+a"} to @{term"a+b"}, but then stops because @{term"a+b"} is strictly
 smaller than @{term"b+a"}.  Permutative rewrite rules can be turned into
-simplification rules in the usual manner via the @{text simp} attribute; the
+simplification rules in the usual manner via the \<open>simp\<close> attribute; the
 simplifier recognizes their special status automatically.
 
 Permutative rewrite rules are most effective in the case of
@@ -102,7 +102,7 @@ lexicographically:
 \[\def\maps#1{~\stackrel{#1}{\leadsto}~}
  f(f(b,c),a) \maps{A} f(b,f(c,a)) \maps{C} f(b,f(a,c)) \maps{LC} f(a,f(b,c)) \]
 
-Note that ordered rewriting for @{text"+"} and @{text"*"} on numbers is rarely
+Note that ordered rewriting for \<open>+\<close> and \<open>*\<close> on numbers is rarely
 necessary because the built-in arithmetic prover often succeeds without
 such tricks.
 \<close>
@@ -132,21 +132,21 @@ $\Var{f}~x@1~\dots~x@n$, where the $x@i$ are distinct bound
 variables. Thus all ordinary rewrite rules, where all unknowns are
 of base type, for example @{thm add.assoc}, are acceptable: if an unknown is
 of base type, it cannot have any arguments. Additionally, the rule
-@{text"(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))"} is also acceptable, in
-both directions: all arguments of the unknowns @{text"?P"} and
-@{text"?Q"} are distinct bound variables.
+\<open>(\<forall>x. ?P x \<and> ?Q x) = ((\<forall>x. ?P x) \<and> (\<forall>x. ?Q x))\<close> is also acceptable, in
+both directions: all arguments of the unknowns \<open>?P\<close> and
+\<open>?Q\<close> are distinct bound variables.
 
 If the left-hand side is not a higher-order pattern, all is not lost.
 The simplifier will still try to apply the rule provided it
 matches directly: without much $\lambda$-calculus hocus
-pocus.  For example, @{text"(?f ?x \<in> range ?f) = True"} rewrites
+pocus.  For example, \<open>(?f ?x \<in> range ?f) = True\<close> rewrites
 @{term"g a \<in> range g"} to @{const True}, but will fail to match
-@{text"g(h b) \<in> range(\<lambda>x. g(h x))"}.  However, you can
+\<open>g(h b) \<in> range(\<lambda>x. g(h x))\<close>.  However, you can
 eliminate the offending subterms --- those that are not patterns ---
 by adding new variables and conditions.
-In our example, we eliminate @{text"?f ?x"} and obtain
- @{text"?y =
-?f ?x \<Longrightarrow> (?y \<in> range ?f) = True"}, which is fine
+In our example, we eliminate \<open>?f ?x\<close> and obtain
+ \<open>?y =
+?f ?x \<Longrightarrow> (?y \<in> range ?f) = True\<close>, which is fine
 as a conditional rewrite rule since conditions can be arbitrary
 terms.  However, this trick is not a panacea because the newly
 introduced conditions may be hard to solve.
@@ -170,7 +170,7 @@ P \longrightarrow Q &\mapsto& P \Longrightarrow Q \nonumber\\
 P \land Q &\mapsto& P,\ Q \nonumber\\
 \forall x.~P~x &\mapsto& P~\Var{x}\nonumber\\
 \forall x \in A.\ P~x &\mapsto& \Var{x} \in A \Longrightarrow P~\Var{x} \nonumber\\
-@{text "if"}\ P\ @{text then}\ Q\ @{text else}\ R &\mapsto&
+\<open>if\<close>\ P\ \<open>then\<close>\ Q\ \<open>else\<close>\ R &\mapsto&
  P \Longrightarrow Q,\ \neg P \Longrightarrow R \nonumber
 \end{eqnarray}
 Once this conversion process is finished, all remaining non-equations

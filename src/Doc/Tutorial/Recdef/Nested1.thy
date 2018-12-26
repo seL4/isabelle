@@ -23,9 +23,9 @@ However, the definition does not succeed. Isabelle complains about an
 unproved termination condition
 @{prop[display]"t : set ts --> size t < Suc (size_term_list ts)"}
 where @{term set} returns the set of elements of a list
-and @{text"size_term_list :: term list \<Rightarrow> nat"} is an auxiliary
+and \<open>size_term_list :: term list \<Rightarrow> nat\<close> is an auxiliary
 function automatically defined by Isabelle
-(while processing the declaration of @{text term}).  Why does the
+(while processing the declaration of \<open>term\<close>).  Why does the
 recursive call of @{const trev} lead to this
 condition?  Because \isacommand{recdef} knows that @{term map}
 will apply @{const trev} only to elements of @{term ts}. Thus the 

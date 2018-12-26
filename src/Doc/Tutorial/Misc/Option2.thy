@@ -13,13 +13,13 @@ datatype 'a option = None | Some 'a
 
 text\<open>\noindent
 Frequently one needs to add a distinguished element to some existing type.
-For example, type @{text"t option"} can model the result of a computation that
+For example, type \<open>t option\<close> can model the result of a computation that
 may either terminate with an error (represented by @{const None}) or return
 some value @{term v} (represented by @{term"Some v"}).
 Similarly, @{typ nat} extended with $\infty$ can be modeled by type
 @{typ"nat option"}. In both cases one could define a new datatype with
 customized constructors like @{term Error} and @{term Infinity},
-but it is often simpler to use @{text option}. For an application see
+but it is often simpler to use \<open>option\<close>. For an application see
 \S\ref{sec:Trie}.
 \<close>
 (*<*)

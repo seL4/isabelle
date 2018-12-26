@@ -31,7 +31,7 @@ For example, the formula $P@0 \land \neg P@1$ is represented by the term
 \subsubsection{The Value of a Boolean Expression}
 
 The value of a boolean expression depends on the value of its variables.
-Hence the function @{text"value"} takes an additional parameter, an
+Hence the function \<open>value\<close> takes an additional parameter, an
 \emph{environment} of type @{typ"nat => bool"}, which maps variables to their
 values:
 \<close>
@@ -139,7 +139,7 @@ by(auto)
 (*>*)
 text\<open>\noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
-of the theorem shown above because of the @{text"[simp]"} attribute.
+of the theorem shown above because of the \<open>[simp]\<close> attribute.
 
 But how can we be sure that @{term"norm"} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality:
@@ -168,17 +168,17 @@ by(auto)
 
 text\<open>\medskip
 How do we come up with the required lemmas? Try to prove the main theorems
-without them and study carefully what @{text auto} leaves unproved. This 
+without them and study carefully what \<open>auto\<close> leaves unproved. This 
 can provide the clue.  The necessity of universal quantification
-(@{text"\<forall>t e"}) in the two lemmas is explained in
+(\<open>\<forall>t e\<close>) in the two lemmas is explained in
 \S\ref{sec:InductionHeuristics}
 
 \begin{exercise}
   We strengthen the definition of a @{const normal} If-expression as follows:
   the first argument of all @{term IF}s must be a variable. Adapt the above
   development to this changed requirement. (Hint: you may need to formulate
-  some of the goals as implications (@{text"\<longrightarrow>"}) rather than
-  equalities (@{text"="}).)
+  some of the goals as implications (\<open>\<longrightarrow>\<close>) rather than
+  equalities (\<open>=\<close>).)
 \end{exercise}
 \index{boolean expressions example|)}
 \<close>

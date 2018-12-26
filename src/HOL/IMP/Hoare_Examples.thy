@@ -6,7 +6,7 @@ theory Hoare_Examples imports Hoare begin
 
 hide_const (open) sum
 
-text\<open>Summing up the first @{text x} natural numbers in variable @{text y}.\<close>
+text\<open>Summing up the first \<open>x\<close> natural numbers in variable \<open>y\<close>.\<close>
 
 fun sum :: "int \<Rightarrow> int" where
 "sum i = (if i \<le> 0 then 0 else sum (i - 1) + i)"

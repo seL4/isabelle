@@ -14,7 +14,7 @@ By making this theorem a simplification rule, \isacommand{recdef}
 applies it automatically and the definition of @{term"trev"}
 succeeds now. As a reward for our effort, we can now prove the desired
 lemma directly.  We no longer need the verbose
-induction schema for type @{text"term"} and can use the simpler one arising from
+induction schema for type \<open>term\<close> and can use the simpler one arising from
 @{term"trev"}:
 \<close>
 
@@ -30,7 +30,7 @@ by(simp_all add: rev_map sym[OF map_compose] cong: map_cong)
 text\<open>\noindent
 If the proof of the induction step mystifies you, we recommend that you go through
 the chain of simplification steps in detail; you will probably need the help of
-@{text"simp_trace"}. Theorem @{thm[source]map_cong} is discussed below.
+\<open>simp_trace\<close>. Theorem @{thm[source]map_cong} is discussed below.
 %\begin{quote}
 %{term[display]"trev(trev(App f ts))"}\\
 %{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\
@@ -81,7 +81,7 @@ by giving them the \attrdx{recdef_cong} attribute:
 declare map_cong[recdef_cong]
 
 text\<open>
-The @{text cong} and @{text recdef_cong} attributes are
+The \<open>cong\<close> and \<open>recdef_cong\<close> attributes are
 intentionally kept apart because they control different activities, namely
 simplification and making recursive definitions.
 %The simplifier's congruence rules cannot be used by recdef.

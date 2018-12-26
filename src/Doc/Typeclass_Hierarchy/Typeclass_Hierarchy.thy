@@ -39,46 +39,46 @@ text \<open>
   always have been numerical types, which form an inclusion chain:
   
   \begin{center}
-    @{typ nat} @{text \<sqsubset>} @{typ int} @{text \<sqsubset>} @{typ rat}
-      @{text \<sqsubset>} @{typ real} @{text \<sqsubset>} @{typ complex}
+    @{typ nat} \<open>\<sqsubset>\<close> @{typ int} \<open>\<sqsubset>\<close> @{typ rat}
+      \<open>\<sqsubset>\<close> @{typ real} \<open>\<sqsubset>\<close> @{typ complex}
   \end{center}
 
-  \noindent The inclusion @{text \<sqsubset>} means that any value of the numerical
+  \noindent The inclusion \<open>\<sqsubset>\<close> means that any value of the numerical
   type to the left hand side mathematically can be transferred
   to the numerical type on the right hand side.
 
   How to accomplish this given the quite restrictive type system
   of {Isabelle/HOL}?  Paulson @{cite "paulson-numerical"} explains
   that each numerical type has some characteristic properties
-  which define an characteristic algebraic structure;  @{text \<sqsubset>}
+  which define an characteristic algebraic structure;  \<open>\<sqsubset>\<close>
   then corresponds to specialization of the corresponding
   characteristic algebraic structures.  These algebraic structures
   are expressed using algebraic type classes and embeddings
   of numerical types into them:
 
   \begin{center}\begin{tabular}{lccc}
-    @{term of_nat} @{text "::"}  & @{typ nat}  & @{text \<Rightarrow>} & @{typ [source] "'a::semiring_1"} \\
-                                 & @{text \<sqinter>}   &            & @{text \<up>} \\
-    @{term of_int} @{text "::"}  & @{typ int}  & @{text \<Rightarrow>} & @{typ [source] "'a::ring_1"} \\
-                                 & @{text \<sqinter>}   &            & @{text \<up>} \\
-    @{term of_rat} @{text "::"}  & @{typ rat}  & @{text \<Rightarrow>} & @{typ [source] "'a::field_char_0"} \\
-                                 & @{text \<sqinter>}   &            & @{text \<up>} \\
-    @{term of_real} @{text "::"} & @{typ real} & @{text \<Rightarrow>} & @{typ [source] "'a::real_algebra_1"} \\
-                                 & @{text \<sqinter>} \\
+    @{term of_nat} \<open>::\<close>  & @{typ nat}  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::semiring_1"} \\
+                                 & \<open>\<sqinter>\<close>   &            & \<open>\<up>\<close> \\
+    @{term of_int} \<open>::\<close>  & @{typ int}  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::ring_1"} \\
+                                 & \<open>\<sqinter>\<close>   &            & \<open>\<up>\<close> \\
+    @{term of_rat} \<open>::\<close>  & @{typ rat}  & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::field_char_0"} \\
+                                 & \<open>\<sqinter>\<close>   &            & \<open>\<up>\<close> \\
+    @{term of_real} \<open>::\<close> & @{typ real} & \<open>\<Rightarrow>\<close> & @{typ [source] "'a::real_algebra_1"} \\
+                                 & \<open>\<sqinter>\<close> \\
                                  & @{typ complex}
   \end{tabular}\end{center}
 
-  \noindent @{text "d \<leftarrow> c"} means that @{text c} is subclass of @{text d}.
-  Hence each characteristic embedding @{text of_num} can transform
-  any value of type @{text num} to any numerical type further
+  \noindent \<open>d \<leftarrow> c\<close> means that \<open>c\<close> is subclass of \<open>d\<close>.
+  Hence each characteristic embedding \<open>of_num\<close> can transform
+  any value of type \<open>num\<close> to any numerical type further
   up in the inclusion chain.
 
   This canonical example exhibits key strengths of type classes:
 
     \<^item> Sharing of operations and facts among different
       types, hence also sharing of notation and names: there
-      is only one plus operation using infix syntax @{text "+"},
-      only one zero written @{text 0}, and neutrality
+      is only one plus operation using infix syntax \<open>+\<close>,
+      only one zero written \<open>0\<close>, and neutrality
       (@{thm (frugal_sorts) add_0_left [all, no_vars]} and
       @{thm (frugal_sorts) add_0_right [all, no_vars]})
       is referred to
@@ -109,7 +109,7 @@ text \<open>
     \<^item> Type classes are not apt for meta-theory.  There
       is no practically usable way to express that the units
       of an integral domain form a multiplicative group using
-      type classes.  But see session @{text "HOL-Algebra"}
+      type classes.  But see session \<open>HOL-Algebra\<close>
       which provides locales with an explicit carrier.
 \<close>
 
@@ -152,9 +152,9 @@ text \<open>
 
     \<^item> Syntactic type classes allow generic notation to be used
       regardless of a particular logical interpretation; e.g.
-      although multiplication @{text "*"} is usually associative,
+      although multiplication \<open>*\<close> is usually associative,
       there are examples where it is not (e.g. octonions), and
-      leaving @{text "*"} without axioms allows to re-use this
+      leaving \<open>*\<close> without axioms allows to re-use this
       syntax by means of type class instantiation also for such
       exotic examples.
 
@@ -178,8 +178,8 @@ subsection \<open>Additive and multiplicative semigroups and monoids\<close>
 
 text \<open>
   In common literature, notation for semigroups and monoids
-  is either multiplicative @{text "(*, 1)"} or additive
-  @{text "(+, 0)"} with underlying properties isomorphic.
+  is either multiplicative \<open>(*, 1)\<close> or additive
+  \<open>(+, 0)\<close> with underlying properties isomorphic.
   In {Isabelle/HOL}, this is accomplished using the following
   abstract setup:
 
@@ -190,7 +190,7 @@ text \<open>
       with a neutral element.
 
     \<^item> Both @{locale semigroup} and @{locale monoid} provide
-      dedicated syntax for their operations @{text "(\<^bold>*, \<^bold>1)"}.
+      dedicated syntax for their operations \<open>(\<^bold>*, \<^bold>1)\<close>.
       This syntax is not visible on the global theory level
       but only for abstract reasoning inside the respective
       locale.
@@ -209,8 +209,8 @@ text \<open>
 
       Locales @{locale semigroup} and @{locale monoid} are
       interpreted (using @{command sublocale}) into their
-      corresponding type classes, with prefixes @{text add}
-      and @{text mult}; hence facts derived in @{locale semigroup}
+      corresponding type classes, with prefixes \<open>add\<close>
+      and \<open>mult\<close>; hence facts derived in @{locale semigroup}
       and @{locale monoid} are propagated simultaneously to
       \<^emph>\<open>both\<close> using a consistent naming policy, ie.
 
@@ -285,7 +285,7 @@ text \<open>
   that there are weaker algebraic structures with only a partially
   inverse operation.  E. g. the natural numbers have bounded
   subtraction @{term "m - (n::nat)"} which is only an inverse
-  operation if @{term "m \<ge> (n::nat)"};  unary minus @{text "-"}
+  operation if @{term "m \<ge> (n::nat)"};  unary minus \<open>-\<close>
   is pointless on the natural numbers.
 
   Hence for both additive and multiplicative notation there

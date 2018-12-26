@@ -8,7 +8,7 @@ text\<open>
 \section{Type and Function Definitions}
 
 Type synonyms are abbreviations for existing types, for example
-\index{string@@{text string}}\<close>
+\index{string@\<open>string\<close>}\<close>
 
 type_synonym string = "char list"
 
@@ -21,14 +21,14 @@ Type synonyms are expanded after parsing and are not present in internal represe
 The general form of a datatype definition looks like this:
 \begin{quote}
 \begin{tabular}{@ {}rclcll}
-\indexed{\isacom{datatype}}{datatype} @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}
-     & = & $C_1 \ @{text"\""}\tau_{1,1}@{text"\""} \dots @{text"\""}\tau_{1,n_1}@{text"\""}$ \\
+\indexed{\isacom{datatype}}{datatype} \<open>('a\<^sub>1,\<dots>,'a\<^sub>n)t\<close>
+     & = & $C_1 \ \<open>"\<close>\tau_{1,1}\<open>"\<close> \dots \<open>"\<close>\tau_{1,n_1}\<open>"\<close>$ \\
      & $|$ & \dots \\
-     & $|$ & $C_k \ @{text"\""}\tau_{k,1}@{text"\""} \dots @{text"\""}\tau_{k,n_k}@{text"\""}$
+     & $|$ & $C_k \ \<open>"\<close>\tau_{k,1}\<open>"\<close> \dots \<open>"\<close>\tau_{k,n_k}\<open>"\<close>$
 \end{tabular}
 \end{quote}
 It introduces the constructors \
-$C_i :: \tau_{i,1}\Rightarrow \cdots \Rightarrow \tau_{i,n_i} \Rightarrow$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"} \ and expresses that any value of this type is built from these constructors in a unique manner. Uniqueness is implied by the following
+$C_i :: \tau_{i,1}\Rightarrow \cdots \Rightarrow \tau_{i,n_i} \Rightarrow$~\<open>('a\<^sub>1,\<dots>,'a\<^sub>n)t\<close> \ and expresses that any value of this type is built from these constructors in a unique manner. Uniqueness is implied by the following
 properties of the constructors:
 \begin{itemize}
 \item \emph{Distinctness:} $C_i\ \ldots \neq C_j\ \dots$ \quad if $i \neq j$
@@ -40,20 +40,20 @@ properties of the constructors:
 \end{itemize}
 The fact that any value of the datatype is built from the constructors implies
 the \concept{structural induction}\index{induction} rule: to show
-$P~x$ for all $x$ of type @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"},
+$P~x$ for all $x$ of type \<open>('a\<^sub>1,\<dots>,'a\<^sub>n)t\<close>,
 one needs to show $P(C_i\ x_1 \dots x_{n_i})$ (for each $i$) assuming
-$P(x_j)$ for all $j$ where $\tau_{i,j} =$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}.
-Distinctness and injectivity are applied automatically by @{text auto}
+$P(x_j)$ for all $j$ where $\tau_{i,j} =$~\<open>('a\<^sub>1,\<dots>,'a\<^sub>n)t\<close>.
+Distinctness and injectivity are applied automatically by \<open>auto\<close>
 and other proof methods. Induction must be applied explicitly.
 
 Like in functional programming languages, datatype values can be taken apart
-with case expressions\index{case expression}\index{case expression@@{text "case ... of"}}, for example
+with case expressions\index{case expression}\index{case expression@\<open>case ... of\<close>}, for example
 \begin{quote}
 \noquotes{@{term[source] "(case xs of [] \<Rightarrow> 0 | x # _ \<Rightarrow> Suc x)"}}
 \end{quote}
 Case expressions must be enclosed in parentheses.
 
-As an example of a datatype beyond @{typ nat} and @{text list}, consider binary trees:
+As an example of a datatype beyond @{typ nat} and \<open>list\<close>, consider binary trees:
 \<close>
 
 datatype 'a tree = Tip | Node  "'a tree"  'a  "'a tree"
@@ -72,10 +72,10 @@ apply(induction t)
 txt\<open>yields
 @{subgoals[display]}
 The induction step contains two induction hypotheses, one for each subtree.
-An application of @{text auto} finishes the proof.
+An application of \<open>auto\<close> finishes the proof.
 
 A very simple but also very useful datatype is the predefined
-@{datatype[display] option}\index{option@@{text option}}\index{None@@{const None}}\index{Some@@{const Some}}
+@{datatype[display] option}\index{option@\<open>option\<close>}\index{None@@{const None}}\index{Some@@{const Some}}
 Its sole purpose is to add a new element @{const None} to an existing
 type @{typ 'a}. To make sure that @{const None} is distinct from all the
 elements of @{typ 'a}, you wrap them up in @{const Some} and call
@@ -91,12 +91,12 @@ fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup ((a,b) # ps) x = (if a = x then Some b else lookup ps x)"
 
 text\<open>
-Note that @{text"\<tau>\<^sub>1 * \<tau>\<^sub>2"} is the type of pairs, also written @{text"\<tau>\<^sub>1 \<times> \<tau>\<^sub>2"}.
+Note that \<open>\<tau>\<^sub>1 * \<tau>\<^sub>2\<close> is the type of pairs, also written \<open>\<tau>\<^sub>1 \<times> \<tau>\<^sub>2\<close>.
 Pairs can be taken apart either by pattern matching (as above) or with the
 projection functions @{const fst} and @{const snd}: @{thm fst_conv[of x y]} and @{thm snd_conv[of x y]}.
 Tuples are simulated by pairs nested to the right: @{term"(a,b,c)"}
-is short for @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^sub>2 \<times> \<tau>\<^sub>3"} is short for
-@{text "\<tau>\<^sub>1 \<times> (\<tau>\<^sub>2 \<times> \<tau>\<^sub>3)"}.
+is short for \<open>(a, (b, c))\<close> and \<open>\<tau>\<^sub>1 \<times> \<tau>\<^sub>2 \<times> \<tau>\<^sub>3\<close> is short for
+\<open>\<tau>\<^sub>1 \<times> (\<tau>\<^sub>2 \<times> \<tau>\<^sub>3)\<close>.
 
 \subsection{Definitions}
 
@@ -107,7 +107,7 @@ definition sq :: "nat \<Rightarrow> nat" where
 "sq n = n * n"
 
 text\<open>Such definitions do not allow pattern matching but only
-@{text"f x\<^sub>1 \<dots> x\<^sub>n = t"}, where @{text f} does not occur in @{text t}.
+\<open>f x\<^sub>1 \<dots> x\<^sub>n = t\<close>, where \<open>f\<close> does not occur in \<open>t\<close>.
 
 \subsection{Abbreviations}
 
@@ -128,7 +128,7 @@ expanded upon parsing. However, abbreviations should be introduced sparingly:
 if abused, they can lead to a confusing discrepancy between the internal and
 external view of a term.
 
-The ASCII representation of @{text"\<equiv>"} is \texttt{==} or \xsymbol{equiv}.
+The ASCII representation of \<open>\<equiv>\<close> is \texttt{==} or \xsymbol{equiv}.
 
 \subsection{Recursive Functions}
 \label{sec:recursive-funs}
@@ -145,8 +145,7 @@ Isabelle's automatic termination checker requires that the arguments of
 recursive calls on the right-hand side must be strictly smaller than the
 arguments on the left-hand side. In the simplest case, this means that one
 fixed argument position decreases in size with each recursive call. The size
-is measured as the number of constructors (excluding 0-ary ones, e.g., @{text
-Nil}). Lexicographic combinations are also recognized. In more complicated
+is measured as the number of constructors (excluding 0-ary ones, e.g., \<open>Nil\<close>). Lexicographic combinations are also recognized. In more complicated
 situations, the user may have to prove termination by hand. For details
 see~@{cite Krauss}.
 
@@ -175,67 +174,67 @@ This customized induction rule can simplify inductive proofs. For example,
 lemma "div2(n) = n div 2"
 apply(induction n rule: div2.induct)
 
-txt\<open>(where the infix @{text div} is the predefined division operation)
+txt\<open>(where the infix \<open>div\<close> is the predefined division operation)
 yields the subgoals
 @{subgoals[display,margin=65]}
-An application of @{text auto} finishes the proof.
-Had we used ordinary structural induction on @{text n},
+An application of \<open>auto\<close> finishes the proof.
+Had we used ordinary structural induction on \<open>n\<close>,
 the proof would have needed an additional
 case analysis in the induction step.
 
 This example leads to the following induction heuristic:
 \begin{quote}
-\emph{Let @{text f} be a recursive function.
-If the definition of @{text f} is more complicated
+\emph{Let \<open>f\<close> be a recursive function.
+If the definition of \<open>f\<close> is more complicated
 than having one equation for each constructor of some datatype,
-then properties of @{text f} are best proved via @{text "f.induct"}.\index{inductionrule@@{text".induct"}}}
+then properties of \<open>f\<close> are best proved via \<open>f.induct\<close>.\index{inductionrule@\<open>.induct\<close>}}
 \end{quote}
 
 The general case is often called \concept{computation induction},
 because the induction follows the (terminating!) computation.
 For every defining equation
 \begin{quote}
-@{text "f(e) = \<dots> f(r\<^sub>1) \<dots> f(r\<^sub>k) \<dots>"}
+\<open>f(e) = \<dots> f(r\<^sub>1) \<dots> f(r\<^sub>k) \<dots>\<close>
 \end{quote}
-where @{text"f(r\<^sub>i)"}, @{text"i=1\<dots>k"}, are all the recursive calls,
-the induction rule @{text"f.induct"} contains one premise of the form
+where \<open>f(r\<^sub>i)\<close>, \<open>i=1\<dots>k\<close>, are all the recursive calls,
+the induction rule \<open>f.induct\<close> contains one premise of the form
 \begin{quote}
-@{text"P(r\<^sub>1) \<Longrightarrow> \<dots> \<Longrightarrow> P(r\<^sub>k) \<Longrightarrow> P(e)"}
+\<open>P(r\<^sub>1) \<Longrightarrow> \<dots> \<Longrightarrow> P(r\<^sub>k) \<Longrightarrow> P(e)\<close>
 \end{quote}
-If @{text "f :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> \<tau>"} then @{text"f.induct"} is applied like this:
+If \<open>f :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> \<tau>\<close> then \<open>f.induct\<close> is applied like this:
 \begin{quote}
-\isacom{apply}@{text"(induction x\<^sub>1 \<dots> x\<^sub>n rule: f.induct)"}\index{inductionrule@@{text"induction ... rule:"}}
+\isacom{apply}\<open>(induction x\<^sub>1 \<dots> x\<^sub>n rule: f.induct)\<close>\index{inductionrule@\<open>induction ... rule:\<close>}
 \end{quote}
-where typically there is a call @{text"f x\<^sub>1 \<dots> x\<^sub>n"} in the goal.
-But note that the induction rule does not mention @{text f} at all,
-except in its name, and is applicable independently of @{text f}.
+where typically there is a call \<open>f x\<^sub>1 \<dots> x\<^sub>n\<close> in the goal.
+But note that the induction rule does not mention \<open>f\<close> at all,
+except in its name, and is applicable independently of \<open>f\<close>.
 
 
 \subsection*{Exercises}
 
 \begin{exercise}
-Starting from the type @{text "'a tree"} defined in the text, define
-a function @{text "contents ::"} @{typ "'a tree \<Rightarrow> 'a list"}
+Starting from the type \<open>'a tree\<close> defined in the text, define
+a function \<open>contents ::\<close> @{typ "'a tree \<Rightarrow> 'a list"}
 that collects all values in a tree in a list, in any order,
 without removing duplicates.
-Then define a function @{text "sum_tree ::"} @{typ "nat tree \<Rightarrow> nat"}
+Then define a function \<open>sum_tree ::\<close> @{typ "nat tree \<Rightarrow> nat"}
 that sums up all values in a tree of natural numbers
 and prove @{prop "sum_tree t = sum_list(contents t)"}
 (where @{const sum_list} is predefined).
 \end{exercise}
 
 \begin{exercise}
-Define a new type @{text "'a tree2"} of binary trees where values are also
+Define a new type \<open>'a tree2\<close> of binary trees where values are also
 stored in the leaves of the tree.  Also reformulate the
 @{const mirror} function accordingly. Define two functions
-@{text "pre_order"} and @{text "post_order"} of type @{text "'a tree2 \<Rightarrow> 'a list"}
+\<open>pre_order\<close> and \<open>post_order\<close> of type \<open>'a tree2 \<Rightarrow> 'a list\<close>
 that traverse a tree and collect all stored values in the respective order in
 a list. Prove @{prop "pre_order (mirror t) = rev (post_order t)"}.
 \end{exercise}
 
 \begin{exercise}
-Define a function @{text "intersperse ::"} @{typ "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"}
-such that @{text "intersperse a [x\<^sub>1, ..., x\<^sub>n] = [x\<^sub>1, a, x\<^sub>2, a, ..., a, x\<^sub>n]"}.
+Define a function \<open>intersperse ::\<close> @{typ "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"}
+such that \<open>intersperse a [x\<^sub>1, ..., x\<^sub>n] = [x\<^sub>1, a, x\<^sub>2, a, ..., a, x\<^sub>n]\<close>.
 Now prove that @{prop "map f (intersperse a xs) = intersperse (f a) (map f xs)"}.
 \end{exercise}
 
@@ -259,7 +258,7 @@ Function @{const rev} has quadratic worst-case running time
 because it calls append for each element of the list and
 append is linear in its first argument.  A linear time version of
 @{const rev} requires an extra argument where the result is accumulated
-gradually, using only~@{text"#"}:
+gradually, using only~\<open>#\<close>:
 \<close>
 (*<*)
 apply auto
@@ -304,29 +303,29 @@ just not true.  The correct generalization is
 lemma "itrev xs ys = rev xs @ ys"
 (*<*)apply(induction xs, auto)(*>*)
 txt\<open>
-If @{text ys} is replaced by @{term"[]"}, the right-hand side simplifies to
+If \<open>ys\<close> is replaced by @{term"[]"}, the right-hand side simplifies to
 @{term"rev xs"}, as required.
 In this instance it was easy to guess the right generalization.
 Other situations can require a good deal of creativity.  
 
-Although we now have two variables, only @{text xs} is suitable for
+Although we now have two variables, only \<open>xs\<close> is suitable for
 induction, and we repeat our proof attempt. Unfortunately, we are still
 not there:
 @{subgoals[display,margin=65]}
 The induction hypothesis is still too weak, but this time it takes no
-intuition to generalize: the problem is that the @{text ys}
+intuition to generalize: the problem is that the \<open>ys\<close>
 in the induction hypothesis is fixed,
 but the induction hypothesis needs to be applied with
-@{term"a # ys"} instead of @{text ys}. Hence we prove the theorem
-for all @{text ys} instead of a fixed one. We can instruct induction
-to perform this generalization for us by adding @{text "arbitrary: ys"}\index{arbitrary@@{text"arbitrary:"}}.
+@{term"a # ys"} instead of \<open>ys\<close>. Hence we prove the theorem
+for all \<open>ys\<close> instead of a fixed one. We can instruct induction
+to perform this generalization for us by adding \<open>arbitrary: ys\<close>\index{arbitrary@\<open>arbitrary:\<close>}.
 \<close>
 (*<*)oops
 lemma "itrev xs ys = rev xs @ ys"
 (*>*)
 apply(induction xs arbitrary: ys)
 
-txt\<open>The induction hypothesis in the induction step is now universally quantified over @{text ys}:
+txt\<open>The induction hypothesis in the induction step is now universally quantified over \<open>ys\<close>:
 @{subgoals[display,margin=65]}
 Thus the proof succeeds:
 \<close>
@@ -340,7 +339,7 @@ This leads to another heuristic for generalization:
 \emph{Generalize induction by generalizing all free
 variables\\ {\em(except the induction variable itself)}.}
 \end{quote}
-Generalization is best performed with @{text"arbitrary: y\<^sub>1 \<dots> y\<^sub>k"}. 
+Generalization is best performed with \<open>arbitrary: y\<^sub>1 \<dots> y\<^sub>k\<close>. 
 This heuristic prevents trivial failures like the one above.
 However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate
@@ -351,10 +350,10 @@ those that change in recursive calls.
 \subsection*{Exercises}
 
 \begin{exercise}
-Write a tail-recursive variant of the @{text add} function on @{typ nat}:
+Write a tail-recursive variant of the \<open>add\<close> function on @{typ nat}:
 @{term "itadd :: nat \<Rightarrow> nat \<Rightarrow> nat"}.
-Tail-recursive means that in the recursive case, @{text itadd} needs to call
-itself directly: \mbox{@{term"itadd (Suc m) n"}} @{text"= itadd \<dots>"}.
+Tail-recursive means that in the recursive case, \<open>itadd\<close> needs to call
+itself directly: \mbox{@{term"itadd (Suc m) n"}} \<open>= itadd \<dots>\<close>.
 Prove @{prop "itadd m n = add m n"}.
 \end{exercise}
 
@@ -368,30 +367,30 @@ So far we have talked a lot about simplifying terms without explaining the conce
 \item as long as possible.
 \end{itemize}
 To emphasize the directionality, equations that have been given the
-@{text"simp"} attribute are called \conceptidx{simplification rules}{simplification rule}.
+\<open>simp\<close> attribute are called \conceptidx{simplification rules}{simplification rule}.
 Logically, they are still symmetric, but proofs by
 simplification use them only in the left-to-right direction.  The proof tool
 that performs simplifications is called the \concept{simplifier}. It is the
-basis of @{text auto} and other related proof methods.
+basis of \<open>auto\<close> and other related proof methods.
 
 The idea of simplification is best explained by an example. Given the
 simplification rules
 \[
 \begin{array}{rcl@ {\quad}l}
-@{term"0 + n::nat"} &@{text"="}& @{text n} & (1) \\
-@{term"(Suc m) + n"} &@{text"="}& @{term"Suc (m + n)"} & (2) \\
-@{text"(Suc m \<le> Suc n)"} &@{text"="}& @{text"(m \<le> n)"} & (3)\\
-@{text"(0 \<le> m)"} &@{text"="}& @{const True} & (4)
+@{term"0 + n::nat"} &\<open>=\<close>& \<open>n\<close> & (1) \\
+@{term"(Suc m) + n"} &\<open>=\<close>& @{term"Suc (m + n)"} & (2) \\
+\<open>(Suc m \<le> Suc n)\<close> &\<open>=\<close>& \<open>(m \<le> n)\<close> & (3)\\
+\<open>(0 \<le> m)\<close> &\<open>=\<close>& @{const True} & (4)
 \end{array}
 \]
 the formula @{prop"0 + Suc 0 \<le> Suc 0 + x"} is simplified to @{const True}
 as follows:
 \[
 \begin{array}{r@ {}c@ {}l@ {\quad}l}
-@{text"(0 + Suc 0"} & \leq & @{text"Suc 0 + x)"}  & \stackrel{(1)}{=} \\
-@{text"(Suc 0"}     & \leq & @{text"Suc 0 + x)"}  & \stackrel{(2)}{=} \\
-@{text"(Suc 0"}     & \leq & @{text"Suc (0 + x))"} & \stackrel{(3)}{=} \\
-@{text"(0"}         & \leq & @{text"0 + x)"}      & \stackrel{(4)}{=} \\[1ex]
+\<open>(0 + Suc 0\<close> & \leq & \<open>Suc 0 + x)\<close>  & \stackrel{(1)}{=} \\
+\<open>(Suc 0\<close>     & \leq & \<open>Suc 0 + x)\<close>  & \stackrel{(2)}{=} \\
+\<open>(Suc 0\<close>     & \leq & \<open>Suc (0 + x))\<close> & \stackrel{(3)}{=} \\
+\<open>(0\<close>         & \leq & \<open>0 + x)\<close>      & \stackrel{(4)}{=} \\[1ex]
  & @{const True}
 \end{array}
 \]
@@ -400,7 +399,7 @@ and simplification rules \conceptidx{rewrite rules}{rewrite rule}.
 
 \subsection{Simplification Rules}
 
-The attribute @{text"simp"} declares theorems to be simplification rules,
+The attribute \<open>simp\<close> declares theorems to be simplification rules,
 which the simplifier will use automatically. In addition,
 \isacom{datatype} and \isacom{fun} commands implicitly declare some
 simplification rules: \isacom{datatype} the distinctness and injectivity
@@ -454,39 +453,39 @@ are simpler than \mbox{@{prop"n < Suc m"}}. But
 leads to nontermination: when trying to rewrite @{prop"n<m"} to @{const True}
 one first has to prove \mbox{@{prop"Suc n < m"}}, which can be rewritten to @{const True} provided @{prop"Suc(Suc n) < m"}, \emph{ad infinitum}.
 
-\subsection{The \indexed{@{text simp}}{simp} Proof Method}
+\subsection{The \indexed{\<open>simp\<close>}{simp} Proof Method}
 \label{sec:simp}
 
-So far we have only used the proof method @{text auto}.  Method @{text simp}
-is the key component of @{text auto}, but @{text auto} can do much more. In
-some cases, @{text auto} is overeager and modifies the proof state too much.
-In such cases the more predictable @{text simp} method should be used.
+So far we have only used the proof method \<open>auto\<close>.  Method \<open>simp\<close>
+is the key component of \<open>auto\<close>, but \<open>auto\<close> can do much more. In
+some cases, \<open>auto\<close> is overeager and modifies the proof state too much.
+In such cases the more predictable \<open>simp\<close> method should be used.
 Given a goal
 \begin{quote}
-@{text"1. \<lbrakk> P\<^sub>1; \<dots>; P\<^sub>m \<rbrakk> \<Longrightarrow> C"}
+\<open>1. \<lbrakk> P\<^sub>1; \<dots>; P\<^sub>m \<rbrakk> \<Longrightarrow> C\<close>
 \end{quote}
 the command
 \begin{quote}
-\isacom{apply}@{text"(simp add: th\<^sub>1 \<dots> th\<^sub>n)"}
+\isacom{apply}\<open>(simp add: th\<^sub>1 \<dots> th\<^sub>n)\<close>
 \end{quote}
-simplifies the assumptions @{text "P\<^sub>i"} and the conclusion @{text C} using
+simplifies the assumptions \<open>P\<^sub>i\<close> and the conclusion \<open>C\<close> using
 \begin{itemize}
 \item all simplification rules, including the ones coming from \isacom{datatype} and \isacom{fun},
-\item the additional lemmas @{text"th\<^sub>1 \<dots> th\<^sub>n"}, and
+\item the additional lemmas \<open>th\<^sub>1 \<dots> th\<^sub>n\<close>, and
 \item the assumptions.
 \end{itemize}
-In addition to or instead of @{text add} there is also @{text del} for removing
-simplification rules temporarily. Both are optional. Method @{text auto}
+In addition to or instead of \<open>add\<close> there is also \<open>del\<close> for removing
+simplification rules temporarily. Both are optional. Method \<open>auto\<close>
 can be modified similarly:
 \begin{quote}
-\isacom{apply}@{text"(auto simp add: \<dots> simp del: \<dots>)"}
+\isacom{apply}\<open>(auto simp add: \<dots> simp del: \<dots>)\<close>
 \end{quote}
-Here the modifiers are @{text"simp add"} and @{text"simp del"}
-instead of just @{text add} and @{text del} because @{text auto}
+Here the modifiers are \<open>simp add\<close> and \<open>simp del\<close>
+instead of just \<open>add\<close> and \<open>del\<close> because \<open>auto\<close>
 does not just perform simplification.
 
-Note that @{text simp} acts only on subgoal 1, @{text auto} acts on all
-subgoals. There is also @{text simp_all}, which applies @{text simp} to
+Note that \<open>simp\<close> acts only on subgoal 1, \<open>auto\<close> acts on all
+subgoals. There is also \<open>simp_all\<close>, which applies \<open>simp\<close> to
 all subgoals.
 
 \subsection{Rewriting with Definitions}
@@ -502,41 +501,41 @@ constant, we can forget its original definition. This style makes proofs more
 robust: if the definition has to be changed, only the proofs of the abstract
 properties will be affected.
 
-The definition of a function @{text f} is a theorem named @{text f_def}
-and can be added to a call of @{text simp} like any other theorem:
+The definition of a function \<open>f\<close> is a theorem named \<open>f_def\<close>
+and can be added to a call of \<open>simp\<close> like any other theorem:
 \begin{quote}
-\isacom{apply}@{text"(simp add: f_def)"}
+\isacom{apply}\<open>(simp add: f_def)\<close>
 \end{quote}
 In particular, let-expressions can be unfolded by
 making @{thm[source] Let_def} a simplification rule.
 
-\subsection{Case Splitting With @{text simp}}
+\subsection{Case Splitting With \<open>simp\<close>}
 
 Goals containing if-expressions are automatically split into two cases by
-@{text simp} using the rule
+\<open>simp\<close> using the rule
 \begin{quote}
 @{prop"P(if A then s else t) = ((A \<longrightarrow> P(s)) \<and> (~A \<longrightarrow> P(t)))"}
 \end{quote}
-For example, @{text simp} can prove
+For example, \<open>simp\<close> can prove
 \begin{quote}
 @{prop"(A \<and> B) = (if A then B else False)"}
 \end{quote}
 because both @{prop"A \<longrightarrow> (A & B) = B"} and @{prop"~A \<longrightarrow> (A & B) = False"}
 simplify to @{const True}.
 
-We can split case-expressions similarly. For @{text nat} the rule looks like this:
+We can split case-expressions similarly. For \<open>nat\<close> the rule looks like this:
 @{prop[display,margin=65,indent=4]"P(case e of 0 \<Rightarrow> a | Suc n \<Rightarrow> b n) = ((e = 0 \<longrightarrow> P a) \<and> (\<forall>n. e = Suc n \<longrightarrow> P(b n)))"}
-Case expressions are not split automatically by @{text simp}, but @{text simp}
+Case expressions are not split automatically by \<open>simp\<close>, but \<open>simp\<close>
 can be instructed to do so:
 \begin{quote}
-\isacom{apply}@{text"(simp split: nat.split)"}
+\isacom{apply}\<open>(simp split: nat.split)\<close>
 \end{quote}
 splits all case-expressions over natural numbers. For an arbitrary
-datatype @{text t} it is @{text "t.split"}\index{split@@{text".split"}} instead of @{thm[source] nat.split}.
-Method @{text auto} can be modified in exactly the same way.
-The modifier \indexed{@{text "split:"}}{split} can be followed by multiple names.
+datatype \<open>t\<close> it is \<open>t.split\<close>\index{split@\<open>.split\<close>} instead of @{thm[source] nat.split}.
+Method \<open>auto\<close> can be modified in exactly the same way.
+The modifier \indexed{\<open>split:\<close>}{split} can be followed by multiple names.
 Splitting if or case-expressions in the assumptions requires 
-@{text "split: if_splits"} or @{text "split: t.splits"}.
+\<open>split: if_splits\<close> or \<open>split: t.splits\<close>.
 
 \ifsem\else
 \subsection{Rewriting \<open>let\<close> and Numerals}
@@ -547,16 +546,16 @@ Let-expressions (@{term "let x = s in t"}) can be expanded explicitly with the s
 Numerals of type @{typ nat} can be converted to @{const Suc} terms with the simplification rule
 @{thm[source] numeral_eq_Suc}. This is required, for example, when a function that is defined
 by pattern matching with @{const Suc} is applied to a numeral: if \<open>f\<close> is defined by
-@{text "f 0 = ..."} and  @{text "f (Suc n) = ..."}, the simplifier cannot simplify \<open>f 2\<close> unless
+\<open>f 0 = ...\<close> and  \<open>f (Suc n) = ...\<close>, the simplifier cannot simplify \<open>f 2\<close> unless
 \<open>2\<close> is converted to @{term "Suc(Suc 0)"} (via @{thm[source] numeral_eq_Suc}).
 \fi
 
 \subsection*{Exercises}
 
 \exercise\label{exe:tree0}
-Define a datatype @{text tree0} of binary tree skeletons which do not store
+Define a datatype \<open>tree0\<close> of binary tree skeletons which do not store
 any information, neither in the inner nodes nor in the leaves.
-Define a function @{text "nodes :: tree0 \<Rightarrow> nat"} that counts the number of
+Define a function \<open>nodes :: tree0 \<Rightarrow> nat\<close> that counts the number of
 all nodes (inner nodes and leaves) in such a tree.
 Consider the following recursive function:
 \<close>
@@ -570,9 +569,9 @@ fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
 text \<open>
 Find an equation expressing the size of a tree after exploding it
 (\noquotes{@{term [source] "nodes (explode n t)"}}) as a function
-of @{term "nodes t"} and @{text n}. Prove your equation.
+of @{term "nodes t"} and \<open>n\<close>. Prove your equation.
 You may use the usual arithmetic operators, including the exponentiation
-operator ``@{text"^"}''. For example, \noquotes{@{prop [source] "2 ^ 2 = 4"}}.
+operator ``\<open>^\<close>''. For example, \noquotes{@{prop [source] "2 ^ 2 = 4"}}.
 
 Hint: simplifying with the list of theorems @{thm[source] algebra_simps}
 takes care of common algebraic properties of the arithmetic operators.
@@ -587,8 +586,8 @@ datatype exp = Var | Const int | Add exp exp | Mult exp exp
 
 text\<open>
 Define a function \noquotes{@{term [source]"eval :: exp \<Rightarrow> int \<Rightarrow> int"}}
-such that @{term"eval e x"} evaluates @{text e} at the value
-@{text x}.
+such that @{term"eval e x"} evaluates \<open>e\<close> at the value
+\<open>x\<close>.
 
 A polynomial can be represented as a list of coefficients, starting with
 the constant. For example, @{term "[4, 2, -1, 3::int]"} represents the
@@ -597,7 +596,7 @@ Define a function \noquotes{@{term [source] "evalp :: int list \<Rightarrow> int
 that evaluates a polynomial at the given value.
 Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list"}}
 that transforms an expression into a polynomial. This may require auxiliary
-functions. Prove that @{text coeffs} preserves the value of the expression:
+functions. Prove that \<open>coeffs\<close> preserves the value of the expression:
 \mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
 Hint: consider the hint in Exercise~\ref{exe:tree0}.
 \endexercise

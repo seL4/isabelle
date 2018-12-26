@@ -36,7 +36,7 @@ translations
   "_State (_updbinds b bs)" <= "_Update (_State b) bs"
 
 text \<open>\noindent
-  We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
+  We can now write a series of updates to the function \<open>\<lambda>x. 0\<close> compactly:
 \<close>
 lemma "<a := 1, b := 2> = (<> (a := 1)) (b := (2::int))"
   by (rule refl)
@@ -48,8 +48,8 @@ text \<open>In  the @{term[source] "<a := b>"} syntax, variables that are not me
 \<close>
 value "aval (Plus (V ''x'') (N 5)) <''y'' := 7>"
 
-text\<open>Note that this @{text"<\<dots>>"} syntax works for any function space
-@{text"\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2"} where @{text "\<tau>\<^sub>2"} has a @{text 0}.\<close>
+text\<open>Note that this \<open><\<dots>>\<close> syntax works for any function space
+\<open>\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2\<close> where \<open>\<tau>\<^sub>2\<close> has a \<open>0\<close>.\<close>
 
 
 subsection "Constant Folding"

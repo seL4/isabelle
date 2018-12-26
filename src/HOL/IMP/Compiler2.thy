@@ -8,7 +8,7 @@ begin
 
 text \<open>
 The preservation of the source code semantics is already shown in the 
-parent theory @{text "Compiler"}. This here shows the second direction.
+parent theory \<open>Compiler\<close>. This here shows the second direction.
 \<close>
 
 subsection \<open>Definitions\<close>

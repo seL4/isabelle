@@ -12,10 +12,10 @@ begin
 
 text \<open>
 The function
-@{text pubK} maps agents to their public keys.  The function
-@{text priK} maps agents to their private keys.  It is merely
+\<open>pubK\<close> maps agents to their public keys.  The function
+\<open>priK\<close> maps agents to their private keys.  It is merely
 an abbreviation (cf.\ \S\ref{sec:abbreviations}) defined in terms of
-@{text invKey} and @{text pubK}.
+\<open>invKey\<close> and \<open>pubK\<close>.
 \<close>
 
 consts pubK :: "agent \<Rightarrow> key"
@@ -39,7 +39,7 @@ end
 
 text \<open>
 \noindent
-The set @{text bad} consists of those agents whose private keys are known to
+The set \<open>bad\<close> consists of those agents whose private keys are known to
 the spy.
 
 Two axioms are asserted about the public-key cryptosystem. 

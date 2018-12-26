@@ -13,7 +13,7 @@ For this purpose, \pgmenu{Find} provides three aditional search criteria:
 
 For example, given the goal @{subgoals[display,indent=0,margin=65]}
 you can click on \pgmenu{Find} and type in the search expression
-\texttt{intro}. You will be shown a few rules ending in @{text"\<Longrightarrow> ?P \<and> ?Q"},
+\texttt{intro}. You will be shown a few rules ending in \<open>\<Longrightarrow> ?P \<and> ?Q\<close>,
 among them @{thm[source]conjI}\@. You may even discover that
 the very theorem you are trying to prove is already in the
 database.  Given the goal\<close>
@@ -31,7 +31,7 @@ As before, search criteria can be combined freely: for example,
 "_ \at\ _"  intro
 \end{ttbox}
 searches for all introduction rules that match the current goal and
-mention the @{text"@"} function.
+mention the \<open>@\<close> function.
 
 Searching for elimination and destruction rules via \texttt{elim} and
 \texttt{dest} is analogous to \texttt{intro} but takes the assumptions

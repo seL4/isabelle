@@ -15,7 +15,7 @@ where function symbols can be applied to a list of arguments:
 datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list"
 
 text\<open>\noindent
-Note that we need to quote @{text term} on the left to avoid confusion with
+Note that we need to quote \<open>term\<close> on the left to avoid confusion with
 the Isabelle command \isacommand{term}.
 Parameter @{typ"'v"} is the type of variables and @{typ"'f"} the type of
 function symbols.
@@ -23,10 +23,10 @@ A mathematical term like $f(x,g(y))$ becomes @{term"App f [Var x, App g
   [Var y]]"}, where @{term f}, @{term g}, @{term x}, @{term y} are
 suitable values, e.g.\ numbers or strings.
 
-What complicates the definition of @{text term} is the nested occurrence of
-@{text term} inside @{text list} on the right-hand side. In principle,
+What complicates the definition of \<open>term\<close> is the nested occurrence of
+\<open>term\<close> inside \<open>list\<close> on the right-hand side. In principle,
 nested recursion can be eliminated in favour of mutual recursion by unfolding
-the offending datatypes, here @{text list}. The result for @{text term}
+the offending datatypes, here \<open>list\<close>. The result for \<open>term\<close>
 would be something like
 \medskip
 
@@ -36,7 +36,7 @@ would be something like
 \noindent
 Although we do not recommend this unfolding to the user, it shows how to
 simulate nested recursion by mutual recursion.
-Now we return to the initial definition of @{text term} using
+Now we return to the initial definition of \<open>term\<close> using
 nested recursion.
 
 Let us define a substitution function on terms. Because terms involve term
@@ -75,7 +75,7 @@ Note that @{term Var} is the identity substitution because by definition it
 leaves variables unchanged: @{prop"subst Var (Var x) = Var x"}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
-parameters @{text"('v,'f)"}. As a result, induction would fail
+parameters \<open>('v,'f)\<close>. As a result, induction would fail
 because the two halves of the goal would be unrelated.
 
 \begin{exercise}
@@ -83,7 +83,7 @@ The fact that substitution distributes over composition can be expressed
 roughly as follows:
 @{text[display]"subst (f \<circ> g) t = subst f (subst g t)"}
 Correct this statement (you will find that it does not type-check),
-strengthen it, and prove it. (Note: @{text"\<circ>"} is function composition;
+strengthen it, and prove it. (Note: \<open>\<circ>\<close> is function composition;
 its definition is found in theorem @{thm[source]o_def}).
 \end{exercise}
 \begin{exercise}\label{ex:trev-trev}
@@ -97,7 +97,7 @@ The experienced functional programmer may feel that our definition of
 unnecessary. The @{term App}-case can be defined directly as
 @{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
 where @{term"map"} is the standard list function such that
-@{text"map f [x1,...,xn] = [f x1,...,f xn]"}. This is true, but Isabelle
+\<open>map f [x1,...,xn] = [f x1,...,f xn]\<close>. This is true, but Isabelle
 insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:
 \<close>
@@ -143,17 +143,17 @@ declare subst_App [simp del]
 text\<open>\noindent The advantage is that now we have replaced @{const
 substs} by @{const map}, we can profit from the large number of
 pre-proved lemmas about @{const map}.  Unfortunately, inductive proofs
-about type @{text term} are still awkward because they expect a
+about type \<open>term\<close> are still awkward because they expect a
 conjunction. One could derive a new induction principle as well (see
 \S\ref{sec:derive-ind}), but simpler is to stop using
 \isacommand{primrec} and to define functions with \isacommand{fun}
 instead.  Simple uses of \isacommand{fun} are described in
 \S\ref{sec:fun} below.  Advanced applications, including functions
-over nested datatypes like @{text term}, are discussed in a
+over nested datatypes like \<open>term\<close>, are discussed in a
 separate tutorial~@{cite "isabelle-function"}.
 
 Of course, you may also combine mutual and nested recursion of datatypes. For example,
-constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
-expressions as its argument: @{text Sum}~@{typ[quotes]"'a aexp list"}.
+constructor \<open>Sum\<close> in \S\ref{sec:datatype-mut-rec} could take a list of
+expressions as its argument: \<open>Sum\<close>~@{typ[quotes]"'a aexp list"}.
 \<close>
 (*<*)end(*>*)

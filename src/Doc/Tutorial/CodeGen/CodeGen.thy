@@ -37,7 +37,7 @@ text\<open>
 The stack machine has three instructions: load a constant value onto the
 stack, load the contents of an address onto the stack, and apply a
 binary operation to the two topmost elements of the stack, replacing them by
-the result. As for @{text"expr"}, addresses and values are type parameters:
+the result. As for \<open>expr\<close>, addresses and values are type parameters:
 \<close>
 
 datatype (dead 'a, 'v) instr = Const 'v
@@ -46,7 +46,7 @@ datatype (dead 'a, 'v) instr = Const 'v
 
 text\<open>
 The execution of the stack machine is modelled by a function
-@{text"exec"} that takes a list of instructions, a store (modelled as a
+\<open>exec\<close> that takes a list of instructions, a store (modelled as a
 function from addresses to values, just like the environment for
 evaluating expressions), and a stack (modelled as a list) of values,
 and returns the stack at the end of the execution --- the store remains
@@ -103,14 +103,14 @@ lemma exec_app[simp]:
 txt\<open>\noindent
 This requires induction on @{term"xs"} and ordinary simplification for the
 base cases. In the induction step, simplification leaves us with a formula
-that contains two @{text"case"}-expressions over instructions. Thus we add
+that contains two \<open>case\<close>-expressions over instructions. Thus we add
 automatic case splitting, which finishes the proof:
 \<close>
 apply(induct_tac xs, simp, simp split: instr.split)
 (*<*)done(*>*)
 text\<open>\noindent
 Note that because both \methdx{simp_all} and \methdx{auto} perform simplification, they can
-be modified in the same way as @{text simp}.  Thus the proof can be
+be modified in the same way as \<open>simp\<close>.  Thus the proof can be
 rewritten as
 \<close>
 (*<*)

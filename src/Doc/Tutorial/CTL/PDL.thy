@@ -5,7 +5,7 @@ subsection\<open>Propositional Dynamic Logic --- PDL\<close>
 text\<open>\index{PDL|(}
 The formulae of PDL are built up from atomic propositions via
 negation and conjunction and the two temporal
-connectives @{text AX} and @{text EF}\@. Since formulae are essentially
+connectives \<open>AX\<close> and \<open>EF\<close>\@. Since formulae are essentially
 syntax trees, they are naturally modelled as a datatype:%
 \footnote{The customary definition of PDL
 @{cite "HarelKT-DL"} looks quite different from ours, but the two are easily
@@ -22,8 +22,8 @@ text\<open>\noindent
 This resembles the boolean expression case study in
 \S\ref{sec:boolex}.
 A validity relation between states and formulae specifies the semantics.
-The syntax annotation allows us to write @{text"s \<Turnstile> f"} instead of
-\hbox{@{text"valid s f"}}. The definition is by recursion over the syntax:
+The syntax annotation allows us to write \<open>s \<Turnstile> f\<close> instead of
+\hbox{\<open>valid s f\<close>}. The definition is by recursion over the syntax:
 \<close>
 
 primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
@@ -38,7 +38,7 @@ text\<open>\noindent
 The first three equations should be self-explanatory. The temporal formula
 @{term"AX f"} means that @{term f} is true in \emph{A}ll ne\emph{X}t states whereas
 @{term"EF f"} means that there \emph{E}xists some \emph{F}uture state in which @{term f} is
-true. The future is expressed via @{text"\<^sup>*"}, the reflexive transitive
+true. The future is expressed via \<open>\<^sup>*\<close>, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
 Now we come to the model checker itself. It maps a formula into the
@@ -54,7 +54,7 @@ primrec mc :: "formula \<Rightarrow> state set" where
 
 text\<open>\noindent
 Only the equation for @{term EF} deserves some comments. Remember that the
-postfix @{text"\<inverse>"} and the infix @{text"``"} are predefined and denote the
+postfix \<open>\<inverse>\<close> and the infix \<open>``\<close> are predefined and denote the
 converse of a relation and the image of a set under a relation.  Thus
 @{term "M\<inverse> `` T"} is the set of all predecessors of @{term T} and the least
 fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> `` T"} is the least set
@@ -73,7 +73,7 @@ apply blast
 done
 
 text\<open>\noindent
-Now we can relate model checking and semantics. For the @{text EF} case we need
+Now we can relate model checking and semantics. For the \<open>EF\<close> case we need
 a separate lemma:
 \<close>
 
@@ -106,7 +106,7 @@ simplification leaves us with the following goal:
 \ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
-It is proved by @{text blast}, using the transitivity of 
+It is proved by \<open>blast\<close>, using the transitivity of 
 \isa{M\isactrlsup {\isacharasterisk}}.
 \<close>
 
@@ -161,7 +161,7 @@ done
 
 text\<open>
 The main theorem is proved in the familiar manner: induction followed by
-@{text auto} augmented with the lemma as a simplification rule.
+\<open>auto\<close> augmented with the lemma as a simplification rule.
 \<close>
 
 theorem "mc f = {s. s \<Turnstile> f}"
@@ -173,8 +173,8 @@ text\<open>
 \begin{exercise}
 @{term AX} has a dual operator @{term EN} 
 (``there exists a next state such that'')%
-\footnote{We cannot use the customary @{text EX}: it is reserved
-as the \textsc{ascii}-equivalent of @{text"\<exists>"}.}
+\footnote{We cannot use the customary \<open>EX\<close>: it is reserved
+as the \textsc{ascii}-equivalent of \<open>\<exists>\<close>.}
 with the intended semantics
 @{prop[display]"(s \<Turnstile> EN f) = (\<exists>t. (s,t) \<in> M \<and> t \<Turnstile> f)"}
 Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?

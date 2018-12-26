@@ -146,7 +146,7 @@ apply (rule Int_greatest)
 apply (assumption+)
 done
 
-text\<open>Trying again from the beginning in order to use @{text blast}\<close>
+text\<open>Trying again from the beginning in order to use \<open>blast\<close>\<close>
 lemma "Pow(A Int B) = Pow(A) Int Pow(B)"
 by blast
 

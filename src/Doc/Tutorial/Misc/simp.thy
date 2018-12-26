@@ -6,7 +6,7 @@ subsection\<open>Simplification Rules\<close>
 
 text\<open>\index{simplification rules}
 To facilitate simplification,  
-the attribute @{text"[simp]"}\index{*simp (attribute)}
+the attribute \<open>[simp]\<close>\index{*simp (attribute)}
 declares theorems to be simplification rules, which the simplifier
 will use automatically.  In addition, \isacommand{datatype} and
 \isacommand{primrec} declarations (and a few others) 
@@ -23,8 +23,8 @@ are explained in \S\ref{sec:SimpHow}.
 The simplification attribute of theorems can be turned on and off:%
 \index{*simp del (attribute)}
 \begin{quote}
-\isacommand{declare} \textit{theorem-name}@{text"[simp]"}\\
-\isacommand{declare} \textit{theorem-name}@{text"[simp del]"}
+\isacommand{declare} \textit{theorem-name}\<open>[simp]\<close>\\
+\isacommand{declare} \textit{theorem-name}\<open>[simp del]\<close>
 \end{quote}
 Only equations that really simplify, like \isa{rev\
 {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs} and
@@ -56,15 +56,15 @@ subsection\<open>The {\tt\slshape simp}  Method\<close>
 text\<open>\index{*simp (method)|bold}
 The general format of the simplification method is
 \begin{quote}
-@{text simp} \textit{list of modifiers}
+\<open>simp\<close> \textit{list of modifiers}
 \end{quote}
 where the list of \emph{modifiers} fine tunes the behaviour and may
 be empty. Specific modifiers are discussed below.  Most if not all of the
 proofs seen so far could have been performed
-with @{text simp} instead of \isa{auto}, except that @{text simp} attacks
+with \<open>simp\<close> instead of \isa{auto}, except that \<open>simp\<close> attacks
 only the first subgoal and may thus need to be repeated --- use
 \methdx{simp_all} to simplify all subgoals.
-If nothing changes, @{text simp} fails.
+If nothing changes, \<open>simp\<close> fails.
 \<close>
 
 subsection\<open>Adding and Deleting Simplification Rules\<close>
@@ -76,17 +76,17 @@ we do not need to make it a global simplification rule. Instead we can modify
 the set of simplification rules used in a simplification step by adding rules
 to it and/or deleting rules from it. The two modifiers for this are
 \begin{quote}
-@{text"add:"} \textit{list of theorem names}\index{*add (modifier)}\\
-@{text"del:"} \textit{list of theorem names}\index{*del (modifier)}
+\<open>add:\<close> \textit{list of theorem names}\index{*add (modifier)}\\
+\<open>del:\<close> \textit{list of theorem names}\index{*del (modifier)}
 \end{quote}
 Or you can use a specific list of theorems and omit all others:
 \begin{quote}
-@{text"only:"} \textit{list of theorem names}\index{*only (modifier)}
+\<open>only:\<close> \textit{list of theorem names}\index{*only (modifier)}
 \end{quote}
 In this example, we invoke the simplifier, adding two distributive
 laws:
 \begin{quote}
-\isacommand{apply}@{text"(simp add: mod_mult_distrib add_mult_distrib)"}
+\isacommand{apply}\<open>(simp add: mod_mult_distrib add_mult_distrib)\<close>
 \end{quote}
 \<close>
 
@@ -112,7 +112,7 @@ In some cases, using the assumptions can lead to nontermination:
 lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []"
 
 txt\<open>\noindent
-An unmodified application of @{text"simp"} loops.  The culprit is the
+An unmodified application of \<open>simp\<close> loops.  The culprit is the
 simplification rule @{term"f x = g (f (g x))"}, which is extracted from
 the assumption.  (Isabelle notices certain simple forms of
 nontermination but not this one.)  The problem can be circumvented by
@@ -125,12 +125,12 @@ done
 text\<open>\noindent
 Three modifiers influence the treatment of assumptions:
 \begin{description}
-\item[@{text"(no_asm)"}]\index{*no_asm (modifier)}
+\item[\<open>(no_asm)\<close>]\index{*no_asm (modifier)}
  means that assumptions are completely ignored.
-\item[@{text"(no_asm_simp)"}]\index{*no_asm_simp (modifier)}
+\item[\<open>(no_asm_simp)\<close>]\index{*no_asm_simp (modifier)}
  means that the assumptions are not simplified but
   are used in the simplification of the conclusion.
-\item[@{text"(no_asm_use)"}]\index{*no_asm_use (modifier)}
+\item[\<open>(no_asm_use)\<close>]\index{*no_asm_use (modifier)}
  means that the assumptions are simplified but are not
   used in the simplification of each other or the conclusion.
 \end{description}
@@ -205,9 +205,9 @@ subsection\<open>Simplifying {\tt\slshape let}-Expressions\<close>
 
 text\<open>\index{simplification!of \isa{let}-expressions}\index{*let expressions}%
 Proving a goal containing \isa{let}-expressions almost invariably requires the
-@{text"let"}-con\-structs to be expanded at some point. Since
-@{text"let"}\ldots\isa{=}\ldots@{text"in"}{\ldots} is just syntactic sugar for
-the predefined constant @{term"Let"}, expanding @{text"let"}-constructs
+\<open>let\<close>-con\-structs to be expanded at some point. Since
+\<open>let\<close>\ldots\isa{=}\ldots\<open>in\<close>{\ldots} is just syntactic sugar for
+the predefined constant @{term"Let"}, expanding \<open>let\<close>-constructs
 means rewriting with \tdx{Let_def}:\<close>
 
 lemma "(let xs = [] in xs@ys@xs) = ys"
@@ -216,7 +216,7 @@ done
 
 text\<open>
 If, in a particular context, there is no danger of a combinatorial explosion
-of nested @{text"let"}s, you could even simplify with @{thm[source]Let_def} by
+of nested \<open>let\<close>s, you could even simplify with @{thm[source]Let_def} by
 default:
 \<close>
 declare Let_def [simp]
@@ -257,7 +257,7 @@ assumption of the subgoal.
 subsection\<open>Automatic Case Splits\<close>
 
 text\<open>\label{sec:AutoCaseSplits}\indexbold{case splits}%
-Goals containing @{text"if"}-expressions\index{*if expressions!splitting of}
+Goals containing \<open>if\<close>-expressions\index{*if expressions!splitting of}
 are usually proved by case
 distinction on the boolean condition.  Here is an example:
 \<close>
@@ -273,12 +273,12 @@ apply(split if_split)
 txt\<open>\noindent
 @{subgoals[display,indent=0]}
 where \tdx{if_split} is a theorem that expresses splitting of
-@{text"if"}s. Because
-splitting the @{text"if"}s is usually the right proof strategy, the
-simplifier does it automatically.  Try \isacommand{apply}@{text"(simp)"}
+\<open>if\<close>s. Because
+splitting the \<open>if\<close>s is usually the right proof strategy, the
+simplifier does it automatically.  Try \isacommand{apply}\<open>(simp)\<close>
 on the initial goal above.
 
-This splitting idea generalizes from @{text"if"} to \sdx{case}.
+This splitting idea generalizes from \<open>if\<close> to \sdx{case}.
 Let us simplify a case analysis over lists:\index{*list.split (theorem)}
 \<close>(*<*)by simp(*>*)
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs"
@@ -287,10 +287,10 @@ apply(split list.split)
 txt\<open>
 @{subgoals[display,indent=0]}
 The simplifier does not split
-@{text"case"}-expressions, as it does @{text"if"}-expressions, 
+\<open>case\<close>-expressions, as it does \<open>if\<close>-expressions, 
 because with recursive datatypes it could lead to nontermination.
 Instead, the simplifier has a modifier
-@{text split}\index{*split (modifier)} 
+\<open>split\<close>\index{*split (modifier)} 
 for adding splitting rules explicitly.  The
 lemma above can be proved in one step by
 \<close>
@@ -300,17 +300,17 @@ lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs"
 apply(simp split: list.split)
 (*<*)done(*>*)
 text\<open>\noindent
-whereas \isacommand{apply}@{text"(simp)"} alone will not succeed.
+whereas \isacommand{apply}\<open>(simp)\<close> alone will not succeed.
 
 Every datatype $t$ comes with a theorem
-$t$@{text".split"} which can be declared to be a \bfindex{split rule} either
+$t$\<open>.split\<close> which can be declared to be a \bfindex{split rule} either
 locally as above, or by giving it the \attrdx{split} attribute globally:
 \<close>
 
 declare list.split [split]
 
 text\<open>\noindent
-The @{text"split"} attribute can be removed with the @{text"del"} modifier,
+The \<open>split\<close> attribute can be removed with the \<open>del\<close> modifier,
 either locally
 \<close>
 (*<*)
@@ -326,27 +326,27 @@ or globally:
 declare list.split [split del]
 
 text\<open>
-Polished proofs typically perform splitting within @{text simp} rather than 
-invoking the @{text split} method.  However, if a goal contains
-several @{text "if"} and @{text case} expressions, 
-the @{text split} method can be
+Polished proofs typically perform splitting within \<open>simp\<close> rather than 
+invoking the \<open>split\<close> method.  However, if a goal contains
+several \<open>if\<close> and \<open>case\<close> expressions, 
+the \<open>split\<close> method can be
 helpful in selectively exploring the effects of splitting.
 
 The split rules shown above are intended to affect only the subgoal's
-conclusion.  If you want to split an @{text"if"} or @{text"case"}-expression
+conclusion.  If you want to split an \<open>if\<close> or \<open>case\<close>-expression
 in the assumptions, you have to apply \tdx{if_split_asm} or
-$t$@{text".split_asm"}:\<close>
+$t$\<open>.split_asm\<close>:\<close>
 
 lemma "if xs = [] then ys \<noteq> [] else ys = [] \<Longrightarrow> xs @ ys \<noteq> []"
 apply(split if_split_asm)
 
 txt\<open>\noindent
 Unlike splitting the conclusion, this step creates two
-separate subgoals, which here can be solved by @{text"simp_all"}:
+separate subgoals, which here can be solved by \<open>simp_all\<close>:
 @{subgoals[display,indent=0]}
 If you need to split both in the assumptions and the conclusion,
-use $t$@{text".splits"} which subsumes $t$@{text".split"} and
-$t$@{text".split_asm"}. Analogously, there is @{thm[source]if_splits}.
+use $t$\<open>.splits\<close> which subsumes $t$\<open>.split\<close> and
+$t$\<open>.split_asm\<close>. Analogously, there is @{thm[source]if_splits}.
 
 \begin{warn}
   The simplifier merely simplifies the condition of an 
@@ -476,7 +476,7 @@ This finds \emph{all} equations---not just those with a \isa{simp} attribute---w
 @{text[display]"_ * (_ + _) = \<dots>"}
 It only finds equations that can simplify the given pattern
 at the root, not somewhere inside: for example, equations of the form
-@{text"_ + _ = \<dots>"} do not match.
+\<open>_ + _ = \<dots>\<close> do not match.
 
 You may also search for theorems by name---you merely
 need to specify a substring. For example, you could search for all
@@ -502,7 +502,7 @@ the criteria. For example,
 "_ + _"  -"_ - _"  -simp: "_ * (_ + _)"  name: assoc
 \end{ttbox}
 looks for theorems containing plus but not minus, and which do not simplify
-\mbox{@{text"_ * (_ + _)"}} at the root, and whose name contains \texttt{assoc}.
+\mbox{\<open>_ * (_ + _)\<close>} at the root, and whose name contains \texttt{assoc}.
 
 Further search criteria are explained in \S\ref{sec:find2}.
 

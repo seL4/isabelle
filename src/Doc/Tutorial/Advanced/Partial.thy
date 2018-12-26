@@ -4,7 +4,7 @@ text\<open>\noindent Throughout this tutorial, we have emphasized
 that all functions in HOL are total.  We cannot hope to define
 truly partial functions, but must make them total.  A straightforward
 method is to lift the result type of the function from $\tau$ to
-$\tau$~@{text option} (see \ref{sec:option}), where @{term None} is
+$\tau$~\<open>option\<close> (see \ref{sec:option}), where @{term None} is
 returned if the function is applied to an argument not in its
 domain. Function @{term assoc} in \S\ref{sec:Trie} is a simple example.
 We do not pursue this schema further because it should be clear
@@ -68,7 +68,7 @@ recdef divi "measure(\<lambda>(m,n). m)"
 
 text\<open>\noindent Of course we could also have defined
 @{term"divi(m,0)"} to be some specific number, for example 0. The
-latter option is chosen for the predefined @{text div} function, which
+latter option is chosen for the predefined \<open>div\<close> function, which
 simplifies proofs at the expense of deviating from the
 standard mathematical division function.
 
@@ -150,7 +150,7 @@ combinator.  The latter lives in the Library theory \thydx{While_Combinator}.
 % which is not part of {text Main} but needs to
 % be included explicitly among the ancestor theories.
 
-Constant @{term while} is of type @{text"('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a"}
+Constant @{term while} is of type \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a\<close>
 and satisfies the recursion equation @{thm[display]while_unfold[no_vars]}
 That is, @{term"while b c s"} is equivalent to the imperative program
 \begin{verbatim}
@@ -184,7 +184,7 @@ relation @{term r} (premises 4 and~5).
 Let us now prove that @{const find2} does indeed find a fixed point. Instead
 of induction we apply the above while rule, suitably instantiated.
 Only the final premise of @{thm[source]while_rule} is left unproved
-by @{text auto} but falls to @{text simp}:
+by \<open>auto\<close> but falls to \<open>simp\<close>:
 \<close>
 
 lemma lem: "wf(step1 f) \<Longrightarrow>

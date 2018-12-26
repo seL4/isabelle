@@ -27,9 +27,9 @@ documents you can now produce at the drop of a hat will be struck with
 awe at the beauty unfolding in front of their eyes. Until one day you
 come across that very critical of readers known as the ``common referee''.
 He has the nasty habit of refusing to understand unfamiliar notation
-like Isabelle's infamous @{text"\<lbrakk> \<rbrakk> \<Longrightarrow>"} no matter how many times you
-explain it in your paper. Even worse, he thinks that using @{text"\<lbrakk>
-\<rbrakk>"} for anything other than denotational semantics is a cardinal sin
+like Isabelle's infamous \<open>\<lbrakk> \<rbrakk> \<Longrightarrow>\<close> no matter how many times you
+explain it in your paper. Even worse, he thinks that using \<open>\<lbrakk>
+\<rbrakk>\<close> for anything other than denotational semantics is a cardinal sin
 that must be punished by instant rejection.
 
 
@@ -47,7 +47,7 @@ you so), you include them at the beginning of your \LaTeX\ document,
 typically in \texttt{root.tex}. For a start, you should
 \verb!\usepackage{amssymb}! --- otherwise typesetting
 @{prop[source]"\<not>(\<exists>x. P x)"} will fail because the AMS symbol
-@{text"\<nexists>"} is missing.
+\<open>\<nexists>\<close> is missing.
 \end{itemize}
 
 
@@ -57,14 +57,14 @@ typically in \texttt{root.tex}. For a start, you should
 
 The formula @{prop[source]"\<not>(\<exists>x. P x)"} is typeset as @{prop"\<not>(\<exists>x. P x)"}.
 
-The predefined constructs @{text"if"}, @{text"let"} and
-@{text"case"} are set in sans serif font to distinguish them from
+The predefined constructs \<open>if\<close>, \<open>let\<close> and
+\<open>case\<close> are set in sans serif font to distinguish them from
 other functions. This improves readability:
 \begin{itemize}
-\item @{term"if b then e\<^sub>1 else e\<^sub>2"} instead of @{text"if b then e\<^sub>1 else e\<^sub>2"}.
-\item @{term"let x = e\<^sub>1 in e\<^sub>2"} instead of @{text"let x = e\<^sub>1 in e\<^sub>2"}.
+\item @{term"if b then e\<^sub>1 else e\<^sub>2"} instead of \<open>if b then e\<^sub>1 else e\<^sub>2\<close>.
+\item @{term"let x = e\<^sub>1 in e\<^sub>2"} instead of \<open>let x = e\<^sub>1 in e\<^sub>2\<close>.
 \item @{term"case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2"} instead of\\
-      @{text"case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2"}.
+      \<open>case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2\<close>.
 \end{itemize}
 
 \subsection{Sets}
@@ -72,11 +72,11 @@ other functions. This improves readability:
 Although set syntax in HOL is already close to
 standard, we provide a few further improvements:
 \begin{itemize}
-\item @{term"{x. P}"} instead of @{text"{x. P}"}.
-\item @{term"{}"} instead of @{text"{}"}, where
+\item @{term"{x. P}"} instead of \<open>{x. P}\<close>.
+\item @{term"{}"} instead of \<open>{}\<close>, where
  @{term"{}"} is also input syntax.
-\item @{term"insert a (insert b (insert c M))"} instead of @{text"insert a (insert b (insert c M))"}.
-\item @{term"card A"} instead of @{text"card A"}.
+\item @{term"insert a (insert b (insert c M))"} instead of \<open>insert a (insert b (insert c M))\<close>.
+\item @{term"card A"} instead of \<open>card A\<close>.
 \end{itemize}
 
 
@@ -84,21 +84,21 @@ standard, we provide a few further improvements:
 
 If lists are used heavily, the following notations increase readability:
 \begin{itemize}
-\item @{term"x # xs"} instead of @{text"x # xs"},
+\item @{term"x # xs"} instead of \<open>x # xs\<close>,
       where @{term"x # xs"} is also input syntax.
-\item @{term"length xs"} instead of @{text"length xs"}.
-\item @{term"nth xs n"} instead of @{text"nth xs n"},
-      the $n$th element of @{text xs}.
+\item @{term"length xs"} instead of \<open>length xs\<close>.
+\item @{term"nth xs n"} instead of \<open>nth xs n\<close>,
+      the $n$th element of \<open>xs\<close>.
 
 \item Human readers are good at converting automatically from lists to
 sets. Hence \texttt{OptionalSugar} contains syntax for suppressing the
 conversion function @{const set}: for example, @{prop[source]"x \<in> set xs"}
 becomes @{prop"x \<in> set xs"}.
 
-\item The @{text"@"} operation associates implicitly to the right,
+\item The \<open>@\<close> operation associates implicitly to the right,
 which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group
-@{text"@"}-terms to the left before printing, which leads to better
+\<open>@\<close>-terms to the left before printing, which leads to better
 line breaking behaviour:
 @{term[display]"term\<^sub>0 @ term\<^sub>1 @ term\<^sub>2 @ term\<^sub>3 @ term\<^sub>4 @ term\<^sub>5 @ term\<^sub>6 @ term\<^sub>7 @ term\<^sub>8 @ term\<^sub>9 @ term\<^sub>1\<^sub>0"}
 
@@ -110,10 +110,10 @@ line breaking behaviour:
 Coercions between numeric types are alien to mathematicians who
 consider, for example, @{typ nat} as a subset of @{typ int}.
 \texttt{OptionalSugar} contains syntax for suppressing numeric coercions such
-as @{const int} @{text"::"} @{typ"nat \<Rightarrow> int"}. For example,
+as @{const int} \<open>::\<close> @{typ"nat \<Rightarrow> int"}. For example,
 @{term[source]"int 5"} is printed as @{term "int 5"}. Embeddings of types
 @{typ nat}, @{typ int}, @{typ real} are covered; non-injective coercions such
-as @{const nat} @{text"::"} @{typ"int \<Rightarrow> nat"} are not and should not be
+as @{const nat} \<open>::\<close> @{typ"int \<Rightarrow> nat"} are not and should not be
 hidden.
 
 
@@ -161,7 +161,7 @@ The rest of this document is produced with this flag set to \texttt{false}.
 subsection \<open>Qualified names\<close>
 
 text\<open>If there are multiple declarations of the same name, Isabelle prints
-the qualified name, for example @{text "T.length"}, where @{text T} is the
+the qualified name, for example \<open>T.length\<close>, where \<open>T\<close> is the
 theory it is defined in, to distinguish it from the predefined @{const[source]
 "List.length"}. In case there is no danger of confusion, you can insist on
 short names (no qualifiers) by setting the \verb!names_short!
@@ -184,12 +184,12 @@ the constant \texttt{DUMMY} has been introduced:
 \showout @{thm fst_conv[of _ DUMMY]}
 \end{quote}
 As expected, the second argument has been replaced by ``\_'',
-but the first argument is the ugly @{text "x1.0"}, a schematic variable
+but the first argument is the ugly \<open>x1.0\<close>, a schematic variable
 with suppressed question mark. Schematic variables that end in digits,
-e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
-e.g. @{text"x1.0"}, their internal index. This can be avoided by
+e.g. \<open>x1\<close>, are still printed with a trailing \<open>.0\<close>,
+e.g. \<open>x1.0\<close>, their internal index. This can be avoided by
 turning the last digit into a subscript: write \<^verbatim>\<open>x\<^sub>1\<close> and
-obtain the much nicer @{text"x\<^sub>1"}. Alternatively, you can display trailing digits of
+obtain the much nicer \<open>x\<^sub>1\<close>. Alternatively, you can display trailing digits of
 schematic and free variables as subscripts with the \texttt{sub} style:
 \begin{quote}
 \verb!@!\verb!{thm (sub) fst_conv[of _ DUMMY]}!\\
@@ -277,7 +277,7 @@ premises for one line:
 \end{center}
 
 Limitations: 1. Premises and conclusion must each not be longer than
-the line.  2. Premises that are @{text"\<Longrightarrow>"}-implications are again
+the line.  2. Premises that are \<open>\<Longrightarrow>\<close>-implications are again
 displayed with a horizontal line, which looks at least unusual.
 
 
@@ -392,7 +392,7 @@ etc.\ are printed as patterns. \texttt{OptionalSugar} provides the following:
 
 The \verb!thm! antiquotation works nicely for single theorems, but
 sets of equations as used in definitions are more difficult to
-typeset nicely: people tend to prefer aligned @{text "="} signs.
+typeset nicely: people tend to prefer aligned \<open>=\<close> signs.
 
 To deal with such cases where it is desirable to dive into the structure
 of terms and theorems, Isabelle offers antiquotations featuring ``styles'':
@@ -409,7 +409,7 @@ of terms and theorems, Isabelle offers antiquotations featuring ``styles'':
  styles, namely \verb!lhs! and \verb!rhs!, \verb!prem! with one argument, and \verb!concl!.
 For example, the output
 \begin{center}
-\begin{tabular}{l@ {~~@{text "="}~~}l}
+\begin{tabular}{l@ {~~\<open>=\<close>~~}l}
 @{thm (lhs) append_Nil} & @{thm (rhs) append_Nil}\\
 @{thm (lhs) append_Cons} & @{thm (rhs) append_Cons}
 \end{tabular}
@@ -428,7 +428,7 @@ It prevents Isabelle from interpreting \verb!@ {~~...~~}!
 as an antiquotation. The styles \verb!lhs! and \verb!rhs!
 extract the left hand side (or right hand side respectively) from the
 conclusion of propositions consisting of a binary operator
-(e.~g.~@{text "="}, @{text "\<equiv>"}, @{text "<"}).
+(e.~g.~\<open>=\<close>, \<open>\<equiv>\<close>, \<open><\<close>).
 
 Likewise, \verb!concl! may be used as a style to show just the
 conclusion of a proposition. For example, take \verb!hd_Cons_tl!:

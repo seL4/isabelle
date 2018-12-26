@@ -40,7 +40,7 @@ apply (rule ifI)
   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 oops
 
-text\<open>Trying again from the beginning in order to use @{text blast}\<close>
+text\<open>Trying again from the beginning in order to use \<open>blast\<close>\<close>
 declare ifI [intro!]
 declare ifE [elim!]
 

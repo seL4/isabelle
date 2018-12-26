@@ -27,10 +27,10 @@ and      'a bexp = Less "'a aexp" "'a aexp"
                  | Neg  "'a bexp"
 
 text\<open>\noindent
-Type @{text"aexp"} is similar to @{text"expr"} in \S\ref{sec:ExprCompiler},
-except that we have added an @{text IF} constructor,
+Type \<open>aexp\<close> is similar to \<open>expr\<close> in \S\ref{sec:ExprCompiler},
+except that we have added an \<open>IF\<close> constructor,
 fixed the values to be of type @{typ"nat"} and declared the two binary
-operations @{text Sum} and @{term"Diff"}.  Boolean
+operations \<open>Sum\<close> and @{term"Diff"}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is given by two evaluation functions:
 \<close>
@@ -107,19 +107,19 @@ an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{isabelle}
-\isacommand{apply}@{text"(induct_tac"} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$@{text ")"}
+\isacommand{apply}\<open>(induct_tac\<close> $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$\<open>)\<close>
 \end{isabelle}
 
 \begin{exercise}
-  Define a function @{text"norma"} of type @{typ"'a aexp => 'a aexp"} that
+  Define a function \<open>norma\<close> of type @{typ"'a aexp => 'a aexp"} that
   replaces @{term"IF"}s with complex boolean conditions by nested
   @{term"IF"}s; it should eliminate the constructors
   @{term"And"} and @{term"Neg"}, leaving only @{term"Less"}.
-  Prove that @{text"norma"}
-  preserves the value of an expression and that the result of @{text"norma"}
+  Prove that \<open>norma\<close>
+  preserves the value of an expression and that the result of \<open>norma\<close>
   is really normal, i.e.\ no more @{term"And"}s and @{term"Neg"}s occur in
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex} and read the discussion
-  of type annotations following lemma @{text subst_id} below).
+  of type annotations following lemma \<open>subst_id\<close> below).
 \end{exercise}
 \<close>
 (*<*)

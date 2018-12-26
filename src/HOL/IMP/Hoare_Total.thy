@@ -8,7 +8,7 @@ theory Hoare_Total
 imports Hoare_Examples
 begin
 
-text\<open>Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
+text\<open>Note that this definition of total validity \<open>\<Turnstile>\<^sub>t\<close> only
 works if execution is deterministic (which it is in our case).\<close>
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
@@ -16,9 +16,9 @@ definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarr
 "\<Turnstile>\<^sub>t {P}c{Q}  \<longleftrightarrow>  (\<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t))"
 
 text\<open>Provability of Hoare triples in the proof system for total
-correctness is written @{text"\<turnstile>\<^sub>t {P}c{Q}"} and defined
-inductively. The rules for @{text"\<turnstile>\<^sub>t"} differ from those for
-@{text"\<turnstile>"} only in the one place where nontermination can arise: the
+correctness is written \<open>\<turnstile>\<^sub>t {P}c{Q}\<close> and defined
+inductively. The rules for \<open>\<turnstile>\<^sub>t\<close> differ from those for
+\<open>\<turnstile>\<close> only in the one place where nontermination can arise: the
 @{term While}-rule.\<close>
 
 inductive
@@ -134,7 +134,7 @@ done
 
 
 text\<open>Now we define the number of iterations @{term "WHILE b DO c"} needs to
-terminate when started in state @{text s}. Because this is a truly partial
+terminate when started in state \<open>s\<close>. Because this is a truly partial
 function, we define it as an (inductive) relation first:\<close>
 
 inductive Its :: "bexp \<Rightarrow> com \<Rightarrow> state \<Rightarrow> nat \<Rightarrow> bool" where

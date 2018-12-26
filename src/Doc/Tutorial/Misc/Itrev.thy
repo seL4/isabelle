@@ -20,15 +20,15 @@ In case the function has more than one argument
 \emph{Do induction on argument number $i$ if the function is defined by
 recursion in argument number $i$.}
 \end{quote}
-When we look at the proof of @{text"(xs@ys) @ zs = xs @ (ys@zs)"}
+When we look at the proof of \<open>(xs@ys) @ zs = xs @ (ys@zs)\<close>
 in \S\ref{sec:intro-proof} we find
 \begin{itemize}
-\item @{text"@"} is recursive in
+\item \<open>@\<close> is recursive in
 the first argument
 \item @{term xs}  occurs only as the first argument of
-@{text"@"}
+\<open>@\<close>
 \item both @{term ys} and @{term zs} occur at least once as
-the second argument of @{text"@"}
+the second argument of \<open>@\<close>
 \end{itemize}
 Hence it is natural to perform induction on~@{term xs}.
 
@@ -39,10 +39,10 @@ too specific, the induction hypothesis is too weak to allow the induction
 step to go through. Let us illustrate the idea with an example.
 
 Function \cdx{rev} has quadratic worst-case running time
-because it calls function @{text"@"} for each element of the list and
-@{text"@"} is linear in its first argument.  A linear time version of
+because it calls function \<open>@\<close> for each element of the list and
+\<open>@\<close> is linear in its first argument.  A linear time version of
 @{term"rev"} reqires an extra argument where the result is accumulated
-gradually, using only~@{text"#"}:
+gradually, using only~\<open>#\<close>:
 \<close>
 
 primrec itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where

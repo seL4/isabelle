@@ -68,7 +68,7 @@ fun swap12 :: "'a list \<Rightarrow> 'a list" where
 text\<open>
 After a function~$f$ has been defined via \isacommand{fun},
 its defining equations (or variants derived from them) are available
-under the name $f$@{text".simps"} as theorems.
+under the name $f$\<open>.simps\<close> as theorems.
 For example, look (via \isacommand{thm}) at
 @{thm[source]sep.simps} and @{thm[source]sep1.simps} to see that they define
 the same function. What is more, those equations are automatically declared as
@@ -105,7 +105,7 @@ Upon a successful termination proof, the recursion equations become
 simplification rules, just as with \isacommand{primrec}.
 In most cases this works fine, but there is a subtle
 problem that must be mentioned: simplification may not
-terminate because of automatic splitting of @{text "if"}.
+terminate because of automatic splitting of \<open>if\<close>.
 \index{*if expressions!splitting of}
 Let us look at an example:
 \<close>
@@ -120,10 +120,10 @@ The termination condition
 is proved automatically because it is already present as a lemma in
 HOL\@.  Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
-the recursive call inside the @{text else} branch, which is why programming
+the recursive call inside the \<open>else\<close> branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does
 something else that leads to the same problem: it splits 
-each @{text "if"}-expression unless its
+each \<open>if\<close>-expression unless its
 condition simplifies to @{term True} or @{term False}.  For
 example, simplification reduces
 @{prop[display]"gcd m n = k"}
@@ -132,7 +132,7 @@ in one step to
 where the condition cannot be reduced further, and splitting leads to
 @{prop[display]"(n=0 --> m=k) & (n ~= 0 --> gcd n (m mod n)=k)"}
 Since the recursive call @{term"gcd n (m mod n)"} is no longer protected by
-an @{text "if"}, it is unfolded again, which leads to an infinite chain of
+an \<open>if\<close>, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
@@ -140,10 +140,10 @@ The most radical solution is to disable the offending theorem
 @{thm[source]if_split},
 as shown in \S\ref{sec:AutoCaseSplits}.  However, we do not recommend this
 approach: you will often have to invoke the rule explicitly when
-@{text "if"} is involved.
+\<open>if\<close> is involved.
 
 If possible, the definition should be given by pattern matching on the left
-rather than @{text "if"} on the right. In the case of @{term gcd} the
+rather than \<open>if\<close> on the right. In the case of @{term gcd} the
 following alternative definition suggests itself:
 \<close>
 
@@ -156,7 +156,7 @@ The order of equations is important: it hides the side condition
 @{prop"n ~= (0::nat)"}.  Unfortunately, not all conditionals can be
 expressed by pattern matching.
 
-A simple alternative is to replace @{text "if"} by @{text case}, 
+A simple alternative is to replace \<open>if\<close> by \<open>case\<close>, 
 which is also available for @{typ bool} and is not split automatically:
 \<close>
 
@@ -181,8 +181,7 @@ apply(simp)
 done
 
 text\<open>\noindent
-Simplification terminates for these proofs because the condition of the @{text
-"if"} simplifies to @{term True} or @{term False}.
+Simplification terminates for these proofs because the condition of the \<open>if\<close> simplifies to @{term True} or @{term False}.
 Now we can disable the original simplification rule:
 \<close>
 
@@ -200,7 +199,7 @@ Since the function is recursive, the natural proof principle is
 again induction. But this time the structural form of induction that comes
 with datatypes is unlikely to work well --- otherwise we could have defined the
 function by \isacommand{primrec}. Therefore \isacommand{fun} automatically
-proves a suitable induction rule $f$@{text".induct"} that follows the
+proves a suitable induction rule $f$\<open>.induct\<close> that follows the
 recursion pattern of the particular function $f$. We call this
 \textbf{recursion induction}. Roughly speaking, it
 requires you to prove for each \isacommand{fun} equation that the property
@@ -236,7 +235,7 @@ distinction.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
-\isacommand{apply}@{text"(induct_tac"} $x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
+\isacommand{apply}\<open>(induct_tac\<close> $x@1 \dots x@n$ \<open>rule:\<close> $f$\<open>.induct)\<close>
 \end{quote}\index{*induct_tac (method)}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes $n$ arguments. Usually the subgoal will

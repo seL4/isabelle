@@ -16,12 +16,12 @@ that @{term xs} is of type @{typ"'a list list"}.)
 In general, case expressions are of the form
 \[
 \begin{array}{c}
-@{text"case"}~e~@{text"of"}\ pattern@1~@{text"\<Rightarrow>"}~e@1\ @{text"|"}\ \dots\
- @{text"|"}~pattern@m~@{text"\<Rightarrow>"}~e@m
+\<open>case\<close>~e~\<open>of\<close>\ pattern@1~\<open>\<Rightarrow>\<close>~e@1\ \<open>|\<close>\ \dots\
+ \<open>|\<close>~pattern@m~\<open>\<Rightarrow>\<close>~e@m
 \end{array}
 \]
 Like in functional programming, patterns are expressions consisting of
-datatype constructors (e.g. @{term"[]"} and @{text"#"})
+datatype constructors (e.g. @{term"[]"} and \<open>#\<close>)
 and variables, including the wildcard ``\verb$_$''.
 Not all cases need to be covered and the order of cases matters.
 However, one is well-advised not to wallow in complex patterns because
@@ -39,7 +39,7 @@ back for printing. This may lead to surprising output.
 \end{warn}
 
 \begin{warn}
-Like @{text"if"}, @{text"case"}-expressions may need to be enclosed in
+Like \<open>if\<close>, \<open>case\<close>-expressions may need to be enclosed in
 parentheses to indicate their scope.
 \end{warn}
 
@@ -73,11 +73,11 @@ simplification, so no special methods are provided for them.
   Induction is only allowed on free (or \isasymAnd-bound) variables that
   should not occur among the assumptions of the subgoal; see
   \S\ref{sec:ind-var-in-prems} for details. Case distinction
-  (@{text"case_tac"}) works for arbitrary terms, which need to be
-  quoted if they are non-atomic. However, apart from @{text"\<And>"}-bound
+  (\<open>case_tac\<close>) works for arbitrary terms, which need to be
+  quoted if they are non-atomic. However, apart from \<open>\<And>\<close>-bound
   variables, the terms must not contain variables that are bound outside.
   For example, given the goal @{prop"\<forall>xs. xs = [] \<or> (\<exists>y ys. xs = y#ys)"},
-  @{text"case_tac xs"} will not work as expected because Isabelle interprets
+  \<open>case_tac xs\<close> will not work as expected because Isabelle interprets
   the @{term xs} as a new free variable distinct from the bound
   @{term xs} in the goal.
 \end{warn}

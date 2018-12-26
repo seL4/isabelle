@@ -9,11 +9,10 @@ ML \<open>
 section \<open>Introduction\<close>
 
 text \<open>
-  This tutorial introduces the code generator facilities of @{text
-  "Isabelle/HOL"}.  It allows to turn (a certain class of) HOL
+  This tutorial introduces the code generator facilities of \<open>Isabelle/HOL\<close>.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
-  languages @{text SML} @{cite SML}, @{text OCaml} @{cite OCaml},
-  @{text Haskell} @{cite "haskell-revised-report"} and @{text Scala}
+  languages \<open>SML\<close> @{cite SML}, \<open>OCaml\<close> @{cite OCaml},
+  \<open>Haskell\<close> @{cite "haskell-revised-report"} and \<open>Scala\<close>
   @{cite "scala-overview-tech-report"}.
 
   To profit from this tutorial, some familiarity and experience with
@@ -67,7 +66,7 @@ lemma %invisible dequeue_nonempty_Nil [simp]:
   "xs \<noteq> [] \<Longrightarrow> dequeue (AQueue xs []) = (case rev xs of y # ys \<Rightarrow> (Some y, AQueue [] ys))"
   by (cases xs) (simp_all split: list.splits) (*>*)
 
-text \<open>\noindent Then we can generate code e.g.~for @{text SML} as follows:\<close>
+text \<open>\noindent Then we can generate code e.g.~for \<open>SML\<close> as follows:\<close>
 
 export_code %quote empty dequeue enqueue in SML
   module_name Example file "$ISABELLE_TMP/example.ML"
@@ -85,9 +84,9 @@ text \<open>
   target language identifier and a freely chosen module name.  A file
   name denotes the destination to store the generated code.  Note that
   the semantics of the destination depends on the target language: for
-  @{text SML}, @{text OCaml} and @{text Scala} it denotes a \emph{file},
-  for @{text Haskell} it denotes a \emph{directory} where a file named as the
-  module name (with extension @{text ".hs"}) is written:
+  \<open>SML\<close>, \<open>OCaml\<close> and \<open>Scala\<close> it denotes a \emph{file},
+  for \<open>Haskell\<close> it denotes a \emph{directory} where a file named as the
+  module name (with extension \<open>.hs\<close>) is written:
 \<close>
 
 export_code %quote empty dequeue enqueue in Haskell
@@ -179,7 +178,7 @@ text %quotetypewriter \<open>
 text \<open>
   \noindent This is a convenient place to show how explicit dictionary
   construction manifests in generated code -- the same example in
-  @{text SML}:
+  \<open>SML\<close>:
 \<close>
 
 text %quotetypewriter \<open>

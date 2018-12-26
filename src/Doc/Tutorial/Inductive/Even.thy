@@ -8,7 +8,7 @@ text \<open>
 \index{even numbers!defining inductively|(}%
 The set of even numbers can be inductively defined as the least set
 containing 0 and closed under the operation $+2$.  Obviously,
-\emph{even} can also be expressed using the divides relation (@{text dvd}). 
+\emph{even} can also be expressed using the divides relation (\<open>dvd\<close>). 
 We shall prove below that the two formulations coincide.  On the way we
 shall examine the primary means of reasoning about inductively defined
 sets: rule induction.
@@ -17,7 +17,7 @@ sets: rule induction.
 subsection\<open>Making an Inductive Definition\<close>
 
 text \<open>
-Using \commdx{inductive\protect\_set}, we declare the constant @{text even} to be
+Using \commdx{inductive\protect\_set}, we declare the constant \<open>even\<close> to be
 a set of natural numbers with the desired properties.
 \<close>
 
@@ -42,7 +42,7 @@ both rules are specified as \isa{intro!},%
 \index{intro"!@\isa {intro"!} (attribute)}
 directing the classical reasoner to 
 apply them aggressively. Obviously, regarding 0 as even is safe.  The
-@{text step} rule is also safe because $n+2$ is even if and only if $n$ is
+\<open>step\<close> rule is also safe because $n+2$ is even if and only if $n$ is
 even.  We prove this equivalence later.
 \<close>
 
@@ -65,16 +65,16 @@ apply (induct_tac k)
 (*>*)
 txt \<open>
 \noindent
-The first step is induction on the natural number @{text k}, which leaves
+The first step is induction on the natural number \<open>k\<close>, which leaves
 two subgoals:
 @{subgoals[display,indent=0,margin=65]}
-Here @{text auto} simplifies both subgoals so that they match the introduction
+Here \<open>auto\<close> simplifies both subgoals so that they match the introduction
 rules, which are then applied automatically.
 
 Our ultimate goal is to prove the equivalence between the traditional
-definition of @{text even} (using the divides relation) and our inductive
+definition of \<open>even\<close> (using the divides relation) and our inductive
 definition.  One direction of this equivalence is immediate by the lemma
-just proved, whose @{text "intro!"} attribute ensures it is applied automatically.
+just proved, whose \<open>intro!\<close> attribute ensures it is applied automatically.
 \<close>
 (*<*)oops(*>*)
 lemma dvd_imp_even: "2 dvd n \<Longrightarrow> n \<in> even"
@@ -89,7 +89,7 @@ From the definition of the set
 generated an induction rule:
 @{named_thms [display,indent=0,margin=40] even.induct [no_vars] (even.induct)}
 A property @{term P} holds for every even number provided it
-holds for~@{text 0} and is closed under the operation
+holds for~\<open>0\<close> and is closed under the operation
 \isa{Suc(Suc \(\cdot\))}.  Then @{term P} is closed under the introduction
 rules for @{term even}, which is the least set closed under those rules. 
 This type of inductive argument is called \textbf{rule induction}. 
@@ -97,7 +97,7 @@ This type of inductive argument is called \textbf{rule induction}.
 Apart from the double application of @{term Suc}, the induction rule above
 resembles the familiar mathematical induction, which indeed is an instance
 of rule induction; the natural numbers can be defined inductively to be
-the least set containing @{text 0} and closed under~@{term Suc}.
+the least set containing \<open>0\<close> and closed under~@{term Suc}.
 
 Induction is the usual way of proving a property of the elements of an
 inductively defined set.  Let us prove that all members of the set
@@ -106,34 +106,34 @@ inductively defined set.  Let us prove that all members of the set
 
 lemma even_imp_dvd: "n \<in> even \<Longrightarrow> 2 dvd n"
 txt \<open>
-We begin by applying induction.  Note that @{text even.induct} has the form
-of an elimination rule, so we use the method @{text erule}.  We get two
+We begin by applying induction.  Note that \<open>even.induct\<close> has the form
+of an elimination rule, so we use the method \<open>erule\<close>.  We get two
 subgoals:
 \<close>
 apply (erule even.induct)
 txt \<open>
 @{subgoals[display,indent=0]}
-We unfold the definition of @{text dvd} in both subgoals, proving the first
+We unfold the definition of \<open>dvd\<close> in both subgoals, proving the first
 one and simplifying the second:
 \<close>
 apply (simp_all add: dvd_def)
 txt \<open>
 @{subgoals[display,indent=0]}
 The next command eliminates the existential quantifier from the assumption
-and replaces @{text n} by @{text "2 * k"}.
+and replaces \<open>n\<close> by \<open>2 * k\<close>.
 \<close>
 apply clarify
 txt \<open>
 @{subgoals[display,indent=0]}
 To conclude, we tell Isabelle that the desired value is
-@{term "Suc k"}.  With this hint, the subgoal falls to @{text simp}.
+@{term "Suc k"}.  With this hint, the subgoal falls to \<open>simp\<close>.
 \<close>
 apply (rule_tac x = "Suc k" in exI, simp)
 (*<*)done(*>*)
 
 text \<open>
 Combining the previous two results yields our objective, the
-equivalence relating @{term even} and @{text dvd}. 
+equivalence relating @{term even} and \<open>dvd\<close>. 
 %
 %we don't want [iff]: discuss?
 \<close>
@@ -163,7 +163,7 @@ apply (erule even.induct)
 txt \<open>
 Rule induction finds no occurrences of @{term "Suc(Suc n)"} in the
 conclusion, which it therefore leaves unchanged.  (Look at
-@{text even.induct} to see why this happens.)  We have these subgoals:
+\<open>even.induct\<close> to see why this happens.)  We have these subgoals:
 @{subgoals[display,indent=0]}
 The first one is hopeless.  Rule induction on
 a non-variable term discards information, and usually fails.
@@ -184,7 +184,7 @@ apply (erule even.induct)
 txt \<open>
 This lemma is trivially inductive.  Here are the subgoals:
 @{subgoals[display,indent=0]}
-The first is trivial because @{text "0 - 2"} simplifies to @{text 0}, which is
+The first is trivial because \<open>0 - 2\<close> simplifies to \<open>0\<close>, which is
 even.  The second is trivial too: @{term "Suc (Suc n) - 2"} simplifies to
 @{term n}, matching the assumption.%
 \index{rule induction|)}  %the sequel isn't really about induction
@@ -197,7 +197,7 @@ lemma Suc_Suc_even_imp_even: "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> e
 by (drule even_imp_even_minus_2, simp)
 
 text \<open>
-We have just proved the converse of the introduction rule @{text even.step}.
+We have just proved the converse of the introduction rule \<open>even.step\<close>.
 This suggests proving the following equivalence.  We give it the
 \attrdx{iff} attribute because of its obvious value for simplification.
 \<close>
@@ -221,7 +221,7 @@ Recall that @{term even} is the minimal set closed under these two rules:
 Minimality means that @{term even} contains only the elements that these
 rules force it to contain.  If we are told that @{term a}
 belongs to
-@{term even} then there are only two possibilities.  Either @{term a} is @{text 0}
+@{term even} then there are only two possibilities.  Either @{term a} is \<open>0\<close>
 or else @{term a} has the form @{term "Suc(Suc n)"}, for some suitable @{term n}
 that belongs to
 @{term even}.  That is the gist of the @{term cases} rule, which Isabelle proves
@@ -238,29 +238,29 @@ inductive_cases Suc_Suc_cases [elim!]: "Suc(Suc n) \<in> even"
 
 text \<open>
 The \commdx{inductive\protect\_cases} command generates an instance of
-the @{text cases} rule for the supplied pattern and gives it the supplied name:
+the \<open>cases\<close> rule for the supplied pattern and gives it the supplied name:
 @{named_thms [display,indent=0] Suc_Suc_cases [no_vars] (Suc_Suc_cases)}
-Applying this as an elimination rule yields one case where @{text even.cases}
+Applying this as an elimination rule yields one case where \<open>even.cases\<close>
 would yield two.  Rule inversion works well when the conclusions of the
-introduction rules involve datatype constructors like @{term Suc} and @{text "#"}
+introduction rules involve datatype constructors like @{term Suc} and \<open>#\<close>
 (list ``cons''); freeness reasoning discards all but one or two cases.
 
 In the \isacommand{inductive\_cases} command we supplied an
-attribute, @{text "elim!"},
+attribute, \<open>elim!\<close>,
 \index{elim"!@\isa {elim"!} (attribute)}%
 indicating that this elimination rule can be
 applied aggressively.  The original
 @{term cases} rule would loop if used in that manner because the
 pattern~@{term a} matches everything.
 
-The rule @{text Suc_Suc_cases} is equivalent to the following implication:
+The rule \<open>Suc_Suc_cases\<close> is equivalent to the following implication:
 @{term [display,indent=0] "Suc (Suc n) \<in> even \<Longrightarrow> n \<in> even"}
 Just above we devoted some effort to reaching precisely
 this result.  Yet we could have obtained it by a one-line declaration,
-dispensing with the lemma @{text even_imp_even_minus_2}. 
+dispensing with the lemma \<open>even_imp_even_minus_2\<close>. 
 This example also justifies the terminology
 \textbf{rule inversion}: the new rule inverts the introduction rule
-@{text even.step}.  In general, a rule can be inverted when the set of elements
+\<open>even.step\<close>.  In general, a rule can be inverted when the set of elements
 it introduces is disjoint from those of the other introduction rules.
 
 For one-off applications of rule inversion, use the \methdx{ind_cases} method. 
@@ -272,13 +272,13 @@ apply (ind_cases "Suc(Suc n) \<in> even")
 (*<*)oops(*>*)
 
 text \<open>
-The specified instance of the @{text cases} rule is generated, then applied
+The specified instance of the \<open>cases\<close> rule is generated, then applied
 as an elimination rule.
 
-To summarize, every inductive definition produces a @{text cases} rule.  The
+To summarize, every inductive definition produces a \<open>cases\<close> rule.  The
 \commdx{inductive\protect\_cases} command stores an instance of the
-@{text cases} rule for a given pattern.  Within a proof, the
-@{text ind_cases} method applies an instance of the @{text cases}
+\<open>cases\<close> rule for a given pattern.  Within a proof, the
+\<open>ind_cases\<close> method applies an instance of the \<open>cases\<close>
 rule.
 
 The even numbers example has shown how inductive definitions can be

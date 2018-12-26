@@ -12,7 +12,7 @@ apply (rule impI)
   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule allE)
   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
-txt\<open>see below for @{text allI} combined with @{text swap}\<close>
+txt\<open>see below for \<open>allI\<close> combined with \<open>swap\<close>\<close>
 apply (erule allI [THEN [2] swap])
   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule impI)

@@ -12,7 +12,7 @@ fixes sec :: "'a \<Rightarrow> nat"
 
 text\<open>The security/confidentiality level of each variable is globally fixed
 for simplicity. For the sake of examples --- the general theory does not rely
-on it! --- a variable of length @{text n} has security level @{text n}:\<close>
+on it! --- a variable of length \<open>n\<close> has security level \<open>n\<close>:\<close>
 
 instantiation list :: (type)sec
 begin

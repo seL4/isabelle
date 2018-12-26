@@ -48,7 +48,7 @@ using L_While_unfold by blast
 lemma L_While_X: "X \<subseteq> L (WHILE b DO c) X"
 using L_While_unfold by blast
 
-text\<open>Disable @{text "L WHILE"} equation and reason only with @{text "L WHILE"} constraints:\<close>
+text\<open>Disable \<open>L WHILE\<close> equation and reason only with \<open>L WHILE\<close> constraints:\<close>
 declare L.simps(5)[simp del]
 
 
@@ -149,7 +149,7 @@ lemma L_While_set: "L (WHILE b DO c) (set xs) =
    in while (\<lambda>Y. f Y \<noteq> Y) f {})"
 by(rule L_While_let, simp)
 
-text\<open>Replace the equation for @{text "L (WHILE \<dots>)"} by the executable @{thm[source] L_While_set}:\<close>
+text\<open>Replace the equation for \<open>L (WHILE \<dots>)\<close> by the executable @{thm[source] L_While_set}:\<close>
 lemmas [code] = L.simps(1-4) L_While_set
 text\<open>Sorry, this syntax is odd.\<close>
 

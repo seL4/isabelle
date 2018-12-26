@@ -4,7 +4,7 @@ theory Tree2 imports Tree begin
 
 text\<open>\noindent In Exercise~\ref{ex:Tree} we defined a function
 @{term"flatten"} from trees to lists. The straightforward version of
-@{term"flatten"} is based on @{text"@"} and is thus, like @{term"rev"},
+@{term"flatten"} is based on \<open>@\<close> and is thus, like @{term"rev"},
 quadratic. A linear time version of @{term"flatten"} again reqires an extra
 argument, the accumulator. Define\<close>
 (*<*)primrec(*>*)flatten2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list"(*<*)where

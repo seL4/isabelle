@@ -20,7 +20,7 @@ element denoted by~\cdx{()}.  This type can be viewed
 as a degenerate product with 0 components.
 \item
 Products, like type @{typ nat}, are datatypes, which means
-in particular that @{text induct_tac} and @{text case_tac} are applicable to
+in particular that \<open>induct_tac\<close> and \<open>case_tac\<close> are applicable to
 terms of product type.
 Both split the term into a number of variables corresponding to the tuple structure
 (up to 7 components).

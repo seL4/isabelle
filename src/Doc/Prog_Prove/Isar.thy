@@ -17,11 +17,11 @@ are like structured programs with comments. A typical Isar proof looks like this
 \<close>text\<open>
 \begin{tabular}{@ {}l}
 \isacom{proof}\\
-\quad\isacom{assume} @{text"\""}$\mathit{formula}_0$@{text"\""}\\
-\quad\isacom{have} @{text"\""}$\mathit{formula}_1$@{text"\""} \quad\isacom{by} @{text simp}\\
+\quad\isacom{assume} \<open>"\<close>$\mathit{formula}_0$\<open>"\<close>\\
+\quad\isacom{have} \<open>"\<close>$\mathit{formula}_1$\<open>"\<close> \quad\isacom{by} \<open>simp\<close>\\
 \quad\vdots\\
-\quad\isacom{have} @{text"\""}$\mathit{formula}_n$@{text"\""} \quad\isacom{by} @{text blast}\\
-\quad\isacom{show} @{text"\""}$\mathit{formula}_{n+1}$@{text"\""} \quad\isacom{by} @{text \<dots>}\\
+\quad\isacom{have} \<open>"\<close>$\mathit{formula}_n$\<open>"\<close> \quad\isacom{by} \<open>blast\<close>\\
+\quad\isacom{show} \<open>"\<close>$\mathit{formula}_{n+1}$\<open>"\<close> \quad\isacom{by} \<open>\<dots>\<close>\\
 \isacom{qed}
 \end{tabular}
 \<close>text\<open>
@@ -46,7 +46,7 @@ goal. In more detail, this is the Isar core syntax:
 \medskip
 
 \begin{tabular}{@ {}lcl@ {}}
-\textit{proposition} &=& [\textit{name}:] @{text"\""}\textit{formula}@{text"\""}
+\textit{proposition} &=& [\textit{name}:] \<open>"\<close>\textit{formula}\<open>"\<close>
 \end{tabular}
 \medskip
 
@@ -56,32 +56,31 @@ goal. In more detail, this is the Isar core syntax:
 \medskip
 
 \noindent A proof can either be an atomic \isacom{by} with a single proof
-method which must finish off the statement being proved, for example @{text
-auto},  or it can be a \isacom{proof}--\isacom{qed} block of multiple
+method which must finish off the statement being proved, for example \<open>auto\<close>,  or it can be a \isacom{proof}--\isacom{qed} block of multiple
 steps. Such a block can optionally begin with a proof method that indicates
-how to start off the proof, e.g., \mbox{@{text"(induction xs)"}}.
+how to start off the proof, e.g., \mbox{\<open>(induction xs)\<close>}.
 
 A step either assumes a proposition or states a proposition
 together with its proof. The optional \isacom{from} clause
 indicates which facts are to be used in the proof.
 Intermediate propositions are stated with \isacom{have}, the overall goal
 is stated with \isacom{show}. A step can also introduce new local variables with
-\isacom{fix}. Logically, \isacom{fix} introduces @{text"\<And>"}-quantified
+\isacom{fix}. Logically, \isacom{fix} introduces \<open>\<And>\<close>-quantified
 variables, \isacom{assume} introduces the assumption of an implication
-(@{text"\<Longrightarrow>"}) and \isacom{have}/\isacom{show} introduce the conclusion.
+(\<open>\<Longrightarrow>\<close>) and \isacom{have}/\isacom{show} introduce the conclusion.
 
 Propositions are optionally named formulas. These names can be referred to in
 later \isacom{from} clauses. In the simplest case, a fact is such a name.
-But facts can also be composed with @{text OF} and @{text of} as shown in
+But facts can also be composed with \<open>OF\<close> and \<open>of\<close> as shown in
 \autoref{sec:forward-proof} --- hence the \dots\ in the above grammar.  Note
 that assumptions, intermediate \isacom{have} statements and global lemmas all
 have the same status and are thus collectively referred to as
 \conceptidx{facts}{fact}.
 
-Fact names can stand for whole lists of facts. For example, if @{text f} is
-defined by command \isacom{fun}, @{text"f.simps"} refers to the whole list of
-recursion equations defining @{text f}. Individual facts can be selected by
-writing @{text"f.simps(2)"}, whole sublists by writing @{text"f.simps(2-4)"}.
+Fact names can stand for whole lists of facts. For example, if \<open>f\<close> is
+defined by command \isacom{fun}, \<open>f.simps\<close> refers to the whole list of
+recursion equations defining \<open>f\<close>. Individual facts can be selected by
+writing \<open>f.simps(2)\<close>, whole sublists by writing \<open>f.simps(2-4)\<close>.
 
 
 \section{Isar by Example}
@@ -102,27 +101,27 @@ qed
 text\<open>
 The \isacom{proof} command lacks an explicit method by which to perform
 the proof. In such cases Isabelle tries to use some standard introduction
-rule, in the above case for @{text"\<not>"}:
+rule, in the above case for \<open>\<not>\<close>:
 \[
 \inferrule{
 \mbox{@{thm (prem 1) notI}}}
 {\mbox{@{thm (concl) notI}}}
 \]
-In order to prove @{prop"~ P"}, assume @{text P} and show @{text False}.
+In order to prove @{prop"~ P"}, assume \<open>P\<close> and show \<open>False\<close>.
 Thus we may assume \mbox{\noquotes{@{prop [source] "surj f"}}}. The proof shows that names of propositions
 may be (single!) digits --- meaningful names are hard to invent and are often
 not necessary. Both \isacom{have} steps are obvious. The second one introduces
 the diagonal set @{term"{x. x \<notin> f x}"}, the key idea in the proof.
-If you wonder why @{text 2} directly implies @{text False}: from @{text 2}
+If you wonder why \<open>2\<close> directly implies \<open>False\<close>: from \<open>2\<close>
 it follows that @{prop"a \<notin> f a \<longleftrightarrow> a \<in> f a"}.
 
-\subsection{\indexed{@{text this}}{this}, \indexed{\isacom{then}}{then}, \indexed{\isacom{hence}}{hence} and \indexed{\isacom{thus}}{thus}}
+\subsection{\indexed{\<open>this\<close>}{this}, \indexed{\isacom{then}}{then}, \indexed{\isacom{hence}}{hence} and \indexed{\isacom{thus}}{thus}}
 
 Labels should be avoided. They interrupt the flow of the reader who has to
 scan the context for the point where the label was introduced. Ideally, the
 proof is a linear flow, where the output of one step becomes the input of the
 next step, piping the previously proved fact into the next proof, like
-in a UNIX pipe. In such cases the predefined name @{text this} can be used
+in a UNIX pipe. In such cases the predefined name \<open>this\<close> can be used
 to refer to the proposition proved in the previous step. This allows us to
 eliminate all labels from our proof (we suppress the \isacom{lemma} statement):
 \<close>
@@ -142,7 +141,7 @@ To compact the text further, Isar has a few convenient abbreviations:
 \medskip
 
 \begin{tabular}{r@ {\quad=\quad}l}
-\isacom{then} & \isacom{from} @{text this}\\
+\isacom{then} & \isacom{from} \<open>this\<close>\\
 \isacom{thus} & \isacom{then} \isacom{show}\\
 \isacom{hence} & \isacom{then} \isacom{have}
 \end{tabular}
@@ -194,7 +193,7 @@ the \isacom{assumes} part that allows you to name each assumption; multiple
 assumptions can be separated by \isacom{and}. The
 \isacom{shows} part gives the goal. The actual theorem that will come out of
 the proof is \noquotes{@{prop[source]"surj f \<Longrightarrow> False"}}, but during the proof the assumption
-\noquotes{@{prop[source]"surj f"}} is available under the name @{text s} like any other fact.
+\noquotes{@{prop[source]"surj f"}} is available under the name \<open>s\<close> like any other fact.
 \<close>
 
 proof -
@@ -211,13 +210,13 @@ Isabelle to try some suitable introduction rule on the goal @{const False} --- b
 there is no such rule and \isacom{proof} would fail.
 \end{warn}
 In the \isacom{have} step the assumption \noquotes{@{prop[source]"surj f"}} is now
-referenced by its name @{text s}. The duplication of \noquotes{@{prop[source]"surj f"}} in the
+referenced by its name \<open>s\<close>. The duplication of \noquotes{@{prop[source]"surj f"}} in the
 above proofs (once in the statement of the lemma, once in its proof) has been
 eliminated.
 
 Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
-name \indexed{@{text assms}}{assms} that stands for the list of all assumptions. You can refer
-to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"}, etc.,
+name \indexed{\<open>assms\<close>}{assms} that stands for the list of all assumptions. You can refer
+to individual assumptions by \<open>assms(1)\<close>, \<open>assms(2)\<close>, etc.,
 thus obviating the need to name them individually.
 
 \section{Proof Patterns}
@@ -232,9 +231,9 @@ default. The patterns are phrased in terms of \isacom{show} but work for
 \fi
 
 We start with two forms of \concept{case analysis}:
-starting from a formula @{text P} we have the two cases @{text P} and
+starting from a formula \<open>P\<close> we have the two cases \<open>P\<close> and
 @{prop"~P"}, and starting from a fact @{prop"P \<or> Q"}
-we have the two cases @{text P} and @{text Q}:
+we have the two cases \<open>P\<close> and \<open>Q\<close>:
 \<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
@@ -252,7 +251,7 @@ next
   show "R" (*<*)sorry(*>*)text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)oops(*>*)
 text_raw \<open>}
-\end{minipage}\index{cases@@{text cases}}
+\end{minipage}\index{cases@\<open>cases\<close>}
 &
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
@@ -360,12 +359,12 @@ text_raw \<open>}
 \medskip
 \begin{isamarkuptext}%
 In the proof of \noquotes{@{prop[source]"\<forall>x. P(x)"}},
-the step \indexed{\isacom{fix}}{fix}~@{text x} introduces a locally fixed variable @{text x}
+the step \indexed{\isacom{fix}}{fix}~\<open>x\<close> introduces a locally fixed variable \<open>x\<close>
 into the subproof, the proverbial ``arbitrary but fixed value''.
-Instead of @{text x} we could have chosen any name in the subproof.
+Instead of \<open>x\<close> we could have chosen any name in the subproof.
 In the proof of \noquotes{@{prop[source]"\<exists>x. P(x)"}},
-@{text witness} is some arbitrary
-term for which we can prove that it satisfies @{text P}.
+\<open>witness\<close> is some arbitrary
+term for which we can prove that it satisfies \<open>P\<close>.
 
 How to reason forward from \noquotes{@{prop[source] "\<exists>x. P(x)"}}:
 \end{isamarkuptext}%
@@ -375,11 +374,11 @@ have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)text_raw\<open>\ \isasymproof\\\<clo
 then obtain x where p: "P(x)" by blast
 (*<*)oops(*>*)
 text\<open>
-After the \indexed{\isacom{obtain}}{obtain} step, @{text x} (we could have chosen any name)
+After the \indexed{\isacom{obtain}}{obtain} step, \<open>x\<close> (we could have chosen any name)
 is a fixed local
-variable, and @{text p} is the name of the fact
+variable, and \<open>p\<close> is the name of the fact
 \noquotes{@{prop[source] "P(x)"}}.
-This pattern works for one or more @{text x}.
+This pattern works for one or more \<open>x\<close>.
 As an example of the \isacom{obtain} command, here is the proof of
 Cantor's theorem in more detail:
 \<close>
@@ -516,11 +515,11 @@ In the proof patterns shown above, formulas are often duplicated.
 This can make the text harder to read, write and maintain. Pattern matching
 is an abbreviation mechanism to avoid such duplication. Writing
 \begin{quote}
-\isacom{show} \ \textit{formula} @{text"("}\indexed{\isacom{is}}{is} \textit{pattern}@{text")"}
+\isacom{show} \ \textit{formula} \<open>(\<close>\indexed{\isacom{is}}{is} \textit{pattern}\<open>)\<close>
 \end{quote}
 matches the pattern against the formula, thus instantiating the unknowns in
 the pattern for later use. As an example, consider the proof pattern for
-@{text"\<longleftrightarrow>"}:
+\<open>\<longleftrightarrow>\<close>:
 \end{isamarkuptext}%
 \<close>
 (*<*)lemma "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" proof-(*>*)
@@ -535,12 +534,12 @@ next
   show "?L" (*<*)sorry(*>*) text_raw\<open>\ \isasymproof\\\<close>
 qed(*<*)qed(*>*)
 
-text\<open>Instead of duplicating @{text"formula\<^sub>i"} in the text, we introduce
-the two abbreviations @{text"?L"} and @{text"?R"} by pattern matching.
+text\<open>Instead of duplicating \<open>formula\<^sub>i\<close> in the text, we introduce
+the two abbreviations \<open>?L\<close> and \<open>?R\<close> by pattern matching.
 Pattern matching works wherever a formula is stated, in particular
 with \isacom{have} and \isacom{lemma}.
 
-The unknown \indexed{@{text"?thesis"}}{thesis} is implicitly matched against any goal stated by
+The unknown \indexed{\<open>?thesis\<close>}{thesis} is implicitly matched against any goal stated by
 \isacom{lemma} or \isacom{show}. Here is a typical example:\<close>
 
 lemma "formula"
@@ -552,34 +551,34 @@ qed
 text\<open>
 Unknowns can also be instantiated with \indexed{\isacom{let}}{let} commands
 \begin{quote}
-\isacom{let} @{text"?t"} = @{text"\""}\textit{some-big-term}@{text"\""}
+\isacom{let} \<open>?t\<close> = \<open>"\<close>\textit{some-big-term}\<open>"\<close>
 \end{quote}
-Later proof steps can refer to @{text"?t"}:
+Later proof steps can refer to \<open>?t\<close>:
 \begin{quote}
-\isacom{have} @{text"\""}\dots @{text"?t"} \dots@{text"\""}
+\isacom{have} \<open>"\<close>\dots \<open>?t\<close> \dots\<open>"\<close>
 \end{quote}
 \begin{warn}
-Names of facts are introduced with @{text"name:"} and refer to proved
-theorems. Unknowns @{text"?X"} refer to terms or formulas.
+Names of facts are introduced with \<open>name:\<close> and refer to proved
+theorems. Unknowns \<open>?X\<close> refer to terms or formulas.
 \end{warn}
 
 Although abbreviations shorten the text, the reader needs to remember what
-they stand for. Similarly for names of facts. Names like @{text 1}, @{text 2}
-and @{text 3} are not helpful and should only be used in short proofs. For
+they stand for. Similarly for names of facts. Names like \<open>1\<close>, \<open>2\<close>
+and \<open>3\<close> are not helpful and should only be used in short proofs. For
 longer proofs, descriptive names are better. But look at this example:
 \begin{quote}
-\isacom{have} \ @{text"x_gr_0: \"x > 0\""}\\
+\isacom{have} \ \<open>x_gr_0: "x > 0"\<close>\\
 $\vdots$\\
-\isacom{from} @{text "x_gr_0"} \dots
+\isacom{from} \<open>x_gr_0\<close> \dots
 \end{quote}
 The name is longer than the fact it stands for! Short facts do not need names;
 one can refer to them easily by quoting them:
 \begin{quote}
-\isacom{have} \ @{text"\"x > 0\""}\\
+\isacom{have} \ \<open>"x > 0"\<close>\\
 $\vdots$\\
-\isacom{from} @{text "`x>0`"} \dots\index{$IMP053@@{text"`...`"}}
+\isacom{from} \<open>`x>0`\<close> \dots\index{$IMP053@\<open>`...`\<close>}
 \end{quote}
-Note that the quotes around @{text"x>0"} are \conceptnoidx{back quotes}.
+Note that the quotes around \<open>x>0\<close> are \conceptnoidx{back quotes}.
 They refer to the fact not by name but by value.
 
 \subsection{\indexed{\isacom{moreover}}{moreover}}
@@ -633,15 +632,15 @@ has its own assumptions and is generalized over its locally fixed
 variables at the end. This is simply an extension of the basic
 \indexed{\isacom{have}}{have} construct:
 \begin{quote}
-\indexed{\isacom{have}}{have} @{text"B"}\
- \indexed{\isacom{if}}{if} \<open>name:\<close> @{text"A\<^sub>1 \<dots> A\<^sub>m"}\
- \indexed{\isacom{for}}{for} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
+\indexed{\isacom{have}}{have} \<open>B\<close>\
+ \indexed{\isacom{if}}{if} \<open>name:\<close> \<open>A\<^sub>1 \<dots> A\<^sub>m\<close>\
+ \indexed{\isacom{for}}{for} \<open>x\<^sub>1 \<dots> x\<^sub>n\<close>\\
 \isasymproof
 \end{quote}
-proves @{text"\<lbrakk> A\<^sub>1; \<dots> ; A\<^sub>m \<rbrakk> \<Longrightarrow> B"}
-where all @{text"x\<^sub>i"} have been replaced by unknowns @{text"?x\<^sub>i"}.
+proves \<open>\<lbrakk> A\<^sub>1; \<dots> ; A\<^sub>m \<rbrakk> \<Longrightarrow> B\<close>
+where all \<open>x\<^sub>i\<close> have been replaced by unknowns \<open>?x\<^sub>i\<close>.
 As an example we prove a simple fact about divisibility on integers.
-The definition of @{text "dvd"} is @{thm dvd_def}.
+The definition of \<open>dvd\<close> is @{thm dvd_def}.
 \end{isamarkuptext}%
 \<close>
 
@@ -677,8 +676,8 @@ lemma "\<exists>ys zs. xs = ys @ zs \<and>
 (*<*)oops(*>*)
 text\<open>
 Hint: There are predefined functions @{const_typ take} and @{const_typ drop}
-such that @{text"take k [x\<^sub>1,\<dots>] = [x\<^sub>1,\<dots>,x\<^sub>k]"} and
-@{text"drop k [x\<^sub>1,\<dots>] = [x\<^bsub>k+1\<^esub>,\<dots>]"}. Let sledgehammer find and apply
+such that \<open>take k [x\<^sub>1,\<dots>] = [x\<^sub>1,\<dots>,x\<^sub>k]\<close> and
+\<open>drop k [x\<^sub>1,\<dots>] = [x\<^bsub>k+1\<^esub>,\<dots>]\<close>. Let sledgehammer find and apply
 the relevant @{const take} and @{const drop} lemmas for you.
 \endexercise
 
@@ -689,9 +688,9 @@ the relevant @{const take} and @{const drop} lemmas for you.
 \index{case analysis|(}
 
 We have seen case analysis on formulas. Now we want to distinguish
-which form some term takes: is it @{text 0} or of the form @{term"Suc n"},
+which form some term takes: is it \<open>0\<close> or of the form @{term"Suc n"},
 is it @{term"[]"} or of the form @{term"x#xs"}, etc. Here is a typical example
-proof by case analysis on the form of @{text xs}:
+proof by case analysis on the form of \<open>xs\<close>:
 \<close>
 
 lemma "length(tl xs) = length xs - 1"
@@ -703,22 +702,22 @@ next
   thus ?thesis by simp
 qed
 
-text\<open>\index{cases@@{text"cases"}|(}Function @{text tl} (''tail'') is defined by @{thm list.sel(2)} and
+text\<open>\index{cases@\<open>cases\<close>|(}Function \<open>tl\<close> (''tail'') is defined by @{thm list.sel(2)} and
 @{thm list.sel(3)}. Note that the result type of @{const length} is @{typ nat}
 and @{prop"0 - 1 = (0::nat)"}.
 
-This proof pattern works for any term @{text t} whose type is a datatype.
-The goal has to be proved for each constructor @{text C}:
+This proof pattern works for any term \<open>t\<close> whose type is a datatype.
+The goal has to be proved for each constructor \<open>C\<close>:
 \begin{quote}
-\isacom{fix} \ @{text"x\<^sub>1 \<dots> x\<^sub>n"} \isacom{assume} @{text"\"t = C x\<^sub>1 \<dots> x\<^sub>n\""}
+\isacom{fix} \ \<open>x\<^sub>1 \<dots> x\<^sub>n\<close> \isacom{assume} \<open>"t = C x\<^sub>1 \<dots> x\<^sub>n"\<close>
 \end{quote}\index{case@\isacom{case}|(}
 Each case can be written in a more compact form by means of the \isacom{case}
 command:
 \begin{quote}
-\isacom{case} @{text "(C x\<^sub>1 \<dots> x\<^sub>n)"}
+\isacom{case} \<open>(C x\<^sub>1 \<dots> x\<^sub>n)\<close>
 \end{quote}
 This is equivalent to the explicit \isacom{fix}-\isacom{assume} line
-but also gives the assumption @{text"\"t = C x\<^sub>1 \<dots> x\<^sub>n\""} a name: @{text C},
+but also gives the assumption \<open>"t = C x\<^sub>1 \<dots> x\<^sub>n"\<close> a name: \<open>C\<close>,
 like the constructor.
 Here is the \isacom{case} version of the proof above:
 \<close>
@@ -731,8 +730,8 @@ next
   thus ?thesis by simp
 qed
 
-text\<open>Remember that @{text Nil} and @{text Cons} are the alphanumeric names
-for @{text"[]"} and @{text"#"}. The names of the assumptions
+text\<open>Remember that \<open>Nil\<close> and \<open>Cons\<close> are the alphanumeric names
+for \<open>[]\<close> and \<open>#\<close>. The names of the assumptions
 are not used because they are directly piped (via \isacom{thus})
 into the proof of the claim.
 \index{case analysis|)}
@@ -742,8 +741,8 @@ into the proof of the claim.
 \index{structural induction|(}
 
 We illustrate structural induction with an example based on natural numbers:
-the sum (@{text"\<Sum>"}) of the first @{text n} natural numbers
-(@{text"{0..n::nat}"}) is equal to \mbox{@{term"n*(n+1) div 2::nat"}}.
+the sum (\<open>\<Sum>\<close>) of the first \<open>n\<close> natural numbers
+(\<open>{0..n::nat}\<close>) is equal to \mbox{@{term"n*(n+1) div 2::nat"}}.
 Never mind the details, just focus on the pattern:
 \<close>
 
@@ -768,12 +767,12 @@ next
   thus "?P(Suc n)" by simp
 qed
 
-text\<open>The first line introduces an abbreviation @{text"?P n"} for the goal.
-Pattern matching @{text"?P n"} with the goal instantiates @{text"?P"} to the
+text\<open>The first line introduces an abbreviation \<open>?P n\<close> for the goal.
+Pattern matching \<open>?P n\<close> with the goal instantiates \<open>?P\<close> to the
 function @{term"\<lambda>n. \<Sum>{0..n::nat} = n*(n+1) div 2"}.  Now the proposition to
-be proved in the base case can be written as @{text"?P 0"}, the induction
-hypothesis as @{text"?P n"}, and the conclusion of the induction step as
-@{text"?P(Suc n)"}.
+be proved in the base case can be written as \<open>?P 0\<close>, the induction
+hypothesis as \<open>?P n\<close>, and the conclusion of the induction step as
+\<open>?P(Suc n)\<close>.
 
 Induction also provides the \isacom{case} idiom that abbreviates
 the \isacom{fix}-\isacom{assume} step. The above proof becomes
@@ -788,9 +787,9 @@ next
 qed
 
 text\<open>
-The unknown @{text"?case"}\index{case?@@{text"?case"}|(} is set in each case to the required
-claim, i.e., @{text"?P 0"} and \mbox{@{text"?P(Suc n)"}} in the above proof,
-without requiring the user to define a @{text "?P"}. The general
+The unknown \<open>?case\<close>\index{case?@\<open>?case\<close>|(} is set in each case to the required
+claim, i.e., \<open>?P 0\<close> and \mbox{\<open>?P(Suc n)\<close>} in the above proof,
+without requiring the user to define a \<open>?P\<close>. The general
 pattern for induction over @{typ nat} is shown on the left-hand side:
 \<close>text_raw\<open>
 \begin{tabular}{@ {}ll@ {}}
@@ -815,12 +814,12 @@ text_raw \<open>}
 \begin{minipage}[t]{.4\textwidth}
 ~\\
 ~\\
-\isacom{let} @{text"?case = \"P(0)\""}\\
+\isacom{let} \<open>?case = "P(0)"\<close>\\
 ~\\
 ~\\
 ~\\[1ex]
-\isacom{fix} @{text n} \isacom{assume} @{text"Suc: \"P(n)\""}\\
-\isacom{let} @{text"?case = \"P(Suc n)\""}\\
+\isacom{fix} \<open>n\<close> \isacom{assume} \<open>Suc: "P(n)"\<close>\\
+\isacom{let} \<open>?case = "P(Suc n)"\<close>\\
 \end{minipage}
 \end{tabular}
 \medskip
@@ -833,36 +832,36 @@ In case the goal is an implication, induction does one more thing: the
 proposition to be proved in each case is not the whole implication but only
 its conclusion; the premises of the implication are immediately made
 assumptions of that case. That is, if in the above proof we replace
-\isacom{show}~@{text"\"P(n)\""} by
-\mbox{\isacom{show}~@{text"\"A(n) \<Longrightarrow> P(n)\""}}
-then \isacom{case}~@{text 0} stands for
+\isacom{show}~\<open>"P(n)"\<close> by
+\mbox{\isacom{show}~\<open>"A(n) \<Longrightarrow> P(n)"\<close>}
+then \isacom{case}~\<open>0\<close> stands for
 \begin{quote}
-\isacom{assume} \ @{text"0: \"A(0)\""}\\
-\isacom{let} @{text"?case = \"P(0)\""}
+\isacom{assume} \ \<open>0: "A(0)"\<close>\\
+\isacom{let} \<open>?case = "P(0)"\<close>
 \end{quote}
-and \isacom{case}~@{text"(Suc n)"} stands for
+and \isacom{case}~\<open>(Suc n)\<close> stands for
 \begin{quote}
-\isacom{fix} @{text n}\\
-\isacom{assume} @{text"Suc:"}
-  \begin{tabular}[t]{l}@{text"\"A(n) \<Longrightarrow> P(n)\""}\\@{text"\"A(Suc n)\""}\end{tabular}\\
-\isacom{let} @{text"?case = \"P(Suc n)\""}
+\isacom{fix} \<open>n\<close>\\
+\isacom{assume} \<open>Suc:\<close>
+  \begin{tabular}[t]{l}\<open>"A(n) \<Longrightarrow> P(n)"\<close>\\\<open>"A(Suc n)"\<close>\end{tabular}\\
+\isacom{let} \<open>?case = "P(Suc n)"\<close>
 \end{quote}
-The list of assumptions @{text Suc} is actually subdivided
-into @{text"Suc.IH"}, the induction hypotheses (here @{text"A(n) \<Longrightarrow> P(n)"}),
-and @{text"Suc.prems"}, the premises of the goal being proved
-(here @{text"A(Suc n)"}).
+The list of assumptions \<open>Suc\<close> is actually subdivided
+into \<open>Suc.IH\<close>, the induction hypotheses (here \<open>A(n) \<Longrightarrow> P(n)\<close>),
+and \<open>Suc.prems\<close>, the premises of the goal being proved
+(here \<open>A(Suc n)\<close>).
 
 Induction works for any datatype.
-Proving a goal @{text"\<lbrakk> A\<^sub>1(x); \<dots>; A\<^sub>k(x) \<rbrakk> \<Longrightarrow> P(x)"}
-by induction on @{text x} generates a proof obligation for each constructor
-@{text C} of the datatype. The command \isacom{case}~@{text"(C x\<^sub>1 \<dots> x\<^sub>n)"}
+Proving a goal \<open>\<lbrakk> A\<^sub>1(x); \<dots>; A\<^sub>k(x) \<rbrakk> \<Longrightarrow> P(x)\<close>
+by induction on \<open>x\<close> generates a proof obligation for each constructor
+\<open>C\<close> of the datatype. The command \isacom{case}~\<open>(C x\<^sub>1 \<dots> x\<^sub>n)\<close>
 performs the following steps:
 \begin{enumerate}
-\item \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}
-\item \isacom{assume} the induction hypotheses (calling them @{text C.IH}\index{IH@@{text".IH"}})
- and the premises \mbox{@{text"A\<^sub>i(C x\<^sub>1 \<dots> x\<^sub>n)"}} (calling them @{text"C.prems"}\index{prems@@{text".prems"}})
- and calling the whole list @{text C}
-\item \isacom{let} @{text"?case = \"P(C x\<^sub>1 \<dots> x\<^sub>n)\""}
+\item \isacom{fix} \<open>x\<^sub>1 \<dots> x\<^sub>n\<close>
+\item \isacom{assume} the induction hypotheses (calling them \<open>C.IH\<close>\index{IH@\<open>.IH\<close>})
+ and the premises \mbox{\<open>A\<^sub>i(C x\<^sub>1 \<dots> x\<^sub>n)\<close>} (calling them \<open>C.prems\<close>\index{prems@\<open>.prems\<close>})
+ and calling the whole list \<open>C\<close>
+\item \isacom{let} \<open>?case = "P(C x\<^sub>1 \<dots> x\<^sub>n)"\<close>
 \end{enumerate}
 \index{structural induction|)}
 
@@ -947,13 +946,13 @@ text_raw \<open>}
 \begin{minipage}[t]{.5\textwidth}
 ~\\
 ~\\
-\isacom{let} @{text"?case = \"evn 0\""}\\
+\isacom{let} \<open>?case = "evn 0"\<close>\\
 ~\\
 ~\\
-\isacom{fix} @{text n}\\
-\isacom{assume} @{text"evSS:"}
-  \begin{tabular}[t]{l} @{text"\"ev n\""}\\@{text"\"evn n\""}\end{tabular}\\
-\isacom{let} @{text"?case = \"evn(Suc(Suc n))\""}\\
+\isacom{fix} \<open>n\<close>\\
+\isacom{assume} \<open>evSS:\<close>
+  \begin{tabular}[t]{l} \<open>"ev n"\<close>\\\<open>"evn n"\<close>\end{tabular}\\
+\isacom{let} \<open>?case = "evn(Suc(Suc n))"\<close>\\
 \end{minipage}
 \end{tabular}
 \medskip
@@ -974,18 +973,18 @@ definition, those rules now need to be accessed with a qualified name, here
 \end{warn}
 
 In the case @{thm[source]evSS} of the proof above we have pretended that the
-system fixes a variable @{text n}.  But unless the user provides the name
-@{text n}, the system will just invent its own name that cannot be referred
+system fixes a variable \<open>n\<close>.  But unless the user provides the name
+\<open>n\<close>, the system will just invent its own name that cannot be referred
 to.  In the above proof, we do not need to refer to it, hence we do not give
 it a specific name. In case one needs to refer to it one writes
 \begin{quote}
-\isacom{case} @{text"(evSS m)"}
+\isacom{case} \<open>(evSS m)\<close>
 \end{quote}
-like \isacom{case}~@{text"(Suc n)"} in earlier structural inductions.
-The name @{text m} is an arbitrary choice. As a result,
+like \isacom{case}~\<open>(Suc n)\<close> in earlier structural inductions.
+The name \<open>m\<close> is an arbitrary choice. As a result,
 case @{thm[source] evSS} is derived from a renamed version of
-rule @{thm[source] evSS}: @{text"ev m \<Longrightarrow> ev(Suc(Suc m))"}.
-Here is an example with a (contrived) intermediate step that refers to @{text m}:
+rule @{thm[source] evSS}: \<open>ev m \<Longrightarrow> ev(Suc(Suc m))\<close>.
+Here is an example with a (contrived) intermediate step that refers to \<open>m\<close>:
 \<close>
 
 lemma "ev n \<Longrightarrow> evn n"
@@ -999,10 +998,10 @@ qed
 
 text\<open>
 \indent
-In general, let @{text I} be a (for simplicity unary) inductively defined
-predicate and let the rules in the definition of @{text I}
-be called @{text "rule\<^sub>1"}, \dots, @{text "rule\<^sub>n"}. A proof by rule
-induction follows this pattern:\index{inductionrule@@{text"induction ... rule:"}}
+In general, let \<open>I\<close> be a (for simplicity unary) inductively defined
+predicate and let the rules in the definition of \<open>I\<close>
+be called \<open>rule\<^sub>1\<close>, \dots, \<open>rule\<^sub>n\<close>. A proof by rule
+induction follows this pattern:\index{inductionrule@\<open>induction ... rule:\<close>}
 \<close>
 
 (*<*)
@@ -1027,35 +1026,35 @@ qed(*<*)qed(*>*)
 
 text\<open>
 One can provide explicit variable names by writing
-\isacom{case}~@{text"(rule\<^sub>i x\<^sub>1 \<dots> x\<^sub>k)"}, thus renaming the first @{text k}
-free variables in rule @{text i} to @{text"x\<^sub>1 \<dots> x\<^sub>k"},
-going through rule @{text i} from left to right.
+\isacom{case}~\<open>(rule\<^sub>i x\<^sub>1 \<dots> x\<^sub>k)\<close>, thus renaming the first \<open>k\<close>
+free variables in rule \<open>i\<close> to \<open>x\<^sub>1 \<dots> x\<^sub>k\<close>,
+going through rule \<open>i\<close> from left to right.
 
 \subsection{Assumption Naming}
 \label{sec:assm-naming}
 
-In any induction, \isacom{case}~@{text name} sets up a list of assumptions
-also called @{text name}, which is subdivided into three parts:
+In any induction, \isacom{case}~\<open>name\<close> sets up a list of assumptions
+also called \<open>name\<close>, which is subdivided into three parts:
 \begin{description}
-\item[@{text name.IH}]\index{IH@@{text".IH"}} contains the induction hypotheses.
-\item[@{text name.hyps}]\index{hyps@@{text".hyps"}} contains all the other hypotheses of this case in the
+\item[\<open>name.IH\<close>]\index{IH@\<open>.IH\<close>} contains the induction hypotheses.
+\item[\<open>name.hyps\<close>]\index{hyps@\<open>.hyps\<close>} contains all the other hypotheses of this case in the
 induction rule. For rule inductions these are the hypotheses of rule
-@{text name}, for structural inductions these are empty.
-\item[@{text name.prems}]\index{prems@@{text".prems"}} contains the (suitably instantiated) premises
-of the statement being proved, i.e., the @{text A\<^sub>i} when
-proving @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}.
+\<open>name\<close>, for structural inductions these are empty.
+\item[\<open>name.prems\<close>]\index{prems@\<open>.prems\<close>} contains the (suitably instantiated) premises
+of the statement being proved, i.e., the \<open>A\<^sub>i\<close> when
+proving \<open>\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A\<close>.
 \end{description}
 \begin{warn}
-Proof method @{text induct} differs from @{text induction}
-only in this naming policy: @{text induct} does not distinguish
-@{text IH} from @{text hyps} but subsumes @{text IH} under @{text hyps}.
+Proof method \<open>induct\<close> differs from \<open>induction\<close>
+only in this naming policy: \<open>induct\<close> does not distinguish
+\<open>IH\<close> from \<open>hyps\<close> but subsumes \<open>IH\<close> under \<open>hyps\<close>.
 \end{warn}
 
 More complicated inductive proofs than the ones we have seen so far
-often need to refer to specific assumptions --- just @{text name} or even
-@{text name.prems} and @{text name.IH} can be too unspecific.
+often need to refer to specific assumptions --- just \<open>name\<close> or even
+\<open>name.prems\<close> and \<open>name.IH\<close> can be too unspecific.
 This is where the indexing of fact lists comes in handy, e.g.,
-@{text"name.IH(2)"} or @{text"name.prems(1-2)"}.
+\<open>name.IH(2)\<close> or \<open>name.prems(1-2)\<close>.
 
 \subsection{Rule Inversion}
 \label{sec:rule-inversion}
@@ -1089,17 +1088,17 @@ end
 
 text\<open>The key point here is that a case analysis over some inductively
 defined predicate is triggered by piping the given fact
-(here: \isacom{from}~@{text this}) into a proof by @{text cases}.
-Let us examine the assumptions available in each case. In case @{text ev0}
-we have @{text"n = 0"} and in case @{text evSS} we have @{prop"n = Suc(Suc k)"}
+(here: \isacom{from}~\<open>this\<close>) into a proof by \<open>cases\<close>.
+Let us examine the assumptions available in each case. In case \<open>ev0\<close>
+we have \<open>n = 0\<close> and in case \<open>evSS\<close> we have @{prop"n = Suc(Suc k)"}
 and @{prop"ev k"}. In each case the assumptions are available under the name
 of the case; there is no fine-grained naming schema like there is for induction.
 
 Sometimes some rules could not have been used to derive the given fact
 because constructors clash. As an extreme example consider
-rule inversion applied to @{prop"ev(Suc 0)"}: neither rule @{text ev0} nor
-rule @{text evSS} can yield @{prop"ev(Suc 0)"} because @{text"Suc 0"} unifies
-neither with @{text 0} nor with @{term"Suc(Suc n)"}. Impossible cases do not
+rule inversion applied to @{prop"ev(Suc 0)"}: neither rule \<open>ev0\<close> nor
+rule \<open>evSS\<close> can yield @{prop"ev(Suc 0)"} because \<open>Suc 0\<close> unifies
+neither with \<open>0\<close> nor with @{term"Suc(Suc n)"}. Impossible cases do not
 have to be proved. Hence we can prove anything from @{prop"ev(Suc 0)"}:
 \<close>
 (*<*)
@@ -1123,28 +1122,28 @@ prove that \mbox{@{prop"\<not> ev(Suc(Suc(Suc 0)))"}.}
 \subsection{Advanced Rule Induction}
 \label{sec:advanced-rule-induction}
 
-So far, rule induction was always applied to goals of the form @{text"I x y z \<Longrightarrow> \<dots>"}
-where @{text I} is some inductively defined predicate and @{text x}, @{text y}, @{text z}
+So far, rule induction was always applied to goals of the form \<open>I x y z \<Longrightarrow> \<dots>\<close>
+where \<open>I\<close> is some inductively defined predicate and \<open>x\<close>, \<open>y\<close>, \<open>z\<close>
 are variables. In some rare situations one needs to deal with an assumption where
-not all arguments @{text r}, @{text s}, @{text t} are variables:
+not all arguments \<open>r\<close>, \<open>s\<close>, \<open>t\<close> are variables:
 \begin{isabelle}
-\isacom{lemma} @{text"\"I r s t \<Longrightarrow> \<dots>\""}
+\isacom{lemma} \<open>"I r s t \<Longrightarrow> \<dots>"\<close>
 \end{isabelle}
 Applying the standard form of
 rule induction in such a situation will lead to strange and typically unprovable goals.
 We can easily reduce this situation to the standard one by introducing
-new variables @{text x}, @{text y}, @{text z} and reformulating the goal like this:
+new variables \<open>x\<close>, \<open>y\<close>, \<open>z\<close> and reformulating the goal like this:
 \begin{isabelle}
-\isacom{lemma} @{text"\"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>\""}
+\isacom{lemma} \<open>"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>"\<close>
 \end{isabelle}
 Standard rule induction will work fine now, provided the free variables in
-@{text r}, @{text s}, @{text t} are generalized via @{text"arbitrary"}.
+\<open>r\<close>, \<open>s\<close>, \<open>t\<close> are generalized via \<open>arbitrary\<close>.
 
 However, induction can do the above transformation for us, behind the curtains, so we never
 need to see the expanded version of the lemma. This is what we need to write:
 \begin{isabelle}
-\isacom{lemma} @{text"\"I r s t \<Longrightarrow> \<dots>\""}\isanewline
-\isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}\index{inductionrule@@{text"induction ... rule:"}}\index{arbitrary@@{text"arbitrary:"}}
+\isacom{lemma} \<open>"I r s t \<Longrightarrow> \<dots>"\<close>\isanewline
+\isacom{proof}\<open>(induction "r" "s" "t" arbitrary: \<dots> rule: I.induct)\<close>\index{inductionrule@\<open>induction ... rule:\<close>}\index{arbitrary@\<open>arbitrary:\<close>}
 \end{isabelle}
 Like for rule inversion, cases that are impossible because of constructor clashes
 will not show up at all. Here is a concrete example:\<close>
@@ -1167,31 +1166,31 @@ text\<open>
 Remarks:
 \begin{itemize}
 \item 
-Instead of the \isacom{case} and @{text ?case} magic we have spelled all formulas out.
+Instead of the \isacom{case} and \<open>?case\<close> magic we have spelled all formulas out.
 This is merely for greater clarity.
 \item
 We only need to deal with one case because the @{thm[source] ev0} case is impossible.
 \item
-The form of the @{text IH} shows us that internally the lemma was expanded as explained
+The form of the \<open>IH\<close> shows us that internally the lemma was expanded as explained
 above: \noquotes{@{prop[source]"ev x \<Longrightarrow> x = Suc m \<Longrightarrow> \<not> ev m"}}.
 \item
 The goal @{prop"\<not> ev (Suc n)"} may surprise. The expanded version of the lemma
-would suggest that we have a \isacom{fix} @{text m} \isacom{assume} @{prop"Suc(Suc n) = Suc m"}
+would suggest that we have a \isacom{fix} \<open>m\<close> \isacom{assume} @{prop"Suc(Suc n) = Suc m"}
 and need to show @{prop"\<not> ev m"}. What happened is that Isabelle immediately
 simplified @{prop"Suc(Suc n) = Suc m"} to @{prop"Suc n = m"} and could then eliminate
-@{text m}. Beware of such nice surprises with this advanced form of induction.
+\<open>m\<close>. Beware of such nice surprises with this advanced form of induction.
 \end{itemize}
 \begin{warn}
-This advanced form of induction does not support the @{text IH}
+This advanced form of induction does not support the \<open>IH\<close>
 naming schema explained in \autoref{sec:assm-naming}:
-the induction hypotheses are instead found under the name @{text hyps},
+the induction hypotheses are instead found under the name \<open>hyps\<close>,
 as they are for the simpler
-@{text induct} method.
+\<open>induct\<close> method.
 \end{warn}
 \index{induction|)}
-\index{cases@@{text"cases"}|)}
+\index{cases@\<open>cases\<close>|)}
 \index{case@\isacom{case}|)}
-\index{case?@@{text"?case"}|)}
+\index{case?@\<open>?case\<close>|)}
 \index{rule induction|)}
 \index{rule inversion|)}
 
@@ -1215,26 +1214,26 @@ a proof immediately with \isacom{qed}.
 \end{exercise}
 
 \begin{exercise}
-Recall predicate @{text star} from \autoref{sec:star} and @{text iter}
+Recall predicate \<open>star\<close> from \autoref{sec:star} and \<open>iter\<close>
 from Exercise~\ref{exe:iter}. Prove @{prop "iter r n x y \<Longrightarrow> star r x y"}
 in a structured style; do not just sledgehammer each case of the
 required induction.
 \end{exercise}
 
 \begin{exercise}
-Define a recursive function @{text "elems ::"} @{typ"'a list \<Rightarrow> 'a set"}
+Define a recursive function \<open>elems ::\<close> @{typ"'a list \<Rightarrow> 'a set"}
 and prove @{prop "x \<in> elems xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> elems ys"}.
 \end{exercise}
 
 \begin{exercise}
 Extend Exercise~\ref{exe:cfg} with a function that checks if some
-\mbox{@{text "alpha list"}} is a balanced
+\mbox{\<open>alpha list\<close>} is a balanced
 string of parentheses. More precisely, define a \mbox{recursive} function
-@{text "balanced :: nat \<Rightarrow> alpha list \<Rightarrow> bool"} such that @{term"balanced n w"}
-is true iff (informally) @{text"S (a\<^sup>n @ w)"}. Formally, prove that
+\<open>balanced :: nat \<Rightarrow> alpha list \<Rightarrow> bool\<close> such that @{term"balanced n w"}
+is true iff (informally) \<open>S (a\<^sup>n @ w)\<close>. Formally, prove that
 @{prop "balanced n w \<longleftrightarrow> S (replicate n a @ w)"} where
-@{const replicate} @{text"::"} @{typ"nat \<Rightarrow> 'a \<Rightarrow> 'a list"} is predefined
-and @{term"replicate n x"} yields the list @{text"[x, \<dots>, x]"} of length @{text n}.
+@{const replicate} \<open>::\<close> @{typ"nat \<Rightarrow> 'a \<Rightarrow> 'a list"} is predefined
+and @{term"replicate n x"} yields the list \<open>[x, \<dots>, x]\<close> of length \<open>n\<close>.
 \end{exercise}
 \<close>
 

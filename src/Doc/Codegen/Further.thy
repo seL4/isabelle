@@ -4,7 +4,7 @@ begin
 
 section \<open>Further issues \label{sec:further}\<close>
 
-subsection \<open>Incorporating generated code directly into the system runtime -- @{text code_reflect}\<close>
+subsection \<open>Incorporating generated code directly into the system runtime -- \<open>code_reflect\<close>\<close>
 
 subsubsection \<open>Static embedding of generated code into the system runtime\<close>
 
@@ -55,36 +55,36 @@ text \<open>
   file which can be included into the system runtime later on.
 \<close>
 
-subsection \<open>Specialities of the @{text Scala} target language \label{sec:scala}\<close>
+subsection \<open>Specialities of the \<open>Scala\<close> target language \label{sec:scala}\<close>
 
 text \<open>
-  @{text Scala} deviates from languages of the ML family in a couple
+  \<open>Scala\<close> deviates from languages of the ML family in a couple
   of aspects; those which affect code generation mainly have to do with
-  @{text Scala}'s type system:
+  \<open>Scala\<close>'s type system:
 
   \begin{itemize}
 
-    \item @{text Scala} prefers tupled syntax over curried syntax.
+    \item \<open>Scala\<close> prefers tupled syntax over curried syntax.
 
-    \item @{text Scala} sacrifices Hindely-Milner type inference for a
+    \item \<open>Scala\<close> sacrifices Hindely-Milner type inference for a
       much more rich type system with subtyping etc.  For this reason
       type arguments sometimes have to be given explicitly in square
       brackets (mimicking System F syntax).
 
-    \item In contrast to @{text Haskell} where most specialities of
+    \item In contrast to \<open>Haskell\<close> where most specialities of
       the type system are implemented using \emph{type classes},
-      @{text Scala} provides a sophisticated system of \emph{implicit
+      \<open>Scala\<close> provides a sophisticated system of \emph{implicit
       arguments}.
 
   \end{itemize}
 
-  \noindent Concerning currying, the @{text Scala} serializer counts
+  \noindent Concerning currying, the \<open>Scala\<close> serializer counts
   arguments in code equations to determine how many arguments
   shall be tupled; remaining arguments and abstractions in terms
   rather than function definitions are always curried.
 
   The second aspect affects user-defined adaptations with @{command
-  code_printing}.  For regular terms, the @{text Scala} serializer prints
+  code_printing}.  For regular terms, the \<open>Scala\<close> serializer prints
   all type arguments explicitly.  For user-defined term adaptations
   this is only possible for adaptations which take no arguments: here
   the type arguments are just appended.  Otherwise they are ignored;
@@ -107,9 +107,8 @@ text \<open>
 
   Then sometimes the awkward situation occurs that dependencies
   between definitions introduce cyclic dependencies between modules,
-  which in the @{text Haskell} world leaves you to the mercy of the
-  @{text Haskell} implementation you are using, while for @{text
-  SML}/@{text OCaml} code generation is not possible.
+  which in the \<open>Haskell\<close> world leaves you to the mercy of the
+  \<open>Haskell\<close> implementation you are using, while for \<open>SML\<close>/\<open>OCaml\<close> code generation is not possible.
 
   A solution is to declare module names explicitly.  Let use assume
   the three cyclically dependent modules are named \emph{A}, \emph{B}
@@ -144,7 +143,7 @@ locale %quote power =
 begin
 
 text \<open>
-  \noindent Inside that locale we can lift @{text power} to exponent
+  \noindent Inside that locale we can lift \<open>power\<close> to exponent
   lists by means of a specification relative to that locale:
 \<close>
 
@@ -170,11 +169,10 @@ end %quote
 
 text \<open>
   After an interpretation of this locale (say, @{command_def
-  global_interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f
-  :: 'a \<Rightarrow> 'a). f ^^ n)"}), one could naively expect to have a constant @{text
-  "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"} for which code
+  global_interpretation} \<open>fun_power:\<close> @{term [source] "power (\<lambda>n (f
+  :: 'a \<Rightarrow> 'a). f ^^ n)"}), one could naively expect to have a constant \<open>fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a\<close> for which code
   can be generated.  But this not the case: internally, the term
-  @{text "fun_power.powers"} is an abbreviation for the foundational
+  \<open>fun_power.powers\<close> is an abbreviation for the foundational
   term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
   (see @{cite "isabelle-locale"} for the details behind).
 
@@ -203,7 +201,7 @@ text %quotetypewriter \<open>
 subsection \<open>Parallel computation\<close>
 
 text \<open>
-  Theory @{text Parallel} in \<^dir>\<open>~~/src/HOL/Library\<close> contains
+  Theory \<open>Parallel\<close> in \<^dir>\<open>~~/src/HOL/Library\<close> contains
   operations to exploit parallelism inside the Isabelle/ML
   runtime engine.
 \<close>
@@ -215,7 +213,7 @@ text \<open>
   specific application, you should consider \emph{Imperative
   Functional Programming with Isabelle/HOL}
   @{cite "bulwahn-et-al:2008:imperative"}; the framework described there
-  is available in session @{text Imperative_HOL}, together with a
+  is available in session \<open>Imperative_HOL\<close>, together with a
   short primer document.
 \<close>
 

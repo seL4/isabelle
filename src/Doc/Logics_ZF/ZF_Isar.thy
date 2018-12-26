@@ -18,9 +18,9 @@ text \<open>
   Simplifier setup.
 
   \begin{matharray}{rcl}
-    @{command_def (ZF) "print_tcset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{method_def (ZF) typecheck} & : & @{text method} \\
-    @{attribute_def (ZF) TC} & : & @{text attribute} \\
+    @{command_def (ZF) "print_tcset"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{method_def (ZF) typecheck} & : & \<open>method\<close> \\
+    @{attribute_def (ZF) TC} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -52,10 +52,10 @@ text \<open>
   Coinductive definitions are available in both cases, too.
 
   \begin{matharray}{rcl}
-    @{command_def (ZF) "inductive"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (ZF) "coinductive"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (ZF) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (ZF) "codatatype"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (ZF) "inductive"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (ZF) "coinductive"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (ZF) "datatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (ZF) "codatatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -78,8 +78,7 @@ text \<open>
     @{syntax_def (ZF) typeelims}: @'type_elims' @{syntax thms}
   \<close>}
 
-  In the following syntax specification @{text "monos"}, @{text
-  typeintros}, and @{text typeelims} are the same as above.
+  In the following syntax specification \<open>monos\<close>, \<open>typeintros\<close>, and \<open>typeelims\<close> are the same as above.
 
   @{rail \<open>
     (@@{command (ZF) datatype} | @@{command (ZF) codatatype}) domain? (dtspec + @'and') hints
@@ -104,7 +103,7 @@ subsection \<open>Primitive recursive functions\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (ZF) "primrec"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (ZF) "primrec"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -120,10 +119,10 @@ text \<open>
   ported to Isar.  These should not be used in proper proof texts.
 
   \begin{matharray}{rcl}
-    @{method_def (ZF) case_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def (ZF) induct_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def (ZF) ind_cases}@{text "\<^sup>*"} & : & @{text method} \\
-    @{command_def (ZF) "inductive_cases"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{method_def (ZF) case_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def (ZF) induct_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def (ZF) ind_cases}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{command_def (ZF) "inductive_cases"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
   @{rail \<open>

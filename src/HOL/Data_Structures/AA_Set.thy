@@ -75,7 +75,7 @@ definition adjust :: "'a aa_tree \<Rightarrow> 'a aa_tree" where
 text\<open>In the paper, the last case of @{const adjust} is expressed with the help of an
 incorrect auxiliary function \texttt{nlvl}.
 
-Function @{text split_max} below is called \texttt{dellrg} in the paper.
+Function \<open>split_max\<close> below is called \texttt{dellrg} in the paper.
 The latter is incorrect for two reasons: \texttt{dellrg} is meant to delete the largest
 element but recurses on the left instead of the right subtree; the invariant
 is not restored.\<close>

@@ -13,15 +13,14 @@ text\<open>Instantiation of class @{class order} with type @{typ parity}:\<close
 instantiation parity :: order
 begin
 
-text\<open>First the definition of the interface function @{text"\<le>"}. Note that
+text\<open>First the definition of the interface function \<open>\<le>\<close>. Note that
 the header of the definition must refer to the ascii name @{const less_eq} of the
-constants as @{text less_eq_parity} and the definition is named @{text
-less_eq_parity_def}.  Inside the definition the symbolic names can be used.\<close>
+constants as \<open>less_eq_parity\<close> and the definition is named \<open>less_eq_parity_def\<close>.  Inside the definition the symbolic names can be used.\<close>
 
 definition less_eq_parity where
 "x \<le> y = (y = Either \<or> x=y)"
 
-text\<open>We also need @{text"<"}, which is defined canonically:\<close>
+text\<open>We also need \<open><\<close>, which is defined canonically:\<close>
 
 definition less_parity where
 "x < y = (x \<le> y \<and> \<not> y \<le> (x::parity))"
@@ -59,9 +58,9 @@ definition top_parity where
 "\<top> = Either"
 
 text\<open>Now the instance proof. This time we take a shortcut with the help of
-proof method @{text goal_cases}: it creates cases 1 ... n for the subgoals
+proof method \<open>goal_cases\<close>: it creates cases 1 ... n for the subgoals
 1 ... n; in case i, i is also the name of the assumptions of subgoal i and
-@{text "case?"} refers to the conclusion of subgoal i.
+\<open>case?\<close> refers to the conclusion of subgoal i.
 The class axioms are presented in the same order as in the class definition.\<close>
 
 instance
@@ -123,7 +122,7 @@ Underscores are anonymous placeholders for variable names we don't care to fix.\
 
 text\<open>Instantiating the abstract interpretation locale requires no more
 proofs (they happened in the instatiation above) but delivers the
-instantiated abstract interpreter which we call @{text AI_parity}:\<close>
+instantiated abstract interpreter which we call \<open>AI_parity\<close>:\<close>
 
 global_interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity

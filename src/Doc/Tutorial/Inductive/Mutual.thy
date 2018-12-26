@@ -32,7 +32,7 @@ lemma "(m \<in> Even \<longrightarrow> 2 dvd m) \<and> (n \<in> Odd \<longrighta
 
 txt\<open>\noindent
 The proof is by rule induction. Because of the form of the induction theorem,
-it is applied by @{text rule} rather than @{text erule} as for ordinary
+it is applied by \<open>rule\<close> rather than \<open>erule\<close> as for ordinary
 inductive definitions:
 \<close>
 
@@ -69,11 +69,11 @@ text\<open>\noindent Everything works as before, except that
 you write \commdx{inductive} instead of \isacommand{inductive\_set} and
 @{prop"evn n"} instead of @{prop"n \<in> Even"}.
 When defining an n-ary relation as a predicate, it is recommended to curry
-the predicate: its type should be \mbox{@{text"\<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> bool"}}
+the predicate: its type should be \mbox{\<open>\<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> bool\<close>}
 rather than
-@{text"\<tau>\<^sub>1 \<times> \<dots> \<times> \<tau>\<^sub>n \<Rightarrow> bool"}. The curried version facilitates inductions.
+\<open>\<tau>\<^sub>1 \<times> \<dots> \<times> \<tau>\<^sub>n \<Rightarrow> bool\<close>. The curried version facilitates inductions.
 
-When should you choose sets and when predicates? If you intend to combine your notion with set theoretic notation, define it as an inductive set. If not, define it as an inductive predicate, thus avoiding the @{text"\<in>"} notation. But note that predicates of more than one argument cannot be combined with the usual set theoretic operators: @{term"P \<union> Q"} is not well-typed if @{text"P, Q :: \<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> bool"}, you have to write @{term"%x y. P x y & Q x y"} instead.
+When should you choose sets and when predicates? If you intend to combine your notion with set theoretic notation, define it as an inductive set. If not, define it as an inductive predicate, thus avoiding the \<open>\<in>\<close> notation. But note that predicates of more than one argument cannot be combined with the usual set theoretic operators: @{term"P \<union> Q"} is not well-typed if \<open>P, Q :: \<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> bool\<close>, you have to write @{term"%x y. P x y & Q x y"} instead.
 \index{inductive predicates|)}
 \<close>
 

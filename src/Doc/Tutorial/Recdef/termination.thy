@@ -7,7 +7,7 @@ When a function~$f$ is defined via \isacommand{recdef}, Isabelle tries to prove
 its termination with the help of the user-supplied measure.  Each of the examples
 above is simple enough that Isabelle can automatically prove that the
 argument's measure decreases in each recursive call. As a result,
-$f$@{text".simps"} will contain the defining equations (or variants derived
+$f$\<open>.simps\<close> will contain the defining equations (or variants derived
 from them) as theorems. For example, look (via \isacommand{thm}) at
 @{thm[source]sep.simps} and @{thm[source]sep1.simps} to see that they define
 the same function. What is more, those equations are automatically declared as
@@ -29,9 +29,9 @@ showing you what it was unable to prove:
 We can either prove this as a separate lemma, or try to figure out which
 existing lemmas may help. We opt for the second alternative. The theory of
 lists contains the simplification rule @{thm length_filter_le[no_vars]},
-which is what we need, provided we turn \mbox{@{text"< Suc"}}
+which is what we need, provided we turn \mbox{\<open>< Suc\<close>}
 into
-@{text"\<le>"} so that the rule applies. Lemma
+\<open>\<le>\<close> so that the rule applies. Lemma
 @{thm[source]less_Suc_eq_le} does just that: @{thm less_Suc_eq_le[no_vars]}.
 
 Now we retry the above definition but supply the lemma(s) just found (or
@@ -48,7 +48,7 @@ recdef qs "measure length"
 (*<*)local(*>*)
 text\<open>\noindent
 This time everything works fine. Now @{thm[source]qs.simps} contains precisely
-the stated recursion equations for @{text qs} and they have become
+the stated recursion equations for \<open>qs\<close> and they have become
 simplification rules.
 Thus we can automatically prove results such as this one:
 \<close>

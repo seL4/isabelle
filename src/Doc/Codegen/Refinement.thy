@@ -111,14 +111,13 @@ code_datatype %quote AQueue
 
 text \<open>
   \noindent Here we define a \qt{constructor} @{const "AQueue"} which
-  is defined in terms of @{text "Queue"} and interprets its arguments
+  is defined in terms of \<open>Queue\<close> and interprets its arguments
   according to what the \emph{content} of an amortised queue is supposed
   to be.
 
   The prerequisite for datatype constructors is only syntactical: a
-  constructor must be of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^sub>1 \<dots> \<alpha>\<^sub>n"} where @{text
-  "{\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n}"} is exactly the set of \emph{all} type variables in
-  @{text "\<tau>"}; then @{text "\<kappa>"} is its corresponding datatype.  The
+  constructor must be of type \<open>\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^sub>1 \<dots> \<alpha>\<^sub>n\<close> where \<open>{\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n}\<close> is exactly the set of \emph{all} type variables in
+  \<open>\<tau>\<close>; then \<open>\<kappa>\<close> is its corresponding datatype.  The
   HOL datatype package by default registers any new datatype with its
   constructors, but this may be changed using @{command_def
   code_datatype}; the currently chosen constructors can be inspected
@@ -227,7 +226,7 @@ text \<open>
   
   The primitive operations on @{typ "'a dlist"} are specified
   indirectly using the projection @{const list_of_dlist}.  For
-  the empty @{text "dlist"}, @{const Dlist.empty}, we finally want
+  the empty \<open>dlist\<close>, @{const Dlist.empty}, we finally want
   the code equation
 \<close>
 

@@ -405,7 +405,7 @@ subsubsection "Tests"
 
 value "show_acom_opt (AI_ivl test1_ivl)"
 
-text\<open>Better than @{text AI_const}:\<close>
+text\<open>Better than \<open>AI_const\<close>:\<close>
 value "show_acom_opt (AI_ivl test3_const)"
 value "show_acom_opt (AI_ivl test4_const)"
 value "show_acom_opt (AI_ivl test6_const)"

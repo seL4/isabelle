@@ -7,7 +7,7 @@ text\<open>\label{sec:CTL}
 The semantics of PDL only needs reflexive transitive closure.
 Let us be adventurous and introduce a more expressive temporal operator.
 We extend the datatype
-@{text formula} by a new constructor
+\<open>formula\<close> by a new constructor
 \<close>
 (*<*)
 datatype formula = Atom "atom"
@@ -98,7 +98,7 @@ by(blast)
 (*>*)
 text\<open>
 All we need to prove now is  @{prop"mc(AF f) = {s. s \<Turnstile> AF f}"}, which states
-that @{term mc} and @{text"\<Turnstile>"} agree for @{const AF}\@.
+that @{term mc} and \<open>\<Turnstile>\<close> agree for @{const AF}\@.
 This time we prove the two inclusions separately, starting
 with the easy one:
 \<close>
@@ -123,7 +123,7 @@ txt\<open>
 In this remaining case, we set @{term t} to @{term"p(1::nat)"}.
 The rest is automatic, which is surprising because it involves
 finding the instantiation @{term"\<lambda>i::nat. p(i+1)"}
-for @{text"\<forall>p"}.
+for \<open>\<forall>p\<close>.
 \<close>
 
 apply(erule_tac x = "p 1" in allE)
@@ -167,7 +167,7 @@ primrec path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (n
 
 text\<open>\noindent
 Element @{term"n+1::nat"} on this path is some arbitrary successor
-@{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that @{text"SOME t. R t"}
+@{term t} of element @{term n} such that @{term"Q t"} holds.  Remember that \<open>SOME t. R t\<close>
 is some arbitrary but fixed @{term t} such that @{prop"R t"} holds (see \S\ref{sec:SOME}). Of
 course, such a @{term t} need not exist, but that is of no
 concern to us since we will only use @{const path} when a
@@ -218,28 +218,28 @@ The conclusion looks exceedingly trivial: after all, @{term t} is chosen such th
 holds. However, we first have to show that such a @{term t} actually exists! This reasoning
 is embodied in the theorem @{thm[source]someI2_ex}:
 @{thm[display,eta_contract=false]someI2_ex}
-When we apply this theorem as an introduction rule, @{text"?P x"} becomes
-@{prop"(s, x) \<in> M \<and> Q x"} and @{text"?Q x"} becomes @{prop"(s,x) \<in> M"} and we have to prove
+When we apply this theorem as an introduction rule, \<open>?P x\<close> becomes
+@{prop"(s, x) \<in> M \<and> Q x"} and \<open>?Q x\<close> becomes @{prop"(s,x) \<in> M"} and we have to prove
 two subgoals: @{prop"\<exists>a. (s, a) \<in> M \<and> Q a"}, which follows from the assumptions, and
 @{prop"(s, x) \<in> M \<and> Q x \<Longrightarrow> (s,x) \<in> M"}, which is trivial. Thus it is not surprising that
-@{text fast} can prove the base case quickly:
+\<open>fast\<close> can prove the base case quickly:
 \<close>
 
  apply(fast intro: someI2_ex)
 
 txt\<open>\noindent
 What is worth noting here is that we have used \methdx{fast} rather than
-@{text blast}.  The reason is that @{text blast} would fail because it cannot
+\<open>blast\<close>.  The reason is that \<open>blast\<close> would fail because it cannot
 cope with @{thm[source]someI2_ex}: unifying its conclusion with the current
 subgoal is non-trivial because of the nested schematic variables. For
-efficiency reasons @{text blast} does not even attempt such unifications.
-Although @{text fast} can in principle cope with complicated unification
+efficiency reasons \<open>blast\<close> does not even attempt such unifications.
+Although \<open>fast\<close> can in principle cope with complicated unification
 problems, in practice the number of unifiers arising is often prohibitive and
 the offending rule may need to be applied explicitly rather than
 automatically. This is what happens in the step case.
 
 The induction step is similar, but more involved, because now we face nested
-occurrences of @{text SOME}. As a result, @{text fast} is no longer able to
+occurrences of \<open>SOME\<close>. As a result, \<open>fast\<close> is no longer able to
 solve the subgoal and we apply @{thm[source]someI2_ex} by hand.  We merely
 show the proof commands but do not describe the details:
 \<close>
@@ -320,7 +320,7 @@ If you find these proofs too complicated, we recommend that you read
 simpler arguments.
 
 The main theorem is proved as for PDL, except that we also derive the
-necessary equality @{text"lfp(af A) = ..."} by combining
+necessary equality \<open>lfp(af A) = ...\<close> by combining
 @{thm[source]AF_lemma1} and @{thm[source]AF_lemma2} on the spot:
 \<close>
 
@@ -439,7 +439,7 @@ text\<open>Let us close this section with a few words about the executability of
 our model checkers.  It is clear that if all sets are finite, they can be
 represented as lists and the usual set operations are easily
 implemented. Only @{const lfp} requires a little thought.  Fortunately, theory
-@{text While_Combinator} in the Library~@{cite "HOL-Library"} provides a
+\<open>While_Combinator\<close> in the Library~@{cite "HOL-Library"} provides a
 theorem stating that in the case of finite sets and a monotone
 function~@{term F}, the value of \mbox{@{term"lfp F"}} can be computed by
 iterated application of @{term F} to~@{term"{}"} until a fixed point is

@@ -7,7 +7,7 @@ theory Big_Step imports Com begin
 text \<open>
 The big-step semantics is a straight-forward inductive definition
 with concrete syntax. Note that the first parameter is a tuple,
-so the syntax becomes @{text "(c,s) \<Rightarrow> s'"}.
+so the syntax becomes \<open>(c,s) \<Rightarrow> s'\<close>.
 \<close>
 
 text_raw\<open>\snip{BigStepdef}{0}{1}{%\<close>
@@ -73,8 +73,8 @@ thm big_step.induct
 text\<open>
 This induction schema is almost perfect for our purposes, but
 our trick for reusing the tuple syntax means that the induction
-schema has two parameters instead of the @{text c}, @{text s},
-and @{text s'} that we are likely to encounter. Splitting
+schema has two parameters instead of the \<open>c\<close>, \<open>s\<close>,
+and \<open>s'\<close> that we are likely to encounter. Splitting
 the tuple parameter fixes this:
 \<close>
 lemmas big_step_induct = big_step.induct[split_format(complete)]
@@ -156,10 +156,10 @@ qed
 subsection "Command Equivalence"
 
 text \<open>
-  We call two statements @{text c} and @{text c'} equivalent wrt.\ the
-  big-step semantics when \emph{@{text c} started in @{text s} terminates
-  in @{text s'} iff @{text c'} started in the same @{text s} also terminates
-  in the same @{text s'}}. Formally:
+  We call two statements \<open>c\<close> and \<open>c'\<close> equivalent wrt.\ the
+  big-step semantics when \emph{\<open>c\<close> started in \<open>s\<close> terminates
+  in \<open>s'\<close> iff \<open>c'\<close> started in the same \<open>s\<close> also terminates
+  in the same \<open>s'\<close>}. Formally:
 \<close>
 text_raw\<open>\snip{BigStepEquiv}{0}{1}{%\<close>
 abbreviation
@@ -168,7 +168,7 @@ abbreviation
 text_raw\<open>}%endsnip\<close>
 
 text \<open>
-Warning: @{text"\<sim>"} is the symbol written \verb!\ < s i m >! (without spaces).
+Warning: \<open>\<sim>\<close> is the symbol written \verb!\ < s i m >! (without spaces).
 
   As an example, we show that loop unfolding is an equivalence
   transformation on programs:

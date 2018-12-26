@@ -92,7 +92,7 @@ lemma [simp]:
 by (auto simp: wpt_def fun_eq_iff)
 
 
-text\<open>Function @{text wpw} computes the weakest precondition of a While-loop
+text\<open>Function \<open>wpw\<close> computes the weakest precondition of a While-loop
 that is unfolded a fixed number of times.\<close>
 
 fun wpw :: "bexp \<Rightarrow> com \<Rightarrow> nat \<Rightarrow> assn2 \<Rightarrow> assn2" where

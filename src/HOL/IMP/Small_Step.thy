@@ -37,10 +37,10 @@ subsection\<open>Proof infrastructure\<close>
 subsubsection\<open>Induction rules\<close>
 
 text\<open>The default induction rule @{thm[source] small_step.induct} only works
-for lemmas of the form @{text"a \<rightarrow> b \<Longrightarrow> \<dots>"} where @{text a} and @{text b} are
-not already pairs @{text"(DUMMY,DUMMY)"}. We can generate a suitable variant
+for lemmas of the form \<open>a \<rightarrow> b \<Longrightarrow> \<dots>\<close> where \<open>a\<close> and \<open>b\<close> are
+not already pairs \<open>(DUMMY,DUMMY)\<close>. We can generate a suitable variant
 of @{thm[source] small_step.induct} for pairs by ``splitting'' the arguments
-@{text"\<rightarrow>"} into pairs:\<close>
+\<open>\<rightarrow>\<close> into pairs:\<close>
 lemmas small_step_induct = small_step.induct[split_format(complete)]
 
 
@@ -84,7 +84,7 @@ lemma seq_comp:
 by(blast intro: star.step star_seq2 star_trans)
 
 text\<open>The following proof corresponds to one on the board where one would
-show chains of @{text "\<rightarrow>"} and @{text "\<rightarrow>*"} steps.\<close>
+show chains of \<open>\<rightarrow>\<close> and \<open>\<rightarrow>*\<close> steps.\<close>
 
 lemma big_to_small:
   "cs \<Rightarrow> t \<Longrightarrow> cs \<rightarrow>* (SKIP,t)"
@@ -184,7 +184,7 @@ done
 lemma final_iff_SKIP: "final (c,s) = (c = SKIP)"
 by (metis SkipE finalD final_def)
 
-text\<open>Now we can show that @{text"\<Rightarrow>"} yields a final state iff @{text"\<rightarrow>"}
+text\<open>Now we can show that \<open>\<Rightarrow>\<close> yields a final state iff \<open>\<rightarrow>\<close>
 terminates:\<close>
 
 lemma big_iff_small_termination:
@@ -193,7 +193,7 @@ by(simp add: big_iff_small final_iff_SKIP)
 
 text\<open>This is the same as saying that the absence of a big step result is
 equivalent with absence of a terminating small step sequence, i.e.\ with
-nontermination.  Since @{text"\<rightarrow>"} is determininistic, there is no difference
+nontermination.  Since \<open>\<rightarrow>\<close> is determininistic, there is no difference
 between may and must terminate.\<close>
 
 end

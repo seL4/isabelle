@@ -4,7 +4,7 @@ section\<open>Introducing New Types\<close>
 
 text\<open>\label{sec:adv-typedef}
 For most applications, a combination of predefined types like @{typ bool} and
-@{text"\<Rightarrow>"} with recursive datatypes and records is quite sufficient. Very
+\<open>\<Rightarrow>\<close> with recursive datatypes and records is quite sufficient. Very
 occasionally you may feel the need for a more advanced type.  If you
 are certain that your type is not definable by any of the
 standard means, then read on.
@@ -111,7 +111,7 @@ Rep_three} are inverses of each other:
 \end{center}
 %
 From this example it should be clear what \isacommand{typedef} does
-in general given a name (here @{text three}) and a set
+in general given a name (here \<open>three\<close>) and a set
 (here @{term"{0::nat,1,2}"}).
 
 Our next step is to define the basic functions expected on the new type.
@@ -148,13 +148,13 @@ express injectivity of @{term Rep_three} and @{term Abs_three}:
 \begin{tabular}{@ {}r@ {\qquad}l@ {}}
 @{thm Rep_three_inject[no_vars]} & (@{thm[source]Rep_three_inject}) \\
 \begin{tabular}{@ {}l@ {}}
-@{text"\<lbrakk>x \<in> {0, 1, 2}; y \<in> {0, 1, 2} \<rbrakk>"} \\
-@{text"\<Longrightarrow> (Abs_three x = Abs_three y) = (x = y)"}
+\<open>\<lbrakk>x \<in> {0, 1, 2}; y \<in> {0, 1, 2} \<rbrakk>\<close> \\
+\<open>\<Longrightarrow> (Abs_three x = Abs_three y) = (x = y)\<close>
 \end{tabular} & (@{thm[source]Abs_three_inject}) \\
 \end{tabular}
 \end{center}
-The following ones allow to replace some @{text"x::three"} by
-@{text"Abs_three(y::nat)"}, and conversely @{term y} by @{term"Rep_three x"}:
+The following ones allow to replace some \<open>x::three\<close> by
+\<open>Abs_three(y::nat)\<close>, and conversely @{term y} by @{term"Rep_three x"}:
 \begin{center}
 \begin{tabular}{@ {}r@ {\qquad}l@ {}}
 @{thm Rep_three_cases[no_vars]} & (@{thm[source]Rep_three_cases}) \\
@@ -163,7 +163,7 @@ The following ones allow to replace some @{text"x::three"} by
 @{thm Abs_three_induct[no_vars]} & (@{thm[source]Abs_three_induct}) \\
 \end{tabular}
 \end{center}
-These theorems are proved for any type definition, with @{text three}
+These theorems are proved for any type definition, with \<open>three\<close>
 replaced by the name of the type in question.
 
 Distinctness of @{term A}, @{term B} and @{term C} follows immediately

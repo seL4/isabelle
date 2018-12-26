@@ -45,12 +45,12 @@ becomes unprovable. Fortunately, the solution is easy:\footnote{A similar
 heuristic applies to rule inductions; see \S\ref{sec:rtc}.}
 \begin{quote}
 \emph{Pull all occurrences of the induction variable into the conclusion
-using @{text"\<longrightarrow>"}.}
+using \<open>\<longrightarrow>\<close>.}
 \end{quote}
 Thus we should state the lemma as an ordinary 
-implication~(@{text"\<longrightarrow>"}), letting
+implication~(\<open>\<longrightarrow>\<close>), letting
 \attrdx{rule_format} (\S\ref{sec:forward}) convert the
-result to the usual @{text"\<Longrightarrow>"} form:
+result to the usual \<open>\<Longrightarrow>\<close> form:
 \<close>
 (*<*)oops(*>*)
 lemma hd_rev [rule_format]: "xs \<noteq> [] \<longrightarrow> hd(rev xs) = last xs"
@@ -61,15 +61,15 @@ apply(induct_tac xs)
 txt\<open>\noindent
 This time, induction leaves us with a trivial base case:
 @{subgoals[display,indent=0,goals_limit=1]}
-And @{text"auto"} completes the proof.
+And \<open>auto\<close> completes the proof.
 
 If there are multiple premises $A@1$, \dots, $A@n$ containing the
 induction variable, you should turn the conclusion $C$ into
 \[ A@1 \longrightarrow \cdots A@n \longrightarrow C. \]
 Additionally, you may also have to universally quantify some other variables,
-which can yield a fairly complex conclusion.  However, @{text rule_format} 
-can remove any number of occurrences of @{text"\<forall>"} and
-@{text"\<longrightarrow>"}.
+which can yield a fairly complex conclusion.  However, \<open>rule_format\<close> 
+can remove any number of occurrences of \<open>\<forall>\<close> and
+\<open>\<longrightarrow>\<close>.
 
 \index{induction!on a term}%
 A second reason why your proposition may not be amenable to induction is that
@@ -92,7 +92,7 @@ replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
 For an example see \S\ref{sec:CTL-revisited} below.
 
 Of course, all premises that share free variables with $t$ need to be pulled into
-the conclusion as well, under the @{text"\<forall>"}, again using @{text"\<longrightarrow>"} as shown above.
+the conclusion as well, under the \<open>\<forall>\<close>, again using \<open>\<longrightarrow>\<close> as shown above.
 
 Readers who are puzzled by the form of statement
 (\ref{eqn:ind-over-term}) above should remember that the
@@ -138,7 +138,7 @@ axiomatization f :: "nat \<Rightarrow> nat"
 text\<open>
 \begin{warn}
 We discourage the use of axioms because of the danger of
-inconsistencies.  Axiom @{text f_ax} does
+inconsistencies.  Axiom \<open>f_ax\<close> does
 not introduce an inconsistency because, for example, the identity function
 satisfies it.  Axioms can be useful in exploratory developments, say when 
 you assume some well-known theorems so that you can quickly demonstrate some
@@ -163,7 +163,7 @@ apply(induct_tac k rule: nat_less_induct)
 txt\<open>\noindent
 We get the following proof state:
 @{subgoals[display,indent=0,margin=65]}
-After stripping the @{text"\<forall>i"}, the proof continues with a case
+After stripping the \<open>\<forall>i\<close>, the proof continues with a case
 distinction on @{term"i"}. The case @{prop"i = (0::nat)"} is trivial and we focus on
 the other case:
 \<close>
@@ -208,7 +208,7 @@ The desired result, @{prop"i <= f i"}, follows from @{thm[source]f_incr_lem}:
 lemmas f_incr = f_incr_lem[rule_format, OF refl]
 
 text\<open>\noindent
-The final @{thm[source]refl} gets rid of the premise @{text"?k = f ?i"}. 
+The final @{thm[source]refl} gets rid of the premise \<open>?k = f ?i\<close>. 
 We could have included this derivation in the original statement of the lemma:
 \<close>
 
@@ -225,7 +225,7 @@ Method \methdx{induct_tac} can be applied with any rule $r$
 whose conclusion is of the form ${?}P~?x@1 \dots ?x@n$, in which case the
 format is
 \begin{quote}
-\isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"rule:"} $r$@{text")"}
+\isacommand{apply}\<open>(induct_tac\<close> $y@1 \dots y@n$ \<open>rule:\<close> $r$\<open>)\<close>
 \end{quote}
 where $y@1, \dots, y@n$ are variables in the conclusion of the first subgoal.
 
@@ -279,7 +279,7 @@ text\<open>
 HOL already provides the mother of
 all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
 example theorem @{thm[source]nat_less_induct} is
-a special case of @{thm[source]wf_induct} where @{term r} is @{text"<"} on
+a special case of @{thm[source]wf_induct} where @{term r} is \<open><\<close> on
 @{typ nat}. The details can be found in theory \isa{Wellfounded_Recursion}.
 \<close>
 (*<*)end(*>*)

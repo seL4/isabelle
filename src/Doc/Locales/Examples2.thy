@@ -6,7 +6,7 @@ begin
   proof -
     txt \<open>\normalsize The goals are now:
       @{subgoals [display]}
-      The proof that~@{text \<le>} is a partial order is as above.\<close>
+      The proof that~\<open>\<le>\<close> is a partial order is as above.\<close>
     show "partial_order ((\<le>) :: int \<Rightarrow> int \<Rightarrow> bool)"
       by unfold_locales auto
     txt \<open>\normalsize The second goal is shown by unfolding the
@@ -17,7 +17,6 @@ begin
   qed
 
 text \<open>Note that the above proof is not in the context of the
-  interpreted locale.  Hence, the premise of @{text
-  "partial_order.less_def"} is discharged manually with @{text OF}.
+  interpreted locale.  Hence, the premise of \<open>partial_order.less_def\<close> is discharged manually with \<open>OF\<close>.
 \<close>
 end

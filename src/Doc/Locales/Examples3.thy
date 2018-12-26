@@ -7,7 +7,7 @@ subsection \<open>Third Version: Local Interpretation
 
 text \<open>In the above example, the fact that @{term "(\<le>)"} is a partial
   order for the integers was used in the second goal to
-  discharge the premise in the definition of @{text "(\<sqsubset>)"}.  In
+  discharge the premise in the definition of \<open>(\<sqsubset>)\<close>.  In
   general, proofs of the equations not only may involve definitions
   from the interpreted locale but arbitrarily complex arguments in the
   context of the locale.  Therefore it would be convenient to have the
@@ -30,7 +30,7 @@ text \<open>The inner interpretation is immediate from the preceding fact
   and proved by assumption (Isar short hand ``.'').  It enriches the
   local proof context by the theorems
   also obtained in the interpretation from Section~\ref{sec:po-first},
-  and @{text int.less_def} may directly be used to unfold the
+  and \<open>int.less_def\<close> may directly be used to unfold the
   definition.  Theorems from the local interpretation disappear after
   leaving the proof context --- that is, after the succeeding
   \isakeyword{next} or \isakeyword{qed} statement.\<close>
@@ -39,8 +39,8 @@ text \<open>The inner interpretation is immediate from the preceding fact
 subsection \<open>Further Interpretations\<close>
 
 text \<open>Further interpretations are necessary for
-  the other locales.  In @{text lattice} the operations~@{text \<sqinter>}
-  and~@{text \<squnion>} are substituted by @{term "min :: int \<Rightarrow> int \<Rightarrow> int"}
+  the other locales.  In \<open>lattice\<close> the operations~\<open>\<sqinter>\<close>
+  and~\<open>\<squnion>\<close> are substituted by @{term "min :: int \<Rightarrow> int \<Rightarrow> int"}
   and @{term "max :: int \<Rightarrow> int \<Rightarrow> int"}.  The entire proof for the
   interpretation is reproduced to give an example of a more
   elaborate interpretation proof.  Note that the equations are named
@@ -57,13 +57,13 @@ text \<open>Further interpretations are necessary for
       txt \<open>\normalsize hence only the lattice axioms remain to be
         shown.
         @{subgoals [display]}
-        By @{text is_inf} and @{text is_sup},\<close>
+        By \<open>is_inf\<close> and \<open>is_sup\<close>,\<close>
       apply (unfold int.is_inf_def int.is_sup_def)
       txt \<open>\normalsize the goals are transformed to these
         statements:
         @{subgoals [display]}
         This is Presburger arithmetic, which can be solved by the
-        method @{text arith}.\<close>
+        method \<open>arith\<close>.\<close>
       by arith+
     txt \<open>\normalsize In order to show the equations, we put ourselves
       in a situation where the lattice theorems can be used in a
@@ -75,7 +75,7 @@ text \<open>Further interpretations are necessary for
       by (bestsimp simp: int.join_def int.is_sup_def)
   qed
 
-text \<open>Next follows that @{text "(\<le>)"} is a total order, again for
+text \<open>Next follows that \<open>(\<le>)\<close> is a total order, again for
   the integers.\<close>
 
   interpretation %visible int: total_order "(\<le>) :: int \<Rightarrow> int \<Rightarrow> bool"
@@ -89,24 +89,24 @@ text \<open>Theorems that are available in the theory at this point are shown in
 \vspace{2ex}
 \begin{center}
 \begin{tabular}{l}
-  @{thm [source] int.less_def} from locale @{text partial_order}: \\
+  @{thm [source] int.less_def} from locale \<open>partial_order\<close>: \\
   \quad @{thm int.less_def} \\
-  @{thm [source] int.meet_left} from locale @{text lattice}: \\
+  @{thm [source] int.meet_left} from locale \<open>lattice\<close>: \\
   \quad @{thm int.meet_left} \\
-  @{thm [source] int.join_distr} from locale @{text distrib_lattice}: \\
+  @{thm [source] int.join_distr} from locale \<open>distrib_lattice\<close>: \\
   \quad @{thm int.join_distr} \\
-  @{thm [source] int.less_total} from locale @{text total_order}: \\
+  @{thm [source] int.less_total} from locale \<open>total_order\<close>: \\
   \quad @{thm int.less_total}
 \end{tabular}
 \end{center}
 \hrule
-\caption{Interpreted theorems for~@{text \<le>} on the integers.}
+\caption{Interpreted theorems for~\<open>\<le>\<close> on the integers.}
 \label{tab:int-lattice}
 \end{table}
 
 \begin{itemize}
 \item
-  Locale @{text distrib_lattice} was also interpreted.  Since the
+  Locale \<open>distrib_lattice\<close> was also interpreted.  Since the
   locale hierarchy reflects that total orders are distributive
   lattices, the interpretation of the latter was inserted
   automatically with the interpretation of the former.  In general,
@@ -117,8 +117,8 @@ text \<open>Theorems that are available in the theory at this point are shown in
 \item
   The predicate @{term "(<)"} appears in theorem @{thm [source]
   int.less_total}
-  although an equation for the replacement of @{text "(\<sqsubset>)"} was only
-  given in the interpretation of @{text partial_order}.  The
+  although an equation for the replacement of \<open>(\<sqsubset>)\<close> was only
+  given in the interpretation of \<open>partial_order\<close>.  The
   interpretation equations are pushed downwards the hierarchy for
   related interpretations --- that is, for interpretations that share
   the instances of parameters they have in common.
@@ -148,21 +148,19 @@ text \<open>The interpretations for a locale $n$ within the current
 section \<open>Locale Expressions \label{sec:expressions}\<close>
 
 text \<open>
-  A map~@{term \<phi>} between partial orders~@{text \<sqsubseteq>} and~@{text \<preceq>}
-  is called order preserving if @{text "x \<sqsubseteq> y"} implies @{text "\<phi> x \<preceq>
-  \<phi> y"}.  This situation is more complex than those encountered so
+  A map~@{term \<phi>} between partial orders~\<open>\<sqsubseteq>\<close> and~\<open>\<preceq>\<close>
+  is called order preserving if \<open>x \<sqsubseteq> y\<close> implies \<open>\<phi> x \<preceq>
+  \<phi> y\<close>.  This situation is more complex than those encountered so
   far: it involves two partial orders, and it is desirable to use the
   existing locale for both.
 
-  A locale for order preserving maps requires three parameters: @{text
-  le}~(\isakeyword{infixl}~@{text \<sqsubseteq>}) and @{text
-  le'}~(\isakeyword{infixl}~@{text \<preceq>}) for the orders and~@{text \<phi>}
+  A locale for order preserving maps requires three parameters: \<open>le\<close>~(\isakeyword{infixl}~\<open>\<sqsubseteq>\<close>) and \<open>le'\<close>~(\isakeyword{infixl}~\<open>\<preceq>\<close>) for the orders and~\<open>\<phi>\<close>
   for the map.
 
   In order to reuse the existing locale for partial orders, which has
-  the single parameter~@{text le}, it must be imported twice, once
-  mapping its parameter to~@{text le} from the new locale and once
-  to~@{text le'}.  This can be achieved with a compound locale
+  the single parameter~\<open>le\<close>, it must be imported twice, once
+  mapping its parameter to~\<open>le\<close> from the new locale and once
+  to~\<open>le'\<close>.  This can be achieved with a compound locale
   expression.
 
   In general, a locale expression is a sequence of \emph{locale instances}
@@ -179,7 +177,7 @@ text \<open>
   different instances of the same locale, and unless designated with a
   ``?'' it must occur in name references.
 
-  Since the parameters~@{text le} and~@{text le'} are to be partial
+  Since the parameters~\<open>le\<close> and~\<open>le'\<close> are to be partial
   orders, our locale for order preserving maps will import the these
   instances:
 \begin{small}
@@ -200,7 +198,7 @@ text \<open>
   clause.  The \isakeyword{for} clause is also where the syntax of these
   parameters is declared.
 
-  Two context elements for the map parameter~@{text \<phi>} and the
+  Two context elements for the map parameter~\<open>\<phi>\<close> and the
   assumptions that it is order preserving complete the locale
   declaration.\<close>
 
@@ -221,9 +219,9 @@ text (in order_preserving) \<open>Here are examples of theorems that are
   @{thm [display, indent=4] le'.less_le_trans}
   While there is infix syntax for the strict operation associated with
   @{term "(\<sqsubseteq>)"}, there is none for the strict version of @{term
-  "(\<preceq>)"}.  The syntax @{text "\<sqsubset>"} for @{text less} is only
+  "(\<preceq>)"}.  The syntax \<open>\<sqsubset>\<close> for \<open>less\<close> is only
   available for the original instance it was declared for.  We may
-  introduce infix syntax for @{text le'.less} with the following declaration:\<close>
+  introduce infix syntax for \<open>le'.less\<close> with the following declaration:\<close>
 
   notation (in order_preserving) le'.less (infixl "\<prec>" 50)
 
@@ -240,9 +238,8 @@ subsection \<open>Default Instantiations\<close>
 text \<open>
   It is possible to omit parameter instantiations.  The
   instantiation then defaults to the name of
-  the parameter itself.  For example, the locale expression @{text
-  partial_order} is short for @{text "partial_order le"}, since the
-  locale's single parameter is~@{text le}.  We took advantage of this
+  the parameter itself.  For example, the locale expression \<open>partial_order\<close> is short for \<open>partial_order le\<close>, since the
+  locale's single parameter is~\<open>le\<close>.  We took advantage of this
   in the \isakeyword{sublocale} declarations of
   Section~\ref{sec:changing-the-hierarchy}.\<close>
 
@@ -267,7 +264,7 @@ text \<open>In a locale expression that occurs within a locale
   locale parameters for which no parameter instantiation is given are
   implicitly added, with their mixfix syntax, at the beginning of the
   \isakeyword{for} clause.  For example, in a locale declaration, the
-  expression @{text partial_order} is short for
+  expression \<open>partial_order\<close> is short for
 \begin{small}
 \begin{alltt}
   partial_order le \isakeyword{for} le (\isakeyword{infixl} "\(\sqsubseteq\)" 50)\textrm{.}
@@ -279,7 +276,7 @@ text \<open>In a locale expression that occurs within a locale
 
 text\<open>
   The following locale declarations provide more examples.  A
-  map~@{text \<phi>} is a lattice homomorphism if it preserves meet and
+  map~\<open>\<phi>\<close> is a lattice homomorphism if it preserves meet and
   join.\<close>
 
   locale lattice_hom =
@@ -289,9 +286,9 @@ text\<open>
       and hom_join: "\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
 
 text \<open>The parameter instantiation in the first instance of @{term
-  lattice} is omitted.  This causes the parameter~@{text le} to be
+  lattice} is omitted.  This causes the parameter~\<open>le\<close> to be
   added to the \isakeyword{for} clause, and the locale has
-  parameters~@{text le},~@{text le'} and, of course,~@{text \<phi>}.
+  parameters~\<open>le\<close>,~\<open>le'\<close> and, of course,~\<open>\<phi>\<close>.
 
   Before turning to the second example, we complete the locale by
   providing infix syntax for the meet and join operations of the
@@ -310,11 +307,10 @@ text \<open>The next example makes radical use of the short hand
 
   locale lattice_end = lattice_hom _ le
 
-text \<open>The notation~@{text _} enables to omit a parameter in a
-  positional instantiation.  The omitted parameter,~@{text le} becomes
+text \<open>The notation~\<open>_\<close> enables to omit a parameter in a
+  positional instantiation.  The omitted parameter,~\<open>le\<close> becomes
   the parameter of the declared locale and is, in the following
-  position, used to instantiate the second parameter of @{text
-  lattice_hom}.  The effect is that of identifying the first in second
+  position, used to instantiate the second parameter of \<open>lattice_hom\<close>.  The effect is that of identifying the first in second
   parameter of the homomorphism locale.\<close>
 
 text \<open>The inheritance diagram of the situation we have now is shown
@@ -322,9 +318,7 @@ text \<open>The inheritance diagram of the situation we have now is shown
   interpretation which is introduced below.  Parameter instantiations
   are indicated by $\sqsubseteq \mapsto \preceq$ etc.  By looking at
   the inheritance diagram it would seem
-  that two identical copies of each of the locales @{text
-  partial_order} and @{text lattice} are imported by @{text
-  lattice_end}.  This is not the case!  Inheritance paths with
+  that two identical copies of each of the locales \<open>partial_order\<close> and \<open>lattice\<close> are imported by \<open>lattice_end\<close>.  This is not the case!  Inheritance paths with
   identical morphisms are automatically detected and
   the conclusions of the respective locales appear only once.
 
@@ -332,15 +326,15 @@ text \<open>The inheritance diagram of the situation we have now is shown
 \hrule \vspace{2ex}
 \begin{center}
 \begin{tikzpicture}
-  \node (o) at (0,0) {@{text partial_order}};
-  \node (oh) at (1.5,-2) {@{text order_preserving}};
+  \node (o) at (0,0) {\<open>partial_order\<close>};
+  \node (oh) at (1.5,-2) {\<open>order_preserving\<close>};
   \node (oh1) at (1.5,-0.7) {$\scriptscriptstyle \sqsubseteq \mapsto \sqsubseteq$};
   \node (oh2) at (0,-1.3) {$\scriptscriptstyle \sqsubseteq \mapsto \preceq$};
-  \node (l) at (-1.5,-2) {@{text lattice}};
-  \node (lh) at (0,-4) {@{text lattice_hom}};
+  \node (l) at (-1.5,-2) {\<open>lattice\<close>};
+  \node (lh) at (0,-4) {\<open>lattice_hom\<close>};
   \node (lh1) at (0,-2.7) {$\scriptscriptstyle \sqsubseteq \mapsto \sqsubseteq$};
   \node (lh2) at (-1.5,-3.3) {$\scriptscriptstyle \sqsubseteq \mapsto \preceq$};
-  \node (le) at (0,-6) {@{text lattice_end}};
+  \node (le) at (0,-6) {\<open>lattice_end\<close>};
   \node (le1) at (0,-4.8)
     [anchor=west]{$\scriptscriptstyle \sqsubseteq \mapsto \sqsubseteq$};
   \node (le2) at (0,-5.2)
@@ -375,8 +369,7 @@ text \<open>It can be shown easily that a lattice homomorphism is order
 
 text (in lattice_hom) \<open>
   Theorems and other declarations --- syntax, in particular --- from
-  the locale @{text order_preserving} are now active in @{text
-  lattice_hom}, for example
+  the locale \<open>order_preserving\<close> are now active in \<open>lattice_hom\<close>, for example
   @{thm [source] hom_le}:
   @{thm [display, indent=2] hom_le}
   This theorem will be useful in the following section.
@@ -388,9 +381,9 @@ section \<open>Conditional Interpretation\<close>
 text \<open>There are situations where an interpretation is not possible
   in the general case since the desired property is only valid if
   certain conditions are fulfilled.  Take, for example, the function
-  @{text "\<lambda>i. n * i"} that scales its argument by a constant factor.
+  \<open>\<lambda>i. n * i\<close> that scales its argument by a constant factor.
   This function is order preserving (and even a lattice endomorphism)
-  with respect to @{term "(\<le>)"} provided @{text "n \<ge> 0"}.
+  with respect to @{term "(\<le>)"} provided \<open>n \<ge> 0\<close>.
 
   It is not possible to express this using a global interpretation,
   because it is in general unspecified whether~@{term n} is

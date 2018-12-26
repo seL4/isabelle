@@ -14,7 +14,7 @@ subsection\<open>Constant Definitions\<close>
 
 text\<open>\label{sec:ConstDefinitions}\indexbold{definitions}%
 Nonrecursive definitions can be made with the \commdx{definition}
-command, for example @{text nand} and @{text xor} gates
+command, for example \<open>nand\<close> and \<open>xor\<close> gates
 (based on type @{typ gate} above):
 \<close>
 
@@ -27,6 +27,6 @@ that must be used in constant definitions.
 Pattern-matching is not allowed: each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~\ref{sec:Simp-with-Defs} explains how definitions are used
-in proofs. The default name of each definition is $f$@{text"_def"}, where
+in proofs. The default name of each definition is $f$\<open>_def\<close>, where
 $f$ is the name of the defined constant.\<close>
 (*<*)end(*>*)

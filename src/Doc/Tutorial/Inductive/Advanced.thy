@@ -21,7 +21,7 @@ As a running example, this section develops the theory of \textbf{ground
 terms}: terms constructed from constant and function 
 symbols but not variables. To simplify matters further, we regard a
 constant as a function applied to the null argument  list.  Let us declare a
-datatype @{text gterm} for the type of ground  terms. It is a type constructor
+datatype \<open>gterm\<close> for the type of ground  terms. It is a type constructor
 whose argument is a type of  function symbols. 
 \<close>
 
@@ -39,22 +39,22 @@ text \<open>
 Now the type @{typ "integer_op gterm"} denotes the ground 
 terms built over those symbols.
 
-The type constructor @{text gterm} can be generalized to a function 
+The type constructor \<open>gterm\<close> can be generalized to a function 
 over sets.  It returns 
-the set of ground terms that can be formed over a set @{text F} of function symbols. For
+the set of ground terms that can be formed over a set \<open>F\<close> of function symbols. For
 example,  we could consider the set of ground terms formed from the finite 
-set @{text "{Number 2, UnaryMinus, Plus}"}.
+set \<open>{Number 2, UnaryMinus, Plus}\<close>.
 
-This concept is inductive. If we have a list @{text args} of ground terms 
-over~@{text F} and a function symbol @{text f} in @{text F}, then we 
-can apply @{text f} to @{text args} to obtain another ground term. 
+This concept is inductive. If we have a list \<open>args\<close> of ground terms 
+over~\<open>F\<close> and a function symbol \<open>f\<close> in \<open>F\<close>, then we 
+can apply \<open>f\<close> to \<open>args\<close> to obtain another ground term. 
 The only difficulty is that the argument list may be of any length. Hitherto, 
 each rule in an inductive definition referred to the inductively 
 defined set a fixed number of times, typically once or twice. 
 A universal quantifier in the premise of the introduction rule 
-expresses that every element of @{text args} belongs
+expresses that every element of \<open>args\<close> belongs
 to our inductively defined set: is a ground term 
-over~@{text F}.  The function @{term set} denotes the set of elements in a given 
+over~\<open>F\<close>.  The function @{term set} denotes the set of elements in a given 
 list. 
 \<close>
 
@@ -85,22 +85,22 @@ txt\<open>
 Intuitively, this theorem says that
 enlarging the set of function symbols enlarges the set of ground 
 terms. The proof is a trivial rule induction.
-First we use the @{text clarify} method to assume the existence of an element of
-@{term "gterms F"}.  (We could have used @{text "intro subsetI"}.)  We then
+First we use the \<open>clarify\<close> method to assume the existence of an element of
+@{term "gterms F"}.  (We could have used \<open>intro subsetI\<close>.)  We then
 apply rule induction. Here is the resulting subgoal:
 @{subgoals[display,indent=0]}
-The assumptions state that @{text f} belongs 
-to~@{text F}, which is included in~@{text G}, and that every element of the list @{text args} is
-a ground term over~@{text G}.  The @{text blast} method finds this chain of reasoning easily.  
+The assumptions state that \<open>f\<close> belongs 
+to~\<open>F\<close>, which is included in~\<open>G\<close>, and that every element of the list \<open>args\<close> is
+a ground term over~\<open>G\<close>.  The \<open>blast\<close> method finds this chain of reasoning easily.  
 \<close>
 (*<*)oops(*>*)
 text \<open>
 \begin{warn}
-Why do we call this function @{text gterms} instead 
-of @{text gterm}?  A constant may have the same name as a type.  However,
+Why do we call this function \<open>gterms\<close> instead 
+of \<open>gterm\<close>?  A constant may have the same name as a type.  However,
 name  clashes could arise in the theorems that Isabelle generates. 
-Our choice of names keeps @{text gterms.induct} separate from 
-@{text gterm.induct}.
+Our choice of names keeps \<open>gterms.induct\<close> separate from 
+\<open>gterm.induct\<close>.
 \end{warn}
 
 Call a term \textbf{well-formed} if each symbol occurring in it is applied
@@ -108,10 +108,10 @@ to the correct number of arguments.  (This number is called the symbol's
 \textbf{arity}.)  We can express well-formedness by
 generalizing the inductive definition of
 \isa{gterms}.
-Suppose we are given a function called @{text arity}, specifying the arities
-of all symbols.  In the inductive step, we have a list @{text args} of such
-terms and a function  symbol~@{text f}. If the length of the list matches the
-function's arity  then applying @{text f} to @{text args} yields a well-formed
+Suppose we are given a function called \<open>arity\<close>, specifying the arities
+of all symbols.  In the inductive step, we have a list \<open>args\<close> of such
+terms and a function  symbol~\<open>f\<close>. If the length of the list matches the
+function's arity  then applying \<open>f\<close> to \<open>args\<close> yields a well-formed
 term.
 \<close>
 
@@ -126,7 +126,7 @@ step[intro!]: "\<lbrakk>\<forall>t \<in> set args. t \<in> well_formed_gterm ari
 text \<open>
 The inductive definition neatly captures the reasoning above.
 The universal quantification over the
-@{text set} of arguments expresses that all of them are well-formed.%
+\<open>set\<close> of arguments expresses that all of them are well-formed.%
 \index{quantifiers!and inductive definitions|)}
 \<close>
 
@@ -140,13 +140,13 @@ demonstrate this powerful feature, let us
 change the  inductive definition above, replacing the
 quantifier by a use of the function @{term lists}. This
 function, from the Isabelle theory of lists, is analogous to the
-function @{term gterms} declared above: if @{text A} is a set then
+function @{term gterms} declared above: if \<open>A\<close> is a set then
 @{term "lists A"} is the set of lists whose elements belong to
 @{term A}.  
 
 In the inductive definition of well-formed terms, examine the one
-introduction rule.  The first premise states that @{text args} belongs to
-the @{text lists} of well-formed terms.  This formulation is more
+introduction rule.  The first premise states that \<open>args\<close> belongs to
+the \<open>lists\<close> of well-formed terms.  This formulation is more
 direct, if more obscure, than using a universal quantifier.
 \<close>
 
@@ -160,7 +160,7 @@ step[intro!]: "\<lbrakk>args \<in> lists (well_formed_gterm' arity);
 monos lists_mono
 
 text \<open>
-We cite the theorem @{text lists_mono} to justify 
+We cite the theorem \<open>lists_mono\<close> to justify 
 using the function @{term lists}.%
 \footnote{This particular theorem is installed by default already, but we
 include the \isakeyword{monos} declaration in order to illustrate its syntax.}
@@ -215,7 +215,7 @@ apply clarify
 apply (erule well_formed_gterm.induct)
 (*>*)
 txt \<open>
-The @{text clarify} method gives
+The \<open>clarify\<close> method gives
 us an element of @{term "well_formed_gterm arity"} on which to perform 
 induction.  The resulting subgoal can be proved automatically:
 @{subgoals[display,indent=0]}
@@ -249,8 +249,8 @@ is quickly replaced by its two parts:
 \item @{term "args \<in> lists (well_formed_gterm' arity)"}
 \item @{term "args \<in> lists (well_formed_gterm arity)"}
 \end{trivlist}
-Invoking the rule @{text well_formed_gterm.step} completes the proof.  The
-call to @{text auto} does all this work.
+Invoking the rule \<open>well_formed_gterm.step\<close> completes the proof.  The
+call to \<open>auto\<close> does all this work.
 
 This example is typical of how monotone functions
 \index{monotone functions} can be used.  In particular, many of them
@@ -266,7 +266,7 @@ subsection\<open>Another Example of Rule Inversion\<close>
 text \<open>
 \index{rule inversion|(}%
 Does @{term gterms} distribute over intersection?  We have proved that this
-function is monotone, so @{text mono_Int} gives one of the inclusions.  The
+function is monotone, so \<open>mono_Int\<close> gives one of the inclusions.  The
 opposite inclusion asserts that if @{term t} is a ground term over both of the
 sets
 @{term F} and~@{term G} then it is also a ground term over their intersection,
@@ -292,7 +292,7 @@ assumptions about @{term f} and~@{term args}.
 No cases are discarded (there was only one to begin
 with) but the rule applies specifically to the pattern @{term "Apply f args"}.
 It can be applied repeatedly as an elimination rule without looping, so we
-have given the @{text "elim!"} attribute. 
+have given the \<open>elim!\<close> attribute. 
 
 Now we can prove the other half of that distributive law.
 \<close>
@@ -311,12 +311,12 @@ The proof begins with rule induction over the definition of
 @{term gterms}, which leaves a single subgoal:  
 @{subgoals[display,indent=0,margin=65]}
 To prove this, we assume @{term "Apply f args \<in> gterms G"}.  Rule inversion,
-in the form of @{text gterm_Apply_elim}, infers
+in the form of \<open>gterm_Apply_elim\<close>, infers
 that every element of @{term args} belongs to 
 @{term "gterms G"}; hence (by the induction hypothesis) it belongs
 to @{term "gterms (F \<inter> G)"}.  Rule inversion also yields
 @{term "f \<in> G"} and hence @{term "f \<in> F \<inter> G"}. 
-All of this reasoning is done by @{text blast}.
+All of this reasoning is done by \<open>blast\<close>.
 
 \smallskip
 Our distributive law is a trivial consequence of previously-proved results:

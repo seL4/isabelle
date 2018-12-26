@@ -58,27 +58,27 @@ Lowe:
 }
 
 Each protocol step is specified by a rule of an inductive definition.  An
-event trace has type @{text "event list"}, so we declare the constant
-@{text ns_public} to be a set of such traces.
+event trace has type \<open>event list\<close>, so we declare the constant
+\<open>ns_public\<close> to be a set of such traces.
 
 Figure~\ref{fig:ns_public} presents the inductive definition.  The
-@{text Nil} rule introduces the empty trace.  The @{text Fake} rule models the
+\<open>Nil\<close> rule introduces the empty trace.  The \<open>Fake\<close> rule models the
 adversary's sending a message built from components taken from past
-traffic, expressed using the functions @{text synth} and
-@{text analz}. 
+traffic, expressed using the functions \<open>synth\<close> and
+\<open>analz\<close>. 
 The next three rules model how honest agents would perform the three
 protocol steps.  
 
-Here is a detailed explanation of rule @{text NS2}.
+Here is a detailed explanation of rule \<open>NS2\<close>.
 A trace containing an event of the form
 @{term [display,indent=5] "Says A' B (Crypt (pubK B) \<lbrace>Nonce NA, Agent A\<rbrace>)"}
 may be extended by an event of the form
 @{term [display,indent=5] "Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB, Agent B\<rbrace>)"}
-where @{text NB} is a fresh nonce: @{term "Nonce NB \<notin> used evs2"}.
-Writing the sender as @{text A'} indicates that @{text B} does not 
-know who sent the message.  Calling the trace variable @{text evs2} rather
-than simply @{text evs} helps us know where we are in a proof after many
-case-splits: every subgoal mentioning @{text evs2} involves message~2 of the
+where \<open>NB\<close> is a fresh nonce: @{term "Nonce NB \<notin> used evs2"}.
+Writing the sender as \<open>A'\<close> indicates that \<open>B\<close> does not 
+know who sent the message.  Calling the trace variable \<open>evs2\<close> rather
+than simply \<open>evs\<close> helps us know where we are in a proof after many
+case-splits: every subgoal mentioning \<open>evs2\<close> involves message~2 of the
 protocol.
 
 Benefits of this approach are simplicity and clarity.  The semantic model
@@ -113,16 +113,16 @@ text \<open>
 Secrecy properties can be hard to prove.  The conclusion of a typical
 secrecy theorem is 
 @{term "X \<notin> analz (knows Spy evs)"}.  The difficulty arises from
-having to reason about @{text analz}, or less formally, showing that the spy
-can never learn~@{text X}.  Much easier is to prove that @{text X} can never
+having to reason about \<open>analz\<close>, or less formally, showing that the spy
+can never learn~\<open>X\<close>.  Much easier is to prove that \<open>X\<close> can never
 occur at all.  Such \emph{regularity} properties are typically expressed
-using @{text parts} rather than @{text analz}.
+using \<open>parts\<close> rather than \<open>analz\<close>.
 
-The following lemma states that @{text A}'s private key is potentially
-known to the spy if and only if @{text A} belongs to the set @{text bad} of
-compromised agents.  The statement uses @{text parts}: the very presence of
-@{text A}'s private key in a message, whether protected by encryption or
-not, is enough to confirm that @{text A} is compromised.  The proof, like
+The following lemma states that \<open>A\<close>'s private key is potentially
+known to the spy if and only if \<open>A\<close> belongs to the set \<open>bad\<close> of
+compromised agents.  The statement uses \<open>parts\<close>: the very presence of
+\<open>A\<close>'s private key in a message, whether protected by encryption or
+not, is enough to confirm that \<open>A\<close> is compromised.  The proof, like
 nearly all protocol proofs, is by induction over traces.
 \<close>
 
@@ -132,14 +132,14 @@ lemma Spy_see_priK [simp]:
 apply (erule ns_public.induct, simp_all)
 txt \<open>
 The induction yields five subgoals, one for each rule in the definition of
-@{text ns_public}.  The idea is to prove that the protocol property holds initially
-(rule @{text Nil}), is preserved by each of the legitimate protocol steps (rules
-@{text NS1}--@{text 3}), and even is preserved in the face of anything the
-spy can do (rule @{text Fake}).  
+\<open>ns_public\<close>.  The idea is to prove that the protocol property holds initially
+(rule \<open>Nil\<close>), is preserved by each of the legitimate protocol steps (rules
+\<open>NS1\<close>--\<open>3\<close>), and even is preserved in the face of anything the
+spy can do (rule \<open>Fake\<close>).  
 
 The proof is trivial.  No legitimate protocol rule sends any keys
-at all, so only @{text Fake} is relevant. Indeed, simplification leaves
-only the @{text Fake} case, as indicated by the variable name @{text evsf}:
+at all, so only \<open>Fake\<close> is relevant. Indeed, simplification leaves
+only the \<open>Fake\<close> case, as indicated by the variable name \<open>evsf\<close>:
 @{subgoals[display,indent=0,margin=65]}
 \<close>
 by blast
@@ -150,7 +150,7 @@ by auto
 (*>*)
 
 text \<open>
-The @{text Fake} case is proved automatically.  If
+The \<open>Fake\<close> case is proved automatically.  If
 @{term "priK A"} is in the extended trace then either (1) it was already in the
 original trace or (2) it was
 generated by the spy, who must have known this key already. 
@@ -162,8 +162,8 @@ cannot be used both as $Na$ and as $Nb$ unless
 it is known to the spy.  Intuitively, it holds because honest agents
 always choose fresh values as nonces; only the spy might reuse a value,
 and he doesn't know this particular value.  The proof script is short:
-induction, simplification, @{text blast}.  The first line uses the rule
-@{text rev_mp} to prepare the induction by moving two assumptions into the 
+induction, simplification, \<open>blast\<close>.  The first line uses the rule
+\<open>rev_mp\<close> to prepare the induction by moving two assumptions into the 
 induction formula.
 \<close>
 
@@ -277,7 +277,7 @@ theorem Spy_not_see_NB [dest]:
   \<Longrightarrow> Nonce NB \<notin> analz (knows Spy evs)"
 txt \<open>
 To prove it, we must formulate the induction properly (one of the
-assumptions mentions~@{text evs}), apply induction, and simplify:
+assumptions mentions~\<open>evs\<close>), apply induction, and simplify:
 \<close>
 
 apply (erule rev_mp, erule ns_public.induct, simp_all)
@@ -299,14 +299,14 @@ statement --- the theorem
 refers to a past instance of message~2, while this subgoal
 concerns message~1 being sent just now.
 In the Isabelle subgoal, instead of primed variables like $B'$ and $Na'$
-we have @{text Ba} and~@{text NAa}:
+we have \<open>Ba\<close> and~\<open>NAa\<close>:
 @{subgoals[display,indent=0]}
 The simplifier has used a 
 default simplification rule that does a case
 analysis for each encrypted message on whether or not the decryption key
 is compromised.
 @{named_thms [display,indent=0,margin=50] analz_Crypt_if [no_vars] (analz_Crypt_if)}
-The simplifier has also used @{text Spy_see_priK}, proved in
+The simplifier has also used \<open>Spy_see_priK\<close>, proved in
 {\S}\ref{sec:regularity} above, to yield @{term "Ba \<in> bad"}.
 
 Recall that this subgoal concerns the case
@@ -315,11 +315,11 @@ where the last message to be sent was
 This message can compromise $Nb$ only if $Nb=Na'$ and $B'$ is compromised,
 allowing the spy to decrypt the message.  The Isabelle subgoal says
 precisely this, if we allow for its choice of variable names.
-Proving @{term "NB \<noteq> NAa"} is easy: @{text NB} was
-sent earlier, while @{text NAa} is fresh; formally, we have
+Proving @{term "NB \<noteq> NAa"} is easy: \<open>NB\<close> was
+sent earlier, while \<open>NAa\<close> is fresh; formally, we have
 the assumption @{term "Nonce NAa \<notin> used evs1"}. 
 
-Note that our reasoning concerned @{text B}'s participation in another
+Note that our reasoning concerned \<open>B\<close>'s participation in another
 run.  Agents may engage in several runs concurrently, and some attacks work
 by interleaving the messages of two runs.  With model checking, this
 possibility can cause a state-space explosion, and for us it
@@ -328,12 +328,12 @@ splits into several cases, such as whether or not the message just sent is
 the very message mentioned in the theorem statement.
 Some of the cases are proved by unicity, others by
 the induction hypothesis.  For all those complications, the proofs are
-automatic by @{text blast} with the theorem @{text no_nonce_NS1_NS2}.
+automatic by \<open>blast\<close> with the theorem \<open>no_nonce_NS1_NS2\<close>.
 
 The remaining theorems about the protocol are not hard to prove.  The
 following one asserts a form of \emph{authenticity}: if
-@{text B} has sent an instance of message~2 to~@{text A} and has received the
-expected reply, then that reply really originated with~@{text A}.  The
+\<open>B\<close> has sent an instance of message~2 to~\<open>A\<close> and has received the
+expected reply, then that reply really originated with~\<open>A\<close>.  The
 proof is a simple induction.
 \<close>
 
@@ -369,13 +369,13 @@ by (erule ns_public.induct, auto)
 (*>*)
 
 text \<open>
-From similar assumptions, we can prove that @{text A} started the protocol
-run by sending an instance of message~1 involving the nonce~@{text NA}\@. 
+From similar assumptions, we can prove that \<open>A\<close> started the protocol
+run by sending an instance of message~1 involving the nonce~\<open>NA\<close>\@. 
 For this theorem, the conclusion is 
 @{thm [display] (concl) B_trusts_protocol [no_vars]}
-Analogous theorems can be proved for~@{text A}, stating that nonce~@{text NA}
-remains secret and that message~2 really originates with~@{text B}.  Even the
-flawed protocol establishes these properties for~@{text A};
+Analogous theorems can be proved for~\<open>A\<close>, stating that nonce~\<open>NA\<close>
+remains secret and that message~2 really originates with~\<open>B\<close>.  Even the
+flawed protocol establishes these properties for~\<open>A\<close>;
 the flaw only harms the second participant.
 
 \medskip

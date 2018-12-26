@@ -56,9 +56,9 @@ text \<open>
 
   \noindent Central to code generation is the notion of \emph{code
   equations}.  A code equation as a first approximation is a theorem
-  of the form @{text "f t\<^sub>1 t\<^sub>2 \<dots> t\<^sub>n \<equiv> t"} (an equation headed by a
-  constant @{text f} with arguments @{text "t\<^sub>1 t\<^sub>2 \<dots> t\<^sub>n"} and right
-  hand side @{text t}).
+  of the form \<open>f t\<^sub>1 t\<^sub>2 \<dots> t\<^sub>n \<equiv> t\<close> (an equation headed by a
+  constant \<open>f\<close> with arguments \<open>t\<^sub>1 t\<^sub>2 \<dots> t\<^sub>n\<close> and right
+  hand side \<open>t\<close>).
 
   \begin{itemize}
 
@@ -75,9 +75,9 @@ text \<open>
 
     \item These code equations are \qn{translated} to a program in an
       abstract intermediate language.  Think of it as a kind of
-      \qt{Mini-Haskell} with four \qn{statements}: @{text data} (for
-      datatypes), @{text fun} (stemming from code equations), also
-      @{text class} and @{text inst} (for type classes).
+      \qt{Mini-Haskell} with four \qn{statements}: \<open>data\<close> (for
+      datatypes), \<open>fun\<close> (stemming from code equations), also
+      \<open>class\<close> and \<open>inst\<close> (for type classes).
 
     \item Finally, the abstract program is \qn{serialised} into
       concrete source code of a target language.  This step only
@@ -145,7 +145,7 @@ text \<open>
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
   its type change.  The @{term "0::nat"} / @{const Suc} pattern
-  used in theory @{text Code_Abstract_Nat} (see \secref{abstract_nat})
+  used in theory \<open>Code_Abstract_Nat\<close> (see \secref{abstract_nat})
   uses this interface.
 
   \noindent The current setup of the pre- and postprocessor may be inspected
@@ -184,9 +184,9 @@ lemma %quote [code]:
   by (cases xs, simp_all) (cases "rev xs", simp_all)
 
 text \<open>
-  \noindent The annotation @{text "[code]"} is an @{text attribute}
+  \noindent The annotation \<open>[code]\<close> is an \<open>attribute\<close>
   which states that the given theorems should be considered as code
-  equations for a @{text fun} statement -- the corresponding constant
+  equations for a \<open>fun\<close> statement -- the corresponding constant
   is determined syntactically.  The resulting code:
 \<close>
 
@@ -243,7 +243,7 @@ primrec %quote collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow
 text \<open>
   \noindent During preprocessing, the membership test is rewritten,
   resulting in @{const List.member}, which itself performs an explicit
-  equality check, as can be seen in the corresponding @{text SML} code:
+  equality check, as can be seen in the corresponding \<open>SML\<close> code:
 \<close>
 
 text %quotetypewriter \<open>
@@ -258,7 +258,7 @@ text \<open>
   framework does the rest by propagating the @{class equal} constraints
   through all dependent code equations.  For datatypes, instances of
   @{class equal} are implicitly derived when possible.  For other types,
-  you may instantiate @{text equal} manually like any other type class.
+  you may instantiate \<open>equal\<close> manually like any other type class.
 \<close>
 
 
@@ -317,7 +317,7 @@ text \<open>
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
   explicitly, use the @{attribute code} attribute with
-  @{text abort}:
+  \<open>abort\<close>:
 \<close>
 
 declare %quote [[code abort: empty_queue]]

@@ -275,7 +275,7 @@ apply (blast intro: knows_subset_knows_Cons [THEN subsetD])
 done
 
 
-text\<open>For proving @{text new_keys_not_used}\<close>
+text\<open>For proving \<open>new_keys_not_used\<close>\<close>
 lemma keysFor_parts_insert:
      "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |] 
       ==> K \<in> keysFor (parts (G \<union> H)) | Key (invKey K) \<in> parts H" 
@@ -350,29 +350,29 @@ section\<open>Event Traces \label{sec:events}\<close>
 
 text \<open>
 The system's behaviour is formalized as a set of traces of
-\emph{events}.  The most important event, @{text "Says A B X"}, expresses
+\emph{events}.  The most important event, \<open>Says A B X\<close>, expresses
 $A\to B : X$, which is the attempt by~$A$ to send~$B$ the message~$X$.
 A trace is simply a list, constructed in reverse
-using~@{text "#"}.  Other event types include reception of messages (when
+using~\<open>#\<close>.  Other event types include reception of messages (when
 we want to make it explicit) and an agent's storing a fact.
 
 Sometimes the protocol requires an agent to generate a new nonce. The
 probability that a 20-byte random number has appeared before is effectively
 zero.  To formalize this important property, the set @{term "used evs"}
-denotes the set of all items mentioned in the trace~@{text evs}.
-The function @{text used} has a straightforward
-recursive definition.  Here is the case for @{text Says} event:
+denotes the set of all items mentioned in the trace~\<open>evs\<close>.
+The function \<open>used\<close> has a straightforward
+recursive definition.  Here is the case for \<open>Says\<close> event:
 @{thm [display,indent=5] used_Says [no_vars]}
 
-The function @{text knows} formalizes an agent's knowledge.  Mostly we only
+The function \<open>knows\<close> formalizes an agent's knowledge.  Mostly we only
 care about the spy's knowledge, and @{term "knows Spy evs"} is the set of items
-available to the spy in the trace~@{text evs}.  Already in the empty trace,
+available to the spy in the trace~\<open>evs\<close>.  Already in the empty trace,
 the spy starts with some secrets at his disposal, such as the private keys
-of compromised users.  After each @{text Says} event, the spy learns the
+of compromised users.  After each \<open>Says\<close> event, the spy learns the
 message that was sent:
 @{thm [display,indent=5] knows_Spy_Says [no_vars]}
 Combinations of functions express other important
-sets of messages derived from~@{text evs}:
+sets of messages derived from~\<open>evs\<close>:
 \begin{itemize}
 \item @{term "analz (knows Spy evs)"} is everything that the spy could
 learn by decryption

@@ -26,7 +26,7 @@ primrec alist :: "('a,'v)trie \<Rightarrow> ('a * ('a,'v)trie)list" where
 
 text\<open>\noindent
 Association lists come with a generic lookup function.  Its result
-involves type @{text option} because a lookup can fail:
+involves type \<open>option\<close> because a lookup can fail:
 \<close>
 
 primrec assoc :: "('key * 'val)list \<Rightarrow> 'key \<Rightarrow> 'val option" where
@@ -79,7 +79,7 @@ but no longer accessible via @{const assoc}. Clearly, there is room here for
 optimizations!
 
 Before we start on any proofs about @{const update} we tell the simplifier to
-expand all @{text let}s and to split all @{text case}-constructs over
+expand all \<open>let\<close>s and to split all \<open>case\<close>-constructs over
 options:
 \<close>
 
@@ -88,7 +88,7 @@ declare Let_def[simp] option.split[split]
 text\<open>\noindent
 The reason becomes clear when looking (probably after a failed proof
 attempt) at the body of @{const update}: it contains both
-@{text let} and a case distinction over type @{text option}.
+\<open>let\<close> and a case distinction over type \<open>option\<close>.
 
 Our main goal is to prove the correct interaction of @{const update} and
 @{const lookup}:
@@ -124,15 +124,15 @@ done
 
 text\<open>\noindent
 \index{subgoal numbering}%
-All methods ending in @{text tac} take an optional first argument that
-specifies the range of subgoals they are applied to, where @{text"[!]"} means
-all subgoals, i.e.\ @{text"[1-3]"} in our case. Individual subgoal numbers,
-e.g. @{text"[2]"} are also allowed.
+All methods ending in \<open>tac\<close> take an optional first argument that
+specifies the range of subgoals they are applied to, where \<open>[!]\<close> means
+all subgoals, i.e.\ \<open>[1-3]\<close> in our case. Individual subgoal numbers,
+e.g. \<open>[2]\<close> are also allowed.
 
 This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the intermediate
 proof states are invisible, and we rely on the (possibly brittle) magic of
-@{text auto} (@{text simp_all} will not do --- try it) to split the subgoals
+\<open>auto\<close> (\<open>simp_all\<close> will not do --- try it) to split the subgoals
 of the induction up in such a way that case distinction on @{term bs} makes
 sense and solves the proof. 
 

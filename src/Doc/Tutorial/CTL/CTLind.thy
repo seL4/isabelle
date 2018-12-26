@@ -10,7 +10,7 @@ show how inductive definitions can simplify proofs.
 In \S\ref{sec:CTL} we gave a fairly involved proof of the correctness of a
 model checker for CTL\@. In particular the proof of the
 @{thm[source]infinity_lemma} on the way to @{thm[source]AF_lemma2} is not as
-simple as one might expect, due to the @{text SOME} operator
+simple as one might expect, due to the \<open>SOME\<close> operator
 involved. Below we give a simpler proof of @{thm[source]AF_lemma2}
 based on an auxiliary inductive definition.
 
@@ -39,7 +39,7 @@ finite @{term A}-avoiding path from @{term s} to @{term"f(0::nat)"}.
 The proof is by induction on @{prop"f(0::nat) \<in> Avoid s A"}. However,
 this requires the following
 reformulation, as explained in \S\ref{sec:ind-var-in-prems} above;
-the @{text rule_format} directive undoes the reformulation after the proof.
+the \<open>rule_format\<close> directive undoes the reformulation after the proof.
 \<close>
 
 lemma ex_infinite_path[rule_format]:
@@ -53,10 +53,10 @@ apply(simp_all add: Paths_def split: nat.split)
 done
 
 text\<open>\noindent
-The base case (@{prop"t = s"}) is trivial and proved by @{text blast}.
+The base case (@{prop"t = s"}) is trivial and proved by \<open>blast\<close>.
 In the induction step, we have an infinite @{term A}-avoiding path @{term f}
 starting from @{term u}, a successor of @{term t}. Now we simply instantiate
-the @{text"\<forall>f\<in>Paths t"} in the induction hypothesis by the path starting with
+the \<open>\<forall>f\<in>Paths t\<close> in the induction hypothesis by the path starting with
 @{term t} and continuing with @{term f}. That is what the above $\lambda$-term
 expresses.  Simplification shows that this is a path starting with @{term t} 
 and that the instantiated induction hypothesis implies the conclusion.
@@ -129,11 +129,11 @@ apply(auto simp add: Paths_def)
 done
 
 text\<open>
-The @{text"(no_asm)"} modifier of the @{text"rule_format"} directive in the
+The \<open>(no_asm)\<close> modifier of the \<open>rule_format\<close> directive in the
 statement of the lemma means
-that the assumption is left unchanged; otherwise the @{text"\<forall>p"} 
+that the assumption is left unchanged; otherwise the \<open>\<forall>p\<close> 
 would be turned
-into a @{text"\<And>p"}, which would complicate matters below. As it is,
+into a \<open>\<And>p\<close>, which would complicate matters below. As it is,
 @{thm[source]Avoid_in_lfp} is now
 @{thm[display]Avoid_in_lfp[no_vars]}
 The main theorem is simply the corollary where @{prop"t = s"},

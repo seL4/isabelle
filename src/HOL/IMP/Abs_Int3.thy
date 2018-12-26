@@ -322,7 +322,7 @@ lemma top_on_acom_narrow:
 by(auto simp add: narrow_acom_def top_on_acom_def)(metis top_on_opt_narrow in_set_zipE)
 
 text\<open>The assumptions for widening and narrowing differ because during
-narrowing we have the invariant @{prop"y \<le> x"} (where @{text y} is the next
+narrowing we have the invariant @{prop"y \<le> x"} (where \<open>y\<close> is the next
 iterate), but during widening there is no such invariant, there we only have
 that not yet @{prop"y \<le> x"}. This complicates the termination proof for
 widening.\<close>

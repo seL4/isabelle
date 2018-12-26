@@ -19,7 +19,7 @@ lemmas lexordp_def =
 section \<open>Inductive Predicates \label{sec:inductive}\<close>
 
 text \<open>
-  The @{text "predicate compiler"} is an extension of the code generator
+  The \<open>predicate compiler\<close> is an extension of the code generator
   which turns inductive specifications into equational ones, from
   which in turn executable code can be generated.  The mechanisms of
   this compiler are described in detail in
@@ -46,25 +46,25 @@ text \<open>
   correctness proof.  The compiler infers possible modes for the
   predicate and produces the derived code equations.  Modes annotate
   which (parts of the) arguments are to be taken as input, and which
-  output. Modes are similar to types, but use the notation @{text "i"}
-  for input and @{text "o"} for output.
+  output. Modes are similar to types, but use the notation \<open>i\<close>
+  for input and \<open>o\<close> for output.
  
   For @{term "append"}, the compiler can infer the following modes:
   \begin{itemize}
-    \item @{text "i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool"}
-    \item @{text "i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool"}
-    \item @{text "o \<Rightarrow> o \<Rightarrow> i \<Rightarrow> bool"}
+    \item \<open>i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool\<close>
+    \item \<open>i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool\<close>
+    \item \<open>o \<Rightarrow> o \<Rightarrow> i \<Rightarrow> bool\<close>
   \end{itemize}
   You can compute sets of predicates using @{command_def "values"}:
 \<close>
 
 values %quote "{zs. append [(1::nat),2,3] [4,5] zs}"
 
-text \<open>\noindent outputs @{text "{[1, 2, 3, 4, 5]}"}, and\<close>
+text \<open>\noindent outputs \<open>{[1, 2, 3, 4, 5]}\<close>, and\<close>
 
 values %quote "{(xs, ys). append xs ys [(2::nat),3]}"
 
-text \<open>\noindent outputs @{text "{([], [2, 3]), ([2], [3]), ([2, 3], [])}"}.\<close>
+text \<open>\noindent outputs \<open>{([], [2, 3]), ([2], [3]), ([2, 3], [])}\<close>.\<close>
 
 text \<open>
   \noindent If you are only interested in the first elements of the
@@ -81,7 +81,7 @@ text \<open>
   comprehensions for which a mode has been inferred.
 
   The code equations for a predicate are made available as theorems with
-  the suffix @{text "equation"}, and can be inspected with:
+  the suffix \<open>equation\<close>, and can be inspected with:
 \<close>
 
 thm %quote append.equation
@@ -94,8 +94,7 @@ subsection \<open>Alternative names for functions\<close>
 
 text \<open>
   By default, the functions generated from a predicate are named after
-  the predicate with the mode mangled into the name (e.g., @{text
-  "append_i_i_o"}).  You can specify your own names as follows:
+  the predicate with the mode mangled into the name (e.g., \<open>append_i_i_o\<close>).  You can specify your own names as follows:
 \<close>
 
 code_pred %quote (modes: i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool as concat,
@@ -122,7 +121,7 @@ text %quote \<open>
 
 text \<open>
   \noindent These rules do not suit well for executing the transitive
-  closure with the mode @{text "(i \<Rightarrow> o \<Rightarrow> bool) \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool"}, as
+  closure with the mode \<open>(i \<Rightarrow> o \<Rightarrow> bool) \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool\<close>, as
   the second rule will cause an infinite loop in the recursive call.
   This can be avoided using the following alternative rules which are
   declared to the predicate compiler by the attribute @{attribute
@@ -215,12 +214,11 @@ inductive %quote succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred %quote succ .
 
 text \<open>
-  \noindent For this, the predicate compiler can infer modes @{text "o
-  \<Rightarrow> o \<Rightarrow> bool"}, @{text "i \<Rightarrow> o \<Rightarrow> bool"}, @{text "o \<Rightarrow> i \<Rightarrow> bool"} and
-  @{text "i \<Rightarrow> i \<Rightarrow> bool"}.  The invocation of @{command "values"}
-  @{text "{n. tranclp succ 10 n}"} loops, as multiple modes for the
-  predicate @{text "succ"} are possible and here the first mode @{text
-  "o \<Rightarrow> o \<Rightarrow> bool"} is chosen. To choose another mode for the argument,
+  \noindent For this, the predicate compiler can infer modes \<open>o
+  \<Rightarrow> o \<Rightarrow> bool\<close>, \<open>i \<Rightarrow> o \<Rightarrow> bool\<close>, \<open>o \<Rightarrow> i \<Rightarrow> bool\<close> and
+  \<open>i \<Rightarrow> i \<Rightarrow> bool\<close>.  The invocation of @{command "values"}
+  \<open>{n. tranclp succ 10 n}\<close> loops, as multiple modes for the
+  predicate \<open>succ\<close> are possible and here the first mode \<open>o \<Rightarrow> o \<Rightarrow> bool\<close> is chosen. To choose another mode for the argument,
   you can declare the mode for the argument between the @{command
   "values"} and the number of elements.
 \<close>
@@ -264,7 +262,7 @@ text \<open>
   Further examples for compiling inductive predicates can be found in
   \<^file>\<open>~~/src/HOL/Predicate_Compile_Examples/Examples.thy\<close>.  There are
   also some examples in the Archive of Formal Proofs, notably in the
-  @{text "POPLmark-deBruijn"} and the @{text "FeatherweightJava"}
+  \<open>POPLmark-deBruijn\<close> and the \<open>FeatherweightJava\<close>
   sessions.
 \<close>
 

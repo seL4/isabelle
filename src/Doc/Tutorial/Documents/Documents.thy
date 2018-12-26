@@ -29,7 +29,7 @@ text \<open>
   such as \isacommand{definition} and \isacommand{primrec} --- and also
   \isacommand{datatype}, which declares constructor operations.
   Type-constructors may be annotated as well, although this is less
-  frequently encountered in practice (the infix type @{text "\<times>"} comes
+  frequently encountered in practice (the infix type \<open>\<times>\<close> comes
   to mind).
 
   Infix declarations\index{infix annotations} provide a useful special
@@ -41,38 +41,38 @@ definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]" 
 where "A [+] B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
 text \<open>
-  \noindent Now @{text "xor A B"} and @{text "A [+] B"} refer to the
+  \noindent Now \<open>xor A B\<close> and \<open>A [+] B\<close> refer to the
   same expression internally.  Any curried function with at least two
   arguments may be given infix syntax.  For partial applications with
   fewer than two operands, the operator is enclosed in parentheses.
-  For instance, @{text xor} without arguments is represented as
-  @{text "([+])"}; together with ordinary function application, this
-  turns @{text "xor A"} into @{text "([+]) A"}.
+  For instance, \<open>xor\<close> without arguments is represented as
+  \<open>([+])\<close>; together with ordinary function application, this
+  turns \<open>xor A\<close> into \<open>([+]) A\<close>.
 
   The keyword \isakeyword{infixl} seen above specifies an
   infix operator that is nested to the \emph{left}: in iterated
   applications the more complex expression appears on the left-hand
-  side, and @{term "A [+] B [+] C"} stands for @{text "(A [+] B) [+]
-  C"}.  Similarly, \isakeyword{infixr} means nesting to the
-  \emph{right}, reading @{term "A [+] B [+] C"} as @{text "A [+] (B
-  [+] C)"}.  A \emph{non-oriented} declaration via \isakeyword{infix}
+  side, and @{term "A [+] B [+] C"} stands for \<open>(A [+] B) [+]
+  C\<close>.  Similarly, \isakeyword{infixr} means nesting to the
+  \emph{right}, reading @{term "A [+] B [+] C"} as \<open>A [+] (B
+  [+] C)\<close>.  A \emph{non-oriented} declaration via \isakeyword{infix}
   would render @{term "A [+] B [+] C"} illegal, but demand explicit
   parentheses to indicate the intended grouping.
 
   The string @{text [source] "[+]"} in our annotation refers to the
   concrete syntax to represent the operator (a literal token), while
-  the number @{text 60} determines the precedence of the construct:
+  the number \<open>60\<close> determines the precedence of the construct:
   the syntactic priorities of the arguments and result.  Isabelle/HOL
   already uses up many popular combinations of ASCII symbols for its
-  own use, including both @{text "+"} and @{text "++"}.  Longer
+  own use, including both \<open>+\<close> and \<open>++\<close>.  Longer
   character combinations are more likely to be still available for
-  user extensions, such as our~@{text "[+]"}.
+  user extensions, such as our~\<open>[+]\<close>.
 
   Operator precedences have a range of 0--1000.  Very low or high
   priorities are reserved for the meta-logic.  HOL syntax mainly uses
-  the range of 10--100: the equality infix @{text "="} is centered at
-  50; logical connectives (like @{text "\<or>"} and @{text "\<and>"}) are
-  below 50; algebraic ones (like @{text "+"} and @{text "*"}) are
+  the range of 10--100: the equality infix \<open>=\<close> is centered at
+  50; logical connectives (like \<open>\<or>\<close> and \<open>\<and>\<close>) are
+  below 50; algebraic ones (like \<open>+\<close> and \<open>*\<close>) are
   above 50.  User syntax should strive to coexist with common HOL
   forms, or use the mostly unused range 100--900.
 \<close>
@@ -103,7 +103,7 @@ text \<open>
   This results in an infinite store of symbols, whose
   interpretation is left to further front-end tools.  For example, the
   Isabelle document processor (see \S\ref{sec:document-preparation})
-  display the \verb,\,\verb,<forall>, symbol as~@{text \<forall>}.
+  display the \verb,\,\verb,<forall>, symbol as~\<open>\<forall>\<close>.
 
   A list of standard Isabelle symbols is given in
   @{cite "isabelle-isar-ref"}.  You may introduce your own
@@ -113,14 +113,13 @@ text \<open>
   few predefined control symbols, such as \verb,\,\verb,<^sub>, and
   \verb,\,\verb,<^sup>, for sub- and superscript of the subsequent
   printable symbol, respectively.  For example, \<^verbatim>\<open>A\<^sup>\<star>\<close>, is
-  output as @{text "A\<^sup>\<star>"}.
+  output as \<open>A\<^sup>\<star>\<close>.
 
   A number of symbols are considered letters by the Isabelle lexer and
   can be used as part of identifiers. These are the greek letters
-  @{text "\<alpha>"} (\verb+\+\verb+<alpha>+), @{text "\<beta>"}
-  (\verb+\+\verb+<beta>+), etc. (excluding @{text "\<lambda>"}),
-  special letters like @{text "\<A>"} (\verb+\+\verb+<A>+) and @{text
-  "\<AA>"} (\verb+\+\verb+<AA>+).  Moreover the control symbol
+  \<open>\<alpha>\<close> (\verb+\+\verb+<alpha>+), \<open>\<beta>\<close>
+  (\verb+\+\verb+<beta>+), etc. (excluding \<open>\<lambda>\<close>),
+  special letters like \<open>\<A>\<close> (\verb+\+\verb+<A>+) and \<open>\<AA>\<close> (\verb+\+\verb+<AA>+).  Moreover the control symbol
   \verb+\+\verb+<^sub>+ may be used to subscript a single letter or digit
   in the trailing part of an identifier. This means that the input
 
@@ -131,7 +130,7 @@ text \<open>
   \noindent is recognized as the term @{term "\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>"} 
   by Isabelle.
 
-  Replacing our previous definition of @{text xor} by the
+  Replacing our previous definition of \<open>xor\<close> by the
   following specifies an Isabelle symbol for the new operator:
 \<close>
 
@@ -150,7 +149,7 @@ text \<open>
   through the \bfindex{print mode} concept~@{cite "isabelle-isar-ref"}.  By
   convention, the mode of ``$xsymbols$'' is enabled whenever
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now
-  consider the following hybrid declaration of @{text xor}:
+  consider the following hybrid declaration of \<open>xor\<close>:
 \<close>
 
 (*<*)
@@ -168,9 +167,9 @@ setup \<open>Sign.local_path\<close>
 text \<open>\noindent
 The \commdx{notation} command associates a mixfix
 annotation with a known constant.  The print mode specification,
-here @{text "(xsymbols)"}, is optional.
+here \<open>(xsymbols)\<close>, is optional.
 
-We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in input, while
+We may now write \<open>A [+] B\<close> or \<open>A \<oplus> B\<close> in input, while
 output uses the nicer syntax of $xsymbols$ whenever that print mode is
 active.  Such an arrangement is particularly useful for interactive
 development, where users may type ASCII text and see mathematical
@@ -196,8 +195,8 @@ text \<open>
   \noindent Here the mixfix annotations on the rightmost column happen
   to consist of a single Isabelle symbol each: \verb,\,\verb,<euro>,,
   \verb,\,\verb,<pounds>,, \verb,\,\verb,<yen>,, and \verb,$,.  Recall
-  that a constructor like @{text Euro} actually is a function @{typ
-  "nat \<Rightarrow> currency"}.  The expression @{text "Euro 10"} will be
+  that a constructor like \<open>Euro\<close> actually is a function @{typ
+  "nat \<Rightarrow> currency"}.  The expression \<open>Euro 10\<close> will be
   printed as @{term "\<euro> 10"}; only the head of the application is
   subject to our concrete syntax.  This rather simple form already
   achieves conformance with notational standards of the European
@@ -211,7 +210,7 @@ subsection \<open>Abbreviations \label{sec:abbreviations}\<close>
 
 text\<open>Mixfix syntax annotations merely decorate particular constant
 application forms with concrete syntax, for instance replacing
-@{text "xor A B"} by @{text "A \<oplus> B"}.  Occasionally, the relationship
+\<open>xor A B\<close> by \<open>A \<oplus> B\<close>.  Occasionally, the relationship
 between some piece of notation and its internal form is more
 complicated.  Here we need \emph{abbreviations}.
 
@@ -221,22 +220,22 @@ unfolded upon parsing and re-introduced upon printing. This provides a
 simple mechanism for syntactic macros.
 
 A typical use of abbreviations is to introduce relational notation for
-membership in a set of pairs, replacing @{text "(x, y) \<in> sim"} by
-@{text "x \<approx> y"}. We assume that a constant @{text sim } of type
+membership in a set of pairs, replacing \<open>(x, y) \<in> sim\<close> by
+\<open>x \<approx> y\<close>. We assume that a constant \<open>sim\<close> of type
 @{typ"('a \<times> 'a) set"} has been introduced at this point.\<close>
 (*<*)consts sim :: "('a \<times> 'a) set"(*>*)
 abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix "\<approx>" 50)
 where "x \<approx> y  \<equiv>  (x, y) \<in> sim"
 
 text \<open>\noindent The given meta-equality is used as a rewrite rule
-after parsing (replacing \mbox{@{prop"x \<approx> y"}} by @{text"(x,y) \<in>
-sim"}) and before printing (turning @{text"(x,y) \<in> sim"} back into
-\mbox{@{prop"x \<approx> y"}}). The name of the dummy constant @{text "sim2"}
+after parsing (replacing \mbox{@{prop"x \<approx> y"}} by \<open>(x,y) \<in>
+sim\<close>) and before printing (turning \<open>(x,y) \<in> sim\<close> back into
+\mbox{@{prop"x \<approx> y"}}). The name of the dummy constant \<open>sim2\<close>
 does not matter, as long as it is unique.
 
 Another common application of abbreviations is to
 provide variant versions of fundamental relational expressions, such
-as @{text \<noteq>} for negated equalities.  The following declaration
+as \<open>\<noteq>\<close> for negated equalities.  The following declaration
 stems from Isabelle/HOL itself:
 \<close>
 
@@ -245,7 +244,7 @@ where "x ~=\<ignore> y  \<equiv>  \<not> (x = y)"
 
 notation (xsymbols) not_equal (infix "\<noteq>\<ignore>" 50)
 
-text \<open>\noindent The notation @{text \<noteq>} is introduced separately to restrict it
+text \<open>\noindent The notation \<open>\<noteq>\<close> is introduced separately to restrict it
 to the \emph{xsymbols} mode.
 
 Abbreviations are appropriate when the defined concept is a
@@ -284,7 +283,7 @@ text \<open>
 text_raw \<open>\begin{quotation}\<close>
 
 text \<open>
-  The following datatype definition of @{text "'a bintree"} models
+  The following datatype definition of \<open>'a bintree\<close> models
   binary trees with nodes being decorated by elements of type @{typ
   'a}.
 \<close>
@@ -425,8 +424,8 @@ text \<open>
   in corresponding {\LaTeX} elements.
 
   From the Isabelle perspective, each markup command takes a single
-  $text$ argument (delimited by \verb,",~@{text \<dots>}~\verb,", or
-  \verb,{,\verb,*,~@{text \<dots>}~\verb,*,\verb,},).  After stripping any
+  $text$ argument (delimited by \verb,",~\<open>\<dots>\<close>~\verb,", or
+  \verb,{,\verb,*,~\<open>\<dots>\<close>~\verb,*,\verb,},).  After stripping any
   surrounding white space, the argument is passed to a {\LaTeX} macro
   \verb,\isamarkupXYZ, for command \isakeyword{XYZ}.  These macros are
   defined in \verb,isabelle.sty, according to the meaning given in the
@@ -467,7 +466,7 @@ subsection \<open>Formal Comments and Antiquotations \label{sec:doc-prep-text}\<
 
 text \<open>
   Isabelle \bfindex{source comments}, which are of the form
-  \verb,(,\verb,*,~@{text \<dots>}~\verb,*,\verb,),, essentially act like
+  \verb,(,\verb,*,~\<open>\<dots>\<close>~\verb,*,\verb,),, essentially act like
   white space and do not really contribute to the content.  They
   mainly serve technical purposes to mark certain oddities in the raw
   input text.  In contrast, \bfindex{formal comments} are portions of
@@ -477,8 +476,8 @@ text \<open>
 
   \medskip Marginal comments are part of each command's concrete
   syntax @{cite "isabelle-isar-ref"}; the common form is ``\verb,--,~$text$''
-  where $text$ is delimited by \verb,",@{text \<dots>}\verb,", or
-  \verb,{,\verb,*,~@{text \<dots>}~\verb,*,\verb,}, as before.  Multiple
+  where $text$ is delimited by \verb,",\<open>\<dots>\<close>\verb,", or
+  \verb,{,\verb,*,~\<open>\<dots>\<close>~\verb,*,\verb,}, as before.  Multiple
   marginal comments may be given at the same time.  Here is a simple
   example:
 \<close>
@@ -541,7 +540,7 @@ text {\ttlbrace}*
   \end{ttbox}\vspace{-\medskipamount}
 
   The notational change from the ASCII character~\verb,%, to the
-  symbol~@{text \<lambda>} reveals that Isabelle printed this term, after
+  symbol~\<open>\<lambda>\<close> reveals that Isabelle printed this term, after
   parsing and type-checking.  Document preparation enables symbolic
   output by default.
 
@@ -586,8 +585,7 @@ text {\ttlbrace}*
   virtue is that the string $s$ is processed as Isabelle output,
   interpreting Isabelle symbols appropriately.
 
-  For example, \texttt{\at}\verb,{text "\<forall>\<exists>"}, produces @{text
-  "\<forall>\<exists>"}, according to the standard interpretation of these symbol
+  For example, \texttt{\at}\verb,{text "\<forall>\<exists>"}, produces \<open>\<forall>\<exists>\<close>, according to the standard interpretation of these symbol
   (cf.\ \S\ref{sec:doc-prep-symbols}).  Thus we achieve consistent
   mathematical notation in both the formal and informal parts of the
   document very easily, independently of the term language of

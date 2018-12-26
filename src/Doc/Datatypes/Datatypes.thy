@@ -85,7 +85,7 @@ The package, like its predecessor, fully adheres to the LCF philosophy
 (co)datatypes are derived rather than introduced axiomatically.%
 \footnote{However, some of the
 internal constructions and most of the internal proof obligations are omitted
-if the @{text quick_and_dirty} option is enabled.}
+if the \<open>quick_and_dirty\<close> option is enabled.}
 The package is described in a number of scientific papers
 @{cite "traytel-et-al-2012" and "blanchette-et-al-2014-impl" and
 "panny-et-al-2014" and "blanchette-et-al-2015-wit"}.
@@ -194,8 +194,8 @@ its homologue from the @{theory HOL.Option} theory:
 
 text \<open>
 \noindent
-The constructors are @{text "None :: 'a option"} and
-@{text "Some :: 'a \<Rightarrow> 'a option"}.
+The constructors are \<open>None :: 'a option\<close> and
+\<open>Some :: 'a \<Rightarrow> 'a option\<close>.
 
 The next example has three type parameters:
 \<close>
@@ -205,7 +205,7 @@ The next example has three type parameters:
 text \<open>
 \noindent
 The constructor is
-@{text "Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
+\<open>Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple\<close>.
 Unlike in Standard ML, curried constructors are supported. The uncurried variant
 is also possible:
 \<close>
@@ -286,9 +286,9 @@ Not all nestings are admissible. For example, this command will fail:
 
 text \<open>
 \noindent
-The issue is that the function arrow @{text "\<Rightarrow>"} allows recursion
+The issue is that the function arrow \<open>\<Rightarrow>\<close> allows recursion
 only through its right-hand side. This issue is inherited by polymorphic
-datatypes defined in terms of~@{text "\<Rightarrow>"}:
+datatypes defined in terms of~\<open>\<Rightarrow>\<close>:
 \<close>
 
     datatype ('a, 'b) fun_copy = Fun "'a \<Rightarrow> 'b"
@@ -311,9 +311,9 @@ And so is the definition of hereditarily finite sets:
 
 text \<open>
 \noindent
-In general, type constructors @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
-allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
-@{text 'a\<^sub>m}. These type arguments are called \emph{live}; the remaining
+In general, type constructors \<open>('a\<^sub>1, \<dots>, 'a\<^sub>m) t\<close>
+allow recursion on a subset of their type arguments \<open>'a\<^sub>1\<close>, \ldots,
+\<open>'a\<^sub>m\<close>. These type arguments are called \emph{live}; the remaining
 type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 @{typ "('a, 'b) fun_copy"}, the type variable @{typ 'a} is dead and
 @{typ 'b} is live.
@@ -345,10 +345,10 @@ text \<open>
 The @{command datatype} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
 function, a predicator, a relator, discriminators, and selectors, all of which can be given
-custom names. In the example below, the familiar names @{text null}, @{text hd},
-@{text tl}, @{text set}, @{text map}, and @{text list_all2} override the
-default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
-@{text set_list}, @{text map_list}, and @{text rel_list}:
+custom names. In the example below, the familiar names \<open>null\<close>, \<open>hd\<close>,
+\<open>tl\<close>, \<open>set\<close>, \<open>map\<close>, and \<open>list_all2\<close> override the
+default names \<open>is_Nil\<close>, \<open>un_Cons1\<close>, \<open>un_Cons2\<close>,
+\<open>set_list\<close>, \<open>map_list\<close>, and \<open>rel_list\<close>:
 \<close>
 
 (*<*)
@@ -384,21 +384,21 @@ The types of the constants that appear in the specification are listed below.
 
 \begin{tabular}{@ {}ll@ {}}
 Constructors: &
-  @{text "Nil :: 'a list"} \\
+  \<open>Nil :: 'a list\<close> \\
 &
-  @{text "Cons :: 'a \<Rightarrow> 'a list \<Rightarrow> 'a list"} \\
+  \<open>Cons :: 'a \<Rightarrow> 'a list \<Rightarrow> 'a list\<close> \\
 Discriminator: &
-  @{text "null :: 'a list \<Rightarrow> bool"} \\
+  \<open>null :: 'a list \<Rightarrow> bool\<close> \\
 Selectors: &
-  @{text "hd :: 'a list \<Rightarrow> 'a"} \\
+  \<open>hd :: 'a list \<Rightarrow> 'a\<close> \\
 &
-  @{text "tl :: 'a list \<Rightarrow> 'a list"} \\
+  \<open>tl :: 'a list \<Rightarrow> 'a list\<close> \\
 Set function: &
-  @{text "set :: 'a list \<Rightarrow> 'a set"} \\
+  \<open>set :: 'a list \<Rightarrow> 'a set\<close> \\
 Map function: &
-  @{text "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"} \\
+  \<open>map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> \\
 Relator: &
-  @{text "list_all2 :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool"}
+  \<open>list_all2 :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool\<close>
 \end{tabular}
 
 \medskip
@@ -466,7 +466,7 @@ subsubsection \<open>\keyw{datatype}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "datatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "datatype"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -489,7 +489,7 @@ The @{command datatype} command introduces a set of mutually recursive
 datatypes specified by their constructors.
 
 The syntactic entity \synt{target} can be used to specify a local
-context (e.g., @{text "(in linorder)"} @{cite "isabelle-isar-ref"}),
+context (e.g., \<open>(in linorder)\<close> @{cite "isabelle-isar-ref"}),
 and \synt{prop} denotes a HOL proposition.
 
 The optional target is optionally followed by a combination of the following
@@ -499,19 +499,19 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+The \<open>plugins\<close> option indicates which plugins should be enabled
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 \item
-The @{text "discs_sels"} option indicates that discriminators and selectors
+The \<open>discs_sels\<close> option indicates that discriminators and selectors
 should be generated. The option is implicitly enabled if names are specified for
 discriminators or selectors.
 \end{itemize}
 
 The optional \keyw{where} clause specifies default values for selectors.
 Each proposition must be an equation of the form
-@{text "un_D (C \<dots>) = \<dots>"}, where @{text C} is a constructor and
-@{text un_D} is a selector.
+\<open>un_D (C \<dots>) = \<dots>\<close>, where \<open>C\<close> is a constructor and
+\<open>un_D\<close> is a selector.
 
 The left-hand sides of the datatype equations specify the name of the type to
 define, its type parameters, and additional information:
@@ -530,9 +530,9 @@ the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
 variable (@{typ 'a}, @{typ 'b}, \ldots) @{cite "isabelle-isar-ref"}.
 
 The optional names preceding the type variables allow to override the default
-names of the set functions (@{text set\<^sub>1_t}, \ldots, @{text set\<^sub>m_t}). Type
-arguments can be marked as dead by entering @{text dead} in front of the
-type variable (e.g., @{text "(dead 'a)"}); otherwise, they are live or dead
+names of the set functions (\<open>set\<^sub>1_t\<close>, \ldots, \<open>set\<^sub>m_t\<close>). Type
+arguments can be marked as dead by entering \<open>dead\<close> in front of the
+type variable (e.g., \<open>(dead 'a)\<close>); otherwise, they are live or dead
 (and a set function is generated or not) depending on where they occur in the
 right-hand sides of the definition. Declaring a type argument as dead can speed
 up the type definition but will prevent any later (co)recursion through that
@@ -551,9 +551,9 @@ mention exactly the same type variables in the same order.
 The main constituents of a constructor specification are the name of the
 constructor and the list of its argument types. An optional discriminator name
 can be supplied at the front. If discriminators are enabled (cf.\ the
-@{text "discs_sels"} option) but no name is supplied, the default is
-@{text "\<lambda>x. x = C\<^sub>j"} for nullary constructors and
-@{text t.is_C\<^sub>j} otherwise.
+\<open>discs_sels\<close> option) but no name is supplied, the default is
+\<open>\<lambda>x. x = C\<^sub>j\<close> for nullary constructors and
+\<open>t.is_C\<^sub>j\<close> otherwise.
 
 @{rail \<open>
   @{syntax_def dt_ctor_arg}: type | '(' name ':' type ')'
@@ -567,8 +567,8 @@ The syntactic entity \synt{type} denotes a HOL type @{cite "isabelle-isar-ref"}.
 In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector. The same selector name can be reused for
 arguments to several constructors as long as the arguments share the same type.
-If selectors are enabled (cf.\ the @{text "discs_sels"} option) but no name is
-supplied, the default name is @{text un_C\<^sub>ji}.
+If selectors are enabled (cf.\ the \<open>discs_sels\<close> option) but no name is
+supplied, the default name is \<open>un_C\<^sub>ji\<close>.
 \<close>
 
 
@@ -577,7 +577,7 @@ subsubsection \<open>\keyw{datatype_compat}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "datatype_compat"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "datatype_compat"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -609,12 +609,12 @@ A few remarks concern nested recursive datatypes:
 \setlength{\itemsep}{0pt}
 
 \item The old-style, nested-as-mutual induction rule and recursor theorems are
-generated under their usual names but with ``@{text "compat_"}'' prefixed
-(e.g., @{text compat_tree.induct}, @{text compat_tree.inducts}, and
-@{text compat_tree.rec}). These theorems should be identical to the ones
+generated under their usual names but with ``\<open>compat_\<close>'' prefixed
+(e.g., \<open>compat_tree.induct\<close>, \<open>compat_tree.inducts\<close>, and
+\<open>compat_tree.rec\<close>). These theorems should be identical to the ones
 generated by the old datatype package, \emph{up to the order of the
-premises}---meaning that the subgoals generated by the @{text induct} or
-@{text induction} method may be in a different order than before.
+premises}---meaning that the subgoals generated by the \<open>induct\<close> or
+\<open>induction\<close> method may be in a different order than before.
 
 \item All types through which recursion takes place must be new-style datatypes
 or the function type.
@@ -626,42 +626,42 @@ subsection \<open>Generated Constants
   \label{ssec:datatype-generated-constants}\<close>
 
 text \<open>
-Given a datatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"} with $m$ live type variables
-and $n$ constructors @{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the following
+Given a datatype \<open>('a\<^sub>1, \<dots>, 'a\<^sub>m) t\<close> with $m$ live type variables
+and $n$ constructors \<open>t.C\<^sub>1\<close>, \ldots, \<open>t.C\<^sub>n\<close>, the following
 auxiliary constants are introduced:
 
 \medskip
 
 \begin{tabular}{@ {}ll@ {}}
 Case combinator: &
-  @{text t.case_t} (rendered using the familiar @{text case}--@{text of} syntax) \\
+  \<open>t.case_t\<close> (rendered using the familiar \<open>case\<close>--\<open>of\<close> syntax) \\
 Discriminators: &
-  @{text t.is_C\<^sub>1}$, \ldots, $@{text t.is_C\<^sub>n} \\
+  \<open>t.is_C\<^sub>1\<close>$, \ldots, $\<open>t.is_C\<^sub>n\<close> \\
 Selectors: &
-  @{text t.un_C\<^sub>11}$, \ldots, $@{text t.un_C\<^sub>1k\<^sub>1} \\
+  \<open>t.un_C\<^sub>11\<close>$, \ldots, $\<open>t.un_C\<^sub>1k\<^sub>1\<close> \\
 & \quad\vdots \\
-& @{text t.un_C\<^sub>n1}$, \ldots, $@{text t.un_C\<^sub>nk\<^sub>n} \\
+& \<open>t.un_C\<^sub>n1\<close>$, \ldots, $\<open>t.un_C\<^sub>nk\<^sub>n\<close> \\
 Set functions: &
-  @{text t.set\<^sub>1_t}, \ldots, @{text t.set\<^sub>m_t} \\
+  \<open>t.set\<^sub>1_t\<close>, \ldots, \<open>t.set\<^sub>m_t\<close> \\
 Map function: &
-  @{text t.map_t} \\
+  \<open>t.map_t\<close> \\
 Relator: &
-  @{text t.rel_t} \\
+  \<open>t.rel_t\<close> \\
 Recursor: &
-  @{text t.rec_t}
+  \<open>t.rec_t\<close>
 \end{tabular}
 
 \medskip
 
 \noindent
-The discriminators and selectors are generated only if the @{text "discs_sels"}
+The discriminators and selectors are generated only if the \<open>discs_sels\<close>
 option is enabled or if names are specified for discriminators or selectors.
 The set functions, map function, predicator, and relator are generated only if $m > 0$.
 
 In addition, some of the plugins introduce their own constants
 (Section~\ref{sec:selecting-plugins}). The case combinator, discriminators,
 and selectors are collectively called \emph{destructors}. The prefix
-``@{text "t."}'' is an optional component of the names and is normally hidden.
+``\<open>t.\<close>'' is an optional component of the names and is normally hidden.
 \<close>
 
 
@@ -717,17 +717,17 @@ for @{typ "'a list"}:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{inject} \<open>[iff, induct_simp]\<close>\rm:] ~ \\
 @{thm list.inject[no_vars]}
 
-\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{distinct} \<open>[simp, induct_simp]\<close>\rm:] ~ \\
 @{thm list.distinct(1)[no_vars]} \\
 @{thm list.distinct(2)[no_vars]}
 
-\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{exhaust} \<open>[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm:] ~ \\
 @{thm list.exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{nchotomy}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{nchotomy}\rm:] ~ \\
 @{thm list.nchotomy[no_vars]}
 
 \end{description}
@@ -739,7 +739,7 @@ In addition, these nameless theorems are registered as safe elimination rules:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{distinct {\upshape[}THEN notE}@{text ", elim!"}\hthm{\upshape]}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{distinct {\upshape[}THEN notE}\<open>, elim!\<close>\hthm{\upshape]}\rm:] ~ \\
 @{thm list.distinct(1)[THEN notE, elim!, no_vars]} \\
 @{thm list.distinct(2)[THEN notE, elim!, no_vars]}
 
@@ -752,28 +752,28 @@ The next subgroup is concerned with the case combinator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{case} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "t."}\hthm{case_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{case_cong} \<open>[fundef_cong]\<close>\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{case_cong_weak} @{text "[cong]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{case_cong_weak} \<open>[cong]\<close>\rm:] ~ \\
 @{thm list.case_cong_weak[no_vars]}
 
-\item[@{text "t."}\hthm{case_distrib}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{case_distrib}\rm:] ~ \\
 @{thm list.case_distrib[no_vars]}
 
-\item[@{text "t."}\hthm{split}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{split}\rm:] ~ \\
 @{thm list.split[no_vars]}
 
-\item[@{text "t."}\hthm{split_asm}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{split_asm}\rm:] ~ \\
 @{thm list.split_asm[no_vars]}
 
-\item[@{text "t."}\hthm{splits} = @{text "split split_asm"}]
+\item[\<open>t.\<close>\hthm{splits} = \<open>split split_asm\<close>]
 
 \end{description}
 \end{indentblock}
@@ -784,55 +784,55 @@ The third subgroup revolves around discriminators and selectors:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{disc} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{disc} \<open>[simp]\<close>\rm:] ~ \\
 @{thm list.disc(1)[no_vars]} \\
 @{thm list.disc(2)[no_vars]}
 
-\item[@{text "t."}\hthm{discI}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{discI}\rm:] ~ \\
 @{thm list.discI(1)[no_vars]} \\
 @{thm list.discI(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sel} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{sel} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm list.sel(1)[no_vars]} \\
 @{thm list.sel(2)[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{collapse} \<open>[simp]\<close>\rm:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]} \\
-The @{text "[simp]"} attribute is exceptionally omitted for datatypes equipped
+The \<open>[simp]\<close> attribute is exceptionally omitted for datatypes equipped
 with a single nullary constructor, because a property of the form
 @{prop "x = C"} is not suitable as a simplification rule.
 
-\item[@{text "t."}\hthm{distinct_disc} @{text "[dest]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{distinct_disc} \<open>[dest]\<close>\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. If the datatype had been introduced with a second
 discriminator called @{const nonnull}, they would have read as follows: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
 @{prop "nonnull list \<Longrightarrow> \<not> null list"}
 
-\item[@{text "t."}\hthm{exhaust_disc} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{exhaust_disc} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm:] ~ \\
 @{thm list.exhaust_disc[no_vars]}
 
-\item[@{text "t."}\hthm{exhaust_sel} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{exhaust_sel} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm:] ~ \\
 @{thm list.exhaust_sel[no_vars]}
 
-\item[@{text "t."}\hthm{expand}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{split_sel}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{split_sel}\rm:] ~ \\
 @{thm list.split_sel[no_vars]}
 
-\item[@{text "t."}\hthm{split_sel_asm}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{split_sel_asm}\rm:] ~ \\
 @{thm list.split_sel_asm[no_vars]}
 
-\item[@{text "t."}\hthm{split_sels} = @{text "split_sel split_sel_asm"}]
+\item[\<open>t.\<close>\hthm{split_sels} = \<open>split_sel split_sel_asm\<close>]
 
-\item[@{text "t."}\hthm{case_eq_if}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{case_eq_if}\rm:] ~ \\
 @{thm list.case_eq_if[no_vars]}
 
-\item[@{text "t."}\hthm{disc_eq_case}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{disc_eq_case}\rm:] ~ \\
 @{thm list.disc_eq_case(1)[no_vars]} \\
 @{thm list.disc_eq_case(2)[no_vars]}
 
@@ -840,9 +840,9 @@ discriminator called @{const nonnull}, they would have read as follows: \\[\jot]
 \end{indentblock}
 
 \noindent
-In addition, equational versions of @{text t.disc} are registered with the
-@{text "[code]"} attribute. The @{text "[code]"} attribute is set by the
-@{text code} plugin (Section~\ref{ssec:code-generator}).
+In addition, equational versions of \<open>t.disc\<close> are registered with the
+\<open>[code]\<close> attribute. The \<open>[code]\<close> attribute is set by the
+\<open>code\<close> plugin (Section~\ref{ssec:code-generator}).
 \<close>
 
 
@@ -859,88 +859,87 @@ the predicator, or the relator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{case_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.case_transfer[no_vars]} \\
-This property is generated by the @{text transfer} plugin
+This property is generated by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}).
-%The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+%The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 %(Section~\ref{ssec:transfer}).
 
-\item[@{text "t."}\hthm{sel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{sel_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 This property is missing for @{typ "'a list"} because there is no common
 selector to all constructors. \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}).
 
-\item[@{text "t."}\hthm{ctr_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{ctr_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.ctr_transfer(1)[no_vars]} \\
 @{thm list.ctr_transfer(2)[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) .
 
-\item[@{text "t."}\hthm{disc_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{disc_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.disc_transfer(1)[no_vars]} \\
 @{thm list.disc_transfer(2)[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}).
 
-\item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{set} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "t."}\hthm{set_cases} @{text "[consumes 1, cases set: set\<^sub>i_t]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{set_cases} \<open>[consumes 1, cases set: set\<^sub>i_t]\<close>\rm:] ~ \\
 @{thm list.set_cases[no_vars]}
 
-\item[@{text "t."}\hthm{set_intros}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{set_intros}\rm:] ~ \\
 @{thm list.set_intros(1)[no_vars]} \\
 @{thm list.set_intros(2)[no_vars]}
 
-\item[@{text "t."}\hthm{set_sel}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{set_sel}\rm:] ~ \\
 @{thm list.set_sel[no_vars]}
 
-\item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "t."}\hthm{map_disc_iff} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_disc_iff} \<open>[simp]\<close>\rm:] ~ \\
 @{thm list.map_disc_iff[no_vars]}
 
-\item[@{text "t."}\hthm{map_sel}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_sel}\rm:] ~ \\
 @{thm list.map_sel[no_vars]}
 
-\item[@{text "t."}\hthm{pred_inject} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_inject} \<open>[simp]\<close>\rm:] ~ \\
 @{thm list.pred_inject(1)[no_vars]} \\
 @{thm list.pred_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_inject} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_inject} \<open>[simp]\<close>\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_distinct} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_distinct} \<open>[simp]\<close>\rm:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_intros}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_intros}\rm:] ~ \\
 @{thm list.rel_intros(1)[no_vars]} \\
 @{thm list.rel_intros(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_cases} @{text "[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_cases} \<open>[consumes 1, case_names t\<^sub>1 \<dots> t\<^sub>m, cases pred]\<close>\rm:] ~ \\
 @{thm list.rel_cases[no_vars]}
 
-\item[@{text "t."}\hthm{rel_sel}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_sel}\rm:] ~ \\
 @{thm list.rel_sel[no_vars]}
 
 \end{description}
 \end{indentblock}
 
 \noindent
-In addition, equational versions of @{text t.rel_inject} and @{text
-rel_distinct} are registered with the @{text "[code]"} attribute. The
-@{text "[code]"} attribute is set by the @{text code} plugin
+In addition, equational versions of \<open>t.rel_inject\<close> and \<open>rel_distinct\<close> are registered with the \<open>[code]\<close> attribute. The
+\<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
 The second subgroup consists of more abstract properties of the set functions,
@@ -949,128 +948,128 @@ the map function, the predicator, and the relator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{inj_map}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{inj_map}\rm:] ~ \\
 @{thm list.inj_map[no_vars]}
 
-\item[@{text "t."}\hthm{inj_map_strong}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{inj_map_strong}\rm:] ~ \\
 @{thm list.inj_map_strong[no_vars]}
 
-\item[@{text "t."}\hthm{map_comp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_comp}\rm:] ~ \\
 @{thm list.map_comp[no_vars]}
 
-\item[@{text "t."}\hthm{map_cong0}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_cong0}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
-\item[@{text "t."}\hthm{map_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_cong} \<open>[fundef_cong]\<close>\rm:] ~ \\
 @{thm list.map_cong[no_vars]}
 
-\item[@{text "t."}\hthm{map_cong_pred}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_cong_pred}\rm:] ~ \\
 @{thm list.map_cong_pred[no_vars]}
 
-\item[@{text "t."}\hthm{map_cong_simp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_cong_simp}\rm:] ~ \\
 @{thm list.map_cong_simp[no_vars]}
 
-\item[@{text "t."}\hthm{map_id0}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_id0}\rm:] ~ \\
 @{thm list.map_id0[no_vars]}
 
-\item[@{text "t."}\hthm{map_id}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_id}\rm:] ~ \\
 @{thm list.map_id[no_vars]}
 
-\item[@{text "t."}\hthm{map_ident}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_ident}\rm:] ~ \\
 @{thm list.map_ident[no_vars]}
 
-\item[@{text "t."}\hthm{map_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.map_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
-\item[@{text "t."}\hthm{pred_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_cong} \<open>[fundef_cong]\<close>\rm:] ~ \\
 @{thm list.pred_cong[no_vars]}
 
-\item[@{text "t."}\hthm{pred_cong_simp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_cong_simp}\rm:] ~ \\
 @{thm list.pred_cong_simp[no_vars]}
 
-\item[@{text "t."}\hthm{pred_map}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_map}\rm:] ~ \\
 @{thm list.pred_map[no_vars]}
 
-\item[@{text "t."}\hthm{pred_mono_strong}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_mono_strong}\rm:] ~ \\
 @{thm list.pred_mono_strong[no_vars]}
 
-\item[@{text "t."}\hthm{pred_rel}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_rel}\rm:] ~ \\
 @{thm list.pred_rel[no_vars]}
 
-\item[@{text "t."}\hthm{pred_set}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_set}\rm:] ~ \\
 @{thm list.pred_set[no_vars]}
 
-\item[@{text "t."}\hthm{pred_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.pred_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
-\item[@{text "t."}\hthm{pred_True}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{pred_True}\rm:] ~ \\
 @{thm list.pred_True[no_vars]}
 
-\item[@{text "t."}\hthm{set_map}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{set_map}\rm:] ~ \\
 @{thm list.set_map[no_vars]}
 
-\item[@{text "t."}\hthm{set_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{set_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.set_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
-\item[@{text "t."}\hthm{rel_compp} @{text "[relator_distr]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_compp} \<open>[relator_distr]\<close>\rm:] ~ \\
 @{thm list.rel_compp[no_vars]} \\
-The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
+The \<open>[relator_distr]\<close> attribute is set by the \<open>lifting\<close> plugin
 (Section~\ref{ssec:lifting}).
 
-\item[@{text "t."}\hthm{rel_conversep}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_conversep}\rm:] ~ \\
 @{thm list.rel_conversep[no_vars]}
 
-\item[@{text "t."}\hthm{rel_eq}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_eq}\rm:] ~ \\
 @{thm list.rel_eq[no_vars]}
 
-\item[@{text "t."}\hthm{rel_eq_onp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_eq_onp}\rm:] ~ \\
 @{thm list.rel_eq_onp[no_vars]}
 
-\item[@{text "t."}\hthm{rel_flip}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_flip}\rm:] ~ \\
 @{thm list.rel_flip[no_vars]}
 
-\item[@{text "t."}\hthm{rel_map}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_map}\rm:] ~ \\
 @{thm list.rel_map(1)[no_vars]} \\
 @{thm list.rel_map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel_mono} @{text "[mono, relator_mono]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_mono} \<open>[mono, relator_mono]\<close>\rm:] ~ \\
 @{thm list.rel_mono[no_vars]} \\
-The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
+The \<open>[relator_mono]\<close> attribute is set by the \<open>lifting\<close> plugin
 (Section~\ref{ssec:lifting}).
 
-\item[@{text "t."}\hthm{rel_mono_strong}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_mono_strong}\rm:] ~ \\
 @{thm list.rel_mono_strong[no_vars]}
 
-\item[@{text "t."}\hthm{rel_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_cong} \<open>[fundef_cong]\<close>\rm:] ~ \\
 @{thm list.rel_cong[no_vars]}
 
-\item[@{text "t."}\hthm{rel_cong_simp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_cong_simp}\rm:] ~ \\
 @{thm list.rel_cong_simp[no_vars]}
 
-\item[@{text "t."}\hthm{rel_refl}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_refl}\rm:] ~ \\
 @{thm list.rel_refl[no_vars]}
 
-\item[@{text "t."}\hthm{rel_refl_strong}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_refl_strong}\rm:] ~ \\
 @{thm list.rel_refl_strong[no_vars]}
 
-\item[@{text "t."}\hthm{rel_reflp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_reflp}\rm:] ~ \\
 @{thm list.rel_reflp[no_vars]}
 
-\item[@{text "t."}\hthm{rel_symp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_symp}\rm:] ~ \\
 @{thm list.rel_symp[no_vars]}
 
-\item[@{text "t."}\hthm{rel_transp}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_transp}\rm:] ~ \\
 @{thm list.rel_transp[no_vars]}
 
-\item[@{text "t."}\hthm{rel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.rel_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \end{description}
@@ -1087,31 +1086,31 @@ The inductive theorems are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct t]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n, induct t]\<close>\rm:] ~ \\
 @{thm list.induct[no_vars]}
 
-\item[@{text "t."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rel_induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n, induct pred]\<close>\rm:] ~ \\
 @{thm list.rel_induct[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm: \\
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm: \\
+  \<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm: \\
+  \<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{rel_induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm: \\
 \end{tabular}] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{rec} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rec} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "t."}\hthm{rec_o_map}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rec_o_map}\rm:] ~ \\
 @{thm list.rec_o_map[no_vars]}
 
-\item[@{text "t."}\hthm{rec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{rec_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.rec_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \end{description}
@@ -1123,8 +1122,8 @@ For convenience, @{command datatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps}] = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.map} @{text t.rel_inject} \\
-@{text t.rel_distinct} @{text t.set}
+\item[\<open>t.\<close>\hthm{simps}] = \<open>t.inject\<close> \<open>t.distinct\<close> \<open>t.case\<close> \<open>t.rec\<close> \<open>t.map\<close> \<open>t.rel_inject\<close> \\
+\<open>t.rel_distinct\<close> \<open>t.set\<close>
 
 \end{description}
 \end{indentblock}
@@ -1161,10 +1160,10 @@ incompatibilities that may arise when porting:
 
 \item \emph{The Standard ML interfaces are different.} Tools and extensions
 written to call the old ML interfaces will need to be adapted to the new
-interfaces. The @{text BNF_LFP_Compat} structure provides convenience functions
+interfaces. The \<open>BNF_LFP_Compat\<close> structure provides convenience functions
 that simulate the old interfaces in terms of the new ones.
 
-\item \emph{The recursor @{text rec_t} has a different signature for nested
+\item \emph{The recursor \<open>rec_t\<close> has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
 was internally reduced to mutual recursion. This reduction was visible in the
 type of the recursor, used by \keyw{primrec}. Recursion through functions was
@@ -1180,17 +1179,17 @@ datatypes.} Again, the old-style induction rule can be generated on demand
 using @{command primrec} if the recursion is via new-style datatypes, as
 explained in Section~\ref{sssec:primrec-nested-as-mutual-recursion}, or using
 @{command datatype_compat}. For recursion through functions, the old-style
-induction rule can be obtained by applying the @{text "[unfolded
-all_mem_range]"} attribute on @{text t.induct}.
+induction rule can be obtained by applying the \<open>[unfolded
+all_mem_range]\<close> attribute on \<open>t.induct\<close>.
 
 \item \emph{The @{const size} function has a slightly different definition.}
-The new function returns @{text 1} instead of @{text 0} for some nonrecursive
+The new function returns \<open>1\<close> instead of \<open>0\<close> for some nonrecursive
 constructors. This departure from the old behavior made it possible to implement
-@{const size} in terms of the generic function @{text "t.size_t"}. Moreover,
+@{const size} in terms of the generic function \<open>t.size_t\<close>. Moreover,
 the new function considers nested occurrences of a value, in the nested
-recursive case. The old behavior can be obtained by disabling the @{text size}
+recursive case. The old behavior can be obtained by disabling the \<open>size\<close>
 plugin (Section~\ref{sec:selecting-plugins}) and instantiating the
-@{text size} type class manually.
+\<open>size\<close> type class manually.
 
 \item \emph{The internal constructions are completely different.} Proof texts
 that unfold the definition of constants introduced by the old command will
@@ -1198,23 +1197,23 @@ be difficult to port.
 
 \item \emph{Some constants and theorems have different names.}
 For non-mutually recursive datatypes,
-the alias @{text t.inducts} for @{text t.induct} is no longer generated.
+the alias \<open>t.inducts\<close> for \<open>t.induct\<close> is no longer generated.
 For $m > 1$ mutually recursive datatypes,
-@{text "rec_t\<^sub>1_\<dots>_t\<^sub>m_i"} has been renamed
-@{text "rec_t\<^sub>i"} for each @{text "i \<in> {1, \<dots>, m}"},
-@{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed
-@{text "t\<^sub>i.induct"} for each @{text "i \<in> {1, \<dots>, m}"}, and the
-collection @{text "t\<^sub>1_\<dots>_t\<^sub>m.size"} (generated by the
-@{text size} plugin, Section~\ref{ssec:size}) has been divided into
-@{text "t\<^sub>1.size"}, \ldots, @{text "t\<^sub>m.size"}.
+\<open>rec_t\<^sub>1_\<dots>_t\<^sub>m_i\<close> has been renamed
+\<open>rec_t\<^sub>i\<close> for each \<open>i \<in> {1, \<dots>, m}\<close>,
+\<open>t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)\<close> has been renamed
+\<open>t\<^sub>i.induct\<close> for each \<open>i \<in> {1, \<dots>, m}\<close>, and the
+collection \<open>t\<^sub>1_\<dots>_t\<^sub>m.size\<close> (generated by the
+\<open>size\<close> plugin, Section~\ref{ssec:size}) has been divided into
+\<open>t\<^sub>1.size\<close>, \ldots, \<open>t\<^sub>m.size\<close>.
 
-\item \emph{The @{text t.simps} collection has been extended.}
+\item \emph{The \<open>t.simps\<close> collection has been extended.}
 Previously available theorems are available at the same index as before.
 
 \item \emph{Variables in generated properties have different names.} This is
 rarely an issue, except in proof texts that refer to variable names in the
-@{text "[where \<dots>]"} attribute. The solution is to use the more robust
-@{text "[of \<dots>]"} syntax.
+\<open>[where \<dots>]\<close> attribute. The solution is to use the more robust
+\<open>[of \<dots>]\<close> syntax.
 \end{itemize}
 \<close>
 
@@ -1396,8 +1395,8 @@ recursive calls are lifted to lists using @{const map}:
 
 text \<open>
 \noindent
-The next example features recursion through the @{text option} type. Although
-@{text option} is not a new-style datatype, it is registered as a BNF with the
+The next example features recursion through the \<open>option\<close> type. Although
+\<open>option\<close> is not a new-style datatype, it is registered as a BNF with the
 map function @{const map_option}:
 \<close>
 
@@ -1410,7 +1409,7 @@ text \<open>
 \noindent
 The same principle applies for arbitrary type constructors through which
 recursion is possible. Notably, the map function for the function type
-(@{text \<Rightarrow>}) is simply composition (@{text "(\<circ>)"}):
+(\<open>\<Rightarrow>\<close>) is simply composition (\<open>(\<circ>)\<close>):
 \<close>
 
     primrec (*<*)(in early) (*>*)relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
@@ -1559,7 +1558,7 @@ subsubsection \<open>\keyw{primrec}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "primrec"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -1589,18 +1588,18 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+The \<open>plugins\<close> option indicates which plugins should be enabled
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 \item
-The @{text nonexhaustive} option indicates that the functions are not
+The \<open>nonexhaustive\<close> option indicates that the functions are not
 necessarily specified for all constructors. It can be used to suppress the
 warning that is normally emitted when some constructors are missing.
 
 \item
-The @{text transfer} option indicates that an unconditional transfer rule
-should be generated and proved @{text "by transfer_prover"}. The
-@{text "[transfer_rule]"} attribute is set on the generated theorem.
+The \<open>transfer\<close> option indicates that an unconditional transfer rule
+should be generated and proved \<open>by transfer_prover\<close>. The
+\<open>[transfer_rule]\<close> attribute is set on the generated theorem.
 \end{itemize}
 
 %%% TODO: elaborate on format of the equations
@@ -1623,23 +1622,23 @@ for @{const tfold}):
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "f."}\hthm{simps} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{simps} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm tfold.simps(1)[no_vars]} \\
 @{thm tfold.simps(2)[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "f."}\hthm{transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm tfold.transfer[no_vars]} \\
-This theorem is generated by the @{text transfer} plugin
-(Section~\ref{ssec:transfer}) for functions declared with the @{text transfer}
+This theorem is generated by the \<open>transfer\<close> plugin
+(Section~\ref{ssec:transfer}) for functions declared with the \<open>transfer\<close>
 option enabled.
 
-\item[@{text "f."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm:] ~ \\
 This induction rule is generated for nested-as-mutual recursive functions
 (Section~\ref{sssec:primrec-nested-as-mutual-recursion}).
 
-\item[@{text "f\<^sub>1_\<dots>_f\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\<open>f\<^sub>1_\<dots>_f\<^sub>m.\<close>\hthm{induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n]\<close>\rm:] ~ \\
 This induction rule is generated for nested-as-mutual recursive functions
 (Section~\ref{sssec:primrec-nested-as-mutual-recursion}). Given $m > 1$ mutually
 recursive functions, this rule can be used to prove $m$ properties
@@ -1658,7 +1657,7 @@ subsection \<open>Recursive Default Values for Selectors
   \label{ssec:primrec-recursive-default-values-for-selectors}\<close>
 
 text \<open>
-A datatype selector @{text un_D} can have a default value for each constructor
+A datatype selector \<open>un_D\<close> can have a default value for each constructor
 on which it is not otherwise specified. Occasionally, it is useful to have the
 default value be defined recursively. This leads to a chicken-and-egg
 situation, because the datatype is not introduced yet at the moment when the
@@ -1673,20 +1672,20 @@ from the tedium of manual derivations:
 \setlength{\itemsep}{0pt}
 
 \item
-Introduce a fully unspecified constant @{text "un_D\<^sub>0 :: 'a"} using
+Introduce a fully unspecified constant \<open>un_D\<^sub>0 :: 'a\<close> using
 @{command consts}.
 
 \item
-Define the datatype, specifying @{text "un_D\<^sub>0"} as the selector's default
+Define the datatype, specifying \<open>un_D\<^sub>0\<close> as the selector's default
 value.
 
 \item
-Define the behavior of @{text "un_D\<^sub>0"} on values of the newly introduced
+Define the behavior of \<open>un_D\<^sub>0\<close> on values of the newly introduced
 datatype using the \keyw{overloading} command.
 
 \item
-Derive the desired equation on @{text un_D} from the characteristic equations
-for @{text "un_D\<^sub>0"}.
+Derive the desired equation on \<open>un_D\<close> from the characteristic equations
+for \<open>un_D\<^sub>0\<close>.
 \end{enumerate}
 
 \noindent
@@ -1737,8 +1736,8 @@ porting to the new package:
 
 \item \emph{Some theorems have different names.}
 For $m > 1$ mutually recursive functions,
-@{text "f\<^sub>1_\<dots>_f\<^sub>m.simps"} has been broken down into separate
-subcollections @{text "f\<^sub>i.simps"}.
+\<open>f\<^sub>1_\<dots>_f\<^sub>m.simps\<close> has been broken down into separate
+subcollections \<open>f\<^sub>i.simps\<close>.
 \end{itemize}
 \<close>
 
@@ -1781,8 +1780,8 @@ definition of lazy lists:
 
 text \<open>
 \noindent
-Lazy lists can be infinite, such as @{text "LCons 0 (LCons 0 (\<dots>))"} and
-@{text "LCons 0 (LCons 1 (LCons 2 (\<dots>)))"}. Here is a related type, that of
+Lazy lists can be infinite, such as \<open>LCons 0 (LCons 0 (\<dots>))\<close> and
+\<open>LCons 0 (LCons 1 (LCons 2 (\<dots>)))\<close>. Here is a related type, that of
 infinite streams:
 \<close>
 
@@ -1802,9 +1801,9 @@ be defined as a codatatype is that of the extended natural numbers:
 
 text \<open>
 \noindent
-This type has exactly one infinite element, @{text "ESucc (ESucc (ESucc (\<dots>)))"},
+This type has exactly one infinite element, \<open>ESucc (ESucc (ESucc (\<dots>)))\<close>,
 that represents $\infty$. In addition, it has finite values of the form
-@{text "ESucc (\<dots> (ESucc EZero)\<dots>)"}.
+\<open>ESucc (\<dots> (ESucc EZero)\<dots>)\<close>.
 
 Here is an example with many constructors:
 \<close>
@@ -1861,7 +1860,7 @@ subsubsection \<open>\keyw{codatatype}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "codatatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "codatatype"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -1872,7 +1871,7 @@ text \<open>
 
 \noindent
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
-(Section~\ref{ssec:datatype-command-syntax}). The @{text "discs_sels"} option
+(Section~\ref{ssec:datatype-command-syntax}). The \<open>discs_sels\<close> option
 is superfluous because discriminators and selectors are always generated for
 codatatypes.
 \<close>
@@ -1882,9 +1881,9 @@ subsection \<open>Generated Constants
   \label{ssec:codatatype-generated-constants}\<close>
 
 text \<open>
-Given a codatatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
-with $m > 0$ live type variables and $n$ constructors @{text "t.C\<^sub>1"},
-\ldots, @{text "t.C\<^sub>n"}, the same auxiliary constants are generated as for
+Given a codatatype \<open>('a\<^sub>1, \<dots>, 'a\<^sub>m) t\<close>
+with $m > 0$ live type variables and $n$ constructors \<open>t.C\<^sub>1\<close>,
+\ldots, \<open>t.C\<^sub>n\<close>, the same auxiliary constants are generated as for
 datatypes (Section~\ref{ssec:datatype-generated-constants}), except that the
 recursor is replaced by a dual concept:
 
@@ -1892,7 +1891,7 @@ recursor is replaced by a dual concept:
 
 \begin{tabular}{@ {}ll@ {}}
 Corecursor: &
-  @{text t.corec_t}
+  \<open>t.corec_t\<close>
 \end{tabular}
 \<close>
 
@@ -1934,69 +1933,69 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 \begin{description}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n, coinduct t]"}\rm:
+  \<open>t.\<close>\hthm{coinduct} \<open>[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>t.\<close>\hthm{coinduct} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n, coinduct t]\<close>\rm:
 \end{tabular}] ~ \\
 @{thm llist.coinduct[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{coinduct_strong} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+  \<open>t.\<close>\hthm{coinduct_strong} \<open>[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>t.\<close>\hthm{coinduct_strong} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots> D\<^sub>n]\<close>\rm:
 \end{tabular}] ~ \\
 @{thm llist.coinduct_strong[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{rel_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t."}\hthm{rel_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n, coinduct pred]"}\rm:
+  \<open>t.\<close>\hthm{rel_coinduct} \<open>[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>t.\<close>\hthm{rel_coinduct} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n, coinduct pred]\<close>\rm:
 \end{tabular}] ~ \\
 @{thm llist.rel_coinduct[no_vars]}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct_strong} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{rel_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm: \\
+  \<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{coinduct} \<open>[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]\<close> \\
+  \<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{coinduct_strong} \<open>[case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{coinduct_strong} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots> D\<^sub>n]\<close>\rm: \\
+  \<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{rel_coinduct} \<open>[case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{rel_coinduct} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots> D\<^sub>n]\<close>\rm: \\
 \end{tabular}] ~ \\
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{set_induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n,"} \\
-  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{set_induct} @{text "["}}@{text "induct set: set\<^sub>j_t\<^sub>1, \<dots>, induct set: set\<^sub>j_t\<^sub>m]"}\rm: \\
+  \<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{set_induct} \<open>[case_names C\<^sub>1 \<dots> C\<^sub>n,\<close> \\
+  \phantom{\<open>t\<^sub>1_\<dots>_t\<^sub>m.\<close>\hthm{set_induct} \<open>[\<close>}\<open>induct set: set\<^sub>j_t\<^sub>1, \<dots>, induct set: set\<^sub>j_t\<^sub>m]\<close>\rm: \\
 \end{tabular}] ~ \\
 @{thm llist.set_induct[no_vars]} \\
-If $m = 1$, the attribute @{text "[consumes 1]"} is generated as well.
+If $m = 1$, the attribute \<open>[consumes 1]\<close> is generated as well.
 
-\item[@{text "t."}\hthm{corec}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{corec}\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec_code} @{text "[code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{corec_code} \<open>[code]\<close>\rm:] ~ \\
 @{thm llist.corec_code[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "t."}\hthm{corec_disc}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{corec_disc}\rm:] ~ \\
 @{thm llist.corec_disc(1)[no_vars]} \\
 @{thm llist.corec_disc(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec_disc_iff} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{corec_disc_iff} \<open>[simp]\<close>\rm:] ~ \\
 @{thm llist.corec_disc_iff(1)[no_vars]} \\
 @{thm llist.corec_disc_iff(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec_sel} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{corec_sel} \<open>[simp]\<close>\rm:] ~ \\
 @{thm llist.corec_sel(1)[no_vars]} \\
 @{thm llist.corec_sel(2)[no_vars]}
 
-\item[@{text "t."}\hthm{map_o_corec}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{map_o_corec}\rm:] ~ \\
 @{thm llist.map_o_corec[no_vars]}
 
-\item[@{text "t."}\hthm{corec_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{corec_transfer} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm llist.corec_transfer[no_vars]} \\
-The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin
+The \<open>[transfer_rule]\<close> attribute is set by the \<open>transfer\<close> plugin
 (Section~\ref{ssec:transfer}) for type constructors with no dead type arguments.
 
 \end{description}
@@ -2008,8 +2007,8 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps}] = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec_disc_iff} @{text t.corec_sel} \\
-@{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
+\item[\<open>t.\<close>\hthm{simps}] = \<open>t.inject\<close> \<open>t.distinct\<close> \<open>t.case\<close> \<open>t.corec_disc_iff\<close> \<open>t.corec_sel\<close> \\
+\<open>t.map\<close> \<open>t.rel_inject\<close> \<open>t.rel_distinct\<close> \<open>t.set\<close>
 
 \end{description}
 \end{indentblock}
@@ -2042,17 +2041,17 @@ Isabelle supports three competing syntaxes for specifying a function $f$:
 \belowdisplayskip=.5\belowdisplayskip
 
 \item The \emph{destructor view} specifies $f$ by implications of the form
-\[@{text "\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)"}\] and
+\[\<open>\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)\<close>\] and
 equations of the form
-\[@{text "un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>"}\]
+\[\<open>un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>\<close>\]
 This style is popular in the coalgebraic literature.
 
 \item The \emph{constructor view} specifies $f$ by equations of the form
-\[@{text "\<dots> \<Longrightarrow> f x\<^sub>1 \<dots> x\<^sub>n = C\<^sub>j \<dots>"}\]
+\[\<open>\<dots> \<Longrightarrow> f x\<^sub>1 \<dots> x\<^sub>n = C\<^sub>j \<dots>\<close>\]
 This style is often more concise than the previous one.
 
 \item The \emph{code view} specifies $f$ by a single equation of the form
-\[@{text "f x\<^sub>1 \<dots> x\<^sub>n = \<dots>"}\]
+\[\<open>f x\<^sub>1 \<dots> x\<^sub>n = \<dots>\<close>\]
 with restrictions on the format of the right-hand side. Lazy functional
 programming languages such as Haskell support a generalized version of this
 style.
@@ -2100,9 +2099,9 @@ text \<open>
 \noindent
 The constructor ensures that progress is made---i.e., the function is
 \emph{productive}. The above functions compute the infinite lazy list or stream
-@{text "[x, g x, g (g x), \<dots>]"}. Productivity guarantees that prefixes
-@{text "[x, g x, g (g x), \<dots>, (g ^^ k) x]"} of arbitrary finite length
-@{text k} can be computed by unfolding the code equation a finite number of
+\<open>[x, g x, g (g x), \<dots>]\<close>. Productivity guarantees that prefixes
+\<open>[x, g x, g (g x), \<dots>, (g ^^ k) x]\<close> of arbitrary finite length
+\<open>k\<close> can be computed by unfolding the code equation a finite number of
 times.
 
 Corecursive functions construct codatatype values, but nothing prevents them
@@ -2115,8 +2114,7 @@ element in a stream:
 
 text \<open>
 \noindent
-Constructs such as @{text "let"}--@{text "in"}, @{text
-"if"}--@{text "then"}--@{text "else"}, and @{text "case"}--@{text "of"} may
+Constructs such as \<open>let\<close>--\<open>in\<close>, \<open>if\<close>--\<open>then\<close>--\<open>else\<close>, and \<open>case\<close>--\<open>of\<close> may
 appear around constructors that guard corecursive calls:
 \<close>
 
@@ -2128,7 +2126,7 @@ appear around constructors that guard corecursive calls:
 
 text \<open>
 \noindent
-For technical reasons, @{text "case"}--@{text "of"} is only supported for
+For technical reasons, \<open>case\<close>--\<open>of\<close> is only supported for
 case distinctions on (co)datatypes that provide discriminators and selectors.
 
 Pattern matching is not supported by @{command primcorec}. Fortunately, it is
@@ -2155,8 +2153,8 @@ Corecursion is useful to specify not only functions but also infinite objects:
 text \<open>
 \noindent
 The example below constructs a pseudorandom process value. It takes a stream of
-actions (@{text s}), a pseudorandom function generator (@{text f}), and a
-pseudorandom seed (@{text n}):
+actions (\<open>s\<close>), a pseudorandom function generator (\<open>f\<close>), and a
+pseudorandom seed (\<open>n\<close>):
 \<close>
 
 (*<*)
@@ -2210,8 +2208,7 @@ subsubsection \<open>Nested Corecursion
 text \<open>
 The next pair of examples generalize the @{const literate} and @{const siterate}
 functions (Section~\ref{sssec:primcorec-nested-corecursion}) to possibly
-infinite trees in which subnodes are organized either as a lazy list (@{text
-tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}). They rely on the map functions of
+infinite trees in which subnodes are organized either as a lazy list (\<open>tree\<^sub>i\<^sub>i\<close>) or as a finite set (\<open>tree\<^sub>i\<^sub>s\<close>). They rely on the map functions of
 the nesting type constructors to lift the corecursive calls:
 \<close>
 
@@ -2252,9 +2249,9 @@ under constructors:
 text \<open>
 The next example illustrates corecursion through functions, which is a bit
 special. Deterministic finite automata (DFAs) are traditionally defined as
-5-tuples @{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
-@{text \<Sigma>} is a finite alphabet, @{text \<delta>} is a transition function, @{text q\<^sub>0}
-is an initial state, and @{text F} is a set of final states. The following
+5-tuples \<open>(Q, \<Sigma>, \<delta>, q\<^sub>0, F)\<close>, where \<open>Q\<close> is a finite set of states,
+\<open>\<Sigma>\<close> is a finite alphabet, \<open>\<delta>\<close> is a transition function, \<open>q\<^sub>0\<close>
+is an initial state, and \<open>F\<close> is a set of final states. The following
 function translates a DFA into a state machine:
 \<close>
 
@@ -2263,8 +2260,8 @@ function translates a DFA into a state machine:
 
 text \<open>
 \noindent
-The map function for the function type (@{text \<Rightarrow>}) is composition
-(@{text "(\<circ>)"}). For convenience, corecursion through functions can
+The map function for the function type (\<open>\<Rightarrow>\<close>) is composition
+(\<open>(\<circ>)\<close>). For convenience, corecursion through functions can
 also be expressed using $\lambda$-abstractions and function application rather
 than through composition. For example:
 \<close>
@@ -2343,7 +2340,7 @@ Coinduction rules are generated as
 @{thm [source] iterate\<^sub>i\<^sub>i.coinduct},
 @{thm [source] iterates\<^sub>i\<^sub>i.coinduct}, and
 @{thm [source] iterate\<^sub>i\<^sub>i_iterates\<^sub>i\<^sub>i.coinduct}
-and analogously for @{text coinduct_strong}. These rules and the
+and analogously for \<open>coinduct_strong\<close>. These rules and the
 underlying corecursors are generated dynamically and are kept in a cache
 to speed up subsequent definitions.
 \<close>
@@ -2418,7 +2415,7 @@ The price to pay for this elegance is that we must discharge exclusiveness proof
 obligations, one for each pair of conditions
 @{term "(n mod (4::int) = i, n mod (4::int) = j)"}
 with @{term "i < j"}. If we prefer not to discharge any obligations, we can
-enable the @{text "sequential"} option. This pushes the problem to the users of
+enable the \<open>sequential\<close> option. This pushes the problem to the users of
 the generated properties.
 %Here are more examples to conclude:
 \<close>
@@ -2435,7 +2432,7 @@ subsubsection \<open>Destructor View
 text \<open>
 The destructor view is in many respects dual to the constructor view. Conditions
 determine which constructor to choose, and these conditions are interpreted
-sequentially or not depending on the @{text "sequential"} option.
+sequentially or not depending on the \<open>sequential\<close> option.
 Consider the following examples:
 \<close>
 
@@ -2517,7 +2514,7 @@ constructors:
 
 text \<open>
 \noindent
-Using the @{text "of"} keyword, different equations are specified for @{const
+Using the \<open>of\<close> keyword, different equations are specified for @{const
 cont} depending on which constructor is selected.
 
 Here are more examples to conclude:
@@ -2549,8 +2546,8 @@ subsubsection \<open>\keyw{primcorec} and \keyw{primcorecursive}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "primcorec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  @{command_def "primcorecursive"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "primcorec"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+  @{command_def "primcorecursive"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -2580,27 +2577,27 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+The \<open>plugins\<close> option indicates which plugins should be enabled
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 \item
-The @{text sequential} option indicates that the conditions in specifications
+The \<open>sequential\<close> option indicates that the conditions in specifications
 expressed using the constructor or destructor view are to be interpreted
 sequentially.
 
 \item
-The @{text exhaustive} option indicates that the conditions in specifications
+The \<open>exhaustive\<close> option indicates that the conditions in specifications
 expressed using the constructor or destructor view cover all possible cases.
 This generally gives rise to an additional proof obligation.
 
 \item
-The @{text transfer} option indicates that an unconditional transfer rule
-should be generated and proved @{text "by transfer_prover"}. The
-@{text "[transfer_rule]"} attribute is set on the generated theorem.
+The \<open>transfer\<close> option indicates that an unconditional transfer rule
+should be generated and proved \<open>by transfer_prover\<close>. The
+\<open>[transfer_rule]\<close> attribute is set on the generated theorem.
 \end{itemize}
 
 The @{command primcorec} command is an abbreviation for @{command
-primcorecursive} with @{text "by auto?"} to discharge any emerging proof
+primcorecursive} with \<open>by auto?\<close> to discharge any emerging proof
 obligations.
 
 %%% TODO: elaborate on format of the propositions
@@ -2618,60 +2615,60 @@ following properties (listed for @{const literate}):
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "f."}\hthm{code} @{text "[code]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{code} \<open>[code]\<close>\rm:] ~ \\
 @{thm literate.code[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "f."}\hthm{ctr}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{ctr}\rm:] ~ \\
 @{thm literate.ctr[no_vars]}
 
-\item[@{text "f."}\hthm{disc} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{disc} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm literate.disc[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
-(Section~\ref{ssec:code-generator}). The @{text "[simp]"} attribute is set only
-for functions for which @{text f.disc_iff} is not available.
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
+(Section~\ref{ssec:code-generator}). The \<open>[simp]\<close> attribute is set only
+for functions for which \<open>f.disc_iff\<close> is not available.
 
-\item[@{text "f."}\hthm{disc_iff} @{text "[simp]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{disc_iff} \<open>[simp]\<close>\rm:] ~ \\
 @{thm literate.disc_iff[no_vars]} \\
 This property is generated only for functions declared with the
-@{text exhaustive} option or whose conditions are trivially exhaustive.
+\<open>exhaustive\<close> option or whose conditions are trivially exhaustive.
 
-\item[@{text "f."}\hthm{sel} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{sel} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm literate.disc[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 (Section~\ref{ssec:code-generator}).
 
-\item[@{text "f."}\hthm{exclude}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{exclude}\rm:] ~ \\
 These properties are missing for @{const literate} because no exclusiveness
 proof obligations arose. In general, the properties correspond to the
 discharged proof obligations.
 
-\item[@{text "f."}\hthm{exhaust}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{exhaust}\rm:] ~ \\
 This property is missing for @{const literate} because no exhaustiveness
 proof obligation arose. In general, the property correspond to the discharged
 proof obligation.
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "f."}\hthm{coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "f."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n]"}\rm:
+  \<open>f.\<close>\hthm{coinduct} \<open>[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>f.\<close>\hthm{coinduct} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]\<close>\rm:
 \end{tabular}] ~ \\
 This coinduction rule is generated for nested-as-mutual corecursive functions
 (Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}).
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "f."}\hthm{coinduct_strong} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "f."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n]"}\rm:
+  \<open>f.\<close>\hthm{coinduct_strong} \<open>[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>f.\<close>\hthm{coinduct_strong} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]\<close>\rm:
 \end{tabular}] ~ \\
 This coinduction rule is generated for nested-as-mutual corecursive functions
 (Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}).
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "f\<^sub>1_\<dots>_f\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "f."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n]"}\rm:
+  \<open>f\<^sub>1_\<dots>_f\<^sub>m.\<close>\hthm{coinduct} \<open>[case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>f.\<close>\hthm{coinduct} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]\<close>\rm:
 \end{tabular}] ~ \\
 This coinduction rule is generated for nested-as-mutual corecursive functions
 (Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}). Given $m > 1$
@@ -2679,9 +2676,9 @@ mutually corecursive functions, this rule can be used to prove $m$ properties
 simultaneously.
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "f\<^sub>1_\<dots>_f\<^sub>m."}\hthm{coinduct_strong} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
-  \phantom{@{text "f."}\hthm{coinduct_strong} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n]"}\rm:
+  \<open>f\<^sub>1_\<dots>_f\<^sub>m.\<close>\hthm{coinduct_strong} \<open>[case_names t\<^sub>1 \<dots> t\<^sub>m,\<close> \\
+  \phantom{\<open>f.\<close>\hthm{coinduct_strong} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]\<close>\rm:
 \end{tabular}] ~ \\
 This coinduction rule is generated for nested-as-mutual corecursive functions
 (Section~\ref{sssec:primcorec-nested-as-mutual-corecursion}). Given $m > 1$
@@ -2698,7 +2695,7 @@ provide the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "f."}\hthm{simps}] = @{text f.disc_iff} (or @{text f.disc}) @{text t.sel}
+\item[\<open>f.\<close>\hthm{simps}] = \<open>f.disc_iff\<close> (or \<open>f.disc\<close>) \<open>t.sel\<close>
 
 \end{description}
 \end{indentblock}
@@ -2738,14 +2735,14 @@ An $n$-ary BNF is a type constructor equipped with a map function
 (functorial action), $n$ set functions (natural transformations),
 and an infinite cardinal bound that satisfy certain properties.
 For example, @{typ "'a llist"} is a unary BNF.
-Its predicator @{text "llist_all ::
+Its predicator \<open>llist_all ::
   ('a \<Rightarrow> bool) \<Rightarrow>
-  'a llist \<Rightarrow> bool"}
+  'a llist \<Rightarrow> bool\<close>
 extends unary predicates over elements to unary predicates over
 lazy lists.
-Similarly, its relator @{text "llist_all2 ::
+Similarly, its relator \<open>llist_all2 ::
   ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow>
-  'a llist \<Rightarrow> 'b llist \<Rightarrow> bool"}
+  'a llist \<Rightarrow> 'b llist \<Rightarrow> bool\<close>
 extends binary predicates over elements to binary predicates over parallel
 lazy lists. The cardinal bound limits the number of elements returned by the
 set function; it may not depend on the cardinality of @{typ 'a}.
@@ -2947,11 +2944,11 @@ occurs implicitly in the goal, in form of the variable
 text \<open>
 The next example declares a BNF axiomatically. This can be convenient for
 reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
-command below introduces a type @{text "('a, 'b, 'c) F"}, three set constants,
+command below introduces a type \<open>('a, 'b, 'c) F\<close>, three set constants,
 a map function, a predicator, a relator, and a nonemptiness witness that depends only on
-@{typ 'a}. The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of the witness can be read
+@{typ 'a}. The type \<open>'a \<Rightarrow> ('a, 'b, 'c) F\<close> of the witness can be read
 as an implication: Given a witness for @{typ 'a}, we can construct a witness for
-@{text "('a, 'b, 'c) F"}. The BNF properties are postulated as axioms.
+\<open>('a, 'b, 'c) F\<close>. The BNF properties are postulated as axioms.
 \<close>
 
     bnf_axiomatization (setA: 'a, setB: 'b, setC: 'c) F
@@ -2971,7 +2968,7 @@ subsubsection \<open>\keyw{bnf}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "bnf"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -2994,7 +2991,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 @{cite "isabelle-isar-ref"}.
 
 The @{syntax plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 %%% TODO: elaborate on proof obligations
 \<close>
@@ -3004,7 +3001,7 @@ subsubsection \<open>\keyw{lift_bnf}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "lift_bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "lift_bnf"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3024,7 +3021,7 @@ The @{command lift_bnf} command registers as a BNF an existing type (the
 type}) using the @{command typedef} command. To achieve this, it lifts the BNF
 structure on the raw type to the abstract type following a @{term
 type_definition} theorem. The theorem is usually inferred from the type, but can
-also be explicitly supplied by means of the optional @{text via} clause. In
+also be explicitly supplied by means of the optional \<open>via\<close> clause. In
 addition, custom names for the set functions, the map function, the predicator, and the relator,
 as well as nonemptiness witnesses can be specified.
 
@@ -3032,7 +3029,7 @@ Nonemptiness witnesses are not lifted from the raw type's BNF, as this would be
 incomplete. They must be given as terms (on the raw type) and proved to be
 witnesses. The command warns about witness types that are present in the raw
 type's BNF but not supplied by the user. The warning can be disabled by
-specifying the @{text no_warn_wits} option.
+specifying the \<open>no_warn_wits\<close> option.
 \<close>
 
 subsubsection \<open>\keyw{copy_bnf}
@@ -3040,7 +3037,7 @@ subsubsection \<open>\keyw{copy_bnf}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "copy_bnf"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "copy_bnf"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3061,7 +3058,7 @@ subsubsection \<open>\keyw{bnf_axiomatization}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "bnf_axiomatization"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "bnf_axiomatization"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3086,10 +3083,10 @@ mixfix notation, and \synt{types} denotes a space-separated list of types
 @{cite "isabelle-isar-ref"}.
 
 The @{syntax plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 Type arguments are live by default; they can be marked as dead by entering
-@{text dead} in front of the type variable (e.g., @{text "(dead 'a)"})
+\<open>dead\<close> in front of the type variable (e.g., \<open>(dead 'a)\<close>)
 instead of an identifier for the corresponding set function. Witnesses can be
 specified by their types. Otherwise, the syntax of @{command bnf_axiomatization}
 is identical to the left-hand side of a @{command datatype} or
@@ -3107,7 +3104,7 @@ subsubsection \<open>\keyw{print_bnfs}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "print_bnfs"} & : & @{text "local_theory \<rightarrow>"}
+  @{command_def "print_bnfs"} & : & \<open>local_theory \<rightarrow>\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3128,7 +3125,7 @@ is available as a stand-alone command called @{command free_constructors}.
 %    a type not introduced by ...
 %
 %  * @{command free_constructors}
-%    * @{text plugins}, @{text discs_sels}
+%    * \<open>plugins\<close>, \<open>discs_sels\<close>
 %    * hack to have both co and nonco view via locale (cf. ext nats)
 \<close>
 
@@ -3147,7 +3144,7 @@ subsubsection \<open>\keyw{free_constructors}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "free_constructors"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "free_constructors"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3177,8 +3174,8 @@ A constructor is specified by an optional name for the discriminator, the
 constructor itself (as a term), and a list of optional names for the selectors.
 
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
-For bootstrapping reasons, the generally useful @{text "[fundef_cong]"}
-attribute is not set on the generated @{text case_cong} theorem. It can be
+For bootstrapping reasons, the generally useful \<open>[fundef_cong]\<close>
+attribute is not set on the generated \<open>case_cong\<close> theorem. It can be
 added manually using \keyw{declare}.
 \<close>
 
@@ -3188,7 +3185,7 @@ subsubsection \<open>\keyw{simps_of_case}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "simps_of_case"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "simps_of_case"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3227,7 +3224,7 @@ subsubsection \<open>\keyw{case_of_simps}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "case_of_simps"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "case_of_simps"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -3308,10 +3305,10 @@ For types, the plugin derives the following properties:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{eq.refl} @{text "[code nbe]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{eq.refl} \<open>[code nbe]\<close>\rm:] ~ \\
 @{thm list.eq.refl[no_vars]}
 
-\item[@{text "t."}\hthm{eq.simps} @{text "[code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{eq.simps} \<open>[code]\<close>\rm:] ~ \\
 @{thm list.eq.simps(1)[no_vars]} \\
 @{thm list.eq.simps(2)[no_vars]} \\
 @{thm list.eq.simps(3)[no_vars]} \\
@@ -3322,7 +3319,7 @@ For types, the plugin derives the following properties:
 \end{description}
 \end{indentblock}
 
-In addition, the plugin sets the @{text "[code]"} attribute on a number of
+In addition, the plugin sets the \<open>[code]\<close> attribute on a number of
 properties of freely generated types and of (co)recursive functions, as
 documented in Sections \ref{ssec:datatype-generated-theorems},
 \ref{ssec:primrec-generated-theorems}, \ref{ssec:codatatype-generated-theorems},
@@ -3334,9 +3331,9 @@ subsection \<open>Size
   \label{ssec:size}\<close>
 
 text \<open>
-For each datatype @{text t}, the \hthm{size} plugin generates a generic size
-function @{text "t.size_t"} as well as a specific instance
-@{text "size :: t \<Rightarrow> nat"} belonging to the @{text size} type class. The
+For each datatype \<open>t\<close>, the \hthm{size} plugin generates a generic size
+function \<open>t.size_t\<close> as well as a specific instance
+\<open>size :: t \<Rightarrow> nat\<close> belonging to the \<open>size\<close> type class. The
 \keyw{fun} command relies on @{const size} to prove termination of recursive
 functions on datatypes.
 
@@ -3345,20 +3342,20 @@ The plugin derives the following properties:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{size} @{text "[simp, code]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{size} \<open>[simp, code]\<close>\rm:] ~ \\
 @{thm list.size(1)[no_vars]} \\
 @{thm list.size(2)[no_vars]} \\
 @{thm list.size(3)[no_vars]} \\
 @{thm list.size(4)[no_vars]}
 
-\item[@{text "t."}\hthm{size_gen}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{size_gen}\rm:] ~ \\
 @{thm list.size_gen(1)[no_vars]} \\
 @{thm list.size_gen(2)[no_vars]}
 
-\item[@{text "t."}\hthm{size_gen_o_map}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{size_gen_o_map}\rm:] ~ \\
 @{thm list.size_gen_o_map[no_vars]}
 
-\item[@{text "t."}\hthm{size_neq}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{size_neq}\rm:] ~ \\
 This property is missing for @{typ "'a list"}. If the @{term size} function
 always evaluates to a non-zero value, this theorem has the form
 @{prop "\<not> size x = 0"}.
@@ -3366,14 +3363,14 @@ always evaluates to a non-zero value, this theorem has the form
 \end{description}
 \end{indentblock}
 
-The @{text "t.size"} and @{text "t.size_t"} functions generated for datatypes
-defined by nested recursion through a datatype @{text u} depend on
-@{text "u.size_u"}.
+The \<open>t.size\<close> and \<open>t.size_t\<close> functions generated for datatypes
+defined by nested recursion through a datatype \<open>u\<close> depend on
+\<open>u.size_u\<close>.
 
-If the recursion is through a non-datatype @{text u} with type arguments
-@{text "'a\<^sub>1, \<dots>, 'a\<^sub>m"}, by default @{text u} values are given a size of 0. This
+If the recursion is through a non-datatype \<open>u\<close> with type arguments
+\<open>'a\<^sub>1, \<dots>, 'a\<^sub>m\<close>, by default \<open>u\<close> values are given a size of 0. This
 can be improved upon by registering a custom size function of type
-@{text "('a\<^sub>1 \<Rightarrow> nat) \<Rightarrow> \<dots> \<Rightarrow> ('a\<^sub>m \<Rightarrow> nat) \<Rightarrow> u \<Rightarrow> nat"} using
+\<open>('a\<^sub>1 \<Rightarrow> nat) \<Rightarrow> \<dots> \<Rightarrow> ('a\<^sub>m \<Rightarrow> nat) \<Rightarrow> u \<Rightarrow> nat\<close> using
 the ML function @{ML BNF_LFP_Size.register_size} or
 @{ML BNF_LFP_Size.register_size_global}. See theory
 \<^file>\<open>~~/src/HOL/Library/Multiset.thy\<close> for an example.
@@ -3385,7 +3382,7 @@ subsection \<open>Transfer
 
 text \<open>
 For each (co)datatype with live type arguments and each manually registered BNF,
-the \hthm{transfer} plugin generates a predicator @{text "t.pred_t"} and
+the \hthm{transfer} plugin generates a predicator \<open>t.pred_t\<close> and
 properties that guide the Transfer tool.
 
 For types with at least one live type argument and \emph{no dead type
@@ -3394,48 +3391,48 @@ arguments}, the plugin derives the following properties:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{Domainp_rel} @{text "[relator_domain]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{Domainp_rel} \<open>[relator_domain]\<close>\rm:] ~ \\
 @{thm list.Domainp_rel[no_vars]}
 
-\item[@{text "t."}\hthm{left_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{left_total_rel} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.left_total_rel[no_vars]}
 
-\item[@{text "t."}\hthm{left_unique_rel} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{left_unique_rel} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.left_unique_rel[no_vars]}
 
-\item[@{text "t."}\hthm{right_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{right_total_rel} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.right_total_rel[no_vars]}
 
-\item[@{text "t."}\hthm{right_unique_rel} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{right_unique_rel} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.right_unique_rel[no_vars]}
 
-\item[@{text "t."}\hthm{bi_total_rel} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{bi_total_rel} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.bi_total_rel[no_vars]}
 
-\item[@{text "t."}\hthm{bi_unique_rel} @{text "[transfer_rule]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{bi_unique_rel} \<open>[transfer_rule]\<close>\rm:] ~ \\
 @{thm list.bi_unique_rel[no_vars]}
 
 \end{description}
 \end{indentblock}
 
 For (co)datatypes with at least one live type argument, the plugin sets the
-@{text "[transfer_rule]"} attribute on the following (co)datatypes properties:
-@{text "t.case_"}\allowbreak @{text "transfer"},
-@{text "t.sel_"}\allowbreak @{text "transfer"},
-@{text "t.ctr_"}\allowbreak @{text "transfer"},
-@{text "t.disc_"}\allowbreak @{text "transfer"},
-@{text "t.rec_"}\allowbreak @{text "transfer"}, and
-@{text "t.corec_"}\allowbreak @{text "transfer"}.
+\<open>[transfer_rule]\<close> attribute on the following (co)datatypes properties:
+\<open>t.case_\<close>\allowbreak \<open>transfer\<close>,
+\<open>t.sel_\<close>\allowbreak \<open>transfer\<close>,
+\<open>t.ctr_\<close>\allowbreak \<open>transfer\<close>,
+\<open>t.disc_\<close>\allowbreak \<open>transfer\<close>,
+\<open>t.rec_\<close>\allowbreak \<open>transfer\<close>, and
+\<open>t.corec_\<close>\allowbreak \<open>transfer\<close>.
 For (co)datatypes that further have \emph{no dead type arguments}, the plugin
-sets @{text "[transfer_rule]"} on
-@{text "t.set_"}\allowbreak @{text "transfer"},
-@{text "t.map_"}\allowbreak @{text "transfer"}, and
-@{text "t.rel_"}\allowbreak @{text "transfer"}.
+sets \<open>[transfer_rule]\<close> on
+\<open>t.set_\<close>\allowbreak \<open>transfer\<close>,
+\<open>t.map_\<close>\allowbreak \<open>transfer\<close>, and
+\<open>t.rel_\<close>\allowbreak \<open>transfer\<close>.
 
 For @{command primrec}, @{command primcorec}, and @{command primcorecursive},
-the plugin implements the generation of the @{text "f.transfer"} property,
-conditioned by the @{text transfer} option, and sets the
-@{text "[transfer_rule]"} attribute on these.
+the plugin implements the generation of the \<open>f.transfer\<close> property,
+conditioned by the \<open>transfer\<close> option, and sets the
+\<open>[transfer_rule]\<close> attribute on these.
 \<close>
 
 
@@ -3452,16 +3449,16 @@ The plugin derives the following property:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{Quotient} @{text "[quot_map]"}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{Quotient} \<open>[quot_map]\<close>\rm:] ~ \\
 @{thm list.Quotient[no_vars]}
 
 \end{description}
 \end{indentblock}
 
-In addition, the plugin sets the @{text "[relator_eq]"} attribute on a
-variant of the @{text t.rel_eq_onp} property, the @{text "[relator_mono]"}
-attribute on @{text t.rel_mono}, and the @{text "[relator_distr]"} attribute
-on @{text t.rel_compp}.
+In addition, the plugin sets the \<open>[relator_eq]\<close> attribute on a
+variant of the \<open>t.rel_eq_onp\<close> property, the \<open>[relator_mono]\<close>
+attribute on \<open>t.rel_mono\<close>, and the \<open>[relator_distr]\<close> attribute
+on \<open>t.rel_compp\<close>.
 \<close>
 
 
@@ -3522,12 +3519,12 @@ attributes next to the entered formulas.} The less convenient syntax, using the
 
 \item
 \emph{The \emph{\keyw{primcorec}} command does not allow corecursion under
-@{text "case"}--@{text "of"} for datatypes that are defined without
+\<open>case\<close>--\<open>of\<close> for datatypes that are defined without
 discriminators and selectors.}
 
 \item
 \emph{There is no way to use an overloaded constant from a syntactic type
-class, such as @{text 0}, as a constructor.}
+class, such as \<open>0\<close>, as a constructor.}
 
 \item
 \emph{There is no way to register the same type as both a datatype and a
@@ -3553,7 +3550,7 @@ Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
 (co)datatype package. Andreas Lochbihler provided lots of comments on earlier
 versions of the package, especially on the coinductive part. Brian Huffman
 suggested major simplifications to the internal constructions. Ond\v{r}ej
-Kun\v{c}ar implemented the @{text transfer} and @{text lifting} plugins.
+Kun\v{c}ar implemented the \<open>transfer\<close> and \<open>lifting\<close> plugins.
 Christian Sternagel and Ren\'e Thiemann ported the \keyw{derive} command
 from the \emph{Archive of Formal Proofs} to the new datatypes. Gerwin Klein and
 Lars Noschinski implemented the @{command simps_of_case} and @{command

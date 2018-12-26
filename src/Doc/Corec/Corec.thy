@@ -52,7 +52,7 @@ of the equation). The requirement on these functions is that they must be
 \emph{friendly}. Intuitively, a function is friendly if it needs to destruct
 at most one constructor of input to produce one constructor of output.
 We can register functions as friendly using the @{command friend_of_corec}
-command, or by passing the @{text friend} option to @{command corec}. The
+command, or by passing the \<open>friend\<close> option to @{command corec}. The
 friendliness check relies on an internal syntactic check in combination with
 a parametricity subgoal, which must be discharged manually (typically using
 @{method transfer_prover} or @{method transfer_prover_eq}).
@@ -74,7 +74,7 @@ The package fully adheres to the LCF philosophy @{cite mgordon79}: The
 characteristic theorems associated with the specified corecursive functions are
 derived rather than introduced axiomatically.
 (Exceptionally, most of the internal proof obligations are omitted if the
-@{text quick_and_dirty} option is enabled.)
+\<open>quick_and_dirty\<close> option is enabled.)
 The package is described in a pair of scientific papers
 @{cite "blanchette-et-al-2015-fouco" and "blanchette-et-al-201x-amico"}. Some
 of the text and examples below originate from there.
@@ -99,7 +99,7 @@ theorems produced by the package's commands.
 \item Section \ref{sec:attribute}, ``Attribute,'' briefly describes the
 @{attribute friend_of_corec_simps} attribute, which can be used to strengthen
 the tactics underlying the @{command friend_of_corec} and @{command corec}
-@{text "(friend)"} commands.
+\<open>(friend)\<close> commands.
 
 \item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
 Limitations,'' concludes with known open issues.
@@ -165,7 +165,7 @@ The command emits two subgoals. The first subgoal corresponds to the equation we
 specified and is trivial to discharge. The second subgoal is a parametricity
 property that captures the the requirement that the function may destruct at
 most one constructor of input to produce one constructor of output. This subgoal
-can usually be discharged using the @{text transfer_prover} or
+can usually be discharged using the \<open>transfer_prover\<close> or
 @{method transfer_prover_eq} proof method (Section~\ref{ssec:transfer-prover-eq}).
 The latter replaces equality relations by their relator terms according to the
 @{thm [source] relator_eq} theorem collection before it invokes
@@ -184,7 +184,7 @@ text \<open>\blankline\<close>
       "fibB = ssum (SCons 0 (SCons 1 fibB)) (SCons 0 fibB)"
 
 text \<open>
-Using the @{text "friend"} option, we can simultaneously define a function and
+Using the \<open>friend\<close> option, we can simultaneously define a function and
 register it as a friend:
 \<close>
 
@@ -201,7 +201,7 @@ text \<open>\blankline\<close>
 
 text \<open>
 \noindent
-The parametricity subgoal is given to @{text transfer_prover_eq}
+The parametricity subgoal is given to \<open>transfer_prover_eq\<close>
 (Section~\ref{ssec:transfer-prover-eq}).
 
 The @{const sprod} and @{const sexp} functions provide shuffle product and
@@ -263,7 +263,7 @@ text \<open>
 \noindent
 Here, @{const map} is the standard map function on lists, and @{const zip}
 converts two parallel lists into a list of pairs. The @{const tsum} function is
-primitively corecursive. Instead of @{command corec} @{text "(friend)"}, we could
+primitively corecursive. Instead of @{command corec} \<open>(friend)\<close>, we could
 also have used \keyw{primcorec} and @{command friend_of_corec}, as we did for
 @{const ssum}.
 
@@ -279,8 +279,8 @@ text \<open>
 All the syntactic convenience provided by \keyw{primcorec} is also supported by
 @{command corec}, @{command corecursive}, and @{command friend_of_corec}. In
 particular, nesting through the function type can be expressed using
-@{text \<lambda>}-abstractions and function applications rather than through composition
-(@{term "(\<circ>)"}, the map function for @{text \<Rightarrow>}). For example:
+\<open>\<lambda>\<close>-abstractions and function applications rather than through composition
+(@{term "(\<circ>)"}, the map function for \<open>\<Rightarrow>\<close>). For example:
 \<close>
 
     codatatype 'a language =
@@ -343,18 +343,18 @@ text \<open>
 The @{command corecursive} command is a variant of @{command corec} that allows
 us to specify a termination argument for any unguarded self-call.
 
-When called with @{text "m = 1"} and @{text "n = 2"}, the @{const primes}
+When called with \<open>m = 1\<close> and \<open>n = 2\<close>, the @{const primes}
 function computes the stream of prime numbers. The unguarded call in the
-@{text else} branch increments @{term n} until it is coprime to the first
+\<open>else\<close> branch increments @{term n} until it is coprime to the first
 argument @{term m} (i.e., the greatest common divisor of @{term m} and
-@{term n} is @{text 1}).
+@{term n} is \<open>1\<close>).
 
 For any positive integers @{term m} and @{term n}, the numbers @{term m} and
-@{text "m * n + 1"} are coprime, yielding an upper bound on the number of times
-@{term n} is increased. Hence, the function will take the @{text else} branch at
+\<open>m * n + 1\<close> are coprime, yielding an upper bound on the number of times
+@{term n} is increased. Hence, the function will take the \<open>else\<close> branch at
 most finitely often before taking the then branch and producing one constructor.
-There is a slight complication when @{text "m = 0 \<and> n > 1"}: Without the first
-disjunct in the @{text "if"} condition, the function could stall. (This corner
+There is a slight complication when \<open>m = 0 \<and> n > 1\<close>: Without the first
+disjunct in the \<open>if\<close> condition, the function could stall. (This corner
 case was overlooked in the original example
 @{cite "di-gianantonio-miculan-2003"}.)
 
@@ -405,7 +405,7 @@ subsection \<open>Coinduction
 
 text \<open>
 Once a corecursive specification has been accepted, we normally want to reason
-about it. The @{text codatatype} command generates a structural coinduction
+about it. The \<open>codatatype\<close> command generates a structural coinduction
 principle that matches primitively corecursive functions. For nonprimitive
 specifications, our package provides the more advanced proof principle of
 \emph{coinduction up to congruence}---or simply \emph{coinduction up-to}.
@@ -417,8 +417,8 @@ The structural coinduction principle for @{typ "'a stream"}, called
 @{thm stream.coinduct[no_vars]}
 \end{indentblock}
 %
-Coinduction allows us to prove an equality @{text "l = r"} on streams by
-providing a relation @{text R} that relates @{text l} and @{text r} (first
+Coinduction allows us to prove an equality \<open>l = r\<close> on streams by
+providing a relation \<open>R\<close> that relates \<open>l\<close> and \<open>r\<close> (first
 premise) and that constitutes a bisimulation (second premise). Streams that are
 related by a bisimulation cannot be distinguished by taking observations (via
 the selectors @{const shd} and @{const stl}); hence they must be equal.
@@ -475,7 +475,7 @@ Notice that there is no introduction rule corresponding to @{const sexp},
 because @{const sexp} has a more restrictive result type than @{const sskew}
 (@{typ "nat stream"} vs. @{typ "('a :: {plus,times}) stream"}.
 
-The version numbers, here @{text v5}, distinguish the different congruence
+The version numbers, here \<open>v5\<close>, distinguish the different congruence
 closures generated for a given codatatype as more friends are registered. As
 much as possible, it is recommended to avoid referring to them in proof
 documents.
@@ -568,7 +568,7 @@ balance between expressiveness and automation. They exploit the property that a
 corecursive definition is the unique solution to a fixpoint equation.
 
 The @{command corec}, @{command corecursive}, and @{command friend_of_corec}
-commands generate a property @{text f.unique} about the function of interest
+commands generate a property \<open>f.unique\<close> about the function of interest
 @{term f} that can be used to prove that any function that satisfies
 @{term f}'s corecursive specification must be equal to~@{term f}. For example:
 \[@{thm ssum.unique[no_vars]}\]
@@ -621,8 +621,8 @@ subsection \<open>\keyw{corec} and \keyw{corecursive}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "corec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  @{command_def "corecursive"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "corec"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+  @{command_def "corecursive"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -649,17 +649,17 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+The \<open>plugins\<close> option indicates which plugins should be enabled
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 \item
-The @{text friend} option indicates that the defined function should be
+The \<open>friend\<close> option indicates that the defined function should be
 registered as a friend. This gives rise to additional proof obligations.
 
 \item
-The @{text transfer} option indicates that an unconditional transfer rule
-should be generated and proved @{text "by transfer_prover"}. The
-@{text "[transfer_rule]"} attribute is set on the generated theorem.
+The \<open>transfer\<close> option indicates that an unconditional transfer rule
+should be generated and proved \<open>by transfer_prover\<close>. The
+\<open>[transfer_rule]\<close> attribute is set on the generated theorem.
 \end{itemize}
 
 The @{command corec} command is an abbreviation for @{command corecursive}
@@ -674,7 +674,7 @@ subsection \<open>\keyw{friend_of_corec}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "friend_of_corec"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "friend_of_corec"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -701,13 +701,13 @@ options:
 \setlength{\itemsep}{0pt}
 
 \item
-The @{text plugins} option indicates which plugins should be enabled
-(@{text only}) or disabled (@{text del}). By default, all plugins are enabled.
+The \<open>plugins\<close> option indicates which plugins should be enabled
+(\<open>only\<close>) or disabled (\<open>del\<close>). By default, all plugins are enabled.
 
 \item
-The @{text transfer} option indicates that an unconditional transfer rule
-should be generated and proved @{text "by transfer_prover"}. The
-@{text "[transfer_rule]"} attribute is set on the generated theorem.
+The \<open>transfer\<close> option indicates that an unconditional transfer rule
+should be generated and proved \<open>by transfer_prover\<close>. The
+\<open>[transfer_rule]\<close> attribute is set on the generated theorem.
 \end{itemize}
 \<close>
 
@@ -717,7 +717,7 @@ subsection \<open>\keyw{coinduction_upto}
 
 text \<open>
 \begin{matharray}{rcl}
-  @{command_def "coinduction_upto"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "coinduction_upto"} & : & \<open>local_theory \<rightarrow> local_theory\<close>
 \end{matharray}
 
 @{rail \<open>
@@ -758,14 +758,14 @@ package, all commands update the dynamic theorem collections
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{coinduct_upto}]
+\item[\<open>t.\<close>\hthm{coinduct_upto}]
 
-\item[@{text "t."}\hthm{cong_intros}]
+\item[\<open>t.\<close>\hthm{cong_intros}]
 
 \end{description}
 \end{indentblock}
 %
-for the corresponding codatatype @{text t} so that they always contain the most
+for the corresponding codatatype \<open>t\<close> so that they always contain the most
 powerful coinduction up-to principles derived so far.
 \<close>
 
@@ -774,30 +774,30 @@ subsection \<open>\keyw{corec} and \keyw{corecursive}
   \label{ssec:corec-and-corecursive-theorems}\<close>
 
 text \<open>
-For a function @{term f} over codatatype @{text t}, the @{command corec} and
+For a function @{term f} over codatatype \<open>t\<close>, the @{command corec} and
 @{command corecursive} commands generate the following properties (listed for
 @{const sexp}, cf. Section~\ref{ssec:simple-corecursion}):
 
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "f."}\hthm{code} @{text "[code]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{code} \<open>[code]\<close>\rm:] ~ \\
 @{thm sexp.code[no_vars]} \\
-The @{text "[code]"} attribute is set by the @{text code} plugin
+The \<open>[code]\<close> attribute is set by the \<open>code\<close> plugin
 @{cite "isabelle-datatypes"}.
 
-\item[@{text "f."}\hthm{coinduct} @{text "[consumes 1, case_names t, case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n]"}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{coinduct} \<open>[consumes 1, case_names t, case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]\<close>\rm:] ~ \\
 @{thm sexp.coinduct[no_vars]}
 
-\item[@{text "f."}\hthm{cong_intros}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{cong_intros}\rm:] ~ \\
 @{thm sexp.cong_intros[no_vars]}
 
-\item[@{text "f."}\hthm{unique}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{unique}\rm:] ~ \\
 @{thm sexp.unique[no_vars]} \\
 This property is not generated for mixed recursive--corecursive definitions.
 
-\item[@{text "f."}\hthm{inner_induct}\rm:] ~ \\
+\item[\<open>f.\<close>\hthm{inner_induct}\rm:] ~ \\
 This property is only generated for mixed recursive--corecursive definitions.
 For @{const primes} (Section~\ref{ssec:mixed-recursion-corecursion}, it reads as
 follows: \\[\jot]
@@ -807,26 +807,26 @@ follows: \\[\jot]
 \end{indentblock}
 
 \noindent
-The individual rules making up @{text "f.cong_intros"} are available as
+The individual rules making up \<open>f.cong_intros\<close> are available as
 
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "f."}\hthm{cong_base}]
+\item[\<open>f.\<close>\hthm{cong_base}]
 
-\item[@{text "f."}\hthm{cong_refl}]
+\item[\<open>f.\<close>\hthm{cong_refl}]
 
-\item[@{text "f."}\hthm{cong_sym}]
+\item[\<open>f.\<close>\hthm{cong_sym}]
 
-\item[@{text "f."}\hthm{cong_trans}]
+\item[\<open>f.\<close>\hthm{cong_trans}]
 
-\item[@{text "f."}\hthm{cong_C}@{text "\<^sub>1"}, \ldots, @{text "f."}\hthm{cong_C}@{text "\<^sub>n"}] ~ \\
-where @{text "C\<^sub>1"}, @{text "\<dots>"}, @{text "C\<^sub>n"} are @{text t}'s
+\item[\<open>f.\<close>\hthm{cong_C}\<open>\<^sub>1\<close>, \ldots, \<open>f.\<close>\hthm{cong_C}\<open>\<^sub>n\<close>] ~ \\
+where \<open>C\<^sub>1\<close>, \<open>\<dots>\<close>, \<open>C\<^sub>n\<close> are \<open>t\<close>'s
 constructors
 
-\item[@{text "f."}\hthm{cong_f}@{text "\<^sub>1"}, \ldots, @{text "f."}\hthm{cong_f}@{text "\<^sub>m"}] ~ \\
-where @{text "f\<^sub>1"}, @{text "\<dots>"}, @{text "f\<^sub>m"} are the available
-friends for @{text t}
+\item[\<open>f.\<close>\hthm{cong_f}\<open>\<^sub>1\<close>, \ldots, \<open>f.\<close>\hthm{cong_f}\<open>\<^sub>m\<close>] ~ \\
+where \<open>f\<^sub>1\<close>, \<open>\<dots>\<close>, \<open>f\<^sub>m\<close> are the available
+friends for \<open>t\<close>
 
 \end{description}
 \end{indentblock}
@@ -839,8 +839,8 @@ subsection \<open>\keyw{friend_of_corec}
 text \<open>
 The @{command friend_of_corec} command generates the same theorems as
 @{command corec} and @{command corecursive}, except that it adds an optional
-@{text "friend."} component to the names to prevent potential clashes (e.g.,
-@{text "f.friend.code"}).
+\<open>friend.\<close> component to the names to prevent potential clashes (e.g.,
+\<open>f.friend.code\<close>).
 \<close>
 
 
@@ -849,27 +849,27 @@ subsection \<open>\keyw{coinduction_upto}
 
 text \<open>
 The @{command coinduction_upto} command generates the following properties
-(listed for @{text nat_int_tllist}):
+(listed for \<open>nat_int_tllist\<close>):
 
 \begin{indentblock}
 \begin{description}
 
 \item[\begin{tabular}{@ {}l@ {}}
-  @{text "t."}\hthm{coinduct_upto} @{text "[consumes 1, case_names t,"} \\
-  \phantom{@{text "t."}\hthm{coinduct_upto} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots>
-  D\<^sub>n]"}\rm:
+  \<open>t.\<close>\hthm{coinduct_upto} \<open>[consumes 1, case_names t,\<close> \\
+  \phantom{\<open>t.\<close>\hthm{coinduct_upto} \<open>[\<close>}\<open>case_conclusion D\<^sub>1 \<dots>
+  D\<^sub>n]\<close>\rm:
 \end{tabular}] ~ \\
 @{thm nat_int_tllist.coinduct_upto[no_vars]}
 
-\item[@{text "t."}\hthm{cong_intros}\rm:] ~ \\
+\item[\<open>t.\<close>\hthm{cong_intros}\rm:] ~ \\
 @{thm nat_int_tllist.cong_intros[no_vars]}
 
 \end{description}
 \end{indentblock}
 
 \noindent
-The individual rules making up @{text "t.cong_intros"} are available
-separately as @{text "t.cong_base"}, @{text "t.cong_refl"}, etc.\
+The individual rules making up \<open>t.cong_intros\<close> are available
+separately as \<open>t.cong_base\<close>, \<open>t.cong_refl\<close>, etc.\
 (Section~\ref{ssec:corec-and-corecursive-theorems}).
 \<close>
 
@@ -910,7 +910,7 @@ subsection \<open>\textit{friend_of_corec_simps}
 
 text \<open>
 The @{attribute friend_of_corec_simps} attribute declares naturality theorems
-to be used by @{command friend_of_corec} and @{command corec} @{text "(friend)"} in
+to be used by @{command friend_of_corec} and @{command corec} \<open>(friend)\<close> in
 deriving the user specification from reduction to primitive corecursion.
 Internally, these commands derive naturality theorems from the parametricity proof
 obligations dischared by the user or the @{method transfer_prover_eq} method, but
@@ -945,7 +945,7 @@ In some cases, this limitation can be circumvented using the
 (Section~\ref{ssec:friend-of-corec-simps}).
 
 \item
-\emph{The @{text transfer} option is not implemented yet.}
+\emph{The \<open>transfer\<close> option is not implemented yet.}
 
 \item
 \emph{The constructor and destructor views offered by {\upshape\keyw{primcorec}}
@@ -958,7 +958,7 @@ are not supported by @{command corec} and @{command corecursive}.}
 \emph{The package does not interact well with locales.}
 
 \item
-\emph{The undocumented @{text corecUU_transfer} theorem is not as polymorphic as
+\emph{The undocumented \<open>corecUU_transfer\<close> theorem is not as polymorphic as
 it could be.}
 
 \item

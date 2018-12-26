@@ -21,14 +21,13 @@ text \<open>
   Locales are based on contexts.  A \emph{context} can be seen as a
   formula schema
 \[
-  @{text "\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> \<dots>"}
+  \<open>\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> \<dots>\<close>
 \]
-  where the variables~@{text "x\<^sub>1"}, \ldots,~@{text "x\<^sub>n"} are called
-  \emph{parameters} and the premises $@{text "A\<^sub>1"}, \ldots,~@{text
-  "A\<^sub>m"}$ \emph{assumptions}.  A formula~@{text "C"}
+  where the variables~\<open>x\<^sub>1\<close>, \ldots,~\<open>x\<^sub>n\<close> are called
+  \emph{parameters} and the premises $\<open>A\<^sub>1\<close>, \ldots,~\<open>A\<^sub>m\<close>$ \emph{assumptions}.  A formula~\<open>C\<close>
   is a \emph{theorem} in the context if it is a conclusion
 \[
-  @{text "\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> C"}.
+  \<open>\<And>x\<^sub>1\<dots>x\<^sub>n. \<lbrakk> A\<^sub>1; \<dots> ;A\<^sub>m \<rbrakk> \<Longrightarrow> C\<close>.
 \]
   Isabelle/Isar's notion of context goes beyond this logical view.
   Its contexts record, in a consecutive order, proved
@@ -47,7 +46,7 @@ text \<open>
   \emph{locale declaration} consists of a sequence of context elements
   declaring parameters (keyword \isakeyword{fixes}) and assumptions
   (keyword \isakeyword{assumes}).  The following is the specification of
-  partial orders, as locale @{text partial_order}.
+  partial orders, as locale \<open>partial_order\<close>.
 \<close>
 
   locale partial_order =
@@ -56,8 +55,8 @@ text \<open>
       and anti_sym [intro]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> x \<rbrakk> \<Longrightarrow> x = y"
       and trans [trans]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 
-text (in partial_order) \<open>The parameter of this locale is~@{text le},
-  which is a binary predicate with infix syntax~@{text \<sqsubseteq>}.  The
+text (in partial_order) \<open>The parameter of this locale is~\<open>le\<close>,
+  which is a binary predicate with infix syntax~\<open>\<sqsubseteq>\<close>.  The
   parameter syntax is available in the subsequent
   assumptions, which are the familiar partial order axioms.
 
@@ -146,9 +145,9 @@ text \<open>
     less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
     where "(x \<sqsubset> y) = (x \<sqsubseteq> y \<and> x \<noteq> y)"
 
-text (in partial_order) \<open>The strict order @{text less} with infix
-  syntax~@{text \<sqsubset>} is
-  defined in terms of the locale parameter~@{text le} and the general
+text (in partial_order) \<open>The strict order \<open>less\<close> with infix
+  syntax~\<open>\<sqsubset>\<close> is
+  defined in terms of the locale parameter~\<open>le\<close> and the general
   equality of the object logic we work in.  The definition generates a
   \emph{foundational constant}
   @{term partial_order.less} with definition @{thm [source]
@@ -156,9 +155,9 @@ text (in partial_order) \<open>The strict order @{text less} with infix
   @{thm [display, indent=2] partial_order.less_def}
   At the same time, the locale is extended by syntax transformations
   hiding this construction in the context of the locale.  Here, the
-  abbreviation @{text less} is available for
-  @{text "partial_order.less le"}, and it is printed
-  and parsed as infix~@{text \<sqsubset>}.  Finally, the conclusion @{thm [source]
+  abbreviation \<open>less\<close> is available for
+  \<open>partial_order.less le\<close>, and it is printed
+  and parsed as infix~\<open>\<sqsubset>\<close>.  Finally, the conclusion @{thm [source]
   less_def} is added to the locale:
   @{thm [display, indent=2] less_def}
 \<close>
@@ -172,8 +171,7 @@ text \<open>The treatment of theorem statements is more straightforward.
     unfolding %visible less_def by %visible (blast intro: trans)
 
 text \<open>In the context of the proof, conclusions of the
-  locale may be used like theorems.  Attributes are effective: @{text
-  anti_sym} was
+  locale may be used like theorems.  Attributes are effective: \<open>anti_sym\<close> was
   declared as introduction rule, hence it is in the context's set of
   rules used by the classical reasoner by default.\<close>
 
@@ -319,7 +317,7 @@ text \<open>
   begin
 
 text \<open>These assumptions refer to the predicates for infimum
-  and supremum defined for @{text partial_order} in the previous
+  and supremum defined for \<open>partial_order\<close> in the previous
   section.  We now introduce the notions of meet and join,
   together with an example theorem.\<close>
 
@@ -600,10 +598,10 @@ text \<open>
 \begin{center}
 \subfigure[Declared hierarchy]{
 \begin{tikzpicture}
-  \node (po) at (0,0) {@{text partial_order}};
-  \node (lat) at (-1.5,-1) {@{text lattice}};
-  \node (dlat) at (-1.5,-2) {@{text distrib_lattice}};
-  \node (to) at (1.5,-1) {@{text total_order}};
+  \node (po) at (0,0) {\<open>partial_order\<close>};
+  \node (lat) at (-1.5,-1) {\<open>lattice\<close>};
+  \node (dlat) at (-1.5,-2) {\<open>distrib_lattice\<close>};
+  \node (to) at (1.5,-1) {\<open>total_order\<close>};
   \draw (po) -- (lat);
   \draw (lat) -- (dlat);
   \draw (po) -- (to);
@@ -612,10 +610,10 @@ text \<open>
 } \\
 \subfigure[Total orders are lattices]{
 \begin{tikzpicture}
-  \node (po) at (0,0) {@{text partial_order}};
-  \node (lat) at (0,-1) {@{text lattice}};
-  \node (dlat) at (-1.5,-2) {@{text distrib_lattice}};
-  \node (to) at (1.5,-2) {@{text total_order}};
+  \node (po) at (0,0) {\<open>partial_order\<close>};
+  \node (lat) at (0,-1) {\<open>lattice\<close>};
+  \node (dlat) at (-1.5,-2) {\<open>distrib_lattice\<close>};
+  \node (to) at (1.5,-2) {\<open>total_order\<close>};
   \draw (po) -- (lat);
   \draw (lat) -- (dlat);
   \draw (lat) -- (to);
@@ -624,10 +622,10 @@ text \<open>
 } \quad
 \subfigure[Total orders are distributive lattices]{
 \begin{tikzpicture}
-  \node (po) at (0,0) {@{text partial_order}};
-  \node (lat) at (0,-1) {@{text lattice}};
-  \node (dlat) at (0,-2) {@{text distrib_lattice}};
-  \node (to) at (0,-3) {@{text total_order}};
+  \node (po) at (0,0) {\<open>partial_order\<close>};
+  \node (lat) at (0,-1) {\<open>lattice\<close>};
+  \node (dlat) at (0,-2) {\<open>distrib_lattice\<close>};
+  \node (to) at (0,-3) {\<open>total_order\<close>};
   \draw (po) -- (lat);
   \draw (lat) -- (dlat);
   \draw (dlat) -- (to);
@@ -680,33 +678,31 @@ text \<open>
   sublocale %visible total_order \<subseteq> lattice
 
 txt \<open>\normalsize
-  This enters the context of locale @{text total_order}, in
+  This enters the context of locale \<open>total_order\<close>, in
   which the goal @{subgoals [display]} must be shown.
   Now the
   locale predicate needs to be unfolded --- for example, using its
   definition or by introduction rules
   provided by the locale package.  For automation, the locale package
-  provides the methods @{text intro_locales} and @{text
-  unfold_locales}.  They are aware of the
+  provides the methods \<open>intro_locales\<close> and \<open>unfold_locales\<close>.  They are aware of the
   current context and dependencies between locales and automatically
-  discharge goals implied by these.  While @{text unfold_locales}
-  always unfolds locale predicates to assumptions, @{text
-  intro_locales} only unfolds definitions along the locale
+  discharge goals implied by these.  While \<open>unfold_locales\<close>
+  always unfolds locale predicates to assumptions, \<open>intro_locales\<close> only unfolds definitions along the locale
   hierarchy, leaving a goal consisting of predicates defined by the
   locale package.  Occasionally the latter is of advantage since the goal
   is smaller.
 
   For the current goal, we would like to get hold of
-  the assumptions of @{text lattice}, which need to be shown, hence
-  @{text unfold_locales} is appropriate.\<close>
+  the assumptions of \<open>lattice\<close>, which need to be shown, hence
+  \<open>unfold_locales\<close> is appropriate.\<close>
 
   proof unfold_locales
 
 txt \<open>\normalsize
   Since the fact that both lattices and total orders are partial
   orders is already reflected in the locale hierarchy, the assumptions
-  of @{text partial_order} are discharged automatically, and only the
-  assumptions introduced in @{text lattice} remain as subgoals
+  of \<open>partial_order\<close> are discharged automatically, and only the
+  assumptions introduced in \<open>lattice\<close> remain as subgoals
   @{subgoals [display]}
   The proof for the first subgoal is obtained by constructing an
   infimum, whose existence is implied by totality.\<close>

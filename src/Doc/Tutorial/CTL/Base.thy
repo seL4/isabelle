@@ -12,7 +12,7 @@ and this section will explore them in HOL\@. This is done in two steps.  First
 we consider a simple modal logic called propositional dynamic
 logic (PDL)\@.  We then proceed to the temporal logic CTL, which is
 used in many real
-model checkers. In each case we give both a traditional semantics (@{text \<Turnstile>}) and a
+model checkers. In each case we give both a traditional semantics (\<open>\<Turnstile>\<close>) and a
 recursive function @{term mc} that maps a formula into the set of all states of
 the system where the formula is valid. If the system has a finite number of
 states, @{term mc} is directly executable: it is a model checker, albeit an

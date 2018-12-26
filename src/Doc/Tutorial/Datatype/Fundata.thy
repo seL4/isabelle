@@ -16,7 +16,7 @@ of type @{typ"(nat,nat)bigtree"} is the tree whose
 root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely @{term"Tip"}s as further subtrees.
 
-Function @{term"map_bt"} applies a function to all labels in a @{text"bigtree"}:
+Function @{term"map_bt"} applies a function to all labels in a \<open>bigtree\<close>:
 \<close>
 
 primrec map_bt :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a,'i)bigtree \<Rightarrow> ('b,'i)bigtree"

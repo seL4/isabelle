@@ -6,7 +6,7 @@ text\<open>
 \begin{warn}
 A common mistake when writing definitions is to introduce extra free
 variables on the right-hand side.  Consider the following, flawed definition
-(where @{text"dvd"} means ``divides''):
+(where \<open>dvd\<close> means ``divides''):
 @{term[display,quotes]"prime(p) \<equiv> 1 < p \<and> (m dvd p \<longrightarrow> (m=1 \<or> m=p))"}
 \par\noindent\hangindent=0pt
 Isabelle rejects this ``definition'' because of the extra @{term"m"} on the

@@ -42,7 +42,7 @@ text \<open>
 \<close>
 
 
-subsubsection \<open>The simplifier (@{text simp})\<close>
+subsubsection \<open>The simplifier (\<open>simp\<close>)\<close>
 
 text \<open>
   The simplest way for evaluation is just using the simplifier with
@@ -54,7 +54,7 @@ text \<open>
 \<close>
 
 
-subsubsection \<open>Normalization by evaluation (@{text nbe})\<close>
+subsubsection \<open>Normalization by evaluation (\<open>nbe\<close>)\<close>
 
 text \<open>
   Normalization by evaluation @{cite "Aehlig-Haftmann-Nipkow:2008:nbe"}
@@ -64,7 +64,7 @@ text \<open>
 \<close>
 
 
-subsubsection \<open>Evaluation in ML (@{text code})\<close>
+subsubsection \<open>Evaluation in ML (\<open>code\<close>)\<close>
 
 text \<open>
   Considerable performance can be achieved using evaluation in ML, at the cost
@@ -103,7 +103,7 @@ value %quote [nbe] "42 / (12 :: rat)"
 
 text \<open>
   To employ dynamic evaluation in documents, there is also
-  a @{text value} antiquotation with the same evaluation techniques 
+  a \<open>value\<close> antiquotation with the same evaluation techniques 
   as @{command value}.
 \<close>
 
@@ -156,8 +156,8 @@ text \<open>
   \newcommand{\ttsize}{\fontsize{5.8pt}{8pt}\selectfont}
   \fontsize{9pt}{12pt}\selectfont
   \begin{tabular}{l||c|c|c}
-    & @{text simp} & @{text nbe} & @{text code} \tabularnewline \hline \hline
-    interactive evaluation & @{command value} @{text "[simp]"} & @{command value} @{text "[nbe]"} & @{command value} @{text "[code]"} \tabularnewline
+    & \<open>simp\<close> & \<open>nbe\<close> & \<open>code\<close> \tabularnewline \hline \hline
+    interactive evaluation & @{command value} \<open>[simp]\<close> & @{command value} \<open>[nbe]\<close> & @{command value} \<open>[code]\<close> \tabularnewline
     plain evaluation & & & \ttsize@{ML "Code_Evaluation.dynamic_value"} \tabularnewline \hline
     evaluation method & @{method code_simp} & @{method normalization} & @{method eval} \tabularnewline
     property conversion & & & \ttsize@{ML "Code_Runtime.dynamic_holds_conv"} \tabularnewline \hline
@@ -177,10 +177,10 @@ text \<open>
 \<close>
 
 
-subsubsection \<open>Static evaluation using @{text simp} and @{text nbe}\<close>
+subsubsection \<open>Static evaluation using \<open>simp\<close> and \<open>nbe\<close>\<close>
   
 text \<open>
-  For @{text simp} and @{text nbe} static evaluation can be achieved using 
+  For \<open>simp\<close> and \<open>nbe\<close> static evaluation can be achieved using 
   @{ML Code_Simp.static_conv} and @{ML Nbe.static_conv}.
   Note that @{ML Nbe.static_conv} by its very nature
   requires an invocation of the ML compiler for every call,
@@ -191,7 +191,7 @@ text \<open>
 subsubsection \<open>Intimate connection between logic and system runtime\<close>
 
 text \<open>
-  Static evaluation for @{text eval} operates differently --
+  Static evaluation for \<open>eval\<close> operates differently --
   the required generated code is inserted directly into an ML
   block using antiquotations.  The idea is that generated
   code performing static evaluation (called a \<^emph>\<open>computation\<close>)

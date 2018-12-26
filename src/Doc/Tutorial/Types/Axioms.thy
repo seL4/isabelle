@@ -80,9 +80,9 @@ end
 
 subsubsection \<open>Monoids\<close>
 
-text \<open>We define a subclass @{text monoidl} (a semigroup with a
+text \<open>We define a subclass \<open>monoidl\<close> (a semigroup with a
 left-hand neutral) by extending @{class semigroup} with one additional
-parameter @{text neutral} together with its property:\<close>
+parameter \<open>neutral\<close> together with its property:\<close>
 
 class monoidl = semigroup +
   fixes neutral :: "'a" ("\<zero>")
@@ -138,8 +138,7 @@ are left as an exercise to the reader.\<close>
 
 subsubsection \<open>Groups\<close>
 
-text \<open>\noindent To finish our small algebra example, we add a @{text
-group} class:\<close>
+text \<open>\noindent To finish our small algebra example, we add a \<open>group\<close> class:\<close>
 
 class group = monoidl +
   fixes inv :: "'a \<Rightarrow> 'a" ("\<div> _" [81] 80)
@@ -161,7 +160,7 @@ next
   then show "x \<oplus> y = x \<oplus> z" by simp
 qed
 
-text \<open>\noindent Any @{text "group"} is also a @{text "monoid"}; this
+text \<open>\noindent Any \<open>group\<close> is also a \<open>monoid\<close>; this
 can be made explicit by claiming an additional subclass relation,
 together with a proof of the logical difference:\<close>
 
@@ -175,7 +174,7 @@ proof
 qed
 
 text \<open>\noindent The proof result is propagated to the type system,
-making @{text group} an instance of @{text monoid} by adding an
+making \<open>group\<close> an instance of \<open>monoid\<close> by adding an
 additional edge to the graph of subclass relation; see also
 Figure~\ref{fig:subclass}.
 
@@ -184,27 +183,27 @@ Figure~\ref{fig:subclass}.
    \small
    \unitlength 0.6mm
    \begin{picture}(40,60)(0,0)
-     \put(20,60){\makebox(0,0){@{text semigroup}}}
-     \put(20,40){\makebox(0,0){@{text monoidl}}}
-     \put(00,20){\makebox(0,0){@{text monoid}}}
-     \put(40,00){\makebox(0,0){@{text group}}}
+     \put(20,60){\makebox(0,0){\<open>semigroup\<close>}}
+     \put(20,40){\makebox(0,0){\<open>monoidl\<close>}}
+     \put(00,20){\makebox(0,0){\<open>monoid\<close>}}
+     \put(40,00){\makebox(0,0){\<open>group\<close>}}
      \put(20,55){\vector(0,-1){10}}
      \put(15,35){\vector(-1,-1){10}}
      \put(25,35){\vector(1,-3){10}}
    \end{picture}
    \hspace{8em}
    \begin{picture}(40,60)(0,0)
-     \put(20,60){\makebox(0,0){@{text semigroup}}}
-     \put(20,40){\makebox(0,0){@{text monoidl}}}
-     \put(00,20){\makebox(0,0){@{text monoid}}}
-     \put(40,00){\makebox(0,0){@{text group}}}
+     \put(20,60){\makebox(0,0){\<open>semigroup\<close>}}
+     \put(20,40){\makebox(0,0){\<open>monoidl\<close>}}
+     \put(00,20){\makebox(0,0){\<open>monoid\<close>}}
+     \put(40,00){\makebox(0,0){\<open>group\<close>}}
      \put(20,55){\vector(0,-1){10}}
      \put(15,35){\vector(-1,-1){10}}
      \put(05,15){\vector(3,-1){30}}
    \end{picture}
    \caption{Subclass relationship of monoids and groups:
       before and after establishing the relationship
-      @{text "group \<subseteq> monoid"};  transitive edges are left out.}
+      \<open>group \<subseteq> monoid\<close>;  transitive edges are left out.}
    \label{fig:subclass}
  \end{center}
 \end{figure}
@@ -238,7 +237,7 @@ subsubsection\<open>Syntactic Classes and Predefined Overloading\<close>
 text \<open>In our algebra example, we have started with a \emph{syntactic
 class} @{class plus} which only specifies operations but no axioms; it
 would have been also possible to start immediately with class @{class
-semigroup}, specifying the @{text "\<oplus>"} operation and associativity at
+semigroup}, specifying the \<open>\<oplus>\<close> operation and associativity at
 the same time.
 
 Which approach is more appropriate depends.  Usually it is more

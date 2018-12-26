@@ -9,7 +9,7 @@ functions that yield sets.
 Relations too can be defined inductively, since they are just sets of pairs.
 A perfect example is the function that maps a relation to its
 reflexive transitive closure.  This concept was already
-introduced in \S\ref{sec:Relations}, where the operator @{text"\<^sup>*"} was
+introduced in \S\ref{sec:Relations}, where the operator \<open>\<^sup>*\<close> was
 defined as a least fixed point because inductive definitions were not yet
 available. But now they are:
 \<close>
@@ -23,9 +23,9 @@ where
 
 text\<open>\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
-@{text"rtc r"} we can write @{term"r*"}. The actual definition
+\<open>rtc r\<close> we can write @{term"r*"}. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately given the
-@{text iff} attribute to increase automation. The
+\<open>iff\<close> attribute to increase automation. The
 second rule, @{thm[source]rtc_step}, says that we can always add one more
 @{term r}-step to the left. Although we could make @{thm[source]rtc_step} an
 introduction rule, this is dangerous: the recursion in the second premise
@@ -47,16 +47,15 @@ it has the advantage that it can be declared an introduction rule without the
 danger of killing the automatic tactics because @{term"r*"} occurs only in
 the conclusion and not in the premise. Thus some proofs that would otherwise
 need @{thm[source]rtc_step} can now be found automatically. The proof also
-shows that @{text blast} is able to handle @{thm[source]rtc_step}. But
-some of the other automatic tactics are more sensitive, and even @{text
-blast} can be lead astray in the presence of large numbers of rules.
+shows that \<open>blast\<close> is able to handle @{thm[source]rtc_step}. But
+some of the other automatic tactics are more sensitive, and even \<open>blast\<close> can be lead astray in the presence of large numbers of rules.
 
 To prove transitivity, we need rule induction, i.e.\ theorem
 @{thm[source]rtc.induct}:
 @{thm[display]rtc.induct}
-It says that @{text"?P"} holds for an arbitrary pair @{thm (prem 1) rtc.induct}
-if @{text"?P"} is preserved by all rules of the inductive definition,
-i.e.\ if @{text"?P"} holds for the conclusion provided it holds for the
+It says that \<open>?P\<close> holds for an arbitrary pair @{thm (prem 1) rtc.induct}
+if \<open>?P\<close> is preserved by all rules of the inductive definition,
+i.e.\ if \<open>?P\<close> holds for the conclusion provided it holds for the
 premises. In general, rule induction for an $n$-ary inductive relation $R$
 expects a premise of the form $(x@1,\dots,x@n) \in R$.
 
@@ -71,16 +70,16 @@ Unfortunately, even the base case is a problem:
 @{subgoals[display,indent=0,goals_limit=1]}
 We have to abandon this proof attempt.
 To understand what is going on, let us look again at @{thm[source]rtc.induct}.
-In the above application of @{text erule}, the first premise of
+In the above application of \<open>erule\<close>, the first premise of
 @{thm[source]rtc.induct} is unified with the first suitable assumption, which
 is @{term"(x,y) \<in> r*"} rather than @{term"(y,z) \<in> r*"}. Although that
 is what we want, it is merely due to the order in which the assumptions occur
 in the subgoal, which it is not good practice to rely on. As a result,
-@{text"?xb"} becomes @{term x}, @{text"?xa"} becomes
-@{term y} and @{text"?P"} becomes @{term"\<lambda>u v. (u,z) \<in> r*"}, thus
+\<open>?xb\<close> becomes @{term x}, \<open>?xa\<close> becomes
+@{term y} and \<open>?P\<close> becomes @{term"\<lambda>u v. (u,z) \<in> r*"}, thus
 yielding the above subgoal. So what went wrong?
 
-When looking at the instantiation of @{text"?P"} we see that it does not
+When looking at the instantiation of \<open>?P\<close> we see that it does not
 depend on its second parameter at all. The reason is that in our original
 goal, of the pair @{term"(x,y)"} only @{term x} appears also in the
 conclusion, but not @{term y}. Thus our induction statement is too
@@ -98,8 +97,8 @@ pull all other premises containing any of the $x@i$ into the conclusion
 using $\longrightarrow$.
 \end{quote}
 A similar heuristic for other kinds of inductions is formulated in
-\S\ref{sec:ind-var-in-prems}. The @{text rule_format} directive turns
-@{text"\<longrightarrow>"} back into @{text"\<Longrightarrow>"}: in the end we obtain the original
+\S\ref{sec:ind-var-in-prems}. The \<open>rule_format\<close> directive turns
+\<open>\<longrightarrow>\<close> back into \<open>\<Longrightarrow>\<close>: in the end we obtain the original
 statement of our lemma.
 \<close>
 

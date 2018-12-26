@@ -123,9 +123,9 @@ lemma exec_appendL:
   by (induction rule: exec_induct) (blast intro: star.step exec1_appendL)+
 
 text\<open>Now we specialise the above lemmas to enable automatic proofs of
-@{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
+@{prop "P \<turnstile> c \<rightarrow>* c'"} where \<open>P\<close> is a mixture of concrete instructions and
 pieces of code that we already know how they execute (by induction), combined
-by @{text "@"} and @{text "#"}. Backward jumps are not supported.
+by \<open>@\<close> and \<open>#\<close>. Backward jumps are not supported.
 The details should be skipped on a first reading.
 
 If we have just executed the first instruction of the program, drop it:\<close>

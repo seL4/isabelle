@@ -3,8 +3,8 @@ imports Main
 begin
 
 text\<open>\noindent
-HOL already has a predefined theory of lists called @{text List} ---
-@{text ToyList} is merely a small fragment of it chosen as an example.
+HOL already has a predefined theory of lists called \<open>List\<close> ---
+\<open>ToyList\<close> is merely a small fragment of it chosen as an example.
 To avoid some ambiguities caused by defining lists twice, we manipulate
 the concrete syntax and name space of theory @{theory Main} as follows.
 \<close>
@@ -31,19 +31,19 @@ datatype declaration is annotated with an alternative syntax: instead of
 alternative syntax is the familiar one.  Thus the list \isa{Cons True
 (Cons False Nil)} becomes @{term"True # False # []"}. The annotation
 \isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
-means that @{text"#"} associates to
-the right: the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
-and not as @{text"(x # y) # z"}.
-The @{text 65} is the priority of the infix @{text"#"}.
+means that \<open>#\<close> associates to
+the right: the term @{term"x # y # z"} is read as \<open>x # (y # z)\<close>
+and not as \<open>(x # y) # z\<close>.
+The \<open>65\<close> is the priority of the infix \<open>#\<close>.
 
 \begin{warn}
   Syntax annotations can be powerful, but they are difficult to master and 
   are never necessary.  You
-  could drop them from theory @{text"ToyList"} and go back to the identifiers
+  could drop them from theory \<open>ToyList\<close> and go back to the identifiers
   @{term[source]Nil} and @{term[source]Cons}.  Novices should avoid using
   syntax annotations in their own theories.
 \end{warn}
-Next, two functions @{text"app"} and \cdx{rev} are defined recursively,
+Next, two functions \<open>app\<close> and \cdx{rev} are defined recursively,
 in this order, because Isabelle insists on definition before use:
 \<close>
 
@@ -58,18 +58,18 @@ primrec rev :: "'a list \<Rightarrow> 'a list" where
 text\<open>\noindent
 Each function definition is of the form
 \begin{center}
-\isacommand{primrec} \textit{name} @{text"::"} \textit{type} \textit{(optional syntax)} \isakeyword{where} \textit{equations}
+\isacommand{primrec} \textit{name} \<open>::\<close> \textit{type} \textit{(optional syntax)} \isakeyword{where} \textit{equations}
 \end{center}
-The equations must be separated by @{text"|"}.
+The equations must be separated by \<open>|\<close>.
 %
-Function @{text"app"} is annotated with concrete syntax. Instead of the
-prefix syntax @{text"app xs ys"} the infix
+Function \<open>app\<close> is annotated with concrete syntax. Instead of the
+prefix syntax \<open>app xs ys\<close> the infix
 @{term"xs @ ys"}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
 form.
 
 \index{*rev (constant)|(}\index{append function|(}
-The equations for @{text"app"} and @{term"rev"} hardly need comments:
-@{text"app"} appends two lists and @{term"rev"} reverses a list.  The
+The equations for \<open>app\<close> and @{term"rev"} hardly need comments:
+\<open>app\<close> appends two lists and @{term"rev"} reverses a list.  The
 keyword \commdx{primrec} indicates that the recursion is
 of a particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
@@ -151,7 +151,7 @@ This \isacommand{theorem} command does several things:
 \item
 It establishes a new theorem to be proved, namely @{prop"rev(rev xs) = xs"}.
 \item
-It gives that theorem the name @{text"rev_rev"}, for later reference.
+It gives that theorem the name \<open>rev_rev\<close>, for later reference.
 \item
 It tells Isabelle (via the bracketed attribute \attrdx{simp}) to take the eventual theorem as a simplification rule: future proofs involving
 simplification will replace occurrences of @{term"rev(rev xs)"} by
@@ -217,7 +217,7 @@ apply(auto)
 
 txt\<open>\noindent
 This command tells Isabelle to apply a proof strategy called
-@{text"auto"} to all subgoals. Essentially, @{text"auto"} tries to
+\<open>auto\<close> to all subgoals. Essentially, \<open>auto\<close> tries to
 simplify the subgoals.  In our case, subgoal~1 is solved completely (thanks
 to the equation @{prop"rev [] = []"}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
@@ -244,7 +244,7 @@ the importance we attach to a proposition.  Therefore we use the words
 \emph{theorem} and \emph{lemma} pretty much interchangeably, too.
 
 There are two variables that we could induct on: @{term"xs"} and
-@{term"ys"}. Because @{text"@"} is defined by recursion on
+@{term"ys"}. Because \<open>@\<close> is defined by recursion on
 the first argument, @{term"xs"} is the correct one:
 \<close>
 
@@ -278,7 +278,7 @@ apply(auto)
 
 txt\<open>
 \noindent
-It works, yielding the desired message @{text"No subgoals!"}:
+It works, yielding the desired message \<open>No subgoals!\<close>:
 @{goals[display,indent=0]}
 We still need to confirm that the proof is now finished:
 \<close>
@@ -294,7 +294,7 @@ if it is obvious from the context that the proof is finished.
 % \isacommand{by}\indexbold{by}, which we do most of the time.
 Notice that in lemma @{thm[source]app_Nil2},
 as printed out after the final \isacommand{done}, the free variable @{term"xs"} has been
-replaced by the unknown @{text"?xs"}, just as explained in
+replaced by the unknown \<open>?xs\<close>, just as explained in
 \S\ref{sec:variables}.
 
 Going back to the proof of the first lemma
@@ -306,16 +306,16 @@ apply(auto)
 
 txt\<open>
 \noindent
-we find that this time @{text"auto"} solves the base case, but the
+we find that this time \<open>auto\<close> solves the base case, but the
 induction step merely simplifies to
 @{subgoals[display,indent=0,goals_limit=1]}
-Now we need to remember that @{text"@"} associates to the right, and that
-@{text"#"} and @{text"@"} have the same priority (namely the @{text"65"}
+Now we need to remember that \<open>@\<close> associates to the right, and that
+\<open>#\<close> and \<open>@\<close> have the same priority (namely the \<open>65\<close>
 in their \isacommand{infixr} annotation). Thus the conclusion really is
 \begin{isabelle}
 ~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))
 \end{isabelle}
-and the missing lemma is associativity of @{text"@"}.
+and the missing lemma is associativity of \<open>@\<close>.
 \<close>
 (*<*)oops(*>*)
 

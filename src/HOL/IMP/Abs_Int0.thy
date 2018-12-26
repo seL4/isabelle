@@ -353,8 +353,8 @@ locale Measure_fun = Measure1_fun where m=m
 assumes m2: "x < y \<Longrightarrow> m x > m y"
 begin
 
-text\<open>The predicates @{text "top_on_ty a X"} that follow describe that any abstract
-state in @{text a} maps all variables in @{text X} to @{term \<top>}.
+text\<open>The predicates \<open>top_on_ty a X\<close> that follow describe that any abstract
+state in \<open>a\<close> maps all variables in \<open>X\<close> to @{term \<top>}.
 This is an important invariant for the termination proof where we argue that only
 the finitely many variables in the program change. That the others do not change
 follows because they remain @{term \<top>}.\<close>

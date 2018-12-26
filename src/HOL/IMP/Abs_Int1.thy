@@ -6,7 +6,7 @@ theory Abs_Int1
 imports Abs_State
 begin
 
-text\<open>Abstract interpretation over type @{text st} instead of functions.\<close>
+text\<open>Abstract interpretation over type \<open>st\<close> instead of functions.\<close>
 
 context Gamma_semilattice
 begin

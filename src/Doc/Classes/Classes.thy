@@ -10,30 +10,30 @@ text \<open>
   of overloading\footnote{throughout this tutorial, we are referring
   to classical Haskell 1.0 type classes, not considering later
   additions in expressiveness}.  As a canonical example, a polymorphic
-  equality function @{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on
-  different types for @{text "\<alpha>"}, which is achieved by splitting
-  introduction of the @{text eq} function from its overloaded
-  definitions by means of @{text class} and @{text instance}
+  equality function \<open>eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool\<close> which is overloaded on
+  different types for \<open>\<alpha>\<close>, which is achieved by splitting
+  introduction of the \<open>eq\<close> function from its overloaded
+  definitions by means of \<open>class\<close> and \<open>instance\<close>
   declarations: \footnote{syntax here is a kind of isabellized
   Haskell}
 
   \begin{quote}
 
-  \<^noindent> @{text "class eq where"} \\
-  \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+  \<^noindent> \<open>class eq where\<close> \\
+  \hspace*{2ex}\<open>eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool\<close>
 
-  \<^medskip>\<^noindent> @{text "instance nat :: eq where"} \\
-  \hspace*{2ex}@{text "eq 0 0 = True"} \\
-  \hspace*{2ex}@{text "eq 0 _ = False"} \\
-  \hspace*{2ex}@{text "eq _ 0 = False"} \\
-  \hspace*{2ex}@{text "eq (Suc n) (Suc m) = eq n m"}
+  \<^medskip>\<^noindent> \<open>instance nat :: eq where\<close> \\
+  \hspace*{2ex}\<open>eq 0 0 = True\<close> \\
+  \hspace*{2ex}\<open>eq 0 _ = False\<close> \\
+  \hspace*{2ex}\<open>eq _ 0 = False\<close> \\
+  \hspace*{2ex}\<open>eq (Suc n) (Suc m) = eq n m\<close>
 
-  \<^medskip>\<^noindent> @{text "instance (\<alpha>::eq, \<beta>::eq) pair :: eq where"} \\
-  \hspace*{2ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
+  \<^medskip>\<^noindent> \<open>instance (\<alpha>::eq, \<beta>::eq) pair :: eq where\<close> \\
+  \hspace*{2ex}\<open>eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2\<close>
 
-  \<^medskip>\<^noindent> @{text "class ord extends eq where"} \\
-  \hspace*{2ex}@{text "less_eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
-  \hspace*{2ex}@{text "less :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+  \<^medskip>\<^noindent> \<open>class ord extends eq where\<close> \\
+  \hspace*{2ex}\<open>less_eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool\<close> \\
+  \hspace*{2ex}\<open>less :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool\<close>
 
   \end{quote}
 
@@ -49,19 +49,19 @@ text \<open>
   correspond to interfaces in object-oriented languages like Java; so,
   it is naturally desirable that type classes do not only provide
   functions (class parameters) but also state specifications
-  implementations must obey.  For example, the @{text "class eq"}
+  implementations must obey.  For example, the \<open>class eq\<close>
   above could be given the following specification, demanding that
-  @{text "class eq"} is an equivalence relation obeying reflexivity,
+  \<open>class eq\<close> is an equivalence relation obeying reflexivity,
   symmetry and transitivity:
 
   \begin{quote}
 
-  \<^noindent> @{text "class eq where"} \\
-  \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
-  @{text "satisfying"} \\
-  \hspace*{2ex}@{text "refl: eq x x"} \\
-  \hspace*{2ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
-  \hspace*{2ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
+  \<^noindent> \<open>class eq where\<close> \\
+  \hspace*{2ex}\<open>eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool\<close> \\
+  \<open>satisfying\<close> \\
+  \hspace*{2ex}\<open>refl: eq x x\<close> \\
+  \hspace*{2ex}\<open>sym: eq x y \<longleftrightarrow> eq x y\<close> \\
+  \hspace*{2ex}\<open>trans: eq x y \<and> eq y z \<longrightarrow> eq x z\<close>
 
   \end{quote}
 
@@ -96,8 +96,7 @@ section \<open>A simple algebra example \label{sec:example}\<close>
 subsection \<open>Class definition\<close>
 
 text \<open>
-  Depending on an arbitrary type @{text "\<alpha>"}, class @{text
-  "semigroup"} introduces a binary operator @{text "(\<otimes>)"} that is
+  Depending on an arbitrary type \<open>\<alpha>\<close>, class \<open>semigroup\<close> introduces a binary operator \<open>(\<otimes>)\<close> that is
   assumed to be associative:
 \<close>
 
@@ -121,8 +120,7 @@ subsection \<open>Class instantiation \label{sec:class_inst}\<close>
 
 text \<open>
   The concrete type @{typ int} is made a @{class semigroup} instance
-  by providing a suitable definition for the class parameter @{text
-  "(\<otimes>)"} and a proof for the specification of @{fact assoc}.  This is
+  by providing a suitable definition for the class parameter \<open>(\<otimes>)\<close> and a proof for the specification of @{fact assoc}.  This is
   accomplished by the @{command instantiation} target:
 \<close>
 
@@ -175,10 +173,10 @@ qed
 end %quote
 
 text \<open>
-  \<^noindent> Note the occurrence of the name @{text mult_nat} in the
+  \<^noindent> Note the occurrence of the name \<open>mult_nat\<close> in the
   primrec declaration; by default, the local name of a class operation
-  @{text f} to be instantiated on type constructor @{text \<kappa>} is
-  mangled as @{text f_\<kappa>}.  In case of uncertainty, these names may be
+  \<open>f\<close> to be instantiated on type constructor \<open>\<kappa>\<close> is
+  mangled as \<open>f_\<kappa>\<close>.  In case of uncertainty, these names may be
   inspected using the @{command "print_context"} command.
 \<close>
 
@@ -206,7 +204,7 @@ end %quote
 
 text \<open>
   \<^noindent> Associativity of product semigroups is established using
-  the definition of @{text "(\<otimes>)"} on products and the hypothetical
+  the definition of \<open>(\<otimes>)\<close> on products and the hypothetical
   associativity of the type components; these hypotheses are
   legitimate due to the @{class semigroup} constraints imposed on the
   type components by the @{command instance} proposition.  Indeed,
@@ -217,9 +215,9 @@ text \<open>
 subsection \<open>Subclassing\<close>
 
 text \<open>
-  We define a subclass @{text monoidl} (a semigroup with a left-hand
+  We define a subclass \<open>monoidl\<close> (a semigroup with a left-hand
   neutral) by extending @{class semigroup} with one additional
-  parameter @{text neutral} together with its characteristic property:
+  parameter \<open>neutral\<close> together with its characteristic property:
 \<close>
 
 class %quote monoidl = semigroup +
@@ -303,8 +301,7 @@ qed
 end %quote
 
 text \<open>
-  \<^noindent> To finish our small algebra example, we add a @{text
-  group} class with a corresponding instance:
+  \<^noindent> To finish our small algebra example, we add a \<open>group\<close> class with a corresponding instance:
 \<close>
 
 class %quote group = monoidl +
@@ -356,7 +353,7 @@ consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 
 text \<open>
   \<^noindent> The connection to the type system is done by means of a
-  primitive type class @{text "idem"}, together with a corresponding
+  primitive type class \<open>idem\<close>, together with a corresponding
   interpretation:
 \<close>
 
@@ -366,8 +363,8 @@ interpretation %quote idem_class:
 
 text \<open>
   \<^noindent> This gives you the full power of the Isabelle module system;
-  conclusions in locale @{text idem} are implicitly propagated
-  to class @{text idem}.
+  conclusions in locale \<open>idem\<close> are implicitly propagated
+  to class \<open>idem\<close>.
 \<close> (*<*)setup %invisible \<open>Sign.parent_path\<close>
 (*>*)
 subsection \<open>Abstract reasoning\<close>
@@ -375,8 +372,8 @@ subsection \<open>Abstract reasoning\<close>
 text \<open>
   Isabelle locales enable reasoning at a general level, while results
   are implicitly transferred to all instances.  For example, we can
-  now establish the @{text "left_cancel"} lemma for groups, which
-  states that the function @{text "(x \<otimes>)"} is injective:
+  now establish the \<open>left_cancel\<close> lemma for groups, which
+  states that the function \<open>(x \<otimes>)\<close> is injective:
 \<close>
 
 lemma %quote (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
@@ -395,8 +392,8 @@ text \<open>
   specification indicates that the result is recorded within that
   context for later use.  This local theorem is also lifted to the
   global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z ::
-  \<alpha>::group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been
-  made an instance of @{text "group"} before, we may refer to that
+  \<alpha>::group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.  Since type \<open>int\<close> has been
+  made an instance of \<open>group\<close> before, we may refer to that
   fact as well: @{prop [source] "\<And>x y z :: int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
   z"}.
 \<close>
@@ -413,7 +410,7 @@ primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> 
   | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
 text \<open>
-  \<^noindent> If the locale @{text group} is also a class, this local
+  \<^noindent> If the locale \<open>group\<close> is also a class, this local
   definition is propagated onto a global definition of @{term [source]
   "pow_nat :: nat \<Rightarrow> \<alpha>::monoid \<Rightarrow> \<alpha>::monoid"} with corresponding theorems
 
@@ -435,7 +432,7 @@ text \<open>
   further by stating that type classes essentially correspond to
   functors that have a canonical interpretation as type classes.
   There is also the possibility of other interpretations.  For
-  example, @{text list}s also form a monoid with @{text append} and
+  example, \<open>list\<close>s also form a monoid with \<open>append\<close> and
   @{term "[]"} as operations, but it seems inappropriate to apply to
   lists the same operations as for genuinely algebraic types.  In such
   a case, we can simply make a particular interpretation of monoids
@@ -472,18 +469,17 @@ qed intro_locales
 text \<open>
   \<^noindent> This pattern is also helpful to reuse abstract
   specifications on the \emph{same} type.  For example, think of a
-  class @{text preorder}; for type @{typ nat}, there are at least two
+  class \<open>preorder\<close>; for type @{typ nat}, there are at least two
   possible instances: the natural order or the order induced by the
   divides relation.  But only one of these instances can be used for
-  @{command instantiation}; using the locale behind the class @{text
-  preorder}, it is still possible to utilise the same abstract
+  @{command instantiation}; using the locale behind the class \<open>preorder\<close>, it is still possible to utilise the same abstract
   specification again using @{command interpretation}.
 \<close>
 
 subsection \<open>Additional subclass relations\<close>
 
 text \<open>
-  Any @{text "group"} is also a @{text "monoid"}; this can be made
+  Any \<open>group\<close> is also a \<open>monoid\<close>; this can be made
   explicit by claiming an additional subclass relation, together with
   a proof of the logical difference:
 \<close>
@@ -498,8 +494,8 @@ qed
 
 text \<open>
   The logical proof is carried out on the locale level.  Afterwards it
-  is propagated to the type system, making @{text group} an instance
-  of @{text monoid} by adding an additional edge to the graph of
+  is propagated to the type system, making \<open>group\<close> an instance
+  of \<open>monoid\<close> by adding an additional edge to the graph of
   subclass relations (\figref{fig:subclass}).
 
   \begin{figure}[htbp]
@@ -507,33 +503,32 @@ text \<open>
      \small
      \unitlength 0.6mm
      \begin{picture}(40,60)(0,0)
-       \put(20,60){\makebox(0,0){@{text semigroup}}}
-       \put(20,40){\makebox(0,0){@{text monoidl}}}
-       \put(00,20){\makebox(0,0){@{text monoid}}}
-       \put(40,00){\makebox(0,0){@{text group}}}
+       \put(20,60){\makebox(0,0){\<open>semigroup\<close>}}
+       \put(20,40){\makebox(0,0){\<open>monoidl\<close>}}
+       \put(00,20){\makebox(0,0){\<open>monoid\<close>}}
+       \put(40,00){\makebox(0,0){\<open>group\<close>}}
        \put(20,55){\vector(0,-1){10}}
        \put(15,35){\vector(-1,-1){10}}
        \put(25,35){\vector(1,-3){10}}
      \end{picture}
      \hspace{8em}
      \begin{picture}(40,60)(0,0)
-       \put(20,60){\makebox(0,0){@{text semigroup}}}
-       \put(20,40){\makebox(0,0){@{text monoidl}}}
-       \put(00,20){\makebox(0,0){@{text monoid}}}
-       \put(40,00){\makebox(0,0){@{text group}}}
+       \put(20,60){\makebox(0,0){\<open>semigroup\<close>}}
+       \put(20,40){\makebox(0,0){\<open>monoidl\<close>}}
+       \put(00,20){\makebox(0,0){\<open>monoid\<close>}}
+       \put(40,00){\makebox(0,0){\<open>group\<close>}}
        \put(20,55){\vector(0,-1){10}}
        \put(15,35){\vector(-1,-1){10}}
        \put(05,15){\vector(3,-1){30}}
      \end{picture}
      \caption{Subclass relationship of monoids and groups:
         before and after establishing the relationship
-        @{text "group \<subseteq> monoid"};  transitive edges are left out.}
+        \<open>group \<subseteq> monoid\<close>;  transitive edges are left out.}
      \label{fig:subclass}
    \end{center}
   \end{figure}
 
-  For illustration, a derived definition in @{text group} using @{text
-  pow_nat}
+  For illustration, a derived definition in \<open>group\<close> using \<open>pow_nat\<close>
 \<close>
 
 definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
@@ -567,10 +562,10 @@ term %quote "x \<otimes> y" \<comment> \<open>example 3\<close>
 
 text \<open>
   \<^noindent> Here in example 1, the term refers to the local class
-  operation @{text "mult [\<alpha>]"}, whereas in example 2 the type
-  constraint enforces the global class operation @{text "mult [nat]"}.
+  operation \<open>mult [\<alpha>]\<close>, whereas in example 2 the type
+  constraint enforces the global class operation \<open>mult [nat]\<close>.
   In the global context in example 3, the reference is to the
-  polymorphic global class operation @{text "mult [?\<alpha> :: semigroup]"}.
+  polymorphic global class operation \<open>mult [?\<alpha> :: semigroup]\<close>.
 \<close>
 
 section \<open>Further issues\<close>

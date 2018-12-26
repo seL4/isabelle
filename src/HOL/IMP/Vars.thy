@@ -8,8 +8,7 @@ begin
 subsection "The Variables in an Expression"
 
 text\<open>We need to collect the variables in both arithmetic and boolean
-expressions. For a change we do not introduce two functions, e.g.\ @{text
-avars} and @{text bvars}, but we overload the name @{text vars}
+expressions. For a change we do not introduce two functions, e.g.\ \<open>avars\<close> and \<open>bvars\<close>, but we overload the name \<open>vars\<close>
 via a \emph{type class}, a device that originated with Haskell:\<close>
  
 class vars =

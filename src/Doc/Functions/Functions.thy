@@ -26,8 +26,8 @@ text \<open>
   and a set of defining recursive equations.
   If we leave out the type, the most general type will be
   inferred, which can sometimes lead to surprises: Since both @{term
-  "1::nat"} and @{text "+"} are overloaded, we would end up
-  with @{text "fib :: nat \<Rightarrow> 'a::{one,plus}"}.
+  "1::nat"} and \<open>+\<close> are overloaded, we would end up
+  with \<open>fib :: nat \<Rightarrow> 'a::{one,plus}\<close>.
 \<close>
 
 text \<open>
@@ -35,8 +35,8 @@ text \<open>
   every recursive call. 
   Since HOL is a logic of total functions, termination is a
   fundamental requirement to prevent inconsistencies\footnote{From the
-  \qt{definition} @{text "f(n) = f(n) + 1"} we could prove 
-  @{text "0 = 1"} by subtracting @{text "f(n)"} on both sides.}.
+  \qt{definition} \<open>f(n) = f(n) + 1\<close> we could prove 
+  \<open>0 = 1\<close> by subtracting \<open>f(n)\<close> on both sides.}.
   Isabelle tries to prove termination automatically when a definition
   is made. In \S\ref{termination}, we will look at cases where this
   fails and see what to do then.
@@ -134,19 +134,19 @@ text \<open>
 
 
 \[\left[\;\begin{minipage}{0.25\textwidth}\vspace{6pt}
-\cmd{fun} @{text "f :: \<tau>"}\\%
+\cmd{fun} \<open>f :: \<tau>\<close>\\%
 \cmd{where}\\%
 \hspace*{2ex}{\it equations}\\%
 \hspace*{2ex}\vdots\vspace*{6pt}
 \end{minipage}\right]
 \quad\equiv\quad
 \left[\;\begin{minipage}{0.48\textwidth}\vspace{6pt}
-\cmd{function} @{text "("}\cmd{sequential}@{text ") f :: \<tau>"}\\%
+\cmd{function} \<open>(\<close>\cmd{sequential}\<open>) f :: \<tau>\<close>\\%
 \cmd{where}\\%
 \hspace*{2ex}{\it equations}\\%
 \hspace*{2ex}\vdots\\%
-\cmd{by} @{text "pat_completeness auto"}\\%
-\cmd{termination by} @{text "lexicographic_order"}\vspace{6pt}
+\cmd{by} \<open>pat_completeness auto\<close>\\%
+\cmd{termination by} \<open>lexicographic_order\<close>\vspace{6pt}
 \end{minipage}
 \right]\]
 
@@ -162,8 +162,8 @@ text \<open>
 
   \item A function definition produces a proof obligation which
   expresses completeness and compatibility of patterns (we talk about
-  this later). The combination of the methods @{text "pat_completeness"} and
-  @{text "auto"} is used to solve this proof obligation.
+  this later). The combination of the methods \<open>pat_completeness\<close> and
+  \<open>auto\<close> is used to solve this proof obligation.
 
   \item A termination proof follows the definition, started by the
   \cmd{termination} command. This will be explained in \S\ref{termination}.
@@ -177,7 +177,7 @@ text \<open>
 section \<open>Termination\<close>
 
 text \<open>\label{termination}
-  The method @{text "lexicographic_order"} is the default method for
+  The method \<open>lexicographic_order\<close> is the default method for
   termination proofs. It can prove termination of a
   certain class of functions by searching for a suitable lexicographic
   combination of size measures. Of course, not all functions have such
@@ -188,7 +188,7 @@ text \<open>\label{termination}
 subsection \<open>The {\tt relation} method\<close>
 text\<open>
   Consider the following function, which sums up natural numbers up to
-  @{text "N"}, using a counter @{text "i"}:
+  \<open>N\<close>, using a counter \<open>i\<close>:
 \<close>
 
 function sum :: "nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -197,15 +197,15 @@ where
 by pat_completeness auto
 
 text \<open>
-  \noindent The @{text "lexicographic_order"} method fails on this example, because none of the
+  \noindent The \<open>lexicographic_order\<close> method fails on this example, because none of the
   arguments decreases in the recursive call, with respect to the standard size ordering.
   To prove termination manually, we must provide a custom wellfounded relation.
 
-  The termination argument for @{text "sum"} is based on the fact that
-  the \emph{difference} between @{text "i"} and @{text "N"} gets
-  smaller in every step, and that the recursion stops when @{text "i"}
-  is greater than @{text "N"}. Phrased differently, the expression 
-  @{text "N + 1 - i"} always decreases.
+  The termination argument for \<open>sum\<close> is based on the fact that
+  the \emph{difference} between \<open>i\<close> and \<open>N\<close> gets
+  smaller in every step, and that the recursion stops when \<open>i\<close>
+  is greater than \<open>N\<close>. Phrased differently, the expression 
+  \<open>N + 1 - i\<close> always decreases.
 
   We can use this expression as a measure function suitable to prove termination.
 \<close>
@@ -215,10 +215,10 @@ apply (relation "measure (\<lambda>(i,N). N + 1 - i)")
 
 text \<open>
   The \cmd{termination} command sets up the termination goal for the
-  specified function @{text "sum"}. If the function name is omitted, it
+  specified function \<open>sum\<close>. If the function name is omitted, it
   implicitly refers to the last function definition.
 
-  The @{text relation} method takes a relation of
+  The \<open>relation\<close> method takes a relation of
   type @{typ "('a \<times> 'a) set"}, where @{typ "'a"} is the argument type of
   the function. If the function has multiple curried arguments, then
   these are packed together into a tuple, as it happened in the above
@@ -228,14 +228,14 @@ text \<open>
   wellfounded relation from a mapping into the natural numbers (a
   \emph{measure function}). 
 
-  After the invocation of @{text "relation"}, we must prove that (a)
+  After the invocation of \<open>relation\<close>, we must prove that (a)
   the relation we supplied is wellfounded, and (b) that the arguments
   of recursive calls indeed decrease with respect to the
   relation:
 
   @{subgoals[display,indent=0]}
 
-  These goals are all solved by @{text "auto"}:
+  These goals are all solved by \<open>auto\<close>:
 \<close>
 
 apply auto
@@ -254,20 +254,20 @@ where
 by pat_completeness auto
 
 text \<open>
-  When @{text "i"} has reached @{text "N"}, it starts at zero again
-  and @{text "N"} is decremented.
+  When \<open>i\<close> has reached \<open>N\<close>, it starts at zero again
+  and \<open>N\<close> is decremented.
   This corresponds to a nested
   loop where one index counts up and the other down. Termination can
   be proved using a lexicographic combination of two measures, namely
-  the value of @{text "N"} and the above difference. The @{const
-  "measures"} combinator generalizes @{text "measure"} by taking a
+  the value of \<open>N\<close> and the above difference. The @{const
+  "measures"} combinator generalizes \<open>measure\<close> by taking a
   list of measure functions.  
 \<close>
 
 termination 
 by (relation "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]") auto
 
-subsection \<open>How @{text "lexicographic_order"} works\<close>
+subsection \<open>How \<open>lexicographic_order\<close> works\<close>
 
 (*fun fails :: "nat \<Rightarrow> nat list \<Rightarrow> nat"
 where
@@ -281,10 +281,10 @@ text \<open>
   termination prover, see @{cite bulwahnKN07}}:
 
 \end{isamarkuptext}  
-\cmd{fun} @{text "fails :: \"nat \<Rightarrow> nat list \<Rightarrow> nat\""}\\%
+\cmd{fun} \<open>fails :: "nat \<Rightarrow> nat list \<Rightarrow> nat"\<close>\\%
 \cmd{where}\\%
-\hspace*{2ex}@{text "\"fails a [] = a\""}\\%
-|\hspace*{1.5ex}@{text "\"fails a (x#xs) = fails (x + a) (x#xs)\""}\\
+\hspace*{2ex}\<open>"fails a [] = a"\<close>\\%
+|\hspace*{1.5ex}\<open>"fails a (x#xs) = fails (x + a) (x#xs)"\<close>\\
 \begin{isamarkuptext}
 
 \noindent Isabelle responds with the following error:
@@ -292,16 +292,16 @@ text \<open>
 \begin{isabelle}
 *** Unfinished subgoals:\newline
 *** (a, 1, <):\newline
-*** \ 1.~@{text "\<And>x. x = 0"}\newline
+*** \ 1.~\<open>\<And>x. x = 0\<close>\newline
 *** (a, 1, <=):\newline
 *** \ 1.~False\newline
 *** (a, 2, <):\newline
 *** \ 1.~False\newline
 *** Calls:\newline
-*** a) @{text "(a, x # xs) -->> (x + a, x # xs)"}\newline
+*** a) \<open>(a, x # xs) -->> (x + a, x # xs)\<close>\newline
 *** Measures:\newline
-*** 1) @{text "\<lambda>x. size (fst x)"}\newline
-*** 2) @{text "\<lambda>x. size (snd x)"}\newline
+*** 1) \<open>\<lambda>x. size (fst x)\<close>\newline
+*** 2) \<open>\<lambda>x. size (snd x)\<close>\newline
 *** Result matrix:\newline
 *** \ \ \ \ 1\ \ 2  \newline
 *** a:  ?   <= \newline
@@ -317,26 +317,26 @@ text \<open>
   argument tuple to a natural number). 
 
   The contents of the matrix summarize what is known about argument
-  descents: The second argument has a weak descent (@{text "<="}) at the
+  descents: The second argument has a weak descent (\<open><=\<close>) at the
   recursive call, and for the first argument nothing could be proved,
-  which is expressed by @{text "?"}. In general, there are the values
-  @{text "<"}, @{text "<="} and @{text "?"}.
+  which is expressed by \<open>?\<close>. In general, there are the values
+  \<open><\<close>, \<open><=\<close> and \<open>?\<close>.
 
   For the failed proof attempts, the unfinished subgoals are also
   printed. Looking at these will often point to a missing lemma.
 \<close>
 
-subsection \<open>The @{text size_change} method\<close>
+subsection \<open>The \<open>size_change\<close> method\<close>
 
 text \<open>
   Some termination goals that are beyond the powers of
-  @{text lexicographic_order} can be solved automatically by the
-  more powerful @{text size_change} method, which uses a variant of
+  \<open>lexicographic_order\<close> can be solved automatically by the
+  more powerful \<open>size_change\<close> method, which uses a variant of
   the size-change principle, together with some other
   techniques. While the details are discussed
   elsewhere @{cite krauss_phd},
   here are a few typical situations where
-  @{text lexicographic_order} has difficulties and @{text size_change}
+  \<open>lexicographic_order\<close> has difficulties and \<open>size_change\<close>
   may be worth a try:
   \begin{itemize}
   \item Arguments are permuted in a recursive call.
@@ -345,7 +345,7 @@ text \<open>
   occur in sequence).
   \end{itemize}
 
-  Loading the theory @{text Multiset} makes the @{text size_change}
+  Loading the theory \<open>Multiset\<close> makes the \<open>size_change\<close>
   method a bit stronger: it can then use multiset orders internally.
 \<close>
 
@@ -353,7 +353,7 @@ section \<open>Mutual Recursion\<close>
 
 text \<open>
   If two or more functions call one another mutually, they have to be defined
-  in one step. Here are @{text "even"} and @{text "odd"}:
+  in one step. Here are \<open>even\<close> and \<open>odd\<close>:
 \<close>
 
 function even :: "nat \<Rightarrow> bool"
@@ -378,7 +378,7 @@ termination
 by (relation "measure (\<lambda>x. case x of Inl n \<Rightarrow> n | Inr n \<Rightarrow> n)") auto
 
 text \<open>
-  We could also have used @{text lexicographic_order}, which
+  We could also have used \<open>lexicographic_order\<close>, which
   supports mutual recursive termination proofs to a certain extent.
 \<close>
 
@@ -408,7 +408,7 @@ text \<open>
   definition of @{const even} and @{const odd}:
   @{subgoals[display,indent=0]}
   Simplification solves the first two goals, leaving us with two
-  statements about the @{text "mod"} operation to prove:
+  statements about the \<open>mod\<close> operation to prove:
 \<close>
 
 apply simp_all
@@ -449,7 +449,7 @@ oops
 section \<open>Elimination\<close>
 
 text \<open>
-  A definition of function @{text f} gives rise to two kinds of elimination rules. Rule @{text f.cases}
+  A definition of function \<open>f\<close> gives rise to two kinds of elimination rules. Rule \<open>f.cases\<close>
   simply describes case analysis according to the patterns used in the definition:
 \<close>
 
@@ -486,7 +486,7 @@ qed
 
 
 text \<open>
-  Sometimes it is convenient to derive specialized versions of the @{text elim} rules above and
+  Sometimes it is convenient to derive specialized versions of the \<open>elim\<close> rules above and
   keep them around as facts explicitly. For example, it is natural to show that if 
   @{prop "list_to_option xs = Some y"}, then @{term xs} must be a singleton. The command 
   \cmd{fun\_cases} derives such facts automatically, by instantiating and simplifying the general 
@@ -596,8 +596,8 @@ text \<open>
   the function's input type must match at least one of the patterns\footnote{Completeness could
   be equivalently stated as a disjunction of existential statements: 
 @{term "(\<exists>p. x = (T, p)) \<or> (\<exists>p. x = (p, T)) \<or> (\<exists>p. x = (p, F)) \<or>
-  (\<exists>p. x = (F, p)) \<or> (x = (X, X))"}, and you can use the method @{text atomize_elim} to get that form instead.}. If the patterns just involve
-  datatypes, we can solve it with the @{text "pat_completeness"}
+  (\<exists>p. x = (F, p)) \<or> (x = (X, X))"}, and you can use the method \<open>atomize_elim\<close> to get that form instead.}. If the patterns just involve
+  datatypes, we can solve it with the \<open>pat_completeness\<close>
   method:
 \<close>
 
@@ -609,7 +609,7 @@ text \<open>
   case, the result (i.e.~the right hand sides of the equations) must
   also be equal. For each pair of two patterns, there is one such
   subgoal. Usually this needs injectivity of the constructors, which
-  is used automatically by @{text "auto"}.
+  is used automatically by \<open>auto\<close>.
 \<close>
 
 by auto
@@ -646,9 +646,8 @@ text \<open>
   @{subgoals[display,indent=0,goals_limit=1]}
 
   This is an arithmetic triviality, but unfortunately the
-  @{text arith} method cannot handle this specific form of an
-  elimination rule. However, we can use the method @{text
-  "atomize_elim"} to do an ad-hoc conversion to a disjunction of
+  \<open>arith\<close> method cannot handle this specific form of an
+  elimination rule. However, we can use the method \<open>atomize_elim\<close> to do an ad-hoc conversion to a disjunction of
   existentials, which can then be solved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.
 \<close>
@@ -720,10 +719,10 @@ text \<open>
   following definition:
 
 \end{isamarkuptext}
-\noindent\cmd{fun} @{text "check :: \"string \<Rightarrow> bool\""}\\%
+\noindent\cmd{fun} \<open>check :: "string \<Rightarrow> bool"\<close>\\%
 \cmd{where}\\%
-\hspace*{2ex}@{text "\"check (''good'') = True\""}\\%
-@{text "| \"check s = False\""}
+\hspace*{2ex}\<open>"check (''good'') = True"\<close>\\%
+\<open>| "check s = False"\<close>
 \begin{isamarkuptext}
 
   \noindent An invocation of the above \cmd{fun} command does not
@@ -733,7 +732,7 @@ text \<open>
   be handled by Isabelle.
 
   There are two things we can do here. Either we write an explicit
-  @{text "if"} on the right hand side, or we can use conditional patterns:
+  \<open>if\<close> on the right hand side, or we can use conditional patterns:
 \<close>
 
 function check :: "string \<Rightarrow> bool"
@@ -766,8 +765,8 @@ by pat_completeness auto
 
 text \<open>
   \noindent Clearly, any attempt of a termination proof must fail. And without
-  that, we do not get the usual rules @{text "findzero.simps"} and 
-  @{text "findzero.induct"}. So what was the definition good for at all?
+  that, we do not get the usual rules \<open>findzero.simps\<close> and 
+  \<open>findzero.induct\<close>. So what was the definition good for at all?
 \<close>
 
 subsection \<open>Domain predicates\<close>
@@ -779,8 +778,7 @@ text \<open>
   partial function just as a total function with an additional domain
   predicate, we can derive simplification and
   induction rules as we do for total functions. They are guarded
-  by domain conditions and are called @{text psimps} and @{text
-  pinduct}: 
+  by domain conditions and are called \<open>psimps\<close> and \<open>pinduct\<close>: 
 \<close>
 
 text \<open>
@@ -819,7 +817,7 @@ text \<open>\noindent This gives the following subgoals:
   \noindent The hypothesis in our lemma was used to satisfy the first premise in
   the induction rule. However, we also get @{term
   "findzero_dom (f, n)"} as a local assumption in the induction step. This
-  allows unfolding @{term "findzero f n"} using the @{text psimps}
+  allows unfolding @{term "findzero f n"} using the \<open>psimps\<close>
   rule, and the rest is trivial.
 \<close>
 apply (simp add: findzero.psimps)
@@ -880,20 +878,18 @@ text \<open>
   actually true for some values. Otherwise we would have just proved
   lemmas with @{term False} as a premise.
 
-  Essentially, we need some introduction rules for @{text
-  findzero_dom}. The function package can prove such domain
+  Essentially, we need some introduction rules for \<open>findzero_dom\<close>. The function package can prove such domain
   introduction rules automatically. But since they are not used very
   often (they are almost never needed if the function is total), this
   functionality is disabled by default for efficiency reasons. So we have to go
-  back and ask for them explicitly by passing the @{text
-  "(domintros)"} option to the function package:
+  back and ask for them explicitly by passing the \<open>(domintros)\<close> option to the function package:
 
 \vspace{1ex}
-\noindent\cmd{function} @{text "(domintros) findzero :: \"(nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat\""}\\%
+\noindent\cmd{function} \<open>(domintros) findzero :: "(nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat"\<close>\\%
 \cmd{where}\isanewline%
 \ \ \ldots\\
 
-  \noindent Now the package has proved an introduction rule for @{text findzero_dom}:
+  \noindent Now the package has proved an introduction rule for \<open>findzero_dom\<close>:
 \<close>
 
 thm findzero.domintros
@@ -915,7 +911,7 @@ text \<open>
   \begin{center}@{thm inc_induct}\hfill(@{thm [source] "inc_induct"})\end{center}
 
   Figure \ref{findzero_term} gives a detailed Isar proof of the fact
-  that @{text findzero} terminates if there is a zero which is greater
+  that \<open>findzero\<close> terminates if there is a zero which is greater
   or equal to @{term n}. First we derive two useful rules which will
   solve the base case and the step case of the induction. The
   induction is then straightforward, except for the unusual induction
@@ -952,7 +948,7 @@ qed
 text_raw \<open>
 \isamarkupfalse\isabellestyle{tt}
 \end{minipage}\vspace{6pt}\hrule
-\caption{Termination proof for @{text findzero}}\label{findzero_term}
+\caption{Termination proof for \<open>findzero\<close>}\label{findzero_term}
 \end{figure}
 \<close>
       
@@ -982,7 +978,7 @@ subsection \<open>Definition of the domain predicate\<close>
 
 text \<open>
   Sometimes it is useful to know what the definition of the domain
-  predicate looks like. Actually, @{text findzero_dom} is just an
+  predicate looks like. Actually, \<open>findzero_dom\<close> is just an
   abbreviation:
 
   @{abbrev[display] findzero_dom}
@@ -1005,8 +1001,7 @@ text \<open>
 
   The predicate @{term "Wellfounded.accp findzero_rel"} is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
-  be reached in a finite number of steps (cf.~its definition in @{text
-  "Wellfounded.thy"}).
+  be reached in a finite number of steps (cf.~its definition in \<open>Wellfounded.thy\<close>).
 
   Since the domain predicate is just an abbreviation, you can use
   lemmas for @{const Wellfounded.accp} and @{const findzero_rel} directly. Some
@@ -1056,8 +1051,7 @@ lemma nz_is_zero: "nz_dom n \<Longrightarrow> nz n = 0"
 
 text \<open>
   We formulate this as a partial correctness lemma with the condition
-  @{term "nz_dom n"}. This allows us to prove it with the @{text
-  pinduct} rule before we have proved termination. With this lemma,
+  @{term "nz_dom n"}. This allows us to prove it with the \<open>pinduct\<close> rule before we have proved termination. With this lemma,
   the termination proof works as expected:
 \<close>
 
@@ -1170,8 +1164,8 @@ termination proof
   needed for each higher-order construct that is used when defining
   new functions. In fact, even basic functions like @{const
   If} and @{const Let} are handled by this mechanism. The congruence
-  rule for @{const If} states that the @{text then} branch is only
-  relevant if the condition is true, and the @{text else} branch only if it
+  rule for @{const If} states that the \<open>then\<close> branch is only
+  relevant if the condition is true, and the \<open>else\<close> branch only if it
   is false:
 
   @{thm[display] if_cong}

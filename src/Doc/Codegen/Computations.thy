@@ -5,7 +5,7 @@ begin
 
 section \<open>Computations \label{sec:computations}\<close>
 
-subsection \<open>Prelude -- The @{text code} antiquotation \label{sec:code_antiq}\<close>
+subsection \<open>Prelude -- The \<open>code\<close> antiquotation \label{sec:code_antiq}\<close>
 
 text \<open>
   The @{ML_antiquotation_def code} antiquotation allows to include constants
@@ -42,46 +42,46 @@ subsection \<open>The concept of computations\<close>
 
 text \<open>
   Computations embody the simple idea that for each
-  monomorphic Isabelle/HOL term of type @{text \<tau>} by virtue of
-  code generation there exists an corresponding ML type @{text T} and
-  a morphism @{text "\<Phi> :: \<tau> \<rightarrow> T"} satisfying
-  @{text "\<Phi> (t\<^sub>1 \<cdot> t\<^sub>2) = \<Phi> t\<^sub>1 \<cdot> \<Phi> t\<^sub>2"}, with @{text \<cdot>} denoting
+  monomorphic Isabelle/HOL term of type \<open>\<tau>\<close> by virtue of
+  code generation there exists an corresponding ML type \<open>T\<close> and
+  a morphism \<open>\<Phi> :: \<tau> \<rightarrow> T\<close> satisfying
+  \<open>\<Phi> (t\<^sub>1 \<cdot> t\<^sub>2) = \<Phi> t\<^sub>1 \<cdot> \<Phi> t\<^sub>2\<close>, with \<open>\<cdot>\<close> denoting
   term application.
 
-  For a given Isabelle/HOL type @{text \<tau>}, parts of @{text \<Phi>} can be
-  implemented by a corresponding ML function @{text "\<phi>\<^sub>\<tau> :: term \<rightarrow> T"}.
+  For a given Isabelle/HOL type \<open>\<tau>\<close>, parts of \<open>\<Phi>\<close> can be
+  implemented by a corresponding ML function \<open>\<phi>\<^sub>\<tau> :: term \<rightarrow> T\<close>.
   How?
 
     \<^descr> \<open>Let input be a constant C :: \<tau>.\<close> \\
-      Then @{text "\<phi>\<^sub>\<tau> C = f\<^sub>C"} with @{text "f\<^sub>C"} being
-      the image of @{text C} under code generation.
+      Then \<open>\<phi>\<^sub>\<tau> C = f\<^sub>C\<close> with \<open>f\<^sub>C\<close> being
+      the image of \<open>C\<close> under code generation.
 
     \<^descr> \<open>Let input be an application (t\<^sub>1 \<cdot> t\<^sub>2) :: \<tau>.\<close> \\
-      Then @{text "\<phi>\<^sub>\<tau> (t\<^sub>1 \<cdot> t\<^sub>2) = \<phi>\<^sub>\<tau> t\<^sub>1 (\<phi>\<^sub>\<tau> t\<^sub>2)"}.
+      Then \<open>\<phi>\<^sub>\<tau> (t\<^sub>1 \<cdot> t\<^sub>2) = \<phi>\<^sub>\<tau> t\<^sub>1 (\<phi>\<^sub>\<tau> t\<^sub>2)\<close>.
 
   \noindent Using these trivial properties, each monomorphic constant
-  @{text "C : \<^vec>\<tau>\<^sub>n \<rightarrow> \<tau>"} yields the following
+  \<open>C : \<^vec>\<tau>\<^sub>n \<rightarrow> \<tau>\<close> yields the following
   equations:
 \<close>
 
 text %quote \<open>
-  @{text "\<phi>\<^bsub>(\<tau>\<^sub>1 \<rightarrow> \<tau>\<^sub>2 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>)\<^esub> C = f\<^sub>C"} \\
-  @{text "\<phi>\<^bsub>(\<tau>\<^sub>2 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>)\<^esub> (C \<cdot> t\<^sub>1) = f\<^sub>C (\<phi>\<^bsub>\<tau>\<^sub>1\<^esub> t\<^sub>1)"} \\
-  @{text "\<dots>"} \\
-  @{text "\<phi>\<^bsub>\<tau>\<^esub> (C \<cdot> t\<^sub>1 \<cdot> \<dots> \<cdot> t\<^sub>n) = f\<^sub>C (\<phi>\<^bsub>\<tau>\<^sub>1\<^esub> t\<^sub>1) \<dots> (\<phi>\<^bsub>\<tau>\<^sub>n\<^esub> t\<^sub>n)"}
+  \<open>\<phi>\<^bsub>(\<tau>\<^sub>1 \<rightarrow> \<tau>\<^sub>2 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>)\<^esub> C = f\<^sub>C\<close> \\
+  \<open>\<phi>\<^bsub>(\<tau>\<^sub>2 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>)\<^esub> (C \<cdot> t\<^sub>1) = f\<^sub>C (\<phi>\<^bsub>\<tau>\<^sub>1\<^esub> t\<^sub>1)\<close> \\
+  \<open>\<dots>\<close> \\
+  \<open>\<phi>\<^bsub>\<tau>\<^esub> (C \<cdot> t\<^sub>1 \<cdot> \<dots> \<cdot> t\<^sub>n) = f\<^sub>C (\<phi>\<^bsub>\<tau>\<^sub>1\<^esub> t\<^sub>1) \<dots> (\<phi>\<^bsub>\<tau>\<^sub>n\<^esub> t\<^sub>n)\<close>
 \<close>
   
 text \<open>
   \noindent Hence a computation is characterized as follows:
 
-    \<^item> Let @{text "input constants"} denote a set of monomorphic constants.
+    \<^item> Let \<open>input constants\<close> denote a set of monomorphic constants.
 
-    \<^item> Let @{text \<tau>} denote a monomorphic type and @{text "'ml"} be a schematic
+    \<^item> Let \<open>\<tau>\<close> denote a monomorphic type and \<open>'ml\<close> be a schematic
       placeholder for its corresponding type in ML under code generation.
 
     \<^item> Then the corresponding computation is an ML function of type
       @{ML_type "Proof.context -> term -> 'ml"}
-      partially implementing the morphism @{text "\<Phi> :: \<tau> \<rightarrow> T"} for all
+      partially implementing the morphism \<open>\<Phi> :: \<tau> \<rightarrow> T\<close> for all
       \<^emph>\<open>input terms\<close> consisting only of input constants and applications.
 
   \noindent The charming idea is that all required code is automatically generated
@@ -91,7 +91,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>The @{text computation} antiquotation\<close>
+subsection \<open>The \<open>computation\<close> antiquotation\<close>
 
 text \<open>
   The following example illustrates its basic usage:
@@ -124,23 +124,23 @@ text \<open>
 
     \<^item> Input constants are specified the following ways:
 
-        \<^item> Each term following @{text "terms:"} specifies all constants
+        \<^item> Each term following \<open>terms:\<close> specifies all constants
           it contains as input constants.
 
-        \<^item> Each type following @{text "datatypes:"} specifies all constructors
+        \<^item> Each type following \<open>datatypes:\<close> specifies all constructors
           of the corresponding code datatype as input constants.  Note that
           this does not increase expressiveness but succinctness for datatypes
           with many constructors.  Abstract type constructors are skipped
           silently.
 
-    \<^item> The code generated by a @{text computation} antiquotation takes a functional argument
+    \<^item> The code generated by a \<open>computation\<close> antiquotation takes a functional argument
       which describes how to conclude the computation.  What's the rationale
       behind this?
 
         \<^item> There is no automated way to generate a reconstruction function
           from the resulting ML type to a Isabelle term -- this is in the
           responsibility of the implementor.  One possible approach
-          for robust term reconstruction is the @{text code} antiquotation.
+          for robust term reconstruction is the \<open>code\<close> antiquotation.
 
         \<^item> Both statically specified input constants and dynamically provided input
           terms are subject to preprocessing.  Likewise the result
@@ -205,24 +205,24 @@ subsection \<open>Pitfalls when specifying input constants \label{sec:input_cons
 text \<open>
     \<^descr> \<open>Complete type coverage.\<close> Specified input constants must
       be \<^emph>\<open>complete\<close> in the sense that for each
-      required type @{text \<tau>} there is at least one corresponding
+      required type \<open>\<tau>\<close> there is at least one corresponding
       input constant which can actually \<^emph>\<open>construct\<close> a concrete
-      value of type @{text \<tau>}, potentially requiring more types recursively;
+      value of type \<open>\<tau>\<close>, potentially requiring more types recursively;
       otherwise the system of equations cannot be generated properly.
       Hence such incomplete input constants sets are rejected immediately.
 
     \<^descr> \<open>Unsuitful right hand sides.\<close> The generated code for a computation
       must compile in the strict ML runtime environment.  This imposes
       the technical restriction that each compiled input constant
-      @{text f\<^sub>C} on the right hand side of a generated equations
+      \<open>f\<^sub>C\<close> on the right hand side of a generated equations
       must compile without throwing an exception.  That rules
       out pathological examples like @{term [source] "undefined :: nat"}
       as input constants, as well as abstract constructors (cf. \secref{sec:invariant}).
 
     \<^descr> \<open>Preprocessing.\<close> For consistency, input constants are subject
       to preprocessing;  however, the overall approach requires
-      to operate on constants @{text C} and their respective compiled images
-      @{text f\<^sub>C}.\footnote{Technical restrictions of the implementation
+      to operate on constants \<open>C\<close> and their respective compiled images
+      \<open>f\<^sub>C\<close>.\footnote{Technical restrictions of the implementation
       enforce this, although those could be lifted in the future.}
       This is a problem whenever preprocessing maps an input constant
       to a non-constant.
@@ -258,7 +258,7 @@ text \<open>
 \<close>
 
   
-subsection \<open>Computations using the @{text computation_conv} antiquotation\<close>
+subsection \<open>Computations using the \<open>computation_conv\<close> antiquotation\<close>
 
 text \<open>
   Computations are a device to implement fast proof procedures.
@@ -301,7 +301,7 @@ text \<open>
       will only yield \qt{valid} results in the context of that particular
       computation, the implementor must make sure that it does not leave
       the local ML scope;  in this example, this is achieved using
-      an explicit @{text local} ML block.  The very presence of the oracle
+      an explicit \<open>local\<close> ML block.  The very presence of the oracle
       in the code acknowledges that each computation requires explicit thinking
       before it can be considered trustworthy!
 
@@ -383,10 +383,10 @@ text \<open>
 \<close>
 
 
-subsection \<open>Computations using the @{text computation_check} antiquotation\<close>
+subsection \<open>Computations using the \<open>computation_check\<close> antiquotation\<close>
 
 text \<open>
-  The @{text computation_check} antiquotation is convenient if
+  The \<open>computation_check\<close> antiquotation is convenient if
   only a positive checking of propositions is desired, because then
   the result type is fixed (@{typ prop}) and all the technical
   matter concerning postprocessing and oracles is done in the framework
@@ -537,8 +537,8 @@ text \<open>
   to @{const interp} does not contain any free variables and can thus be evaluated
   using evaluation.
 
-  A less meager example can be found in the AFP, session @{text "Regular-Sets"},
-  theory @{text Regexp_Method}.
+  A less meager example can be found in the AFP, session \<open>Regular-Sets\<close>,
+  theory \<open>Regexp_Method\<close>.
 \<close>
 
 end

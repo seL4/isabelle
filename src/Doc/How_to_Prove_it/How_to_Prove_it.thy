@@ -17,10 +17,10 @@ In addition to structural induction there is the induction rule
 \end{quote}
 This is often called ``complete induction''. It is applied like this:
 \begin{quote}
-(@{text"induction n rule: less_induct"})
+(\<open>induction n rule: less_induct\<close>)
 \end{quote}
 In fact, it is not restricted to @{typ nat} but works for any wellfounded
-order @{text"<"}.
+order \<open><\<close>.
 
 There are many more special induction rules. You can find all of them
 via the Find button (in Isabelle/jedit) with the following search criteria:
@@ -39,7 +39,7 @@ Example:
 lemma fixes x :: int shows "x ^ 3 = x * x * x"
 by (simp add: numeral_eq_Suc)
 
-text\<open>This is a typical situation: function ``@{text"^"}'' is defined
+text\<open>This is a typical situation: function ``\<open>^\<close>'' is defined
 by pattern matching on @{const Suc} but is applied to a numeral.
 
 Note: simplification with @{thm[source] numeral_eq_Suc} will convert all numerals.
@@ -74,8 +74,8 @@ of the list (@{thm[source] rev_induct}):
 \section{Algebraic simplification}
 
 On the numeric types @{typ nat}, @{typ int} and @{typ real},
-proof method @{text simp} and friends can deal with a limited amount of linear
-arithmetic (no multiplication except by numerals) and method @{text arith} can
+proof method \<open>simp\<close> and friends can deal with a limited amount of linear
+arithmetic (no multiplication except by numerals) and method \<open>arith\<close> can
 handle full linear arithmetic (on @{typ nat}, @{typ int} including quantifiers).
 But what to do when proper multiplication is involved?
 At this point it can be helpful to simplify with the lemma list

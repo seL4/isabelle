@@ -15,7 +15,7 @@ apply (erule exE)
   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
 apply (erule allE)
   \<comment> \<open>@{subgoals[display,indent=0,margin=65]}\<close>
-txt\<open>Now @{text "apply assumption"} fails\<close>
+txt\<open>Now \<open>apply assumption\<close> fails\<close>
 oops
 
 text\<open>Trying again, with the same first two steps\<close>

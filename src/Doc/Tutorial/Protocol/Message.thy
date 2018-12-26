@@ -20,15 +20,15 @@ section\<open>Agents and Messages\<close>
 text \<open>
 All protocol specifications refer to a syntactic theory of messages. 
 Datatype
-@{text agent} introduces the constant @{text Server} (a trusted central
+\<open>agent\<close> introduces the constant \<open>Server\<close> (a trusted central
 machine, needed for some protocols), an infinite population of
-friendly agents, and the~@{text Spy}:
+friendly agents, and the~\<open>Spy\<close>:
 \<close>
 
 datatype agent = Server | Friend nat | Spy
 
 text \<open>
-Keys are just natural numbers.  Function @{text invKey} maps a public key to
+Keys are just natural numbers.  Function \<open>invKey\<close> maps a public key to
 the matching private key, and vice versa:
 \<close>
 
@@ -52,7 +52,7 @@ definition symKeys :: "key set" where
 
 text \<open>
 Datatype
-@{text msg} introduces the message forms, which include agent names, nonces,
+\<open>msg\<close> introduces the message forms, which include agent names, nonces,
 keys, compound messages, and encryptions.  
 \<close>
 
@@ -179,7 +179,7 @@ by (blast dest: parts.Fst parts.Snd)
 declare MPair_parts [elim!]  parts.Body [dest!]
 text\<open>NB These two rules are UNSAFE in the formal sense, as they discard the
      compound message.  They work well on THIS FILE.  
-  @{text MPair_parts} is left as SAFE because it speeds up proofs.
+  \<open>MPair_parts\<close> is left as SAFE because it speeds up proofs.
   The Crypt rule is normally kept UNSAFE to avoid breaking up certificates.\<close>
 
 lemma parts_increasing: "H \<subseteq> parts(H)"
@@ -241,7 +241,7 @@ text\<open>Added to simplify arguments to parts, analz and synth.
   NOTE: the UN versions are no longer used!\<close>
 
 
-text\<open>This allows @{text blast} to simplify occurrences of 
+text\<open>This allows \<open>blast\<close> to simplify occurrences of 
   @{term "parts(G\<union>H)"} in the assumption.\<close>
 lemmas in_parts_UnE = parts_Un [THEN equalityD1, THEN subsetD, THEN UnE] 
 declare in_parts_UnE [elim!]
@@ -344,9 +344,9 @@ watches the network and uses any keys he knows to decrypt messages.
 Thus he accumulates additional keys and nonces.  These he can use to
 compose new messages, which he may send to anybody.  
 
-Two functions enable us to formalize this behaviour: @{text analz} and
-@{text synth}.  Each function maps a sets of messages to another set of
-messages. The set @{text "analz H"} formalizes what the adversary can learn
+Two functions enable us to formalize this behaviour: \<open>analz\<close> and
+\<open>synth\<close>.  Each function maps a sets of messages to another set of
+messages. The set \<open>analz H\<close> formalizes what the adversary can learn
 from the set of messages~$H$.  The closure properties of this set are
 defined inductively.
 \<close>
@@ -483,8 +483,8 @@ lemma analz_insert_Decrypt:
 by (intro equalityI lemma1 lemma2)
 
 text\<open>Case analysis: either the message is secure, or it is not! Effective,
-but can cause subgoals to blow up! Use with @{text "if_split"}; apparently
-@{text "split_tac"} does not cope with patterns such as @{term"analz (insert
+but can cause subgoals to blow up! Use with \<open>if_split\<close>; apparently
+\<open>split_tac\<close> does not cope with patterns such as @{term"analz (insert
 (Crypt K X) H)"}\<close> 
 lemma analz_Crypt_if [simp]:
      "analz (insert (Crypt K X) H) =                 
@@ -577,13 +577,13 @@ lemma analz_UN_analz [simp]: "analz (\<Union>i\<in>A. analz (H i)) = analz (\<Un
 by (blast intro: analz_UN_analz_lemma analz_mono [THEN [2] rev_subsetD])
 (*>*)
 text \<open>
-Note the @{text Decrypt} rule: the spy can decrypt a
+Note the \<open>Decrypt\<close> rule: the spy can decrypt a
 message encrypted with key~$K$ if he has the matching key,~$K^{-1}$. 
 Properties proved by rule induction include the following:
 @{named_thms [display,indent=0] analz_mono [no_vars] (analz_mono) analz_idem [no_vars] (analz_idem)}
 
 The set of fake messages that an intruder could invent
-starting from~@{text H} is @{text "synth(analz H)"}, where @{text "synth H"}
+starting from~\<open>H\<close> is \<open>synth(analz H)\<close>, where \<open>synth H\<close>
 formalizes what the adversary can build from the set of messages~$H$.  
 \<close>
 
@@ -624,10 +624,10 @@ unguessable, so none are included beyond those already in~$H$.   Two
 elements of @{term "synth H"} can be combined, and an element can be encrypted
 using a key present in~$H$.
 
-Like @{text analz}, this set operator is monotone and idempotent.  It also
-satisfies an interesting equation involving @{text analz}:
+Like \<open>analz\<close>, this set operator is monotone and idempotent.  It also
+satisfies an interesting equation involving \<open>analz\<close>:
 @{named_thms [display,indent=0] analz_synth [no_vars] (analz_synth)}
-Rule inversion plays a major role in reasoning about @{text synth}, through
+Rule inversion plays a major role in reasoning about \<open>synth\<close>, through
 declarations such as this one:
 \<close>
 
@@ -639,16 +639,16 @@ The resulting elimination rule replaces every assumption of the form
 @{term "Nonce n \<in> synth H"} by @{term "Nonce n \<in> H"},
 expressing that a nonce cannot be guessed.  
 
-A third operator, @{text parts}, is useful for stating correctness
+A third operator, \<open>parts\<close>, is useful for stating correctness
 properties.  The set
 @{term "parts H"} consists of the components of elements of~$H$.  This set
-includes~@{text H} and is closed under the projections from a compound
+includes~\<open>H\<close> and is closed under the projections from a compound
 message to its immediate parts. 
-Its definition resembles that of @{text analz} except in the rule
-corresponding to the constructor @{text Crypt}: 
+Its definition resembles that of \<open>analz\<close> except in the rule
+corresponding to the constructor \<open>Crypt\<close>: 
 @{thm [display,indent=5] parts.Body [no_vars]}
 The body of an encrypted message is always regarded as part of it.  We can
-use @{text parts} to express general well-formedness properties of a protocol,
+use \<open>parts\<close> to express general well-formedness properties of a protocol,
 for example, that an uncompromised agent's private key will never be
 included as a component of any message.
 \<close>
@@ -780,7 +780,7 @@ declare parts.Body [rule del]
 
 
 text\<open>Rewrites to push in Key and Crypt messages, so that other messages can
-    be pulled out using the @{text analz_insert} rules\<close>
+    be pulled out using the \<open>analz_insert\<close> rules\<close>
 
 lemmas pushKeys =
   insert_commute [of "Key K" "Agent C"]
@@ -796,7 +796,7 @@ lemmas pushCrypts =
   insert_commute [of "Crypt X K" "MPair X' Y"]
   for X K C N X' Y
 
-text\<open>Cannot be added with @{text "[simp]"} -- messages should not always be
+text\<open>Cannot be added with \<open>[simp]\<close> -- messages should not always be
   re-ordered.\<close>
 lemmas pushes = pushKeys pushCrypts
 
@@ -856,7 +856,7 @@ fun spy_analz_tac ctxt i =
        DEPTH_SOLVE (atomic_spy_analz_tac ctxt 1)]) i);
 \<close>
 
-text\<open>By default only @{text o_apply} is built-in.  But in the presence of
+text\<open>By default only \<open>o_apply\<close> is built-in.  But in the presence of
 eta-expansion this means that some terms displayed as @{term "f o g"} will be
 rewritten, and others will not!\<close>
 declare o_def [simp]
@@ -879,7 +879,7 @@ apply (simp add: )
 apply (rule synth_analz_mono, blast)   
 done
 
-text\<open>Two generalizations of @{text analz_insert_eq}\<close>
+text\<open>Two generalizations of \<open>analz_insert_eq\<close>\<close>
 lemma gen_analz_insert_eq [rule_format]:
      "X \<in> analz H \<Longrightarrow> \<forall>G. H \<subseteq> G \<longrightarrow> analz (insert X G) = analz G"
 by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])

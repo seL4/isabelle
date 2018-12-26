@@ -15,15 +15,15 @@ subsection\<open>Pattern Matching with Tuples\<close>
 
 text\<open>
 Tuples may be used as patterns in $\lambda$-abstractions,
-for example @{text"\<lambda>(x,y,z).x+y+z"} and @{text"\<lambda>((x,y),z).x+y+z"}. In fact,
+for example \<open>\<lambda>(x,y,z).x+y+z\<close> and \<open>\<lambda>((x,y),z).x+y+z\<close>. In fact,
 tuple patterns can be used in most variable binding constructs,
 and they can be nested. Here are
 some typical examples:
 \begin{quote}
 @{term"let (x,y) = f z in (y,x)"}\\
 @{term"case xs of [] => (0::nat) | (x,y)#zs => x+y"}\\
-@{text"\<forall>(x,y)\<in>A. x=y"}\\
-@{text"{(x,y,z). x=z}"}\\
+\<open>\<forall>(x,y)\<in>A. x=y\<close>\\
+\<open>{(x,y,z). x=z}\<close>\\
 @{term"\<Union>(x,y)\<in>A. {x+y}"}
 \end{quote}
 The intuitive meanings of these expressions should be obvious.
@@ -33,12 +33,12 @@ over pairs and tuples is merely a convenient shorthand for a more complex
 internal representation.  Thus the internal and external form of a term may
 differ, which can affect proofs. If you want to avoid this complication,
 stick to @{term fst} and @{term snd} and write @{term"%p. fst p + snd p"}
-instead of @{text"\<lambda>(x,y). x+y"}.  These terms are distinct even though they
+instead of \<open>\<lambda>(x,y). x+y\<close>.  These terms are distinct even though they
 denote the same function.
 
-Internally, @{term"%(x,y). t"} becomes @{text"case_prod (\<lambda>x y. t)"}, where
-\cdx{split} is the uncurrying function of type @{text"('a \<Rightarrow> 'b
-\<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"} defined as
+Internally, @{term"%(x,y). t"} becomes \<open>case_prod (\<lambda>x y. t)\<close>, where
+\cdx{split} is the uncurrying function of type \<open>('a \<Rightarrow> 'b
+\<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c\<close> defined as
 \begin{center}
 @{thm split_def}
 \hfill(@{thm[source]split_def})
@@ -98,7 +98,7 @@ apply(simp only: Let_def)
 
 txt\<open>
 @{subgoals[display,indent=0]}
-A paired @{text let} reduces to a paired $\lambda$-abstraction, which
+A paired \<open>let\<close> reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:
 \<close>
 
@@ -110,7 +110,7 @@ txt\<open>
 @{subgoals[display,indent=0]}
 Again, simplification produces a term suitable for @{thm[source]prod.split}
 as above. If you are worried about the strange form of the premise:
-@{text"case_prod (=)"} is short for @{term"\<lambda>(x,y). x=y"}.
+\<open>case_prod (=)\<close> is short for @{term"\<lambda>(x,y). x=y"}.
 The same proof procedure works for
 \<close>
 
@@ -130,7 +130,7 @@ primrec swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a" where "swap (x,y) 
 
 text\<open>\noindent
 Note that the above \isacommand{primrec} definition is admissible
-because @{text"\<times>"} is a datatype. When we now try to prove
+because \<open>\<times>\<close> is a datatype. When we now try to prove
 \<close>
 
 lemma "swap(swap p) = p"
@@ -145,14 +145,14 @@ apply(case_tac p)
 
 txt\<open>\noindent
 @{subgoals[display,indent=0]}
-Again, \methdx{case_tac} is applicable because @{text"\<times>"} is a datatype.
-The subgoal is easily proved by @{text simp}.
+Again, \methdx{case_tac} is applicable because \<open>\<times>\<close> is a datatype.
+The subgoal is easily proved by \<open>simp\<close>.
 
-Splitting by @{text case_tac} also solves the previous examples and may thus
+Splitting by \<open>case_tac\<close> also solves the previous examples and may thus
 appear preferable to the more arcane methods introduced first. However, see
-the warning about @{text case_tac} in \S\ref{sec:struct-ind-case}.
+the warning about \<open>case_tac\<close> in \S\ref{sec:struct-ind-case}.
 
-Alternatively, you can split \emph{all} @{text"\<And>"}-quantified variables
+Alternatively, you can split \emph{all} \<open>\<And>\<close>-quantified variables
 in a goal with the rewrite rule @{thm[source]split_paired_all}:
 \<close>
 
@@ -184,8 +184,8 @@ lemma "\<And>p q. swap(swap p) = q \<longrightarrow> p = q"
 apply(simp add: split_paired_all)
 (*<*)done(*>*)
 text\<open>\noindent
-Finally, the simplifier automatically splits all @{text"\<forall>"} and
-@{text"\<exists>"}-quantified variables:
+Finally, the simplifier automatically splits all \<open>\<forall>\<close> and
+\<open>\<exists>\<close>-quantified variables:
 \<close>
 
 lemma "\<forall>p. \<exists>q. swap p = swap q"
