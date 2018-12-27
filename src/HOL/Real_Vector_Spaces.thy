@@ -648,33 +648,34 @@ next
   then show "norm (1::'a) = 1" by simp
 qed
 
-lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
+context real_normed_vector begin
+
+lemma norm_zero [simp]: "norm (0::'a) = 0"
   by simp
 
 lemma zero_less_norm_iff [simp]: "norm x > 0 \<longleftrightarrow> x \<noteq> 0"
-  for x :: "'a::real_normed_vector"
   by (simp add: order_less_le)
 
 lemma norm_not_less_zero [simp]: "\<not> norm x < 0"
-  for x :: "'a::real_normed_vector"
   by (simp add: linorder_not_less)
 
 lemma norm_le_zero_iff [simp]: "norm x \<le> 0 \<longleftrightarrow> x = 0"
-  for x :: "'a::real_normed_vector"
   by (simp add: order_le_less)
 
 lemma norm_minus_cancel [simp]: "norm (- x) = norm x"
-  for x :: "'a::real_normed_vector"
 proof -
-  have "norm (- x) = norm (scaleR (- 1) x)"
-    by (simp only: scaleR_minus_left scaleR_one)
+  have "- 1 *\<^sub>R x = - (1 *\<^sub>R x)"
+    unfolding add_eq_0_iff2[symmetric] scaleR_add_left[symmetric]
+    using norm_eq_zero
+    by fastforce
+  then have "norm (- x) = norm (scaleR (- 1) x)"
+    by (simp only: scaleR_one)
   also have "\<dots> = \<bar>- 1\<bar> * norm x"
     by (rule norm_scaleR)
   finally show ?thesis by simp
 qed
 
 lemma norm_minus_commute: "norm (a - b) = norm (b - a)"
-  for a b :: "'a::real_normed_vector"
 proof -
   have "norm (- (b - a)) = norm (b - a)"
     by (rule norm_minus_cancel)
@@ -682,22 +683,15 @@ proof -
 qed
 
 lemma dist_add_cancel [simp]: "dist (a + b) (a + c) = dist b c"
-  for a :: "'a::real_normed_vector"
   by (simp add: dist_norm)
 
 lemma dist_add_cancel2 [simp]: "dist (b + a) (c + a) = dist b c"
-  for a :: "'a::real_normed_vector"
   by (simp add: dist_norm)
 
-lemma dist_scaleR [simp]: "dist (x *\<^sub>R a) (y *\<^sub>R a) = \<bar>x - y\<bar> * norm a"
-  for a :: "'a::real_normed_vector"
-  by (metis dist_norm norm_scaleR scaleR_left.diff)
-
-lemma norm_uminus_minus: "norm (- x - y :: 'a :: real_normed_vector) = norm (x + y)"
+lemma norm_uminus_minus: "norm (- x - y) = norm (x + y)"
   by (subst (2) norm_minus_cancel[symmetric], subst minus_add_distrib) simp
 
 lemma norm_triangle_ineq2: "norm a - norm b \<le> norm (a - b)"
-  for a b :: "'a::real_normed_vector"
 proof -
   have "norm (a - b + b) \<le> norm (a - b) + norm b"
     by (rule norm_triangle_ineq)
@@ -705,7 +699,6 @@ proof -
 qed
 
 lemma norm_triangle_ineq3: "\<bar>norm a - norm b\<bar> \<le> norm (a - b)"
-  for a b :: "'a::real_normed_vector"
 proof -
   have "norm a - norm b \<le> norm (a - b)"
     by (simp add: norm_triangle_ineq2)
@@ -716,20 +709,16 @@ proof -
 qed
 
 lemma norm_triangle_ineq4: "norm (a - b) \<le> norm a + norm b"
-  for a b :: "'a::real_normed_vector"
 proof -
   have "norm (a + - b) \<le> norm a + norm (- b)"
     by (rule norm_triangle_ineq)
   then show ?thesis by simp
 qed
 
-lemma norm_triangle_le_diff:
-  fixes x y :: "'a::real_normed_vector"
-  shows "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
+lemma norm_triangle_le_diff: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
     by (meson norm_triangle_ineq4 order_trans)
 
 lemma norm_diff_ineq: "norm a - norm b \<le> norm (a + b)"
-  for a b :: "'a::real_normed_vector"
 proof -
   have "norm a - norm (- b) \<le> norm (a - - b)"
     by (rule norm_triangle_ineq2)
@@ -737,11 +726,9 @@ proof -
 qed
 
 lemma norm_add_leD: "norm (a + b) \<le> c \<Longrightarrow> norm b \<le> norm a + c"
-  for a b :: "'a::real_normed_vector"
-  by (metis add.commute diff_le_eq norm_diff_ineq order.trans)
+  by (metis ab_semigroup_add_class.add.commute add_commute diff_le_eq norm_diff_ineq order_trans)
 
 lemma norm_diff_triangle_ineq: "norm ((a + b) - (c + d)) \<le> norm (a - c) + norm (b - d)"
-  for a b c d :: "'a::real_normed_vector"
 proof -
   have "norm ((a + b) - (c + d)) = norm ((a - c) + (b - d))"
     by (simp add: algebra_simps)
@@ -750,41 +737,46 @@ proof -
   finally show ?thesis .
 qed
 
-lemma norm_diff_triangle_le:
-  fixes x y z :: "'a::real_normed_vector"
-  assumes "norm (x - y) \<le> e1"  "norm (y - z) \<le> e2"
-  shows "norm (x - z) \<le> e1 + e2"
-  using norm_diff_triangle_ineq [of x y y z] assms by simp
+lemma norm_diff_triangle_le: "norm (x - z) \<le> e1 + e2"
+  if "norm (x - y) \<le> e1"  "norm (y - z) \<le> e2"
+proof -
+  have "norm (x - (y + z - y)) \<le> norm (x - y) + norm (y - z)"
+    using norm_diff_triangle_ineq that diff_diff_eq2 by presburger
+  with that show ?thesis by simp
+qed
 
-lemma norm_diff_triangle_less:
-  fixes x y z :: "'a::real_normed_vector"
-  assumes "norm (x - y) < e1"  "norm (y - z) < e2"
-  shows "norm (x - z) < e1 + e2"
-  using norm_diff_triangle_ineq [of x y y z] assms by simp
+lemma norm_diff_triangle_less: "norm (x - z) < e1 + e2"
+  if "norm (x - y) < e1"  "norm (y - z) < e2"
+proof -
+  have "norm (x - z) \<le> norm (x - y) + norm (y - z)"
+    by (metis norm_diff_triangle_ineq add_diff_cancel_left' diff_diff_eq2)
+  with that show ?thesis by auto
+qed
 
 lemma norm_triangle_mono:
-  fixes a b :: "'a::real_normed_vector"
-  shows "norm a \<le> r \<Longrightarrow> norm b \<le> s \<Longrightarrow> norm (a + b) \<le> r + s"
-  by (metis add_mono_thms_linordered_semiring(1) norm_triangle_ineq order.trans)
+  "norm a \<le> r \<Longrightarrow> norm b \<le> s \<Longrightarrow> norm (a + b) \<le> r + s"
+  by (metis (mono_tags) add_mono_thms_linordered_semiring(1) norm_triangle_ineq order.trans)
 
-lemma norm_sum:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  shows "norm (sum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
+lemma norm_sum: "norm (sum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
+  for f::"'b \<Rightarrow> 'a"
   by (induct A rule: infinite_finite_induct) (auto intro: norm_triangle_mono)
 
-lemma sum_norm_le:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fg: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> g x"
-  shows "norm (sum f S) \<le> sum g S"
-  by (rule order_trans [OF norm_sum sum_mono]) (simp add: fg)
+lemma sum_norm_le: "norm (sum f S) \<le> sum g S"
+  if "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> g x"
+  for f::"'b \<Rightarrow> 'a"
+  by (rule order_trans [OF norm_sum sum_mono]) (simp add: that)
 
 lemma abs_norm_cancel [simp]: "\<bar>norm a\<bar> = norm a"
-  for a :: "'a::real_normed_vector"
   by (rule abs_of_nonneg [OF norm_ge_zero])
 
 lemma norm_add_less: "norm x < r \<Longrightarrow> norm y < s \<Longrightarrow> norm (x + y) < r + s"
-  for x y :: "'a::real_normed_vector"
   by (rule order_le_less_trans [OF norm_triangle_ineq add_strict_mono])
+
+end
+
+lemma dist_scaleR [simp]: "dist (x *\<^sub>R a) (y *\<^sub>R a) = \<bar>x - y\<bar> * norm a"
+  for a :: "'a::real_normed_vector"
+  by (metis dist_norm norm_scaleR scaleR_left.diff)
 
 lemma norm_mult_less: "norm x < r \<Longrightarrow> norm y < s \<Longrightarrow> norm (x * y) < r * s"
   for x y :: "'a::real_normed_algebra"
