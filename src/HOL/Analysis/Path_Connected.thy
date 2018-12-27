@@ -5,7 +5,7 @@
 section \<open>Continuous paths and path-connected sets\<close>
 
 theory Path_Connected
-imports Continuous_Extension Continuum_Not_Denumerable
+  imports Continuous_Extension Continuum_Not_Denumerable
 begin
 
 subsection \<open>Paths and Arcs\<close>
@@ -7421,7 +7421,7 @@ proof (clarsimp simp add: path_connected_component)
         show "x \<in> ball x r \<inter> affine hull S"
           using \<open>x \<in> S\<close> \<open>r > 0\<close> by (simp add: hull_inc)
         have "openin (subtopology euclidean (affine hull S)) (ball x r \<inter> affine hull S)"
-          by (simp add: inf.commute openin_Int_open)
+          by (subst inf.commute) (simp add: openin_Int_open)
         then show "openin (subtopology euclidean S) (ball x r \<inter> affine hull S)"
           by (rule openin_subset_trans [OF _ subS Ssub])
       qed (use * path_component_trans in \<open>auto simp: path_connected_component path_component_of_subset [OF ST]\<close>)

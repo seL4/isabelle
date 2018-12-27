@@ -3260,7 +3260,7 @@ proof -
       moreover have "isolated_singularity_at h z"
         unfolding isolated_singularity_at_def h_def
         apply (rule exI[where x=e])
-        using e_holo e_nz \<open>e>0\<close> by (metis Topology_Euclidean_Space.open_ball analytic_on_open 
+        using e_holo e_nz \<open>e>0\<close> by (metis open_ball analytic_on_open 
             holomorphic_on_inverse open_delete)
       ultimately show ?thesis
         using P_exist[of h] by auto
@@ -3482,7 +3482,7 @@ proof -
 
     have [intro]: "fp \<midarrow>z\<rightarrow>fp z" "gp \<midarrow>z\<rightarrow>gp z"
         using fr(1) \<open>fr>0\<close> gr(1) \<open>gr>0\<close>
-        by (meson Topology_Euclidean_Space.open_ball ball_subset_cball centre_in_ball 
+        by (meson open_ball ball_subset_cball centre_in_ball 
             continuous_on_eq_continuous_at continuous_within holomorphic_on_imp_continuous_on 
             holomorphic_on_subset)+
     have ?thesis when "fn+gn>0" 
@@ -3958,7 +3958,7 @@ proof -
       apply (elim Lim_transform_within_open[where s="ball z r"])
       using r by auto
     moreover have "g \<midarrow>z\<rightarrow>g z"
-      by (metis (mono_tags, lifting) Topology_Euclidean_Space.open_ball at_within_open_subset 
+      by (metis (mono_tags, lifting) open_ball at_within_open_subset 
           ball_subset_cball centre_in_ball continuous_on holomorphic_on_imp_continuous_on r(1,3) subsetCE)
     ultimately have "(\<lambda>w. (g w * (w - z) powr of_int n) / g w) \<midarrow>z\<rightarrow> f z/g z"
       apply (rule_tac tendsto_divide)
@@ -4088,7 +4088,7 @@ proof -
     assume " \<not> n < 0"
     define c where "c=(if n=0 then g z else 0)"
     have [simp]:"g \<midarrow>z\<rightarrow> g z" 
-      by (metis Topology_Euclidean_Space.open_ball at_within_open ball_subset_cball centre_in_ball 
+      by (metis open_ball at_within_open ball_subset_cball centre_in_ball 
             continuous_on holomorphic_on_imp_continuous_on holomorphic_on_subset r(1) r(3) )
     have "\<forall>\<^sub>F x in at z. f x = g x * (x - z) ^ nat n"
       unfolding eventually_at_topological
@@ -4154,7 +4154,7 @@ proof -
       then show "LIM w at z. w - z :> at 0" 
         unfolding filterlim_at by (auto intro:tendsto_eq_intros)
       show "isolated_singularity_at g z" 
-        by (meson Diff_subset Topology_Euclidean_Space.open_ball analytic_on_holomorphic 
+        by (meson Diff_subset open_ball analytic_on_holomorphic 
             assms(1,2,3) holomorphic_on_subset isolated_singularity_at_def openE)
     qed
     then show "not_essential f z"
@@ -4590,7 +4590,7 @@ proof -
     assume "\<not> (\<exists>\<^sub>F w in at z. g w \<noteq> 0)"
     then have "\<forall>\<^sub>F w in nhds z. g w = 0"
       unfolding eventually_at eventually_nhds frequently_at using \<open>g z = 0\<close> 
-      by (metis Topology_Euclidean_Space.open_ball UNIV_I centre_in_ball dist_commute mem_ball)
+      by (metis open_ball UNIV_I centre_in_ball dist_commute mem_ball)
     then have "deriv g z = deriv (\<lambda>_. 0) z"
       by (intro deriv_cong_ev) auto
     then have "deriv g z = 0" by auto

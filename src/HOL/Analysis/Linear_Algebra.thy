@@ -310,51 +310,6 @@ lemma adjoint_adjoint:
   by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
 
 
-subsection%unimportant \<open>Interlude: Some properties of real sets\<close>
-
-lemma seq_mono_lemma:
-  assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
-    and "\<forall>n \<ge> m. e n \<le> e m"
-  shows "\<forall>n \<ge> m. d n < e m"
-  using assms by force
-
-lemma infinite_enumerate:
-  assumes fS: "infinite S"
-  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (\<forall>n. r n \<in> S)"
-  unfolding strict_mono_def
-  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
-
-lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
-  apply auto
-  apply (rule_tac x="d/2" in exI)
-  apply auto
-  done
-
-lemma approachable_lt_le2:  \<comment> \<open>like the above, but pushes aside an extra formula\<close>
-    "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
-  apply auto
-  apply (rule_tac x="d/2" in exI, auto)
-  done
-
-lemma triangle_lemma:
-  fixes x y z :: real
-  assumes x: "0 \<le> x"
-    and y: "0 \<le> y"
-    and z: "0 \<le> z"
-    and xy: "x\<^sup>2 \<le> y\<^sup>2 + z\<^sup>2"
-  shows "x \<le> y + z"
-proof -
-  have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2 * y * z + z\<^sup>2"
-    using z y by simp
-  with xy have th: "x\<^sup>2 \<le> (y + z)\<^sup>2"
-    by (simp add: power2_eq_square field_simps)
-  from y z have yz: "y + z \<ge> 0"
-    by arith
-  from power2_le_imp_le[OF th yz] show ?thesis .
-qed
-
-
-
 subsection \<open>Archimedean properties and useful consequences\<close>
 
 text\<open>Bernoulli's inequality\<close>

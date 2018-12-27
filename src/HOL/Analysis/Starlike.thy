@@ -4921,6 +4921,11 @@ lemma setdist_gt_0_closedin:
 
 subsection%unimportant\<open>Basic lemmas about hyperplanes and halfspaces\<close>
 
+lemma halfspace_Int_eq:
+     "{x. a \<bullet> x \<le> b} \<inter> {x. b \<le> a \<bullet> x} = {x. a \<bullet> x = b}"
+     "{x. b \<le> a \<bullet> x} \<inter> {x. a \<bullet> x \<le> b} = {x. a \<bullet> x = b}"
+  by auto
+
 lemma hyperplane_eq_Ex:
   assumes "a \<noteq> 0" obtains x where "a \<bullet> x = b"
   by (rule_tac x = "(b / (a \<bullet> a)) *\<^sub>R a" in that) (simp add: assms)

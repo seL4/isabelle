@@ -266,6 +266,12 @@ next
   finally show ?case by simp
 qed
 
+lemma infinite_enumerate:
+  assumes fS: "infinite S"
+  shows "\<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> (\<forall>n. r n \<in> S)"
+  unfolding strict_mono_def
+  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
+
 lemma enumerate_Suc'':
   fixes S :: "'a::wellorder set"
   assumes "infinite S"

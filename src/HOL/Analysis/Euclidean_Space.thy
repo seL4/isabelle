@@ -12,6 +12,16 @@ imports
   Product_Vector
 begin
 
+
+subsection%unimportant \<open>Interlude: Some properties of real sets\<close>
+
+lemma seq_mono_lemma:
+  assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n"
+    and "\<forall>n \<ge> m. e n \<le> e m"
+  shows "\<forall>n \<ge> m. d n < e m"
+  using assms by force
+
+
 subsection \<open>Type class of Euclidean spaces\<close>
 
 class euclidean_space = real_inner +
