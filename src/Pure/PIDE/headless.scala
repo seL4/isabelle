@@ -84,18 +84,21 @@ object Headless
       (nodes.iterator ++ nodes_committed.iterator).forall({ case (_, st) => st.ok })
   }
 
-  val default_check_delay = Time.seconds(0.5)
-  val default_nodes_status_delay = Time.seconds(-1.0)
-  val default_commit_cleanup_delay = Time.seconds(60.0)
-  val default_watchdog_timeout = Time.seconds(600.0)
-
-
   class Session private[Headless](
     session_name: String,
-    session_options: Options,
-    override val resources: Resources) extends isabelle.Session(session_options, resources)
+    _session_options: => Options,
+    override val resources: Resources) extends isabelle.Session(_session_options, resources)
   {
     session =>
+
+
+    /* options */
+
+    def default_check_delay: Time = session_options.seconds("headless_check_delay")
+    def default_check_limit: Int = session_options.int("headless_check_limit")
+    def default_nodes_status_delay: Time = session_options.seconds("headless_nodes_status_delay")
+    def default_watchdog_timeout: Time = session_options.seconds("headless_watchdog_timeout")
+    def default_commit_cleanup_delay: Time = session_options.seconds("headless_commit_cleanup_delay")
 
 
     /* temporary directory */
@@ -190,7 +193,7 @@ object Headless
       qualifier: String = Sessions.DRAFT,
       master_dir: String = "",
       check_delay: Time = default_check_delay,
-      check_limit: Int = 0,
+      check_limit: Int = default_check_limit,
       watchdog_timeout: Time = default_watchdog_timeout,
       nodes_status_delay: Time = default_nodes_status_delay,
       id: UUID.T = UUID.random(),

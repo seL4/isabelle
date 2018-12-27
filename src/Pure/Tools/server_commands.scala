@@ -158,10 +158,11 @@ object Server_Commands
       pretty_margin: Double = Pretty.default_margin,
       unicode_symbols: Boolean = false,
       export_pattern: String = "",
-      check_delay: Time = Headless.default_check_delay,
-      check_limit: Int = 0,
-      watchdog_timeout: Time = Headless.default_watchdog_timeout,
-      nodes_status_delay: Time = Headless.default_nodes_status_delay)
+      check_delay: Option[Time] = None,
+      check_limit: Option[Int] = None,
+      watchdog_timeout: Option[Time] = None,
+      nodes_status_delay: Option[Time] = None,
+      commit_cleanup_delay: Option[Time] = None)
 
     def unapply(json: JSON.T): Option[Args] =
       for {
@@ -171,18 +172,17 @@ object Server_Commands
         pretty_margin <- JSON.double_default(json, "pretty_margin", Pretty.default_margin)
         unicode_symbols <- JSON.bool_default(json, "unicode_symbols")
         export_pattern <- JSON.string_default(json, "export_pattern")
-        check_delay <- JSON.seconds_default(json, "check_delay", Headless.default_check_delay)
-        check_limit <- JSON.int_default(json, "check_limit")
-        watchdog_timeout <-
-          JSON.seconds_default(json, "watchdog_timeout", Headless.default_watchdog_timeout)
-        nodes_status_delay <-
-          JSON.seconds_default(json, "nodes_status_delay", Headless.default_nodes_status_delay)
+        check_delay = JSON.seconds(json, "check_delay")
+        check_limit = JSON.int(json, "check_limit")
+        watchdog_timeout = JSON.seconds(json, "watchdog_timeout")
+        nodes_status_delay = JSON.seconds(json, "nodes_status_delay")
+        commit_cleanup_delay = JSON.seconds(json, "commit_cleanup_delay")
       }
       yield {
         Args(session_id, theories, master_dir = master_dir, pretty_margin = pretty_margin,
           unicode_symbols = unicode_symbols, export_pattern = export_pattern,
           check_delay = check_delay, check_limit = check_limit, watchdog_timeout = watchdog_timeout,
-          nodes_status_delay = nodes_status_delay)
+          nodes_status_delay = nodes_status_delay, commit_cleanup_delay = commit_cleanup_delay)
       }
 
     def command(args: Args,
@@ -192,9 +192,12 @@ object Server_Commands
     {
       val result =
         session.use_theories(args.theories, master_dir = args.master_dir,
-          check_delay = args.check_delay, check_limit = args.check_limit,
-          watchdog_timeout = args.watchdog_timeout,
-          nodes_status_delay = args.nodes_status_delay,
+          check_delay = args.check_delay.getOrElse(session.default_check_delay),
+          check_limit = args.check_limit.getOrElse(session.default_check_limit),
+          watchdog_timeout = args.watchdog_timeout.getOrElse(session.default_watchdog_timeout),
+          nodes_status_delay = args.nodes_status_delay.getOrElse(session.default_nodes_status_delay),
+          commit_cleanup_delay =
+            args.commit_cleanup_delay.getOrElse(session.default_commit_cleanup_delay),
           id = id, progress = progress)
 
       def output_text(s: String): String =
