@@ -73,35 +73,17 @@ object Dump
       error("Unknown aspect " + quote(name))
 
 
-  /* dump */
+  /* session */
 
-  val default_output_dir: Path = Path.explode("dump")
-
-  def make_options(options: Options, aspects: List[Aspect]): Options =
-  {
-    val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
-    val options1 =
-      options0 + "completion_limit=0" + "ML_statistics=false" +
-        "parallel_proofs=0" + "editor_tracing_messages=0"
-    (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
-  }
-
-  def dump(options: Options, logic: String,
-    aspects: List[Aspect] = Nil,
+  def session(dump_options: Options, logic: String,
+    consume: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
     progress: Progress = No_Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    output_dir: Path = default_output_dir,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
   {
-    if (Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs ::: select_dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
-
-    val dump_options = make_options(options, aspects)
-
-
     /* dependencies */
 
     val deps =
@@ -127,11 +109,7 @@ object Dump
           consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
             {
               val (snapshot, node_status) = args
-              if (node_status.ok) {
-                val aspect_args =
-                  Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
-                aspects.foreach(_.operation(aspect_args))
-              }
+              if (node_status.ok) consume(deps, snapshot, node_status)
               else {
                 consumer_ok.change(_ => false)
                 for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
@@ -153,7 +131,7 @@ object Dump
     }
 
 
-    /* session */
+    /* run session */
 
     val session =
       Headless.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
@@ -172,6 +150,48 @@ object Dump
     }
 
     use_theories_result.ok && consumer_ok
+  }
+
+
+  /* dump */
+
+  val default_output_dir: Path = Path.explode("dump")
+
+  def make_options(options: Options, aspects: List[Aspect] = Nil): Options =
+  {
+    val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
+    val options1 =
+      options0 + "completion_limit=0" + "ML_statistics=false" +
+        "parallel_proofs=0" + "editor_tracing_messages=0"
+    (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+  }
+
+  def dump(options: Options, logic: String,
+    aspects: List[Aspect] = Nil,
+    progress: Progress = No_Progress,
+    log: Logger = No_Logger,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
+    output_dir: Path = default_output_dir,
+    system_mode: Boolean = false,
+    selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
+  {
+    if (Build.build_logic(options, logic, build_heap = true, progress = progress,
+      dirs = dirs ::: select_dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
+
+    val dump_options = make_options(options, aspects)
+
+    def consume(
+      deps: Sessions.Deps,
+      snapshot: Document.Snapshot,
+      node_status: Document_Status.Node_Status)
+    {
+      val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
+      aspects.foreach(_.operation(aspect_args))
+    }
+
+    session(dump_options, logic, consume _,
+      progress = progress, log = log, dirs = dirs, select_dirs = select_dirs, selection = selection)
   }
 
 
