@@ -132,6 +132,7 @@ lemma arc_linear_image_eq:
   using assms inj_on_eq_iff [of f]
   by (auto simp: arc_def inj_on_def path_linear_image_eq)
 
+
 subsection%unimportant\<open>Basic lemmas about paths\<close>
 
 lemma continuous_on_path: "path f \<Longrightarrow> t \<subseteq> {0..1} \<Longrightarrow> continuous_on t f"
@@ -292,6 +293,7 @@ next
     apply (auto simp: field_simps pathfinish_def pathstart_def intro!: 1 2)
     done
 qed
+
 
 section%unimportant \<open>Path Images\<close>
 
@@ -937,6 +939,7 @@ lemma path_image_subpath_subset:
 lemma join_subpaths_middle: "subpath (0) ((1 / 2)) p +++ subpath ((1 / 2)) 1 p = p"
   by (rule ext) (simp add: joinpaths_def subpath_def divide_simps)
 
+
 subsection%unimportant\<open>There is a subpath to the frontier\<close>
 
 lemma subpath_to_frontier_explicit:
@@ -1053,7 +1056,8 @@ proof -
     done
 qed
 
-subsection \<open>shiftpath: Reparametrizing a closed curve to start at some chosen point\<close>
+
+subsection \<open>Shift Path to Start at Some Given Point\<close>
 
 definition%important shiftpath :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> real \<Rightarrow> 'a"
   where "shiftpath a f = (\<lambda>x. if (a + x) \<le> 1 then f (a + x) else f (a + x - 1))"
@@ -1164,7 +1168,8 @@ proof (intro conjI impI ballI)
     by (force split: if_split_asm dest!: *)
 qed
 
-subsection \<open>Special case of straight-line paths\<close>
+
+subsection \<open>Straight-Line Paths\<close>
 
 definition%important linepath :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real \<Rightarrow> 'a"
   where "linepath a b = (\<lambda>x. (1 - x) *\<^sub>R a + x *\<^sub>R b)"
@@ -1385,6 +1390,7 @@ next
     by (force simp: inj_on_def)
 qed
 
+
 subsection%unimportant \<open>Bounding a point away from a path\<close>
 
 lemma not_on_path_ball:
@@ -1416,7 +1422,7 @@ proof -
 qed
 
 
-section \<open>Path component, considered as a "joinability" relation\<close>
+section \<open>Path component\<close>
 
 text \<open>(by Tom Hales)\<close>
 
@@ -1472,7 +1478,6 @@ lemma path_connected_linepath:
   unfolding path_component_def
   by (rule_tac x="linepath a b" in exI, auto)
 
-
 subsubsection%unimportant \<open>Path components as sets\<close>
 
 lemma path_component_set:
@@ -1494,6 +1499,7 @@ lemma path_component_mono:
 lemma path_component_eq:
    "y \<in> path_component_set s x \<Longrightarrow> path_component_set s y = path_component_set s x"
 by (metis (no_types, lifting) Collect_cong mem_Collect_eq path_component_sym path_component_trans)
+
 
 subsection \<open>Path connectedness of a space\<close>
 
@@ -1803,6 +1809,7 @@ next
   case False then show ?thesis
     using path_component_eq_empty by auto
 qed
+
 
 subsection%unimportant\<open>Lemmas about path-connectedness\<close>
 
@@ -2523,7 +2530,7 @@ lemma cobounded_has_bounded_component:
   by (meson cobounded_unique_unbounded_components connected_eq_connected_components_eq assms)
 
 
-section\<open>The "inside" and "outside" of a set\<close>
+section\<open>The \<open>inside\<close> and \<open>outside\<close> of a set\<close>
 
 text%important\<open>The inside comprises the points in a bounded connected component of the set's complement.
   The outside comprises the points in unbounded connected component of the complement.\<close>
@@ -3324,6 +3331,7 @@ lemma bounded_unique_outside:
   apply (metis cobounded_unique_unbounded_components connected_outside double_compl outside_bounded_nonempty outside_in_components unbounded_outside)
   by (simp add: connected_outside outside_bounded_nonempty outside_in_components unbounded_outside)
 
+
 subsection\<open>Condition for an open map's image to contain a ball\<close>
 
 proposition ball_subset_open_map_image:
@@ -3376,6 +3384,7 @@ next
       apply (auto simp: disjoint_iff_not_equal  dist_norm)
       by (metis dw_le norm_minus_commute not_less order_trans rle wy)
 qed
+
 
 section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps\<close>
 
@@ -3888,6 +3897,7 @@ proposition homotopic_paths_continuous_image:
   apply (auto simp: pathstart_def pathfinish_def elim!: homotopic_with_mono)
   done
 
+
 subsection\<open>Group properties for homotopy of paths\<close>
 
 text%important\<open>So taking equivalence classes under homotopy would give the fundamental group\<close>
@@ -4277,6 +4287,7 @@ proof -
     apply (auto simp: intro!: homotopic_loops_nearby_explicit assms  \<open>e > 0\<close>)
     by (metis atLeastAtMost_iff imageI le_less_trans not_le path_image_def)
 qed
+
 
 subsection\<open> Homotopy and subpaths\<close>
 
@@ -4834,6 +4845,7 @@ proof -
     done
 qed
 
+
 subsection\<open>Local versions of topological properties in general\<close>
 
 definition%important locally :: "('a::topological_space set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
@@ -5064,6 +5076,7 @@ proof (clarsimp simp add: locally_def)
     apply (force simp: \<open>f x = y\<close> rev_image_eqI intro: Q)
     done
 qed
+
 
 subsection\<open>An induction principle for connected sets\<close>
 
@@ -5510,6 +5523,7 @@ next
     unfolding locally_compact_compact
     by (metis open_openin openin_topspace subtopology_superset top.extremum topspace_euclidean_subtopology)
 qed
+
 
 subsection\<open>Sura-Bura's results about compact components of sets\<close>
 
@@ -6541,6 +6555,7 @@ next
   finally show ?thesis .
 qed
 
+
 subsection\<open>Retracts, in a general sense, preserve (co)homotopic triviality)\<close>
 
 locale%important Retracts =
@@ -6706,6 +6721,7 @@ lemma homeomorphic_simply_connected:
 lemma homeomorphic_simply_connected_eq:
     "S homeomorphic T \<Longrightarrow> (simply_connected S \<longleftrightarrow> simply_connected T)"
   by (metis homeomorphic_simply_connected homeomorphic_sym)
+
 
 subsection\<open>Homotopy equivalence\<close>
 
@@ -6997,6 +7013,7 @@ lemma homeomorphic_contractible:
   shows "\<lbrakk>contractible S; S homeomorphic T\<rbrakk> \<Longrightarrow> contractible T"
   by (metis homeomorphic_contractible_eq)
 
+
 subsection%unimportant\<open>Misc other results\<close>
 
 lemma bounded_connected_Compl_real:
@@ -7040,6 +7057,7 @@ proof -
   then show ?thesis
     by blast
 qed
+
 
 subsection%unimportant\<open>Some Uncountable Sets\<close>
 
@@ -7868,7 +7886,6 @@ next
     using homeomorphism_moving_points_exists_gen [OF \<open>finite K\<close> KS pw _ ope S] that by fastforce
 qed
 
-
 subsubsection%unimportant\<open>The theorem \<open>homeomorphism_grouping_points_exists\<close>\<close>
 
 lemma homeomorphism_grouping_point_1:
@@ -8336,6 +8353,7 @@ next
     qed
   qed
 qed
+
 
 subsection\<open>Nullhomotopic mappings\<close>
 
