@@ -79,7 +79,7 @@ lemma content_unit[iff]: "content (cbox 0 (One::'a::euclidean_space)) = 1"
 lemma content_pos_le [iff]: "0 \<le> content X"
   by simp
 
-corollary content_nonneg [simp]: "~ content (cbox a b) < 0"
+corollary content_nonneg [simp]: "\<not> content (cbox a b) < 0"
   using not_le by blast
 
 lemma content_pos_lt: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i \<Longrightarrow> 0 < content (cbox a b)"
@@ -287,12 +287,12 @@ lemma has_integral_altD:
 definition integrable_on (infixr "integrable'_on" 46)
   where "f integrable_on i \<longleftrightarrow> (\<exists>y. (f has_integral y) i)"
 
-definition "integral i f = (SOME y. (f has_integral y) i \<or> ~ f integrable_on i \<and> y=0)"
+definition "integral i f = (SOME y. (f has_integral y) i \<or> \<not> f integrable_on i \<and> y=0)"
 
 lemma integrable_integral[intro]: "f integrable_on i \<Longrightarrow> (f has_integral (integral i f)) i"
   unfolding integrable_on_def integral_def by (metis (mono_tags, lifting) someI_ex)
 
-lemma not_integrable_integral: "~ f integrable_on i \<Longrightarrow> integral i f = 0"
+lemma not_integrable_integral: "\<not> f integrable_on i \<Longrightarrow> integral i f = 0"
   unfolding integrable_on_def integral_def by blast
 
 lemma has_integral_integrable[dest]: "(f has_integral i) s \<Longrightarrow> f integrable_on s"
@@ -356,7 +356,7 @@ lemma integral_unique [intro]: "(f has_integral y) k \<Longrightarrow> integral 
 lemma has_integral_iff: "(f has_integral i) S \<longleftrightarrow> (f integrable_on S \<and> integral S f = i)"
   by blast
 
-lemma eq_integralD: "integral k f = y \<Longrightarrow> (f has_integral y) k \<or> ~ f integrable_on k \<and> y=0"
+lemma eq_integralD: "integral k f = y \<Longrightarrow> (f has_integral y) k \<or> \<not> f integrable_on k \<and> y=0"
   unfolding integral_def integrable_on_def
   apply (erule subst)
   apply (rule someI_ex)
@@ -498,7 +498,7 @@ proof (cases "f integrable_on S \<or> c = 0")
   case True then show ?thesis
     by (force intro: has_integral_mult_left)
 next
-  case False then have "~ (\<lambda>x. f x * c) integrable_on S"
+  case False then have "\<not> (\<lambda>x. f x * c) integrable_on S"
     using has_integral_mult_left [of "(\<lambda>x. f x * c)" _ S "inverse c"]
     by (auto simp add: mult.assoc)
   with False show ?thesis by (simp add: not_integrable_integral)
@@ -615,7 +615,7 @@ proof (cases "f integrable_on S \<or> c = 0")
   case True with has_integral_cmul integrable_integral show ?thesis
     by fastforce
 next
-  case False then have "~ (\<lambda>x. c *\<^sub>R f x) integrable_on S"
+  case False then have "\<not> (\<lambda>x. c *\<^sub>R f x) integrable_on S"
     using has_integral_cmul [of "(\<lambda>x. c *\<^sub>R f x)" _ S "inverse c"] by auto
   with False show ?thesis by (simp add: not_integrable_integral)
 qed
@@ -630,7 +630,7 @@ proof (cases "f integrable_on S")
   case True then show ?thesis
     by (simp add: has_integral_neg integrable_integral integral_unique)
 next
-  case False then have "~ (\<lambda>x. - f x) integrable_on S"
+  case False then have "\<not> (\<lambda>x. - f x) integrable_on S"
     using has_integral_neg [of "(\<lambda>x. - f x)" _ S ] by auto
   with False show ?thesis by (simp add: not_integrable_integral)
 qed

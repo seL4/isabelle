@@ -924,7 +924,7 @@ next
           moreover have "norm (\<Sum>(x,K) \<in> T'. ?CI K h x - ?CI K f x)
                 \<le> 2*\<epsilon>/3"
           proof -
-            define T'' where "T'' \<equiv> {(x,K) \<in> T'. ~ (K \<subseteq> {x. x \<bullet> i \<le> c})}"
+            define T'' where "T'' \<equiv> {(x,K) \<in> T'. \<not> (K \<subseteq> {x. x \<bullet> i \<le> c})}"
             then have "T'' \<subseteq> T'"
               by auto
             then have "finite T''"

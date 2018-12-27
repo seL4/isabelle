@@ -860,7 +860,7 @@ begin
 lemma frontier_properties:
   assumes "simply_connected S"
   shows "if bounded S then connected(frontier S)
-         else \<forall>C \<in> components(frontier S). ~bounded C"
+         else \<forall>C \<in> components(frontier S). \<not> bounded C"
 proof -
   have "S = {} \<or> S homeomorphic ball (0::complex) 1"
     using simply_connected_eq_homeomorphic_to_disc assms openS by blast
@@ -1217,7 +1217,7 @@ next
 qed
 
 lemma empty_inside:
-  assumes "connected S" "\<And>C. C \<in> components (- S) \<Longrightarrow> ~bounded C"
+  assumes "connected S" "\<And>C. C \<in> components (- S) \<Longrightarrow> \<not> bounded C"
   shows "inside S = {}"
   using assms by (auto simp: components_def inside_def)
 

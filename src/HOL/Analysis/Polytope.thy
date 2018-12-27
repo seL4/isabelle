@@ -270,7 +270,7 @@ qed
 
 lemma%unimportant subset_of_face_of_affine_hull:
     fixes S :: "'a::euclidean_space set"
-  assumes T: "T face_of S" and "convex S" "U \<subseteq> S" and dis: "~disjnt (affine hull T) (rel_interior U)"
+  assumes T: "T face_of S" and "convex S" "U \<subseteq> S" and dis: "\<not> disjnt (affine hull T) (rel_interior U)"
   shows "U \<subseteq> T"
   apply (rule subset_of_face_of [OF T \<open>U \<subseteq> S\<close>])
   using face_of_imp_eq_affine_Int [OF \<open>convex S\<close> T]
@@ -846,10 +846,10 @@ proof%unimportant
       using affine_parallel_slice affine_affine_hull by metis 
     show ?thesis
     proof (intro conjI impI allI ballI exI)
-      have *: "S \<subseteq> - (affine hull S \<inter> {x. P x}) \<union> affine hull S \<inter> {x. Q x} \<Longrightarrow> S \<subseteq> {x. ~P x \<or> Q x}" 
+      have *: "S \<subseteq> - (affine hull S \<inter> {x. P x}) \<union> affine hull S \<inter> {x. Q x} \<Longrightarrow> S \<subseteq> {x. \<not> P x \<or> Q x}" 
         for P Q 
         using hull_subset by fastforce  
-      have "S \<subseteq> {x. ~ (a' \<bullet> x \<le> b') \<or> a' \<bullet> x = b'}"
+      have "S \<subseteq> {x. \<not> (a' \<bullet> x \<le> b') \<or> a' \<bullet> x = b'}"
         apply (rule *)
         apply (simp only: le eq)
         using Ssub by auto
@@ -919,7 +919,7 @@ lemma%important extreme_points_of_convex_hull:
    "{x. x extreme_point_of (convex hull S)} \<subseteq> S"
 using%unimportant extreme_point_of_convex_hull by auto
 
-lemma%unimportant extreme_point_of_empty [simp]: "~ (x extreme_point_of {})"
+lemma%unimportant extreme_point_of_empty [simp]: "\<not> (x extreme_point_of {})"
   by (simp add: extreme_point_of_def)
 
 lemma%unimportant extreme_point_of_singleton [iff]: "x extreme_point_of {a} \<longleftrightarrow> x = a"
@@ -974,10 +974,10 @@ definition%important facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow
                     (infixr "(facet'_of)" 50)
   where "F facet_of S \<longleftrightarrow> F face_of S \<and> F \<noteq> {} \<and> aff_dim F = aff_dim S - 1"
 
-lemma%unimportant facet_of_empty [simp]: "~ S facet_of {}"
+lemma%unimportant facet_of_empty [simp]: "\<not> S facet_of {}"
   by (simp add: facet_of_def)
 
-lemma%unimportant facet_of_irrefl [simp]: "~ S facet_of S "
+lemma%unimportant facet_of_irrefl [simp]: "\<not> S facet_of S "
   by (simp add: facet_of_def)
 
 lemma%unimportant facet_of_imp_face_of: "F facet_of S \<Longrightarrow> F face_of S"
@@ -1088,7 +1088,7 @@ proof%unimportant -
       using * [of "norm b" "norm a" "1-u" for u] noax that
         apply (simp add: add.commute)
       done
-    ultimately have "~ (norm a < norm x) \<and> ~ (norm b < norm x)"
+    ultimately have "\<not> (norm a < norm x) \<and> \<not> (norm b < norm x)"
       by auto
     then show ?thesis
       using different_norm_3_collinear_points noax nobx that(3) by fastforce
@@ -1268,7 +1268,7 @@ qed
 lemma%unimportant extreme_point_of_convex_hull_affine_independent:
   fixes S :: "'a::euclidean_space set"
   shows
-   "~ affine_dependent S
+   "\<not> affine_dependent S
          \<Longrightarrow> (x extreme_point_of (convex hull S) \<longleftrightarrow> x \<in> S)"
 by (metis aff_independent_finite affine_dependent_def affine_hull_convex_hull extreme_point_of_convex_hull_convex_independent finite_imp_compact hull_inc)
 
@@ -1473,7 +1473,7 @@ lemma%unimportant face_of_convex_hull_insert2:
 
 proposition%important face_of_convex_hull_affine_independent:
   fixes S :: "'a::euclidean_space set"
-  assumes "~ affine_dependent S"
+  assumes "\<not> affine_dependent S"
     shows "(T face_of (convex hull S) \<longleftrightarrow> (\<exists>c. c \<subseteq> S \<and> T = convex hull c))"
           (is "?lhs = ?rhs")
 proof%unimportant
@@ -1495,7 +1495,7 @@ qed
 
 lemma%unimportant facet_of_convex_hull_affine_independent:
   fixes S :: "'a::euclidean_space set"
-  assumes "~ affine_dependent S"
+  assumes "\<not> affine_dependent S"
     shows "T facet_of (convex hull S) \<longleftrightarrow>
            T \<noteq> {} \<and> (\<exists>u. u \<in> S \<and> T = convex hull (S - {u}))"
           (is "?lhs = ?rhs")
@@ -1508,7 +1508,7 @@ proof
     by (auto simp: face_of_convex_hull_affine_independent [OF assms])
   then have affs: "aff_dim S = aff_dim c + 1"
     by (metis aff_dim_convex_hull afft eq_diff_eq)
-  have "~ affine_dependent c"
+  have "\<not> affine_dependent c"
     using \<open>c \<subseteq> S\<close> affine_dependent_subset assms by blast
   with affs have "card (S - c) = 1"
     apply (simp add: aff_dim_affine_independent [symmetric] aff_dim_convex_hull)
@@ -1543,7 +1543,7 @@ qed
 lemma%unimportant facet_of_convex_hull_affine_independent_alt:
   fixes S :: "'a::euclidean_space set"
   shows
-   "~affine_dependent S
+   "\<not>affine_dependent S
         \<Longrightarrow> (T facet_of (convex hull S) \<longleftrightarrow>
              2 \<le> card S \<and> (\<exists>u. u \<in> S \<and> T = convex hull (S - {u})))"
 apply (simp add: facet_of_convex_hull_affine_independent)
@@ -1897,20 +1897,20 @@ proof%unimportant
     have "\<exists>a' b'. a' \<noteq> 0 \<and>
                   affine hull S \<inter> {x. a' \<bullet> x \<le> b'} = affine hull S \<inter> h \<and>
                   (\<forall>w \<in> affine hull S. (w + a') \<in> affine hull S)"
-        if "h \<in> F" "~(affine hull S \<subseteq> h)" for h
+        if "h \<in> F" "\<not>(affine hull S \<subseteq> h)" for h
     proof -
       have "a h \<noteq> 0" and "h = {x. a h \<bullet> x \<le> b h}" "h \<inter> \<Inter>F = \<Inter>F"
         using \<open>h \<in> F\<close> ab by auto
       then have "(affine hull S) \<inter> {x. a h \<bullet> x \<le> b h} \<noteq> {}"
         by (metis (no_types) affine_hull_eq_empty inf.absorb_iff2 inf_assoc inf_bot_right inf_commute seq that(2))
-      moreover have "~ (affine hull S \<subseteq> {x. a h \<bullet> x \<le> b h})"
+      moreover have "\<not> (affine hull S \<subseteq> {x. a h \<bullet> x \<le> b h})"
         using \<open>h = {x. a h \<bullet> x \<le> b h}\<close> that(2) by blast
       ultimately show ?thesis
         using affine_parallel_slice [of "affine hull S"]
         by (metis \<open>h = {x. a h \<bullet> x \<le> b h}\<close> affine_affine_hull)
     qed
     then obtain a b
-         where ab: "\<And>h. \<lbrakk>h \<in> F; ~ (affine hull S \<subseteq> h)\<rbrakk>
+         where ab: "\<And>h. \<lbrakk>h \<in> F; \<not> (affine hull S \<subseteq> h)\<rbrakk>
              \<Longrightarrow> a h \<noteq> 0 \<and>
                   affine hull S \<inter> {x. a h \<bullet> x \<le> b h} = affine hull S \<inter> h \<and>
                   (\<forall>w \<in> affine hull S. (w + a h) \<in> affine hull S)"
@@ -1918,7 +1918,7 @@ proof%unimportant
     have seq2: "S = affine hull S \<inter> (\<Inter>h\<in>{h \<in> F. \<not> affine hull S \<subseteq> h}. {x. a h \<bullet> x \<le> b h})"
       by (subst seq) (auto simp: ab INT_extend_simps)
     show ?thesis
-      apply (rule_tac x="(\<lambda>h. {x. a h \<bullet> x \<le> b h}) ` {h. h \<in> F \<and> ~(affine hull S \<subseteq> h)}" in exI)
+      apply (rule_tac x="(\<lambda>h. {x. a h \<bullet> x \<le> b h}) ` {h. h \<in> F \<and> \<not>(affine hull S \<subseteq> h)}" in exI)
       apply (intro conjI seq2)
         using \<open>finite F\<close> apply force
        using ab apply blast
@@ -1958,9 +1958,9 @@ proof%unimportant
     done
   then obtain F where F: "card F = n" "finite F" and seq: "?P F" and aff: "?Q F"
     by blast
-  then have "~ (finite g \<and> ?P g \<and> ?Q g)" if "card g < n" for g
+  then have "\<not> (finite g \<and> ?P g \<and> ?Q g)" if "card g < n" for g
     using that by (auto simp: n_def dest!: not_less_Least)
-  then have *: "~ (?P g \<and> ?Q g)" if "g \<subset> F" for g
+  then have *: "\<not> (?P g \<and> ?Q g)" if "g \<subset> F" for g
     using that \<open>finite F\<close> psubset_card_mono \<open>card F = n\<close>
     by (metis finite_Int inf.strict_order_iff)
   have 1: "\<And>F'. F' \<subset> F \<Longrightarrow> S \<subseteq> affine hull S \<inter> \<Inter>F'"
@@ -2230,7 +2230,7 @@ proof%unimportant -
     using seq by blast
   have "F \<noteq> {}" using assms
     by (metis affine_Int affine_Inter affine_affine_hull ex_in_conv face_of_affine_trivial)
-  then obtain i where "i \<in> F" "~ (a i \<bullet> x < b i)"
+  then obtain i where "i \<in> F" "\<not> (a i \<bullet> x < b i)"
     using \<open>x \<in> S\<close> rels xnot by auto
   with xint have "a i \<bullet> x = b i"
     by (metis eq_iff mem_Collect_eq not_le Inter_iff faceq)
@@ -2745,7 +2745,7 @@ subsection%important\<open>Relative and absolute frontier of a polytope\<close>
 
 lemma rel_boundary_of_convex_hull:
     fixes S :: "'a::euclidean_space set"
-    assumes "~ affine_dependent S"
+    assumes "\<not> affine_dependent S"
       shows "(convex hull S) - rel_interior(convex hull S) = (\<Union>a\<in>S. convex hull (S - {a}))"
 proof -
   have "finite S" by (metis assms aff_independent_finite)
@@ -3074,17 +3074,17 @@ subsection\<open>Simplexes\<close>
 
 text\<open>The notion of n-simplex for integer @{term"n \<ge> -1"}\<close>
 definition simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix "simplex" 50)
-  where "n simplex S \<equiv> \<exists>C. ~(affine_dependent C) \<and> int(card C) = n + 1 \<and> S = convex hull C"
+  where "n simplex S \<equiv> \<exists>C. \<not> affine_dependent C \<and> int(card C) = n + 1 \<and> S = convex hull C"
 
 lemma simplex:
     "n simplex S \<longleftrightarrow> (\<exists>C. finite C \<and>
-                       ~(affine_dependent C) \<and>
+                       \<not> affine_dependent C \<and>
                        int(card C) = n + 1 \<and>
                        S = convex hull C)"
   by (auto simp add: simplex_def intro: aff_independent_finite)
 
 lemma simplex_convex_hull:
-   "~affine_dependent C \<and> int(card C) = n + 1 \<Longrightarrow> n simplex (convex hull C)"
+   "\<not> affine_dependent C \<and> int(card C) = n + 1 \<Longrightarrow> n simplex (convex hull C)"
   by (auto simp add: simplex_def)
 
 lemma convex_simplex: "n simplex S \<Longrightarrow> convex S"
@@ -3170,7 +3170,7 @@ lemma simplex_insert_dimplus1:
   assumes "n simplex S" and a: "a \<notin> affine hull S"
   shows "(n+1) simplex (convex hull (insert a S))"
 proof -
-  obtain C where C: "finite C" "~(affine_dependent C)" "int(card C) = n+1" and S: "S = convex hull C"
+  obtain C where C: "finite C" "\<not> affine_dependent C" "int(card C) = n+1" and S: "S = convex hull C"
     using assms unfolding simplex by force
   show ?thesis
     unfolding simplex
@@ -3270,11 +3270,11 @@ proof%unimportant
               U [unfolded rel_frontier_def] tnot
             by (auto simp: closed_segment_eq_open)
           ultimately
-          have "~(between (t,u) z | between (u,z) t | between (z,t) u)" if "x \<noteq> z"
+          have "\<not>(between (t,u) z | between (u,z) t | between (z,t) u)" if "x \<noteq> z"
             using that xt xu
             apply (simp add: between_mem_segment [symmetric])
             by (metis between_commute between_trans_2 between_antisym)
-          then have "~ collinear {t, z, u}" if "x \<noteq> z"
+          then have "\<not> collinear {t, z, u}" if "x \<noteq> z"
             by (auto simp: that collinear_between_cases between_commute)
           moreover have "collinear {t, z, x}"
             by (metis closed_segment_commute collinear_2 collinear_closed_segment collinear_triples ends_in_segment(1) insert_absorb insert_absorb2 xt)
@@ -3352,7 +3352,7 @@ proof%unimportant (induction n arbitrary: \<M> rule: less_induct)
       by (auto simp: \<N>_def poly\<M> polytope_imp_convex polytope_imp_closed)
     have in_rel_interior: "(SOME z. z \<in> rel_interior C) \<in> rel_interior C" if "C \<in> \<N>" for C
         using that poly\<M> polytope_imp_convex rel_interior_aff_dim some_in_eq by (fastforce simp: \<N>_def)
-    have *: "\<exists>T. ~affine_dependent T \<and> card T \<le> n \<and> aff_dim K < n \<and> K = convex hull T"
+    have *: "\<exists>T. \<not> affine_dependent T \<and> card T \<le> n \<and> aff_dim K < n \<and> K = convex hull T"
       if "K \<in> \<U>" for K
     proof -
       obtain r where r: "r simplex K"

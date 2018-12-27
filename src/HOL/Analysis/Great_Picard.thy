@@ -874,7 +874,7 @@ proof%unimportant -
            have le_er: "cmod (\<F> n x / (x - y) - \<F> n x / (x - z)) \<le> e / r"
                 if "cmod (x - z) = r/3 + r/3" for x
            proof -
-             have "~ (cmod (x - y) < r/3)"
+             have "\<not> (cmod (x - y) < r/3)"
                using y_near_z(1) that \<open>M > 0\<close> \<open>r > 0\<close>
                by (metis (full_types) norm_diff_triangle_less norm_minus_commute order_less_irrefl)
              then have r4_le_xy: "r/4 \<le> cmod (x - y)"
@@ -1000,7 +1000,7 @@ proposition%important Hurwitz_no_zeros:
       and holf: "\<And>n::nat. \<F> n holomorphic_on S"
       and holg: "g holomorphic_on S"
       and ul_g: "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> uniform_limit K \<F> g sequentially"
-      and nonconst: "~ g constant_on S"
+      and nonconst: "\<not> g constant_on S"
       and nz: "\<And>n z. z \<in> S \<Longrightarrow> \<F> n z \<noteq> 0"
       and "z0 \<in> S"
       shows "g z0 \<noteq> 0"
@@ -1164,7 +1164,7 @@ corollary%important Hurwitz_injective:
       and holf: "\<And>n::nat. \<F> n holomorphic_on S"
       and holg: "g holomorphic_on S"
       and ul_g: "\<And>K. \<lbrakk>compact K; K \<subseteq> S\<rbrakk> \<Longrightarrow> uniform_limit K \<F> g sequentially"
-      and nonconst: "~ g constant_on S"
+      and nonconst: "\<not> g constant_on S"
       and inj: "\<And>n. inj_on (\<F> n) S"
     shows "inj_on g S"
 proof%unimportant -
@@ -1309,7 +1309,7 @@ proof%unimportant -
       unfolding open_subopen [of U] by (auto simp: U_def)
     fix v
     assume v: "v islimpt U" "v \<in> S"
-    have "~ (\<forall>r>0. \<exists>h\<in>Y. r < cmod (h v))"
+    have "\<not> (\<forall>r>0. \<exists>h\<in>Y. r < cmod (h v))"
     proof
       assume "\<forall>r>0. \<exists>h\<in>Y. r < cmod (h v)"
       then have "\<forall>n. \<exists>h\<in>Y. Suc n < cmod (h v)"

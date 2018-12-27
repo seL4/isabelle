@@ -1360,7 +1360,7 @@ lemma%important division_points_subset:
     and k: "k \<in> Basis"
   shows "division_points (cbox a b \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l . l \<in> d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subseteq>
       division_points (cbox a b) d" (is ?t1)
-    and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l . l \<in> d \<and> ~(l \<inter> {x. x\<bullet>k \<ge> c} = {})} \<subseteq>
+    and "division_points (cbox a b \<inter> {x. x\<bullet>k \<ge> c}) {l \<inter> {x. x\<bullet>k \<ge> c} | l . l \<in> d \<and> \<not>(l \<inter> {x. x\<bullet>k \<ge> c} = {})} \<subseteq>
       division_points (cbox a b) d" (is ?t2)
 proof%unimportant -
   note assm = division_ofD[OF assms(1)]
@@ -2536,7 +2536,7 @@ proof%unimportant -
     show "\<And>K. K \<in> ?D1 \<Longrightarrow> finite {L. L \<in> ?D1 \<and> K \<subseteq> L}"
       using fin by simp (metis (mono_tags, lifting) Collect_mono rev_finite_subset)
   qed
-  let ?\<D> = "{K \<in> \<D>. \<forall>K'. K' \<in> \<D> \<and> K \<noteq> K' \<longrightarrow> ~(K \<subseteq> K')}"
+  let ?\<D> = "{K \<in> \<D>. \<forall>K'. K' \<in> \<D> \<and> K \<noteq> K' \<longrightarrow> \<not>(K \<subseteq> K')}"
   show ?thesis
   proof (rule that)
     show "countable ?\<D>"

@@ -359,7 +359,7 @@ theorem open_mapping_thm:
   assumes holf: "f holomorphic_on S"
       and S: "open S" and "connected S"
       and "open U" and "U \<subseteq> S"
-      and fne: "~ f constant_on S"
+      and fne: "\<not> f constant_on S"
     shows "open (f ` U)"
 proof -
   have *: "open (f ` U)"
@@ -468,7 +468,7 @@ corollary%unimportant open_mapping_thm2:
   assumes holf: "f holomorphic_on S"
       and S: "open S"
       and "open U" "U \<subseteq> S"
-      and fnc: "\<And>X. \<lbrakk>open X; X \<subseteq> S; X \<noteq> {}\<rbrakk> \<Longrightarrow> ~ f constant_on X"
+      and fnc: "\<And>X. \<lbrakk>open X; X \<subseteq> S; X \<noteq> {}\<rbrakk> \<Longrightarrow> \<not> f constant_on X"
     shows "open (f ` U)"
 proof -
   have "S = \<Union>(components S)" by simp
@@ -518,7 +518,7 @@ proof (rule ccontr)
   assume "\<not> f constant_on S"
   then have "open (f ` U)"
     using open_mapping_thm assms by blast
-  moreover have "~ open (f ` U)"
+  moreover have "\<not> open (f ` U)"
   proof -
     have "\<exists>t. cmod (f \<xi> - t) < e \<and> t \<notin> f ` U" if "0 < e" for e
       apply (rule_tac x="if 0 < Re(f \<xi>) then f \<xi> + (e/2) else f \<xi> - (e/2)" in exI)
@@ -735,7 +735,7 @@ by (rule LeastI Least_le; rule P)+
 lemma holomorphic_factor_zero_nonconstant:
   assumes holf: "f holomorphic_on S" and S: "open S" "connected S"
       and "\<xi> \<in> S" "f \<xi> = 0"
-      and nonconst: "~ f constant_on S"
+      and nonconst: "\<not> f constant_on S"
    obtains g r n
       where "0 < n"  "0 < r"  "ball \<xi> r \<subseteq> S"
             "g holomorphic_on ball \<xi> r"
@@ -1156,7 +1156,7 @@ proof -
   obtain r where "r > 0" "ball \<xi> r \<subseteq> S" "inj_on f (ball \<xi> r)"
     by (blast intro: that has_complex_derivative_locally_injective [OF assms])
   then have \<xi>: "\<xi> \<in> ball \<xi> r" by simp
-  then have nc: "~ f constant_on ball \<xi> r"
+  then have nc: "\<not> f constant_on ball \<xi> r"
     using \<open>inj_on f (ball \<xi> r)\<close> injective_not_constant by fastforce
   have holf': "f holomorphic_on ball \<xi> r"
     using \<open>ball \<xi> r \<subseteq> S\<close> holf holomorphic_on_subset by blast
@@ -2132,7 +2132,7 @@ proof -
       case False
       then have "t > 0"
         using 2 by (force simp: zero_less_mult_iff)
-      have "~ ball a t \<subseteq> s \<Longrightarrow> ball a t \<inter> frontier s \<noteq> {}"
+      have "\<not> ball a t \<subseteq> s \<Longrightarrow> ball a t \<inter> frontier s \<noteq> {}"
         apply (rule connected_Int_frontier [of "ball a t" s], simp_all)
         using \<open>0 < t\<close> \<open>a \<in> s\<close> centre_in_ball apply blast
         done

@@ -1104,7 +1104,7 @@ qed
 
 lemma connected_openin:
       "connected S \<longleftrightarrow>
-       ~(\<exists>E1 E2. openin (subtopology euclidean S) E1 \<and>
+       \<not>(\<exists>E1 E2. openin (subtopology euclidean S) E1 \<and>
                  openin (subtopology euclidean S) E2 \<and>
                  S \<subseteq> E1 \<union> E2 \<and> E1 \<inter> E2 = {} \<and> E1 \<noteq> {} \<and> E2 \<noteq> {})"
   apply (simp add: connected_def openin_open disjoint_iff_not_equal, safe)
@@ -1113,7 +1113,7 @@ lemma connected_openin:
 
 lemma connected_openin_eq:
       "connected S \<longleftrightarrow>
-       ~(\<exists>E1 E2. openin (subtopology euclidean S) E1 \<and>
+       \<not>(\<exists>E1 E2. openin (subtopology euclidean S) E1 \<and>
                  openin (subtopology euclidean S) E2 \<and>
                  E1 \<union> E2 = S \<and> E1 \<inter> E2 = {} \<and>
                  E1 \<noteq> {} \<and> E2 \<noteq> {})"
@@ -1152,7 +1152,7 @@ qed
 
 lemma connected_closedin_eq:
       "connected S \<longleftrightarrow>
-           ~(\<exists>E1 E2.
+           \<not>(\<exists>E1 E2.
                  closedin (subtopology euclidean S) E1 \<and>
                  closedin (subtopology euclidean S) E2 \<and>
                  E1 \<union> E2 = S \<and> E1 \<inter> E2 = {} \<and>
@@ -1946,7 +1946,7 @@ proof -
     by (auto simp: box_def inner_sum_left inner_Basis sum.If_cases)
 qed
 
-subsection \<open>Intervals in general, including infinite and mixtures of open and closed\<close>
+subsection \<open>General Intervals\<close>
 
 definition%important "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
@@ -3645,7 +3645,7 @@ qed
 
 corollary cobounded_imp_unbounded:
     fixes S :: "'a::{real_normed_vector, perfect_space} set"
-    shows "bounded (- S) \<Longrightarrow> ~ (bounded S)"
+    shows "bounded (- S) \<Longrightarrow> \<not> bounded S"
   using bounded_Un [of S "-S"]  by (simp add: sup_compl_top)
 
 lemma bounded_dist_comp:
@@ -4743,7 +4743,7 @@ by (meson bounded_closure bounded_subset closed_closure closure_subset compact_e
 
 lemma not_compact_UNIV[simp]:
   fixes s :: "'a::{real_normed_vector,perfect_space,heine_borel} set"
-  shows "~ compact (UNIV::'a set)"
+  shows "\<not> compact (UNIV::'a set)"
     by (simp add: compact_eq_bounded_closed)
 
 text\<open>Representing sets as the union of a chain of compact sets.\<close>

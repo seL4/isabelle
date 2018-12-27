@@ -366,7 +366,7 @@ next
       by (meson f nullhomotopic_from_contractible contractible_sphere that)
   next
     case False
-    with \<open>~ s \<le> 0\<close> have "r > 0" "s > 0" by auto
+    with \<open>\<not> s \<le> 0\<close> have "r > 0" "s > 0" by auto
     show ?thesis
       apply (rule inessential_spheremap_lowdim_gen [of "cball a r" "cball b s" f])
       using  \<open>0 < r\<close> \<open>0 < s\<close> assms(1)
@@ -414,7 +414,7 @@ lemma%unimportant extending_maps_Union:
   assumes fin: "finite \<F>"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> \<exists>g. continuous_on S g \<and> g ` S \<subseteq> T \<and> (\<forall>x \<in> S \<inter> K. g x = h x)"
       and "\<And>S. S \<in> \<F> \<Longrightarrow> closed S"
-      and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; ~ X \<subseteq> Y; ~ Y \<subseteq> X\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
+      and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; \<not> X \<subseteq> Y; \<not> Y \<subseteq> X\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
     shows "\<exists>g. continuous_on (\<Union>\<F>) g \<and> g ` (\<Union>\<F>) \<subseteq> T \<and> (\<forall>x \<in> \<Union>\<F> \<inter> K. g x = h x)"
 apply (simp add: Union_maximal_sets [OF fin, symmetric])
 apply (rule extending_maps_Union_aux)
@@ -567,7 +567,7 @@ next
     have clo: "closed S" if "S \<in> \<G> \<union> ?Faces" for S
       using that \<open>\<G> \<subseteq> \<F>\<close> face_of_polytope_polytope poly polytope_imp_closed by blast
     have K: "X \<inter> Y \<subseteq> \<Union>(\<G> \<union> {D. \<exists>C\<in>\<F>. D face_of C \<and> aff_dim D < int p})"
-                if "X \<in> \<G> \<union> ?Faces" "Y \<in> \<G> \<union> ?Faces" "~ Y \<subseteq> X" for X Y
+                if "X \<in> \<G> \<union> ?Faces" "Y \<in> \<G> \<union> ?Faces" "\<not> Y \<subseteq> X" for X Y
     proof -
       have ff: "X \<inter> Y face_of X \<and> X \<inter> Y face_of Y"
         if XY: "X face_of D" "Y face_of E" and DE: "D \<in> \<F>" "E \<in> \<F>" for D E
@@ -669,7 +669,7 @@ lemma%unimportant extend_map_lemma_cofinite1:
 assumes "finite \<F>"
     and \<F>: "\<And>X. X \<in> \<F> \<Longrightarrow> \<exists>a g. a \<notin> U \<and> continuous_on (X - {a}) g \<and> g ` (X - {a}) \<subseteq> T \<and> (\<forall>x \<in> X \<inter> K. g x = h x)"
     and clo: "\<And>X. X \<in> \<F> \<Longrightarrow> closed X"
-    and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; ~(X \<subseteq> Y); ~(Y \<subseteq> X)\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
+    and K: "\<And>X Y. \<lbrakk>X \<in> \<F>; Y \<in> \<F>; \<not> X \<subseteq> Y; \<not> Y \<subseteq> X\<rbrakk> \<Longrightarrow> X \<inter> Y \<subseteq> K"
   obtains C g where "finite C" "disjnt C U" "card C \<le> card \<F>" "continuous_on (\<Union>\<F> - C) g"
                     "g ` (\<Union>\<F> - C) \<subseteq> T"
                     "\<And>x. x \<in> (\<Union>\<F> - C) \<inter> K \<Longrightarrow> g x = h x"
@@ -1188,8 +1188,8 @@ next
     then have "ball a d \<inter> U \<subseteq> C"
       by auto
     obtain h k where homhk: "homeomorphism (S \<union> C) (S \<union> C) h k"
-                 and subC: "{x. (~ (h x = x \<and> k x = x))} \<subseteq> C"
-                 and bou: "bounded {x. (~ (h x = x \<and> k x = x))}"
+                 and subC: "{x. (\<not> (h x = x \<and> k x = x))} \<subseteq> C"
+                 and bou: "bounded {x. (\<not> (h x = x \<and> k x = x))}"
                  and hin: "\<And>x. x \<in> C \<inter> K \<Longrightarrow> h x \<in> ball a d \<inter> U"
     proof (rule homeomorphism_grouping_points_exists_gen [of C "ball a d \<inter> U" "C \<inter> K" "S \<union> C"])
       show "openin (subtopology euclidean C) (ball a d \<inter> U)"
@@ -1539,7 +1539,7 @@ next
     by (simp add: assms compact_imp_bounded)
   then obtain b where b: "S \<subseteq> cbox (-b) b"
     using bounded_subset_cbox_symmetric by blast
-  define LU where "LU \<equiv> L \<union> (\<Union> {C \<in> components (T - S). ~bounded C} - cbox (-(b+One)) (b+One))"
+  define LU where "LU \<equiv> L \<union> (\<Union> {C \<in> components (T - S). \<not>bounded C} - cbox (-(b+One)) (b+One))"
   obtain K g where "finite K" "K \<subseteq> LU" "K \<subseteq> T" "disjnt K S"
                and contg: "continuous_on (T - K) g"
                and gim: "g ` (T - K) \<subseteq> rel_frontier U"
@@ -1699,7 +1699,7 @@ done
 theorem%important Borsuk_separation_theorem_gen:
   fixes S :: "'a::euclidean_space set"
   assumes "compact S"
-    shows "(\<forall>c \<in> components(- S). ~bounded c) \<longleftrightarrow>
+    shows "(\<forall>c \<in> components(- S). \<not>bounded c) \<longleftrightarrow>
            (\<forall>f. continuous_on S f \<and> f ` S \<subseteq> sphere (0::'a) 1
                 \<longrightarrow> (\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1) f (\<lambda>x. c)))"
        (is "?lhs = ?rhs")
@@ -5204,7 +5204,7 @@ lemma%unimportant separation_by_component_open_aux:
 proof (rule ccontr)
   let ?S = "S \<union> \<Union>{C \<in> components(- (S \<union> T)). frontier C \<subseteq> S}"
   let ?T = "T \<union> \<Union>{C \<in> components(- (S \<union> T)). frontier C \<subseteq> T}"
-  assume "~ thesis"
+  assume "\<not> thesis"
   with that have *: "frontier C \<inter> S = {} \<or> frontier C \<inter> T = {}"
             if C: "C \<in> components (- (S \<union> T))" "C \<noteq> {}" for C
     using C by blast

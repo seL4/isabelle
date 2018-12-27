@@ -3280,7 +3280,7 @@ lemma continuous_on_Un_local:
 lemma continuous_on_cases_local:
      "\<lbrakk>closedin (subtopology euclidean (s \<union> t)) s; closedin (subtopology euclidean (s \<union> t)) t;
        continuous_on s f; continuous_on t g;
-       \<And>x. \<lbrakk>x \<in> s \<and> ~P x \<or> x \<in> t \<and> P x\<rbrakk> \<Longrightarrow> f x = g x\<rbrakk>
+       \<And>x. \<lbrakk>x \<in> s \<and> \<not>P x \<or> x \<in> t \<and> P x\<rbrakk> \<Longrightarrow> f x = g x\<rbrakk>
       \<Longrightarrow> continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
   by (rule continuous_on_Un_local) (auto intro: continuous_on_eq)
 
@@ -4983,7 +4983,7 @@ lemma connected_Un_clopen_in_complement:
     shows "connected (S \<union> T)"
 proof -
   have *: "\<lbrakk>\<And>x y. P x y \<longleftrightarrow> P y x; \<And>x y. P x y \<Longrightarrow> S \<subseteq> x \<or> S \<subseteq> y;
-            \<And>x y. \<lbrakk>P x y; S \<subseteq> x\<rbrakk> \<Longrightarrow> False\<rbrakk> \<Longrightarrow> ~(\<exists>x y. (P x y))" for P
+            \<And>x y. \<lbrakk>P x y; S \<subseteq> x\<rbrakk> \<Longrightarrow> False\<rbrakk> \<Longrightarrow> \<not>(\<exists>x y. (P x y))" for P
     by metis
   show ?thesis
     unfolding connected_closedin_eq

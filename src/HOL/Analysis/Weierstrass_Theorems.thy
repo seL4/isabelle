@@ -767,7 +767,7 @@ corollary%important Stone_Weierstrass_HOL:
   assumes "compact S"  "\<And>c. P(\<lambda>x. c::real)"
           "\<And>f. P f \<Longrightarrow> continuous_on S f"
           "\<And>f g. P(f) \<and> P(g) \<Longrightarrow> P(\<lambda>x. f x + g x)"  "\<And>f g. P(f) \<and> P(g) \<Longrightarrow> P(\<lambda>x. f x * g x)"
-          "\<And>x y. x \<in> S \<and> y \<in> S \<and> ~(x = y) \<Longrightarrow> \<exists>f. P(f) \<and> ~(f x = f y)"
+          "\<And>x y. x \<in> S \<and> y \<in> S \<and> x \<noteq> y \<Longrightarrow> \<exists>f. P(f) \<and> f x \<noteq> f y"
           "continuous_on S f"
        "0 < e"
     shows "\<exists>g. P(g) \<and> (\<forall>x \<in> S. \<bar>f x - g x\<bar> < e)"

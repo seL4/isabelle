@@ -201,7 +201,7 @@ qed
 lemma%unimportant segment_to_rel_frontier:
   fixes x :: "'a::euclidean_space"
   assumes S: "convex S" "bounded S" and x: "x \<in> rel_interior S"
-      and y: "y \<in> S" and xy: "~(x = y \<and> S = {x})"
+      and y: "y \<in> S" and xy: "\<not>(x = y \<and> S = {x})"
   obtains z where "z \<in> rel_frontier S" "y \<in> closed_segment x z"
                   "open_segment x z \<subseteq> rel_interior S"
 proof (cases "x=y")
