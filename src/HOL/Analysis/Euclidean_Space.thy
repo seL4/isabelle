@@ -7,7 +7,9 @@ section \<open>Finite-Dimensional Inner Product Spaces\<close>
 
 theory Euclidean_Space
 imports
-  L2_Norm Product_Vector
+  L2_Norm
+  Inner_Product
+  Product_Vector
 begin
 
 subsection \<open>Type class of Euclidean spaces\<close>
@@ -260,6 +262,44 @@ lemma complex_Basis_i [iff]: "\<i> \<in> Basis"
   by (simp add: Basis_complex_def)
 
 subsubsection%unimportant \<open>Type @{typ "'a \<times> 'b"}\<close>
+
+instantiation prod :: (real_inner, real_inner) real_inner
+begin
+
+definition inner_prod_def:
+  "inner x y = inner (fst x) (fst y) + inner (snd x) (snd y)"
+
+lemma inner_Pair [simp]: "inner (a, b) (c, d) = inner a c + inner b d"
+  unfolding inner_prod_def by simp
+
+instance
+proof
+  fix r :: real
+  fix x y z :: "'a::real_inner \<times> 'b::real_inner"
+  show "inner x y = inner y x"
+    unfolding inner_prod_def
+    by (simp add: inner_commute)
+  show "inner (x + y) z = inner x z + inner y z"
+    unfolding inner_prod_def
+    by (simp add: inner_add_left)
+  show "inner (scaleR r x) y = r * inner x y"
+    unfolding inner_prod_def
+    by (simp add: distrib_left)
+  show "0 \<le> inner x x"
+    unfolding inner_prod_def
+    by (intro add_nonneg_nonneg inner_ge_zero)
+  show "inner x x = 0 \<longleftrightarrow> x = 0"
+    unfolding inner_prod_def prod_eq_iff
+    by (simp add: add_nonneg_eq_0_iff)
+  show "norm x = sqrt (inner x x)"
+    unfolding norm_prod_def inner_prod_def
+    by (simp add: power2_norm_eq_inner)
+qed
+
+end
+
+lemma inner_Pair_0: "inner x (0, b) = inner (snd x) b" "inner x (a, 0) = inner (fst x) a"
+    by (cases x, simp)+
 
 instantiation prod :: (euclidean_space, euclidean_space) euclidean_space
 begin
