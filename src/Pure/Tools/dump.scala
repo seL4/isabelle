@@ -93,7 +93,6 @@ object Dump
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
-    verbose: Boolean = false,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
   {
@@ -245,7 +244,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
             dirs = dirs,
             select_dirs = select_dirs,
             output_dir = output_dir,
-            verbose = verbose,
             selection = Sessions.Selection(
               requirements = requirements,
               all_sessions = all_sessions,
