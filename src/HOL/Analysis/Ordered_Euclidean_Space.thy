@@ -145,7 +145,7 @@ proof%unimportant atomize_elim
 qed
 
 lemma%unimportant (in order) atLeastatMost_empty'[simp]:
-  "(~ a <= b) \<Longrightarrow> {a..b} = {}"
+  "(\<not> a \<le> b) \<Longrightarrow> {a..b} = {}"
   by (auto)
 
 instance real :: ordered_euclidean_space

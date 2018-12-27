@@ -374,7 +374,7 @@ proof -
       qed
       then have "connected_component (- (path_image u \<union> path_image d \<union> path_image g)) x y"
         by (simp add: Un_ac)
-      moreover have "~(connected_component (- (path_image c)) x y)"
+      moreover have "\<not>(connected_component (- (path_image c)) x y)"
         by (metis (no_types, lifting) \<open>\<not> bounded outer\<close> \<open>bounded inner\<close> \<open>x \<in> inner\<close> \<open>y \<in> outer\<close> componentsE connected_component_eq inner mem_Collect_eq outer)
       ultimately show False
         by (auto simp: ud_Un [symmetric] connected_component_def)

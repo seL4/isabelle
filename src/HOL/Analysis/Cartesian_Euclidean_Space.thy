@@ -651,7 +651,7 @@ lemma%unimportant Lim_component_ge_cart:
 
 lemma%unimportant Lim_component_eq_cart:
   fixes f :: "'a \<Rightarrow> real^'n"
-  assumes net: "(f \<longlongrightarrow> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
+  assumes net: "(f \<longlongrightarrow> l) net" "\<not> trivial_limit net" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
   shows "l$i = b"
   using ev[unfolded order_eq_iff eventually_conj_iff] and
     Lim_component_ge_cart[OF net, of b i] and
@@ -1060,7 +1060,7 @@ using less_le rank_bound by (auto simp: full_rank_injective [symmetric])
 
 lemma%unimportant matrix_nonfull_linear_equations_eq:
   fixes A :: "real^'n^'m"
-  shows "(\<exists>x. (x \<noteq> 0) \<and> A *v x = 0) \<longleftrightarrow> ~(rank A = CARD('n))"
+  shows "(\<exists>x. (x \<noteq> 0) \<and> A *v x = 0) \<longleftrightarrow> rank A \<noteq> CARD('n)"
   by (meson matrix_left_invertible_injective full_rank_injective matrix_left_invertible_ker)
 
 lemma%unimportant rank_eq_0: "rank A = 0 \<longleftrightarrow> A = 0" and rank_0 [simp]: "rank (0::real^'n^'m) = 0"

@@ -22,7 +22,7 @@ subsection\<open>Winding number for a triangle\<close>
 
 lemma wn_triangle1:
   assumes "0 \<in> interior(convex hull {a,b,c})"
-    shows "~ (Im(a/b) \<le> 0 \<and> 0 \<le> Im(b/c))"
+    shows "\<not> (Im(a/b) \<le> 0 \<and> 0 \<le> Im(b/c))"
 proof -
   { assume 0: "Im(a/b) \<le> 0" "0 \<le> Im(b/c)"
     have "0 \<notin> interior (convex hull {a,b,c})"
@@ -224,7 +224,7 @@ proof -
     by (simp_all add: assms path_image_join)
   with \<open>0 < e\<close> dac have "c \<notin> affine hull {a - of_real e, a + of_real e}"
     by (simp add: segment_as_ball not_le)
-  with \<open>0 < e\<close> have *: "~collinear{a - e, c,a + e}"
+  with \<open>0 < e\<close> have *: "\<not> collinear {a - e, c,a + e}"
     using collinear_3_affine_hull [of "a-e" "a+e"] by (auto simp: insert_commute)
   have 13: "1/3 + 1/3 + 1/3 = (1::real)" by simp
   have "(1/3) *\<^sub>R (a - of_real e) + (1/3) *\<^sub>R c + (1/3) *\<^sub>R (a + of_real e) \<in> interior(convex hull {a - e, c, a + e})"

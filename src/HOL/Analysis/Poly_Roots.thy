@@ -169,7 +169,7 @@ proof%unimportant (induction n arbitrary: c)
      by auto
    have c0: "c 0 = - (a * b 0)" using  b [of 0]
      by simp
-   then have extr_prem: "~ (\<exists>k\<le>n. b k \<noteq> 0) \<Longrightarrow> \<exists>k. k \<noteq> 0 \<and> k \<le> Suc n \<and> c k \<noteq> 0"
+   then have extr_prem: "\<not> (\<exists>k\<le>n. b k \<noteq> 0) \<Longrightarrow> \<exists>k. k \<noteq> 0 \<and> k \<le> Suc n \<and> c k \<noteq> 0"
      by (metis Suc.prems le0 minus_zero mult_zero_right)
    have "\<exists>k\<le>n. b k \<noteq> 0"
      apply (rule ccontr)
@@ -205,7 +205,7 @@ lemma%unimportant polyfun_eq_0:
     shows  "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = 0) \<longleftrightarrow> (\<forall>k. k \<le> n \<longrightarrow> c k = 0)"
 proof (cases "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = 0)")
   case True
-  then have "~ finite {z. (\<Sum>i\<le>n. c i * z^i) = 0}"
+  then have "\<not> finite {z. (\<Sum>i\<le>n. c i * z^i) = 0}"
     by (simp add: infinite_UNIV_char_0)
   with True show ?thesis
     by (metis (poly_guards_query) polyfun_rootbound_finite)

@@ -1979,7 +1979,7 @@ subsection\<open>Connected topological spaces\<close>
 
 definition connected_space :: "'a topology \<Rightarrow> bool" where
   "connected_space X \<equiv>
-        ~(\<exists>E1 E2. openin X E1 \<and> openin X E2 \<and>
+        \<not>(\<exists>E1 E2. openin X E1 \<and> openin X E2 \<and>
                   topspace X \<subseteq> E1 \<union> E2 \<and> E1 \<inter> E2 = {} \<and> E1 \<noteq> {} \<and> E2 \<noteq> {})"
 
 definition connectedin :: "'a topology \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -2093,10 +2093,10 @@ lemma connectedin_iff_connected_real [simp]:
 lemma connectedin_closedin:
    "connectedin X S \<longleftrightarrow>
         S \<subseteq> topspace X \<and>
-        ~(\<exists>E1 E2. closedin X E1 \<and> closedin X E2 \<and>
+        \<not>(\<exists>E1 E2. closedin X E1 \<and> closedin X E2 \<and>
                   S \<subseteq> (E1 \<union> E2) \<and>
                   (E1 \<inter> E2 \<inter> S = {}) \<and>
-                  ~(E1 \<inter> S = {}) \<and> ~(E2 \<inter> S = {}))"
+                  \<not>(E1 \<inter> S = {}) \<and> \<not>(E2 \<inter> S = {}))"
 proof -
   have *: "(\<exists>E1:: 'a set. \<exists>E2:: 'a set. (\<exists>T1:: 'a set. P1 T1 \<and> E1 = f1 T1) \<and> (\<exists>T2:: 'a set. P2 T2 \<and> E2 = f2 T2) \<and>
              R E1 E2) \<longleftrightarrow> (\<exists>T1 T2. P1 T1 \<and> P2 T2 \<and> R(f1 T1) (f2 T2))" for P1 f1 P2 f2 R
@@ -2269,7 +2269,7 @@ lemma connectedin_subset_separated_union:
   unfolding connectedin_eq_not_separated_subset  by blast
 
 lemma connectedin_nonseparated_union:
-   "\<lbrakk>connectedin X S; connectedin X T; ~separatedin X S T\<rbrakk> \<Longrightarrow> connectedin X (S \<union> T)"
+   "\<lbrakk>connectedin X S; connectedin X T; \<not>separatedin X S T\<rbrakk> \<Longrightarrow> connectedin X (S \<union> T)"
   apply (simp add: connectedin_eq_not_separated_subset, auto)
     apply (metis (no_types, hide_lams) Diff_subset_conv Diff_triv disjoint_iff_not_equal separatedin_mono sup_commute)
   apply (metis (no_types, hide_lams) Diff_subset_conv Diff_triv disjoint_iff_not_equal separatedin_mono separatedin_sym sup_commute)

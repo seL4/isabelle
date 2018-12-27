@@ -99,7 +99,7 @@ lemma  cross_basis: "(axis 1 1) \<times> (axis 2 1) = axis 3 1" "(axis 2 1) \<ti
   by (force simp add: axis_def cross3_simps)+
 
 lemma  cross_basis_nonzero:
-  "u \<noteq> 0 \<Longrightarrow> ~(u \<times> axis 1 1 = 0) \<or> ~(u \<times> axis 2 1 = 0) \<or> ~(u \<times> axis 3 1 = 0)"
+  "u \<noteq> 0 \<Longrightarrow> u \<times> axis 1 1 \<noteq> 0 \<or> u \<times> axis 2 1 \<noteq> 0 \<or> u \<times> axis 3 1 \<noteq> 0"
   by (clarsimp simp add: axis_def cross3_simps) (metis vector_3 exhaust_3)
 
 lemma  cross_dot_cancel:

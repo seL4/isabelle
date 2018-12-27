@@ -1195,8 +1195,8 @@ proof -
   proof (rule starlike_negligible [OF \<open>closed S\<close>, of a])
     fix c x
     assume cx: "a + c *\<^sub>R x \<in> S" "0 \<le> c" "a + x \<in> S"
-    with star have "~ (c < 1)" by auto
-    moreover have "~ (c > 1)"
+    with star have "\<not> (c < 1)" by auto
+    moreover have "\<not> (c > 1)"
       using star [of "1/c" "c *\<^sub>R x"] cx by force
     ultimately show "c = 1" by arith
   qed

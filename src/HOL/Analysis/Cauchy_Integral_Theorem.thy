@@ -941,7 +941,7 @@ proof (cases "f contour_integrable_on g")
   case True then show ?thesis
     by (simp add: assms contour_integral_unique has_contour_integral_integral has_contour_integral_reversepath)
 next
-  case False then have "~ f contour_integrable_on (reversepath g)"
+  case False then have "\<not> f contour_integrable_on (reversepath g)"
     by (simp add: assms contour_integrable_reversepath_eq)
   with False show ?thesis by (simp add: not_integrable_contour_integral)
 qed
@@ -5518,7 +5518,7 @@ proposition contour_integral_uniform_limit:
       and ul_f: "uniform_limit (path_image \<gamma>) f l F"
       and noleB: "\<And>t. t \<in> {0..1} \<Longrightarrow> norm (vector_derivative \<gamma> (at t)) \<le> B"
       and \<gamma>: "valid_path \<gamma>"
-      and [simp]: "~ (trivial_limit F)"
+      and [simp]: "\<not> trivial_limit F"
   shows "l contour_integrable_on \<gamma>" "((\<lambda>n. contour_integral \<gamma> (f n)) \<longlongrightarrow> contour_integral \<gamma> l) F"
 proof -
   have "0 \<le> B" by (meson noleB [of 0] atLeastAtMost_iff norm_ge_zero order_refl order_trans zero_le_one)
@@ -5586,7 +5586,7 @@ qed
 corollary%unimportant contour_integral_uniform_limit_circlepath:
   assumes "\<forall>\<^sub>F n::'a in F. (f n) contour_integrable_on (circlepath z r)"
       and "uniform_limit (sphere z r) f l F"
-      and "~ (trivial_limit F)" "0 < r"
+      and "\<not> trivial_limit F" "0 < r"
     shows "l contour_integrable_on (circlepath z r)"
           "((\<lambda>n. contour_integral (circlepath z r) (f n)) \<longlongrightarrow> contour_integral (circlepath z r) l) F"
   using assms by (auto simp: vector_derivative_circlepath norm_mult intro!: contour_integral_uniform_limit)
@@ -6550,7 +6550,7 @@ subsection\<open>Weierstrass convergence theorem\<close>
 lemma holomorphic_uniform_limit:
   assumes cont: "eventually (\<lambda>n. continuous_on (cball z r) (f n) \<and> (f n) holomorphic_on ball z r) F"
       and ulim: "uniform_limit (cball z r) f g F"
-      and F:  "~ trivial_limit F"
+      and F:  "\<not> trivial_limit F"
   obtains "continuous_on (cball z r) g" "g holomorphic_on ball z r"
 proof (cases r "0::real" rule: linorder_cases)
   case less then show ?thesis by (force simp: ball_empty less_imp_le continuous_on_def holomorphic_on_def intro: that)
@@ -6620,7 +6620,7 @@ proposition has_complex_derivative_uniform_limit:
   assumes cont: "eventually (\<lambda>n. continuous_on (cball z r) (f n) \<and>
                                (\<forall>w \<in> ball z r. ((f n) has_field_derivative (f' n w)) (at w))) F"
       and ulim: "uniform_limit (cball z r) f g F"
-      and F:  "~ trivial_limit F" and "0 < r"
+      and F:  "\<not> trivial_limit F" and "0 < r"
   obtains g' where
       "continuous_on (cball z r) g"
       "\<And>w. w \<in> ball z r \<Longrightarrow> (g has_field_derivative (g' w)) (at w) \<and> ((\<lambda>n. f' n w) \<longlongrightarrow> g' w) F"

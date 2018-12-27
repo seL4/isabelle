@@ -3726,7 +3726,7 @@ qed
 
 lemma affine_independent_convex_affine_hull:
   fixes s :: "'a::euclidean_space set"
-  assumes "~affine_dependent s" "t \<subseteq> s"
+  assumes "\<not> affine_dependent s" "t \<subseteq> s"
     shows "convex hull t = affine hull t \<inter> convex hull s"
 proof -
   have fin: "finite s" "finite t" using assms aff_independent_finite finite_subset by auto
@@ -3764,7 +3764,7 @@ qed
 
 lemma affine_independent_span_eq:
   fixes s :: "'a::euclidean_space set"
-  assumes "~affine_dependent s" "card s = Suc (DIM ('a))"
+  assumes "\<not> affine_dependent s" "card s = Suc (DIM ('a))"
     shows "affine hull s = UNIV"
 proof (cases "s = {}")
   case True then show ?thesis
@@ -3789,7 +3789,7 @@ qed
 
 lemma affine_independent_span_gt:
   fixes s :: "'a::euclidean_space set"
-  assumes ind: "~ affine_dependent s" and dim: "DIM ('a) < card s"
+  assumes ind: "\<not> affine_dependent s" and dim: "DIM ('a) < card s"
     shows "affine hull s = UNIV"
   apply (rule affine_independent_span_eq [OF ind])
   apply (rule antisym)
@@ -3831,7 +3831,7 @@ lemma explicit_subset_rel_interior_convex_hull_minimal:
 
 lemma rel_interior_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows "rel_interior(convex hull s) =
          {y. \<exists>u. (\<forall>x \<in> s. 0 < u x) \<and> sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}"
          (is "?lhs = ?rhs")
@@ -3904,18 +3904,18 @@ qed
 lemma interior_convex_hull_explicit_minimal:
   fixes s :: "'a::euclidean_space set"
   shows
-   "~ affine_dependent s
+   "\<not> affine_dependent s
         ==> interior(convex hull s) =
              (if card(s) \<le> DIM('a) then {}
               else {y. \<exists>u. (\<forall>x \<in> s. 0 < u x) \<and> sum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = y})"
   apply (simp add: aff_independent_finite empty_interior_convex_hull, clarify)
   apply (rule trans [of _ "rel_interior(convex hull s)"])
-  apply (simp add: affine_hull_convex_hull affine_independent_span_gt rel_interior_interior)
+  apply (simp add: affine_independent_span_gt rel_interior_interior)
   by (simp add: rel_interior_convex_hull_explicit)
 
 lemma interior_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows
    "interior(convex hull s) =
              (if card(s) \<le> DIM('a) then {}
@@ -4082,7 +4082,7 @@ lemma closure_convex_hull [simp]:
 
 lemma rel_frontier_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows "rel_frontier(convex hull s) =
          {y. \<exists>u. (\<forall>x \<in> s. 0 \<le> u x) \<and> (\<exists>x \<in> s. u x = 0) \<and> sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}"
 proof -
@@ -4106,7 +4106,7 @@ qed
 
 lemma frontier_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows "frontier(convex hull s) =
          {y. \<exists>u. (\<forall>x \<in> s. 0 \<le> u x) \<and> (DIM ('a) < card s \<longrightarrow> (\<exists>x \<in> s. u x = 0)) \<and>
              sum u s = 1 \<and> sum (\<lambda>x. u x *\<^sub>R x) s = y}"
@@ -4133,7 +4133,7 @@ qed
 
 lemma rel_frontier_convex_hull_cases:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows "rel_frontier(convex hull s) = \<Union>{convex hull (s - {x}) |x. x \<in> s}"
 proof -
   have fs: "finite s"
@@ -4164,7 +4164,7 @@ qed
 
 lemma frontier_convex_hull_eq_rel_frontier:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows "frontier(convex hull s) =
            (if card s \<le> DIM ('a) then convex hull s else rel_frontier(convex hull s))"
   using assms
@@ -4174,7 +4174,7 @@ lemma frontier_convex_hull_eq_rel_frontier:
 
 lemma frontier_convex_hull_cases:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ affine_dependent s"
+  assumes "\<not> affine_dependent s"
   shows "frontier(convex hull s) =
            (if card s \<le> DIM ('a) then convex hull s else \<Union>{convex hull (s - {x}) |x. x \<in> s})"
 by (simp add: assms frontier_convex_hull_eq_rel_frontier rel_frontier_convex_hull_cases)
@@ -4668,7 +4668,7 @@ done
 
 lemma interior_convex_hull_3_minimal:
   fixes a :: "'a::euclidean_space"
-  shows "\<lbrakk>~ collinear{a,b,c}; DIM('a) = 2\<rbrakk>
+  shows "\<lbrakk>\<not> collinear{a,b,c}; DIM('a) = 2\<rbrakk>
          \<Longrightarrow> interior(convex hull {a,b,c}) =
                 {v. \<exists>x y z. 0 < x \<and> 0 < y \<and> 0 < z \<and> x + y + z = 1 \<and>
                             x *\<^sub>R a + y *\<^sub>R b + z *\<^sub>R c = v}"
@@ -5862,7 +5862,7 @@ qed
 
 lemma affine_dependent_choose:
   fixes a :: "'a :: euclidean_space"
-  assumes "~(affine_dependent S)"
+  assumes "\<not>(affine_dependent S)"
   shows "affine_dependent(insert a S) \<longleftrightarrow> a \<notin> S \<and> a \<in> affine hull S"
         (is "?lhs = ?rhs")
 proof safe
@@ -5887,7 +5887,7 @@ qed
 
 lemma affine_independent_insert:
   fixes a :: "'a :: euclidean_space"
-  shows "\<lbrakk>~(affine_dependent S); a \<notin> affine hull S\<rbrakk> \<Longrightarrow> ~(affine_dependent(insert a S))"
+  shows "\<lbrakk>\<not> affine_dependent S; a \<notin> affine hull S\<rbrakk> \<Longrightarrow> \<not> affine_dependent(insert a S)"
   by (simp add: affine_dependent_choose)
 
 lemma subspace_bounded_eq_trivial:
@@ -6158,7 +6158,7 @@ subsection%unimportant\<open> Some results on decomposing convex hulls: intersec
 
 lemma
   fixes s :: "'a::euclidean_space set"
-  assumes "~ (affine_dependent(s \<union> t))"
+  assumes "\<not> affine_dependent(s \<union> t)"
     shows convex_hull_Int_subset: "convex hull s \<inter> convex hull t \<subseteq> convex hull (s \<inter> t)" (is ?C)
       and affine_hull_Int_subset: "affine hull s \<inter> affine hull t \<subseteq> affine hull (s \<inter> t)" (is ?A)
 proof -
@@ -6201,7 +6201,7 @@ qed
 
 proposition affine_hull_Int:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ (affine_dependent(s \<union> t))"
+  assumes "\<not> affine_dependent(s \<union> t)"
     shows "affine hull (s \<inter> t) = affine hull s \<inter> affine hull t"
 apply (rule subset_antisym)
 apply (simp add: hull_mono)
@@ -6209,7 +6209,7 @@ by (simp add: affine_hull_Int_subset assms)
 
 proposition convex_hull_Int:
   fixes s :: "'a::euclidean_space set"
-  assumes "~ (affine_dependent(s \<union> t))"
+  assumes "\<not> affine_dependent(s \<union> t)"
     shows "convex hull (s \<inter> t) = convex hull s \<inter> convex hull t"
 apply (rule subset_antisym)
 apply (simp add: hull_mono)
@@ -6217,7 +6217,7 @@ by (simp add: convex_hull_Int_subset assms)
 
 proposition
   fixes s :: "'a::euclidean_space set set"
-  assumes "~ (affine_dependent (\<Union>s))"
+  assumes "\<not> affine_dependent (\<Union>s)"
     shows affine_hull_Inter: "affine hull (\<Inter>s) = (\<Inter>t\<in>s. affine hull t)" (is "?A")
       and convex_hull_Inter: "convex hull (\<Inter>s) = (\<Inter>t\<in>s. convex hull t)" (is "?C")
 proof -
@@ -6247,7 +6247,7 @@ qed
 
 proposition in_convex_hull_exchange_unique:
   fixes S :: "'a::euclidean_space set"
-  assumes naff: "~ affine_dependent S" and a: "a \<in> convex hull S"
+  assumes naff: "\<not> affine_dependent S" and a: "a \<in> convex hull S"
       and S: "T \<subseteq> S" "T' \<subseteq> S"
       and x:  "x \<in> convex hull (insert a T)"
       and x': "x \<in> convex hull (insert a T')"
@@ -6395,7 +6395,7 @@ qed
 
 corollary convex_hull_exchange_Int:
   fixes a  :: "'a::euclidean_space"
-  assumes "~ affine_dependent S" "a \<in> convex hull S" "T \<subseteq> S" "T' \<subseteq> S"
+  assumes "\<not> affine_dependent S" "a \<in> convex hull S" "T \<subseteq> S" "T' \<subseteq> S"
   shows "(convex hull (insert a T)) \<inter> (convex hull (insert a T')) =
          convex hull (insert a (T \<inter> T'))"
 apply (rule subset_antisym)
@@ -6404,7 +6404,7 @@ apply (rule subset_antisym)
 
 lemma Int_closed_segment:
   fixes b :: "'a::euclidean_space"
-  assumes "b \<in> closed_segment a c \<or> ~collinear{a,b,c}"
+  assumes "b \<in> closed_segment a c \<or> \<not> collinear{a,b,c}"
     shows "closed_segment a b \<inter> closed_segment b c = {b}"
 proof (cases "c = a")
   case True
@@ -7283,7 +7283,7 @@ proposition affine_parallel_slice:
   fixes S :: "'a :: euclidean_space set"
   assumes "affine S"
       and "S \<inter> {x. a \<bullet> x \<le> b} \<noteq> {}"
-      and "~ (S \<subseteq> {x. a \<bullet> x \<le> b})"
+      and "\<not> (S \<subseteq> {x. a \<bullet> x \<le> b})"
   obtains a' b' where "a' \<noteq> 0"
                    "S \<inter> {x. a' \<bullet> x \<le> b'} = S \<inter> {x. a \<bullet> x \<le> b}"
                    "S \<inter> {x. a' \<bullet> x = b'} = S \<inter> {x. a \<bullet> x = b}"
@@ -7669,7 +7669,7 @@ lemma continuous_on_cases_local_open:
   assumes opS: "openin (subtopology euclidean (S \<union> T)) S"
       and opT: "openin (subtopology euclidean (S \<union> T)) T"
       and contf: "continuous_on S f" and contg: "continuous_on T g"
-      and fg: "\<And>x. x \<in> S \<and> ~P x \<or> x \<in> T \<and> P x \<Longrightarrow> f x = g x"
+      and fg: "\<And>x. x \<in> S \<and> \<not>P x \<or> x \<in> T \<and> P x \<Longrightarrow> f x = g x"
     shows "continuous_on (S \<union> T) (\<lambda>x. if P x then f x else g x)"
 proof -
   have "\<And>x. x \<in> S \<Longrightarrow> (if P x then f x else g x) = f x"  "\<And>x. x \<in> T \<Longrightarrow> (if P x then f x else g x) = g x"

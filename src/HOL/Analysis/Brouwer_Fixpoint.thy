@@ -1060,7 +1060,7 @@ using compact_imp_closed retract_of_UNIV by blast
 
 text \<open>More properties of ARs, ANRs and ENRs\<close>
 
-lemma not_AR_empty [simp]: "~ AR({})"
+lemma not_AR_empty [simp]: "\<not> AR({})"
   by (auto simp: AR_def)
 
 lemma ENR_empty [simp]: "ENR {}"
@@ -3823,7 +3823,7 @@ qed
 lemma non_extensible_Borsuk_map:
   fixes a :: "'a :: euclidean_space"
   assumes "compact s" and cin: "c \<in> components(- s)" and boc: "bounded c" and "a \<in> c"
-    shows "~ (\<exists>g. continuous_on (s \<union> c) g \<and>
+    shows "\<not> (\<exists>g. continuous_on (s \<union> c) g \<and>
                   g ` (s \<union> c) \<subseteq> sphere 0 1 \<and>
                   (\<forall>x \<in> s. g x = inverse(norm(x - a)) *\<^sub>R (x - a)))"
 proof -
@@ -4534,7 +4534,7 @@ proposition%unimportant Borsuk_map_essential_bounded_component:
   fixes a :: "'a :: euclidean_space"
   assumes "compact S" and "a \<notin> S"
    shows "bounded (connected_component_set (- S) a) \<longleftrightarrow>
-          ~(\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1)
+          \<not>(\<exists>c. homotopic_with (\<lambda>x. True) S (sphere 0 1)
                                (\<lambda>x. inverse(norm(x - a)) *\<^sub>R (x - a)) (\<lambda>x. c))"
    (is "?lhs = ?rhs")
 proof (cases "S = {}")
@@ -4550,9 +4550,9 @@ next
     by (simp add: \<open>a \<notin> S\<close>)
   obtain r where "r>0" and r: "S \<subseteq> ball 0 r"
     using bounded_subset_ballD \<open>bounded S\<close> by blast
-  have "~ ?rhs \<longleftrightarrow> ~ ?lhs"
+  have "\<not> ?rhs \<longleftrightarrow> \<not> ?lhs"
   proof
-    assume notr: "~ ?rhs"
+    assume notr: "\<not> ?rhs"
     have nog: "\<nexists>g. continuous_on (S \<union> connected_component_set (- S) a) g \<and>
                    g ` (S \<union> connected_component_set (- S) a) \<subseteq> sphere 0 1 \<and>
                    (\<forall>x\<in>S. g x = (x - a) /\<^sub>R norm (x - a))"
@@ -4564,12 +4564,12 @@ next
       using notr
       by (auto simp: nullhomotopic_into_sphere_extension
                  [OF \<open>closed S\<close> continuous_on_Borsuk_map [OF \<open>a \<notin> S\<close>] False s01])
-    with \<open>a \<notin> S\<close> show  "~ ?lhs"
+    with \<open>a \<notin> S\<close> show  "\<not> ?lhs"
       apply (clarsimp simp: Borsuk_map_into_sphere [of a S, symmetric] dest!: nog)
       apply (drule_tac x=g in spec)
       using continuous_on_subset by fastforce 
   next
-    assume "~ ?lhs"
+    assume "\<not> ?lhs"
     then obtain b where b: "b \<in> connected_component_set (- S) a" and "r \<le> norm b"
       using bounded_iff linear by blast
     then have bnot: "b \<notin> ball 0 r"
@@ -4593,7 +4593,7 @@ next
     ultimately have "homotopic_with (\<lambda>x. True) S (sphere 0 1)
                          (\<lambda>x. (x - a) /\<^sub>R norm (x - a)) (\<lambda>x. c)"
       by (meson homotopic_with_subset_left homotopic_with_trans r)
-    then show "~ ?rhs"
+    then show "\<not> ?rhs"
       by blast
   qed
   then show ?thesis by blast

@@ -212,7 +212,7 @@ qed
 
 lemma real_lim:
   fixes l::complex
-  assumes "(f \<longlongrightarrow> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
+  assumes "(f \<longlongrightarrow> l) F" and "\<not> trivial_limit F" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
   shows  "l \<in> \<real>"
 proof (rule Lim_in_closed_set[OF closed_complex_Reals _ assms(2,1)])
   show "eventually (\<lambda>x. f x \<in> \<real>) F"

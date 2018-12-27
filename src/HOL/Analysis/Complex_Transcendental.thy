@@ -1133,21 +1133,21 @@ subsection%unimportant\<open>Analytic properties of tangent function\<close>
 lemma cnj_tan: "cnj(tan z) = tan(cnj z)"
   by (simp add: cnj_cos cnj_sin tan_def)
 
-lemma field_differentiable_at_tan: "~(cos z = 0) \<Longrightarrow> tan field_differentiable at z"
+lemma field_differentiable_at_tan: "cos z \<noteq> 0 \<Longrightarrow> tan field_differentiable at z"
   unfolding field_differentiable_def
   using DERIV_tan by blast
 
-lemma field_differentiable_within_tan: "~(cos z = 0)
+lemma field_differentiable_within_tan: "cos z \<noteq> 0
          \<Longrightarrow> tan field_differentiable (at z within s)"
   using field_differentiable_at_tan field_differentiable_at_within by blast
 
-lemma continuous_within_tan: "~(cos z = 0) \<Longrightarrow> continuous (at z within s) tan"
+lemma continuous_within_tan: "cos z \<noteq> 0 \<Longrightarrow> continuous (at z within s) tan"
   using continuous_at_imp_continuous_within isCont_tan by blast
 
-lemma continuous_on_tan [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> ~(cos z = 0)) \<Longrightarrow> continuous_on s tan"
+lemma continuous_on_tan [continuous_intros]: "(\<And>z. z \<in> s \<Longrightarrow> cos z \<noteq> 0) \<Longrightarrow> continuous_on s tan"
   by (simp add: continuous_at_imp_continuous_on)
 
-lemma holomorphic_on_tan: "(\<And>z. z \<in> s \<Longrightarrow> ~(cos z = 0)) \<Longrightarrow> tan holomorphic_on s"
+lemma holomorphic_on_tan: "(\<And>z. z \<in> s \<Longrightarrow> cos z \<noteq> 0) \<Longrightarrow> tan holomorphic_on s"
   by (simp add: field_differentiable_within_tan holomorphic_on_def)
 
 
@@ -1670,7 +1670,7 @@ qed auto
 
 lemma Ln_minus:
   assumes "z \<noteq> 0"
-    shows "Ln(-z) = (if Im(z) \<le> 0 \<and> ~(Re(z) < 0 \<and> Im(z) = 0)
+    shows "Ln(-z) = (if Im(z) \<le> 0 \<and> \<not>(Re(z) < 0 \<and> Im(z) = 0)
                      then Ln(z) + \<i> * pi
                      else Ln(z) - \<i> * pi)" (is "_ = ?rhs")
   using Im_Ln_le_pi [of z] mpi_less_Im_Ln [of z] assms
