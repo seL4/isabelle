@@ -725,6 +725,15 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma norm_triangle_sub: "norm x \<le> norm y + norm (x - y)"
+  using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
+
+lemma norm_triangle_le: "norm x + norm y \<le> e \<Longrightarrow> norm (x + y) \<le> e"
+  by (rule norm_triangle_ineq [THEN order_trans])
+
+lemma norm_triangle_lt: "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
+  by (rule norm_triangle_ineq [THEN le_less_trans])
+
 lemma norm_add_leD: "norm (a + b) \<le> c \<Longrightarrow> norm b \<le> norm a + c"
   by (metis ab_semigroup_add_class.add.commute add_commute diff_le_eq norm_diff_ineq order_trans)
 
@@ -768,6 +777,13 @@ lemma sum_norm_le: "norm (sum f S) \<le> sum g S"
 
 lemma abs_norm_cancel [simp]: "\<bar>norm a\<bar> = norm a"
   by (rule abs_of_nonneg [OF norm_ge_zero])
+
+lemma sum_norm_bound:
+  "norm (sum f S) \<le> of_nat (card S)*K"
+  if "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> K"
+  for f :: "'b \<Rightarrow> 'a"
+  using sum_norm_le[OF that] sum_constant[symmetric]
+  by simp
 
 lemma norm_add_less: "norm x < r \<Longrightarrow> norm y < s \<Longrightarrow> norm (x + y) < r + s"
   by (rule order_le_less_trans [OF norm_triangle_ineq add_strict_mono])

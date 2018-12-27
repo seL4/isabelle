@@ -76,12 +76,6 @@ lemma norm_triangle_half_l:
   using dist_triangle_half_l[OF assms[unfolded dist_norm[symmetric]]]
   unfolding dist_norm[symmetric] .
 
-lemma norm_triangle_le: "norm x + norm y \<le> e \<Longrightarrow> norm (x + y) \<le> e"
-  by (rule norm_triangle_ineq [THEN order_trans])
-
-lemma norm_triangle_lt: "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
-  by (rule norm_triangle_ineq [THEN le_less_trans])
-
 lemma abs_triangle_half_r:
   fixes y :: "'a::linordered_field"
   shows "abs (y - x1) < e / 2 \<Longrightarrow> abs (y - x2) < e / 2 \<Longrightarrow> abs (x1 - x2) < e"
@@ -98,13 +92,6 @@ lemma sum_clauses:
   shows "sum f {} = 0"
     and "finite S \<Longrightarrow> sum f (insert x S) = (if x \<in> S then sum f S else f x + sum f S)"
   by (auto simp add: insert_absorb)
-
-lemma sum_norm_bound:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes K: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> K"
-  shows "norm (sum f S) \<le> of_nat (card S)*K"
-  using sum_norm_le[OF K] sum_constant[symmetric]
-  by simp
 
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
 proof
