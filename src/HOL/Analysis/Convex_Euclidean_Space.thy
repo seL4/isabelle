@@ -2637,9 +2637,9 @@ proof -
     }
     moreover
     have "(\<Sum>v\<in>y ` {1..k}. sum u {i \<in> {1..k}. y i = v}) = 1"
-      unfolding sum_image_gen[OF fin, symmetric] using obt(2) by auto
+      unfolding sum.image_gen[OF fin, symmetric] using obt(2) by auto
     moreover have "(\<Sum>v\<in>y ` {1..k}. sum u {i \<in> {1..k}. y i = v} *\<^sub>R v) = x"
-      using sum_image_gen[OF fin, of "\<lambda>i. u i *\<^sub>R y i" y, symmetric]
+      using sum.image_gen[OF fin, of "\<lambda>i. u i *\<^sub>R y i" y, symmetric]
       unfolding scaleR_left.sum using obt(3) by auto
     ultimately
     have "\<exists>S u. finite S \<and> S \<subseteq> p \<and> (\<forall>x\<in>S. 0 \<le> u x) \<and> sum u S = 1 \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = x"
@@ -2683,8 +2683,8 @@ proof -
         by (auto simp: sum_constant_scaleR)
     }
     then have "(\<Sum>x = 1..card S. u (f x)) = 1" "(\<Sum>i = 1..card S. u (f i) *\<^sub>R f i) = y"
-      unfolding sum_image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f]
-        and sum_image_gen[OF *(1), of "\<lambda>x. u (f x)" f]
+      unfolding sum.image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f]
+        and sum.image_gen[OF *(1), of "\<lambda>x. u (f x)" f]
       unfolding f
       using sum.cong [of S S "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card S}. f x = y}. u (f x) *\<^sub>R f x)" "\<lambda>v. u v *\<^sub>R v"]
       using sum.cong [of S S "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card S}. f x = y}. u (f x))" u]

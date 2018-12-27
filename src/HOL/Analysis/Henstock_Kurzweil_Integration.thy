@@ -5924,7 +5924,7 @@ next
       next
         have "norm ((\<Sum>(x,K)\<in>\<D>. content K *\<^sub>R f (m x) x) - (\<Sum>(x,K)\<in>\<D>. integral K (f (m x))))
               \<le> norm (\<Sum>j = 0..s. \<Sum>(x,K)\<in>{xk \<in> \<D>. m (fst xk) = j}. content K *\<^sub>R f (m x) x - integral K (f (m x)))"
-          apply (subst sum_group)
+          apply (subst sum.group)
           using s by (auto simp: sum_subtractf split_def p'(1))
         also have "\<dots> < e/2"
         proof -

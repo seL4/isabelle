@@ -106,12 +106,6 @@ lemma sum_norm_bound:
   using sum_norm_le[OF K] sum_constant[symmetric]
   by simp
 
-lemma sum_group:
-  assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
-  shows "sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) T = sum g S"
-  unfolding sum_image_gen[OF fS, of g f]
-  by (auto intro: sum.neutral sum.mono_neutral_right[OF fT fST])
-
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
 proof
   assume "\<forall>x. x \<bullet> y = x \<bullet> z"

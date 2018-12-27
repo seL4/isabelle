@@ -439,6 +439,25 @@ lemma swap_restrict:
     F (\<lambda>x. F (g x) {y. y \<in> B \<and> R x y}) A = F (\<lambda>y. F (\<lambda>x. g x y) {x. x \<in> A \<and> R x y}) B"
   by (simp add: inter_filter) (rule swap)
 
+lemma image_gen:
+  assumes fin: "finite S"
+  shows "F h S = F (\<lambda>y. F h {x. x \<in> S \<and> g x = y}) (g ` S)"
+proof -
+  have "{y. y\<in> g`S \<and> g x = y} = {g x}" if "x \<in> S" for x
+    using that by auto
+  then have "F h S = F (\<lambda>x. F (\<lambda>y. h x) {y. y\<in> g`S \<and> g x = y}) S"
+    by simp
+  also have "\<dots> = F (\<lambda>y. F h {x. x \<in> S \<and> g x = y}) (g ` S)"
+    by (rule swap_restrict [OF fin finite_imageI [OF fin]])
+  finally show ?thesis .
+qed
+
+lemma group:
+  assumes fS: "finite S" and fT: "finite T" and fST: "g ` S \<subseteq> T"
+  shows "F (\<lambda>y. F h {x. x \<in> S \<and> g x = y}) T = F h S"
+  unfolding image_gen[OF fS, of h g]
+  by (auto intro: neutral mono_neutral_right[OF fT fST])
+
 lemma Plus:
   fixes A :: "'b set" and B :: "'c set"
   assumes fin: "finite A" "finite B"
@@ -533,21 +552,6 @@ let
     | sum_tr' _ = raise Match;
 in [(@{const_syntax sum}, K sum_tr')] end
 \<close>
-
-(* TODO generalization candidates *)
-
-lemma (in comm_monoid_add) sum_image_gen:
-  assumes fin: "finite S"
-  shows "sum g S = sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-proof -
-  have "{y. y\<in> f`S \<and> f x = y} = {f x}" if "x \<in> S" for x
-    using that by auto
-  then have "sum g S = sum (\<lambda>x. sum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
-    by simp
-  also have "\<dots> = sum (\<lambda>y. sum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-    by (rule sum.swap_restrict [OF fin finite_imageI [OF fin]])
-  finally show ?thesis .
-qed
 
 
 subsubsection \<open>Properties in more restricted classes of structures\<close>
@@ -756,7 +760,7 @@ proof -
   also have "\<dots> \<le> sum (\<lambda>y. sum g {x. x\<in>t \<and> i x = y}) (i ` t)"
     using assms(2-4) by (auto intro!: sum_mono2 sum_nonneg)
   also have "\<dots> \<le> sum g t"
-    using assms by (auto simp: sum_image_gen[symmetric])
+    using assms by (auto simp: sum.image_gen[symmetric])
   finally show ?thesis .
 qed
 
