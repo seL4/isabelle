@@ -39,7 +39,7 @@ object Dump
     override def toString: String = name
   }
 
-  val known_aspects =
+  val known_aspects: List[Aspect] =
     List(
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
