@@ -39,7 +39,7 @@ object Dump
     override def toString: String = name
   }
 
-  val known_aspects =
+  val known_aspects: List[Aspect] =
     List(
       Aspect("markup", "PIDE markup (YXML format)",
         { case args =>
@@ -73,43 +73,22 @@ object Dump
       error("Unknown aspect " + quote(name))
 
 
-  /* dump */
+  /* session */
 
-  val default_output_dir: Path = Path.explode("dump")
-
-  def make_options(options: Options, aspects: List[Aspect]): Options =
-  {
-    val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
-    val options1 =
-      options0 + "completion_limit=0" + "ML_statistics=false" +
-        "parallel_proofs=0" + "editor_tracing_messages=0"
-    (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
-  }
-
-  def dump(options: Options, logic: String,
-    aspects: List[Aspect] = Nil,
+  def session(dump_options: Options, logic: String,
+    consume: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
     progress: Progress = No_Progress,
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    output_dir: Path = default_output_dir,
-    verbose: Boolean = false,
-    commit_cleanup_delay: Time = Headless.default_commit_cleanup_delay,
-    watchdog_timeout: Time = Headless.default_watchdog_timeout,
     system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
   {
-    if (Build.build_logic(options, logic, build_heap = true, progress = progress,
-      dirs = dirs ::: select_dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
-
-    val dump_options = make_options(options, aspects)
-
-
     /* dependencies */
 
     val deps =
       Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(selection)
+        selection_deps(dump_options, selection, uniform_session = true, loading_sessions = true)
 
     val include_sessions =
       deps.sessions_structure.imports_topological_order
@@ -130,11 +109,7 @@ object Dump
           consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
             {
               val (snapshot, node_status) = args
-              if (node_status.ok) {
-                val aspect_args =
-                  Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
-                aspects.foreach(_.operation(aspect_args))
-              }
+              if (node_status.ok) consume(deps, snapshot, node_status)
               else {
                 consumer_ok.change(_ => false)
                 for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
@@ -156,18 +131,14 @@ object Dump
     }
 
 
-    /* session */
+    /* run session */
 
     val session =
       Headless.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
         include_sessions = include_sessions, progress = progress, log = log)
 
     val use_theories_result =
-      session.use_theories(use_theories,
-        progress = progress,
-        commit = Some(Consumer.apply _),
-        commit_cleanup_delay = commit_cleanup_delay,
-        watchdog_timeout = watchdog_timeout)
+      session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
 
     session.stop()
 
@@ -182,6 +153,48 @@ object Dump
   }
 
 
+  /* dump */
+
+  val default_output_dir: Path = Path.explode("dump")
+
+  def make_options(options: Options, aspects: List[Aspect] = Nil): Options =
+  {
+    val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
+    val options1 =
+      options0 + "completion_limit=0" + "ML_statistics=false" +
+        "parallel_proofs=0" + "editor_tracing_messages=0"
+    (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
+  }
+
+  def dump(options: Options, logic: String,
+    aspects: List[Aspect] = Nil,
+    progress: Progress = No_Progress,
+    log: Logger = No_Logger,
+    dirs: List[Path] = Nil,
+    select_dirs: List[Path] = Nil,
+    output_dir: Path = default_output_dir,
+    system_mode: Boolean = false,
+    selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
+  {
+    if (Build.build_logic(options, logic, build_heap = true, progress = progress,
+      dirs = dirs ::: select_dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
+
+    val dump_options = make_options(options, aspects)
+
+    def consume(
+      deps: Sessions.Deps,
+      snapshot: Document.Snapshot,
+      node_status: Document_Status.Node_Status)
+    {
+      val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
+      aspects.foreach(_.operation(aspect_args))
+    }
+
+    session(dump_options, logic, consume _,
+      progress = progress, log = log, dirs = dirs, select_dirs = select_dirs, selection = selection)
+  }
+
+
   /* Isabelle tool wrapper */
 
   val isabelle_tool =
@@ -189,11 +202,9 @@ object Dump
     {
       var aspects: List[Aspect] = known_aspects
       var base_sessions: List[String] = Nil
-      var commit_cleanup_delay = Headless.default_commit_cleanup_delay
       var select_dirs: List[Path] = Nil
       var output_dir = default_output_dir
       var requirements = false
-      var watchdog_timeout = Headless.default_watchdog_timeout
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
       var dirs: List[Path] = Nil
@@ -210,13 +221,9 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
   Options are:
     -A NAMES     dump named aspects (default: """ + known_aspects.mkString("\"", ",", "\"") + """)
     -B NAME      include session NAME and all descendants
-    -C SECONDS   delay for cleaning of already dumped theories (0 = disabled, default: """ +
-      Value.Seconds(Headless.default_commit_cleanup_delay) + """)
     -D DIR       include session directory and select its sessions
     -O DIR       output directory for dumped files (default: """ + default_output_dir + """)
     -R           operate on requirements of selected sessions
-    -W SECONDS   watchdog timeout for PIDE processing (0 = disabled, default: """ +
-      Value.Seconds(Headless.default_watchdog_timeout) + """)
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
@@ -232,11 +239,9 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 """ + Library.prefix_lines("    ", show_aspects) + "\n",
       "A:" -> (arg => aspects = Library.distinct(space_explode(',', arg)).map(the_aspect(_))),
       "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
-      "C:" -> (arg => commit_cleanup_delay = Value.Seconds.parse(arg)),
       "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
       "O:" -> (arg => output_dir = Path.explode(arg)),
       "R" -> (_ => requirements = true),
-      "W:" -> (arg => watchdog_timeout = Value.Seconds.parse(arg)),
       "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
       "a" -> (_ => all_sessions = true),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
@@ -259,9 +264,6 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
             dirs = dirs,
             select_dirs = select_dirs,
             output_dir = output_dir,
-            commit_cleanup_delay = commit_cleanup_delay,
-            watchdog_timeout = watchdog_timeout,
-            verbose = verbose,
             selection = Sessions.Selection(
               requirements = requirements,
               all_sessions = all_sessions,

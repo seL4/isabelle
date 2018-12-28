@@ -101,7 +101,7 @@ object Imports
   {
     val deps =
       Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(selection, progress = progress, verbose = verbose).check_errors
+        selection_deps(options, selection, progress = progress, verbose = verbose).check_errors
 
     val root_keywords = Sessions.root_syntax.keywords
 

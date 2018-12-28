@@ -144,7 +144,7 @@ public option ML_process_policy : string = ""
   -- "ML process command prefix (process policy)"
 
 
-section "Editor Reactivity"
+section "Editor Session"
 
 public option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
@@ -193,6 +193,24 @@ option editor_syslog_limit : int = 100
 
 public option editor_presentation : bool = false
   -- "dynamic presentation while editing"
+
+
+section "Headless Session"
+
+option headless_check_delay : real = 0.5
+  -- "delay for theory status check during PIDE processing (seconds)"
+
+option headless_check_limit : int = 0
+  -- "maximum number of theory status checks (0 = unlimited)"
+
+option headless_nodes_status_delay : real = -1
+  -- "delay for overall nodes status check during PIDE processing (seconds, disabled for < 0)"
+
+option headless_watchdog_timeout : real = 600
+  -- "watchdog timeout for PIDE processing of broken theories (seconds, 0 = disabled)"
+
+option headless_commit_cleanup_delay : real = 60
+  -- "delay for cleanup of already imported theories (seconds, 0 = disabled)"
 
 
 section "Miscellaneous Tools"
