@@ -88,7 +88,7 @@ object Dump
 
     val deps =
       Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(selection)
+        selection_deps(dump_options, selection, uniform_session = true, loading_sessions = true)
 
     val include_sessions =
       deps.sessions_structure.imports_topological_order

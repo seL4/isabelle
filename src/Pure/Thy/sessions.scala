@@ -660,6 +660,8 @@ object Sessions
       val build_graph: Graph[String, Info],
       val imports_graph: Graph[String, Info])
   {
+    sessions_structure =>
+
     def build_graph_display: Graph_Display.Graph = Graph_Display.make_graph(build_graph)
     def imports_graph_display: Graph_Display.Graph = Graph_Display.make_graph(imports_graph)
 
@@ -737,13 +739,48 @@ object Sessions
       new Structure(restrict(build_graph), restrict(imports_graph))
     }
 
-    def selection_deps(sel: Selection,
+    def selection_deps(
+      options: Options,
+      selection: Selection,
       progress: Progress = No_Progress,
+      uniform_session: Boolean = false,
+      loading_sessions: Boolean = false,
       inlined_files: Boolean = false,
       verbose: Boolean = false): Deps =
     {
-      Sessions.deps(selection(sel), global_theories,
-        progress = progress, inlined_files = inlined_files, verbose = verbose)
+      val selection1 =
+        if (uniform_session) {
+          val sessions_structure1 = sessions_structure.selection(selection)
+
+          val default_record_proofs = options.int("record_proofs")
+          val sessions_record_proofs =
+            for {
+              name <- sessions_structure1.build_topological_order
+              info <- sessions_structure1.get(name)
+              if info.options.int("record_proofs") > default_record_proofs
+            } yield name
+
+          val excluded =
+            for (name <- sessions_structure1.build_descendants(sessions_record_proofs))
+            yield {
+              progress.echo_warning("Skipping session " + name + "  (option record_proofs)")
+              name
+            }
+
+          selection.copy(exclude_sessions = excluded ::: selection.exclude_sessions)
+        }
+        else selection
+
+      val deps =
+        Sessions.deps(sessions_structure.selection(selection1), global_theories,
+          progress = progress, inlined_files = inlined_files, verbose = verbose)
+
+      if (loading_sessions) {
+        val selection_size = deps.sessions_structure.build_graph.size
+        if (selection_size > 1) progress.echo("Loading " + selection_size + " sessions ...")
+      }
+
+      deps
     }
 
     def build_selection(sel: Selection): List[String] = selected(build_graph, sel)
