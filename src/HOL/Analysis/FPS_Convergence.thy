@@ -5,7 +5,8 @@
   Connection of formal power series and actual convergent power series on Banach spaces
   (most notably the complex numbers).
 *)
-section \<open>Convergence of formal power series\<close>
+section \<open>Convergence of Formal Power Series\<close>
+
 theory FPS_Convergence
 imports
   Conformal_Mappings

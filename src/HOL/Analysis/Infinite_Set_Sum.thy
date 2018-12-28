@@ -4,7 +4,8 @@
 
   A theory of sums over possible infinite sets. (Only works for absolute summability)
 *)
-section \<open>Sums over infinite sets\<close>
+section \<open>Sums over Infinite Sets\<close>
+
 theory Infinite_Set_Sum
   imports Set_Integral
 begin

@@ -1,4 +1,4 @@
-section \<open>The Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
+section \<open>Bernstein-Weierstrass and Stone-Weierstrass\<close>
 
 text\<open>By L C Paulson (2015)\<close>
 

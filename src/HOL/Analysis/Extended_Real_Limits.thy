@@ -5,7 +5,7 @@
     Author:     Bogdan Grechuk, University of Edinburgh
 *)
 
-section%important \<open>Limits on the Extended real number line\<close> (* TO FIX: perhaps put all Nonstandard Analysis related
+section%important \<open>Limits on the Extended Real Number Line\<close> (* TO FIX: perhaps put all Nonstandard Analysis related
 topics together? *)
 
 theory Extended_Real_Limits

@@ -2,11 +2,10 @@
     Authors:    LC Paulson, based on material from HOL Light
 *)
 
-section \<open>Arcwise-connected sets\<close>
+section \<open>Arcwise-Connected Sets\<close>
 
 theory Arcwise_Connected
-  imports Path_Connected Ordered_Euclidean_Space "HOL-Computational_Algebra.Primes"
-
+imports Path_Connected Ordered_Euclidean_Space "HOL-Computational_Algebra.Primes"
 begin
 
 subsection%important \<open>The Brouwer reduction theorem\<close>

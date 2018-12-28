@@ -2,7 +2,7 @@
     Ported from "hol_light/Multivariate/complexes.ml" by L C Paulson
 *)
 
-section%important \<open>polynomial functions: extremal behaviour and root counts\<close>
+section%important \<open>Polynomial Functions: Extremal Behaviour and Root Counts\<close>
 
 theory Poly_Roots
 imports Complex_Main

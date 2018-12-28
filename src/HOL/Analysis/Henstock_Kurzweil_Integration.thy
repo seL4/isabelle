@@ -3,11 +3,12 @@
                 Huge cleanup by LCP
 *)
 
-section \<open>Henstock-Kurzweil gauge integration in many dimensions\<close>
+section \<open>Henstock-Kurzweil Gauge Integration in Many Dimensions\<close>
 
 theory Henstock_Kurzweil_Integration
 imports
-  Lebesgue_Measure Tagged_Division
+  Lebesgue_Measure
+  Tagged_Division
 begin
 
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>

@@ -4,7 +4,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section \<open>Measure spaces and their properties\<close>
+section \<open>Measure Spaces\<close>
 
 theory Measure_Space
 imports

@@ -5,10 +5,15 @@
     Author:     Luke Serafin
 *)
 
-section \<open>Lebesgue measure\<close>
+section \<open>Lebesgue Measure\<close>
 
 theory Lebesgue_Measure
-  imports Finite_Product_Measure Bochner_Integration Caratheodory Complete_Measure Summation_Tests Regularity
+imports
+  Finite_Product_Measure
+  Caratheodory
+  Complete_Measure
+  Summation_Tests
+  Regularity
 begin
 
 lemma measure_eqI_lessThan:

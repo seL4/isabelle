@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section%important \<open>Radon-Nikod{\'y}m derivative\<close>
+section%important \<open>Radon-Nikod{\'y}m Derivative\<close>
 
 theory Radon_Nikodym
 imports Bochner_Integration

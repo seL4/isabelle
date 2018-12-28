@@ -2,9 +2,10 @@
     Author:     Sébastien Gouëzel   sebastien.gouezel@univ-rennes1.fr
     Author:     Fabian Immler, TU München
 *)
-section \<open>Lipschitz continuity\<close>
+section \<open>Lipschitz Continuity\<close>
+
 theory Lipschitz
-  imports Borel_Space
+imports Borel_Space
 begin
 
 definition%important lipschitz_on

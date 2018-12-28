@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section%important \<open>Borel spaces\<close>
+section%important \<open>Borel Space\<close>
 
 theory Borel_Space
 imports

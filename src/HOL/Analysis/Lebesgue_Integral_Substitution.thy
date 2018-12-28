@@ -6,7 +6,7 @@
     This could probably be weakened somehow.
 *)
 
-section \<open>Integration by Substition for the Lebesgue integral\<close>
+section \<open>Integration by Substition for the Lebesgue Integral\<close>
 
 theory Lebesgue_Integral_Substitution
 imports Interval_Integral

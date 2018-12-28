@@ -3,7 +3,7 @@
    Author:   Manuel Eberl, TU München
 *)
 
-section \<open>The volume of an $n$-dimensional ball\<close>
+section \<open>The Volume of an $n$-Dimensional Ball\<close>
 
 theory Ball_Volume
   imports Gamma_Function Lebesgue_Integral_Substitution

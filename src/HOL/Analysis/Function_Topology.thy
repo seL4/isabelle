@@ -7,7 +7,7 @@ imports Topology_Euclidean_Space Bounded_Linear_Function Finite_Product_Measure
 begin
 
 
-section%important \<open>Product topology\<close>
+section%important \<open>Product Topology\<close>
 
 text \<open>We want to define the product topology.
 

@@ -2,7 +2,7 @@
     Author:     Robert Himmelmann, TU Muenchen (translation from HOL light)
 *)
 
-section%important \<open>Fashoda meet theorem\<close>
+section%important \<open>Fashoda Meet Theorem\<close>
 
 theory Fashoda_Theorem
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space

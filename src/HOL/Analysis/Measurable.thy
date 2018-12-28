@@ -1,7 +1,7 @@
 (*  Title:      HOL/Analysis/Measurable.thy
     Author:     Johannes Hölzl <hoelzl@in.tum.de>
 *)
-section \<open>Measurability prover\<close>
+section \<open>Measurability Prover\<close>
 theory Measurable
   imports
     Sigma_Algebra

@@ -2,7 +2,7 @@
     Authors:    LC Paulson and Robert Himmelmann (TU Muenchen), based on material from HOL Light
 *)
 
-section \<open>Continuous paths and path-connected sets\<close>
+section \<open>Continuous Paths and Path-Connected Sets\<close>
 
 theory Path_Connected
   imports Continuous_Extension Continuum_Not_Denumerable
@@ -2530,7 +2530,7 @@ lemma cobounded_has_bounded_component:
   by (meson cobounded_unique_unbounded_components connected_eq_connected_components_eq assms)
 
 
-section\<open>The \<open>inside\<close> and \<open>outside\<close> of a set\<close>
+section\<open>The \<open>inside\<close> and \<open>outside\<close> of a Set\<close>
 
 text%important\<open>The inside comprises the points in a bounded connected component of the set's complement.
   The outside comprises the points in unbounded connected component of the complement.\<close>

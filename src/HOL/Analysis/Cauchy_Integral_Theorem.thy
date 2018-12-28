@@ -1,4 +1,4 @@
-section \<open>Complex path integrals and Cauchy's integral theorem\<close>
+section \<open>Complex Path Integrals and Cauchy's Integral Theorem\<close>
 
 text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 

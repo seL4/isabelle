@@ -5,9 +5,10 @@
    The content of an n-dimensional simplex, including the formula for the content of a
    triangle and Heron's formula.
 *)
-section%important \<open>Volume of a simplex\<close>
+section%important \<open>Volume of a Simplex\<close>
+
 theory Simplex_Content
-  imports Change_Of_Vars
+imports Change_Of_Vars
 begin
 
 lemma fact_neq_top_ennreal [simp]: "fact n \<noteq> (top :: ennreal)"

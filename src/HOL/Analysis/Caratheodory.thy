@@ -6,7 +6,7 @@
 section%important \<open>Caratheodory Extension Theorem\<close>
 
 theory Caratheodory
-  imports Measure_Space
+imports Measure_Space
 begin
 
 text \<open>
