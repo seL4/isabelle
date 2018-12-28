@@ -297,10 +297,9 @@ proposition Urysohn:
   using assms by (auto intro: Urysohn_local [of UNIV S T a b])
 
 
-subsection\<open>The Dugundji Extension Theorem and Tietze Variants\<close>
+subsection\<open>Dugundji's Extension Theorem and Tietze Variants\<close>
 
-text%important\<open>J. Dugundji. An extension of Tietze's theorem. Pacific J. Math. Volume 1, Number 3 (1951), 353-367.
-https://projecteuclid.org/euclid.pjm/1103052106\<close>
+text \<open>See \cite{dugundji}.\<close>
 
 theorem Dugundji:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
@@ -488,7 +487,7 @@ corollary Tietze:
   using assms
 by (auto simp: image_subset_iff intro: Dugundji [of "cball 0 B" U S f])
 
-corollary Tietze_closed_interval:
+corollary%unimportant Tietze_closed_interval:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
       and "closedin (subtopology euclidean U) S"
@@ -499,7 +498,7 @@ corollary Tietze_closed_interval:
 apply (rule Dugundji [of "cbox a b" U S f])
 using assms by auto
 
-corollary Tietze_closed_interval_1:
+corollary%unimportant Tietze_closed_interval_1:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "continuous_on S f"
       and "closedin (subtopology euclidean U) S"
@@ -510,7 +509,7 @@ corollary Tietze_closed_interval_1:
 apply (rule Dugundji [of "cbox a b" U S f])
 using assms by (auto simp: image_subset_iff)
 
-corollary Tietze_open_interval:
+corollary%unimportant Tietze_open_interval:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "continuous_on S f"
       and "closedin (subtopology euclidean U) S"
@@ -521,7 +520,7 @@ corollary Tietze_open_interval:
 apply (rule Dugundji [of "box a b" U S f])
 using assms by auto
 
-corollary Tietze_open_interval_1:
+corollary%unimportant Tietze_open_interval_1:
   fixes f :: "'a::euclidean_space \<Rightarrow> real"
   assumes "continuous_on S f"
       and "closedin (subtopology euclidean U) S"
@@ -532,7 +531,7 @@ corollary Tietze_open_interval_1:
 apply (rule Dugundji [of "box a b" U S f])
 using assms by (auto simp: image_subset_iff)
 
-corollary Tietze_unbounded:
+corollary%unimportant Tietze_unbounded:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
   assumes "continuous_on S f"
       and "closedin (subtopology euclidean U) S"

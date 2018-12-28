@@ -3519,7 +3519,7 @@ lemma homeomorphism_symD: "homeomorphism S t f g \<Longrightarrow> homeomorphism
 lemma homeomorphism_sym: "homeomorphism S t f g = homeomorphism t S g f"
   by (force simp: homeomorphism_def)
 
-definition homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
+definition%important homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60)
   where "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 

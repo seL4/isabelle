@@ -6,10 +6,10 @@
    Author:     Johannes Hoelzl, TU Muenchen
 *)
 
-section \<open>Line segments, Starlike Sets, etc\<close>
+section \<open>Line Segments\<close>
 
 theory Starlike
-  imports Convex_Euclidean_Space
+imports Convex_Euclidean_Space
 begin
 
 subsection \<open>Midpoint\<close>

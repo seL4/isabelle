@@ -3,7 +3,7 @@
     Author:     Brian Huffman
 *)
 
-section%important \<open>Operator Norm\<close>
+section \<open>Operator Norm\<close>
 
 theory Operator_Norm
 imports Complex_Main
@@ -11,14 +11,15 @@ begin
 
 text \<open>This formulation yields zero if \<open>'a\<close> is the trivial vector space.\<close>
 
-definition%important onorm :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> real"
-  where "onorm f = (SUP x. norm (f x) / norm x)"
+definition%important
+onorm :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> real" where
+"onorm f = (SUP x. norm (f x) / norm x)"
 
-lemma%important onorm_bound:
+proposition onorm_bound:
   assumes "0 \<le> b" and "\<And>x. norm (f x) \<le> b * norm x"
   shows "onorm f \<le> b"
   unfolding onorm_def
-proof%unimportant (rule cSUP_least)
+proof (rule cSUP_least)
   fix x
   show "norm (f x) / norm x \<le> b"
     using assms by (cases "x = 0") (simp_all add: pos_divide_le_eq)
@@ -26,11 +27,11 @@ qed simp
 
 text \<open>In non-trivial vector spaces, the first assumption is redundant.\<close>
 
-lemma%important onorm_le:
+lemma onorm_le:
   fixes f :: "'a::{real_normed_vector, perfect_space} \<Rightarrow> 'b::real_normed_vector"
   assumes "\<And>x. norm (f x) \<le> b * norm x"
   shows "onorm f \<le> b"
-proof%unimportant (rule onorm_bound [OF _ assms])
+proof (rule onorm_bound [OF _ assms])
   have "{0::'a} \<noteq> UNIV" by (metis not_open_singleton open_UNIV)
   then obtain a :: 'a where "a \<noteq> 0" by fast
   have "0 \<le> b * norm a"
@@ -39,10 +40,10 @@ proof%unimportant (rule onorm_bound [OF _ assms])
     by (simp add: zero_le_mult_iff)
 qed
 
-lemma%important le_onorm:
+lemma le_onorm:
   assumes "bounded_linear f"
   shows "norm (f x) / norm x \<le> onorm f"
-proof%unimportant -
+proof -
   interpret f: bounded_linear f by fact
   obtain b where "0 \<le> b" and "\<forall>x. norm (f x) \<le> norm x * b"
     using f.nonneg_bounded by auto
@@ -55,10 +56,10 @@ proof%unimportant -
     unfolding onorm_def by (rule cSUP_upper)
 qed
 
-lemma%important onorm:
+lemma onorm:
   assumes "bounded_linear f"
   shows "norm (f x) \<le> onorm f * norm x"
-proof%unimportant -
+proof -
   interpret f: bounded_linear f by fact
   show ?thesis
   proof (cases)
@@ -73,12 +74,12 @@ proof%unimportant -
   qed
 qed
 
-lemma%unimportant onorm_pos_le:
+lemma onorm_pos_le:
   assumes f: "bounded_linear f"
   shows "0 \<le> onorm f"
   using le_onorm [OF f, where x=0] by simp
 
-lemma%unimportant onorm_zero: "onorm (\<lambda>x. 0) = 0"
+lemma onorm_zero: "onorm (\<lambda>x. 0) = 0"
 proof (rule order_antisym)
   show "onorm (\<lambda>x. 0) \<le> 0"
     by (simp add: onorm_bound)
@@ -86,20 +87,20 @@ proof (rule order_antisym)
     using bounded_linear_zero by (rule onorm_pos_le)
 qed
 
-lemma%unimportant onorm_eq_0:
+lemma onorm_eq_0:
   assumes f: "bounded_linear f"
   shows "onorm f = 0 \<longleftrightarrow> (\<forall>x. f x = 0)"
   using onorm [OF f] by (auto simp: fun_eq_iff [symmetric] onorm_zero)
 
-lemma%unimportant onorm_pos_lt:
+lemma onorm_pos_lt:
   assumes f: "bounded_linear f"
   shows "0 < onorm f \<longleftrightarrow> \<not> (\<forall>x. f x = 0)"
   by (simp add: less_le onorm_pos_le [OF f] onorm_eq_0 [OF f])
 
-lemma%unimportant onorm_id_le: "onorm (\<lambda>x. x) \<le> 1"
+lemma onorm_id_le: "onorm (\<lambda>x. x) \<le> 1"
   by (rule onorm_bound) simp_all
 
-lemma%unimportant onorm_id: "onorm (\<lambda>x. x::'a::{real_normed_vector, perfect_space}) = 1"
+lemma onorm_id: "onorm (\<lambda>x. x::'a::{real_normed_vector, perfect_space}) = 1"
 proof (rule antisym[OF onorm_id_le])
   have "{0::'a} \<noteq> UNIV" by (metis not_open_singleton open_UNIV)
   then obtain x :: 'a where "x \<noteq> 0" by fast
@@ -110,11 +111,11 @@ proof (rule antisym[OF onorm_id_le])
   finally show "1 \<le> onorm (\<lambda>x::'a. x)" .
 qed
 
-lemma%important onorm_compose:
+lemma onorm_compose:
   assumes f: "bounded_linear f"
   assumes g: "bounded_linear g"
   shows "onorm (f \<circ> g) \<le> onorm f * onorm g"
-proof%unimportant (rule onorm_bound)
+proof (rule onorm_bound)
   show "0 \<le> onorm f * onorm g"
     by (intro mult_nonneg_nonneg onorm_pos_le f g)
 next
@@ -127,7 +128,7 @@ next
     by (simp add: mult.assoc)
 qed
 
-lemma%unimportant onorm_scaleR_lemma:
+lemma onorm_scaleR_lemma:
   assumes f: "bounded_linear f"
   shows "onorm (\<lambda>x. r *\<^sub>R f x) \<le> \<bar>r\<bar> * onorm f"
 proof (rule onorm_bound)
@@ -141,10 +142,10 @@ next
     by (simp only: norm_scaleR mult.assoc)
 qed
 
-lemma%important onorm_scaleR:
+lemma onorm_scaleR:
   assumes f: "bounded_linear f"
   shows "onorm (\<lambda>x. r *\<^sub>R f x) = \<bar>r\<bar> * onorm f"
-proof%unimportant (cases "r = 0")
+proof (cases "r = 0")
   assume "r \<noteq> 0"
   show ?thesis
   proof (rule order_antisym)
@@ -160,7 +161,7 @@ proof%unimportant (cases "r = 0")
   qed
 qed (simp add: onorm_zero)
 
-lemma%unimportant onorm_scaleR_left_lemma:
+lemma onorm_scaleR_left_lemma:
   assumes r: "bounded_linear r"
   shows "onorm (\<lambda>x. r x *\<^sub>R f) \<le> onorm r * norm f"
 proof (rule onorm_bound)
@@ -173,10 +174,10 @@ proof (rule onorm_bound)
     by (simp add: ac_simps)
 qed (intro mult_nonneg_nonneg norm_ge_zero onorm_pos_le r)
 
-lemma%important onorm_scaleR_left:
+lemma onorm_scaleR_left:
   assumes f: "bounded_linear r"
   shows "onorm (\<lambda>x. r x *\<^sub>R f) = onorm r * norm f"
-proof%unimportant (cases "f = 0")
+proof (cases "f = 0")
   assume "f \<noteq> 0"
   show ?thesis
   proof (rule order_antisym)
@@ -200,15 +201,15 @@ proof%unimportant (cases "f = 0")
   qed
 qed (simp add: onorm_zero)
 
-lemma%unimportant onorm_neg:
+lemma onorm_neg:
   shows "onorm (\<lambda>x. - f x) = onorm f"
   unfolding onorm_def by simp
 
-lemma%important onorm_triangle:
+lemma onorm_triangle:
   assumes f: "bounded_linear f"
   assumes g: "bounded_linear g"
   shows "onorm (\<lambda>x. f x + g x) \<le> onorm f + onorm g"
-proof%unimportant (rule onorm_bound)
+proof (rule onorm_bound)
   show "0 \<le> onorm f + onorm g"
     by (intro add_nonneg_nonneg onorm_pos_le f g)
 next
@@ -221,26 +222,26 @@ next
     by (simp only: distrib_right)
 qed
 
-lemma%important onorm_triangle_le:
+lemma onorm_triangle_le:
   assumes "bounded_linear f"
   assumes "bounded_linear g"
   assumes "onorm f + onorm g \<le> e"
   shows "onorm (\<lambda>x. f x + g x) \<le> e"
-  using%unimportant assms by%unimportant (rule onorm_triangle [THEN order_trans])
+  using assms by (rule onorm_triangle [THEN order_trans])
 
-lemma%unimportant onorm_triangle_lt:
+lemma onorm_triangle_lt:
   assumes "bounded_linear f"
   assumes "bounded_linear g"
   assumes "onorm f + onorm g < e"
   shows "onorm (\<lambda>x. f x + g x) < e"
   using assms by (rule onorm_triangle [THEN order_le_less_trans])
 
-lemma%important onorm_sum:
+lemma onorm_sum:
   assumes "finite S"
   assumes "\<And>s. s \<in> S \<Longrightarrow> bounded_linear (f s)"
   shows "onorm (\<lambda>x. sum (\<lambda>s. f s x) S) \<le> sum (\<lambda>s. onorm (f s)) S"
-  using%unimportant assms
-  by%unimportant (induction) (auto simp: onorm_zero intro!: onorm_triangle_le bounded_linear_sum)
+  using assms
+  by (induction) (auto simp: onorm_zero intro!: onorm_triangle_le bounded_linear_sum)
 
 lemmas onorm_sum_le = onorm_sum[THEN order_trans]
 

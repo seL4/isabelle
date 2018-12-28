@@ -6,7 +6,7 @@
    Author:     Johannes Hoelzl, TU Muenchen
 *)
 
-section \<open>Convex sets, functions and related things\<close>
+section \<open>Convex Sets and Functions\<close>
 
 theory Convex_Euclidean_Space
 imports

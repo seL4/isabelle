@@ -69,6 +69,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     Analysis
   document_files
     "root.tex"
+    "root.bib"
 
 session "HOL-Analysis-ex" in "Analysis/ex" = "HOL-Analysis" +
   theories

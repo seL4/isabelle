@@ -2,7 +2,7 @@
     Authors:    LC Paulson and Robert Himmelmann (TU Muenchen), based on material from HOL Light
 *)
 
-section \<open>Continuous Paths and Path-Connected Sets\<close>
+section \<open>Continuous Paths\<close>
 
 theory Path_Connected
   imports Continuous_Extension Continuum_Not_Denumerable
@@ -759,7 +759,7 @@ lemma path_image_sym:
 by (simp add: path_image_join sup_commute)
 
 
-section\<open>Choosing a subpath of an existing path\<close>
+subsection\<open>Subpath\<close>
 
 definition%important subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
   where "subpath a b g \<equiv> \<lambda>x. g((b - a) * x + a)"
@@ -1421,16 +1421,17 @@ proof -
     by (rule_tac x="e/2" in exI) auto
 qed
 
+section "Path-Connectedness" (* TODO: separate theory? *)
 
-section \<open>Path component\<close>
+subsection \<open>Path component\<close>
 
-text \<open>(by Tom Hales)\<close>
+text \<open>Original formalization by Tom Hales\<close>
 
 definition%important "path_component s x y \<longleftrightarrow>
   (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
 
 abbreviation%important
-   "path_component_set s x \<equiv> Collect (path_component s x)"
+  "path_component_set s x \<equiv> Collect (path_component s x)"
 
 lemmas path_defs = path_def pathstart_def pathfinish_def path_image_def path_component_def
 
@@ -3386,10 +3387,8 @@ next
 qed
 
 
-section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps\<close>
+section \<open>Homotopy of Maps\<close> (* TODO separate theory? *)
 
-text%important\<open> We often just want to require that it fixes some subset, but to take in
-  the case of a loop homotopy, it's convenient to have a general property P.\<close>
 
 definition%important homotopic_with ::
   "[('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> bool, 'a set, 'b set, 'a \<Rightarrow> 'b, 'a \<Rightarrow> 'b] \<Rightarrow> bool"
@@ -3403,7 +3402,11 @@ where
        (\<forall>t \<in> {0..1}. P(\<lambda>x. h(t, x))))"
 
 
-text\<open> We often want to just localize the ending function equality or whatever.\<close>
+text\<open>$p, q$ are functions $X \to Y$, and the property $P$ restricts all intermediate maps.
+We often just want to require that $P$ fixes some subset, but to include the case of a loop homotopy,
+it is convenient to have a general property $P$.\<close>
+
+text \<open>We often want to just localize the ending function equality or whatever.\<close>
 proposition homotopic_with:
   fixes X :: "'a::topological_space set" and Y :: "'b::topological_space set"
   assumes "\<And>h k. (\<And>x. x \<in> X \<Longrightarrow> h x = k x) \<Longrightarrow> (P h \<longleftrightarrow> P k)"
@@ -7463,7 +7466,7 @@ by (simp add: assms path_connected_imp_connected path_connected_open_diff_counta
 
 
 
-subsection\<open>Self-homeomorphisms shuffling points about\<close>
+subsection%unimportant \<open>Self-homeomorphisms shuffling points about\<close>
 
 subsubsection%unimportant\<open>The theorem \<open>homeomorphism_moving_points_exists\<close>\<close>
 
@@ -7595,7 +7598,7 @@ proof -
     done
 qed
 
-corollary homeomorphism_moving_point_2:
+corollary%unimportant homeomorphism_moving_point_2:
   fixes a :: "'a::euclidean_space"
   assumes "affine T" "a \<in> T" and u: "u \<in> ball a r \<inter> T" and v: "v \<in> ball a r \<inter> T"
   obtains f g where "homeomorphism (cball a r \<inter> T) (cball a r \<inter> T) f g"
@@ -7623,7 +7626,7 @@ proof -
 qed
 
 
-corollary homeomorphism_moving_point_3:
+corollary%unimportant homeomorphism_moving_point_3:
   fixes a :: "'a::euclidean_space"
   assumes "affine T" "a \<in> T" and ST: "ball a r \<inter> T \<subseteq> S" "S \<subseteq> T"
       and u: "u \<in> ball a r \<inter> T" and v: "v \<in> ball a r \<inter> T"
@@ -7701,7 +7704,7 @@ proof -
 qed
 
 
-proposition homeomorphism_moving_point:
+proposition%unimportant homeomorphism_moving_point:
   fixes a :: "'a::euclidean_space"
   assumes ope: "openin (subtopology euclidean (affine hull S)) S"
       and "S \<subseteq> T"
@@ -7857,7 +7860,7 @@ next
   qed
 qed
 
-proposition homeomorphism_moving_points_exists:
+proposition%unimportant homeomorphism_moving_points_exists:
   fixes S :: "'a::euclidean_space set"
   assumes 2: "2 \<le> DIM('a)" "open S" "connected S" "S \<subseteq> T" "finite K"
       and KS: "\<And>i. i \<in> K \<Longrightarrow> x i \<in> S \<and> y i \<in> S"
@@ -8123,7 +8126,7 @@ proof -
   qed
 qed
 
-proposition homeomorphism_grouping_points_exists:
+proposition%unimportant homeomorphism_grouping_points_exists:
   fixes S :: "'a::euclidean_space set"
   assumes "open U" "open S" "connected S" "U \<noteq> {}" "finite K" "K \<subseteq> S" "U \<subseteq> S" "S \<subseteq> T"
   obtains f g where "homeomorphism T T f g" "{x. (\<not> (f x = x \<and> g x = x))} \<subseteq> S"
@@ -8202,7 +8205,7 @@ next
 qed
 
 
-proposition homeomorphism_grouping_points_exists_gen:
+proposition%unimportant homeomorphism_grouping_points_exists_gen:
   fixes S :: "'a::euclidean_space set"
   assumes opeU: "openin (subtopology euclidean S) U"
       and opeS: "openin (subtopology euclidean (affine hull S)) S"
