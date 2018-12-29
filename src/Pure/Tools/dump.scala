@@ -55,14 +55,14 @@ object Dump
         { case args =>
             for (entry <- args.snapshot.exports if entry.name == "document.tex")
               args.write(Path.explode(entry.name), entry.uncompressed())
-        }, options = List("editor_presentation", "export_document")),
+        }, options = List("export_document")),
       Aspect("theory", "foundational theory content",
         { case args =>
             for {
               entry <- args.snapshot.exports
               if entry.name.startsWith(Export_Theory.export_prefix)
             } args.write(Path.explode(entry.name), entry.uncompressed())
-        }, options = List("editor_presentation", "export_theory"))
+        }, options = List("export_theory"))
     ).sortBy(_.name)
 
   def show_aspects: String =
@@ -161,7 +161,7 @@ object Dump
     val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
     val options1 =
       options0 + "completion_limit=0" + "ML_statistics=false" +
-        "parallel_proofs=0" + "editor_tracing_messages=0"
+        "parallel_proofs=0" + "editor_tracing_messages=0" + "editor_presentation"
     (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
   }
 
