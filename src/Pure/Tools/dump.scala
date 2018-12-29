@@ -88,14 +88,8 @@ object Dump
 
     val deps =
       Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(dump_options, selection, uniform_session = true, loading_sessions = true)
-
-    val include_sessions =
-      deps.sessions_structure.imports_topological_order
-
-    val use_theories =
-      for { (_, name) <- deps.used_theories_condition(dump_options, progress.echo_warning) }
-      yield name.theory
+        selection_deps(dump_options, selection, progress = progress,
+          uniform_session = true, loading_sessions = true)
 
 
     /* dump aspects asynchronously */
@@ -134,8 +128,13 @@ object Dump
     /* run session */
 
     val session =
-      Headless.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
-        include_sessions = include_sessions, progress = progress, log = log)
+      Headless.start_session(dump_options, logic, progress = progress, log = log,
+        session_dirs = dirs ::: select_dirs,
+        include_sessions = deps.sessions_structure.imports_topological_order)
+
+    val use_theories =
+      for { (_, name) <- deps.used_theories_condition(dump_options, progress.echo_warning) }
+      yield name.theory
 
     val use_theories_result =
       session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
