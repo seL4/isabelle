@@ -4979,7 +4979,7 @@ by simp
 
 subsection%unimportant\<open>Use set distance for an easy proof of separation properties\<close>
 
-proposition separation_closures:
+proposition%unimportant separation_closures:
   fixes S :: "'a::euclidean_space set"
   assumes "S \<inter> closure T = {}" "T \<inter> closure S = {}"
   obtains U V where "U \<inter> V = {}" "open U" "open V" "S \<subseteq> U" "T \<subseteq> V"
@@ -5525,7 +5525,7 @@ qed
 
 subsubsection%unimportant\<open>Representing affine hull as a finite intersection of hyperplanes\<close>
 
-proposition affine_hull_convex_Int_nonempty_interior:
+proposition%unimportant affine_hull_convex_Int_nonempty_interior:
   fixes S :: "'a::real_normed_vector set"
   assumes "convex S" "S \<inter> interior T \<noteq> {}"
     shows "affine hull (S \<inter> T) = affine hull S"
@@ -5696,7 +5696,7 @@ lemma aff_dim_halfspace_ge:
         (if a = 0 \<and> r > 0 then -1 else DIM('a))"
 using aff_dim_halfspace_le [of "-a" "-r"] by simp
 
-subsection%unimportant\<open>Properties of special hyperplanes\<close>
+subsection\<open>Properties of special hyperplanes\<close>
 
 lemma subspace_hyperplane: "subspace {x. a \<bullet> x = 0}"
   by (simp add: subspace_def inner_right_distrib)
@@ -5973,7 +5973,7 @@ qed
 
 subsection%unimportant\<open>General case without assuming closure and getting non-strict separation\<close>
 
-proposition separating_hyperplane_closed_point_inset:
+proposition%unimportant separating_hyperplane_closed_point_inset:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "closed S" "S \<noteq> {}" "z \<notin> S"
   obtains a b where "a \<in> S" "(a - z) \<bullet> z < b" "\<And>x. x \<in> S \<Longrightarrow> b < (a - z) \<bullet> x"
@@ -6010,7 +6010,7 @@ using separating_hyperplane_closed_point_inset [OF assms]
 by simp (metis \<open>0 \<notin> S\<close>)
 
 
-proposition separating_hyperplane_set_0_inspan:
+proposition%unimportant separating_hyperplane_set_0_inspan:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "S \<noteq> {}" "0 \<notin> S"
   obtains a where "a \<in> span S" "a \<noteq> 0" "\<And>x. x \<in> S \<Longrightarrow> 0 \<le> a \<bullet> x"
@@ -6101,7 +6101,7 @@ from separating_hyperplane_set_0_inspan [of "image (\<lambda>x. -z + x) S"]
     done
 qed
 
-proposition supporting_hyperplane_rel_boundary:
+proposition%unimportant supporting_hyperplane_rel_boundary:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "x \<in> S" and xno: "x \<notin> rel_interior S"
   obtains a where "a \<noteq> 0"
@@ -6204,7 +6204,7 @@ proof -
 qed
 
 
-proposition affine_hull_Int:
+proposition%unimportant affine_hull_Int:
   fixes s :: "'a::euclidean_space set"
   assumes "\<not> affine_dependent(s \<union> t)"
     shows "affine hull (s \<inter> t) = affine hull s \<inter> affine hull t"
@@ -6212,7 +6212,7 @@ apply (rule subset_antisym)
 apply (simp add: hull_mono)
 by (simp add: affine_hull_Int_subset assms)
 
-proposition convex_hull_Int:
+proposition%unimportant convex_hull_Int:
   fixes s :: "'a::euclidean_space set"
   assumes "\<not> affine_dependent(s \<union> t)"
     shows "convex hull (s \<inter> t) = convex hull s \<inter> convex hull t"
@@ -6220,7 +6220,7 @@ apply (rule subset_antisym)
 apply (simp add: hull_mono)
 by (simp add: convex_hull_Int_subset assms)
 
-proposition
+proposition%unimportant
   fixes s :: "'a::euclidean_space set set"
   assumes "\<not> affine_dependent (\<Union>s)"
     shows affine_hull_Inter: "affine hull (\<Inter>s) = (\<Inter>t\<in>s. affine hull t)" (is "?A")
@@ -6250,7 +6250,7 @@ proof -
     by auto
 qed
 
-proposition in_convex_hull_exchange_unique:
+proposition%unimportant in_convex_hull_exchange_unique:
   fixes S :: "'a::euclidean_space set"
   assumes naff: "\<not> affine_dependent S" and a: "a \<in> convex hull S"
       and S: "T \<subseteq> S" "T' \<subseteq> S"
@@ -6398,7 +6398,7 @@ next
   qed
 qed
 
-corollary convex_hull_exchange_Int:
+corollary%unimportant convex_hull_exchange_Int:
   fixes a  :: "'a::euclidean_space"
   assumes "\<not> affine_dependent S" "a \<in> convex hull S" "T \<subseteq> S" "T' \<subseteq> S"
   shows "(convex hull (insert a T)) \<inter> (convex hull (insert a T')) =
@@ -6551,7 +6551,7 @@ proof -
     by (simp add: subs) (metis (lifting) span_eq_iff subs)
 qed
 
-proposition affine_hyperplane_sums_eq_UNIV:
+proposition%unimportant affine_hyperplane_sums_eq_UNIV:
   fixes S :: "'a :: euclidean_space set"
   assumes "affine S"
       and "S \<inter> {v. a \<bullet> v = b} \<noteq> {}"
@@ -6786,7 +6786,7 @@ proof -
     by (rule_tac U=U in that) (auto simp: span_Un)
 qed
 
-corollary orthogonal_extension_strong:
+corollary%unimportant orthogonal_extension_strong:
   fixes S :: "'a::euclidean_space set"
   assumes S: "pairwise orthogonal S"
   obtains U where "U \<inter> (insert 0 S) = {}" "pairwise orthogonal (S \<union> U)"
@@ -6869,7 +6869,7 @@ proof -
 qed
 
 
-proposition orthogonal_to_subspace_exists_gen:
+proposition%unimportant orthogonal_to_subspace_exists_gen:
   fixes S :: "'a :: euclidean_space set"
   assumes "span S \<subset> span T"
   obtains x where "x \<noteq> 0" "x \<in> span T" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
@@ -6915,7 +6915,7 @@ proof -
   qed
 qed
 
-corollary orthogonal_to_subspace_exists:
+corollary%unimportant orthogonal_to_subspace_exists:
   fixes S :: "'a :: euclidean_space set"
   assumes "dim S < DIM('a)"
   obtains x where "x \<noteq> 0" "\<And>y. y \<in> span S \<Longrightarrow> orthogonal x y"
@@ -6927,7 +6927,7 @@ have "span S \<subset> UNIV"
     by (auto simp: span_UNIV)
 qed
 
-corollary orthogonal_to_vector_exists:
+corollary%unimportant orthogonal_to_vector_exists:
   fixes x :: "'a :: euclidean_space"
   assumes "2 \<le> DIM('a)"
   obtains y where "y \<noteq> 0" "orthogonal x y"
@@ -6938,9 +6938,12 @@ proof -
     by (rule orthogonal_to_subspace_exists) (simp add: orthogonal_commute span_base that)
 qed
 
-proposition orthogonal_subspace_decomp_exists:
+proposition%unimportant orthogonal_subspace_decomp_exists:
   fixes S :: "'a :: euclidean_space set"
-  obtains y z where "y \<in> span S" "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w" "x = y + z"
+  obtains y z
+  where "y \<in> span S"
+    and "\<And>w. w \<in> span S \<Longrightarrow> orthogonal z w"
+    and "x = y + z"
 proof -
   obtain T where "0 \<notin> T" "T \<subseteq> span S" "pairwise orthogonal T" "independent T"
     "card T = dim (span S)" "span T = span S"
@@ -7223,7 +7226,7 @@ proof -
     by force
 qed
 
-corollary dense_complement_affine:
+corollary%unimportant dense_complement_affine:
   fixes S :: "'a :: euclidean_space set"
   assumes less: "aff_dim T < aff_dim S" and "affine S" shows "closure(S - T) = S"
 proof (cases "S \<inter> T = {}")
@@ -7243,7 +7246,7 @@ next
     by (metis closure_translation translation_diff translation_invert)
 qed
 
-corollary dense_complement_openin_affine_hull:
+corollary%unimportant dense_complement_openin_affine_hull:
   fixes S :: "'a :: euclidean_space set"
   assumes less: "aff_dim T < aff_dim S"
       and ope: "openin (subtopology euclidean (affine hull S)) S"
@@ -7257,7 +7260,7 @@ proof -
     by (metis Int_Diff aff_dim_affine_hull affine_affine_hull dense_complement_affine hull_subset inf.orderE less)
 qed
 
-corollary dense_complement_convex:
+corollary%unimportant dense_complement_convex:
   fixes S :: "'a :: euclidean_space set"
   assumes "aff_dim T < aff_dim S" "convex S"
     shows "closure(S - T) = closure S"
@@ -7272,7 +7275,7 @@ proof
     by (metis Diff_mono \<open>convex S\<close> closure_mono convex_closure_rel_interior order_refl rel_interior_subset)
 qed
 
-corollary dense_complement_convex_closed:
+corollary%unimportant dense_complement_convex_closed:
   fixes S :: "'a :: euclidean_space set"
   assumes "aff_dim T < aff_dim S" "convex S" "closed S"
     shows "closure(S - T) = S"
@@ -7284,7 +7287,7 @@ subsection%unimportant\<open>Parallel slices, etc\<close>
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
   with the normal vector to the slice parallel to the affine hull.\<close>
 
-proposition affine_parallel_slice:
+proposition%unimportant affine_parallel_slice:
   fixes S :: "'a :: euclidean_space set"
   assumes "affine S"
       and "S \<inter> {x. a \<bullet> x \<le> b} \<noteq> {}"
@@ -7468,7 +7471,7 @@ next
     by (rule that)
 qed
 
-subsection\<open>Several Variants of Paracompactness\<close>
+subsection\<open>Paracompactness\<close>
 
 proposition paracompact:
   fixes S :: "'a :: euclidean_space set"
@@ -7602,7 +7605,7 @@ proof -
     qed
 qed
 
-corollary paracompact_closed:
+corollary%unimportant paracompact_closed:
   fixes S :: "'a :: euclidean_space set"
   assumes "closed S"
       and opC: "\<And>T. T \<in> \<C> \<Longrightarrow> open T"
@@ -7687,7 +7690,7 @@ qed
   
 subsection%unimportant\<open>The union of two collinear segments is another segment\<close>
 
-proposition in_convex_hull_exchange:
+proposition%unimportant in_convex_hull_exchange:
   fixes a :: "'a::euclidean_space"
   assumes a: "a \<in> convex hull S" and xS: "x \<in> convex hull S"
   obtains b where "b \<in> S" "x \<in> convex hull (insert a (S - {b}))"
@@ -7964,10 +7967,10 @@ qed
 
 subsection\<open>Orthogonal complement\<close>
 
-definition orthogonal_comp ("_\<^sup>\<bottom>" [80] 80)
+definition%important orthogonal_comp ("_\<^sup>\<bottom>" [80] 80)
   where "orthogonal_comp W \<equiv> {x. \<forall>y \<in> W. orthogonal y x}"
 
-lemma subspace_orthogonal_comp: "subspace (W\<^sup>\<bottom>)"
+proposition subspace_orthogonal_comp: "subspace (W\<^sup>\<bottom>)"
   unfolding subspace_def orthogonal_comp_def orthogonal_def
   by (auto simp: inner_right_distrib)
 
@@ -8002,7 +8005,7 @@ proof
     by (meson assms subsetCE subspace_add)
 qed
 
-lemma subspace_sum_orthogonal_comp:
+proposition subspace_sum_orthogonal_comp:
   fixes U :: "'a :: euclidean_space set"
   assumes "subspace U"
   shows "U + U\<^sup>\<bottom> = UNIV"
@@ -8080,7 +8083,7 @@ lemma ker_orthogonal_comp_adjoint:
   apply (simp add: adjoint_works assms(1) inner_commute)
   by (metis adjoint_works all_zero_iff assms(1) inner_commute)
 
-subsection\<open> A non-injective linear function maps into a hyperplane.\<close>
+subsection%unimportant \<open>A non-injective linear function maps into a hyperplane.\<close>
 
 lemma linear_surj_adj_imp_inj:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
@@ -8139,7 +8142,7 @@ next
     by (simp add: \<open>surj f\<close> adjoint_adjoint adjoint_linear assms linear_surj_adj_imp_inj)
 qed
 
-proposition linear_singular_into_hyperplane:
+lemma linear_singular_into_hyperplane:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "linear f"
   shows "\<not> inj f \<longleftrightarrow> (\<exists>a. a \<noteq> 0 \<and> (\<forall>x. a \<bullet> f x = 0))" (is "_ = ?rhs")

@@ -1749,7 +1749,7 @@ proof (rule ring_of_setsI)
     using emeasure_mono[of "a - b" a M] * by (auto simp: fmeasurable_def)
 qed
 
-subsection\<open>Measurable sets formed by unions and intersections\<close>
+subsection%unimportant\<open>Measurable sets formed by unions and intersections\<close>
 
 lemma fmeasurable_Diff: "A \<in> fmeasurable M \<Longrightarrow> B \<in> sets M \<Longrightarrow> A - B \<in> fmeasurable M"
   using fmeasurableI2[of A M "A - B"] by auto
