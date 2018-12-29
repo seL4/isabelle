@@ -17,7 +17,7 @@ object Dump
     deps: Sessions.Deps,
     output_dir: Path,
     snapshot: Document.Snapshot,
-    node_status: Document_Status.Node_Status)
+    status: Document_Status.Node_Status)
   {
     def write(file_name: Path, bytes: Bytes)
     {
@@ -55,14 +55,14 @@ object Dump
         { case args =>
             for (entry <- args.snapshot.exports if entry.name == "document.tex")
               args.write(Path.explode(entry.name), entry.uncompressed())
-        }, options = List("editor_presentation", "export_document")),
+        }, options = List("export_document")),
       Aspect("theory", "foundational theory content",
         { case args =>
             for {
               entry <- args.snapshot.exports
               if entry.name.startsWith(Export_Theory.export_prefix)
             } args.write(Path.explode(entry.name), entry.uncompressed())
-        }, options = List("editor_presentation", "export_theory"))
+        }, options = List("export_theory"))
     ).sortBy(_.name)
 
   def show_aspects: String =
@@ -73,83 +73,119 @@ object Dump
       error("Unknown aspect " + quote(name))
 
 
-  /* session */
+  /* dependencies */
 
-  def session(dump_options: Options, logic: String,
-    consume: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
+  def used_theories(options: Options, deps: Sessions.Deps, progress: Progress = No_Progress)
+    : List[Document.Node.Name] =
+  {
+    deps.used_theories_condition(options, progress.echo_warning).map(_._2)
+  }
+
+  def dependencies(
+    options: Options,
     progress: Progress = No_Progress,
-    log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    system_mode: Boolean = false,
-    selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
+    selection: Sessions.Selection = Sessions.Selection.empty)
+      : (Sessions.Deps, List[Document.Node.Name]) =
   {
-    /* dependencies */
-
     val deps =
-      Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(dump_options, selection, uniform_session = true, loading_sessions = true)
+      Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
+        selection_deps(options, selection, progress = progress,
+          uniform_session = true, loading_sessions = true)
 
-    val include_sessions =
-      deps.sessions_structure.imports_topological_order
+    val theories = used_theories(options, deps, progress = progress)
 
-    val use_theories =
-      for { (_, name) <- deps.used_theories_condition(dump_options, progress.echo_warning) }
-      yield name.theory
+    (deps, theories)
+  }
 
 
-    /* dump aspects asynchronously */
+  /* session */
+
+  def session(
+    deps: Sessions.Deps,
+    resources: Headless.Resources,
+    process_theory: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
+    progress: Progress = No_Progress)
+  {
+    /* asynchronous consumer */
 
     object Consumer
     {
-      private val consumer_ok = Synchronized(true)
+      sealed case class Bad_Theory(
+        name: Document.Node.Name,
+        status: Document_Status.Node_Status,
+        errors: List[String])
+
+      private val consumer_bad_theories = Synchronized(List.empty[Bad_Theory])
 
       private val consumer =
         Consumer_Thread.fork(name = "dump")(
           consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
             {
-              val (snapshot, node_status) = args
-              if (node_status.ok) consume(deps, snapshot, node_status)
-              else {
-                consumer_ok.change(_ => false)
-                for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
-                  val msg = XML.content(Pretty.formatted(List(tree)))
-                  progress.echo_error_message("Error" + Position.here(pos) + ":\n" + msg)
+              val (snapshot, status) = args
+              val name = snapshot.node_name
+              if (status.ok) {
+                try { process_theory(deps, snapshot, status) }
+                catch {
+                  case exn: Throwable if !Exn.is_interrupt(exn) =>
+                  val msg = Exn.message(exn)
+                  progress.echo("FAILED to process theory " + name)
+                  progress.echo_error_message(msg)
+                  consumer_bad_theories.change(Bad_Theory(name, status, List(msg)) :: _)
                 }
+              }
+              else {
+                val msgs =
+                  for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree))
+                  yield {
+                    "Error" + Position.here(pos) + ":\n" +
+                      XML.content(Pretty.formatted(List(tree)))
+                  }
+                progress.echo("FAILED to process theory " + name)
+                msgs.foreach(progress.echo_error_message)
+                consumer_bad_theories.change(Bad_Theory(name, status, msgs) :: _)
               }
               true
             })
 
-      def apply(snapshot: Document.Snapshot, node_status: Document_Status.Node_Status): Unit =
-        consumer.send((snapshot, node_status))
+      def apply(snapshot: Document.Snapshot, status: Document_Status.Node_Status): Unit =
+        consumer.send((snapshot, status))
 
-      def shutdown(): Boolean =
+      def shutdown(): List[Bad_Theory] =
       {
         consumer.shutdown()
-        consumer_ok.value
+        consumer_bad_theories.value.reverse
       }
     }
 
 
     /* run session */
 
-    val session =
-      Headless.start_session(dump_options, logic, session_dirs = dirs ::: select_dirs,
-        include_sessions = include_sessions, progress = progress, log = log)
+    val session = resources.start_session(progress = progress)
+    try {
+      val use_theories = used_theories(resources.options, deps).map(_.theory)
+      val use_theories_result =
+        session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
 
-    val use_theories_result =
-      session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
+      val bad_theories = Consumer.shutdown()
+      val bad_msgs =
+        bad_theories.map(bad =>
+          Output.clean_yxml(
+            "FAILED theory " + bad.name +
+              (if (bad.status.consolidated) "" else ": " + bad.status.percentage + "% finished") +
+              (if (bad.errors.isEmpty) "" else bad.errors.mkString("\n", "\n", ""))))
 
-    session.stop()
+      val pending_msgs =
+        use_theories_result.nodes_pending match {
+          case Nil => Nil
+          case pending => List("Pending theories: " + commas(pending.map(p => p._1.toString)))
+        }
 
-    val consumer_ok = Consumer.shutdown()
-
-    use_theories_result.nodes_pending match {
-      case Nil =>
-      case pending => error("Pending theories " + commas_quote(pending.map(p => p._1.toString)))
+      val errors = bad_msgs ::: pending_msgs
+      if (errors.nonEmpty) error(errors.mkString("\n\n"))
     }
-
-    use_theories_result.ok && consumer_ok
+    finally { session.stop() }
   }
 
 
@@ -162,7 +198,7 @@ object Dump
     val options0 = if (NUMA.enabled) NUMA.policy_options(options) else options
     val options1 =
       options0 + "completion_limit=0" + "ML_statistics=false" +
-        "parallel_proofs=0" + "editor_tracing_messages=0"
+        "parallel_proofs=0" + "editor_tracing_messages=0" + "editor_presentation"
     (options1 /: aspects)({ case (opts, aspect) => (opts /: aspect.options)(_ + _) })
   }
 
@@ -174,24 +210,29 @@ object Dump
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
     system_mode: Boolean = false,
-    selection: Sessions.Selection = Sessions.Selection.empty): Boolean =
+    selection: Sessions.Selection = Sessions.Selection.empty)
   {
     if (Build.build_logic(options, logic, build_heap = true, progress = progress,
       dirs = dirs ::: select_dirs, system_mode = system_mode) != 0) error(logic + " FAILED")
 
     val dump_options = make_options(options, aspects)
 
-    def consume(
-      deps: Sessions.Deps,
-      snapshot: Document.Snapshot,
-      node_status: Document_Status.Node_Status)
-    {
-      val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
-      aspects.foreach(_.operation(aspect_args))
-    }
+    val deps =
+      dependencies(dump_options, progress = progress,
+        dirs = dirs, select_dirs = select_dirs, selection = selection)._1
 
-    session(dump_options, logic, consume _,
-      progress = progress, log = log, dirs = dirs, select_dirs = select_dirs, selection = selection)
+    val resources =
+      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
+        session_dirs = dirs ::: select_dirs,
+        include_sessions = deps.sessions_structure.imports_topological_order)
+
+    session(deps, resources, progress = progress,
+      process_theory =
+        (deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status) =>
+        {
+          val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, status)
+          aspects.foreach(_.operation(aspect_args))
+        })
   }
 
 
@@ -256,24 +297,21 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val ok =
-        progress.interrupt_handler {
-          dump(options, logic,
-            aspects = aspects,
-            progress = progress,
-            dirs = dirs,
-            select_dirs = select_dirs,
-            output_dir = output_dir,
-            selection = Sessions.Selection(
-              requirements = requirements,
-              all_sessions = all_sessions,
-              base_sessions = base_sessions,
-              exclude_session_groups = exclude_session_groups,
-              exclude_sessions = exclude_sessions,
-              session_groups = session_groups,
-              sessions = sessions))
-        }
-
-      if (!ok) sys.exit(2)
+      progress.interrupt_handler {
+        dump(options, logic,
+          aspects = aspects,
+          progress = progress,
+          dirs = dirs,
+          select_dirs = select_dirs,
+          output_dir = output_dir,
+          selection = Sessions.Selection(
+            requirements = requirements,
+            all_sessions = all_sessions,
+            base_sessions = base_sessions,
+            exclude_session_groups = exclude_session_groups,
+            exclude_sessions = exclude_sessions,
+            session_groups = session_groups,
+            sessions = sessions))
+      }
     })
 }

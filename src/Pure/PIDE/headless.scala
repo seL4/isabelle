@@ -16,47 +16,6 @@ object Headless
 {
   /** session **/
 
-  def start_session(
-    options: Options,
-    session_name: String,
-    session_dirs: List[Path] = Nil,
-    include_sessions: List[String] = Nil,
-    session_base: Option[Sessions.Base] = None,
-    print_mode: List[String] = Nil,
-    progress: Progress = No_Progress,
-    log: Logger = No_Logger): Session =
-  {
-    val base =
-      session_base getOrElse
-        Sessions.base_info(options, session_name, include_sessions = include_sessions,
-          progress = progress, dirs = session_dirs).check_base
-    val resources = new Resources(base, log = log)
-    val session = new Session(session_name, options, resources)
-
-    val session_error = Future.promise[String]
-    var session_phase: Session.Consumer[Session.Phase] = null
-    session_phase =
-      Session.Consumer(getClass.getName) {
-        case Session.Ready =>
-          session.phase_changed -= session_phase
-          session_error.fulfill("")
-        case Session.Terminated(result) if !result.ok =>
-          session.phase_changed -= session_phase
-          session_error.fulfill("Session start failed: return code " + result.rc)
-        case _ =>
-      }
-    session.phase_changed += session_phase
-
-    progress.echo("Starting session " + session_name + " ...")
-    Isabelle_Process.start(session, options,
-      logic = session_name, dirs = session_dirs, modes = print_mode)
-
-    session_error.join match {
-      case "" => session
-      case msg => session.stop(); error(msg)
-    }
-  }
-
   private def stable_snapshot(
     state: Document.State, version: Document.Version, name: Document.Node.Name): Document.Snapshot =
   {
@@ -330,6 +289,23 @@ object Headless
 
   object Resources
   {
+    def apply(base_info: Sessions.Base_Info, log: Logger = No_Logger): Resources =
+      new Resources(base_info, log = log)
+
+    def make(
+      options: Options,
+      session_name: String,
+      session_dirs: List[Path] = Nil,
+      include_sessions: List[String] = Nil,
+      progress: Progress = No_Progress,
+      log: Logger = No_Logger): Resources =
+    {
+      val base_info =
+        Sessions.base_info(options, session_name, dirs = session_dirs,
+          include_sessions = include_sessions, progress = progress)
+      apply(base_info, log = log)
+    }
+
     final class Theory private[Headless](
       val node_name: Document.Node.Name,
       val node_header: Document.Node.Header,
@@ -450,10 +426,48 @@ object Headless
     }
   }
 
-  class Resources(session_base: Sessions.Base, log: Logger = No_Logger)
-    extends isabelle.Resources(session_base, log = log)
+  class Resources private[Headless](
+      val session_base_info: Sessions.Base_Info,
+      log: Logger = No_Logger)
+    extends isabelle.Resources(session_base_info.check_base, log = log)
   {
     resources =>
+
+    def options: Options = session_base_info.options
+
+
+    /* session */
+
+    def start_session(print_mode: List[String] = Nil, progress: Progress = No_Progress): Session =
+    {
+      val session = new Session(session_base_info.session, options, resources)
+
+      val session_error = Future.promise[String]
+      var session_phase: Session.Consumer[Session.Phase] = null
+      session_phase =
+        Session.Consumer(getClass.getName) {
+          case Session.Ready =>
+            session.phase_changed -= session_phase
+            session_error.fulfill("")
+          case Session.Terminated(result) if !result.ok =>
+            session.phase_changed -= session_phase
+            session_error.fulfill("Session start failed: return code " + result.rc)
+          case _ =>
+        }
+      session.phase_changed += session_phase
+
+      progress.echo("Starting session " + session_base_info.session + " ...")
+      Isabelle_Process.start(session, options,
+        logic = session_base_info.session, dirs = session_base_info.dirs, modes = print_mode)
+
+      session_error.join match {
+        case "" => session
+        case msg => session.stop(); error(msg)
+      }
+    }
+
+
+    /* theories */
 
     private val state = Synchronized(Resources.State())
 
