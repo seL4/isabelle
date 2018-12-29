@@ -73,28 +73,41 @@ object Dump
       error("Unknown aspect " + quote(name))
 
 
-  /* session */
+  /* dependencies */
 
-  def session(dump_options: Options, logic: String,
-    process_theory: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
+  def used_theories(options: Options, deps: Sessions.Deps, progress: Progress = No_Progress)
+    : List[Document.Node.Name] =
+  {
+    deps.used_theories_condition(options, progress.echo_warning).map(_._2)
+  }
+
+  def dependencies(
+    options: Options,
     progress: Progress = No_Progress,
-    log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty)
+      : (Sessions.Deps, List[Document.Node.Name]) =
   {
-    /* dependencies */
-
     val deps =
-      Sessions.load_structure(dump_options, dirs = dirs, select_dirs = select_dirs).
-        selection_deps(dump_options, selection, progress = progress,
+      Sessions.load_structure(options, dirs = dirs, select_dirs = select_dirs).
+        selection_deps(options, selection, progress = progress,
           uniform_session = true, loading_sessions = true)
 
-    val use_theories =
-      for { (_, name) <- deps.used_theories_condition(dump_options, progress.echo_warning) }
-      yield name.theory
+    val theories = used_theories(options, deps, progress = progress)
+
+    (deps, theories)
+  }
 
 
+  /* session */
+
+  def session(
+    deps: Sessions.Deps,
+    resources: Headless.Resources,
+    process_theory: (Sessions.Deps, Document.Snapshot, Document_Status.Node_Status) => Unit,
+    progress: Progress = No_Progress)
+  {
     /* asynchronous consumer */
 
     object Consumer
@@ -149,14 +162,9 @@ object Dump
 
     /* run session */
 
-    val resources =
-      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
-        session_dirs = dirs ::: select_dirs,
-        include_sessions = deps.sessions_structure.imports_topological_order)
-
     val session = resources.start_session(progress = progress)
-
     try {
+      val use_theories = used_theories(resources.options, deps).map(_.theory)
       val use_theories_result =
         session.use_theories(use_theories, progress = progress, commit = Some(Consumer.apply _))
 
@@ -209,17 +217,22 @@ object Dump
 
     val dump_options = make_options(options, aspects)
 
-    def process_theory(
-      deps: Sessions.Deps,
-      snapshot: Document.Snapshot,
-      status: Document_Status.Node_Status)
-    {
-      val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, status)
-      aspects.foreach(_.operation(aspect_args))
-    }
+    val deps =
+      dependencies(dump_options, progress = progress,
+        dirs = dirs, select_dirs = select_dirs, selection = selection)._1
 
-    session(dump_options, logic, process_theory _,
-      progress = progress, log = log, dirs = dirs, select_dirs = select_dirs, selection = selection)
+    val resources =
+      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
+        session_dirs = dirs ::: select_dirs,
+        include_sessions = deps.sessions_structure.imports_topological_order)
+
+    session(deps, resources, progress = progress,
+      process_theory =
+        (deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status) =>
+        {
+          val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, status)
+          aspects.foreach(_.operation(aspect_args))
+        })
   }
 
 

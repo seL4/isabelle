@@ -433,12 +433,13 @@ object Headless
   {
     resources =>
 
+    def options: Options = session_base_info.options
+
 
     /* session */
 
     def start_session(print_mode: List[String] = Nil, progress: Progress = No_Progress): Session =
     {
-      val options = session_base_info.options
       val session = new Session(session_base_info.session, options, resources)
 
       val session_error = Future.promise[String]
