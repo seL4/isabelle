@@ -81,7 +81,6 @@ object Dump
     log: Logger = No_Logger,
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
-    system_mode: Boolean = false,
     selection: Sessions.Selection = Sessions.Selection.empty)
   {
     /* dependencies */
