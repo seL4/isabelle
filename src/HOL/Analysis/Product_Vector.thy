@@ -16,17 +16,17 @@ lemma Times_eq_image_sum:
   by force
 
 
-subsection \<open>Product is a module\<close>
+subsection \<open>Product is a Module\<close>
 
 locale module_prod = module_pair begin
 
 definition scale :: "'a \<Rightarrow> 'b \<times> 'c \<Rightarrow> 'b \<times> 'c"
   where "scale a v = (s1 a (fst v), s2 a (snd v))"
 
-lemma scale_prod: "scale x (a, b) = (s1 x a, s2 x b)"
+lemma%important scale_prod: "scale x (a, b) = (s1 x a, s2 x b)"
   by (auto simp: scale_def)
 
-sublocale p: module scale
+sublocale%important p: module scale
 proof qed (simp_all add: scale_def
   m1.scale_left_distrib m1.scale_right_distrib m2.scale_left_distrib m2.scale_right_distrib)
 
@@ -56,7 +56,7 @@ lemmas linear_fst = module_hom_fst
 end
 
 
-subsection \<open>Product is a real vector space\<close>
+subsection \<open>Product is a Real Vector Space\<close>
 
 instantiation prod :: (real_vector, real_vector) real_vector
 begin
@@ -70,7 +70,7 @@ lemma fst_scaleR [simp]: "fst (scaleR r A) = scaleR r (fst A)"
 lemma snd_scaleR [simp]: "snd (scaleR r A) = scaleR r (snd A)"
   unfolding scaleR_prod_def by simp
 
-lemma scaleR_Pair [simp]: "scaleR r (a, b) = (scaleR r a, scaleR r b)"
+proposition scaleR_Pair [simp]: "scaleR r (a, b) = (scaleR r a, scaleR r b)"
   unfolding scaleR_prod_def by simp
 
 instance
@@ -109,20 +109,20 @@ interpretation real_vector?: vector_space_prod "scaleR::_\<Rightarrow>_\<Rightar
     extend_basis_raw_def dim_raw_def linear_def
   by (rule refl)+
 
-subsection \<open>Product is a metric space\<close>
+subsection \<open>Product is a Metric Space\<close>
 
 (* TODO: Product of uniform spaces and compatibility with metric_spaces! *)
 
-instantiation prod :: (metric_space, metric_space) dist
+instantiation%unimportant prod :: (metric_space, metric_space) dist
 begin
 
-definition%important dist_prod_def[code del]:
+definition dist_prod_def[code del]:
   "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
 
 instance ..
 end
 
-instantiation prod :: (metric_space, metric_space) uniformity_dist
+instantiation%unimportant prod :: (metric_space, metric_space) uniformity_dist
 begin
 
 definition [code del]:
@@ -138,7 +138,7 @@ declare uniformity_Abort[where 'a="'a :: metric_space \<times> 'b :: metric_spac
 instantiation prod :: (metric_space, metric_space) metric_space
 begin
 
-lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
+proposition dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
   unfolding dist_prod_def by simp
 
 lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
@@ -251,7 +251,7 @@ proof (rule metric_CauchyI)
   then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
 qed
 
-subsection \<open>Product is a complete metric space\<close>
+subsection \<open>Product is a Complete Metric Space\<close>
 
 instance%important prod :: (complete_space, complete_space) complete_space
 proof%unimportant
@@ -268,7 +268,7 @@ proof%unimportant
     by (rule convergentI)
 qed
 
-subsection \<open>Product is a normed vector space\<close>
+subsection \<open>Product is a Normed Vector Space\<close>
 
 instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
@@ -279,7 +279,7 @@ definition norm_prod_def[code del]:
 definition sgn_prod_def:
   "sgn (x::'a \<times> 'b) = scaleR (inverse (norm x)) x"
 
-lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<^sup>2 + (norm b)\<^sup>2)"
+proposition norm_Pair: "norm (a, b) = sqrt ((norm a)\<^sup>2 + (norm b)\<^sup>2)"
   unfolding norm_prod_def by simp
 
 instance
@@ -310,15 +310,15 @@ end
 
 declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"]]
 
-instance prod :: (banach, banach) banach ..
+instance%important prod :: (banach, banach) banach ..
 
 subsubsection%unimportant \<open>Pair operations are linear\<close>
 
-proposition bounded_linear_fst: "bounded_linear fst"
+lemma bounded_linear_fst: "bounded_linear fst"
   using fst_add fst_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
-proposition bounded_linear_snd: "bounded_linear snd"
+lemma bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
@@ -355,7 +355,8 @@ qed
 subsubsection%unimportant \<open>Frechet derivatives involving pairs\<close>
 
 proposition has_derivative_Pair [derivative_intros]:
-  assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
+  assumes f: "(f has_derivative f') (at x within s)"
+    and g: "(g has_derivative g') (at x within s)"
   shows "((\<lambda>x. (f x, g x)) has_derivative (\<lambda>h. (f' h, g' h))) (at x within s)"
 proof (rule has_derivativeI_sandwich[of 1])
   show "bounded_linear (\<lambda>h. (f' h, g' h))"
@@ -455,6 +456,8 @@ lemma (in vector_space_prod) span_Times_sing2: "p.span (A \<times> {0}) = vs1.sp
   qed
   done
 
+subsection \<open>Product is Finite Dimensional\<close>
+
 lemma (in finite_dimensional_vector_space) zero_not_in_Basis[simp]: "0 \<notin> Basis"
   using dependent_zero local.independent_Basis by blast
 
@@ -492,7 +495,7 @@ proof unfold_locales
         Basis_pair_def)
 qed
 
-lemma dim_Times:
+proposition dim_Times:
   assumes "vs1.subspace S" "vs2.subspace T"
   shows "p.dim(S \<times> T) = vs1.dim S + vs2.dim T"
 proof -
