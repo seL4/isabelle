@@ -844,14 +844,18 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     progress: Progress = No_Progress,
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
-    system_mode: Boolean = false): Int =
+    system_mode: Boolean = false,
+    strict: Boolean = false): Int =
   {
-    if (build(options, build_heap = build_heap, no_build = true, dirs = dirs,
-        system_mode = system_mode, sessions = List(logic)).ok) 0
-    else {
-      progress.echo("Build started for Isabelle/" + logic + " ...")
-      Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
-        system_mode = system_mode, sessions = List(logic)).rc
-    }
+    val rc =
+      if (build(options, build_heap = build_heap, no_build = true, dirs = dirs,
+          system_mode = system_mode, sessions = List(logic)).ok) 0
+      else {
+        progress.echo("Build started for Isabelle/" + logic + " ...")
+        Build.build(options, progress = progress, build_heap = build_heap, dirs = dirs,
+          system_mode = system_mode, sessions = List(logic)).rc
+      }
+
+    if (strict && rc != 0) error("Failed to build Isabelle/" + logic) else rc
   }
 }
