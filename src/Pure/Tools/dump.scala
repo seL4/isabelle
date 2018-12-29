@@ -17,7 +17,7 @@ object Dump
     deps: Sessions.Deps,
     output_dir: Path,
     snapshot: Document.Snapshot,
-    node_status: Document_Status.Node_Status)
+    status: Document_Status.Node_Status)
   {
     def write(file_name: Path, bytes: Bytes)
     {
@@ -102,8 +102,8 @@ object Dump
         Consumer_Thread.fork(name = "dump")(
           consume = (args: (Document.Snapshot, Document_Status.Node_Status)) =>
             {
-              val (snapshot, node_status) = args
-              if (node_status.ok) consume(deps, snapshot, node_status)
+              val (snapshot, status) = args
+              if (status.ok) consume(deps, snapshot, status)
               else {
                 consumer_ok.change(_ => false)
                 for ((tree, pos) <- snapshot.messages if Protocol.is_error(tree)) {
@@ -114,8 +114,8 @@ object Dump
               true
             })
 
-      def apply(snapshot: Document.Snapshot, node_status: Document_Status.Node_Status): Unit =
-        consumer.send((snapshot, node_status))
+      def apply(snapshot: Document.Snapshot, status: Document_Status.Node_Status): Unit =
+        consumer.send((snapshot, status))
 
       def shutdown(): Boolean =
       {
@@ -183,9 +183,9 @@ object Dump
     def consume(
       deps: Sessions.Deps,
       snapshot: Document.Snapshot,
-      node_status: Document_Status.Node_Status)
+      status: Document_Status.Node_Status)
     {
-      val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, node_status)
+      val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, status)
       aspects.foreach(_.operation(aspect_args))
     }
 
