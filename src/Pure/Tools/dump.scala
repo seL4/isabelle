@@ -150,10 +150,12 @@ object Dump
 
     /* run session */
 
-    val session =
-      Headless.start_session(dump_options, logic, progress = progress, log = log,
+    val resources =
+      Headless.Resources.make(dump_options, logic, progress = progress, log = log,
         session_dirs = dirs ::: select_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
+
+    val session = resources.start_session(progress = progress)
 
     try {
       val use_theories_result =

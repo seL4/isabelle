@@ -113,15 +113,9 @@ object Server_Commands
         try { Session_Build.command(args.build, progress = progress)._3 }
         catch { case exn: Server.Error => error(exn.message) }
 
-      val session =
-        Headless.start_session(
-          base_info.options,
-          base_info.session,
-          session_dirs = base_info.dirs,
-          session_base = Some(base_info.check_base),
-          print_mode = args.print_mode,
-          progress = progress,
-          log = log)
+      val resources = Headless.Resources(base_info, log = log)
+
+      val session = resources.start_session(print_mode = args.print_mode, progress = progress)
 
       val id = UUID.random()
 
