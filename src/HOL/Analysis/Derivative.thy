@@ -2325,7 +2325,7 @@ proof (rule has_derivativeI)
       \<forall>x\<in>T \<inter> {t - 1<..<t + 1}. norm (?e n x) \<le> norm (A ^ (n + 1) /\<^sub>R fact (n + 1))"
     by (auto simp: divide_simps power_abs intro!: mult_left_le_one_le power_le_one eventuallyI)
   then have "uniform_limit (T \<inter> {t - 1<..<t + 1}) (\<lambda>n x. \<Sum>i<n. ?e i x) (\<lambda>x. \<Sum>i. ?e i x) sequentially"
-    by (rule weierstrass_m_test_ev) (intro summable_ignore_initial_segment summable_norm_exp)
+    by (rule Weierstrass_m_test_ev) (intro summable_ignore_initial_segment summable_norm_exp)
   moreover
   have "\<forall>\<^sub>F x in sequentially. x > 0"
     by (metis eventually_gt_at_top)
@@ -2333,7 +2333,7 @@ proof (rule has_derivativeI)
     "\<forall>\<^sub>F n in sequentially. ((\<lambda>x. \<Sum>i<n. ?e i x) \<longlongrightarrow> A) ?F"
     by eventually_elim
       (auto intro!: tendsto_eq_intros
-        simp: power_0_left if_distrib if_distribR sum.delta
+        simp: power_0_left if_distrib if_distribR
         cong: if_cong)
   ultimately
   have [tendsto_intros]: "((\<lambda>x. \<Sum>i. ?e i x) \<longlongrightarrow> A) ?F"

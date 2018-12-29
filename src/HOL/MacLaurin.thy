@@ -319,14 +319,14 @@ lemma Maclaurin_exp_le:
   shows "\<exists>t. \<bar>t\<bar> \<le> \<bar>x\<bar> \<and> exp x = (\<Sum>m<n. (x ^ m) / fact m) + (exp t / fact n) * x ^ n"
   using Maclaurin_all_le_objl [where diff = "\<lambda>n. exp" and f = exp and x = x and n = n] by auto
 
-corollary exp_lower_taylor_quadratic: "0 \<le> x \<Longrightarrow> 1 + x + x\<^sup>2 / 2 \<le> exp x"
+corollary exp_lower_Taylor_quadratic: "0 \<le> x \<Longrightarrow> 1 + x + x\<^sup>2 / 2 \<le> exp x"
   for x :: real
   using Maclaurin_exp_le [of x 3] by (auto simp: numeral_3_eq_3 power2_eq_square)
 
 corollary ln_2_less_1: "ln 2 < (1::real)"
 proof -
   have "2 < 5/(2::real)" by simp
-  also have "5/2 \<le> exp (1::real)" using exp_lower_taylor_quadratic[of 1, simplified] by simp
+  also have "5/2 \<le> exp (1::real)" using exp_lower_Taylor_quadratic[of 1, simplified] by simp
   finally have "exp (ln 2) < exp (1::real)" by simp
   thus "ln 2 < (1::real)" by (subst (asm) exp_less_cancel_iff) simp
 qed
@@ -530,7 +530,7 @@ text \<open>
   to prove Taylor's theorem.
 \<close>
 
-lemma taylor_up:
+lemma Taylor_up:
   assumes INIT: "n > 0" "diff 0 = f"
     and DERIV: "\<forall>m t. m < n \<and> a \<le> t \<and> t \<le> b \<longrightarrow> DERIV (diff m) t :> (diff (Suc m) t)"
     and INTERV: "a \<le> c" "c < b"
@@ -565,7 +565,7 @@ proof -
   then show ?thesis by fastforce
 qed
 
-lemma taylor_down:
+lemma Taylor_down:
   fixes a :: real and n :: nat
   assumes INIT: "n > 0" "diff 0 = f"
     and DERIV: "(\<forall>m t. m < n \<and> a \<le> t \<and> t \<le> b \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t)"
@@ -601,7 +601,7 @@ proof -
   then show ?thesis by fastforce
 qed
 
-theorem taylor:
+theorem Taylor:
   fixes a :: real and n :: nat
   assumes INIT: "n > 0" "diff 0 = f"
     and DERIV: "\<forall>m t. m < n \<and> a \<le> t \<and> t \<le> b \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
@@ -619,7 +619,7 @@ proof (cases "x < c")
     by simp
   ultimately have "\<exists>t>x. t < c \<and> f x =
     (\<Sum>m<n. diff m c / (fact m) * (x - c) ^ m) + diff n t / (fact n) * (x - c) ^ n"
-    by (rule taylor_down)
+    by (rule Taylor_down)
   with True show ?thesis by simp
 next
   case False
@@ -632,7 +632,7 @@ next
     by arith
   ultimately have "\<exists>t>c. t < x \<and> f x =
     (\<Sum>m<n. diff m c / (fact m) * (x - c) ^ m) + diff n t / (fact n) * (x - c) ^ n"
-    by (rule taylor_up)
+    by (rule Taylor_up)
   with False show ?thesis by simp
 qed
 

@@ -21,10 +21,12 @@ begin
 (* FIXME mv topology euclidean space *)
 subsection \<open>Retractions\<close>
 
-definition "retraction S T r \<longleftrightarrow> T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
+definition%important retraction :: "('a::topological_space) set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+where "retraction S T r \<longleftrightarrow>
+  T \<subseteq> S \<and> continuous_on S r \<and> r ` S \<subseteq> T \<and> (\<forall>x\<in>T. r x = x)"
 
-definition retract_of (infixl "retract'_of" 50)
-  where "(T retract_of S) \<longleftrightarrow> (\<exists>r. retraction S T r)"
+definition%important retract_of (infixl "retract'_of" 50) where
+"T retract_of S  \<longleftrightarrow>  (\<exists>r. retraction S T r)"
 
 lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Longrightarrow>  r (r x) = r x"
   unfolding retraction_def by auto
@@ -399,7 +401,7 @@ proof (rule continuous_on_compact_surface_projection_aux [OF \<open>compact S\<c
   qed
 qed
 
-subsection \<open>Absolute retracts, absolute neighbourhood retracts (ANR) and Euclidean neighbourhood retracts (ENR)\<close>
+subsection \<open>Absolute Retracts, Absolute Neighbourhood Retracts and Euclidean Neighbourhood Retracts\<close>
 
 text \<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and also Euclidean neighbourhood
 retracts (ENR). We define AR and ANR by specializing the standard definitions for a set to embedding
@@ -410,19 +412,17 @@ embedded as a closed subset of a convex subset of $\mathbb{R}^{n+1}$) to derive 
 definitions, but we need to split them into two implications because of the lack of type
 quantifiers. Then ENR turns out to be equivalent to ANR plus local compactness."\<close>
 
-definition AR :: "'a::topological_space set => bool"
-  where
-   "AR S \<equiv> \<forall>U. \<forall>S'::('a * real) set. S homeomorphic S' \<and> closedin (subtopology euclidean U) S'
-                \<longrightarrow> S' retract_of U"
+definition%important AR :: "'a::topological_space set \<Rightarrow> bool" where
+"AR S \<equiv> \<forall>U. \<forall>S'::('a * real) set.
+  S homeomorphic S' \<and> closedin (subtopology euclidean U) S' \<longrightarrow> S' retract_of U"
 
-definition ANR :: "'a::topological_space set => bool"
-  where
-   "ANR S \<equiv> \<forall>U. \<forall>S'::('a * real) set. S homeomorphic S' \<and> closedin (subtopology euclidean U) S'
-                \<longrightarrow> (\<exists>T. openin (subtopology euclidean U) T \<and>
-                        S' retract_of T)"
+definition%important ANR :: "'a::topological_space set \<Rightarrow> bool" where
+"ANR S \<equiv> \<forall>U. \<forall>S'::('a * real) set.
+  S homeomorphic S' \<and> closedin (subtopology euclidean U) S'
+  \<longrightarrow> (\<exists>T. openin (subtopology euclidean U) T \<and> S' retract_of T)"
 
-definition ENR :: "'a::topological_space set => bool"
-  where "ENR S \<equiv> \<exists>U. open U \<and> S retract_of U"
+definition%important ENR :: "'a::topological_space set \<Rightarrow> bool" where
+"ENR S \<equiv> \<exists>U. open U \<and> S retract_of U"
 
 text \<open>First, show that we do indeed get the "usual" properties of ARs and ANRs.\<close>
 

@@ -5118,7 +5118,7 @@ lemma closed_imp_fip_compact:
         \<Longrightarrow> S \<inter> \<Inter>\<F> \<noteq> {}"
 by (metis Inf_greatest closed_imp_fip compact_eq_bounded_closed empty_subsetI finite.emptyI inf.orderE)
 
-lemma closed_fip_heine_borel:
+lemma closed_fip_Heine_Borel:
   fixes \<F> :: "'a::heine_borel set set"
   assumes "closed S" "T \<in> \<F>" "bounded T"
       and "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
@@ -5130,12 +5130,12 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma compact_fip_heine_borel:
+lemma compact_fip_Heine_Borel:
   fixes \<F> :: "'a::heine_borel set set"
   assumes clof: "\<And>T. T \<in> \<F> \<Longrightarrow> compact T"
       and none: "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> \<Inter>\<F>' \<noteq> {}"
     shows "\<Inter>\<F> \<noteq> {}"
-by (metis InterI all_not_in_conv clof closed_fip_heine_borel compact_eq_bounded_closed none)
+by (metis InterI all_not_in_conv clof closed_fip_Heine_Borel compact_eq_bounded_closed none)
 
 lemma compact_sequence_with_limit:
   fixes f :: "nat \<Rightarrow> 'a::heine_borel"

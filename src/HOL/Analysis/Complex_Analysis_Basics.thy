@@ -972,7 +972,7 @@ lemma sum_Suc_reindex:
     shows  "sum f {0..n} = f 0 - f (Suc n) + sum (\<lambda>i. f (Suc i)) {0..n}"
 by (induct n) auto
 
-lemma field_taylor:
+lemma field_Taylor:
   assumes S: "convex S"
       and f: "\<And>i x. x \<in> S \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within S)"
       and B: "\<And>x. x \<in> S \<Longrightarrow> norm (f (Suc n) x) \<le> B"
@@ -1066,7 +1066,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma complex_taylor:
+lemma complex_Taylor:
   assumes S: "convex S"
       and f: "\<And>i x. x \<in> S \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within S)"
       and B: "\<And>x. x \<in> S \<Longrightarrow> cmod (f (Suc n) x) \<le> B"
@@ -1074,7 +1074,7 @@ lemma complex_taylor:
       and z: "z \<in> S"
     shows "cmod(f 0 z - (\<Sum>i\<le>n. f i w * (z-w) ^ i / (fact i)))
           \<le> B * cmod(z - w)^(Suc n) / fact n"
-  using assms by (rule field_taylor)
+  using assms by (rule field_Taylor)
 
 
 text\<open>Something more like the traditional MVT for real components\<close>
@@ -1099,7 +1099,7 @@ proof -
     done
 qed
 
-lemma complex_taylor_mvt:
+lemma complex_Taylor_mvt:
   assumes "\<And>i x. \<lbrakk>x \<in> closed_segment w z; i \<le> n\<rbrakk> \<Longrightarrow> ((f i) has_field_derivative f (Suc i) x) (at x)"
     shows "\<exists>u. u \<in> closed_segment w z \<and>
             Re (f 0 z) =

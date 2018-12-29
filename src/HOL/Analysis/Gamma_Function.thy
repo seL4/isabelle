@@ -552,7 +552,7 @@ lemma uniformly_summable_deriv_ln_Gamma:
   shows "uniformly_convergent_on (ball z d)
             (\<lambda>k z. \<Sum>i<k. inverse (of_nat (Suc i)) - inverse (z + of_nat (Suc i)))"
            (is "uniformly_convergent_on _ (\<lambda>k z. \<Sum>i<k. ?f i z)")
-proof (rule weierstrass_m_test'_ev)
+proof (rule Weierstrass_m_test'_ev)
   {
     fix t assume t: "t \<in> ball z d"
     have "norm z = norm (t + (z - t))" by simp
@@ -665,7 +665,7 @@ lemma Polygamma_converges:
   fixes z :: "'a :: {real_normed_field,banach}"
   assumes z: "z \<noteq> 0" and n: "n \<ge> 2"
   shows "uniformly_convergent_on (ball z d) (\<lambda>k z. \<Sum>i<k. inverse ((z + of_nat i)^n))"
-proof (rule weierstrass_m_test'_ev)
+proof (rule Weierstrass_m_test'_ev)
   define e where "e = (1 + d / norm z)"
   define m where "m = nat \<lceil>norm z * e\<rceil>"
   {
@@ -2528,29 +2528,29 @@ end
 
 subsubsection \<open>Weierstrass form\<close>
 
-definition Gamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
-  "Gamma_series_weierstrass z n =
+definition Gamma_series_Weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
+  "Gamma_series_Weierstrass z n =
      exp (-euler_mascheroni * z) / z * (\<Prod>k=1..n. exp (z / of_nat k) / (1 + z / of_nat k))"
 
 definition%unimportant
-  rGamma_series_weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
-  "rGamma_series_weierstrass z n =
+  rGamma_series_Weierstrass :: "'a :: {banach,real_normed_field} \<Rightarrow> nat \<Rightarrow> 'a" where
+  "rGamma_series_Weierstrass z n =
      exp (euler_mascheroni * z) * z * (\<Prod>k=1..n. (1 + z / of_nat k) * exp (-z / of_nat k))"
 
-lemma Gamma_series_weierstrass_nonpos_Ints:
-  "eventually (\<lambda>k. Gamma_series_weierstrass (- of_nat n) k = 0) sequentially"
-  using eventually_ge_at_top[of n] by eventually_elim (auto simp: Gamma_series_weierstrass_def)
+lemma Gamma_series_Weierstrass_nonpos_Ints:
+  "eventually (\<lambda>k. Gamma_series_Weierstrass (- of_nat n) k = 0) sequentially"
+  using eventually_ge_at_top[of n] by eventually_elim (auto simp: Gamma_series_Weierstrass_def)
 
-lemma rGamma_series_weierstrass_nonpos_Ints:
-  "eventually (\<lambda>k. rGamma_series_weierstrass (- of_nat n) k = 0) sequentially"
-  using eventually_ge_at_top[of n] by eventually_elim (auto simp: rGamma_series_weierstrass_def)
+lemma rGamma_series_Weierstrass_nonpos_Ints:
+  "eventually (\<lambda>k. rGamma_series_Weierstrass (- of_nat n) k = 0) sequentially"
+  using eventually_ge_at_top[of n] by eventually_elim (auto simp: rGamma_series_Weierstrass_def)
 
-theorem Gamma_weierstrass_complex: "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma (z :: complex)"
+theorem Gamma_Weierstrass_complex: "Gamma_series_Weierstrass z \<longlonglongrightarrow> Gamma (z :: complex)"
 proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case True
   then obtain n where "z = - of_nat n" by (elim nonpos_Ints_cases')
-  also from True have "Gamma_series_weierstrass \<dots> \<longlonglongrightarrow> Gamma z"
-    by (simp add: tendsto_cong[OF Gamma_series_weierstrass_nonpos_Ints] Gamma_nonpos_Int)
+  also from True have "Gamma_series_Weierstrass \<dots> \<longlonglongrightarrow> Gamma z"
+    by (simp add: tendsto_cong[OF Gamma_series_Weierstrass_nonpos_Ints] Gamma_nonpos_Int)
   finally show ?thesis .
 next
   case False
@@ -2565,32 +2565,32 @@ next
   from tendsto_exp[OF this] False z have "?f \<longlonglongrightarrow> z * exp (euler_mascheroni * z) * Gamma z"
     by (simp add: exp_add exp_sum exp_diff mult_ac Gamma_complex_altdef A)
   from tendsto_mult[OF tendsto_const[of "exp (-euler_mascheroni * z) / z"] this] z
-    show "Gamma_series_weierstrass z \<longlonglongrightarrow> Gamma z"
-    by (simp add: exp_minus divide_simps Gamma_series_weierstrass_def [abs_def])
+    show "Gamma_series_Weierstrass z \<longlonglongrightarrow> Gamma z"
+    by (simp add: exp_minus divide_simps Gamma_series_Weierstrass_def [abs_def])
 qed
 
 lemma tendsto_complex_of_real_iff: "((\<lambda>x. complex_of_real (f x)) \<longlongrightarrow> of_real c) F = (f \<longlongrightarrow> c) F"
   by (rule tendsto_of_real_iff)
 
-lemma Gamma_weierstrass_real: "Gamma_series_weierstrass x \<longlonglongrightarrow> Gamma (x :: real)"
-  using Gamma_weierstrass_complex[of "of_real x"] unfolding Gamma_series_weierstrass_def[abs_def]
+lemma Gamma_Weierstrass_real: "Gamma_series_Weierstrass x \<longlonglongrightarrow> Gamma (x :: real)"
+  using Gamma_Weierstrass_complex[of "of_real x"] unfolding Gamma_series_Weierstrass_def[abs_def]
   by (subst tendsto_complex_of_real_iff [symmetric])
      (simp_all add: exp_of_real[symmetric] Gamma_complex_of_real)
 
-lemma rGamma_weierstrass_complex: "rGamma_series_weierstrass z \<longlonglongrightarrow> rGamma (z :: complex)"
+lemma rGamma_Weierstrass_complex: "rGamma_series_Weierstrass z \<longlonglongrightarrow> rGamma (z :: complex)"
 proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
   case True
   then obtain n where "z = - of_nat n" by (elim nonpos_Ints_cases')
-  also from True have "rGamma_series_weierstrass \<dots> \<longlonglongrightarrow> rGamma z"
-    by (simp add: tendsto_cong[OF rGamma_series_weierstrass_nonpos_Ints] rGamma_nonpos_Int)
+  also from True have "rGamma_series_Weierstrass \<dots> \<longlonglongrightarrow> rGamma z"
+    by (simp add: tendsto_cong[OF rGamma_series_Weierstrass_nonpos_Ints] rGamma_nonpos_Int)
   finally show ?thesis .
 next
   case False
-  have "rGamma_series_weierstrass z = (\<lambda>n. inverse (Gamma_series_weierstrass z n))"
-    by (simp add: rGamma_series_weierstrass_def[abs_def] Gamma_series_weierstrass_def
+  have "rGamma_series_Weierstrass z = (\<lambda>n. inverse (Gamma_series_Weierstrass z n))"
+    by (simp add: rGamma_series_Weierstrass_def[abs_def] Gamma_series_Weierstrass_def
                   exp_minus divide_inverse prod_inversef[symmetric] mult_ac)
   also from False have "\<dots> \<longlonglongrightarrow> inverse (Gamma z)"
-    by (intro tendsto_intros Gamma_weierstrass_complex) (simp add: Gamma_eq_zero_iff)
+    by (intro tendsto_intros Gamma_Weierstrass_complex) (simp add: Gamma_eq_zero_iff)
   finally show ?thesis by (simp add: Gamma_def)
 qed
 
@@ -3175,17 +3175,17 @@ theorem sin_product_formula_complex:
   fixes z :: complex
   shows "(\<lambda>n. of_real pi * z * (\<Prod>k=1..n. 1 - z^2 / of_nat k^2)) \<longlonglongrightarrow> sin (of_real pi * z)"
 proof -
-  let ?f = "rGamma_series_weierstrass"
+  let ?f = "rGamma_series_Weierstrass"
   have "(\<lambda>n. (- of_real pi * inverse z) * (?f z n * ?f (- z) n))
             \<longlonglongrightarrow> (- of_real pi * inverse z) * (rGamma z * rGamma (- z))"
-    by (intro tendsto_intros rGamma_weierstrass_complex)
+    by (intro tendsto_intros rGamma_Weierstrass_complex)
   also have "(\<lambda>n. (- of_real pi * inverse z) * (?f z n * ?f (-z) n)) =
                     (\<lambda>n. of_real pi * z * (\<Prod>k=1..n. 1 - z^2 / of_nat k ^ 2))"
   proof
     fix n :: nat
     have "(- of_real pi * inverse z) * (?f z n * ?f (-z) n) =
               of_real pi * z * (\<Prod>k=1..n. (of_nat k - z) * (of_nat k + z) / of_nat k ^ 2)"
-      by (simp add: rGamma_series_weierstrass_def mult_ac exp_minus
+      by (simp add: rGamma_series_Weierstrass_def mult_ac exp_minus
                     divide_simps prod.distrib[symmetric] power2_eq_square)
     also have "(\<Prod>k=1..n. (of_nat k - z) * (of_nat k + z) / of_nat k ^ 2) =
                  (\<Prod>k=1..n. 1 - z^2 / of_nat k ^ 2)"
@@ -3257,7 +3257,7 @@ proof -
   have "continuous_on (ball 0 1) f"
   proof (rule uniform_limit_theorem; (intro always_eventually allI)?)
     show "uniform_limit (ball 0 1) (\<lambda>n x. \<Sum>k<n. P x k / of_nat (Suc k)^2) f sequentially"
-    proof (unfold f_def, rule weierstrass_m_test)
+    proof (unfold f_def, rule Weierstrass_m_test)
       fix n :: nat and x :: real assume x: "x \<in> ball 0 1"
       {
         fix k :: nat assume k: "k \<ge> 1"

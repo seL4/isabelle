@@ -254,7 +254,7 @@ proof
     by (auto simp: abs_convergent_prod_def intro!: convergent_prod_imp_convergent)
 qed (auto intro: abs_convergent_prodI)
 
-lemma weierstrass_prod_ineq:
+lemma Weierstrass_prod_ineq:
   fixes f :: "'a \<Rightarrow> real" 
   assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<in> {0..1}"
   shows   "1 - sum f A \<le> (\<Prod>x\<in>A. 1 - f x)"
@@ -576,7 +576,7 @@ proof -
       proof (rule tendsto_le)
         show "eventually (\<lambda>n. 1 - (\<Sum>k\<le>n. norm (f (k+M+N) - 1)) \<le> 
                                 (\<Prod>k\<le>n. 1 - norm (f (k+M+N) - 1))) at_top"
-          using M by (intro always_eventually allI weierstrass_prod_ineq) (auto intro: less_imp_le)
+          using M by (intro always_eventually allI Weierstrass_prod_ineq) (auto intro: less_imp_le)
         show "(\<lambda>n. \<Prod>k\<le>n. 1 - norm (f (k+M+N) - 1)) \<longlonglongrightarrow> 0" by fact
         show "(\<lambda>n. 1 - (\<Sum>k\<le>n. norm (f (k + M + N) - 1)))
                   \<longlonglongrightarrow> 1 - (\<Sum>i. norm (f (i + M + N) - 1))"

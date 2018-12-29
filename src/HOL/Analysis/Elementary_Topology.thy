@@ -3090,7 +3090,7 @@ subsection \<open>Compactness\<close>
 
 subsubsection \<open>Bolzano-Weierstrass property\<close>
 
-proposition heine_borel_imp_bolzano_weierstrass:
+proposition Heine_Borel_imp_Bolzano_Weierstrass:
   assumes "compact s"
     and "infinite t"
     and "t \<subseteq> s"
@@ -3102,7 +3102,7 @@ proof (rule ccontr)
     using bchoice[of s "\<lambda> x T. x \<in> T \<and> open T \<and> (\<forall>y\<in>t. y \<in> T \<longrightarrow> y = x)"]
     by auto
   obtain g where g: "g \<subseteq> {t. \<exists>x. x \<in> s \<and> t = f x}" "finite g" "s \<subseteq> \<Union>g"
-    using assms(1)[unfolded compact_eq_heine_borel, THEN spec[where x="{t. \<exists>x. x\<in>s \<and> t = f x}"]]
+    using assms(1)[unfolded compact_eq_Heine_Borel, THEN spec[where x="{t. \<exists>x. x\<in>s \<and> t = f x}"]]
     using f by auto
   from g(1,3) have g':"\<forall>x\<in>g. \<exists>xa \<in> s. x = f xa"
     by auto
@@ -3336,7 +3336,7 @@ proof (rule ccontr)
     by simp
 qed
 
-lemma bolzano_weierstrass_imp_closed:
+lemma Bolzano_Weierstrass_imp_closed:
   fixes s :: "'a::{first_countable_topology,t2_space} set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "closed s"
@@ -3386,10 +3386,10 @@ proof (rule compactI)
   fix f
   assume *: "Ball f open" "s \<union> t \<subseteq> \<Union>f"
   from * \<open>compact s\<close> obtain s' where "s' \<subseteq> f \<and> finite s' \<and> s \<subseteq> \<Union>s'"
-    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f])
+    unfolding compact_eq_Heine_Borel by (auto elim!: allE[of _ f])
   moreover
   from * \<open>compact t\<close> obtain t' where "t' \<subseteq> f \<and> finite t' \<and> t \<subseteq> \<Union>t'"
-    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f])
+    unfolding compact_eq_Heine_Borel by (auto elim!: allE[of _ f])
   ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<union> t \<subseteq> \<Union>f'"
     by (auto intro!: exI[of _ "s' \<union> t'"])
 qed
@@ -3416,7 +3416,7 @@ lemma compact_Int [intro]:
   using assms by (intro compact_Int_closed compact_imp_closed)
 
 lemma compact_sing [simp]: "compact {a}"
-  unfolding compact_eq_heine_borel by auto
+  unfolding compact_eq_Heine_Borel by auto
 
 lemma compact_insert [simp]:
   assumes "compact s"
@@ -3571,7 +3571,7 @@ lemma countably_compactI:
   using assms unfolding countably_compact_def by metis
 
 lemma compact_imp_countably_compact: "compact U \<Longrightarrow> countably_compact U"
-  by (auto simp: compact_eq_heine_borel countably_compact_def)
+  by (auto simp: compact_eq_Heine_Borel countably_compact_def)
 
 lemma countably_compact_imp_compact:
   assumes "countably_compact U"
@@ -3579,7 +3579,7 @@ lemma countably_compact_imp_compact:
     and basis: "\<And>T x. open T \<Longrightarrow> x \<in> T \<Longrightarrow> x \<in> U \<Longrightarrow> \<exists>b\<in>B. x \<in> b \<and> b \<inter> U \<subseteq> T"
   shows "compact U"
   using \<open>countably_compact U\<close>
-  unfolding compact_eq_heine_borel countably_compact_def
+  unfolding compact_eq_Heine_Borel countably_compact_def
 proof safe
   fix A
   assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
@@ -3886,7 +3886,7 @@ lemma seq_compact_eq_compact:
   shows "seq_compact U \<longleftrightarrow> compact U"
   using seq_compact_eq_countably_compact countably_compact_eq_compact by blast
 
-proposition bolzano_weierstrass_imp_seq_compact:
+proposition Bolzano_Weierstrass_imp_seq_compact:
   fixes s :: "'a::{t1_space, first_countable_topology} set"
   shows "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> seq_compact s"
   by (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
@@ -3929,7 +3929,7 @@ qed
 
 subsubsection\<open>Heine-Borel theorem\<close>
 
-proposition seq_compact_imp_heine_borel:
+proposition seq_compact_imp_Heine_Borel:
   fixes s :: "'a :: metric_space set"
   assumes "seq_compact s"
   shows "compact s"
@@ -3976,7 +3976,7 @@ qed
 
 proposition compact_eq_seq_compact_metric:
   "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
-  using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
+  using compact_imp_seq_compact seq_compact_imp_Heine_Borel by blast
 
 proposition compact_def: \<comment> \<open>this is the definition of compactness in HOL Light\<close>
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
@@ -3985,23 +3985,23 @@ proposition compact_def: \<comment> \<open>this is the definition of compactness
 
 subsubsection \<open>Complete the chain of compactness variants\<close>
 
-proposition compact_eq_bolzano_weierstrass:
+proposition compact_eq_Bolzano_Weierstrass:
   fixes s :: "'a::metric_space set"
   shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then show ?rhs
-    using heine_borel_imp_bolzano_weierstrass[of s] by auto
+    using Heine_Borel_imp_Bolzano_Weierstrass[of s] by auto
 next
   assume ?rhs
   then show ?lhs
-    unfolding compact_eq_seq_compact_metric by (rule bolzano_weierstrass_imp_seq_compact)
+    unfolding compact_eq_seq_compact_metric by (rule Bolzano_Weierstrass_imp_seq_compact)
 qed
 
-proposition bolzano_weierstrass_imp_bounded:
+proposition Bolzano_Weierstrass_imp_bounded:
   "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> bounded s"
-  using compact_imp_bounded unfolding compact_eq_bolzano_weierstrass .
+  using compact_imp_bounded unfolding compact_eq_Bolzano_Weierstrass .
 
 
 subsection \<open>Metric spaces with the Heine-Borel property\<close>

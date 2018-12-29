@@ -75,7 +75,7 @@ definition compact_with :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<R
   where "compact_with \<equiv> \<lambda>open S. (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
 
 lemma compact_compact_with: "compact s = compact_with open s"
-  unfolding compact_with_def compact_eq_heine_borel[abs_def] ..
+  unfolding compact_with_def compact_eq_Heine_Borel[abs_def] ..
 
 definition compact_on_with :: "'a set \<Rightarrow> ('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
   where "compact_on_with A \<equiv> \<lambda>open S. (\<forall>C\<subseteq>Pow A. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow>

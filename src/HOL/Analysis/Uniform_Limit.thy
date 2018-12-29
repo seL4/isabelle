@@ -319,7 +319,7 @@ lemma uniformly_convergent_imp_convergent:
 
 subsection \<open>Weierstrass M-Test\<close>
 
-proposition weierstrass_m_test_ev:
+proposition Weierstrass_m_test_ev:
 fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
 assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially"
 assumes "summable M"
@@ -375,28 +375,28 @@ proof -
     using le eventually_sequentially by auto
   show ?thesis
     apply (rule_tac x="(\<lambda>x. \<Sum>i. f x i)" in exI)
-    apply (metis (no_types, lifting) eventually_sequentially uniform_limitD [OF weierstrass_m_test_ev [OF 1 g]])
+    apply (metis (no_types, lifting) eventually_sequentially uniform_limitD [OF Weierstrass_m_test_ev [OF 1 g]])
     done
 qed
 
-corollary%unimportant weierstrass_m_test:
+corollary%unimportant Weierstrass_m_test:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
   assumes "summable M"
   shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
-  using assms by (intro weierstrass_m_test_ev always_eventually) auto
+  using assms by (intro Weierstrass_m_test_ev always_eventually) auto
 
-corollary%unimportant weierstrass_m_test'_ev:
+corollary%unimportant Weierstrass_m_test'_ev:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially" "summable M"
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
-  unfolding uniformly_convergent_on_def by (rule exI, rule weierstrass_m_test_ev[OF assms])
+  unfolding uniformly_convergent_on_def by (rule exI, rule Weierstrass_m_test_ev[OF assms])
 
-corollary%unimportant weierstrass_m_test':
+corollary%unimportant Weierstrass_m_test':
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
   assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n" "summable M"
   shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
-  unfolding uniformly_convergent_on_def by (rule exI, rule weierstrass_m_test[OF assms])
+  unfolding uniformly_convergent_on_def by (rule exI, rule Weierstrass_m_test[OF assms])
 
 lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Longrightarrow> uniform_limit X f m F"
   by simp
@@ -714,7 +714,7 @@ proof (cases "0 \<le> r")
     using abs_summable_in_conv_radius [of "of_real r" a] assms
     by (simp add: norm_mult norm_power)
   show ?thesis
-    by (simp add: weierstrass_m_test'_ev [OF _ *] norm_mult norm_power
+    by (simp add: Weierstrass_m_test'_ev [OF _ *] norm_mult norm_power
               mult_left_mono power_mono dist_norm norm_minus_commute)
 next
   case False then show ?thesis by (simp add: not_le)

@@ -2806,11 +2806,11 @@ lemma
     (Df m has_vector_derivative Df (Suc m) t) (at t within {a..b})"
   and ivl: "a \<le> b"
   defines "i \<equiv> \<lambda>x. ((b - x) ^ (p - 1) / fact (p - 1)) *\<^sub>R Df p x"
-  shows taylor_has_integral:
+  shows Taylor_has_integral:
     "(i has_integral f b - (\<Sum>i<p. ((b-a) ^ i / fact i) *\<^sub>R Df i a)) {a..b}"
-  and taylor_integral:
+  and Taylor_integral:
     "f b = (\<Sum>i<p. ((b-a) ^ i / fact i) *\<^sub>R Df i a) + integral {a..b} i"
-  and taylor_integrable:
+  and Taylor_integrable:
     "i integrable_on {a..b}"
 proof goal_cases
   case 1
