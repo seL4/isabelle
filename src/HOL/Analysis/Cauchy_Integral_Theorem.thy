@@ -5688,7 +5688,7 @@ proof -
         using uwd by (simp add: dist_commute dist_norm)
       have "cmod (inverse (x - u) ^ k - (inverse (x - w) ^ k + of_nat k * (u - w) / ((x - w) * (x - w) ^ k)))
                   \<le> (real k * 4 + real k * real k * 4) * (cmod (u - w) * cmod (u - w)) / (d * (d * (d/2) ^ k))"
-        using complex_taylor [OF _ ff1 ff2 _ ub, of w, simplified]
+        using complex_Taylor [OF _ ff1 ff2 _ ub, of w, simplified]
         by (simp add: ff_def \<open>0 < d\<close>)
       then have "cmod (inverse (x - u) ^ k - (inverse (x - w) ^ k + of_nat k * (u - w) / ((x - w) * (x - w) ^ k)))
                   \<le> (cmod (u - w) * real k) * (1 + real k) * cmod (u - w) / (d/2) ^ (k+2)"
