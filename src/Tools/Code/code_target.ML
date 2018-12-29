@@ -305,24 +305,25 @@ fun activate_target ctxt target_name =
     val (modify, target_data) = join_ancestry thy target_name;
   in (target_data, modify) end;
 
-fun project_program ctxt syms_hidden syms1 program2 =
+fun project_program ctxt syms_hidden syms1 program1 =
   let
     val syms2 = subtract (op =) syms_hidden syms1;
-    val program3 = Code_Symbol.Graph.restrict (not o member (op =) syms_hidden) program2;
-    val syms4 = Code_Symbol.Graph.all_succs program3 syms2;
-    val unimplemented = Code_Thingol.unimplemented program3;
+    val program2 = Code_Symbol.Graph.restrict (not o member (op =) syms_hidden) program1;
+    val unimplemented = Code_Thingol.unimplemented program2;
     val _ =
       if null unimplemented then ()
       else error ("No code equations for " ^
         commas (map (Proof_Context.markup_const ctxt) unimplemented));
-    val program4 = Code_Symbol.Graph.restrict (member (op =) syms4) program3;
-  in (syms4, program4) end;
+    val syms3 = Code_Symbol.Graph.all_succs program2 syms2;
+    val program3 = Code_Symbol.Graph.restrict (member (op =) syms3) program2;
+  in program3 end;
 
 fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
     printings module_name args proto_program syms =
   let
     val syms_hidden = Code_Symbol.symbols_of printings;
-    val (syms_all, program) = project_program ctxt syms_hidden syms proto_program;
+    val program = project_program ctxt syms_hidden syms proto_program;
+    val syms_all = Code_Symbol.Graph.all_succs proto_program syms;
     fun select_include (name, (content, syms)) =
       if null syms orelse exists (member (op =) syms_all) syms
       then SOME (name, content) else NONE;
