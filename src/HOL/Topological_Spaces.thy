@@ -2314,14 +2314,14 @@ subsubsection \<open>Open-cover compactness\<close>
 context topological_space
 begin
 
-definition compact :: "'a set \<Rightarrow> bool"
-  where compact_eq_heine_borel:  (* This name is used for backwards compatibility *)
+definition compact :: "'a set \<Rightarrow> bool" where
+compact_eq_Heine_Borel:  (* This name is used for backwards compatibility *)
     "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
 
 lemma compactI:
   assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union>C \<Longrightarrow> \<exists>C'. C' \<subseteq> C \<and> finite C' \<and> s \<subseteq> \<Union>C'"
   shows "compact s"
-  unfolding compact_eq_heine_borel using assms by metis
+  unfolding compact_eq_Heine_Borel using assms by metis
 
 lemma compact_empty[simp]: "compact {}"
   by (auto intro!: compactI)
@@ -2329,7 +2329,7 @@ lemma compact_empty[simp]: "compact {}"
 lemma compactE: (*related to COMPACT_IMP_HEINE_BOREL in HOL Light*)
   assumes "compact S" "S \<subseteq> \<Union>\<T>" "\<And>B. B \<in> \<T> \<Longrightarrow> open B"
   obtains \<T>' where "\<T>' \<subseteq> \<T>" "finite \<T>'" "S \<subseteq> \<Union>\<T>'"
-  by (meson assms compact_eq_heine_borel)
+  by (meson assms compact_eq_Heine_Borel)
 
 lemma compactE_image:
   assumes "compact S"
@@ -2353,7 +2353,7 @@ proof (rule compactI)
   moreover from cover have "S \<subseteq> \<Union>(C \<union> {- T})"
     by auto
   ultimately have "\<exists>D\<subseteq>C \<union> {- T}. finite D \<and> S \<subseteq> \<Union>D"
-    using \<open>compact S\<close> unfolding compact_eq_heine_borel by auto
+    using \<open>compact S\<close> unfolding compact_eq_Heine_Borel by auto
   then obtain D where "D \<subseteq> C \<union> {- T} \<and> finite D \<and> S \<subseteq> \<Union>D" ..
   then show "\<exists>D\<subseteq>C. finite D \<and> S \<inter> T \<subseteq> \<Union>D"
     by (intro exI[of _ "D - {-T}"]) auto
@@ -2372,7 +2372,7 @@ lemma compact_fip:
   "compact U \<longleftrightarrow>
     (\<forall>A. (\<forall>a\<in>A. closed a) \<longrightarrow> (\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}) \<longrightarrow> U \<inter> \<Inter>A \<noteq> {})"
   (is "_ \<longleftrightarrow> ?R")
-proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
+proof (safe intro!: compact_eq_Heine_Borel[THEN iffD2])
   fix A
   assume "compact U"
   assume A: "\<forall>a\<in>A. closed a" "U \<inter> \<Inter>A = {}"
@@ -2380,7 +2380,7 @@ proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
   from A have "(\<forall>a\<in>uminus`A. open a) \<and> U \<subseteq> \<Union>(uminus`A)"
     by auto
   with \<open>compact U\<close> obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<subseteq> \<Union>(uminus`B)"
-    unfolding compact_eq_heine_borel by (metis subset_image_iff)
+    unfolding compact_eq_Heine_Borel by (metis subset_image_iff)
   with fin[THEN spec, of B] show False
     by (auto dest: finite_imageD intro: inj_setminus)
 next

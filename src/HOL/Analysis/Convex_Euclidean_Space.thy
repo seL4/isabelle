@@ -5757,7 +5757,7 @@ subsection \<open>Radon's theorem\<close>
 
 text "Formalized by Lars Schewe."
 
-lemma radon_ex_lemma:
+lemma Radon_ex_lemma:
   assumes "finite c" "affine_dependent c"
   shows "\<exists>u. sum u c = 0 \<and> (\<exists>v\<in>c. u v \<noteq> 0) \<and> sum (\<lambda>v. u v *\<^sub>R v) c = 0"
 proof -
@@ -5772,7 +5772,7 @@ proof -
     done
 qed
 
-lemma radon_s_lemma:
+lemma Radon_s_lemma:
   assumes "finite s"
     and "sum f s = (0::real)"
   shows "sum f {x\<in>s. 0 < f x} = - sum f {x\<in>s. f x < 0}"
@@ -5786,7 +5786,7 @@ proof -
     by assumption
 qed
 
-lemma radon_v_lemma:
+lemma Radon_v_lemma:
   assumes "finite s"
     and "sum f s = 0"
     and "\<forall>x. g x = (0::real) \<longrightarrow> f x = (0::'a::euclidean_space)"
@@ -5802,12 +5802,12 @@ proof -
     done
 qed
 
-lemma radon_partition:
+lemma Radon_partition:
   assumes "finite c" "affine_dependent c"
   shows "\<exists>m p. m \<inter> p = {} \<and> m \<union> p = c \<and> (convex hull m) \<inter> (convex hull p) \<noteq> {}"
 proof -
   obtain u v where uv: "sum u c = 0" "v\<in>c" "u v \<noteq> 0"  "(\<Sum>v\<in>c. u v *\<^sub>R v) = 0"
-    using radon_ex_lemma[OF assms] by auto
+    using Radon_ex_lemma[OF assms] by auto
   have fin: "finite {x \<in> c. 0 < u x}" "finite {x \<in> c. 0 > u x}"
     using assms(1) by auto
   define z  where "z = inverse (sum u {x\<in>c. u x > 0}) *\<^sub>R sum (\<lambda>x. u x *\<^sub>R x) {x\<in>c. u x > 0}"
@@ -5879,7 +5879,7 @@ proof -
     done
 qed
 
-theorem radon:
+theorem Radon:
   assumes "affine_dependent c"
   obtains m p where "m \<subseteq> c" "p \<subseteq> c" "m \<inter> p = {}" "(convex hull m) \<inter> (convex hull p) \<noteq> {}"
 proof -
@@ -5889,7 +5889,7 @@ proof -
     by blast
   then have *: "finite s" "affine_dependent s" and s: "s \<subseteq> c"
     unfolding affine_dependent_explicit by auto
-  from radon_partition[OF *]
+  from Radon_partition[OF *]
   obtain m p where "m \<inter> p = {}" "m \<union> p = s" "convex hull m \<inter> convex hull p \<noteq> {}"
     by blast
   then show ?thesis
@@ -5902,7 +5902,7 @@ qed
 
 subsection \<open>Helly's theorem\<close>
 
-lemma helly_induct:
+lemma Helly_induct:
   fixes f :: "'a::euclidean_space set set"
   assumes "card f = n"
     and "n \<ge> DIM('a) + 1"
@@ -5947,7 +5947,7 @@ next
     next
       case True
       then obtain m p where mp: "m \<inter> p = {}" "m \<union> p = X ` f" "convex hull m \<inter> convex hull p \<noteq> {}"
-        using radon_partition[of "X ` f"] and affine_dependent_biggerset[of "X ` f"]
+        using Radon_partition[of "X ` f"] and affine_dependent_biggerset[of "X ` f"]
         unfolding card_image[OF True] and \<open>card f = Suc n\<close>
         using Suc(3) \<open>finite f\<close> and False
         by auto
@@ -5973,12 +5973,12 @@ next
   qed 
 qed
 
-theorem helly:
+theorem Helly:
   fixes f :: "'a::euclidean_space set set"
   assumes "card f \<ge> DIM('a) + 1" "\<forall>s\<in>f. convex s"
     and "\<And>t. \<lbrakk>t\<subseteq>f; card t = DIM('a) + 1\<rbrakk> \<Longrightarrow> \<Inter>t \<noteq> {}"
   shows "\<Inter>f \<noteq> {}"
-  apply (rule helly_induct)
+  apply (rule Helly_induct)
   using assms
   apply auto
   done

@@ -3134,7 +3134,7 @@ proof -
   moreover have "path_image p \<subseteq> (\<Union>c\<in>path_image p. ball c (ee c / 3))"
     using ee by auto
   ultimately have "\<exists>D \<subseteq> cover. finite D \<and> path_image p \<subseteq> \<Union>D"
-    by (simp add: compact_eq_heine_borel cover_def)
+    by (simp add: compact_eq_Heine_Borel cover_def)
   then obtain D where D: "D \<subseteq> cover" "finite D" "path_image p \<subseteq> \<Union>D"
     by blast
   then obtain k where k: "k \<subseteq> {0..1}" "finite k" and D_eq: "D = ((\<lambda>z. ball z (ee z / 3)) \<circ> p) ` k"
@@ -6764,7 +6764,7 @@ lemma series_and_derivative_comparison:
   obtains g g' where "\<forall>x \<in> S. ((\<lambda>n. f n x) sums g x) \<and> ((\<lambda>n. f' n x) sums g' x) \<and> (g has_field_derivative g' x) (at x)"
 proof -
   obtain g where g: "uniform_limit S (\<lambda>n x. \<Sum>i<n. f i x) g sequentially"
-    using weierstrass_m_test_ev [OF to_g h]  by force
+    using Weierstrass_m_test_ev [OF to_g h]  by force
   have *: "\<exists>d>0. cball x d \<subseteq> S \<and> uniform_limit (cball x d) (\<lambda>n x. \<Sum>i<n. f i x) g sequentially"
          if "x \<in> S" for x
   proof -

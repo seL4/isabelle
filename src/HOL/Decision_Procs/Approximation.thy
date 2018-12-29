@@ -1259,7 +1259,7 @@ proof -
       case False
       have "lx \<le> real_of_float c" "real_of_float c \<le> ux" "lx \<le> xs!x" "xs!x \<le> ux"
         using Suc bnd_c \<open>bounded_by xs vs\<close>[THEN bounded_byE, OF \<open>x < length vs\<close>] bnd_x by auto
-      from taylor[OF zero_less_Suc, of F, OF F0 DERIV[unfolded Suc] this False]
+      from Taylor[OF zero_less_Suc, of F, OF F0 DERIV[unfolded Suc] this False]
       obtain t::real where t_bnd: "if xs ! x < c then xs ! x < t \<and> t < c else c < t \<and> t < xs ! x"
         and fl_eq: "interpret_floatarith f (xs[x := xs ! x]) =
            (\<Sum>m = 0..<Suc n'. F m c / (fact m) * (xs ! x - c) ^ m) +

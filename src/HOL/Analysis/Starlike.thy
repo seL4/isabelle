@@ -5261,7 +5261,7 @@ proof -
     qed
     have "\<Inter>{{a. a \<in> K \<and> f a \<in> insert y (range (\<lambda>i. f(X(n + i))))} |n. n \<in> UNIV}
                \<noteq> {}"
-      apply (rule compact_fip_heine_borel)
+      apply (rule compact_fip_Heine_Borel)
        using comf apply force
       using ne  apply (simp add: subset_iff del: insert_iff)
       done

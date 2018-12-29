@@ -2433,7 +2433,7 @@ lemma compact_space:
   using openin_subset by fastforce
 
 lemma compactin_euclideanreal_iff [simp]: "compactin euclideanreal S \<longleftrightarrow> compact S"
-  by (simp add: compact_eq_heine_borel compactin_def) meson
+  by (simp add: compact_eq_Heine_Borel compactin_def) meson
 
 lemma compactin_absolute [simp]:
    "compactin (subtopology X S) S \<longleftrightarrow> compactin X S"
@@ -2725,7 +2725,7 @@ qed
 lemma compact_space_discrete_topology: "compact_space(discrete_topology X) \<longleftrightarrow> finite X"
   by (simp add: compactin_discrete_topology compact_space_def)
 
-lemma compact_space_imp_bolzano_weierstrass:
+lemma compact_space_imp_Bolzano_Weierstrass:
   assumes "compact_space X" "infinite S" "S \<subseteq> topspace X"
   shows "X derived_set_of S \<noteq> {}"
 proof
@@ -2738,19 +2738,19 @@ proof
     by (metis \<open>infinite S\<close> compactin_subspace compact_space_discrete_topology inf_bot_right subtopology_eq_discrete_topology_eq)
 qed
 
-lemma compactin_imp_bolzano_weierstrass:
+lemma compactin_imp_Bolzano_Weierstrass:
    "\<lbrakk>compactin X S; infinite T \<and> T \<subseteq> S\<rbrakk> \<Longrightarrow> S \<inter> X derived_set_of T \<noteq> {}"
-  using compact_space_imp_bolzano_weierstrass [of "subtopology X S"]
+  using compact_space_imp_Bolzano_Weierstrass [of "subtopology X S"]
   by (simp add: compactin_subspace derived_set_of_subtopology inf_absorb2 topspace_subtopology)
 
-lemma compact_closure_of_imp_bolzano_weierstrass:
+lemma compact_closure_of_imp_Bolzano_Weierstrass:
    "\<lbrakk>compactin X (X closure_of S); infinite T; T \<subseteq> S; T \<subseteq> topspace X\<rbrakk> \<Longrightarrow> X derived_set_of T \<noteq> {}"
-  using closure_of_mono closure_of_subset compactin_imp_bolzano_weierstrass by fastforce
+  using closure_of_mono closure_of_subset compactin_imp_Bolzano_Weierstrass by fastforce
 
 lemma discrete_compactin_eq_finite:
    "S \<inter> X derived_set_of S = {} \<Longrightarrow> compactin X S \<longleftrightarrow> S \<subseteq> topspace X \<and> finite S"
   apply (rule iffI)
-  using compactin_imp_bolzano_weierstrass compactin_subset_topspace apply blast
+  using compactin_imp_Bolzano_Weierstrass compactin_subset_topspace apply blast
   by (simp add: finite_imp_compactin_eq)
 
 lemma discrete_compact_space_eq_finite:

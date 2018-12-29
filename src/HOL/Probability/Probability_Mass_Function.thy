@@ -848,7 +848,7 @@ next
         by (simp add: sums_unique)
     next
       show "uniform_limit A (\<lambda>n a. \<Sum>i<n. ?f i a) (\<lambda>a. (\<Sum> n. ?f n a)) sequentially"
-      proof (rule weierstrass_m_test)
+      proof (rule Weierstrass_m_test)
         fix n a assume "a\<in>A"
         then show "norm (?f n a) \<le> pmf (map_pmf (to_nat_on M) M) n * B"
           using bnd by (auto intro!: mult_mono simp: from_nat_into set_pmf_not_empty)

@@ -700,7 +700,7 @@ declare power_Suc [simp del]
 lemma Taylor_exp_field:
   fixes z::"'a::{banach,real_normed_field}"
   shows "norm (exp z - (\<Sum>i\<le>n. z ^ i / fact i)) \<le> exp (norm z) * (norm z ^ Suc n) / fact n"
-proof (rule field_taylor[of _ n "\<lambda>k. exp" "exp (norm z)" 0 z, simplified])
+proof (rule field_Taylor[of _ n "\<lambda>k. exp" "exp (norm z)" 0 z, simplified])
   show "convex (closed_segment 0 z)"
     by (rule convex_closed_segment [of 0 z])
 next
@@ -721,7 +721,7 @@ qed auto
 
 lemma Taylor_exp:
   "norm(exp z - (\<Sum>k\<le>n. z ^ k / (fact k))) \<le> exp\<bar>Re z\<bar> * (norm z) ^ (Suc n) / (fact n)"
-proof (rule complex_taylor [of _ n "\<lambda>k. exp" "exp\<bar>Re z\<bar>" 0 z, simplified])
+proof (rule complex_Taylor [of _ n "\<lambda>k. exp" "exp\<bar>Re z\<bar>" 0 z, simplified])
   show "convex (closed_segment 0 z)"
     by (rule convex_closed_segment [of 0 z])
 next
@@ -778,7 +778,7 @@ proof -
   have *: "cmod (sin z -
                  (\<Sum>i\<le>n. (-1) ^ (i div 2) * (if even i then sin 0 else cos 0) * z ^ i / (fact i)))
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
-  proof (rule complex_taylor [of "closed_segment 0 z" n
+  proof (rule complex_Taylor [of "closed_segment 0 z" n
                                  "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)"
                                  "exp\<bar>Im z\<bar>" 0 z,  simplified])
     fix k x
@@ -812,7 +812,7 @@ proof -
   have *: "cmod (cos z -
                  (\<Sum>i\<le>n. (-1) ^ (Suc i div 2) * (if even i then cos 0 else sin 0) * z ^ i / (fact i)))
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
-  proof (rule complex_taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(Suc k div 2) * (if even k then cos x else sin x)" "exp\<bar>Im z\<bar>" 0 z,
+  proof (rule complex_Taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(Suc k div 2) * (if even k then cos x else sin x)" "exp\<bar>Im z\<bar>" 0 z,
 simplified])
     fix k x
     assume "x \<in> closed_segment 0 z" "k \<le> n"
@@ -2567,7 +2567,7 @@ proof (simp add: lim_sequentially dist_norm, clarify)
     using e  by (simp add: field_simps)
   then have "\<exists>xo>0. \<forall>x\<ge>xo. x / e < exp (Re s * x)"
     using assms
-    by (force intro: less_le_trans [OF _ exp_lower_taylor_quadratic])
+    by (force intro: less_le_trans [OF _ exp_lower_Taylor_quadratic])
   then obtain xo where "xo > 0" and xo: "\<And>x. x \<ge> xo \<Longrightarrow> x < e * exp (Re s * x)"
     using e  by (auto simp: field_simps)
   have "norm (Ln (of_nat n) / of_nat n powr s) < e" if "n \<ge> nat \<lceil>exp xo\<rceil>" for n

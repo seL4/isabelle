@@ -234,7 +234,7 @@ lemma metric_bound_lemma: "cmod (x - y) \<le> \<bar>Re x - Re y\<bar> + \<bar>Im
   using real_sqrt_sum_squares_triangle_ineq[of "Re x - Re y" 0 0 "Im x - Im y"]
   unfolding cmod_def by simp
 
-lemma bolzano_weierstrass_complex_disc:
+lemma Bolzano_Weierstrass_complex_disc:
   assumes r: "\<forall>n. cmod (s n) \<le> r"
   shows "\<exists>f z. strict_mono (f :: nat \<Rightarrow> nat) \<and> (\<forall>e >0. \<exists>N. \<forall>n \<ge> N. cmod (s (f n) - z) < e)"
 proof -
@@ -399,7 +399,7 @@ proof -
     from choice[OF th] obtain g where
         g: "\<forall>n. cmod (g n) \<le> r" "\<forall>n. cmod (poly p (g n)) <?m + 1 /real(Suc n)"
       by blast
-    from bolzano_weierstrass_complex_disc[OF g(1)]
+    from Bolzano_Weierstrass_complex_disc[OF g(1)]
     obtain f z where fz: "strict_mono (f :: nat \<Rightarrow> nat)" "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. cmod (g (f n) - z) < e"
       by blast
     {
