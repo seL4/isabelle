@@ -5,7 +5,9 @@
 section \<open>Connected Components, Homeomorphisms, Baire property, etc\<close>
 
 theory Connected
-imports Topology_Euclidean_Space
+  imports
+    "HOL-Library.Indicator_Function"
+    Topology_Euclidean_Space
 begin
 
 subsection%unimportant \<open>More properties of closed balls, spheres, etc\<close>

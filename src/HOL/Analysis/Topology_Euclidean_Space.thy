@@ -8,7 +8,7 @@ section \<open>Elementary Topology in Euclidean Space\<close>
 
 theory Topology_Euclidean_Space
   imports
-    Elementary_Topology
+    Elementary_Normed_Spaces
     Linear_Algebra
     Norm_Arith
 begin
