@@ -16,15 +16,15 @@ setup \<open>Code_Target.add_derived_target ("Haskell_Quickcheck", [(Code_Haskel
 code_printing
   code_module Typerep \<rightharpoonup> (Haskell_Quickcheck) \<open>
 data Typerep = Typerep String [Typerep]
-\<close>
+\<close> for type_constructor typerep constant Typerep.Typerep
 | type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
 | constant Typerep.Typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
-| type_constructor integer \<rightharpoonup> (Haskell_Quickcheck) "Prelude.Int"
 
 code_reserved Haskell_Quickcheck Typerep
 
 code_printing
-  constant "0::integer" \<rightharpoonup>
+  type_constructor integer \<rightharpoonup> (Haskell_Quickcheck) "Prelude.Int"
+| constant "0::integer" \<rightharpoonup>
     (Haskell_Quickcheck) "!(0/ ::/ Prelude.Int)"
 
 setup \<open>

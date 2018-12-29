@@ -214,6 +214,7 @@ code_printing
 
   length :: IArray e -> Integer;
   length (IArray v) = toInteger (Data.Ix.rangeSize (Data.Array.IArray.bounds v));\<close>
+  for type_constructor iarray constant IArray IArray.tabulate IArray.sub' IArray.length'
 
 code_reserved Haskell IArray_Impl
 
