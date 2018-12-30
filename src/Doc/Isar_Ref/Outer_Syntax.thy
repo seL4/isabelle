@@ -189,7 +189,9 @@ text \<open>
   \<close>}
 
   A @{syntax_def system_name} is like @{syntax name}, but it excludes
-  white-space characters and needs to conform to file-name notation.
+  white-space characters and needs to conform to file-name notation. Name
+  components that are special on Windows (e.g.\ \<^verbatim>\<open>CON\<close>, \<^verbatim>\<open>PRN\<close>, \<^verbatim>\<open>AUX\<close>) are
+  excluded on all platforms.
 \<close>
 
 

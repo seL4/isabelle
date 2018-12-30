@@ -24,14 +24,20 @@ object Path
   private case object Parent extends Elem
 
   private def err_elem(msg: String, s: String): Nothing =
-    error(msg + " path element specification " + quote(s))
+    error(msg + " path element " + quote(s))
+
+  private val illegal_elem = Set("", "~", "~~", ".", "..")
+  private val illegal_char = "/\\$:\"'<>|?*"
 
   private def check_elem(s: String): String =
-    if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
+    if (illegal_elem.contains(s)) err_elem("Illegal", s)
     else {
-      "/\\$:\"'".iterator.foreach(c =>
-        if (s.iterator.contains(c))
-          err_elem("Illegal character " + quote(c.toString) + " in", s))
+      for (c <- s) {
+        if (c.toInt < 32)
+          err_elem("Illegal control character " + c.toInt + " in", s)
+        if (illegal_char.contains(c))
+          err_elem("Illegal character " + quote(c.toString) + " in", s)
+      }
       s
     }
 
@@ -112,6 +118,17 @@ object Path
   /* encode */
 
   val encode: XML.Encode.T[Path] = (path => XML.Encode.string(path.implode))
+
+
+  /* reserved names */
+
+  private val reserved_windows: Set[String] =
+    Set("CON", "PRN", "AUX", "NUL",
+      "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9")
+
+  def is_reserved(name: String): Boolean =
+    Long_Name.explode(name).exists(a => reserved_windows.contains(Word.uppercase(a)))
 }
 
 

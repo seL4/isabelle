@@ -51,18 +51,20 @@ datatype elem =
 
 local
 
-fun err_elem msg s = error (msg ^ " path element specification " ^ quote s);
+fun err_elem msg s = error (msg ^ " path element " ^ quote s);
 
-fun check_elem s =
-  if s = "" orelse s = "~" orelse s = "~~" then err_elem "Illegal" s
+val illegal_elem = ["", "~", "~~", ".", ".."];
+val illegal_char = ["/", "\\", "$", ":", "\"", "'", "<", ">", "|", "?", "*"];
+
+val check_elem = tap (fn s =>
+  if member (op =) illegal_elem s then err_elem "Illegal" s
   else
-    let
-      fun check c =
-        if exists_string (fn c' => c = c') s then
-          err_elem ("Illegal character " ^ quote c ^ " in") s
-        else ();
-      val _ = List.app check ["/", "\\", "$", ":", "\"", "'"];
-    in s end;
+    (s, ()) |-> fold_string (fn c => fn () =>
+      if ord c < 32 then
+        err_elem ("Illegal control character " ^ string_of_int (ord c) ^ " in") s
+      else if member (op =) illegal_char c then
+        err_elem ("Illegal character " ^ quote c ^ " in") s
+      else ()));
 
 in
 
