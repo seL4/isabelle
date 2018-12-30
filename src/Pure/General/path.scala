@@ -27,13 +27,16 @@ object Path
     error(msg + " path element " + quote(s))
 
   private val illegal_elem = Set("", "~", "~~", ".", "..")
-  private val illegal_char = "/\\$:\"'"
+  private val illegal_char = "/\\$:\"'<>|?*"
 
   private def check_elem(s: String): String =
     if (illegal_elem.contains(s)) err_elem("Illegal", s)
     else {
-      for (c <- s if illegal_char.contains(c)) {
-        err_elem("Illegal character " + quote(c.toString) + " in", s)
+      for (c <- s) {
+        if (c.toInt < 32)
+          err_elem("Illegal control character " + c.toInt + " in", s)
+        if (illegal_char.contains(c))
+          err_elem("Illegal character " + quote(c.toString) + " in", s)
       }
       s
     }
