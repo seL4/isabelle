@@ -26,7 +26,7 @@ object Path
   private def err_elem(msg: String, s: String): Nothing =
     error(msg + " path element " + quote(s))
 
-  private val illegal_elem = Set("", "~", "~~")
+  private val illegal_elem = Set("", "~", "~~", ".", "..")
   private val illegal_char = "/\\$:\"'"
 
   private def check_elem(s: String): String =

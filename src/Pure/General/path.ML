@@ -53,7 +53,7 @@ local
 
 fun err_elem msg s = error (msg ^ " path element " ^ quote s);
 
-val illegal_elem = ["", "~", "~~"];
+val illegal_elem = ["", "~", "~~", ".", ".."];
 val illegal_char = ["/", "\\", "$", ":", "\"", "'"];
 
 val check_elem = tap (fn s =>
