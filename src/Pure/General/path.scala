@@ -32,7 +32,7 @@ object Path
   private def check_elem(s: String): String =
     if (illegal_elem.contains(s)) err_elem("Illegal", s)
     else {
-      for (c <- illegal_char if s.contains(c)) {
+      for (c <- s if illegal_char.contains(c)) {
         err_elem("Illegal character " + quote(c.toString) + " in", s)
       }
       s

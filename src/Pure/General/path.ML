@@ -59,8 +59,8 @@ val illegal_char = ["/", "\\", "$", ":", "\"", "'"];
 val check_elem = tap (fn s =>
   if member (op =) illegal_elem s then err_elem "Illegal" s
   else
-    illegal_char |> List.app (fn c =>
-      if exists_string (fn c' => c = c') s then
+    (s, ()) |-> fold_string (fn c => fn () =>
+      if member (op =) illegal_char c then
         err_elem ("Illegal character " ^ quote c ^ " in") s
       else ()));
 
