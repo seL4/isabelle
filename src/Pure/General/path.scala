@@ -24,14 +24,17 @@ object Path
   private case object Parent extends Elem
 
   private def err_elem(msg: String, s: String): Nothing =
-    error(msg + " path element specification " + quote(s))
+    error(msg + " path element " + quote(s))
+
+  private val illegal_elem = Set("", "~", "~~")
+  private val illegal_char = "/\\$:\"'"
 
   private def check_elem(s: String): String =
-    if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
+    if (illegal_elem.contains(s)) err_elem("Illegal", s)
     else {
-      "/\\$:\"'".iterator.foreach(c =>
-        if (s.iterator.contains(c))
-          err_elem("Illegal character " + quote(c.toString) + " in", s))
+      for (c <- illegal_char if s.contains(c)) {
+        err_elem("Illegal character " + quote(c.toString) + " in", s)
+      }
       s
     }
 
