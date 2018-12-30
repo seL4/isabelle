@@ -1143,7 +1143,7 @@ lemma AE_cong[cong]:
   "(\<And>x. x \<in> space M \<Longrightarrow> P x \<longleftrightarrow> Q x) \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in M. Q x)"
   by auto
 
-lemma AE_cong_strong: "M = N \<Longrightarrow> (\<And>x. x \<in> space N =simp=> P x = Q x) \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in N. Q x)"
+lemma AE_cong_simp: "M = N \<Longrightarrow> (\<And>x. x \<in> space N =simp=> P x = Q x) \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> (AE x in N. Q x)"
   by (auto simp: simp_implies_def)
 
 lemma AE_all_countable:
@@ -2589,7 +2589,7 @@ proof (rule measure_eqI)
       using E \<Omega> by (subst (1 2) emeasure_restrict_space) (auto simp: sets_eq sets_eq[THEN sets_eq_imp_space_eq])
   next
     show "range (from_nat_into A) \<subseteq> E" "(\<Union>i. from_nat_into A i) = \<Omega>"
-      using A by (auto cong del: SUP_cong_strong)
+      using A by (auto cong del: SUP_cong_simp)
   next
     fix i
     have "emeasure (restrict_space M \<Omega>) (from_nat_into A i) = emeasure M (from_nat_into A i)"

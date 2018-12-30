@@ -84,7 +84,8 @@ and prod_mset.swap, similarly to sum.swap and prod.swap.
 INCOMPATIBILITY.
 
 * Strong congruence rules (with =simp=> in the premises) for constant f
-are now uniformly called f_cong_strong. 
+are now uniformly called f_cong_simp, in accordance with congruence
+rules produced for mappers by the datatype package. INCOMPATIBILITY.
 
 * Sledgehammer: The URL for SystemOnTPTP, which is used by remote
 provers, has been updated.

@@ -407,7 +407,7 @@ lemma Compl_in_sets_lebesgue: "-A \<in> sets lebesgue \<longleftrightarrow> A  \
 lemma measurable_lebesgue_cong:
   assumes "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
   shows "f \<in> measurable (lebesgue_on S) M \<longleftrightarrow> g \<in> measurable (lebesgue_on S) M"
-  by (metis (mono_tags, lifting) IntD1 assms measurable_cong_strong space_restrict_space)
+  by (metis (mono_tags, lifting) IntD1 assms measurable_cong_simp space_restrict_space)
 
 text%unimportant \<open>Measurability of continuous functions\<close>
 

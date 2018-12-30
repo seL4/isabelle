@@ -321,7 +321,7 @@ lemma Example3_list: "m mod n=0 \<Longrightarrow> \<turnstile> (COBEGIN SCHEME [
       \<lbrace>\<forall>i<n. (\<acute>X!i) mod n=i \<and> (\<forall>j<\<acute>X!i. j mod n=i \<longrightarrow> \<not>P(B!j)) \<and>
         (\<acute>Y!i<m \<longrightarrow> P(B!(\<acute>Y!i)) \<and> \<acute>Y!i\<le> m+i) \<and> (\<exists>j<n. \<acute>Y!j \<le> \<acute>X!i)\<rbrace>]"
 apply (rule Parallel)
-apply (auto cong del: INF_cong_strong SUP_cong_strong)
+apply (auto cong del: INF_cong_simp SUP_cong_simp)
 apply force
 apply (rule While)
     apply force

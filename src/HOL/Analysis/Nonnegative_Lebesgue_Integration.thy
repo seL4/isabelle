@@ -2058,7 +2058,7 @@ proof -
       by (subst s_eq) (auto simp: image_subset_iff le_fun_def split: split_indicator split_indicator_asm)
   qed
   then show ?thesis
-    unfolding nn_integral_def_finite by (simp cong del: SUP_cong_strong)
+    unfolding nn_integral_def_finite by (simp cong del: SUP_cong_simp)
 qed
 
 lemma nn_integral_count_space_indicator:

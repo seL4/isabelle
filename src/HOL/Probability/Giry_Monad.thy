@@ -1763,7 +1763,7 @@ next
   qed
 qed
 
-lemma bind_cong_strong: "M = N \<Longrightarrow> (\<And>x. x\<in>space M =simp=> f x = g x) \<Longrightarrow> bind M f = bind N g"
+lemma bind_cong_simp: "M = N \<Longrightarrow> (\<And>x. x\<in>space M =simp=> f x = g x) \<Longrightarrow> bind M f = bind N g"
   by (auto simp: simp_implies_def intro!: bind_cong)
 
 lemma sets_bind_measurable:

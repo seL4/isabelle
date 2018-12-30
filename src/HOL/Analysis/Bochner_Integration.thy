@@ -524,7 +524,7 @@ lemma%unimportant has_bochner_integral_cong:
   assumes "M = N" "\<And>x. x \<in> space N \<Longrightarrow> f x = g x" "x = y"
   shows "has_bochner_integral M f x \<longleftrightarrow> has_bochner_integral N g y"
   unfolding has_bochner_integral.simps assms(1,3)
-  using assms(2) by (simp cong: measurable_cong_strong nn_integral_cong_strong)
+  using assms(2) by (simp cong: measurable_cong_simp nn_integral_cong_simp)
 
 lemma%unimportant has_bochner_integral_cong_AE:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (AE x in M. f x = g x) \<Longrightarrow>

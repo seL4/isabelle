@@ -252,7 +252,7 @@ next
     by (simp add: insert_ident Icc_eq_insert_lb_nat nat_in_image braun_indices1)
   thus ?case using Node.IH even_odd_decomp[OF _ _ 3]
     by(simp add: card_image inj_on_def card_braun_indices Let_def 1 2 inj_image_eq_iff image_comp
-           cong: image_cong_strong)
+           cong: image_cong_simp)
 qed
 
 lemma braun_iff_braun_indices: "braun t \<longleftrightarrow> braun_indices t = {1..size t}"

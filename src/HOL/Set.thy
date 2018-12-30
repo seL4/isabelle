@@ -426,7 +426,7 @@ lemma ball_cong:
     (\<forall>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>B. Q x)"
 by (simp add: Ball_def)
 
-lemma ball_cong_strong [cong]:
+lemma ball_cong_simp [cong]:
   "\<lbrakk> A = B;  \<And>x. x \<in> B =simp=> P x \<longleftrightarrow> Q x \<rbrakk> \<Longrightarrow>
     (\<forall>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>B. Q x)"
 by (simp add: simp_implies_def Ball_def)
@@ -436,7 +436,7 @@ lemma bex_cong:
     (\<exists>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>B. Q x)"
 by (simp add: Bex_def cong: conj_cong)
 
-lemma bex_cong_strong [cong]:
+lemma bex_cong_simp [cong]:
   "\<lbrakk> A = B;  \<And>x. x \<in> B =simp=> P x \<longleftrightarrow> Q x \<rbrakk> \<Longrightarrow>
     (\<exists>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>B. Q x)"
 by (simp add: simp_implies_def Bex_def cong: conj_cong)
@@ -939,7 +939,7 @@ lemma if_image_distrib [simp]:
 lemma image_cong: "\<lbrakk> M = N;  \<And>x. x \<in> N \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow> f ` M = g ` N"
 by (simp add: image_def)
 
-lemma image_cong_strong: "\<lbrakk> M = N; \<And>x. x \<in> N =simp=> f x = g x\<rbrakk> \<Longrightarrow> f ` M = g ` N"
+lemma image_cong_simp: "\<lbrakk> M = N; \<And>x. x \<in> N =simp=> f x = g x\<rbrakk> \<Longrightarrow> f ` M = g ` N"
 by (simp add: image_def simp_implies_def)
 
 lemma image_Int_subset: "f ` (A \<inter> B) \<subseteq> f ` A \<inter> f ` B"

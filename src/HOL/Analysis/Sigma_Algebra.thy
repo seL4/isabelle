@@ -436,10 +436,10 @@ lemma range_binary_eq: "range(binary a b) = {a,b}"
   by (auto simp add: binary_def)
 
 lemma Un_range_binary: "a \<union> b = (\<Union>i::nat. binary a b i)"
-  by (simp add: range_binary_eq cong del: SUP_cong_strong)
+  by (simp add: range_binary_eq cong del: SUP_cong_simp)
 
 lemma Int_range_binary: "a \<inter> b = (\<Inter>i::nat. binary a b i)"
-  by (simp add: range_binary_eq cong del: INF_cong_strong)
+  by (simp add: range_binary_eq cong del: INF_cong_simp)
 
 lemma sigma_algebra_iff2:
      "sigma_algebra \<Omega> M \<longleftrightarrow>
@@ -943,7 +943,7 @@ lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
   done
 
 lemma UN_binaryset_eq: "(\<Union>i. binaryset A B i) = A \<union> B"
-  by (simp add: range_binaryset_eq cong del: SUP_cong_strong)
+  by (simp add: range_binaryset_eq cong del: SUP_cong_simp)
 
 subsubsection \<open>Closed CDI\<close>
 
@@ -1802,7 +1802,7 @@ lemma measurable_cong':
   unfolding measurable_def using assms
   by (simp cong: vimage_inter_cong Pi_cong add: simp_implies_def)
 
-lemma measurable_cong_strong:
+lemma measurable_cong_simp:
   "M = N \<Longrightarrow> M' = N' \<Longrightarrow> (\<And>w. w \<in> space M \<Longrightarrow> f w = g w) \<Longrightarrow>
     f \<in> measurable M M' \<longleftrightarrow> g \<in> measurable N N'"
   by (metis measurable_cong)

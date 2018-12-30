@@ -61,7 +61,7 @@ lemma INF_id_eq [simp]: "\<Sqinter>(id ` A) = \<Sqinter>A"
 lemma INF_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> \<Sqinter>(C ` A) = \<Sqinter>(D ` B)"
   by (simp add: image_def)
 
-lemma INF_cong_strong [cong]:
+lemma INF_cong_simp [cong]:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> \<Sqinter>(C ` A) = \<Sqinter>(D ` B)"
   unfolding simp_implies_def by (fact INF_cong)
 
@@ -82,9 +82,9 @@ by(fact Inf.INF_id_eq)
 lemma SUP_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> \<Squnion>(C ` A) = \<Squnion>(D ` B)"
 by (fact Inf.INF_cong)
 
-lemma SUP_cong_strong [cong]:
+lemma SUP_cong_simp [cong]:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> \<Squnion>(C ` A) = \<Squnion>(D ` B)"
-by (fact Inf.INF_cong_strong)
+by (fact Inf.INF_cong_simp)
 
 end
 
@@ -179,19 +179,19 @@ lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
 lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> \<Sqinter>(f ` A)"
-  by (simp cong del: INF_cong_strong)
+  by (simp cong del: INF_cong_simp)
 
 lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
 lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> \<Squnion>(f ` A)"
-  by (simp cong del: SUP_cong_strong)
+  by (simp cong del: SUP_cong_simp)
 
 lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
-  by (simp cong del: INF_cong_strong)
+  by (simp cong del: INF_cong_simp)
 
 lemma SUP_empty [simp]: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
-  by (simp cong del: SUP_cong_strong)
+  by (simp cong del: SUP_cong_simp)
 
 lemma Inf_UNIV [simp]: "\<Sqinter>UNIV = \<bottom>"
   by (auto intro!: antisym Inf_lower)
@@ -437,11 +437,11 @@ lemma SUP_eq_const: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longr
 
 lemma INF_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> \<Sqinter>(f ` I) = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
   using INF_eq_const [of I f c] INF_lower [of _ I f]
-  by (auto intro: antisym cong del: INF_cong_strong)
+  by (auto intro: antisym cong del: INF_cong_simp)
 
 lemma SUP_eq_iff: "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> \<Squnion>(f ` I) = c \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
   using SUP_eq_const [of I f c] SUP_upper [of _ I f]
-  by (auto intro: antisym cong del: SUP_cong_strong)
+  by (auto intro: antisym cong del: SUP_cong_simp)
 
 end
 
