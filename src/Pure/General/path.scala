@@ -118,6 +118,17 @@ object Path
   /* encode */
 
   val encode: XML.Encode.T[Path] = (path => XML.Encode.string(path.implode))
+
+
+  /* reserved names */
+
+  private val reserved_windows: Set[String] =
+    Set("CON", "PRN", "AUX", "NUL",
+      "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9")
+
+  def is_reserved(name: String): Boolean =
+    Long_Name.explode(name).exists(a => reserved_windows.contains(Word.uppercase(a)))
 }
 
 

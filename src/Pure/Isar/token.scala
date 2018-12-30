@@ -328,6 +328,8 @@ sealed case class Token(kind: Token.Kind.Value, source: String)
   def is_system_name: Boolean =
   {
     val s = content
-    is_name && Path.is_wellformed(s) && !s.exists(Symbol.is_ascii_blank(_))
+    is_name && Path.is_wellformed(s) &&
+      !s.exists(Symbol.is_ascii_blank(_)) &&
+      !Path.is_reserved(s)
   }
 }
