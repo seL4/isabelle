@@ -160,6 +160,7 @@ declare -a SOURCES=(
   Tools/simplifier_trace.scala
   Tools/spell_checker.scala
   Tools/task_statistics.scala
+  Tools/update.scala
   Tools/update_cartouches.scala
   Tools/update_comments.scala
   Tools/update_header.scala
