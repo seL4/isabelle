@@ -2193,7 +2193,7 @@ lemma vector_derivative_chain_within:
   using assms(2-3) vector_derivative_works
   by auto
 
-subsection\<open>The notion of being field differentiable\<close>
+subsection \<open>Field differentiability\<close>
 
 definition%important field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
            (infixr "(field'_differentiable)" 50)
