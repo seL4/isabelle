@@ -10,6 +10,7 @@ package isabelle
 import java.io.{File => JFile}
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 
 object Headless
@@ -161,13 +162,17 @@ object Headless
       commit_cleanup_delay: Time = default_commit_cleanup_delay,
       progress: Progress = No_Progress): Use_Theories_Result =
     {
-      val dep_theories =
+      val dependencies =
       {
         val import_names =
           theories.map(thy =>
             resources.import_name(qualifier, master_directory(master_dir), thy) -> Position.none)
-        resources.dependencies(import_names, progress = progress).check_errors.theories
+        resources.dependencies(import_names, progress = progress).check_errors
       }
+      val dep_theories = dependencies.theories
+      val dep_files =
+        dependencies.loaded_files(false).flatMap(_._2).
+          map(path => Document.Node.Name(resources.append("", path)))
 
       val use_theories_state = Synchronized(Use_Theories_State())
 
@@ -258,7 +263,7 @@ object Headless
 
       try {
         session.commands_changed += consumer
-        resources.load_theories(session, id, dep_theories, progress)
+        resources.load_theories(session, id, dep_theories, dep_files, progress)
         use_theories_state.value.await_result
         check_progress.cancel
       }
@@ -341,9 +346,51 @@ object Headless
     }
 
     sealed case class State(
-      required: Multi_Map[Document.Node.Name, UUID.T] = Multi_Map.empty,
-      theories: Map[Document.Node.Name, Theory] = Map.empty)
+      blobs: Map[Document.Node.Name, Document.Blob] = Map.empty,
+      theories: Map[Document.Node.Name, Theory] = Map.empty,
+      required: Multi_Map[Document.Node.Name, UUID.T] = Multi_Map.empty)
     {
+      /* blobs */
+
+      def doc_blobs: Document.Blobs = Document.Blobs(blobs)
+
+      def update_blobs(names: List[Document.Node.Name]): (Document.Blobs, State) =
+      {
+        val new_blobs =
+          names.flatMap(name =>
+          {
+            val bytes = Bytes.read(name.path)
+            def new_blob: Document.Blob =
+            {
+              val text = bytes.text
+              Document.Blob(bytes, text, Symbol.Text_Chunk(text), changed = true)
+            }
+            blobs.get(name) match {
+              case Some(blob) => if (blob.bytes == bytes) None else Some(name -> new_blob)
+              case None => Some(name -> new_blob)
+            }
+          })
+        val blobs1 = (blobs /: new_blobs)(_ + _)
+        val blobs2 = (blobs /: new_blobs)({ case (map, (a, b)) => map + (a -> b.unchanged) })
+        (Document.Blobs(blobs1), copy(blobs = blobs2))
+      }
+
+      def blob_edits(name: Document.Node.Name, old_blob: Option[Document.Blob])
+        : List[Document.Edit_Text] =
+      {
+        val blob = blobs.getOrElse(name, error("Missing blob " + quote(name.toString)))
+        val text_edits =
+          old_blob match {
+            case None => List(Text.Edit.insert(0, blob.source))
+            case Some(blob0) => Text.Edit.replace(0, blob0.source, blob.source)
+          }
+        if (text_edits.isEmpty) Nil
+        else List(name -> Document.Node.Blob(blob), name -> Document.Node.Edits(text_edits))
+      }
+
+
+      /* theories */
+
       lazy val theory_graph: Graph[Document.Node.Name, Unit] =
       {
         val entries =
@@ -389,7 +436,7 @@ object Headless
             val edits = theory1.node_edits(Some(theory))
             (edits, (node_name, theory1))
           }
-        session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
+        session.update(doc_blobs, theory_edits.flatMap(_._1))
         st1.update_theories(theory_edits.map(_._2))
       }
 
@@ -403,7 +450,7 @@ object Headless
         val (retained, purged) = all_nodes.partition(retain)
 
         val purge_edits = purged.flatMap(name => theories(name).purge_edits)
-        session.update(Document.Blobs.empty, purge_edits)
+        session.update(doc_blobs, purge_edits)
 
         ((purged, retained), remove_theories(purged))
       }
@@ -475,6 +522,7 @@ object Headless
       session: Session,
       id: UUID.T,
       dep_theories: List[Document.Node.Name],
+      dep_files: List[Document.Node.Name],
       progress: Progress)
     {
       val loaded_theories =
@@ -494,7 +542,7 @@ object Headless
 
       state.change(st =>
         {
-          val st1 = st.insert_required(id, dep_theories)
+          val (doc_blobs1, st1) = st.insert_required(id, dep_theories).update_blobs(dep_files)
           val theory_edits =
             for (theory <- loaded_theories)
             yield {
@@ -503,7 +551,11 @@ object Headless
               val edits = theory1.node_edits(st1.theories.get(node_name))
               (edits, (node_name, theory1))
             }
-          session.update(Document.Blobs.empty, theory_edits.flatMap(_._1))
+          val file_edits =
+            for { node_name <- dep_files if doc_blobs1.changed(node_name) }
+            yield st1.blob_edits(node_name, st.blobs.get(node_name))
+
+          session.update(doc_blobs1, theory_edits.flatMap(_._1) ::: file_edits.flatten)
           st1.update_theories(theory_edits.map(_._2))
         })
     }
