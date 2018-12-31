@@ -345,7 +345,7 @@ class Resources(
         graph2.map_node(name, _ => syntax)
       })
 
-    def loaded_files(is_pure: Boolean): List[(String, List[Path])] =
+    def loaded_files(pure: Boolean): List[(String, List[Path])] =
     {
       val loaded_files =
         theories.map(_.theory) zip
@@ -353,7 +353,7 @@ class Resources(
             theories.map(name =>
               resources.loaded_files(loaded_theories.get_node(name.theory), name)))
 
-      if (is_pure) {
+      if (pure) {
         val pure_files = resources.pure_files(overall_syntax)
         loaded_files.map({ case (name, files) =>
           (name, if (name == Thy_Header.PURE) pure_files ::: files else files) })
