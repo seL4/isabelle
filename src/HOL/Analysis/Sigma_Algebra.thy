@@ -1181,16 +1181,16 @@ qed
 
 subsubsection \<open>Dynkin systems\<close>
 
-locale%important dynkin_system = subset_class +
+locale%important Dynkin_system = subset_class +
   assumes space: "\<Omega> \<in> M"
     and   compl[intro!]: "\<And>A. A \<in> M \<Longrightarrow> \<Omega> - A \<in> M"
     and   UN[intro!]: "\<And>A. disjoint_family A \<Longrightarrow> range A \<subseteq> M
                            \<Longrightarrow> (\<Union>i::nat. A i) \<in> M"
 
-lemma (in dynkin_system) empty[intro, simp]: "{} \<in> M"
+lemma (in Dynkin_system) empty[intro, simp]: "{} \<in> M"
   using space compl[of "\<Omega>"] by simp
 
-lemma (in dynkin_system) diff:
+lemma (in Dynkin_system) diff:
   assumes sets: "D \<in> M" "E \<in> M" and "D \<subseteq> E"
   shows "E - D \<in> M"
 proof -
@@ -1209,36 +1209,36 @@ proof -
   finally show ?thesis .
 qed
 
-lemma dynkin_systemI:
+lemma Dynkin_systemI:
   assumes "\<And> A. A \<in> M \<Longrightarrow> A \<subseteq> \<Omega>" "\<Omega> \<in> M"
   assumes "\<And> A. A \<in> M \<Longrightarrow> \<Omega> - A \<in> M"
   assumes "\<And> A. disjoint_family A \<Longrightarrow> range A \<subseteq> M
           \<Longrightarrow> (\<Union>i::nat. A i) \<in> M"
-  shows "dynkin_system \<Omega> M"
-  using assms by (auto simp: dynkin_system_def dynkin_system_axioms_def subset_class_def)
+  shows "Dynkin_system \<Omega> M"
+  using assms by (auto simp: Dynkin_system_def Dynkin_system_axioms_def subset_class_def)
 
-lemma dynkin_systemI':
+lemma Dynkin_systemI':
   assumes 1: "\<And> A. A \<in> M \<Longrightarrow> A \<subseteq> \<Omega>"
   assumes empty: "{} \<in> M"
   assumes Diff: "\<And> A. A \<in> M \<Longrightarrow> \<Omega> - A \<in> M"
   assumes 2: "\<And> A. disjoint_family A \<Longrightarrow> range A \<subseteq> M
           \<Longrightarrow> (\<Union>i::nat. A i) \<in> M"
-  shows "dynkin_system \<Omega> M"
+  shows "Dynkin_system \<Omega> M"
 proof -
   from Diff[OF empty] have "\<Omega> \<in> M" by auto
   from 1 this Diff 2 show ?thesis
-    by (intro dynkin_systemI) auto
+    by (intro Dynkin_systemI) auto
 qed
 
-lemma dynkin_system_trivial:
-  shows "dynkin_system A (Pow A)"
-  by (rule dynkin_systemI) auto
+lemma Dynkin_system_trivial:
+  shows "Dynkin_system A (Pow A)"
+  by (rule Dynkin_systemI) auto
 
-lemma sigma_algebra_imp_dynkin_system:
-  assumes "sigma_algebra \<Omega> M" shows "dynkin_system \<Omega> M"
+lemma sigma_algebra_imp_Dynkin_system:
+  assumes "sigma_algebra \<Omega> M" shows "Dynkin_system \<Omega> M"
 proof -
   interpret sigma_algebra \<Omega> M by fact
-  show ?thesis using sets_into_space by (fastforce intro!: dynkin_systemI)
+  show ?thesis using sets_into_space by (fastforce intro!: Dynkin_systemI)
 qed
 
 subsubsection "Intersection sets systems"
@@ -1261,7 +1261,7 @@ lemma Int_stableD:
   "Int_stable M \<Longrightarrow> a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<inter> b \<in> M"
   unfolding Int_stable_def by auto
 
-lemma (in dynkin_system) sigma_algebra_eq_Int_stable:
+lemma (in Dynkin_system) sigma_algebra_eq_Int_stable:
   "sigma_algebra \<Omega> M \<longleftrightarrow> Int_stable M"
 proof
   assume "sigma_algebra \<Omega> M" then show "Int_stable M"
@@ -1284,48 +1284,48 @@ qed
 
 subsubsection "Smallest Dynkin systems"
 
-definition%important dynkin :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set" where
-  "dynkin \<Omega> M =  (\<Inter>{D. dynkin_system \<Omega> D \<and> M \<subseteq> D})"
+definition%important Dynkin :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set" where
+  "Dynkin \<Omega> M =  (\<Inter>{D. Dynkin_system \<Omega> D \<and> M \<subseteq> D})"
 
-lemma dynkin_system_dynkin:
+lemma Dynkin_system_Dynkin:
   assumes "M \<subseteq> Pow (\<Omega>)"
-  shows "dynkin_system \<Omega> (dynkin \<Omega> M)"
-proof (rule dynkin_systemI)
-  fix A assume "A \<in> dynkin \<Omega> M"
+  shows "Dynkin_system \<Omega> (Dynkin \<Omega> M)"
+proof (rule Dynkin_systemI)
+  fix A assume "A \<in> Dynkin \<Omega> M"
   moreover
-  { fix D assume "A \<in> D" and d: "dynkin_system \<Omega> D"
-    then have "A \<subseteq> \<Omega>" by (auto simp: dynkin_system_def subset_class_def) }
-  moreover have "{D. dynkin_system \<Omega> D \<and> M \<subseteq> D} \<noteq> {}"
-    using assms dynkin_system_trivial by fastforce
+  { fix D assume "A \<in> D" and d: "Dynkin_system \<Omega> D"
+    then have "A \<subseteq> \<Omega>" by (auto simp: Dynkin_system_def subset_class_def) }
+  moreover have "{D. Dynkin_system \<Omega> D \<and> M \<subseteq> D} \<noteq> {}"
+    using assms Dynkin_system_trivial by fastforce
   ultimately show "A \<subseteq> \<Omega>"
-    unfolding dynkin_def using assms
+    unfolding Dynkin_def using assms
     by auto
 next
-  show "\<Omega> \<in> dynkin \<Omega> M"
-    unfolding dynkin_def using dynkin_system.space by fastforce
+  show "\<Omega> \<in> Dynkin \<Omega> M"
+    unfolding Dynkin_def using Dynkin_system.space by fastforce
 next
-  fix A assume "A \<in> dynkin \<Omega> M"
-  then show "\<Omega> - A \<in> dynkin \<Omega> M"
-    unfolding dynkin_def using dynkin_system.compl by force
+  fix A assume "A \<in> Dynkin \<Omega> M"
+  then show "\<Omega> - A \<in> Dynkin \<Omega> M"
+    unfolding Dynkin_def using Dynkin_system.compl by force
 next
   fix A :: "nat \<Rightarrow> 'a set"
-  assume A: "disjoint_family A" "range A \<subseteq> dynkin \<Omega> M"
-  show "(\<Union>i. A i) \<in> dynkin \<Omega> M" unfolding dynkin_def
+  assume A: "disjoint_family A" "range A \<subseteq> Dynkin \<Omega> M"
+  show "(\<Union>i. A i) \<in> Dynkin \<Omega> M" unfolding Dynkin_def
   proof (simp, safe)
-    fix D assume "dynkin_system \<Omega> D" "M \<subseteq> D"
+    fix D assume "Dynkin_system \<Omega> D" "M \<subseteq> D"
     with A have "(\<Union>i. A i) \<in> D"
-      by (intro dynkin_system.UN) (auto simp: dynkin_def)
+      by (intro Dynkin_system.UN) (auto simp: Dynkin_def)
     then show "(\<Union>i. A i) \<in> D" by auto
   qed
 qed
 
-lemma dynkin_Basic[intro]: "A \<in> M \<Longrightarrow> A \<in> dynkin \<Omega> M"
-  unfolding dynkin_def by auto
+lemma Dynkin_Basic[intro]: "A \<in> M \<Longrightarrow> A \<in> Dynkin \<Omega> M"
+  unfolding Dynkin_def by auto
 
-lemma (in dynkin_system) restricted_dynkin_system:
+lemma (in Dynkin_system) restricted_Dynkin_system:
   assumes "D \<in> M"
-  shows "dynkin_system \<Omega> {Q. Q \<subseteq> \<Omega> \<and> Q \<inter> D \<in> M}"
-proof (rule dynkin_systemI, simp_all)
+  shows "Dynkin_system \<Omega> {Q. Q \<subseteq> \<Omega> \<and> Q \<inter> D \<in> M}"
+proof (rule Dynkin_systemI, simp_all)
   have "\<Omega> \<inter> D = D"
     using \<open>D \<in> M\<close> sets_into_space by auto
   then show "\<Omega> \<inter> D \<in> M"
@@ -1346,87 +1346,87 @@ next
     by (auto simp del: UN_simps)
 qed
 
-lemma (in dynkin_system) dynkin_subset:
+lemma (in Dynkin_system) Dynkin_subset:
   assumes "N \<subseteq> M"
-  shows "dynkin \<Omega> N \<subseteq> M"
+  shows "Dynkin \<Omega> N \<subseteq> M"
 proof -
-  have "dynkin_system \<Omega> M" ..
-  then have "dynkin_system \<Omega> M"
-    using assms unfolding dynkin_system_def dynkin_system_axioms_def subset_class_def by simp
-  with \<open>N \<subseteq> M\<close> show ?thesis by (auto simp add: dynkin_def)
+  have "Dynkin_system \<Omega> M" ..
+  then have "Dynkin_system \<Omega> M"
+    using assms unfolding Dynkin_system_def Dynkin_system_axioms_def subset_class_def by simp
+  with \<open>N \<subseteq> M\<close> show ?thesis by (auto simp add: Dynkin_def)
 qed
 
-lemma sigma_eq_dynkin:
+lemma sigma_eq_Dynkin:
   assumes sets: "M \<subseteq> Pow \<Omega>"
   assumes "Int_stable M"
-  shows "sigma_sets \<Omega> M = dynkin \<Omega> M"
+  shows "sigma_sets \<Omega> M = Dynkin \<Omega> M"
 proof -
-  have "dynkin \<Omega> M \<subseteq> sigma_sets (\<Omega>) (M)"
-    using sigma_algebra_imp_dynkin_system
-    unfolding dynkin_def sigma_sets_least_sigma_algebra[OF sets] by auto
+  have "Dynkin \<Omega> M \<subseteq> sigma_sets (\<Omega>) (M)"
+    using sigma_algebra_imp_Dynkin_system
+    unfolding Dynkin_def sigma_sets_least_sigma_algebra[OF sets] by auto
   moreover
-  interpret dynkin_system \<Omega> "dynkin \<Omega> M"
-    using dynkin_system_dynkin[OF sets] .
-  have "sigma_algebra \<Omega> (dynkin \<Omega> M)"
+  interpret Dynkin_system \<Omega> "Dynkin \<Omega> M"
+    using Dynkin_system_Dynkin[OF sets] .
+  have "sigma_algebra \<Omega> (Dynkin \<Omega> M)"
     unfolding sigma_algebra_eq_Int_stable Int_stable_def
   proof (intro ballI)
-    fix A B assume "A \<in> dynkin \<Omega> M" "B \<in> dynkin \<Omega> M"
-    let ?D = "\<lambda>E. {Q. Q \<subseteq> \<Omega> \<and> Q \<inter> E \<in> dynkin \<Omega> M}"
+    fix A B assume "A \<in> Dynkin \<Omega> M" "B \<in> Dynkin \<Omega> M"
+    let ?D = "\<lambda>E. {Q. Q \<subseteq> \<Omega> \<and> Q \<inter> E \<in> Dynkin \<Omega> M}"
     have "M \<subseteq> ?D B"
     proof
       fix E assume "E \<in> M"
-      then have "M \<subseteq> ?D E" "E \<in> dynkin \<Omega> M"
+      then have "M \<subseteq> ?D E" "E \<in> Dynkin \<Omega> M"
         using sets_into_space \<open>Int_stable M\<close> by (auto simp: Int_stable_def)
-      then have "dynkin \<Omega> M \<subseteq> ?D E"
-        using restricted_dynkin_system \<open>E \<in> dynkin \<Omega> M\<close>
-        by (intro dynkin_system.dynkin_subset) simp_all
+      then have "Dynkin \<Omega> M \<subseteq> ?D E"
+        using restricted_Dynkin_system \<open>E \<in> Dynkin \<Omega> M\<close>
+        by (intro Dynkin_system.Dynkin_subset) simp_all
       then have "B \<in> ?D E"
-        using \<open>B \<in> dynkin \<Omega> M\<close> by auto
-      then have "E \<inter> B \<in> dynkin \<Omega> M"
+        using \<open>B \<in> Dynkin \<Omega> M\<close> by auto
+      then have "E \<inter> B \<in> Dynkin \<Omega> M"
         by (subst Int_commute) simp
       then show "E \<in> ?D B"
         using sets \<open>E \<in> M\<close> by auto
     qed
-    then have "dynkin \<Omega> M \<subseteq> ?D B"
-      using restricted_dynkin_system \<open>B \<in> dynkin \<Omega> M\<close>
-      by (intro dynkin_system.dynkin_subset) simp_all
-    then show "A \<inter> B \<in> dynkin \<Omega> M"
-      using \<open>A \<in> dynkin \<Omega> M\<close> sets_into_space by auto
+    then have "Dynkin \<Omega> M \<subseteq> ?D B"
+      using restricted_Dynkin_system \<open>B \<in> Dynkin \<Omega> M\<close>
+      by (intro Dynkin_system.Dynkin_subset) simp_all
+    then show "A \<inter> B \<in> Dynkin \<Omega> M"
+      using \<open>A \<in> Dynkin \<Omega> M\<close> sets_into_space by auto
   qed
   from sigma_algebra.sigma_sets_subset[OF this, of "M"]
-  have "sigma_sets (\<Omega>) (M) \<subseteq> dynkin \<Omega> M" by auto
-  ultimately have "sigma_sets (\<Omega>) (M) = dynkin \<Omega> M" by auto
+  have "sigma_sets (\<Omega>) (M) \<subseteq> Dynkin \<Omega> M" by auto
+  ultimately have "sigma_sets (\<Omega>) (M) = Dynkin \<Omega> M" by auto
   then show ?thesis
-    by (auto simp: dynkin_def)
+    by (auto simp: Dynkin_def)
 qed
 
-lemma (in dynkin_system) dynkin_idem:
-  "dynkin \<Omega> M = M"
+lemma (in Dynkin_system) Dynkin_idem:
+  "Dynkin \<Omega> M = M"
 proof -
-  have "dynkin \<Omega> M = M"
+  have "Dynkin \<Omega> M = M"
   proof
-    show "M \<subseteq> dynkin \<Omega> M"
-      using dynkin_Basic by auto
-    show "dynkin \<Omega> M \<subseteq> M"
-      by (intro dynkin_subset) auto
+    show "M \<subseteq> Dynkin \<Omega> M"
+      using Dynkin_Basic by auto
+    show "Dynkin \<Omega> M \<subseteq> M"
+      by (intro Dynkin_subset) auto
   qed
   then show ?thesis
-    by (auto simp: dynkin_def)
+    by (auto simp: Dynkin_def)
 qed
 
-lemma (in dynkin_system) dynkin_lemma:
+lemma (in Dynkin_system) Dynkin_lemma:
   assumes "Int_stable E"
   and E: "E \<subseteq> M" "M \<subseteq> sigma_sets \<Omega> E"
   shows "sigma_sets \<Omega> E = M"
 proof -
   have "E \<subseteq> Pow \<Omega>"
     using E sets_into_space by force
-  then have *: "sigma_sets \<Omega> E = dynkin \<Omega> E"
-    using \<open>Int_stable E\<close> by (rule sigma_eq_dynkin)
-  then have "dynkin \<Omega> E = M"
-    using assms dynkin_subset[OF E(1)] by simp
+  then have *: "sigma_sets \<Omega> E = Dynkin \<Omega> E"
+    using \<open>Int_stable E\<close> by (rule sigma_eq_Dynkin)
+  then have "Dynkin \<Omega> E = M"
+    using assms Dynkin_subset[OF E(1)] by simp
   with * show ?thesis
-    using assms by (auto simp: dynkin_def)
+    using assms by (auto simp: Dynkin_def)
 qed
 
 subsubsection \<open>Induction rule for intersection-stable generators\<close>
@@ -1448,10 +1448,10 @@ proof -
   interpret sigma_algebra \<Omega> "sigma_sets \<Omega> G"
     using closed by (rule sigma_algebra_sigma_sets)
   from compl[OF _ empty] closed have space: "P \<Omega>" by simp
-  interpret dynkin_system \<Omega> ?D
+  interpret Dynkin_system \<Omega> ?D
     by standard (auto dest: sets_into_space intro!: space compl union)
   have "sigma_sets \<Omega> G = ?D"
-    by (rule dynkin_lemma) (auto simp: basic \<open>Int_stable G\<close>)
+    by (rule Dynkin_lemma) (auto simp: basic \<open>Int_stable G\<close>)
   with A show ?thesis by auto
 qed
 

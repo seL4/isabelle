@@ -118,9 +118,9 @@ lemma (in prob_space)
     and indep_setD_ev2: "B \<subseteq> events"
   using indep unfolding indep_set_def indep_sets_def UNIV_bool by auto
 
-lemma (in prob_space) indep_sets_dynkin:
+lemma (in prob_space) indep_sets_Dynkin:
   assumes indep: "indep_sets F I"
-  shows "indep_sets (\<lambda>i. dynkin (space M) (F i)) I"
+  shows "indep_sets (\<lambda>i. Dynkin (space M) (F i)) I"
     (is "indep_sets ?F I")
 proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
   fix J assume "finite J" "J \<subseteq> I" "J \<noteq> {}"
@@ -178,8 +178,8 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           qed
         qed }
       note indep_sets_insert = this
-      have "dynkin_system (space M) ?D"
-      proof (rule dynkin_systemI', simp_all cong del: indep_sets_cong, safe)
+      have "Dynkin_system (space M) ?D"
+      proof (rule Dynkin_systemI', simp_all cong del: indep_sets_cong, safe)
         show "indep_sets (G(j := {{}})) K"
           by (rule indep_sets_insert) auto
       next
@@ -249,8 +249,8 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             by (auto dest!: sums_unique)
         qed (insert F, auto)
       qed (insert sets.sets_into_space, auto)
-      then have mono: "dynkin (space M) (G j) \<subseteq> {E \<in> events. indep_sets (G(j := {E})) K}"
-      proof (rule dynkin_system.dynkin_subset, safe)
+      then have mono: "Dynkin (space M) (G j) \<subseteq> {E \<in> events. indep_sets (G(j := {E})) K}"
+      proof (rule Dynkin_system.Dynkin_subset, safe)
         fix X assume "X \<in> G j"
         then show "X \<in> events" using G \<open>j \<in> K\<close> by auto
         from \<open>indep_sets G K\<close>
@@ -276,7 +276,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             by (intro indep_setsD[OF G(1)]) auto
         qed
       qed
-      then have "indep_sets (G(j := dynkin (space M) (G j))) K"
+      then have "indep_sets (G(j := Dynkin (space M) (G j))) K"
         by (rule indep_sets_mono_sets) (insert mono, auto)
       then show ?case
         by (rule indep_sets_mono_sets) (insert \<open>j \<in> K\<close> \<open>j \<notin> J\<close>, auto simp: G_def)
@@ -291,9 +291,9 @@ lemma (in prob_space) indep_sets_sigma:
   assumes stable: "\<And>i. i \<in> I \<Longrightarrow> Int_stable (F i)"
   shows "indep_sets (\<lambda>i. sigma_sets (space M) (F i)) I"
 proof -
-  from indep_sets_dynkin[OF indep]
+  from indep_sets_Dynkin[OF indep]
   show ?thesis
-  proof (rule indep_sets_mono_sets, subst sigma_eq_dynkin, simp_all add: stable)
+  proof (rule indep_sets_mono_sets, subst sigma_eq_Dynkin, simp_all add: stable)
     fix i assume "i \<in> I"
     with indep have "F i \<subseteq> events" by (auto simp: indep_sets_def)
     with sets.sets_into_space show "F i \<subseteq> Pow (space M)" by auto
@@ -662,8 +662,8 @@ proof -
   have X_in: "X \<in> events"
     using tail_events_sets A X by auto
 
-  interpret D: dynkin_system "space M" ?D
-  proof (rule dynkin_systemI)
+  interpret D: Dynkin_system "space M" ?D
+  proof (rule Dynkin_systemI)
     fix D assume "D \<in> ?D" then show "D \<subseteq> space M"
       using sets.sets_into_space by auto
   next
@@ -739,8 +739,8 @@ proof -
       by (intro sigma_sets_subseteq UN_mono) auto
    then have "tail_events A \<subseteq> sigma_sets (space M) ?A"
       unfolding tail_events_def by auto }
-  also have "sigma_sets (space M) ?A = dynkin (space M) ?A"
-  proof (rule sigma_eq_dynkin)
+  also have "sigma_sets (space M) ?A = Dynkin (space M) ?A"
+  proof (rule sigma_eq_Dynkin)
     { fix B n assume "B \<in> sigma_sets (space M) (\<Union>m\<in>{..n}. A m)"
       then have "B \<subseteq> space M"
         by induct (insert A sets.sets_into_space[of _ M], auto) }
@@ -763,8 +763,8 @@ proof -
       then show "a \<inter> b \<in> (\<Union>n. sigma_sets (space M) (\<Union>i\<in>{..n}. A i))" by auto
     qed
   qed
-  also have "dynkin (space M) ?A \<subseteq> ?D"
-    using \<open>?A \<subseteq> ?D\<close> by (auto intro!: D.dynkin_subset)
+  also have "Dynkin (space M) ?A \<subseteq> ?D"
+    using \<open>?A \<subseteq> ?D\<close> by (auto intro!: D.Dynkin_subset)
   finally show ?thesis by auto
 qed
 
