@@ -301,7 +301,7 @@ object Thy_Syntax
   {
     val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 
-    def get_blob(name: Document.Node.Name) =
+    def get_blob(name: Document.Node.Name): Option[Document.Blob] =
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     def can_import(name: Document.Node.Name): Boolean =
