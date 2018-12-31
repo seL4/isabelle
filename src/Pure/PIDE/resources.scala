@@ -90,11 +90,12 @@ class Resources(
     }
   }
 
-  def pure_files(syntax: Outer_Syntax, dir: Path): List[Path] =
+  def pure_files(syntax: Outer_Syntax): List[Path] =
   {
+    val pure_dir = Path.explode("~~/src/Pure")
     val roots =
       for { (name, _) <- Thy_Header.ml_roots }
-      yield (dir + Path.explode(name)).expand
+      yield (pure_dir + Path.explode(name)).expand
     val files =
       for {
         (path, (_, theory)) <- roots zip Thy_Header.ml_roots
@@ -344,11 +345,20 @@ class Resources(
         graph2.map_node(name, _ => syntax)
       })
 
-    def loaded_files: List[(String, List[Path])] =
+    def loaded_files(pure: Boolean): List[(String, List[Path])] =
     {
-      theories.map(_.theory) zip
-        Par_List.map((e: () => List[Path]) => e(),
-          theories.map(name => resources.loaded_files(loaded_theories.get_node(name.theory), name)))
+      val loaded_files =
+        theories.map(_.theory) zip
+          Par_List.map((e: () => List[Path]) => e(),
+            theories.map(name =>
+              resources.loaded_files(loaded_theories.get_node(name.theory), name)))
+
+      if (pure) {
+        val pure_files = resources.pure_files(overall_syntax)
+        loaded_files.map({ case (name, files) =>
+          (name, if (name == Thy_Header.PURE) pure_files ::: files else files) })
+      }
+      else loaded_files
     }
 
     def imported_files: List[Path] =

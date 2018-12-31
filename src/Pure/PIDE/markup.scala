@@ -115,6 +115,8 @@ object Markup
   val COMPLETION = "completion"
   val NO_COMPLETION = "no_completion"
 
+  val UPDATE = "update"
+
 
   /* position */
 

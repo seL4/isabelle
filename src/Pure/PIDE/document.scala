@@ -293,6 +293,11 @@ object Document
 
     def has_header: Boolean = header != Node.no_header
 
+    override def toString: String =
+      if (is_empty) "empty"
+      else if (get_blob.isDefined) "blob"
+      else "node"
+
     def commands: Linear_Set[Command] = _commands.commands
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
@@ -528,6 +533,7 @@ object Document
 
     def node_name: Node.Name
     def node: Node
+    def nodes: List[(Node.Name, Node)]
 
     def commands_loading: List[Command]
     def commands_loading_ranges(pred: Node.Name => Boolean): List[Text.Range]
@@ -1023,6 +1029,10 @@ object Document
 
         val node_name: Node.Name = name
         val node: Node = version.nodes(name)
+
+        def nodes: List[(Node.Name, Node)] =
+          (node_name :: node.load_commands.flatMap(_.blobs_names)).
+            map(name => (name, version.nodes(name)))
 
         val commands_loading: List[Command] =
           if (node_name.is_theory) Nil

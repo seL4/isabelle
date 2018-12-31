@@ -303,14 +303,7 @@ object Sessions
 
             val theory_files = dependencies.theories.map(_.path)
             val loaded_files =
-              if (inlined_files) {
-                if (Sessions.is_pure(info.name)) {
-                  val pure_files = resources.pure_files(overall_syntax, info.dir)
-                  dependencies.loaded_files.map({ case (name, files) =>
-                    (name, if (name == Thy_Header.PURE) pure_files ::: files else files) })
-                }
-                else dependencies.loaded_files
-              }
+              if (inlined_files) dependencies.loaded_files(Sessions.is_pure(info.name))
               else Nil
 
             val session_files =
