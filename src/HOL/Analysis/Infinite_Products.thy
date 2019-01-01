@@ -58,6 +58,7 @@ definition%important raw_has_prod :: "[nat \<Rightarrow> 'a::{t2_space, comm_sem
   where "raw_has_prod f M p \<equiv> (\<lambda>n. \<Prod>i\<le>n. f (i+M)) \<longlonglongrightarrow> p \<and> p \<noteq> 0"
 
 text\<open>The nonzero and zero cases, as in \emph{Complex Analysis} by Joseph Bak and Donald J.Newman, page 241\<close>
+text%important \<open>%whitespace\<close>
 definition%important
   has_prod :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a \<Rightarrow> bool" (infixr "has'_prod" 80)
   where "f has_prod p \<equiv> raw_has_prod f 0 p \<or> (\<exists>i q. p = 0 \<and> f i = 0 \<and> raw_has_prod f (Suc i) q)"

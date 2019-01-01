@@ -3401,12 +3401,12 @@ where
        (\<forall>x. h(1, x) = q x) \<and>
        (\<forall>t \<in> {0..1}. P(\<lambda>x. h(t, x))))"
 
-
 text\<open>$p, q$ are functions $X \to Y$, and the property $P$ restricts all intermediate maps.
 We often just want to require that $P$ fixes some subset, but to include the case of a loop homotopy,
 it is convenient to have a general property $P$.\<close>
 
 text \<open>We often want to just localize the ending function equality or whatever.\<close>
+text%important \<open>%whitespace\<close>
 proposition homotopic_with:
   fixes X :: "'a::topological_space set" and Y :: "'b::topological_space set"
   assumes "\<And>h k. (\<And>x. x \<in> X \<Longrightarrow> h x = k x) \<Longrightarrow> (P h \<longleftrightarrow> P k)"

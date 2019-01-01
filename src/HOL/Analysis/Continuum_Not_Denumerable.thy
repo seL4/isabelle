@@ -32,7 +32,7 @@ text \<open>
   range of \<open>f\<close> by generating a sequence of closed intervals then using the
   Nested Interval Property.
 \<close>
-
+text%important \<open>%whitespace\<close>
 theorem real_non_denum: "\<nexists>f :: nat \<Rightarrow> real. surj f"
 proof
   assume "\<exists>f::nat \<Rightarrow> real. surj f"

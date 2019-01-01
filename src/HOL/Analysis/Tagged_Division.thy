@@ -1293,7 +1293,7 @@ text \<open>This auxiliary structure is used to sum up over the elements of a di
   @{typ bool}.\<close>
 
 paragraph%important \<open>Using additivity of lifted function to encode definedness.\<close>
-
+text%important \<open>%whitespace\<close>
 definition%important lift_option :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> 'c option"
 where
   "lift_option f a' b' = Option.bind a' (\<lambda>a. Option.bind b' (\<lambda>b. Some (f a b)))"
@@ -1334,7 +1334,7 @@ lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and>
 
 
 paragraph \<open>Division points\<close>
-
+text%important \<open>%whitespace\<close>
 definition%important "division_points (k::('a::euclidean_space) set) d =
    {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
      (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
