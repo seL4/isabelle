@@ -1388,7 +1388,8 @@ qed
 subsection \<open>Measure space induced by distribution of @{const measurable}-functions\<close>
 
 definition%important distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
-  "distr M N f = measure_of (space N) (sets N) (\<lambda>A. emeasure M (f -` A \<inter> space M))"
+"distr M N f =
+  measure_of (space N) (sets N) (\<lambda>A. emeasure M (f -` A \<inter> space M))"
 
 lemma
   shows sets_distr[simp, measurable_cong]: "sets (distr M N f) = sets N"
@@ -1708,9 +1709,8 @@ qed auto
 
 subsection \<open>Set of measurable sets with finite measure\<close>
 
-definition%important fmeasurable :: "'a measure \<Rightarrow> 'a set set"
-where
-  "fmeasurable M = {A\<in>sets M. emeasure M A < \<infinity>}"
+definition%important fmeasurable :: "'a measure \<Rightarrow> 'a set set" where
+"fmeasurable M = {A\<in>sets M. emeasure M A < \<infinity>}"
 
 lemma fmeasurableD[dest, measurable_dest]: "A \<in> fmeasurable M \<Longrightarrow> A \<in> sets M"
   by (auto simp: fmeasurable_def)
@@ -2605,7 +2605,8 @@ qed fact
 
 subsection%unimportant \<open>Null measure\<close>
 
-definition "null_measure M = sigma (space M) (sets M)"
+definition null_measure :: "'a measure \<Rightarrow> 'a measure" where
+"null_measure M = sigma (space M) (sets M)"
 
 lemma space_null_measure[simp]: "space (null_measure M) = space M"
   by (simp add: null_measure_def)
@@ -2626,9 +2627,8 @@ lemma null_measure_idem [simp]: "null_measure (null_measure M) = null_measure M"
 
 subsection \<open>Scaling a measure\<close>
 
-definition%important scale_measure :: "ennreal \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
-where
-  "scale_measure r M = measure_of (space M) (sets M) (\<lambda>A. r * emeasure M A)"
+definition%important scale_measure :: "ennreal \<Rightarrow> 'a measure \<Rightarrow> 'a measure" where
+"scale_measure r M = measure_of (space M) (sets M) (\<lambda>A. r * emeasure M A)"
 
 lemma space_scale_measure: "space (scale_measure r M) = space M"
   by (simp add: scale_measure_def)
@@ -2874,9 +2874,10 @@ proposition le_measure: "sets M = sets N \<Longrightarrow> M \<le> N \<longleftr
     by (cases "X \<in> sets M") (auto simp: emeasure_notin_sets)
   done
 
-definition%important sup_measure' :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
-where
-  "sup_measure' A B = measure_of (space A) (sets A) (\<lambda>X. SUP Y\<in>sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y))"
+definition%important sup_measure' :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure" where
+"sup_measure' A B =
+  measure_of (space A) (sets A)
+    (\<lambda>X. SUP Y\<in>sets A. emeasure A (X \<inter> Y) + emeasure B (X \<inter> - Y))"
 
 lemma assumes [simp]: "sets B = sets A"
   shows space_sup_measure'[simp]: "space (sup_measure' A B) = space A"
@@ -3002,10 +3003,11 @@ proof (subst emeasure_sup_measure')
   qed
 qed simp_all
 
-definition%important sup_lexord :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b::order) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-where
-  "sup_lexord A B k s c =
-    (if k A = k B then c else if \<not> k A \<le> k B \<and> \<not> k B \<le> k A then s else if k B \<le> k A then A else B)"
+definition%important sup_lexord :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b::order) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"sup_lexord A B k s c =
+  (if k A = k B then c else
+   if \<not> k A \<le> k B \<and> \<not> k B \<le> k A then s else
+   if k B \<le> k A then A else B)"
 
 lemma sup_lexord:
   "(k A < k B \<Longrightarrow> P B) \<Longrightarrow> (k B < k A \<Longrightarrow> P A) \<Longrightarrow> (k A = k B \<Longrightarrow> P c) \<Longrightarrow>
@@ -3031,8 +3033,7 @@ lemma sigma_le_iff: "\<A> \<subseteq> Pow \<Omega> \<Longrightarrow> sigma \<Ome
 instantiation measure :: (type) semilattice_sup
 begin
 
-definition%important sup_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
-where
+definition%important sup_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure" where
   "sup_measure A B =
     sup_lexord A B space (sigma (space A \<union> space B) {})
       (sup_lexord A B sets (sigma (space A) (sets A \<union> sets B)) (sup_measure' A B))"
@@ -3135,9 +3136,12 @@ lemma le_measureD3: "A \<le> B \<Longrightarrow> sets A = sets B \<Longrightarro
 lemma UN_space_closed: "\<Union>(sets ` S) \<subseteq> Pow (\<Union>(space ` S))"
   using sets.space_closed by auto
 
-definition Sup_lexord :: "('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a"
+definition%important
+  Sup_lexord :: "('a \<Rightarrow> 'b::complete_lattice) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> ('a set \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a"
 where
-  "Sup_lexord k c s A = (let U = (SUP a\<in>A. k a) in if \<exists>a\<in>A. k a = U then c {a\<in>A. k a = U} else s A)"
+  "Sup_lexord k c s A =
+  (let U = (SUP a\<in>A. k a)
+   in if \<exists>a\<in>A. k a = U then c {a\<in>A. k a = U} else s A)"
 
 lemma Sup_lexord:
   "(\<And>a S. a \<in> A \<Longrightarrow> k a = (SUP a\<in>A. k a) \<Longrightarrow> S = {a'\<in>A. k a' = k a} \<Longrightarrow> P (c S)) \<Longrightarrow> ((\<And>a. a \<in> A \<Longrightarrow> k a \<noteq> (SUP a\<in>A. k a)) \<Longrightarrow> P (s A)) \<Longrightarrow>
@@ -3194,9 +3198,9 @@ lemma sets_sup_measure_F:
   "finite I \<Longrightarrow> I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> sets i = sets M) \<Longrightarrow> sets (sup_measure.F id I) = sets M"
   by (induction I rule: finite_ne_induct) (simp_all add: sets_sup)
 
-definition%important Sup_measure' :: "'a measure set \<Rightarrow> 'a measure"
-where
-  "Sup_measure' M = measure_of (\<Union>a\<in>M. space a) (\<Union>a\<in>M. sets a)
+definition%important Sup_measure' :: "'a measure set \<Rightarrow> 'a measure" where
+"Sup_measure' M =
+  measure_of (\<Union>a\<in>M. space a) (\<Union>a\<in>M. sets a)
     (\<lambda>X. (SUP P\<in>{P. finite P \<and> P \<subseteq> M }. sup_measure.F id P X))"
 
 lemma space_Sup_measure'2: "space (Sup_measure' M) = (\<Union>m\<in>M. space m)"
@@ -3265,21 +3269,20 @@ proof (rule emeasure_measure_of)
     using assms * by auto
 qed (rule UN_space_closed)
 
-definition%important Sup_measure :: "'a measure set \<Rightarrow> 'a measure"
-where
-  "Sup_measure = Sup_lexord space (Sup_lexord sets Sup_measure'
-    (\<lambda>U. sigma (\<Union>u\<in>U. space u) (\<Union>u\<in>U. sets u))) (\<lambda>U. sigma (\<Union>u\<in>U. space u) {})"
+definition%important Sup_measure :: "'a measure set \<Rightarrow> 'a measure" where
+"Sup_measure =
+  Sup_lexord space
+    (Sup_lexord sets Sup_measure'
+      (\<lambda>U. sigma (\<Union>u\<in>U. space u) (\<Union>u\<in>U. sets u)))
+    (\<lambda>U. sigma (\<Union>u\<in>U. space u) {})"
 
-definition%important Inf_measure :: "'a measure set \<Rightarrow> 'a measure"
-where
+definition%important Inf_measure :: "'a measure set \<Rightarrow> 'a measure" where
   "Inf_measure A = Sup {x. \<forall>a\<in>A. x \<le> a}"
 
-definition%important inf_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
-where
+definition%important inf_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure" where
   "inf_measure a b = Inf {a, b}"
 
-definition%important top_measure :: "'a measure"
-where
+definition%important top_measure :: "'a measure" where
   "top_measure = Inf {}"
 
 instance

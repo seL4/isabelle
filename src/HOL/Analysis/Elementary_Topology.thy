@@ -687,7 +687,8 @@ qed
 
 subsection \<open>Interior of a Set\<close>
 
-definition%important "interior S = \<Union>{T. open T \<and> T \<subseteq> S}"
+definition%important interior :: "('a::topological_space) set \<Rightarrow> 'a set" where
+"interior S = \<Union>{T. open T \<and> T \<subseteq> S}"
 
 lemma interiorI [intro?]:
   assumes "open T" and "x \<in> T" and "T \<subseteq> S"
@@ -851,7 +852,8 @@ qed auto
 
 subsection \<open>Closure of a Set\<close>
 
-definition%important "closure S = S \<union> {x | x. x islimpt S}"
+definition%important closure :: "('a::topological_space) set \<Rightarrow> 'a set" where
+"closure S = S \<union> {x . x islimpt S}"
 
 lemma interior_closure: "interior S = - (closure (- S))"
   by (auto simp: interior_def closure_def islimpt_def)
@@ -980,7 +982,8 @@ qed
 
 subsection \<open>Frontier (also known as boundary)\<close>
 
-definition%important "frontier S = closure S - interior S"
+definition%important frontier :: "('a::topological_space) set \<Rightarrow> 'a set" where
+"frontier S = closure S - interior S"
 
 lemma frontier_closed [iff]: "closed (frontier S)"
   by (simp add: frontier_def closed_Diff)
@@ -1630,8 +1633,10 @@ next
   with \<open>U \<inter> \<Inter>A = {}\<close> show False by auto
 qed
 
-definition%important "countably_compact U \<longleftrightarrow>
-    (\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T))"
+definition%important countably_compact :: "('a::topological_space) set \<Rightarrow> bool" where
+"countably_compact U \<longleftrightarrow>
+  (\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A
+     \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T))"
 
 lemma countably_compactE:
   assumes "countably_compact s" and "\<forall>t\<in>C. open t" and "s \<subseteq> \<Union>C" "countable C"
@@ -1698,9 +1703,10 @@ lemma countably_compact_eq_compact:
 
 subsubsection\<open>Sequential compactness\<close>
 
-definition%important seq_compact :: "'a::topological_space set \<Rightarrow> bool"
-  where "seq_compact S \<longleftrightarrow>
-    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially))"
+definition%important seq_compact :: "'a::topological_space set \<Rightarrow> bool" where
+"seq_compact S \<longleftrightarrow>
+  (\<forall>f. (\<forall>n. f n \<in> S)
+    \<longrightarrow> (\<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially))"
 
 lemma seq_compactI:
   assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"
