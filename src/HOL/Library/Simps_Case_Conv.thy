@@ -3,7 +3,7 @@
 *)
 
 theory Simps_Case_Conv
-imports Main
+imports Case_Converter
   keywords "simps_of_case" "case_of_simps" :: thy_decl
   abbrevs "simps_of_case" "case_of_simps" = ""
 begin

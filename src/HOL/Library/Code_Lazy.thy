@@ -4,7 +4,7 @@
 section \<open>Lazy types in generated code\<close>
 
 theory Code_Lazy
-imports Main
+imports Case_Converter
 keywords
   "code_lazy_type"
   "activate_lazy_type"
@@ -23,22 +23,6 @@ text \<open>
   corresponding case operator decomposes them. Every datatype and codatatype is algebraic
   and thus eligible for lazification.
 \<close>
-
-subsection \<open>Eliminating pattern matches\<close>
-
-definition missing_pattern_match :: "String.literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  [code del]: "missing_pattern_match m f = f ()"
-
-lemma missing_pattern_match_cong [cong]:
-  "m = m' \<Longrightarrow> missing_pattern_match m f = missing_pattern_match m' f"
-  by(rule arg_cong)
-
-lemma missing_pattern_match_code [code_unfold]:
-  "missing_pattern_match = Code.abort"
-  unfolding missing_pattern_match_def Code.abort_def ..
-
-ML_file "case_converter.ML"
-
 
 subsection \<open>The type \<open>lazy\<close>\<close>
 
