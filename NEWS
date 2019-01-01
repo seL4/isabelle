@@ -91,6 +91,13 @@ provers, has been updated.
 
 * SMT: reconstruction is now possible using the SMT solver veriT.
 
+* HOL-Library.Simps_Case_Conv: case_of_simps now supports overlapping 
+and non-exhaustive patterns and handles arbitrarily nested patterns.
+It uses on the same algorithm as HOL-Library.Code_Lazy, which assumes
+sequential left-to-right pattern matching. The generated
+equation no longer tuples the arguments on the right-hand side.
+INCOMPATIBILITY.
+
 * Session HOL-SPARK: .prv files are no longer written to the
 file-system, but exported to the session database. Results may be
 retrieved with the "isabelle export" command-line tool like this:

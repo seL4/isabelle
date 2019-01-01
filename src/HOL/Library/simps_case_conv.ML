@@ -31,88 +31,6 @@ fun get_split_ths ctxt = get_type_infos ctxt #> map #split
 
 val strip_eq = Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq
 
-
-local
-
-  fun transpose [] = []
-    | transpose ([] :: xss) = transpose xss
-    | transpose xss = map hd xss :: transpose (map tl xss);
-
-  fun same_fun single_ctrs (ts as _ $ _ :: _) =
-      let
-        val (fs, argss) = map strip_comb ts |> split_list
-        val f = hd fs
-        fun is_single_ctr (Const (name, _)) = member (op =) single_ctrs name
-          | is_single_ctr _ = false
-      in if not (is_single_ctr f) andalso forall (fn x => f = x) fs then SOME (f, argss) else NONE end
-    | same_fun _ _ = NONE
-
-  (* pats must be non-empty *)
-  fun split_pat single_ctrs pats ctxt =
-      case same_fun single_ctrs pats of
-        NONE =>
-          let
-            val (name, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
-            val var = Free (name, fastype_of (hd pats))
-          in (((var, [var]), map single pats), ctxt') end
-      | SOME (f, argss) =>
-          let
-            val (((def_pats, def_frees), case_patss), ctxt') =
-              split_pats single_ctrs argss ctxt
-            val def_pat = list_comb (f, def_pats)
-          in (((def_pat, flat def_frees), case_patss), ctxt') end
-  and
-      split_pats single_ctrs patss ctxt =
-        let
-          val (splitted, ctxt') = fold_map (split_pat single_ctrs) (transpose patss) ctxt
-          val r = splitted |> split_list |> apfst split_list |> apsnd (transpose #> map flat)
-        in (r, ctxt') end
-
-(*
-  Takes a list lhss of left hand sides (which are lists of patterns)
-  and a list rhss of right hand sides. Returns
-    - a single equation with a (nested) case-expression on the rhs
-    - a list of all split-thms needed to split the rhs
-  Patterns which have the same outer context in all lhss remain
-  on the lhs of the computed equation.
-*)
-fun build_case_t fun_t lhss rhss ctxt =
-  let
-    val single_ctrs =
-      get_type_infos ctxt (map fastype_of (flat lhss))
-      |> map_filter (fn ti => case #ctrs ti of [Const (name, _)] => SOME name | _ => NONE)
-    val (((def_pats, def_frees), case_patss), ctxt') =
-      split_pats single_ctrs lhss ctxt
-    val pattern = map HOLogic.mk_tuple case_patss
-    val case_arg = HOLogic.mk_tuple (flat def_frees)
-    val cases = Case_Translation.make_case ctxt' Case_Translation.Warning Name.context
-      case_arg (pattern ~~ rhss)
-    val split_thms = get_split_ths ctxt' [fastype_of case_arg]
-    val t = (list_comb (fun_t, def_pats), cases)
-      |> HOLogic.mk_eq
-      |> HOLogic.mk_Trueprop
-  in ((t, split_thms), ctxt') end
-
-fun tac ctxt {splits, intros, defs} =
-  let val ctxt' = Classical.addSIs (ctxt, intros) in
-    REPEAT_DETERM1 (FIRSTGOAL (split_tac ctxt splits))
-    THEN Local_Defs.unfold_tac ctxt defs
-    THEN safe_tac ctxt'
-  end
-
-fun import [] ctxt = ([], ctxt)
-  | import (thm :: thms) ctxt =
-    let
-      val fun_ct = strip_eq #> fst #> strip_comb #> fst #> Logic.mk_term
-        #> Thm.cterm_of ctxt
-      val ct = fun_ct thm
-      val cts = map fun_ct thms
-      val pairs = map (fn s => (s,ct)) cts
-      val thms' = map (fn (th,p) => Thm.instantiate (Thm.match p) th) (thms ~~ pairs)
-    in Variable.import true (thm :: thms') ctxt |> apfst snd end
-
-in
-
 (*
   For a list
     f p_11 ... p_1n = t1
@@ -122,38 +40,23 @@ in
   of theorems, prove a single theorem
     f x1 ... xn = t
   where t is a (nested) case expression. f must not be a function
-  application. Moreover, the terms p_11, ..., p_mn must be non-overlapping
-  datatype patterns. The patterns must be exhausting up to common constructor
-  contexts.
+  application.
 *)
 fun to_case ctxt ths =
   let
-    val (iths, ctxt') = import ths ctxt
-    val fun_t = hd iths |> strip_eq |> fst |> head_of
-    val eqs = map (strip_eq #> apfst (snd o strip_comb)) iths
-
-    fun hide_rhs ((pat, rhs), name) lthy =
+    fun ctr_count (ctr, T) = 
       let
-        val frees = fold Term.add_frees pat []
-        val abs_rhs = fold absfree frees rhs
-        val ([(f, (_, def))], lthy') = lthy
-          |> Local_Defs.define [((Binding.name name, NoSyn), (Binding.empty_atts, abs_rhs))]
-      in ((list_comb (f, map Free (rev frees)), def), lthy') end
-
-    val ((def_ts, def_thms), ctxt2) =
-      let val names = Name.invent (Variable.names_of ctxt') "rhs" (length eqs)
-      in fold_map hide_rhs (eqs ~~ names) ctxt' |> apfst split_list end
-
-    val ((t, split_thms), ctxt3) = build_case_t fun_t (map fst eqs) def_ts ctxt2
-
-    val th = Goal.prove ctxt3 [] [] t (fn {context=ctxt, ...} =>
-          tac ctxt {splits=split_thms, intros=ths, defs=def_thms})
-  in th
-    |> singleton (Proof_Context.export ctxt3 ctxt)
-    |> Goal.norm_result ctxt
+        val tyco = body_type T |> dest_Type |> fst
+        val info = Ctr_Sugar.ctr_sugar_of ctxt tyco
+        val _ = if is_none info then error ("Pattern match on non-constructor constant " ^ ctr) else ()
+      in
+        info |> the |> #ctrs |> length
+      end
+    val thms = Case_Converter.to_case ctxt Case_Converter.keep_constructor_context ctr_count ths
+  in
+    case thms of SOME thms => hd thms
+      | _ => error ("Conversion to case expression failed.")
   end
-
-end
 
 local
 

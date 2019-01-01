@@ -30,27 +30,23 @@ text \<open>Function with complete, non-overlapping patterns\<close>
 case_of_simps foo_cases1: foo.simps
 lemma
   fixes xs :: "'a list" and ys :: "'b list"
-  shows "foo xs ys = (case (xs, ys) of
-    ( [], []) \<Rightarrow> 3
-    | ([], y # ys) \<Rightarrow> 1
-    | (x # xs, []) \<Rightarrow> 0
-    | (x # xs, y # ys) \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list))"
+  shows "foo xs ys = 
+   (case xs of [] \<Rightarrow> (case ys of [] \<Rightarrow> 3 | _ # _ \<Rightarrow> 1)
+    | _ # _ \<Rightarrow> (case ys of [] \<Rightarrow> 0 | _ # _ \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list)))"
   by (fact foo_cases1)
 
 text \<open>Redundant equations are ignored\<close>
 case_of_simps foo_cases2: foo.simps foo.simps
 lemma
   fixes xs :: "'a list" and ys :: "'b list"
-  shows "foo xs ys = (case (xs, ys) of
-    ( [], []) \<Rightarrow> 3
-    | ([], y # ys) \<Rightarrow> 1
-    | (x # xs, []) \<Rightarrow> 0
-    | (x # xs, y # ys) \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list))"
+  shows "foo xs ys = 
+   (case xs of [] \<Rightarrow> (case ys of [] \<Rightarrow> 3 | _ # _ \<Rightarrow> 1)
+    | _ # _ \<Rightarrow> (case ys of [] \<Rightarrow> 0 | _ # _ \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list)))"
   by (fact foo_cases2)
 
 text \<open>Variable patterns\<close>
 case_of_simps bar_cases: bar.simps
-print_theorems
+lemma "bar x n y = (case n of 0 \<Rightarrow> 0 + x | Suc n' \<Rightarrow> n' + x)" by(fact bar_cases)
 
 text \<open>Case expression not at top level\<close>
 simps_of_case split_rule_test_simps: split_rule_test_def
@@ -96,24 +92,23 @@ lemma
 text \<open>Reversal\<close>
 case_of_simps test_def1: test_simps1
 lemma
-  "test x y = (case (x,y) of
-    (None, []) \<Rightarrow> 1
-  | (None, _#_) \<Rightarrow> 2
-  | (Some x, _) \<Rightarrow> x)"
+  "test x y = 
+   (case x of None \<Rightarrow> (case y of [] \<Rightarrow> 1 | _ # _ \<Rightarrow> 2)
+    | Some x' \<Rightarrow> x')"
   by (fact test_def1)
 
 text \<open>Case expressions on RHS\<close>
 case_of_simps test_def2: test_simps2
-lemma "test xs y = (case (xs, y) of (None, []) \<Rightarrow> 1 | (None, x # xa) \<Rightarrow> 2 | (Some x, y) \<Rightarrow> x)"
+lemma "test x y = 
+  (case x of None \<Rightarrow> (case y of [] \<Rightarrow> 1 | _ # _ \<Rightarrow> 2)
+   | Some x' \<Rightarrow> x')"
   by (fact test_def2)
 
 text \<open>Partial split of simps\<close>
 case_of_simps foo_cons_def: foo.simps(1,2)
 lemma
   fixes xs :: "'a list" and ys :: "'b list"
-  shows "foo (x # xs) ys = (case (x,xs,ys) of
-      (_,_,[]) \<Rightarrow> 0
-    | (_,_,_ # _) \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list))"
+  shows "foo (x # xs) ys = (case ys of [] \<Rightarrow> 0 | _ # _ \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list))"
   by (fact foo_cons_def)
 
 end

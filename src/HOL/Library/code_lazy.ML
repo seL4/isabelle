@@ -530,18 +530,23 @@ fun code_lazy_type eager_type_string thy =
 fun transform_code_eqs _ [] = NONE
   | transform_code_eqs ctxt eqs =
     let
+      fun replace_ctr ctxt =
+        let 
+          val thy = Proof_Context.theory_of ctxt
+          val table = Laziness_Data.get thy
+        in fn (s1, s2) => case Symtab.lookup table s1 of
+            NONE => false
+          | SOME x => #active x andalso s2 <> (#ctr x |> dest_Const |> fst)
+        end
       val thy = Proof_Context.theory_of ctxt
       val table = Laziness_Data.get thy
-      fun eliminate (s1, s2) = case Symtab.lookup table s1 of
-          NONE => false
-        | SOME x => #active x andalso s2 <> (#ctr x |> dest_Const |> fst)
       fun num_consts_fun (_, T) =
         let
           val s = body_type T |> dest_Type |> fst
         in
           if Symtab.defined table s
-            then Ctr_Sugar.ctr_sugar_of ctxt s |> the |> #ctrs |> length
-            else Code.get_type thy s |> fst |> snd |> length
+          then Ctr_Sugar.ctr_sugar_of ctxt s |> the |> #ctrs |> length
+          else Code.get_type thy s |> fst |> snd |> length
         end
       val eqs = map (apfst (Thm.transfer thy)) eqs;
 
@@ -554,10 +559,10 @@ fun transform_code_eqs _ [] = NONE
         handle THM _ => (([], eqs), false)
       val to_original_eq = if pure then map (apfst (fn x => x RS @{thm eq_reflection})) else I
     in
-      case Case_Converter.to_case ctxt eliminate num_consts_fun (map fst code_eqs) of
+      case Case_Converter.to_case ctxt (Case_Converter.replace_by_type replace_ctr) num_consts_fun (map fst code_eqs) of
           NONE => NONE
         | SOME thms => SOME (nbe_eqs @ map (rpair true) thms |> to_original_eq)
-    end handle THM ex => (Output.writeln (@{make_string} eqs); raise THM ex);
+    end
 
 val activate_lazy_type = set_active_lazy_type true;
 val deactivate_lazy_type = set_active_lazy_type false;
