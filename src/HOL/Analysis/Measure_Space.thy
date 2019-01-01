@@ -1093,7 +1093,7 @@ proof -
 qed
 
 text \<open>The next lemma is convenient to combine with a lemma whose conclusion is of the
-form \<open>AE x in M. P x = Q x\<close>: for such a lemma, there is no \verb+[symmetric]+ variant,
+form \<open>AE x in M. P x = Q x\<close>: for such a lemma, there is no \<open>[symmetric]\<close> variant,
 but using \<open>AE_symmetric[OF...]\<close> will replace it.\<close>
 
 (* depricated replace by laws about eventually *)
@@ -3522,7 +3522,7 @@ proof (subst emeasure_SUP[OF sets \<open>A \<noteq> {}\<close>])
   qed
 qed
 
-subsubsection%unimportant \<open>Supremum of a set of $\sigma$-algebras\<close>
+subsubsection%unimportant \<open>Supremum of a set of \<open>\<sigma>\<close>-algebras\<close>
 
 lemma space_Sup_eq_UN: "space (Sup M) = (\<Union>x\<in>M. space x)"
   unfolding Sup_measure_def

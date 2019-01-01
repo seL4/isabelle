@@ -883,9 +883,9 @@ proof -
 qed
 
 text\<open>This function returns the angle of a complex number from its representation in polar coordinates.
-Due to periodicity, its range is arbitrary. @{term Arg2pi} follows HOL Light in adopting the interval $[0,2\pi)$.
+Due to periodicity, its range is arbitrary. @{term Arg2pi} follows HOL Light in adopting the interval \<open>[0,2\<pi>)\<close>.
 But we have the same periodicity issue with logarithms, and it is usual to adopt the same interval
-for the complex logarithm and argument functions. Further on down, we shall define both functions for the interval $(-\pi,\pi]$.
+for the complex logarithm and argument functions. Further on down, we shall define both functions for the interval \<open>(-\<pi>,\<pi>]\<close>.
 The present version is provided for compatibility.\<close>
 
 lemma Arg2pi_0 [simp]: "Arg2pi(0) = 0"
@@ -1751,7 +1751,7 @@ lemma powr_complex_measurable [measurable]:
 
 subsection\<open>The Argument of a Complex Number\<close>
 
-text\<open>Finally: it's is defined for the same interval as the complex logarithm: $(-\pi,\pi]$.\<close>
+text\<open>Finally: it's is defined for the same interval as the complex logarithm: \<open>(-\<pi>,\<pi>]\<close>.\<close>
 
 definition%important Arg :: "complex \<Rightarrow> real" where "Arg z \<equiv> (if z = 0 then 0 else Im (Ln z))"
 

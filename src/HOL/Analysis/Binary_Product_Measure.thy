@@ -336,7 +336,7 @@ proof%unimportant -
     by (simp add: ac_simps)
 qed
 
-subsection%important \<open>Binary products of $\sigma$-finite emeasure spaces\<close>
+subsection%important \<open>Binary products of \<open>\<sigma>\<close>-finite emeasure spaces\<close>
 
 locale%important pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
   for M1 :: "'a measure" and M2 :: "'b measure"

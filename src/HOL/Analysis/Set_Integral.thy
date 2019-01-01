@@ -817,7 +817,7 @@ proof -
   then show ?thesis using * by auto
 qed
 
-text \<open>The next lemma shows that $L^1$ convergence of a sequence of functions follows from almost
+text \<open>The next lemma shows that \<open>L\<^sup>1\<close> convergence of a sequence of functions follows from almost
 everywhere convergence and the weaker condition of the convergence of the integrated norms (or even
 just the nontrivial inequality about them). Useful in a lot of contexts! This statement (or its
 variations) are known as Scheffe lemma.

@@ -1085,7 +1085,7 @@ proof -
 qed
 
 text \<open>The following theorem is a specialization of D.H. Fremlin, Measure Theory vol 4I (413G). We
-  only show one direction and do not use a inner regular family $K$.\<close>
+  only show one direction and do not use a inner regular family \<open>K\<close>.\<close>
 
 lemma (in cld_measure) borel_measurable_cld:
   fixes f :: "'a \<Rightarrow> real"

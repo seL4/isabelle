@@ -3401,9 +3401,9 @@ where
        (\<forall>x. h(1, x) = q x) \<and>
        (\<forall>t \<in> {0..1}. P(\<lambda>x. h(t, x))))"
 
-text\<open>$p, q$ are functions $X \to Y$, and the property $P$ restricts all intermediate maps.
-We often just want to require that $P$ fixes some subset, but to include the case of a loop homotopy,
-it is convenient to have a general property $P$.\<close>
+text\<open>\<open>p\<close>, \<open>q\<close> are functions \<open>X \<rightarrow> Y\<close>, and the property \<open>P\<close> restricts all intermediate maps.
+We often just want to require that \<open>P\<close> fixes some subset, but to include the case of a loop homotopy,
+it is convenient to have a general property \<open>P\<close>.\<close>
 
 text \<open>We often want to just localize the ending function equality or whatever.\<close>
 text%important \<open>%whitespace\<close>

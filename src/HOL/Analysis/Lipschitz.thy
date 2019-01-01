@@ -423,9 +423,9 @@ qed
 
 text \<open>We deduce that if a function is Lipschitz on finitely many closed sets on the real line, then
 it is Lipschitz on any interval contained in their union. The difficulty in the proof is to show
-that any point $z$ in this interval (except the maximum) has a point arbitrarily close to it on its
+that any point \<open>z\<close> in this interval (except the maximum) has a point arbitrarily close to it on its
 right which is contained in a common initial closed set. Otherwise, we show that there is a small
-interval $(z, T)$ which does not intersect any of the initial closed sets, a contradiction.\<close>
+interval \<open>(z, T)\<close> which does not intersect any of the initial closed sets, a contradiction.\<close>
 
 proposition lipschitz_on_closed_Union:
   assumes "\<And>i. i \<in> I \<Longrightarrow> lipschitz_on M (U i) f"

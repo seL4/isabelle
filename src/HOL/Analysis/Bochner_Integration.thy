@@ -2100,7 +2100,7 @@ proof%unimportant -
   then show ?thesis using Lim_null by auto
 qed
 
-text \<open>The next lemma asserts that, if a sequence of functions converges in $L^1$, then
+text \<open>The next lemma asserts that, if a sequence of functions converges in \<open>L\<^sup>1\<close>, then
 it admits a subsequence that converges almost everywhere.\<close>
 
 lemma%important tendsto_L1_AE_subseq:

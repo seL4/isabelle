@@ -1799,10 +1799,10 @@ subsection \<open>The uniqueness of the real Gamma function\<close>
 
 text \<open>
   The following is a proof of the Bohr--Mollerup theorem, which states that
-  any log-convex function $G$ on the positive reals that fulfils $G(1) = 1$ and
-  satisfies the functional equation $G(x+1) = x G(x)$ must be equal to the
+  any log-convex function \<open>G\<close> on the positive reals that fulfils \<open>G(1) = 1\<close> and
+  satisfies the functional equation \<open>G(x + 1) = x G(x)\<close> must be equal to the
   Gamma function.
-  In principle, if $G$ is a holomorphic complex function, one could then extend
+  In principle, if \<open>G\<close> is a holomorphic complex function, one could then extend
   this from the positive reals to the entire complex plane (minus the non-positive
   integers, where the Gamma function is not defined).
 \<close>

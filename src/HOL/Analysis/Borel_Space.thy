@@ -2140,7 +2140,7 @@ lemma%unimportant measurable_abs_powr [measurable]:
   shows "(\<lambda>x. \<bar>f x\<bar> powr p) \<in> borel_measurable M"
 unfolding powr_def by auto
 
-text \<open>The next one is a variation around \verb+measurable_restrict_space+.\<close>
+text \<open>The next one is a variation around \<open>measurable_restrict_space\<close>.\<close>
 
 lemma%unimportant measurable_restrict_space3:
   assumes "f \<in> measurable M N" and
@@ -2152,7 +2152,7 @@ proof -
       measurable_restrict_space2[of f, of "restrict_space M A", of B, of N] assms(2) space_restrict_space)
 qed
 
-text \<open>The next one is a variation around \verb+measurable_piecewise_restrict+.\<close>
+text \<open>The next one is a variation around \<open>measurable_piecewise_restrict\<close>.\<close>
 
 lemma%important measurable_piecewise_restrict2:
   assumes [measurable]: "\<And>n. A n \<in> sets M"

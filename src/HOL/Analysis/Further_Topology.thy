@@ -4188,7 +4188,7 @@ qed
 
 subsection%important\<open>The "Borsukian" property of sets\<close>
 
-text\<open>This doesn't have a standard name. Kuratowski uses ``contractible with respect to $[S^1]$''
+text\<open>This doesn't have a standard name. Kuratowski uses ``contractible with respect to \<open>[S\<^sup>1]\<close>''
  while Whyburn uses ``property b''. It's closely related to unicoherence.\<close>
 
 definition%important Borsukian where

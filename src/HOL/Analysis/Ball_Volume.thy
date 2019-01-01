@@ -3,7 +3,7 @@
    Author:   Manuel Eberl, TU München
 *)
 
-section \<open>The Volume of an $n$-Dimensional Ball\<close>
+section \<open>The Volume of an \<open>n\<close>-Dimensional Ball\<close>
 
 theory Ball_Volume
   imports Gamma_Function Lebesgue_Integral_Substitution
@@ -25,8 +25,8 @@ lemma unit_ball_vol_nonneg [simp]: "n \<ge> 0 \<Longrightarrow> unit_ball_vol n 
 
 text \<open>
   We first need the value of the following integral, which is at the core of
-  computing the measure of an $n+1$-dimensional ball in terms of the measure of an 
-  $n$-dimensional one.
+  computing the measure of an \<open>n + 1\<close>-dimensional ball in terms of the measure of an 
+  \<open>n\<close>-dimensional one.
 \<close>
 lemma emeasure_cball_aux_integral:
   "(\<integral>\<^sup>+x. indicator {-1..1} x * sqrt (1 - x\<^sup>2) ^ n \<partial>lborel) = 

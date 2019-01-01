@@ -396,11 +396,11 @@ qed
 
 subsubsection%important \<open>Continuity of addition\<close>
 
-text \<open>The next few lemmas remove an unnecessary assumption in \verb+tendsto_add_ereal+, culminating
-in \verb+tendsto_add_ereal_general+ which essentially says that the addition
-is continuous on ereal times ereal, except at $(-\infty, \infty)$ and $(\infty, -\infty)$.
+text \<open>The next few lemmas remove an unnecessary assumption in \<open>tendsto_add_ereal\<close>, culminating
+in \<open>tendsto_add_ereal_general\<close> which essentially says that the addition
+is continuous on ereal times ereal, except at \<open>(-\<infinity>, \<infinity>)\<close> and \<open>(\<infinity>, -\<infinity>)\<close>.
 It is much more convenient in many situations, see for instance the proof of
-\verb+tendsto_sum_ereal+ below.\<close>
+\<open>tendsto_sum_ereal\<close> below.\<close>
 
 lemma%important tendsto_add_ereal_PInf:
   fixes y :: ereal
@@ -437,7 +437,7 @@ proof%unimportant -
 qed
 
 text\<open>One would like to deduce the next lemma from the previous one, but the fact
-that $-(x+y)$ is in general different from $(-x) + (-y)$ in ereal creates difficulties,
+that \<open>- (x + y)\<close> is in general different from \<open>(- x) + (- y)\<close> in ereal creates difficulties,
 so it is more efficient to copy the previous proof.\<close>
 
 lemma%important tendsto_add_ereal_MInf:
@@ -503,8 +503,8 @@ proof%unimportant -
   ultimately show ?thesis by simp
 qed
 
-text \<open>The next lemma says that the addition is continuous on ereal, except at
-the pairs $(-\infty, \infty)$ and $(\infty, -\infty)$.\<close>
+text \<open>The next lemma says that the addition is continuous on \<open>ereal\<close>, except at
+the pairs \<open>(-\<infinity>, \<infinity>)\<close> and \<open>(\<infinity>, -\<infinity>)\<close>.\<close>
 
 lemma%important tendsto_add_ereal_general [tendsto_intros]:
   fixes x y :: ereal
@@ -528,7 +528,7 @@ qed
 subsubsection%important \<open>Continuity of multiplication\<close>
 
 text \<open>In the same way as for addition, we prove that the multiplication is continuous on
-ereal times ereal, except at $(\infty, 0)$ and $(-\infty, 0)$ and $(0, \infty)$ and $(0, -\infty)$,
+ereal times ereal, except at \<open>(\<infinity>, 0)\<close> and \<open>(-\<infinity>, 0)\<close> and \<open>(0, \<infinity>)\<close> and \<open>(0, -\<infinity>)\<close>,
 starting with specific situations.\<close>
 
 lemma%important tendsto_mult_real_ereal:
@@ -922,7 +922,7 @@ next
   ultimately show ?thesis using MInf by auto
 qed (simp add: assms)
 
-text \<open>the next one is copied from \verb+tendsto_sum+.\<close>
+text \<open>the next one is copied from \<open>tendsto_sum\<close>.\<close>
 lemma tendsto_sum_ereal [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> (f i \<longlongrightarrow> a i) F"
@@ -1476,8 +1476,8 @@ next
 qed
 
 text \<open>The following statement about limsups is reduced to a statement about limits using
-subsequences thanks to \verb+limsup_subseq_lim+. The statement for limits follows for instance from
-\verb+tendsto_add_ereal_general+.\<close>
+subsequences thanks to \<open>limsup_subseq_lim\<close>. The statement for limits follows for instance from
+\<open>tendsto_add_ereal_general\<close>.\<close>
 
 lemma%important ereal_limsup_add_mono:
   fixes u v::"nat \<Rightarrow> ereal"
@@ -1521,7 +1521,7 @@ next
   then show ?thesis unfolding w_def by simp
 qed
 
-text \<open>There is an asymmetry between liminfs and limsups in ereal, as $\infty + (-\infty) = \infty$.
+text \<open>There is an asymmetry between liminfs and limsups in \<open>ereal\<close>, as \<open>\<infinity> + (-\<infinity>) = \<infinity>\<close>.
 This explains why there are more assumptions in the next lemma dealing with liminfs that in the
 previous one about limsups.\<close>
 

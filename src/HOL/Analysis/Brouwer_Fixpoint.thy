@@ -407,8 +407,8 @@ text \<open>Absolute retracts (AR), absolute neighbourhood retracts (ANR) and al
 retracts (ENR). We define AR and ANR by specializing the standard definitions for a set to embedding
 in spaces of higher dimension.
 
-John Harrison writes: "This turns out to be sufficient (since any set in $\mathbb{R}^n$ can be
-embedded as a closed subset of a convex subset of $\mathbb{R}^{n+1}$) to derive the usual
+John Harrison writes: "This turns out to be sufficient (since any set in \<open>\<real>\<^sup>n\<close> can be
+embedded as a closed subset of a convex subset of \<open>\<real>\<^sup>n\<^sup>+\<^sup>1\<close>) to derive the usual
 definitions, but we need to split them into two implications because of the lack of type
 quantifiers. Then ENR turns out to be equivalent to ANR plus local compactness."\<close>
 
