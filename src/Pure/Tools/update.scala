@@ -43,6 +43,8 @@ object Update
       process_theory =
         (deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status) =>
         {
+          progress.echo("Processing theory " + snapshot.node_name + " ...")
+
           for ((node_name, node) <- snapshot.nodes) {
             val xml =
               snapshot.state.markup_to_XML(snapshot.version, node_name,

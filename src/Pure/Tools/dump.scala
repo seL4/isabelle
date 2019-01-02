@@ -230,6 +230,8 @@ object Dump
       process_theory =
         (deps: Sessions.Deps, snapshot: Document.Snapshot, status: Document_Status.Node_Status) =>
         {
+          progress.echo("Processing theory " + snapshot.node_name + " ...")
+
           val aspect_args = Aspect_Args(dump_options, progress, deps, output_dir, snapshot, status)
           aspects.foreach(_.operation(aspect_args))
         })
