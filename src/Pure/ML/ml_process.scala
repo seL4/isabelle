@@ -22,7 +22,6 @@ object ML_Process
     env: Map[String, String] = Isabelle_System.settings(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => (),
-    channel: Option[System_Channel] = None,
     sessions_structure: Option[Sessions.Structure] = None,
     session_base: Option[Sessions.Base] = None,
     store: Option[Sessions.Store] = None): Bash.Process =
@@ -89,6 +88,7 @@ object ML_Process
 
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
+    Isabelle_System.bash("chmod 600 " + File.bash_path(File.path(isabelle_process_options)))
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
     val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
@@ -120,13 +120,7 @@ object ML_Process
     val eval_process =
       if (heaps.isEmpty)
         List("PolyML.print_depth " + ML_Syntax.print_int(options.int("ML_print_depth")))
-      else
-        channel match {
-          case None =>
-            List("Isabelle_Process.init_options ()")
-          case Some(ch) =>
-            List("Isabelle_Process.init_protocol " + ML_Syntax.print_string_bytes(ch.server_name))
-        }
+      else List("Isabelle_Process.init ()")
 
     // ISABELLE_TMP
     val isabelle_tmp = Isabelle_System.tmp_dir("process")

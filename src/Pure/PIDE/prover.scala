@@ -82,8 +82,6 @@ class Prover(
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Markup.INIT) channel.accepted()
-
     val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
     val reports = Protocol_Message.reports(props, body)
     for (msg <- main :: reports) receiver(new Prover.Output(xml_cache.elem(msg)))
@@ -155,7 +153,7 @@ class Prover(
       system_output("process_manager terminated")
       exit_message(result)
     }
-    channel.accepted()
+    channel.shutdown()
   }
 
 

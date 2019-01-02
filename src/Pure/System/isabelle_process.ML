@@ -10,9 +10,9 @@ sig
   val protocol_command: string -> (string list -> unit) -> unit
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
-  val init_protocol: string -> unit
   val init_options: unit -> unit
   val init_options_interactive: unit -> unit
+  val init: unit -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -173,7 +173,7 @@ end;
 val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val default_modes2 = [isabelle_processN, Pretty.symbolicN];
 
-val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
+val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
   let
     val _ = SHA1.test_samples ()
       handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
@@ -184,7 +184,8 @@ val init_protocol = Thread_Attributes.uninterruptible (fn _ => fn socket =>
       Unsynchronized.change print_mode
         (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);
 
-    val (in_stream, out_stream) = Socket_IO.open_streams socket;
+    val (in_stream, out_stream) = Socket_IO.open_streams address;
+    val _ = Byte_Message.write_line out_stream password;
     val msg_channel = init_channels out_stream;
     val _ = loop in_stream;
     val _ = Message_Channel.shutdown msg_channel;
@@ -210,5 +211,18 @@ fun init_options_interactive () =
  (init_options ();
   Multithreading.parallel_proofs := (if Options.default_int "parallel_proofs" > 0 then 3 else 0);
   Printer.show_markup_default := true);
+
+
+(* generic init *)
+
+fun init () =
+  let
+    val address = Options.default_string \<^system_option>\<open>system_channel_address\<close>;
+    val password = Options.default_string \<^system_option>\<open>system_channel_password\<close>;
+  in
+    if address <> "" andalso password <> ""
+    then init_protocol (address, password)
+    else init_options ()
+  end;
 
 end;

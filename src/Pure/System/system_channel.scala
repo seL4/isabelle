@@ -20,14 +20,27 @@ class System_Channel private
 {
   private val server = new ServerSocket(0, 50, Server.localhost)
 
-  val server_name: String = Server.print_address(server.getLocalPort)
-  override def toString: String = server_name
+  val address: String = Server.print_address(server.getLocalPort)
+  val password: String = UUID.random().toString
+
+  override def toString: String = address
+
+  def shutdown() { server.close }
 
   def rendezvous(): (OutputStream, InputStream) =
   {
     val socket = server.accept
-    (socket.getOutputStream, socket.getInputStream)
-  }
+    try {
+      val out_stream = socket.getOutputStream
+      val in_stream = socket.getInputStream
 
-  def accepted() { server.close }
+      if (Byte_Message.read_line(in_stream).map(_.text) == Some(password)) (out_stream, in_stream)
+      else {
+        out_stream.close
+        in_stream.close
+        error("Failed to connect system channel: bad password")
+      }
+    }
+    finally { shutdown() }
+  }
 }
