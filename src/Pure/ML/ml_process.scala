@@ -88,7 +88,7 @@ object ML_Process
 
     // options
     val isabelle_process_options = Isabelle_System.tmp_file("options")
-    Isabelle_System.bash("chmod 600 " + File.bash_path(File.path(isabelle_process_options)))
+    Isabelle_System.bash("chmod 600 " + File.bash_path(File.path(isabelle_process_options))).check
     File.write(isabelle_process_options, YXML.string_of_body(options.encode))
     val env_options = Map("ISABELLE_PROCESS_OPTIONS" -> File.standard_path(isabelle_process_options))
     val eval_options = if (heaps.isEmpty) Nil else List("Options.load_default ()")
