@@ -79,9 +79,9 @@ val with_full_tracing = with_mode Full
 
 val timeout = Attrib.setup_config_real \<^binding>\<open>argo_timeout\<close> (K 10.0)
 
-val time_of_timeout = Time.fromReal o Config.apply timeout
+val timeout_seconds = seconds o Config.apply timeout
 
-fun with_timeout ctxt f x = Timeout.apply (time_of_timeout ctxt) f x
+fun with_timeout ctxt f x = Timeout.apply (timeout_seconds ctxt) f x
 
 
 (* extending the tactic *)
