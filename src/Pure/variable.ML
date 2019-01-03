@@ -335,16 +335,16 @@ fun revert_bounds ctxt t =
 (* inner body mode *)
 
 val inner_body = Config.declare_bool ("inner_body", \<^here>) (K false);
-fun is_body ctxt = Config.get ctxt inner_body;
+val is_body = Config.apply inner_body;
 val set_body = Config.put inner_body;
-fun restore_body ctxt = set_body (is_body ctxt);
+val restore_body = set_body o is_body;
 
 
 (* proper mode *)
 
 val proper_fixes = Config.declare_bool ("proper_fixes", \<^here>) (K true);
 val improper_fixes = Config.put proper_fixes false;
-fun restore_proper_fixes ctxt = Config.put proper_fixes (Config.get ctxt proper_fixes);
+val restore_proper_fixes = Config.put proper_fixes o Config.apply proper_fixes;
 
 fun is_improper ctxt x =
   (case Name_Space.lookup (fixes_of ctxt) x of
@@ -641,9 +641,9 @@ val trade = gen_trade (import true) export;
 (* focus on outermost parameters: \<And>x y z. B *)
 
 val bound_focus = Config.declare_bool ("bound_focus", \<^here>) (K false);
-fun is_bound_focus ctxt = Config.get ctxt bound_focus;
+val is_bound_focus = Config.apply bound_focus;
 val set_bound_focus = Config.put bound_focus;
-fun restore_bound_focus ctxt = set_bound_focus (is_bound_focus ctxt);
+val restore_bound_focus = set_bound_focus o is_bound_focus;
 
 fun focus_params bindings t ctxt =
   let

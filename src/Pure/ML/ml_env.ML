@@ -53,8 +53,8 @@ val ML_environment = Config.declare_string ("ML_environment", \<^here>) (K Isabe
 val ML_read_global = Config.declare_bool ("ML_read_global", \<^here>) (K true);
 val ML_write_global = Config.declare_bool ("ML_write_global", \<^here>) (K true);
 
-fun read_global context = Config.get_generic context ML_read_global;
-fun write_global context = Config.get_generic context ML_write_global;
+val read_global = Config.apply_generic ML_read_global;
+val write_global = Config.apply_generic ML_write_global;
 
 
 (* name space tables *)

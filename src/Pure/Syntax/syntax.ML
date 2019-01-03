@@ -323,7 +323,7 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 (* global pretty printing *)
 
 val pretty_global = Config.declare_bool ("Syntax.pretty_global", \<^here>) (K false);
-fun is_pretty_global ctxt = Config.get ctxt pretty_global;
+val is_pretty_global = Config.apply pretty_global;
 val set_pretty_global = Config.put pretty_global;
 val init_pretty_global = set_pretty_global true o Proof_Context.init_global;
 val init_pretty = Context.cases init_pretty_global I;

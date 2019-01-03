@@ -12,14 +12,17 @@ sig
   type 'a T
   val name_of: 'a T -> string
   val pos_of: 'a T -> Position.T
+  val apply: 'a T -> Proof.context -> 'a
   val get: Proof.context -> 'a T -> 'a
   val map: 'a T -> ('a -> 'a) -> Proof.context -> Proof.context
   val put: 'a T -> 'a -> Proof.context -> Proof.context
   val restore: 'a T -> Proof.context -> Proof.context -> Proof.context
+  val apply_global: 'a T -> theory -> 'a
   val get_global: theory -> 'a T -> 'a
   val map_global: 'a T -> ('a -> 'a) -> theory -> theory
   val put_global: 'a T -> 'a -> theory -> theory
   val restore_global: 'a T -> theory -> theory -> theory
+  val apply_generic: 'a T -> Context.generic -> 'a
   val get_generic: Context.generic -> 'a T -> 'a
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
@@ -92,20 +95,23 @@ datatype 'a T = Config of
 fun name_of (Config {name, ...}) = name;
 fun pos_of (Config {pos, ...}) = pos;
 
-fun get_generic context (Config {get_value, ...}) = get_value context;
+fun apply_generic (Config {get_value, ...}) = get_value;
+fun get_generic context config = apply_generic config context;
 fun map_generic (Config {map_value, ...}) f context = map_value f context;
 fun put_generic config value = map_generic config (K value);
-fun restore_generic config context = put_generic config (get_generic context config);
+fun restore_generic config = put_generic config o apply_generic config;
 
+fun apply_ctxt config = apply_generic config o Context.Proof;
 fun get_ctxt ctxt = get_generic (Context.Proof ctxt);
 fun map_ctxt config f = Context.proof_map (map_generic config f);
 fun put_ctxt config value = map_ctxt config (K value);
-fun restore_ctxt config ctxt = put_ctxt config (get_ctxt ctxt config);
+fun restore_ctxt config = put_ctxt config o apply_ctxt config;
 
+fun apply_global config = apply_generic config o Context.Theory;
 fun get_global thy = get_generic (Context.Theory thy);
 fun map_global config f = Context.theory_map (map_generic config f);
 fun put_global config value = map_global config (K value);
-fun restore_global config thy = put_global config (get_global thy config);
+fun restore_global config = put_global config o apply_global config;
 
 
 (* coerce type *)
@@ -174,6 +180,7 @@ val declare_option_real = real o declare_option;
 val declare_option_string = string o declare_option;
 
 (*final declarations of this structure!*)
+val apply = apply_ctxt;
 val get = get_ctxt;
 val map = map_ctxt;
 val put = put_ctxt;
