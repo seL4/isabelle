@@ -87,7 +87,7 @@ fun reset_pos NoSyn = NoSyn
 
 local
 
-val quoted = Pretty.quote o Pretty.str o #1 o Input.source_content;
+val template = Pretty.quote o Pretty.str o #1 o Input.source_content;
 val keyword = Pretty.keyword2;
 val parens = Pretty.enclose "(" ")";
 val brackets = Pretty.enclose "[" "]";
@@ -99,16 +99,17 @@ fun pretty_mixfix NoSyn = Pretty.str ""
   | pretty_mixfix (Mixfix (s, ps, p, _)) =
       parens
         (Pretty.breaks
-          (quoted s ::
+          (template s ::
             (if null ps then [] else [brackets (Pretty.commas (map int ps))]) @
             (if p = 1000 then [] else [int p])))
-  | pretty_mixfix (Infix (s, p, _)) = parens (Pretty.breaks [keyword "infix", quoted s, int p])
-  | pretty_mixfix (Infixl (s, p, _)) = parens (Pretty.breaks [keyword "infixl", quoted s, int p])
-  | pretty_mixfix (Infixr (s, p, _)) = parens (Pretty.breaks [keyword "infixr", quoted s, int p])
+  | pretty_mixfix (Infix (s, p, _)) = parens (Pretty.breaks [keyword "infix", template s, int p])
+  | pretty_mixfix (Infixl (s, p, _)) = parens (Pretty.breaks [keyword "infixl", template s, int p])
+  | pretty_mixfix (Infixr (s, p, _)) = parens (Pretty.breaks [keyword "infixr", template s, int p])
   | pretty_mixfix (Binder (s, p1, p2, _)) =
       parens
         (Pretty.breaks
-          ([keyword "binder", quoted s] @ (if p1 = p2 then [] else [brackets [int p1]]) @ [int p2]))
+          ([keyword "binder", template s] @
+            (if p1 = p2 then [] else [brackets [int p1]]) @ [int p2]))
   | pretty_mixfix (Structure _) = parens [keyword "structure"];
 
 end;
