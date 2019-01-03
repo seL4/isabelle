@@ -294,7 +294,7 @@ type 'a V = 'a -> string list * body;
 
 (* atomic values *)
 
-fun int_atom i = signed_string_of_int i;
+fun int_atom i = Value.print_int i;
 
 fun bool_atom false = "0"
   | bool_atom true = "1";
