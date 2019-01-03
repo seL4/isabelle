@@ -29,7 +29,6 @@ sig
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val eta_contract_raw: Config.raw
   val mark_bound_abs: string * typ -> term
   val mark_bound_body: string * typ -> term
   val bound_vars: (string * typ) list -> term -> term
@@ -297,8 +296,7 @@ fun eta_abs (Abs (a, T, t)) =
       | t' => Abs (a, T, t'))
   | eta_abs t = t;
 
-val eta_contract_raw = Config.declare_option ("eta_contract", \<^here>);
-val eta_contract = Config.bool eta_contract_raw;
+val eta_contract = Config.declare_option_bool ("eta_contract", \<^here>);
 
 fun eta_contr ctxt tm =
   if Config.get ctxt eta_contract then eta_abs tm else tm;

@@ -174,8 +174,7 @@ val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 (* parse commands *)
 
-val bootstrap =
-  Config.bool (Config.declare ("Outer_Syntax.bootstrap", \<^here>) (K (Config.Bool true)));
+val bootstrap = Config.declare_bool ("Outer_Syntax.bootstrap", \<^here>) (K true);
 
 local
 

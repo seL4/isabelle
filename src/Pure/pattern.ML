@@ -14,7 +14,6 @@ signature PATTERN =
 sig
   exception Unif
   exception Pattern
-  val unify_trace_failure_raw: Config.raw
   val unify_trace_failure: bool Config.T
   val unify_types: Context.generic -> typ * typ -> Envir.env -> Envir.env
   val unify: Context.generic -> term * term -> Envir.env -> Envir.env
@@ -30,9 +29,7 @@ struct
 exception Unif;
 exception Pattern;
 
-val unify_trace_failure_raw =
-  Config.declare ("unify_trace_failure", \<^here>) (fn _ => Config.Bool false);
-val unify_trace_failure = Config.bool unify_trace_failure_raw;
+val unify_trace_failure = Config.declare_bool ("unify_trace_failure", \<^here>) (K false);
 
 fun string_of_term ctxt env binders t =
   Syntax.string_of_term ctxt (Envir.norm_term env (subst_bounds (map Free binders, t)));

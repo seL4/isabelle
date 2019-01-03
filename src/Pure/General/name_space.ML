@@ -19,11 +19,8 @@ sig
   val entry_ord: T -> string * string -> order
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val names_long_raw: Config.raw
   val names_long: bool Config.T
-  val names_short_raw: Config.raw
   val names_short: bool Config.T
-  val names_unique_raw: Config.raw
   val names_unique: bool Config.T
   val extern: Proof.context -> T -> string -> xstring
   val extern_ord: Proof.context -> T -> string * string -> order
@@ -215,14 +212,9 @@ fun is_valid_access (Name_Space {internals, ...}) name xname =
 
 (* extern *)
 
-val names_long_raw = Config.declare_option ("names_long", \<^here>);
-val names_long = Config.bool names_long_raw;
-
-val names_short_raw = Config.declare_option ("names_short", \<^here>);
-val names_short = Config.bool names_short_raw;
-
-val names_unique_raw = Config.declare_option ("names_unique", \<^here>);
-val names_unique = Config.bool names_unique_raw;
+val names_long = Config.declare_option_bool ("names_long", \<^here>);
+val names_short = Config.declare_option_bool ("names_short", \<^here>);
+val names_unique = Config.declare_option_bool ("names_unique", \<^here>);
 
 fun extern ctxt space name =
   let

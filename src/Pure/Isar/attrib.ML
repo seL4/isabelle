@@ -380,7 +380,7 @@ end;
 
 structure Configs = Theory_Data
 (
-  type T = Config.raw Symtab.table;
+  type T = Config.value Config.T Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
@@ -437,6 +437,11 @@ in
 
 fun register_config config =
   register (Binding.make (Config.name_of config, Config.pos_of config)) config;
+
+val register_config_bool = register_config o Config.bool_value;
+val register_config_int = register_config o Config.int_value;
+val register_config_real = register_config o Config.real_value;
+val register_config_string = register_config o Config.string_value;
 
 val config_bool = declare Config.Bool Config.bool;
 val config_int = declare Config.Int Config.int;
@@ -572,45 +577,45 @@ val _ = Theory.setup
     (Scan.succeed (Thm.rule_attribute [] (Local_Defs.abs_def_rule o Context.proof_of)))
     "abstract over free variables of definitional theorem" #>
 
-  register_config Goal.quick_and_dirty_raw #>
-  register_config Ast.trace_raw #>
-  register_config Ast.stats_raw #>
-  register_config Printer.show_brackets_raw #>
-  register_config Printer.show_sorts_raw #>
-  register_config Printer.show_types_raw #>
-  register_config Printer.show_markup_raw #>
-  register_config Printer.show_structs_raw #>
-  register_config Printer.show_question_marks_raw #>
-  register_config Syntax.ambiguity_warning_raw #>
-  register_config Syntax.ambiguity_limit_raw #>
-  register_config Syntax_Trans.eta_contract_raw #>
-  register_config Name_Space.names_long_raw #>
-  register_config Name_Space.names_short_raw #>
-  register_config Name_Space.names_unique_raw #>
-  register_config ML_Print_Depth.print_depth_raw #>
-  register_config ML_Env.ML_environment_raw #>
-  register_config ML_Env.ML_read_global_raw #>
-  register_config ML_Env.ML_write_global_raw #>
-  register_config ML_Options.source_trace_raw #>
-  register_config ML_Options.exception_trace_raw #>
-  register_config ML_Options.exception_debugger_raw #>
-  register_config ML_Options.debugger_raw #>
-  register_config Proof_Context.show_abbrevs_raw #>
-  register_config Goal_Display.goals_limit_raw #>
-  register_config Goal_Display.show_main_goal_raw #>
-  register_config Thm.show_consts_raw #>
-  register_config Thm.show_hyps_raw #>
-  register_config Thm.show_tags_raw #>
-  register_config Pattern.unify_trace_failure_raw #>
-  register_config Unify.trace_bound_raw #>
-  register_config Unify.search_bound_raw #>
-  register_config Unify.trace_simp_raw #>
-  register_config Unify.trace_types_raw #>
-  register_config Raw_Simplifier.simp_depth_limit_raw #>
-  register_config Raw_Simplifier.simp_trace_depth_limit_raw #>
-  register_config Raw_Simplifier.simp_debug_raw #>
-  register_config Raw_Simplifier.simp_trace_raw #>
-  register_config Local_Defs.unfold_abs_def_raw);
+  register_config_bool Goal.quick_and_dirty #>
+  register_config_bool Ast.trace #>
+  register_config_bool Ast.stats #>
+  register_config_bool Printer.show_brackets #>
+  register_config_bool Printer.show_sorts #>
+  register_config_bool Printer.show_types #>
+  register_config_bool Printer.show_markup #>
+  register_config_bool Printer.show_structs #>
+  register_config_bool Printer.show_question_marks #>
+  register_config_bool Syntax.ambiguity_warning #>
+  register_config_int Syntax.ambiguity_limit #>
+  register_config_bool Syntax_Trans.eta_contract #>
+  register_config_bool Name_Space.names_long #>
+  register_config_bool Name_Space.names_short #>
+  register_config_bool Name_Space.names_unique #>
+  register_config_int ML_Print_Depth.print_depth #>
+  register_config_string ML_Env.ML_environment #>
+  register_config_bool ML_Env.ML_read_global #>
+  register_config_bool ML_Env.ML_write_global #>
+  register_config_bool ML_Options.source_trace #>
+  register_config_bool ML_Options.exception_trace #>
+  register_config_bool ML_Options.exception_debugger #>
+  register_config_bool ML_Options.debugger #>
+  register_config_bool Proof_Context.show_abbrevs #>
+  register_config_int Goal_Display.goals_limit #>
+  register_config_bool Goal_Display.show_main_goal #>
+  register_config_bool Thm.show_consts #>
+  register_config_bool Thm.show_hyps #>
+  register_config_bool Thm.show_tags #>
+  register_config_bool Pattern.unify_trace_failure #>
+  register_config_int Unify.trace_bound #>
+  register_config_int Unify.search_bound #>
+  register_config_bool Unify.trace_simp #>
+  register_config_bool Unify.trace_types #>
+  register_config_int Raw_Simplifier.simp_depth_limit #>
+  register_config_int Raw_Simplifier.simp_trace_depth_limit #>
+  register_config_bool Raw_Simplifier.simp_debug #>
+  register_config_bool Raw_Simplifier.simp_trace #>
+  register_config_bool Local_Defs.unfold_abs_def);
 
 
 (* internal source *)

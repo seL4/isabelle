@@ -10,11 +10,8 @@ sig
   val print_value: value -> string
   val print_type: value -> string
   type 'a T
-  type raw = value T
-  val bool: raw -> bool T
-  val int: raw -> int T
-  val real: raw -> real T
-  val string: raw -> string T
+  val name_of: 'a T -> string
+  val pos_of: 'a T -> Position.T
   val get: Proof.context -> 'a T -> 'a
   val map: 'a T -> ('a -> 'a) -> Proof.context -> Proof.context
   val put: 'a T -> 'a -> Proof.context -> Proof.context
@@ -27,10 +24,24 @@ sig
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
   val restore_generic: 'a T -> Context.generic -> Context.generic -> Context.generic
-  val declare: string * Position.T -> (Context.generic -> value) -> raw
-  val declare_option: string * Position.T -> raw
-  val name_of: 'a T -> string
-  val pos_of: 'a T -> Position.T
+  val bool: value T -> bool T
+  val bool_value: bool T -> value T
+  val int: value T -> int T
+  val int_value: int T -> value T
+  val real: value T -> real T
+  val real_value: real T -> value T
+  val string: value T -> string T
+  val string_value: string T -> value T
+  val declare: string * Position.T -> (Context.generic -> value) -> value T
+  val declare_bool: string * Position.T -> (Context.generic -> bool) -> bool T
+  val declare_int: string * Position.T -> (Context.generic -> int) -> int T
+  val declare_real: string * Position.T -> (Context.generic -> real) -> real T
+  val declare_string: string * Position.T -> (Context.generic -> string) -> string T
+  val declare_option: string * Position.T -> value T
+  val declare_option_bool: string * Position.T -> bool T
+  val declare_option_int: string * Position.T -> int T
+  val declare_option_real: string * Position.T -> real T
+  val declare_option_string: string * Position.T -> string T
 end;
 
 structure Config: CONFIG =
@@ -78,18 +89,8 @@ datatype 'a T = Config of
   get_value: Context.generic -> 'a,
   map_value: ('a -> 'a) -> Context.generic -> Context.generic};
 
-type raw = value T;
-
-fun coerce make dest (Config {name, pos, get_value, map_value}) = Config
- {name = name,
-  pos = pos,
-  get_value = dest o get_value,
-  map_value = fn f => map_value (make o f o dest)};
-
-val bool = coerce Bool (fn Bool b => b);
-val int = coerce Int (fn Int i => i);
-val real = coerce Real (fn Real x => x);
-val string = coerce String (fn String s => s);
+fun name_of (Config {name, ...}) = name;
+fun pos_of (Config {pos, ...}) = pos;
 
 fun get_generic context (Config {get_value, ...}) = get_value context;
 fun map_generic (Config {map_value, ...}) f context = map_value f context;
@@ -107,7 +108,23 @@ fun put_global config value = map_global config (K value);
 fun restore_global config thy = put_global config (get_global thy config);
 
 
-(* context information *)
+(* coerce type *)
+
+fun coerce make dest (Config {name, pos, get_value, map_value}) = Config
+ {name = name,
+  pos = pos,
+  get_value = dest o get_value,
+  map_value = fn f => map_value (make o f o dest)};
+
+fun coerce_pair make dest = (coerce make dest, coerce dest make);
+
+val (bool, bool_value) = coerce_pair Bool (fn Bool b => b);
+val (int, int_value) = coerce_pair Int (fn Int i => i);
+val (real, real_value) = coerce_pair Real (fn Real x => x);
+val (string, string_value) = coerce_pair String (fn String s => s);
+
+
+(* context data *)
 
 structure Data = Generic_Data
 (
@@ -132,6 +149,14 @@ fun declare (name, pos) default =
     Config {name = name, pos = pos, get_value = get_value, map_value = map_value}
   end;
 
+fun declare_bool name default = bool (declare name (Bool o default));
+fun declare_int name default = int (declare name (Int o default));
+fun declare_real name default = real (declare name (Real o default));
+fun declare_string name default = string (declare name (String o default));
+
+
+(* system options *)
+
 fun declare_option (name, pos) =
   let
     val typ = Options.default_typ name;
@@ -143,9 +168,10 @@ fun declare_option (name, pos) =
       else error ("Unknown type for option " ^ quote name ^ Position.here pos ^ " : " ^ quote typ);
   in declare (name, pos) default end;
 
-fun name_of (Config {name, ...}) = name;
-fun pos_of (Config {pos, ...}) = pos;
-
+val declare_option_bool = bool o declare_option;
+val declare_option_int = int o declare_option;
+val declare_option_real = real o declare_option;
+val declare_option_string = string o declare_option;
 
 (*final declarations of this structure!*)
 val get = get_ctxt;

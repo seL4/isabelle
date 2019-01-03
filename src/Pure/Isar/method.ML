@@ -495,7 +495,7 @@ fun method_closure ctxt src =
     val _ = Seq.pull (method ctxt' src' ctxt' [] (ctxt', Goal.protect 0 Drule.dummy_thm));
   in map Token.closure src' end;
 
-val closure = Config.bool (Config.declare ("Method.closure", \<^here>) (K (Config.Bool true)));
+val closure = Config.declare_bool ("Method.closure", \<^here>) (K true);
 
 fun method_cmd ctxt =
   check_src ctxt #>
@@ -605,8 +605,7 @@ fun modifier attribute pos : modifier = {init = I, attribute = attribute, pos = 
 
 (* sections *)
 
-val old_section_parser =
-  Config.bool (Config.declare ("Method.old_section_parser", \<^here>) (K (Config.Bool false)));
+val old_section_parser = Config.declare_bool ("Method.old_section_parser", \<^here>) (K false);
 
 local
 

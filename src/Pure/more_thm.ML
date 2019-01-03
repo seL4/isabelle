@@ -115,11 +115,8 @@ sig
   val kind: string -> attribute
   val register_proofs: thm list lazy -> theory -> theory
   val consolidate_theory: theory -> unit
-  val show_consts_raw: Config.raw
   val show_consts: bool Config.T
-  val show_hyps_raw: Config.raw
   val show_hyps: bool Config.T
-  val show_tags_raw: Config.raw
   val show_tags: bool Config.T
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_thm_raw: Proof.context -> {quote: bool, show_hyps: bool} -> thm -> Pretty.T
@@ -686,14 +683,9 @@ fun consolidate_theory thy =
 
 (* options *)
 
-val show_consts_raw = Config.declare_option ("show_consts", \<^here>);
-val show_consts = Config.bool show_consts_raw;
-
-val show_hyps_raw = Config.declare ("show_hyps", \<^here>) (fn _ => Config.Bool false);
-val show_hyps = Config.bool show_hyps_raw;
-
-val show_tags_raw = Config.declare ("show_tags", \<^here>) (fn _ => Config.Bool false);
-val show_tags = Config.bool show_tags_raw;
+val show_consts = Config.declare_option_bool ("show_consts", \<^here>);
+val show_hyps = Config.declare_bool ("show_hyps", \<^here>) (K false);
+val show_tags = Config.declare_bool ("show_tags", \<^here>) (K false);
 
 
 (* pretty_thm etc. *)

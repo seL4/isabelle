@@ -7,9 +7,7 @@ Display tactical goal state.
 
 signature GOAL_DISPLAY =
 sig
-  val goals_limit_raw: Config.raw
   val goals_limit: int Config.T
-  val show_main_goal_raw: Config.raw
   val show_main_goal: bool Config.T
   val pretty_goals: Proof.context -> thm -> Pretty.T list
   val pretty_goal: Proof.context -> thm -> Pretty.T
@@ -19,11 +17,8 @@ end;
 structure Goal_Display: GOAL_DISPLAY =
 struct
 
-val goals_limit_raw = Config.declare_option ("goals_limit", \<^here>);
-val goals_limit = Config.int goals_limit_raw;
-
-val show_main_goal_raw = Config.declare_option ("show_main_goal", \<^here>);
-val show_main_goal = Config.bool show_main_goal_raw;
+val goals_limit = Config.declare_option_int ("goals_limit", \<^here>);
+val show_main_goal = Config.declare_option_bool ("show_main_goal", \<^here>);
 
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)

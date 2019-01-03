@@ -23,7 +23,6 @@ sig
   val meta_rewrite_conv: Proof.context -> conv
   val meta_rewrite_rule: Proof.context -> thm -> thm
   val abs_def_rule: Proof.context -> thm -> thm
-  val unfold_abs_def_raw: Config.raw
   val unfold_abs_def: bool Config.T
   val unfold: Proof.context -> thm list -> thm -> thm
   val unfold_goals: Proof.context -> thm list -> thm -> thm
@@ -207,8 +206,7 @@ fun abs_def_rule ctxt = meta_rewrite_rule ctxt #> Drule.abs_def;
 
 (* unfold object-level rules *)
 
-val unfold_abs_def_raw = Config.declare ("unfold_abs_def", \<^here>) (K (Config.Bool true));
-val unfold_abs_def = Config.bool unfold_abs_def_raw;
+val unfold_abs_def = Config.declare_bool ("unfold_abs_def", \<^here>) (K true);
 
 local
 

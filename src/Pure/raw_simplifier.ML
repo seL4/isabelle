@@ -104,11 +104,7 @@ sig
   val set_term_ord: (term * term -> order) -> Proof.context -> Proof.context
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   val solver: Proof.context -> solver -> int -> tactic
-  val simp_depth_limit_raw: Config.raw
   val default_mk_sym: Proof.context -> thm -> thm option
-  val simp_trace_depth_limit_raw: Config.raw
-  val simp_trace_raw: Config.raw
-  val simp_debug_raw: Config.raw
   val add_prems: thm list -> Proof.context -> Proof.context
   val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
     Proof.context -> Proof.context
@@ -396,12 +392,8 @@ early but should not terminate "normal" executions.
 As of 2017, 25 would suffice; 40 builds in a safety margin.
 *)
 
-val simp_depth_limit_raw = Config.declare ("simp_depth_limit", \<^here>) (K (Config.Int 40));
-val simp_depth_limit = Config.int simp_depth_limit_raw;
-
-val simp_trace_depth_limit_raw =
-  Config.declare ("simp_trace_depth_limit", \<^here>) (fn _ => Config.Int 1);
-val simp_trace_depth_limit = Config.int simp_trace_depth_limit_raw;
+val simp_depth_limit = Config.declare_int ("simp_depth_limit", \<^here>) (K 40);
+val simp_trace_depth_limit = Config.declare_int ("simp_trace_depth_limit", \<^here>) (K 1);
 
 fun inc_simp_depth ctxt =
   ctxt |> map_simpset1 (fn (rules, prems, (depth, exceeded)) =>
@@ -419,11 +411,8 @@ fun simp_depth ctxt =
 
 exception SIMPLIFIER of string * thm list;
 
-val simp_debug_raw = Config.declare ("simp_debug", \<^here>) (K (Config.Bool false));
-val simp_debug = Config.bool simp_debug_raw;
-
-val simp_trace_raw = Config.declare ("simp_trace", \<^here>) (fn _ => Config.Bool false);
-val simp_trace = Config.bool simp_trace_raw;
+val simp_debug = Config.declare_bool ("simp_debug", \<^here>) (K false);
+val simp_trace = Config.declare_bool ("simp_trace", \<^here>) (K false);
 
 fun cond_warning ctxt msg =
   if Context_Position.is_really_visible ctxt then warning (msg ()) else ();

@@ -93,7 +93,6 @@ sig
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
-  val show_abbrevs_raw: Config.raw
   val show_abbrevs: bool Config.T
   val expand_abbrevs: Proof.context -> term -> term
   val cert_term: Proof.context -> term -> term
@@ -633,8 +632,7 @@ fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
 
 end;
 
-val show_abbrevs_raw = Config.declare ("show_abbrevs", \<^here>) (fn _ => Config.Bool true);
-val show_abbrevs = Config.bool show_abbrevs_raw;
+val show_abbrevs = Config.declare_bool ("show_abbrevs", \<^here>) (K true);
 
 fun contract_abbrevs ctxt t =
   let
@@ -666,8 +664,7 @@ fun prepare_patternT ctxt T =
 
 local
 
-val dummies =
-  Config.bool (Config.declare ("Proof_Context.dummies", \<^here>) (K (Config.Bool false)));
+val dummies = Config.declare_bool ("Proof_Context.dummies", \<^here>) (K false);
 
 fun check_dummies ctxt t =
   if Config.get ctxt dummies then t
@@ -978,8 +975,7 @@ fun lookup_fact ctxt name =
 
 (* retrieve facts *)
 
-val dynamic_facts_dummy =
-  Config.bool (Config.declare ("dynamic_facts_dummy_", \<^here>) (fn _ => Config.Bool false));
+val dynamic_facts_dummy = Config.declare_bool ("dynamic_facts_dummy_", \<^here>) (K false);
 
 local
 
@@ -1048,9 +1044,7 @@ end;
 
 (* inner statement mode *)
 
-val inner_stmt =
-  Config.bool (Config.declare ("inner_stmt", \<^here>) (K (Config.Bool false)));
-
+val inner_stmt = Config.declare_bool ("inner_stmt", \<^here>) (K false);
 fun is_stmt ctxt = Config.get ctxt inner_stmt;
 val set_stmt = Config.put inner_stmt;
 val restore_stmt = set_stmt o is_stmt;
@@ -1569,11 +1563,8 @@ fun print_cases_proof ctxt0 ctxt =
 
 (* core context *)
 
-val debug =
-  Config.bool (Config.declare ("Proof_Context.debug", \<^here>) (K (Config.Bool false)));
-
-val verbose =
-  Config.bool (Config.declare ("Proof_Context.verbose", \<^here>) (K (Config.Bool false)));
+val debug = Config.declare_bool ("Proof_Context.debug", \<^here>) (K false);
+val verbose = Config.declare_bool ("Proof_Context.verbose", \<^here>) (K false);
 
 fun pretty_ctxt ctxt =
   if not (Config.get ctxt debug) then []

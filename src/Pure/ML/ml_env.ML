@@ -9,11 +9,8 @@ signature ML_ENV =
 sig
   val Isabelle: string
   val SML: string
-  val ML_environment_raw: Config.raw
   val ML_environment: string Config.T
-  val ML_read_global_raw: Config.raw
   val ML_read_global: bool Config.T
-  val ML_write_global_raw: Config.raw
   val ML_write_global: bool Config.T
   val inherit: Context.generic list -> Context.generic -> Context.generic
   type operations =
@@ -48,17 +45,13 @@ struct
 val Isabelle = "Isabelle";
 val SML = "SML";
 
-val ML_environment_raw = Config.declare ("ML_environment", \<^here>) (fn _ => Config.String Isabelle);
-val ML_environment = Config.string ML_environment_raw;
+val ML_environment = Config.declare_string ("ML_environment", \<^here>) (K Isabelle);
 
 
 (* global read/write *)
 
-val ML_read_global_raw = Config.declare ("ML_read_global", \<^here>) (fn _ => Config.Bool true);
-val ML_write_global_raw = Config.declare ("ML_write_global", \<^here>) (fn _ => Config.Bool true);
-
-val ML_read_global = Config.bool ML_read_global_raw;
-val ML_write_global = Config.bool ML_write_global_raw;
+val ML_read_global = Config.declare_bool ("ML_read_global", \<^here>) (K true);
+val ML_write_global = Config.declare_bool ("ML_write_global", \<^here>) (K true);
 
 fun read_global context = Config.get_generic context ML_read_global;
 fun write_global context = Config.get_generic context ML_write_global;

@@ -21,9 +21,7 @@ sig
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
-  val trace_raw: Config.raw
   val trace: bool Config.T
-  val stats_raw: Config.raw
   val stats: bool Config.T
   val normalize: Proof.context -> (string -> (ast * ast) list) -> ast -> ast
 end;
@@ -166,11 +164,8 @@ fun match ast pat =
 
 (* normalize *)
 
-val trace_raw = Config.declare ("syntax_ast_trace", \<^here>) (fn _ => Config.Bool false);
-val trace = Config.bool trace_raw;
-
-val stats_raw = Config.declare ("syntax_ast_stats", \<^here>) (fn _ => Config.Bool false);
-val stats = Config.bool stats_raw;
+val trace = Config.declare_bool ("syntax_ast_trace", \<^here>) (K false);
+val stats = Config.declare_bool ("syntax_ast_stats", \<^here>) (K false);
 
 fun message head body =
   Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);

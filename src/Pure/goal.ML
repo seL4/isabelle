@@ -36,7 +36,6 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
-  val quick_and_dirty_raw: Config.raw
   val prove_sorry: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_sorry_global: theory -> string list -> term list -> term ->
@@ -242,8 +241,7 @@ fun prove_global thy xs asms prop tac =
 
 (* skip proofs *)
 
-val quick_and_dirty_raw = Config.declare_option ("quick_and_dirty", \<^here>);
-val quick_and_dirty = Config.bool quick_and_dirty_raw;
+val quick_and_dirty = Config.declare_option_bool ("quick_and_dirty", \<^here>);
 
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then

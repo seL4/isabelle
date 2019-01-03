@@ -11,13 +11,9 @@ this is assured because both have type "prop".
 
 signature UNIFY =
 sig
-  val trace_bound_raw: Config.raw
   val trace_bound: int Config.T
-  val search_bound_raw: Config.raw
   val search_bound: int Config.T
-  val trace_simp_raw: Config.raw
   val trace_simp: bool Config.T
-  val trace_types_raw: Config.raw
   val trace_types: bool Config.T
   val hounifiers: Context.generic * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
@@ -32,20 +28,16 @@ struct
 (*Unification options*)
 
 (*tracing starts above this depth, 0 for full*)
-val trace_bound_raw = Config.declare ("unify_trace_bound", \<^here>) (K (Config.Int 50));
-val trace_bound = Config.int trace_bound_raw;
+val trace_bound = Config.declare_int ("unify_trace_bound", \<^here>) (K 50);
 
 (*unification quits above this depth*)
-val search_bound_raw = Config.declare ("unify_search_bound", \<^here>) (K (Config.Int 60));
-val search_bound = Config.int search_bound_raw;
+val search_bound = Config.declare_int ("unify_search_bound", \<^here>) (K 60);
 
 (*print dpairs before calling SIMPL*)
-val trace_simp_raw = Config.declare ("unify_trace_simp", \<^here>) (K (Config.Bool false));
-val trace_simp = Config.bool trace_simp_raw;
+val trace_simp = Config.declare_bool ("unify_trace_simp", \<^here>) (K false);
 
 (*announce potential incompleteness of type unification*)
-val trace_types_raw = Config.declare ("unify_trace_types", \<^here>) (K (Config.Bool false));
-val trace_types = Config.bool trace_types_raw;
+val trace_types = Config.declare_bool ("unify_trace_types", \<^here>) (K false);
 
 
 type binderlist = (string * typ) list;
