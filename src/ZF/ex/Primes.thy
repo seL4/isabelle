@@ -8,7 +8,7 @@ section\<open>The Divides Relation and Euclid's algorithm for the GCD\<close>
 theory Primes imports ZF begin
 
 definition
-  divides :: "[i,i]=>o"              (infixl "dvd" 50)  where
+  divides :: "[i,i]=>o"              (infixl \<open>dvd\<close> 50)  where
     "m dvd n == m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
 
 definition

@@ -26,8 +26,8 @@ consts
 
 datatype propn =
     Fls
-  | Var ("n \<in> nat")    ("#_" [100] 100)
-  | Imp ("p \<in> propn", "q \<in> propn")    (infixr "=>" 90)
+  | Var ("n \<in> nat")    (\<open>#_\<close> [100] 100)
+  | Imp ("p \<in> propn", "q \<in> propn")    (infixr \<open>=>\<close> 90)
 
 
 subsection \<open>The proof system\<close>
@@ -35,7 +35,7 @@ subsection \<open>The proof system\<close>
 consts thms     :: "i => i"
 
 abbreviation
-  thms_syntax :: "[i,i] => o"    (infixl "|-" 50)
+  thms_syntax :: "[i,i] => o"    (infixl \<open>|-\<close> 50)
   where "H |- p == p \<in> thms(H)"
 
 inductive
@@ -86,7 +86,7 @@ text \<open>
 \<close>
 
 definition
-  logcon :: "[i,i] => o"    (infixl "|=" 50)  where
+  logcon :: "[i,i] => o"    (infixl \<open>|=\<close> 50)  where
   "H |= p == \<forall>t. (\<forall>q \<in> H. is_true(q,t)) \<longrightarrow> is_true(p,t)"
 
 

@@ -27,7 +27,7 @@ definition
               cons(id(state), allowed \<inter> Pow(state*state))>"
 
 definition
-  SKIP :: i  ("\<bottom>") where
+  SKIP :: i  (\<open>\<bottom>\<close>) where
   "SKIP == mk_program(state, 0, Pow(state*state))"
 
   (* Coercion from anything to program *)
@@ -68,12 +68,12 @@ definition
   initially :: "i=>i"  where
   "initially(A) == {F \<in> program. Init(F)\<subseteq>A}"
 
-definition "constrains" :: "[i, i] => i"  (infixl "co" 60)  where
+definition "constrains" :: "[i, i] => i"  (infixl \<open>co\<close> 60)  where
   "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
     \<comment> \<open>the condition @{term "st_set(A)"} makes the definition slightly
          stronger than the HOL one\<close>
 
-definition unless :: "[i, i] => i"  (infixl "unless" 60)  where
+definition unless :: "[i, i] => i"  (infixl \<open>unless\<close> 60)  where
   "A unless B == (A - B) co (A \<union> B)"
 
 definition
@@ -90,7 +90,7 @@ definition
 
   (* meta-function composition *)
 definition
-  metacomp :: "[i=>i, i=>i] => (i=>i)" (infixl "comp" 65)  where
+  metacomp :: "[i=>i, i=>i] => (i=>i)" (infixl \<open>comp\<close> 65)  where
   "f comp g == %x. f(g(x))"
 
 definition

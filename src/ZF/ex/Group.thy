@@ -22,11 +22,11 @@ definition
   "carrier(M) == fst(M)"
 
 definition
-  mmult :: "[i, i, i] => i" (infixl "\<cdot>\<index>" 70) where
+  mmult :: "[i, i, i] => i" (infixl \<open>\<cdot>\<index>\<close> 70) where
   "mmult(M,x,y) == fst(snd(M)) ` <x,y>"
 
 definition
-  one :: "i => i" ("\<one>\<index>") where
+  one :: "i => i" (\<open>\<one>\<index>\<close>) where
   "one(M) == fst(snd(snd(M)))"
 
 definition
@@ -34,7 +34,7 @@ definition
   "update_carrier(M,A) == <A,snd(M)>"
 
 definition
-  m_inv :: "i => i => i" ("inv\<index> _" [81] 80) where
+  m_inv :: "i => i => i" (\<open>inv\<index> _\<close> [81] 80) where
   "inv\<^bsub>G\<^esub> x == (THE y. y \<in> carrier(G) & y \<cdot>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub> & x \<cdot>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub>)"
 
 locale monoid = fixes G (structure)
@@ -302,7 +302,7 @@ lemma subgroup_nonempty:
 subsection \<open>Direct Products\<close>
 
 definition
-  DirProdGroup :: "[i,i] => i"  (infixr "\<Otimes>" 80) where
+  DirProdGroup :: "[i,i] => i"  (infixr \<open>\<Otimes>\<close> 80) where
   "G \<Otimes> H == <carrier(G) \<times> carrier(H),
               (\<lambda><<g,h>, <g', h'>>
                    \<in> (carrier(G) \<times> carrier(H)) \<times> (carrier(G) \<times> carrier(H)).
@@ -370,7 +370,7 @@ lemma hom_is_fun:
 subsection \<open>Isomorphisms\<close>
 
 definition
-  iso :: "[i,i] => i"  (infixr "\<cong>" 60) where
+  iso :: "[i,i] => i"  (infixr \<open>\<cong>\<close> 60) where
   "G \<cong> H == hom(G,H) \<inter> bij(carrier(G), carrier(H))"
 
 lemma (in group) iso_refl: "id(carrier(G)) \<in> G \<cong> G"
@@ -576,23 +576,23 @@ by (simp add: AutoGroup_def subgroup.is_group subgroup_auto group_BijGroup)
 subsection\<open>Cosets and Quotient Groups\<close>
 
 definition
-  r_coset  :: "[i,i,i] => i"  (infixl "#>\<index>" 60) where
+  r_coset  :: "[i,i,i] => i"  (infixl \<open>#>\<index>\<close> 60) where
   "H #>\<^bsub>G\<^esub> a == \<Union>h\<in>H. {h \<cdot>\<^bsub>G\<^esub> a}"
 
 definition
-  l_coset  :: "[i,i,i] => i"  (infixl "<#\<index>" 60) where
+  l_coset  :: "[i,i,i] => i"  (infixl \<open><#\<index>\<close> 60) where
   "a <#\<^bsub>G\<^esub> H == \<Union>h\<in>H. {a \<cdot>\<^bsub>G\<^esub> h}"
 
 definition
-  RCOSETS  :: "[i,i] => i"  ("rcosets\<index> _" [81] 80) where
+  RCOSETS  :: "[i,i] => i"  (\<open>rcosets\<index> _\<close> [81] 80) where
   "rcosets\<^bsub>G\<^esub> H == \<Union>a\<in>carrier(G). {H #>\<^bsub>G\<^esub> a}"
 
 definition
-  set_mult :: "[i,i,i] => i"  (infixl "<#>\<index>" 60) where
+  set_mult :: "[i,i,i] => i"  (infixl \<open><#>\<index>\<close> 60) where
   "H <#>\<^bsub>G\<^esub> K == \<Union>h\<in>H. \<Union>k\<in>K. {h \<cdot>\<^bsub>G\<^esub> k}"
 
 definition
-  SET_INV  :: "[i,i] => i"  ("set'_inv\<index> _" [81] 80) where
+  SET_INV  :: "[i,i] => i"  (\<open>set'_inv\<index> _\<close> [81] 80) where
   "set_inv\<^bsub>G\<^esub> H == \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
 
 
@@ -600,7 +600,7 @@ locale normal = subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier(G). H #> x = x <# H)"
 
 notation
-  normal  (infixl "\<lhd>" 60)
+  normal  (infixl \<open>\<lhd>\<close> 60)
 
 
 subsection \<open>Basic Properties of Cosets\<close>
@@ -860,7 +860,7 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 subsubsection\<open>Two distinct right cosets are disjoint\<close>
 
 definition
-  r_congruent :: "[i,i] => i" ("rcong\<index> _" [60] 60) where
+  r_congruent :: "[i,i] => i" (\<open>rcong\<index> _\<close> [60] 60) where
   "rcong\<^bsub>G\<^esub> H == {<x,y> \<in> carrier(G) * carrier(G). inv\<^bsub>G\<^esub> x \<cdot>\<^bsub>G\<^esub> y \<in> H}"
 
 
@@ -1020,7 +1020,7 @@ done
 subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
-  FactGroup :: "[i,i] => i" (infixl "Mod" 65) where
+  FactGroup :: "[i,i] => i" (infixl \<open>Mod\<close> 65) where
     \<comment> \<open>Actually defined for groups rather than monoids\<close>
   "G Mod H ==
      <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"

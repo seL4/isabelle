@@ -26,7 +26,7 @@ inductive
   type_intros    subst_type nat_typechecks redexes.intros bool_typechecks
 
 definition
-  res_func      :: "[i,i]=>i"     (infixl "|>" 70)  where
+  res_func      :: "[i,i]=>i"     (infixl \<open>|>\<close> 70)  where
   "u |> v == THE w. residuals(u,v,w)"
 
 

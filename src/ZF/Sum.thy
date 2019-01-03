@@ -9,7 +9,7 @@ theory Sum imports Bool equalities begin
 
 text\<open>And the "Part" primitive for simultaneous recursive type definitions\<close>
 
-definition sum :: "[i,i]=>i" (infixr "+" 65) where
+definition sum :: "[i,i]=>i" (infixr \<open>+\<close> 65) where
      "A+B == {0}*A \<union> {1}*B"
 
 definition Inl :: "i=>i" where

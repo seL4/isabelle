@@ -11,19 +11,19 @@ section\<open>Charpentier's "Increasing" Relation\<close>
 theory Increasing imports Constrains Monotonicity begin
 
 definition
-  increasing :: "[i, i, i=>i] => i" ("increasing[_]'(_, _')")  where
+  increasing :: "[i, i, i=>i] => i" (\<open>increasing[_]'(_, _')\<close>)  where
   "increasing[A](r, f) ==
     {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
   
 definition
-  Increasing :: "[i, i, i=>i] => i" ("Increasing[_]'(_, _')")  where
+  Increasing :: "[i, i, i=>i] => i" (\<open>Increasing[_]'(_, _')\<close>)  where
   "Increasing[A](r, f) ==
     {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) &
                 (\<forall>x \<in> state. f(x):A)}"
 
 abbreviation (input)
-  IncWrt ::  "[i=>i, i, i] => i" ("(_ IncreasingWrt _ '/ _)" [60, 0, 60] 60)  where
+  IncWrt ::  "[i=>i, i, i] => i" (\<open>(_ IncreasingWrt _ '/ _)\<close> [60, 0, 60] 60)  where
   "f IncreasingWrt r/A == Increasing[A](r,f)"
 
 

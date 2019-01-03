@@ -456,7 +456,7 @@ text \<open>This is the well-known transfinite enumeration of the cardinal
 numbers.\<close>
 
 definition
-  Aleph :: "i => i"  ("\<aleph>_" [90] 90) where
+  Aleph :: "i => i"  (\<open>\<aleph>_\<close> [90] 90) where
     "Aleph(a) == transrec2(a, nat, \<lambda>x r. csucc(r))"
 
 lemma Card_Aleph [simp, intro]:

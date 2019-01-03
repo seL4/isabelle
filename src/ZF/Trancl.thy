@@ -32,16 +32,16 @@ definition
     "trans(r) == \<forall>x y z. <x,y>: r \<longrightarrow> <y,z>: r \<longrightarrow> <x,z>: r"
 
 definition
-  trans_on :: "[i,i]=>o"  ("trans[_]'(_')")  where
+  trans_on :: "[i,i]=>o"  (\<open>trans[_]'(_')\<close>)  where
     "trans[A](r) == \<forall>x\<in>A. \<forall>y\<in>A. \<forall>z\<in>A.
                           <x,y>: r \<longrightarrow> <y,z>: r \<longrightarrow> <x,z>: r"
 
 definition
-  rtrancl :: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)  where
+  rtrancl :: "i=>i"  (\<open>(_^*)\<close> [100] 100)  (*refl/transitive closure*)  where
     "r^* == lfp(field(r)*field(r), %s. id(field(r)) \<union> (r O s))"
 
 definition
-  trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)  where
+  trancl  :: "i=>i"  (\<open>(_^+)\<close> [100] 100)  (*transitive closure*)  where
     "r^+ == r O r^*"
 
 definition

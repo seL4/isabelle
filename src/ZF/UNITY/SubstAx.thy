@@ -13,11 +13,11 @@ begin
 
 definition
   (* The definitions below are not `conventional', but yield simpler rules *)
-  Ensures :: "[i,i] => i"            (infixl "Ensures" 60)  where
+  Ensures :: "[i,i] => i"            (infixl \<open>Ensures\<close> 60)  where
   "A Ensures B == {F \<in> program. F \<in> (reachable(F) \<inter> A) ensures (reachable(F) \<inter> B) }"
 
 definition
-  LeadsTo :: "[i, i] => i"            (infixl "\<longmapsto>w" 60)  where
+  LeadsTo :: "[i, i] => i"            (infixl \<open>\<longmapsto>w\<close> 60)  where
   "A \<longmapsto>w B == {F \<in> program. F:(reachable(F) \<inter> A) \<longmapsto> (reachable(F) \<inter> B)}"
 
 

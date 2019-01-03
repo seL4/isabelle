@@ -31,7 +31,7 @@ definition
 
 definition
   (*ordinal multiplication*)
-  omult      :: "[i,i]=>i"           (infixl "**" 70)  where
+  omult      :: "[i,i]=>i"           (infixl \<open>**\<close> 70)  where
    "i ** j == ordertype(j*i, rmult(j,Memrel(j),i,Memrel(i)))"
 
 definition
@@ -40,12 +40,12 @@ definition
     "raw_oadd(i,j) == ordertype(i+j, radd(i,Memrel(i),j,Memrel(j)))"
 
 definition
-  oadd      :: "[i,i]=>i"           (infixl "++" 65)  where
+  oadd      :: "[i,i]=>i"           (infixl \<open>++\<close> 65)  where
     "i ++ j == raw_oadd(ordify(i),ordify(j))"
 
 definition
   (*ordinal subtraction*)
-  odiff      :: "[i,i]=>i"           (infixl "--" 65)  where
+  odiff      :: "[i,i]=>i"           (infixl \<open>--\<close> 65)  where
     "i -- j == ordertype(i-j, Memrel(i))"
 
 

@@ -24,7 +24,7 @@ consts comb :: i
 datatype comb =
   K
 | S
-| app ("p \<in> comb", "q \<in> comb")  (infixl "\<bullet>" 90)
+| app ("p \<in> comb", "q \<in> comb")  (infixl \<open>\<bullet>\<close> 90)
 
 text \<open>
   Inductive definition of contractions, \<open>\<rightarrow>\<^sup>1\<close> and
@@ -32,10 +32,10 @@ text \<open>
 \<close>
 
 consts contract  :: i
-abbreviation contract_syntax :: "[i,i] \<Rightarrow> o"  (infixl "\<rightarrow>\<^sup>1" 50)
+abbreviation contract_syntax :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<rightarrow>\<^sup>1\<close> 50)
   where "p \<rightarrow>\<^sup>1 q \<equiv> <p,q> \<in> contract"
 
-abbreviation contract_multi :: "[i,i] \<Rightarrow> o"  (infixl "\<rightarrow>" 50)
+abbreviation contract_multi :: "[i,i] \<Rightarrow> o"  (infixl \<open>\<rightarrow>\<close> 50)
   where "p \<rightarrow> q \<equiv> <p,q> \<in> contract^*"
 
 inductive
@@ -54,10 +54,10 @@ text \<open>
 
 consts parcontract :: i
 
-abbreviation parcontract_syntax :: "[i,i] => o"  (infixl "\<Rrightarrow>\<^sup>1" 50)
+abbreviation parcontract_syntax :: "[i,i] => o"  (infixl \<open>\<Rrightarrow>\<^sup>1\<close> 50)
   where "p \<Rrightarrow>\<^sup>1 q == <p,q> \<in> parcontract"
 
-abbreviation parcontract_multi :: "[i,i] => o"  (infixl "\<Rrightarrow>" 50)
+abbreviation parcontract_multi :: "[i,i] => o"  (infixl \<open>\<Rrightarrow>\<close> 50)
   where "p \<Rrightarrow> q == <p,q> \<in> parcontract^+"
 
 inductive

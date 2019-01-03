@@ -19,7 +19,7 @@ rep_datatype
 
 consts
   Fin       :: "i=>i"
-  FiniteFun :: "[i,i]=>i"         ("(_ -||>/ _)" [61, 60] 60)
+  FiniteFun :: "[i,i]=>i"         (\<open>(_ -||>/ _)\<close> [61, 60] 60)
 
 inductive
   domains   "Fin(A)" \<subseteq> "Pow(A)"

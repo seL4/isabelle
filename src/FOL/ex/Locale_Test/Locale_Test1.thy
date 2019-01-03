@@ -11,9 +11,9 @@ begin
 typedecl int
 instance int :: "term" ..
 
-consts plus :: "int => int => int" (infixl "+" 60)
-  zero :: int ("0")
-  minus :: "int => int" ("- _")
+consts plus :: "int => int => int" (infixl \<open>+\<close> 60)
+  zero :: int (\<open>0\<close>)
+  minus :: "int => int" (\<open>- _\<close>)
 
 axiomatization where
   int_assoc: "(x + y::int) + z = x + (y + z)" and
@@ -34,17 +34,17 @@ locale param_top = param2 r for r :: "'b :: {}"
   Fails, cannot generalise parameter.
 *)
 
-locale param3 = fixes p (infix ".." 50)
+locale param3 = fixes p (infix \<open>..\<close> 50)
 print_locale! param3
 
-locale param4 = fixes p :: "'a => 'a => 'a" (infix ".." 50)
+locale param4 = fixes p :: "'a => 'a => 'a" (infix \<open>..\<close> 50)
 print_locale! param4
 
 
 subsection \<open>Incremental type constraints\<close>
 
 locale constraint1 =
-  fixes  prod (infixl "**" 65)
+  fixes  prod (infixl \<open>**\<close> 65)
   assumes l_id: "x ** y = x"
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
 print_locale! constraint1
@@ -58,7 +58,7 @@ print_locale! constraint2
 section \<open>Inheritance\<close>
 
 locale semi =
-  fixes prod (infixl "**" 65)
+  fixes prod (infixl \<open>**\<close> 65)
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
 print_locale! semi thm semi_def
 
@@ -68,13 +68,13 @@ locale lgrp = semi +
     and linv: "inv(x) ** x = one"
 print_locale! lgrp thm lgrp_def lgrp_axioms_def
 
-locale add_lgrp = semi "(++)" for sum (infixl "++" 60) +
+locale add_lgrp = semi "(++)" for sum (infixl \<open>++\<close> 60) +
   fixes zero and neg
   assumes lzero: "zero ++ x = x"
     and lneg: "neg(x) ++ x = zero"
 print_locale! add_lgrp thm add_lgrp_def add_lgrp_axioms_def
 
-locale rev_lgrp = semi "%x y. y ++ x" for sum (infixl "++" 60)
+locale rev_lgrp = semi "%x y. y ++ x" for sum (infixl \<open>++\<close> 60)
 print_locale! rev_lgrp thm rev_lgrp_def
 
 locale hom = f: semi f + g: semi g for f and g
@@ -94,13 +94,13 @@ print_locale! pert_hom' thm pert_hom'_def
 section \<open>Syntax declarations\<close>
 
 locale logic =
-  fixes land (infixl "&&" 55)
-    and lnot ("-- _" [60] 60)
+  fixes land (infixl \<open>&&\<close> 55)
+    and lnot (\<open>-- _\<close> [60] 60)
   assumes assoc: "(x && y) && z = x && (y && z)"
     and notnot: "-- (-- x) = x"
 begin
 
-definition lor (infixl "||" 50) where
+definition lor (infixl \<open>||\<close> 50) where
   "x || y = --(-- x && -- y)"
 
 end
@@ -147,8 +147,8 @@ locale "syntax" =
     and p2 :: "'b => o"
 begin
 
-definition d1 :: "'a => o" ("D1'(_')") where "d1(x) \<longleftrightarrow> \<not> p2(p1(x))"
-definition d2 :: "'b => o" ("D2'(_')") where "d2(x) \<longleftrightarrow> \<not> p2(x)"
+definition d1 :: "'a => o" (\<open>D1'(_')\<close>) where "d1(x) \<longleftrightarrow> \<not> p2(p1(x))"
+definition d2 :: "'b => o" (\<open>D2'(_')\<close>) where "d2(x) \<longleftrightarrow> \<not> p2(x)"
 
 thm d1_def d2_def
 
@@ -191,9 +191,9 @@ thm logic.lor_def
 section \<open>Defines\<close>
 
 locale logic_def =
-  fixes land (infixl "&&" 55)
-    and lor (infixl "||" 50)
-    and lnot ("-- _" [60] 60)
+  fixes land (infixl \<open>&&\<close> 55)
+    and lor (infixl \<open>||\<close> 50)
+    and lnot (\<open>-- _\<close> [60] 60)
   assumes assoc: "(x && y) && z = x && (y && z)"
     and notnot: "-- (-- x) = x"
   defines "x || y == --(-- x && -- y)"
@@ -353,7 +353,7 @@ print_locale! lgrp
 (* Duality *)
 
 locale order =
-  fixes less :: "'a => 'a => o" (infix "<<" 50)
+  fixes less :: "'a => 'a => o" (infix \<open><<\<close> 50)
   assumes refl: "x << x"
     and trans: "[| x << y; y << z |] ==> x << z"
 
@@ -364,14 +364,14 @@ sublocale order < dual: order "%x y. y << x"
 print_locale! order  (* Only two instances of order. *)
 
 locale order' =
-  fixes less :: "'a => 'a => o" (infix "<<" 50)
+  fixes less :: "'a => 'a => o" (infix \<open><<\<close> 50)
   assumes refl: "x << x"
     and trans: "[| x << y; y << z |] ==> x << z"
 
 locale order_with_def = order'
 begin
 
-definition greater :: "'a => 'a => o" (infix ">>" 50) where
+definition greater :: "'a => 'a => o" (infix \<open>>>\<close> 50) where
   "x >> y \<longleftrightarrow> y << x"
 
 end
@@ -464,13 +464,13 @@ interpretation fol: logic "(+)" "minus"
   by unfold_locales (rule int_assoc int_minus2)+
 
 locale logic2 =
-  fixes land (infixl "&&" 55)
-    and lnot ("-- _" [60] 60)
+  fixes land (infixl \<open>&&\<close> 55)
+    and lnot (\<open>-- _\<close> [60] 60)
   assumes assoc: "(x && y) && z = x && (y && z)"
     and notnot: "-- (-- x) = x"
 begin
 
-definition lor (infixl "||" 50) where
+definition lor (infixl \<open>||\<close> 50) where
   "x || y = --(-- x && -- y)"
 
 end
@@ -495,13 +495,13 @@ subsection \<open>Interpretation\<close>
 subsection \<open>Rewrite morphism\<close>
 
 locale logic_o =
-  fixes land (infixl "&&" 55)
-    and lnot ("-- _" [60] 60)
+  fixes land (infixl \<open>&&\<close> 55)
+    and lnot (\<open>-- _\<close> [60] 60)
   assumes assoc_o: "(x && y) && z \<longleftrightarrow> x && (y && z)"
     and notnot_o: "-- (-- x) \<longleftrightarrow> x"
 begin
 
-definition lor_o (infixl "||" 50) where
+definition lor_o (infixl \<open>||\<close> 50) where
   "x || y \<longleftrightarrow> --(-- x && -- y)"
 
 end
@@ -536,11 +536,11 @@ qed
 subsection \<open>Inheritance of rewrite morphisms\<close>
 
 locale reflexive =
-  fixes le :: "'a => 'a => o" (infix "\<sqsubseteq>" 50)
+  fixes le :: "'a => 'a => o" (infix \<open>\<sqsubseteq>\<close> 50)
   assumes refl: "x \<sqsubseteq> x"
 begin
 
-definition less (infix "\<sqsubset>" 50) where "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
+definition less (infix \<open>\<sqsubset>\<close> 50) where "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
 
 end
 

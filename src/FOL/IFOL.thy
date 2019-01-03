@@ -31,13 +31,13 @@ default_sort "term"
 typedecl o
 
 judgment
-  Trueprop :: "o \<Rightarrow> prop"  ("(_)" 5)
+  Trueprop :: "o \<Rightarrow> prop"  (\<open>(_)\<close> 5)
 
 
 subsubsection \<open>Equality\<close>
 
 axiomatization
-  eq :: "['a, 'a] \<Rightarrow> o"  (infixl "=" 50)
+  eq :: "['a, 'a] \<Rightarrow> o"  (infixl \<open>=\<close> 50)
 where
   refl: "a = a" and
   subst: "a = b \<Longrightarrow> P(a) \<Longrightarrow> P(b)"
@@ -47,9 +47,9 @@ subsubsection \<open>Propositional logic\<close>
 
 axiomatization
   False :: o and
-  conj :: "[o, o] => o"  (infixr "\<and>" 35) and
-  disj :: "[o, o] => o"  (infixr "\<or>" 30) and
-  imp :: "[o, o] => o"  (infixr "\<longrightarrow>" 25)
+  conj :: "[o, o] => o"  (infixr \<open>\<and>\<close> 35) and
+  disj :: "[o, o] => o"  (infixr \<open>\<or>\<close> 30) and
+  imp :: "[o, o] => o"  (infixr \<open>\<longrightarrow>\<close> 25)
 where
   conjI: "\<lbrakk>P;  Q\<rbrakk> \<Longrightarrow> P \<and> Q" and
   conjunct1: "P \<and> Q \<Longrightarrow> P" and
@@ -68,8 +68,8 @@ where
 subsubsection \<open>Quantifiers\<close>
 
 axiomatization
-  All :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10) and
-  Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
+  All :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder \<open>\<forall>\<close> 10) and
+  Ex :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder \<open>\<exists>\<close> 10)
 where
   allI: "(\<And>x. P(x)) \<Longrightarrow> (\<forall>x. P(x))" and
   spec: "(\<forall>x. P(x)) \<Longrightarrow> P(x)" and
@@ -81,35 +81,35 @@ subsubsection \<open>Definitions\<close>
 
 definition "True \<equiv> False \<longrightarrow> False"
 
-definition Not ("\<not> _" [40] 40)
+definition Not (\<open>\<not> _\<close> [40] 40)
   where not_def: "\<not> P \<equiv> P \<longrightarrow> False"
 
-definition iff  (infixr "\<longleftrightarrow>" 25)
+definition iff  (infixr \<open>\<longleftrightarrow>\<close> 25)
   where "P \<longleftrightarrow> Q \<equiv> (P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P)"
 
-definition Ex1 :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>!" 10)
+definition Ex1 :: "('a \<Rightarrow> o) \<Rightarrow> o"  (binder \<open>\<exists>!\<close> 10)
   where ex1_def: "\<exists>!x. P(x) \<equiv> \<exists>x. P(x) \<and> (\<forall>y. P(y) \<longrightarrow> y = x)"
 
 axiomatization where  \<comment> \<open>Reflection, admissible\<close>
   eq_reflection: "(x = y) \<Longrightarrow> (x \<equiv> y)" and
   iff_reflection: "(P \<longleftrightarrow> Q) \<Longrightarrow> (P \<equiv> Q)"
 
-abbreviation not_equal :: "['a, 'a] \<Rightarrow> o"  (infixl "\<noteq>" 50)
+abbreviation not_equal :: "['a, 'a] \<Rightarrow> o"  (infixl \<open>\<noteq>\<close> 50)
   where "x \<noteq> y \<equiv> \<not> (x = y)"
 
 
 subsubsection \<open>Old-style ASCII syntax\<close>
 
 notation (ASCII)
-  not_equal  (infixl "~=" 50) and
-  Not  ("~ _" [40] 40) and
-  conj  (infixr "&" 35) and
-  disj  (infixr "|" 30) and
-  All  (binder "ALL " 10) and
-  Ex  (binder "EX " 10) and
-  Ex1  (binder "EX! " 10) and
-  imp  (infixr "-->" 25) and
-  iff  (infixr "<->" 25)
+  not_equal  (infixl \<open>~=\<close> 50) and
+  Not  (\<open>~ _\<close> [40] 40) and
+  conj  (infixr \<open>&\<close> 35) and
+  disj  (infixr \<open>|\<close> 30) and
+  All  (binder \<open>ALL \<close> 10) and
+  Ex  (binder \<open>EX \<close> 10) and
+  Ex1  (binder \<open>EX! \<close> 10) and
+  imp  (infixr \<open>-->\<close> 25) and
+  iff  (infixr \<open><->\<close> 25)
 
 
 subsection \<open>Lemmas and proof tools\<close>
@@ -764,10 +764,10 @@ definition Let :: "['a::{}, 'a => 'b] \<Rightarrow> ('b::{})"
   where "Let(s, f) \<equiv> f(s)"
 
 syntax
-  "_bind"       :: "[pttrn, 'a] => letbind"           ("(2_ =/ _)" 10)
-  ""            :: "letbind => letbinds"              ("_")
-  "_binds"      :: "[letbind, letbinds] => letbinds"  ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"             ("(let (_)/ in (_))" 10)
+  "_bind"       :: "[pttrn, 'a] => letbind"           (\<open>(2_ =/ _)\<close> 10)
+  ""            :: "letbind => letbinds"              (\<open>_\<close>)
+  "_binds"      :: "[letbind, letbinds] => letbinds"  (\<open>_;/ _\<close>)
+  "_Let"        :: "[letbinds, 'a] => 'a"             (\<open>(let (_)/ in (_))\<close> 10)
 
 translations
   "_Let(_binds(b, bs), e)"  == "_Let(b, _Let(bs, e))"

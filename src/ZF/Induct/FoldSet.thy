@@ -19,7 +19,7 @@ inductive
   type_intros Fin.intros
   
 definition
-  fold :: "[i, [i,i]=>i, i, i] => i"  ("fold[_]'(_,_,_')")  where
+  fold :: "[i, [i,i]=>i, i, i] => i"  (\<open>fold[_]'(_,_,_')\<close>)  where
    "fold[B](f,e, A) == THE x. <A, x>\<in>fold_set(A, B, f,e)"
 
 definition

@@ -23,9 +23,9 @@ definition
     "OUnion(i,B) == {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
-  "_oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
-  "_oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
-  "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
+  "_oall"     :: "[idt, i, o] => o"        (\<open>(3\<forall>_<_./ _)\<close> 10)
+  "_oex"      :: "[idt, i, o] => o"        (\<open>(3\<exists>_<_./ _)\<close> 10)
+  "_OUNION"   :: "[idt, i, i] => i"        (\<open>(3\<Union>_<_./ _)\<close> 10)
 translations
   "\<forall>x<a. P" \<rightleftharpoons> "CONST oall(a, \<lambda>x. P)"
   "\<exists>x<a. P" \<rightleftharpoons> "CONST oex(a, \<lambda>x. P)"
@@ -192,8 +192,8 @@ definition
     "rex(M, P) == \<exists>x. M(x) & P(x)"
 
 syntax
-  "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
-  "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
+  "_rall"     :: "[pttrn, i=>o, o] => o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
+  "_rex"      :: "[pttrn, i=>o, o] => o"        (\<open>(3\<exists>_[_]./ _)\<close> 10)
 translations
   "\<forall>x[M]. P" \<rightleftharpoons> "CONST rall(M, \<lambda>x. P)"
   "\<exists>x[M]. P" \<rightleftharpoons> "CONST rex(M, \<lambda>x. P)"
@@ -323,7 +323,7 @@ by blast
 subsubsection\<open>Sets as Classes\<close>
 
 definition
-  setclass :: "[i,i] => o"       ("##_" [40] 40)  where
+  setclass :: "[i,i] => o"       (\<open>##_\<close> [40] 40)  where
    "setclass(A) == %x. x \<in> A"
 
 lemma setclass_iff [simp]: "setclass(A,x) <-> x \<in> A"

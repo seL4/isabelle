@@ -130,7 +130,7 @@ definition
 text\<open>We must use the meta-existential quantifier; otherwise the reflection
       terms become enormous!\<close>
 definition
-  L_Reflects :: "[i=>o,[i,i]=>o] => prop"  ("(3REFLECTS/ [_,/ _])") where
+  L_Reflects :: "[i=>o,[i,i]=>o] => prop"  (\<open>(3REFLECTS/ [_,/ _])\<close>) where
     "REFLECTS[P,Q] == (\<Or>Cl. Closed_Unbounded(Cl) &
                            (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x \<in> Lset(a). P(x) \<longleftrightarrow> Q(a,x))))"
 
@@ -268,25 +268,25 @@ subsection\<open>Internalized Formulas for some Set-Theoretic Concepts\<close>
 subsubsection\<open>Some numbers to help write de Bruijn indices\<close>
 
 abbreviation
-  digit3 :: i   ("3") where "3 == succ(2)"
+  digit3 :: i   (\<open>3\<close>) where "3 == succ(2)"
 
 abbreviation
-  digit4 :: i   ("4") where "4 == succ(3)"
+  digit4 :: i   (\<open>4\<close>) where "4 == succ(3)"
 
 abbreviation
-  digit5 :: i   ("5") where "5 == succ(4)"
+  digit5 :: i   (\<open>5\<close>) where "5 == succ(4)"
 
 abbreviation
-  digit6 :: i   ("6") where "6 == succ(5)"
+  digit6 :: i   (\<open>6\<close>) where "6 == succ(5)"
 
 abbreviation
-  digit7 :: i   ("7") where "7 == succ(6)"
+  digit7 :: i   (\<open>7\<close>) where "7 == succ(6)"
 
 abbreviation
-  digit8 :: i   ("8") where "8 == succ(7)"
+  digit8 :: i   (\<open>8\<close>) where "8 == succ(7)"
 
 abbreviation
-  digit9 :: i   ("9") where "9 == succ(8)"
+  digit9 :: i   (\<open>9\<close>) where "9 == succ(8)"
 
 
 subsubsection\<open>The Empty Set, Internalized\<close>

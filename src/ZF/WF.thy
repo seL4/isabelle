@@ -24,7 +24,7 @@ definition
     "wf(r) == \<forall>Z. Z=0 | (\<exists>x\<in>Z. \<forall>y. <y,x>:r \<longrightarrow> ~ y \<in> Z)"
 
 definition
-  wf_on        :: "[i,i]=>o"                      ("wf[_]'(_')")  where
+  wf_on        :: "[i,i]=>o"                      (\<open>wf[_]'(_')\<close>)  where
     (*r is well-founded on A*)
     "wf_on(A,r) == wf(r \<inter> A*A)"
 
@@ -46,7 +46,7 @@ definition
     "wfrec(r,a,H) == wftrec(r^+, a, %x f. H(x, restrict(f,r-``{x})))"
 
 definition
-  wfrec_on     :: "[i, i, i, [i,i]=>i] =>i"       ("wfrec[_]'(_,_,_')")  where
+  wfrec_on     :: "[i, i, i, [i,i]=>i] =>i"       (\<open>wfrec[_]'(_,_,_')\<close>)  where
     "wfrec[A](r,a,H) == wfrec(r \<inter> A*A, a, H)"
 
 

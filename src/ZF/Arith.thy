@@ -43,15 +43,15 @@ primrec
   "raw_mult(succ(m), n) = raw_add (n, raw_mult(m, n))"
 
 definition
-  add :: "[i,i]=>i"                    (infixl "#+" 65)  where
+  add :: "[i,i]=>i"                    (infixl \<open>#+\<close> 65)  where
     "m #+ n == raw_add (natify(m), natify(n))"
 
 definition
-  diff :: "[i,i]=>i"                    (infixl "#-" 65)  where
+  diff :: "[i,i]=>i"                    (infixl \<open>#-\<close> 65)  where
     "m #- n == raw_diff (natify(m), natify(n))"
 
 definition
-  mult :: "[i,i]=>i"                    (infixl "#*" 70)  where
+  mult :: "[i,i]=>i"                    (infixl \<open>#*\<close> 70)  where
     "m #* n == raw_mult (natify(m), natify(n))"
 
 definition
@@ -65,11 +65,11 @@ definition
        transrec(m, %j f. if j<n | n=0 then j else f`(j#-n))"
 
 definition
-  div  :: "[i,i]=>i"                    (infixl "div" 70)  where
+  div  :: "[i,i]=>i"                    (infixl \<open>div\<close> 70)  where
     "m div n == raw_div (natify(m), natify(n))"
 
 definition
-  mod  :: "[i,i]=>i"                    (infixl "mod" 70)  where
+  mod  :: "[i,i]=>i"                    (infixl \<open>mod\<close> 70)  where
     "m mod n == raw_mod (natify(m), natify(n))"
 
 declare rec_type [simp]

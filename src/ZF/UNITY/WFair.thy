@@ -21,7 +21,7 @@ definition
                                act``A \<subseteq> state-A) & st_set(A)}"
 
 definition
-  ensures :: "[i,i] => i"       (infixl "ensures" 60)  where
+  ensures :: "[i,i] => i"       (infixl \<open>ensures\<close> 60)  where
   "A ensures B == ((A-B) co (A \<union> B)) \<inter> transient(A-B)"
 
 consts
@@ -43,7 +43,7 @@ inductive
 
 definition
   (* The Visible version of the LEADS-TO relation*)
-  leadsTo :: "[i, i] => i"       (infixl "\<longmapsto>" 60)  where
+  leadsTo :: "[i, i] => i"       (infixl \<open>\<longmapsto>\<close> 60)  where
   "A \<longmapsto> B == {F \<in> program. <A,B>:leads(state, F)}"
 
 definition

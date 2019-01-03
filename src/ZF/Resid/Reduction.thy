@@ -74,19 +74,19 @@ consts
   Spar_red  :: "i"
 
 abbreviation
-  Sred1_rel (infixl "-1->" 50) where
+  Sred1_rel (infixl \<open>-1->\<close> 50) where
   "a -1-> b == <a,b> \<in> Sred1"
 
 abbreviation
-  Sred_rel (infixl "-\<longrightarrow>" 50) where
+  Sred_rel (infixl \<open>-\<longrightarrow>\<close> 50) where
   "a -\<longrightarrow> b == <a,b> \<in> Sred"
 
 abbreviation
-  Spar_red1_rel (infixl "=1=>" 50) where
+  Spar_red1_rel (infixl \<open>=1=>\<close> 50) where
   "a =1=> b == <a,b> \<in> Spar_red1"
 
 abbreviation
-  Spar_red_rel (infixl "===>" 50) where
+  Spar_red_rel (infixl \<open>===>\<close> 50) where
   "a ===> b == <a,b> \<in> Spar_red"
   
   

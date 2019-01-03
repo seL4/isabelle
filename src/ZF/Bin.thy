@@ -23,7 +23,7 @@ consts  bin :: i
 datatype
   "bin" = Pls
         | Min
-        | Bit ("w \<in> bin", "b \<in> bool")     (infixl "BIT" 90)
+        | Bit ("w \<in> bin", "b \<in> bool")     (infixl \<open>BIT\<close> 90)
 
 consts
   integ_of  :: "i=>i"
@@ -101,11 +101,11 @@ primrec
                                  NCons(bin_mult(v,w),0))"
 
 syntax
-  "_Int0" :: i  ("#()0")
-  "_Int1" :: i  ("#()1")
-  "_Int2" :: i  ("#()2")
-  "_Neg_Int1" :: i  ("#-()1")
-  "_Neg_Int2" :: i  ("#-()2")
+  "_Int0" :: i  (\<open>#()0\<close>)
+  "_Int1" :: i  (\<open>#()1\<close>)
+  "_Int2" :: i  (\<open>#()2\<close>)
+  "_Neg_Int1" :: i  (\<open>#-()1\<close>)
+  "_Neg_Int2" :: i  (\<open>#-()2\<close>)
 translations
   "#0" \<rightleftharpoons> "CONST integ_of(CONST Pls)"
   "#1" \<rightleftharpoons> "CONST integ_of(CONST Pls BIT 1)"
@@ -114,8 +114,8 @@ translations
   "#-2" \<rightleftharpoons> "CONST integ_of(CONST Min BIT 0)"
 
 syntax
-  "_Int" :: "num_token => i"  ("#_" 1000)
-  "_Neg_Int" :: "num_token => i"  ("#-_" 1000)
+  "_Int" :: "num_token => i"  (\<open>#_\<close> 1000)
+  "_Neg_Int" :: "num_token => i"  (\<open>#-_\<close> 1000)
 
 ML_file "Tools/numeral_syntax.ML"
 

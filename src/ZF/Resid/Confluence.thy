@@ -68,11 +68,11 @@ consts
   Sconv         :: "i"
 
 abbreviation
-  Sconv1_rel (infixl "<-1->" 50) where
+  Sconv1_rel (infixl \<open><-1->\<close> 50) where
   "a<-1->b == <a,b> \<in> Sconv1"
 
 abbreviation
-  Sconv_rel (infixl "<-\<longrightarrow>" 50) where
+  Sconv_rel (infixl \<open><-\<longrightarrow>\<close> 50) where
   "a<-\<longrightarrow>b == <a,b> \<in> Sconv"
   
 inductive

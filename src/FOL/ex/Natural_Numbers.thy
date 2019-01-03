@@ -17,7 +17,7 @@ typedecl nat
 instance nat :: "term" ..
 
 axiomatization
-  Zero :: nat    ("0") and
+  Zero :: nat    (\<open>0\<close>) and
   Suc :: "nat => nat" and
   rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
 where
@@ -46,7 +46,7 @@ next
 qed
 
 
-definition add :: "nat => nat => nat"    (infixl "+" 60)
+definition add :: "nat => nat => nat"    (infixl \<open>+\<close> 60)
   where "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
 lemma add_0 [simp]: "0 + n = n"

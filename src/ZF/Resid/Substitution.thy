@@ -42,7 +42,7 @@ definition
     "subst_rec(u,r,k) == subst_aux(r)`u`k"
 
 abbreviation
-  subst :: "[i,i]=>i"  (infixl "'/" 70)  where
+  subst :: "[i,i]=>i"  (infixl \<open>'/\<close> 70)  where
   "u/v == subst_rec(u,v,0)"
 
 

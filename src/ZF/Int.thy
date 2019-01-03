@@ -17,7 +17,7 @@ definition
     "int == (nat*nat)//intrel"
 
 definition
-  int_of :: "i=>i" \<comment> \<open>coercion from nat to int\<close>    ("$# _" [80] 80)  where
+  int_of :: "i=>i" \<comment> \<open>coercion from nat to int\<close>    (\<open>$# _\<close> [80] 80)  where
     "$# m == intrel `` {<natify(m), 0>}"
 
 definition
@@ -29,7 +29,7 @@ definition
     "raw_zminus(z) == \<Union><x,y>\<in>z. intrel``{<y,x>}"
 
 definition
-  zminus :: "i=>i"                                 ("$- _" [80] 80)  where
+  zminus :: "i=>i"                                 (\<open>$- _\<close> [80] 80)  where
     "$- z == raw_zminus (intify(z))"
 
 definition
@@ -65,7 +65,7 @@ definition
                    intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1)"
 
 definition
-  zmult       ::      "[i,i]=>i"      (infixl "$*" 70)  where
+  zmult       ::      "[i,i]=>i"      (infixl \<open>$*\<close> 70)  where
      "z1 $* z2 == raw_zmult (intify(z1),intify(z2))"
 
 definition
@@ -75,19 +75,19 @@ definition
                            in intrel``{<x1#+x2, y1#+y2>}"
 
 definition
-  zadd        ::      "[i,i]=>i"      (infixl "$+" 65)  where
+  zadd        ::      "[i,i]=>i"      (infixl \<open>$+\<close> 65)  where
      "z1 $+ z2 == raw_zadd (intify(z1),intify(z2))"
 
 definition
-  zdiff        ::      "[i,i]=>i"      (infixl "$-" 65)  where
+  zdiff        ::      "[i,i]=>i"      (infixl \<open>$-\<close> 65)  where
      "z1 $- z2 == z1 $+ zminus(z2)"
 
 definition
-  zless        ::      "[i,i]=>o"      (infixl "$<" 50)  where
+  zless        ::      "[i,i]=>o"      (infixl \<open>$<\<close> 50)  where
      "z1 $< z2 == znegative(z1 $- z2)"
 
 definition
-  zle          ::      "[i,i]=>o"      (infixl "$\<le>" 50)  where
+  zle          ::      "[i,i]=>o"      (infixl \<open>$\<le>\<close> 50)  where
      "z1 $\<le> z2 == z1 $< z2 | intify(z1)=intify(z2)"
 
 

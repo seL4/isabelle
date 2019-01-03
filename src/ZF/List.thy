@@ -15,8 +15,8 @@ datatype
 
 
 syntax
- "_Nil" :: i  ("[]")
- "_List" :: "is => i"  ("[(_)]")
+ "_Nil" :: i  (\<open>[]\<close>)
+ "_List" :: "is => i"  (\<open>[(_)]\<close>)
 
 translations
   "[x, xs]"     == "CONST Cons(x, [xs])"
@@ -45,7 +45,7 @@ primrec
 consts
   map         :: "[i=>i, i] => i"
   set_of_list :: "i=>i"
-  app         :: "[i,i]=>i"                        (infixr "@" 60)
+  app         :: "[i,i]=>i"                        (infixr \<open>@\<close> 60)
 
 (*map is a binding operator -- it applies to meta-level functions, not
 object-level functions.  This simplifies the final form of term_rec_conv,

@@ -33,7 +33,7 @@ definition
   "mset_of(M) == domain(M)"
 
 definition
-  munion    :: "[i, i] => i" (infixl "+#" 65)  where
+  munion    :: "[i, i] => i" (infixl \<open>+#\<close> 65)  where
   "M +# N == \<lambda>x \<in> mset_of(M) \<union> mset_of(N).
      if x \<in> mset_of(M) \<inter> mset_of(N) then  (M`x) #+ (N`x)
      else (if x \<in> mset_of(M) then M`x else N`x)"
@@ -47,13 +47,13 @@ definition
        else 0"
 
 definition
-  mdiff  :: "[i, i] => i" (infixl "-#" 65)  where
+  mdiff  :: "[i, i] => i" (infixl \<open>-#\<close> 65)  where
   "M -# N ==  normalize(\<lambda>x \<in> mset_of(M).
                         if x \<in> mset_of(N) then M`x #- N`x else M`x)"
 
 definition
   (* set of elements of a multiset *)
-  msingle :: "i => i"    ("{#_#}")  where
+  msingle :: "i => i"    (\<open>{#_#}\<close>)  where
   "{#a#} == {<a, 1>}"
 
 definition
@@ -70,11 +70,11 @@ definition
   "msize(M) == setsum(%a. $# mcount(M,a), mset_of(M))"
 
 abbreviation
-  melem :: "[i,i] => o"    ("(_/ :# _)" [50, 51] 50)  where
+  melem :: "[i,i] => o"    (\<open>(_/ :# _)\<close> [50, 51] 50)  where
   "a :# M == a \<in> mset_of(M)"
 
 syntax
-  "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
+  "_MColl" :: "[pttrn, i, o] => i" (\<open>(1{# _ \<in> _./ _#})\<close>)
 translations
   "{#x \<in> M. P#}" == "CONST MCollect(M, \<lambda>x. P)"
 
@@ -100,11 +100,11 @@ definition
   "omultiset(M) == \<exists>i. Ord(i) & M \<in> Mult(field(Memrel(i)))"
 
 definition
-  mless :: "[i, i] => o" (infixl "<#" 50)  where
+  mless :: "[i, i] => o" (infixl \<open><#\<close> 50)  where
   "M <# N ==  \<exists>i. Ord(i) & <M, N> \<in> multirel(field(Memrel(i)), Memrel(i))"
 
 definition
-  mle  :: "[i, i] => o"  (infixl "<#=" 50)  where
+  mle  :: "[i, i] => o"  (infixl \<open><#=\<close> 50)  where
   "M <#= N == (omultiset(M) & M = N) | M <# N"
 
 

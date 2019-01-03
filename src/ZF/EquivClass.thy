@@ -8,7 +8,7 @@ section\<open>Equivalence Relations\<close>
 theory EquivClass imports Trancl Perm begin
 
 definition
-  quotient   :: "[i,i]=>i"    (infixl "'/'/" 90)  (*set of equiv classes*)  where
+  quotient   :: "[i,i]=>i"    (infixl \<open>'/'/\<close> 90)  (*set of equiv classes*)  where
       "A//r == {r``{x} . x \<in> A}"
 
 definition
@@ -21,11 +21,11 @@ definition
            <y1,z1>:r1 \<longrightarrow> <y2,z2>:r2 \<longrightarrow> b(y1,y2) = b(z1,z2)"
 
 abbreviation
-  RESPECTS ::"[i=>i, i] => o"  (infixr "respects" 80) where
+  RESPECTS ::"[i=>i, i] => o"  (infixr \<open>respects\<close> 80) where
   "f respects r == congruent(r,f)"
 
 abbreviation
-  RESPECTS2 ::"[i=>i=>i, i] => o"  (infixr "respects2 " 80) where
+  RESPECTS2 ::"[i=>i=>i, i] => o"  (infixr \<open>respects2 \<close> 80) where
   "f respects2 r == congruent2(r,r,f)"
     \<comment> \<open>Abbreviation for the common case where the relations are identical\<close>
 

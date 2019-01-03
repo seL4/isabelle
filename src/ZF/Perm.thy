@@ -14,7 +14,7 @@ theory Perm imports func begin
 
 definition
   (*composition of relations and functions; NOT Suppes's relative product*)
-  comp     :: "[i,i]=>i"      (infixr "O" 60)  where
+  comp     :: "[i,i]=>i"      (infixr \<open>O\<close> 60)  where
     "r O s == {xz \<in> domain(s)*range(r) .
                \<exists>x y z. xz=<x,z> & <x,y>:s & <y,z>:r}"
 

@@ -8,11 +8,11 @@ section\<open>Booleans in Zermelo-Fraenkel Set Theory\<close>
 theory Bool imports pair begin
 
 abbreviation
-  one  ("1") where
+  one  (\<open>1\<close>) where
   "1 == succ(0)"
 
 abbreviation
-  two  ("2") where
+  two  (\<open>2\<close>) where
   "2 == succ(1)"
 
 text\<open>2 is equal to bool, but is used as a number rather than a type.\<close>
@@ -24,15 +24,15 @@ definition "cond(b,c,d) == if(b=1,c,d)"
 definition "not(b) == cond(b,0,1)"
 
 definition
-  "and"       :: "[i,i]=>i"      (infixl "and" 70)  where
+  "and"       :: "[i,i]=>i"      (infixl \<open>and\<close> 70)  where
     "a and b == cond(a,b,0)"
 
 definition
-  or          :: "[i,i]=>i"      (infixl "or" 65)  where
+  or          :: "[i,i]=>i"      (infixl \<open>or\<close> 65)  where
     "a or b == cond(a,1,b)"
 
 definition
-  xor         :: "[i,i]=>i"      (infixl "xor" 65) where
+  xor         :: "[i,i]=>i"      (infixl \<open>xor\<close> 65) where
     "a xor b == cond(a,not(b),b)"
 
 

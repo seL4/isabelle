@@ -15,7 +15,7 @@ begin
 
 definition
   (*FIXME: conjoin Init(F) \<inter> Init(G) \<noteq> 0 *)
-  ok :: "[i, i] => o"     (infixl "ok" 65)  where
+  ok :: "[i, i] => o"     (infixl \<open>ok\<close> 65)  where
     "F ok G == Acts(F) \<subseteq> AllowedActs(G) &
                Acts(G) \<subseteq> AllowedActs(F)"
 
@@ -31,7 +31,7 @@ definition
                  \<Inter>i \<in> I. AllowedActs(F(i)))"
 
 definition
-  Join :: "[i, i] => i"  (infixl "\<squnion>" 65)  where
+  Join :: "[i, i] => i"  (infixl \<open>\<squnion>\<close> 65)  where
   "F \<squnion> G == mk_program (Init(F) \<inter> Init(G), Acts(F) \<union> Acts(G),
                                 AllowedActs(F) \<inter> AllowedActs(G))"
 definition
@@ -41,8 +41,8 @@ definition
       SKIP \<in> X & (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) \<longrightarrow> G \<in> X)"
 
 syntax
-  "_JOIN1"  :: "[pttrns, i] => i"     ("(3\<Squnion>_./ _)" 10)
-  "_JOIN"   :: "[pttrn, i, i] => i"   ("(3\<Squnion>_ \<in> _./ _)" 10)
+  "_JOIN1"  :: "[pttrns, i] => i"     (\<open>(3\<Squnion>_./ _)\<close> 10)
+  "_JOIN"   :: "[pttrn, i, i] => i"   (\<open>(3\<Squnion>_ \<in> _./ _)\<close> 10)
 
 translations
   "\<Squnion>x \<in> A. B"   == "CONST JOIN(A, (\<lambda>x. B))"

@@ -9,23 +9,23 @@ theory Cardinal imports OrderType Finite Nat Sum begin
 
 definition
   (*least ordinal operator*)
-   Least    :: "(i=>o) => i"    (binder "\<mu> " 10)  where
+   Least    :: "(i=>o) => i"    (binder \<open>\<mu> \<close> 10)  where
      "Least(P) == THE i. Ord(i) & P(i) & (\<forall>j. j<i \<longrightarrow> ~P(j))"
 
 definition
-  eqpoll   :: "[i,i] => o"     (infixl "\<approx>" 50)  where
+  eqpoll   :: "[i,i] => o"     (infixl \<open>\<approx>\<close> 50)  where
     "A \<approx> B == \<exists>f. f \<in> bij(A,B)"
 
 definition
-  lepoll   :: "[i,i] => o"     (infixl "\<lesssim>" 50)  where
+  lepoll   :: "[i,i] => o"     (infixl \<open>\<lesssim>\<close> 50)  where
     "A \<lesssim> B == \<exists>f. f \<in> inj(A,B)"
 
 definition
-  lesspoll :: "[i,i] => o"     (infixl "\<prec>" 50)  where
+  lesspoll :: "[i,i] => o"     (infixl \<open>\<prec>\<close> 50)  where
     "A \<prec> B == A \<lesssim> B & ~(A \<approx> B)"
 
 definition
-  cardinal :: "i=>i"           ("|_|")  where
+  cardinal :: "i=>i"           (\<open>|_|\<close>)  where
     "|A| == (\<mu> i. i \<approx> A)"
 
 definition

@@ -49,7 +49,7 @@ definition
               {f \<in> A->B. \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longrightarrow> <f`x,f`y>:s}"
 
 definition
-  ord_iso  :: "[i,i,i,i]=>i"  ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)  (*Order isomorphisms*)  where
+  ord_iso  :: "[i,i,i,i]=>i"  (\<open>(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)\<close> 51)  (*Order isomorphisms*)  where
    "\<langle>A,r\<rangle> \<cong> \<langle>B,s\<rangle> ==
               {f \<in> bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longleftrightarrow> <f`x,f`y>:s}"
 

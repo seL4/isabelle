@@ -10,7 +10,7 @@ text\<open>Allows quantification over any term.  Used to quantify over classes.
 Yields a proposition rather than a FOL formula.\<close>
 
 definition
-  ex :: "(('a::{}) \<Rightarrow> prop) \<Rightarrow> prop"  (binder "\<Or>" 0) where
+  ex :: "(('a::{}) \<Rightarrow> prop) \<Rightarrow> prop"  (binder \<open>\<Or>\<close> 0) where
   "ex(P) == (\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q)"
 
 lemma meta_exI: "PROP P(x) ==> (\<Or>x. PROP P(x))"

@@ -14,7 +14,7 @@ consts
   C     :: "i => i"
 
 definition
-  Gamma :: "[i,i,i] => i"  ("\<Gamma>") where
+  Gamma :: "[i,i,i] => i"  (\<open>\<Gamma>\<close>) where
   "\<Gamma>(b,cden) ==
     (\<lambda>phi. {io \<in> (phi O cden). B(b,fst(io))=1} \<union>
            {io \<in> id(loc->nat). B(b,fst(io))=0})"

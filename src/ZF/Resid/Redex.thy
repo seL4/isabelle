@@ -18,11 +18,11 @@ consts
   Sreg  :: "i"
 
 abbreviation
-  Ssub_rel  (infixl "\<Longleftarrow>" 70) where
+  Ssub_rel  (infixl \<open>\<Longleftarrow>\<close> 70) where
   "a \<Longleftarrow> b == <a,b> \<in> Ssub"
 
 abbreviation
-  Scomp_rel  (infixl "\<sim>" 70) where
+  Scomp_rel  (infixl \<open>\<sim>\<close> 70) where
   "a \<sim> b == <a,b> \<in> Scomp"
 
 abbreviation
@@ -43,7 +43,7 @@ primrec (*explicit lambda is required because both arguments of "\<squnion>" var
                      %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
 definition
-  union  (infixl "\<squnion>" 70) where
+  union  (infixl \<open>\<squnion>\<close> 70) where
   "u \<squnion> v == union_aux(u)`v"
 
 

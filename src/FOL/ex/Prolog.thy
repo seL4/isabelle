@@ -14,7 +14,7 @@ instance list :: ("term") "term" ..
 
 axiomatization
   Nil     :: "'a list" and
-  Cons    :: "['a, 'a list]=> 'a list"    (infixr ":" 60) and
+  Cons    :: "['a, 'a list]=> 'a list"    (infixr \<open>:\<close> 60) and
   app     :: "['a list, 'a list, 'a list] => o" and
   rev     :: "['a list, 'a list] => o"
 where

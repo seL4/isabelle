@@ -88,11 +88,11 @@ definition
                   else         negateSnd (posDivAlg (<$-a,$-b>))"
 
 definition
-  zdiv  :: "[i,i]=>i"                    (infixl "zdiv" 70)  where
+  zdiv  :: "[i,i]=>i"                    (infixl \<open>zdiv\<close> 70)  where
     "a zdiv b == fst (divAlg (<intify(a), intify(b)>))"
 
 definition
-  zmod  :: "[i,i]=>i"                    (infixl "zmod" 70)  where
+  zmod  :: "[i,i]=>i"                    (infixl \<open>zmod\<close> 70)  where
     "a zmod b == snd (divAlg (<intify(a), intify(b)>))"
 
 

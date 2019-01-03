@@ -49,11 +49,11 @@ definition
 (* less or equal and greater or equal over prefixes *)
 
 abbreviation
-  pfixLe :: "[i, i] => o"  (infixl "pfixLe" 50)  where
+  pfixLe :: "[i, i] => o"  (infixl \<open>pfixLe\<close> 50)  where
   "xs pfixLe ys == <xs, ys>:gen_prefix(nat, Le)"
 
 abbreviation
-  pfixGe :: "[i, i] => o"  (infixl "pfixGe" 50)  where
+  pfixGe :: "[i, i] => o"  (infixl \<open>pfixGe\<close> 50)  where
   "xs pfixGe ys == <xs, ys>:gen_prefix(nat, Ge)"
 
 

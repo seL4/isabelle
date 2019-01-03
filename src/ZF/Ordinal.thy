@@ -20,7 +20,7 @@ definition
     "Ord(i)      == Transset(i) & (\<forall>x\<in>i. Transset(x))"
 
 definition
-  lt        :: "[i,i] => o"  (infixl "<" 50)   (*less-than on ordinals*)  where
+  lt        :: "[i,i] => o"  (infixl \<open><\<close> 50)   (*less-than on ordinals*)  where
     "i<j         == i\<in>j & Ord(j)"
 
 definition
@@ -28,7 +28,7 @@ definition
     "Limit(i)    == Ord(i) & 0<i & (\<forall>y. y<i \<longrightarrow> succ(y)<i)"
 
 abbreviation
-  le  (infixl "\<le>" 50) where
+  le  (infixl \<open>\<le>\<close> 50) where
   "x \<le> y == x < succ(y)"
 
 

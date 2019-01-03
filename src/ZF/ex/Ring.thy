@@ -7,8 +7,8 @@ section \<open>Rings\<close>
 theory Ring imports Group begin
 
 no_notation
-  cadd  (infixl "\<oplus>" 65) and
-  cmult  (infixl "\<otimes>" 70)
+  cadd  (infixl \<open>\<oplus>\<close> 65) and
+  cmult  (infixl \<open>\<otimes>\<close> 70)
 
 (*First, we must simulate a record declaration:
 record ring = monoid +
@@ -21,11 +21,11 @@ definition
   "add_field(M) = fst(snd(snd(snd(M))))"
 
 definition
-  ring_add :: "[i, i, i] => i" (infixl "\<oplus>\<index>" 65) where
+  ring_add :: "[i, i, i] => i" (infixl \<open>\<oplus>\<index>\<close> 65) where
   "ring_add(M,x,y) = add_field(M) ` <x,y>"
 
 definition
-  zero :: "i => i" ("\<zero>\<index>") where
+  zero :: "i => i" (\<open>\<zero>\<index>\<close>) where
   "zero(M) = fst(snd(snd(snd(snd(M)))))"
 
 
@@ -42,11 +42,11 @@ lemma zero_eq [simp]: "zero(<C,M,I,A,Z,z>) = Z"
 text \<open>Derived operations.\<close>
 
 definition
-  a_inv :: "[i,i] => i" ("\<ominus>\<index> _" [81] 80) where
+  a_inv :: "[i,i] => i" (\<open>\<ominus>\<index> _\<close> [81] 80) where
   "a_inv(R) == m_inv (<carrier(R), add_field(R), zero(R), 0>)"
 
 definition
-  minus :: "[i,i,i] => i" ("(_ \<ominus>\<index> _)" [65,66] 65) where
+  minus :: "[i,i,i] => i" (\<open>(_ \<ominus>\<index> _)\<close> [65,66] 65) where
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid = fixes G (structure)

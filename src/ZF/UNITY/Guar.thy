@@ -57,7 +57,7 @@ definition
     (SKIP \<in> X & (\<forall>F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow>(F \<in> X & G \<in> X) \<longleftrightarrow> (F \<squnion> G \<in> X)))"
 
 definition
-  guar :: "[i, i] => i" (infixl "guarantees" 55)  where
+  guar :: "[i, i] => i" (infixl \<open>guarantees\<close> 55)  where
               (*higher than membership, lower than Co*)
   "X guarantees Y == {F \<in> program. \<forall>G \<in> program. F ok G \<longrightarrow> F \<squnion> G \<in> X \<longrightarrow> F \<squnion> G \<in> Y}"
   
@@ -77,13 +77,13 @@ definition
   "welldef == {F \<in> program. Init(F) \<noteq> 0}"
   
 definition
-  refines :: "[i, i, i] => o" ("(3_ refines _ wrt _)" [10,10,10] 10)  where
+  refines :: "[i, i, i] => o" (\<open>(3_ refines _ wrt _)\<close> [10,10,10] 10)  where
   "G refines F wrt X ==
    \<forall>H \<in> program. (F ok H  & G ok H & F \<squnion> H \<in> welldef \<inter> X)
     \<longrightarrow> (G \<squnion> H \<in> welldef \<inter> X)"
 
 definition
-  iso_refines :: "[i,i, i] => o"  ("(3_ iso'_refines _ wrt _)" [10,10,10] 10)  where
+  iso_refines :: "[i,i, i] => o"  (\<open>(3_ iso'_refines _ wrt _)\<close> [10,10,10] 10)  where
   "G iso_refines F wrt X ==  F \<in> welldef \<inter> X \<longrightarrow> G \<in> welldef \<inter> X"
 
 

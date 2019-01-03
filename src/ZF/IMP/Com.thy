@@ -23,7 +23,7 @@ datatype \<subseteq> "univ(loc \<union> (nat -> nat) \<union> ((nat \<times> nat
 consts evala :: i
 
 abbreviation
-  evala_syntax :: "[i, i] => o"    (infixl "-a->" 50)
+  evala_syntax :: "[i, i] => o"    (infixl \<open>-a->\<close> 50)
   where "p -a-> n == <p,n> \<in> evala"
 
 inductive
@@ -46,14 +46,14 @@ datatype \<subseteq> "univ(aexp \<union> ((nat \<times> nat)->bool))"
        | false
        | ROp  ("f \<in> (nat \<times> nat)->bool", "a0 \<in> aexp", "a1 \<in> aexp")
        | noti ("b \<in> bexp")
-       | andi ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl "andi" 60)
-       | ori  ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl "ori" 60)
+       | andi ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl \<open>andi\<close> 60)
+       | ori  ("b0 \<in> bexp", "b1 \<in> bexp")      (infixl \<open>ori\<close> 60)
 
 
 consts evalb :: i
 
 abbreviation
-  evalb_syntax :: "[i,i] => o"    (infixl "-b->" 50)
+  evalb_syntax :: "[i,i] => o"    (infixl \<open>-b->\<close> 50)
   where "p -b-> b == <p,b> \<in> evalb"
 
 inductive
@@ -77,17 +77,17 @@ subsection \<open>Commands\<close>
 
 consts com :: i
 datatype com =
-    skip                                  ("\<SKIP>" [])
-  | assignment ("x \<in> loc", "a \<in> aexp")       (infixl "\<ASSN>" 60)
-  | semicolon ("c0 \<in> com", "c1 \<in> com")       ("_\<SEQ> _"  [60, 60] 10)
-  | while ("b \<in> bexp", "c \<in> com")            ("\<WHILE> _ \<DO> _"  60)
-  | "if" ("b \<in> bexp", "c0 \<in> com", "c1 \<in> com")    ("\<IF> _ \<THEN> _ \<ELSE> _" 60)
+    skip                                  (\<open>\<SKIP>\<close> [])
+  | assignment ("x \<in> loc", "a \<in> aexp")       (infixl \<open>\<ASSN>\<close> 60)
+  | semicolon ("c0 \<in> com", "c1 \<in> com")       (\<open>_\<SEQ> _\<close>  [60, 60] 10)
+  | while ("b \<in> bexp", "c \<in> com")            (\<open>\<WHILE> _ \<DO> _\<close>  60)
+  | "if" ("b \<in> bexp", "c0 \<in> com", "c1 \<in> com")    (\<open>\<IF> _ \<THEN> _ \<ELSE> _\<close> 60)
 
 
 consts evalc :: i
 
 abbreviation
-  evalc_syntax :: "[i, i] => o"    (infixl "-c->" 50)
+  evalc_syntax :: "[i, i] => o"    (infixl \<open>-c->\<close> 50)
   where "p -c-> s == <p,s> \<in> evalc"
 
 inductive

@@ -40,11 +40,11 @@ inductive
 
   
 definition
-  Constrains :: "[i,i] => i"  (infixl "Co" 60)  where
+  Constrains :: "[i,i] => i"  (infixl \<open>Co\<close> 60)  where
   "A Co B == {F:program. F:(reachable(F) \<inter> A) co B}"
 
 definition
-  op_Unless  :: "[i, i] => i"  (infixl "Unless" 60)  where
+  op_Unless  :: "[i, i] => i"  (infixl \<open>Unless\<close> 60)  where
   "A Unless B == (A-B) Co (A \<union> B)"
 
 definition

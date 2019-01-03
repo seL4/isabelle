@@ -18,20 +18,20 @@ section\<open>Composition\<close>
 theory Comp imports Union Increasing begin
 
 definition
-  component :: "[i,i]=>o"  (infixl "component" 65)  where
+  component :: "[i,i]=>o"  (infixl \<open>component\<close> 65)  where
   "F component H == (\<exists>G. F \<squnion> G = H)"
 
 definition
-  strict_component :: "[i,i]=>o" (infixl "strict'_component" 65)  where
+  strict_component :: "[i,i]=>o" (infixl \<open>strict'_component\<close> 65)  where
   "F strict_component H == F component H & F\<noteq>H"
 
 definition
   (* A stronger form of the component relation *)
-  component_of :: "[i,i]=>o"   (infixl "component'_of" 65)  where
+  component_of :: "[i,i]=>o"   (infixl \<open>component'_of\<close> 65)  where
   "F component_of H  == (\<exists>G. F ok G & F \<squnion> G = H)"
   
 definition
-  strict_component_of :: "[i,i]=>o" (infixl "strict'_component'_of" 65)  where
+  strict_component_of :: "[i,i]=>o" (infixl \<open>strict'_component'_of\<close> 65)  where
   "F strict_component_of H  == F component_of H  & F\<noteq>H"
 
 definition

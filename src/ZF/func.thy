@@ -451,10 +451,10 @@ syntax
 
   (* Let expressions *)
 
-  "_updbind"    :: "[i, i] => updbind"               ("(2_ :=/ _)")
-  ""            :: "updbind => updbinds"             ("_")
-  "_updbinds"   :: "[updbind, updbinds] => updbinds" ("_,/ _")
-  "_Update"     :: "[i, updbinds] => i"              ("_/'((_)')" [900,0] 900)
+  "_updbind"    :: "[i, i] => updbind"               (\<open>(2_ :=/ _)\<close>)
+  ""            :: "updbind => updbinds"             (\<open>_\<close>)
+  "_updbinds"   :: "[updbind, updbinds] => updbinds" (\<open>_,/ _\<close>)
+  "_Update"     :: "[i, updbinds] => i"              (\<open>_/'((_)')\<close> [900,0] 900)
 
 translations
   "_Update (f, _updbinds(b,bs))"  == "_Update (_Update(f,b), bs)"

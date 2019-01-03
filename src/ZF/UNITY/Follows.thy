@@ -34,12 +34,12 @@ abbreviation
   "m_Incr(f) == Increasing(Mult(nat), MultLe(nat, Le), f)"
 
 abbreviation
-  n_Fols :: "[i=>i, i=>i]=>i"   (infixl "n'_Fols" 65)  where
+  n_Fols :: "[i=>i, i=>i]=>i"   (infixl \<open>n'_Fols\<close> 65)  where
   "f n_Fols g == Follows(nat, Le, f, g)"
 
 abbreviation
   Follows' :: "[i=>i, i=>i, i, i] => i"
-        ("(_ /Fols _ /Wrt (_ /'/ _))" [60, 0, 0, 60] 60)  where
+        (\<open>(_ /Fols _ /Wrt (_ /'/ _))\<close> [60, 0, 0, 60] 60)  where
   "f Fols g Wrt r/A == Follows(A,r,f,g)"
 
 

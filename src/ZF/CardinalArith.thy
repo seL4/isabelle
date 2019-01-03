@@ -12,11 +12,11 @@ definition
     "InfCard(i) == Card(i) & nat \<le> i"
 
 definition
-  cmult         :: "[i,i]=>i"       (infixl "\<otimes>" 70)  where
+  cmult         :: "[i,i]=>i"       (infixl \<open>\<otimes>\<close> 70)  where
     "i \<otimes> j == |i*j|"
 
 definition
-  cadd          :: "[i,i]=>i"       (infixl "\<oplus>" 65)  where
+  cadd          :: "[i,i]=>i"       (infixl \<open>\<oplus>\<close> 65)  where
     "i \<oplus> j == |i+j|"
 
 definition

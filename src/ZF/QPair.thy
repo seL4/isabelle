@@ -21,7 +21,7 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 \<close>
 
 definition
-  QPair     :: "[i, i] => i"                      ("<(_;/ _)>")  where
+  QPair     :: "[i, i] => i"                      (\<open><(_;/ _)>\<close>)  where
     "<a;b> == a+b"
 
 definition
@@ -45,16 +45,16 @@ definition
     "QSigma(A,B)  ==  \<Union>x\<in>A. \<Union>y\<in>B(x). {<x;y>}"
 
 syntax
-  "_QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _ \<in> _./ _)" 10)
+  "_QSUM"   :: "[idt, i, i] => i"               (\<open>(3QSUM _ \<in> _./ _)\<close> 10)
 translations
   "QSUM x \<in> A. B"  => "CONST QSigma(A, %x. B)"
 
 abbreviation
-  qprod  (infixr "<*>" 80) where
+  qprod  (infixr \<open><*>\<close> 80) where
   "A <*> B == QSigma(A, %_. B)"
 
 definition
-  qsum    :: "[i,i]=>i"                         (infixr "<+>" 65)  where
+  qsum    :: "[i,i]=>i"                         (infixr \<open><+>\<close> 65)  where
     "A <+> B      == ({0} <*> A) \<union> ({1} <*> B)"
 
 definition
