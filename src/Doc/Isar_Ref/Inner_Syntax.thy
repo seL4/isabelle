@@ -284,15 +284,15 @@ text \<open>
         @'binder' @{syntax template} prio? @{syntax nat} |
         @'structure') ')'
     ;
-    @{syntax template}: string
+    @{syntax template}: (string | cartouche)
     ;
     prios: '[' (@{syntax nat} + ',') ']'
     ;
     prio: '[' @{syntax nat} ']'
   \<close>}
 
-  The string given as \<open>template\<close> may include literal text, spacing, blocks,
-  and arguments (denoted by ``\<open>_\<close>''); the special symbol ``\<^verbatim>\<open>\<index>\<close>'' (printed as
+  The mixfix \<open>template\<close> may include literal text, spacing, blocks, and
+  arguments (denoted by ``\<open>_\<close>''); the special symbol ``\<^verbatim>\<open>\<index>\<close>'' (printed as
   ``\<open>\<index>\<close>'') represents an index argument that specifies an implicit @{keyword
   "structure"} reference (see also \secref{sec:locale}). Only locally fixed
   variables may be declared as @{keyword "structure"}.

@@ -328,7 +328,7 @@ val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" 
 
 local
 
-val mfix = input string;
+val mfix = input (string || cartouche);
 
 val mixfix_ =
   mfix -- !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] -- Scan.optional nat 1000)
