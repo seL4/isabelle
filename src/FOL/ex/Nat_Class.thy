@@ -7,16 +7,16 @@ imports FOL
 begin
 
 text \<open>
-  This is an abstract version of theory \<open>Nat\<close>. Instead of
-  axiomatizing a single type \<open>nat\<close> we define the class of all
-  these types (up to isomorphism).
+  This is an abstract version of theory \<open>Nat\<close>. Instead of axiomatizing a
+  single type \<open>nat\<close> we define the class of all these types (up to
+  isomorphism).
 
-  Note: The \<open>rec\<close> operator had to be made \emph{monomorphic},
-  because class axioms may not contain more than one type variable.
+  Note: The \<open>rec\<close> operator had to be made \<^emph>\<open>monomorphic\<close>, because class axioms
+  may not contain more than one type variable.
 \<close>
 
 class nat =
-  fixes Zero :: 'a  ("0")
+  fixes Zero :: 'a  (\<open>0\<close>)
     and Suc :: "'a \<Rightarrow> 'a"
     and rec :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
   assumes induct: "P(0) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)"
@@ -26,7 +26,7 @@ class nat =
     and rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
 begin
 
-definition add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 60)
+definition add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>+\<close> 60)
   where "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
 lemma Suc_n_not_n: "Suc(k) \<noteq> (k::'a)"
