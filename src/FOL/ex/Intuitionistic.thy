@@ -26,7 +26,7 @@ text\<open>Metatheorem (for \emph{propositional} formulae):
   Therefore $\neg P$ is classically provable iff it is intuitionistically
   provable.
 
-Proof: Let $Q$ be the conjuction of the propositions $A\vee\neg A$, one for
+Proof: Let $Q$ be the conjunction of the propositions $A\vee\neg A$, one for
 each atom $A$ in $P$.  Now $\neg\neg Q$ is intuitionistically provable because
 $\neg\neg(A\vee\neg A)$ is and because double-negation distributes over
 conjunction.  If $P$ is provable classically, then clearly $Q\rightarrow P$ is
