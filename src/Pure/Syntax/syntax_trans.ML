@@ -297,9 +297,7 @@ fun eta_abs (Abs (a, T, t)) =
   | eta_abs t = t;
 
 val eta_contract = Config.declare_option_bool ("eta_contract", \<^here>);
-
-fun eta_contr ctxt tm =
-  if Config.get ctxt eta_contract then eta_abs tm else tm;
+fun eta_contr ctxt = Config.get ctxt eta_contract ? eta_abs;
 
 
 (* abstraction *)
