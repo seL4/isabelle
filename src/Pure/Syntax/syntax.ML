@@ -203,6 +203,11 @@ fun parse_input ctxt decode markup parse str =
         val syms = Input.source_explode source;
         val pos = Input.pos_of source;
         val _ = Context_Position.report ctxt pos (markup (Input.is_delimited source));
+        val _ =
+          if Options.default_bool "update_inner_syntax_cartouches" then
+            Context_Position.report_text ctxt
+              pos Markup.update (cartouche (Symbol_Pos.content syms))
+          else ();
       in parse (syms, pos) end;
   in
     (case YXML.parse_body str handle Fail msg => error msg of

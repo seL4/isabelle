@@ -279,6 +279,9 @@ option export_theory : bool = false
 
 section "Theory update"
 
+option update_inner_syntax_cartouches : bool = false
+  -- "update inner syntax (types, terms, etc.) to use cartouches"
+
 option update_mixfix_cartouches : bool = false
   -- "update mixfix templates to use cartouches instead of double quotes"
 
