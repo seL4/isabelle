@@ -132,6 +132,23 @@ fun default_constraint (Binder _) = (dummyT --> dummyT) --> dummyT
   | default_constraint mx = replicate (mixfix_args mx) dummyT ---> dummyT;
 
 
+(* mixfix template *)
+
+fun mixfix_template (Mixfix (sy, _, _, _)) = SOME sy
+  | mixfix_template (Infix (sy, _, _)) = SOME sy
+  | mixfix_template (Infixl (sy, _, _)) = SOME sy
+  | mixfix_template (Infixr (sy, _, _)) = SOME sy
+  | mixfix_template (Binder (sy, _, _, _)) = SOME sy
+  | mixfix_template _ = NONE;
+
+fun mixfix_template_reports mx =
+  if Options.default_bool "update_mixfix_cartouches" then
+    (case mixfix_template mx of
+      SOME sy => [((Input.pos_of sy, Markup.update), cartouche (#1 (Input.source_content sy)))]
+    | NONE => [])
+  else [];
+
+
 (* syn_ext_types *)
 
 val typeT = Type ("type", []);
@@ -160,6 +177,8 @@ fun syn_ext_types type_decls =
             error ("Bad number of type constructor arguments in mixfix annotation" ^
               Position.here (pos_of mx))
       | check_args _ NONE = ();
+
+    val _ = Position.reports_text (maps (mixfix_template_reports o #3) type_decls);
 
     val mfix = map mfix_of type_decls;
     val _ = map2 check_args type_decls mfix;
@@ -205,6 +224,8 @@ fun syn_ext_consts logical_types const_decls =
 
     fun binder (c, _, Binder _) = SOME (binder_name c, c)
       | binder _ = NONE;
+
+    val _ = Position.reports_text (maps (mixfix_template_reports o #3) const_decls);
 
     val mfix = maps mfix_of const_decls;
     val binders = map_filter binder const_decls;

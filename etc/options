@@ -277,6 +277,12 @@ option export_document : bool = false
 option export_theory : bool = false
 
 
+section "Theory update"
+
+option update_mixfix_cartouches : bool = false
+  -- "update mixfix templates to use cartouches instead of double quotes"
+
+
 section "Build Database"
 
 option build_database_server : bool = false

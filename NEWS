@@ -32,7 +32,9 @@ longer supported (legacy feature in Isabelle2018).
 without additional spaces, eg "(*)" instead of "( * )".
 
 * Mixfix annotations may use cartouches instead of old-style double
-quotes, e.g. (infixl \<open>+\<close> 60).
+quotes, e.g. (infixl \<open>+\<close> 60). The command-line tool "isabelle update -u
+mixfix_cartouches" allows to update existing theory sources
+automatically.
 
 * ML setup commands (e.g. 'setup', 'method_setup', 'parse_translation')
 need to provide a closed expression -- without trailing semicolon. Minor
