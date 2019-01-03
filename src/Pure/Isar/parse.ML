@@ -328,28 +328,23 @@ val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" 
 
 local
 
-val mfix =
-  input string --
-    !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] -- Scan.optional nat 1000)
-  >> (fn (sy, (ps, p)) => fn range => Mixfix (sy, ps, p, range));
+val mfix = input string;
 
-val infx =
-  $$$ "infix" |-- !!! (input string -- nat >> (fn (sy, p) => fn range => Infix (sy, p, range)));
+val mixfix_ =
+  mfix -- !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] -- Scan.optional nat 1000)
+    >> (fn (sy, (ps, p)) => fn range => Mixfix (sy, ps, p, range));
 
-val infxl =
-  $$$ "infixl" |-- !!! (input string -- nat >> (fn (sy, p) => fn range => Infixl (sy, p, range)));
+val structure_ = $$$ "structure" >> K Structure;
 
-val infxr =
-  $$$ "infixr" |-- !!! (input string -- nat >> (fn (sy, p) => fn range => Infixr (sy, p, range)));
+val binder_ =
+  $$$ "binder" |-- !!! (mfix -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
+    >> (fn (sy, (p, q)) => fn range => Binder (sy, p, q, range));
 
-val strcture = $$$ "structure" >> K Structure;
+val infixl_ = $$$ "infixl" |-- !!! (mfix -- nat >> (fn (sy, p) => fn range => Infixl (sy, p, range)));
+val infixr_ = $$$ "infixr" |-- !!! (mfix -- nat >> (fn (sy, p) => fn range => Infixr (sy, p, range)));
+val infix_ = $$$ "infix" |-- !!! (mfix -- nat >> (fn (sy, p) => fn range => Infix (sy, p, range)));
 
-val binder =
-  $$$ "binder" |--
-    !!! (input string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
-  >> (fn (sy, (p, q)) => fn range => Binder (sy, p, q, range));
-
-val mixfix_body = mfix || strcture || binder || infxl || infxr || infx;
+val mixfix_body = mixfix_ || structure_ || binder_ || infixl_ || infixr_ || infix_;
 
 fun annotation guard body =
   Scan.trace ($$$ "(" |-- guard (body --| $$$ ")"))
