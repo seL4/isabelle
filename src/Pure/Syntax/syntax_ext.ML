@@ -33,14 +33,8 @@ sig
   val mfix_args: Symbol_Pos.T list -> int
   val mixfix_args: Input.source -> int
   val escape: string -> string
-  val syn_ext': string list -> mfix list ->
+  val syn_ext: string list -> mfix list ->
     (string * string) list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
-    (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
-    (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext: mfix list -> (string * string) list ->
-    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
@@ -406,7 +400,7 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun syn_ext' logical_types mfixes consts trfuns (parse_rules, print_rules) =
+fun syn_ext logical_types mfixes consts trfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
@@ -429,10 +423,8 @@ fun syn_ext' logical_types mfixes consts trfuns (parse_rules, print_rules) =
   end;
 
 
-val syn_ext = syn_ext' [];
-
-fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) rules;
-fun syn_ext_trfuns trfuns = syn_ext [] [] trfuns ([], []);
+fun syn_ext_rules rules = syn_ext [] [] [] ([], [], [], []) rules;
+fun syn_ext_trfuns trfuns = syn_ext [] [] [] trfuns ([], []);
 
 fun stamp_trfun s (c, f) = (c, (f, s));
 fun mk_trfun tr = stamp_trfun (stamp ()) tr;

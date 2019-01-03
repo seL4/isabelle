@@ -164,7 +164,7 @@ fun syn_ext_types type_decls =
     val mfix = map mfix_of type_decls;
     val _ = map2 check_args type_decls mfix;
     val consts = map (fn (t, _, _) => (t, "")) type_decls;
-  in Syntax_Ext.syn_ext (map_filter I mfix) consts ([], [], [], []) ([], []) end;
+  in Syntax_Ext.syn_ext [] (map_filter I mfix) consts ([], [], [], []) ([], []) end;
 
 
 (* syn_ext_consts *)
@@ -215,9 +215,7 @@ fun syn_ext_consts logical_types const_decls =
           apsnd Syntax_Trans.non_typed_tr' o Syntax_Trans.mk_binder_tr' o swap);
 
     val consts = binders @ map (fn (c, _, _) => (c, "")) const_decls;
-  in
-    Syntax_Ext.syn_ext' logical_types mfix consts ([], binder_trs, binder_trs', []) ([], [])
-  end;
+  in Syntax_Ext.syn_ext logical_types mfix consts ([], binder_trs, binder_trs', []) ([], []) end;
 
 end;
 
