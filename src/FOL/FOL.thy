@@ -17,18 +17,18 @@ ML_file "~~/src/Provers/clasimp.ML"
 subsection \<open>The classical axiom\<close>
 
 axiomatization where
-  classical: "(\<not> P \<Longrightarrow> P) \<Longrightarrow> P"
+  classical: \<open>(\<not> P \<Longrightarrow> P) \<Longrightarrow> P\<close>
 
 
 subsection \<open>Lemmas and proof tools\<close>
 
-lemma ccontr: "(\<not> P \<Longrightarrow> False) \<Longrightarrow> P"
+lemma ccontr: \<open>(\<not> P \<Longrightarrow> False) \<Longrightarrow> P\<close>
   by (erule FalseE [THEN classical])
 
 
 subsubsection \<open>Classical introduction rules for \<open>\<or>\<close> and \<open>\<exists>\<close>\<close>
 
-lemma disjCI: "(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q"
+lemma disjCI: \<open>(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q\<close>
   apply (rule classical)
   apply (assumption | erule meta_mp | rule disjI1 notI)+
   apply (erule notE disjI2)+
@@ -36,31 +36,31 @@ lemma disjCI: "(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q"
 
 text \<open>Introduction rule involving only \<open>\<exists>\<close>\<close>
 lemma ex_classical:
-  assumes r: "\<not> (\<exists>x. P(x)) \<Longrightarrow> P(a)"
-  shows "\<exists>x. P(x)"
+  assumes r: \<open>\<not> (\<exists>x. P(x)) \<Longrightarrow> P(a)\<close>
+  shows \<open>\<exists>x. P(x)\<close>
   apply (rule classical)
   apply (rule exI, erule r)
   done
 
 text \<open>Version of above, simplifying \<open>\<not>\<exists>\<close> to \<open>\<forall>\<not>\<close>.\<close>
 lemma exCI:
-  assumes r: "\<forall>x. \<not> P(x) \<Longrightarrow> P(a)"
-  shows "\<exists>x. P(x)"
+  assumes r: \<open>\<forall>x. \<not> P(x) \<Longrightarrow> P(a)\<close>
+  shows \<open>\<exists>x. P(x)\<close>
   apply (rule ex_classical)
   apply (rule notI [THEN allI, THEN r])
   apply (erule notE)
   apply (erule exI)
   done
 
-lemma excluded_middle: "\<not> P \<or> P"
+lemma excluded_middle: \<open>\<not> P \<or> P\<close>
   apply (rule disjCI)
   apply assumption
   done
 
 lemma case_split [case_names True False]:
-  assumes r1: "P \<Longrightarrow> Q"
-    and r2: "\<not> P \<Longrightarrow> Q"
-  shows Q
+  assumes r1: \<open>P \<Longrightarrow> Q\<close>
+    and r2: \<open>\<not> P \<Longrightarrow> Q\<close>
+  shows \<open>Q\<close>
   apply (rule excluded_middle [THEN disjE])
   apply (erule r2)
   apply (erule r1)
@@ -81,10 +81,10 @@ subsection \<open>Special elimination rules\<close>
 
 text \<open>Classical implies (\<open>\<longrightarrow>\<close>) elimination.\<close>
 lemma impCE:
-  assumes major: "P \<longrightarrow> Q"
-    and r1: "\<not> P \<Longrightarrow> R"
-    and r2: "Q \<Longrightarrow> R"
-  shows R
+  assumes major: \<open>P \<longrightarrow> Q\<close>
+    and r1: \<open>\<not> P \<Longrightarrow> R\<close>
+    and r2: \<open>Q \<Longrightarrow> R\<close>
+  shows \<open>R\<close>
   apply (rule excluded_middle [THEN disjE])
    apply (erule r1)
   apply (rule r2)
@@ -96,10 +96,10 @@ text \<open>
   Can't install as default: would break old proofs.
 \<close>
 lemma impCE':
-  assumes major: "P \<longrightarrow> Q"
-    and r1: "Q \<Longrightarrow> R"
-    and r2: "\<not> P \<Longrightarrow> R"
-  shows R
+  assumes major: \<open>P \<longrightarrow> Q\<close>
+    and r1: \<open>Q \<Longrightarrow> R\<close>
+    and r2: \<open>\<not> P \<Longrightarrow> R\<close>
+  shows \<open>R\<close>
   apply (rule excluded_middle [THEN disjE])
    apply (erule r2)
   apply (rule r1)
@@ -107,13 +107,13 @@ lemma impCE':
   done
 
 text \<open>Double negation law.\<close>
-lemma notnotD: "\<not> \<not> P \<Longrightarrow> P"
+lemma notnotD: \<open>\<not> \<not> P \<Longrightarrow> P\<close>
   apply (rule classical)
   apply (erule notE)
   apply assumption
   done
 
-lemma contrapos2:  "\<lbrakk>Q; \<not> P \<Longrightarrow> \<not> Q\<rbrakk> \<Longrightarrow> P"
+lemma contrapos2:  \<open>\<lbrakk>Q; \<not> P \<Longrightarrow> \<not> Q\<rbrakk> \<Longrightarrow> P\<close>
   apply (rule classical)
   apply (drule (1) meta_mp)
   apply (erule (1) notE)
@@ -127,10 +127,10 @@ text \<open>
   \<open>\<not> P \<Longrightarrow> \<not> Q\<close> and \<open>P \<Longrightarrow> Q\<close>.
 \<close>
 lemma iffCE:
-  assumes major: "P \<longleftrightarrow> Q"
-    and r1: "\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R"
-    and r2: "\<lbrakk>\<not> P; \<not> Q\<rbrakk> \<Longrightarrow> R"
-  shows R
+  assumes major: \<open>P \<longleftrightarrow> Q\<close>
+    and r1: \<open>\<lbrakk>P; Q\<rbrakk> \<Longrightarrow> R\<close>
+    and r2: \<open>\<lbrakk>\<not> P; \<not> Q\<rbrakk> \<Longrightarrow> R\<close>
+  shows \<open>R\<close>
   apply (rule major [unfolded iff_def, THEN conjE])
   apply (elim impCE)
      apply (erule (1) r2)
@@ -141,32 +141,32 @@ lemma iffCE:
 
 (*Better for fast_tac: needs no quantifier duplication!*)
 lemma alt_ex1E:
-  assumes major: "\<exists>! x. P(x)"
-    and r: "\<And>x. \<lbrakk>P(x);  \<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'\<rbrakk> \<Longrightarrow> R"
-  shows R
+  assumes major: \<open>\<exists>! x. P(x)\<close>
+    and r: \<open>\<And>x. \<lbrakk>P(x);  \<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'\<rbrakk> \<Longrightarrow> R\<close>
+  shows \<open>R\<close>
   using major
 proof (rule ex1E)
   fix x
-  assume * : "\<forall>y. P(y) \<longrightarrow> y = x"
-  assume "P(x)"
-  then show R
+  assume * : \<open>\<forall>y. P(y) \<longrightarrow> y = x\<close>
+  assume \<open>P(x)\<close>
+  then show \<open>R\<close>
   proof (rule r)
     {
       fix y y'
-      assume "P(y)" and "P(y')"
-      with * have "x = y" and "x = y'"
+      assume \<open>P(y)\<close> and \<open>P(y')\<close>
+      with * have \<open>x = y\<close> and \<open>x = y'\<close>
         by - (tactic "IntPr.fast_tac @{context} 1")+
-      then have "y = y'" by (rule subst)
+      then have \<open>y = y'\<close> by (rule subst)
     } note r' = this
-    show "\<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'"
+    show \<open>\<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'\<close>
       by (intro strip, elim conjE) (rule r')
   qed
 qed
 
-lemma imp_elim: "P \<longrightarrow> Q \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
+lemma imp_elim: \<open>P \<longrightarrow> Q \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R\<close>
   by (rule classical) iprover
 
-lemma swap: "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"
+lemma swap: \<open>\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R\<close>
   by (rule classical) iprover
 
 
@@ -214,32 +214,32 @@ ML \<open>
 \<close>
 
 
-lemma ex1_functional: "\<lbrakk>\<exists>! z. P(a,z); P(a,b); P(a,c)\<rbrakk> \<Longrightarrow> b = c"
+lemma ex1_functional: \<open>\<lbrakk>\<exists>! z. P(a,z); P(a,b); P(a,c)\<rbrakk> \<Longrightarrow> b = c\<close>
   by blast
 
 text \<open>Elimination of \<open>True\<close> from assumptions:\<close>
-lemma True_implies_equals: "(True \<Longrightarrow> PROP P) \<equiv> PROP P"
+lemma True_implies_equals: \<open>(True \<Longrightarrow> PROP P) \<equiv> PROP P\<close>
 proof
-  assume "True \<Longrightarrow> PROP P"
-  from this and TrueI show "PROP P" .
+  assume \<open>True \<Longrightarrow> PROP P\<close>
+  from this and TrueI show \<open>PROP P\<close> .
 next
-  assume "PROP P"
-  then show "PROP P" .
+  assume \<open>PROP P\<close>
+  then show \<open>PROP P\<close> .
 qed
 
-lemma uncurry: "P \<longrightarrow> Q \<longrightarrow> R \<Longrightarrow> P \<and> Q \<longrightarrow> R"
+lemma uncurry: \<open>P \<longrightarrow> Q \<longrightarrow> R \<Longrightarrow> P \<and> Q \<longrightarrow> R\<close>
   by blast
 
-lemma iff_allI: "(\<And>x. P(x) \<longleftrightarrow> Q(x)) \<Longrightarrow> (\<forall>x. P(x)) \<longleftrightarrow> (\<forall>x. Q(x))"
+lemma iff_allI: \<open>(\<And>x. P(x) \<longleftrightarrow> Q(x)) \<Longrightarrow> (\<forall>x. P(x)) \<longleftrightarrow> (\<forall>x. Q(x))\<close>
   by blast
 
-lemma iff_exI: "(\<And>x. P(x) \<longleftrightarrow> Q(x)) \<Longrightarrow> (\<exists>x. P(x)) \<longleftrightarrow> (\<exists>x. Q(x))"
+lemma iff_exI: \<open>(\<And>x. P(x) \<longleftrightarrow> Q(x)) \<Longrightarrow> (\<exists>x. P(x)) \<longleftrightarrow> (\<exists>x. Q(x))\<close>
   by blast
 
-lemma all_comm: "(\<forall>x y. P(x,y)) \<longleftrightarrow> (\<forall>y x. P(x,y))"
+lemma all_comm: \<open>(\<forall>x y. P(x,y)) \<longleftrightarrow> (\<forall>y x. P(x,y))\<close>
   by blast
 
-lemma ex_comm: "(\<exists>x y. P(x,y)) \<longleftrightarrow> (\<exists>y x. P(x,y))"
+lemma ex_comm: \<open>(\<exists>x y. P(x,y)) \<longleftrightarrow> (\<exists>y x. P(x,y))\<close>
   by blast
 
 
@@ -251,7 +251,7 @@ text \<open>
   false cases boil down to the same thing.
 \<close>
 
-lemma cases_simp: "(P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q) \<longleftrightarrow> Q"
+lemma cases_simp: \<open>(P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q) \<longleftrightarrow> Q\<close>
   by blast
 
 
@@ -267,32 +267,32 @@ text \<open>
 
 text \<open>Existential miniscoping.\<close>
 lemma int_ex_simps:
-  "\<And>P Q. (\<exists>x. P(x) \<and> Q) \<longleftrightarrow> (\<exists>x. P(x)) \<and> Q"
-  "\<And>P Q. (\<exists>x. P \<and> Q(x)) \<longleftrightarrow> P \<and> (\<exists>x. Q(x))"
-  "\<And>P Q. (\<exists>x. P(x) \<or> Q) \<longleftrightarrow> (\<exists>x. P(x)) \<or> Q"
-  "\<And>P Q. (\<exists>x. P \<or> Q(x)) \<longleftrightarrow> P \<or> (\<exists>x. Q(x))"
+  \<open>\<And>P Q. (\<exists>x. P(x) \<and> Q) \<longleftrightarrow> (\<exists>x. P(x)) \<and> Q\<close>
+  \<open>\<And>P Q. (\<exists>x. P \<and> Q(x)) \<longleftrightarrow> P \<and> (\<exists>x. Q(x))\<close>
+  \<open>\<And>P Q. (\<exists>x. P(x) \<or> Q) \<longleftrightarrow> (\<exists>x. P(x)) \<or> Q\<close>
+  \<open>\<And>P Q. (\<exists>x. P \<or> Q(x)) \<longleftrightarrow> P \<or> (\<exists>x. Q(x))\<close>
   by iprover+
 
 text \<open>Classical rules.\<close>
 lemma cla_ex_simps:
-  "\<And>P Q. (\<exists>x. P(x) \<longrightarrow> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<longrightarrow> Q"
-  "\<And>P Q. (\<exists>x. P \<longrightarrow> Q(x)) \<longleftrightarrow> P \<longrightarrow> (\<exists>x. Q(x))"
+  \<open>\<And>P Q. (\<exists>x. P(x) \<longrightarrow> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<longrightarrow> Q\<close>
+  \<open>\<And>P Q. (\<exists>x. P \<longrightarrow> Q(x)) \<longleftrightarrow> P \<longrightarrow> (\<exists>x. Q(x))\<close>
   by blast+
 
 lemmas ex_simps = int_ex_simps cla_ex_simps
 
 text \<open>Universal miniscoping.\<close>
 lemma int_all_simps:
-  "\<And>P Q. (\<forall>x. P(x) \<and> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<and> Q"
-  "\<And>P Q. (\<forall>x. P \<and> Q(x)) \<longleftrightarrow> P \<and> (\<forall>x. Q(x))"
-  "\<And>P Q. (\<forall>x. P(x) \<longrightarrow> Q) \<longleftrightarrow> (\<exists> x. P(x)) \<longrightarrow> Q"
-  "\<And>P Q. (\<forall>x. P \<longrightarrow> Q(x)) \<longleftrightarrow> P \<longrightarrow> (\<forall>x. Q(x))"
+  \<open>\<And>P Q. (\<forall>x. P(x) \<and> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<and> Q\<close>
+  \<open>\<And>P Q. (\<forall>x. P \<and> Q(x)) \<longleftrightarrow> P \<and> (\<forall>x. Q(x))\<close>
+  \<open>\<And>P Q. (\<forall>x. P(x) \<longrightarrow> Q) \<longleftrightarrow> (\<exists> x. P(x)) \<longrightarrow> Q\<close>
+  \<open>\<And>P Q. (\<forall>x. P \<longrightarrow> Q(x)) \<longleftrightarrow> P \<longrightarrow> (\<forall>x. Q(x))\<close>
   by iprover+
 
 text \<open>Classical rules.\<close>
 lemma cla_all_simps:
-  "\<And>P Q. (\<forall>x. P(x) \<or> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<or> Q"
-  "\<And>P Q. (\<forall>x. P \<or> Q(x)) \<longleftrightarrow> P \<or> (\<forall>x. Q(x))"
+  \<open>\<And>P Q. (\<forall>x. P(x) \<or> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<or> Q\<close>
+  \<open>\<And>P Q. (\<forall>x. P \<or> Q(x)) \<longleftrightarrow> P \<or> (\<forall>x. Q(x))\<close>
   by blast+
 
 lemmas all_simps = int_all_simps cla_all_simps
@@ -300,16 +300,16 @@ lemmas all_simps = int_all_simps cla_all_simps
 
 subsubsection \<open>Named rewrite rules proved for IFOL\<close>
 
-lemma imp_disj1: "(P \<longrightarrow> Q) \<or> R \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)" by blast
-lemma imp_disj2: "Q \<or> (P \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)" by blast
+lemma imp_disj1: \<open>(P \<longrightarrow> Q) \<or> R \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)\<close> by blast
+lemma imp_disj2: \<open>Q \<or> (P \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)\<close> by blast
 
-lemma de_Morgan_conj: "(\<not> (P \<and> Q)) \<longleftrightarrow> (\<not> P \<or> \<not> Q)" by blast
+lemma de_Morgan_conj: \<open>(\<not> (P \<and> Q)) \<longleftrightarrow> (\<not> P \<or> \<not> Q)\<close> by blast
 
-lemma not_imp: "\<not> (P \<longrightarrow> Q) \<longleftrightarrow> (P \<and> \<not> Q)" by blast
-lemma not_iff: "\<not> (P \<longleftrightarrow> Q) \<longleftrightarrow> (P \<longleftrightarrow> \<not> Q)" by blast
+lemma not_imp: \<open>\<not> (P \<longrightarrow> Q) \<longleftrightarrow> (P \<and> \<not> Q)\<close> by blast
+lemma not_iff: \<open>\<not> (P \<longleftrightarrow> Q) \<longleftrightarrow> (P \<longleftrightarrow> \<not> Q)\<close> by blast
 
-lemma not_all: "(\<not> (\<forall>x. P(x))) \<longleftrightarrow> (\<exists>x. \<not> P(x))" by blast
-lemma imp_all: "((\<forall>x. P(x)) \<longrightarrow> Q) \<longleftrightarrow> (\<exists>x. P(x) \<longrightarrow> Q)" by blast
+lemma not_all: \<open>(\<not> (\<forall>x. P(x))) \<longleftrightarrow> (\<exists>x. \<not> P(x))\<close> by blast
+lemma imp_all: \<open>((\<forall>x. P(x)) \<longrightarrow> Q) \<longleftrightarrow> (\<exists>x. P(x) \<longrightarrow> Q)\<close> by blast
 
 
 lemmas meta_simps =
@@ -320,15 +320,15 @@ lemmas IFOL_simps =
   refl [THEN P_iff_T] conj_simps disj_simps not_simps
   imp_simps iff_simps quant_simps
 
-lemma notFalseI: "\<not> False" by iprover
+lemma notFalseI: \<open>\<not> False\<close> by iprover
 
 lemma cla_simps_misc:
-  "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"
-  "P \<or> \<not> P"
-  "\<not> P \<or> P"
-  "\<not> \<not> P \<longleftrightarrow> P"
-  "(\<not> P \<longrightarrow> P) \<longleftrightarrow> P"
-  "(\<not> P \<longleftrightarrow> \<not> Q) \<longleftrightarrow> (P \<longleftrightarrow> Q)" by blast+
+  \<open>\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q\<close>
+  \<open>P \<or> \<not> P\<close>
+  \<open>\<not> P \<or> P\<close>
+  \<open>\<not> \<not> P \<longleftrightarrow> P\<close>
+  \<open>(\<not> P \<longrightarrow> P) \<longleftrightarrow> P\<close>
+  \<open>(\<not> P \<longleftrightarrow> \<not> Q) \<longleftrightarrow> (P \<longleftrightarrow> Q)\<close> by blast+
 
 lemmas cla_simps =
   de_Morgan_conj de_Morgan_disj imp_disj1 imp_disj2
@@ -337,8 +337,8 @@ lemmas cla_simps =
 
 ML_file "simpdata.ML"
 
-simproc_setup defined_Ex ("\<exists>x. P(x)") = \<open>fn _ => Quantifier1.rearrange_ex\<close>
-simproc_setup defined_All ("\<forall>x. P(x)") = \<open>fn _ => Quantifier1.rearrange_all\<close>
+simproc_setup defined_Ex (\<open>\<exists>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_ex\<close>
+simproc_setup defined_All (\<open>\<forall>x. P(x)\<close>) = \<open>fn _ => Quantifier1.rearrange_all\<close>
 
 ML \<open>
 (*intuitionistic simprules only*)
@@ -366,35 +366,35 @@ ML_file "~~/src/Tools/eqsubst.ML"
 
 subsection \<open>Other simple lemmas\<close>
 
-lemma [simp]: "((P \<longrightarrow> R) \<longleftrightarrow> (Q \<longrightarrow> R)) \<longleftrightarrow> ((P \<longleftrightarrow> Q) \<or> R)"
+lemma [simp]: \<open>((P \<longrightarrow> R) \<longleftrightarrow> (Q \<longrightarrow> R)) \<longleftrightarrow> ((P \<longleftrightarrow> Q) \<or> R)\<close>
   by blast
 
-lemma [simp]: "((P \<longrightarrow> Q) \<longleftrightarrow> (P \<longrightarrow> R)) \<longleftrightarrow> (P \<longrightarrow> (Q \<longleftrightarrow> R))"
+lemma [simp]: \<open>((P \<longrightarrow> Q) \<longleftrightarrow> (P \<longrightarrow> R)) \<longleftrightarrow> (P \<longrightarrow> (Q \<longleftrightarrow> R))\<close>
   by blast
 
-lemma not_disj_iff_imp: "\<not> P \<or> Q \<longleftrightarrow> (P \<longrightarrow> Q)"
+lemma not_disj_iff_imp: \<open>\<not> P \<or> Q \<longleftrightarrow> (P \<longrightarrow> Q)\<close>
   by blast
 
 
 subsubsection \<open>Monotonicity of implications\<close>
 
-lemma conj_mono: "\<lbrakk>P1 \<longrightarrow> Q1; P2 \<longrightarrow> Q2\<rbrakk> \<Longrightarrow> (P1 \<and> P2) \<longrightarrow> (Q1 \<and> Q2)"
+lemma conj_mono: \<open>\<lbrakk>P1 \<longrightarrow> Q1; P2 \<longrightarrow> Q2\<rbrakk> \<Longrightarrow> (P1 \<and> P2) \<longrightarrow> (Q1 \<and> Q2)\<close>
   by fast (*or (IntPr.fast_tac 1)*)
 
-lemma disj_mono: "\<lbrakk>P1 \<longrightarrow> Q1; P2 \<longrightarrow> Q2\<rbrakk> \<Longrightarrow> (P1 \<or> P2) \<longrightarrow> (Q1 \<or> Q2)"
+lemma disj_mono: \<open>\<lbrakk>P1 \<longrightarrow> Q1; P2 \<longrightarrow> Q2\<rbrakk> \<Longrightarrow> (P1 \<or> P2) \<longrightarrow> (Q1 \<or> Q2)\<close>
   by fast (*or (IntPr.fast_tac 1)*)
 
-lemma imp_mono: "\<lbrakk>Q1 \<longrightarrow> P1; P2 \<longrightarrow> Q2\<rbrakk> \<Longrightarrow> (P1 \<longrightarrow> P2) \<longrightarrow> (Q1 \<longrightarrow> Q2)"
+lemma imp_mono: \<open>\<lbrakk>Q1 \<longrightarrow> P1; P2 \<longrightarrow> Q2\<rbrakk> \<Longrightarrow> (P1 \<longrightarrow> P2) \<longrightarrow> (Q1 \<longrightarrow> Q2)\<close>
   by fast (*or (IntPr.fast_tac 1)*)
 
-lemma imp_refl: "P \<longrightarrow> P"
+lemma imp_refl: \<open>P \<longrightarrow> P\<close>
   by (rule impI)
 
 text \<open>The quantifier monotonicity rules are also intuitionistically valid.\<close>
-lemma ex_mono: "(\<And>x. P(x) \<longrightarrow> Q(x)) \<Longrightarrow> (\<exists>x. P(x)) \<longrightarrow> (\<exists>x. Q(x))"
+lemma ex_mono: \<open>(\<And>x. P(x) \<longrightarrow> Q(x)) \<Longrightarrow> (\<exists>x. P(x)) \<longrightarrow> (\<exists>x. Q(x))\<close>
   by blast
 
-lemma all_mono: "(\<And>x. P(x) \<longrightarrow> Q(x)) \<Longrightarrow> (\<forall>x. P(x)) \<longrightarrow> (\<forall>x. Q(x))"
+lemma all_mono: \<open>(\<And>x. P(x) \<longrightarrow> Q(x)) \<Longrightarrow> (\<forall>x. P(x)) \<longrightarrow> (\<forall>x. Q(x))\<close>
   by blast
 
 
@@ -405,21 +405,21 @@ text \<open>Proper handling of non-atomic rule statements.\<close>
 context
 begin
 
-qualified definition "induct_forall(P) \<equiv> \<forall>x. P(x)"
-qualified definition "induct_implies(A, B) \<equiv> A \<longrightarrow> B"
-qualified definition "induct_equal(x, y) \<equiv> x = y"
-qualified definition "induct_conj(A, B) \<equiv> A \<and> B"
+qualified definition \<open>induct_forall(P) \<equiv> \<forall>x. P(x)\<close>
+qualified definition \<open>induct_implies(A, B) \<equiv> A \<longrightarrow> B\<close>
+qualified definition \<open>induct_equal(x, y) \<equiv> x = y\<close>
+qualified definition \<open>induct_conj(A, B) \<equiv> A \<and> B\<close>
 
-lemma induct_forall_eq: "(\<And>x. P(x)) \<equiv> Trueprop(induct_forall(\<lambda>x. P(x)))"
+lemma induct_forall_eq: \<open>(\<And>x. P(x)) \<equiv> Trueprop(induct_forall(\<lambda>x. P(x)))\<close>
   unfolding atomize_all induct_forall_def .
 
-lemma induct_implies_eq: "(A \<Longrightarrow> B) \<equiv> Trueprop(induct_implies(A, B))"
+lemma induct_implies_eq: \<open>(A \<Longrightarrow> B) \<equiv> Trueprop(induct_implies(A, B))\<close>
   unfolding atomize_imp induct_implies_def .
 
-lemma induct_equal_eq: "(x \<equiv> y) \<equiv> Trueprop(induct_equal(x, y))"
+lemma induct_equal_eq: \<open>(x \<equiv> y) \<equiv> Trueprop(induct_equal(x, y))\<close>
   unfolding atomize_eq induct_equal_def .
 
-lemma induct_conj_eq: "(A &&& B) \<equiv> Trueprop(induct_conj(A, B))"
+lemma induct_conj_eq: \<open>(A &&& B) \<equiv> Trueprop(induct_conj(A, B))\<close>
   unfolding atomize_conj induct_conj_def .
 
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq

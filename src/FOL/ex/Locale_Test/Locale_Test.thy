@@ -16,9 +16,9 @@ lemmas less_mixin_thy_merge1 = le.less_def
 lemmas less_mixin_thy_merge2 = le'.less_def
 end
 
-lemma "gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y" (* mixin from first interpretation applied *)
+lemma \<open>gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y\<close> (* mixin from first interpretation applied *)
   by (rule le1.less_mixin_thy_merge1)
-lemma "gless'(x, y) \<longleftrightarrow> gle'(x, y) \<and> x \<noteq> y" (* mixin from second interpretation applied *)
+lemma \<open>gless'(x, y) \<longleftrightarrow> gle'(x, y) \<and> x \<noteq> y\<close> (* mixin from second interpretation applied *)
   by (rule le1.less_mixin_thy_merge2)
 
 end

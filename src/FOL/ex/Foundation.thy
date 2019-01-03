@@ -9,7 +9,7 @@ theory Foundation
 imports IFOL
 begin
 
-lemma "A \<and> B \<longrightarrow> (C \<longrightarrow> A \<and> C)"
+lemma \<open>A \<and> B \<longrightarrow> (C \<longrightarrow> A \<and> C)\<close>
 apply (rule impI)
 apply (rule impI)
 apply (rule conjI)
@@ -20,9 +20,9 @@ done
 
 text \<open>A form of conj-elimination\<close>
 lemma
-  assumes "A \<and> B"
-    and "A \<Longrightarrow> B \<Longrightarrow> C"
-  shows C
+  assumes \<open>A \<and> B\<close>
+    and \<open>A \<Longrightarrow> B \<Longrightarrow> C\<close>
+  shows \<open>C\<close>
 apply (rule assms)
 apply (rule conjunct1)
 apply (rule assms)
@@ -31,26 +31,26 @@ apply (rule assms)
 done
 
 lemma
-  assumes "\<And>A. \<not> \<not> A \<Longrightarrow> A"
-  shows "B \<or> \<not> B"
+  assumes \<open>\<And>A. \<not> \<not> A \<Longrightarrow> A\<close>
+  shows \<open>B \<or> \<not> B\<close>
 apply (rule assms)
 apply (rule notI)
-apply (rule_tac P = "\<not> B" in notE)
+apply (rule_tac P = \<open>\<not> B\<close> in notE)
 apply (rule_tac [2] notI)
-apply (rule_tac [2] P = "B \<or> \<not> B" in notE)
+apply (rule_tac [2] P = \<open>B \<or> \<not> B\<close> in notE)
 prefer 2 apply assumption
 apply (rule_tac [2] disjI1)
 prefer 2 apply assumption
 apply (rule notI)
-apply (rule_tac P = "B \<or> \<not> B" in notE)
+apply (rule_tac P = \<open>B \<or> \<not> B\<close> in notE)
 apply assumption
 apply (rule disjI2)
 apply assumption
 done
 
 lemma
-  assumes "\<And>A. \<not> \<not> A \<Longrightarrow> A"
-  shows "B \<or> \<not> B"
+  assumes \<open>\<And>A. \<not> \<not> A \<Longrightarrow> A\<close>
+  shows \<open>B \<or> \<not> B\<close>
 apply (rule assms)
 apply (rule notI)
 apply (rule notE)
@@ -64,14 +64,14 @@ done
 
 
 lemma
-  assumes "A \<or> \<not> A"
-    and "\<not> \<not> A"
-  shows A
+  assumes \<open>A \<or> \<not> A\<close>
+    and \<open>\<not> \<not> A\<close>
+  shows \<open>A\<close>
 apply (rule disjE)
 apply (rule assms)
 apply assumption
 apply (rule FalseE)
-apply (rule_tac P = "\<not> A" in notE)
+apply (rule_tac P = \<open>\<not> A\<close> in notE)
 apply (rule assms)
 apply assumption
 done
@@ -80,27 +80,27 @@ done
 subsection "Examples with quantifiers"
 
 lemma
-  assumes "\<forall>z. G(z)"
-  shows "\<forall>z. G(z) \<or> H(z)"
+  assumes \<open>\<forall>z. G(z)\<close>
+  shows \<open>\<forall>z. G(z) \<or> H(z)\<close>
 apply (rule allI)
 apply (rule disjI1)
 apply (rule assms [THEN spec])
 done
 
-lemma "\<forall>x. \<exists>y. x = y"
+lemma \<open>\<forall>x. \<exists>y. x = y\<close>
 apply (rule allI)
 apply (rule exI)
 apply (rule refl)
 done
 
-lemma "\<exists>y. \<forall>x. x = y"
+lemma \<open>\<exists>y. \<forall>x. x = y\<close>
 apply (rule exI)
 apply (rule allI)
 apply (rule refl)?
 oops
 
 text \<open>Parallel lifting example.\<close>
-lemma "\<exists>u. \<forall>x. \<exists>v. \<forall>y. \<exists>w. P(u,x,v,y,w)"
+lemma \<open>\<exists>u. \<forall>x. \<exists>v. \<forall>y. \<exists>w. P(u,x,v,y,w)\<close>
 apply (rule exI allI)
 apply (rule exI allI)
 apply (rule exI allI)
@@ -109,8 +109,8 @@ apply (rule exI allI)
 oops
 
 lemma
-  assumes "(\<exists>z. F(z)) \<and> B"
-  shows "\<exists>z. F(z) \<and> B"
+  assumes \<open>(\<exists>z. F(z)) \<and> B\<close>
+  shows \<open>\<exists>z. F(z) \<and> B\<close>
 apply (rule conjE)
 apply (rule assms)
 apply (rule exE)
@@ -122,7 +122,7 @@ apply assumption
 done
 
 text \<open>A bigger demonstration of quantifiers -- not in the paper.\<close>
-lemma "(\<exists>y. \<forall>x. Q(x,y)) \<longrightarrow> (\<forall>x. \<exists>y. Q(x,y))"
+lemma \<open>(\<exists>y. \<forall>x. Q(x,y)) \<longrightarrow> (\<forall>x. \<exists>y. Q(x,y))\<close>
 apply (rule impI)
 apply (rule allI)
 apply (rule exE, assumption)

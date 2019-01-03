@@ -8,12 +8,12 @@ theory Locale_Test3
 imports Locale_Test1
 begin
 
-interpretation le2: mixin_thy_merge gle gle'
-  rewrites "reflexive.less(gle', x, y) \<longleftrightarrow> gless'(x, y)"
+interpretation le2: mixin_thy_merge \<open>gle\<close> \<open>gle'\<close>
+  rewrites \<open>reflexive.less(gle', x, y) \<longleftrightarrow> gless'(x, y)\<close>
 proof -
-  show "mixin_thy_merge(gle, gle')" by unfold_locales
+  show \<open>mixin_thy_merge(gle, gle')\<close> by unfold_locales
   note reflexive = this[unfolded mixin_thy_merge_def, THEN conjunct2]
-  show "reflexive.less(gle', x, y) \<longleftrightarrow> gless'(x, y)"
+  show \<open>reflexive.less(gle', x, y) \<longleftrightarrow> gless'(x, y)\<close>
     by (simp add: reflexive.less_def[OF reflexive] gless'_def)
 qed
 

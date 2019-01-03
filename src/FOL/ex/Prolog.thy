@@ -10,31 +10,31 @@ imports FOL
 begin
 
 typedecl 'a list
-instance list :: ("term") "term" ..
+instance list :: (\<open>term\<close>) \<open>term\<close> ..
 
 axiomatization
-  Nil     :: "'a list" and
-  Cons    :: "['a, 'a list]=> 'a list"    (infixr \<open>:\<close> 60) and
-  app     :: "['a list, 'a list, 'a list] => o" and
-  rev     :: "['a list, 'a list] => o"
+  Nil     :: \<open>'a list\<close> and
+  Cons    :: \<open>['a, 'a list]=> 'a list\<close>    (infixr \<open>:\<close> 60) and
+  app     :: \<open>['a list, 'a list, 'a list] => o\<close> and
+  rev     :: \<open>['a list, 'a list] => o\<close>
 where
-  appNil:  "app(Nil,ys,ys)" and
-  appCons: "app(xs,ys,zs) ==> app(x:xs, ys, x:zs)" and
-  revNil:  "rev(Nil,Nil)" and
-  revCons: "[| rev(xs,ys);  app(ys, x:Nil, zs) |] ==> rev(x:xs, zs)"
+  appNil:  \<open>app(Nil,ys,ys)\<close> and
+  appCons: \<open>app(xs,ys,zs) ==> app(x:xs, ys, x:zs)\<close> and
+  revNil:  \<open>rev(Nil,Nil)\<close> and
+  revCons: \<open>[| rev(xs,ys);  app(ys, x:Nil, zs) |] ==> rev(x:xs, zs)\<close>
 
-schematic_goal "app(a:b:c:Nil, d:e:Nil, ?x)"
+schematic_goal \<open>app(a:b:c:Nil, d:e:Nil, ?x)\<close>
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 done
 
-schematic_goal "app(?x, c:d:Nil, a:b:c:d:Nil)"
+schematic_goal \<open>app(?x, c:d:Nil, a:b:c:d:Nil)\<close>
 apply (rule appNil appCons)+
 done
 
-schematic_goal "app(?x, ?y, a:b:c:d:Nil)"
+schematic_goal \<open>app(?x, ?y, a:b:c:d:Nil)\<close>
 apply (rule appNil appCons)+
 back
 back
@@ -47,15 +47,15 @@ done
 
 lemmas rules = appNil appCons revNil revCons
 
-schematic_goal "rev(a:b:c:d:Nil, ?x)"
+schematic_goal \<open>rev(a:b:c:d:Nil, ?x)\<close>
 apply (rule rules)+
 done
 
-schematic_goal "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)"
+schematic_goal \<open>rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)\<close>
 apply (rule rules)+
 done
 
-schematic_goal "rev(?x, a:b:c:Nil)"
+schematic_goal \<open>rev(?x, a:b:c:Nil)\<close>
 apply (rule rules)+  \<comment> \<open>does not solve it directly!\<close>
 back
 back
@@ -67,23 +67,23 @@ fun prolog_tac ctxt =
   DEPTH_FIRST (has_fewer_prems 1) (resolve_tac ctxt @{thms rules} 1)
 \<close>
 
-schematic_goal "rev(?x, a:b:c:Nil)"
+schematic_goal \<open>rev(?x, a:b:c:Nil)\<close>
 apply (tactic \<open>prolog_tac @{context}\<close>)
 done
 
-schematic_goal "rev(a:?x:c:?y:Nil, d:?z:b:?u)"
+schematic_goal \<open>rev(a:?x:c:?y:Nil, d:?z:b:?u)\<close>
 apply (tactic \<open>prolog_tac @{context}\<close>)
 done
 
 (*rev([a..p], ?w) requires 153 inferences *)
-schematic_goal "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
+schematic_goal \<open>rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)\<close>
 apply (tactic \<open>
   DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1)\<close>)
 done
 
 (*?x has 16, ?y has 32;  rev(?y,?w) requires 561 (rather large) inferences
   total inferences = 2 + 1 + 17 + 561 = 581*)
-schematic_goal "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x \<and> app(?x,?x,?y) \<and> rev(?y,?w)"
+schematic_goal \<open>a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x \<and> app(?x,?x,?y) \<and> rev(?y,?w)\<close>
 apply (tactic \<open>
   DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1)\<close>)
 done

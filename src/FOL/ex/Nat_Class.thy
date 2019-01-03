@@ -16,21 +16,21 @@ text \<open>
 \<close>
 
 class nat =
-  fixes Zero :: 'a  (\<open>0\<close>)
-    and Suc :: "'a \<Rightarrow> 'a"
-    and rec :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
-  assumes induct: "P(0) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)"
-    and Suc_inject: "Suc(m) = Suc(n) \<Longrightarrow> m = n"
-    and Suc_neq_Zero: "Suc(m) = 0 \<Longrightarrow> R"
-    and rec_Zero: "rec(0, a, f) = a"
-    and rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
+  fixes Zero :: \<open>'a\<close>  (\<open>0\<close>)
+    and Suc :: \<open>'a \<Rightarrow> 'a\<close>
+    and rec :: \<open>'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a\<close>
+  assumes induct: \<open>P(0) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)\<close>
+    and Suc_inject: \<open>Suc(m) = Suc(n) \<Longrightarrow> m = n\<close>
+    and Suc_neq_Zero: \<open>Suc(m) = 0 \<Longrightarrow> R\<close>
+    and rec_Zero: \<open>rec(0, a, f) = a\<close>
+    and rec_Suc: \<open>rec(Suc(m), a, f) = f(m, rec(m, a, f))\<close>
 begin
 
-definition add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>+\<close> 60)
-  where "m + n = rec(m, n, \<lambda>x y. Suc(y))"
+definition add :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixl \<open>+\<close> 60)
+  where \<open>m + n = rec(m, n, \<lambda>x y. Suc(y))\<close>
 
-lemma Suc_n_not_n: "Suc(k) \<noteq> (k::'a)"
-  apply (rule_tac n = k in induct)
+lemma Suc_n_not_n: \<open>Suc(k) \<noteq> (k::'a)\<close>
+  apply (rule_tac n = \<open>k\<close> in induct)
    apply (rule notI)
    apply (erule Suc_neq_Zero)
   apply (rule notI)
@@ -38,7 +38,7 @@ lemma Suc_n_not_n: "Suc(k) \<noteq> (k::'a)"
   apply (erule Suc_inject)
   done
 
-lemma "(k + m) + n = k + (m + n)"
+lemma \<open>(k + m) + n = k + (m + n)\<close>
   apply (rule induct)
   back
   back
@@ -47,37 +47,37 @@ lemma "(k + m) + n = k + (m + n)"
   back
   oops
 
-lemma add_Zero [simp]: "0 + n = n"
+lemma add_Zero [simp]: \<open>0 + n = n\<close>
   apply (unfold add_def)
   apply (rule rec_Zero)
   done
 
-lemma add_Suc [simp]: "Suc(m) + n = Suc(m + n)"
+lemma add_Suc [simp]: \<open>Suc(m) + n = Suc(m + n)\<close>
   apply (unfold add_def)
   apply (rule rec_Suc)
   done
 
-lemma add_assoc: "(k + m) + n = k + (m + n)"
-  apply (rule_tac n = k in induct)
+lemma add_assoc: \<open>(k + m) + n = k + (m + n)\<close>
+  apply (rule_tac n = \<open>k\<close> in induct)
    apply simp
   apply simp
   done
 
-lemma add_Zero_right: "m + 0 = m"
-  apply (rule_tac n = m in induct)
+lemma add_Zero_right: \<open>m + 0 = m\<close>
+  apply (rule_tac n = \<open>m\<close> in induct)
    apply simp
   apply simp
   done
 
-lemma add_Suc_right: "m + Suc(n) = Suc(m + n)"
-  apply (rule_tac n = m in induct)
+lemma add_Suc_right: \<open>m + Suc(n) = Suc(m + n)\<close>
+  apply (rule_tac n = \<open>m\<close> in induct)
    apply simp_all
   done
 
 lemma
-  assumes prem: "\<And>n. f(Suc(n)) = Suc(f(n))"
-  shows "f(i + j) = i + f(j)"
-  apply (rule_tac n = i in induct)
+  assumes prem: \<open>\<And>n. f(Suc(n)) = Suc(f(n))\<close>
+  shows \<open>f(i + j) = i + f(j)\<close>
+  apply (rule_tac n = \<open>i\<close> in induct)
    apply simp
   apply (simp add: prem)
   done
