@@ -160,8 +160,13 @@ given theory to the file-system, e.g. a temporary directory where some
 external compiler is applied.
 
 
-
 *** System ***
+
+* The command-line tool "isabelle update" uses Isabelle/PIDE in
+batch-mode to update theory sources based on semantic markup produced in
+Isabelle/ML. Actual updates depend on system options that may be enable
+via "-u OPT" (for "update_OPT"). Sessions are specified as in "isabelle
+dump".
 
 * Support for Isabelle command-line tools defined in Isabelle/Scala.
 Instances of class Isabelle_Scala_Tools may be configured via the shell
