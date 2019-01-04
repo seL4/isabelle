@@ -103,7 +103,7 @@ fun declare binding descr lthy =
 (* ML antiquotation *)
 
 val _ = Theory.setup
-  (ML_Antiquotation.inline \<^binding>\<open>named_theorems\<close>
+  (ML_Antiquotation.inline_embedded \<^binding>\<open>named_theorems\<close>
     (Args.context -- Scan.lift Args.embedded_position >>
       (fn (ctxt, name) => ML_Syntax.print_string (check ctxt name))));
 

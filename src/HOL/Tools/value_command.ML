@@ -73,7 +73,7 @@ val _ =
       >> (fn ((name, modes), t) => Toplevel.keep (value_cmd name modes t)));
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_pretty_source \<^binding>\<open>value\<close>
+  (Thy_Output.antiquotation_pretty_source_embedded \<^binding>\<open>value\<close>
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
     (fn ctxt => fn ((name, style), t) =>
       Thy_Output.pretty_term ctxt (style (value_select name ctxt t)))

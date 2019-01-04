@@ -23,6 +23,8 @@ sig
   val is_symbolic: symbol -> bool
   val is_symbolic_char: symbol -> bool
   val is_printable: symbol -> bool
+  val control_prefix: string
+  val control_suffix: string
   val is_control: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
@@ -135,8 +137,11 @@ fun is_printable s =
   if is_char s then 32 <= ord s andalso ord s <= Char.ord #"~"
   else is_utf8 s orelse raw_symbolic s;
 
+val control_prefix = "\092<^";
+val control_suffix = ">";
+
 fun is_control s =
-  String.isPrefix "\092<^" s andalso String.isSuffix ">" s;
+  String.isPrefix control_prefix s andalso String.isSuffix control_suffix s;
 
 
 (* input source control *)

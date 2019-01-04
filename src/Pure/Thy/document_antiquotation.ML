@@ -26,6 +26,8 @@ sig
   val check_option: Proof.context -> xstring * Position.T -> string
   val setup: binding -> 'a context_parser ->
     ({context: Proof.context, source: Token.src, argument: 'a} -> Latex.text) -> theory -> theory
+  val setup_embedded: binding -> 'a context_parser ->
+    ({context: Proof.context, source: Token.src, argument: 'a} -> Latex.text) -> theory -> theory
   val setup_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val boolean: string -> bool
   val integer: string -> int
@@ -86,7 +88,7 @@ fun output ctxt = quote ctxt #> indent ctxt #> format ctxt #> Output.output;
 structure Data = Theory_Data
 (
   type T =
-    (Token.src -> Proof.context -> Latex.text) Name_Space.table *
+    (bool * (Token.src -> Proof.context -> Latex.text)) Name_Space.table *
       (string -> Proof.context -> Proof.context) Name_Space.table;
   val empty : T =
     (Name_Space.empty_table Markup.document_antiquotationN,
@@ -112,12 +114,16 @@ fun print_antiquotations verbose ctxt =
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt));
 fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
 
-fun setup name scan body thy =
+fun gen_setup name embedded scan body thy =
   let
     fun cmd src ctxt =
       let val (x, ctxt') = Token.syntax scan src ctxt
       in body {context = ctxt', source = src, argument = x} end;
-  in thy |> Data.map (apfst (Name_Space.define (Context.Theory thy) true (name, cmd) #> #2)) end;
+    val entry = (name, (embedded, cmd));
+  in thy |> Data.map (apfst (Name_Space.define (Context.Theory thy) true entry #> #2)) end;
+
+fun setup name = gen_setup name false;
+fun setup_embedded name = gen_setup name true;
 
 fun setup_option name opt thy = thy
   |> Data.map (apsnd (Name_Space.define (Context.Theory thy) true (name, opt) #> #2));
@@ -138,7 +144,7 @@ in
 val parse_antiq =
   Parse.!!!
     (Parse.token Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
-  >> (fn ((name, props), args) => (props, name :: args));
+  >> (fn ((name, opts), args) => (opts, name :: args));
 
 end;
 
@@ -147,9 +153,15 @@ end;
 
 local
 
-fun command src ctxt =
-  let val (src', f) = Token.check_src ctxt (#1 o get_antiquotations) src
-  in f src' ctxt end;
+fun command pos (opts, src) ctxt =
+  let
+    val (src', (embedded, scan)) = Token.check_src ctxt (#1 o get_antiquotations) src;
+    val _ =
+      if null opts andalso Options.default_bool "update_control_cartouches" then
+        Context_Position.reports_text ctxt
+          (Antiquote.update_reports embedded pos (map Token.content_of src'))
+      else ();
+  in scan src' ctxt end;
 
 fun option ((xname, pos), s) ctxt =
   let
@@ -157,14 +169,14 @@ fun option ((xname, pos), s) ctxt =
       Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt)) (xname, pos);
   in opt s ctxt end;
 
-fun eval ctxt (opts, src) =
+fun eval ctxt pos (opts, src) =
   let
     val preview_ctxt = fold option opts (Config.put show_markup false ctxt);
-    val _ = command src preview_ctxt;
+    val _ = command pos (opts, src) preview_ctxt;
 
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
     val print_modes = space_explode "," (Config.get print_ctxt thy_output_modes) @ [Latex.latexN];
-  in [Print_Mode.with_modes print_modes (fn () => command src print_ctxt) ()] end;
+  in [Print_Mode.with_modes print_modes (fn () => command pos (opts, src) print_ctxt) ()] end;
 
 in
 
@@ -172,10 +184,11 @@ fun evaluate eval_text ctxt antiq =
   (case antiq of
     Antiquote.Text ss => eval_text ss
   | Antiquote.Control {name, body, ...} =>
-      eval ctxt ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
+      eval ctxt Position.none
+        ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
   | Antiquote.Antiq {range = (pos, _), body, ...} =>
       let val keywords = Thy_Header.get_keywords' ctxt;
-      in eval ctxt (Token.read_antiq keywords parse_antiq (body, pos)) end);
+      in eval ctxt pos (Token.read_antiq keywords parse_antiq (body, pos)) end);
 
 end;
 

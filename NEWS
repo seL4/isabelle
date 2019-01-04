@@ -171,6 +171,10 @@ via "-u OPT" (for "update_OPT"), see also $ISABELLE_HOME/etc/options
 section "Theory update". Theory sessions are specified as in "isabelle
 dump".
 
+* The command-line tool "isabelle update -u control_cartouches" changes
+antiquotations into control-symbol format (where possible): @{NAME}
+becomes \<^NAME> and @{NAME ARG} becomes \<^NAME>\<open>ARG\<close>.
+
 * Support for Isabelle command-line tools defined in Isabelle/Scala.
 Instances of class Isabelle_Scala_Tools may be configured via the shell
 function "isabelle_scala_tools" in etc/settings (e.g. of an Isabelle

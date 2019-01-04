@@ -27,11 +27,19 @@ sig
   val pretty_items_source: Proof.context -> Token.src -> Pretty.T list -> Latex.text
   val antiquotation_pretty:
     binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
+  val antiquotation_pretty_embedded:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
   val antiquotation_pretty_source:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
+  val antiquotation_pretty_source_embedded:
     binding -> 'a context_parser -> (Proof.context -> 'a -> Pretty.T) -> theory -> theory
   val antiquotation_raw:
     binding -> 'a context_parser -> (Proof.context -> 'a -> Latex.text) -> theory -> theory
+  val antiquotation_raw_embedded:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> Latex.text) -> theory -> theory
   val antiquotation_verbatim:
+    binding -> 'a context_parser -> (Proof.context -> 'a -> string) -> theory -> theory
+  val antiquotation_verbatim_embedded:
     binding -> 'a context_parser -> (Proof.context -> 'a -> string) -> theory -> theory
 end;
 
@@ -525,19 +533,40 @@ fun pretty_items_source ctxt src prts =
 
 (* antiquotation variants *)
 
-fun antiquotation_pretty name scan f =
-  Document_Antiquotation.setup name scan
-    (fn {context = ctxt, argument = x, ...} => pretty ctxt (f ctxt x));
+local
 
-fun antiquotation_pretty_source name scan f =
-  Document_Antiquotation.setup name scan
+fun gen_setup name embedded =
+  if embedded
+  then Document_Antiquotation.setup_embedded name
+  else Document_Antiquotation.setup name;
+
+fun gen_antiquotation_pretty name embedded scan f =
+  gen_setup name embedded scan (fn {context = ctxt, argument = x, ...} => pretty ctxt (f ctxt x));
+
+fun gen_antiquotation_pretty_source name embedded scan f =
+  gen_setup name embedded scan
     (fn {context = ctxt, source = src, argument = x} => pretty_source ctxt src (f ctxt x));
 
-fun antiquotation_raw name scan f =
-  Document_Antiquotation.setup name scan
-    (fn {context = ctxt, argument = x, ...} => f ctxt x);
+fun gen_antiquotation_raw name embedded scan f =
+  gen_setup name embedded scan (fn {context = ctxt, argument = x, ...} => f ctxt x);
 
-fun antiquotation_verbatim name scan f =
-  antiquotation_raw name scan (fn ctxt => verbatim ctxt o f ctxt);
+fun gen_antiquotation_verbatim name embedded scan f =
+  gen_antiquotation_raw name embedded scan (fn ctxt => verbatim ctxt o f ctxt);
+
+in
+
+fun antiquotation_pretty name = gen_antiquotation_pretty name false;
+fun antiquotation_pretty_embedded name = gen_antiquotation_pretty name true;
+
+fun antiquotation_pretty_source name = gen_antiquotation_pretty_source name false;
+fun antiquotation_pretty_source_embedded name = gen_antiquotation_pretty_source name true;
+
+fun antiquotation_raw name = gen_antiquotation_raw name false;
+fun antiquotation_raw_embedded name = gen_antiquotation_raw name true;
+
+fun antiquotation_verbatim name = gen_antiquotation_verbatim name false;
+fun antiquotation_verbatim_embedded name = gen_antiquotation_verbatim name true;
+
+end;
 
 end;

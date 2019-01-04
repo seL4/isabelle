@@ -40,7 +40,7 @@ fun check ctxt =
   #1 o Name_Space.check (Context.Proof ctxt) (Data.get (Proof_Context.theory_of ctxt));
 
 val _ = Theory.setup
-  (ML_Antiquotation.inline \<^binding>\<open>plugin\<close>
+  (ML_Antiquotation.inline_embedded \<^binding>\<open>plugin\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (ML_Syntax.print_string o uncurry check)));
 
 

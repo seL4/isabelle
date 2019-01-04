@@ -62,7 +62,7 @@ fun pretty_prf full ctxt = Proof_Syntax.pretty_clean_proof_of ctxt full;
 fun pretty_theory ctxt (name, pos) =
   (Theory.check {long = true} ctxt (name, pos); Pretty.str name);
 
-val basic_entity = Thy_Output.antiquotation_pretty_source;
+val basic_entity = Thy_Output.antiquotation_pretty_source_embedded;
 
 fun basic_entities name scan pretty =
   Document_Antiquotation.setup name scan
@@ -132,7 +132,7 @@ val _ =
 local
 
 fun control_antiquotation name s1 s2 =
-  Thy_Output.antiquotation_raw name (Scan.lift Args.cartouche_input)
+  Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.cartouche_input)
     (fn ctxt => Latex.enclose_block s1 s2 o Thy_Output.output_document ctxt {markdown = false});
 
 in
@@ -158,7 +158,7 @@ fun prepare_text ctxt =
   Input.source_content #> #1 #> Document_Antiquotation.prepare_lines ctxt;
 
 fun text_antiquotation name =
-  Thy_Output.antiquotation_raw name (Scan.lift Args.text_input)
+  Thy_Output.antiquotation_raw_embedded name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val _ = report_text ctxt text;
@@ -169,7 +169,7 @@ fun text_antiquotation name =
       end);
 
 val theory_text_antiquotation =
-  Thy_Output.antiquotation_raw \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
+  Thy_Output.antiquotation_raw_embedded \<^binding>\<open>theory_text\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val keywords = Thy_Header.get_keywords' ctxt;
@@ -243,7 +243,7 @@ val _ = Theory.setup
 (* verbatim text *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_verbatim \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
+  (Thy_Output.antiquotation_verbatim_embedded \<^binding>\<open>verbatim\<close> (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let
         val _ =
@@ -257,7 +257,7 @@ val _ = Theory.setup
 local
 
 fun ml_text name ml =
-  Thy_Output.antiquotation_verbatim name (Scan.lift Args.text_input)
+  Thy_Output.antiquotation_verbatim_embedded name (Scan.lift Args.text_input)
     (fn ctxt => fn text =>
       let val _ = ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of text) (ml text)
       in #1 (Input.source_content text) end);
@@ -287,7 +287,7 @@ end;
 (* URLs *)
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw \<^binding>\<open>url\<close> (Scan.lift Args.embedded_position)
+  (Thy_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Args.embedded_position)
     (fn ctxt => fn (url, pos) =>
       let val _ = Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url url)]
       in Latex.enclose_block "\\url{" "}" [Latex.string url] end));

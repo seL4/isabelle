@@ -16,7 +16,7 @@ val _ = Theory.setup
   ML_Antiquotation.inline \<^binding>\<open>assert\<close>
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
-  ML_Antiquotation.declaration \<^binding>\<open>print\<close>
+  ML_Antiquotation.declaration_embedded \<^binding>\<open>print\<close>
     (Scan.lift (Scan.optional Args.embedded "Output.writeln"))
       (fn src => fn output => fn ctxt =>
         let
@@ -40,18 +40,18 @@ val _ = Theory.setup
 (* formal entities *)
 
 val _ = Theory.setup
- (ML_Antiquotation.value \<^binding>\<open>system_option\<close>
+ (ML_Antiquotation.value_embedded \<^binding>\<open>system_option\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Completion.check_option (Options.default ()) ctxt (name, pos) |> ML_Syntax.print_string))) #>
 
-  ML_Antiquotation.value \<^binding>\<open>theory\<close>
+  ML_Antiquotation.value_embedded \<^binding>\<open>theory\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Theory.check {long = false} ctxt (name, pos);
        "Context.get_theory {long = false} (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))
     || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
-  ML_Antiquotation.value \<^binding>\<open>theory_context\<close>
+  ML_Antiquotation.value_embedded \<^binding>\<open>theory_context\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       (Theory.check {long = false} ctxt (name, pos);
        "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
@@ -60,20 +60,25 @@ val _ = Theory.setup
   ML_Antiquotation.inline \<^binding>\<open>context\<close>
     (Args.context >> (fn ctxt => ML_Context.struct_name ctxt ^ ".ML_context")) #>
 
-  ML_Antiquotation.inline \<^binding>\<open>typ\<close> (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ)) #>
-  ML_Antiquotation.inline \<^binding>\<open>term\<close> (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
-  ML_Antiquotation.inline \<^binding>\<open>prop\<close> (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>typ\<close>
+    (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ)) #>
 
-  ML_Antiquotation.value \<^binding>\<open>ctyp\<close> (Args.typ >> (fn T =>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>term\<close>
+    (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
+
+  ML_Antiquotation.inline_embedded \<^binding>\<open>prop\<close>
+    (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
+
+  ML_Antiquotation.value_embedded \<^binding>\<open>ctyp\<close> (Args.typ >> (fn T =>
     "Thm.ctyp_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
 
-  ML_Antiquotation.value \<^binding>\<open>cterm\<close> (Args.term >> (fn t =>
+  ML_Antiquotation.value_embedded \<^binding>\<open>cterm\<close> (Args.term >> (fn t =>
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
-  ML_Antiquotation.value \<^binding>\<open>cprop\<close> (Args.prop >> (fn t =>
+  ML_Antiquotation.value_embedded \<^binding>\<open>cprop\<close> (Args.prop >> (fn t =>
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
-  ML_Antiquotation.inline \<^binding>\<open>method\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>method\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       ML_Syntax.print_string (Method.check_name ctxt (name, pos)))));
 
@@ -81,7 +86,7 @@ val _ = Theory.setup
 (* locales *)
 
 val _ = Theory.setup
- (ML_Antiquotation.inline \<^binding>\<open>locale\<close>
+ (ML_Antiquotation.inline_embedded \<^binding>\<open>locale\<close>
    (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (name, pos)) =>
       Locale.check (Proof_Context.theory_of ctxt) (name, pos)
       |> ML_Syntax.print_string)));
@@ -95,10 +100,10 @@ fun class syn = Args.context -- Scan.lift Args.embedded_inner_syntax >> (fn (ctx
   |> ML_Syntax.print_string);
 
 val _ = Theory.setup
- (ML_Antiquotation.inline \<^binding>\<open>class\<close> (class false) #>
-  ML_Antiquotation.inline \<^binding>\<open>class_syntax\<close> (class true) #>
+ (ML_Antiquotation.inline_embedded \<^binding>\<open>class\<close> (class false) #>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>class_syntax\<close> (class true) #>
 
-  ML_Antiquotation.inline \<^binding>\<open>sort\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>sort\<close>
     (Args.context -- Scan.lift Args.embedded_inner_syntax >> (fn (ctxt, s) =>
       ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s)))));
 
@@ -119,13 +124,13 @@ fun type_name kind check = Args.context -- Scan.lift Args.embedded_token
     in ML_Syntax.print_string res end);
 
 val _ = Theory.setup
- (ML_Antiquotation.inline \<^binding>\<open>type_name\<close>
+ (ML_Antiquotation.inline_embedded \<^binding>\<open>type_name\<close>
     (type_name "logical type" (fn (c, Type.LogicalType _) => c)) #>
-  ML_Antiquotation.inline \<^binding>\<open>type_abbrev\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>type_abbrev\<close>
     (type_name "type abbreviation" (fn (c, Type.Abbreviation _) => c)) #>
-  ML_Antiquotation.inline \<^binding>\<open>nonterminal\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>nonterminal\<close>
     (type_name "nonterminal" (fn (c, Type.Nonterminal) => c)) #>
-  ML_Antiquotation.inline \<^binding>\<open>type_syntax\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>type_syntax\<close>
     (type_name "type" (fn (c, _) => Lexicon.mark_type c)));
 
 
@@ -142,14 +147,14 @@ fun const_name check = Args.context -- Scan.lift Args.embedded_token
     in ML_Syntax.print_string res end);
 
 val _ = Theory.setup
- (ML_Antiquotation.inline \<^binding>\<open>const_name\<close>
+ (ML_Antiquotation.inline_embedded \<^binding>\<open>const_name\<close>
     (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
-  ML_Antiquotation.inline \<^binding>\<open>const_abbrev\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>const_abbrev\<close>
     (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c))) #>
-  ML_Antiquotation.inline \<^binding>\<open>const_syntax\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>const_syntax\<close>
     (const_name (fn (_, c) => Lexicon.mark_const c)) #>
 
-  ML_Antiquotation.inline \<^binding>\<open>syntax_const\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>syntax_const\<close>
     (Args.context -- Scan.lift Args.embedded_position >> (fn (ctxt, (c, pos)) =>
       if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
       then ML_Syntax.print_string c
@@ -252,7 +257,7 @@ end;
 (* outer syntax *)
 
 val _ = Theory.setup
- (ML_Antiquotation.value \<^binding>\<open>keyword\<close>
+ (ML_Antiquotation.value_embedded \<^binding>\<open>keyword\<close>
     (Args.context --
       Scan.lift (Parse.embedded_position || Parse.position (Parse.keyword_with (K true)))
       >> (fn (ctxt, (name, pos)) =>
@@ -260,7 +265,7 @@ val _ = Theory.setup
           (Context_Position.report ctxt pos (Token.keyword_markup (true, Markup.keyword2) name);
            "Parse.$$$ " ^ ML_Syntax.print_string name)
         else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos))) #>
-  ML_Antiquotation.value \<^binding>\<open>command_keyword\<close>
+  ML_Antiquotation.value_embedded \<^binding>\<open>command_keyword\<close>
     (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, (name, pos)) =>
       (case Keyword.command_markup (Thy_Header.get_keywords' ctxt) name of
         SOME markup =>

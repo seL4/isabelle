@@ -285,6 +285,9 @@ option update_inner_syntax_cartouches : bool = false
 option update_mixfix_cartouches : bool = false
   -- "update mixfix templates to use cartouches instead of double quotes"
 
+option update_control_cartouches : bool = false
+  -- "update antiquotations to use control symbol with cartouche argument"
+
 
 section "Build Database"
 

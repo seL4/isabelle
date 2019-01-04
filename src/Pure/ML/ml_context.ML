@@ -11,7 +11,7 @@ sig
   val variant: string -> Proof.context -> string * Proof.context
   type decl = Proof.context -> string * string
   val value_decl: string -> string -> Proof.context -> decl * Proof.context
-  val add_antiquotation: binding -> (Token.src -> Proof.context -> decl * Proof.context) ->
+  val add_antiquotation: binding -> bool -> (Token.src -> Proof.context -> decl * Proof.context) ->
     theory -> theory
   val print_antiquotations: bool -> Proof.context -> unit
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
@@ -67,7 +67,7 @@ fun value_decl a s ctxt =
 
 structure Antiquotations = Theory_Data
 (
-  type T = (Token.src -> Proof.context -> decl * Proof.context) Name_Space.table;
+  type T = (bool * (Token.src -> Proof.context -> decl * Proof.context)) Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
   val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
@@ -78,17 +78,23 @@ val get_antiquotations = Antiquotations.get o Proof_Context.theory_of;
 fun check_antiquotation ctxt =
   #1 o Name_Space.check (Context.Proof ctxt) (get_antiquotations ctxt);
 
-fun add_antiquotation name f thy = thy
-  |> Antiquotations.map (Name_Space.define (Context.Theory thy) true (name, f) #> snd);
+fun add_antiquotation name embedded scan thy = thy
+  |> Antiquotations.map (Name_Space.define (Context.Theory thy) true (name, (embedded, scan)) #> snd);
 
 fun print_antiquotations verbose ctxt =
   Pretty.big_list "ML antiquotations:"
     (map (Pretty.mark_str o #1) (Name_Space.markup_table verbose ctxt (get_antiquotations ctxt)))
   |> Pretty.writeln;
 
-fun apply_antiquotation src ctxt =
-  let val (src', f) = Token.check_src ctxt get_antiquotations src
-  in f src' ctxt end;
+fun apply_antiquotation pos src ctxt =
+  let
+    val (src', (embedded, scan)) = Token.check_src ctxt get_antiquotations src;
+    val _ =
+      if Options.default_bool "update_control_cartouches" then
+        Context_Position.reports_text ctxt
+          (Antiquote.update_reports embedded pos (map Token.content_of src'))
+      else ();
+  in scan src' ctxt end;
 
 
 (* parsing and evaluation *)
@@ -123,7 +129,7 @@ fun eval_antiquotes (ants, pos) opt_context =
           fun tokenize range = apply2 (ML_Lex.tokenize #> map (ML_Lex.set_range range));
 
           fun expand_src range src ctxt =
-            let val (decl, ctxt') = apply_antiquotation src ctxt
+            let val (decl, ctxt') = apply_antiquotation (#1 range) src ctxt;
             in (decl #> tokenize range, ctxt') end;
 
           fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)

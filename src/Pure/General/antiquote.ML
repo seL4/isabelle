@@ -14,6 +14,7 @@ sig
   val text_range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: 'a antiquote list -> Position.report list
+  val update_reports: bool -> Position.T -> string list -> Position.report_text list
   val scan_control: control scanner
   val scan_antiq: antiq scanner
   val scan_antiquote: text_antiquote scanner
@@ -69,6 +70,30 @@ fun antiq_reports ants = ants |> maps
          (stop, Markup.antiquote),
          (pos, Markup.antiquoted),
          (pos, Markup.language_antiquotation)]);
+
+
+(* update *)
+
+fun update_reports embedded pos src =
+  let
+    val n = length src;
+    val no_arg = n = 1;
+    val embedded_arg = n = 2 andalso embedded;
+    val control =
+      (case src of
+        name :: _ =>
+          if Symbol.is_ascii_identifier name andalso name <> "cartouche" andalso
+            (no_arg orelse embedded_arg)
+          then SOME (Symbol.control_prefix ^ name ^ Symbol.control_suffix)
+          else NONE
+      | [] => NONE);
+    val arg = if embedded_arg then cartouche (nth src 1) else "";
+  in
+    (case control of
+      SOME sym => [((pos, Markup.update), sym ^ arg)]
+    | NONE => [])
+  end;
+
 
 
 (* scan *)
