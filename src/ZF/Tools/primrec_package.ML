@@ -115,8 +115,8 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
             case AList.lookup (op =) eqns cname of
                 NONE => (warning ("no equation for constructor " ^ cname ^
                                   "\nin definition of function " ^ fname);
-                         (Const (@{const_name zero}, Ind_Syntax.iT),
-                          #2 recursor_pair, Const (@{const_name zero}, Ind_Syntax.iT)))
+                         (Const (\<^const_name>\<open>zero\<close>, Ind_Syntax.iT),
+                          #2 recursor_pair, Const (\<^const_name>\<open>zero\<close>, Ind_Syntax.iT)))
               | SOME (rhs, cargs', eq) =>
                     (rhs, inst_recursor (recursor_pair, cargs'), eq)
           val allowed_terms = map use_fabs (#2 (strip_comb recursor_rhs))
@@ -197,7 +197,7 @@ fun primrec args thy =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword primrec} "define primitive recursive functions on datatypes"
+  Outer_Syntax.command \<^command_keyword>\<open>primrec\<close> "define primitive recursive functions on datatypes"
     (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
       >> (Toplevel.theory o (#1 oo (primrec o map (fn ((x, y), z) => ((x, z), y))))));
 

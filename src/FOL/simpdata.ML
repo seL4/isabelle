@@ -9,16 +9,16 @@ Simplification data for FOL.
 
 fun mk_meta_eq th =
   (case Thm.concl_of th of
-    _ $ (Const(@{const_name eq},_)$_$_)   => th RS @{thm eq_reflection}
-  | _ $ (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
+    _ $ (Const(\<^const_name>\<open>eq\<close>,_)$_$_)   => th RS @{thm eq_reflection}
+  | _ $ (Const(\<^const_name>\<open>iff\<close>,_)$_$_) => th RS @{thm iff_reflection}
   | _ => error "conclusion must be a =-equality or <->");
 
 fun mk_eq th =
   (case Thm.concl_of th of
-    Const(@{const_name Pure.eq},_)$_$_ => th
-  | _ $ (Const(@{const_name eq},_)$_$_)   => mk_meta_eq th
-  | _ $ (Const(@{const_name iff},_)$_$_) => mk_meta_eq th
-  | _ $ (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
+    Const(\<^const_name>\<open>Pure.eq\<close>,_)$_$_ => th
+  | _ $ (Const(\<^const_name>\<open>eq\<close>,_)$_$_)   => mk_meta_eq th
+  | _ $ (Const(\<^const_name>\<open>iff\<close>,_)$_$_) => mk_meta_eq th
+  | _ $ (Const(\<^const_name>\<open>Not\<close>,_)$_)      => th RS @{thm iff_reflection_F}
   | _  => th RS @{thm iff_reflection_T});
 
 (*Replace premises x=y, X<->Y by X==Y*)
@@ -33,14 +33,14 @@ fun mk_meta_cong ctxt rl =
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 
 val mksimps_pairs =
-  [(@{const_name imp}, [@{thm mp}]), (@{const_name conj}, [@{thm conjunct1}, @{thm conjunct2}]),
-   (@{const_name All}, [@{thm spec}]), (@{const_name True}, []), (@{const_name False}, [])];
+  [(\<^const_name>\<open>imp\<close>, [@{thm mp}]), (\<^const_name>\<open>conj\<close>, [@{thm conjunct1}, @{thm conjunct2}]),
+   (\<^const_name>\<open>All\<close>, [@{thm spec}]), (\<^const_name>\<open>True\<close>, []), (\<^const_name>\<open>False\<close>, [])];
 
 fun mk_atomize pairs =
   let
     fun atoms th =
       (case Thm.concl_of th of
-         Const(@{const_name Trueprop},_) $ p =>
+         Const(\<^const_name>\<open>Trueprop\<close>,_) $ p =>
            (case head_of p of
               Const(a,_) =>
                 (case AList.lookup (op =) pairs a of
@@ -57,11 +57,11 @@ fun mksimps pairs ctxt = map mk_eq o mk_atomize pairs o Variable.gen_all ctxt;
 structure Quantifier1 = Quantifier1
 (
   (*abstract syntax*)
-  fun dest_eq (Const (@{const_name eq}, _) $ s $ t) = SOME (s, t)
+  fun dest_eq (Const (\<^const_name>\<open>eq\<close>, _) $ s $ t) = SOME (s, t)
     | dest_eq _ = NONE
-  fun dest_conj (Const (@{const_name conj}, _) $ s $ t) = SOME (s, t)
+  fun dest_conj (Const (\<^const_name>\<open>conj\<close>, _) $ s $ t) = SOME (s, t)
     | dest_conj _ = NONE
-  fun dest_imp (Const (@{const_name imp}, _) $ s $ t) = SOME (s, t)
+  fun dest_imp (Const (\<^const_name>\<open>imp\<close>, _) $ s $ t) = SOME (s, t)
     | dest_imp _ = NONE
   val conj = FOLogic.conj
   val imp  = FOLogic.imp
@@ -87,7 +87,7 @@ structure Quantifier1 = Quantifier1
 
 structure Splitter = Splitter
 (
-  val context = @{context}
+  val context = \<^context>
   val mk_eq = mk_eq
   val meta_eq_to_iff = @{thm meta_eq_to_iff}
   val iffD = @{thm iffD2}
@@ -121,7 +121,7 @@ fun safe_solver ctxt =
 
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =
-  empty_simpset @{context}
+  empty_simpset \<^context>
   setSSolver (mk_solver "FOL safe" safe_solver)
   setSolver (mk_solver "FOL unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac

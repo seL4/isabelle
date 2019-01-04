@@ -105,8 +105,8 @@ fun lookup_fun ({funs, ...}: ('a, 'b) context) = Symtab.lookup funs
 
 (* core type and term parser *)
 
-fun core_type_parser (SMTLIB.Sym "Bool", []) = SOME @{typ HOL.bool}
-  | core_type_parser (SMTLIB.Sym "Int", []) = SOME @{typ Int.int}
+fun core_type_parser (SMTLIB.Sym "Bool", []) = SOME \<^typ>\<open>HOL.bool\<close>
+  | core_type_parser (SMTLIB.Sym "Int", []) = SOME \<^typ>\<open>Int.int\<close>
   | core_type_parser _ = NONE
 
 fun mk_unary n t =
@@ -135,10 +135,10 @@ fun mk_binary_pred n S t1 t2 =
       if T1 <> Term.dummyT then T1
       else if T2 <> Term.dummyT then T2
       else TVar (("?a", serial ()), S)
-  in mk_binary' n T @{typ HOL.bool} t1 t2 end
+  in mk_binary' n T \<^typ>\<open>HOL.bool\<close> t1 t2 end
 
-fun mk_less t1 t2 = mk_binary_pred @{const_name ord_class.less} @{sort linorder} t1 t2
-fun mk_less_eq t1 t2 = mk_binary_pred @{const_name ord_class.less_eq} @{sort linorder} t1 t2
+fun mk_less t1 t2 = mk_binary_pred \<^const_name>\<open>ord_class.less\<close> \<^sort>\<open>linorder\<close> t1 t2
+fun mk_less_eq t1 t2 = mk_binary_pred \<^const_name>\<open>ord_class.less_eq\<close> \<^sort>\<open>linorder\<close> t1 t2
 
 fun core_term_parser (SMTLIB.Sym "true", _) = SOME @{const HOL.True}
   | core_term_parser (SMTLIB.Sym "false", _) = SOME @{const HOL.False}
@@ -152,19 +152,19 @@ fun core_term_parser (SMTLIB.Sym "true", _) = SOME @{const HOL.True}
   | core_term_parser (SMTLIB.Sym "ite", [t1, t2, t3]) =
       let
         val T = fastype_of t2
-        val c = Const (@{const_name HOL.If}, [@{typ HOL.bool}, T, T] ---> T)
+        val c = Const (\<^const_name>\<open>HOL.If\<close>, [\<^typ>\<open>HOL.bool\<close>, T, T] ---> T)
       in SOME (c $ t1 $ t2 $ t3) end
-  | core_term_parser (SMTLIB.Num i, []) = SOME (HOLogic.mk_number @{typ Int.int} i)
-  | core_term_parser (SMTLIB.Sym "-", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
-  | core_term_parser (SMTLIB.Sym "~", [t]) = SOME (mk_unary @{const_name uminus_class.uminus} t)
+  | core_term_parser (SMTLIB.Num i, []) = SOME (HOLogic.mk_number \<^typ>\<open>Int.int\<close> i)
+  | core_term_parser (SMTLIB.Sym "-", [t]) = SOME (mk_unary \<^const_name>\<open>uminus_class.uminus\<close> t)
+  | core_term_parser (SMTLIB.Sym "~", [t]) = SOME (mk_unary \<^const_name>\<open>uminus_class.uminus\<close> t)
   | core_term_parser (SMTLIB.Sym "+", t :: ts) =
-      SOME (mk_lassoc' @{const_name plus_class.plus} t ts)
+      SOME (mk_lassoc' \<^const_name>\<open>plus_class.plus\<close> t ts)
   | core_term_parser (SMTLIB.Sym "-", t :: ts) =
-      SOME (mk_lassoc' @{const_name minus_class.minus} t ts)
+      SOME (mk_lassoc' \<^const_name>\<open>minus_class.minus\<close> t ts)
   | core_term_parser (SMTLIB.Sym "*", t :: ts) =
-      SOME (mk_lassoc' @{const_name times_class.times} t ts)
-  | core_term_parser (SMTLIB.Sym "div", [t1, t2]) = SOME (mk_binary @{const_name z3div} t1 t2)
-  | core_term_parser (SMTLIB.Sym "mod", [t1, t2]) = SOME (mk_binary @{const_name z3mod} t1 t2)
+      SOME (mk_lassoc' \<^const_name>\<open>times_class.times\<close> t ts)
+  | core_term_parser (SMTLIB.Sym "div", [t1, t2]) = SOME (mk_binary \<^const_name>\<open>z3div\<close> t1 t2)
+  | core_term_parser (SMTLIB.Sym "mod", [t1, t2]) = SOME (mk_binary \<^const_name>\<open>z3mod\<close> t1 t2)
   | core_term_parser (SMTLIB.Sym "<", [t1, t2]) = SOME (mk_less t1 t2)
   | core_term_parser (SMTLIB.Sym ">", [t1, t2]) = SOME (mk_less t2 t1)
   | core_term_parser (SMTLIB.Sym "<=", [t1, t2]) = SOME (mk_less_eq t1 t2)

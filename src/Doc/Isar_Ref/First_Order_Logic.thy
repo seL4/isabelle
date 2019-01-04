@@ -20,8 +20,8 @@ judgment Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
 text \<open>
   Note that the object-logic judgment is implicit in the syntax: writing
-  @{prop A} produces @{term "Trueprop A"} internally. From the Pure
-  perspective this means ``@{prop A} is derivable in the object-logic''.
+  \<^prop>\<open>A\<close> produces \<^term>\<open>Trueprop A\<close> internally. From the Pure
+  perspective this means ``\<^prop>\<open>A\<close> is derivable in the object-logic''.
 \<close>
 
 
@@ -41,7 +41,7 @@ axiomatization equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infix "=" 50)
 
 text \<open>
   Substitution is very powerful, but also hard to control in full generality.
-  We derive some common symmetry~/ transitivity schemes of @{term equal} as
+  We derive some common symmetry~/ transitivity schemes of \<^term>\<open>equal\<close> as
   particular consequences.
 \<close>
 
@@ -182,10 +182,9 @@ axiomatization conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35)
     and conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
 
 text \<open>
-  The conjunctive destructions have the disadvantage that decomposing @{prop
-  "A \<and> B"} involves an immediate decision which component should be projected.
-  The more convenient simultaneous elimination @{prop "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow>
-  C"} can be derived as follows:
+  The conjunctive destructions have the disadvantage that decomposing \<^prop>\<open>A \<and> B\<close> involves an immediate decision which component should be projected.
+  The more convenient simultaneous elimination \<^prop>\<open>A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow>
+  C\<close> can be derived as follows:
 \<close>
 
 theorem conjE [elim]:
@@ -300,8 +299,8 @@ text \<open>
   These examples illustrate both classical reasoning and non-trivial
   propositional proofs in general. All three rules characterize classical
   logic independently, but the original rule is already the most convenient to
-  use, because it leaves the conclusion unchanged. Note that @{prop "(\<not> C \<Longrightarrow> C)
-  \<Longrightarrow> C"} fits again into our format for eliminations, despite the additional
+  use, because it leaves the conclusion unchanged. Note that \<^prop>\<open>(\<not> C \<Longrightarrow> C)
+  \<Longrightarrow> C\<close> fits again into our format for eliminations, despite the additional
   twist that the context refers to the main conclusion. So we may write @{thm
   classical} as the Isar statement ``\<^theory_text>\<open>obtains \<not> thesis\<close>''. This also explains
   nicely how classical reasoning really works: whatever the main \<open>thesis\<close>
@@ -317,7 +316,7 @@ text \<open>
   Representing quantifiers is easy, thanks to the higher-order nature of the
   underlying framework. According to the well-known technique introduced by
   Church @{cite "church40"}, quantifiers are operators on predicates, which
-  are syntactically represented as \<open>\<lambda>\<close>-terms of type @{typ "i \<Rightarrow> o"}. Binder
+  are syntactically represented as \<open>\<lambda>\<close>-terms of type \<^typ>\<open>i \<Rightarrow> o\<close>. Binder
   notation turns \<open>All (\<lambda>x. B x)\<close> into \<open>\<forall>x. B x\<close> etc.
 \<close>
 

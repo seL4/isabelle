@@ -48,8 +48,8 @@ val metis_systematic_type_tag =
 val metis_ad_hoc_type_tag = "**"
 val metis_generated_var_prefix = "_"
 
-val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
-val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
+val trace = Attrib.setup_config_bool \<^binding>\<open>metis_trace\<close> (K false)
+val verbose = Attrib.setup_config_bool \<^binding>\<open>metis_verbose\<close> (K true)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =
@@ -69,14 +69,14 @@ fun old_skolem_const_name i j num_T_args =
   Long_Name.implode (old_skolem_const_prefix :: map string_of_int [i, j, num_T_args])
 
 fun conceal_old_skolem_terms i old_skolems t =
-  if exists_Const (curry (op =) @{const_name Meson.skolem} o fst) t then
+  if exists_Const (curry (op =) \<^const_name>\<open>Meson.skolem\<close> o fst) t then
     let
       fun aux old_skolems
-             (t as (Const (@{const_name Meson.skolem}, Type (_, [_, T])) $ _)) =
+             (t as (Const (\<^const_name>\<open>Meson.skolem\<close>, Type (_, [_, T])) $ _)) =
           let
             val (old_skolems, s) =
               if i = ~1 then
-                (old_skolems, @{const_name undefined})
+                (old_skolems, \<^const_name>\<open>undefined\<close>)
               else
                 (case AList.find (op aconv) old_skolems t of
                   s :: _ => (old_skolems, s)
@@ -114,7 +114,7 @@ fun reveal_lam_lifted lifted =
       if String.isPrefix lam_lifted_prefix s then
         (case AList.lookup (op =) lifted s of
           SOME t =>
-          Const (@{const_name Metis.lambda}, dummyT)
+          Const (\<^const_name>\<open>Metis.lambda\<close>, dummyT)
           $ map_types (map_type_tvar (K dummyT)) (reveal_lam_lifted lifted t)
         | NONE => t)
       else
@@ -190,7 +190,7 @@ fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)
     end
   | metis_axiom_of_atp _ _ _ _ = raise Fail "not CNF -- expected formula"
 
-fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) = eliminate_lam_wrappers t
+fun eliminate_lam_wrappers (Const (\<^const_name>\<open>Metis.lambda\<close>, _) $ t) = eliminate_lam_wrappers t
   | eliminate_lam_wrappers (t $ u) = eliminate_lam_wrappers t $ eliminate_lam_wrappers u
   | eliminate_lam_wrappers (Abs (s, T, t)) = Abs (s, T, eliminate_lam_wrappers t)
   | eliminate_lam_wrappers t = t
@@ -228,7 +228,7 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, lifted, sym_tab) =
       generate_atp_problem ctxt true CNF Hypothesis type_enc Metis lam_trans false false false []
-        @{prop False} props
+        \<^prop>\<open>False\<close> props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_of_atp_problem CNF atp_problem))

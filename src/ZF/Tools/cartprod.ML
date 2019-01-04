@@ -70,8 +70,8 @@ fun mk_prod (T1,T2) = Type("*", [T1,T2]);
 fun pseudo_type (t $ A $ Abs(_,_,B)) = 
       if t = Pr.sigma
       then mk_prod(pseudo_type A, pseudo_type B)
-      else @{typ i}
-  | pseudo_type _ = @{typ i};
+      else \<^typ>\<open>i\<close>
+  | pseudo_type _ = \<^typ>\<open>i\<close>;
 
 (*Maps the type T1*...*Tn to [T1,...,Tn], however nested*)
 fun factors (Type("*", [T1, T2])) = factors T1 @ factors T2

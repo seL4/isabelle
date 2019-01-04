@@ -164,7 +164,7 @@ fun mk_rep_isom_of_code_dt qty code_dt = Option.map
 
 (** unique name for a type **)
 
-fun var_name name sort = if sort = @{sort "{type}"} orelse sort = [] then ["x" ^ name]
+fun var_name name sort = if sort = \<^sort>\<open>{type}\<close> orelse sort = [] then ["x" ^ name]
   else "x" ^ name :: "x_" :: sort @ ["x_"];
 
 fun concat_Tnames (Type (name, ts)) = name :: maps concat_Tnames ts
@@ -180,7 +180,7 @@ fun unique_Tname (rty, qty) =
 
 (** witnesses **)
 
-fun mk_undefined T = Const (@{const_name undefined}, T);
+fun mk_undefined T = Const (\<^const_name>\<open>undefined\<close>, T);
 
 fun mk_witness quot_thm =
   let
@@ -239,7 +239,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
     fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
     fun ret_rel_conv conv ctm =
       case (Thm.term_of ctm) of
-        Const (@{const_name "rel_fun"}, _) $ _ $ _ =>
+        Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _ =>
           binop_conv2 Conv.all_conv conv ctm
         | _ => conv ctm
     fun R_conv rel_eq_onps = Transfer.top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]}
@@ -437,7 +437,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
     fun mk_type_definition newT oldT RepC AbsC A =
       let
         val typedefC =
-          Const (@{const_name type_definition},
+          Const (\<^const_name>\<open>type_definition\<close>,
             (newT --> oldT) --> (oldT --> newT) --> HOLogic.mk_setT oldT --> HOLogic.boolT);
       in typedefC $ RepC $ AbsC $ A end;
     val typedef_goal = mk_type_definition qty_isom qty rep_isom abs_isom (HOLogic.mk_UNIV qty) |>
@@ -483,7 +483,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
           let
             val rep = quot_isom_rep lthy (rty, qty)
           in
-            if is_Const rep andalso (rep |> dest_Const |> fst) = @{const_name id} then
+            if is_Const rep andalso (rep |> dest_Const |> fst) = \<^const_name>\<open>id\<close> then
               t else rep $ t
           end;
       in
@@ -630,7 +630,7 @@ fun evaluate_params params =
 **)
 
 local
-  val eq_onp_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm @{context})
+  val eq_onp_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm \<^context>)
     [@{thm pcr_Domainp_total}, @{thm pcr_Domainp_par_left_total}, @{thm pcr_Domainp_par}, 
       @{thm pcr_Domainp}]
 in
@@ -699,7 +699,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
           (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
       in
         case (Thm.term_of ctm) of
-          Const (@{const_name "rel_fun"}, _) $ _ $ _ => 
+          Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _ => 
             (binop_conv2 simp_arrows_conv simp_arrows_conv then_conv unfold_conv) ctm
           | _ => (relator_eq_onp_conv then_conv relator_eq_conv) ctm
       end
@@ -722,11 +722,11 @@ end
 
 fun rename_to_tnames ctxt term =
   let
-    fun all_typs (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) = T :: all_typs t
+    fun all_typs (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T, t)) = T :: all_typs t
       | all_typs _ = []
 
-    fun rename (Const (@{const_name Pure.all}, T1) $ Abs (_, T2, t)) (new_name :: names) = 
-        (Const (@{const_name Pure.all}, T1) $ Abs (new_name, T2, rename t names)) 
+    fun rename (Const (\<^const_name>\<open>Pure.all\<close>, T1) $ Abs (_, T2, t)) (new_name :: names) = 
+        (Const (\<^const_name>\<open>Pure.all\<close>, T1) $ Abs (new_name, T2, rename t names)) 
       | rename t _ = t
 
     val (fixed_def_t, _) = yield_singleton (Variable.importT_terms) term ctxt
@@ -821,13 +821,13 @@ val parse_params = Scan.optional (Args.parens (Parse.list parse_param)) [];
 (* command syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword lift_definition}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>lift_definition\<close>
     "definition for constants over the quotient type"
     (parse_params --
-      (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')
+      (((Parse.binding -- (\<^keyword>\<open>::\<close> |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')
           >> Scan.triple2) --
-        (@{keyword "is"} |-- Parse.term) --
-        Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.thms1) []) >> Scan.triple1)
+        (\<^keyword>\<open>is\<close> |-- Parse.term) --
+        Scan.optional (\<^keyword>\<open>parametric\<close> |-- Parse.!!! Parse.thms1) []) >> Scan.triple1)
      >> lift_def_cmd_with_err_handling);
 
 end

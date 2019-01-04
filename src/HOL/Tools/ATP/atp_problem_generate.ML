@@ -313,37 +313,37 @@ fun unprefix_and_unascii s1 s =
     NONE
 
 val proxy_table =
-  [("c_False", (@{const_name False}, (@{thm fFalse_def}, ("fFalse", @{const_name fFalse})))),
-   ("c_True", (@{const_name True}, (@{thm fTrue_def}, ("fTrue", @{const_name fTrue})))),
-   ("c_Not", (@{const_name Not}, (@{thm fNot_def}, ("fNot", @{const_name fNot})))),
-   ("c_conj", (@{const_name conj}, (@{thm fconj_def}, ("fconj", @{const_name fconj})))),
-   ("c_disj", (@{const_name disj}, (@{thm fdisj_def}, ("fdisj", @{const_name fdisj})))),
-   ("c_implies", (@{const_name implies}, (@{thm fimplies_def}, ("fimplies", @{const_name fimplies})))),
-   ("equal", (@{const_name HOL.eq}, (@{thm fequal_def}, ("fequal", @{const_name fequal})))),
-   ("c_All", (@{const_name All}, (@{thm fAll_def}, ("fAll", @{const_name fAll})))),
-   ("c_Ex", (@{const_name Ex}, (@{thm fEx_def}, ("fEx", @{const_name fEx}))))]
+  [("c_False", (\<^const_name>\<open>False\<close>, (@{thm fFalse_def}, ("fFalse", \<^const_name>\<open>fFalse\<close>)))),
+   ("c_True", (\<^const_name>\<open>True\<close>, (@{thm fTrue_def}, ("fTrue", \<^const_name>\<open>fTrue\<close>)))),
+   ("c_Not", (\<^const_name>\<open>Not\<close>, (@{thm fNot_def}, ("fNot", \<^const_name>\<open>fNot\<close>)))),
+   ("c_conj", (\<^const_name>\<open>conj\<close>, (@{thm fconj_def}, ("fconj", \<^const_name>\<open>fconj\<close>)))),
+   ("c_disj", (\<^const_name>\<open>disj\<close>, (@{thm fdisj_def}, ("fdisj", \<^const_name>\<open>fdisj\<close>)))),
+   ("c_implies", (\<^const_name>\<open>implies\<close>, (@{thm fimplies_def}, ("fimplies", \<^const_name>\<open>fimplies\<close>)))),
+   ("equal", (\<^const_name>\<open>HOL.eq\<close>, (@{thm fequal_def}, ("fequal", \<^const_name>\<open>fequal\<close>)))),
+   ("c_All", (\<^const_name>\<open>All\<close>, (@{thm fAll_def}, ("fAll", \<^const_name>\<open>fAll\<close>)))),
+   ("c_Ex", (\<^const_name>\<open>Ex\<close>, (@{thm fEx_def}, ("fEx", \<^const_name>\<open>fEx\<close>))))]
 
 val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 
 (* Readable names for the more common symbolic functions. Do not mess with the
    table unless you know what you are doing. *)
 val const_trans_table =
-  [(@{const_name False}, "False"),
-   (@{const_name True}, "True"),
-   (@{const_name Not}, "Not"),
-   (@{const_name conj}, "conj"),
-   (@{const_name disj}, "disj"),
-   (@{const_name implies}, "implies"),
-   (@{const_name HOL.eq}, "equal"),
-   (@{const_name All}, "All"),
-   (@{const_name Ex}, "Ex"),
-   (@{const_name If}, "If"),
-   (@{const_name Set.member}, "member"),
-   (@{const_name Meson.COMBI}, combinator_prefix ^ "I"),
-   (@{const_name Meson.COMBK}, combinator_prefix ^ "K"),
-   (@{const_name Meson.COMBB}, combinator_prefix ^ "B"),
-   (@{const_name Meson.COMBC}, combinator_prefix ^ "C"),
-   (@{const_name Meson.COMBS}, combinator_prefix ^ "S")]
+  [(\<^const_name>\<open>False\<close>, "False"),
+   (\<^const_name>\<open>True\<close>, "True"),
+   (\<^const_name>\<open>Not\<close>, "Not"),
+   (\<^const_name>\<open>conj\<close>, "conj"),
+   (\<^const_name>\<open>disj\<close>, "disj"),
+   (\<^const_name>\<open>implies\<close>, "implies"),
+   (\<^const_name>\<open>HOL.eq\<close>, "equal"),
+   (\<^const_name>\<open>All\<close>, "All"),
+   (\<^const_name>\<open>Ex\<close>, "Ex"),
+   (\<^const_name>\<open>If\<close>, "If"),
+   (\<^const_name>\<open>Set.member\<close>, "member"),
+   (\<^const_name>\<open>Meson.COMBI\<close>, combinator_prefix ^ "I"),
+   (\<^const_name>\<open>Meson.COMBK\<close>, combinator_prefix ^ "K"),
+   (\<^const_name>\<open>Meson.COMBB\<close>, combinator_prefix ^ "B"),
+   (\<^const_name>\<open>Meson.COMBC\<close>, combinator_prefix ^ "C"),
+   (\<^const_name>\<open>Meson.COMBS\<close>, combinator_prefix ^ "S")]
   |> Symtab.make
   |> fold (Symtab.update o swap o snd o snd o snd) proxy_table
 
@@ -380,7 +380,7 @@ local
   val choice_const = (fst o dest_Const o HOLogic.choice_const) dummyT
   fun default c = const_prefix ^ lookup_const c
 in
-  fun make_fixed_const _ @{const_name HOL.eq} = tptp_old_equal
+  fun make_fixed_const _ \<^const_name>\<open>HOL.eq\<close> = tptp_old_equal
     | make_fixed_const (SOME (Native (Higher_Order THF_With_Choice, _, _))) c =
       if c = choice_const then tptp_choice else default c
     | make_fixed_const _ c = default c
@@ -397,17 +397,17 @@ fun new_skolem_var_name_of_const s =
 (* These are ignored anyway by the relevance filter (unless they appear in
    higher-order places) but not by the monomorphizer. *)
 val atp_logical_consts =
-  [@{const_name Pure.prop}, @{const_name Pure.conjunction},
-   @{const_name Pure.all}, @{const_name Pure.imp}, @{const_name Pure.eq},
-   @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
-   @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}]
+  [\<^const_name>\<open>Pure.prop\<close>, \<^const_name>\<open>Pure.conjunction\<close>,
+   \<^const_name>\<open>Pure.all\<close>, \<^const_name>\<open>Pure.imp\<close>, \<^const_name>\<open>Pure.eq\<close>,
+   \<^const_name>\<open>Trueprop\<close>, \<^const_name>\<open>All\<close>, \<^const_name>\<open>Ex\<close>,
+   \<^const_name>\<open>Ex1\<close>, \<^const_name>\<open>Ball\<close>, \<^const_name>\<open>Bex\<close>]
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
    handled specially via "fFalse", "fTrue", ..., "fequal". *)
 val atp_irrelevant_consts =
-  [@{const_name False}, @{const_name True}, @{const_name Not}, @{const_name conj},
-   @{const_name disj}, @{const_name implies}, @{const_name HOL.eq}, @{const_name If},
-   @{const_name Let}]
+  [\<^const_name>\<open>False\<close>, \<^const_name>\<open>True\<close>, \<^const_name>\<open>Not\<close>, \<^const_name>\<open>conj\<close>,
+   \<^const_name>\<open>disj\<close>, \<^const_name>\<open>implies\<close>, \<^const_name>\<open>HOL.eq\<close>, \<^const_name>\<open>If\<close>,
+   \<^const_name>\<open>Let\<close>]
 
 val atp_widely_irrelevant_consts = atp_logical_consts @ atp_irrelevant_consts
 
@@ -427,11 +427,11 @@ val add_schematic_consts_of =
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 val tvar_a_str = "'a"
-val tvar_a_z = ((tvar_a_str, 0), @{sort type})
+val tvar_a_z = ((tvar_a_str, 0), \<^sort>\<open>type\<close>)
 val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
-val itself_name = `make_fixed_type_const @{type_name itself}
-val TYPE_name = `(make_fixed_const NONE) @{const_name Pure.type}
+val itself_name = `make_fixed_type_const \<^type_name>\<open>itself\<close>
+val TYPE_name = `(make_fixed_const NONE) \<^const_name>\<open>Pure.type\<close>
 val tvar_a_atype = AType ((tvar_a_name, []), [])
 val a_itself_atype = AType ((itself_name, []), [tvar_a_atype])
 
@@ -442,7 +442,7 @@ val a_itself_atype = AType ((itself_name, []), [tvar_a_atype])
 (* In our data structures, [] exceptionally refers to the top class, not to
    the empty class. *)
 
-val class_of_types = the_single @{sort type}
+val class_of_types = the_single \<^sort>\<open>type\<close>
 
 fun normalize_classes cls = if member (op =) cls class_of_types then [] else cls
 
@@ -451,7 +451,7 @@ fun make_axiom_tcon_clause (s, name, (cl, args)) =
   let
     val args = args |> map normalize_classes
     val tvars =
-      1 upto length args |> map (fn j => TVar ((tvar_a_str, j), @{sort type}))
+      1 upto length args |> map (fn j => TVar ((tvar_a_str, j), \<^sort>\<open>type\<close>))
   in (name, args ~~ tvars, (cl, Type (s, tvars))) end
 
 (* Generate all pairs (tycon, class, sorts) such that tycon belongs to class in
@@ -532,7 +532,7 @@ fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
   |> Long_Name.implode
 
-val alpha_to_beta = Logic.varifyT_global @{typ "'a => 'b"}
+val alpha_to_beta = Logic.varifyT_global \<^typ>\<open>'a => 'b\<close>
 val alpha_to_beta_to_alpha_to_beta = alpha_to_beta --> alpha_to_beta
 
 fun robust_const_type thy s =
@@ -544,7 +544,7 @@ fun robust_const_type thy s =
     (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
     s |> Sign.the_const_type thy
 
-fun ary_of (Type (@{type_name fun}, [_, T])) = 1 + ary_of T
+fun ary_of (Type (\<^type_name>\<open>fun\<close>, [_, T])) = 1 + ary_of T
   | ary_of _ = 0
 
 (* This function only makes sense if "T" is as general as possible. *)
@@ -704,14 +704,14 @@ fun adjust_type_enc (THF (Polymorphic, hologic)) (Native (order, poly, level)) =
 fun is_lambda_free t =
   (case t of
     @{const Not} $ t1 => is_lambda_free t1
-  | Const (@{const_name All}, _) $ Abs (_, _, t') => is_lambda_free t'
-  | Const (@{const_name All}, _) $ t1 => is_lambda_free t1
-  | Const (@{const_name Ex}, _) $ Abs (_, _, t') => is_lambda_free t'
-  | Const (@{const_name Ex}, _) $ t1 => is_lambda_free t1
+  | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
+  | Const (\<^const_name>\<open>All\<close>, _) $ t1 => is_lambda_free t1
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => is_lambda_free t'
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 => is_lambda_free t1
   | @{const HOL.conj} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
   | @{const HOL.disj} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
   | @{const HOL.implies} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
-  | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+  | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _])) $ t1 $ t2 =>
     is_lambda_free t1 andalso is_lambda_free t2
   | _ => not (exists_subterm (fn Abs _ => true | _ => false) t))
 
@@ -723,16 +723,16 @@ fun simple_translate_lambdas do_lambdas ctxt t =
       fun trans Ts t =
         (case t of
           @{const Not} $ t1 => @{const Not} $ trans Ts t1
-        | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t') =>
           t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (@{const_name All}, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
-        | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
+        | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s, T, t') =>
           t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (@{const_name Ex}, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
         | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
         | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
         | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _]))) $ t1 $ t2 =>
+        | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _]))) $ t1 $ t2 =>
           t0 $ trans Ts t1 $ trans Ts t2
         | _ =>
           if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
@@ -795,9 +795,9 @@ fun lift_lams_part_2 ctxt (facts, lifted) =
 
 fun lift_lams ctxt = lift_lams_part_2 ctxt oo lift_lams_part_1 ctxt
 
-fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
+fun intentionalize_def (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) =
     intentionalize_def t
-  | intentionalize_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
+  | intentionalize_def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ u) =
     let
       fun lam T t = Abs (Name.uu, T, t)
       val (head, args) = strip_comb t ||> rev
@@ -828,7 +828,7 @@ fun insert_type thy get_T x xs =
   end
 
 fun chop_fun 0 T = ([], T)
-  | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
+  | chop_fun n (Type (\<^type_name>\<open>fun\<close>, [dom_T, ran_T])) =
     chop_fun (n - 1) ran_T |>> cons dom_T
   | chop_fun _ T = ([], T)
 
@@ -864,7 +864,7 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
           val ctr_infer_type_args = gen_type_args fst strip_type
           val level = level_of_type_enc type_enc
         in
-          if level = No_Types orelse s = @{const_name HOL.eq} orelse
+          if level = No_Types orelse s = \<^const_name>\<open>HOL.eq\<close> orelse
              (case level of Const_Types _ => s = app_op_name | _ => false) then
             []
           else if poly = Mangled_Monomorphic then
@@ -890,9 +890,9 @@ fun raw_atp_type_of_typ type_enc =
   let
     fun term (Type (s, Ts)) =
       AType
-        ((if s = @{type_name fun} andalso is_type_enc_higher_order type_enc then
+        ((if s = \<^type_name>\<open>fun\<close> andalso is_type_enc_higher_order type_enc then
             `I tptp_fun_type
-          else if s = @{type_name bool} andalso is_type_enc_full_higher_order type_enc then
+          else if s = \<^type_name>\<open>bool\<close> andalso is_type_enc_full_higher_order type_enc then
             `I tptp_bool_type
           else if s = fused_infinite_type_name andalso is_type_enc_native type_enc then
             `I tptp_individual_type
@@ -960,7 +960,7 @@ fun native_atp_type_of_typ type_enc pred_sym ary =
 fun generic_add_sorts_on_type _ [] = I
   | generic_add_sorts_on_type T (s :: ss) =
     generic_add_sorts_on_type T ss
-    #> (if s = the_single @{sort type} then I else insert (op =) (s, T))
+    #> (if s = the_single \<^sort>\<open>type\<close> then I else insert (op =) (s, T))
 fun add_sorts_on_tfree (T as TFree (_, S)) = generic_add_sorts_on_type T S
   | add_sorts_on_tfree _ = I
 fun add_sorts_on_tvar (T as TVar (_, S)) = generic_add_sorts_on_type T S
@@ -1199,16 +1199,16 @@ fun iformula_of_prop ctxt type_enc iff_for_eq =
       (case t of
         @{const Trueprop} $ t1 => do_formula bs pos t1
       | @{const Not} $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
-      | Const (@{const_name All}, _) $ Abs (s, T, t') => do_quant bs AForall pos s T t'
-      | (t0 as Const (@{const_name All}, _)) $ t1 =>
+      | Const (\<^const_name>\<open>All\<close>, _) $ Abs (s, T, t') => do_quant bs AForall pos s T t'
+      | (t0 as Const (\<^const_name>\<open>All\<close>, _)) $ t1 =>
         do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
-      | Const (@{const_name Ex}, _) $ Abs (s, T, t') => do_quant bs AExists pos s T t'
-      | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
+      | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (s, T, t') => do_quant bs AExists pos s T t'
+      | (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ t1 =>
         do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
       | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
       | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies (Option.map not pos) t1 pos t2
-      | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+      | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [\<^typ>\<open>bool\<close>, _])) $ t1 $ t2 =>
         if iff_for_eq then do_conn bs AIff NONE t1 NONE t2 else do_term bs t
       | _ => do_term bs t)
   in do_formula [] end
@@ -1255,7 +1255,7 @@ fun presimp_prop ctxt type_enc t =
     val t = t |> Envir.beta_eta_contract
               |> transform_elim_prop
               |> Object_Logic.atomize_term ctxt
-    val need_trueprop = (fastype_of t = @{typ bool})
+    val need_trueprop = (fastype_of t = \<^typ>\<open>bool\<close>)
     val is_ho = is_type_enc_full_higher_order type_enc
   in
     t |> need_trueprop ? HOLogic.mk_Trueprop
@@ -1311,7 +1311,7 @@ fun type_arg_cover thy pos s ary =
   else
     let
       val footprint = tvar_footprint thy s ary
-      val eq = (s = @{const_name HOL.eq})
+      val eq = (s = \<^const_name>\<open>HOL.eq\<close>)
       fun cover _ [] = []
         | cover seen ((i, tvars) :: args) =
           cover (union (op =) seen tvars) args
@@ -1333,7 +1333,7 @@ type monotonicity_info =
 
 (* These types witness that the type classes they belong to allow infinite
    models and hence that any types with these type classes is monotonic. *)
-val known_infinite_types = [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}]
+val known_infinite_types = [\<^typ>\<open>nat\<close>, HOLogic.intT, HOLogic.realT, \<^typ>\<open>nat => bool\<close>]
 
 fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
   strictness <> Strict andalso is_type_surely_infinite ctxt true cached_Ts T
@@ -1393,7 +1393,7 @@ fun fused_type ctxt mono level =
   let
     val should_encode = should_encode_type ctxt mono level
     fun fuse 0 T = if should_encode T then T else fused_infinite_type
-      | fuse ary (Type (@{type_name fun}, [T1, T2])) =
+      | fuse ary (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
         fuse 0 T1 --> fuse (ary - 1) T2
       | fuse _ _ = raise Fail "expected function type"
   in fuse end
@@ -1405,7 +1405,7 @@ type sym_info =
    in_conj : bool}
 
 fun default_sym_tab_entries type_enc =
-  (make_fixed_const NONE @{const_name undefined},
+  (make_fixed_const NONE \<^const_name>\<open>undefined\<close>,
      {pred_sym = false, min_ary = 0, max_ary = 0, types = [], in_conj = false}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [], in_conj = false})) @
@@ -1435,11 +1435,11 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
     fun add_universal_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
       if (app_op_level = Sufficient_App_Op andalso can dest_funT T) orelse
          (app_op_level = Sufficient_App_Op_And_Predicator andalso
-          (can dest_funT T orelse T = @{typ bool})) then
+          (can dest_funT T orelse T = \<^typ>\<open>bool\<close>)) then
         let
           val bool_vars' =
             bool_vars orelse
-            (app_op_level = Sufficient_App_Op_And_Predicator andalso body_type T = @{typ bool})
+            (app_op_level = Sufficient_App_Op_And_Predicator andalso body_type T = \<^typ>\<open>bool\<close>)
           fun repair_min_ary {pred_sym, min_ary, max_ary, types, in_conj} =
             {pred_sym = pred_sym andalso not bool_vars',
              min_ary = fold (fn T' => consider_var_ary T' T) types min_ary,
@@ -1543,12 +1543,12 @@ fun is_pred_sym sym_tab s =
     SOME ({pred_sym, min_ary, max_ary, ...} : sym_info) => pred_sym andalso min_ary = max_ary
   | NONE => false)
 
-val fTrue_iconst = IConst ((const_prefix ^ "fTrue", @{const_name fTrue}), @{typ bool}, [])
-val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
+val fTrue_iconst = IConst ((const_prefix ^ "fTrue", \<^const_name>\<open>fTrue\<close>), \<^typ>\<open>bool\<close>, [])
+val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, \<^typ>\<open>bool => bool\<close>, [])
 
 fun predicatify completish tm =
   if completish > 1 then
-    IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm), fTrue_iconst)
+    IApp (IApp (IConst (`I tptp_equal, \<^typ>\<open>bool => bool => bool\<close>, []), tm), fTrue_iconst)
   else
     IApp (predicator_iconst, tm)
 
@@ -1788,7 +1788,7 @@ fun fold_type_ctrs f (Type (s, Ts)) x = fold (fold_type_ctrs f) Ts (f (s, x))
    needed. *)
 fun add_type_ctrs_in_term thy =
   let
-    fun add (Const (@{const_name Meson.skolem}, _) $ _) = I
+    fun add (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) = I
       | add (t $ u) = add t #> add u
       | add (Const x) =
         x |> robust_const_type_args thy |> fold (fold_type_ctrs set_insert)
@@ -1814,8 +1814,8 @@ fun trans_lams_of_string ctxt type_enc lam_trans =
     #> lift_lams_part_2 ctxt
   else if lam_trans = combs_or_liftingN then
     lift_lams_part_1 ctxt type_enc
-    ##> map (fn t => (case head_of (strip_qnt_body @{const_name All} t) of
-                       @{term "(=) ::bool => bool => bool"} => t
+    ##> map (fn t => (case head_of (strip_qnt_body \<^const_name>\<open>All\<close> t) of
+                       \<^term>\<open>(=) ::bool => bool => bool\<close> => t
                      | _ => introduce_combinators ctxt (intentionalize_def t)))
     #> lift_lams_part_2 ctxt
   else if lam_trans = keep_lamsN then
@@ -1848,8 +1848,8 @@ val pull_and_reorder_definitions =
   in List.partition (curry (op =) Definition o #role) #>> reorder [] #> op @ end
 
 fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_prop (@{const Pure.imp} $ t $ @{prop False}) = t
-  | s_not_prop t = @{const Pure.imp} $ t $ @{prop False}
+  | s_not_prop (@{const Pure.imp} $ t $ \<^prop>\<open>False\<close>) = t
+  | s_not_prop t = @{const Pure.imp} $ t $ \<^prop>\<open>False\<close>
 
 fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts =
   let
@@ -1858,7 +1858,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts c
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically boost an ATP's
        performance (for some reason). *)
-    val hyp_ts = hyp_ts |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
+    val hyp_ts = hyp_ts |> map (fn t => if member (op aconv) fact_ts t then \<^prop>\<open>True\<close> else t)
 
     val hyp_ts = map freeze_term hyp_ts;
     val concl_t = freeze_term concl_t;
@@ -1899,7 +1899,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts c
 val type_guard = `(make_fixed_const NONE) type_guard_name
 
 fun type_guard_iterm type_enc T tm =
-  IApp (IConst (type_guard, T --> @{typ bool}, [T])
+  IApp (IConst (type_guard, T --> \<^typ>\<open>bool\<close>, [T])
         |> mangle_type_args_in_iterm type_enc, tm)
 
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
@@ -2159,7 +2159,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
       let
         (* FIXME: make sure type arguments are filtered / clean up code *)
         val (s, s') =
-          `(make_fixed_const NONE) @{const_name undefined}
+          `(make_fixed_const NONE) \<^const_name>\<open>undefined\<close>
           |> (is_type_enc_mangling type_enc ? mangled_const_name type_enc [T])
       in
         Symtab.map_default (s, [])
@@ -2169,7 +2169,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
       let val (s, s') = TYPE_name in
         Symtab.map_default (s, [])
             (insert_type thy #3
-                         (s', [tvar_a], @{typ "'a itself"}, false, 0, false))
+                         (s', [tvar_a], \<^typ>\<open>'a itself\<close>, false, 0, false))
       end
   in
     Symtab.empty
@@ -2185,9 +2185,9 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
 
 (* We add "bool" in case the helper "True_or_False" is included later. *)
 fun default_mono level completish =
-  {maybe_finite_Ts = [@{typ bool}],
+  {maybe_finite_Ts = [\<^typ>\<open>bool\<close>],
    surely_infinite_Ts = (case level of Nonmono_Types (Strict, _) => [] | _ => known_infinite_types),
-   maybe_nonmono_Ts = [if completish >= 3 then tvar_a else @{typ bool}]}
+   maybe_nonmono_Ts = [if completish >= 3 then tvar_a else \<^typ>\<open>bool\<close>]}
 
 (* This inference is described in section 4 of Blanchette et al., "Encoding
    monomorphic and polymorphic types", TACAS 2013. *)
@@ -2214,7 +2214,7 @@ fun add_iterm_mononotonicity_info ctxt level polarity tm
       | _ => mono)
 
     fun update_mono_rec (IConst ((_, s'), Type (_, [T, _]), _)) =
-        if String.isPrefix @{const_name fequal} s' then update_mono T else I
+        if String.isPrefix \<^const_name>\<open>fequal\<close> s' then update_mono T else I
       | update_mono_rec (IApp (tm1, tm2)) = fold update_mono_rec [tm1, tm2]
       | update_mono_rec (IAbs (_, tm)) = update_mono_rec tm
       | update_mono_rec _ = I
@@ -2378,7 +2378,7 @@ fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
 fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     let
-      val T = result_type_of_decl decl |> map_type_tvar (fn (z, _) => TVar (z, @{sort type}))
+      val T = result_type_of_decl decl |> map_type_tvar (fn (z, _) => TVar (z, \<^sort>\<open>type\<close>))
     in
       if forall (type_generalization thy T o result_type_of_decl) decls' then [decl]
       else decls

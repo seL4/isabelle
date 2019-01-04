@@ -295,7 +295,7 @@ fun setup_base fpT_name =
 
 fun is_set ctxt (const_name, T) =
   (case T of
-    Type (@{type_name fun}, [Type (fpT_name, _), Type (@{type_name set}, [_])]) =>
+    Type (\<^type_name>\<open>fun\<close>, [Type (fpT_name, _), Type (\<^type_name>\<open>set\<close>, [_])]) =>
     (case bnf_of ctxt fpT_name of
       SOME bnf => exists (fn Const (s, _) => s = const_name | _ => false) (sets_of_bnf bnf)
     | NONE => false)
@@ -385,7 +385,7 @@ fun derive_unique ctxt phi code_goal
     val ssig_map_thms = #map_thms ssig_fp_bnf_sugar;
     val all_algLam_alg_pointfuls = map (mk_pointful ctxt) all_algLam_algs;
 
-    val @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = code_goal;
+    val @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = code_goal;
     val (fun_t, args) = strip_comb lhs;
     val closed_rhs = fold_rev lambda args rhs;
 
@@ -447,10 +447,10 @@ fun derive_eq_algrho ctxt {sig_fp_sugars, ssig_fp_sugar, eval, eval_simps, all_a
 
     val fp_nesting_Ts = map T_of_bnf fp_nesting_bnfs;
 
-    fun is_nullary_disc_def (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _
-          $ (Const (@{const_name HOL.eq}, _) $ _ $ _))) = true
-      | is_nullary_disc_def (Const (@{const_name Pure.eq}, _) $ _
-          $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true
+    fun is_nullary_disc_def (@{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _
+          $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _))) = true
+      | is_nullary_disc_def (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _
+          $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _)) = true
       | is_nullary_disc_def _ = false;
 
     val dtor_ctor = nth (#dtor_ctors fp_res) fp_res_index;
@@ -621,13 +621,13 @@ fun derive_cong_friend_intro ctxt cong_algrho_intro =
 
     val fpT as Type (_, fp_argTs) = range_type (fastype_of algrho);
 
-    fun has_algrho (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ rhs)) =
+    fun has_algrho (@{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ rhs)) =
       fst (dest_Const (head_of (strip_abs_body rhs))) = algrho_name;
 
     val eq_algrho :: _ =
       maps (filter (has_algrho o Thm.prop_of) o #eq_algrhos o snd) (all_friend_extras_of ctxt);
 
-    val @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ friend0 $ _) = Thm.prop_of eq_algrho;
+    val @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ friend0 $ _) = Thm.prop_of eq_algrho;
     val friend = mk_ctr fp_argTs friend0;
 
     val goal = mk_cong_intro_ctr_or_friend_goal ctxt fpT Rcong friend;
@@ -668,7 +668,7 @@ fun derive_coinduct ctxt (fpT as Type (fpT_name, fpT_args)) dtor_coinduct =
     val n = length ctrXs_Tss;
     val ms = map length ctrXs_Tss;
 
-    val X' = TVar ((X_s, maxidx_of_typ fpT + 1), @{sort type});
+    val X' = TVar ((X_s, maxidx_of_typ fpT + 1), \<^sort>\<open>type\<close>);
     val As_rho = tvar_subst thy T0_args fpT_args;
     val substXAT = Term.typ_subst_TVars As_rho o Tsubst X X';
     val substXA = Term.subst_TVars As_rho o substT X X';
@@ -699,7 +699,7 @@ fun explore_nested lthy explore {bound_Us, bound_Ts, U, T} t =
   let
     fun build_simple (T, U) =
       if T = U then
-        @{term "%y. y"}
+        \<^term>\<open>%y. y\<close>
       else
         Bound 0
         |> explore {bound_Us = T :: bound_Us, bound_Ts = T :: bound_Ts, U = U, T = T}
@@ -736,7 +736,7 @@ fun massage_star massages explore =
 
 fun massage_let explore params t =
   (case strip_comb t of
-    (Const (@{const_name Let}, _), [_, _]) => unfold_lets_splits t
+    (Const (\<^const_name>\<open>Let\<close>, _), [_, _]) => unfold_lets_splits t
   | _ => t)
   |> explore params;
 
@@ -916,7 +916,7 @@ fun generate_views ctxt eq fun_t (lhs_free_args, rhs) =
         val sel_lhss = map (rapp lhs o mk_disc_or_sel Ts) ordered_sels;
         val sel_condss = map collect_sel_condss sel_positionss;
 
-        fun is_undefined (Const (@{const_name undefined}, _)) = true
+        fun is_undefined (Const (\<^const_name>\<open>undefined\<close>, _)) = true
           | is_undefined _ = false;
       in
         sel_condss ~~ (sel_lhss ~~ sel_rhss)
@@ -1001,7 +1001,7 @@ fun extract_rho_from_equation
     (* We are assuming that set functions are marked with "[transfer_rule]" (cf. the "transfer"
        plugin). Otherwise, the "eq_algrho" tactic might fail. *)
     fun is_special_parametric_const (x as (s, _)) =
-      s = @{const_name id} orelse is_set lthy x;
+      s = \<^const_name>\<open>id\<close> orelse is_set lthy x;
 
     fun add_parametric_const s general_T T U =
       let
@@ -1103,7 +1103,7 @@ fun extract_rho_from_equation
 
     fun massage_if explore_cond explore (params as {bound_Us, bound_Ts, ...}) t =
       (case strip_comb t of
-        (const as Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
+        (const as Const (\<^const_name>\<open>If\<close>, _), obj :: (branches as [_, _])) =>
         (case List.partition Term.is_dummy_pattern (map (explore params) branches) of
           (dummy_branch' :: _, []) => dummy_branch'
         | (_, [branch']) => branch'
@@ -1112,7 +1112,7 @@ fun extract_rho_from_equation
             val brancheUs = map (curry fastype_of1 bound_Us) branches';
             val U = deduce_according_type (fastype_of1 (bound_Ts, hd branches)) brancheUs;
             val const_obj' = (If_const U, obj)
-              ||> explore_cond (update_UT params @{typ bool} @{typ bool})
+              ||> explore_cond (update_UT params \<^typ>\<open>bool\<close> \<^typ>\<open>bool\<close>)
               |> op $;
           in
             build_function_after_encapsulation (const $ obj) const_obj' params branches branches'
@@ -1166,7 +1166,7 @@ fun extract_rho_from_equation
 
     fun massage_comp explore (params as {bound_Us, ...}) t =
       (case strip_comb t of
-        (Const (@{const_name comp}, _), f1 :: f2 :: args) =>
+        (Const (\<^const_name>\<open>comp\<close>, _), f1 :: f2 :: args) =>
         let
           val args' = map (typ_before explore params) args;
           val f2' = typ_before (explore_fun (map (curry fastype_of1 bound_Us) args') explore) params
@@ -1206,7 +1206,7 @@ fun extract_rho_from_equation
       | const_of _ _ = NONE;
 
     fun massage_disc explore (params as {T, bound_Us, bound_Ts, ...}) t =
-      (case (strip_comb t, T = @{typ bool}) of
+      (case (strip_comb t, T = \<^typ>\<open>bool\<close>) of
         ((fun_t, arg :: []), true) =>
         let val arg_T = fastype_of1 (bound_Ts, arg) in
           if arg_T <> res_T then
@@ -1251,7 +1251,7 @@ fun extract_rho_from_equation
       end;
 
     fun massage_equality explore (params as {bound_Us, bound_Ts, ...})
-          (t as Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
+          (t as Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =
         let
           val check_is_VLeaf =
             not o (Term.exists_subterm (fn t => t aconv CLeaf orelse t aconv Oper));
@@ -1681,7 +1681,7 @@ fun explore_corec_equation ctxt could_be_friend friend fun_name fun_free
 
     fun massage_comp explore params t =
       (case strip_comb t of
-        (Const (@{const_name comp}, _), f1 :: f2 :: args) =>
+        (Const (\<^const_name>\<open>comp\<close>, _), f1 :: f2 :: args) =>
         explore params (betapply (f1, (betapplys (f2, args))))
       | _ => explore params t);
 
@@ -2190,11 +2190,11 @@ fun corec_cmd int opts (raw_fixes, raw_eq) lthy =
       prepare_corec_ursive_cmd int false opts (raw_fixes, raw_eq) lthy;
   in
     if not (null termin_goals) then
-      error ("Termination prover failed (try " ^ quote (#1 @{command_keyword corecursive}) ^
-        " instead of " ^ quote (#1 @{command_keyword corec}) ^ ")")
+      error ("Termination prover failed (try " ^ quote (#1 \<^command_keyword>\<open>corecursive\<close>) ^
+        " instead of " ^ quote (#1 \<^command_keyword>\<open>corec\<close>) ^ ")")
     else if not (null const_transfer_goals) then
-      error ("Transfer prover failed (try " ^ quote (#1 @{command_keyword corecursive}) ^
-        " instead of " ^ quote (#1 @{command_keyword corec}) ^ ")")
+      error ("Transfer prover failed (try " ^ quote (#1 \<^command_keyword>\<open>corecursive\<close>) ^
+        " instead of " ^ quote (#1 \<^command_keyword>\<open>corec\<close>) ^ ")")
     else
       def_fun inner_fp_triple const_transfers [] lthy
   end;
@@ -2241,7 +2241,7 @@ fun friend_of_corec_cmd ((raw_fun_name, raw_fun_T_opt), raw_eq) lthy =
 
     val fun_T =
       (case code_goal of
-        @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t $ _) => fastype_of (head_of t)
+        @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _) => fastype_of (head_of t)
       | _ => ill_formed_equation_lhs_rhs lthy [code_goal]);
     val fun_t = Const (fun_name, fun_T);
 
@@ -2365,24 +2365,24 @@ fun consolidate_global thy =
   SOME (Named_Target.theory_map consolidate thy)
   handle Same.SAME => NONE;
 
-val _ = Outer_Syntax.local_theory @{command_keyword corec}
+val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>corec\<close>
   "define nonprimitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
-      --| @{keyword ")"}) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
+  ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 corec_option_parser)
+      --| \<^keyword>\<open>)\<close>) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
    >> uncurry (corec_cmd true));
 
-val _ = Outer_Syntax.local_theory_to_proof @{command_keyword corecursive}
+val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>corecursive\<close>
   "define nonprimitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
-      --| @{keyword ")"}) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
+  ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 corec_option_parser)
+      --| \<^keyword>\<open>)\<close>) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
    >> uncurry (corecursive_cmd true));
 
-val _ = Outer_Syntax.local_theory_to_proof @{command_keyword friend_of_corec}
+val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>friend_of_corec\<close>
   "register a function as a legal context for nonprimitive corecursion"
   (Parse.const -- Scan.option (Parse.$$$ "::" |-- Parse.typ) --| Parse.where_ -- Parse.prop
    >> friend_of_corec_cmd);
 
-val _ = Outer_Syntax.local_theory @{command_keyword coinduction_upto}
+val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>coinduction_upto\<close>
   "derive a coinduction up-to principle and a corresponding congruence closure"
   (Parse.name --| Parse.$$$ ":" -- Parse.typ >> coinduction_upto_cmd);
 

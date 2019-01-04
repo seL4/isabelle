@@ -99,7 +99,7 @@ let
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
-  fun dest_tprop (Const(@{const_name Trueprop},_) $ P) = P
+  fun dest_tprop (Const(\<^const_name>\<open>Trueprop\<close>,_) $ P) = P
     | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^
                             Syntax.string_of_term ctxt Q);
 
@@ -283,8 +283,8 @@ let
      (*Used to make induction rules;
         ind_alist = [(rec_tm1,pred1),...] associates predicates with rec ops
         prem is a premise of an intr rule*)
-     fun add_induct_prem ind_alist (prem as Const (@{const_name Trueprop}, _) $
-                      (Const (@{const_name mem}, _) $ t $ X), iprems) =
+     fun add_induct_prem ind_alist (prem as Const (\<^const_name>\<open>Trueprop\<close>, _) $
+                      (Const (\<^const_name>\<open>mem\<close>, _) $ t $ X), iprems) =
           (case AList.lookup (op aconv) ind_alist X of
                SOME pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
              | NONE => (*possibly membership in M(rec_tm), for M monotone*)
@@ -500,7 +500,7 @@ let
      (*strip quantifier and the implication*)
      val induct0 = inst (quant_induct RS @{thm spec} RSN (2, @{thm rev_mp}));
 
-     val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = Thm.concl_of induct0
+     val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (pred_var $ _) = Thm.concl_of induct0
 
      val induct =
        CP.split_rule_var (Proof_Context.init_global thy)
@@ -583,19 +583,19 @@ fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
     (monos, con_defs, type_intrs, type_elims);
 
 val ind_decl =
-  (@{keyword "domains"} |-- Parse.!!! (Parse.enum1 "+" Parse.term --
-      ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.term))) --
-  (@{keyword "intros"} |--
+  (\<^keyword>\<open>domains\<close> |-- Parse.!!! (Parse.enum1 "+" Parse.term --
+      ((\<^keyword>\<open>\<subseteq>\<close> || \<^keyword>\<open><=\<close>) |-- Parse.term))) --
+  (\<^keyword>\<open>intros\<close> |--
     Parse.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop))) --
-  Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) [] --
-  Scan.optional (@{keyword "con_defs"} |-- Parse.!!! Parse.thms1) [] --
-  Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.thms1) [] --
-  Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.thms1) []
+  Scan.optional (\<^keyword>\<open>monos\<close> |-- Parse.!!! Parse.thms1) [] --
+  Scan.optional (\<^keyword>\<open>con_defs\<close> |-- Parse.!!! Parse.thms1) [] --
+  Scan.optional (\<^keyword>\<open>type_intros\<close> |-- Parse.!!! Parse.thms1) [] --
+  Scan.optional (\<^keyword>\<open>type_elims\<close> |-- Parse.!!! Parse.thms1) []
   >> (Toplevel.theory o mk_ind);
 
 val _ =
   Outer_Syntax.command
-    (if coind then @{command_keyword coinductive} else @{command_keyword inductive})
+    (if coind then \<^command_keyword>\<open>coinductive\<close> else \<^command_keyword>\<open>inductive\<close>)
     ("define " ^ co_prefix ^ "inductive sets") ind_decl;
 
 end;

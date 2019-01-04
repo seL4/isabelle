@@ -9,7 +9,7 @@ theory Finite_Map
   abbrevs "(=" = "\<subseteq>\<^sub>f"
 begin
 
-subsection \<open>Auxiliary constants and lemmas over @{type map}\<close>
+subsection \<open>Auxiliary constants and lemmas over \<^type>\<open>map\<close>\<close>
 
 parametric_constant map_add_transfer[transfer_rule]: map_add_def
 parametric_constant map_of_transfer[transfer_rule]: map_of_def
@@ -1029,7 +1029,7 @@ including fset.lifting
 by transfer' (auto simp: set_of_map_def)
 
 
-subsection \<open>@{const size} setup\<close>
+subsection \<open>\<^const>\<open>size\<close> setup\<close>
 
 definition size_fmap :: "('a \<Rightarrow> nat) \<Rightarrow> ('b \<Rightarrow> nat) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> nat" where
 [simp]: "size_fmap f g m = size_fset (\<lambda>(a, b). f a + g b) (fset_of_fmap m)"
@@ -1060,7 +1060,7 @@ lemma fmap_size_o_map: "inj h \<Longrightarrow> size_fmap f g \<circ> fmmap h = 
   done
 
 setup \<open>
-BNF_LFP_Size.register_size_global @{type_name fmap} @{const_name size_fmap}
+BNF_LFP_Size.register_size_global \<^type_name>\<open>fmap\<close> \<^const_name>\<open>size_fmap\<close>
   @{thm size_fmap_overloaded_def} @{thms size_fmap_def size_fmap_overloaded_simps}
   @{thms fmap_size_o_map}
 \<close>
@@ -1431,7 +1431,7 @@ export_code
   fmfilter fmadd fmmap fmmap_keys fmcomp
   checking SML Scala Haskell? OCaml?
 
-\<comment> \<open>\<open>lifting\<close> through @{type fmap}\<close>
+\<comment> \<open>\<open>lifting\<close> through \<^type>\<open>fmap\<close>\<close>
 
 experiment begin
 

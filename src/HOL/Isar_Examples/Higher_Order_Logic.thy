@@ -490,7 +490,7 @@ proof -
 qed
 
 text \<open>
-  This means, the hypothetical predicate @{const classical} always holds
+  This means, the hypothetical predicate \<^const>\<open>classical\<close> always holds
   unconditionally (with all consequences).
 \<close>
 

@@ -21,7 +21,7 @@ open BNF_Tactics
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
-val countableS = @{sort countable};
+val countableS = \<^sort>\<open>countable\<close>;
 
 fun nchotomy_tac ctxt nchotomy =
   HEADGOAL (resolve_tac ctxt [nchotomy RS @{thm all_reg[rotated]}] THEN'
@@ -74,7 +74,7 @@ fun encode_sumN n k t =
       right = fn t => @{const sum_encode} $ (@{const Inr (nat, nat)} $ t)}
     n k;
 
-fun encode_tuple [] = @{term "0 :: nat"}
+fun encode_tuple [] = \<^term>\<open>0 :: nat\<close>
   | encode_tuple ts =
     Balanced_Tree.make (fn (t, u) => @{const prod_encode} $ (@{const Pair (nat, nat)} $ u $ t)) ts;
 
@@ -87,14 +87,14 @@ fun mk_encode_funs ctxt fpTs ns ctrss0 recs0 =
       raise TYPE ("Type is not of sort " ^ Syntax.string_of_sort ctxt countableS, [T], []);
 
     fun mk_to_nat_checked T =
-      Const (@{const_name to_nat}, tap check_countable T --> HOLogic.natT);
+      Const (\<^const_name>\<open>to_nat\<close>, tap check_countable T --> HOLogic.natT);
 
     val nn = length ns;
     val recs as rec1 :: _ = map2 (mk_co_rec thy Least_FP (replicate nn HOLogic.natT)) fpTs recs0;
     val arg_Ts = binder_fun_types (fastype_of rec1);
     val arg_Tss = Library.unflat ctrss0 arg_Ts;
 
-    fun mk_U (Type (@{type_name prod}, [T1, T2])) =
+    fun mk_U (Type (\<^type_name>\<open>prod\<close>, [T1, T2])) =
         if member (op =) fpTs T1 then T2 else HOLogic.mk_prodT (mk_U T1, mk_U T2)
       | mk_U (Type (s, Ts)) = Type (s, map mk_U Ts)
       | mk_U T = T;
@@ -181,9 +181,9 @@ fun derive_encode_injectives_thms _ [] = []
       |> map Thm.close_derivation
     end;
 
-fun get_countable_goal_type_name (@{const Trueprop} $ (Const (@{const_name Ex}, _)
-    $ Abs (_, Type (_, [Type (s, _), _]), Const (@{const_name inj_on}, _) $ Bound 0
-        $ Const (@{const_name top}, _)))) = s
+fun get_countable_goal_type_name (@{const Trueprop} $ (Const (\<^const_name>\<open>Ex\<close>, _)
+    $ Abs (_, Type (_, [Type (s, _), _]), Const (\<^const_name>\<open>inj_on\<close>, _) $ Bound 0
+        $ Const (\<^const_name>\<open>top\<close>, _)))) = s
   | get_countable_goal_type_name _ = error "Wrong goal format for datatype countability tactic";
 
 fun core_countable_datatype_tac ctxt st =

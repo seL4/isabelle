@@ -49,8 +49,8 @@ fun transitive th1 th2 = Drule.transitive_thm OF [th1, th2]
 
 val combination_thm =
   let
-    val fg = @{cprop "f :: 'a :: {} \<Rightarrow> 'b :: {} \<equiv> g"}
-    val st = @{cprop "s :: 'a :: {} \<equiv> t"}
+    val fg = \<^cprop>\<open>f :: 'a :: {} \<Rightarrow> 'b :: {} \<equiv> g\<close>
+    val st = \<^cprop>\<open>s :: 'a :: {} \<equiv> t\<close>
     val thm = Thm.combination (Thm.assume fg) (Thm.assume st)
       |> Thm.implies_intr st
       |> Thm.implies_intr fg
@@ -58,8 +58,8 @@ val combination_thm =
 
 fun abstract_rule_thm n =
   let
-    val eq = @{cprop "\<And>x :: 'a :: {}. (s :: 'a \<Rightarrow> 'b :: {}) x \<equiv> t x"}
-    val x = @{cterm "x :: 'a :: {}"}
+    val eq = \<^cprop>\<open>\<And>x :: 'a :: {}. (s :: 'a \<Rightarrow> 'b :: {}) x \<equiv> t x\<close>
+    val x = \<^cterm>\<open>x :: 'a :: {}\<close>
     val thm = eq
       |> Thm.assume
       |> Thm.forall_elim x
@@ -178,7 +178,7 @@ fun params_cconv n cv ctxt ct =
 fun prems_cconv 0 cv ct = cv ct
   | prems_cconv n cv ct =
       (case ct |> Thm.term_of of
-        (Const (@{const_name "Pure.imp"}, _) $ _) $ _ =>
+        (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _) $ _ =>
           ((if n = 1 then fun_cconv else I) o arg_cconv) (prems_cconv (n-1) cv) ct
       | _ =>  cv ct)
 

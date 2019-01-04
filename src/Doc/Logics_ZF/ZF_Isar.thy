@@ -23,9 +23,9 @@ text \<open>
     @{attribute_def (ZF) TC} & : & \<open>attribute\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{attribute (ZF) TC} (() | 'add' | 'del')
-  \<close>}
+  \<close>
 
   \begin{description}
   
@@ -58,7 +58,7 @@ text \<open>
     @{command_def (ZF) "codatatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command (ZF) inductive} | @@{command (ZF) coinductive}) domains intros hints
     ;
 
@@ -76,11 +76,11 @@ text \<open>
     @{syntax_def (ZF) typeintros}: @'type_intros' @{syntax thms}
     ;
     @{syntax_def (ZF) typeelims}: @'type_elims' @{syntax thms}
-  \<close>}
+  \<close>
 
   In the following syntax specification \<open>monos\<close>, \<open>typeintros\<close>, and \<open>typeelims\<close> are the same as above.
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{command (ZF) datatype} | @@{command (ZF) codatatype}) domain? (dtspec + @'and') hints
     ;
 
@@ -91,7 +91,7 @@ text \<open>
     con: @{syntax name} ('(' (@{syntax term} ',' +) ')')?
     ;
     hints: @{syntax (ZF) "monos"}? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
-  \<close>}
+  \<close>
 
   See @{cite "isabelle-ZF"} for further information on inductive
   definitions in ZF, but note that this covers the old-style theory
@@ -106,9 +106,9 @@ text \<open>
     @{command_def (ZF) "primrec"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     @@{command (ZF) primrec} (@{syntax thmdecl}? @{syntax prop} +)
-  \<close>}
+  \<close>
 \<close>
 
 
@@ -125,13 +125,13 @@ text \<open>
     @{command_def (ZF) "inductive_cases"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
-  @{rail \<open>
+  \<^rail>\<open>
     (@@{method (ZF) case_tac} | @@{method (ZF) induct_tac}) @{syntax goal_spec}? @{syntax name}
     ;
     @@{method (ZF) ind_cases} (@{syntax prop} +)
     ;
     @@{command (ZF) inductive_cases} (@{syntax thmdecl}? (@{syntax prop} +) + @'and')
-  \<close>}
+  \<close>
 \<close>
 
 end

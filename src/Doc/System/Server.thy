@@ -17,7 +17,7 @@ text \<open>
   In contrast, the Isabelle server exposes Isabelle/Scala as a
   ``terminate-stay-resident'' application that manages multiple logic
   \<^emph>\<open>sessions\<close> and concurrent tasks to use \<^emph>\<open>theories\<close>. This provides an
-  analogous to @{ML Thy_Info.use_theories} in Isabelle/ML, but with full
+  analogous to \<^ML>\<open>Thy_Info.use_theories\<close> in Isabelle/ML, but with full
   concurrency and Isabelle/PIDE markup.
 
   The client/server arrangement via TCP sockets also opens possibilities for
@@ -48,7 +48,7 @@ text \<open>
 
   The main operation of \<^verbatim>\<open>isabelle server\<close> is to ensure that a named server is
   running, either by finding an already running process (according to the
-  central database file @{path "$ISABELLE_HOME_USER/servers.db"}) or by
+  central database file \<^path>\<open>$ISABELLE_HOME_USER/servers.db\<close>) or by
   becoming itself a new server that accepts connections on a particular TCP
   socket. The server name and its address are printed as initial output line.
   If another server instance is already running, the current
@@ -464,7 +464,7 @@ text \<open>
   string, id?: long}\<close> describes a source position within Isabelle text. Only
   the \<open>line\<close> and \<open>file\<close> fields make immediate sense to external programs.
   Detailed \<open>offset\<close> and \<open>end_offset\<close> positions are counted according to
-  Isabelle symbols, see @{ML_type Symbol.symbol} in Isabelle/ML @{cite
+  Isabelle symbols, see \<^ML_type>\<open>Symbol.symbol\<close> in Isabelle/ML @{cite
   "isabelle-implementation"}. The position \<open>id\<close> belongs to the representation
   of command transactions in the Isabelle/PIDE protocol: it normally does not
   occur in externalized positions.
@@ -724,8 +724,7 @@ text \<open>
   in a robust manner, instead of relying on directory locations.
 
   \<^medskip>
-  If \<open>system_mode\<close> is \<^verbatim>\<open>true\<close>, session images are stored in @{path
-  "$ISABELLE_HEAPS_SYSTEM"} instead of @{path "$ISABELLE_HEAPS"}. See also
+  If \<open>system_mode\<close> is \<^verbatim>\<open>true\<close>, session images are stored in \<^path>\<open>$ISABELLE_HEAPS_SYSTEM\<close> instead of \<^path>\<open>$ISABELLE_HEAPS\<close>. See also
   option \<^verbatim>\<open>-s\<close> in @{tool build} (\secref{sec:tool-build}).
 
   \<^medskip>

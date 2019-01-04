@@ -10,7 +10,7 @@ subsection \<open>Strings as list of bytes\<close>
 
 text \<open>
   When modelling strings, we follow the approach given
-  in @{url "https://utf8everywhere.org/"}:
+  in \<^url>\<open>https://utf8everywhere.org/\<close>:
 
   \<^item> Strings are a list of bytes (8 bit).
 
@@ -668,9 +668,9 @@ code_printing
 | constant "(\<le>) :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : string) <= _)"
     and (OCaml) "!((_ : string) <= _)"
-    \<comment> \<open>Order operations for @{typ String.literal} work in Haskell only
+    \<comment> \<open>Order operations for \<^typ>\<open>String.literal\<close> work in Haskell only
           if no type class instance needs to be generated, because String = [Char] in Haskell
-          and @{typ "char list"} need not have the same order as @{typ String.literal}.\<close>
+          and \<^typ>\<open>char list\<close> need not have the same order as \<^typ>\<open>String.literal\<close>.\<close>
     and (Haskell) infix 4 "<="
     and (Scala) infixl 4 "<="
     and (Eval) infixl 6 "<="

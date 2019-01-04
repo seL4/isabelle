@@ -13,30 +13,30 @@ Borrows from the DC simplifier of Soren Heilmann.
 (*Make atomic rewrite rules*)
 fun atomize r =
  case Thm.concl_of r of
-   Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
+   Const(\<^const_name>\<open>Trueprop\<close>,_) $ Abs(_,_,a) $ Abs(_,_,c) =>
      (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
         ([], [p]) =>
           (case p of
-               Const(@{const_name imp},_)$_$_ => atomize(r RS @{thm mp_R})
-             | Const(@{const_name conj},_)$_$_   => atomize(r RS @{thm conjunct1}) @
+               Const(\<^const_name>\<open>imp\<close>,_)$_$_ => atomize(r RS @{thm mp_R})
+             | Const(\<^const_name>\<open>conj\<close>,_)$_$_   => atomize(r RS @{thm conjunct1}) @
                    atomize(r RS @{thm conjunct2})
-             | Const(@{const_name All},_)$_      => atomize(r RS @{thm spec})
-             | Const(@{const_name True},_)       => []    (*True is DELETED*)
-             | Const(@{const_name False},_)      => []    (*should False do something?*)
+             | Const(\<^const_name>\<open>All\<close>,_)$_      => atomize(r RS @{thm spec})
+             | Const(\<^const_name>\<open>True\<close>,_)       => []    (*True is DELETED*)
+             | Const(\<^const_name>\<open>False\<close>,_)      => []    (*should False do something?*)
              | _                     => [r])
       | _ => [])  (*ignore theorem unless it has precisely one conclusion*)
  | _ => [r];
 
 (*Make meta-equalities.*)
 fun mk_meta_eq ctxt th = case Thm.concl_of th of
-    Const(@{const_name Pure.eq},_)$_$_ => th
-  | Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
+    Const(\<^const_name>\<open>Pure.eq\<close>,_)$_$_ => th
+  | Const(\<^const_name>\<open>Trueprop\<close>,_) $ Abs(_,_,a) $ Abs(_,_,c) =>
         (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
              ([], [p]) =>
                  (case p of
-                      (Const(@{const_name equal},_)$_$_)   => th RS @{thm eq_reflection}
-                    | (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
-                    | (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
+                      (Const(\<^const_name>\<open>equal\<close>,_)$_$_)   => th RS @{thm eq_reflection}
+                    | (Const(\<^const_name>\<open>iff\<close>,_)$_$_) => th RS @{thm iff_reflection}
+                    | (Const(\<^const_name>\<open>Not\<close>,_)$_)      => th RS @{thm iff_reflection_F}
                     | _                       => th RS @{thm iff_reflection_T})
            | _ => error ("addsimps: unable to use theorem\n" ^ Thm.string_of_thm ctxt th));
 
@@ -67,7 +67,7 @@ fun safe_solver ctxt =
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
-  empty_simpset @{context}
+  empty_simpset \<^context>
   setSSolver (mk_solver "safe" safe_solver)
   setSolver (mk_solver "unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
@@ -85,7 +85,7 @@ val LK_simps =
     @{thms LK_extra_simps};
 
 val LK_ss =
-  put_simpset LK_basic_ss @{context} addsimps LK_simps
+  put_simpset LK_basic_ss \<^context> addsimps LK_simps
   |> Simplifier.add_eqcong @{thm left_cong}
   |> Simplifier.add_cong @{thm imp_cong}
   |> simpset_of;

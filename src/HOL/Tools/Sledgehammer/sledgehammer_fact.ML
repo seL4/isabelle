@@ -65,7 +65,7 @@ val max_simps_for_clasimpset = 10000
 
 (* experimental feature *)
 val instantiate_inducts =
-  Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
+  Attrib.setup_config_bool \<^binding>\<open>sledgehammer_instantiate_inducts\<close> (K false)
 
 val no_fact_override = {add = [], del = [], only = false}
 
@@ -85,8 +85,8 @@ fun is_rec_eq lhs = Term.exists_subterm (curry (op =) (head_of lhs))
 
 fun is_rec_def (@{const Trueprop} $ t) = is_rec_def t
   | is_rec_def (@{const Pure.imp} $ _ $ t2) = is_rec_def t2
-  | is_rec_def (Const (@{const_name Pure.eq}, _) $ t1 $ t2) = is_rec_eq t1 t2
-  | is_rec_def (Const (@{const_name HOL.eq}, _) $ t1 $ t2) = is_rec_eq t1 t2
+  | is_rec_def (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2) = is_rec_eq t1 t2
+  | is_rec_def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) = is_rec_eq t1 t2
   | is_rec_def _ = false
 
 fun is_assum assms th = exists (fn ct => Thm.prop_of th aconv Thm.term_of ct) assms
@@ -99,7 +99,7 @@ fun scope_of_thm global assms chained th =
   else Local
 
 val may_be_induction =
-  exists_subterm (fn Var (_, Type (@{type_name fun}, [_, T])) => body_type T = @{typ bool}
+  exists_subterm (fn Var (_, Type (\<^type_name>\<open>fun\<close>, [_, T])) => body_type T = \<^typ>\<open>bool\<close>
     | _ => false)
 
 (* TODO: get rid of *)
@@ -217,7 +217,7 @@ fun is_technical_const s = exists (fn pref => String.isPrefix pref s) technical_
 val sep_class_sep = Long_Name.separator ^ "class" ^ Long_Name.separator
 
 fun is_low_level_class_const s =
-  s = @{const_name equal_class.equal} orelse String.isSubstring sep_class_sep s
+  s = \<^const_name>\<open>equal_class.equal\<close> orelse String.isSubstring sep_class_sep s
 
 val sep_that = Long_Name.separator ^ Auto_Bind.thatN
 val skolem_thesis = Name.skolem Auto_Bind.thesisN
@@ -248,7 +248,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       if exists_Const ((is_technical_const o fst) orf (is_low_level_class_const o fst) orf
           type_has_top_sort o snd) t then
         Deal_Breaker
-      else if exists_type (exists_subtype (curry (op =) @{typ prop})) t orelse
+      else if exists_type (exists_subtype (curry (op =) \<^typ>\<open>prop\<close>)) t orelse
           not (exists_subterm is_interesting_subterm t) then
         Boring
       else
@@ -257,11 +257,11 @@ fun is_likely_tautology_too_meta_or_too_technical th =
     fun interest_of_prop _ (@{const Trueprop} $ t) = interest_of_bool t
       | interest_of_prop Ts (@{const Pure.imp} $ t $ u) =
         combine_interests (interest_of_prop Ts t) (interest_of_prop Ts u)
-      | interest_of_prop Ts (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) =
+      | interest_of_prop Ts (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T, t)) =
         if type_has_top_sort T then Deal_Breaker else interest_of_prop (T :: Ts) t
-      | interest_of_prop Ts ((t as Const (@{const_name Pure.all}, _)) $ u) =
+      | interest_of_prop Ts ((t as Const (\<^const_name>\<open>Pure.all\<close>, _)) $ u) =
         interest_of_prop Ts (t $ eta_expand Ts u 1)
-      | interest_of_prop _ (Const (@{const_name Pure.eq}, _) $ t $ u) =
+      | interest_of_prop _ (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ u) =
         combine_interests (interest_of_bool t) (interest_of_bool u)
       | interest_of_prop _ _ = Deal_Breaker
 
@@ -336,12 +336,12 @@ fun clasimpset_rule_table_of ctxt =
       end
   end
 
-fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
+fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2)) =
     if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then t else t0 $ t2 $ t1
   | normalize_eq (@{const Trueprop} $ (t as @{const Not}
-      $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2))) =
+      $ ((t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2))) =
     if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then t else HOLogic.mk_not (t0 $ t2 $ t1)
-  | normalize_eq (Const (@{const_name Pure.eq}, Type (_, [T, _])) $ t1 $ t2) =
+  | normalize_eq (Const (\<^const_name>\<open>Pure.eq\<close>, Type (_, [T, _])) $ t1 $ t2) =
     (if is_less_equal (Term_Ord.fast_term_ord (t1, t2)) then (t1, t2) else (t2, t1))
     |> (fn (t1, t2) => HOLogic.eq_const T $ t1 $ t2)
   | normalize_eq t = t
@@ -551,7 +551,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} keywords css chained hyp_ts co
            val facts =
              all_facts ctxt false ho_atp keywords add chained css
              |> filter_out ((member Thm.eq_thm_prop del orf
-               (Named_Theorems.member ctxt @{named_theorems no_atp} andf
+               (Named_Theorems.member ctxt \<^named_theorems>\<open>no_atp\<close> andf
                  not o member Thm.eq_thm_prop add)) o snd)
          in
            facts

@@ -33,7 +33,7 @@ text \<open>
 
 typedef enat = "UNIV :: nat option set" ..
 
-text \<open>TODO: introduce enat as coinductive datatype, enat is just @{const of_nat}\<close>
+text \<open>TODO: introduce enat as coinductive datatype, enat is just \<^const>\<open>of_nat\<close>\<close>
 
 definition enat :: "nat \<Rightarrow> enat" where
   "enat n = Abs_enat (Some n)"
@@ -537,7 +537,7 @@ struct
           if u aconv t then (rev past @ terms)
           else find_first_t (t::past) u terms
 
-  fun dest_summing (Const (@{const_name Groups.plus}, _) $ t $ u, ts) =
+  fun dest_summing (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ t $ u, ts) =
         dest_summing (t, dest_summing (u, ts))
     | dest_summing (t, ts) = t :: ts
 
@@ -546,7 +546,7 @@ struct
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context}
+    simpset_of (put_simpset HOL_basic_ss \<^context>
       addsimps @{thms ac_simps add_0_left add_0_right})
   fun norm_tac ctxt = ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   fun simplify_meta_eq ctxt cancel_th th =
@@ -558,21 +558,21 @@ end
 structure Eq_Enat_Cancel = ExtractCommonTermFun
 (open Cancel_Enat_Common
   val mk_bal = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} @{typ enat}
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>HOL.eq\<close> \<^typ>\<open>enat\<close>
   fun simp_conv _ _ = SOME @{thm enat_add_left_cancel}
 )
 
 structure Le_Enat_Cancel = ExtractCommonTermFun
 (open Cancel_Enat_Common
-  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} @{typ enat}
+  val mk_bal = HOLogic.mk_binrel \<^const_name>\<open>Orderings.less_eq\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Orderings.less_eq\<close> \<^typ>\<open>enat\<close>
   fun simp_conv _ _ = SOME @{thm enat_add_left_cancel_le}
 )
 
 structure Less_Enat_Cancel = ExtractCommonTermFun
 (open Cancel_Enat_Common
-  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} @{typ enat}
+  val mk_bal = HOLogic.mk_binrel \<^const_name>\<open>Orderings.less\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Orderings.less\<close> \<^typ>\<open>enat\<close>
   fun simp_conv _ _ = SOME @{thm enat_add_left_cancel_less}
 )
 \<close>

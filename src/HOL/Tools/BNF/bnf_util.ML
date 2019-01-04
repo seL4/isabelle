@@ -123,7 +123,7 @@ struct
 open Ctr_Sugar_Util
 open BNF_FP_Rec_Sugar_Util
 
-val transfer_plugin = Plugin_Name.declare_setup @{binding transfer};
+val transfer_plugin = Plugin_Name.declare_setup \<^binding>\<open>transfer\<close>;
 
 
 (* Library proper *)
@@ -137,7 +137,7 @@ fun unflatt xsss = fst o unflatt0 xsss;
 fun unflattt xssss = fst o unflattt0 xssss;
 
 val parse_type_arg_constrained =
-  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
+  Parse.type_ident -- Scan.option (\<^keyword>\<open>::\<close> |-- Parse.!!! Parse.sort);
 
 val parse_type_arg_named_constrained =
    (Parse.reserved "dead" >> K NONE || parse_opt_binding_colon >> SOME) --
@@ -145,10 +145,10 @@ val parse_type_arg_named_constrained =
 
 val parse_type_args_named_constrained =
   parse_type_arg_constrained >> (single o pair (SOME Binding.empty)) ||
-  @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
+  \<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| \<^keyword>\<open>)\<close>) ||
   Scan.succeed [];
 
-val parse_map_rel_pred_binding = Parse.name --| @{keyword ":"} -- Parse.binding;
+val parse_map_rel_pred_binding = Parse.name --| \<^keyword>\<open>:\<close> -- Parse.binding;
 
 val no_map_rel = (Binding.empty, Binding.empty, Binding.empty);
 
@@ -158,7 +158,7 @@ fun extract_map_rel_pred ("map", m) = (fn (_, r, p) => (m, r, p))
   | extract_map_rel_pred (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
 
 val parse_map_rel_pred_bindings =
-  @{keyword "for"} |-- Scan.repeat parse_map_rel_pred_binding
+  \<^keyword>\<open>for\<close> |-- Scan.repeat parse_map_rel_pred_binding
     >> (fn ps => fold extract_map_rel_pred ps no_map_rel)
   || Scan.succeed no_map_rel;
 
@@ -204,7 +204,7 @@ fun mk_Freessss x Tssss = @{fold_map 2} mk_Freesss (mk_names (length Tssss) x) T
 
 (*maps [T1,...,Tn]--->T to ([T1,T2,...,Tn], T)*)
 fun strip_typeN 0 T = ([], T)
-  | strip_typeN n (Type (@{type_name fun}, [T, T'])) = strip_typeN (n - 1) T' |>> cons T
+  | strip_typeN n (Type (\<^type_name>\<open>fun\<close>, [T, T'])) = strip_typeN (n - 1) T' |>> cons T
   | strip_typeN _ T = raise TYPE ("strip_typeN", [T], []);
 
 (*maps [T1,...,Tn]--->T-->U to ([T1,T2,...,Tn], T-->U), where U is not a function type*)
@@ -217,14 +217,14 @@ fun mk_pred2T T U = mk_predT [T, U];
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;
 val dest_relT = HOLogic.dest_prodT o HOLogic.dest_setT;
 val dest_pred2T = apsnd Term.domain_type o Term.dest_funT;
-fun mk_sumT (LT, RT) = Type (@{type_name Sum_Type.sum}, [LT, RT]);
+fun mk_sumT (LT, RT) = Type (\<^type_name>\<open>Sum_Type.sum\<close>, [LT, RT]);
 
 
 (** Constants **)
 
-fun fst_const T = Const (@{const_name fst}, T --> fst (HOLogic.dest_prodT T));
-fun snd_const T = Const (@{const_name snd}, T --> snd (HOLogic.dest_prodT T));
-fun Id_const T = Const (@{const_name Id}, mk_relT (T, T));
+fun fst_const T = Const (\<^const_name>\<open>fst\<close>, T --> fst (HOLogic.dest_prodT T));
+fun snd_const T = Const (\<^const_name>\<open>snd\<close>, T --> snd (HOLogic.dest_prodT T));
+fun Id_const T = Const (\<^const_name>\<open>Id\<close>, mk_relT (T, T));
 
 
 (** Operators **)
@@ -236,69 +236,69 @@ fun mk_converse R =
   let
     val RT = dest_relT (fastype_of R);
     val RST = mk_relT (snd RT, fst RT);
-  in Const (@{const_name converse}, fastype_of R --> RST) $ R end;
+  in Const (\<^const_name>\<open>converse\<close>, fastype_of R --> RST) $ R end;
 
 fun mk_rel_comp (R, S) =
   let
     val RT = fastype_of R;
     val ST = fastype_of S;
     val RST = mk_relT (fst (dest_relT RT), snd (dest_relT ST));
-  in Const (@{const_name relcomp}, RT --> ST --> RST) $ R $ S end;
+  in Const (\<^const_name>\<open>relcomp\<close>, RT --> ST --> RST) $ R $ S end;
 
 fun mk_Gr A f =
   let val ((AT, BT), FT) = `dest_funT (fastype_of f);
-  in Const (@{const_name Gr}, HOLogic.mk_setT AT --> FT --> mk_relT (AT, BT)) $ A $ f end;
+  in Const (\<^const_name>\<open>Gr\<close>, HOLogic.mk_setT AT --> FT --> mk_relT (AT, BT)) $ A $ f end;
 
 fun mk_conversep R =
   let
     val RT = dest_pred2T (fastype_of R);
     val RST = mk_pred2T (snd RT) (fst RT);
-  in Const (@{const_name conversep}, fastype_of R --> RST) $ R end;
+  in Const (\<^const_name>\<open>conversep\<close>, fastype_of R --> RST) $ R end;
 
 fun mk_rel_compp (R, S) =
   let
     val RT = fastype_of R;
     val ST = fastype_of S;
     val RST = mk_pred2T (fst (dest_pred2T RT)) (snd (dest_pred2T ST));
-  in Const (@{const_name relcompp}, RT --> ST --> RST) $ R $ S end;
+  in Const (\<^const_name>\<open>relcompp\<close>, RT --> ST --> RST) $ R $ S end;
 
 fun mk_Grp A f =
   let val ((AT, BT), FT) = `dest_funT (fastype_of f);
-  in Const (@{const_name Grp}, HOLogic.mk_setT AT --> FT --> mk_pred2T AT BT) $ A $ f end;
+  in Const (\<^const_name>\<open>Grp\<close>, HOLogic.mk_setT AT --> FT --> mk_pred2T AT BT) $ A $ f end;
 
 fun mk_image f =
   let val (T, U) = dest_funT (fastype_of f);
-  in Const (@{const_name image}, (T --> U) --> HOLogic.mk_setT T --> HOLogic.mk_setT U) $ f end;
+  in Const (\<^const_name>\<open>image\<close>, (T --> U) --> HOLogic.mk_setT T --> HOLogic.mk_setT U) $ f end;
 
 fun mk_Ball X f =
-  Const (@{const_name Ball}, fastype_of X --> fastype_of f --> HOLogic.boolT) $ X $ f;
+  Const (\<^const_name>\<open>Ball\<close>, fastype_of X --> fastype_of f --> HOLogic.boolT) $ X $ f;
 
 fun mk_Bex X f =
-  Const (@{const_name Bex}, fastype_of X --> fastype_of f --> HOLogic.boolT) $ X $ f;
+  Const (\<^const_name>\<open>Bex\<close>, fastype_of X --> fastype_of f --> HOLogic.boolT) $ X $ f;
 
 fun mk_UNION X f =
   let
     val (T, U) = dest_funT (fastype_of f);
   in
-    Const (@{const_name Sup}, HOLogic.mk_setT U --> U)
-      $ (Const (@{const_name image}, (T --> U) --> fastype_of X --> HOLogic.mk_setT U) $ f $ X)
+    Const (\<^const_name>\<open>Sup\<close>, HOLogic.mk_setT U --> U)
+      $ (Const (\<^const_name>\<open>image\<close>, (T --> U) --> fastype_of X --> HOLogic.mk_setT U) $ f $ X)
   end;
 
 fun mk_Union T =
-  Const (@{const_name Sup}, HOLogic.mk_setT (HOLogic.mk_setT T) --> HOLogic.mk_setT T);
+  Const (\<^const_name>\<open>Sup\<close>, HOLogic.mk_setT (HOLogic.mk_setT T) --> HOLogic.mk_setT T);
 
-val mk_union = HOLogic.mk_binop @{const_name sup};
+val mk_union = HOLogic.mk_binop \<^const_name>\<open>sup\<close>;
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));
-  in Const (@{const_name Field}, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
+  in Const (\<^const_name>\<open>Field\<close>, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
 
 fun mk_card_order bd =
   let
     val T = fastype_of bd;
     val AT = fst (dest_relT T);
   in
-    Const (@{const_name card_order_on}, HOLogic.mk_setT AT --> T --> HOLogic.boolT) $
+    Const (\<^const_name>\<open>card_order_on\<close>, HOLogic.mk_setT AT --> T --> HOLogic.boolT) $
       HOLogic.mk_UNIV AT $ bd
   end;
 
@@ -307,33 +307,33 @@ fun mk_Card_order bd =
     val T = fastype_of bd;
     val AT = fst (dest_relT T);
   in
-    Const (@{const_name card_order_on}, HOLogic.mk_setT AT --> T --> HOLogic.boolT) $
+    Const (\<^const_name>\<open>card_order_on\<close>, HOLogic.mk_setT AT --> T --> HOLogic.boolT) $
       mk_Field bd $ bd
   end;
 
-fun mk_cinfinite bd = Const (@{const_name cinfinite}, fastype_of bd --> HOLogic.boolT) $ bd;
+fun mk_cinfinite bd = Const (\<^const_name>\<open>cinfinite\<close>, fastype_of bd --> HOLogic.boolT) $ bd;
 
 fun mk_ordLeq t1 t2 =
   HOLogic.mk_mem (HOLogic.mk_prod (t1, t2),
-    Const (@{const_name ordLeq}, mk_relT (fastype_of t1, fastype_of t2)));
+    Const (\<^const_name>\<open>ordLeq\<close>, mk_relT (fastype_of t1, fastype_of t2)));
 
 fun mk_card_of A =
   let
     val AT = fastype_of A;
     val T = HOLogic.dest_setT AT;
   in
-    Const (@{const_name card_of}, AT --> mk_relT (T, T)) $ A
+    Const (\<^const_name>\<open>card_of\<close>, AT --> mk_relT (T, T)) $ A
   end;
 
 fun mk_dir_image r f =
   let val (T, U) = dest_funT (fastype_of f);
-  in Const (@{const_name dir_image}, mk_relT (T, T) --> (T --> U) --> mk_relT (U, U)) $ r $ f end;
+  in Const (\<^const_name>\<open>dir_image\<close>, mk_relT (T, T) --> (T --> U) --> mk_relT (U, U)) $ r $ f end;
 
 fun mk_rel_fun R S =
   let
     val ((RA, RB), RT) = `dest_pred2T (fastype_of R);
     val ((SA, SB), ST) = `dest_pred2T (fastype_of S);
-  in Const (@{const_name rel_fun}, RT --> ST --> mk_pred2T (RA --> SA) (RB --> SB)) $ R $ S end;
+  in Const (\<^const_name>\<open>rel_fun\<close>, RT --> ST --> mk_pred2T (RA --> SA) (RB --> SB)) $ R $ S end;
 
 (*FIXME: "x"?*)
 (*(nth sets i) must be of type "T --> 'ai set"*)
@@ -341,20 +341,20 @@ fun mk_in As sets T =
   let
     fun in_single set A =
       let val AT = fastype_of A;
-      in Const (@{const_name less_eq}, AT --> AT --> HOLogic.boolT) $ (set $ Free ("x", T)) $ A end;
+      in Const (\<^const_name>\<open>less_eq\<close>, AT --> AT --> HOLogic.boolT) $ (set $ Free ("x", T)) $ A end;
   in
     if null sets then HOLogic.mk_UNIV T
     else HOLogic.mk_Collect ("x", T, foldr1 (HOLogic.mk_conj) (map2 in_single sets As))
   end;
 
 fun mk_inj t =
-  let val T as Type (@{type_name fun}, [domT, _]) = fastype_of t in
-    Const (@{const_name inj_on}, T --> HOLogic.mk_setT domT --> HOLogic.boolT) $ t
+  let val T as Type (\<^type_name>\<open>fun\<close>, [domT, _]) = fastype_of t in
+    Const (\<^const_name>\<open>inj_on\<close>, T --> HOLogic.mk_setT domT --> HOLogic.boolT) $ t
       $ HOLogic.mk_UNIV domT
   end;
 
 fun mk_leq t1 t2 =
-  Const (@{const_name less_eq}, fastype_of t1 --> fastype_of t2 --> HOLogic.boolT) $ t1 $ t2;
+  Const (\<^const_name>\<open>less_eq\<close>, fastype_of t1 --> fastype_of t2 --> HOLogic.boolT) $ t1 $ t2;
 
 fun mk_card_binop binop typop t1 t2 =
   let
@@ -362,21 +362,21 @@ fun mk_card_binop binop typop t1 t2 =
     val (T2, relT2) = `(fst o dest_relT) (fastype_of t2);
   in Const (binop, relT1 --> relT2 --> mk_relT (typop (T1, T2), typop (T1, T2))) $ t1 $ t2 end;
 
-val mk_csum = mk_card_binop @{const_name csum} mk_sumT;
-val mk_cprod = mk_card_binop @{const_name cprod} HOLogic.mk_prodT;
-val mk_cexp = mk_card_binop @{const_name cexp} (op --> o swap);
-val ctwo = @{term ctwo};
+val mk_csum = mk_card_binop \<^const_name>\<open>csum\<close> mk_sumT;
+val mk_cprod = mk_card_binop \<^const_name>\<open>cprod\<close> HOLogic.mk_prodT;
+val mk_cexp = mk_card_binop \<^const_name>\<open>cexp\<close> (op --> o swap);
+val ctwo = \<^term>\<open>ctwo\<close>;
 
 fun mk_collect xs defT =
   let val T = (case xs of [] => defT | (x::_) => fastype_of x);
-  in Const (@{const_name collect}, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
+  in Const (\<^const_name>\<open>collect\<close>, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
 
 fun mk_vimage2p f g =
   let
     val (T1, T2) = dest_funT (fastype_of f);
     val (U1, U2) = dest_funT (fastype_of g);
   in
-    Const (@{const_name vimage2p},
+    Const (\<^const_name>\<open>vimage2p\<close>,
       (T1 --> T2) --> (U1 --> U2) --> mk_pred2T T2 U2 --> mk_pred2T T1 U1) $ f $ g
   end;
 
@@ -384,14 +384,14 @@ fun mk_eq_onp P =
   let
     val T = domain_type (fastype_of P);
   in
-    Const (@{const_name eq_onp}, (T --> HOLogic.boolT) --> T --> T --> HOLogic.boolT) $ P
+    Const (\<^const_name>\<open>eq_onp\<close>, (T --> HOLogic.boolT) --> T --> T --> HOLogic.boolT) $ P
   end;
 
 fun mk_pred name R =
   Const (name, uncurry mk_pred2T (fastype_of R |> dest_pred2T) --> HOLogic.boolT) $ R;
-val mk_reflp = mk_pred @{const_name reflp};
-val mk_symp = mk_pred @{const_name symp};
-val mk_transp =  mk_pred @{const_name transp};
+val mk_reflp = mk_pred \<^const_name>\<open>reflp\<close>;
+val mk_symp = mk_pred \<^const_name>\<open>symp\<close>;
+val mk_transp =  mk_pred \<^const_name>\<open>transp\<close>;
 
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;

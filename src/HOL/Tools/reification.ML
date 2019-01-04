@@ -15,7 +15,7 @@ end;
 structure Reification : REIFICATION =
 struct
 
-fun dest_listT (Type (@{type_name "list"}, [T])) = T;
+fun dest_listT (Type (\<^type_name>\<open>list\<close>, [T])) = T;
 
 val FWD = curry (op OF);
 
@@ -95,7 +95,7 @@ fun mk_congeq ctxt fs th =
 fun rearrange congs =
   let
     fun P (_, th) =
-      let val @{term "Trueprop"} $ (Const (@{const_name HOL.eq}, _) $ l $ _) = Thm.concl_of th
+      let val \<^term>\<open>Trueprop\<close> $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ l $ _) = Thm.concl_of th
       in can dest_Var l end;
     val (yes, no) = List.partition P congs;
   in no @ yes end;
@@ -180,7 +180,7 @@ fun decomp_reify da cgns (ct, ctxt) bds =
         end handle Pattern.MATCH => decomp_reify da congs (ct, ctxt) bds))
   end;
 
-fun get_nths (t as (Const (@{const_name "List.nth"}, _) $ vs $ n)) =
+fun get_nths (t as (Const (\<^const_name>\<open>List.nth\<close>, _) $ vs $ n)) =
       AList.update (op aconv) (t, (vs, n))
   | get_nths (t1 $ t2) = get_nths t1 #> get_nths t2
   | get_nths (Abs (_, _, t')) = get_nths t'
@@ -216,7 +216,7 @@ fun tryeqs [] (ct, ctxt) bds = error "Cannot find the atoms equation"
           let
             fun h (Const _ $ (vs as Var (_, lT)) $ _, Var (_, T)) =
               let
-                val cns = sbst (Const (@{const_name "List.Cons"}, T --> lT --> lT));
+                val cns = sbst (Const (\<^const_name>\<open>List.Cons\<close>, T --> lT --> lT));
                 val lT' = sbsT lT;
                 val (bsT, _) = the (AList.lookup Type.could_unify bds lT);
                 val vsn = the (AList.lookup (op =) vsns_map vs);
@@ -246,7 +246,7 @@ fun mk_decompatom eqs (ct, ctxt) bds = (([], fn (_, bds) =>
       let
         val rhs = eq |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd;
       in exists_Const
-        (fn (n, ty) => n = @{const_name "List.nth"}
+        (fn (n, ty) => n = \<^const_name>\<open>List.nth\<close>
           andalso AList.defined Type.could_unify bds (domain_type ty)) rhs
           andalso Type.could_unify (fastype_of rhs, tT)
       end;

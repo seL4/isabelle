@@ -167,8 +167,8 @@ lemma Let_1 [simp]: "Let 1 f = f 1"
 
 setup \<open>
   Reorient_Proc.add
-    (fn Const(@{const_name Groups.zero}, _) => true
-      | Const(@{const_name Groups.one}, _) => true
+    (fn Const(\<^const_name>\<open>Groups.zero\<close>, _) => true
+      | Const(\<^const_name>\<open>Groups.one\<close>, _) => true
       | _ => false)
 \<close>
 
@@ -179,10 +179,10 @@ typed_print_translation \<open>
   let
     fun tr' c = (c, fn ctxt => fn T => fn ts =>
       if null ts andalso Printer.type_emphasis ctxt T then
-        Syntax.const @{syntax_const "_constrain"} $ Syntax.const c $
+        Syntax.const \<^syntax_const>\<open>_constrain\<close> $ Syntax.const c $
           Syntax_Phases.term_of_typ ctxt T
       else raise Match);
-  in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end
+  in map tr' [\<^const_syntax>\<open>Groups.one\<close>, \<^const_syntax>\<open>Groups.zero\<close>] end
 \<close> \<comment> \<open>show types that are presumably too general\<close>
 
 class plus =

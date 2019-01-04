@@ -37,7 +37,7 @@ by blast
 
 
 text\<open>We could make the inductive definition conditional on
-    @{term "next \<in> increasing(S)"}
+    \<^term>\<open>next \<in> increasing(S)\<close>
     but instead we make this a side-condition of an introduction rule.  Thus
     the induction rule lets us assume that condition!  Many inductive proofs
     are therefore unconditional.\<close>
@@ -82,7 +82,7 @@ lemmas TFin_UnionI = PowI [THEN TFin.Pow_UnionI]
 lemmas TFin_is_subset = TFin.dom_subset [THEN subsetD, THEN PowD]
 
 
-text\<open>Structural induction on @{term "TFin(S,next)"}\<close>
+text\<open>Structural induction on \<^term>\<open>TFin(S,next)\<close>\<close>
 lemma TFin_induct:
   "[| n \<in> TFin(S,next);
       !!x. [| x \<in> TFin(S,next);  P(x);  next \<in> increasing(S) |] ==> P(next`x);
@@ -108,7 +108,7 @@ apply (blast dest: increasing_trans)
 done
 
 text\<open>Lemma 2 of section 3.2.  Interesting in its own right!
-  Requires @{term "next \<in> increasing(S)"} in the second induction step.\<close>
+  Requires \<^term>\<open>next \<in> increasing(S)\<close> in the second induction step.\<close>
 lemma TFin_linear_lemma2:
     "[| m \<in> TFin(S,next);  next \<in> increasing(S) |]
      ==> \<forall>n \<in> TFin(S,next). n<=m \<longrightarrow> n=m | next`n \<subseteq> m"
@@ -331,7 +331,7 @@ apply (subgoal_tac "m = \<Inter>(Z) ")
 apply blast+
 done
 
-text\<open>Well-ordering of @{term "TFin(S,next)"}\<close>
+text\<open>Well-ordering of \<^term>\<open>TFin(S,next)\<close>\<close>
 lemma well_ord_TFin_lemma: "[| Z \<subseteq> TFin(S,next);  z \<in> Z |] ==> \<Inter>(Z) \<in> Z"
 apply (rule classical)
 apply (subgoal_tac "Z = {\<Union>(TFin (S,next))}")
@@ -356,7 +356,7 @@ txt\<open>Now prove the linearity goal\<close>
 apply (intro ballI)
 apply (case_tac "x=y")
  apply blast
-txt\<open>The @{term "x\<noteq>y"} case remains\<close>
+txt\<open>The \<^term>\<open>x\<noteq>y\<close> case remains\<close>
 apply (rule_tac n1=x and m1=y in TFin_subset_linear [THEN disjE],
        assumption+, blast+)
 done

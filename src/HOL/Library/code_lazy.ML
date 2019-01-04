@@ -84,10 +84,10 @@ fun add_syntax_definition short_type_name eagerT lazyT lazy_ctr lthy =
   let
     val (name, _) = mk_name "lazy_" "" short_type_name lthy
     val freeT = HOLogic.unitT --> lazyT
-    val lazyT' = Type (@{type_name lazy}, [lazyT])
+    val lazyT' = Type (\<^type_name>\<open>lazy\<close>, [lazyT])
     val def = Logic.all_const freeT $ absdummy freeT (Logic.mk_equals (
       Free (name, (freeT --> eagerT)) $ Bound 0,
-      lazy_ctr $ (Const (@{const_name delay}, (freeT --> lazyT')) $ Bound 0)))
+      lazy_ctr $ (Const (\<^const_name>\<open>delay\<close>, (freeT --> lazyT')) $ Bound 0)))
     val (_, lthy') = Local_Theory.open_target lthy
     val ((t, (_, thm)), lthy') = Specification.definition NONE [] [] 
       ((Thm.def_binding (Binding.name name), []), def) lthy'
@@ -235,7 +235,7 @@ fun code_lazy_type eager_type_string thy =
         val (result, lthy1) = (Typedef.add_typedef
             { overloaded=false }
             (binding, rev (Term.add_tfreesT eager_type []), Mixfix.NoSyn)
-            (Const (@{const_name "top"}, Type (@{type_name set}, [eager_type])))
+            (Const (\<^const_name>\<open>top\<close>, Type (\<^type_name>\<open>set\<close>, [eager_type])))
             NONE
             (fn ctxt => resolve_tac ctxt [@{thm UNIV_witness}] 1)
           o (Local_Theory.open_target #> snd)) lthy
@@ -270,9 +270,9 @@ fun code_lazy_type eager_type_string thy =
       ctrs
 
     fun to_destr_eagerT typ = case typ of
-          Type (@{type_name "fun"}, [_, Type (@{type_name "fun"}, Ts)]) => 
-          to_destr_eagerT (Type (@{type_name "fun"}, Ts))
-        | Type (@{type_name "fun"}, [T, _]) => T
+          Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>fun\<close>, Ts)]) => 
+          to_destr_eagerT (Type (\<^type_name>\<open>fun\<close>, Ts))
+        | Type (\<^type_name>\<open>fun\<close>, [T, _]) => T
         | _ => raise Match
     val (case', lthy4) = 
       let
@@ -299,7 +299,7 @@ fun code_lazy_type eager_type_string thy =
         ({binding = binding, const = Const (Local_Theory.full_name lthy2 binding, T), thm = def_thm}, lthy2)
       end;
     
-    val lazy_datatype = Type (@{type_name lazy}, [lazy_type])
+    val lazy_datatype = Type (\<^type_name>\<open>lazy\<close>, [lazy_type])
     val Lazy_type = lazy_datatype --> eagerT
     val unstr_type = eagerT --> lazy_datatype
     
@@ -307,8 +307,8 @@ fun code_lazy_type eager_type_string thy =
       if n > i then apply_bounds i (n-1) (term $ Bound (n-1))
       else term
     fun all_abs Ts t = Logic.list_all (map (pair Name.uu) Ts, t)
-    fun mk_force t = Const (@{const_name force}, lazy_datatype --> lazy_type) $ t
-    fun mk_delay t = Const (@{const_name delay}, (@{typ unit} --> lazy_type) --> lazy_datatype) $ t
+    fun mk_force t = Const (\<^const_name>\<open>force\<close>, lazy_datatype --> lazy_type) $ t
+    fun mk_delay t = Const (\<^const_name>\<open>delay\<close>, (\<^typ>\<open>unit\<close> --> lazy_type) --> lazy_datatype) $ t
 
     val lazy_ctr = all_abs [lazy_datatype]
       (Logic.mk_equals (Free (lazy_ctr_name, Lazy_type) $ Bound 0, Rep_lazy $ mk_force (Bound 0)))
@@ -316,13 +316,13 @@ fun code_lazy_type eager_type_string thy =
 
     val lazy_sel = all_abs [eagerT]
       (Logic.mk_equals (Free (lazy_sel_name, unstr_type) $ Bound 0, 
-        mk_delay (Abs (Name.uu, @{typ unit}, Abs_lazy $ Bound 1))))
+        mk_delay (Abs (Name.uu, \<^typ>\<open>unit\<close>, Abs_lazy $ Bound 1))))
     val (lazy_sel_def, lthy6) = mk_def (lazy_sel_name, unstr_type, lazy_sel) lthy5
 
     fun mk_lazy_ctr (name, eager_ctr) =
       let
         val (_, ctrT) = dest_Const eager_ctr
-        fun to_lazy_ctrT (Type (@{type_name fun}, [T1, T2])) = T1 --> to_lazy_ctrT T2
+        fun to_lazy_ctrT (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) = T1 --> to_lazy_ctrT T2
           | to_lazy_ctrT T = if T = eagerT then lazy_type else raise Match
         val lazy_ctrT = to_lazy_ctrT ctrT
         val argsT = binder_types ctrT
@@ -336,7 +336,7 @@ fun code_lazy_type eager_type_string thy =
     val (lazy_case_def, lthy8) =
       let
         val (_, caseT) = dest_Const case'
-        fun to_lazy_caseT (Type (@{type_name fun}, [T1, T2])) =
+        fun to_lazy_caseT (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
             if T1 = eagerT then lazy_type --> T2 else T1 --> to_lazy_caseT T2
         val lazy_caseT = to_lazy_caseT caseT
         val argsT = binder_types lazy_caseT
@@ -379,7 +379,7 @@ fun code_lazy_type eager_type_string thy =
 
     val mk_Lazy_delay_eq =
       (#const lazy_ctr_def $ mk_delay (Bound 0), Rep_lazy $ (Bound 0 $ @{const Unity}))
-      |> mk_eq |> all_abs [@{typ unit} --> lazy_type]
+      |> mk_eq |> all_abs [\<^typ>\<open>unit\<close> --> lazy_type]
     val (Lazy_delay_thm, lthy8a) = mk_thm 
       ((Lazy_delay_eq_name, mk_Lazy_delay_eq), [#thm lazy_ctr_def, @{thm force_delay}])
       lthy8
@@ -406,7 +406,7 @@ fun code_lazy_type eager_type_string thy =
         val n = length argsT
         val lhs = apply_bounds 0 n eager_ctr
         val rhs = #const lazy_ctr_def $ 
-          (mk_delay (Abs (Name.uu, @{typ unit}, apply_bounds 1 (n + 1) lazy_ctr)))
+          (mk_delay (Abs (Name.uu, \<^typ>\<open>unit\<close>, apply_bounds 1 (n + 1) lazy_ctr)))
       in
         (lhs, rhs) |> mk_eq |> all_abs argsT
       end
@@ -493,7 +493,7 @@ fun code_lazy_type eager_type_string thy =
 
     val delay_dummy_thm = (pat_def_thm RS @{thm symmetric})
       |> Drule.infer_instantiate' lthy10
-         [SOME (Thm.cterm_of lthy10 (Const (@{const_name "Pure.dummy_pattern"}, HOLogic.unitT --> lazy_type)))]
+         [SOME (Thm.cterm_of lthy10 (Const (\<^const_name>\<open>Pure.dummy_pattern\<close>, HOLogic.unitT --> lazy_type)))]
       |> Thm.generalize (map (fst o dest_TFree) type_args, []) (Variable.maxidx_of lthy10 + 1);
 
     val ctr_post = delay_dummy_thm :: map (fn thm => thm RS @{thm sym}) ctrs_lazy_thms
@@ -552,7 +552,7 @@ fun transform_code_eqs _ [] = NONE
 
       val ((code_eqs, nbe_eqs), pure) =
         ((case hd eqs |> fst |> Thm.prop_of of
-            Const (@{const_name Pure.eq}, _) $ _ $ _ =>
+            Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _ =>
               (map (apfst (fn x => x RS @{thm meta_eq_to_obj_eq})) eqs, true)
          | _ => (eqs, false))
         |> apfst (List.partition snd))
@@ -600,7 +600,7 @@ fun print_lazy_type thy (name, info : lazy_info) =
           Syntax.pretty_term ctxt (#destr info),
           Pretty.str ":",
           Pretty.brk 1,
-          Syntax.pretty_typ ctxt (Type (@{type_name lazy}, [#lazyT info])),
+          Syntax.pretty_typ ctxt (Type (\<^type_name>\<open>lazy\<close>, [#lazyT info])),
           Pretty.str ")"
         ]
       ],
@@ -633,27 +633,27 @@ fun print_lazy_types thy =
 
 
 val _ =
-  Outer_Syntax.command @{command_keyword code_lazy_type}
+  Outer_Syntax.command \<^command_keyword>\<open>code_lazy_type\<close>
     "make a lazy copy of the datatype and activate substitution"
     (Parse.binding >> (fn b => Toplevel.theory (Binding.name_of b |> code_lazy_type)));
 val _ =
-  Outer_Syntax.command @{command_keyword activate_lazy_type}
+  Outer_Syntax.command \<^command_keyword>\<open>activate_lazy_type\<close>
     "activate substitution on a specific (lazy) type"
     (Parse.binding >> (fn b => Toplevel.theory (Binding.name_of b |> activate_lazy_type)));
 val _ =
-  Outer_Syntax.command @{command_keyword deactivate_lazy_type}
+  Outer_Syntax.command \<^command_keyword>\<open>deactivate_lazy_type\<close>
     "deactivate substitution on a specific (lazy) type"
     (Parse.binding >> (fn b => Toplevel.theory (Binding.name_of b |> deactivate_lazy_type)));
 val _ =
-  Outer_Syntax.command @{command_keyword activate_lazy_types}
+  Outer_Syntax.command \<^command_keyword>\<open>activate_lazy_types\<close>
     "activate substitution on all (lazy) types"
     (pair (Toplevel.theory activate_lazy_types));
 val _ =
-  Outer_Syntax.command @{command_keyword deactivate_lazy_types}
+  Outer_Syntax.command \<^command_keyword>\<open>deactivate_lazy_types\<close>
     "deactivate substitution on all (lazy) type"
     (pair (Toplevel.theory deactivate_lazy_types));
 val _ =
-  Outer_Syntax.command @{command_keyword print_lazy_types}
+  Outer_Syntax.command \<^command_keyword>\<open>print_lazy_types\<close>
     "print the types that have been declared as lazy and their substitution state"
     (pair (Toplevel.theory (tap print_lazy_types)));
 

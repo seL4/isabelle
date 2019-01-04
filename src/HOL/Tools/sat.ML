@@ -382,7 +382,7 @@ fun rawsat_thm ctxt clauses =
           val msg =
             "SAT solver found a countermodel:\n" ^
             (commas o map (fn (term, idx) =>
-                Syntax.string_of_term_global @{theory} term ^ ": " ^
+                Syntax.string_of_term_global \<^theory> term ^ ": " ^
                   (case assignment idx of NONE => "arbitrary"
                   | SOME true => "true" | SOME false => "false")))
               (Termtab.dest atom_table)

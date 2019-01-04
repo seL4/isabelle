@@ -57,7 +57,7 @@ fun generalize_types max_j T U =
       (case AList.lookup (op =) (!vars) (T, U) of
         SOME V => V
       | NONE =>
-        let val V = TVar ((Name.aT, length (!vars) + max_j), @{sort type}) in
+        let val V = TVar ((Name.aT, length (!vars) + max_j), \<^sort>\<open>type\<close>) in
           vars := ((T, U), V) :: !vars; V
         end);
 
@@ -106,7 +106,7 @@ fun mk_curry_uncurryN_balanced_raw ctxt n =
 
 val num_curry_uncurryN_balanced_precomp = 8;
 val curry_uncurryN_balanced_precomp =
-  map (mk_curry_uncurryN_balanced_raw @{context}) (0 upto num_curry_uncurryN_balanced_precomp);
+  map (mk_curry_uncurryN_balanced_raw \<^context>) (0 upto num_curry_uncurryN_balanced_precomp);
 
 fun mk_curry_uncurryN_balanced ctxt n =
   if n <= num_curry_uncurryN_balanced_precomp then nth curry_uncurryN_balanced_precomp n

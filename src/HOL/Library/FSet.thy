@@ -1207,7 +1207,7 @@ lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = s
   including fset.lifting by transfer (auto intro: sum.reindex_cong subset_inj_on)
 
 setup \<open>
-BNF_LFP_Size.register_size_global @{type_name fset} @{const_name size_fset}
+BNF_LFP_Size.register_size_global \<^type_name>\<open>fset\<close> \<^const_name>\<open>size_fset\<close>
   @{thm size_fset_overloaded_def} @{thms size_fset_simps size_fset_overloaded_simps}
   @{thms fset_size_o_map}
 \<close>

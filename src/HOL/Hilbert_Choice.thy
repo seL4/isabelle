@@ -26,9 +26,9 @@ translations
   "SOME x. P" \<rightleftharpoons> "CONST Eps (\<lambda>x. P)"
 
 print_translation \<open>
-  [(@{const_syntax Eps}, fn _ => fn [Abs abs] =>
+  [(\<^const_syntax>\<open>Eps\<close>, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
-      in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
+      in Syntax.const \<^syntax_const>\<open>_Eps\<close> $ x $ t end)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 definition inv_into :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a)" where
@@ -54,7 +54,7 @@ lemma someI_ex [elim?]: "\<exists>x. P x \<Longrightarrow> P (SOME x. P x)"
 
 text \<open>
   Easier to apply than \<open>someI\<close> because the conclusion has only one
-  occurrence of @{term P}.
+  occurrence of \<^term>\<open>P\<close>.
 \<close>
 lemma someI2: "P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> Q (SOME x. P x)"
   by (blast intro: someI)
@@ -560,7 +560,7 @@ lemma inv_unique_comp:
 
 subsection \<open>Other Consequences of Hilbert's Epsilon\<close>
 
-text \<open>Hilbert's Epsilon and the @{term split} Operator\<close>
+text \<open>Hilbert's Epsilon and the \<^term>\<open>split\<close> Operator\<close>
 
 text \<open>Looping simprule!\<close>
 lemma split_paired_Eps: "(SOME x. P x) = (SOME (a, b). P (a, b))"

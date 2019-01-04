@@ -115,9 +115,9 @@ fun typ_of_nun ctxt =
         if id = nun_dummy then
           dummyT
         else if id = nun_prop then
-          @{typ bool}
+          \<^typ>\<open>bool\<close>
         else if id = nun_arrow then
-          Type (@{type_name fun}, Ts)
+          Type (\<^type_name>\<open>fun\<close>, Ts)
         else
           (case try str_of_nun_tconst id of
             SOME (args, s) =>
@@ -160,23 +160,23 @@ fun term_of_nun ctxt atomss =
         if id = nun_conj then
           HOLogic.conj
         else if id = nun_choice then
-          Const (@{const_name Eps}, typ_of ty)
+          Const (\<^const_name>\<open>Eps\<close>, typ_of ty)
         else if id = nun_disj then
           HOLogic.disj
         else if id = nun_equals then
-          Const (@{const_name HOL.eq}, typ_of ty)
+          Const (\<^const_name>\<open>HOL.eq\<close>, typ_of ty)
         else if id = nun_false then
           @{const False}
         else if id = nun_if then
-          Const (@{const_name If}, typ_of ty)
+          Const (\<^const_name>\<open>If\<close>, typ_of ty)
         else if id = nun_implies then
-          @{term implies}
+          \<^term>\<open>implies\<close>
         else if id = nun_not then
           HOLogic.Not
         else if id = nun_unique then
-          Const (@{const_name The}, typ_of ty)
+          Const (\<^const_name>\<open>The\<close>, typ_of ty)
         else if id = nun_unique_unsafe then
-          Const (@{const_name The_unsafe}, typ_of ty)
+          Const (\<^const_name>\<open>The_unsafe\<close>, typ_of ty)
         else if id = nun_true then
           @{const True}
         else if String.isPrefix nun_dollar_anon_fun_prefix id then
@@ -216,7 +216,7 @@ fun term_of_nun ctxt atomss =
             (NConst (id, _, _), NAbs _) =>
             if id = nun_mu then
               let val Abs (s, T, body) = term_of bounds arg in
-                Const (@{const_name The}, (T --> HOLogic.boolT) --> T)
+                Const (\<^const_name>\<open>The\<close>, (T --> HOLogic.boolT) --> T)
                 $ Abs (s, T, HOLogic.eq_const T $ Bound 0 $ body)
               end
             else
@@ -227,10 +227,10 @@ fun term_of_nun ctxt atomss =
 
     fun rewrite_numbers (t as @{const Suc} $ _) =
         (case try HOLogic.dest_nat t of
-          SOME n => HOLogic.mk_number @{typ nat} n
+          SOME n => HOLogic.mk_number \<^typ>\<open>nat\<close> n
         | NONE => t)
       | rewrite_numbers (@{const Abs_Integ} $ (@{const Pair (nat, nat)} $ t $ u)) =
-        HOLogic.mk_number @{typ int} (HOLogic.dest_nat t - HOLogic.dest_nat u)
+        HOLogic.mk_number \<^typ>\<open>int\<close> (HOLogic.dest_nat t - HOLogic.dest_nat u)
       | rewrite_numbers (t $ u) = rewrite_numbers t $ rewrite_numbers u
       | rewrite_numbers (Abs (s, T, t)) = Abs (s, T, rewrite_numbers t)
       | rewrite_numbers t = t;
@@ -264,7 +264,7 @@ fun clean_up_isa_model ctxt {type_model, free_model, pat_complete_model, pat_inc
   let
     val pat_complete_model' = if Config.get ctxt show_consts then pat_complete_model else [];
     val pat_incomplete_model' = pat_incomplete_model
-      |> filter_out (can (fn Const (@{const_name unreachable}, _) => ()) o fst);
+      |> filter_out (can (fn Const (\<^const_name>\<open>unreachable\<close>, _) => ()) o fst);
 
     val term_model = free_model @ pat_complete_model' @ pat_incomplete_model' @
       skolem_model @ auxiliary_model;

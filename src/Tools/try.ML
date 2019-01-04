@@ -97,7 +97,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
     (fn {keywords, command_name, ...} =>
       if Keyword.is_theory_goal keywords command_name andalso Options.default_bool auto then
         SOME
-         {delay = SOME (seconds (Options.default_real @{system_option auto_time_start})),
+         {delay = SOME (seconds (Options.default_real \<^system_option>\<open>auto_time_start\<close>)),
           pri = ~ weight,
           persistent = true,
           strict = true,
@@ -105,7 +105,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
             let
               val state = Toplevel.proof_of st
                 |> Proof.map_context (Context_Position.set_visible false)
-              val auto_time_limit = Options.default_real @{system_option auto_time_limit}
+              val auto_time_limit = Options.default_real \<^system_option>\<open>auto_time_limit\<close>
             in
               if auto_time_limit > 0.0 then
                 (case Timeout.apply (seconds auto_time_limit) (fn () => tool true state) () of

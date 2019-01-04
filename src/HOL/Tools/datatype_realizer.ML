@@ -34,7 +34,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
 
     val rec_result_Ts = map (fn ((i, _), P) =>
-        if member (op =) is i then TFree ("'" ^ P, @{sort type}) else HOLogic.unitT)
+        if member (op =) is i then TFree ("'" ^ P, \<^sort>\<open>type\<close>) else HOLogic.unitT)
       (descr ~~ pnames);
 
     fun make_pred i T U r x =
@@ -101,7 +101,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
             (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
           else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
     val concl =
-      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
+      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
         (map (fn ((((i, _), T), U), tname) =>
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
@@ -133,7 +133,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
 
     val ivs = rev (Term.add_vars (Logic.varify_global (Old_Datatype_Prop.make_ind [descr])) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
-    val ivs1 = map Var (filter_out (fn (_, T) => @{type_name bool} = tname_of (body_type T)) ivs);
+    val ivs1 = map Var (filter_out (fn (_, T) => \<^type_name>\<open>bool\<close> = tname_of (body_type T)) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf =
@@ -162,8 +162,8 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
 fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old_Datatype_Aux.info) thy =
   let
     val ctxt = Proof_Context.init_global thy;
-    val rT = TFree ("'P", @{sort type});
-    val rT' = TVar (("'P", 0), @{sort type});
+    val rT = TFree ("'P", \<^sort>\<open>type\<close>);
+    val rT' = TVar (("'P", 0), \<^sort>\<open>type\<close>);
 
     fun make_casedist_prem T (cname, cargs) =
       let
@@ -241,6 +241,6 @@ fun add_dt_realizers config names thy =
       |> fold_rev (perhaps o try o make_casedists) infos
     end;
 
-val _ = Theory.setup (BNF_LFP_Compat.interpretation @{plugin extraction} [] add_dt_realizers);
+val _ = Theory.setup (BNF_LFP_Compat.interpretation \<^plugin>\<open>extraction\<close> [] add_dt_realizers);
 
 end;

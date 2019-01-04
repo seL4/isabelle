@@ -170,8 +170,8 @@ end
 
 text \<open>
 
-To avoid name classes with the @{class complete_lattice}-class we prefix @{const Sup} and
-@{const Inf} in theorem names with c.
+To avoid name classes with the \<^class>\<open>complete_lattice\<close>-class we prefix \<^const>\<open>Sup\<close> and
+\<^const>\<open>Inf\<close> in theorem names with c.
 
 \<close>
 

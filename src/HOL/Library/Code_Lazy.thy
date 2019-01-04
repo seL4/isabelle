@@ -60,7 +60,7 @@ lemma term_of_lazy_code [code]:
   by (rule term_of_anything)
 
 text \<open>
-  The implementations of @{typ "_ lazy"} using language primitives cache forced values.
+  The implementations of \<^typ>\<open>_ lazy\<close> using language primitives cache forced values.
 
   Term reconstruction for lazy looks into the lazy value and reconstructs it to the depth it has been evaluated.
   This is not done for Haskell as we do not know of any portable way to inspect whether a lazy value
@@ -119,7 +119,7 @@ end;\<close> for type_constructor lazy constant delay force termify_lazy
 code_reserved SML Lazy
 
 code_printing \<comment> \<open>For code generation within the Isabelle environment, we reuse the thread-safe
-  implementation of lazy from @{file "~~/src/Pure/Concurrent/lazy.ML"}\<close>
+  implementation of lazy from \<^file>\<open>~~/src/Pure/Concurrent/lazy.ML\<close>\<close>
   code_module Lazy \<rightharpoonup> (Eval) \<open>\<close> for constant undefined
 | type_constructor lazy \<rightharpoonup> (Eval) "_ Lazy.lazy"
 | constant delay \<rightharpoonup> (Eval) "Lazy.lazy"
@@ -220,7 +220,7 @@ code_printing
 
 code_reserved Scala Lazy
 
-text \<open>Make evaluation with the simplifier respect @{term delay}s.\<close>
+text \<open>Make evaluation with the simplifier respect \<^term>\<open>delay\<close>s.\<close>
 
 lemma delay_lazy_cong: "delay f = delay f" by simp
 setup \<open>Code_Simp.map_ss (Simplifier.add_cong @{thm delay_lazy_cong})\<close>        

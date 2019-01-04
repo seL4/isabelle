@@ -639,7 +639,7 @@ qualified lemma compute_float_eq[code]: "equal_class.equal f g = is_float_zero (
 end
 
 
-subsection \<open>Lemmas for types @{typ real}, @{typ nat}, @{typ int}\<close>
+subsection \<open>Lemmas for types \<^typ>\<open>real\<close>, \<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>\<close>
 
 lemmas real_of_ints =
   of_int_add

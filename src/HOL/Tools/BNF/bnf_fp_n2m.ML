@@ -41,7 +41,7 @@ fun mk_arg_cong ctxt n t =
 
 val cacheN = "cache"
 fun mk_cacheN i = cacheN ^ string_of_int i ^ "_";
-val cache_threshold = Attrib.setup_config_int @{binding bnf_n2m_cache_threshold} (K 200);
+val cache_threshold = Attrib.setup_config_int \<^binding>\<open>bnf_n2m_cache_threshold\<close> (K 200);
 type cache = int * (term * thm) Typtab.table
 val empty_cache = (0, Typtab.empty)
 fun update_cache b0 TU t (cache as (i, tab), lthy) =
@@ -374,7 +374,7 @@ fun construct_mutualized_fp fp mutual_cliques fpTs indexed_fp_ress bs resBs (res
                let
                  val S = HOLogic.mk_tupleT fold_strTs;
                  val s = HOLogic.mk_tuple ss;
-                 val u = Const (@{const_name Let}, S --> (S --> TU) --> TU) $ s $ absdummy S t;
+                 val u = Const (\<^const_name>\<open>Let\<close>, S --> (S --> TU) --> TU) $ s $ absdummy S t;
                in
                  Local_Theory.define ((b, NoSyn), ((Binding.concealed (Thm.def_binding b), []), u))
                  #>> apsnd snd ##> pair cache

@@ -251,8 +251,7 @@ lemma thms_excluded_middle_rule:
 subsubsection \<open>Completeness -- lemmas for reducing the set of assumptions\<close>
 
 text \<open>
-  For the case @{prop "hyps(p,t)-cons(#v,Y) |- p"} we also have @{prop
-  "hyps(p,t)-{#v} \<subseteq> hyps(p, t-{v})"}.
+  For the case \<^prop>\<open>hyps(p,t)-cons(#v,Y) |- p\<close> we also have \<^prop>\<open>hyps(p,t)-{#v} \<subseteq> hyps(p, t-{v})\<close>.
 \<close>
 
 lemma hyps_Diff:
@@ -260,8 +259,8 @@ lemma hyps_Diff:
   by (induct set: propn) auto
 
 text \<open>
-  For the case @{prop "hyps(p,t)-cons(#v => Fls,Y) |- p"} we also have
-  @{prop "hyps(p,t)-{#v=>Fls} \<subseteq> hyps(p, cons(v,t))"}.
+  For the case \<^prop>\<open>hyps(p,t)-cons(#v => Fls,Y) |- p\<close> we also have
+  \<^prop>\<open>hyps(p,t)-{#v=>Fls} \<subseteq> hyps(p, cons(v,t))\<close>.
 \<close>
 
 lemma hyps_cons:
@@ -277,9 +276,9 @@ lemma cons_Diff_subset2: "cons(a, B-{c}) - D \<subseteq> cons(a, B-cons(c,D))"
   by blast
 
 text \<open>
-  The set @{term "hyps(p,t)"} is finite, and elements have the form
-  @{term "#v"} or @{term "#v=>Fls"}; could probably prove the stronger
-  @{prop "hyps(p,t) \<in> Fin(hyps(p,0) \<union> hyps(p,nat))"}.
+  The set \<^term>\<open>hyps(p,t)\<close> is finite, and elements have the form
+  \<^term>\<open>#v\<close> or \<^term>\<open>#v=>Fls\<close>; could probably prove the stronger
+  \<^prop>\<open>hyps(p,t) \<in> Fin(hyps(p,0) \<union> hyps(p,nat))\<close>.
 \<close>
 
 lemma hyps_finite: "p \<in> propn ==> hyps(p,t) \<in> Fin(\<Union>v \<in> nat. {#v, #v=>Fls})"
@@ -288,7 +287,7 @@ lemma hyps_finite: "p \<in> propn ==> hyps(p,t) \<in> Fin(\<Union>v \<in> nat. {
 lemmas Diff_weaken_left = Diff_mono [OF _ subset_refl, THEN weaken_left]
 
 text \<open>
-  Induction on the finite set of assumptions @{term "hyps(p,t0)"}.  We
+  Induction on the finite set of assumptions \<^term>\<open>hyps(p,t0)\<close>.  We
   may repeatedly subtract assumptions until none are left!
 \<close>
 
@@ -299,13 +298,13 @@ lemma completeness_0_lemma [rule_format]:
    apply (simp add: logcon_thms_p Diff_0)
   txt \<open>inductive step\<close>
   apply safe
-   txt \<open>Case @{prop "hyps(p,t)-cons(#v,Y) |- p"}\<close>
+   txt \<open>Case \<^prop>\<open>hyps(p,t)-cons(#v,Y) |- p\<close>\<close>
    apply (rule thms_excluded_middle_rule)
      apply (erule_tac [3] propn.intros)
     apply (blast intro: cons_Diff_same [THEN weaken_left])
    apply (blast intro: cons_Diff_subset2 [THEN weaken_left]
      hyps_Diff [THEN Diff_weaken_left])
-  txt \<open>Case @{prop "hyps(p,t)-cons(#v => Fls,Y) |- p"}\<close>
+  txt \<open>Case \<^prop>\<open>hyps(p,t)-cons(#v => Fls,Y) |- p\<close>\<close>
   apply (rule thms_excluded_middle_rule)
     apply (erule_tac [3] propn.intros)
    apply (blast intro: cons_Diff_subset2 [THEN weaken_left]

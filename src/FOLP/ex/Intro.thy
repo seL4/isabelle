@@ -45,13 +45,13 @@ subsubsection \<open>Demonstration of \<open>fast\<close>\<close>
 
 schematic_goal "?p : (EX y. ALL x. J(y,x) <-> ~J(x,x))
         -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))"
-apply (tactic \<open>fast_tac @{context} FOLP_cs 1\<close>)
+apply (tactic \<open>fast_tac \<^context> FOLP_cs 1\<close>)
 done
 
 
 schematic_goal "?p : ALL x. P(x,f(x)) <->
         (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))"
-apply (tactic \<open>fast_tac @{context} FOLP_cs 1\<close>)
+apply (tactic \<open>fast_tac \<^context> FOLP_cs 1\<close>)
 done
 
 

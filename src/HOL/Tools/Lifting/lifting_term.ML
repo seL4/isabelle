@@ -131,8 +131,8 @@ fun get_rel_distr_rules ctxt s tm =
     (case Lifting_Info.lookup_relator_distr_data ctxt s of
       SOME rel_distr_thm => (
         case tm of
-          Const (@{const_name POS}, _) => map (Thm.transfer thy) (#pos_distr_rules rel_distr_thm)
-          | Const (@{const_name NEG}, _) => map (Thm.transfer thy) (#neg_distr_rules rel_distr_thm)
+          Const (\<^const_name>\<open>POS\<close>, _) => map (Thm.transfer thy) (#pos_distr_rules rel_distr_thm)
+          | Const (\<^const_name>\<open>NEG\<close>, _) => map (Thm.transfer thy) (#neg_distr_rules rel_distr_thm)
       )
     | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
       [Pretty.str ("No relator distr. data for the type " ^ quote s), 
@@ -365,7 +365,7 @@ fun equiv_relation ctxt (rty, qty) =
 
 val get_fresh_Q_t =
   let
-    val Q_t = @{term "Trueprop (Quotient R Abs Rep T)"}
+    val Q_t = \<^term>\<open>Trueprop (Quotient R Abs Rep T)\<close>
     val frees_Q_t = Term.add_free_names Q_t []
     val tfrees_Q_t = rev (Term.add_tfree_names Q_t [])
   in
@@ -503,8 +503,8 @@ in
   
           fun is_POS_or_NEG ctm =
             case (head_of o Thm.term_of o Thm.dest_arg) ctm of
-              Const (@{const_name POS}, _) => true
-              | Const (@{const_name NEG}, _) => true
+              Const (\<^const_name>\<open>POS\<close>, _) => true
+              | Const (\<^const_name>\<open>NEG\<close>, _) => true
               | _ => false
   
           val inst_distr_rule = rewr_imp distr_rule ctm
@@ -522,8 +522,8 @@ in
   
     in
       case get_args 2 rel of
-          [Const (@{const_name "HOL.eq"}, _), _] => rewrs_imp @{thms neg_eq_OO pos_eq_OO} ctm
-          | [_, Const (@{const_name "HOL.eq"}, _)] => rewrs_imp @{thms neg_OO_eq pos_OO_eq} ctm
+          [Const (\<^const_name>\<open>HOL.eq\<close>, _), _] => rewrs_imp @{thms neg_eq_OO pos_eq_OO} ctm
+          | [_, Const (\<^const_name>\<open>HOL.eq\<close>, _)] => rewrs_imp @{thms neg_OO_eq pos_OO_eq} ctm
           | [_, trans_rel] =>
             let
               val (rty', qty) = (relation_types o fastype_of) trans_rel

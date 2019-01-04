@@ -223,17 +223,17 @@ fun subst_types ctxt env bounds t =
           "the bound " ^ quote bound ^ " is undeclared; this indicates a bug in Z3"))
 
     val t' = singleton (Variable.polymorphic ctxt) t
-    val patTs = map snd (Term.strip_qnt_vars @{const_name Pure.all} t')
+    val patTs = map snd (Term.strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t')
     val objTs = map objT_of bounds
     val subst = subst_of (fold match (patTs ~~ objTs) Vartab.empty)
   in Same.commit (Term_Subst.map_types_same (substTs_same subst)) t' end
 
-fun eq_quant (@{const_name HOL.All}, _) (@{const_name HOL.All}, _) = true
-  | eq_quant (@{const_name HOL.Ex}, _) (@{const_name HOL.Ex}, _) = true
+fun eq_quant (\<^const_name>\<open>HOL.All\<close>, _) (\<^const_name>\<open>HOL.All\<close>, _) = true
+  | eq_quant (\<^const_name>\<open>HOL.Ex\<close>, _) (\<^const_name>\<open>HOL.Ex\<close>, _) = true
   | eq_quant _ _ = false
 
-fun opp_quant (@{const_name HOL.All}, _) (@{const_name HOL.Ex}, _) = true
-  | opp_quant (@{const_name HOL.Ex}, _) (@{const_name HOL.All}, _) = true
+fun opp_quant (\<^const_name>\<open>HOL.All\<close>, _) (\<^const_name>\<open>HOL.Ex\<close>, _) = true
+  | opp_quant (\<^const_name>\<open>HOL.Ex\<close>, _) (\<^const_name>\<open>HOL.All\<close>, _) = true
   | opp_quant _ _ = false
 
 fun with_quant pred i (Const q1 $ Abs (_, T1, t1), Const q2 $ Abs (_, T2, t2)) =
@@ -243,7 +243,7 @@ fun with_quant pred i (Const q1 $ Abs (_, T1, t1), Const q2 $ Abs (_, T2, t2)) =
       else NONE
   | with_quant _ _ _ = NONE
 
-fun dest_quant_pair i (@{term HOL.Not} $ t1, t2) =
+fun dest_quant_pair i (\<^term>\<open>HOL.Not\<close> $ t1, t2) =
       Option.map (apfst HOLogic.mk_not) (with_quant opp_quant i (t1, t2))
   | dest_quant_pair i (t1, t2) = with_quant eq_quant i (t1, t2)
 
@@ -261,7 +261,7 @@ fun strip_match ctxt pat i obj =
     SOME (tyenv, _) => subst_of tyenv
   | NONE => strip_match ctxt pat (i + 1) (dest_quant i obj))
 
-fun dest_all i (Const (@{const_name Pure.all}, _) $ (a as Abs (_, T, _))) =
+fun dest_all i (Const (\<^const_name>\<open>Pure.all\<close>, _) $ (a as Abs (_, T, _))) =
       dest_all (i + 1) (Term.betapply (a, Var (("", i), T)))
   | dest_all i t = (i, t)
 
@@ -277,7 +277,7 @@ fun match_rule ctxt env (Z3_Node {bounds = bs', concl = t', ...}) bs t =
     | SOME subst =>
         let
           val applyT = Same.commit (substTs_same subst)
-          val patTs = map snd (Term.strip_qnt_vars @{const_name Pure.all} t'')
+          val patTs = map snd (Term.strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t'')
         in SOME (Symtab.make (bs' ~~ map applyT patTs)) end)
   end
 

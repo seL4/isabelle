@@ -52,7 +52,7 @@ definition
 
 subsection\<open>Well-Founded Relations\<close>
 
-subsubsection\<open>Equivalences between @{term wf} and @{term wf_on}\<close>
+subsubsection\<open>Equivalences between \<^term>\<open>wf\<close> and \<^term>\<open>wf_on\<close>\<close>
 
 lemma wf_imp_wf_on: "wf(r) ==> wf[A](r)"
 by (unfold wf_def wf_on_def, force)
@@ -75,10 +75,10 @@ by (unfold wf_on_def wf_def, fast)
 lemma wf_subset: "[|wf(s); r<=s|] ==> wf(r)"
 by (simp add: wf_def, fast)
 
-subsubsection\<open>Introduction Rules for @{term wf_on}\<close>
+subsubsection\<open>Introduction Rules for \<^term>\<open>wf_on\<close>\<close>
 
-text\<open>If every non-empty subset of @{term A} has an @{term r}-minimal element
-   then we have @{term "wf[A](r)"}.\<close>
+text\<open>If every non-empty subset of \<^term>\<open>A\<close> has an \<^term>\<open>r\<close>-minimal element
+   then we have \<^term>\<open>wf[A](r)\<close>.\<close>
 lemma wf_onI:
  assumes prem: "!!Z u. [| Z<=A;  u \<in> Z;  \<forall>x\<in>Z. \<exists>y\<in>Z. <y,x>:r |] ==> False"
  shows         "wf[A](r)"
@@ -87,9 +87,9 @@ apply (rule equals0I [THEN disjCI, THEN allI])
 apply (rule_tac Z = Z in prem, blast+)
 done
 
-text\<open>If @{term r} allows well-founded induction over @{term A}
-   then we have @{term "wf[A](r)"}.   Premise is equivalent to
-  @{prop "!!B. \<forall>x\<in>A. (\<forall>y. <y,x>: r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B ==> A<=B"}\<close>
+text\<open>If \<^term>\<open>r\<close> allows well-founded induction over \<^term>\<open>A\<close>
+   then we have \<^term>\<open>wf[A](r)\<close>.   Premise is equivalent to
+  \<^prop>\<open>!!B. \<forall>x\<in>A. (\<forall>y. <y,x>: r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B ==> A<=B\<close>\<close>
 lemma wf_onI2:
  assumes prem: "!!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;   y \<in> A |]
                        ==> y \<in> B"
@@ -103,8 +103,8 @@ done
 
 subsubsection\<open>Well-founded Induction\<close>
 
-text\<open>Consider the least @{term z} in @{term "domain(r)"} such that
-  @{term "P(z)"} does not hold...\<close>
+text\<open>Consider the least \<^term>\<open>z\<close> in \<^term>\<open>domain(r)\<close> such that
+  \<^term>\<open>P(z)\<close> does not hold...\<close>
 lemma wf_induct_raw:
     "[| wf(r);
         !!x.[| \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
@@ -141,8 +141,8 @@ lemmas wf_on_induct =
   wf_on_induct_raw [rule_format, consumes 2, case_names step, induct set: wf_on]
 
 
-text\<open>If @{term r} allows well-founded induction
-   then we have @{term "wf(r)"}.\<close>
+text\<open>If \<^term>\<open>r\<close> allows well-founded induction
+   then we have \<^term>\<open>wf(r)\<close>.\<close>
 lemma wfI:
     "[| field(r)<=A;
         !!y B. [| \<forall>x\<in>A. (\<forall>y\<in>A. <y,x>:r \<longrightarrow> y \<in> B) \<longrightarrow> x \<in> B;  y \<in> A|]
@@ -192,7 +192,7 @@ done
 
 
 text\<open>transitive closure of a WF relation is WF provided
-  @{term A} is downward closed\<close>
+  \<^term>\<open>A\<close> is downward closed\<close>
 lemma wf_on_trancl:
     "[| wf[A](r);  r-``A \<subseteq> A |] ==> wf[A](r^+)"
 apply (rule wf_onI2)
@@ -210,13 +210,13 @@ apply (rule trancl_type [THEN field_rel_subset])
 done
 
 
-text\<open>@{term "r-``{a}"} is the set of everything under @{term a} in @{term r}\<close>
+text\<open>\<^term>\<open>r-``{a}\<close> is the set of everything under \<^term>\<open>a\<close> in \<^term>\<open>r\<close>\<close>
 
 lemmas underI = vimage_singleton_iff [THEN iffD2]
 lemmas underD = vimage_singleton_iff [THEN iffD1]
 
 
-subsection\<open>The Predicate @{term is_recfun}\<close>
+subsection\<open>The Predicate \<^term>\<open>is_recfun\<close>\<close>
 
 lemma is_recfun_type: "is_recfun(r,a,H,f) ==> f \<in> r-``{a} -> range(f)"
 apply (unfold is_recfun_def)
@@ -307,7 +307,7 @@ apply (blast dest: transD)
 done
 
 
-subsection\<open>Unfolding @{term "wftrec(r,a,H)"}\<close>
+subsection\<open>Unfolding \<^term>\<open>wftrec(r,a,H)\<close>\<close>
 
 lemma the_recfun_cut:
      "[| wf(r);  trans(r);  <b,a>:r |]
@@ -324,7 +324,7 @@ apply (simp_all add: vimage_singleton_iff [THEN iff_sym] the_recfun_cut)
 done
 
 
-subsubsection\<open>Removal of the Premise @{term "trans(r)"}\<close>
+subsubsection\<open>Removal of the Premise \<^term>\<open>trans(r)\<close>\<close>
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
 lemma wfrec:

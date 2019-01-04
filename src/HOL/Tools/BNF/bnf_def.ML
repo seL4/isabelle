@@ -710,7 +710,7 @@ fun normalize_pred ctxt instTs instA pred =
 
 fun normalize_wit insts CA As wit =
   let
-    fun strip_param (Ts, T as Type (@{type_name fun}, [T1, T2])) =
+    fun strip_param (Ts, T as Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
         if Type.raw_instance (CA, T) then (Ts, T) else strip_param (T1 :: Ts, T2)
       | strip_param x = x;
     val (Ts, T) = strip_param ([], fastype_of wit);
@@ -777,9 +777,9 @@ fun build_map_or_rel mk const of_bnf dest pre_cst_table ctxt simple_Ts simple_Us
   in build end;
 
 val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT
-  [(@{type_name set}, (1, @{term image}))];
+  [(\<^type_name>\<open>set\<close>, (1, \<^term>\<open>image\<close>))];
 val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T o append
-  [(@{type_name set}, (1, @{term rel_set})), (@{type_name fun}, (2, @{term rel_fun}))];
+  [(\<^type_name>\<open>set\<close>, (1, \<^term>\<open>rel_set\<close>)), (\<^type_name>\<open>fun\<close>, (2, \<^term>\<open>rel_fun\<close>))];
 
 fun build_set ctxt A =
   let
@@ -796,7 +796,7 @@ fun build_set ctxt A =
               val set_apps = map (fn set => Term.betapply (set, Bound 0)) sets;
 
               fun recurse set_app =
-                let val Type (@{type_name set}, [elemT]) = fastype_of set_app in
+                let val Type (\<^type_name>\<open>set\<close>, [elemT]) = fastype_of set_app in
                   if elemT = A then set_app else mk_UNION set_app (build elemT)
                 end;
             in
@@ -885,8 +885,8 @@ datatype inline_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
 datatype fact_policy = Dont_Note | Note_Some | Note_All;
 
-val bnf_internals = Attrib.setup_config_bool @{binding bnf_internals} (K false);
-val bnf_timing = Attrib.setup_config_bool @{binding bnf_timing} (K false);
+val bnf_internals = Attrib.setup_config_bool \<^binding>\<open>bnf_internals\<close> (K false);
+val bnf_timing = Attrib.setup_config_bool \<^binding>\<open>bnf_timing\<close> (K false);
 
 fun user_policy policy ctxt = if Config.get ctxt bnf_internals then Note_All else policy;
 
@@ -1008,7 +1008,7 @@ fun mk_wit_goals zs bs sets (I, wit) =
         val z = nth zs i;
         val set_wit = nth sets i $ Term.list_comb (wit, xs);
         val concl = HOLogic.mk_Trueprop
-          (if member (op =) I i then HOLogic.mk_eq (z, nth bs i) else @{term False});
+          (if member (op =) I i then HOLogic.mk_eq (z, nth bs i) else \<^term>\<open>False\<close>);
       in
         fold_rev Logic.all (z :: xs) (Logic.mk_implies (mk_Trueprop_mem (z, set_wit), concl))
       end;
@@ -1153,7 +1153,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b pred_
          rel_rhs);
 
     val pred_spec =
-      if live = 0 then Term.absdummy (mk_bnf_T Ds As Calpha) @{term True} else
+      if live = 0 then Term.absdummy (mk_bnf_T Ds As Calpha) \<^term>\<open>True\<close> else
       let
         val sets = map (mk_bnf_t Ds As) bnf_sets;
         val argTs = map mk_pred1T As;
@@ -1178,7 +1178,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b pred_
       if null wit_rhss then
         [fold_rev Term.absdummy As (Term.list_comb (mk_bnf_map Ds As As,
           map2 (fn T => fn i => Term.absdummy T (Bound i)) As (live downto 1)) $
-          Const (@{const_name undefined}, CA))]
+          Const (\<^const_name>\<open>undefined\<close>, CA))]
       else wit_rhss;
     val nwits = length wit_rhss;
     val wit_binds_defs =
@@ -1505,7 +1505,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           end;
 
         val map_cong = Lazy.lazy (mk_map_cong Logic.mk_implies);
-        val map_cong_simp = Lazy.lazy (mk_map_cong (fn (a, b) => @{term simp_implies} $ a $ b));
+        val map_cong_simp = Lazy.lazy (mk_map_cong (fn (a, b) => \<^term>\<open>simp_implies\<close> $ a $ b));
 
         fun mk_inj_map () =
           let
@@ -1708,7 +1708,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           end;
 
         val rel_cong = Lazy.lazy (mk_rel_cong Logic.mk_implies);
-        val rel_cong_simp = Lazy.lazy (mk_rel_cong (fn (a, b) => @{term simp_implies} $ a $ b));
+        val rel_cong_simp = Lazy.lazy (mk_rel_cong (fn (a, b) => \<^term>\<open>simp_implies\<close> $ a $ b));
 
         fun mk_pred_prems f = map2 (HOLogic.mk_Trueprop oo f) Ps Ps_copy;
         fun mk_pred_concl f = HOLogic.mk_Trueprop
@@ -1794,7 +1794,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           end;
 
         val pred_cong = Lazy.lazy (mk_pred_cong Logic.mk_implies);
-        val pred_cong_simp = Lazy.lazy (mk_pred_cong (fn (a, b) => @{term simp_implies} $ a $ b));
+        val pred_cong_simp = Lazy.lazy (mk_pred_cong (fn (a, b) => \<^term>\<open>simp_implies\<close> $ a $ b));
 
         fun mk_map_cong_pred () =
           let
@@ -1878,8 +1878,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         fun mk_pred_True () =
           let
-            val lhs = Term.list_comb (pred, map (fn T => absdummy T @{term True}) As');
-            val rhs = absdummy CA' @{term True};
+            val lhs = Term.list_comb (pred, map (fn T => absdummy T \<^term>\<open>True\<close>) As');
+            val rhs = absdummy CA' \<^term>\<open>True\<close>;
             val goal = mk_Trueprop_eq (lhs, rhs);
           in
             Goal.prove_sorry lthy [] [] goal
@@ -1971,7 +1971,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         fun mk_set_transfer () =
           let
-            val rel_sets = map2 (fn A => fn B => mk_rel 1 [A] [B] @{term rel_set}) As' Bs';
+            val rel_sets = map2 (fn A => fn B => mk_rel 1 [A] [B] \<^term>\<open>rel_set\<close>) As' Bs';
             val rel_Rs = Term.list_comb (rel, Rs);
             val goals = @{map 4} (fn R => fn rel_set => fn setA => fn setB => HOLogic.mk_Trueprop
               (mk_rel_fun rel_Rs (rel_set $ R) $ setA $ setB)) Rs rel_sets bnf_sets_As bnf_sets_Bs;
@@ -2138,23 +2138,23 @@ fun print_bnfs ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_bnfs}
+  Outer_Syntax.command \<^command_keyword>\<open>print_bnfs\<close>
     "print all bounded natural functors"
     (Scan.succeed (Toplevel.keep (print_bnfs o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword bnf}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>bnf\<close>
     "register a type as a bounded natural functor"
     (parse_opt_binding_colon -- Parse.typ --|
-       (Parse.reserved "map" -- @{keyword ":"}) -- Parse.term --
-       Scan.optional ((Parse.reserved "sets" -- @{keyword ":"}) |--
+       (Parse.reserved "map" -- \<^keyword>\<open>:\<close>) -- Parse.term --
+       Scan.optional ((Parse.reserved "sets" -- \<^keyword>\<open>:\<close>) |--
          Scan.repeat1 (Scan.unless (Parse.reserved "bd") Parse.term)) [] --|
-       (Parse.reserved "bd" -- @{keyword ":"}) -- Parse.term --
-       Scan.optional ((Parse.reserved "wits" -- @{keyword ":"}) |--
+       (Parse.reserved "bd" -- \<^keyword>\<open>:\<close>) -- Parse.term --
+       Scan.optional ((Parse.reserved "wits" -- \<^keyword>\<open>:\<close>) |--
          Scan.repeat1 (Scan.unless (Parse.reserved "rel" ||
            Parse.reserved "plugins") Parse.term)) [] --
-       Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term) --
-       Scan.option ((Parse.reserved "pred" -- @{keyword ":"}) |-- Parse.term) --
+       Scan.option ((Parse.reserved "rel" -- \<^keyword>\<open>:\<close>) |-- Parse.term) --
+       Scan.option ((Parse.reserved "pred" -- \<^keyword>\<open>:\<close>) |-- Parse.term) --
        Scan.optional Plugin_Name.parse_filter (K Plugin_Name.default_filter)
        >> bnf_cmd);
 

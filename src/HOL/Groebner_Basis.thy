@@ -10,9 +10,9 @@ begin
 
 subsection \<open>Groebner Bases\<close>
 
-lemmas bool_simps = simp_thms(1-34) \<comment> \<open>FIXME move to @{theory HOL.HOL}\<close>
+lemmas bool_simps = simp_thms(1-34) \<comment> \<open>FIXME move to \<^theory>\<open>HOL.HOL\<close>\<close>
 
-lemma nnf_simps: \<comment> \<open>FIXME shadows fact binding in @{theory HOL.HOL}\<close>
+lemma nnf_simps: \<comment> \<open>FIXME shadows fact binding in \<^theory>\<open>HOL.HOL\<close>\<close>
   "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)"
   "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
   "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"

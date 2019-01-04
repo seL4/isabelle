@@ -725,7 +725,7 @@ named_theorems tendsto_intros "introduction rules for tendsto"
 setup \<open>
   Global_Theory.add_thms_dynamic (\<^binding>\<open>tendsto_eq_intros\<close>,
     fn context =>
-      Named_Theorems.get (Context.proof_of context) @{named_theorems tendsto_intros}
+      Named_Theorems.get (Context.proof_of context) \<^named_theorems>\<open>tendsto_intros\<close>
       |> map_filter (try (fn thm => @{thm tendsto_eq_rhs} OF [thm])))
 \<close>
 
@@ -1027,7 +1027,7 @@ next
     using UV by auto
 qed
 
-subsubsection \<open>Rules about @{const Lim}\<close>
+subsubsection \<open>Rules about \<^const>\<open>Lim\<close>\<close>
 
 lemma tendsto_Lim: "\<not> trivial_limit net \<Longrightarrow> (f \<longlongrightarrow> l) net \<Longrightarrow> Lim net f = l"
   unfolding Lim_def using tendsto_unique [of net f] by auto

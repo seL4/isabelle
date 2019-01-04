@@ -350,17 +350,17 @@ fun prop_formula_of_term t table =
         next_idx_is_valid := true;
         Unsynchronized.inc next_idx
       )
-    fun aux (Const (@{const_name True}, _)) table = (True, table)
-      | aux (Const (@{const_name False}, _)) table = (False, table)
-      | aux (Const (@{const_name Not}, _) $ x) table = apfst Not (aux x table)
-      | aux (Const (@{const_name HOL.disj}, _) $ x $ y) table =
+    fun aux (Const (\<^const_name>\<open>True\<close>, _)) table = (True, table)
+      | aux (Const (\<^const_name>\<open>False\<close>, _)) table = (False, table)
+      | aux (Const (\<^const_name>\<open>Not\<close>, _) $ x) table = apfst Not (aux x table)
+      | aux (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ x $ y) table =
           let
             val (fm1, table1) = aux x table
             val (fm2, table2) = aux y table1
           in
             (Or (fm1, fm2), table2)
           end
-      | aux (Const (@{const_name HOL.conj}, _) $ x $ y) table =
+      | aux (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ x $ y) table =
           let
             val (fm1, table1) = aux x table
             val (fm2, table2) = aux y table1
@@ -390,8 +390,8 @@ fun prop_formula_of_term t table =
 (*       Boolean variables in the formula, similar to 'prop_formula_of_term' *)
 (*       (but the other way round).                                          *)
 
-fun term_of_prop_formula True = @{term True}
-  | term_of_prop_formula False = @{term False}
+fun term_of_prop_formula True = \<^term>\<open>True\<close>
+  | term_of_prop_formula False = \<^term>\<open>False\<close>
   | term_of_prop_formula (BoolVar i) = Free ("v" ^ string_of_int i, HOLogic.boolT)
   | term_of_prop_formula (Not fm) = HOLogic.mk_not (term_of_prop_formula fm)
   | term_of_prop_formula (Or (fm1, fm2)) =

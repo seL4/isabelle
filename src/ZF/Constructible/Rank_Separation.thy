@@ -34,7 +34,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsubsection\<open>Separation for @{term "obase"}\<close>
+subsubsection\<open>Separation for \<^term>\<open>obase\<close>\<close>
 
 lemma obase_reflects:
   "REFLECTS[\<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
@@ -57,7 +57,7 @@ apply (rule ordinal_iff_sats sep_rules | simp)+
 done
 
 
-subsubsection\<open>Separation for a Theorem about @{term "obase"}\<close>
+subsubsection\<open>Separation for a Theorem about \<^term>\<open>obase\<close>\<close>
 
 lemma obase_equals_reflects:
   "REFLECTS[\<lambda>x. x\<in>A \<longrightarrow> ~(\<exists>y[L]. \<exists>g[L].
@@ -82,7 +82,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsubsection\<open>Replacement for @{term "omap"}\<close>
+subsubsection\<open>Replacement for \<^term>\<open>omap\<close>\<close>
 
 lemma omap_reflects:
  "REFLECTS[\<lambda>z. \<exists>a[L]. a\<in>B & (\<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
@@ -129,7 +129,7 @@ theorem M_ordertype_L: "PROP M_ordertype(L)"
 
 subsection\<open>The Locale \<open>M_wfrank\<close>\<close>
 
-subsubsection\<open>Separation for @{term "wfrank"}\<close>
+subsubsection\<open>Separation for \<^term>\<open>wfrank\<close>\<close>
 
 lemma wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
@@ -150,7 +150,7 @@ apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
-subsubsection\<open>Replacement for @{term "wfrank"}\<close>
+subsubsection\<open>Replacement for \<^term>\<open>wfrank\<close>\<close>
 
 lemma wfrank_replacement_Reflects:
  "REFLECTS[\<lambda>z. \<exists>x[L]. x \<in> A &

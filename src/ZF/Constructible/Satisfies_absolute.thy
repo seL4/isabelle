@@ -9,7 +9,7 @@ theory Satisfies_absolute imports Datatype_absolute Rec_Separation begin
 
 subsection \<open>More Internalization\<close>
 
-subsubsection\<open>The Formula @{term is_depth}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_depth\<close>, Internalized\<close>
 
 (*    "is_depth(M,p,n) == 
        \<exists>sn[M]. \<exists>formula_n[M]. \<exists>formula_sn[M]. 
@@ -52,9 +52,9 @@ done
 
 
 
-subsubsection\<open>The Operator @{term is_formula_case}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_formula_case\<close>\<close>
 
-text\<open>The arguments of @{term is_a} are always 2, 1, 0, and the formula
+text\<open>The arguments of \<^term>\<open>is_a\<close> are always 2, 1, 0, and the formula
       will be enclosed by three quantifiers.\<close>
 
 (* is_formula_case :: 
@@ -145,7 +145,7 @@ by (simp add: sats_formula_case_fm [OF is_a_iff_sats is_b_iff_sats
                                        is_c_iff_sats is_d_iff_sats])
 
 
-text\<open>The second argument of @{term is_a} gives it direct access to @{term x},
+text\<open>The second argument of \<^term>\<open>is_a\<close> gives it direct access to \<^term>\<open>x\<close>,
   which is essential for handling free variable references.  Treatment is
   based on that of \<open>is_nat_case_reflection\<close>.\<close>
 theorem is_formula_case_reflection:
@@ -172,7 +172,7 @@ done
 
 
 
-subsection \<open>Absoluteness for the Function @{term satisfies}\<close>
+subsection \<open>Absoluteness for the Function \<^term>\<open>satisfies\<close>\<close>
 
 definition
   is_depth_apply :: "[i=>o,i,i,i] => o" where
@@ -192,8 +192,8 @@ by (simp add: is_depth_apply_def formula_into_M depth_type eq_commute)
 text\<open>There is at present some redundancy between the relativizations in
  e.g. \<open>satisfies_is_a\<close> and those in e.g. \<open>Member_replacement\<close>.\<close>
 
-text\<open>These constants let us instantiate the parameters @{term a}, @{term b},
-      @{term c}, @{term d}, etc., of the locale \<open>Formula_Rec\<close>.\<close>
+text\<open>These constants let us instantiate the parameters \<^term>\<open>a\<close>, \<^term>\<open>b\<close>,
+      \<^term>\<open>c\<close>, \<^term>\<open>d\<close>, etc., of the locale \<open>Formula_Rec\<close>.\<close>
 definition
   satisfies_a :: "[i,i,i]=>i" where
    "satisfies_a(A) == 
@@ -216,8 +216,8 @@ definition
 
 definition
   satisfies_is_b :: "[i=>o,i,i,i,i]=>o" where
-   \<comment> \<open>We simplify the formula to have just @{term nx} rather than 
-       introducing @{term ny} with  @{term "nx=ny"}\<close>
+   \<comment> \<open>We simplify the formula to have just \<^term>\<open>nx\<close> rather than 
+       introducing \<^term>\<open>ny\<close> with  \<^term>\<open>nx=ny\<close>\<close>
   "satisfies_is_b(M,A) == 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
              is_lambda(M, lA, 
@@ -259,7 +259,7 @@ definition
 
 definition
   satisfies_MH :: "[i=>o,i,i,i,i]=>o" where
-    \<comment> \<open>The variable @{term u} is unused, but gives @{term satisfies_MH} 
+    \<comment> \<open>The variable \<^term>\<open>u\<close> is unused, but gives \<^term>\<open>satisfies_MH\<close> 
         the correct arity.\<close>
   "satisfies_MH == 
     \<lambda>M A u f z. 
@@ -276,7 +276,7 @@ definition
 
 
 text\<open>This lemma relates the fragments defined above to the original primitive
-      recursion in @{term satisfies}.
+      recursion in \<^term>\<open>satisfies\<close>.
       Induction is not required: the definitions are directly equal!\<close>
 lemma satisfies_eq:
   "satisfies(A,p) = 
@@ -285,9 +285,9 @@ lemma satisfies_eq:
 by (simp add: satisfies_formula_def satisfies_a_def satisfies_b_def 
               satisfies_c_def satisfies_d_def) 
 
-text\<open>Further constraints on the class @{term M} in order to prove
+text\<open>Further constraints on the class \<^term>\<open>M\<close> in order to prove
       absoluteness for the constants defined above.  The ultimate goal
-      is the absoluteness of the function @{term satisfies}.\<close>
+      is the absoluteness of the function \<^term>\<open>satisfies\<close>.\<close>
 locale M_satisfies = M_eclose +
  assumes 
    Member_replacement:
@@ -327,11 +327,11 @@ locale M_satisfies = M_eclose +
               pair(M,env,bo,z))"
  and
   formula_rec_replacement: 
-      \<comment> \<open>For the @{term transrec}\<close>
+      \<comment> \<open>For the \<^term>\<open>transrec\<close>\<close>
    "[|n \<in> nat; M(A)|] ==> transrec_replacement(M, satisfies_MH(M,A), n)"
  and
   formula_rec_lambda_replacement:  
-      \<comment> \<open>For the \<open>\<lambda>-abstraction\<close> in the @{term transrec} body\<close>
+      \<comment> \<open>For the \<open>\<lambda>-abstraction\<close> in the \<^term>\<open>transrec\<close> body\<close>
    "[|M(g); M(A)|] ==>
     strong_replacement (M, 
        \<lambda>x y. mem_formula(M,x) &
@@ -461,7 +461,7 @@ done
 
 
 text\<open>Instantiate locale \<open>Formula_Rec\<close> for the 
-      Function @{term satisfies}\<close>
+      Function \<^term>\<open>satisfies\<close>\<close>
 
 lemma (in M_satisfies) Formula_Rec_axioms_M:
    "M(A) ==>
@@ -507,7 +507,7 @@ by (simp only: Formula_Rec.formula_rec_abs [OF Formula_Rec_M]
 
 subsection\<open>Internalizations Needed to Instantiate \<open>M_satisfies\<close>\<close>
 
-subsubsection\<open>The Operator @{term is_depth_apply}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_depth_apply\<close>, Internalized\<close>
 
 (* is_depth_apply(M,h,p,z) ==
     \<exists>dp[M]. \<exists>sdp[M]. \<exists>hsdp[M]. 
@@ -548,7 +548,7 @@ apply (intro FOL_reflections function_reflections depth_reflection
 done
 
 
-subsubsection\<open>The Operator @{term satisfies_is_a}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>satisfies_is_a\<close>, Internalized\<close>
 
 (* satisfies_is_a(M,A) == 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
@@ -601,7 +601,7 @@ apply (intro FOL_reflections is_lambda_reflection bool_of_o_reflection
 done
 
 
-subsubsection\<open>The Operator @{term satisfies_is_b}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>satisfies_is_b\<close>, Internalized\<close>
 
 (* satisfies_is_b(M,A) == 
     \<lambda>x y zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
@@ -650,7 +650,7 @@ apply (intro FOL_reflections is_lambda_reflection bool_of_o_reflection
 done
 
 
-subsubsection\<open>The Operator @{term satisfies_is_c}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>satisfies_is_c\<close>, Internalized\<close>
 
 (* satisfies_is_c(M,A,h) == 
     \<lambda>p q zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
@@ -701,7 +701,7 @@ apply (intro FOL_reflections function_reflections is_lambda_reflection
              is_list_reflection)
 done
 
-subsubsection\<open>The Operator @{term satisfies_is_d}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>satisfies_is_d\<close>, Internalized\<close>
 
 (* satisfies_is_d(M,A,h) == 
     \<lambda>p zz. \<forall>lA[M]. is_list(M,A,lA) \<longrightarrow>
@@ -758,7 +758,7 @@ apply (intro FOL_reflections function_reflections is_lambda_reflection
 done
 
 
-subsubsection\<open>The Operator @{term satisfies_MH}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>satisfies_MH\<close>, Internalized\<close>
 
 (* satisfies_MH == 
     \<lambda>M A u f zz. 
@@ -818,7 +818,7 @@ done
 subsection\<open>Lemmas for Instantiating the Locale \<open>M_satisfies\<close>\<close>
 
 
-subsubsection\<open>The @{term "Member"} Case\<close>
+subsubsection\<open>The \<^term>\<open>Member\<close> Case\<close>
 
 lemma Member_Reflects:
  "REFLECTS[\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L].
@@ -848,7 +848,7 @@ apply (rule sep_rules nth_iff_sats is_bool_of_o_iff_sats | simp)+
 done
 
 
-subsubsection\<open>The @{term "Equal"} Case\<close>
+subsubsection\<open>The \<^term>\<open>Equal\<close> Case\<close>
 
 lemma Equal_Reflects:
  "REFLECTS[\<lambda>u. \<exists>v[L]. v \<in> B \<and> (\<exists>bo[L]. \<exists>nx[L]. \<exists>ny[L].
@@ -877,7 +877,7 @@ apply (rule_tac env="[list(A),B,x,y]" in DPow_LsetI)
 apply (rule sep_rules nth_iff_sats is_bool_of_o_iff_sats | simp)+
 done
 
-subsubsection\<open>The @{term "Nand"} Case\<close>
+subsubsection\<open>The \<^term>\<open>Nand\<close> Case\<close>
 
 lemma Nand_Reflects:
     "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and>
@@ -910,7 +910,7 @@ apply (rule sep_rules is_and_iff_sats is_not_iff_sats | simp)+
 done
 
 
-subsubsection\<open>The @{term "Forall"} Case\<close>
+subsubsection\<open>The \<^term>\<open>Forall\<close> Case\<close>
 
 lemma Forall_Reflects:
  "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>bo[L]. u \<in> list(A) \<and>
@@ -948,7 +948,7 @@ apply (rule_tac env="[A,list(A),B,rp]" in DPow_LsetI)
 apply (rule sep_rules is_bool_of_o_iff_sats Cons_iff_sats | simp)+
 done
 
-subsubsection\<open>The @{term "transrec_replacement"} Case\<close>
+subsubsection\<open>The \<^term>\<open>transrec_replacement\<close> Case\<close>
 
 lemma formula_rec_replacement_Reflects:
  "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L, u, y, x) \<and>
@@ -959,7 +959,7 @@ by (intro FOL_reflections function_reflections satisfies_MH_reflection
           is_wfrec_reflection) 
 
 lemma formula_rec_replacement: 
-      \<comment> \<open>For the @{term transrec}\<close>
+      \<comment> \<open>For the \<^term>\<open>transrec\<close>\<close>
    "[|n \<in> nat; L(A)|] ==> transrec_replacement(L, satisfies_MH(L,A), n)"
 apply (rule transrec_replacementI, simp add: nat_into_M) 
 apply (rule strong_replacementI)
@@ -995,7 +995,7 @@ by (intro FOL_reflections function_reflections mem_formula_reflection
           satisfies_is_d_reflection)  
 
 lemma formula_rec_lambda_replacement: 
-      \<comment> \<open>For the @{term transrec}\<close>
+      \<comment> \<open>For the \<^term>\<open>transrec\<close>\<close>
    "[|L(g); L(A)|] ==>
     strong_replacement (L, 
        \<lambda>x y. mem_formula(L,x) &

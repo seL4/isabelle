@@ -61,8 +61,8 @@ val strip_fun_type = BNF_Util.strip_fun_type;
 (* Clone from "HOL/Tools/inductive_realizer.ML". *)
 val attach_typeS =
   map_types (map_atyps
-    (fn TFree (s, []) => TFree (s, @{sort type})
-      | TVar (ixn, []) => TVar (ixn, @{sort type})
+    (fn TFree (s, []) => TFree (s, \<^sort>\<open>type\<close>)
+      | TVar (ixn, []) => TVar (ixn, \<^sort>\<open>type\<close>)
       | T => T));
 
 val specialize_type = ATP_Util.specialize_type;

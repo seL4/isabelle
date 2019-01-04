@@ -1062,7 +1062,7 @@ in
     subrecord.
 *)
 val simproc =
-  Simplifier.make_simproc @{context} "record"
+  Simplifier.make_simproc \<^context> "record"
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
@@ -1146,7 +1146,7 @@ fun get_upd_acc_cong_thm upd acc thy ss =
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
 val upd_simproc =
-  Simplifier.make_simproc @{context} "record_upd"
+  Simplifier.make_simproc \<^context> "record_upd"
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
@@ -1269,7 +1269,7 @@ end;
  Complexity: #components * #updates     #updates
 *)
 val eq_simproc =
-  Simplifier.make_simproc @{context} "record_eq"
+  Simplifier.make_simproc \<^context> "record_eq"
    {lhss = [\<^term>\<open>r = s\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
@@ -1291,7 +1291,7 @@ val eq_simproc =
     P t = ~1: completely split
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
-  Simplifier.make_simproc @{context} "record_split"
+  Simplifier.make_simproc \<^context> "record_split"
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of
@@ -1320,7 +1320,7 @@ fun split_simproc P =
       | _ => NONE)};
 
 val ex_sel_eq_simproc =
-  Simplifier.make_simproc @{context} "ex_sel_eq"
+  Simplifier.make_simproc \<^context> "ex_sel_eq"
    {lhss = [\<^term>\<open>Ex t\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let

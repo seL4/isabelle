@@ -107,21 +107,21 @@ fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
       SOME c => c
     | NONE => constr_spec dtypes x
 
-fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
+fun is_complete_type dtypes facto (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     is_concrete_type dtypes facto T1 andalso is_complete_type dtypes facto T2
-  | is_complete_type dtypes facto (Type (@{type_name prod}, Ts)) =
+  | is_complete_type dtypes facto (Type (\<^type_name>\<open>prod\<close>, Ts)) =
     forall (is_complete_type dtypes facto) Ts
-  | is_complete_type dtypes facto (Type (@{type_name set}, [T'])) =
+  | is_complete_type dtypes facto (Type (\<^type_name>\<open>set\<close>, [T'])) =
     is_concrete_type dtypes facto T'
   | is_complete_type dtypes facto T =
     not (is_integer_like_type T) andalso not (is_bit_type T) andalso
     fun_from_pair (#complete (the (data_type_spec dtypes T))) facto
     handle Option.Option => true
-and is_concrete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
+and is_concrete_type dtypes facto (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     is_complete_type dtypes facto T1 andalso is_concrete_type dtypes facto T2
-  | is_concrete_type dtypes facto (Type (@{type_name prod}, Ts)) =
+  | is_concrete_type dtypes facto (Type (\<^type_name>\<open>prod\<close>, Ts)) =
     forall (is_concrete_type dtypes facto) Ts
-  | is_concrete_type dtypes facto (Type (@{type_name set}, [T'])) =
+  | is_concrete_type dtypes facto (Type (\<^type_name>\<open>set\<close>, [T'])) =
     is_complete_type dtypes facto T'
   | is_concrete_type dtypes facto T =
     fun_from_pair (#concrete (the (data_type_spec dtypes T))) facto
@@ -142,8 +142,8 @@ fun quintuple_for_scope code_type code_term code_string
         ({hol_ctxt = {ctxt, ...}, card_assigns, bits, bisim_depth,
          data_types, ...} : scope) =
   let
-    val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
-                     @{typ bisim_iterator}]
+    val boring_Ts = [\<^typ>\<open>unsigned_bit\<close>, \<^typ>\<open>signed_bit\<close>,
+                     \<^typ>\<open>bisim_iterator\<close>]
     val (iter_assigns, card_assigns) =
       card_assigns |> filter_out (member (op =) boring_Ts o fst)
                    |> List.partition (is_fp_iterator_type o fst)
@@ -249,15 +249,15 @@ val max_bits = 31 (* Kodkod limit *)
 fun block_for_type (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
                    iters_assigns bitss bisim_depths T =
   case T of
-    @{typ unsigned_bit} =>
+    \<^typ>\<open>unsigned_bit\<close> =>
     [(Card T, map (Integer.min max_bits o Integer.max 1) bitss)]
-  | @{typ signed_bit} =>
+  | \<^typ>\<open>signed_bit\<close> =>
     [(Card T, map (Integer.add 1 o Integer.min max_bits o Integer.max 1) bitss)]
-  | @{typ "unsigned_bit word"} =>
+  | \<^typ>\<open>unsigned_bit word\<close> =>
     [(Card T, lookup_type_ints_assign thy cards_assigns nat_T)]
-  | @{typ "signed_bit word"} =>
+  | \<^typ>\<open>signed_bit word\<close> =>
     [(Card T, lookup_type_ints_assign thy cards_assigns int_T)]
-  | @{typ bisim_iterator} =>
+  | \<^typ>\<open>bisim_iterator\<close> =>
     [(Card T, map (Integer.add 1 o Integer.max 0) bisim_depths)]
   | _ =>
     if is_fp_iterator_type T then
@@ -339,7 +339,7 @@ fun repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) =
   in aux [] (rev card_assigns) end
 
 fun repair_iterator_assign ctxt assigns (T as Type (_, Ts), k) =
-    (T, if T = @{typ bisim_iterator} then
+    (T, if T = \<^typ>\<open>bisim_iterator\<close> then
           let
             val co_cards = map snd (filter (is_codatatype ctxt o fst) assigns)
           in Int.min (k, Integer.sum co_cards) end
@@ -480,11 +480,11 @@ fun scope_from_descriptor (hol_ctxt as {ctxt, ...}) binarize deep_dataTs
       map (data_type_spec_from_scope_descriptor hol_ctxt binarize deep_dataTs
                                                 finitizable_dataTs desc)
           (filter (is_data_type ctxt o fst) card_assigns)
-    val bits = card_of_type card_assigns @{typ signed_bit} - 1
+    val bits = card_of_type card_assigns \<^typ>\<open>signed_bit\<close> - 1
                handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
-                      card_of_type card_assigns @{typ unsigned_bit}
+                      card_of_type card_assigns \<^typ>\<open>unsigned_bit\<close>
                       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => 0
-    val bisim_depth = card_of_type card_assigns @{typ bisim_iterator} - 1
+    val bisim_depth = card_of_type card_assigns \<^typ>\<open>bisim_iterator\<close> - 1
   in
     {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
      data_types = data_types, bits = bits, bisim_depth = bisim_depth,

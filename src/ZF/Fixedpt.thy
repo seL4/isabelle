@@ -20,8 +20,8 @@ definition
   gfp      :: "[i,i=>i]=>i"  where
      "gfp(D,h) == \<Union>({X: Pow(D). X \<subseteq> h(X)})"
 
-text\<open>The theorem is proved in the lattice of subsets of @{term D}, 
-      namely @{term "Pow(D)"}, with Inter as the greatest lower bound.\<close>
+text\<open>The theorem is proved in the lattice of subsets of \<^term>\<open>D\<close>, 
+      namely \<^term>\<open>Pow(D)\<close>, with Inter as the greatest lower bound.\<close>
 
 subsection\<open>Monotone Operators\<close>
 
@@ -69,7 +69,7 @@ apply (erule bnd_monoD2, rule Int_lower1, assumption)
 apply (erule bnd_monoD2, rule Int_lower2, assumption) 
 done
 
-subsection\<open>Proof of Knaster-Tarski Theorem using @{term lfp}\<close>
+subsection\<open>Proof of Knaster-Tarski Theorem using \<^term>\<open>lfp\<close>\<close>
 
 (*lfp is contained in each pre-fixedpoint*)
 lemma lfp_lowerbound: 
@@ -189,7 +189,7 @@ apply (rule Collect_cong, simp_all)
 done 
 
 
-subsection\<open>Proof of Knaster-Tarski Theorem using @{term gfp}\<close>
+subsection\<open>Proof of Knaster-Tarski Theorem using \<^term>\<open>gfp\<close>\<close>
 
 (*gfp contains each post-fixedpoint that is contained in D*)
 lemma gfp_upperbound: "[| A \<subseteq> h(A);  A<=D |] ==> A \<subseteq> gfp(D,h)"

@@ -17,8 +17,8 @@ open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
 fun trivial_absT_info_of fpT =
-  {absT = fpT, repT = fpT, abs = Const (@{const_name id_bnf}, fpT --> fpT),
-   rep = Const (@{const_name id_bnf}, fpT --> fpT),
+  {absT = fpT, repT = fpT, abs = Const (\<^const_name>\<open>id_bnf\<close>, fpT --> fpT),
+   rep = Const (\<^const_name>\<open>id_bnf\<close>, fpT --> fpT),
    abs_inject = @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV UNIV_I UNIV_I]},
    abs_inverse = @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV UNIV_I]},
    type_definition = @{thm type_definition_id_bnf_UNIV}};
@@ -31,8 +31,8 @@ fun the_frozen_ctr_sugar_of ctxt fpT_name =
 fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
     xtor_rel_induct ctor_rec_transfer =
   let
-    val xtors = [Const (@{const_name xtor}, fpT --> fpT)];
-    val co_recs = [Const (@{const_name ctor_rec}, (fpT --> C) --> (fpT --> C))];
+    val xtors = [Const (\<^const_name>\<open>xtor\<close>, fpT --> fpT)];
+    val co_recs = [Const (\<^const_name>\<open>ctor_rec\<close>, (fpT --> C) --> (fpT --> C))];
     val co_rec_thms = [map_id0_of_bnf fp_bnf RS @{thm ctor_rec}];
     val co_rec_unique_thm = map_id0_of_bnf fp_bnf RS @{thm ctor_rec_unique};
   in
@@ -52,10 +52,10 @@ fun trivial_fp_result_of fp_bnf fpT C xtor_map xtor_sets xtor_rel ctor_rec_o_map
 
 fun fp_sugar_of_sum ctxt =
   let
-    val fpT as Type (fpT_name, As) = @{typ "'a + 'b"};
-    val fpBT = @{typ "'c + 'd"};
-    val C = @{typ 'e};
-    val X = @{typ 'sum};
+    val fpT as Type (fpT_name, As) = \<^typ>\<open>'a + 'b\<close>;
+    val fpBT = \<^typ>\<open>'c + 'd\<close>;
+    val C = \<^typ>\<open>'e\<close>;
+    val X = \<^typ>\<open>'sum\<close>;
     val ctr_Tss = map single As;
 
     val fp_bnf = the (bnf_of ctxt fpT_name);
@@ -105,7 +105,7 @@ fun fp_sugar_of_sum ctxt =
         set_cases = @{thms setl.cases[simplified hypsubst_in_prems]
           setr.cases[simplified hypsubst_in_prems]}},
      fp_co_induct_sugar = SOME
-       {co_rec = Const (@{const_name case_sum}, map (fn Ts => (Ts ---> C)) ctr_Tss ---> fpT --> C),
+       {co_rec = Const (\<^const_name>\<open>case_sum\<close>, map (fn Ts => (Ts ---> C)) ctr_Tss ---> fpT --> C),
         common_co_inducts = @{thms sum.induct},
         co_inducts = @{thms sum.induct},
         co_rec_def = @{thm ctor_rec_def_alt[of "case_sum f1 f2" for f1 f2]},
@@ -124,10 +124,10 @@ fun fp_sugar_of_sum ctxt =
 
 fun fp_sugar_of_prod ctxt =
   let
-    val fpT as Type (fpT_name, As) = @{typ "'a * 'b"};
-    val fpBT = @{typ "'c * 'd"};
-    val C = @{typ 'e};
-    val X = @{typ 'prod};
+    val fpT as Type (fpT_name, As) = \<^typ>\<open>'a * 'b\<close>;
+    val fpBT = \<^typ>\<open>'c * 'd\<close>;
+    val C = \<^typ>\<open>'e\<close>;
+    val X = \<^typ>\<open>'prod\<close>;
     val ctr_Ts = As;
 
     val fp_bnf = the (bnf_of ctxt fpT_name);
@@ -177,7 +177,7 @@ fun fp_sugar_of_prod ctxt =
         set_cases = @{thms fsts.cases[simplified eq_fst_iff ex_neg_all_pos]
           snds.cases[simplified eq_snd_iff ex_neg_all_pos]}},
      fp_co_induct_sugar = SOME
-       {co_rec = Const (@{const_name case_prod}, (ctr_Ts ---> C) --> fpT --> C),
+       {co_rec = Const (\<^const_name>\<open>case_prod\<close>, (ctr_Ts ---> C) --> fpT --> C),
         common_co_inducts = @{thms prod.induct},
         co_inducts = @{thms prod.induct},
         co_rec_def = @{thm ctor_rec_def_alt[of "case_prod f" for f]},

@@ -230,7 +230,7 @@ apply (erule lt_irrefl)
 done
 
 
-text\<open>Recall that  @{term"i \<le> j"}  abbreviates  @{term"i<succ(j)"} !!\<close>
+text\<open>Recall that  \<^term>\<open>i \<le> j\<close>  abbreviates  \<^term>\<open>i<succ(j)\<close> !!\<close>
 
 lemma le_iff: "i \<le> j <-> i<j | (i=j & Ord(j))"
 by (unfold lt_def, blast)
@@ -301,7 +301,7 @@ apply (unfold wf_def)
 apply (rule foundation [THEN disjE, THEN allI], erule disjI1, blast)
 done
 
-text\<open>The premise @{term "Ord(i)"} does not suffice.\<close>
+text\<open>The premise \<^term>\<open>Ord(i)\<close> does not suffice.\<close>
 lemma trans_Memrel:
     "Ord(i) ==> trans(Memrel(i))"
 by (unfold Ord_def Transset_def trans_def, blast)

@@ -124,9 +124,9 @@ local
     H1,...,Hn are the hypotheses;  x1...xm are variants of the parameters.
   Main difference from strip_assums concerns parameters:
     it replaces the bound variables by free variables.  *)
-fun strip_context_aux (params, Hs, Const (@{const_name Pure.imp}, _) $ H $ B) =
+fun strip_context_aux (params, Hs, Const (\<^const_name>\<open>Pure.imp\<close>, _) $ H $ B) =
       strip_context_aux (params, H :: Hs, B)
-  | strip_context_aux (params, Hs, Const (@{const_name Pure.all},_) $ Abs (a, T, t)) =
+  | strip_context_aux (params, Hs, Const (\<^const_name>\<open>Pure.all\<close>,_) $ Abs (a, T, t)) =
       let val (b, u) = Syntax_Trans.variant_abs (a, T, t)
       in strip_context_aux ((b, T) :: params, Hs, u) end
   | strip_context_aux (params, Hs, B) = (rev params, rev Hs, B);

@@ -55,11 +55,11 @@ text\<open>The universal class, V, is closed and unbounded.
 theorem Closed_Unbounded_V [simp]: "Closed_Unbounded(\<lambda>x. True)"
 by (unfold Closed_Unbounded_def Closed_def Unbounded_def, blast)
 
-text\<open>The class of ordinals, @{term Ord}, is closed and unbounded.\<close>
+text\<open>The class of ordinals, \<^term>\<open>Ord\<close>, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Ord   [simp]: "Closed_Unbounded(Ord)"
 by (unfold Closed_Unbounded_def Closed_def Unbounded_def, blast)
 
-text\<open>The class of limit ordinals, @{term Limit}, is closed and unbounded.\<close>
+text\<open>The class of limit ordinals, \<^term>\<open>Limit\<close>, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Limit [simp]: "Closed_Unbounded(Limit)"
 apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Limit_Union, 
        clarify)
@@ -67,7 +67,7 @@ apply (rule_tac x="i++nat" in exI)
 apply (blast intro: oadd_lt_self oadd_LimitI Limit_nat Limit_has_0) 
 done
 
-text\<open>The class of cardinals, @{term Card}, is closed and unbounded.\<close>
+text\<open>The class of cardinals, \<^term>\<open>Card\<close>, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Card  [simp]: "Closed_Unbounded(Card)"
 apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Card_Union)
 apply (blast intro: lt_csucc Card_csucc)
@@ -80,8 +80,8 @@ subsubsection\<open>The intersection of any set-indexed family of c.u. classes i
 text\<open>The constructions below come from Kunen, \emph{Set Theory}, page 78.\<close>
 locale cub_family =
   fixes P and A
-  fixes next_greater \<comment> \<open>the next ordinal satisfying class @{term A}\<close>
-  fixes sup_greater  \<comment> \<open>sup of those ordinals over all @{term A}\<close>
+  fixes next_greater \<comment> \<open>the next ordinal satisfying class \<^term>\<open>A\<close>\<close>
+  fixes sup_greater  \<comment> \<open>sup of those ordinals over all \<^term>\<open>A\<close>\<close>
   assumes closed:    "a\<in>A ==> Closed(P(a))"
       and unbounded: "a\<in>A ==> Unbounded(P(a))"
       and A_non0: "A\<noteq>0"
@@ -103,8 +103,8 @@ lemma (in cub_family) Ord_next_greater:
      "Ord(next_greater(a,x))"
 by (simp add: next_greater_def Ord_Least)
 
-text\<open>@{term next_greater} works as expected: it returns a larger value
-and one that belongs to class @{term "P(a)"}.\<close>
+text\<open>\<^term>\<open>next_greater\<close> works as expected: it returns a larger value
+and one that belongs to class \<^term>\<open>P(a)\<close>.\<close>
 lemma (in cub_family) next_greater_lemma:
      "[| Ord(x); a\<in>A |] ==> P(a, next_greater(a,x)) \<and> x < next_greater(a,x)"
 apply (simp add: next_greater_def)
@@ -285,11 +285,11 @@ lemma cont_Ord_Union:
 apply (frule Ord_set_cases)
 apply (erule disjE, force) 
 apply (thin_tac "X=0 \<longrightarrow> Q" for Q, auto)
- txt\<open>The trival case of @{term "\<Union>X \<in> X"}\<close>
+ txt\<open>The trival case of \<^term>\<open>\<Union>X \<in> X\<close>\<close>
  apply (rule equalityI, blast intro: Ord_Union_eq_succD) 
  apply (simp add: mono_le_subset_def UN_subset_iff le_subset_iff) 
  apply (blast elim: equalityE)
-txt\<open>The limit case, @{term "Limit(\<Union>X)"}:
+txt\<open>The limit case, \<^term>\<open>Limit(\<Union>X)\<close>:
 @{subgoals[display,indent=0,margin=65]}
 \<close>
 apply (simp add: OUN_Union_eq cont_Ord_def)

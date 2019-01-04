@@ -38,7 +38,7 @@ struct
 val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
-  Simplifier.make_simproc @{context} "strong_ind"
+  Simplifier.make_simproc \<^context> "strong_ind"
    {lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
@@ -319,7 +319,7 @@ fun is_pred tab t =
 fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
-    Simplifier.make_simproc @{context} "to_pred"
+    Simplifier.make_simproc \<^context> "to_pred"
       {lhss = [anyt],
        proc = fn _ => fn ctxt => fn ct =>
         lookup_rule (Proof_Context.theory_of ctxt)

@@ -127,7 +127,7 @@ end
 
 subsection \<open>Complex generators\<close>
 
-text \<open>Towards @{typ "'a \<Rightarrow> 'b"}\<close>
+text \<open>Towards \<^typ>\<open>'a \<Rightarrow> 'b\<close>\<close>
 
 axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
   \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
@@ -217,7 +217,7 @@ subsection \<open>Code setup\<close>
 
 code_printing
   constant random_fun_aux \<rightharpoonup> (Quickcheck) "Random'_Generators.random'_fun"
-  \<comment> \<open>With enough criminal energy this can be abused to derive @{prop False};
+  \<comment> \<open>With enough criminal energy this can be abused to derive \<^prop>\<open>False\<close>;
   for this reason we use a distinguished target \<open>Quickcheck\<close>
   not spoiling the regular trusted code generation\<close>
 

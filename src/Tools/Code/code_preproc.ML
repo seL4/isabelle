@@ -51,7 +51,7 @@ struct
 
 (** timing **)
 
-val timing = Attrib.setup_config_bool @{binding code_timing} (K false);
+val timing = Attrib.setup_config_bool \<^binding>\<open>code_timing\<close> (K false);
 
 fun timed msg ctxt_of f x =
   if Config.get (ctxt_of x) timing
@@ -147,8 +147,8 @@ fun matches_transitive eq1 eq2 = Thm.rhs_of eq1 aconvc Thm.lhs_of eq2;
 
 fun trans_comb eq1 eq2 =
   (*explicit assertions: evaluation conversion stacks are error-prone*)
-  if Thm.is_reflexive eq1 then (@{assert} (matches_transitive eq1 eq2); eq2)
-  else if Thm.is_reflexive eq2 then (@{assert} (matches_transitive eq1 eq2); eq1)
+  if Thm.is_reflexive eq1 then (\<^assert> (matches_transitive eq1 eq2); eq2)
+  else if Thm.is_reflexive eq2 then (\<^assert> (matches_transitive eq1 eq2); eq1)
   else Thm.transitive eq1 eq2;
 
 fun trans_conv_rule conv eq = trans_comb eq (conv (Thm.rhs_of eq));
@@ -629,13 +629,13 @@ val _ = Theory.setup (
       Attrib.add_del (mk_attribute (process Simplifier.add_simp))
         (mk_attribute (process Simplifier.del_simp));
   in
-    Attrib.setup @{binding code_unfold} (add_del_attribute_parser process_unfold)
+    Attrib.setup \<^binding>\<open>code_unfold\<close> (add_del_attribute_parser process_unfold)
       "preprocessing equations for code generator"
-    #> Attrib.setup @{binding code_post} (add_del_attribute_parser process_post)
+    #> Attrib.setup \<^binding>\<open>code_post\<close> (add_del_attribute_parser process_post)
       "postprocessing equations for code generator"
-    #> Attrib.setup @{binding code_abbrev} (add_del_attribute_parser process_abbrev)
+    #> Attrib.setup \<^binding>\<open>code_abbrev\<close> (add_del_attribute_parser process_abbrev)
       "post- and preprocessing equations for code generator"
-    #> Attrib.setup @{binding code_preproc_trace}
+    #> Attrib.setup \<^binding>\<open>code_preproc_trace\<close>
       ((Scan.lift (Args.$$$ "off" >> K trace_none)
       || (Scan.lift (Args.$$$ "only" |-- Args.colon |-- Scan.repeat1 Parse.term))
          >> trace_only_ext
@@ -644,7 +644,7 @@ val _ = Theory.setup (
   end);
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_codeproc} "print code preprocessor setup"
+  Outer_Syntax.command \<^command_keyword>\<open>print_codeproc\<close> "print code preprocessor setup"
     (Scan.succeed (Toplevel.keep (print_codeproc o Toplevel.context_of)));
 
 end; (*struct*)

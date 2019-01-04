@@ -30,30 +30,30 @@ fun subsets [] = [[]]
 
 val pred_of = fst o dest_Const o head_of;
 
-fun strip_all' used names (Const (@{const_name Pure.all}, _) $ Abs (s, T, t)) =
+fun strip_all' used names (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (s, T, t)) =
       let val (s', names') = (case names of
           [] => (singleton (Name.variant_list used) s, [])
         | name :: names' => (name, names'))
       in strip_all' (s'::used) names' (subst_bound (Free (s', T), t)) end
-  | strip_all' used names ((t as Const (@{const_name Pure.imp}, _) $ P) $ Q) =
+  | strip_all' used names ((t as Const (\<^const_name>\<open>Pure.imp\<close>, _) $ P) $ Q) =
       t $ strip_all' used names Q
   | strip_all' _ _ t = t;
 
 fun strip_all t = strip_all' (Term.add_free_names t []) [] t;
 
 fun strip_one name
-    (Const (@{const_name Pure.all}, _) $ Abs (s, T, Const (@{const_name Pure.imp}, _) $ P $ Q)) =
+    (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (s, T, Const (\<^const_name>\<open>Pure.imp\<close>, _) $ P $ Q)) =
       (subst_bound (Free (name, T), P), subst_bound (Free (name, T), Q))
-  | strip_one _ (Const (@{const_name Pure.imp}, _) $ P $ Q) = (P, Q);
+  | strip_one _ (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ P $ Q) = (P, Q);
 
 fun relevant_vars prop = fold (fn ((a, i), T) => fn vs =>
      (case strip_type T of
-        (_, Type (s, _)) => if s = @{type_name bool} then (a, T) :: vs else vs
+        (_, Type (s, _)) => if s = \<^type_name>\<open>bool\<close> then (a, T) :: vs else vs
       | _ => vs)) (Term.add_vars prop []) [];
 
 val attach_typeS = map_types (map_atyps
-  (fn TFree (s, []) => TFree (s, @{sort type})
-    | TVar (ixn, []) => TVar (ixn, @{sort type})
+  (fn TFree (s, []) => TFree (s, \<^sort>\<open>type\<close>)
+    | TVar (ixn, []) => TVar (ixn, \<^sort>\<open>type\<close>)
     | T => T));
 
 fun dt_of_intrs thy vs nparms intrs =
@@ -145,9 +145,9 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
 
     val is_rec = exists_Const (fn (c, _) => member (op =) rsets c);
 
-    fun is_meta (Const (@{const_name Pure.all}, _) $ Abs (s, _, P)) = is_meta P
-      | is_meta (Const (@{const_name Pure.imp}, _) $ _ $ Q) = is_meta Q
-      | is_meta (Const (@{const_name Trueprop}, _) $ t) =
+    fun is_meta (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (s, _, P)) = is_meta P
+      | is_meta (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ Q) = is_meta Q
+      | is_meta (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) =
           (case head_of t of
             Const (s, _) => can (Inductive.the_inductive_global ctxt) s
           | _ => true)
@@ -174,7 +174,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
                 end
               else
                 (case strip_type T of
-                  (Ts, Type (@{type_name Product_Type.prod}, [T1, T2])) =>
+                  (Ts, Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =>
                     let
                       val fx = Free (x, Ts ---> T1);
                       val fr = Free (r, Ts ---> T2);
@@ -212,7 +212,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
         val fs = map (fn (rule, (ivs, intr)) =>
           fun_of_prem thy rsets vs params rule ivs intr) (prems ~~ intrs)
       in
-        if dummy then Const (@{const_name default},
+        if dummy then Const (\<^const_name>\<open>default\<close>,
             HOLogic.unitT --> body_type (fastype_of (hd fs))) :: fs
         else fs
       end) (premss ~~ dummies);
@@ -447,7 +447,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
             fold_rev (Term.abs o pair "x") Ts
               (list_comb (Const (case_name, T),
                 (if dummy then
-                   [Abs ("x", HOLogic.unitT, Const (@{const_name default}, body_type T))]
+                   [Abs ("x", HOLogic.unitT, Const (\<^const_name>\<open>default\<close>, body_type T))]
                  else []) @
                 map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
                 [Bound (length prems)]));

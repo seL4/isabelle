@@ -1152,7 +1152,7 @@ lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. 
 lemmas Powp_mono [mono] = Pow_mono [to_pred]
 
 
-subsubsection \<open>Expressing relation operations via @{const Finite_Set.fold}\<close>
+subsubsection \<open>Expressing relation operations via \<^const>\<open>Finite_Set.fold\<close>\<close>
 
 lemma Id_on_fold:
   assumes "finite A"

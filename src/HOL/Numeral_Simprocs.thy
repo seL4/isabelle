@@ -285,18 +285,18 @@ simproc_setup nat_dvd_cancel_factor
 
 declaration \<open>
   K (Lin_Arith.add_simprocs
-      [@{simproc semiring_assoc_fold},
-       @{simproc int_combine_numerals},
-       @{simproc inteq_cancel_numerals},
-       @{simproc intless_cancel_numerals},
-       @{simproc intle_cancel_numerals},
-       @{simproc field_combine_numerals}]
+      [\<^simproc>\<open>semiring_assoc_fold\<close>,
+       \<^simproc>\<open>int_combine_numerals\<close>,
+       \<^simproc>\<open>inteq_cancel_numerals\<close>,
+       \<^simproc>\<open>intless_cancel_numerals\<close>,
+       \<^simproc>\<open>intle_cancel_numerals\<close>,
+       \<^simproc>\<open>field_combine_numerals\<close>]
   #> Lin_Arith.add_simprocs
-      [@{simproc nat_combine_numerals},
-       @{simproc nateq_cancel_numerals},
-       @{simproc natless_cancel_numerals},
-       @{simproc natle_cancel_numerals},
-       @{simproc natdiff_cancel_numerals}])
+      [\<^simproc>\<open>nat_combine_numerals\<close>,
+       \<^simproc>\<open>nateq_cancel_numerals\<close>,
+       \<^simproc>\<open>natless_cancel_numerals\<close>,
+       \<^simproc>\<open>natle_cancel_numerals\<close>,
+       \<^simproc>\<open>natdiff_cancel_numerals\<close>])
 \<close>
 
 end

@@ -48,7 +48,7 @@ text \<open>
   \<^verbatim>\<open>isabelle-root\<close> for session ROOT files, which is enabled by default for any
   file of that name.
 
-  @{rail \<open>
+  \<^rail>\<open>
     @{syntax_def session_chapter}: @'chapter' @{syntax name}
     ;
 
@@ -77,7 +77,7 @@ text \<open>
     document_files: @'document_files' ('(' dir ')')? (@{syntax embedded}+)
     ;
     export_files: @'export_files' ('(' dir ')')? (@{syntax embedded}+)
-  \<close>}
+  \<close>
 
   \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new session \<open>A\<close> based on
   parent session \<open>B\<close>, with its content given in \<open>body\<close> (imported sessions and
@@ -237,7 +237,7 @@ text \<open>
 
     \<^item> @{system_option_def "profiling"} specifies a mode for global ML
     profiling. Possible values are the empty string (disabled), \<^verbatim>\<open>time\<close> for
-    @{ML profile_time} and \<^verbatim>\<open>allocations\<close> for @{ML profile_allocations}.
+    \<^ML>\<open>profile_time\<close> and \<^verbatim>\<open>allocations\<close> for \<^ML>\<open>profile_allocations\<close>.
     Results appear near the bottom of the session log file.
 
   The @{tool_def options} tool prints Isabelle system options. Its
@@ -396,8 +396,7 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which means that session images are
-  stored in @{path "$ISABELLE_HEAPS_SYSTEM"} instead of @{path
-  "$ISABELLE_HEAPS"}.
+  stored in \<^path>\<open>$ISABELLE_HEAPS_SYSTEM\<close> instead of \<^path>\<open>$ISABELLE_HEAPS\<close>.
 
   \<^medskip>
   Option \<^verbatim>\<open>-v\<close> increases the general level of verbosity. Option \<^verbatim>\<open>-l\<close> lists

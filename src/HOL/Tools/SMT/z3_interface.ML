@@ -106,52 +106,52 @@ fun get_mk_builtins ctxt = map snd (Mk_Builtins.get (Context.Proof ctxt))
 
 (** basic and additional constructors **)
 
-fun mk_builtin_typ _ (Sym ("Bool", _)) = SOME @{typ bool}
-  | mk_builtin_typ _ (Sym ("Int", _)) = SOME @{typ int}
-  | mk_builtin_typ _ (Sym ("bool", _)) = SOME @{typ bool}  (*FIXME: legacy*)
-  | mk_builtin_typ _ (Sym ("int", _)) = SOME @{typ int}  (*FIXME: legacy*)
+fun mk_builtin_typ _ (Sym ("Bool", _)) = SOME \<^typ>\<open>bool\<close>
+  | mk_builtin_typ _ (Sym ("Int", _)) = SOME \<^typ>\<open>int\<close>
+  | mk_builtin_typ _ (Sym ("bool", _)) = SOME \<^typ>\<open>bool\<close>  (*FIXME: legacy*)
+  | mk_builtin_typ _ (Sym ("int", _)) = SOME \<^typ>\<open>int\<close>  (*FIXME: legacy*)
   | mk_builtin_typ ctxt sym = chained_mk_builtin_typ (get_mk_builtins ctxt) sym
 
-fun mk_builtin_num _ i @{typ int} = SOME (Numeral.mk_cnumber @{ctyp int} i)
+fun mk_builtin_num _ i \<^typ>\<open>int\<close> = SOME (Numeral.mk_cnumber \<^ctyp>\<open>int\<close> i)
   | mk_builtin_num ctxt i T =
       chained_mk_builtin_num ctxt (get_mk_builtins ctxt) i T
 
-val mk_true = Thm.cterm_of @{context} (@{const Not} $ @{const False})
-val mk_false = Thm.cterm_of @{context} @{const False}
-val mk_not = Thm.apply (Thm.cterm_of @{context} @{const Not})
-val mk_implies = Thm.mk_binop (Thm.cterm_of @{context} @{const HOL.implies})
-val mk_iff = Thm.mk_binop (Thm.cterm_of @{context} @{const HOL.eq (bool)})
-val conj = Thm.cterm_of @{context} @{const HOL.conj}
-val disj = Thm.cterm_of @{context} @{const HOL.disj}
+val mk_true = Thm.cterm_of \<^context> (@{const Not} $ @{const False})
+val mk_false = Thm.cterm_of \<^context> @{const False}
+val mk_not = Thm.apply (Thm.cterm_of \<^context> @{const Not})
+val mk_implies = Thm.mk_binop (Thm.cterm_of \<^context> @{const HOL.implies})
+val mk_iff = Thm.mk_binop (Thm.cterm_of \<^context> @{const HOL.eq (bool)})
+val conj = Thm.cterm_of \<^context> @{const HOL.conj}
+val disj = Thm.cterm_of \<^context> @{const HOL.disj}
 
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = SMT_Util.mk_const_pat @{theory} @{const_name HOL.eq} SMT_Util.destT1
+val eq = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>HOL.eq\<close> SMT_Util.destT1
 fun mk_eq ct cu = Thm.mk_binop (SMT_Util.instT' ct eq) ct cu
 
 val if_term =
-  SMT_Util.mk_const_pat @{theory} @{const_name If} (SMT_Util.destT1 o SMT_Util.destT2)
+  SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>If\<close> (SMT_Util.destT1 o SMT_Util.destT2)
 fun mk_if cc ct = Thm.mk_binop (Thm.apply (SMT_Util.instT' ct if_term) cc) ct
 
-val access = SMT_Util.mk_const_pat @{theory} @{const_name fun_app} SMT_Util.destT1
+val access = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>fun_app\<close> SMT_Util.destT1
 fun mk_access array = Thm.apply (SMT_Util.instT' array access) array
 
 val update =
-  SMT_Util.mk_const_pat @{theory} @{const_name fun_upd} (Thm.dest_ctyp o SMT_Util.destT1)
+  SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>fun_upd\<close> (Thm.dest_ctyp o SMT_Util.destT1)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_cterm array)
   in Thm.apply (Thm.mk_binop (SMT_Util.instTs cTs update) array index) value end
 
-val mk_uminus = Thm.apply (Thm.cterm_of @{context} @{const uminus (int)})
-val add = Thm.cterm_of @{context} @{const plus (int)}
-val int0 = Numeral.mk_cnumber @{ctyp int} 0
-val mk_sub = Thm.mk_binop (Thm.cterm_of @{context} @{const minus (int)})
-val mk_mul = Thm.mk_binop (Thm.cterm_of @{context} @{const times (int)})
-val mk_div = Thm.mk_binop (Thm.cterm_of @{context} @{const z3div})
-val mk_mod = Thm.mk_binop (Thm.cterm_of @{context} @{const z3mod})
-val mk_lt = Thm.mk_binop (Thm.cterm_of @{context} @{const less (int)})
-val mk_le = Thm.mk_binop (Thm.cterm_of @{context} @{const less_eq (int)})
+val mk_uminus = Thm.apply (Thm.cterm_of \<^context> @{const uminus (int)})
+val add = Thm.cterm_of \<^context> @{const plus (int)}
+val int0 = Numeral.mk_cnumber \<^ctyp>\<open>int\<close> 0
+val mk_sub = Thm.mk_binop (Thm.cterm_of \<^context> @{const minus (int)})
+val mk_mul = Thm.mk_binop (Thm.cterm_of \<^context> @{const times (int)})
+val mk_div = Thm.mk_binop (Thm.cterm_of \<^context> @{const z3div})
+val mk_mod = Thm.mk_binop (Thm.cterm_of \<^context> @{const z3mod})
+val mk_lt = Thm.mk_binop (Thm.cterm_of \<^context> @{const less (int)})
+val mk_le = Thm.mk_binop (Thm.cterm_of \<^context> @{const less_eq (int)})
 
 fun mk_builtin_fun ctxt sym cts =
   (case (sym, cts) of
@@ -171,16 +171,16 @@ fun mk_builtin_fun ctxt sym cts =
   | (Sym ("store", _), [ca, ck, cv]) => SOME (mk_update ca ck cv)
   | _ =>
     (case (sym, try (Thm.typ_of_cterm o hd) cts, cts) of
-      (Sym ("+", _), SOME @{typ int}, _) => SOME (mk_nary add int0 cts)
-    | (Sym ("-", _), SOME @{typ int}, [ct]) => SOME (mk_uminus ct)
-    | (Sym ("-", _), SOME @{typ int}, [ct, cu]) => SOME (mk_sub ct cu)
-    | (Sym ("*", _), SOME @{typ int}, [ct, cu]) => SOME (mk_mul ct cu)
-    | (Sym ("div", _), SOME @{typ int}, [ct, cu]) => SOME (mk_div ct cu)
-    | (Sym ("mod", _), SOME @{typ int}, [ct, cu]) => SOME (mk_mod ct cu)
-    | (Sym ("<", _), SOME @{typ int}, [ct, cu]) => SOME (mk_lt ct cu)
-    | (Sym ("<=", _), SOME @{typ int}, [ct, cu]) => SOME (mk_le ct cu)
-    | (Sym (">", _), SOME @{typ int}, [ct, cu]) => SOME (mk_lt cu ct)
-    | (Sym (">=", _), SOME @{typ int}, [ct, cu]) => SOME (mk_le cu ct)
+      (Sym ("+", _), SOME \<^typ>\<open>int\<close>, _) => SOME (mk_nary add int0 cts)
+    | (Sym ("-", _), SOME \<^typ>\<open>int\<close>, [ct]) => SOME (mk_uminus ct)
+    | (Sym ("-", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_sub ct cu)
+    | (Sym ("*", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_mul ct cu)
+    | (Sym ("div", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_div ct cu)
+    | (Sym ("mod", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_mod ct cu)
+    | (Sym ("<", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_lt ct cu)
+    | (Sym ("<=", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_le ct cu)
+    | (Sym (">", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_lt cu ct)
+    | (Sym (">=", _), SOME \<^typ>\<open>int\<close>, [ct, cu]) => SOME (mk_le cu ct)
     | _ => chained_mk_builtin_fun ctxt (get_mk_builtins ctxt) sym cts))
 
 

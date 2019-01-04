@@ -194,7 +194,7 @@ fun default_raw_params mode thy =
     |> fold (AList.default (op =))
          [("provers", [(case !provers of "" => default_provers_param_value mode ctxt | s => s)]),
           ("timeout",
-           let val timeout = Options.default_int @{system_option sledgehammer_timeout} in
+           let val timeout = Options.default_int \<^system_option>\<open>sledgehammer_timeout\<close> in
              [if timeout <= 0 then "none" else string_of_int timeout]
            end)]
   end
@@ -349,10 +349,10 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
 fun string_of_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
-val parse_query_bang = @{keyword "?"} || @{keyword "!"} || @{keyword "!!"}
+val parse_query_bang = \<^keyword>\<open>?\<close> || \<^keyword>\<open>!\<close> || \<^keyword>\<open>!!\<close>
 val parse_key = Scan.repeat1 (Parse.embedded || parse_query_bang) >> implode_param
 val parse_value = Scan.repeat1 (Parse.name || Parse.float_number || parse_query_bang)
-val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
+val parse_param = parse_key -- Scan.optional (\<^keyword>\<open>=\<close> |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 val parse_fact_override_chunk =
@@ -364,7 +364,7 @@ val parse_fact_override =
     no_fact_override
 
 val _ =
-  Outer_Syntax.command @{command_keyword sledgehammer}
+  Outer_Syntax.command \<^command_keyword>\<open>sledgehammer\<close>
     "search for first-order proof using automatic theorem provers"
     (Scan.optional Parse.name runN -- parse_params
       -- parse_fact_override -- Scan.option Parse.nat >>
@@ -372,7 +372,7 @@ val _ =
         Toplevel.keep_proof
           (hammer_away params NONE subcommand opt_i fact_override o Toplevel.proof_of)))
 val _ =
-  Outer_Syntax.command @{command_keyword sledgehammer_params}
+  Outer_Syntax.command \<^command_keyword>\<open>sledgehammer_params\<close>
     "set and display the default parameters for Sledgehammer"
     (parse_params >> (fn params =>
       Toplevel.theory (fold set_default_raw_param params #> tap (fn thy =>
@@ -390,7 +390,7 @@ fun try_sledgehammer auto state =
     run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override (silence_state state)
   end
 
-val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
+val _ = Try.tool_setup (sledgehammerN, (40, \<^system_option>\<open>auto_sledgehammer\<close>, try_sledgehammer))
 
 val _ =
   Query_Operation.register {name = sledgehammerN, pri = 0}

@@ -20,26 +20,26 @@ abbreviation going_to :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Righta
     where "f going_to F \<equiv> f going_to F within UNIV"
 
 text \<open>
-  The \<open>going_to\<close> filter is, in a sense, the opposite of @{term filtermap}. 
+  The \<open>going_to\<close> filter is, in a sense, the opposite of \<^term>\<open>filtermap\<close>. 
   It corresponds to the intuition of, given a function $f: A \to B$ and a filter $F$ on the 
   range of $B$, looking at such values of $x$ that $f(x)$ approaches $F$. This can be 
-  written as @{term "f going_to F"}.
+  written as \<^term>\<open>f going_to F\<close>.
   
-  A classic example is the @{term "at_infinity"} filter, which describes the neigbourhood
+  A classic example is the \<^term>\<open>at_infinity\<close> filter, which describes the neigbourhood
   of infinity (i.\,e.\ all values sufficiently far away from the zero). This can also be written
-  as @{term "norm going_to at_top"}.
+  as \<^term>\<open>norm going_to at_top\<close>.
 
   Additionally, the \<open>going_to\<close> filter can be restricted with an optional `within' parameter.
   For instance, if one would would want to consider the filter of complex numbers near infinity
   that do not lie on the negative real line, one could write 
-  @{term "norm going_to at_top within - complex_of_real ` {..0}"}.
+  \<^term>\<open>norm going_to at_top within - complex_of_real ` {..0}\<close>.
 
   A third, less mathematical example lies in the complexity analysis of algorithms.
   Suppose we wanted to say that an algorithm on lists takes $O(n^2)$ time where $n$ is 
   the length of the input list. We can write this using the Landau symbols from the AFP,
-  where the underlying filter is @{term "length going_to at_top"}. If, on the other hand,
+  where the underlying filter is \<^term>\<open>length going_to at_top\<close>. If, on the other hand,
   we want to look the complexity of the algorithm on sorted lists, we could use the filter
-  @{term "length going_to at_top within {xs. sorted xs}"}.
+  \<^term>\<open>length going_to at_top within {xs. sorted xs}\<close>.
 \<close>
 
 lemma going_to_def: "f going_to F = filtercomap f F"

@@ -322,7 +322,7 @@ fun sizechange_tac ctxt autom_tac =
 
 fun decomp_scnp_tac orders ctxt =
   let
-    val extra_simps = Named_Theorems.get ctxt @{named_theorems termination_simp}
+    val extra_simps = Named_Theorems.get ctxt \<^named_theorems>\<open>termination_simp\<close>
     val autom_tac = auto_tac (ctxt addsimps extra_simps)
   in
      gen_sizechange_tac orders autom_tac ctxt
@@ -340,7 +340,7 @@ val orders =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding size_change}
+    (Method.setup \<^binding>\<open>size_change\<close>
       (Scan.lift orders --| Method.sections clasimp_modifiers >>
         (fn orders => SIMPLE_METHOD o decomp_scnp_tac orders))
       "termination prover with graph decomposition and the NP subset of size change termination")

@@ -89,8 +89,8 @@ fun mk_eq (x, xs) =
   in mk_eqs x xs end;
 
 fun mk_tracing s t =
-  Const(@{const_name Code_Evaluation.tracing},
-    @{typ String.literal} --> (fastype_of t) --> (fastype_of t)) $ (HOLogic.mk_literal s) $ t
+  Const(\<^const_name>\<open>Code_Evaluation.tracing\<close>,
+    \<^typ>\<open>String.literal\<close> --> (fastype_of t) --> (fastype_of t)) $ (HOLogic.mk_literal s) $ t
 
 
 (* representation of inferred clauses with modes *)
@@ -202,11 +202,11 @@ fun check_matches_type ctxt predname T ms =
   let
     fun check (Fun (m1, m2)) (Type("fun", [T1,T2])) = check m1 T1 andalso check m2 T2
       | check m (Type("fun", _)) = (m = Input orelse m = Output)
-      | check (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+      | check (Pair (m1, m2)) (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
           check m1 T1 andalso check m2 T2
       | check Input _ = true
       | check Output _ = true
-      | check Bool @{typ bool} = true
+      | check Bool \<^typ>\<open>bool\<close> = true
       | check _ _ = false
     fun check_consistent_modes ms =
       if forall (fn Fun _ => true | _ => false) ms then
@@ -306,18 +306,18 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   additional_arguments = fn names =>
     let
       val depth_name = singleton (Name.variant_list names) "depth"
-    in [Free (depth_name, @{typ natural})] end,
+    in [Free (depth_name, \<^typ>\<open>natural\<close>)] end,
   modify_funT = (fn T => let val (Ts, U) = strip_type T
-  val Ts' = [@{typ natural}] in (Ts @ Ts') ---> U end),
+  val Ts' = [\<^typ>\<open>natural\<close>] in (Ts @ Ts') ---> U end),
   wrap_compilation =
     fn compfuns => fn s => fn T => fn mode => fn additional_arguments => fn compilation =>
     let
       val [depth] = additional_arguments
       val (_, Ts) = split_modeT mode (binder_types T)
       val T' = mk_monadT compfuns (HOLogic.mk_tupleT Ts)
-      val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
+      val if_const = Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T' --> T' --> T')
     in
-      if_const $ HOLogic.mk_eq (depth, @{term "0 :: natural"})
+      if_const $ HOLogic.mk_eq (depth, \<^term>\<open>0 :: natural\<close>)
         $ mk_empty compfuns (dest_monadT compfuns T')
         $ compilation
     end,
@@ -326,8 +326,8 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
     let
       val [depth] = additional_arguments
       val depth' =
-        Const (@{const_name Groups.minus}, @{typ "natural => natural => natural"})
-          $ depth $ Const (@{const_name Groups.one}, @{typ "natural"})
+        Const (\<^const_name>\<open>Groups.minus\<close>, \<^typ>\<open>natural => natural => natural\<close>)
+          $ depth $ Const (\<^const_name>\<open>Groups.one\<close>, \<^typ>\<open>natural\<close>)
     in [depth'] end
   }
 
@@ -337,20 +337,20 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   function_name_prefix = "random_",
   compfuns = Predicate_Comp_Funs.compfuns,
   mk_random = (fn T => fn additional_arguments =>
-  list_comb (Const(@{const_name Random_Pred.iter},
-  [@{typ natural}, @{typ natural}, @{typ Random.seed}] --->
+  list_comb (Const(\<^const_name>\<open>Random_Pred.iter\<close>,
+  [\<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>, \<^typ>\<open>Random.seed\<close>] --->
     Predicate_Comp_Funs.mk_monadT T), additional_arguments)),
   modify_funT = (fn T =>
     let
       val (Ts, U) = strip_type T
-      val Ts' = [@{typ natural}, @{typ natural}, @{typ Random.seed}]
+      val Ts' = [\<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>, \<^typ>\<open>Random.seed\<close>]
     in (Ts @ Ts') ---> U end),
   additional_arguments = (fn names =>
     let
       val [nrandom, size, seed] = Name.variant_list names ["nrandom", "size", "seed"]
     in
-      [Free (nrandom, @{typ natural}), Free (size, @{typ natural}),
-        Free (seed, @{typ Random.seed})]
+      [Free (nrandom, \<^typ>\<open>natural\<close>), Free (size, \<^typ>\<open>natural\<close>),
+        Free (seed, \<^typ>\<open>Random.seed\<close>)]
     end),
   wrap_compilation = K (K (K (K (K I))))
     : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
@@ -363,21 +363,21 @@ val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
   function_name_prefix = "depth_limited_random_",
   compfuns = Predicate_Comp_Funs.compfuns,
   mk_random = (fn T => fn additional_arguments =>
-  list_comb (Const(@{const_name Random_Pred.iter},
-  [@{typ natural}, @{typ natural}, @{typ Random.seed}] --->
+  list_comb (Const(\<^const_name>\<open>Random_Pred.iter\<close>,
+  [\<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>, \<^typ>\<open>Random.seed\<close>] --->
     Predicate_Comp_Funs.mk_monadT T), tl additional_arguments)),
   modify_funT = (fn T =>
     let
       val (Ts, U) = strip_type T
-      val Ts' = [@{typ natural}, @{typ natural}, @{typ natural},
-        @{typ Random.seed}]
+      val Ts' = [\<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>,
+        \<^typ>\<open>Random.seed\<close>]
     in (Ts @ Ts') ---> U end),
   additional_arguments = (fn names =>
     let
       val [depth, nrandom, size, seed] = Name.variant_list names ["depth", "nrandom", "size", "seed"]
     in
-      [Free (depth, @{typ natural}), Free (nrandom, @{typ natural}),
-        Free (size, @{typ natural}), Free (seed, @{typ Random.seed})]
+      [Free (depth, \<^typ>\<open>natural\<close>), Free (nrandom, \<^typ>\<open>natural\<close>),
+        Free (size, \<^typ>\<open>natural\<close>), Free (seed, \<^typ>\<open>Random.seed\<close>)]
     end),
   wrap_compilation =
   fn compfuns => fn _ => fn T => fn mode => fn additional_arguments => fn compilation =>
@@ -386,9 +386,9 @@ val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
       val (_, Ts) = split_map_modeT (fn m => fn T => (SOME (funT_of compfuns m T), NONE))
         mode (binder_types T)
       val T' = mk_monadT compfuns (HOLogic.mk_tupleT Ts)
-      val if_const = Const (@{const_name "If"}, @{typ bool} --> T' --> T' --> T')
+      val if_const = Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T' --> T' --> T')
     in
-      if_const $ HOLogic.mk_eq (depth, @{term "0 :: natural"})
+      if_const $ HOLogic.mk_eq (depth, \<^term>\<open>0 :: natural\<close>)
         $ mk_empty compfuns (dest_monadT compfuns T')
         $ compilation
     end,
@@ -397,8 +397,8 @@ val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
     let
       val [depth, nrandom, size, seed] = additional_arguments
       val depth' =
-        Const (@{const_name Groups.minus}, @{typ "natural => natural => natural"})
-          $ depth $ Const (@{const_name Groups.one}, @{typ "natural"})
+        Const (\<^const_name>\<open>Groups.minus\<close>, \<^typ>\<open>natural => natural => natural\<close>)
+          $ depth $ Const (\<^const_name>\<open>Groups.one\<close>, \<^typ>\<open>natural\<close>)
     in [depth', nrandom, size, seed] end
 }
 
@@ -435,12 +435,12 @@ val pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = Random_Sequence_CompFuns.compfuns,
   mk_random = (fn T => fn _ =>
   let
-    val random = Const (@{const_name Quickcheck_Random.random},
-      @{typ natural} --> @{typ Random.seed} -->
-        HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
+    val random = Const (\<^const_name>\<open>Quickcheck_Random.random\<close>,
+      \<^typ>\<open>natural\<close> --> \<^typ>\<open>Random.seed\<close> -->
+        HOLogic.mk_prodT (HOLogic.mk_prodT (T, \<^typ>\<open>unit => term\<close>), \<^typ>\<open>Random.seed\<close>))
   in
-    Const (@{const_name Random_Sequence.Random}, (@{typ natural} --> @{typ Random.seed} -->
-      HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
+    Const (\<^const_name>\<open>Random_Sequence.Random\<close>, (\<^typ>\<open>natural\<close> --> \<^typ>\<open>Random.seed\<close> -->
+      HOLogic.mk_prodT (HOLogic.mk_prodT (T, \<^typ>\<open>unit => term\<close>), \<^typ>\<open>Random.seed\<close>)) -->
       Random_Sequence_CompFuns.mk_random_dseqT T) $ random
   end),
 
@@ -472,12 +472,12 @@ val new_pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns,
   mk_random = (fn T => fn _ =>
   let
-    val random = Const (@{const_name Quickcheck_Random.random},
-      @{typ natural} --> @{typ Random.seed} -->
-        HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
+    val random = Const (\<^const_name>\<open>Quickcheck_Random.random\<close>,
+      \<^typ>\<open>natural\<close> --> \<^typ>\<open>Random.seed\<close> -->
+        HOLogic.mk_prodT (HOLogic.mk_prodT (T, \<^typ>\<open>unit => term\<close>), \<^typ>\<open>Random.seed\<close>))
   in
-    Const (@{const_name Random_Sequence.pos_Random}, (@{typ natural} --> @{typ Random.seed} -->
-      HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
+    Const (\<^const_name>\<open>Random_Sequence.pos_Random\<close>, (\<^typ>\<open>natural\<close> --> \<^typ>\<open>Random.seed\<close> -->
+      HOLogic.mk_prodT (HOLogic.mk_prodT (T, \<^typ>\<open>unit => term\<close>), \<^typ>\<open>Random.seed\<close>)) -->
       New_Pos_Random_Sequence_CompFuns.mk_pos_random_dseqT T) $ random
   end),
   modify_funT = I,
@@ -507,8 +507,8 @@ val pos_generator_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = New_Pos_DSequence_CompFuns.depth_limited_compfuns,
   mk_random =
     (fn T => fn _ =>
-      Const (@{const_name "Lazy_Sequence.small_lazy_class.small_lazy"},
-        @{typ "natural"} --> Type (@{type_name "Lazy_Sequence.lazy_sequence"}, [T]))),
+      Const (\<^const_name>\<open>Lazy_Sequence.small_lazy_class.small_lazy\<close>,
+        \<^typ>\<open>natural\<close> --> Type (\<^type_name>\<open>Lazy_Sequence.lazy_sequence\<close>, [T]))),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -536,9 +536,9 @@ val pos_generator_cps_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = Pos_Bounded_CPS_Comp_Funs.compfuns,
   mk_random =
     (fn T => fn _ =>
-       Const (@{const_name "Quickcheck_Exhaustive.exhaustive"},
-       (T --> @{typ "(bool * term list) option"}) -->
-         @{typ "natural => (bool * term list) option"})),
+       Const (\<^const_name>\<open>Quickcheck_Exhaustive.exhaustive\<close>,
+       (T --> \<^typ>\<open>(bool * term list) option\<close>) -->
+         \<^typ>\<open>natural => (bool * term list) option\<close>)),
   modify_funT = I,
   additional_arguments = K [],
   wrap_compilation = K (K (K (K (K I))))
@@ -597,7 +597,7 @@ fun distinct_v (Free (s, T)) nvs = mk_v nvs s T
 (** specific rpred functions -- move them to the correct place in this file *)
 fun mk_Eval_of (P as (Free _), T) mode =
   let
-    fun mk_bounds (Type (@{type_name Product_Type.prod}, [T1, T2])) i =
+    fun mk_bounds (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) i =
           let
             val (bs2, i') = mk_bounds T2 i
             val (bs1, i'') = mk_bounds T1 i'
@@ -608,9 +608,9 @@ fun mk_Eval_of (P as (Free _), T) mode =
     fun mk_prod ((t1, T1), (t2, T2)) = (HOLogic.pair_const T1 T2 $ t1 $ t2, HOLogic.mk_prodT (T1, T2))
     fun mk_tuple [] = (HOLogic.unit, HOLogic.unitT)
       | mk_tuple tTs = foldr1 mk_prod tTs
-    fun mk_split_abs (T as Type (@{type_name Product_Type.prod}, [T1, T2])) t =
+    fun mk_split_abs (T as Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) t =
           absdummy T
-            (HOLogic.case_prod_const (T1, T2, @{typ bool}) $ (mk_split_abs T1 (mk_split_abs T2 t)))
+            (HOLogic.case_prod_const (T1, T2, \<^typ>\<open>bool\<close>) $ (mk_split_abs T1 (mk_split_abs T2 t)))
       | mk_split_abs T t = absdummy T t
     val args = rev (fst (fold_map mk_bounds (rev (binder_types T)) 0))
     val (inargs, outargs) = split_mode mode args
@@ -655,7 +655,7 @@ fun compile_match compilation_modifiers additional_arguments ctxt param_modes
     lambda v (Case_Translation.make_case ctxt Case_Translation.Quiet Name.context v
       [(HOLogic.mk_tuple out_ts,
         if null eqs'' then success_t
-        else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $
+        else Const (\<^const_name>\<open>HOL.If\<close>, HOLogic.boolT --> U --> U --> U) $
           foldr1 HOLogic.mk_conj eqs'' $ success_t $
             mk_empty compfuns U'),
        (v', mk_empty compfuns U')])
@@ -689,7 +689,7 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) param_modes additional_ar
             val bs = map (pair "x") (binder_types (fastype_of t))
             val bounds = map Bound (rev (0 upto (length bs) - 1))
           in SOME (fold_rev Term.abs bs (mk_if compfuns (list_comb (t, bounds)))) end
-      | (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (d1, d2)) =>
+      | (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2, Mode_Pair (d1, d2)) =>
           (case (expr_of (t1, d1), expr_of (t2, d2)) of
             (NONE, NONE) => NONE
           | (NONE, SOME t) => SOME t
@@ -820,8 +820,8 @@ fun argument_position_of mode (i, is) =
   argument_position_pair (nth (strip_fun_mode mode) i) is)
 
 fun nth_pair [] t = t
-  | nth_pair (1 :: is) (Const (@{const_name Pair}, _) $ t1 $ _) = nth_pair is t1
-  | nth_pair (2 :: is) (Const (@{const_name Pair}, _) $ _ $ t2) = nth_pair is t2
+  | nth_pair (1 :: is) (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ _) = nth_pair is t1
+  | nth_pair (2 :: is) (Const (\<^const_name>\<open>Pair\<close>, _) $ _ $ t2) = nth_pair is t2
   | nth_pair _ _ = raise Fail "unexpected input for nth_tuple"
 
 
@@ -1023,11 +1023,11 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
 
 (* Definition of executable functions and their intro and elim rules *)
 
-fun strip_split_abs (Const (@{const_name case_prod}, _) $ t) = strip_split_abs t
+fun strip_split_abs (Const (\<^const_name>\<open>case_prod\<close>, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 
-fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name Product_Type.prod}, [T1, T2])) names =
+fun mk_args is_eval (m as Pair (m1, m2), T as Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) names =
       if eq_mode (m, Input) orelse eq_mode (m, Output) then
         let
           val x = singleton (Name.variant_list names) "x"
@@ -1213,7 +1213,7 @@ fun prove_by_skip _ thy _ _ _ compiled_terms =
 fun dest_prem ctxt params t =
   (case strip_comb t of
     (v as Free _, _) => if member (op =) params v then Prem t else Sidecond t
-  | (c as Const (@{const_name Not}, _), [t]) =>
+  | (c as Const (\<^const_name>\<open>Not\<close>, _), [t]) =>
       (case dest_prem ctxt params t of
         Prem t => Negprem t
       | Negprem _ => error ("Double negation not allowed in premise: " ^
@@ -1341,8 +1341,8 @@ fun add_code_equations ctxt preds result_thmss =
               (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
             val args = map2 (curry Free) arg_names Ts
             val predfun = Const (Core_Data.function_name_of Pred ctxt predname full_mode,
-              Ts ---> Predicate_Comp_Funs.mk_monadT @{typ unit})
-            val rhs = @{term Predicate.holds} $ (list_comb (predfun, args))
+              Ts ---> Predicate_Comp_Funs.mk_monadT \<^typ>\<open>unit\<close>)
+            val rhs = \<^term>\<open>Predicate.holds\<close> $ (list_comb (predfun, args))
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
             val def = Core_Data.predfun_definition_of ctxt predname full_mode
@@ -1610,12 +1610,12 @@ val code_pred_intro_attrib = attrib' Core_Data.add_intro NONE;
 (* values_timeout configuration *)
 
 val values_timeout =
-  Attrib.setup_config_real @{binding values_timeout} (K 40.0)
+  Attrib.setup_config_real \<^binding>\<open>values_timeout\<close> (K 40.0)
 
 val _ =
   Theory.setup
    (Core_Data.PredData.put (Graph.empty) #>
-    Attrib.setup @{binding code_pred_intro}
+    Attrib.setup \<^binding>\<open>code_pred_intro\<close>
       (Scan.lift (Scan.option Args.name) >> attrib' Core_Data.add_intro)
       "adding alternative introduction rules for code generation of inductive predicates")
 
@@ -1723,7 +1723,7 @@ fun dest_special_compr t =
   let
     val (inner_t, T_compr) =
       (case t of
-        (Const (@{const_name Collect}, _) $ Abs (_, T, t)) => (t, T)
+        (Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (_, T, t)) => (t, T)
       | _ => raise TERM ("dest_special_compr", [t]))
     val (Ts, conj) = apfst (map snd) (Predicate_Compile_Aux.strip_ex inner_t)
     val [eq, body] = HOLogic.dest_conj conj
@@ -1744,7 +1744,7 @@ fun dest_general_compr ctxt t_compr =
   let
     val inner_t =
       (case t_compr of
-        (Const (@{const_name Collect}, _) $ t) => t
+        (Const (\<^const_name>\<open>Collect\<close>, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr))
     val (body, Ts, fp) = HOLogic.strip_ptupleabs inner_t;
     val output_names = Name.variant_list (Term.add_free_names body [])
@@ -1774,7 +1774,7 @@ fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
   in
     if Core_Data.defined_functions compilation ctxt name then
       let
-        fun extract_mode (Const (@{const_name Pair}, _) $ t1 $ t2) =
+        fun extract_mode (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2) =
               Pair (extract_mode t1, extract_mode t2)
           | extract_mode (Free (x, _)) =
               if member (op =) output_names x then Output else Input
@@ -1857,13 +1857,13 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
       (case compilation of
         Pred => []
       | Random =>
-          map (HOLogic.mk_number @{typ "natural"}) arguments @
-            [@{term "(1, 1) :: natural * natural"}]
+          map (HOLogic.mk_number \<^typ>\<open>natural\<close>) arguments @
+            [\<^term>\<open>(1, 1) :: natural * natural\<close>]
       | Annotated => []
-      | Depth_Limited => [HOLogic.mk_number @{typ "natural"} (hd arguments)]
+      | Depth_Limited => [HOLogic.mk_number \<^typ>\<open>natural\<close> (hd arguments)]
       | Depth_Limited_Random =>
-          map (HOLogic.mk_number @{typ "natural"}) arguments @
-            [@{term "(1, 1) :: natural * natural"}]
+          map (HOLogic.mk_number \<^typ>\<open>natural\<close>) arguments @
+            [\<^term>\<open>(1, 1) :: natural * natural\<close>]
       | DSeq => []
       | Pos_Random_DSeq => []
       | New_Pos_Random_DSeq => []
@@ -1873,9 +1873,9 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
     val T = dest_monadT compfuns (fastype_of t)
     val t' =
       if stats andalso compilation = New_Pos_Random_DSeq then
-        mk_map compfuns T (HOLogic.mk_prodT (HOLogic.termT, @{typ natural}))
+        mk_map compfuns T (HOLogic.mk_prodT (HOLogic.termT, \<^typ>\<open>natural\<close>))
           (absdummy T (HOLogic.mk_prod (HOLogic.term_of_const T $ Bound 0,
-            @{term natural_of_nat} $ (HOLogic.size_const T $ Bound 0)))) t
+            \<^term>\<open>natural_of_nat\<close> $ (HOLogic.size_const T $ Bound 0)))) t
       else
         mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t
     val time_limit = seconds (Config.get ctxt values_timeout)
@@ -1962,7 +1962,7 @@ fun values param_user_modes ((raw_expected, stats), comp_options) k t_compr ctxt
     val ([dots], ctxt') = ctxt
       |> Proof_Context.add_fixes [(Binding.name "dots", SOME setT, Mixfix.mixfix "...")]
     (* check expected values *)
-    val union = Const (@{const_abbrev Set.union}, setT --> setT --> setT)
+    val union = Const (\<^const_abbrev>\<open>Set.union\<close>, setT --> setT --> setT)
     val () =
       (case raw_expected of
         NONE => ()

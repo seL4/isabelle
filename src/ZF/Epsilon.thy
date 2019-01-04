@@ -80,7 +80,7 @@ lemma eps_induct:
 by (rule arg_in_eclose_sing [THEN eclose_induct], blast)
 
 
-subsection\<open>Leastness of @{term eclose}\<close>
+subsection\<open>Leastness of \<^term>\<open>eclose\<close>\<close>
 
 (** eclose(A) is the least transitive set including A as a subset. **)
 

@@ -33,7 +33,7 @@ definition "compose" :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow
   where "compose A g f = (\<lambda>x\<in>A. g (f x))"
 
 
-subsection \<open>Basic Properties of @{term Pi}\<close>
+subsection \<open>Basic Properties of \<^term>\<open>Pi\<close>\<close>
 
 lemma Pi_I[intro!]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> f \<in> Pi A B"
   by (simp add: Pi_def)
@@ -72,7 +72,7 @@ lemma Pi_eq_empty[simp]: "(\<Pi> x \<in> A. B x) = {} \<longleftrightarrow> (\<e
   apply (simp add: Pi_def)
   apply auto
   txt \<open>Converse direction requires Axiom of Choice to exhibit a function
-  picking an element from each non-empty @{term "B x"}\<close>
+  picking an element from each non-empty \<^term>\<open>B x\<close>\<close>
   apply (drule_tac x = "\<lambda>u. SOME y. y \<in> B u" in spec)
   apply auto
   apply (cut_tac P = "\<lambda>y. y \<in> B x" in some_eq_ex)
@@ -156,7 +156,7 @@ lemma Pi_fupd_iff: "i \<in> I \<Longrightarrow> f \<in> Pi I (B(i := A)) \<longl
   done
 
 
-subsection \<open>Composition With a Restricted Domain: @{term compose}\<close>
+subsection \<open>Composition With a Restricted Domain: \<^term>\<open>compose\<close>\<close>
 
 lemma funcset_compose: "f \<in> A \<rightarrow> B \<Longrightarrow> g \<in> B \<rightarrow> C \<Longrightarrow> compose A g f \<in> A \<rightarrow> C"
   by (simp add: Pi_def compose_def restrict_def)
@@ -173,7 +173,7 @@ lemma surj_compose: "f ` A = B \<Longrightarrow> g ` B = C \<Longrightarrow> com
   by (auto simp add: image_def compose_eq)
 
 
-subsection \<open>Bounded Abstraction: @{term restrict}\<close>
+subsection \<open>Bounded Abstraction: \<^term>\<open>restrict\<close>\<close>
 
 lemma restrict_cong: "I = J \<Longrightarrow> (\<And>i. i \<in> J =simp=> f i = g i) \<Longrightarrow> restrict f I = restrict g J"
   by (auto simp: restrict_def fun_eq_iff simp_implies_def)
@@ -223,8 +223,8 @@ lemma restrict_Pi_cancel: "restrict x I \<in> Pi I A \<longleftrightarrow> x \<i
 
 subsection \<open>Bijections Between Sets\<close>
 
-text \<open>The definition of @{const bij_betw} is in \<open>Fun.thy\<close>, but most of
-the theorems belong here, or need at least @{term Hilbert_Choice}.\<close>
+text \<open>The definition of \<^const>\<open>bij_betw\<close> is in \<open>Fun.thy\<close>, but most of
+the theorems belong here, or need at least \<^term>\<open>Hilbert_Choice\<close>.\<close>
 
 lemma bij_betwI:
   assumes "f \<in> A \<rightarrow> B"

@@ -65,7 +65,7 @@ end
 
 (* CVC4 *)
 
-val cvc4_extensions = Attrib.setup_config_bool @{binding cvc4_extensions} (K false)
+val cvc4_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc4_extensions\<close> (K false)
 
 local
   fun cvc4_options ctxt = [
@@ -136,7 +136,7 @@ end
 
 (* Z3 *)
 
-val z3_extensions = Attrib.setup_config_bool @{binding z3_extensions} (K false)
+val z3_extensions = Attrib.setup_config_bool \<^binding>\<open>z3_extensions\<close> (K false)
 
 local
   fun z3_options ctxt =

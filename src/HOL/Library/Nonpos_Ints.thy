@@ -11,7 +11,7 @@ begin
 subsection\<open>Non-positive integers\<close>
 text \<open>
   The set of non-positive integers on a ring. (in analogy to the set of non-negative
-  integers @{term "\<nat>"}) This is useful e.g. for the Gamma function.
+  integers \<^term>\<open>\<nat>\<close>) This is useful e.g. for the Gamma function.
 \<close>
 
 definition nonpos_Ints ("\<int>\<^sub>\<le>\<^sub>0") where "\<int>\<^sub>\<le>\<^sub>0 = {of_int n |n. n \<le> 0}"

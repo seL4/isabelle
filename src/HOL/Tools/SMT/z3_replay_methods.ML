@@ -60,10 +60,10 @@ fun replay_rule_error ctxt rule thms t =
 fun trace_goal ctxt rule thms t =
   SMT_Replay_Methods.trace_goal ctxt (Z3_Proof.string_of_rule rule) thms t
 
-fun as_prop (t as Const (@{const_name Trueprop}, _) $ _) = t
+fun as_prop (t as Const (\<^const_name>\<open>Trueprop\<close>, _) $ _) = t
   | as_prop t = HOLogic.mk_Trueprop t
 
-fun dest_prop (Const (@{const_name Trueprop}, _) $ t) = t
+fun dest_prop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = t
   | dest_prop t = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
@@ -189,7 +189,7 @@ fun not_or_elim ctxt [thm] t =
 
 local
 
-fun dest_all (Const (@{const_name HOL.All}, _) $ Abs (_, T, t)) nctxt =
+fun dest_all (Const (\<^const_name>\<open>HOL.All\<close>, _) $ Abs (_, T, t)) nctxt =
       let
         val (n, nctxt') = Name.variant "" nctxt
         val f = Free (n, T)
@@ -221,7 +221,7 @@ fun focus_eq f ctxt t =
 
 end
 
-fun abstract_eq f (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
+fun abstract_eq f (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =
       f t1 ##>> f t2 #>> HOLogic.mk_eq
   | abstract_eq _ t = SMT_Replay_Methods.abstract_term t
 
@@ -245,9 +245,9 @@ fun ternary_conv cv = Conv.combination_conv (Conv.binop_conv cv) cv
 
 fun if_context_conv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name HOL.If}, _) $ _ $ _ $ _ =>
+    Const (\<^const_name>\<open>HOL.If\<close>, _) $ _ $ _ $ _ =>
       ternary_conv (if_context_conv ctxt)
-  | _ $ (Const (@{const_name HOL.If}, _) $ _ $ _ $ _) =>
+  | _ $ (Const (\<^const_name>\<open>HOL.If\<close>, _) $ _ $ _ $ _) =>
       Conv.rewr_conv lift_ite_thm then_conv ternary_conv (if_context_conv ctxt)
   | _ => Conv.sub_conv (Conv.top_sweep_conv if_context_conv) ctxt) ct
 

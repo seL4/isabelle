@@ -35,12 +35,12 @@ fun hex n = hex_prefix (map hex_digit (radixpand (16, n)));
 (* booleans as bits *)
 
 fun mk_bit_syntax b =
-  Syntax.const (if b = 1 then @{const_syntax True} else @{const_syntax False});
+  Syntax.const (if b = 1 then \<^const_syntax>\<open>True\<close> else \<^const_syntax>\<open>False\<close>);
 
 fun mk_bits_syntax len = map mk_bit_syntax o Integer.radicify 2 len;
 
-fun dest_bit_syntax (Const (@{const_syntax True}, _)) = 1 
-  | dest_bit_syntax (Const (@{const_syntax False}, _)) = 0
+fun dest_bit_syntax (Const (\<^const_syntax>\<open>True\<close>, _)) = 1 
+  | dest_bit_syntax (Const (\<^const_syntax>\<open>False\<close>, _)) = 0
   | dest_bit_syntax _ = raise Match;
 
 val dest_bits_syntax = Integer.eval_radix 2 o map dest_bit_syntax;
@@ -54,7 +54,7 @@ fun ascii_ord_of c =
   else error ("Bad character: " ^ quote c);
 
 fun mk_char_syntax i =
-  list_comb (Syntax.const @{const_syntax Char}, mk_bits_syntax 8 i);
+  list_comb (Syntax.const \<^const_syntax>\<open>Char\<close>, mk_bits_syntax 8 i);
 
 fun plain_strings_of str =
   map fst (Lexicon.explode_str (str, Position.none));
@@ -77,11 +77,11 @@ fun classify_character i =
 fun dest_char_syntax b0 b1 b2 b3 b4 b5 b6 b7 =
   classify_character (dest_bits_syntax [b0, b1, b2, b3, b4, b5, b6, b7])
 
-fun dest_char_ast (Ast.Appl [Ast.Constant @{syntax_const "_Char"}, Ast.Constant s]) =
+fun dest_char_ast (Ast.Appl [Ast.Constant \<^syntax_const>\<open>_Char\<close>, Ast.Constant s]) =
       plain_strings_of s
   | dest_char_ast _ = raise Match;
 
-fun char_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
+fun char_tr [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ t $ u] =
       c $ char_tr [t] $ u
   | char_tr [Free (str, _)] =
       (case plain_strings_of str of
@@ -89,7 +89,7 @@ fun char_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
       | _ => error ("Single character expected: " ^ str))
   | char_tr ts = raise TERM ("char_tr", ts);
 
-fun char_ord_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
+fun char_ord_tr [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ t $ u] =
       c $ char_ord_tr [t] $ u
   | char_ord_tr [Const (num, _)] =
       (mk_char_syntax o #value o Lexicon.read_num) num
@@ -97,33 +97,33 @@ fun char_ord_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
 
 fun char_tr' [b1, b2, b3, b4, b5, b6, b7, b8] =
       (case dest_char_syntax b1 b2 b3 b4 b5 b6 b7 b8 of
-        Char s => Syntax.const @{syntax_const "_Char"} $
+        Char s => Syntax.const \<^syntax_const>\<open>_Char\<close> $
           Syntax.const (Lexicon.implode_str [s])
-      | Ord n => Syntax.const @{syntax_const "_Char_ord"} $
+      | Ord n => Syntax.const \<^syntax_const>\<open>_Char_ord\<close> $
           Syntax.free (hex n))
   | char_tr' _ = raise Match;
 
 
 (* string *)
 
-fun mk_string_syntax [] = Syntax.const @{const_syntax Nil}
+fun mk_string_syntax [] = Syntax.const \<^const_syntax>\<open>Nil\<close>
   | mk_string_syntax (c :: cs) =
-      Syntax.const @{const_syntax Cons} $ mk_char_syntax (ascii_ord_of c)
+      Syntax.const \<^const_syntax>\<open>Cons\<close> $ mk_char_syntax (ascii_ord_of c)
         $ mk_string_syntax cs;
 
 fun mk_string_ast ss =
-  Ast.Appl [Ast.Constant @{syntax_const "_inner_string"},
+  Ast.Appl [Ast.Constant \<^syntax_const>\<open>_inner_string\<close>,
     Ast.Variable (Lexicon.implode_str ss)];
 
-fun string_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
+fun string_tr [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ t $ u] =
       c $ string_tr [t] $ u
   | string_tr [Free (str, _)] =
       mk_string_syntax (plain_strings_of str)
   | string_tr ts = raise TERM ("string_tr", ts);
 
 fun list_ast_tr' [args] =
-      Ast.Appl [Ast.Constant @{syntax_const "_String"},
-        (mk_string_ast o maps dest_char_ast o Ast.unfold_ast @{syntax_const "_args"}) args]
+      Ast.Appl [Ast.Constant \<^syntax_const>\<open>_String\<close>,
+        (mk_string_ast o maps dest_char_ast o Ast.unfold_ast \<^syntax_const>\<open>_args\<close>) args]
   | list_ast_tr' _ = raise Match;
 
 
@@ -132,12 +132,12 @@ fun list_ast_tr' [args] =
 val _ =
   Theory.setup
    (Sign.parse_translation
-     [(@{syntax_const "_Char"}, K char_tr),
-      (@{syntax_const "_Char_ord"}, K char_ord_tr),
-      (@{syntax_const "_String"}, K string_tr)] #>
+     [(\<^syntax_const>\<open>_Char\<close>, K char_tr),
+      (\<^syntax_const>\<open>_Char_ord\<close>, K char_ord_tr),
+      (\<^syntax_const>\<open>_String\<close>, K string_tr)] #>
     Sign.print_translation
-     [(@{const_syntax Char}, K char_tr')] #>
+     [(\<^const_syntax>\<open>Char\<close>, K char_tr')] #>
     Sign.print_ast_translation
-     [(@{syntax_const "_list"}, K list_ast_tr')]);
+     [(\<^syntax_const>\<open>_list\<close>, K list_ast_tr')]);
 
 end

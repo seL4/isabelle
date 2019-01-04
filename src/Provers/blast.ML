@@ -76,9 +76,9 @@ structure Classical = Data.Classical;
 
 (* options *)
 
-val depth_limit = Attrib.setup_config_int @{binding blast_depth_limit} (K 20);
-val (trace, _) = Attrib.config_bool @{binding blast_trace} (K false);
-val (stats, _) = Attrib.config_bool @{binding blast_stats} (K false);
+val depth_limit = Attrib.setup_config_int \<^binding>\<open>blast_depth_limit\<close> (K 20);
+val (trace, _) = Attrib.config_bool \<^binding>\<open>blast_trace\<close> (K false);
+val (stats, _) = Attrib.config_bool \<^binding>\<open>blast_stats\<close> (K false);
 
 
 datatype term =
@@ -418,12 +418,12 @@ fun instVars t =
 
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
-fun strip_imp_prems (Const (@{const_name Pure.imp}, _) $ A $ B) =
+fun strip_imp_prems (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ A $ B) =
       strip_Trueprop A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
 (* A1==>...An==>B  goes to B, where B is not an implication *)
-fun strip_imp_concl (Const (@{const_name Pure.imp}, _) $ A $ B) = strip_imp_concl B
+fun strip_imp_concl (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = strip_Trueprop A;
 
 
@@ -443,7 +443,7 @@ fun delete_concl [] = raise ElimBadPrem
           else P :: delete_concl Ps
       | _ => P :: delete_concl Ps);
 
-fun skoPrem state vars (Const (@{const_name Pure.all}, _) $ Abs (_, P)) =
+fun skoPrem state vars (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, P)) =
         skoPrem state vars (subst_bound (Skolem (gensym state "S", vars), P))
   | skoPrem _ _ P = P;
 
@@ -1188,7 +1188,7 @@ fun initBranch (ts,lim) =
 (*Make a list of all the parameters in a subgoal, even if nested*)
 local open Term
 in
-fun discard_foralls (Const(@{const_name Pure.all},_)$Abs(a,T,t)) = discard_foralls t
+fun discard_foralls (Const(\<^const_name>\<open>Pure.all\<close>,_)$Abs(a,T,t)) = discard_foralls t
   | discard_foralls t = t;
 end;
 
@@ -1311,7 +1311,7 @@ fun tryIt ctxt lim s =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding blast}
+    (Method.setup \<^binding>\<open>blast\<close>
       (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
         (fn NONE => SIMPLE_METHOD' o blast_tac
           | SOME lim => (fn ctxt => SIMPLE_METHOD' (depth_tac ctxt lim))))

@@ -101,7 +101,7 @@ fun flatten thy lookup_pred t (names, prems) =
       | NONE =>
           let
             val (vars, body) = strip_abs t
-            val _ = @{assert} (fastype_of body = body_type (fastype_of body))
+            val _ = \<^assert> (fastype_of body = body_type (fastype_of body))
             val absnames = Name.variant_list names (map fst vars)
             val frees = map2 (curry Free) absnames (map snd vars)
             val body' = subst_bounds (rev frees, body)
@@ -144,7 +144,7 @@ fun flatten thy lookup_pred t (names, prems) =
         [(t, (names, prems))]
       else
         case (fst (strip_comb t)) of
-          Const (@{const_name "If"}, _) =>
+          Const (\<^const_name>\<open>If\<close>, _) =>
             (let
               val (_, [B, x, y]) = strip_comb t
             in
@@ -157,7 +157,7 @@ fun flatten thy lookup_pred t (names, prems) =
                   (* in general unsound! *)
                   (res, (names, (HOLogic.mk_Trueprop (HOLogic.mk_not B')) :: prems)))))
             end)
-        | Const (@{const_name "Let"}, _) =>
+        | Const (\<^const_name>\<open>Let\<close>, _) =>
             (let
               val (_, [f, g]) = strip_comb t
             in
@@ -198,7 +198,7 @@ fun flatten thy lookup_pred t (names, prems) =
           let
             val (f, args) = strip_comb t
             val args = map (Envir.eta_long []) args
-            val _ = @{assert} (fastype_of t = body_type (fastype_of t))
+            val _ = \<^assert> (fastype_of t = body_type (fastype_of t))
             val f' = lookup_pred f
             val Ts =
               (case f' of
@@ -216,16 +216,16 @@ fun flatten thy lookup_pred t (names, prems) =
                       if (fastype_of t) = T then t
                       else
                         let
-                          val _ = @{assert} (T =
-                            (binder_types (fastype_of t) @ [@{typ bool}] ---> @{typ bool}))
+                          val _ = \<^assert> (T =
+                            (binder_types (fastype_of t) @ [\<^typ>\<open>bool\<close>] ---> \<^typ>\<open>bool\<close>))
                           fun mk_if T (b, t, e) =
-                            Const (@{const_name If}, @{typ bool} --> T --> T --> T) $ b $ t $ e
+                            Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T --> T --> T) $ b $ t $ e
                           val Ts = binder_types (fastype_of t)
                         in
-                          fold_rev Term.abs (map (pair "x") Ts @ [("b", @{typ bool})])
-                            (mk_if @{typ bool} (list_comb (t, map Bound (length Ts downto 1)),
-                              HOLogic.mk_eq (@{term True}, Bound 0),
-                              HOLogic.mk_eq (@{term False}, Bound 0)))
+                          fold_rev Term.abs (map (pair "x") Ts @ [("b", \<^typ>\<open>bool\<close>)])
+                            (mk_if \<^typ>\<open>bool\<close> (list_comb (t, map Bound (length Ts downto 1)),
+                              HOLogic.mk_eq (\<^term>\<open>True\<close>, Bound 0),
+                              HOLogic.mk_eq (\<^term>\<open>False\<close>, Bound 0)))
                         end
                     val argvs' = map2 lift_arg Ts argvs
                     val resname = singleton (Name.variant_list names') "res"
@@ -243,7 +243,7 @@ fun pred_of thy f =
     val (name, T) = dest_Const f
     val base_name' = (Long_Name.base_name name ^ "P")
     val name' = Sign.full_bname thy base_name'
-    val T' = if (body_type T = @{typ bool}) then T else pred_type T
+    val T' = if (body_type T = \<^typ>\<open>bool\<close>) then T else pred_type T
   in
     (name', Const (name', T'))
   end
@@ -272,7 +272,7 @@ fun define_predicates specs thy =
       fun lookup_pred t = lookup thy net t
       (* create intro rules *)
       fun mk_intros ((func, pred), (args, rhs)) =
-        if (body_type (fastype_of func) = @{typ bool}) then
+        if (body_type (fastype_of func) = \<^typ>\<open>bool\<close>) then
          (* TODO: preprocess predicate definition of rhs *)
           [Logic.list_implies
             ([HOLogic.mk_Trueprop rhs], HOLogic.mk_Trueprop (list_comb (pred, args)))]

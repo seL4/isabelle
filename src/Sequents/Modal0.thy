@@ -25,13 +25,13 @@ ML \<open>
 \<close>
 
 parse_translation \<open>
- [(@{syntax_const "_Lstar"}, K (star_tr @{const_syntax Lstar})),
-  (@{syntax_const "_Rstar"}, K (star_tr @{const_syntax Rstar}))]
+ [(\<^syntax_const>\<open>_Lstar\<close>, K (star_tr \<^const_syntax>\<open>Lstar\<close>)),
+  (\<^syntax_const>\<open>_Rstar\<close>, K (star_tr \<^const_syntax>\<open>Rstar\<close>))]
 \<close>
 
 print_translation \<open>
- [(@{const_syntax Lstar}, K (star_tr' @{syntax_const "_Lstar"})),
-  (@{const_syntax Rstar}, K (star_tr' @{syntax_const "_Rstar"}))]
+ [(\<^const_syntax>\<open>Lstar\<close>, K (star_tr' \<^syntax_const>\<open>_Lstar\<close>)),
+  (\<^const_syntax>\<open>Rstar\<close>, K (star_tr' \<^syntax_const>\<open>_Rstar\<close>))]
 \<close>
 
 definition strimp :: "[o,o]\<Rightarrow>o"   (infixr "--<" 25)

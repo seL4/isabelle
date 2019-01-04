@@ -116,11 +116,11 @@ val update_quotmaps =
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding mapQ3}
-      ((Args.type_name {proper = true, strict = true} --| Scan.lift @{keyword "="}) --
-        (Scan.lift @{keyword "("} |--
-          Args.const {proper = true, strict = true} --| Scan.lift @{keyword ","} --
-          Attrib.thm --| Scan.lift @{keyword ")"}) >>
+   (Attrib.setup \<^binding>\<open>mapQ3\<close>
+      ((Args.type_name {proper = true, strict = true} --| Scan.lift \<^keyword>\<open>=\<close>) --
+        (Scan.lift \<^keyword>\<open>(\<close> |--
+          Args.const {proper = true, strict = true} --| Scan.lift \<^keyword>\<open>,\<close> --
+          Attrib.thm --| Scan.lift \<^keyword>\<open>)\<close>) >>
         (fn (tyname, (relmap, quot_thm)) =>
           Thm.declaration_attribute
             (K (update_quotmaps (tyname, {relmap = relmap, quot_thm = quot_thm})))))
@@ -246,15 +246,15 @@ fun print_quotconsts ctxt =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_quotmapsQ3} "print quotient map functions"
+  Outer_Syntax.command \<^command_keyword>\<open>print_quotmapsQ3\<close> "print quotient map functions"
     (Scan.succeed (Toplevel.keep (print_quotmaps o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_quotientsQ3} "print quotients"
+  Outer_Syntax.command \<^command_keyword>\<open>print_quotientsQ3\<close> "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_quotconsts} "print quotient constants"
+  Outer_Syntax.command \<^command_keyword>\<open>print_quotconsts\<close> "print quotient constants"
     (Scan.succeed (Toplevel.keep (print_quotconsts o Toplevel.context_of)))
 
 end

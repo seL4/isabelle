@@ -93,7 +93,7 @@ text\<open>Following Kunen's Theorem I 7.6, page 17.  Note that this material is
 not required elsewhere.\<close>
 
 text\<open>Can't use \<open>well_ord_iso_preserving\<close> because it needs the
-strong premise @{term "well_ord(A,r)"}\<close>
+strong premise \<^term>\<open>well_ord(A,r)\<close>\<close>
 lemma (in M_ordertype) ord_iso_pred_imp_lt:
      "[| f \<in> ord_iso(Order.pred(A,x,r), r, i, Memrel(i));
          g \<in> ord_iso(Order.pred(A,y,r), r, j, Memrel(j));
@@ -103,18 +103,18 @@ lemma (in M_ordertype) ord_iso_pred_imp_lt:
 apply (frule wellordered_is_trans_on, assumption)
 apply (frule_tac y=y in transM, assumption) 
 apply (rule_tac i=i and j=j in Ord_linear_lt, auto)  
-txt\<open>case @{term "i=j"} yields a contradiction\<close>
+txt\<open>case \<^term>\<open>i=j\<close> yields a contradiction\<close>
  apply (rule_tac x1=x and A1="Order.pred(A,y,r)" in 
           wellordered_iso_predD [THEN notE]) 
    apply (blast intro: wellordered_subset [OF _ pred_subset]) 
   apply (simp add: trans_pred_pred_eq)
   apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans) 
  apply (simp_all add: pred_iff pred_closed converse_closed comp_closed)
-txt\<open>case @{term "j<i"} also yields a contradiction\<close>
+txt\<open>case \<^term>\<open>j<i\<close> also yields a contradiction\<close>
 apply (frule restrict_ord_iso2, assumption+) 
 apply (frule ord_iso_sym [THEN ord_iso_is_bij, THEN bij_is_fun]) 
 apply (frule apply_type, blast intro: ltD) 
-  \<comment> \<open>thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}\<close>
+  \<comment> \<open>thus \<^term>\<open>converse(f)`j \<in> Order.pred(A,x,r)\<close>\<close>
 apply (simp add: pred_iff) 
 apply (subgoal_tac
        "\<exists>h[M]. h \<in> ord_iso(Order.pred(A,y,r), r, 
@@ -154,8 +154,8 @@ definition
    "otype(M,A,r,i) == \<exists>f[M]. omap(M,A,r,f) & is_range(M,f,i)"
 
 
-text\<open>Can also be proved with the premise @{term "M(z)"} instead of
-      @{term "M(f)"}, but that version is less useful.  This lemma
+text\<open>Can also be proved with the premise \<^term>\<open>M(z)\<close> instead of
+      \<^term>\<open>M(f)\<close>, but that version is less useful.  This lemma
       is also more useful than the definition, \<open>omap_def\<close>.\<close>
 lemma (in M_ordertype) omap_iff:
      "[| omap(M,A,r,f); M(A); M(f) |] 
@@ -256,7 +256,7 @@ apply (blast intro: wellordered_iso_pred_eq ord_iso_sym ord_iso_trans)
 done
 
 
-text\<open>This is not the final result: we must show @{term "oB(A,r) = A"}\<close>
+text\<open>This is not the final result: we must show \<^term>\<open>oB(A,r) = A\<close>\<close>
 lemma (in M_ordertype) omap_ord_iso:
      "[| wellordered(M,A,r); omap(M,A,r,f); otype(M,A,r,i); 
        M(A); M(r); M(f); M(i) |] ==> f \<in> ord_iso(obase(M,A,r),r,i,Memrel(i))"
@@ -266,15 +266,15 @@ apply (insert omap_funtype [of A r f i], simp)
 apply (frule_tac a=x in apply_Pair, assumption) 
 apply (frule_tac a=y in apply_Pair, assumption) 
 apply (auto simp add: omap_iff)
- txt\<open>direction 1: assuming @{term "\<langle>x,y\<rangle> \<in> r"}\<close>
+ txt\<open>direction 1: assuming \<^term>\<open>\<langle>x,y\<rangle> \<in> r\<close>\<close>
  apply (blast intro: ltD ord_iso_pred_imp_lt)
- txt\<open>direction 2: proving @{term "\<langle>x,y\<rangle> \<in> r"} using linearity of @{term r}\<close>
+ txt\<open>direction 2: proving \<^term>\<open>\<langle>x,y\<rangle> \<in> r\<close> using linearity of \<^term>\<open>r\<close>\<close>
 apply (rename_tac x y g ga) 
 apply (frule wellordered_is_linear, assumption, 
        erule_tac x=x and y=y in linearE, assumption+) 
-txt\<open>the case @{term "x=y"} leads to immediate contradiction\<close> 
+txt\<open>the case \<^term>\<open>x=y\<close> leads to immediate contradiction\<close> 
 apply (blast elim: mem_irrefl) 
-txt\<open>the case @{term "\<langle>y,x\<rangle> \<in> r"}: handle like the opposite direction\<close>
+txt\<open>the case \<^term>\<open>\<langle>y,x\<rangle> \<in> r\<close>: handle like the opposite direction\<close>
 apply (blast dest: ord_iso_pred_imp_lt ltD elim: mem_asym) 
 done
 
@@ -331,8 +331,8 @@ done
 
 
 
-text\<open>Main result: @{term om} gives the order-isomorphism 
-      @{term "\<langle>A,r\<rangle> \<cong> \<langle>i, Memrel(i)\<rangle>"}\<close>
+text\<open>Main result: \<^term>\<open>om\<close> gives the order-isomorphism 
+      \<^term>\<open>\<langle>A,r\<rangle> \<cong> \<langle>i, Memrel(i)\<rangle>\<close>\<close>
 theorem (in M_ordertype) omap_ord_iso_otype:
      "[| wellordered(M,A,r); omap(M,A,r,f); otype(M,A,r,i);
        M(A); M(r); M(f); M(i) |] ==> f \<in> ord_iso(A, r, i, Memrel(i))"
@@ -671,8 +671,8 @@ done
 
 subsection \<open>Absoluteness of Well-Founded Relations\<close>
 
-text\<open>Relativized to @{term M}: Every well-founded relation is a subset of some
-inverse image of an ordinal.  Key step is the construction (in @{term M}) of a
+text\<open>Relativized to \<^term>\<open>M\<close>: Every well-founded relation is a subset of some
+inverse image of an ordinal.  Key step is the construction (in \<^term>\<open>M\<close>) of a
 rank function.\<close>
 
 locale M_wfrank = M_trancl +
@@ -766,9 +766,9 @@ apply (drule wellfounded_trancl, assumption)
 apply (rule wellfounded_induct, assumption, erule (1) transM)
   apply simp
  apply (blast intro: Ord_wfrank_separation', clarify)
-txt\<open>The reasoning in both cases is that we get @{term y} such that
-   @{term "\<langle>y, x\<rangle> \<in> r^+"}.  We find that
-   @{term "f`y = restrict(f, r^+ -`` {y})"}.\<close>
+txt\<open>The reasoning in both cases is that we get \<^term>\<open>y\<close> such that
+   \<^term>\<open>\<langle>y, x\<rangle> \<in> r^+\<close>.  We find that
+   \<^term>\<open>f`y = restrict(f, r^+ -`` {y})\<close>.\<close>
 apply (rule OrdI [OF _ Ord_is_Transset])
  txt\<open>An ordinal is a transitive set...\<close>
  apply (simp add: Transset_def)

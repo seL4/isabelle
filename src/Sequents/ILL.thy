@@ -34,15 +34,15 @@ syntax
   "_PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
 parse_translation \<open>
-  [(@{syntax_const "_Trueprop"}, K (single_tr @{const_syntax Trueprop})),
-   (@{syntax_const "_Context"}, K (two_seq_tr @{const_syntax Context})),
-   (@{syntax_const "_PromAux"}, K (three_seq_tr @{const_syntax PromAux}))]
+  [(\<^syntax_const>\<open>_Trueprop\<close>, K (single_tr \<^const_syntax>\<open>Trueprop\<close>)),
+   (\<^syntax_const>\<open>_Context\<close>, K (two_seq_tr \<^const_syntax>\<open>Context\<close>)),
+   (\<^syntax_const>\<open>_PromAux\<close>, K (three_seq_tr \<^const_syntax>\<open>PromAux\<close>))]
 \<close>
 
 print_translation \<open>
-  [(@{const_syntax Trueprop}, K (single_tr' @{syntax_const "_Trueprop"})),
-   (@{const_syntax Context}, K (two_seq_tr' @{syntax_const "_Context"})),
-   (@{const_syntax PromAux}, K (three_seq_tr' @{syntax_const "_PromAux"}))]
+  [(\<^const_syntax>\<open>Trueprop\<close>, K (single_tr' \<^syntax_const>\<open>_Trueprop\<close>)),
+   (\<^const_syntax>\<open>Context\<close>, K (two_seq_tr' \<^syntax_const>\<open>_Context\<close>)),
+   (\<^const_syntax>\<open>PromAux\<close>, K (three_seq_tr' \<^syntax_const>\<open>_PromAux\<close>))]
 \<close>
 
 definition liff :: "[o, o] \<Rightarrow> o"  (infixr "o-o" 45)
@@ -271,14 +271,14 @@ lemma a_not_a_rule: "$J1, !A -o 0, $J2 \<turnstile> B \<Longrightarrow> $J1, !A 
 
 ML \<open>
   val safe_pack =
-    @{context}
+    \<^context>
     |> fold_rev Cla.add_safe @{thms conj_lemma ll_mp contrad1
         contrad2 mp_rule1 mp_rule2 o_a_rule a_not_a_rule}
     |> Cla.add_unsafe @{thm aux_impl}
     |> Cla.get_pack;
 
   val power_pack =
-    Cla.put_pack safe_pack @{context}
+    Cla.put_pack safe_pack \<^context>
     |> Cla.add_unsafe @{thm impr_contr_der}
     |> Cla.get_pack;
 \<close>

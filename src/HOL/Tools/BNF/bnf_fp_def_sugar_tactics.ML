@@ -91,19 +91,19 @@ val sumprod_thms_set = @{thms UN_simps(10) image_iff} @ basic_sumprod_thms_set;
 
 fun is_def_looping def =
   (case Thm.prop_of def of
-    Const (@{const_name Pure.eq}, _) $ lhs $ rhs => Term.exists_subterm (curry (op aconv) lhs) rhs
+    Const (\<^const_name>\<open>Pure.eq\<close>, _) $ lhs $ rhs => Term.exists_subterm (curry (op aconv) lhs) rhs
   | _ => false);
 
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name Pure.all}, _) $ Abs _ =>
+    Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs _ =>
     Conv.arg_conv (Conv.abs_conv (hhf_concl_conv cv o snd) ctxt) ct
   | _ => Conv.concl_conv ~1 cv ct);
 
 fun co_induct_inst_as_projs ctxt k thm =
   let
     val fs = Term.add_vars (Thm.prop_of thm) []
-      |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
+      |> filter (fn (_, Type (\<^type_name>\<open>fun\<close>, [_, T'])) => T' <> HOLogic.boolT | _ => false);
     fun mk_inst (xi, T) = (xi, Thm.cterm_of ctxt (mk_proj T (num_binder_types T) k));
   in
     infer_instantiate ctxt (map mk_inst fs) thm
@@ -193,7 +193,7 @@ fun mk_rec_transfer_tac ctxt nn ns actives passives xssss rec_defs ctor_rec_tran
     val ctor_rec_transfers' =
       map (infer_instantiate' ctxt (map SOME (passives @ actives))) ctor_rec_transfers;
     val total_n = Integer.sum ns;
-    val True = @{term True};
+    val True = \<^term>\<open>True\<close>;
   in
     HEADGOAL Goal.conjunction_tac THEN
     EVERY (map (fn ctor_rec_transfer =>
@@ -442,7 +442,7 @@ fun mk_rel_case_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_disti
   TRYALL (assume_tac ctxt ORELSE' etac ctxt FalseE ORELSE'
     (REPEAT_DETERM o dtac ctxt meta_spec THEN'
      TRY o filter_prems_tac ctxt
-       (forall (curry (op <>) (HOLogic.mk_Trueprop @{term False})) o Logic.strip_imp_prems) THEN'
+       (forall (curry (op <>) (HOLogic.mk_Trueprop \<^term>\<open>False\<close>)) o Logic.strip_imp_prems) THEN'
      REPEAT_DETERM o (dtac ctxt meta_mp THEN' rtac ctxt refl) THEN'
      (assume_tac ctxt ORELSE' Goal.assume_rule_tac ctxt)));
 

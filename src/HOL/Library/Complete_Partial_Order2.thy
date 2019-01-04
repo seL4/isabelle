@@ -355,7 +355,7 @@ ML \<open>
 (* apply cont_intro rules as intro and try to solve 
    the remaining of the emerging subgoals with simp *)
 fun cont_intro_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems cont_intro})))
+  REPEAT_ALL_NEW (resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>cont_intro\<close>)))
   THEN_ALL_NEW (SOLVED' (simp_tac ctxt))
 
 fun cont_intro_simproc ctxt ct =
@@ -370,9 +370,9 @@ fun cont_intro_simproc ctxt ct =
       | NONE => NONE
   in
     case Thm.term_of ct of
-      t as Const (@{const_name ccpo.admissible}, _) $ _ $ _ $ _ => mk_thm t
-    | t as Const (@{const_name mcont}, _) $ _ $ _ $ _ $ _ $ _ => mk_thm t
-    | t as Const (@{const_name monotone}, _) $ _ $ _ $ _ => mk_thm t
+      t as Const (\<^const_name>\<open>ccpo.admissible\<close>, _) $ _ $ _ $ _ => mk_thm t
+    | t as Const (\<^const_name>\<open>mcont\<close>, _) $ _ $ _ $ _ $ _ $ _ => mk_thm t
+    | t as Const (\<^const_name>\<open>monotone\<close>, _) $ _ $ _ $ _ => mk_thm t
     | _ => NONE
   end
   handle THM _ => NONE 
@@ -997,7 +997,7 @@ done
 
 end
 
-subsection \<open>@{term "(=)"} as order\<close>
+subsection \<open>\<^term>\<open>(=)\<close> as order\<close>
 
 definition lub_singleton :: "('a set \<Rightarrow> 'a) \<Rightarrow> bool"
 where "lub_singleton lub \<longleftrightarrow> (\<forall>a. lub {a} = a)"
@@ -1431,13 +1431,13 @@ end
 interpretation lfp: partial_function_definitions "(\<le>) :: _ :: complete_lattice \<Rightarrow> _" Sup
 by(rule complete_lattice_partial_function_definitions)
 
-declaration \<open>Partial_Function.init "lfp" @{term lfp.fixp_fun} @{term lfp.mono_body}
+declaration \<open>Partial_Function.init "lfp" \<^term>\<open>lfp.fixp_fun\<close> \<^term>\<open>lfp.mono_body\<close>
   @{thm lfp.fixp_rule_uc} @{thm lfp.fixp_induct_uc} NONE\<close>
 
 interpretation gfp: partial_function_definitions "(\<ge>) :: _ :: complete_lattice \<Rightarrow> _" Inf
 by(rule complete_lattice_partial_function_definitions_dual)
 
-declaration \<open>Partial_Function.init "gfp" @{term gfp.fixp_fun} @{term gfp.mono_body}
+declaration \<open>Partial_Function.init "gfp" \<^term>\<open>gfp.fixp_fun\<close> \<^term>\<open>gfp.mono_body\<close>
   @{thm gfp.fixp_rule_uc} @{thm gfp.fixp_induct_uc} NONE\<close>
 
 lemma insert_mono [partial_function_mono]:

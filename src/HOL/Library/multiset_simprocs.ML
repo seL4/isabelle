@@ -16,16 +16,16 @@ struct
 
 structure Subset_Cancel_Multiset = Cancel_Fun
  (open Cancel_Data
-  val mk_bal   = HOLogic.mk_binrel @{const_name subset_mset}
-  val dest_bal = HOLogic.dest_bin @{const_name subset_mset} dummyT
+  val mk_bal   = HOLogic.mk_binrel \<^const_name>\<open>subset_mset\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>subset_mset\<close> dummyT
   val bal_add1 = @{thm mset_subset_add_iff1[unfolded repeat_mset_iterate_add]} RS trans
   val bal_add2 = @{thm mset_subset_add_iff2[unfolded repeat_mset_iterate_add]} RS trans
 );
 
 structure Subseteq_Cancel_Multiset = Cancel_Fun
  (open Cancel_Data
-  val mk_bal   = HOLogic.mk_binrel @{const_name subseteq_mset}
-  val dest_bal = HOLogic.dest_bin @{const_name subseteq_mset} dummyT
+  val mk_bal   = HOLogic.mk_binrel \<^const_name>\<open>subseteq_mset\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>subseteq_mset\<close> dummyT
   val bal_add1 = @{thm mset_subseteq_add_iff1[unfolded repeat_mset_iterate_add]} RS trans
   val bal_add2 = @{thm mset_subseteq_add_iff2[unfolded repeat_mset_iterate_add]} RS trans
 );

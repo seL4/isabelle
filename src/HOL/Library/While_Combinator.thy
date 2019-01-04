@@ -209,7 +209,7 @@ unfolding fdef by (fact while_unfold)
 
 
 text \<open>
- The proof rule for @{term while}, where @{term P} is the invariant.
+ The proof rule for \<^term>\<open>while\<close>, where \<^term>\<open>P\<close> is the invariant.
 \<close>
 
 theorem while_rule_lemma:

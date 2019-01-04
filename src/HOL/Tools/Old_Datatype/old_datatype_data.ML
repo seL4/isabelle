@@ -242,7 +242,7 @@ end;
 
 structure Old_Datatype_Plugin = Plugin(type T = Old_Datatype_Aux.config * string list);
 
-val old_datatype_plugin = Plugin_Name.declare_setup @{binding old_datatype};
+val old_datatype_plugin = Plugin_Name.declare_setup \<^binding>\<open>old_datatype\<close>;
 
 fun interpretation f =
   Old_Datatype_Plugin.interpretation old_datatype_plugin

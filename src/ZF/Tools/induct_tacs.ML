@@ -70,7 +70,7 @@ fun datatype_info thy name =
 exception Find_tname of string
 
 fun find_tname ctxt var As =
-  let fun mk_pair (Const(@{const_name mem},_) $ Free (v,_) $ A) =
+  let fun mk_pair (Const(\<^const_name>\<open>mem\<close>,_) $ Free (v,_) $ A) =
              (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
       val pairs = map_filter (try (mk_pair o FOLogic.dest_Trueprop)) As
@@ -98,7 +98,7 @@ fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
     val rule =
         if exh then #exhaustion (datatype_info thy tn)
                else #induct  (datatype_info thy tn)
-    val (Const(@{const_name mem},_) $ Var(ixn,_) $ _) =
+    val (Const(\<^const_name>\<open>mem\<close>,_) $ Var(ixn,_) $ _) =
         (case Thm.prems_of rule of
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
@@ -119,14 +119,14 @@ val induct_tac = exhaust_induct_tac false;
 fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
   let
     (*analyze the LHS of a case equation to get a constructor*)
-    fun const_of (Const(@{const_name IFOL.eq}, _) $ (_ $ c) $ _) = c
+    fun const_of (Const(\<^const_name>\<open>IFOL.eq\<close>, _) $ (_ $ c) $ _) = c
       | const_of eqn = error ("Ill-formed case equation: " ^
                               Syntax.string_of_term_global thy eqn);
 
     val constructors =
         map (head_of o const_of o FOLogic.dest_Trueprop o Thm.prop_of) case_eqns;
 
-    val Const (@{const_name mem}, _) $ _ $ data =
+    val Const (\<^const_name>\<open>mem\<close>, _) $ _ $ data =
         FOLogic.dest_Trueprop (hd (Thm.prems_of elim));
 
     val Const(big_rec_name, _) = head_of data;
@@ -178,11 +178,11 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding induct_tac}
+    (Method.setup \<^binding>\<open>induct_tac\<close>
       (Args.goal_spec -- Scan.lift (Args.embedded -- Parse.for_fixes) >>
         (fn (quant, (s, xs)) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s xs)))
       "induct_tac emulation (dynamic instantiation!)" #>
-    Method.setup @{binding case_tac}
+    Method.setup \<^binding>\<open>case_tac\<close>
      (Args.goal_spec -- Scan.lift (Args.embedded -- Parse.for_fixes) >>
         (fn (quant, (s, xs)) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s xs)))
       "datatype case_tac emulation (dynamic instantiation!)");
@@ -191,11 +191,11 @@ val _ =
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword rep_datatype} "represent existing set inductively"
-    ((@{keyword "elimination"} |-- Parse.!!! Parse.thm) --
-     (@{keyword "induction"} |-- Parse.!!! Parse.thm) --
-     (@{keyword "case_eqns"} |-- Parse.!!! Parse.thms1) --
-     Scan.optional (@{keyword "recursor_eqns"} |-- Parse.!!! Parse.thms1) []
+  Outer_Syntax.command \<^command_keyword>\<open>rep_datatype\<close> "represent existing set inductively"
+    ((\<^keyword>\<open>elimination\<close> |-- Parse.!!! Parse.thm) --
+     (\<^keyword>\<open>induction\<close> |-- Parse.!!! Parse.thm) --
+     (\<^keyword>\<open>case_eqns\<close> |-- Parse.!!! Parse.thms1) --
+     Scan.optional (\<^keyword>\<open>recursor_eqns\<close> |-- Parse.!!! Parse.thms1) []
      >> (fn (((x, y), z), w) => Toplevel.theory (rep_datatype x y z w)));
 
 end;

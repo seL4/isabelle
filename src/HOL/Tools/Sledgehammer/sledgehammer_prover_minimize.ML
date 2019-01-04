@@ -137,7 +137,7 @@ fun new_timeout timeout run_time =
    returns all facts as used. Since we cannot know in advance how many facts are
    actually needed, we heuristically set the threshold to 10 facts. *)
 val binary_min_facts =
-  Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts} (K 20)
+  Attrib.setup_config_int \<^binding>\<open>sledgehammer_minimize_binary_min_facts\<close> (K 20)
 
 fun linear_minimize test timeout result xs =
   let

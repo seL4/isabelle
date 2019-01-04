@@ -17,18 +17,18 @@ val norm_thms = [(@{thm norm_eq} RS @{thm sym}, @{thm norm_eq}),
 (* Conversion into rewrite rules *)
 
 fun mk_eq th = case Thm.concl_of th of
-      _ $ (Const (@{const_name iff}, _) $ _ $ _) $ _ => th
-    | _ $ (Const (@{const_name eq}, _) $ _ $ _) $ _ => th
-    | _ $ (Const (@{const_name Not}, _) $ _) $ _ => th RS @{thm not_P_imp_P_iff_F}
+      _ $ (Const (\<^const_name>\<open>iff\<close>, _) $ _ $ _) $ _ => th
+    | _ $ (Const (\<^const_name>\<open>eq\<close>, _) $ _ $ _) $ _ => th
+    | _ $ (Const (\<^const_name>\<open>Not\<close>, _) $ _) $ _ => th RS @{thm not_P_imp_P_iff_F}
     | _ => make_iff_T th;
 
 
 val mksimps_pairs =
-  [(@{const_name imp}, [@{thm mp}]),
-   (@{const_name conj}, [@{thm conjunct1}, @{thm conjunct2}]),
-   (@{const_name "All"}, [@{thm spec}]),
-   (@{const_name True}, []),
-   (@{const_name False}, [])];
+  [(\<^const_name>\<open>imp\<close>, [@{thm mp}]),
+   (\<^const_name>\<open>conj\<close>, [@{thm conjunct1}, @{thm conjunct2}]),
+   (\<^const_name>\<open>All\<close>, [@{thm spec}]),
+   (\<^const_name>\<open>True\<close>, []),
+   (\<^const_name>\<open>False\<close>, [])];
 
 fun mk_atomize pairs =
   let fun atoms th =
@@ -78,9 +78,9 @@ open FOLP_Simp;
 
 val auto_ss = empty_ss setauto (fn ctxt => ares_tac ctxt @{thms TrueI});
 
-val IFOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew @{context}) IFOLP_rews;
+val IFOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew \<^context>) IFOLP_rews;
 
 
 val FOLP_rews = IFOLP_rews @ @{thms cla_rews};
 
-val FOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew @{context}) FOLP_rews;
+val FOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew \<^context>) FOLP_rews;

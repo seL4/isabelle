@@ -36,7 +36,7 @@ structure Data = Theory_Data
 )
 
 fun mk_eq_dummy (lhs, rhs) =
-  Const (@{const_name HOL.eq}, dummyT --> dummyT --> @{typ bool}) $ lhs $ rhs
+  Const (\<^const_name>\<open>HOL.eq\<close>, dummyT --> dummyT --> \<^typ>\<open>bool\<close>) $ lhs $ rhs
 
 val dummify = map_types (K dummyT)
 fun repeat_split_tac ctxt thm = REPEAT_ALL_NEW (CHANGED o Splitter.split_tac ctxt [thm])
@@ -278,7 +278,7 @@ fun field_update_tr ctxt (Const (\<^syntax_const>\<open>_datatype_field_update\<
           NONE => raise Fail ("not a valid record field: " ^ name)
         | SOME s => Const (s, dummyT) $ Abs (Name.uu_, dummyT, arg)
       end
-  | field_update_tr _ t = raise TERM ("field_update_tr", [@{print} t]);
+  | field_update_tr _ t = raise TERM ("field_update_tr", [\<^print> t]);
 
 fun field_updates_tr ctxt (Const (\<^syntax_const>\<open>_datatype_field_updates\<close>, _) $ t $ u) =
       field_update_tr ctxt t :: field_updates_tr ctxt u
@@ -291,7 +291,7 @@ fun record_update_tr ctxt [t, u] = fold (curry op $) (field_updates_tr ctxt u) t
   | record_update_tr _ ts = raise TERM ("record_update_tr", ts);
 
 val parse_ctr_options =
-  Scan.optional (@{keyword "("} |-- Parse.list1 (Plugin_Name.parse_filter >> K) --| @{keyword ")"} >>
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.list1 (Plugin_Name.parse_filter >> K) --| \<^keyword>\<open>)\<close> >>
     (fn fs => fold I fs default_ctr_options_cmd)) default_ctr_options_cmd
 
 val parser =
@@ -300,7 +300,7 @@ val parser =
 
 val _ =
   Outer_Syntax.local_theory
-    @{command_keyword datatype_record}
+    \<^command_keyword>\<open>datatype_record\<close>
     "Defines a record based on the BNF/datatype machinery"
     (parser >> (fn (((ctr_options, tyargs), binding), args) =>
       record_cmd binding ctr_options tyargs args))

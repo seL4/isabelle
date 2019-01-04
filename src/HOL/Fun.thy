@@ -856,16 +856,16 @@ text \<open>Simplify terms of the form \<open>f(\<dots>,x:=y,\<dots>,x:=z,\<dots
 simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
   let
     fun gen_fun_upd NONE T _ _ = NONE
-      | gen_fun_upd (SOME f) T x y = SOME (Const (@{const_name fun_upd}, T) $ f $ x $ y)
+      | gen_fun_upd (SOME f) T x y = SOME (Const (\<^const_name>\<open>fun_upd\<close>, T) $ f $ x $ y)
     fun dest_fun_T1 (Type (_, T :: Ts)) = T
-    fun find_double (t as Const (@{const_name fun_upd},T) $ f $ x $ y) =
+    fun find_double (t as Const (\<^const_name>\<open>fun_upd\<close>,T) $ f $ x $ y) =
       let
-        fun find (Const (@{const_name fun_upd},T) $ g $ v $ w) =
+        fun find (Const (\<^const_name>\<open>fun_upd\<close>,T) $ g $ v $ w) =
               if v aconv x then SOME g else gen_fun_upd (find g) T v w
           | find t = NONE
       in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
 
-    val ss = simpset_of @{context}
+    val ss = simpset_of \<^context>
 
     fun proc ctxt ct =
       let

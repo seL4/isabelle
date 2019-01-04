@@ -93,14 +93,14 @@ fun transfer_prover_add_tac ctxt rel_eqs transfers =
     |> context_transfer_rule_add transfers);
 
 fun instantiate_natural_rule_with_id ctxt live =
-  Rule_Insts.of_rule ctxt ([], NONE :: replicate live (SOME @{const_name id})) [];
+  Rule_Insts.of_rule ctxt ([], NONE :: replicate live (SOME \<^const_name>\<open>id\<close>)) [];
 
 fun instantiate_transfer_rule_with_Grp_UNIV ctxt alives thm =
   let
     val n = length alives;
     val fs = map (prefix "f" o string_of_int) (1 upto n);
-    val ss = map2 (fn live => fn f => SOME (@{const_name BNF_Def.Grp} ^ " " ^ @{const_name top} ^
-        " " ^ (if live then f else @{const_name id}))) alives fs;
+    val ss = map2 (fn live => fn f => SOME (\<^const_name>\<open>BNF_Def.Grp\<close> ^ " " ^ \<^const_name>\<open>top\<close> ^
+        " " ^ (if live then f else \<^const_name>\<open>id\<close>))) alives fs;
     val bs = map_filter (fn (live, f) => if live then SOME (Binding.name f, NONE, NoSyn) else NONE)
       (alives ~~ fs);
   in
@@ -135,7 +135,7 @@ fun mk_algLam_step_tac ctxt proto_sctr_def old_algLam_pointful algLam_algLam_poi
 
 fun mk_cong_locale_tac ctxt dead_pre_rel_mono dead_pre_rel_maps equivp_Retr
     ssig_rel_mono ssig_rel_maps eval eval_core_transfer =
-  HEADGOAL (resolve_tac ctxt (Locale.get_unfolds @{context}) THEN'
+  HEADGOAL (resolve_tac ctxt (Locale.get_unfolds \<^context>) THEN'
     etac ctxt ssig_rel_mono THEN' etac ctxt equivp_Retr) THEN
   unfold_thms_tac ctxt (eval :: dead_pre_rel_maps @ @{thms id_apply}) THEN
   HEADGOAL (rtac ctxt (@{thm predicate2I} RS (dead_pre_rel_mono RS @{thm predicate2D})) THEN'

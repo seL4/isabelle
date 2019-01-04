@@ -199,7 +199,7 @@ fun read_instantiate_closed ctxt (Named_Insts (insts, fixes)) thm  =
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding "where"}
+    (Attrib.setup \<^binding>\<open>where\<close>
       (Scan.lift
         (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse_Tools.name_term)) -- Parse.for_fixes)
         >> (fn args =>
@@ -211,7 +211,7 @@ val _ =
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding "of"}
+    (Attrib.setup \<^binding>\<open>of\<close>
       (Scan.lift
         (Args.mode "unchecked" --
           (Scan.repeat (Scan.unless concl inst) --

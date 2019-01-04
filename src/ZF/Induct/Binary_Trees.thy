@@ -28,7 +28,7 @@ inductive_cases BrE: "Br(a, l, r) \<in> bt(A)"
   \<comment> \<open>An elimination rule, for type-checking.\<close>
 
 text \<open>
-  \medskip Lemmas to justify using @{term bt} in other recursive type
+  \medskip Lemmas to justify using \<^term>\<open>bt\<close> in other recursive type
   definitions.
 \<close>
 
@@ -119,7 +119,7 @@ lemma bt_reflect_type [simp]: "t \<in> bt(A) ==> bt_reflect(t) \<in> bt(A)"
   by (induct set: bt) auto
 
 text \<open>
-  \medskip Theorems about @{term n_leaves}.
+  \medskip Theorems about \<^term>\<open>n_leaves\<close>.
 \<close>
 
 lemma n_leaves_reflect: "t \<in> bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)"
@@ -129,7 +129,7 @@ lemma n_leaves_nodes: "t \<in> bt(A) ==> n_leaves(t) = succ(n_nodes(t))"
   by (induct set: bt) simp_all
 
 text \<open>
-  Theorems about @{term bt_reflect}.
+  Theorems about \<^term>\<open>bt_reflect\<close>.
 \<close>
 
 lemma bt_reflect_bt_reflect_ident: "t \<in> bt(A) ==> bt_reflect(bt_reflect(t)) = t"

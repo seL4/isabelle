@@ -123,7 +123,7 @@ datatype prolog_system = SWI_PROLOG | YAP
 fun string_of_system SWI_PROLOG = "swiprolog"
   | string_of_system YAP = "yap"
 
-val prolog_system = Attrib.setup_config_string @{binding prolog_system} (K "swiprolog")
+val prolog_system = Attrib.setup_config_string \<^binding>\<open>prolog_system\<close> (K "swiprolog")
 
 fun get_prolog_system ctxt =
   (case Config.get ctxt prolog_system of
@@ -132,7 +132,7 @@ fun get_prolog_system ctxt =
   | name => error ("Bad prolog system: " ^ quote name ^ " (\"swiprolog\" or \"yap\" expected)"))
 
 
-val prolog_timeout = Attrib.setup_config_real @{binding prolog_timeout} (K 10.0)
+val prolog_timeout = Attrib.setup_config_real \<^binding>\<open>prolog_timeout\<close> (K 10.0)
 
 fun get_prolog_timeout ctxt = seconds (Config.get ctxt prolog_timeout)
 
@@ -250,20 +250,20 @@ fun restore_const constant_table c =
 
 (** translation of terms, literals, premises, and clauses **)
 
-fun translate_arith_const @{const_name "Groups.plus_class.plus"} = SOME Plus
-  | translate_arith_const @{const_name "Groups.minus_class.minus"} = SOME Minus
+fun translate_arith_const \<^const_name>\<open>Groups.plus_class.plus\<close> = SOME Plus
+  | translate_arith_const \<^const_name>\<open>Groups.minus_class.minus\<close> = SOME Minus
   | translate_arith_const _ = NONE
 
 fun mk_nat_term constant_table n =
   let
-    val zero = translate_const constant_table @{const_name "Groups.zero_class.zero"}
-    val Suc = translate_const constant_table @{const_name "Suc"}
+    val zero = translate_const constant_table \<^const_name>\<open>Groups.zero_class.zero\<close>
+    val Suc = translate_const constant_table \<^const_name>\<open>Suc\<close>
   in funpow n (fn t => AppF (Suc, [t])) (Cons zero) end
 
 fun translate_term ctxt constant_table t =
   (case try HOLogic.dest_number t of
-    SOME (@{typ "int"}, n) => Number n
-  | SOME (@{typ "nat"}, n) => mk_nat_term constant_table n
+    SOME (\<^typ>\<open>int\<close>, n) => Number n
+  | SOME (\<^typ>\<open>nat\<close>, n) => mk_nat_term constant_table n
   | NONE =>
       (case strip_comb t of
         (Free (v, T), []) => Var v
@@ -277,7 +277,7 @@ fun translate_term ctxt constant_table t =
 
 fun translate_literal ctxt constant_table t =
   (case strip_comb t of
-    (Const (@{const_name HOL.eq}, _), [l, r]) =>
+    (Const (\<^const_name>\<open>HOL.eq\<close>, _), [l, r]) =>
       let
         val l' = translate_term ctxt constant_table l
         val r' = translate_term ctxt constant_table r
@@ -306,7 +306,7 @@ fun translate_prem ensure_groundness ctxt constant_table t =
 
 fun imp_prems_conv cv ct =
   (case Thm.term_of ct of
-    Const (@{const_name Pure.imp}, _) $ _ $ _ =>
+    Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ _ =>
       Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
   | _ => Conv.all_conv ct)
 
@@ -493,7 +493,7 @@ fun generate (use_modes, ensure_groundness) ctxt const =
     val gr' = add_edges depending_preds_of const gr
     val scc = strong_conn_of gr' [const]
     val initial_constant_table =
-      declare_consts [@{const_name "Groups.zero_class.zero"}, @{const_name "Suc"}] []
+      declare_consts [\<^const_name>\<open>Groups.zero_class.zero\<close>, \<^const_name>\<open>Suc\<close>] []
   in
     (case use_modes of
       SOME mode =>
@@ -895,7 +895,7 @@ fun run ctxt p (query_rel, args) vnames nsols =
 (* restoring types in terms *)
 
 fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
-  | restore_term ctxt constant_table (Number n, @{typ "int"}) = HOLogic.mk_number @{typ "int"} n
+  | restore_term ctxt constant_table (Number n, \<^typ>\<open>int\<close>) = HOLogic.mk_number \<^typ>\<open>int\<close> n
   | restore_term ctxt constant_table (Number n, _) = raise (Fail "unexpected type for number")
   | restore_term ctxt constant_table (Cons s, T) = Const (restore_const constant_table s, T)
   | restore_term ctxt constant_table (AppF (f, args), T) =
@@ -915,8 +915,8 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
 (* restore numerals in natural numbers *)
 
 fun restore_nat_numerals t =
-  if fastype_of t = @{typ nat} andalso is_some (try HOLogic.dest_nat t) then
-    HOLogic.mk_number @{typ nat} (HOLogic.dest_nat t)
+  if fastype_of t = \<^typ>\<open>nat\<close> andalso is_some (try HOLogic.dest_nat t) then
+    HOLogic.mk_number \<^typ>\<open>nat\<close> (HOLogic.dest_nat t)
   else
     (case t of
       t1 $ t2 => restore_nat_numerals t1 $ restore_nat_numerals t2
@@ -954,7 +954,7 @@ fun values ctxt soln t_compr =
     val options = code_options_of (Proof_Context.theory_of ctxt)
     val split =
       (case t_compr of
-        (Const (@{const_name Collect}, _) $ t) => t
+        (Const (\<^const_name>\<open>Collect\<close>, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr))
     val (body, Ts, fp) = HOLogic.strip_ptupleabs split
     val output_names = Name.variant_list (Term.add_free_names body [])
@@ -980,9 +980,9 @@ fun values ctxt soln t_compr =
     val _ = tracing "Running prolog program..."
     val tss = run ctxt p (translate_const constant_table' name, args') output_names soln
     val _ = tracing "Restoring terms..."
-    val empty = Const(@{const_name bot}, fastype_of t_compr)
+    val empty = Const(\<^const_name>\<open>bot\<close>, fastype_of t_compr)
     fun mk_insert x S =
-      Const (@{const_name "Set.insert"}, fastype_of x --> fastype_of S --> fastype_of S) $ x $ S
+      Const (\<^const_name>\<open>Set.insert\<close>, fastype_of x --> fastype_of S --> fastype_of S) $ x $ S
     fun mk_set_compr in_insert [] xs =
        rev ((Free ("dots", fastype_of t_compr)) ::  (* FIXME proper name!? *)
         (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs))
@@ -999,7 +999,7 @@ fun values ctxt soln t_compr =
               val set_compr =
                 HOLogic.mk_Collect (uuN, uuT,
                   fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
-                    frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"})))
+                    frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), \<^term>\<open>True\<close>)))
             in
               mk_set_compr [] ts
                 (set_compr ::
@@ -1007,7 +1007,7 @@ fun values ctxt soln t_compr =
             end
         end
   in
-    foldl1 (HOLogic.mk_binop @{const_name sup}) (mk_set_compr []
+    foldl1 (HOLogic.mk_binop \<^const_name>\<open>sup\<close>) (mk_set_compr []
       (map (fn ts => HOLogic.mk_tuple
         (map (restore_nat_numerals o restore_term ctxt' constant_table) (ts ~~ Ts))) tss) [])
   end
@@ -1030,10 +1030,10 @@ fun values_cmd print_modes soln raw_t state =
 (* values command for Prolog queries *)
 
 val opt_print_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) []
 
 val _ =
-  Outer_Syntax.command @{command_keyword values_prolog}
+  Outer_Syntax.command \<^command_keyword>\<open>values_prolog\<close>
     "enumerate and print comprehensions"
     (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
      >> (fn ((print_modes, soln), t) => Toplevel.keep (values_cmd print_modes soln t)))
@@ -1043,7 +1043,7 @@ val _ =
 
 (* FIXME: a small clone of Predicate_Compile_Quickcheck - maybe refactor out commons *)
 
-val active = Attrib.setup_config_bool @{binding quickcheck_prolog_active} (K true)
+val active = Attrib.setup_config_bool \<^binding>\<open>quickcheck_prolog_active\<close> (K true)
 
 fun test_term ctxt (t, eval_terms) =
   let
@@ -1053,7 +1053,7 @@ fun test_term ctxt (t, eval_terms) =
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 =
-      Context.theory_map (Named_Theorems.add_thm @{named_theorems code_pred_def} intro) thy1
+      Context.theory_map (Named_Theorems.add_thm \<^named_theorems>\<open>code_pred_def\<close> intro) thy1
     val thy3 = Predicate_Compile.preprocess preprocess_options (Const (full_constname, constT)) thy2
     val ctxt' = Proof_Context.init_global thy3
     val _ = tracing "Generating prolog program..."

@@ -84,24 +84,24 @@ lemmas nat_congs = Suc_cong Plus_cong
 ML \<open>
   val add_ss =
     FOLP_ss addcongs @{thms nat_congs}
-    |> fold (addrew @{context}) @{thms add_0 add_Suc}
+    |> fold (addrew \<^context>) @{thms add_0 add_Suc}
 \<close>
 
 schematic_goal add_assoc: "?p : (k+m)+n = k+(m+n)"
 apply (rule_tac n = k in induct)
-apply (tactic \<open>SIMP_TAC @{context} add_ss 1\<close>)
-apply (tactic \<open>ASM_SIMP_TAC @{context} add_ss 1\<close>)
+apply (tactic \<open>SIMP_TAC \<^context> add_ss 1\<close>)
+apply (tactic \<open>ASM_SIMP_TAC \<^context> add_ss 1\<close>)
 done
 
 schematic_goal add_0_right: "?p : m+0 = m"
 apply (rule_tac n = m in induct)
-apply (tactic \<open>SIMP_TAC @{context} add_ss 1\<close>)
-apply (tactic \<open>ASM_SIMP_TAC @{context} add_ss 1\<close>)
+apply (tactic \<open>SIMP_TAC \<^context> add_ss 1\<close>)
+apply (tactic \<open>ASM_SIMP_TAC \<^context> add_ss 1\<close>)
 done
 
 schematic_goal add_Suc_right: "?p : m+Suc(n) = Suc(m+n)"
 apply (rule_tac n = m in induct)
-apply (tactic \<open>ALLGOALS (ASM_SIMP_TAC @{context} add_ss)\<close>)
+apply (tactic \<open>ALLGOALS (ASM_SIMP_TAC \<^context> add_ss)\<close>)
 done
 
 (*mk_typed_congs appears not to work with FOLP's version of subst*)

@@ -13,7 +13,7 @@ subsection \<open>The \<open>num\<close> type\<close>
 
 datatype num = One | Bit0 num | Bit1 num
 
-text \<open>Increment function for type @{typ num}\<close>
+text \<open>Increment function for type \<^typ>\<open>num\<close>\<close>
 
 primrec inc :: "num \<Rightarrow> num"
   where
@@ -21,7 +21,7 @@ primrec inc :: "num \<Rightarrow> num"
   | "inc (Bit0 x) = Bit1 x"
   | "inc (Bit1 x) = Bit0 (inc x)"
 
-text \<open>Converting between type @{typ num} and type @{typ nat}\<close>
+text \<open>Converting between type \<^typ>\<open>num\<close> and type \<^typ>\<open>nat\<close>\<close>
 
 primrec nat_of_num :: "num \<Rightarrow> nat"
   where
@@ -46,7 +46,7 @@ lemma nat_of_num_inc: "nat_of_num (inc x) = Suc (nat_of_num x)"
 lemma num_of_nat_double: "0 < n \<Longrightarrow> num_of_nat (n + n) = Bit0 (num_of_nat n)"
   by (induct n) simp_all
 
-text \<open>Type @{typ num} is isomorphic to the strictly positive natural numbers.\<close>
+text \<open>Type \<^typ>\<open>num\<close> is isomorphic to the strictly positive natural numbers.\<close>
 
 lemma nat_of_num_inverse: "num_of_nat (nat_of_num x) = x"
   by (induct x) (simp_all add: num_of_nat_double nat_of_num_pos)
@@ -82,7 +82,7 @@ proof -
 qed
 
 text \<open>
-  From now on, there are two possible models for @{typ num}: as positive
+  From now on, there are two possible models for \<^typ>\<open>num\<close>: as positive
   naturals (rule \<open>num_induct\<close>) and as digit representation (rules
   \<open>num.induct\<close>, \<open>num.cases\<close>).
 \<close>
@@ -186,7 +186,7 @@ lemma add_inc: "x + inc y = inc (x + y)"
 lemma mult_inc: "x * inc y = x * y + x"
   by (simp add: num_eq_iff nat_of_num_mult nat_of_num_add nat_of_num_inc)
 
-text \<open>The @{const num_of_nat} conversion.\<close>
+text \<open>The \<^const>\<open>num_of_nat\<close> conversion.\<close>
 
 lemma num_of_nat_One: "n \<le> 1 \<Longrightarrow> num_of_nat n = One"
   by (cases n) simp_all
@@ -296,12 +296,12 @@ ML_file "Tools/numeral.ML"
 
 parse_translation \<open>
   let
-    fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
+    fun numeral_tr [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ t $ u] =
           c $ numeral_tr [t] $ u
       | numeral_tr [Const (num, _)] =
           (Numeral.mk_number_syntax o #value o Lexicon.read_num) num
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
-  in [(@{syntax_const "_Numeral"}, K numeral_tr)] end
+  in [(\<^syntax_const>\<open>_Numeral\<close>, K numeral_tr)] end
 \<close>
 
 typed_print_translation \<open>
@@ -310,26 +310,26 @@ typed_print_translation \<open>
       let
         val k = Numeral.dest_num_syntax n;
         val t' =
-          Syntax.const @{syntax_const "_Numeral"} $
+          Syntax.const \<^syntax_const>\<open>_Numeral\<close> $
             Syntax.free (string_of_int k);
       in
         (case T of
-          Type (@{type_name fun}, [_, T']) =>
+          Type (\<^type_name>\<open>fun\<close>, [_, T']) =>
             if Printer.type_emphasis ctxt T' then
-              Syntax.const @{syntax_const "_constrain"} $ t' $
+              Syntax.const \<^syntax_const>\<open>_constrain\<close> $ t' $
                 Syntax_Phases.term_of_typ ctxt T'
             else t'
         | _ => if T = dummyT then t' else raise Match)
       end;
   in
-   [(@{const_syntax numeral}, num_tr')]
+   [(\<^const_syntax>\<open>numeral\<close>, num_tr')]
   end
 \<close>
 
 
 subsection \<open>Class-specific numeral rules\<close>
 
-text \<open>@{const numeral} is a morphism.\<close>
+text \<open>\<^const>\<open>numeral\<close> is a morphism.\<close>
 
 
 subsubsection \<open>Structures with addition: class \<open>numeral\<close>\<close>
@@ -1038,7 +1038,7 @@ lemma numerals: "Numeral1 = (1::nat)" "2 = Suc (Suc 0)"
 
 lemmas numeral_nat = eval_nat_numeral BitM.simps One_nat_def
 
-text \<open>Comparisons involving @{term Suc}.\<close>
+text \<open>Comparisons involving \<^term>\<open>Suc\<close>.\<close>
 
 lemma eq_numeral_Suc [simp]: "numeral k = Suc n \<longleftrightarrow> pred_numeral k = n"
   by (simp add: numeral_eq_Suc)
@@ -1076,7 +1076,7 @@ lemma min_Suc_numeral [simp]: "min (Suc n) (numeral k) = Suc (min n (pred_numera
 lemma min_numeral_Suc [simp]: "min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)"
   by (simp add: numeral_eq_Suc)
 
-text \<open>For @{term case_nat} and @{term rec_nat}.\<close>
+text \<open>For \<^term>\<open>case_nat\<close> and \<^term>\<open>rec_nat\<close>.\<close>
 
 lemma case_nat_numeral [simp]: "case_nat a f (numeral v) = (let pv = pred_numeral v in f pv)"
   by (simp add: numeral_eq_Suc)
@@ -1093,7 +1093,7 @@ lemma rec_nat_add_eq_if [simp]:
   "rec_nat a f (numeral v + n) = (let pv = pred_numeral v in f (pv + n) (rec_nat a f (pv + n)))"
   by (simp add: numeral_eq_Suc Let_def)
 
-text \<open>Case analysis on @{term "n < 2"}.\<close>
+text \<open>Case analysis on \<^term>\<open>n < 2\<close>.\<close>
 lemma less_2_cases: "n < 2 \<Longrightarrow> n = 0 \<or> n = Suc 0"
   by (auto simp add: numeral_2_eq_2)
 
@@ -1113,7 +1113,7 @@ lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
 lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
 
 
-subsection \<open>Particular lemmas concerning @{term 2}\<close>
+subsection \<open>Particular lemmas concerning \<^term>\<open>2\<close>\<close>
 
 context linordered_field
 begin
@@ -1298,8 +1298,8 @@ lemmas mult_1s = mult_1s_semiring_numeral mult_1s_ring_1
 
 setup \<open>
   Reorient_Proc.add
-    (fn Const (@{const_name numeral}, _) $ _ => true
-      | Const (@{const_name uminus}, _) $ (Const (@{const_name numeral}, _) $ _) => true
+    (fn Const (\<^const_name>\<open>numeral\<close>, _) $ _ => true
+      | Const (\<^const_name>\<open>uminus\<close>, _) $ (Const (\<^const_name>\<open>numeral\<close>, _) $ _) => true
       | _ => false)
 \<close>
 
@@ -1363,7 +1363,7 @@ lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
 declaration \<open>
 let
   fun number_of ctxt T n =
-    if not (Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort numeral}))
+    if not (Sign.of_sort (Proof_Context.theory_of ctxt) (T, \<^sort>\<open>numeral\<close>))
     then raise CTERM ("number_of", [])
     else Numeral.mk_cnumber (Thm.ctyp_of ctxt T) n;
 in

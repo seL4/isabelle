@@ -16,7 +16,7 @@ apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_cardinal_eqpoll)
 done
 
-text\<open>The theorem @{term "||A|| = |A|"}\<close>
+text\<open>The theorem \<^term>\<open>||A|| = |A|\<close>\<close>
 lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, simp]
 
 lemma cardinal_eqE: "|X| = |Y| ==> X \<approx> Y"
@@ -171,7 +171,7 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
   finally show "(\<Union>i\<in>K. X(i)) \<lesssim> K" .
 qed
 
-text\<open>The same again, using @{term csucc}\<close>
+text\<open>The same again, using \<^term>\<open>csucc\<close>\<close>
 lemma cardinal_UN_lt_csucc:
      "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> |X(i)| < csucc(K) |]
       ==> |\<Union>i\<in>K. X(i)| < csucc(K)"
@@ -192,8 +192,8 @@ done
 subsection\<open>The Main Result for Infinite-Branching Datatypes\<close>
 
 text\<open>As above, but the index set need not be a cardinal. Work
-backwards along the injection from @{term W} into @{term K}, given
-that @{term"W\<noteq>0"}.\<close>
+backwards along the injection from \<^term>\<open>W\<close> into \<^term>\<open>K\<close>, given
+that \<^term>\<open>W\<noteq>0\<close>.\<close>
 
 lemma inj_UN_subset:
   assumes f: "f \<in> inj(A,B)" and a: "a \<in> A"

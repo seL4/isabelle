@@ -6,7 +6,7 @@ section \<open>Relativized Wellorderings\<close>
 
 theory Wellorderings imports Relative begin
 
-text\<open>We define functions analogous to @{term ordermap} @{term ordertype} 
+text\<open>We define functions analogous to \<^term>\<open>ordermap\<close> \<^term>\<open>ordertype\<close> 
       but without using recursion.  Instead, there is a direct appeal
       to Replacement.  This will be the basis for a version relativized
       to some class \<open>M\<close>.  The main result is Theorem I 7.6 in Kunen,

@@ -48,8 +48,8 @@ val strip_nun_comb =
 fun ty_of_isa (Type (s, Ts)) =
     let val tys = map ty_of_isa Ts in
       (case s of
-        @{type_name bool} => prop_ty
-      | @{type_name fun} => NType (nun_arrow, tys)
+        \<^type_name>\<open>bool\<close> => prop_ty
+      | \<^type_name>\<open>fun\<close> => NType (nun_arrow, tys)
       | _ =>
         let
           val args = map lowlevel_str_of_ty tys;
@@ -97,7 +97,7 @@ fun gen_tm_of_isa in_prop ctxt t =
             |> abs_tms vars
           end
         | NONE =>
-          if s = @{const_name unreachable} andalso in_prop then
+          if s = \<^const_name>\<open>unreachable\<close> andalso in_prop then
             let val ty = ty_of_isa T in
               napps (NConst (nun_asserting, [ty], mk_arrows_ty ([ty, prop_ty], ty)),
                 [NConst (id_of_const x, [], ty), NConst (nun_false, [], prop_ty)])
@@ -106,19 +106,19 @@ fun gen_tm_of_isa in_prop ctxt t =
             let
               val id =
                 (case s of
-                  @{const_name All} => nun_forall
-                | @{const_name conj} => nun_conj
-                | @{const_name disj} => nun_disj
-                | @{const_name HOL.eq} => nun_equals
-                | @{const_name Eps} => nun_choice
-                | @{const_name Ex} => nun_exists
-                | @{const_name False} => nun_false
-                | @{const_name If} => nun_if
-                | @{const_name implies} => nun_implies
-                | @{const_name Not} => nun_not
-                | @{const_name The} => nun_unique
-                | @{const_name The_unsafe} => nun_unique_unsafe
-                | @{const_name True} => nun_true
+                  \<^const_name>\<open>All\<close> => nun_forall
+                | \<^const_name>\<open>conj\<close> => nun_conj
+                | \<^const_name>\<open>disj\<close> => nun_disj
+                | \<^const_name>\<open>HOL.eq\<close> => nun_equals
+                | \<^const_name>\<open>Eps\<close> => nun_choice
+                | \<^const_name>\<open>Ex\<close> => nun_exists
+                | \<^const_name>\<open>False\<close> => nun_false
+                | \<^const_name>\<open>If\<close> => nun_if
+                | \<^const_name>\<open>implies\<close> => nun_implies
+                | \<^const_name>\<open>Not\<close> => nun_not
+                | \<^const_name>\<open>The\<close> => nun_unique
+                | \<^const_name>\<open>The_unsafe\<close> => nun_unique_unsafe
+                | \<^const_name>\<open>True\<close> => nun_true
                 | _ => id_of_const x);
             in
               NConst (id, [], ty_of_isa T)

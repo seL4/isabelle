@@ -71,7 +71,7 @@ fun sos_tac ctxt NONE =
         (Sum_of_Squares.Certificate (Positivstellensatz_Tools.read_cert ctxt cert)) ctxt
 
 val _ = Theory.setup
- (Method.setup @{binding sos}
+ (Method.setup \<^binding>\<open>sos\<close>
     (Scan.lift (Scan.option Parse.string)
       >> (fn arg => fn ctxt => SIMPLE_METHOD' (sos_tac ctxt arg)))
     "prove universal problems over the reals using sums of squares")

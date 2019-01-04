@@ -90,7 +90,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
         ts
       val _ = print_step options ("Preprocessing scc of " ^
         commas (map (Syntax.string_of_term_global thy) ts))
-      val (prednames, funnames) = List.partition (fn t => body_type (fastype_of t) = @{typ bool}) ts
+      val (prednames, funnames) = List.partition (fn t => body_type (fastype_of t) = \<^typ>\<open>bool\<close>) ts
       (* untangle recursion by defining predicates for all functions *)
       val _ = print_step options
         ("Compiling functions (" ^ commas (map (Syntax.string_of_term_global thy) funnames) ^
@@ -228,15 +228,15 @@ val mode_and_opt_proposal = parse_mode_expr --
 
 
 val opt_modes =
-  Scan.optional (@{keyword "("} |-- Args.$$$ "modes" |-- @{keyword ":"} |--
-    (((Parse.enum1 "and" (Parse.name --| @{keyword ":"} --
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Args.$$$ "modes" |-- \<^keyword>\<open>:\<close> |--
+    (((Parse.enum1 "and" (Parse.name --| \<^keyword>\<open>:\<close> --
         (Parse.enum "," mode_and_opt_proposal))) >> Multiple_Preds)
       || ((Parse.enum "," mode_and_opt_proposal) >> Single_Pred))
-    --| @{keyword ")"}) (Multiple_Preds [])
+    --| \<^keyword>\<open>)\<close>) (Multiple_Preds [])
 
 val opt_expected_modes =
-  Scan.optional (@{keyword "("} |-- Args.$$$ "expected_modes" |-- @{keyword ":"} |--
-    Parse.enum "," parse_mode_expr --| @{keyword ")"} >> SOME) NONE
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Args.$$$ "expected_modes" |-- \<^keyword>\<open>:\<close> |--
+    Parse.enum "," parse_mode_expr --| \<^keyword>\<open>)\<close> >> SOME) NONE
 
 
 (* Parser for options *)
@@ -246,18 +246,18 @@ val scan_options =
     val scan_bool_option = foldl1 (op ||) (map Args.$$$ bool_options)
     val scan_compilation = foldl1 (op ||) (map (fn (s, c) => Args.$$$ s >> K c) compilation_names)
   in
-    Scan.optional (@{keyword "["} |-- Scan.optional scan_compilation Pred
-      -- Parse.enum "," scan_bool_option --| @{keyword "]"})
+    Scan.optional (\<^keyword>\<open>[\<close> |-- Scan.optional scan_compilation Pred
+      -- Parse.enum "," scan_bool_option --| \<^keyword>\<open>]\<close>)
       (Pred, [])
   end
 
 val opt_print_modes =
-  Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.name --| @{keyword ")"})) []
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Scan.repeat1 Parse.name --| \<^keyword>\<open>)\<close>)) []
 
 val opt_mode = (Args.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 
-val opt_param_modes = Scan.optional (@{keyword "["} |-- Args.$$$ "mode" |-- @{keyword ":"} |--
-  Parse.enum ", " opt_mode --| @{keyword "]"} >> SOME) NONE
+val opt_param_modes = Scan.optional (\<^keyword>\<open>[\<close> |-- Args.$$$ "mode" |-- \<^keyword>\<open>:\<close> |--
+  Parse.enum ", " opt_mode --| \<^keyword>\<open>]\<close> >> SOME) NONE
 
 val stats = Scan.optional (Args.$$$ "stats" >> K true) false
 
@@ -272,7 +272,7 @@ val value_options =
         (Pred, [])
   in
     Scan.optional
-      (@{keyword "["} |-- (expected_values -- stats) -- scan_compilation --| @{keyword "]"})
+      (\<^keyword>\<open>[\<close> |-- (expected_values -- stats) -- scan_compilation --| \<^keyword>\<open>]\<close>)
       ((NONE, false), (Pred, []))
   end
 
@@ -280,12 +280,12 @@ val value_options =
 (* code_pred command and values command *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword code_pred}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>code_pred\<close>
     "prove equations for predicate specified by intro/elim rules"
     (opt_expected_modes -- opt_modes -- scan_options -- Parse.term >> code_pred_cmd)
 
 val _ =
-  Outer_Syntax.command @{command_keyword values}
+  Outer_Syntax.command \<^command_keyword>\<open>values\<close>
     "enumerate and print comprehensions"
     (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional Parse.nat ~1 -- Parse.term
       >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.keep

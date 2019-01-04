@@ -16,26 +16,26 @@ struct
 
 (* abstract syntax operations *)
 
-fun mk_bit 0 = @{term "0"}
-  | mk_bit 1 = @{term "succ(0)"}
+fun mk_bit 0 = \<^term>\<open>0\<close>
+  | mk_bit 1 = \<^term>\<open>succ(0)\<close>
   | mk_bit _ = raise TERM ("mk_bit", []);
 
-fun dest_bit @{term "0"} = 0
-  | dest_bit @{term "succ(0)"} = 1
+fun dest_bit \<^term>\<open>0\<close> = 0
+  | dest_bit \<^term>\<open>succ(0)\<close> = 1
   | dest_bit t = raise TERM ("dest_bit", [t]);
 
 fun mk_bin i =
   let
-    fun term_of [] = @{term Pls}
-      | term_of [~1] = @{term Min}
-      | term_of (b :: bs) = @{term Bit} $ term_of bs $ mk_bit b;
+    fun term_of [] = \<^term>\<open>Pls\<close>
+      | term_of [~1] = \<^term>\<open>Min\<close>
+      | term_of (b :: bs) = \<^term>\<open>Bit\<close> $ term_of bs $ mk_bit b;
   in term_of (Numeral_Syntax.make_binary i) end;
 
 fun dest_bin tm =
   let
-    fun bin_of @{term Pls} = []
-      | bin_of @{term Min} = [~1]
-      | bin_of (@{term Bit} $ bs $ b) = dest_bit b :: bin_of bs
+    fun bin_of \<^term>\<open>Pls\<close> = []
+      | bin_of \<^term>\<open>Min\<close> = [~1]
+      | bin_of (\<^term>\<open>Bit\<close> $ bs $ b) = dest_bit b :: bin_of bs
       | bin_of _ = raise TERM ("dest_bin", [tm]);
   in Numeral_Syntax.dest_binary (bin_of tm) end;
 
@@ -44,7 +44,7 @@ fun dest_bin tm =
 
 fun mk_numeral i = @{const integ_of} $ mk_bin i;
 
-fun dest_numeral (Const(@{const_name integ_of}, _) $ w) = dest_bin w
+fun dest_numeral (Const(\<^const_name>\<open>integ_of\<close>, _) $ w) = dest_bin w
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
 fun find_first_numeral past (t::terms) =
@@ -53,7 +53,7 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_numeral 0;
-val mk_plus = FOLogic.mk_binop @{const_name "zadd"};
+val mk_plus = FOLogic.mk_binop \<^const_name>\<open>zadd\<close>;
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -65,9 +65,9 @@ fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
+fun dest_summing (pos, Const (\<^const_name>\<open>zadd\<close>, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (@{const_name "zdiff"}, _) $ t $ u, ts) =
+  | dest_summing (pos, Const (\<^const_name>\<open>zdiff\<close>, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
         if pos then t::ts else @{const zminus} $ t :: ts;
@@ -75,14 +75,14 @@ fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
 fun dest_sum t = dest_summing (true, t, []);
 
 val one = mk_numeral 1;
-val mk_times = FOLogic.mk_binop @{const_name "zmult"};
+val mk_times = FOLogic.mk_binop \<^const_name>\<open>zmult\<close>;
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin @{const_name "zmult"} @{typ i};
+val dest_times = FOLogic.dest_bin \<^const_name>\<open>zmult\<close> \<^typ>\<open>i\<close>;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -93,7 +93,7 @@ fun dest_prod t =
 fun mk_coeff (k, t) = mk_times (mk_numeral k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
-fun dest_coeff sign (Const (@{const_name "zminus"}, _) $ t) = dest_coeff (~sign) t
+fun dest_coeff sign (Const (\<^const_name>\<open>zminus\<close>, _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
     let val ts = sort Term_Ord.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
@@ -156,13 +156,13 @@ structure CancelNumeralsCommon =
   fun trans_tac ctxt = ArithData.gen_trans_tac ctxt @{thm iff_trans}
 
   val norm_ss1 =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac})
   val norm_ss2 =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps bin_simps @ int_mult_minus_simps @ intifys)
   val norm_ss3 =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys)
   fun norm_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
@@ -170,7 +170,7 @@ structure CancelNumeralsCommon =
     THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps add_0s @ bin_simps @ tc_rules @ intifys)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
@@ -191,8 +191,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel @{const_name "zless"}
-  val dest_bal = FOLogic.dest_bin @{const_name "zless"} @{typ i}
+  val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>zless\<close>
+  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>zless\<close> \<^typ>\<open>i\<close>
   val bal_add1 = @{thm less_add_iff1} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff2} RS @{thm iff_trans}
 );
@@ -200,30 +200,30 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel @{const_name "zle"}
-  val dest_bal = FOLogic.dest_bin @{const_name "zle"} @{typ i}
+  val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>zle\<close>
+  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>zle\<close> \<^typ>\<open>i\<close>
   val bal_add1 = @{thm le_add_iff1} RS @{thm iff_trans}
   val bal_add2 = @{thm le_add_iff2} RS @{thm iff_trans}
 );
 
 val cancel_numerals =
- [Simplifier.make_simproc @{context} "inteq_cancel_numerals"
+ [Simplifier.make_simproc \<^context> "inteq_cancel_numerals"
    {lhss =
-     [@{term "l $+ m = n"}, @{term "l = m $+ n"},
-      @{term "l $- m = n"}, @{term "l = m $- n"},
-      @{term "l $* m = n"}, @{term "l = m $* n"}],
+     [\<^term>\<open>l $+ m = n\<close>, \<^term>\<open>l = m $+ n\<close>,
+      \<^term>\<open>l $- m = n\<close>, \<^term>\<open>l = m $- n\<close>,
+      \<^term>\<open>l $* m = n\<close>, \<^term>\<open>l = m $* n\<close>],
     proc = K EqCancelNumerals.proc},
-  Simplifier.make_simproc @{context} "intless_cancel_numerals"
+  Simplifier.make_simproc \<^context> "intless_cancel_numerals"
    {lhss =
-     [@{term "l $+ m $< n"}, @{term "l $< m $+ n"},
-      @{term "l $- m $< n"}, @{term "l $< m $- n"},
-      @{term "l $* m $< n"}, @{term "l $< m $* n"}],
+     [\<^term>\<open>l $+ m $< n\<close>, \<^term>\<open>l $< m $+ n\<close>,
+      \<^term>\<open>l $- m $< n\<close>, \<^term>\<open>l $< m $- n\<close>,
+      \<^term>\<open>l $* m $< n\<close>, \<^term>\<open>l $< m $* n\<close>],
     proc = K LessCancelNumerals.proc},
-  Simplifier.make_simproc @{context} "intle_cancel_numerals"
+  Simplifier.make_simproc \<^context> "intle_cancel_numerals"
    {lhss =
-     [@{term "l $+ m $\<le> n"}, @{term "l $\<le> m $+ n"},
-      @{term "l $- m $\<le> n"}, @{term "l $\<le> m $- n"},
-      @{term "l $* m $\<le> n"}, @{term "l $\<le> m $* n"}],
+     [\<^term>\<open>l $+ m $\<le> n\<close>, \<^term>\<open>l $\<le> m $+ n\<close>,
+      \<^term>\<open>l $- m $\<le> n\<close>, \<^term>\<open>l $\<le> m $- n\<close>,
+      \<^term>\<open>l $* m $\<le> n\<close>, \<^term>\<open>l $\<le> m $* n\<close>],
     proc = K LeCancelNumerals.proc}];
 
 
@@ -244,13 +244,13 @@ structure CombineNumeralsData =
   fun trans_tac ctxt = ArithData.gen_trans_tac ctxt @{thm trans}
 
   val norm_ss1 =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac} @ intifys)
   val norm_ss2 =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps bin_simps @ int_mult_minus_simps @ intifys)
   val norm_ss3 =
-    simpset_of (put_simpset ZF_ss @{context}
+    simpset_of (put_simpset ZF_ss \<^context>
       addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys)
   fun norm_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
@@ -258,7 +258,7 @@ structure CombineNumeralsData =
     THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ bin_simps @ tc_rules @ intifys)
+    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ bin_simps @ tc_rules @ intifys)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
@@ -267,8 +267,8 @@ structure CombineNumeralsData =
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
-  Simplifier.make_simproc @{context} "int_combine_numerals"
-    {lhss = [@{term "i $+ j"}, @{term "i $- j"}],
+  Simplifier.make_simproc \<^context> "int_combine_numerals"
+    {lhss = [\<^term>\<open>i $+ j\<close>, \<^term>\<open>i $- j\<close>],
      proc = K CombineNumerals.proc};
 
 
@@ -295,16 +295,16 @@ struct
   fun trans_tac ctxt = ArithData.gen_trans_tac ctxt @{thm trans}
 
   val norm_ss1 =
-    simpset_of (put_simpset ZF_ss @{context} addsimps mult_1s @ diff_simps @ zminus_simps)
+    simpset_of (put_simpset ZF_ss \<^context> addsimps mult_1s @ diff_simps @ zminus_simps)
   val norm_ss2 =
-    simpset_of (put_simpset ZF_ss @{context} addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
+    simpset_of (put_simpset ZF_ss \<^context> addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
     bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys)
   fun norm_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset ZF_ss @{context} addsimps bin_simps @ tc_rules @ intifys)
+    simpset_of (put_simpset ZF_ss \<^context> addsimps bin_simps @ tc_rules @ intifys)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s);
@@ -314,8 +314,8 @@ end;
 structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
 
 val combine_numerals_prod =
-  Simplifier.make_simproc @{context} "int_combine_numerals_prod"
-   {lhss = [@{term "i $* j"}], proc = K CombineNumeralsProd.proc};
+  Simplifier.make_simproc \<^context> "int_combine_numerals_prod"
+   {lhss = [\<^term>\<open>i $* j\<close>], proc = K CombineNumeralsProd.proc};
 
 end;
 

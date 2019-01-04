@@ -58,7 +58,7 @@ qed
 end
 
 text \<open>The quotient type \<open>'a quot\<close> consists of all \emph{equivalence
-  classes} over elements of the base type @{typ 'a}.\<close>
+  classes} over elements of the base type \<^typ>\<open>'a\<close>.\<close>
 
 definition (in eqv) "quot = {{x. a \<sim> x} | a. True}"
 

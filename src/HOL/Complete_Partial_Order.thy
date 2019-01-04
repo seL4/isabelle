@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Monotone functions\<close>
 
-text \<open>Dictionary-passing version of @{const Orderings.mono}.\<close>
+text \<open>Dictionary-passing version of \<^const>\<open>Orderings.mono\<close>.\<close>
 
 definition monotone :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
   where "monotone orda ordb f \<longleftrightarrow> (\<forall>x y. orda x y \<longrightarrow> ordb (f x) (f y))"

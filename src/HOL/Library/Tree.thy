@@ -100,7 +100,7 @@ fun (in linorder) heap :: "'a tree \<Rightarrow> bool" where
   (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
 
 
-subsection \<open>@{const map_tree}\<close>
+subsection \<open>\<^const>\<open>map_tree\<close>\<close>
 
 lemma eq_map_tree_Leaf[simp]: "map_tree f t = Leaf \<longleftrightarrow> t = Leaf"
 by (rule tree.map_disc_iff)
@@ -109,7 +109,7 @@ lemma eq_Leaf_map_tree[simp]: "Leaf = map_tree f t \<longleftrightarrow> t = Lea
 by (cases t) auto
 
 
-subsection \<open>@{const size}\<close>
+subsection \<open>\<^const>\<open>size\<close>\<close>
 
 lemma size1_size: "size1 t = size t + 1"
 by (induction t) simp_all
@@ -133,7 +133,7 @@ lemma size1_map_tree[simp]: "size1 (map_tree f t) = size1 t"
 by (simp add: size1_size)
 
 
-subsection \<open>@{const set_tree}\<close>
+subsection \<open>\<^const>\<open>set_tree\<close>\<close>
 
 lemma eq_set_tree_empty[simp]: "set_tree t = {} \<longleftrightarrow> t = Leaf"
 by (cases t) auto
@@ -145,7 +145,7 @@ lemma finite_set_tree[simp]: "finite(set_tree t)"
 by(induction t) auto
 
 
-subsection \<open>@{const subtrees}\<close>
+subsection \<open>\<^const>\<open>subtrees\<close>\<close>
 
 lemma neq_subtrees_empty[simp]: "subtrees t \<noteq> {}"
 by (cases t)(auto)
@@ -163,7 +163,7 @@ lemma in_set_tree_if: "\<langle>l, a, r\<rangle> \<in> subtrees t \<Longrightarr
 by (metis Node_notin_subtrees_if)
 
 
-subsection \<open>@{const height} and @{const min_height}\<close>
+subsection \<open>\<^const>\<open>height\<close> and \<^const>\<open>min_height\<close>\<close>
 
 lemma eq_height_0[simp]: "height t = 0 \<longleftrightarrow> t = Leaf"
 by(cases t) auto
@@ -221,7 +221,7 @@ proof(induction t)
 qed simp
 
 
-subsection \<open>@{const complete}\<close>
+subsection \<open>\<^const>\<open>complete\<close>\<close>
 
 lemma complete_iff_height: "complete t \<longleftrightarrow> (min_height t = height t)"
 apply(induction t)
@@ -287,7 +287,7 @@ lemma complete_iff_size1: "complete t \<longleftrightarrow> size1 t = 2 ^ height
 using complete_if_size1_height size1_if_complete by blast
 
 
-subsection \<open>@{const balanced}\<close>
+subsection \<open>\<^const>\<open>balanced\<close>\<close>
 
 lemma balanced_subtreeL: "balanced (Node l x r) \<Longrightarrow> balanced l"
 by(simp add: balanced_def)
@@ -335,13 +335,13 @@ next
 qed
 
 
-subsection \<open>@{const wbalanced}\<close>
+subsection \<open>\<^const>\<open>wbalanced\<close>\<close>
 
 lemma wbalanced_subtrees: "\<lbrakk> wbalanced t; s \<in> subtrees t \<rbrakk> \<Longrightarrow> wbalanced s"
 using [[simp_depth_limit=1]] by(induction t arbitrary: s) auto
 
 
-subsection \<open>@{const ipl}\<close>
+subsection \<open>\<^const>\<open>ipl\<close>\<close>
 
 text \<open>The internal path length of a tree:\<close>
 
@@ -413,10 +413,10 @@ apply (fastforce simp: sorted_wrt_append)
 done
 
 
-subsection \<open>@{const heap}\<close>
+subsection \<open>\<^const>\<open>heap\<close>\<close>
 
 
-subsection \<open>@{const mirror}\<close>
+subsection \<open>\<^const>\<open>mirror\<close>\<close>
 
 lemma mirror_Leaf[simp]: "mirror t = \<langle>\<rangle> \<longleftrightarrow> t = \<langle>\<rangle>"
 by (induction t) simp_all

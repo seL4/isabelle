@@ -169,15 +169,15 @@ fun not_codatatype ctxt T =
   error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
 fun mutual_codatatype () =
   error ("Mutually corecursive codatatypes are not supported (try " ^
-    quote (#1 @{command_keyword primcorec}) ^ " instead of " ^
-    quote (#1 @{command_keyword corec}) ^ ")");
+    quote (#1 \<^command_keyword>\<open>primcorec\<close>) ^ " instead of " ^
+    quote (#1 \<^command_keyword>\<open>corec\<close>) ^ ")");
 fun noncorecursive_codatatype () =
   error ("Noncorecursive codatatypes are not supported (try " ^
-    quote (#1 @{command_keyword definition}) ^ " instead of " ^
-    quote (#1 @{command_keyword corec}) ^ ")");
+    quote (#1 \<^command_keyword>\<open>definition\<close>) ^ " instead of " ^
+    quote (#1 \<^command_keyword>\<open>corec\<close>) ^ ")");
 fun singleton_codatatype ctxt =
   error ("Singleton corecursive codatatypes are not supported (use " ^
-    quote (Syntax.string_of_typ ctxt @{typ unit}) ^ " instead)");
+    quote (Syntax.string_of_typ ctxt \<^typ>\<open>unit\<close>) ^ " instead)");
 
 fun merge_lists eq old1 old2 = (old1 |> subtract eq old2) @ old2;
 
@@ -515,7 +515,7 @@ fun bnf_with_deads_and_lives dead_Es live_As Y fpT T lthy =
             val T = qsoty (unfreeze_fp Y);
             val T_backdrop = qsoty (unfreeze_fp Y_backdrop);
             fun register_hint () =
-              "\nUse the " ^ quote (#1 @{command_keyword bnf}) ^ " command to register " ^
+              "\nUse the " ^ quote (#1 \<^command_keyword>\<open>bnf\<close>) ^ " command to register " ^
               quote bad_tc ^ " as a bounded natural functor to allow nested (co)recursion through \
               \it";
           in
@@ -898,7 +898,7 @@ fun derive_transfer_by_transfer_prover ctxt live_AsBs Rs R const const_defs rel_
 
 fun derive_dtor_transfer ctxt live_EsFs Y Z pre_rel fp_rel Rs dtor dtor_rel_thm =
   let
-    val Type (@{type_name fun}, [fpT, Type (@{type_name fun}, [fpTB, @{typ bool}])]) =
+    val Type (\<^type_name>\<open>fun\<close>, [fpT, Type (\<^type_name>\<open>fun\<close>, [fpTB, \<^typ>\<open>bool\<close>])]) =
       snd (strip_typeN (length live_EsFs) (fastype_of fp_rel));
 
     val pre_rel' = Term.subst_atomic_types [(Y, fpT), (Z, fpTB)] pre_rel;
@@ -1668,7 +1668,7 @@ fun derive_Sig_natural_etc ctxt live live_AsBs Y Z preT fpT k_or_fpT sig_T ssig_
     cutSsig_def algLam_def corecU_def live_pre_bnf pre_bnf dead_pre_bnf fp_bnf sig_bnf ssig_bnf
     dead_ssig_bnf =
   let
-    val SOME prod_bnf = bnf_of ctxt @{type_name prod};
+    val SOME prod_bnf = bnf_of ctxt \<^type_name>\<open>prod\<close>;
 
     val f' = substT Z fpT f;
     val dead_ssig_map' = substT Z fpT dead_ssig_map;
@@ -1846,7 +1846,7 @@ fun define_corecUU_etc fp_b version live_AsBs Y Z preT fpT ssig_T pre_map dead_p
       sctr_pointful_natural), lthy)
   end;
 
-fun mk_equivp T = Const (@{const_name equivp}, mk_predT [mk_pred2T T T]);
+fun mk_equivp T = Const (\<^const_name>\<open>equivp\<close>, mk_predT [mk_pred2T T T]);
 
 fun derive_equivp_Retr ctxt fpT Retr R dead_pre_rel_refl_thm dead_pre_rel_flip_thm
     dead_pre_rel_mono_thm dead_pre_rel_compp_thm =
@@ -1890,12 +1890,12 @@ fun derive_Retr fp_sugar fpT dead_pre_bnf ctor dtor names_lthy lthy =
 
 fun mk_gen_cong fpT eval_domT =
   let val fp_relT = mk_pred2T fpT fpT in
-    Const (@{const_name "cong.gen_cong"},
+    Const (\<^const_name>\<open>cong.gen_cong\<close>,
       [mk_predT [fp_relT, eval_domT, eval_domT], eval_domT --> fpT, fp_relT] ---> fp_relT)
   end;
 
 fun mk_cong_locale rel eval Retr =
-  Const (@{const_name cong}, mk_predT (map fastype_of [rel, eval, Retr]));
+  Const (\<^const_name>\<open>cong\<close>, mk_predT (map fastype_of [rel, eval, Retr]));
 
 fun derive_cong_locale ctxt rel eval Retr0 tac =
   let

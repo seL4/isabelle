@@ -57,7 +57,7 @@ fun split_format_err () = error "Wrong format for split rule";
 
 fun split_thm_info thm =
   (case Thm.concl_of (Data.mk_eq thm) of
-    Const(@{const_name Pure.eq}, _) $ (Var _ $ t) $ c =>
+    Const(\<^const_name>\<open>Pure.eq\<close>, _) $ (Var _ $ t) $ c =>
       (case strip_comb t of
         (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
       | _ => split_format_err ())
@@ -98,9 +98,9 @@ let
 
 val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;  (* (P == Q) ==> Q ==> P *)
 
-val lift = Goal.prove_global @{theory Pure} ["P", "Q", "R"]
-  [Syntax.read_prop_global @{theory Pure} "!!x :: 'b. Q(x) == R(x) :: 'c"]
-  (Syntax.read_prop_global @{theory Pure} "P(%x. Q(x)) == P(%x. R(x))")
+val lift = Goal.prove_global \<^theory>\<open>Pure\<close> ["P", "Q", "R"]
+  [Syntax.read_prop_global \<^theory>\<open>Pure\<close> "!!x :: 'b. Q(x) == R(x) :: 'c"]
+  (Syntax.read_prop_global \<^theory>\<open>Pure\<close> "P(%x. Q(x)) == P(%x. R(x))")
   (fn {context = ctxt, prems} =>
     rewrite_goals_tac ctxt prems THEN resolve_tac ctxt [reflexive_thm] 1)
 
@@ -393,9 +393,9 @@ fun split_asm_tac _ [] = K no_tac
       fun tac (t,i) =
           let val n = find_index (exists_Const (member (op =) cname_list o #1))
                                  (Logic.strip_assums_hyp t);
-              fun first_prem_is_disj (Const (@{const_name Pure.imp}, _) $ (Const (c, _)
+              fun first_prem_is_disj (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ (Const (c, _)
                     $ (Const (s, _) $ _ $ _ )) $ _ ) = c = const_Trueprop andalso s = const_or
-              |   first_prem_is_disj (Const(@{const_name Pure.all},_)$Abs(_,_,t)) =
+              |   first_prem_is_disj (Const(\<^const_name>\<open>Pure.all\<close>,_)$Abs(_,_,t)) =
                                         first_prem_is_disj t
               |   first_prem_is_disj _ = false;
       (* does not work properly if the split variable is bound by a quantifier *)
@@ -470,7 +470,7 @@ val add_del = Scan.lift
    || Scan.succeed (split_add false));
 
 val _ = Theory.setup
-  (Attrib.setup @{binding split} add_del "declare case split rule");
+  (Attrib.setup \<^binding>\<open>split\<close> add_del "declare case split rule");
 
 
 (* methods *)
@@ -482,7 +482,7 @@ val split_modifiers =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding split}
+    (Method.setup \<^binding>\<open>split\<close>
       (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ctxt ths)))
       "apply case split rule");
 

@@ -127,7 +127,7 @@ lemma tokens_append [simp]:
 apply (induct_tac "xs", auto)
 done
 
-subsection\<open>The function @{term bag_of}\<close>
+subsection\<open>The function \<^term>\<open>bag_of\<close>\<close>
 
 lemma bag_of_type [simp,TC]: "l\<in>list(A) ==>bag_of(l)\<in>Mult(A)"
 apply (induct_tac "l")
@@ -168,7 +168,7 @@ lemma mono_bag_of [simp]:
 by (auto simp add:  mono1_def bag_of_type)
 
 
-subsection\<open>The function @{term msetsum}\<close>
+subsection\<open>The function \<^term>\<open>msetsum\<close>\<close>
 
 lemmas nat_into_Fin = eqpoll_refl [THEN [2] Fin_lemma]
 
@@ -272,7 +272,7 @@ apply (unfold part_ord_def Lt_def irrefl_def trans_on_def)
 apply (auto intro: lt_trans)
 done
 
-subsubsection\<open>The function @{term all_distinct}\<close>
+subsubsection\<open>The function \<^term>\<open>all_distinct\<close>\<close>
 
 lemma all_distinct_Nil [simp]: "all_distinct(Nil)"
 by (unfold all_distinct_def, auto)
@@ -284,7 +284,7 @@ apply (unfold all_distinct_def)
 apply (auto elim: list.cases)
 done
 
-subsubsection\<open>The function @{term state_of}\<close>
+subsubsection\<open>The function \<^term>\<open>state_of\<close>\<close>
 
 lemma state_of_state: "s\<in>state ==> state_of(s)=s"
 by (unfold state_of_def, auto)

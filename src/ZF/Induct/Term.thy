@@ -55,7 +55,7 @@ lemma term_induct2:
       !!x z zs. [| x \<in> A;  z \<in> term(A);  zs: list(term(A));  P(Apply(x,zs))
                 |] ==> P(Apply(x, Cons(z,zs)))
      |] ==> P(t)"
-  \<comment> \<open>Induction on @{term "term(A)"} followed by induction on @{term list}.\<close>
+  \<comment> \<open>Induction on \<^term>\<open>term(A)\<close> followed by induction on \<^term>\<open>list\<close>.\<close>
   apply (induct_tac t)
   apply (erule list.induct)
    apply (auto dest: list_CollectD)
@@ -66,13 +66,13 @@ lemma term_induct_eqn [consumes 1, case_names Apply]:
       !!x zs. [| x \<in> A;  zs: list(term(A));  map(f,zs) = map(g,zs) |] ==>
               f(Apply(x,zs)) = g(Apply(x,zs))
    |] ==> f(t) = g(t)"
-  \<comment> \<open>Induction on @{term "term(A)"} to prove an equation.\<close>
+  \<comment> \<open>Induction on \<^term>\<open>term(A)\<close> to prove an equation.\<close>
   apply (induct_tac t)
   apply (auto dest: map_list_Collect list_CollectD)
   done
 
 text \<open>
-  \medskip Lemmas to justify using @{term "term"} in other recursive
+  \medskip Lemmas to justify using \<^term>\<open>term\<close> in other recursive
   type definitions.
 \<close>
 
@@ -107,7 +107,7 @@ text \<open>
 
 lemma map_lemma: "[| l \<in> list(A);  Ord(i);  rank(l)<i |]
     ==> map(\<lambda>z. (\<lambda>x \<in> Vset(i).h(x)) ` z, l) = map(h,l)"
-  \<comment> \<open>@{term map} works correctly on the underlying list of terms.\<close>
+  \<comment> \<open>\<^term>\<open>map\<close> works correctly on the underlying list of terms.\<close>
   apply (induct set: list)
    apply simp
   apply (subgoal_tac "rank (a) <i & rank (l) < i")
@@ -159,7 +159,7 @@ lemma term_rec_simple_type [TC]:
 
 
 text \<open>
-  \medskip @{term term_map}.
+  \medskip \<^term>\<open>term_map\<close>.
 \<close>
 
 lemma term_map [simp]:
@@ -181,7 +181,7 @@ lemma term_map_type2 [TC]:
   done
 
 text \<open>
-  \medskip @{term term_size}.
+  \medskip \<^term>\<open>term_size\<close>.
 \<close>
 
 lemma term_size [simp]:

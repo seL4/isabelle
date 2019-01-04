@@ -52,7 +52,7 @@ lemma enum_ex [simp]:
 end
 
 
-subsection \<open>Implementations using @{class enum}\<close>
+subsection \<open>Implementations using \<^class>\<open>enum\<close>\<close>
 
 subsubsection \<open>Unbounded operations and quantifiers\<close>
 
@@ -241,7 +241,7 @@ lemma [code]:
   by (simp add: card_UNIV_def acc_bacc_eq)
 
 
-subsection \<open>Default instances for @{class enum}\<close>
+subsection \<open>Default instances for \<^class>\<open>enum\<close>\<close>
 
 lemma map_of_zip_enum_is_Some:
   assumes "length ys = length (enum :: 'a::enum list)"
@@ -566,7 +566,7 @@ by(cases x) simp
 simproc_setup finite_1_eq ("x::finite_1") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
-      Const (@{const_name a\<^sub>1}, _) => NONE
+      Const (\<^const_name>\<open>a\<^sub>1\<close>, _) => NONE
     | _ => SOME (mk_meta_eq @{thm finite_1_eq}))
 \<close>
 
@@ -993,8 +993,8 @@ end
 
 instantiation finite_4 :: finite_distrib_lattice begin
 
-text \<open>@{term a\<^sub>1} $<$ @{term a\<^sub>2},@{term a\<^sub>3} $<$ @{term a\<^sub>4},
-  but @{term a\<^sub>2} and @{term a\<^sub>3} are incomparable.\<close>
+text \<open>\<^term>\<open>a\<^sub>1\<close> $<$ \<^term>\<open>a\<^sub>2\<close>,\<^term>\<open>a\<^sub>3\<close> $<$ \<^term>\<open>a\<^sub>4\<close>,
+  but \<^term>\<open>a\<^sub>2\<close> and \<^term>\<open>a\<^sub>3\<close> are incomparable.\<close>
 
 definition
   "x < y \<longleftrightarrow> (case (x, y) of

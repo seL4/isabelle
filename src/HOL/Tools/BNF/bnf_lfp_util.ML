@@ -28,22 +28,22 @@ fun mk_rapp arg T = Term.absdummy (fastype_of arg --> T) (Bound 0 $ arg);
 
 fun mk_underS r =
   let val T = fst (dest_relT (fastype_of r));
-  in Const (@{const_name underS}, mk_relT (T, T) --> T --> HOLogic.mk_setT T) $ r end;
+  in Const (\<^const_name>\<open>underS\<close>, mk_relT (T, T) --> T --> HOLogic.mk_setT T) $ r end;
 
 fun mk_worec r f =
   let val (A, AB) = apfst domain_type (dest_funT (fastype_of f));
-  in Const (@{const_name wo_rel.worec}, mk_relT (A, A) --> (AB --> AB) --> AB) $ r $ f end;
+  in Const (\<^const_name>\<open>wo_rel.worec\<close>, mk_relT (A, A) --> (AB --> AB) --> AB) $ r $ f end;
 
 fun mk_relChain r f =
   let val (A, AB) = `domain_type (fastype_of f);
-  in Const (@{const_name relChain}, mk_relT (A, A) --> AB --> HOLogic.boolT) $ r $ f end;
+  in Const (\<^const_name>\<open>relChain\<close>, mk_relT (A, A) --> AB --> HOLogic.boolT) $ r $ f end;
 
 fun mk_cardSuc r =
   let val T = fst (dest_relT (fastype_of r));
-  in Const (@{const_name cardSuc}, mk_relT (T, T) --> mk_relT (`I (HOLogic.mk_setT T))) $ r end;
+  in Const (\<^const_name>\<open>cardSuc\<close>, mk_relT (T, T) --> mk_relT (`I (HOLogic.mk_setT T))) $ r end;
 
 fun mk_bij_betw f A B =
- Const (@{const_name bij_betw},
+ Const (\<^const_name>\<open>bij_betw\<close>,
    fastype_of f --> fastype_of A --> fastype_of B --> HOLogic.boolT) $ f $ A $ B;
 
 fun mk_not_eq x y = HOLogic.mk_not (HOLogic.mk_eq (x, y));

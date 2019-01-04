@@ -17,25 +17,25 @@ struct
 
 (* numeral *)
 
-fun dest_num_syntax (Const (@{const_syntax Num.Bit0}, _) $ t) = 2 * dest_num_syntax t
-  | dest_num_syntax (Const (@{const_syntax Num.Bit1}, _) $ t) = 2 * dest_num_syntax t + 1
-  | dest_num_syntax (Const (@{const_syntax Num.One}, _)) = 1;
+fun dest_num_syntax (Const (\<^const_syntax>\<open>Num.Bit0\<close>, _) $ t) = 2 * dest_num_syntax t
+  | dest_num_syntax (Const (\<^const_syntax>\<open>Num.Bit1\<close>, _) $ t) = 2 * dest_num_syntax t + 1
+  | dest_num_syntax (Const (\<^const_syntax>\<open>Num.One\<close>, _)) = 1;
 
 fun mk_num_syntax n =
   if n > 0 then
     (case IntInf.quotRem (n, 2) of
-      (0, 1) => Syntax.const @{const_syntax One}
-    | (n, 0) => Syntax.const @{const_syntax Bit0} $ mk_num_syntax n
-    | (n, 1) => Syntax.const @{const_syntax Bit1} $ mk_num_syntax n)
+      (0, 1) => Syntax.const \<^const_syntax>\<open>One\<close>
+    | (n, 0) => Syntax.const \<^const_syntax>\<open>Bit0\<close> $ mk_num_syntax n
+    | (n, 1) => Syntax.const \<^const_syntax>\<open>Bit1\<close> $ mk_num_syntax n)
   else raise Match
 
-fun mk_cbit 0 = @{cterm "Num.Bit0"}
-  | mk_cbit 1 = @{cterm "Num.Bit1"}
+fun mk_cbit 0 = \<^cterm>\<open>Num.Bit0\<close>
+  | mk_cbit 1 = \<^cterm>\<open>Num.Bit1\<close>
   | mk_cbit _ = raise CTERM ("mk_cbit", []);
 
 fun mk_cnumeral i =
   let
-    fun mk 1 = @{cterm "Num.One"}
+    fun mk 1 = \<^cterm>\<open>Num.One\<close>
       | mk i =
       let val (q, r) = Integer.div_mod i 2 in
         Thm.apply (mk_cbit r) (mk q)
@@ -49,20 +49,20 @@ fun mk_cnumeral i =
 
 local
 
-val cterm_of = Thm.cterm_of @{context};
+val cterm_of = Thm.cterm_of \<^context>;
 fun tvar S = (("'a", 0), S);
 
-val zero_tvar = tvar @{sort zero};
-val zero = cterm_of (Const (@{const_name zero_class.zero}, TVar zero_tvar));
+val zero_tvar = tvar \<^sort>\<open>zero\<close>;
+val zero = cterm_of (Const (\<^const_name>\<open>zero_class.zero\<close>, TVar zero_tvar));
 
-val one_tvar = tvar @{sort one};
-val one = cterm_of (Const (@{const_name one_class.one}, TVar one_tvar));
+val one_tvar = tvar \<^sort>\<open>one\<close>;
+val one = cterm_of (Const (\<^const_name>\<open>one_class.one\<close>, TVar one_tvar));
 
-val numeral_tvar = tvar @{sort numeral};
-val numeral = cterm_of (Const (@{const_name numeral}, @{typ num} --> TVar numeral_tvar));
+val numeral_tvar = tvar \<^sort>\<open>numeral\<close>;
+val numeral = cterm_of (Const (\<^const_name>\<open>numeral\<close>, \<^typ>\<open>num\<close> --> TVar numeral_tvar));
 
-val uminus_tvar = tvar @{sort uminus};
-val uminus = cterm_of (Const (@{const_name uminus}, TVar uminus_tvar --> TVar uminus_tvar));
+val uminus_tvar = tvar \<^sort>\<open>uminus\<close>;
+val uminus = cterm_of (Const (\<^const_name>\<open>uminus\<close>, TVar uminus_tvar --> TVar uminus_tvar));
 
 fun instT T v = Thm.instantiate_cterm ([(v, T)], []);
 
@@ -80,21 +80,21 @@ fun mk_cnumber T 0 = instT T zero_tvar zero
 end;
 
 fun mk_number_syntax n =
-  if n = 0 then Syntax.const @{const_syntax Groups.zero}
-  else if n = 1 then Syntax.const @{const_syntax Groups.one}
-  else Syntax.const @{const_syntax numeral} $ mk_num_syntax n;
+  if n = 0 then Syntax.const \<^const_syntax>\<open>Groups.zero\<close>
+  else if n = 1 then Syntax.const \<^const_syntax>\<open>Groups.one\<close>
+  else Syntax.const \<^const_syntax>\<open>numeral\<close> $ mk_num_syntax n;
 
 
 (* code generator *)
 
 local open Basic_Code_Thingol in
 
-fun dest_num_code (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = SOME 1
-  | dest_num_code (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... } `$ t) =
+fun dest_num_code (IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Num.One\<close>, ... }) = SOME 1
+  | dest_num_code (IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Num.Bit0\<close>, ... } `$ t) =
      (case dest_num_code t of
         SOME n => SOME (2 * n)
       | _ => NONE)
-  | dest_num_code (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... } `$ t) =
+  | dest_num_code (IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Num.Bit1\<close>, ... } `$ t) =
      (case dest_num_code t of
         SOME n => SOME (2 * n + 1)
       | _ => NONE)

@@ -95,7 +95,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun abs_conv2 cv = Conv.abs_conv (K (Conv.abs_conv (K cv) lthy)) lthy
         fun erase_quants ctm' =
           case (Thm.term_of ctm') of
-            Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.all_conv ctm'
+            Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Conv.all_conv ctm'
             | _ => (Conv.binder_conv (K erase_quants) lthy then_conv
               Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
       in
@@ -111,7 +111,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
       in
         case (Thm.term_of ctm) of
-          Const (@{const_name rel_fun}, _) $ _ $ _ =>
+          Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _ =>
             (binop_conv2 left_conv simp_arrows_conv then_conv unfold_conv) ctm
           | _ => Conv.all_conv ctm
       end
@@ -163,7 +163,7 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
           |> try HOLogic.dest_Trueprop
       in
         case lhs_eq of
-          SOME (Const (@{const_name HOL.eq}, _) $ _ $ _) => SOME (@{thm refl} RS thm)
+          SOME (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => SOME (@{thm refl} RS thm)
           | SOME _ => (case body_type (fastype_of lhs) of
             Type (typ_name, _) =>
               try (fn () =>
@@ -205,10 +205,10 @@ val quotient_def_cmd = gen_quotient_def Proof_Context.read_var Syntax.parse_term
 (* command syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword quotient_definition}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>quotient_definition\<close>
     "definition for constants over the quotient type"
       (Scan.option Parse_Spec.constdecl --
-        Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term -- (@{keyword "is"} |-- Parse.term)))
+        Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term -- (\<^keyword>\<open>is\<close> |-- Parse.term)))
         >> quotient_def_cmd);
 
 end;

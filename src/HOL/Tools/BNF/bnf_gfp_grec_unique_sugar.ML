@@ -23,7 +23,7 @@ fun corec_unique_tac ctxt =
     let
       (* Workaround for odd name clash for goals with "x" in their context *)
       val (_, ctxt) = ctxt
-        |> yield_singleton (mk_Frees "x") @{typ unit};
+        |> yield_singleton (mk_Frees "x") \<^typ>\<open>unit\<close>;
 
       val code_thm = (if null prems then error "No premise" else hd prems)
         |> Object_Logic.rulify ctxt;
@@ -53,7 +53,7 @@ fun corec_unique_tac ctxt =
         (case maybe_corec_info_of ctxt res_T of
           SOME (info as {buffer, ...}) => (info, corec_parse_info_of ctxt arg_Ts res_T buffer)
         | NONE => error ("No corecursor for " ^ quote (Syntax.string_of_typ ctxt res_T) ^
-          " (use " ^ quote (#1 @{command_keyword coinduction_upto}) ^ " to derive it)"));
+          " (use " ^ quote (#1 \<^command_keyword>\<open>coinduction_upto\<close>) ^ " to derive it)"));
 
       val Type (fpT_name, _) = res_T;
 

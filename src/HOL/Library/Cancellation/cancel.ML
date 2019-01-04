@@ -49,15 +49,15 @@ fun proc ctxt ct =
     val t = Thm.term_of ct
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val pre_simplified_ct = Simplifier.full_rewrite (clear_simpset ctxt addsimps
-      Named_Theorems.get ctxt @{named_theorems cancelation_simproc_pre} addsimprocs
-      [@{simproc NO_MATCH}]) (Thm.cterm_of ctxt t');
+      Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_pre\<close> addsimprocs
+      [\<^simproc>\<open>NO_MATCH\<close>]) (Thm.cterm_of ctxt t');
     val t' = Thm.term_of (Thm.rhs_of pre_simplified_ct)
     val export = singleton (Variable.export ctxt' ctxt)
 
     val (t1,_) = Data.dest_bal t'
-    val sort_not_general_enough = ((fastype_of t1) = @{typ nat}) orelse
+    val sort_not_general_enough = ((fastype_of t1) = \<^typ>\<open>nat\<close>) orelse
         Sorts.of_sort (Sign.classes_of (Proof_Context.theory_of ctxt))
-         (fastype_of t1, @{sort "comm_ring_1"})
+         (fastype_of t1, \<^sort>\<open>comm_ring_1\<close>)
     val _ =
        if sort_not_general_enough
        then raise SORT_NOT_GENERAL_ENOUGH("type too precise, another simproc should do the job",
@@ -67,8 +67,8 @@ fun proc ctxt ct =
     fun add_pre_simplification thm = @{thm Pure.transitive} OF [pre_simplified_ct, thm]
     fun add_post_simplification thm =
       (let val post_simplified_ct = Simplifier.full_rewrite (clear_simpset ctxt addsimps
-              Named_Theorems.get ctxt @{named_theorems cancelation_simproc_post} addsimprocs
-              [@{simproc NO_MATCH}])
+              Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_post\<close> addsimprocs
+              [\<^simproc>\<open>NO_MATCH\<close>])
             (Thm.rhs_of thm)
         in @{thm Pure.transitive} OF [thm, post_simplified_ct] end)
   in

@@ -681,7 +681,7 @@ done
 
 subsection\<open>Ordinal Subtraction\<close>
 
-text\<open>The difference is @{term "ordertype(j-i, Memrel(j))"}.
+text\<open>The difference is \<^term>\<open>ordertype(j-i, Memrel(j))\<close>.
     It's probably simpler to define the difference recursively!\<close>
 
 lemma bij_sum_Diff:
@@ -995,7 +995,7 @@ apply auto
 apply (force dest: omult_lt_mono2 simp add: lt_not_refl)+
 done
 
-subsection\<open>The Relation @{term Lt}\<close>
+subsection\<open>The Relation \<^term>\<open>Lt\<close>\<close>
 
 lemma wf_Lt: "wf(Lt)"
 apply (rule wf_subset)

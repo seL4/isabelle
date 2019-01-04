@@ -13,9 +13,8 @@ imports Complex_Main Extended_Nat Liminf_Limsup
 begin
 
 text \<open>
-  This should be part of @{theory "HOL-Library.Extended_Nat"} or @{theory
-  "HOL-Library.Order_Continuity"}, but then the AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload
-  certain named from @{theory Complex_Main}.
+  This should be part of \<^theory>\<open>HOL-Library.Extended_Nat\<close> or \<^theory>\<open>HOL-Library.Order_Continuity\<close>, but then the AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload
+  certain named from \<^theory>\<open>Complex_Main\<close>.
 \<close>
 
 lemma incseq_sumI2:
@@ -468,7 +467,7 @@ lemma real_of_ereal_add:
   by (cases rule: ereal2_cases[of a b]) auto
 
 
-subsubsection "Linear order on @{typ ereal}"
+subsubsection "Linear order on \<^typ>\<open>ereal\<close>"
 
 instantiation ereal :: linorder
 begin
@@ -2540,7 +2539,7 @@ lemma SUP_countable_SUP:
   "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> Sup (g ` A) = Sup (f ` UNIV)"
   using Sup_countable_SUP [of "g`A"] by auto
 
-subsection "Relation to @{typ enat}"
+subsection "Relation to \<^typ>\<open>enat\<close>"
 
 definition "ereal_of_enat n = (case n of enat n \<Rightarrow> ereal (real n) | \<infinity> \<Rightarrow> \<infinity>)"
 
@@ -2629,7 +2628,7 @@ lemma ereal_of_enat_SUP:
   "A \<noteq> {} \<Longrightarrow> ereal_of_enat (SUP a\<in>A. f a) = (SUP a \<in> A. ereal_of_enat (f a))"
   using ereal_of_enat_Sup[of "f`A"] by auto
 
-subsection "Limits on @{typ ereal}"
+subsection "Limits on \<^typ>\<open>ereal\<close>"
 
 lemma open_PInfty: "open A \<Longrightarrow> \<infinity> \<in> A \<Longrightarrow> (\<exists>x. {ereal x<..} \<subseteq> A)"
   unfolding open_ereal_generated

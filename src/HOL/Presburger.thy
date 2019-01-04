@@ -488,7 +488,7 @@ lemma [presburger]:
   by simp
   
 
-subsection \<open>Nice facts about division by @{term 4}\<close>  
+subsection \<open>Nice facts about division by \<^term>\<open>4\<close>\<close>  
 
 lemma even_even_mod_4_iff:
   "even (n::nat) \<longleftrightarrow> even (n mod 4)"

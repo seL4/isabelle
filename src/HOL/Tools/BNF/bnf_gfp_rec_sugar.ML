@@ -122,8 +122,8 @@ val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 
 fun use_primcorecursive () =
-  error ("\"auto\" failed (try " ^ quote (#1 @{command_keyword primcorecursive}) ^ " instead of " ^
-    quote (#1 @{command_keyword primcorec}) ^ ")");
+  error ("\"auto\" failed (try " ^ quote (#1 \<^command_keyword>\<open>primcorecursive\<close>) ^ " instead of " ^
+    quote (#1 \<^command_keyword>\<open>primcorec\<close>) ^ ")");
 
 datatype corec_option =
   Plugins_Option of Proof.context -> Plugin_Name.filter |
@@ -184,7 +184,7 @@ fun abstract_over_list rev_vs =
 
 val abs_tuple_balanced = HOLogic.tupled_lambda o mk_tuple_balanced;
 
-fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) =
+fun curried_type (Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>prod\<close>, Ts), T])) =
   Ts ---> T;
 
 fun sort_list_duplicates xs = map snd (sort (int_ord o apply2 fst) xs);
@@ -241,8 +241,8 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
 
     fun fld conds t =
       (case Term.strip_comb t of
-        (Const (@{const_name Let}, _), [_, _]) => fld conds (unfold_lets_splits t)
-      | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
+        (Const (\<^const_name>\<open>Let\<close>, _), [_, _]) => fld conds (unfold_lets_splits t)
+      | (Const (\<^const_name>\<open>If\<close>, _), [cond, then_branch, else_branch]) =>
         fld (conds @ conjuncts_s cond) then_branch o fld (conds @ s_not_conj [cond]) else_branch
       | (Const (c, _), args as _ :: _ :: _) =>
         let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
@@ -282,15 +282,15 @@ fun massage_let_if_case ctxt has_call massage_leaf unexpected_call unsupported_c
     and massage_rec bound_Ts t =
       let val typof = curry fastype_of1 bound_Ts in
         (case Term.strip_comb t of
-          (Const (@{const_name Let}, _), [_, _]) => massage_rec bound_Ts (unfold_lets_splits t)
-        | (Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
+          (Const (\<^const_name>\<open>Let\<close>, _), [_, _]) => massage_rec bound_Ts (unfold_lets_splits t)
+        | (Const (\<^const_name>\<open>If\<close>, _), obj :: (branches as [_, _])) =>
           (case List.partition Term.is_dummy_pattern (map (massage_rec bound_Ts) branches) of
             (dummy_branch' :: _, []) => dummy_branch'
           | (_, [branch']) => branch'
           | (_, branches') =>
             Term.list_comb (If_const (typof (hd branches')) $ tap (check_no_call bound_Ts) obj,
               branches'))
-        | (c as Const (@{const_name case_prod}, _), arg :: args) =>
+        | (c as Const (\<^const_name>\<open>case_prod\<close>, _), arg :: args) =>
           massage_rec bound_Ts
             (unfold_splits_lets (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
         | (Const (c, _), args as _ :: _ :: _) =>
@@ -333,7 +333,7 @@ fun massage_let_if_case ctxt has_call massage_leaf unexpected_call unsupported_c
   in
     massage_rec bound_Ts t0
     |> Term.map_aterms (fn t =>
-      if Term.is_dummy_pattern t then Const (@{const_name undefined}, fastype_of t) else t)
+      if Term.is_dummy_pattern t then Const (\<^const_name>\<open>undefined\<close>, fastype_of t) else t)
   end;
 
 fun massage_let_if_case_corec ctxt has_call massage_leaf bound_Ts t0 =
@@ -344,8 +344,8 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
   let
     fun check_no_call t = if has_call t then unexpected_corec_call_in ctxt [t0] t else ();
 
-    fun massage_mutual_call bound_Ts (Type (@{type_name fun}, [_, U2]))
-        (Type (@{type_name fun}, [T1, T2])) t =
+    fun massage_mutual_call bound_Ts (Type (\<^type_name>\<open>fun\<close>, [_, U2]))
+        (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) t =
         Abs (Name.uu, T1, massage_mutual_call (T1 :: bound_Ts) U2 T2 (incr_boundvars 1 t $ Bound 0))
       | massage_mutual_call bound_Ts U T t =
         (if has_call t then massage_call else massage_noncall) bound_Ts U T t;
@@ -379,7 +379,7 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
             (betapply (t, var))));
       in
         (case t of
-          Const (@{const_name comp}, _) $ t1 $ t2 =>
+          Const (\<^const_name>\<open>comp\<close>, _) $ t1 $ t2 =>
           if has_call t2 then massage_body ()
           else mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, t2)
         | _ => massage_body ())
@@ -402,12 +402,12 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
               end
             | NONE =>
               (case t of
-                Const (@{const_name case_prod}, _) $ t' =>
+                Const (\<^const_name>\<open>case_prod\<close>, _) $ t' =>
                 let
                   val U' = curried_type U;
                   val T' = curried_type T;
                 in
-                  Const (@{const_name case_prod}, U' --> U) $ massage_any_call bound_Ts U' T' t'
+                  Const (\<^const_name>\<open>case_prod\<close>, U' --> U) $ massage_any_call bound_Ts U' T' t'
                 end
               | t1 $ t2 =>
                 (if has_call t2 then
@@ -555,7 +555,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
     val perm_Cs' = map substCT perm_Cs;
 
-    fun call_of nullary [] [g_i] [Type (@{type_name fun}, [_, T])] =
+    fun call_of nullary [] [g_i] [Type (\<^type_name>\<open>fun\<close>, [_, T])] =
         (if exists_subtype_in Cs T then Nested_Corec
          else if nullary then Dummy_No_Corec
          else No_Corec) g_i
@@ -595,7 +595,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
      is_some gfp_sugar_thms, lthy)
   end;
 
-val undef_const = Const (@{const_name undefined}, dummyT);
+val undef_const = Const (\<^const_name>\<open>undefined\<close>, dummyT);
 
 type coeqn_data_disc =
   {fun_name: string,
@@ -676,7 +676,7 @@ fun dissect_coeqn_disc ctxt fun_names sequentials
 
     val discs = map #disc basic_ctr_specs;
     val ctrs = map #ctr basic_ctr_specs;
-    val not_disc = head_of concl = @{term Not};
+    val not_disc = head_of concl = \<^term>\<open>Not\<close>;
     val _ = not_disc andalso length ctrs <> 2 andalso
       error_at ctxt [concl] "Negated discriminator for a type with \<noteq> 2 constructors";
     val disc' = find_subterm (member (op =) discs o head_of) concl;
@@ -894,7 +894,7 @@ fun build_corec_args_mutual_call ctxt has_call (sel_eqns : coeqn_data_sel list) 
     let
       val bound_Ts = List.rev (map fastype_of fun_args);
 
-      fun rewrite_stop _ t = if has_call t then @{term False} else @{term True};
+      fun rewrite_stop _ t = if has_call t then \<^term>\<open>False\<close> else \<^term>\<open>True\<close>;
       fun rewrite_end _ t = if has_call t then undef_const else t;
       fun rewrite_cont bound_Ts t =
         if has_call t then mk_tuple1_balanced bound_Ts (snd (strip_comb t)) else undef_const;
@@ -921,7 +921,7 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
               let val (u, vs) = strip_comb t in
                 if is_Free u andalso has_call u then
                   Inr_const T U2 $ mk_tuple1_balanced bound_Ts vs
-                else if try (fst o dest_Const) u = SOME @{const_name case_prod} then
+                else if try (fst o dest_Const) u = SOME \<^const_name>\<open>case_prod\<close> then
                   map (rewrite bound_Ts) vs |> chop 1
                   |>> HOLogic.mk_case_prod o the_single
                   |> Term.list_comb
@@ -974,8 +974,8 @@ fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     val corec_args = hd corecs
       |> fst o split_last o binder_types o fastype_of
       |> map (fn T =>
-          if range_type T = HOLogic.boolT then Abs (Name.uu_, domain_type T, @{term False})
-          else Const (@{const_name undefined}, T))
+          if range_type T = HOLogic.boolT then Abs (Name.uu_, domain_type T, \<^term>\<open>False\<close>)
+          else Const (\<^const_name>\<open>undefined\<close>, T))
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
       |> fold2 (fold o build_corec_args_sel ctxt has_call) sel_eqnss ctr_specss;
 
@@ -1245,7 +1245,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
 
         fun prove_disc ({ctr_specs, ...} : corec_spec) excludesss
             ({fun_name, fun_T, fun_args, ctr_no, prems, eqn_pos, ...} : coeqn_data_disc) =
-          if Term.aconv_untyped (#disc (nth ctr_specs ctr_no), @{term "\<lambda>x. x = x"}) then
+          if Term.aconv_untyped (#disc (nth ctr_specs ctr_no), \<^term>\<open>\<lambda>x. x = x\<close>) then
             []
           else
             let
@@ -1259,7 +1259,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                 |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
                 |> curry Logic.list_all (map dest_Free fun_args);
             in
-              if prems = [@{term False}] then
+              if prems = [\<^term>\<open>False\<close>] then
                 []
               else
                 Goal.prove_sorry lthy [] [] goal
@@ -1341,7 +1341,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
               val disc_thm_opt = AList.lookup (op =) disc_alist disc;
               val sel_thms = map (snd o snd) (filter (member (op =) sels o fst) sel_alist);
             in
-              if prems = [@{term False}] then
+              if prems = [\<^term>\<open>False\<close>] then
                 []
               else
                 Goal.prove_sorry lthy [] [] goal
@@ -1409,7 +1409,7 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
                         (if exhaustive_code then
                            split_last (map_filter I ctr_conds_argss_opt) ||> snd
                          else
-                           Const (@{const_name Code.abort}, @{typ String.literal} -->
+                           Const (\<^const_name>\<open>Code.abort\<close>, \<^typ>\<open>String.literal\<close> -->
                                (HOLogic.unitT --> body_type fun_T) --> body_type fun_T) $
                              HOLogic.mk_literal fun_name $
                              absdummy HOLogic.unitT (incr_boundvars 1 lhs)
@@ -1587,16 +1587,16 @@ val corec_option_parser = Parse.group (K "option")
 val where_alt_props_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
   ((Parse.prop >> pair Binding.empty_atts) -- Scan.option (Parse.reserved "of" |-- Parse.const)));
 
-val _ = Outer_Syntax.local_theory_to_proof @{command_keyword primcorecursive}
+val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>primcorecursive\<close>
   "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |--
-      Parse.!!! (Parse.list1 corec_option_parser) --| @{keyword ")"}) []) --
+  ((Scan.optional (\<^keyword>\<open>(\<close> |--
+      Parse.!!! (Parse.list1 corec_option_parser) --| \<^keyword>\<open>)\<close>) []) --
     (Parse.vars -- where_alt_props_of_parser) >> uncurry (primcorecursive_cmd true));
 
-val _ = Outer_Syntax.local_theory @{command_keyword primcorec}
+val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>primcorec\<close>
   "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 corec_option_parser)
-      --| @{keyword ")"}) []) --
+  ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 corec_option_parser)
+      --| \<^keyword>\<open>)\<close>) []) --
     (Parse.vars -- where_alt_props_of_parser) >> uncurry (primcorec_cmd true));
 
 val _ = Theory.setup (gfp_rec_sugar_interpretation transfer_plugin

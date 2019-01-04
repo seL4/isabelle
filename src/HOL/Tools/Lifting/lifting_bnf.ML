@@ -42,7 +42,7 @@ fun mk_Quotient args =
   let
     val argTs = map fastype_of args
   in
-    list_comb (Const (@{const_name Quotient}, argTs ---> HOLogic.boolT), args)
+    list_comb (Const (\<^const_name>\<open>Quotient\<close>, argTs ---> HOLogic.boolT), args)
   end
 
 fun prove_Quotient_map bnf ctxt =
@@ -106,7 +106,7 @@ fun lifting_bnf_interpretation bnf lthy =
       lthy |> fold (perhaps o try o (snd oo Local_Theory.notes)) notess
     end
 
-val lifting_plugin = Plugin_Name.declare_setup @{binding lifting}
+val lifting_plugin = Plugin_Name.declare_setup \<^binding>\<open>lifting\<close>
 
 val _ =
   Theory.setup

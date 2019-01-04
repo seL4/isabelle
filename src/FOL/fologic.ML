@@ -37,48 +37,48 @@ end;
 structure FOLogic: FOLOGIC =
 struct
 
-val oT = Type(@{type_name o},[]);
+val oT = Type(\<^type_name>\<open>o\<close>,[]);
 
-val Trueprop = Const(@{const_name Trueprop}, oT-->propT);
+val Trueprop = Const(\<^const_name>\<open>Trueprop\<close>, oT-->propT);
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun dest_Trueprop (Const (@{const_name Trueprop}, _) $ P) = P
+fun dest_Trueprop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
 
 (* Logical constants *)
 
-val not = Const (@{const_name Not}, oT --> oT);
-val conj = Const(@{const_name conj}, [oT,oT]--->oT);
-val disj = Const(@{const_name disj}, [oT,oT]--->oT);
-val imp = Const(@{const_name imp}, [oT,oT]--->oT)
-val iff = Const(@{const_name iff}, [oT,oT]--->oT);
+val not = Const (\<^const_name>\<open>Not\<close>, oT --> oT);
+val conj = Const(\<^const_name>\<open>conj\<close>, [oT,oT]--->oT);
+val disj = Const(\<^const_name>\<open>disj\<close>, [oT,oT]--->oT);
+val imp = Const(\<^const_name>\<open>imp\<close>, [oT,oT]--->oT)
+val iff = Const(\<^const_name>\<open>iff\<close>, [oT,oT]--->oT);
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
 and mk_imp (t1, t2) = imp $ t1 $ t2
 and mk_iff (t1, t2) = iff $ t1 $ t2;
 
-fun dest_imp (Const(@{const_name imp},_) $ A $ B) = (A, B)
+fun dest_imp (Const(\<^const_name>\<open>imp\<close>,_) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
-fun dest_conj (Const (@{const_name conj}, _) $ t $ t') = t :: dest_conj t'
+fun dest_conj (Const (\<^const_name>\<open>conj\<close>, _) $ t $ t') = t :: dest_conj t'
   | dest_conj t = [t];
 
-fun dest_iff (Const(@{const_name iff},_) $ A $ B) = (A, B)
+fun dest_iff (Const(\<^const_name>\<open>iff\<close>,_) $ A $ B) = (A, B)
   | dest_iff  t = raise TERM ("dest_iff", [t]);
 
-fun eq_const T = Const (@{const_name eq}, [T, T] ---> oT);
+fun eq_const T = Const (\<^const_name>\<open>eq\<close>, [T, T] ---> oT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const (@{const_name eq}, _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq (Const (\<^const_name>\<open>eq\<close>, _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
-fun all_const T = Const (@{const_name All}, [T --> oT] ---> oT);
+fun all_const T = Const (\<^const_name>\<open>All\<close>, [T --> oT] ---> oT);
 fun mk_all (Free (x, T), P) = all_const T $ absfree (x, T) P;
 
-fun exists_const T = Const (@{const_name Ex}, [T --> oT] ---> oT);
+fun exists_const T = Const (\<^const_name>\<open>Ex\<close>, [T --> oT] ---> oT);
 fun mk_exists (Free (x, T), P) = exists_const T $ absfree (x, T) P;
 
 

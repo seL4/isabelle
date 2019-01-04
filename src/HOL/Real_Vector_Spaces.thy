@@ -1212,21 +1212,21 @@ lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
 subsection \<open>Extra type constraints\<close>
 
-text \<open>Only allow @{term "open"} in class \<open>topological_space\<close>.\<close>
+text \<open>Only allow \<^term>\<open>open\<close> in class \<open>topological_space\<close>.\<close>
 setup \<open>Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
+  (\<^const_name>\<open>open\<close>, SOME \<^typ>\<open>'a::topological_space set \<Rightarrow> bool\<close>)\<close>
 
-text \<open>Only allow @{term "uniformity"} in class \<open>uniform_space\<close>.\<close>
+text \<open>Only allow \<^term>\<open>uniformity\<close> in class \<open>uniform_space\<close>.\<close>
 setup \<open>Sign.add_const_constraint
-  (@{const_name "uniformity"}, SOME @{typ "('a::uniformity \<times> 'a) filter"})\<close>
+  (\<^const_name>\<open>uniformity\<close>, SOME \<^typ>\<open>('a::uniformity \<times> 'a) filter\<close>)\<close>
 
-text \<open>Only allow @{term dist} in class \<open>metric_space\<close>.\<close>
+text \<open>Only allow \<^term>\<open>dist\<close> in class \<open>metric_space\<close>.\<close>
 setup \<open>Sign.add_const_constraint
-  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"})\<close>
+  (\<^const_name>\<open>dist\<close>, SOME \<^typ>\<open>'a::metric_space \<Rightarrow> 'a \<Rightarrow> real\<close>)\<close>
 
-text \<open>Only allow @{term norm} in class \<open>real_normed_vector\<close>.\<close>
+text \<open>Only allow \<^term>\<open>norm\<close> in class \<open>real_normed_vector\<close>.\<close>
 setup \<open>Sign.add_const_constraint
-  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"})\<close>
+  (\<^const_name>\<open>norm\<close>, SOME \<^typ>\<open>'a::real_normed_vector \<Rightarrow> real\<close>)\<close>
 
 
 subsection \<open>Sign function\<close>
@@ -2087,8 +2087,8 @@ text \<open>
 \<close>
 
 text \<open>
-  If sequence @{term "X"} is Cauchy, then its limit is the lub of
-  @{term "{r::real. \<exists>N. \<forall>n\<ge>N. r < X n}"}
+  If sequence \<^term>\<open>X\<close> is Cauchy, then its limit is the lub of
+  \<^term>\<open>{r::real. \<exists>N. \<forall>n\<ge>N. r < X n}\<close>
 \<close>
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"

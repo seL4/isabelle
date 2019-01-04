@@ -76,7 +76,7 @@ fun net_res_tac ctxt maxr net =
          if length rls <= maxr then resolve_tac ctxt rls i else no_tac
       end);
 
-fun is_rigid_elem (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) =
+fun is_rigid_elem (Const(\<^const_name>\<open>Trueprop\<close>,_) $ (Const(\<^const_name>\<open>mem\<close>,_) $ a $ _)) =
       not (is_Var (head_of a))
   | is_rigid_elem _ = false;
 
@@ -116,9 +116,9 @@ val _ = Theory.setup (map_theory_simpset (fn ctxt => ctxt setSolver type_solver)
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del)
+   (Attrib.setup \<^binding>\<open>TC\<close> (Attrib.add_del TC_add TC_del)
       "declaration of type-checking rule" #>
-    Method.setup @{binding typecheck}
+    Method.setup \<^binding>\<open>typecheck\<close>
       (Method.sections
         [Args.add -- Args.colon >> K (Method.modifier TC_add \<^here>),
          Args.del -- Args.colon >> K (Method.modifier TC_del \<^here>)]
@@ -126,7 +126,7 @@ val _ =
       "ZF type-checking");
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_tcset} "print context of ZF typecheck"
+  Outer_Syntax.command \<^command_keyword>\<open>print_tcset\<close> "print context of ZF typecheck"
     (Scan.succeed (Toplevel.keep (print_tcset o Toplevel.context_of)));
 
 end;

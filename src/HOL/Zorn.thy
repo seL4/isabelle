@@ -78,8 +78,8 @@ lemma subset_suc:
   using assms by (rule subset_trans) (rule suc_subset)
 
 text \<open>
-  We build a set @{term \<C>} that is closed under applications
-  of @{term suc} and contains the union of all its subsets.
+  We build a set \<^term>\<open>\<C>\<close> that is closed under applications
+  of \<^term>\<open>suc\<close> and contains the union of all its subsets.
 \<close>
 inductive_set suc_Union_closed ("\<C>")
   where
@@ -88,14 +88,14 @@ inductive_set suc_Union_closed ("\<C>")
 
 text \<open>
   Since the empty set as well as the set itself is a subset of
-  every set, @{term \<C>} contains at least @{term "{} \<in> \<C>"} and
-  @{term "\<Union>\<C> \<in> \<C>"}.
+  every set, \<^term>\<open>\<C>\<close> contains at least \<^term>\<open>{} \<in> \<C>\<close> and
+  \<^term>\<open>\<Union>\<C> \<in> \<C>\<close>.
 \<close>
 lemma suc_Union_closed_empty: "{} \<in> \<C>"
   and suc_Union_closed_Union: "\<Union>\<C> \<in> \<C>"
   using Union [of "{}"] and Union [of "\<C>"] by simp_all
 
-text \<open>Thus closure under @{term suc} will hit a maximal chain
+text \<open>Thus closure under \<^term>\<open>suc\<close> will hit a maximal chain
   eventually, as is shown below.\<close>
 
 lemma suc_Union_closed_induct [consumes 1, case_names suc Union, induct pred: suc_Union_closed]:
@@ -112,7 +112,7 @@ lemma suc_Union_closed_cases [consumes 1, case_names suc Union, cases pred: suc_
   shows "Q"
   using assms by cases simp_all
 
-text \<open>On chains, @{term suc} yields a chain.\<close>
+text \<open>On chains, \<^term>\<open>suc\<close> yields a chain.\<close>
 lemma chain_suc:
   assumes "chain X"
   shows "chain (suc X)"
@@ -204,7 +204,7 @@ next
   qed
 qed
 
-text \<open>The elements of @{term \<C>} are totally ordered by the subset relation.\<close>
+text \<open>The elements of \<^term>\<open>\<C>\<close> are totally ordered by the subset relation.\<close>
 lemma suc_Union_closed_total:
   assumes "X \<in> \<C>" and "Y \<in> \<C>"
   shows "X \<subseteq> Y \<or> Y \<subseteq> X"
@@ -221,8 +221,8 @@ next
     by blast
 qed
 
-text \<open>Once we hit a fixed point w.r.t. @{term suc}, all other elements
-  of @{term \<C>} are subsets of this fixed point.\<close>
+text \<open>Once we hit a fixed point w.r.t. \<^term>\<open>suc\<close>, all other elements
+  of \<^term>\<open>\<C>\<close> are subsets of this fixed point.\<close>
 lemma suc_Union_closed_suc:
   assumes "X \<in> \<C>" and "Y \<in> \<C>" and "suc Y = Y"
   shows "X \<subseteq> Y"
@@ -269,7 +269,7 @@ lemma suc_Union_closed_in_carrier:
   using assms
   by induct (auto dest: suc_in_carrier)
 
-text \<open>All elements of @{term \<C>} are chains.\<close>
+text \<open>All elements of \<^term>\<open>\<C>\<close> are chains.\<close>
 lemma suc_Union_closed_chain:
   assumes "X \<in> \<C>"
   shows "chain X"
@@ -332,7 +332,7 @@ proof -
   then show ?thesis by blast
 qed
 
-text \<open>Make notation @{term \<C>} available again.\<close>
+text \<open>Make notation \<^term>\<open>\<C>\<close> available again.\<close>
 no_notation suc_Union_closed  ("\<C>")
 
 lemma chain_extend: "chain C \<Longrightarrow> z \<in> A \<Longrightarrow> \<forall>x\<in>C. x \<sqsubseteq> z \<Longrightarrow> chain ({z} \<union> C)"
@@ -343,7 +343,7 @@ lemma maxchain_imp_chain: "maxchain C \<Longrightarrow> chain C"
 
 end
 
-text \<open>Hide constant @{const pred_on.suc_Union_closed}, which was just needed
+text \<open>Hide constant \<^const>\<open>pred_on.suc_Union_closed\<close>, which was just needed
   for the proof of Hausforff's maximum principle.\<close>
 hide_const pred_on.suc_Union_closed
 

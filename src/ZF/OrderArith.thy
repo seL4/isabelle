@@ -112,7 +112,7 @@ apply (simp add: well_ord_def wf_on_radd)
 apply (simp add: well_ord_def tot_ord_def linear_radd)
 done
 
-subsubsection\<open>An @{term ord_iso} congruence law\<close>
+subsubsection\<open>An \<^term>\<open>ord_iso\<close> congruence law\<close>
 
 lemma sum_bij:
      "[| f \<in> bij(A,C);  g \<in> bij(B,D) |]
@@ -217,7 +217,7 @@ apply (simp add: well_ord_def tot_ord_def linear_rmult)
 done
 
 
-subsubsection\<open>An @{term ord_iso} congruence law\<close>
+subsubsection\<open>An \<^term>\<open>ord_iso\<close> congruence law\<close>
 
 lemma prod_bij:
      "[| f \<in> bij(A,C);  g \<in> bij(B,D) |]
@@ -370,7 +370,7 @@ apply blast
 done
 
 text\<open>But note that the combination of \<open>wf_imp_wf_on\<close> and
- \<open>wf_rvimage\<close> gives @{prop "wf(r) ==> wf[C](rvimage(A,f,r))"}\<close>
+ \<open>wf_rvimage\<close> gives \<^prop>\<open>wf(r) ==> wf[C](rvimage(A,f,r))\<close>\<close>
 lemma wf_on_rvimage: "[| f \<in> A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>z\<in>A. f`z=f`y \<longrightarrow> z \<in> Ba")
@@ -554,7 +554,7 @@ apply (rule_tac d = "%<X,Y>. {Inl (x). x \<in> X} \<union> {Inr (y). y \<in> Y}"
 apply force+
 done
 
-text\<open>As a special case, we have @{term "bij(Pow(A*B), A -> Pow(B))"}\<close>
+text\<open>As a special case, we have \<^term>\<open>bij(Pow(A*B), A -> Pow(B))\<close>\<close>
 lemma Pow_Sigma_bij:
     "(\<lambda>r \<in> Pow(Sigma(A,B)). \<lambda>x \<in> A. r``{x})
      \<in> bij(Pow(Sigma(A,B)), \<Prod>x \<in> A. Pow(B(x)))"

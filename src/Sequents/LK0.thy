@@ -34,8 +34,8 @@ consts
 syntax
  "_Trueprop"    :: "two_seqe" ("((_)/ \<turnstile> (_))" [6,6] 5)
 
-parse_translation \<open>[(@{syntax_const "_Trueprop"}, K (two_seq_tr @{const_syntax Trueprop}))]\<close>
-print_translation \<open>[(@{const_syntax Trueprop}, K (two_seq_tr' @{syntax_const "_Trueprop"}))]\<close>
+parse_translation \<open>[(\<^syntax_const>\<open>_Trueprop\<close>, K (two_seq_tr \<^const_syntax>\<open>Trueprop\<close>))]\<close>
+print_translation \<open>[(\<^const_syntax>\<open>Trueprop\<close>, K (two_seq_tr' \<^syntax_const>\<open>_Trueprop\<close>))]\<close>
 
 abbreviation
   not_equal  (infixl "\<noteq>" 50) where
@@ -200,15 +200,15 @@ lemmas [safe] =
   conjR conjL
   FalseL TrueR
   refl basic
-ML \<open>val prop_pack = Cla.get_pack @{context}\<close>
+ML \<open>val prop_pack = Cla.get_pack \<^context>\<close>
 
 lemmas [safe] = exL allR
 lemmas [unsafe] = the_equality exR_thin allL_thin
-ML \<open>val LK_pack = Cla.get_pack @{context}\<close>
+ML \<open>val LK_pack = Cla.get_pack \<^context>\<close>
 
 ML \<open>
   val LK_dup_pack =
-    Cla.put_pack prop_pack @{context}
+    Cla.put_pack prop_pack \<^context>
     |> fold_rev Cla.add_safe @{thms allR exL}
     |> fold_rev Cla.add_unsafe @{thms allL exR the_equality}
     |> Cla.get_pack;

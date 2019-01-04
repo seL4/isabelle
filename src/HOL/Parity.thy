@@ -454,7 +454,7 @@ qed
 end
 
 
-subsection \<open>Instance for @{typ nat}\<close>
+subsection \<open>Instance for \<^typ>\<open>nat\<close>\<close>
 
 instance nat :: semiring_parity
   by standard (simp_all add: dvd_eq_mod_eq_0)
@@ -679,7 +679,7 @@ lemma power_even_abs_numeral [simp]:
 end
 
 
-subsection \<open>Instance for @{typ int}\<close>
+subsection \<open>Instance for \<^typ>\<open>int\<close>\<close>
 
 instance int :: ring_parity
   by standard (simp_all add: dvd_eq_mod_eq_0 divide_int_def division_segment_int_def)
@@ -706,7 +706,7 @@ context semiring_parity
 begin
 
 text \<open>The primary purpose of the following operations is
-  to avoid ad-hoc simplification of concrete expressions @{term "2 ^ n"}\<close>
+  to avoid ad-hoc simplification of concrete expressions \<^term>\<open>2 ^ n\<close>\<close>
 
 definition push_bit :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
   where push_bit_eq_mult: "push_bit n a = a * 2 ^ n"

@@ -15,12 +15,12 @@ struct
 fun under_fixes f unchanged_prems (prems, nthms) names args (concl, ctxt) =
   let
     val thms1 = unchanged_prems @ map (SMT_Replay.varify ctxt) prems
-    val _ =  SMT_Config.veriT_msg ctxt (fn () => @{print}  ("names =", names))
+    val _ =  SMT_Config.veriT_msg ctxt (fn () => \<^print>  ("names =", names))
     val thms2 = map snd nthms
-    val _ = SMT_Config.veriT_msg ctxt (fn () => @{print} ("prems=", prems))
-    val _ = SMT_Config.veriT_msg ctxt (fn () => @{print} ("nthms=", nthms))
-    val _ = SMT_Config.veriT_msg ctxt (fn () => @{print} ("thms1=", thms1))
-    val _ = SMT_Config.veriT_msg ctxt (fn () => @{print} ("thms2=", thms2))
+    val _ = SMT_Config.veriT_msg ctxt (fn () => \<^print> ("prems=", prems))
+    val _ = SMT_Config.veriT_msg ctxt (fn () => \<^print> ("nthms=", nthms))
+    val _ = SMT_Config.veriT_msg ctxt (fn () => \<^print> ("thms1=", thms1))
+    val _ = SMT_Config.veriT_msg ctxt (fn () => \<^print> ("thms2=", thms2))
   in (f ctxt (thms1 @ thms2) args concl) end
 
 
@@ -30,7 +30,7 @@ fun replay_thm method_for rewrite_rules ll_defs ctxt assumed unchanged_prems pre
     concl_transformation global_transformation args
     (VeriT_Proof.VeriT_Replay_Node {id, rule, concl, bounds,  ...}) =
   let
-    val _ = SMT_Config.veriT_msg ctxt (fn () => @{print} id)
+    val _ = SMT_Config.veriT_msg ctxt (fn () => \<^print> id)
     val rewrite = let val thy = Proof_Context.theory_of (empty_simpset ctxt) in
         Raw_Simplifier.rewrite_term thy rewrite_rules []
         #> not (null ll_defs) ? SMTLIB_Isar.unlift_term ll_defs

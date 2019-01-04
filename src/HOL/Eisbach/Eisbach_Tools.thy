@@ -27,17 +27,17 @@ in
 
 val _ =
   Theory.setup
-   (setup_trace_method @{binding print_fact}
+   (setup_trace_method \<^binding>\<open>print_fact\<close>
       (Scan.lift (Scan.ahead Parse.not_eof) -- Attrib.thms)
       (fn ctxt => fn (tok, thms) =>
         (* FIXME proper formatting!? *)
         Token.unparse tok ^ ": " ^ commas (map (Thm.string_of_thm ctxt) thms)) #>
-    setup_trace_method @{binding print_term}
+    setup_trace_method \<^binding>\<open>print_term\<close>
       (Scan.lift (Scan.ahead Parse.not_eof) -- Args.term)
       (fn ctxt => fn (tok, t) =>
         (* FIXME proper formatting!? *)
         Token.unparse tok ^ ": " ^ Syntax.string_of_term ctxt t) #>
-    setup_trace_method @{binding print_type}
+    setup_trace_method \<^binding>\<open>print_type\<close>
       (Scan.lift (Scan.ahead Parse.not_eof) -- Args.typ)
       (fn ctxt => fn (tok, t) =>
         (* FIXME proper formatting!? *)

@@ -106,7 +106,7 @@ apply (frule_tac a = Cb in fold_set.dom_subset [THEN subsetD, THEN SigmaD1])
 apply (simp add: Fin_into_Finite [THEN Finite_imp_cardinal_cons])
 apply (case_tac "x=xb", auto) 
 apply (simp add: cons_lemma1, blast)
-txt\<open>case @{term "x\<noteq>xb"}\<close>
+txt\<open>case \<^term>\<open>x\<noteq>xb\<close>\<close>
 apply (drule cons_lemma2, safe)
 apply (frule Diff_sing_imp, assumption+) 
 txt\<open>* LEVEL 17\<close>
@@ -237,7 +237,7 @@ apply (drule Finite_into_Fin)
 apply (blast intro: Fin_mono [THEN subsetD])
 done
 
-subsection\<open>The Operator @{term setsum}\<close>
+subsection\<open>The Operator \<^term>\<open>setsum\<close>\<close>
 
 lemma setsum_0 [simp]: "setsum(g, 0) = #0"
 by (simp add: setsum_def)

@@ -28,7 +28,7 @@ lemma imp_to_disjD: "P\<longrightarrow>Q \<Longrightarrow> \<not>P \<or> Q"
   and not_impD: "\<not>(P\<longrightarrow>Q) \<Longrightarrow> P \<and> \<not>Q"
   and iff_to_disjD: "P=Q \<Longrightarrow> (\<not>P \<or> Q) \<and> (\<not>Q \<or> P)"
   and not_iffD: "\<not>(P=Q) \<Longrightarrow> (P \<or> Q) \<and> (\<not>P \<or> \<not>Q)"
-    \<comment> \<open>Much more efficient than @{prop "(P \<and> \<not>Q) \<or> (Q \<and> \<not>P)"} for computing CNF\<close>
+    \<comment> \<open>Much more efficient than \<^prop>\<open>(P \<and> \<not>Q) \<or> (Q \<and> \<not>P)\<close> for computing CNF\<close>
   and not_refl_disj_D: "x \<noteq> x \<or> P \<Longrightarrow> P"
   by fast+
 
@@ -70,7 +70,7 @@ text\<open>Version for Plaisted's "Postive refinement" of the Meson procedure\<c
 lemma make_refined_neg_rule: "\<not>P\<or>Q \<Longrightarrow> (P \<Longrightarrow> Q)"
 by blast
 
-text\<open>@{term P} should be a literal\<close>
+text\<open>\<^term>\<open>P\<close> should be a literal\<close>
 lemma make_pos_rule: "P\<or>Q \<Longrightarrow> ((P\<Longrightarrow>\<not>P) \<Longrightarrow> Q)"
 by blast
 

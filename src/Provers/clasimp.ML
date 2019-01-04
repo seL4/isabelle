@@ -180,7 +180,7 @@ val best_simp_tac = Classical.best_tac o addss;
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding iff}
+    (Attrib.setup \<^binding>\<open>iff\<close>
       (Scan.lift
         (Args.del >> K iff_del ||
           Scan.option Args.add -- Args.query >> K iff_add' ||
@@ -215,12 +215,12 @@ val auto_method =
 
 val _ =
   Theory.setup
-   (Method.setup @{binding fastforce} (clasimp_method' fast_force_tac) "combined fast and simp" #>
-    Method.setup @{binding slowsimp} (clasimp_method' slow_simp_tac) "combined slow and simp" #>
-    Method.setup @{binding bestsimp} (clasimp_method' best_simp_tac) "combined best and simp" #>
-    Method.setup @{binding force} (clasimp_method' force_tac) "force" #>
-    Method.setup @{binding auto} auto_method "auto" #>
-    Method.setup @{binding clarsimp} (clasimp_method' (CHANGED_PROP oo clarsimp_tac))
+   (Method.setup \<^binding>\<open>fastforce\<close> (clasimp_method' fast_force_tac) "combined fast and simp" #>
+    Method.setup \<^binding>\<open>slowsimp\<close> (clasimp_method' slow_simp_tac) "combined slow and simp" #>
+    Method.setup \<^binding>\<open>bestsimp\<close> (clasimp_method' best_simp_tac) "combined best and simp" #>
+    Method.setup \<^binding>\<open>force\<close> (clasimp_method' force_tac) "force" #>
+    Method.setup \<^binding>\<open>auto\<close> auto_method "auto" #>
+    Method.setup \<^binding>\<open>clarsimp\<close> (clasimp_method' (CHANGED_PROP oo clarsimp_tac))
       "clarify simplified goal");
 
 end;

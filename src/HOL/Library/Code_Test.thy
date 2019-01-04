@@ -9,7 +9,7 @@ imports Main
 keywords "test_code" :: diag
 begin
 
-subsection \<open>YXML encoding for @{typ Code_Evaluation.term}\<close>
+subsection \<open>YXML encoding for \<^typ>\<open>Code_Evaluation.term\<close>\<close>
 
 datatype (plugins del: code size "quickcheck") yxml_of_term = YXML
 
@@ -24,7 +24,7 @@ definition yot_append :: "yxml_of_term \<Rightarrow> yxml_of_term \<Rightarrow> 
 definition yot_concat :: "yxml_of_term list \<Rightarrow> yxml_of_term"
   where [code del]: "yot_concat _ = YXML"
 
-text \<open>Serialise @{typ yxml_of_term} to native string of target language\<close>
+text \<open>Serialise \<^typ>\<open>yxml_of_term\<close> to native string of target language\<close>
 
 code_printing type_constructor yxml_of_term
   \<rightharpoonup>  (SML) "string"
@@ -55,7 +55,7 @@ code_printing type_constructor yxml_of_term
 text \<open>
   Stripped-down implementations of Isabelle's XML tree with YXML encoding as
   defined in \<^file>\<open>~~/src/Pure/PIDE/xml.ML\<close>, \<^file>\<open>~~/src/Pure/PIDE/yxml.ML\<close>
-  sufficient to encode @{typ "Code_Evaluation.term"} as in
+  sufficient to encode \<^typ>\<open>Code_Evaluation.term\<close> as in
   \<^file>\<open>~~/src/Pure/term_xml.ML\<close>.
 \<close>
 
@@ -114,7 +114,7 @@ definition yxml_string_of_body :: "xml.body \<Rightarrow> yxml_of_term"
 where "yxml_string_of_body ts = foldr yxml_string_of_xml_tree ts yot_empty"
 
 text \<open>
-  Encoding @{typ Code_Evaluation.term} into XML trees as defined in
+  Encoding \<^typ>\<open>Code_Evaluation.term\<close> into XML trees as defined in
   \<^file>\<open>~~/src/Pure/term_xml.ML\<close>.
 \<close>
 
@@ -132,8 +132,8 @@ lemma xml_of_term_code [code]:
   "xml_of_term (Code_Evaluation.Const x ty) = [xml.tagged (STR ''0'') (Some x) (xml_of_typ ty)]"
   "xml_of_term (Code_Evaluation.App t1 t2)  = [xml.tagged (STR ''5'') None [xml.node (xml_of_term t1), xml.node (xml_of_term t2)]]"
   "xml_of_term (Code_Evaluation.Abs x ty t) = [xml.tagged (STR ''4'') (Some x) [xml.node (xml_of_typ ty), xml.node (xml_of_term t)]]"
-  \<comment> \<open>FIXME: @{const Code_Evaluation.Free} is used only in @{theory "HOL.Quickcheck_Narrowing"} to represent
-    uninstantiated parameters in constructors. Here, we always translate them to @{ML Free} variables.\<close>
+  \<comment> \<open>FIXME: \<^const>\<open>Code_Evaluation.Free\<close> is used only in \<^theory>\<open>HOL.Quickcheck_Narrowing\<close> to represent
+    uninstantiated parameters in constructors. Here, we always translate them to \<^ML>\<open>Free\<close> variables.\<close>
   "xml_of_term (Code_Evaluation.Free x ty)  = [xml.tagged (STR ''1'') (Some x) (xml_of_typ ty)]"
 by(simp_all add: xml_of_term_def xml_tree_anything)
 

@@ -168,7 +168,7 @@ ML \<open>
       let
         val ty_name =
           (case goal of
-            (_ $ Const (@{const_name Pure.type}, Type (@{type_name itself}, [Type (n, _)]))) => n
+            (_ $ Const (\<^const_name>\<open>Pure.type\<close>, Type (\<^type_name>\<open>itself\<close>, [Type (n, _)]))) => n
           | _ => raise Match)
         val typedef_info = hd (Typedef.get_info ctxt ty_name)
         val typedef_thm = #type_definition (snd typedef_info)
@@ -183,7 +183,7 @@ ML \<open>
         val induct_thm = the (AList.lookup (op =) alist pred_name)
         val vars = rev (Term.add_vars (Thm.prop_of induct_thm) [])
         val insts = vars |> map (fn (_, T) => try (Thm.cterm_of ctxt)
-          (Const (@{const_name Countable.finite_item}, T)))
+          (Const (\<^const_name>\<open>Countable.finite_item\<close>, T)))
         val induct_thm' = Thm.instantiate' [] insts induct_thm
         val rules = @{thms finite_item.intros}
       in

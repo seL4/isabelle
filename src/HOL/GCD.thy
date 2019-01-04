@@ -1709,7 +1709,7 @@ lemma Lcm_coprime':
 end
 
 
-subsection \<open>GCD and LCM on @{typ nat} and @{typ int}\<close>
+subsection \<open>GCD and LCM on \<^typ>\<open>nat\<close> and \<^typ>\<open>int\<close>\<close>
 
 instantiation nat :: gcd
 begin
@@ -1893,7 +1893,7 @@ lemma gcd_idem_int: "gcd x x = \<bar>x\<bar>"
 declare gcd_nat.simps [simp del]
 
 text \<open>
-  \<^medskip> @{term "gcd m n"} divides \<open>m\<close> and \<open>n\<close>.
+  \<^medskip> \<^term>\<open>gcd m n\<close> divides \<open>m\<close> and \<open>n\<close>.
   The conjunctions don't seem provable separately.
 \<close>
 
@@ -2368,7 +2368,7 @@ proof -
 qed
 
 
-subsection \<open>LCM properties on @{typ nat} and @{typ int}\<close>
+subsection \<open>LCM properties on \<^typ>\<open>nat\<close> and \<^typ>\<open>int\<close>\<close>
 
 lemma lcm_altdef_int [code]: "lcm a b = \<bar>a\<bar> * \<bar>b\<bar> div gcd a b"
   for a b :: int
@@ -2445,7 +2445,7 @@ lemma lcm_1_iff_int [simp]: "lcm m n = 1 \<longleftrightarrow> (m = 1 \<or> m = 
   by auto
 
 
-subsection \<open>The complete divisibility lattice on @{typ nat} and @{typ int}\<close>
+subsection \<open>The complete divisibility lattice on \<^typ>\<open>nat\<close> and \<^typ>\<open>int\<close>\<close>
 
 text \<open>
   Lifting \<open>gcd\<close> and \<open>lcm\<close> to sets (\<open>Gcd\<close> / \<open>Lcm\<close>).
@@ -2670,7 +2670,7 @@ proof
 qed simp_all
 
 
-subsection \<open>GCD and LCM on @{typ integer}\<close>
+subsection \<open>GCD and LCM on \<^typ>\<open>integer\<close>\<close>
 
 instantiation integer :: gcd
 begin

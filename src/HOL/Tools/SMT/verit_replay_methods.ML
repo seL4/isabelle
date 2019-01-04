@@ -200,7 +200,7 @@ fun string_of_verit_rule Bind = "Bind"
   | string_of_verit_rule Normalized_Input = VeriT_Proof.veriT_normalized_input_rule
   | string_of_verit_rule Local_Input = VeriT_Proof.veriT_normalized_input_rule
   | string_of_verit_rule Subproof = "subproof"
-  | string_of_verit_rule r = "Unsupported rule: " ^ @{make_string} r
+  | string_of_verit_rule r = "Unsupported rule: " ^ \<^make_string> r
 
 (*** Methods to Replay Normal steps ***)
 (* sko_forall requires the assumptions to be able to SMT_Replay_Methods.prove the equivalence in case of double
@@ -247,9 +247,9 @@ fun refl ctxt thm t =
         | SOME thm => thm))
 
 local
-  fun equiv_pos_neg_term ctxt thm (@{term Trueprop} $
-         (@{term HOL.disj} $ (_) $
-            ((@{term HOL.disj} $ a $ b)))) =
+  fun equiv_pos_neg_term ctxt thm (\<^term>\<open>Trueprop\<close> $
+         (\<^term>\<open>HOL.disj\<close> $ (_) $
+            ((\<^term>\<open>HOL.disj\<close> $ a $ b)))) =
      Drule.infer_instantiate' ctxt (map (SOME o Thm.cterm_of ctxt) [a, b]) thm
 
   fun prove_equiv_pos_neg thm ctxt _ t =
@@ -341,7 +341,7 @@ fun extract_rewrite_rule_assumption thms =
   let
     fun is_rewrite_rule thm =
       (case Thm.prop_of thm of
-        @{term Trueprop} $ (Const(@{const_name HOL.eq}, _) $ Free(_, _) $ _) => true
+        \<^term>\<open>Trueprop\<close> $ (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ Free(_, _) $ _) => true
       | _ => false)
   in
     thms
@@ -399,8 +399,8 @@ val trans_bool_thm =
   @{lemma "P = Q \<Longrightarrow> Q \<Longrightarrow> P" by blast}
 fun trans _ [thm1, thm2] _ =
       (case (Thm.full_prop_of thm1, Thm.full_prop_of thm2) of
-        (@{term Trueprop} $ (Const(@{const_name HOL.eq}, _) $ _ $ t2),
-         @{term Trueprop} $ (Const(@{const_name HOL.eq}, _) $ t3 $ _)) =>
+        (\<^term>\<open>Trueprop\<close> $ (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ t2),
+         \<^term>\<open>Trueprop\<close> $ (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t3 $ _)) =>
         if t2 = t3 then thm1 RSN (1, thm2 RSN (2, @{thm trans}))
         else thm1 RSN (1, (thm2 RS sym) RSN (2, @{thm trans}))
       | _ => trans_bool_thm OF [thm1, thm2])
@@ -518,8 +518,8 @@ fun not_implies2 ctxt [thm] t = SMT_Replay_Methods.prove ctxt t (fn _ =>
 
 
 local
-  fun implies_pos_neg_term ctxt thm (@{term Trueprop} $
-         (@{term HOL.disj} $ (@{term HOL.implies} $ a $ b) $ _)) =
+  fun implies_pos_neg_term ctxt thm (\<^term>\<open>Trueprop\<close> $
+         (\<^term>\<open>HOL.disj\<close> $ (\<^term>\<open>HOL.implies\<close> $ a $ b) $ _)) =
      Drule.infer_instantiate' ctxt (map (SOME o Thm.cterm_of ctxt) [a, b]) thm
 
   fun prove_implies_pos_neg thm ctxt _ t =

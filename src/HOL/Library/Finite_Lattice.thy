@@ -8,14 +8,14 @@ begin
 
 text \<open>A non-empty finite lattice is a complete lattice.
 Since types are never empty in Isabelle/HOL,
-a type of classes @{class finite} and @{class lattice}
-should also have class @{class complete_lattice}.
+a type of classes \<^class>\<open>finite\<close> and \<^class>\<open>lattice\<close>
+should also have class \<^class>\<open>complete_lattice\<close>.
 A type class is defined
-that extends classes @{class finite} and @{class lattice}
-with the operators @{const bot}, @{const top}, @{const Inf}, and @{const Sup},
+that extends classes \<^class>\<open>finite\<close> and \<^class>\<open>lattice\<close>
+with the operators \<^const>\<open>bot\<close>, \<^const>\<open>top\<close>, \<^const>\<open>Inf\<close>, and \<^const>\<open>Sup\<close>,
 along with assumptions that define these operators
-in terms of the ones of classes @{class finite} and @{class lattice}.
-The resulting class is a subclass of @{class complete_lattice}.\<close>
+in terms of the ones of classes \<^class>\<open>finite\<close> and \<^class>\<open>lattice\<close>.
+The resulting class is a subclass of \<^class>\<open>complete_lattice\<close>.\<close>
 
 class finite_lattice_complete = finite + lattice + bot + top + Inf + Sup +
   assumes bot_def: "bot = Inf_fin UNIV"
@@ -24,8 +24,8 @@ class finite_lattice_complete = finite + lattice + bot + top + Inf + Sup +
   assumes Sup_def: "Sup A = Finite_Set.fold sup bot A"
 
 text \<open>The definitional assumptions
-on the operators @{const bot} and @{const top}
-of class @{class finite_lattice_complete}
+on the operators \<^const>\<open>bot\<close> and \<^const>\<open>top\<close>
+of class \<^class>\<open>finite_lattice_complete\<close>
 ensure that they yield bottom and top.\<close>
 
 lemma finite_lattice_complete_bot_least: "(bot::'a::finite_lattice_complete) \<le> x"
@@ -43,8 +43,8 @@ instance finite_lattice_complete \<subseteq> order_top
 instance finite_lattice_complete \<subseteq> bounded_lattice ..
 
 text \<open>The definitional assumptions
-on the operators @{const Inf} and @{const Sup}
-of class @{class finite_lattice_complete}
+on the operators \<^const>\<open>Inf\<close> and \<^const>\<open>Sup\<close>
+of class \<^class>\<open>finite_lattice_complete\<close>
 ensure that they yield infimum and supremum.\<close>
 
 lemma finite_lattice_complete_Inf_empty: "Inf {} = (top :: 'a::finite_lattice_complete)"
@@ -152,8 +152,8 @@ instance "fun" :: (finite, finite_lattice_complete) finite_lattice_complete
 subsection \<open>Finite Distributive Lattices\<close>
 
 text \<open>A finite distributive lattice is a complete lattice
-whose @{const inf} and @{const sup} operators
-distribute over @{const Sup} and @{const Inf}.\<close>
+whose \<^const>\<open>inf\<close> and \<^const>\<open>sup\<close> operators
+distribute over \<^const>\<open>Sup\<close> and \<^const>\<open>Inf\<close>.\<close>
 
 class finite_distrib_lattice_complete =
   distrib_lattice + finite_lattice_complete
@@ -203,19 +203,19 @@ subsection \<open>Linear Orders\<close>
 
 text \<open>A linear order is a distributive lattice.
 A type class is defined
-that extends class @{class linorder}
-with the operators @{const inf} and @{const sup},
+that extends class \<^class>\<open>linorder\<close>
+with the operators \<^const>\<open>inf\<close> and \<^const>\<open>sup\<close>,
 along with assumptions that define these operators
-in terms of the ones of class @{class linorder}.
-The resulting class is a subclass of @{class distrib_lattice}.\<close>
+in terms of the ones of class \<^class>\<open>linorder\<close>.
+The resulting class is a subclass of \<^class>\<open>distrib_lattice\<close>.\<close>
 
 class linorder_lattice = linorder + inf + sup +
   assumes inf_def: "inf x y = (if x \<le> y then x else y)"
   assumes sup_def: "sup x y = (if x \<ge> y then x else y)"
 
 text \<open>The definitional assumptions
-on the operators @{const inf} and @{const sup}
-of class @{class linorder_lattice}
+on the operators \<^const>\<open>inf\<close> and \<^const>\<open>sup\<close>
+of class \<^class>\<open>linorder_lattice\<close>
 ensure that they yield infimum and supremum
 and that they distribute over each other.\<close>
 
@@ -264,8 +264,8 @@ class finite_linorder_complete = linorder_lattice + finite_lattice_complete
 instance finite_linorder_complete \<subseteq> complete_linorder ..
 
 text \<open>A (non-empty) finite linear order is a complete lattice
-whose @{const inf} and @{const sup} operators
-distribute over @{const Sup} and @{const Inf}.\<close>
+whose \<^const>\<open>inf\<close> and \<^const>\<open>sup\<close> operators
+distribute over \<^const>\<open>Sup\<close> and \<^const>\<open>Inf\<close>.\<close>
 
 instance finite_linorder_complete \<subseteq> finite_distrib_lattice_complete ..
 

@@ -280,7 +280,7 @@ fun join_halves n half_xss other_half_xss =
    map2 (map2 append) (Library.chop_groups n half_xss)
      (transpose (Library.chop_groups n other_half_xss)));
 
-fun mk_undefined T = Const (@{const_name undefined}, T);
+fun mk_undefined T = Const (\<^const_name>\<open>undefined\<close>, T);
 
 fun mk_ctr Ts t =
   let val Type (_, Ts0) = body_type (fastype_of t) in
@@ -301,9 +301,9 @@ fun name_of_disc t =
   (case head_of t of
     Abs (_, _, @{const Not} $ (t' $ Bound 0)) =>
     Long_Name.map_base_name (prefix not_prefix) (name_of_disc t')
-  | Abs (_, _, Const (@{const_name HOL.eq}, _) $ Bound 0 $ t') =>
+  | Abs (_, _, Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Bound 0 $ t') =>
     Long_Name.map_base_name (prefix is_prefix) (name_of_disc t')
-  | Abs (_, _, @{const Not} $ (Const (@{const_name HOL.eq}, _) $ Bound 0 $ t')) =>
+  | Abs (_, _, @{const Not} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Bound 0 $ t')) =>
     Long_Name.map_base_name (prefix (not_prefix ^ is_prefix)) (name_of_disc t')
   | t' => name_of_const "discriminator" (perhaps (try domain_type)) t');
 
@@ -380,7 +380,7 @@ fun disc_of_ctr_spec ((disc, _), _) = disc;
 fun ctr_of_ctr_spec ((_, ctr), _) = ctr;
 fun args_of_ctr_spec (_, args) = args;
 
-val code_plugin = Plugin_Name.declare_setup @{binding code};
+val code_plugin = Plugin_Name.declare_setup \<^binding>\<open>code\<close>;
 
 fun prepare_free_constructors kind prep_plugins prep_term
     ((((raw_plugins, discs_sels), raw_case_binding), ctr_specs), sel_default_eqs) no_defs_lthy =
@@ -431,7 +431,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
       can_definitely_rely_on_disc k orelse (k = 1 andalso not (can_definitely_rely_on_disc 2));
     fun should_omit_disc_binding k = n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
-    val equal_binding = @{binding "="};
+    val equal_binding = \<^binding>\<open>=\<close>;
 
     fun is_disc_binding_valid b =
       not (Binding.is_empty b orelse Binding.eq_name (b, equal_binding));
@@ -504,7 +504,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
       list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (u, xctr), HOLogic.mk_eq (w, xf)));
 
     val case_rhs = fold_rev (fold_rev Term.lambda) [fs, [u]]
-      (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
+      (Const (\<^const_name>\<open>The\<close>, (B --> HOLogic.boolT) --> B) $
          Term.lambda w (Library.foldr1 HOLogic.mk_disj (@{map 3} mk_case_disj xctrs xfs xss)));
 
     val ((raw_case, (_, raw_case_def)), (lthy, lthy_old)) = no_defs_lthy
@@ -832,7 +832,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
               fun has_undefined_rhs thm =
                 (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm))) of
-                  Const (@{const_name undefined}, _) => true
+                  Const (\<^const_name>\<open>undefined\<close>, _) => true
                 | _ => false);
 
               val all_sel_thms =
@@ -1158,7 +1158,7 @@ fun free_constructors_cmd kind = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
   prepare_free_constructors kind Plugin_Name.make_filter Syntax.read_term;
 
-val parse_bound_term = Parse.binding --| @{keyword ":"} -- Parse.term;
+val parse_bound_term = Parse.binding --| \<^keyword>\<open>:\<close> -- Parse.term;
 
 type ctr_options = Plugin_Name.filter * bool;
 type ctr_options_cmd = (Proof.context -> Plugin_Name.filter) * bool;
@@ -1167,10 +1167,10 @@ val default_ctr_options : ctr_options = (Plugin_Name.default_filter, false);
 val default_ctr_options_cmd : ctr_options_cmd = (K Plugin_Name.default_filter, false);
 
 val parse_ctr_options =
-  Scan.optional (@{keyword "("} |-- Parse.list1
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.list1
         (Plugin_Name.parse_filter >> (apfst o K)
          || Parse.reserved "discs_sels" >> (apsnd o K o K true)) --|
-      @{keyword ")"}
+      \<^keyword>\<open>)\<close>
       >> (fn fs => fold I fs default_ctr_options_cmd))
     default_ctr_options_cmd;
 
@@ -1178,12 +1178,12 @@ fun parse_ctr_spec parse_ctr parse_arg =
   parse_opt_binding_colon -- parse_ctr -- Scan.repeat parse_arg;
 
 val parse_ctr_specs = Parse.enum1 "|" (parse_ctr_spec Parse.term Parse.binding);
-val parse_sel_default_eqs = Scan.optional (@{keyword "where"} |-- Parse.enum1 "|" Parse.prop) [];
+val parse_sel_default_eqs = Scan.optional (\<^keyword>\<open>where\<close> |-- Parse.enum1 "|" Parse.prop) [];
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword free_constructors}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>free_constructors\<close>
     "register an existing freely generated type's constructors"
-    (parse_ctr_options -- Parse.binding --| @{keyword "for"} -- parse_ctr_specs
+    (parse_ctr_options -- Parse.binding --| \<^keyword>\<open>for\<close> -- parse_ctr_specs
        -- parse_sel_default_eqs
      >> free_constructors_cmd Unknown);
 

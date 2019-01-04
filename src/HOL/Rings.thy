@@ -648,7 +648,7 @@ text \<open>Syntactic division operator\<close>
 class divide =
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
 
-setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a \<Rightarrow> 'a \<Rightarrow> 'a"})\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOME \<^typ>\<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>)\<close>
 
 context semiring
 begin
@@ -670,7 +670,7 @@ lemma [field_simps]:
 
 end
 
-setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::divide \<Rightarrow> 'a \<Rightarrow> 'a"})\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOME \<^typ>\<open>'a::divide \<Rightarrow> 'a \<Rightarrow> 'a\<close>)\<close>
 
 text \<open>Algebraic classes with division\<close>
   
@@ -780,7 +780,7 @@ class algebraic_semidom = semidom_divide
 begin
 
 text \<open>
-  Class @{class algebraic_semidom} enriches a integral domain
+  Class \<^class>\<open>algebraic_semidom\<close> enriches a integral domain
   by notions from algebra, like units in a ring.
   It is a separate class to avoid spoiling fields with notions
   which are degenerated there.
@@ -1292,9 +1292,9 @@ class normalization_semidom = algebraic_semidom + semidom_divide_unit_factor +
 begin
 
 text \<open>
-  Class @{class normalization_semidom} cultivates the idea that each integral
+  Class \<^class>\<open>normalization_semidom\<close> cultivates the idea that each integral
   domain can be split into equivalence classes whose representants are
-  associated, i.e. divide each other. @{const normalize} specifies a canonical
+  associated, i.e. divide each other. \<^const>\<open>normalize\<close> specifies a canonical
   representant for each equivalence class. The rationale behind this is that
   it is easier to reason about equality than equivalences, hence we prefer to
   think about equality of normalized values rather than associated elements.
@@ -1552,8 +1552,7 @@ lemma coprime_normalize_right_iff [simp]:
 
 text \<open>
   We avoid an explicit definition of associated elements but prefer explicit
-  normalisation instead. In theory we could define an abbreviation like @{prop
-  "associated a b \<longleftrightarrow> normalize a = normalize b"} but this is counterproductive
+  normalisation instead. In theory we could define an abbreviation like \<^prop>\<open>associated a b \<longleftrightarrow> normalize a = normalize b\<close> but this is counterproductive
   without suggestive infix syntax, which we do not want to sacrifice for this
   purpose here.
 \<close>
@@ -1770,8 +1769,8 @@ ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
 ML \<open>
 structure Cancel_Div_Mod_Ring = Cancel_Div_Mod
 (
-  val div_name = @{const_name divide};
-  val mod_name = @{const_name modulo};
+  val div_name = \<^const_name>\<open>divide\<close>;
+  val mod_name = \<^const_name>\<open>modulo\<close>;
   val mk_binop = HOLogic.mk_binop;
   val mk_sum = Arith_Data.mk_sum;
   val dest_sum = Arith_Data.dest_sum;
@@ -2179,7 +2178,7 @@ lemma mult_le_0_iff: "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<l
   using zero_le_mult_iff [of "- a" b] by auto
 
 text \<open>
-  Cancellation laws for @{term "c * a < c * b"} and @{term "a * c < b * c"},
+  Cancellation laws for \<^term>\<open>c * a < c * b\<close> and \<^term>\<open>a * c < b * c\<close>,
   also with the relations \<open>\<le>\<close> and equality.
 \<close>
 

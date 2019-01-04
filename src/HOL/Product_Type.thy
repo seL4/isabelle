@@ -10,7 +10,7 @@ theory Product_Type
   keywords "inductive_set" "coinductive_set" :: thy_decl
 begin
 
-subsection \<open>@{typ bool} is a datatype\<close>
+subsection \<open>\<^typ>\<open>bool\<close> is a datatype\<close>
 
 free_constructors (discs_sels) case_bool for True | False
   by auto
@@ -280,7 +280,7 @@ text \<open>
 subsubsection \<open>Tuple syntax\<close>
 
 text \<open>
-  Patterns -- extends pre-defined type @{typ pttrn} used in
+  Patterns -- extends pre-defined type \<^typ>\<open>pttrn\<close> used in
   abstractions.
 \<close>
 
@@ -307,27 +307,27 @@ translations
   "\<lambda>(). b" \<rightleftharpoons> "CONST case_unit b"
   "_abs (CONST Unity) t" \<rightharpoonup> "\<lambda>(). t"
 
-text \<open>print @{term "case_prod f"} as @{term "\<lambda>(x, y). f x y"} and
-  @{term "case_prod (\<lambda>x. f x)"} as @{term "\<lambda>(x, y). f x y"}\<close>
+text \<open>print \<^term>\<open>case_prod f\<close> as \<^term>\<open>\<lambda>(x, y). f x y\<close> and
+  \<^term>\<open>case_prod (\<lambda>x. f x)\<close> as \<^term>\<open>\<lambda>(x, y). f x y\<close>\<close>
 
 typed_print_translation \<open>
   let
     fun case_prod_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
       | case_prod_guess_names_tr' T [Abs (x, xT, t)] =
           (case (head_of t) of
-            Const (@{const_syntax case_prod}, _) => raise Match
+            Const (\<^const_syntax>\<open>case_prod\<close>, _) => raise Match
           | _ =>
             let
               val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
               val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
               val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
             in
-              Syntax.const @{syntax_const "_abs"} $
-                (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+              Syntax.const \<^syntax_const>\<open>_abs\<close> $
+                (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $ y) $ t''
             end)
       | case_prod_guess_names_tr' T [t] =
           (case head_of t of
-            Const (@{const_syntax case_prod}, _) => raise Match
+            Const (\<^const_syntax>\<open>case_prod\<close>, _) => raise Match
           | _ =>
             let
               val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -335,14 +335,14 @@ typed_print_translation \<open>
                 Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
               val (x', t'') = Syntax_Trans.atomic_abs_tr' ("x", xT, t');
             in
-              Syntax.const @{syntax_const "_abs"} $
-                (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+              Syntax.const \<^syntax_const>\<open>_abs\<close> $
+                (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $ y) $ t''
             end)
       | case_prod_guess_names_tr' _ _ = raise Match;
-  in [(@{const_syntax case_prod}, K case_prod_guess_names_tr')] end
+  in [(\<^const_syntax>\<open>case_prod\<close>, K case_prod_guess_names_tr')] end
 \<close>
 
-text \<open>Reconstruct pattern from (nested) @{const case_prod}s,
+text \<open>Reconstruct pattern from (nested) \<^const>\<open>case_prod\<close>s,
   avoiding eta-contraction of body; required for enclosing "let",
   if "let" does not avoid eta-contraction, which has been observed to occur.\<close>
 
@@ -354,33 +354,33 @@ print_translation \<open>
             val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
             val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
           in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+            Syntax.const \<^syntax_const>\<open>_abs\<close> $
+              (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $ y) $ t''
           end
-      | case_prod_tr' [Abs (x, T, (s as Const (@{const_syntax case_prod}, _) $ t))] =
+      | case_prod_tr' [Abs (x, T, (s as Const (\<^const_syntax>\<open>case_prod\<close>, _) $ t))] =
           (* case_prod (\<lambda>x. (case_prod (\<lambda>y z. t))) \<Rightarrow> \<lambda>(x, y, z). t *)
           let
-            val Const (@{syntax_const "_abs"}, _) $
-              (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' =
+            val Const (\<^syntax_const>\<open>_abs\<close>, _) $
+              (Const (\<^syntax_const>\<open>_pattern\<close>, _) $ y $ z) $ t' =
                 case_prod_tr' [t];
             val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
           in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x' $
-                (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
+            Syntax.const \<^syntax_const>\<open>_abs\<close> $
+              (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $
+                (Syntax.const \<^syntax_const>\<open>_patterns\<close> $ y $ z)) $ t''
           end
-      | case_prod_tr' [Const (@{const_syntax case_prod}, _) $ t] =
+      | case_prod_tr' [Const (\<^const_syntax>\<open>case_prod\<close>, _) $ t] =
           (* case_prod (case_prod (\<lambda>x y z. t)) \<Rightarrow> \<lambda>((x, y), z). t *)
           case_prod_tr' [(case_prod_tr' [t])]
             (* inner case_prod_tr' creates next pattern *)
-      | case_prod_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
+      | case_prod_tr' [Const (\<^syntax_const>\<open>_abs\<close>, _) $ x_y $ Abs abs] =
           (* case_prod (\<lambda>pttrn z. t) \<Rightarrow> \<lambda>(pttrn, z). t *)
           let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
+            Syntax.const \<^syntax_const>\<open>_abs\<close> $
+              (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x_y $ z) $ t
           end
       | case_prod_tr' _ = raise Match;
-  in [(@{const_syntax case_prod}, K case_prod_tr')] end
+  in [(\<^const_syntax>\<open>case_prod\<close>, K case_prod_tr')] end
 \<close>
 
 
@@ -443,7 +443,7 @@ lemma case_prod_Pair [simp]: "case_prod Pair = id"
   by (simp add: fun_eq_iff split: prod.split)
 
 lemma case_prod_eta: "(\<lambda>(x, y). f (x, y)) = f"
-  \<comment> \<open>Subsumes the old \<open>split_Pair\<close> when @{term f} is the identity function.\<close>
+  \<comment> \<open>Subsumes the old \<open>split_Pair\<close> when \<^term>\<open>f\<close> is the identity function.\<close>
   by (simp add: fun_eq_iff split: prod.split)
 
 (* This looks like a sensible simp-rule but appears to do more harm than good:
@@ -483,16 +483,16 @@ lemmas split_tupled_all = split_paired_all unit_all_eq2
 ML \<open>
   (* replace parameters of product type by individual component parameters *)
   local (* filtering with exists_paired_all is an essential optimization *)
-    fun exists_paired_all (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) =
+    fun exists_paired_all (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T, t)) =
           can HOLogic.dest_prodT T orelse exists_paired_all t
       | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
       | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
       | exists_paired_all _ = false;
     val ss =
       simpset_of
-       (put_simpset HOL_basic_ss @{context}
+       (put_simpset HOL_basic_ss \<^context>
         addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
-        addsimprocs [@{simproc unit_eq}]);
+        addsimprocs [\<^simproc>\<open>unit_eq\<close>]);
   in
     fun split_all_tac ctxt = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then safe_full_simp_tac (put_simpset ss ctxt) i else no_tac);
@@ -529,9 +529,9 @@ text \<open>
 ML \<open>
 local
   val cond_case_prod_eta_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms cond_case_prod_eta});
+    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms cond_case_prod_eta});
   fun Pair_pat k 0 (Bound m) = (m = k)
-    | Pair_pat k i (Const (@{const_name Pair},  _) $ Bound m $ t) =
+    | Pair_pat k i (Const (\<^const_name>\<open>Pair\<close>,  _) $ Bound m $ t) =
         i > 0 andalso m = k + i andalso Pair_pat k (i - 1) t
     | Pair_pat _ _ _ = false;
   fun no_args k i (Abs (_, _, t)) = no_args (k + 1) i t
@@ -539,7 +539,7 @@ local
     | no_args k i (Bound m) = m < k orelse m > k + i
     | no_args _ _ _ = true;
   fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
-    | split_pat tp i (Const (@{const_name case_prod}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
+    | split_pat tp i (Const (\<^const_name>\<open>case_prod\<close>, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
     | split_pat tp i _ = NONE;
   fun metaeq ctxt lhs rhs = mk_meta_eq (Goal.prove ctxt [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
@@ -557,12 +557,12 @@ local
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
 in
-  fun beta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t) $ arg) =
+  fun beta_proc ctxt (s as Const (\<^const_name>\<open>case_prod\<close>, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
           SOME (i, f) => SOME (metaeq ctxt s (subst arg 0 i f))
         | NONE => NONE)
     | beta_proc _ _ = NONE;
-  fun eta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t)) =
+  fun eta_proc ctxt (s as Const (\<^const_name>\<open>case_prod\<close>, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
           SOME (_, ft) => SOME (metaeq ctxt s (let val f $ _ = ft in f end))
         | NONE => NONE)
@@ -578,7 +578,7 @@ lemma case_prod_beta': "(\<lambda>(x,y). f x y) = (\<lambda>x. f (fst x) (snd x)
   by (auto simp: fun_eq_iff)
 
 text \<open>
-  \<^medskip> @{const case_prod} used as a logical connective or set former.
+  \<^medskip> \<^const>\<open>case_prod\<close> used as a logical connective or set former.
 
   \<^medskip> These rules are for use with \<open>blast\<close>; could instead
   call \<open>simp\<close> using @{thm [source] prod.split} as rewrite.\<close>
@@ -631,7 +631,7 @@ lemma mem_case_prodE [elim!]:
 
 ML \<open>
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const (@{const_name case_prod},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
+  fun exists_p_split (Const (\<^const_name>\<open>case_prod\<close>,_) $ _ $ (Const (\<^const_name>\<open>Pair\<close>,_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
@@ -804,7 +804,7 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text \<open>
-  @{term map_prod} --- action of the product functor upon functions.
+  \<^term>\<open>map_prod\<close> --- action of the product functor upon functions.
 \<close>
 
 definition map_prod :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd"
@@ -983,7 +983,7 @@ lemma SigmaE [elim!]: "c \<in> Sigma A B \<Longrightarrow> (\<And>x y. x \<in> A
   unfolding Sigma_def by blast
 
 text \<open>
-  Elimination of @{term "(a, b) \<in> A \<times> B"} -- introduces no
+  Elimination of \<^term>\<open>(a, b) \<in> A \<times> B\<close> -- introduces no
   eigenvariables.
 \<close>
 
@@ -1177,7 +1177,7 @@ lemma member_product: "x \<in> Product_Type.product A B \<longleftrightarrow> x 
 
 end
 
-text \<open>The following @{const map_prod} lemmas are due to Joachim Breitner:\<close>
+text \<open>The following \<^const>\<open>map_prod\<close> lemmas are due to Joachim Breitner:\<close>
 
 lemma map_prod_inj_on:
   assumes "inj_on f A"
@@ -1267,8 +1267,8 @@ ML_file "Tools/set_comprehension_pointfree.ML"
 
 setup \<open>
   Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs
-    [Simplifier.make_simproc @{context} "set comprehension"
-      {lhss = [@{term "Collect P"}],
+    [Simplifier.make_simproc \<^context> "set comprehension"
+      {lhss = [\<^term>\<open>Collect P\<close>],
        proc = K Set_Comprehension_Pointfree.code_simproc}])
 \<close>
 
@@ -1279,10 +1279,10 @@ subsection \<open>Inductively defined sets\<close>
 simproc_setup Collect_mem ("Collect t") = \<open>
   fn _ => fn ctxt => fn ct =>
     (case Thm.term_of ct of
-      S as Const (@{const_name Collect}, Type (@{type_name fun}, [_, T])) $ t =>
+      S as Const (\<^const_name>\<open>Collect\<close>, Type (\<^type_name>\<open>fun\<close>, [_, T])) $ t =>
         let val (u, _, ps) = HOLogic.strip_ptupleabs t in
           (case u of
-            (c as Const (@{const_name Set.member}, _)) $ q $ S' =>
+            (c as Const (\<^const_name>\<open>Set.member\<close>, _)) $ q $ S' =>
               (case try (HOLogic.strip_ptuple ps) q of
                 NONE => NONE
               | SOME ts =>
@@ -1294,7 +1294,7 @@ simproc_setup Collect_mem ("Collect t") = \<open>
                         addsimps [@{thm split_paired_all}, @{thm case_prod_conv}]) 1
                     in
                       SOME (Goal.prove ctxt [] []
-                        (Const (@{const_name Pure.eq}, T --> T --> propT) $ S $ S')
+                        (Const (\<^const_name>\<open>Pure.eq\<close>, T --> T --> propT) $ S $ S')
                         (K (EVERY
                           [resolve_tac ctxt [eq_reflection] 1,
                            resolve_tac ctxt @{thms subset_antisym} 1,

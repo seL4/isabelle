@@ -284,7 +284,7 @@ by (simp add: incr_var_def)
 lemma incr_bv_type [TC]: "p \<in> formula ==> incr_bv(p) \<in> nat -> formula"
 by (induct_tac p, simp_all)
 
-text\<open>Obviously, @{term DPow} is closed under complements and finite
+text\<open>Obviously, \<^term>\<open>DPow\<close> is closed under complements and finite
 intersections and unions.  Needs an inductive lemma to allow two lists of
 parameters to be combined.\<close>
 
@@ -404,7 +404,7 @@ lemma DPowI:
    ==> {x\<in>A. sats(A, p, Cons(x,env))} \<in> DPow(A)"
 by (simp add: DPow_def, blast)
 
-text\<open>With this rule we can specify @{term p} later.\<close>
+text\<open>With this rule we can specify \<^term>\<open>p\<close> later.\<close>
 lemma DPowI2 [rule_format]:
   "[|\<forall>x\<in>A. P(x) \<longleftrightarrow> sats(A, p, Cons(x,env));
      env \<in> list(A);  p \<in> formula;  arity(p) \<le> succ(length(env))|]
@@ -482,10 +482,10 @@ apply (erule Fin.induct)
 apply (blast intro: cons_in_DPow)
 done
 
-text\<open>@{term DPow} is not monotonic.  For example, let @{term A} be some
-non-constructible set of natural numbers, and let @{term B} be @{term nat}.
-Then @{term "A<=B"} and obviously @{term "A \<in> DPow(A)"} but @{term "A \<notin>
-DPow(B)"}.\<close>
+text\<open>\<^term>\<open>DPow\<close> is not monotonic.  For example, let \<^term>\<open>A\<close> be some
+non-constructible set of natural numbers, and let \<^term>\<open>B\<close> be \<^term>\<open>nat\<close>.
+Then \<^term>\<open>A<=B\<close> and obviously \<^term>\<open>A \<in> DPow(A)\<close> but \<^term>\<open>A \<notin>
+DPow(B)\<close>.\<close>
 
 (*This may be true but the proof looks difficult, requiring relativization
 lemma DPow_insert: "DPow (cons(a,A)) = DPow(A) \<union> {cons(a,X) . X \<in> DPow(A)}"
@@ -654,7 +654,7 @@ proof (induct i rule: eps_induct, intro allI impI)
     by (force simp add: Lset [of x] Lset [of j])
 qed
 
-text\<open>This version lets us remove the premise @{term "Ord(i)"} sometimes.\<close>
+text\<open>This version lets us remove the premise \<^term>\<open>Ord(i)\<close> sometimes.\<close>
 lemma Lset_mono_mem [rule_format]:
      "\<forall>j. i \<in> j \<longrightarrow> Lset(i) \<subseteq> Lset(j)"
 proof (induct i rule: eps_induct, intro allI impI)
@@ -751,7 +751,7 @@ txt\<open>First inclusion\<close>
    apply (blast dest: DPow_imp_subset ltD notE [OF notin_Lset])
   apply blast
  apply (blast dest: ltD)
-txt\<open>Opposite inclusion, @{term "succ(x) \<subseteq> DPow(Lset(x)) \<inter> ON"}\<close>
+txt\<open>Opposite inclusion, \<^term>\<open>succ(x) \<subseteq> DPow(Lset(x)) \<inter> ON\<close>\<close>
 apply auto
 txt\<open>Key case:\<close>
   apply (erule subst, rule Ords_in_DPow [OF Transset_Lset])
@@ -780,7 +780,7 @@ apply (insert Transset_Lset)
 apply (rule LsetI [OF succI1])
 apply (simp add: Transset_def DPow_def)
 apply (intro conjI, blast)
-txt\<open>Now to create the formula @{term "\<exists>y. y \<in> X \<and> x \<in> y"}\<close>
+txt\<open>Now to create the formula \<^term>\<open>\<exists>y. y \<in> X \<and> x \<in> y\<close>\<close>
 apply (rule_tac x="Cons(X,Nil)" in bexI)
  apply (rule_tac x="Exists(And(Member(0,2), Member(1,0)))" in bexI)
   apply typecheck
@@ -808,7 +808,7 @@ done
 lemmas Lset_UnI1 = Un_upper1 [THEN Lset_mono [THEN subsetD]]
 lemmas Lset_UnI2 = Un_upper2 [THEN Lset_mono [THEN subsetD]]
 
-text\<open>Hard work is finding a single @{term"j \<in> i"} such that @{term"{a,b} \<subseteq> Lset(j)"}\<close>
+text\<open>Hard work is finding a single \<^term>\<open>j \<in> i\<close> such that \<^term>\<open>{a,b} \<subseteq> Lset(j)\<close>\<close>
 lemma doubleton_in_LLimit:
     "[| a \<in> Lset(i);  b \<in> Lset(i);  Limit(i) |] ==> {a,b} \<in> Lset(i)"
 apply (erule Limit_LsetE, assumption)
@@ -828,7 +828,7 @@ lemma Pair_in_LLimit:
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
-txt\<open>Infer that @{term"succ(succ(x \<union> xa)) < i"}\<close>
+txt\<open>Infer that \<^term>\<open>succ(succ(x \<union> xa)) < i\<close>\<close>
 apply (blast intro: lt_Ord lt_LsetI [OF Pair_in_Lset]
                     Lset_UnI1 Lset_UnI2 Limit_has_succ Un_least_lt)
 done
@@ -923,7 +923,7 @@ apply (erule nat_induct)
 apply (simp add: Lset_succ Vset_succ Finite_Vset Finite_DPow_eq_Pow)
 done
 
-text\<open>Every set of constructible sets is included in some @{term Lset}\<close>
+text\<open>Every set of constructible sets is included in some \<^term>\<open>Lset\<close>\<close>
 lemma subset_Lset:
      "(\<forall>x\<in>A. L(x)) ==> \<exists>i. Ord(i) & A \<subseteq> Lset(i)"
 by (rule_tac x = "\<Union>x\<in>A. succ(lrank(x))" in exI, force)
@@ -949,7 +949,7 @@ apply (rule LsetI [OF succI1])
 apply (simp add: DPow_def)
 apply (intro conjI, clarify)
  apply (rule_tac a=x in UN_I, simp+)
-txt\<open>Now to create the formula @{term "y \<subseteq> X"}\<close>
+txt\<open>Now to create the formula \<^term>\<open>y \<subseteq> X\<close>\<close>
 apply (rule_tac x="Cons(X,Nil)" in bexI)
  apply (rule_tac x="subset_fm(0,1)" in bexI)
   apply typecheck
@@ -964,7 +964,7 @@ theorem LPow_in_L: "L(X) ==> L({y \<in> Pow(X). L(y)})"
 by (blast intro: L_I dest: L_D LPow_in_Lset)
 
 
-subsection\<open>Eliminating @{term arity} from the Definition of @{term Lset}\<close>
+subsection\<open>Eliminating \<^term>\<open>arity\<close> from the Definition of \<^term>\<open>Lset\<close>\<close>
 
 lemma nth_zero_eq_0: "n \<in> nat ==> nth(n,[0]) = 0"
 by (induct_tac n, auto)
@@ -995,7 +995,7 @@ apply (simp del: app_Cons add: app_Cons [symmetric]
 done
 
 
-text\<open>A simpler version of @{term DPow}: no arity check!\<close>
+text\<open>A simpler version of \<^term>\<open>DPow\<close>: no arity check!\<close>
 definition
   DPow' :: "i => i" where
   "DPow'(A) == {X \<in> Pow(A).
@@ -1022,8 +1022,8 @@ apply (rule equalityI)
 apply (erule DPow'_subset_DPow)
 done
 
-text\<open>And thus we can relativize @{term Lset} without bothering with
-      @{term arity} and @{term length}\<close>
+text\<open>And thus we can relativize \<^term>\<open>Lset\<close> without bothering with
+      \<^term>\<open>arity\<close> and \<^term>\<open>length\<close>\<close>
 lemma Lset_eq_transrec_DPow': "Lset(i) = transrec(i, %x f. \<Union>y\<in>x. DPow'(f`y))"
 apply (rule_tac a=i in eps_induct)
 apply (subst Lset)
@@ -1031,7 +1031,7 @@ apply (subst transrec)
 apply (simp only: DPow_eq_DPow' [OF Transset_Lset], simp)
 done
 
-text\<open>With this rule we can specify @{term p} later and don't worry about
+text\<open>With this rule we can specify \<^term>\<open>p\<close> later and don't worry about
       arities at all!\<close>
 lemma DPow_LsetI [rule_format]:
   "[|\<forall>x\<in>Lset(i). P(x) \<longleftrightarrow> sats(Lset(i), p, Cons(x,env));

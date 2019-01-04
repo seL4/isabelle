@@ -535,7 +535,7 @@ val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 (* FIXME: "let_simp" is probably redundant now that we also rewrite with
   "Let_def [abs_def]". *)
 val nnf_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps nnf_extra_simps
     addsimprocs [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>, \<^simproc>\<open>neq\<close>, \<^simproc>\<open>let_simp\<close>])
 

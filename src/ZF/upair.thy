@@ -23,7 +23,7 @@ lemma atomize_ball [symmetric, rulify]:
 by (simp add: Ball_def atomize_all atomize_imp)
 
 
-subsection\<open>Unordered Pairs: constant @{term Upair}\<close>
+subsection\<open>Unordered Pairs: constant \<^term>\<open>Upair\<close>\<close>
 
 lemma Upair_iff [simp]: "c \<in> Upair(a,b) \<longleftrightarrow> (c=a | c=b)"
 by (unfold Upair_def, blast)
@@ -37,7 +37,7 @@ by simp
 lemma UpairE: "[| a \<in> Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P"
 by (simp, blast)
 
-subsection\<open>Rules for Binary Union, Defined via @{term Upair}\<close>
+subsection\<open>Rules for Binary Union, Defined via \<^term>\<open>Upair\<close>\<close>
 
 lemma Un_iff [simp]: "c \<in> A \<union> B \<longleftrightarrow> (c \<in> A | c \<in> B)"
 apply (simp add: Un_def)
@@ -63,7 +63,7 @@ by (simp, blast)
 lemma UnCI [intro!]: "(c \<notin> B ==> c \<in> A) ==> c \<in> A \<union> B"
 by (simp, blast)
 
-subsection\<open>Rules for Binary Intersection, Defined via @{term Upair}\<close>
+subsection\<open>Rules for Binary Intersection, Defined via \<^term>\<open>Upair\<close>\<close>
 
 lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c \<in> A & c \<in> B)"
 apply (unfold Int_def)
@@ -83,7 +83,7 @@ lemma IntE [elim!]: "[| c \<in> A \<inter> B;  [| c \<in> A; c \<in> B |] ==> P 
 by simp
 
 
-subsection\<open>Rules for Set Difference, Defined via @{term Upair}\<close>
+subsection\<open>Rules for Set Difference, Defined via \<^term>\<open>Upair\<close>\<close>
 
 lemma Diff_iff [simp]: "c \<in> A-B \<longleftrightarrow> (c \<in> A & c\<notin>B)"
 by (unfold Diff_def, blast)
@@ -101,7 +101,7 @@ lemma DiffE [elim!]: "[| c \<in> A - B;  [| c \<in> A; c\<notin>B |] ==> P |] ==
 by simp
 
 
-subsection\<open>Rules for @{term cons}\<close>
+subsection\<open>Rules for \<^term>\<open>cons\<close>\<close>
 
 lemma cons_iff [simp]: "a \<in> cons(b,A) \<longleftrightarrow> (a=b | a \<in> A)"
 apply (unfold cons_def)
@@ -406,7 +406,7 @@ by blast
 
 subsection\<open>Miniscoping of the Replacement Operator\<close>
 
-text\<open>These cover both @{term Replace} and @{term Collect}\<close>
+text\<open>These cover both \<^term>\<open>Replace\<close> and \<^term>\<open>Collect\<close>\<close>
 lemma Rep_simps [simp]:
      "{x. y \<in> 0, R(x,y)} = 0"
      "{x \<in> 0. P(x)} = 0"

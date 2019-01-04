@@ -229,7 +229,7 @@ fun all_modes_of_typ' (T as Type ("fun", _)) =
     else
       [Input, Output]
   end
-  | all_modes_of_typ' (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+  | all_modes_of_typ' (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
     map_product (curry Pair) (all_modes_of_typ' T1) (all_modes_of_typ' T2)
   | all_modes_of_typ' _ = [Input, Output]
 
@@ -237,20 +237,20 @@ fun all_modes_of_typ (T as Type ("fun", _)) =
     let
       val (S, U) = strip_type T
     in
-      if U = @{typ bool} then
+      if U = \<^typ>\<open>bool\<close> then
         fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2)
           (map all_modes_of_typ' S) [Bool]
       else
         raise Fail "Invocation of all_modes_of_typ with a non-predicate type"
     end
-  | all_modes_of_typ @{typ bool} = [Bool]
+  | all_modes_of_typ \<^typ>\<open>bool\<close> = [Bool]
   | all_modes_of_typ _ =
     raise Fail "Invocation of all_modes_of_typ with a non-predicate type"
 
 fun all_smodes_of_typ (T as Type ("fun", _)) =
   let
     val (S, U) = strip_type T
-    fun all_smodes (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+    fun all_smodes (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
       map_product (curry Pair) (all_smodes T1) (all_smodes T2)
       | all_smodes _ = [Input, Output]
   in
@@ -273,7 +273,7 @@ fun ho_args_of mode ts =
   let
     fun ho_arg (Fun _) (SOME t) = [t]
       | ho_arg (Fun _) NONE = raise Fail "mode and term do not match"
-      | ho_arg (Pair (m1, m2)) (SOME (Const (@{const_name Pair}, _) $ t1 $ t2)) =
+      | ho_arg (Pair (m1, m2)) (SOME (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2)) =
           ho_arg m1 (SOME t1) @ ho_arg m2 (SOME t2)
       | ho_arg (Pair (m1, m2)) NONE = ho_arg m1 NONE @ ho_arg m2 NONE
       | ho_arg _ _ = []
@@ -284,12 +284,12 @@ fun ho_args_of mode ts =
 fun ho_args_of_typ T ts =
   let
     fun ho_arg (T as Type ("fun", [_, _])) (SOME t) =
-          if body_type T = @{typ bool} then [t] else []
+          if body_type T = \<^typ>\<open>bool\<close> then [t] else []
       | ho_arg (Type ("fun", [_, _])) NONE = raise Fail "mode and term do not match"
-      | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2]))
-         (SOME (Const (@{const_name Pair}, _) $ t1 $ t2)) =
+      | ho_arg (Type(\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2]))
+         (SOME (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2)) =
           ho_arg T1 (SOME t1) @ ho_arg T2 (SOME t2)
-      | ho_arg (Type(@{type_name "Product_Type.prod"}, [T1, T2])) NONE =
+      | ho_arg (Type(\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) NONE =
           ho_arg T1 NONE @ ho_arg T2 NONE
       | ho_arg _ _ = []
   in
@@ -298,8 +298,8 @@ fun ho_args_of_typ T ts =
 
 fun ho_argsT_of_typ Ts =
   let
-    fun ho_arg (T as Type("fun", [_,_])) = if body_type T = @{typ bool} then [T] else []
-      | ho_arg (Type (@{type_name "Product_Type.prod"}, [T1, T2])) =
+    fun ho_arg (T as Type("fun", [_,_])) = if body_type T = \<^typ>\<open>bool\<close> then [T] else []
+      | ho_arg (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
           ho_arg T1 @ ho_arg T2
       | ho_arg _ = []
   in
@@ -311,12 +311,12 @@ fun ho_argsT_of_typ Ts =
 fun replace_ho_args mode hoargs ts =
   let
     fun replace (Fun _, _) (arg' :: hoargs') = (arg', hoargs')
-      | replace (Pair (m1, m2), Const (@{const_name Pair}, T) $ t1 $ t2) hoargs =
+      | replace (Pair (m1, m2), Const (\<^const_name>\<open>Pair\<close>, T) $ t1 $ t2) hoargs =
           let
             val (t1', hoargs') = replace (m1, t1) hoargs
             val (t2', hoargs'') = replace (m2, t2) hoargs'
           in
-            (Const (@{const_name Pair}, T) $ t1' $ t2', hoargs'')
+            (Const (\<^const_name>\<open>Pair\<close>, T) $ t1' $ t2', hoargs'')
           end
       | replace (_, t) hoargs = (t, hoargs)
   in
@@ -326,7 +326,7 @@ fun replace_ho_args mode hoargs ts =
 fun ho_argsT_of mode Ts =
   let
     fun ho_arg (Fun _) T = [T]
-      | ho_arg (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+      | ho_arg (Pair (m1, m2)) (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
           ho_arg m1 T1 @ ho_arg m2 T2
       | ho_arg _ _ = []
   in
@@ -337,7 +337,7 @@ fun ho_argsT_of mode Ts =
 fun split_map_mode f mode ts =
   let
     fun split_arg_mode' (m as Fun _) t = f m t
-      | split_arg_mode' (Pair (m1, m2)) (Const (@{const_name Pair}, _) $ t1 $ t2) =
+      | split_arg_mode' (Pair (m1, m2)) (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2) =
         let
           val (i1, o1) = split_arg_mode' m1 t1
           val (i2, o2) = split_arg_mode' m2 t2
@@ -356,7 +356,7 @@ fun split_map_mode f mode ts =
 fun split_map_modeT f mode Ts =
   let
     fun split_arg_mode' (m as Fun _) T = f m T
-      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+      | split_arg_mode' (Pair (m1, m2)) (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
         let
           val (i1, o1) = split_arg_mode' m1 T1
           val (i2, o2) = split_arg_mode' m2 T2
@@ -372,7 +372,7 @@ fun split_map_modeT f mode Ts =
 
 fun split_mode mode ts = split_map_mode (fn _ => fn _ => (NONE, NONE)) mode ts
 
-fun fold_map_aterms_prodT comb f (Type (@{type_name Product_Type.prod}, [T1, T2])) s =
+fun fold_map_aterms_prodT comb f (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) s =
       let
         val (x1, s') = fold_map_aterms_prodT comb f T1 s
         val (x2, s'') = fold_map_aterms_prodT comb f T2 s'
@@ -381,14 +381,14 @@ fun fold_map_aterms_prodT comb f (Type (@{type_name Product_Type.prod}, [T1, T2]
       end
   | fold_map_aterms_prodT _ f T s = f T s
 
-fun map_filter_prod f (Const (@{const_name Pair}, _) $ t1 $ t2) =
+fun map_filter_prod f (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2) =
       comb_option HOLogic.mk_prod (map_filter_prod f t1, map_filter_prod f t2)
   | map_filter_prod f t = f t
 
 fun split_modeT mode Ts =
   let
     fun split_arg_mode (Fun _) _ = ([], [])
-      | split_arg_mode (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
+      | split_arg_mode (Pair (m1, m2)) (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) =
           let
             val (i1, o1) = split_arg_mode m1 T1
             val (i2, o2) = split_arg_mode m2 T2
@@ -451,15 +451,15 @@ fun map_indprem f (Prem t) = Prem (f t)
 
 (* general syntactic functions *)
 
-fun is_equationlike_term (Const (@{const_name Pure.eq}, _) $ _ $ _) = true
+fun is_equationlike_term (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _) = true
   | is_equationlike_term
-      (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true
+      (Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _)) = true
   | is_equationlike_term _ = false
 
 val is_equationlike = is_equationlike_term o Thm.prop_of
 
-fun is_pred_equation_term (Const (@{const_name Pure.eq}, _) $ u $ v) =
-      (fastype_of u = @{typ bool}) andalso (fastype_of v = @{typ bool})
+fun is_pred_equation_term (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ u $ v) =
+      (fastype_of u = \<^typ>\<open>bool\<close>) andalso (fastype_of v = \<^typ>\<open>bool\<close>)
   | is_pred_equation_term _ = false
 
 val is_pred_equation = is_pred_equation_term o Thm.prop_of
@@ -472,7 +472,7 @@ fun is_intro_term constname t =
 
 fun is_intro constname t = is_intro_term constname (Thm.prop_of t)
 
-fun is_predT (T as Type("fun", [_, _])) = (body_type T = @{typ bool})
+fun is_predT (T as Type("fun", [_, _])) = (body_type T = \<^typ>\<open>bool\<close>)
   | is_predT _ = false
 
 fun lookup_constr ctxt =
@@ -503,7 +503,7 @@ fun is_constrt ctxt =
 
 fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
 
-fun strip_ex (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
+fun strip_ex (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (x, T, t)) =
       let
         val (xTs, t') = strip_ex t
       in
@@ -531,7 +531,7 @@ fun map_atoms f intro =
     val (literals, head) = Logic.strip_horn intro
     fun appl t =
       (case t of
-        (@{term Not} $ t') => HOLogic.mk_not (f t')
+        (\<^term>\<open>Not\<close> $ t') => HOLogic.mk_not (f t')
       | _ => f t)
   in
     Logic.list_implies
@@ -543,7 +543,7 @@ fun fold_atoms f intro s =
     val (literals, _) = Logic.strip_horn intro
     fun appl t s =
       (case t of
-        (@{term Not} $ t') => f t' s
+        (\<^term>\<open>Not\<close> $ t') => f t' s
       | _ => f t s)
   in fold appl (map HOLogic.dest_Trueprop literals) s end
 
@@ -552,7 +552,7 @@ fun fold_map_atoms f intro s =
     val (literals, head) = Logic.strip_horn intro
     fun appl t s =
       (case t of
-        (@{term Not} $ t') => apfst HOLogic.mk_not (f t' s)
+        (\<^term>\<open>Not\<close> $ t') => apfst HOLogic.mk_not (f t' s)
       | _ => f t s)
     val (literals', s') = fold_map appl (map HOLogic.dest_Trueprop literals) s
   in
@@ -583,8 +583,8 @@ fun map_concl f intro =
 
 (* combinators to apply a function to all basic parts of nested products *)
 
-fun map_products f (Const (@{const_name Pair}, T) $ t1 $ t2) =
-  Const (@{const_name Pair}, T) $ map_products f t1 $ map_products f t2
+fun map_products f (Const (\<^const_name>\<open>Pair\<close>, T) $ t1 $ t2) =
+  Const (\<^const_name>\<open>Pair\<close>, T) $ map_products f t1 $ map_products f t2
   | map_products f t = f t
 
 
@@ -811,11 +811,11 @@ fun rewrite_args [] (pats, intro_t, ctxt) = (pats, intro_t, ctxt)
         (_ :: _ :: _) =>
         let
           fun rewrite_arg'
-                (Const (@{const_name Pair}, _) $ _ $ t2, Type (@{type_name Product_Type.prod}, [_, T2]))
+                (Const (\<^const_name>\<open>Pair\<close>, _) $ _ $ t2, Type (\<^type_name>\<open>Product_Type.prod\<close>, [_, T2]))
                 (args, (pats, intro_t, ctxt)) =
                 rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
             | rewrite_arg'
-                (t, Type (@{type_name Product_Type.prod}, [T1, T2])) (args, (pats, intro_t, ctxt)) =
+                (t, Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) (args, (pats, intro_t, ctxt)) =
                 let
                   val thy = Proof_Context.theory_of ctxt
                   val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
@@ -854,7 +854,7 @@ fun split_conjuncts_in_assms ctxt th =
 
 fun dest_conjunct_prem th =
   (case HOLogic.dest_Trueprop (Thm.prop_of th) of
-    (Const (@{const_name HOL.conj}, _) $ _ $ _) =>
+    (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _) =>
       dest_conjunct_prem (th RS @{thm conjunct1}) @
       dest_conjunct_prem (th RS @{thm conjunct2})
   | _ => [th])
@@ -908,7 +908,7 @@ fun make_case_distrib thy Tcon =
     val Type ("fun", [T, T']) = fastype_of comb;
     val (Const (case_name, _), fs) = strip_comb comb
     val used = Term.add_tfree_names comb []
-    val U = TFree (singleton (Name.variant_list used) "'t", @{sort type})
+    val U = TFree (singleton (Name.variant_list used) "'t", \<^sort>\<open>type\<close>)
     val x = Free ("x", T)
     val f = Free ("f", T' --> U)
     fun apply_f f' =
@@ -935,8 +935,8 @@ fun instantiated_case_rewrite thy Tcon =
     val f = fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th)))))
     val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
     val ([yname], ctxt') = Variable.add_fixes ["y"] ctxt
-    val T' = TFree ("'t'", @{sort type})
-    val U = TFree ("'u", @{sort type})
+    val T' = TFree ("'t'", \<^sort>\<open>type\<close>)
+    val U = TFree ("'u", \<^sort>\<open>type\<close>)
     val y = Free (yname, U)
     val f' = absdummy (U --> T') (Bound 0 $ y)
     val th' =
@@ -963,7 +963,7 @@ fun case_betapply thy t =
 
 fun imp_prems_conv cv ct =
   (case Thm.term_of ct of
-    Const (@{const_name Pure.imp}, _) $ _ $ _ =>
+    Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ _ =>
       Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
   | _ => Conv.all_conv ct)
 
@@ -1021,7 +1021,7 @@ fun remove_equalities thy intro =
 (* Some last processing *)
 
 fun remove_pointless_clauses intro =
-  if Logic.strip_imp_prems (Thm.prop_of intro) = [@{prop "False"}] then
+  if Logic.strip_imp_prems (Thm.prop_of intro) = [\<^prop>\<open>False\<close>] then
     []
   else [intro]
 
@@ -1032,12 +1032,12 @@ fun peephole_optimisation thy intro =
   let
     val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val process =
-      rewrite_rule ctxt (Named_Theorems.get ctxt @{named_theorems code_pred_simp})
+      rewrite_rule ctxt (Named_Theorems.get ctxt \<^named_theorems>\<open>code_pred_simp\<close>)
     fun process_False intro_t =
-      if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"}
+      if member (op =) (Logic.strip_imp_prems intro_t) \<^prop>\<open>False\<close>
       then NONE else SOME intro_t
     fun process_True intro_t =
-      map_filter_premises (fn p => if p = @{prop True} then NONE else SOME p) intro_t
+      map_filter_premises (fn p => if p = \<^prop>\<open>True\<close> then NONE else SOME p) intro_t
   in
     Option.map (Skip_Proof.make_thm thy)
       (process_False (process_True (Thm.prop_of (process intro))))
@@ -1098,7 +1098,7 @@ fun import_intros inp_pred [] ctxt =
 
 (* generation of case rules from user-given introduction rules *)
 
-fun mk_args2 (Type (@{type_name Product_Type.prod}, [T1, T2])) st =
+fun mk_args2 (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) st =
       let
         val (t1, st') = mk_args2 T1 st
         val (t2, st'') = mk_args2 T2 st'
@@ -1186,10 +1186,10 @@ fun preprocess_intro thy = expand_tuples thy #> preprocess_equality thy
 
 (* defining a quickcheck predicate *)
 
-fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
+fun strip_imp_prems (Const(\<^const_name>\<open>HOL.implies\<close>, _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
-fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ _ $ B) = strip_imp_concl B
+fun strip_imp_concl (Const(\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ B) = strip_imp_concl B
   | strip_imp_concl A = A;
 
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A)
@@ -1202,7 +1202,7 @@ fun define_quickcheck_predicate t thy =
     val (prems, concl) = strip_horn t''
     val constname = "quickcheck"
     val full_constname = Sign.full_bname thy constname
-    val constT = map snd vs' ---> @{typ bool}
+    val constT = map snd vs' ---> \<^typ>\<open>bool\<close>
     val thy1 = Sign.add_consts [(Binding.name constname, constT, NoSyn)] thy
     val const = Const (full_constname, constT)
     val t =

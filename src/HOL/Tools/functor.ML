@@ -82,7 +82,7 @@ fun construct_mapper ctxt atomic =
 (* mapper properties *)
 
 val compositionality_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps [Simpdata.mk_eq @{thm comp_def}]);
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps [Simpdata.mk_eq @{thm comp_def}]);
 
 fun make_comp_prop ctxt variances (tyco, mapper) =
   let
@@ -136,7 +136,7 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
   in (comp_prop, prove_compositionality) end;
 
 val identity_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps [Simpdata.mk_eq @{thm id_def}]);
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps [Simpdata.mk_eq @{thm id_def}]);
 
 fun make_id_prop ctxt variances (tyco, mapper) =
   let

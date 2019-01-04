@@ -35,7 +35,7 @@ end
 structure Function_Lib: FUNCTION_LIB =
 struct
 
-val function_internals = Attrib.setup_config_bool @{binding function_internals} (K false)
+val function_internals = Attrib.setup_config_bool \<^binding>\<open>function_internals\<close> (K false)
 
 fun derived_name binding name =
   Binding.reset_pos (Binding.qualify_name true binding name)

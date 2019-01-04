@@ -22,7 +22,7 @@ locale wo_rel =
 begin
 
 text\<open>The following context encompasses all this section. In other words,
-for the whole section, we consider a fixed well-order relation @{term "r"}.\<close>
+for the whole section, we consider a fixed well-order relation \<^term>\<open>r\<close>.\<close>
 
 (* context wo_rel  *)
 

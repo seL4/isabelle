@@ -141,13 +141,13 @@ fun dest_disj (@{const HOL.disj} $ t $ u) = (t, u)
 
 fun under_quant f t =
   (case t of
-    Const (@{const_name All}, _) $ Abs (_, _, u) => under_quant f u
-  | Const (@{const_name Ex}, _) $ Abs (_, _, u) => under_quant f u
+    Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, u) => under_quant f u
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, u) => under_quant f u
   | _ => f t)
 
 val is_number =
   let
-    fun is_num env (Const (@{const_name Let}, _) $ t $ Abs (_, _, u)) = is_num (t :: env) u
+    fun is_num env (Const (\<^const_name>\<open>Let\<close>, _) $ t $ Abs (_, _, u)) = is_num (t :: env) u
       | is_num env (Bound i) = i < length env andalso is_num env (nth env i)
       | is_num _ t = can HOLogic.dest_number t
   in is_num [] end
@@ -155,18 +155,18 @@ val is_number =
 
 (* symbolic lists *)
 
-fun symb_listT T = Type (@{type_name symb_list}, [T])
+fun symb_listT T = Type (\<^type_name>\<open>symb_list\<close>, [T])
 
-fun symb_nil_const T = Const (@{const_name Symb_Nil}, symb_listT T)
+fun symb_nil_const T = Const (\<^const_name>\<open>Symb_Nil\<close>, symb_listT T)
 
 fun symb_cons_const T =
-  let val listT = symb_listT T in Const (@{const_name Symb_Cons}, T --> listT --> listT) end
+  let val listT = symb_listT T in Const (\<^const_name>\<open>Symb_Cons\<close>, T --> listT --> listT) end
 
 fun mk_symb_list T ts =
   fold_rev (fn t => fn u => symb_cons_const T $ t $ u) ts (symb_nil_const T)
 
-fun dest_symb_list (Const (@{const_name Symb_Nil}, _)) = []
-  | dest_symb_list (Const (@{const_name Symb_Cons}, _) $ t $ u) = t :: dest_symb_list u
+fun dest_symb_list (Const (\<^const_name>\<open>Symb_Nil\<close>, _)) = []
+  | dest_symb_list (Const (\<^const_name>\<open>Symb_Cons\<close>, _) $ t $ u) = t :: dest_symb_list u
 
 
 (* patterns and instantiations *)
@@ -201,14 +201,14 @@ fun dest_cbinder ct ctxt =
 
 val dest_all_cbinders = repeat_yield (try o dest_cbinder)
 
-val mk_cprop = Thm.apply (Thm.cterm_of @{context} @{const Trueprop})
+val mk_cprop = Thm.apply (Thm.cterm_of \<^context> @{const Trueprop})
 
 fun dest_cprop ct =
   (case Thm.term_of ct of
     @{const Trueprop} $ _ => Thm.dest_arg ct
   | _ => raise CTERM ("not a property", [ct]))
 
-val equals = mk_const_pat @{theory} @{const_name Pure.eq} destT1
+val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> destT1
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
 
 val dest_prop = (fn @{const Trueprop} $ t => t | t => t)
@@ -231,9 +231,9 @@ fun under_quant_conv cv ctxt =
   let
     fun quant_conv inside ctxt cvs ct =
       (case Thm.term_of ct of
-        Const (@{const_name All}, _) $ Abs _ =>
+        Const (\<^const_name>\<open>All\<close>, _) $ Abs _ =>
           Conv.binder_conv (under_conv cvs) ctxt
-      | Const (@{const_name Ex}, _) $ Abs _ =>
+      | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs _ =>
           Conv.binder_conv (under_conv cvs) ctxt
       | _ => if inside then cv (ctxt, cvs) else Conv.all_conv) ct
     and under_conv cvs (cv, ctxt) = quant_conv true ctxt (cv :: cvs)

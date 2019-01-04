@@ -1292,11 +1292,11 @@ proof (subst filterlim_at_infinity[OF order.refl], intro allI impI)
 qed
 
 
-subsection \<open>Relate @{const at}, @{const at_left} and @{const at_right}\<close>
+subsection \<open>Relate \<^const>\<open>at\<close>, \<^const>\<open>at_left\<close> and \<^const>\<open>at_right\<close>\<close>
 
 text \<open>
-  This lemmas are useful for conversion between @{term "at x"} to @{term "at_left x"} and
-  @{term "at_right x"} and also @{term "at_right 0"}.
+  This lemmas are useful for conversion between \<^term>\<open>at x\<close> to \<^term>\<open>at_left x\<close> and
+  \<^term>\<open>at_right x\<close> and also \<^term>\<open>at_right 0\<close>.
 \<close>
 
 lemmas filterlim_split_at_real = filterlim_split_at[where 'a=real]
@@ -2060,13 +2060,13 @@ lemma LIMSEQ_inverse_zero:
   apply (rule filterlim_compose[OF tendsto_inverse_0])
   by (metis assms eventually_at_top_linorderI filterlim_at_top_dense filterlim_at_top_imp_at_infinity)
 
-text \<open>The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity.\<close>
+text \<open>The sequence \<^term>\<open>1/n\<close> tends to 0 as \<^term>\<open>n\<close> tends to infinity.\<close>
 lemma LIMSEQ_inverse_real_of_nat: "(\<lambda>n. inverse (real (Suc n))) \<longlonglongrightarrow> 0"
   by (metis filterlim_compose tendsto_inverse_0 filterlim_mono order_refl filterlim_Suc
       filterlim_compose[OF filterlim_real_sequentially] at_top_le_at_infinity)
 
 text \<open>
-  The sequence @{term "r + 1/n"} tends to @{term r} as @{term n} tends to
+  The sequence \<^term>\<open>r + 1/n\<close> tends to \<^term>\<open>r\<close> as \<^term>\<open>n\<close> tends to
   infinity is now easily proved.
 \<close>
 
@@ -2389,7 +2389,7 @@ proof (rule tendstoI)
     by eventually_elim (auto simp: N)
 qed
 
-text \<open>Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}.\<close>
+text \<open>Limit of \<^term>\<open>c^n\<close> for \<^term>\<open>\<bar>c\<bar> < 1\<close>.\<close>
 
 lemma LIMSEQ_abs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n :: real) \<longlonglongrightarrow> 0"
   by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])

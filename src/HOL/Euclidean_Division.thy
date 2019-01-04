@@ -761,7 +761,7 @@ subclass euclidean_ring_cancel ..
 end
 
 
-subsection \<open>Euclidean division on @{typ nat}\<close>
+subsection \<open>Euclidean division on \<^typ>\<open>nat\<close>\<close>
 
 instantiation nat :: normalization_semidom
 begin
@@ -889,10 +889,10 @@ text \<open>Tool support\<close>
 ML \<open>
 structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 (
-  val div_name = @{const_name divide};
-  val mod_name = @{const_name modulo};
+  val div_name = \<^const_name>\<open>divide\<close>;
+  val mod_name = \<^const_name>\<open>modulo\<close>;
   val mk_binop = HOLogic.mk_binop;
-  val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
+  val dest_plus = HOLogic.dest_bin \<^const_name>\<open>Groups.plus\<close> HOLogic.natT;
   val mk_sum = Arith_Data.mk_sum;
   fun dest_sum tm =
     if HOLogic.is_zero tm then []
@@ -1145,7 +1145,7 @@ proof -
     by (simp add: div_add1_eq [of m q k])
 qed
 
-text \<open>Antimonotonicity of @{const divide} in second argument\<close>
+text \<open>Antimonotonicity of \<^const>\<open>divide\<close> in second argument\<close>
 
 lemma div_le_mono2:
   "k div n \<le> k div m" if "0 < m" and "m \<le> n" for m n k :: nat
@@ -1408,7 +1408,7 @@ next
 qed
 
 
-subsection \<open>Euclidean division on @{typ int}\<close>
+subsection \<open>Euclidean division on \<^typ>\<open>int\<close>\<close>
 
 instantiation int :: normalization_semidom
 begin

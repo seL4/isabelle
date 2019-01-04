@@ -24,12 +24,12 @@ fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
    case Thm.term_of p of
     Const(s,T)$_$_ =>
        if domain_type T = HOLogic.boolT
-          andalso member (op =) [@{const_name HOL.conj}, @{const_name HOL.disj},
-            @{const_name HOL.implies}, @{const_name HOL.eq}] s
+          andalso member (op =) [\<^const_name>\<open>HOL.conj\<close>, \<^const_name>\<open>HOL.disj\<close>,
+            \<^const_name>\<open>HOL.implies\<close>, \<^const_name>\<open>HOL.eq\<close>] s
        then Conv.binop_conv (conv env) p
        else atcv env p
-  | Const(@{const_name Not},_)$_ => Conv.arg_conv (conv env) p
-  | Const(@{const_name Ex},_)$Abs(s,_,_) =>
+  | Const(\<^const_name>\<open>Not\<close>,_)$_ => Conv.arg_conv (conv env) p
+  | Const(\<^const_name>\<open>Ex\<close>,_)$Abs(s,_,_) =>
     let
      val (e,p0) = Thm.dest_comb p
      val (x,p') = Thm.dest_abs (SOME s) p0
@@ -40,8 +40,8 @@ fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
      val (_, r) = Thm.dest_equals (Thm.cprop_of th')
     in if Thm.is_reflexive th' then Thm.transitive th (qcv env (Thm.rhs_of th))
        else Thm.transitive (Thm.transitive th th') (conv env r) end
-  | Const(@{const_name Ex},_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
-  | Const(@{const_name All}, allT)$_ =>
+  | Const(\<^const_name>\<open>Ex\<close>,_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
+  | Const(\<^const_name>\<open>All\<close>, allT)$_ =>
     let
      val T = Thm.ctyp_of ctxt (#1 (Term.dest_funT (#1 (Term.dest_funT allT))))
      val p = Thm.dest_arg p
@@ -57,7 +57,7 @@ local
 
 val ss =
   simpset_of
-   (put_simpset HOL_basic_ss @{context}
+   (put_simpset HOL_basic_ss \<^context>
     addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
 fun pcv ctxt = Simplifier.rewrite (put_simpset ss ctxt)
 

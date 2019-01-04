@@ -642,7 +642,7 @@ lemma negDivAlg_correct [rule_format]:
 apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
   apply auto
    apply (simp_all add: quorem_def)
-   txt\<open>base case: @{term "0$\<le>a$+b"}\<close>
+   txt\<open>base case: \<^term>\<open>0$\<le>a$+b\<close>\<close>
    apply (simp add: negDivAlg_eqn)
   apply (simp add: not_zless_iff_zle [THEN iff_sym])
  apply (simp add: int_0_less_mult_iff)

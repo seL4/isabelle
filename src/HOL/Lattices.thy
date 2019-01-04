@@ -802,7 +802,7 @@ proof (rule antisym)
 qed
 
 
-subsection \<open>Lattice on @{typ bool}\<close>
+subsection \<open>Lattice on \<^typ>\<open>bool\<close>\<close>
 
 instantiation bool :: boolean_algebra
 begin
@@ -829,7 +829,7 @@ lemma sup_boolE: "P \<squnion> Q \<Longrightarrow> (P \<Longrightarrow> R) \<Lon
   by auto
 
 
-subsection \<open>Lattice on @{typ "_ \<Rightarrow> _"}\<close>
+subsection \<open>Lattice on \<^typ>\<open>_ \<Rightarrow> _\<close>\<close>
 
 instantiation "fun" :: (type, semilattice_sup) semilattice_sup
 begin

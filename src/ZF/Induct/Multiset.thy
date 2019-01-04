@@ -175,7 +175,7 @@ lemma multiset_iff_Mult_mset_of: "multiset(M) \<longleftrightarrow> M \<in> Mult
 by (auto simp add: Mult_iff_multiset)
 
 
-text\<open>The @{term multiset} operator\<close>
+text\<open>The \<^term>\<open>multiset\<close> operator\<close>
 
 (* the empty multiset is 0 *)
 
@@ -183,7 +183,7 @@ lemma multiset_0 [simp]: "multiset(0)"
 by (auto intro: FiniteFun.intros simp add: multiset_iff_Mult_mset_of)
 
 
-text\<open>The @{term mset_of} operator\<close>
+text\<open>The \<^term>\<open>mset_of\<close> operator\<close>
 
 lemma multiset_set_of_Finite [simp]: "multiset(M) ==> Finite(mset_of(M))"
 by (simp add: multiset_def mset_of_def, auto)
@@ -733,7 +733,7 @@ lemma multirel1_iff:
 by (auto simp add: multirel1_def Mult_iff_multiset Bex_def)
 
 
-text\<open>Monotonicity of @{term multirel1}\<close>
+text\<open>Monotonicity of \<^term>\<open>multirel1\<close>\<close>
 
 lemma multirel1_mono1: "A\<subseteq>B ==> multirel1(A, r)\<subseteq>multirel1(B, r)"
 apply (auto simp add: multirel1_def)

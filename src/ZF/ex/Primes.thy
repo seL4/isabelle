@@ -161,7 +161,7 @@ lemma gcd_induct: "!!P. [| m \<in> nat; n \<in> nat;
 by (blast intro: gcd_induct_lemma)
 
 
-subsection\<open>Basic Properties of @{term gcd}\<close>
+subsection\<open>Basic Properties of \<^term>\<open>gcd\<close>\<close>
 
 text\<open>type of gcd\<close>
 lemma gcd_type [simp,TC]: "gcd(m, n) \<in> nat"
@@ -350,7 +350,7 @@ by (auto simp add: prime_def)
 
 
 text\<open>This theorem leads immediately to a proof of the uniqueness of
-  factorization.  If @{term p} divides a product of primes then it is
+  factorization.  If \<^term>\<open>p\<close> divides a product of primes then it is
   one of those primes.\<close>
 
 lemma prime_dvd_mult:

@@ -24,9 +24,9 @@ translations "LENGTH('a)" \<rightharpoonup>
 
 print_translation \<open>
   let
-    fun len_of_itself_tr' ctxt [Const (@{const_syntax Pure.type}, Type (_, [T]))] =
-      Syntax.const @{syntax_const "_type_length"} $ Syntax_Phases.term_of_typ ctxt T
-  in [(@{const_syntax len_of}, len_of_itself_tr')] end
+    fun len_of_itself_tr' ctxt [Const (\<^const_syntax>\<open>Pure.type\<close>, Type (_, [T]))] =
+      Syntax.const \<^syntax_const>\<open>_type_length\<close> $ Syntax_Phases.term_of_typ ctxt T
+  in [(\<^const_syntax>\<open>len_of\<close>, len_of_itself_tr')] end
 \<close>
 
 text \<open>Some theorems are only true on words with length greater 0.\<close>

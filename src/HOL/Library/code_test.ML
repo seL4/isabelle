@@ -41,11 +41,11 @@ struct
 
 (* convert a list of terms into nested tuples and back *)
 
-fun mk_tuples [] = @{term "()"}
+fun mk_tuples [] = \<^term>\<open>()\<close>
   | mk_tuples [t] = t
   | mk_tuples (t :: ts) = HOLogic.mk_prod (t, mk_tuples ts)
 
-fun dest_tuples (Const (@{const_name Pair}, _) $ l $ r) = l :: dest_tuples r
+fun dest_tuples (Const (\<^const_name>\<open>Pair\<close>, _) $ l $ r) = l :: dest_tuples r
   | dest_tuples t = [t]
 
 
@@ -146,7 +146,7 @@ fun pretty_failures ctxt target failures =
 
 (* driver invocation *)
 
-val overlord = Attrib.setup_config_bool @{binding "code_test_overlord"} (K false)
+val overlord = Attrib.setup_config_bool \<^binding>\<open>code_test_overlord\<close> (K false)
 
 fun with_overlord_dir name f =
   let
@@ -174,40 +174,40 @@ fun dynamic_value_strict ctxt t compiler =
 
 (* term preprocessing *)
 
-fun add_eval (Const (@{const_name Trueprop}, _) $ t) = add_eval t
-  | add_eval (Const (@{const_name "HOL.eq"}, _) $ lhs $ rhs) = (fn acc =>
+fun add_eval (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = add_eval t
+  | add_eval (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = (fn acc =>
       acc
       |> add_eval rhs
       |> add_eval lhs
       |> cons rhs
       |> cons lhs)
-  | add_eval (Const (@{const_name "Not"}, _) $ t) = add_eval t
-  | add_eval (Const (@{const_name "Orderings.ord_class.less_eq"}, _) $ lhs $ rhs) = (fn acc =>
+  | add_eval (Const (\<^const_name>\<open>Not\<close>, _) $ t) = add_eval t
+  | add_eval (Const (\<^const_name>\<open>Orderings.ord_class.less_eq\<close>, _) $ lhs $ rhs) = (fn acc =>
       lhs :: rhs :: acc)
-  | add_eval (Const (@{const_name "Orderings.ord_class.less"}, _) $ lhs $ rhs) = (fn acc =>
+  | add_eval (Const (\<^const_name>\<open>Orderings.ord_class.less\<close>, _) $ lhs $ rhs) = (fn acc =>
       lhs :: rhs :: acc)
   | add_eval _ = I
 
-fun mk_term_of [] = @{term "None :: (unit \<Rightarrow> yxml_of_term) option"}
+fun mk_term_of [] = \<^term>\<open>None :: (unit \<Rightarrow> yxml_of_term) option\<close>
   | mk_term_of ts =
       let
         val tuple = mk_tuples ts
         val T = fastype_of tuple
       in
-        @{term "Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option"} $
-          (absdummy @{typ unit} (@{const yxml_string_of_term} $
-            (Const (@{const_name Code_Evaluation.term_of}, T --> @{typ term}) $ tuple)))
+        \<^term>\<open>Some :: (unit \<Rightarrow> yxml_of_term) \<Rightarrow> (unit \<Rightarrow> yxml_of_term) option\<close> $
+          (absdummy \<^typ>\<open>unit\<close> (@{const yxml_string_of_term} $
+            (Const (\<^const_name>\<open>Code_Evaluation.term_of\<close>, T --> \<^typ>\<open>term\<close>) $ tuple)))
       end
 
 fun test_terms ctxt ts target =
   let
     val thy = Proof_Context.theory_of ctxt
 
-    fun term_of t = Sign.of_sort thy (fastype_of t, @{sort term_of})
+    fun term_of t = Sign.of_sort thy (fastype_of t, \<^sort>\<open>term_of\<close>)
 
     fun ensure_bool t =
       (case fastype_of t of
-        @{typ bool} => ()
+        \<^typ>\<open>bool\<close> => ()
       | _ =>
         error (Pretty.string_of
           (Pretty.block [Pretty.str "Test case not of type bool:", Pretty.brk 1,
@@ -219,7 +219,7 @@ fun test_terms ctxt ts target =
     val eval = map mk_term_of evals
 
     val t =
-      HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
+      HOLogic.mk_list \<^typ>\<open>bool \<times> (unit \<Rightarrow> yxml_of_term) option\<close>
         (map HOLogic.mk_prod (ts ~~ eval))
 
     val result = dynamic_value_strict ctxt t target
@@ -261,13 +261,13 @@ fun eval_term target ctxt t =
 
     val T = fastype_of t
     val _ =
-      if Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort term_of}) then ()
+      if Sign.of_sort (Proof_Context.theory_of ctxt) (T, \<^sort>\<open>term_of\<close>) then ()
       else error ("Type " ^ Syntax.string_of_typ ctxt T ^
-       " of term not of sort " ^ Syntax.string_of_sort ctxt @{sort term_of})
+       " of term not of sort " ^ Syntax.string_of_sort ctxt \<^sort>\<open>term_of\<close>)
 
     val t' =
-      HOLogic.mk_list @{typ "bool \<times> (unit \<Rightarrow> yxml_of_term) option"}
-        [HOLogic.mk_prod (@{term "False"}, mk_term_of [t])]
+      HOLogic.mk_list \<^typ>\<open>bool \<times> (unit \<Rightarrow> yxml_of_term) option\<close>
+        [HOLogic.mk_prod (\<^term>\<open>False\<close>, mk_term_of [t])]
 
     val result = dynamic_value_strict ctxt t' target
   in (case result of [(_, SOME [t])] => t | _ => error "Evaluation failed") end
@@ -484,7 +484,7 @@ fun evaluate_in_ocaml ctxt =
 val ghcN = "GHC"
 val ISABELLE_GHC = "ISABELLE_GHC"
 
-val ghc_options = Attrib.setup_config_string @{binding code_test_ghc} (K "")
+val ghc_options = Attrib.setup_config_string \<^binding>\<open>code_test_ghc\<close> (K "")
 
 fun mk_driver_ghc ctxt path modules value_name =
   let
@@ -573,9 +573,9 @@ fun evaluate_in_scala ctxt = evaluate mk_driver_scala NONE scalaN ctxt
 (* command setup *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword test_code}
+  Outer_Syntax.command \<^command_keyword>\<open>test_code\<close>
     "compile test cases to target languages, execute them and report results"
-      (Scan.repeat1 Parse.prop -- (@{keyword "in"} |-- Scan.repeat1 Parse.name)
+      (Scan.repeat1 Parse.prop -- (\<^keyword>\<open>in\<close> |-- Scan.repeat1 Parse.name)
         >> (fn (ts, targets) => Toplevel.keep (test_code_cmd ts targets o Toplevel.context_of)))
 
 val target_Scala = "Scala_eval"

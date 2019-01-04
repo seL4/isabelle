@@ -19,27 +19,27 @@ fun atomize (conn_pairs, mem_pairs) th =
                    | NONE => [th])
             | _ => [th]
   in case Thm.concl_of th of
-         Const(@{const_name Trueprop},_) $ P =>
+         Const(\<^const_name>\<open>Trueprop\<close>,_) $ P =>
             (case P of
-                 Const(@{const_name mem},_) $ a $ b => tryrules mem_pairs b
-               | Const(@{const_name True},_)         => []
-               | Const(@{const_name False},_)        => []
+                 Const(\<^const_name>\<open>mem\<close>,_) $ a $ b => tryrules mem_pairs b
+               | Const(\<^const_name>\<open>True\<close>,_)         => []
+               | Const(\<^const_name>\<open>False\<close>,_)        => []
                | A => tryrules conn_pairs A)
        | _                       => [th]
   end;
 
 (*Analyse a rigid formula*)
 val ZF_conn_pairs =
-  [(@{const_name Ball}, [@{thm bspec}]),
-   (@{const_name All}, [@{thm spec}]),
-   (@{const_name imp}, [@{thm mp}]),
-   (@{const_name conj}, [@{thm conjunct1}, @{thm conjunct2}])];
+  [(\<^const_name>\<open>Ball\<close>, [@{thm bspec}]),
+   (\<^const_name>\<open>All\<close>, [@{thm spec}]),
+   (\<^const_name>\<open>imp\<close>, [@{thm mp}]),
+   (\<^const_name>\<open>conj\<close>, [@{thm conjunct1}, @{thm conjunct2}])];
 
 (*Analyse a:b, where b is rigid*)
 val ZF_mem_pairs =
-  [(@{const_name Collect}, [@{thm CollectD1}, @{thm CollectD2}]),
-   (@{const_name Diff}, [@{thm DiffD1}, @{thm DiffD2}]),
-   (@{const_name Int}, [@{thm IntD1}, @{thm IntD2}])];
+  [(\<^const_name>\<open>Collect\<close>, [@{thm CollectD1}, @{thm CollectD2}]),
+   (\<^const_name>\<open>Diff\<close>, [@{thm DiffD1}, @{thm DiffD2}]),
+   (\<^const_name>\<open>Int\<close>, [@{thm IntD1}, @{thm IntD2}])];
 
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 

@@ -49,7 +49,7 @@ structure Standard_Prod =
   struct
   val sigma     = @{const Sigma}
   val pair      = @{const Pair}
-  val split_name = @{const_name split}
+  val split_name = \<^const_name>\<open>split\<close>
   val pair_iff  = @{thm Pair_iff}
   val split_eq  = @{thm split}
   val fsplitI   = @{thm splitI}
@@ -96,7 +96,7 @@ structure Quine_Prod =
   struct
   val sigma     = @{const QSigma}
   val pair      = @{const QPair}
-  val split_name = @{const_name qsplit}
+  val split_name = \<^const_name>\<open>qsplit\<close>
   val pair_iff  = @{thm QPair_iff}
   val split_eq  = @{thm qsplit}
   val fsplitI   = @{thm qsplitI}

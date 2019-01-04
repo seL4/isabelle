@@ -297,10 +297,10 @@ val parse_value =
   Scan.repeats1 (Parse.minus >> single
                 || Scan.repeat1 (Scan.unless Parse.minus
                                              (Parse.name || Parse.float_number))
-                || @{keyword ","} |-- Parse.number >> prefix "," >> single)
-val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
+                || \<^keyword>\<open>,\<close> |-- Parse.number >> prefix "," >> single)
+val parse_param = parse_key -- Scan.optional (\<^keyword>\<open>=\<close> |-- parse_value) []
 val parse_params =
-  Scan.optional (@{keyword "["} |-- Parse.list parse_param --| @{keyword "]"}) []
+  Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.list parse_param --| \<^keyword>\<open>]\<close>) []
 
 fun handle_exceptions ctxt f x =
   f x
@@ -363,7 +363,7 @@ fun nitpick_params_trans params =
                                       |> sort_strings |> cat_lines)))))
 
 val _ =
-  Outer_Syntax.command @{command_keyword nitpick}
+  Outer_Syntax.command \<^command_keyword>\<open>nitpick\<close>
     "try to find a counterexample for a given subgoal using Nitpick"
     (parse_params -- Scan.optional Parse.nat 1 >> (fn (params, i) =>
       Toplevel.keep_proof (fn state =>
@@ -371,12 +371,12 @@ val _ =
           (Toplevel.proof_of state)))))
 
 val _ =
-  Outer_Syntax.command @{command_keyword nitpick_params}
+  Outer_Syntax.command \<^command_keyword>\<open>nitpick_params\<close>
     "set and display the default parameters for Nitpick"
     (parse_params #>> nitpick_params_trans)
 
 fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 
-val _ = Try.tool_setup (nitpickN, (50, @{system_option auto_nitpick}, try_nitpick))
+val _ = Try.tool_setup (nitpickN, (50, \<^system_option>\<open>auto_nitpick\<close>, try_nitpick))
 
 end;

@@ -68,7 +68,7 @@ fun pretty_pack ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_pack} "print pack of classical rules"
+  Outer_Syntax.command \<^command_keyword>\<open>print_pack\<close> "print pack of classical rules"
     (Scan.succeed (Toplevel.keep (Pretty.writeln o pretty_pack o Toplevel.context_of)));
 
 
@@ -98,8 +98,8 @@ val safe_add = Thm.declaration_attribute (add_rule apfst);
 val unsafe_add = Thm.declaration_attribute (add_rule apsnd);
 
 val _ = Theory.setup
-  (Attrib.setup @{binding safe} (Scan.succeed safe_add) "" #>
-   Attrib.setup @{binding unsafe} (Scan.succeed unsafe_add) "");
+  (Attrib.setup \<^binding>\<open>safe\<close> (Scan.succeed safe_add) "" #>
+   Attrib.setup \<^binding>\<open>unsafe\<close> (Scan.succeed unsafe_add) "");
 
 
 (* proof method syntax *)
@@ -113,11 +113,11 @@ fun method tac =
 
 (** tactics **)
 
-val trace = Attrib.setup_config_bool @{binding cla_trace} (K false);
+val trace = Attrib.setup_config_bool \<^binding>\<open>cla_trace\<close> (K false);
 
 
 (*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const(@{const_name "SeqO'"},_) $ P $ u) = P :: forms_of_seq u
+fun forms_of_seq (Const(\<^const_name>\<open>SeqO'\<close>,_) $ P $ u) = P :: forms_of_seq u
   | forms_of_seq (H $ u) = forms_of_seq u
   | forms_of_seq _ = [];
 
@@ -227,11 +227,11 @@ fun best_tac ctxt  =
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
 
 val _ = Theory.setup
-  (Method.setup @{binding safe} (method safe_tac) "" #>
-   Method.setup @{binding step} (method step_tac) "" #>
-   Method.setup @{binding pc} (method pc_tac) "" #>
-   Method.setup @{binding fast} (method fast_tac) "" #>
-   Method.setup @{binding best} (method best_tac) "");
+  (Method.setup \<^binding>\<open>safe\<close> (method safe_tac) "" #>
+   Method.setup \<^binding>\<open>step\<close> (method step_tac) "" #>
+   Method.setup \<^binding>\<open>pc\<close> (method pc_tac) "" #>
+   Method.setup \<^binding>\<open>fast\<close> (method fast_tac) "" #>
+   Method.setup \<^binding>\<open>best\<close> (method best_tac) "");
 
 end;
 

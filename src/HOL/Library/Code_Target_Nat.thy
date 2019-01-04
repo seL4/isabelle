@@ -8,7 +8,7 @@ theory Code_Target_Nat
 imports Code_Abstract_Nat
 begin
 
-subsection \<open>Implementation for @{typ nat}\<close>
+subsection \<open>Implementation for \<^typ>\<open>nat\<close>\<close>
 
 context
 includes natural.lifting integer.lifting
@@ -163,8 +163,8 @@ lemma [code abstract]:
   by (cases c) (simp add: nat_of_char_def integer_of_char_def integer_of_nat_eq_of_nat)
 
 lemma term_of_nat_code [code]:
-  \<comment> \<open>Use @{term Code_Numeral.nat_of_integer} in term reconstruction
-        instead of @{term Code_Target_Nat.Nat} such that reconstructed
+  \<comment> \<open>Use \<^term>\<open>Code_Numeral.nat_of_integer\<close> in term reconstruction
+        instead of \<^term>\<open>Code_Target_Nat.Nat\<close> such that reconstructed
         terms can be fed back to the code generator\<close>
   "term_of_class.term_of n =
    Code_Evaluation.App

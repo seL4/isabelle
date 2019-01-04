@@ -40,7 +40,7 @@ open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 
-val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
+val trace = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_preplay_trace\<close> (K false)
 
 fun peek_at_outcome outcome =
   if Lazy.is_finished outcome then Lazy.force outcome else Play_Timed_Out Time.zeroTime

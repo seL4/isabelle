@@ -55,9 +55,8 @@ definition
 end
 
 
-text\<open>A note of warning when using @{term"{..<n}"} on type @{typ
-nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
-@{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well.\<close>
+text\<open>A note of warning when using \<^term>\<open>{..<n}\<close> on type \<^typ>\<open>nat\<close>: it is equivalent to \<^term>\<open>{0::nat..<n}\<close> but some lemmas involving
+\<^term>\<open>{m..<n}\<close> may not exist in \<^term>\<open>{..<n}\<close>-form as well.\<close>
 
 syntax (ASCII)
   "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3UN _<=_./ _)" [0, 0, 10] 10)
@@ -672,7 +671,7 @@ lemma
 
 subsection \<open>Intervals of natural numbers\<close>
 
-subsubsection \<open>The Constant @{term lessThan}\<close>
+subsubsection \<open>The Constant \<^term>\<open>lessThan\<close>\<close>
 
 lemma lessThan_0 [simp]: "lessThan (0::nat) = {}"
 by (simp add: lessThan_def)
@@ -682,7 +681,7 @@ by (simp add: lessThan_def less_Suc_eq, blast)
 
 text \<open>The following proof is convenient in induction proofs where
 new elements get indices at the beginning. So it is used to transform
-@{term "{..<Suc n}"} to @{term "0::nat"} and @{term "{..< n}"}.\<close>
+\<^term>\<open>{..<Suc n}\<close> to \<^term>\<open>0::nat\<close> and \<^term>\<open>{..< n}\<close>.\<close>
 
 lemma zero_notin_Suc_image: "0 \<notin> Suc ` A"
   by auto
@@ -699,7 +698,7 @@ lemma atMost_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
 lemma UN_lessThan_UNIV: "(\<Union>m::nat. lessThan m) = UNIV"
 by blast
 
-subsubsection \<open>The Constant @{term greaterThan}\<close>
+subsubsection \<open>The Constant \<^term>\<open>greaterThan\<close>\<close>
 
 lemma greaterThan_0: "greaterThan 0 = range Suc"
   unfolding greaterThan_def
@@ -712,7 +711,7 @@ lemma greaterThan_Suc: "greaterThan (Suc k) = greaterThan k - {Suc k}"
 lemma INT_greaterThan_UNIV: "(\<Inter>m::nat. greaterThan m) = {}"
   by blast
 
-subsubsection \<open>The Constant @{term atLeast}\<close>
+subsubsection \<open>The Constant \<^term>\<open>atLeast\<close>\<close>
 
 lemma atLeast_0 [simp]: "atLeast (0::nat) = UNIV"
 by (unfold atLeast_def UNIV_def, simp)
@@ -726,7 +725,7 @@ lemma atLeast_Suc_greaterThan: "atLeast (Suc k) = greaterThan k"
 lemma UN_atLeast_UNIV: "(\<Union>m::nat. atLeast m) = UNIV"
   by blast
 
-subsubsection \<open>The Constant @{term atMost}\<close>
+subsubsection \<open>The Constant \<^term>\<open>atMost\<close>\<close>
 
 lemma atMost_0 [simp]: "atMost (0::nat) = {0}"
   by (simp add: atMost_def)
@@ -737,7 +736,7 @@ lemma atMost_Suc: "atMost (Suc k) = insert (Suc k) (atMost k)"
 lemma UN_atMost_UNIV: "(\<Union>m::nat. atMost m) = UNIV"
   by blast
 
-subsubsection \<open>The Constant @{term atLeastLessThan}\<close>
+subsubsection \<open>The Constant \<^term>\<open>atLeastLessThan\<close>\<close>
 
 text\<open>The orientation of the following 2 rules is tricky. The lhs is
 defined in terms of the rhs.  Hence the chosen orientation makes sense
@@ -768,7 +767,7 @@ lemma atLeast0_lessThan_Suc_eq_insert_0: "{0..<Suc n} = insert 0 (Suc ` {0..<n})
   by (simp add: atLeast0LessThan lessThan_Suc_eq_insert_0)
 
 
-subsubsection \<open>The Constant @{term atLeastAtMost}\<close>
+subsubsection \<open>The Constant \<^term>\<open>atLeastAtMost\<close>\<close>
 
 lemma Icc_eq_insert_lb_nat: "m \<le> n \<Longrightarrow> {m..n} = insert m {Suc m..n}"
 by auto
@@ -782,7 +781,7 @@ lemma atLeast0_atMost_Suc_eq_insert_0:
   by (simp add: atLeast0AtMost atMost_Suc_eq_insert_0)
 
 
-subsubsection \<open>Intervals of nats with @{term Suc}\<close>
+subsubsection \<open>Intervals of nats with \<^term>\<open>Suc\<close>\<close>
 
 text\<open>Not a simprule because the RHS is too messy.\<close>
 lemma atLeastLessThanSuc:
@@ -809,7 +808,7 @@ by (auto simp add: atLeastAtMost_def)
 lemma atLeastAtMost_insertL: "m \<le> n \<Longrightarrow> insert m {Suc m..n} = {m ..n}"
 by auto
 
-text \<open>The analogous result is useful on @{typ int}:\<close>
+text \<open>The analogous result is useful on \<^typ>\<open>int\<close>:\<close>
 (* here, because we don't have an own int section *)
 lemma atLeastAtMostPlus1_int_conv:
   "m <= 1+n \<Longrightarrow> {m..1+n} = insert (1+n) {m..n::int}"
@@ -1795,10 +1794,10 @@ summation over intervals:
 \begin{center}
 \begin{tabular}{lll}
 Old & New & \LaTeX\\
-@{term[source]"\<Sum>x\<in>{a..b}. e"} & @{term"\<Sum>x=a..b. e"} & @{term[mode=latex_sum]"\<Sum>x=a..b. e"}\\
-@{term[source]"\<Sum>x\<in>{a..<b}. e"} & @{term"\<Sum>x=a..<b. e"} & @{term[mode=latex_sum]"\<Sum>x=a..<b. e"}\\
-@{term[source]"\<Sum>x\<in>{..b}. e"} & @{term"\<Sum>x\<le>b. e"} & @{term[mode=latex_sum]"\<Sum>x\<le>b. e"}\\
-@{term[source]"\<Sum>x\<in>{..<b}. e"} & @{term"\<Sum>x<b. e"} & @{term[mode=latex_sum]"\<Sum>x<b. e"}
+@{term[source]"\<Sum>x\<in>{a..b}. e"} & \<^term>\<open>\<Sum>x=a..b. e\<close> & @{term[mode=latex_sum]"\<Sum>x=a..b. e"}\\
+@{term[source]"\<Sum>x\<in>{a..<b}. e"} & \<^term>\<open>\<Sum>x=a..<b. e\<close> & @{term[mode=latex_sum]"\<Sum>x=a..<b. e"}\\
+@{term[source]"\<Sum>x\<in>{..b}. e"} & \<^term>\<open>\<Sum>x\<le>b. e\<close> & @{term[mode=latex_sum]"\<Sum>x\<le>b. e"}\\
+@{term[source]"\<Sum>x\<in>{..<b}. e"} & \<^term>\<open>\<Sum>x<b. e\<close> & @{term[mode=latex_sum]"\<Sum>x<b. e"}
 \end{tabular}
 \end{center}
 The left column shows the term before introduction of the new syntax,
@@ -1809,14 +1808,14 @@ and has to be activated explicitly by setting the print mode to
 antiquotations). It is not the default \LaTeX\ output because it only
 works well with italic-style formulae, not tt-style.
 
-Note that for uniformity on @{typ nat} it is better to use
-@{term"\<Sum>x::nat=0..<n. e"} rather than \<open>\<Sum>x<n. e\<close>: \<open>sum\<close> may
-not provide all lemmas available for @{term"{m..<n}"} also in the
-special form for @{term"{..<n}"}.\<close>
+Note that for uniformity on \<^typ>\<open>nat\<close> it is better to use
+\<^term>\<open>\<Sum>x::nat=0..<n. e\<close> rather than \<open>\<Sum>x<n. e\<close>: \<open>sum\<close> may
+not provide all lemmas available for \<^term>\<open>{m..<n}\<close> also in the
+special form for \<^term>\<open>{..<n}\<close>.\<close>
 
 text\<open>This congruence rule should be used for sums over intervals as
 the standard theorem @{text[source]sum.cong} does not work well
-with the simplifier who adds the unsimplified premise @{term"x\<in>B"} to
+with the simplifier who adds the unsimplified premise \<^term>\<open>x\<in>B\<close> to
 the context.\<close>
 
 lemmas sum_ivl_cong = sum.ivl_cong

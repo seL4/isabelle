@@ -474,7 +474,7 @@ fun get_typedef thy T =
       | get_typedef_ax ((axname, ax) :: axioms) =
           (let
             fun type_of_type_definition (Const (s', T')) =
-                  if s'= @{const_name type_definition} then
+                  if s'= \<^const_name>\<open>type_definition\<close> then
                     SOME T'
                   else
                     NONE
@@ -536,43 +536,43 @@ fun unfold_defs thy t =
     fun unfold_loop t =
       case t of
       (* Pure *)
-        Const (@{const_name Pure.all}, _) => t
-      | Const (@{const_name Pure.eq}, _) => t
-      | Const (@{const_name Pure.imp}, _) => t
-      | Const (@{const_name Pure.type}, _) => t  (* axiomatic type classes *)
+        Const (\<^const_name>\<open>Pure.all\<close>, _) => t
+      | Const (\<^const_name>\<open>Pure.eq\<close>, _) => t
+      | Const (\<^const_name>\<open>Pure.imp\<close>, _) => t
+      | Const (\<^const_name>\<open>Pure.type\<close>, _) => t  (* axiomatic type classes *)
       (* HOL *)
-      | Const (@{const_name Trueprop}, _) => t
-      | Const (@{const_name Not}, _) => t
+      | Const (\<^const_name>\<open>Trueprop\<close>, _) => t
+      | Const (\<^const_name>\<open>Not\<close>, _) => t
       | (* redundant, since 'True' is also an IDT constructor *)
-        Const (@{const_name True}, _) => t
+        Const (\<^const_name>\<open>True\<close>, _) => t
       | (* redundant, since 'False' is also an IDT constructor *)
-        Const (@{const_name False}, _) => t
-      | Const (@{const_name undefined}, _) => t
-      | Const (@{const_name The}, _) => t
-      | Const (@{const_name Hilbert_Choice.Eps}, _) => t
-      | Const (@{const_name All}, _) => t
-      | Const (@{const_name Ex}, _) => t
-      | Const (@{const_name HOL.eq}, _) => t
-      | Const (@{const_name HOL.conj}, _) => t
-      | Const (@{const_name HOL.disj}, _) => t
-      | Const (@{const_name HOL.implies}, _) => t
+        Const (\<^const_name>\<open>False\<close>, _) => t
+      | Const (\<^const_name>\<open>undefined\<close>, _) => t
+      | Const (\<^const_name>\<open>The\<close>, _) => t
+      | Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, _) => t
+      | Const (\<^const_name>\<open>All\<close>, _) => t
+      | Const (\<^const_name>\<open>Ex\<close>, _) => t
+      | Const (\<^const_name>\<open>HOL.eq\<close>, _) => t
+      | Const (\<^const_name>\<open>HOL.conj\<close>, _) => t
+      | Const (\<^const_name>\<open>HOL.disj\<close>, _) => t
+      | Const (\<^const_name>\<open>HOL.implies\<close>, _) => t
       (* sets *)
-      | Const (@{const_name Collect}, _) => t
-      | Const (@{const_name Set.member}, _) => t
+      | Const (\<^const_name>\<open>Collect\<close>, _) => t
+      | Const (\<^const_name>\<open>Set.member\<close>, _) => t
       (* other optimizations *)
-      | Const (@{const_name Finite_Set.card}, _) => t
-      | Const (@{const_name Finite_Set.finite}, _) => t
-      | Const (@{const_name Orderings.less}, Type ("fun", [@{typ nat},
-          Type ("fun", [@{typ nat}, @{typ bool}])])) => t
-      | Const (@{const_name Groups.plus}, Type ("fun", [@{typ nat},
-          Type ("fun", [@{typ nat}, @{typ nat}])])) => t
-      | Const (@{const_name Groups.minus}, Type ("fun", [@{typ nat},
-          Type ("fun", [@{typ nat}, @{typ nat}])])) => t
-      | Const (@{const_name Groups.times}, Type ("fun", [@{typ nat},
-          Type ("fun", [@{typ nat}, @{typ nat}])])) => t
-      | Const (@{const_name append}, _) => t
-      | Const (@{const_name fst}, _) => t
-      | Const (@{const_name snd}, _) => t
+      | Const (\<^const_name>\<open>Finite_Set.card\<close>, _) => t
+      | Const (\<^const_name>\<open>Finite_Set.finite\<close>, _) => t
+      | Const (\<^const_name>\<open>Orderings.less\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+          Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>bool\<close>])])) => t
+      | Const (\<^const_name>\<open>Groups.plus\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+          Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) => t
+      | Const (\<^const_name>\<open>Groups.minus\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+          Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) => t
+      | Const (\<^const_name>\<open>Groups.times\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+          Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) => t
+      | Const (\<^const_name>\<open>append\<close>, _) => t
+      | Const (\<^const_name>\<open>fst\<close>, _) => t
+      | Const (\<^const_name>\<open>snd\<close>, _) => t
       (* simply-typed lambda calculus *)
       | Const (s, T) =>
           (if is_IDT_constructor thy (s, T)
@@ -630,8 +630,8 @@ local
 fun get_axiom thy xname =
   Name_Space.check (Context.Theory thy) (Theory.axiom_table thy) (xname, Position.none);
 
-val the_eq_trivial = get_axiom @{theory HOL} "the_eq_trivial";
-val someI = get_axiom @{theory Hilbert_Choice} "someI";
+val the_eq_trivial = get_axiom \<^theory>\<open>HOL\<close> "the_eq_trivial";
+val someI = get_axiom \<^theory>\<open>Hilbert_Choice\<close> "someI";
 
 in
 
@@ -680,11 +680,11 @@ fun collect_axioms ctxt t =
     and collect_type_axioms T axs =
       case T of
       (* simple types *)
-        Type (@{type_name prop}, []) => axs
-      | Type (@{type_name fun}, [T1, T2]) => collect_type_axioms T2 (collect_type_axioms T1 axs)
-      | Type (@{type_name set}, [T1]) => collect_type_axioms T1 axs
+        Type (\<^type_name>\<open>prop\<close>, []) => axs
+      | Type (\<^type_name>\<open>fun\<close>, [T1, T2]) => collect_type_axioms T2 (collect_type_axioms T1 axs)
+      | Type (\<^type_name>\<open>set\<close>, [T1]) => collect_type_axioms T1 axs
       (* axiomatic type classes *)
-      | Type (@{type_name itself}, [T1]) => collect_type_axioms T1 axs
+      | Type (\<^type_name>\<open>itself\<close>, [T1]) => collect_type_axioms T1 axs
       | Type (s, Ts) =>
         (case BNF_LFP_Compat.get_info thy [] s of
           SOME _ =>  (* inductive datatype *)
@@ -705,59 +705,59 @@ fun collect_axioms ctxt t =
     and collect_term_axioms t axs =
       case t of
       (* Pure *)
-        Const (@{const_name Pure.all}, _) => axs
-      | Const (@{const_name Pure.eq}, _) => axs
-      | Const (@{const_name Pure.imp}, _) => axs
+        Const (\<^const_name>\<open>Pure.all\<close>, _) => axs
+      | Const (\<^const_name>\<open>Pure.eq\<close>, _) => axs
+      | Const (\<^const_name>\<open>Pure.imp\<close>, _) => axs
       (* axiomatic type classes *)
-      | Const (@{const_name Pure.type}, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>Pure.type\<close>, T) => collect_type_axioms T axs
       (* HOL *)
-      | Const (@{const_name Trueprop}, _) => axs
-      | Const (@{const_name Not}, _) => axs
+      | Const (\<^const_name>\<open>Trueprop\<close>, _) => axs
+      | Const (\<^const_name>\<open>Not\<close>, _) => axs
       (* redundant, since 'True' is also an IDT constructor *)
-      | Const (@{const_name True}, _) => axs
+      | Const (\<^const_name>\<open>True\<close>, _) => axs
       (* redundant, since 'False' is also an IDT constructor *)
-      | Const (@{const_name False}, _) => axs
-      | Const (@{const_name undefined}, T) => collect_type_axioms T axs
-      | Const (@{const_name The}, T) =>
+      | Const (\<^const_name>\<open>False\<close>, _) => axs
+      | Const (\<^const_name>\<open>undefined\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>The\<close>, T) =>
           let
-            val ax = specialize_type thy (@{const_name The}, T) (#2 the_eq_trivial)
+            val ax = specialize_type thy (\<^const_name>\<open>The\<close>, T) (#2 the_eq_trivial)
           in
             collect_this_axiom (#1 the_eq_trivial, ax) axs
           end
-      | Const (@{const_name Hilbert_Choice.Eps}, T) =>
+      | Const (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, T) =>
           let
-            val ax = specialize_type thy (@{const_name Hilbert_Choice.Eps}, T) (#2 someI)
+            val ax = specialize_type thy (\<^const_name>\<open>Hilbert_Choice.Eps\<close>, T) (#2 someI)
           in
             collect_this_axiom (#1 someI, ax) axs
           end
-      | Const (@{const_name All}, T) => collect_type_axioms T axs
-      | Const (@{const_name Ex}, T) => collect_type_axioms T axs
-      | Const (@{const_name HOL.eq}, T) => collect_type_axioms T axs
-      | Const (@{const_name HOL.conj}, _) => axs
-      | Const (@{const_name HOL.disj}, _) => axs
-      | Const (@{const_name HOL.implies}, _) => axs
+      | Const (\<^const_name>\<open>All\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>Ex\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>HOL.eq\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>HOL.conj\<close>, _) => axs
+      | Const (\<^const_name>\<open>HOL.disj\<close>, _) => axs
+      | Const (\<^const_name>\<open>HOL.implies\<close>, _) => axs
       (* sets *)
-      | Const (@{const_name Collect}, T) => collect_type_axioms T axs
-      | Const (@{const_name Set.member}, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>Collect\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>Set.member\<close>, T) => collect_type_axioms T axs
       (* other optimizations *)
-      | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms T axs
-      | Const (@{const_name Finite_Set.finite}, T) =>
+      | Const (\<^const_name>\<open>Finite_Set.card\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>Finite_Set.finite\<close>, T) =>
         collect_type_axioms T axs
-      | Const (@{const_name Orderings.less}, T as Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ bool}])])) =>
+      | Const (\<^const_name>\<open>Orderings.less\<close>, T as Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>bool\<close>])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Groups.plus}, T as Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
+      | Const (\<^const_name>\<open>Groups.plus\<close>, T as Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Groups.minus}, T as Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
+      | Const (\<^const_name>\<open>Groups.minus\<close>, T as Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Groups.times}, T as Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
+      | Const (\<^const_name>\<open>Groups.times\<close>, T as Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name append}, T) => collect_type_axioms T axs
-      | Const (@{const_name fst}, T) => collect_type_axioms T axs
-      | Const (@{const_name snd}, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>append\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>fst\<close>, T) => collect_type_axioms T axs
+      | Const (\<^const_name>\<open>snd\<close>, T) => collect_type_axioms T axs
       (* simply-typed lambda calculus *)
       | Const (s, T) =>
           if is_const_of_class thy (s, T) then
@@ -811,9 +811,9 @@ fun ground_types ctxt t =
     val thy = Proof_Context.theory_of ctxt
     fun collect_types T acc =
       (case T of
-        Type (@{type_name fun}, [T1, T2]) => collect_types T1 (collect_types T2 acc)
-      | Type (@{type_name prop}, []) => acc
-      | Type (@{type_name set}, [T1]) => collect_types T1 acc
+        Type (\<^type_name>\<open>fun\<close>, [T1, T2]) => collect_types T1 (collect_types T2 acc)
+      | Type (\<^type_name>\<open>prop\<close>, []) => acc
+      | Type (\<^type_name>\<open>set\<close>, [T1]) => collect_types T1 acc
       | Type (s, Ts) =>
           (case BNF_LFP_Compat.get_info thy [] s of
             SOME info =>  (* inductive datatype *)
@@ -1173,19 +1173,19 @@ fun refute_term ctxt params assm_ts t =
     (* interpretation which includes values for the (formerly)           *)
     (* quantified variables.                                             *)
     (* maps  !!x1...xn. !xk...xm. t   to   t  *)
-    fun strip_all_body (Const (@{const_name Pure.all}, _) $ Abs (_, _, t)) =
+    fun strip_all_body (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t)) =
           strip_all_body t
-      | strip_all_body (Const (@{const_name Trueprop}, _) $ t) =
+      | strip_all_body (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) =
           strip_all_body t
-      | strip_all_body (Const (@{const_name All}, _) $ Abs (_, _, t)) =
+      | strip_all_body (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) =
           strip_all_body t
       | strip_all_body t = t
     (* maps  !!x1...xn. !xk...xm. t   to   [x1, ..., xn, xk, ..., xm]  *)
-    fun strip_all_vars (Const (@{const_name Pure.all}, _) $ Abs (a, T, t)) =
+    fun strip_all_vars (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (a, T, t)) =
           (a, T) :: strip_all_vars t
-      | strip_all_vars (Const (@{const_name Trueprop}, _) $ t) =
+      | strip_all_vars (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) =
           strip_all_vars t
-      | strip_all_vars (Const (@{const_name All}, _) $ Abs (a, T, t)) =
+      | strip_all_vars (Const (\<^const_name>\<open>All\<close>, _) $ Abs (a, T, t)) =
           (a, T) :: strip_all_vars t
       | strip_all_vars _ = [] : (string * typ) list
     val strip_t = strip_all_body ex_closure
@@ -1559,7 +1559,7 @@ fun stlc_interpreter ctxt model args t =
 
 fun Pure_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Pure.all}, _) $ t1 =>
+    Const (\<^const_name>\<open>Pure.all\<close>, _) $ t1 =>
       let
         val (i, m, a) = interpret ctxt model args t1
       in
@@ -1576,9 +1576,9 @@ fun Pure_interpreter ctxt model args t =
           raise REFUTE ("Pure_interpreter",
             "\"Pure.all\" is followed by a non-function")
       end
-  | Const (@{const_name Pure.all}, _) =>
+  | Const (\<^const_name>\<open>Pure.all\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name Pure.eq}, _) $ t1 $ t2 =>
+  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2 =>
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
@@ -1587,11 +1587,11 @@ fun Pure_interpreter ctxt model args t =
         SOME ((if #def_eq args then make_def_equality else make_equality)
           (i1, i2), m2, a2)
       end
-  | Const (@{const_name Pure.eq}, _) $ _ =>
+  | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name Pure.eq}, _) =>
+  | Const (\<^const_name>\<open>Pure.eq\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
-  | Const (@{const_name Pure.imp}, _) $ t1 $ t2 =>
+  | Const (\<^const_name>\<open>Pure.imp\<close>, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
@@ -1601,9 +1601,9 @@ fun Pure_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name Pure.imp}, _) $ _ =>
+  | Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name Pure.imp}, _) =>
+  | Const (\<^const_name>\<open>Pure.imp\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
   | _ => NONE;
 
@@ -1612,17 +1612,17 @@ fun HOLogic_interpreter ctxt model args t =
 (* logical constants.  In HOL however, logical constants can themselves be *)
 (* arguments.  They are then translated using eta-expansion.               *)
   case t of
-    Const (@{const_name Trueprop}, _) =>
+    Const (\<^const_name>\<open>Trueprop\<close>, _) =>
       SOME (Node [TT, FF], model, args)
-  | Const (@{const_name Not}, _) =>
+  | Const (\<^const_name>\<open>Not\<close>, _) =>
       SOME (Node [FF, TT], model, args)
   (* redundant, since 'True' is also an IDT constructor *)
-  | Const (@{const_name True}, _) =>
+  | Const (\<^const_name>\<open>True\<close>, _) =>
       SOME (TT, model, args)
   (* redundant, since 'False' is also an IDT constructor *)
-  | Const (@{const_name False}, _) =>
+  | Const (\<^const_name>\<open>False\<close>, _) =>
       SOME (FF, model, args)
-  | Const (@{const_name All}, _) $ t1 =>  (* similar to "Pure.all" *)
+  | Const (\<^const_name>\<open>All\<close>, _) $ t1 =>  (* similar to "Pure.all" *)
       let
         val (i, m, a) = interpret ctxt model args t1
       in
@@ -1639,9 +1639,9 @@ fun HOLogic_interpreter ctxt model args t =
           raise REFUTE ("HOLogic_interpreter",
             "\"All\" is followed by a non-function")
       end
-  | Const (@{const_name All}, _) =>
+  | Const (\<^const_name>\<open>All\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name Ex}, _) $ t1 =>
+  | Const (\<^const_name>\<open>Ex\<close>, _) $ t1 =>
       let
         val (i, m, a) = interpret ctxt model args t1
       in
@@ -1658,20 +1658,20 @@ fun HOLogic_interpreter ctxt model args t =
           raise REFUTE ("HOLogic_interpreter",
             "\"Ex\" is followed by a non-function")
       end
-  | Const (@{const_name Ex}, _) =>
+  | Const (\<^const_name>\<open>Ex\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>  (* similar to Pure.eq *)
+  | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2 =>  (* similar to Pure.eq *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
       in
         SOME (make_equality (i1, i2), m2, a2)
       end
-  | Const (@{const_name HOL.eq}, _) $ _ =>
+  | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name HOL.eq}, _) =>
+  | Const (\<^const_name>\<open>HOL.eq\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
-  | Const (@{const_name HOL.conj}, _) $ t1 $ t2 =>
+  | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
@@ -1681,14 +1681,14 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name HOL.conj}, _) $ _ =>
+  | Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name HOL.conj}, _) =>
+  | Const (\<^const_name>\<open>HOL.conj\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "False & undef":                                          *)
       (* SOME (Node [Node [TT, FF], Node [FF, FF]], model, args) *)
-  | Const (@{const_name HOL.disj}, _) $ t1 $ t2 =>
+  | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
@@ -1698,14 +1698,14 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name HOL.disj}, _) $ _ =>
+  | Const (\<^const_name>\<open>HOL.disj\<close>, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name HOL.disj}, _) =>
+  | Const (\<^const_name>\<open>HOL.disj\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "True | undef":                                           *)
       (* SOME (Node [Node [TT, TT], Node [TT, FF]], model, args) *)
-  | Const (@{const_name HOL.implies}, _) $ t1 $ t2 =>  (* similar to Pure.imp *)
+  | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ t1 $ t2 =>  (* similar to Pure.imp *)
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
@@ -1715,9 +1715,9 @@ fun HOLogic_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name HOL.implies}, _) $ _ =>
+  | Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name HOL.implies}, _) =>
+  | Const (\<^const_name>\<open>HOL.implies\<close>, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "False --> undef":                                        *)
@@ -1850,9 +1850,9 @@ fun IDT_constructor_interpreter ctxt model args t =
               val pairss = map (map HOLogic.mk_prod) functions
               val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
               val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
-              val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT)
+              val HOLogic_empty_set = Const (\<^const_abbrev>\<open>Set.empty\<close>, HOLogic_setT)
               val HOLogic_insert    =
-                Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
+                Const (\<^const_name>\<open>insert\<close>, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
             in
               (* functions as graphs, i.e. as a (HOL) set of pairs "(x, y)" *)
               map (fn ps => fold_rev (fn pair => fn acc => HOLogic_insert $ pair $ acc) ps
@@ -2412,21 +2412,21 @@ fun set_interpreter ctxt model args t =
         SOME (intr, model, args)
     | NONE =>
         (case t of
-          Free (x, Type (@{type_name set}, [T])) =>
+          Free (x, Type (\<^type_name>\<open>set\<close>, [T])) =>
           let
             val (intr, _, args') =
               interpret ctxt (typs, []) args (Free (x, T --> HOLogic.boolT))
           in
             SOME (intr, (typs, (t, intr)::terms), args')
           end
-        | Var ((x, i), Type (@{type_name set}, [T])) =>
+        | Var ((x, i), Type (\<^type_name>\<open>set\<close>, [T])) =>
           let
             val (intr, _, args') =
               interpret ctxt (typs, []) args (Var ((x,i), T --> HOLogic.boolT))
           in
             SOME (intr, (typs, (t, intr)::terms), args')
           end
-        | Const (s, Type (@{type_name set}, [T])) =>
+        | Const (s, Type (\<^type_name>\<open>set\<close>, [T])) =>
           let
             val (intr, _, args') =
               interpret ctxt (typs, []) args (Const (s, T --> HOLogic.boolT))
@@ -2434,16 +2434,16 @@ fun set_interpreter ctxt model args t =
             SOME (intr, (typs, (t, intr)::terms), args')
           end
         (* 'Collect' == identity *)
-        | Const (@{const_name Collect}, _) $ t1 =>
+        | Const (\<^const_name>\<open>Collect\<close>, _) $ t1 =>
             SOME (interpret ctxt model args t1)
-        | Const (@{const_name Collect}, _) =>
+        | Const (\<^const_name>\<open>Collect\<close>, _) =>
             SOME (interpret ctxt model args (eta_expand t 1))
         (* 'op :' == application *)
-        | Const (@{const_name Set.member}, _) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>Set.member\<close>, _) $ t1 $ t2 =>
             SOME (interpret ctxt model args (t2 $ t1))
-        | Const (@{const_name Set.member}, _) $ _ =>
+        | Const (\<^const_name>\<open>Set.member\<close>, _) $ _ =>
             SOME (interpret ctxt model args (eta_expand t 1))
-        | Const (@{const_name Set.member}, _) =>
+        | Const (\<^const_name>\<open>Set.member\<close>, _) =>
             SOME (interpret ctxt model args (eta_expand t 2))
         | _ => NONE)
   end;
@@ -2454,8 +2454,8 @@ fun set_interpreter ctxt model args t =
 
 fun Finite_Set_card_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Finite_Set.card},
-        Type ("fun", [Type (@{type_name set}, [T]), @{typ nat}])) =>
+    Const (\<^const_name>\<open>Finite_Set.card\<close>,
+        Type ("fun", [Type (\<^type_name>\<open>set\<close>, [T]), \<^typ>\<open>nat\<close>])) =>
       let
         fun number_of_elements (Node xs) =
             fold (fn x => fn n =>
@@ -2470,7 +2470,7 @@ fun Finite_Set_card_interpreter ctxt model args t =
           | number_of_elements (Leaf _) =
               raise REFUTE ("Finite_Set_card_interpreter",
                 "interpretation for set type is a leaf")
-        val size_of_nat = size_of_type ctxt model (@{typ nat})
+        val size_of_nat = size_of_type ctxt model (\<^typ>\<open>nat\<close>)
         (* takes an interpretation for a set and returns an interpretation *)
         (* for a 'nat' denoting the set's cardinality                      *)
         fun card i =
@@ -2495,13 +2495,13 @@ fun Finite_Set_card_interpreter ctxt model args t =
 
 fun Finite_Set_finite_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Finite_Set.finite},
-           Type ("fun", [_, @{typ bool}])) $ _ =>
+    Const (\<^const_name>\<open>Finite_Set.finite\<close>,
+           Type ("fun", [_, \<^typ>\<open>bool\<close>])) $ _ =>
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
         SOME (TT, model, args)
-  | Const (@{const_name Finite_Set.finite},
-           Type ("fun", [set_T, @{typ bool}])) =>
+  | Const (\<^const_name>\<open>Finite_Set.finite\<close>,
+           Type ("fun", [set_T, \<^typ>\<open>bool\<close>])) =>
       let
         val size_of_set = size_of_type ctxt model set_T
       in
@@ -2517,10 +2517,10 @@ fun Finite_Set_finite_interpreter ctxt model args t =
 
 fun Nat_less_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Orderings.less}, Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ bool}])])) =>
+    Const (\<^const_name>\<open>Orderings.less\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>bool\<close>])])) =>
       let
-        val size_of_nat = size_of_type ctxt model (@{typ nat})
+        val size_of_nat = size_of_type ctxt model (\<^typ>\<open>nat\<close>)
         (* the 'n'-th nat is not less than the first 'n' nats, while it *)
         (* is less than the remaining 'size_of_nat - n' nats            *)
         fun less n = Node ((replicate n FF) @ (replicate (size_of_nat - n) TT))
@@ -2535,10 +2535,10 @@ fun Nat_less_interpreter ctxt model args t =
 
 fun Nat_plus_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Groups.plus}, Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
+    Const (\<^const_name>\<open>Groups.plus\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) =>
       let
-        val size_of_nat = size_of_type ctxt model (@{typ nat})
+        val size_of_nat = size_of_type ctxt model (\<^typ>\<open>nat\<close>)
         fun plus m n =
           let
             val element = m + n
@@ -2561,10 +2561,10 @@ fun Nat_plus_interpreter ctxt model args t =
 
 fun Nat_minus_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Groups.minus}, Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
+    Const (\<^const_name>\<open>Groups.minus\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) =>
       let
-        val size_of_nat = size_of_type ctxt model (@{typ nat})
+        val size_of_nat = size_of_type ctxt model (\<^typ>\<open>nat\<close>)
         fun minus m n =
           let
             val element = Int.max (m-n, 0)
@@ -2584,10 +2584,10 @@ fun Nat_minus_interpreter ctxt model args t =
 
 fun Nat_times_interpreter ctxt model args t =
   case t of
-    Const (@{const_name Groups.times}, Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
+    Const (\<^const_name>\<open>Groups.times\<close>, Type ("fun", [\<^typ>\<open>nat\<close>,
+        Type ("fun", [\<^typ>\<open>nat\<close>, \<^typ>\<open>nat\<close>])])) =>
       let
-        val size_of_nat = size_of_type ctxt model (@{typ nat})
+        val size_of_nat = size_of_type ctxt model (\<^typ>\<open>nat\<close>)
         fun mult m n =
           let
             val element = m * n
@@ -2610,12 +2610,12 @@ fun Nat_times_interpreter ctxt model args t =
 
 fun List_append_interpreter ctxt model args t =
   case t of
-    Const (@{const_name append},
-      Type (@{type_name fun}, [Type (@{type_name list}, [T]),
-        Type (@{type_name fun}, [Type (@{type_name list}, [_]), Type (@{type_name list}, [_])])])) =>
+    Const (\<^const_name>\<open>append\<close>,
+      Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>list\<close>, [T]),
+        Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>list\<close>, [_]), Type (\<^type_name>\<open>list\<close>, [_])])])) =>
       let
         val size_elem = size_of_type ctxt model T
-        val size_list = size_of_type ctxt model (Type (@{type_name list}, [T]))
+        val size_list = size_of_type ctxt model (Type (\<^type_name>\<open>list\<close>, [T]))
         (* maximal length of lists; 0 if we only consider the empty list *)
         val list_length =
           let
@@ -2699,7 +2699,7 @@ fun List_append_interpreter ctxt model args t =
 
 fun Product_Type_fst_interpreter ctxt model args t =
   case t of
-    Const (@{const_name fst}, Type ("fun", [Type (@{type_name Product_Type.prod}, [T, U]), _])) =>
+    Const (\<^const_name>\<open>fst\<close>, Type ("fun", [Type (\<^type_name>\<open>Product_Type.prod\<close>, [T, U]), _])) =>
       let
         val constants_T = make_constants ctxt model T
         val size_U = size_of_type ctxt model U
@@ -2714,7 +2714,7 @@ fun Product_Type_fst_interpreter ctxt model args t =
 
 fun Product_Type_snd_interpreter ctxt model args t =
   case t of
-    Const (@{const_name snd}, Type ("fun", [Type (@{type_name Product_Type.prod}, [T, U]), _])) =>
+    Const (\<^const_name>\<open>snd\<close>, Type ("fun", [Type (\<^type_name>\<open>Product_Type.prod\<close>, [T, U]), _])) =>
       let
         val size_T = size_of_type ctxt model T
         val constants_U = make_constants ctxt model U
@@ -2759,34 +2759,34 @@ fun stlc_printer ctxt model T intr assignment =
             (constants ~~ results)
           val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
           val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
-          val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT)
+          val HOLogic_empty_set = Const (\<^const_abbrev>\<open>Set.empty\<close>, HOLogic_setT)
           val HOLogic_insert    =
-            Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
+            Const (\<^const_name>\<open>insert\<close>, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
         in
           SOME (fold_rev (fn pair => fn acc => HOLogic_insert $ pair $ acc) pairs HOLogic_empty_set)
         end
-    | Type (@{type_name prop}, []) =>
+    | Type (\<^type_name>\<open>prop\<close>, []) =>
         (case index_from_interpretation intr of
-          ~1 => SOME (HOLogic.mk_Trueprop (Const (@{const_name undefined}, HOLogic.boolT)))
-        | 0  => SOME (HOLogic.mk_Trueprop @{term True})
-        | 1  => SOME (HOLogic.mk_Trueprop @{term False})
+          ~1 => SOME (HOLogic.mk_Trueprop (Const (\<^const_name>\<open>undefined\<close>, HOLogic.boolT)))
+        | 0  => SOME (HOLogic.mk_Trueprop \<^term>\<open>True\<close>)
+        | 1  => SOME (HOLogic.mk_Trueprop \<^term>\<open>False\<close>)
         | _  => raise REFUTE ("stlc_interpreter",
           "illegal interpretation for a propositional value"))
     | Type _  =>
         if index_from_interpretation intr = (~1) then
-          SOME (Const (@{const_name undefined}, T))
+          SOME (Const (\<^const_name>\<open>undefined\<close>, T))
         else
           SOME (Const (string_of_typ T ^
             string_of_int (index_from_interpretation intr), T))
     | TFree _ =>
         if index_from_interpretation intr = (~1) then
-          SOME (Const (@{const_name undefined}, T))
+          SOME (Const (\<^const_name>\<open>undefined\<close>, T))
         else
           SOME (Const (string_of_typ T ^
             string_of_int (index_from_interpretation intr), T))
     | TVar _  =>
         if index_from_interpretation intr = (~1) then
-          SOME (Const (@{const_name undefined}, T))
+          SOME (Const (\<^const_name>\<open>undefined\<close>, T))
         else
           SOME (Const (string_of_typ T ^
             string_of_int (index_from_interpretation intr), T))
@@ -2794,7 +2794,7 @@ fun stlc_printer ctxt model T intr assignment =
 
 fun set_printer ctxt model T intr assignment =
   (case T of
-    Type (@{type_name set}, [T1]) =>
+    Type (\<^type_name>\<open>set\<close>, [T1]) =>
     let
       (* create all constants of type 'T1' *)
       val constants = make_constants ctxt model T1
@@ -2814,9 +2814,9 @@ fun set_printer ctxt model T intr assignment =
             "illegal interpretation for a Boolean value"))
         (constants ~~ results)
       val HOLogic_setT1     = HOLogic.mk_setT T1
-      val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT1)
+      val HOLogic_empty_set = Const (\<^const_abbrev>\<open>Set.empty\<close>, HOLogic_setT1)
       val HOLogic_insert    =
-        Const (@{const_name insert}, T1 --> HOLogic_setT1 --> HOLogic_setT1)
+        Const (\<^const_name>\<open>insert\<close>, T1 --> HOLogic_setT1 --> HOLogic_setT1)
     in
       SOME (Library.foldl (fn (acc, elem) => HOLogic_insert $ elem $ acc)
         (HOLogic_empty_set, elements))
@@ -2854,7 +2854,7 @@ fun IDT_printer ctxt model T intr assignment =
                   "interpretation is not a leaf"))
             in
               if element < 0 then
-                SOME (Const (@{const_name undefined}, Type (s, Ts)))
+                SOME (Const (\<^const_name>\<open>undefined\<close>, Type (s, Ts)))
               else
                 let
                   (* takes a datatype constructor, and if for some arguments this  *)
@@ -2956,14 +2956,14 @@ val _ =
 
 (*optional list of arguments of the form [name1=value1, name2=value2, ...]*)
 
-val scan_parm = Parse.name -- (Scan.optional (@{keyword "="} |-- Parse.name) "true")
-val scan_parms = Scan.optional (@{keyword "["} |-- Parse.list scan_parm --| @{keyword "]"}) [];
+val scan_parm = Parse.name -- (Scan.optional (\<^keyword>\<open>=\<close> |-- Parse.name) "true")
+val scan_parms = Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.list scan_parm --| \<^keyword>\<open>]\<close>) [];
 
 
 (* 'refute' command *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword refute}
+  Outer_Syntax.command \<^command_keyword>\<open>refute\<close>
     "try to find a model that refutes a given subgoal"
     (scan_parms -- Scan.optional Parse.nat 1 >>
       (fn (parms, i) =>
@@ -2977,7 +2977,7 @@ val _ =
 (* 'refute_params' command *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword refute_params}
+  Outer_Syntax.command \<^command_keyword>\<open>refute_params\<close>
     "show/store default parameters for the 'refute' command"
     (scan_parms >> (fn parms =>
       Toplevel.theory (fn thy =>

@@ -103,26 +103,26 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
 
 val bnf_axiomatization = prepare_decl (K I) (K I) (K I);
 
-fun read_constraint _ NONE = @{sort type}
+fun read_constraint _ NONE = \<^sort>\<open>type\<close>
   | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
 
 val bnf_axiomatization_cmd = prepare_decl Plugin_Name.make_filter read_constraint Syntax.read_typ;
 
 val parse_witTs =
-  @{keyword "["} |-- (Parse.name --| @{keyword ":"} -- Scan.repeat Parse.typ
+  \<^keyword>\<open>[\<close> |-- (Parse.name --| \<^keyword>\<open>:\<close> -- Scan.repeat Parse.typ
     >> (fn ("wits", Ts) => Ts
          | (s, _) => error ("Unknown label " ^ quote s ^ " (expected \"wits\")"))) --|
-  @{keyword "]"} || Scan.succeed [];
+  \<^keyword>\<open>]\<close> || Scan.succeed [];
 
 val parse_bnf_axiomatization_options =
-  Scan.optional (@{keyword "("} |-- Plugin_Name.parse_filter --| @{keyword ")"}) (K (K true));
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Plugin_Name.parse_filter --| \<^keyword>\<open>)\<close>) (K (K true));
 
 val parse_bnf_axiomatization =
   parse_bnf_axiomatization_options -- parse_type_args_named_constrained -- Parse.binding --
   parse_witTs -- Parse.opt_mixfix -- parse_map_rel_pred_bindings;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword bnf_axiomatization} "bnf declaration"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>bnf_axiomatization\<close> "bnf declaration"
     (parse_bnf_axiomatization >>
       (fn (((((plugins, bsTs), b), witTs), mx), (mapb, relb, predb)) =>
          bnf_axiomatization_cmd plugins bsTs b mx mapb relb predb witTs #> snd));

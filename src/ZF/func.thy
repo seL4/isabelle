@@ -278,7 +278,7 @@ lemma Pi_image_cons:
 by (blast dest: apply_equality apply_Pair)
 
 
-subsection\<open>Properties of @{term "restrict(f,A)"}\<close>
+subsection\<open>Properties of \<^term>\<open>restrict(f,A)\<close>\<close>
 
 lemma restrict_subset: "restrict(f,A) \<subseteq> f"
 by (unfold restrict_def, blast)

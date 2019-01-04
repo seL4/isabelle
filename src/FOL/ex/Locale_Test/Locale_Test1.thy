@@ -162,8 +162,8 @@ begin
 thm d1_def d2_def  (* should print as "D1(?x) <-> ..." and "D2(?x) <-> ..." *)
 
 ML \<open>
-  check_syntax @{context} @{thm d1_def} "D1(?x) \<longleftrightarrow> \<not> p2(p1(?x))";
-  check_syntax @{context} @{thm d2_def} "D2(?x) \<longleftrightarrow> \<not> p2(?x)";
+  check_syntax \<^context> @{thm d1_def} "D1(?x) \<longleftrightarrow> \<not> p2(p1(?x))";
+  check_syntax \<^context> @{thm d2_def} "D2(?x) \<longleftrightarrow> \<not> p2(?x)";
 \<close>
 
 end
@@ -175,8 +175,8 @@ thm d1_def d2_def
   (* should print as "d1(?x) <-> ..." and "D2(?x) <-> ..." *)
 
 ML \<open>
-  check_syntax @{context} @{thm d1_def} "d1(?x) \<longleftrightarrow> \<not> p2(p3(?x))";
-  check_syntax @{context} @{thm d2_def} "D2(?x) \<longleftrightarrow> \<not> p2(?x)";
+  check_syntax \<^context> @{thm d1_def} "d1(?x) \<longleftrightarrow> \<not> p2(p3(?x))";
+  check_syntax \<^context> @{thm d2_def} "D2(?x) \<longleftrightarrow> \<not> p2(?x)";
 \<close>
 
 end
@@ -450,7 +450,7 @@ thm int.assoc int.semi_axioms
 interpretation int2?: semi \<open>(+)\<close>
   by unfold_locales  (* subsumed, thm int2.assoc not generated *)
 
-ML \<open>(Global_Theory.get_thms @{theory} "int2.assoc";
+ML \<open>(Global_Theory.get_thms \<^theory> "int2.assoc";
     raise Fail "thm int2.assoc was generated")
   handle ERROR _ => ([]:thm list);\<close>
 

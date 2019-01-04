@@ -591,14 +591,14 @@ fun dest_list (Const ("List.list.Nil", _)) = []
 
 (* booleans as bits *)
 
-fun mk_bit b = if b = 0 then @{term False}
-  else if b = 1 then @{term True}
+fun mk_bit b = if b = 0 then \<^term>\<open>False\<close>
+  else if b = 1 then \<^term>\<open>True\<close>
   else raise TERM ("mk_bit", []);
 
 fun mk_bits len = map mk_bit o Integer.radicify 2 len;
 
-fun dest_bit @{term False} = 0
-  | dest_bit @{term True} = 1
+fun dest_bit \<^term>\<open>False\<close> = 0
+  | dest_bit \<^term>\<open>True\<close> = 1
   | dest_bit _ = raise TERM ("dest_bit", []);
 
 val dest_bits = Integer.eval_radix 2 o map dest_bit;

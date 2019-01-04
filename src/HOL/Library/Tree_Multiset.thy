@@ -7,9 +7,7 @@ imports Multiset Tree
 begin
 
 text \<open>
-  Kept separate from theory @{theory "HOL-Library.Tree"} to avoid importing all of theory @{theory
-  "HOL-Library.Multiset"} into @{theory "HOL-Library.Tree"}. Should be merged if @{theory
-  "HOL-Library.Multiset"} ever becomes part of @{theory Main}.
+  Kept separate from theory \<^theory>\<open>HOL-Library.Tree\<close> to avoid importing all of theory \<^theory>\<open>HOL-Library.Multiset\<close> into \<^theory>\<open>HOL-Library.Tree\<close>. Should be merged if \<^theory>\<open>HOL-Library.Multiset\<close> ever becomes part of \<^theory>\<open>Main\<close>.
 \<close>
 
 fun mset_tree :: "'a tree \<Rightarrow> 'a multiset" where

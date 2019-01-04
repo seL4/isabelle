@@ -84,7 +84,7 @@ fun is_introlike_term _ = true
 
 val is_introlike = is_introlike_term o Thm.prop_of
 
-fun check_equation_format_term (t as (Const (@{const_name Pure.eq}, _) $ u $ _)) =
+fun check_equation_format_term (t as (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ u $ _)) =
       (case strip_comb u of
         (Const (_, T), args) =>
           if (length (binder_types T) = length args) then
@@ -98,7 +98,7 @@ fun check_equation_format_term (t as (Const (@{const_name Pure.eq}, _) $ u $ _))
 val check_equation_format = check_equation_format_term o Thm.prop_of
 
 
-fun defining_term_of_equation_term (Const (@{const_name Pure.eq}, _) $ u $ _) = fst (strip_comb u)
+fun defining_term_of_equation_term (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ u $ _) = fst (strip_comb u)
   | defining_term_of_equation_term t =
       raise TERM ("defining_const_of_equation_term failed: Not an equation", [t])
 
@@ -116,7 +116,7 @@ fun defining_const_of_equation th =
 
 fun mk_meta_equation th =
   (case Thm.prop_of th of
-    Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _) =>
+    Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) =>
       th RS @{thm eq_reflection}
   | _ => th)
 
@@ -161,7 +161,7 @@ fun split_all_pairs thy th =
 fun inline_equations thy th =
   let
     val ctxt = Proof_Context.init_global thy
-    val inline_defs = Named_Theorems.get ctxt @{named_theorems code_pred_inline}
+    val inline_defs = Named_Theorems.get ctxt \<^named_theorems>\<open>code_pred_inline\<close>
     val th' = Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps inline_defs) th
     (*val _ = print_step options
       ("Inlining " ^ (Syntax.string_of_term_global thy (prop_of th))
@@ -208,7 +208,7 @@ fun get_specification options thy t =
           NONE
     fun filter_defs ths = map_filter filtering (map (normalize thy o Thm.transfer thy) ths)
     val spec =
-      (case filter_defs (Named_Theorems.get ctxt @{named_theorems code_pred_def}) of
+      (case filter_defs (Named_Theorems.get ctxt \<^named_theorems>\<open>code_pred_def\<close>) of
         [] =>
           (case Spec_Rules.retrieve ctxt t of
             [] => error ("No specification for " ^ Syntax.string_of_term_global thy t)
@@ -224,38 +224,38 @@ fun get_specification options thy t =
   end
 
 val logic_operator_names =
-  [@{const_name Pure.eq},
-   @{const_name Pure.imp},
-   @{const_name Trueprop},
-   @{const_name Not},
-   @{const_name HOL.eq},
-   @{const_name HOL.implies},
-   @{const_name All},
-   @{const_name Ex},
-   @{const_name HOL.conj},
-   @{const_name HOL.disj}]
+  [\<^const_name>\<open>Pure.eq\<close>,
+   \<^const_name>\<open>Pure.imp\<close>,
+   \<^const_name>\<open>Trueprop\<close>,
+   \<^const_name>\<open>Not\<close>,
+   \<^const_name>\<open>HOL.eq\<close>,
+   \<^const_name>\<open>HOL.implies\<close>,
+   \<^const_name>\<open>All\<close>,
+   \<^const_name>\<open>Ex\<close>,
+   \<^const_name>\<open>HOL.conj\<close>,
+   \<^const_name>\<open>HOL.disj\<close>]
 
 fun special_cases (c, _) =
   member (op =)
-   [@{const_name Product_Type.Unity},
-    @{const_name False},
-    @{const_name Suc}, @{const_name Nat.zero_nat_inst.zero_nat},
-    @{const_name Nat.one_nat_inst.one_nat},
-    @{const_name Orderings.less}, @{const_name Orderings.less_eq},
-    @{const_name Groups.zero},
-    @{const_name Groups.one},  @{const_name Groups.plus},
-    @{const_name Nat.ord_nat_inst.less_eq_nat},
-    @{const_name Nat.ord_nat_inst.less_nat},
+   [\<^const_name>\<open>Product_Type.Unity\<close>,
+    \<^const_name>\<open>False\<close>,
+    \<^const_name>\<open>Suc\<close>, \<^const_name>\<open>Nat.zero_nat_inst.zero_nat\<close>,
+    \<^const_name>\<open>Nat.one_nat_inst.one_nat\<close>,
+    \<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>,
+    \<^const_name>\<open>Groups.zero\<close>,
+    \<^const_name>\<open>Groups.one\<close>,  \<^const_name>\<open>Groups.plus\<close>,
+    \<^const_name>\<open>Nat.ord_nat_inst.less_eq_nat\<close>,
+    \<^const_name>\<open>Nat.ord_nat_inst.less_nat\<close>,
   (* FIXME
     @{const_name number_nat_inst.number_of_nat},
   *)
-    @{const_name Num.Bit0},
-    @{const_name Num.Bit1},
-    @{const_name Num.One},
-    @{const_name Int.zero_int_inst.zero_int},
-    @{const_name List.filter},
-    @{const_name HOL.If},
-    @{const_name Groups.minus}] c
+    \<^const_name>\<open>Num.Bit0\<close>,
+    \<^const_name>\<open>Num.Bit1\<close>,
+    \<^const_name>\<open>Num.One\<close>,
+    \<^const_name>\<open>Int.zero_int_inst.zero_int\<close>,
+    \<^const_name>\<open>List.filter\<close>,
+    \<^const_name>\<open>HOL.If\<close>,
+    \<^const_name>\<open>Groups.minus\<close>] c
 
 
 fun obtain_specification_graph options thy t =

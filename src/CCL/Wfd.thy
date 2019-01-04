@@ -413,13 +413,13 @@ val type_rls =
   @{thms canTs} @ @{thms icanTs} @ @{thms applyT2} @ @{thms ncanTs} @ @{thms incanTs} @
   @{thms precTs} @ @{thms letrecTs} @ @{thms letT} @ @{thms Subtype_canTs};
 
-fun bvars (Const(@{const_name Pure.all},_) $ Abs(s,_,t)) l = bvars t (s::l)
+fun bvars (Const(\<^const_name>\<open>Pure.all\<close>,_) $ Abs(s,_,t)) l = bvars t (s::l)
   | bvars _ l = l
 
-fun get_bno l n (Const(@{const_name Pure.all},_) $ Abs(s,_,t)) = get_bno (s::l) n t
-  | get_bno l n (Const(@{const_name Trueprop},_) $ t) = get_bno l n t
-  | get_bno l n (Const(@{const_name Ball},_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
-  | get_bno l n (Const(@{const_name mem},_) $ t $ _) = get_bno l n t
+fun get_bno l n (Const(\<^const_name>\<open>Pure.all\<close>,_) $ Abs(s,_,t)) = get_bno (s::l) n t
+  | get_bno l n (Const(\<^const_name>\<open>Trueprop\<close>,_) $ t) = get_bno l n t
+  | get_bno l n (Const(\<^const_name>\<open>Ball\<close>,_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
+  | get_bno l n (Const(\<^const_name>\<open>mem\<close>,_) $ t $ _) = get_bno l n t
   | get_bno l n (t $ s) = get_bno l n t
   | get_bno l n (Bound m) = (m-length(l),n)
 
@@ -441,7 +441,7 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
 
 fun is_rigid_prog t =
   (case (Logic.strip_assums_concl t) of
-    (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) =>
+    (Const(\<^const_name>\<open>Trueprop\<close>,_) $ (Const(\<^const_name>\<open>mem\<close>,_) $ a $ _)) =>
       null (Term.add_vars a [])
   | _ => false)
 
@@ -500,7 +500,7 @@ named_theorems eval "evaluation rules"
 ML \<open>
 fun eval_tac ths =
   Subgoal.FOCUS_PREMS (fn {context = ctxt, prems, ...} =>
-    let val eval_rules = Named_Theorems.get ctxt @{named_theorems eval}
+    let val eval_rules = Named_Theorems.get ctxt \<^named_theorems>\<open>eval\<close>
     in DEPTH_SOLVE_1 (resolve_tac ctxt (ths @ prems @ rev eval_rules) 1) end)
 \<close>
 
@@ -524,8 +524,8 @@ lemma letV:
   apply (unfold let_def)
   apply (rule 1 [THEN canonical])
   apply (tactic \<open>
-    REPEAT (DEPTH_SOLVE_1 (resolve_tac @{context} (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
-      eresolve_tac @{context} @{thms substitute} 1))\<close>)
+    REPEAT (DEPTH_SOLVE_1 (resolve_tac \<^context> (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
+      eresolve_tac \<^context> @{thms substitute} 1))\<close>)
   done
 
 lemma fixV: "f(fix(f)) \<longlongrightarrow> c \<Longrightarrow> fix(f) \<longlongrightarrow> c"

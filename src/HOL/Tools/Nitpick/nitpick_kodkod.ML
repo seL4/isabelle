@@ -308,7 +308,7 @@ fun bound_comment ctxt debug nick T R =
 
 fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
     ([(x, bound_comment ctxt debug nick T R)],
-     if nick = @{const_name bisim_iterator_max} then
+     if nick = \<^const_name>\<open>bisim_iterator_max\<close> then
        case R of
          Atom (k, j0) => [single_atom (k - 1 + j0)]
        | _ => raise NUT ("Nitpick_Kodkod.bound_for_plain_rel", [u])
@@ -336,7 +336,7 @@ fun is_sel_of_constr x (Construct (sel_us, _, _, _), _) =
   | is_sel_of_constr _ _ = false
 
 fun bound_for_sel_rel ctxt debug need_vals dtypes
-        (FreeRel (x, T as Type (@{type_name fun}, [T1, T2]),
+        (FreeRel (x, T as Type (\<^type_name>\<open>fun\<close>, [T1, T2]),
                   R as Func (Atom (_, j0), R2), nick)) =
     let
       val constr_s = original_name nick
@@ -738,7 +738,7 @@ and rel_expr_from_rel_expr kk new_R old_R r =
 and rel_expr_to_func kk R1 R2 = rel_expr_from_rel_expr kk (Func (R1, R2))
 
 fun bit_set_from_atom ({kk_join, ...} : kodkod_constrs) T r =
-  kk_join r (KK.Rel (if T = @{typ "unsigned_bit word"} then
+  kk_join r (KK.Rel (if T = \<^typ>\<open>unsigned_bit word\<close> then
                        unsigned_bit_word_sel_rel
                      else
                        signed_bit_word_sel_rel))
@@ -930,7 +930,7 @@ fun kodkod_formula_from_nut ofs
                            (rel_expr_from_rel_expr kk min_R R2 r2))
           end
       | Cst (Iden, _, Func (Atom (1, j0), Formula Neut)) => KK.Atom j0
-      | Cst (Iden, T as Type (@{type_name set}, [T1]), R as Func (R1, _)) =>
+      | Cst (Iden, T as Type (\<^type_name>\<open>set\<close>, [T1]), R as Func (R1, _)) =>
         to_rep R (Cst (Iden, T, Func (one_rep ofs T1 R1, Formula Neut)))
       | Cst (Num j, T, R) =>
         if is_word_type T then
@@ -946,57 +946,57 @@ fun kodkod_formula_from_nut ofs
           else raise NUT ("Nitpick_Kodkod.to_r (Num)", [u])
       | Cst (Unknown, _, R) => empty_rel_for_rep R
       | Cst (Unrep, _, R) => empty_rel_for_rep R
-      | Cst (Suc, T as @{typ "unsigned_bit word => unsigned_bit word"}, R) =>
+      | Cst (Suc, T as \<^typ>\<open>unsigned_bit word => unsigned_bit word\<close>, R) =>
         to_bit_word_unary_op T R (curry KK.Add (KK.Num 1))
-      | Cst (Suc, @{typ "nat => nat"}, Func (Atom x, _)) =>
+      | Cst (Suc, \<^typ>\<open>nat => nat\<close>, Func (Atom x, _)) =>
         kk_intersect (KK.Rel suc_rel) (kk_product KK.Univ (KK.AtomSeq x))
       | Cst (Suc, _, Func (Atom _, _)) => KK.Rel suc_rel
-      | Cst (Add, Type (_, [@{typ nat}, _]), _) => KK.Rel nat_add_rel
-      | Cst (Add, Type (_, [@{typ int}, _]), _) => KK.Rel int_add_rel
-      | Cst (Add, T as Type (_, [@{typ "unsigned_bit word"}, _]), R) =>
+      | Cst (Add, Type (_, [\<^typ>\<open>nat\<close>, _]), _) => KK.Rel nat_add_rel
+      | Cst (Add, Type (_, [\<^typ>\<open>int\<close>, _]), _) => KK.Rel int_add_rel
+      | Cst (Add, T as Type (_, [\<^typ>\<open>unsigned_bit word\<close>, _]), R) =>
         to_bit_word_binary_op T R NONE (SOME (curry KK.Add))
-      | Cst (Add, T as Type (_, [@{typ "signed_bit word"}, _]), R) =>
+      | Cst (Add, T as Type (_, [\<^typ>\<open>signed_bit word\<close>, _]), R) =>
         to_bit_word_binary_op T R
             (SOME (fn i1 => fn i2 => fn i3 =>
                  kk_implies (KK.LE (KK.Num 0, KK.BitXor (i1, i2)))
                             (KK.LE (KK.Num 0, KK.BitXor (i2, i3)))))
             (SOME (curry KK.Add))
-      | Cst (Subtract, Type (_, [@{typ nat}, _]), _) =>
+      | Cst (Subtract, Type (_, [\<^typ>\<open>nat\<close>, _]), _) =>
         KK.Rel nat_subtract_rel
-      | Cst (Subtract, Type (_, [@{typ int}, _]), _) =>
+      | Cst (Subtract, Type (_, [\<^typ>\<open>int\<close>, _]), _) =>
         KK.Rel int_subtract_rel
-      | Cst (Subtract, T as Type (_, [@{typ "unsigned_bit word"}, _]), R) =>
+      | Cst (Subtract, T as Type (_, [\<^typ>\<open>unsigned_bit word\<close>, _]), R) =>
         to_bit_word_binary_op T R NONE
             (SOME (fn i1 => fn i2 =>
                       KK.IntIf (KK.LE (i1, i2), KK.Num 0, KK.Sub (i1, i2))))
-      | Cst (Subtract, T as Type (_, [@{typ "signed_bit word"}, _]), R) =>
+      | Cst (Subtract, T as Type (_, [\<^typ>\<open>signed_bit word\<close>, _]), R) =>
         to_bit_word_binary_op T R
             (SOME (fn i1 => fn i2 => fn i3 =>
                  kk_implies (KK.LT (KK.BitXor (i1, i2), KK.Num 0))
                             (KK.LT (KK.BitXor (i2, i3), KK.Num 0))))
             (SOME (curry KK.Sub))
-      | Cst (Multiply, Type (_, [@{typ nat}, _]), _) =>
+      | Cst (Multiply, Type (_, [\<^typ>\<open>nat\<close>, _]), _) =>
         KK.Rel nat_multiply_rel
-      | Cst (Multiply, Type (_, [@{typ int}, _]), _) =>
+      | Cst (Multiply, Type (_, [\<^typ>\<open>int\<close>, _]), _) =>
         KK.Rel int_multiply_rel
       | Cst (Multiply,
-             T as Type (_, [Type (@{type_name word}, [bit_T]), _]), R) =>
+             T as Type (_, [Type (\<^type_name>\<open>word\<close>, [bit_T]), _]), R) =>
         to_bit_word_binary_op T R
             (SOME (fn i1 => fn i2 => fn i3 =>
                 kk_or (KK.IntEq (i2, KK.Num 0))
                       (KK.IntEq (KK.Div (i3, i2), i1)
-                       |> bit_T = @{typ signed_bit}
+                       |> bit_T = \<^typ>\<open>signed_bit\<close>
                           ? kk_and (KK.LE (KK.Num 0,
                                            foldl1 KK.BitAnd [i1, i2, i3])))))
             (SOME (curry KK.Mult))
-      | Cst (Divide, Type (_, [@{typ nat}, _]), _) => KK.Rel nat_divide_rel
-      | Cst (Divide, Type (_, [@{typ int}, _]), _) => KK.Rel int_divide_rel
-      | Cst (Divide, T as Type (_, [@{typ "unsigned_bit word"}, _]), R) =>
+      | Cst (Divide, Type (_, [\<^typ>\<open>nat\<close>, _]), _) => KK.Rel nat_divide_rel
+      | Cst (Divide, Type (_, [\<^typ>\<open>int\<close>, _]), _) => KK.Rel int_divide_rel
+      | Cst (Divide, T as Type (_, [\<^typ>\<open>unsigned_bit word\<close>, _]), R) =>
         to_bit_word_binary_op T R NONE
             (SOME (fn i1 => fn i2 =>
                       KK.IntIf (KK.IntEq (i2, KK.Num 0),
                                 KK.Num 0, KK.Div (i1, i2))))
-      | Cst (Divide, T as Type (_, [@{typ "signed_bit word"}, _]), R) =>
+      | Cst (Divide, T as Type (_, [\<^typ>\<open>signed_bit word\<close>, _]), R) =>
         to_bit_word_binary_op T R
             (SOME (fn i1 => fn i2 => fn i3 =>
                       KK.LE (KK.Num 0, foldl1 KK.BitAnd [i1, i2, i3])))
@@ -1015,9 +1015,9 @@ fun kodkod_formula_from_nut ofs
       | Cst (Fracs, _, Func (Struct _, _)) =>
         kk_project_seq (KK.Rel norm_frac_rel) 2 2
       | Cst (NormFrac, _, _) => KK.Rel norm_frac_rel
-      | Cst (NatToInt, Type (_, [@{typ nat}, _]), Func (Atom _, Atom _)) =>
+      | Cst (NatToInt, Type (_, [\<^typ>\<open>nat\<close>, _]), Func (Atom _, Atom _)) =>
         KK.Iden
-      | Cst (NatToInt, Type (_, [@{typ nat}, _]),
+      | Cst (NatToInt, Type (_, [\<^typ>\<open>nat\<close>, _]),
              Func (Atom (_, nat_j0), Opt (Atom (int_k, int_j0)))) =>
         if nat_j0 = int_j0 then
           kk_intersect KK.Iden
@@ -1025,9 +1025,9 @@ fun kodkod_formula_from_nut ofs
                           KK.Univ)
         else
           raise BAD ("Nitpick_Kodkod.to_r (NatToInt)", "\"nat_j0 <> int_j0\"")
-      | Cst (NatToInt, T as Type (_, [@{typ "unsigned_bit word"}, _]), R) =>
+      | Cst (NatToInt, T as Type (_, [\<^typ>\<open>unsigned_bit word\<close>, _]), R) =>
         to_bit_word_unary_op T R I
-      | Cst (IntToNat, Type (_, [@{typ int}, _]),
+      | Cst (IntToNat, Type (_, [\<^typ>\<open>int\<close>, _]),
              Func (Atom (int_k, int_j0), nat_R)) =>
         let
           val abs_card = max_int_for_card int_k + 1
@@ -1043,7 +1043,7 @@ fun kodkod_formula_from_nut ofs
           else
             raise BAD ("Nitpick_Kodkod.to_r (IntToNat)", "\"nat_j0 <> int_j0\"")
         end
-      | Cst (IntToNat, T as Type (_, [@{typ "signed_bit word"}, _]), R) =>
+      | Cst (IntToNat, T as Type (_, [\<^typ>\<open>signed_bit word\<close>, _]), R) =>
         to_bit_word_unary_op T R
             (fn i => KK.IntIf (KK.LE (i, KK.Num 0), KK.Num 0, i))
       | Op1 (Not, _, R, u1) => kk_not3 (to_rep R u1)
@@ -1147,11 +1147,11 @@ fun kodkod_formula_from_nut ofs
         else kk_rel_if (to_f u1) (to_r u2) false_atom
       | Op2 (Less, _, _, u1, u2) =>
         (case type_of u1 of
-           @{typ nat} =>
+           \<^typ>\<open>nat\<close> =>
            if is_Cst Unrep u1 then to_compare_with_unrep u2 false_atom
            else if is_Cst Unrep u2 then to_compare_with_unrep u1 true_atom
            else kk_nat_less (to_integer u1) (to_integer u2)
-         | @{typ int} => kk_int_less (to_integer u1) (to_integer u2)
+         | \<^typ>\<open>int\<close> => kk_int_less (to_integer u1) (to_integer u2)
          | _ =>
            let
              val R1 = Opt (Atom (card_of_rep (rep_of u1),
@@ -1219,7 +1219,7 @@ fun kodkod_formula_from_nut ofs
            | _ => raise NUT ("Nitpick_Kodkod.to_r (Composition)", [u]))
           |> rel_expr_from_rel_expr kk R (Func (Struct [a_R, c_R], body_R))
         end
-      | Op2 (Apply, @{typ nat}, _,
+      | Op2 (Apply, \<^typ>\<open>nat\<close>, _,
              Op2 (Apply, _, _, Cst (Subtract, _, _), u1), u2) =>
         if is_Cst Unrep u2 andalso not (is_opt_rep (rep_of u1)) then
           KK.Atom (offset_of_type ofs nat_T)
@@ -1452,7 +1452,7 @@ fun kodkod_formula_from_nut ofs
   in to_f_with_polarity Pos u end
 
 fun declarative_axiom_for_plain_rel kk (FreeRel (x, _, R as Func _, nick)) =
-    kk_n_ary_function kk (R |> nick = @{const_name List.set} ? unopt_rep)
+    kk_n_ary_function kk (R |> nick = \<^const_name>\<open>List.set\<close> ? unopt_rep)
                       (KK.Rel x)
   | declarative_axiom_for_plain_rel ({kk_lone, kk_one, ...} : kodkod_constrs)
                                     (FreeRel (x, _, R, _)) =

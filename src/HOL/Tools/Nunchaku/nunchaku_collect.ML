@@ -174,7 +174,7 @@ fun whack_term thy whacks =
   let
     fun whk t =
       if triple_lookup (term_match thy o swap) whacks t = SOME true then
-        Const (@{const_name unreachable}, fastype_of t)
+        Const (\<^const_name>\<open>unreachable\<close>, fastype_of t)
       else
         (case t of
           u $ v => whk u $ whk v
@@ -193,7 +193,7 @@ fun preprocess_term_basic falsify ctxt whacks t =
       |> attach_typeS
       |> whack_term thy whacks
       |> Object_Logic.atomize_term ctxt
-      |> tap (fn t' => fastype_of t' <> @{typ prop} orelse raise TOO_META t)
+      |> tap (fn t' => fastype_of t' <> \<^typ>\<open>prop\<close> orelse raise TOO_META t)
       |> falsify ? HOLogic.mk_not
       |> unfold_basic_def ctxt
   end;
@@ -203,20 +203,20 @@ val check_closed = tap (fn t => null (Term.add_vars t []) orelse raise UNEXPECTE
 val preprocess_prop = close_form [] oooo preprocess_term_basic;
 val preprocess_closed_term = check_closed ooo preprocess_term_basic false;
 
-val is_type_builtin = member (op =) [@{type_name bool}, @{type_name fun}];
+val is_type_builtin = member (op =) [\<^type_name>\<open>bool\<close>, \<^type_name>\<open>fun\<close>];
 
 val is_const_builtin =
-  member (op =) [@{const_name All}, @{const_name conj}, @{const_name disj}, @{const_name Eps},
-    @{const_name HOL.eq}, @{const_name Ex}, @{const_name False}, @{const_name If},
-    @{const_name implies}, @{const_name Not}, @{const_name The}, @{const_name The_unsafe},
-    @{const_name True}];
+  member (op =) [\<^const_name>\<open>All\<close>, \<^const_name>\<open>conj\<close>, \<^const_name>\<open>disj\<close>, \<^const_name>\<open>Eps\<close>,
+    \<^const_name>\<open>HOL.eq\<close>, \<^const_name>\<open>Ex\<close>, \<^const_name>\<open>False\<close>, \<^const_name>\<open>If\<close>,
+    \<^const_name>\<open>implies\<close>, \<^const_name>\<open>Not\<close>, \<^const_name>\<open>The\<close>, \<^const_name>\<open>The_unsafe\<close>,
+    \<^const_name>\<open>True\<close>];
 
 datatype type_classification = Builtin | TVal | Typedef | Quotient | Co_Datatype;
 
 fun classify_type_name ctxt T_name =
   if is_type_builtin T_name then
     Builtin
-  else if T_name = @{type_name itself} then
+  else if T_name = \<^type_name>\<open>itself\<close> then
     Co_Datatype
   else
     (case BNF_FP_Def_Sugar.fp_sugar_of ctxt T_name of
@@ -228,7 +228,7 @@ fun classify_type_name ctxt T_name =
         (case Quotient_Info.lookup_quotients ctxt T_name of
           SOME _ => Quotient
         | NONE =>
-          if T_name = @{type_name set} then
+          if T_name = \<^type_name>\<open>set\<close> then
             Typedef
           else
             (case Typedef.get_info ctxt T_name of
@@ -239,8 +239,8 @@ fun fp_kind_of_ctr_sugar_kind Ctr_Sugar.Codatatype = BNF_Util.Greatest_FP
   | fp_kind_of_ctr_sugar_kind _ = BNF_Util.Least_FP;
 
 fun mutual_co_datatypes_of ctxt (T_name, Ts) =
-  (if T_name = @{type_name itself} then
-     (BNF_Util.Least_FP, [@{typ "'a itself"}], [[@{const Pure.type ('a)}]])
+  (if T_name = \<^type_name>\<open>itself\<close> then
+     (BNF_Util.Least_FP, [\<^typ>\<open>'a itself\<close>], [[@{const Pure.type ('a)}]])
    else
      let
        val (fp, ctr_sugars) =
@@ -264,14 +264,14 @@ fun mutual_co_datatypes_of ctxt (T_name, Ts) =
   |> @{apply 3(3)} (map (map (Ctr_Sugar.mk_ctr Ts)));
 
 fun typedef_of ctxt T_name =
-  if T_name = @{type_name set} then
+  if T_name = \<^type_name>\<open>set\<close> then
     let
-      val A = Logic.varifyT_global @{typ 'a};
-      val absT = Type (@{type_name set}, [A]);
+      val A = Logic.varifyT_global \<^typ>\<open>'a\<close>;
+      val absT = Type (\<^type_name>\<open>set\<close>, [A]);
       val repT = A --> HOLogic.boolT;
       val pred = Abs (Name.uu, repT, @{const True});
-      val abs = Const (@{const_name Collect}, repT --> absT);
-      val rep = Const (@{const_name rmember}, absT --> repT);
+      val abs = Const (\<^const_name>\<open>Collect\<close>, repT --> absT);
+      val rep = Const (\<^const_name>\<open>rmember\<close>, absT --> repT);
     in
       (absT, repT, pred, abs, rep)
     end
@@ -308,8 +308,8 @@ fun is_co_datatype_ctr ctxt (s, T) =
     classify_type_name ctxt fpT_name = Co_Datatype andalso
     let
       val ctrs =
-        if fpT_name = @{type_name itself} then
-          [Const (@{const_name Pure.type}, @{typ "'a itself"})]
+        if fpT_name = \<^type_name>\<open>itself\<close> then
+          [Const (\<^const_name>\<open>Pure.type\<close>, \<^typ>\<open>'a itself\<close>)]
         else
           (case BNF_FP_Def_Sugar.fp_sugar_of ctxt fpT_name of
             SOME {fp_ctr_sugar = {ctr_sugar = {ctrs, ...}, ...}, ...} => ctrs
@@ -330,7 +330,7 @@ fun dest_co_datatype_case ctxt (s, T) =
     (case strip_fun_type (Sign.the_const_type thy s) of
       (gen_branch_Ts, gen_body_fun_T) =>
       (case gen_body_fun_T of
-        Type (@{type_name fun}, [Type (fpT_name, _), _]) =>
+        Type (\<^type_name>\<open>fun\<close>, [Type (fpT_name, _), _]) =>
         if classify_type_name ctxt fpT_name = Co_Datatype then
           let
             val Type (_, fpTs) = domain_type (funpow (length gen_branch_Ts) range_type T);
@@ -352,7 +352,7 @@ val is_co_datatype_case = can o dest_co_datatype_case;
 
 fun is_quotient_abs ctxt (s, T) =
   (case T of
-    Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
+    Type (\<^type_name>\<open>fun\<close>, [_, Type (absT_name, _)]) =>
     classify_type_name ctxt absT_name = Quotient andalso
     (case quotient_of ctxt absT_name of
       (_, _, _, Const (s', _), _) => s' = s)
@@ -360,23 +360,23 @@ fun is_quotient_abs ctxt (s, T) =
 
 fun is_quotient_rep ctxt (s, T) =
   (case T of
-    Type (@{type_name fun}, [Type (absT_name, _), _]) =>
+    Type (\<^type_name>\<open>fun\<close>, [Type (absT_name, _), _]) =>
     classify_type_name ctxt absT_name = Quotient andalso
     (case quotient_of ctxt absT_name of
       (_, _, _, _, Const (s', _)) => s' = s)
   | _ => false);
 
 fun is_maybe_typedef_abs ctxt absT_name s =
-  if absT_name = @{type_name set} then
-    s = @{const_name Collect}
+  if absT_name = \<^type_name>\<open>set\<close> then
+    s = \<^const_name>\<open>Collect\<close>
   else
     (case try (typedef_of ctxt) absT_name of
       SOME (_, _, _, Const (s', _), _) => s' = s
     | NONE => false);
 
 fun is_maybe_typedef_rep ctxt absT_name s =
-  if absT_name = @{type_name set} then
-    s = @{const_name rmember}
+  if absT_name = \<^type_name>\<open>set\<close> then
+    s = \<^const_name>\<open>rmember\<close>
   else
     (case try (typedef_of ctxt) absT_name of
       SOME (_, _, _, _, Const (s', _)) => s' = s
@@ -384,25 +384,25 @@ fun is_maybe_typedef_rep ctxt absT_name s =
 
 fun is_typedef_abs ctxt (s, T) =
   (case T of
-    Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
+    Type (\<^type_name>\<open>fun\<close>, [_, Type (absT_name, _)]) =>
     classify_type_name ctxt absT_name = Typedef andalso is_maybe_typedef_abs ctxt absT_name s
   | _ => false);
 
 fun is_typedef_rep ctxt (s, T) =
   (case T of
-    Type (@{type_name fun}, [Type (absT_name, _), _]) =>
+    Type (\<^type_name>\<open>fun\<close>, [Type (absT_name, _), _]) =>
     classify_type_name ctxt absT_name = Typedef andalso is_maybe_typedef_rep ctxt absT_name s
   | _ => false);
 
 fun is_stale_typedef_abs ctxt (s, T) =
   (case T of
-    Type (@{type_name fun}, [_, Type (absT_name, _)]) =>
+    Type (\<^type_name>\<open>fun\<close>, [_, Type (absT_name, _)]) =>
     classify_type_name ctxt absT_name <> Typedef andalso is_maybe_typedef_abs ctxt absT_name s
   | _ => false);
 
 fun is_stale_typedef_rep ctxt (s, T) =
   (case T of
-    Type (@{type_name fun}, [Type (absT_name, _), _]) =>
+    Type (\<^type_name>\<open>fun\<close>, [Type (absT_name, _), _]) =>
     classify_type_name ctxt absT_name <> Typedef andalso is_maybe_typedef_rep ctxt absT_name s
   | _ => false);
 
@@ -452,14 +452,14 @@ fun card_of_type ctxt =
         (case T of
           TFree _ => Fin_or_Inf
         | TVar _ => Inf
-        | Type (@{type_name fun}, [T1, T2]) =>
+        | Type (\<^type_name>\<open>fun\<close>, [T1, T2]) =>
           (case (card_of avoid T1, card_of avoid T2) of
             (_, One) => One
           | (k1, k2) => max_card k1 k2)
-        | Type (@{type_name prod}, [T1, T2]) =>
+        | Type (\<^type_name>\<open>prod\<close>, [T1, T2]) =>
           (case (card_of avoid T1, card_of avoid T2) of
             (k1, k2) => max_card k1 k2)
-        | Type (@{type_name set}, [T']) => card_of avoid (T' --> HOLogic.boolT)
+        | Type (\<^type_name>\<open>set\<close>, [T']) => card_of avoid (T' --> HOLogic.boolT)
         | Type (T_name, Ts) =>
           (case try (mutual_co_datatypes_of ctxt) (T_name, Ts) of
             NONE => Inf
@@ -506,15 +506,15 @@ fun spec_rules_of ctxt (x as (s, T)) =
       |> sort (classif_ord o apply2 fst);
 
     val specs =
-      if s = @{const_name The} then
-        [(Spec_Rules.Unknown, ([Logic.varify_global @{term The}], [@{thm theI_unique}]))]
-      else if s = @{const_name finite} then
+      if s = \<^const_name>\<open>The\<close> then
+        [(Spec_Rules.Unknown, ([Logic.varify_global \<^term>\<open>The\<close>], [@{thm theI_unique}]))]
+      else if s = \<^const_name>\<open>finite\<close> then
         let val card = card_of_type ctxt T in
           if card = Inf orelse card = Fin_or_Inf then
             spec_rules ()
           else
-            [(Spec_Rules.Equational, ([Logic.varify_global @{term finite}],
-               [Skip_Proof.make_thm thy (Logic.varify_global @{prop "finite A = True"})]))]
+            [(Spec_Rules.Equational, ([Logic.varify_global \<^term>\<open>finite\<close>],
+               [Skip_Proof.make_thm thy (Logic.varify_global \<^prop>\<open>finite A = True\<close>)]))]
         end
       else
         spec_rules ();
@@ -522,8 +522,8 @@ fun spec_rules_of ctxt (x as (s, T)) =
     fold process_spec specs NONE
   end;
 
-fun lhs_of_equation (Const (@{const_name Pure.eq}, _) $ t $ _) = t
-  | lhs_of_equation (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t $ _)) = t;
+fun lhs_of_equation (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ _) = t
+  | lhs_of_equation (@{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _)) = t;
 
 fun specialize_definition_type thy x def0 =
   let
@@ -540,7 +540,7 @@ fun definition_of thy (x as (s, _)) =
   |> try hd;
 
 fun is_builtin_theory thy_id =
-  Context.subthy_id (thy_id, Context.theory_id @{theory Hilbert_Choice});
+  Context.subthy_id (thy_id, Context.theory_id \<^theory>\<open>Hilbert_Choice\<close>);
 
 val orphan_axioms_of =
   Spec_Rules.get
@@ -679,10 +679,10 @@ fun group_isa_commands [] = []
         [cmd] :: (group :: groups)
     end;
 
-fun defined_by (Const (@{const_name All}, _) $ t) = defined_by t
+fun defined_by (Const (\<^const_name>\<open>All\<close>, _) $ t) = defined_by t
   | defined_by (Abs (_, _, t)) = defined_by t
   | defined_by (@{const implies} $ _ $ u) = defined_by u
-  | defined_by (Const (@{const_name HOL.eq}, _) $ t $ _) = head_of t
+  | defined_by (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _) = head_of t
   | defined_by t = head_of t;
 
 fun partition_props [_] props = SOME [props]
@@ -694,14 +694,14 @@ fun partition_props [_] props = SOME [props]
       else NONE
     end;
 
-fun hol_concl_head (Const (@{const_name All}, _) $ Abs (_, _, t)) = hol_concl_head t
-  | hol_concl_head (Const (@{const_name implies}, _) $ _ $ t) = hol_concl_head t
+fun hol_concl_head (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) = hol_concl_head t
+  | hol_concl_head (Const (\<^const_name>\<open>implies\<close>, _) $ _ $ t) = hol_concl_head t
   | hol_concl_head (t $ _) = hol_concl_head t
   | hol_concl_head t = t;
 
 fun is_inductive_set_intro t =
   (case hol_concl_head t of
-    Const (@{const_name rmember}, _) => true
+    Const (\<^const_name>\<open>rmember\<close>, _) => true
   | _ => false);
 
 exception NO_TRIPLE of unit;
@@ -759,7 +759,7 @@ fun is_wellfounded_inductive_predicate ctxt wfs debug wf_timeout const intros =
           val j = fold (Integer.max o maxidx_of_term) intros 0 + 1;
           val rel = (("R", j), rel_T);
           val prop =
-            Const (@{const_name wf}, rel_T --> HOLogic.boolT) $ Var rel ::
+            Const (\<^const_name>\<open>wf\<close>, rel_T --> HOLogic.boolT) $ Var rel ::
             map (wf_constraint_for_triple rel) triples
             |> foldr1 HOLogic.mk_conj
             |> HOLogic.mk_Trueprop;
@@ -798,8 +798,8 @@ fun is_apparently_pat_complete ctxt props =
 
     fun lhs_pat_of t =
       (case t of
-        Const (@{const_name All}, _) $ Abs (_, _, t) => lhs_pat_of t
-      | Const (@{const_name HOL.eq}, _) $ u $ _ =>
+        Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t) => lhs_pat_of t
+      | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ u $ _ =>
         (case filter_out is_Var_or_Bound (snd (strip_comb u)) of
           [] => Only_Vars
         | [v] =>
@@ -1016,9 +1016,9 @@ fun isa_problem_of_subgoal ctxt falsify wfs whacks cards debug wf_timeout evals0
         union (op aconv) (implicit_evals_of pol t) (implicit_evals_of pol u)
       | implicit_evals_of pol (@{const disj} $ t $ u) =
         union (op aconv) (implicit_evals_of pol t) (implicit_evals_of pol u)
-      | implicit_evals_of false (Const (@{const_name HOL.eq}, _) $ t $ u) =
+      | implicit_evals_of false (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ u) =
         distinct (op aconv) [t, u]
-      | implicit_evals_of true (Const (@{const_name HOL.eq}, _) $ t $ _) = [t]
+      | implicit_evals_of true (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ _) = [t]
       | implicit_evals_of _ _ = [];
 
     val mono_axioms_and_some_assms =

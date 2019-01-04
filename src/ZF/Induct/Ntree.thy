@@ -69,7 +69,7 @@ lemma ntree_induct_eqn [consumes 1]:
     and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h |] ==>
       f ` Branch(x,h) = g ` Branch(x,h)"
   shows "f`t=g`t"
-  \<comment> \<open>Induction on @{term "ntree(A)"} to prove an equation\<close>
+  \<comment> \<open>Induction on \<^term>\<open>ntree(A)\<close> to prove an equation\<close>
   using t
   apply induct
   apply (assumption | rule step)+

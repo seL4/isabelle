@@ -22,7 +22,7 @@ setup \<open>
       Proofterm.rewrite_proof thy
         (RewriteHOLProof.rews,
          ProofRewriteRules.rprocs true @ [ProofRewriteRules.expand_of_class ctxt]) o
-      ProofRewriteRules.elim_vars (curry Const @{const_name default})
+      ProofRewriteRules.elim_vars (curry Const \<^const_name>\<open>default\<close>)
     end)
 \<close>
 

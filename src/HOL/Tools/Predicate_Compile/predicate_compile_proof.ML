@@ -34,7 +34,7 @@ fun assert_tac ctxt pos pred =
 (** special setup for simpset **)
 
 val HOL_basic_ss' =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps @{thms simp_thms prod.inject}
     setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
     setSolver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI})))
@@ -46,7 +46,7 @@ val HOL_basic_ss' =
 (* which then consequently would be splitted *)
 fun is_constructor ctxt t =
   (case fastype_of t of
-    Type (s, _) => s <> @{type_name fun} andalso can (Ctr_Sugar.dest_ctr ctxt s) t
+    Type (s, _) => s <> \<^type_name>\<open>fun\<close> andalso can (Ctr_Sugar.dest_ctr ctxt s) t
   | _ => false)
 
 (* MAJOR FIXME:  prove_params should be simple

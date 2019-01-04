@@ -109,7 +109,7 @@ inductive_cases Ap_E [elim!]: "p\<bullet>q \<in> comb"
 subsection \<open>Results about Contraction\<close>
 
 text \<open>
-  For type checking: replaces @{term "a \<rightarrow>\<^sup>1 b"} by \<open>a, b \<in>
+  For type checking: replaces \<^term>\<open>a \<rightarrow>\<^sup>1 b\<close> by \<open>a, b \<in>
   comb\<close>.
 \<close>
 
@@ -235,7 +235,7 @@ lemma diamond_parcontract: "diamond(parcontract)"
   done
 
 text \<open>
-  \medskip Equivalence of @{prop "p \<rightarrow> q"} and @{prop "p \<Rrightarrow> q"}.
+  \medskip Equivalence of \<^prop>\<open>p \<rightarrow> q\<close> and \<^prop>\<open>p \<Rrightarrow> q\<close>.
 \<close>
 
 lemma contract_imp_parcontract: "p\<rightarrow>\<^sup>1q ==> p\<Rrightarrow>\<^sup>1q"

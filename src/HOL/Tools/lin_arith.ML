@@ -869,12 +869,12 @@ val init_arith_data =
     lessD = lessD,
     neqE = map Thm.trim_context @{thms linorder_neqE_nat linorder_neqE_linordered_idom} @ neqE,
     simpset =
-      put_simpset HOL_basic_ss @{context} |> Simplifier.add_cong @{thm if_weak_cong} |> simpset_of,
+      put_simpset HOL_basic_ss \<^context> |> Simplifier.add_cong @{thm if_weak_cong} |> simpset_of,
     number_of = number_of});
 
 (* FIXME !?? *)
 fun add_arith_facts ctxt =
-  Simplifier.add_prems (rev (Named_Theorems.get ctxt @{named_theorems arith})) ctxt;
+  Simplifier.add_prems (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>arith\<close>)) ctxt;
 
 val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
@@ -969,7 +969,7 @@ val global_setup =
       METHOD (fn facts =>
         HEADGOAL
           (Method.insert_tac ctxt
-            (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
+            (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>arith\<close>) @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
   Arith_Data.add_tactic "linear arithmetic" tac;
 

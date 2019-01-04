@@ -57,7 +57,7 @@ apply (simp_all add: vimage_singleton_iff Int_lower2)
 done
 
 text\<open>For \<open>is_recfun\<close> we need only pay attention to functions
-      whose domains are initial segments of @{term r}.\<close>
+      whose domains are initial segments of \<^term>\<open>r\<close>.\<close>
 lemma is_recfun_cong:
   "[| r = r'; a = a'; f = f'; 
       !!x g. [| <x,a'> \<in> r'; relation(g); domain(g) \<subseteq> r' -``{x} |] 
@@ -70,7 +70,7 @@ apply (erule is_recfun_cong_lemma)
 apply (blast intro: sym)+
 done
 
-subsection\<open>Reworking of the Recursion Theory Within @{term M}\<close>
+subsection\<open>Reworking of the Recursion Theory Within \<^term>\<open>M\<close>\<close>
 
 lemma (in M_basic) is_recfun_separation':
     "[| f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
@@ -80,11 +80,11 @@ apply (insert is_recfun_separation [of r f g a b])
 apply (simp add: vimage_singleton_iff)
 done
 
-text\<open>Stated using @{term "trans(r)"} rather than
-      @{term "transitive_rel(M,A,r)"} because the latter rewrites to
+text\<open>Stated using \<^term>\<open>trans(r)\<close> rather than
+      \<^term>\<open>transitive_rel(M,A,r)\<close> because the latter rewrites to
       the former anyway, by \<open>transitive_rel_abs\<close>.
       As always, theorems should be expressed in simplified form.
-      The last three M-premises are redundant because of @{term "M(r)"}, 
+      The last three M-premises are redundant because of \<^term>\<open>M(r)\<close>, 
       but without them we'd have to undertake
       more work to set up the induction formula.\<close>
 lemma (in M_basic) is_recfun_equal [rule_format]: 
@@ -145,7 +145,7 @@ apply (safe intro!: equalityI)
  apply simp  
  apply blast
 apply (subgoal_tac "is_function(M,f)")
- txt\<open>We use @{term "is_function"} rather than @{term "function"} because
+ txt\<open>We use \<^term>\<open>is_function\<close> rather than \<^term>\<open>function\<close> because
       the subgoal's easier to prove with relativized quantifiers!\<close>
  prefer 2 apply (simp add: is_function_def) 
 apply (frule pair_components_in_M, assumption) 
@@ -223,9 +223,9 @@ apply (drule_tac A="r-``{a1}" in strong_replacementD)
 txt\<open>Show that the constructed object satisfies \<open>is_recfun\<close>\<close> 
 apply clarify 
 apply (rule_tac x=Y in rexI)  
-txt\<open>Unfold only the top-level occurrence of @{term is_recfun}\<close>
+txt\<open>Unfold only the top-level occurrence of \<^term>\<open>is_recfun\<close>\<close>
 apply (simp (no_asm_simp) add: is_recfun_relativize [of concl: _ a1])
-txt\<open>The big iff-formula defining @{term Y} is now redundant\<close>
+txt\<open>The big iff-formula defining \<^term>\<open>Y\<close> is now redundant\<close>
 apply safe 
  apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H _ a1]) 
 txt\<open>one more case\<close>
@@ -241,7 +241,7 @@ apply blast+
 done
 
 text\<open>Relativized version, when we have the (currently weaker) premise
-      @{term "wellfounded(M,r)"}\<close>
+      \<^term>\<open>wellfounded(M,r)\<close>\<close>
 lemma (in M_basic) wellfounded_exists_is_recfun:
     "[|wellfounded(M,r);  trans(r);  
        separation(M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r, x, H, f)));
@@ -268,7 +268,7 @@ apply (rule exists_is_recfun_indstep)
 done
 
 
-subsection\<open>Relativization of the ZF Predicate @{term is_recfun}\<close>
+subsection\<open>Relativization of the ZF Predicate \<^term>\<open>is_recfun\<close>\<close>
 
 definition
   M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
@@ -312,7 +312,7 @@ lemma (in M_basic) is_wfrec_abs:
           (\<exists>g[M]. is_recfun(r,a,H,g) & z = H(a,g))"
 by (simp add: is_wfrec_def relation2_def is_recfun_abs)
 
-text\<open>Relating @{term wfrec_replacement} to native constructs\<close>
+text\<open>Relating \<^term>\<open>wfrec_replacement\<close> to native constructs\<close>
 lemma (in M_basic) wfrec_replacement':
   "[|wfrec_replacement(M,MH,r);
      \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 

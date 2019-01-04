@@ -47,8 +47,8 @@ struct
 
 open HOLogic
 
-fun contains_quantor (Const (@{const_name Ex}, _) $ _) = true
-  | contains_quantor (Const (@{const_name All}, _) $ _) = true
+fun contains_quantor (Const (\<^const_name>\<open>Ex\<close>, _) $ _) = true
+  | contains_quantor (Const (\<^const_name>\<open>All\<close>, _) $ _) = true
   | contains_quantor (t1 $ t2) = contains_quantor t1 orelse contains_quantor t2
   | contains_quantor _ = false
 
@@ -93,22 +93,22 @@ fun skolem_bound is_free ctxt1 ctxt2 spets vars x =
       (ctxt1, ctxt2', spets, trm', var :: vars)
     end
 
-fun skolemize' pos ctxt1 ctxt2 spets vars (Const (@{const_name Not}, _) $ trm') =
+fun skolemize' pos ctxt1 ctxt2 spets vars (Const (\<^const_name>\<open>Not\<close>, _) $ trm') =
     let
       val (ctxt1', ctxt2', spets', trm'') = skolemize' (not pos) ctxt1 ctxt2 spets vars trm'
     in
       (ctxt1', ctxt2', map mk_not spets', mk_not trm'')
     end
-  | skolemize' pos ctxt1 ctxt2 spets vars (trm as (Const (@{const_name HOL.eq}, t) $ a $ b)) =
-    if t = @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"} andalso contains_quantor trm then
+  | skolemize' pos ctxt1 ctxt2 spets vars (trm as (Const (\<^const_name>\<open>HOL.eq\<close>, t) $ a $ b)) =
+    if t = \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close> andalso contains_quantor trm then
       skolemize' pos ctxt1 ctxt2 (trm :: spets) vars (mk_conj (mk_imp (a, b), mk_imp (b, a)))
     else
       (ctxt1, ctxt2, spets, trm)
   | skolemize' pos ctxt1 ctxt2 spets vars (trm as (Const (name, _) $ Abs x)) =
-    if name = @{const_name Ex} orelse name = @{const_name All} then
+    if name = \<^const_name>\<open>Ex\<close> orelse name = \<^const_name>\<open>All\<close> then
       let
-        val is_free =  (name = @{const_name Ex} andalso pos)
-          orelse (name = @{const_name All} andalso not pos)
+        val is_free =  (name = \<^const_name>\<open>Ex\<close> andalso pos)
+          orelse (name = \<^const_name>\<open>All\<close> andalso not pos)
         val (ctxt1', ctxt2', spets', trm', vars') =
           skolem_bound is_free ctxt1 ctxt2 (if is_free then trm :: spets else spets) vars x
       in
@@ -117,10 +117,10 @@ fun skolemize' pos ctxt1 ctxt2 spets vars (Const (@{const_name Not}, _) $ trm') 
     else
       (ctxt1, ctxt2, spets, trm)
   | skolemize' pos ctxt1 ctxt2 spets vars ((c as Const (name, _)) $ a $ b) =
-    if name = @{const_name conj} orelse name = @{const_name disj} orelse
-       name = @{const_name implies} then
+    if name = \<^const_name>\<open>conj\<close> orelse name = \<^const_name>\<open>disj\<close> orelse
+       name = \<^const_name>\<open>implies\<close> then
       let
-        val pos_a = if name = @{const_name implies} then not pos else pos
+        val pos_a = if name = \<^const_name>\<open>implies\<close> then not pos else pos
         val (ctxt1', ctxt2', spets', a') = skolemize'  pos_a ctxt1 ctxt2 [] vars a
         val (ctxt1'', ctxt2'', spets'', b') = skolemize' pos ctxt1' ctxt2' [] vars b
       in
@@ -248,8 +248,8 @@ val WM_ERROR_MSG = "Waldmeister problem generator failed: "
 
 fun gen_ascii_tuple str = (str, ascii_of str)
 
-fun mk_eq_true (trm as (Const (@{const_name HOL.eq}, _) $ _ $ _)) = (NONE,trm)
-  | mk_eq_true trm = (SOME trm,HOLogic.mk_eq (trm, @{term True}))
+fun mk_eq_true (trm as (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _)) = (NONE,trm)
+  | mk_eq_true trm = (SOME trm,HOLogic.mk_eq (trm, \<^term>\<open>True\<close>))
 
 val is_lambda_name = String.isPrefix lam_lifted_poly_prefix
 
@@ -358,7 +358,7 @@ fun trm_to_atp'' thy (Const (x, ty)) args =
 
 fun trm_to_atp' thy trm = trm_to_atp'' thy trm [] |> hd
 
-fun eq_trm_to_atp thy (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) =
+fun eq_trm_to_atp thy (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) =
     ATerm ((("equal", "equal"), []), [trm_to_atp' thy lhs, trm_to_atp' thy rhs])
   | eq_trm_to_atp _ _ = raise FailureMessage (WM_ERROR_MSG ^ "Non-eq term")
 
@@ -399,9 +399,9 @@ fun construct_term thy (name, args) =
         (WM_ERROR_MSG ^ "waldmeister equals needs 2 arguments but has " ^
          Int.toString (length args)))
     else if name = waldmeister_true then
-      @{term True}
+      \<^term>\<open>True\<close>
     else if name = waldmeister_false then
-      @{term False}
+      \<^term>\<open>False\<close>
     else
       raise FailureMessage
         (WM_ERROR_MSG ^ "Unknown name prefix when parsing Waldmeister proof: name = " ^ name)
@@ -415,7 +415,7 @@ and atp_to_trm' thy (ATerm ((name,_), args)) =
 
 fun atp_to_trm thy (ATerm (("equal", _), [lhs, rhs])) =
     mk_eq (atp_to_trm' thy lhs, atp_to_trm' thy rhs)
-  | atp_to_trm _ (ATerm (("$true", _), _)) = @{term True}
+  | atp_to_trm _ (ATerm (("$true", _), _)) = \<^term>\<open>True\<close>
   | atp_to_trm _ _ = raise FailureMessage (WM_ERROR_MSG ^ "atp_to_trm expects ATerm")
 
 fun formula_to_trm thy (AAtom aterm) = aterm |> atp_to_trm thy
@@ -562,7 +562,7 @@ fun skolemization_steps info
     SOME (_, (step :: steps,_)) =>
       let
         val raw_trm = dest_Trueprop trm
-        val is_narrowing = raw_trm = @{term "True = False"} orelse raw_trm = @{term "False = True"}
+        val is_narrowing = raw_trm = \<^term>\<open>True = False\<close> orelse raw_trm = \<^term>\<open>False = True\<close>
         val is_conjecture = String.isPrefix "1.0.0.0" waldmeister_name andalso not is_narrowing
       in
         if is_narrowing then

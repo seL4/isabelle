@@ -201,7 +201,7 @@ fun check_duplicate_variables_in_lhs ctxt ats vars =
   end;
 
 fun check_top_sort ctxt b T =
-  ignore (Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort type}) orelse
+  ignore (Sign.of_sort (Proof_Context.theory_of ctxt) (T, \<^sort>\<open>type\<close>) orelse
     error ("Type of " ^ Binding.print b ^ " contains top sort"));
 
 datatype fp_kind = Least_FP | Greatest_FP;
@@ -264,7 +264,7 @@ fun order_strong_conn eq make_graph topological_order deps sccs =
 
 val mk_common_name = space_implode "_";
 
-fun num_binder_types (Type (@{type_name fun}, [_, T])) = 1 + num_binder_types T
+fun num_binder_types (Type (\<^type_name>\<open>fun\<close>, [_, T])) = 1 + num_binder_types T
   | num_binder_types _ = 0;
 
 val exists_subtype_in = Term.exists_subtype o member (op =);
@@ -278,8 +278,8 @@ fun retype_const_or_free T (Const (s, _)) = Const (s, T)
   | retype_const_or_free _ t = raise TERM ("retype_const_or_free", [t]);
 
 fun drop_all t =
-  subst_bounds (strip_qnt_vars @{const_name Pure.all} t |> map Free |> rev,
-    strip_qnt_body @{const_name Pure.all} t);
+  subst_bounds (strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t |> map Free |> rev,
+    strip_qnt_body \<^const_name>\<open>Pure.all\<close> t);
 
 fun permute_args n t =
   list_comb (t, map Bound (0 :: (n downto 1))) |> fold (K (Term.abs (Name.uu, dummyT))) (0 upto n);

@@ -7,8 +7,8 @@ imports
 begin
 
 text \<open>
-  This theory is separate from @{theory "HOL-Library.Tree"} because the former is discrete and
-  builds on @{theory Main} whereas this theory builds on @{theory Complex_Main}.
+  This theory is separate from \<^theory>\<open>HOL-Library.Tree\<close> because the former is discrete and
+  builds on \<^theory>\<open>Main\<close> whereas this theory builds on \<^theory>\<open>Complex_Main\<close>.
 \<close>
 
 

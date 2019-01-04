@@ -242,10 +242,10 @@ fun flip_polarity Pos = Neg
   | flip_polarity Neg = Pos
   | flip_polarity Neut = Neut
 
-val prop_T = @{typ prop}
-val bool_T = @{typ bool}
-val nat_T = @{typ nat}
-val int_T = @{typ int}
+val prop_T = \<^typ>\<open>prop\<close>
+val bool_T = \<^typ>\<open>bool\<close>
+val nat_T = \<^typ>\<open>nat\<close>
+val int_T = \<^typ>\<open>int\<close>
 
 fun simple_string_of_typ (Type (s, _)) = s
   | simple_string_of_typ (TFree (s, _)) = s

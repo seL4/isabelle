@@ -100,6 +100,6 @@ val _ =
 fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
 
 val _ =
-  Try.tool_setup (solve_directN, (10, @{system_option auto_solve_direct}, try_solve_direct));
+  Try.tool_setup (solve_directN, (10, \<^system_option>\<open>auto_solve_direct\<close>, try_solve_direct));
 
 end;

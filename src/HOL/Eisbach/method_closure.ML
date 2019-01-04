@@ -239,12 +239,12 @@ val method_cmd = gen_method Proof_Context.add_fixes_cmd;
 end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword method} "Eisbach method definition"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>method\<close> "Eisbach method definition"
     (Parse.binding -- Parse.for_fixes --
-      ((Scan.optional (@{keyword "methods"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
-        (Scan.optional (@{keyword "uses"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
-      (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
-      Parse.!!! (@{keyword "="} |-- Parse.args1 (K true)) >>
+      ((Scan.optional (\<^keyword>\<open>methods\<close> |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
+        (Scan.optional (\<^keyword>\<open>uses\<close> |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
+      (Scan.optional (\<^keyword>\<open>declares\<close> |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
+      Parse.!!! (\<^keyword>\<open>=\<close> |-- Parse.args1 (K true)) >>
       (fn ((((name, vars), (methods, uses)), declares), src) =>
         #2 o method_cmd name vars uses declares methods src));
 

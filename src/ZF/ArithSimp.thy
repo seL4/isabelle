@@ -185,7 +185,7 @@ apply (erule complete_induct)
 apply (case_tac "x<n")
 txt\<open>case x<n\<close>
 apply (simp (no_asm_simp))
-txt\<open>case @{term"n \<le> x"}\<close>
+txt\<open>case \<^term>\<open>n \<le> x\<close>\<close>
 apply (simp add: not_lt_iff_le add_assoc mod_geq div_termination [THEN ltD] add_diff_inverse)
 done
 
@@ -212,7 +212,7 @@ apply (case_tac "succ (x) <n")
 txt\<open>case succ(x) < n\<close>
  apply (simp (no_asm_simp) add: nat_le_refl [THEN lt_trans] succ_neq_self)
  apply (simp add: ltD [THEN mem_imp_not_eq])
-txt\<open>case @{term"n \<le> succ(x)"}\<close>
+txt\<open>case \<^term>\<open>n \<le> succ(x)\<close>\<close>
 apply (simp add: mod_geq not_lt_iff_le)
 apply (erule leE)
  apply (simp (no_asm_simp) add: mod_geq div_termination [THEN ltD] diff_succ)
@@ -235,7 +235,7 @@ lemma mod_less_divisor: "[| 0<n;  n:nat |] ==> m mod n < n"
 apply (subgoal_tac "natify (m) mod n < n")
 apply (rule_tac [2] i = "natify (m) " in complete_induct)
 apply (case_tac [3] "x<n", auto)
-txt\<open>case @{term"n \<le> x"}\<close>
+txt\<open>case \<^term>\<open>n \<le> x\<close>\<close>
 apply (simp add: mod_geq not_lt_iff_le div_termination [THEN ltD])
 done
 

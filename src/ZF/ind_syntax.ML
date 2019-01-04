@@ -18,7 +18,7 @@ fun traceIt msg thy t =
 
 (** Abstract syntax definitions for ZF **)
 
-val iT = Type(@{type_name i}, []);
+val iT = Type(\<^type_name>\<open>i\<close>, []);
 
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) =
@@ -29,16 +29,16 @@ fun mk_all_imp (A,P) =
 fun mk_Collect (a, D, t) = @{const Collect} $ D $ absfree (a, iT) t;
 
 (*simple error-checking in the premises of an inductive definition*)
-fun chk_prem rec_hd (Const (@{const_name conj}, _) $ _ $ _) =
+fun chk_prem rec_hd (Const (\<^const_name>\<open>conj\<close>, _) $ _ $ _) =
         error"Premises may not be conjuctive"
-  | chk_prem rec_hd (Const (@{const_name mem}, _) $ t $ X) =
+  | chk_prem rec_hd (Const (\<^const_name>\<open>mem\<close>, _) $ t $ X) =
         (Logic.occs(rec_hd,t) andalso error "Recursion term on left of member symbol"; ())
   | chk_prem rec_hd t =
         (Logic.occs(rec_hd,t) andalso error "Recursion term in side formula"; ());
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl =
-    let val Const (@{const_name Trueprop}, _) $ (Const (@{const_name mem}, _) $ t $ X) =
+    let val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>mem\<close>, _) $ t $ X) =
                 Logic.strip_imp_concl rl
     in  (t,X)  end;
 
@@ -50,7 +50,7 @@ fun rule_concl_msg sign rl = rule_concl rl
 (*For deriving cases rules.  CollectD2 discards the domain, which is redundant;
   read_instantiate replaces a propositional variable by a formula variable*)
 val equals_CollectD =
-    Rule_Insts.read_instantiate @{context} [((("W", 0), Position.none), "Q")] ["Q"]
+    Rule_Insts.read_instantiate \<^context> [((("W", 0), Position.none), "Q")] ["Q"]
         (make_elim (@{thm equalityD1} RS @{thm subsetD} RS @{thm CollectD2}));
 
 
@@ -61,7 +61,7 @@ val equals_CollectD =
 type constructor_spec =
     (string * typ * mixfix) * string * term list * term list;
 
-fun dest_mem (Const (@{const_name mem}, _) $ x $ A) = (x, A)
+fun dest_mem (Const (\<^const_name>\<open>mem\<close>, _) $ x $ A) = (x, A)
   | dest_mem _ = error "Constructor specifications must have the form x:A";
 
 (*read a constructor specification*)

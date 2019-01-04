@@ -180,7 +180,7 @@ schematic_goal
     and "\<And>z. z:A \<times> B \<Longrightarrow> C(z) type"
   shows "?a : (\<Sum>z:A \<times> B. C(z)) \<longrightarrow> (\<Sum>u:A. \<Sum>v:B. C(<u,v>))"
 apply (rule intr_rls)
-apply (tactic \<open>biresolve_tac @{context} safe_brls 2\<close>)
+apply (tactic \<open>biresolve_tac \<^context> safe_brls 2\<close>)
 (*Now must convert assumption C(z) into antecedent C(<kd,ke>) *)
 apply (rule_tac [2] a = "y" in ProdE)
 apply (typechk assms)

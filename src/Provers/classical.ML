@@ -902,15 +902,15 @@ val destN = "dest";
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding swapped} (Scan.succeed swapped)
+   (Attrib.setup \<^binding>\<open>swapped\<close> (Scan.succeed swapped)
       "classical swap of introduction rule" #>
-    Attrib.setup @{binding dest} (Context_Rules.add safe_dest unsafe_dest Context_Rules.dest_query)
+    Attrib.setup \<^binding>\<open>dest\<close> (Context_Rules.add safe_dest unsafe_dest Context_Rules.dest_query)
       "declaration of Classical destruction rule" #>
-    Attrib.setup @{binding elim} (Context_Rules.add safe_elim unsafe_elim Context_Rules.elim_query)
+    Attrib.setup \<^binding>\<open>elim\<close> (Context_Rules.add safe_elim unsafe_elim Context_Rules.elim_query)
       "declaration of Classical elimination rule" #>
-    Attrib.setup @{binding intro} (Context_Rules.add safe_intro unsafe_intro Context_Rules.intro_query)
+    Attrib.setup \<^binding>\<open>intro\<close> (Context_Rules.add safe_intro unsafe_intro Context_Rules.intro_query)
       "declaration of Classical introduction rule" #>
-    Attrib.setup @{binding rule} (Scan.lift Args.del >> K rule_del)
+    Attrib.setup \<^binding>\<open>rule\<close> (Scan.lift Args.del >> K rule_del)
       "remove declaration of intro/elim/dest rule");
 
 
@@ -964,41 +964,41 @@ fun cla_method' tac = Method.sections cla_modifiers >> K (SIMPLE_METHOD' o tac);
 
 val _ =
   Theory.setup
-   (Method.setup @{binding standard} (Scan.succeed (METHOD o standard_tac))
+   (Method.setup \<^binding>\<open>standard\<close> (Scan.succeed (METHOD o standard_tac))
       "standard proof step: classical intro/elim rule or class introduction" #>
-    Method.setup @{binding rule}
+    Method.setup \<^binding>\<open>rule\<close>
       (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
       "apply some intro/elim rule (potentially classical)" #>
-    Method.setup @{binding contradiction}
+    Method.setup \<^binding>\<open>contradiction\<close>
       (Scan.succeed (fn ctxt => Method.rule ctxt [Data.not_elim, Drule.rotate_prems 1 Data.not_elim]))
       "proof by contradiction" #>
-    Method.setup @{binding clarify} (cla_method' (CHANGED_PROP oo clarify_tac))
+    Method.setup \<^binding>\<open>clarify\<close> (cla_method' (CHANGED_PROP oo clarify_tac))
       "repeatedly apply safe steps" #>
-    Method.setup @{binding fast} (cla_method' fast_tac) "classical prover (depth-first)" #>
-    Method.setup @{binding slow} (cla_method' slow_tac) "classical prover (slow depth-first)" #>
-    Method.setup @{binding best} (cla_method' best_tac) "classical prover (best-first)" #>
-    Method.setup @{binding deepen}
+    Method.setup \<^binding>\<open>fast\<close> (cla_method' fast_tac) "classical prover (depth-first)" #>
+    Method.setup \<^binding>\<open>slow\<close> (cla_method' slow_tac) "classical prover (slow depth-first)" #>
+    Method.setup \<^binding>\<open>best\<close> (cla_method' best_tac) "classical prover (best-first)" #>
+    Method.setup \<^binding>\<open>deepen\<close>
       (Scan.lift (Scan.optional Parse.nat 4) --| Method.sections cla_modifiers
         >> (fn n => fn ctxt => SIMPLE_METHOD' (deepen_tac ctxt n)))
       "classical prover (iterative deepening)" #>
-    Method.setup @{binding safe} (cla_method (CHANGED_PROP o safe_tac))
+    Method.setup \<^binding>\<open>safe\<close> (cla_method (CHANGED_PROP o safe_tac))
       "classical prover (apply safe rules)" #>
-    Method.setup @{binding safe_step} (cla_method' safe_step_tac)
+    Method.setup \<^binding>\<open>safe_step\<close> (cla_method' safe_step_tac)
       "single classical step (safe rules)" #>
-    Method.setup @{binding inst_step} (cla_method' inst_step_tac)
+    Method.setup \<^binding>\<open>inst_step\<close> (cla_method' inst_step_tac)
       "single classical step (safe rules, allow instantiations)" #>
-    Method.setup @{binding step} (cla_method' step_tac)
+    Method.setup \<^binding>\<open>step\<close> (cla_method' step_tac)
       "single classical step (safe and unsafe rules)" #>
-    Method.setup @{binding slow_step} (cla_method' slow_step_tac)
+    Method.setup \<^binding>\<open>slow_step\<close> (cla_method' slow_step_tac)
       "single classical step (safe and unsafe rules, allow backtracking)" #>
-    Method.setup @{binding clarify_step} (cla_method' clarify_step_tac)
+    Method.setup \<^binding>\<open>clarify_step\<close> (cla_method' clarify_step_tac)
       "single classical step (safe rules, without splitting)");
 
 
 (** outer syntax **)
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_claset} "print context of Classical Reasoner"
+  Outer_Syntax.command \<^command_keyword>\<open>print_claset\<close> "print context of Classical Reasoner"
     (Scan.succeed (Toplevel.keep (print_claset o Toplevel.context_of)));
 
 end;

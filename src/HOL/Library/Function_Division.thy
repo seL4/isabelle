@@ -32,7 +32,7 @@ lemma divide_fun_apply [simp]:
 text \<open>
   Unfortunately, we cannot lift this operations to algebraic type
   classes for division: being different from the constant
-  zero function @{term "f \<noteq> 0"} is too weak as precondition.
+  zero function \<^term>\<open>f \<noteq> 0\<close> is too weak as precondition.
   So we must introduce our own set of lemmas.
 \<close>
 
@@ -58,8 +58,8 @@ text \<open>Feel free to extend this.\<close>
 
 text \<open>
   Another possibility would be a reformulation of the division type
-  classes to user a @{term zero_free} predicate rather than
-  a direct @{term "a \<noteq> 0"} condition.
+  classes to user a \<^term>\<open>zero_free\<close> predicate rather than
+  a direct \<^term>\<open>a \<noteq> 0\<close> condition.
 \<close>
 
 end

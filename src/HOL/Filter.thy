@@ -251,8 +251,8 @@ method_setup eventually_elim = \<open>
 
 subsubsection \<open>Finer-than relation\<close>
 
-text \<open>@{term "F \<le> F'"} means that filter @{term F} is finer than
-filter @{term F'}.\<close>
+text \<open>\<^term>\<open>F \<le> F'\<close> means that filter \<^term>\<open>F\<close> is finer than
+filter \<^term>\<open>F'\<close>.\<close>
 
 instantiation filter :: (type) complete_lattice
 begin
@@ -1395,7 +1395,7 @@ lemma filterlim_Pair:
   unfolding filterlim_def
   by (rule order_trans[OF filtermap_Pair prod_filter_mono])
 
-subsection \<open>Limits to @{const at_top} and @{const at_bot}\<close>
+subsection \<open>Limits to \<^const>\<open>at_top\<close> and \<^const>\<open>at_bot\<close>\<close>
 
 lemma filterlim_at_top:
   fixes f :: "'a \<Rightarrow> ('b::linorder)"
@@ -1527,7 +1527,7 @@ proof (safe, goal_cases)
     by eventually_elim (insert n, auto)
 qed
 
-subsection \<open>Setup @{typ "'a filter"} for lifting and transfer\<close>
+subsection \<open>Setup \<^typ>\<open>'a filter\<close> for lifting and transfer\<close>
 
 lemma filtermap_id [simp, id_simps]: "filtermap id = id"
 by(simp add: fun_eq_iff id_def filtermap_ident)

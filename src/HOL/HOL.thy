@@ -45,11 +45,11 @@ ML \<open>
 \<close>
 ML \<open>
   Plugin_Name.define_setup \<^binding>\<open>quickcheck\<close>
-   [@{plugin quickcheck_exhaustive},
-    @{plugin quickcheck_random},
-    @{plugin quickcheck_bounded_forall},
-    @{plugin quickcheck_full_exhaustive},
-    @{plugin quickcheck_narrowing}]
+   [\<^plugin>\<open>quickcheck_exhaustive\<close>,
+    \<^plugin>\<open>quickcheck_random\<close>,
+    \<^plugin>\<open>quickcheck_bounded_forall\<close>,
+    \<^plugin>\<open>quickcheck_full_exhaustive\<close>,
+    \<^plugin>\<open>quickcheck_narrowing\<close>]
 \<close>
 
 
@@ -68,7 +68,7 @@ subsubsection \<open>Core syntax\<close>
 
 setup \<open>Axclass.class_axiomatization (\<^binding>\<open>type\<close>, [])\<close>
 default_sort type
-setup \<open>Object_Logic.add_base_sort @{sort type}\<close>
+setup \<open>Object_Logic.add_base_sort \<^sort>\<open>type\<close>\<close>
 
 axiomatization where fun_arity: "OFCLASS('a \<Rightarrow> 'b, type_class)"
 instance "fun" :: (type, type) type by (rule fun_arity)
@@ -129,7 +129,7 @@ syntax "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>!_.
 translations "\<exists>!x. P" \<rightleftharpoons> "CONST Ex1 (\<lambda>x. P)"
 
 print_translation \<open>
- [Syntax_Trans.preserve_binder_abs_tr' @{const_syntax Ex1} @{syntax_const "_Ex1"}]
+ [Syntax_Trans.preserve_binder_abs_tr' \<^const_syntax>\<open>Ex1\<close> \<^syntax_const>\<open>_Ex1\<close>]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 
@@ -158,9 +158,9 @@ abbreviation (iff)
 syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  ("(3THE _./ _)" [0, 10] 10)
 translations "THE x. P" \<rightleftharpoons> "CONST The (\<lambda>x. P)"
 print_translation \<open>
-  [(@{const_syntax The}, fn _ => fn [Abs abs] =>
+  [(\<^const_syntax>\<open>The\<close>, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
-      in Syntax.const @{syntax_const "_The"} $ x $ t end)]
+      in Syntax.const \<^syntax_const>\<open>_The\<close> $ x $ t end)]
 \<close>  \<comment> \<open>To avoid eta-contraction of body\<close>
 
 nonterminal letbinds and letbind
@@ -833,7 +833,7 @@ open Basic_Classical;
 setup \<open>
   (*prevent substitution on bool*)
   let
-    fun non_bool_eq (@{const_name HOL.eq}, Type (_, [T, _])) = T <> @{typ bool}
+    fun non_bool_eq (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) = T <> \<^typ>\<open>bool\<close>
       | non_bool_eq _ = false;
     fun hyp_subst_tac' ctxt =
       SUBGOAL (fn (goal, i) =>
@@ -866,7 +866,7 @@ declare ex_ex1I [intro!]
 declare exE [elim!]
   allE [elim]
 
-ML \<open>val HOL_cs = claset_of @{context}\<close>
+ML \<open>val HOL_cs = claset_of \<^context>\<close>
 
 lemma contrapos_np: "\<not> Q \<Longrightarrow> (\<not> P \<Longrightarrow> Q) \<Longrightarrow> P"
   apply (erule swap)
@@ -890,7 +890,7 @@ lemma alt_ex1E [elim!]:
   apply (rule prem)
    apply assumption
   apply (rule allI)+
-  apply (tactic \<open>eresolve_tac @{context} [Classical.dup_elim @{context} @{thm allE}] 1\<close>)
+  apply (tactic \<open>eresolve_tac \<^context> [Classical.dup_elim \<^context> @{thm allE}] 1\<close>)
   apply iprover
   done
 
@@ -899,8 +899,8 @@ ML \<open>
   (
     structure Classical = Classical
     val Trueprop_const = dest_Const @{const Trueprop}
-    val equality_name = @{const_name HOL.eq}
-    val not_name = @{const_name Not}
+    val equality_name = \<^const_name>\<open>HOL.eq\<close>
+    val not_name = \<^const_name>\<open>Not\<close>
     val notE = @{thm notE}
     val ccontr = @{thm ccontr}
     val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
@@ -1240,7 +1240,7 @@ simproc_setup let_simp ("Let x f") = \<open>
       | count_loose (s $ t) k = count_loose s k + count_loose t k
       | count_loose (Abs (_, _, t)) k = count_loose  t (k + 1)
       | count_loose _ _ = 0;
-    fun is_trivial_let (Const (@{const_name Let}, _) $ x $ t) =
+    fun is_trivial_let (Const (\<^const_name>\<open>Let\<close>, _) $ x $ t) =
       (case t of
         Abs (_, _, t') => count_loose t' 0 <= 1
       | _ => true);
@@ -1254,7 +1254,7 @@ simproc_setup let_simp ("Let x f") = \<open>
           val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
         in
           Option.map (hd o Variable.export ctxt' ctxt o single)
-            (case t' of Const (@{const_name Let},_) $ x $ f => (* x and f are already in normal form *)
+            (case t' of Const (\<^const_name>\<open>Let\<close>,_) $ x $ f => (* x and f are already in normal form *)
               if is_Free x orelse is_Bound x orelse is_Const x
               then SOME @{thm Let_def}
               else
@@ -1366,7 +1366,7 @@ lemmas [simp] =
 lemmas [cong] = imp_cong simp_implies_cong
 lemmas [split] = if_split
 
-ML \<open>val HOL_ss = simpset_of @{context}\<close>
+ML \<open>val HOL_ss = simpset_of \<^context>\<close>
 
 text \<open>Simplifies \<open>x\<close> assuming \<open>c\<close> and \<open>y\<close> assuming \<open>\<not> c\<close>.\<close>
 lemma if_cong:
@@ -1493,7 +1493,7 @@ structure Induct = Induct
   val rulify = @{thms induct_rulify'}
   val rulify_fallback = @{thms induct_rulify_fallback}
   val equal_def = @{thm induct_equal_def}
-  fun dest_def (Const (@{const_name induct_equal}, _) $ t $ u) = SOME (t, u)
+  fun dest_def (Const (\<^const_name>\<open>induct_equal\<close>, _) $ t $ u) = SOME (t, u)
     | dest_def _ = NONE
   fun trivial_tac ctxt = match_tac ctxt @{thms induct_trueI}
 )
@@ -1504,22 +1504,22 @@ ML_file "~~/src/Tools/induction.ML"
 declaration \<open>
   fn _ => Induct.map_simpset (fn ss => ss
     addsimprocs
-      [Simplifier.make_simproc @{context} "swap_induct_false"
-        {lhss = [@{term "induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"}],
+      [Simplifier.make_simproc \<^context> "swap_induct_false"
+        {lhss = [\<^term>\<open>induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q\<close>],
          proc = fn _ => fn _ => fn ct =>
           (case Thm.term_of ct of
             _ $ (P as _ $ @{const induct_false}) $ (_ $ Q $ _) =>
               if P <> Q then SOME Drule.swap_prems_eq else NONE
           | _ => NONE)},
-       Simplifier.make_simproc @{context} "induct_equal_conj_curry"
-        {lhss = [@{term "induct_conj P Q \<Longrightarrow> PROP R"}],
+       Simplifier.make_simproc \<^context> "induct_equal_conj_curry"
+        {lhss = [\<^term>\<open>induct_conj P Q \<Longrightarrow> PROP R\<close>],
          proc = fn _ => fn _ => fn ct =>
           (case Thm.term_of ct of
             _ $ (_ $ P) $ _ =>
               let
                 fun is_conj (@{const induct_conj} $ P $ Q) =
                       is_conj P andalso is_conj Q
-                  | is_conj (Const (@{const_name induct_equal}, _) $ _ $ _) = true
+                  | is_conj (Const (\<^const_name>\<open>induct_equal\<close>, _) $ _ $ _) = true
                   | is_conj @{const induct_true} = true
                   | is_conj @{const induct_false} = true
                   | is_conj _ = false
@@ -1597,7 +1597,7 @@ structure Coherent = Coherent
   val atomize_exL = @{thm atomize_exL};
   val atomize_conjL = @{thm atomize_conjL};
   val atomize_disjL = @{thm atomize_disjL};
-  val operator_names = [@{const_name HOL.disj}, @{const_name HOL.conj}, @{const_name Ex}];
+  val operator_names = [\<^const_name>\<open>HOL.disj\<close>, \<^const_name>\<open>HOL.conj\<close>, \<^const_name>\<open>Ex\<close>];
 );
 \<close>
 
@@ -1762,7 +1762,7 @@ simproc_setup NO_MATCH ("NO_MATCH pat val") = \<open>fn _ => fn ctxt => fn ct =>
 \<close>
 
 text \<open>
-  This setup ensures that a rewrite rule of the form @{term "NO_MATCH pat val \<Longrightarrow> t"}
+  This setup ensures that a rewrite rule of the form \<^term>\<open>NO_MATCH pat val \<Longrightarrow> t\<close>
   is only applied, if the pattern \<open>pat\<close> does not match the value \<open>val\<close>.
 \<close>
 
@@ -1838,18 +1838,18 @@ declare eq_equal [code]
 setup \<open>
   Code_Preproc.map_pre (fn ctxt =>
     ctxt addsimprocs
-      [Simplifier.make_simproc @{context} "equal"
-        {lhss = [@{term HOL.eq}],
+      [Simplifier.make_simproc \<^context> "equal"
+        {lhss = [\<^term>\<open>HOL.eq\<close>],
          proc = fn _ => fn _ => fn ct =>
           (case Thm.term_of ct of
-            Const (_, Type (@{type_name fun}, [Type _, _])) => SOME @{thm eq_equal}
+            Const (_, Type (\<^type_name>\<open>fun\<close>, [Type _, _])) => SOME @{thm eq_equal}
           | _ => NONE)}])
 \<close>
 
 
 subsubsection \<open>Generic code generator foundation\<close>
 
-text \<open>Datatype @{typ bool}\<close>
+text \<open>Datatype \<^typ>\<open>bool\<close>\<close>
 
 code_datatype True False
 
@@ -1874,7 +1874,7 @@ lemma [code]:
     and "(P \<longrightarrow> True) \<longleftrightarrow> True"
   by simp_all
 
-text \<open>More about @{typ prop}\<close>
+text \<open>More about \<^typ>\<open>prop\<close>\<close>
 
 lemma [code nbe]:
   shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q"
@@ -1905,14 +1905,14 @@ end
 lemma equal_itself_code [code]: "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
   by (simp add: equal)
 
-setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a::type \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>equal\<close>, SOME \<^typ>\<open>'a::type \<Rightarrow> 'a \<Rightarrow> bool\<close>)\<close>
 
 lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> (((=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)"
   (is "?ofclass \<equiv> ?equal")
 proof
   assume "PROP ?ofclass"
   show "PROP ?equal"
-    by (tactic \<open>ALLGOALS (resolve_tac @{context} [Thm.unconstrainT @{thm eq_equal}])\<close>)
+    by (tactic \<open>ALLGOALS (resolve_tac \<^context> [Thm.unconstrainT @{thm eq_equal}])\<close>)
       (fact \<open>PROP ?ofclass\<close>)
 next
   assume "PROP ?equal"
@@ -1920,7 +1920,7 @@ next
   qed (simp add: \<open>PROP ?equal\<close>)
 qed
 
-setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a::equal \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>equal\<close>, SOME \<^typ>\<open>'a::equal \<Rightarrow> 'a \<Rightarrow> bool\<close>)\<close>
 
 setup \<open>Nbe.add_const_alias @{thm equal_alias_cert}\<close>
 
@@ -1933,7 +1933,7 @@ lemma Let_case_cert:
 
 setup \<open>
   Code.declare_case_global @{thm Let_case_cert} #>
-  Code.declare_undefined_global @{const_name undefined}
+  Code.declare_undefined_global \<^const_name>\<open>undefined\<close>
 \<close>
 
 declare [[code abort: undefined]]
@@ -1941,7 +1941,7 @@ declare [[code abort: undefined]]
 
 subsubsection \<open>Generic code generator target languages\<close>
 
-text \<open>type @{typ bool}\<close>
+text \<open>type \<^typ>\<open>bool\<close>\<close>
 
 code_printing
   type_constructor bool \<rightharpoonup>
@@ -2057,7 +2057,7 @@ subsection \<open>Legacy tactics and ML bindings\<close>
 ML \<open>
   (* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
   local
-    fun wrong_prem (Const (@{const_name All}, _) $ Abs (_, _, t)) = wrong_prem t
+    fun wrong_prem (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) = wrong_prem t
       | wrong_prem (Bound _) = true
       | wrong_prem _ = false;
     val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
@@ -2068,7 +2068,7 @@ ML \<open>
 
   local
     val nnf_ss =
-      simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms simp_thms nnf_simps});
+      simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms simp_thms nnf_simps});
   in
     fun nnf_conv ctxt = Simplifier.rewrite (put_simpset nnf_ss ctxt);
   end

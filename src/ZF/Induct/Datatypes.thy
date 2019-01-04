@@ -27,7 +27,7 @@ lemma data_unfold: "data(A, B) = ({0} + A) + (A \<times> B + A \<times> B \<time
     elim: data.cases [unfolded data.con_defs])
 
 text \<open>
-  \medskip Lemmas to justify using @{term data} in other recursive
+  \medskip Lemmas to justify using \<^term>\<open>data\<close> in other recursive
   type definitions.
 \<close>
 

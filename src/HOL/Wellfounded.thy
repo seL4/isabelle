@@ -536,7 +536,7 @@ lemma wf_iff_acyclic_if_finite: "finite r \<Longrightarrow> wf r = acyclic r"
   by (blast intro: finite_acyclic_wf wf_acyclic)
 
 
-subsection \<open>@{typ nat} is well-founded\<close>
+subsection \<open>\<^typ>\<open>nat\<close> is well-founded\<close>
 
 lemma less_nat_rel: "(<) = (\<lambda>m n. n = Suc m)\<^sup>+\<^sup>+"
 proof (rule ext, rule ext, rule iffI)
@@ -736,7 +736,7 @@ lemma wf_inv_image [simp,intro!]: "wf r \<Longrightarrow> wf (inv_image r f)"
   apply blast
   done
 
-text \<open>Measure functions into @{typ nat}\<close>
+text \<open>Measure functions into \<^typ>\<open>nat\<close>\<close>
 
 definition measure :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set"
   where "measure = inv_image less_than"

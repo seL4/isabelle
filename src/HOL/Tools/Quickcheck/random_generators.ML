@@ -82,7 +82,7 @@ val a_v =
 val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},
   @{thm Suc_natural_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
 val rew_ts = map (Logic.dest_equals o Thm.prop_of) rew_thms;
-val rew_ss = simpset_of (put_simpset HOL_ss @{context} addsimps rew_thms);
+val rew_ss = simpset_of (put_simpset HOL_ss \<^context> addsimps rew_thms);
 
 in
 

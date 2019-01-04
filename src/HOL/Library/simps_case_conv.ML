@@ -64,7 +64,7 @@ fun was_split t =
   let
     val is_free_eq_imp = is_Free o fst o HOLogic.dest_eq o fst o HOLogic.dest_imp
     val get_conjs = HOLogic.dest_conj o HOLogic.dest_Trueprop
-    fun dest_alls (Const (@{const_name All}, _) $ Abs (_, _, t)) = dest_alls t
+    fun dest_alls (Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t)) = dest_alls t
       | dest_alls t = t
   in forall (is_free_eq_imp o dest_alls) (get_conjs t) end
   handle TERM _ => false
@@ -132,15 +132,15 @@ fun simps_of_case_cmd ((bind, thm_ref), splits_ref) lthy =
   end
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword case_of_simps}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>case_of_simps\<close>
     "turn a list of equations into a case expression"
     (Parse_Spec.opt_thm_name ":"  -- Parse.thms1 >> case_of_simps_cmd)
 
-val parse_splits = @{keyword "("} |-- Parse.reserved "splits" |-- @{keyword ":"} |--
-  Parse.thms1 --| @{keyword ")"}
+val parse_splits = \<^keyword>\<open>(\<close> |-- Parse.reserved "splits" |-- \<^keyword>\<open>:\<close> |--
+  Parse.thms1 --| \<^keyword>\<open>)\<close>
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword simps_of_case}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>simps_of_case\<close>
     "perform case split on rule"
     (Parse_Spec.opt_thm_name ":"  -- Parse.thm --
       Scan.optional parse_splits [] >> simps_of_case_cmd)

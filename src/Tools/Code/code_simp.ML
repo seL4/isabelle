@@ -39,7 +39,7 @@ fun simpset_default ctxt some_ss =
 
 (* diagnostic *)
 
-val trace = Attrib.setup_config_bool @{binding "code_simp_trace"} (K false);
+val trace = Attrib.setup_config_bool \<^binding>\<open>code_simp_trace\<close> (K false);
 
 fun set_trace ctxt =
   let
@@ -93,7 +93,7 @@ fun dynamic_value ctxt =
   snd o Logic.dest_equals o Thm.prop_of o dynamic_conv ctxt o Thm.cterm_of ctxt;
 
 val _ = Theory.setup 
-  (Method.setup @{binding code_simp}
+  (Method.setup \<^binding>\<open>code_simp\<close>
     (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac)))
     "simplification with code equations");
 

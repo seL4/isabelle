@@ -240,10 +240,10 @@ val parse_key = Scan.repeat1 Parse.embedded >> space_implode " ";
 val parse_value =
   Scan.repeat1 (Parse.minus >> single
     || Scan.repeat1 (Scan.unless Parse.minus (Parse.name || Parse.float_number))
-    || @{keyword ","} |-- Parse.number >> prefix "," >> single)
+    || \<^keyword>\<open>,\<close> |-- Parse.number >> prefix "," >> single)
   >> flat;
-val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) [];
-val parse_params = Scan.optional (@{keyword "["} |-- Parse.list parse_param --| @{keyword "]"}) [];
+val parse_param = parse_key -- Scan.optional (\<^keyword>\<open>=\<close> |-- parse_value) [];
+val parse_params = Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.list parse_param --| \<^keyword>\<open>]\<close>) [];
 
 fun run_chaku override_params mode i state0 =
   let
@@ -271,14 +271,14 @@ fun nunchaku_params_trans params =
       end));
 
 val _ =
-  Outer_Syntax.command @{command_keyword nunchaku}
+  Outer_Syntax.command \<^command_keyword>\<open>nunchaku\<close>
     "try to find a countermodel using Nunchaku"
     (parse_params -- Scan.optional Parse.nat 1 >> (fn (params, i) =>
        Toplevel.keep_proof (fn state =>
          ignore (run_chaku params Normal i (Toplevel.proof_of state)))));
 
 val _ =
-  Outer_Syntax.command @{command_keyword nunchaku_params}
+  Outer_Syntax.command \<^command_keyword>\<open>nunchaku_params\<close>
     "set and display the default parameters for Nunchaku"
     (parse_params #>> nunchaku_params_trans);
 

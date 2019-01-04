@@ -23,7 +23,7 @@ struct
 val zeroth = Thm.symmetric (mk_meta_eq @{thm of_int_0});
 
 val zero_to_of_int_zero_simproc =
-  Simplifier.make_simproc @{context} "zero_to_of_int_zero_simproc"
+  Simplifier.make_simproc \<^context> "zero_to_of_int_zero_simproc"
    {lhss = [\<^term>\<open>0::'a::ring\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
@@ -34,7 +34,7 @@ val zero_to_of_int_zero_simproc =
 val oneth = Thm.symmetric (mk_meta_eq @{thm of_int_1});
 
 val one_to_of_int_one_simproc =
-  Simplifier.make_simproc @{context} "one_to_of_int_one_simproc"
+  Simplifier.make_simproc \<^context> "one_to_of_int_one_simproc"
    {lhss = [\<^term>\<open>1::'a::ring_1\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
@@ -53,7 +53,7 @@ fun check (Const (\<^const_name>\<open>Groups.one\<close>, \<^typ>\<open>int\<cl
   | check _ = false;
 
 val conv_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps
      ((map (fn th => th RS sym) [@{thm of_int_add}, @{thm of_int_mult},
              @{thm of_int_diff},  @{thm of_int_minus}])@
@@ -61,7 +61,7 @@ val conv_ss =
      addsimprocs [zero_to_of_int_zero_simproc,one_to_of_int_one_simproc]);
 
 val zero_one_idom_simproc =
-  Simplifier.make_simproc @{context} "zero_one_idom_simproc"
+  Simplifier.make_simproc \<^context> "zero_one_idom_simproc"
    {lhss =
       [\<^term>\<open>(x::'a::ring_char_0) = y\<close>,
        \<^term>\<open>(x::'a::linordered_idom) < y\<close>,

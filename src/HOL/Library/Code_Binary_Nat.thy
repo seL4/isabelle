@@ -10,8 +10,8 @@ begin
 
 text \<open>
   When generating code for functions on natural numbers, the
-  canonical representation using @{term "0::nat"} and
-  @{term Suc} is unsuitable for computations involving large
+  canonical representation using \<^term>\<open>0::nat\<close> and
+  \<^term>\<open>Suc\<close> is unsuitable for computations involving large
   numbers.  This theory refines the representation of
   natural numbers for code generation to use binary
   numerals, which do not grow linear in size but logarithmic.

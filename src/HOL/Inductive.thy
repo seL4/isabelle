@@ -270,8 +270,8 @@ qed
 
 subsection \<open>Even Stronger Coinduction Rule, by Martin Coen\<close>
 
-text \<open>Weakens the condition @{term "X \<subseteq> f X"} to one expressed using both
-  @{term lfp} and @{term gfp}\<close>
+text \<open>Weakens the condition \<^term>\<open>X \<subseteq> f X\<close> to one expressed using both
+  \<^term>\<open>lfp\<close> and \<^term>\<open>gfp\<close>\<close>
 lemma coinduct3_mono_lemma: "mono f \<Longrightarrow> mono (\<lambda>x. f x \<union> X \<union> B)"
   by (iprover intro: subset_refl monoI Un_mono monoD)
 
@@ -312,7 +312,7 @@ lemma def_Collect_coinduct:
 lemma def_coinduct3: "A \<equiv> gfp f \<Longrightarrow> mono f \<Longrightarrow> a \<in> X \<Longrightarrow> X \<subseteq> f (lfp (\<lambda>x. f x \<union> X \<union> A)) \<Longrightarrow> a \<in> A"
   by (auto intro!: coinduct3)
 
-text \<open>Monotonicity of @{term gfp}!\<close>
+text \<open>Monotonicity of \<^term>\<open>gfp\<close>!\<close>
 lemma gfp_mono: "(\<And>Z. f Z \<le> g Z) \<Longrightarrow> gfp f \<le> gfp g"
   by (rule gfp_upperbound [THEN gfp_least]) (blast intro: order_trans)
 
@@ -535,7 +535,7 @@ parse_translation \<open>
         val x = Syntax.free (fst (Name.variant "x" (Term.declare_term_frees cs Name.context)));
         val ft = Case_Translation.case_tr true ctxt [x, cs];
       in lambda x ft end
-  in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
+  in [(\<^syntax_const>\<open>_lam_pats_syntax\<close>, fun_tr)] end
 \<close>
 
 end

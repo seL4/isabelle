@@ -191,7 +191,7 @@ apply (unfold id_def)
 apply (force intro!: lam_type dest: apply_type)
 done
 
-text\<open>@{term id} as the identity relation\<close>
+text\<open>\<^term>\<open>id\<close> as the identity relation\<close>
 lemma id_iff [simp]: "<x,y> \<in> id(A) \<longleftrightarrow> x=y & y \<in> A"
 by auto
 
@@ -259,7 +259,7 @@ done
 
 subsection\<open>Composition of Two Relations\<close>
 
-text\<open>The inductive definition package could derive these theorems for @{term"r O s"}\<close>
+text\<open>The inductive definition package could derive these theorems for \<^term>\<open>r O s\<close>\<close>
 
 lemma compI [intro]: "[| <a,b>:s; <b,c>:r |] ==> <a,c> \<in> r O s"
 by (unfold comp_def, blast)
@@ -383,7 +383,7 @@ apply (blast intro: comp_inj comp_surj)
 done
 
 
-subsection\<open>Dual Properties of @{term inj} and @{term surj}\<close>
+subsection\<open>Dual Properties of \<^term>\<open>inj\<close> and \<^term>\<open>surj\<close>\<close>
 
 text\<open>Useful for proofs from
     D Pastre.  Automatic theorem proving in set theory.
@@ -420,7 +420,7 @@ done
 subsubsection\<open>Inverses of Composition\<close>
 
 text\<open>left inverse of composition; one inclusion is
-        @{term "f \<in> A->B ==> id(A) \<subseteq> converse(f) O f"}\<close>
+        \<^term>\<open>f \<in> A->B ==> id(A) \<subseteq> converse(f) O f\<close>\<close>
 lemma left_comp_inverse: "f \<in> inj(A,B) ==> converse(f) O f = id(A)"
 apply (unfold inj_def, clarify)
 apply (rule equalityI)
@@ -428,7 +428,7 @@ apply (rule equalityI)
 done
 
 text\<open>right inverse of composition; one inclusion is
-                @{term "f \<in> A->B ==> f O converse(f) \<subseteq> id(B)"}\<close>
+                \<^term>\<open>f \<in> A->B ==> f O converse(f) \<subseteq> id(B)\<close>\<close>
 lemma right_comp_inverse:
     "f \<in> surj(A,B) ==> f O converse(f) = id(B)"
 apply (simp add: surj_def, clarify)
@@ -487,7 +487,7 @@ apply (blast dest!: domain_of_fun
 done
 
 text\<open>A simple, high-level proof; the version for injections follows from it,
-  using  @{term "f \<in> inj(A,B) \<longleftrightarrow> f \<in> bij(A,range(f))"}\<close>
+  using  \<^term>\<open>f \<in> inj(A,B) \<longleftrightarrow> f \<in> bij(A,range(f))\<close>\<close>
 lemma bij_disjoint_Un:
      "[| f \<in> bij(A,B);  g \<in> bij(C,D);  A \<inter> C = 0;  B \<inter> D = 0 |]
       ==> (f \<union> g) \<in> bij(A \<union> C, B \<union> D)"

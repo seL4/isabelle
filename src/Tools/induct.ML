@@ -171,8 +171,8 @@ fun mk_swap_rrule ctxt ct =
   | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
 val rearrange_eqs_simproc =
-  Simplifier.make_simproc @{context} "rearrange_eqs"
-   {lhss = [@{term \<open>Pure.all (t :: 'a::{} \<Rightarrow> prop)\<close>}],
+  Simplifier.make_simproc \<^context> "rearrange_eqs"
+   {lhss = [\<^term>\<open>Pure.all (t :: 'a::{} \<Rightarrow> prop)\<close>],
     proc = fn _ => fn ctxt => fn ct => mk_swap_rrule ctxt ct};
 
 
@@ -231,7 +231,7 @@ structure Data = Generic_Data
     ((init_rules (left_var_prem o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)),
-     simpset_of (empty_simpset @{context}
+     simpset_of (empty_simpset \<^context>
       addsimprocs [rearrange_eqs_simproc] addsimps [Drule.norm_hhf_eq]));
   val extend = I;
   fun merge (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1), simpset1),
@@ -662,16 +662,16 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
 
 local
 
-fun goal_prefix k ((c as Const (@{const_name Pure.all}, _)) $ Abs (a, T, B)) =
+fun goal_prefix k ((c as Const (\<^const_name>\<open>Pure.all\<close>, _)) $ Abs (a, T, B)) =
       c $ Abs (a, T, goal_prefix k B)
   | goal_prefix 0 _ = Term.dummy_prop
-  | goal_prefix k ((c as Const (@{const_name Pure.imp}, _)) $ A $ B) =
+  | goal_prefix k ((c as Const (\<^const_name>\<open>Pure.imp\<close>, _)) $ A $ B) =
       c $ A $ goal_prefix (k - 1) B
   | goal_prefix _ _ = Term.dummy_prop;
 
-fun goal_params k (Const (@{const_name Pure.all}, _) $ Abs (_, _, B)) = goal_params k B + 1
+fun goal_params k (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, B)) = goal_params k B + 1
   | goal_params 0 _ = 0
-  | goal_params k (Const (@{const_name Pure.imp}, _) $ _ $ B) = goal_params (k - 1) B
+  | goal_params k (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ B) = goal_params (k - 1) B
   | goal_params _ _ = 0;
 
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
@@ -687,12 +687,12 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
           [(#1 (dest_Var (head_of pred)), Thm.cterm_of ctxt (Logic.rlist_abs (xs, body))),
            (#1 (dest_Var (head_of arg)), Thm.cterm_of ctxt (Logic.rlist_abs (xs, v)))]);
 
-    fun goal_concl k xs (Const (@{const_name Pure.all}, _) $ Abs (a, T, B)) =
+    fun goal_concl k xs (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (a, T, B)) =
           goal_concl k ((a, T) :: xs) B
       | goal_concl 0 xs B =
           if not (Term.exists_subterm (fn t => t aconv v) B) then NONE
           else SOME (xs, absfree (x, T) (Term.incr_boundvars 1 B))
-      | goal_concl k xs (Const (@{const_name Pure.imp}, _) $ _ $ B) =
+      | goal_concl k xs (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _ $ B) =
           goal_concl (k - 1) xs B
       | goal_concl _ _ _ = NONE;
   in

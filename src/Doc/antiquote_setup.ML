@@ -107,12 +107,12 @@ in
 
 val _ =
   Theory.setup
-   (index_ml @{binding index_ML} "" ml_val #>
-    index_ml @{binding index_ML_op} "infix" ml_op #>
-    index_ml @{binding index_ML_type} "type" ml_type #>
-    index_ml @{binding index_ML_exception} "exception" ml_exception #>
-    index_ml @{binding index_ML_structure} "structure" ml_structure #>
-    index_ml @{binding index_ML_functor} "functor" ml_functor);
+   (index_ml \<^binding>\<open>index_ML\<close> "" ml_val #>
+    index_ml \<^binding>\<open>index_ML_op\<close> "infix" ml_op #>
+    index_ml \<^binding>\<open>index_ML_type\<close> "type" ml_type #>
+    index_ml \<^binding>\<open>index_ML_exception\<close> "exception" ml_exception #>
+    index_ml \<^binding>\<open>index_ML_structure\<close> "structure" ml_structure #>
+    index_ml \<^binding>\<open>index_ML_functor\<close> "functor" ml_functor);
 
 end;
 
@@ -120,7 +120,7 @@ end;
 (* named theorems *)
 
 val _ =
-  Theory.setup (Thy_Output.antiquotation_raw @{binding named_thms}
+  Theory.setup (Thy_Output.antiquotation_raw \<^binding>\<open>named_thms\<close>
     (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
     (fn ctxt =>
       map (fn (thm, name) =>
@@ -185,24 +185,24 @@ in
 
 val _ =
   Theory.setup
-   (entity_antiqs no_check "" @{binding syntax} #>
-    entity_antiqs Outer_Syntax.check_command "isacommand" @{binding command} #>
-    entity_antiqs check_keyword "isakeyword" @{binding keyword} #>
-    entity_antiqs check_keyword "isakeyword" @{binding element} #>
-    entity_antiqs Method.check_name "" @{binding method} #>
-    entity_antiqs Attrib.check_name "" @{binding attribute} #>
-    entity_antiqs no_check "" @{binding fact} #>
-    entity_antiqs no_check "" @{binding variable} #>
-    entity_antiqs no_check "" @{binding case} #>
-    entity_antiqs Document_Antiquotation.check "" @{binding antiquotation} #>
-    entity_antiqs Document_Antiquotation.check_option "" @{binding antiquotation_option} #>
-    entity_antiqs no_check "isasystem" @{binding setting} #>
-    entity_antiqs check_system_option "isasystem" @{binding system_option} #>
-    entity_antiqs no_check "" @{binding inference} #>
-    entity_antiqs no_check "isasystem" @{binding executable} #>
-    entity_antiqs no_check "isatool" @{binding tool} #>
-    entity_antiqs ML_Context.check_antiquotation "" @{binding ML_antiquotation} #>
-    entity_antiqs (K JEdit.check_action) "isasystem" @{binding action});
+   (entity_antiqs no_check "" \<^binding>\<open>syntax\<close> #>
+    entity_antiqs Outer_Syntax.check_command "isacommand" \<^binding>\<open>command\<close> #>
+    entity_antiqs check_keyword "isakeyword" \<^binding>\<open>keyword\<close> #>
+    entity_antiqs check_keyword "isakeyword" \<^binding>\<open>element\<close> #>
+    entity_antiqs Method.check_name "" \<^binding>\<open>method\<close> #>
+    entity_antiqs Attrib.check_name "" \<^binding>\<open>attribute\<close> #>
+    entity_antiqs no_check "" \<^binding>\<open>fact\<close> #>
+    entity_antiqs no_check "" \<^binding>\<open>variable\<close> #>
+    entity_antiqs no_check "" \<^binding>\<open>case\<close> #>
+    entity_antiqs Document_Antiquotation.check "" \<^binding>\<open>antiquotation\<close> #>
+    entity_antiqs Document_Antiquotation.check_option "" \<^binding>\<open>antiquotation_option\<close> #>
+    entity_antiqs no_check "isasystem" \<^binding>\<open>setting\<close> #>
+    entity_antiqs check_system_option "isasystem" \<^binding>\<open>system_option\<close> #>
+    entity_antiqs no_check "" \<^binding>\<open>inference\<close> #>
+    entity_antiqs no_check "isasystem" \<^binding>\<open>executable\<close> #>
+    entity_antiqs no_check "isatool" \<^binding>\<open>tool\<close> #>
+    entity_antiqs ML_Context.check_antiquotation "" \<^binding>\<open>ML_antiquotation\<close> #>
+    entity_antiqs (K JEdit.check_action) "isasystem" \<^binding>\<open>action\<close>);
 
 end;
 

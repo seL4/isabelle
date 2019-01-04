@@ -124,9 +124,9 @@ definition
 definition
   is_range :: "[i=>o,i,i] => o" where
     \<comment> \<open>the cleaner
-      @{term "\<exists>r'[M]. is_converse(M,r,r') & is_domain(M,r',z)"}
+      \<^term>\<open>\<exists>r'[M]. is_converse(M,r,r') & is_domain(M,r',z)\<close>
       unfortunately needs an instance of separation in order to prove
-        @{term "M(converse(r))"}.\<close>
+        \<^term>\<open>M(converse(r))\<close>.\<close>
     "is_range(M,r,z) ==
         \<forall>y[M]. y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w)))"
 
@@ -555,7 +555,7 @@ by (blast intro: transM)
 text\<open>Simplifies proofs of equalities when there's an iff-equality
       available for rewriting, universally quantified over M.
       But it's not the only way to prove such equalities: its
-      premises @{term "M(A)"} and  @{term "M(B)"} can be too strong.\<close>
+      premises \<^term>\<open>M(A)\<close> and  \<^term>\<open>M(B)\<close> can be too strong.\<close>
 lemma (in M_trivial) M_equalityI:
      "[| !!x. M(x) ==> x\<in>A \<longleftrightarrow> x\<in>B; M(A); M(B) |] ==> A=B"
 by (blast intro!: equalityI dest: transM)
@@ -698,7 +698,7 @@ apply (drule_tac z=Y in separationD, assumption, clarify)
 apply (rule_tac x=y in rexI, force, assumption)
 done
 
-subsubsection\<open>The Operator @{term is_Replace}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Replace\<close>\<close>
 
 
 lemma is_Replace_cong [cong]:
@@ -758,7 +758,7 @@ done
 lemma Replace_conj_eq: "{y . x \<in> A, x\<in>A & y=f(x)} = {y . x\<in>A, y=f(x)}"
 by simp
 
-text\<open>Better than \<open>RepFun_closed\<close> when having the formula @{term "x\<in>A"}
+text\<open>Better than \<open>RepFun_closed\<close> when having the formula \<^term>\<open>x\<in>A\<close>
       makes relativization easier.\<close>
 lemma (in M_trivial) RepFun_closed2:
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
@@ -768,7 +768,7 @@ apply (frule strong_replacement_closed, assumption)
 apply (auto dest: transM  simp add: Replace_conj_eq univalent_def)
 done
 
-subsubsection \<open>Absoluteness for @{term Lambda}\<close>
+subsubsection \<open>Absoluteness for \<^term>\<open>Lambda\<close>\<close>
 
 definition
  is_lambda :: "[i=>o, i, [i,i]=>o, i] => o" where
@@ -781,7 +781,7 @@ lemma (in M_trivial) lam_closed:
       ==> M(\<lambda>x\<in>A. b(x))"
 by (simp add: lam_def, blast intro: RepFun_closed dest: transM)
 
-text\<open>Better than \<open>lam_closed\<close>: has the formula @{term "x\<in>A"}\<close>
+text\<open>Better than \<open>lam_closed\<close>: has the formula \<^term>\<open>x\<in>A\<close>\<close>
 lemma (in M_trivial) lam_closed2:
   "[|strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
      M(A); \<forall>m[M]. m\<in>A \<longrightarrow> M(b(m))|] ==> M(Lambda(A,b))"
@@ -1224,7 +1224,7 @@ done
 lemma (in M_basic) composition_abs [simp]:
      "[| M(r); M(s); M(t) |] ==> composition(M,r,s,t) \<longleftrightarrow> t = r O s"
 apply safe
- txt\<open>Proving @{term "composition(M, r, s, r O s)"}\<close>
+ txt\<open>Proving \<^term>\<open>composition(M, r, s, r O s)\<close>\<close>
  prefer 2
  apply (simp add: composition_def comp_def)
  apply (blast dest: transM)
@@ -1333,8 +1333,8 @@ done
 
 subsubsection\<open>Functions and function space\<close>
 
-text\<open>The assumption @{term "M(A->B)"} is unusual, but essential: in
-all but trivial cases, A->B cannot be expected to belong to @{term M}.\<close>
+text\<open>The assumption \<^term>\<open>M(A->B)\<close> is unusual, but essential: in
+all but trivial cases, A->B cannot be expected to belong to \<^term>\<open>M\<close>.\<close>
 lemma (in M_basic) is_funspace_abs [simp]:
      "[|M(A); M(B); M(F); M(A->B)|] ==> is_funspace(M,A,B,F) \<longleftrightarrow> F = A->B"
 apply (simp add: is_funspace_def)
@@ -1358,7 +1358,7 @@ apply (insert funspace_succ_replacement [of n], simp)
 apply (force simp add: succ_fun_eq2 univalent_def)
 done
 
-text\<open>@{term M} contains all finite function spaces.  Needed to prove the
+text\<open>\<^term>\<open>M\<close> contains all finite function spaces.  Needed to prove the
 absoluteness of transitive closure.  See the definition of
 \<open>rtrancl_alt\<close> in in \<open>WF_absolute.thy\<close>.\<close>
 lemma (in M_basic) finite_funspace_closed [intro,simp]:
@@ -1428,12 +1428,12 @@ subsection\<open>Relativization and Absoluteness for List Operators\<close>
 
 definition
   is_Nil :: "[i=>o, i] => o" where
-     \<comment> \<open>because @{prop "[] \<equiv> Inl(0)"}\<close>
+     \<comment> \<open>because \<^prop>\<open>[] \<equiv> Inl(0)\<close>\<close>
     "is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs)"
 
 definition
   is_Cons :: "[i=>o,i,i,i] => o" where
-     \<comment> \<open>because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}\<close>
+     \<comment> \<open>because \<^prop>\<open>Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)\<close>\<close>
     "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
 
 
@@ -1461,7 +1461,7 @@ definition
 
 definition
   list_case' :: "[i, [i,i]=>i, i] => i" where
-    \<comment> \<open>A version of @{term list_case} that's always defined.\<close>
+    \<comment> \<open>A version of \<^term>\<open>list_case\<close> that's always defined.\<close>
     "list_case'(a,b,xs) ==
        if quasilist(xs) then list_case(a,b,xs) else 0"
 
@@ -1475,17 +1475,17 @@ definition
 
 definition
   hd' :: "i => i" where
-    \<comment> \<open>A version of @{term hd} that's always defined.\<close>
+    \<comment> \<open>A version of \<^term>\<open>hd\<close> that's always defined.\<close>
     "hd'(xs) == if quasilist(xs) then hd(xs) else 0"
 
 definition
   tl' :: "i => i" where
-    \<comment> \<open>A version of @{term tl} that's always defined.\<close>
+    \<comment> \<open>A version of \<^term>\<open>tl\<close> that's always defined.\<close>
     "tl'(xs) == if quasilist(xs) then tl(xs) else 0"
 
 definition
   is_hd :: "[i=>o,i,i] => o" where
-     \<comment> \<open>@{term "hd([]) = 0"} no constraints if not a list.
+     \<comment> \<open>\<^term>\<open>hd([]) = 0\<close> no constraints if not a list.
           Avoiding implication prevents the simplifier's looping.\<close>
     "is_hd(M,xs,H) ==
        (is_Nil(M,xs) \<longrightarrow> empty(M,H)) &
@@ -1494,13 +1494,13 @@ definition
 
 definition
   is_tl :: "[i=>o,i,i] => o" where
-     \<comment> \<open>@{term "tl([]) = []"}; see comments about @{term is_hd}\<close>
+     \<comment> \<open>\<^term>\<open>tl([]) = []\<close>; see comments about \<^term>\<open>is_hd\<close>\<close>
     "is_tl(M,xs,T) ==
        (is_Nil(M,xs) \<longrightarrow> T=xs) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
        (is_quasilist(M,xs) | empty(M,T))"
 
-subsubsection\<open>@{term quasilist}: For Case-Splitting with @{term list_case'}\<close>
+subsubsection\<open>\<^term>\<open>quasilist\<close>: For Case-Splitting with \<^term>\<open>list_case'\<close>\<close>
 
 lemma [iff]: "quasilist(Nil)"
 by (simp add: quasilist_def)
@@ -1511,7 +1511,7 @@ by (simp add: quasilist_def)
 lemma list_imp_quasilist: "l \<in> list(A) ==> quasilist(l)"
 by (erule list.cases, simp_all)
 
-subsubsection\<open>@{term list_case'}, the Modified Version of @{term list_case}\<close>
+subsubsection\<open>\<^term>\<open>list_case'\<close>, the Modified Version of \<^term>\<open>list_case\<close>\<close>
 
 lemma list_case'_Nil [simp]: "list_case'(a,b,Nil) = a"
 by (simp add: list_case'_def quasilist_def)
@@ -1550,7 +1550,7 @@ apply (elim disjE exE)
 done
 
 
-subsubsection\<open>The Modified Operators @{term hd'} and @{term tl'}\<close>
+subsubsection\<open>The Modified Operators \<^term>\<open>hd'\<close> and \<^term>\<open>tl'\<close>\<close>
 
 lemma (in M_trivial) is_hd_Nil: "is_hd(M,[],Z) \<longleftrightarrow> empty(M,Z)"
 by (simp add: is_hd_def)

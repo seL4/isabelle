@@ -23,22 +23,22 @@ syntax
 parse_translation \<open>
   let
     fun typerep_tr (*"_TYPEREP"*) [ty] =
-          Syntax.const @{const_syntax typerep} $
-            (Syntax.const @{syntax_const "_constrain"} $ Syntax.const @{const_syntax Pure.type} $
-              (Syntax.const @{type_syntax itself} $ ty))
+          Syntax.const \<^const_syntax>\<open>typerep\<close> $
+            (Syntax.const \<^syntax_const>\<open>_constrain\<close> $ Syntax.const \<^const_syntax>\<open>Pure.type\<close> $
+              (Syntax.const \<^type_syntax>\<open>itself\<close> $ ty))
       | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
-  in [(@{syntax_const "_TYPEREP"}, K typerep_tr)] end
+  in [(\<^syntax_const>\<open>_TYPEREP\<close>, K typerep_tr)] end
 \<close>
 
 typed_print_translation \<open>
   let
     fun typerep_tr' ctxt (*"typerep"*)
-            (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
-            (Const (@{const_syntax Pure.type}, _) :: ts) =
+            (Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>itself\<close>, [T]), _]))
+            (Const (\<^const_syntax>\<open>Pure.type\<close>, _) :: ts) =
           Term.list_comb
-            (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ ctxt T, ts)
+            (Syntax.const \<^syntax_const>\<open>_TYPEREP\<close> $ Syntax_Phases.term_of_typ ctxt T, ts)
       | typerep_tr' _ T ts = raise Match;
-  in [(@{const_syntax typerep}, typerep_tr')] end
+  in [(\<^const_syntax>\<open>typerep\<close>, typerep_tr')] end
 \<close>
 
 setup \<open>
@@ -46,17 +46,17 @@ let
 
 fun add_typerep tyco thy =
   let
-    val sorts = replicate (Sign.arity_number thy tyco) @{sort typerep};
+    val sorts = replicate (Sign.arity_number thy tyco) \<^sort>\<open>typerep\<close>;
     val vs = Name.invent_names Name.context "'a" sorts;
     val ty = Type (tyco, map TFree vs);
-    val lhs = Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
+    val lhs = Const (\<^const_name>\<open>typerep\<close>, Term.itselfT ty --> \<^typ>\<open>typerep\<close>)
       $ Free ("T", Term.itselfT ty);
-    val rhs = @{term Typerep} $ HOLogic.mk_literal tyco
-      $ HOLogic.mk_list @{typ typerep} (map (HOLogic.mk_typerep o TFree) vs);
+    val rhs = \<^term>\<open>Typerep\<close> $ HOLogic.mk_literal tyco
+      $ HOLogic.mk_list \<^typ>\<open>typerep\<close> (map (HOLogic.mk_typerep o TFree) vs);
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in
     thy
-    |> Class.instantiation ([tyco], vs, @{sort typerep})
+    |> Class.instantiation ([tyco], vs, \<^sort>\<open>typerep\<close>)
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition NONE [] [] (Binding.empty_atts, eq))
     |> snd
@@ -64,13 +64,13 @@ fun add_typerep tyco thy =
   end;
 
 fun ensure_typerep tyco thy =
-  if not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep})
-    andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort type}
+  if not (Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>typerep\<close>)
+    andalso Sorts.has_instance (Sign.classes_of thy) tyco \<^sort>\<open>type\<close>
   then add_typerep tyco thy else thy;
 
 in
 
-add_typerep @{type_name fun}
+add_typerep \<^type_name>\<open>fun\<close>
 #> Typedef.interpretation (Local_Theory.background_theory o ensure_typerep)
 #> Code.type_interpretation ensure_typerep
 

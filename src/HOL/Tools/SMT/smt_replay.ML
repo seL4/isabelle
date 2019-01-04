@@ -110,7 +110,7 @@ local
   fun prove_antisym_le ctxt ct =
     let
       val (le, r, s) = dest_binop (Thm.term_of ct)
-      val less = Const (@{const_name less}, Term.fastype_of le)
+      val less = Const (\<^const_name>\<open>less\<close>, Term.fastype_of le)
       val prems = Simplifier.prems_of ctxt
     in
       (case find_first (eq_prop (le $ s $ r)) prems of
@@ -124,7 +124,7 @@ local
   fun prove_antisym_less ctxt ct =
     let
       val (less, r, s) = dest_binop (HOLogic.dest_not (Thm.term_of ct))
-      val le = Const (@{const_name less_eq}, Term.fastype_of less)
+      val le = Const (\<^const_name>\<open>less_eq\<close>, Term.fastype_of less)
       val prems = Simplifier.prems_of ctxt
     in
       (case find_first (eq_prop (le $ r $ s)) prems of
@@ -136,18 +136,18 @@ local
   handle THM _ => NONE
 
   val basic_simpset =
-    simpset_of (put_simpset HOL_ss @{context}
+    simpset_of (put_simpset HOL_ss \<^context>
       addsimps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
         arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
-      addsimprocs [@{simproc numeral_divmod},
-        Simplifier.make_simproc @{context} "fast_int_arith"
-         {lhss = [@{term "(m::int) < n"}, @{term "(m::int) \<le> n"}, @{term "(m::int) = n"}],
+      addsimprocs [\<^simproc>\<open>numeral_divmod\<close>,
+        Simplifier.make_simproc \<^context> "fast_int_arith"
+         {lhss = [\<^term>\<open>(m::int) < n\<close>, \<^term>\<open>(m::int) \<le> n\<close>, \<^term>\<open>(m::int) = n\<close>],
           proc = K Lin_Arith.simproc},
-        Simplifier.make_simproc @{context} "antisym_le"
-         {lhss = [@{term "(x::'a::order) \<le> y"}],
+        Simplifier.make_simproc \<^context> "antisym_le"
+         {lhss = [\<^term>\<open>(x::'a::order) \<le> y\<close>],
           proc = K prove_antisym_le},
-        Simplifier.make_simproc @{context} "antisym_less"
-         {lhss = [@{term "\<not> (x::'a::linorder) < y"}],
+        Simplifier.make_simproc \<^context> "antisym_less"
+         {lhss = [\<^term>\<open>\<not> (x::'a::linorder) < y\<close>],
           proc = K prove_antisym_less}])
 
   structure Simpset = Generic_Data
@@ -233,7 +233,7 @@ fun add_asserted tab_update tab_empty p_extract cond outer_ctxt rewrite_rules as
 
 end
 
-fun params_of t = Term.strip_qnt_vars @{const_name Pure.all} t
+fun params_of t = Term.strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t
 
 fun varify ctxt thm =
   let

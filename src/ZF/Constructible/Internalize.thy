@@ -6,7 +6,7 @@ theory Internalize imports L_axioms Datatype_absolute begin
 
 subsection\<open>Internalized Forms of Data Structuring Operators\<close>
 
-subsubsection\<open>The Formula @{term is_Inl}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_Inl\<close>, Internalized\<close>
 
 (*  is_Inl(M,a,z) == \<exists>zero[M]. empty(M,zero) & pair(M,zero,a,z) *)
 definition
@@ -36,7 +36,7 @@ apply (intro FOL_reflections function_reflections)
 done
 
 
-subsubsection\<open>The Formula @{term is_Inr}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_Inr\<close>, Internalized\<close>
 
 (*  is_Inr(M,a,z) == \<exists>n1[M]. number1(M,n1) & pair(M,n1,a,z) *)
 definition
@@ -66,7 +66,7 @@ apply (intro FOL_reflections function_reflections)
 done
 
 
-subsubsection\<open>The Formula @{term is_Nil}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_Nil\<close>, Internalized\<close>
 
 (* is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs) *)
 
@@ -95,7 +95,7 @@ apply (intro FOL_reflections function_reflections Inl_reflection)
 done
 
 
-subsubsection\<open>The Formula @{term is_Cons}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_Cons\<close>, Internalized\<close>
 
 
 (*  "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)" *)
@@ -127,7 +127,7 @@ apply (simp only: is_Cons_def)
 apply (intro FOL_reflections pair_reflection Inr_reflection)
 done
 
-subsubsection\<open>The Formula @{term is_quasilist}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_quasilist\<close>, Internalized\<close>
 
 (* is_quasilist(M,xs) == is_Nil(M,z) | (\<exists>x[M]. \<exists>l[M]. is_Cons(M,x,l,z))" *)
 
@@ -157,10 +157,10 @@ apply (intro FOL_reflections Nil_reflection Cons_reflection)
 done
 
 
-subsection\<open>Absoluteness for the Function @{term nth}\<close>
+subsection\<open>Absoluteness for the Function \<^term>\<open>nth\<close>\<close>
 
 
-subsubsection\<open>The Formula @{term is_hd}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_hd\<close>, Internalized\<close>
 
 (*   "is_hd(M,xs,H) == 
        (is_Nil(M,xs) \<longrightarrow> empty(M,H)) &
@@ -197,7 +197,7 @@ apply (intro FOL_reflections Nil_reflection Cons_reflection
 done
 
 
-subsubsection\<open>The Formula @{term is_tl}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_tl\<close>, Internalized\<close>
 
 (*     "is_tl(M,xs,T) ==
        (is_Nil(M,xs) \<longrightarrow> T=xs) &
@@ -234,12 +234,12 @@ apply (intro FOL_reflections Nil_reflection Cons_reflection
 done
 
 
-subsubsection\<open>The Operator @{term is_bool_of_o}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_bool_of_o\<close>\<close>
 
 (*   is_bool_of_o :: "[i=>o, o, i] => o"
    "is_bool_of_o(M,P,z) == (P & number1(M,z)) | (~P & empty(M,z))" *)
 
-text\<open>The formula @{term p} has no free variables.\<close>
+text\<open>The formula \<^term>\<open>p\<close> has no free variables.\<close>
 definition
   bool_of_o_fm :: "[i, i]=>i" where
   "bool_of_o_fm(p,z) == 
@@ -274,10 +274,10 @@ done
 
 subsection\<open>More Internalizations\<close>
 
-subsubsection\<open>The Operator @{term is_lambda}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_lambda\<close>\<close>
 
-text\<open>The two arguments of @{term p} are always 1, 0. Remember that
- @{term p} will be enclosed by three quantifiers.\<close>
+text\<open>The two arguments of \<^term>\<open>p\<close> are always 1, 0. Remember that
+ \<^term>\<open>p\<close> will be enclosed by three quantifiers.\<close>
 
 (* is_lambda :: "[i=>o, i, [i,i]=>o, i] => o"
     "is_lambda(M, A, is_b, z) == 
@@ -290,7 +290,7 @@ definition
             Exists(Exists(And(Member(1,A#+3),
                            And(pair_fm(1,0,2), p))))))"
 
-text\<open>We call @{term p} with arguments x, y by equating them with 
+text\<open>We call \<^term>\<open>p\<close> with arguments x, y by equating them with 
   the corresponding quantified variables with de Bruijn indices 1, 0.\<close>
 
 lemma is_lambda_type [TC]:
@@ -319,7 +319,7 @@ apply (simp (no_asm_use) only: is_lambda_def)
 apply (intro FOL_reflections is_b_reflection pair_reflection)
 done
 
-subsubsection\<open>The Operator @{term is_Member}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Member\<close>, Internalized\<close>
 
 (*    "is_Member(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)" *)
@@ -352,7 +352,7 @@ apply (simp only: is_Member_def)
 apply (intro FOL_reflections pair_reflection Inl_reflection)
 done
 
-subsubsection\<open>The Operator @{term is_Equal}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Equal\<close>, Internalized\<close>
 
 (*    "is_Equal(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)" *)
@@ -385,7 +385,7 @@ apply (simp only: is_Equal_def)
 apply (intro FOL_reflections pair_reflection Inl_reflection Inr_reflection)
 done
 
-subsubsection\<open>The Operator @{term is_Nand}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Nand\<close>, Internalized\<close>
 
 (*    "is_Nand(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)" *)
@@ -418,7 +418,7 @@ apply (simp only: is_Nand_def)
 apply (intro FOL_reflections pair_reflection Inl_reflection Inr_reflection)
 done
 
-subsubsection\<open>The Operator @{term is_Forall}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Forall\<close>, Internalized\<close>
 
 (* "is_Forall(M,p,Z) == \<exists>u[M]. is_Inr(M,p,u) & is_Inr(M,u,Z)" *)
 definition
@@ -450,7 +450,7 @@ apply (intro FOL_reflections pair_reflection Inr_reflection)
 done
 
 
-subsubsection\<open>The Operator @{term is_and}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_and\<close>, Internalized\<close>
 
 (* is_and(M,a,b,z) == (number1(M,a)  & z=b) | 
                        (~number1(M,a) & empty(M,z)) *)
@@ -484,7 +484,7 @@ apply (intro FOL_reflections function_reflections)
 done
 
 
-subsubsection\<open>The Operator @{term is_or}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_or\<close>, Internalized\<close>
 
 (* is_or(M,a,b,z) == (number1(M,a)  & number1(M,z)) | 
                      (~number1(M,a) & z=b) *)
@@ -520,7 +520,7 @@ done
 
 
 
-subsubsection\<open>The Operator @{term is_not}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_not\<close>, Internalized\<close>
 
 (* is_not(M,a,z) == (number1(M,a)  & empty(M,z)) | 
                      (~number1(M,a) & number1(M,z)) *)
@@ -561,7 +561,7 @@ lemmas extra_reflections =
 
 subsection\<open>Well-Founded Recursion!\<close>
 
-subsubsection\<open>The Operator @{term M_is_recfun}\<close>
+subsubsection\<open>The Operator \<^term>\<open>M_is_recfun\<close>\<close>
 
 text\<open>Alternative definition, minimizing nesting of quantifiers around MH\<close>
 lemma M_is_recfun_iff:
@@ -590,7 +590,7 @@ new def     (\<exists>x[M]. \<exists>f_r_sx[M]. \<exists>y[M].
                xa \<in> r)"
 *)
 
-text\<open>The three arguments of @{term p} are always 2, 1, 0 and z\<close>
+text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0 and z\<close>
 definition
   is_recfun_fm :: "[i, i, i, i]=>i" where
   "is_recfun_fm(p,r,a,f) == 
@@ -632,8 +632,8 @@ lemma is_recfun_iff_sats:
    ==> M_is_recfun(##A, MH, x, y, z) \<longleftrightarrow> sats(A, is_recfun_fm(p,i,j,k), env)"
 by (simp add: sats_is_recfun_fm [OF MH_iff_sats]) 
 
-text\<open>The additional variable in the premise, namely @{term f'}, is essential.
-It lets @{term MH} depend upon @{term x}, which seems often necessary.
+text\<open>The additional variable in the premise, namely \<^term>\<open>f'\<close>, is essential.
+It lets \<^term>\<open>MH\<close> depend upon \<^term>\<open>x\<close>, which seems often necessary.
 The same thing occurs in \<open>is_wfrec_reflection\<close>.\<close>
 theorem is_recfun_reflection:
   assumes MH_reflection:
@@ -646,10 +646,10 @@ apply (intro FOL_reflections function_reflections
              restriction_reflection MH_reflection)
 done
 
-subsubsection\<open>The Operator @{term is_wfrec}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_wfrec\<close>\<close>
 
-text\<open>The three arguments of @{term p} are always 2, 1, 0;
-      @{term p} is enclosed by 5 quantifiers.\<close>
+text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0;
+      \<^term>\<open>p\<close> is enclosed by 5 quantifiers.\<close>
 
 (* is_wfrec :: "[i=>o, i, [i,i,i]=>o, i, i] => o"
     "is_wfrec(M,MH,r,a,z) == 
@@ -661,7 +661,7 @@ definition
            Exists(Exists(Exists(Exists(
              And(Equal(2,a#+5), And(Equal(1,4), And(Equal(0,z#+5), p)))))))))"
 
-text\<open>We call @{term p} with arguments a, f, z by equating them with 
+text\<open>We call \<^term>\<open>p\<close> with arguments a, f, z by equating them with 
   the corresponding quantified variables with de Bruijn indices 2, 1, 0.\<close>
 
 text\<open>There's an additional existential quantifier to ensure that the
@@ -787,7 +787,7 @@ apply (intro FOL_reflections function_reflections cartprod_reflection)
 done
 
 
-subsubsection\<open>The Operator @{term quasinat}\<close>
+subsubsection\<open>The Operator \<^term>\<open>quasinat\<close>\<close>
 
 (* "is_quasinat(M,z) == empty(M,z) | (\<exists>m[M]. successor(M,m,z))" *)
 definition
@@ -817,17 +817,17 @@ apply (intro FOL_reflections function_reflections)
 done
 
 
-subsubsection\<open>The Operator @{term is_nat_case}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_nat_case\<close>\<close>
 text\<open>I could not get it to work with the more natural assumption that 
- @{term is_b} takes two arguments.  Instead it must be a formula where 1 and 0
- stand for @{term m} and @{term b}, respectively.\<close>
+ \<^term>\<open>is_b\<close> takes two arguments.  Instead it must be a formula where 1 and 0
+ stand for \<^term>\<open>m\<close> and \<^term>\<open>b\<close>, respectively.\<close>
 
 (* is_nat_case :: "[i=>o, i, [i,i]=>o, i, i] => o"
     "is_nat_case(M, a, is_b, k, z) ==
        (empty(M,k) \<longrightarrow> z=a) &
        (\<forall>m[M]. successor(M,m,k) \<longrightarrow> is_b(m,z)) &
        (is_quasinat(M,k) | empty(M,z))" *)
-text\<open>The formula @{term is_b} has free variables 1 and 0.\<close>
+text\<open>The formula \<^term>\<open>is_b\<close> has free variables 1 and 0.\<close>
 definition
   is_nat_case_fm :: "[i, i, i, i]=>i" where
  "is_nat_case_fm(a,is_b,k,z) == 
@@ -863,9 +863,9 @@ lemma is_nat_case_iff_sats:
 by (simp add: sats_is_nat_case_fm [of A is_b])
 
 
-text\<open>The second argument of @{term is_b} gives it direct access to @{term x},
+text\<open>The second argument of \<^term>\<open>is_b\<close> gives it direct access to \<^term>\<open>x\<close>,
   which is essential for handling free variable references.  Without this
-  argument, we cannot prove reflection for @{term iterates_MH}.\<close>
+  argument, we cannot prove reflection for \<^term>\<open>iterates_MH\<close>.\<close>
 theorem is_nat_case_reflection:
   assumes is_b_reflection:
     "!!h f g. REFLECTS[\<lambda>x. is_b(L, h(x), f(x), g(x)),
@@ -878,7 +878,7 @@ apply (intro FOL_reflections function_reflections
 done
 
 
-subsection\<open>The Operator @{term iterates_MH}, Needed for Iteration\<close>
+subsection\<open>The Operator \<^term>\<open>iterates_MH\<close>, Needed for Iteration\<close>
 
 (*  iterates_MH :: "[i=>o, [i,i]=>o, i, i, i, i] => o"
    "iterates_MH(M,isF,v,n,g,z) ==
@@ -926,9 +926,9 @@ lemma iterates_MH_iff_sats:
        sats(A, iterates_MH_fm(p,i',i,j,k), env)"
 by (simp add: sats_iterates_MH_fm [OF is_F_iff_sats]) 
 
-text\<open>The second argument of @{term p} gives it direct access to @{term x},
+text\<open>The second argument of \<^term>\<open>p\<close> gives it direct access to \<^term>\<open>x\<close>,
   which is essential for handling free variable references.  Without this
-  argument, we cannot prove reflection for @{term list_N}.\<close>
+  argument, we cannot prove reflection for \<^term>\<open>list_N\<close>.\<close>
 theorem iterates_MH_reflection:
   assumes p_reflection:
     "!!f g h. REFLECTS[\<lambda>x. p(L, h(x), f(x), g(x)),
@@ -941,10 +941,10 @@ apply (intro FOL_reflections function_reflections is_nat_case_reflection
 done
 
 
-subsubsection\<open>The Operator @{term is_iterates}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_iterates\<close>\<close>
 
-text\<open>The three arguments of @{term p} are always 2, 1, 0;
-      @{term p} is enclosed by 9 (??) quantifiers.\<close>
+text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0;
+      \<^term>\<open>p\<close> is enclosed by 9 (??) quantifiers.\<close>
 
 (*    "is_iterates(M,isF,v,n,Z) == 
       \<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
@@ -959,7 +959,7 @@ definition
               is_wfrec_fm(iterates_MH_fm(p, v#+7, 2, 1, 0), 
                           0, n#+2, Z#+2)))))"
 
-text\<open>We call @{term p} with arguments a, f, z by equating them with 
+text\<open>We call \<^term>\<open>p\<close> with arguments a, f, z by equating them with 
   the corresponding quantified variables with de Bruijn indices 2, 1, 0.\<close>
 
 
@@ -1002,9 +1002,9 @@ lemma is_iterates_iff_sats:
        sats(A, is_iterates_fm(p,i,j,k), env)"
 by (simp add: sats_is_iterates_fm [OF is_F_iff_sats]) 
 
-text\<open>The second argument of @{term p} gives it direct access to @{term x},
+text\<open>The second argument of \<^term>\<open>p\<close> gives it direct access to \<^term>\<open>x\<close>,
   which is essential for handling free variable references.  Without this
-  argument, we cannot prove reflection for @{term list_N}.\<close>
+  argument, we cannot prove reflection for \<^term>\<open>list_N\<close>.\<close>
 theorem is_iterates_reflection:
   assumes p_reflection:
     "!!f g h. REFLECTS[\<lambda>x. p(L, h(x), f(x), g(x)),
@@ -1017,7 +1017,7 @@ apply (intro FOL_reflections function_reflections p_reflection
 done
 
 
-subsubsection\<open>The Formula @{term is_eclose_n}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_eclose_n\<close>, Internalized\<close>
 
 (* is_eclose_n(M,A,n,Z) == is_iterates(M, big_union(M), A, n, Z) *)
 
@@ -1053,7 +1053,7 @@ apply (intro FOL_reflections function_reflections is_iterates_reflection)
 done
 
 
-subsubsection\<open>Membership in @{term "eclose(A)"}\<close>
+subsubsection\<open>Membership in \<^term>\<open>eclose(A)\<close>\<close>
 
 (* mem_eclose(M,A,l) == 
       \<exists>n[M]. \<exists>eclosen[M]. 
@@ -1088,7 +1088,7 @@ apply (intro FOL_reflections finite_ordinal_reflection eclose_n_reflection)
 done
 
 
-subsubsection\<open>The Predicate ``Is @{term "eclose(A)"}''\<close>
+subsubsection\<open>The Predicate ``Is \<^term>\<open>eclose(A)\<close>''\<close>
 
 (* is_eclose(M,A,Z) == \<forall>l[M]. l \<in> Z \<longleftrightarrow> mem_eclose(M,A,l) *)
 definition
@@ -1156,7 +1156,7 @@ apply (intro FOL_reflections number1_reflection
 done
 
 
-subsubsection\<open>The Formula @{term is_list_N}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_list_N\<close>, Internalized\<close>
 
 (* "is_list_N(M,A,n,Z) == 
       \<exists>zero[M]. empty(M,zero) & 
@@ -1233,7 +1233,7 @@ apply (intro FOL_reflections finite_ordinal_reflection list_N_reflection)
 done
 
 
-subsubsection\<open>The Predicate ``Is @{term "list(A)"}''\<close>
+subsubsection\<open>The Predicate ``Is \<^term>\<open>list(A)\<close>''\<close>
 
 (* is_list(M,A,Z) == \<forall>l[M]. l \<in> Z \<longleftrightarrow> mem_list(M,A,l) *)
 definition
@@ -1307,7 +1307,7 @@ apply (intro FOL_reflections omega_reflection
 done
 
 
-subsubsection\<open>The Formula @{term is_formula_N}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_formula_N\<close>, Internalized\<close>
 
 (*  "is_formula_N(M,n,Z) == 
       \<exists>zero[M]. empty(M,zero) & 
@@ -1383,7 +1383,7 @@ done
 
 
 
-subsubsection\<open>The Predicate ``Is @{term "formula"}''\<close>
+subsubsection\<open>The Predicate ``Is \<^term>\<open>formula\<close>''\<close>
 
 (* is_formula(M,Z) == \<forall>p[M]. p \<in> Z \<longleftrightarrow> mem_formula(M,p) *)
 definition
@@ -1412,11 +1412,11 @@ apply (intro FOL_reflections mem_formula_reflection)
 done
 
 
-subsubsection\<open>The Operator @{term is_transrec}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_transrec\<close>\<close>
 
-text\<open>The three arguments of @{term p} are always 2, 1, 0.  It is buried
+text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0.  It is buried
    within eight quantifiers!
-   We call @{term p} with arguments a, f, z by equating them with 
+   We call \<^term>\<open>p\<close> with arguments a, f, z by equating them with 
   the corresponding quantified variables with de Bruijn indices 2, 1, 0.\<close>
 
 (* is_transrec :: "[i=>o, [i,i,i]=>o, i, i] => o"

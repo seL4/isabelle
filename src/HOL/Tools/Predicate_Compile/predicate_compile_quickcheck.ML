@@ -221,7 +221,7 @@ fun compile_term compilation options ctxt t =
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 =
-      Context.theory_map (Named_Theorems.add_thm @{named_theorems code_pred_def} intro) thy1
+      Context.theory_map (Named_Theorems.add_thm \<^named_theorems>\<open>code_pred_def\<close> intro) thy1
     val (thy3, _) = cpu_time "predicate preprocessing"
         (fn () => Predicate_Compile.preprocess options (Const (full_constname, constT)) thy2)
     val (thy4, _) = cpu_time "random_dseq core compilation"
@@ -251,34 +251,34 @@ fun compile_term compilation options ctxt t =
             | New_Pos_Random_DSeq => mk_new_randompredT (HOLogic.mk_tupleT (map snd vs'))
             | Pos_Generator_DSeq => mk_new_dseqT (HOLogic.mk_tupleT (map snd vs'))
             | Depth_Limited_Random =>
-                [@{typ natural}, @{typ natural}, @{typ natural},
-                 @{typ Random.seed}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
+                [\<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>,
+                 \<^typ>\<open>Random.seed\<close>] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
             | Pos_Generator_CPS => mk_cpsT (HOLogic.mk_tupleT (map snd vs')))
         in
           Const (name, T)
         end
       else error ("Predicate Compile Quickcheck failed: " ^ commas (map string_of_mode modes))
-    fun mk_Some T = Const (@{const_name "Option.Some"}, T --> Type (@{type_name "Option.option"}, [T]))
+    fun mk_Some T = Const (\<^const_name>\<open>Option.Some\<close>, T --> Type (\<^type_name>\<open>Option.option\<close>, [T]))
     val qc_term =
       (case compilation of
         Pos_Random_DSeq => mk_bind (prog,
-          mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
+          mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list \<^typ>\<open>term\<close>
           (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
       | New_Pos_Random_DSeq => mk_new_bind (prog,
-          mk_split_lambda (map Free vs') (mk_new_return (HOLogic.mk_list @{typ term}
+          mk_split_lambda (map Free vs') (mk_new_return (HOLogic.mk_list \<^typ>\<open>term\<close>
           (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
       | Pos_Generator_DSeq => mk_gen_bind (prog,
-          mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list @{typ term}
+          mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list \<^typ>\<open>term\<close>
           (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
       | Pos_Generator_CPS => prog $
-          mk_split_lambda (map Free vs') (mk_Some @{typ "bool * term list"} $
-          HOLogic.mk_prod (@{term "True"}, HOLogic.mk_list @{typ term}
+          mk_split_lambda (map Free vs') (mk_Some \<^typ>\<open>bool * term list\<close> $
+          HOLogic.mk_prod (\<^term>\<open>True\<close>, HOLogic.mk_list \<^typ>\<open>term\<close>
               (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))
       | Depth_Limited_Random => fold_rev absdummy
-          [@{typ natural}, @{typ natural}, @{typ natural},
-           @{typ Random.seed}]
+          [\<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>, \<^typ>\<open>natural\<close>,
+           \<^typ>\<open>Random.seed\<close>]
           (mk_bind' (list_comb (prog, map Bound (3 downto 0)),
-          mk_split_lambda (map Free vs') (mk_return' (HOLogic.mk_list @{typ term}
+          mk_split_lambda (map Free vs') (mk_return' (HOLogic.mk_list \<^typ>\<open>term\<close>
           (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))))
     val prog =
       case compilation of
@@ -413,9 +413,9 @@ fun test_goals options ctxt _ insts goals =
   end
 
 val smart_exhaustive_active =
-  Attrib.setup_config_bool @{binding quickcheck_smart_exhaustive_active} (K true)
+  Attrib.setup_config_bool \<^binding>\<open>quickcheck_smart_exhaustive_active\<close> (K true)
 val smart_slow_exhaustive_active =
-  Attrib.setup_config_bool @{binding quickcheck_slow_smart_exhaustive_active} (K false)
+  Attrib.setup_config_bool \<^binding>\<open>quickcheck_slow_smart_exhaustive_active\<close> (K false)
 
 val _ =
   Theory.setup

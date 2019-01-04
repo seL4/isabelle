@@ -268,7 +268,7 @@ lemma dom_map_option_comp [simp]:
   using dom_map_option [of "\<lambda>_. g" m] by (simp add: comp_def)
 
 
-subsection \<open>@{const map_option} related\<close>
+subsection \<open>\<^const>\<open>map_option\<close> related\<close>
 
 lemma map_option_o_empty [simp]: "map_option f \<circ> empty = empty"
 by (rule ext) simp

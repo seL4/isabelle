@@ -172,7 +172,7 @@ fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) = (s1 @ s2, i1 @ i2, e1 @ e2, 
 
 fun string_of_xthm (xref, args) =
   Facts.string_of_ref xref ^
-  implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src @{context}) args);
+  implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args);
 
 val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.thm >> string_of_xthm));

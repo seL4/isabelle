@@ -45,7 +45,7 @@ structure String_Redirect = ATP_Proof_Redirect(
 
 open String_Redirect
 
-val trace = Attrib.setup_config_bool @{binding sledgehammer_isar_trace} (K false)
+val trace = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_isar_trace\<close> (K false)
 
 val e_definition_rule = "definition"
 val e_skolemize_rule = "skolemize"
@@ -89,7 +89,7 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
        definitions. *)
     if role = Conjecture orelse role = Negated_Conjecture then
       line :: lines
-    else if t aconv @{prop True} then
+    else if t aconv \<^prop>\<open>True\<close> then
       map (replace_dependencies_in_line (name, [])) lines
     else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
       line :: lines
@@ -113,7 +113,7 @@ fun add_lines_pass2 res [] = rev res
              Term.aconv_untyped (normalize prev_role prev_t, norm_t)))
           res
 
-      fun looks_boring () = t aconv @{prop False} orelse length deps < 2
+      fun looks_boring () = t aconv \<^prop>\<open>False\<close> orelse length deps < 2
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name
@@ -280,7 +280,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                     (negs as _ :: _, pos as _ :: _) =>
                     s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs),
                       Library.foldr1 s_disj pos)
-                  | _ => fold (curry s_disj) lits @{term False})
+                  | _ => fold (curry s_disj) lits \<^term>\<open>False\<close>)
                 end
                 |> HOLogic.mk_Trueprop |> finish_off
 

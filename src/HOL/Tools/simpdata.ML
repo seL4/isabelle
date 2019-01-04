@@ -10,11 +10,11 @@ Instantiation of the generic simplifier for HOL.
 structure Quantifier1 = Quantifier1
 (
   (*abstract syntax*)
-  fun dest_eq (Const(@{const_name HOL.eq},_) $ s $ t) = SOME (s, t)
+  fun dest_eq (Const(\<^const_name>\<open>HOL.eq\<close>,_) $ s $ t) = SOME (s, t)
     | dest_eq _ = NONE;
-  fun dest_conj (Const(@{const_name HOL.conj},_) $ s $ t) = SOME (s, t)
+  fun dest_conj (Const(\<^const_name>\<open>HOL.conj\<close>,_) $ s $ t) = SOME (s, t)
     | dest_conj _ = NONE;
-  fun dest_imp (Const(@{const_name HOL.implies},_) $ s $ t) = SOME (s, t)
+  fun dest_imp (Const(\<^const_name>\<open>HOL.implies\<close>,_) $ s $ t) = SOME (s, t)
     | dest_imp _ = NONE;
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
@@ -44,9 +44,9 @@ fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 fun mk_eq th =
   (case Thm.concl_of th of
   (*expects Trueprop if not == *)
-    Const (@{const_name Pure.eq},_) $ _ $ _ => th
-  | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => mk_meta_eq th
-  | _ $ (Const (@{const_name Not}, _) $ _) => th RS @{thm Eq_FalseI}
+    Const (\<^const_name>\<open>Pure.eq\<close>,_) $ _ $ _ => th
+  | _ $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => mk_meta_eq th
+  | _ $ (Const (\<^const_name>\<open>Not\<close>, _) $ _) => th RS @{thm Eq_FalseI}
   | _ => th RS @{thm Eq_TrueI})
 
 fun mk_eq_True (_: Proof.context) r =
@@ -58,7 +58,7 @@ fun mk_eq_True (_: Proof.context) r =
 
 fun lift_meta_eq_to_obj_eq ctxt i st =
   let
-    fun count_imp (Const (@{const_name HOL.simp_implies}, _) $ _ $ P) = 1 + count_imp P
+    fun count_imp (Const (\<^const_name>\<open>HOL.simp_implies\<close>, _) $ _ $ P) = 1 + count_imp P
       | count_imp _ = 0;
     val j = count_imp (Logic.strip_assums_concl (Thm.term_of (Thm.cprem_of st i)))
   in
@@ -67,11 +67,11 @@ fun lift_meta_eq_to_obj_eq ctxt i st =
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
         val mk_simp_implies = fold_rev (fn R => fn S =>
-          Const (@{const_name HOL.simp_implies}, propT --> propT --> propT) $ R $ S) Ps;
+          Const (\<^const_name>\<open>HOL.simp_implies\<close>, propT --> propT --> propT) $ R $ S) Ps;
       in
         Goal.prove_global (Proof_Context.theory_of ctxt) []
-          [mk_simp_implies @{prop "(x::'a) == y"}]
-          (mk_simp_implies @{prop "(x::'a) = y"})
+          [mk_simp_implies \<^prop>\<open>(x::'a) == y\<close>]
+          (mk_simp_implies \<^prop>\<open>(x::'a) = y\<close>)
           (fn {context = ctxt, prems} => EVERY
            [rewrite_goals_tac ctxt @{thms simp_implies_def},
             REPEAT (assume_tac ctxt 1 ORELSE
@@ -103,7 +103,7 @@ fun mk_atomize ctxt pairs =
           else Variable.trade (K (fn [thm'] => res thm' rls)) thm_ctxt [thm];
       in
         case Thm.concl_of thm
-          of Const (@{const_name Trueprop}, _) $ p => (case head_of p
+          of Const (\<^const_name>\<open>Trueprop\<close>, _) $ p => (case head_of p
             of Const (a, _) => (case AList.lookup (op =) pairs a
               of SOME rls => (maps atoms (res_fixed rls) handle THM _ => [thm])
               | NONE => [thm])
@@ -142,7 +142,7 @@ val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 
 structure Splitter = Splitter
 (
-  val context = @{context}
+  val context = \<^context>
   val mk_eq = mk_eq
   val meta_eq_to_iff = @{thm meta_eq_to_obj_eq}
   val iffD = @{thm iffD2}
@@ -174,15 +174,15 @@ structure Clasimp = Clasimp
 open Clasimp;
 
 val mksimps_pairs =
- [(@{const_name HOL.implies}, [@{thm mp}]),
-  (@{const_name HOL.conj}, [@{thm conjunct1}, @{thm conjunct2}]),
-  (@{const_name All}, [@{thm spec}]),
-  (@{const_name True}, []),
-  (@{const_name False}, []),
-  (@{const_name If}, [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
+ [(\<^const_name>\<open>HOL.implies\<close>, [@{thm mp}]),
+  (\<^const_name>\<open>HOL.conj\<close>, [@{thm conjunct1}, @{thm conjunct2}]),
+  (\<^const_name>\<open>All\<close>, [@{thm spec}]),
+  (\<^const_name>\<open>True\<close>, []),
+  (\<^const_name>\<open>False\<close>, []),
+  (\<^const_name>\<open>If\<close>, [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
-  empty_simpset @{context}
+  empty_simpset \<^context>
   setSSolver safe_solver
   setSolver unsafe_solver
   |> Simplifier.set_subgoaler asm_simp_tac

@@ -777,7 +777,7 @@ lemma fold_closed_eq: "fold f z A = fold g z A"
 
 text \<open>
   A tempting alternative for the definiens is
-  @{term "if finite A then THE y. fold_graph f z A y else e"}.
+  \<^term>\<open>if finite A then THE y. fold_graph f z A y else e\<close>.
   It allows the removal of finiteness assumptions from the theorems
   \<open>fold_comm\<close>, \<open>fold_reindex\<close> and \<open>fold_distrib\<close>.
   The proofs become ugly. It is not worth the effort. (???)
@@ -787,7 +787,7 @@ lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph 
   by (induct rule: finite_induct) auto
 
 
-subsubsection \<open>From @{const fold_graph} to @{term fold}\<close>
+subsubsection \<open>From \<^const>\<open>fold_graph\<close> to \<^term>\<open>fold\<close>\<close>
 
 context comp_fun_commute
 begin
@@ -868,7 +868,7 @@ lemma (in -) fold_infinite [simp]: "\<not> finite A \<Longrightarrow> fold f z A
 lemma (in -) fold_empty [simp]: "fold f z {} = z"
   by (auto simp: fold_def)
 
-text \<open>The various recursion equations for @{const fold}:\<close>
+text \<open>The various recursion equations for \<^const>\<open>fold\<close>:\<close>
 
 lemma fold_insert [simp]:
   assumes "finite A" and "x \<notin> A"
@@ -933,7 +933,7 @@ lemma fold_set_union_disj:
 
 end
 
-text \<open>Other properties of @{const fold}:\<close>
+text \<open>Other properties of \<^const>\<open>fold\<close>:\<close>
 
 lemma fold_image:
   assumes "inj_on g A"
@@ -1101,7 +1101,7 @@ proof
 qed
 
 
-subsubsection \<open>Expressing set operations via @{const fold}\<close>
+subsubsection \<open>Expressing set operations via \<^const>\<open>fold\<close>\<close>
 
 lemma comp_fun_commute_const: "comp_fun_commute (\<lambda>_. f)"
   by standard rule
@@ -1356,9 +1356,9 @@ subsection \<open>Finite cardinality\<close>
 
 text \<open>
   The traditional definition
-  @{prop "card A \<equiv> LEAST n. \<exists>f. A = {f i |i. i < n}"}
+  \<^prop>\<open>card A \<equiv> LEAST n. \<exists>f. A = {f i |i. i < n}\<close>
   is ugly to work with.
-  But now that we have @{const fold} things are easy:
+  But now that we have \<^const>\<open>fold\<close> things are easy:
 \<close>
 
 global_interpretation card: folding "\<lambda>_. Suc" 0

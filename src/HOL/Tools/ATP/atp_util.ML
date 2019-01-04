@@ -167,7 +167,7 @@ fun type_intersect _ (TVar _) _ = true
 val type_equiv = Sign.typ_equiv
 
 fun varify_type ctxt T =
-  Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
+  Variable.polymorphic_types ctxt [Const (\<^const_name>\<open>undefined\<close>, T)]
   |> snd |> the_single |> dest_Const |> snd
 
 (* TODO: use "Term_Subst.instantiateT" instead? *)
@@ -202,7 +202,7 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
         SOME k => k
       | NONE =>
         case T of
-          Type (@{type_name fun}, [T1, T2]) =>
+          Type (\<^type_name>\<open>fun\<close>, [T1, T2]) =>
           (case (aux slack avoid T1, aux slack avoid T2) of
              (k, 1) => if slack andalso k = 0 then 0 else 1
            | (0, _) => 0
@@ -210,10 +210,10 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
            | (k1, k2) =>
              if k1 >= max orelse k2 >= max then max
              else Int.min (max, Integer.pow k2 k1))
-        | Type (@{type_name set}, [T']) => aux slack avoid (T' --> @{typ bool})
-        | @{typ prop} => 2
-        | @{typ bool} => 2 (* optimization *)
-        | @{typ nat} => 0 (* optimization *)
+        | Type (\<^type_name>\<open>set\<close>, [T']) => aux slack avoid (T' --> \<^typ>\<open>bool\<close>)
+        | \<^typ>\<open>prop\<close> => 2
+        | \<^typ>\<open>bool\<close> => 2 (* optimization *)
+        | \<^typ>\<open>nat\<close> => 0 (* optimization *)
         | Type ("Int.int", []) => 0 (* optimization *)
         | Type (s, _) =>
           (case free_constructors_of ctxt T of
@@ -260,10 +260,10 @@ fun is_type_surely_infinite ctxt sound infinite_Ts T =
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
-fun s_not (Const (@{const_name All}, T) $ Abs (s, T', t')) =
-    Const (@{const_name Ex}, T) $ Abs (s, T', s_not t')
-  | s_not (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
-    Const (@{const_name All}, T) $ Abs (s, T', s_not t')
+fun s_not (Const (\<^const_name>\<open>All\<close>, T) $ Abs (s, T', t')) =
+    Const (\<^const_name>\<open>Ex\<close>, T) $ Abs (s, T', s_not t')
+  | s_not (Const (\<^const_name>\<open>Ex\<close>, T) $ Abs (s, T', t')) =
+    Const (\<^const_name>\<open>All\<close>, T) $ Abs (s, T', s_not t')
   | s_not (@{const HOL.implies} $ t1 $ t2) = @{const HOL.conj} $ t1 $ s_not t2
   | s_not (@{const HOL.conj} $ t1 $ t2) =
     @{const HOL.disj} $ s_not t1 $ s_not t2
@@ -313,7 +313,7 @@ fun hol_close_form t =
        (Term.add_vars t []) t
 
 fun hol_open_form unprefix
-      (t as Const (@{const_name All}, _) $ Abs (s, T, t')) =
+      (t as Const (\<^const_name>\<open>All\<close>, _) $ Abs (s, T, t')) =
     (case try unprefix s of
        SOME s =>
        let
@@ -332,15 +332,15 @@ fun eta_expand _ t 0 = t
              (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
 
 fun cong_extensionalize_term ctxt t =
-  if exists_Const (fn (s, _) => s = @{const_name Not}) t then
+  if exists_Const (fn (s, _) => s = \<^const_name>\<open>Not\<close>) t then
     t |> Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
       |> Meson.cong_extensionalize_thm ctxt
       |> Thm.prop_of
   else
     t
 
-fun is_fun_equality (@{const_name HOL.eq},
-                     Type (_, [Type (@{type_name fun}, _), _])) = true
+fun is_fun_equality (\<^const_name>\<open>HOL.eq\<close>,
+                     Type (_, [Type (\<^type_name>\<open>fun\<close>, _), _])) = true
   | is_fun_equality _ = false
 
 fun abs_extensionalize_term ctxt t =
@@ -352,12 +352,12 @@ fun abs_extensionalize_term ctxt t =
 
 fun unextensionalize_def t =
   case t of
-    @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) =>
+    @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) =>
     (case strip_comb lhs of
        (c as Const (_, T), args) =>
        if forall is_Var args andalso not (has_duplicates (op =) args) then
          @{const Trueprop}
-         $ (Const (@{const_name HOL.eq}, T --> T --> @{typ bool})
+         $ (Const (\<^const_name>\<open>HOL.eq\<close>, T --> T --> \<^typ>\<open>bool\<close>)
             $ c $ fold_rev lambda args rhs)
        else
          t
@@ -370,9 +370,9 @@ fun unextensionalize_def t =
    "Meson_Clausify".) *)
 fun transform_elim_prop t =
   case Logic.strip_imp_concl t of
-    @{const Trueprop} $ Var (z, @{typ bool}) =>
+    @{const Trueprop} $ Var (z, \<^typ>\<open>bool\<close>) =>
     subst_Vars [(z, @{const False})] t
-  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop False})] t
+  | Var (z, \<^typ>\<open>prop\<close>) => subst_Vars [(z, \<^prop>\<open>False\<close>)] t
   | _ => t
 
 fun specialize_type thy (s, T) t =
@@ -401,7 +401,7 @@ fun strip_subgoal goal i ctxt =
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev params, hyp_ts, concl_t) end
 
-fun extract_lambda_def dest_head (Const (@{const_name HOL.eq}, _) $ t $ u) =
+fun extract_lambda_def dest_head (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t $ u) =
     let val (head, args) = strip_comb t in
       (head |> dest_head |> fst,
        fold_rev (fn t as Var ((s, _), T) =>

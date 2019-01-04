@@ -32,12 +32,12 @@ struct
 fun fast_mk_iterate_add (n, mset) =
   let val T = fastype_of mset
   in
-    Const (@{const_name "iterate_add"}, @{typ nat} --> T --> T) $ n $ mset
+    Const (\<^const_name>\<open>iterate_add\<close>, \<^typ>\<open>nat\<close> --> T --> T) $ n $ mset
   end;
 
 (*iterate_add is not symmetric, unlike multiplication over natural numbers.*)
 fun mk_iterate_add (t, u) =
-  (if fastype_of t = @{typ nat} then (t, u) else (u, t))
+  (if fastype_of t = \<^typ>\<open>nat\<close> then (t, u) else (u, t))
   |> fast_mk_iterate_add;
 
 (*Maps n to #n for n = 1, 2*)
@@ -45,7 +45,7 @@ val numeral_syms =
   map (fn th => th RS sym) @{thms numeral_One numeral_2_eq_2 numeral_1_eq_Suc_0};
 
 val numeral_sym_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps numeral_syms);
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps numeral_syms);
 
 fun mk_number 1 = HOLogic.numeral_const HOLogic.natT $ HOLogic.one_const
   | mk_number n = HOLogic.mk_number HOLogic.natT n;
@@ -56,16 +56,16 @@ fun find_first_numeral past (t::terms) =
     handle TERM _ => find_first_numeral (t::past) terms)
   | find_first_numeral _ [] = raise TERM("find_first_numeral", []);
 
-fun typed_zero T = Const (@{const_name "Groups.zero"}, T);
+fun typed_zero T = Const (\<^const_name>\<open>Groups.zero\<close>, T);
 fun typed_one T = HOLogic.numeral_const T $ HOLogic.one_const
-val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
+val mk_plus = HOLogic.mk_binop \<^const_name>\<open>Groups.plus\<close>;
 
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero.*)
 fun mk_sum T [] = typed_zero T
   | mk_sum _ [t,u] = mk_plus (t, u)
   | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
 
-val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} dummyT;
+val dest_plus = HOLogic.dest_bin \<^const_name>\<open>Groups.plus\<close> dummyT;
 
 
 (*** Other simproc items ***)
@@ -85,7 +85,7 @@ fun mk_prod T [] = typed_one T
   | mk_prod _ [t] = t
   | mk_prod T (t :: ts) = if t = one then mk_prod T ts else mk_iterate_add (t, mk_prod T ts);
 
-val dest_iterate_add = HOLogic.dest_bin @{const_name iterate_add} dummyT;
+val dest_iterate_add = HOLogic.dest_bin \<^const_name>\<open>iterate_add\<close> dummyT;
 
 fun dest_iterate_adds t =
   let val (t,u) = dest_iterate_add t in
@@ -121,7 +121,7 @@ fun dest_summation (t, ts) =
 
 fun dest_sum t = dest_summation (t, []);
 
-val rename_numerals = simplify (put_simpset numeral_sym_ss @{context}) o Thm.transfer @{theory};
+val rename_numerals = simplify (put_simpset numeral_sym_ss \<^context>) o Thm.transfer \<^theory>;
 
 (*Simplify \<open>iterate_add (Suc 0) n\<close>, \<open>iterate_add n (Suc 0)\<close>, \<open>n+0\<close>, and \<open>0+n\<close> to \<open>n\<close>*)
 val add_0s  = map rename_numerals @{thms monoid_add_class.add_0_left monoid_add_class.add_0_right};
@@ -130,7 +130,7 @@ val mult_1s = map rename_numerals @{thms iterate_add_1 iterate_add_simps(2)[of 0
 (*And these help the simproc return False when appropriate. We use the same list as the
 simproc for natural numbers, but adapted.*)
 fun contra_rules ctxt =
-  @{thms le_zero_eq}  @ Named_Theorems.get ctxt @{named_theorems cancelation_simproc_eq_elim};
+  @{thms le_zero_eq}  @ Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_eq_elim\<close>;
 
 fun simplify_meta_eq ctxt =
   Arith_Data.simplify_meta_eq
@@ -148,11 +148,11 @@ val find_first_coeff = find_first_coeff [];
 val trans_tac = Numeral_Simprocs.trans_tac;
 
 val norm_ss1 =
-  simpset_of (put_simpset Numeral_Simprocs.num_ss @{context} addsimps
+  simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context> addsimps
     numeral_syms @ add_0s @ mult_1s @ @{thms ac_simps iterate_add_simps});
 
 val norm_ss2 =
-  simpset_of (put_simpset Numeral_Simprocs.num_ss @{context} addsimps
+  simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context> addsimps
     bin_simps @
     @{thms ac_simps});
 
@@ -161,7 +161,7 @@ fun norm_tac ctxt =
   THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt));
 
 val mset_simps_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps bin_simps);
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps bin_simps);
 
 fun numeral_simp_tac ctxt = ALLGOALS (simp_tac (put_simpset mset_simps_ss ctxt));
 

@@ -85,7 +85,7 @@ done
 lemmas zero_lt_natE = zero_lt_lemma [THEN bexE]
 
 
-subsection\<open>\<open>natify\<close>, the Coercion to @{term nat}\<close>
+subsection\<open>\<open>natify\<close>, the Coercion to \<^term>\<open>nat\<close>\<close>
 
 lemma pred_succ_eq [simp]: "pred(succ(y)) = y"
 by (unfold pred_def, auto)
@@ -427,7 +427,7 @@ lemma diff_Un_distrib:
     "[|i\<in>nat; j\<in>nat|] ==> (i \<union> j) #- k = (i#-k) \<union> (j#-k)"
 by (insert nat_diff_Un_distrib [of i j "natify(k)"], simp)
 
-text\<open>We actually prove @{term "i #- j #- k = i #- (j #+ k)"}\<close>
+text\<open>We actually prove \<^term>\<open>i #- j #- k = i #- (j #+ k)\<close>\<close>
 lemma diff_diff_left [simplified]:
      "natify(i)#-natify(j)#-k = natify(i) #- (natify(j)#+k)"
 by (rule_tac m="natify(i)" and n="natify(j)" in diff_induct, auto)

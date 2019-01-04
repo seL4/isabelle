@@ -234,7 +234,7 @@ lemma disjointed_mono: "mono A \<Longrightarrow> disjointed A (Suc n) = A (Suc n
 subsection \<open>Partitions\<close>
 
 text \<open>
-  Partitions @{term P} of a set @{term A}. We explicitly disallow empty sets.
+  Partitions \<^term>\<open>P\<close> of a set \<^term>\<open>A\<close>. We explicitly disallow empty sets.
 \<close>
 
 definition partition_on :: "'a set \<Rightarrow> 'a set set \<Rightarrow> bool"

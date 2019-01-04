@@ -23,11 +23,11 @@ translations
 
 typed_print_translation \<open>
   let
-    fun phantom_tr' ctxt (Type (@{type_name fun}, [_, Type (@{type_name phantom}, [T, _])])) ts =
+    fun phantom_tr' ctxt (Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>phantom\<close>, [T, _])])) ts =
           list_comb
-            (Syntax.const @{syntax_const "_Phantom"} $ Syntax_Phases.term_of_typ ctxt T, ts)
+            (Syntax.const \<^syntax_const>\<open>_Phantom\<close> $ Syntax_Phases.term_of_typ ctxt T, ts)
       | phantom_tr' _ _ _ = raise Match;
-  in [(@{const_syntax phantom}, phantom_tr')] end
+  in [(\<^const_syntax>\<open>phantom\<close>, phantom_tr')] end
 \<close>
 
 lemma of_phantom_inject [simp]:

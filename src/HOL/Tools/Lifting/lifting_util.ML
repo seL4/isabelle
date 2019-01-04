@@ -44,7 +44,7 @@ fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 fun option_fold a _ NONE = a
   | option_fold _ f (SOME x) = f x
 
-fun dest_Quotient (Const (@{const_name Quotient}, _) $ rel $ abs $ rep $ cr)
+fun dest_Quotient (Const (\<^const_name>\<open>Quotient\<close>, _) $ rel $ abs $ rep $ cr)
       = (rel, abs, rep, cr)
   | dest_Quotient t = raise TERM ("dest_Quotient", [t])
 
@@ -91,7 +91,7 @@ fun undisch thm =
 
 fun undisch_all thm = funpow (Thm.nprems_of thm) undisch thm
 
-fun is_fun_type (Type (@{type_name fun}, _)) = true
+fun is_fun_type (Type (\<^type_name>\<open>fun\<close>, _)) = true
   | is_fun_type _ = false
 
 fun get_args n = rev o fst o funpow_yield n (swap o dest_comb)
@@ -109,12 +109,12 @@ fun Targs (Type (_, args)) = args
 fun Tname (Type (name, _)) = name
   | Tname _ = ""
 
-fun is_rel_fun (Const (@{const_name "rel_fun"}, _) $ _ $ _) = true
+fun is_rel_fun (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) = true
   | is_rel_fun _ = false
 
 fun relation_types typ = 
   case strip_type typ of
-    ([typ1, typ2], @{typ bool}) => (typ1, typ2)
+    ([typ1, typ2], \<^typ>\<open>bool\<close>) => (typ1, typ2)
     | _ => error "relation_types: not a relation"
 
 fun map_interrupt f l =

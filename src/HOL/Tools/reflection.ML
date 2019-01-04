@@ -66,10 +66,10 @@ val add_correctness_thm = Thm.declaration_attribute (Data.map o apsnd o Thm.add_
 val del_correctness_thm = Thm.declaration_attribute (Data.map o apsnd o Thm.del_thm);
 
 val _ = Theory.setup
-  (Attrib.setup @{binding reify}
+  (Attrib.setup \<^binding>\<open>reify\<close>
     (Attrib.add_del add_reification_eq del_reification_eq)
     "declare reification equations" #>
-   Attrib.setup @{binding reflection}
+   Attrib.setup \<^binding>\<open>reflection\<close>
     (Attrib.add_del add_correctness_thm del_correctness_thm)
     "declare reflection correctness theorems");
 

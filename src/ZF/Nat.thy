@@ -209,7 +209,7 @@ lemma succ_lt_induct:
      ==> P(m,n)"
 by (blast intro: succ_lt_induct_lemma lt_nat_in_nat)
 
-subsection\<open>quasinat: to allow a case-split rule for @{term nat_case}\<close>
+subsection\<open>quasinat: to allow a case-split rule for \<^term>\<open>nat_case\<close>\<close>
 
 text\<open>True if the argument is zero or any successor\<close>
 lemma [iff]: "quasinat(0)"

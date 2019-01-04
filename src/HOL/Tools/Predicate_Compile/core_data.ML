@@ -301,8 +301,8 @@ fun depending_preds_of ctxt (key, value) =
   in
     fold Term.add_const_names intros []
       |> (fn cs =>
-        if member (op =) cs @{const_name "HOL.eq"} then
-          insert (op =) @{const_name Predicate.eq} cs
+        if member (op =) cs \<^const_name>\<open>HOL.eq\<close> then
+          insert (op =) \<^const_name>\<open>Predicate.eq\<close> cs
         else cs)
       |> filter (fn c => (not (c = key)) andalso
         (is_inductive_predicate ctxt c orelse is_registered ctxt c))

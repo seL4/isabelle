@@ -151,7 +151,7 @@ fun is_all_input mode =
 fun all_input_of T =
   let
     val (Ts, U) = strip_type T
-    fun input_of (Type (@{type_name Product_Type.prod}, [T1, T2])) = Pair (input_of T1, input_of T2)
+    fun input_of (Type (\<^type_name>\<open>Product_Type.prod\<close>, [T1, T2])) = Pair (input_of T1, input_of T2)
       | input_of _ = Input
   in
     if U = HOLogic.boolT then
@@ -223,7 +223,7 @@ fun is_constructable vs t = forall (member (op =) vs) (term_vs t)
 
 fun missing_vars vs t = subtract (op =) vs (term_vs t)
 
-fun output_terms (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (d1, d2)) =
+fun output_terms (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2, Mode_Pair (d1, d2)) =
     output_terms (t1, d1)  @ output_terms (t2, d2)
   | output_terms (t1 $ t2, Mode_App (d1, d2)) =
     output_terms (t1, d1)  @ output_terms (t2, d2)
@@ -239,7 +239,7 @@ fun lookup_mode modes (Const (s, _)) =
       SOME ms => SOME (map (fn m => (Context m , [])) ms)
     | NONE => NONE)
 
-fun derivations_of (ctxt : Proof.context) modes vs (Const (@{const_name Pair}, _) $ t1 $ t2) (Pair (m1, m2)) =
+fun derivations_of (ctxt : Proof.context) modes vs (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2) (Pair (m1, m2)) =
     map_product
       (fn (m1, mvars1) => fn (m2, mvars2) => (Mode_Pair (m1, m2), union (op =) mvars1 mvars2))
         (derivations_of ctxt modes vs t1 m1) (derivations_of ctxt modes vs t2 m2)
@@ -254,7 +254,7 @@ fun derivations_of (ctxt : Proof.context) modes vs (Const (@{const_name Pair}, _
     else if eq_mode (m, Output) then
       (if is_possible_output ctxt vs t then [(Term Output, [])] else [])
     else []
-and all_derivations_of ctxt modes vs (Const (@{const_name Pair}, _) $ t1 $ t2) =
+and all_derivations_of ctxt modes vs (Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2) =
   let
     val derivs1 = all_derivations_of ctxt modes vs t1
     val derivs2 = all_derivations_of ctxt modes vs t2

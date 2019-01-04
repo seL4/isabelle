@@ -36,8 +36,8 @@ open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
 open Sledgehammer_Prover
 
-val smt_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt_builtins} (K true)
-val smt_triggers = Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
+val smt_builtins = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_builtins\<close> (K true)
+val smt_triggers = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_triggers\<close> (K true)
 
 val is_smt_prover = member (op =) o SMT_Config.available_solvers_of
 
@@ -65,15 +65,15 @@ fun failure_of_smt_failure (SMT_Failure.Counterexample genuine) =
   | failure_of_smt_failure (SMT_Failure.Other_Failure s) = UnknownError s
 
 (* FUDGE *)
-val smt_max_slices = Attrib.setup_config_int @{binding sledgehammer_smt_max_slices} (K 8)
+val smt_max_slices = Attrib.setup_config_int \<^binding>\<open>sledgehammer_smt_max_slices\<close> (K 8)
 val smt_slice_fact_frac =
-  Attrib.setup_config_real @{binding sledgehammer_smt_slice_fact_frac} (K 0.667)
+  Attrib.setup_config_real \<^binding>\<open>sledgehammer_smt_slice_fact_frac\<close> (K 0.667)
 val smt_slice_time_frac =
-  Attrib.setup_config_real @{binding sledgehammer_smt_slice_time_frac} (K 0.333)
-val smt_slice_min_secs = Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 3)
+  Attrib.setup_config_real \<^binding>\<open>sledgehammer_smt_slice_time_frac\<close> (K 0.333)
+val smt_slice_min_secs = Attrib.setup_config_int \<^binding>\<open>sledgehammer_smt_slice_min_secs\<close> (K 3)
 
 val is_boring_builtin_typ =
-  not o exists_subtype (member (op =) [@{typ nat}, @{typ int}, HOLogic.realT])
+  not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
 
 fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instances, timeout, slice,
       ...} : params) state goal i =

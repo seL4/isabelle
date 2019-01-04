@@ -200,9 +200,9 @@ apply (simp add: wftrec_def wfrec_def, safe)
 done
 
 
-text\<open>Assuming @{term r} is transitive simplifies the occurrences of \<open>H\<close>.
-      The premise @{term "relation(r)"} is necessary 
-      before we can replace @{term "r^+"} by @{term r}.\<close>
+text\<open>Assuming \<^term>\<open>r\<close> is transitive simplifies the occurrences of \<open>H\<close>.
+      The premise \<^term>\<open>relation(r)\<close> is necessary 
+      before we can replace \<^term>\<open>r^+\<close> by \<^term>\<open>r\<close>.\<close>
 theorem (in M_trancl) trans_wfrec_relativize:
   "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);
      wfrec_replacement(M,MH,r);  relation2(M,MH,H);

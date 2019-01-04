@@ -99,7 +99,7 @@ fun cert_class ctxt class =
     val _ = Axclass.get_info (Proof_Context.theory_of ctxt) class;
   in class end;
 
-val parse_classrel_ident = Parse.class --| @{keyword "<"} -- Parse.class;
+val parse_classrel_ident = Parse.class --| \<^keyword>\<open><\<close> -- Parse.class;
 
 fun cert_inst ctxt (class, tyco) =
   (cert_class ctxt class, cert_tyco ctxt tyco);
@@ -107,7 +107,7 @@ fun cert_inst ctxt (class, tyco) =
 fun read_inst ctxt (raw_tyco, raw_class) =
   (read_tyco ctxt raw_tyco, Proof_Context.read_class ctxt raw_class);
 
-val parse_inst_ident = Parse.name --| @{keyword "::"} -- Parse.class;
+val parse_inst_ident = Parse.name --| \<^keyword>\<open>::\<close> -- Parse.class;
 
 fun cert_syms ctxt =
   Code_Symbol.map_attr (cert_const ctxt) (cert_tyco ctxt)
@@ -285,7 +285,7 @@ fun map_printings target_name =
 
 (* technical aside: pretty printing width *)
 
-val default_code_width = Attrib.setup_config_int @{binding "default_code_width"} (K 80);
+val default_code_width = Attrib.setup_config_int \<^binding>\<open>default_code_width\<close> (K 80);
 
 
 (* montage *)
@@ -519,7 +519,7 @@ val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$
 in
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation_raw @{binding code_stmts}
+  (Thy_Output.antiquotation_raw \<^binding>\<open>code_stmts\<close>
     (parse_const_terms --
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
@@ -625,8 +625,8 @@ fun parse_args f args =
 (** Isar setup **)
 
 val (constantK, type_constructorK, type_classK, class_relationK, class_instanceK, code_moduleK) =
-  (@{keyword "constant"}, @{keyword "type_constructor"}, @{keyword "type_class"},
-    @{keyword "class_relation"}, @{keyword "class_instance"}, @{keyword "code_module"});
+  (\<^keyword>\<open>constant\<close>, \<^keyword>\<open>type_constructor\<close>, \<^keyword>\<open>type_class\<close>,
+    \<^keyword>\<open>class_relation\<close>, \<^keyword>\<open>class_instance\<close>, \<^keyword>\<open>code_module\<close>);
 
 local
 
@@ -648,8 +648,8 @@ val parse_symbols = Scan.repeat1 (parse_constants || parse_type_constructors || 
 end;
 
 fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
-  parse_keyword |-- Parse.!!! (parse_isa --| (@{keyword "\<rightharpoonup>"} || @{keyword "=>"})
-    -- Parse.and_list1 (@{keyword "("} |-- (Parse.name --| @{keyword ")"} -- Scan.option parse_target)));
+  parse_keyword |-- Parse.!!! (parse_isa --| (\<^keyword>\<open>\<rightharpoonup>\<close> || \<^keyword>\<open>=>\<close>)
+    -- Parse.and_list1 (\<^keyword>\<open>(\<close> |-- (Parse.name --| \<^keyword>\<open>)\<close> -- Scan.option parse_target)));
 
 fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
   parse_single_symbol_pragma constantK Parse.term parse_const
@@ -669,45 +669,45 @@ fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse
   Parse.enum1 "|" (Parse.group (fn () => "code symbol pragma")
     (parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module));
 
-val code_expr_argsP = Scan.optional (@{keyword "("} |-- Parse.args --| @{keyword ")"}) [];
+val code_expr_argsP = Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.args --| \<^keyword>\<open>)\<close>) [];
 
 fun code_expr_inP all_public raw_cs =
-  Scan.repeat (@{keyword "in"} |-- Parse.!!! (Parse.name
-    -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
-    -- Scan.optional (@{keyword "file"} |-- Parse.position Parse.path) ("", Position.none)
+  Scan.repeat (\<^keyword>\<open>in\<close> |-- Parse.!!! (Parse.name
+    -- Scan.optional (\<^keyword>\<open>module_name\<close> |-- Parse.name) ""
+    -- Scan.optional (\<^keyword>\<open>file\<close> |-- Parse.position Parse.path) ("", Position.none)
     -- code_expr_argsP))
       >> (fn seri_args => export_code_cmd all_public raw_cs seri_args);
 
 fun code_expr_checkingP all_public raw_cs =
-  (@{keyword "checking"} |-- Parse.!!!
-    (Scan.repeat (Parse.name -- ((@{keyword "?"} |-- Scan.succeed false) || Scan.succeed true)
+  (\<^keyword>\<open>checking\<close> |-- Parse.!!!
+    (Scan.repeat (Parse.name -- ((\<^keyword>\<open>?\<close> |-- Scan.succeed false) || Scan.succeed true)
     -- code_expr_argsP)))
       >> (fn seri_args => check_code_cmd all_public raw_cs seri_args);
 
-val code_exprP = (Scan.optional (@{keyword "open"} |-- Scan.succeed true) false
+val code_exprP = (Scan.optional (\<^keyword>\<open>open\<close> |-- Scan.succeed true) false
   -- Scan.repeat1 Parse.term)
   :|-- (fn (all_public, raw_cs) => (code_expr_checkingP all_public raw_cs || code_expr_inP all_public raw_cs));
 
 val _ =
-  Outer_Syntax.command @{command_keyword code_reserved}
+  Outer_Syntax.command \<^command_keyword>\<open>code_reserved\<close>
     "declare words as reserved for target language"
     (Parse.name -- Scan.repeat1 Parse.name
       >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds));
 
 val _ =
-  Outer_Syntax.command @{command_keyword code_identifier} "declare mandatory names for code symbols"
+  Outer_Syntax.command \<^command_keyword>\<open>code_identifier\<close> "declare mandatory names for code symbols"
     (parse_symbol_pragmas Parse.name Parse.name Parse.name Parse.name Parse.name Parse.name
       >> (Toplevel.theory o fold set_identifiers_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_keyword code_printing} "declare dedicated printing for code symbols"
+  Outer_Syntax.command \<^command_keyword>\<open>code_printing\<close> "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
       Parse.string (Parse.minus >> K ()) (Parse.minus >> K ())
-      (Parse.text -- Scan.optional (@{keyword for} |-- parse_symbols) [])
+      (Parse.text -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_symbols) [])
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_keyword export_code} "generate executable code for constants"
+  Outer_Syntax.command \<^command_keyword>\<open>export_code\<close> "generate executable code for constants"
     (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
 
 end; (*struct*)

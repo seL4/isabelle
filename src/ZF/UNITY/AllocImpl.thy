@@ -395,7 +395,7 @@ done
 text\<open>Lemma 51, page 29.
   This theorem states as invariant that if the number of
   tokens given does not exceed the number returned, then the upper limit
-  (@{term NbT}) does not exceed the number currently available.\<close>
+  (\<^term>\<open>NbT\<close>) does not exceed the number currently available.\<close>
 lemma alloc_prog_Always_lemma:
 "[| G \<in> program; alloc_prog ok G;
     alloc_prog \<squnion> G \<in> Incr(lift(ask));

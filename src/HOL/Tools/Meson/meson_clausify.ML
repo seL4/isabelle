@@ -176,7 +176,7 @@ fun introduce_combinators_in_theorem ctxt th =
             TrueI)
 
 (*cterms are used throughout for efficiency*)
-val cTrueprop = Thm.cterm_of @{theory_context HOL} HOLogic.Trueprop;
+val cTrueprop = Thm.cterm_of \<^theory_context>\<open>HOL\<close> HOLogic.Trueprop;
 
 (*Given an abstraction over n variables, replace the bound variables by free
   ones. Return the body, along with the list of free variables.*)
@@ -294,7 +294,7 @@ fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps th
 val cheat_choice =
   \<^prop>\<open>\<forall>x. \<exists>y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)\<close>
   |> Logic.varify_global
-  |> Skip_Proof.make_thm @{theory}
+  |> Skip_Proof.make_thm \<^theory>
 
 (* Converts an Isabelle theorem into NNF. *)
 fun nnf_axiom choice_ths new_skolem ax_no th ctxt =

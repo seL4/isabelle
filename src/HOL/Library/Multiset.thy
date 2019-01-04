@@ -31,7 +31,7 @@ lemma multiset_eq_iff: "M = N \<longleftrightarrow> (\<forall>a. count M a = cou
 lemma multiset_eqI: "(\<And>x. count A x = count B x) \<Longrightarrow> A = B"
   using multiset_eq_iff by auto
 
-text \<open>Preservation of the representing set @{term multiset}.\<close>
+text \<open>Preservation of the representing set \<^term>\<open>multiset\<close>.\<close>
 
 lemma const0_in_multiset: "(\<lambda>a. 0) \<in> multiset"
   by (simp add: multiset_def)
@@ -1653,10 +1653,10 @@ qed
 
 text \<open>
   A note on code generation: When defining some function containing a
-  subterm @{term "fold_mset F"}, code generation is not automatic. When
+  subterm \<^term>\<open>fold_mset F\<close>, code generation is not automatic. When
   interpreting locale \<open>left_commutative\<close> with \<open>F\<close>, the
-  would be code thms for @{const fold_mset} become thms like
-  @{term "fold_mset F z {#} = z"} where \<open>F\<close> is not a pattern but
+  would be code thms for \<^const>\<open>fold_mset\<close> become thms like
+  \<^term>\<open>fold_mset F z {#} = z\<close> where \<open>F\<close> is not a pattern but
   contains defined symbols, i.e.\ is not a code thm. Hence a separate
   constant with its own code thms needs to be introduced for \<open>F\<close>. See the image operator below.
 \<close>
@@ -1746,10 +1746,10 @@ translations
   "{#e | x\<in>#M. P#}" \<rightharpoonup> "{#e. x \<in># {# x\<in>#M. P#}#}"
 
 text \<open>
-  This allows to write not just filters like @{term "{#x\<in>#M. x<c#}"}
-  but also images like @{term "{#x+x. x\<in>#M #}"} and @{term [source]
+  This allows to write not just filters like \<^term>\<open>{#x\<in>#M. x<c#}\<close>
+  but also images like \<^term>\<open>{#x+x. x\<in>#M #}\<close> and @{term [source]
   "{#x+x|x\<in>#M. x<c#}"}, where the latter is currently displayed as
-  @{term "{#x+x|x\<in>#M. x<c#}"}.
+  \<^term>\<open>{#x+x|x\<in>#M. x<c#}\<close>.
 \<close>
 
 lemma in_image_mset: "y \<in># {#f x. x \<in># M#} \<longleftrightarrow> y \<in> f ` set_mset M"
@@ -1965,7 +1965,7 @@ proof -
   qed
   then show "PROP ?P" "PROP ?Q" "PROP ?R"
   by (auto elim!: Set.set_insert)
-qed \<comment> \<open>TODO: maybe define @{const mset_set} also in terms of @{const Abs_multiset}\<close>
+qed \<comment> \<open>TODO: maybe define \<^const>\<open>mset_set\<close> also in terms of \<^const>\<open>Abs_multiset\<close>\<close>
 
 lemma elem_mset_set[simp, intro]: "finite A \<Longrightarrow> x \<in># mset_set A \<longleftrightarrow> x \<in> A"
   by (induct A rule: finite_induct) simp_all
@@ -3245,14 +3245,14 @@ by auto
 
 setup \<open>
   let
-    fun msetT T = Type (@{type_name multiset}, [T]);
+    fun msetT T = Type (\<^type_name>\<open>multiset\<close>, [T]);
 
-    fun mk_mset T [] = Const (@{const_abbrev Mempty}, msetT T)
+    fun mk_mset T [] = Const (\<^const_abbrev>\<open>Mempty\<close>, msetT T)
       | mk_mset T [x] =
-        Const (@{const_name add_mset}, T --> msetT T --> msetT T) $ x $
-          Const (@{const_abbrev Mempty}, msetT T)
+        Const (\<^const_name>\<open>add_mset\<close>, T --> msetT T --> msetT T) $ x $
+          Const (\<^const_abbrev>\<open>Mempty\<close>, msetT T)
       | mk_mset T (x :: xs) =
-        Const (@{const_name plus}, msetT T --> msetT T --> msetT T) $
+        Const (\<^const_name>\<open>plus\<close>, msetT T --> msetT T --> msetT T) $
           mk_mset T [x] $ mk_mset T xs
 
     fun mset_member_tac ctxt m i =
@@ -3267,7 +3267,7 @@ setup \<open>
       resolve_tac ctxt @{thms nonempty_single}
 
     fun regroup_munion_conv ctxt =
-      Function_Lib.regroup_conv ctxt @{const_abbrev Mempty} @{const_name plus}
+      Function_Lib.regroup_conv ctxt \<^const_abbrev>\<open>Mempty\<close> \<^const_name>\<open>plus\<close>
         (map (fn t => t RS eq_reflection) (@{thms ac_simps} @ @{thms empty_neutral}))
 
     fun unfold_pwleq_tac ctxt i =
@@ -3358,13 +3358,13 @@ declaration \<open>
           in
             (case maps elems_for (all_values elem_T) @
                  (if maybe_opt then [Const (Nitpick_Model.unrep_mixfix (), elem_T)] else []) of
-              [] => Const (@{const_name zero_class.zero}, T)
+              [] => Const (\<^const_name>\<open>zero_class.zero\<close>, T)
             | ts =>
-                foldl1 (fn (s, t) => Const (@{const_name add_mset}, elem_T --> T --> T) $ s $ t)
+                foldl1 (fn (s, t) => Const (\<^const_name>\<open>add_mset\<close>, elem_T --> T --> T) $ s $ t)
                   ts)
           end
       | multiset_postproc _ _ _ _ t = t
-  in Nitpick_Model.register_term_postprocessor @{typ "'a multiset"} multiset_postproc end
+  in Nitpick_Model.register_term_postprocessor \<^typ>\<open>'a multiset\<close> multiset_postproc end
 \<close>
 
 
@@ -3513,8 +3513,8 @@ proof -
 qed
 
 text \<open>
-  Exercise for the casual reader: add implementations for @{term "(\<le>)"}
-  and @{term "(<)"} (multiset order).
+  Exercise for the casual reader: add implementations for \<^term>\<open>(\<le>)\<close>
+  and \<^term>\<open>(<)\<close> (multiset order).
 \<close>
 
 text \<open>Quickcheck generators\<close>
@@ -3865,7 +3865,7 @@ qed
 lemma rel_mset_rel_mset': "rel_mset R M N = rel_mset' R M N"
   using rel_mset_imp_rel_mset' rel_mset'_imp_rel_mset by auto
 
-text \<open>The main end product for @{const rel_mset}: inductive characterization:\<close>
+text \<open>The main end product for \<^const>\<open>rel_mset\<close>: inductive characterization:\<close>
 lemmas rel_mset_induct[case_names empty add, induct pred: rel_mset] =
   rel_mset'.induct[unfolded rel_mset_rel_mset'[symmetric]]
 
@@ -3878,7 +3878,7 @@ lemma size_multiset_o_map: "size_multiset g \<circ> image_mset f = size_multiset
   done
 
 setup \<open>
-  BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}
+  BNF_LFP_Size.register_size_global \<^type_name>\<open>multiset\<close> \<^const_name>\<open>size_multiset\<close>
     @{thm size_multiset_overloaded_def}
     @{thms size_multiset_empty size_multiset_single size_multiset_union size_empty size_single
       size_union}

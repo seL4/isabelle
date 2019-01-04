@@ -95,7 +95,7 @@ fun prove_contradiction_eq to_right (clhs, crhs) =
   in eq_from_impls thm1 thm2 end
 
 val contrapos_rule = @{lemma "(\<not>P) = (\<not>Q) \<Longrightarrow> P = Q" by auto}
-fun contrapos prove cp = contrapos_rule OF [prove (apply2 (Thm.apply @{cterm HOL.Not}) cp)]
+fun contrapos prove cp = contrapos_rule OF [prove (apply2 (Thm.apply \<^cterm>\<open>HOL.Not\<close>) cp)]
 
 datatype kind = True | False | Conj | Disj | Other
 

@@ -55,14 +55,14 @@ fun atomize_thm ctxt thm =
 (** solvers for equivp and quotient assumptions **)
 
 fun equiv_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv})))
+  REPEAT_ALL_NEW (resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>)))
 
 val equiv_solver = mk_solver "Equivalence goal solver" equiv_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
     [resolve_tac ctxt @{thms identity_quotient3},
-     resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_thm}))]))
+     resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_thm\<close>))]))
 
 val quotient_solver = mk_solver "Quotient goal solver" quotient_tac
 
@@ -109,12 +109,12 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
 
 fun ball_bex_range_simproc ctxt redex =
   (case Thm.term_of redex of
-    (Const (@{const_name "Ball"}, _) $ (Const (@{const_name "Respects"}, _) $
-      (Const (@{const_name "rel_fun"}, _) $ R1 $ R2)) $ _) =>
+    (Const (\<^const_name>\<open>Ball\<close>, _) $ (Const (\<^const_name>\<open>Respects\<close>, _) $
+      (Const (\<^const_name>\<open>rel_fun\<close>, _) $ R1 $ R2)) $ _) =>
         calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
-  | (Const (@{const_name "Bex"}, _) $ (Const (@{const_name "Respects"}, _) $
-      (Const (@{const_name "rel_fun"}, _) $ R1 $ R2)) $ _) =>
+  | (Const (\<^const_name>\<open>Bex\<close>, _) $ (Const (\<^const_name>\<open>Respects\<close>, _) $
+      (Const (\<^const_name>\<open>rel_fun\<close>, _) $ R1 $ R2)) $ _) =>
         calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
   | _ => NONE)
@@ -140,16 +140,16 @@ fun ball_bex_range_simproc ctxt redex =
 
 fun reflp_get ctxt =
   map_filter (fn th => if Thm.no_prems th then SOME (OF1 @{thm equivp_reflp} th) else NONE
-    handle THM _ => NONE) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
+    handle THM _ => NONE) (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>))
 
 val eq_imp_rel = @{lemma "equivp R \<Longrightarrow> a = b \<longrightarrow> R a b" by (simp add: equivp_reflp)}
 
 fun eq_imp_rel_get ctxt =
-  map (OF1 eq_imp_rel) (rev (Named_Theorems.get ctxt @{named_theorems quot_equiv}))
+  map (OF1 eq_imp_rel) (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>))
 
 val regularize_simproc =
-  Simplifier.make_simproc @{context} "regularize"
-    {lhss = [@{term "Ball (Respects (R1 ===> R2)) P"}, @{term "Bex (Respects (R1 ===> R2)) P"}],
+  Simplifier.make_simproc \<^context> "regularize"
+    {lhss = [\<^term>\<open>Ball (Respects (R1 ===> R2)) P\<close>, \<^term>\<open>Bex (Respects (R1 ===> R2)) P\<close>],
      proc = K ball_bex_range_simproc};
 
 fun regularize_tac ctxt =
@@ -181,7 +181,7 @@ fun find_qt_asm asms =
   let
     fun find_fun trm =
       (case trm of
-        (Const (@{const_name Trueprop}, _) $ (Const (@{const_name Quot_True}, _) $ _)) => true
+        (Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>Quot_True\<close>, _) $ _)) => true
       | _ => false)
   in
      (case find_first find_fun asms of
@@ -191,7 +191,7 @@ fun find_qt_asm asms =
 
 fun quot_true_simple_conv ctxt fnctn ctrm =
   (case Thm.term_of ctrm of
-    (Const (@{const_name Quot_True}, _) $ x) =>
+    (Const (\<^const_name>\<open>Quot_True\<close>, _) $ x) =>
       let
         val fx = fnctn x;
         val cx = Thm.cterm_of ctxt x;
@@ -205,7 +205,7 @@ fun quot_true_simple_conv ctxt fnctn ctrm =
 
 fun quot_true_conv ctxt fnctn ctrm =
   (case Thm.term_of ctrm of
-    (Const (@{const_name Quot_True}, _) $ _) =>
+    (Const (\<^const_name>\<open>Quot_True\<close>, _) $ _) =>
       quot_true_simple_conv ctxt fnctn ctrm
   | _ $ _ => Conv.comb_conv (quot_true_conv ctxt fnctn) ctrm
   | Abs _ => Conv.abs_conv (fn (_, ctxt) => quot_true_conv ctxt fnctn) ctxt ctrm
@@ -314,53 +314,53 @@ fun rep_abs_rsp_tac ctxt =
 fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
   (case bare_concl goal of
       (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
-    (Const (@{const_name rel_fun}, _) $ _ $ _) $ (Abs _) $ (Abs _)
+    (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $ (Abs _) $ (Abs _)
         => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
-  | (Const (@{const_name HOL.eq},_) $
-      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
+  | (Const (\<^const_name>\<open>HOL.eq\<close>,_) $
+      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
+      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _))
         => resolve_tac ctxt @{thms ball_rsp} THEN' dresolve_tac ctxt @{thms QT_all}
 
       (* (R1 ===> op =) (Ball...) (Ball...) ----> [|R1 x y|] ==> (Ball...x) = (Ball...y) *)
-  | (Const (@{const_name rel_fun}, _) $ _ $ _) $
-      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
+  | (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $
+      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
+      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _)
         => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
-  | Const (@{const_name HOL.eq},_) $
-      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
+  | Const (\<^const_name>\<open>HOL.eq\<close>,_) $
+      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
+      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _)
         => resolve_tac ctxt @{thms bex_rsp} THEN' dresolve_tac ctxt @{thms QT_ex}
 
       (* (R1 ===> op =) (Bex...) (Bex...) ----> [|R1 x y|] ==> (Bex...x) = (Bex...y) *)
-  | (Const (@{const_name rel_fun}, _) $ _ $ _) $
-      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
+  | (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $
+      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
+      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _)
         => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
-  | (Const (@{const_name rel_fun}, _) $ _ $ _) $
-      (Const(@{const_name Bex1_rel},_) $ _) $ (Const(@{const_name Bex1_rel},_) $ _)
+  | (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $
+      (Const(\<^const_name>\<open>Bex1_rel\<close>,_) $ _) $ (Const(\<^const_name>\<open>Bex1_rel\<close>,_) $ _)
         => resolve_tac ctxt @{thms bex1_rel_rsp} THEN' quotient_tac ctxt
 
   | (_ $
-      (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-      (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
+      (Const(\<^const_name>\<open>Babs\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
+      (Const(\<^const_name>\<open>Babs\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _))
         => resolve_tac ctxt @{thms babs_rsp} THEN' quotient_tac ctxt
 
-  | Const (@{const_name HOL.eq},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
+  | Const (\<^const_name>\<open>HOL.eq\<close>,_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
      (resolve_tac ctxt @{thms refl} ORELSE'
       (equals_rsp_tac R ctxt THEN' RANGE [
          quot_true_tac ctxt (fst o dest_bcomb), quot_true_tac ctxt (snd o dest_bcomb)]))
 
       (* reflexivity of operators arising from Cong_tac *)
-  | Const (@{const_name HOL.eq},_) $ _ $ _ => resolve_tac ctxt @{thms refl}
+  | Const (\<^const_name>\<open>HOL.eq\<close>,_) $ _ $ _ => resolve_tac ctxt @{thms refl}
 
      (* respectfulness of constants; in particular of a simple relation *)
   | _ $ (Const _) $ (Const _)  (* rel_fun, list_rel, etc but not equality *)
-      => resolve_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems quot_respect}))
+      => resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_respect\<close>))
           THEN_ALL_NEW quotient_tac ctxt
 
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
@@ -411,7 +411,7 @@ fun all_injection_tac ctxt =
 (* expands all map_funs, except in front of the (bound) variables listed in xs *)
 fun map_fun_simple_conv xs ctrm =
   (case Thm.term_of ctrm of
-    ((Const (@{const_name "map_fun"}, _) $ _ $ _) $ h $ _) =>
+    ((Const (\<^const_name>\<open>map_fun\<close>, _) $ _ $ _) $ h $ _) =>
         if member (op=) xs h
         then Conv.all_conv ctrm
         else Conv.rewr_conv @{thm map_fun_apply [THEN eq_reflection]} ctrm
@@ -462,7 +462,7 @@ fun make_inst_id lhs t =
 *)
 fun lambda_prs_simple_conv ctxt ctrm =
   (case Thm.term_of ctrm of
-    (Const (@{const_name map_fun}, _) $ r1 $ a2) $ (Abs _) =>
+    (Const (\<^const_name>\<open>map_fun\<close>, _) $ r1 $ a2) $ (Abs _) =>
       let
         val (ty_b, ty_a) = dest_funT (fastype_of r1)
         val (ty_c, ty_d) = dest_funT (fastype_of a2)
@@ -511,8 +511,8 @@ fun clean_tac ctxt =
   let
     val thy =  Proof_Context.theory_of ctxt
     val defs = map (Thm.symmetric o #def) (Quotient_Info.dest_quotconsts_global thy)
-    val prs = rev (Named_Theorems.get ctxt @{named_theorems quot_preserve})
-    val ids = rev (Named_Theorems.get ctxt @{named_theorems id_simps})
+    val prs = rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_preserve\<close>)
+    val ids = rev (Named_Theorems.get ctxt \<^named_theorems>\<open>id_simps\<close>)
     val thms =
       @{thms Quotient3_abs_rep Quotient3_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 

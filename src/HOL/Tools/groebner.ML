@@ -402,7 +402,7 @@ fun weak_dnf_conv ctxt =
   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms weak_dnf_simps});
 
 val initial_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps nnf_simps
     addsimps [not_all, not_ex]
     addsimps map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps}));
@@ -786,7 +786,7 @@ val poly_eq_simproc =
   end;
 
 val poly_eq_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps @{thms simp_thms}
     addsimprocs [poly_eq_simproc])
 
@@ -946,7 +946,7 @@ local
    | exitac ctxt (SOME y) =
       resolve_tac ctxt [Thm.instantiate' [SOME (Thm.ctyp_of_cterm y)] [NONE,SOME y] exI] 1
 
- val claset = claset_of @{context}
+ val claset = claset_of \<^context>
 in
 fun ideal_tac add_ths del_ths ctxt =
   presimplify ctxt add_ths del_ths

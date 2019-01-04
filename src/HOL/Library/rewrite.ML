@@ -68,13 +68,13 @@ fun mk_hole i T = Var ((holeN, i), T)
 fun is_hole (Var ((name, _), _)) = (name = holeN)
   | is_hole _ = false
 
-fun is_hole_const (Const (@{const_name rewrite_HOLE}, _)) = true
+fun is_hole_const (Const (\<^const_name>\<open>rewrite_HOLE\<close>, _)) = true
   | is_hole_const _ = false
 
 val hole_syntax =
   let
     (* Modified variant of Term.replace_hole *)
-    fun replace_hole Ts (Const (@{const_name rewrite_HOLE}, T)) i =
+    fun replace_hole Ts (Const (\<^const_name>\<open>rewrite_HOLE\<close>, T)) i =
           (list_comb (mk_hole i (Ts ---> T), map_range Bound (length Ts)), i + 1)
       | replace_hole Ts (Abs (x, T, t)) i =
           let val (t', i') = replace_hole (T :: Ts) t i
@@ -161,14 +161,14 @@ end
 fun params_pconv cv ctxt tytenv ct =
   let val pconv =
     case Thm.term_of ct of
-      Const (@{const_name "Pure.all"}, _) $ Abs _ => (raw_arg_pconv o raw_abs_pconv) (fn _ => params_pconv cv)
-    | Const (@{const_name "Pure.all"}, _) => raw_arg_pconv (params_pconv cv)
+      Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs _ => (raw_arg_pconv o raw_abs_pconv) (fn _ => params_pconv cv)
+    | Const (\<^const_name>\<open>Pure.all\<close>, _) => raw_arg_pconv (params_pconv cv)
     | _ => cv
   in pconv ctxt tytenv ct end
 
 fun forall_pconv cv ident ctxt tytenv ct =
   case Thm.term_of ct of
-    Const (@{const_name "Pure.all"}, T) $ _ =>
+    Const (\<^const_name>\<open>Pure.all\<close>, T) $ _ =>
       let
         val def_U = T |> dest_funT |> fst |> dest_funT |> fst
         val ident' = apsnd (the_default (def_U)) ident
@@ -179,7 +179,7 @@ fun all_pconv _ _ = Thm.reflexive
 
 fun for_pconv cv idents ctxt tytenv ct =
   let
-    fun f rev_idents (Const (@{const_name "Pure.all"}, _) $ t) =
+    fun f rev_idents (Const (\<^const_name>\<open>Pure.all\<close>, _) $ t) =
         let val (rev_idents', cv') = f rev_idents (case t of Abs (_,_,u) => u | _ => t)
         in
           case rev_idents' of
@@ -195,17 +195,17 @@ fun for_pconv cv idents ctxt tytenv ct =
 
 fun concl_pconv cv ctxt tytenv ct =
   case Thm.term_of ct of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => imp_pconv (concl_pconv cv) ctxt tytenv ct
+    (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _) $ _ => imp_pconv (concl_pconv cv) ctxt tytenv ct
   | _ => cv ctxt tytenv ct
 
 fun asm_pconv cv ctxt tytenv ct =
   case Thm.term_of ct of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ => CConv.with_prems_cconv ~1 (cv ctxt tytenv) ct
+    (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _) $ _ => CConv.with_prems_cconv ~1 (cv ctxt tytenv) ct
   | t => raise TERM ("asm_pconv", [t])
 
 fun asms_pconv cv ctxt tytenv ct =
   case Thm.term_of ct of
-    (Const (@{const_name "Pure.imp"}, _) $ _) $ _ =>
+    (Const (\<^const_name>\<open>Pure.imp\<close>, _) $ _) $ _ =>
       ((CConv.with_prems_cconv ~1 oo cv) else_pconv imp_pconv (asms_pconv cv)) ctxt tytenv ct
   | t => raise TERM ("asms_pconv", [t])
 
@@ -445,7 +445,7 @@ val _ =
       let val scan = raw_pattern -- to_parser -- Parse.thms1
       in context_lift scan prep_args end
   in
-    Method.setup @{binding rewrite} (subst_parser >>
+    Method.setup \<^binding>\<open>rewrite\<close> (subst_parser >>
       (fn (pattern, inthms, (to, pat_ctxt)) => fn orig_ctxt =>
         SIMPLE_METHOD' (rewrite_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)))
       "single-step rewriting, allowing subterm selection via patterns."

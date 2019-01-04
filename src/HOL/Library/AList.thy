@@ -13,8 +13,8 @@ begin
 
 text \<open>
   The operations preserve distinctness of keys and
-  function @{term "clearjunk"} distributes over them. Since
-  @{term clearjunk} enforces distinctness of keys it can be used
+  function \<^term>\<open>clearjunk\<close> distributes over them. Since
+  \<^term>\<open>clearjunk\<close> enforces distinctness of keys it can be used
   to establish the invariant, e.g. for inductive proofs.
 \<close>
 
@@ -69,8 +69,8 @@ lemma update_last [simp]: "update k v (update k v' al) = update k v al"
   by (induct al) auto
 
 text \<open>Note that the lists are not necessarily the same:
-        @{term "update k v (update k' v' []) = [(k', v'), (k, v)]"} and
-        @{term "update k' v' (update k v []) = [(k, v), (k', v')]"}.\<close>
+        \<^term>\<open>update k v (update k' v' []) = [(k', v'), (k, v)]\<close> and
+        \<^term>\<open>update k' v' (update k v []) = [(k, v), (k', v')]\<close>.\<close>
 
 lemma update_swap:
   "k \<noteq> k' \<Longrightarrow> map_of (update k v (update k' v' al)) = map_of (update k' v' (update k v al))"
@@ -223,7 +223,7 @@ qualified primrec update_with_aux ::
       (if (fst p = k) then (k, f (snd p)) # ps else p # update_with_aux v k f ps)"
 
 text \<open>
-  The above @{term "delete"} traverses all the list even if it has found the key.
+  The above \<^term>\<open>delete\<close> traverses all the list even if it has found the key.
   This one does not have to keep going because is assumes the invariant that keys are distinct.
 \<close>
 qualified fun delete_aux :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"

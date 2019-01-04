@@ -25,7 +25,7 @@ definition "case" :: "[i=>i, i=>i, i]=>i" where
 definition Part :: "[i,i=>i] => i" where
      "Part(A,h) == {x \<in> A. \<exists>z. x = h(z)}"
 
-subsection\<open>Rules for the @{term Part} Primitive\<close>
+subsection\<open>Rules for the \<^term>\<open>Part\<close> Primitive\<close>
 
 lemma Part_iff:
     "a \<in> Part(A,h) \<longleftrightarrow> a \<in> A & (\<exists>y. a=h(y))"
@@ -125,7 +125,7 @@ lemma sum_eq_2_times: "A+A = 2*A"
 by (simp add: sum_def, blast)
 
 
-subsection\<open>The Eliminator: @{term case}\<close>
+subsection\<open>The Eliminator: \<^term>\<open>case\<close>\<close>
 
 lemma case_Inl [simp]: "case(c, d, Inl(a)) = c(a)"
 by (simp add: sum_defs)
@@ -159,7 +159,7 @@ lemma case_case: "z \<in> A+B ==>
 by auto
 
 
-subsection\<open>More Rules for @{term "Part(A,h)"}\<close>
+subsection\<open>More Rules for \<^term>\<open>Part(A,h)\<close>\<close>
 
 lemma Part_mono: "A<=B ==> Part(A,h)<=Part(B,h)"
 by blast

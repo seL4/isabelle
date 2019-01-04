@@ -37,7 +37,7 @@ definition
     "univ(A) == Vfrom(A,nat)"
 
 
-subsection\<open>Immediate Consequences of the Definition of @{term "Vfrom(A,i)"}\<close>
+subsection\<open>Immediate Consequences of the Definition of \<^term>\<open>Vfrom(A,i)\<close>\<close>
 
 text\<open>NOT SUITABLE FOR REWRITING -- RECURSIVE!\<close>
 lemma Vfrom: "Vfrom(A,i) = A \<union> (\<Union>j\<in>i. Pow(Vfrom(A,j)))"
@@ -135,7 +135,7 @@ apply (erule subset_trans)
 apply (rule Vfrom_mono [OF subset_refl subset_succI])
 done
 
-subsection\<open>0, Successor and Limit Equations for @{term Vfrom}\<close>
+subsection\<open>0, Successor and Limit Equations for \<^term>\<open>Vfrom\<close>\<close>
 
 lemma Vfrom_0: "Vfrom(A,0) = A"
 by (subst Vfrom, blast)
@@ -176,7 +176,7 @@ apply (rule UN_least)
 apply (subst Vfrom, blast)
 done
 
-subsection\<open>@{term Vfrom} applied to Limit Ordinals\<close>
+subsection\<open>\<^term>\<open>Vfrom\<close> applied to Limit Ordinals\<close>
 
 (*NB. limit ordinals are non-empty:
       Vfrom(A,0) = A = A \<union> (\<Union>y\<in>0. Vfrom(A,y)) *)
@@ -223,7 +223,7 @@ lemma Pair_in_VLimit:
 txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_VfromE, assumption)
 apply (erule Limit_VfromE, assumption)
-txt\<open>Infer that @{term"succ(succ(x \<union> xa)) < i"}\<close>
+txt\<open>Infer that \<^term>\<open>succ(succ(x \<union> xa)) < i\<close>\<close>
 apply (blast intro: VfromI [OF Pair_in_Vfrom]
                     Vfrom_UnI1 Vfrom_UnI2 Limit_has_succ Un_least_lt)
 done
@@ -266,7 +266,7 @@ lemmas sum_subset_VLimit = subset_trans [OF sum_mono sum_VLimit]
 
 
 
-subsection\<open>Properties assuming @{term "Transset(A)"}\<close>
+subsection\<open>Properties assuming \<^term>\<open>Transset(A)\<close>\<close>
 
 lemma Transset_Vfrom: "Transset(A) ==> Transset(Vfrom(A,i))"
 apply (rule_tac a=i in eps_induct)
@@ -404,7 +404,7 @@ lemma Pow_in_VLimit:
 by (blast elim: Limit_VfromE intro: Limit_has_succ Pow_in_Vfrom VfromI)
 
 
-subsection\<open>The Set @{term "Vset(i)"}\<close>
+subsection\<open>The Set \<^term>\<open>Vset(i)\<close>\<close>
 
 lemma Vset: "Vset(i) = (\<Union>j\<in>i. Pow(Vset(j)))"
 by (subst Vfrom, blast)
@@ -412,7 +412,7 @@ by (subst Vfrom, blast)
 lemmas Vset_succ = Transset_0 [THEN Transset_Vfrom_succ]
 lemmas Transset_Vset = Transset_0 [THEN Transset_Vfrom]
 
-subsubsection\<open>Characterisation of the elements of @{term "Vset(i)"}\<close>
+subsubsection\<open>Characterisation of the elements of \<^term>\<open>Vset(i)\<close>\<close>
 
 lemma VsetD [rule_format]: "Ord(i) ==> \<forall>b. b \<in> Vset(i) \<longrightarrow> rank(b) < i"
 apply (erule trans_induct)
@@ -520,7 +520,7 @@ apply (rule Vrecursor)
 done
 
 
-subsection\<open>The Datatype Universe: @{term "univ(A)"}\<close>
+subsection\<open>The Datatype Universe: \<^term>\<open>univ(A)\<close>\<close>
 
 lemma univ_mono: "A<=B ==> univ(A) \<subseteq> univ(B)"
 apply (unfold univ_def)
@@ -533,7 +533,7 @@ apply (unfold univ_def)
 apply (erule Transset_Vfrom)
 done
 
-subsubsection\<open>The Set @{term"univ(A)"} as a Limit\<close>
+subsubsection\<open>The Set \<^term>\<open>univ(A)\<close> as a Limit\<close>
 
 lemma univ_eq_UN: "univ(A) = (\<Union>i\<in>nat. Vfrom(A,i))"
 apply (unfold univ_def)
@@ -564,7 +564,7 @@ apply (rule univ_Int_Vfrom_subset, assumption)
 apply (blast elim: equalityCE)
 done
 
-subsection\<open>Closure Properties for @{term "univ(A)"}\<close>
+subsection\<open>Closure Properties for \<^term>\<open>univ(A)\<close>\<close>
 
 lemma zero_in_univ: "0 \<in> univ(A)"
 apply (unfold univ_def)
@@ -790,7 +790,7 @@ by (blast dest!: Pair_in_Vfrom_D)
 ML
 \<open>
 val rank_ss =
-  simpset_of (@{context} addsimps [@{thm VsetI}]
+  simpset_of (\<^context> addsimps [@{thm VsetI}]
     addsimps @{thms rank_rls} @ (@{thms rank_rls} RLN (2, [@{thm lt_trans}])));
 \<close>
 

@@ -135,7 +135,7 @@ fun has_lonely_bool_var (@{const Pure.conjunction} $ (@{const Trueprop} $ Free _
   | has_lonely_bool_var _ = false;
 
 val syntactic_sorts =
-  @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @ @{sort numeral};
+  \<^sort>\<open>{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}\<close> @ \<^sort>\<open>numeral\<close>;
 
 fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) = subset (op =) (S, syntactic_sorts)
   | has_tfree_syntactic_sort _ = false;

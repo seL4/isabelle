@@ -97,8 +97,8 @@ open Sledgehammer_MePo
 
 val anonymous_proof_prefix = "."
 
-val trace = Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
-val duplicates = Attrib.setup_config_bool @{binding sledgehammer_fact_duplicates} (K false)
+val trace = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_mash_trace\<close> (K false)
+val duplicates = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_fact_duplicates\<close> (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
@@ -140,7 +140,7 @@ datatype mash_algorithm =
 | MaSh_kNN_Ext
 
 fun mash_algorithm () =
-  (case Options.default_string @{system_option MaSh} of
+  (case Options.default_string \<^system_option>\<open>MaSh\<close> of
     "yes" => SOME MaSh_NB_kNN
   | "sml" => SOME MaSh_NB_kNN
   | "nb" => SOME MaSh_NB
@@ -874,9 +874,9 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
     get_minimizing_prover ctxt MaSh (K ()) prover params problem
   end
 
-val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
+val bad_types = [\<^type_name>\<open>prop\<close>, \<^type_name>\<open>bool\<close>, \<^type_name>\<open>fun\<close>]
 
-val crude_str_of_sort = space_implode "," o map Long_Name.base_name o subtract (op =) @{sort type}
+val crude_str_of_sort = space_implode "," o map Long_Name.base_name o subtract (op =) \<^sort>\<open>type\<close>
 
 fun crude_str_of_typ (Type (s, [])) = Long_Name.base_name s
   | crude_str_of_typ (Type (s, Ts)) = Long_Name.base_name s ^ implode (map crude_str_of_typ Ts)
@@ -895,11 +895,11 @@ fun term_features_of ctxt thy_name term_max_depth type_max_depth ts =
     val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
 
-    fun add_classes @{sort type} = I
+    fun add_classes \<^sort>\<open>type\<close> = I
       | add_classes S =
         fold (`(Sorts.super_classes classes)
           #> swap #> op ::
-          #> subtract (op =) @{sort type}
+          #> subtract (op =) \<^sort>\<open>type\<close>
           #> map class_feature_of
           #> union (op =)) S
 
@@ -1547,7 +1547,7 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
     val facts =
-      nearly_all_facts ctxt false fact_override Keyword.empty_keywords css chained [] @{prop True}
+      nearly_all_facts ctxt false fact_override Keyword.empty_keywords css chained [] \<^prop>\<open>True\<close>
       |> sort (crude_thm_ord ctxt o apply2 snd o swap)
     val num_facts = length facts
     val prover = hd provers

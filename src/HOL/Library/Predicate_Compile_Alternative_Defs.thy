@@ -22,16 +22,16 @@ lemma [code_pred_inline]:
   "((A::bool) \<noteq> (B::bool)) = ((A \<and> \<not> B) \<or> (B \<and> \<not> A))"
 by fast
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Let}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>Let\<close>]\<close>
 
 section \<open>Pairs\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>fst\<close>, \<^const_name>\<open>snd\<close>, \<^const_name>\<open>case_prod\<close>]\<close>
 
 section \<open>Filters\<close>
 
 (*TODO: shouldn't this be done by typedef? *)
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Abs_filter}, @{const_name Rep_filter}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>Abs_filter\<close>, \<^const_name>\<open>Rep_filter\<close>]\<close>
 
 section \<open>Bounded quantifiers\<close>
 
@@ -54,12 +54,12 @@ lemma set_equality[code_pred_inline]:
 
 section \<open>Setup for Numerals\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name numeral}]\<close>
-setup \<open>Predicate_Compile_Data.keep_functions [@{const_name numeral}]\<close>
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Char}]\<close>
-setup \<open>Predicate_Compile_Data.keep_functions [@{const_name Char}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>numeral\<close>]\<close>
+setup \<open>Predicate_Compile_Data.keep_functions [\<^const_name>\<open>numeral\<close>]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>Char\<close>]\<close>
+setup \<open>Predicate_Compile_Data.keep_functions [\<^const_name>\<open>Char\<close>]\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name divide}, @{const_name modulo}, @{const_name times}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>divide\<close>, \<^const_name>\<open>modulo\<close>, \<^const_name>\<open>times\<close>]\<close>
 
 section \<open>Arithmetic operations\<close>
 
@@ -95,57 +95,57 @@ let
   val ioi = Fun (Input, Fun (Output, Fun (Input, Bool)))
   val oii = Fun (Output, Fun (Input, Fun (Input, Bool)))
   val ooi = Fun (Output, Fun (Output, Fun (Input, Bool)))
-  val plus_nat = Core_Data.functional_compilation @{const_name plus} iio
-  val minus_nat = Core_Data.functional_compilation @{const_name "minus"} iio
+  val plus_nat = Core_Data.functional_compilation \<^const_name>\<open>plus\<close> iio
+  val minus_nat = Core_Data.functional_compilation \<^const_name>\<open>minus\<close> iio
   fun subtract_nat compfuns (_ : typ) =
     let
-      val T = Predicate_Compile_Aux.mk_monadT compfuns @{typ nat}
+      val T = Predicate_Compile_Aux.mk_monadT compfuns \<^typ>\<open>nat\<close>
     in
-      absdummy @{typ nat} (absdummy @{typ nat}
-        (Const (@{const_name "If"}, @{typ bool} --> T --> T --> T) $
-          (@{term "(>) :: nat => nat => bool"} $ Bound 1 $ Bound 0) $
-          Predicate_Compile_Aux.mk_empty compfuns @{typ nat} $
+      absdummy \<^typ>\<open>nat\<close> (absdummy \<^typ>\<open>nat\<close>
+        (Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T --> T --> T) $
+          (\<^term>\<open>(>) :: nat => nat => bool\<close> $ Bound 1 $ Bound 0) $
+          Predicate_Compile_Aux.mk_empty compfuns \<^typ>\<open>nat\<close> $
           Predicate_Compile_Aux.mk_single compfuns
-          (@{term "(-) :: nat => nat => nat"} $ Bound 0 $ Bound 1)))
+          (\<^term>\<open>(-) :: nat => nat => nat\<close> $ Bound 0 $ Bound 1)))
     end
   fun enumerate_addups_nat compfuns (_ : typ) =
-    absdummy @{typ nat} (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ "nat * nat"}
-    (absdummy @{typ natural} (@{term "Pair :: nat => nat => nat * nat"} $
-      (@{term "nat_of_natural"} $ Bound 0) $
-      (@{term "(-) :: nat => nat => nat"} $ Bound 1 $ (@{term "nat_of_natural"} $ Bound 0))),
-      @{term "0 :: natural"}, @{term "natural_of_nat"} $ Bound 0))
+    absdummy \<^typ>\<open>nat\<close> (Predicate_Compile_Aux.mk_iterate_upto compfuns \<^typ>\<open>nat * nat\<close>
+    (absdummy \<^typ>\<open>natural\<close> (\<^term>\<open>Pair :: nat => nat => nat * nat\<close> $
+      (\<^term>\<open>nat_of_natural\<close> $ Bound 0) $
+      (\<^term>\<open>(-) :: nat => nat => nat\<close> $ Bound 1 $ (\<^term>\<open>nat_of_natural\<close> $ Bound 0))),
+      \<^term>\<open>0 :: natural\<close>, \<^term>\<open>natural_of_nat\<close> $ Bound 0))
   fun enumerate_nats compfuns  (_ : typ) =
     let
-      val (single_const, _) = strip_comb (Predicate_Compile_Aux.mk_single compfuns @{term "0 :: nat"})
-      val T = Predicate_Compile_Aux.mk_monadT compfuns @{typ nat}
+      val (single_const, _) = strip_comb (Predicate_Compile_Aux.mk_single compfuns \<^term>\<open>0 :: nat\<close>)
+      val T = Predicate_Compile_Aux.mk_monadT compfuns \<^typ>\<open>nat\<close>
     in
-      absdummy @{typ nat} (absdummy @{typ nat}
-        (Const (@{const_name If}, @{typ bool} --> T --> T --> T) $
-          (@{term "(=) :: nat => nat => bool"} $ Bound 0 $ @{term "0::nat"}) $
-          (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ nat} (@{term "nat_of_natural"},
-            @{term "0::natural"}, @{term "natural_of_nat"} $ Bound 1)) $
-            (single_const $ (@{term "(+) :: nat => nat => nat"} $ Bound 1 $ Bound 0))))
+      absdummy \<^typ>\<open>nat\<close> (absdummy \<^typ>\<open>nat\<close>
+        (Const (\<^const_name>\<open>If\<close>, \<^typ>\<open>bool\<close> --> T --> T --> T) $
+          (\<^term>\<open>(=) :: nat => nat => bool\<close> $ Bound 0 $ \<^term>\<open>0::nat\<close>) $
+          (Predicate_Compile_Aux.mk_iterate_upto compfuns \<^typ>\<open>nat\<close> (\<^term>\<open>nat_of_natural\<close>,
+            \<^term>\<open>0::natural\<close>, \<^term>\<open>natural_of_nat\<close> $ Bound 1)) $
+            (single_const $ (\<^term>\<open>(+) :: nat => nat => nat\<close> $ Bound 1 $ Bound 0))))
     end
 in
-  Core_Data.force_modes_and_compilations @{const_name plus_eq_nat}
+  Core_Data.force_modes_and_compilations \<^const_name>\<open>plus_eq_nat\<close>
     [(iio, (plus_nat, false)), (oii, (subtract_nat, false)), (ioi, (subtract_nat, false)),
      (ooi, (enumerate_addups_nat, false))]
   #> Predicate_Compile_Fun.add_function_predicate_translation
-       (@{term "plus :: nat => nat => nat"}, @{term "plus_eq_nat"})
-  #> Core_Data.force_modes_and_compilations @{const_name minus_eq_nat}
+       (\<^term>\<open>plus :: nat => nat => nat\<close>, \<^term>\<open>plus_eq_nat\<close>)
+  #> Core_Data.force_modes_and_compilations \<^const_name>\<open>minus_eq_nat\<close>
        [(iio, (minus_nat, false)), (oii, (enumerate_nats, false))]
   #> Predicate_Compile_Fun.add_function_predicate_translation
-      (@{term "minus :: nat => nat => nat"}, @{term "minus_eq_nat"})
-  #> Core_Data.force_modes_and_functions @{const_name plus_eq_int}
-    [(iio, (@{const_name plus}, false)), (ioi, (@{const_name subtract}, false)),
-     (oii, (@{const_name subtract}, false))]
+      (\<^term>\<open>minus :: nat => nat => nat\<close>, \<^term>\<open>minus_eq_nat\<close>)
+  #> Core_Data.force_modes_and_functions \<^const_name>\<open>plus_eq_int\<close>
+    [(iio, (\<^const_name>\<open>plus\<close>, false)), (ioi, (\<^const_name>\<open>subtract\<close>, false)),
+     (oii, (\<^const_name>\<open>subtract\<close>, false))]
   #> Predicate_Compile_Fun.add_function_predicate_translation
-       (@{term "plus :: int => int => int"}, @{term "plus_eq_int"})
-  #> Core_Data.force_modes_and_functions @{const_name minus_eq_int}
-    [(iio, (@{const_name minus}, false)), (oii, (@{const_name plus}, false)),
-     (ioi, (@{const_name minus}, false))]
+       (\<^term>\<open>plus :: int => int => int\<close>, \<^term>\<open>plus_eq_int\<close>)
+  #> Core_Data.force_modes_and_functions \<^const_name>\<open>minus_eq_int\<close>
+    [(iio, (\<^const_name>\<open>minus\<close>, false)), (oii, (\<^const_name>\<open>plus\<close>, false)),
+     (ioi, (\<^const_name>\<open>minus\<close>, false))]
   #> Predicate_Compile_Fun.add_function_predicate_translation
-      (@{term "minus :: int => int => int"}, @{term "minus_eq_int"})
+      (\<^term>\<open>minus :: int => int => int\<close>, \<^term>\<open>minus_eq_int\<close>)
 end
 \<close>
 
@@ -244,7 +244,7 @@ code_identifier constant member_i_o
 
 section \<open>Setup for String.literal\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name String.Literal}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [\<^const_name>\<open>String.Literal\<close>]\<close>
 
 section \<open>Simplification rules for optimisation\<close>
 

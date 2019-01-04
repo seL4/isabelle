@@ -31,7 +31,7 @@ abbreviation
 
 
 subsection\<open>Suppes, Theorem 70:
-    @{term r} is an equiv relation iff @{term "converse(r) O r = r"}\<close>
+    \<^term>\<open>r\<close> is an equiv relation iff \<^term>\<open>converse(r) O r = r\<close>\<close>
 
 (** first half: equiv(A,r) ==> converse(r) O r = r **)
 

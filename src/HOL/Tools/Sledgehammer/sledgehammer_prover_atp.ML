@@ -38,14 +38,14 @@ open Sledgehammer_Isar
 open Sledgehammer_Prover
 
 (* Empty string means create files in Isabelle's temporary files directory. *)
-val atp_dest_dir = Attrib.setup_config_string @{binding sledgehammer_atp_dest_dir} (K "")
+val atp_dest_dir = Attrib.setup_config_string \<^binding>\<open>sledgehammer_atp_dest_dir\<close> (K "")
 val atp_problem_prefix =
-  Attrib.setup_config_string @{binding sledgehammer_atp_problem_prefix} (K "prob")
-val atp_completish = Attrib.setup_config_int @{binding sledgehammer_atp_completish} (K 0)
+  Attrib.setup_config_string \<^binding>\<open>sledgehammer_atp_problem_prefix\<close> (K "prob")
+val atp_completish = Attrib.setup_config_int \<^binding>\<open>sledgehammer_atp_completish\<close> (K 0)
 (* In addition to being easier to read, readable names are often much shorter, especially if types
    are mangled in names. This makes a difference for some provers (e.g., E). For these reason, short
    names are enabled by default. *)
-val atp_full_names = Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
+val atp_full_names = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_atp_full_names\<close> (K false)
 
 fun is_atp_of_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
@@ -79,18 +79,18 @@ val is_exhaustive_finite =
     fun do_formula pos t =
       (case (pos, t) of
         (_, @{const Trueprop} $ t1) => do_formula pos t1
-      | (true, Const (@{const_name Pure.all}, _) $ Abs (_, _, t')) => do_formula pos t'
-      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) => do_formula pos t'
-      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) => do_formula pos t'
+      | (true, Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t')) => do_formula pos t'
+      | (true, Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t')) => do_formula pos t'
+      | (false, Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t')) => do_formula pos t'
       | (_, @{const Pure.imp} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso (t2 = @{prop False} orelse do_formula pos t2)
+        do_formula (not pos) t1 andalso (t2 = \<^prop>\<open>False\<close> orelse do_formula pos t2)
       | (_, @{const HOL.implies} $ t1 $ t2) =>
         do_formula (not pos) t1 andalso (t2 = @{const False} orelse do_formula pos t2)
       | (_, @{const Not} $ t1) => do_formula (not pos) t1
       | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (true, Const (@{const_name HOL.eq}, _) $ t1 $ t2) => do_equals t1 t2
-      | (true, Const (@{const_name Pure.eq}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2) => do_equals t1 t2
       | _ => false)
   in do_formula true end
 

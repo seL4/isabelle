@@ -177,7 +177,7 @@ by (induct_tac "v", auto)
 
 
 subsubsection\<open>The Carry and Borrow Functions,
-            @{term bin_succ} and @{term bin_pred}\<close>
+            \<^term>\<open>bin_succ\<close> and \<^term>\<open>bin_pred\<close>\<close>
 
 (*NCons preserves the integer value of its argument*)
 lemma integ_of_NCons [simp]:
@@ -199,7 +199,7 @@ apply (auto simp add: zadd_ac elim!: boolE)
 done
 
 
-subsubsection\<open>@{term bin_minus}: Unary Negation of Binary Integers\<close>
+subsubsection\<open>\<^term>\<open>bin_minus\<close>: Unary Negation of Binary Integers\<close>
 
 lemma integ_of_minus: "w \<in> bin ==> integ_of(bin_minus(w)) = $- integ_of(w)"
 apply (erule bin.induct)
@@ -207,7 +207,7 @@ apply (auto simp add: zadd_ac zminus_zadd_distrib  elim!: boolE)
 done
 
 
-subsubsection\<open>@{term bin_add}: Binary Addition\<close>
+subsubsection\<open>\<^term>\<open>bin_add\<close>: Binary Addition\<close>
 
 lemma bin_add_Pls [simp]: "w \<in> bin ==> bin_add(Pls,w) = w"
 by (unfold bin_add_def, simp)
@@ -255,7 +255,7 @@ apply (simp add: integ_of_add integ_of_minus)
 done
 
 
-subsubsection\<open>@{term bin_mult}: Binary Multiplication\<close>
+subsubsection\<open>\<^term>\<open>bin_mult\<close>: Binary Multiplication\<close>
 
 lemma integ_of_mult:
      "[| v \<in> bin;  w \<in> bin |]

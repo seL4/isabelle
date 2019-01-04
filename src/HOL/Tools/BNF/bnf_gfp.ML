@@ -1768,7 +1768,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
             define_bnf_consts Hardly_Inline (user_policy Note_Some lthy) false (SOME deads)
               map_b rel_b pred_b set_bs
               (((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd),
-                [Const (@{const_name undefined}, T)]), NONE), NONE) lthy)
+                [Const (\<^const_name>\<open>undefined\<close>, T)]), NONE), NONE) lthy)
           bs map_bs rel_bs pred_bs set_bss fs_maps setss Ts lthy;
 
         val (_, Jconsts, Jconst_defs, mk_Jconsts) = @{split_list 4} Jbnf_consts;
@@ -2422,8 +2422,8 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
                     (if dummy = NONE orelse member (op =) I (j - 1) then
                       HOLogic.mk_imp (HOLogic.mk_eq (z, wit),
                         if member (op =) I (j - 1) then HOLogic.mk_eq (y_copy, y)
-                        else @{term False})
-                    else @{term True}));
+                        else \<^term>\<open>False\<close>)
+                    else \<^term>\<open>True\<close>));
               in
                 HOLogic.mk_Trueprop
                   (Library.foldr1 HOLogic.mk_conj (@{map 4} mk_conjunct sets Jzs dummys wits))
@@ -2603,9 +2603,9 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword codatatype} "define coinductive datatypes"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>codatatype\<close> "define coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
-val _ = Theory.setup (fp_antiquote_setup @{binding codatatype});
+val _ = Theory.setup (fp_antiquote_setup \<^binding>\<open>codatatype\<close>);
 
 end;

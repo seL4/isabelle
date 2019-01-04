@@ -1141,7 +1141,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
               else
                 [mk_Trueprop_eq (build_rel_app names_lthy Rs [] ta tb,
                    (case flat (@{map 5} (mk_conjunct n) (1 upto n) discAs selAss discBs selBss) of
-                     [] => @{term True}
+                     [] => \<^term>\<open>True\<close>
                    | conjuncts => Library.foldr1 HOLogic.mk_conj conjuncts))];
 
             fun prove goal =
@@ -1247,7 +1247,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 val map_rhs = build_map lthy [] []
                   (the o (AList.lookup (op =) (live_AsBs ~~ fs))) (map_rhsT, lhsT);
                 val rhs = (case map_rhs of
-                    Const (@{const_name id}, _) => selA $ ta
+                    Const (\<^const_name>\<open>id\<close>, _) => selA $ ta
                   | _ => map_rhs $ (selA $ ta));
                 val concl = mk_Trueprop_eq (lhs, rhs);
               in
@@ -1342,7 +1342,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
         val pred_injects =
           let
             fun top_sweep_rewr_conv rewrs =
-              Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) @{context};
+              Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) \<^context>;
 
             val rel_eq_onp_with_tops_of = Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg1_conv
               (top_sweep_rewr_conv @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})));
@@ -1470,10 +1470,10 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs_pair),
 
 val transfer_gfp_sugar_thms = morph_gfp_sugar_thms o Morphism.transfer_morphism;
 
-fun unzip_recT (Type (@{type_name prod}, [_, TFree x]))
-      (T as Type (@{type_name prod}, Ts as [_, TFree y])) =
+fun unzip_recT (Type (\<^type_name>\<open>prod\<close>, [_, TFree x]))
+      (T as Type (\<^type_name>\<open>prod\<close>, Ts as [_, TFree y])) =
     if x = y then [T] else Ts
-  | unzip_recT _ (Type (@{type_name prod}, Ts as [_, TFree _])) = Ts
+  | unzip_recT _ (Type (\<^type_name>\<open>prod\<close>, Ts as [_, TFree _])) = Ts
   | unzip_recT _ T = [T];
 
 fun mk_recs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts =
@@ -1495,8 +1495,8 @@ fun mk_recs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts =
     (f_Tss, x_Tssss, fss, xssss)
   end;
 
-fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
-  | unzip_corecT _ (Type (@{type_name sum}, Ts)) = Ts
+fun unzip_corecT (Type (\<^type_name>\<open>sum\<close>, _)) T = [T]
+  | unzip_corecT _ (Type (\<^type_name>\<open>sum\<close>, Ts)) = Ts
   | unzip_corecT _ T = [T];
 
 (*avoid "'a itself" arguments in corecursors*)
@@ -1690,7 +1690,7 @@ fun mk_coinduct_prem_concl ctxt Xss fpTss rs' n udiscs uselss vdiscs vselss ctrX
   @{map 6} (mk_coinduct_prem_ctr_concls ctxt Xss fpTss rs' n)
     (1 upto n) udiscs uselss vdiscs vselss ctrXs_Tss
   |> flat |> Library.foldr1 HOLogic.mk_conj
-  handle List.Empty => @{term True};
+  handle List.Empty => \<^term>\<open>True\<close>;
 
 fun mk_coinduct_prem ctxt Xss fpTss rs' uvr u v n udiscs uselss vdiscs vselss ctrXs_Tss =
   fold_rev Logic.all [u, v] (Logic.mk_implies (HOLogic.mk_Trueprop uvr,
@@ -1928,7 +1928,7 @@ fun derive_rel_coinduct_thms_for_types ctxt nn fpA_Ts ns As Bs mss (ctr_sugars :
         fun mk_prem_concl n discA_ts selA_tss discB_ts selB_tss =
           Library.foldr1 HOLogic.mk_conj (flat (@{map 5} (mk_prem_ctr_concls n)
             (1 upto n) discA_ts selA_tss discB_ts selB_tss))
-          handle List.Empty => @{term True};
+          handle List.Empty => \<^term>\<open>True\<close>;
 
         fun mk_prem IR tA tB n discA_ts selA_tss discB_ts selB_tss =
           fold_rev Logic.all [tA, tB] (Logic.mk_implies (HOLogic.mk_Trueprop (IR $ tA $ tB),
@@ -2283,7 +2283,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       end;
 
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
-    val unsorted_Ass0 = map (map (resort_tfree_or_tvar @{sort type})) Ass0;
+    val unsorted_Ass0 = map (map (resort_tfree_or_tvar \<^sort>\<open>type\<close>)) Ass0;
     val unsorted_As = Library.foldr1 (merge_type_args fp) unsorted_Ass0;
     val num_As = length unsorted_As;
 
@@ -2409,7 +2409,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
             val fake_T = qsoty (unfreeze_fp X);
             val fake_T_backdrop = qsoty (unfreeze_fp X_backdrop);
             fun register_hint () =
-              "\nUse the " ^ quote (#1 @{command_keyword bnf}) ^ " command to register " ^
+              "\nUse the " ^ quote (#1 \<^command_keyword>\<open>bnf\<close>) ^ " command to register " ^
               quote bad_tc ^ " as a bounded natural functor to allow nested (co)recursion through \
               \it";
           in
@@ -2909,7 +2909,7 @@ fun co_datatype_cmd fp construct_fp options lthy =
   handle EMPTY_DATATYPE s => error ("Cannot define empty datatype " ^ quote s);
 
 val parse_ctr_arg =
-  @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"}
+  \<^keyword>\<open>(\<close> |-- parse_binding_colon -- Parse.typ --| \<^keyword>\<open>)\<close>
   || Parse.typ >> pair Binding.empty;
 
 val parse_ctr_specs =
@@ -2917,7 +2917,7 @@ val parse_ctr_specs =
 
 val parse_spec =
   parse_type_args_named_constrained -- Parse.binding -- Parse.opt_mixfix --
-  (@{keyword "="} |-- parse_ctr_specs) -- parse_map_rel_pred_bindings -- parse_sel_default_eqs;
+  (\<^keyword>\<open>=\<close> |-- parse_ctr_specs) -- parse_map_rel_pred_bindings -- parse_sel_default_eqs;
 
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 

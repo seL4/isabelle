@@ -148,9 +148,9 @@ fun lazy_range_rep _ _ _ (Vect (_, R)) = R
   | lazy_range_rep _ _ _ (Func (_, R2)) = R2
   | lazy_range_rep ofs T ran_card (Opt R) =
     Opt (lazy_range_rep ofs T ran_card R)
-  | lazy_range_rep ofs (Type (@{type_name fun}, [_, T2])) _ (Atom (1, _)) =
+  | lazy_range_rep ofs (Type (\<^type_name>\<open>fun\<close>, [_, T2])) _ (Atom (1, _)) =
     Atom (1, offset_of_type ofs T2)
-  | lazy_range_rep ofs (Type (@{type_name fun}, [_, T2])) ran_card (Atom _) =
+  | lazy_range_rep ofs (Type (\<^type_name>\<open>fun\<close>, [_, T2])) ran_card (Atom _) =
     Atom (ran_card (), offset_of_type ofs T2)
   | lazy_range_rep _ _ _ R = raise REP ("Nitpick_Rep.lazy_range_rep", [R])
 
@@ -171,15 +171,15 @@ fun one_rep _ _ Any = raise REP ("Nitpick_Rep.one_rep", [Any])
   | one_rep ofs T (Opt R) = one_rep ofs T R
   | one_rep ofs T R = Atom (card_of_rep R, offset_of_type ofs T)
 
-fun optable_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
+fun optable_rep ofs (Type (\<^type_name>\<open>fun\<close>, [_, T2])) (Func (R1, R2)) =
     Func (R1, optable_rep ofs T2 R2)
-  | optable_rep ofs (Type (@{type_name set}, [T'])) R =
+  | optable_rep ofs (Type (\<^type_name>\<open>set\<close>, [T'])) R =
     optable_rep ofs (T' --> bool_T) R
   | optable_rep ofs T R = one_rep ofs T R
 
-fun opt_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
+fun opt_rep ofs (Type (\<^type_name>\<open>fun\<close>, [_, T2])) (Func (R1, R2)) =
     Func (R1, opt_rep ofs T2 R2)
-  | opt_rep ofs (Type (@{type_name set}, [T'])) R =
+  | opt_rep ofs (Type (\<^type_name>\<open>set\<close>, [T'])) R =
     opt_rep ofs (T' --> bool_T) R
   | opt_rep ofs T R = Opt (optable_rep ofs T R)
 
@@ -249,28 +249,28 @@ fun rep_to_binary_rel_rep ofs T R =
   in Func (Struct [Atom (k, j0), Atom (k, j0)], Formula Neut) end
 
 fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
-                          (Type (@{type_name fun}, [T1, T2])) =
+                          (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     Vect (card_of_type card_assigns T1, (best_one_rep_for_type scope T2))
-  | best_one_rep_for_type scope (Type (@{type_name set}, [T'])) =
+  | best_one_rep_for_type scope (Type (\<^type_name>\<open>set\<close>, [T'])) =
     best_one_rep_for_type scope (T' --> bool_T)
-  | best_one_rep_for_type scope (Type (@{type_name prod}, Ts)) =
+  | best_one_rep_for_type scope (Type (\<^type_name>\<open>prod\<close>, Ts)) =
     Struct (map (best_one_rep_for_type scope) Ts)
   | best_one_rep_for_type {card_assigns, ofs, ...} T =
     Atom (card_of_type card_assigns T, offset_of_type ofs T)
 
-fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
+fun best_opt_set_rep_for_type scope (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     Func (best_one_rep_for_type scope T1, best_opt_set_rep_for_type scope T2)
-  | best_opt_set_rep_for_type scope (Type (@{type_name set}, [T'])) =
+  | best_opt_set_rep_for_type scope (Type (\<^type_name>\<open>set\<close>, [T'])) =
     best_opt_set_rep_for_type scope (T' --> bool_T)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
     opt_rep ofs T (best_one_rep_for_type scope T)
 
-fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
+fun best_non_opt_set_rep_for_type scope (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     (case (best_one_rep_for_type scope T1,
            best_non_opt_set_rep_for_type scope T2) of
        (R1, Atom (2, _)) => Func (R1, Formula Neut)
      | z => Func z)
-  | best_non_opt_set_rep_for_type scope (Type (@{type_name set}, [T'])) =
+  | best_non_opt_set_rep_for_type scope (Type (\<^type_name>\<open>set\<close>, [T'])) =
     best_non_opt_set_rep_for_type scope (T' --> bool_T)
   | best_non_opt_set_rep_for_type scope T = best_one_rep_for_type scope T
 
@@ -279,7 +279,7 @@ fun best_set_rep_for_type (scope as {data_types, ...}) T =
    else best_opt_set_rep_for_type) scope T
 
 fun best_non_opt_symmetric_reps_for_fun_type (scope as {ofs, ...})
-                                           (Type (@{type_name fun}, [T1, T2])) =
+                                           (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     (optable_rep ofs T1 (best_one_rep_for_type scope T1),
      optable_rep ofs T2 (best_one_rep_for_type scope T2))
   | best_non_opt_symmetric_reps_for_fun_type _ T =
@@ -297,13 +297,13 @@ and atom_schema_of_reps Rs = maps atom_schema_of_rep Rs
 
 fun type_schema_of_rep _ (Formula _) = []
   | type_schema_of_rep T (Atom _) = [T]
-  | type_schema_of_rep (Type (@{type_name prod}, [T1, T2])) (Struct [R1, R2]) =
+  | type_schema_of_rep (Type (\<^type_name>\<open>prod\<close>, [T1, T2])) (Struct [R1, R2]) =
     type_schema_of_reps [T1, T2] [R1, R2]
-  | type_schema_of_rep (Type (@{type_name fun}, [_, T2])) (Vect (k, R)) =
+  | type_schema_of_rep (Type (\<^type_name>\<open>fun\<close>, [_, T2])) (Vect (k, R)) =
     replicate_list k (type_schema_of_rep T2 R)
-  | type_schema_of_rep (Type (@{type_name fun}, [T1, T2])) (Func (R1, R2)) =
+  | type_schema_of_rep (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) (Func (R1, R2)) =
     type_schema_of_rep T1 R1 @ type_schema_of_rep T2 R2
-  | type_schema_of_rep (Type (@{type_name set}, [T'])) R =
+  | type_schema_of_rep (Type (\<^type_name>\<open>set\<close>, [T'])) R =
     type_schema_of_rep (T' --> bool_T) R
   | type_schema_of_rep T (Opt R) = type_schema_of_rep T R
   | type_schema_of_rep _ R = raise REP ("Nitpick_Rep.type_schema_of_rep", [R])

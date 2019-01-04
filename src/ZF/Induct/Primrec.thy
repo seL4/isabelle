@@ -37,7 +37,7 @@ definition
   "PREC(f,g) ==
      \<lambda>l \<in> list(nat). list_case(0,
                       \<lambda>x xs. rec(x, f`xs, \<lambda>y r. g ` Cons(r, Cons(y, xs))), l)"
-  \<comment> \<open>Note that \<open>g\<close> is applied first to @{term "PREC(f,g)`y"} and then to \<open>y\<close>!\<close>
+  \<comment> \<open>Note that \<open>g\<close> is applied first to \<^term>\<open>PREC(f,g)`y\<close> and then to \<open>y\<close>!\<close>
 
 consts
   ACK :: "i=>i"
@@ -226,7 +226,7 @@ lemma ack_add_bound2:
      "[| i < ack(k,j);  j \<in> nat;  k \<in> nat |]
       ==> i#+j < ack(succ(succ(succ(succ(k)))), j)"
   \<comment> \<open>PROPERTY A 12.\<close>
-  \<comment> \<open>Article uses existential quantifier but the ALF proof used @{term "k#+#4"}.\<close>
+  \<comment> \<open>Article uses existential quantifier but the ALF proof used \<^term>\<open>k#+#4\<close>.\<close>
   \<comment> \<open>Quantified version must be nested \<open>\<exists>k'. \<forall>i,j \<dots>\<close>.\<close>
   apply (rule_tac j = "ack (k,j) #+ ack (0,j) " in lt_trans)
    apply (rule_tac [2] ack_add_bound [THEN lt_trans2])

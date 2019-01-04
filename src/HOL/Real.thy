@@ -1262,8 +1262,8 @@ declaration \<open>
       @{thm of_int_add}, @{thm of_int_minus}, @{thm of_int_diff},
       @{thm of_int_mult}, @{thm of_int_of_nat_eq},
       @{thm of_nat_numeral}, @{thm of_nat_numeral}, @{thm of_int_neg_numeral}]
-  #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat \<Rightarrow> real"})
-  #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int \<Rightarrow> real"}))
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, \<^typ>\<open>nat \<Rightarrow> real\<close>)
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_int\<close>, \<^typ>\<open>int \<Rightarrow> real\<close>))
 \<close>
 
 
@@ -1625,15 +1625,15 @@ end
 subsection \<open>Setup for Nitpick\<close>
 
 declaration \<open>
-  Nitpick_HOL.register_frac_type @{type_name real}
-    [(@{const_name zero_real_inst.zero_real}, @{const_name Nitpick.zero_frac}),
-     (@{const_name one_real_inst.one_real}, @{const_name Nitpick.one_frac}),
-     (@{const_name plus_real_inst.plus_real}, @{const_name Nitpick.plus_frac}),
-     (@{const_name times_real_inst.times_real}, @{const_name Nitpick.times_frac}),
-     (@{const_name uminus_real_inst.uminus_real}, @{const_name Nitpick.uminus_frac}),
-     (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
-     (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_frac}),
-     (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
+  Nitpick_HOL.register_frac_type \<^type_name>\<open>real\<close>
+    [(\<^const_name>\<open>zero_real_inst.zero_real\<close>, \<^const_name>\<open>Nitpick.zero_frac\<close>),
+     (\<^const_name>\<open>one_real_inst.one_real\<close>, \<^const_name>\<open>Nitpick.one_frac\<close>),
+     (\<^const_name>\<open>plus_real_inst.plus_real\<close>, \<^const_name>\<open>Nitpick.plus_frac\<close>),
+     (\<^const_name>\<open>times_real_inst.times_real\<close>, \<^const_name>\<open>Nitpick.times_frac\<close>),
+     (\<^const_name>\<open>uminus_real_inst.uminus_real\<close>, \<^const_name>\<open>Nitpick.uminus_frac\<close>),
+     (\<^const_name>\<open>inverse_real_inst.inverse_real\<close>, \<^const_name>\<open>Nitpick.inverse_frac\<close>),
+     (\<^const_name>\<open>ord_real_inst.less_real\<close>, \<^const_name>\<open>Nitpick.less_frac\<close>),
+     (\<^const_name>\<open>ord_real_inst.less_eq_real\<close>, \<^const_name>\<open>Nitpick.less_eq_frac\<close>)]
 \<close>
 
 lemmas [nitpick_unfold] = inverse_real_inst.inverse_real one_real_inst.one_real

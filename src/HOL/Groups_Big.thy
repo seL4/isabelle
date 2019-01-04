@@ -519,7 +519,7 @@ abbreviation Sum ("\<Sum>_" [1000] 999)
 
 end
 
-text \<open>Now: lots of fancy syntax. First, @{term "sum (\<lambda>x. e) A"} is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
+text \<open>Now: lots of fancy syntax. First, \<^term>\<open>sum (\<lambda>x. e) A\<close> is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
 syntax (ASCII)
   "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM (_/:_)./ _)" [0, 51, 10] 10)
@@ -528,7 +528,7 @@ syntax
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>i\<in>A. b" \<rightleftharpoons> "CONST sum (\<lambda>i. b) A"
 
-text \<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
+text \<open>Instead of \<^term>\<open>\<Sum>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
 
 syntax (ASCII)
   "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SUM _ |/ _./ _)" [0, 0, 10] 10)
@@ -539,7 +539,7 @@ translations
 
 print_translation \<open>
 let
-  fun sum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
+  fun sum_tr' [Abs (x, Tx, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P)] =
         if x <> y then raise Match
         else
           let
@@ -547,10 +547,10 @@ let
             val t' = subst_bound (x', t);
             val P' = subst_bound (x', P);
           in
-            Syntax.const @{syntax_const "_qsum"} $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
+            Syntax.const \<^syntax_const>\<open>_qsum\<close> $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
           end
     | sum_tr' _ = raise Match;
-in [(@{const_syntax sum}, K sum_tr')] end
+in [(\<^const_syntax>\<open>sum\<close>, K sum_tr')] end
 \<close>
 
 
@@ -938,7 +938,7 @@ proof (rule sum.cong)
 qed simp_all
 
 
-subsubsection \<open>Cardinality as special case of @{const sum}\<close>
+subsubsection \<open>Cardinality as special case of \<^const>\<open>sum\<close>\<close>
 
 lemma card_eq_sum: "card A = sum (\<lambda>x. 1) A"
 proof -
@@ -1134,7 +1134,7 @@ syntax
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Prod>i\<in>A. b" == "CONST prod (\<lambda>i. b) A"
 
-text \<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
+text \<open>Instead of \<^term>\<open>\<Prod>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
 
 syntax (ASCII)
   "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(4PROD _ |/ _./ _)" [0, 0, 10] 10)

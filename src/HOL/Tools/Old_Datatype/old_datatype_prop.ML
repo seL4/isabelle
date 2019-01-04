@@ -58,7 +58,7 @@ fun make_injs descr =
         in
           cons (HOLogic.mk_Trueprop (HOLogic.mk_eq
             (HOLogic.mk_eq (list_comb (constr_t, frees), list_comb (constr_t, frees')),
-             foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
+             foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
                (map HOLogic.mk_eq (frees ~~ frees')))))
         end;
   in
@@ -140,7 +140,7 @@ fun make_ind descr =
       maps (fn ((i, (_, _, constrs)), T) => map (make_ind_prem i T) constrs) (descr' ~~ recTs);
     val tnames = make_tnames recTs;
     val concl =
-      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
+      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
         (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T))
           (descr' ~~ recTs ~~ tnames)));
 
@@ -182,7 +182,7 @@ fun make_primrec_Ts descr used =
     val rec_result_Ts =
       map TFree
         (Name.variant_list used (replicate (length descr') "'t") ~~
-          replicate (length descr') @{sort type});
+          replicate (length descr') \<^sort>\<open>type\<close>);
 
     val reccomb_fn_Ts = maps (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -252,7 +252,7 @@ fun make_case_combs case_names descr thy fname =
     val recTs = Old_Datatype_Aux.get_rec_types descr';
     val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (singleton (Name.variant_list used) "'t", @{sort type});
+    val T' = TFree (singleton (Name.variant_list used) "'t", \<^sort>\<open>type\<close>);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -297,7 +297,7 @@ fun make_splits case_names descr thy =
     val recTs = Old_Datatype_Aux.get_rec_types descr';
     val used' = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (singleton (Name.variant_list used') "'t", @{sort type});
+    val T' = TFree (singleton (Name.variant_list used') "'t", \<^sort>\<open>type\<close>);
     val P = Free ("P", T' --> HOLogic.boolT);
 
     fun make_split (((_, (_, _, constrs)), T), comb_t) =

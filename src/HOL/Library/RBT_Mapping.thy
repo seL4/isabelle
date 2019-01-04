@@ -113,25 +113,24 @@ end
 text \<open>
   This theory defines abstract red-black trees as an efficient
   representation of finite maps, backed by the implementation
-  in @{theory "HOL-Library.RBT_Impl"}.
+  in \<^theory>\<open>HOL-Library.RBT_Impl\<close>.
 \<close>
 
 subsection \<open>Data type and invariant\<close>
 
 text \<open>
-  The type @{typ "('k, 'v) RBT_Impl.rbt"} denotes red-black trees with
-  keys of type @{typ "'k"} and values of type @{typ "'v"}. To function
+  The type \<^typ>\<open>('k, 'v) RBT_Impl.rbt\<close> denotes red-black trees with
+  keys of type \<^typ>\<open>'k\<close> and values of type \<^typ>\<open>'v\<close>. To function
   properly, the key type musorted belong to the \<open>linorder\<close>
   class.
 
-  A value @{term t} of this type is a valid red-black tree if it
-  satisfies the invariant \<open>is_rbt t\<close>.  The abstract type @{typ
-  "('k, 'v) rbt"} always obeys this invariant, and for this reason you
-  should only use this in our application.  Going back to @{typ "('k,
-  'v) RBT_Impl.rbt"} may be necessary in proofs if not yet proven
+  A value \<^term>\<open>t\<close> of this type is a valid red-black tree if it
+  satisfies the invariant \<open>is_rbt t\<close>.  The abstract type \<^typ>\<open>('k, 'v) rbt\<close> always obeys this invariant, and for this reason you
+  should only use this in our application.  Going back to \<^typ>\<open>('k,
+  'v) RBT_Impl.rbt\<close> may be necessary in proofs if not yet proven
   properties about the operations must be established.
 
-  The interpretation function @{const "RBT.lookup"} returns the partial
+  The interpretation function \<^const>\<open>RBT.lookup\<close> returns the partial
   map represented by a red-black tree:
   @{term_type[display] "RBT.lookup"}
 

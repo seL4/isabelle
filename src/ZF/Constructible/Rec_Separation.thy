@@ -71,7 +71,7 @@ apply (simp only: rtran_closure_mem_def)
 apply (intro FOL_reflections function_reflections fun_plus_reflections)
 done
 
-text\<open>Separation for @{term "rtrancl(r)"}.\<close>
+text\<open>Separation for \<^term>\<open>rtrancl(r)\<close>.\<close>
 lemma rtrancl_separation:
      "[| L(r); L(A) |] ==> separation (L, rtran_closure_mem(L,A,r))"
 apply (rule gen_separation_multi [OF rtran_closure_mem_reflection, of "{r,A}"],
@@ -187,7 +187,7 @@ by (rule M_trancl.intro [OF M_basic_L M_trancl_axioms_L])
 interpretation L?: M_trancl L by (rule M_trancl_L)
 
 
-subsection\<open>@{term L} is Closed Under the Operator @{term list}\<close>
+subsection\<open>\<^term>\<open>L\<close> is Closed Under the Operator \<^term>\<open>list\<close>\<close>
 
 subsubsection\<open>Instances of Replacement for Lists\<close>
 
@@ -237,7 +237,7 @@ apply (rule sep_rules list_functor_iff_sats is_iterates_iff_sats | simp)+
 done
 
 
-subsection\<open>@{term L} is Closed Under the Operator @{term formula}\<close>
+subsection\<open>\<^term>\<open>L\<close> is Closed Under the Operator \<^term>\<open>formula\<close>\<close>
 
 subsubsection\<open>Instances of Replacement for Formulas\<close>
 
@@ -286,11 +286,11 @@ apply (rule_tac env="[B,0,nat]" in DPow_LsetI)
 apply (rule sep_rules formula_functor_iff_sats is_iterates_iff_sats | simp)+
 done
 
-text\<open>NB The proofs for type @{term formula} are virtually identical to those
-for @{term "list(A)"}.  It was a cut-and-paste job!\<close>
+text\<open>NB The proofs for type \<^term>\<open>formula\<close> are virtually identical to those
+for \<^term>\<open>list(A)\<close>.  It was a cut-and-paste job!\<close>
 
 
-subsubsection\<open>The Formula @{term is_nth}, Internalized\<close>
+subsubsection\<open>The Formula \<^term>\<open>is_nth\<close>, Internalized\<close>
 
 (* "is_nth(M,n,l,Z) ==
       \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) & is_hd(M,X,Z)" *)
@@ -327,7 +327,7 @@ apply (intro FOL_reflections is_iterates_reflection
 done
 
 
-subsubsection\<open>An Instance of Replacement for @{term nth}\<close>
+subsubsection\<open>An Instance of Replacement for \<^term>\<open>nth\<close>\<close>
 
 (*FIXME: could prove a lemma iterates_replacementI to eliminate the 
 need to expand iterates_replacement and wfrec_replacement*)
@@ -374,9 +374,9 @@ theorem M_datatypes_L: "PROP M_datatypes(L)"
 interpretation L?: M_datatypes L by (rule M_datatypes_L)
 
 
-subsection\<open>@{term L} is Closed Under the Operator @{term eclose}\<close>
+subsection\<open>\<^term>\<open>L\<close> is Closed Under the Operator \<^term>\<open>eclose\<close>\<close>
 
-subsubsection\<open>Instances of Replacement for @{term eclose}\<close>
+subsubsection\<open>Instances of Replacement for \<^term>\<open>eclose\<close>\<close>
 
 lemma eclose_replacement1_Reflects:
  "REFLECTS

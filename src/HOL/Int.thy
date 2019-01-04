@@ -430,7 +430,7 @@ lemma of_int_min: "of_int (min x y) = min (of_int x) (of_int y)"
 
 end
 
-text \<open>Comparisons involving @{term of_int}.\<close>
+text \<open>Comparisons involving \<^term>\<open>of_int\<close>.\<close>
 
 lemma of_int_eq_numeral_iff [iff]: "of_int z = (numeral n :: 'a::ring_char_0) \<longleftrightarrow> z = numeral n"
   using of_int_eq_iff by fastforce
@@ -493,7 +493,7 @@ lemma nat_le_0 [simp]: "z \<le> 0 \<Longrightarrow> nat z = 0"
 lemma nat_le_eq_zle: "0 < w \<or> 0 \<le> z \<Longrightarrow> nat w \<le> nat z \<longleftrightarrow> w \<le> z"
   by transfer (clarsimp, arith)
 
-text \<open>An alternative condition is @{term "0 \<le> w"}.\<close>
+text \<open>An alternative condition is \<^term>\<open>0 \<le> w\<close>.\<close>
 lemma nat_mono_iff: "0 < z \<Longrightarrow> nat w < nat z \<longleftrightarrow> w < z"
   by (simp add: nat_le_eq_zle linorder_not_le [symmetric])
 
@@ -669,7 +669,7 @@ text \<open>For termination proofs:\<close>
 lemma measure_function_int[measure_function]: "is_measure (nat \<circ> abs)" ..
 
 
-subsection \<open>Lemmas about the Function @{term of_nat} and Orderings\<close>
+subsection \<open>Lemmas about the Function \<^term>\<open>of_nat\<close> and Orderings\<close>
 
 lemma negative_zless_0: "- (int (Suc n)) < (0 :: int)"
   by (simp add: order_less_le del: of_nat_Suc)
@@ -975,7 +975,7 @@ proof -
     by (cases "of_int b = 0") simp_all
 qed
 
-text \<open>The premise involving @{term Ints} prevents @{term "a = 1/2"}.\<close>
+text \<open>The premise involving \<^term>\<open>Ints\<close> prevents \<^term>\<open>a = 1/2\<close>.\<close>
 
 lemma Ints_double_eq_0_iff:
   fixes a :: "'a::ring_char_0"
@@ -1037,7 +1037,7 @@ proof -
 qed
 
 
-subsection \<open>@{term sum} and @{term prod}\<close>
+subsection \<open>\<^term>\<open>sum\<close> and \<^term>\<open>prod\<close>\<close>
 
 context semiring_1
 begin
@@ -1132,9 +1132,9 @@ lemma Ints_nonzero_abs_less1:
     using Ints_nonzero_abs_ge1 [of x] by auto
     
 
-subsection \<open>The functions @{term nat} and @{term int}\<close>
+subsection \<open>The functions \<^term>\<open>nat\<close> and \<^term>\<open>int\<close>\<close>
 
-text \<open>Simplify the term @{term "w + - z"}.\<close>
+text \<open>Simplify the term \<^term>\<open>w + - z\<close>.\<close>
 
 lemma one_less_nat_eq [simp]: "Suc 0 < nat z \<longleftrightarrow> 1 < z"
   using zless_nat_conj [of 1 z] by auto

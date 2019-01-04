@@ -665,8 +665,8 @@ declaration \<open>
       @{thm of_int_minus}, @{thm of_int_diff},
       @{thm of_int_of_nat_eq}]
   #> Lin_Arith.add_simprocs [Numeral_Simprocs.field_divide_cancel_numeral_factor]
-  #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat \<Rightarrow> rat"})
-  #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int \<Rightarrow> rat"}))
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_nat\<close>, \<^typ>\<open>nat \<Rightarrow> rat\<close>)
+  #> Lin_Arith.add_inj_const (\<^const_name>\<open>of_int\<close>, \<^typ>\<open>int \<Rightarrow> rat\<close>))
 \<close>
 
 
@@ -1130,17 +1130,17 @@ end
 subsection \<open>Setup for Nitpick\<close>
 
 declaration \<open>
-  Nitpick_HOL.register_frac_type @{type_name rat}
-    [(@{const_name Abs_Rat}, @{const_name Nitpick.Abs_Frac}),
-     (@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
-     (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
-     (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),
-     (@{const_name times_rat_inst.times_rat}, @{const_name Nitpick.times_frac}),
-     (@{const_name uminus_rat_inst.uminus_rat}, @{const_name Nitpick.uminus_frac}),
-     (@{const_name inverse_rat_inst.inverse_rat}, @{const_name Nitpick.inverse_frac}),
-     (@{const_name ord_rat_inst.less_rat}, @{const_name Nitpick.less_frac}),
-     (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
-     (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac})]
+  Nitpick_HOL.register_frac_type \<^type_name>\<open>rat\<close>
+    [(\<^const_name>\<open>Abs_Rat\<close>, \<^const_name>\<open>Nitpick.Abs_Frac\<close>),
+     (\<^const_name>\<open>zero_rat_inst.zero_rat\<close>, \<^const_name>\<open>Nitpick.zero_frac\<close>),
+     (\<^const_name>\<open>one_rat_inst.one_rat\<close>, \<^const_name>\<open>Nitpick.one_frac\<close>),
+     (\<^const_name>\<open>plus_rat_inst.plus_rat\<close>, \<^const_name>\<open>Nitpick.plus_frac\<close>),
+     (\<^const_name>\<open>times_rat_inst.times_rat\<close>, \<^const_name>\<open>Nitpick.times_frac\<close>),
+     (\<^const_name>\<open>uminus_rat_inst.uminus_rat\<close>, \<^const_name>\<open>Nitpick.uminus_frac\<close>),
+     (\<^const_name>\<open>inverse_rat_inst.inverse_rat\<close>, \<^const_name>\<open>Nitpick.inverse_frac\<close>),
+     (\<^const_name>\<open>ord_rat_inst.less_rat\<close>, \<^const_name>\<open>Nitpick.less_frac\<close>),
+     (\<^const_name>\<open>ord_rat_inst.less_eq_rat\<close>, \<^const_name>\<open>Nitpick.less_eq_frac\<close>),
+     (\<^const_name>\<open>field_char_0_class.of_rat\<close>, \<^const_name>\<open>Nitpick.of_frac\<close>)]
 \<close>
 
 lemmas [nitpick_unfold] =
@@ -1159,15 +1159,15 @@ parse_translation \<open>
     fun mk_frac str =
       let
         val {mant = i, exp = n} = Lexicon.read_float str;
-        val exp = Syntax.const @{const_syntax Power.power};
+        val exp = Syntax.const \<^const_syntax>\<open>Power.power\<close>;
         val ten = Numeral.mk_number_syntax 10;
         val exp10 = if n = 1 then ten else exp $ ten $ Numeral.mk_number_syntax n;
-      in Syntax.const @{const_syntax Fields.inverse_divide} $ Numeral.mk_number_syntax i $ exp10 end;
+      in Syntax.const \<^const_syntax>\<open>Fields.inverse_divide\<close> $ Numeral.mk_number_syntax i $ exp10 end;
 
-    fun float_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ float_tr [t] $ u
+    fun float_tr [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ t $ u] = c $ float_tr [t] $ u
       | float_tr [t as Const (str, _)] = mk_frac str
       | float_tr ts = raise TERM ("float_tr", ts);
-  in [(@{syntax_const "_Float"}, K float_tr)] end
+  in [(\<^syntax_const>\<open>_Float\<close>, K float_tr)] end
 \<close>
 
 text\<open>Test:\<close>

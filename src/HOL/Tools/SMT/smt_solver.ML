@@ -96,8 +96,8 @@ fun run_solver ctxt name mk_cmd input =
 
     val output = drop_suffix (equal "") res
     val _ = SMT_Config.trace_msg ctxt (pretty "Result:") output
-    val _ = SMT_Config.trace_msg ctxt (pretty "Time (ms):") [@{make_string} (Time.toMilliseconds elapsed)]
-    val _ = SMT_Config.statistics_msg ctxt (pretty "Time (ms):") [@{make_string} (Time.toMilliseconds elapsed)]
+    val _ = SMT_Config.trace_msg ctxt (pretty "Time (ms):") [\<^make_string> (Time.toMilliseconds elapsed)]
+    val _ = SMT_Config.statistics_msg ctxt (pretty "Time (ms):") [\<^make_string> (Time.toMilliseconds elapsed)]
 
     val _ = member (op =) normal_return_codes return_code orelse
       raise SMT_Failure.SMT (SMT_Failure.Abnormal_Termination return_code)
@@ -213,7 +213,7 @@ local
             \declare [[smt_oracle]] to allow oracle")
     | (result, _) => raise SMT_Failure.SMT (SMT_Failure.Counterexample (result = Sat)))
 
-  val cfalse = Thm.cterm_of @{context} @{prop False}
+  val cfalse = Thm.cterm_of \<^context> \<^prop>\<open>False\<close>
 in
 
 fun add_solver ({name, class, avail, command, options, smt_options, default_max_relevant, outcome,
@@ -259,7 +259,7 @@ fun smt_filter ctxt0 goal xfacts i time_limit =
     val ctxt = ctxt0 |> Config.put SMT_Config.timeout (Time.toReal time_limit)
 
     val ({context = ctxt, prems, concl, ...}, _) = Subgoal.focus ctxt i NONE goal
-    fun negate ct = Thm.dest_comb ct ||> Thm.apply @{cterm Not} |-> Thm.apply
+    fun negate ct = Thm.dest_comb ct ||> Thm.apply \<^cterm>\<open>Not\<close> |-> Thm.apply
     val cprop =
       (case try negate (Thm.rhs_of (SMT_Normalize.atomize_conv ctxt concl)) of
         SOME ct => ct

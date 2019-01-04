@@ -93,7 +93,7 @@ definition
 
 declare quotientE [elim!]
 
-subsection\<open>Proving that @{term intrel} is an equivalence relation\<close>
+subsection\<open>Proving that \<^term>\<open>intrel\<close> is an equivalence relation\<close>
 
 (** Natural deduction for intrel **)
 
@@ -155,7 +155,7 @@ lemma intify_ident [simp]: "n \<in> int ==> intify(n) = n"
 by (simp add: intify_def)
 
 
-subsection\<open>Collapsing rules: to remove @{term intify}
+subsection\<open>Collapsing rules: to remove \<^term>\<open>intify\<close>
             from arithmetic expressions\<close>
 
 lemma intify_idem [simp]: "intify(intify(x)) = intify(x)"
@@ -206,7 +206,7 @@ lemma zle_intify2 [simp]:"x $\<le> intify(y) \<longleftrightarrow> x $\<le> y"
 by (simp add: zle_def)
 
 
-subsection\<open>@{term zminus}: unary negation on @{term int}\<close>
+subsection\<open>\<^term>\<open>zminus\<close>: unary negation on \<^term>\<open>int\<close>\<close>
 
 lemma zminus_congruent: "(%<x,y>. intrel``{<y,x>}) respects intrel"
 by (auto simp add: congruent_def add_ac)
@@ -257,7 +257,7 @@ lemma zminus_zminus: "z \<in> int ==> $- ($- z) = z"
 by simp
 
 
-subsection\<open>@{term znegative}: the test for negative integers\<close>
+subsection\<open>\<^term>\<open>znegative\<close>: the test for negative integers\<close>
 
 lemma znegative: "[| x\<in>nat; y\<in>nat |] ==> znegative(intrel``{<x,y>}) \<longleftrightarrow> x<y"
 apply (cases "x<y")
@@ -277,7 +277,7 @@ lemma not_znegative_imp_zero: "~ znegative($- $# n) ==> natify(n)=0"
 by (simp add: znegative int_of_def zminus Ord_0_lt_iff [THEN iff_sym])
 
 
-subsection\<open>@{term nat_of}: Coercion of an Integer to a Natural Number\<close>
+subsection\<open>\<^term>\<open>nat_of\<close>: Coercion of an Integer to a Natural Number\<close>
 
 lemma nat_of_intify [simp]: "nat_of(intify(z)) = nat_of(z)"
 by (simp add: nat_of_def)
@@ -371,7 +371,7 @@ apply (auto simp add: znegative nat_of_def raw_nat_of
 done
 
 
-subsection\<open>@{term zadd}: addition on int\<close>
+subsection\<open>\<^term>\<open>zadd\<close>: addition on int\<close>
 
 text\<open>Congruence Property for Addition\<close>
 lemma zadd_congruent2:
@@ -485,7 +485,7 @@ lemma zadd_int0_right: "z \<in> int ==> z $+ $#0 = z"
 by simp
 
 
-subsection\<open>@{term zmult}: Integer Multiplication\<close>
+subsection\<open>\<^term>\<open>zmult\<close>: Integer Multiplication\<close>
 
 text\<open>Congruence property for multiplication\<close>
 lemma zmult_congruent2:

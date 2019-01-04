@@ -154,11 +154,11 @@ qed
 subsubsection \<open>Partitions of a Set\<close>
 
 definition part :: "nat \<Rightarrow> nat \<Rightarrow> 'a set \<Rightarrow> ('a set \<Rightarrow> nat) \<Rightarrow> bool"
-  \<comment> \<open>the function @{term f} partitions the @{term r}-subsets of the typically
-      infinite set @{term Y} into @{term s} distinct categories.\<close>
+  \<comment> \<open>the function \<^term>\<open>f\<close> partitions the \<^term>\<open>r\<close>-subsets of the typically
+      infinite set \<^term>\<open>Y\<close> into \<^term>\<open>s\<close> distinct categories.\<close>
   where "part r s Y f \<longleftrightarrow> (\<forall>X. X \<subseteq> Y \<and> finite X \<and> card X = r \<longrightarrow> f X < s)"
 
-text \<open>For induction, we decrease the value of @{term r} in partitions.\<close>
+text \<open>For induction, we decrease the value of \<^term>\<open>r\<close> in partitions.\<close>
 lemma part_Suc_imp_part:
   "\<lbrakk>infinite Y; part (Suc r) s Y f; y \<in> Y\<rbrakk> \<Longrightarrow> part r s (Y - {y}) (\<lambda>u. f (insert y u))"
   apply (simp add: part_def)

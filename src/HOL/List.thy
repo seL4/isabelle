@@ -182,7 +182,7 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 "find P (x#xs) = (if P x then Some x else find P xs)"
 
 text \<open>In the context of multisets, \<open>count_list\<close> is equivalent to
-  @{term "count \<circ> mset"} and it it advisable to use the latter.\<close>
+  \<^term>\<open>count \<circ> mset\<close> and it it advisable to use the latter.\<close>
 primrec count_list :: "'a list \<Rightarrow> 'a \<Rightarrow> nat" where
 "count_list [] y = 0" |
 "count_list (x#xs) y = (if x=y then count_list xs y + 1 else count_list xs y)"
@@ -273,7 +273,7 @@ function shuffles where
   by pat_completeness simp_all
 termination by lexicographic_order
 
-text\<open>Use only if you cannot use @{const Min} instead:\<close>
+text\<open>Use only if you cannot use \<^const>\<open>Min\<close> instead:\<close>
 fun min_list :: "'a::ord list \<Rightarrow> 'a" where
 "min_list (x # xs) = (case xs of [] \<Rightarrow> x | _ \<Rightarrow> min x (min_list xs))"
 
@@ -416,7 +416,7 @@ The qualifiers after the dot are
 Just like in Haskell, list comprehension is just a shorthand. To avoid
 misunderstandings, the translation into desugared form is not reversed
 upon output. Note that the translation of \<open>[e. x \<leftarrow> xs]\<close> is
-optmized to @{term"map (%x. e) xs"}.
+optmized to \<^term>\<open>map (%x. e) xs\<close>.
 
 It is easy to write short list comprehensions which stand for complex
 expressions. During proofs, they may become unreadable (and
@@ -438,12 +438,12 @@ syntax (ASCII)
 
 parse_translation \<open>
 let
-  val NilC = Syntax.const @{const_syntax Nil};
-  val ConsC = Syntax.const @{const_syntax Cons};
-  val mapC = Syntax.const @{const_syntax map};
-  val concatC = Syntax.const @{const_syntax concat};
-  val IfC = Syntax.const @{const_syntax If};
-  val dummyC = Syntax.const @{const_syntax Pure.dummy_pattern}
+  val NilC = Syntax.const \<^const_syntax>\<open>Nil\<close>;
+  val ConsC = Syntax.const \<^const_syntax>\<open>Cons\<close>;
+  val mapC = Syntax.const \<^const_syntax>\<open>map\<close>;
+  val concatC = Syntax.const \<^const_syntax>\<open>concat\<close>;
+  val IfC = Syntax.const \<^const_syntax>\<open>If\<close>;
+  val dummyC = Syntax.const \<^const_syntax>\<open>Pure.dummy_pattern\<close>
 
   fun single x = ConsC $ x $ NilC;
 
@@ -453,18 +453,18 @@ let
       val x =
         Free (singleton (Name.variant_list (fold Term.add_free_names [p, e] [])) "x", dummyT);
       val e = if opti then single e else e;
-      val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
+      val case1 = Syntax.const \<^syntax_const>\<open>_case1\<close> $ p $ e;
       val case2 =
-        Syntax.const @{syntax_const "_case1"} $ dummyC $ NilC;
-      val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
+        Syntax.const \<^syntax_const>\<open>_case1\<close> $ dummyC $ NilC;
+      val cs = Syntax.const \<^syntax_const>\<open>_case2\<close> $ case1 $ case2;
     in Syntax_Trans.abs_tr [x, Case_Translation.case_tr false ctxt [x, cs]] end;
 
   fun pair_pat_tr (x as Free _) e = Syntax_Trans.abs_tr [x, e]
     | pair_pat_tr (_ $ p1 $ p2) e =
-        Syntax.const @{const_syntax case_prod} $ pair_pat_tr p1 (pair_pat_tr p2 e)
+        Syntax.const \<^const_syntax>\<open>case_prod\<close> $ pair_pat_tr p1 (pair_pat_tr p2 e)
     | pair_pat_tr dummy e = Syntax_Trans.abs_tr [Syntax.const "_idtdummy", e]
 
-  fun pair_pat ctxt (Const (@{const_syntax "Pair"},_) $ s $ t) =
+  fun pair_pat ctxt (Const (\<^const_syntax>\<open>Pair\<close>,_) $ s $ t) =
         pair_pat ctxt s andalso pair_pat ctxt t
     | pair_pat ctxt (Free (s,_)) =
         let
@@ -480,31 +480,31 @@ let
        else (pat_tr ctxt p e opti, false)
     end
 
-  fun lc_tr ctxt [e, Const (@{syntax_const "_lc_test"}, _) $ b, qs] =
+  fun lc_tr ctxt [e, Const (\<^syntax_const>\<open>_lc_test\<close>, _) $ b, qs] =
     let
       val res =
         (case qs of
-           Const (@{syntax_const "_lc_end"}, _) => single e
-         | Const (@{syntax_const "_lc_quals"}, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
+           Const (\<^syntax_const>\<open>_lc_end\<close>, _) => single e
+         | Const (\<^syntax_const>\<open>_lc_quals\<close>, _) $ q $ qs => lc_tr ctxt [e, q, qs]);
     in IfC $ b $ res $ NilC end
   | lc_tr ctxt
-      [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
-          Const(@{syntax_const "_lc_end"}, _)] =
+      [e, Const (\<^syntax_const>\<open>_lc_gen\<close>, _) $ p $ es,
+          Const(\<^syntax_const>\<open>_lc_end\<close>, _)] =
       (case abs_tr ctxt p e true of
          (f, true) => mapC $ f $ es
        | (f, false) => concatC $ (mapC $ f $ es))
   | lc_tr ctxt
-      [e, Const (@{syntax_const "_lc_gen"}, _) $ p $ es,
-          Const (@{syntax_const "_lc_quals"}, _) $ q $ qs] =
+      [e, Const (\<^syntax_const>\<open>_lc_gen\<close>, _) $ p $ es,
+          Const (\<^syntax_const>\<open>_lc_quals\<close>, _) $ q $ qs] =
       let val e' = lc_tr ctxt [e, q, qs];
       in concatC $ (mapC $ (fst (abs_tr ctxt p e' false)) $ es) end;
 
-in [(@{syntax_const "_listcompr"}, lc_tr)] end
+in [(\<^syntax_const>\<open>_listcompr\<close>, lc_tr)] end
 \<close>
 
 ML_val \<open>
   let
-    val read = Syntax.read_term @{context} o Syntax.implode_input;
+    val read = Syntax.read_term \<^context> o Syntax.implode_input;
     fun check s1 s2 =
       read s1 aconv read s2 orelse
         error ("Check failed: " ^
@@ -555,19 +555,19 @@ struct
 
 fun all_exists_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name Ex}, _) $ Abs _ =>
+    Const (\<^const_name>\<open>Ex\<close>, _) $ Abs _ =>
       Conv.arg_conv (Conv.abs_conv (all_exists_conv cv o #2) ctxt) ct
   | _ => cv ctxt ct)
 
 fun all_but_last_exists_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name Ex}, _) $ Abs (_, _, Const (@{const_name Ex}, _) $ _) =>
+    Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, Const (\<^const_name>\<open>Ex\<close>, _) $ _) =>
       Conv.arg_conv (Conv.abs_conv (all_but_last_exists_conv cv o #2) ctxt) ct
   | _ => cv ctxt ct)
 
 fun Collect_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name Collect}, _) $ Abs _ => Conv.arg_conv (Conv.abs_conv cv ctxt) ct
+    Const (\<^const_name>\<open>Collect\<close>, _) $ Abs _ => Conv.arg_conv (Conv.abs_conv cv ctxt) ct
   | _ => raise CTERM ("Collect_conv", [ct]))
 
 fun rewr_conv' th = Conv.rewr_conv (mk_meta_eq th)
@@ -592,10 +592,10 @@ val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
 val inst_Collect_mem_eq = @{lemma "set A = {x. x \<in> set A}" by simp}
 val del_refl_eq = @{lemma "(t = t \<and> P) \<equiv> P" by simp}
 
-fun mk_set T = Const (@{const_name set}, HOLogic.listT T --> HOLogic.mk_setT T)
-fun dest_set (Const (@{const_name set}, _) $ xs) = xs
+fun mk_set T = Const (\<^const_name>\<open>set\<close>, HOLogic.listT T --> HOLogic.mk_setT T)
+fun dest_set (Const (\<^const_name>\<open>set\<close>, _) $ xs) = xs
 
-fun dest_singleton_list (Const (@{const_name Cons}, _) $ t $ (Const (@{const_name Nil}, _))) = t
+fun dest_singleton_list (Const (\<^const_name>\<open>Cons\<close>, _) $ t $ (Const (\<^const_name>\<open>Nil\<close>, _))) = t
   | dest_singleton_list t = raise TERM ("dest_singleton_list", [t])
 
 (*We check that one case returns a singleton list and all other cases
@@ -604,14 +604,14 @@ fun possible_index_of_singleton_case cases =
   let
     fun check (i, case_t) s =
       (case strip_abs_body case_t of
-        (Const (@{const_name Nil}, _)) => s
+        (Const (\<^const_name>\<open>Nil\<close>, _)) => s
       | _ => (case s of SOME NONE => SOME (SOME i) | _ => NONE))
   in
     fold_index check cases (SOME NONE) |> the_default NONE
   end
 
 (*returns condition continuing term option*)
-fun dest_if (Const (@{const_name If}, _) $ cond $ then_t $ Const (@{const_name Nil}, _)) =
+fun dest_if (Const (\<^const_name>\<open>If\<close>, _) $ cond $ then_t $ Const (\<^const_name>\<open>Nil\<close>, _)) =
       SOME (cond, then_t)
   | dest_if _ = NONE
 
@@ -717,7 +717,7 @@ fun simproc ctxt redex =
             val constr_t =
               list_comb
                 (Const (constr_name, map snd vs ---> T), map Bound (((length vs) - 1) downto 0))
-            val constr_eq = Const (@{const_name HOL.eq}, T --> T --> @{typ bool}) $ constr_t $ x'
+            val constr_eq = Const (\<^const_name>\<open>HOL.eq\<close>, T --> T --> \<^typ>\<open>bool\<close>) $ constr_t $ x'
           in
             make_inner_eqs (rev vs @ bound_vs) (Case (T, i) :: Tis) (constr_eq :: eqs') body
           end
@@ -728,14 +728,14 @@ fun simproc ctxt redex =
             if null eqs then NONE (*no rewriting, nothing to be done*)
             else
               let
-                val Type (@{type_name list}, [rT]) = fastype_of1 (map snd bound_vs, t)
+                val Type (\<^type_name>\<open>list\<close>, [rT]) = fastype_of1 (map snd bound_vs, t)
                 val pat_eq =
                   (case try dest_singleton_list t of
                     SOME t' =>
-                      Const (@{const_name HOL.eq}, rT --> rT --> @{typ bool}) $
+                      Const (\<^const_name>\<open>HOL.eq\<close>, rT --> rT --> \<^typ>\<open>bool\<close>) $
                         Bound (length bound_vs) $ t'
                   | NONE =>
-                      Const (@{const_name Set.member}, rT --> HOLogic.mk_setT rT --> @{typ bool}) $
+                      Const (\<^const_name>\<open>Set.member\<close>, rT --> HOLogic.mk_setT rT --> \<^typ>\<open>bool\<close>) $
                         Bound (length bound_vs) $ (mk_set rT $ t))
                 val reverse_bounds = curry subst_bounds
                   ((map Bound ((length bound_vs - 1) downto 0)) @ [Bound (length bound_vs)])
@@ -768,7 +768,7 @@ code_datatype set coset
 hide_const (open) coset
 
 
-subsubsection \<open>@{const Nil} and @{const Cons}\<close>
+subsubsection \<open>\<^const>\<open>Nil\<close> and \<^const>\<open>Cons\<close>\<close>
 
 lemma not_Cons_self [simp]:
   "xs \<noteq> x # xs"
@@ -804,7 +804,7 @@ lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
 lemma inj_on_Cons1 [simp]: "inj_on ((#) x) A"
 by(simp add: inj_on_def)
 
-subsubsection \<open>@{const length}\<close>
+subsubsection \<open>\<^const>\<open>length\<close>\<close>
 
 text \<open>
   Needs to come before \<open>@\<close> because of theorem \<open>append_eq_append_conv\<close>.
@@ -900,14 +900,14 @@ of those of the other list and there are fewer Cons's in one than the other.
 
 let
 
-fun len (Const(@{const_name Nil},_)) acc = acc
-  | len (Const(@{const_name Cons},_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
-  | len (Const(@{const_name append},_) $ xs $ ys) acc = len xs (len ys acc)
-  | len (Const(@{const_name rev},_) $ xs) acc = len xs acc
-  | len (Const(@{const_name map},_) $ _ $ xs) acc = len xs acc
+fun len (Const(\<^const_name>\<open>Nil\<close>,_)) acc = acc
+  | len (Const(\<^const_name>\<open>Cons\<close>,_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
+  | len (Const(\<^const_name>\<open>append\<close>,_) $ xs $ ys) acc = len xs (len ys acc)
+  | len (Const(\<^const_name>\<open>rev\<close>,_) $ xs) acc = len xs acc
+  | len (Const(\<^const_name>\<open>map\<close>,_) $ _ $ xs) acc = len xs acc
   | len t (ts,n) = (t::ts,n);
 
-val ss = simpset_of @{context};
+val ss = simpset_of \<^context>;
 
 fun list_neq ctxt ct =
   let
@@ -1042,21 +1042,21 @@ Currently only tries to rearrange \<open>@\<close> to see if
 
 simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
   let
-    fun last (cons as Const (@{const_name Cons}, _) $ _ $ xs) =
-          (case xs of Const (@{const_name Nil}, _) => cons | _ => last xs)
-      | last (Const(@{const_name append},_) $ _ $ ys) = last ys
+    fun last (cons as Const (\<^const_name>\<open>Cons\<close>, _) $ _ $ xs) =
+          (case xs of Const (\<^const_name>\<open>Nil\<close>, _) => cons | _ => last xs)
+      | last (Const(\<^const_name>\<open>append\<close>,_) $ _ $ ys) = last ys
       | last t = t;
 
-    fun list1 (Const(@{const_name Cons},_) $ _ $ Const(@{const_name Nil},_)) = true
+    fun list1 (Const(\<^const_name>\<open>Cons\<close>,_) $ _ $ Const(\<^const_name>\<open>Nil\<close>,_)) = true
       | list1 _ = false;
 
-    fun butlast ((cons as Const(@{const_name Cons},_) $ x) $ xs) =
-          (case xs of Const (@{const_name Nil}, _) => xs | _ => cons $ butlast xs)
-      | butlast ((app as Const (@{const_name append}, _) $ xs) $ ys) = app $ butlast ys
-      | butlast xs = Const(@{const_name Nil}, fastype_of xs);
+    fun butlast ((cons as Const(\<^const_name>\<open>Cons\<close>,_) $ x) $ xs) =
+          (case xs of Const (\<^const_name>\<open>Nil\<close>, _) => xs | _ => cons $ butlast xs)
+      | butlast ((app as Const (\<^const_name>\<open>append\<close>, _) $ xs) $ ys) = app $ butlast ys
+      | butlast xs = Const(\<^const_name>\<open>Nil\<close>, fastype_of xs);
 
     val rearr_ss =
-      simpset_of (put_simpset HOL_basic_ss @{context}
+      simpset_of (put_simpset HOL_basic_ss \<^context>
         addsimps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}]);
 
     fun list_eq ctxt (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
@@ -1067,7 +1067,7 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
             val lhs1 = butlast lhs and rhs1 = butlast rhs;
             val Type(_,listT::_) = eqT
             val appT = [listT,listT] ---> listT
-            val app = Const(@{const_name append},appT)
+            val app = Const(\<^const_name>\<open>append\<close>,appT)
             val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
             val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
             val thm = Goal.prove ctxt [] [] eq
@@ -1082,7 +1082,7 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
 \<close>
 
 
-subsubsection \<open>@{const map}\<close>
+subsubsection \<open>\<^const>\<open>map\<close>\<close>
 
 lemma hd_map: "xs \<noteq> [] \<Longrightarrow> hd (map f xs) = f (hd xs)"
 by (cases xs) simp_all
@@ -1214,7 +1214,7 @@ by (simp_all add: id_def)
 declare map.id [simp]
 
 
-subsubsection \<open>@{const rev}\<close>
+subsubsection \<open>\<^const>\<open>rev\<close>\<close>
 
 lemma rev_append [simp]: "rev (xs @ ys) = rev ys @ rev xs"
 by (induct xs) auto
@@ -1277,7 +1277,7 @@ lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by(rule rev_cases[of xs]) auto
 
 
-subsubsection \<open>@{const set}\<close>
+subsubsection \<open>\<^const>\<open>set\<close>\<close>
 
 declare list.set[code_post]  \<comment> \<open>pretty output\<close>
 
@@ -1445,7 +1445,7 @@ lemma append_Cons_eq_iff:
 by(auto simp: append_eq_Cons_conv Cons_eq_append_conv append_eq_append_conv2)
 
 
-subsubsection \<open>@{const filter}\<close>
+subsubsection \<open>\<^const>\<open>filter\<close>\<close>
 
 lemma filter_append [simp]: "filter P (xs @ ys) = filter P xs @ filter P ys"
 by (induct xs) auto
@@ -1626,7 +1626,7 @@ lemma partition_filter_conv[simp]:
 declare partition.simps[simp del]
 
 
-subsubsection \<open>@{const concat}\<close>
+subsubsection \<open>\<^const>\<open>concat\<close>\<close>
 
 lemma concat_append [simp]: "concat (xs @ ys) = concat xs @ concat ys"
   by (induct xs) auto
@@ -1662,7 +1662,7 @@ lemma concat_injective: "concat xs = concat ys ==> length xs = length ys ==> \<f
   by (simp add: concat_eq_concat_iff)
 
 
-subsubsection \<open>@{const nth}\<close>
+subsubsection \<open>\<^const>\<open>nth\<close>\<close>
 
 lemma nth_Cons_0 [simp, code]: "(x # xs)!0 = x"
   by auto
@@ -1814,7 +1814,7 @@ next
 qed
 
 
-subsubsection \<open>@{const list_update}\<close>
+subsubsection \<open>\<^const>\<open>list_update\<close>\<close>
 
 lemma length_list_update [simp]: "length(xs[i:=x]) = length xs"
   by (induct xs arbitrary: i) (auto split: nat.split)
@@ -1894,7 +1894,7 @@ lemma list_update_code [code]:
   by simp_all
 
 
-subsubsection \<open>@{const last} and @{const butlast}\<close>
+subsubsection \<open>\<^const>\<open>last\<close> and \<^const>\<open>butlast\<close>\<close>
 
 lemma last_snoc [simp]: "last (xs @ [x]) = x"
   by (induct xs) auto
@@ -1994,7 +1994,7 @@ corollary longest_common_suffix:
   unfolding rev_swap rev_append by (metis last_rev rev_is_Nil_conv)
 
 
-subsubsection \<open>@{const take} and @{const drop}\<close>
+subsubsection \<open>\<^const>\<open>take\<close> and \<^const>\<open>drop\<close>\<close>
 
 lemma take_0: "take 0 xs = []"
   by (induct xs) auto
@@ -2267,7 +2267,7 @@ lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take 
   by(auto simp: set_conv_nth image_def) (metis Suc_le_eq nth_take order_trans)
 
 
-subsubsection \<open>@{const takeWhile} and @{const dropWhile}\<close>
+subsubsection \<open>\<^const>\<open>takeWhile\<close> and \<^const>\<open>dropWhile\<close>\<close>
 
 lemma length_takeWhile_le: "length (takeWhile P xs) \<le> length xs"
   by (induct xs) auto
@@ -2441,7 +2441,7 @@ lemma dropWhile_idem [simp]:
   by (induct xs) auto
 
 
-subsubsection \<open>@{const zip}\<close>
+subsubsection \<open>\<^const>\<open>zip\<close>\<close>
 
 lemma zip_Nil [simp]: "zip [] ys = []"
   by (induct ys) auto
@@ -2635,7 +2635,7 @@ proof -
 qed
 
 
-subsubsection \<open>@{const list_all2}\<close>
+subsubsection \<open>\<^const>\<open>list_all2\<close>\<close>
 
 lemma list_all2_lengthD [intro?]:
   "list_all2 P xs ys ==> length xs = length ys"
@@ -2816,7 +2816,7 @@ lemma zip_left_commute:
 lemma zip_replicate2: "zip xs (replicate n y) = map (\<lambda>x. (x, y)) (take n xs)"
   by(subst zip_commute)(simp add: zip_replicate1)
 
-subsubsection \<open>@{const List.product} and @{const product_lists}\<close>
+subsubsection \<open>\<^const>\<open>List.product\<close> and \<^const>\<open>product_lists\<close>\<close>
 
 lemma product_concat_map:
   "List.product xs ys = concat (map (\<lambda>x. map (\<lambda>y. (x,y)) ys) xs)"
@@ -2857,7 +2857,7 @@ next
 qed
 
 
-subsubsection \<open>@{const fold} with natural argument order\<close>
+subsubsection \<open>\<^const>\<open>fold\<close> with natural argument order\<close>
 
 lemma fold_simps [code]: \<comment> \<open>eta-expanded variant for generated code -- enables tail-recursion optimisation in Scala\<close>
   "fold f [] s = s"
@@ -2919,7 +2919,7 @@ lemma rev_conv_fold [code]: "rev xs = fold Cons xs []"
 lemma fold_append_concat_rev: "fold append xss = append (concat (rev xss))"
   by (induct xss) simp_all
 
-text \<open>@{const Finite_Set.fold} and @{const fold}\<close>
+text \<open>\<^const>\<open>Finite_Set.fold\<close> and \<^const>\<open>fold\<close>\<close>
 
 lemma (in comp_fun_commute) fold_set_fold_remdups:
   "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
@@ -2997,7 +2997,7 @@ lemma (in complete_lattice) SUP_set_fold:
   using Sup_set_fold [of "map f xs"] by (simp add: fold_map)
 
 
-subsubsection \<open>Fold variants: @{const foldr} and @{const foldl}\<close>
+subsubsection \<open>Fold variants: \<^const>\<open>foldr\<close> and \<^const>\<open>foldl\<close>\<close>
 
 text \<open>Correspondence\<close>
 
@@ -3050,7 +3050,7 @@ lemma concat_conv_foldr [code]:
   by (simp add: fold_append_concat_rev foldr_conv_fold)
 
 
-subsubsection \<open>@{const upt}\<close>
+subsubsection \<open>\<^const>\<open>upt\<close>\<close>
 
 lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
   \<comment> \<open>simp does not terminate!\<close>
@@ -3186,7 +3186,7 @@ lemma nth_Cons_numeral [simp]:
 by (simp add: nth_Cons')
 
 
-subsubsection \<open>\<open>upto\<close>: interval-list on @{typ int}\<close>
+subsubsection \<open>\<open>upto\<close>: interval-list on \<^typ>\<open>int\<close>\<close>
 
 function upto :: "int \<Rightarrow> int \<Rightarrow> int list" ("(1[_../_])") where
   "upto i j = (if i \<le> j then i # [i+1..j] else [])"
@@ -3270,7 +3270,7 @@ lemma upto_code[code]: "[i..j] = upto_aux i j []"
 by(simp add: upto_aux_def)
 
 
-subsubsection \<open>@{const distinct} and @{const remdups} and @{const remdups_adj}\<close>
+subsubsection \<open>\<^const>\<open>distinct\<close> and \<^const>\<open>remdups\<close> and \<^const>\<open>remdups_adj\<close>\<close>
 
 lemma distinct_tl: "distinct xs \<Longrightarrow> distinct (tl xs)"
 by (cases xs) simp_all
@@ -3793,7 +3793,7 @@ next
 qed
 
 
-subsubsection \<open>@{const insert}\<close>
+subsubsection \<open>\<^const>\<open>insert\<close>\<close>
 
 lemma in_set_insert [simp]:
   "x \<in> set xs \<Longrightarrow> List.insert x xs = xs"
@@ -3817,7 +3817,7 @@ lemma insert_remdups:
 by (simp add: List.insert_def)
 
 
-subsubsection \<open>@{const List.union}\<close>
+subsubsection \<open>\<^const>\<open>List.union\<close>\<close>
 
 text\<open>This is all one should need to know about union:\<close>
 lemma set_union[simp]: "set (List.union xs ys) = set xs \<union> set ys"
@@ -3829,7 +3829,7 @@ unfolding List.union_def
 by(induct xs arbitrary: ys) simp_all
 
 
-subsubsection \<open>@{const List.find}\<close>
+subsubsection \<open>\<^const>\<open>List.find\<close>\<close>
 
 lemma find_None_iff: "List.find P xs = None \<longleftrightarrow> \<not> (\<exists>x. x \<in> set xs \<and> P x)"
 proof (induction xs)
@@ -3868,7 +3868,7 @@ lemma find_dropWhile:
 by (induct xs) simp_all
 
 
-subsubsection \<open>@{const count_list}\<close>
+subsubsection \<open>\<^const>\<open>count_list\<close>\<close>
 
 lemma count_notin[simp]: "x \<notin> set xs \<Longrightarrow> count_list xs x = 0"
 by (induction xs) auto
@@ -3886,7 +3886,7 @@ proof (induction xs arbitrary: X)
 qed simp
 
 
-subsubsection \<open>@{const List.extract}\<close>
+subsubsection \<open>\<^const>\<open>List.extract\<close>\<close>
 
 lemma extract_None_iff: "List.extract P xs = None \<longleftrightarrow> \<not> (\<exists> x\<in>set xs. P x)"
 by(auto simp: extract_def dropWhile_eq_Cons_conv split: list.splits)
@@ -3914,7 +3914,7 @@ by(auto simp add: extract_def comp_def split: list.splits)
   (metis dropWhile_eq_Nil_conv list.distinct(1))
 
 
-subsubsection \<open>@{const remove1}\<close>
+subsubsection \<open>\<^const>\<open>remove1\<close>\<close>
 
 lemma remove1_append:
   "remove1 x (xs @ ys) =
@@ -3960,7 +3960,7 @@ lemma remove1_idem: "x \<notin> set xs \<Longrightarrow> remove1 x xs = xs"
 by (induct xs) simp_all
 
 
-subsubsection \<open>@{const removeAll}\<close>
+subsubsection \<open>\<^const>\<open>removeAll\<close>\<close>
 
 lemma removeAll_filter_not_eq:
   "removeAll x = filter (\<lambda>y. x \<noteq> y)"
@@ -4014,7 +4014,7 @@ lemma length_removeAll_less [termination_simp]:
   by (auto dest: length_filter_less simp add: removeAll_filter_not_eq)
 
 
-subsubsection \<open>@{const replicate}\<close>
+subsubsection \<open>\<^const>\<open>replicate\<close>\<close>
 
 lemma length_replicate [simp]: "length (replicate n x) = n"
 by (induct n) auto
@@ -4218,7 +4218,7 @@ lemma fold_replicate [simp]:
 by (subst foldr_fold [symmetric]) simp_all
 
 
-subsubsection \<open>@{const enumerate}\<close>
+subsubsection \<open>\<^const>\<open>enumerate\<close>\<close>
 
 lemma enumerate_simps [simp, code]:
   "enumerate n [] = []"
@@ -4276,7 +4276,7 @@ lemma enumerate_map_upt:
 by (cases "n \<le> m") (simp_all add: zip_map2 zip_same_conv_map enumerate_eq_zip)
 
 
-subsubsection \<open>@{const rotate1} and @{const rotate}\<close>
+subsubsection \<open>\<^const>\<open>rotate1\<close> and \<^const>\<open>rotate\<close>\<close>
 
 lemma rotate0[simp]: "rotate 0 = id"
 by(simp add:rotate_def)
@@ -4380,7 +4380,7 @@ lemma rotate_append: "rotate (length l) (l @ q) = q @ l"
   by (induct l arbitrary: q) (auto simp add: rotate1_rotate_swap)
 
 
-subsubsection \<open>@{const nths} --- a generalization of @{const nth} to sets\<close>
+subsubsection \<open>\<^const>\<open>nths\<close> --- a generalization of \<^const>\<open>nth\<close> to sets\<close>
 
 lemma nths_empty [simp]: "nths xs {} = []"
 by (auto simp add: nths_def)
@@ -4483,7 +4483,7 @@ next
 qed
 
 
-subsubsection \<open>@{const subseqs} and @{const List.n_lists}\<close>
+subsubsection \<open>\<^const>\<open>subseqs\<close> and \<^const>\<open>List.n_lists\<close>\<close>
 
 lemma length_subseqs: "length (subseqs xs) = 2 ^ length xs"
   by (induct xs) (simp_all add: Let_def)
@@ -4548,7 +4548,7 @@ proof (induct xs arbitrary: ys)
 qed simp
 
 
-subsubsection \<open>@{const splice}\<close>
+subsubsection \<open>\<^const>\<open>splice\<close>\<close>
 
 lemma splice_Nil2 [simp]: "splice xs [] = xs"
 by (cases xs) simp_all
@@ -4564,7 +4564,7 @@ apply(induction "replicate m x" "replicate n x" arbitrary: m n rule: splice.indu
 apply (auto simp add: Cons_replicate_eq dest: gr0_implies_Suc)
 done
 
-subsubsection \<open>@{const shuffles}\<close>
+subsubsection \<open>\<^const>\<open>shuffles\<close>\<close>
 
 lemma shuffles_commutes: "shuffles xs ys = shuffles ys xs"
 by (induction xs ys rule: shuffles.induct) (simp_all add: Un_commute)
@@ -4817,7 +4817,7 @@ proof (rule nth_equalityI)
     by (simp add: nth_transpose filter_map comp_def)
 qed
 
-subsubsection \<open>@{const min} and @{const arg_min}\<close>
+subsubsection \<open>\<^const>\<open>min\<close> and \<^const>\<open>arg_min\<close>\<close>
 
 lemma min_list_Min: "xs \<noteq> [] \<Longrightarrow> min_list xs = Min (set xs)"
 by (induction xs rule: induct_list012)(auto)
@@ -4930,9 +4930,9 @@ lemma infinite_UNIV_listI: "\<not> finite(UNIV::'a list set)"
 
 subsection \<open>Sorting\<close>
 
-subsubsection \<open>@{const sorted_wrt}\<close>
+subsubsection \<open>\<^const>\<open>sorted_wrt\<close>\<close>
 
-text \<open>Sometimes the second equation in the definition of @{const sorted_wrt} is too aggressive
+text \<open>Sometimes the second equation in the definition of \<^const>\<open>sorted_wrt\<close> is too aggressive
 because it relates each list element to \emph{all} its successors. Then this equation
 should be removed and \<open>sorted_wrt2_simps\<close> should be added instead.\<close>
 
@@ -5004,12 +5004,12 @@ next
 qed
 
 
-subsubsection \<open>@{const sorted}\<close>
+subsubsection \<open>\<^const>\<open>sorted\<close>\<close>
 
 context linorder
 begin
 
-text \<open>Sometimes the second equation in the definition of @{const sorted} is too aggressive
+text \<open>Sometimes the second equation in the definition of \<^const>\<open>sorted\<close> is too aggressive
 because it relates each list element to \emph{all} its successors. Then this equation
 should be removed and \<open>sorted2_simps\<close> should be added instead.
 Executable code is one such use case.\<close>
@@ -5195,7 +5195,7 @@ by(simp add: sorted_sorted_wrt sorted_wrt_mono_rel[OF _ sorted_wrt_upto])
 
 subsubsection \<open>Sorting functions\<close>
 
-text\<open>Currently it is not shown that @{const sort} returns a
+text\<open>Currently it is not shown that \<^const>\<open>sort\<close> returns a
 permutation of its input because the nicest proof is via multisets,
 which are not part of Main. Alternatively one could define a function
 that counts the number of occurrences of an element in a list and use
@@ -5402,7 +5402,7 @@ qed
 lemma sorted_enumerate [simp]: "sorted (map fst (enumerate n xs))"
 by (simp add: enumerate_eq_zip)
 
-text \<open>Stability of @{const sort_key}:\<close>
+text \<open>Stability of \<^const>\<open>sort_key\<close>:\<close>
 
 lemma sort_key_stable: "filter (\<lambda>y. f y = k) (sort_key f xs) = filter (\<lambda>y. f y = k) xs"
 proof (induction xs)
@@ -5433,7 +5433,7 @@ lemma sort_key_const: "sort_key (\<lambda>x. c) xs = xs"
 by (metis (mono_tags) filter_True sort_key_stable)
 
 
-subsubsection \<open>@{const transpose} on sorted lists\<close>
+subsubsection \<open>\<^const>\<open>transpose\<close> on sorted lists\<close>
 
 lemma sorted_transpose[simp]: "sorted (rev (map length (transpose xs)))"
 by (auto simp: sorted_iff_nth_mono rev_nth nth_transpose
@@ -5586,7 +5586,7 @@ subsubsection \<open>\<open>sorted_list_of_set\<close>\<close>
 text\<open>This function maps (finite) linearly ordered sets to sorted
 lists. Warning: in most cases it is not a good idea to convert from
 sets to lists but one should convert in the other direction (via
-@{const set}).\<close>
+\<^const>\<open>set\<close>).\<close>
 
 context linorder
 begin
@@ -5757,7 +5757,7 @@ qed
 subsubsection \<open>Lists as Cartesian products\<close>
 
 text\<open>\<open>set_Cons A Xs\<close>: the set of lists with head drawn from
-@{term A} and tail drawn from @{term Xs}.\<close>
+\<^term>\<open>A\<close> and tail drawn from \<^term>\<open>Xs\<close>.\<close>
 
 definition set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" where
 "set_Cons A XS = {z. \<exists>x xs. z = x # xs \<and> x \<in> A \<and> xs \<in> XS}"
@@ -6498,7 +6498,7 @@ lemma listrel_Cons:
      "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})"
 by (auto simp add: set_Cons_def intro: listrel.intros)
 
-text \<open>Relating @{term listrel1}, @{term listrel} and closures:\<close>
+text \<open>Relating \<^term>\<open>listrel1\<close>, \<^term>\<open>listrel\<close> and closures:\<close>
 
 lemma listrel1_rtrancl_subset_rtrancl_listrel1:
   "listrel1 (r\<^sup>*) \<subseteq> (listrel1 r)\<^sup>*"
@@ -6621,7 +6621,7 @@ lemma set_list_bind: "set (List.bind xs f) = (\<Union>x\<in>set xs. set (f x))"
 
 subsection \<open>Code generation\<close>
 
-text\<open>Optional tail recursive version of @{const map}. Can avoid
+text\<open>Optional tail recursive version of \<^const>\<open>map\<close>. Can avoid
 stack overflow in some target languages.\<close>
 
 fun map_tailrec_rev ::  "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list" where
@@ -6647,7 +6647,7 @@ definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
 
 text \<open>
   Use \<open>member\<close> only for generating executable code.  Otherwise use
-  @{prop "x \<in> set xs"} instead --- it is much easier to reason about.
+  \<^prop>\<open>x \<in> set xs\<close> instead --- it is much easier to reason about.
 \<close>
 
 lemma member_rec [code]:
@@ -6669,8 +6669,8 @@ list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. 
 
 text \<open>
   Usually you should prefer \<open>\<forall>x\<in>set xs\<close>, \<open>\<exists>x\<in>set xs\<close>
-  and \<open>\<exists>!x. x\<in>set xs \<and> _\<close> over @{const list_all}, @{const list_ex}
-  and @{const list_ex1} in specifications.
+  and \<open>\<exists>!x. x\<in>set xs \<and> _\<close> over \<^const>\<open>list_all\<close>, \<^const>\<open>list_ex\<close>
+  and \<^const>\<open>list_ex1\<close> in specifications.
 \<close>
 
 lemma list_all_simps [code]:
@@ -6858,7 +6858,7 @@ definition null :: "'a list \<Rightarrow> bool" where
   [code_abbrev]: "null xs \<longleftrightarrow> xs = []"
 
 text \<open>
-  Efficient emptyness check is implemented by @{const null}.
+  Efficient emptyness check is implemented by \<^const>\<open>null\<close>.
 \<close>
 
 lemma null_rec [code]:
@@ -6882,7 +6882,7 @@ definition map_filter :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<R
   [code_post]: "map_filter f xs = map (the \<circ> f) (filter (\<lambda>x. f x \<noteq> None) xs)"
 
 text \<open>
-  Operations @{const maps} and @{const map_filter} avoid
+  Operations \<^const>\<open>maps\<close> and \<^const>\<open>map_filter\<close> avoid
   intermediate lists on execution -- do not use for proving.
 \<close>
 
@@ -6953,7 +6953,7 @@ lemma list_ex_iff_not_all_inverval_int [code_unfold]:
   "list_ex P [i..j] \<longleftrightarrow> \<not> (all_interval_int (Not \<circ> P) i j)"
   by (simp add: list_ex_iff all_interval_int_def)
 
-text \<open>optimized code (tail-recursive) for @{term length}\<close>
+text \<open>optimized code (tail-recursive) for \<^term>\<open>length\<close>\<close>
 
 definition gen_length :: "nat \<Rightarrow> 'a list \<Rightarrow> nat"
 where "gen_length n xs = n + length xs"
@@ -6988,11 +6988,11 @@ open Basic_Code_Thingol;
 
 fun implode_list t =
   let
-    fun dest_cons (IConst { sym = Code_Symbol.Constant @{const_name Cons}, ... } `$ t1 `$ t2) = SOME (t1, t2)
+    fun dest_cons (IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Cons\<close>, ... } `$ t1 `$ t2) = SOME (t1, t2)
       | dest_cons _ = NONE;
     val (ts, t') = Code_Thingol.unfoldr dest_cons t;
   in case t'
-   of IConst { sym = Code_Symbol.Constant @{const_name Nil}, ... } => SOME ts
+   of IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Nil\<close>, ... } => SOME ts
     | _ => NONE
   end;
 
@@ -7012,7 +7012,7 @@ fun add_literal_list target =
         | NONE =>
             print_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
   in
-    Code_Target.set_printings (Code_Symbol.Constant (@{const_name Cons},
+    Code_Target.set_printings (Code_Symbol.Constant (\<^const_name>\<open>Cons\<close>,
       [(target, SOME (Code_Printer.complex_const_syntax (2, pretty)))]))
   end
 

@@ -339,7 +339,7 @@ by auto
 ML
 \<open>
 val Ord_atomize =
-  atomize ([(@{const_name oall}, @{thms ospec}), (@{const_name rall}, @{thms rspec})] @
+  atomize ([(\<^const_name>\<open>oall\<close>, @{thms ospec}), (\<^const_name>\<open>rall\<close>, @{thms rspec})] @
     ZF_conn_pairs, ZF_mem_pairs);
 \<close>
 declaration \<open>fn _ =>

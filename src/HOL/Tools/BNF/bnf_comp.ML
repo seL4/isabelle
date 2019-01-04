@@ -83,7 +83,7 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Comp_Tactics
 
-val typedef_threshold = Attrib.setup_config_int @{binding bnf_typedef_threshold} (K 6);
+val typedef_threshold = Attrib.setup_config_int \<^binding>\<open>bnf_typedef_threshold\<close> (K 6);
 
 fun with_typedef_threshold threshold f lthy =
   lthy
@@ -97,8 +97,8 @@ fun with_typedef_threshold_yield threshold f lthy =
   |> f
   ||> Config.put typedef_threshold (Config.get lthy typedef_threshold);
 
-val ID_bnf = the (bnf_of @{context} "BNF_Composition.ID");
-val DEADID_bnf = the (bnf_of @{context} "BNF_Composition.DEADID");
+val ID_bnf = the (bnf_of \<^context> "BNF_Composition.ID");
+val DEADID_bnf = the (bnf_of \<^context> "BNF_Composition.DEADID");
 
 type comp_cache = (bnf * (typ list * typ list)) Typtab.table;
 
@@ -160,9 +160,9 @@ fun expand_term_const defs =
 val id_bnf_def = @{thm id_bnf_def};
 val expand_id_bnf_def = expand_term_const [Thm.prop_of id_bnf_def |> Logic.dest_equals];
 
-fun is_sum_prod_natLeq (Const (@{const_name csum}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
-  | is_sum_prod_natLeq (Const (@{const_name cprod}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
-  | is_sum_prod_natLeq t = t aconv @{term natLeq};
+fun is_sum_prod_natLeq (Const (\<^const_name>\<open>csum\<close>, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
+  | is_sum_prod_natLeq (Const (\<^const_name>\<open>cprod\<close>, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
+  | is_sum_prod_natLeq t = t aconv \<^term>\<open>natLeq\<close>;
 
 fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
   let
@@ -183,11 +183,11 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val (Dss, lthy2) = apfst (map (map TFree))
       (fold_map Variable.invent_types (map (map Type.sort_of_atyp) ideadss) lthy1);
     val (Ass, lthy3) = apfst (replicate ilive o map TFree)
-      (Variable.invent_types (replicate ilive @{sort type}) lthy2);
+      (Variable.invent_types (replicate ilive \<^sort>\<open>type\<close>) lthy2);
     val As = if ilive > 0 then hd Ass else [];
     val Ass_repl = replicate olive As;
     val (Bs, names_lthy) = apfst (map TFree)
-      (Variable.invent_types (replicate ilive @{sort type}) lthy3);
+      (Variable.invent_types (replicate ilive \<^sort>\<open>type\<close>) lthy3);
     val Bss_repl = replicate olive Bs;
 
     val (((((fs', Qs'), Ps'), Asets), xs), _) = names_lthy
@@ -246,7 +246,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun mk_simplified_set set =
       let
         val setT = fastype_of set;
-        val var_set' = Const (@{const_name id_bnf}, setT --> setT) $ Var ((Name.uu, 0), setT);
+        val var_set' = Const (\<^const_name>\<open>id_bnf\<close>, setT --> setT) $ Var ((Name.uu, 0), setT);
         val goal = mk_Trueprop_eq (var_set', set);
         fun tac {context = ctxt, prems = _} =
           mk_simplified_set_tac ctxt (collect_set_map_of_bnf outer);
@@ -268,9 +268,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val (bd', bd_ordIso_natLeq_thm_opt) =
       if is_sum_prod_natLeq bd then
         let
-          val bd' = @{term natLeq};
+          val bd' = \<^term>\<open>natLeq\<close>;
           val bd_bd' = HOLogic.mk_prod (bd, bd');
-          val ordIso = Const (@{const_name ordIso}, HOLogic.mk_setT (fastype_of bd_bd'));
+          val ordIso = Const (\<^const_name>\<open>ordIso\<close>, HOLogic.mk_setT (fastype_of bd_bd'));
           val goal = mk_Trueprop_mem (bd_bd', ordIso);
         in
           (bd', SOME (Goal.prove_sorry lthy [] [] goal (bd_ordIso_natLeq_tac o #context)
@@ -423,14 +423,14 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     val (Ds, lthy1) = apfst (map TFree)
       (Variable.invent_types (map Type.sort_of_atyp deads) lthy);
     val ((killedAs, As), lthy2) = apfst (`(take n) o map TFree)
-      (Variable.invent_types (replicate live @{sort type}) lthy1);
+      (Variable.invent_types (replicate live \<^sort>\<open>type\<close>) lthy1);
     val (Bs, _(*lthy3*)) = apfst (append killedAs o map TFree)
-      (Variable.invent_types (replicate (live - n) @{sort type}) lthy2);
+      (Variable.invent_types (replicate (live - n) \<^sort>\<open>type\<close>) lthy2);
 
     val ((Asets, lives), _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (drop n As))
       ||>> mk_Frees "x" (drop n As);
-    val xs = map (fn T => Const (@{const_name undefined}, T)) killedAs @ lives;
+    val xs = map (fn T => Const (\<^const_name>\<open>undefined\<close>, T)) killedAs @ lives;
 
     val T = mk_T_of_bnf Ds As bnf;
 
@@ -440,7 +440,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     val rel = Term.list_comb (mk_rel_of_bnf Ds As Bs bnf, map HOLogic.eq_const killedAs);
     (*bnf.pred (%_. True) ... (%_ True)*)
     val pred = Term.list_comb (mk_pred_of_bnf Ds As bnf,
-      map (fn T => Term.absdummy T @{term True}) killedAs);
+      map (fn T => Term.absdummy T \<^term>\<open>True\<close>) killedAs);
 
     val bnf_sets = mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf;
     val sets = drop n bnf_sets;
@@ -529,9 +529,9 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     val (Ds, lthy1) = apfst (map TFree)
       (Variable.invent_types (map Type.sort_of_atyp deads) lthy);
     val ((newAs, As), lthy2) = apfst (chop n o map TFree)
-      (Variable.invent_types (replicate (n + live) @{sort type}) lthy1);
+      (Variable.invent_types (replicate (n + live) \<^sort>\<open>type\<close>) lthy1);
     val ((newBs, Bs), _(*lthy3*)) = apfst (chop n o map TFree)
-      (Variable.invent_types (replicate (n + live) @{sort type}) lthy2);
+      (Variable.invent_types (replicate (n + live) \<^sort>\<open>type\<close>) lthy2);
 
     val (Asets, _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (newAs @ As));
@@ -626,9 +626,9 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
     val (Ds, lthy1) = apfst (map TFree)
       (Variable.invent_types (map Type.sort_of_atyp deads) lthy);
     val (As, lthy2) = apfst (map TFree)
-      (Variable.invent_types (replicate live @{sort type}) lthy1);
+      (Variable.invent_types (replicate live \<^sort>\<open>type\<close>) lthy1);
     val (Bs, _(*lthy3*)) = apfst (map TFree)
-      (Variable.invent_types (replicate live @{sort type}) lthy2);
+      (Variable.invent_types (replicate live \<^sort>\<open>type\<close>) lthy2);
 
     val (Asets, _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (permute As));
@@ -801,8 +801,8 @@ fun mk_repT absT repT absU =
         else raise Term.TYPE ("mk_repT", [absT, repT, absU], [])
     | _ => raise Term.TYPE ("mk_repT", [absT, repT, absU], []));
 
-fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf}, _)) =
-    Const (@{const_name id_bnf}, absU --> absU)
+fun mk_abs_or_rep _ absU (Const (\<^const_name>\<open>id_bnf\<close>, _)) =
+    Const (\<^const_name>\<open>id_bnf\<close>, absU --> absU)
   | mk_abs_or_rep getT (Type (_, Us)) abs =
     let val Ts = snd (dest_Type (getT (fastype_of abs)))
     in Term.subst_atomic_types (Ts ~~ Us) abs end;
@@ -825,7 +825,7 @@ fun maybe_typedef force_out_of_line (b, As, mx) set opt_morphs tac lthy =
           (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, Abs_cases)))
     else
       ((repT,
-        (@{const_name id_bnf}, @{const_name id_bnf},
+        (\<^const_name>\<open>id_bnf\<close>, \<^const_name>\<open>id_bnf\<close>,
          @{thm type_definition_id_bnf_UNIV},
          @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_UNIV]},
          @{thm type_definition.Abs_inject[OF type_definition_id_bnf_UNIV]},
@@ -838,8 +838,8 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
     val nwits = nwits_of_bnf bnf;
 
     val ((As, As'), lthy1) = apfst (`(map TFree))
-      (Variable.invent_types (replicate live @{sort type}) (fold Variable.declare_typ all_Ds lthy));
-    val (Bs, _) = apfst (map TFree) (Variable.invent_types (replicate live @{sort type}) lthy1);
+      (Variable.invent_types (replicate live \<^sort>\<open>type\<close>) (fold Variable.declare_typ all_Ds lthy));
+    val (Bs, _) = apfst (map TFree) (Variable.invent_types (replicate live \<^sort>\<open>type\<close>) lthy1);
 
     val ((((fs, fs'), (Rs, Rs')), (Ps, Ps')), _(*names_lthy*)) = lthy
       |> mk_Frees' "f" (map2 (curry op -->) As Bs)

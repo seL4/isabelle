@@ -563,7 +563,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       (Term.absfree jdx' (mk_nthN n (Asi $ jdx) k));
 
     fun mk_minH_component Asi i sets Ts s k =
-      HOLogic.mk_binop @{const_name "sup"}
+      HOLogic.mk_binop \<^const_name>\<open>sup\<close>
       (mk_minG Asi i k, mk_image s $ mk_in (passive_UNIVs @ map (mk_minG Asi i) ks) sets Ts);
 
     fun mk_min_algs ss =
@@ -1867,9 +1867,9 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword datatype} "define inductive datatypes"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>datatype\<close> "define inductive datatypes"
     (parse_co_datatype_cmd Least_FP construct_lfp);
 
-val _ = Theory.setup (fp_antiquote_setup @{binding datatype});
+val _ = Theory.setup (fp_antiquote_setup \<^binding>\<open>datatype\<close>);
 
 end;

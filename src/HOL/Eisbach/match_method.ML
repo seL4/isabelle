@@ -44,9 +44,9 @@ datatype match_kind =
 val aconv_net = Item_Net.init (op aconv) single;
 
 val parse_match_kind =
-  Scan.lift @{keyword "conclusion"} >> K Match_Concl ||
-  Scan.lift (@{keyword "premises"} |-- Args.mode "local") >> Match_Prems ||
-  Scan.lift (@{keyword "("}) |-- Args.term --| Scan.lift (@{keyword ")"}) >>
+  Scan.lift \<^keyword>\<open>conclusion\<close> >> K Match_Concl ||
+  Scan.lift (\<^keyword>\<open>premises\<close> |-- Args.mode "local") >> Match_Prems ||
+  Scan.lift (\<^keyword>\<open>(\<close>) |-- Args.term --| Scan.lift (\<^keyword>\<open>)\<close>) >>
     (fn t => Match_Term (Item_Net.update t aconv_net)) ||
   Attrib.thms >> (fn thms => Match_Fact (fold Item_Net.update thms Thm.full_rules));
 
@@ -62,10 +62,10 @@ val bound_term : (term, binding) Parse_Tools.parse_val parser =
 
 val fixes =
   Parse.and_list1 (Scan.repeat1 (Parse.position bound_term) --
-    Scan.option (@{keyword "::"} |-- Parse.!!! Parse.typ)
+    Scan.option (\<^keyword>\<open>::\<close> |-- Parse.!!! Parse.typ)
     >> (fn (xs, T) => map (fn (x, pos) => ((x, T), pos)) xs)) >> flat;
 
-val for_fixes = Scan.optional (@{keyword "for"} |-- fixes) [];
+val for_fixes = Scan.optional (\<^keyword>\<open>for\<close> |-- fixes) [];
 
 fun pos_of dyn = Parse_Tools.the_parse_val dyn |> Binding.pos_of;
 
@@ -95,7 +95,7 @@ fun parse_named_pats match_kind =
         else
           let val b = #1 (the opt_dyn)
           in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end)) --
-  Scan.lift (for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.text))
+  Scan.lift (for_fixes -- (\<^keyword>\<open>\<Rightarrow>\<close> |-- Parse.token Parse.text))
   >> (fn ((ctxt, ts), (fixes, body)) =>
     (case Token.get_value body of
       SOME (Token.Source src) =>
@@ -124,11 +124,11 @@ fun parse_named_pats match_kind =
           fun drop_judgment_dummy t =
             (case t of
               Const (judgment, _) $
-                (Const (@{syntax_const "_type_constraint_"}, T) $
-                  Const (@{const_name Pure.dummy_pattern}, _)) =>
+                (Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $
+                  Const (\<^const_name>\<open>Pure.dummy_pattern\<close>, _)) =>
                 if judgment = Object_Logic.judgment_name ctxt then
-                    Const (@{syntax_const "_type_constraint_"}, T) $
-                      Const (@{const_name Pure.dummy_pattern}, propT)
+                    Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $
+                      Const (\<^const_name>\<open>Pure.dummy_pattern\<close>, propT)
                 else t
             | t1 $ t2 => drop_judgment_dummy t1 $ drop_judgment_dummy t2
             | Abs (a, T, b) => Abs (a, T, drop_judgment_dummy b)
@@ -400,7 +400,7 @@ fun remove_focus_prem thm = remove_focus_prem' (raw_thm_to_id thm, thm);
 (*TODO: Preliminary analysis to see if we're trying to clear in a non-focus match?*)
 val _ =
   Theory.setup
-    (Attrib.setup @{binding "thin"}
+    (Attrib.setup \<^binding>\<open>thin\<close>
       (Scan.succeed
         (Thm.declaration_attribute (fn th => Context.mapping I (remove_focus_prem th))))
         "clear premise inside match method");
@@ -730,9 +730,9 @@ fun real_match using outer_ctxt fixes m text pats st =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding match}
+    (Method.setup \<^binding>\<open>match\<close>
       (parse_match_kind :--
-        (fn kind => Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
+        (fn kind => Scan.lift \<^keyword>\<open>in\<close> |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
         (fn (matches, bodies) => fn ctxt =>
           CONTEXT_METHOD (fn using => Method.RUNTIME (fn (goal_ctxt, st) =>
             let

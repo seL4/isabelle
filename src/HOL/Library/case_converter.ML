@@ -21,7 +21,7 @@ fun lookup_remove _ _ [] = (NONE, [])
 fun mk_abort msg t =
   let 
     val T = fastype_of t
-    val abort = Const (@{const_name missing_pattern_match}, HOLogic.literalT --> (HOLogic.unitT --> T) --> T)
+    val abort = Const (\<^const_name>\<open>missing_pattern_match\<close>, HOLogic.literalT --> (HOLogic.unitT --> T) --> T)
   in
     abort $ HOLogic.mk_literal msg $ absdummy HOLogic.unitT t
   end

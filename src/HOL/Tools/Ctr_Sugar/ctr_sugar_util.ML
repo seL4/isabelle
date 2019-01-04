@@ -127,7 +127,7 @@ fun mk_fresh_names ctxt = (fn xs => Variable.variant_fixes xs ctxt) oo mk_names;
 
 val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
 
-fun mk_TFrees n = mk_TFrees' (replicate n @{sort type});
+fun mk_TFrees n = mk_TFrees' (replicate n \<^sort>\<open>type\<close>);
 
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
 fun mk_Freess' x Tss = @{fold_map 2} mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
@@ -154,7 +154,7 @@ fun variant_types ss Ss ctxt =
 
 fun variant_tfrees ss =
   apfst (map TFree) o
-    variant_types (map (ensure_prefix "'") ss) (replicate (length ss) @{sort type});
+    variant_types (map (ensure_prefix "'") ss) (replicate (length ss) \<^sort>\<open>type\<close>);
 
 fun add_components_of_typ (Type (s, Ts)) =
     cons (Long_Name.base_name s) #> fold_rev add_components_of_typ Ts
@@ -199,7 +199,7 @@ fun mk_unabs_def n = funpow n (fn thm => thm RS fun_cong);
 
 fun mk_IfN _ _ [t] = t
   | mk_IfN T (c :: cs) (t :: ts) =
-    Const (@{const_name If}, HOLogic.boolT --> T --> T --> T) $ c $ t $ mk_IfN T cs ts;
+    Const (\<^const_name>\<open>If\<close>, HOLogic.boolT --> T --> T --> T) $ c $ t $ mk_IfN T cs ts;
 
 val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 val mk_Trueprop_mem = HOLogic.mk_Trueprop o HOLogic.mk_mem;
@@ -236,9 +236,9 @@ fun substitute_noted_thm noted =
 (* The standard binding stands for a name generated following the canonical convention (e.g.,
    "is_Nil" from "Nil"). In contrast, the empty binding is either the standard binding or no
    binding at all, depending on the context. *)
-val standard_binding = @{binding _};
+val standard_binding = \<^binding>\<open>_\<close>;
 
-val parse_binding_colon = Parse.binding --| @{keyword ":"};
+val parse_binding_colon = Parse.binding --| \<^keyword>\<open>:\<close>;
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;

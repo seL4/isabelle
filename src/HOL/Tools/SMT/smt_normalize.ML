@@ -31,7 +31,7 @@ fun drop_fact_warning ctxt =
 (** instantiate elimination rules **)
 
 local
-  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.cterm_of @{context} \<^const>\<open>False\<close>)
+  val (cpfalse, cfalse) = `SMT_Util.mk_cprop (Thm.cterm_of \<^context> \<^const>\<open>False\<close>)
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))
@@ -186,11 +186,11 @@ local
             Pattern.matches thy (t', u) andalso not (t aconv u))
         in not (Term.exists_subterm some_match u) end
 
-  val pat = SMT_Util.mk_const_pat @{theory} \<^const_name>\<open>pat\<close> SMT_Util.destT1
+  val pat = SMT_Util.mk_const_pat \<^theory> \<^const_name>\<open>pat\<close> SMT_Util.destT1
   fun mk_pat ct = Thm.apply (SMT_Util.instT' ct pat) ct
 
   fun mk_clist T =
-    apply2 (Thm.cterm_of @{context}) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
+    apply2 (Thm.cterm_of \<^context>) (SMT_Util.symb_cons_const T, SMT_Util.symb_nil_const T)
   fun mk_list (ccons, cnil) f cts = fold_rev (Thm.mk_binop ccons o f) cts cnil
   val mk_pat_list = mk_list (mk_clist \<^typ>\<open>pattern\<close>)
   val mk_mpat_list = mk_list (mk_clist \<^typ>\<open>pattern symb_list\<close>)
@@ -349,7 +349,7 @@ local
 
   fun int_ops_conv cv ctxt ct =
     (case Thm.term_of ct of
-      @{const of_nat (int)} $ (Const (@{const_name If}, _) $ _ $ _ $ _) =>
+      @{const of_nat (int)} $ (Const (\<^const_name>\<open>If\<close>, _) $ _ $ _ $ _) =>
         Conv.rewr_conv int_if_thm then_conv
         if_conv (cv ctxt) (int_ops_conv cv ctxt)
     | @{const of_nat (int)} $ _ =>
@@ -430,7 +430,7 @@ local
   fun is_strange_number ctxt t = is_irregular_number t andalso SMT_Builtin.is_builtin_num ctxt t
 
   val proper_num_ss =
-    simpset_of (put_simpset HOL_ss @{context} addsimps @{thms Num.numeral_One minus_zero})
+    simpset_of (put_simpset HOL_ss \<^context> addsimps @{thms Num.numeral_One minus_zero})
 
   fun norm_num_conv ctxt =
     SMT_Util.if_conv (is_strange_number ctxt) (Simplifier.rewrite (put_simpset proper_num_ss ctxt))

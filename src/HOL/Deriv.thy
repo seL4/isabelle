@@ -20,10 +20,10 @@ definition has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_nor
     ((\<lambda>y. ((f y - f (Lim F (\<lambda>x. x))) - f' (y - Lim F (\<lambda>x. x))) /\<^sub>R norm (y - Lim F (\<lambda>x. x))) \<longlongrightarrow> 0) F"
 
 text \<open>
-  Usually the filter @{term F} is @{term "at x within s"}.  @{term "(f has_derivative D)
-  (at x within s)"} means: @{term D} is the derivative of function @{term f} at point @{term x}
-  within the set @{term s}. Where @{term s} is used to express left or right sided derivatives. In
-  most cases @{term s} is either a variable or @{term UNIV}.
+  Usually the filter \<^term>\<open>F\<close> is \<^term>\<open>at x within s\<close>.  \<^term>\<open>(f has_derivative D)
+  (at x within s)\<close> means: \<^term>\<open>D\<close> is the derivative of function \<^term>\<open>f\<close> at point \<^term>\<open>x\<close>
+  within the set \<^term>\<open>s\<close>. Where \<^term>\<open>s\<close> is used to express left or right sided derivatives. In
+  most cases \<^term>\<open>s\<close> is either a variable or \<^term>\<open>UNIV\<close>.
 \<close>
 
 text \<open>These are the only cases we'll care about, probably.\<close>
@@ -60,7 +60,7 @@ setup \<open>
     Global_Theory.add_thms_dynamic
       (\<^binding>\<open>derivative_eq_intros\<close>,
         fn context =>
-          Named_Theorems.get (Context.proof_of context) @{named_theorems derivative_intros}
+          Named_Theorems.get (Context.proof_of context) \<^named_theorems>\<open>derivative_intros\<close>
           |> map_filter eq_rule)
   end
 \<close>
@@ -510,7 +510,7 @@ qed
 subsection \<open>Uniqueness\<close>
 
 text \<open>
-This can not generally shown for @{const has_derivative}, as we need to approach the point from
+This can not generally shown for \<^const>\<open>has_derivative\<close>, as we need to approach the point from
 all directions. There is a proof in \<open>Analysis\<close> for \<open>euclidean_space\<close>.
 \<close>
 
@@ -1107,7 +1107,7 @@ qed
 
 subsection \<open>Local extrema\<close>
 
-text \<open>If @{term "0 < f' x"} then @{term x} is Locally Strictly Increasing At The Right.\<close>
+text \<open>If \<^term>\<open>0 < f' x\<close> then \<^term>\<open>x\<close> is Locally Strictly Increasing At The Right.\<close>
 
 lemma has_real_derivative_pos_inc_right:
   fixes f :: "real \<Rightarrow> real"
@@ -1273,10 +1273,10 @@ lemma lemma_interval: "a < x \<Longrightarrow> x < b \<Longrightarrow> \<exists>
   by (force dest: lemma_interval_lt)
 
 text \<open>Rolle's Theorem.
-   If @{term f} is defined and continuous on the closed interval
+   If \<^term>\<open>f\<close> is defined and continuous on the closed interval
    \<open>[a,b]\<close> and differentiable on the open interval \<open>(a,b)\<close>,
-   and @{term "f a = f b"},
-   then there exists \<open>x0 \<in> (a,b)\<close> such that @{term "f' x0 = 0"}\<close>
+   and \<^term>\<open>f a = f b\<close>,
+   then there exists \<open>x0 \<in> (a,b)\<close> such that \<^term>\<open>f' x0 = 0\<close>\<close>
 theorem Rolle_deriv:
   fixes f :: "real \<Rightarrow> real"
   assumes "a < b"
@@ -1301,7 +1301,7 @@ proof -
   then show ?thesis
   proof cases
     case 1
-    \<comment> \<open>@{term f} attains its maximum within the interval\<close>
+    \<comment> \<open>\<^term>\<open>f\<close> attains its maximum within the interval\<close>
     then obtain l where der: "DERIV f x :> l"
       using derf differentiable_def real_differentiable_def by blast
     obtain d where d: "0 < d" and bound: "\<forall>y. \<bar>x - y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
@@ -1321,7 +1321,7 @@ proof -
     then show ?thesis
     proof cases
       case 1
-        \<comment> \<open>@{term f} attains its minimum within the interval\<close>
+        \<comment> \<open>\<^term>\<open>f\<close> attains its minimum within the interval\<close>
       then obtain l where der: "DERIV f x' :> l"
         using derf differentiable_def real_differentiable_def by blast 
       from lemma_interval [OF 1]
@@ -1335,7 +1335,7 @@ proof -
         by (metis has_derivative_unique has_field_derivative_def mult_zero_left)
     next
       case 2
-        \<comment> \<open>@{term f} is constant throughout the interval\<close>
+        \<comment> \<open>\<^term>\<open>f\<close> is constant throughout the interval\<close>
       then have fx': "f b = f x'" by (auto simp: fab)
       from dense [OF \<open>a < b\<close>] obtain r where r: "a < r" "r < b" by blast
       obtain d where d: "0 < d" and bound: "\<forall>y. \<bar>r - y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"

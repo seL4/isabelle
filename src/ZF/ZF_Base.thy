@@ -635,8 +635,8 @@ by (erule Pow_iff [THEN iffD1])
 
 declare Pow_iff [iff]
 
-lemmas Pow_bottom = empty_subsetI [THEN PowI]    \<comment> \<open>@{term"0 \<in> Pow(B)"}\<close>
-lemmas Pow_top = subset_refl [THEN PowI]         \<comment> \<open>@{term"A \<in> Pow(A)"}\<close>
+lemmas Pow_bottom = empty_subsetI [THEN PowI]    \<comment> \<open>\<^term>\<open>0 \<in> Pow(B)\<close>\<close>
+lemmas Pow_top = subset_refl [THEN PowI]         \<comment> \<open>\<^term>\<open>A \<in> Pow(A)\<close>\<close>
 
 
 subsection\<open>Cantor's Theorem: There is no surjection from a set to its powerset.\<close>

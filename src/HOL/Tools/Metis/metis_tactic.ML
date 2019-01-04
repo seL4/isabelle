@@ -30,8 +30,8 @@ open ATP_Proof_Reconstruct
 open Metis_Generate
 open Metis_Reconstruct
 
-val new_skolem = Attrib.setup_config_bool @{binding metis_new_skolem} (K false)
-val advisory_simp = Attrib.setup_config_bool @{binding metis_advisory_simp} (K true)
+val new_skolem = Attrib.setup_config_bool \<^binding>\<open>metis_new_skolem\<close> (K false)
+val advisory_simp = Attrib.setup_config_bool \<^binding>\<open>metis_advisory_simp\<close> (K true)
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ctxt ths1 ths2 =
@@ -48,12 +48,12 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t". Type tag idempotence is also handled this way. *)
 fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
   (case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
-    Const (@{const_name HOL.eq}, _) $ _ $ t =>
+    Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ t =>
     let
       val ct = Thm.cterm_of ctxt t
       val cT = Thm.ctyp_of_cterm ct
     in refl |> Thm.instantiate' [SOME cT] [SOME ct] end
-  | Const (@{const_name disj}, _) $ t1 $ t2 =>
+  | Const (\<^const_name>\<open>disj\<close>, _) $ t1 $ t2 =>
     (if can HOLogic.dest_not t1 then t2 else t1)
     |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial
   | _ => raise Fail "expected reflexive or trivial clause")
@@ -94,7 +94,7 @@ fun introduce_lam_wrappers ctxt th =
                 |> Conv.comb_conv (conv true ctxt))
             else
               Conv.abs_conv (conv false o snd) ctxt ct
-          | Const (@{const_name Meson.skolem}, _) $ _ => Thm.reflexive ct
+          | Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _ => Thm.reflexive ct
           | _ => Conv.comb_conv (conv true ctxt) ct)
       val eq_th = conv true ctxt (Thm.cprop_of th)
       (* We replace the equation's left-hand side with a beta-equivalent term
@@ -188,7 +188,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
            ("Falling back on " ^ quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
        FOL_SOLVE unused fallback_type_encs lam_trans ctxt cls ths0)
   in
-    (case filter (fn t => Thm.prop_of t aconv @{prop False}) cls of
+    (case filter (fn t => Thm.prop_of t aconv \<^prop>\<open>False\<close>) cls of
        false_th :: _ => [false_th RS @{thm FalseE}]
      | [] =>
      (case Metis_Resolution.loop (Metis_Resolution.new (resolution_params ordering)
@@ -288,7 +288,7 @@ fun consider_opt s =
 
 val parse_metis_options =
   Scan.optional
-      (Args.parens (Args.name -- Scan.option (@{keyword ","} |-- Args.name))
+      (Args.parens (Args.name -- Scan.option (\<^keyword>\<open>,\<close> |-- Args.name))
        >> (fn (s, s') =>
               (NONE, NONE) |> consider_opt s
                            |> (case s' of SOME s' => consider_opt s' | _ => I)))
@@ -296,7 +296,7 @@ val parse_metis_options =
 
 val _ =
   Theory.setup
-    (Method.setup @{binding metis}
+    (Method.setup \<^binding>\<open>metis\<close>
       (Scan.lift parse_metis_options -- Attrib.thms >> (METHOD oo metis_method))
       "Metis for FOL and HOL problems")
 

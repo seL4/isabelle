@@ -77,7 +77,7 @@ fun string_for_assign_literal (x, (sn, a)) =
   string_for_var x ^ (case sn of Plus => " = " | Minus => " \<noteq> ") ^
   string_for_annotation a
 
-val bool_M = MType (@{type_name bool}, [])
+val bool_M = MType (\<^type_name>\<open>bool\<close>, [])
 val dummy_M = MType (nitpick_prefix ^ "dummy", [])
 
 fun is_MRec (MRec _) = true
@@ -109,7 +109,7 @@ val string_for_mtype =
              string_for_annotation_atom aa ^ "\<^esup> " ^ aux prec M2
            | MPair (M1, M2) => aux (prec + 1) M1 ^ " \<times> " ^ aux prec M2
            | MType (s, []) =>
-             if s = @{type_name prop} orelse s = @{type_name bool} then "o"
+             if s = \<^type_name>\<open>prop\<close> orelse s = \<^type_name>\<open>bool\<close> then "o"
              else s
            | MType (s, Ms) => "(" ^ commas (map (aux 0) Ms) ^ ") " ^ s
            | MRec (s, _) => "[" ^ s ^ "]") ^
@@ -184,25 +184,25 @@ fun repair_constr_mcache dtype_cache constr_mcache =
           (AList.update (op =) (x, repair_mtype dtype_cache [] M))
   in List.app repair_one (!constr_mcache) end
 
-fun is_fin_fun_supported_type @{typ prop} = true
-  | is_fin_fun_supported_type @{typ bool} = true
-  | is_fin_fun_supported_type (Type (@{type_name option}, _)) = true
+fun is_fin_fun_supported_type \<^typ>\<open>prop\<close> = true
+  | is_fin_fun_supported_type \<^typ>\<open>bool\<close> = true
+  | is_fin_fun_supported_type (Type (\<^type_name>\<open>option\<close>, _)) = true
   | is_fin_fun_supported_type _ = false
 
 (* TODO: clean this up *)
-fun fin_fun_body _ _ (t as @{term False}) = SOME t
-  | fin_fun_body _ _ (t as Const (@{const_name None}, _)) = SOME t
+fun fin_fun_body _ _ (t as \<^term>\<open>False\<close>) = SOME t
+  | fin_fun_body _ _ (t as Const (\<^const_name>\<open>None\<close>, _)) = SOME t
   | fin_fun_body dom_T ran_T
-                 ((t0 as Const (@{const_name If}, _))
-                  $ (t1 as Const (@{const_name HOL.eq}, _) $ Bound 0 $ t1')
+                 ((t0 as Const (\<^const_name>\<open>If\<close>, _))
+                  $ (t1 as Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Bound 0 $ t1')
                   $ t2 $ t3) =
     (if loose_bvar1 (t1', 0) then
        NONE
      else case fin_fun_body dom_T ran_T t3 of
        NONE => NONE
      | SOME t3 =>
-       SOME (t0 $ (Const (@{const_name is_unknown}, dom_T --> bool_T) $ t1')
-                $ (Const (@{const_name unknown}, ran_T)) $ (t0 $ t1 $ t2 $ t3)))
+       SOME (t0 $ (Const (\<^const_name>\<open>is_unknown\<close>, dom_T --> bool_T) $ t1')
+                $ (Const (\<^const_name>\<open>unknown\<close>, ran_T)) $ (t0 $ t1 $ t2 $ t3)))
   | fin_fun_body _ _ _ = NONE
 
 (* FIXME: make sure well-annotated *)
@@ -226,10 +226,10 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
       if T = alpha_T then
         MAlpha
       else case T of
-        Type (@{type_name fun}, [T1, T2]) =>
+        Type (\<^type_name>\<open>fun\<close>, [T1, T2]) =>
         MFun (fresh_mfun_for_fun_type mdata all_minus T1 T2)
-      | Type (@{type_name prod}, [T1, T2]) => MPair (apply2 do_type (T1, T2))
-      | Type (@{type_name set}, [T']) => do_type (T' --> bool_T)
+      | Type (\<^type_name>\<open>prod\<close>, [T1, T2]) => MPair (apply2 do_type (T1, T2))
+      | Type (\<^type_name>\<open>set\<close>, [T']) => do_type (T' --> bool_T)
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
           case AList.lookup (op =) (!data_type_mcache) z of
@@ -800,10 +800,10 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
       let
         val set_T = domain_type T
         val set_M = mtype_for set_T
-        fun custom_mtype_for (T as Type (@{type_name fun}, [T1, T2])) =
+        fun custom_mtype_for (T as Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
             if T = set_T then set_M
             else MFun (custom_mtype_for T1, A Gen, custom_mtype_for T2)
-          | custom_mtype_for (Type (@{type_name set}, [T'])) =
+          | custom_mtype_for (Type (\<^type_name>\<open>set\<close>, [T'])) =
             custom_mtype_for (T' --> bool_T)
           | custom_mtype_for T = mtype_for T
       in
@@ -830,12 +830,12 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                            " : _?");
        case t of
          @{const False} => (bool_M, accum ||> add_comp_frame (A Fls) Leq frame)
-       | Const (@{const_name None}, T) =>
+       | Const (\<^const_name>\<open>None\<close>, T) =>
          (mtype_for T, accum ||> add_comp_frame (A Fls) Leq frame)
        | @{const True} => (bool_M, accum ||> add_comp_frame (A Tru) Leq frame)
-       | (t0 as Const (@{const_name HOL.eq}, _)) $ Bound 0 $ t2 =>
+       | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ Bound 0 $ t2 =>
          (* hack to exploit symmetry of equality when typing "insert" *)
-         (if t2 = Bound 0 then do_term @{term True}
+         (if t2 = Bound 0 then do_term \<^term>\<open>True\<close>
           else do_term (t0 $ t2 $ Bound 0)) accum
        | Const (x as (s, T)) =>
          (case AList.lookup (op =) consts x of
@@ -844,10 +844,10 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
             if not (could_exist_alpha_subtype alpha_T T) then
               (mtype_for T, accum)
             else case s of
-              @{const_name Pure.all} => do_all T accum
-            | @{const_name Pure.eq} => do_equals T accum
-            | @{const_name All} => do_all T accum
-            | @{const_name Ex} =>
+              \<^const_name>\<open>Pure.all\<close> => do_all T accum
+            | \<^const_name>\<open>Pure.eq\<close> => do_equals T accum
+            | \<^const_name>\<open>All\<close> => do_all T accum
+            | \<^const_name>\<open>Ex\<close> =>
               let val set_T = domain_type T in
                 do_term (Abs (Name.uu, set_T,
                               @{const Not} $ (HOLogic.mk_eq
@@ -855,20 +855,20 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                                         @{const False}),
                                    Bound 0)))) accum
               end
-            | @{const_name HOL.eq} => do_equals T accum
-            | @{const_name The} =>
+            | \<^const_name>\<open>HOL.eq\<close> => do_equals T accum
+            | \<^const_name>\<open>The\<close> =>
               (trace_msg (K "*** The"); raise UNSOLVABLE ())
-            | @{const_name Eps} =>
+            | \<^const_name>\<open>Eps\<close> =>
               (trace_msg (K "*** Eps"); raise UNSOLVABLE ())
-            | @{const_name If} =>
+            | \<^const_name>\<open>If\<close> =>
               do_robust_set_operation (range_type T) accum
               |>> curry3 MFun bool_M (A Gen)
-            | @{const_name Pair} => do_pair_constr T accum
-            | @{const_name fst} => do_nth_pair_sel 0 T accum
-            | @{const_name snd} => do_nth_pair_sel 1 T accum
-            | @{const_name Id} =>
+            | \<^const_name>\<open>Pair\<close> => do_pair_constr T accum
+            | \<^const_name>\<open>fst\<close> => do_nth_pair_sel 0 T accum
+            | \<^const_name>\<open>snd\<close> => do_nth_pair_sel 1 T accum
+            | \<^const_name>\<open>Id\<close> =>
               (MFun (mtype_for (elem_type T), A Gen, bool_M), accum)
-            | @{const_name converse} =>
+            | \<^const_name>\<open>converse\<close> =>
               let
                 val x = Unsynchronized.inc max_fresh
                 val ab_set_M = domain_type T |> mtype_for_set x
@@ -877,8 +877,8 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                 (MFun (ab_set_M, A Gen, ba_set_M),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
-            | @{const_name trancl} => do_fragile_set_operation T accum
-            | @{const_name relcomp} =>
+            | \<^const_name>\<open>trancl\<close> => do_fragile_set_operation T accum
+            | \<^const_name>\<open>relcomp\<close> =>
               let
                 val x = Unsynchronized.inc max_fresh
                 val bc_set_M = domain_type T |> mtype_for_set x
@@ -888,12 +888,12 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                 (MFun (bc_set_M, A Gen, MFun (ab_set_M, A Gen, ac_set_M)),
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
-            | @{const_name finite} =>
+            | \<^const_name>\<open>finite\<close> =>
               let
                 val M1 = mtype_for (elem_type (domain_type T))
                 val a = if exists_alpha_sub_mtype M1 then Fls else Gen
               in (MFun (MFun (M1, A a, bool_M), A Gen, bool_M), accum) end
-            | @{const_name prod} =>
+            | \<^const_name>\<open>prod\<close> =>
               let
                 val x = Unsynchronized.inc max_fresh
                 val a_set_M = domain_type T |> mtype_for_set x
@@ -905,12 +905,12 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                  accum ||> add_annotation_atom_comp Neq [] (V x) (A New))
               end
             | _ =>
-              if s = @{const_name safe_The} then
+              if s = \<^const_name>\<open>safe_The\<close> then
                 let
                   val a_set_M = mtype_for (domain_type T)
                   val a_M = dest_MFun a_set_M |> #1
                 in (MFun (a_set_M, A Gen, a_M), accum) end
-              else if s = @{const_name ord_class.less_eq} andalso
+              else if s = \<^const_name>\<open>ord_class.less_eq\<close> andalso
                       is_set_like_type (domain_type T) then
                 do_fragile_set_operation T accum
               else if is_sel s then
@@ -958,7 +958,7 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
                     do_term (incr_boundvars ~1 t1') accum
                   else
                     raise SAME ()
-                | (t11 as Const (@{const_name HOL.eq}, _)) $ Bound 0 $ t13 =>
+                | (t11 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ Bound 0 $ t13 =>
                   if not (loose_bvar1 (t13, 0)) then
                     do_term (incr_boundvars ~1 (t11 $ t13)) accum
                   else
@@ -975,7 +975,7 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
          | @{const conj} $ t1 $ t2 => do_connect conj_spec t1 t2 accum
          | @{const disj} $ t1 $ t2 => do_connect disj_spec t1 t2 accum
          | @{const implies} $ t1 $ t2 => do_connect imp_spec t1 t2 accum
-         | Const (@{const_name Let}, _) $ t1 $ t2 =>
+         | Const (\<^const_name>\<open>Let\<close>, _) $ t1 $ t2 =>
            do_term (betapply (t2, t1)) accum
          | t1 $ t2 =>
            let
@@ -1036,8 +1036,8 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
           let
             val abs_M = mtype_for abs_T
             val x = Unsynchronized.inc max_fresh
-            val side_cond = ((sn = Minus) = (quant_s = @{const_name Ex}))
-            fun ann () = if quant_s = @{const_name Ex} then Fls else Tru
+            val side_cond = ((sn = Minus) = (quant_s = \<^const_name>\<open>Ex\<close>))
+            fun ann () = if quant_s = \<^const_name>\<open>Ex\<close> then Fls else Tru
           in
             accum ||> side_cond
                       ? add_mtype_is_complete [(x, (Plus, ann ()))] abs_M
@@ -1057,13 +1057,13 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
                             " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
                             " : o\<^sup>" ^ string_for_sign sn ^ "?");
         case t of
-          Const (s as @{const_name Pure.all}, _) $ Abs (_, T1, t1) =>
+          Const (s as \<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T1, t1) =>
           do_quantifier s T1 t1
-        | Const (@{const_name Pure.eq}, _) $ t1 $ t2 => do_equals t1 t2
+        | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2 => do_equals t1 t2
         | @{const Trueprop} $ t1 => do_formula sn t1 accum
-        | Const (s as @{const_name All}, _) $ Abs (_, T1, t1) =>
+        | Const (s as \<^const_name>\<open>All\<close>, _) $ Abs (_, T1, t1) =>
           do_quantifier s T1 t1
-        | Const (s as @{const_name Ex}, T0) $ (t1 as Abs (_, T1, t1')) =>
+        | Const (s as \<^const_name>\<open>Ex\<close>, T0) $ (t1 as Abs (_, T1, t1')) =>
           (case sn of
              Plus => do_quantifier s T1 t1'
            | Minus =>
@@ -1071,8 +1071,8 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
              do_term (@{const Not}
                       $ (HOLogic.eq_const (domain_type T0) $ t1
                          $ Abs (Name.uu, T1, @{const False}))) accum)
-        | Const (@{const_name HOL.eq}, _) $ t1 $ t2 => do_equals t1 t2
-        | Const (@{const_name Let}, _) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2 => do_equals t1 t2
+        | Const (\<^const_name>\<open>Let\<close>, _) $ t1 $ t2 =>
           do_formula sn (betapply (t2, t1)) accum
         | @{const Pure.conjunction} $ t1 $ t2 =>
           do_connect meta_conj_spec false t1 t2 accum
@@ -1093,8 +1093,8 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
 (* The harmless axiom optimization below is somewhat too aggressive in the face
    of (rather peculiar) user-defined axioms. *)
 val harmless_consts =
-  [@{const_name ord_class.less}, @{const_name ord_class.less_eq}]
-val bounteous_consts = [@{const_name bisim}]
+  [\<^const_name>\<open>ord_class.less\<close>, \<^const_name>\<open>ord_class.less_eq\<close>]
+val bounteous_consts = [\<^const_name>\<open>bisim\<close>]
 
 fun is_harmless_axiom t =
   Term.add_consts t []
@@ -1122,15 +1122,15 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...} : mdata)
       and do_implies t1 t2 = do_term t1 #> do_formula t2
       and do_formula t accum =
         case t of
-          Const (@{const_name Pure.all}, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
+          Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
         | @{const Trueprop} $ t1 => do_formula t1 accum
-        | Const (@{const_name Pure.eq}, _) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2 =>
           consider_general_equals mdata true t1 t2 accum
         | @{const Pure.imp} $ t1 $ t2 => do_implies t1 t2 accum
         | @{const Pure.conjunction} $ t1 $ t2 =>
           fold (do_formula) [t1, t2] accum
-        | Const (@{const_name All}, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
-        | Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>
+        | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
+        | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2 =>
           consider_general_equals mdata true t1 t2 accum
         | @{const conj} $ t1 $ t2 => fold (do_formula) [t1, t2] accum
         | @{const implies} $ t1 $ t2 => do_implies t1 t2 accum

@@ -19,7 +19,7 @@ end
 structure Adhoc_Overloading: ADHOC_OVERLOADING =
 struct
 
-val show_variants = Attrib.setup_config_bool @{binding show_variants} (K false);
+val show_variants = Attrib.setup_config_bool \<^binding>\<open>show_variants\<close> (K false);
 
 
 (* errors *)
@@ -233,12 +233,12 @@ fun adhoc_overloading_cmd add raw_args lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword adhoc_overloading}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>adhoc_overloading\<close>
     "add adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd true);
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword no_adhoc_overloading}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>no_adhoc_overloading\<close>
     "delete adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd false);
 

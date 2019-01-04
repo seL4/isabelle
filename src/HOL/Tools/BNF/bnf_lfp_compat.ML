@@ -56,7 +56,7 @@ datatype preference = Keep_Nesting | Include_GFPs | Kill_Type_Args;
 fun mk_split_rec_rhs ctxt fpTs Cs (recs as rec1 :: _) =
   let
     fun repair_rec_arg_args [] [] = []
-      | repair_rec_arg_args ((g_T as Type (@{type_name fun}, _)) :: g_Ts) (g :: gs) =
+      | repair_rec_arg_args ((g_T as Type (\<^type_name>\<open>fun\<close>, _)) :: g_Ts) (g :: gs) =
         let
           val (x_Ts, body_T) = strip_type g_T;
         in
@@ -127,7 +127,7 @@ fun mk_split_rec_thmss ctxt Xs ctrXs_Tsss ctrss rec0_thmss (recs as rec1 :: _) r
     val Xs_frecs = Xs ~~ frecs;
     val fss = unflat ctrss fs;
 
-    fun mk_rec_call g n (Type (@{type_name fun}, [_, ran_T])) =
+    fun mk_rec_call g n (Type (\<^type_name>\<open>fun\<close>, [_, ran_T])) =
         Abs (Name.uu, Term.dummyT, mk_rec_call g (n + 1) ran_T)
       | mk_rec_call g n X =
         let
@@ -184,7 +184,7 @@ fun define_split_rec_derive_induct_rec_thms Xs fpTs ctrXs_Tsss ctrss inducts ind
   end;
 
 fun body_rec_indices (Old_Datatype_Aux.DtRec kk) = [kk]
-  | body_rec_indices (Old_Datatype_Aux.DtType (@{type_name fun}, [_, D])) = body_rec_indices D
+  | body_rec_indices (Old_Datatype_Aux.DtType (\<^type_name>\<open>fun\<close>, [_, D])) = body_rec_indices D
   | body_rec_indices _ = [];
 
 fun reindex_desc desc =
@@ -276,7 +276,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val ctr_Tsss = map (map (map (Old_Datatype_Aux.typ_of_dtyp descr) o snd) o #3 o snd) descr;
     val kkssss = map (map (map body_rec_indices o snd) o #3 o snd) descr;
 
-    val callers = map (fn kk => Var ((Name.uu, kk), @{typ "unit => unit"})) (0 upto nn - 1);
+    val callers = map (fn kk => Var ((Name.uu, kk), \<^typ>\<open>unit => unit\<close>)) (0 upto nn - 1);
 
     fun apply_comps n kk =
       mk_partial_compN n (replicate n HOLogic.unitT ---> HOLogic.unitT) (nth callers kk);
@@ -306,7 +306,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val recs = map (#co_rec o the o #fp_co_induct_sugar) fp_sugars';
     val rec_thmss = map (#co_rec_thms o the o #fp_co_induct_sugar) fp_sugars';
 
-    fun is_nested_rec_type (Type (@{type_name fun}, [_, T])) = member (op =) Xs' (body_type T)
+    fun is_nested_rec_type (Type (\<^type_name>\<open>fun\<close>, [_, T])) = member (op =) Xs' (body_type T)
       | is_nested_rec_type _ = false;
 
     val ((lfp_sugar_thms'', (inducts', induct', recs', rec'_thmss)), lthy'') =
@@ -523,7 +523,7 @@ fun add_datatype prefs old_specs thy =
 
     fun new_type_args_of (s, S) =
       (if member (op =) prefs Kill_Type_Args then NONE else SOME Binding.empty,
-       (TFree (s, @{sort type}), S));
+       (TFree (s, \<^sort>\<open>type\<close>), S));
     fun new_ctr_spec_of (b, Ts, mx) = (((Binding.empty, b), map (pair Binding.empty) Ts), mx);
 
     fun new_spec_of ((b, old_tyargs, mx), old_ctr_specs) =
@@ -548,7 +548,7 @@ val primrec_simple = apfst (apfst fst o apsnd (old_of_new (flat o snd))) ooo
   BNF_LFP_Rec_Sugar.primrec_simple false;
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword datatype_compat}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>datatype_compat\<close>
     "register datatypes as old-style datatypes and derive old-style properties"
     (Scan.repeat1 Parse.type_const >> datatype_compat_cmd);
 

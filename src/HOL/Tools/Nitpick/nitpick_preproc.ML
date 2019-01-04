@@ -21,11 +21,11 @@ open Nitpick_HOL
 open Nitpick_Mono
 
 fun is_positive_existential polar quant_s =
-  (polar = Pos andalso quant_s = @{const_name Ex}) orelse
-  (polar = Neg andalso quant_s <> @{const_name Ex})
+  (polar = Pos andalso quant_s = \<^const_name>\<open>Ex\<close>) orelse
+  (polar = Neg andalso quant_s <> \<^const_name>\<open>Ex\<close>)
 
 val is_descr =
-  member (op =) [@{const_name The}, @{const_name Eps}, @{const_name safe_The}]
+  member (op =) [\<^const_name>\<open>The\<close>, \<^const_name>\<open>Eps\<close>, \<^const_name>\<open>safe_The\<close>]
 
 (** Binary coding of integers **)
 
@@ -36,19 +36,19 @@ val binary_int_threshold = 3
 
 val may_use_binary_ints =
   let
-    fun aux def (Const (@{const_name Pure.eq}, _) $ t1 $ t2) =
+    fun aux def (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
       | aux def (@{const Pure.imp} $ t1 $ t2) = aux false t1 andalso aux def t2
-      | aux def (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
+      | aux def (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
       | aux def (@{const HOL.implies} $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (t1 $ t2) = aux def t1 andalso aux def t2
       | aux def (t as Const (s, _)) =
         (not def orelse t <> @{const Suc}) andalso
         not (member (op =)
-               [@{const_name Abs_Frac}, @{const_name Rep_Frac},
-                @{const_name nat_gcd}, @{const_name nat_lcm},
-                @{const_name Frac}, @{const_name norm_frac}] s)
+               [\<^const_name>\<open>Abs_Frac\<close>, \<^const_name>\<open>Rep_Frac\<close>,
+                \<^const_name>\<open>nat_gcd\<close>, \<^const_name>\<open>nat_lcm\<close>,
+                \<^const_name>\<open>Frac\<close>, \<^const_name>\<open>norm_frac\<close>] s)
       | aux def (Abs (_, _, t')) = aux def t'
       | aux _ _ = true
   in aux end
@@ -56,7 +56,7 @@ val should_use_binary_ints =
   let
     fun aux (t1 $ t2) = aux t1 orelse aux t2
       | aux (Const (s, T)) =
-        ((s = @{const_name times} orelse s = @{const_name Rings.divide}) andalso
+        ((s = \<^const_name>\<open>times\<close> orelse s = \<^const_name>\<open>Rings.divide\<close>) andalso
          is_integer_type (body_type T)) orelse
         (String.isPrefix numeral_prefix s andalso
          let val n = the (Int.fromString (unprefix numeral_prefix s)) in
@@ -75,7 +75,7 @@ fun add_to_uncurry_table ctxt t =
       | aux (Abs (_, _, t')) _ table = aux t' [] table
       | aux (t as Const (x as (s, _))) args table =
         if is_built_in_const x orelse is_nonfree_constr ctxt x orelse
-           is_sel s orelse s = @{const_name Sigma} then
+           is_sel s orelse s = \<^const_name>\<open>Sigma\<close> then
           table
         else
           Termtab.map_default (t, 65536) (Integer.min (length args)) table
@@ -126,15 +126,15 @@ fun uncurry_term table t =
 
 fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
   let
-    fun box_relational_operator_type (Type (@{type_name fun}, Ts)) =
-        Type (@{type_name fun}, map box_relational_operator_type Ts)
-      | box_relational_operator_type (Type (@{type_name prod}, Ts)) =
-        Type (@{type_name prod}, map (box_type hol_ctxt InPair) Ts)
+    fun box_relational_operator_type (Type (\<^type_name>\<open>fun\<close>, Ts)) =
+        Type (\<^type_name>\<open>fun\<close>, map box_relational_operator_type Ts)
+      | box_relational_operator_type (Type (\<^type_name>\<open>prod\<close>, Ts)) =
+        Type (\<^type_name>\<open>prod\<close>, map (box_type hol_ctxt InPair) Ts)
       | box_relational_operator_type T = T
     fun add_boxed_types_for_var (z as (_, T)) (T', t') =
       case t' of
         Var z' => z' = z ? insert (op =) T'
-      | Const (@{const_name Pair}, _) $ t1 $ t2 =>
+      | Const (\<^const_name>\<open>Pair\<close>, _) $ t1 $ t2 =>
         (case T' of
            Type (_, [T1, T2]) =>
            fold (add_boxed_types_for_var z) [(T1, t1), (T2, t2)]
@@ -145,7 +145,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
       case t of
         @{const Trueprop} $ t1 => box_var_in_def new_Ts old_Ts t1 z
       | Const (s0, _) $ t1 $ _ =>
-        if s0 = @{const_name Pure.eq} orelse s0 = @{const_name HOL.eq} then
+        if s0 = \<^const_name>\<open>Pure.eq\<close> orelse s0 = \<^const_name>\<open>HOL.eq\<close> then
           let
             val (t', args) = strip_comb t1
             val T' = fastype_of1 (new_Ts, do_term new_Ts old_Ts Neut t')
@@ -186,9 +186,9 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
       end
     and do_term new_Ts old_Ts polar t =
       case t of
-        Const (s0 as @{const_name Pure.all}, T0) $ Abs (s1, T1, t1) =>
+        Const (s0 as \<^const_name>\<open>Pure.all\<close>, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
-      | Const (s0 as @{const_name Pure.eq}, T0) $ t1 $ t2 =>
+      | Const (s0 as \<^const_name>\<open>Pure.eq\<close>, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
       | @{const Pure.imp} $ t1 $ t2 =>
         @{const Pure.imp} $ do_term new_Ts old_Ts (flip_polarity polar) t1
@@ -200,11 +200,11 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
         @{const Trueprop} $ do_term new_Ts old_Ts polar t1
       | @{const Not} $ t1 =>
         @{const Not} $ do_term new_Ts old_Ts (flip_polarity polar) t1
-      | Const (s0 as @{const_name All}, T0) $ Abs (s1, T1, t1) =>
+      | Const (s0 as \<^const_name>\<open>All\<close>, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
-      | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
+      | Const (s0 as \<^const_name>\<open>Ex\<close>, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
-      | Const (s0 as @{const_name HOL.eq}, T0) $ t1 $ t2 =>
+      | Const (s0 as \<^const_name>\<open>HOL.eq\<close>, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
       | @{const HOL.conj} $ t1 $ t2 =>
         @{const HOL.conj} $ do_term new_Ts old_Ts polar t1
@@ -219,15 +219,15 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
         if is_descr s then
           do_descr s T
         else
-          Const (s, if s = @{const_name converse} orelse
-                       s = @{const_name trancl} then
+          Const (s, if s = \<^const_name>\<open>converse\<close> orelse
+                       s = \<^const_name>\<open>trancl\<close> then
                       box_relational_operator_type T
                     else if String.isPrefix quot_normal_prefix s then
                       let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
                         T' --> T'
                       end
                     else if is_built_in_const x orelse
-                            s = @{const_name Sigma} then
+                            s = \<^const_name>\<open>Sigma\<close> then
                       T
                     else if is_nonfree_constr ctxt x then
                       box_type hol_ctxt InConstr T
@@ -245,13 +245,13 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
           val T2 = fastype_of1 (new_Ts, t2)
           val t2 = coerce_term hol_ctxt new_Ts (hd Ts1) T2 t2
         in
-          s_betapply new_Ts (if s1 = @{type_name fun} then
+          s_betapply new_Ts (if s1 = \<^type_name>\<open>fun\<close> then
                                t1
                              else
                                select_nth_constr_arg ctxt
-                                   (@{const_name FunBox},
-                                    Type (@{type_name fun}, Ts1) --> T1) t1 0
-                                   (Type (@{type_name fun}, Ts1)), t2)
+                                   (\<^const_name>\<open>FunBox\<close>,
+                                    Type (\<^type_name>\<open>fun\<close>, Ts1) --> T1) t1 0
+                                   (Type (\<^type_name>\<open>fun\<close>, Ts1)), t2)
         end
       | t1 $ t2 =>
         let
@@ -262,13 +262,13 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
           val T2 = fastype_of1 (new_Ts, t2)
           val t2 = coerce_term hol_ctxt new_Ts (hd Ts1) T2 t2
         in
-          s_betapply new_Ts (if s1 = @{type_name fun} then
+          s_betapply new_Ts (if s1 = \<^type_name>\<open>fun\<close> then
                                t1
                              else
                                select_nth_constr_arg ctxt
-                                   (@{const_name FunBox},
-                                    Type (@{type_name fun}, Ts1) --> T1) t1 0
-                                   (Type (@{type_name fun}, Ts1)), t2)
+                                   (\<^const_name>\<open>FunBox\<close>,
+                                    Type (\<^type_name>\<open>fun\<close>, Ts1) --> T1) t1 0
+                                   (Type (\<^type_name>\<open>fun\<close>, Ts1)), t2)
         end
       | Free (s, T) => Free (s, box_type hol_ctxt InExpr T)
       | Var (z as (x, T)) =>
@@ -281,8 +281,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
 
 (** Destruction of set membership and comprehensions **)
 
-fun destroy_set_Collect (Const (@{const_name Set.member}, _) $ t1
-                         $ (Const (@{const_name Collect}, _) $ t2)) =
+fun destroy_set_Collect (Const (\<^const_name>\<open>Set.member\<close>, _) $ t1
+                         $ (Const (\<^const_name>\<open>Collect\<close>, _) $ t2)) =
     destroy_set_Collect (t2 $ t1)
   | destroy_set_Collect (t1 $ t2) =
     destroy_set_Collect t1 $ destroy_set_Collect t2
@@ -333,11 +333,11 @@ fun pull_out_universal_constrs hol_ctxt def t =
     val k = maxidx_of_term t + 1
     fun do_term Ts def t args seen =
       case t of
-        (t0 as Const (@{const_name Pure.eq}, _)) $ t1 $ t2 =>
+        (t0 as Const (\<^const_name>\<open>Pure.eq\<close>, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
       | (t0 as @{const Pure.imp}) $ t1 $ t2 =>
         if def then (t, []) else do_eq_or_imp Ts false def t0 t1 t2 seen
-      | (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
+      | (t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
       | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
         do_eq_or_imp Ts false def t0 t1 t2 seen
@@ -370,7 +370,7 @@ fun pull_out_existential_constrs hol_ctxt t =
     val k = maxidx_of_term t + 1
     fun aux Ts num_exists t args seen =
       case t of
-        (t0 as Const (@{const_name Ex}, _)) $ Abs (s1, T1, t1) =>
+        (t0 as Const (\<^const_name>\<open>Ex\<close>, _)) $ Abs (s1, T1, t1) =>
         let
           val (t1, seen') = aux (T1 :: Ts) (num_exists + 1) t1 [] []
           val n = length seen'
@@ -400,11 +400,11 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
     val num_occs_of_var =
       fold_aterms (fn Var z => (fn f => fn z' => f z' |> z = z' ? Integer.add 1)
                     | _ => I) t (K 0)
-    fun aux Ts careful ((t0 as Const (@{const_name Pure.eq}, _)) $ t1 $ t2) =
+    fun aux Ts careful ((t0 as Const (\<^const_name>\<open>Pure.eq\<close>, _)) $ t1 $ t2) =
         aux_eq Ts careful true t0 t1 t2
       | aux Ts careful ((t0 as @{const Pure.imp}) $ t1 $ t2) =
         t0 $ aux Ts false t1 $ aux Ts careful t2
-      | aux Ts careful ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
+      | aux Ts careful ((t0 as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2) =
         aux_eq Ts careful true t0 t1 t2
       | aux Ts careful ((t0 as @{const HOL.implies}) $ t1 $ t2) =
         t0 $ aux Ts false t1 $ aux Ts careful t2
@@ -420,9 +420,9 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
           @{const True}
         else case strip_comb t2 of
           (* The first case is not as general as it could be. *)
-          (Const (@{const_name PairBox}, _),
-                  [Const (@{const_name fst}, _) $ Var z1,
-                   Const (@{const_name snd}, _) $ Var z2]) =>
+          (Const (\<^const_name>\<open>PairBox\<close>, _),
+                  [Const (\<^const_name>\<open>fst\<close>, _) $ Var z1,
+                   Const (\<^const_name>\<open>snd\<close>, _) $ Var z2]) =>
           if z1 = z2 andalso num_occs_of_var z1 = 2 then @{const True}
           else raise SAME ()
         | (Const (x as (s, T)), args) =>
@@ -431,8 +431,8 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
             val n = length arg_Ts
           in
             if length args = n andalso
-               (is_constr ctxt x orelse s = @{const_name Pair} orelse
-                x = (@{const_name Suc}, nat_T --> nat_T)) andalso
+               (is_constr ctxt x orelse s = \<^const_name>\<open>Pair\<close> orelse
+                x = (\<^const_name>\<open>Suc\<close>, nat_T --> nat_T)) andalso
                (not careful orelse not (is_Var t1) orelse
                 String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
                 s_let Ts "l" (n + 1) dataT bool_T
@@ -469,10 +469,10 @@ val destroy_universal_equalities =
       | _ => Logic.list_implies (rev prems, t)
     and aux_implies prems zs t1 t2 =
       case t1 of
-        Const (@{const_name Pure.eq}, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
-      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ Var z $ t') =>
+        Const (\<^const_name>\<open>Pure.eq\<close>, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
+      | @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ Var z $ t') =>
         aux_eq prems zs z t' t1 t2
-      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t' $ Var z) =>
+      | @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t' $ Var z) =>
         aux_eq prems zs z t' t1 t2
       | _ => aux (t1 :: prems) (Term.add_vars t1 zs) t2
     and aux_eq prems zs z t' t1 t2 =
@@ -493,11 +493,11 @@ fun find_bound_assign ctxt j =
                if pass1 then do_eq false t2 t1 else raise SAME ()
              else case t1 of
                Bound j' => if j' = j then SOME (t2, ts @ seen) else raise SAME ()
-             | Const (s, Type (@{type_name fun}, [T1, T2])) $ Bound j' =>
+             | Const (s, Type (\<^type_name>\<open>fun\<close>, [T1, T2])) $ Bound j' =>
                if j' = j andalso
-                  s = nth_sel_name_for_constr_name @{const_name FunBox} 0 then
+                  s = nth_sel_name_for_constr_name \<^const_name>\<open>FunBox\<close> 0 then
                  SOME (construct_value ctxt
-                                       (@{const_name FunBox}, T2 --> T1) [t2],
+                                       (\<^const_name>\<open>FunBox\<close>, T2 --> T1) [t2],
                        ts @ seen)
                else
                  raise SAME ()
@@ -505,7 +505,7 @@ fun find_bound_assign ctxt j =
             handle SAME () => do_term (t :: seen) ts
         in
           case t of
-            Const (@{const_name HOL.eq}, _) $ t1 $ t2 => do_eq true t1 t2
+            Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2 => do_eq true t1 t2
           | _ => do_term (t :: seen) ts
         end
   in do_term end
@@ -533,10 +533,10 @@ fun destroy_existential_equalities ({ctxt, ...} : hol_context) =
            kill ss Ts (map (subst_one_bound (length ss)
                                 (incr_bv (~1, length ss + 1, arg_t))) ts)
          | NONE =>
-           Const (@{const_name Ex}, (T --> bool_T) --> bool_T)
+           Const (\<^const_name>\<open>Ex\<close>, (T --> bool_T) --> bool_T)
            $ Abs (s, T, kill ss Ts ts))
       | kill _ _ _ = raise ListPair.UnequalLengths
-    fun gather ss Ts (Const (@{const_name Ex}, _) $ Abs (s1, T1, t1)) =
+    fun gather ss Ts (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (s1, T1, t1)) =
         gather (ss @ [s1]) (Ts @ [T1]) t1
       | gather [] [] (Abs (s, T, t1)) = Abs (s, T, gather [] [] t1)
       | gather [] [] (t1 $ t2) = gather [] [] t1 $ gather [] [] t2
@@ -574,7 +574,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
                    if null js then
                      s_betapply Ts (abs_t, sko_t)
                    else
-                     Const (@{const_name Let}, abs_T --> quant_T) $ sko_t
+                     Const (\<^const_name>\<open>Let\<close>, abs_T --> quant_T) $ sko_t
                      $ abs_t
                  end
                else
@@ -590,7 +590,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
                              not (is_higher_order_type abs_T)) polar t)
       in
         case t of
-          Const (s0 as @{const_name Pure.all}, T0) $ Abs (s1, T1, t1) =>
+          Const (s0 as \<^const_name>\<open>Pure.all\<close>, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | @{const Pure.imp} $ t1 $ t2 =>
           @{const Pure.imp} $ aux ss Ts js skolemizable (flip_polarity polar) t1
@@ -602,9 +602,9 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
           @{const Trueprop} $ aux ss Ts js skolemizable polar t1
         | @{const Not} $ t1 =>
           @{const Not} $ aux ss Ts js skolemizable (flip_polarity polar) t1
-        | Const (s0 as @{const_name All}, T0) $ Abs (s1, T1, t1) =>
+        | Const (s0 as \<^const_name>\<open>All\<close>, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
-        | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
+        | Const (s0 as \<^const_name>\<open>Ex\<close>, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | @{const HOL.conj} $ t1 $ t2 =>
           s_conj (apply2 (aux ss Ts js skolemizable polar) (t1, t2))
@@ -613,7 +613,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
         | @{const HOL.implies} $ t1 $ t2 =>
           @{const HOL.implies} $ aux ss Ts js skolemizable (flip_polarity polar) t1
           $ aux ss Ts js skolemizable polar t2
-        | (t0 as Const (@{const_name Let}, _)) $ t1 $ t2 =>
+        | (t0 as Const (\<^const_name>\<open>Let\<close>, _)) $ t1 $ t2 =>
           t0 $ t1 $ aux ss Ts js skolemizable polar t2
         | Const (x as (s, T)) =>
           if is_raw_inductive_pred hol_ctxt x andalso
@@ -655,7 +655,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
 
 fun params_in_equation (@{const Pure.imp} $ _ $ t2) = params_in_equation t2
   | params_in_equation (@{const Trueprop} $ t1) = params_in_equation t1
-  | params_in_equation (Const (@{const_name HOL.eq}, _) $ t1 $ _) =
+  | params_in_equation (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ _) =
     snd (strip_comb t1)
   | params_in_equation _ = []
 
@@ -865,9 +865,9 @@ fun defined_free_by_assumption t =
       if exists_subterm (curry (op aconv) u) def then NONE else SOME u
   in
     case t of
-      Const (@{const_name Pure.eq}, _) $ (u as Free _) $ def => do_equals u def
+      Const (\<^const_name>\<open>Pure.eq\<close>, _) $ (u as Free _) $ def => do_equals u def
     | @{const Trueprop}
-      $ (Const (@{const_name HOL.eq}, _) $ (u as Free _) $ def) =>
+      $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (u as Free _) $ def) =>
       do_equals u def
     | _ => NONE
   end
@@ -978,7 +978,7 @@ fun axioms_for_term
                                             (Const (mate_of_rep_fun ctxt x))
                      |> fold (add_def_axiom depth)
                              (inverse_axioms_for_rep_fun ctxt x)
-             else if s = @{const_name Pure.type} then
+             else if s = \<^const_name>\<open>Pure.type\<close> then
                accum
              else case def_of_const thy def_tables x of
                SOME _ =>
@@ -1003,11 +1003,11 @@ fun axioms_for_term
                                |> add_axioms_for_type depth T
     and add_axioms_for_type depth T =
       case T of
-        Type (@{type_name fun}, Ts) => fold (add_axioms_for_type depth) Ts
-      | Type (@{type_name prod}, Ts) => fold (add_axioms_for_type depth) Ts
-      | Type (@{type_name set}, Ts) => fold (add_axioms_for_type depth) Ts
-      | @{typ prop} => I
-      | @{typ bool} => I
+        Type (\<^type_name>\<open>fun\<close>, Ts) => fold (add_axioms_for_type depth) Ts
+      | Type (\<^type_name>\<open>prod\<close>, Ts) => fold (add_axioms_for_type depth) Ts
+      | Type (\<^type_name>\<open>set\<close>, Ts) => fold (add_axioms_for_type depth) Ts
+      | \<^typ>\<open>prop\<close> => I
+      | \<^typ>\<open>bool\<close> => I
       | TFree (_, S) => add_axioms_for_sort depth T S
       | TVar (_, S) => add_axioms_for_sort depth T S
       | Type (z as (_, Ts)) =>
@@ -1059,11 +1059,11 @@ fun simplify_constrs_and_sels ctxt t =
         (t = t' andalso is_sel_like_and_no_discr s andalso
          constr_name_for_sel_like s = constr_s andalso sel_no_from_name s = n)
       | is_nth_sel_on _ _ _ _ = false
-    fun do_term (Const (@{const_name Rep_Frac}, _)
-                 $ (Const (@{const_name Abs_Frac}, _) $ t1)) [] =
+    fun do_term (Const (\<^const_name>\<open>Rep_Frac\<close>, _)
+                 $ (Const (\<^const_name>\<open>Abs_Frac\<close>, _) $ t1)) [] =
         do_term t1 []
-      | do_term (Const (@{const_name Abs_Frac}, _)
-                 $ (Const (@{const_name Rep_Frac}, _) $ t1)) [] =
+      | do_term (Const (\<^const_name>\<open>Abs_Frac\<close>, _)
+                 $ (Const (\<^const_name>\<open>Rep_Frac\<close>, _) $ t1)) [] =
         do_term t1 []
       | do_term (t1 $ t2) args = do_term t1 (do_term t2 [] :: args)
       | do_term (t as Const (x as (s, T))) (args as _ :: _) =
@@ -1102,30 +1102,30 @@ fun simplify_constrs_and_sels ctxt t =
 
 fun distribute_quantifiers t =
   case t of
-    (t0 as Const (@{const_name All}, T0)) $ Abs (s, T1, t1) =>
+    (t0 as Const (\<^const_name>\<open>All\<close>, T0)) $ Abs (s, T1, t1) =>
     (case t1 of
        (t10 as @{const HOL.conj}) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
      | (t10 as @{const Not}) $ t11 =>
-       t10 $ distribute_quantifiers (Const (@{const_name Ex}, T0)
+       t10 $ distribute_quantifiers (Const (\<^const_name>\<open>Ex\<close>, T0)
                                      $ Abs (s, T1, t11))
      | t1 =>
        if not (loose_bvar1 (t1, 0)) then
          distribute_quantifiers (incr_boundvars ~1 t1)
        else
          t0 $ Abs (s, T1, distribute_quantifiers t1))
-  | (t0 as Const (@{const_name Ex}, T0)) $ Abs (s, T1, t1) =>
+  | (t0 as Const (\<^const_name>\<open>Ex\<close>, T0)) $ Abs (s, T1, t1) =>
     (case distribute_quantifiers t1 of
        (t10 as @{const HOL.disj}) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
      | (t10 as @{const HOL.implies}) $ t11 $ t12 =>
-       t10 $ distribute_quantifiers (Const (@{const_name All}, T0)
+       t10 $ distribute_quantifiers (Const (\<^const_name>\<open>All\<close>, T0)
                                      $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
      | (t10 as @{const Not}) $ t11 =>
-       t10 $ distribute_quantifiers (Const (@{const_name All}, T0)
+       t10 $ distribute_quantifiers (Const (\<^const_name>\<open>All\<close>, T0)
                                      $ Abs (s, T1, t11))
      | t1 =>
        if not (loose_bvar1 (t1, 0)) then
@@ -1160,7 +1160,7 @@ val push_quantifiers_inward =
          if s0 = quant_s then
            aux s0 (s1 :: ss) (T1 :: Ts) t1
          else if quant_s = "" andalso
-                 (s0 = @{const_name All} orelse s0 = @{const_name Ex}) then
+                 (s0 = \<^const_name>\<open>All\<close> orelse s0 = \<^const_name>\<open>Ex\<close>) then
            aux s0 [s1] [T1] t1
          else
            raise SAME ()

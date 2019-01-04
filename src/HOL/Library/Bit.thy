@@ -87,7 +87,7 @@ lemma [code]:
   by (simp_all add: equal set_iff)
 
 
-subsection \<open>Type @{typ bit} forms a field\<close>
+subsection \<open>Type \<^typ>\<open>bit\<close> forms a field\<close>
 
 instantiation bit :: field
 begin
@@ -128,7 +128,7 @@ lemma bit_add_eq_1_iff: "x + y = 1 \<longleftrightarrow> x \<noteq> y" for x y :
   unfolding plus_bit_def by (simp split: bit.split)
 
 
-subsection \<open>Numerals at type @{typ bit}\<close>
+subsection \<open>Numerals at type \<^typ>\<open>bit\<close>\<close>
 
 text \<open>All numerals reduce to either 0 or 1.\<close>
 
@@ -145,7 +145,7 @@ lemma bit_numeral_odd [simp]: "numeral (Num.Bit1 w) = (1 :: bit)"
   by (simp only: numeral_Bit1 bit_add_self add_0_left)
 
 
-subsection \<open>Conversion from @{typ bit}\<close>
+subsection \<open>Conversion from \<^typ>\<open>bit\<close>\<close>
 
 context zero_neq_one
 begin

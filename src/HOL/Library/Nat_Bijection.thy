@@ -12,7 +12,7 @@ theory Nat_Bijection
   imports Main
 begin
 
-subsection \<open>Type @{typ "nat \<times> nat"}\<close>
+subsection \<open>Type \<^typ>\<open>nat \<times> nat\<close>\<close>
 
 text \<open>Triangle numbers: 0, 1, 3, 6, 10, 15, ...\<close>
 
@@ -28,7 +28,7 @@ lemma triangle_Suc [simp]: "triangle (Suc n) = triangle n + Suc n"
 definition prod_encode :: "nat \<times> nat \<Rightarrow> nat"
   where "prod_encode = (\<lambda>(m, n). triangle (m + n) + m)"
 
-text \<open>In this auxiliary function, @{term "triangle k + m"} is an invariant.\<close>
+text \<open>In this auxiliary function, \<^term>\<open>triangle k + m\<close> is an invariant.\<close>
 
 fun prod_decode_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
   where "prod_decode_aux k m =
@@ -98,7 +98,7 @@ lemma le_prod_encode_2: "b \<le> prod_encode (a, b)"
   by (induct b) (simp_all add: prod_encode_def)
 
 
-subsection \<open>Type @{typ "nat + nat"}\<close>
+subsection \<open>Type \<^typ>\<open>nat + nat\<close>\<close>
 
 definition sum_encode :: "nat + nat \<Rightarrow> nat"
   where "sum_encode x = (case x of Inl a \<Rightarrow> 2 * a | Inr b \<Rightarrow> Suc (2 * b))"
@@ -137,7 +137,7 @@ lemma sum_decode_eq: "sum_decode x = sum_decode y \<longleftrightarrow> x = y"
   by (rule inj_sum_decode [THEN inj_eq])
 
 
-subsection \<open>Type @{typ "int"}\<close>
+subsection \<open>Type \<^typ>\<open>int\<close>\<close>
 
 definition int_encode :: "int \<Rightarrow> nat"
   where "int_encode i = sum_encode (if 0 \<le> i then Inl (nat i) else Inr (nat (- i - 1)))"
@@ -177,7 +177,7 @@ lemma int_decode_eq: "int_decode x = int_decode y \<longleftrightarrow> x = y"
   by (rule inj_int_decode [THEN inj_eq])
 
 
-subsection \<open>Type @{typ "nat list"}\<close>
+subsection \<open>Type \<^typ>\<open>nat list\<close>\<close>
 
 fun list_encode :: "nat list \<Rightarrow> nat"
   where

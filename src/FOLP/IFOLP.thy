@@ -62,19 +62,19 @@ consts
 syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
 
 parse_translation \<open>
-  let fun proof_tr [p, P] = Const (@{const_syntax Proof}, dummyT) $ P $ p
-  in [(@{syntax_const "_Proof"}, K proof_tr)] end
+  let fun proof_tr [p, P] = Const (\<^const_syntax>\<open>Proof\<close>, dummyT) $ P $ p
+  in [(\<^syntax_const>\<open>_Proof\<close>, K proof_tr)] end
 \<close>
 
 (*show_proofs = true displays the proof terms -- they are ENORMOUS*)
-ML \<open>val show_proofs = Attrib.setup_config_bool @{binding show_proofs} (K false)\<close>
+ML \<open>val show_proofs = Attrib.setup_config_bool \<^binding>\<open>show_proofs\<close> (K false)\<close>
 
 print_translation \<open>
   let
     fun proof_tr' ctxt [P, p] =
-      if Config.get ctxt show_proofs then Const (@{syntax_const "_Proof"}, dummyT) $ p $ P
+      if Config.get ctxt show_proofs then Const (\<^syntax_const>\<open>_Proof\<close>, dummyT) $ p $ P
       else P
-  in [(@{const_syntax Proof}, proof_tr')] end
+  in [(\<^const_syntax>\<open>Proof\<close>, proof_tr')] end
 \<close>
 
 
@@ -250,7 +250,7 @@ schematic_goal contrapos:
 
 ML \<open>
 local
-  fun discard_proof (Const (@{const_name Proof}, _) $ P $ _) = P;
+  fun discard_proof (Const (\<^const_name>\<open>Proof\<close>, _) $ P $ _) = P;
 in
 fun uniq_assume_tac ctxt =
   SUBGOAL
@@ -504,19 +504,19 @@ schematic_goal simp_equals: "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"
 schematic_goal pred1_cong: "p:a=a' ==> ?p:P(a) <-> P(a')"
   apply (rule iffI)
    apply (tactic \<open>
-     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
+     DEPTH_SOLVE (assume_tac \<^context> 1 ORELSE eresolve_tac \<^context> [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
 schematic_goal pred2_cong: "[| p:a=a';  q:b=b' |] ==> ?p:P(a,b) <-> P(a',b')"
   apply (rule iffI)
    apply (tactic \<open>
-     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
+     DEPTH_SOLVE (assume_tac \<^context> 1 ORELSE eresolve_tac \<^context> [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
 schematic_goal pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P(a',b',c')"
   apply (rule iffI)
    apply (tactic \<open>
-     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
+     DEPTH_SOLVE (assume_tac \<^context> 1 ORELSE eresolve_tac \<^context> [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
 lemmas pred_congs = pred1_cong pred2_cong pred3_cong
@@ -543,8 +543,8 @@ schematic_goal disj_impE:
   assumes major: "p:(P|Q)-->S"
     and minor: "!!x y.[| x:P-->S; y:Q-->S |] ==> q(x,y):R"
   shows "?p:R"
-  apply (tactic \<open>DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
-      resolve_tac @{context} [@{thm disjI1}, @{thm disjI2}, @{thm impI},
+  apply (tactic \<open>DEPTH_SOLVE (assume_tac \<^context> 1 ORELSE
+      resolve_tac \<^context> [@{thm disjI1}, @{thm disjI2}, @{thm impI},
         @{thm major} RS @{thm mp}, @{thm minor}] 1)\<close>)
   done
 
@@ -611,8 +611,8 @@ ML \<open>
 structure Hypsubst = Hypsubst
 (
   (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const (@{const_name Proof}, _) $
-    (Const (@{const_name eq}, _)  $ t $ u) $ _) = (t, u);
+  fun dest_eq (Const (\<^const_name>\<open>Proof\<close>, _) $
+    (Const (\<^const_name>\<open>eq\<close>, _)  $ t $ u) $ _) = (t, u);
 
   val imp_intr = @{thm impI}
 
@@ -641,7 +641,7 @@ schematic_goal conj_rews:
   "?p6 : P & ~P <-> False"
   "?p7 : ~P & P <-> False"
   "?p8 : (P & Q) & R <-> P & (Q & R)"
-  apply (tactic \<open>fn st => IntPr.fast_tac @{context} 1 st\<close>)+
+  apply (tactic \<open>fn st => IntPr.fast_tac \<^context> 1 st\<close>)+
   done
 
 schematic_goal disj_rews:
@@ -651,13 +651,13 @@ schematic_goal disj_rews:
   "?p4 : False | P <-> P"
   "?p5 : P | P <-> P"
   "?p6 : (P | Q) | R <-> P | (Q | R)"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 schematic_goal not_rews:
   "?p1 : ~ False <-> True"
   "?p2 : ~ True <-> False"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 schematic_goal imp_rews:
@@ -667,7 +667,7 @@ schematic_goal imp_rews:
   "?p4 : (True --> P) <-> P"
   "?p5 : (P --> P) <-> True"
   "?p6 : (P --> ~P) <-> ~P"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 schematic_goal iff_rews:
@@ -676,13 +676,13 @@ schematic_goal iff_rews:
   "?p3 : (P <-> P) <-> True"
   "?p4 : (False <-> P) <-> ~P"
   "?p5 : (P <-> False) <-> ~P"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 schematic_goal quant_rews:
   "?p1 : (ALL x. P) <-> P"
   "?p2 : (EX x. P) <-> P"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 (*These are NOT supplied by default!*)
@@ -691,7 +691,7 @@ schematic_goal distrib_rews1:
   "?p2 : P & (Q | R) <-> P&Q | P&R"
   "?p3 : (Q | R) & P <-> Q&P | R&P"
   "?p4 : (P | Q --> R) <-> (P --> R) & (Q --> R)"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 schematic_goal distrib_rews2:
@@ -699,17 +699,17 @@ schematic_goal distrib_rews2:
   "?p2 : ((EX x. NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)"
   "?p3 : (EX x. NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))"
   "?p4 : NORM(Q) & (EX x. NORM(P(x))) <-> (EX x. NORM(Q) & NORM(P(x)))"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)+
   done
 
 lemmas distrib_rews = distrib_rews1 distrib_rews2
 
 schematic_goal P_Imp_P_iff_T: "p:P ==> ?p:(P <-> True)"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)
   done
 
 schematic_goal not_P_imp_P_iff_F: "p:~P ==> ?p:(P <-> False)"
-  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+  apply (tactic \<open>IntPr.fast_tac \<^context> 1\<close>)
   done
 
 end

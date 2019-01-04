@@ -192,7 +192,7 @@ fun add_quot_map rel_quot_thm context =
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding quot_map} (Scan.succeed (Thm.declaration_attribute add_quot_map))
+    (Attrib.setup \<^binding>\<open>quot_map\<close> (Scan.succeed (Thm.declaration_attribute add_quot_map))
       "declaration of the Quotient map theorem")
 
 fun print_quot_maps ctxt =
@@ -264,7 +264,7 @@ fun print_quotients ctxt =
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding quot_del} (Scan.succeed (Thm.declaration_attribute delete_quotients))
+    (Attrib.setup \<^binding>\<open>quot_del\<close> (Scan.succeed (Thm.declaration_attribute delete_quotients))
       "deletes the Quotient theorem")
 
 (* data for restoring Transfer/Lifting context *)
@@ -288,7 +288,7 @@ fun add_transfer_rules_in_restore_data bundle_name transfer_rules context =
 (* theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate *)
 
 fun get_relator_eq_onp_rules ctxt =
-  map safe_mk_meta_eq (rev (Named_Theorems.get ctxt @{named_theorems relator_eq_onp}))
+  map safe_mk_meta_eq (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>relator_eq_onp\<close>))
 
 
 (* info about reflexivity rules *)
@@ -315,7 +315,7 @@ fun map_neg_distr_rules f = map_relator_distr_data' I I I f
 
 fun introduce_polarities rule =
   let
-    val dest_less_eq = HOLogic.dest_bin @{const_name "less_eq"} dummyT
+    val dest_less_eq = HOLogic.dest_bin \<^const_name>\<open>less_eq\<close> dummyT
     val prems_pairs = map (dest_less_eq o HOLogic.dest_Trueprop) (Thm.prems_of rule)
     val equal_prems = filter op= prems_pairs
     val _ =
@@ -462,11 +462,11 @@ local
       val concl = (perhaps (try HOLogic.dest_Trueprop)) (Thm.concl_of rule);
       val (lhs, rhs) =
         (case concl of
-          Const (@{const_name less_eq}, _) $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) $ rhs =>
+          Const (\<^const_name>\<open>less_eq\<close>, _) $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ rhs =>
             (lhs, rhs)
-        | Const (@{const_name less_eq}, _) $ rhs $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) =>
+        | Const (\<^const_name>\<open>less_eq\<close>, _) $ rhs $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) =>
             (lhs, rhs)
-        | Const (@{const_name HOL.eq}, _) $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) $ rhs =>
+        | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ rhs =>
             (lhs, rhs)
         | _ => error "The rule has a wrong format.")
 
@@ -485,7 +485,7 @@ local
       val rhs_args = (snd o strip_comb) rhs;
       fun check_comp t =
         (case t of
-          Const (@{const_name relcompp}, _) $ Var _ $ Var _ => ()
+          Const (\<^const_name>\<open>relcompp\<close>, _) $ Var _ $ Var _ => ()
         | _ => error "There is an argument on the rhs that is not a composition.")
       val _ = map check_comp rhs_args
     in () end
@@ -497,11 +497,11 @@ in
       val concl = (perhaps (try HOLogic.dest_Trueprop)) (Thm.concl_of distr_rule)
     in
       (case concl of
-        Const (@{const_name less_eq}, _) $ (Const (@{const_name relcompp},_) $ _ $ _) $ _ =>
+        Const (\<^const_name>\<open>less_eq\<close>, _) $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ _ =>
           add_pos_distr_rule distr_rule context
-      | Const (@{const_name less_eq}, _) $ _ $ (Const (@{const_name relcompp},_) $ _ $ _) =>
+      | Const (\<^const_name>\<open>less_eq\<close>, _) $ _ $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) =>
           add_neg_distr_rule distr_rule context
-      | Const (@{const_name HOL.eq}, _) $ (Const (@{const_name relcompp},_) $ _ $ _) $ _ =>
+      | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ _ =>
           add_eq_distr_rule distr_rule context)
     end
 end
@@ -518,14 +518,14 @@ val lookup_relator_distr_data = Symtab.lookup o get_relator_distr_data
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding relator_mono} (Scan.succeed (Thm.declaration_attribute add_mono_rule))
+    (Attrib.setup \<^binding>\<open>relator_mono\<close> (Scan.succeed (Thm.declaration_attribute add_mono_rule))
       "declaration of relator's monotonicity"
-    #> Attrib.setup @{binding relator_distr} (Scan.succeed (Thm.declaration_attribute add_distr_rule))
+    #> Attrib.setup \<^binding>\<open>relator_distr\<close> (Scan.succeed (Thm.declaration_attribute add_distr_rule))
       "declaration of relator's distributivity over OO"
     #> Global_Theory.add_thms_dynamic
-       (@{binding relator_distr_raw}, get_distr_rules_raw)
+       (\<^binding>\<open>relator_distr_raw\<close>, get_distr_rules_raw)
     #> Global_Theory.add_thms_dynamic
-       (@{binding relator_mono_raw}, get_mono_rules_raw))
+       (\<^binding>\<open>relator_mono_raw\<close>, get_mono_rules_raw))
 
 
 (* no_code types *)
@@ -539,8 +539,8 @@ fun is_no_code_type context type_name = (Symtab.defined o get_no_code_types) con
 (* setup fixed eq_onp rules *)
 
 val _ = Context.>>
-  (fold (Named_Theorems.add_thm @{named_theorems relator_eq_onp} o
-    Transfer.prep_transfer_domain_thm @{context})
+  (fold (Named_Theorems.add_thm \<^named_theorems>\<open>relator_eq_onp\<close> o
+    Transfer.prep_transfer_domain_thm \<^context>)
   @{thms composed_equiv_rel_eq_onp composed_equiv_rel_eq_eq_onp})
 
 
@@ -554,11 +554,11 @@ val _ = Context.>> (fold add_reflexivity_rule
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_quot_maps} "print quotient map functions"
+  Outer_Syntax.command \<^command_keyword>\<open>print_quot_maps\<close> "print quotient map functions"
     (Scan.succeed (Toplevel.keep (print_quot_maps o Toplevel.context_of)))
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_quotients} "print quotients"
+  Outer_Syntax.command \<^command_keyword>\<open>print_quotients\<close> "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
 end

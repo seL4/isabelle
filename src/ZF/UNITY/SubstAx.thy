@@ -354,7 +354,7 @@ fun ensures_tac ctxt sact =
                 REPEAT (ares_tac ctxt [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
                                   @{thm EnsuresI}, @{thm ensuresI}] 1),
             (*now there are two subgoals: co & transient*)
-            simp_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems program})) 2,
+            simp_tac (ctxt addsimps (Named_Theorems.get ctxt \<^named_theorems>\<open>program\<close>)) 2,
             Rule_Insts.res_inst_tac ctxt
               [((("act", 0), Position.none), sact)] [] @{thm transientI} 2,
                (*simplify the command's domain*)

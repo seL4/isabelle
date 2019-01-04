@@ -155,7 +155,7 @@ proof (rule ex1E)
       fix y y'
       assume \<open>P(y)\<close> and \<open>P(y')\<close>
       with * have \<open>x = y\<close> and \<open>x = y'\<close>
-        by - (tactic "IntPr.fast_tac @{context} 1")+
+        by - (tactic "IntPr.fast_tac \<^context> 1")+
       then have \<open>y = y'\<close> by (rule subst)
     } note r' = this
     show \<open>\<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'\<close>
@@ -190,22 +190,22 @@ open Basic_Classical;
 (*Propositional rules*)
 lemmas [intro!] = refl TrueI conjI disjCI impI notI iffI
   and [elim!] = conjE disjE impCE FalseE iffCE
-ML \<open>val prop_cs = claset_of @{context}\<close>
+ML \<open>val prop_cs = claset_of \<^context>\<close>
 
 (*Quantifier rules*)
 lemmas [intro!] = allI ex_ex1I
   and [intro] = exI
   and [elim!] = exE alt_ex1E
   and [elim] = allE
-ML \<open>val FOL_cs = claset_of @{context}\<close>
+ML \<open>val FOL_cs = claset_of \<^context>\<close>
 
 ML \<open>
   structure Blast = Blast
   (
     structure Classical = Cla
     val Trueprop_const = dest_Const @{const Trueprop}
-    val equality_name = @{const_name eq}
-    val not_name = @{const_name Not}
+    val equality_name = \<^const_name>\<open>eq\<close>
+    val not_name = \<^const_name>\<open>Not\<close>
     val notE = @{thm notE}
     val ccontr = @{thm ccontr}
     val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
@@ -343,15 +343,15 @@ simproc_setup defined_All (\<open>\<forall>x. P(x)\<close>) = \<open>fn _ => Qua
 ML \<open>
 (*intuitionistic simprules only*)
 val IFOL_ss =
-  put_simpset FOL_basic_ss @{context}
+  put_simpset FOL_basic_ss \<^context>
   addsimps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps}
-  addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}]
+  addsimprocs [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>]
   |> Simplifier.add_cong @{thm imp_cong}
   |> simpset_of;
 
 (*classical simprules too*)
 val FOL_ss =
-  put_simpset IFOL_ss @{context}
+  put_simpset IFOL_ss \<^context>
   addsimps @{thms cla_simps cla_ex_simps cla_all_simps}
   |> simpset_of;
 \<close>

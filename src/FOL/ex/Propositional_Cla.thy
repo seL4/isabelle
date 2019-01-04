@@ -12,7 +12,7 @@ begin
 text \<open>commutative laws of \<open>\<and>\<close> and \<open>\<or>\<close>\<close>
 
 lemma \<open>P \<and> Q \<longrightarrow> Q \<and> P\<close>
-  by (tactic "IntPr.fast_tac @{context} 1")
+  by (tactic "IntPr.fast_tac \<^context> 1")
 
 lemma \<open>P \<or> Q \<longrightarrow> Q \<or> P\<close>
   by fast

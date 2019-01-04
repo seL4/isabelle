@@ -357,11 +357,11 @@ fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
       | NONE => Typedef.get_info lthy Tname |> hd |> snd |> #type_definition);
     val wits = (Option.map o map) (prepare_term lthy) raw_wits;
     val specs =
-      map (apsnd (apsnd (the_default @{sort type} o Option.map (prepare_sort lthy)))) raw_specs;
+      map (apsnd (apsnd (the_default \<^sort>\<open>type\<close> o Option.map (prepare_sort lthy)))) raw_specs;
 
     val _ =
       (case HOLogic.dest_Trueprop (Thm.prop_of input_thm) of
-        Const (@{const_name type_definition}, _) $ _ $ _ $ _ => ()
+        Const (\<^const_name>\<open>type_definition\<close>, _) $ _ $ _ $ _ => ()
       | _ => error "Unsupported type of a theorem: only type_definition is supported");
   in
     typedef_bnf input_thm wits specs map_b rel_b pred_b plugins lthy
@@ -415,20 +415,20 @@ end;
 local
 
 val parse_wits =
-  @{keyword "["} |-- (Parse.name --| @{keyword ":"} -- Scan.repeat Parse.term >>
+  \<^keyword>\<open>[\<close> |-- (Parse.name --| \<^keyword>\<open>:\<close> -- Scan.repeat Parse.term >>
     (fn ("wits", Ts) => Ts
       | (s, _) => error ("Unknown label " ^ quote s ^ " (expected \"wits\")"))) --|
-  @{keyword "]"} || Scan.succeed [];
+  \<^keyword>\<open>]\<close> || Scan.succeed [];
 
 val parse_options =
-  Scan.optional (@{keyword "("} |--
+  Scan.optional (\<^keyword>\<open>(\<close> |--
     Parse.list1 (Parse.group (K "option")
       (Plugin_Name.parse_filter >> Plugins_Option
       || Parse.reserved "no_warn_wits" >> K No_Warn_Wits))
-    --| @{keyword ")"}) [];
+    --| \<^keyword>\<open>)\<close>) [];
 
 val parse_plugins =
-  Scan.optional (@{keyword "("} |-- Plugin_Name.parse_filter --| @{keyword ")"})
+  Scan.optional (\<^keyword>\<open>(\<close> |-- Plugin_Name.parse_filter --| \<^keyword>\<open>)\<close>)
     (K Plugin_Name.default_filter) >> Plugins_Option >> single;
 
 val parse_typedef_thm = Scan.option (Parse.reserved "via" |-- Parse.thm);
@@ -436,13 +436,13 @@ val parse_typedef_thm = Scan.option (Parse.reserved "via" |-- Parse.thm);
 in
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword lift_bnf}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>lift_bnf\<close>
     "register a subtype of a bounded natural functor (BNF) as a BNF"
     ((parse_options -- parse_type_args_named_constrained -- Parse.type_const -- parse_wits --
       parse_typedef_thm -- parse_map_rel_pred_bindings) >> lift_bnf_cmd);
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword copy_bnf}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>copy_bnf\<close>
     "register a type copy of a bounded natural functor (BNF) as a BNF"
     ((parse_plugins -- parse_type_args_named_constrained -- Parse.type_const --
       parse_typedef_thm -- parse_map_rel_pred_bindings) >> copy_bnf_cmd);

@@ -256,7 +256,7 @@ fun make_last i th =
    don't use this trick in general because it makes the proof object uglier than
    necessary. FIXME. *)
 fun negate_head ctxt th =
-  if exists (fn t => t aconv @{prop "\<not> False"}) (Thm.prems_of th) then
+  if exists (fn t => t aconv \<^prop>\<open>\<not> False\<close>) (Thm.prems_of th) then
     (th RS @{thm select_FalseI})
     |> fold (rewrite_rule ctxt o single) @{thms not_atomize_select atomize_not_select}
   else
@@ -300,7 +300,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
 
 val REFL_THM = Thm.incr_indexes 2 @{lemma "t \<noteq> t \<Longrightarrow> False" by simp}
 
-val refl_x = Thm.cterm_of @{context} (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
+val refl_x = Thm.cterm_of \<^context> (Var (hd (Term.add_vars (Thm.prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
 fun refl_inference ctxt type_enc concealed sym_tab t =
@@ -412,7 +412,7 @@ fun flexflex_first_order ctxt th =
 fun is_metis_literal_genuine (_, (s, _)) =
   not (String.isPrefix class_prefix (Metis_Name.toString s))
 fun is_isabelle_literal_genuine t =
-  (case t of _ $ (Const (@{const_name Meson.skolem}, _) $ _) => false | _ => true)
+  (case t of _ $ (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) => false | _ => true)
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 
@@ -449,7 +449,7 @@ fun resynchronize ctxt fol_th th =
 
 fun replay_one_inference ctxt type_enc concealed sym_tab (fol_th, inf)
                          th_pairs =
-  if not (null th_pairs) andalso Thm.prop_of (snd (hd th_pairs)) aconv @{prop False} then
+  if not (null th_pairs) andalso Thm.prop_of (snd (hd th_pairs)) aconv \<^prop>\<open>False\<close> then
     (* Isabelle sometimes identifies literals (premises) that are distinct in
        Metis (e.g., because of type variables). We give the Isabelle proof the
        benefice of the doubt. *)
@@ -633,7 +633,7 @@ fun shuffle_ord p = prod_ord int_ord int_ord (apply2 shuffle_key p)
    specified axioms. The axioms have leading "All" and "Ex" quantifiers, which
    must be eliminated first. *)
 fun discharge_skolem_premises ctxt axioms prems_imp_false =
-  if Thm.prop_of prems_imp_false aconv @{prop False} then
+  if Thm.prop_of prems_imp_false aconv \<^prop>\<open>False\<close> then
     prems_imp_false
   else
     let
@@ -655,7 +655,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
 
       fun subst_info_of_prem subgoal_no prem =
         (case prem of
-          _ $ (Const (@{const_name Meson.skolem}, _) $ (_ $ t $ num)) =>
+          _ $ (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ (_ $ t $ num)) =>
           let val ax_no = HOLogic.dest_nat num in
             (ax_no, (subgoal_no,
                      match_term (nth axioms ax_no |> the |> snd, t)))
@@ -734,7 +734,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       fun rotation_of_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
     in
-      Goal.prove ctxt' [] [] @{prop False}
+      Goal.prove ctxt' [] [] \<^prop>\<open>False\<close>
         (K (DETERM (EVERY (map (cut_and_ex_tac o fst o the o nth axioms o fst o fst) ax_counts)
               THEN rename_tac outer_param_names 1
               THEN copy_prems_tac ctxt' (map snd ax_counts) [] 1)

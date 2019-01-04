@@ -55,7 +55,7 @@ text \<open>
     variables. When installing the system, only a few of these may have to be
     adapted (probably @{setting ML_SYSTEM} etc.).
 
-    \<^enum> The file @{path "$ISABELLE_HOME_USER/etc/settings"} (if it
+    \<^enum> The file \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close> (if it
     exists) is run in the same way as the site default settings. Note that the
     variable @{setting ISABELLE_HOME_USER} has already been set before ---
     usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/Isabelle2018\<close>.
@@ -95,7 +95,7 @@ text \<open>
   On Unix systems this is usually the same as @{setting HOME}, but on Windows
   it is the regular home directory of the user, not the one of within the
   Cygwin root file-system.\<^footnote>\<open>Cygwin itself offers another choice whether its
-  HOME should point to the @{path "/home"} directory tree or the Windows user
+  HOME should point to the \<^path>\<open>/home\<close> directory tree or the Windows user
   home.\<close>
 
   \<^descr>[@{setting_def ISABELLE_HOME}\<open>\<^sup>*\<close>] is the location of the top-level
@@ -104,8 +104,7 @@ text \<open>
   ISABELLE_HOME} yourself from the shell!
 
   \<^descr>[@{setting_def ISABELLE_HOME_USER}] is the user-specific counterpart of
-  @{setting ISABELLE_HOME}. The default value is relative to @{path
-  "$USER_HOME/.isabelle"}, under rare circumstances this may be changed in the
+  @{setting ISABELLE_HOME}. The default value is relative to \<^path>\<open>$USER_HOME/.isabelle\<close>, under rare circumstances this may be changed in the
   global setting file. Typically, the @{setting ISABELLE_HOME_USER} directory
   mimics @{setting ISABELLE_HOME} to some extend. In particular, site-wide
   defaults may be overridden by a private \<^verbatim>\<open>$ISABELLE_HOME_USER/etc/settings\<close>.
@@ -177,15 +176,14 @@ text \<open>
 
   \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where HTML and PDF
   browser information is stored (see also \secref{sec:info}); its default is
-  @{path "$ISABELLE_HOME_USER/browser_info"}. For ``system build mode'' (see
+  \<^path>\<open>$ISABELLE_HOME_USER/browser_info\<close>. For ``system build mode'' (see
   \secref{sec:tool-build}), @{setting_def ISABELLE_BROWSER_INFO_SYSTEM} is
-  used instead; its default is @{path "$ISABELLE_HOME/browser_info"}.
+  used instead; its default is \<^path>\<open>$ISABELLE_HOME/browser_info\<close>.
 
   \<^descr>[@{setting_def ISABELLE_HEAPS}] is the directory where session heap images,
-  log files, and build databases are stored; its default is @{path
-  "$ISABELLE_HOME_USER/heaps"}. For ``system build mode'' (see
+  log files, and build databases are stored; its default is \<^path>\<open>$ISABELLE_HOME_USER/heaps\<close>. For ``system build mode'' (see
   \secref{sec:tool-build}), @{setting_def ISABELLE_HEAPS_SYSTEM} is used
-  instead; its default is @{path "$ISABELLE_HOME/heaps"}.
+  instead; its default is \<^path>\<open>$ISABELLE_HOME/heaps\<close>.
 
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to load if none
   is given explicitely by the user. The default value is \<^verbatim>\<open>HOL\<close>.
@@ -249,8 +247,7 @@ text \<open>
   The root of component initialization is @{setting ISABELLE_HOME} itself.
   After initializing all of its sub-components recursively, @{setting
   ISABELLE_HOME_USER} is included in the same manner (if that directory
-  exists). This allows to install private components via @{path
-  "$ISABELLE_HOME_USER/etc/components"}, although it is often more convenient
+  exists). This allows to install private components via \<^path>\<open>$ISABELLE_HOME_USER/etc/components\<close>, although it is often more convenient
   to do that programmatically via the \<^verbatim>\<open>init_component\<close> shell function in the
   \<^verbatim>\<open>etc/settings\<close> script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component
   directory). For example:
@@ -361,7 +358,7 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-T\<close> loads a specified theory file. This is a wrapper for \<^verbatim>\<open>-e\<close> with
-  a suitable @{ML use_thy} invocation.
+  a suitable \<^ML>\<open>use_thy\<close> invocation.
 
   \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the logic session name. Option \<^verbatim>\<open>-d\<close> specifies
@@ -443,8 +440,8 @@ text \<open>
 
   The user is connected to the raw ML toplevel loop: this is neither
   Isabelle/Isar nor Isabelle/ML within the usual formal context. The most
-  relevant ML commands at this stage are @{ML use} (for ML files) and
-  @{ML use_thy} (for theory files).
+  relevant ML commands at this stage are \<^ML>\<open>use\<close> (for ML files) and
+  \<^ML>\<open>use_thy\<close> (for theory files).
 \<close>
 
 

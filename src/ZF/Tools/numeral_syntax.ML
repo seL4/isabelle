@@ -15,13 +15,13 @@ struct
 
 (* bits *)
 
-fun mk_bit 0 = Syntax.const @{const_syntax zero}
-  | mk_bit 1 = Syntax.const @{const_syntax succ} $ Syntax.const @{const_syntax zero}
+fun mk_bit 0 = Syntax.const \<^const_syntax>\<open>zero\<close>
+  | mk_bit 1 = Syntax.const \<^const_syntax>\<open>succ\<close> $ Syntax.const \<^const_syntax>\<open>zero\<close>
   | mk_bit _ = raise Fail "mk_bit";
 
-fun dest_bit (Const (@{const_syntax zero}, _)) = 0
-  | dest_bit (Const (@{const_syntax one}, _)) = 1
-  | dest_bit (Const (@{const_syntax succ}, _) $ Const (@{const_syntax zero}, _)) = 1
+fun dest_bit (Const (\<^const_syntax>\<open>zero\<close>, _)) = 0
+  | dest_bit (Const (\<^const_syntax>\<open>one\<close>, _)) = 1
+  | dest_bit (Const (\<^const_syntax>\<open>succ\<close>, _) $ Const (\<^const_syntax>\<open>zero\<close>, _)) = 1
   | dest_bit _ = raise Match;
 
 
@@ -42,14 +42,14 @@ fun prefix_len _ [] = 0
 
 fun mk_bin i =
   let
-    fun term_of [] = Syntax.const @{const_syntax Pls}
-      | term_of [~1] = Syntax.const @{const_syntax Min}
-      | term_of (b :: bs) = Syntax.const @{const_syntax Bit} $ term_of bs $ mk_bit b;
+    fun term_of [] = Syntax.const \<^const_syntax>\<open>Pls\<close>
+      | term_of [~1] = Syntax.const \<^const_syntax>\<open>Min\<close>
+      | term_of (b :: bs) = Syntax.const \<^const_syntax>\<open>Bit\<close> $ term_of bs $ mk_bit b;
   in term_of (make_binary i) end;
 
-fun bin_of (Const (@{const_syntax Pls}, _)) = []
-  | bin_of (Const (@{const_syntax Min}, _)) = [~1]
-  | bin_of (Const (@{const_syntax Bit}, _) $ bs $ b) = dest_bit b :: bin_of bs
+fun bin_of (Const (\<^const_syntax>\<open>Pls\<close>, _)) = []
+  | bin_of (Const (\<^const_syntax>\<open>Min\<close>, _)) = [~1]
+  | bin_of (Const (\<^const_syntax>\<open>Bit\<close>, _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of _ = raise Match;
 
 (*Leading 0s and (for negative numbers) -1s cause complications, though they 
@@ -60,8 +60,8 @@ fun show_int t =
     val rev_digs = bin_of t;
     val (c, zs) =
       (case rev rev_digs of
-         ~1 :: bs => (@{syntax_const "_Neg_Int"}, prefix_len (equal 1) bs)
-      | bs => (@{syntax_const "_Int"},  prefix_len (equal 0) bs));
+         ~1 :: bs => (\<^syntax_const>\<open>_Neg_Int\<close>, prefix_len (equal 1) bs)
+      | bs => (\<^syntax_const>\<open>_Int\<close>,  prefix_len (equal 0) bs));
     val num = string_of_int (abs (dest_binary rev_digs));
   in (c, implode (replicate zs "0") ^ num) end;
 
@@ -69,11 +69,11 @@ fun show_int t =
 (* translation of integer constant tokens to and from binary *)
 
 fun int_tr [Free (s, _)] =
-      Syntax.const @{const_syntax integ_of} $ mk_bin (#value (Lexicon.read_num s))
+      Syntax.const \<^const_syntax>\<open>integ_of\<close> $ mk_bin (#value (Lexicon.read_num s))
   | int_tr ts = raise TERM ("int_tr", ts);
 
 fun neg_int_tr [Free (s, _)] =
-      Syntax.const @{const_syntax integ_of} $ mk_bin (~ (#value (Lexicon.read_num s)))
+      Syntax.const \<^const_syntax>\<open>integ_of\<close> $ mk_bin (~ (#value (Lexicon.read_num s)))
   | neg_int_tr ts = raise TERM ("neg_int_tr", ts);
 
 fun integ_of_tr' [t] =
@@ -83,9 +83,9 @@ fun integ_of_tr' [t] =
 
 val _ = Theory.setup
  (Sign.parse_translation
-   [(@{syntax_const "_Int"}, K int_tr),
-    (@{syntax_const "_Neg_Int"}, K neg_int_tr)] #>
+   [(\<^syntax_const>\<open>_Int\<close>, K int_tr),
+    (\<^syntax_const>\<open>_Neg_Int\<close>, K neg_int_tr)] #>
   Sign.print_translation
-   [(@{const_syntax integ_of}, K integ_of_tr')]);
+   [(\<^const_syntax>\<open>integ_of\<close>, K integ_of_tr')]);
 
 end;

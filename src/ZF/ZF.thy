@@ -5,7 +5,7 @@ theory ZF imports List IntDiv CardinalArith begin
 (*The theory of "iterates" logically belongs to Nat, but can't go there because
   primrec isn't available into after Datatype.*)
 
-subsection\<open>Iteration of the function @{term F}\<close>
+subsection\<open>Iteration of the function \<^term>\<open>F\<close>\<close>
 
 consts  iterates :: "[i=>i,i,i] => i"   (\<open>(_^_ '(_'))\<close> [60,1000,1000] 60)
 

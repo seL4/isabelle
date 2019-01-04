@@ -91,10 +91,10 @@ schematic_goal [folded arith_defs]:
                 \<times>  (\<Prod>y:N. Eq(N, plus`succ(y)`x, succ(plus`y`x)))"
 apply intr
 apply eqintr
-apply (tactic "resolve_tac @{context} [TSimp.split_eqn] 3")
-apply (tactic "SELECT_GOAL (rew_tac @{context} []) 4")
-apply (tactic "resolve_tac @{context} [TSimp.split_eqn] 3")
-apply (tactic "SELECT_GOAL (rew_tac @{context} []) 4")
+apply (tactic "resolve_tac \<^context> [TSimp.split_eqn] 3")
+apply (tactic "SELECT_GOAL (rew_tac \<^context> []) 4")
+apply (tactic "resolve_tac \<^context> [TSimp.split_eqn] 3")
+apply (tactic "SELECT_GOAL (rew_tac \<^context> []) 4")
 apply (rule_tac [3] p = "y" in NC_succ)
   (**  by (resolve_tac @{context} comp_rls 3);  caused excessive branching  **)
 apply rew

@@ -10,9 +10,9 @@ theory DPow_absolute imports Satisfies_absolute begin
 
 subsection\<open>Preliminary Internalizations\<close>
 
-subsubsection\<open>The Operator @{term is_formula_rec}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_formula_rec\<close>\<close>
 
-text\<open>The three arguments of @{term p} are always 2, 1, 0.  It is buried
+text\<open>The three arguments of \<^term>\<open>p\<close> are always 2, 1, 0.  It is buried
    within 11 quantifiers!!\<close>
 
 (* is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
@@ -77,7 +77,7 @@ apply (intro FOL_reflections function_reflections fun_plus_reflections
 done
 
 
-subsubsection\<open>The Operator @{term is_satisfies}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_satisfies\<close>\<close>
 
 (* is_satisfies(M,A,p,z) == is_formula_rec (M, satisfies_MH(M,A), p, z) *)
 definition
@@ -109,7 +109,7 @@ apply (intro formula_rec_reflection satisfies_MH_reflection)
 done
 
 
-subsection \<open>Relativization of the Operator @{term DPow'}\<close>
+subsection \<open>Relativization of the Operator \<^term>\<open>DPow'\<close>\<close>
 
 lemma DPow'_eq: 
   "DPow'(A) = {z . ep \<in> list(A) * formula, 
@@ -118,7 +118,7 @@ lemma DPow'_eq:
 by (simp add: DPow'_def, blast) 
 
 
-text\<open>Relativize the use of @{term sats} within @{term DPow'}
+text\<open>Relativize the use of \<^term>\<open>sats\<close> within \<^term>\<open>DPow'\<close>
 (the comprehension).\<close>
 definition
   is_DPow_sats :: "[i=>o,i,i,i,i] => o" where
@@ -142,7 +142,7 @@ lemma (in M_satisfies) Collect_DPow_sats_abs:
 by (simp add: DPow_sats_abs transM [of _ A])
 
 
-subsubsection\<open>The Operator @{term is_DPow_sats}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_DPow_sats\<close>, Internalized\<close>
 
 (* is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
@@ -184,7 +184,7 @@ apply (intro FOL_reflections function_reflections extra_reflections
 done
 
 
-subsection\<open>A Locale for Relativizing the Operator @{term DPow'}\<close>
+subsection\<open>A Locale for Relativizing the Operator \<^term>\<open>DPow'\<close>\<close>
 
 locale M_DPow = M_satisfies +
  assumes sep:
@@ -219,7 +219,7 @@ apply (simp add: DPow'_eq)
 apply (fast intro: rep' sep' univalent_pair_eq)  
 done
 
-text\<open>Relativization of the Operator @{term DPow'}\<close>
+text\<open>Relativization of the Operator \<^term>\<open>DPow'\<close>\<close>
 definition 
   is_DPow' :: "[i=>o,i,i] => o" where
     "is_DPow'(M,A,Z) == 
@@ -304,9 +304,9 @@ lemmas DPow'_closed [intro, simp] = M_DPow.DPow'_closed [OF M_DPow_L]
   and DPow'_abs [intro, simp] = M_DPow.DPow'_abs [OF M_DPow_L]
 
 
-subsubsection\<open>The Operator @{term is_Collect}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Collect\<close>\<close>
 
-text\<open>The formula @{term is_P} has one free variable, 0, and it is
+text\<open>The formula \<^term>\<open>is_P\<close> has one free variable, 0, and it is
 enclosed within a single quantifier.\<close>
 
 (* is_Collect :: "[i=>o,i,i=>o,i] => o"
@@ -342,7 +342,7 @@ lemma Collect_iff_sats:
 by (simp add: sats_Collect_fm [OF is_P_iff_sats])
 
 
-text\<open>The second argument of @{term is_P} gives it direct access to @{term x},
+text\<open>The second argument of \<^term>\<open>is_P\<close> gives it direct access to \<^term>\<open>x\<close>,
   which is essential for handling free variable references.\<close>
 theorem Collect_reflection:
   assumes is_P_reflection:
@@ -355,9 +355,9 @@ apply (intro FOL_reflections is_P_reflection)
 done
 
 
-subsubsection\<open>The Operator @{term is_Replace}\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_Replace\<close>\<close>
 
-text\<open>BEWARE!  The formula @{term is_P} has free variables 0, 1
+text\<open>BEWARE!  The formula \<^term>\<open>is_P\<close> has free variables 0, 1
  and not the usual 1, 0!  It is enclosed within two quantifiers.\<close>
 
 (*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
@@ -395,7 +395,7 @@ lemma Replace_iff_sats:
 by (simp add: sats_Replace_fm [OF is_P_iff_sats])
 
 
-text\<open>The second argument of @{term is_P} gives it direct access to @{term x},
+text\<open>The second argument of \<^term>\<open>is_P\<close> gives it direct access to \<^term>\<open>x\<close>,
   which is essential for handling free variable references.\<close>
 theorem Replace_reflection:
   assumes is_P_reflection:
@@ -409,7 +409,7 @@ done
 
 
 
-subsubsection\<open>The Operator @{term is_DPow'}, Internalized\<close>
+subsubsection\<open>The Operator \<^term>\<open>is_DPow'\<close>, Internalized\<close>
 
 (*  "is_DPow'(M,A,Z) == 
        \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
@@ -454,7 +454,7 @@ apply (intro FOL_reflections function_reflections mem_formula_reflection
 done
 
 
-subsection\<open>A Locale for Relativizing the Operator @{term Lset}\<close>
+subsection\<open>A Locale for Relativizing the Operator \<^term>\<open>Lset\<close>\<close>
 
 definition
   transrec_body :: "[i=>o,i,i,i,i] => o" where
@@ -506,11 +506,11 @@ apply (simp add: RepFun_DPow_apply_closed RepFun_DPow_abs
 done
 
 
-text\<open>Relativization of the Operator @{term Lset}\<close>
+text\<open>Relativization of the Operator \<^term>\<open>Lset\<close>\<close>
 
 definition
   is_Lset :: "[i=>o, i, i] => o" where
-   \<comment> \<open>We can use the term language below because @{term is_Lset} will
+   \<comment> \<open>We can use the term language below because \<^term>\<open>is_Lset\<close> will
        not have to be internalized: it isn't used in any instance of
        separation.\<close>
    "is_Lset(M,a,z) == is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
@@ -571,7 +571,7 @@ lemma transrec_rep_Reflects:
                       big_union(##Lset(i),r,u), mr, v, y))]" 
 apply (simp only: rex_setclass_is_bex [symmetric])
   \<comment> \<open>Convert \<open>\<exists>y\<in>Lset(i)\<close> to \<open>\<exists>y[##Lset(i)]\<close> within the body
-       of the @{term is_wfrec} application.\<close>
+       of the \<^term>\<open>is_wfrec\<close> application.\<close>
 apply (intro FOL_reflections function_reflections 
           is_wfrec_reflection Replace_reflection DPow'_reflection) 
 done

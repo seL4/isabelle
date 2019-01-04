@@ -80,14 +80,14 @@ let
   val ii = Fun (Input, Fun (Input, Bool))
 in
   Core_Data.PredData.map (Graph.new_node 
-    (@{const_name contains}, 
+    (\<^const_name>\<open>contains\<close>, 
      Core_Data.PredData {
        pos = Position.thread_data (),
        intros = [(NONE, @{thm containsI})], 
        elim = SOME @{thm containsE}, 
        preprocessed = true,
        function_names = [(Predicate_Compile_Aux.Pred, 
-         [(io, @{const_name pred_of_set}), (ii, @{const_name contains_pred})])], 
+         [(io, \<^const_name>\<open>pred_of_set\<close>), (ii, \<^const_name>\<open>contains_pred\<close>)])], 
        predfun_data = [
          (io, Core_Data.PredfunData {
             elim = @{thm pred_of_setE}, intro = @{thm pred_of_setI},

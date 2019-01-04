@@ -107,26 +107,26 @@ fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda' v t
 
 fun make_tfree ctxt w =
   let val ww = "'" ^ w in
-    TFree (ww, the_default @{sort type} (Variable.def_sort ctxt (ww, ~1)))
+    TFree (ww, the_default \<^sort>\<open>type\<close> (Variable.def_sort ctxt (ww, ~1)))
   end
 
-fun simplify_bool ((all as Const (@{const_name All}, _)) $ Abs (s, T, t)) =
+fun simplify_bool ((all as Const (\<^const_name>\<open>All\<close>, _)) $ Abs (s, T, t)) =
     let val t' = simplify_bool t in
       if loose_bvar1 (t', 0) then all $ Abs (s, T, t') else t'
     end
-  | simplify_bool (Const (@{const_name Not}, _) $ t) = s_not (simplify_bool t)
-  | simplify_bool (Const (@{const_name conj}, _) $ t $ u) =
+  | simplify_bool (Const (\<^const_name>\<open>Not\<close>, _) $ t) = s_not (simplify_bool t)
+  | simplify_bool (Const (\<^const_name>\<open>conj\<close>, _) $ t $ u) =
     s_conj (simplify_bool t, simplify_bool u)
-  | simplify_bool (Const (@{const_name disj}, _) $ t $ u) =
+  | simplify_bool (Const (\<^const_name>\<open>disj\<close>, _) $ t $ u) =
     s_disj (simplify_bool t, simplify_bool u)
-  | simplify_bool (Const (@{const_name implies}, _) $ t $ u) =
+  | simplify_bool (Const (\<^const_name>\<open>implies\<close>, _) $ t $ u) =
     s_imp (simplify_bool t, simplify_bool u)
-  | simplify_bool ((t as Const (@{const_name HOL.eq}, _)) $ u $ v) =
+  | simplify_bool ((t as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ u $ v) =
     (case (u, v) of
-      (Const (@{const_name True}, _), _) => v
-    | (u, Const (@{const_name True}, _)) => u
-    | (Const (@{const_name False}, _), v) => s_not v
-    | (u, Const (@{const_name False}, _)) => s_not u
+      (Const (\<^const_name>\<open>True\<close>, _), _) => v
+    | (u, Const (\<^const_name>\<open>True\<close>, _)) => u
+    | (Const (\<^const_name>\<open>False\<close>, _), v) => s_not v
+    | (u, Const (\<^const_name>\<open>False\<close>, _)) => s_not u
     | _ => if u aconv v then @{const True} else t $ simplify_bool u $ simplify_bool v)
   | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
   | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
@@ -137,9 +137,9 @@ fun single_letter upper s =
     String.extract (Name.desymbolize (SOME upper) (Long_Name.base_name s'), 0, SOME 1)
   end
 
-fun var_name_of_typ (Type (@{type_name fun}, [_, T])) =
+fun var_name_of_typ (Type (\<^type_name>\<open>fun\<close>, [_, T])) =
     if body_type T = HOLogic.boolT then "p" else "f"
-  | var_name_of_typ (Type (@{type_name set}, [T])) =
+  | var_name_of_typ (Type (\<^type_name>\<open>set\<close>, [T])) =
     let fun default () = single_letter true (var_name_of_typ T) in
       (case T of
         Type (s, [T1, T2]) => if String.isSuffix "prod" s andalso T1 = T2 then "r" else default ()
@@ -197,7 +197,7 @@ fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
                  Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
                  forces us to use a type parameter in all cases. *)
               Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
-                (if null clss then @{sort type} else map class_of_atp_class clss)))))
+                (if null clss then \<^sort>\<open>type\<close> else map class_of_atp_class clss)))))
     end
   | typ_of_atp_type ctxt (AFun (ty1, ty2)) = typ_of_atp_type ctxt ty1 --> typ_of_atp_type ctxt ty2
 
@@ -230,7 +230,7 @@ fun robust_const_num_type_args thy s =
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
-fun slack_fastype_of t = fastype_of t handle TERM _ => Type_Infer.anyT @{sort type}
+fun slack_fastype_of t = fastype_of t handle TERM _ => Type_Infer.anyT \<^sort>\<open>type\<close>
 
 val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
@@ -273,7 +273,7 @@ fun term_of_atp_ho ctxt sym_tab =
         then error "Isar proof reconstruction failed because the ATP proof \
                      \contains unparsable material"
         else if s = tptp_equal then
-          list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}),
+          list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term NONE) us)
         else if not (null us) then
           let
@@ -285,15 +285,15 @@ fun term_of_atp_ho ctxt sym_tab =
         else if s = tptp_and then HOLogic.conj
         else if s = tptp_implies then HOLogic.imp
         else if s = tptp_iff orelse s = tptp_equal then HOLogic.eq_const dummyT
-        else if s = tptp_not_iff orelse s = tptp_not_equal then @{term "\<lambda>P Q. Q \<noteq> P"}
-        else if s = tptp_if then @{term "\<lambda>P Q. Q \<longrightarrow> P"}
-        else if s = tptp_not_and then @{term "\<lambda>P Q. \<not> (P \<and> Q)"}
-        else if s = tptp_not_or then @{term "\<lambda>P Q. \<not> (P \<or> Q)"}
+        else if s = tptp_not_iff orelse s = tptp_not_equal then \<^term>\<open>\<lambda>P Q. Q \<noteq> P\<close>
+        else if s = tptp_if then \<^term>\<open>\<lambda>P Q. Q \<longrightarrow> P\<close>
+        else if s = tptp_not_and then \<^term>\<open>\<lambda>P Q. \<not> (P \<and> Q)\<close>
+        else if s = tptp_not_or then \<^term>\<open>\<lambda>P Q. \<not> (P \<or> Q)\<close>
         else if s = tptp_not then HOLogic.Not
         else if s = tptp_ho_forall then HOLogic.all_const dummyT
         else if s = tptp_ho_exists then HOLogic.exists_const dummyT
         else if s = tptp_hilbert_choice then HOLogic.choice_const dummyT
-        else if s = tptp_hilbert_the then @{term "The"}
+        else if s = tptp_hilbert_the then \<^term>\<open>The\<close>
         else
           (case unprefix_and_unascii const_prefix s of
             SOME s' =>
@@ -311,7 +311,7 @@ fun term_of_atp_ho ctxt sym_tab =
                 |> (fn SOME T => T
                      | NONE =>
                        map slack_fastype_of term_ts --->
-                       the_default (Type_Infer.anyT @{sort type}) opt_T)
+                       the_default (Type_Infer.anyT \<^sort>\<open>type\<close>) opt_T)
               val t = Const (unproxify_const s', T)
             in list_comb (t, term_ts) end
           | NONE => (* a free or schematic variable *)
@@ -324,7 +324,7 @@ fun term_of_atp_ho ctxt sym_tab =
                   map slack_fastype_of ts --->
                   (case opt_T of
                     SOME T => T
-                  | NONE => Type_Infer.anyT @{sort type}))
+                  | NONE => Type_Infer.anyT \<^sort>\<open>type\<close>))
               val t =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
@@ -353,7 +353,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
         else if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information (needed?) *)
         else if s = tptp_equal then
-          list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}),
+          list_comb (Const (\<^const_name>\<open>HOL.eq\<close>, Type_Infer.anyT \<^sort>\<open>type\<close>),
             map (do_term [] NONE) us)
         else
           (case unprefix_and_unascii const_prefix s of
@@ -364,7 +364,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
                   [typ_u, term_u] => do_term extra_ts (SOME (typ_of_atp_term ctxt typ_u)) term_u
                 | _ => raise ATP_TERM us)
               else if s' = predicator_name then
-                do_term [] (SOME @{typ bool}) (hd us)
+                do_term [] (SOME \<^typ>\<open>bool\<close>) (hd us)
               else if s' = app_op_name then
                 let val extra_t = do_term [] NONE (List.last us) in
                   do_term (extra_t :: extra_ts)
@@ -391,7 +391,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
                     |> (fn SOME T => T
                          | NONE =>
                            map slack_fastype_of term_ts --->
-                           the_default (Type_Infer.anyT @{sort type}) opt_T)
+                           the_default (Type_Infer.anyT \<^sort>\<open>type\<close>) opt_T)
                   val t =
                     if new_skolem then Var ((new_skolem_var_name_of_const s'', var_index), T)
                     else Const (unproxify_const s', T)
@@ -414,7 +414,7 @@ fun term_of_atp_fo ctxt textual sym_tab =
                 | _ =>
                   (case opt_T of
                     SOME T => map slack_fastype_of term_ts ---> T
-                  | NONE => map slack_fastype_of ts ---> Type_Infer.anyT @{sort type}))
+                  | NONE => map slack_fastype_of ts ---> Type_Infer.anyT \<^sort>\<open>type\<close>))
               val t =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
@@ -438,7 +438,7 @@ fun term_of_atom ctxt format type_enc textual sym_tab pos (u as ATerm ((s, _), _
     add_type_constraint pos (type_constraint_of_term ctxt u)
     #> pair @{const True}
   else
-    pair (term_of_atp ctxt format type_enc textual sym_tab (SOME @{typ bool}) u)
+    pair (term_of_atp ctxt format type_enc textual sym_tab (SOME \<^typ>\<open>bool\<close>) u)
 
 (* Update schematic type variables with detected sort constraints. It's not
    totally clear whether this code is necessary. *)
@@ -568,11 +568,11 @@ fun infer_formulas_types ctxt =
   #> map (set_var_index 0)
 
 val combinator_table =
-  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
-   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def [abs_def]}),
-   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def [abs_def]}),
-   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def [abs_def]}),
-   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def [abs_def]})]
+  [(\<^const_name>\<open>Meson.COMBI\<close>, @{thm Meson.COMBI_def [abs_def]}),
+   (\<^const_name>\<open>Meson.COMBK\<close>, @{thm Meson.COMBK_def [abs_def]}),
+   (\<^const_name>\<open>Meson.COMBB\<close>, @{thm Meson.COMBB_def [abs_def]}),
+   (\<^const_name>\<open>Meson.COMBC\<close>, @{thm Meson.COMBC_def [abs_def]}),
+   (\<^const_name>\<open>Meson.COMBS\<close>, @{thm Meson.COMBS_def [abs_def]})]
 
 fun uncombine_term thy =
   let
@@ -674,7 +674,7 @@ fun unskolemize_term skos =
             val (haves, have_nots) =
               HOLogic.disjuncts t
               |> List.partition (exists_subterm (curry (op =) (Var v)))
-              |> apply2 (fn lits => fold (curry s_disj) lits @{term False})
+              |> apply2 (fn lits => fold (curry s_disj) lits \<^term>\<open>False\<close>)
           in
             s_disj (HOLogic.all_const T
                 $ Abs (s, T, unskolem (safe_abstract_over (Var v, kill_skolem_arg haves))),

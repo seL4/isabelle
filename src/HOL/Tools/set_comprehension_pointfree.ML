@@ -21,28 +21,28 @@ fun mk_inf (t1, t2) =
   let
     val T = fastype_of t1
   in
-    Const (@{const_name Lattices.inf_class.inf}, T --> T --> T) $ t1 $ t2
+    Const (\<^const_name>\<open>Lattices.inf_class.inf\<close>, T --> T --> T) $ t1 $ t2
   end
 
 fun mk_sup (t1, t2) =
   let
     val T = fastype_of t1
   in
-    Const (@{const_name Lattices.sup_class.sup}, T --> T --> T) $ t1 $ t2
+    Const (\<^const_name>\<open>Lattices.sup_class.sup\<close>, T --> T --> T) $ t1 $ t2
   end
 
 fun mk_Compl t =
   let
     val T = fastype_of t
   in
-    Const (@{const_name "Groups.uminus_class.uminus"}, T --> T) $ t
+    Const (\<^const_name>\<open>Groups.uminus_class.uminus\<close>, T --> T) $ t
   end
 
 fun mk_image t1 t2 =
   let
-    val T as Type (@{type_name fun}, [_ , R]) = fastype_of t1
+    val T as Type (\<^type_name>\<open>fun\<close>, [_ , R]) = fastype_of t1
   in
-    Const (@{const_name image},
+    Const (\<^const_name>\<open>image\<close>,
       T --> fastype_of t2 --> HOLogic.mk_setT R) $ t1 $ t2
   end;
 
@@ -53,22 +53,22 @@ fun mk_sigma (t1, t2) =
     val setT = HOLogic.dest_setT T1
     val resT = HOLogic.mk_setT (HOLogic.mk_prodT (setT, HOLogic.dest_setT T2))
   in
-    Const (@{const_name Sigma},
+    Const (\<^const_name>\<open>Sigma\<close>,
       T1 --> (setT --> T2) --> resT) $ t1 $ absdummy setT t2
   end;
 
 fun mk_vimage f s =
   let
-    val T as Type (@{type_name fun}, [T1, T2]) = fastype_of f
+    val T as Type (\<^type_name>\<open>fun\<close>, [T1, T2]) = fastype_of f
   in
-    Const (@{const_name vimage}, T --> HOLogic.mk_setT T2 --> HOLogic.mk_setT T1) $ f $ s
+    Const (\<^const_name>\<open>vimage\<close>, T --> HOLogic.mk_setT T2 --> HOLogic.mk_setT T1) $ f $ s
   end; 
 
-fun dest_Collect (Const (@{const_name Collect}, _) $ Abs (x, T, t)) = ((x, T), t)
+fun dest_Collect (Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (x, T, t)) = ((x, T), t)
   | dest_Collect t = raise TERM ("dest_Collect", [t])
 
 (* Copied from predicate_compile_aux.ML *)
-fun strip_ex (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
+fun strip_ex (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (x, T, t)) =
   let
     val (xTs, t') = strip_ex t
   in
@@ -84,7 +84,7 @@ fun mk_prod1 Ts (t1, t2) =
   end;
 
 fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
-  | mk_split_abs vs (Const (@{const_name Product_Type.Pair}, _) $ u $ v) t =
+  | mk_split_abs vs (Const (\<^const_name>\<open>Product_Type.Pair\<close>, _) $ u $ v) t =
       HOLogic.mk_case_prod (mk_split_abs vs u (mk_split_abs vs v t))
   | mk_split_abs _ t _ = raise TERM ("mk_split_abs: bad term", [t]);
 
@@ -92,7 +92,7 @@ fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
 val strip_ptupleabs =
   let
     fun strip [] qs vs t = (t, rev vs, qs)
-      | strip (p :: ps) qs vs (Const (@{const_name case_prod}, _) $ t) =
+      | strip (p :: ps) qs vs (Const (\<^const_name>\<open>case_prod\<close>, _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) vs t
       | strip (_ :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
       | strip (_ :: ps) qs vs t = strip ps qs
@@ -125,8 +125,8 @@ datatype formula = Atom of (pattern * term) | Int of formula * formula | Un of f
 fun map_atom f (Atom a) = Atom (f a)
   | map_atom _ x = x
 
-fun is_collect_atom (Atom (_, Const(@{const_name Collect}, _) $ _)) = true
-  | is_collect_atom (Atom (_, Const (@{const_name "Groups.uminus_class.uminus"}, _) $ (Const(@{const_name Collect}, _) $ _))) = true
+fun is_collect_atom (Atom (_, Const(\<^const_name>\<open>Collect\<close>, _) $ _)) = true
+  | is_collect_atom (Atom (_, Const (\<^const_name>\<open>Groups.uminus_class.uminus\<close>, _) $ (Const(\<^const_name>\<open>Collect\<close>, _) $ _))) = true
   | is_collect_atom _ = false
 
 fun mk_case_prod _ [(x, T)] t = (T, Abs (x, T, t))
@@ -151,12 +151,12 @@ fun default_atom vs t =
   let
     val (tuple, (vs', t')) = mk_term vs t
     val T = HOLogic.mk_tupleT (map snd vs')
-    val s = HOLogic.Collect_const T $ (snd (mk_case_prod @{typ bool} vs' t'))
+    val s = HOLogic.Collect_const T $ (snd (mk_case_prod \<^typ>\<open>bool\<close> vs' t'))
   in
     (tuple, Atom (tuple, s))
   end
 
-fun mk_atom vs (t as Const (@{const_name "Set.member"}, _) $ x $ s) =
+fun mk_atom vs (t as Const (\<^const_name>\<open>Set.member\<close>, _) $ x $ s) =
     if not (null (loose_bnos s)) then
       default_atom vs t
     else
@@ -168,7 +168,7 @@ fun mk_atom vs (t as Const (@{const_name "Set.member"}, _) $ x $ s) =
           val rT = HOLogic.dest_setT (fastype_of s)
           val s = mk_vimage (snd (mk_case_prod rT vs' x')) s
         in (tuple, Atom (tuple, s)) end)
-  | mk_atom vs (Const (@{const_name "HOL.Not"}, _) $ t) = apsnd (map_atom (apsnd mk_Compl)) (mk_atom vs t)
+  | mk_atom vs (Const (\<^const_name>\<open>HOL.Not\<close>, _) $ t) = apsnd (map_atom (apsnd mk_Compl)) (mk_atom vs t)
   | mk_atom vs t = default_atom vs t
 
 fun merge' [] (pats1, pats2) = ([], (pats1, pats2))
@@ -415,7 +415,7 @@ fun tac ctxt fm =
 
 fun comprehension_conv ctxt ct =
   let
-    fun dest_Collect (Const (@{const_name Collect}, T) $ t) = (HOLogic.dest_setT (body_type T), t)
+    fun dest_Collect (Const (\<^const_name>\<open>Collect\<close>, T) $ t) = (HOLogic.dest_setT (body_type T), t)
       | dest_Collect t = raise TERM ("dest_Collect", [t])
     fun list_ex vs t = fold_rev (fn (x, T) => fn t => HOLogic.exists_const T $ Abs (x, T, t)) vs t
     fun mk_term t =

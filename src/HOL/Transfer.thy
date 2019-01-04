@@ -621,7 +621,7 @@ unfolding map_fun_def[abs_def] by transfer_prover
 end
 
 
-subsection \<open>@{const of_nat}\<close>
+subsection \<open>\<^const>\<open>of_nat\<close>\<close>
 
 lemma transfer_rule_of_nat:
   fixes R :: "'a::semiring_1 \<Rightarrow> 'b::semiring_1 \<Rightarrow> bool"

@@ -289,7 +289,7 @@ datatype tptp_line =
 
 type tptp_problem = tptp_line list
 
-fun debug f x = if Options.default_bool @{system_option ML_exception_trace} then (f x; ()) else ()
+fun debug f x = if Options.default_bool \<^system_option>\<open>ML_exception_trace\<close> then (f x; ()) else ()
 
 fun pos_of_line tptp_line =
   case tptp_line of

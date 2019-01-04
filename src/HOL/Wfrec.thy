@@ -89,7 +89,7 @@ subsection \<open>Wellfoundedness of \<open>same_fst\<close>\<close>
 
 definition same_fst :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('b \<times> 'b) set) \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set"
   where "same_fst P R = {((x', y'), (x, y)) . x' = x \<and> P x \<and> (y',y) \<in> R x}"
-   \<comment> \<open>For @{const wfrec} declarations where the first n parameters
+   \<comment> \<open>For \<^const>\<open>wfrec\<close> declarations where the first n parameters
        stay unchanged in the recursive call.\<close>
 
 lemma same_fstI [intro!]: "P x \<Longrightarrow> (y', y) \<in> R x \<Longrightarrow> ((x, y'), (x, y)) \<in> same_fst P R"

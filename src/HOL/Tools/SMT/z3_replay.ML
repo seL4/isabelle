@@ -34,7 +34,7 @@ fun new_fixes ctxt nTs =
     fun mk (n, T) n' = (n, Thm.cterm_of ctxt' (Free (n', T)))
   in (ctxt', Symtab.make (map2 mk nTs ns)) end
 
-fun forall_elim_term ct (Const (@{const_name Pure.all}, _) $ (a as Abs _)) =
+fun forall_elim_term ct (Const (\<^const_name>\<open>Pure.all\<close>, _) $ (a as Abs _)) =
       Term.betapply (a, Thm.term_of ct)
   | forall_elim_term _ qt = raise TERM ("forall_elim'", [qt])
 

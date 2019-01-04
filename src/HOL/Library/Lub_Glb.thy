@@ -45,7 +45,7 @@ definition ubs :: "'a set \<Rightarrow> 'a::ord set \<Rightarrow> 'a set"
   where "ubs R S = Collect (isUb R S)"
 
 
-subsection \<open>Rules about the Operators @{term leastP}, @{term ub} and @{term lub}\<close>
+subsection \<open>Rules about the Operators \<^term>\<open>leastP\<close>, \<^term>\<open>ub\<close> and \<^term>\<open>lub\<close>\<close>
 
 lemma leastPD1: "leastP P x \<Longrightarrow> P x"
   by (simp add: leastP_def)
@@ -118,7 +118,7 @@ definition lbs :: "'a set \<Rightarrow> 'a::ord set \<Rightarrow> 'a set"
   where "lbs R S = Collect (isLb R S)"
 
 
-subsection \<open>Rules about the Operators @{term greatestP}, @{term isLb} and @{term isGlb}\<close>
+subsection \<open>Rules about the Operators \<^term>\<open>greatestP\<close>, \<^term>\<open>isLb\<close> and \<^term>\<open>isGlb\<close>\<close>
 
 lemma greatestPD1: "greatestP P x \<Longrightarrow> P x"
   by (simp add: greatestP_def)

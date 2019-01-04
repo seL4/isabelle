@@ -575,7 +575,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
 local
 
 (*delete needless equality assumptions*)
-val refl_thin = Goal.prove_global @{theory HOL} [] [] \<^prop>\<open>\<And>P. a = a \<Longrightarrow> P \<Longrightarrow> P\<close>
+val refl_thin = Goal.prove_global \<^theory>\<open>HOL\<close> [] [] \<^prop>\<open>\<And>P. a = a \<Longrightarrow> P \<Longrightarrow> P\<close>
   (fn {context = ctxt, ...} => assume_tac ctxt 1);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 fun elim_tac ctxt = REPEAT o eresolve_tac ctxt elim_rls;

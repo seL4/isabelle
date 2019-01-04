@@ -615,7 +615,7 @@ lemma le_SUP_iff: "x \<le> \<Squnion>(f ` A) \<longleftrightarrow> (\<forall>y<x
 
 end
 
-subsection \<open>Complete lattice on @{typ bool}\<close>
+subsection \<open>Complete lattice on \<^typ>\<open>bool\<close>\<close>
 
 instantiation bool :: complete_lattice
 begin
@@ -644,7 +644,7 @@ lemma SUP_bool_eq [simp]: "(\<lambda>A f. \<Squnion>(f ` A)) = Bex"
 instance bool :: complete_boolean_algebra
   by (standard, fastforce)
 
-subsection \<open>Complete lattice on @{typ "_ \<Rightarrow> _"}\<close>
+subsection \<open>Complete lattice on \<^typ>\<open>_ \<Rightarrow> _\<close>\<close>
 
 instantiation "fun" :: (type, Inf) Inf
 begin
@@ -763,7 +763,7 @@ lemma SUP2_E:
   using assms by auto
 
 
-subsection \<open>Complete lattice on @{typ "_ set"}\<close>
+subsection \<open>Complete lattice on \<^typ>\<open>_ set\<close>\<close>
 
 instantiation "set" :: (type) complete_lattice
 begin
@@ -798,9 +798,9 @@ lemma InterI [intro!]: "(\<And>X. X \<in> C \<Longrightarrow> A \<in> X) \<Longr
   by (simp add: Inter_eq)
 
 text \<open>
-  \<^medskip> A ``destruct'' rule -- every @{term X} in @{term C}
-  contains @{term A} as an element, but @{prop "A \<in> X"} can hold when
-  @{prop "X \<in> C"} does not!  This rule is analogous to \<open>spec\<close>.
+  \<^medskip> A ``destruct'' rule -- every \<^term>\<open>X\<close> in \<^term>\<open>C\<close>
+  contains \<^term>\<open>A\<close> as an element, but \<^prop>\<open>A \<in> X\<close> can hold when
+  \<^prop>\<open>X \<in> C\<close> does not!  This rule is analogous to \<open>spec\<close>.
 \<close>
 
 lemma InterD [elim, Pure.elim]: "A \<in> \<Inter>C \<Longrightarrow> X \<in> C \<Longrightarrow> A \<in> X"
@@ -808,7 +808,7 @@ lemma InterD [elim, Pure.elim]: "A \<in> \<Inter>C \<Longrightarrow> X \<in> C \
 
 lemma InterE [elim]: "A \<in> \<Inter>C \<Longrightarrow> (X \<notin> C \<Longrightarrow> R) \<Longrightarrow> (A \<in> X \<Longrightarrow> R) \<Longrightarrow> R"
   \<comment> \<open>``Classical'' elimination rule -- does not require proving
-    @{prop "X \<in> C"}.\<close>
+    \<^prop>\<open>X \<in> C\<close>.\<close>
   unfolding Inter_eq by blast
 
 lemma Inter_lower: "B \<in> A \<Longrightarrow> \<Inter>A \<subseteq> B"
@@ -876,7 +876,7 @@ lemma INT_D [elim, Pure.elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow>
   by auto
 
 lemma INT_E [elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> (b \<in> B a \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  \<comment> \<open>"Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}.\<close>
+  \<comment> \<open>"Classical" elimination -- by the Excluded Middle on \<^prop>\<open>a\<in>A\<close>.\<close>
   by auto
 
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
@@ -949,8 +949,8 @@ lemma Union_iff [simp]: "A \<in> \<Union>C \<longleftrightarrow> (\<exists>X\<in
   by (unfold Union_eq) blast
 
 lemma UnionI [intro]: "X \<in> C \<Longrightarrow> A \<in> X \<Longrightarrow> A \<in> \<Union>C"
-  \<comment> \<open>The order of the premises presupposes that @{term C} is rigid;
-    @{term A} may be flexible.\<close>
+  \<comment> \<open>The order of the premises presupposes that \<^term>\<open>C\<close> is rigid;
+    \<^term>\<open>A\<close> may be flexible.\<close>
   by auto
 
 lemma UnionE [elim!]: "A \<in> \<Union>C \<Longrightarrow> (\<And>X. A \<in> X \<Longrightarrow> X \<in> C \<Longrightarrow> R) \<Longrightarrow> R"
@@ -1023,7 +1023,7 @@ translations
 text \<open>
   Note the difference between ordinary syntax of indexed
   unions and intersections (e.g.\ \<open>\<Union>a\<^sub>1\<in>A\<^sub>1. B\<close>)
-  and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}.
+  and their \LaTeX\ rendition: \<^term>\<open>\<Union>a\<^sub>1\<in>A\<^sub>1. B\<close>.
 \<close>
 
 lemma disjoint_UN_iff: "disjnt A (\<Union>i\<in>I. B i) \<longleftrightarrow> (\<forall>i\<in>I. disjnt A (B i))"
@@ -1045,8 +1045,8 @@ lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<ex
   using Union_iff [of _ "B ` A"] by simp
 
 lemma UN_I [intro]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> b \<in> (\<Union>x\<in>A. B x)"
-  \<comment> \<open>The order of the premises presupposes that @{term A} is rigid;
-    @{term b} may be flexible.\<close>
+  \<comment> \<open>The order of the premises presupposes that \<^term>\<open>A\<close> is rigid;
+    \<^term>\<open>b\<close> may be flexible.\<close>
   by auto
 
 lemma UN_E [elim!]: "b \<in> (\<Union>x\<in>A. B x) \<Longrightarrow> (\<And>x. x\<in>A \<Longrightarrow> b \<in> B x \<Longrightarrow> R) \<Longrightarrow> R"

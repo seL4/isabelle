@@ -233,7 +233,7 @@ lemma powser_sums_zero_iff [simp]: "(\<lambda>n. a n * 0^n) sums x \<longleftrig
 
 text \<open>
   Power series has a circle or radius of convergence: if it sums for \<open>x\<close>,
-  then it sums absolutely for \<open>z\<close> with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.\<close>
+  then it sums absolutely for \<open>z\<close> with \<^term>\<open>\<bar>z\<bar> < \<bar>x\<bar>\<close>.\<close>
 
 lemma powser_insidea:
   fixes x z :: "'a::real_normed_div_algebra"
@@ -1549,7 +1549,7 @@ qed simp
 
 subsubsection \<open>Properties of the Exponential Function on Reals\<close>
 
-text \<open>Comparisons of @{term "exp x"} with zero.\<close>
+text \<open>Comparisons of \<^term>\<open>exp x\<close> with zero.\<close>
 
 text \<open>Proof: because every exponential can be seen as a square.\<close>
 lemma exp_ge_zero [simp]: "0 \<le> exp x"
@@ -1635,7 +1635,7 @@ lemma exp_inj_iff [iff]: "exp x = exp y \<longleftrightarrow> x = y"
   for x y :: real
   by (simp add: order_eq_iff)
 
-text \<open>Comparisons of @{term "exp x"} with one.\<close>
+text \<open>Comparisons of \<^term>\<open>exp x\<close> with one.\<close>
 
 lemma one_less_exp_iff [simp]: "1 < exp x \<longleftrightarrow> 0 < x"
   for x :: real
@@ -2394,7 +2394,7 @@ qed
 subsection\<open>The general logarithm\<close>
 
 definition log :: "real \<Rightarrow> real \<Rightarrow> real"
-  \<comment> \<open>logarithm of @{term x} to base @{term a}\<close>
+  \<comment> \<open>logarithm of \<^term>\<open>x\<close> to base \<^term>\<open>a\<close>\<close>
   where "log a x = ln x / ln a"
 
 lemma tendsto_log [tendsto_intros]:
@@ -3596,7 +3596,7 @@ subsection \<open>The Constant Pi\<close>
 definition pi :: real
   where "pi = 2 * (THE x. 0 \<le> x \<and> x \<le> 2 \<and> cos x = 0)"
 
-text \<open>Show that there's a least positive @{term x} with @{term "cos x = 0"};
+text \<open>Show that there's a least positive \<^term>\<open>x\<close> with \<^term>\<open>cos x = 0\<close>;
    hence define pi.\<close>
 
 lemma sin_paired: "(\<lambda>n. (- 1) ^ n / (fact (2 * n + 1)) * x ^ (2 * n + 1)) sums  sin x"
@@ -4009,7 +4009,7 @@ lemma sin_pi_divide_n_gt_0:
   shows "0 < sin (pi / real n)"
   by (rule sin_gt_zero) (use assms in \<open>simp_all add: divide_simps\<close>)
 
-text\<open>Proof resembles that of \<open>cos_is_zero\<close> but with @{term pi} for the upper bound\<close>
+text\<open>Proof resembles that of \<open>cos_is_zero\<close> but with \<^term>\<open>pi\<close> for the upper bound\<close>
 lemma cos_total:
   assumes y: "-1 \<le> y" "y \<le> 1"
   shows "\<exists>!x. 0 \<le> x \<and> x \<le> pi \<and> cos x = y"

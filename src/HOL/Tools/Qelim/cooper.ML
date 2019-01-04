@@ -21,28 +21,28 @@ struct
 type entry = simpset * term list;
 
 val allowed_consts =
-  [@{term "(+) :: int => _"}, @{term "(+) :: nat => _"},
-   @{term "(-) :: int => _"}, @{term "(-) :: nat => _"},
-   @{term "(*) :: int => _"}, @{term "(*) :: nat => _"},
-   @{term "(div) :: int => _"}, @{term "(div) :: nat => _"},
-   @{term "(mod) :: int => _"}, @{term "(mod) :: nat => _"},
-   @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies},
-   @{term "(=) :: int => _"}, @{term "(=) :: nat => _"}, @{term "(=) :: bool => _"},
-   @{term "(<) :: int => _"}, @{term "(<) :: nat => _"},
-   @{term "(<=) :: int => _"}, @{term "(<=) :: nat => _"},
-   @{term "(dvd) :: int => _"}, @{term "(dvd) :: nat => _"},
-   @{term "abs :: int => _"},
-   @{term "max :: int => _"}, @{term "max :: nat => _"},
-   @{term "min :: int => _"}, @{term "min :: nat => _"},
-   @{term "uminus :: int => _"}, (*@ {term "uminus :: nat => _"},*)
-   @{term "Not"}, @{term Suc},
-   @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
-   @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
-   @{term "nat"}, @{term "int"},
-   @{term "Num.One"}, @{term "Num.Bit0"}, @{term "Num.Bit1"},
-   @{term "Num.numeral :: num => int"}, @{term "Num.numeral :: num => nat"},
-   @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
-   @{term "True"}, @{term "False"}];
+  [\<^term>\<open>(+) :: int => _\<close>, \<^term>\<open>(+) :: nat => _\<close>,
+   \<^term>\<open>(-) :: int => _\<close>, \<^term>\<open>(-) :: nat => _\<close>,
+   \<^term>\<open>(*) :: int => _\<close>, \<^term>\<open>(*) :: nat => _\<close>,
+   \<^term>\<open>(div) :: int => _\<close>, \<^term>\<open>(div) :: nat => _\<close>,
+   \<^term>\<open>(mod) :: int => _\<close>, \<^term>\<open>(mod) :: nat => _\<close>,
+   \<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>, \<^term>\<open>HOL.implies\<close>,
+   \<^term>\<open>(=) :: int => _\<close>, \<^term>\<open>(=) :: nat => _\<close>, \<^term>\<open>(=) :: bool => _\<close>,
+   \<^term>\<open>(<) :: int => _\<close>, \<^term>\<open>(<) :: nat => _\<close>,
+   \<^term>\<open>(<=) :: int => _\<close>, \<^term>\<open>(<=) :: nat => _\<close>,
+   \<^term>\<open>(dvd) :: int => _\<close>, \<^term>\<open>(dvd) :: nat => _\<close>,
+   \<^term>\<open>abs :: int => _\<close>,
+   \<^term>\<open>max :: int => _\<close>, \<^term>\<open>max :: nat => _\<close>,
+   \<^term>\<open>min :: int => _\<close>, \<^term>\<open>min :: nat => _\<close>,
+   \<^term>\<open>uminus :: int => _\<close>, (*@ {term "uminus :: nat => _"},*)
+   \<^term>\<open>Not\<close>, \<^term>\<open>Suc\<close>,
+   \<^term>\<open>Ex :: (int => _) => _\<close>, \<^term>\<open>Ex :: (nat => _) => _\<close>,
+   \<^term>\<open>All :: (int => _) => _\<close>, \<^term>\<open>All :: (nat => _) => _\<close>,
+   \<^term>\<open>nat\<close>, \<^term>\<open>int\<close>,
+   \<^term>\<open>Num.One\<close>, \<^term>\<open>Num.Bit0\<close>, \<^term>\<open>Num.Bit1\<close>,
+   \<^term>\<open>Num.numeral :: num => int\<close>, \<^term>\<open>Num.numeral :: num => nat\<close>,
+   \<^term>\<open>0::int\<close>, \<^term>\<open>1::int\<close>, \<^term>\<open>0::nat\<close>, \<^term>\<open>1::nat\<close>,
+   \<^term>\<open>True\<close>, \<^term>\<open>False\<close>];
 
 structure Data = Generic_Data
 (
@@ -69,12 +69,12 @@ fun simp_thms_conv ctxt =
   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms});
 val FWD = Drule.implies_elim_list;
 
-val true_tm = @{cterm "True"};
-val false_tm = @{cterm "False"};
+val true_tm = \<^cterm>\<open>True\<close>;
+val false_tm = \<^cterm>\<open>False\<close>;
 val zdvd1_eq = @{thm "zdvd1_eq"};
-val presburger_ss = simpset_of (@{context} addsimps [zdvd1_eq]);
+val presburger_ss = simpset_of (\<^context> addsimps [zdvd1_eq]);
 val lin_ss =
-  simpset_of (put_simpset presburger_ss @{context}
+  simpset_of (put_simpset presburger_ss \<^context>
     addsimps (@{thm dvd_eq_mod_eq_0} :: zdvd1_eq :: @{thms ac_simps [where 'a=int]}));
 
 val iT = HOLogic.intT
@@ -84,17 +84,17 @@ val perhaps_number = try dest_number;
 val is_number = can dest_number;
 
 val [miconj, midisj, mieq, mineq, milt, mile, migt, mige, midvd, mindvd, miP] =
-    map (Thm.instantiate' [SOME @{ctyp "int"}] []) @{thms "minf"};
+    map (Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] []) @{thms "minf"};
 
 val [infDconj, infDdisj, infDdvd,infDndvd,infDP] =
-    map (Thm.instantiate' [SOME @{ctyp "int"}] []) @{thms "inf_period"};
+    map (Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] []) @{thms "inf_period"};
 
 val [piconj, pidisj, pieq,pineq,pilt,pile,pigt,pige,pidvd,pindvd,piP] =
-    map (Thm.instantiate' [SOME @{ctyp "int"}] []) @{thms "pinf"};
+    map (Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] []) @{thms "pinf"};
 
-val [miP, piP] = map (Thm.instantiate' [SOME @{ctyp "bool"}] []) [miP, piP];
+val [miP, piP] = map (Thm.instantiate' [SOME \<^ctyp>\<open>bool\<close>] []) [miP, piP];
 
-val infDP = Thm.instantiate' (map SOME [@{ctyp "int"}, @{ctyp "bool"}]) [] infDP;
+val infDP = Thm.instantiate' (map SOME [\<^ctyp>\<open>int\<close>, \<^ctyp>\<open>bool\<close>]) [] infDP;
 
 val [[asetconj, asetdisj, aseteq, asetneq, asetlt, asetle,
       asetgt, asetge, asetdvd, asetndvd,asetP],
@@ -103,7 +103,7 @@ val [[asetconj, asetdisj, aseteq, asetneq, asetlt, asetle,
 
 val [cpmi, cppi] = [@{thm "cpmi"}, @{thm "cppi"}];
 
-val unity_coeff_ex = Thm.instantiate' [SOME @{ctyp "int"}] [] @{thm "unity_coeff_ex"};
+val unity_coeff_ex = Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] [] @{thm "unity_coeff_ex"};
 
 val [zdvd_mono,simp_from_to,all_not_ex] =
      [@{thm "zdvd_mono"}, @{thm "simp_from_to"}, @{thm "all_not_ex"}];
@@ -111,7 +111,7 @@ val [zdvd_mono,simp_from_to,all_not_ex] =
 val [dvd_uminus, dvd_uminus'] = @{thms "uminus_dvd_conv"};
 
 val eval_ss =
-  simpset_of (put_simpset presburger_ss @{context}
+  simpset_of (put_simpset presburger_ss \<^context>
     addsimps [simp_from_to] delsimps [insert_iff, bex_triv]);
 fun eval_conv ctxt = Simplifier.rewrite (put_simpset eval_ss ctxt);
 
@@ -123,20 +123,20 @@ datatype fm = And of cterm*cterm| Or of cterm*cterm| Eq of cterm | NEq of cterm
 
 fun whatis x ct =
 ( case Thm.term_of ct of
-  Const(@{const_name HOL.conj},_)$_$_ => And (Thm.dest_binop ct)
-| Const (@{const_name HOL.disj},_)$_$_ => Or (Thm.dest_binop ct)
-| Const (@{const_name HOL.eq},_)$y$_ => if Thm.term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
-| Const (@{const_name Not},_) $ (Const (@{const_name HOL.eq},_)$y$_) =>
+  Const(\<^const_name>\<open>HOL.conj\<close>,_)$_$_ => And (Thm.dest_binop ct)
+| Const (\<^const_name>\<open>HOL.disj\<close>,_)$_$_ => Or (Thm.dest_binop ct)
+| Const (\<^const_name>\<open>HOL.eq\<close>,_)$y$_ => if Thm.term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
+| Const (\<^const_name>\<open>Not\<close>,_) $ (Const (\<^const_name>\<open>HOL.eq\<close>,_)$y$_) =>
   if Thm.term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
-| Const (@{const_name Orderings.less}, _) $ y$ z =>
+| Const (\<^const_name>\<open>Orderings.less\<close>, _) $ y$ z =>
    if Thm.term_of x aconv y then Lt (Thm.dest_arg ct)
    else if Thm.term_of x aconv z then Gt (Thm.dest_arg1 ct) else Nox
-| Const (@{const_name Orderings.less_eq}, _) $ y $ z =>
+| Const (\<^const_name>\<open>Orderings.less_eq\<close>, _) $ y $ z =>
    if Thm.term_of x aconv y then Le (Thm.dest_arg ct)
    else if Thm.term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
-| Const (@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$y$_) =>
+| Const (\<^const_name>\<open>Rings.dvd\<close>,_)$_$(Const(\<^const_name>\<open>Groups.plus\<close>,_)$y$_) =>
    if Thm.term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox
-| Const (@{const_name Not},_) $ (Const (@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$y$_)) =>
+| Const (\<^const_name>\<open>Not\<close>,_) $ (Const (\<^const_name>\<open>Rings.dvd\<close>,_)$_$(Const(\<^const_name>\<open>Groups.plus\<close>,_)$y$_)) =>
    if Thm.term_of x aconv y then
    NDvd (Thm.dest_binop (Thm.dest_arg ct) ||> Thm.dest_arg) else Nox
 | _ => Nox)
@@ -150,10 +150,10 @@ in (Thm.lambda x o Thm.dest_arg o Thm.dest_arg) eq end;
 
 val get_pmi = get_pmi_term o Thm.cprop_of;
 
-val p_v' = (("P'", 0), @{typ "int \<Rightarrow> bool"});
-val q_v' = (("Q'", 0), @{typ "int \<Rightarrow> bool"});
-val p_v = (("P", 0), @{typ "int \<Rightarrow> bool"});
-val q_v = (("Q", 0), @{typ "int \<Rightarrow> bool"});
+val p_v' = (("P'", 0), \<^typ>\<open>int \<Rightarrow> bool\<close>);
+val q_v' = (("Q'", 0), \<^typ>\<open>int \<Rightarrow> bool\<close>);
+val p_v = (("P", 0), \<^typ>\<open>int \<Rightarrow> bool\<close>);
+val q_v = (("Q", 0), \<^typ>\<open>int \<Rightarrow> bool\<close>);
 
 fun myfwd (th1, th2, th3) p q
       [(th_1,th_2,th_3), (th_1',th_2',th_3')] =
@@ -170,12 +170,12 @@ val inst' = fn cts => Thm.instantiate' [] (map SOME cts);
 val infDTrue = Thm.instantiate' [] [SOME true_tm] infDP;
 val infDFalse = Thm.instantiate' [] [SOME false_tm] infDP;
 
-val cadd =  @{cterm "(+) :: int => _"}
-val cmulC =  @{cterm "(*) :: int => _"}
-val cminus =  @{cterm "(-) :: int => _"}
-val cone =  @{cterm "1 :: int"}
+val cadd =  \<^cterm>\<open>(+) :: int => _\<close>
+val cmulC =  \<^cterm>\<open>(*) :: int => _\<close>
+val cminus =  \<^cterm>\<open>(-) :: int => _\<close>
+val cone =  \<^cterm>\<open>1 :: int\<close>
 val [addC, mulC, subC] = map Thm.term_of [cadd, cmulC, cminus]
-val [zero, one] = [@{term "0 :: int"}, @{term "1 :: int"}];
+val [zero, one] = [\<^term>\<open>0 :: int\<close>, \<^term>\<open>1 :: int\<close>];
 
 fun numeral1 f n = HOLogic.mk_number iT (f (dest_number n));
 fun numeral2 f m n = HOLogic.mk_number iT (f (dest_number m) (dest_number n));
@@ -227,18 +227,18 @@ fun provelin ctxt t = Goal.prove ctxt [] [] t
   (fn _ => EVERY [simp_tac (put_simpset lin_ss ctxt) 1, TRY (Lin_Arith.tac ctxt 1)]);
 fun linear_cmul 0 tm = zero
   | linear_cmul n tm = case tm of
-      Const (@{const_name Groups.plus}, _) $ a $ b => addC $ linear_cmul n a $ linear_cmul n b
-    | Const (@{const_name Groups.times}, _) $ c $ x => mulC $ numeral1 (fn m => n * m) c $ x
-    | Const (@{const_name Groups.minus}, _) $ a $ b => subC $ linear_cmul n a $ linear_cmul n b
-    | (m as Const (@{const_name Groups.uminus}, _)) $ a => m $ linear_cmul n a
+      Const (\<^const_name>\<open>Groups.plus\<close>, _) $ a $ b => addC $ linear_cmul n a $ linear_cmul n b
+    | Const (\<^const_name>\<open>Groups.times\<close>, _) $ c $ x => mulC $ numeral1 (fn m => n * m) c $ x
+    | Const (\<^const_name>\<open>Groups.minus\<close>, _) $ a $ b => subC $ linear_cmul n a $ linear_cmul n b
+    | (m as Const (\<^const_name>\<open>Groups.uminus\<close>, _)) $ a => m $ linear_cmul n a
     | _ => numeral1 (fn m => n * m) tm;
 fun earlier [] x y = false
   | earlier (h::t) x y =
     if h aconv y then false else if h aconv x then true else earlier t x y;
 
 fun linear_add vars tm1 tm2 = case (tm1, tm2) of
-    (Const (@{const_name Groups.plus}, _) $ (Const (@{const_name Groups.times}, _) $ c1 $ x1) $ r1,
-    Const (@{const_name Groups.plus}, _) $ (Const (@{const_name Groups.times}, _) $ c2 $ x2) $ r2) =>
+    (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ (Const (\<^const_name>\<open>Groups.times\<close>, _) $ c1 $ x1) $ r1,
+    Const (\<^const_name>\<open>Groups.plus\<close>, _) $ (Const (\<^const_name>\<open>Groups.times\<close>, _) $ c2 $ x2) $ r2) =>
    if x1 = x2 then
      let val c = numeral2 Integer.add c1 c2
       in if c = zero then linear_add vars r1 r2
@@ -246,9 +246,9 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
      end
      else if earlier vars x1 x2 then addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
    else addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
- | (Const (@{const_name Groups.plus}, _) $ (Const (@{const_name Groups.times}, _) $ c1 $ x1) $ r1, _) =>
+ | (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ (Const (\<^const_name>\<open>Groups.times\<close>, _) $ c1 $ x1) $ r1, _) =>
       addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
- | (_, Const (@{const_name Groups.plus}, _) $ (Const (@{const_name Groups.times}, _) $ c2 $ x2) $ r2) =>
+ | (_, Const (\<^const_name>\<open>Groups.plus\<close>, _) $ (Const (\<^const_name>\<open>Groups.times\<close>, _) $ c2 $ x2) $ r2) =>
       addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
  | (_, _) => numeral2 Integer.add tm1 tm2;
 
@@ -258,10 +258,10 @@ fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2);
 exception COOPER of string;
 
 fun lint vars tm =  if is_number tm then tm  else case tm of
-  Const (@{const_name Groups.uminus}, _) $ t => linear_neg (lint vars t)
-| Const (@{const_name Groups.plus}, _) $ s $ t => linear_add vars (lint vars s) (lint vars t)
-| Const (@{const_name Groups.minus}, _) $ s $ t => linear_sub vars (lint vars s) (lint vars t)
-| Const (@{const_name Groups.times}, _) $ s $ t =>
+  Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ t => linear_neg (lint vars t)
+| Const (\<^const_name>\<open>Groups.plus\<close>, _) $ s $ t => linear_add vars (lint vars s) (lint vars t)
+| Const (\<^const_name>\<open>Groups.minus\<close>, _) $ s $ t => linear_sub vars (lint vars s) (lint vars t)
+| Const (\<^const_name>\<open>Groups.times\<close>, _) $ s $ t =>
   let val s' = lint vars s
       val t' = lint vars t
   in case perhaps_number s' of SOME n => linear_cmul n t'
@@ -270,14 +270,14 @@ fun lint vars tm =  if is_number tm then tm  else case tm of
   end
  | _ => addC $ (mulC $ one $ tm) $ zero;
 
-fun lin (vs as _::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Orderings.less}, T) $ s $ t)) =
-    lin vs (Const (@{const_name Orderings.less_eq}, T) $ t $ s)
-  | lin (vs as _::_) (Const (@{const_name Not},_) $ (Const(@{const_name Orderings.less_eq}, T) $ s $ t)) =
-    lin vs (Const (@{const_name Orderings.less}, T) $ t $ s)
-  | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
-  | lin (vs as _::_) (Const(@{const_name Rings.dvd},_)$d$t) =
-    HOLogic.mk_binrel @{const_name Rings.dvd} (numeral1 abs d, lint vs t)
-  | lin (vs as x::_) ((b as Const(@{const_name HOL.eq},_))$s$t) =
+fun lin (vs as _::_) (Const (\<^const_name>\<open>Not\<close>, _) $ (Const (\<^const_name>\<open>Orderings.less\<close>, T) $ s $ t)) =
+    lin vs (Const (\<^const_name>\<open>Orderings.less_eq\<close>, T) $ t $ s)
+  | lin (vs as _::_) (Const (\<^const_name>\<open>Not\<close>,_) $ (Const(\<^const_name>\<open>Orderings.less_eq\<close>, T) $ s $ t)) =
+    lin vs (Const (\<^const_name>\<open>Orderings.less\<close>, T) $ t $ s)
+  | lin vs (Const (\<^const_name>\<open>Not\<close>,T)$t) = Const (\<^const_name>\<open>Not\<close>,T)$ (lin vs t)
+  | lin (vs as _::_) (Const(\<^const_name>\<open>Rings.dvd\<close>,_)$d$t) =
+    HOLogic.mk_binrel \<^const_name>\<open>Rings.dvd\<close> (numeral1 abs d, lint vs t)
+  | lin (vs as x::_) ((b as Const(\<^const_name>\<open>HOL.eq\<close>,_))$s$t) =
      (case lint vs (subC$t$s) of
       (t as _$(m$c$y)$r) =>
         if x <> y then b$zero$t
@@ -299,14 +299,14 @@ in (provelin ctxt ((HOLogic.eq_const iT)$t$(lint vs t) |> HOLogic.mk_Trueprop))
              RS eq_reflection
 end;
 
-fun is_intrel_type T = T = @{typ "int => int => bool"};
+fun is_intrel_type T = T = \<^typ>\<open>int => int => bool\<close>;
 
 fun is_intrel (b$_$_) = is_intrel_type (fastype_of b)
-  | is_intrel (@{term "Not"}$(b$_$_)) = is_intrel_type (fastype_of b)
+  | is_intrel (\<^term>\<open>Not\<close>$(b$_$_)) = is_intrel_type (fastype_of b)
   | is_intrel _ = false;
 
 fun linearize_conv ctxt vs ct = case Thm.term_of ct of
-  Const(@{const_name Rings.dvd},_)$_$_ =>
+  Const(\<^const_name>\<open>Rings.dvd\<close>,_)$_$_ =>
   let
     val th = Conv.binop_conv (lint_conv ctxt vs) ct
     val (d',t') = Thm.dest_binop (Thm.rhs_of th)
@@ -326,7 +326,7 @@ fun linearize_conv ctxt vs ct = case Thm.term_of ct of
       val d'' = Thm.rhs_of dth |> Thm.dest_arg1
      in
       case tt' of
-        Const(@{const_name Groups.plus},_)$(Const(@{const_name Groups.times},_)$c$_)$_ =>
+        Const(\<^const_name>\<open>Groups.plus\<close>,_)$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$_)$_ =>
         let val x = dest_number c
         in if x < 0 then Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (lint_conv ctxt vs)))
                                        (Thm.transitive dth (inst' [d'',t'] dvd_uminus'))
@@ -334,13 +334,13 @@ fun linearize_conv ctxt vs ct = case Thm.term_of ct of
       | _ => dth
      end
   end
-| Const (@{const_name Not},_)$(Const(@{const_name Rings.dvd},_)$_$_) => Conv.arg_conv (linearize_conv ctxt vs) ct
+| Const (\<^const_name>\<open>Not\<close>,_)$(Const(\<^const_name>\<open>Rings.dvd\<close>,_)$_$_) => Conv.arg_conv (linearize_conv ctxt vs) ct
 | t => if is_intrel t
       then (provelin ctxt ((HOLogic.eq_const bT)$t$(lin vs t) |> HOLogic.mk_Trueprop))
        RS eq_reflection
       else Thm.reflexive ct;
 
-val dvdc = @{cterm "(dvd) :: int => _"};
+val dvdc = \<^cterm>\<open>(dvd) :: int => _\<close>;
 
 fun unify ctxt q =
  let
@@ -349,19 +349,19 @@ fun unify ctxt q =
   val ins = insert (op = : int * int -> bool)
   fun h (acc,dacc) t =
    case Thm.term_of t of
-    Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
+    Const(s,_)$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$y)$ _ =>
     if x aconv y andalso member (op =)
-      [@{const_name HOL.eq}, @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+      [\<^const_name>\<open>HOL.eq\<close>, \<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>] s
     then (ins (dest_number c) acc,dacc) else (acc,dacc)
-  | Const(s,_)$_$(Const(@{const_name Groups.times},_)$c$y) =>
+  | Const(s,_)$_$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$y) =>
     if x aconv y andalso member (op =)
-       [@{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+       [\<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>] s
     then (ins (dest_number c) acc, dacc) else (acc,dacc)
-  | Const(@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$(Const(@{const_name Groups.times},_)$c$y)$_) =>
+  | Const(\<^const_name>\<open>Rings.dvd\<close>,_)$_$(Const(\<^const_name>\<open>Groups.plus\<close>,_)$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$y)$_) =>
     if x aconv y then (acc,ins (dest_number c) dacc) else (acc,dacc)
-  | Const(@{const_name HOL.conj},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
-  | Const(@{const_name HOL.disj},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
-  | Const (@{const_name Not},_)$_ => h (acc,dacc) (Thm.dest_arg t)
+  | Const(\<^const_name>\<open>HOL.conj\<close>,_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
+  | Const(\<^const_name>\<open>HOL.disj\<close>,_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
+  | Const (\<^const_name>\<open>Not\<close>,_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
   val l = Integer.lcms (union (op =) cs ds)
@@ -373,9 +373,9 @@ fun unify ctxt q =
    let
     val th =
      Simplifier.rewrite (put_simpset lin_ss ctxt)
-      (Thm.apply @{cterm Trueprop} (Thm.apply @{cterm "Not"}
-           (Thm.apply (Thm.apply @{cterm "(=) :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x))
-           @{cterm "0::int"})))
+      (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply \<^cterm>\<open>Not\<close>
+           (Thm.apply (Thm.apply \<^cterm>\<open>(=) :: int => _\<close> (Numeral.mk_cnumber \<^ctyp>\<open>int\<close> x))
+           \<^cterm>\<open>0::int\<close>)))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
   val notz =
     let val tab = fold Inttab.update
@@ -388,18 +388,18 @@ fun unify ctxt q =
     end
   fun unit_conv t =
    case Thm.term_of t of
-   Const(@{const_name HOL.conj},_)$_$_ => Conv.binop_conv unit_conv t
-  | Const(@{const_name HOL.disj},_)$_$_ => Conv.binop_conv unit_conv t
-  | Const (@{const_name Not},_)$_ => Conv.arg_conv unit_conv t
-  | Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
+   Const(\<^const_name>\<open>HOL.conj\<close>,_)$_$_ => Conv.binop_conv unit_conv t
+  | Const(\<^const_name>\<open>HOL.disj\<close>,_)$_$_ => Conv.binop_conv unit_conv t
+  | Const (\<^const_name>\<open>Not\<close>,_)$_ => Conv.arg_conv unit_conv t
+  | Const(s,_)$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$y)$ _ =>
     if x=y andalso member (op =)
-      [@{const_name HOL.eq}, @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+      [\<^const_name>\<open>HOL.eq\<close>, \<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>] s
     then cv (l div dest_number c) t else Thm.reflexive t
-  | Const(s,_)$_$(Const(@{const_name Groups.times},_)$c$y) =>
+  | Const(s,_)$_$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$y) =>
     if x=y andalso member (op =)
-      [@{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+      [\<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>] s
     then cv (l div dest_number c) t else Thm.reflexive t
-  | Const(@{const_name Rings.dvd},_)$d$(r as (Const(@{const_name Groups.plus},_)$(Const(@{const_name Groups.times},_)$c$y)$_)) =>
+  | Const(\<^const_name>\<open>Rings.dvd\<close>,_)$d$(r as (Const(\<^const_name>\<open>Groups.plus\<close>,_)$(Const(\<^const_name>\<open>Groups.times\<close>,_)$c$y)$_)) =>
     if x=y then
       let
        val k = l div dest_number c
@@ -415,7 +415,7 @@ fun unify ctxt q =
     else Thm.reflexive t
   | _ => Thm.reflexive t
   val uth = unit_conv p
-  val clt =  Numeral.mk_cnumber @{ctyp "int"} l
+  val clt =  Numeral.mk_cnumber \<^ctyp>\<open>int\<close> l
   val ltx = Thm.apply (Thm.apply cmulC clt) cx
   val th = Drule.arg_cong_rule e (Thm.abstract_rule (fst (dest_Free x )) cx uth)
   val th' = inst' [Thm.lambda ltx (Thm.rhs_of uth), clt] unity_coeff_ex
@@ -426,8 +426,8 @@ fun unify ctxt q =
  in Thm.transitive (Thm.transitive lth thf) rth end;
 
 
-val emptyIS = @{cterm "{}::int set"};
-val insert_tm = @{cterm "insert :: int => _"};
+val emptyIS = \<^cterm>\<open>{}::int set\<close>;
+val insert_tm = \<^cterm>\<open>insert :: int => _\<close>;
 fun mkISet cts = fold_rev (Thm.apply insert_tm #> Thm.apply) cts emptyIS;
 val eqelem_imp_imp = @{thm eqelem_imp_iff} RS iffD1;
 val [A_v,B_v] =
@@ -436,7 +436,7 @@ val [A_v,B_v] =
     |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg
     |> Thm.term_of |> dest_Var) [asetP, bsetP];
 
-val D_v = (("D", 0), @{typ int});
+val D_v = (("D", 0), \<^typ>\<open>int\<close>);
 
 fun cooperex_conv ctxt vs q =
 let
@@ -461,13 +461,13 @@ let
   | _ => (bacc, aacc, dacc)
  val (b0,a0,ds) = h p ([],[],[])
  val d = Integer.lcms ds
- val cd = Numeral.mk_cnumber @{ctyp "int"} d
+ val cd = Numeral.mk_cnumber \<^ctyp>\<open>int\<close> d
  fun divprop x =
    let
     val th =
      Simplifier.rewrite (put_simpset lin_ss ctxt)
-      (Thm.apply @{cterm Trueprop}
-           (Thm.apply (Thm.apply dvdc (Numeral.mk_cnumber @{ctyp "int"} x)) cd))
+      (Thm.apply \<^cterm>\<open>Trueprop\<close>
+           (Thm.apply (Thm.apply dvdc (Numeral.mk_cnumber \<^ctyp>\<open>int\<close> x)) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
@@ -478,18 +478,18 @@ let
    end
  val dp =
    let val th = Simplifier.rewrite (put_simpset lin_ss ctxt)
-      (Thm.apply @{cterm Trueprop}
-           (Thm.apply (Thm.apply @{cterm "(<) :: int => _"} @{cterm "0::int"}) cd))
+      (Thm.apply \<^cterm>\<open>Trueprop\<close>
+           (Thm.apply (Thm.apply \<^cterm>\<open>(<) :: int => _\<close> \<^cterm>\<open>0::int\<close>) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
     (* A and B set *)
    local
-     val insI1 = Thm.instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI1"}
-     val insI2 = Thm.instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI2"}
+     val insI1 = Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] [] @{thm "insertI1"}
+     val insI2 = Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] [] @{thm "insertI2"}
    in
     fun provein x S =
      case Thm.term_of S of
-        Const(@{const_name Orderings.bot}, _) => error "Unexpected error in Cooper, please email Amine Chaieb"
-      | Const(@{const_name insert}, _) $ y $ _ =>
+        Const(\<^const_name>\<open>Orderings.bot\<close>, _) => error "Unexpected error in Cooper, please email Amine Chaieb"
+      | Const(\<^const_name>\<open>insert\<close>, _) $ y $ _ =>
          let val (cy,S') = Thm.dest_binop S
          in if Thm.term_of x aconv y then Thm.instantiate' [] [SOME x, SOME S'] insI1
          else Thm.implies_elim (Thm.instantiate' [] [SOME x, SOME S', SOME cy] insI2)
@@ -519,7 +519,7 @@ let
   let
    val sths = map (fn (tl,t0) =>
                       if tl = Thm.term_of t0
-                      then Thm.instantiate' [SOME @{ctyp "int"}] [SOME t0] refl
+                      then Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] [SOME t0] refl
                       else provelin ctxt ((HOLogic.eq_const iT)$tl$(Thm.term_of t0)
                                  |> HOLogic.mk_Trueprop))
                    (sl ~~ s0)
@@ -527,7 +527,7 @@ let
    val S = mkISet csl
    val inStab = fold (fn ct => fn tab => Termtab.update (Thm.term_of ct, provein ct S) tab)
                     csl Termtab.empty
-   val eqelem_th = Thm.instantiate' [SOME @{ctyp "int"}] [NONE,NONE, SOME S] eqelem_imp_imp
+   val eqelem_th = Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] [NONE,NONE, SOME S] eqelem_imp_imp
    val inS =
      let
       val tab = fold Termtab.update
@@ -564,7 +564,7 @@ fun integer_nnf_conv ctxt env =
   nnf_conv ctxt then_conv literals_conv [HOLogic.conj, HOLogic.disj] [] env (linearize_conv ctxt);
 
 val conv_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps (@{thms simp_thms} @ take 4 @{thms ex_simps} @
       [not_all, all_not_ex, @{thm ex_disj_distrib}]));
 
@@ -582,10 +582,10 @@ fun conv ctxt p =
 
 fun add_bools t =
   let
-    val ops = [@{term "(=) :: int => _"}, @{term "(<) :: int => _"}, @{term "(<=) :: int => _"},
-      @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, @{term "(=) :: bool => _"},
-      @{term "Not"}, @{term "All :: (int => _) => _"},
-      @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}];
+    val ops = [\<^term>\<open>(=) :: int => _\<close>, \<^term>\<open>(<) :: int => _\<close>, \<^term>\<open>(<=) :: int => _\<close>,
+      \<^term>\<open>HOL.conj\<close>, \<^term>\<open>HOL.disj\<close>, \<^term>\<open>HOL.implies\<close>, \<^term>\<open>(=) :: bool => _\<close>,
+      \<^term>\<open>Not\<close>, \<^term>\<open>All :: (int => _) => _\<close>,
+      \<^term>\<open>Ex :: (int => _) => _\<close>, \<^term>\<open>True\<close>, \<^term>\<open>False\<close>];
     val is_op = member (op =) ops;
     val skip = not (fastype_of t = HOLogic.boolT)
   in case t of
@@ -606,17 +606,17 @@ local structure Proc = Cooper_Procedure in
 
 fun num_of_term vs (Free vT) = Proc.Bound (Proc.nat_of_integer (find_index (fn vT' => vT' = vT) vs))
   | num_of_term vs (Term.Bound i) = Proc.Bound (Proc.nat_of_integer i)
-  | num_of_term vs @{term "0::int"} = Proc.C (Proc.Int_of_integer 0)
-  | num_of_term vs @{term "1::int"} = Proc.C (Proc.Int_of_integer 1)
-  | num_of_term vs (t as Const (@{const_name numeral}, _) $ _) =
+  | num_of_term vs \<^term>\<open>0::int\<close> = Proc.C (Proc.Int_of_integer 0)
+  | num_of_term vs \<^term>\<open>1::int\<close> = Proc.C (Proc.Int_of_integer 1)
+  | num_of_term vs (t as Const (\<^const_name>\<open>numeral\<close>, _) $ _) =
       Proc.C (Proc.Int_of_integer (dest_number t))
-  | num_of_term vs (Const (@{const_name Groups.uminus}, _) $ t') =
+  | num_of_term vs (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ t') =
       Proc.Neg (num_of_term vs t')
-  | num_of_term vs (Const (@{const_name Groups.plus}, _) $ t1 $ t2) =
+  | num_of_term vs (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ t1 $ t2) =
       Proc.Add (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (Const (@{const_name Groups.minus}, _) $ t1 $ t2) =
+  | num_of_term vs (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ t1 $ t2) =
       Proc.Sub (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (Const (@{const_name Groups.times}, _) $ t1 $ t2) =
+  | num_of_term vs (Const (\<^const_name>\<open>Groups.times\<close>, _) $ t1 $ t2) =
      (case perhaps_number t1
        of SOME n => Proc.Mul (Proc.Int_of_integer n, num_of_term vs t2)
         | NONE => (case perhaps_number t2
@@ -624,29 +624,29 @@ fun num_of_term vs (Free vT) = Proc.Bound (Proc.nat_of_integer (find_index (fn v
             | NONE => raise COOPER "reification: unsupported kind of multiplication"))
   | num_of_term _ _ = raise COOPER "reification: bad term";
 
-fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
-  | fm_of_term ps vs (Const (@{const_name False}, _)) = Proc.F
-  | fm_of_term ps vs (Const (@{const_name HOL.conj}, _) $ t1 $ t2) =
+fun fm_of_term ps vs (Const (\<^const_name>\<open>True\<close>, _)) = Proc.T
+  | fm_of_term ps vs (Const (\<^const_name>\<open>False\<close>, _)) = Proc.F
+  | fm_of_term ps vs (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ t1 $ t2) =
       Proc.And (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const (@{const_name HOL.disj}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>HOL.disj\<close>, _) $ t1 $ t2) =
       Proc.Or (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const (@{const_name HOL.implies}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>HOL.implies\<close>, _) $ t1 $ t2) =
       Proc.Imp (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (@{term "(=) :: bool => _ "} $ t1 $ t2) =
+  | fm_of_term ps vs (\<^term>\<open>(=) :: bool => _ \<close> $ t1 $ t2) =
       Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const (@{const_name Not}, _) $ t') =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>Not\<close>, _) $ t') =
       Proc.NOT (fm_of_term ps vs t')
-  | fm_of_term ps vs (Const (@{const_name Ex}, _) $ Abs abs) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>Ex\<close>, _) $ Abs abs) =
       Proc.E (uncurry (fm_of_term ps) (descend vs abs))
-  | fm_of_term ps vs (Const (@{const_name All}, _) $ Abs abs) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>All\<close>, _) $ Abs abs) =
       Proc.A (uncurry (fm_of_term ps) (descend vs abs))
-  | fm_of_term ps vs (@{term "(=) :: int => _"} $ t1 $ t2) =
+  | fm_of_term ps vs (\<^term>\<open>(=) :: int => _\<close> $ t1 $ t2) =
       Proc.Eq (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term ps vs (Const (@{const_name Orderings.less_eq}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>Orderings.less_eq\<close>, _) $ t1 $ t2) =
       Proc.Le (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term ps vs (Const (@{const_name Orderings.less}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>Orderings.less\<close>, _) $ t1 $ t2) =
       Proc.Lt (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term ps vs (Const (@{const_name Rings.dvd}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (\<^const_name>\<open>Rings.dvd\<close>, _) $ t1 $ t2) =
      (case perhaps_number t1
        of SOME n => Proc.Dvd (Proc.Int_of_integer n, num_of_term vs t2)
         | NONE => raise COOPER "reification: unsupported dvd")
@@ -656,30 +656,30 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
 fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i)
   | term_of_num vs (Proc.Bound n) = Free (nth vs (Proc.integer_of_nat n))
   | term_of_num vs (Proc.Neg t') =
-      @{term "uminus :: int => _"} $ term_of_num vs t'
+      \<^term>\<open>uminus :: int => _\<close> $ term_of_num vs t'
   | term_of_num vs (Proc.Add (t1, t2)) =
-      @{term "(+) :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
+      \<^term>\<open>(+) :: int => _\<close> $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Sub (t1, t2)) =
-      @{term "(-) :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
+      \<^term>\<open>(-) :: int => _\<close> $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Mul (i, t2)) =
-      @{term "(*) :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
+      \<^term>\<open>(*) :: int => _\<close> $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
   | term_of_num vs (Proc.CN (n, i, t')) =
       term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
-fun term_of_fm ps vs Proc.T = @{term True}
-  | term_of_fm ps vs Proc.F = @{term False}
+fun term_of_fm ps vs Proc.T = \<^term>\<open>True\<close>
+  | term_of_fm ps vs Proc.F = \<^term>\<open>False\<close>
   | term_of_fm ps vs (Proc.And (t1, t2)) = HOLogic.conj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Or (t1, t2)) = HOLogic.disj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Imp (t1, t2)) = HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
-  | term_of_fm ps vs (Proc.Iff (t1, t2)) = @{term "(=) :: bool => _"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (Proc.Iff (t1, t2)) = \<^term>\<open>(=) :: bool => _\<close> $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.NOT t') = HOLogic.Not $ term_of_fm ps vs t'
-  | term_of_fm ps vs (Proc.Eq t') = @{term "(=) :: int => _ "} $ term_of_num vs t'$ @{term "0::int"}
+  | term_of_fm ps vs (Proc.Eq t') = \<^term>\<open>(=) :: int => _ \<close> $ term_of_num vs t'$ \<^term>\<open>0::int\<close>
   | term_of_fm ps vs (Proc.NEq t') = term_of_fm ps vs (Proc.NOT (Proc.Eq t'))
-  | term_of_fm ps vs (Proc.Lt t') = @{term "(<) :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
-  | term_of_fm ps vs (Proc.Le t') = @{term "(<=) :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
-  | term_of_fm ps vs (Proc.Gt t') = @{term "(<) :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
-  | term_of_fm ps vs (Proc.Ge t') = @{term "(<=) :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
-  | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "(dvd) :: int => _ "} $
+  | term_of_fm ps vs (Proc.Lt t') = \<^term>\<open>(<) :: int => _ \<close> $ term_of_num vs t' $ \<^term>\<open>0::int\<close>
+  | term_of_fm ps vs (Proc.Le t') = \<^term>\<open>(<=) :: int => _ \<close> $ term_of_num vs t' $ \<^term>\<open>0::int\<close>
+  | term_of_fm ps vs (Proc.Gt t') = \<^term>\<open>(<) :: int => _ \<close> $ \<^term>\<open>0::int\<close> $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.Ge t') = \<^term>\<open>(<=) :: int => _ \<close> $ \<^term>\<open>0::int\<close> $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.Dvd (i, t')) = \<^term>\<open>(dvd) :: int => _ \<close> $
       HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t'
   | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.NOT (Proc.Dvd (i, t')))
   | term_of_fm ps vs (Proc.Closed n) = nth ps (Proc.integer_of_nat n)
@@ -694,24 +694,24 @@ fun procedure t =
 end;
 
 val (_, oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding cooper},
+  (Thm.add_oracle (\<^binding>\<open>cooper\<close>,
     (fn (ctxt, t) =>
       (Thm.cterm_of ctxt o Logic.mk_equals o apply2 HOLogic.mk_Trueprop)
         (t, procedure t)))));
 
 val comp_ss =
-  simpset_of (put_simpset HOL_ss @{context} addsimps @{thms semiring_norm});
+  simpset_of (put_simpset HOL_ss \<^context> addsimps @{thms semiring_norm});
 
 fun strip_objimp ct =
   (case Thm.term_of ct of
-    Const (@{const_name HOL.implies}, _) $ _ $ _ =>
+    Const (\<^const_name>\<open>HOL.implies\<close>, _) $ _ $ _ =>
       let val (A, B) = Thm.dest_binop ct
       in A :: strip_objimp B end
   | _ => [ct]);
 
 fun strip_objall ct =
  case Thm.term_of ct of
-  Const (@{const_name All}, _) $ Abs (xn,_,_) =>
+  Const (\<^const_name>\<open>All\<close>, _) $ Abs (xn,_,_) =>
    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
    end
@@ -719,7 +719,7 @@ fun strip_objall ct =
 
 local
   val all_maxscope_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context}
+    simpset_of (put_simpset HOL_basic_ss \<^context>
       addsimps map (fn th => th RS sym) @{thms "all_simps"})
 in
 fun thin_prems_tac ctxt P =
@@ -729,11 +729,11 @@ fun thin_prems_tac ctxt P =
      val (qvs, p) = strip_objall (Thm.dest_arg p')
      val (ps, c) = split_last (strip_objimp p)
      val qs = filter P ps
-     val q = if P c then c else @{cterm "False"}
+     val q = if P c then c else \<^cterm>\<open>False\<close>
      val ng = fold_rev (fn (a,v) => fn t => Thm.apply a (Thm.lambda v t)) qvs
-         (fold_rev (fn p => fn q => Thm.apply (Thm.apply @{cterm HOL.implies} p) q) qs q)
-     val g = Thm.apply (Thm.apply @{cterm "(==>)"} (Thm.apply @{cterm "Trueprop"} ng)) p'
-     val ntac = (case qs of [] => q aconvc @{cterm "False"}
+         (fold_rev (fn p => fn q => Thm.apply (Thm.apply \<^cterm>\<open>HOL.implies\<close> p) q) qs q)
+     val g = Thm.apply (Thm.apply \<^cterm>\<open>(==>)\<close> (Thm.apply \<^cterm>\<open>Trueprop\<close> ng)) p'
+     val ntac = (case qs of [] => q aconvc \<^cterm>\<open>False\<close>
                          | _ => false)
     in
       if ntac then no_tac
@@ -747,25 +747,25 @@ end;
 
 local
  fun isnum t = case t of
-   Const(@{const_name Groups.zero},_) => true
- | Const(@{const_name Groups.one},_) => true
- | @{term Suc}$s => isnum s
- | @{term "nat"}$s => isnum s
- | @{term "int"}$s => isnum s
- | Const(@{const_name Groups.uminus},_)$s => isnum s
- | Const(@{const_name Groups.plus},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Groups.times},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Groups.minus},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Power.power},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Rings.modulo},_)$l$r => isnum l andalso isnum r
- | Const(@{const_name Rings.divide},_)$l$r => isnum l andalso isnum r
+   Const(\<^const_name>\<open>Groups.zero\<close>,_) => true
+ | Const(\<^const_name>\<open>Groups.one\<close>,_) => true
+ | \<^term>\<open>Suc\<close>$s => isnum s
+ | \<^term>\<open>nat\<close>$s => isnum s
+ | \<^term>\<open>int\<close>$s => isnum s
+ | Const(\<^const_name>\<open>Groups.uminus\<close>,_)$s => isnum s
+ | Const(\<^const_name>\<open>Groups.plus\<close>,_)$l$r => isnum l andalso isnum r
+ | Const(\<^const_name>\<open>Groups.times\<close>,_)$l$r => isnum l andalso isnum r
+ | Const(\<^const_name>\<open>Groups.minus\<close>,_)$l$r => isnum l andalso isnum r
+ | Const(\<^const_name>\<open>Power.power\<close>,_)$l$r => isnum l andalso isnum r
+ | Const(\<^const_name>\<open>Rings.modulo\<close>,_)$l$r => isnum l andalso isnum r
+ | Const(\<^const_name>\<open>Rings.divide\<close>,_)$l$r => isnum l andalso isnum r
  | _ => is_number t orelse can HOLogic.dest_nat t
 
  fun ty cts t =
   if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (Thm.typ_of_cterm t))
   then false
   else case Thm.term_of t of
-    c$l$r => if member (op =) [@{term"(*)::int => _"}, @{term"(*)::nat => _"}] c
+    c$l$r => if member (op =) [\<^term>\<open>(*)::int => _\<close>, \<^term>\<open>(*)::nat => _\<close>] c
              then not (isnum l orelse isnum r)
              else not (member (op aconv) cts c)
   | c$_ => not (member (op aconv) cts c)
@@ -782,10 +782,10 @@ in
 fun is_relevant ctxt ct =
  subset (op aconv) (term_constants (Thm.term_of ct), snd (get ctxt))
  andalso
-  forall (fn Free (_, T) => member (op =) [@{typ int}, @{typ nat}] T)
+  forall (fn Free (_, T) => member (op =) [\<^typ>\<open>int\<close>, \<^typ>\<open>nat\<close>] T)
     (Misc_Legacy.term_frees (Thm.term_of ct))
  andalso
-  forall (fn Var (_, T) => member (op =) [@{typ int}, @{typ nat}] T)
+  forall (fn Var (_, T) => member (op =) [\<^typ>\<open>int\<close>, \<^typ>\<open>nat\<close>] T)
     (Misc_Legacy.term_vars (Thm.term_of ct));
 
 fun int_nat_terms ctxt ct =
@@ -809,20 +809,20 @@ fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
 
 local
 val ss1 =
-  simpset_of (put_simpset comp_ss @{context}
+  simpset_of (put_simpset comp_ss \<^context>
     addsimps @{thms simp_thms} @
             [@{thm "nat_numeral"} RS sym, @{thm int_dvd_int_iff [symmetric]}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}]
         @ map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff" [where ?'a = int]}]
     |> Splitter.add_split @{thm "zdiff_int_split"})
 
 val ss2 =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps [@{thm "nat_0_le"}, @{thm "of_nat_numeral"},
               @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "zero_le_numeral"},
               @{thm "le_numeral_extra"(3)}, @{thm "of_nat_0"}, @{thm "of_nat_1"}, @{thm "Suc_eq_plus1"}]
     |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}])
 val div_mod_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+  simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps @{thms simp_thms
       mod_eq_0_iff_dvd mod_add_left_eq mod_add_right_eq
       mod_add_eq div_add1_eq [symmetric] div_add1_eq [symmetric]
@@ -830,9 +830,9 @@ val div_mod_ss =
       div_0 mod_0 div_by_1 mod_by_1
       div_by_Suc_0 mod_by_Suc_0 Suc_eq_plus1
       ac_simps}
-   addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}])
+   addsimprocs [\<^simproc>\<open>cancel_div_mod_nat\<close>, \<^simproc>\<open>cancel_div_mod_int\<close>])
 val splits_ss =
-  simpset_of (put_simpset comp_ss @{context}
+  simpset_of (put_simpset comp_ss \<^context>
     addsimps [@{thm minus_div_mult_eq_mod [symmetric]}]
     |> fold Splitter.add_split
       [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"},
@@ -868,7 +868,7 @@ fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
     val simpset_ctxt =
       put_simpset (fst (get ctxt)) ctxt delsimps del_ths addsimps add_ths
   in
-    Method.insert_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems arith}))
+    Method.insert_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>arith\<close>))
     THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
     THEN_ALL_NEW simp_tac simpset_ctxt
@@ -903,7 +903,7 @@ in
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding presburger}
+    (Attrib.setup \<^binding>\<open>presburger\<close>
       ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
         optional (keyword constsN |-- terms) >> add) "data for Cooper's algorithm"
     #> Arith_Data.add_tactic "Presburger arithmetic" (tac true [] []));

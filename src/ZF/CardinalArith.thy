@@ -35,8 +35,8 @@ definition
 
 definition
   csucc         :: "i=>i"  where
-    \<comment> \<open>needed because @{term "jump_cardinal(K)"} might not be the successor
-        of @{term K}\<close>
+    \<comment> \<open>needed because \<^term>\<open>jump_cardinal(K)\<close> might not be the successor
+        of \<^term>\<open>K\<close>\<close>
     "csucc(K) == \<mu> L. Card(L) & K<L"
 
 
@@ -543,7 +543,7 @@ apply (erule_tac [4] well_ord_is_wf)
 apply (blast intro!: Un_upper1_le Un_upper2_le Ord_ordermap elim!: ltE)+
 done
 
-text\<open>Kunen: "each @{term"\<langle>x,y\<rangle> \<in> K \<times> K"} has no more than @{term"z \<times> z"} predecessors..." (page 29)\<close>
+text\<open>Kunen: "each \<^term>\<open>\<langle>x,y\<rangle> \<in> K \<times> K\<close> has no more than \<^term>\<open>z \<times> z\<close> predecessors..." (page 29)\<close>
 lemma ordermap_csquare_le:
   assumes K: "Limit(K)" and x: "x<K" and y: " y<K"
   defines "z \<equiv> succ(x \<union> y)"

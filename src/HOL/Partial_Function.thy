@@ -226,7 +226,7 @@ apply (simp add: inverse)
 done
 
 
-text \<open>Rules for @{term mono_body}:\<close>
+text \<open>Rules for \<^term>\<open>mono_body\<close>:\<close>
 
 lemma const_mono[partial_function_mono]: "monotone ord leq (\<lambda>f. c)"
 by (rule monotoneI) (rule leq_refl)
@@ -446,12 +446,12 @@ lemma fixp_induct_option:
   using step defined option.fixp_induct_uc[of U F C, OF mono eq inverse2 option_admissible]
   unfolding fun_lub_def flat_lub_def by(auto 9 2)
 
-declaration \<open>Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
-  @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} @{thm tailrec.fixp_induct_uc}
+declaration \<open>Partial_Function.init "tailrec" \<^term>\<open>tailrec.fixp_fun\<close>
+  \<^term>\<open>tailrec.mono_body\<close> @{thm tailrec.fixp_rule_uc} @{thm tailrec.fixp_induct_uc}
   (SOME @{thm fixp_induct_tailrec[where c = undefined]})\<close>
 
-declaration \<open>Partial_Function.init "option" @{term option.fixp_fun}
-  @{term option.mono_body} @{thm option.fixp_rule_uc} @{thm option.fixp_induct_uc}
+declaration \<open>Partial_Function.init "option" \<^term>\<open>option.fixp_fun\<close>
+  \<^term>\<open>option.mono_body\<close> @{thm option.fixp_rule_uc} @{thm option.fixp_induct_uc}
   (SOME @{thm fixp_induct_option})\<close>
 
 hide_const (open) chain

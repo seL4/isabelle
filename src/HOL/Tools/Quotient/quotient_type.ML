@@ -72,8 +72,8 @@ fun typedef_quot_type_tac ctxt equiv_thm ((_, typedef_info): Typedef.info) =
 (* proves the quot_type theorem for the new type *)
 fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
   let
-    val quot_type_const = Const (@{const_name "quot_type"},
-      fastype_of rel --> fastype_of abs --> fastype_of rep --> @{typ bool})
+    val quot_type_const = Const (\<^const_name>\<open>quot_type\<close>,
+      fastype_of rel --> fastype_of abs --> fastype_of rep --> \<^typ>\<open>bool\<close>)
     val goal = HOLogic.mk_Trueprop (quot_type_const $ rel $ abs $ rep)
   in
     Goal.prove lthy [] [] goal
@@ -98,8 +98,8 @@ fun define_cr_rel equiv_thm abs_fun lthy =
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
     val abs_fun_graph = HOLogic.mk_eq(abs_fun $ Bound 1, Bound 0)
     val Abs_body = (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
-      Const (@{const_name equivp}, _) $ _ => abs_fun_graph
-      | Const (@{const_name part_equivp}, _) $ rel =>
+      Const (\<^const_name>\<open>equivp\<close>, _) $ _ => abs_fun_graph
+      | Const (\<^const_name>\<open>part_equivp\<close>, _) $ rel =>
         HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
       | _ => error "unsupported equivalence theorem"
       )
@@ -122,10 +122,10 @@ fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
     val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
     val (reflp_thm, quot_thm) =
       (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
-        Const (@{const_name equivp}, _) $ _ =>
+        Const (\<^const_name>\<open>equivp\<close>, _) $ _ =>
           (SOME (equiv_thm RS @{thm equivp_reflp2}),
             [quot3_thm, T_def, equiv_thm] MRSL @{thm Quotient3_to_Quotient_equivp})
-      | Const (@{const_name part_equivp}, _) $ _ =>
+      | Const (\<^const_name>\<open>part_equivp\<close>, _) $ _ =>
           (NONE, [quot3_thm, T_def] MRSL @{thm Quotient3_to_Quotient})
       | _ => error "unsupported equivalence theorem")
     val config = { notes = true }
@@ -177,9 +177,9 @@ fun add_quotient_type overloaded
     val Rep_const = Const (Rep_name, Abs_ty --> Rep_ty)
 
     (* more useful abs and rep definitions *)
-    val abs_const = Const (@{const_name quot_type.abs},
-      (rty --> rty --> @{typ bool}) --> (Rep_ty --> Abs_ty) --> rty --> Abs_ty)
-    val rep_const = Const (@{const_name quot_type.rep}, (Abs_ty --> Rep_ty) --> Abs_ty --> rty)
+    val abs_const = Const (\<^const_name>\<open>quot_type.abs\<close>,
+      (rty --> rty --> \<^typ>\<open>bool\<close>) --> (Rep_ty --> Abs_ty) --> rty --> Abs_ty)
+    val rep_const = Const (\<^const_name>\<open>quot_type.rep\<close>, (Abs_ty --> Rep_ty) --> Abs_ty --> rty)
     val abs_trm = abs_const $ rel $ Abs_const
     val rep_trm = rep_const $ Rep_const
     val (rep_name, abs_name) =
@@ -303,9 +303,9 @@ fun quotient_type overloaded quot lthy =
 
     fun mk_goal (rty, rel, partial) =
       let
-        val equivp_ty = ([rty, rty] ---> @{typ bool}) --> @{typ bool}
+        val equivp_ty = ([rty, rty] ---> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>bool\<close>
         val const =
-          if partial then @{const_name part_equivp} else @{const_name equivp}
+          if partial then \<^const_name>\<open>part_equivp\<close> else \<^const_name>\<open>equivp\<close>
       in
         HOLogic.mk_Trueprop (Const (const, equivp_ty) $ rel)
       end
@@ -325,7 +325,7 @@ fun quotient_type_cmd overloaded spec lthy =
         val tmp_lthy1 = Variable.declare_typ rty lthy
         val rel =
           Syntax.parse_term tmp_lthy1 rel_str
-          |> Type.constraint (rty --> rty --> @{typ bool})
+          |> Type.constraint (rty --> rty --> \<^typ>\<open>bool\<close>)
           |> Syntax.check_term tmp_lthy1
         val tmp_lthy2 = Variable.declare_term rel tmp_lthy1
         val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
@@ -342,14 +342,14 @@ fun quotient_type_cmd overloaded spec lthy =
 (* command syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword quotient_type}
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>quotient_type\<close>
     "quotient type definitions (require equivalence proofs)"
       (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
       (Parse_Spec.overloaded -- (Parse.type_args -- Parse.binding --
-        Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) -- (@{keyword "/"} |--
-          Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false -- Parse.term) --
-        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)) --
-        Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.thm))
+        Parse.opt_mixfix -- (\<^keyword>\<open>=\<close> |-- Parse.typ) -- (\<^keyword>\<open>/\<close> |--
+          Scan.optional (Parse.reserved "partial" -- \<^keyword>\<open>:\<close> >> K true) false -- Parse.term) --
+        Scan.option (\<^keyword>\<open>morphisms\<close> |-- Parse.!!! (Parse.binding -- Parse.binding)) --
+        Scan.option (\<^keyword>\<open>parametric\<close> |-- Parse.!!! Parse.thm))
       >> (fn (overloaded, spec) => quotient_type_cmd {overloaded = overloaded} spec))
 
 end

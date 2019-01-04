@@ -70,7 +70,7 @@ definition
 
 definition "constrains" :: "[i, i] => i"  (infixl \<open>co\<close> 60)  where
   "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
-    \<comment> \<open>the condition @{term "st_set(A)"} makes the definition slightly
+    \<comment> \<open>the condition \<^term>\<open>st_set(A)\<close> makes the definition slightly
          stronger than the HOL one\<close>
 
 definition unless :: "[i, i] => i"  (infixl \<open>unless\<close> 60)  where
@@ -102,7 +102,7 @@ lemma SKIP_in_program [iff,TC]: "SKIP \<in> program"
 by (force simp add: SKIP_def program_def mk_program_def)
 
 
-subsection\<open>The function @{term programify}, the coercion from anything to
+subsection\<open>The function \<^term>\<open>programify\<close>, the coercion from anything to
  program\<close>
 
 lemma programify_program [simp]: "F \<in> program ==> programify(F)=F"
@@ -183,8 +183,8 @@ lemma AllowedActsD:
      "[| act \<in> AllowedActs(F); <s,s'> \<in> act |] ==> s \<in> state & s' \<in> state"
 by (blast dest: AllowedActs_type [THEN subsetD])
 
-subsection\<open>Simplification rules involving @{term state}, @{term Init}, 
-  @{term Acts}, and @{term AllowedActs}\<close>
+subsection\<open>Simplification rules involving \<^term>\<open>state\<close>, \<^term>\<open>Init\<close>, 
+  \<^term>\<open>Acts\<close>, and \<^term>\<open>AllowedActs\<close>\<close>
 
 text\<open>But are they really needed?\<close>
 
@@ -224,7 +224,7 @@ lemma state_times_state_Int_AllowedActs [simp]:
 by (cut_tac F = F in AllowedActs_type, blast)
 
 
-subsubsection\<open>The Operator @{term mk_program}\<close>
+subsubsection\<open>The Operator \<^term>\<open>mk_program\<close>\<close>
 
 lemma mk_program_in_program [iff,TC]:
      "mk_program(init, acts, allowed) \<in> program"
@@ -477,7 +477,7 @@ lemma unlessD: "F :A unless B ==> F \<in> (A-B) co (A \<union> B)"
 by (unfold unless_def, auto)
 
 
-subsection\<open>The Operator @{term initially}\<close>
+subsection\<open>The Operator \<^term>\<open>initially\<close>\<close>
 
 lemma initially_type: "initially(A) \<subseteq> program"
 by (unfold initially_def, blast)
@@ -489,7 +489,7 @@ lemma initiallyD: "F \<in> initially(A) ==> Init(F)\<subseteq>A"
 by (unfold initially_def, blast)
 
 
-subsection\<open>The Operator @{term stable}\<close>
+subsection\<open>The Operator \<^term>\<open>stable\<close>\<close>
 
 lemma stable_type: "stable(A)\<subseteq>program"
 by (unfold stable_def constrains_def, blast)
@@ -511,7 +511,7 @@ lemma stable_unless: "stable(A)= A unless 0"
 by (auto simp add: unless_def stable_def)
 
 
-subsection\<open>Union and Intersection with @{term stable}\<close>
+subsection\<open>Union and Intersection with \<^term>\<open>stable\<close>\<close>
 
 lemma stable_Un:
     "[| F \<in> stable(A); F \<in> stable(A') |] ==> F \<in> stable(A \<union> A')"
@@ -559,7 +559,7 @@ by (unfold stable_def constrains_def st_set_def, blast)
 (* [| F \<in> stable(C); F  \<in> (C \<inter> A) co A |] ==> F \<in> stable(C \<inter> A) *)
 lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI]
 
-subsection\<open>The Operator @{term invariant}\<close>
+subsection\<open>The Operator \<^term>\<open>invariant\<close>\<close>
 
 lemma invariant_type: "invariant(A) \<subseteq> program"
 apply (unfold invariant_def)
@@ -580,7 +580,7 @@ apply (blast dest: stableD2)
 done
 
 text\<open>Could also say
-      @{term "invariant(A) \<inter> invariant(B) \<subseteq> invariant (A \<inter> B)"}\<close>
+      \<^term>\<open>invariant(A) \<inter> invariant(B) \<subseteq> invariant (A \<inter> B)\<close>\<close>
 lemma invariant_Int:
   "[| F \<in> invariant(A);  F \<in> invariant(B) |] ==> F \<in> invariant(A \<inter> B)"
 apply (unfold invariant_def initially_def)
@@ -606,7 +606,7 @@ lemma elimination2:
      ==> F:{s \<in> state. x(s) \<in> M} co (\<Union>m \<in> M. B(m))"
 by (rule UNITY.elimination, auto)
 
-subsection\<open>The Operator @{term strongest_rhs}\<close>
+subsection\<open>The Operator \<^term>\<open>strongest_rhs\<close>\<close>
 
 lemma constrains_strongest_rhs:
     "[| F \<in> program; st_set(A) |] ==> F \<in> A co (strongest_rhs(F,A))"

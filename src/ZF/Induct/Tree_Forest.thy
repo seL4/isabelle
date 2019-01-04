@@ -34,8 +34,8 @@ lemma forest_def: "forest(A) == Part(tree_forest(A), Inr)"
 
 
 text \<open>
-  \medskip @{term "tree_forest(A)"} as the union of @{term "tree(A)"}
-  and @{term "forest(A)"}.
+  \medskip \<^term>\<open>tree_forest(A)\<close> as the union of \<^term>\<open>tree(A)\<close>
+  and \<^term>\<open>forest(A)\<close>.
 \<close>
 
 lemma tree_subset_TF: "tree(A) \<subseteq> tree_forest(A)"

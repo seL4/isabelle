@@ -958,7 +958,7 @@ lemma summable_Cauchy_product:
   using Cauchy_product_sums[OF assms] by (simp add: sums_iff)
 
 
-subsection \<open>Series on @{typ real}s\<close>
+subsection \<open>Series on \<^typ>\<open>real\<close>s\<close>
 
 lemma summable_norm_comparison_test:
   "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. norm (f n))"

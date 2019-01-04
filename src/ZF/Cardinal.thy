@@ -442,7 +442,7 @@ proof (unfold cardinal_def)
       case False thus ?thesis           \<comment> \<open>degenerate case\<close>
         by (simp add: Least_0 Card_0)
     next
-      case True                         \<comment> \<open>real case: @{term A} is isomorphic to some ordinal\<close>
+      case True                         \<comment> \<open>real case: \<^term>\<open>A\<close> is isomorphic to some ordinal\<close>
       then obtain i where i: "Ord(i)" "i \<approx> A" by blast
       show ?thesis
         proof (rule CardI [OF Ord_Least], rule notI)
@@ -490,7 +490,7 @@ next
   thus ?thesis by simp
 qed
 
-text\<open>Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of \<open>cardinal_mono\<close> fails!\<close>
+text\<open>Since we have \<^term>\<open>|succ(nat)| \<le> |nat|\<close>, the converse of \<open>cardinal_mono\<close> fails!\<close>
 lemma cardinal_lt_imp_lt: "[| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j"
 apply (rule Ord_linear2 [of i j], assumption+)
 apply (erule lt_trans2 [THEN lt_irrefl])
@@ -811,8 +811,8 @@ subsection\<open>Lemmas by Krzysztof Grabczewski\<close>
 
 (*New proofs using cons_lepoll_cons. Could generalise from succ to cons.*)
 
-text\<open>If @{term A} has at most @{term"n+1"} elements and @{term"a \<in> A"}
-      then @{term"A-{a}"} has at most @{term n}.\<close>
+text\<open>If \<^term>\<open>A\<close> has at most \<^term>\<open>n+1\<close> elements and \<^term>\<open>a \<in> A\<close>
+      then \<^term>\<open>A-{a}\<close> has at most \<^term>\<open>n\<close>.\<close>
 lemma Diff_sing_lepoll:
       "[| a \<in> A;  A \<lesssim> succ(n) |] ==> A - {a} \<lesssim> n"
 apply (unfold succ_def)
@@ -821,7 +821,7 @@ apply (rule_tac [3] mem_not_refl)
 apply (erule cons_Diff [THEN ssubst], safe)
 done
 
-text\<open>If @{term A} has at least @{term"n+1"} elements then @{term"A-{a}"} has at least @{term n}.\<close>
+text\<open>If \<^term>\<open>A\<close> has at least \<^term>\<open>n+1\<close> elements then \<^term>\<open>A-{a}\<close> has at least \<^term>\<open>n\<close>.\<close>
 lemma lepoll_Diff_sing:
   assumes A: "succ(n) \<lesssim> A" shows "n \<lesssim> A - {a}"
 proof -
@@ -1109,7 +1109,7 @@ proof (induct n rule: nat_induct)
 next
   case (succ x)
   hence wfx: "\<And>Z. Z = 0 \<or> (\<exists>z\<in>Z. \<forall>y. z \<in> y \<and> z \<in> x \<and> y \<in> x \<and> z \<in> x \<longrightarrow> y \<notin> Z)"
-    by (simp add: wf_on_def wf_def)  \<comment> \<open>not easy to erase the duplicate @{term"z \<in> x"}!\<close>
+    by (simp add: wf_on_def wf_def)  \<comment> \<open>not easy to erase the duplicate \<^term>\<open>z \<in> x\<close>!\<close>
   show ?case
     proof (rule wf_onI)
       fix Z u

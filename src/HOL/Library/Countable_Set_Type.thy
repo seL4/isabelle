@@ -413,7 +413,7 @@ apply (simp only: atomize_all atomize_imp)
 apply (rule equal_intr_rule)
 by (transfer, simp)+
 
-subsubsection \<open>@{const cUnion}\<close>
+subsubsection \<open>\<^const>\<open>cUnion\<close>\<close>
 
 lemma cUNION_cimage: "cUNION (cimage f A) g = cUNION A (g \<circ> f)"
   by transfer simp

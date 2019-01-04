@@ -47,7 +47,7 @@ done
 lemma "p : Sum(A,B) \<Longrightarrow> <split(p,\<lambda>x y. x), split(p,\<lambda>x y. y)> = p : Sum(A,B)"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
-apply (tactic \<open>DEPTH_SOLVE_1 (rew_tac @{context} [])\<close>) (*!!!!!!!*)
+apply (tactic \<open>DEPTH_SOLVE_1 (rew_tac \<^context> [])\<close>) (*!!!!!!!*)
 done
 
 lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>u. split(u, \<lambda>v w.<w,v>)) ` <a,b> = <b,a> : \<Sum>x:B. A"

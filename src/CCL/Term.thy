@@ -79,30 +79,30 @@ ML \<open>
 (* FIXME does not handle "_idtdummy" *)
 (* FIXME should use Syntax_Trans.mark_bound, Syntax_Trans.variant_abs' *)
 
-fun let_tr [Free x, a, b] = Const(@{const_syntax let},dummyT) $ a $ absfree x b;
+fun let_tr [Free x, a, b] = Const(\<^const_syntax>\<open>let\<close>,dummyT) $ a $ absfree x b;
 fun let_tr' [a,Abs(id,T,b)] =
      let val (id',b') = Syntax_Trans.variant_abs(id,T,b)
-     in Const(@{syntax_const "_let"},dummyT) $ Free(id',T) $ a $ b' end;
+     in Const(\<^syntax_const>\<open>_let\<close>,dummyT) $ Free(id',T) $ a $ b' end;
 
 fun letrec_tr [Free f, Free x, a, b] =
-      Const(@{const_syntax letrec}, dummyT) $ absfree x (absfree f a) $ absfree f b;
+      Const(\<^const_syntax>\<open>letrec\<close>, dummyT) $ absfree x (absfree f a) $ absfree f b;
 fun letrec2_tr [Free f, Free x, Free y, a, b] =
-      Const(@{const_syntax letrec2}, dummyT) $ absfree x (absfree y (absfree f a)) $ absfree f b;
+      Const(\<^const_syntax>\<open>letrec2\<close>, dummyT) $ absfree x (absfree y (absfree f a)) $ absfree f b;
 fun letrec3_tr [Free f, Free x, Free y, Free z, a, b] =
-      Const(@{const_syntax letrec3}, dummyT) $
+      Const(\<^const_syntax>\<open>letrec3\<close>, dummyT) $
         absfree x (absfree y (absfree z (absfree f a))) $ absfree f b;
 
 fun letrec_tr' [Abs(x,T,Abs(f,S,a)),Abs(ff,SS,b)] =
      let val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)
          val (_,a'') = Syntax_Trans.variant_abs(f,S,a)
          val (x',a') = Syntax_Trans.variant_abs(x,T,a'')
-     in Const(@{syntax_const "_letrec"},dummyT) $ Free(f',SS) $ Free(x',T) $ a' $ b' end;
+     in Const(\<^syntax_const>\<open>_letrec\<close>,dummyT) $ Free(f',SS) $ Free(x',T) $ a' $ b' end;
 fun letrec2_tr' [Abs(x,T,Abs(y,U,Abs(f,S,a))),Abs(ff,SS,b)] =
      let val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)
          val ( _,a1) = Syntax_Trans.variant_abs(f,S,a)
          val (y',a2) = Syntax_Trans.variant_abs(y,U,a1)
          val (x',a') = Syntax_Trans.variant_abs(x,T,a2)
-     in Const(@{syntax_const "_letrec2"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ a' $ b'
+     in Const(\<^syntax_const>\<open>_letrec2\<close>,dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ a' $ b'
       end;
 fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
      let val (f',b') = Syntax_Trans.variant_abs(ff,SS,b)
@@ -110,22 +110,22 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
          val (z',a2) = Syntax_Trans.variant_abs(z,V,a1)
          val (y',a3) = Syntax_Trans.variant_abs(y,U,a2)
          val (x',a') = Syntax_Trans.variant_abs(x,T,a3)
-     in Const(@{syntax_const "_letrec3"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
+     in Const(\<^syntax_const>\<open>_letrec3\<close>,dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
       end;
 \<close>
 
 parse_translation \<open>
- [(@{syntax_const "_let"}, K let_tr),
-  (@{syntax_const "_letrec"}, K letrec_tr),
-  (@{syntax_const "_letrec2"}, K letrec2_tr),
-  (@{syntax_const "_letrec3"}, K letrec3_tr)]
+ [(\<^syntax_const>\<open>_let\<close>, K let_tr),
+  (\<^syntax_const>\<open>_letrec\<close>, K letrec_tr),
+  (\<^syntax_const>\<open>_letrec2\<close>, K letrec2_tr),
+  (\<^syntax_const>\<open>_letrec3\<close>, K letrec3_tr)]
 \<close>
 
 print_translation \<open>
- [(@{const_syntax let}, K let_tr'),
-  (@{const_syntax letrec}, K letrec_tr'),
-  (@{const_syntax letrec2}, K letrec2_tr'),
-  (@{const_syntax letrec3}, K letrec3_tr')]
+ [(\<^const_syntax>\<open>let\<close>, K let_tr'),
+  (\<^const_syntax>\<open>letrec\<close>, K letrec_tr'),
+  (\<^const_syntax>\<open>letrec2\<close>, K letrec2_tr'),
+  (\<^const_syntax>\<open>letrec3\<close>, K letrec3_tr')]
 \<close>
 
 
@@ -289,7 +289,7 @@ subsection \<open>Constructors are distinct\<close>
 
 ML \<open>
 ML_Thms.bind_thms ("term_dstncts",
-  mkall_dstnct_thms @{context} @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
+  mkall_dstnct_thms \<^context> @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
     [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
 \<close>
 

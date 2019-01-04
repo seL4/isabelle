@@ -942,7 +942,7 @@ apply (drule divide_strict_right_mono [of _ _ "-c"], simp)
 apply (simp add: less_imp_not_eq nonzero_minus_divide_right [symmetric])
 done
 
-text\<open>The last premise ensures that @{term a} and @{term b}
+text\<open>The last premise ensures that \<^term>\<open>a\<close> and \<^term>\<open>b\<close>
       have the same sign\<close>
 lemma divide_strict_left_mono:
   "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / b"
@@ -1268,7 +1268,7 @@ next
   finally show ?thesis .
 qed
 
-text\<open>For creating values between @{term u} and @{term v}.\<close>
+text\<open>For creating values between \<^term>\<open>u\<close> and \<^term>\<open>v\<close>.\<close>
 lemma scaling_mono:
   assumes "u \<le> v" "0 \<le> r" "r \<le> s"
     shows "u + r * (v - u) / s \<le> v"

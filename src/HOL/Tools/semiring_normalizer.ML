@@ -110,7 +110,7 @@ fun match ctxt tm =
 (* extra-logical functions *)
 
 val semiring_norm_ss =
-  simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
+  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms semiring_norm});
 
 val semiring_funs =
    {is_const = can HOLogic.dest_number o Thm.term_of,
@@ -124,21 +124,21 @@ val semiring_funs =
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_One}))};
 
-val divide_const = Thm.cterm_of @{context} (Logic.varify_global @{term "(/)"});
+val divide_const = Thm.cterm_of \<^context> (Logic.varify_global \<^term>\<open>(/)\<close>);
 val [divide_tvar] = Term.add_tvars (Thm.term_of divide_const) [];
 
 val field_funs =
   let
     fun numeral_is_const ct =
       case Thm.term_of ct of
-       Const (@{const_name Rings.divide},_) $ a $ b =>
+       Const (\<^const_name>\<open>Rings.divide\<close>,_) $ a $ b =>
          can HOLogic.dest_number a andalso can HOLogic.dest_number b
-     | Const (@{const_name Fields.inverse},_)$t => can HOLogic.dest_number t
+     | Const (\<^const_name>\<open>Fields.inverse\<close>,_)$t => can HOLogic.dest_number t
      | t => can HOLogic.dest_number t
     fun dest_const ct = ((case Thm.term_of ct of
-       Const (@{const_name Rings.divide},_) $ a $ b=>
+       Const (\<^const_name>\<open>Rings.divide\<close>,_) $ a $ b=>
         Rat.make (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
-     | Const (@{const_name Fields.inverse},_)$t =>
+     | Const (\<^const_name>\<open>Fields.inverse\<close>,_)$t =>
                    Rat.inv (Rat.of_int (snd (HOLogic.dest_number t)))
      | t => Rat.of_int (snd (HOLogic.dest_number t)))
        handle TERM _ => error "ring_dest_const")
@@ -266,7 +266,7 @@ fun zerone_conv ctxt cv =
   zero1_numeral_conv ctxt then_conv cv then_conv numeral01_conv ctxt;
 
 val nat_add_ss = simpset_of
-  (put_simpset HOL_basic_ss @{context}
+  (put_simpset HOL_basic_ss \<^context>
      addsimps @{thms arith_simps} @ @{thms diff_nat_numeral} @ @{thms rel_simps}
        @ @{thms if_False if_True Nat.add_0 add_Suc add_numeral_left Suc_eq_plus1}
        @ map (fn th => th RS sym) @{thms numerals});
@@ -274,9 +274,9 @@ val nat_add_ss = simpset_of
 fun nat_add_conv ctxt =
   zerone_conv ctxt (Simplifier.rewrite (put_simpset nat_add_ss ctxt));
 
-val zeron_tm = @{cterm "0::nat"};
-val onen_tm  = @{cterm "1::nat"};
-val true_tm = @{cterm "True"};
+val zeron_tm = \<^cterm>\<open>0::nat\<close>;
+val onen_tm  = \<^cterm>\<open>1::nat\<close>;
+val true_tm = \<^cterm>\<open>True\<close>;
 
 
 (** normalizing conversions **)
@@ -746,7 +746,7 @@ fun polynomial_mul_conv ctxt =
 (* Power of polynomial (optimized for the monomial and trivial cases).       *)
 
 fun num_conv ctxt n =
-  nat_add_conv ctxt (Thm.apply @{cterm Suc} (Numeral.mk_cnumber @{ctyp nat} (dest_number n - 1)))
+  nat_add_conv ctxt (Thm.apply \<^cterm>\<open>Suc\<close> (Numeral.mk_cnumber \<^ctyp>\<open>nat\<close> (dest_number n - 1)))
   |> Thm.symmetric;
 
 
@@ -849,7 +849,7 @@ end;
 
 val nat_exp_ss =
   simpset_of
-   (put_simpset HOL_basic_ss @{context}
+   (put_simpset HOL_basic_ss \<^context>
     addsimps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
     addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
 

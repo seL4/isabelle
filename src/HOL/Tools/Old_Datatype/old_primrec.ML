@@ -34,8 +34,8 @@ fun primrec_error_eqn msg eqn = raise PrimrecError (msg, SOME eqn);
 
 fun process_eqn is_fixed spec rec_fns =
   let
-    val (vs, Ts) = split_list (strip_qnt_vars @{const_name Pure.all} spec);
-    val body = strip_qnt_body @{const_name Pure.all} spec;
+    val (vs, Ts) = split_list (strip_qnt_vars \<^const_name>\<open>Pure.all\<close> spec);
+    val body = strip_qnt_body \<^const_name>\<open>Pure.all\<close> spec;
     val (vs', _) = fold_map Name.variant vs (Name.make_context (fold_aterms
       (fn Free (v, _) => insert (op =) v | _ => I) body []));
     val eqn = curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body;
@@ -142,7 +142,7 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
       (case AList.lookup (op =) eqns cname of
         NONE => (warning ("No equation for constructor " ^ quote cname ^
           "\nin definition of function " ^ quote fname);
-            (fnames', fnss', (Const (@{const_name undefined}, dummyT)) :: fns))
+            (fnames', fnss', (Const (\<^const_name>\<open>undefined\<close>, dummyT)) :: fns))
       | SOME (ls, cargs', rs, rhs, eq) =>
           let
             val recs = filter (Old_Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
@@ -181,7 +181,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
   (case AList.lookup (op =) fns i of
     NONE =>
       let
-        val dummy_fns = map (fn (_, cargs) => Const (@{const_name undefined},
+        val dummy_fns = map (fn (_, cargs) => Const (\<^const_name>\<open>undefined\<close>,
           replicate (length cargs + length (filter Old_Datatype_Aux.is_rec_type cargs))
             dummyT ---> HOLogic.unitT)) constrs;
         val _ = warning ("No function definition for datatype " ^ quote tname)

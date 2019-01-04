@@ -232,18 +232,18 @@ translations
 
 print_translation \<open>
   let
-    val All_binder = Mixfix.binder_name @{const_syntax All};
-    val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
-    val impl = @{const_syntax HOL.implies};
-    val conj = @{const_syntax HOL.conj};
-    val sbset = @{const_syntax subset};
-    val sbset_eq = @{const_syntax subset_eq};
+    val All_binder = Mixfix.binder_name \<^const_syntax>\<open>All\<close>;
+    val Ex_binder = Mixfix.binder_name \<^const_syntax>\<open>Ex\<close>;
+    val impl = \<^const_syntax>\<open>HOL.implies\<close>;
+    val conj = \<^const_syntax>\<open>HOL.conj\<close>;
+    val sbset = \<^const_syntax>\<open>subset\<close>;
+    val sbset_eq = \<^const_syntax>\<open>subset_eq\<close>;
 
     val trans =
-     [((All_binder, impl, sbset), @{syntax_const "_setlessAll"}),
-      ((All_binder, impl, sbset_eq), @{syntax_const "_setleAll"}),
-      ((Ex_binder, conj, sbset), @{syntax_const "_setlessEx"}),
-      ((Ex_binder, conj, sbset_eq), @{syntax_const "_setleEx"})];
+     [((All_binder, impl, sbset), \<^syntax_const>\<open>_setlessAll\<close>),
+      ((All_binder, impl, sbset_eq), \<^syntax_const>\<open>_setleAll\<close>),
+      ((Ex_binder, conj, sbset), \<^syntax_const>\<open>_setlessEx\<close>),
+      ((Ex_binder, conj, sbset_eq), \<^syntax_const>\<open>_setleEx\<close>)];
 
     fun mk v (v', T) c n P =
       if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
@@ -251,9 +251,9 @@ print_translation \<open>
       else raise Match;
 
     fun tr' q = (q, fn _ =>
-      (fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
+      (fn [Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v, Type (\<^type_name>\<open>set\<close>, _)),
           Const (c, _) $
-            (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', T)) $ n) $ P] =>
+            (Const (d, _) $ (Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v', T)) $ n) $ P] =>
           (case AList.lookup (=) trans (q, c, d) of
             NONE => raise Match
           | SOME l => mk v (v', T) l n P)
@@ -275,58 +275,58 @@ syntax
 
 parse_translation \<open>
   let
-    val ex_tr = snd (Syntax_Trans.mk_binder_tr ("EX ", @{const_syntax Ex}));
+    val ex_tr = snd (Syntax_Trans.mk_binder_tr ("EX ", \<^const_syntax>\<open>Ex\<close>));
 
-    fun nvars (Const (@{syntax_const "_idts"}, _) $ _ $ idts) = nvars idts + 1
+    fun nvars (Const (\<^syntax_const>\<open>_idts\<close>, _) $ _ $ idts) = nvars idts + 1
       | nvars _ = 1;
 
     fun setcompr_tr ctxt [e, idts, b] =
       let
-        val eq = Syntax.const @{const_syntax HOL.eq} $ Bound (nvars idts) $ e;
-        val P = Syntax.const @{const_syntax HOL.conj} $ eq $ b;
+        val eq = Syntax.const \<^const_syntax>\<open>HOL.eq\<close> $ Bound (nvars idts) $ e;
+        val P = Syntax.const \<^const_syntax>\<open>HOL.conj\<close> $ eq $ b;
         val exP = ex_tr ctxt [idts, P];
-      in Syntax.const @{const_syntax Collect} $ absdummy dummyT exP end;
+      in Syntax.const \<^const_syntax>\<open>Collect\<close> $ absdummy dummyT exP end;
 
-  in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end
+  in [(\<^syntax_const>\<open>_Setcompr\<close>, setcompr_tr)] end
 \<close>
 
 print_translation \<open>
- [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
-  Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"}]
+ [Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>Ball\<close> \<^syntax_const>\<open>_Ball\<close>,
+  Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>Bex\<close> \<^syntax_const>\<open>_Bex\<close>]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 print_translation \<open>
 let
-  val ex_tr' = snd (Syntax_Trans.mk_binder_tr' (@{const_syntax Ex}, "DUMMY"));
+  val ex_tr' = snd (Syntax_Trans.mk_binder_tr' (\<^const_syntax>\<open>Ex\<close>, "DUMMY"));
 
   fun setcompr_tr' ctxt [Abs (abs as (_, _, P))] =
     let
-      fun check (Const (@{const_syntax Ex}, _) $ Abs (_, _, P), n) = check (P, n + 1)
-        | check (Const (@{const_syntax HOL.conj}, _) $
-              (Const (@{const_syntax HOL.eq}, _) $ Bound m $ e) $ P, n) =
+      fun check (Const (\<^const_syntax>\<open>Ex\<close>, _) $ Abs (_, _, P), n) = check (P, n + 1)
+        | check (Const (\<^const_syntax>\<open>HOL.conj\<close>, _) $
+              (Const (\<^const_syntax>\<open>HOL.eq\<close>, _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
             subset (=) (0 upto (n - 1), add_loose_bnos (e, 0, []))
         | check _ = false;
 
         fun tr' (_ $ abs) =
           let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' ctxt [abs]
-          in Syntax.const @{syntax_const "_Setcompr"} $ e $ idts $ Q end;
+          in Syntax.const \<^syntax_const>\<open>_Setcompr\<close> $ e $ idts $ Q end;
     in
       if check (P, 0) then tr' P
       else
         let
           val (x as _ $ Free(xN, _), t) = Syntax_Trans.atomic_abs_tr' abs;
-          val M = Syntax.const @{syntax_const "_Coll"} $ x $ t;
+          val M = Syntax.const \<^syntax_const>\<open>_Coll\<close> $ x $ t;
         in
           case t of
-            Const (@{const_syntax HOL.conj}, _) $
-              (Const (@{const_syntax Set.member}, _) $
-                (Const (@{syntax_const "_bound"}, _) $ Free (yN, _)) $ A) $ P =>
-            if xN = yN then Syntax.const @{syntax_const "_Collect"} $ x $ A $ P else M
+            Const (\<^const_syntax>\<open>HOL.conj\<close>, _) $
+              (Const (\<^const_syntax>\<open>Set.member\<close>, _) $
+                (Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (yN, _)) $ A) $ P =>
+            if xN = yN then Syntax.const \<^syntax_const>\<open>_Collect\<close> $ x $ A $ P else M
           | _ => M
         end
     end;
-  in [(@{const_syntax Collect}, setcompr_tr')] end
+  in [(\<^const_syntax>\<open>Collect\<close>, setcompr_tr')] end
 \<close>
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P x \<and> Q x") = \<open>
@@ -361,7 +361,7 @@ ML \<open>
 structure Simpdata =
 struct
   open Simpdata;
-  val mksimps_pairs = [(@{const_name Ball}, @{thms bspec})] @ mksimps_pairs;
+  val mksimps_pairs = [(\<^const_name>\<open>Ball\<close>, @{thms bspec})] @ mksimps_pairs;
 end;
 
 open Simpdata;
@@ -515,8 +515,8 @@ lemma equalityD2: "A = B \<Longrightarrow> B \<subseteq> A"
 text \<open>
   \<^medskip>
   Be careful when adding this to the claset as \<open>subset_empty\<close> is in the
-  simpset: @{prop "A = {}"} goes to @{prop "{} \<subseteq> A"} and @{prop "A \<subseteq> {}"}
-  and then back to @{prop "A = {}"}!
+  simpset: \<^prop>\<open>A = {}\<close> goes to \<^prop>\<open>{} \<subseteq> A\<close> and \<^prop>\<open>A \<subseteq> {}\<close>
+  and then back to \<^prop>\<open>A = {}\<close>!
 \<close>
 
 lemma equalityE: "A = B \<Longrightarrow> (A \<subseteq> B \<Longrightarrow> B \<subseteq> A \<Longrightarrow> P) \<Longrightarrow> P"
@@ -544,7 +544,7 @@ lemma emptyE [elim!]: "a \<in> {} \<Longrightarrow> P"
   by simp
 
 lemma empty_subsetI [iff]: "{} \<subseteq> A"
-  \<comment> \<open>One effect is to delete the ASSUMPTION @{prop "{} \<subseteq> A"}\<close>
+  \<comment> \<open>One effect is to delete the ASSUMPTION \<^prop>\<open>{} \<subseteq> A\<close>\<close>
   by blast
 
 lemma equals0I: "(\<And>y. y \<in> A \<Longrightarrow> False) \<Longrightarrow> A = {}"
@@ -738,7 +738,7 @@ lemma Compl_eq_Diff_UNIV: "- A = (UNIV - A)"
   by blast
 
 
-subsubsection \<open>Augmenting a set -- @{const insert}\<close>
+subsubsection \<open>Augmenting a set -- \<^const>\<open>insert\<close>\<close>
 
 lemma insert_iff [simp]: "a \<in> insert b A \<longleftrightarrow> a = b \<or> a \<in> A"
   unfolding insert_def by blast
@@ -1516,7 +1516,7 @@ lemma Compl_Diff_eq [simp]: "- (A - B) = - A \<union> B"
 lemma subset_Compl_singleton [simp]: "A \<subseteq> - {b} \<longleftrightarrow> b \<notin> A"
   by blast
 
-text \<open>\<^medskip> Quantification over type @{typ bool}.\<close>
+text \<open>\<^medskip> Quantification over type \<^typ>\<open>bool\<close>.\<close>
 
 lemma bool_induct: "P True \<Longrightarrow> P False \<Longrightarrow> P x"
   by (cases x) auto

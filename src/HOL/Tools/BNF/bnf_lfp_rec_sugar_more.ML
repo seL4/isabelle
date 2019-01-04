@@ -30,13 +30,13 @@ val nested_simps = @{thms o_def[abs_def] id_def split fst_conv snd_conv};
 fun special_endgame_tac ctxt fp_nesting_map_ident0s fp_nesting_map_comps fp_nesting_pred_maps =
   ALLGOALS (CONVERSION Thm.eta_long_conversion) THEN
   HEADGOAL (simp_tac (ss_only @{thms pred_fun_True_id} ctxt
-    addsimprocs [@{simproc NO_MATCH}])) THEN
+    addsimprocs [\<^simproc>\<open>NO_MATCH\<close>])) THEN
   unfold_thms_tac ctxt (nested_simps @
     map (unfold_thms ctxt @{thms id_def}) (fp_nesting_map_ident0s @ fp_nesting_map_comps @
       fp_nesting_pred_maps)) THEN
   ALLGOALS (rtac ctxt refl);
 
-fun is_new_datatype _ @{type_name nat} = true
+fun is_new_datatype _ \<^type_name>\<open>nat\<close> = true
   | is_new_datatype ctxt s =
     (case fp_sugar_of ctxt s of
       SOME {fp = Least_FP, fp_co_induct_sugar = SOME _, ...} => true
@@ -47,7 +47,7 @@ fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, fp_ctr_sugar = {ctr_sug
     {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_sugar = ctr_sugar,
      recx = recx, rec_thms = rec_thms};
 
-fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
+fun basic_lfp_sugars_of _ [\<^typ>\<open>nat\<close>] _ _ lthy =
     ([], [0], [nat_basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, lthy)
   | basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0 =
     let
@@ -99,7 +99,7 @@ fun massage_nested_rec_call ctxt has_call massage_fun massage_nonfun bound_Ts y 
 
     fun massage_mutual_fun U T t =
       (case t of
-        Const (@{const_name comp}, _) $ t1 $ t2 =>
+        Const (\<^const_name>\<open>comp\<close>, _) $ t1 $ t2 =>
         mk_comp bound_Ts (tap check_no_call t1, massage_mutual_fun U T t2)
       | _ =>
         if has_call t then massage_fun U T t else mk_comp bound_Ts (t, massage_no_call (U, T)));

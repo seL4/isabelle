@@ -478,7 +478,7 @@ translations
   "MAX x. f"     \<rightleftharpoons> "CONST Max (CONST range (\<lambda>x. f))"
   "MAX x\<in>A. f"   \<rightleftharpoons> "CONST Max ((\<lambda>x. f) ` A)"
 
-text \<open>An aside: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin}\<close>
+text \<open>An aside: \<^const>\<open>Min\<close>/\<^const>\<open>Max\<close> on linear orders as special case of \<^const>\<open>Inf_fin\<close>/\<^const>\<open>Sup_fin\<close>\<close>
 
 lemma Inf_fin_Min:
   "Inf_fin = (Min :: 'a::{semilattice_inf, linorder} set \<Rightarrow> 'a)"

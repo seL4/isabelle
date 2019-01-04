@@ -30,7 +30,7 @@ val size_neqN = "size_neq";
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 
-fun mk_plus_nat (t1, t2) = Const (@{const_name Groups.plus},
+fun mk_plus_nat (t1, t2) = Const (\<^const_name>\<open>Groups.plus\<close>,
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
 fun mk_to_natT T = T --> HOLogic.natT;
@@ -51,7 +51,7 @@ structure Data = Generic_Data
 fun check_size_type thy T_name size_name =
   let
     val n = Sign.arity_number thy T_name;
-    val As = map (fn s => TFree (s, @{sort type})) (Name.invent Name.context Name.aT n);
+    val As = map (fn s => TFree (s, \<^sort>\<open>type\<close>)) (Name.invent Name.context Name.aT n);
     val T = Type (T_name, As);
     val size_T = map mk_to_natT As ---> mk_to_natT T;
     val size_const = Const (size_name, size_T);
@@ -132,7 +132,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         map ((fn base => Binding.qualify false base (Binding.name (prefix size_N base))) o
           Long_Name.base_name) T_names;
 
-      fun is_prod_C @{type_name prod} [_, T'] = member (op =) Cs T'
+      fun is_prod_C \<^type_name>\<open>prod\<close> [_, T'] = member (op =) Cs T'
         | is_prod_C _ _ = false;
 
       fun mk_size_of_typ (T as TFree _) =
@@ -227,7 +227,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       val overloaded_size_rhss = map (fn c => Term.list_comb (c, zeros)) size_consts;
       val overloaded_size_Ts = map fastype_of overloaded_size_rhss;
-      val overloaded_size_consts = map (curry Const @{const_name size}) overloaded_size_Ts;
+      val overloaded_size_consts = map (curry Const \<^const_name>\<open>size\<close>) overloaded_size_Ts;
       val overloaded_size_def_bs =
         map (maybe_conceal_def_binding o Binding.suffix_name "_overloaded") size_bs;
 
@@ -282,7 +282,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
       fun rhs_is_zero thm =
         let val Const (trueprop, _) $ (Const (eq, _) $ _ $ rhs) = Thm.prop_of thm in
-          trueprop = @{const_name Trueprop} andalso eq = @{const_name HOL.eq} andalso
+          trueprop = \<^const_name>\<open>Trueprop\<close> andalso eq = \<^const_name>\<open>HOL.eq\<close> andalso
           rhs = HOLogic.zero
         end;
 
@@ -343,7 +343,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
 
             val size_gen_o_map_thmss =
               if nested_size_gen_o_maps_complete
-                 andalso forall (fn TFree (_, S) => S = @{sort type}) As then
+                 andalso forall (fn TFree (_, S) => S = \<^sort>\<open>type\<close>) As then
                 @{map 3} (fn goal => fn size_def => fn rec_o_map =>
                     Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
                       mk_size_gen_o_map_tac ctxt size_def rec_o_map all_inj_maps nested_size_maps)
@@ -393,7 +393,7 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
     end
   | generate_datatype_size _ lthy = lthy;
 
-val size_plugin = Plugin_Name.declare_setup @{binding size};
+val size_plugin = Plugin_Name.declare_setup \<^binding>\<open>size\<close>;
 val _ = Theory.setup (fp_sugars_interpretation size_plugin generate_datatype_size);
 
 end;

@@ -59,20 +59,20 @@ notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text \<open>
-  Given two transformations @{term f} and @{term g}, they may be
-  directly composed using the @{term "(\<circ>>)"} combinator, forming a
-  forward composition: @{prop "(f \<circ>> g) s = f (g s)"}.
+  Given two transformations \<^term>\<open>f\<close> and \<^term>\<open>g\<close>, they may be
+  directly composed using the \<^term>\<open>(\<circ>>)\<close> combinator, forming a
+  forward composition: \<^prop>\<open>(f \<circ>> g) s = f (g s)\<close>.
 
   After any yielding transformation, we bind the side result
   immediately using a lambda abstraction.  This is the purpose of the
-  @{term "(\<circ>\<rightarrow>)"} combinator: @{prop "(f \<circ>\<rightarrow> (\<lambda>x. g)) s = (let (x, s')
-  = f s in g s')"}.
+  \<^term>\<open>(\<circ>\<rightarrow>)\<close> combinator: \<^prop>\<open>(f \<circ>\<rightarrow> (\<lambda>x. g)) s = (let (x, s')
+  = f s in g s')\<close>.
 
-  For queries, the existing @{term "Let"} is appropriate.
+  For queries, the existing \<^term>\<open>Let\<close> is appropriate.
 
   Naturally, a computation may yield a side result by pairing it to
   the state from the left; we introduce the suggestive abbreviation
-  @{term return} for this purpose.
+  \<^term>\<open>return\<close> for this purpose.
 
   The most crucial distinction to Haskell is that we do not need to
   introduce distinguished type constructors for different kinds of

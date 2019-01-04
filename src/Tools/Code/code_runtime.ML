@@ -52,15 +52,15 @@ datatype truth = Holds;
 
 val _ = Theory.setup
   (Code_Target.add_derived_target (target, [(Code_ML.target_SML, I)])
-  #> Code_Target.set_printings (Type_Constructor (@{type_name prop},
+  #> Code_Target.set_printings (Type_Constructor (\<^type_name>\<open>prop\<close>,
     [(target, SOME (0, (K o K o K) (Code_Printer.str truthN)))]))
-  #> Code_Target.set_printings (Constant (@{const_name Code_Generator.holds},
+  #> Code_Target.set_printings (Constant (\<^const_name>\<open>Code_Generator.holds\<close>,
     [(target, SOME (Code_Printer.plain_const_syntax HoldsN))]))
   #> Code_Target.add_reserved target thisN
   #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]);
        (*avoid further pervasive infix names*)
 
-val trace = Attrib.setup_config_bool @{binding "code_runtime_trace"} (K false);
+val trace = Attrib.setup_config_bool \<^binding>\<open>code_runtime_trace\<close> (K false);
 
 fun compile_ML verbose code context =
  (if Config.get_generic context trace then tracing code else ();
@@ -142,16 +142,16 @@ fun check_holds ctxt evaluator vs_t ct =
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term ctxt t)
       else ();
-    val iff = Thm.cterm_of ctxt (Term.Const (@{const_name Pure.eq}, propT --> propT --> propT));
+    val iff = Thm.cterm_of ctxt (Term.Const (\<^const_name>\<open>Pure.eq\<close>, propT --> propT --> propT));
     val result = case partiality_as_none (run_compilation_text truth_cookie ctxt evaluator vs_t [])
      of SOME Holds => true
       | _ => false;
   in
-    Thm.mk_binop iff ct (if result then @{cprop "PROP Code_Generator.holds"} else ct)
+    Thm.mk_binop iff ct (if result then \<^cprop>\<open>PROP Code_Generator.holds\<close> else ct)
   end;
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding holds_by_evaluation},
+  (Thm.add_oracle (\<^binding>\<open>holds_by_evaluation\<close>,
   fn (ctxt, evaluator, vs_t, ct) => check_holds ctxt evaluator vs_t ct)));
 
 fun check_holds_oracle ctxt evaluator vs_ty_t ct =
@@ -369,7 +369,7 @@ fun preprocess_term { ctxt } =
   in fn ctxt' => Pattern.rewrite_term (Proof_Context.theory_of ctxt') rules [] end;
 
 val _ = Theory.setup
-  (Attrib.setup @{binding code_computation_unfold}
+  (Attrib.setup \<^binding>\<open>code_computation_unfold\<close>
     (Scan.succeed (Thm.declaration_attribute (fn thm => Context.mapping (add thm) I)))
     "preprocessing equations for computation");
 
@@ -413,16 +413,16 @@ fun mount_computation_conv ctxt cTs T raw_computation conv =
 
 local
 
-fun holds ct = Thm.mk_binop @{cterm "Pure.eq :: prop \<Rightarrow> prop \<Rightarrow> prop"}
-  ct @{cprop "PROP Code_Generator.holds"};
+fun holds ct = Thm.mk_binop \<^cterm>\<open>Pure.eq :: prop \<Rightarrow> prop \<Rightarrow> prop\<close>
+  ct \<^cprop>\<open>PROP Code_Generator.holds\<close>;
 
 val (_, holds_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (@{binding holds}, holds)));
+  (Thm.add_oracle (\<^binding>\<open>holds\<close>, holds)));
 
 in
 
 fun mount_computation_check ctxt cTs raw_computation =
-  mount_computation_conv ctxt cTs @{typ prop} raw_computation
+  mount_computation_conv ctxt cTs \<^typ>\<open>prop\<close> raw_computation
     ((K o K) holds_oracle);
 
 end;
@@ -595,7 +595,7 @@ fun print_computation_check ctxt =
       mount_computation_checkN,
       "(Context.proof_of (Context.the_generic_context ()))",
       Long_Name.implode [prfx, generated_computationN, covered_constsN],
-      Long_Name.append prfx (of_term_for_typ @{typ prop})
+      Long_Name.append prfx (of_term_for_typ \<^typ>\<open>prop\<close>)
     ]) ctxt;
 
 
@@ -652,7 +652,7 @@ val ml_computation_conv_antiq = gen_ml_computation_antiq mount_computation_convN
 fun ml_computation_check_antiq raw_spec ctxt =
   let
     val cTs = insert (op =) (dest_Const @{const holds}) (prep_spec ctxt raw_spec);
-  in (print_computation_check ctxt, register_computation cTs @{typ prop} ctxt) end;
+  in (print_computation_check ctxt, register_computation cTs \<^typ>\<open>prop\<close> ctxt) end;
 
 end; (*local*)
 
@@ -755,13 +755,13 @@ val parse_consts_spec =
 in
 
 val _ = Theory.setup
-  (ML_Antiquotation.declaration @{binding code}
+  (ML_Antiquotation.declaration \<^binding>\<open>code\<close>
     Args.term (K ml_code_antiq)
-  #> ML_Antiquotation.declaration @{binding computation}
+  #> ML_Antiquotation.declaration \<^binding>\<open>computation\<close>
     (Args.typ -- parse_consts_spec) (K ml_computation_antiq)
-  #> ML_Antiquotation.declaration @{binding computation_conv}
+  #> ML_Antiquotation.declaration \<^binding>\<open>computation_conv\<close>
     (Args.typ -- parse_consts_spec) (K ml_computation_conv_antiq)
-  #> ML_Antiquotation.declaration @{binding computation_check}
+  #> ML_Antiquotation.declaration \<^binding>\<open>computation_check\<close>
     parse_consts_spec (K ml_computation_check_antiq));
 
 end;
@@ -769,19 +769,19 @@ end;
 local
 
 val parse_datatype =
-  Parse.name -- Scan.optional (@{keyword "="} |--
+  Parse.name -- Scan.optional (\<^keyword>\<open>=\<close> |--
     (((Parse.sym_ident || Parse.string) >> (fn "_" => NONE | _ => Scan.fail ()))
-    || ((Parse.term ::: (Scan.repeat (@{keyword "|"} |-- Parse.term))) >> SOME))) (SOME []);
+    || ((Parse.term ::: (Scan.repeat (\<^keyword>\<open>|\<close> |-- Parse.term))) >> SOME))) (SOME []);
 
 in
 
 val _ =
-  Outer_Syntax.command @{command_keyword code_reflect}
+  Outer_Syntax.command \<^command_keyword>\<open>code_reflect\<close>
     "enrich runtime environment with generated code"
-    (Parse.name -- Scan.optional (@{keyword "datatypes"} |-- Parse.!!! (parse_datatype
-      ::: Scan.repeat (@{keyword "and"} |-- parse_datatype))) []
-    -- Scan.optional (@{keyword "functions"} |-- Parse.!!!  (Scan.repeat1 Parse.name)) []
-    -- Scan.option (@{keyword "file"} |-- Parse.!!! Parse.name)
+    (Parse.name -- Scan.optional (\<^keyword>\<open>datatypes\<close> |-- Parse.!!! (parse_datatype
+      ::: Scan.repeat (\<^keyword>\<open>and\<close> |-- parse_datatype))) []
+    -- Scan.optional (\<^keyword>\<open>functions\<close> |-- Parse.!!!  (Scan.repeat1 Parse.name)) []
+    -- Scan.option (\<^keyword>\<open>file\<close> |-- Parse.!!! Parse.name)
     >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
       (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 

@@ -219,12 +219,12 @@ ML_file "Tools/Nitpick/nitpick_tests.ML"
 
 setup \<open>
   Nitpick_HOL.register_ersatz_global
-    [(@{const_name card}, @{const_name card'}),
-     (@{const_name sum}, @{const_name sum'}),
-     (@{const_name fold_graph}, @{const_name fold_graph'}),
-     (@{const_name wf}, @{const_name wf'}),
-     (@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
-     (@{const_name wfrec}, @{const_name wfrec'})]
+    [(\<^const_name>\<open>card\<close>, \<^const_name>\<open>card'\<close>),
+     (\<^const_name>\<open>sum\<close>, \<^const_name>\<open>sum'\<close>),
+     (\<^const_name>\<open>fold_graph\<close>, \<^const_name>\<open>fold_graph'\<close>),
+     (\<^const_name>\<open>wf\<close>, \<^const_name>\<open>wf'\<close>),
+     (\<^const_name>\<open>wf_wfrec\<close>, \<^const_name>\<open>wf_wfrec'\<close>),
+     (\<^const_name>\<open>wfrec\<close>, \<^const_name>\<open>wfrec'\<close>)]
 \<close>
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The FunBox PairBox Word prod

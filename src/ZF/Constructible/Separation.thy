@@ -66,10 +66,10 @@ apply (erule reflection_imp_L_separation)
 apply (rule collI, assumption)
 done
 
-text\<open>As above, but typically @{term u} is a finite enumeration such as
-  @{term "{a,b}"}; thus the new subgoal gets the assumption
-  @{term "{a,b} \<subseteq> Lset(i)"}, which is logically equivalent to 
-  @{term "a \<in> Lset(i)"} and @{term "b \<in> Lset(i)"}.\<close>
+text\<open>As above, but typically \<^term>\<open>u\<close> is a finite enumeration such as
+  \<^term>\<open>{a,b}\<close>; thus the new subgoal gets the assumption
+  \<^term>\<open>{a,b} \<subseteq> Lset(i)\<close>, which is logically equivalent to 
+  \<^term>\<open>a \<in> Lset(i)\<close> and \<^term>\<open>b \<in> Lset(i)\<close>.\<close>
 lemma gen_separation_multi:
  assumes reflection: "REFLECTS [P,Q]"
      and Lu:         "L(u)"
@@ -94,7 +94,7 @@ lemma Inter_separation:
 apply (rule gen_separation [OF Inter_Reflects], simp)
 apply (rule DPow_LsetI)
  txt\<open>I leave this one example of a manual proof.  The tedium of manually
-      instantiating @{term i}, @{term j} and @{term env} is obvious.\<close>
+      instantiating \<^term>\<open>i\<close>, \<^term>\<open>j\<close> and \<^term>\<open>env\<close> is obvious.\<close>
 apply (rule ball_iff_sats)
 apply (rule imp_iff_sats)
 apply (rule_tac [2] i=1 and j=0 and env="[y,x,A]" in mem_iff_sats)
@@ -260,7 +260,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection\<open>Separation for a Theorem about @{term "is_recfun"}\<close>
+subsection\<open>Separation for a Theorem about \<^term>\<open>is_recfun\<close>\<close>
 
 lemma is_recfun_reflects:
   "REFLECTS[\<lambda>x. \<exists>xa[L]. \<exists>xb[L].

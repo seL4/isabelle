@@ -211,7 +211,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
 fun lexicographic_order_tac quiet ctxt =
   TRY (Function_Common.termination_rule_tac ctxt 1) THEN
   lex_order_tac quiet ctxt
-    (auto_tac (ctxt addsimps (Named_Theorems.get ctxt @{named_theorems termination_simp})))
+    (auto_tac (ctxt addsimps (Named_Theorems.get ctxt \<^named_theorems>\<open>termination_simp\<close>)))
 
 val _ =
   Theory.setup

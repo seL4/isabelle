@@ -63,12 +63,12 @@ structure DataFree =
 struct
   val trace = Unsynchronized.ref false;
 
-  fun mk_new ([],[]) = Const(@{const_name True},FOLogic.oT)
+  fun mk_new ([],[]) = Const(\<^const_name>\<open>True\<close>,FOLogic.oT)
     | mk_new (largs,rargs) =
         Balanced_Tree.make FOLogic.mk_conj
                  (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
- val datatype_ss = simpset_of @{context};
+ val datatype_ss = simpset_of \<^context>;
 
  fun proc ctxt ct =
    let val old = Thm.term_of ct
@@ -89,7 +89,7 @@ struct
            if #big_rec_name lcon_info = #big_rec_name rcon_info
                andalso not (null (#free_iffs lcon_info)) then
                if lname = rname then mk_new (largs, rargs)
-               else Const(@{const_name False},FOLogic.oT)
+               else Const(\<^const_name>\<open>False\<close>,FOLogic.oT)
            else raise Match
        val _ =
          if !trace then writeln ("NEW = " ^ Syntax.string_of_term ctxt new)
@@ -106,8 +106,8 @@ struct
 
 
   val conv =
-    Simplifier.make_simproc @{context} "data_free"
-     {lhss = [@{term "(x::i) = y"}], proc = K proc};
+    Simplifier.make_simproc \<^context> "data_free"
+     {lhss = [\<^term>\<open>(x::i) = y\<close>], proc = K proc};
 
 end;
 \<close>

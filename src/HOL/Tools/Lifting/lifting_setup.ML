@@ -81,7 +81,7 @@ fun define_pcrel (config: config) crel lthy =
     val args_fixed = (map (Term_Subst.instantiate (instT, []))) args_subst
     val param_rel_fixed = Term_Subst.instantiate (instT, []) param_rel_subst
     val rty = (domain_type o fastype_of) param_rel_fixed
-    val relcomp_op = Const (@{const_name "relcompp"}, 
+    val relcomp_op = Const (\<^const_name>\<open>relcompp\<close>, 
           (rty --> rty' --> HOLogic.boolT) --> 
           (rty' --> qty --> HOLogic.boolT) --> 
           rty --> qty --> HOLogic.boolT)
@@ -117,7 +117,7 @@ local
 
   fun print_generate_pcr_cr_eq_error ctxt term = 
     let
-      val goal = Const (@{const_name HOL.eq}, dummyT) $ term $ Const (@{const_name HOL.eq}, dummyT)
+      val goal = Const (\<^const_name>\<open>HOL.eq\<close>, dummyT) $ term $ Const (\<^const_name>\<open>HOL.eq\<close>, dummyT)
       val error_msg = cat_lines 
         ["Generation of a pcr_cr_eq failed.",
         (Pretty.string_of (Pretty.block
@@ -152,7 +152,7 @@ in
           (Transfer.bottom_rewr_conv (Transfer.get_relator_eq lthy))))
   in
     case (Thm.term_of o Thm.rhs_of) pcr_cr_eq of
-      Const (@{const_name "relcompp"}, _) $ Const (@{const_name HOL.eq}, _) $ _ =>
+      Const (\<^const_name>\<open>relcompp\<close>, _) $ Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ =>
         let
           val thm = 
             pcr_cr_eq
@@ -164,7 +164,7 @@ in
         in
           (thm, lthy)
         end
-      | Const (@{const_name "relcompp"}, _) $ t $ _ => print_generate_pcr_cr_eq_error lthy t
+      | Const (\<^const_name>\<open>relcompp\<close>, _) $ t $ _ => print_generate_pcr_cr_eq_error lthy t
       | _ => error "generate_pcr_cr_eq: implementation error"
   end
 end
@@ -644,9 +644,9 @@ fun setup_by_typedef_thm config typedef_thm lthy =
     val T_def = Morphism.thm (Local_Theory.target_morphism lthy) T_def
     (**)    
     val quot_thm = case typedef_set of
-      Const (@{const_name top}, _) => 
+      Const (\<^const_name>\<open>top\<close>, _) => 
         [typedef_thm, T_def] MRSL @{thm UNIV_typedef_to_Quotient}
-      | Const (@{const_name "Collect"}, _) $ Abs (_, _, _) => 
+      | Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (_, _, _) => 
         [typedef_thm, T_def] MRSL @{thm open_typedef_to_Quotient}
       | _ => 
         [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
@@ -656,7 +656,7 @@ fun setup_by_typedef_thm config typedef_thm lthy =
     val qualify = Binding.qualify_name true qty_name
     val opt_reflp_thm = 
       case typedef_set of
-        Const (@{const_name top}, _) => 
+        Const (\<^const_name>\<open>top\<close>, _) => 
           SOME ((typedef_thm RS @{thm UNIV_typedef_to_equivp}) RS @{thm equivp_reflp2})
         | _ =>  NONE
     val dom_thm = get_Domainp_thm quot_thm
@@ -758,7 +758,7 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
           handle TERM _ => error "Invalid form of the reflexivity theorem. Use \"reflp R\"."
       in
         case reflp_tm of
-          Const (@{const_name reflp}, _) $ _ => ()
+          Const (\<^const_name>\<open>reflp\<close>, _) $ _ => ()
           | _ => error "Invalid form of the reflexivity theorem. Use \"reflp R\"."
       end
       
@@ -791,16 +791,16 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
       end
   in
     case input_term of
-      (Const (@{const_name Quotient}, _) $ _ $ _ $ _ $ _) => setup_quotient ()
-      | (Const (@{const_name type_definition}, _) $ _ $ _ $ _) => setup_typedef ()
+      (Const (\<^const_name>\<open>Quotient\<close>, _) $ _ $ _ $ _ $ _) => setup_quotient ()
+      | (Const (\<^const_name>\<open>type_definition\<close>, _) $ _ $ _ $ _) => setup_typedef ()
       | _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
   end
 
 val _ = 
-  Outer_Syntax.local_theory @{command_keyword setup_lifting}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>setup_lifting\<close>
     "setup lifting infrastructure" 
       (Parse.thm -- Scan.option Parse.thm 
-      -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.thm) >> 
+      -- Scan.option (\<^keyword>\<open>parametric\<close> |-- Parse.!!! Parse.thm) >> 
         (fn ((xthm, opt_reflp_xthm), opt_par_xthm) => 
           setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm))
 
@@ -832,7 +832,7 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
                     Pretty.brk 1,
                     Thm.pretty_thm ctxt pcr_cr_eq]]
             val (pcr_const_eq, eqs) = strip_comb eq_lhs
-            fun is_eq (Const (@{const_name HOL.eq}, _)) = true
+            fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _)) = true
               | is_eq _ = false
             fun eq_Const (Const (name1, _)) (Const (name2, _)) = (name1 = name2)
               | eq_Const _ _ = false
@@ -900,7 +900,7 @@ val parse_opt_pcr =
     (fn (pcrel_def, pcr_cr_eq) => SOME {pcrel_def = pcrel_def, pcr_cr_eq = pcr_cr_eq})) NONE
 
 val lifting_restore_attribute_setup =
-  Attrib.setup @{binding lifting_restore}
+  Attrib.setup \<^binding>\<open>lifting_restore\<close>
     ((Attrib.thm -- parse_opt_pcr) >>
       (fn (quot_thm, opt_pcr) =>
         let val qinfo = { quot_thm = quot_thm, pcr_info = opt_pcr}
@@ -922,7 +922,7 @@ fun lifting_restore_internal bundle_name ctxt =
   end
 
 val lifting_restore_internal_attribute_setup =
-  Attrib.setup @{binding lifting_restore_internal}
+  Attrib.setup \<^binding>\<open>lifting_restore_internal\<close>
     (Scan.lift Parse.string >>
       (fn name => Thm.declaration_attribute (K (lifting_restore_internal name))))
     "restoring lifting infrastructure; internal attribute; not meant to be used directly by regular users"
@@ -931,15 +931,15 @@ val _ = Theory.setup lifting_restore_internal_attribute_setup
 
 (* lifting_forget *)
 
-val monotonicity_names = [@{const_name right_unique}, @{const_name left_unique}, @{const_name right_total},
-  @{const_name left_total}, @{const_name bi_unique}, @{const_name bi_total}]
+val monotonicity_names = [\<^const_name>\<open>right_unique\<close>, \<^const_name>\<open>left_unique\<close>, \<^const_name>\<open>right_total\<close>,
+  \<^const_name>\<open>left_total\<close>, \<^const_name>\<open>bi_unique\<close>, \<^const_name>\<open>bi_total\<close>]
 
-fun fold_transfer_rel f (Const (@{const_name "Transfer.Rel"}, _) $ rel $ _ $ _) = f rel
-  | fold_transfer_rel f (Const (@{const_name "HOL.eq"}, _) $ 
-    (Const (@{const_name Domainp}, _) $ rel) $ _) = f rel
+fun fold_transfer_rel f (Const (\<^const_name>\<open>Transfer.Rel\<close>, _) $ rel $ _ $ _) = f rel
+  | fold_transfer_rel f (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ 
+    (Const (\<^const_name>\<open>Domainp\<close>, _) $ rel) $ _) = f rel
   | fold_transfer_rel f (Const (name, _) $ rel) = 
-    if member op= monotonicity_names name then f rel else f @{term undefined}
-  | fold_transfer_rel f _ = f @{term undefined}
+    if member op= monotonicity_names name then f rel else f \<^term>\<open>undefined\<close>
+  | fold_transfer_rel f _ = f \<^term>\<open>undefined\<close>
 
 fun filter_transfer_rules_by_rel transfer_rel transfer_rules =
   let
@@ -1012,7 +1012,7 @@ fun lifting_forget_cmd bundle_name lthy =
 
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword lifting_forget} 
+  Outer_Syntax.local_theory \<^command_keyword>\<open>lifting_forget\<close> 
     "unsetup Lifting and Transfer for the given lifting bundle"
     (Parse.name_position >> lifting_forget_cmd)
 
@@ -1041,7 +1041,7 @@ fun lifting_update_cmd bundle_name lthy =
   update_transfer_rules (pointer_of_bundle_name bundle_name lthy) lthy
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword lifting_update}
+  Outer_Syntax.local_theory \<^command_keyword>\<open>lifting_update\<close>
     "add newly introduced transfer rules to a bundle storing the state of Lifting and Transfer"
     (Parse.name_position >> lifting_update_cmd)
 

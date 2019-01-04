@@ -214,7 +214,7 @@ text \<open>The set's element type must be wellordered (e.g. the natural numbers
 
 text \<open>
   Could be generalized to
-    @{prop "enumerate' S n = (SOME t. t \<in> s \<and> finite {s\<in>S. s < t} \<and> card {s\<in>S. s < t} = n)"}.
+    \<^prop>\<open>enumerate' S n = (SOME t. t \<in> s \<and> finite {s\<in>S. s < t} \<and> card {s\<in>S. s < t} = n)\<close>.
 \<close>
 
 primrec (in wellorder) enumerate :: "'a set \<Rightarrow> nat \<Rightarrow> 'a"

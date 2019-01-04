@@ -173,7 +173,7 @@ lemma converse_rtranclp_into_rtranclp: "r a b \<Longrightarrow> r\<^sup>*\<^sup>
 
 lemmas converse_rtrancl_into_rtrancl = converse_rtranclp_into_rtranclp [to_set]
 
-text \<open>\<^medskip> More @{term "r\<^sup>*"} equations and inclusions.\<close>
+text \<open>\<^medskip> More \<^term>\<open>r\<^sup>*\<close> equations and inclusions.\<close>
 
 lemma rtranclp_idemp [simp]: "(r\<^sup>*\<^sup>*)\<^sup>*\<^sup>* = r\<^sup>*\<^sup>*"
   apply (auto intro!: order_antisym)
@@ -391,7 +391,7 @@ lemma trancl_Int_subset: "r \<subseteq> s \<Longrightarrow> (r\<^sup>+ \<inter> 
 lemma trancl_unfold: "r\<^sup>+ = r \<union> r\<^sup>+ O r"
   by (auto intro: trancl_into_trancl elim: tranclE)
 
-text \<open>Transitivity of @{term "r\<^sup>+"}\<close>
+text \<open>Transitivity of \<^term>\<open>r\<^sup>+\<close>\<close>
 lemma trans_trancl [simp]: "trans (r\<^sup>+)"
 proof (rule transI)
   fix x y z
@@ -1226,10 +1226,10 @@ structure Trancl_Tac = Trancl_Tac
 
   fun decomp (@{const Trueprop} $ t) =
         let
-          fun dec (Const (@{const_name Set.member}, _) $ (Const (@{const_name Pair}, _) $ a $ b) $ rel) =
+          fun dec (Const (\<^const_name>\<open>Set.member\<close>, _) $ (Const (\<^const_name>\<open>Pair\<close>, _) $ a $ b) $ rel) =
               let
-                fun decr (Const (@{const_name rtrancl}, _ ) $ r) = (r,"r*")
-                  | decr (Const (@{const_name trancl}, _ ) $ r)  = (r,"r+")
+                fun decr (Const (\<^const_name>\<open>rtrancl\<close>, _ ) $ r) = (r,"r*")
+                  | decr (Const (\<^const_name>\<open>trancl\<close>, _ ) $ r)  = (r,"r+")
                   | decr r = (r,"r");
                 val (rel,r) = decr (Envir.beta_eta_contract rel);
               in SOME (a,b,rel,r) end
@@ -1253,8 +1253,8 @@ structure Tranclp_Tac = Trancl_Tac
         let
           fun dec (rel $ a $ b) =
             let
-              fun decr (Const (@{const_name rtranclp}, _ ) $ r) = (r,"r*")
-                | decr (Const (@{const_name tranclp}, _ ) $ r)  = (r,"r+")
+              fun decr (Const (\<^const_name>\<open>rtranclp\<close>, _ ) $ r) = (r,"r*")
+                | decr (Const (\<^const_name>\<open>tranclp\<close>, _ ) $ r)  = (r,"r+")
                 | decr r = (r,"r");
               val (rel,r) = decr rel;
             in SOME (a, b, rel, r) end

@@ -400,7 +400,7 @@ fun read_mixfix s =
   end;
 
 val parse_fixity =
-  (@{keyword "infix"} >> K X) || (@{keyword "infixl"} >> K L) || (@{keyword "infixr"} >> K R)
+  (\<^keyword>\<open>infix\<close> >> K X) || (\<^keyword>\<open>infixl\<close> >> K L) || (\<^keyword>\<open>infixr\<close> >> K R)
 
 fun parse_mixfix x =
   (Parse.string >> read_mixfix

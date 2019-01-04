@@ -43,10 +43,10 @@ translations
   "SUM x:A. B" \<rightharpoonup> "CONST Sigma(A, \<lambda>x. B)"
   "A * B" \<rightharpoonup> "CONST Sigma(A, \<lambda>_. B)"
 print_translation \<open>
- [(@{const_syntax Pi},
-    fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
-  (@{const_syntax Sigma},
-    fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
+ [(\<^const_syntax>\<open>Pi\<close>,
+    fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Pi\<close>, \<^syntax_const>\<open>_arrow\<close>)),
+  (\<^const_syntax>\<open>Sigma\<close>,
+    fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Sigma\<close>, \<^syntax_const>\<open>_star\<close>))]
 \<close>
 
 definition Nat :: "i set"

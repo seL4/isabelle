@@ -267,10 +267,10 @@ val caseB_lemmas = mk_lemmas @{thms caseBs}
 val ccl_dstncts =
   let
     fun mk_raw_dstnct_thm rls s =
-      Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
+      Goal.prove_global \<^theory> [] [] (Syntax.read_prop_global \<^theory> s)
         (fn {context = ctxt, ...} => resolve_tac ctxt @{thms notI} 1 THEN eresolve_tac ctxt rls 1)
   in map (mk_raw_dstnct_thm caseB_lemmas)
-    (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
+    (mk_dstnct_rls \<^theory> ["bot","true","false","pair","lambda"]) end
 
 fun mk_dstnct_thms ctxt defs inj_rls xs =
   let

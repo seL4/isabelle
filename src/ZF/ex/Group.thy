@@ -273,13 +273,13 @@ proof -
 qed
 
 text \<open>
-  Since @{term H} is nonempty, it contains some element @{term x}.  Since
+  Since \<^term>\<open>H\<close> is nonempty, it contains some element \<^term>\<open>x\<close>.  Since
   it is closed under inverse, it contains \<open>inv x\<close>.  Since
   it is closed under product, it contains \<open>x \<cdot> inv x = \<one>\<close>.
 \<close>
 
 text \<open>
-  Since @{term H} is nonempty, it contains some element @{term x}.  Since
+  Since \<^term>\<open>H\<close> is nonempty, it contains some element \<^term>\<open>x\<close>.  Since
   it is closed under inverse, it contains \<open>inv x\<close>.  Since
   it is closed under product, it contains \<open>x \<cdot> inv x = \<one>\<close>.
 \<close>
@@ -411,8 +411,8 @@ proof -
     by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def)
 qed
 
-text\<open>Basis for homomorphism proofs: we assume two groups @{term G} and
-  @{term H}, with a homomorphism @{term h} between them\<close>
+text\<open>Basis for homomorphism proofs: we assume two groups \<^term>\<open>G\<close> and
+  \<^term>\<open>H\<close>, with a homomorphism \<^term>\<open>h\<close> between them\<close>
 locale group_hom = G: group G + H: group H
   for G (structure) and H (structure) and h +
   assumes homh: "h \<in> hom(G,H)"
@@ -628,7 +628,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 
 lemma (in group) coset_join2:
      "\<lbrakk>x \<in> carrier(G);  subgroup(H,G);  x\<in>H\<rbrakk> \<Longrightarrow> H #> x = H"
-  \<comment> \<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
+  \<comment> \<open>Alternative proof is to put \<^term>\<open>x=\<one>\<close> in \<open>repr_independence\<close>.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in group) r_coset_subset_G:
@@ -972,7 +972,7 @@ apply (auto simp add: RCOSETS_def)
 apply (simp add: r_coset_subset_G [THEN subset_Finite])
 done
 
-text\<open>More general than the HOL version, which also requires @{term G} to
+text\<open>More general than the HOL version, which also requires \<^term>\<open>G\<close> to
       be finite.\<close>
 lemma (in group) card_cosets_equal:
   assumes H:   "H \<subseteq> carrier(G)"
@@ -1071,8 +1071,8 @@ apply (rule group.inv_equality [OF factorgroup_is_group])
 apply (simp_all add: FactGroup_def setinv_closed rcosets_inv_mult_group_eq)
 done
 
-text\<open>The coset map is a homomorphism from @{term G} to the quotient group
-  @{term "G Mod H"}\<close>
+text\<open>The coset map is a homomorphism from \<^term>\<open>G\<close> to the quotient group
+  \<^term>\<open>G Mod H\<close>\<close>
 lemma (in normal) r_coset_hom_Mod:
   "(\<lambda>a \<in> carrier(G). H #> a) \<in> hom(G, G Mod H)"
 by (auto simp add: FactGroup_def RCOSETS_def hom_def rcos_sum intro: lam_type)
@@ -1201,7 +1201,7 @@ lemma (in group_hom) kernel_rcoset_subset:
 
 
 
-text\<open>If the homomorphism @{term h} is onto @{term H}, then so is the
+text\<open>If the homomorphism \<^term>\<open>h\<close> is onto \<^term>\<open>H\<close>, then so is the
 homomorphism from the quotient group\<close>
 lemma (in group_hom) FactGroup_surj:
   assumes h: "h \<in> surj(carrier(G), carrier(H))"
@@ -1215,14 +1215,14 @@ proof (simp add: surj_def FactGroup_contents_mem lam_type, clarify)
   hence "(\<Union>x\<in>kernel(G,H,h) #> g. {h ` x}) = {y}"
     by (auto simp add: y kernel_def r_coset_def)
   with g show "\<exists>x\<in>carrier(G Mod kernel(G, H, h)). contents(h `` x) = y"
-        \<comment> \<open>The witness is @{term "kernel(G,H,h) #> g"}\<close>
+        \<comment> \<open>The witness is \<^term>\<open>kernel(G,H,h) #> g\<close>\<close>
     by (force simp add: FactGroup_def RCOSETS_def
            image_eq_UN [OF hom_is_fun] kernel_rcoset_subset)
 qed
 
 
-text\<open>If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
- quotient group @{term "G Mod (kernel(G,H,h))"} is isomorphic to @{term H}.\<close>
+text\<open>If \<^term>\<open>h\<close> is a homomorphism from \<^term>\<open>G\<close> onto \<^term>\<open>H\<close>, then the
+ quotient group \<^term>\<open>G Mod (kernel(G,H,h))\<close> is isomorphic to \<^term>\<open>H\<close>.\<close>
 theorem (in group_hom) FactGroup_iso:
   "h \<in> surj(carrier(G), carrier(H))
    \<Longrightarrow> (\<lambda>X\<in>carrier (G Mod kernel(G,H,h)). contents (h``X)) \<in> (G Mod (kernel(G,H,h))) \<cong> H"

@@ -23,7 +23,7 @@ val settings = [("solver", "\"DefaultSAT4J\"")]
 
 fun cast_to_rep R u = Op1 (Cast, type_of u, R, u)
 
-val dummy_T = @{typ 'a}
+val dummy_T = \<^typ>\<open>'a\<close>
 
 val atom1_v1 = FreeName ("atom1_v1", dummy_T, Atom (1, 0))
 val atom2_v1 = FreeName ("atom2_v1", dummy_T, Atom (2, 0))
@@ -210,12 +210,12 @@ fun problem_for_nut ctxt (name, u) =
 
 fun run_all_tests () =
   let
-    val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params @{theory} []
+    val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params \<^theory> []
     val max_threads = 1
     val max_solutions = 1
   in
     case Kodkod.solve_any_problem debug overlord timeout max_threads max_solutions
-                                  (map (problem_for_nut @{context}) tests) of
+                                  (map (problem_for_nut \<^context>) tests) of
       Kodkod.Normal ([], _, _) => ()
     | _ => error "Tests failed"
   end

@@ -13,10 +13,10 @@ text \<open>
   for some period $p$ and gets derived results like $f(x - p) = f(x)$ and $f(x + 2p) = f(x)$
   for free.
 
-  @{term g} and @{term gm} are ``plus/minus k periods'' functions. 
-  @{term g1} and @{term gn1} are ``plus/minus one period'' functions.
+  \<^term>\<open>g\<close> and \<^term>\<open>gm\<close> are ``plus/minus k periods'' functions. 
+  \<^term>\<open>g1\<close> and \<^term>\<open>gn1\<close> are ``plus/minus one period'' functions.
   This is useful e.g. if the period is one; the lemmas one gets are then 
-  @{term "f (x + 1) = f x"} instead of @{term "f (x + 1 * 1) = f x"} etc.
+  \<^term>\<open>f (x + 1) = f x\<close> instead of \<^term>\<open>f (x + 1 * 1) = f x\<close> etc.
 \<close>
 locale periodic_fun = 
   fixes f :: "('a :: {ring_1}) \<Rightarrow> 'b" and g gm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" and g1 gn1 :: "'a \<Rightarrow> 'a"
@@ -63,8 +63,8 @@ end
 
 
 text \<open>
-  Specialised case of the @{term periodic_fun} locale for periods that are not 1.
-  Gives lemmas @{term "f (x - period) = f x"} etc.
+  Specialised case of the \<^term>\<open>periodic_fun\<close> locale for periods that are not 1.
+  Gives lemmas \<^term>\<open>f (x - period) = f x\<close> etc.
 \<close>
 locale periodic_fun_simple = 
   fixes f :: "('a :: {ring_1}) \<Rightarrow> 'b" and period :: 'a
@@ -77,8 +77,8 @@ end
 
 
 text \<open>
-  Specialised case of the @{term periodic_fun} locale for period 1.
-  Gives lemmas @{term "f (x - 1) = f x"} etc.
+  Specialised case of the \<^term>\<open>periodic_fun\<close> locale for period 1.
+  Gives lemmas \<^term>\<open>f (x - 1) = f x\<close> etc.
 \<close>
 locale periodic_fun_simple' = 
   fixes f :: "('a :: {ring_1}) \<Rightarrow> 'b"

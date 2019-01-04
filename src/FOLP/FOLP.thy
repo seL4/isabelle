@@ -56,8 +56,8 @@ schematic_goal impCE:
     and r2: "!!y. y:Q ==> g(y):R"
   shows "?p : R"
   apply (rule excluded_middle [THEN disjE])
-   apply (tactic \<open>DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
-       resolve_tac @{context} [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1)\<close>)
+   apply (tactic \<open>DEPTH_SOLVE (assume_tac \<^context> 1 ORELSE
+       resolve_tac \<^context> [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1)\<close>)
   done
 
 (*Double negation law*)
@@ -80,10 +80,10 @@ schematic_goal iffCE:
   apply (insert major)
   apply (unfold iff_def)
   apply (rule conjE)
-  apply (tactic \<open>DEPTH_SOLVE_1 (eresolve_tac @{context} @{thms impCE} 1 ORELSE
-      eresolve_tac @{context} [@{thm notE}, @{thm impE}] 1 THEN assume_tac @{context} 1 ORELSE
-      assume_tac @{context} 1 ORELSE
-      resolve_tac @{context} [@{thm r1}, @{thm r2}] 1)\<close>)+
+  apply (tactic \<open>DEPTH_SOLVE_1 (eresolve_tac \<^context> @{thms impCE} 1 ORELSE
+      eresolve_tac \<^context> [@{thm notE}, @{thm impE}] 1 THEN assume_tac \<^context> 1 ORELSE
+      assume_tac \<^context> 1 ORELSE
+      resolve_tac \<^context> [@{thm r1}, @{thm r2}] 1)\<close>)+
   done
 
 
@@ -135,7 +135,7 @@ schematic_goal cla_rews:
   "?p2 : ~P | P"
   "?p3 : ~ ~ P <-> P"
   "?p4 : (~P --> P) <-> P"
-  apply (tactic \<open>ALLGOALS (Cla.fast_tac @{context} FOLP_cs)\<close>)
+  apply (tactic \<open>ALLGOALS (Cla.fast_tac \<^context> FOLP_cs)\<close>)
   done
 
 ML_file "simpdata.ML"

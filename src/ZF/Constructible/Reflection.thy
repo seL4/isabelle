@@ -22,10 +22,10 @@ subsection\<open>Basic Definitions\<close>
 text\<open>First part: the cumulative hierarchy defining the class \<open>M\<close>.
 To avoid handling multiple arguments, we assume that \<open>Mset(l)\<close> is
 closed under ordered pairing provided \<open>l\<close> is limit.  Possibly this
-could be avoided: the induction hypothesis @{term Cl_reflects}
+could be avoided: the induction hypothesis \<^term>\<open>Cl_reflects\<close>
 (in locale \<open>ex_reflection\<close>) could be weakened to
-@{term "\<forall>y\<in>Mset(a). \<forall>z\<in>Mset(a). P(<y,z>) \<longleftrightarrow> Q(a,<y,z>)"}, removing most
-uses of @{term Pair_in_Mset}.  But there isn't much point in doing so, since
+\<^term>\<open>\<forall>y\<in>Mset(a). \<forall>z\<in>Mset(a). P(<y,z>) \<longleftrightarrow> Q(a,<y,z>)\<close>, removing most
+uses of \<^term>\<open>Pair_in_Mset\<close>.  But there isn't much point in doing so, since
 ultimately the \<open>ex_reflection\<close> proof is packaged up using the
 predicate \<open>Reflects\<close>.
 \<close>
@@ -38,9 +38,9 @@ locale reflection =
   defines "M(x) == \<exists>a. Ord(a) & x \<in> Mset(a)"
       and "Reflects(Cl,P,Q) == Closed_Unbounded(Cl) &
                               (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x)))"
-  fixes F0 \<comment> \<open>ordinal for a specific value @{term y}\<close>
-  fixes FF \<comment> \<open>sup over the whole level, @{term "y\<in>Mset(a)"}\<close>
-  fixes ClEx \<comment> \<open>Reflecting ordinals for the formula @{term "\<exists>z. P"}\<close>
+  fixes F0 \<comment> \<open>ordinal for a specific value \<^term>\<open>y\<close>\<close>
+  fixes FF \<comment> \<open>sup over the whole level, \<^term>\<open>y\<in>Mset(a)\<close>\<close>
+  fixes ClEx \<comment> \<open>Reflecting ordinals for the formula \<^term>\<open>\<exists>z. P\<close>\<close>
   defines "F0(P,y) == \<mu> b. (\<exists>z. M(z) & P(<y,z>)) \<longrightarrow>
                                (\<exists>z\<in>Mset(b). P(<y,z>))"
       and "FF(P)   == \<lambda>a. \<Union>y\<in>Mset(a). F0(P,y)"
@@ -115,8 +115,8 @@ apply (insert Mset_cont)
 apply (simp add: cont_Ord_def FF_def, blast)
 done
 
-text\<open>Recall that @{term F0} depends upon @{term "y\<in>Mset(a)"},
-while @{term FF} depends only upon @{term a}.\<close>
+text\<open>Recall that \<^term>\<open>F0\<close> depends upon \<^term>\<open>y\<in>Mset(a)\<close>,
+while \<^term>\<open>FF\<close> depends only upon \<^term>\<open>a\<close>.\<close>
 lemma (in reflection) FF_works:
      "[| M(z); y\<in>Mset(a); P(<y,z>); Ord(a) |] ==> \<exists>z\<in>Mset(FF(P,a)). P(<y,z>)"
 apply (simp add: FF_def)
@@ -275,7 +275,7 @@ schematic_goal (in reflection)
 by fast
 
 text\<open>Problem here: there needs to be a conjunction (class intersection)
-in the class of reflecting ordinals.  The @{term "Ord(a)"} is redundant,
+in the class of reflecting ordinals.  The \<^term>\<open>Ord(a)\<close> is redundant,
 though harmless.\<close>
 lemma (in reflection)
      "Reflects(\<lambda>a. Ord(a) & ClEx(\<lambda>x. fst(x) \<in> snd(x), a),
@@ -328,7 +328,7 @@ txt\<open>
 done
 
 text\<open>Example 3.  Warning: the following examples make sense only
-if @{term P} is quantifier-free, since it is not being relativized.\<close>
+if \<^term>\<open>P\<close> is quantifier-free, since it is not being relativized.\<close>
 schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) \<longrightarrow> z \<in> y \<longleftrightarrow> z \<in> x & P(z)),

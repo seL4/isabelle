@@ -125,7 +125,7 @@ fun rel_app_tac ctxt t x y arity =
       let
         fun is_correct_rule t =
           (case t of
-            Const (@{const_name "HOL.Trueprop"}, _) $ (Const (@{const_name "Transfer.Rel"}, _) $
+            Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (\<^const_name>\<open>Transfer.Rel\<close>, _) $
               _ $ Bound x' $ Bound y') => x = x' andalso y = y'
           | _ => false);
         val idx = find_index is_correct_rule (t |> Logic.strip_assums_hyp);
@@ -186,12 +186,12 @@ fun rel_abs_tac ctxt = resolve_tac ctxt [@{thm Rel_abs}];
 
 fun step_tac' settings ctxt parametricity_thms (tm, i) =
   (case tm |> Logic.strip_assums_concl of
-    Const (@{const_name "HOL.Trueprop"}, _) $ (Const (rel, _) $ _ $ t $ u) =>
+    Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (rel, _) $ _ $ t $ u) =>
     let
       val (arity_of_t, arity_of_u) = apply2 (strip_comb #> snd #> length) (t, u);
     in
       (case rel of
-        @{const_name "Transfer.Rel"} =>
+        \<^const_name>\<open>Transfer.Rel\<close> =>
           (case (head_of t, head_of u) of
             (Abs _, _) => rel_abs_tac ctxt
           | (_, Abs _) => rel_abs_tac ctxt
@@ -210,11 +210,11 @@ fun step_tac' settings ctxt parametricity_thms (tm, i) =
             else  error_tac' ctxt "Malformed term. Arities of t and u don't match."
           | _ => error_tac' ctxt
             "Unexpected format. Expected  (Abs _, _), (_, Abs _), (Const _, Const _) or (Bound _, Bound _).")
-         | @{const_name "Conditional_Parametricity.Rel_match"} =>
+         | \<^const_name>\<open>Conditional_Parametricity.Rel_match\<close> =>
              parametricity_thm_match_tac ctxt parametricity_thms arity_of_t
       | _ => error_tac' ctxt "Unexpected format. Expected Transfer.Rel or Rel_match marker." ) i
     end
-    | Const (@{const_name "HOL.Trueprop"}, _) $ (Const (@{const_name "Transfer.is_equality"}, _) $ _) =>
+    | Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (\<^const_name>\<open>Transfer.is_equality\<close>, _) $ _) =>
         Transfer.eq_tac ctxt i
     | _ => error_tac' ctxt "Unexpected format. Not of form Const (HOL.Trueprop, _) $ _" i);
 
@@ -227,8 +227,8 @@ fun apply_theorem_tac ctxt thm =
 (* Goal Generation  *)
 fun strip_boundvars_from_rel_match t =
   (case t of
-    (Tp as Const (@{const_name "HOL.Trueprop"}, _)) $
-      ((Rm as Const (@{const_name "Conditional_Parametricity.Rel_match"}, _)) $ R $ t $ t') =>
+    (Tp as Const (\<^const_name>\<open>HOL.Trueprop\<close>, _)) $
+      ((Rm as Const (\<^const_name>\<open>Conditional_Parametricity.Rel_match\<close>, _)) $ R $ t $ t') =>
         Tp $ (Rm $ apply_Var_to_bounds R $ t $ t')
   | _ => t);
 
@@ -251,9 +251,9 @@ fun mk_goal ctxt t =
     val u = subst_atomic_types ((map TVar tvars) ~~ new_frees) t;
     val T = fastype_of t;
     val U = fastype_of u;
-    val R = [T,U] ---> @{typ bool}
+    val R = [T,U] ---> \<^typ>\<open>bool\<close>
     val r = Var (("R", 2 * i), R);
-    val transfer_rel = Const (@{const_name "Transfer.Rel"}, [R,T,U] ---> @{typ bool});
+    val transfer_rel = Const (\<^const_name>\<open>Transfer.Rel\<close>, [R,T,U] ---> \<^typ>\<open>bool\<close>);
   in HOLogic.mk_Trueprop (transfer_rel $ r $ t $ u) end;
 
 fun mk_abs_helper T t =
@@ -294,14 +294,14 @@ fun mk_param_goal_from_eq_def ctxt thm =
   let
     val t =
       (case Thm.full_prop_of thm of
-        (Const (@{const_name "Pure.eq"}, _) $ t' $ _) => t'
+        (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t' $ _) => t'
       | _ => theorem_format_error ctxt thm);
   in mk_goal ctxt t end;
 
 (* Transformations and parametricity theorems *)
 fun transform_class_rule ctxt thm =
   (case Thm.concl_of thm of
-    Const (@{const_name "HOL.Trueprop"}, _) $ (Const (@{const_name "Transfer.Rel"}, _) $ _ $ t $ u ) =>
+    Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (\<^const_name>\<open>Transfer.Rel\<close>, _) $ _ $ t $ u ) =>
       (if curry Term.aconv_untyped t u andalso is_class_op ctxt t then
         thm RS @{thm Rel_Rel_match}
       else thm)
@@ -309,23 +309,23 @@ fun transform_class_rule ctxt thm =
 
 fun is_parametricity_theorem thm =
   (case Thm.concl_of thm of
-    Const (@{const_name "HOL.Trueprop"}, _) $ (Const (rel, _) $ _ $ t $ u ) =>
-      if rel = @{const_name "Transfer.Rel"} orelse
-        rel = @{const_name "Conditional_Parametricity.Rel_match"}
+    Const (\<^const_name>\<open>HOL.Trueprop\<close>, _) $ (Const (rel, _) $ _ $ t $ u ) =>
+      if rel = \<^const_name>\<open>Transfer.Rel\<close> orelse
+        rel = \<^const_name>\<open>Conditional_Parametricity.Rel_match\<close>
       then curry Term.aconv_untyped t u
       else false
   | _ => false);
 
 (* Pre- and postprocessing of theorems *)
 fun mk_Domainp_assm (T, R) =
-  HOLogic.mk_eq ((Const (@{const_name Domainp}, Term.fastype_of T --> Term.fastype_of R) $ T), R);
+  HOLogic.mk_eq ((Const (\<^const_name>\<open>Domainp\<close>, Term.fastype_of T --> Term.fastype_of R) $ T), R);
 
 val Domainp_lemma =
   @{lemma "(!!R. Domainp T = R ==> PROP (P R)) == PROP (P (Domainp T))"
     by (rule, drule meta_spec,
       erule meta_mp, rule HOL.refl, simp)};
 
-fun fold_Domainp f (t as Const (@{const_name Domainp},_) $ (Var (_,_))) = f t
+fun fold_Domainp f (t as Const (\<^const_name>\<open>Domainp\<close>,_) $ (Var (_,_))) = f t
   | fold_Domainp f (t $ u) = fold_Domainp f t #> fold_Domainp f u
   | fold_Domainp f (Abs (_, _, t)) = fold_Domainp f t
   | fold_Domainp _ _ = I;
@@ -387,7 +387,7 @@ fun transfer_rel_conv conv =
 fun fold_relator_eqs_conv ctxt ct = (Transfer.bottom_rewr_conv (Transfer.get_relator_eq ctxt)) ct;
 
 fun mk_is_equality t =
-  Const (@{const_name is_equality}, Term.fastype_of t --> HOLogic.boolT) $ t;
+  Const (\<^const_name>\<open>is_equality\<close>, Term.fastype_of t --> HOLogic.boolT) $ t;
 
 val is_equality_lemma =
   @{lemma "(!!R. is_equality R ==> PROP (P R)) == PROP (P (=))"
@@ -399,7 +399,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
     (* Only consider "(=)" at non-base types *)
-    fun is_eq (Const (@{const_name HOL.eq}, Type ("fun", [T, _]))) =
+    fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, Type ("fun", [T, _]))) =
         (case T of Type (_, []) => false | _ => true)
       | is_eq _ = false
     val add_eqs = Term.fold_aterms (fn t => if is_eq t then insert (op =) t else I)
@@ -440,7 +440,7 @@ fun abstract_equalities_transfer ctxt thm =
 fun prep_rule ctxt = abstract_equalities_transfer ctxt #> abstract_domains_transfer ctxt;
 
 fun get_preprocess_theorems ctxt =
-  Named_Theorems.get ctxt @{named_theorems parametricity_preprocess};
+  Named_Theorems.get ctxt \<^named_theorems>\<open>parametricity_preprocess\<close>;
 
 fun preprocess_theorem ctxt =
   Local_Defs.unfold0 ctxt (get_preprocess_theorems ctxt)
@@ -513,7 +513,7 @@ val parametric_constant_cmd = snd oo gen_parametric_constant default_settings (A
   (singleton o Attrib.eval_thms);
 
 val _ =
-  Outer_Syntax.local_theory @{command_keyword parametric_constant} "proves parametricity"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>parametric_constant\<close> "proves parametricity"
     ((Parse_Spec.opt_thm_name ":" -- Parse.thm) >> parametric_constant_cmd);
 
 end;

@@ -82,10 +82,10 @@ fun replay_rule_error ctxt = replay_error ctxt "Failed to replay Z3 proof step"
 fun trace_goal ctxt rule thms t =
   trace ctxt (fn () => Pretty.string_of (pretty_goal ctxt "Goal" rule thms t))
 
-fun as_prop (t as Const (@{const_name Trueprop}, _) $ _) = t
+fun as_prop (t as Const (\<^const_name>\<open>Trueprop\<close>, _) $ _) = t
   | as_prop t = HOLogic.mk_Trueprop t
 
-fun dest_prop (Const (@{const_name Trueprop}, _) $ t) = t
+fun dest_prop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = t
   | dest_prop t = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
@@ -215,7 +215,7 @@ fun abstract_prop (t as (c as @{const If (bool)}) $ t1 $ t2 $ t3) =
       abstract_bin abstract_prop HOLogic.mk_conj t t1 t2
   | abstract_prop (t as @{const HOL.implies} $ t1 $ t2) =
       abstract_bin abstract_prop HOLogic.mk_imp t t1 t2
-  | abstract_prop (t as @{term "HOL.eq :: bool => _"} $ t1 $ t2) =
+  | abstract_prop (t as \<^term>\<open>HOL.eq :: bool => _\<close> $ t1 $ t2) =
       abstract_bin abstract_prop HOLogic.mk_eq t t1 t2
   | abstract_prop t = abstract_not abstract_prop t
 
@@ -225,28 +225,28 @@ fun abstract_arith ctxt u =
           abstract_sub t (abstract_term t)
       | abs (t as (c as Const _) $ Abs (s, T, t')) =
           abstract_sub t (abs t' #>> (fn u' => c $ Abs (s, T, u')))
-      | abs (t as (c as Const (@{const_name If}, _)) $ t1 $ t2 $ t3) =
+      | abs (t as (c as Const (\<^const_name>\<open>If\<close>, _)) $ t1 $ t2 $ t3) =
           abstract_ter abs (fn (t1, t2, t3) => c $ t1 $ t2 $ t3) t t1 t2 t3
       | abs (t as @{const HOL.Not} $ t1) = abstract_sub t (abs t1 #>> HOLogic.mk_not)
       | abs (t as @{const HOL.disj} $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> HOLogic.mk_disj)
-      | abs (t as (c as Const (@{const_name uminus_class.uminus}, _)) $ t1) =
+      | abs (t as (c as Const (\<^const_name>\<open>uminus_class.uminus\<close>, _)) $ t1) =
           abstract_sub t (abs t1 #>> (fn u => c $ u))
-      | abs (t as (c as Const (@{const_name plus_class.plus}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>plus_class.plus\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name minus_class.minus}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>minus_class.minus\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name times_class.times}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>times_class.times\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name z3div}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>z3div\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name z3mod}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>z3mod\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name ord_class.less}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>ord_class.less\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
-      | abs (t as (c as Const (@{const_name ord_class.less_eq}, _)) $ t1 $ t2) =
+      | abs (t as (c as Const (\<^const_name>\<open>ord_class.less_eq\<close>, _)) $ t1 $ t2) =
           abstract_sub t (abs t1 ##>> abs t2 #>> (fn (u1, u2) => c $ u1 $ u2))
       | abs t = abstract_sub t (fn cx =>
           if can HOLogic.dest_number t then (t, cx)
@@ -262,13 +262,13 @@ fun abstract_unit (t as (@{const HOL.Not} $ (@{const HOL.disj} $ t1 $ t2))) =
   | abstract_unit (t as (@{const HOL.disj} $ t1 $ t2)) =
       abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
         HOLogic.mk_disj)
-  | abstract_unit (t as (Const(@{const_name HOL.eq}, _) $ t1 $ t2)) =
-      if fastype_of t1 = @{typ bool} then
+  | abstract_unit (t as (Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
+      if fastype_of t1 = \<^typ>\<open>bool\<close> then
         abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
           HOLogic.mk_eq)
       else abstract_lit t
-  | abstract_unit (t as (@{const HOL.Not} $ Const(@{const_name HOL.eq}, _) $ t1 $ t2)) =
-      if fastype_of t1 = @{typ bool} then
+  | abstract_unit (t as (@{const HOL.Not} $ Const(\<^const_name>\<open>HOL.eq\<close>, _) $ t1 $ t2)) =
+      if fastype_of t1 = \<^typ>\<open>bool\<close> then
         abstract_sub t (abstract_unit t1 ##>> abstract_unit t2 #>>
           HOLogic.mk_eq #>> HOLogic.mk_not)
       else abstract_lit t

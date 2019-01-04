@@ -148,7 +148,7 @@ fun to_secs min time = Int.max (min, (Time.toMilliseconds time + 999) div 1000)
 val sosN = "sos"
 val no_sosN = "no_sos"
 
-val force_sos = Attrib.setup_config_bool @{binding atp_force_sos} (K false)
+val force_sos = Attrib.setup_config_bool \<^binding>\<open>atp_force_sos\<close> (K false)
 
 val smartN = "smart"
 (* val kboN = "kbo" *)
@@ -160,7 +160,7 @@ val xsimpN = "_simp" (* SPASS-specific *)
 (* Possible values for "atp_term_order":
    "smart", "(kbo|lpo)(_weights)?(_prec|_simp)?" *)
 val term_order =
-  Attrib.setup_config_string @{binding atp_term_order} (K smartN)
+  Attrib.setup_config_string \<^binding>\<open>atp_term_order\<close> (K smartN)
 
 
 (* agsyHOL *)
@@ -213,20 +213,20 @@ val e_fun_weightN = "fun_weight"
 val e_sym_offset_weightN = "sym_offset_weight"
 
 val e_selection_heuristic =
-  Attrib.setup_config_string @{binding atp_e_selection_heuristic} (K e_smartN)
+  Attrib.setup_config_string \<^binding>\<open>atp_e_selection_heuristic\<close> (K e_smartN)
 (* FUDGE *)
 val e_default_fun_weight =
-  Attrib.setup_config_real @{binding atp_e_default_fun_weight} (K 20.0)
+  Attrib.setup_config_real \<^binding>\<open>atp_e_default_fun_weight\<close> (K 20.0)
 val e_fun_weight_base =
-  Attrib.setup_config_real @{binding atp_e_fun_weight_base} (K 0.0)
+  Attrib.setup_config_real \<^binding>\<open>atp_e_fun_weight_base\<close> (K 0.0)
 val e_fun_weight_span =
-  Attrib.setup_config_real @{binding atp_e_fun_weight_span} (K 40.0)
+  Attrib.setup_config_real \<^binding>\<open>atp_e_fun_weight_span\<close> (K 40.0)
 val e_default_sym_offs_weight =
-  Attrib.setup_config_real @{binding atp_e_default_sym_offs_weight} (K 1.0)
+  Attrib.setup_config_real \<^binding>\<open>atp_e_default_sym_offs_weight\<close> (K 1.0)
 val e_sym_offs_weight_base =
-  Attrib.setup_config_real @{binding atp_e_sym_offs_weight_base} (K ~20.0)
+  Attrib.setup_config_real \<^binding>\<open>atp_e_sym_offs_weight_base\<close> (K ~20.0)
 val e_sym_offs_weight_span =
-  Attrib.setup_config_real @{binding atp_e_sym_offs_weight_span} (K 60.0)
+  Attrib.setup_config_real \<^binding>\<open>atp_e_sym_offs_weight_span\<close> (K 60.0)
 
 fun e_selection_heuristic_case heuristic fw sow =
   if heuristic = e_fun_weightN then fw
@@ -496,7 +496,7 @@ val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=
 val spass_H2SOS = "-Heuristic=2 -SOS"
 
 val spass_extra_options =
-  Attrib.setup_config_string @{binding atp_spass_extra_options} (K "")
+  Attrib.setup_config_string \<^binding>\<open>atp_spass_extra_options\<close> (K "")
 
 val spass_config : atp_config =
   {exec = K (["SPASS_HOME"], ["SPASS"]),
@@ -538,7 +538,7 @@ val spass = (spassN, fn () => spass_config)
 
 fun is_vampire_noncommercial_license_accepted () =
   let
-    val flag = Options.default_string @{system_option vampire_noncommercial}
+    val flag = Options.default_string \<^system_option>\<open>vampire_noncommercial\<close>
       |> String.map Char.toLower
   in
     if flag = "yes" then

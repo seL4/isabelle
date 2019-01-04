@@ -32,14 +32,14 @@ struct
 
 (* configurations *)
 
-val gen_target = Attrib.setup_config_int @{binding spec_check_gen_target} (K 100)
-val gen_max = Attrib.setup_config_int @{binding spec_check_gen_max} (K 400)
-val examples = Attrib.setup_config_int @{binding spec_check_examples} (K 5)
+val gen_target = Attrib.setup_config_int \<^binding>\<open>spec_check_gen_target\<close> (K 100)
+val gen_max = Attrib.setup_config_int \<^binding>\<open>spec_check_gen_max\<close> (K 400)
+val examples = Attrib.setup_config_int \<^binding>\<open>spec_check_examples\<close> (K 5)
 
-val sort_examples = Attrib.setup_config_bool @{binding spec_check_sort_examples} (K true)
-val show_stats = Attrib.setup_config_bool @{binding spec_check_show_stats} (K true)
-val column_width = Attrib.setup_config_int @{binding spec_check_column_width} (K 22)
-val style = Attrib.setup_config_string @{binding spec_check_style} (K "Perl")
+val sort_examples = Attrib.setup_config_bool \<^binding>\<open>spec_check_sort_examples\<close> (K true)
+val show_stats = Attrib.setup_config_bool \<^binding>\<open>spec_check_show_stats\<close> (K true)
+val column_width = Attrib.setup_config_int \<^binding>\<open>spec_check_column_width\<close> (K 22)
+val style = Attrib.setup_config_string \<^binding>\<open>spec_check_style\<close> (K "Perl")
 
 type ('a, 'b) reader = 'b -> ('a * 'b) option
 type 'a rep = ('a -> string) option

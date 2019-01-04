@@ -354,7 +354,7 @@ lemma zmod_eq_0_iff: "(m mod d = 0) = (\<exists>q::int. m = d*q)"
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 
-subsubsection \<open>Proving  @{term "a div (b * c) = (a div b) div c"}\<close>
+subsubsection \<open>Proving  \<^term>\<open>a div (b * c) = (a div b) div c\<close>\<close>
 
 (*The condition c>0 seems necessary.  Consider that 7 div ~6 = ~2 but
   7 div 2 div ~3 = 3 div ~3 = ~1.  The subcase (a div b) mod c = 0 seems
@@ -495,9 +495,9 @@ proof (cases "k = 0")
     by (auto simp add: split_pos_lemma [of concl: "\<lambda>x y. P y"] split_neg_lemma [of concl: "\<lambda>x y. P y"])
 qed auto
 
-text \<open>Enable (lin)arith to deal with @{const divide} and @{const modulo}
+text \<open>Enable (lin)arith to deal with \<^const>\<open>divide\<close> and \<^const>\<open>modulo\<close>
   when these are applied to some constant that is of the form
-  @{term "numeral k"}:\<close>
+  \<^term>\<open>numeral k\<close>:\<close>
 declare split_zdiv [of _ _ "numeral k", arith_split] for k
 declare split_zmod [of _ _ "numeral k", arith_split] for k
 
@@ -1257,7 +1257,7 @@ simproc_setup numeral_divmod
    "- numeral a div numeral b :: int" | "- numeral a mod numeral b :: int" |
    "- numeral a div - numeral b :: int" | "- numeral a mod - numeral b :: int") =
 \<open> let
-    val if_cong = the (Code.get_case_cong @{theory} @{const_name If});
+    val if_cong = the (Code.get_case_cong \<^theory> \<^const_name>\<open>If\<close>);
     fun successful_rewrite ctxt ct =
       let
         val thm = Simplifier.rewrite ctxt ct

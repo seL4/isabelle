@@ -149,7 +149,7 @@ lemma allE:
   apply (rule major [THEN spec])
   done
 
-text \<open>Duplicates the quantifier; for use with @{ML eresolve_tac}.\<close>
+text \<open>Duplicates the quantifier; for use with \<^ML>\<open>eresolve_tac\<close>.\<close>
 lemma all_dupE:
   assumes major: \<open>\<forall>x. P(x)\<close>
     and r: \<open>\<lbrakk>P(x); \<forall>x. P(x)\<rbrakk> \<Longrightarrow> R\<close>
@@ -442,7 +442,7 @@ lemma subst_context3: \<open>\<lbrakk>a = b; c = d; e = f\<rbrakk> \<Longrightar
   done
 
 text \<open>
-  Useful with @{ML eresolve_tac} for proving equalities from known
+  Useful with \<^ML>\<open>eresolve_tac\<close> for proving equalities from known
   equalities.
 
         a = b
@@ -499,7 +499,7 @@ subsection \<open>Simplifications of assumed implications\<close>
 
 text \<open>
   Roy Dyckhoff has proved that \<open>conj_impE\<close>, \<open>disj_impE\<close>, and
-  \<open>imp_impE\<close> used with @{ML mp_tac} (restricted to atomic formulae) is
+  \<open>imp_impE\<close> used with \<^ML>\<open>mp_tac\<close> (restricted to atomic formulae) is
   COMPLETE for intuitionistic propositional logic.
 
   See R. Dyckhoff, Contraction-free sequent calculi for intuitionistic logic
@@ -608,7 +608,7 @@ ML_file "intprover.ML"
 
 subsection \<open>Intuitionistic Reasoning\<close>
 
-setup \<open>Intuitionistic.method_setup @{binding iprover}\<close>
+setup \<open>Intuitionistic.method_setup \<^binding>\<open>iprover\<close>\<close>
 
 lemma impE':
   assumes 1: \<open>P \<longrightarrow> Q\<close>

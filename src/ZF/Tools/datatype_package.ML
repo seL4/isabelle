@@ -53,9 +53,9 @@ fun data_domain co (rec_tms, con_ty_lists) =
     let val rec_hds = map head_of rec_tms
         val dummy = rec_hds |> forall (fn t => is_Const t orelse
           error ("Datatype set not previously declared as constant: " ^
-                   Syntax.string_of_term_global @{theory IFOL} t));
+                   Syntax.string_of_term_global \<^theory>\<open>IFOL\<close> t));
         val rec_names = (*nat doesn't have to be added*)
-            @{const_name nat} :: map (#1 o dest_Const) rec_hds
+            \<^const_name>\<open>nat\<close> :: map (#1 o dest_Const) rec_hds
         val u = if co then @{const QUniv.quniv} else @{const Univ.univ}
         val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
           (fn t as Const (a, _) => if member (op =) rec_names a then I else insert (op =) t
@@ -115,10 +115,10 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Combine split terms using case; yields the case operator for one part*)
   fun call_case case_list =
-    let fun call_f (free,[]) = Abs("null", @{typ i}, free)
+    let fun call_f (free,[]) = Abs("null", \<^typ>\<open>i\<close>, free)
           | call_f (free,args) =
                 CP.ap_split (foldr1 CP.mk_prod (map (#2 o dest_Free) args))
-                            @{typ i}
+                            \<^typ>\<open>i\<close>
                             free
     in  Balanced_Tree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_f case_list)  end;
 
@@ -143,7 +143,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (_, case_lists) = fold_rev add_case_list con_ty_lists (1, []);
 
   (*extract the types of all the variables*)
-  val case_typ = maps (map (#2 o #1)) con_ty_lists ---> @{typ "i => i"};
+  val case_typ = maps (map (#2 o #1)) con_ty_lists ---> \<^typ>\<open>i => i\<close>;
 
   val case_base_name = big_rec_base_name ^ "_case";
   val case_name = full_name case_base_name;
@@ -162,7 +162,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
 
   (*a recursive call for x is the application rec`x  *)
-  val rec_call = @{const apply} $ Free ("rec", @{typ i});
+  val rec_call = @{const apply} $ Free ("rec", \<^typ>\<open>i\<close>);
 
   (*look back down the "case args" (which have been reversed) to
     determine the de Bruijn index*)
@@ -187,7 +187,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Find each recursive argument and add a recursive call for it*)
   fun rec_args [] = []
-    | rec_args ((Const(@{const_name mem},_)$arg$X)::prems) =
+    | rec_args ((Const(\<^const_name>\<open>mem\<close>,_)$arg$X)::prems) =
        (case head_of X of
             Const(a,_) => (*recursive occurrence?*)
                           if member (op =) rec_names a
@@ -199,7 +199,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Add an argument position for each occurrence of a recursive set.
     Strictly speaking, the recursive arguments are the LAST of the function
     variable, but they all have type "i" anyway*)
-  fun add_rec_args args' T = (map (fn _ => @{typ i}) args') ---> T
+  fun add_rec_args args' T = (map (fn _ => \<^typ>\<open>i\<close>) args') ---> T
 
   (*Plug in the function variable type needed for the recursor
     as well as the new arguments (recursive calls)*)
@@ -215,7 +215,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (_, recursor_lists) = fold_rev add_case_list rec_ty_lists (1, []);
 
   (*extract the types of all the variables*)
-  val recursor_typ = maps (map (#2 o #1)) rec_ty_lists ---> @{typ "i => i"};
+  val recursor_typ = maps (map (#2 o #1)) rec_ty_lists ---> \<^typ>\<open>i => i\<close>;
 
   val recursor_base_name = big_rec_base_name ^ "_rec";
   val recursor_name = full_name recursor_base_name;
@@ -232,7 +232,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Misc_Legacy.mk_defpair
         (recursor_tm,
          @{const Univ.Vrecursor} $
-           absfree ("rec", @{typ i}) (list_comb (case_const, recursor_cases)));
+           absfree ("rec", \<^typ>\<open>i\<close>) (list_comb (case_const, recursor_cases)));
 
   (* Build the new theory *)
 
@@ -303,7 +303,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
    | SOME recursor_def =>
       let
         (*Replace subterms rec`x (where rec is a Free var) by recursor_tm(x) *)
-        fun subst_rec (Const(@{const_name apply},_) $ Free _ $ arg) = recursor_tm $ arg
+        fun subst_rec (Const(\<^const_name>\<open>apply\<close>,_) $ Free _ $ arg) = recursor_tm $ arg
           | subst_rec tm =
               let val (head, args) = strip_comb tm
               in  list_comb (head, map subst_rec args)  end;
@@ -402,7 +402,7 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
   let
     val ctxt = Proof_Context.init_global thy;
     fun read_is strs =
-      map (Syntax.parse_term ctxt #> Type.constraint @{typ i}) strs
+      map (Syntax.parse_term ctxt #> Type.constraint \<^typ>\<open>i\<close>) strs
       |> Syntax.check_terms ctxt;
 
     val rec_tms = read_is srec_tms;
@@ -422,20 +422,20 @@ fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
   #1 o add_datatype (dom, map fst dts) (map snd dts) (monos, type_intrs, type_elims);
 
 val con_decl =
-  Parse.name -- Scan.optional (@{keyword "("} |-- Parse.list1 Parse.term --| @{keyword ")"}) [] --
+  Parse.name -- Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.list1 Parse.term --| \<^keyword>\<open>)\<close>) [] --
     Parse.opt_mixfix >> Scan.triple1;
 
 val coind_prefix = if coind then "co" else "";
 
 val _ =
   Outer_Syntax.command
-    (if coind then @{command_keyword codatatype} else @{command_keyword datatype})
+    (if coind then \<^command_keyword>\<open>codatatype\<close> else \<^command_keyword>\<open>datatype\<close>)
     ("define " ^ coind_prefix ^ "datatype")
-    ((Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<="}) |-- Parse.!!! Parse.term) "") --
-      Parse.and_list1 (Parse.term -- (@{keyword "="} |-- Parse.enum1 "|" con_decl)) --
-      Scan.optional (@{keyword "monos"} |-- Parse.!!! Parse.thms1) [] --
-      Scan.optional (@{keyword "type_intros"} |-- Parse.!!! Parse.thms1) [] --
-      Scan.optional (@{keyword "type_elims"} |-- Parse.!!! Parse.thms1) []
+    ((Scan.optional ((\<^keyword>\<open>\<subseteq>\<close> || \<^keyword>\<open><=\<close>) |-- Parse.!!! Parse.term) "") --
+      Parse.and_list1 (Parse.term -- (\<^keyword>\<open>=\<close> |-- Parse.enum1 "|" con_decl)) --
+      Scan.optional (\<^keyword>\<open>monos\<close> |-- Parse.!!! Parse.thms1) [] --
+      Scan.optional (\<^keyword>\<open>type_intros\<close> |-- Parse.!!! Parse.thms1) [] --
+      Scan.optional (\<^keyword>\<open>type_elims\<close> |-- Parse.!!! Parse.thms1) []
       >> (Toplevel.theory o mk_datatype));
 
 end;

@@ -55,15 +55,15 @@ datatype flag = AbsF | RepF
 fun negF AbsF = RepF
   | negF RepF = AbsF
 
-fun is_identity (Const (@{const_name id}, _)) = true
+fun is_identity (Const (\<^const_name>\<open>id\<close>, _)) = true
   | is_identity _ = false
 
-fun mk_identity ty = Const (@{const_name id}, ty --> ty)
+fun mk_identity ty = Const (\<^const_name>\<open>id\<close>, ty --> ty)
 
 fun mk_fun_compose flag (trm1, trm2) =
   case flag of
-    AbsF => Const (@{const_name comp}, dummyT) $ trm1 $ trm2
-  | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
+    AbsF => Const (\<^const_name>\<open>comp\<close>, dummyT) $ trm1 $ trm2
+  | RepF => Const (\<^const_name>\<open>comp\<close>, dummyT) $ trm2 $ trm1
 
 fun get_mapfun_data ctxt s =
   (case Symtab.lookup (Functor.entries ctxt) s of
@@ -264,11 +264,11 @@ fun force_typ ctxt trm ty =
     map_types (Envir.subst_type ty_inst) trm
   end
 
-fun is_eq (Const (@{const_name HOL.eq}, _)) = true
+fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _)) = true
   | is_eq _ = false
 
 fun mk_rel_compose (trm1, trm2) =
-  Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
+  Const (\<^const_abbrev>\<open>rel_conj\<close>, dummyT) $ trm1 $ trm2
 
 fun get_relmap ctxt s =
   (case Quotient_Info.lookup_quotmaps ctxt s of
@@ -312,7 +312,7 @@ fun equiv_relation ctxt (rty, qty) =
             val rtys' = map (Envir.subst_type qtyenv) rtys
             val args = map (equiv_relation ctxt) (tys ~~ rtys')
             val eqv_rel = get_equiv_rel ctxt s'
-            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
+            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> \<^typ>\<open>bool\<close>)
           in
             if forall is_eq args
             then eqv_rel'
@@ -442,11 +442,11 @@ fun prove_quot_thm ctxt (rty, qty) =
 
 *)
 
-val mk_babs = Const (@{const_name Babs}, dummyT)
-val mk_ball = Const (@{const_name Ball}, dummyT)
-val mk_bex  = Const (@{const_name Bex}, dummyT)
-val mk_bex1_rel = Const (@{const_name Bex1_rel}, dummyT)
-val mk_resp = Const (@{const_name Respects}, dummyT)
+val mk_babs = Const (\<^const_name>\<open>Babs\<close>, dummyT)
+val mk_ball = Const (\<^const_name>\<open>Ball\<close>, dummyT)
+val mk_bex  = Const (\<^const_name>\<open>Bex\<close>, dummyT)
+val mk_bex1_rel = Const (\<^const_name>\<open>Bex1_rel\<close>, dummyT)
+val mk_resp = Const (\<^const_name>\<open>Respects\<close>, dummyT)
 
 (* - applies f to the subterm of an abstraction,
      otherwise to the given term,
@@ -509,7 +509,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         else mk_babs $ (mk_resp $ equiv_relation ctxt (ty, ty')) $ subtrm
       end
 
-  | (Const (@{const_name Babs}, T) $ resrel $ (t as (Abs (_, ty, _))), t' as (Abs (_, ty', _))) =>
+  | (Const (\<^const_name>\<open>Babs\<close>, T) $ resrel $ (t as (Abs (_, ty, _))), t' as (Abs (_, ty', _))) =>
       let
         val subtrm = regularize_trm ctxt (t, t')
         val needres = mk_resp $ equiv_relation_chk ctxt (ty, ty')
@@ -519,26 +519,26 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         else mk_babs $ resrel $ subtrm
       end
 
-  | (Const (@{const_name All}, ty) $ t, Const (@{const_name All}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>All\<close>, ty) $ t, Const (\<^const_name>\<open>All\<close>, ty') $ t') =>
       let
         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
       in
-        if ty = ty' then Const (@{const_name All}, ty) $ subtrm
+        if ty = ty' then Const (\<^const_name>\<open>All\<close>, ty) $ subtrm
         else mk_ball $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
       end
 
-  | (Const (@{const_name Ex}, ty) $ t, Const (@{const_name Ex}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>Ex\<close>, ty) $ t, Const (\<^const_name>\<open>Ex\<close>, ty') $ t') =>
       let
         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
       in
-        if ty = ty' then Const (@{const_name Ex}, ty) $ subtrm
+        if ty = ty' then Const (\<^const_name>\<open>Ex\<close>, ty) $ subtrm
         else mk_bex $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
       end
 
-  | (Const (@{const_name Ex1}, ty) $ (Abs (_, _,
-      (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name Set.member}, _) $ _ $
-        (Const (@{const_name Respects}, _) $ resrel)) $ (t $ _)))),
-     Const (@{const_name Ex1}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>Ex1\<close>, ty) $ (Abs (_, _,
+      (Const (\<^const_name>\<open>HOL.conj\<close>, _) $ (Const (\<^const_name>\<open>Set.member\<close>, _) $ _ $
+        (Const (\<^const_name>\<open>Respects\<close>, _) $ resrel)) $ (t $ _)))),
+     Const (\<^const_name>\<open>Ex1\<close>, ty') $ t') =>
       let
         val t_ = incr_boundvars (~1) t
         val subtrm = apply_subt (regularize_trm ctxt) (t_, t')
@@ -549,16 +549,16 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         else mk_bex1_rel $ resrel $ subtrm
       end
 
-  | (Const (@{const_name Ex1}, ty) $ t, Const (@{const_name Ex1}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>Ex1\<close>, ty) $ t, Const (\<^const_name>\<open>Ex1\<close>, ty') $ t') =>
       let
         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
       in
-        if ty = ty' then Const (@{const_name Ex1}, ty) $ subtrm
+        if ty = ty' then Const (\<^const_name>\<open>Ex1\<close>, ty) $ subtrm
         else mk_bex1_rel $ (equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
       end
 
-  | (Const (@{const_name Ball}, ty) $ (Const (@{const_name Respects}, _) $ resrel) $ t,
-     Const (@{const_name All}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>Ball\<close>, ty) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ resrel) $ t,
+     Const (\<^const_name>\<open>All\<close>, ty') $ t') =>
       let
         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -568,8 +568,8 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         else mk_ball $ (mk_resp $ resrel) $ subtrm
       end
 
-  | (Const (@{const_name Bex}, ty) $ (Const (@{const_name Respects}, _) $ resrel) $ t,
-     Const (@{const_name Ex}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>Bex\<close>, ty) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ resrel) $ t,
+     Const (\<^const_name>\<open>Ex\<close>, ty') $ t') =>
       let
         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -579,7 +579,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
         else mk_bex $ (mk_resp $ resrel) $ subtrm
       end
 
-  | (Const (@{const_name Bex1_rel}, ty) $ resrel $ t, Const (@{const_name Ex1}, ty') $ t') =>
+  | (Const (\<^const_name>\<open>Bex1_rel\<close>, ty) $ resrel $ t, Const (\<^const_name>\<open>Ex1\<close>, ty') $ t') =>
       let
         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -590,12 +590,12 @@ fun regularize_trm ctxt (rtrm, qtrm) =
       end
 
   | (* equalities need to be replaced by appropriate equivalence relations *)
-    (Const (@{const_name HOL.eq}, ty), Const (@{const_name HOL.eq}, ty')) =>
+    (Const (\<^const_name>\<open>HOL.eq\<close>, ty), Const (\<^const_name>\<open>HOL.eq\<close>, ty')) =>
         if ty = ty' then rtrm
         else equiv_relation ctxt (domain_type ty, domain_type ty')
 
   | (* in this case we just check whether the given equivalence relation is correct *)
-    (rel, Const (@{const_name HOL.eq}, ty')) =>
+    (rel, Const (\<^const_name>\<open>HOL.eq\<close>, ty')) =>
       let
         val rel_ty = fastype_of rel
         val rel' = equiv_relation_chk ctxt (domain_type rel_ty, domain_type ty')
@@ -623,12 +623,12 @@ fun regularize_trm ctxt (rtrm, qtrm) =
           end
       end
 
-  | (((t1 as Const (@{const_name case_prod}, _)) $ Abs (v1, ty, Abs(v1', ty', s1))),
-     ((t2 as Const (@{const_name case_prod}, _)) $ Abs (v2, _ , Abs(v2', _  , s2)))) =>
+  | (((t1 as Const (\<^const_name>\<open>case_prod\<close>, _)) $ Abs (v1, ty, Abs(v1', ty', s1))),
+     ((t2 as Const (\<^const_name>\<open>case_prod\<close>, _)) $ Abs (v2, _ , Abs(v2', _  , s2)))) =>
        regularize_trm ctxt (t1, t2) $ Abs (v1, ty, Abs (v1', ty', regularize_trm ctxt (s1, s2)))
 
-  | (((t1 as Const (@{const_name case_prod}, _)) $ Abs (v1, ty, s1)),
-     ((t2 as Const (@{const_name case_prod}, _)) $ Abs (v2, _ , s2))) =>
+  | (((t1 as Const (\<^const_name>\<open>case_prod\<close>, _)) $ Abs (v1, ty, s1)),
+     ((t2 as Const (\<^const_name>\<open>case_prod\<close>, _)) $ Abs (v2, _ , s2))) =>
        regularize_trm ctxt (t1, t2) $ Abs (v1, ty, regularize_trm ctxt (s1, s2))
 
   | (t1 $ t2, t1' $ t2') =>
@@ -699,18 +699,18 @@ fun inj_repabs_err ctxt msg rtrm qtrm =
    as the type of subterms needs to be calculated   *)
 fun inj_repabs_trm ctxt (rtrm, qtrm) =
  case (rtrm, qtrm) of
-    (Const (@{const_name Ball}, T) $ r $ t, Const (@{const_name All}, _) $ t') =>
-       Const (@{const_name Ball}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
+    (Const (\<^const_name>\<open>Ball\<close>, T) $ r $ t, Const (\<^const_name>\<open>All\<close>, _) $ t') =>
+       Const (\<^const_name>\<open>Ball\<close>, T) $ r $ (inj_repabs_trm ctxt (t, t'))
 
-  | (Const (@{const_name Bex}, T) $ r $ t, Const (@{const_name Ex}, _) $ t') =>
-       Const (@{const_name Bex}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
+  | (Const (\<^const_name>\<open>Bex\<close>, T) $ r $ t, Const (\<^const_name>\<open>Ex\<close>, _) $ t') =>
+       Const (\<^const_name>\<open>Bex\<close>, T) $ r $ (inj_repabs_trm ctxt (t, t'))
 
-  | (Const (@{const_name Babs}, T) $ r $ t, t' as (Abs _)) =>
+  | (Const (\<^const_name>\<open>Babs\<close>, T) $ r $ t, t' as (Abs _)) =>
       let
         val rty = fastype_of rtrm
         val qty = fastype_of qtrm
       in
-        mk_repabs ctxt (rty, qty) (Const (@{const_name Babs}, T) $ r $ (inj_repabs_trm ctxt (t, t')))
+        mk_repabs ctxt (rty, qty) (Const (\<^const_name>\<open>Babs\<close>, T) $ r $ (inj_repabs_trm ctxt (t, t')))
       end
 
   | (Abs (x, T, t), Abs (x', T', t')) =>
@@ -733,7 +733,7 @@ fun inj_repabs_trm ctxt (rtrm, qtrm) =
         if T = T' then rtrm
         else mk_repabs ctxt (T, T') rtrm
 
-  | (_, Const (@{const_name HOL.eq}, _)) => rtrm
+  | (_, Const (\<^const_name>\<open>HOL.eq\<close>, _)) => rtrm
 
   | (_, Const (_, T')) =>
       let

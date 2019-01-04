@@ -197,8 +197,8 @@ fun has_lonely_bool_var (@{const Pure.conjunction}
   | has_lonely_bool_var _ = false
 
 val syntactic_sorts =
-  @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @
-  @{sort numeral}
+  \<^sort>\<open>{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}\<close> @
+  \<^sort>\<open>numeral\<close>
 
 fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
     subset (op =) (S, syntactic_sorts)
@@ -267,10 +267,10 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
                    "goal")) [Logic.list_implies (nondef_assm_ts, orig_t)]))
-    val _ = spying spy (fn () => (state, i, "starting " ^ @{make_string} mode ^ " mode"))
+    val _ = spying spy (fn () => (state, i, "starting " ^ \<^make_string> mode ^ " mode"))
     val _ = print_v (prefix "Timestamp: " o Date.fmt "%H:%M:%S"
                      o Date.fromTimeLocal o Time.now)
-    val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
+    val neg_t = if falsify then Logic.mk_implies (orig_t, \<^prop>\<open>False\<close>)
                 else orig_t
     val conj_ts = neg_t :: def_assm_ts @ nondef_assm_ts @ evals @ these needs
     val tfree_table =
@@ -392,14 +392,14 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
              is_type_actually_monotonic T
     fun is_deep_data_type_finitizable T =
       triple_lookup (type_match thy) finitizes T = SOME (SOME true)
-    fun is_shallow_data_type_finitizable (T as Type (@{type_name fun_box}, _)) =
+    fun is_shallow_data_type_finitizable (T as Type (\<^type_name>\<open>fun_box\<close>, _)) =
         is_type_kind_of_monotonic T
       | is_shallow_data_type_finitizable T =
         case triple_lookup (type_match thy) finitizes T of
           SOME (SOME b) => b
         | _ => is_type_kind_of_monotonic T
     fun is_data_type_deep T =
-      T = @{typ unit} orelse T = nat_T orelse is_word_type T orelse
+      T = \<^typ>\<open>unit\<close> orelse T = nat_T orelse is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
                  |> sort Term_Ord.typ_ord
@@ -1008,7 +1008,7 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
   end
 
 fun is_fixed_equation ctxt
-                      (Const (@{const_name Pure.eq}, _) $ Free (s, _) $ Const _) =
+                      (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ Free (s, _) $ Const _) =
     Variable.is_fixed ctxt s
   | is_fixed_equation _ _ = false
 

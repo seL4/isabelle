@@ -274,7 +274,7 @@ fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
       induct_attrs, map #T basic_lfp_sugars), lthy)
   end;
 
-val undef_const = Const (@{const_name undefined}, dummyT);
+val undef_const = Const (\<^const_name>\<open>undefined\<close>, dummyT);
 
 type eqn_data = {
   fun_name: string,
@@ -677,10 +677,10 @@ val rec_option_parser = Parse.group (K "option")
    || Parse.reserved "nonexhaustive" >> K Nonexhaustive_Option
    || Parse.reserved "transfer" >> K Transfer_Option);
 
-val _ = Outer_Syntax.local_theory @{command_keyword primrec}
+val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>primrec\<close>
   "define primitive recursive functions"
-  ((Scan.optional (@{keyword "("} |-- Parse.!!! (Parse.list1 rec_option_parser)
-      --| @{keyword ")"}) []) -- Parse_Spec.specification
+  ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 rec_option_parser)
+      --| \<^keyword>\<open>)\<close>) []) -- Parse_Spec.specification
     >> (fn (opts, (fixes, specs)) => snd o primrec_cmd true opts fixes specs));
 
 end;

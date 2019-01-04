@@ -10,7 +10,7 @@ begin
 
 text \<open>
   When natural numbers are implemented in another than the
-  conventional inductive @{term "0::nat"}/@{term Suc} representation,
+  conventional inductive \<^term>\<open>0::nat\<close>/\<^term>\<open>Suc\<close> representation,
   it is necessary to avoid all pattern matching on natural numbers
   altogether.  This is accomplished by this theory (up to a certain
   extent).
@@ -31,7 +31,7 @@ lemma [code, code_unfold]:
 subsection \<open>Preprocessors\<close>
 
 text \<open>
-  The term @{term "Suc n"} is no longer a valid pattern.  Therefore,
+  The term \<^term>\<open>Suc n\<close> is no longer a valid pattern.  Therefore,
   all occurrences of this term in a position where a pattern is
   expected (i.e.~on the left-hand side of a code equation) must be
   eliminated.  This can be accomplished -- as far as possible -- by
@@ -62,7 +62,7 @@ fun remove_suc ctxt thms =
     val lhs_of = snd o Thm.dest_comb o fst o Thm.dest_comb o Thm.cprop_of;
     val rhs_of = snd o Thm.dest_comb o Thm.cprop_of;
     fun find_vars ct = (case Thm.term_of ct of
-        (Const (@{const_name Suc}, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
+        (Const (\<^const_name>\<open>Suc\<close>, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
         in 
@@ -97,7 +97,7 @@ fun remove_suc ctxt thms =
 fun eqn_suc_base_preproc ctxt thms =
   let
     val dest = fst o Logic.dest_equals o Thm.prop_of;
-    val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
+    val contains_suc = exists_Const (fn (c, _) => c = \<^const_name>\<open>Suc\<close>);
   in
     if forall (can dest) thms andalso exists (contains_suc o dest) thms
       then thms |> perhaps_loop (remove_suc ctxt) |> (Option.map o map) Drule.zero_var_indexes

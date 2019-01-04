@@ -36,9 +36,9 @@ translations "CARD('t)" => "CONST card (CONST UNIV :: 't set)"
 
 print_translation \<open>
   let
-    fun card_univ_tr' ctxt [Const (@{const_syntax UNIV}, Type (_, [T]))] =
-      Syntax.const @{syntax_const "_type_card"} $ Syntax_Phases.term_of_typ ctxt T
-  in [(@{const_syntax card}, card_univ_tr')] end
+    fun card_univ_tr' ctxt [Const (\<^const_syntax>\<open>UNIV\<close>, Type (_, [T]))] =
+      Syntax.const \<^syntax_const>\<open>_type_card\<close> $ Syntax_Phases.term_of_typ ctxt T
+  in [(\<^const_syntax>\<open>card\<close>, card_univ_tr')] end
 \<close>
 
 lemma card_prod [simp]: "CARD('a \<times> 'b) = CARD('a) * CARD('b)"
@@ -377,11 +377,11 @@ end
 subsection \<open>Code setup for sets\<close>
 
 text \<open>
-  Implement @{term "CARD('a)"} via @{term card_UNIV} and provide
-  implementations for @{term "finite"}, @{term "card"}, @{term "(\<subseteq>)"}, 
-  and @{term "(=)"}if the calling context already provides @{class finite_UNIV}
-  and @{class card_UNIV} instances. If we implemented the latter
-  always via @{term card_UNIV}, we would require instances of essentially all 
+  Implement \<^term>\<open>CARD('a)\<close> via \<^term>\<open>card_UNIV\<close> and provide
+  implementations for \<^term>\<open>finite\<close>, \<^term>\<open>card\<close>, \<^term>\<open>(\<subseteq>)\<close>, 
+  and \<^term>\<open>(=)\<close>if the calling context already provides \<^class>\<open>finite_UNIV\<close>
+  and \<^class>\<open>card_UNIV\<close> instances. If we implemented the latter
+  always via \<^term>\<open>card_UNIV\<close>, we would require instances of essentially all 
   element types, i.e., a lot of instantiation proofs and -- at run time --
   possibly slow dictionary constructions.
 \<close>
@@ -492,8 +492,8 @@ text \<open>
   Provide more informative exceptions than Match for non-rewritten cases.
   If generated code raises one these exceptions, then a code equation calls
   the mentioned operator for an element type that is not an instance of
-  @{class card_UNIV} and is therefore not implemented via @{term card_UNIV}.
-  Constrain the element type with sort @{class card_UNIV} to change this.
+  \<^class>\<open>card_UNIV\<close> and is therefore not implemented via \<^term>\<open>card_UNIV\<close>.
+  Constrain the element type with sort \<^class>\<open>card_UNIV\<close> to change this.
 \<close>
 
 lemma card_coset_error [code]:

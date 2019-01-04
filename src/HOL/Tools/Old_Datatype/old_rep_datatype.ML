@@ -41,7 +41,7 @@ fun prove_casedist_thms (config : Old_Datatype_Aux.config)
     fun prove_casedist_thm (i, (T, t)) =
       let
         val dummyPs = map (fn (Var (_, Type (_, [T', T'']))) =>
-          Abs ("z", T', Const (@{const_name True}, T''))) induct_Ps;
+          Abs ("z", T', Const (\<^const_name>\<open>True\<close>, T''))) induct_Ps;
         val P =
           Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx + 1), T), Bound 0) $
             Var (("P", 0), HOLogic.boolT));
@@ -203,7 +203,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
       let
         val rec_unique_ts =
           map (fn (((set_t, T1), T2), i) =>
-            Const (@{const_name Ex1}, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
+            Const (\<^const_name>\<open>Ex1\<close>, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
               absfree ("y", T2) (set_t $ Old_Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2)))
                 (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
         val insts =
@@ -247,7 +247,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             (fn ((((name, comb), set), T), T') =>
               (Binding.name (Thm.def_name (Long_Name.base_name name)),
                 Logic.mk_equals (comb, fold_rev lambda rec_fns (absfree ("x", T)
-                 (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
+                 (Const (\<^const_name>\<open>The\<close>, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
                    (set $ Free ("x", T) $ Free ("y", T')))))))
             (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path;
@@ -272,7 +272,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
     |> Global_Theory.note_thms ""
-      ((Binding.name "rec", [Named_Theorems.add @{named_theorems nitpick_simp}]), [(rec_thms, [])])
+      ((Binding.name "rec", [Named_Theorems.add \<^named_theorems>\<open>nitpick_simp\<close>]), [(rec_thms, [])])
     ||> Sign.parent_path
     |-> (fn (_, thms) => pair (reccomb_names, thms))
   end;
@@ -293,7 +293,7 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
     val recTs = Old_Datatype_Aux.get_rec_types descr';
     val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (singleton (Name.variant_list used) "'t", @{sort type});
+    val T' = TFree (singleton (Name.variant_list used) "'t", \<^sort>\<open>type\<close>);
 
     fun mk_dummyT dt = binder_types (Old_Datatype_Aux.typ_of_dtyp descr' dt) ---> T';
 
@@ -302,7 +302,7 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
         let
           val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr') cargs;
           val Ts' = map mk_dummyT (filter Old_Datatype_Aux.is_rec_type cargs)
-        in Const (@{const_name undefined}, Ts @ Ts' ---> T') end) constrs) descr';
+        in Const (\<^const_name>\<open>undefined\<close>, Ts @ Ts' ---> T') end) constrs) descr';
 
     val case_names0 = map (fn s => Sign.full_bname thy1 ("case_" ^ s)) new_type_names;
 
@@ -364,7 +364,7 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
   in
     thy2
     |> Context.theory_map
-        ((fold o fold) (Named_Theorems.add_thm @{named_theorems nitpick_simp}) case_thms)
+        ((fold o fold) (Named_Theorems.add_thm \<^named_theorems>\<open>nitpick_simp\<close>) case_thms)
     |> Sign.parent_path
     |> Old_Datatype_Aux.store_thmss "case" new_type_names case_thms
     |-> (fn thmss => pair (thmss, case_names))
@@ -454,8 +454,8 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
   let
     fun prove_case_cong ((t, nchotomy), case_rewrites) =
       let
-        val Const (@{const_name Pure.imp}, _) $ tm $ _ = t;
-        val Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ Ma) = tm;
+        val Const (\<^const_name>\<open>Pure.imp\<close>, _) $ tm $ _ = t;
+        val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ Ma) = tm;
         val nchotomy' = nchotomy RS spec;
         val [v] = Term.add_var_names (Thm.concl_of nchotomy') [];
       in
@@ -686,7 +686,7 @@ end;
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.command @{command_keyword old_rep_datatype}
+  Outer_Syntax.command \<^command_keyword>\<open>old_rep_datatype\<close>
     "register existing types as old-style datatypes"
     (Scan.repeat1 Parse.term >> (fn ts =>
       Toplevel.theory_to_proof (rep_datatype_cmd Old_Datatype_Aux.default_config (K I) ts)));

@@ -401,11 +401,11 @@ val corec_selN = corecN ^ "_" ^ selN
 
 fun co_prefix fp = case_fp fp "" "co";
 
-fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
+fun dest_sumT (Type (\<^type_name>\<open>sum\<close>, [T, T'])) = (T, T');
 
 val dest_sumTN_balanced = Balanced_Tree.dest dest_sumT;
 
-fun dest_tupleT_balanced 0 @{typ unit} = []
+fun dest_tupleT_balanced 0 \<^typ>\<open>unit\<close> = []
   | dest_tupleT_balanced n T = Balanced_Tree.dest HOLogic.dest_prodT n T;
 
 fun dest_absumprodT absT repT n ms =
@@ -429,26 +429,26 @@ fun mk_convol (f, g) =
     val (fU, fTU) = `range_type (fastype_of f);
     val ((gT, gU), gTU) = `dest_funT (fastype_of g);
     val convolT = fTU --> gTU --> gT --> HOLogic.mk_prodT (fU, gU);
-  in Const (@{const_name convol}, convolT) $ f $ g end;
+  in Const (\<^const_name>\<open>convol\<close>, convolT) $ f $ g end;
 
 fun mk_rel_prod R S =
   let
     val ((A1, A2), RT) = `dest_pred2T (fastype_of R);
     val ((B1, B2), ST) = `dest_pred2T (fastype_of S);
     val rel_prodT = RT --> ST --> mk_pred2T (HOLogic.mk_prodT (A1, B1)) (HOLogic.mk_prodT (A2, B2));
-  in Const (@{const_name rel_prod}, rel_prodT) $ R $ S end;
+  in Const (\<^const_name>\<open>rel_prod\<close>, rel_prodT) $ R $ S end;
 
 fun mk_rel_sum R S =
   let
     val ((A1, A2), RT) = `dest_pred2T (fastype_of R);
     val ((B1, B2), ST) = `dest_pred2T (fastype_of S);
     val rel_sumT = RT --> ST --> mk_pred2T (mk_sumT (A1, B1)) (mk_sumT (A2, B2));
-  in Const (@{const_name rel_sum}, rel_sumT) $ R $ S end;
+  in Const (\<^const_name>\<open>rel_sum\<close>, rel_sumT) $ R $ S end;
 
-fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
+fun Inl_const LT RT = Const (\<^const_name>\<open>Inl\<close>, LT --> mk_sumT (LT, RT));
 fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;
 
-fun Inr_const LT RT = Const (@{const_name Inr}, RT --> mk_sumT (LT, RT));
+fun Inr_const LT RT = Const (\<^const_name>\<open>Inr\<close>, RT --> mk_sumT (LT, RT));
 fun mk_Inr LT t = Inr_const LT (fastype_of t) $ t;
 
 fun mk_prod1 bound_Ts (t, u) =
@@ -487,12 +487,12 @@ fun mk_case_absumprod absT rep fs xss xss' =
   HOLogic.mk_comp (mk_case_sumN_balanced
     (@{map 3} mk_tupled_fun fs (map mk_tuple_balanced xss) xss'), mk_rep absT rep);
 
-fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
+fun If_const T = Const (\<^const_name>\<open>If\<close>, HOLogic.boolT --> T --> T --> T);
 fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));
-  in Const (@{const_name Field}, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
+  in Const (\<^const_name>\<open>Field\<close>, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
 
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
@@ -514,12 +514,12 @@ fun mk_obj_sumEN_balanced n =
 fun mk_tupled_allIN_balanced 0 = @{thm unit_all_impI}
   | mk_tupled_allIN_balanced n =
     let
-      val (tfrees, _) = BNF_Util.mk_TFrees n @{context};
+      val (tfrees, _) = BNF_Util.mk_TFrees n \<^context>;
       val T = mk_tupleT_balanced tfrees;
     in
       @{thm asm_rl[of "\<forall>x. P x \<longrightarrow> Q x" for P Q]}
-      |> Thm.instantiate' [SOME (Thm.ctyp_of @{context} T)] []
-      |> Raw_Simplifier.rewrite_goals_rule @{context} @{thms split_paired_All[THEN eq_reflection]}
+      |> Thm.instantiate' [SOME (Thm.ctyp_of \<^context> T)] []
+      |> Raw_Simplifier.rewrite_goals_rule \<^context> @{thms split_paired_All[THEN eq_reflection]}
       |> (fn thm => impI RS funpow n (fn th => allI RS th) thm)
       |> Thm.varifyT_global
     end;

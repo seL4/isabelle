@@ -502,7 +502,7 @@ fun print_structures ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_orders}
+  Outer_Syntax.command \<^command_keyword>\<open>print_orders\<close>
     "print order structures available to transitivity reasoner"
     (Scan.succeed (Toplevel.keep (print_structures o Toplevel.context_of)));
 
@@ -527,7 +527,7 @@ fun struct_tac ((s, ops), thms) ctxt facts =
                   else if Pattern.matches thy (less, bin_op) then SOME (t1, "<", t2)
                   else NONE
               | rel _ = NONE;
-            fun dec (Const (@{const_name Not}, _) $ t) =
+            fun dec (Const (\<^const_name>\<open>Not\<close>, _) $ t) =
                   (case rel t of NONE =>
                     NONE
                   | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
@@ -674,7 +674,7 @@ fun antisym_le_simproc ctxt ct =
     (le as Const (_, T)) $ r $ s =>
      (let
         val prems = Simplifier.prems_of ctxt;
-        val less = Const (@{const_name less}, T);
+        val less = Const (\<^const_name>\<open>less\<close>, T);
         val t = HOLogic.mk_Trueprop(le $ s $ r);
       in
         (case find_first (prp t) prems of
@@ -693,7 +693,7 @@ fun antisym_less_simproc ctxt ct =
     NotC $ ((less as Const(_,T)) $ r $ s) =>
      (let
        val prems = Simplifier.prems_of ctxt;
-       val le = Const (@{const_name less_eq}, T);
+       val le = Const (\<^const_name>\<open>less_eq\<close>, T);
        val t = HOLogic.mk_Trueprop(le $ r $ s);
       in
         (case find_first (prp t) prems of
@@ -766,32 +766,32 @@ translations
 
 print_translation \<open>
 let
-  val All_binder = Mixfix.binder_name @{const_syntax All};
-  val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
-  val impl = @{const_syntax HOL.implies};
-  val conj = @{const_syntax HOL.conj};
-  val less = @{const_syntax less};
-  val less_eq = @{const_syntax less_eq};
+  val All_binder = Mixfix.binder_name \<^const_syntax>\<open>All\<close>;
+  val Ex_binder = Mixfix.binder_name \<^const_syntax>\<open>Ex\<close>;
+  val impl = \<^const_syntax>\<open>HOL.implies\<close>;
+  val conj = \<^const_syntax>\<open>HOL.conj\<close>;
+  val less = \<^const_syntax>\<open>less\<close>;
+  val less_eq = \<^const_syntax>\<open>less_eq\<close>;
 
   val trans =
    [((All_binder, impl, less),
-    (@{syntax_const "_All_less"}, @{syntax_const "_All_greater"})),
+    (\<^syntax_const>\<open>_All_less\<close>, \<^syntax_const>\<open>_All_greater\<close>)),
     ((All_binder, impl, less_eq),
-    (@{syntax_const "_All_less_eq"}, @{syntax_const "_All_greater_eq"})),
+    (\<^syntax_const>\<open>_All_less_eq\<close>, \<^syntax_const>\<open>_All_greater_eq\<close>)),
     ((Ex_binder, conj, less),
-    (@{syntax_const "_Ex_less"}, @{syntax_const "_Ex_greater"})),
+    (\<^syntax_const>\<open>_Ex_less\<close>, \<^syntax_const>\<open>_Ex_greater\<close>)),
     ((Ex_binder, conj, less_eq),
-    (@{syntax_const "_Ex_less_eq"}, @{syntax_const "_Ex_greater_eq"}))];
+    (\<^syntax_const>\<open>_Ex_less_eq\<close>, \<^syntax_const>\<open>_Ex_greater_eq\<close>))];
 
   fun matches_bound v t =
     (case t of
-      Const (@{syntax_const "_bound"}, _) $ Free (v', _) => v = v'
+      Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v', _) => v = v'
     | _ => false);
   fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false);
   fun mk x c n P = Syntax.const c $ Syntax_Trans.mark_bound_body x $ n $ P;
 
   fun tr' q = (q, fn _ =>
-    (fn [Const (@{syntax_const "_bound"}, _) $ Free (v, T),
+    (fn [Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v, T),
         Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
         (case AList.lookup (=) trans (q, c, d) of
           NONE => raise Match
@@ -1523,7 +1523,7 @@ qed
 end
 
 
-subsection \<open>Order on @{typ bool}\<close>
+subsection \<open>Order on \<^typ>\<open>bool\<close>\<close>
 
 instantiation bool :: "{order_bot, order_top, linorder}"
 begin
@@ -1571,7 +1571,7 @@ lemma [code]:
   by simp_all
 
 
-subsection \<open>Order on @{typ "_ \<Rightarrow> _"}\<close>
+subsection \<open>Order on \<^typ>\<open>_ \<Rightarrow> _\<close>\<close>
 
 instantiation "fun" :: (type, ord) ord
 begin

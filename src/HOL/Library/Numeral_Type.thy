@@ -182,7 +182,7 @@ subsection \<open>Ring class instances\<close>
 
 text \<open>
   Unfortunately \<open>ring_1\<close> instance is not possible for
-  @{typ num1}, since 0 and 1 are not distinct.
+  \<^typ>\<open>num1\<close>, since 0 and 1 are not distinct.
 \<close>
 
 instantiation num1 :: "{comm_ring,comm_monoid_mult,numeral}"
@@ -317,7 +317,7 @@ qed
 
 subsection \<open>Code setup and type classes for code generation\<close>
 
-text \<open>Code setup for @{typ num0} and @{typ num1}\<close>
+text \<open>Code setup for \<^typ>\<open>num0\<close> and \<^typ>\<open>num1\<close>\<close>
 
 definition Num0 :: num0 where "Num0 = Abs_num0 0"
 code_datatype Num0
@@ -365,7 +365,7 @@ instance
 end
 
 
-text \<open>Code setup for @{typ "'a bit0"} and @{typ "'a bit1"}\<close>
+text \<open>Code setup for \<^typ>\<open>'a bit0\<close> and \<^typ>\<open>'a bit1\<close>\<close>
 
 declare
   bit0.Rep_inverse[code abstype]
@@ -477,11 +477,11 @@ parse_translation \<open>
   let
     fun mk_bintype n =
       let
-        fun mk_bit 0 = Syntax.const @{type_syntax bit0}
-          | mk_bit 1 = Syntax.const @{type_syntax bit1};
+        fun mk_bit 0 = Syntax.const \<^type_syntax>\<open>bit0\<close>
+          | mk_bit 1 = Syntax.const \<^type_syntax>\<open>bit1\<close>;
         fun bin_of n =
-          if n = 1 then Syntax.const @{type_syntax num1}
-          else if n = 0 then Syntax.const @{type_syntax num0}
+          if n = 1 then Syntax.const \<^type_syntax>\<open>num1\<close>
+          else if n = 0 then Syntax.const \<^type_syntax>\<open>num0\<close>
           else if n = ~1 then raise TERM ("negative type numeral", [])
           else
             let val (q, r) = Integer.div_mod n 2;
@@ -491,7 +491,7 @@ parse_translation \<open>
     fun numeral_tr [Free (str, _)] = mk_bintype (the (Int.fromString str))
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
 
-  in [(@{syntax_const "_NumeralType"}, K numeral_tr)] end
+  in [(\<^syntax_const>\<open>_NumeralType\<close>, K numeral_tr)] end
 \<close>
 
 print_translation \<open>
@@ -499,10 +499,10 @@ print_translation \<open>
     fun int_of [] = 0
       | int_of (b :: bs) = b + 2 * int_of bs;
 
-    fun bin_of (Const (@{type_syntax num0}, _)) = []
-      | bin_of (Const (@{type_syntax num1}, _)) = [1]
-      | bin_of (Const (@{type_syntax bit0}, _) $ bs) = 0 :: bin_of bs
-      | bin_of (Const (@{type_syntax bit1}, _) $ bs) = 1 :: bin_of bs
+    fun bin_of (Const (\<^type_syntax>\<open>num0\<close>, _)) = []
+      | bin_of (Const (\<^type_syntax>\<open>num1\<close>, _)) = [1]
+      | bin_of (Const (\<^type_syntax>\<open>bit0\<close>, _) $ bs) = 0 :: bin_of bs
+      | bin_of (Const (\<^type_syntax>\<open>bit1\<close>, _) $ bs) = 1 :: bin_of bs
       | bin_of t = raise TERM ("bin_of", [t]);
 
     fun bit_tr' b [t] =
@@ -511,12 +511,12 @@ print_translation \<open>
             val i = int_of rev_digs;
             val num = string_of_int (abs i);
           in
-            Syntax.const @{syntax_const "_NumeralType"} $ Syntax.free num
+            Syntax.const \<^syntax_const>\<open>_NumeralType\<close> $ Syntax.free num
           end
       | bit_tr' b _ = raise Match;
   in
-   [(@{type_syntax bit0}, K (bit_tr' 0)),
-    (@{type_syntax bit1}, K (bit_tr' 1))]
+   [(\<^type_syntax>\<open>bit0\<close>, K (bit_tr' 0)),
+    (\<^type_syntax>\<open>bit1\<close>, K (bit_tr' 1))]
   end
 \<close>
 

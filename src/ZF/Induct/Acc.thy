@@ -21,7 +21,7 @@ inductive
   monos      Pow_mono
 
 text \<open>
-  The introduction rule must require @{prop "a \<in> field(r)"},
+  The introduction rule must require \<^prop>\<open>a \<in> field(r)\<close>,
   otherwise \<open>acc(r)\<close> would be a proper class!
 
   \medskip

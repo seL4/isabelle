@@ -16,7 +16,7 @@ setup \<open>
       #> Simplifier.add_cong @{thm if_weak_cong})
 \<close>
 
-ML \<open>val ZF_ss = simpset_of @{context}\<close>
+ML \<open>val ZF_ss = simpset_of \<^context>\<close>
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_bex
@@ -122,7 +122,7 @@ lemma Sigma_empty_iff: "A*B=0 \<longleftrightarrow> A=0 | B=0"
 by blast
 
 
-subsection\<open>Projections @{term fst} and @{term snd}\<close>
+subsection\<open>Projections \<^term>\<open>fst\<close> and \<^term>\<open>snd\<close>\<close>
 
 lemma fst_conv [simp]: "fst(<a,b>) = a"
 by (simp add: fst_def)
@@ -140,7 +140,7 @@ lemma Pair_fst_snd_eq: "a \<in> Sigma(A,B) ==> <fst(a),snd(a)> = a"
 by auto
 
 
-subsection\<open>The Eliminator, @{term split}\<close>
+subsection\<open>The Eliminator, \<^term>\<open>split\<close>\<close>
 
 (*A META-equality, so that it applies to higher types as well...*)
 lemma split [simp]: "split(%x y. c(x,y), <a,b>) == c(a,b)"
@@ -158,7 +158,7 @@ lemma expand_split:
 by (auto simp add: split_def)
 
 
-subsection\<open>A version of @{term split} for Formulae: Result Type @{typ o}\<close>
+subsection\<open>A version of \<^term>\<open>split\<close> for Formulae: Result Type \<^typ>\<open>o\<close>\<close>
 
 lemma splitI: "R(a,b) ==> split(R, <a,b>)"
 by (simp add: split_def)

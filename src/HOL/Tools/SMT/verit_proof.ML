@@ -198,7 +198,7 @@ fun parse_raw_proof_step (p :  SMTLIB.tree) : raw_veriT_node =
   let
     fun rotate_pair (a, (b, c)) = ((a, b), c)
     fun get_id (SMTLIB.S [SMTLIB.Sym "set", SMTLIB.Sym id, SMTLIB.S l]) = (id, l)
-      | get_id t = raise Fail ("unrecognized VeriT proof " ^ @{make_string} t)
+      | get_id t = raise Fail ("unrecognized VeriT proof " ^ \<^make_string> t)
     fun parse_source (SMTLIB.Key "clauses" :: SMTLIB.S source ::l) =
         (SOME (map (fn (SMTLIB.Sym id) => id) source), l)
       | parse_source l = (NONE, l)
@@ -286,8 +286,8 @@ fun postprocess_proof ctxt step =
       val new_global_bounds = global_bound_vars_by_rule rule args
       val concl = SMTLIB_Isar.unskolemize_names ctxt concl
 
-      val _ = (SMT_Config.veriT_msg ctxt) (fn () => @{print} ("id =", id, "concl =", concl))
-      val _ = (SMT_Config.veriT_msg ctxt) (fn () => @{print} ("id =", id, "cx' =", cx',
+      val _ = (SMT_Config.veriT_msg ctxt) (fn () => \<^print> ("id =", id, "concl =", concl))
+      val _ = (SMT_Config.veriT_msg ctxt) (fn () => \<^print> ("id =", id, "cx' =", cx',
         "bound_vars =", bound_vars))
       val bound_vars = filter_out (member ((op =)) new_global_bounds) bound_vars
       val bound_tvars =
@@ -377,7 +377,7 @@ val linearize_proof =
         proof_ctxt = proof_ctxt, concl = concl, bounds = bounds, subproof = (_, _, subproof)}) =
       let
         fun mk_prop_of_term concl =
-          concl |> fastype_of concl = @{typ bool} ? curry (op $) @{term Trueprop}
+          concl |> fastype_of concl = \<^typ>\<open>bool\<close> ? curry (op $) \<^term>\<open>Trueprop\<close>
         fun remove_assumption_id assumption_id prems =
           filter_out (curry (op =) assumption_id) prems
         fun inline_assumption assumption assumption_id
@@ -423,7 +423,7 @@ fun parse typs funs lines ctxt =
 fun parse_replay typs funs lines ctxt =
   let
     val (u, env) = import_proof_and_post_process typs funs lines ctxt
-    val _ = (SMT_Config.veriT_msg ctxt) (fn () => @{print} u)
+    val _ = (SMT_Config.veriT_msg ctxt) (fn () => \<^print> u)
   in
     (u, ctxt_of env)
   end

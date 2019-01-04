@@ -57,9 +57,9 @@ end
 structure Transfer : TRANSFER =
 struct
 
-fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
-fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
-fun top_sweep_rewr_conv rewrs = Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) @{context}
+fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) \<^context>
+fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) \<^context>
+fun top_sweep_rewr_conv rewrs = Conv.top_sweep_conv (K (Conv.rewrs_conv rewrs)) \<^context>
 
 (** Theory Data **)
 
@@ -180,12 +180,12 @@ fun add_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.update thm) o
    map_compound_lhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (@{const_name Rel}, _) $ _ $ (lhs as (_ $ _)) $ _ =>
+        Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ (lhs as (_ $ _)) $ _ =>
           Item_Net.update (lhs, thm)
       | _ => I) o
    map_compound_rhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
+        Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ _ $ (rhs as (_ $ _)) =>
           Item_Net.update (rhs, thm)
       | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
@@ -194,12 +194,12 @@ fun del_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.remove thm) o
    map_compound_lhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (@{const_name Rel}, _) $ _ $ (lhs as (_ $ _)) $ _ =>
+        Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ (lhs as (_ $ _)) $ _ =>
           Item_Net.remove (lhs, thm)
       | _ => I) o
    map_compound_rhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
+        Const (\<^const_name>\<open>Rel\<close>, _) $ _ $ _ $ (rhs as (_ $ _)) =>
           Item_Net.remove (rhs, thm)
       | _ => I))
 
@@ -240,7 +240,7 @@ fun unfold_relator_eqs_conv ctxt ct = (top_rewr_conv (get_sym_relator_eq ctxt)) 
 (** Replacing explicit equalities with is_equality premises **)
 
 fun mk_is_equality t =
-  Const (@{const_name is_equality}, Term.fastype_of t --> HOLogic.boolT) $ t
+  Const (\<^const_name>\<open>is_equality\<close>, Term.fastype_of t --> HOLogic.boolT) $ t
 
 val is_equality_lemma =
   @{lemma "(!!R. is_equality R ==> PROP (P R)) == PROP (P (=))"
@@ -252,7 +252,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
     (* Only consider "(=)" at non-base types *)
-    fun is_eq (Const (@{const_name HOL.eq}, Type ("fun", [T, _]))) =
+    fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, Type ("fun", [T, _]))) =
         (case T of Type (_, []) => false | _ => true)
       | is_eq _ = false
     val add_eqs = Term.fold_aterms (fn t => if is_eq t then insert (op =) t else I)
@@ -316,14 +316,14 @@ fun abstract_equalities_domain ctxt thm =
 (** Replacing explicit Domainp predicates with Domainp assumptions **)
 
 fun mk_Domainp_assm (T, R) =
-  HOLogic.mk_eq ((Const (@{const_name Domainp}, Term.fastype_of T --> Term.fastype_of R) $ T), R)
+  HOLogic.mk_eq ((Const (\<^const_name>\<open>Domainp\<close>, Term.fastype_of T --> Term.fastype_of R) $ T), R)
 
 val Domainp_lemma =
   @{lemma "(!!R. Domainp T = R ==> PROP (P R)) == PROP (P (Domainp T))"
     by (rule, drule meta_spec,
       erule meta_mp, rule refl, simp)}
 
-fun fold_Domainp f (t as Const (@{const_name Domainp},_) $ (Var (_,_))) = f t
+fun fold_Domainp f (t as Const (\<^const_name>\<open>Domainp\<close>,_) $ (Var (_,_))) = f t
   | fold_Domainp f (t $ u) = fold_Domainp f t #> fold_Domainp f u
   | fold_Domainp f (Abs (_, _, t)) = fold_Domainp f t
   | fold_Domainp _ _ = I
@@ -397,7 +397,7 @@ fun abstract_domains_relator_domain ctxt thm =
 fun detect_transfer_rules thm =
   let
     fun is_transfer_rule tm = case (HOLogic.dest_Trueprop tm) of
-      (Const (@{const_name HOL.eq}, _)) $ ((Const (@{const_name Domainp}, _)) $ _) $ _ => false
+      (Const (\<^const_name>\<open>HOL.eq\<close>, _)) $ ((Const (\<^const_name>\<open>Domainp\<close>, _)) $ _) $ _ => false
       | _ $ _ $ _ => true
       | _ => false
     fun safe_transfer_rule_conv ctm =
@@ -436,7 +436,7 @@ fun mk_relT (T, U) = T --> U --> HOLogic.boolT
 
 fun mk_Rel t =
   let val T = fastype_of t
-  in Const (@{const_name Transfer.Rel}, T --> T) $ t end
+  in Const (\<^const_name>\<open>Transfer.Rel\<close>, T --> T) $ t end
 
 fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
   let
@@ -447,7 +447,7 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
             val r2 = rel T2 U2
             val rT = fastype_of r1 --> fastype_of r2 --> mk_relT (T, U)
           in
-            Const (@{const_name rel_fun}, rT) $ r1 $ r2
+            Const (\<^const_name>\<open>rel_fun\<close>, rT) $ r1 $ r2
           end
       | rel T U =
           let
@@ -532,8 +532,8 @@ fun skeleton (is_atom : term -> bool) ctxt t =
 (* TODO: Put extensible table in theory data *)
 val monotab =
   Symtab.make
-    [(@{const_name transfer_implies}, [~1, 1]),
-     (@{const_name transfer_forall}, [1])(*,
+    [(\<^const_name>\<open>transfer_implies\<close>, [~1, 1]),
+     (\<^const_name>\<open>transfer_forall\<close>, [1])(*,
      (@{const_name implies}, [~1, 1]),
      (@{const_name All}, [1])*)]
 
@@ -598,9 +598,9 @@ fun transfer_rule_of_term ctxt equiv t : thm =
     val thm = transfer_rule_of_terms fst ctxt' tab s t
     val binsts = bool_insts (if equiv then 0 else 1) (s, t)
     val idx = Thm.maxidx_of thm + 1
-    fun tinst (a, _) = (((a, idx), @{sort type}), @{ctyp bool})
+    fun tinst (a, _) = (((a, idx), \<^sort>\<open>type\<close>), \<^ctyp>\<open>bool\<close>)
     fun inst (a, t) =
-      ((Name.clean_index (prep a, idx), @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"}), Thm.cterm_of ctxt' t)
+      ((Name.clean_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx
@@ -621,9 +621,9 @@ fun transfer_rule_of_lhs ctxt t : thm =
     val thm = transfer_rule_of_terms snd ctxt' tab t s
     val binsts = bool_insts 1 (s, t)
     val idx = Thm.maxidx_of thm + 1
-    fun tinst (a, _) = (((a, idx), @{sort type}), @{ctyp bool})
+    fun tinst (a, _) = (((a, idx), \<^sort>\<open>type\<close>), \<^ctyp>\<open>bool\<close>)
     fun inst (a, t) =
-      ((Name.clean_index (prep a, idx), @{typ "bool \<Rightarrow> bool \<Rightarrow> bool"}), Thm.cterm_of ctxt' t)
+      ((Name.clean_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
   in
     thm
       |> Thm.generalize (tfrees, rnames @ frees) idx
@@ -746,7 +746,7 @@ fun transferred ctxt extra_rules thm =
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
-    val goal = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), @{typ bool})))
+    val goal = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), \<^typ>\<open>bool\<close>)))
     val thm3 = Goal.prove_internal ctxt' [] goal (K tac)
     val tnames = map (fst o dest_TFree o Thm.typ_of o snd) instT
   in
@@ -784,7 +784,7 @@ fun untransferred ctxt extra_rules thm =
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
-    val goal = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), @{typ bool})))
+    val goal = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), \<^typ>\<open>bool\<close>)))
     val thm3 = Goal.prove_internal ctxt' [] goal (K tac)
     val tnames = map (fst o dest_TFree o Thm.typ_of o snd) instT
   in
@@ -878,7 +878,7 @@ fun update_pred_data type_name qinfo ctxt =
 val _ =
   Theory.setup
     let
-      val name = @{binding relator_eq}
+      val name = \<^binding>\<open>relator_eq\<close>
       fun add_thm thm context = context
         |> Data.map (map_relator_eq (Item_Net.update thm))
         |> Data.map (map_relator_eq_raw
@@ -899,7 +899,7 @@ val _ =
 val _ =
   Theory.setup
     let
-      val name = @{binding relator_domain}
+      val name = \<^binding>\<open>relator_domain\<close>
       fun add_thm thm context =
         let
           val thm = abstract_domains_relator_domain (Context.proof_of context) thm
@@ -923,37 +923,37 @@ val _ =
 
 val _ =
   Theory.setup
-    (Attrib.setup @{binding transfer_rule} transfer_attribute
+    (Attrib.setup \<^binding>\<open>transfer_rule\<close> transfer_attribute
        "transfer rule for transfer method"
     #> Global_Theory.add_thms_dynamic
-       (@{binding transfer_raw}, Item_Net.content o #transfer_raw o Data.get)
-    #> Attrib.setup @{binding transfer_domain_rule} transfer_domain_attribute
+       (\<^binding>\<open>transfer_raw\<close>, Item_Net.content o #transfer_raw o Data.get)
+    #> Attrib.setup \<^binding>\<open>transfer_domain_rule\<close> transfer_domain_attribute
        "transfer domain rule for transfer method"
-    #> Attrib.setup @{binding transferred} transferred_attribute_parser
+    #> Attrib.setup \<^binding>\<open>transferred\<close> transferred_attribute_parser
        "raw theorem transferred to abstract theorem using transfer rules"
-    #> Attrib.setup @{binding untransferred} untransferred_attribute_parser
+    #> Attrib.setup \<^binding>\<open>untransferred\<close> untransferred_attribute_parser
        "abstract theorem transferred to raw theorem using transfer rules"
     #> Global_Theory.add_thms_dynamic
-       (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
-    #> Method.setup @{binding transfer_start} (transfer_start_method true)
+       (\<^binding>\<open>relator_eq_raw\<close>, Item_Net.content o #relator_eq_raw o Data.get)
+    #> Method.setup \<^binding>\<open>transfer_start\<close> (transfer_start_method true)
        "firtst step in the transfer algorithm (for debugging transfer)"
-    #> Method.setup @{binding transfer_start'} (transfer_start_method false)
+    #> Method.setup \<^binding>\<open>transfer_start'\<close> (transfer_start_method false)
        "firtst step in the transfer algorithm (for debugging transfer)"
-    #> Method.setup @{binding transfer_prover_start} transfer_prover_start_method
+    #> Method.setup \<^binding>\<open>transfer_prover_start\<close> transfer_prover_start_method
        "firtst step in the transfer_prover algorithm (for debugging transfer_prover)"
-    #> Method.setup @{binding transfer_step}
+    #> Method.setup \<^binding>\<open>transfer_step\<close>
        (Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_step_tac ctxt)))
        "step in the search for transfer rules (for debugging transfer and transfer_prover)"
-    #> Method.setup @{binding transfer_end}
+    #> Method.setup \<^binding>\<open>transfer_end\<close>
        (Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_end_tac ctxt)))
        "last step in the transfer algorithm (for debugging transfer)"
-    #> Method.setup @{binding transfer_prover_end}
+    #> Method.setup \<^binding>\<open>transfer_prover_end\<close>
        (Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_end_tac ctxt)))
        "last step in the transfer_prover algorithm (for debugging transfer_prover)"
-    #> Method.setup @{binding transfer} (transfer_method true)
+    #> Method.setup \<^binding>\<open>transfer\<close> (transfer_method true)
        "generic theorem transfer method"
-    #> Method.setup @{binding transfer'} (transfer_method false)
+    #> Method.setup \<^binding>\<open>transfer'\<close> (transfer_method false)
        "generic theorem transfer method"
-    #> Method.setup @{binding transfer_prover} transfer_prover_method
+    #> Method.setup \<^binding>\<open>transfer_prover\<close> transfer_prover_method
        "for proving transfer rules")
 end

@@ -252,7 +252,7 @@ lemma (in monoid_add) interv_sum_list_conv_sum_set_int:
   "sum_list (map f [k..l]) = sum f (set [k..l])"
   by (simp add: sum_list_distinct_conv_sum_set)
 
-text \<open>General equivalence between @{const sum_list} and @{const sum}\<close>
+text \<open>General equivalence between \<^const>\<open>sum_list\<close> and \<^const>\<open>sum\<close>\<close>
 lemma (in monoid_add) sum_list_sum_nth:
   "sum_list xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
   using interv_sum_list_conv_sum_set_nat [of "(!) xs" 0 "length xs"] by (simp add: map_nth)
@@ -327,7 +327,7 @@ next
 qed
 
 
-subsection \<open>Further facts about @{const List.n_lists}\<close>
+subsection \<open>Further facts about \<^const>\<open>List.n_lists\<close>\<close>
 
 lemma length_n_lists: "length (List.n_lists n xs) = length xs ^ n"
   by (induct n) (auto simp add: comp_def length_concat sum_list_triv)

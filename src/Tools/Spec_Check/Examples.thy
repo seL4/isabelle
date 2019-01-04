@@ -76,7 +76,7 @@ check_property "ALL Ts t. type_of1 (Ts, t) = fastype_of1 (Ts, t)"
 
 
 ML_command \<open>
-val thy = @{theory};
+val thy = \<^theory>;
 check_property "ALL t u. if Pattern.matches thy (t, u) then Term.could_unify (t, u) else true"
 \<close>
 

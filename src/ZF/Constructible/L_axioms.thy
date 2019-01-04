@@ -38,7 +38,7 @@ apply (simp_all add: LPow_in_L, auto)
 apply (blast intro: transL)
 done
 
-text\<open>We don't actually need @{term L} to satisfy the foundation axiom.\<close>
+text\<open>We don't actually need \<^term>\<open>L\<close> to satisfy the foundation axiom.\<close>
 theorem foundation_ax: "foundation_ax(L)"
 apply (simp add: foundation_ax_def)
 apply (rule rallI) 
@@ -565,9 +565,9 @@ done
 subsubsection\<open>Variants of Satisfaction Definitions for Ordinals, etc.\<close>
 
 text\<open>The \<open>sats\<close> theorems below are standard versions of the ones proved
-in theory \<open>Formula\<close>.  They relate elements of type @{term formula} to
-relativized concepts such as @{term subset} or @{term ordinal} rather than to
-real concepts such as @{term Ord}.  Now that we have instantiated the locale
+in theory \<open>Formula\<close>.  They relate elements of type \<^term>\<open>formula\<close> to
+relativized concepts such as \<^term>\<open>subset\<close> or \<^term>\<open>ordinal\<close> rather than to
+real concepts such as \<^term>\<open>Ord\<close>.  Now that we have instantiated the locale
 \<open>M_trivial\<close>, we no longer require the earlier versions.\<close>
 
 lemma sats_subset_fm':

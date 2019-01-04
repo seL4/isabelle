@@ -126,7 +126,7 @@ val name_of = try (dest_Const #> fst);
 
 (* parse translation *)
 
-fun constrain_Abs tT t = Syntax.const @{syntax_const "_constrainAbs"} $ t $ tT;
+fun constrain_Abs tT t = Syntax.const \<^syntax_const>\<open>_constrainAbs\<close> $ t $ tT;
 
 fun case_tr err ctxt [t, u] =
       let
@@ -138,10 +138,10 @@ fun case_tr err ctxt [t, u] =
           in if is_const x' then variant_free x' used' else (x', used') end;
 
         fun abs p tTs t =
-          Syntax.const @{const_syntax case_abs} $
+          Syntax.const \<^const_syntax>\<open>case_abs\<close> $
             fold constrain_Abs tTs (absfree p t);
 
-        fun abs_pat (Const (@{syntax_const "_constrain"}, _) $ t $ tT) tTs =
+        fun abs_pat (Const (\<^syntax_const>\<open>_constrain\<close>, _) $ t $ tT) tTs =
               abs_pat t (tT :: tTs)
           | abs_pat (Free (p as (x, _))) tTs =
               if is_const x then I else abs p tTs
@@ -149,7 +149,7 @@ fun case_tr err ctxt [t, u] =
           | abs_pat _ _ = I;
 
         (* replace occurrences of dummy_pattern by distinct variables *)
-        fun replace_dummies (Const (@{const_syntax Pure.dummy_pattern}, T)) used =
+        fun replace_dummies (Const (\<^const_syntax>\<open>Pure.dummy_pattern\<close>, T)) used =
               let val (x, used') = variant_free "x" used
               in (Free (x, T), used') end
           | replace_dummies (t $ u) used =
@@ -159,54 +159,54 @@ fun case_tr err ctxt [t, u] =
               in (t' $ u', used'') end
           | replace_dummies t used = (t, used);
 
-        fun dest_case1 (t as Const (@{syntax_const "_case1"}, _) $ l $ r) =
+        fun dest_case1 (t as Const (\<^syntax_const>\<open>_case1\<close>, _) $ l $ r) =
               let val (l', _) = replace_dummies l (Term.declare_term_frees t Name.context) in
                 abs_pat l' []
-                  (Syntax.const @{const_syntax case_elem} $ Term_Position.strip_positions l' $ r)
+                  (Syntax.const \<^const_syntax>\<open>case_elem\<close> $ Term_Position.strip_positions l' $ r)
               end
           | dest_case1 _ = case_error "dest_case1";
 
-        fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
+        fun dest_case2 (Const (\<^syntax_const>\<open>_case2\<close>, _) $ t $ u) = t :: dest_case2 u
           | dest_case2 t = [t];
 
-        val errt = Syntax.const (if err then @{const_syntax True} else @{const_syntax False});
+        val errt = Syntax.const (if err then \<^const_syntax>\<open>True\<close> else \<^const_syntax>\<open>False\<close>);
       in
-        Syntax.const @{const_syntax case_guard} $ errt $ t $
+        Syntax.const \<^const_syntax>\<open>case_guard\<close> $ errt $ t $
           (fold_rev
-            (fn t => fn u => Syntax.const @{const_syntax case_cons} $ dest_case1 t $ u)
+            (fn t => fn u => Syntax.const \<^const_syntax>\<open>case_cons\<close> $ dest_case1 t $ u)
             (dest_case2 u)
-            (Syntax.const @{const_syntax case_nil}))
+            (Syntax.const \<^const_syntax>\<open>case_nil\<close>))
       end
   | case_tr _ _ _ = case_error "case_tr";
 
-val _ = Theory.setup (Sign.parse_translation [(@{syntax_const "_case_syntax"}, case_tr true)]);
+val _ = Theory.setup (Sign.parse_translation [(\<^syntax_const>\<open>_case_syntax\<close>, case_tr true)]);
 
 
 (* print translation *)
 
 fun case_tr' (_ :: x :: t :: ts) =
       let
-        fun mk_clause (Const (@{const_syntax case_abs}, _) $ Abs (s, T, t)) xs used =
+        fun mk_clause (Const (\<^const_syntax>\<open>case_abs\<close>, _) $ Abs (s, T, t)) xs used =
               let val (s', used') = Name.variant s used
               in mk_clause t ((s', T) :: xs) used' end
-          | mk_clause (Const (@{const_syntax case_elem}, _) $ pat $ rhs) xs _ =
-              Syntax.const @{syntax_const "_case1"} $
+          | mk_clause (Const (\<^const_syntax>\<open>case_elem\<close>, _) $ pat $ rhs) xs _ =
+              Syntax.const \<^syntax_const>\<open>_case1\<close> $
                 subst_bounds (map Syntax_Trans.mark_bound_abs xs, pat) $
                 subst_bounds (map Syntax_Trans.mark_bound_body xs, rhs)
           | mk_clause _ _ _ = raise Match;
 
-        fun mk_clauses (Const (@{const_syntax case_nil}, _)) = []
-          | mk_clauses (Const (@{const_syntax case_cons}, _) $ t $ u) =
+        fun mk_clauses (Const (\<^const_syntax>\<open>case_nil\<close>, _)) = []
+          | mk_clauses (Const (\<^const_syntax>\<open>case_cons\<close>, _) $ t $ u) =
               mk_clause t [] (Term.declare_term_frees t Name.context) :: mk_clauses u
           | mk_clauses _ = raise Match;
       in
-        list_comb (Syntax.const @{syntax_const "_case_syntax"} $ x $
-          foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
+        list_comb (Syntax.const \<^syntax_const>\<open>_case_syntax\<close> $ x $
+          foldr1 (fn (t, u) => Syntax.const \<^syntax_const>\<open>_case2\<close> $ t $ u)
             (mk_clauses t), ts)
       end
   | case_tr' _ = raise Match;
 
-val _ = Theory.setup (Sign.print_translation [(@{const_syntax "case_guard"}, K case_tr')]);
+val _ = Theory.setup (Sign.print_translation [(\<^const_syntax>\<open>case_guard\<close>, K case_tr')]);
 
 
 (* declarations *)
@@ -229,7 +229,7 @@ fun register raw_case_comb raw_constrs context =
   end;
 
 val _ = Theory.setup
-  (Attrib.setup @{binding case_translation}
+  (Attrib.setup \<^binding>\<open>case_translation\<close>
     (Args.term -- Scan.repeat1 Args.term >>
       (fn (t, ts) => Thm.declaration_attribute (K (register t ts))))
     "declaration of case combinators and constructors");
@@ -310,7 +310,7 @@ fun partition _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                           (fold Term.declare_term_frees gvars used');
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
-                        (Const (@{const_name undefined}, res_ty), ~1))]
+                        (Const (\<^const_name>\<open>undefined\<close>, res_ty), ~1))]
                     end
                   else in_group;
               in
@@ -398,7 +398,7 @@ fun make_case ctxt config used x clauses =
   let
     fun string_of_clause (pat, rhs) =
       Syntax.unparse_term ctxt
-        (Term.list_comb (Syntax.const @{syntax_const "_case1"},
+        (Term.list_comb (Syntax.const \<^syntax_const>\<open>_case1\<close>,
           Syntax.uncheck_terms ctxt [pat, rhs]))
       |> Pretty.string_of;
 
@@ -431,23 +431,23 @@ fun make_case ctxt config used x clauses =
 
 (* term check *)
 
-fun decode_clause (Const (@{const_name case_abs}, _) $ Abs (s, T, t)) xs used =
+fun decode_clause (Const (\<^const_name>\<open>case_abs\<close>, _) $ Abs (s, T, t)) xs used =
       let val (s', used') = Name.variant s used
       in decode_clause t (Free (s', T) :: xs) used' end
-  | decode_clause (Const (@{const_name case_elem}, _) $ t $ u) xs _ =
+  | decode_clause (Const (\<^const_name>\<open>case_elem\<close>, _) $ t $ u) xs _ =
       (subst_bounds (xs, t), subst_bounds (xs, u))
   | decode_clause _ _ _ = case_error "decode_clause";
 
-fun decode_cases (Const (@{const_name case_nil}, _)) = []
-  | decode_cases (Const (@{const_name case_cons}, _) $ t $ u) =
+fun decode_cases (Const (\<^const_name>\<open>case_nil\<close>, _)) = []
+  | decode_cases (Const (\<^const_name>\<open>case_cons\<close>, _) $ t $ u) =
       decode_clause t [] (Term.declare_term_frees t Name.context) ::
       decode_cases u
   | decode_cases _ = case_error "decode_cases";
 
 fun check_case ctxt =
   let
-    fun decode_case (Const (@{const_name case_guard}, _) $ b $ u $ t) =
-          make_case ctxt (if b = @{term True} then Error else Warning)
+    fun decode_case (Const (\<^const_name>\<open>case_guard\<close>, _) $ b $ u $ t) =
+          make_case ctxt (if b = \<^term>\<open>True\<close> then Error else Warning)
             Name.context (decode_case u) (decode_cases t)
       | decode_case (t $ u) = decode_case t $ decode_case u
       | decode_case (Abs (x, T, u)) =
@@ -490,7 +490,7 @@ fun dest_case ctxt d used t =
           in k < 0 orelse exists (fn j => j >= k) (loose_bnos (strip_abs_body t)) end;
         fun count_cases (_, _, true) = I
           | count_cases (c, (_, body), false) = AList.map_default op aconv (body, []) (cons c);
-        val is_undefined = name_of #> equal (SOME @{const_name undefined});
+        val is_undefined = name_of #> equal (SOME \<^const_name>\<open>undefined\<close>);
         fun mk_case (c, (xs, body), _) = (list_comb (c, xs), body);
         val get_info = lookup_by_case ctxt;
       in
@@ -542,13 +542,13 @@ fun dest_case ctxt d used t =
 fun encode_clause recur S T (pat, rhs) =
   fold (fn x as (_, U) => fn t =>
     let val T = fastype_of t;
-    in Const (@{const_name case_abs}, (U --> T) --> T) $ Term.absfree x t end)
+    in Const (\<^const_name>\<open>case_abs\<close>, (U --> T) --> T) $ Term.absfree x t end)
       (Term.add_frees pat [])
-      (Const (@{const_name case_elem}, S --> T --> S --> T) $ pat $ recur rhs);
+      (Const (\<^const_name>\<open>case_elem\<close>, S --> T --> S --> T) $ pat $ recur rhs);
 
-fun encode_cases _ S T [] = Const (@{const_name case_nil}, S --> T)
+fun encode_cases _ S T [] = Const (\<^const_name>\<open>case_nil\<close>, S --> T)
   | encode_cases recur S T (p :: ps) =
-      Const (@{const_name case_cons}, (S --> T) --> (S --> T) --> S --> T) $
+      Const (\<^const_name>\<open>case_cons\<close>, (S --> T) --> (S --> T) --> S --> T) $
         encode_clause recur S T p $ encode_cases recur S T ps;
 
 fun encode_case recur (t, ps as (pat, rhs) :: _) =
@@ -556,8 +556,8 @@ fun encode_case recur (t, ps as (pat, rhs) :: _) =
         val tT = fastype_of t;
         val T = fastype_of rhs;
       in
-        Const (@{const_name case_guard}, @{typ bool} --> tT --> (tT --> T) --> T) $
-          @{term True} $ t $ (encode_cases recur (fastype_of pat) (fastype_of rhs) ps)
+        Const (\<^const_name>\<open>case_guard\<close>, \<^typ>\<open>bool\<close> --> tT --> (tT --> T) --> T) $
+          \<^term>\<open>True\<close> $ t $ (encode_cases recur (fastype_of pat) (fastype_of rhs) ps)
       end
   | encode_case _ _ = case_error "encode_case";
 
@@ -594,7 +594,7 @@ fun strip_case_full ctxt d t =
 
 (* term uncheck *)
 
-val show_cases = Attrib.setup_config_bool @{binding show_cases} (K true);
+val show_cases = Attrib.setup_config_bool \<^binding>\<open>show_cases\<close> (K true);
 
 fun uncheck_case ctxt ts =
   if Config.get ctxt show_cases
@@ -631,7 +631,7 @@ fun print_case_translations ctxt =
   end;
 
 val _ =
-  Outer_Syntax.command @{command_keyword print_case_translations}
+  Outer_Syntax.command \<^command_keyword>\<open>print_case_translations\<close>
     "print registered case combinators and constructors"
     (Scan.succeed (Toplevel.keep (print_case_translations o Toplevel.context_of)))
 

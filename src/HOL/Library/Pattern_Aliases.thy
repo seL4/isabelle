@@ -14,8 +14,8 @@ text \<open>
   well for function definitions (see usage below). All features are packed into a @{command bundle}.
 
   The following caveats should be kept in mind:
-  \<^item> The translation expects a term of the form @{prop "f x y = rhs"}, where \<open>x\<close> and \<open>y\<close> are patterns
-    that may contain aliases. The result of the translation is a nested @{const Let}-expression on
+  \<^item> The translation expects a term of the form \<^prop>\<open>f x y = rhs\<close>, where \<open>x\<close> and \<open>y\<close> are patterns
+    that may contain aliases. The result of the translation is a nested \<^const>\<open>Let\<close>-expression on
     the right hand side. The code generator \<^emph>\<open>does not\<close> print Isabelle pattern aliases to target
     language pattern aliases.
   \<^item> The translation does not process nested equalities; only the top-level equality is translated.
@@ -26,13 +26,13 @@ text \<open>
     additionally introduced variables are bound using a ``fake quantifier'' that does not
     appear in the output.
   \<^item> To obtain reasonable induction principles in function definitions, the bundle also declares
-    a custom congruence rule for @{const Let} that only affects @{command fun}. This congruence
+    a custom congruence rule for \<^const>\<open>Let\<close> that only affects @{command fun}. This congruence
     rule might lead to an explosion in term size (although that is rare)! In some circumstances
     (using \<open>let\<close> to destructure tuples), the internal construction of functions stumbles over this
     rule and prints an error. To mitigate this, either
-    \<^item> activate the bundle locally (@{theory_text \<open>context includes ... begin\<close>}) or
-    \<^item> rewrite the \<open>let\<close>-expression to use \<open>case\<close>: @{term \<open>let (a, b) = x in (b, a)\<close>} becomes
-      @{term \<open>case x of (a, b) \<Rightarrow> (b, a)\<close>}.
+    \<^item> activate the bundle locally (\<^theory_text>\<open>context includes ... begin\<close>) or
+    \<^item> rewrite the \<open>let\<close>-expression to use \<open>case\<close>: \<^term>\<open>let (a, b) = x in (b, a)\<close> becomes
+      \<^term>\<open>case x of (a, b) \<Rightarrow> (b, a)\<close>.
   \<^item> The bundle also adds the @{thm Let_def} rule to the simpset.
 \<close>
 
@@ -84,7 +84,7 @@ fun subst_once (old, new) t =
   in fst (go t) end
 
 (* adapted from logic.ML *)
-fun fake_const T = Const (@{const_name fake_quant}, (T --> propT) --> propT);
+fun fake_const T = Const (\<^const_name>\<open>fake_quant\<close>, (T --> propT) --> propT);
 
 fun dependent_fake_name v t =
   let
@@ -97,14 +97,14 @@ in
 
 fun check_pattern_syntax t =
   case strip_all t of
-    (vars, @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs)) =>
+    (vars, @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs)) =>
       let
-        fun go (Const (@{const_name as}, _) $ pat $ var, rhs) =
+        fun go (Const (\<^const_name>\<open>as\<close>, _) $ pat $ var, rhs) =
               let
                 val (pat', rhs') = go (pat, rhs)
                 val _ = if is_Free var then () else error "Right-hand side of =: must be a free variable"
                 val rhs'' =
-                  Const (@{const_name Let}, let_typ (fastype_of var) (fastype_of rhs)) $
+                  Const (\<^const_name>\<open>Let\<close>, let_typ (fastype_of var) (fastype_of rhs)) $
                     pat' $ lambda var rhs'
               in
                 (pat', rhs'')
@@ -126,15 +126,15 @@ fun check_pattern_syntax t =
 
 fun uncheck_pattern_syntax ctxt t =
   case strip_all t of
-    (vars, @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ lhs $ rhs)) =>
+    (vars, @{const Trueprop} $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs)) =>
       let
         (* restricted to going down abstractions; ignores eta-contracted rhs *)
-        fun go lhs (rhs as Const (@{const_name Let}, _) $ pat $ Abs (name, typ, t)) ctxt frees =
+        fun go lhs (rhs as Const (\<^const_name>\<open>Let\<close>, _) $ pat $ Abs (name, typ, t)) ctxt frees =
               if exists_subterm (fn t' => t' = pat) lhs then
                 let
                   val ([name'], ctxt') = Variable.variant_fixes [name] ctxt
                   val free = Free (name', typ)
-                  val subst = (pat, Const (@{const_name as}, as_typ typ) $ pat $ free)
+                  val subst = (pat, Const (\<^const_name>\<open>as\<close>, as_typ typ) $ pat $ free)
                   val lhs' = subst_once subst lhs
                   val rhs' = subst_bound (free, t)
                 in
@@ -199,10 +199,10 @@ let
   val actual =
     @{thm test_2.simps(1)}
     |> Thm.prop_of
-    |> Syntax.string_of_term @{context}
+    |> Syntax.string_of_term \<^context>
     |> YXML.content_of
   val expected = "test_2 (?y # (?y' # ?ys =: x') =: x) = x @ x' @ x'"
-in @{assert} (actual = expected) end
+in \<^assert> (actual = expected) end
 \<close>
 
 end

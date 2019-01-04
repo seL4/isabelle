@@ -457,7 +457,7 @@ lemma power_inject_exp [simp]: "1 < a \<Longrightarrow> a ^ m = a ^ n \<longleft
   by (force simp add: order_antisym power_le_imp_le_exp)
 
 text \<open>
-  Can relax the first premise to @{term "0<a"} in the case of the
+  Can relax the first premise to \<^term>\<open>0<a\<close> in the case of the
   natural numbers.
 \<close>
 lemma power_less_imp_less_exp: "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrightarrow> m < n"

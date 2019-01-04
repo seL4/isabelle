@@ -142,8 +142,8 @@ hide_fact
 ML \<open>
 val nat_basic_lfp_sugar =
   let
-    val ctr_sugar = the (Ctr_Sugar.ctr_sugar_of_global @{theory} @{type_name nat});
-    val recx = Logic.varify_types_global @{term rec_nat};
+    val ctr_sugar = the (Ctr_Sugar.ctr_sugar_of_global \<^theory> \<^type_name>\<open>nat\<close>);
+    val recx = Logic.varify_types_global \<^term>\<open>rec_nat\<close>;
     val C = body_type (fastype_of recx);
   in
     {T = HOLogic.natT, fp_res_index = 0, C = C, fun_arg_Tsss = [[], [[HOLogic.natT, C]]],
@@ -153,7 +153,7 @@ val nat_basic_lfp_sugar =
 
 setup \<open>
 let
-  fun basic_lfp_sugars_of _ [@{typ nat}] _ _ ctxt =
+  fun basic_lfp_sugars_of _ [\<^typ>\<open>nat\<close>] _ _ ctxt =
       ([], [0], [nat_basic_lfp_sugar], [], [], [], TrueI (*dummy*), [], false, ctxt)
     | basic_lfp_sugars_of bs arg_Ts callers callssss ctxt =
       BNF_LFP_Rec_Sugar.default_basic_lfp_sugars_of bs arg_Ts callers callssss ctxt;
@@ -261,7 +261,7 @@ lemma n_not_Suc_n: "n \<noteq> Suc n"
 lemma Suc_n_not_n: "Suc n \<noteq> n"
   by (rule not_sym) (rule n_not_Suc_n)
 
-text \<open>A special form of induction for reasoning about @{term "m < n"} and @{term "m - n"}.\<close>
+text \<open>A special form of induction for reasoning about \<^term>\<open>m < n\<close> and \<^term>\<open>m - n\<close>.\<close>
 lemma diff_induct:
   assumes "\<And>x. P x 0"
     and "\<And>y. P 0 (Suc y)"
@@ -464,7 +464,7 @@ lemma Suc_mult_cancel1: "Suc k * m = Suc k * n \<longleftrightarrow> m = n"
   by (subst mult_cancel1) simp
 
 
-subsection \<open>Orders on @{typ nat}\<close>
+subsection \<open>Orders on \<^typ>\<open>nat\<close>\<close>
 
 subsubsection \<open>Operation definition\<close>
 
@@ -688,7 +688,7 @@ next
     by simp (auto simp add: less_Suc_eq dest: Suc_lessD)
 qed
 
-text \<open>Can be used with \<open>less_Suc_eq\<close> to get @{prop "n = m \<or> n < m"}.\<close>
+text \<open>Can be used with \<open>less_Suc_eq\<close> to get \<^prop>\<open>n = m \<or> n < m\<close>.\<close>
 lemma not_less_eq: "\<not> m < n \<longleftrightarrow> n < Suc m"
   by (simp only: not_less less_Suc_eq_le)
 
@@ -883,7 +883,7 @@ next
 qed
 
 text \<open>Addition is the inverse of subtraction:
-  if @{term "n \<le> m"} then @{term "n + (m - n) = m"}.\<close>
+  if \<^term>\<open>n \<le> m\<close> then \<^term>\<open>n + (m - n) = m\<close>.\<close>
 lemma add_diff_inverse_nat: "\<not> m < n \<Longrightarrow> n + (m - n) = m"
   for m n :: nat
   by (induct m n rule: diff_induct) simp_all
@@ -921,7 +921,7 @@ instance nat :: ordered_cancel_comm_monoid_add ..
 instance nat :: ordered_cancel_comm_monoid_diff ..
 
 
-subsubsection \<open>@{term min} and @{term max}\<close>
+subsubsection \<open>\<^term>\<open>min\<close> and \<^term>\<open>max\<close>\<close>
 
 lemma mono_Suc: "mono Suc"
   by (rule monoI) simp
@@ -989,7 +989,7 @@ lemma nat_mult_max_right: "m * max n q = max (m * n) (m * q)"
     (auto dest: mult_left_le_imp_le mult_left_less_imp_less le_less_trans)
 
 
-subsubsection \<open>Additional theorems about @{term "(\<le>)"}\<close>
+subsubsection \<open>Additional theorems about \<^term>\<open>(\<le>)\<close>\<close>
 
 text \<open>Complete induction, aka course-of-values induction\<close>
 
@@ -1454,7 +1454,7 @@ proof
   with assms show "n * m \<le> n * q" by simp
 qed
 
-text \<open>The lattice order on @{typ nat}.\<close>
+text \<open>The lattice order on \<^typ>\<open>nat\<close>.\<close>
 
 instantiation nat :: distrib_lattice
 begin
@@ -1702,7 +1702,7 @@ proof (rule antisym)
 qed
 
 
-subsection \<open>Embedding of the naturals into any \<open>semiring_1\<close>: @{term of_nat}\<close>
+subsection \<open>Embedding of the naturals into any \<open>semiring_1\<close>: \<^term>\<open>of_nat\<close>\<close>
 
 context semiring_1
 begin
@@ -2345,7 +2345,7 @@ lemma antimono_funpow: "mono Q \<Longrightarrow> antimono (\<lambda>i. (Q ^^ i) 
   by (auto intro!: funpow_increasing simp: antimono_def)
 
 
-subsection \<open>The divides relation on @{typ nat}\<close>
+subsection \<open>The divides relation on \<^typ>\<open>nat\<close>\<close>
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
   by (simp add: dvd_def)

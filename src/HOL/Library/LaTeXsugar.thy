@@ -112,13 +112,13 @@ let
     let
       val rhs_vars = Term.add_vars rhs [];
       fun dummy (v as Var (ixn as (_, T))) =
-            if member ((=) ) rhs_vars ixn then v else Const (@{const_name DUMMY}, T)
+            if member ((=) ) rhs_vars ixn then v else Const (\<^const_name>\<open>DUMMY\<close>, T)
         | dummy (t $ u) = dummy t $ dummy u
         | dummy (Abs (n, T, b)) = Abs (n, T, dummy b)
         | dummy t = t;
     in wrap $ (eq $ dummy lhs $ rhs) end
 in
-  Term_Style.setup @{binding dummy_pats} (Scan.succeed (K dummy_pats))
+  Term_Style.setup \<^binding>\<open>dummy_pats\<close> (Scan.succeed (K dummy_pats))
 end
 \<close>
 
@@ -145,7 +145,7 @@ fun eta_expand Ts t xs = case t of
 val style_eta_expand =
   (Scan.repeat Args.name) >> (fn xs => fn ctxt => fn t => fst (eta_expand [] t xs))
 
-in Term_Style.setup @{binding eta_expand} style_eta_expand end
+in Term_Style.setup \<^binding>\<open>eta_expand\<close> style_eta_expand end
 \<close>
 
 end

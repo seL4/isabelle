@@ -32,8 +32,8 @@ setup \<open>
     val target = "Haskell_Quickcheck";
     fun print _ = Code_Haskell.print_numeral "Prelude.Int";
   in
-    Numeral.add_code @{const_name Code_Numeral.Pos} I print target
-    #> Numeral.add_code @{const_name Code_Numeral.Neg} (~) print target
+    Numeral.add_code \<^const_name>\<open>Code_Numeral.Pos\<close> I print target
+    #> Numeral.add_code \<^const_name>\<open>Code_Numeral.Neg\<close> (~) print target
   end
 \<close>
 
@@ -54,7 +54,7 @@ primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
 where
   "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (\<lambda>c. f \<circ> c) cs)"
 
-subsubsection \<open>From narrowing's deep representation of terms to @{theory HOL.Code_Evaluation}'s terms\<close>
+subsubsection \<open>From narrowing's deep representation of terms to \<^theory>\<open>HOL.Code_Evaluation\<close>'s terms\<close>
 
 class partial_term_of = typerep +
   fixes partial_term_of :: "'a itself => narrowing_term => Code_Evaluation.term"

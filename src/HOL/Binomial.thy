@@ -425,7 +425,7 @@ lemma binomial_gbinomial: "of_nat (n choose k) = (of_nat n gchoose k :: 'a::fiel
   by (simp add: gbinomial_binomial [symmetric] of_nat_gbinomial)
 
 setup
-  \<open>Sign.add_const_constraint (@{const_name gbinomial}, SOME @{typ "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a"})\<close>
+  \<open>Sign.add_const_constraint (\<^const_name>\<open>gbinomial\<close>, SOME \<^typ>\<open>'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a\<close>)\<close>
 
 lemma gbinomial_mult_1:
   fixes a :: "'a::field_char_0"
@@ -622,7 +622,7 @@ next
 qed
 
 text \<open>Contributed by Manuel Eberl, generalised by LCP.
-  Alternative definition of the binomial coefficient as @{term "\<Prod>i<k. (n - i) / (k - i)"}.\<close>
+  Alternative definition of the binomial coefficient as \<^term>\<open>\<Prod>i<k. (n - i) / (k - i)\<close>.\<close>
 lemma gbinomial_altdef_of_nat: "a gchoose k = (\<Prod>i = 0..<k. (a - of_nat i) / of_nat (k - i) :: 'a)"
   for k :: nat and a :: "'a::field_char_0"
   by (simp add: prod_dividef gbinomial_prod_rev fact_prod_rev)
@@ -1142,7 +1142,7 @@ proof -
   finally show ?thesis ..
 qed
 
-text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is @{term "(N + m - 1) choose N"}:\<close>
+text \<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is \<^term>\<open>(N + m - 1) choose N\<close>:\<close>
 lemma card_length_sum_list_rec:
   assumes "m \<ge> 1"
   shows "card {l::nat list. length l = m \<and> sum_list l = N} =

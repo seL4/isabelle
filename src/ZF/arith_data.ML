@@ -24,12 +24,12 @@ struct
 
 val iT = Ind_Syntax.iT;
 
-val zero = Const(@{const_name zero}, iT);
-val succ = Const(@{const_name succ}, iT --> iT);
+val zero = Const(\<^const_name>\<open>zero\<close>, iT);
+val succ = Const(\<^const_name>\<open>succ\<close>, iT --> iT);
 fun mk_succ t = succ $ t;
 val one = mk_succ zero;
 
-val mk_plus = FOLogic.mk_binop @{const_name Arith.add};
+val mk_plus = FOLogic.mk_binop \<^const_name>\<open>Arith.add\<close>;
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -40,13 +40,13 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = FOLogic.dest_bin @{const_name Arith.add} iT;
+val dest_plus = FOLogic.dest_bin \<^const_name>\<open>Arith.add\<close> iT;
 
 (* dest_sum *)
 
-fun dest_sum (Const(@{const_name zero},_)) = []
-  | dest_sum (Const(@{const_name succ},_) $ t) = one :: dest_sum t
-  | dest_sum (Const(@{const_name Arith.add},_) $ t $ u) = dest_sum t @ dest_sum u
+fun dest_sum (Const(\<^const_name>\<open>zero\<close>,_)) = []
+  | dest_sum (Const(\<^const_name>\<open>succ\<close>,_) $ t) = one :: dest_sum t
+  | dest_sum (Const(\<^const_name>\<open>Arith.add\<close>,_) $ t $ u) = dest_sum t @ dest_sum u
   | dest_sum tm = [tm];
 
 (*Apply the given rewrite (if present) just once*)
@@ -80,14 +80,14 @@ fun prove_conv name tacs ctxt prems (t,u) =
 (*** Use CancelNumerals simproc without binary numerals,
      just for cancellation ***)
 
-val mk_times = FOLogic.mk_binop @{const_name Arith.mult};
+val mk_times = FOLogic.mk_binop \<^const_name>\<open>Arith.mult\<close>;
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin @{const_name Arith.mult} iT;
+val dest_times = FOLogic.dest_bin \<^const_name>\<open>Arith.mult\<close> iT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -141,15 +141,15 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
 
   val norm_ss1 =
-    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ add_succs @ mult_1s @ @{thms add_ac})
+    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ add_succs @ mult_1s @ @{thms add_ac})
   val norm_ss2 =
-    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ mult_1s @ @{thms add_ac} @
+    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ mult_1s @ @{thms add_ac} @
       @{thms mult_ac} @ tc_rules @ natifys)
   fun norm_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
   val numeral_simp_ss =
-    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ tc_rules @ natifys)
+    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ tc_rules @ natifys)
   fun numeral_simp_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = simplify_meta_eq final_rules
@@ -175,8 +175,8 @@ structure LessCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel @{const_name Ordinal.lt}
-  val dest_bal = FOLogic.dest_bin @{const_name Ordinal.lt} iT
+  val mk_bal   = FOLogic.mk_binrel \<^const_name>\<open>Ordinal.lt\<close>
+  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Ordinal.lt\<close> iT
   val bal_add1 = @{thm less_add_iff} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff} RS @{thm iff_trans}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm iff_trans}
@@ -188,8 +188,8 @@ structure DiffCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binop @{const_name Arith.diff}
-  val dest_bal = FOLogic.dest_bin @{const_name Arith.diff} iT
+  val mk_bal   = FOLogic.mk_binop \<^const_name>\<open>Arith.diff\<close>
+  val dest_bal = FOLogic.dest_bin \<^const_name>\<open>Arith.diff\<close> iT
   val bal_add1 = @{thm diff_add_eq} RS @{thm trans}
   val bal_add2 = @{thm diff_add_eq} RS @{thm trans}
   fun trans_tac ctxt = gen_trans_tac ctxt @{thm trans}
@@ -199,23 +199,23 @@ structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);
 
 
 val nat_cancel =
- [Simplifier.make_simproc @{context} "nateq_cancel_numerals"
+ [Simplifier.make_simproc \<^context> "nateq_cancel_numerals"
    {lhss =
-     [@{term "l #+ m = n"}, @{term "l = m #+ n"},
-      @{term "l #* m = n"}, @{term "l = m #* n"},
-      @{term "succ(m) = n"}, @{term "m = succ(n)"}],
+     [\<^term>\<open>l #+ m = n\<close>, \<^term>\<open>l = m #+ n\<close>,
+      \<^term>\<open>l #* m = n\<close>, \<^term>\<open>l = m #* n\<close>,
+      \<^term>\<open>succ(m) = n\<close>, \<^term>\<open>m = succ(n)\<close>],
     proc = K EqCancelNumerals.proc},
-  Simplifier.make_simproc @{context} "natless_cancel_numerals"
+  Simplifier.make_simproc \<^context> "natless_cancel_numerals"
    {lhss =
-     [@{term "l #+ m < n"}, @{term "l < m #+ n"},
-      @{term "l #* m < n"}, @{term "l < m #* n"},
-      @{term "succ(m) < n"}, @{term "m < succ(n)"}],
+     [\<^term>\<open>l #+ m < n\<close>, \<^term>\<open>l < m #+ n\<close>,
+      \<^term>\<open>l #* m < n\<close>, \<^term>\<open>l < m #* n\<close>,
+      \<^term>\<open>succ(m) < n\<close>, \<^term>\<open>m < succ(n)\<close>],
     proc = K LessCancelNumerals.proc},
-  Simplifier.make_simproc @{context} "natdiff_cancel_numerals"
+  Simplifier.make_simproc \<^context> "natdiff_cancel_numerals"
    {lhss =
-     [@{term "(l #+ m) #- n"}, @{term "l #- (m #+ n)"},
-      @{term "(l #* m) #- n"}, @{term "l #- (m #* n)"},
-      @{term "succ(m) #- n"}, @{term "m #- succ(n)"}],
+     [\<^term>\<open>(l #+ m) #- n\<close>, \<^term>\<open>l #- (m #+ n)\<close>,
+      \<^term>\<open>(l #* m) #- n\<close>, \<^term>\<open>l #- (m #* n)\<close>,
+      \<^term>\<open>succ(m) #- n\<close>, \<^term>\<open>m #- succ(n)\<close>],
     proc = K DiffCancelNumerals.proc}];
 
 end;

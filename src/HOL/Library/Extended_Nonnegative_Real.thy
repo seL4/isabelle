@@ -408,7 +408,7 @@ struct
           if u aconv t then (rev past @ terms)
           else find_first_t (t::past) u terms
 
-  fun dest_summing (Const (@{const_name Groups.plus}, _) $ t $ u, ts) =
+  fun dest_summing (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ t $ u, ts) =
         dest_summing (t, dest_summing (u, ts))
     | dest_summing (t, ts) = t :: ts
 
@@ -417,7 +417,7 @@ struct
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context}
+    simpset_of (put_simpset HOL_basic_ss \<^context>
       addsimps @{thms ac_simps add_0_left add_0_right})
   fun norm_tac ctxt = ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   fun simplify_meta_eq ctxt cancel_th th =
@@ -429,21 +429,21 @@ end
 structure Eq_Ennreal_Cancel = ExtractCommonTermFun
 (open Cancel_Ennreal_Common
   val mk_bal = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} @{typ ennreal}
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>HOL.eq\<close> \<^typ>\<open>ennreal\<close>
   fun simp_conv _ _ = SOME @{thm ennreal_add_left_cancel}
 )
 
 structure Le_Ennreal_Cancel = ExtractCommonTermFun
 (open Cancel_Ennreal_Common
-  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} @{typ ennreal}
+  val mk_bal = HOLogic.mk_binrel \<^const_name>\<open>Orderings.less_eq\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Orderings.less_eq\<close> \<^typ>\<open>ennreal\<close>
   fun simp_conv _ _ = SOME @{thm ennreal_add_left_cancel_le}
 )
 
 structure Less_Ennreal_Cancel = ExtractCommonTermFun
 (open Cancel_Ennreal_Common
-  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less}
-  val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} @{typ ennreal}
+  val mk_bal = HOLogic.mk_binrel \<^const_name>\<open>Orderings.less\<close>
+  val dest_bal = HOLogic.dest_bin \<^const_name>\<open>Orderings.less\<close> \<^typ>\<open>ennreal\<close>
   fun simp_conv _ _ = SOME @{thm ennreal_add_left_cancel_less}
 )
 \<close>
@@ -828,7 +828,7 @@ lemma ennreal_divide_self[simp]: "a \<noteq> 0 \<Longrightarrow> a < top \<Longr
     by (cases a) (auto simp: top_ereal_def)
   done
 
-subsection \<open>Coercion from @{typ real} to @{typ ennreal}\<close>
+subsection \<open>Coercion from \<^typ>\<open>real\<close> to \<^typ>\<open>ennreal\<close>\<close>
 
 lift_definition ennreal :: "real \<Rightarrow> ennreal" is "sup 0 \<circ> ereal"
   by simp
@@ -1059,7 +1059,7 @@ lemma ennreal_Ex_less_of_nat: "(x::ennreal) < top \<Longrightarrow> \<exists>n. 
   by (cases x rule: ennreal_cases)
      (auto simp: ennreal_of_nat_eq_real_of_nat ennreal_less_iff reals_Archimedean2)
 
-subsection \<open>Coercion from @{typ ennreal} to @{typ real}\<close>
+subsection \<open>Coercion from \<^typ>\<open>ennreal\<close> to \<^typ>\<open>real\<close>\<close>
 
 definition "enn2real x = real_of_ereal (enn2ereal x)"
 
@@ -1106,7 +1106,7 @@ lemma enn2real_positive_iff: "0 < enn2real x \<longleftrightarrow> (0 < x \<and>
 lemma enn2real_eq_1_iff[simp]: "enn2real x = 1 \<longleftrightarrow> x = 1"
   by (cases x) auto
 
-subsection \<open>Coercion from @{typ enat} to @{typ ennreal}\<close>
+subsection \<open>Coercion from \<^typ>\<open>enat\<close> to \<^typ>\<open>ennreal\<close>\<close>
 
 
 definition ennreal_of_enat :: "enat \<Rightarrow> ennreal"
@@ -1174,7 +1174,7 @@ qed
 lemma ennreal_of_enat_eSuc[simp]: "ennreal_of_enat (eSuc x) = 1 + ennreal_of_enat x"
   by (cases x) (auto simp: eSuc_enat)
 
-subsection \<open>Topology on @{typ ennreal}\<close>
+subsection \<open>Topology on \<^typ>\<open>ennreal\<close>\<close>
 
 lemma enn2ereal_Iio: "enn2ereal -` {..<a} = (if 0 \<le> a then {..< e2ennreal a} else {})"
   using enn2ereal_nonneg
@@ -1774,7 +1774,7 @@ lifting_update ennreal.lifting
 lifting_forget ennreal.lifting
 
 
-subsection \<open>@{typ ennreal} theorems\<close>
+subsection \<open>\<^typ>\<open>ennreal\<close> theorems\<close>
 
 lemma neq_top_trans: fixes x y :: ennreal shows "\<lbrakk> y \<noteq> top; x \<le> y \<rbrakk> \<Longrightarrow> x \<noteq> top"
 by (auto simp: top_unique)

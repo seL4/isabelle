@@ -112,8 +112,8 @@ fun eq_var bnd novars check_frees t =
             orelse exists (curry Logic.occs (Free f)) ts
         then (orient, true) else raise Match
       | check_free ts (orient, _) = (orient, false)
-    fun eq_var_aux k (Const(@{const_name Pure.all},_) $ Abs(_,_,t)) hs = eq_var_aux k t hs
-      | eq_var_aux k (Const(@{const_name Pure.imp},_) $ A $ B) hs =
+    fun eq_var_aux k (Const(\<^const_name>\<open>Pure.all\<close>,_) $ Abs(_,_,t)) hs = eq_var_aux k t hs
+      | eq_var_aux k (Const(\<^const_name>\<open>Pure.imp\<close>,_) $ A $ B) hs =
               ((k, check_free (B :: hs) (inspect_pair bnd novars
                     (Data.dest_eq (Data.dest_Trueprop A))))
                handle TERM _ => eq_var_aux (k+1) B (A :: hs)
@@ -227,7 +227,7 @@ fun hyp_subst_tac_thin thin ctxt =
     gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac ctxt false,
     if thin then thin_free_eq_tac ctxt else K no_tac];
 
-val hyp_subst_thin = Attrib.setup_config_bool @{binding hypsubst_thin} (K false);
+val hyp_subst_thin = Attrib.setup_config_bool \<^binding>\<open>hypsubst_thin\<close> (K false);
 
 fun hyp_subst_tac ctxt =
   hyp_subst_tac_thin (Config.get ctxt hyp_subst_thin) ctxt;
@@ -299,14 +299,14 @@ fun stac ctxt th =
 
 val _ =
   Theory.setup
-   (Method.setup @{binding hypsubst}
+   (Method.setup \<^binding>\<open>hypsubst\<close>
       (Scan.succeed (fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac ctxt)))
       "substitution using an assumption (improper)" #>
-    Method.setup @{binding hypsubst_thin}
+    Method.setup \<^binding>\<open>hypsubst_thin\<close>
       (Scan.succeed (fn ctxt => SIMPLE_METHOD'
           (CHANGED_PROP o hyp_subst_tac_thin true ctxt)))
       "substitution using an assumption, eliminating assumptions" #>
-    Method.setup @{binding simplesubst}
+    Method.setup \<^binding>\<open>simplesubst\<close>
       (Attrib.thm >> (fn th => fn ctxt => SIMPLE_METHOD' (stac ctxt th)))
       "simple substitution");
 

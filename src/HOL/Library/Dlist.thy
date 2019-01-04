@@ -25,7 +25,7 @@ lemma dlist_eqI:
   "list_of_dlist dxs = list_of_dlist dys \<Longrightarrow> dxs = dys"
   by (simp add: dlist_eq_iff)
 
-text \<open>Formal, totalized constructor for @{typ "'a dlist"}:\<close>
+text \<open>Formal, totalized constructor for \<^typ>\<open>'a dlist\<close>:\<close>
 
 definition Dlist :: "'a list \<Rightarrow> 'a dlist" where
   "Dlist xs = Abs_dlist (remdups xs)"

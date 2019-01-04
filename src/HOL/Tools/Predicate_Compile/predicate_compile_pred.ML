@@ -19,11 +19,11 @@ struct
 
 open Predicate_Compile_Aux
 
-fun is_compound ((Const (@{const_name Not}, _)) $ _) =
+fun is_compound ((Const (\<^const_name>\<open>Not\<close>, _)) $ _) =
       error "is_compound: Negation should not occur; preprocessing is defect"
-  | is_compound ((Const (@{const_name Ex}, _)) $ _) = true
-  | is_compound ((Const (@{const_name HOL.disj}, _)) $ _ $ _) = true
-  | is_compound ((Const (@{const_name HOL.conj}, _)) $ _ $ _) =
+  | is_compound ((Const (\<^const_name>\<open>Ex\<close>, _)) $ _) = true
+  | is_compound ((Const (\<^const_name>\<open>HOL.disj\<close>, _)) $ _ $ _) = true
+  | is_compound ((Const (\<^const_name>\<open>HOL.conj\<close>, _)) $ _ $ _) =
       error "is_compound: Conjunction should not occur; preprocessing is defect"
   | is_compound _ = false
 
@@ -94,12 +94,12 @@ fun flatten constname atom (defs, thy) =
     end
   else
     (case (fst (strip_comb atom)) of
-      (Const (@{const_name If}, _)) =>
+      (Const (\<^const_name>\<open>If\<close>, _)) =>
         let
           val if_beta = @{lemma "(if c then x else y) z = (if c then x z else y z)" by simp}
           val atom' = Raw_Simplifier.rewrite_term thy
             (map (fn th => th RS @{thm eq_reflection}) [@{thm if_bool_eq_disj}, if_beta]) [] atom
-          val _ = @{assert} (not (atom = atom'))
+          val _ = \<^assert> (not (atom = atom'))
         in
           flatten constname atom' (defs, thy)
         end

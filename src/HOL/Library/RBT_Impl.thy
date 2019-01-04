@@ -2017,7 +2017,7 @@ lemmas [code] =
   ord.rbt_map_entry.simps
   ord.rbt_bulkload_def
 
-text \<open>More efficient implementations for @{term entries} and @{term keys}\<close>
+text \<open>More efficient implementations for \<^term>\<open>entries\<close> and \<^term>\<open>keys\<close>\<close>
 
 definition gen_entries :: 
   "(('a \<times> 'b) \<times> ('a, 'b) rbt) list \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
@@ -2050,24 +2050,24 @@ by(simp add: gen_keys_def fun_eq_iff)
 text \<open>Restore original type constraints for constants\<close>
 setup \<open>
   fold Sign.add_const_constraint
-    [(@{const_name rbt_less}, SOME @{typ "('a :: order) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool"}),
-     (@{const_name rbt_greater}, SOME @{typ "('a :: order) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool"}),
-     (@{const_name rbt_sorted}, SOME @{typ "('a :: linorder, 'b) rbt \<Rightarrow> bool"}),
-     (@{const_name rbt_lookup}, SOME @{typ "('a :: linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b"}),
-     (@{const_name is_rbt}, SOME @{typ "('a :: linorder, 'b) rbt \<Rightarrow> bool"}),
-     (@{const_name rbt_ins}, SOME @{typ "('a::linorder \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_insert_with_key}, SOME @{typ "('a::linorder \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_insert_with}, SOME @{typ "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a :: linorder) \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_insert}, SOME @{typ "('a :: linorder) \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_del_from_left}, SOME @{typ "('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_del_from_right}, SOME @{typ "('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_del}, SOME @{typ "('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_delete}, SOME @{typ "('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_union_with_key}, SOME @{typ "('a::linorder \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_union_with}, SOME @{typ "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a::linorder,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_union}, SOME @{typ "('a::linorder,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_map_entry}, SOME @{typ "'a::linorder \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"}),
-     (@{const_name rbt_bulkload}, SOME @{typ "('a \<times> 'b) list \<Rightarrow> ('a::linorder,'b) rbt"})]
+    [(\<^const_name>\<open>rbt_less\<close>, SOME \<^typ>\<open>('a :: order) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool\<close>),
+     (\<^const_name>\<open>rbt_greater\<close>, SOME \<^typ>\<open>('a :: order) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool\<close>),
+     (\<^const_name>\<open>rbt_sorted\<close>, SOME \<^typ>\<open>('a :: linorder, 'b) rbt \<Rightarrow> bool\<close>),
+     (\<^const_name>\<open>rbt_lookup\<close>, SOME \<^typ>\<open>('a :: linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b\<close>),
+     (\<^const_name>\<open>is_rbt\<close>, SOME \<^typ>\<open>('a :: linorder, 'b) rbt \<Rightarrow> bool\<close>),
+     (\<^const_name>\<open>rbt_ins\<close>, SOME \<^typ>\<open>('a::linorder \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_insert_with_key\<close>, SOME \<^typ>\<open>('a::linorder \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_insert_with\<close>, SOME \<^typ>\<open>('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a :: linorder) \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_insert\<close>, SOME \<^typ>\<open>('a :: linorder) \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_del_from_left\<close>, SOME \<^typ>\<open>('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_del_from_right\<close>, SOME \<^typ>\<open>('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_del\<close>, SOME \<^typ>\<open>('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_delete\<close>, SOME \<^typ>\<open>('a::linorder) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_union_with_key\<close>, SOME \<^typ>\<open>('a::linorder \<Rightarrow> 'b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_union_with\<close>, SOME \<^typ>\<open>('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a::linorder,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_union\<close>, SOME \<^typ>\<open>('a::linorder,'b) rbt \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_map_entry\<close>, SOME \<^typ>\<open>'a::linorder \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt\<close>),
+     (\<^const_name>\<open>rbt_bulkload\<close>, SOME \<^typ>\<open>('a \<times> 'b) list \<Rightarrow> ('a::linorder,'b) rbt\<close>)]
 \<close>
 
 hide_const (open) R B Empty entries keys fold gen_keys gen_entries

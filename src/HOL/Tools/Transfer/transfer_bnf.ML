@@ -33,7 +33,7 @@ fun mk_Domainp P =
     val PT = fastype_of P
     val argT = hd (binder_types PT)
   in
-    Const (@{const_name Domainp}, PT --> argT --> HOLogic.boolT) $ P
+    Const (\<^const_name>\<open>Domainp\<close>, PT --> argT --> HOLogic.boolT) $ P
   end
 
 fun type_name_of_bnf bnf = T_of_bnf bnf |> dest_Type |> fst

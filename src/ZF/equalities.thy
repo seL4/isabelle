@@ -68,7 +68,7 @@ lemma converse_subset_iff:
 by blast
 
 
-subsection\<open>Finite Set Constructions Using @{term cons}\<close>
+subsection\<open>Finite Set Constructions Using \<^term>\<open>cons\<close>\<close>
 
 lemma cons_subsetI: "[| a\<in>C; B\<subseteq>C |] ==> cons(a,B) \<subseteq> C"
 by blast
@@ -971,13 +971,13 @@ lemmas subset_SIs = subset_refl cons_subsetI subset_consI
 
 ML \<open>
 val subset_cs =
-  claset_of (@{context}
+  claset_of (\<^context>
     delrules [@{thm subsetI}, @{thm subsetCE}]
     addSIs @{thms subset_SIs}
     addIs  [@{thm Union_upper}, @{thm Inter_lower}]
     addSEs [@{thm cons_subsetE}]);
 
-val ZF_cs = claset_of (@{context} delrules [@{thm equalityI}]);
+val ZF_cs = claset_of (\<^context> delrules [@{thm equalityI}]);
 \<close>
 
 end

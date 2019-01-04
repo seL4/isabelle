@@ -114,7 +114,7 @@ lemma semiring_normalization_rules:
 
 local_setup \<open>
   Semiring_Normalizer.declare @{thm comm_semiring_1_axioms}
-    {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+    {semiring = ([\<^term>\<open>x + y\<close>, \<^term>\<open>x * y\<close>, \<^term>\<open>x ^ n\<close>, \<^term>\<open>0\<close>, \<^term>\<open>1\<close>],
       @{thms semiring_normalization_rules}),
      ring = ([], []),
      field = ([], []),
@@ -134,9 +134,9 @@ lemma ring_normalization_rules:
 
 local_setup \<open>
   Semiring_Normalizer.declare @{thm comm_ring_1_axioms}
-    {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+    {semiring = ([\<^term>\<open>x + y\<close>, \<^term>\<open>x * y\<close>, \<^term>\<open>x ^ n\<close>, \<^term>\<open>0\<close>, \<^term>\<open>1\<close>],
       @{thms semiring_normalization_rules}),
-      ring = ([@{term "x - y"}, @{term "- x"}], @{thms ring_normalization_rules}),
+      ring = ([\<^term>\<open>x - y\<close>, \<^term>\<open>- x\<close>], @{thms ring_normalization_rules}),
       field = ([], []),
       idom = [],
       ideal = []}
@@ -149,7 +149,7 @@ begin
 
 local_setup \<open>
   Semiring_Normalizer.declare @{thm comm_semiring_1_cancel_crossproduct_axioms}
-    {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+    {semiring = ([\<^term>\<open>x + y\<close>, \<^term>\<open>x * y\<close>, \<^term>\<open>x ^ n\<close>, \<^term>\<open>0\<close>, \<^term>\<open>1\<close>],
       @{thms semiring_normalization_rules}),
      ring = ([], []),
      field = ([], []),
@@ -164,9 +164,9 @@ begin
 
 local_setup \<open>
   Semiring_Normalizer.declare @{thm idom_axioms}
-   {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+   {semiring = ([\<^term>\<open>x + y\<close>, \<^term>\<open>x * y\<close>, \<^term>\<open>x ^ n\<close>, \<^term>\<open>0\<close>, \<^term>\<open>1\<close>],
       @{thms semiring_normalization_rules}),
-    ring = ([@{term "x - y"}, @{term "- x"}], @{thms ring_normalization_rules}),
+    ring = ([\<^term>\<open>x - y\<close>, \<^term>\<open>- x\<close>], @{thms ring_normalization_rules}),
     field = ([], []),
     idom = @{thms crossproduct_noteq add_scale_eq_noteq},
     ideal = @{thms right_minus_eq add_0_iff}}
@@ -179,10 +179,10 @@ begin
 
 local_setup \<open>
   Semiring_Normalizer.declare @{thm field_axioms}
-   {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+   {semiring = ([\<^term>\<open>x + y\<close>, \<^term>\<open>x * y\<close>, \<^term>\<open>x ^ n\<close>, \<^term>\<open>0\<close>, \<^term>\<open>1\<close>],
       @{thms semiring_normalization_rules}),
-    ring = ([@{term "x - y"}, @{term "- x"}], @{thms ring_normalization_rules}),
-    field = ([@{term "x / y"}, @{term "inverse x"}], @{thms divide_inverse inverse_eq_divide}),
+    ring = ([\<^term>\<open>x - y\<close>, \<^term>\<open>- x\<close>], @{thms ring_normalization_rules}),
+    field = ([\<^term>\<open>x / y\<close>, \<^term>\<open>inverse x\<close>], @{thms divide_inverse inverse_eq_divide}),
     idom = @{thms crossproduct_noteq add_scale_eq_noteq},
     ideal = @{thms right_minus_eq add_0_iff}}
 \<close>

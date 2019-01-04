@@ -62,7 +62,7 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
-fun dest_alls (Const (@{const_name Pure.all}, _) $ Abs (abs as (_, T, _))) =
+fun dest_alls (Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (abs as (_, T, _))) =
     let val (s', t') = Term.dest_abs abs in
       dest_alls t' |>> cons (s', T)
     end

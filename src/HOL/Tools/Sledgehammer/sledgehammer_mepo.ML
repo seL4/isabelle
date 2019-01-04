@@ -47,7 +47,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
 
-val trace = Attrib.setup_config_bool @{binding sledgehammer_mepo_trace} (K false)
+val trace = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_mepo_trace\<close> (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
@@ -96,7 +96,7 @@ val default_relevance_fudge =
    threshold_divisor = 2.0,
    ridiculous_threshold = 0.1}
 
-fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
+fun order_of_type (Type (\<^type_name>\<open>fun\<close>, [T1, T2])) =
     Int.max (order_of_type T1 + 1, order_of_type T2)
   | order_of_type (Type (_, Ts)) = fold (Integer.max o order_of_type) Ts 0
   | order_of_type _ = 0
@@ -151,7 +151,7 @@ fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert ptype_eq p)
 
 (* Set constants tend to pull in too many irrelevant facts. We limit the damage by treating them
    more or less as if they were built-in but add their axiomatization at the end. *)
-val set_consts = [@{const_name Collect}, @{const_name Set.member}]
+val set_consts = [\<^const_name>\<open>Collect\<close>, \<^const_name>\<open>Set.member\<close>]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
 fun add_pconsts_in_term thy =
@@ -177,29 +177,29 @@ fun add_pconsts_in_term thy =
       if T = HOLogic.boolT then do_formula else do_term ext_arg
     and do_formula t =
       (case t of
-        Const (@{const_name Pure.all}, _) $ Abs (_, _, t') => do_formula t'
+        Const (\<^const_name>\<open>Pure.all\<close>, _) $ Abs (_, _, t') => do_formula t'
       | @{const Pure.imp} $ t1 $ t2 => do_formula t1 #> do_formula t2
-      | Const (@{const_name Pure.eq}, Type (_, [T, _])) $ t1 $ t2 =>
+      | Const (\<^const_name>\<open>Pure.eq\<close>, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | @{const Trueprop} $ t1 => do_formula t1
       | @{const False} => I
       | @{const True} => I
       | @{const Not} $ t1 => do_formula t1
-      | Const (@{const_name All}, _) $ Abs (_, _, t') => do_formula t'
-      | Const (@{const_name Ex}, _) $ Abs (_, _, t') => do_formula t'
+      | Const (\<^const_name>\<open>All\<close>, _) $ Abs (_, _, t') => do_formula t'
+      | Const (\<^const_name>\<open>Ex\<close>, _) $ Abs (_, _, t') => do_formula t'
       | @{const HOL.conj} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | @{const HOL.disj} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
-      | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
+      | Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
-      | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])])) $ t1 $ t2 $ t3 =>
+      | Const (\<^const_name>\<open>If\<close>, Type (_, [_, Type (_, [T, _])])) $ t1 $ t2 $ t3 =>
         do_formula t1 #> fold (do_term_or_formula false T) [t2, t3]
-      | Const (@{const_name Ex1}, _) $ Abs (_, _, t') => do_formula t'
-      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, _, t') =>
+      | Const (\<^const_name>\<open>Ex1\<close>, _) $ Abs (_, _, t') => do_formula t'
+      | Const (\<^const_name>\<open>Ball\<close>, _) $ t1 $ Abs (_, _, t') =>
         do_formula (t1 $ Bound ~1) #> do_formula t'
-      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, _, t') =>
+      | Const (\<^const_name>\<open>Bex\<close>, _) $ t1 $ Abs (_, _, t') =>
         do_formula (t1 $ Bound ~1) #> do_formula t'
-      | (t0 as Const (_, @{typ bool})) $ t1 =>
+      | (t0 as Const (_, \<^typ>\<open>bool\<close>)) $ t1 =>
         do_term false t0 #> do_formula t1  (* theory constant *)
       | _ => do_term false t)
   in
@@ -215,7 +215,7 @@ fun pconsts_in_fact thy t =
 fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...} : relevance_fudge)
     thy_name t =
   if exists (curry (op <) 0.0) [theory_const_rel_weight, theory_const_irrel_weight] then
-    Const (thy_name ^ theory_const_suffix, @{typ bool}) $ t
+    Const (thy_name ^ theory_const_suffix, \<^typ>\<open>bool\<close>) $ t
   else
     t
 

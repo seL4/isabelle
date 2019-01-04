@@ -826,7 +826,7 @@ lemma range_construct_eq_span:
   by (auto simp: that construct_in_span in_span_in_range_construct)
 
 lemma linear_independent_extend_subspace:
-  \<comment> \<open>legacy: use @{term construct} instead\<close>
+  \<comment> \<open>legacy: use \<^term>\<open>construct\<close> instead\<close>
   assumes "vs1.independent B"
   shows "\<exists>g. linear s1 s2 g \<and> (\<forall>x\<in>B. g x = f x) \<and> range g = vs2.span (f`B)"
   by (rule exI[where x="construct B f"])

@@ -460,7 +460,7 @@ fun USYN_ERR func mesg = Utils.ERR {module = "USyntax", func = func, mesg = mesg
  *
  *---------------------------------------------------------------------------*)
 val mk_prim_vartype = TVar;
-fun mk_vartype s = mk_prim_vartype ((s, 0), @{sort type});
+fun mk_vartype s = mk_prim_vartype ((s, 0), \<^sort>\<open>type\<close>);
 
 (* But internally, it's useful *)
 fun dest_vtype (TVar x) = x
@@ -514,36 +514,36 @@ fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
 
 
 fun mk_imp{ant,conseq} =
-   let val c = Const(@{const_name HOL.implies},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(\<^const_name>\<open>HOL.implies\<close>,HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[ant,conseq])
    end;
 
 fun mk_select (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const(@{const_name Eps},(ty --> HOLogic.boolT) --> ty)
+      val c = Const(\<^const_name>\<open>Eps\<close>,(ty --> HOLogic.boolT) --> ty)
   in list_comb(c,[mk_abs r])
   end;
 
 fun mk_forall (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const(@{const_name All},(ty --> HOLogic.boolT) --> HOLogic.boolT)
+      val c = Const(\<^const_name>\<open>All\<close>,(ty --> HOLogic.boolT) --> HOLogic.boolT)
   in list_comb(c,[mk_abs r])
   end;
 
 fun mk_exists (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const(@{const_name Ex},(ty --> HOLogic.boolT) --> HOLogic.boolT)
+      val c = Const(\<^const_name>\<open>Ex\<close>,(ty --> HOLogic.boolT) --> HOLogic.boolT)
   in list_comb(c,[mk_abs r])
   end;
 
 
 fun mk_conj{conj1,conj2} =
-   let val c = Const(@{const_name HOL.conj},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(\<^const_name>\<open>HOL.conj\<close>,HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[conj1,conj2])
    end;
 
 fun mk_disj{disj1,disj2} =
-   let val c = Const(@{const_name HOL.disj},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(\<^const_name>\<open>HOL.disj\<close>,HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[disj1,disj2])
    end;
 
@@ -551,8 +551,8 @@ fun prod_ty ty1 ty2 = HOLogic.mk_prodT (ty1,ty2);
 
 local
 fun mk_uncurry (xt, yt, zt) =
-    Const(@{const_name case_prod}, (xt --> yt --> zt) --> prod_ty xt yt --> zt)
-fun dest_pair(Const(@{const_name Pair},_) $ M $ N) = {fst=M, snd=N}
+    Const(\<^const_name>\<open>case_prod\<close>, (xt --> yt --> zt) --> prod_ty xt yt --> zt)
+fun dest_pair(Const(\<^const_name>\<open>Pair\<close>,_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR "dest_pair" "not a pair"
 fun is_var (Var _) = true | is_var (Free _) = true | is_var _ = false
 in
@@ -599,39 +599,39 @@ fun dest_abs used (a as Abs(s, ty, _)) =
      end
   | dest_abs _ _ =  raise USYN_ERR "dest_abs" "not an abstraction";
 
-fun dest_eq(Const(@{const_name HOL.eq},_) $ M $ N) = {lhs=M, rhs=N}
+fun dest_eq(Const(\<^const_name>\<open>HOL.eq\<close>,_) $ M $ N) = {lhs=M, rhs=N}
   | dest_eq _ = raise USYN_ERR "dest_eq" "not an equality";
 
-fun dest_imp(Const(@{const_name HOL.implies},_) $ M $ N) = {ant=M, conseq=N}
+fun dest_imp(Const(\<^const_name>\<open>HOL.implies\<close>,_) $ M $ N) = {ant=M, conseq=N}
   | dest_imp _ = raise USYN_ERR "dest_imp" "not an implication";
 
-fun dest_forall(Const(@{const_name All},_) $ (a as Abs _)) = fst (dest_abs [] a)
+fun dest_forall(Const(\<^const_name>\<open>All\<close>,_) $ (a as Abs _)) = fst (dest_abs [] a)
   | dest_forall _ = raise USYN_ERR "dest_forall" "not a forall";
 
-fun dest_exists(Const(@{const_name Ex},_) $ (a as Abs _)) = fst (dest_abs [] a)
+fun dest_exists(Const(\<^const_name>\<open>Ex\<close>,_) $ (a as Abs _)) = fst (dest_abs [] a)
   | dest_exists _ = raise USYN_ERR "dest_exists" "not an existential";
 
-fun dest_neg(Const(@{const_name Not},_) $ M) = M
+fun dest_neg(Const(\<^const_name>\<open>Not\<close>,_) $ M) = M
   | dest_neg _ = raise USYN_ERR "dest_neg" "not a negation";
 
-fun dest_conj(Const(@{const_name HOL.conj},_) $ M $ N) = {conj1=M, conj2=N}
+fun dest_conj(Const(\<^const_name>\<open>HOL.conj\<close>,_) $ M $ N) = {conj1=M, conj2=N}
   | dest_conj _ = raise USYN_ERR "dest_conj" "not a conjunction";
 
-fun dest_disj(Const(@{const_name HOL.disj},_) $ M $ N) = {disj1=M, disj2=N}
+fun dest_disj(Const(\<^const_name>\<open>HOL.disj\<close>,_) $ M $ N) = {disj1=M, disj2=N}
   | dest_disj _ = raise USYN_ERR "dest_disj" "not a disjunction";
 
 fun mk_pair{fst,snd} =
    let val ty1 = type_of fst
        val ty2 = type_of snd
-       val c = Const(@{const_name Pair},ty1 --> ty2 --> prod_ty ty1 ty2)
+       val c = Const(\<^const_name>\<open>Pair\<close>,ty1 --> ty2 --> prod_ty ty1 ty2)
    in list_comb(c,[fst,snd])
    end;
 
-fun dest_pair(Const(@{const_name Pair},_) $ M $ N) = {fst=M, snd=N}
+fun dest_pair(Const(\<^const_name>\<open>Pair\<close>,_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR "dest_pair" "not a pair";
 
 
-local  fun ucheck t = (if #Name (dest_const t) = @{const_name case_prod} then t
+local  fun ucheck t = (if #Name (dest_const t) = \<^const_name>\<open>case_prod\<close> then t
                        else raise Match)
 in
 fun dest_pabs used tm =
@@ -727,7 +727,7 @@ fun strip_disj w =
 (* Miscellaneous *)
 
 fun mk_vstruct ty V =
-  let fun follow_prod_type (Type(@{type_name Product_Type.prod},[ty1,ty2])) vs =
+  let fun follow_prod_type (Type(\<^type_name>\<open>Product_Type.prod\<close>,[ty1,ty2])) vs =
               let val (ltm,vs1) = follow_prod_type ty1 vs
                   val (rtm,vs2) = follow_prod_type ty2 vs1
               in (mk_pair{fst=ltm, snd=rtm}, vs2) end
@@ -748,16 +748,16 @@ fun find_term p =
 
 fun dest_relation tm =
    if (type_of tm = HOLogic.boolT)
-   then let val (Const(@{const_name Set.member},_) $ (Const(@{const_name Pair},_)$y$x) $ R) = tm
+   then let val (Const(\<^const_name>\<open>Set.member\<close>,_) $ (Const(\<^const_name>\<open>Pair\<close>,_)$y$x) $ R) = tm
         in (R,y,x)
         end handle Bind => raise USYN_ERR "dest_relation" "unexpected term structure"
    else raise USYN_ERR "dest_relation" "not a boolean term";
 
-fun is_WFR (Const(@{const_name Wellfounded.wf},_)$_) = true
+fun is_WFR (Const(\<^const_name>\<open>Wellfounded.wf\<close>,_)$_) = true
   | is_WFR _                 = false;
 
 fun ARB ty = mk_select{Bvar=Free("v",ty),
-                       Body=Const(@{const_name True},HOLogic.boolT)};
+                       Body=Const(\<^const_name>\<open>True\<close>,HOLogic.boolT)};
 
 end;
 
@@ -788,19 +788,19 @@ fun cabs a t = Thm.lambda a t
  * Some simple constructor functions.
  *---------------------------------------------------------------------------*)
 
-val mk_hol_const = Thm.cterm_of @{theory_context HOL} o Const;
+val mk_hol_const = Thm.cterm_of \<^theory_context>\<open>HOL\<close> o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
   let val ty = Thm.typ_of_cterm Bvar
-      val c = mk_hol_const(@{const_name Ex}, (ty --> HOLogic.boolT) --> HOLogic.boolT)
+      val c = mk_hol_const(\<^const_name>\<open>Ex\<close>, (ty --> HOLogic.boolT) --> HOLogic.boolT)
   in capply c (uncurry cabs r) end;
 
 
-local val c = mk_hol_const(@{const_name HOL.conj}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+local val c = mk_hol_const(\<^const_name>\<open>HOL.conj\<close>, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_conj(conj1,conj2) = capply (capply c conj1) conj2
 end;
 
-local val c = mk_hol_const(@{const_name HOL.disj}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+local val c = mk_hol_const(\<^const_name>\<open>HOL.disj\<close>, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_disj(disj1,disj2) = capply (capply c disj1) disj2
 end;
 
@@ -842,14 +842,14 @@ fun dest_binder expected tm =
   handle Utils.ERR _ => raise ERR "dest_binder" ("Not a(n) " ^ quote expected);
 
 
-val dest_neg    = dest_monop @{const_name Not}
-val dest_pair   = dest_binop @{const_name Pair}
-val dest_eq     = dest_binop @{const_name HOL.eq}
-val dest_imp    = dest_binop @{const_name HOL.implies}
-val dest_conj   = dest_binop @{const_name HOL.conj}
-val dest_disj   = dest_binop @{const_name HOL.disj}
-val dest_exists = dest_binder @{const_name Ex}
-val dest_forall = dest_binder @{const_name All}
+val dest_neg    = dest_monop \<^const_name>\<open>Not\<close>
+val dest_pair   = dest_binop \<^const_name>\<open>Pair\<close>
+val dest_eq     = dest_binop \<^const_name>\<open>HOL.eq\<close>
+val dest_imp    = dest_binop \<^const_name>\<open>HOL.implies\<close>
+val dest_conj   = dest_binop \<^const_name>\<open>HOL.conj\<close>
+val dest_disj   = dest_binop \<^const_name>\<open>HOL.disj\<close>
+val dest_exists = dest_binder \<^const_name>\<open>Ex\<close>
+val dest_forall = dest_binder \<^const_name>\<open>All\<close>
 
 (* Query routines *)
 
@@ -896,10 +896,10 @@ val strip_disj   = rev o (op::) o strip dest_disj
 
 fun is_Trueprop ct =
   (case Thm.term_of ct of
-    Const (@{const_name Trueprop}, _) $ _ => true
+    Const (\<^const_name>\<open>Trueprop\<close>, _) $ _ => true
   | _ => false);
 
-fun mk_prop ct = if is_Trueprop ct then ct else Thm.apply @{cterm Trueprop} ct;
+fun mk_prop ct = if is_Trueprop ct then ct else Thm.apply \<^cterm>\<open>Trueprop\<close> ct;
 fun drop_prop ct = if is_Trueprop ct then Thm.dest_arg ct else ct;
 
 end;
@@ -1014,7 +1014,7 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
 local
   val prop = Thm.prop_of disjI1
   val [_,Q] = Misc_Legacy.term_vars prop
-  val disj1 = Thm.forall_intr (Thm.cterm_of @{context} Q) disjI1
+  val disj1 = Thm.forall_intr (Thm.cterm_of \<^context> Q) disjI1
 in
 fun DISJ1 thm tm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj1)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ1" msg;
@@ -1023,7 +1023,7 @@ end;
 local
   val prop = Thm.prop_of disjI2
   val [P,_] = Misc_Legacy.term_vars prop
-  val disj2 = Thm.forall_intr (Thm.cterm_of @{context} P) disjI2
+  val disj2 = Thm.forall_intr (Thm.cterm_of \<^context> P) disjI2
 in
 fun DISJ2 tm thm = thm RS (Thm.forall_elim (Dcterm.drop_prop tm) disj2)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ2" msg;
@@ -1118,7 +1118,7 @@ local (* this is fragile *)
   val prop = Thm.prop_of spec
   val x = hd (tl (Misc_Legacy.term_vars prop))
   val TV = dest_TVar (type_of x)
-  val gspec = Thm.forall_intr (Thm.cterm_of @{context} x) spec
+  val gspec = Thm.forall_intr (Thm.cterm_of \<^context> x) spec
 in
 fun SPEC tm thm =
    let val gspec' = Drule.instantiate_normalize ([(TV, Thm.ctyp_of_cterm tm)], []) gspec
@@ -1146,7 +1146,7 @@ in
 fun GEN ctxt v th =
    let val gth = Thm.forall_intr v th
        val thy = Proof_Context.theory_of ctxt
-       val Const(@{const_name Pure.all},_)$Abs(x,ty,rst) = Thm.prop_of gth
+       val Const(\<^const_name>\<open>Pure.all\<close>,_)$Abs(x,ty,rst) = Thm.prop_of gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
        val theta = Pattern.match thy (P,P') (Vartab.empty, Vartab.empty);
        val allI2 = Drule.instantiate_normalize (certify ctxt theta) allI
@@ -1253,21 +1253,21 @@ fun Forall v M = USyntax.mk_forall{Bvar=v, Body=M};
 (* Fragile: it's a cong if it is not "R y x ==> cut f R x y = f y" *)
 fun is_cong thm =
   case (Thm.prop_of thm) of
-    (Const(@{const_name Pure.imp},_)$(Const(@{const_name Trueprop},_)$ _) $
-      (Const(@{const_name Pure.eq},_) $ (Const (@{const_name Wfrec.cut},_) $ _ $ _ $ _ $ _) $ _)) =>
+    (Const(\<^const_name>\<open>Pure.imp\<close>,_)$(Const(\<^const_name>\<open>Trueprop\<close>,_)$ _) $
+      (Const(\<^const_name>\<open>Pure.eq\<close>,_) $ (Const (\<^const_name>\<open>Wfrec.cut\<close>,_) $ _ $ _ $ _ $ _) $ _)) =>
         false
   | _ => true;
 
 
-fun dest_equal(Const (@{const_name Pure.eq},_) $
-               (Const (@{const_name Trueprop},_) $ lhs)
-               $ (Const (@{const_name Trueprop},_) $ rhs)) = {lhs=lhs, rhs=rhs}
-  | dest_equal(Const (@{const_name Pure.eq},_) $ lhs $ rhs) = {lhs=lhs, rhs=rhs}
+fun dest_equal(Const (\<^const_name>\<open>Pure.eq\<close>,_) $
+               (Const (\<^const_name>\<open>Trueprop\<close>,_) $ lhs)
+               $ (Const (\<^const_name>\<open>Trueprop\<close>,_) $ rhs)) = {lhs=lhs, rhs=rhs}
+  | dest_equal(Const (\<^const_name>\<open>Pure.eq\<close>,_) $ lhs $ rhs) = {lhs=lhs, rhs=rhs}
   | dest_equal tm = USyntax.dest_eq tm;
 
 fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
 
-fun dest_all used (Const(@{const_name Pure.all},_) $ (a as Abs _)) = USyntax.dest_abs used a
+fun dest_all used (Const(\<^const_name>\<open>Pure.all\<close>,_) $ (a as Abs _)) = USyntax.dest_abs used a
   | dest_all _ _ = raise RULES_ERR "dest_all" "not a !!";
 
 val is_all = can (dest_all []);
@@ -1280,7 +1280,7 @@ fun strip_all used fm =
         end
    else ([], fm, used);
 
-fun list_break_all(Const(@{const_name Pure.all},_) $ Abs (s,ty,body)) =
+fun list_break_all(Const(\<^const_name>\<open>Pure.all\<close>,_) $ Abs (s,ty,body)) =
      let val (L,core) = list_break_all body
      in ((s,ty)::L, core)
      end
@@ -1383,11 +1383,11 @@ fun dest_combn tm 0 = (tm,[])
 
 local fun dest_pair M = let val {fst,snd} = USyntax.dest_pair M in (fst,snd) end
       fun mk_fst tm =
-          let val ty as Type(@{type_name Product_Type.prod}, [fty,sty]) = type_of tm
-          in  Const (@{const_name Product_Type.fst}, ty --> fty) $ tm  end
+          let val ty as Type(\<^type_name>\<open>Product_Type.prod\<close>, [fty,sty]) = type_of tm
+          in  Const (\<^const_name>\<open>Product_Type.fst\<close>, ty --> fty) $ tm  end
       fun mk_snd tm =
-          let val ty as Type(@{type_name Product_Type.prod}, [fty,sty]) = type_of tm
-          in  Const (@{const_name Product_Type.snd}, ty --> sty) $ tm  end
+          let val ty as Type(\<^type_name>\<open>Product_Type.prod\<close>, [fty,sty]) = type_of tm
+          in  Const (\<^const_name>\<open>Product_Type.snd\<close>, ty --> sty) $ tm  end
 in
 fun XFILL tych x vstruct =
   let fun traverse p xocc L =
@@ -1443,7 +1443,7 @@ fun dest_impl tm =
   end;
 
 fun restricted t = is_some (USyntax.find_term
-                            (fn (Const(@{const_name Wfrec.cut},_)) =>true | _ => false)
+                            (fn (Const(\<^const_name>\<open>Wfrec.cut\<close>,_)) =>true | _ => false)
                             t)
 
 fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
@@ -1525,7 +1525,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
 
              fun eliminate thm =
                case Thm.prop_of thm of
-                 Const(@{const_name Pure.imp},_) $ imp $ _ =>
+                 Const(\<^const_name>\<open>Pure.imp\<close>,_) $ imp $ _ =>
                    eliminate
                     (if not(is_all imp)
                      then uq_eliminate (thm, imp)
@@ -1539,7 +1539,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
           let val _ = say "restrict_prover:"
               val cntxt = rev (Simplifier.prems_of ctxt)
               val _ = print_thms ctxt "cntxt:" cntxt
-              val Const(@{const_name Pure.imp},_) $ (Const(@{const_name Trueprop},_) $ A) $ _ =
+              val Const(\<^const_name>\<open>Pure.imp\<close>,_) $ (Const(\<^const_name>\<open>Trueprop\<close>,_) $ A) $ _ =
                 Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
                                            (Misc_Legacy.add_term_frees(tm,[]))
@@ -1994,7 +1994,7 @@ end end;
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun const_def sign (c, Ty, rhs) =
   singleton (Syntax.check_terms (Proof_Context.init_global sign))
-    (Const(@{const_name Pure.eq},dummyT) $ Const(c,Ty) $ rhs);
+    (Const(\<^const_name>\<open>Pure.eq\<close>,dummyT) $ Const(c,Ty) $ rhs);
 
 (*Make all TVars available for instantiation by adding a ? to the front*)
 fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)
@@ -2539,8 +2539,8 @@ fun id_thm th =
 val P_imp_P_eq_True = @{thm eqTrueI} RS eq_reflection;
 fun mk_meta_eq r =
   (case Thm.concl_of r of
-     Const(@{const_name Pure.eq},_)$_$_ => r
-  |   _ $(Const(@{const_name HOL.eq},_)$_$_) => r RS eq_reflection
+     Const(\<^const_name>\<open>Pure.eq\<close>,_)$_$_ => r
+  |   _ $(Const(\<^const_name>\<open>HOL.eq\<close>,_)$_$_) => r RS eq_reflection
   |   _ => r RS P_imp_P_eq_True)
 
 (*Is this the best way to invoke the simplifier??*)
@@ -2607,7 +2607,7 @@ fun meta_outer ctxt =
 
 (*Strip off the outer !P*)
 val spec'=
-  Rule_Insts.read_instantiate @{context} [((("x", 0), Position.none), "P::'b=>bool")] [] spec;
+  Rule_Insts.read_instantiate \<^context> [((("x", 0), Position.none), "P::'b=>bool")] [] spec;
 
 fun simplify_defn ctxt strict congs wfs pats def0 =
   let
@@ -2834,7 +2834,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
     val simp_att =
       if null tcs then [Simplifier.simp_add,
-        Named_Theorems.add @{named_theorems nitpick_simp}]
+        Named_Theorems.add \<^named_theorems>\<open>nitpick_simp\<close>]
       else [];
     val ((simps' :: rules', [induct']), thy2) =
       Proof_Context.theory_of ctxt1
@@ -2862,30 +2862,30 @@ fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y
 
 val _ =
   Theory.setup
-   (Attrib.setup @{binding recdef_simp} (Attrib.add_del simp_add simp_del)
+   (Attrib.setup \<^binding>\<open>recdef_simp\<close> (Attrib.add_del simp_add simp_del)
       "declaration of recdef simp rule" #>
-    Attrib.setup @{binding recdef_cong} (Attrib.add_del cong_add cong_del)
+    Attrib.setup \<^binding>\<open>recdef_cong\<close> (Attrib.add_del cong_add cong_del)
       "declaration of recdef cong rule" #>
-    Attrib.setup @{binding recdef_wf} (Attrib.add_del wf_add wf_del)
+    Attrib.setup \<^binding>\<open>recdef_wf\<close> (Attrib.add_del wf_add wf_del)
       "declaration of recdef wf rule");
 
 
 (* outer syntax *)
 
 val hints =
-  @{keyword "("} |--
-    Parse.!!! ((Parse.token @{keyword "hints"} ::: Parse.args) --| @{keyword ")"});
+  \<^keyword>\<open>(\<close> |--
+    Parse.!!! ((Parse.token \<^keyword>\<open>hints\<close> ::: Parse.args) --| \<^keyword>\<open>)\<close>);
 
 val recdef_decl =
   Scan.optional
-    (@{keyword "("} -- Parse.!!! (@{keyword "permissive"} -- @{keyword ")"}) >> K false) true --
+    (\<^keyword>\<open>(\<close> -- Parse.!!! (\<^keyword>\<open>permissive\<close> -- \<^keyword>\<open>)\<close>) >> K false) true --
   Parse.name -- Parse.term -- Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
     -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) =>
       #1 o add_recdef p f R (map (fn ((x, y), z) => ((x, z), y)) eqs) src);
 
 val _ =
-  Outer_Syntax.command @{command_keyword recdef} "define general recursive functions (obsolete TFL)"
+  Outer_Syntax.command \<^command_keyword>\<open>recdef\<close> "define general recursive functions (obsolete TFL)"
     (recdef_decl >> Toplevel.theory);
 
 end;

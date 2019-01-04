@@ -60,8 +60,8 @@ type context = (term * term) Termtab.table * Proof.context
 
 fun init ctxt = (Termtab.empty, ctxt)
 
-fun is_quantifier (Const (@{const_name All}, _)) = true
-  | is_quantifier (Const (@{const_name Ex}, _)) = true
+fun is_quantifier (Const (\<^const_name>\<open>All\<close>, _)) = true
+  | is_quantifier (Const (\<^const_name>\<open>Ex\<close>, _)) = true
   | is_quantifier _ = false
 
 fun lift_lambdas1 is_binder basename =
