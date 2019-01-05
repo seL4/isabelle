@@ -160,7 +160,7 @@ val _ = Theory.setup
       then ML_Syntax.print_string c
       else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
 
-  ML_Antiquotation.inline \<^binding>\<open>const\<close>
+  ML_Antiquotation.inline_embedded \<^binding>\<open>const\<close>
     (Args.context -- Scan.lift (Parse.position Args.embedded_inner_syntax) -- Scan.optional
         (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
       >> (fn ((ctxt, (raw_c, pos)), Ts) =>
